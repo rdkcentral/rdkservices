@@ -54,14 +54,6 @@ if(PLUGIN_DISPLAYSETTINGS)
     add_subdirectory(DisplaySettings)
 endif()
 
-if(PLUGIN_REMOTEACTIONMAPPING)
-    add_subdirectory(RemoteActionMapping)
-endif()
-
-if(PLUGIN_CONTROLSERVICE)
-    add_subdirectory(ControlService)
-endif()
-
 if(PLUGIN_VOICECONTROL)
     add_subdirectory(VoiceControl)
 endif()
@@ -90,10 +82,6 @@ if(PLUGIN_PLUGANDPLAY)
     add_subdirectory(PlugAndPlay)
 endif()
 
-if(PLUGIN_LOGGINGPREFERENCES)
-    add_subdirectory(LoggingPreferences)
-endif()
-
 if(PLUGIN_USERPREFERENCES)
     add_subdirectory(UserPreferences)
 endif()
@@ -104,10 +92,6 @@ endif()
 
 if(PLUGIN_AVINPUT)
     add_subdirectory(AVInput)
-endif()
-
-if(PLUGIN_DATACAPTURE)
-    add_subdirectory(DataCapture)
 endif()
 
 if((DEFINED PLUGIN_FRONTPANEL AND PLUGIN_FRONTPANEL)
@@ -144,20 +128,12 @@ if(PLUGIN_WEBSOCKETPROXY)
     add_subdirectory(WebSocketProxy)
 endif()
 
-if(PLUGIN_ACTIVITYMONITOR)
-    add_subdirectory(ActivityMonitor)
-endif()
-
 if(PLUGIN_TELEMETRY)
     add_subdirectory(Telemetry)
 endif()
 
 if(PLUGIN_WAREHOUSE)
     add_subdirectory(Warehouse)
-endif()
-
-if(PLUGIN_HDMICEC)
-    add_subdirectory(HdmiCec)
 endif()
 
 if(PLUGIN_HDMICEC2)
@@ -170,14 +146,6 @@ endif()
 
 if(PLUGIN_HDMICECSINK)
     add_subdirectory(HdmiCecSink)
-endif()
-
-if(PLUGIN_LOCATIONSYNC)
-    add_subdirectory(LocationSync)
-endif()
-
-if(PLUGIN_DEVICEIDENTIFICATION)
-    add_subdirectory(DeviceIdentification)
 endif()
 
 if(PLUGIN_DEVICEINFO)
@@ -208,16 +176,8 @@ if(PLUGIN_COMPOSITEINPUT)
 	add_subdirectory(CompositeInput)
 endif()
 
-if(PLUGIN_TIMER)
-    add_subdirectory(Timer)
-endif()
-
 if(PLUGIN_SLEEPTIMER)
     add_subdirectory(SleepTimer)
-endif()
-
-if(PLUGIN_MESSENGER)
-    add_subdirectory(Messenger)
 endif()
 
 if(PLUGIN_MONITOR)
@@ -236,32 +196,16 @@ if(PLUGIN_PLAYERINFO)
     add_subdirectory(PlayerInfo)
 endif()
 
-if(PLUGIN_SECURITYAGENT)
-    add_subdirectory(SecurityAgent)
-endif()
-
 if(HAS_AUTHSERVICE)
     add_subdirectory(AuthService)
-endif()
-
-if(PLUGIN_CONTINUEWATCHING)
-    add_subdirectory(ContinueWatching)
 endif()
 
 #if(HAS_API_APPLICATION)
 #    add_subdirectory(Application)
 #endif()
 
-if(PLUGIN_STATEOBSERVER)
-    add_subdirectory(StateObserver)
-endif()
-
 if(PLUGIN_WIFIMANAGER)
     add_subdirectory(WifiManager)
-endif()
-
-if(PLUGIN_TRACECONTROL)
-    add_subdirectory(TraceControl)
 endif()
 
 if(PLUGIN_LOSTANDFOUND)
@@ -316,14 +260,6 @@ if(PLUGIN_USBACCESS)
     add_subdirectory(UsbAccess)
 endif()
 
-if(PLUGIN_DTV)
-    add_subdirectory(DTV)
-endif()
-
-if(PLUGIN_FIREBOLTMEDIAPLAYER)
-    add_subdirectory(FireboltMediaPlayer)
-endif()
-
 if(PLUGIN_WEBBRIDGE)
     add_subdirectory(WebBridge)
 endif()
@@ -340,16 +276,8 @@ if(RDK_SERVICES_TEST)
     add_subdirectory(Tests)
 endif()
 
-if(PLUGIN_PERFORMANCEMETRICS)
-    add_subdirectory(PerformanceMetrics)
-endif()
-
 if(PLUGIN_UNIFIEDCASMANAGEMENT)
     add_subdirectory(UnifiedCASManagement)
-endif()
-
-if(PLUGIN_MEDIAENGINERMF)
-    add_subdirectory(MediaEngineRMF)
 endif()
 
 if(PLUGIN_LEDCONTROL)
