@@ -1096,7 +1096,7 @@ namespace WPEFramework {
 		param.bufLen = 0;
 		//param.type = mfrSERIALIZED_TYPE_PROVISIONED_MODELNAME;
         #ifdef USE_SKY_MODEL_NAME
-            param.type = mfrSERIALIZED_TYPE_SKYMODELNAME;
+            param.type = (mfrSerializedType_t)mfrSERIALIZED_TYPE_SKYMODELNAME;
             LOGWARN("SystemServices::getModelName -- SKY MODEL Name");
         #else
             LOGWARN("SystemServices::getModelName -- MODEL Name");
@@ -1113,7 +1113,7 @@ namespace WPEFramework {
 		else{
             #ifdef USE_SKY_MODEL_NAME
 			param.bufLen = 0;
-			param.type = mfrSERIALIZED_TYPE_SKYMODELNAME;
+			param.type = (mfrSerializedType_t)mfrSERIALIZED_TYPE_SKYMODELNAME;
 			result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
 			if (result == IARM_RESULT_SUCCESS) {
 				param.buffer[param.bufLen] = '\0';
@@ -1211,7 +1211,7 @@ namespace WPEFramework {
             }
             #ifdef USE_SKY_MODEL_NAME
             else if(!parameter.compare(MODEL_NAME)){
-				param.type = mfrSERIALIZED_TYPE_SKYMODELNAME;
+				param.type =(mfrSerializedType_t) mfrSERIALIZED_TYPE_SKYMODELNAME;
 				param.bufLen = 0;
 				result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
 				if (result == IARM_RESULT_SUCCESS) {
