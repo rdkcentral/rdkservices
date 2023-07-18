@@ -84,9 +84,6 @@ option(PLUGIN_SOUNDPLAYER "PLUGIN_SOUNDPLAYER" OFF)
 add_definitions (-DENABLE_HDCP_PROFILE)
 option(ENABLE_HDCP_PROFILE "ENABLE_HDCP_PROFILE" ON)
 
-add_definitions (-DPLUGIN_ACTIVITYMONITOR)
-option(PLUGIN_ACTIVITYMONITOR "PLUGIN_ACTIVITYMONITOR" ON)
-
 add_definitions (-DPLUGIN_TELEMETRY)
 option(PLUGIN_TELEMETRY "PLUGIN_TELEMETRY" ON)
 
@@ -97,14 +94,6 @@ option(PLUGIN_TELEMETRY "PLUGIN_TELEMETRY" ON)
 #add_definitions (-DHAS_API_TTSSETTINGSSERVICE)
 #add_definitions (-DHAS_API_TTSSESSIONSERVICE)
 #add_definitions (-DHAS_API_TTSRESOURCESERVICE)
-add_definitions (-DPLUGIN_CONTINUEWATCHING)
-option(PLUGIN_CONTINUEWATCHING "PLUGIN_CONTINUEWATCHING" ON)
-
-if(PLUGIN_CONTINUEWATCHING)
-    if(CONTINUEWATCHING_DISABLE_SECAPI)
-        add_definitions (-DDISABLE_SECAPI)
-    endif()
-endif()
 
 #add_definitions (-DHAS_API_PROXIES)
 add_definitions (-DENABLE_SYSTEM_5)
@@ -125,9 +114,6 @@ if (DISABLE_GEOGRAPHY_TIMEZONE)
     add_definitions (-DDISABLE_GEOGRAPHY_TIMEZONE)
 endif()
 
-add_definitions (-DPLUGIN_STATEOBSERVER)
-option(PLUGIN_STATEOBSERVER "PLUGIN_STATEOBSERVER" ON)
-
 if (ENABLE_XCAST_PLUGIN)
     message("Enabling Xcast plugin")
     add_definitions (-DPLUGIN_XCAST)
@@ -145,9 +131,6 @@ if (ENABLE_BLUETOOTH_CONTROL)
     add_definitions (-DHAS_API_BLUETOOTH)
     option(PLUGIN_BLUETOOTH "PLUGIN_BLUETOOTH" ON)
 endif()
-
-message("Building with DataCapture support")
-option(PLUGIN_DATACAPTURE "Include DataCapture plugin" OFF)
 
 if(BUILD_ENABLE_TSB)
     message("Building with TSB")
