@@ -51,9 +51,9 @@
 #endif /* HAS_API_SYSTEM && HAS_API_POWERSTATE */
 
 #include "mfrMgr.h"
-// #ifdef USE_SKY_MODEL_NAME
-// #include "mfrSkyExtTypes.h"
-// #endif
+#ifdef USE_SKY_MODEL_NAME
+#include "mfrSkyExtTypes.h"
+#endif
 #ifdef ENABLE_DEEP_SLEEP
 #include "deepSleepMgr.h"
 #endif
@@ -1074,10 +1074,10 @@ namespace WPEFramework {
                             }
                         }
                     }
-// #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
-//                     queryParams = FRIENDLY_ID;
-//                     getModelName(queryParams, response);
-// #endif
+ #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
+                     queryParams = FRIENDLY_ID;
+                     getModelName(queryParams, response);
+ #endif
                 } else {
                     retAPIStatus = true;
                     Utils::String::trim(res);
@@ -1095,7 +1095,13 @@ namespace WPEFramework {
 		IARM_Bus_MFRLib_GetSerializedData_Param_t param;
 		param.bufLen = 0;
 		//param.type = mfrSERIALIZED_TYPE_PROVISIONED_MODELNAME;
-        param.type = mfrSERIALIZED_TYPE_SKYMODELNAME ;
+        #ifdef USE_SKY_MODEL_NAME
+            param.type = mfrSERIALIZED_TYPE_SKYMODELNAME;
+            LOGWARN("SystemServices::getModelName -- SKY MODEL Name");
+        #else
+            LOGWARN("SystemServices::getModelName -- MODEL Name");
+            param.type = mfrSERIALIZED_TYPE_MODELNAME ;
+        #endif
 		IARM_Result_t result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
 		bool status = false;
 		if (result == IARM_RESULT_SUCCESS) {
@@ -1105,9 +1111,9 @@ namespace WPEFramework {
 			status = true;
 		}
 		else{
-            //#ifdef USE_SKY_MODEL_NAME
+            #ifdef USE_SKY_MODEL_NAME
 			param.bufLen = 0;
-			param.type = mfrSERIALIZED_TYPE_MODELNAME;
+			param.type = mfrSERIALIZED_TYPE_SKYMODELNAME;
 			result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
 			if (result == IARM_RESULT_SUCCESS) {
 				param.buffer[param.bufLen] = '\0';
@@ -1115,7 +1121,7 @@ namespace WPEFramework {
 				response[parameter.c_str()] = string(param.buffer);
 				status = true;
 			} else
-            //#endif
+            #endif
             {
 				LOGWARN("Failed to get the skymodel name");
 				populateResponseWithError(SysSrv_ManufacturerDataReadFailed, response);
@@ -1203,7 +1209,7 @@ namespace WPEFramework {
 			m_ManufacturerDataHardwareIdValid = true;
 		}
             }
-            //#ifdef USE_SKY_MODEL_NAME
+            #ifdef USE_SKY_MODEL_NAME
             else if(!parameter.compare(MODEL_NAME)){
 				param.type = mfrSERIALIZED_TYPE_SKYMODELNAME;
 				param.bufLen = 0;
@@ -1219,7 +1225,7 @@ namespace WPEFramework {
 					populateResponseWithError(SysSrv_ManufacturerDataReadFailed, response);
 				}
 			}
-            //#endif
+            #endif
 			else {
                 populateResponseWithError(SysSrv_ManufacturerDataReadFailed, response);
             }
