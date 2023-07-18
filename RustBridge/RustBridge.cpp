@@ -144,17 +144,7 @@ namespace WPEFramework {
 		}
 
 		bool RustBridge::Attach(PluginHost::Channel& channel) /* override */ {
-			bool assigned = false;
-
-			// The expectation is that the JavaScript service opens up a connection to us, so we can forward the 
-			// incomming requests, to be handled by the Service.
-			if (_javascriptService == 0) {
-				if (channel.Protocol().find("json") != string::npos) {
-					_javascriptService = channel.Id();
-					assigned = true;
-				}
-			}
-			return(assigned);
+                    return true;
 		}
 
 		void RustBridge::Detach(PluginHost::Channel& channel) /* override */ {

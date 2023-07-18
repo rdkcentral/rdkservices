@@ -96,10 +96,12 @@ namespace WPEFramework {
 					return (_library.IsLoaded() == true);
 				}
 				uint32_t Initialize(const std::vector<string>& thunderPaths, const string& locator, const string& className, const string& configLine) {
-					
+					syslog(LOG_ERR,"MY_LOGG: LOAD PATHS FOR LOCATOR: %s", locator.c_str());
 					uint32_t result = Load(thunderPaths, locator);
-					
+					syslog(LOG_ERR,"MY_LOGG: RESULT: %d", (int)result);
+
 					if (result == Core::ERROR_NONE) {
+						syslog(LOG_ERR,"LIBRARY LOADED!");
 						ASSERT(_library.IsLoaded() == true);
 						ASSERT(_fn_create != nullptr);
 						ASSERT(_fn_init != nullptr);
@@ -109,16 +111,17 @@ namespace WPEFramework {
 						_plugin = _fn_create(className.c_str(), &wpe_send_to, reinterpret_cast<Rust::PluginContext*>(&_parent), _fn_service_metadata);
 
 						if (_plugin != nullptr) {
+							syslog(LOG_ERR,"PLUGIN CREATED!");
 							// TODO: indeed the initialize seems a bit redundant. Can we drop it and pass the configuration during the create?
 							_fn_init(_plugin, configLine.c_str());
 						}
 						else {
 							// Oops could not create a plugin. Send out a message
-							TRACE(Trace::Fatal, (Core::Format(_T("Creating the %s RUST plugin failed"), locator.c_str())));
+							syslog(LOG_ERR,"MY_LOGG: Creating the %s RUST plugin failed", locator.c_str());
 							result = Core::ERROR_BAD_REQUEST;
 						}
 					}					
-					
+					syslog(LOG_ERR,"MY_LOGG: Initialize result: %d", (int)result);
 					return (result);
 				}
 				uint32_t Deinitialize() {
@@ -163,14 +166,15 @@ namespace WPEFramework {
 			private:
 				uint32_t LoadLibrary(const string& name) {
 					uint32_t result = Core::ERROR_NOT_EXIST;
-					
+					syslog(LOG_ERR,"MY_LOGG: TRY TO LOAD LIBRARY: %s", name.c_str());
 					Core::File libraryToLoad(name);
 
 					if (libraryToLoad.Exists() == true) {
+						syslog(LOG_ERR,"MY_LOGG: LIBRARY EXIST!");
 						Core::Library myLib(name.c_str());
 						
 						if (myLib.IsLoaded() == false) {
-							TRACE(Trace::Fatal, (Core::Format(_T("Could not load the library: %s, error: %s"), name.c_str(), myLib.Error().c_str())));
+							syslog(LOG_ERR,"MY_LOGG: Could not load the library: %s, error: %s", name.c_str(), myLib.Error().c_str());
 							result = Core::ERROR_OPENING_FAILED;
 						}
 						else {
@@ -192,7 +196,7 @@ namespace WPEFramework {
 								result = Core::ERROR_NONE;
 							}
 							else {
-								TRACE(Trace::Fatal, (Core::Format(_T("Could not load all the symbols from library: %s"), name.c_str())));
+								syslog(LOG_ERR,"MY_LOGG: Could not load all the symbols from library: %s", name.c_str());
 								
 								_fn_create               = nullptr;
 								_fn_init                 = nullptr;
@@ -206,12 +210,13 @@ namespace WPEFramework {
 							}
 						}
 					}
+					syslog(LOG_ERR,"MY_LOGG: RETURN LoadLibrary result: %d", (int)result);
 					return (result);
 				}
 				uint32_t Load(const std::vector<string>& thunderPaths, const string& locator) {
 					
 					uint32_t result = Core::ERROR_NOT_EXIST;
-					
+					syslog(LOG_ERR,"MY_LOGG: START LOADING");
 					ASSERT (locator.empty() == false);
 					
 					// By definitions we start in the usual locations for the plugins..
@@ -277,7 +282,10 @@ namespace WPEFramework {
 			uint32_t Configure(PluginHost::IShell* framework, ICallback* callback) override {
 				uint32_t result = Core::ERROR_INCOMPLETE_CONFIG;
 				Config config;
-				
+				syslog(LOG_ERR,"MY_LOGG: framework->ConfigLine(): %s", string(framework->ConfigLine()).c_str());
+				syslog(LOG_ERR,"MY_LOGG: is callback nullptr? %d", (callback == nullptr));
+				syslog(LOG_ERR,"MY_LOGG: framework->ClassName(): %s", string(framework->ClassName()).c_str());
+				syslog(LOG_ERR,"MY_LOGG: framework->Callsign(): %s", string(framework->Callsign()).c_str());
 				config.FromString(framework->ConfigLine());
 				
 				if (callback != nullptr) {
@@ -286,31 +294,42 @@ namespace WPEFramework {
 					string className(framework->ClassName());
 
 					if (config.ModuleName.Value().empty() == true) {
+						syslog(LOG_ERR,"MY_LOGG: config.ModuleName.Value().empty() == true");
 						rustModule = framework->Callsign() + _T(".so");
 					}
 					else {
+						syslog(LOG_ERR,"MY_LOGG: config.ModuleName.Value().empty() != true");
 						rustModule = config.ModuleName.Value();
 					}
-					
+					syslog(LOG_ERR,"MY_LOGG: rustModule: %s", rustModule.c_str());
 					searchPath.push_back(framework->DataPath());
 					searchPath.push_back(framework->PersistentPath());
 					searchPath.push_back(framework->SystemRootPath());
 					searchPath.push_back(framework->VolatilePath());
-					
+					searchPath.push_back("/usr/lib/wpeframework/plugins/");
+
+					syslog(LOG_ERR,"MY_LOGG: All path to search:");
+					for (const std::string& path : searchPath) {
+						syslog(LOG_ERR,"MY_LOGG: path: %s", path.c_str());
+					}
+					syslog(LOG_ERR,"MY_LOGG: END OF PATH");
 					_callback = callback;
 
+                    syslog(LOG_ERR,"MY_LOGG: INITIALIZE");
 					result = _connector.Initialize(searchPath, rustModule, className, framework->ConfigLine());
 					
 					if (result != Core::ERROR_NONE) {
 						_callback = nullptr;
+						syslog(LOG_ERR,"MY_LOGG: FAILED RESULT: %d", (int)result);
 					}
 					else {
+						syslog(LOG_ERR,"MY_LOGG: success!");
 						_callback->AddRef();		
 						_service = framework;
 						_service->AddRef();
 					}
 				}
-				
+				syslog(LOG_ERR,"MY_LOGG: RETURN");
 				return (result);
 			}
 			

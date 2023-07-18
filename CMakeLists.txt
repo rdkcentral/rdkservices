@@ -31,7 +31,7 @@ if(COMCAST_CONFIG)
 endif()
 
 option(PLUGIN_OCICONTAINER "Include OCIContainer plugin" OFF)
-option(PLUGIN_RUSTBRIDGE "Include RustBridge plugin" OFF)
+option(PLUGIN_RUSTBRIDGE "Include RustBridge plugin" ON)
 
 if(RDK_SERVICES_TEST)
     include(tests.cmake)
