@@ -26,7 +26,6 @@
  typedef enum {
   IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE=0, /* Event status as data */
   IARM_BUS_DCM_NEW_START_TIME_EVENT, /* Payload as Time */
-  IARM_BUS_NETWORK_MANAGER_EVENT_INTERNET_CONNECTION_CHANGED,
  }IARM_Bus_MaintMGR_EventId_t;
  
  /* Notification to rdkservice over IARM */
@@ -59,9 +58,6 @@
   struct _DCM_DATA{
   char start_time[MAX_TIME_LEN];
   }startTimeUpdate;
-  struct _NETWORK_DATA{
-  char internetStatus[100];
-  }internetConnectionStatus;
   struct _MAINT_STATUS_UPDATE{
   IARM_Maint_module_status_t status;
   }maintenance_module_status;
