@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.2] - 2023-07-19
+### Change
+- Updated the name of the method as per R4 fixes
+
 ## [1.0.1] - 2023-06-05
 ### Added 
 - Added Support to build the plugin to both R4 & R2
