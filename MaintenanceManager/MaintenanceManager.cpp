@@ -845,7 +845,7 @@ namespace WPEFramework {
 	    if (strcmp(owner, IARM_BUS_NM_SRV_MGR_NAME)) {
                 if ( IARM_BUS_NETWORK_MANAGER_EVENT_INTERNET_CONNECTION_CHANGED == eventId ) {
                     string networkStatus(module_event_data->data.internetConnectionStatus.internetStatus);
-                    LOGINFO("NETWORK_MANAGER_EVENT_INTERNET_CONNECTION_CHANGED status is %s \n", networkStatus);
+                    LOGINFO("NETWORK_MANAGER_EVENT_INTERNET_CONNECTION_CHANGED status is %s \n", networkStatus.c_str());
 		}
 	    } else if (!strcmp(owner, IARM_BUS_MAINTENANCE_MGR_NAME)) {
                 if ( IARM_BUS_DCM_NEW_START_TIME_EVENT == eventId ) {
