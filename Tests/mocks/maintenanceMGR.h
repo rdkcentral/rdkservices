@@ -22,6 +22,7 @@
  #define _IARM_BUS_MAINTENANCEMGR_H
  
  #define IARM_BUS_MAINTENANCE_MGR_NAME "MaintenanceMGR"
+ #define IARM_BUS_NM_SRV_MGR_NAME "NET_SRV_MGR"
  
  typedef enum {
   IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE=0, /* Event status as data */
