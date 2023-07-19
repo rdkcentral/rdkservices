@@ -38,6 +38,7 @@
 #include <algorithm>
 
 #include "MaintenanceManager.h"
+#include "Network.h"
 
 #include "UtilsIarm.h"
 #include "UtilsJsonRpc.h"
