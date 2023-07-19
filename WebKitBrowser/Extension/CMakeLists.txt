@@ -30,7 +30,7 @@ option(PLUGIN_WEBKITBROWSER_CUSTOM_PROCESS_INFO "Enable set of custom process in
 
 add_library(${MODULE_NAME} SHARED
     main.cpp
-    WhiteListedOriginDomainsList.cpp
+    CORSWhiteListedOriginDomainsList.cpp
     MixedContentWhiteListedOriginDomainsList.cpp
     Milestone.cpp
     NotifyWPEFramework.cpp
