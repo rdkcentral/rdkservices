@@ -123,7 +123,11 @@ namespace Plugin {
             }
 
         private:
+#ifndef USE_THUNDER_R4
             virtual void* Aquire(const string& className, const uint32_t interfaceId, const uint32_t versionId)
+#else
+            virtual void* Acquire(const string& className, const uint32_t interfaceId, const uint32_t versionId)
+#endif /* USE_THUNDER_R4 */
             {
                 void* result = nullptr;
 
@@ -131,7 +135,7 @@ namespace Plugin {
                 if (((versionId == 1) || (versionId == static_cast<uint32_t>(~0))) && ((interfaceId == ::OCDM::IAccessorOCDM::ID) || (interfaceId == Core::IUnknown::ID))) {
                     // Reference count our parent
                     _parentInterface->AddRef();
-                    TRACE(Trace::Information, ("OCDM interface aquired => %p", this));
+                    TRACE(Trace::Information, ("OCDM interface acquired => %p", this));
                     // Allright, respond with the interface.
                     result = _parentInterface;
                 }
