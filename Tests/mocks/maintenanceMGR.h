@@ -60,7 +60,7 @@
   char start_time[MAX_TIME_LEN];
   }startTimeUpdate;
   struct _NETWORK_DATA{
-  String internetStatus;
+  char internetStatus[100];
   }internetConnectionStatus;
   struct _MAINT_STATUS_UPDATE{
   IARM_Maint_module_status_t status;
