@@ -3,34 +3,22 @@
 
 #include "Module.h"
 
-#include <wpe/webkit-web-extension.h>
-#include <vector>
-#include <map>
-#include <memory>
+#include "WhitelistBase.h"
 
 namespace WPEFramework {
 namespace WebKit {
 
-    class MixedContentWhiteListedOriginDomainsList {
+    class MixedContentWhiteListedOriginDomainsList final : public WhitelistBase {
     public:
-        static std::unique_ptr<MixedContentWhiteListedOriginDomainsList> Parse(const char* jsonString);
+        MixedContentWhiteListedOriginDomainsList(const char* jsonString);
+        ~MixedContentWhiteListedOriginDomainsList() {}
 
-        ~MixedContentWhiteListedOriginDomainsList()
-        {
-        }
-
-        void AddMixedContentWhitelistToWebKit(WebKitWebExtension* extension);
-
+        void AddToWebKit(WebKitWebExtension* extension);
     private:
-        typedef std::vector<std::string> Domains;
-
         MixedContentWhiteListedOriginDomainsList(const MixedContentWhiteListedOriginDomainsList&) = delete;
         MixedContentWhiteListedOriginDomainsList& operator=(const MixedContentWhiteListedOriginDomainsList&) = delete;
-        
-        MixedContentWhiteListedOriginDomainsList()
-        {
-        }
 
+        typedef std::vector<std::string> Domains;
         std::map<std::string, Domains> _whiteMap;
     };
 }

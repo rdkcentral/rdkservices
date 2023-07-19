@@ -2789,7 +2789,11 @@ static GSourceFuncs _handlerIntervention =
         {
             webkit_web_context_set_web_extensions_directory(context, browser->_extensionPath.c_str());
             // FIX it
-            GVariant* data = g_variant_new("(smsbms)", std::to_string(browser->_guid).c_str(), !browser->_config.Whitelist.Value().empty() ? browser->_config.Whitelist.Value().c_str() : nullptr, browser->_config.LogToSystemConsoleEnabled.Value(), !browser->_config.MixedContentWhitelist.Value().empty() ? browser->_config.MixedContentWhitelist.Value().c_str() : nullptr);
+            GVariant* data = g_variant_new("(smsbms)",
+                                           std::to_string(browser->_guid).c_str(), //s
+                                           !browser->_config.Whitelist.Value().empty() ? browser->_config.Whitelist.Value().c_str() : nullptr, //ms
+                                           browser->_config.LogToSystemConsoleEnabled.Value(), //b
+                                           !browser->_config.MixedContentWhitelist.Value().empty() ? browser->_config.MixedContentWhitelist.Value().c_str() : nullptr); //ms
             webkit_web_context_set_web_extensions_initialization_user_data(context, data);
         }
         static void wpeNotifyWPEFrameworkMessageReceivedCallback(WebKitUserContentManager*, WebKitJavascriptResult* message, WebKitImplementation* browser)

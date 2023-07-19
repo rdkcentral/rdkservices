@@ -6,44 +6,15 @@ using std::vector;
 namespace WPEFramework {
 namespace WebKit {
 
-    /* static */unique_ptr<MixedContentWhiteListedOriginDomainsList> MixedContentWhiteListedOriginDomainsList::Parse(const char* jsonString)
+    MixedContentWhiteListedOriginDomainsList::MixedContentWhiteListedOriginDomainsList(const char* jsonString)
     {
-        // Origin/Domain pair stored in JSON string.
-        class JSONEntry : public Core::JSON::Container {
-        private:
-            JSONEntry& operator=(const JSONEntry&) = delete;
-
-        public:
-            JSONEntry()
-                : Core::JSON::Container()
-                , Origin()
-                , Domain()
-            {
-                Add(_T("origin"), &Origin);
-                Add(_T("domain"), &Domain);
-            }
-            JSONEntry(const JSONEntry& rhs)
-                : Core::JSON::Container()
-                , Origin(rhs.Origin)
-                , Domain(rhs.Domain)
-            {
-                Add(_T("origin"), &Origin);
-                Add(_T("domain"), &Domain);
-            }
-
-        public:
-            Core::JSON::String Origin;
-            Core::JSON::ArrayType<Core::JSON::String> Domain;
-        };
-
         Core::JSON::ArrayType<JSONEntry> entries;
         entries.FromString(jsonString);
         Core::JSON::ArrayType<JSONEntry>::Iterator originIndex(entries.Elements());
-        unique_ptr<MixedContentWhiteListedOriginDomainsList> whiteList(new MixedContentWhiteListedOriginDomainsList());
 
         while (originIndex.Next() == true) {
             if ((originIndex.Current().Origin.IsSet() == true) && (originIndex.Current().Domain.IsSet() == true)) {
-                MixedContentWhiteListedOriginDomainsList::Domains& domains(whiteList->_whiteMap[originIndex.Current().Origin.Value()]);
+                MixedContentWhiteListedOriginDomainsList::Domains& domains(_whiteMap[originIndex.Current().Origin.Value()]);
 
                 Core::JSON::ArrayType<Core::JSON::String>::Iterator domainIndex(originIndex.Current().Domain.Elements());
 
@@ -52,11 +23,10 @@ namespace WebKit {
                 }
             }
         }
-        return whiteList;
     }
 
     // Adds stored entries to WebKit.
-    void MixedContentWhiteListedOriginDomainsList::AddMixedContentWhitelistToWebKit(WebKitWebExtension* extension)
+    void MixedContentWhiteListedOriginDomainsList::AddToWebKit(WebKitWebExtension* extension)
     {
         auto it = _whiteMap.begin();
 
