@@ -1509,6 +1509,7 @@ namespace WPEFramework {
             string xconfOverride; 
             if(env != "PROD")
             {
+                std::cout << "Line " << __LINE__ << ":RDK-42993: CRunScript popen change" << std::endl;
                 xconfOverride = getXconfOverrideUrl(bFileExists);
                 if(bFileExists && xconfOverride.empty())
                 {
@@ -1523,11 +1524,31 @@ namespace WPEFramework {
             }
 
             std::system("/lib/rdk/xconfImageCheck.sh  >> /opt/logs/wpeframework.log");
-
+            std::cout << "Line " << __LINE__ << ":RDK-42993: CRunScript popen change" << std::endl;
             //get xconf http code
-            string httpCodeStr = Utils::cRunScript("cat /tmp/xconf_httpcode_thunder.txt");
+            //string httpCodeStr = Utils::cRunScript("cat /tmp/xconf_httpcode_thunder.txt");
+			string filename1 = "/tmp/xconf_httpcode_thunder.txt";
+            FILE *file = NULL;
+            char buf1[1024];
+            std::string httpCodeStr;
+            //Open the file for reading
+            if ((file = fopen(filename1.c_str(), "r")) != NULL){
+				    std::cout << "Line " << __LINE__ << ":RDK-42993: CRunScript popen change" << std::endl;
+                    //Assign the content of each line to httpCodeStr
+                    while(fgets(buf1, sizeof(buf1), file) != NULL)
+                    {
+                            httpCodeStr = buf1;
+                    }
+                    fclose(file);
+            }
+            else {
+                    std::cout << "Failed to open the file" << std::endl;
+            }
+            std::cout << "Line " << __LINE__ << ":RDK-42993: CRunScript popen change" << std::endl;
+
             if(!httpCodeStr.empty())
             {
+				 LOGINFO("xconf httpCodeStr '%s'\n", httpCodeStr.c_str());
                 try
                 {
                     _fwUpdate.httpStatus = std::stoi(httpCodeStr);
