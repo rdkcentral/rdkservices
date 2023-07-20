@@ -23,6 +23,7 @@
 #include <fstream>
 
 #include <regex.h>
+#include <regex>
 #include <time.h>
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
@@ -704,14 +705,46 @@ namespace WPEFramework
                 {
                     std::string variable;
                     std::string script = "echo '" + path + "' | sed -r \"s/([^$]*)([$\\{]*)([^$\\{\\}\\/]*)(.*)/\\3/\"";
-                    variable = Utils::cRunScript(script.c_str());
+                    //variable = Utils::cRunScript(script.c_str());
+					 std::regex pattern("\\$\\{([^\\}]*)\\}");
+                    std::smatch matches;
+
+                    if (std::regex_search(path, matches, pattern)) {
+                            variable = matches[1].str();
+                            std::cout << "SETHU Extracted variable: " << variable << std::endl;
+                    } else {
+                            std::cout << "SETHU Variable extraction failed." << std::endl;
+                    }
+
                     Utils::String::trim(variable);
 
                     std::string value;
                     if (variable.length() > 0)
                     {
                         script = ". /etc/device.properties; echo \"$" + variable + "\"";
-                        value = Utils::cRunScript(script.c_str());
+                        //value = Utils::cRunScript(script.c_str());
+						const char* filename = "/etc/device.properties";
+                        std::ifstream file(filename);
+                        std::string line;
+                        std::string variableValue;
+
+                        if (file.is_open()) {
+                                while (std::getline(file, line)) {
+                                        if (line.find(variable) == 0) {
+                                                // Extract the value after the '=' sign
+                                                variableValue = line.substr(line.find("=") + 1);
+                                                break;
+                                        }
+                                }
+                                file.close();
+
+                                // Use the extracted variable value as needed
+                                value = variableValue;
+                                std::cout << "SETHU variable value: " << variable << std::endl;
+                        } else {
+                                std::cout << "Failed to open the file" << std::endl;
+                        }
+
                         Utils::String::trim(value);
                     }
 
