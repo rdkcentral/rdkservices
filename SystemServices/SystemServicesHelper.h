@@ -68,7 +68,8 @@
 #define OPT_DCM_PROPERTIES                      "/opt/dcm.properties"
 #define ETC_DCM_PROPERTIES                      "/etc/dcm.properties"
 #define TMP_DCM_SETTINGS                        "/tmp/DCMSettings.conf"
-
+#define XCONF_HTTPCODE_FILE                     "/tmp/xconf_httpcode_thunder.txt"
+#define XCONF_RESPONSE_FILE                     "/tmp/xconf_response_thunder.txt"
 
 #define MODE_TIMER_UPDATE_INTERVAL	1000
 #define CURL_BUFFER_SIZE	(64 * 1024) /* 256kB */

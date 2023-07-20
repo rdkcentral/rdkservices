@@ -1528,23 +1528,23 @@ namespace WPEFramework {
             std::cout << "Line " << __LINE__ << ":RDK-42993: CRunScript popen change" << std::endl;
             //get xconf http code
             //string httpCodeStr = Utils::cRunScript("cat /tmp/xconf_httpcode_thunder.txt");
-			string filename1 = "/tmp/xconf_httpcode_thunder.txt";
-            FILE *file = NULL;
+			string httpCodeStr;
             char buf1[1024];
-            std::string httpCodeStr;
-            //Open the file for reading
-            if ((file = fopen(XCONF_HTTPCODE_FILE, "r")) != NULL){
-				    std::cout << "Line " << __LINE__ << ":RDK-42993: CRunScript popen change" << std::endl;
-                    //Assign the content of each line to httpCodeStr
-                    while(fgets(buf1, sizeof(buf1), file) != NULL)
-                    {
-                            httpCodeStr = buf1;
-                    }
-                    fclose(file);
+            chmod( XCONF_HTTPCODE_FILE, 0777 );
+            FILE *f = fopen(XCONF_HTTPCODE_FILE, "r");
+            if(!f)
+            {
+                std::cout << "Failed to open the file" << std::endl;
             }
-            else {
-                    std::cout << "Failed to open the file" << std::endl;
+            else
+            {
+                while(fgets(buf1, sizeof(buf1), f) != NULL)
+                {
+                    httpCodeStr = buf1;
+                }
+              fclose(f);
             }
+
             std::cout << "Line " << __LINE__ << ":RDK-42993: CRunScript popen change" << std::endl;
 
             if(!httpCodeStr.empty())
@@ -1562,7 +1562,23 @@ namespace WPEFramework {
 
             LOGINFO("xconf http code %d\n", _fwUpdate.httpStatus);
 
-            response = Utils::cRunScript("cat /tmp/xconf_response_thunder.txt");
+            //response = Utils::cRunScript("cat /tmp/xconf_response_thunder.txt");
+			chmod( XCONF_RESPONSE_FILE, 0777 );
+            char buf2[1024];
+            FILE *f = fopen(XCONF_RESPONSE_FILE, "r");
+            if(!f)
+            {
+                std::cout << "Failed to open the file" << std::endl;
+            }
+            else
+            {
+                while(fgets(buf1, sizeof(buf1), f) != NULL)
+                {
+                   httpCodeStr = buf1;
+                }
+                fclose(f);
+            }
+
             LOGINFO("xconf response '%s'\n", response.c_str());
             
             if(!response.empty()) 
