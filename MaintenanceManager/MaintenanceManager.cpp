@@ -386,7 +386,7 @@ namespace WPEFramework {
                     LOGINFO("Starting Script (SM) :  %s \n",cmd.c_str());
                     system(cmd.c_str());
 
-                    LOGINFO("Waiting to unlock.. [%d/%ld]",i+1,tasks.size());
+                    LOGINFO("Waiting to unlock.. [%d/%d]",i+1,(int)tasks.size());
                     task_thread.wait(lck);
                 }
             }
