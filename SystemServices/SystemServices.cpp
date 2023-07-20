@@ -1530,13 +1530,11 @@ namespace WPEFramework {
             //string httpCodeStr = Utils::cRunScript("cat /tmp/xconf_httpcode_thunder.txt");
 			string httpCodeStr;
             char buf1[1024];
-            chmod( XCONF_HTTPCODE_FILE, 0777 );
-            FILE *f = fopen(XCONF_HTTPCODE_FILE, "r");
-            if(!f)
-            {
-                std::cout << "Failed to open the file" << std::endl;
+            if (chmod(XCONF_HTTPCODE_FILE, 07777) != 0) {
+                std::cout << "Failed to set file permissions: " << strerror(errno) << std::endl;
             }
-            else
+            FILE *f = fopen(XCONF_HTTPCODE_FILE, "r");
+            if(f)
             {
                 while(fgets(buf1, sizeof(buf1), f) != NULL)
                 {
@@ -1544,8 +1542,10 @@ namespace WPEFramework {
                 }
               fclose(f);
             }
-
-            std::cout << "Line " << __LINE__ << ":RDK-42993: CRunScript popen change" << std::endl;
+            else
+            {
+                std::cout << "Failed to open the file" << std::endl;
+            }
 
             if(!httpCodeStr.empty())
             {
@@ -1565,18 +1565,18 @@ namespace WPEFramework {
             //response = Utils::cRunScript("cat /tmp/xconf_response_thunder.txt");
 			chmod( XCONF_RESPONSE_FILE, 0777 );
             char buf2[1024];
-            FILE *f = fopen(XCONF_RESPONSE_FILE, "r");
-            if(!f)
+            f = fopen(XCONF_RESPONSE_FILE, "r");
+            if(f)
             {
-                std::cout << "Failed to open the file" << std::endl;
-            }
-            else
-            {
-                while(fgets(buf1, sizeof(buf1), f) != NULL)
+                while(fgets(buf2, sizeof(buf2), f) != NULL)
                 {
                    httpCodeStr = buf1;
                 }
                 fclose(f);
+            }
+            else
+            {
+                std::cout << "Failed to open the respose file" << std::endl;
             }
 
             LOGINFO("xconf response '%s'\n", response.c_str());
