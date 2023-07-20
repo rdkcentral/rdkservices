@@ -663,7 +663,7 @@ namespace WPEFramework
         {
             std::ifstream customDataFile(CUSTOM_DATA_FILE);
             JsonArray existedObjects;
-
+             std::cout << "Line " << __LINE__ << ":RDK-42993: CRunScript popen change" << std::endl;
             if(!customDataFile)
             {
                 LOGERR("Can't open file %s", CUSTOM_DATA_FILE);
@@ -696,13 +696,14 @@ namespace WPEFramework
                 response["files"] = existedObjects;
                 return;
             }
-
+              std::cout << "Line " << __LINE__ << ":RDK-42993: CRunScript popen change" << std::endl;
             int totalPathsCounter = 0;
             for(auto &path : listPathsToRemove)
             {
                 // if script's variable in path is empty, then skip it
                 if (path.find('$') != std::string::npos)
                 {
+					 std::cout << "Line " << __LINE__ << ":RDK-42993: CRunScript popen change" << std::endl;
                     std::string variable;
                     std::string script = "echo '" + path + "' | sed -r \"s/([^$]*)([$\\{]*)([^$\\{\\}\\/]*)(.*)/\\3/\"";
                     //variable = Utils::cRunScript(script.c_str());
@@ -785,9 +786,13 @@ namespace WPEFramework
                         maxDepth = "";
 
                     std::string script = ". /etc/device.properties; fp=\"";
+					  std::cout << "script is ->"<<script << std::endl;
                     script += path;
+					  std::cout << "script is ->"<<script << std::endl;
                     script += "\"; p=${fp%/*}; f=${fp##*/}; find $p -mindepth 1 ";
+					 std::cout << "script is ->"<<script << std::endl;
                     script += maxDepth;
+					 std::cout << "script is ->"<<script << std::endl;
                     script += "! -path \"*/\\.*\" -name \"$f\"";
 
                     for (auto i = exclusions.begin(); ++i != exclusions.end(); )
@@ -798,6 +803,7 @@ namespace WPEFramework
                         script += "$p/";
                         script += exclusion;
                         script += "\"";
+						 std::cout << "script is ->"<<script << std::endl;
                     }
 
                     script += " 2>/dev/null | head -n 10";
