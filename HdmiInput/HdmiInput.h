@@ -23,7 +23,7 @@
 
 #include "Module.h"
 #include "dsTypes.h"
-#include "rdk/tv-hal/tvTypes.h"
+#include "tvTypes.h"
 
 namespace WPEFramework {
 
