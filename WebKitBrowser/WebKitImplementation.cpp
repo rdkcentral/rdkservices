@@ -515,6 +515,7 @@ static GSourceFuncs _handlerIntervention =
                 , UserAgent()
                 , URL(_T("http://www.google.com"))
                 , Whitelist()
+                , MixedContentWhitelist()
                 , PageGroup(_T("WPEPageGroup"))
                 , CookieStorage()
                 , CloudCookieJarEnabled(false)
@@ -579,6 +580,7 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("useragent"), &UserAgent);
                 Add(_T("url"), &URL);
                 Add(_T("whitelist"), &Whitelist);
+                Add(_T("mixedcontentwhitelist"), &MixedContentWhitelist);
                 Add(_T("pagegroup"), &PageGroup);
                 Add(_T("cookiestorage"), &CookieStorage);
                 Add(_T("cloudcookiejarenabled"), &CloudCookieJarEnabled);
@@ -650,6 +652,7 @@ static GSourceFuncs _handlerIntervention =
             Core::JSON::String UserAgent;
             Core::JSON::String URL;
             Core::JSON::String Whitelist;
+            Core::JSON::String MixedContentWhitelist;
             Core::JSON::String PageGroup;
             Core::JSON::String CookieStorage;
             Core::JSON::Boolean CloudCookieJarEnabled;
@@ -2561,7 +2564,11 @@ static GSourceFuncs _handlerIntervention =
         {
             webkit_web_context_set_web_extensions_directory(context, browser->_extensionPath.c_str());
             // FIX it
-            GVariant* data = g_variant_new("(smsb)", std::to_string(browser->_guid).c_str(), !browser->_config.Whitelist.Value().empty() ? browser->_config.Whitelist.Value().c_str() : nullptr, browser->_config.LogToSystemConsoleEnabled.Value());
+            GVariant* data = g_variant_new("(smsbms)",
+                                           std::to_string(browser->_guid).c_str(), //s
+                                           !browser->_config.Whitelist.Value().empty() ? browser->_config.Whitelist.Value().c_str() : nullptr, //ms
+                                           browser->_config.LogToSystemConsoleEnabled.Value(), //b
+                                           !browser->_config.MixedContentWhitelist.Value().empty() ? browser->_config.MixedContentWhitelist.Value().c_str() : nullptr); //ms
             webkit_web_context_set_web_extensions_initialization_user_data(context, data);
         }
         static void wpeNotifyWPEFrameworkMessageReceivedCallback(WebKitUserContentManager*, WebKitJavascriptResult* message, WebKitImplementation* browser)

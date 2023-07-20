@@ -31,7 +31,8 @@
 #include "Milestone.h"
 #include "NotifyWPEFramework.h"
 #include "RequestHeaders.h"
-#include "WhiteListedOriginDomainsList.h"
+#include "CORSWhiteListedOriginDomainsList.h"
+#include "MixedContentWhiteListedOriginDomainsList.h"
 
 #ifdef ENABLE_SECURITY_AGENT
 #include "SecurityAgent.h"
@@ -98,9 +99,10 @@ public:
         _logToSystemConsoleEnabled = FALSE;
 
         const char *uid;
-        const char *whitelist;
+        const char *CORSWhitelistJSON;
+        const char *mixedContentJSON;
 
-        g_variant_get((GVariant*) userData, "(&sm&sb)", &uid, &whitelist, &_logToSystemConsoleEnabled);
+        g_variant_get((GVariant*) userData, "(&sm&sbm&s)", &uid, &CORSWhitelistJSON, &_logToSystemConsoleEnabled, &mixedContentJSON);
 
         if (_logToSystemConsoleEnabled && Core::SystemInfo::GetEnvironment(string(_T("CLIENT_IDENTIFIER")), _consoleLogPrefix))
           _consoleLogPrefix = _consoleLogPrefix.substr(0, _consoleLogPrefix.find(','));
@@ -117,11 +119,14 @@ public:
           G_CALLBACK(pageCreatedCallback),
           this);
 
-        if (whitelist != nullptr) {
-            auto list = WebKit::WhiteListedOriginDomainsList::Parse(whitelist);
-            if (list) {
-              list->AddWhiteListToWebKit(extension);
-            }
+        if (CORSWhitelistJSON != nullptr) {
+            WebKit::CORSWhiteListedOriginDomainsList whitelist(CORSWhitelistJSON);
+            whitelist.AddToWebKit(extension);
+        }
+
+        if (mixedContentJSON != nullptr) {
+            WebKit::MixedContentWhiteListedOriginDomainsList whitelist(mixedContentJSON);
+            whitelist.AddToWebKit(extension);
         }
 
 #if defined(UPDATE_TZ_FROM_FILE)

@@ -17,47 +17,33 @@
  * limitations under the License.
  */
 
-#ifndef __WHITELISTEDORIGINDOMAINSLIST_H
-#define __WHITELISTEDORIGINDOMAINSLIST_H
+#ifndef __CORSWHITELISTEDORIGINDOMAINSLIST_H
+#define __CORSWHITELISTEDORIGINDOMAINSLIST_H
 
 #include "Module.h"
 
-#include <wpe/webkit-web-extension.h>
-#include <vector>
-#include <map>
-#include <memory>
+#include "WhitelistBase.h"
 
 namespace WPEFramework {
 namespace WebKit {
 
-    class WhiteListedOriginDomainsList {
-    private:
-        WhiteListedOriginDomainsList(const WhiteListedOriginDomainsList&) = delete;
-        WhiteListedOriginDomainsList& operator=(const WhiteListedOriginDomainsList&) = delete;
-
+    class CORSWhiteListedOriginDomainsList final : public WhitelistBase {
     public:
+        CORSWhiteListedOriginDomainsList(const char* jsonString);
+        ~CORSWhiteListedOriginDomainsList() {}
+
+        void AddToWebKit(WebKitWebExtension* extension);
+    private:
+        CORSWhiteListedOriginDomainsList(const CORSWhiteListedOriginDomainsList&) = delete;
+        CORSWhiteListedOriginDomainsList& operator=(const CORSWhiteListedOriginDomainsList&) = delete;
+
         typedef std::pair<bool, string> Domain;
         typedef std::vector<Domain> Domains;
         typedef std::map<string, Domains> WhiteMap;
-
-    public:
-        static std::unique_ptr<WhiteListedOriginDomainsList> Parse(const char* whitelist);
-
-        ~WhiteListedOriginDomainsList()
-        {
-        }
-
-    public:
-        void AddWhiteListToWebKit(WebKitWebExtension* extension);
-
-    private:
-        WhiteListedOriginDomainsList()
-        {
-        }
 
         WhiteMap _whiteMap;
     };
 }
 }
 
-#endif // __WHITELISTEDORIGINDOMAINSLIST_H
+#endif // __CORSWHITELISTEDORIGINDOMAINSLIST_H
