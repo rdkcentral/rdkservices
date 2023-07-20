@@ -97,6 +97,7 @@ using namespace std;
 #define LOG_UPLOAD_STATUS_SUCCESS "UPLOAD_SUCCESS"
 #define LOG_UPLOAD_STATUS_FAILURE "UPLOAD_FAILURE"
 #define LOG_UPLOAD_STATUS_ABORTED "UPLOAD_ABORTED"
+#define XCONF_HTTPCODE_FILE "/tmp/xconf_httpcode_thunder.txt"
 
 
 /**
@@ -1532,7 +1533,7 @@ namespace WPEFramework {
             char buf1[1024];
             std::string httpCodeStr;
             //Open the file for reading
-            if ((file = fopen(filename1.c_str(), "r")) != NULL){
+            if ((file = fopen(XCONF_HTTPCODE_FILE, "r")) != NULL){
 				    std::cout << "Line " << __LINE__ << ":RDK-42993: CRunScript popen change" << std::endl;
                     //Assign the content of each line to httpCodeStr
                     while(fgets(buf1, sizeof(buf1), file) != NULL)
