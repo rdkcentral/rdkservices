@@ -70,7 +70,6 @@
 static int audio_output_delay = 100;
 static int video_latency = 20;
 #define TVMGR_GAME_MODE_EVENT "gameModeEvent"
-static bool m_subscribed = false;
 static bool lowLatencyMode = false;
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
@@ -164,7 +163,6 @@ namespace WPEFramework
 			/* Register handlers for Event reception. */
 			if(strcmp(eventName, TVMGR_GAME_MODE_EVENT) == 0) {
 				err =m_tv_client->Subscribe<JsonObject>(1000, eventName, &HdmiInput::onGameModeEventHandler, this);
-				m_subscribed = true;
 			}
 			else {
 				LOGERR("Failed to subscribe for %s with code %d", eventName, err);
@@ -1111,7 +1109,7 @@ namespace WPEFramework
            LOGINFO("calling HdmiInput::getHdmiDAL_AudioVideoLatency \n");
            try
            {
-               device::HdmiInput::getInstance().getAVLatency(&audio_output_delay,&video_latency);
+               device::HdmiInput::getInstance().getAVLatency(audio_output_delay,video_latency);
                LOGINFO("HdmiInput::getHdmiDAL_AudioVideoLatency Audio Latency: %d, Video Latency: %d\n", audio_output_delay,video_latency);
                response["AudioLatency"] = audio_output_delay;
                response["VideoLatency"] = video_latency;
