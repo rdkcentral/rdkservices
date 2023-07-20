@@ -420,6 +420,10 @@ typedef struct _DSMgr_EventData_t {
             dsHdmiInPort_t port;
             dsAviContentType_t aviContentType;
         }hdmi_in_content_type;
+	struct _HDMI_IN_AV_LATENCY{
+               int audio_output_delay;
+               int video_latency;
+        }hdmi_in_av_latency; /*HDMI in AVLatency change*/
     } data;
 } IARM_Bus_DSMgr_EventData_t;
 
@@ -578,6 +582,7 @@ public:
     virtual void getEdidVersion(int iHdmiPort, int* iEdidVersion) const = 0;
     virtual void getHdmiALLMStatus(int iHdmiPort, bool* allmStatus) const = 0;
     virtual void getSupportedGameFeatures(std::vector<std::string>& featureList) const = 0;
+    virtual void getAVLatency(int audio_output_delay, int video_latency) const = 0;
 };
 
 class HdmiInput {
