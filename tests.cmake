@@ -27,7 +27,7 @@ set(EMPTY_HEADERS_DIRS
 set(EMPTY_HEADERS
         ${BASEDIR}/audiocapturemgr/audiocapturemgr_iarm.h
         ${BASEDIR}/ccec/drivers/CecIARMBusMgr.h
-        ${BASEDIR}/rdk/ds-hal/tvTypes.h
+        ${BASEDIR}/rdk/tv-hal/tvTypes.h
         ${BASEDIR}/rdk/ds/audioOutputPort.hpp
         ${BASEDIR}/rdk/ds/compositeIn.hpp
         ${BASEDIR}/rdk/ds/dsDisplay.h
