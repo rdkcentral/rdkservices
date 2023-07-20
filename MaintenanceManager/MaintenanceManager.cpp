@@ -768,6 +768,8 @@ namespace WPEFramework {
                 IARM_CHECK(IARM_Bus_RegisterEventHandler(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, _MaintenanceMgrEventHandler));
                 //Register for setMaintenanceStartTime
                 IARM_CHECK(IARM_Bus_RegisterEventHandler(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_DCM_NEW_START_TIME_EVENT,_MaintenanceMgrEventHandler));
+                // Register for INTERNET_CONNECTION_CHANGED event
+                IARM_CHECK(IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERNET_CONNECTION_CHANGED, _MaintenanceMgrEventHandler));
 
                 maintenanceManagerOnBootup();
             }
@@ -840,7 +842,12 @@ namespace WPEFramework {
             IARM_Bus_MaintMGR_EventId_t event = (IARM_Bus_MaintMGR_EventId_t)eventId;
             LOGINFO("Maintenance Event-ID = %d \n",event);
 
-            if (!strcmp(owner, IARM_BUS_MAINTENANCE_MGR_NAME)) {
+	    if (strcmp(owner, IARM_BUS_NM_SRV_MGR_NAME)) {
+                if ( IARM_BUS_NETWORK_MANAGER_EVENT_INTERNET_CONNECTION_CHANGED == eventId ) {
+                    string networkStatus(module_event_data->data.internetConnectionStatus.internetStatus);
+                    LOGINFO("NETWORK_MANAGER_EVENT_INTERNET_CONNECTION_CHANGED status is %s \n", networkStatus.c_str());
+		}
+	    } else if (!strcmp(owner, IARM_BUS_MAINTENANCE_MGR_NAME)) {
                 if ( IARM_BUS_DCM_NEW_START_TIME_EVENT == eventId ) {
                     /* we got a new start time from DCM script */
                     string l_time(module_event_data->data.startTimeUpdate.start_time);
