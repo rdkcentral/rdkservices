@@ -28,6 +28,10 @@
 find_package(PkgConfig)
 
 if (NOT PC_WPE_WEBKIT_FOUND)
+pkg_check_modules(PC_WPE_WEBKIT wpe-webkit-1.1)
+endif()
+
+if (NOT PC_WPE_WEBKIT_FOUND)
 pkg_check_modules(PC_WPE_WEBKIT wpe-webkit-1.0)
 endif()
 

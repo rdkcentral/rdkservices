@@ -702,6 +702,30 @@
                     "mode"
                 ]
             }
-        }
+    	},
+    	"hdmiContentTypeUpdate": {
+            "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=hdmiContentTypeUpdate",
+            "summary": "Triggered whenever AV Infoframe content type changes for an HDMI Input",
+            "params": {
+                "type": "object",
+                "properties": {
+                   "id": {
+                        "summary": "Hdmi Input port ID for which content type change event received and possible values are port id 0, 1 and 2 for three Hdmi Input ports",
+                        "type": "integer",
+                        "example": 1
+		   },
+                   "aviContentType": {
+                        "summary": "new Content type received for the active hdmi input port and the possible integer values indicates following accordingly 0 - Graphics, 1 - Photo, 2 - Cinema, 3 - Game, 4 - Invalid data",
+                        "type": "integer",
+                        "example": 1
+		   }
+                },
+                "required": [
+                    "id",
+                    "aviContentType"
+                ]
+            }
+	}
     }
 }

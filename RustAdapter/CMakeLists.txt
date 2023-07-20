@@ -21,7 +21,7 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
 
-if (WITH_RPC_CONTEXT)
+if (USE_THUNDER_R4)
   set(CMAKE_CXX_FLAGS "-DJSON_RPC_CONTEXT ${CMAKE_CXX_FLAGS}")
 endif()
 

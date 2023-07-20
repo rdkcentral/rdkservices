@@ -386,7 +386,7 @@ namespace WPEFramework {
                     LOGINFO("Starting Script (SM) :  %s \n",cmd.c_str());
                     system(cmd.c_str());
 
-                    LOGINFO("Waiting to unlock.. [%d/%d]",i+1,tasks.size());
+                    LOGINFO("Waiting to unlock.. [%d/%ld]",i+1,tasks.size());
                     task_thread.wait(lck);
                 }
             }
@@ -708,7 +708,7 @@ namespace WPEFramework {
             /* add 4 checks every 30 seconds */
             int i=0;
             do{
-                network_available = checkNetwork();
+	            network_available = checkNetwork();
                 if ( !network_available ){
                     sleep(30);
                     i++;

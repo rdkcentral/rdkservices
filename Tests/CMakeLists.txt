@@ -36,6 +36,7 @@ add_executable(${PROJECT_NAME}
         mocks/Wraps.cpp
         mocks/Dobby.cpp
 	mocks/rdkshell.cpp
+		mocks/opkgMock.cpp
         )
 
 set_source_files_properties(
@@ -87,7 +88,9 @@ include_directories(../LocationSync
         ../VoiceControl
         ../ControlService
         ../RemoteActionMapping
-        ../RDKShell
+	../RDKShell
+        ../MaintenanceManager
+        ../Packager
         )
 link_directories(../LocationSync
         ../PersistentStore
@@ -125,7 +128,9 @@ link_directories(../LocationSync
         ../VoiceControl
         ../ControlService
         ../RemoteActionMapping
-        ../RDKShell
+	../RDKShell
+        ../MaintenanceManager
+        ../Packager
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -167,7 +172,9 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}VoiceControl
         ${NAMESPACE}ControlService
         ${NAMESPACE}RemoteActionMapping
-        ${NAMESPACE}RDKShell
+	${NAMESPACE}RDKShell
+        ${NAMESPACE}MaintenanceManager
+        ${NAMESPACE}Packager
         )
 
 target_include_directories(${PROJECT_NAME}
@@ -177,6 +184,7 @@ target_include_directories(${PROJECT_NAME}
         mocks
         mocks/devicesettings
         mocks/thunder
+        ${CMAKE_CURRENT_SOURCE_DIR}/../OCIContainer/stubs
         )
 
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)

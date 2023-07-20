@@ -52,6 +52,8 @@
 #include "UtilsisValidInt.h"
 #include "dsRpc.h"
 
+#include "UtilsSynchroIarm.hpp"
+
 using namespace std;
 
 #define HDMI_HOT_PLUG_EVENT_CONNECTED 0
@@ -148,6 +150,7 @@ namespace
 
 // TODO: remove this
 #define registerMethod(...) for (uint8_t i = 1; GetHandler(i); i++) GetHandler(i)->Register<JsonObject, JsonObject>(__VA_ARGS__)
+#define registerMethodLockedApi(...) for (uint8_t i = 1; GetHandler(i); i++) Utils::Synchro::RegisterLockedApiForHandler(GetHandler(i), __VA_ARGS__)
 
 namespace WPEFramework {
 
@@ -241,101 +244,102 @@ namespace WPEFramework {
 
             CreateHandler({ 2 });
 
-            registerMethod("getConnectedVideoDisplays", &DisplaySettings::getConnectedVideoDisplays, this);
-            registerMethod("getConnectedAudioPorts", &DisplaySettings::getConnectedAudioPorts, this);
-            registerMethod("setEnableAudioPort", &DisplaySettings::setEnableAudioPort, this);
-            registerMethod("getEnableAudioPort", &DisplaySettings::getEnableAudioPort, this);
-            registerMethod("getSupportedResolutions", &DisplaySettings::getSupportedResolutions, this);
-            registerMethod("getSupportedVideoDisplays", &DisplaySettings::getSupportedVideoDisplays, this);
-            registerMethod("getSupportedTvResolutions", &DisplaySettings::getSupportedTvResolutions, this);
-            registerMethod("getSupportedSettopResolutions", &DisplaySettings::getSupportedSettopResolutions, this);
-            registerMethod("getSupportedAudioPorts", &DisplaySettings::getSupportedAudioPorts, this);
-            registerMethod("getSupportedAudioModes", &DisplaySettings::getSupportedAudioModes, this);
-	    registerMethod("getAudioFormat", &DisplaySettings::getAudioFormat, this);
-            registerMethod("getZoomSetting", &DisplaySettings::getZoomSetting, this);
-            registerMethod("setZoomSetting", &DisplaySettings::setZoomSetting, this);
-            registerMethod("getCurrentResolution", &DisplaySettings::getCurrentResolution, this);
-            registerMethod("setCurrentResolution", &DisplaySettings::setCurrentResolution, this);
-            registerMethod("getSoundMode", &DisplaySettings::getSoundMode, this);
-            registerMethod("setSoundMode", &DisplaySettings::setSoundMode, this);
-            registerMethod("readEDID", &DisplaySettings::readEDID, this);
-            registerMethod("readHostEDID", &DisplaySettings::readHostEDID, this);
-            registerMethod("getActiveInput", &DisplaySettings::getActiveInput, this);
-            registerMethod("getTvHDRSupport", &DisplaySettings::getTvHDRSupport, this);
-            registerMethod("getSettopHDRSupport", &DisplaySettings::getSettopHDRSupport, this);
-            registerMethod("setVideoPortStatusInStandby", &DisplaySettings::setVideoPortStatusInStandby, this);
-            registerMethod("getVideoPortStatusInStandby", &DisplaySettings::getVideoPortStatusInStandby, this);
-            registerMethod("getCurrentOutputSettings", &DisplaySettings::getCurrentOutputSettings, this);
+            registerMethodLockedApi("getConnectedVideoDisplays", &DisplaySettings::getConnectedVideoDisplays, this);
+            registerMethodLockedApi("getConnectedAudioPorts", &DisplaySettings::getConnectedAudioPorts, this);
+            registerMethodLockedApi("setEnableAudioPort", &DisplaySettings::setEnableAudioPort, this);
+            registerMethodLockedApi("getEnableAudioPort", &DisplaySettings::getEnableAudioPort, this);
+            registerMethodLockedApi("getSupportedResolutions", &DisplaySettings::getSupportedResolutions, this);
+            registerMethodLockedApi("getSupportedVideoDisplays", &DisplaySettings::getSupportedVideoDisplays, this);
+            registerMethodLockedApi("getSupportedTvResolutions", &DisplaySettings::getSupportedTvResolutions, this);
+            registerMethodLockedApi("getSupportedSettopResolutions", &DisplaySettings::getSupportedSettopResolutions, this);
+            registerMethodLockedApi("getSupportedAudioPorts", &DisplaySettings::getSupportedAudioPorts, this);
+            registerMethodLockedApi("getSupportedAudioModes", &DisplaySettings::getSupportedAudioModes, this);
+            registerMethodLockedApi("getAudioFormat", &DisplaySettings::getAudioFormat, this);
+            registerMethodLockedApi("getZoomSetting", &DisplaySettings::getZoomSetting, this);
+            registerMethodLockedApi("setZoomSetting", &DisplaySettings::setZoomSetting, this);
+            registerMethodLockedApi("getCurrentResolution", &DisplaySettings::getCurrentResolution, this);
+            registerMethodLockedApi("setCurrentResolution", &DisplaySettings::setCurrentResolution, this);
+            registerMethodLockedApi("getSoundMode", &DisplaySettings::getSoundMode, this);
+            registerMethodLockedApi("setSoundMode", &DisplaySettings::setSoundMode, this);
+            registerMethodLockedApi("readEDID", &DisplaySettings::readEDID, this);
+            registerMethodLockedApi("readHostEDID", &DisplaySettings::readHostEDID, this);
+            registerMethodLockedApi("getActiveInput", &DisplaySettings::getActiveInput, this);
+            registerMethodLockedApi("getTvHDRSupport", &DisplaySettings::getTvHDRSupport, this);
+            registerMethodLockedApi("getSettopHDRSupport", &DisplaySettings::getSettopHDRSupport, this);
+            registerMethodLockedApi("setVideoPortStatusInStandby", &DisplaySettings::setVideoPortStatusInStandby, this);
+            registerMethodLockedApi("getVideoPortStatusInStandby", &DisplaySettings::getVideoPortStatusInStandby, this);
+            registerMethodLockedApi("getCurrentOutputSettings", &DisplaySettings::getCurrentOutputSettings, this);
 
-            Register("getVolumeLeveller", &DisplaySettings::getVolumeLeveller, this);
-            registerMethod("getBassEnhancer", &DisplaySettings::getBassEnhancer, this);
-            registerMethod("isSurroundDecoderEnabled", &DisplaySettings::isSurroundDecoderEnabled, this);
-            registerMethod("getDRCMode", &DisplaySettings::getDRCMode, this);
-            Register("getSurroundVirtualizer", &DisplaySettings::getSurroundVirtualizer, this);
-            Register("setVolumeLeveller", &DisplaySettings::setVolumeLeveller, this);
-            registerMethod("setBassEnhancer", &DisplaySettings::setBassEnhancer, this);
-            registerMethod("enableSurroundDecoder", &DisplaySettings::enableSurroundDecoder, this);
-            Register("setSurroundVirtualizer", &DisplaySettings::setSurroundVirtualizer, this);
-            registerMethod("setMISteering", &DisplaySettings::setMISteering, this);
-            registerMethod("setGain", &DisplaySettings::setGain, this);
-            registerMethod("getGain", &DisplaySettings::getGain, this);
-            registerMethod("setMuted", &DisplaySettings::setMuted, this);
-            registerMethod("getMuted", &DisplaySettings::getMuted, this);
-            registerMethod("setVolumeLevel", &DisplaySettings::setVolumeLevel, this);
-            registerMethod("getVolumeLevel", &DisplaySettings::getVolumeLevel, this);
-            registerMethod("setDRCMode", &DisplaySettings::setDRCMode, this);
-            registerMethod("getMISteering", &DisplaySettings::getMISteering, this);
-            registerMethod("setMS12AudioCompression", &DisplaySettings::setMS12AudioCompression, this);
-            registerMethod("getMS12AudioCompression", &DisplaySettings::getMS12AudioCompression, this);
-            registerMethod("setDolbyVolumeMode", &DisplaySettings::setDolbyVolumeMode, this);
-            registerMethod("getDolbyVolumeMode", &DisplaySettings::getDolbyVolumeMode, this);
-            registerMethod("setDialogEnhancement", &DisplaySettings::setDialogEnhancement, this);
-            registerMethod("getDialogEnhancement", &DisplaySettings::getDialogEnhancement, this);
-            registerMethod("setIntelligentEqualizerMode", &DisplaySettings::setIntelligentEqualizerMode, this);
-            registerMethod("getIntelligentEqualizerMode", &DisplaySettings::getIntelligentEqualizerMode, this);
-            registerMethod("setGraphicEqualizerMode", &DisplaySettings::setGraphicEqualizerMode, this);
-            registerMethod("getGraphicEqualizerMode", &DisplaySettings::getGraphicEqualizerMode, this);
-            registerMethod("setMS12AudioProfile", &DisplaySettings::setMS12AudioProfile, this);
-            registerMethod("getMS12AudioProfile", &DisplaySettings::getMS12AudioProfile, this);
-	    registerMethod("getSupportedMS12AudioProfiles", &DisplaySettings::getSupportedMS12AudioProfiles, this);
-            registerMethod("resetDialogEnhancement", &DisplaySettings::resetDialogEnhancement, this);
-            registerMethod("resetBassEnhancer", &DisplaySettings::resetBassEnhancer, this);
-            registerMethod("resetSurroundVirtualizer", &DisplaySettings::resetSurroundVirtualizer, this);
-            registerMethod("resetVolumeLeveller", &DisplaySettings::resetVolumeLeveller, this);
+            Utils::Synchro::RegisterLockedApi("getVolumeLeveller", &DisplaySettings::getVolumeLeveller, this);
+            registerMethodLockedApi("getBassEnhancer", &DisplaySettings::getBassEnhancer, this);
+            registerMethodLockedApi("isSurroundDecoderEnabled", &DisplaySettings::isSurroundDecoderEnabled, this);
+            registerMethodLockedApi("getDRCMode", &DisplaySettings::getDRCMode, this);
+            Utils::Synchro::RegisterLockedApi("getSurroundVirtualizer", &DisplaySettings::getSurroundVirtualizer, this);
+            Utils::Synchro::RegisterLockedApi("setVolumeLeveller", &DisplaySettings::setVolumeLeveller, this);
+            registerMethodLockedApi("setBassEnhancer", &DisplaySettings::setBassEnhancer, this);
+            registerMethodLockedApi("enableSurroundDecoder", &DisplaySettings::enableSurroundDecoder, this);
+            Utils::Synchro::RegisterLockedApi("setSurroundVirtualizer", &DisplaySettings::setSurroundVirtualizer, this);
+            registerMethodLockedApi("setMISteering", &DisplaySettings::setMISteering, this);
+            registerMethodLockedApi("setGain", &DisplaySettings::setGain, this);
+            registerMethodLockedApi("getGain", &DisplaySettings::getGain, this);
+            registerMethodLockedApi("setMuted", &DisplaySettings::setMuted, this);
+            registerMethodLockedApi("getMuted", &DisplaySettings::getMuted, this);
+            registerMethodLockedApi("setVolumeLevel", &DisplaySettings::setVolumeLevel, this);
+            registerMethodLockedApi("getVolumeLevel", &DisplaySettings::getVolumeLevel, this);
+            registerMethodLockedApi("setDRCMode", &DisplaySettings::setDRCMode, this);
+            registerMethodLockedApi("getMISteering", &DisplaySettings::getMISteering, this);
+            registerMethodLockedApi("setMS12AudioCompression", &DisplaySettings::setMS12AudioCompression, this);
+            registerMethodLockedApi("getMS12AudioCompression", &DisplaySettings::getMS12AudioCompression, this);
+            registerMethodLockedApi("setDolbyVolumeMode", &DisplaySettings::setDolbyVolumeMode, this);
+            registerMethodLockedApi("getDolbyVolumeMode", &DisplaySettings::getDolbyVolumeMode, this);
+            registerMethodLockedApi("setDialogEnhancement", &DisplaySettings::setDialogEnhancement, this);
+            registerMethodLockedApi("getDialogEnhancement", &DisplaySettings::getDialogEnhancement, this);
+            registerMethodLockedApi("setIntelligentEqualizerMode", &DisplaySettings::setIntelligentEqualizerMode, this);
+            registerMethodLockedApi("getIntelligentEqualizerMode", &DisplaySettings::getIntelligentEqualizerMode, this);
+            registerMethodLockedApi("setGraphicEqualizerMode", &DisplaySettings::setGraphicEqualizerMode, this);
+            registerMethodLockedApi("getGraphicEqualizerMode", &DisplaySettings::getGraphicEqualizerMode, this);
+            registerMethodLockedApi("setMS12AudioProfile", &DisplaySettings::setMS12AudioProfile, this);
+            registerMethodLockedApi("getMS12AudioProfile", &DisplaySettings::getMS12AudioProfile, this);
+            registerMethodLockedApi("getSupportedMS12AudioProfiles", &DisplaySettings::getSupportedMS12AudioProfiles, this);
+            registerMethodLockedApi("resetDialogEnhancement", &DisplaySettings::resetDialogEnhancement, this);
+            registerMethodLockedApi("resetBassEnhancer", &DisplaySettings::resetBassEnhancer, this);
+            registerMethodLockedApi("resetSurroundVirtualizer", &DisplaySettings::resetSurroundVirtualizer, this);
+            registerMethodLockedApi("resetVolumeLeveller", &DisplaySettings::resetVolumeLeveller, this);
 
-            registerMethod("setAssociatedAudioMixing", &DisplaySettings::setAssociatedAudioMixing, this);
-            registerMethod("getAssociatedAudioMixing", &DisplaySettings::getAssociatedAudioMixing, this);
-            registerMethod("setFaderControl", &DisplaySettings::setFaderControl, this);
-            registerMethod("getFaderControl", &DisplaySettings::getFaderControl, this);
-            registerMethod("setPrimaryLanguage", &DisplaySettings::setPrimaryLanguage, this);
-            registerMethod("getPrimaryLanguage", &DisplaySettings::getPrimaryLanguage, this);
-            registerMethod("setSecondaryLanguage", &DisplaySettings::setSecondaryLanguage, this);
-            registerMethod("getSecondaryLanguage", &DisplaySettings::getSecondaryLanguage, this);
+            registerMethodLockedApi("setAssociatedAudioMixing", &DisplaySettings::setAssociatedAudioMixing, this);
+            registerMethodLockedApi("getAssociatedAudioMixing", &DisplaySettings::getAssociatedAudioMixing, this);
+            registerMethodLockedApi("setFaderControl", &DisplaySettings::setFaderControl, this);
+            registerMethodLockedApi("getFaderControl", &DisplaySettings::getFaderControl, this);
+            registerMethodLockedApi("setPrimaryLanguage", &DisplaySettings::setPrimaryLanguage, this);
+            registerMethodLockedApi("getPrimaryLanguage", &DisplaySettings::getPrimaryLanguage, this);
+            registerMethodLockedApi("setSecondaryLanguage", &DisplaySettings::setSecondaryLanguage, this);
+            registerMethodLockedApi("getSecondaryLanguage", &DisplaySettings::getSecondaryLanguage, this);
 
-            registerMethod("getAudioDelay", &DisplaySettings::getAudioDelay, this);
-            registerMethod("setAudioDelay", &DisplaySettings::setAudioDelay, this);
-            registerMethod("getAudioDelayOffset", &DisplaySettings::getAudioDelayOffset, this);
-            registerMethod("setAudioDelayOffset", &DisplaySettings::setAudioDelayOffset, this);
-            registerMethod("getSinkAtmosCapability", &DisplaySettings::getSinkAtmosCapability, this);
-            registerMethod("setAudioAtmosOutputMode", &DisplaySettings::setAudioAtmosOutputMode, this);
-            registerMethod("setForceHDRMode", &DisplaySettings::setForceHDRMode, this);
-            registerMethod("getTVHDRCapabilities", &DisplaySettings::getTVHDRCapabilities, this);
-            registerMethod("isConnectedDeviceRepeater", &DisplaySettings::isConnectedDeviceRepeater, this);
-            registerMethod("getDefaultResolution", &DisplaySettings::getDefaultResolution, this);
-            registerMethod("setScartParameter", &DisplaySettings::setScartParameter, this);
-            registerMethod("getSettopMS12Capabilities", &DisplaySettings::getSettopMS12Capabilities, this);
-            registerMethod("getSettopAudioCapabilities", &DisplaySettings::getSettopAudioCapabilities, this);
-            registerMethod("setMS12ProfileSettingsOverride", &DisplaySettings::setMS12ProfileSettingsOverride,this);
+            registerMethodLockedApi("getAudioDelay", &DisplaySettings::getAudioDelay, this);
+            registerMethodLockedApi("setAudioDelay", &DisplaySettings::setAudioDelay, this);
+            registerMethodLockedApi("getAudioDelayOffset", &DisplaySettings::getAudioDelayOffset, this);
+            registerMethodLockedApi("setAudioDelayOffset", &DisplaySettings::setAudioDelayOffset, this);
+            registerMethodLockedApi("getSinkAtmosCapability", &DisplaySettings::getSinkAtmosCapability, this);
+            registerMethodLockedApi("setAudioAtmosOutputMode", &DisplaySettings::setAudioAtmosOutputMode, this);
+            registerMethodLockedApi("setForceHDRMode", &DisplaySettings::setForceHDRMode, this);
+            registerMethodLockedApi("getTVHDRCapabilities", &DisplaySettings::getTVHDRCapabilities, this);
+            registerMethodLockedApi("isConnectedDeviceRepeater", &DisplaySettings::isConnectedDeviceRepeater, this);
+            registerMethodLockedApi("getDefaultResolution", &DisplaySettings::getDefaultResolution, this);
+            registerMethodLockedApi("setScartParameter", &DisplaySettings::setScartParameter, this);
+            registerMethodLockedApi("getSettopMS12Capabilities", &DisplaySettings::getSettopMS12Capabilities, this);
+            registerMethodLockedApi("getSettopAudioCapabilities", &DisplaySettings::getSettopAudioCapabilities, this);
+            registerMethodLockedApi("setMS12ProfileSettingsOverride", &DisplaySettings::setMS12ProfileSettingsOverride,this);
 
-            GetHandler(2)->Register<JsonObject, JsonObject>("getVolumeLeveller", &DisplaySettings::getVolumeLeveller2, this);
-            GetHandler(2)->Register<JsonObject, JsonObject>("setVolumeLeveller", &DisplaySettings::setVolumeLeveller2, this);
-            GetHandler(2)->Register<JsonObject, JsonObject>("getSurroundVirtualizer", &DisplaySettings::getSurroundVirtualizer2, this);
-            GetHandler(2)->Register<JsonObject, JsonObject>("setSurroundVirtualizer", &DisplaySettings::setSurroundVirtualizer2, this);
-            registerMethod("getVideoFormat", &DisplaySettings::getVideoFormat, this);
+            Utils::Synchro::RegisterLockedApiForHandler(GetHandler(2), "getVolumeLeveller", &DisplaySettings::getVolumeLeveller2, this);
+            Utils::Synchro::RegisterLockedApiForHandler(GetHandler(2), "setVolumeLeveller", &DisplaySettings::setVolumeLeveller2, this);
+            Utils::Synchro::RegisterLockedApiForHandler(GetHandler(2), "getSurroundVirtualizer", &DisplaySettings::getSurroundVirtualizer2, this);
+            Utils::Synchro::RegisterLockedApiForHandler(GetHandler(2), "setSurroundVirtualizer", &DisplaySettings::setSurroundVirtualizer2, this);
 
-            registerMethod("setPreferredColorDepth", &DisplaySettings::setPreferredColorDepth, this);
-            registerMethod("getPreferredColorDepth", &DisplaySettings::getPreferredColorDepth, this);
-            registerMethod("getColorDepthCapabilities", &DisplaySettings::getColorDepthCapabilities, this);
+            registerMethodLockedApi("getVideoFormat", &DisplaySettings::getVideoFormat, this);
+
+            registerMethodLockedApi("setPreferredColorDepth", &DisplaySettings::setPreferredColorDepth, this);
+            registerMethodLockedApi("getPreferredColorDepth", &DisplaySettings::getPreferredColorDepth, this);
+            registerMethodLockedApi("getColorDepthCapabilities", &DisplaySettings::getColorDepthCapabilities, this);
             
 
 	    m_subscribed = false; //HdmiCecSink event subscription
@@ -583,24 +587,24 @@ namespace WPEFramework {
                 IARM_Result_t res;
                 IARM_Bus_PWRMgr_GetPowerState_Param_t param;
 
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_RX_SENSE, DisplResolutionHandler) );
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_ZOOM_SETTINGS, DisplResolutionHandler) );
+                // RegisterLockedIarmHandler(UsingClass *mutexOwner, const char *ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler)
+                IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_RX_SENSE, DisplResolutionHandler) );
+                IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_ZOOM_SETTINGS, DisplResolutionHandler) );
                 //TODO(MROLLINS) localinput.cpp has PreChange guarded with #if !defined(DISABLE_PRE_RES_CHANGE_EVENTS)
                 //Can we set it all the time from inside here and let localinput put guards around listening for our event?
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_RES_PRECHANGE,ResolutionPreChange) );
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_RES_POSTCHANGE, ResolutionPostChange) );
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
-		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG, dsHdmiEventHandler) );
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_OUT_HOTPLUG, dsHdmiEventHandler) );
-		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_FORMAT_UPDATE, formatUpdateEventHandler) );
-		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_VIDEO_FORMAT_UPDATE, formatUpdateEventHandler) );
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_ATMOS_CAPS_CHANGED, checkAtmosCapsEventHandler) );
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, powerEventHandler) );
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_PORT_STATE, audioPortStateEventHandler) );
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_ASSOCIATED_AUDIO_MIXING_CHANGED, dsSettingsChangeEventHandler) );
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_FADER_CONTROL_CHANGED, dsSettingsChangeEventHandler) );
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_PRIMARY_LANGUAGE_CHANGED, dsSettingsChangeEventHandler) );
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_SECONDARY_LANGUAGE_CHANGED, dsSettingsChangeEventHandler) );
+		IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_RES_PRECHANGE,ResolutionPreChange) );
+                IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_RES_POSTCHANGE, ResolutionPostChange) );
+                IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
+		IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG, dsHdmiEventHandler) );
+                IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_OUT_HOTPLUG, dsHdmiEventHandler) );
+		IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_FORMAT_UPDATE, formatUpdateEventHandler) );
+		IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_VIDEO_FORMAT_UPDATE, formatUpdateEventHandler) );
+                IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<DisplaySettings>(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, powerEventHandler) );
+                IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_PORT_STATE, audioPortStateEventHandler) );
+                IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_ASSOCIATED_AUDIO_MIXING_CHANGED, dsSettingsChangeEventHandler) );
+                IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_FADER_CONTROL_CHANGED, dsSettingsChangeEventHandler) );
+                IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_PRIMARY_LANGUAGE_CHANGED, dsSettingsChangeEventHandler) );
+                IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_SECONDARY_LANGUAGE_CHANGED, dsSettingsChangeEventHandler) ); 
  
                 res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_GetPowerState, (void *)&param, sizeof(param));
                 if (res == IARM_RESULT_SUCCESS)
@@ -633,21 +637,21 @@ namespace WPEFramework {
             {
                 IARM_Result_t res;
 
-                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_RX_SENSE, DisplResolutionHandler) );
-                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_ZOOM_SETTINGS, DisplResolutionHandler) );
-                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_RES_PRECHANGE, ResolutionPreChange) );
-                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_RES_POSTCHANGE, ResolutionPostChange) );
-                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
-                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG, dsHdmiEventHandler) );
-                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_OUT_HOTPLUG, dsHdmiEventHandler) );
-                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_FORMAT_UPDATE, formatUpdateEventHandler) );
-                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_VIDEO_FORMAT_UPDATE, formatUpdateEventHandler) );
-                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, powerEventHandler) );
-                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_PORT_STATE, audioPortStateEventHandler) );
-                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_ASSOCIATED_AUDIO_MIXING_CHANGED, dsSettingsChangeEventHandler) );
-                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_FADER_CONTROL_CHANGED, dsSettingsChangeEventHandler) );
-                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_PRIMARY_LANGUAGE_CHANGED, dsSettingsChangeEventHandler) );
-                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_SECONDARY_LANGUAGE_CHANGED, dsSettingsChangeEventHandler) );
+                IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_RX_SENSE, DisplResolutionHandler) );
+                IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_ZOOM_SETTINGS, DisplResolutionHandler) );
+                IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_RES_PRECHANGE, ResolutionPreChange) );
+                IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_RES_POSTCHANGE, ResolutionPostChange) );
+                IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
+                IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG, dsHdmiEventHandler) );
+                IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_OUT_HOTPLUG, dsHdmiEventHandler) );
+                IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_FORMAT_UPDATE, formatUpdateEventHandler) );
+                IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_VIDEO_FORMAT_UPDATE, formatUpdateEventHandler) );
+                IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<DisplaySettings>(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, powerEventHandler) );
+                IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_PORT_STATE, audioPortStateEventHandler) );
+                IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_ASSOCIATED_AUDIO_MIXING_CHANGED, dsSettingsChangeEventHandler) );
+                IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_FADER_CONTROL_CHANGED, dsSettingsChangeEventHandler) );
+                IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_PRIMARY_LANGUAGE_CHANGED, dsSettingsChangeEventHandler) );
+                IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_SECONDARY_LANGUAGE_CHANGED, dsSettingsChangeEventHandler) );
             }
 
             try
@@ -1026,14 +1030,26 @@ namespace WPEFramework {
                 for (size_t i = 0; i < aPorts.size(); i++)
                 {
                     device::AudioOutputPort &aPort = aPorts.at(i);
+                    string portName = aPort.getName();
                     if (aPort.isConnected())
                     {
-                        string portName = aPort.getName();
                         if((portName == "HDMI_ARC0") && (m_hdmiInAudioDeviceConnected != true)) {
                             continue;
                         }
                         vectorSet(connectedAudioPorts, portName);
                     }
+		    else if (portName == "HDMI_ARC0" && m_hdmiInAudioDeviceConnected == true && m_arcEarcAudioEnabled == false)
+		    {
+	               /* This is the case where we get ARC initiation or eARC detection done before HPD.Send connectedport update as ARC disconnected and Restart the ARC-eARC again */
+			m_hdmiInAudioDeviceConnected = false;
+			m_hdmiInAudioDevicePowerState = AUDIO_DEVICE_POWER_STATE_UNKNOWN;
+			m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
+			m_hdmiInAudioDeviceType = dsAUDIOARCSUPPORT_NONE;
+			m_AudioDeviceSADState = AUDIO_DEVICE_SAD_UNKNOWN;
+			DisplaySettings::_instance->connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, false);
+			LOGINFO("[HDMI_ARC0] sendHdmiCecSinkAudioDevicePowerOn !!! \n");
+			sendMsgToQueue(SEND_AUDIO_DEVICE_POWERON_MSG, NULL);
+		    }
                 }
             }
             catch(const device::Exception& err)
@@ -4055,7 +4071,10 @@ namespace WPEFramework {
                     }
 
                     LOGINFO("ARC Routing - %d \n", arcEnable);
-                    m_client->Invoke<JsonObject, JsonObject>(2000, "setupARCRouting", param, hdmiCecSinkResult);
+                    {
+                        Utils::Synchro::UnlockApiGuard<DisplaySettings> unlockApi;
+                        m_client->Invoke<JsonObject, JsonObject>(2000, "setupARCRouting", param, hdmiCecSinkResult);
+                    }
                     if (!hdmiCecSinkResult["success"].Boolean()) {
 			success = false;
                         LOGERR("HdmiCecSink Plugin returned error\n");
@@ -4085,8 +4104,10 @@ namespace WPEFramework {
                 else {
                     JsonObject hdmiCecSinkResult;
                     JsonObject param;
-
-                    m_client->Invoke<JsonObject, JsonObject>(2000, "getEnabled", param, hdmiCecSinkResult);
+                    {
+                        Utils::Synchro::UnlockApiGuard<DisplaySettings> unlockApi;
+                        m_client->Invoke<JsonObject, JsonObject>(2000, "getEnabled", param, hdmiCecSinkResult);
+                    }
 
 		    cecEnable = hdmiCecSinkResult["enabled"].Boolean();
 		    LOGINFO("get-cecEnabled [%d]\n",cecEnable);
@@ -4118,7 +4139,10 @@ namespace WPEFramework {
                     JsonObject hdmiCecSinkResult;
                     JsonObject param;
 
-                    m_client->Invoke<JsonObject, JsonObject>(2000, "getAudioDeviceConnectedStatus", param, hdmiCecSinkResult);
+                    {
+                        Utils::Synchro::UnlockApiGuard<DisplaySettings> unlockApi;
+                        m_client->Invoke<JsonObject, JsonObject>(2000, "getAudioDeviceConnectedStatus", param, hdmiCecSinkResult);
+                    }
 
                     hdmiAudioDeviceDetected = hdmiCecSinkResult["connected"].Boolean();
                     LOGINFO("getAudioDeviceConnectedStatus [%d]\n",hdmiAudioDeviceDetected);
@@ -4151,7 +4175,10 @@ namespace WPEFramework {
                     JsonObject param;
 
                     LOGINFO("Send Audio Device Power On !!!\n");
-                    m_client->Invoke<JsonObject, JsonObject>(2000, "sendAudioDevicePowerOnMessage", param, hdmiCecSinkResult);
+                    {
+                        Utils::Synchro::UnlockApiGuard<DisplaySettings> unlockApi;
+                        m_client->Invoke<JsonObject, JsonObject>(2000, "sendAudioDevicePowerOnMessage", param, hdmiCecSinkResult);
+                    }
                     if (!hdmiCecSinkResult["success"].Boolean()) {
                         success = false;
                         LOGERR("HdmiCecSink Plugin returned error\n");
@@ -4183,7 +4210,10 @@ namespace WPEFramework {
                     JsonObject param;
 
                     LOGINFO("Requesting Short Audio Descriptor \n");
-                    m_client->Invoke<JsonObject, JsonObject>(2000, "requestShortAudioDescriptor", param, hdmiCecSinkResult);
+                    {
+                        Utils::Synchro::UnlockApiGuard<DisplaySettings> unlockApi;
+                        m_client->Invoke<JsonObject, JsonObject>(2000, "requestShortAudioDescriptor", param, hdmiCecSinkResult);
+                    }
                     if (!hdmiCecSinkResult["success"].Boolean()) {
                         success = false;
                         LOGERR("HdmiCecSink Plugin returned error\n");
@@ -4215,7 +4245,10 @@ namespace WPEFramework {
                     JsonObject param;
 
                     LOGINFO("Requesting Audio Device power Status \n");
-                    m_client->Invoke<JsonObject, JsonObject>(2000, "requestAudioDevicePowerStatus", param, hdmiCecSinkResult);
+                    {
+                        Utils::Synchro::UnlockApiGuard<DisplaySettings> unlockApi;
+                        m_client->Invoke<JsonObject, JsonObject>(2000, "requestAudioDevicePowerStatus", param, hdmiCecSinkResult);
+                    }
                     if (!hdmiCecSinkResult["success"].Boolean()) {
                         success = false;
                         LOGERR("HdmiCecSink Plugin returned error\n");

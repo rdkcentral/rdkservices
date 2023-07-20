@@ -38,6 +38,8 @@
 #include "UtilsJsonRpc.h"
 #include "UtilssyncPersistFile.h"
 
+#include "UtilsSynchroIarm.hpp"
+
 #define HDMICEC_METHOD_SET_ENABLED "setEnabled"
 #define HDMICEC_METHOD_GET_ENABLED "getEnabled"
 #define HDMICEC_METHOD_GET_CEC_ADDRESSES "getCECAddresses"
@@ -84,6 +86,8 @@ static bool isDeviceActiveSource = false;
 #endif
 
 #define CEC_SETTING_ENABLED "cecEnabled"
+
+static const timespec hundred_ms {.tv_sec = 0, .tv_nsec = int(1e8) };
 
 namespace WPEFramework
 {
@@ -179,12 +183,12 @@ namespace WPEFramework
             cecEnableStatus = false;
             HdmiCec::_instance = this;
 
-            Register(HDMICEC_METHOD_SET_ENABLED, &HdmiCec::setEnabledWrapper, this);
-            Register(HDMICEC_METHOD_GET_ENABLED, &HdmiCec::getEnabledWrapper, this);
-            Register(HDMICEC_METHOD_GET_CEC_ADDRESSES, &HdmiCec::getCECAddressesWrapper, this);
-            Register(HDMICEC_METHOD_SEND_MESSAGE, &HdmiCec::sendMessageWrapper, this);
-            Register(HDMICEC_METHOD_GET_ACTIVE_SOURCE_STATUS, &HdmiCec::getActiveSourceStatus, this);
-            Register("getDeviceList", &HdmiCec::getDeviceList, this);
+            Utils::Synchro::RegisterLockedApi(HDMICEC_METHOD_SET_ENABLED, &HdmiCec::setEnabledWrapper, this);
+            Utils::Synchro::RegisterLockedApi(HDMICEC_METHOD_GET_ENABLED, &HdmiCec::getEnabledWrapper, this);
+            Utils::Synchro::RegisterLockedApi(HDMICEC_METHOD_GET_CEC_ADDRESSES, &HdmiCec::getCECAddressesWrapper, this);
+            Utils::Synchro::RegisterLockedApi(HDMICEC_METHOD_SEND_MESSAGE, &HdmiCec::sendMessageWrapper, this);
+            Utils::Synchro::RegisterLockedApi(HDMICEC_METHOD_GET_ACTIVE_SOURCE_STATUS, &HdmiCec::getActiveSourceStatus, this);
+            Utils::Synchro::RegisterLockedApi("getDeviceList", &HdmiCec::getDeviceList, this);
 
             physicalAddress = 0x0F0F0F0F;
 
@@ -238,10 +242,10 @@ namespace WPEFramework
             if (Utils::IARM::init())
             {
                 IARM_Result_t res;
-                //IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_DEVICESTATUSCHANGE,cecDeviceStatusEventHandler) ); // It didn't do anything in original service
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED,cecMgrEventHandler) );
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED,cecMgrEventHandler) );
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
+                //IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<HdmiCec>(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_DEVICESTATUSCHANGE,cecDeviceStatusEventHandler) ); // It didn't do anything in original service
+                IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<HdmiCec>(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED,cecMgrEventHandler) );
+                IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<HdmiCec>(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED,cecMgrEventHandler) );
+                IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<HdmiCec>(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
             }
         }
 
@@ -250,10 +254,10 @@ namespace WPEFramework
             if (Utils::IARM::isConnected())
             {
                 IARM_Result_t res;
-                //IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_DEVICESTATUSCHANGE, cecDeviceStatusEventHandler) );
-                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED, cecMgrEventHandler) );
-                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED, cecMgrEventHandler) );
-                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
+		//IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<HdmiCec>(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_DEVICESTATUSCHANGE, cecDeviceStatusEventHandler) );
+                IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<HdmiCec>(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED,cecMgrEventHandler) );
+                IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<HdmiCec>(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED,cecMgrEventHandler) );
+                IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<HdmiCec>(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
             }
         }
 
@@ -543,6 +547,7 @@ namespace WPEFramework
                 if (m_UpdateThread.get().joinable()) {//Join thread to make sure it's deleted before moving on.
                     m_UpdateThread.get().join();
                 }
+
                 LOGWARN("Deleted update Thread %p", smConnection );
 
 
@@ -1050,7 +1055,7 @@ namespace WPEFramework
 			return;
 		if(!(_instance->smConnection))
 			return;
-		LOGINFO("Entering ThreadRun: _instance->m_pollThreadExit %d",_instance->m_pollThreadExit);
+		LOGINFO("Entering ThreadRun: _instance->m_pollThreadExit %d",_instance->m_pollThreadExit.load());
 		int i = 0;
 		pthread_mutex_lock(&(_instance->m_lock));//pthread_cond_wait should be mutex protected. //pthread_cond_wait will unlock the mutex and perfoms wait for the condition.
 		while (!_instance->m_pollThreadExit) {
@@ -1067,7 +1072,7 @@ namespace WPEFramework
 				pthread_cond_signal(&(_instance->m_condSigUpdate));
 			}
 			//Wait for mutex signal here to continue the worker thread again.
-			pthread_cond_wait(&(_instance->m_condSig), &(_instance->m_lock));
+			while (!_instance->m_pollThreadExit && ETIMEDOUT == pthread_cond_timedwait(&(_instance->m_condSig), &(_instance->m_lock), &hundred_ms));
 
 		}
 		pthread_mutex_unlock(&(_instance->m_lock));
@@ -1080,13 +1085,13 @@ namespace WPEFramework
 			return;
 		if(!(_instance->smConnection))
 			return;
-		LOGINFO("Entering ThreadUpdate: _instance->m_updateThreadExit %d",_instance->m_updateThreadExit);
+		LOGINFO("Entering ThreadUpdate: _instance->m_updateThreadExit %d",_instance->m_updateThreadExit.load());
 		int i = 0;
 		pthread_mutex_lock(&(_instance->m_lockUpdate));//pthread_cond_wait should be mutex protected. //pthread_cond_wait will unlock the mutex and perfoms wait for the condition.
 		while (!_instance->m_updateThreadExit) {
 			//Wait for mutex signal here to continue the worker thread again.
-			pthread_cond_wait(&(_instance->m_condSigUpdate), &(_instance->m_lockUpdate));
-
+			while (!_instance->m_updateThreadExit && ETIMEDOUT == pthread_cond_timedwait(&(_instance->m_condSigUpdate), &(_instance->m_lockUpdate), &hundred_ms));
+			if (_instance->m_updateThreadExit) break;
 			LOGINFO("Starting cec device update check");
 			for(i=0; ((i< LogicalAddress::UNREGISTERED)&&(!_instance->m_updateThreadExit)); i++ ) {
 				//If details are not updated. update now.
@@ -1103,7 +1108,6 @@ namespace WPEFramework
 								usleep (100 * 1000); //sleep for 100 milli sec
 								iCounter ++;
 							}
-
 							HdmiCec::_instance->requestOsdName (i);
 							retry = true;
 						}

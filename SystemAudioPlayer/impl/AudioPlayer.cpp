@@ -350,8 +350,8 @@ void AudioPlayer::createPipeline(bool smartVolumeEnable)
             g_object_set(G_OBJECT(m_audioSink), "tts-mode", TRUE, NULL);
             #endif
         }
-        GstElement *wavparser = gst_element_factory_make("wavparse", NULL);
         #if defined(PLATFORM_AMLOGIC)
+        GstElement *wavparser = gst_element_factory_make("wavparse", NULL);
         if(smartVolumeEnable)
         {
            gst_bin_add_many(GST_BIN(m_pipeline), m_source, wavparser, m_audioCutter, convert, resample, m_audioSink, NULL);
@@ -363,9 +363,11 @@ void AudioPlayer::createPipeline(bool smartVolumeEnable)
            result = gst_element_link_many (m_source,wavparser,convert,resample,m_audioSink,NULL);
         }
         #elif defined(PLATFORM_REALTEK)
+        GstElement *wavparser = gst_element_factory_make("wavparse", NULL);
         gst_bin_add_many(GST_BIN(m_pipeline), m_source, wavparser, convert, resample,audiofilter,m_audioVolume,m_audioSink, NULL);
         result = gst_element_link_many (m_source,wavparser,convert,resample,audiofilter,m_audioVolume,m_audioSink,NULL);
         #elif defined(PLATFORM_BROADCOM)
+        GstElement *wavparser = gst_element_factory_make("wavparse", NULL);
         gst_bin_add_many(GST_BIN(m_pipeline), m_source, wavparser, m_audioSink, NULL);
         result = gst_element_link_many (m_source,wavparser,m_audioSink,NULL);
         #endif
@@ -382,8 +384,8 @@ void AudioPlayer::createPipeline(bool smartVolumeEnable)
             g_object_set(G_OBJECT(m_audioSink), "direct-mode", FALSE, NULL);
             #endif
         }
-        GstElement *parser = gst_element_factory_make("mpegaudioparse", NULL);
         #if defined(PLATFORM_AMLOGIC)
+        GstElement *parser = gst_element_factory_make("mpegaudioparse", NULL);
         GstElement *decodebin = gst_element_factory_make("avdec_mp3", NULL);
 	gst_bin_add_many(GST_BIN(m_pipeline), m_source, parser, decodebin, convert, resample, m_audioSink, NULL);
         result &= gst_element_link (m_source, parser);
@@ -400,10 +402,12 @@ void AudioPlayer::createPipeline(bool smartVolumeEnable)
         result &= gst_element_link (convert, resample);
         result &= gst_element_link (resample, m_audioSink);
         #elif defined(PLATFORM_REALTEK)
+        GstElement *parser = gst_element_factory_make("mpegaudioparse", NULL);
         GstElement *decodebin = gst_element_factory_make("avdec_mp3", NULL);
         gst_bin_add_many(GST_BIN(m_pipeline), m_source, parser, convert, resample, audiofilter, decodebin, m_audioSink, m_audioVolume, NULL);
         gst_element_link_many (m_source, parser, decodebin, convert, resample, audiofilter, m_audioVolume, m_audioSink, NULL);
         #elif defined(PLATFORM_BROADCOM)
+        GstElement *parser = gst_element_factory_make("mpegaudioparse", NULL);
         GstElement *decodebin = gst_element_factory_make("brcmmp3decoder", NULL);
         gst_bin_add_many(GST_BIN(m_pipeline), m_source, parser, decodebin, m_audioSink, NULL);
         gst_element_link_many (m_source, parser, decodebin, m_audioSink, NULL);

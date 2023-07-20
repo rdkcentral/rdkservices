@@ -33,6 +33,8 @@
 #include "FloatingRtFunctionsMock.h"
 #include "RtObjectRefMock.h"
 #include "RtArrayObjectMock.h"
+#include "ServiceMock.h"
+#include "DispatcherMock.h"
 
 //Required, xdialCastObj cannot be moved into the .h, as we don't 
 //want header includes to have access to the object
@@ -111,7 +113,7 @@ protected:
     NiceMock<rtObjectRefMock> rtRefMock;
     NiceMock<rtArrayObjectMock> rtArrayMock;
 
-
+    NiceMock<ServiceMock> service;
     XCastInitializedTest()
         : XCastTest()
     {
@@ -121,6 +123,13 @@ protected:
         floatingRtFunctions::getInstance().impl = &rtFloatingMock;
         RfcApi::getInstance().impl = &rfcApiImplMock;
         rtArrayObject::getInstance().impl = &rtArrayMock;
+
+        EXPECT_CALL(service, QueryInterfaceByCallsign(::testing::_, ::testing::_))
+            .Times(::testing::AnyNumber())
+            .WillRepeatedly(::testing::Invoke(
+                [&](const uint32_t, const string& name) -> void* {
+                    return nullptr;
+                }));
         
         ON_CALL(rtFloatingMock, rtRemoteLocateObject(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
@@ -167,7 +176,7 @@ protected:
                 return RT_OK;
             }); 
 
-        EXPECT_EQ(string(""), plugin->Initialize(nullptr));
+        EXPECT_EQ(string(""), plugin->Initialize(&service));
 
         //Wait until threads populate xdialCastObj.
         int iCounter = 0;
@@ -182,7 +191,7 @@ protected:
     }
     virtual ~XCastInitializedTest() override
     {
-        plugin->Deinitialize(nullptr);
+        plugin->Deinitialize(&service);
         RfcApi::getInstance().impl = nullptr;
         floatingRtFunctions::getInstance().impl = nullptr;
         rtObjectBase::getInstance().impl = nullptr;

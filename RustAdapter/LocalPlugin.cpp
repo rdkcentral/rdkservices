@@ -288,3 +288,10 @@ WPEFramework::Plugin::Rust::LocalPlugin::Information() const
 {
   return { };
 }
+
+#if THUNDER_VERSION == 4
+void WPEFramework::Plugin::Rust::LocalPlugin::Close(const uint32_t channelId) /* override */
+{
+  return;
+}
+#endif /* THUNDER_VERSION */

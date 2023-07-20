@@ -15,6 +15,14 @@ All notable changes to this RDK Service will be documented in this file.
 * Changes in CHANGELOG should be updated when commits are added to the main or release branches. There should be one CHANGELOG entry per JIRA Ticket. This is not enforced on sprint branches since there could be multiple changes for the same JIRA ticket during development. 
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
+## [1.0.14] - 2023-07-11
+### Fixed
+- XCast limit payload to avoid overflow
+
+## [1.0.13] - 2023-07-05
+### Fixed
+- Fixed code to use Sssystem Plugin API for  get and set friendly name of the device.
+
 ## [1.0.12] - 2023-04-11
 ### Fixed
 - Removed CJson dependency from XCast plugin.
