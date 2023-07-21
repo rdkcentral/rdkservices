@@ -1527,7 +1527,8 @@ namespace WPEFramework {
             std::system("/lib/rdk/xconfImageCheck.sh  >> /opt/logs/wpeframework.log");
             std::cout << "Line " << __LINE__ << ":RDK-42993: CRunScript popen change" << std::endl;
             //get xconf http code
-            //string httpCodeStr = Utils::cRunScript("cat /tmp/xconf_httpcode_thunder.txt");
+            string httpCodeStr = Utils::cRunScript("cat /tmp/xconf_httpcode_thunder.txt");
+			#if 0
 			string httpCodeStr;
             char buf1[1024];
             if (chmod(XCONF_HTTPCODE_FILE, 07777) != 0) {
@@ -1546,7 +1547,8 @@ namespace WPEFramework {
             {
                 std::cout << "Failed to open the file" << std::endl;
             }
-
+            #endif
+			std::cout << "Line " << __LINE__ << ":RDK-42993: CRunScript popen change" << std::endl;
             if(!httpCodeStr.empty())
             {
 				 LOGINFO("xconf httpCodeStr '%s'\n", httpCodeStr.c_str());
@@ -1562,7 +1564,8 @@ namespace WPEFramework {
 
             LOGINFO("xconf http code %d\n", _fwUpdate.httpStatus);
 
-            //response = Utils::cRunScript("cat /tmp/xconf_response_thunder.txt");
+            response = Utils::cRunScript("cat /tmp/xconf_response_thunder.txt");
+			#if 0
 			chmod( XCONF_RESPONSE_FILE, 0777 );
             char buf2[1024];
             f = fopen(XCONF_RESPONSE_FILE, "r");
@@ -1578,11 +1581,13 @@ namespace WPEFramework {
             {
                 std::cout << "Failed to open the respose file" << std::endl;
             }
-
-            LOGINFO("xconf response '%s'\n", response.c_str());
+            #endif
+			std::cout << "Line " << __LINE__ << ":RDK-42993: CRunScript popen change" << std::endl;
+            
             
             if(!response.empty()) 
-            {
+            {   
+		        LOGINFO("xconf response '%s'\n", response.c_str());
                 JsonObject httpResp;
                 if(httpResp.FromString(response))
                 {
