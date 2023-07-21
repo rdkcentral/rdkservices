@@ -874,7 +874,6 @@ static GSourceFuncs _handlerIntervention =
             , _lastDumpTime(g_get_monotonic_time())
             , _userScript()
             , _userStyleSheet()
-            , _allowMixedContent(true)
         {
             // Register an @Exit, in case we are killed, with an incorrect ref count !!
             if (atexit(CloseDown) != 0) {
@@ -909,50 +908,22 @@ static GSourceFuncs _handlerIntervention =
         }
 
     public:
-        uint32_t SecurityProfile(string& profile) const override { return Core::ERROR_UNAVAILABLE; }
-        uint32_t SecurityProfile(const string& profile) override { return Core::ERROR_UNAVAILABLE; }
+        uint32_t SecurityProfile(string& profile) const override
+        {
+            profile = "strict";
+            return Core::ERROR_NONE;
+        }
+        uint32_t SecurityProfile(const string& profile) override { return Core::ERROR_NONE; }
 
         uint32_t MixedContentPolicy(MixedContentPolicyType& policy) const override
         {
-            _adminLock.Lock();
-            policy = _allowMixedContent ? MixedContentPolicyType::ALLOWED : MixedContentPolicyType::BLOCKED;
-            _adminLock.Unlock();
+            policy = MixedContentPolicyType::BLOCKED;
             return Core::ERROR_NONE;
         }
 
         uint32_t MixedContentPolicy(const MixedContentPolicyType policy) override
         {
-            if (_context == nullptr) {
-                return Core::ERROR_GENERAL;
-            }
-
-            const auto allowMixedContent = (policy == MixedContentPolicyType::ALLOWED);
-
-            using SetMixedContentPolicyData = std::tuple<WebKitImplementation*, bool>;
-            auto* data = new SetMixedContentPolicyData(this, allowMixedContent);
-            g_main_context_invoke_full(
-                _context,
-                G_PRIORITY_DEFAULT,
-                [](gpointer customdata) -> gboolean {
-                    auto& data = *static_cast<SetMixedContentPolicyData*>(customdata);
-                    WebKitImplementation* object = std::get<0>(data);
-                    const bool allowMixedContent = std::get<1>(data);
-
-                    object->_adminLock.Lock();
-                    object->_allowMixedContent = allowMixedContent;
-                    object->_adminLock.Unlock();
-
-                    SYSLOG_GLOBAL(Logging::Notification, (_T("Mixed content is %s\n"), (allowMixedContent ? "allowed" : "blocked")));
-                    WebKitSettings* settings = webkit_web_view_get_settings(object->_view);
-                    g_object_set(G_OBJECT(settings),
-                        "allow-running-of-insecure-content", allowMixedContent,
-                        "allow-display-of-insecure-content", allowMixedContent, nullptr);
-                    return G_SOURCE_REMOVE;
-                },
-                data,
-                [](gpointer customdata) {
-                    delete static_cast<SetMixedContentPolicyData*>(customdata);
-                });
+            SYSLOG_GLOBAL(Logging::Notification, (_T("Mixed content policy has NOT been changed\n")));
             return Core::ERROR_NONE;
         }
 
@@ -3118,17 +3089,17 @@ static GSourceFuncs _handlerIntervention =
             webkit_settings_set_enable_webaudio(preferences, _config.WebAudioEnabled.Value());
 
             // Allow mixed content.
-            _allowMixedContent = !_config.Secure.Value();
-            SYSLOG(Logging::Notification, (_T("Mixed content is %s\n"), (_allowMixedContent ? "allowed" : "blocked")));
+            bool allowMixedContent = !_config.Secure.Value();
+            SYSLOG(Logging::Notification, (_T("Mixed content is %s\n"), (allowMixedContent ? "allowed" : "blocked")));
 #if WEBKIT_CHECK_VERSION(2, 38, 0)
             g_object_set(G_OBJECT(preferences),
-                     "disable-web-security", _allowMixedContent,
-                     "allow-running-of-insecure-content", _allowMixedContent,
-                     "allow-display-of-insecure-content", _allowMixedContent, nullptr);
+                     "disable-web-security", allowMixedContent,
+                     "allow-running-of-insecure-content", allowMixedContent,
+                     "allow-display-of-insecure-content", allowMixedContent, nullptr);
 #else
             g_object_set(G_OBJECT(preferences),
-                     "allow-running-of-insecure-content", _allowMixedContent,
-                     "allow-display-of-insecure-content", _allowMixedContent, nullptr);
+                     "allow-running-of-insecure-content", allowMixedContent,
+                     "allow-display-of-insecure-content", allowMixedContent, nullptr);
 #endif
             _view = WEBKIT_WEB_VIEW(g_object_new(WEBKIT_TYPE_WEB_VIEW,
                 "backend", webkit_web_view_backend_new(wpe_view_backend_create(), nullptr, nullptr),
@@ -3716,7 +3687,6 @@ static GSourceFuncs _handlerIntervention =
         gint64 _lastDumpTime;
         string _userScript;
         string _userStyleSheet;
-        bool _allowMixedContent;
     };
 
     SERVICE_REGISTRATION(WebKitImplementation, 1, 0);
