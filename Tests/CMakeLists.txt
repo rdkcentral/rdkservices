@@ -44,6 +44,7 @@ set_source_files_properties(
         tests/test_SystemServices.cpp
         tests/test_Warehouse.cpp
         tests/test_HdmiCecSink.cpp
+	tests/test_HdmiInput.cpp
         PROPERTIES COMPILE_FLAGS "-fexceptions")
 
 include_directories(../LocationSync
