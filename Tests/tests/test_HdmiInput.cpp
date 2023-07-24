@@ -412,7 +412,6 @@ TEST_F(HdmiInputInitializedEventDsTest, onDevicesChanged)
 
     handler.Unsubscribe(0, _T("onDevicesChanged"), _T("client.events.onDevicesChanged"), message); 
 }
-#endif
 
 TEST_F(HdmiInputInitializedEventDsTest, onInputStatusChangeOn)
 {
@@ -452,6 +451,7 @@ TEST_F(HdmiInputInitializedEventDsTest, onInputStatusChangeOff)
     dsHdmiStatusEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS, &eventData , 0);
     handler.Unsubscribe(0, _T("onInputStatusChanged"), _T("client.events.onInputStatusChanged"), message); 
 }
+#endif
 TEST_F(HdmiInputInitializedEventDsTest, onSignalChangedStable)
 {
    ASSERT_TRUE(dsHdmiSignalStatusEventHandler != nullptr);
