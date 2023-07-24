@@ -56,6 +56,11 @@ protected:
     IARM_EventHandler_t dsHdmiVideoModeEventHandler;
     IARM_EventHandler_t dsHdmiGameFeatureStatusEventHandler;
 
+    ServiceMock service;
+    Core::JSONRPC::Message message;
+    FactoriesImplementation factoriesImplementation;
+    PluginHost::IDispatcher* dispatcher;
+  
     HdmiInputInitializedTest()
         : HdmiInputTest()
     {
@@ -86,12 +91,21 @@ protected:
                     }
                     return IARM_RESULT_SUCCESS;
                 }));
+	        PluginHost::IFactories::Assign(&factoriesImplementation);
 
-        EXPECT_EQ(string(""), plugin->Initialize(nullptr));
+        dispatcher = static_cast<PluginHost::IDispatcher*>(
+            plugin->QueryInterface(PluginHost::IDispatcher::ID));
+        dispatcher->Activate(&service);
+
+        EXPECT_EQ(string(""), plugin->Initialize(&service));
     }
     virtual ~HdmiInputInitializedTest() override
     {
         plugin->Deinitialize(nullptr);
+        dispatcher->Deactivate();
+        dispatcher->Release();
+
+        PluginHost::IFactories::Assign(nullptr);
 
         IarmBus::getInstance().impl = nullptr;
     }
@@ -382,7 +396,6 @@ TEST_F(HdmiInputDsTest, getHdmiGameFeatureStatusInvalidFeature)
     EXPECT_EQ(response, string("")); 
 }
 
-#if 0
 TEST_F(HdmiInputInitializedEventDsTest, onDevicesChanged)
 {
    ASSERT_TRUE(dsHdmiEventHandler != nullptr);
@@ -451,7 +464,6 @@ TEST_F(HdmiInputInitializedEventDsTest, onInputStatusChangeOff)
     dsHdmiStatusEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS, &eventData , 0);
     handler.Unsubscribe(0, _T("onInputStatusChanged"), _T("client.events.onInputStatusChanged"), message); 
 }
-#endif
 TEST_F(HdmiInputInitializedEventDsTest, onSignalChangedStable)
 {
    ASSERT_TRUE(dsHdmiSignalStatusEventHandler != nullptr);
