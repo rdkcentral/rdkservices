@@ -397,7 +397,7 @@
             }
         },
         "setConnectivityTestEndpoints":{
-            "summary": "Sets the default list of endpoints used for a connectivity test. Maximum number of endpoints is 5.",
+            "summary": "Set the list of endpoints used for a connectivity test. Endpoint should return HTTP Status 204 (No Content) for successful connection and Maximum number of endpoints is 5",
             "params": {
                 "type":"object",
                 "properties": {
