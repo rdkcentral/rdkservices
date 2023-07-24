@@ -45,7 +45,7 @@ string SatToken::getSecurityToken()
     }
 
     if(endpoint.empty()) {
-        Core::File file("/etc/WPEFramework/config.json", false);
+        Core::File file("/etc/WPEFramework/config.json");
         if(file.Open(true)) {
             JsonObject config;
             if(config.IElement::FromFile(file)) {
