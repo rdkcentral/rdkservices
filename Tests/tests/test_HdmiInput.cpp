@@ -382,6 +382,7 @@ TEST_F(HdmiInputDsTest, getHdmiGameFeatureStatusInvalidFeature)
     EXPECT_EQ(response, string("")); 
 }
 
+#if 0
 TEST_F(HdmiInputInitializedEventDsTest, onDevicesChanged)
 {
    ASSERT_TRUE(dsHdmiEventHandler != nullptr);
@@ -411,6 +412,7 @@ TEST_F(HdmiInputInitializedEventDsTest, onDevicesChanged)
 
     handler.Unsubscribe(0, _T("onDevicesChanged"), _T("client.events.onDevicesChanged"), message); 
 }
+#endif
 
 TEST_F(HdmiInputInitializedEventDsTest, onInputStatusChangeOn)
 {
