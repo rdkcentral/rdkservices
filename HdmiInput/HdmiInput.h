@@ -111,7 +111,8 @@ namespace WPEFramework {
             static void dsHdmiAVLatencyEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
 	    void reportLatencyInfoToHdmiCecSink();
-	     void onGameModeEventHandler(const JsonObject& parameters);
+            void onGameModeEventHandler(const JsonObject& parameters);
+	    uint32_t subscribeForTvMgrEvent(const char* eventName);	
 	public:
             HdmiInput();
             virtual ~HdmiInput();
