@@ -32,6 +32,7 @@ endif()
 
 option(PLUGIN_OCICONTAINER "Include OCIContainer plugin" OFF)
 option(PLUGIN_RUSTBRIDGE "Include RustBridge plugin" OFF)
+option(PLUGIN_RIOTCONTROL "Include IOTControl plugin" OFF)
 
 if(RDK_SERVICES_TEST)
     include(tests.cmake)
@@ -370,6 +371,9 @@ endif()
 
 if (PLUGIN_RESOURCEMANAGER)
     add_subdirectory(ResourceManager)
+endif()
+if (PLUGIN_RIOTCONTROL)
+add_subdirectory(IOTControl)
 endif()
 
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)

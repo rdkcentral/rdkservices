@@ -1,0 +1,13 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/plugin.schema.json",
+    "info": {
+      "title": "IOTControl Plugin",
+      "callsign": "org.rdk.IOTControl",
+      "locator": "libWPEFrameworkIOTControl.so",
+      "status": "production",
+      "description": "The `IOTControl` plugin allows you to control IoT devices in your local network."
+    },
+    "interface": {
+      "$ref": "IOTControl.json#"
+    }
+}

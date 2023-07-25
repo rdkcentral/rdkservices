@@ -1,0 +1,9 @@
+{
+ "locator":"libWPEFrameworkIOTControl.so",
+ "classname":"IOTControl",
+ "precondition":[
+  "Platform"
+ ],
+ "callsign":"org.rdk.IOTControl",
+ "autostart":false
+}
