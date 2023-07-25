@@ -148,9 +148,9 @@ namespace WPEFramework
             uint32_t err = Core::ERROR_NONE;
             LOGINFO("Attempting to subscribe for event: %s\n", eventName);
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(SERVER_DETAILS)));
-            if (nullptr == m_client) {
+            if (nullptr == m_tv_client) {
                 getControlSettingsPlugin();
-                if (nullptr == m_client) {
+                if (nullptr == m_tv_client) {
                     LOGERR("JSONRPC: %s: client initialization failed", TVSETTINGS_CALLSIGN_VER);
                     err = Core::ERROR_UNAVAILABLE;
                 }
