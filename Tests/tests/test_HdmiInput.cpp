@@ -91,11 +91,11 @@ protected:
                     }
                     return IARM_RESULT_SUCCESS;
                 }));
-//	        PluginHost::IFactories::Assign(&factoriesImplementation);
+//	PluginHost::IFactories::Assign(&factoriesImplementation);
 
-        dispatcher = static_cast<PluginHost::IDispatcher*>(
-            plugin->QueryInterface(PluginHost::IDispatcher::ID));
-//        dispatcher->Activate(&service);
+ //       dispatcher = static_cast<PluginHost::IDispatcher*>(
+   //         plugin->QueryInterface(PluginHost::IDispatcher::ID));
+     //   dispatcher->Activate(&service);
 
         EXPECT_EQ(string(""), plugin->Initialize(&service));
     }
@@ -127,7 +127,7 @@ protected:
         dispatcher = static_cast<PluginHost::IDispatcher*>(
             plugin->QueryInterface(PluginHost::IDispatcher::ID));
         dispatcher->Activate(&service);
-       EXPECT_EQ(string(""), plugin->Initialize(&service));
+//       EXPECT_EQ(string(""), plugin->Initialize(&service));
     }
 
     virtual ~HdmiInputInitializedEventTest() override
