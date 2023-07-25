@@ -381,11 +381,12 @@ namespace WPEFramework {
             string value;
             int state;
 
-            LOGINFO("Received onInternetStatusChange event: [%s:%d]", value.c_str(), state);
-            if (g_listen_to_nwevents) {
-                if (parameters.HasLabel("status") && parameters.HasLabel("state")) {
-                    value = parameters["status"].String();
-                    state = parameters["state"].Number();
+            if (parameters.HasLabel("status") && parameters.HasLabel("state")) {
+                value = parameters["status"].String();
+                state = parameters["state"].Number();
+
+                LOGINFO("Received onInternetStatusChange event: [%s:%d]", value.c_str(), state);
+                if (g_listen_to_nwevents) {
 
                     if (state == INTERNET_CONNECTED_STATE) {
                         // Trigger Critical tasks like Dcm and xconf once device get connected to internet
