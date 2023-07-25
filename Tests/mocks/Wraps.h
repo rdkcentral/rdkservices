@@ -9,6 +9,7 @@ public:
 
     virtual int system(const char* command) = 0;
     virtual FILE* popen(const char* command, const char* type) = 0;
+    virtual int pclose(FILE *pipe) = 0;
     virtual void syslog(int pri, const char* fmt, va_list args) = 0;
     virtual FILE* setmntent(const char* command, const char* type) = 0;
     virtual struct mntent* getmntent(FILE *pipe) = 0;
@@ -34,6 +35,11 @@ public:
         return getInstance().impl->popen(command, type);
     }
 
+    static int pclose(FILE* pipe)
+    {
+        return getInstance().impl->pclose(pipe);
+    }
+	
     static void syslog(int pri, const char* fmt, va_list args)
     {
         getInstance().impl->syslog(pri, fmt, args);

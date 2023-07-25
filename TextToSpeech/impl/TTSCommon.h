@@ -54,15 +54,15 @@ namespace TTS {
 
 namespace WPEFramework {
 namespace Plugin {
-    void logResponse(TTS::TTS_Error X, JsonObject& response);
+    void logResponse(TTS::TTS_Error X);
 } //namespace WPEFramework
 } //namespace Plugin
 
 #define CHECK_TTS_MANAGER_RETURN_ON_FAIL() do {\
     if(!_ttsManager) { \
         LOGERR("Invalid TTSManager instance"); \
-        logResponse(TTS::TTS_NOT_ENABLED,response); \
-        returnResponse(false); \
+        logResponse(TTS::TTS_NOT_ENABLED); \
+        return (Core::ERROR_GENERAL); \
     } } while(0)
 
 #define CHECK_TTS_PARAMETER_RETURN_ON_FAIL(param) do {\

@@ -16,6 +16,11 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.1.0] 2023-07-05
+### Added
+- Added support for Report Features CEC message
+- Report Features message will be broadcasted if CEC Version is 2.0
+
 ## [1.0.14] 2023-06-20
 ### Fixed
 - During THREAD_STATE_PING, Updating the info if anything that not updated for already present devices

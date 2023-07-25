@@ -21,7 +21,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 5
+#define API_VERSION_NUMBER_PATCH 10
 #define API_VERSION_NUMBER 1
 
 namespace WPEFramework {
@@ -63,7 +63,21 @@ namespace Plugin {
         if(_tts != nullptr) {
             ASSERT(_connectionId != 0);
 
-            _tts->Configure(_service);
+            PluginHost::IStateControl* stateControl(_tts->QueryInterface<PluginHost::IStateControl>());
+
+            if (stateControl == nullptr) {
+                _tts->Release();
+                _tts = nullptr;
+            } else {
+                if (stateControl->Configure(_service) != Core::ERROR_NONE) {
+                    _tts->Release();
+                    _tts = nullptr;
+                }
+                stateControl->Release();
+            }
+        }
+
+        if(_tts != nullptr) {
             _tts->Register(&_notification);
             RegisterAll();
         } else {
@@ -79,30 +93,33 @@ namespace Plugin {
     {
         ASSERT(_service == service);
         ASSERT(_tts != nullptr);
+        
+        if(_tts)
+            _tts->Unregister(&_notification);
 
-        if (!_tts)
-            return;
+        if(_service)
+            _service->Unregister(&_notification);
 
-        _tts->Unregister(&_notification);
-        _service->Unregister(&_notification);
+        if(_tts) {
+            if(_tts->Release() != Core::ERROR_DESTRUCTION_SUCCEEDED) {
+                ASSERT(_connectionId != 0);
+                TTSLOG_WARNING("TextToSpeech Plugin is not properly destructed. %d", _connectionId);
 
-        if(_tts->Release() != Core::ERROR_DESTRUCTION_SUCCEEDED) {
-            ASSERT(_connectionId != 0);
-            TRACE_L1("TextToSpeech Plugin is not properly destructed. %d", _connectionId);
+                if(_service) {
+                    RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
 
-            RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
-
-            // The process can disappear in the meantime...
-            if (connection != nullptr) {
-                // But if it did not dissapear in the meantime, forcefully terminate it. Shoot to kill :-)
-                connection->Terminate();
-                connection->Release();
+                    // The process can disappear in the meantime...
+                    if (connection != nullptr) {
+                        // But if it did not dissapear in the meantime, forcefully terminate it. Shoot to kill :-)
+                        connection->Terminate();
+                        connection->Release();
+                    }
+                }
             }
         }
 
-        // Deinitialize what we initialized..
-        _service = nullptr;
         _tts = nullptr;
+        _service = nullptr;
         m_AclCalled = false;
     }
 
