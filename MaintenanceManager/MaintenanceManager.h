@@ -152,6 +152,9 @@ namespace WPEFramework {
                 WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* getThunderPluginHandle(const char*);
                 bool knowWhoAmI();
                 bool stopMaintenanceTasks();
+                bool subscribeForInternetStatusEvent(string);
+                void internetStatusChangeEventHandler(const JsonObject& parameters);
+                void startCriticalTasks();
                 bool checkNetwork();
                 bool getActivatedStatus(bool &skipFirmwareCheck);
                 const string checkActivatedStatus(void);
