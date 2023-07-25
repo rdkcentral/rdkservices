@@ -159,7 +159,7 @@ namespace WPEFramework
                        if(err == Core::ERROR_NONE) {
                 /* Register handlers for Event reception. */
                 if(strcmp(eventName, TVMGR_GAME_MODE_EVENT) == 0) {
-                    err =m_client->Subscribe<JsonObject>(1000, eventName
+                    err =m_tv_client->Subscribe<JsonObject>(1000, eventName
                             , &HdmiInput::onGameModeEventHandler, this);
                                        }
                                        else {
