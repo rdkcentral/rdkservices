@@ -130,6 +130,12 @@ namespace WPEFramework {
                 bool m_abort_flag;
 
                 uint16_t g_task_status;
+<<<<<<< HEAD
+=======
+                bool g_unsolicited_complete;
+                bool g_listen_to_nwevents = false;
+                bool g_subscribed_for_nwevents = false;
+>>>>>>> ab5b5523... RDKTV-24212: Maintenance Manager subscribes for network event and
 
                 std::mutex  m_callMutex;
                 std::mutex  m_statusMutex;

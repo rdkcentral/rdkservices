@@ -74,6 +74,13 @@ using namespace std;
 #define TR181_AUTOREBOOT_ENABLE "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable"
 #define TR181_STOP_MAINTENANCE  "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.StopMaintenance.Enable"
 #define TR181_RDKVFWUPGRADER  "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKFirmwareUpgrader.Enable"
+<<<<<<< HEAD
+=======
+#define TR181_PARTNER_ID "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.PartnerName"
+#define TR181_TARGET_PROPOSITION "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.TargetProposition"
+#define TR181_XCONFURL "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.XconfUrl"
+#define INTERNET_CONNECTED_STATE 3
+>>>>>>> ab5b5523... RDKTV-24212: Maintenance Manager subscribes for network event and
 
 string notifyStatusToString(Maint_notify_status_t &status)
 {
@@ -389,7 +396,6 @@ namespace WPEFramework {
                 if (g_listen_to_nwevents) {
 
                     if (state == INTERNET_CONNECTED_STATE) {
-                        // Trigger Critical tasks like Dcm and xconf once device get connected to internet
                         startCriticalTasks();
                     }
                 }
@@ -548,17 +554,18 @@ namespace WPEFramework {
             if ((getServiceState(m_service, "org.rdk.Network", state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
                 LOGINFO("Network plugin is active");
 
-                if (UNSOLICITED_MAINTENANCE == g_maintenance_type && !g_subscribe_for_nwevents) {
+                if (UNSOLICITED_MAINTENANCE == g_maintenance_type && !g_subscribed_for_nwevents) {
                     // Subscribe for internetConnectionStatusChange event
                     bool subscribe_status = subscribeForInternetStatusEvent("onInternetStatusChange");
                     if (subscribe_status) {
                         LOGINFO("MaintenanceManager subscribed for onInternetStatusChange event");
-                        g_subscribe_for_nwevents = true;
+                        g_subscribed_for_nwevents = true;
                     } else {
                         LOGINFO("Failed to subscribe for onInternetStatusChange event");
                     }
                 }
 	    } else {
+                LOGINFO("Network plugin is not active");
                 return false;
             }
 
