@@ -91,7 +91,7 @@ protected:
                     }
                     return IARM_RESULT_SUCCESS;
                 }));
-	        PluginHost::IFactories::Assign(&factoriesImplementation);
+//	        PluginHost::IFactories::Assign(&factoriesImplementation);
 
         dispatcher = static_cast<PluginHost::IDispatcher*>(
             plugin->QueryInterface(PluginHost::IDispatcher::ID));
