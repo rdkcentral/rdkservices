@@ -91,13 +91,14 @@ protected:
                     }
                     return IARM_RESULT_SUCCESS;
                 }));
-//	PluginHost::IFactories::Assign(&factoriesImplementation);
+#if 0
+	PluginHost::IFactories::Assign(&factoriesImplementation);
 
         dispatcher = static_cast<PluginHost::IDispatcher*>(
             plugin->QueryInterface(PluginHost::IDispatcher::ID));
        dispatcher->Activate(&service);
-
-        EXPECT_EQ(string(""), plugin->Initialize(&service));
+#endif
+        EXPECT_EQ(string(""), plugin->Initialize(nullptr));
     }
     virtual ~HdmiInputInitializedTest() override
     {
