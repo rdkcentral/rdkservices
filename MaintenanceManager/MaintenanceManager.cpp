@@ -292,6 +292,10 @@ namespace WPEFramework {
                 MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
                 m_statusMutex.unlock();
                 LOGINFO("Maintenance is exiting as device is not connected to internet.");
+                if (UNSOLICITED_MAINTENANCE == g_maintenance_type && !g_unsolicited_complete){
+                    g_unsolicited_complete = true;
+                    g_listen_to_nwevents = true;
+                }
                 return;
             }
 
@@ -350,6 +354,54 @@ namespace WPEFramework {
 
 	    m_abort_flag=false;
             LOGINFO("Worker Thread Completed");
+        }
+
+        bool MaintenanceManager::subscribeForInternetStatusEvent(string event)
+        {
+            int32_t status = Core::ERROR_NONE;
+            bool result = false;
+            LOGINFO("Attempting to subscribe for %s events", event.c_str());
+            const char* network_callsign = "org.rdk.Network.1";
+            WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
+
+            thunder_client = getThunderPluginHandle(network_callsign);
+            if (thunder_client == nullptr) {
+                LOGINFO("Failed to get plugin handle");
+            } else {
+                status = thunder_client->Subscribe<JsonObject>(5000, event, &MaintenanceManager::internetStatusChangeEventHandler, this);
+                if (status == Core::ERROR_NONE) {
+                    result = true;
+                }
+            }
+            return result;
+        }
+
+        void MaintenanceManager::internetStatusChangeEventHandler(const JsonObject& parameters)
+        {
+            string value;
+            int state;
+
+            LOGINFO("Received onInternetStatusChange event: [%s:%d]", value.c_str(), state);
+            if (g_listen_to_nwevents) {
+                if (parameters.HasLabel("status") && parameters.HasLabel("state")) {
+                    value = parameters["status"].String();
+                    state = parameters["state"].Number();
+
+                    if (state == INTERNET_CONNECTED_STATE) {
+                        // Trigger Critical tasks like Dcm and xconf once device get connected to internet
+                        startCriticalTasks();
+                    }
+                }
+            }
+        }
+
+        void MaintenanceManager::startCriticalTasks()
+        {
+            LOGINFO("Starting Script /lib/rdk/StartDCM_maintaince.sh");
+            Utils::cRunScript("/lib/rdk/StartDCM_maintaince.sh");
+
+            LOGINFO("Starting Script /lib/rdk/xconfImageCheck.sh");
+            Utils::cRunScript("/lib/rdk/xconfImageCheck.sh >> /opt/logs/swupdate.log 2>&1");
         }
 
         const string MaintenanceManager::checkActivatedStatus()
@@ -488,8 +540,26 @@ namespace WPEFramework {
             JsonObject joGetParams;
             JsonObject joGetResult;
             std::string callsign = "org.rdk.Network.1";
+            PluginHost::IShell::state state;
 
             string token;
+
+            if ((getServiceState(m_service, "org.rdk.Network", state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
+                LOGINFO("Network plugin is active");
+
+                if (UNSOLICITED_MAINTENANCE == g_maintenance_type && !g_subscribe_for_nwevents) {
+                    // Subscribe for internetConnectionStatusChange event
+                    bool subscribe_status = subscribeForInternetStatusEvent("onInternetStatusChange");
+                    if (subscribe_status) {
+                        LOGINFO("MaintenanceManager subscribed for onInternetStatusChange event");
+                        g_subscribe_for_nwevents = true;
+                    } else {
+                        LOGINFO("Failed to subscribe for onInternetStatusChange event");
+                    }
+                }
+	    } else {
+                return false;
+            }
 
             // TODO: use interfaces and remove token
             auto security = m_service->QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
