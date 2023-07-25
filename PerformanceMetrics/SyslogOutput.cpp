@@ -305,8 +305,24 @@ public:
         _timeIdleFirstStart = Core::Time::Now().Ticks();
     }
 
-    void LoadFinished(const string& URL, const int32_t, const bool success, const uint32_t totalsuccess, const uint32_t totalfailed) override 
+    string getHostName(string _URL){
+        std::size_t startIdx = _URL.find("://");
+        if(startIdx == std::string::npos)
+            return _URL;
+        else {
+            startIdx += 3; // skip "://"
+            size_t endIdx = _URL.find("/",startIdx);
+            if(endIdx == std::string::npos)
+                return _URL.substr(startIdx);
+            else
+                return _URL.substr(startIdx, endIdx - startIdx);
+        }
+    }
+
+    void LoadFinished(const string& URL, const int32_t, const bool success, const uint32_t totalsuccess, const uint32_t totalfailed) override
     {
+        _cold = (totalsuccess <= 1)?true:false;
+
         if( ( URL != startURL ) && ( _timeIdleFirstStart > 0 ) ) {
             _adminLock.Lock();
             URLLoadedMetrics metrics(_urloadmetrics);
@@ -314,12 +330,9 @@ public:
                         
             uint64_t urllaunchtime_ms = ( ( Core::Time::Now().Ticks() - metrics.StartLoad() ) / Core::Time::TicksPerMillisecond);
 
-            OutputLoadFinishedMetrics(metrics, URL, urllaunchtime_ms, success, totalsuccess + totalfailed);
+            OutputLoadFinishedMetrics(metrics, getHostName(URL), urllaunchtime_ms, success, totalsuccess + totalfailed);
 
             _timeIdleFirstStart = 0; // we only measure on first non about:blank url handling
-        }
-        if( success == true ) { // note explicitely set outside the about blank check
-            _cold = false; //note do not use _cold = (success != true) as that will reset it when a page could not be loaded
         }
     }
 
@@ -378,9 +391,9 @@ private:
         output.Uptime = urloadedmetrics.Uptime();
 
         static const float LA_SCALE = static_cast<float>(1 << SI_LOAD_SHIFT);
-        output.LoadAvarage = std::to_string(urloadedmetrics.AverageLoad()[0] / LA_SCALE) + " " +
-                             std::to_string(urloadedmetrics.AverageLoad()[1] / LA_SCALE) + " " +
-                             std::to_string(urloadedmetrics.AverageLoad()[2] / LA_SCALE);
+        output.LoadAvarage = std::to_string(urloadedmetrics.AverageLoad()[0] / LA_SCALE).substr(0,4) + " " +
+                             std::to_string(urloadedmetrics.AverageLoad()[1] / LA_SCALE).substr(0,4) + " " +
+                             std::to_string(urloadedmetrics.AverageLoad()[2] / LA_SCALE).substr(0,4);
 
         static const long NPROC_ONLN = sysconf(_SC_NPROCESSORS_ONLN);
         output.NbrProcessors = NPROC_ONLN;
