@@ -38,9 +38,12 @@ namespace WPEFramework
             IOT_DEVICE_TYPE devType;
         } IOTDevice;
 
+        bool initializeIPC(const std::string &remoteAddr);
+        void cleanupIPC();
+
         int getDeviceList(std::list<std::shared_ptr<IOTDevice> > &deviceList);
-        int getDeviceProperties(std::shared_ptr<IOTDevice> iotDevice, std::list<std::string> &propList);
-        std::string getDeviceProperty(std::shared_ptr<IOTDevice> iotDevice, const std::string &propertyName);
-        int sendCommand(std::shared_ptr<IOTDevice> iotDevice, const std::string &cmd);
+        int getDeviceProperties(const std::string &uuid, std::list<std::string> &propList);
+        std::string getDeviceProperty(const std::string &uuid, const std::string &propertyName);
+        int sendCommand(const std::string &uuid, const std::string &cmd);
     }
 }

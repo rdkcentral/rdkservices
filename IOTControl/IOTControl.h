@@ -49,11 +49,11 @@ namespace WPEFramework
 
             int m_apiVersionNumber;
             static IOTControl *_instance;
+            std::string remote_addr;
 
             // Available functions
 
             uint32_t getAvailableDevicesWrapper(const JsonObject &parameters, JsonObject &response);
-            uint32_t getDeviceDetailsWrapper(const JsonObject &parameters, JsonObject &response);
             uint32_t getDeviceProperties(const JsonObject &parameters, JsonObject &response);
             uint32_t getDeviceProperty(const JsonObject &parameters, JsonObject &response);
             uint32_t sendCommand(const JsonObject &parameters, JsonObject &response);

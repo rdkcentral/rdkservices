@@ -47,7 +47,7 @@ namespace WPEFramework
             return rtConnStatus == RT_OK;
         }
 
-        void unInitialize()
+        void cleanupIPC()
         {
             if (RT_OK == rtConnStatus)
                 rtConnection_Destroy(con);
@@ -103,7 +103,7 @@ namespace WPEFramework
 
             return count;
         }
-        int getDeviceProperties(std::shared_ptr<IOTDevice> iotDevice, std::list<std::string> &propList)
+        int getDeviceProperties(const std::string &uuid, std::list<std::string> &propList)
         {
             int count = -1;
 
@@ -112,7 +112,7 @@ namespace WPEFramework
             rtError err;
             rtMessage res, req;
             rtMessage_Create(&req);
-            rtMessage_SetString(req, "deviceId", iotDevice->deviceId.c_str());
+            rtMessage_SetString(req, "deviceId", uuid.c_str());
             err = rtConnection_SendRequest(con, req, RBUS_METHOD_GETDEVICEPROPERTIES, &res, RTMESSAGE_TIMEOUT_MILLIS);
             std::cout << "RPC returns " << rtStrError(err) << std::endl;
             if (RT_OK == err)
@@ -133,7 +133,7 @@ namespace WPEFramework
             rtMessage_Release(res);
             return count;
         }
-        std::string getDeviceProperty(std::shared_ptr<IOTDevice> iotDevice, const std::string &propertyName)
+        std::string getDeviceProperty(const std::string &uuid, const std::string &propertyName)
         {
             std::string value;
 
@@ -145,7 +145,7 @@ namespace WPEFramework
             rtMessage req;
 
             rtMessage_Create(&req);
-            rtMessage_SetString(req, "deviceId", iotDevice->deviceId.c_str());
+            rtMessage_SetString(req, "deviceId", uuid.c_str());
             rtMessage_SetString(req, "property", propertyName.c_str());
             err = rtConnection_SendRequest(con, req, RBUS_METHOD_GETDEVICEPROPERTY, &res, RTMESSAGE_TIMEOUT_MILLIS);
             std::cout << "RPC returns " << rtStrError(err) << std::endl;
@@ -161,7 +161,7 @@ namespace WPEFramework
             rtMessage_Release(res);
             return value;
         }
-        int sendCommand(std::shared_ptr<IOTDevice> iotDevice, const std::string &cmd)
+        int sendCommand(const std::string &uuid, const std::string &cmd)
         {
             int status = -1;
 
@@ -173,7 +173,7 @@ namespace WPEFramework
             rtMessage req;
 
             rtMessage_Create(&req);
-            rtMessage_SetString(req, "deviceId", iotDevice->deviceId.c_str());
+            rtMessage_SetString(req, "deviceId", uuid.c_str());
             rtMessage_SetString(req, "command", cmd.c_str());
             err = rtConnection_SendRequest(con, req, RBUS_METHOD_SENDCOMMAND, &res, RTMESSAGE_TIMEOUT_MILLIS);
             std::cout << "RPC returns " << rtStrError(err) << std::endl;
