@@ -97,7 +97,7 @@ protected:
 
 #endif
         //dispatcher = static_cast<PluginHost::IDispatcher*>(
-            plugin->QueryInterface(PluginHost::IDispatcher::ID));
+            //plugin->QueryInterface(PluginHost::IDispatcher::ID));
        //dispatcher->Activate(&service);
         EXPECT_EQ(string(""), plugin->Initialize(&service));
     }
