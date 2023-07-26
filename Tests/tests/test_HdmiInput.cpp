@@ -95,10 +95,10 @@ protected:
 #if 0
 	PluginHost::IFactories::Assign(&factoriesImplementation);
 
+#endif
         dispatcher = static_cast<PluginHost::IDispatcher*>(
             plugin->QueryInterface(PluginHost::IDispatcher::ID));
        dispatcher->Activate(&service);
-#endif
         EXPECT_EQ(string(""), plugin->Initialize(&service));
     }
     virtual ~HdmiInputInitializedTest() override
@@ -134,7 +134,7 @@ protected:
 
     virtual ~HdmiInputInitializedEventTest() override
     {
-        dispatcher->Deactivate();
+        dispatcher->Deactivate(&service);
         dispatcher->Release();
 
         PluginHost::IFactories::Assign(nullptr);
