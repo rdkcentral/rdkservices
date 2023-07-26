@@ -58,9 +58,6 @@ protected:
 
    // NiceMock<ServiceMock> service;
     ServiceMock service;
-    Core::JSONRPC::Message message;
-    FactoriesImplementation factoriesImplementation;
-    PluginHost::IDispatcher* dispatcher;
   
     HdmiInputInitializedTest()
         : HdmiInputTest()
@@ -92,22 +89,11 @@ protected:
                     }
                     return IARM_RESULT_SUCCESS;
                 }));
-#if 0
-	PluginHost::IFactories::Assign(&factoriesImplementation);
-
-#endif
-        //dispatcher = static_cast<PluginHost::IDispatcher*>(
-            //plugin->QueryInterface(PluginHost::IDispatcher::ID));
-       //dispatcher->Activate(&service);
         EXPECT_EQ(string(""), plugin->Initialize(&service));
     }
     virtual ~HdmiInputInitializedTest() override
     {
         plugin->Deinitialize(&service);
-        dispatcher->Deactivate();
-        dispatcher->Release();
-
-        PluginHost::IFactories::Assign(nullptr);
 
         IarmBus::getInstance().impl = nullptr;
     }
