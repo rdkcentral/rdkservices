@@ -65,6 +65,7 @@ protected:
         : HdmiInputTest()
     {
         IarmBus::getInstance().impl = &iarmBusImplMock;
+	NiceMock<ServiceMock> service;
 
         ON_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
@@ -98,11 +99,11 @@ protected:
             plugin->QueryInterface(PluginHost::IDispatcher::ID));
        dispatcher->Activate(&service);
 #endif
-        EXPECT_EQ(string(""), plugin->Initialize(nullptr));
+        EXPECT_EQ(string(""), plugin->Initialize(&service));
     }
     virtual ~HdmiInputInitializedTest() override
     {
-        plugin->Deinitialize(nullptr);
+        plugin->Deinitialize(&service);
         dispatcher->Deactivate();
         dispatcher->Release();
 
@@ -115,7 +116,7 @@ protected:
 
 class HdmiInputInitializedEventTest : public HdmiInputInitializedTest {
 protected:
-    NiceMock<ServiceMock> service;
+   // NiceMock<ServiceMock> service;
     Core::JSONRPC::Message message;
     NiceMock<FactoriesImplementation> factoriesImplementation;
     PluginHost::IDispatcher* dispatcher;

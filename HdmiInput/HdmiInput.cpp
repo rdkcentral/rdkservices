@@ -129,12 +129,12 @@ namespace WPEFramework
         {
         }
 	    
-	const string HdmiInput::Initialize(PluginHost::IShell * /* service*/ )
+	const string HdmiInput::Initialize(PluginHost::IShell * service)
 	{
-  	    //ASSERT(service != nullptr);
+  	    ASSERT(service != nullptr);
             ASSERT(m_service == nullptr);
 
-          //  m_service = service;
+             m_service = service;
    
 	    m_service->AddRef();
 	    
