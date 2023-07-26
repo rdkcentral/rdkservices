@@ -18,5 +18,6 @@ public:
     MOCK_METHOD(void, setEdidVersion, (int iHdmiPort, int iEdidVersion), (const, override));
     MOCK_METHOD(void, getEdidVersion, (int iHdmiPort, int *iEdidVersion), (const, override));
     MOCK_METHOD(void, getHdmiALLMStatus, (int iHdmiPort, bool *allmStatus), (const, override));
+    MOCK_METHOD(void, setPlaneTopMost, (bool planeTopMost), (const, override));
     MOCK_METHOD(void, getSupportedGameFeatures, (std::vector<std::string> &featureList), (const, override));
 };
