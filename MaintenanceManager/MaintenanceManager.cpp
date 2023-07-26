@@ -559,6 +559,7 @@ namespace WPEFramework {
 
                     if (state == INTERNET_CONNECTED_STATE) {
                         startCriticalTasks();
+                        g_listen_to_nwevents = false;
                     }
                 }
             }
