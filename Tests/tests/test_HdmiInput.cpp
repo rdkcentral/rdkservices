@@ -64,6 +64,12 @@ protected:
     {
         IarmBus::getInstance().impl = &iarmBusImplMock;
 
+	EXPECT_CALL(service, QueryInterfaceByCallsign(::testing::_, ::testing::_))
+            .Times(::testing::AnyNumber())
+            .WillRepeatedly(::testing::Invoke(
+                [&](const uint32_t, const string& name) -> void* {
+                    return nullptr;
+                }));
         ON_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
                 [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {

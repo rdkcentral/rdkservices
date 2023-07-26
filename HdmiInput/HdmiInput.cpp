@@ -140,7 +140,7 @@ namespace WPEFramework
 	    
 	    HdmiInput::_instance = this;
 	    InitializeIARM();
-//	    subscribeForTvMgrEvent("gameModeEvent");
+	    subscribeForTvMgrEvent("gameModeEvent");
 	    return (string());
 	}
 
