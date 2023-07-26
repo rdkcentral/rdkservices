@@ -1,10 +1,30 @@
-#include "AvahiClient.h"
+/**
+ * If not stated otherwise in this file or this component's LICENSE
+ * file the following copyright and licenses apply:
+ *
+ * Copyright 2020 RDK Management
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ **/
+
 #include <thread>
 #include <avahi-client/client.h>
 #include <avahi-client/lookup.h>
 #include <avahi-common/thread-watch.h>
 #include <avahi-common/malloc.h>
 #include <avahi-common/error.h>
+
+#include "AvahiClient.h"
 
 namespace avahi
 {
@@ -90,20 +110,19 @@ namespace avahi
             std::cout << "onServiceDiscovery AVAHI_BROWSER_ALL_FOR_NOW" << std::endl;
             stopDiscovery();
             break;
-            case AVAHI_BROWSER_REMOVE:
-            std::cout << "onServiceDiscovery AVAHI_BROWSER_REMOVE called "<<std::endl;
+        case AVAHI_BROWSER_REMOVE:
+            std::cout << "onServiceDiscovery AVAHI_BROWSER_REMOVE called " << std::endl;
             break;
-            case AVAHI_BROWSER_CACHE_EXHAUSTED:
-            std::cout << "onServiceDiscovery AVAHI_BROWSER_CACHE_EXHAUSTED called "<<std::endl;
+        case AVAHI_BROWSER_CACHE_EXHAUSTED:
+            std::cout << "onServiceDiscovery AVAHI_BROWSER_CACHE_EXHAUSTED called " << std::endl;
             break;
-
         }
     }
 
     bool stopDiscovery()
     {
-         std::thread::id this_id = std::this_thread::get_id();
-        std::cout << "stopDiscovery, thread id " << this_id<< std::endl;
+        std::thread::id this_id = std::this_thread::get_id();
+        std::cout << "stopDiscovery, thread id " << this_id << std::endl;
         std::lock_guard<std::mutex> lockguard(m_stateMutex);
         m_scanInProgress = false;
         m_stateCond.notify_one();
@@ -166,7 +185,7 @@ namespace avahi
             if (!m_scanInProgress)
             {
                 std::thread::id this_id = std::this_thread::get_id();
-                 std::cout << "stopping  scanning " << this_id<< std::endl;
+                std::cout << "stopping  scanning " << this_id << std::endl;
                 avahi_threaded_poll_stop(thread_poll);
                 break;
             }

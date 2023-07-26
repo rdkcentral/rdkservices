@@ -41,5 +41,6 @@ namespace WPEFramework
         int getDeviceList(std::list<std::shared_ptr<IOTDevice> > &deviceList);
         int getDeviceProperties(std::shared_ptr<IOTDevice> iotDevice, std::list<std::string> &propList);
         std::string getDeviceProperty(std::shared_ptr<IOTDevice> iotDevice, const std::string &propertyName);
+        int sendCommand(std::shared_ptr<IOTDevice> iotDevice, const std::string &cmd);
     }
 }

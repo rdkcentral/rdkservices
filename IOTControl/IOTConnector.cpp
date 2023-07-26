@@ -1,3 +1,22 @@
+/**
+ * If not stated otherwise in this file or this component's LICENSE
+ * file the following copyright and licenses apply:
+ *
+ * Copyright 2020 RDK Management
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ **/
+
 #include <string>
 #include <list>
 #include <memory>
@@ -91,7 +110,7 @@ namespace WPEFramework
             if (RT_OK != rtConnStatus)
                 return count;
             rtError err;
-            rtMessage res,req;
+            rtMessage res, req;
             rtMessage_Create(&req);
             rtMessage_SetString(req, "deviceId", iotDevice->deviceId.c_str());
             err = rtConnection_SendRequest(con, req, RBUS_METHOD_GETDEVICEPROPERTIES, &res, RTMESSAGE_TIMEOUT_MILLIS);
@@ -141,6 +160,32 @@ namespace WPEFramework
             rtMessage_Release(req);
             rtMessage_Release(res);
             return value;
+        }
+        int sendCommand(std::shared_ptr<IOTDevice> iotDevice, const std::string &cmd)
+        {
+            int status = -1;
+
+            if (RT_OK != rtConnStatus)
+                return status;
+
+            rtError err;
+            rtMessage res;
+            rtMessage req;
+
+            rtMessage_Create(&req);
+            rtMessage_SetString(req, "deviceId", iotDevice->deviceId.c_str());
+            rtMessage_SetString(req, "command", cmd.c_str());
+            err = rtConnection_SendRequest(con, req, RBUS_METHOD_SENDCOMMAND, &res, RTMESSAGE_TIMEOUT_MILLIS);
+            std::cout << "RPC returns " << rtStrError(err) << std::endl;
+
+            if (RT_OK == err)
+            {
+                status = 0;
+            }
+
+            rtMessage_Release(req);
+            rtMessage_Release(res);
+            return status;
         }
 
     } // namespace iotbridge

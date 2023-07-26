@@ -22,7 +22,6 @@
 #include "UtilsJsonRpc.h"
 #include "AvahiClient.h"
 
-
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
 #define API_VERSION_NUMBER_PATCH 0
@@ -46,32 +45,31 @@ namespace WPEFramework
     namespace Plugin
     {
 
-
         const string METHOD_IOT_GET_AVAILABLE_DEVICES = "getAvailableDevices";
         const string METHOD_IOT_GET_DEVICE_DETAILS = "getDeviceDetails";
         const string METHOD_IOT_GET_DEVICE_PROPERTIES = "getDeviceProperties";
         const string METHOD_IOT_GET_DEVICE_PROPERTY = "getDeviceProperty";
         const string METHOD_IOT_SEND_COMMAND = "sendCommand";
 
-
-
-        std::string getRemoteAddress(){
-            if(avahi::initialize())
+        std::string getRemoteAddress()
+        {
+            if (avahi::initialize())
             {
                 std::list<std::shared_ptr<avahi::RDKDevice> > devices;
-                if(avahi::discoverDevices(devices)> 0 ){
-                    //Find the one with ipv4 address and return
+                if (avahi::discoverDevices(devices) > 0)
+                {
+                    // Find the one with ipv4 address and return
                     for (std::list<std::shared_ptr<avahi::RDKDevice> >::iterator it = devices.begin(); it != devices.end(); ++it)
                     {
-                         std::shared_ptr<avahi::RDKDevice> device = *it;
-                         if(device->addrType == avahi::IP_ADDR_TYPE::IPV4)
-                            return "tcp://" +device->ipAddress + ":"+ std::to_string(device->port);
+                        std::shared_ptr<avahi::RDKDevice> device = *it;
+                        if (device->addrType == avahi::IP_ADDR_TYPE::IPV4)
+                            return "tcp://" + device->ipAddress + ":" + std::to_string(device->port);
                     }
                 }
             }
             return "";
         }
-        
+
         SERVICE_REGISTRATION(IOTControl, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
         IOTControl *IOTControl::_instance = nullptr;
