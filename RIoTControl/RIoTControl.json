@@ -1,0 +1,9 @@
+{
+ "locator":"libWPEFrameworkRIoTControl.so",
+ "classname":"RIoTControl",
+ "precondition":[
+  "Platform"
+ ],
+ "callsign":"org.rdk.RIoTControl",
+ "autostart":false
+}

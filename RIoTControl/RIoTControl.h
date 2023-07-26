@@ -40,15 +40,15 @@ namespace WPEFramework
         // As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
         // this class exposes a public method called, Notify(), using this methods, all subscribed clients
         // will receive a JSONRPC message as a notification, in case this method is called.
-        class IOTControl : public PluginHost::IPlugin, public PluginHost::JSONRPC
+        class RIoTControl : public PluginHost::IPlugin, public PluginHost::JSONRPC
         {
         private:
             // We do not allow this plugin to be copied !!
-            IOTControl(const IOTControl &) = delete;
-            IOTControl &operator=(const IOTControl &) = delete;
+            RIoTControl(const RIoTControl &) = delete;
+            RIoTControl &operator=(const RIoTControl &) = delete;
 
             int m_apiVersionNumber;
-            static IOTControl *_instance;
+            static RIoTControl *_instance;
             std::string remote_addr;
 
             // Available functions
@@ -67,11 +67,11 @@ namespace WPEFramework
             static const string METHOD_IOT_SEND_COMMAND;
 
         public:
-            IOTControl();
-            virtual ~IOTControl();
+            RIoTControl();
+            virtual ~RIoTControl();
 
             // Build QueryInterface implementation, specifying all possible interfaces to be returned.
-            BEGIN_INTERFACE_MAP(IOTControl)
+            BEGIN_INTERFACE_MAP(RIoTControl)
             INTERFACE_ENTRY(PluginHost::IPlugin)
             INTERFACE_ENTRY(PluginHost::IDispatcher)
             END_INTERFACE_MAP

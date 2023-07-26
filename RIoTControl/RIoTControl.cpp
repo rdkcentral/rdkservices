@@ -17,11 +17,10 @@
  * limitations under the License.
  **/
 
-#include "IOTControl.h"
-#include "IOTConnector.h"
+#include "RIoTControl.h"
 #include "UtilsJsonRpc.h"
 #include "AvahiClient.h"
-#include "IOTConnector.h"
+#include "RIoTConnector.h"
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
@@ -32,7 +31,7 @@ namespace WPEFramework
     // namespace
     // {
 
-    //     static Plugin::Metadata<Plugin::IOTControl> metadata(
+    //     static Plugin::Metadata<Plugin::RIoTControl> metadata(
     //         // Version (Major, Minor, Patch)
     //         API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
     //         // Preconditions
@@ -76,40 +75,40 @@ namespace WPEFramework
             return "";
         }
 
-        SERVICE_REGISTRATION(IOTControl, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
+        SERVICE_REGISTRATION(RIoTControl, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
-        IOTControl *IOTControl::_instance = nullptr;
+        RIoTControl *RIoTControl::_instance = nullptr;
 
-        IOTControl::IOTControl()
+        RIoTControl::RIoTControl()
             : PluginHost::JSONRPC(), m_apiVersionNumber(API_VERSION_NUMBER_MAJOR)
         {
 
-            Register(METHOD_IOT_GET_AVAILABLE_DEVICES, &IOTControl::getAvailableDevicesWrapper, this);
-            Register(METHOD_IOT_GET_DEVICE_PROPERTIES, &IOTControl::getDeviceProperties, this);
-            Register(METHOD_IOT_GET_DEVICE_PROPERTY, &IOTControl::getDeviceProperty, this);
-            Register(METHOD_IOT_SEND_COMMAND, &IOTControl::sendCommand, this);
+            Register(METHOD_IOT_GET_AVAILABLE_DEVICES, &RIoTControl::getAvailableDevicesWrapper, this);
+            Register(METHOD_IOT_GET_DEVICE_PROPERTIES, &RIoTControl::getDeviceProperties, this);
+            Register(METHOD_IOT_GET_DEVICE_PROPERTY, &RIoTControl::getDeviceProperty, this);
+            Register(METHOD_IOT_SEND_COMMAND, &RIoTControl::sendCommand, this);
         }
 
-        IOTControl::~IOTControl()
+        RIoTControl::~RIoTControl()
         {
         }
 
-        const string IOTControl::Initialize(PluginHost::IShell * /* service */)
+        const string RIoTControl::Initialize(PluginHost::IShell * /* service */)
         {
-            IOTControl::_instance = this;
+            RIoTControl::_instance = this;
             remote_addr = getRemoteAddress();
             return (string());
         }
-        void IOTControl::Deinitialize(PluginHost::IShell * /* service */)
+        void RIoTControl::Deinitialize(PluginHost::IShell * /* service */)
         {
         }
-        string IOTControl::Information() const
+        string RIoTControl::Information() const
         {
             return (string());
         }
 
         // Supported methods
-        uint32_t IOTControl::getAvailableDevicesWrapper(const JsonObject &parameters, JsonObject &response)
+        uint32_t RIoTControl::getAvailableDevicesWrapper(const JsonObject &parameters, JsonObject &response)
         {
             bool success = false;
             if (!remote_addr.empty() && iotbridge::initializeIPC(remote_addr))
@@ -139,13 +138,13 @@ namespace WPEFramework
             returnResponse(success);
         }
 
-        uint32_t IOTControl::getDeviceProperties(const JsonObject &parameters, JsonObject &response)
+        uint32_t RIoTControl::getDeviceProperties(const JsonObject &parameters, JsonObject &response)
         {
             bool success = false;
 
             returnResponse(success);
         }
-        uint32_t IOTControl::getDeviceProperty(const JsonObject &parameters, JsonObject &response)
+        uint32_t RIoTControl::getDeviceProperty(const JsonObject &parameters, JsonObject &response)
         {
             bool success = false;
             if (parameters.HasLabel("deviceId") && parameters.HasLabel("propName"))
@@ -166,7 +165,7 @@ namespace WPEFramework
             }
             returnResponse(success);
         }
-        uint32_t IOTControl::sendCommand(const JsonObject &parameters, JsonObject &response)
+        uint32_t RIoTControl::sendCommand(const JsonObject &parameters, JsonObject &response)
         {
             bool success = false;
             if (parameters.HasLabel("deviceId") && parameters.HasLabel("command"))

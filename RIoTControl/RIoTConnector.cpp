@@ -24,8 +24,7 @@
 #include "rtConnection.h"
 #include "rtMessage.h"
 
-#include "IOTConnector.h"
-#define RBUS_COMPONENT_NAME "IOTControlPlugin"
+#include "RIoTConnector.h"
 #define RBUS_METHOD_GETDEVICES "GetIoTDevices"
 #define RBUS_METHOD_GETDEVICEPROPERTIES "GetDeviceProperties"
 #define RBUS_METHOD_GETDEVICEPROPERTY "GetDeviceProperty"

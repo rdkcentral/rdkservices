@@ -15,17 +15,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set(PLUGIN_NAME IOTControl)
+set(PLUGIN_NAME RIoTControl)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
-set(PLUGIN_NETWORK_STARTUPORDER "" CACHE STRING "To configure startup order of IOTControl plugin")
+set(PLUGIN_NETWORK_STARTUPORDER "" CACHE STRING "To configure startup order of RIoTControl plugin")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 #find_package(Avahi)
 
 add_library(${MODULE_NAME} SHARED
-        IOTControl.cpp
-        IOTConnector.cpp
+        RIoTControl.cpp
+        RIoTConnector.cpp
         AvahiClient.cpp
         Module.cpp)
 
@@ -46,7 +46,7 @@ endif()
 list(APPEND CMAKE_MODULE_PATH
         "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")        
 set_source_files_properties(
-	IOTControl.cpp
+	RIoTControl.cpp
         PROPERTIES COMPILE_FLAGS "-fexceptions")
 
 set_target_properties(${MODULE_NAME} PROPERTIES
