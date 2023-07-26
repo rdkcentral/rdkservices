@@ -134,7 +134,7 @@ protected:
 
     virtual ~HdmiInputInitializedEventTest() override
     {
-        dispatcher->Deactivate(&service);
+        dispatcher->Deactivate();
         dispatcher->Release();
 
         PluginHost::IFactories::Assign(nullptr);
