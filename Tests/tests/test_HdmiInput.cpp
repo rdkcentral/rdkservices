@@ -56,7 +56,8 @@ protected:
     IARM_EventHandler_t dsHdmiVideoModeEventHandler;
     IARM_EventHandler_t dsHdmiGameFeatureStatusEventHandler;
 
-    NiceMock<ServiceMock> service;
+   // NiceMock<ServiceMock> service;
+    ServiceMock service;
     Core::JSONRPC::Message message;
     FactoriesImplementation factoriesImplementation;
     PluginHost::IDispatcher* dispatcher;
