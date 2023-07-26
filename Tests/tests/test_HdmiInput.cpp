@@ -56,7 +56,7 @@ protected:
     IARM_EventHandler_t dsHdmiVideoModeEventHandler;
     IARM_EventHandler_t dsHdmiGameFeatureStatusEventHandler;
 
-    ServiceMock service;
+    NiceMock<ServiceMock> service;
     Core::JSONRPC::Message message;
     FactoriesImplementation factoriesImplementation;
     PluginHost::IDispatcher* dispatcher;
@@ -65,7 +65,6 @@ protected:
         : HdmiInputTest()
     {
         IarmBus::getInstance().impl = &iarmBusImplMock;
-	NiceMock<ServiceMock> service;
 
         ON_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
