@@ -96,9 +96,9 @@ protected:
 	PluginHost::IFactories::Assign(&factoriesImplementation);
 
 #endif
-        dispatcher = static_cast<PluginHost::IDispatcher*>(
+        //dispatcher = static_cast<PluginHost::IDispatcher*>(
             plugin->QueryInterface(PluginHost::IDispatcher::ID));
-       dispatcher->Activate(&service);
+       //dispatcher->Activate(&service);
         EXPECT_EQ(string(""), plugin->Initialize(&service));
     }
     virtual ~HdmiInputInitializedTest() override
