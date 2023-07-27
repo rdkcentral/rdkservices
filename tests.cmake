@@ -22,13 +22,11 @@ set(EMPTY_HEADERS_DIRS
         ${BASEDIR}/rdk/iarmmgrs
 	${BASEDIR}/rdkshell
         ${BASEDIR}/opkg
-	${BASEDIR}/rdk/tv-hal
         )
 
 set(EMPTY_HEADERS
         ${BASEDIR}/audiocapturemgr/audiocapturemgr_iarm.h
         ${BASEDIR}/ccec/drivers/CecIARMBusMgr.h
-	${BASEDIR}/rdk/tv-hal/tvTypes.h
         ${BASEDIR}/ccec/drivers/iarmbus/CecIARMBusMgr.h
         ${BASEDIR}/ccec/FrameListener.hpp
         ${BASEDIR}/ccec/Connection.hpp
