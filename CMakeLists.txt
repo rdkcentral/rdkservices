@@ -296,10 +296,6 @@ if(PLUGIN_RDKSHELL)
     add_subdirectory(RDKShell)
 endif()
 
-if(PLUGIN_WEBKITBROWSER)
-    add_subdirectory(WebKitBrowser)
-endif()
-
 if(PLUGIN_TEXTTOSPEECH)
     add_subdirectory(TextToSpeech)
 endif()
@@ -358,25 +354,4 @@ endif()
 
 if(PLUGIN_LEDCONTROL)
     add_subdirectory(LEDControl)
-endif()
-
-if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)
-    set(CPACK_GENERATOR "DEB")
-    set(CPACK_DEB_COMPONENT_INSTALL ON)
-    set(CPACK_COMPONENTS_GROUPING IGNORE)
-
-    set(CPACK_DEBIAN_PACKAGE_NAME "${WPEFRAMEWORK_PLUGINS_OPKG_NAME}")
-    set(CPACK_DEBIAN_PACKAGE_VERSION "${WPEFRAMEWORK_PLUGINS_OPKG_VERSION}")
-    set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE "${WPEFRAMEWORK_PLUGINS_OPKG_ARCHITECTURE}")
-    set(CPACK_DEBIAN_PACKAGE_MAINTAINER "${WPEFRAMEWORK_PLUGINS_OPKG_MAINTAINER}")
-    set(CPACK_DEBIAN_PACKAGE_DESCRIPTION "${WPEFRAMEWORK_PLUGINS_OPKG_DESCRIPTION}")
-    set(CPACK_PACKAGE_FILE_NAME "${WPEFRAMEWORK_PLUGINS_OPKG_FILE_NAME}")
-
-    # list of components from which packages will be generated
-    set(CPACK_COMPONENTS_ALL
-            ${NAMESPACE}WebKitBrowser
-            WPEInjectedBundle
-            )
-
-    include(CPack)
 endif()
