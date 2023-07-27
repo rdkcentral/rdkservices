@@ -56,12 +56,22 @@ protected:
     IARM_EventHandler_t dsHdmiVideoModeEventHandler;
     IARM_EventHandler_t dsHdmiGameFeatureStatusEventHandler;
 
+    // NiceMock<ServiceMock> service;
+    ServiceMock service;
+
     HdmiInputInitializedTest()
         : HdmiInputTest()
     {
         IarmBus::getInstance().impl = &iarmBusImplMock;
 
-        ON_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
+        
+	EXPECT_CALL(service, QueryInterfaceByCallsign(::testing::_, ::testing::_))
+            .Times(::testing::AnyNumber())
+            .WillRepeatedly(::testing::Invoke(
+                [&](const uint32_t, const string& name) -> void* {
+                    return nullptr;
+                }));
+	ON_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
                 [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
                     if ((string(IARM_BUS_DSMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG)) {
@@ -87,11 +97,11 @@ protected:
                     return IARM_RESULT_SUCCESS;
                 }));
 
-        EXPECT_EQ(string(""), plugin->Initialize(nullptr));
+        EXPECT_EQ(string(""), plugin->Initialize(&service));
     }
     virtual ~HdmiInputInitializedTest() override
     {
-        plugin->Deinitialize(nullptr);
+        plugin->Deinitialize(&service);
 
         IarmBus::getInstance().impl = nullptr;
     }
