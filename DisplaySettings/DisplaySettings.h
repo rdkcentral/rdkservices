@@ -150,6 +150,7 @@ namespace WPEFramework {
             uint32_t setPreferredColorDepth(const JsonObject& parameters, JsonObject& response);
             uint32_t getPreferredColorDepth(const JsonObject& parameters, JsonObject& response);
             uint32_t getColorDepthCapabilities(const JsonObject& parameters, JsonObject& response);
+	    uint32_t getSupportedMS12Config(const JsonObject& parameters, JsonObject& response);
 
             void InitAudioPorts();
             void AudioPortsReInitialize();
