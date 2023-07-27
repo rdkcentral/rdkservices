@@ -708,7 +708,7 @@ namespace WPEFramework {
             /* add 4 checks every 30 seconds */
             int i=0;
             do{
-	            network_available = checkNetwork();
+	        network_available = checkNetwork();
                 if ( !network_available ){
                     sleep(30);
                     i++;
