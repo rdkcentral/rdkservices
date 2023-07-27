@@ -1667,7 +1667,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                         const char * script2 = R"(ip -6 route | grep ^default | tr -d "\n")";
 
                         string res = Utils::cRunScript(script2).substr();
-                        LOGWARN("script2 '%s' result: '%s'", script2, res.c_str());
+                        LOGWARN("script2 '%s' result:   '%s'", script2, res.c_str());
 
                         size_t pos = res.find("via");
                         if (pos != string::npos)
