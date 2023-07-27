@@ -48,7 +48,6 @@ namespace WPEFramework
             RIoTControl &operator=(const RIoTControl &) = delete;
 
             int m_apiVersionNumber;
-            static RIoTControl *_instance;
             std::string remote_addr;
 
             // Available functions
@@ -59,12 +58,6 @@ namespace WPEFramework
             uint32_t sendCommand(const JsonObject &parameters, JsonObject &response);
 
             bool initializeIPC();
-
-            static const string METHOD_IOT_GET_AVAILABLE_DEVICES;
-            static const string METHOD_IOT_GET_DEVICE_DETAILS;
-            static const string METHOD_IOT_GET_DEVICE_PROPERTIES;
-            static const string METHOD_IOT_GET_DEVICE_PROPERTY;
-            static const string METHOD_IOT_SEND_COMMAND;
 
         public:
             RIoTControl();

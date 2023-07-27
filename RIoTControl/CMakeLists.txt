@@ -21,7 +21,7 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 set(PLUGIN_NETWORK_STARTUPORDER "" CACHE STRING "To configure startup order of RIoTControl plugin")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
-#find_package(Avahi)
+find_package(Avahi)
 
 add_library(${MODULE_NAME} SHARED
         RIoTControl.cpp

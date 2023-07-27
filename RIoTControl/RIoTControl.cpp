@@ -28,28 +28,22 @@
 
 namespace WPEFramework
 {
-    // namespace
-    // {
+    namespace
+    {
 
-    //     static Plugin::Metadata<Plugin::RIoTControl> metadata(
-    //         // Version (Major, Minor, Patch)
-    //         API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
-    //         // Preconditions
-    //         {},
-    //         // Terminations
-    //         {},
-    //         // Controls
-    //         {});
-    // }
+        static Plugin::Metadata<Plugin::RIoTControl> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {});
+    }
 
     namespace Plugin
     {
-
-        const string METHOD_IOT_GET_AVAILABLE_DEVICES = "getAvailableDevices";
-        const string METHOD_IOT_GET_DEVICE_DETAILS = "getDeviceDetails";
-        const string METHOD_IOT_GET_DEVICE_PROPERTIES = "getDeviceProperties";
-        const string METHOD_IOT_GET_DEVICE_PROPERTY = "getDeviceProperty";
-        const string METHOD_IOT_SEND_COMMAND = "sendCommand";
 
         std::string getRemoteAddress()
         {
@@ -77,16 +71,14 @@ namespace WPEFramework
 
         SERVICE_REGISTRATION(RIoTControl, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
-        RIoTControl *RIoTControl::_instance = nullptr;
-
         RIoTControl::RIoTControl()
             : PluginHost::JSONRPC(), m_apiVersionNumber(API_VERSION_NUMBER_MAJOR)
         {
 
-            Register(METHOD_IOT_GET_AVAILABLE_DEVICES, &RIoTControl::getAvailableDevicesWrapper, this);
-            Register(METHOD_IOT_GET_DEVICE_PROPERTIES, &RIoTControl::getDeviceProperties, this);
-            Register(METHOD_IOT_GET_DEVICE_PROPERTY, &RIoTControl::getDeviceProperty, this);
-            Register(METHOD_IOT_SEND_COMMAND, &RIoTControl::sendCommand, this);
+            Register("getAvailableDevices", &RIoTControl::getAvailableDevicesWrapper, this);
+            Register("getDeviceProperties", &RIoTControl::getDeviceProperties, this);
+            Register("getDeviceProperty", &RIoTControl::getDeviceProperty, this);
+            Register("sendCommand", &RIoTControl::sendCommand, this);
         }
 
         RIoTControl::~RIoTControl()
@@ -95,9 +87,11 @@ namespace WPEFramework
 
         const string RIoTControl::Initialize(PluginHost::IShell * /* service */)
         {
-            RIoTControl::_instance = this;
+            string msg;
             remote_addr = getRemoteAddress();
-            return (string());
+            if(remote_addr.empty())
+                msg = "Failed to retrieve remote address";
+            return (msg);
         }
         void RIoTControl::Deinitialize(PluginHost::IShell * /* service */)
         {
