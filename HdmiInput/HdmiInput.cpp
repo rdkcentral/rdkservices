@@ -1109,7 +1109,7 @@ namespace WPEFramework
            LOGINFO("calling HdmiInput::getHdmiDAL_AudioVideoLatency \n");
            try
            {
-               device::HdmiInput::getInstance().getAVLatency(audio_output_delay,video_latency);
+               device::HdmiInput::getInstance().getAVLatency(&audio_output_delay,&video_latency);
                LOGINFO("HdmiInput::getHdmiDAL_AudioVideoLatency Audio Latency: %d, Video Latency: %d\n", audio_output_delay,video_latency);
                response["AudioLatency"] = audio_output_delay;
                response["VideoLatency"] = video_latency;
