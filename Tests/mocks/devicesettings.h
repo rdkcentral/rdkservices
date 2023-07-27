@@ -651,7 +651,7 @@ public:
     }
     void getAVLatency(int *audio_output_delay, int *video_latency) const
     {
-        return impl->getAVLatency(&audio_output_delay,&video_latency);
+        return impl->getAVLatency(audio_output_delay,video_latency);
     }
 };
 
