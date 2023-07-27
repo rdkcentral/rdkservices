@@ -373,8 +373,9 @@ if (PLUGIN_RESOURCEMANAGER)
     add_subdirectory(ResourceManager)
 endif()
 if (PLUGIN_RIOTCONTROL)
-add_subdirectory(IOTControl)
+    add_subdirectory(RIoTControl)
 endif()
+
 
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)
     set(CPACK_GENERATOR "DEB")

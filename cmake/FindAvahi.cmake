@@ -1,0 +1,6 @@
+find_package(PkgConfig)
+
+find_library(AVAHI_CLIENT_LIBRARIES NAMES avahi-client)
+find_library(AVAHI_COMMON_LIBRARIES NAMES avahi-common)
+mark_as_advanced(AVAHI_CLIENT_LIBRARIES)
+mark_as_advanced(AVAHI_COMMON_LIBRARIES)
