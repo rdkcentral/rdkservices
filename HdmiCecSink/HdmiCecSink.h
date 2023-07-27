@@ -88,6 +88,7 @@ namespace WPEFramework {
 		void process (const SetSystemAudioMode &msg, const Header &header);
 		void process (const ReportAudioStatus &msg, const Header &header);
 		void process (const GiveFeatures &msg, const Header &header);
+		void process (const RequestCurrentLatency &msg, const Header &header);
         private:
             Connection conn;
             void printHeader(const Header &header)
@@ -559,6 +560,8 @@ private:
                         void SendStandbyMsgEvent(const int logicalAddress);
                         void requestAudioDevicePowerStatus();
                         void reportAudioDevicePowerStatusInfo(const int logicalAddress, const int powerStatus);
+			void updateCurrentLatency(int videoLatency, bool lowLatencyMode, int audioOutputCompensated, int audioOutputDelay);
+			void setLatencyInfo();
             void Process_ReportAudioStatus_msg(const ReportAudioStatus msg);
             void sendKeyPressEvent(const int logicalAddress, int keyCode);
             void sendKeyReleaseEvent(const int logicalAddress);
@@ -600,7 +603,8 @@ private:
 	                uint32_t sendGiveAudioStatusWrapper(const JsonObject& parameters, JsonObject& response);
 			uint32_t getAudioDeviceConnectedStatusWrapper(const JsonObject& parameters, JsonObject& response);
                         uint32_t requestAudioDevicePowerStatusWrapper(const JsonObject& parameters, JsonObject& response);
-                        //End methods
+                        uint32_t setLatencyInfoWrapper(const JsonObject& parameters, JsonObject& response);
+			//End methods
             std::string logicalAddressDeviceType;
             bool cecSettingEnabled;
             bool cecOTPSettingEnabled;
@@ -626,7 +630,12 @@ private:
             std::condition_variable m_sendKeyCV;
 	    std::condition_variable m_ThreadExitCV;
 
-            /* ARC related */
+            /* DALS - Latency Values */
+	    uint8_t m_video_latency;
+	    uint8_t m_latency_flags;
+	    uint8_t m_audio_output_delay;
+
+	    /* ARC related */
             std::thread m_arcRoutingThread;
 	    uint32_t m_currentArcRoutingState;
 	    std::mutex m_arcRoutingStateMutex;

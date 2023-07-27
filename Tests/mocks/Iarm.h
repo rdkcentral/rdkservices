@@ -713,6 +713,7 @@ typedef enum _DSMgr_EventId_t {
     IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG, /*!< HDMI IN HPD change event */
     IARM_BUS_DSMGR_EVENT_HDMI_IN_SIGNAL_STATUS, /*!< HDMI IN signal status change event */
     IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS, /*!< HDMI IN status change event */
+    IARM_BUS_DSMGR_EVENT_HDMI_IN_AV_LATENCY, /*!< HDMI IN AV Latency Event */
     IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE, /*!< HDMI IN video mode update event */
     IARM_BUS_DSMGR_EVENT_HDMI_IN_ALLM_STATUS, /*!< HDMI IN ALLM mode update event */
     IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_HOTPLUG, /*!< COMPOSITE IN HPD change event */
