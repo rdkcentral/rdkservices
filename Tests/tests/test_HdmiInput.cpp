@@ -64,7 +64,8 @@ protected:
     {
         IarmBus::getInstance().impl = &iarmBusImplMock;
 
-        EXPECT_CALL(service, QueryInterfaceByCallsign(::testing::_, ::testing::_))
+        
+	EXPECT_CALL(service, QueryInterfaceByCallsign(::testing::_, ::testing::_))
             .Times(::testing::AnyNumber())
             .WillRepeatedly(::testing::Invoke(
                 [&](const uint32_t, const string& name) -> void* {
