@@ -20,7 +20,8 @@ set(EMPTY_HEADERS_DIRS
         ${BASEDIR}/websocket
 	      ${BASEDIR}/rdk/control
         ${BASEDIR}/rdk/iarmmgrs
-        ${BASEDIR}/rdkshell
+	${BASEDIR}/rdkshell
+        ${BASEDIR}/opkg
         )
 
 set(EMPTY_HEADERS
@@ -105,7 +106,11 @@ set(EMPTY_HEADERS
         ${BASEDIR}/rdk/control/ctrlm_ipc_voice.h
         ${BASEDIR}/rdk/control/ctrlm_ipc_rcu.h
         ${BASEDIR}/rdk/control/ctrlm_ipc_key_codes.h
-        ${BASEDIR}/rdk_logger_milestone.h
+	    ${BASEDIR}/rdk_logger_milestone.h
+	    ${BASEDIR}/opkg/opkg.h
+	    ${BASEDIR}/opkg/opkg_message.h
+	    ${BASEDIR}/opkg/opkg_cmd.h
+	    ${BASEDIR}/opkg/opkg_download.h
         )
 
 file(MAKE_DIRECTORY ${EMPTY_HEADERS_DIRS})
@@ -176,7 +181,9 @@ set(CMAKE_DISABLE_FIND_PACKAGE_RBus ON)
 set(CMAKE_DISABLE_FIND_PACKAGE_CEC ON)
 set(CMAKE_DISABLE_FIND_PACKAGE_Dobby ON)
 set(CMAKE_DISABLE_FIND_PACKAGE_CEC ON)
-
+set(LIBOPKG_LIBRARIES ${LIBOPKG_LIBRARIES} CACHE PATH "Path to LIBOPKG library")
+#set(BTMGR_INCLUDE_DIRS ${BTMGR_INCLUDE_DIRS}
+set(LIBOPKG_INCLUDE_DIRS ${LIBOPKG_INCLUDE_DIRS} CACHE PATH "Path to LIBOPKG include")
 set(PLUGIN_DATACAPTURE ON)
 set(PLUGIN_DEVICEDIAGNOSTICS ON)
 set(PLUGIN_LOCATIONSYNC ON)
@@ -214,5 +221,7 @@ set(PLUGIN_VOICECONTROL ON)
 set(PLUGIN_CONTROLSERVICE ON)
 set(PLUGIN_REMOTEACTIONMAPPING ON)
 set(PLUGIN_RDKSHELL ON)
+set(PLUGIN_MAINTENANCEMANAGER ON)
+set(PLUGIN_PACKAGER ON)
 
 set(DS_FOUND ON)

@@ -16,6 +16,11 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+
+## [1.0.21] - 2023-07-27
+### Added
+- Compilation Fix for RDKservice GTest
+
 ## [1.0.20] - 2023-06-01
 ### Added
 - Implementation to get the partner provisioning context from whoAmI
