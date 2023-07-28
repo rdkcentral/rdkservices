@@ -340,7 +340,8 @@ namespace WPEFramework {
             registerMethodLockedApi("setPreferredColorDepth", &DisplaySettings::setPreferredColorDepth, this);
             registerMethodLockedApi("getPreferredColorDepth", &DisplaySettings::getPreferredColorDepth, this);
             registerMethodLockedApi("getColorDepthCapabilities", &DisplaySettings::getColorDepthCapabilities, this);
-            
+	    registerMethodLockedApi("getSupportedMS12Config", &DisplaySettings::getSupportedMS12Config, this);
+           
 
 	    m_subscribed = false; //HdmiCecSink event subscription
 	    m_hdmiInAudioDeviceConnected = false;// Tells about the device connection state, for eArc will be updated on audio device power status event handler after tinymix command and incase of ARC will be true after ARC Initiation
@@ -4047,6 +4048,24 @@ namespace WPEFramework {
             setResponseArray(response, "capabilities", colorDepthCapabilities);
             returnResponse(true);
         }
+
+	uint32_t DisplaySettings::getSupportedMS12Config(const JsonObject& parameters, JsonObject& response)
+       {
+           LOGINFOMETHOD();
+           bool success = true;
+           std::string type;
+           try {
+               device::Host::getInstance().getMS12ConfigDetails(type);
+               LOGINFO("Platform supports MS12 Config Z\n");
+               response["ms12config"] = type;
+           }
+           catch(const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(string("MS12ConfigType"));
+                success = false;
+            }
+           returnResponse(success);
+       }
 
         bool DisplaySettings::setUpHdmiCecSinkArcRouting (bool arcEnable)
         {
