@@ -188,6 +188,8 @@ jobs:
           rfcapi.h
           rbus.h
           telemetry_busmessage_sender.h
+          maintenanceMGR.h
+          pkg.h
 
       - name: Set clang toolchain
         if: ${{ matrix.compiler == 'clang' }}
@@ -220,6 +222,8 @@ jobs:
           -include ${{github.workspace}}/rdkservices/Tests/mocks/RBus.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Telemetry.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Udev.h
+          -include ${{github.workspace}}/rdkservices/Tests/mocks/maintenanceMGR.h
+          -include ${{github.workspace}}/rdkservices/Tests/mocks/pkg.h
           -Wall -Werror
           -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog
           -DENABLE_TELEMETRY_LOGGING
@@ -281,6 +285,10 @@ jobs:
           /opt/secure/persistent/System
           /opt/logs
           /lib/rdk
+          /run/media/sda1/logs/PreviousLogs
+          /run/sda1/UsbTestFWUpdate
+          /run/sda1/UsbProdFWUpdate
+          /run/sda2
           &&
           sudo touch
           /opt/standbyReason.txt
@@ -291,6 +299,12 @@ jobs:
           /etc/dcm.properties
           /etc/authService.conf
           /version.txt
+          /run/media/sda1/logs/PreviousLogs/logFile.txt
+          /run/sda1/HSTP11MWR_5.11p5s1_VBN_sdy.bin
+          /run/sda1/UsbTestFWUpdate/HSTP11MWR_3.11p5s1_VBN_sdy.bin
+          /run/sda1/UsbProdFWUpdate/HSTP11MWR_4.11p5s1_VBN_sdy.bin
+          /lib/rdk/getMaintenanceStartTime.sh
+          /tmp/opkg.conf
           &&
           sudo chmod 777
           /opt/standbyReason.txt
@@ -301,6 +315,8 @@ jobs:
           /etc/dcm.properties          
           /etc/authService.conf
           /version.txt
+          /lib/rdk/getMaintenanceStartTime.sh
+          /tmp/opkg.conf
 
       - name: Run unit tests without valgrind
         run: >
