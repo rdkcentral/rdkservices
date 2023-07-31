@@ -2,7 +2,7 @@
 <a name="System_Plugin"></a>
 # System Plugin
 
-**Version: [1.5.1](https://github.com/rdkcentral/rdkservices/blob/main/SystemServices/CHANGELOG.md)**
+**Version: [1.6.0](https://github.com/rdkcentral/rdkservices/blob/main/SystemServices/CHANGELOG.md)**
 
 A org.rdk.System plugin for Thunder framework.
 
@@ -84,6 +84,7 @@ SystemServices interface methods:
 | [getStoreDemoLink](#getStoreDemoLink) | Returns the store demo video link |
 | [getSystemVersions](#getSystemVersions) | Returns system version details |
 | [getTemperatureThresholds](#getTemperatureThresholds) | Returns temperature threshold values |
+| [getFriendlyName](#getFriendlyName) | Returns the friendly name set by setFriendlyName API or default value |
 | [getTerritory](#getTerritory) | Gets the configured system territory and region |
 | [getTimeZones](#getTimeZones) | (Version2) Gets the available timezones from the system's time zone database |
 | [getTimeZoneDST](#getTimeZoneDST) | Get the configured time zone from the file referenced by `TZ_FILE` |
@@ -109,6 +110,7 @@ SystemServices interface methods:
 | [setPowerState](#setPowerState) | Sets the power state of the device |
 | [setPreferredStandbyMode](#setPreferredStandbyMode) | Sets and persists the preferred standby mode |
 | [setTemperatureThresholds](#setTemperatureThresholds) | Sets the temperature threshold values |
+| [setFriendlyName](#setFriendlyName) | Sets the friendly name of device |
 | [setTerritory](#setTerritory) | Sets the system territory and region |
 | [setTimeZoneDST](#setTimeZoneDST) | Sets the system time zone |
 | [setWakeupSrcConfiguration](#setWakeupSrcConfiguration) | Sets the wakeup source configuration for the input powerState |
@@ -2000,6 +2002,52 @@ This method takes no parameters.
 }
 ```
 
+<a name="getFriendlyName"></a>
+## *getFriendlyName*
+
+Returns the friendly name set by setFriendlyName API or default value.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.friendlyName | string | The friendly name of the device which used to display on the client device list |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.getFriendlyName"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "friendlyName": "My Device",
+        "success": true
+    }
+}
+```
+
 <a name="getTerritory"></a>
 ## *getTerritory*
 
@@ -3266,6 +3314,56 @@ No Events
 }
 ```
 
+<a name="setFriendlyName"></a>
+## *setFriendlyName*
+
+Sets the friendly name of device. It allows an applications to set friendly name value which could be used by different applications to list this device on client mobile application. The provided name should not be empty. Friendly name is persisted on device and reuse after each reboot until updated by the user.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.friendlyName | string | The friendly name of the device which used to display on the client device list |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.setFriendlyName",
+    "params": {
+        "friendlyName": "My Device"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="setTerritory"></a>
 ## *setTerritory*
 
@@ -3720,6 +3818,7 @@ SystemServices interface events:
 | [onSystemClockSet](#onSystemClockSet) | Triggered when the clock on the set-top device is updated |
 | [onSystemModeChanged](#onSystemModeChanged) | Triggered when the device operating mode changes |
 | [onSystemPowerStateChanged](#onSystemPowerStateChanged) | Triggered when the power manager detects a device power state change |
+| [onFriendlyNameChanged](#onFriendlyNameChanged) | Triggered when the device friendly name change |
 | [onTemperatureThresholdChanged](#onTemperatureThresholdChanged) | Triggered when the device temperature changes beyond the `WARN` or `MAX` limits (see `setTemperatureThresholds`) |
 | [onTerritoryChanged](#onTerritoryChanged) | Triggered when the device territory changed |
 | [onTimeZoneDSTChanged](#onTimeZoneDSTChanged) | Triggered when device time zone changed |
@@ -3979,6 +4078,30 @@ Triggered when the power manager detects a device power state change.
     "params": {
         "powerState": "ON",
         "currentPowerState": "ON"
+    }
+}
+```
+
+<a name="onFriendlyNameChanged"></a>
+## *onFriendlyNameChanged*
+
+Triggered when the device friendly name change.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.friendlyName | string | The friendly name of the device which used to display on the client device list |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onFriendlyNameChanged",
+    "params": {
+        "friendlyName": "My Device"
     }
 }
 ```
