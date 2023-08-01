@@ -3779,6 +3779,10 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WithHttpStatusCode4
 	// Clear file contents
     fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
     fileVer.close();
+	httpCodeFile.open("/tmp/xconf_httpcode_thunder.txt", std::ofstream::out | std::ofstream::trunc);
+    httpCodeFile.close();
+	responseFile.open("/tmp/xconf_response_thunder.txt", std::ofstream::out | std::ofstream::trunc);
+    responseFile.close();
 }
 
 /**
@@ -3820,6 +3824,10 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WithHttpStatusCode4
 	// Clear file contents
     fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
     fileVer.close();
+	httpCodeFile.open("/tmp/xconf_httpcode_thunder.txt", std::ofstream::out | std::ofstream::trunc);
+    httpCodeFile.close();
+	responseFile.open("/tmp/xconf_response_thunder.txt", std::ofstream::out | std::ofstream::trunc);
+    responseFile.close();
 }
 
 /**
@@ -3861,6 +3869,10 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WithHttpStatusCodeO
     // Clear file contents
     fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
     fileVer.close();
+	httpCodeFile.open("/tmp/xconf_httpcode_thunder.txt", std::ofstream::out | std::ofstream::trunc);
+    httpCodeFile.close();
+	responseFile.open("/tmp/xconf_response_thunder.txt", std::ofstream::out | std::ofstream::trunc);
+    responseFile.close();
 }
 
 /**
@@ -3902,6 +3914,10 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvPROD)
 	// Clear file contents
     fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
     fileVer.close();
+	httpCodeFile.open("/tmp/xconf_httpcode_thunder.txt", std::ofstream::out | std::ofstream::trunc);
+    httpCodeFile.close();
+	responseFile.open("/tmp/xconf_response_thunder.txt", std::ofstream::out | std::ofstream::trunc);
+    responseFile.close();
 }
 
 /**
@@ -3944,6 +3960,10 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvDev)
 	// Clear file contents
     fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
     fileVer.close();
+	httpCodeFile.open("/tmp/xconf_httpcode_thunder.txt", std::ofstream::out | std::ofstream::trunc);
+    httpCodeFile.close();
+	responseFile.open("/tmp/xconf_response_thunder.txt", std::ofstream::out | std::ofstream::trunc);
+    responseFile.close();
 }
 
 /**
@@ -3986,6 +4006,10 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvVBN)
 	// Clear file contents
     fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
     fileVer.close();
+	httpCodeFile.open("/tmp/xconf_httpcode_thunder.txt", std::ofstream::out | std::ofstream::trunc);
+    httpCodeFile.close();
+	responseFile.open("/tmp/xconf_response_thunder.txt", std::ofstream::out | std::ofstream::trunc);
+    responseFile.close();
 }
 
 /**
@@ -4028,6 +4052,10 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvCqa)
 	// Clear file contents
     fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
     fileVer.close();
+	httpCodeFile.open("/tmp/xconf_httpcode_thunder.txt", std::ofstream::out | std::ofstream::trunc);
+    httpCodeFile.close();
+	responseFile.open("/tmp/xconf_response_thunder.txt", std::ofstream::out | std::ofstream::trunc);
+    responseFile.close();
 }
 
 /**
@@ -4069,6 +4097,10 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvNotProdWitho
 	// Clear file contents
     fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
     fileVer.close();
+	httpCodeFile.open("/tmp/xconf_httpcode_thunder.txt", std::ofstream::out | std::ofstream::trunc);
+    httpCodeFile.close();
+	responseFile.open("/tmp/xconf_response_thunder.txt", std::ofstream::out | std::ofstream::trunc);
+    responseFile.close();
 }
 
 /**
@@ -4114,6 +4146,10 @@ TEST_F(SystemServicesEventTest, OnFirmwareUpdateInfoReceived_WhenEnvNotProdWithC
 	// Clear file contents
     fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
     fileVer.close();
+	httpCodeFile.open("/tmp/xconf_httpcode_thunder.txt", std::ofstream::out | std::ofstream::trunc);
+    httpCodeFile.close();
+	responseFile.open("/tmp/xconf_response_thunder.txt", std::ofstream::out | std::ofstream::trunc);
+    responseFile.close();
 }
 
 /**
@@ -4160,6 +4196,10 @@ TEST_F(SystemServicesEventTest, OnFirmwareUpdateInfoReceived_WhenEnvNotProdWithC
 	// Clear file contents
     fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
     fileVer.close();
+	httpCodeFile.open("/tmp/xconf_httpcode_thunder.txt", std::ofstream::out | std::ofstream::trunc);
+    httpCodeFile.close();
+	responseFile.open("/tmp/xconf_response_thunder.txt", std::ofstream::out | std::ofstream::trunc);
+    responseFile.close();
 }
 
 /**
@@ -4197,6 +4237,8 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WithoutHttpStatusCo
 	// Clear file contents
     fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
     fileVer.close();
+	httpCodeFile.open("/tmp/xconf_httpcode_thunder.txt", std::ofstream::out | std::ofstream::trunc);
+    httpCodeFile.close();
 }
 
 /**
@@ -4238,6 +4280,10 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenResponseEmpty)
 	// Clear file contents
     fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
     fileVer.close();
+	httpCodeFile.open("/tmp/xconf_httpcode_thunder.txt", std::ofstream::out | std::ofstream::trunc);
+    httpCodeFile.close();
+	responseFile.open("/tmp/xconf_response_thunder.txt", std::ofstream::out | std::ofstream::trunc);
+    responseFile.close();
 }
 
 /*
@@ -4279,6 +4325,10 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenErrorInParsingR
 	// Clear file contents
     fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
     fileVer.close();
+	httpCodeFile.open("/tmp/xconf_httpcode_thunder.txt", std::ofstream::out | std::ofstream::trunc);
+    httpCodeFile.close();
+	responseFile.open("/tmp/xconf_response_thunder.txt", std::ofstream::out | std::ofstream::trunc);
+    responseFile.close();
 }
 
 /**
@@ -4320,6 +4370,10 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenInvalidResponse
 	// Clear file contents
     fileVer.open("/version.txt", std::ofstream::out | std::ofstream::trunc);
     fileVer.close();
+	httpCodeFile.open("/tmp/xconf_httpcode_thunder.txt", std::ofstream::out | std::ofstream::trunc);
+    httpCodeFile.close();
+	responseFile.open("/tmp/xconf_response_thunder.txt", std::ofstream::out | std::ofstream::trunc);
+    responseFile.close();
 }
 
 /****************************************************************************************************
