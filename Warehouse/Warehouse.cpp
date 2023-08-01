@@ -22,6 +22,7 @@
 #include <algorithm>
 #include <fstream>
 
+#include <regex>
 #include <regex.h>
 #include <time.h>
 
@@ -36,6 +37,7 @@
 #include "UtilsString.h"
 #include "UtilscRunScript.h"
 #include "UtilsfileExists.h"
+#include "UtilsgetFileContent.h"
 
 #include "frontpanel.h"
 
@@ -703,18 +705,35 @@ namespace WPEFramework
                 if (path.find('$') != std::string::npos)
                 {
                     std::string variable;
-                    std::string script = "echo '" + path + "' | sed -r \"s/([^$]*)([$\\{]*)([^$\\{\\}\\/]*)(.*)/\\3/\"";
-                    variable = Utils::cRunScript(script.c_str());
-                    Utils::String::trim(variable);
+                    std::regex pattern("\\$([^$\\{\\}\\/]*)");
+		            std::smatch matches;
+
+		            if (std::regex_search(path, matches, pattern))
+                    {
+                        variable = matches[1].str();
+                        LOGINFO("Extracted variable '%s' ", variable.c_str());
+                        Utils::String::trim(variable);
+		            }
+                    else
+                    {
+                         LOGERR("Variable extraction failed");
+		            }
 
                     std::string value;
                     if (variable.length() > 0)
                     {
-                        script = ". /etc/device.properties; echo \"$" + variable + "\"";
-                        value = Utils::cRunScript(script.c_str());
-                        Utils::String::trim(value);
-                    }
+		               const char* filename = "/etc/device.properties";
+                        std::string propertyName = variable;
 
+                        if (Utils::readPropertyFromFile(filename, propertyName, value))
+                        {
+                            Utils::String::trim(value);
+                        }
+                        else
+                        {
+                            LOGERR("Property value is empty");
+                        }
+                    }
                     if (value.length() == 0)
                     {
                         LOGWARN("path %d '%s' hasn't been tested, due to the empty value of '%s'", ++totalPathsCounter, path.c_str(), variable.c_str());
