@@ -3752,30 +3752,14 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WithHttpStatusCode4
     fileVer << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
     fileVer.close();
 	
-	std::ofstream file("/etc/device.properties");
-    file << "SD_CARD_MOUNT_PATH=/tmp/data" << endl;
-    file << "APP_MOUNT_PATH=/media/apps" << endl;
-    file << "SD_CARD_APP_MOUNT_PATH=/media/apps" << endl;
-    file << "TSB_MOUNT_PATH=/tmp/data" << endl;
-    file.close();
-	
-    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
-          .Times(::testing::AnyNumber())
-          .WillRepeatedly(::testing::Invoke(
-              [&](const char* command, const char* type) {
-                      char buffer[1024];
-                      memset(buffer, 0, sizeof(buffer));
-                  if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
-                      const char http_code_str[] = "460";
-                      strcpy(buffer, http_code_str);
-                  } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
-                      const char response_str[] = "{\"firmwareVersion\":\"1234\"}";
-                      strcpy(buffer, response_str);
-                  }
-                 FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
-                 return pipe;
-              }));
+	std::ofstream httpCodeFile("/tmp/xconf_httpcode_thunder.txt");
+    httpCodeFile << "460";
+    httpCodeFile.close();
 
+    std::ofstream responseFile("/tmp/xconf_response_thunder.txt");
+    responseFile <<  "{\"firmwareVersion\":\"1234\"}";
+    responseFile.close();
+	
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
@@ -3808,23 +3792,15 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WithHttpStatusCode4
     std::ofstream fileVer("/version.txt");
     fileVer << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
     fileVer.close();
-    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
-          .Times(::testing::AnyNumber())
-          .WillRepeatedly(::testing::Invoke(
-              [&](const char* command, const char* type) {
-                      char buffer[1024];
-                      memset(buffer, 0, sizeof(buffer));
-                  if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
-                      const char http_code_str[] = "403";
-                      strcpy(buffer, http_code_str);
-                  } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
-                      const char response_str[] = "{\"firmwareVersion\":\"1234\"}";
-                      strcpy(buffer, response_str);
-                  }
-                 FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
-                 return pipe;
-              }));
 
+	std::ofstream httpCodeFile("/tmp/xconf_httpcode_thunder.txt");
+    httpCodeFile << "403";
+    httpCodeFile.close();
+
+    std::ofstream responseFile("/tmp/xconf_response_thunder.txt");
+    responseFile <<  "{\"firmwareVersion\":\"1234\"}";
+    responseFile.close();
+	
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
@@ -3857,23 +3833,15 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WithHttpStatusCodeO
     std::ofstream fileVer("/version.txt");
     fileVer << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
     fileVer.close();
-    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
-          .Times(::testing::AnyNumber())
-          .WillRepeatedly(::testing::Invoke(
-              [&](const char* command, const char* type) {
-                      char buffer[1024];
-                      memset(buffer, 0, sizeof(buffer));
-                  if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
-                      const char http_code_str[] = "400";
-                      strcpy(buffer, http_code_str);
-                  } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
-                      const char response_str[] = "{\"firmwareVersion\":\"1234\"}";
-                      strcpy(buffer, response_str);
-                  }
-                 FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
-                 return pipe;
-              }));
+	
+	std::ofstream httpCodeFile("/tmp/xconf_httpcode_thunder.txt");
+    httpCodeFile << "400";
+    httpCodeFile.close();
 
+    std::ofstream responseFile("/tmp/xconf_response_thunder.txt");
+    responseFile <<  "{\"firmwareVersion\":\"1234\"}";
+    responseFile.close();
+	
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
@@ -3906,23 +3874,15 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvPROD)
     std::ofstream fileVer("/version.txt");
     fileVer << "imagename:PX051AEI_PROD_2203_sprint_20220331225312sdy_NG";
     fileVer.close();
-    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
-          .Times(::testing::AnyNumber())
-          .WillRepeatedly(::testing::Invoke(
-              [&](const char* command, const char* type) {
-                      char buffer[1024];
-                      memset(buffer, 0, sizeof(buffer));
-                  if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
-                      const char http_code_str[] = "460";
-                      strcpy(buffer, http_code_str);
-                  } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
-                      const char response_str[] = "{\"firmwareVersion\":\"1234\"}";
-                      strcpy(buffer, response_str);
-                  }
-                 FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
-                 return pipe;
-              }));
+	
+	std::ofstream httpCodeFile("/tmp/xconf_httpcode_thunder.txt");
+    httpCodeFile << "460";
+    httpCodeFile.close();
 
+    std::ofstream responseFile("/tmp/xconf_response_thunder.txt");
+    responseFile <<  "{\"firmwareVersion\":\"1234\"}";
+    responseFile.close();
+	
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
@@ -3955,23 +3915,15 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvDev)
     std::ofstream fileVer("/version.txt");
     fileVer << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
     fileVer.close();
-    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
-          .Times(::testing::AnyNumber())
-          .WillRepeatedly(::testing::Invoke(
-              [&](const char* command, const char* type) {
-                      char buffer[1024];
-                      memset(buffer, 0, sizeof(buffer));
-                  if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
-                      const char http_code_str[] = "460";
-                      strcpy(buffer, http_code_str);
-                  } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
-                      const char response_str[] = "{\"firmwareVersion\":\"1234\"}";
-                      strcpy(buffer, response_str);
-                  }
-                 FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
-                 return pipe;
-              }));
+	
+    std::ofstream httpCodeFile("/tmp/xconf_httpcode_thunder.txt");
+    httpCodeFile << "460";
+    httpCodeFile.close();
 
+    std::ofstream responseFile("/tmp/xconf_response_thunder.txt");
+    responseFile <<  "{\"firmwareVersion\":\"1234\"}";
+    responseFile.close();
+	
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
@@ -4005,23 +3957,15 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvVBN)
     std::ofstream fileVer("/version.txt");
     fileVer << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
     fileVer.close();
-    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
-          .Times(::testing::AnyNumber())
-          .WillRepeatedly(::testing::Invoke(
-              [&](const char* command, const char* type) {
-                      char buffer[1024];
-                      memset(buffer, 0, sizeof(buffer));
-                  if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
-                      const char http_code_str[] = "460";
-                      strcpy(buffer, http_code_str);
-                  } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
-                      const char response_str[] = "{\"firmwareVersion\":\"1234\"}";
-                      strcpy(buffer, response_str);
-                  }
-                 FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
-                 return pipe;
-              }));
+	
+    std::ofstream httpCodeFile("/tmp/xconf_httpcode_thunder.txt");
+    httpCodeFile << "460";
+    httpCodeFile.close();
 
+    std::ofstream responseFile("/tmp/xconf_response_thunder.txt");
+    responseFile <<  "{\"firmwareVersion\":\"1234\"}";
+    responseFile.close();
+	
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
@@ -4055,23 +3999,15 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvCqa)
     std::ofstream fileVer("/version.txt");
     fileVer << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
     fileVer.close();
-    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
-          .Times(::testing::AnyNumber())
-          .WillRepeatedly(::testing::Invoke(
-              [&](const char* command, const char* type) {
-                      char buffer[1024];
-                      memset(buffer, 0, sizeof(buffer));
-                  if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
-                      const char http_code_str[] = "460";
-                      strcpy(buffer, http_code_str);
-                  } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
-                      const char response_str[] = "{\"firmwareVersion\":\"1234\"}";
-                      strcpy(buffer, response_str);
-                  }
-                 FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
-                 return pipe;
-              }));
+    
+	std::ofstream httpCodeFile("/tmp/xconf_httpcode_thunder.txt");
+    httpCodeFile << "460";
+    httpCodeFile.close();
 
+    std::ofstream responseFile("/tmp/xconf_response_thunder.txt");
+    responseFile <<  "{\"firmwareVersion\":\"1234\"}";
+    responseFile.close();
+	
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
@@ -4105,23 +4041,15 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvNotProdWitho
     std::ofstream fileVer("/version.txt");
     fileVer << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
     fileVer.close();
-    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
-          .Times(::testing::AnyNumber())
-          .WillRepeatedly(::testing::Invoke(
-              [&](const char* command, const char* type) {
-                      char buffer[1024];
-                      memset(buffer, 0, sizeof(buffer));
-                  if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
-                      const char http_code_str[] = "460";
-                      strcpy(buffer, http_code_str);
-                  } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
-                      const char response_str[] = "{\"firmwareVersion\":\"1234\"}";
-                      strcpy(buffer, response_str);
-                  }
-                 FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
-                 return pipe;
-              }));
+	
+    std::ofstream httpCodeFile("/tmp/xconf_httpcode_thunder.txt");
+    httpCodeFile << "460";
+    httpCodeFile.close();
 
+    std::ofstream responseFile("/tmp/xconf_response_thunder.txt");
+    responseFile <<  "{\"firmwareVersion\":\"1234\"}";
+    responseFile.close();
+	
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
@@ -4158,24 +4086,16 @@ TEST_F(SystemServicesEventTest, OnFirmwareUpdateInfoReceived_WhenEnvNotProdWithC
     Core::File file2(swUpdateFile);
     file2.Destroy();
     file2.Create();
+	
+    std::ofstream httpCodeFile("/tmp/xconf_httpcode_thunder.txt");
+    httpCodeFile << "460";
+    httpCodeFile.close();
 
-    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
-          .Times(::testing::AnyNumber())
-          .WillRepeatedly(::testing::Invoke(
-              [&](const char* command, const char* type) {
-                      char buffer[1024];
-                      memset(buffer, 0, sizeof(buffer));
-                  if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
-                      const char http_code_str[] = "460";
-                      strcpy(buffer, http_code_str);
-                  } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
-                      const char response_str[] = "{\"firmwareVersion\":\"1234\"}";
-                      strcpy(buffer, response_str);
-                  }
-                 FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
-                 return pipe;
-              }));
-      EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+    std::ofstream responseFile("/tmp/xconf_response_thunder.txt");
+    responseFile <<  "{\"firmwareVersion\":\"1234\"}";
+    responseFile.close();
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
             [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
@@ -4213,23 +4133,15 @@ TEST_F(SystemServicesEventTest, OnFirmwareUpdateInfoReceived_WhenEnvNotProdWithC
     file2.Destroy();
     file2.Create();
     file2.Write(swUpdateUrl, sizeof(swUpdateUrl));
+	
+    std::ofstream httpCodeFile("/tmp/xconf_httpcode_thunder.txt");
+    httpCodeFile << "460";
+    httpCodeFile.close();
 
-    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
-          .Times(::testing::AnyNumber())
-          .WillRepeatedly(::testing::Invoke(
-              [&](const char* command, const char* type) {
-                      char buffer[1024];
-                      memset(buffer, 0, sizeof(buffer));
-                  if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
-                      const char http_code_str[] = "460";
-                      strcpy(buffer, http_code_str);
-                  } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
-                      const char response_str[] = "{\"firmwareVersion\":\"1234\"}";
-                      strcpy(buffer, response_str);
-                  }
-                 FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
-                 return pipe;
-              }));
+    std::ofstream responseFile("/tmp/xconf_response_thunder.txt");
+    responseFile <<  "{\"firmwareVersion\":\"1234\"}";
+    responseFile.close();
+
       EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
@@ -4294,23 +4206,15 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenResponseEmpty)
     std::ofstream fileVer("/version.txt");
     fileVer << "imagename:PX051AEI_PROD_2203_sprint_20220331225312sdy_NG";
     fileVer.close();
-    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
-          .Times(::testing::AnyNumber())
-          .WillRepeatedly(::testing::Invoke(
-              [&](const char* command, const char* type) {
-                      char buffer[1024];
-                      memset(buffer, 0, sizeof(buffer));
-                  if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
-                      const char http_code_str[] = "460";
-                      strcpy(buffer, http_code_str);
-                  } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
-                      const char response_str[] = "";
-                      strcpy(buffer, response_str);
-                  }
-                 FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
-                 return pipe;
-              }));
+	
+	std::ofstream httpCodeFile("/tmp/xconf_httpcode_thunder.txt");
+    httpCodeFile << "460";
+    httpCodeFile.close();
 
+    std::ofstream responseFile("/tmp/xconf_response_thunder.txt");
+    responseFile <<  "";
+    responseFile.close();
+	
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
@@ -4343,23 +4247,15 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenErrorInParsingR
     std::ofstream fileVer("/version.txt");
     fileVer << "imagename:PX051AEI_PROD_2203_sprint_20220331225312sdy_NG";
     fileVer.close();
-    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
-          .Times(::testing::AnyNumber())
-          .WillRepeatedly(::testing::Invoke(
-              [&](const char* command, const char* type) {
-                      char buffer[1024];
-                      memset(buffer, 0, sizeof(buffer));
-                  if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
-                      const char http_code_str[] = "460";
-                      strcpy(buffer, http_code_str);
-                  } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
-                      const char response_str[] = "firmwareVersion:1234";
-                      strcpy(buffer, response_str);
-                  }
-                 FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
-                 return pipe;
-              }));
+	
+    std::ofstream httpCodeFile("/tmp/xconf_httpcode_thunder.txt");
+    httpCodeFile << "460";
+    httpCodeFile.close();
 
+    std::ofstream responseFile("/tmp/xconf_response_thunder.txt");
+    responseFile <<  "firmwareVersion:1234";
+    responseFile.close();
+	
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
@@ -4392,23 +4288,15 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenInvalidResponse
     std::ofstream fileVer("/version.txt");
     fileVer << "imagename:PX051AEI_PROD_2203_sprint_20220331225312sdy_NG";
     fileVer.close();
-    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
-          .Times(::testing::AnyNumber())
-          .WillRepeatedly(::testing::Invoke(
-              [&](const char* command, const char* type) {
-                      char buffer[1024];
-                      memset(buffer, 0, sizeof(buffer));
-                  if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
-                      const char http_code_str[] = "460";
-                      strcpy(buffer, http_code_str);
-                  } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
-                      const char response_str[] = "{}";
-                      strcpy(buffer, response_str);
-                  }
-                 FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
-                 return pipe;
-              }));
+	
+	std::ofstream httpCodeFile("/tmp/xconf_httpcode_thunder.txt");
+    httpCodeFile << "460";
+    httpCodeFile.close();
 
+    std::ofstream responseFile("/tmp/xconf_response_thunder.txt");
+    responseFile <<  "{}";
+    responseFile.close();
+	
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
