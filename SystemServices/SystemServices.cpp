@@ -1556,7 +1556,7 @@ namespace WPEFramework {
             const char* httpCodeFile = "/tmp/xconf_httpcode_thunder.txt";
             bool httpCodeReadSuccess =  Utils::readFileContent(httpCodeFile, httpCodeStr);
 
-            if(httpCodeReadSuccess)
+            if(!httpCodeStr.empty())
             {
                 LOGINFO("xconf httpCodeStr '%s'\n", httpCodeStr.c_str());
                 try
@@ -1574,7 +1574,7 @@ namespace WPEFramework {
 
             bool responseReadSuccess = Utils::readFileContent(responseFile, response);
 
-            if(responseReadSuccess)
+            if(!response.empty())
             {
                 LOGINFO("xconf Response '%s'\n", response.c_str());
            
