@@ -4173,6 +4173,10 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WithoutHttpStatusCo
     std::ofstream fileVer("/version.txt");
     fileVer << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
     fileVer.close();
+   
+    std::ofstream httpCodeFile("/tmp/xconf_httpcode_thunder.txt");
+    httpCodeFile << "";
+    httpCodeFile.close();
 
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(1)
