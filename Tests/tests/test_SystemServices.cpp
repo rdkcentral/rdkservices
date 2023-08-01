@@ -3751,6 +3751,14 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WithHttpStatusCode4
     std::ofstream fileVer("/version.txt");
     fileVer << "imagename:PX051AEI_VBN_2203_sprint_20220331225312sdy_NG";
     fileVer.close();
+	
+	std::ofstream file("/etc/device.properties");
+    file << "SD_CARD_MOUNT_PATH=/tmp/data" << endl;
+    file << "APP_MOUNT_PATH=/media/apps" << endl;
+    file << "SD_CARD_APP_MOUNT_PATH=/media/apps" << endl;
+    file << "TSB_MOUNT_PATH=/tmp/data" << endl;
+    file.close();
+	
     EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
           .Times(::testing::AnyNumber())
           .WillRepeatedly(::testing::Invoke(
