@@ -568,10 +568,10 @@ namespace WPEFramework {
         void MaintenanceManager::startCriticalTasks()
         {
             LOGINFO("Starting Script /lib/rdk/StartDCM_maintaince.sh");
-            Utils::cRunScript("/lib/rdk/StartDCM_maintaince.sh");
+            system("/lib/rdk/StartDCM_maintaince.sh &");
 
             LOGINFO("Starting Script /lib/rdk/xconfImageCheck.sh");
-            Utils::cRunScript("/lib/rdk/xconfImageCheck.sh >> /opt/logs/swupdate.log 2>&1");
+            system("/lib/rdk/xconfImageCheck.sh >> /opt/logs/swupdate.log 2>&1 &");
         }
 
         const string MaintenanceManager::checkActivatedStatus()
