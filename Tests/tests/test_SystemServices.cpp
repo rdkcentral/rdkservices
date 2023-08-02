@@ -4059,7 +4059,7 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvCqa)
 }
 
 /**
- * @brief :   onFirmwareUpdateInfoReceived event is triggered correctly when getFirmwareUpdateInfo is successful with the environment is other than PROD[eg:VBN] and /opt/swupdate.conf is NOT present
+ * @brief :  onFirmwareUpdateInfoReceived event is triggered correctly when getFirmwareUpdateInfo is successful with the environment is other than PROD[eg:VBN] and /opt/swupdate.conf is NOT present
  * @param[in]   :  This method takes no parameters.
  * @return      :  {\"asyncResponse\":true,\"success\":true}
  */
