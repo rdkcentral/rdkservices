@@ -1,7 +1,10 @@
 name: unit-tests
 
-on:
-  on: [push, pull_request]
+ on:
+  push:
+    branches: [ main, 'sprint/**', 'release/**' ]
+  pull_request:
+    branches: [ main, 'sprint/**', 'release/**' ]
 
 env:
   BUILD_TYPE: Debug
