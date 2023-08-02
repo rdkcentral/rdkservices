@@ -67,7 +67,7 @@ auto MoveFile(
 /* Get the last line from the given input file - tail -n 1  */
 bool GetLastLine(const std::string& filename, std::string& last_line)
 {
-    string last_line = "", read_line = "";
+    string read_line = "";
     ifstream readfile(filename);
     bool ret_value = false;
 
