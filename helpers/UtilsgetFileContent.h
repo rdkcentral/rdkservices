@@ -88,7 +88,6 @@ bool readFileContent(const char* filename, std::string& content)
     else
     {
         LOGERR("Failed to open the file");
-		content.clear();
     }
 
     return found;
