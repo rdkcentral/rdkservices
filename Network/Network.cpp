@@ -155,7 +155,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             }
             else
             {
-                LOGERR("deviceType is empty");
+                LOGERR("deviceType is empty ");
             }
 			
             m_defaultInterface = "";
