@@ -74,13 +74,7 @@ using namespace std;
 #define TR181_AUTOREBOOT_ENABLE "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable"
 #define TR181_STOP_MAINTENANCE  "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.StopMaintenance.Enable"
 #define TR181_RDKVFWUPGRADER  "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKFirmwareUpgrader.Enable"
-<<<<<<< HEAD
-=======
-#define TR181_PARTNER_ID "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.PartnerName"
-#define TR181_TARGET_PROPOSITION "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.TargetProposition"
-#define TR181_XCONFURL "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.XconfUrl"
 #define INTERNET_CONNECTED_STATE 3
->>>>>>> ab5b5523... RDKTV-24212: Maintenance Manager subscribes for network event and
 
 string notifyStatusToString(Maint_notify_status_t &status)
 {
