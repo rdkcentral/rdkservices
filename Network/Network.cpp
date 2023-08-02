@@ -26,6 +26,7 @@
 #include "UtilsString.h"
 #include "UtilscRunScript.h"
 #include "UtilsgetRFCConfig.h"
+#include "UtilsgetFileContent.h"
 
 using namespace std;
 
@@ -142,9 +143,20 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             registerMethod("getPublicIP", &Network::getPublicIP, this);
             registerMethod("setStunEndPoint", &Network::setStunEndPoint, this);
 
-            const char * script1 = R"(grep DEVICE_TYPE /etc/device.properties | cut -d "=" -f2 | tr -d '\n')";
-            m_isHybridDevice = Utils::cRunScript(script1).substr();
-            LOGWARN("script1 '%s' result: '%s'", script1, m_isHybridDevice.c_str());
+            const char* filename = "/etc/device.properties";
+            std::string propertyName = "DEVICE_TYPE";
+            std::string deviceType;
+
+            if (Utils::readPropertyFromFile(filename, propertyName, deviceType))
+            {
+                m_isHybridDevice = deviceType;
+                LOGINFO("DEVICE_TYPE '%s' ", m_isHybridDevice.c_str());
+            }
+            else
+            {
+                LOGERR("deviceType is empty");
+            }
+
             m_defaultInterface = "";
             m_gatewayInterface = "";
 
