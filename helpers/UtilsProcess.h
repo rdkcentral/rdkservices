@@ -41,7 +41,6 @@ bool UserDefinedPkill(string& input_pname, vector<string>& processIds)
 {
     PROCTAB* proc = openproc(PROC_FILLMEM | PROC_FILLSTAT | PROC_FILLSTATUS);
     proc_t proc_info = {0};
-    vector<string> processIds;
     bool ret_value = false;
 
     if(proc != NULL)
@@ -53,7 +52,7 @@ bool UserDefinedPkill(string& input_pname, vector<string>& processIds)
             {
                 ret_value = true;
                 processIds.push_back(std::to_string(proc_info.tid));
-                if (-1 == kill(std::to_string(proc_info.tid), SIGTERM))
+                if (-1 == kill(proc_info.tid, SIGTERM))
                 {
                     ret_value = false;
                 }
