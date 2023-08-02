@@ -66,7 +66,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 12
+#define API_VERSION_NUMBER_PATCH 13
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 
@@ -704,6 +704,7 @@ namespace WPEFramework {
             MaintenanceManager::g_lastSuccessful_maint_time="";
             MaintenanceManager::g_task_status=0;
             MaintenanceManager::m_abort_flag=false;
+            MaintenanceManager::g_unsolicited_complete = false;
 
             /* we post just to tell that we are in idle at this moment */
             m_statusMutex.lock();
@@ -936,6 +937,9 @@ namespace WPEFramework {
                         LOGINFO("Thread joined successfully\n");
                     }
 
+                    if ( g_maintenance_type == UNSOLICITED_MAINTENANCE && !g_unsolicited_complete) {
+                        g_unsolicited_complete = true;
+                    }
                     MaintenanceManager::_instance->onMaintenanceStatusChange(notify_status);
                 }
                 else {
@@ -1276,7 +1280,7 @@ namespace WPEFramework {
                     /* only one maintenance at a time */
                     /* Lock so that m_notify_status will not be updated  further */
                     m_statusMutex.lock();
-                    if ( MAINTENANCE_STARTED != m_notify_status  ){
+                    if ( MAINTENANCE_STARTED != m_notify_status && g_unsolicited_complete ){
 
                         /*reset the status to 0*/
                         g_task_status=0;
