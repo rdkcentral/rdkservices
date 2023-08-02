@@ -29,7 +29,7 @@ namespace WPEFramework
     namespace Plugin
     {
         /**
-         * @ingroup SERVMGR_PING_API
+         * @ingroup SERVMGR_PING_API **
          */
         JsonObject Network::_doPing(const string& guid, const string& endPoint, int packets)
         {
