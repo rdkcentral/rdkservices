@@ -4876,18 +4876,18 @@ namespace Plugin {
     uint32_t ControlSettingsTV::getPictureMode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
-        char mode[PIC_MODE_NAME_MAX]={0};
         std::string picturemode;
         std::string source;
         int current_source = 0;
         std::string tr181_param_name;
         TR181_ParamData_t param = {0};
+        tr181ErrorCode_t err = tr181Success;
 
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
-            source = "current";
+            source == "current";
   
-        if (source = "current") {
+        if (source == "current") {
             GetCurrentSource(&current_source);
         } else {
                current_source = GetTVSourceIndex(source.c_str());
@@ -4897,7 +4897,7 @@ namespace Plugin {
         tr181_param_name += "." + std::to_string(current_source) + "." + "PictureModeString";
          err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
         
-         if ( tr181Success != err ) 
+         if ( tr181Success != err ) { 
             returnResponse(false);
         }
         else {
@@ -4953,7 +4953,7 @@ namespace Plugin {
                 else {
                     LOGINFO("setLocalParam for %s Successful, Value: %s\n", TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM, value.c_str());
 		    //pqmodeindex = getPQmodeindex(value(strin))
-		    int pqmodeindex = (int)GetTVPictureModeIndex(param.value);
+		    int pqmodeindex = (int)GetTVPictureModeIndex(value.c_str());
                     SaveSourcePictureMode(pqmodeindex, source_index[x]);
 		}
             }
@@ -4973,6 +4973,7 @@ namespace Plugin {
     {
         LOGINFO("Entry\n");
         tr181ErrorCode_t err = tr181Success;
+        TR181_ParamData_t param = {0};
         
 	int source_index[SOURCES_SUPPORTED_MAX]={0};
         int numberofsource = 0;
@@ -4989,7 +4990,6 @@ namespace Plugin {
                 returnResponse(false);
             }
             else {
-                TR181_ParamData_t param = {0};
                 LOGINFO("clearLocalParam for %s Successful\n", tr181_param_name.c_str());
                 err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
                 if ( tr181Success == err )
@@ -5014,7 +5014,7 @@ namespace Plugin {
                     returnResponse(false);
                 }
             }
-            int pqmodeindex = (int)GetTVPictureModeIndex((param.value).c_str());
+            int pqmodeindex = (int)GetTVPictureModeIndex(param.value);
             SaveSourcePictureMode(pqmodeindex, source_index[x]);
 	}
 	returnResponse(true;)
