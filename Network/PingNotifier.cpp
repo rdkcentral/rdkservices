@@ -20,6 +20,7 @@
 #include "Network.h"
 
 #include "UtilsLogging.h"
+#include "secure_wrapper.h"
 
 using namespace std;
 
@@ -36,9 +37,8 @@ namespace WPEFramework
             JsonObject pingResult;
             string interface = "";
             string gateway;
-            bool result = false;
             string outputFile;
-            FILE *fp = NULL;
+            FILE *pipe = NULL;
 
             pingResult["target"] = endPoint;
 
@@ -70,38 +70,25 @@ namespace WPEFramework
                 return pingResult;
             }
 
-            char cmd [1000] = {0x0};
             if (NetUtils::isIPV6(endPoint))
             {
-                snprintf(cmd, sizeof(cmd), "ping6 -I %s -c %d -W 5 '%s' 2>&1",
+                pipe = v_secure_popen("r", "ping6 -I %s -c %d -W 5 '%s' 2>&1",
                         interface.c_str(), packets, endPoint.c_str());
             }
             else
             {
-                snprintf(cmd, sizeof(cmd), "ping -c %d -W 5 '%s' 2>&1",
+                pipe = v_secure_popen("r", "ping -c %d -W 5 '%s' 2>&1",
                         packets, endPoint.c_str());
             }
 
-            LOGWARN("ping command: %s", cmd);
-
             // Run the command and dump the output to /tmp/pingoutput
-            if (NetUtils::execCmd(cmd, outputFile, &result, "pingoutput") < 0)
+            if (pipe == NULL)
             {
-                LOGERR("%s: SERVICEMANAGER_FILE_ERROR: Can't open pipe for command '%s' for read mode: %s"
-                        , __FUNCTION__, cmd, strerror(errno));
+                LOGERR("%s: SERVICEMANAGER_FILE_ERROR: Can't open pipe for ping command for read mode: %s"
+                        , __FUNCTION__, strerror(errno));
 
                 pingResult["success"] = false;
                 pingResult["error"] = "Could not run command";
-            }
-            else if (!result) // check the command return status
-            {
-                pingResult["success"] = false;
-                pingResult["error"] = "Could not ping endpoint";
-            }
-            else if ((fp = fopen(outputFile.c_str(), "r")) == NULL)
-            {
-                pingResult["success"] = false;
-                pingResult["error"] = "Could not read ping result";
             }
             else
             {
@@ -109,7 +96,7 @@ namespace WPEFramework
                 pingResult["error"] = "";
 
                 char linearray[1000]={0x0};
-                while(fgets(linearray, sizeof(linearray), fp) != NULL)
+                while(fgets(linearray, sizeof(linearray), pipe) != NULL)
                 {
                     // remove newline from linearray
                     linearray[strcspn(linearray, "\n")] = '\0';
@@ -186,13 +173,12 @@ namespace WPEFramework
                         pingResult["error"] = "Bad Address";
                     }
                 }
-                fclose(fp);
-            }
 
-            if(!outputFile.empty())
-            {
-                // clear up
-                remove(outputFile.c_str());
+                if(v_secure_pclose(pipe) != 0) // check the command return status
+                {
+                    pingResult["success"] = false;
+                    pingResult["error"] = "Could not ping endpoint";
+                }
             }
 
             pingResult["guid"] = guid;
