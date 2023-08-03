@@ -66,7 +66,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 12
+#define API_VERSION_NUMBER_PATCH 13
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 
@@ -74,6 +74,7 @@ using namespace std;
 #define TR181_AUTOREBOOT_ENABLE "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable"
 #define TR181_STOP_MAINTENANCE  "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.StopMaintenance.Enable"
 #define TR181_RDKVFWUPGRADER  "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKFirmwareUpgrader.Enable"
+#define INTERNET_CONNECTED_STATE 3
 
 string notifyStatusToString(Maint_notify_status_t &status)
 {
@@ -292,6 +293,10 @@ namespace WPEFramework {
                 MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
                 m_statusMutex.unlock();
                 LOGINFO("Maintenance is exiting as device is not connected to internet.");
+                if (UNSOLICITED_MAINTENANCE == g_maintenance_type && !g_unsolicited_complete){
+                    g_unsolicited_complete = true;
+                    g_listen_to_nwevents = true;
+                }
                 return;
             }
 
@@ -350,6 +355,55 @@ namespace WPEFramework {
 
 	    m_abort_flag=false;
             LOGINFO("Worker Thread Completed");
+        }
+
+        bool MaintenanceManager::subscribeForInternetStatusEvent(string event)
+        {
+            int32_t status = Core::ERROR_NONE;
+            bool result = false;
+            LOGINFO("Attempting to subscribe for %s events", event.c_str());
+            const char* network_callsign = "org.rdk.Network.1";
+            WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
+
+            thunder_client = getThunderPluginHandle(network_callsign);
+            if (thunder_client == nullptr) {
+                LOGINFO("Failed to get plugin handle");
+            } else {
+                status = thunder_client->Subscribe<JsonObject>(5000, event, &MaintenanceManager::internetStatusChangeEventHandler, this);
+                if (status == Core::ERROR_NONE) {
+                    result = true;
+                }
+            }
+            return result;
+        }
+
+        void MaintenanceManager::internetStatusChangeEventHandler(const JsonObject& parameters)
+        {
+            string value;
+            int state;
+
+            if (parameters.HasLabel("status") && parameters.HasLabel("state")) {
+                value = parameters["status"].String();
+                state = parameters["state"].Number();
+
+                LOGINFO("Received onInternetStatusChange event: [%s:%d]", value.c_str(), state);
+                if (g_listen_to_nwevents) {
+
+                    if (state == INTERNET_CONNECTED_STATE) {
+                        startCriticalTasks();
+                        g_listen_to_nwevents = false;
+                    }
+                }
+            }
+        }
+
+        void MaintenanceManager::startCriticalTasks()
+        {
+            LOGINFO("Starting Script /lib/rdk/StartDCM_maintaince.sh");
+            system("/lib/rdk/StartDCM_maintaince.sh &");
+
+            LOGINFO("Starting Script /lib/rdk/xconfImageCheck.sh");
+            system("/lib/rdk/xconfImageCheck.sh >> /opt/logs/swupdate.log 2>&1 &");
         }
 
         const string MaintenanceManager::checkActivatedStatus()
@@ -488,8 +542,27 @@ namespace WPEFramework {
             JsonObject joGetParams;
             JsonObject joGetResult;
             std::string callsign = "org.rdk.Network.1";
+            PluginHost::IShell::state state;
 
             string token;
+
+            if ((getServiceState(m_service, "org.rdk.Network", state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
+                LOGINFO("Network plugin is active");
+
+                if (UNSOLICITED_MAINTENANCE == g_maintenance_type && !g_subscribed_for_nwevents) {
+                    // Subscribe for internetConnectionStatusChange event
+                    bool subscribe_status = subscribeForInternetStatusEvent("onInternetStatusChange");
+                    if (subscribe_status) {
+                        LOGINFO("MaintenanceManager subscribed for onInternetStatusChange event");
+                        g_subscribed_for_nwevents = true;
+                    } else {
+                        LOGINFO("Failed to subscribe for onInternetStatusChange event");
+                    }
+                }
+	    } else {
+                LOGINFO("Network plugin is not active");
+                return false;
+            }
 
             // TODO: use interfaces and remove token
             auto security = m_service->QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
@@ -631,6 +704,7 @@ namespace WPEFramework {
             MaintenanceManager::g_lastSuccessful_maint_time="";
             MaintenanceManager::g_task_status=0;
             MaintenanceManager::m_abort_flag=false;
+            MaintenanceManager::g_unsolicited_complete = false;
 
             /* we post just to tell that we are in idle at this moment */
             m_statusMutex.lock();
@@ -863,6 +937,9 @@ namespace WPEFramework {
                         LOGINFO("Thread joined successfully\n");
                     }
 
+                    if ( g_maintenance_type == UNSOLICITED_MAINTENANCE && !g_unsolicited_complete) {
+                        g_unsolicited_complete = true;
+                    }
                     MaintenanceManager::_instance->onMaintenanceStatusChange(notify_status);
                 }
                 else {
@@ -1203,7 +1280,7 @@ namespace WPEFramework {
                     /* only one maintenance at a time */
                     /* Lock so that m_notify_status will not be updated  further */
                     m_statusMutex.lock();
-                    if ( MAINTENANCE_STARTED != m_notify_status  ){
+                    if ( MAINTENANCE_STARTED != m_notify_status && g_unsolicited_complete ){
 
                         /*reset the status to 0*/
                         g_task_status=0;
