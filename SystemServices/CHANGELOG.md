@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.7.0] - 2023-05-15
+### Changed
+- Changed references to deviceInitiatedFWDnld.sh to swupdate_utility.sh
+
 ## [1.6.0] - 2023-07-05
 ### Added
 - Added API to get and set friendly name of the device
