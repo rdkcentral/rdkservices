@@ -149,9 +149,6 @@ namespace WPEFramework {
                 bool checkAutoRebootFlag();
                 bool readRFC(const char *);
                 bool stopMaintenanceTasks();
-                bool subscribeForInternetStatusEvent(string);
-                void internetStatusChangeEventHandler(const JsonObject& parameters);
-                void startCriticalTasks();
                 bool checkNetwork();
                 bool getActivatedStatus(bool &skipFirmwareCheck);
                 const string checkActivatedStatus(void);
