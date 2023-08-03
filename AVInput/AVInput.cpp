@@ -58,6 +58,7 @@
 #define AVINPUT_EVENT_ON_STATUS_CHANGED "onInputStatusChanged"
 #define AVINPUT_EVENT_ON_VIDEO_MODE_UPDATED "videoStreamInfoUpdate"
 #define AVINPUT_EVENT_ON_GAME_FEATURE_STATUS_CHANGED "gameFeatureStatusUpdate"
+#define AVINPUT_EVENT_ON_AVI_CONTENT_TYPE_CHANGED "aviContentTypeUpdate"
 
 using namespace std;
 int getTypeOfInput(string sType)
@@ -159,6 +160,10 @@ void AVInput::InitializeIARM()
             IARM_BUS_DSMGR_NAME,
             IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_STATUS,
             dsAVStatusEventHandler));
+    	IARM_CHECK(IARM_Bus_RegisterEventHandler(
+            IARM_BUS_DSMGR_NAME,
+            IARM_BUS_DSMGR_EVENT_HDMI_IN_AVI_CONTENT_TYPE,
+            dsAviContentTypeEventHandler));
     }
 }
 
@@ -190,6 +195,9 @@ void AVInput::DeinitializeIARM()
         IARM_CHECK(IARM_Bus_RemoveEventHandler(
             IARM_BUS_DSMGR_NAME,
             IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_STATUS, dsAVStatusEventHandler));
+    	IARM_CHECK(IARM_Bus_RemoveEventHandler(
+            IARM_BUS_DSMGR_NAME,
+            IARM_BUS_DSMGR_EVENT_HDMI_IN_AVI_CONTENT_TYPE, dsAviContentTypeEventHandler));
     }
 }
 
@@ -803,6 +811,29 @@ void AVInput::AVInputVideoModeUpdate( int port , dsVideoPortResolution_t resolut
     }
 
     sendNotify(AVINPUT_EVENT_ON_VIDEO_MODE_UPDATED, params);
+}
+
+void AVInput::dsAviContentTypeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+{
+	if(!AVInput::_instance)
+		return;
+
+	if (IARM_BUS_DSMGR_EVENT_HDMI_IN_AVI_CONTENT_TYPE == eventId)
+	{
+		IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
+		int hdmi_in_port = eventData->data.hdmi_in_content_type.port;
+		int avi_content_type = eventData->data.hdmi_in_content_type.aviContentType;
+		LOGINFO("Received IARM_BUS_DSMGR_EVENT_HDMI_IN_AVI_CONTENT_TYPE  event  port: %d, Content Type : %d", hdmi_in_port,avi_content_type);
+AVInput::_instance->hdmiInputAviContentTypeChange(hdmi_in_port, avi_content_type);
+	}
+}
+
+void AVInput::hdmiInputAviContentTypeChange( int port , int content_type)
+{
+	JsonObject params;
+	params["id"] = port;
+	params["aviContentType"] = content_type;
+	sendNotify(AVINPUT_EVENT_ON_AVI_CONTENT_TYPE_CHANGED, params);
 }
 
 void AVInput::dsAVEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
