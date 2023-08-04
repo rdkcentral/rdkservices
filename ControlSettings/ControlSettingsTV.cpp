@@ -4916,16 +4916,20 @@ namespace Plugin {
         std::string source;
         char prevmode[PIC_MODE_NAME_MAX]={0};
         GetTVPictureMode(prevmode);
+        int current_source = 0;
 
+        tvError_t ret = tvERROR_NONE;
         value = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         returnIfParamNotFound(parameters,"pictureMode");
 
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
             source = "all";
-
-        tvError_t ret = SetTVPictureMode(value.c_str());
-
+        // As only source need to validate, so pqmode and formate passing as currrent
+        if( isSetRequired("current",source,"current") ) {
+            LOGINFO("Proceed with SetTVPictureMode\n");
+            ret = SetTVPictureMode(value.c_str());
+         }
         if(ret != tvERROR_NONE) {
             returnResponse(false);
         }
@@ -4935,9 +4939,22 @@ namespace Plugin {
 	    if (source == "all") {
                 GetAllSupportedSourceIndex(source_index);
                 numberofsource = sizeof(source_index)/sizeof(source_index[0]);
-	    } else {
-		    source_index[0] = GetTVSourceIndex(source.c_str());
-		    numberofsource = 1;
+	    } else if (source == "current") {
+              GetCurrentSource(&current_source);
+              source_index[0] = current_source;
+              numberofsource = 1;
+            }else {
+		    char *modeString = strdup(source.c_str());
+                    char *token = NULL;
+                    int count=0;
+                    while (token = strtok_r(sourceString," ",&sourceString))
+                    {
+                        source_index[count] = GetTVSourceIndex(token);
+                        printf("%s : Format[%d] : %s\n",__FUNCTION__,count,token);
+                        count++;
+                    }
+
+		    numberofsource = count;
 	    }
             std::string tr181_param_name = "";
 
