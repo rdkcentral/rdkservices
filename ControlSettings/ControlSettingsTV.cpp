@@ -4944,7 +4944,7 @@ namespace Plugin {
               source_index[0] = current_source;
               numberofsource = 1;
             }else {
-		    char *modeString = strdup(source.c_str());
+		    char *sourceString = strdup(source.c_str());
                     char *token = NULL;
                     int count=0;
                     while (token = strtok_r(sourceString," ",&sourceString))
