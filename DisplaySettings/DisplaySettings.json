@@ -729,7 +729,7 @@
                     "lang": {
                         "summary": "3 letter lang code should be used as per ISO 639.",
                         "type": "string",
-                        "example": 'eng'
+                        "example": "eng"
                     }
                 },
                 "required": [
@@ -759,7 +759,7 @@
                     "lang": {
                         "summary": "3 letter lang code should be used as per ISO 639.",
                         "type": "integer",
-                        "example": 'eng'
+                        "example": "eng"
                     },
                     "success": {
                         "$ref": "#/common/success"
@@ -782,7 +782,7 @@
                     "lang": {
                         "summary": "3 letter lang code should be used as per ISO 639.",
                         "type": "string",
-                        "example": 'eng'
+                        "example": "eng"
                     }
                 },
                 "required": [
@@ -812,7 +812,7 @@
                     "lang": {
                         "summary": "3 letter lang code should be used as per ISO 639.",
                         "type": "integer",
-                        "example": 'eng'
+                        "example": "eng"
                     },
                     "success": {
                         "$ref": "#/common/success"
