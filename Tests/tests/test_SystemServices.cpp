@@ -161,6 +161,8 @@ TEST_F(SystemServicesTest, TestedAPIsShouldExist)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setDeepSleepTimer")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setNetworkStandbyMode")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getNetworkStandbyMode")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getFriendlyName")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setFriendlyName")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setPreferredStandbyMode")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getPreferredStandbyMode")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getAvailableStandbyModes")));
@@ -584,6 +586,17 @@ TEST_F(SystemServicesTest, setNetworkStandbyMode)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setNetworkStandbyMode"), _T("{\"nwStandby\":true}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
+
+TEST_F(SystemServicesTest, getsetFriendlyName)
+{       
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setFriendlyName"), _T("{\"friendlyName\": \"friendlyTest\"}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+                
+                
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFriendlyName"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"friendlyName\":\"friendlyTest\",\"success\":true}"));
+}  
+
 
 TEST_F(SystemServicesTest, getNetworkStandbyMode)
 {
