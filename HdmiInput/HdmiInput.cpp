@@ -281,9 +281,8 @@ namespace WPEFramework
             LOGINFOMETHOD();
             returnIfParamNotFound(parameters, "topMost");
 
-	     bool topMostPlane = parameters["topMost"].Boolean();
+	    bool topMostPlane = parameters["topMost"].Boolean();
 		// need to add the logic properly after amlogic implementation
-
             bool success = true;
             try
             {
