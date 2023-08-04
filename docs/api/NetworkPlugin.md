@@ -442,7 +442,12 @@ No Events
 <a name="method.setConnectivityTestEndpoints"></a>
 ## *setConnectivityTestEndpoints [<sup>method</sup>](#head.Methods)*
 
-Sets the default list of endpoints used for a connectivity test. Maximum number of endpoints is 5.
+Set the list of endpoints used for a connectivity test. Endpoint should return HTTP Status 204 (No Content) for successful connection and Maximum number of endpoints is 5 . 
+
+Default endpoints:-
+* http://clients3.google.com/generate_204 
+* http://edge-http.microsoft.com/captiveportal/generate_204 
+* http://gstatic.com/generate_204 .
 
 ### Events
 
