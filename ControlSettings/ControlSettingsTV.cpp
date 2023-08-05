@@ -4945,10 +4945,11 @@ namespace Plugin {
               numberofsource = 1;
             }else {
 		    char *sourceString = strdup(source.c_str());
-                    char *token = NULL;
+		    char *token = strtok(sourceString, " ");
                     int count=0;
-                    while (token = strtok_r(sourceString," ",&sourceString))
+                    while (token != NULL)
                     {
+                        token = strtok(NULL, " ");
                         source_index[count] = GetTVSourceIndex(token);
                         printf("%s : Format[%d] : %s\n",__FUNCTION__,count,token);
                         count++;
