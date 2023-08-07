@@ -137,14 +137,9 @@ set(FAKE_HEADERS
         ${BASEDIR}/HdmiCec.h
         ${BASEDIR}/Ctrlm.h
         ${BASEDIR}/rdkshell.h
-	      ${BASEDIR}/RdkLoggerMilestone.h
+        ${BASEDIR}/RdkLoggerMilestone.h
+        ${BASEDIR}/wpa_ctrl_mock.h
         )
-
-set(FAKE_HEADERS_DIRS
-        ${BASEDIR}/WifiManager
-        )
-
-include_directories(${FAKE_HEADERS_DIRS})
 
 foreach (file ${FAKE_HEADERS})
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -include ${file}")
