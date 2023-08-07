@@ -69,7 +69,9 @@ using std::ofstream;
 #define EVT_FRIENDLYNAMECHANGED           "onFriendlyNameChanged"
 #define EVT_ONLOGUPLOAD                   "onLogUpload"
 #define TERRITORYFILE                     "/opt/secure/persistent/System/Territory.txt"
-
+#define IRDETO_NATIVE_OTA 1
+#define ICSE_RESPONSE_FILE_NAME         "/opt/ICSE_response.txt"
+#define FirmwareUpdatedSuccessfully 8  // Need to move to  right place
 
 namespace WPEFramework {
     namespace Plugin {
@@ -127,6 +129,10 @@ namespace WPEFramework {
                 static cTimer m_operatingModeTimer;
                 static int m_remainingDuration;
                 Utils::ThreadRAII m_getFirmwareInfoThread;
+#ifdef IRDETO_NATIVE_OTA
+                Utils::ThreadRAII m_getFirmwareInfoThread_IRD;
+                Utils::ThreadRAII onFirmwareUpdateStateChange_IRD;
+#endif
                 PluginHost::IShell* m_shellService { nullptr };
                 regex_t m_regexUnallowedChars;
 
@@ -234,6 +240,19 @@ namespace WPEFramework {
                 uint32_t removeCacheKey(const JsonObject& parameters, JsonObject& response);
                 uint32_t getMode(const JsonObject& parameters, JsonObject& response);
                 uint32_t updateFirmware(const JsonObject& parameters, JsonObject& response);
+#ifdef IRDETO_NATIVE_OTA
+			enum FirmwareAction {
+						FirmwareUpdateDownload = 0,
+						FirmwareUpdateFlash
+				};
+		uint32_t MonitorFirmwareUpdateIRD(const JsonObject& parameters, JsonObject& response);// IRDETO_INT
+		uint32_t DownloadFirmwareIRD(const JsonObject& parameters, JsonObject& response);// IRDETO_INT
+		uint32_t UpdateFirmwareIRD(const JsonObject& parameters, JsonObject& response);// IRDETO_INT
+		void reportFirmwareUpdateInfoReceived_IRD();
+		static void firmwareUpdateInfoReceived_IRD(void);
+		static void FirmwareUpdateStateChange_IRD(FirmwareAction action);
+		std::string parse_ICSE_response(string filepath, string search_key);
+#endif
                 uint32_t setMode(const JsonObject& parameters, JsonObject& response);
                 uint32_t setBootLoaderPattern(const JsonObject& parameters, JsonObject& response);
                 static void firmwareUpdateInfoReceived(void);

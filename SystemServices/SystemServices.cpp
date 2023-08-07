@@ -400,6 +400,11 @@ namespace WPEFramework {
                     &SystemServices::isRebootRequested, this);
             registerMethod("getMode", &SystemServices::getMode, this);
             registerMethod("updateFirmware", &SystemServices::updateFirmware, this);
+#ifdef  IRDETO_NATIVE_OTA 
+	    registerMethod("MonitorFirmwareUpdateIRD", &SystemServices::MonitorFirmwareUpdateIRD, this);
+	    registerMethod("DownloadFirmwareIRD", &SystemServices::DownloadFirmwareIRD, this);
+	    registerMethod("UpdateFirmwareIRD", &SystemServices::UpdateFirmwareIRD, this);
+#endif
             registerMethod("setMode", &SystemServices::setMode, this);
             registerMethod("setBootLoaderPattern", &SystemServices::setBootLoaderPattern, this);
             registerMethod("getFirmwareUpdateInfo",
@@ -4700,6 +4705,357 @@ namespace WPEFramework {
 
           return Core::ERROR_NONE;
         }
+/***************************************** IRDETOChnages ***************************************************/
+#ifdef IRDETO_NATIVE_OTA 
+
+		   /***
+         * @brief : get MAC address of the board
+         *
+         * @param[in]   : none
+         * @return      : return MAC address in string format
+         */
+				string getMacAddress() 
+				{
+					string macAddress;
+
+					// Run the ifconfig command and capture its output
+					array<char, 128> buffer;
+					string result;
+					FILE* pipe = popen("ifconfig eth0", "r");
+					if (!pipe) 
+						{
+						cerr << "Error: could not run ifconfig command" << endl;
+						return "";
+					}
+					while (fgets(buffer.data(), 128, pipe) != nullptr)
+					{
+						result += buffer.data();
+					}
+					pclose(pipe);
+
+					// Find the MAC address in the ifconfig output
+					size_t pos = result.find("HWaddr ");
+					if (pos != string::npos)
+					{
+						macAddress = result.substr(pos + 7, 17);
+					} 
+					else 
+					{
+						cerr << "Error: could not find MAC address for eth0" << endl;
+					}
+
+					return macAddress;
+				}
+
+				/***
+         * @brief : Update version after OTA is  completed successfully
+         * @param1[in]   : filename  to be udated  for  version information
+         * @param2[in]   : version
+         * @return      : none
+         */
+				void updateVersionAfterOTA(const std::string& fileName, const std::string& newVersion) 
+				{
+					std::ifstream inputFile(fileName);
+					std::ofstream outputFile("/temp.txt"); // Temporary file for writing modified contents
+
+					if (!inputFile)
+					{
+						std::cerr << "Error opening input file." << std::endl;
+						return;
+					}
+
+					if (!outputFile) 
+					{
+						std::cerr << "Error creating temporary file." << std::endl;
+						return;
+					}
+
+					std::string line;
+					while (std::getline(inputFile, line)) 
+					{
+						size_t pos = line.find("imagename:");
+						if (pos != std::string::npos) 
+						{
+							line.replace(pos + 10, line.length(), newVersion);
+						}
+						outputFile << line << std::endl;
+					}
+
+					inputFile.close();
+					outputFile.close();
+
+					// Rename temporary file to replace the original file
+					std::remove(fileName.c_str()); // Remove the original file
+					std::rename("temp.txt", fileName.c_str()); // Rename temporary file to original file name
+
+					std::cout << "Version Updated 	completed successfully." << std::endl;
+				}
+
+			/***
+         * @brief : compare  FW version to decide  if OTA is needed or not
+         * @param1[in]   : Old FM version
+         * @param2[in]   : New FM version
+         * @return      : none
+         */
+				bool compareFmVersion(string newFM_version, string flashedFW_version) 
+				{
+				regex datePattern("[0-9]{8}"); // regex pattern to match 8-digit dates in the format YYYYMMDD
+					smatch match1, match2;
+					if (regex_search(newFM_version, match1, datePattern) && regex_search(flashedFW_version, match2, datePattern))
+					{
+					string newFM_version = match1[0].str(); 
+						string flashedFW_version = match2[0].str(); 
+
+						// convert date strings to time_t values for comparison
+						struct tm tm1 = { 0 }, tm2 = { 0 };
+						tm1.tm_year = stoi(newFM_version.substr(0, 4)) - 1900;
+						tm1.tm_mon = stoi(newFM_version.substr(4, 2)) - 1;
+						tm1.tm_mday = stoi(newFM_version.substr(6, 2));
+						tm2.tm_year = stoi(flashedFW_version.substr(0, 4)) - 1900;
+						tm2.tm_mon = stoi(flashedFW_version.substr(4, 2)) - 1;
+						tm2.tm_mday = stoi(flashedFW_version.substr(6, 2));
+						time_t time1 = mktime(&tm1);
+						time_t time2 = mktime(&tm2);
+
+						// compare the two time_t values
+						return difftime(time1, time2) > 0;
+					}
+					else 
+						return false; 
+
+				}
+
+					/***
+         * @brief : parse ICSE repsponse received from X-conf server
+         * @param1[in]   : filepath  having ICSE respose received
+         * @param2[in]   : search key
+         * @return      : none
+         */
+				string parseIcseResponse(string filepath, string search_key) 
+				{
+					string line, value;
+					ifstream file(filepath);
+						
+
+					if (file.is_open()) {
+						while (getline(file, line)) {
+							size_t pos = line.find(search_key);
+							if (pos != string::npos) {
+								value = line.substr(pos + search_key.length() + 3); 
+								value = value.substr(0, value.find('"'));
+								break;
+							}
+						}
+						file.close();
+					}
+					return value;
+				}
+
+					/***
+         * @brief : report OTA upgrade infrmation to application
+          * @return      : none
+         */
+				void SystemServices::reportFirmwareUpdateInfoReceived_IRD()
+				{
+				
+					LOGINFO("[IRDETO_OTA]");
+					string flashedFW_version,newFM_version ;
+					if (_instance) 
+						flashedFW_version = _instance->getStbVersionString();
+					else 
+						LOGERR("_instance is NULL.\n");
+
+					LOGINFO("flashedFW_version firmwareVersion = %s\n", flashedFW_version.c_str());
+					newFM_version=parseIcseResponse(ICSE_RESPONSE_FILE_NAME, "firmwareFilename");
+					LOGINFO("newFM_version firmwareVersion =  %s\n", newFM_version.c_str());
+
+					bool upgradeStatus=0;
+					JsonObject params;
+					params["firmwareStatus"] = FALSE;// Initially firmwareStatus  is FALSE
+					upgradeStatus=compareFmVersion(newFM_version,flashedFW_version);	
+					LOGINFO("upgradeStatus = %d\n", upgradeStatus);
+					if(upgradeStatus==TRUE)
+						params["firmwareStatus"] = TRUE;
+					else
+						params["firmwareStatus"] = FALSE;
+					
+					/* Updating JASON response*/
+					params["firmwareDownloadProtocol"] = parseIcseResponse(ICSE_RESPONSE_FILE_NAME, "firmwareDownloadProtocol");
+					params["firmwareFilename"] = parseIcseResponse(ICSE_RESPONSE_FILE_NAME, "firmwareFilename");
+					params["firmwareLocation"] = parseIcseResponse(ICSE_RESPONSE_FILE_NAME, "firmwareLocation");
+					params["firmwareVersion"] = parseIcseResponse(ICSE_RESPONSE_FILE_NAME, "firmwareVersion");
+					params["rebootImmediately"] = parseIcseResponse(ICSE_RESPONSE_FILE_NAME, "rebootImmediately");
+					params["mandatoryUpdate"] = parseIcseResponse(ICSE_RESPONSE_FILE_NAME, "mandatoryUpdate");
+					
+			
+					string jsonLog;
+					params.ToString(jsonLog);
+					LOGINFO("Event Payload : %s\n", jsonLog.c_str());
+					LOGINFO("\n [IRDETO_OTA] Broadcasting  Event for Firmwate availibitly\n");
+					sendNotify(EVT_ONFIRMWAREUPDATEINFORECEIVED, params);
+					GetHandler(2)->Notify(EVT_ONFIRMWAREUPDATEINFORECEIVED, params);
+				}
+		
+				void SystemServices::firmwareUpdateInfoReceived_IRD(void)
+				{
+
+					
+					LOGINFO("[IRDETO_OTA]");
+				
+			    string macAddress = getMacAddress();
+					LOGINFO("macAddress = %s\n", macAddress.c_str());
+			
+					string cmdBuffer;
+					cmdBuffer.clear();
+					cmdBuffer = "/data/ICSE-cloudota/ICSE_OTA_scripts/ICSE_ota_discovery.sh 2 " + macAddress + ">> /opt/logs/discover_fw_IRDETO.log";
+					Utils::cRunScript(cmdBuffer.c_str());
+					
+					if (_instance) {
+						_instance->reportFirmwareUpdateInfoReceived_IRD();
+					} else {
+						LOGERR("_instance is NULL.\n");
+					}
+					
+				} //end of event onFirmwareInfoRecived
+
+
+					/***
+	         * @brief : To start monitoring firmware update
+	         * @param1[in] :  
+	         */
+				uint32_t SystemServices::MonitorFirmwareUpdateIRD(const JsonObject& parameters,JsonObject& response)
+				{
+					LOGINFO("[IRDETO_OTA]");
+					try
+					{
+						if (m_getFirmwareInfoThread_IRD.get().joinable()) {
+							m_getFirmwareInfoThread_IRD.get().join();
+						}
+						m_getFirmwareInfoThread_IRD = Utils::ThreadRAII(std::thread(firmwareUpdateInfoReceived_IRD));
+						response["asyncResponse"] = true;
+						returnResponse(true);
+					}
+					catch(const std::system_error& e)
+					{
+						LOGERR("exception in MonitorFirmwareUpdate %s", e.what());
+						response["asyncResponse"] = false;
+						returnResponse(false);
+					}
+				
+				}
+
+					/***
+         * @brief : Perform download firmware or flash firmware activyt.
+         * @param1[in]  : Action download or flash 
+         * @return		: None
+         */
+				void SystemServices::FirmwareUpdateStateChange_IRD( FirmwareAction action)
+				{
+					LOGINFO("[IRDETO_OTA]");
+
+					int state=	FirmwareUpdateStateUninitialized ;
+			
+					if(action==FirmwareUpdateDownload)
+					{
+						state =  FirmwareUpdateStateDownloading;
+						SystemServices::_instance->onFirmwareUpdateStateChange(state);
+
+
+						string command("/data/ICSE-cloudota/ICSE_OTA_scripts/ICSE_ota_download.sh  >> /opt/logs/download_fw_IRDETO.log  ");
+						Utils::cRunScript(command.c_str());
+		
+						state =  FirmwareUpdateStateDownloadComplete;
+						LOGINFO("Broadcast Event for FW downloading");
+						SystemServices::_instance->onFirmwareUpdateStateChange(state);
+					
+					}
+					else if(action==FirmwareUpdateFlash)  // FLASH the firmware
+					{
+
+						string cmdBuffer;
+						string firmwareName="download.img";
+						cmdBuffer.clear();
+						cmdBuffer = "/data/ICSE-cloudota/ICSE_OTA_scripts/ICSE_ota_flash.sh  " + firmwareName + ">> /opt/logs/flash_fw_IRDETO.log ";
+
+						LOGINFO("Enterr the script");
+								// Run the command and wait for it to complete
+					if (system(cmdBuffer.c_str()) == -1) 
+					{
+						cerr << "Error: could not execute shell script" << endl;
+						return;
+    			}
+			
+						LOGINFO("Exit the script");
+			
+						state =  FirmwareUpdatedSuccessfully;
+						LOGINFO("Broadcast Event for FW flashing");
+						SystemServices::_instance->onFirmwareUpdateStateChange(state);
+
+						// Updating version.txt file
+					string newFM_version ;
+					newFM_version=parseIcseResponse(ICSE_RESPONSE_FILE_NAME, "firmwareFilename");
+					LOGINFO("newFM_version firmwareVersion to be updated  =  %s\n", newFM_version.c_str());
+					updateVersionAfterOTA("/version.txt", newFM_version);
+					
+						
+					}
+							
+				}
+					/***
+         * @brief : download firmware
+         * @param1[in]	: {"params":{}}
+         * @return	: None
+         */
+				uint32_t SystemServices::DownloadFirmwareIRD(const JsonObject& parameters,JsonObject& response)
+				{
+					LOGINFO("[IRDETO_OTA]");
+			
+					try
+					{
+						if (onFirmwareUpdateStateChange_IRD.get().joinable()) {
+							onFirmwareUpdateStateChange_IRD.get().join();
+						}
+						onFirmwareUpdateStateChange_IRD = Utils::ThreadRAII(std::thread(FirmwareUpdateStateChange_IRD ,FirmwareUpdateDownload));
+						response["asyncResponse"] = true;
+						returnResponse(true);
+					}
+					catch(const std::system_error& e)
+					{
+						LOGERR("exception in MonitorFirmwareUpdate %s", e.what());
+						response["asyncResponse"] = false;
+						returnResponse(false);
+					}
+			
+				}
+
+					/***
+	         * @brief : Update firmware
+	         * @param1[in] : {"params":{}} 
+	         * @return	: None
+	         */
+				uint32_t SystemServices::UpdateFirmwareIRD(const JsonObject& parameters,JsonObject& response)
+				{
+
+					LOGINFO("[IRDETO_OTA]");
+
+					try
+					{
+						if (onFirmwareUpdateStateChange_IRD.get().joinable()) {
+							onFirmwareUpdateStateChange_IRD.get().join();
+						}
+						onFirmwareUpdateStateChange_IRD = Utils::ThreadRAII(std::thread(FirmwareUpdateStateChange_IRD ,FirmwareUpdateFlash));
+						response["asyncResponse"] = true;
+						returnResponse(true);
+					}
+					catch(const std::system_error& e)
+					{
+						LOGERR("exception in MonitorFirmwareUpdate %s", e.what());
+						response["asyncResponse"] = false;
+						returnResponse(false);
+					}
+
+				}
+#endif
     } /* namespace Plugin */
 } /* namespace WPEFramework */
 
