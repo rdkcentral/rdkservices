@@ -140,13 +140,19 @@ set(FAKE_HEADERS
 	      ${BASEDIR}/RdkLoggerMilestone.h
         )
 
+set(FAKE_HEADERS_DIRS
+        ${BASEDIR}/WifiManager
+        )
+
+include_directories(${FAKE_HEADERS_DIRS})
+
 foreach (file ${FAKE_HEADERS})
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -include ${file}")
 endforeach ()
 
 add_compile_options(-Wall -Werror)
 
-add_link_options(-Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog)
+add_link_options(-Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog -Wl,-wrap,wpa_ctrl_open -Wl,-wrap,wpa_ctrl_request -Wl,-wrap,wpa_ctrl_close)
 
 add_definitions(
         -DENABLE_TELEMETRY_LOGGING

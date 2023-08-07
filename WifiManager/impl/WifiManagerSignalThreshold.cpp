@@ -20,7 +20,7 @@
 #include "WifiManagerSignalThreshold.h"
 #include "../WifiManager.h" // Need access to WifiManager::getInstance so can't use 'WifiManagerInterface.h'
 #include "UtilsJsonRpc.h"
-#include <wpa_ctrl.h>
+#include "wpa_ctrl.h"
 
 #include <chrono>
 

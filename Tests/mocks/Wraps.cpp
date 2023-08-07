@@ -21,3 +21,20 @@ extern  "C" void __wrap_syslog(int pri, const char *fmt, ...)
     vsyslog(pri, fmt, args);
     va_end(args);
 }
+
+extern "C" struct wpa_ctrl * __wrap_wpa_ctrl_open(const char *ctrl_path)
+{
+    return Wraps::getInstance().wpa_ctrl_open(ctrl_path);
+}
+
+extern "C" int __wrap_wpa_ctrl_request(struct wpa_ctrl *ctrl, const char *cmd, size_t cmd_len,
+                                                   char *reply, size_t *reply_len,
+                                                   void *msg_cb)
+{
+    return Wraps::getInstance().wpa_ctrl_request(ctrl, cmd, cmd_len, reply, reply_len, msg_cb);
+}
+
+extern "C" void __wrap_wpa_ctrl_close(struct wpa_ctrl *ctrl)
+{
+    return Wraps::getInstance().wpa_ctrl_close(ctrl);
+}

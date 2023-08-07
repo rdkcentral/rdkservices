@@ -22,6 +22,8 @@ set(PLUGIN_WIFI_STARTUPORDER "" CACHE STRING "To configure startup order of Wifi
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 
+find_library(WPA_SUPLICANT_LIBRARIES NAMES wpa_client)
+
 add_library(${MODULE_NAME} SHARED
         WifiManager.cpp
         Module.cpp
@@ -46,11 +48,11 @@ list(APPEND CMAKE_MODULE_PATH
         "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
 target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS} ../helpers)
-target_link_libraries(${MODULE_NAME}
-     PRIVATE
-           ${NAMESPACE}Plugins::${NAMESPACE}Plugins
-           ${IARMBUS_LIBRARIES}
-           -lwpa_client)
+target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${IARMBUS_LIBRARIES})
+
+if(WPA_SUPLICANT_LIBRARIES)
+    target_link_libraries(${MODULE_NAME} PRIVATE ${WPA_SUPLICANT_LIBRARIES})
+endif()
 
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
