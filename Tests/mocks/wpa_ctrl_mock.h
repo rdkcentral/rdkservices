@@ -1,6 +1,6 @@
 #pragma once
 
-/* This file is copied from wpa_supplicant(lib32-wpa-supplicant/2.10-r0/wpa_supplicant-2.10/src/common/wpa_ctrl.h)
+/* Below declared functions are copied from wpa_supplicant(lib32-wpa-supplicant/2.10-r0/wpa_supplicant-2.10/src/common/wpa_ctrl.h)
  * to resolve the unit test compliation issue */
  
 #ifdef  __cplusplus
