@@ -2,7 +2,7 @@
 <a name="AVInput_Plugin"></a>
 # AVInput Plugin
 
-**Version: [1.2.2](https://github.com/rdkcentral/rdkservices/blob/main/AVInput/CHANGELOG.md)**
+**Version: [1.3.0](https://github.com/rdkcentral/rdkservices/blob/main/AVInput/CHANGELOG.md)**
 
 A org.rdk.AVInput plugin for Thunder framework.
 
@@ -922,6 +922,7 @@ AVInput interface events:
 | [onSignalChanged](#onSignalChanged) | Triggered whenever the signal status changes for an HDMI/Composite Input |
 | [videoStreamInfoUpdate](#videoStreamInfoUpdate) | Triggered whenever there is an update in HDMI Input video stream info |
 | [gameFeatureStatusUpdate](#gameFeatureStatusUpdate) | Triggered whenever game feature(ALLM) status changes for an HDMI Input |
+| [hdmiContentTypeUpdate](#hdmiContentTypeUpdate) | Triggered whenever AV Infoframe content type changes for an HDMI Input |
 
 
 <a name="onDevicesChanged"></a>
@@ -1074,6 +1075,34 @@ Triggered whenever game feature(ALLM) status changes for an HDMI Input.
         "id": 0,
         "gameFeature": "ALLM",
         "mode": true
+    }
+}
+```
+
+<a name="hdmiContentTypeUpdate"></a>
+## *hdmiContentTypeUpdate*
+
+Triggered whenever AV Infoframe content type changes for an HDMI Input.
+
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=hdmiContentTypeUpdate)
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.id | integer | Hdmi Input port ID for which content type change event received and possible values are port id 0, 1 and 2 for three Hdmi Input ports |
+| params.aviContentType | integer | new Content type received for the active hdmi input port and the possible integer values indicates following accordingly 0 - Graphics, 1 - Photo, 2 - Cinema, 3 - Game, 4 - Invalid data |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.hdmiContentTypeUpdate",
+    "params": {
+        "id": 1,
+        "aviContentType": 1
     }
 }
 ```
