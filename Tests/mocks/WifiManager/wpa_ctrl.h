@@ -1,13 +1,8 @@
-/*
- * wpa_supplicant/hostapd control interface library
- * Copyright (c) 2004-2017, Jouni Malinen <j@w1.fi>
- *
- * This software may be distributed under the terms of the BSD license.
- * See README for more details.
- */
+#pragma once
 
-#ifndef WPA_CTRL_H
-#define WPA_CTRL_H
+/* This file is copied from wpa_supplicant(lib32-wpa-supplicant/2.10-r0/wpa_supplicant-2.10/src/common/wpa_ctrl.h)
+ * to resolve the unit test compliation issue 
+ */
 
 #ifdef  __cplusplus
 extern "C" {
@@ -636,5 +631,3 @@ char * wpa_ctrl_get_remote_ifname(struct wpa_ctrl *ctrl);
 #ifdef  __cplusplus
 }
 #endif
-
-#endif /* WPA_CTRL_H */
