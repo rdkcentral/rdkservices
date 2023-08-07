@@ -7,8 +7,6 @@
 extern "C" {
 #endif
 
-/* wpa_supplicant control interface - fixed message prefixes */
-
 /** Interactive request for identity/password/pin */
 #define WPA_CTRL_REQ "CTRL-REQ-"
 
