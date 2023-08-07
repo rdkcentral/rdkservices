@@ -979,19 +979,22 @@ void XCast::onXcastApplicationLaunchRequestWithLaunchParam (string appName,
         getEntryFromAppLaunchParamList (appName.c_str(), appConfig);
 
         /*Replacing with App requested payload and query*/
-        if (('\0' != appConfig.query[0]) && ('\0' != appConfig.payload[0])) {
+        if ((0 != strlen(appConfig.query)) && (0 != strlen(appConfig.payload))) {
+	    LOGWARN ("%s - Anooj appConfig.query:%s appConfig.payload:%s", __PRETTY_FUNCTION__, appConfig.query, appConfig.payload);
             getUrlFromAppLaunchParams (appName.c_str(),
                                appConfig.payload,
                                appConfig.query,
                                strAddDataUrl.c_str(), url);
         }
-        else if(('\0' != appConfig.payload[0])){
+        else if((0 != strlen(appConfig.payload))){
+	    LOGWARN ("%s - Anooj appConfig.payload:%s", __PRETTY_FUNCTION__, appConfig.payload);
             getUrlFromAppLaunchParams (appName.c_str(),
                                appConfig.payload,
                                strQuery.c_str(),
                                strAddDataUrl.c_str(), url);
         }
-        else if(('\0' != appConfig.query[0])) {
+        else if((0 != strlen(appConfig.query))) {
+	    LOGWARN ("%s - Anooj appConfig.query:%s", __PRETTY_FUNCTION__, appConfig.query);
             getUrlFromAppLaunchParams (appName.c_str(),
                                strPayLoad.c_str(),
                                appConfig.query,
