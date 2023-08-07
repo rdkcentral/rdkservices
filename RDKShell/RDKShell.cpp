@@ -3676,7 +3676,7 @@ namespace WPEFramework {
 #endif
                 }
 
-                if (type == "Cobalt")
+                if (type == "Cobalt" || type == "YouTube" || type == "YouTubeTV" || type == "YouTubeKids")
                 {
                     if (configuration.find("\"preload\"") == std::string::npos)
                     {
