@@ -2,9 +2,9 @@ name: unit-tests
 
 on:
   push:
-    branches: [ main, 'sprint/**', 'release/**' ]
+    branches: [ main, 'sprint/**', 'topic/simplification_rdkvs', 'release/**' ]
   pull_request:
-    branches: [ main, 'sprint/**', 'release/**' ]
+    branches: [ main, 'sprint/**', 'topic/simplification_rdkvs', 'release/**' ]
 
 env:
   BUILD_TYPE: Debug
