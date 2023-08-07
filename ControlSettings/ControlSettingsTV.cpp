@@ -4957,11 +4957,11 @@ namespace Plugin {
 
 		    numberofsource = count;
 	    }
-            std::string tr181_param_name = "";
 
-            tr181_param_name += std::string(TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
             for (int x = 0; x < numberofsource; x++ ) {
 
+                std::string tr181_param_name = "";
+                tr181_param_name += std::string(TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
                 // framing Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.ControlSettings.Source.source_index[x].PictureModeString.value
                 tr181_param_name += "."+std::to_string(source_index[x])+"."+"PictureModeString";
                 tr181ErrorCode_t err = setLocalParam(rfc_caller_id, tr181_param_name.c_str(), value.c_str());
@@ -4997,10 +4997,10 @@ namespace Plugin {
         int numberofsource = 0;
         GetAllSupportedSourceIndex(source_index);
         numberofsource = sizeof(source_index)/sizeof(source_index[0]);
-        std::string tr181_param_name = "";
-        tr181_param_name += std::string(TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
 
         for (int x = 0; x < numberofsource; x++ ) {
+            std::string tr181_param_name = "";
+            tr181_param_name += std::string(TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
 	    tr181_param_name += "."+std::to_string(source_index[x])+"."+"PictureModeString";
        	    err = clearLocalParam(rfc_caller_id, tr181_param_name.c_str());
             if ( err != tr181Success ) {
