@@ -188,6 +188,7 @@ jobs:
           rfcapi.h
           rbus.h
           telemetry_busmessage_sender.h
+          wpa_ctrl.h
 
       - name: Set clang toolchain
         if: ${{ matrix.compiler == 'clang' }}
@@ -220,6 +221,7 @@ jobs:
           -include ${{github.workspace}}/rdkservices/Tests/mocks/RBus.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Telemetry.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Udev.h
+          -include ${{github.workspace}}/rdkservices/Tests/mocks/wpa_ctrl_mock.h
           -Wall -Werror
           -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog
           -DENABLE_TELEMETRY_LOGGING
