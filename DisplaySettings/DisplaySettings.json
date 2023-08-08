@@ -612,6 +612,218 @@
                 ]
             }
         },
+	"setAssociatedAudioMixing":{
+            "summary": "Sets the Associated Audio Mixing Enable/Disable.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    },
+                    "mixing": {
+                        "summary": "`true` enables the Associated Audio Mixing for specified audio port. `false` to disables",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "mixing"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+	"getAssociatedAudioMixing":{
+            "summary": "Returns the Associated Audio Mixing status.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    }
+                },
+                "required": [
+                    ""
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "mixing": {
+                        "summary": "`true` if Associated Audio Mixing enabled for the specified audio port, otherwise `false`.",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "mixing",
+                    "success"
+                ]
+            }
+        },
+	"setFaderControl":{
+            "summary": "Sets the set the mixerbalance betweeen main and associated audio.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    },
+                    "mixerBalance": {
+                        "summary": "Value between -32 to +32, where -32 means mute associated and +32 means mute main.",
+                        "type": "integer",
+                        "example": 31
+                    }
+                },
+                "required": [
+                    "mixerBalance"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+	"getFaderControl":{
+            "summary": "Returns the mixerbalance betweeen main and associated audio",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    }
+                },
+                "required": [
+                    ""
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "mixerBalance": {
+                        "summary": "Value between -32 to +32, where -32 means mute associated and +32 means mute main.",
+                        "type": "integer",
+                        "example": 31
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "mixerBalance",
+                    "success"
+                ]
+            }
+        },
+	"setPrimaryLanguage":{
+            "summary": "Sets the Primary language",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    },
+                    "lang": {
+                        "summary": "3 letter lang code should be used as per ISO 639.",
+                        "type": "string",
+                        "example": "eng"
+                    }
+                },
+                "required": [
+                    "lang"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+	"getPrimaryLanguage":{
+            "summary": "Returns the Primary language",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    }
+                },
+                "required": [
+                    ""
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "lang": {
+                        "summary": "3 letter lang code should be used as per ISO 639.",
+                        "type": "integer",
+                        "example": "eng"
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "lang",
+                    "success"
+                ]
+            }
+        },
+	"setSecondaryLanguage":{
+            "summary": "Sets the secondary language",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    },
+                    "lang": {
+                        "summary": "3 letter lang code should be used as per ISO 639.",
+                        "type": "string",
+                        "example": "eng"
+                    }
+                },
+                "required": [
+                    "lang"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+	"getSecondaryLanguage":{
+            "summary": "Returns the Secondary language",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "audioPort": {
+                        "$ref": "#/definitions/audioPort1"
+                    }
+                },
+                "required": [
+                    ""
+                ]
+            },
+            "result": {
+                "type":"object",
+                "properties": {
+                    "lang": {
+                        "summary": "3 letter lang code should be used as per ISO 639.",
+                        "type": "integer",
+                        "example": "eng"
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "lang",
+                    "success"
+                ]
+            }
+        },
         "getGain":{
             "summary": "Returns the current gain value.",
             "params": {
