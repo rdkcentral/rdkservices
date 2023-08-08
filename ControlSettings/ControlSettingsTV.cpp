@@ -3950,16 +3950,14 @@ namespace Plugin {
     {
         LOGINFO("Entry");
         TR181_ParamData_t param;
+        std::string dolby_vision;
 
-        tr181ErrorCode_t err = getLocalParam(rfc_caller_id, TVSETTINGS_DOLBYVISIONMODE_RFC_PARAM, &param);
-        if (err!= tr181Success) {
+        if ( -1 == GetDolbyParams(tvContentFormatType_DOVI, &dolby_vision)) {
             returnResponse(false);
         }
         else {
-            std::string s;
-            s+=param.value;
-            response["DolbyVisionMode"] = s;
-            LOGINFO("Exit getDolbyVisionMode(): %s\n",s.c_str());
+            response["DolbyVisionMode"] = dolby_vision;
+            LOGINFO("Exit getDolbyVisionMode(): %s\n",dolby_vision.c_str());
             returnResponse(true);
         }
     }
@@ -4224,16 +4222,14 @@ namespace Plugin {
     {
         LOGINFO("Entry\n");
         TR181_ParamData_t param;
+        std::string hdr10;
 
-        tr181ErrorCode_t err = getLocalParam(rfc_caller_id, TVSETTINGS_HDR10MODE_RFC_PARAM, &param);
-        if (err!= tr181Success) {
+        if ( -1 == GetDolbyParams(tvContentFormatType_HDR10, &hdr10)) {
             returnResponse(false);
         }
         else {
-            std::string s;
-            s+=param.value;
-            response["HDR10Mode"] = s;
-            LOGINFO("Exit getHDR10Mode(): %s\n",s.c_str());
+            response["HDR10Mode"] = hdr10;
+            LOGINFO("Exit getHDR10Mode(): %s\n",hdr10.c_str());
             returnResponse(true);
         }
 
@@ -4392,16 +4388,14 @@ namespace Plugin {
     {
         LOGINFO("Entry\n");
         TR181_ParamData_t param;
+        std::string hlg;
 
-        tr181ErrorCode_t err = getLocalParam(rfc_caller_id, TVSETTINGS_HLGMODE_RFC_PARAM, &param);
-        if (err!= tr181Success) {
+        if ( -1 == GetDolbyParams(tvContentFormatType_HLG, &hlg)) {
             returnResponse(false);
         }
         else {
-            std::string s;
-            s+=param.value;
-            response["HLGMode"] = s;
-            LOGINFO("Exit getHLGMode(): %s\n",s.c_str());
+            response["HLGMode"] = hlg;
+            LOGINFO("Exit getHLGMode(): %s\n",hlg.c_str());
             returnResponse(true);
         }
     }
