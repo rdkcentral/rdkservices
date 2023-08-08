@@ -4196,7 +4196,7 @@ Notifications are autonomous events, triggered by the internals of the implement
 
 The following events are provided by the org.rdk.DisplaySettings plugin:
 
-zDisplaySettings interface events:
+DisplaySettings interface events:
 
 | Event | Description |
 | :-------- | :-------- |
