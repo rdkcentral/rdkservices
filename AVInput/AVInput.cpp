@@ -254,9 +254,9 @@ void setResponseArray(JsonObject& response, const char* key, const vector<string
 uint32_t AVInput::endpoint_numberOfInputs(const JsonObject &parameters, JsonObject &response)
 {
     LOGINFOMETHOD();
-
+   
     bool success = false;
-
+    printf("lak\n");
     auto result = numberOfInputs(success);
     if (success) {
         response[_T("numberOfInputs")] = result;

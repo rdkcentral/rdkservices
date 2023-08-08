@@ -275,7 +275,7 @@ namespace WPEFramework {
             bool InternalMessage(const string& message, const string& parameters);
 
             bool HasMethodSupport(const VersionMap::const_iterator& index, const string& method) const {
-                bool result = false;
+                bool result = true;
 
                 if (index != _supportedVersions.cend()) {
                     result = (std::find(index->second.cbegin(), index->second.cend(), method) != index->second.cend());
