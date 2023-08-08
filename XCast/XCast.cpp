@@ -660,6 +660,7 @@ void XCast::updateDynamicAppCache(JsonArray applications)
                 }
                 else {
                     jQuery = itrApp["query"].String();
+                    LOGINFO("query size:%d\n",(int)strlen (jQuery.c_str()));
                     LOGINFO("query: %s, size:%d", jQuery.c_str(), (int)strlen (jQuery.c_str()));
                 }
                 if (!jLaunchParam.HasLabel("payload")) {
@@ -667,6 +668,7 @@ void XCast::updateDynamicAppCache(JsonArray applications)
                 }
                 else {
                     jPayload = itrApp["payload"].String();
+                    LOGINFO("payload size:%d\n", (int)strlen (jPayload.c_str()));
                     LOGINFO("payload: %s, size:%d", jPayload.c_str(), (int)strlen (jPayload.c_str()));
                 }
                 //Set launchParameters in list for later usage
@@ -979,19 +981,24 @@ void XCast::onXcastApplicationLaunchRequestWithLaunchParam (string appName,
         getEntryFromAppLaunchParamList (appName.c_str(), appConfig);
 
         /*Replacing with App requested payload and query*/
-        if (('\0' != appConfig.query[0]) && ('\0' != appConfig.payload[0])) {
+	int queryLen = strlen(appConfig.query);
+	int payloadLen = strlen(appConfig.payload);
+        if ((0 != queryLen) && (0 != payloadLen)) {
+	    LOGWARN ("%s - Anooj appConfig.query:%s appConfig.payload:%s queryLen:%d payloadLen:%d", __PRETTY_FUNCTION__, appConfig.query, appConfig.payload, queryLen, payloadLen);
             getUrlFromAppLaunchParams (appName.c_str(),
                                appConfig.payload,
                                appConfig.query,
                                strAddDataUrl.c_str(), url);
         }
-        else if(('\0' != appConfig.payload[0])){
+        else if((0 != strlen(appConfig.payload))){
+	    LOGWARN ("%s - Anooj appConfig.payload:%s payloadLen:%d", __PRETTY_FUNCTION__, appConfig.payload, payloadLen);
             getUrlFromAppLaunchParams (appName.c_str(),
                                appConfig.payload,
                                strQuery.c_str(),
                                strAddDataUrl.c_str(), url);
         }
-        else if(('\0' != appConfig.query[0])) {
+        else if((0 != strlen(appConfig.query))) {
+	    LOGWARN ("%s - Anooj appConfig.query:%s queryLen:%d", __PRETTY_FUNCTION__, appConfig.query, queryLen);
             getUrlFromAppLaunchParams (appName.c_str(),
                                strPayLoad.c_str(),
                                appConfig.query,
