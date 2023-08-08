@@ -2,7 +2,7 @@
 <a name="DisplaySettings_Plugin"></a>
 # DisplaySettings Plugin
 
-**Version: [1.2.0](https://github.com/rdkcentral/rdkservices/blob/main/DisplaySettings/CHANGELOG.md)**
+**Version: [1.3.0](https://github.com/rdkcentral/rdkservices/blob/main/DisplaySettings/CHANGELOG.md)**
 
 A org.rdk.DisplaySettings plugin for Thunder framework.
 
@@ -125,6 +125,7 @@ DisplaySettings interface methods:
 | [setVolumeLeveller](#setVolumeLeveller) | (Version 2) Sets the Volume Leveller level |
 | [setZoomSetting](#setZoomSetting) | Sets the current zoom value |
 | [getColorDepthCapabilities](#getColorDepthCapabilities) | Returns supported color depth capabilities |
+| [getSupportedMS12Config](#getSupportedMS12Config) | Returns supported ms12 config by the platform, possible values couldbe CONFG_Z, CONFIG_X, CONFIG_Y, CONFIG_NONE |
 
 
 <a name="enableSurroundDecoder"></a>
@@ -4184,6 +4185,52 @@ This method takes no parameters.
         "getColorDepthCapabilities": [
             "8 Bit"
         ],
+        "success": true
+    }
+}
+```
+
+<a name="getSupportedMS12Config"></a>
+## *getSupportedMS12Config*
+
+Returns supported ms12 config by the platform, possible values couldbe CONFG_Z, CONFIG_X, CONFIG_Y, CONFIG_NONE.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.ms12config | string | Supported ms12 config by platforms, possible values, CONFIG_Z, CONFIG_X, CONFIG_Y, CONFIG_NONE |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.getSupportedMS12Config"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "ms12config": "CONFIG_X",
         "success": true
     }
 }
