@@ -2,7 +2,7 @@
 <a name="TextToSpeech_Plugin"></a>
 # TextToSpeech Plugin
 
-**Version: [1.0.7](https://github.com/rdkcentral/rdkservices/blob/main/TextToSpeech/CHANGELOG.md)**
+**Version: [1.0.11](https://github.com/rdkcentral/rdkservices/blob/main/TextToSpeech/CHANGELOG.md)**
 
 A org.rdk.TextToSpeech plugin for Thunder framework.
 
@@ -611,6 +611,7 @@ Sets the TTS configuration. Triggers the `onvoicechanged`
 | params?.volume | string | <sup>*(optional)*</sup> The TTS Volume |
 | params?.primvolduckpercent | number | <sup>*(optional)*</sup> The TTS Primary Volumeduckpercentage |
 | params?.rate | number | <sup>*(optional)*</sup> The TTS Rate |
+| params?.speechrate | string | <sup>*(optional)*</sup> TTS Rate for TTS2 endpoint |
 | params?.fallbacktext | object | <sup>*(optional)*</sup>  |
 | params?.fallbacktext?.scenario | string | <sup>*(optional)*</sup> Describes the scenario where fallback text is to be used . At present, only `offline` is supported |
 | params?.fallbacktext?.value | string | <sup>*(optional)*</sup> The Text which is to be spoken when the scenario is met |
@@ -643,6 +644,7 @@ Sets the TTS configuration. Triggers the `onvoicechanged`
         "volume": "100.000000",
         "primvolduckpercent": 25,
         "rate": 50,
+        "speechrate": "medium",
         "fallbacktext": {
             "scenario": "offline",
             "value": "No Internet connection"
