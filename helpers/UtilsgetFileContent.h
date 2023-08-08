@@ -31,7 +31,7 @@ bool readPropertyFromFile(const char* filename, const std::string& property, std
             {
                 std::string propertyContent = line.substr(line.find("=") + 1);
 
-                // If the property value starts with '$', recursively expand it
+                // If the property value starts with '$',recursively expand it
                 if (!propertyContent.empty() && propertyContent[0] == '$')
                 {
                     std::string expandedProperty = propertyContent.substr(1);
