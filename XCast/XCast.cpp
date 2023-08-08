@@ -660,6 +660,9 @@ void XCast::updateDynamicAppCache(JsonArray applications)
                 }
                 else {
                     jQuery = itrApp["query"].String();
+		    if (jQuery.empty()){
+			    LOGINFO("Anooj query is empty\n");
+		    }
                     LOGINFO("query size:%d\n",(int)strlen (jQuery.c_str()));
                     LOGINFO("query: %s, size:%d", jQuery.c_str(), (int)strlen (jQuery.c_str()));
                 }
@@ -668,6 +671,9 @@ void XCast::updateDynamicAppCache(JsonArray applications)
                 }
                 else {
                     jPayload = itrApp["payload"].String();
+		    if (jQuery.empty()){
+			    LOGINFO("Anooj payload is empty\n");
+		    }
                     LOGINFO("payload size:%d\n", (int)strlen (jPayload.c_str()));
                     LOGINFO("payload: %s, size:%d", jPayload.c_str(), (int)strlen (jPayload.c_str()));
                 }
