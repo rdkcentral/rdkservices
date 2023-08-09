@@ -20,7 +20,12 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 set(PLUGIN_SCREENCAPTURE_STARTUPORDER "" CACHE STRING "To configure startup order of ScreenCapture plugin")
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+
 find_package(${NAMESPACE}Plugins REQUIRED)
+find_package(LibDRM QUIET)
+find_path (STAGING_INCDIR glib-2.0)
+include_directories(${STAGING_INCDIR}/libdrm)
 
 add_library(${MODULE_NAME} SHARED
         ScreenCapture.cpp
@@ -33,16 +38,22 @@ set_target_properties(${MODULE_NAME} PROPERTIES
 
 target_compile_definitions(${MODULE_NAME} PRIVATE MODULE_NAME=Plugin_${PLUGIN_NAME})
 
-find_path(FRAMEBUFFER_API_HEADER NAMES framebuffer-api.h)
-if (NOT ${FRAMEBUFFER_API_HEADER} STREQUAL "FRAMEBUFFER_API_HEADER-NOTFOUND")
-    message("Found framebuffer-api.h")
-add_definitions (-DHAS_FRAMEBUFFER_API_HEADER)
-find_library(VNC_FRAMEBUFFER_LIBRARIES NAMES vncframebuffer)
+if (BUILD_REALTEK AND LIBDRM_FOUND)
+    message("Found libdrm")
+    add_definitions (-DUSE_DRM_SCREENCAPTURE)
+
+    target_sources(${MODULE_NAME}
+        PRIVATE
+        Implementation/Realtek/kms.c
+		Implementation/Realtek/Realtek.cpp)
+    target_link_libraries(${MODULE_NAME}
+        PRIVATE
+            drm)
 endif()
 
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 
-target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins -lpng -lcurl ${VNC_FRAMEBUFFER_LIBRARIES})
+target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins -lpng -lcurl)
 
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
