@@ -3138,7 +3138,7 @@ namespace Plugin {
                 params[0]=COLOR_HUE;
                 params[1]=color;
                 snprintf(param,sizeof(param),"hue.%s",component_color[color]);
-                ret |= UpdatePQParamsToCache("reset",param,pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_CMS,params);
+                ret |= UpdatePQParamsToCache("reset",param,pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_COMPONENT_HUE,params);
                 memset(&param, 0, sizeof(param));
             }
 
@@ -3581,7 +3581,7 @@ namespace Plugin {
         }
         else {
             GetParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
-            int err = GetLocalparam("DimmingMode",formatIndex,pqIndex,sourceIndex,dMode, PQ_PARAM_DIMMINGMODE);
+            int err = GetLocalparam("DimmingMode",formatIndex,pqIndex,sourceIndex,dMode, PQ_PARAM_LDIM);
             if( err == 0 ) {
                 LOGINFO("%s : GetLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,dMode);
                 if( isSetRequired(pqmode,source,format) ) {
@@ -3949,10 +3949,9 @@ namespace Plugin {
     uint32_t ControlSettingsTV::getDolbyVisionMode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
-        TR181_ParamData_t param;
         std::string dolby_vision;
 
-        if ( -1 == GetDolbyParams(tvContentFormatType_DOVI, &dolby_vision)) {
+        if ( -1 == GetDolbyParams(tvContentFormatType_DOVI, dolby_vision)) {
             returnResponse(false);
         }
         else {
@@ -4176,10 +4175,9 @@ namespace Plugin {
     uint32_t ControlSettingsTV::getHDR10Mode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
-        TR181_ParamData_t param;
         std::string hdr10;
 
-        if ( -1 == GetDolbyParams(tvContentFormatType_HDR10, &hdr10)) {
+        if ( -1 == GetDolbyParams(tvContentFormatType_HDR10, hdr10)) {
             returnResponse(false);
         }
         else {
@@ -4330,10 +4328,9 @@ namespace Plugin {
     uint32_t ControlSettingsTV::getHLGMode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
-        TR181_ParamData_t param;
         std::string hlg;
 
-        if ( -1 == GetDolbyParams(tvContentFormatType_HLG, &hlg)) {
+        if ( -1 == GetDolbyParams(tvContentFormatType_HLG, hlg)) {
             returnResponse(false);
         }
         else {
