@@ -22,7 +22,9 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 
-add_subdirectory(test)
+if (BUILD_REMOTECONTROLTESTCLIENT)
+    add_subdirectory(test)
+endif ()
 
 add_library(${MODULE_NAME} SHARED
         RemoteControl.cpp

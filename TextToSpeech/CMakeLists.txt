@@ -7,7 +7,9 @@ set(PLUGIN_TEXTTOSPEECH_MODE "Local" CACHE STRING "Controls if the plugin should
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 
-add_subdirectory(test)
+if (BUILD_TTSTHUNDERAPITEST)
+    add_subdirectory(test)
+endif ()
 
 add_library(${MODULE_NAME} SHARED
         Module.cpp

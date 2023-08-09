@@ -15,7 +15,9 @@ find_package(Boost COMPONENTS system filesystem REQUIRED)
 find_package(websocketpp REQUIRED)
 find_package(OpenSSL REQUIRED)
 
-add_subdirectory(test)
+if (BUILD_SYSTEMAUDIOPLAYERAPITEST)
+    add_subdirectory(test)
+endif ()
 
 add_library(${MODULE_NAME} SHARED
         Module.cpp
