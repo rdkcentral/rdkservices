@@ -141,14 +141,16 @@ TTS_Error TTSManager::setConfiguration(Configuration &configuration) {
 
     m_needsConfigStoreUpdate |= m_defaultConfiguration.setVolume(configuration.volume);
     m_needsConfigStoreUpdate |= m_defaultConfiguration.setRate(configuration.rate);
+    m_needsConfigStoreUpdate |= m_defaultConfiguration.setSpeechRate(configuration.speechRate);
 
-    TTSLOG_INFO("Default config updated, endPoint=%s, secureEndPoint=%s, lang=%s, voice=%s, vol=%lf, rate=%u",
+    TTSLOG_INFO("Default config updated, endPoint=%s, secureEndPoint=%s, lang=%s, voice=%s, vol=%lf, rate=%u ,speechrate=%s",
             m_defaultConfiguration.endPoint().c_str(),
             m_defaultConfiguration.secureEndPoint().c_str(),
             m_defaultConfiguration.language().c_str(),
             m_defaultConfiguration.voice().c_str(),
             m_defaultConfiguration.volume(),
-            m_defaultConfiguration.rate());
+            m_defaultConfiguration.rate(),
+            m_defaultConfiguration.speechRate().c_str());
 
     if(v !=  m_defaultConfiguration.voice())
         m_callback->onVoiceChanged(m_defaultConfiguration.voice());
@@ -189,12 +191,6 @@ TTS_Error TTSManager::setAPIKey(string apikey)
     return TTS_OK;
 }
 
-TTS_Error TTSManager::setSpeechRate(const string speechrate)
-{
-    m_needsConfigStoreUpdate |= m_defaultConfiguration.setSpeechRate(speechrate);
-    return TTS_OK;
-}
-
 TTS_Error TTSManager::getConfiguration(Configuration &configuration) {
     TTSLOG_TRACE("Getting Default Configuration");
 
@@ -202,6 +198,7 @@ TTS_Error TTSManager::getConfiguration(Configuration &configuration) {
     configuration.ttsEndPointSecured = m_defaultConfiguration.secureEndPoint();
     configuration.language = m_defaultConfiguration.language();
     configuration.voice = m_defaultConfiguration.voice();
+    configuration.speechRate = m_defaultConfiguration.speechRate();
     configuration.volume = m_defaultConfiguration.volume();
     configuration.rate = m_defaultConfiguration.rate();
 

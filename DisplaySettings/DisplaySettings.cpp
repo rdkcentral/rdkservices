@@ -85,7 +85,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 2
-#define API_VERSION_NUMBER_PATCH 0
+#define API_VERSION_NUMBER_PATCH 1
 
 static bool isCecEnabled = false;
 static int  hdmiArcPortId = -1;
@@ -5082,10 +5082,13 @@ void DisplaySettings::sendMsgThread()
                     {
                         LOG_DEVICE_EXCEPTION1(string("HDMI_ARC0"));
                     }
-            } else {
+            }  else {
+                LOGERR("Invalid SAD state m_AudioDeviceSADState =%d", m_AudioDeviceSADState);
+               }/*End of (m_AudioDeviceSADState == AUDIO_DEVICE_SAD_REQUESTED) */
+			}
+		    else {
                 LOGERR("Field 'ShortAudioDescriptor' could not be found in the event's payload.");
             }/*End of (m_AudioDeviceSADState == AUDIO_DEVICE_SAD_REQUESTED) */
-	  }
         }
 
         // 5.
@@ -5166,18 +5169,28 @@ void DisplaySettings::sendMsgThread()
 	    if(!value.compare("true")) {
 	        m_hdmiCecAudioDeviceDetected = true;
             } else{
-	        m_hdmiCecAudioDeviceDetected = false;
-		m_hdmiInAudioDevicePowerState = AUDIO_DEVICE_POWER_STATE_UNKNOWN;
-		if (m_hdmiInAudioDeviceType == dsAUDIOARCSUPPORT_ARC) {
-		    if (m_AudioDeviceSADState != AUDIO_DEVICE_SAD_CLEARED) {
-		        m_AudioDeviceSADState = AUDIO_DEVICE_SAD_CLEARED;
-		        LOGINFO("%s: Clearing Audio device SAD\n", __FUNCTION__);
-		        //clear the SAD list
-		        sad_list.clear();
-		    } else {
-		        LOGINFO("SAD already cleared\n");
+	            m_hdmiCecAudioDeviceDetected = false;
+		        if (m_hdmiInAudioDeviceConnected == true) {
+					LOGINFO("Audio device removed event Handler, clearing the states m_hdmiInAudioDeviceConnected =%d, m_currentArcRoutingState =%d", \
+                    m_hdmiInAudioDeviceConnected, m_currentArcRoutingState);
+				    m_hdmiInAudioDeviceConnected = false;	
+		    	    m_hdmiInAudioDevicePowerState = AUDIO_DEVICE_POWER_STATE_UNKNOWN;
+                    m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
+				    connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, false);
+			    }
+		        if (m_AudioDeviceSADState != AUDIO_DEVICE_SAD_CLEARED && m_AudioDeviceSADState != AUDIO_DEVICE_SAD_UNKNOWN) {
+		            LOGINFO("%s: Clearing Audio device SAD previous state= %d current state = %d\n", __FUNCTION__, m_AudioDeviceSADState, AUDIO_DEVICE_SAD_CLEARED);
+		            //clear the SAD list
+		            sad_list.clear();
+		            m_AudioDeviceSADState = AUDIO_DEVICE_SAD_CLEARED;
+		        } else {
+		            LOGINFO("SAD already cleared\n");
 	            }
-		}
+                //if m_arcEarcAudioEnabled == true(case where arc/earc is already routed) we will not reset device type because it will be done from setEnableAudioPort during disable from the connectedAudioPort update
+				if (m_arcEarcAudioEnabled == false && m_hdmiInAudioDeviceType != dsAUDIOARCSUPPORT_NONE) {
+					LOGINFO("Reset m_hdmiInAudioDeviceType since m_arcEarcAudioEnabled = %d", m_arcEarcAudioEnabled);
+					m_hdmiInAudioDeviceType = dsAUDIOARCSUPPORT_NONE;
+				}
 
             }
 	    LOGINFO("updated m_hdmiCecAudioDeviceDetected status [%d] ... \n", m_hdmiCecAudioDeviceDetected);
@@ -5324,6 +5337,11 @@ void DisplaySettings::sendMsgThread()
 		isCecEnabled = false;
 		try
                     {
+                        //if m_arcEarcAudioEnabled == true(case where arc/earc is already routed) we will not reset device type because it will be done from setEnableAudioPort during disable from the connectedAudioPort update
+                        if (m_arcEarcAudioEnabled == false && m_hdmiInAudioDeviceType != dsAUDIOARCSUPPORT_NONE) {
+                           LOGINFO("Reset m_hdmiInAudioDeviceType since m_arcEarcAudioEnabled = %d", m_arcEarcAudioEnabled);
+                           m_hdmiInAudioDeviceType = dsAUDIOARCSUPPORT_NONE;
+                        }
                         if(m_hdmiInAudioDeviceConnected ==  true) {
                             m_hdmiInAudioDeviceConnected = false;
                             connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, false);
