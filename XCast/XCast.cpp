@@ -578,8 +578,8 @@ void XCast::updateDynamicAppCache(string strApps)
     cJSON *jCors = NULL;
     cJSON *itrCor = NULL;
 
-    cJSON *jProperties = NULL;
-    cJSON *jAllowStop = NULL;
+    JsonObject jProperties;
+    bool jAllowStop = false;
 
     cJSON *jLaunchParam = NULL;
     cJSON *jQuery = NULL;
@@ -675,10 +675,11 @@ void XCast::updateDynamicAppCache(string strApps)
                     LOGINFO ("Invalid allowStop format at application index %d", iIndex);
                 }
                 else {
-                    LOGINFO("allowStop: %d", jAllowStop->valueint);
-                    for (DynamicAppConfig* pDynamicAppConfig : appConfigListTemp) {
-                        pDynamicAppConfig->allowStop = jAllowStop->valueint;
-                    }
+                    jAllowStop = jProperties["allowStop"].Boolean();
+                    LOGINFO("allowStop: %d", jAllowStop);
+                }
+                for (DynamicAppConfig* pDynamicAppConfig : appConfigListTemp) {
+                    pDynamicAppConfig->allowStop = jAllowStop;
                 }
             }
 
@@ -692,14 +693,24 @@ void XCast::updateDynamicAppCache(string strApps)
                     LOGINFO ("Invalid query format at application index %d", iIndex);
                 }
                 else {
-                    LOGINFO("query: %s, size:%d", jQuery->valuestring, strlen (jQuery->valuestring));
+                    jQuery = itrApp["query"].String();
+                    if ("null" == jQuery || jQuery.empty()){
+                        //Replace this condition with IsNull check of wpeframwork json
+                        jQuery = "";
+                    }
+                    LOGINFO("query: %s, size:%d", jQuery.c_str(), (int)strlen (jQuery.c_str()));
                 }
                 jPayload = cJSON_GetObjectItem(jLaunchParam, "payload");
                 if (!cJSON_IsString(jPayload)) {
                     LOGINFO ("Invalid payload format at application index %d", iIndex);
                 }
                 else {
-                    LOGINFO("payload: %s, size:%d", jPayload->valuestring, strlen (jPayload->valuestring));
+                    jPayload = itrApp["payload"].String();
+                    if ("null" == jPayload || jPayload.empty()){
+                        //Replace this condition with IsNull check of wpeframwork json
+                        jPayload = "";
+                    }
+                    LOGINFO("payload: %s, size:%d", jPayload.c_str(), (int)strlen (jPayload.c_str()));
                 }
                 //Set launchParameters in list for later usage
                 for (DynamicAppConfig* pDynamicAppConfig : appConfigListTemp) {
