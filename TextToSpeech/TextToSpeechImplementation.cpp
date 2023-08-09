@@ -176,6 +176,7 @@ namespace Plugin {
         config.ttsEndPointSecured = object.ttsEndPointSecured;
         config.language =  object.language;
         config.voice =  object.voice;
+        config.speechRate = object.speechRate;
         config.volume = (double) object.volume;
         config.rate =  object.rate;
         _adminLock.Lock();
@@ -190,6 +191,7 @@ namespace Plugin {
         TTSLOG_INFO("Voice : %s", config.voice.c_str());
         TTSLOG_INFO("Volume : %lf",config.volume);
         TTSLOG_INFO("Rate : %u", config.rate);
+        TTSLOG_INFO("SpeechRate : %s", config.speechRate.c_str());
         logResponse(status);
         return (status == TTS::TTS_OK) ? (Core::ERROR_NONE) : (Core::ERROR_GENERAL);
     }
@@ -225,15 +227,6 @@ namespace Plugin {
         return (Core::ERROR_NONE);
     }
     
-    uint32_t TextToSpeechImplementation::SetSpeechRate(const string speechRate)
-    {
-        _adminLock.Lock();
-        _ttsManager->setSpeechRate(speechRate);
-        _adminLock.Unlock();
-        TTSLOG_INFO("speechrate updated %s\n",speechRate.c_str());
-        return (Core::ERROR_NONE);
-    }
-
     uint32_t TextToSpeechImplementation::GetConfiguration(Exchange::ITextToSpeech::Configuration &exchangeConfig) const
     {
         _adminLock.Lock();
@@ -246,6 +239,7 @@ namespace Plugin {
             exchangeConfig.ttsEndPointSecured = ttsConfig.ttsEndPointSecured;
             exchangeConfig.language           = ttsConfig.language;
             exchangeConfig.voice              = ttsConfig.voice;
+            exchangeConfig.speechRate         = ttsConfig.speechRate;
             exchangeConfig.rate               = (uint8_t) ttsConfig.rate;
             exchangeConfig.volume             = (uint8_t) ttsConfig.volume;
         }
@@ -256,6 +250,7 @@ namespace Plugin {
         TTSLOG_INFO("Voice : %s",  ttsConfig.voice.c_str());
         TTSLOG_INFO("Volume : %lf", ttsConfig.volume);
         TTSLOG_INFO("Rate : %u",  ttsConfig.rate);
+        TTSLOG_INFO("SpeechRate : %s",  ttsConfig.speechRate.c_str());
         logResponse(status);
         return (status == TTS::TTS_OK) ? (Core::ERROR_NONE) : (Core::ERROR_GENERAL);
     }
