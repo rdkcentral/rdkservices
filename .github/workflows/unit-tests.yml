@@ -183,7 +183,6 @@ jobs:
           rdk/iarmmgrs-hal/sysMgr.h
           network/wifiSrvMgrIarmIf.h
           network/netsrvmgrIarm.h
-          framebuffer-api.h
           libudev.h
           rfcapi.h
           rbus.h
@@ -216,7 +215,6 @@ jobs:
           -I ${{github.workspace}}/rdkservices/Tests/headers/ccec/drivers
           -I ${{github.workspace}}/rdkservices/Tests/headers/network
           -include ${{github.workspace}}/rdkservices/Tests/mocks/devicesettings.h
-          -include ${{github.workspace}}/rdkservices/Tests/mocks/FrameBuffer.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Iarm.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Rfc.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/RBus.h
@@ -232,7 +230,7 @@ jobs:
           -DENABLE_DEEP_SLEEP
           -DENABLE_SET_WAKEUP_SRC_CONFIG
           -DENABLE_THERMAL_PROTECTION
-          -DUSE_FRAMEBUFFER_SCREENCAPTURE
+          -DUSE_DRM_SCREENCAPTURE
           -DHAS_API_SYSTEM
           -DHAS_API_POWERSTATE
           -DHAS_RBUS
