@@ -568,7 +568,7 @@ void XCast::updateDynamicAppCache(JsonArray applications)
     std::string itrCor = "";
 
     JsonObject jProperties;
-    bool jAllowStop = 0;
+    bool jAllowStop = false;
 
     JsonObject jLaunchParam;
     std::string jQuery = "";
@@ -644,9 +644,9 @@ void XCast::updateDynamicAppCache(JsonArray applications)
                 else {
                     jAllowStop = jProperties["allowStop"].Boolean();
                     LOGINFO("allowStop: %d", jAllowStop);
-                    for (DynamicAppConfig* pDynamicAppConfig : appConfigListTemp) {
-                        pDynamicAppConfig->allowStop = jAllowStop;
-                    }
+                }
+                for (DynamicAppConfig* pDynamicAppConfig : appConfigListTemp) {
+                    pDynamicAppConfig->allowStop = jAllowStop;
                 }
             }
 
@@ -660,6 +660,10 @@ void XCast::updateDynamicAppCache(JsonArray applications)
                 }
                 else {
                     jQuery = itrApp["query"].String();
+                    if ("null" == jQuery || jQuery.empty()){
+                        //Replace this condition with IsNull check of wpeframwork json
+                        jQuery = "";
+                    }
                     LOGINFO("query: %s, size:%d", jQuery.c_str(), (int)strlen (jQuery.c_str()));
                 }
                 if (!jLaunchParam.HasLabel("payload")) {
@@ -667,6 +671,10 @@ void XCast::updateDynamicAppCache(JsonArray applications)
                 }
                 else {
                     jPayload = itrApp["payload"].String();
+                    if ("null" == jPayload || jPayload.empty()){
+                        //Replace this condition with IsNull check of wpeframwork json
+                        jPayload = "";
+                    }
                     LOGINFO("payload: %s, size:%d", jPayload.c_str(), (int)strlen (jPayload.c_str()));
                 }
                 //Set launchParameters in list for later usage
