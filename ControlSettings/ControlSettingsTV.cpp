@@ -3966,26 +3966,11 @@ namespace Plugin {
     {
         LOGINFO("Entry\n");
         std::string value;
-        std::string pqmode;
-        std::string source;
-        std::string format;
-
+	
 	value = parameters.HasLabel("DolbyVisionMode") ? parameters["DolbyVisionMode"].String() : "";
         returnIfParamNotFound(parameters,"DolbyVisionMode");
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "current";
-
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
-        if(source.empty())
-            source = "current";
-
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
-        if(format.empty())
-            format = "dolby";
-
-        if( !isCapablityCheckPassed( pqmode, source, format, "DolbyVisionMode" )) {
+        if( !isCapablityCheckPassed( "global", "global", "dolby", "DolbyVisionMode" )) {
             LOGERR("%s: CapablityCheck failed for DolbyVisionMode\n", __FUNCTION__);
             returnResponse(false);
         }
@@ -3998,7 +3983,7 @@ namespace Plugin {
         else {
             int params[3]={0};
             params[0]=GetDolbyModeIndex(value.c_str());
-            int retval=UpdatePQParamsToCache("set","DolbyVisionMode",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_DOLBY_MODE,params);
+            int retval=UpdatePQParamsToCache("set","DolbyVisionMode", "all","all","dolby",PQ_PARAM_DOLBY_MODE,params);
             if(retval != 0) {
                 LOGWARN("Failed to Save DolbyVisionMode to ssm_data\n");
             }
@@ -4019,24 +4004,9 @@ namespace Plugin {
     {
         LOGINFO("Entry\n");
         std::string value;
-        std::string pqmode;
-        std::string source;
-        std::string format;
         tvError_t ret = tvERROR_NONE;
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "current";
-
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
-        if(source.empty())
-            source = "current";
-
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
-        if(format.empty())
-            format = "dolby";
-
-	if( !isCapablityCheckPassed( pqmode, source, format, "DolbyVisionMode" )) {
+	if( !isCapablityCheckPassed( "global", "global", "dolby", "DolbyVisionMode" )) {
             LOGERR("%s: CapablityCheck failed for DolbyVisionMode\n", __FUNCTION__);
             returnResponse(false);
         }
@@ -4069,7 +4039,7 @@ namespace Plugin {
                     //Save DolbyVisionMode to ssm_data
                     int params[3]={0};
                     params[0]=GetDolbyModeIndex(param.value);
-                    int retval=UpdatePQParamsToCache("reset","DolbyVisionMode",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_DOLBY_MODE,params);
+                    int retval=UpdatePQParamsToCache("reset","DolbyVisionMode","all","all","dolby",PQ_PARAM_DOLBY_MODE,params);
 
                     if(retval != 0) {
                         LOGWARN("Failed to Save DolbyVisionMode to ssm_data\n");
@@ -4168,26 +4138,11 @@ namespace Plugin {
     {
         LOGINFO("Entry\n");
         std::string value;
-        std::string pqmode;
-        std::string source;
-        std::string format;
 
         value = parameters.HasLabel("HDR10Mode") ? parameters["HDR10Mode"].String() : "";
         returnIfParamNotFound(parameters,"HDR10Mode");
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "current";
-
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
-        if(source.empty())
-            source = "current";
-
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
-        if(format.empty())
-            format = "hdr10";
-        
-	if( !isCapablityCheckPassed( pqmode, source, format, "HDR10Mode" )) {
+	if( !isCapablityCheckPassed( "global", "global", "hdr10", "HDR10Mode" )) {
             LOGERR("%s: CapablityCheck failed for HDR10Mode\n", __FUNCTION__);
             returnResponse(false);
         }
@@ -4200,7 +4155,7 @@ namespace Plugin {
         else {
             int params[3]={0};
             params[0]=GetHDR10ModeIndex(value.c_str());
-            int retval=UpdatePQParamsToCache("set","HDR10Mode",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_HDR10_MODE,params);
+            int retval=UpdatePQParamsToCache("set","HDR10Mode", "all","all","hdr10",PQ_PARAM_HDR10_MODE,params);
             if(retval != 0) {
                 LOGWARN("Failed to Save HDR10Mode to ssm_data\n");
             }
@@ -4244,19 +4199,7 @@ namespace Plugin {
         std::string format;
         tvError_t ret = tvERROR_NONE;
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "current";
-
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
-        if(source.empty())
-            source = "current";
-
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
-        if(format.empty())
-            format = "hdr10";
-
-	if( !isCapablityCheckPassed( pqmode, source, format, "HDR10Mode" )) {
+	if( !isCapablityCheckPassed( "global", "global", "hdr10", "HDR10Mode" )) {
             LOGERR("%s: CapablityCheck failed for HDR10Mode\n", __FUNCTION__);
             returnResponse(false);
         }
@@ -4289,7 +4232,7 @@ namespace Plugin {
                     //Save HDR10Mode to ssm_data
                     int params[3]={0};
                     params[0]=GetHDR10ModeIndex(param.value);
-                    int retval=UpdatePQParamsToCache("reset","HDR10Mode",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_HDR10_MODE,params);
+                    int retval=UpdatePQParamsToCache("reset","HDR10Mode","all","all","hdr10",PQ_PARAM_HDR10_MODE,params);
 
                     if(retval != 0) {
                         LOGWARN("Failed to Save HDR10Mode to ssm_data\n");
@@ -4404,26 +4347,11 @@ namespace Plugin {
     {
         LOGINFO("Entry\n");
         std::string value;
-        std::string pqmode;
-        std::string source;
-        std::string format;
 
         value = parameters.HasLabel("HLGMode") ? parameters["HLGMode"].String() : "";
         returnIfParamNotFound(parameters,"HLGMode");
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "current";
-
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
-        if(source.empty())
-            source = "current";
-
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
-        if(format.empty())
-            format = "hlg";
-
-	if( !isCapablityCheckPassed( pqmode, source, format, "HLGMode" )) {
+	if( !isCapablityCheckPassed( "global", "global", "hlg", "HLGMode" )) {
             LOGERR("%s: CapablityCheck failed for HLGMode\n", __FUNCTION__);
             returnResponse(false);
         }
@@ -4436,7 +4364,7 @@ namespace Plugin {
         else {
             int params[3]={0};
             params[0]=GetHLGModeIndex(value.c_str());
-            int retval=UpdatePQParamsToCache("set","HLGMode",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_HLG_MODE,params);
+            int retval=UpdatePQParamsToCache("set","HLGMode","all","all","hlg",PQ_PARAM_HLG_MODE,params);
             if(retval != 0) {
                 LOGWARN("Failed to Save HLGMode to ssm_data\n");
             }
@@ -4457,24 +4385,9 @@ namespace Plugin {
     {
         LOGINFO("Entry\n");
         std::string value;
-        std::string pqmode;
-        std::string source;
-        std::string format;
         tvError_t ret = tvERROR_NONE;
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "current";
-
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
-        if(source.empty())
-            source = "current";
-
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
-        if(format.empty())
-            format = "hlg";
-
-	if( !isCapablityCheckPassed( pqmode, source, format, "HLGMode" )) {
+	if( !isCapablityCheckPassed( "global", "global", "hlg", "HLGMode" )) {
             LOGERR("%s: CapablityCheck failed for HLGMode\n", __FUNCTION__);
             returnResponse(false);
         }
@@ -4507,7 +4420,7 @@ namespace Plugin {
                     //Save HLGMode to ssm_data
                     int params[3]={0};
                     params[0]=GetHLGModeIndex(param.value);
-                    int retval=UpdatePQParamsToCache("reset","HLGMode",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_HLG_MODE,params);
+                    int retval=UpdatePQParamsToCache("reset","HLGMode","all","all","hlg",PQ_PARAM_HLG_MODE,params);
 
                     if(retval != 0) {
                         LOGWARN("Failed to Save HLGMode to ssm_data\n");
