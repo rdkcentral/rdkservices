@@ -667,8 +667,10 @@ void XCast::updateDynamicAppCache(JsonArray applications)
 		    if (jQuery.empty() || ("" == jQuery)){
 			    LOGINFO("Anooj query is empty\n");
 		    }
-		    if ("null" == jQuery){
+		    if ("null" == jQuery || jQuery.empty()){
 			    LOGINFO("Anooj query is null\n");
+			    //Replace this condition with IsNull check of wpeframwork json
+			    jQuery = "";
 		    }
 
                     LOGINFO("query size:%d\n",(int)strlen (jQuery.c_str()));
@@ -687,8 +689,9 @@ void XCast::updateDynamicAppCache(JsonArray applications)
 		    if (jPayload.empty() || ("" == jPayload)){
 			    LOGINFO("Anooj payload is empty\n");
 		    }
-		    if ("null" == jPayload){
+		    if ("null" == jPayload || jPayload.empty()){
 			    LOGINFO("Anooj payload is null\n");
+			    jPayload = "";
 		    }
 
                     LOGINFO("payload size:%d\n", (int)strlen (jPayload.c_str()));
