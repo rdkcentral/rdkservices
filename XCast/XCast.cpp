@@ -661,6 +661,9 @@ void XCast::updateDynamicAppCache(JsonArray applications)
                 }
                 else {
                     jQuery = itrApp["query"].String();
+		    if (itrApp["query"].IsNull()){
+			    LOGINFO("Anooj query IsNull() working fine\n");
+		    }
 		    if (jQuery.empty() || ("" == jQuery)){
 			    LOGINFO("Anooj query is empty\n");
 		    }
@@ -675,12 +678,17 @@ void XCast::updateDynamicAppCache(JsonArray applications)
                     LOGINFO ("Invalid payload format at application index %d", iIndex);
                 }
                 else {
+
                     jPayload = itrApp["payload"].String();
+		    if (itrApp["payload"].IsNull()){
+			    LOGINFO("Anooj payload IsNull() working fine\n");
+		    }
+
 		    if (jPayload.empty() || ("" == jPayload)){
 			    LOGINFO("Anooj payload is empty\n");
 		    }
 		    if ("null" == jPayload){
-			    LOGINFO("Anooj query is null\n");
+			    LOGINFO("Anooj payload is null\n");
 		    }
 
                     LOGINFO("payload size:%d\n", (int)strlen (jPayload.c_str()));
