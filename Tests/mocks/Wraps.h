@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdio.h>
-#include <wpa_ctrl_mock.h>
+#include "wpa_ctrl_mock.h"
 
 class WrapsImpl {
 public:

@@ -36,5 +36,5 @@ extern "C" int __wrap_wpa_ctrl_request(struct wpa_ctrl *ctrl, const char *cmd, s
 
 extern "C" void __wrap_wpa_ctrl_close(struct wpa_ctrl *ctrl)
 {
-    return Wraps::getInstance().wpa_ctrl_close(ctrl);
+    Wraps::getInstance().wpa_ctrl_close(ctrl);
 }
