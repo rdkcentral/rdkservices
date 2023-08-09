@@ -16,4 +16,6 @@ public:
                                                    char *reply, size_t *reply_len,
                                                    void *msg_cb), (override));
     MOCK_METHOD(void, wpa_ctrl_close, (struct wpa_ctrl *ctrl), (override));
+    MOCK_METHOD(FILE*, v_secure_popen, (const char *direction, const char *command, va_list args), (override));
+    MOCK_METHOD(int, v_secure_pclose, (FILE *file), (override));
 };

@@ -2,9 +2,9 @@ name: unit-tests
 
 on:
   push:
-    branches: [ main, 'sprint/**', 'release/**' ]
+    branches: [ main, 'sprint/**', 'topic/simplification_rdkvs', 'release/**' ]
   pull_request:
-    branches: [ main, 'sprint/**', 'release/**' ]
+    branches: [ main, 'sprint/**', 'topic/simplification_rdkvs', 'release/**' ]
 
 env:
   BUILD_TYPE: Debug
@@ -189,6 +189,7 @@ jobs:
           rbus.h
           telemetry_busmessage_sender.h
           wpa_ctrl.h
+          secure_wrapper.h
 
       - name: Set clang toolchain
         if: ${{ matrix.compiler == 'clang' }}
@@ -222,6 +223,7 @@ jobs:
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Telemetry.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Udev.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/wpa_ctrl_mock.h
+          -include ${{github.workspace}}/rdkservices/Tests/mocks/secure_wrappermock.h
           -Wall -Werror
           -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog
           -DENABLE_TELEMETRY_LOGGING

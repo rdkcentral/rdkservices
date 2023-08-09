@@ -66,7 +66,8 @@ set(EMPTY_HEADERS
         ${BASEDIR}/rdk/iarmmgrs-hal/sysMgr.h
         ${BASEDIR}/network/wifiSrvMgrIarmIf.h
         ${BASEDIR}/network/netsrvmgrIarm.h
-	      ${BASEDIR}/rdkshell/rdkshellevents.h
+        ${BASEDIR}/network/secure_wrappermock.h
+        ${BASEDIR}/rdkshell/rdkshellevents.h
         ${BASEDIR}/rdkshell/rdkshell.h
         ${BASEDIR}/rdkshell/compositorcontroller.h
         ${BASEDIR}/rdkshell/logger.h
@@ -139,6 +140,7 @@ set(FAKE_HEADERS
         ${BASEDIR}/rdkshell.h
         ${BASEDIR}/RdkLoggerMilestone.h
         ${BASEDIR}/wpa_ctrl_mock.h
+        ${BASEDIR}/secure_wrappermock.h
         )
 
 foreach (file ${FAKE_HEADERS})
@@ -147,7 +149,7 @@ endforeach ()
 
 add_compile_options(-Wall -Werror)
 
-add_link_options(-Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog -Wl,-wrap,wpa_ctrl_open -Wl,-wrap,wpa_ctrl_request -Wl,-wrap,wpa_ctrl_close)
+add_link_options(-Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog -Wl,-wrap,wpa_ctrl_open -Wl,-wrap,wpa_ctrl_request -Wl,-wrap,wpa_ctrl_close -Wl,-wrap,v_secure_popen -Wl,-wrap,v_secure_pclose)
 
 add_definitions(
         -DENABLE_TELEMETRY_LOGGING

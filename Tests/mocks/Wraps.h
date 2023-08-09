@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 #include "wpa_ctrl_mock.h"
+#include <secure_wrappermock.h>
 
 class WrapsImpl {
 public:
@@ -15,6 +16,8 @@ public:
                                                    char *reply, size_t *reply_len,
                                                    void *msg_cb) = 0;
     virtual void wpa_ctrl_close(struct wpa_ctrl *ctrl) = 0;
+    virtual FILE *v_secure_popen(const char *direction, const char *command, va_list args) = 0;
+    virtual int v_secure_pclose(FILE *) = 0;
 };
 
 class Wraps {
@@ -57,5 +60,14 @@ public:
     static void wpa_ctrl_close(struct wpa_ctrl *ctrl)
     {
         getInstance().impl->wpa_ctrl_close(ctrl);
+
+    static FILE *v_secure_popen(const char *direction, const char *command, va_list args)
+    {
+        return getInstance().impl->v_secure_popen(direction, command, args);
+    }
+
+    static int v_secure_pclose(FILE *file)
+    {
+        return getInstance().impl->v_secure_pclose(file);
     }
 };

@@ -50,123 +50,89 @@ set_source_files_properties(
 	tests/test_HdmiCecSink.cpp
         PROPERTIES COMPILE_FLAGS "-fexceptions")
 
-include_directories(../LocationSync
+include_directories(
         ../PersistentStore
-        ../SecurityAgent
-        ../DeviceIdentification
         ../DeviceDiagnostics
         ../FrameRate
         ../AVInput
         ../Telemetry
         ../ScreenCapture
-        ../DataCapture
         ../UsbAccess
-        ../Timer
-        ../LoggingPreferences
         ../UserPreferences
-        ../Messenger
         ../DeviceInfo
         ../helpers
         ../SystemServices
         ../HdmiInput
         ../HdcpProfile
         ../Network
-	      ../WifiManager
-        ../TraceControl
+	    ../WifiManager
         ../Warehouse
-        ../ActivityMonitor
         ../MotionDetection
         ../CompositeInput
         ../OCIContainer
-        ../HdmiCec
         ../HdmiCec_2
         ../HdmiCecSource
         ../XCast
         ../FrontPanel
 	../HdmiCecSink
         ../VoiceControl
-        ../ControlService
-        ../RemoteActionMapping
         ../RDKShell
         )
-link_directories(../LocationSync
+link_directories(
         ../PersistentStore
-        ../SecurityAgent
-        ../DeviceIdentification
         ../DeviceDiagnostics
         ../FrameRate
         ../AVInput
         ../Telemetry
         ../ScreenCapture
-        ../DataCapture
         ../UsbAccess
-        ../Timer
-        ../LoggingPreferences
         ../SystemServices
         ../UserPreferences
-        ../Messenger
         ../DeviceInfo
         ../HdmiInput
         ../HdcpProfile
         ../Network
-	       ../WifiManager
-        ../TraceControl
+	    ../WifiManager
         ../Warehouse
-        ../ActivityMonitor
         ../MotionDetection
         ../CompositeInput
         ../OCIContainer
-        ../HdmiCec
         ../HdmiCec_2
         ../HdmiCecSource
         ../XCast
         ../FrontPanel
 	../HdmiCecSink
         ../VoiceControl
-        ../ControlService
-        ../RemoteActionMapping
         ../RDKShell
         )
 
 target_link_libraries(${PROJECT_NAME}
         gmock_main
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
-        ${NAMESPACE}DataCapture
         ${NAMESPACE}DeviceDiagnostics
-        ${NAMESPACE}LocationSync
         ${NAMESPACE}PersistentStore
-        ${NAMESPACE}SecurityAgent
-        ${NAMESPACE}DeviceIdentification
         ${NAMESPACE}FrameRate
         ${NAMESPACE}AVInput
         ${NAMESPACE}ScreenCapture
         ${NAMESPACE}Telemetry
         ${NAMESPACE}UsbAccess
-        ${NAMESPACE}Timer
-        ${NAMESPACE}LoggingPreferences
         ${NAMESPACE}SystemServices
         ${NAMESPACE}UserPreferences
-        ${NAMESPACE}Messenger
         ${NAMESPACE}DeviceInfo
         ${NAMESPACE}HdmiInput
         ${NAMESPACE}HdcpProfile
         ${NAMESPACE}Network
         ${NAMESPACE}WifiManager
-        ${NAMESPACE}TraceControl
         ${NAMESPACE}Warehouse
-        ${NAMESPACE}ActivityMonitor
         ${NAMESPACE}MotionDetection
         ${NAMESPACE}CompositeInput
         ${NAMESPACE}OCIContainer
-        ${NAMESPACE}HdmiCec
         ${NAMESPACE}HdmiCec_2
         ${NAMESPACE}HdmiCecSource
         ${NAMESPACE}XCast
         ${NAMESPACE}FrontPanel
 	${NAMESPACE}HdmiCecSink
         ${NAMESPACE}VoiceControl
-        ${NAMESPACE}ControlService
-        ${NAMESPACE}RemoteActionMapping
         ${NAMESPACE}RDKShell
         )
 

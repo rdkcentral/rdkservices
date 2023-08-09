@@ -7,6 +7,7 @@
 #include "ServiceMock.h"
 #include "IarmBusMock.h"
 #include "WrapsMock.h"
+#include "secure_wrappermock.h"
 
 using namespace std;
 using namespace WPEFramework;

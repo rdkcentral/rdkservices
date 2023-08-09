@@ -62,6 +62,7 @@
 #include "UtilsString.h"
 #include "UtilscRunScript.h"
 #include "UtilsfileExists.h"
+#include "UtilsgetFileContent.h"
 
 using namespace std;
 
@@ -1537,9 +1538,13 @@ namespace WPEFramework {
             std::system("/lib/rdk/xconfImageCheck.sh  >> /opt/logs/wpeframework.log");
 
             //get xconf http code
-            string httpCodeStr = Utils::cRunScript("cat /tmp/xconf_httpcode_thunder.txt");
-            if(!httpCodeStr.empty())
+            string httpCodeStr ="";
+            const char* httpCodeFile = "/tmp/xconf_httpcode_thunder.txt";
+            bool httpCodeReadSuccess =  Utils::readFileContent(httpCodeFile, httpCodeStr);
+
+            if(httpCodeReadSuccess)
             {
+			    LOGINFO("xconf httpCodeStr '%s'\n", httpCodeStr.c_str());
                 try
                 {
                     _fwUpdate.httpStatus = std::stoi(httpCodeStr);
@@ -1552,10 +1557,10 @@ namespace WPEFramework {
 
             LOGINFO("xconf http code %d\n", _fwUpdate.httpStatus);
 
-            response = Utils::cRunScript("cat /tmp/xconf_response_thunder.txt");
-            LOGINFO("xconf response '%s'\n", response.c_str());
-            
-            if(!response.empty()) 
+            const char* responseFile = "/tmp/xconf_response_thunder.txt";
+            bool responseReadSuccess = Utils::readFileContent(responseFile, response);
+
+            if(responseReadSuccess)
             {
                 JsonObject httpResp;
                 if(httpResp.FromString(response))

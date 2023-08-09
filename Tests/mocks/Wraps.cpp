@@ -38,3 +38,19 @@ extern "C" void __wrap_wpa_ctrl_close(struct wpa_ctrl *ctrl)
 {
     Wraps::getInstance().wpa_ctrl_close(ctrl);
 }
+
+extern "C" FILE * __wrap_v_secure_popen(const char *direction, const char *command, ...)
+{
+    va_list args;
+    FILE *retFp = nullptr;
+    va_start(args, command);
+    Wraps::getInstance().v_secure_popen(direction, command, args);
+    retFp = v_secure_popen(direction, command, &args);
+    va_end(args);
+    return retFp;
+}
+
+extern "C" int __wrap_v_secure_pclose(FILE *file)
+{
+    return Wraps::getInstance().v_secure_pclose(file);
+}
