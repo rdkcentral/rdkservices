@@ -3563,10 +3563,6 @@ namespace WPEFramework {
                     std::cout << "new launch count loc1: 0\n";
                     returnResponse(false);
                 }
-                else if ((true == newPluginFound) && (type != callsign))
-                {
-                    type = callsign;
-                }
                 else if (!newPluginFound)
                 {
                     std::cout << "attempting to clone type: " << type << " into " << callsign << std::endl;
