@@ -3453,7 +3453,7 @@ namespace Plugin {
             format = "current";
 
         GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
-        int err = GetLocalparam("DimmingMode",formatIndex,pqIndex,sourceIndex,dimmingMode, PQ_PARAM_LDIM);
+        int err = GetLocalparam("DimmingMode",formatIndex,pqIndex,sourceIndex,dimmingMode, PQ_PARAM_DIMMINGMODE);
         if( err == 0 ) {
             switch(dimmingMode) {
                 case tvDimmingMode_Fixed:
@@ -3528,7 +3528,7 @@ namespace Plugin {
         else {
             int params[3]={0};
             params[0]=dimmingMode;
-            int retval= UpdatePQParamsToCache("set","DimmingMode",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_LDIM,params);
+            int retval= UpdatePQParamsToCache("set","DimmingMode",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_DIMMINGMODE,params);
             if(retval != 0 ) {
                 LOGWARN("Failed to Save DimmingMode to ssm_data\n");
             }
@@ -3573,7 +3573,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-	int retval= UpdatePQParamsToCache("reset","DimmingMode",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_LDIM,params);
+	int retval= UpdatePQParamsToCache("reset","DimmingMode",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_DIMMINGMODE,params);
 
         if(retval != 0 ) {
             LOGWARN("Failed to reset ldim\n");
@@ -3581,7 +3581,7 @@ namespace Plugin {
         }
         else {
             GetParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
-            int err = GetLocalparam("DimmingMode",formatIndex,pqIndex,sourceIndex,dMode, PQ_PARAM_LDIM);
+            int err = GetLocalparam("DimmingMode",formatIndex,pqIndex,sourceIndex,dMode, PQ_PARAM_DIMMINGMODE);
             if( err == 0 ) {
                 LOGINFO("%s : GetLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,dMode);
                 if( isSetRequired(pqmode,source,format) ) {
