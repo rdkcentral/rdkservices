@@ -175,5 +175,35 @@ namespace String {
         }
 
     }
+
+/**
+* @brief Remove extra spaces from the given input string
+* @param[in] in_str - The input string
+* @param[out] out_str - The output string (equals input_string with extra spaces removed)
+* @return true if the input string is a valid string
+*/
+    bool removeExtraWhitespaces(string& in_str, string& out_str)
+    {
+        bool ret_status = false;
+        int idx = 0;
+        if (!in_str.empty())
+        {
+            while (in_str[idx] != '\0')
+            {
+                out_str += in_str[idx];
+                if (in_str[idx] == ' ')
+                {
+                    while (in_str[idx+1] == ' ')
+                    {
+                        idx++;
+                    }
+                }
+                idx++;
+            }
+            ret_status = true;
+        }
+        return ret_status;
+    }
+
 }
 }

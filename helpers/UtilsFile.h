@@ -64,77 +64,28 @@ auto MoveFile(
     return result;
 }
 
-/* Get the last line from the given input file - tail -n 1  */
-bool GetLastLine(const std::string& filename, std::string& last_line)
+/**
+* @brief Get the last non empty line from the input string, equivalent to "tr -s '\r' '\n' | tail -n 1"
+* @param[in] input - The input string
+* @param[out] res_str - The last non empty line from the input string
+* @return whether or not a non empty line was found
+*/
+bool getLastLine(const std::string& input, std::string& res_str)
 {
     string read_line = "";
-    ifstream readfile(filename);
     bool ret_value = false;
 
-    if (readfile.is_open())
+    if (!input.empty())
     {
-        while (getline (readfile, read_line))
+        stringstream read_str(input);
+        while (getline(read_str, read_line, '\n'))
         {
-            last_line = read_line;
-        }
-        readfile.close();
-        ret_value = true;
-    }
-    return ret_value;
-}
-
-/* remove empty lines from the given input file -  tr -s '\r' '\n'  */
-bool RemoveEmptyLines(const std::string& fname, std::string& res_str)
-{
-    string read_line = "";
-    int str_len = 0;
-    bool ret_value = false;
-
-    ifstream readfile(fname);
-    if (readfile.is_open())
-    {
-        while (getline (readfile, read_line))
-        {
-            str_len = read_line.size();
-            if (str_len != 0)
+            if (!read_line.empty())
             {
-                res_str.append((read_line.substr(0, str_len - 0)));
-                res_str.append("\n");
+                res_str = read_line;
+                ret_value = true;
             }
         }
-        readfile.close();
-        str_len = res_str.length();
-        res_str = res_str.substr(0, str_len - 1);
-        ret_value = true;
-    }
-    return ret_value;
-}
-
-// Remove Leading spaces in each line in the file - sed 's/^  *//g' <InputFile>
-bool TrimLeadingSpaces(const std::string& filename, std::string& res_str)
-{
-    string read_line = "";
-    int i = 0, str_len = 0;
-    bool ret_value = false;
-
-    ifstream readfile(filename);
-    if (readfile.is_open())
-    {
-        while (getline (readfile, read_line))
-        {
-            i=0;
-            str_len = read_line.size();
-            while ((read_line[i] == ' ') && (read_line[i] != '\0'))
-            {
-                i++;
-            }
-            res_str.append((read_line.substr(i, str_len - i)));
-            res_str.append("\n");
-        }
-        readfile.close();
-        str_len = res_str.length();
-        res_str = res_str.substr(0, str_len - 1);
-        ret_value = true;
     }
     return ret_value;
 }
