@@ -152,7 +152,7 @@ static int32_t HdmiArcPortID = -1;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 7
+#define API_VERSION_NUMBER_PATCH 9
 
 namespace WPEFramework
 {
@@ -447,7 +447,7 @@ namespace WPEFramework
 					
 					case GIVE_OSD_NAME :
 			 		{
-			 			HdmiCecSink::_instance->deviceList[header.from.toInt()].update(OSDName("FA"));
+			 			HdmiCecSink::_instance->deviceList[header.from.toInt()].update(OSDName(""));
 			 		}
 						break;
 
@@ -1871,7 +1871,7 @@ namespace WPEFramework
 	
 		void HdmiCecSink::sendMenuLanguage()
 		{
-			Language lang = "NA";
+			Language lang = "";
 			if(!HdmiCecSink::_instance)
 				return;
 
