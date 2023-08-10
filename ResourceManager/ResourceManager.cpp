@@ -183,12 +183,12 @@ namespace WPEFramework {
             LOGINFOMETHOD();
             bool status = false;
 
-	    if (parameters.HasLabel("appid")) 
+	    if (parameters.HasLabel("apps")) 
 	    {
-		std::string app = parameters["appid"].String();
-                std::cout<<"appid : "<< app << std::endl;
+                const JsonArray apps = parameters["apps"].Array();
+                //std::cout<<"appid : "<< app << std::endl;
 
-                status = reserveTTSResource(app);
+                status = reserveTTSResource(apps);
             }
             else
             {
@@ -351,7 +351,7 @@ namespace WPEFramework {
           }
         };
 
-        bool ResourceManager::reserveTTSResource(const string& client)
+        bool ResourceManager::reserveTTSResource(const JsonArray& clients)
         {
             uint32_t ret = Core::ERROR_NONE;
             bool status = false;
@@ -360,14 +360,18 @@ namespace WPEFramework {
             JsonObject result;
             JsonObject clientParam;
 
-            clientParam.Set("apps", client.c_str());
             clientParam.Set("method", "speak");
+            clientParam["apps"] = clients;
             params["accesslist"] = clientParam;
+
+            std::string jsonstr;
+            params.ToString(jsonstr);
+            std::cout<<"Resourcemanager : about to call setACL : "<< jsonstr << std::endl;
+
             ret =  JSONRPCDirectLink(mCurrentService, "org.rdk.TextToSpeech").Invoke<JsonObject, JsonObject>(20000, "setACL", params, result);
 
             status = ((Core::ERROR_NONE == ret) && (result.HasLabel("success")) && (result["success"].Boolean()));
 
-            std::string jsonstr;
             result.ToString(jsonstr);
             std::cout<<"setACL response : "<< jsonstr << std::endl;
             std::cout<<"setACL status  : "<<std::boolalpha << status << std::endl;
