@@ -54,6 +54,10 @@ if(PLUGIN_DISPLAYSETTINGS)
     add_subdirectory(DisplaySettings)
 endif()
 
+if(PLUGIN_LGIDISPLAYSETTINGS)
+    add_subdirectory(LgiDisplaySettings)
+endif()
+
 if(PLUGIN_REMOTEACTIONMAPPING)
     add_subdirectory(RemoteActionMapping)
 endif()
@@ -177,6 +181,10 @@ endif()
 
 if(PLUGIN_HDMICECSINK)
     add_subdirectory(HdmiCecSink)
+endif()
+
+if(PLUGIN_LGIHDMICEC)
+    add_subdirectory(LgiHdmiCec)
 endif()
 
 if(PLUGIN_LOCATIONSYNC)
@@ -341,6 +349,10 @@ endif()
 
 if(PLUGIN_WEBBRIDGE)
     add_subdirectory(WebBridge)
+endif()
+
+if(PLUGIN_LGIHDCPPROFILE)
+    add_subdirectory(LgiHdcpProfile)
 endif()
 
 if(PLUGIN_LINEARPLAYBACKCONTROL)

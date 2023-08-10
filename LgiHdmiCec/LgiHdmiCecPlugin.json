@@ -1,0 +1,14 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "info": {
+      "title": "LgiHdmiCecPlugin",
+      "callsign": "com.lgi.rdk.HdmiCec",
+      "locator": "libWPEFrameworkLgiHdmiCec.so",
+      "status": "production",
+      "description": "The `LgiHdmiCec` plugin allows you to configure HDMI Consumer Electronics Control (CEC) on a set-top box.",
+      "version": "1.0"
+    },
+    "interface": {
+      "$ref": "LgiHdmiCec.json#"
+    }
+}
