@@ -1,0 +1,11 @@
+{
+ "locator":"libWPEFrameworkNetworkManagerPlugin.so",
+ "classname":"NetworkManagerPlugin",
+ "autostart":true,
+ "configuration":{
+  "root":{
+   "outofprocess":true,
+   "locator":"libWPEFrameworkNetworkManagerPluginImplementation.so"
+  }
+ }
+}
