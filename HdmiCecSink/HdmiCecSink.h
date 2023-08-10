@@ -139,7 +139,7 @@ namespace WPEFramework {
 			std::chrono::system_clock::time_point m_lastPowerUpdateTime;
 			
 			CECDeviceParams() 
-			: m_deviceType(0), m_logicalAddress(0),m_physicalAddr(0x0f,0x0f,0x0f,0x0f),m_cecVersion(0),m_vendorID(0,0,0),m_osdName("NA"),m_powerStatus(0),m_currentLanguage("NA")
+			: m_deviceType(0), m_logicalAddress(0),m_physicalAddr(0x0f,0x0f,0x0f,0x0f),m_cecVersion(0),m_vendorID(0,0,0),m_osdName(""),m_powerStatus(0),m_currentLanguage("")
 			{
 				m_isDevicePresent = false;
 				m_isActiveSource = false;
@@ -160,9 +160,9 @@ namespace WPEFramework {
 				m_physicalAddr = PhysicalAddress(0x0f,0x0f,0x0f,0x0f);
 				m_cecVersion = 0;
 				m_vendorID = VendorID(0,0,0);
-				m_osdName = "NA";
+				m_osdName = "";
 				m_powerStatus = 0;
- 				m_currentLanguage = "NA";
+ 				m_currentLanguage = "";
 				m_isDevicePresent = false;
 				m_isActiveSource = false;
 				m_isPAUpdated = false;
