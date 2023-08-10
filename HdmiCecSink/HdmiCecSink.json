@@ -567,7 +567,41 @@
             "result": {
                 "$ref": "#/common/result"
             }
-        }
+        },
+	"setLatencyInfo": {
+	    "summary": "Sets the Current Latency Values such as Video Latency, Latency Flags,Audio Output Compensated value and Audio Output Delay by sending \\<Report Current Latency\\> message for Dynamic Auto LipSync Feature",
+	    "params": {
+                "type":"object",
+                "properties": {
+		    "videoLatency": {
+			"summary": "Indicates the Video Latency value of the target device",
+			"type":"string",
+			"example": "2"
+		    },
+		    "lowLatencyMode": {
+			"summary": "Indicates whether low latency Mode is 0 or 1",
+			"type":"string",
+			"example": "1"
+		    },
+                    "audioOuputCompensated": {
+                        "summary": "Indicates whether Audio Output is delay compensated or not. 0 - (NA)Sent by Non-TV, 1 = TV's audio Output is delay compensated, 2 = Not delay compensated, 3 = Partially delayed",
+                        "type":"string",
+                        "example": "1"
+                    },
+		    "audioOutputDelay": {
+			"summary": "Indicates the Audio Output Delay value of the target device",
+			"type":"string",
+			"example": "20"
+		    }
+		},
+		"required": [
+		    "videoLatency",
+		    "lowLatencyMode",
+		    "audioOutputCompensated",
+		    "audioOutputDelay"
+                ]
+	    }
+	}
     },
     "events": {
         "arcInitiationEvent": {

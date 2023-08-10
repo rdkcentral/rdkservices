@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.2.0] 2023-08-07
+### Added
+- Added support for Dynamic Auto LipSync
+
 ## [1.1.0] 2023-07-05
 ### Added
 - Added support for Report Features CEC message

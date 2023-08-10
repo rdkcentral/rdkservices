@@ -15,7 +15,13 @@ All notable changes to this RDK Service will be documented in this file.
 * Changes in CHANGELOG should be updated when commits are added to the main or release branches. There should be one CHANGELOG entry per JIRA Ticket. This is not enforced on sprint branches since there could be multiple changes for the same JIRA ticket during development. 
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
-##[1.3.0] - 2023-08-02
+
+## [1.3.1] - 2023-08-03
+### Fixed
+- Fixed issues when ARC init and audio disconnected events occur at same time in some AVR
+- Fixed issues when Audio routing in progress and user disables CEC through UI
+
+## [1.3.0] - 2023-08-02
 ### Added
 - Added feature to retrieve platform supported ms12 config type.
 
