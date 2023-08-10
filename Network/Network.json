@@ -2,7 +2,7 @@
     "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
-        "title": "Network API", 
+        "title": "Network API",
         "class": "Network", 
         "description": "The `Network` plugin allows you to manage network interfaces on a set-top box."
     },
@@ -129,6 +129,11 @@
             "summary": "The results from `traceroute`",
             "type": "string",
             "example": "<<<traceroute command results>>>"
+        },
+        "state": {
+            "summary": "Internet Connection state",
+            "type": "integer",
+            "example": 2
         },
         
         "guid": {
@@ -391,6 +396,28 @@
                 ]
             }
         },
+        "setConnectivityTestEndpoints":{
+            "summary": "Sets the default list of endpoints used for a connectivity test. Maximum number of endpoints is 5.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "endpoints": {
+                        "summary": "A list of endpoints to test",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "http://clients3.google.com/generate_204"
+                        }
+                    }
+                },
+                "required": [
+                    "endpoints"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
         "isConnectedToInternet":{
             "summary": "Whether the device has internet connectivity. This API might take up to 2s to validate internet connectivity.",
             "result": {
@@ -407,6 +434,93 @@
                 },
                 "required": [
                     "connectedToInternet",
+                    "success"
+                ]
+            }
+        },
+        "getInternetConnectionState":{
+            "summary": "Returns the internet connection state. The possible internet connection state are as follows. \n* `0`: NO_INTERNET - No internet connection  \n* `1`: LIMITED_INTERNET - Internet connection limited  \n* `2`: CAPTIVE_PORTAL - Captive portal found  \n* `3`: FULLY_CONNECTED - Fully connected to internet",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "state": {
+                        "$ref": "#/definitions/state"
+                    },
+                     "URI": {
+                        "summary": "Captive portal URI",
+                        "type": "string",
+                        "example": "http://10.0.0.1/captiveportal.jst"
+                    },
+                    "success":{
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "state",
+                    "success"
+                ]
+            }
+        },
+        "getCaptivePortalURI":{
+            "summary": "Returns the captive portal URI if connected to any captive portal network.",
+            "result": {
+                "type": "object",
+                "properties": {
+                     "URI": {
+                        "summary": "Captive portal URI",
+                        "type": "string",
+                        "example": "http://10.0.0.1/captiveportal.jst"
+                    },
+                    "success":{
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "URI",
+                    "success"
+                ]
+            }
+        },
+        "startConnectivityMonitoring":{
+            "summary": "Enable a continuous monitoring of internet connectivity with heart beat interval thats given.",
+            "events":{
+                 "onInternetStatusChange" : "Triggered when internet connection state changed."
+            },
+            "params": {
+                "type":"object",
+                "properties": {
+                    "interval": {
+                        "summary": "Interval in sec. Default value 600 sec and interval should be greater than 5 sec",
+                        "type": "number",
+                        "example": "30"
+                    }
+                },
+                "required": [
+                    "interval"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "success":{
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            }
+        },
+        "stopConnectivityMonitoring":{
+            "summary": "Stops the connectivity monitoring.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "success":{
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
                     "success"
                 ]
             }
@@ -584,28 +698,6 @@
                     "error",
                     "guid"
                 ]
-            }
-        },
-        "setConnectivityTestEndpoints":{
-            "summary": "Sets the default list of endpoints used for a connectivity test. Maximum number of endpoints is 5.",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "endpoints": {
-                        "summary": "A list of endpoints to test",
-                        "type": "array",
-                        "items": {
-                            "type": "string",
-                            "example": "xfinity.com:8080"
-                        }
-                    }
-                },
-                "required": [
-                    "endpoints"
-                ]
-            },
-            "result": {
-                "$ref": "#/common/result"
             }
         },
         "setDefaultInterface":{
@@ -986,6 +1078,28 @@
                 "required": [
                     "oldInterfaceName",
                     "newInterfaceName"
+                ]
+            }
+        },
+        "onInternetStatusChange":{
+            "summary": "Triggered when internet connection state changed.The possible internet connection status are `NO_INTERNET`, `LIMITED_INTERNET`, `CAPTIVE_PORTAL`, `FULLY_CONNECTED`",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "state":{
+                        "summary": "The internet connection state",
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "status":{
+                        "summary": "The internet connection status",
+                        "type": "string",
+                        "example": "NO_INTERNET"
+                    }
+                },
+                "required": [
+                    "state",
+                    "status"
                 ]
             }
         }
