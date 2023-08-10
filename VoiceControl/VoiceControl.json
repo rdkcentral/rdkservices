@@ -230,7 +230,7 @@
             "referenceUrl": "https://rdkcentral.github.io/rdkservices/#/api/VoiceControlPlugin?id=voicesessionrequest"
         },
         "voiceSessionTypes": {
-            "summary": "Retrieves the types of voice sessions which are supported by the platform.\n\n| Request Type | Description |\n| :-------- | :-------- |\n| ptt_transcription | A text-only session using the urlPtt routing url and the text transcription |\n| mic_transcription | A text-only session using the urlHf routing url and the text transcription |\n| mic_stream_default | An audio based session using the urlHf routing url and the platform's default audio output format |\n| mic_stream_single | An audio based session using the urlHf routing url and the platform's single channel audio input format |\n| mic_stream_multi | An audio based session using the urlHf routing url and the platform's multi-channel audio input format |\n| mic_tap_stream_single | An audio based session using the urlMicTap routing url and the platform's single channel audio input format |\n| mic_tap_stream_multi | An audio based session using the urlMicTap routing url and the platform's multi-channel audio input format |\n| mic_factory_test | An audio based session using the urlHf routing url and the platform's unprocessed multi-channel audio input format |",
+            "summary": "Retrieves the types of voice sessions which are supported by the platform.\n\n| Request Type | Description |\n| :-------- | :-------- |\n| ptt_transcription | A text-only session using the urlPtt routing url and the text transcription |\n| ptt_audio_file | A session using the urlPtt routing url and the specified audio file |\n| mic_transcription | A text-only session using the urlHf routing url and the text transcription |\n| mic_audio_file | A session using the urlHf routing url and the specified audio file |\n| mic_stream_default | An audio based session using the urlHf routing url and the platform's default audio output format |\n| mic_stream_single | An audio based session using the urlHf routing url and the platform's single channel audio input format |\n| mic_stream_multi | An audio based session using the urlHf routing url and the platform's multi-channel audio input format |\n| mic_tap_stream_single | An audio based session using the urlMicTap routing url and the platform's single channel audio input format |\n| mic_tap_stream_multi | An audio based session using the urlMicTap routing url and the platform's multi-channel audio input format |\n| mic_factory_test | An audio based session using the urlHf routing url and the platform's unprocessed multi-channel audio input format |",
             "result": {
                 "type": "object",
                 "properties": {
@@ -263,6 +263,11 @@
                         "type": "string",
                         "example": "Watch Comedy Central"
                     },
+                    "audio_file": {
+                        "summary": "The full path to the audio file to be sent to the voice server for request types \"ptt_audio_file\" and \"mic_audio_file\".",
+                        "type": "string",
+                        "example": "/opt/audio_file.wav"
+                    },
                     "type": {
                         "summary": "The request type to initiate the voice session (see [voiceSessionTypes](#method.voiceSessionTypes) API for list of request types)",
                         "type": "string",
@@ -279,6 +284,25 @@
         },
         "voiceSessionTerminate": {
             "summary": "Terminates a voice session using the specified session identifier.",
+            "params":{
+                "type": "object",
+                "properties": {
+                    "sessionId": {
+                        "summary": "The session identifier of the session from the [onSessionBegin](#event.onSessionBegin) event",
+                        "type": "string",
+                        "example": "1b11359e-23fe-4f2f-9ba8-cc19b87203cf"
+                    }
+                },
+                "required": [
+                    "sessionId"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+        "voiceSessionAudioStreamStart": {
+            "summary": "Starts a subsequent audio stream for the voice session indicated by the session identifier.",
             "params":{
                 "type": "object",
                 "properties": {

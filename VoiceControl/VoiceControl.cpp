@@ -6,8 +6,8 @@
 #include "UtilsIarm.h"
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 3
-#define API_VERSION_NUMBER_PATCH 1
+#define API_VERSION_NUMBER_MINOR 4
+#define API_VERSION_NUMBER_PATCH 0
 
 using namespace std;
 
@@ -40,16 +40,17 @@ namespace WPEFramework {
             LOGINFO("ctor");
             VoiceControl::_instance = this;
 
-            Register("getApiVersionNumber",   &VoiceControl::getApiVersionNumber,   this);
+            Register("getApiVersionNumber",          &VoiceControl::getApiVersionNumber,          this);
 
-            Register("voiceStatus",           &VoiceControl::voiceStatus,           this);
-            Register("configureVoice",        &VoiceControl::configureVoice,        this);
-            Register("setVoiceInit",          &VoiceControl::setVoiceInit,          this);
-            Register("sendVoiceMessage",      &VoiceControl::sendVoiceMessage,      this);
-            Register("voiceSessionByText",    &VoiceControl::voiceSessionByText,    this);
-            Register("voiceSessionTypes",     &VoiceControl::voiceSessionTypes,     this);
-            Register("voiceSessionRequest",   &VoiceControl::voiceSessionRequest,   this);
-            Register("voiceSessionTerminate", &VoiceControl::voiceSessionTerminate, this);
+            Register("voiceStatus",                  &VoiceControl::voiceStatus,                  this);
+            Register("configureVoice",               &VoiceControl::configureVoice,               this);
+            Register("setVoiceInit",                 &VoiceControl::setVoiceInit,                 this);
+            Register("sendVoiceMessage",             &VoiceControl::sendVoiceMessage,             this);
+            Register("voiceSessionByText",           &VoiceControl::voiceSessionByText,           this);
+            Register("voiceSessionTypes",            &VoiceControl::voiceSessionTypes,            this);
+            Register("voiceSessionRequest",          &VoiceControl::voiceSessionRequest,          this);
+            Register("voiceSessionTerminate",        &VoiceControl::voiceSessionTerminate,        this);
+            Register("voiceSessionAudioStreamStart", &VoiceControl::voiceSessionAudioStreamStart, this);
 
             setApiVersionNumber(1);
         }
@@ -652,6 +653,67 @@ namespace WPEFramework {
                         LOGINFO("SESSION_TERMINATE call SUCCESS!");
                     } else {
                         LOGERR("ERROR - CTRLM_VOICE_IARM_CALL_SESSION_TERMINATE returned FAILURE!");
+                    }
+                }
+            }
+
+            if (call != NULL)
+            {
+                free(call);
+            }
+
+            returnResponse(bSuccess);
+        }
+
+        uint32_t VoiceControl::voiceSessionAudioStreamStart(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+
+            ctrlm_voice_iarm_call_json_t*   call = NULL;
+            IARM_Result_t                   res;
+            string                          jsonParams;
+            bool                            bSuccess = true;
+
+            // Just pass through the input parameters, without understanding or checking them.
+            parameters.ToString(jsonParams);
+
+            // We must allocate the memory for the call structure. Determine what we will need.
+            size_t totalsize = sizeof(ctrlm_voice_iarm_call_json_t) + jsonParams.size() + 1;
+            call = (ctrlm_voice_iarm_call_json_t*)calloc(1, totalsize);
+
+            if (call != NULL)
+            {
+                // Set the call structure members appropriately.
+                call->api_revision = CTRLM_VOICE_IARM_BUS_API_REVISION;
+                size_t len = jsonParams.copy(call->payload, jsonParams.size());
+                call->payload[len] = '\0';
+            }
+            else
+            {
+                LOGERR("ERROR - Cannot allocate IARM structure - size: %u.", (unsigned)totalsize);
+                bSuccess = false;
+            }
+
+            if (bSuccess)
+            {
+                // Make the IARM call to controlMgr to start the audio stream
+                res = IARM_Bus_Call(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_VOICE_IARM_CALL_SESSION_AUDIO_STREAM_START, (void *)call, totalsize);
+                if (res != IARM_RESULT_SUCCESS)
+                {
+                    LOGERR("ERROR - CTRLM_VOICE_IARM_CALL_SESSION_AUDIO_STREAM_START Bus Call FAILED, res: %d.", (int)res);
+                    bSuccess = false;
+                }
+                else
+                {
+                    JsonObject result;
+
+                    result.FromString(call->result);
+                    bSuccess = result["success"].Boolean();
+                    response = result;
+                    if(bSuccess) {
+                        LOGINFO("SESSION_AUDIO_STREAM_START call SUCCESS!");
+                    } else {
+                        LOGERR("ERROR - CTRLM_VOICE_IARM_CALL_SESSION_AUDIO_STREAM_START returned FAILURE!");
                     }
                 }
             }

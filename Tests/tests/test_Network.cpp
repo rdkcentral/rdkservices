@@ -62,6 +62,7 @@ protected:
         IARM_EventHandler_t interfaceConnection;
         IARM_EventHandler_t interfaceIpaddress;
         IARM_EventHandler_t defaultInterface;
+        IARM_EventHandler_t internetStateChanged;
 
         EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call_with_IPCTimeout)
             .Times(::testing::AnyNumber())
@@ -86,6 +87,9 @@ protected:
             }
             if ((string(IARM_BUS_NM_SRV_MGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE)) {
                 defaultInterface = handler;
+            }
+            if ((string(IARM_BUS_NM_SRV_MGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_NETWORK_MANAGER_EVENT_INTERNET_CONNECTION_CHANGED)) {
+                internetStateChanged = handler;
             }
             return IARM_RESULT_SUCCESS;
         }));
@@ -112,6 +116,9 @@ TEST_F(NetworkTest, RegisteredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getPublicIP")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getSTBIPFamily")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setConnectivityTestEndpoints")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getCaptivePortalURI")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("startConnectivityMonitoring")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("stopConnectivityMonitoring")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setDefaultInterface")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setIPSettings")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("trace")));
@@ -352,7 +359,111 @@ TEST_F(NetworkTest, setConnectivityTestEndpoints)
 
                 return IARM_RESULT_SUCCESS;
             });
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setConnectivityTestEndpoints"), _T("{\"endpoints\": [\"xfinity.com:8080\"]}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setConnectivityTestEndpoints"), _T("{\"endpoints\": [\"http://clients3.google.com/generate_204\"]}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+}
+
+TEST_F(NetworkTest, getInternetConnectionState)
+{
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_NM_SRV_MGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_NETSRVMGR_API_getInternetConnectionState)));
+                auto param = static_cast<IARM_BUS_NetSrvMgr_Iface_InternetConnectivityStatus_t *>(arg);
+
+				param->connectivityState = LIMITED_INTERNET;
+                return IARM_RESULT_SUCCESS;
+            });
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getInternetConnectionState"), _T("{}"), response));
+	EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"state\":1")));
+	EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"success\":true")));
+
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    .Times(::testing::AnyNumber())
+    .WillRepeatedly(
+        [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+            EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_NM_SRV_MGR_NAME)));
+            EXPECT_EQ(string(methodName), string(_T(IARM_BUS_NETSRVMGR_API_getInternetConnectionState)));
+            auto param = static_cast<IARM_BUS_NetSrvMgr_Iface_InternetConnectivityStatus_t *>(arg);
+
+			param->connectivityState = CAPTIVE_PORTAL;
+			memcpy(param->captivePortalURI, "http://10.0.0.1/captiveportal.jst", sizeof("http://10.0.0.1/captiveportal.jst"));
+            return IARM_RESULT_SUCCESS;
+        });
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getInternetConnectionState"), _T("{}"), response));
+	EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"state\":2")));
+
+	EXPECT_THAT(response, ::testing::ContainsRegex(_T("captiveportal.jst")));
+	EXPECT_THAT(response, ::testing::ContainsRegex(_T("10.0.0.1")));
+	EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"success\":true")));
+}
+
+TEST_F(NetworkTest, getCaptivePortalURI)
+{
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    .Times(::testing::AnyNumber())
+    .WillRepeatedly(
+        [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+            EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_NM_SRV_MGR_NAME)));
+            EXPECT_EQ(string(methodName), string(_T(IARM_BUS_NETSRVMGR_API_getInternetConnectionState)));
+            auto param = static_cast<IARM_BUS_NetSrvMgr_Iface_InternetConnectivityStatus_t *>(arg);
+
+			param->connectivityState = LIMITED_INTERNET;
+            return IARM_RESULT_SUCCESS;
+        });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getCaptivePortalURI"), _T("{}"), response));
+	EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"URI\":\"\"")));
+	EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"success\":true")));
+	EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    .Times(::testing::AnyNumber())
+    .WillRepeatedly(
+        [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+            EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_NM_SRV_MGR_NAME)));
+            EXPECT_EQ(string(methodName), string(_T(IARM_BUS_NETSRVMGR_API_getInternetConnectionState)));
+            auto param = static_cast<IARM_BUS_NetSrvMgr_Iface_InternetConnectivityStatus_t *>(arg);
+
+			param->connectivityState = CAPTIVE_PORTAL;
+			memcpy(param->captivePortalURI, "http://10.0.0.1/captiveportal.jst", sizeof("http://10.0.0.1/captiveportal.jst"));
+            return IARM_RESULT_SUCCESS;
+        });
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getCaptivePortalURI"), _T("{}"), response));
+	EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"URI\"")));
+	EXPECT_THAT(response, ::testing::ContainsRegex(_T("captiveportal.jst")));
+	EXPECT_THAT(response, ::testing::ContainsRegex(_T("10.0.0.1")));
+	EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"success\":true")));
+}
+
+TEST_F(NetworkTest, startConnectivityMonitoring)
+{
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_NM_SRV_MGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_NETSRVMGR_API_startConnectivityMonitoring)));
+                return IARM_RESULT_SUCCESS;
+            });
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startConnectivityMonitoring"), _T("{\"interval\": 900}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("startConnectivityMonitoring"), _T("{}"), response));
+    EXPECT_THAT(response, ::testing::ContainsRegex(_T("")));
+}
+
+TEST_F(NetworkTest, stopConnectivityMonitoring)
+{
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_NM_SRV_MGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_NETSRVMGR_API_stopConnectivityMonitoring)));
+
+                return IARM_RESULT_SUCCESS;
+            });
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("stopConnectivityMonitoring"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
 

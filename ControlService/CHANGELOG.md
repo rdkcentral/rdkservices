@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.3] - 2023-06-05
+### Added 
+- Added Support to build the plugin to both R4 & R2
+
 ## [1.0.2] - 2023-04-10
 ### Fixed
 - Fixed warnings treated as errors for unit tests workflow

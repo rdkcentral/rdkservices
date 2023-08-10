@@ -363,6 +363,11 @@ endif()
     add_subdirectory(NetworkManager)
 #endif()
 
+if(PLUGIN_MESSAGECONTROL)
+    add_subdirectory(MessageControl)
+endif()
+
+
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)
     set(CPACK_GENERATOR "DEB")
     set(CPACK_DEB_COMPONENT_INSTALL ON)

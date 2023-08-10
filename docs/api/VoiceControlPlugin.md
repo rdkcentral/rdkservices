@@ -2,7 +2,7 @@
 <a name="VoiceControl_Plugin"></a>
 # VoiceControl Plugin
 
-**Version: [1.3.1](https://github.com/rdkcentral/rdkservices/blob/main/VoiceControl/CHANGELOG.md)**
+**Version: [1.4.1](https://github.com/rdkcentral/rdkservices/blob/main/VoiceControl/CHANGELOG.md)**
 
 A org.rdk.VoiceControl plugin for Thunder framework.
 
@@ -54,6 +54,7 @@ VoiceControl interface methods:
 | [voiceSessionTypes](#voiceSessionTypes) | Retrieves the types of voice sessions which are supported by the platform |
 | [voiceSessionRequest](#voiceSessionRequest) | Requests a voice session using the specified request type and optional parameters |
 | [voiceSessionTerminate](#voiceSessionTerminate) | Terminates a voice session using the specified session identifier |
+| [voiceSessionAudioStreamStart](#voiceSessionAudioStreamStart) | Starts a subsequent audio stream for the voice session indicated by the session identifier |
 | [voiceStatus](#voiceStatus) | Returns the current status of the RDK voice stack |
 
 
@@ -320,7 +321,9 @@ Retrieves the types of voice sessions which are supported by the platform.
 | Request Type | Description |
 | :-------- | :-------- |
 | ptt_transcription | A text-only session using the urlPtt routing url and the text transcription |
+| ptt_audio_file | A session using the urlPtt routing url and the specified audio file |
 | mic_transcription | A text-only session using the urlHf routing url and the text transcription |
+| mic_audio_file | A session using the urlHf routing url and the specified audio file |
 | mic_stream_default | An audio based session using the urlHf routing url and the platform's default audio output format |
 | mic_stream_single | An audio based session using the urlHf routing url and the platform's single channel audio input format |
 | mic_stream_multi | An audio based session using the urlHf routing url and the platform's multi-channel audio input format |
@@ -392,6 +395,7 @@ Requests a voice session using the specified request type and optional parameter
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params?.transcription | string | <sup>*(optional)*</sup> The transcription text to be sent to the voice server for request types "ptt_transcription" and "mic_transcription" |
+| params?.audio_file | string | <sup>*(optional)*</sup> The full path to the audio file to be sent to the voice server for request types "ptt_audio_file" and "mic_audio_file" |
 | params.type | string | The request type to initiate the voice session (see [voiceSessionTypes](#voiceSessionTypes) API for list of request types) |
 
 ### Result
@@ -412,6 +416,7 @@ Requests a voice session using the specified request type and optional parameter
     "method": "org.rdk.VoiceControl.voiceSessionRequest",
     "params": {
         "transcription": "Watch Comedy Central",
+        "audio_file": "/opt/audio_file.wav",
         "type": "ptt_transcription"
     }
 }
@@ -461,6 +466,56 @@ No Events
     "jsonrpc": "2.0",
     "id": 42,
     "method": "org.rdk.VoiceControl.voiceSessionTerminate",
+    "params": {
+        "sessionId": "1b11359e-23fe-4f2f-9ba8-cc19b87203cf"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="voiceSessionAudioStreamStart"></a>
+## *voiceSessionAudioStreamStart*
+
+Starts a subsequent audio stream for the voice session indicated by the session identifier.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.sessionId | string | The session identifier of the session from the [onSessionBegin](#onSessionBegin) event |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.VoiceControl.voiceSessionAudioStreamStart",
     "params": {
         "sessionId": "1b11359e-23fe-4f2f-9ba8-cc19b87203cf"
     }

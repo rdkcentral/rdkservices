@@ -724,6 +724,7 @@ typedef enum _DSMgr_EventId_t {
     IARM_BUS_DSMGR_EVENT_DISPLAY_FRAMRATE_POSTCHANGE, /*!< Frame rate post change */
     IARM_BUS_DSMGR_EVENT_AUDIO_PORT_STATE, /*!< Audio Port Init State */
     IARM_BUS_DSMGR_EVENT_SLEEP_MODE_CHANGED, /*!< Sleep Mode Change Event*/
+    IARM_BUS_DSMGR_EVENT_HDMI_IN_AVI_CONTENT_TYPE, /*<HDMI IN content type event */
     IARM_BUS_DSMGR_EVENT_MAX, /*!< Max Event  */
 } IARM_Bus_DSMgr_EventId_t;
 
@@ -892,7 +893,6 @@ typedef enum _IARM_Bus_NMgr_WiFi_EventId_t {
 #define MAX_IP_ADDRESS_LEN 46
 #define MAX_IP_FAMILY_SIZE 10
 #define MAX_HOST_NAME_LEN 128
-#define MAX_ENDPOINT_SIZE 260 // 253 + 1 + 5 + 1 (domain name max length + ':' + port number max chars + '\0')
 #define IARM_BUS_NETSRVMGR_API_getActiveInterface "getActiveInterface"
 #define IARM_BUS_NETSRVMGR_API_getNetworkInterfaces "getNetworkInterfaces"
 #define IARM_BUS_NETSRVMGR_API_getInterfaceList "getInterfaceList"
@@ -906,6 +906,9 @@ typedef enum _IARM_Bus_NMgr_WiFi_EventId_t {
 #define IARM_BUS_NETSRVMGR_API_getSTBip_family "getSTBip_family"
 #define IARM_BUS_NETSRVMGR_API_isConnectedToInternet "isConnectedToInternet"
 #define IARM_BUS_NETSRVMGR_API_setConnectivityTestEndpoints "setConnectivityTestEndpoints"
+#define IARM_BUS_NETSRVMGR_API_getInternetConnectionState "getInternetConnectionState"
+#define IARM_BUS_NETSRVMGR_API_startConnectivityMonitoring "startConnectivityMonitoring"
+#define IARM_BUS_NETSRVMGR_API_stopConnectivityMonitoring "stopConnectivityMonitoring"
 #define IARM_BUS_NETSRVMGR_API_isAvailable "isAvailable"
 #define IARM_BUS_NETSRVMGR_API_getPublicIP "getPublicIP"
 

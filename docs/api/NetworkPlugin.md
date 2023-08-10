@@ -2,7 +2,7 @@
 <a name="NetworkPlugin"></a>
 # NetworkPlugin
 
-**Version: [1.0.8](https://github.com/rdkcentral/rdkservices/blob/main/Network/CHANGELOG.md)**
+**Version: [1.0.10](https://github.com/rdkcentral/rdkservices/blob/main/Network/CHANGELOG.md)**
 
 A org.rdk.Network plugin for Thunder framework.
 
@@ -54,11 +54,15 @@ Network interface methods:
 | [getQuirks](#getQuirks) | Get standard string `RDK-20093` |
 | [getStbIp](#getStbIp) | Gets the IP address of the default interface |
 | [getSTBIPFamily](#getSTBIPFamily) | Gets the IP address of the default interface by address family |
+| [setConnectivityTestEndpoints](#setConnectivityTestEndpoints) | Sets the default list of endpoints used for a connectivity test |
 | [isConnectedToInternet](#isConnectedToInternet) | Whether the device has internet connectivity |
+| [getInternetConnectionState](#getInternetConnectionState) | Returns the internet connection state |
+| [getCaptivePortalURI](#getCaptivePortalURI) | Returns the captive portal URI if connected to any captive portal network |
+| [startConnectivityMonitoring](#startConnectivityMonitoring) | Enable a continuous monitoring of internet connectivity with heart beat interval thats given |
+| [stopConnectivityMonitoring](#stopConnectivityMonitoring) | Stops the connectivity monitoring |
 | [isInterfaceEnabled](#isInterfaceEnabled) | Whether the specified interface is enabled |
 | [ping](#ping) | Pings the specified endpoint with the specified number of packets |
 | [pingNamedEndpoint](#pingNamedEndpoint) | Pings the specified named endpoint with the specified number of packets |
-| [setConnectivityTestEndpoints](#setConnectivityTestEndpoints) | Sets the default list of endpoints used for a connectivity test |
 | [setDefaultInterface](#setDefaultInterface) | Sets the default interface |
 | [setInterfaceEnabled](#setInterfaceEnabled) | Enables the specified interface |
 | [setIPSettings](#setIPSettings) | Sets the IP settings |
@@ -435,6 +439,59 @@ No Events
 }
 ```
 
+<a name="setConnectivityTestEndpoints"></a>
+## *setConnectivityTestEndpoints*
+
+Sets the default list of endpoints used for a connectivity test. Maximum number of endpoints is 5.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.endpoints | array | A list of endpoints to test |
+| params.endpoints[#] | string |  |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.Network.setConnectivityTestEndpoints",
+    "params": {
+        "endpoints": [
+            "http://clients3.google.com/generate_204"
+        ]
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="isConnectedToInternet"></a>
 ## *isConnectedToInternet*
 
@@ -476,6 +533,199 @@ This method takes no parameters.
     "id": 42,
     "result": {
         "connectedToInternet": true,
+        "success": true
+    }
+}
+```
+
+<a name="getInternetConnectionState"></a>
+## *getInternetConnectionState*
+
+Returns the internet connection state. The possible internet connection state are as follows. 
+* `0`: NO_INTERNET - No internet connection  
+* `1`: LIMITED_INTERNET - Internet connection limited  
+* `2`: CAPTIVE_PORTAL - Captive portal found  
+* `3`: FULLY_CONNECTED - Fully connected to internet.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.state | integer | Internet Connection state |
+| result?.URI | string | <sup>*(optional)*</sup> Captive portal URI |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.Network.getInternetConnectionState"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "state": 2,
+        "URI": "http://10.0.0.1/captiveportal.jst",
+        "success": true
+    }
+}
+```
+
+<a name="getCaptivePortalURI"></a>
+## *getCaptivePortalURI*
+
+Returns the captive portal URI if connected to any captive portal network.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.URI | string | Captive portal URI |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.Network.getCaptivePortalURI"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "URI": "http://10.0.0.1/captiveportal.jst",
+        "success": true
+    }
+}
+```
+
+<a name="startConnectivityMonitoring"></a>
+## *startConnectivityMonitoring*
+
+Enable a continuous monitoring of internet connectivity with heart beat interval thats given.
+
+### Events
+
+| Event | Description |
+| :-------- | :-------- |
+| [onInternetStatusChange](#onInternetStatusChange) | Triggered when internet connection state changed. |
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.interval | number | Interval in sec. Default value 600 sec and interval should be greater than 5 sec |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.Network.startConnectivityMonitoring",
+    "params": {
+        "interval": 30
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="stopConnectivityMonitoring"></a>
+## *stopConnectivityMonitoring*
+
+Stops the connectivity monitoring.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.Network.stopConnectivityMonitoring"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
         "success": true
     }
 }
@@ -677,59 +927,6 @@ No Events
         "tripStdDev": "80.919",
         "error": "...",
         "guid": "..."
-    }
-}
-```
-
-<a name="setConnectivityTestEndpoints"></a>
-## *setConnectivityTestEndpoints*
-
-Sets the default list of endpoints used for a connectivity test. Maximum number of endpoints is 5.
-
-### Events
-
-No Events
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.endpoints | array | A list of endpoints to test |
-| params.endpoints[#] | string |  |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.Network.setConnectivityTestEndpoints",
-    "params": {
-        "endpoints": [
-            "xfinity.com:8080"
-        ]
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "success": true
     }
 }
 ```
@@ -1155,6 +1352,7 @@ Network interface events:
 | [onConnectionStatusChanged](#onConnectionStatusChanged) | Triggered when a connection is made or lost |
 | [onIPAddressStatusChanged](#onIPAddressStatusChanged) | Triggered when an IP Address is assigned or lost |
 | [onDefaultInterfaceChanged](#onDefaultInterfaceChanged) | Triggered when the default interface changes, regardless if it's from a system operation or through the `setDefaultInterface` method |
+| [onInternetStatusChange](#onInternetStatusChange) | Triggered when internet connection state changed |
 
 
 <a name="onInterfaceStatusChanged"></a>
@@ -1261,6 +1459,32 @@ Triggered when the default interface changes, regardless if it's from a system o
     "params": {
         "oldInterfaceName": "ETHERNET",
         "newInterfaceName": "WIFI"
+    }
+}
+```
+
+<a name="onInternetStatusChange"></a>
+## *onInternetStatusChange*
+
+Triggered when internet connection state changed.The possible internet connection status are `NO_INTERNET`, `LIMITED_INTERNET`, `CAPTIVE_PORTAL`, `FULLY_CONNECTED`.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.state | integer | The internet connection state |
+| params.status | string | The internet connection status |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onInternetStatusChange",
+    "params": {
+        "state": 0,
+        "status": "NO_INTERNET"
     }
 }
 ```

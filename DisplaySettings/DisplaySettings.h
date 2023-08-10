@@ -164,6 +164,7 @@ namespace WPEFramework {
             void connectedVideoDisplaysUpdated(int hdmiHotPlugEvent);
             void connectedAudioPortUpdated (int iAudioPortType, bool isPortConnected);
 	    void notifyAudioFormatChange(dsAudioFormat_t audioFormat);
+		void notifyAtmosCapabilityChange(dsATMOSCapability_t atmoCaps);
             void notifyAssociatedAudioMixingChange(bool mixing);
             void notifyFaderControlChange(bool mixerbalance);
             void notifyPrimaryLanguageChange(std::string pLang);
@@ -199,6 +200,7 @@ namespace WPEFramework {
             static void DisplResolutionHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 	    static void formatUpdateEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+        static void checkAtmosCapsEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             static void powerEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             static void audioPortStateEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             static void dsSettingsChangeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);

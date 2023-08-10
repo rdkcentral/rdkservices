@@ -177,4 +177,11 @@ private:
 
 } // namespace TTS
 
+namespace WPEFramework {
+namespace Plugin {
+bool _readFromFile(std::string filename, TTS::TTSConfiguration &ttsConfig);
+bool _writeToFile(std::string filename, TTS::TTSConfiguration &ttsConfig);
+}//namespace Plugin
+}//namespace WPEFramework
+
 #endif

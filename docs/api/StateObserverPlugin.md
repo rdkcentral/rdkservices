@@ -2,7 +2,7 @@
 <a name="StateObserver_Plugin"></a>
 # StateObserver Plugin
 
-**Version: [1.0.1](https://github.com/rdkcentral/rdkservices/blob/main/StateObserver/CHANGELOG.md)**
+**Version: [1.0.2](https://github.com/rdkcentral/rdkservices/blob/main/StateObserver/CHANGELOG.md)**
 
 A com.comcast.StateObserver plugin for Thunder framework.
 

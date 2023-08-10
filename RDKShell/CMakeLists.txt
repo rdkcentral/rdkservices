@@ -25,12 +25,20 @@ option(PLUGIN_RDKSHELL_READ_MAC_ON_STARTUP "PLUGIN_RDKSHELL_READ_MAC_ON_STARTUP"
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(IARMBus)
-    
-add_library(${MODULE_NAME} SHARED
-        RDKShell.cpp
-        Module.cpp
-)
 
+set (RDKSHELL_SOURCES)
+list(APPEND RDKSHELL_SOURCES RDKShell.cpp)
+list(APPEND RDKSHELL_SOURCES Module.cpp)
+
+if (RIALTO_FEATURE)
+  add_definitions("-DENABLE_RIALTO_FEATURE")
+  list(APPEND RDKSHELL_SOURCES RialtoConnector.cpp)
+endif(RIALTO_FEATURE)
+
+add_library(${MODULE_NAME} SHARED ${RDKSHELL_SOURCES})
+if(RIALTO_FEATURE)
+  target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins libRialtoServerManager.so)
+endif(RIALTO_FEATURE)
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)

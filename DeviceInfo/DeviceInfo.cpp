@@ -139,7 +139,11 @@ namespace Plugin {
             // TODO RB: I guess we should do something here to return other info (e.g. time) as well.
 
             result->ContentType = Web::MIMETypes::MIME_JSON;
+#ifndef USE_THUNDER_R4
             result->Body(Core::proxy_cast<Web::IBody>(response));
+#else
+            result->Body(Core::ProxyType<Web::IBody>(response));
+#endif /* USE_THUNDER_R4 */
         } else {
             result->ErrorCode = Web::STATUS_BAD_REQUEST;
             result->Message = _T("Unsupported request for the [DeviceInfo] service.");

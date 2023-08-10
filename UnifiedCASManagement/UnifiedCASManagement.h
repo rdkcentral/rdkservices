@@ -22,7 +22,6 @@
 
 #include "Module.h"
 #include "utils.h"
-#include "AbstractPlugin.h"
 #include <websocket/websocket.h>
 #include <interfaces/json/JsonData_UnifiedCASManagement.h>
 
@@ -34,12 +33,24 @@ namespace WPEFramework {
     namespace Plugin {
         using namespace JsonData::UnifiedCASManagement;
 
-        class UnifiedCASManagement : public AbstractPlugin, public WPEFramework::UnifiedPlayerNotify {
+        class UnifiedCASManagement : public PluginHost::IPlugin, PluginHost::JSONRPC, public WPEFramework::UnifiedPlayerNotify {
         public:
             UnifiedCASManagement();
             UnifiedCASManagement(const UnifiedCASManagement& orig) = delete;
             virtual ~UnifiedCASManagement();
+
+            BEGIN_INTERFACE_MAP(UnifiedCASManagement)
+            INTERFACE_ENTRY(PluginHost::IPlugin)
+            INTERFACE_ENTRY(PluginHost::IDispatcher)
+            END_INTERFACE_MAP
+
         public/*members*/:
+            //   IPlugin methods
+            // -------------------------------------------------------------------------------------------------------
+            virtual const string Initialize(PluginHost::IShell *service) override;
+            virtual void Deinitialize(PluginHost::IShell *service) override;
+            virtual string Information() const override;
+
             static UnifiedCASManagement* _instance;
         private/*registered methods*/:
             void RegisterAll();

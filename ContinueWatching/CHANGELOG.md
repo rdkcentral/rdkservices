@@ -16,6 +16,14 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.2] - 2023-06-05
+### Added 
+- Added Support to build the plugin to both R4 & R2
+
+## [1.0.1] - 2023-5-18
+### Fixed
+- Fixed setApplicationToken call by regeneration of the key if it or cipher fails to load.
+
 ## [1.0.0] - 2022-05-11
 ### Added
 - Add CHANGELOG

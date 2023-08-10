@@ -82,8 +82,8 @@ using namespace std;
 #define ZOOM_SETTINGS_DIRECTORY "/opt/persistent/rdkservices"
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 22
+#define API_VERSION_NUMBER_MINOR 2
+#define API_VERSION_NUMBER_PATCH 0
 
 static bool isCecEnabled = false;
 static int  hdmiArcPortId = -1;
@@ -169,8 +169,11 @@ namespace WPEFramework {
 
         namespace {
             // Display Settings should use inter faces
-
+#ifndef USE_THUNDER_R4
             class Job : public Core::IDispatchType<void> {
+#else
+            class Job : public Core::IDispatch {
+#endif /* USE_THUNDER_R4 */
             public:
                 Job(std::function<void()> work)
                     : _work(work)
@@ -203,7 +206,11 @@ namespace WPEFramework {
             {
                 uint32_t result = Core::ERROR_ASYNC_FAILED;
                 Core::Event event(false, true);
+#ifndef USE_THUNDER_R4
                 Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatchType<void>>(Core::ProxyType<Job>::Create([&]() {
+#else
+                Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatch>(Core::ProxyType<Job>::Create([&]() {
+#endif /* USE_THUNDER_R4 */
                     auto interface = shell->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
                     if (interface == nullptr) {
                         result = Core::ERROR_UNAVAILABLE;
@@ -587,6 +594,7 @@ namespace WPEFramework {
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_OUT_HOTPLUG, dsHdmiEventHandler) );
 		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_FORMAT_UPDATE, formatUpdateEventHandler) );
 		IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_VIDEO_FORMAT_UPDATE, formatUpdateEventHandler) );
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_ATMOS_CAPS_CHANGED, checkAtmosCapsEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, powerEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_PORT_STATE, audioPortStateEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_ASSOCIATED_AUDIO_MIXING_CHANGED, dsSettingsChangeEventHandler) );
@@ -885,7 +893,20 @@ namespace WPEFramework {
 		    break;
            }
         }
-        
+
+	void DisplaySettings::checkAtmosCapsEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+    {
+
+        dsATMOSCapability_t atmosCaps = dsAUDIO_ATMOS_NOTSUPPORTED;
+        bool atmosCapsChangedstatus;
+        IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
+        atmosCaps = eventData->data.AtmosCapsChange.caps;
+        atmosCapsChangedstatus = eventData->data.AtmosCapsChange.status;
+        LOGINFO("Received IARM_BUS_DSMGR_EVENT_ATMOS_CAPS_CHANGED: %d \n", atmosCaps);
+        if(DisplaySettings::_instance && atmosCapsChangedstatus) {
+        DisplaySettings::_instance->notifyAtmosCapabilityChange(atmosCaps);
+        }
+    }        
         void DisplaySettings::audioPortStateEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
             dsAudioPortState_t audioPortState = dsAUDIOPORT_STATE_UNINITIALIZED;
@@ -2214,6 +2235,22 @@ namespace WPEFramework {
              sendNotify("audioFormatChanged", params);
 	}
 
+    void DisplaySettings::notifyAtmosCapabilityChange(dsATMOSCapability_t atmosCaps)
+    {
+         JsonObject params;
+         switch (atmosCaps) {
+        case dsAUDIO_ATMOS_ATMOSMETADATA:
+            params["currentAtmosCapability"] = "ATMOS_SUPPORTED";
+            break;
+        case dsAUDIO_ATMOS_NOTSUPPORTED:
+            params["currentAtmosCapability"] = "ATMOS_NOT_SUPPORTED";
+            break;
+        default:
+            LOGINFO("Atmos capability unknown, not notifying");
+            break;
+         }
+             sendNotify("AtmosCapabilityChanged", params);
+    }
 	void DisplaySettings::notifyVideoFormatChange(dsHDRStandard_t videoFormat)
 	{
             JsonObject params;
@@ -2801,6 +2838,7 @@ namespace WPEFramework {
                 returnIfParamNotFound(parameters, "muted");
                 string sMuted = parameters["muted"].String();
                 bool muted = false;
+                static bool cache_muted = false;
                 try {
                         muted = parameters["muted"].Boolean();
                 }catch (const device::Exception& err) {
@@ -2815,6 +2853,13 @@ namespace WPEFramework {
                 {
                     device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
                     aPort.setMuted(muted);
+                    if(cache_muted != muted)
+                    {
+                        cache_muted = muted;
+                        JsonObject params;
+                        params["muted"] = muted;
+                        sendNotify("muteStatusChanged", params);
+                    }
                 }
                 catch (const device::Exception& err)
                 {
@@ -2830,6 +2875,7 @@ namespace WPEFramework {
                 returnIfParamNotFound(parameters, "volumeLevel");
                 string sLevel = parameters["volumeLevel"].String();
                 float level = 0;
+                int cache_volumelevel = 0;
                 try {
                         level = stof(sLevel);
                 }catch (const device::Exception& err) {
@@ -2843,6 +2889,13 @@ namespace WPEFramework {
                 {
                         device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
                         aPort.setLevel(level);
+                        if(cache_volumelevel != (int)level)
+                        {
+                            cache_volumelevel = (int)level;
+                            JsonObject params;
+                            params["volumeLevel"] = (int)level;
+                            sendNotify("volumeLevelChanged", params);
+                        }
                         success= true;
                 }
                 catch (const device::Exception& err)
@@ -3744,30 +3797,66 @@ namespace WPEFramework {
         uint32_t DisplaySettings::getSinkAtmosCapability (const JsonObject& parameters, JsonObject& response) 
         {   //sample servicemanager response:
             LOGINFOMETHOD();
-			bool success = true;
-			dsATMOSCapability_t atmosCapability;
+            bool success = true;
+            bool isValidAudioPort =  false;
+            dsATMOSCapability_t atmosCapability;
+            string audioPort = parameters.HasLabel("audioPort") ? parameters["audioPort"].String() : "NULL";
             try
             {
-                if (device::Host::getInstance().isHDMIOutPortPresent())
+                if(audioPort != "NULL") {
+                    device::List<device::AudioOutputPort> aPorts = device::Host::getInstance().getAudioOutputPorts();
+                    for (size_t i = 0; i < aPorts.size(); i++)
+                    {
+                        device::AudioOutputPort port = aPorts.at(i);
+                        if(audioPort == port.getName()) {
+                            isValidAudioPort = true;
+                            break;
+                        }
+                    }
+
+                    if(isValidAudioPort != true) {
+                         success = false;
+                         LOGERR("getSinkAtmosCapability failure: Unsupported Audio Port!!!\n");
+                         returnResponse(success);
+                    }
+		}
+
+                if (device::Host::getInstance().isHDMIOutPortPresent()) //STB
                 {
                     device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
+                    if(isValidAudioPort) {
+                        aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                    }
                     if (aPort.isConnected()) {
                         aPort.getSinkDeviceAtmosCapability (atmosCapability);
                         response["atmos_capability"] = (int)atmosCapability;
                     }
                     else {
-                        LOGERR("getSinkAtmosCapability failure: HDMI0 not connected!\n");
+                        LOGERR("getSinkAtmosCapability failure: %s not connected!\n", aPort.getName().c_str());
                         success = false;
                     }
                 }
-                else {
-                    device::Host::getInstance().getSinkDeviceAtmosCapability (atmosCapability);
-                    response["atmos_capability"] = (int)atmosCapability;
+                else { //TV
+                    if(isValidAudioPort) {
+                        device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+                        if ( (aPort.getName() == "HDMI_ARC0" && aPort.isConnected() && m_arcEarcAudioEnabled == true) || (aPort.getName() != "HDMI_ARC0" && aPort.isConnected()) )  {
+                            aPort.getSinkDeviceAtmosCapability (atmosCapability);
+                            response["atmos_capability"] = (int)atmosCapability;
+                        }
+                        else {
+                            LOGERR("getSinkAtmosCapability failure: %s not connected!\n", audioPort.c_str());
+                            success = false;
+                        }
+                    }
+                    else {
+                        device::Host::getInstance().getSinkDeviceAtmosCapability (atmosCapability);
+                        response["atmos_capability"] = (int)atmosCapability;
+                    }
                 }
             }
             catch(const device::Exception& err)
             {
-                LOG_DEVICE_EXCEPTION1(string("HDMI0"));
+                LOG_DEVICE_EXCEPTION1(audioPort);
                 success = false;
             }
             returnResponse(success);

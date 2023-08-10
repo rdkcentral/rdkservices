@@ -15,6 +15,18 @@ All notable changes to this RDK Service will be documented in this file.
 * Changes in CHANGELOG should be updated when commits are added to the main or release branches. There should be one CHANGELOG entry per JIRA Ticket. This is not enforced on sprint branches since there could be multiple changes for the same JIRA ticket during development. 
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
+## [1.2.0] - 2023-06-12
+### Fixed
+- Added event for volume increase/decrease/mute/unmute events
+
+## [1.1.0] - 2023-06-08
+### Changed
+- Handled identifying Atmos sink capability for all audio output ports and host capability
+
+## [1.0.23] - 2023-06-05
+### Added 
+- Added Support to build the plugin to both R4 & R2
+
 ## [1.0.22] - 2023-04-26
 ### Fixed
 - Fixed getVolumeLevel for HDMI_ARC0 port

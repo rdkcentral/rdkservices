@@ -15,6 +15,13 @@ All notable changes to this RDK Service will be documented in this file.
 * Changes in CHANGELOG should be updated when commits are added to the main or release branches. There should be one CHANGELOG entry per JIRA Ticket. This is not enforced on sprint branches since there could be multiple changes for the same JIRA ticket during development. 
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
+## [1.1.1] - 2023-06-05
+### Added 
+- Added Support to build the plugin to both R4 & R2
+
+## [1.1.0] - 2023-05-26
+### Added
+- Added missing changes of UnfiedCASManagement(CMI) service
 
 ## [1.0.0] - 2022-10-06
 ### Added

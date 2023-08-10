@@ -30,6 +30,7 @@ namespace WPEFramework {
             uint32_t voiceSessionTypes(const JsonObject& parameters, JsonObject& response);
             uint32_t voiceSessionRequest(const JsonObject& parameters, JsonObject& response);
             uint32_t voiceSessionTerminate(const JsonObject& parameters, JsonObject& response);
+            uint32_t voiceSessionAudioStreamStart(const JsonObject& parameters, JsonObject& response);
             //End methods
 
             //Begin events

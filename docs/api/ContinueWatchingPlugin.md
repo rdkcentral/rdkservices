@@ -2,7 +2,7 @@
 <a name="ContinueWatching_Plugin"></a>
 # ContinueWatching Plugin
 
-**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/ContinueWatching/CHANGELOG.md)**
+**Version: [1.0.2](https://github.com/rdkcentral/rdkservices/blob/main/ContinueWatching/CHANGELOG.md)**
 
 A org.rdk.ContinueWatching plugin for Thunder framework.
 

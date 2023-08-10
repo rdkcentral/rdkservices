@@ -76,7 +76,11 @@ namespace OCDM {
             {
                 return (IsOperational() ? 1 : 0);
             }
+#ifndef USE_THUNDER_R4
+            virtual bool IsOperational() const
+#else
             virtual const bool IsOperational() const
+#endif /* USE_THUNDER_R4 */
             {
                 return _main.IsActive();
             }

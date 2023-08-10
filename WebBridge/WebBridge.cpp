@@ -258,7 +258,11 @@ namespace Plugin {
 
                     // Oke, there is someone waiting for a response!
                     message->Id = requestId;
+#ifndef USE_THUNDER_R4
                     _service->Submit(channelId, Core::proxy_cast<Core::JSON::IElement>(message));
+#else
+                    _service->Submit(channelId, Core::ProxyType<Core::JSON::IElement>(message));
+#endif /* USE_THUNDER_R4 */
                 }
             }
         }
