@@ -6,10 +6,10 @@
 namespace Utils {
 
 /**
- * @brief           Read the property value from the given file based on the provided property name.
- * @param filename  [in]  The name of the file from which to read the properties.
- * @param property  [in]  The name of the property to search for in the file.
- * @param propertyValue [out] The value of the property will be stored in this string.
+ * @brief Read the property value from the given file based on the provided property name.
+ * @param[in] filename- The name of the file from which to read the properties.
+ * @param[in] property-  The name of the property to search for in the file.
+ * @param[out] propertyValue- The value of the property will be stored in this string.
  * @return          bool  True if the property is found and successfully read, false otherwise.
  */
 bool readPropertyFromFile(const char* filename, const std::string& property, std::string& propertyValue)
@@ -78,12 +78,11 @@ bool readPropertyFromFile(const char* filename, const std::string& property, std
 }
 
 /**
- * @brief           Read the content of a file and store it in the provided string.
- * @param filename  [in]  The name of the file to read.
- * @param content   [out] The content of the file will be stored in this string.
- * @return          bool  True if the file is successfully read and its content is stored in 'content', false otherwise.
+ * @brief Read the content of a file and store it in the provided string.
+ * @param[in] filename- The name of the file to read.
+ * @param[out] content- The content of the file will be stored in this string.
+ * @return  bool  True if the file is successfully read and its content is stored in 'content', false otherwise.
  */
-
 bool readFileContent(const char* filename, std::string& content)
 {
     char buffer[READ_BUFFER_SIZE];
@@ -105,6 +104,208 @@ bool readFileContent(const char* filename, std::string& content)
     }
 
     return found;
+}
+
+/**
+ * @brief Check if a given path corresponds to a regular file.
+ * @param[in] path - The path to check.
+ * @return bool - True if the path corresponds to a regular file, false otherwise.
+ */
+bool isRegularFile(const std::string& path)
+{
+    struct stat st;
+    if (stat(path.c_str(), &st) == 0)
+    {
+        return S_ISREG(st.st_mode);
+    }
+    return false;
+}
+
+/**
+ * @brief Recursively search files and directories in a given directory path, with depth limits and exclusions.
+ * @param[in] inputPath - The directory path to start the search from.
+ * @param[in] maxDepth - The maximum depth of subdirectories to search (0 for no limit).
+ * @param[in] minDepth - The minimum depth of subdirectories to start searching from (0 to start from inputPath).
+ * @param[in] exclusions - A list of paths to exclude from the search.
+ * @param[out] result - The search results will be stored in this string.
+ * @return bool - True if the search operation is successful, false otherwise.
+ */
+bool searchFiles(const std::string& inputPath, std::string& result, int maxDepth, int minDepth, const std::list<std::string>& exclusions)
+{
+    int count = 0;
+    if (minDepth <= 0)
+    {
+        // Process files and directories in the current directory
+        DIR* dir = opendir(inputPath.c_str());
+        if (!dir)
+        {
+            LOGERR("Failed to open the directory");
+            return false;
+        }
+
+        struct dirent* entry;
+        while ((entry = readdir(dir)))
+        {
+            std::string fileName = entry->d_name;
+
+            if (fileName == "." || fileName == "..")
+            {
+                continue;
+            }
+
+            std::string filePath = inputPath + "/" + fileName;
+
+            if (std::find(exclusions.begin(), exclusions.end(), filePath) == exclusions.end())
+            {
+                if (isRegularFile(filePath))
+                {
+                    result += "f: " + filePath + "\n";
+                }
+                else if (entry->d_type == DT_DIR)
+                {
+                    result += "d: " + filePath + "\n";
+                }
+                count++;
+                if (count >= 10)
+                    break; // Stop when count reaches 10
+            }
+        }
+        closedir(dir);
+    }
+
+    if (maxDepth > 1 || (maxDepth == 1 && minDepth == 1))
+    {
+        // Recursively process subdirectories
+        DIR* dir = opendir(inputPath.c_str());
+        if (!dir)
+        {
+            LOGERR("Failed to open the directory");
+            return false;
+        }
+
+        struct dirent* entry;
+        while ((entry = readdir(dir)))
+        {
+            std::string fileName = entry->d_name;
+            if (fileName == "." || fileName == "..")
+            {
+                continue;
+            }
+
+            std::string filePath = inputPath + "/" + fileName;
+            if (entry->d_type == DT_DIR)
+            {
+                if (minDepth <= 0)
+                {
+                    // Process subdirectory
+                    std::string subResult;
+                    if (searchFiles(filePath, subResult, maxDepth - 1, 0, exclusions))
+                    {
+                        result += "d: " + filePath + "\n" + subResult;
+                        count++;
+                        if (count >= 10)
+                            break;
+                     }
+                }
+                else
+                {
+                    // Recursively process subdirectory with reduced minDepth
+                    std::string subResult;
+                    if (searchFiles(filePath, subResult, maxDepth - 1, minDepth - 1, exclusions))
+                    {
+                        result += "d: " + filePath + "\n" + subResult;
+                        count++;
+                        if (count >= 10)
+                            break; // Stop when count reaches 10
+                    }
+                }
+            }
+        }
+
+        closedir(dir);
+    }
+    return true;
+}
+
+/**
+ * @brief Replace all occurrences of a substring with a replacement in the given original string.
+ * @param[in] substring - The substring to be replaced.
+ * @param[in] replacement - The replacement string.
+ * @param[in,out] original - The original string in which replacements will be performed.
+ */
+void replaceSubstring(char *original, const char *substring, const char *replacement)
+{
+    char *found = strstr(original, substring); // Find the substring in the original string
+
+    while (found != NULL)
+    {
+        size_t substringLen = strlen(substring);
+        size_t replacementLen = strlen(replacement);
+        size_t restLen = strlen(found + substringLen);
+
+        if (replacementLen != substringLen)
+        {
+            memmove(found + replacementLen, found + substringLen, restLen + 1);
+        }
+
+        memcpy(found, replacement, replacementLen);
+        found = strstr(found + replacementLen, substring);
+    }
+
+    // Remove the '$' character
+    char *dollarPos = strchr(original, '$');
+    while (dollarPos)
+    {
+        memmove(dollarPos, dollarPos + 1, strlen(dollarPos + 1) + 1);
+        dollarPos = strchr(dollarPos + 1, '$');
+    }
+}
+
+/**
+ * @brief Process a string containing variables and replace them with corresponding values.
+ *
+ * @param[in] input - The input string containing variables.
+ * @param[in] filePath - The path to the file containing property values.
+ * @param[out] expandedString - where the modified string will be stored.
+ * @return bool - True if the processing and replacement are successful, false otherwise.
+ */
+bool processStringWithVariable(const char* input, const char* filePath, char** expandedString)
+{
+     // Create a non-const copy of the input string
+    char* inputCopy = strdup(input);
+    char* variablePos = strchr(inputCopy, '$');
+    while (variablePos)
+    {
+        char* endPos = strpbrk(variablePos, " /");
+        if (endPos)
+        {
+            size_t variableLength = endPos - variablePos - 1;
+            char variable[variableLength + 1];
+            strncpy(variable, variablePos + 1, variableLength);
+            variable[variableLength] = '\0';
+
+            std::string tempPropertyValue;
+            if (readPropertyFromFile(filePath, variable, tempPropertyValue))
+            {
+                const char* propertyValue = tempPropertyValue.c_str();
+                replaceSubstring(inputCopy, variable, propertyValue);
+                variablePos += strlen(propertyValue);
+            }
+            else
+            {
+                LOGERR("Variable '%s' not found or error reading value.\n", variable);
+            }
+         }
+
+        variablePos = strchr(variablePos + 1, '$');
+    }
+
+    // Allocate memory for the expanded string and copy the modified input
+    *expandedString = (char*)malloc(strlen(inputCopy) + 1);
+    strcpy(*expandedString, inputCopy);
+
+    free(inputCopy); // Free the memory for the input copy
+    return true; // Success
 }
 
 }

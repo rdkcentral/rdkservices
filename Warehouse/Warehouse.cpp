@@ -767,29 +767,38 @@ namespace WPEFramework
                     }
 
                     // allow search recursively if path ends by '/*[|...]', otherwise, for cases like /*.ini, searching process will be done only by given path
-                    std::string maxDepth = "-maxdepth 1 ";
-                    if (path.find("/*", path.length() - 2) != std::string::npos)
-                        maxDepth = "";
+                    std::string result;
+                    const char* input =  path.c_str();
+                    const char* filePath = "/etc/device.properties";
+                    char* expandedString = NULL;
+                    const std::string inputPath = "";
 
-                    std::string script = ". /etc/device.properties; fp=\"";
-                    script += path;
-                    script += "\"; p=${fp%/*}; f=${fp##*/}; find $p -mindepth 1 ";
-                    script += maxDepth;
-                    script += "! -path \"*/\\.*\" -name \"$f\"";
+                        bool success = Utils::processStringWithVariable(input, filePath, &expandedString);
+                        if(!success)
+                        {
+                            LOGERR("Path String Expansion failed.\n");
+                        }
+                        else
+                        {
+                            LOGINFO("Expanded String:  %s\n ", expandedString);
+                            inputPath = expandedString;
+                            free(expandedString); // Free the allocated memory when done
+                        }
 
-                    for (auto i = exclusions.begin(); ++i != exclusions.end(); )
-                    {
-                        auto exclusion = *i;
-                        script += " ! -path \"";
-                        Utils::String::trim(exclusion);
-                        script += "$p/";
-                        script += exclusion;
-                        script += "\"";
+                        int maxDepth = 1;
+                        int mindepth = 1;
+                        if (inputPath.find("/*", path.length() - 2) != std::string::npos)
+                            maxDepth = 0;
+                        if (Utils::searchFiles(inputPath, result, maxDepth, mindepth, exclusions))
+                        {
+                            LOGINFO("searchResult is %s ", result.c_str());
+                            Utils::String::trim(result);
+                        }
+                        else
+                        {
+                            LOGERR("Error: %s", result.c_str());
+                        }
                     }
-
-                    script += " 2>/dev/null | head -n 10";
-                    std::string result = Utils::cRunScript(script.c_str());
-                    Utils::String::trim(result);
 
                     totalPathsCounter++;
                     if (result.length() > 1)
