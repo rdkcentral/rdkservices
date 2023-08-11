@@ -71,8 +71,8 @@
         "reserveTTSResource": {
             "summary": "Reserves the Text To speech Resource for specified client.",
             "params": {
-                "type": "array",
-                "apps":{
+                "type": "object",
+                "properties":{
                     "appId": {
                         "summary": "The application callsign",
                         "type": "string",
@@ -80,7 +80,7 @@
                     }
                 },
                 "required": [
-                    "apps"
+                    "appId"
                 ]
             },
             "result": {

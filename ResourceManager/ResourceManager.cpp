@@ -183,12 +183,12 @@ namespace WPEFramework {
             LOGINFOMETHOD();
             bool status = false;
 
-	    if (parameters.HasLabel("apps")) 
+	    if (parameters.HasLabel("appid")) 
 	    {
-                const JsonArray apps = parameters["apps"].Array();
-                //std::cout<<"appid : "<< app << std::endl;
+		std::string app = parameters["appid"].String();
+                std::cout<<"appid : "<< app << std::endl;
 
-                status = reserveTTSResource(apps);
+                status = reserveTTSResource(app);
             }
             else
             {
@@ -351,7 +351,7 @@ namespace WPEFramework {
           }
         };
 
-        bool ResourceManager::reserveTTSResource(const JsonArray& clients)
+        bool ResourceManager::reserveTTSResource(const string& client)
         {
             uint32_t ret = Core::ERROR_NONE;
             bool status = false;
@@ -359,9 +359,11 @@ namespace WPEFramework {
             JsonObject params;
             JsonObject result;
             JsonObject clientParam;
+            JsonArray clientList = JsonArray(); 
 
+            clientList.Add(client);
             clientParam.Set("method", "speak");
-            clientParam["apps"] = clients;
+            clientParam["apps"] = clientList;
             params["accesslist"] = clientParam;
 
             std::string jsonstr;

@@ -70,7 +70,7 @@ namespace WPEFramework {
 
             bool setAVBlocked(const string& client, const bool blocked);
             bool getBlockedAVApplications(std::vector<std::string> &appsList);
-            bool reserveTTSResource(const JsonArray& clients);
+            bool reserveTTSResource(const string& client);
 
             EssRMgr* mEssRMgr;
             PluginHost::IShell* mCurrentService;
