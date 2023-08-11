@@ -4789,7 +4789,7 @@ namespace Plugin {
 
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
-            source == "current";
+            source = "current";
   
         if (source == "current") {
             GetCurrentSource(&current_source);
