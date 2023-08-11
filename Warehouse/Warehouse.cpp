@@ -773,33 +773,32 @@ namespace WPEFramework
                     char* expandedString = NULL;
                     std::string inputPath;
 
-                        bool success = Utils::processStringWithVariable(input, filePath, &expandedString);
-                        if(!success)
-                        {
-                            LOGERR("Path String Expansion failed.\n");
-                        }
-                        else
-                        {
-                            LOGINFO("Expanded String:  %s\n ", expandedString);
-                            inputPath = expandedString;
-                            free(expandedString); // Free the allocated memory when done
-                        }
-
-                        int maxDepth = 1;
-                        int mindepth = 1;
-                        if (inputPath.find("/*", path.length() - 2) != std::string::npos)
-                            maxDepth = 0;
-                        if (Utils::searchFiles(inputPath, maxDepth, mindepth, exclusions,result))
-                        {
-                            LOGINFO("searchResult is %s ", result.c_str());
-                            Utils::String::trim(result);
-                        }
-                        else
-                        {
-                            LOGERR("Error: %s", result.c_str());
-                        }
+                    bool success = Utils::processStringWithVariable(input, filePath, &expandedString);
+                    if(!success)
+                    {
+                        LOGERR("Path String Expansion failed.\n");
+                    }
+                    else
+                    {
+                        LOGINFO("Expanded String:  %s\n ", expandedString);
+                        inputPath = expandedString;
+                        free(expandedString); // Free the allocated memory when done
                     }
 
+                    int maxDepth = 1;
+                    int mindepth = 1;
+                    if (inputPath.find("/*", path.length() - 2) != std::string::npos)
+                        maxDepth = 0;
+                    if (Utils::searchFiles(inputPath, maxDepth, mindepth, exclusions,result))
+                    {
+                        LOGINFO("searchResult is %s ", result.c_str());
+                        Utils::String::trim(result);
+                    }
+                    else
+                    {
+                        LOGERR("Error: %s", result.c_str());
+                    }
+                    
                     totalPathsCounter++;
                     if (result.length() > 1)
                     {
