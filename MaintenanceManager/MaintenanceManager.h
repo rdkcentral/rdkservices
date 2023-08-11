@@ -131,6 +131,8 @@ namespace WPEFramework {
 
                 uint16_t g_task_status;
                 bool g_unsolicited_complete;
+                bool g_listen_to_nwevents = false;
+                bool g_subscribed_for_nwevents = false;
 
                 std::mutex  m_callMutex;
                 std::mutex  m_statusMutex;
@@ -152,6 +154,9 @@ namespace WPEFramework {
                 WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* getThunderPluginHandle(const char*);
                 bool knowWhoAmI();
                 bool stopMaintenanceTasks();
+                bool subscribeForInternetStatusEvent(string);
+                void internetStatusChangeEventHandler(const JsonObject& parameters);
+                void startCriticalTasks();
                 bool checkNetwork();
                 bool getActivatedStatus(bool &skipFirmwareCheck);
                 const string checkActivatedStatus(void);
