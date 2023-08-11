@@ -1282,3 +1282,62 @@ TEST_F(SystemServicesEventIarmTest, onRebootRequest)
 
     handler.Unsubscribe(0, _T("onRebootRequest"), _T("org.rdk.System"), message);
 }
+
+/****************************************************************************************************
+ * Test functions for :clearLastDeepSleepReason
+ * clearLastDeepSleepReason :
+ *                clear the last deep sleep reason by removing the file that stores it.
+ *                This method takes no parameters.
+ *
+ *                @return Whether the request succeeded.
+ * Use case coverage:
+ *                @Success :1
+ *                @Failure :1
+ ***************************************************************************************************/
+
+/**
+ * @brief : clearLastDeepSleepReason when file failed to remove.
+ *          Check if the file for the last deep sleep reason failed to remove using unlink,
+ *          then  clearLastDeepSleepReason shall be failed and an error message is returned in the response.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"SysSrv_Status":7,"errorMessage":"Unexpected error","success":false}
+ */
+TEST_F(SystemServicesTest, clearLastDeepSleepReasonFailed_When_unlinkFailed)
+{
+    const char* filepath = "/opt/standbyReason.txt";
+    EXPECT_TRUE(Core::File(string(_T("/opt/standbyReason.txt"))).Exists());
+    EXPECT_CALL(wrapsImplMock, unlink(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const char* command) {
+                EXPECT_EQ(string(command), string(_T(filepath)));
+                return -1;
+            }));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("clearLastDeepSleepReason"), _T("{}"), response));
+}
+
+/**
+ * @brief : clearLastDeepSleepReason when file successfully removed.
+ *          Check if the file for the last deep sleep reason is successfully removed using unlink,
+ *          then clearLastDeepSleepReason shall be succeeded.
+ *
+ * @param[in]   :  This method takes no parameters.
+ * @return      :  {"success": true}
+ */
+TEST_F(SystemServicesTest, clearLastDeepSleepReasonSuccess_When_unlinkSucceed)
+{
+    const char* filepath = "/opt/standbyReason.txt";
+    EXPECT_TRUE(Core::File(string(_T("/opt/standbyReason.txt"))).Exists());
+    EXPECT_CALL(wrapsImplMock, unlink(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const char* command) {
+                EXPECT_EQ(string(command), string(_T(filepath)));
+                return 0;
+            }));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("clearLastDeepSleepReason"), _T("{}"), response));
+}
+
+
+/*Test cases for clearLastDeepSleepReason ends here*/

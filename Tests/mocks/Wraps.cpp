@@ -37,3 +37,8 @@ extern "C" int __wrap_v_secure_pclose(FILE *file)
 {
     return Wraps::getInstance().v_secure_pclose(file);
 }
+
+extern "C" int __wrap_unlink(const char* filePath)
+{
+    return Wraps::getInstance().unlink(filePath);
+}
