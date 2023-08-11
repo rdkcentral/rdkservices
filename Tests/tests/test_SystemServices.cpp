@@ -18,6 +18,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <unistd.h>
 
 #include "SystemServices.h"
 
