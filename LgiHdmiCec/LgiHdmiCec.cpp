@@ -23,6 +23,7 @@
 
 #include "LgiHdmiCec.h"
 #include "UtilsIarm.h"
+#include "UtilsSynchro.hpp"
 
 #include "ccec/Connection.hpp"
 #include "ccec/CECFrame.hpp"
@@ -131,16 +132,16 @@ namespace WPEFramework
             InitializeIARM();
             device::Manager::Initialize();
 
-            Register(HDMICEC_METHOD_SET_ENABLED, &LgiHdmiCec::setEnabledWrapper, this);
-            Register(HDMICEC_METHOD_GET_ENABLED, &LgiHdmiCec::getEnabledWrapper, this);
-            Register(HDMICEC_METHOD_GET_CEC_ADDRESSES, &LgiHdmiCec::getCECAddressesWrapper, this);
-            Register(HDMICEC_METHOD_SEND_MESSAGE, &LgiHdmiCec::sendMessageWrapper, this);
-            Register(HDMICEC_METHOD_ENABLE_ONE_TOUCH_VIEW, &LgiHdmiCec::enableOneTouchViewWrapper, this);
-            Register(HDMICEC_METHOD_TRIGGER_ACTION, &LgiHdmiCec::triggerActionWrapper, this);
-            Register(HDMICEC_METHOD_SET_PING_INTERVAL, &LgiHdmiCec::setPingIntervalWrapper, this);
-            Register(HDMICEC_METHOD_GET_CONNECTED_DEVICES, &LgiHdmiCec::getConnectedDevicesWrapper, this);
-            Register(HDMICEC_METHOD_SET_NAME, &LgiHdmiCec::setNameWrapper, this);
-            Register(HDMICEC_METHOD_SET_ONE_TOUCH_VIEW_POLICY, &LgiHdmiCec::setOneTouchViewPolicyWrapper, this);
+            Utils::Synchro::RegisterLockedApi(HDMICEC_METHOD_SET_ENABLED, &LgiHdmiCec::setEnabledWrapper, this);
+            Utils::Synchro::RegisterLockedApi(HDMICEC_METHOD_GET_ENABLED, &LgiHdmiCec::getEnabledWrapper, this);
+            Utils::Synchro::RegisterLockedApi(HDMICEC_METHOD_GET_CEC_ADDRESSES, &LgiHdmiCec::getCECAddressesWrapper, this);
+            Utils::Synchro::RegisterLockedApi(HDMICEC_METHOD_SEND_MESSAGE, &LgiHdmiCec::sendMessageWrapper, this);
+            Utils::Synchro::RegisterLockedApi(HDMICEC_METHOD_ENABLE_ONE_TOUCH_VIEW, &LgiHdmiCec::enableOneTouchViewWrapper, this);
+            Utils::Synchro::RegisterLockedApi(HDMICEC_METHOD_TRIGGER_ACTION, &LgiHdmiCec::triggerActionWrapper, this);
+            Utils::Synchro::RegisterLockedApi(HDMICEC_METHOD_SET_PING_INTERVAL, &LgiHdmiCec::setPingIntervalWrapper, this);
+            Utils::Synchro::RegisterLockedApi(HDMICEC_METHOD_GET_CONNECTED_DEVICES, &LgiHdmiCec::getConnectedDevicesWrapper, this);
+            Utils::Synchro::RegisterLockedApi(HDMICEC_METHOD_SET_NAME, &LgiHdmiCec::setNameWrapper, this);
+            Utils::Synchro::RegisterLockedApi(HDMICEC_METHOD_SET_ONE_TOUCH_VIEW_POLICY, &LgiHdmiCec::setOneTouchViewPolicyWrapper, this);
 
             physicalAddress = 0x0F0F0F0F;
 

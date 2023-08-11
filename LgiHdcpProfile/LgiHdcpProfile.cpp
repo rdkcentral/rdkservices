@@ -29,6 +29,7 @@
 #include "host.hpp"
 
 #include "UtilsJsonRpc.h"
+#include "UtilsSynchro.hpp"
 
 #define HDCP_PROFILE_METHOD_GET_Rx_HDCP_SUPPORT "getRxHDCPSupportedVersion"
 
@@ -42,7 +43,7 @@ namespace WPEFramework
         LgiHdcpProfile::LgiHdcpProfile()
         : HdcpProfile()
         {
-            Register(HDCP_PROFILE_METHOD_GET_Rx_HDCP_SUPPORT, &LgiHdcpProfile::getRxHDCPSupportedVersion, this);
+            Utils::Synchro::RegisterLockedApi(HDCP_PROFILE_METHOD_GET_Rx_HDCP_SUPPORT, &LgiHdcpProfile::getRxHDCPSupportedVersion, this);
         }
 
         LgiHdcpProfile::~LgiHdcpProfile()

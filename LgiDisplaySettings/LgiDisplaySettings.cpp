@@ -19,6 +19,7 @@
 **/
 
 #include "LgiDisplaySettings.h"
+#include "UtilsSynchro.hpp"
 #include <algorithm>
 #include "host.hpp"
 #include "exception.hpp"
@@ -55,15 +56,15 @@ namespace WPEFramework {
 
         LgiDisplaySettings::LgiDisplaySettings() : DisplaySettings()
         {
-            Register("setOutputFrameRatePreference", &LgiDisplaySettings::setOutputFrameRatePreference, this);
-            Register("setAudioProcessingHint", &LgiDisplaySettings::setAudioProcessingHint, this);
-            Register("getAudioOutputEncoding", &LgiDisplaySettings::getAudioOutputEncoding, this);
-            Register("getFollowColorSpace", &LgiDisplaySettings::getFollowColorSpace, this);
-            Register("setFollowColorSpace", &LgiDisplaySettings::setFollowColorSpace, this);
-            Register("getPreferredOutputColorSpace", &LgiDisplaySettings::getPreferredOutputColorSpace, this);
-            Register("setPreferredOutputColorSpace", &LgiDisplaySettings::setPreferredOutputColorSpace, this);
-            Register("getHDRGfxColorSpace", &LgiDisplaySettings::getHDRGfxColorSpace, this);
-            Register("setHDRGfxColorSpace", &LgiDisplaySettings::setHDRGfxColorSpace, this);
+            Utils::Synchro::RegisterLockedApi("setOutputFrameRatePreference", &LgiDisplaySettings::setOutputFrameRatePreference, this);
+            Utils::Synchro::RegisterLockedApi("setAudioProcessingHint", &LgiDisplaySettings::setAudioProcessingHint, this);
+            Utils::Synchro::RegisterLockedApi("getAudioOutputEncoding", &LgiDisplaySettings::getAudioOutputEncoding, this);
+            Utils::Synchro::RegisterLockedApi("getFollowColorSpace", &LgiDisplaySettings::getFollowColorSpace, this);
+            Utils::Synchro::RegisterLockedApi("setFollowColorSpace", &LgiDisplaySettings::setFollowColorSpace, this);
+            Utils::Synchro::RegisterLockedApi("getPreferredOutputColorSpace", &LgiDisplaySettings::getPreferredOutputColorSpace, this);
+            Utils::Synchro::RegisterLockedApi("setPreferredOutputColorSpace", &LgiDisplaySettings::setPreferredOutputColorSpace, this);
+            Utils::Synchro::RegisterLockedApi("getHDRGfxColorSpace", &LgiDisplaySettings::getHDRGfxColorSpace, this);
+            Utils::Synchro::RegisterLockedApi("setHDRGfxColorSpace", &LgiDisplaySettings::setHDRGfxColorSpace, this);
         }
 
         uint32_t LgiDisplaySettings::setOutputFrameRatePreference(const JsonObject& parameters, JsonObject& response)
