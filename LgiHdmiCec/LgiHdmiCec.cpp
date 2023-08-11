@@ -24,6 +24,7 @@
 #include "LgiHdmiCec.h"
 #include "UtilsIarm.h"
 #include "UtilsSynchro.hpp"
+#include "UtilsSynchroIarm.hpp"
 
 #include "ccec/Connection.hpp"
 #include "ccec/CECFrame.hpp"
@@ -179,12 +180,12 @@ namespace WPEFramework
             if (Utils::IARM::init())
             {
                 IARM_Result_t res;
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED,cecMgrEventHandler) );
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED,cecMgrEventHandler) );
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_DEVICESTATUSCHANGE, cecHostDeviceStatusChangedEventHandler) );
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_DEVICESTATUSUPDATEEND, cecHostDeviceStatusUpdateEndEventHandler) );
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_CECSTATUSCHANGE, cecHostCecStatusChange) );
+                IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<LgiHdmiCec>(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED,cecMgrEventHandler) );
+                IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<LgiHdmiCec>(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED,cecMgrEventHandler) );
+                IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<LgiHdmiCec>(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
+                IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<LgiHdmiCec>(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_DEVICESTATUSCHANGE, cecHostDeviceStatusChangedEventHandler) );
+                IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<LgiHdmiCec>(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_DEVICESTATUSUPDATEEND, cecHostDeviceStatusUpdateEndEventHandler) );
+                IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<LgiHdmiCec>(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_CECSTATUSCHANGE, cecHostCecStatusChange) );
             }
         }
 
@@ -193,12 +194,12 @@ namespace WPEFramework
             if (Utils::IARM::isConnected())
             {
                 IARM_Result_t res;
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED) );
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED) );
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG) );
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_DEVICESTATUSCHANGE) );
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_DEVICESTATUSUPDATEEND) );
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_CECSTATUSCHANGE) );
+                IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<LgiHdmiCec>(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED, cecMgrEventHandler) );
+                IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<LgiHdmiCec>(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED, cecMgrEventHandler) );
+                IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<LgiHdmiCec>(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
+                IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<LgiHdmiCec>(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_DEVICESTATUSCHANGE, cecHostDeviceStatusChangedEventHandler) );
+                IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<LgiHdmiCec>(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_DEVICESTATUSUPDATEEND, cecHostDeviceStatusUpdateEndEventHandler) );
+                IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<LgiHdmiCec>(IARM_BUS_CECHOST_NAME, IARM_BUS_CECHost_EVENT_CECSTATUSCHANGE, cecHostCecStatusChange) );
             }
         }
 
