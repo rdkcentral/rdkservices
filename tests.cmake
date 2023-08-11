@@ -148,7 +148,7 @@ endforeach ()
 
 add_compile_options(-Wall -Werror)
 
-add_link_options(-Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog -Wl,-wrap,v_secure_popen -Wl,-wrap,v_secure_pclose, -Wl,-wrap,unlink)
+add_link_options(-Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog -Wl,-wrap,v_secure_popen -Wl,-wrap,v_secure_pclose -Wl,-wrap,unlink)
 
 add_definitions(
         -DENABLE_TELEMETRY_LOGGING
