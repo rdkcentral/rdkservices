@@ -4796,9 +4796,10 @@ namespace Plugin {
         } else {
                current_source = GetTVSourceIndex(source.c_str());
         }
-
+        LOGINFO("current source index[%d] \n", current_source);
         tr181_param_name += std::string(TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
         tr181_param_name += "." + std::to_string(current_source) + "." + "PictureModeString";
+	LOGINFO("tr181 command[%s]", tr181_param_name.c_str());
          err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
         
          if ( tr181Success != err ) { 
