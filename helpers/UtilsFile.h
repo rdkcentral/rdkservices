@@ -1,6 +1,11 @@
 #pragma once
 
 #include <core/core.h>
+#include <iostream>
+#include <fstream>
+#include <string>
+
+using namespace std;
 
 namespace Utils
 {
@@ -58,4 +63,31 @@ auto MoveFile(
 
     return result;
 }
+
+/**
+* @brief Get the last non empty line from the input string, equivalent to "tr -s '\r' '\n' | tail -n 1"
+* @param[in] input - The input string
+* @param[out] res_str - The last non empty line from the input string
+* @return whether or not a non empty line was found
+*/
+bool getLastLine(const std::string& input, std::string& res_str)
+{
+    string read_line = "";
+    bool ret_value = false;
+
+    if (!input.empty())
+    {
+        stringstream read_str(input);
+        while (getline(read_str, read_line, '\n'))
+        {
+            if (!read_line.empty())
+            {
+                res_str = read_line;
+                ret_value = true;
+            }
+        }
+    }
+    return ret_value;
+}
+
 }
