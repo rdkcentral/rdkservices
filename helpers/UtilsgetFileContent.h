@@ -130,7 +130,7 @@ bool isRegularFile(const std::string& path)
  * @param[out] result - The search results will be stored in this string.
  * @return bool - True if the search operation is successful, false otherwise.
  */
-bool searchFiles(const std::string& inputPath, std::string& result, int maxDepth, int minDepth, const std::list<std::string>& exclusions)
+bool searchFiles(std::string& inputPath, int maxDepth, int minDepth, const std::list<std::string>& exclusions,std::string& result)
 {
     int count = 0;
     if (minDepth <= 0)

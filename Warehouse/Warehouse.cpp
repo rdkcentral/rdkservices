@@ -771,7 +771,7 @@ namespace WPEFramework
                     const char* input =  path.c_str();
                     const char* filePath = "/etc/device.properties";
                     char* expandedString = NULL;
-                    const std::string inputPath;
+                    std::string inputPath;
 
                         bool success = Utils::processStringWithVariable(input, filePath, &expandedString);
                         if(!success)
@@ -789,7 +789,7 @@ namespace WPEFramework
                         int mindepth = 1;
                         if (inputPath.find("/*", path.length() - 2) != std::string::npos)
                             maxDepth = 0;
-                        if (Utils::searchFiles(inputPath, result, maxDepth, mindepth, exclusions))
+                        if (Utils::searchFiles(inputPath, maxDepth, mindepth, exclusions,result))
                         {
                             LOGINFO("searchResult is %s ", result.c_str());
                             Utils::String::trim(result);
