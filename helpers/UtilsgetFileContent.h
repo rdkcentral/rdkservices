@@ -199,7 +199,7 @@ bool searchFiles(std::string& inputPath, int maxDepth, int minDepth, const std::
                 {
                     // Process subdirectory
                     std::string subResult;
-                    if (searchFiles(filePath, subResult, maxDepth - 1, 0, exclusions))
+                    if (searchFiles(filePath, maxDepth - 1, 0, exclusions, subResult))
                     {
                         result += "d: " + filePath + "\n" + subResult;
                         count++;
@@ -211,7 +211,7 @@ bool searchFiles(std::string& inputPath, int maxDepth, int minDepth, const std::
                 {
                     // Recursively process subdirectory with reduced minDepth
                     std::string subResult;
-                    if (searchFiles(filePath, subResult, maxDepth - 1, minDepth - 1, exclusions))
+                    if (searchFiles(filePath, maxDepth - 1, minDepth - 1, exclusions, subResult))
                     {
                         result += "d: " + filePath + "\n" + subResult;
                         count++;
