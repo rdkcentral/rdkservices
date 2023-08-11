@@ -1,5 +1,6 @@
 #include <stdarg.h>
 #include <syslog.h>
+#include <unistd.h>
 #include "Wraps.h"
 
 extern "C" int __wrap_system(const char* command)
