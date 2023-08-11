@@ -359,15 +359,21 @@ namespace WPEFramework {
             JsonObject params;
             JsonObject result;
             JsonObject clientParam;
+            JsonArray clientList = JsonArray(); 
 
-            clientParam.Set("apps", client.c_str());
+            clientList.Add(client);
             clientParam.Set("method", "speak");
+            clientParam["apps"] = clientList;
             params["accesslist"] = clientParam;
+
+            std::string jsonstr;
+            params.ToString(jsonstr);
+            std::cout<<"Resourcemanager : about to call setACL : "<< jsonstr << std::endl;
+
             ret =  JSONRPCDirectLink(mCurrentService, "org.rdk.TextToSpeech").Invoke<JsonObject, JsonObject>(20000, "setACL", params, result);
 
             status = ((Core::ERROR_NONE == ret) && (result.HasLabel("success")) && (result["success"].Boolean()));
 
-            std::string jsonstr;
             result.ToString(jsonstr);
             std::cout<<"setACL response : "<< jsonstr << std::endl;
             std::cout<<"setACL status  : "<<std::boolalpha << status << std::endl;
