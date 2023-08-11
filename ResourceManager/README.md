@@ -8,7 +8,7 @@
 ```
 curl --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","id":"3","method": "org.rdk.ResourceManager.setAVBlocked", "params": {"appid":"Netflix-0", "blocked":true}}' http://127.0.0.1:9998/jsonrpc
 curl --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","id":"3","method": "org.rdk.ResourceManager.getBlockedAVApplications"}' http://127.0.0.1:9998/jsonrpc
-curl --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","id":"3","method": "org.rdk.ResourceManager.reserveTTSResource", "params": {"appid":"Netflix-0"}}' http://127.0.0.1:9998/jsonrpc
+curl --header "Content-Type: application/json" --request POST --data '{"jsonrpc":"2.0","id":"3","method": "org.rdk.ResourceManager.reserveTTSResource", "params": {"apps": ["App1", "App2"] }}' http://127.0.0.1:9998/jsonrpc
 ```
 
 ## Responses
