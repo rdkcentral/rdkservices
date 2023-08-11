@@ -771,7 +771,7 @@ namespace WPEFramework
                     const char* input =  path.c_str();
                     const char* filePath = "/etc/device.properties";
                     char* expandedString = NULL;
-                    const std::string inputPath = "";
+                    const std::string inputPath;
 
                         bool success = Utils::processStringWithVariable(input, filePath, &expandedString);
                         if(!success)
