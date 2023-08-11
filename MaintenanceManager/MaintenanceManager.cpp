@@ -66,14 +66,19 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 12
+#define API_VERSION_NUMBER_PATCH 15
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 
 #define PROC_DIR "/proc"
+#define MAINTENANCE_MANAGER_RFC_CALLER_ID "MaintenanceManager"
 #define TR181_AUTOREBOOT_ENABLE "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable"
 #define TR181_STOP_MAINTENANCE  "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.StopMaintenance.Enable"
 #define TR181_RDKVFWUPGRADER  "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKFirmwareUpgrader.Enable"
+#define TR181_PARTNER_ID "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.PartnerName"
+#define TR181_TARGET_PROPOSITION "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.TargetProposition"
+#define TR181_XCONFURL "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.XconfUrl"
+#define INTERNET_CONNECTED_STATE 3
 
 string notifyStatusToString(Maint_notify_status_t &status)
 {
@@ -228,6 +233,12 @@ namespace WPEFramework {
             "uploadSTBLogs.sh"
         };
 
+        string deviceInitializationContext[] = {
+            "partnerId",
+            "targetProposition",
+            "regionalConfigService"
+        };
+
         /**
          * Register MaintenanceManager module as wpeframework plugin
          */
@@ -255,7 +266,13 @@ namespace WPEFramework {
             MaintenanceManager::m_task_map[task_names_foreground[2].c_str()]=false;
             MaintenanceManager::m_task_map[task_names_foreground[3].c_str()]=false;
 
+            MaintenanceManager::m_param_map[deviceInitializationContext[0].c_str()] = TR181_PARTNER_ID;
+            MaintenanceManager::m_param_map[deviceInitializationContext[1].c_str()] = TR181_TARGET_PROPOSITION;
+            MaintenanceManager::m_param_map[deviceInitializationContext[2].c_str()] = TR181_XCONFURL;
 
+            MaintenanceManager::m_paramType_map[deviceInitializationContext[0].c_str()] = DATA_TYPE::WDMP_STRING;
+            MaintenanceManager::m_paramType_map[deviceInitializationContext[1].c_str()] = DATA_TYPE::WDMP_STRING;
+            MaintenanceManager::m_paramType_map[deviceInitializationContext[2].c_str()] = DATA_TYPE::WDMP_STRING;
          }
 
         void MaintenanceManager::task_execution_thread(){
@@ -287,11 +304,25 @@ namespace WPEFramework {
             internetConnectStatus = isDeviceOnline();
 #endif
 
+#if defined(ENABLE_WHOAMI)
+    if (UNSOLICITED_MAINTENANCE == g_maintenance_type) {
+        /* WhoAmI check*/
+        bool whoAmIStatus = knowWhoAmI();
+        if (whoAmIStatus) {
+            LOGINFO("knowWhoAmI() returned successfully");
+        }
+    }
+#endif
+
             if ( false == internetConnectStatus ) {
                 m_statusMutex.lock();
                 MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
                 m_statusMutex.unlock();
                 LOGINFO("Maintenance is exiting as device is not connected to internet.");
+                if (UNSOLICITED_MAINTENANCE == g_maintenance_type && !g_unsolicited_complete){
+                    g_unsolicited_complete = true;
+                    g_listen_to_nwevents = true;
+                }
                 return;
             }
 
@@ -303,13 +334,26 @@ namespace WPEFramework {
 
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type){
                 LOGINFO("---------------UNSOLICITED_MAINTENANCE--------------");
-                tasks.push_back("/lib/rdk/StartDCM_maintaince.sh");
+#ifndef ENABLE_WHOAMI
+                tasks.push_back(task_names_foreground[0].c_str());
+#endif
             }
             else if( SOLICITED_MAINTENANCE == g_maintenance_type){
                 LOGINFO("=============SOLICITED_MAINTENANCE===============");
             }
 
-#if defined(SUPPRESS_MAINTENANCE)
+#if defined(ENABLE_WHOAMI)
+            if (UNSOLICITED_MAINTENANCE == g_maintenance_type) {
+                tasks.push_back(task_names_foreground[1].c_str());
+                tasks.push_back(task_names_foreground[2].c_str());
+                tasks.push_back(task_names_foreground[0].c_str());
+                tasks.push_back(task_names_foreground[3].c_str());
+            } else {
+                tasks.push_back(task_names_foreground[1].c_str());
+                tasks.push_back(task_names_foreground[2].c_str());
+                tasks.push_back(task_names_foreground[3].c_str());
+            }
+#elif defined(SUPPRESS_MAINTENANCE)
             /* decide which all tasks are needed based on the activation status */
             if (activationStatus){
                 if(skipFirmwareCheck){
@@ -350,6 +394,183 @@ namespace WPEFramework {
 
 	    m_abort_flag=false;
             LOGINFO("Worker Thread Completed");
+        }
+
+        bool MaintenanceManager::knowWhoAmI()
+        {
+            bool success = false;
+            int retryDelay = 10;
+            int retryCount = 0;
+            const char* secMgr_callsign = "org.rdk.SecManager";
+            const char* secMgr_callsign_ver = "org.rdk.SecManager.1";
+            PluginHost::IShell::state state;
+            WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
+
+            do {
+
+                if ((getServiceState(m_service, secMgr_callsign, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
+                    LOGINFO("%s is active", secMgr_callsign);
+
+                    thunder_client=getThunderPluginHandle(secMgr_callsign_ver);
+                    if (thunder_client == nullptr) {
+                        LOGINFO("Failed to get plugin handle");
+                    } else {
+                        JsonObject params;
+                        JsonObject joGetResult;
+
+                        thunder_client->Invoke<JsonObject, JsonObject>(5000, "getDeviceInitializationContext", params, joGetResult);
+                        if (joGetResult.HasLabel("success") && joGetResult["success"].Boolean()) {
+                            if (joGetResult.HasLabel("partnerProvisioningContext")) {
+                                JsonObject getProvisioningContext = joGetResult["partnerProvisioningContext"].Object();
+                                int size = (int)(sizeof(deviceInitializationContext)/sizeof(deviceInitializationContext[0]));
+                                for (int idx=0; idx < size; idx++) {
+                                    const char* key = deviceInitializationContext[idx].c_str();
+
+                                    // Retrive partnerProvisioningContext Value
+                                    string paramValue = getProvisioningContext[key].String();
+
+                                    if (!paramValue.empty()) {
+                                        if (strcmp(key, "regionalConfigService") == 0) {
+                                            paramValue = "https://" + paramValue;
+                                        }
+                                        LOGINFO("[partnerProvisioningContext] %s : %s", key, paramValue.c_str());
+
+                                        // Retrieve tr181 parameter from m_param_map
+                                        string rfc_parameter = m_param_map[key];
+
+                                        //  Retrieve parameter data type from m_paramType_map
+                                        DATA_TYPE rfc_dataType = m_paramType_map[key];
+
+                                        // Set the RFC values for partnerProvisioningContext parameters
+                                        setRFC(rfc_parameter.c_str(), paramValue.c_str(), rfc_dataType);
+                                    } else {
+                                        LOGINFO("Not able to fetch %s value from partnerProvisioningContext", key);
+                                    }
+                                }
+                                success = true;
+                            } else {
+                                LOGINFO("partnerProvisioningContext is not available in the response");
+                            }
+                        } else {
+                            // Get retryDelay value and sleep for that much seconds
+                            if (joGetResult.HasLabel("retryDelay")) {
+                                retryDelay = joGetResult["retryDelay"].Number();
+                            }
+                            LOGINFO("getDeviceInitializationContext failed");
+                        }
+                    }
+                } else {
+                    LOGINFO("%s is not active", secMgr_callsign);
+                }
+
+		retryCount++;
+                if (retryCount == 4 && !success) {
+                    if (checkActivatedStatus() == "activated") {
+                        LOGINFO("Device is already activated. Exiting from knowWhoAmI()");
+                        success = true;
+                    }
+                }
+
+		if (!success) {
+                    LOGINFO("Retrying in %d seconds", retryDelay);
+                    sleep(retryDelay);
+                }
+
+            } while (!success);
+            return success;
+        }
+
+        // Thunder plugin communication
+        WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* MaintenanceManager::getThunderPluginHandle(const char* callsign)
+        {
+            string token;
+            WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
+
+            auto security = m_service->QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
+            if (security != nullptr) {
+                string payload = "http://localhost";
+                if (security->CreateToken(
+                        static_cast<uint16_t>(payload.length()),
+                        reinterpret_cast<const uint8_t*>(payload.c_str()),
+                        token)
+                    == Core::ERROR_NONE) {
+                    std::cout << "MaintenanceManager got security token" << std::endl;
+                } else {
+                    std::cout << "MaintenanceManager failed to get security token" << std::endl;
+                }
+                security->Release();
+            } else {
+                std::cout << "No security agent" << std::endl;
+            }
+
+            string query = "token=" + token;
+            Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), _T(SERVER_DETAILS));
+            thunder_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(callsign, "", false, query);
+            return thunder_client;
+        }
+
+        bool MaintenanceManager::setRFC(const char* rfc, const char* value, DATA_TYPE dataType)
+        {
+            bool result = false;
+            WDMP_STATUS status;
+            status = setRFCParameter((char *)MAINTENANCE_MANAGER_RFC_CALLER_ID, rfc, value, dataType);
+
+            if ( WDMP_SUCCESS == status ){
+                LOGINFO("Successfuly set the tr181 parameter %s with value %s", rfc, value);
+                result = true;
+            } else {
+                LOGINFO("Failed setting %s parameter", rfc);
+            }
+            return result;
+        }
+
+        bool MaintenanceManager::subscribeForInternetStatusEvent(string event)
+        {
+            int32_t status = Core::ERROR_NONE;
+            bool result = false;
+            LOGINFO("Attempting to subscribe for %s events", event.c_str());
+            const char* network_callsign = "org.rdk.Network.1";
+            WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
+
+            thunder_client = getThunderPluginHandle(network_callsign);
+            if (thunder_client == nullptr) {
+                LOGINFO("Failed to get plugin handle");
+            } else {
+                status = thunder_client->Subscribe<JsonObject>(5000, event, &MaintenanceManager::internetStatusChangeEventHandler, this);
+                if (status == Core::ERROR_NONE) {
+                    result = true;
+                }
+            }
+            return result;
+        }
+
+        void MaintenanceManager::internetStatusChangeEventHandler(const JsonObject& parameters)
+        {
+            string value;
+            int state;
+
+            if (parameters.HasLabel("status") && parameters.HasLabel("state")) {
+                value = parameters["status"].String();
+                state = parameters["state"].Number();
+
+                LOGINFO("Received onInternetStatusChange event: [%s:%d]", value.c_str(), state);
+                if (g_listen_to_nwevents) {
+
+                    if (state == INTERNET_CONNECTED_STATE) {
+                        startCriticalTasks();
+                        g_listen_to_nwevents = false;
+                    }
+                }
+            }
+        }
+
+        void MaintenanceManager::startCriticalTasks()
+        {
+            LOGINFO("Starting Script /lib/rdk/StartDCM_maintaince.sh");
+            system("/lib/rdk/StartDCM_maintaince.sh &");
+
+            LOGINFO("Starting Script /lib/rdk/xconfImageCheck.sh");
+            system("/lib/rdk/xconfImageCheck.sh >> /opt/logs/swupdate.log 2>&1 &");
         }
 
         const string MaintenanceManager::checkActivatedStatus()
@@ -488,8 +709,27 @@ namespace WPEFramework {
             JsonObject joGetParams;
             JsonObject joGetResult;
             std::string callsign = "org.rdk.Network.1";
+            PluginHost::IShell::state state;
 
             string token;
+
+            if ((getServiceState(m_service, "org.rdk.Network", state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
+                LOGINFO("Network plugin is active");
+
+                if (UNSOLICITED_MAINTENANCE == g_maintenance_type && !g_subscribed_for_nwevents) {
+                    // Subscribe for internetConnectionStatusChange event
+                    bool subscribe_status = subscribeForInternetStatusEvent("onInternetStatusChange");
+                    if (subscribe_status) {
+                        LOGINFO("MaintenanceManager subscribed for onInternetStatusChange event");
+                        g_subscribed_for_nwevents = true;
+                    } else {
+                        LOGINFO("Failed to subscribe for onInternetStatusChange event");
+                    }
+                }
+	    } else {
+                LOGINFO("Network plugin is not active");
+                return false;
+            }
 
             // TODO: use interfaces and remove token
             auto security = m_service->QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
@@ -631,6 +871,7 @@ namespace WPEFramework {
             MaintenanceManager::g_lastSuccessful_maint_time="";
             MaintenanceManager::g_task_status=0;
             MaintenanceManager::m_abort_flag=false;
+            MaintenanceManager::g_unsolicited_complete = false;
 
             /* we post just to tell that we are in idle at this moment */
             m_statusMutex.lock();
@@ -863,6 +1104,9 @@ namespace WPEFramework {
                         LOGINFO("Thread joined successfully\n");
                     }
 
+                    if ( g_maintenance_type == UNSOLICITED_MAINTENANCE && !g_unsolicited_complete) {
+                        g_unsolicited_complete = true;
+                    }
                     MaintenanceManager::_instance->onMaintenanceStatusChange(notify_status);
                 }
                 else {
@@ -1203,7 +1447,7 @@ namespace WPEFramework {
                     /* only one maintenance at a time */
                     /* Lock so that m_notify_status will not be updated  further */
                     m_statusMutex.lock();
-                    if ( MAINTENANCE_STARTED != m_notify_status  ){
+                    if ( MAINTENANCE_STARTED != m_notify_status && g_unsolicited_complete ){
 
                         /*reset the status to 0*/
                         g_task_status=0;
