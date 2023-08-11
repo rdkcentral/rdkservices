@@ -5081,7 +5081,7 @@ namespace Plugin {
             format = "current";
 
         GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
-        int err = GetLocalparam("LowLatencyState",formatIndex,pqIndex,sourceIndex,lowlatencystate,PQ_PARAM_BRIGHTNESS);
+        int err = GetLocalparam("LowLatencyState",formatIndex,pqIndex,sourceIndex,lowlatencystate, PQ_PARAM_LOWLATENCY_STATE);
         if( err == 0 ) {
             response["LowLatencyState"] = std::to_string(lowlatencystate);
             LOGINFO("Exit : LowLatencyState Value: %d \n", lowlatencystate);
