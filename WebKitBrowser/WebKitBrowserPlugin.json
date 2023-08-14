@@ -1,0 +1,123 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/Thunder/master/Tools/JsonGenerator/schemas/plugin.schema.json",
+    "info": {
+        "title": "WebKitBrowser Plugin",
+        "callsign": "WebKitBrowser",
+        "locator": "libWPEFrameworkWebKitBrowser.so",
+        "status": "production",
+        "description": "The `WebKitBrowser` plugin provides web browsing functionality based on the WebKit engine."
+    },
+    "configuration": {
+        "type": "object",
+        "properties": {
+            "configuration": {
+                "type": "object",
+                "properties": {
+                    "useragent": {
+                        "description": "The UserAgent used during communication with the web server",
+                        "type": "string"
+                    },
+                    "url": {
+                        "description": "The URL that is loaded upon starting the browser",
+                        "type": "string"
+                    },
+                    "injectedbundle": {
+                        "description": "The name of the .so loaded to extend the HTML5 with customized JavaScript handlers",
+                        "type": "string"
+                    },
+                    "cookiestorage": {
+                        "description": "Post-fixed path to the persistent location on where cookies will be stored",
+                        "type": "string"
+                    },
+                    "localstorage": {
+                        "description": "Post-fixed path to the persistent location on where local-storage will be stored",
+                        "type": "string"
+                    },
+                    "certificatecheck": {
+                        "description": "If enabled, SSL certificate error will lead to a page error",
+                        "type": "boolean"
+                    },
+                    "javascript": {
+                        "type": "object",
+                        "properties": {
+                            "useLLInt": {
+                                "description": "Enable Low Level Interpreter",
+                                "type": "boolean"                                
+                            },
+                            "useJIT": {
+                                "description": "Enable JIT",
+                                "type": "boolean"                                
+                            },
+                            "useDFG": {
+                                "description": "Enable Data-Flow-Graph-JIT compiler",
+                                "type": "boolean"                                
+                            },
+                            "useFTL": {
+                                "description": "Enable Faster-Than-Light-JIT compiler",
+                                "type": "boolean"
+                            },
+                            "useDOM": {
+                                "description": "Enable the DOM-JIT compiler",
+                                "type": "boolean"                                
+                            },
+                            "dumpOptions": {
+                                "description": "Dump options: 0 = None, 1 = Overridden only, 2 = All, 3 = Verbose",
+                                "type": "string"                                
+                            }
+                        },
+                        "required": []
+                    },
+                    "secure": {
+                        "description": "If false, every domain can access any other domain, otherwise fill in fields in whitelist definition table",
+                        "type": "boolean"                        
+                    },
+                    "whitelist": {
+                        "type": "object",
+                        "properties": {
+                            "origin": {
+                                "description": "Origin domain allowed to access domains in domain",
+                                "type": "string"
+                            },
+                            "domain": {
+                                "description": "Domain allowed to access from origin",
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "subdomain": {
+                                "description": "whether it is also OK to access subdomains of domains listed in domain",
+                                "type": "string"                                
+                            }
+                        },
+                        "required": []
+                    },
+                    "localstorageenabled": {
+                        "summary": "Controls the local storage availability",
+                        "type": "boolean"                        
+                    },
+                    "logtosystemconsoleenabled": {
+                        "summary": "Enable page loging to system console (stderr)",
+                        "type": "boolean"                        
+                    },
+                    "watchdogchecktimeoutinseconds": {
+                        "summary": "How often to check main event loop for responsiveness (0 - disable)",
+                        "type": "number"
+                    },
+                    "watchdoghangthresholdtinseconds": {
+                        "summary": "The amount of time to give a process to recover before declaring a hang state",
+                        "type": "number"                        
+                    },
+                    "loadblankpageonsuspendenabled": {
+                        "summary": "Load 'about:blank' before suspending the page",
+                        "type": "boolean"
+                    }
+                },
+                "required": []
+            }
+        }
+    },
+    "interface": {
+        "$ref": "WebKitBrowser.json#"
+    }
+}
