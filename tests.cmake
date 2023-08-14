@@ -138,8 +138,9 @@ set(FAKE_HEADERS
         ${BASEDIR}/HdmiCec.h
         ${BASEDIR}/Ctrlm.h
         ${BASEDIR}/rdkshell.h
-	      ${BASEDIR}/RdkLoggerMilestone.h
-       ${BASEDIR}/secure_wrappermock.h
+        ${BASEDIR}/RdkLoggerMilestone.h
+        ${BASEDIR}/wpa_ctrl_mock.h
+        ${BASEDIR}/secure_wrappermock.h
         )
 
 foreach (file ${FAKE_HEADERS})
@@ -148,7 +149,7 @@ endforeach ()
 
 add_compile_options(-Wall -Werror)
 
-add_link_options(-Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog -Wl,-wrap,v_secure_popen -Wl,-wrap,v_secure_pclose)
+add_link_options(-Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog -Wl,-wrap,wpa_ctrl_open -Wl,-wrap,wpa_ctrl_request -Wl,-wrap,wpa_ctrl_close -Wl,-wrap,v_secure_popen -Wl,-wrap,v_secure_pclose)
 
 add_definitions(
         -DENABLE_TELEMETRY_LOGGING

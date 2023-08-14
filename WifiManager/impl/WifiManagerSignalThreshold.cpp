@@ -20,6 +20,7 @@
 #include "WifiManagerSignalThreshold.h"
 #include "../WifiManager.h" // Need access to WifiManager::getInstance so can't use 'WifiManagerInterface.h'
 #include "UtilsJsonRpc.h"
+#include "wpa_ctrl.h"
 
 #include <chrono>
 
@@ -31,30 +32,54 @@ namespace {
     const float signalStrengthThresholdFair = -67.0f;
 
     #define BUFFER_SIZE 512
-    #define Command "wpa_cli signal_poll"
+    #define Command "SIGNAL_POLL"
 
     std::string retrieveValues(const char *command, char *output_buffer, size_t output_buffer_size)
     {
+        struct wpa_ctrl *wpa_ctrl= NULL;
         std::string key, value;
         std::string rssi = "";
+        int ret = 0;
 
-        FILE *fp = popen(command, "r");
-        if (!fp)
+        if((NULL == command) || (NULL == output_buffer))
         {
-            LOGERR("Failed in getting output from command %s \n",command);
-            return rssi;
+            LOGERR("command/output_buffer is NULL\n");
         }
-        while ((!feof(fp)) && (fgets(output_buffer, output_buffer_size, fp) != NULL))
+        else
         {
-            std::istringstream mystream(output_buffer);
-            if(std::getline(std::getline(mystream, key, '=') >> std::ws, value))
-                if (key == "RSSI") {
-                    rssi = value;
-                    break;
+            wpa_ctrl = wpa_ctrl_open("/var/run/wpa_supplicant/wlan0");
+
+            if (NULL == wpa_ctrl)
+            {
+                LOGERR("wpa_ctrl_open Failed  to open /var/run/wpa_supplicant/wlan0\n");
+            }
+            else if(-2 ==  (ret = wpa_ctrl_request(wpa_ctrl, command, strlen(command), output_buffer, &output_buffer_size, NULL)))
+            {
+                LOGERR("SIGNAL_POLL timed out\n");
+            }
+            else if (ret < 0)
+            {
+                LOGERR("SIGNAL_POLL failed\n");
+            }
+            else
+            {
+                std::istringstream mystream(output_buffer);
+
+                if(std::getline(std::getline(mystream, key, '=') >> std::ws, value))
+                {
+                    if ("RSSI" == key)
+                    {
+                        rssi = value;
+                    }
                 }
-        }
-        pclose(fp);
+            }
 
+            if (NULL != wpa_ctrl)
+            {
+                wpa_ctrl_close(wpa_ctrl);
+                wpa_ctrl = NULL;
+            }
+        }
         return rssi;
     }
 
