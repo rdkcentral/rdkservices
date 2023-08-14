@@ -60,6 +60,7 @@ public:
     static void wpa_ctrl_close(struct wpa_ctrl *ctrl)
     {
         getInstance().impl->wpa_ctrl_close(ctrl);
+    }
 
     static FILE *v_secure_popen(const char *direction, const char *command, va_list args)
     {
