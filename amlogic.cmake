@@ -138,7 +138,6 @@ if (BUILD_LLAMA)
     add_definitions (-DUSE_TR_69)
     add_definitions (-DENABLE_VREX_SERVICE)
     add_definitions (-DRF4CE_API)
-    add_definitions (-DPLUGIN_STATEOBSERVER)
 endif()
 
 if(SCREEN_CAPTURE)
