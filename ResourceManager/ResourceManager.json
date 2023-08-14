@@ -67,6 +67,25 @@
                     "success"
                 ]
             }
+        },
+        "reserveTTSResource": {
+            "summary": "Reserves the Text To speech Resource for specified client.",
+            "params": {
+                "type": "object",
+                "properties":{
+                    "appId": {
+                        "summary": "The application callsign",
+                        "type": "string",
+                        "example": "xumo"
+                    }
+                },
+                "required": [
+                    "appId"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
         }
     }
 }
