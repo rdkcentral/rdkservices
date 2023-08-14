@@ -252,7 +252,7 @@ namespace WPEFramework {
                 if("qam" == source_type)
                 {
                     //Process for qam mediaplayer.
-                    if(std::string::npos != identifier.find("ocap://0x"))
+                    if((std::string::npos != identifier.find("ocap://0x")|| (std::string::npos != identifier.find("tune://")) )
                     {
                         m_player = std::unique_ptr <mediaplayer> (mediaplayer::createMediaPlayer(QAM, identifier));
                         if(nullptr == m_player)
