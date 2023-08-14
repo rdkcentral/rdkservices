@@ -52,7 +52,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 4
-#define API_VERSION_NUMBER_PATCH 3
+#define API_VERSION_NUMBER_PATCH 4
 
 const string WPEFramework::Plugin::RDKShell::SERVICE_NAME = "org.rdk.RDKShell";
 //methods
@@ -3550,10 +3550,6 @@ namespace WPEFramework {
 		    gLaunchDestroyMutex.unlock();
                     std::cout << "new launch count loc1: 0\n";
                     returnResponse(false);
-                }
-                else if ((true == newPluginFound) && (type != callsign))
-                {
-                    type = callsign;
                 }
                 else if (!newPluginFound)
                 {
