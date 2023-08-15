@@ -21,52 +21,55 @@
 #define UNIFIEDCASMANAGEMENT_H
 
 #include "Module.h"
-#include "utils.h"
-#include <websocket/websocket.h>
-#include <interfaces/json/JsonData_UnifiedCASManagement.h>
+#include "MediaPlayer.h"
 
-#include "RTPlayer.h"
-#include "UnifiedPlayerNotify.h"
+namespace WPEFramework 
+{
 
-namespace WPEFramework {
+namespace Plugin 
+{
 
-    namespace Plugin {
-        using namespace JsonData::UnifiedCASManagement;
+class UnifiedCASManagement : public PluginHost::IPlugin, PluginHost::JSONRPC 
+{
 
-        class UnifiedCASManagement : public PluginHost::IPlugin, PluginHost::JSONRPC, public WPEFramework::UnifiedPlayerNotify {
-        public:
-            UnifiedCASManagement();
-            UnifiedCASManagement(const UnifiedCASManagement& orig) = delete;
-            virtual ~UnifiedCASManagement();
+public:
+    UnifiedCASManagement();
+    UnifiedCASManagement(const UnifiedCASManagement& orig) = delete;
+    virtual ~UnifiedCASManagement();
 
-            BEGIN_INTERFACE_MAP(UnifiedCASManagement)
-            INTERFACE_ENTRY(PluginHost::IPlugin)
-            INTERFACE_ENTRY(PluginHost::IDispatcher)
-            END_INTERFACE_MAP
+    BEGIN_INTERFACE_MAP(UnifiedCASManagement)
+    INTERFACE_ENTRY(PluginHost::IPlugin)
+    INTERFACE_ENTRY(PluginHost::IDispatcher)
+    END_INTERFACE_MAP
 
-        public/*members*/:
-            //   IPlugin methods
-            // -------------------------------------------------------------------------------------------------------
-            virtual const string Initialize(PluginHost::IShell *service) override;
-            virtual void Deinitialize(PluginHost::IShell *service) override;
-            virtual string Information() const override;
+public/*members*/:
+    //   IPlugin methods
+    // -------------------------------------------------------------------------------------------------------
+    virtual const std::string Initialize(PluginHost::IShell *service) override;
+    virtual void Deinitialize(PluginHost::IShell *service) override;
+    virtual std::string Information() const override; 
 
-            static UnifiedCASManagement* _instance;
-        private/*registered methods*/:
-            void RegisterAll();
-            void UnregisterAll();
-            uint32_t endpoint_manage(const JsonData::UnifiedCASManagement::ManagerequestData& params, JsonData::UnifiedCASManagement::ResultInfo& response);
-            uint32_t endpoint_unmanage(const Core::JSON::String& params, JsonData::UnifiedCASManagement::ResultInfo& response);
-            uint32_t endpoint_send(const JsonData::UnifiedCASManagement::XferinfoInfo& params, JsonData::UnifiedCASManagement::ResultInfo& response);
-            void event_data(const string& payload, const JsonData::UnifiedCASManagement::SourceType& source);
+    void event_data(const std::string& payload, const std::string& source);
+    static UnifiedCASManagement* _instance;
 
-            // Event: oncasdata - CAS public data is sent asynchronously from CAS System
-            void event_oncasdata(const uint32_t& sessionid, const string& casData) override;
-        private/*members*/:
-            std::shared_ptr<WPEFramework::RTPlayer>  m_RTPlayer;
-	    uint32_t m_sessionId;
-        };
-    } // namespace Plugin
+    static const std::string METHOD_MANAGE;
+    static const std::string METHOD_UNMANAGE;
+    static const std::string METHOD_SEND;    
+    static const std::string EVENT_DATA;    
+        
+private/*registered methods*/:
+    void RegisterAll();
+    void UnregisterAll();
+    uint32_t manage(const JsonObject& params, JsonObject& response);
+    uint32_t unmanage(const JsonObject& params, JsonObject& response);
+    uint32_t send(const JsonObject& params, JsonObject& response);
+
+private/*members*/:
+    std::shared_ptr<MediaPlayer> m_player;
+        
+};
+    
+} // namespace Plugin
 
 } // namespace WPEFramework
 #endif /* UNIFIEDCASMANAGEMENT_H */
