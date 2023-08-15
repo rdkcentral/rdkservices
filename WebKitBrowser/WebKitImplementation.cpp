@@ -489,24 +489,68 @@ static GSourceFuncs _handlerIntervention =
         public:
             class MemorySettings : public Core::JSON::Container {
             public:
+                class Settings : public Core::JSON::Container {
+                public:
+                    Settings(const Settings&) = delete;
+                    Settings& operator=(const Settings&) = delete;
+
+                    Settings()
+                        : Core::JSON::Container()
+                        , PollInterval()
+                        , Limit()
+                    {
+                        Add(_T("pollinterval"), &PollInterval);
+                        Add(_T("limit"), &Limit);
+                    }
+                    ~Settings()
+                    {
+                    }
+
+                public:
+                    Core::JSON::DecUInt32 PollInterval;
+                    Core::JSON::DecUInt32 Limit;
+                };
+
+                class WebProcess : public Settings {
+                public:
+                    WebProcess(const WebProcess&) = delete;
+                    WebProcess& operator=(const WebProcess&) = delete;
+
+                    WebProcess()
+                        : Settings()
+                        , GPULimit()
+                        , GPUFile()
+                    {
+                        Add(_T("gpulimit"), &GPULimit);
+                        Add(_T("gpufile"), &GPUFile);
+                    }
+                    ~WebProcess()
+                    {
+                    }
+
+                public:
+                    Core::JSON::DecUInt32 GPULimit;
+                    Core::JSON::String GPUFile;
+                };
+            public:
                 MemorySettings(const MemorySettings&) = delete;
                 MemorySettings& operator=(const MemorySettings&) = delete;
 
                 MemorySettings()
                     : Core::JSON::Container()
-                    , WebProcessLimit()
-                    , NetworkProcessLimit()
+                    , WebProcessSettings()
+                    , NetworkProcessSettings()
                 {
-                    Add(_T("webprocesslimit"), &WebProcessLimit);
-                    Add(_T("networkprocesslimit"), &NetworkProcessLimit);
+                    Add(_T("webprocesssettings"), &WebProcessSettings);
+                    Add(_T("networkprocesssettings"), &NetworkProcessSettings);
                 }
                 ~MemorySettings()
                 {
                 }
 
             public:
-                Core::JSON::DecUInt32 WebProcessLimit;
-                Core::JSON::DecUInt32 NetworkProcessLimit;
+                WebProcess WebProcessSettings;
+                Settings NetworkProcessSettings;
             };
 
         public:
@@ -2198,11 +2242,11 @@ static GSourceFuncs _handlerIntervention =
             // Memory Pressure
 #if !HAS_MEMORY_PRESSURE_SETTINGS_API
             std::stringstream limitStr;
-            if ((_config.Memory.IsSet() == true) && (_config.Memory.NetworkProcessLimit.IsSet() == true)) {
-                limitStr << "networkprocess:" << _config.Memory.NetworkProcessLimit.Value() << "m";
+            if ((_config.Memory.IsSet() == true) && (_config.Memory.NetworkProcessSettings.Limit.IsSet() == true)) {
+                limitStr << "networkprocess:" << _config.Memory.NetworkProcessSettings.Limit.Value() << "m";
             }
-            if ((_config.Memory.IsSet() == true) && (_config.Memory.WebProcessLimit.IsSet() == true)) {
-                limitStr << (!limitStr.str().empty() ? "," : "") << "webprocess:" << _config.Memory.WebProcessLimit.Value() << "m";
+            if ((_config.Memory.IsSet() == true) && (_config.Memory.WebProcessSettings.Limit.IsSet() == true)) {
+                limitStr << (!limitStr.str().empty() ? "," : "") << "webprocess:" << _config.Memory.WebProcessSettings.Limit.Value() << "m";
             }
             if (!limitStr.str().empty()) {
                 Core::SystemInfo::SetEnvironment(_T("WPE_POLL_MAX_MEMORY"), limitStr.str(), !environmentOverride);
@@ -2754,9 +2798,14 @@ static GSourceFuncs _handlerIntervention =
                 }
 
 #if HAS_MEMORY_PRESSURE_SETTINGS_API
-                if ((_config.Memory.IsSet() == true) && (_config.Memory.NetworkProcessLimit.IsSet() == true)) {
+                if ((_config.Memory.IsSet() == true) && (_config.Memory.NetworkProcessSettings.IsSet() == true)) {
                     WebKitMemoryPressureSettings* memoryPressureSettings = webkit_memory_pressure_settings_new();
-                    webkit_memory_pressure_settings_set_memory_limit(memoryPressureSettings, _config.Memory.NetworkProcessLimit.Value());
+                    if (_config.Memory.NetworkProcessSettings.Limit.IsSet() == true) {
+                        webkit_memory_pressure_settings_set_memory_limit(memoryPressureSettings, _config.Memory.NetworkProcessSettings.Limit.Value());
+                    }
+                    if (_config.Memory.NetworkProcessSettings.PollInterval.IsSet() == true) {
+                        webkit_memory_pressure_settings_set_poll_interval(memoryPressureSettings, _config.Memory.NetworkProcessSettings.PollInterval.Value());
+                    }
                     webkit_website_data_manager_set_memory_pressure_settings(memoryPressureSettings);
                     webkit_memory_pressure_settings_free(memoryPressureSettings);
                 }
@@ -2773,9 +2822,21 @@ static GSourceFuncs _handlerIntervention =
                 g_free(indexedDBPath);
 
 #if HAS_MEMORY_PRESSURE_SETTINGS_API
-                if ((_config.Memory.IsSet() == true) && (_config.Memory.WebProcessLimit.IsSet() == true)) {
+                if ((_config.Memory.IsSet() == true) && (_config.Memory.WebProcessSettings.IsSet() == true)) {
                     WebKitMemoryPressureSettings* memoryPressureSettings = webkit_memory_pressure_settings_new();
-                    webkit_memory_pressure_settings_set_memory_limit(memoryPressureSettings, _config.Memory.WebProcessLimit.Value());
+                    if (_config.Memory.WebProcessSettings.Limit.IsSet() == true) {
+                        webkit_memory_pressure_settings_set_memory_limit(memoryPressureSettings, _config.Memory.WebProcessSettings.Limit.Value());
+                    }
+                    if (_config.Memory.WebProcessSettings.GPUFile.IsSet() == true) {
+                        Core::SystemInfo::SetEnvironment(_T("WPE_POLL_MAX_MEMORY_GPU_FILE"), _config.Memory.WebProcessSettings.GPUFile.Value());
+                    }
+                    if (_config.Memory.WebProcessSettings.GPULimit.IsSet() == true) {
+                        webkit_memory_pressure_settings_set_video_memory_limit(memoryPressureSettings, _config.Memory.WebProcessSettings.GPULimit.Value());
+                    }
+                    if (_config.Memory.WebProcessSettings.PollInterval.IsSet() == true) {
+                        webkit_memory_pressure_settings_set_poll_interval(memoryPressureSettings, _config.Memory.WebProcessSettings.PollInterval.Value());
+                    }
+
                     // Pass web process memory pressure settings to WebKitWebContext constructor
                     wkContext = WEBKIT_WEB_CONTEXT(g_object_new(WEBKIT_TYPE_WEB_CONTEXT, "website-data-manager", websiteDataManager, "memory-pressure-settings", memoryPressureSettings, nullptr));
                     webkit_memory_pressure_settings_free(memoryPressureSettings);
