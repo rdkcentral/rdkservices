@@ -2,6 +2,7 @@
 #include <fstream>
 #include "WifiManager.h"
 
+#include "wpa_ctrl_mock.h"
 #include "ServiceMock.h"
 #include "IarmBusMock.h"
 #include "WrapsMock.h"
