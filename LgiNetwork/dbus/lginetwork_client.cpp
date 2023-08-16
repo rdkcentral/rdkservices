@@ -344,38 +344,52 @@ static void handle_dbus_event(GDBusProxy *proxy,
     GVariantIter iter;
     g_variant_iter_init(&iter, parameters);
 
-    // printf("handle_dbus_event: sender_name: %s signal_name: %s, num_params: %zu\n" , sender_name, _signal_name, num_params);
-
     LgiNetworkClient *client = static_cast<LgiNetworkClient *>(user_data);
+
+    // store the return values from g_variant_iter_next_value to release them later
+    std::vector<GVariant*> variants;
+
+    for (gsize i=0; i<num_params; ++i) {
+        variants.push_back(g_variant_iter_next_value(&iter));
+    }
 
     if (signal_name == "IPv4ConfigurationChanged" && num_params == 1)
     {
-        const gchar *aId = g_variant_get_string(g_variant_iter_next_value(&iter), NULL);
+        // IPv4ConfigurationChanged g_variant_get_type_string is (s)
+        const gchar *aId = g_variant_get_string(variants[0], NULL);
         DbusHandlerCallbacks::cbHandleIPv4ConfigurationChanged(client, aId, user_data);
     }
     else if (signal_name == "IPv6ConfigurationChanged" && num_params == 1)
     {
-        const gchar *aId = g_variant_get_string(g_variant_iter_next_value(&iter), NULL);
+        // IPv6ConfigurationChanged g_variant_get_type_string is (s)
+        const gchar *aId = g_variant_get_string(variants[0], NULL);
         DbusHandlerCallbacks::cbHandleIPv6ConfigurationChanged(client, aId, user_data);
     }
     else if (signal_name == "NetworkingEvent" && num_params == 4)
     {
-        const gchar *aId = g_variant_get_string(g_variant_iter_next_value(&iter), NULL);
-        const gchar *aEvent = g_variant_get_string(g_variant_iter_next_value(&iter), NULL);
+        // NetworkingEvent g_variant_get_type_string is (ssua{ss})
+        const gchar *aId = g_variant_get_string(variants[0], NULL);
+        const gchar *aEvent = g_variant_get_string(variants[1], NULL);
         // count is 'u' / guint32
-        guint aCount = g_variant_get_uint32(g_variant_iter_next_value(&iter));
-        GVariant *aParams = g_variant_iter_next_value(&iter);
+        guint aCount = g_variant_get_uint32(variants[2]);
+        GVariant *aParams = variants[3];
         DbusHandlerCallbacks::cbHandleNetworkingEvent(client, aId, aEvent, aCount, aParams, user_data);
     }
     else if (signal_name == "StatusChanged" && num_params == 2)
     {
-        const gchar *aId = g_variant_get_string(g_variant_iter_next_value(&iter), NULL);
-        const gchar *aIfaceStatus = g_variant_get_string(g_variant_iter_next_value(&iter), NULL);
+        // StatusChanged g_variant_get_type_string is (ss)
+        const gchar *aId = g_variant_get_string(variants[0], NULL);
+        const gchar *aIfaceStatus = g_variant_get_string(variants[1], NULL);
         DbusHandlerCallbacks::cbHandleStatusChanged(client, aId, aIfaceStatus, user_data);
     }
     else
     {
         LOGINFO("handle_dbus_event: unsupported event; sender_name: %s signal_name: %s, num_params: %zu" , sender_name, _signal_name, num_params);
+    }
+
+    // free the return value from g_variant_iter_next_value (https://developer-old.gnome.org/glib/stable/glib-GVariant.html#g-variant-iter-next-value)
+    for (auto& v : variants) {
+        g_variant_unref(v);
     }
 }
 #endif
