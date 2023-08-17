@@ -1353,16 +1353,22 @@ namespace WPEFramework {
                             result = false;
                         }
 
-                        string command = "";
-                        if (MODE_WAREHOUSE == m_currentMode) {
-                            command = "touch ";
-                        } else {
-                            command = "rm -f ";
+                        if (MODE_WAREHOUSE == m_currentMode){
+                            FILE *fp = fopen(WAREHOUSE_MODE_FILE, "w+");
+                            if(!fp){
+                                LOGWARN("Unable to create [%s] file ",WAREHOUSE_MODE_FILE);
+                            }
+                            else{
+                                fclose(fp);
+                            }
                         }
-                        command += WAREHOUSE_MODE_FILE;
-                        /* TODO: replace with system alternate. */
-                        int sysStat = system(command.c_str());
-                        LOGINFO("system returned %d\n", sysStat);
+                        else {
+                            if(Utils::fileExists(WAREHOUSE_MODE_FILE)){
+                                if(0 != unlink(WAREHOUSE_MODE_FILE)){
+                                    LOGWARN("Unlink is failed for [%s] file",WAREHOUSE_MODE_FILE);
+                                }
+                            }
+                        }
                         //set values in temp file so they can be restored in receiver restarts / crashes
                         m_temp_settings.setValue("mode", m_currentMode);
                         m_temp_settings.setValue("mode_duration", m_remainingDuration);
@@ -3110,23 +3116,14 @@ namespace WPEFramework {
         uint32_t SystemServices::clearLastDeepSleepReason(const JsonObject& parameters,
                 JsonObject& response)
         {
-            bool retAPIStatus = false;
+            bool retAPIStatus = true;
 
-                /* FIXME: popen in use */
-                FILE *pipe = NULL;
-                char cmd[128] = {'\0'};
-
-                snprintf(cmd, 127, "rm -f %s", STANDBY_REASON_FILE);
-                pipe = popen(cmd, "r");
-                if (pipe) {
-                    retAPIStatus = ((pclose(pipe) != -1)? true: false);
-                    if (false == retAPIStatus) {
+            if(Utils::fileExists(STANDBY_REASON_FILE)){
+                    if(-1 == unlink(STANDBY_REASON_FILE)){
                         populateResponseWithError(SysSrv_Unexpected, response);
+                        retAPIStatus = false;
                     }
-                } else {
-                    populateResponseWithError(SysSrv_Unexpected, response);
-            }
-
+                }
             returnResponse(retAPIStatus);
         }
 
@@ -4617,4 +4614,3 @@ namespace WPEFramework {
         }
     } /* namespace Plugin */
 } /* namespace WPEFramework */
-

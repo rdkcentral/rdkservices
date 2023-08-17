@@ -18,4 +18,5 @@ public:
     MOCK_METHOD(void, wpa_ctrl_close, (struct wpa_ctrl *ctrl), (override));
     MOCK_METHOD(FILE*, v_secure_popen, (const char *direction, const char *command, va_list args), (override));
     MOCK_METHOD(int, v_secure_pclose, (FILE *file), (override));
+    MOCK_METHOD(int, unlink, (const char* filePath), (override));
 };

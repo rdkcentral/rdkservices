@@ -18,6 +18,7 @@ public:
     virtual void wpa_ctrl_close(struct wpa_ctrl *ctrl) = 0;
     virtual FILE *v_secure_popen(const char *direction, const char *command, va_list args) = 0;
     virtual int v_secure_pclose(FILE *) = 0;
+    virtual int unlink(const char* filePath) = 0;
 };
 
 class Wraps {
@@ -70,5 +71,9 @@ public:
     static int v_secure_pclose(FILE *file)
     {
         return getInstance().impl->v_secure_pclose(file);
+    }
+    static int unlink(const char* filePath)
+    {
+        return getInstance().impl->unlink(filePath);
     }
 };
