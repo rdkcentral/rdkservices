@@ -41,9 +41,13 @@ namespace WifiManagerImpl
 
         if (signal_name == "StatusChanged" && num_params == 2)
         {
-            const gchar *aId = g_variant_get_string(g_variant_iter_next_value(&iter), NULL);
-            const gchar *aIfaceStatus = g_variant_get_string(g_variant_iter_next_value(&iter), NULL);
+            GVariant *vId = g_variant_iter_next_value(&iter);
+            GVariant *vInterfaceStatus = g_variant_iter_next_value(&iter);
+            const gchar *aId = g_variant_get_string(vId, NULL);
+            const gchar *aIfaceStatus = g_variant_get_string(vInterfaceStatus, NULL);
             client->handleStatusChangedDbusEvent(aId, aIfaceStatus);
+            g_variant_unref(vInterfaceStatus);
+            g_variant_unref(vId);
         }
         else
         {
