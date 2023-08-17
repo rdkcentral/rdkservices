@@ -421,20 +421,20 @@ namespace WPEFramework {
 
                         thunder_client->Invoke<JsonObject, JsonObject>(5000, "getDeviceInitializationContext", params, joGetResult);
                         if (joGetResult.HasLabel("success") && joGetResult["success"].Boolean()) {
-                            if (joGetResult.HasLabel("partnerProvisioningContext")) {
-                                JsonObject getProvisioningContext = joGetResult["partnerProvisioningContext"].Object();
+                            if (joGetResult.HasLabel("deviceInitializationContext")) {
+                                JsonObject getInitializationContext = joGetResult["deviceInitializationContext"].Object();
                                 int size = (int)(sizeof(deviceInitializationContext)/sizeof(deviceInitializationContext[0]));
                                 for (int idx=0; idx < size; idx++) {
                                     const char* key = deviceInitializationContext[idx].c_str();
 
-                                    // Retrive partnerProvisioningContext Value
-                                    string paramValue = getProvisioningContext[key].String();
+                                    // Retrieve deviceInitializationContext Value
+                                    string paramValue = getInitializationContext[key].String();
 
                                     if (!paramValue.empty()) {
                                         if (strcmp(key, "regionalConfigService") == 0) {
                                             paramValue = "https://" + paramValue;
                                         }
-                                        LOGINFO("[partnerProvisioningContext] %s : %s", key, paramValue.c_str());
+                                        LOGINFO("[deviceInitializationContext] %s : %s", key, paramValue.c_str());
 
                                         // Retrieve tr181 parameter from m_param_map
                                         string rfc_parameter = m_param_map[key];
@@ -442,15 +442,15 @@ namespace WPEFramework {
                                         //  Retrieve parameter data type from m_paramType_map
                                         DATA_TYPE rfc_dataType = m_paramType_map[key];
 
-                                        // Set the RFC values for partnerProvisioningContext parameters
+                                        // Set the RFC values for deviceInitializationContext parameters
                                         setRFC(rfc_parameter.c_str(), paramValue.c_str(), rfc_dataType);
                                     } else {
-                                        LOGINFO("Not able to fetch %s value from partnerProvisioningContext", key);
+                                        LOGINFO("Not able to fetch %s value from deviceInitializationContext", key);
                                     }
                                 }
                                 success = true;
                             } else {
-                                LOGINFO("partnerProvisioningContext is not available in the response");
+                                LOGINFO("deviceInitializationContext is not available in the response");
                             }
                         } else {
                             // Get retryDelay value and sleep for that much seconds
