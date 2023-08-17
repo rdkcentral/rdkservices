@@ -25,6 +25,8 @@ set(PLUGIN_NAME ControlSettings)
 
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_CONTROLSETTINGS_AUTOSTART "true" CACHE STRING "Automatically start Tvmgr plugin")
+
 find_package(WPEFramework)
 find_package(${NAMESPACE}Plugins REQUIRED)
 
