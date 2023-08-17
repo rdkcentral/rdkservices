@@ -45,6 +45,7 @@ TTSConfiguration::TTSConfiguration() :
     m_primVolDuck(25),
     m_preemptiveSpeaking(true),
     m_enabled(false),
+    m_AclCalled(false),
     m_fallbackenabled(false) { }
 
 TTSConfiguration::~TTSConfiguration() {}
@@ -67,6 +68,8 @@ TTSConfiguration::TTSConfiguration(TTSConfiguration &config)
     m_data.scenario = config.m_data.scenario;
     m_data.value = config.m_data.value;
     m_data.path = config.m_data.path;
+    m_AclCalled = config.m_AclCalled;
+    m_AccessList = config.m_AccessList;
     m_fallbackenabled = config.m_fallbackenabled;
 }
 TTSConfiguration& TTSConfiguration::operator = (const TTSConfiguration &config)
@@ -87,6 +90,8 @@ TTSConfiguration& TTSConfiguration::operator = (const TTSConfiguration &config)
     m_data.scenario = config.m_data.scenario;
     m_data.value = config.m_data.value;
     m_data.path = config.m_data.path;
+    m_AclCalled = config.m_AclCalled;
+    m_AccessList = config.m_AccessList;
     m_fallbackenabled = config.m_fallbackenabled;
     return *this;
 }
@@ -197,6 +202,58 @@ bool TTSConfiguration::setSATPluginCallsign(const std::string callsign) {
         UPDATE_AND_RETURN(m_satPluginCallsign, callsign);
     }
     return false;
+}
+
+bool TTSConfiguration::setAccessList(const string &key,const string &value)
+{
+    std::map<std::string,std::string>::iterator itr;
+    itr = m_AccessList.find(key);
+    m_AclCalled = true;
+    if (itr != m_AccessList.end())
+    {
+        TTSLOG_INFO("method %s found in accesslist...replacing value with %s\n",key.c_str(),value.c_str());
+        itr->second= value;
+        return 1;
+    }
+    else
+    {
+        TTSLOG_INFO("method %s not found..inserting to accesslist with value %s\n",key.c_str(),value.c_str());
+        m_AccessList.insert(std::make_pair(key,value));
+        return 0;
+    }
+}
+
+bool TTSConfiguration::checkAccess(const string &method,string &callsign)
+{
+    if(m_AclCalled == true)
+    {
+        std::map<std::string,std::string>::iterator itr;
+        itr = m_AccessList.find(method);
+        if (itr != m_AccessList.end())
+        {
+            string value = itr->second;
+            string app_quote =  '\"' + callsign + '\"';//wrap it with double quote
+            std::string::size_type pos = value.find(app_quote);
+            TTSLOG_INFO("method %s found in accesslist and can be accessed by %s\n",method.c_str(),value.c_str());
+            if(pos != std::string::npos)
+            {
+                TTSLOG_INFO("%s app has access to method  %s\n",callsign.c_str(),method.c_str());
+                return true;
+            }
+
+            TTSLOG_WARNING("%s app does not have access to method  %s\n",callsign.c_str(),method.c_str());
+            return false;
+        }
+        else
+        {
+            TTSLOG_WARNING("method :%s not found in accesslist\n",method.c_str());
+            return false;
+        }
+    }
+    else
+    {
+        return true;
+    }
 }
 
 bool TTSConfiguration::setEnabled(const bool enabled) {

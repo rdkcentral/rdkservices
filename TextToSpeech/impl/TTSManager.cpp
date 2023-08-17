@@ -191,6 +191,12 @@ TTS_Error TTSManager::setAPIKey(string apikey)
     return TTS_OK;
 }
 
+TTS_Error TTSManager::setACL(const std::string method,const std::string apps)
+{
+   m_defaultConfiguration.setAccessList(method,apps);
+   return TTS_OK;
+}
+
 TTS_Error TTSManager::getConfiguration(Configuration &configuration) {
     TTSLOG_TRACE("Getting Default Configuration");
 
@@ -205,7 +211,7 @@ TTS_Error TTSManager::getConfiguration(Configuration &configuration) {
     return TTS_OK;
 }
 
-TTS_Error TTSManager::speak(int speechId, std::string text) {
+TTS_Error TTSManager::speak(int speechId, std::string text, std::string callsign) {
     TTSLOG_TRACE("Speak");
 
     if(!m_defaultConfiguration.isValid()) {
@@ -215,7 +221,15 @@ TTS_Error TTSManager::speak(int speechId, std::string text) {
 
     if(m_speaker) {
         // TODO: Currently 'secure' is set to true. Need to decide about this variable while Resident app integration.
-        m_speaker->speak(this, speechId , text, true,m_defaultConfiguration.primVolDuck());
+        if(m_defaultConfiguration.checkAccess("speak",callsign))
+        {
+            m_speaker->speak(this, speechId , text, true, m_defaultConfiguration.primVolDuck());
+        }
+        else
+        {
+            TTSLOG_WARNING("No Speak access for callsign %s\n",callsign.c_str());
+            return TTS_NO_ACCESS;
+        }
     }
 
     return TTS_OK;
@@ -325,4 +339,5 @@ void TTSManager::playbackerror(uint32_t speech_id){
 
     m_callback->onPlaybackError(speech_id);
 }
+
 } // namespace TTS

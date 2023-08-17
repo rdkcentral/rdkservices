@@ -31,6 +31,8 @@ public:
     bool setRate(const uint8_t rate);
     bool setPrimVolDuck(const int8_t primvolduck);
     bool setSATPluginCallsign(const std::string callsign);
+    bool setAccessList(const string &key,const string &value);
+    bool checkAccess(const string &method,string &callsign);
    
     bool isFallbackEnabled();
     void saveFallbackPath(std::string);
@@ -75,6 +77,8 @@ private:
     int8_t m_primVolDuck;
     bool m_preemptiveSpeaking;
     bool m_enabled;
+    bool m_AclCalled;
+    std::map<std::string,std::string> m_AccessList;
     bool m_fallbackenabled;
     FallbackData m_data;
     std::mutex m_mutex;
