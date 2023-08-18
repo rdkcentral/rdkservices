@@ -143,6 +143,11 @@ typedef struct
     char public_ip[MAX_IP_ADDRESS_LEN];
 } IARM_BUS_NetSrvMgr_Iface_StunRequest_t;
 
+typedef struct
+{
+    bool disableConnectivityTest;
+} IARM_BUS_NetSrvMgr_configurePNI_t;
+
 namespace WPEFramework {
     namespace Plugin {
 
@@ -200,6 +205,7 @@ namespace WPEFramework {
             uint32_t stopConnectivityMonitoring(const JsonObject& parameters, JsonObject& response);
             uint32_t getPublicIP(const JsonObject& parameters, JsonObject& response);
             uint32_t setStunEndPoint(const JsonObject& parameters, JsonObject& response);
+            uint32_t configurePNI(const JsonObject& parameters, JsonObject& response);
             bool getIPIARMWrapper(IARM_BUS_NetSrvMgr_Iface_Settings_t& iarmData, const string interface, const string ipversion);
 
             void onInterfaceEnabledStatusChanged(std::string interface, bool enabled);
