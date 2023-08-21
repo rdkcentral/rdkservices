@@ -183,6 +183,7 @@ find_package(${NAMESPACE}Definitions REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
 find_package(WPEWebKit REQUIRED)
 find_package(WPEBackend REQUIRED)
+find_package(OpenSSL REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
     Module.cpp
@@ -215,7 +216,8 @@ target_link_libraries(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION}
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
         ${NAMESPACE}Definitions::${NAMESPACE}Definitions
         WPEBackend::WPEBackend
-        WPEWebKit::WPEWebKit)
+        WPEWebKit::WPEWebKit
+        OpenSSL::Crypto)
 
 if (PLUGIN_WEBKITBROWSER_CLOUD_COOKIEJAR)
     find_package(ZLIB REQUIRED)

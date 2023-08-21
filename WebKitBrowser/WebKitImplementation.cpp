@@ -82,6 +82,11 @@ WK_EXPORT void WKPreferencesSetPageCacheEnabled(WKPreferencesRef preferences, bo
 #include "LoggingUtils.h"
 #endif
 
+#include <openssl/bio.h>
+#include <openssl/err.h>
+#include <openssl/evp.h>
+#include <openssl/pem.h>
+
 
 #if !WEBKIT_GLIB_API
 #define HAS_MEMORY_PRESSURE_SETTINGS_API 0
@@ -2366,6 +2371,143 @@ static GSourceFuncs _handlerIntervention =
             _httpStatusCode = code;
         }
 
+#if !defined(CLIENT_CERTS_PRIV_KEY_PASSWD)
+#error "Client certificates private key password not provided"
+#endif
+
+        bool isASCIISpace(char c)
+        {
+            return c == ' ' || c == '\t';
+        }
+
+        void trimLeadingAndTrailingWs(std::string* s)
+        {
+            while (!s->empty() && isASCIISpace(s->front())) {
+                s->erase(0, 1);
+            }
+
+            while(!s->empty() && isASCIISpace(s->back())) {
+                s->pop_back();
+            }
+        }
+
+        std::vector<std::string> tokenize(const std::string& s, const char* delimiters)
+        {
+            auto lastPos = 0u;
+            std::vector<std::string> result;
+            auto pos = 0u;
+            do {
+                pos = s.find_first_of(delimiters, lastPos);
+                if (pos != std::string::npos) {
+                    auto toAdd = s.substr(lastPos, pos - lastPos);
+                    trimLeadingAndTrailingWs(&toAdd);
+                    result.push_back(std::move(toAdd));
+                    // Skip more delimiters.
+                    lastPos = s.find_first_not_of(delimiters, pos + 1);
+                } else {
+                    auto toAdd = s.substr(lastPos);
+                    trimLeadingAndTrailingWs(&toAdd);
+                    // No more delimiters in the front so push the last bit.
+                    result.push_back(std::move(toAdd));
+                }
+            } while (pos != std::string::npos && lastPos != std::string::npos);
+
+            return result;
+        }
+
+        static int passCb(char* buf, int size, int rwflag, void* u) {
+            if (rwflag)
+                return -1;
+
+            int passLen =  strlen(CLIENT_CERTS_PRIV_KEY_PASSWD);
+            if (size < passLen + 1) {
+                fprintf(stderr, "Error decrypting private key. Password won't fit to the provided buffer.\n");
+                return -1;
+            }
+            strncpy(buf, CLIENT_CERTS_PRIV_KEY_PASSWD, passLen + 1);
+            return passLen;
+        }
+
+        bool DecryptWithOpenSSL(std::string* key) {
+            using AutoMemBio = std::unique_ptr<BIO, std::function<int(BIO*)>>;
+            using AutoEVPKey = std::unique_ptr<EVP_PKEY, std::function<void(EVP_PKEY*)>>;
+
+            std::vector<char> readBuf(key->begin(), key->end());
+            AutoMemBio memBio(
+                    BIO_new_mem_buf(static_cast<void*>(readBuf.data()), readBuf.size()),
+                    BIO_free);
+            if (!memBio)
+                return false;
+
+            AutoEVPKey decryptedKey(
+                    PEM_read_bio_PrivateKey(memBio.get(), nullptr, passCb, nullptr),
+                    EVP_PKEY_free);
+            if (!decryptedKey.get())
+                return false;
+
+            memBio.reset(BIO_new(BIO_s_mem()));
+            if (!PEM_write_bio_PrivateKey(memBio.get(), decryptedKey.get(),
+                        nullptr, nullptr, 0, nullptr,
+                        nullptr)) {
+                return false;
+            }
+
+            char* data = nullptr;
+            auto dataSize = BIO_get_mem_data(memBio.get(), &data);
+            key->clear();
+            key->append(data, dataSize);
+            return true;
+        }
+
+        void SetupClientCertificates() {
+            OpenSSL_add_all_algorithms();
+
+            /* TODO: This configuration is temporary. It'll be moved to plugin config file when architecture will be defined. */
+            std::string wpeClientCertsConf {
+                "https://ipsecure.int.bbc.co.uk/=/run/certificates/bbc-iplayer-cert.pem,/run/privatekeys/bbc-iplayer-key.pem\r\n"
+                "https://ipsecure.test.bbc.co.uk/=/run/certificates/bbc-iplayer-cert.pem,/run/privatekeys/bbc-iplayer-key.pem\r\n"
+                "https://ipsecure.stage.bbc.co.uk/=/run/certificates/bbc-iplayer-cert.pem,/run/privatekeys/bbc-iplayer-key.pem\r\n"
+                "https://securegate.iplayer.bbc.co.uk/=/run/certificates/bbc-iplayer-cert.pem,/run/privatekeys/bbc-iplayer-key.pem\r\n"
+                "https://pac.networking.certification.bbctvapps.co.uk/=/run/certificates/bbc-iplayer-cert.pem,/run/privatekeys/bbc-iplayer-key.pem\r\n"};
+
+            std::string urls;
+            constexpr auto kUrlsSep = "|";  // not allowed in URI
+            auto lines = tokenize(wpeClientCertsConf, "\r\n");
+            for (const auto& line : lines) {
+                auto urlToFiles = tokenize(line, "=");
+                if (urlToFiles.size() == 2) {
+                    auto files = tokenize(urlToFiles[1], ",");
+                    if (files.size() == 2) {
+                        if (!urls.empty())
+                            urls += kUrlsSep;
+                        urls += urlToFiles[0];
+
+                        std::string certContents = GetFileContent(files[0]);
+
+                        if (certContents.empty()) {
+                            TRACE(Trace::Error, (_T("Empty certificate for %s %s"), files[0].c_str(), urlToFiles[0].c_str()));
+                            continue;
+                        }
+                        std::string keyContents = GetFileContent(files[1]);
+                        if (keyContents.empty()) {
+                            TRACE(Trace::Error, (_T("Empty private key for %s %s"), files[1].c_str(), urlToFiles[0].c_str()));
+                            continue;
+                        }
+                        if (!DecryptWithOpenSSL(&keyContents)) {
+                            TRACE(Trace::Error, (_T("Failed decrypting private key for %s %s"), files[1].c_str(), urlToFiles[0].c_str()));
+                            continue;
+                        }
+                        certContents += "\n" + keyContents;
+                        Core::SystemInfo::SetEnvironment(_T(urlToFiles[0].c_str()), certContents.c_str());
+                    }
+                }
+            }
+
+            if (!urls.empty()) {
+                Core::SystemInfo::SetEnvironment(_T("WPE_CLIENT_CERTIFICATES_URLS"), urls.c_str());
+            }
+        }
+
         uint32_t Configure(PluginHost::IShell* service) override
         {
             #ifndef WEBKIT_GLIB_API
@@ -2410,6 +2552,9 @@ static GSourceFuncs _handlerIntervention =
             } else {
                 Core::SystemInfo::SetEnvironment(_T("CLIENT_IDENTIFIER"), service->Callsign(), !environmentOverride);
             }
+
+            // Setup client certificates
+            SetupClientCertificates();
 
             // WEBKIT_DEBUG
             if (_config.WebkitDebug.Value().empty() == false)
