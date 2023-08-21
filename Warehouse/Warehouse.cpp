@@ -770,19 +770,16 @@ namespace WPEFramework
                     std::string result;
                     const char* input =  path.c_str();
                     const char* filePath = "/etc/device.properties";
-                    char* expandedString = NULL;
                     std::string inputPath;
 
-                    bool success = Utils::processStringWithVariable(input, filePath, &expandedString);
+                    bool success = Utils::ExpandPropertiesInString(input, filePath, inputPath);
                     if(!success)
                     {
                         LOGERR("Path String Expansion failed.\n");
                     }
                     else
                     {
-                        LOGINFO("Expanded String:  %s\n ", expandedString);
-                        inputPath = expandedString;
-                        free(expandedString); // Free the allocated memory when done
+                        LOGINFO("Expanded String:  %s\n ", inputPath.c_str());
                     }
 
                     int maxDepth = 1;
