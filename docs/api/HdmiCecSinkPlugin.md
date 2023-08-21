@@ -2,7 +2,7 @@
 <a name="HdmiCecSinkPlugin"></a>
 # HdmiCecSinkPlugin
 
-**Version: [1.1.0](https://github.com/rdkcentral/rdkservices/blob/main/HdmiCecSink/CHANGELOG.md)**
+**Version: [1.2.0](https://github.com/rdkcentral/rdkservices/blob/main/HdmiCecSink/CHANGELOG.md)**
 
 A org.rdk.HdmiCecSink plugin for Thunder framework.
 
@@ -69,6 +69,7 @@ HdmiCecSink interface methods:
 | [setRoutingChange](#setRoutingChange) | Changes routing while switching between HDMI inputs and TV |
 | [setupARCRouting](#setupARCRouting) | Enable (or disable) HDMI-CEC Audio Return Channel (ARC) routing |
 | [setVendorId](#setVendorId) | Sets a vendor ID used by host device |
+| [setLatencyInfo](#setLatencyInfo) | Sets the Current Latency Values such as Video Latency, Latency Flags,Audio Output Compensated value and Audio Output Delay by sending \<Report Current Latency\> message for Dynamic Auto LipSync Feature |
 
 
 <a name="getActiveRoute"></a>
@@ -1174,430 +1175,39 @@ No Events
 }
 ```
 
-<a name="Notifications"></a>
-# Notifications
+<a name="setLatencyInfo"></a>
+## *setLatencyInfo*
 
-Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#Thunder)] for information on how to register for a notification.
+Sets the Current Latency Values such as Video Latency, Latency Flags,Audio Output Compensated value and Audio Output Delay by sending \<Report Current Latency\> message for Dynamic Auto LipSync Feature.
 
-The following events are provided by the org.rdk.HdmiCecSink plugin:
+### Events
 
-HdmiCecSink interface events:
-
-| Event | Description |
-| :-------- | :-------- |
-| [arcInitiationEvent](#arcInitiationEvent) | Triggered when routing though the HDMI ARC port is successfully established |
-| [arcTerminationEvent](#arcTerminationEvent) | Triggered when routing though the HDMI ARC port terminates |
-| [onActiveSourceChange](#onActiveSourceChange) | Triggered with the active source device changes |
-| [onDeviceAdded](#onDeviceAdded) | Triggered when an HDMI cable is physically connected to the HDMI port on a TV, or the power cable is connected to the source device |
-| [onDeviceInfoUpdated](#onDeviceInfoUpdated) | Triggered when device information changes (physicalAddress, deviceType, vendorID, osdName, cecVersion, powerStatus) |
-| [onDeviceRemoved](#onDeviceRemoved) | Triggered when HDMI cable is physically removed from the HDMI port on a TV or the power cable is removed from the source device |
-| [onImageViewOnMsg](#onImageViewOnMsg) | Triggered when an \<Image View ON\> CEC message is received from the source device |
-| [onInActiveSource](#onInActiveSource) | Triggered when the source is no longer active |
-| [onTextViewOnMsg](#onTextViewOnMsg) | Triggered when a \<Text View ON\> CEC message is received from the source device |
-| [onWakeupFromStandby](#onWakeupFromStandby) | Triggered when the TV is in standby mode and it receives \<Image View ON\>/ \<Text View ON\>/ \<Active Source\> CEC message from the connected source device |
-| [reportAudioDeviceConnectedStatus](#reportAudioDeviceConnectedStatus) | Triggered when an audio device is added or removed |
-| [reportAudioStatusEvent](#reportAudioStatusEvent) | Triggered when CEC \<Report Audio Status\> message of device is received |
-| [reportCecEnabledEvent](#reportCecEnabledEvent) | Triggered when the HDMI-CEC is enabled |
-| [setSystemAudioModeEvent](#setSystemAudioModeEvent) | Triggered when CEC \<Set System Audio Mode\> message of device is received |
-| [shortAudiodesciptorEvent](#shortAudiodesciptorEvent) | Triggered when SAD is received from the connected audio device |
-| [standbyMessageReceived](#standbyMessageReceived) | Triggered when the source device changes status to `STANDBY` |
-
-
-<a name="arcInitiationEvent"></a>
-## *arcInitiationEvent*
-
-Triggered when routing though the HDMI ARC port is successfully established.
+No Events
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.status | string | Whether the operation succeeded |
+| params.videoLatency | string | Indicates the Video Latency value of the target device |
+| params.lowLatencyMode | string | Indicates whether low latency Mode is 0 or 1 |
+| params?.audioOuputCompensated | string | <sup>*(optional)*</sup> Indicates whether Audio Output is delay compensated or not. 0 - (NA)Sent by Non-TV, 1 = TV's audio Output is delay compensated, 2 = Not delay compensated, 3 = Partially delayed |
+| params.audioOutputDelay | string | Indicates the Audio Output Delay value of the target device |
 
 ### Example
+
+#### Request
 
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.arcInitiationEvent",
+    "id": 42,
+    "method": "org.rdk.HdmiCecSink.setLatencyInfo",
     "params": {
-        "status": "success"
-    }
-}
-```
-
-<a name="arcTerminationEvent"></a>
-## *arcTerminationEvent*
-
-Triggered when routing though the HDMI ARC port terminates.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.status | string | Whether the operation succeeded |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.arcTerminationEvent",
-    "params": {
-        "status": "success"
-    }
-}
-```
-
-<a name="onActiveSourceChange"></a>
-## *onActiveSourceChange*
-
-Triggered with the active source device changes.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.logicalAddress | integer | Logical address of the device |
-| params.physicalAddress | string | Physical address of the device |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.onActiveSourceChange",
-    "params": {
-        "logicalAddress": 4,
-        "physicalAddress": "1.0.0.0"
-    }
-}
-```
-
-<a name="onDeviceAdded"></a>
-## *onDeviceAdded*
-
-Triggered when an HDMI cable is physically connected to the HDMI port on a TV, or the power cable is connected to the source device.  After a new device is hotplugged to the port, various information is collected such as CEC version, OSD name, vendor ID, and power status. The `onDeviceAdded` event is sent as soon as any of these details are available. However, the connected device sends the information asynchronously; therefore, the information may not be collected immediately.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.logicalAddress | integer | Logical address of the device |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.onDeviceAdded",
-    "params": {
-        "logicalAddress": 4
-    }
-}
-```
-
-<a name="onDeviceInfoUpdated"></a>
-## *onDeviceInfoUpdated*
-
-Triggered when device information changes (physicalAddress, deviceType, vendorID, osdName, cecVersion, powerStatus).
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.logicalAddress | integer | Logical address of the device |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.onDeviceInfoUpdated",
-    "params": {
-        "logicalAddress": 4
-    }
-}
-```
-
-<a name="onDeviceRemoved"></a>
-## *onDeviceRemoved*
-
-Triggered when HDMI cable is physically removed from the HDMI port on a TV or the power cable is removed from the source device. The device is considered removed when no ACK messages are received after pinging the device.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.logicalAddress | integer | Logical address of the device |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.onDeviceRemoved",
-    "params": {
-        "logicalAddress": 4
-    }
-}
-```
-
-<a name="onImageViewOnMsg"></a>
-## *onImageViewOnMsg*
-
-Triggered when an \<Image View ON\> CEC message is received from the source device.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.logicalAddress | integer | Logical address of the device |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.onImageViewOnMsg",
-    "params": {
-        "logicalAddress": 4
-    }
-}
-```
-
-<a name="onInActiveSource"></a>
-## *onInActiveSource*
-
-Triggered when the source is no longer active.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.logicalAddress | integer | Logical address of the device |
-| params.physicalAddress | string | Physical address of the device |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.onInActiveSource",
-    "params": {
-        "logicalAddress": 4,
-        "physicalAddress": "1.0.0.0"
-    }
-}
-```
-
-<a name="onTextViewOnMsg"></a>
-## *onTextViewOnMsg*
-
-Triggered when a \<Text View ON\> CEC message is received from the source device.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.logicalAddress | integer | Logical address of the device |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.onTextViewOnMsg",
-    "params": {
-        "logicalAddress": 4
-    }
-}
-```
-
-<a name="onWakeupFromStandby"></a>
-## *onWakeupFromStandby*
-
-Triggered when the TV is in standby mode and it receives \<Image View ON\>/ \<Text View ON\>/ \<Active Source\> CEC message from the connected source device. This event will be notified to UI/Application and application will bring the TV out of standby.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.logicalAddress | integer | Logical address of the device |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.onWakeupFromStandby",
-    "params": {
-        "logicalAddress": 4
-    }
-}
-```
-
-<a name="reportAudioDeviceConnectedStatus"></a>
-## *reportAudioDeviceConnectedStatus*
-
-Triggered when an audio device is added or removed.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.status | string | The status |
-| params.audioDeviceConnected | string | `true` if an audio device is connected, otherwise `false` |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.reportAudioDeviceConnectedStatus",
-    "params": {
-        "status": "success",
-        "audioDeviceConnected": "true"
-    }
-}
-```
-
-<a name="reportAudioStatusEvent"></a>
-## *reportAudioStatusEvent*
-
-Triggered when CEC \<Report Audio Status\> message of device is received.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.muteStatus | integer | The mute status |
-| params.volumeLevel | integer | The volume level of device |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.reportAudioStatusEvent",
-    "params": {
-        "muteStatus": 0,
-        "volumeLevel": 28
-    }
-}
-```
-
-<a name="reportCecEnabledEvent"></a>
-## *reportCecEnabledEvent*
-
-Triggered when the HDMI-CEC is enabled.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.cecEnable | string | Whether the cec is enabled |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.reportCecEnabledEvent",
-    "params": {
-        "cecEnable": "true"
-    }
-}
-```
-
-<a name="setSystemAudioModeEvent"></a>
-## *setSystemAudioModeEvent*
-
-Triggered when CEC \<Set System Audio Mode\> message of device is received.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.audioMode | string | Audio mode of system |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.setSystemAudioModeEvent",
-    "params": {
-        "audioMode": "On"
-    }
-}
-```
-
-<a name="shortAudiodesciptorEvent"></a>
-## *shortAudiodesciptorEvent*
-
-Triggered when SAD is received from the connected audio device. See `requestShortAudioDescriptor`.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.ShortAudioDescriptor | array | The SAD information (formatid, audioFormatCode, numberofdescriptor) |
-| params.ShortAudioDescriptor[#] | integer |  |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.shortAudiodesciptorEvent",
-    "params": {
-        "ShortAudioDescriptor": [
-            [
-                0,
-                10,
-                2
-            ]
-        ]
-    }
-}
-```
-
-<a name="standbyMessageReceived"></a>
-## *standbyMessageReceived*
-
-Triggered when the source device changes status to `STANDBY`.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.logicalAddress | integer | Logical address of the device |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.standbyMessageReceived",
-    "params": {
-        "logicalAddress": 4
+        "videoLatency": "2",
+        "lowLatencyMode": "1",
+        "audioOuputCompensated": "1",
+        "audioOutputDelay": "20"
     }
 }
 ```
