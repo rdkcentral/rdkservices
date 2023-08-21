@@ -25,6 +25,7 @@
   - [HdmiCec](api/HdmiCecPlugin.md)
   - [HdmiCecSink](api/HdmiCecSinkPlugin.md)
   - [HdmiInput](api/HdmiInputPlugin.md)
+  - [LEDControl](api/LEDControlPlugin.md)
   - [LinearPlaybackControl](api/LinearPlaybackControlPlugin.md)
   - [LocationSync](api/LocationSyncPlugin.md)
   - [LoggingPreferences](api/LoggingPreferencesPlugin.md)
