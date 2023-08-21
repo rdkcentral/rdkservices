@@ -767,30 +767,35 @@ namespace WPEFramework
                     }
 
                     // allow search recursively if path ends by '/*[|...]', otherwise, for cases like /*.ini, searching process will be done only by given path
-                    std::string maxDepth = "-maxdepth 1 ";
-                    if (path.find("/*", path.length() - 2) != std::string::npos)
-                        maxDepth = "";
+                    std::string result;
+                    const char* input =  path.c_str();
+                    const char* filePath = "/etc/device.properties";
+                    std::string inputPath;
 
-                    std::string script = ". /etc/device.properties; fp=\"";
-                    script += path;
-                    script += "\"; p=${fp%/*}; f=${fp##*/}; find $p -mindepth 1 ";
-                    script += maxDepth;
-                    script += "! -path \"*/\\.*\" -name \"$f\"";
-
-                    for (auto i = exclusions.begin(); ++i != exclusions.end(); )
+                    bool success = Utils::ExpandPropertiesInString(input, filePath, inputPath);
+                    if(!success)
                     {
-                        auto exclusion = *i;
-                        script += " ! -path \"";
-                        Utils::String::trim(exclusion);
-                        script += "$p/";
-                        script += exclusion;
-                        script += "\"";
+                        LOGERR("Path String Expansion failed.\n");
+                    }
+                    else
+                    {
+                        LOGINFO("Expanded String:  %s\n ", inputPath.c_str());
                     }
 
-                    script += " 2>/dev/null | head -n 10";
-                    std::string result = Utils::cRunScript(script.c_str());
-                    Utils::String::trim(result);
-
+                    int maxDepth = 1;
+                    int mindepth = 1;
+                    if (inputPath.find("/*", path.length() - 2) != std::string::npos)
+                        maxDepth = 0;
+                    if (Utils::searchFiles(inputPath, maxDepth, mindepth, exclusions,result))
+                    {
+                        LOGINFO("searchResult is %s ", result.c_str());
+                        Utils::String::trim(result);
+                    }
+                    else
+                    {
+                        LOGERR("Error: %s", result.c_str());
+                    }
+                    
                     totalPathsCounter++;
                     if (result.length() > 1)
                     {
