@@ -325,7 +325,8 @@ string AVInput::currentVideoMode(bool &success)
 uint32_t AVInput::startInput(const JsonObject& parameters, JsonObject& response)
 {
     LOGINFOMETHOD();
-
+    
+    string sPortId = parameters["portId"].String();
     string sType = parameters["typeOfInput"].String();
     int portId = 0;
     int iType = 0;
@@ -333,7 +334,7 @@ uint32_t AVInput::startInput(const JsonObject& parameters, JsonObject& response)
     if (parameters.HasLabel("portId") && parameters.HasLabel("typeOfInput"))
     {
         try {
-            portId = parameters["portId"].Number();
+            portId = stoi(sPortId);
             iType = getTypeOfInput (sType);
         }catch (...) {
             LOGWARN("Invalid Arguments");
