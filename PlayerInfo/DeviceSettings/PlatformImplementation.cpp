@@ -188,6 +188,13 @@ public:
         return (Core::ERROR_NONE);
     }
 
+    uint32_t IsAudioEquivalenceEnabled(bool& isEnbaled /* @out */) const override
+    {
+        isEnbaled = false;
+
+        return (Core::ERROR_NONE);
+    }
+
     uint32_t Register(Exchange::Dolby::IOutput::INotification* notification) override
     {
         _adminLock.Lock();
