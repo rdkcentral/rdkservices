@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.3.2] - 2023-08-22
+### Added
+- Added Documentation for AC4 implementation in DisaplaySettings
+
 ## [1.3.1] - 2023-08-03
 ### Fixed
 - Fixed issues when ARC init and audio disconnected events occur at same time in some AVR
