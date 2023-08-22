@@ -17,8 +17,8 @@
 * limitations under the License.
 */
 
-#ifndef CONTROLSETTINGS_H
-#define CONTROLSETTINGS_H
+#ifndef AVOUTPUT_H
+#define AVOUTPUT_H
 
 #include <string>
 #include "libIARM.h"
@@ -34,26 +34,26 @@
 #include <sys/stat.h>
 #include <vector>
 
-//Default ControlSettingsSTB
+//Default AVOutputSTB
 #ifndef DEVICE_TYPE
-#define DEVICE_TYPE ControlSettingsSTB
-#include "ControlSettingsSTB.h"
+#define DEVICE_TYPE AVOutputSTB
+#include "AVOutputSTB.h"
 #else
-#include "ControlSettingsTV.h"
+#include "AVOutputTV.h"
 #endif
 
 namespace WPEFramework {
 namespace Plugin {
 
-    class ControlSettings : public DEVICE_TYPE {
+    class AVOutput : public DEVICE_TYPE {
 
     private:
-        ControlSettings(const ControlSettings&) = delete;
-        ControlSettings& operator=(const ControlSettings&) = delete;
+        AVOutput(const AVOutput&) = delete;
+        AVOutput& operator=(const AVOutput&) = delete;
 
    public:
-        ControlSettings();
-        ~ControlSettings();
+        AVOutput();
+        ~AVOutput();
 
     private:
         uint8_t _skipURL;
@@ -70,7 +70,7 @@ namespace Plugin {
         virtual string Information() const override { return {}; }
 	virtual void AddRef() const { }
 	virtual uint32_t Release() const {return 0; }
-        BEGIN_INTERFACE_MAP(ControlSettings)
+        BEGIN_INTERFACE_MAP(AVOutput)
         INTERFACE_ENTRY(PluginHost::IPlugin)
         INTERFACE_ENTRY(PluginHost::IDispatcher)
         END_INTERFACE_MAP

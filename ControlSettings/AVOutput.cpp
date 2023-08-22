@@ -18,7 +18,7 @@
 */
 
 #include <string>
-#include "ControlSettings.h"
+#include "AVOutput.h"
 #include "UtilsIarm.h"
 
 const char* PLUGIN_IARM_BUS_NAME = "Thunder_Plugins";
@@ -28,9 +28,9 @@ const char* PLUGIN_IARM_BUS_NAME = "Thunder_Plugins";
 namespace WPEFramework {
 namespace Plugin {
 
-    SERVICE_REGISTRATION(ControlSettings,1, 0);
+    SERVICE_REGISTRATION(AVOutput,1, 0);
 
-    ControlSettings::ControlSettings()
+    AVOutput::AVOutput()
                : _skipURL(0)
     {
         LOGINFO("Entry\n");
@@ -43,12 +43,12 @@ namespace Plugin {
         LOGINFO("Exit \n");
     }
 
-    ControlSettings::~ControlSettings()
+    AVOutput::~AVOutput()
     {
         LOGINFO();
     }
 
-    const std::string ControlSettings::Initialize(PluginHost::IShell* service)
+    const std::string AVOutput::Initialize(PluginHost::IShell* service)
     {
 	LOGINFO("Entry\n");
         
@@ -61,14 +61,14 @@ namespace Plugin {
         return (service != nullptr ? _T("") : _T("No service."));
     }
 
-    void ControlSettings::Deinitialize(PluginHost::IShell* service)
+    void AVOutput::Deinitialize(PluginHost::IShell* service)
     {
         LOGINFO();
 
 	DEVICE_TYPE::getInstance()->Deinitialize();
     }
 
-    void ControlSettings::InitializeIARM()
+    void AVOutput::InitializeIARM()
     {
 #if !defined (HDMIIN_4K_ZOOM)
         if (IARMinit())
@@ -81,7 +81,7 @@ namespace Plugin {
 #endif
     }
 
-    void ControlSettings::DeinitializeIARM()
+    void AVOutput::DeinitializeIARM()
     {
 #if !defined (HDMIIN_4K_ZOOM)
         if (isIARMConnected())
@@ -94,40 +94,40 @@ namespace Plugin {
 #endif
     }
 
-    bool ControlSettings::IARMinit() {
+    bool AVOutput::IARMinit() {
         IARM_Result_t res;
         bool result = false;
 
         if ( Utils::IARM::isConnected() ) {
-            LOGINFO("ControlSettingsPlugin: IARM already connected");
+            LOGINFO("AVOutputPlugin: IARM already connected");
             result = true;
         } else {
             result = Utils::IARM::init();
-            LOGINFO("ControlSettingsPlugin: IARM_Bus_Init: %d", result);
+            LOGINFO("AVOutputPlugin: IARM_Bus_Init: %d", result);
             if ( result /* already inited or connected */) {
 
                 res = IARM_Bus_Connect();
-                LOGINFO("ControlSettingsPlugin: IARM_Bus_Connect: %d", res);
+                LOGINFO("AVOutputPlugin: IARM_Bus_Connect: %d", res);
                 if (res == IARM_RESULT_SUCCESS ||
                     res == IARM_RESULT_INVALID_STATE /* already connected or not inited */) {
 
                     result = Utils::IARM::isConnected();
                 } else {
-                    LOGERR("ControlSettingsPlugin: IARM_Bus_Connect failure: %d", res);
+                    LOGERR("AVOutputPlugin: IARM_Bus_Connect failure: %d", res);
                 }
             } else {
-                LOGERR("ControlSettingsPlugin: IARM_Bus_Init failure");
+                LOGERR("AVOutputPlugin: IARM_Bus_Init failure");
             }
         }
 
         return result;
     }
 
-    bool ControlSettings::isIARMConnected() {
+    bool AVOutput::isIARMConnected() {
         IARM_Result_t res;
         int isRegistered = 0;
         res = IARM_Bus_IsConnected(PLUGIN_IARM_BUS_NAME, &isRegistered);
-        LOGINFO("ControlSettingsPlugin: IARM_Bus_IsConnected: %d (%d)", res, isRegistered);
+        LOGINFO("AVOutputPlugin: IARM_Bus_IsConnected: %d (%d)", res, isRegistered);
 
         return (isRegistered == 1);
     }

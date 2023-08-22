@@ -18,10 +18,10 @@
 */
 
 #include <string>
-#include "ControlSettingsTV.h"
+#include "AVOuputTV.h"
 
 #define BUFFER_SIZE     (128)
-#define TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.ControlSettings.Source"
+#define TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOuput.Source"
 
 #define registerMethod(...) Register(__VA_ARGS__);GetHandler(2)->Register<JsonObject, JsonObject>(__VA_ARGS__)
 
@@ -40,7 +40,7 @@ static const char *component_color[] = {
 namespace WPEFramework {
 namespace Plugin {
 
-    ControlSettingsTV* ControlSettingsTV::instance = nullptr;
+    AVOuputTV* AVOuputTV::instance = nullptr;
 
     static JsonArray getSupportedVideoFormat(void)
     {
@@ -193,119 +193,119 @@ namespace Plugin {
         return supportedFrameRate;
     }
 
-    ControlSettingsTV::ControlSettingsTV(): PluginHost::JSONRPC()
+    AVOuputTV::AVOuputTV(): PluginHost::JSONRPC()
 					    , m_currentHdmiInResoluton (dsVIDEO_PIXELRES_1920x1080)
                                             , m_videoZoomMode (tvDisplayMode_NORMAL)
                                             , m_isDisabledHdmiIn4KZoom (false)
 					    , rfc_caller_id()
     {
         LOGINFO("Entry\n");
-        ControlSettingsTV::instance = this;
+        AVOuputTV::instance = this;
 	CreateHandler({ 2 });
-        Register("getBacklight", &ControlSettingsTV::getBacklight, this);
-        registerMethod("setBacklight", &ControlSettingsTV::setBacklight, this);
-        registerMethod("resetBacklight", &ControlSettingsTV::resetBacklight, this);
-        registerMethod("getBacklightCaps", &ControlSettingsTV::getBacklightCaps, this);
-        registerMethod("getBrightnessCaps", &ControlSettingsTV::getBrightnessCaps, this);
-        Register("getBrightness", &ControlSettingsTV::getBrightness, this);
-        registerMethod("setBrightness", &ControlSettingsTV::setBrightness, this);
-        registerMethod("resetBrightness", &ControlSettingsTV::resetBrightness, this);
-        Register("getContrast", &ControlSettingsTV::getContrast, this);
-        registerMethod("setContrast", &ControlSettingsTV::setContrast, this);
-        registerMethod("resetContrast", &ControlSettingsTV::resetContrast, this);
-	registerMethod("getContrastCaps", &ControlSettingsTV::getContrastCaps, this);
-        Register("getSharpness", &ControlSettingsTV::getSharpness, this);
-        registerMethod("setSharpness", &ControlSettingsTV::setSharpness, this);
-        registerMethod("resetSharpness", &ControlSettingsTV::resetSharpness, this);
-	registerMethod("getSharpnessCaps", &ControlSettingsTV::getSharpnessCaps, this);
-        Register("getSaturation", &ControlSettingsTV::getSaturation, this);
-        registerMethod("setSaturation", &ControlSettingsTV::setSaturation, this);
-        registerMethod("resetSaturation", &ControlSettingsTV::resetSaturation, this);
-	registerMethod("getSaturationCaps", &ControlSettingsTV::getSaturationCaps, this);
-        Register("getHue", &ControlSettingsTV::getHue, this);
-        registerMethod("setHue", &ControlSettingsTV::setHue, this);
-        registerMethod("resetHue", &ControlSettingsTV::resetHue, this);
-	registerMethod("gethueCaps", &ControlSettingsTV::getHueCaps, this);
-        Register("getColorTemperature", &ControlSettingsTV::getColorTemperature, this);
-        registerMethod("setColorTemperature", &ControlSettingsTV::setColorTemperature, this);
-        registerMethod("resetColorTemperature", &ControlSettingsTV::resetColorTemperature, this);
-	registerMethod("getColorTemperatureCaps", &ControlSettingsTV::getColorTemperatureCaps, this);
+        Register("getBacklight", &AVOuputTV::getBacklight, this);
+        registerMethod("setBacklight", &AVOuputTV::setBacklight, this);
+        registerMethod("resetBacklight", &AVOuputTV::resetBacklight, this);
+        registerMethod("getBacklightCaps", &AVOuputTV::getBacklightCaps, this);
+        registerMethod("getBrightnessCaps", &AVOuputTV::getBrightnessCaps, this);
+        Register("getBrightness", &AVOuputTV::getBrightness, this);
+        registerMethod("setBrightness", &AVOuputTV::setBrightness, this);
+        registerMethod("resetBrightness", &AVOuputTV::resetBrightness, this);
+        Register("getContrast", &AVOuputTV::getContrast, this);
+        registerMethod("setContrast", &AVOuputTV::setContrast, this);
+        registerMethod("resetContrast", &AVOuputTV::resetContrast, this);
+	registerMethod("getContrastCaps", &AVOuputTV::getContrastCaps, this);
+        Register("getSharpness", &AVOuputTV::getSharpness, this);
+        registerMethod("setSharpness", &AVOuputTV::setSharpness, this);
+        registerMethod("resetSharpness", &AVOuputTV::resetSharpness, this);
+	registerMethod("getSharpnessCaps", &AVOuputTV::getSharpnessCaps, this);
+        Register("getSaturation", &AVOuputTV::getSaturation, this);
+        registerMethod("setSaturation", &AVOuputTV::setSaturation, this);
+        registerMethod("resetSaturation", &AVOuputTV::resetSaturation, this);
+	registerMethod("getSaturationCaps", &AVOutputTV::getSaturationCaps, this);
+        Register("getHue", &AVOutputTV::getHue, this);
+        registerMethod("setHue", &AVOutputTV::setHue, this);
+        registerMethod("resetHue", &AVOutputTV::resetHue, this);
+	registerMethod("gethueCaps", &AVOutputTV::getHueCaps, this);
+        Register("getColorTemperature", &AVOutputTV::getColorTemperature, this);
+        registerMethod("setColorTemperature", &AVOutputTV::setColorTemperature, this);
+        registerMethod("resetColorTemperature", &AVOutputTV::resetColorTemperature, this);
+	registerMethod("getColorTemperatureCaps", &AVOutputTV::getColorTemperatureCaps, this);
 
-        registerMethod("getComponentCaps", &ControlSettingsTV::getComponentCaps, this);
-        registerMethod("getComponentSaturation", &ControlSettingsTV::getComponentSaturation, this);
-        registerMethod("setComponentSaturation", &ControlSettingsTV::setComponentSaturation, this);
-        registerMethod("resetComponentSaturation", &ControlSettingsTV::resetComponentSaturation, this);
-        registerMethod("getComponentHue", &ControlSettingsTV::getComponentHue, this);
-        registerMethod("setComponentHue", &ControlSettingsTV::setComponentHue, this);
-        registerMethod("resetComponentHue", &ControlSettingsTV::resetComponentHue, this);
-        registerMethod("getComponentLuma", &ControlSettingsTV::getComponentLuma, this);
-        registerMethod("setComponentLuma", &ControlSettingsTV::setComponentLuma, this);
-        registerMethod("resetComponentLuma", &ControlSettingsTV::resetComponentLuma, this);
-        registerMethod("getBacklightDimmingMode", &ControlSettingsTV::getBacklightDimmingMode, this);
-        registerMethod("setBacklightDimmingMode", &ControlSettingsTV::setBacklightDimmingMode, this);
-        registerMethod("resetBacklightDimmingMode", &ControlSettingsTV::resetBacklightDimmingMode, this);
-        registerMethod("getDimmingModeCaps", &ControlSettingsTV::getDimmingModeCaps, this);
-        registerMethod("getAutoBacklightControl", &ControlSettingsTV::getAutoBacklightControl, this);
-        registerMethod("setAutoBacklightControl", &ControlSettingsTV::setAutoBacklightControl, this);
-        registerMethod("resetAutoBacklightControl", &ControlSettingsTV::resetAutoBacklightControl, this);
-        registerMethod("getAutoBacklightControlCaps", &ControlSettingsTV::getAutoBacklightControlCaps, this);
+        registerMethod("getComponentCaps", &AVOutputTV::getComponentCaps, this);
+        registerMethod("getComponentSaturation", &AVOutputTV::getComponentSaturation, this);
+        registerMethod("setComponentSaturation", &AVOutputTV::setComponentSaturation, this);
+        registerMethod("resetComponentSaturation", &AVOutputTV::resetComponentSaturation, this);
+        registerMethod("getComponentHue", &AVOutputTV::getComponentHue, this);
+        registerMethod("setComponentHue", &AVOutputTV::setComponentHue, this);
+        registerMethod("resetComponentHue", &AVOutputTV::resetComponentHue, this);
+        registerMethod("getComponentLuma", &AVOutputTV::getComponentLuma, this);
+        registerMethod("setComponentLuma", &AVOutputTV::setComponentLuma, this);
+        registerMethod("resetComponentLuma", &AVOutputTV::resetComponentLuma, this);
+        registerMethod("getBacklightDimmingMode", &AVOutputTV::getBacklightDimmingMode, this);
+        registerMethod("setBacklightDimmingMode", &AVOutputTV::setBacklightDimmingMode, this);
+        registerMethod("resetBacklightDimmingMode", &AVOutputTV::resetBacklightDimmingMode, this);
+        registerMethod("getDimmingModeCaps", &AVOutputTV::getDimmingModeCaps, this);
+        registerMethod("getAutoBacklightControl", &AVOutputTV::getAutoBacklightControl, this);
+        registerMethod("setAutoBacklightControl", &AVOutputTV::setAutoBacklightControl, this);
+        registerMethod("resetAutoBacklightControl", &AVOutputTV::resetAutoBacklightControl, this);
+        registerMethod("getAutoBacklightControlCaps", &AVOutputTV::getAutoBacklightControlCaps, this);
 
-        registerMethod("getSupportedDolbyVisionModes", &ControlSettingsTV::getSupportedDolbyVisionModes, this);
-        registerMethod("getDolbyVisionMode", &ControlSettingsTV::getDolbyVisionMode, this);
-        registerMethod("setDolbyVisionMode", &ControlSettingsTV::setDolbyVisionMode, this);
-        registerMethod("resetDolbyVisionMode", &ControlSettingsTV::resetDolbyVisionMode, this);
-        registerMethod("getDolbyVisionModeCaps", &ControlSettingsTV::getDolbyVisionModeCaps, this);
-        registerMethod("getSupportedHLGModes", &ControlSettingsTV::getSupportedHLGModes, this);
-        registerMethod("getHLGMode", &ControlSettingsTV::getHLGMode, this);
-        registerMethod("setHLGMode", &ControlSettingsTV::setHLGMode, this);
-        registerMethod("resetHLGMode", &ControlSettingsTV::resetHLGMode, this);
-	registerMethod("getHLGModeCaps", &ControlSettingsTV::getHLGModeCaps, this);
-        registerMethod("getSupportedHDR10Modes", &ControlSettingsTV::getSupportedHDR10Modes, this);
-	registerMethod("getHDR10Mode", &ControlSettingsTV::getHDR10Mode, this);
-	registerMethod("setHDR10Mode", &ControlSettingsTV::setHDR10Mode, this);
-	registerMethod("resetHDR10Mode", &ControlSettingsTV::resetHDR10Mode, this);
-	registerMethod("getHDR10ModeCaps", &ControlSettingsTV::getHDR10ModeCaps, this);
+        registerMethod("getSupportedDolbyVisionModes", &AVOutputTV::getSupportedDolbyVisionModes, this);
+        registerMethod("getDolbyVisionMode", &AVOutputTV::getDolbyVisionMode, this);
+        registerMethod("setDolbyVisionMode", &AVOutputTV::setDolbyVisionMode, this);
+        registerMethod("resetDolbyVisionMode", &AVOutputTV::resetDolbyVisionMode, this);
+        registerMethod("getDolbyVisionModeCaps", &AVOutputTV::getDolbyVisionModeCaps, this);
+        registerMethod("getSupportedHLGModes", &AVOutputTV::getSupportedHLGModes, this);
+        registerMethod("getHLGMode", &AVOutputTV::getHLGMode, this);
+        registerMethod("setHLGMode", &AVOutputTV::setHLGMode, this);
+        registerMethod("resetHLGMode", &AVOutputTV::resetHLGMode, this);
+	registerMethod("getHLGModeCaps", &AVOutputTV::getHLGModeCaps, this);
+        registerMethod("getSupportedHDR10Modes", &AVOutputTV::getSupportedHDR10Modes, this);
+	registerMethod("getHDR10Mode", &AVOutputTV::getHDR10Mode, this);
+	registerMethod("setHDR10Mode", &AVOutputTV::setHDR10Mode, this);
+	registerMethod("resetHDR10Mode", &AVOutputTV::resetHDR10Mode, this);
+	registerMethod("getHDR10ModeCaps", &AVOutputTV::getHDR10ModeCaps, this);
 	
-	registerMethod("getWBInfo", &ControlSettingsTV::getWBInfo, this);
-	registerMethod("getWBCtrl", &ControlSettingsTV::getWBCtrl, this);
-	registerMethod("setWBCtrl", &ControlSettingsTV::setWBCtrl, this);
-	registerMethod("resetWBCtrl", &ControlSettingsTV::resetWBCtrl, this);
+	registerMethod("getWBInfo", &AVOutputTV::getWBInfo, this);
+	registerMethod("getWBCtrl", &AVOutputTV::getWBCtrl, this);
+	registerMethod("setWBCtrl", &AVOutputTV::setWBCtrl, this);
+	registerMethod("resetWBCtrl", &AVOutputTV::resetWBCtrl, this);
 
-	registerMethod("getAspectRatio2", &ControlSettingsTV::getAspectRatio2, this);
-        registerMethod("setAspectRatio2", &ControlSettingsTV::setAspectRatio2, this);
-        registerMethod("resetAspectRatio", &ControlSettingsTV::resetAspectRatio, this);
-        registerMethod("getAspectRatioCaps", &ControlSettingsTV::getAspectRatioCaps, this);
+	registerMethod("getAspectRatio2", &AVOutputTV::getAspectRatio2, this);
+        registerMethod("setAspectRatio2", &AVOutputTV::setAspectRatio2, this);
+        registerMethod("resetAspectRatio", &AVOutputTV::resetAspectRatio, this);
+        registerMethod("getAspectRatioCaps", &AVOutputTV::getAspectRatioCaps, this);
 
-	GetHandler(2)->Register<JsonObject, JsonObject>("getBacklight", &ControlSettingsTV::getBacklight2, this);
-        GetHandler(2)->Register<JsonObject, JsonObject>("getBrightness", &ControlSettingsTV::getBrightness2, this);
-        GetHandler(2)->Register<JsonObject, JsonObject>("getContrast", &ControlSettingsTV::getContrast2, this);
-        GetHandler(2)->Register<JsonObject, JsonObject>("getSharpness", &ControlSettingsTV::getSharpness2, this);
-        GetHandler(2)->Register<JsonObject, JsonObject>("getSaturation", &ControlSettingsTV::getSaturation2, this);
-        GetHandler(2)->Register<JsonObject, JsonObject>("gethue", &ControlSettingsTV::getHue2, this);
-        GetHandler(2)->Register<JsonObject, JsonObject>("getColorTemperature", &ControlSettingsTV::getColorTemperature2, this);
+	GetHandler(2)->Register<JsonObject, JsonObject>("getBacklight", &AVOutputTV::getBacklight2, this);
+        GetHandler(2)->Register<JsonObject, JsonObject>("getBrightness", &AVOutputTV::getBrightness2, this);
+        GetHandler(2)->Register<JsonObject, JsonObject>("getContrast", &AVOutputTV::getContrast2, this);
+        GetHandler(2)->Register<JsonObject, JsonObject>("getSharpness", &AVOutputTV::getSharpness2, this);
+        GetHandler(2)->Register<JsonObject, JsonObject>("getSaturation", &AVOutputTV::getSaturation2, this);
+        GetHandler(2)->Register<JsonObject, JsonObject>("gethue", &AVOutputTV::getHue2, this);
+        GetHandler(2)->Register<JsonObject, JsonObject>("getColorTemperature", &AVOutputTV::getColorTemperature2, this);
 
-	registerMethod("getPictureMode", &ControlSettingsTV::getPictureMode, this);
-        registerMethod("setPictureMode", &ControlSettingsTV::setPictureMode, this);
-	registerMethod("resetPictureMode", &ControlSettingsTV::resetPictureMode, this);
-        registerMethod("getSupportedPictureModes", &ControlSettingsTV::getSupportedPictureModes, this);
-	registerMethod("enableWBMode", &ControlSettingsTV::enableWBMode, this);
+	registerMethod("getPictureMode", &AVOutputTV::getPictureMode, this);
+        registerMethod("setPictureMode", &AVOutputTV::setPictureMode, this);
+	registerMethod("resetPictureMode", &AVOutputTV::resetPictureMode, this);
+        registerMethod("getSupportedPictureModes", &AVOutputTV::getSupportedPictureModes, this);
+	registerMethod("enableWBMode", &AVOutputTV::enableWBMode, this);
 
-	registerMethod("setBacklightFade", &ControlSettingsTV::setBacklightFade, this);
+	registerMethod("setBacklightFade", &AVOutputTV::setBacklightFade, this);
 
-	registerMethod("getLowLatencyState", &ControlSettingsTV::getLowLatencyState, this);
-        registerMethod("setLowLatencyState", &ControlSettingsTV::setLowLatencyState, this);
-        registerMethod("resetLowLatencyState", &ControlSettingsTV::resetLowLatencyState, this);
-        registerMethod("getLowLatencyStateCaps", &ControlSettingsTV::getLowLatencyStateCaps, this);
+	registerMethod("getLowLatencyState", &AVOutputTV::getLowLatencyState, this);
+        registerMethod("setLowLatencyState", &AVOutputTV::setLowLatencyState, this);
+        registerMethod("resetLowLatencyState", &AVOutputTV::resetLowLatencyState, this);
+        registerMethod("getLowLatencyStateCaps", &AVOutputTV::getLowLatencyStateCaps, this);
 
         LOGINFO("Exit\n");
     }
     
-    ControlSettingsTV :: ~ControlSettingsTV()
+    AVOutputTV :: ~AVOutputTV()
     {
         LOGINFO();    
     }
 
-    void ControlSettingsTV::Initialize()
+    void AVOutputTV::Initialize()
     {
        LOGINFO("Entry\n");
        
@@ -319,9 +319,9 @@ namespace Plugin {
             device::HdmiInput::getInstance().getCurrentVideoModeObj(vidResolution);
             m_currentHdmiInResoluton = vidResolution.pixelResolution;
         } catch (...){
-            LOGWARN("ControlSettingsPlugins: getCurrentVideoModeObj failed");
+            LOGWARN("AVOutputPlugins: getCurrentVideoModeObj failed");
         }
-        LOGWARN("ControlSettingsPlugins: ControlSettings Initialize m_currentHdmiInResoluton:%d m_mod:%d", m_currentHdmiInResoluton, m_videoZoomMode);
+        LOGWARN("AVOutputPlugins: AVOutput Initialize m_currentHdmiInResoluton:%d m_mod:%d", m_currentHdmiInResoluton, m_videoZoomMode);
 
         ret = tvInit();
 
@@ -414,7 +414,7 @@ namespace Plugin {
         LOGINFO("Exit\n" );
     }
 
-    void ControlSettingsTV::Deinitialize()
+    void AVOutputTV::Deinitialize()
     {
        LOGINFO("Entry\n");
 
@@ -432,15 +432,15 @@ namespace Plugin {
     }
 
     //Event
-    void ControlSettingsTV::dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+    void AVOutputTV::dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
     {
         LOGINFO("Entry %s\n",__FUNCTION__);
         LOGINFO("Exit %s\n",__FUNCTION__);
     }
 
-    void ControlSettingsTV::dsHdmiStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+    void AVOutputTV::dsHdmiStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
     {
-        if(!ControlSettingsTV::instance)
+        if(!AVOutputTV::instance)
             return;
 
         if (IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS == eventId)
@@ -448,25 +448,25 @@ namespace Plugin {
             IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
             int hdmi_in_port = eventData->data.hdmi_in_status.port;
             bool hdmi_in_status = eventData->data.hdmi_in_status.isPresented;
-            LOGWARN("ControlSettingsPlugins: Received IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS  event  port: %d, started: %d", hdmi_in_port,hdmi_in_status);
+            LOGWARN("AVOutputPlugins: Received IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS  event  port: %d, started: %d", hdmi_in_port,hdmi_in_status);
             if (!hdmi_in_status){
                 tvError_t ret = tvERROR_NONE;
-                ControlSettingsTV::instance->m_isDisabledHdmiIn4KZoom = false;
-                LOGWARN("ControlSettingsPlugins: Hdmi streaming stopped here reapply the global zoom settings:%d here. m_isDisabledHdmiIn4KZoom: %d", ControlSettingsTV::instance->m_videoZoomMode, ControlSettingsTV::instance->m_isDisabledHdmiIn4KZoom);
-                ret = SetAspectRatio((tvDisplayMode_t)ControlSettingsTV::instance->m_videoZoomMode);
+                AVOutputTV::instance->m_isDisabledHdmiIn4KZoom = false;
+                LOGWARN("AVOutputPlugins: Hdmi streaming stopped here reapply the global zoom settings:%d here. m_isDisabledHdmiIn4KZoom: %d", AVOutputTV::instance->m_videoZoomMode, AVOutputTV::instance->m_isDisabledHdmiIn4KZoom);
+                ret = SetAspectRatio((tvDisplayMode_t)AVOutputTV::instance->m_videoZoomMode);
                 if (ret != tvERROR_NONE) {
                     LOGWARN("SetAspectRatio set Failed");
                 }
             }else {
-                ControlSettingsTV::instance->m_isDisabledHdmiIn4KZoom = true;
-                LOGWARN("ControlSettingsPlugins: m_isDisabledHdmiIn4KZoom: %d", ControlSettingsTV::instance->m_isDisabledHdmiIn4KZoom);
+                AVOutputTV::instance->m_isDisabledHdmiIn4KZoom = true;
+                LOGWARN("AVOutputPlugins: m_isDisabledHdmiIn4KZoom: %d", AVOutputTV::instance->m_isDisabledHdmiIn4KZoom);
             }
         }
     }
 
-    void ControlSettingsTV::dsHdmiVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+    void AVOutputTV::dsHdmiVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
     {
-        if(!ControlSettingsTV::instance)
+        if(!AVOutputTV::instance)
             return;
 
         if (IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE == eventId)
@@ -474,31 +474,31 @@ namespace Plugin {
             IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
             int hdmi_in_port = eventData->data.hdmi_in_video_mode.port;
             dsVideoPortResolution_t resolution;
-            ControlSettingsTV::instance->m_currentHdmiInResoluton = eventData->data.hdmi_in_video_mode.resolution.pixelResolution;
+            AVOutputTV::instance->m_currentHdmiInResoluton = eventData->data.hdmi_in_video_mode.resolution.pixelResolution;
             resolution.pixelResolution =  eventData->data.hdmi_in_video_mode.resolution.pixelResolution;
             resolution.interlaced =  eventData->data.hdmi_in_video_mode.resolution.interlaced;
             resolution.frameRate =  eventData->data.hdmi_in_video_mode.resolution.frameRate;
-            LOGWARN("ControlSettingsPlugins: Received IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE  event  port: %d, pixelResolution: %d, interlaced : %d, frameRate: %d \n", hdmi_in_port,resolution.pixelResolution, resolution.interlaced, resolution.frameRate);
-            if (ControlSettingsTV::instance->m_isDisabledHdmiIn4KZoom) {
+            LOGWARN("AVOutputPlugins: Received IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE  event  port: %d, pixelResolution: %d, interlaced : %d, frameRate: %d \n", hdmi_in_port,resolution.pixelResolution, resolution.interlaced, resolution.frameRate);
+            if (AVOutputTV::instance->m_isDisabledHdmiIn4KZoom) {
                 tvError_t ret = tvERROR_NONE;
-                if (ControlSettingsTV::instance->m_currentHdmiInResoluton<dsVIDEO_PIXELRES_3840x2160 ||
-                    (dsVIDEO_PIXELRES_MAX == ControlSettingsTV::instance->m_currentHdmiInResoluton)){
-                    LOGWARN("ControlSettingsPlugins: Setting %d zoom mode for below 4K", ControlSettingsTV::instance->m_videoZoomMode);
-                    ret = SetAspectRatio((tvDisplayMode_t)ControlSettingsTV::instance->m_videoZoomMode);
+                if (AVOutputTV::instance->m_currentHdmiInResoluton<dsVIDEO_PIXELRES_3840x2160 ||
+                    (dsVIDEO_PIXELRES_MAX == AVOutputTV::instance->m_currentHdmiInResoluton)){
+                    LOGWARN("AVOutputPlugins: Setting %d zoom mode for below 4K", AVOutputTV::instance->m_videoZoomMode);
+                    ret = SetAspectRatio((tvDisplayMode_t)AVOutputTV::instance->m_videoZoomMode);
                 }else {
-                    LOGWARN("ControlSettingsPlugins: Setting auto zoom mode for 4K and above");
+                    LOGWARN("AVOutputPlugins: Setting auto zoom mode for 4K and above");
                     ret = SetAspectRatio(tvDisplayMode_AUTO);
                 }
                 if (ret != tvERROR_NONE) {
                     LOGWARN("SetAspectRatio set Failed");
                 }
             } else {
-                LOGWARN("ControlSettingsPlugins: %s: HdmiInput is not started yet. m_isDisabledHdmiIn4KZoom: %d", __FUNCTION__, ControlSettingsTV::instance->m_isDisabledHdmiIn4KZoom);
+                LOGWARN("AVOutputPlugins: %s: HdmiInput is not started yet. m_isDisabledHdmiIn4KZoom: %d", __FUNCTION__, AVOutputTV::instance->m_isDisabledHdmiIn4KZoom);
             }
         }
     }
     
-    uint32_t ControlSettingsTV::getAspectRatioCaps(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getAspectRatioCaps(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
         std::vector<std::string> range;
@@ -550,7 +550,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::setAspectRatio2(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::setAspectRatio2(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
         std::string value;
@@ -629,7 +629,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::getAspectRatio2(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getAspectRatio2(const JsonObject& parameters, JsonObject& response)
     {
 
         LOGINFO("Entry\n");
@@ -688,13 +688,13 @@ namespace Plugin {
         }
     }
 
-    tvError_t ControlSettingsTV::setAspectRatioZoomSettings(tvDisplayMode_t mode)
+    tvError_t AVOutputTV::setAspectRatioZoomSettings(tvDisplayMode_t mode)
     {
         tvError_t ret = tvERROR_GENERAL;
         LOGERR("tvmgrplugin: %s mode selected is: %d", __FUNCTION__, m_videoZoomMode);
 #if !defined (HDMIIN_4K_ZOOM)
-        if (ControlSettingsTV::instance->m_isDisabledHdmiIn4KZoom) {
-            if (ControlSettingsTV::instance->m_currentHdmiInResoluton<dsVIDEO_PIXELRES_3840x2160 ||
+        if (AVOutputTV::instance->m_isDisabledHdmiIn4KZoom) {
+            if (AVOutputTV::instance->m_currentHdmiInResoluton<dsVIDEO_PIXELRES_3840x2160 ||
                 (dsVIDEO_PIXELRES_MAX == m_currentHdmiInResoluton)){
                 LOGWARN("tvmgrplugin: %s: Setting %d zoom mode for below 4K", __FUNCTION__, m_videoZoomMode);
 #endif
@@ -705,22 +705,22 @@ namespace Plugin {
                 ret = SetAspectRatio(tvDisplayMode_AUTO);
             }
         } else {
-            LOGWARN("tvmgrplugin: %s: HdmiInput is not started yet. m_isDisabledHdmiIn4KZoom: %d", __FUNCTION__, ControlSettingsTV::instance->m_isDisabledHdmiIn4KZoom);
+            LOGWARN("tvmgrplugin: %s: HdmiInput is not started yet. m_isDisabledHdmiIn4KZoom: %d", __FUNCTION__, AVOutputTV::instance->m_isDisabledHdmiIn4KZoom);
             ret = SetAspectRatio((tvDisplayMode_t)m_videoZoomMode);
         }
 #endif
         return ret;
     }
 
-    tvError_t ControlSettingsTV::getUserSelectedAspectRatio (tvDisplayMode_t* mode)
+    tvError_t AVOutputTV::getUserSelectedAspectRatio (tvDisplayMode_t* mode)
     {
         tvError_t ret = tvERROR_GENERAL;
 #if !defined (HDMIIN_4K_ZOOM)
         LOGERR("controlsettingsplugin: %s mode selected is: %d", __FUNCTION__, m_videoZoomMode);
-        if (ControlSettingsTV::instance->m_isDisabledHdmiIn4KZoom) {
-            if (!(ControlSettingsTV::instance->m_currentHdmiInResoluton<dsVIDEO_PIXELRES_3840x2160 ||
-               (dsVIDEO_PIXELRES_MAX == ControlSettingsTV::instance->m_currentHdmiInResoluton))){
-                *mode = (tvDisplayMode_t)ControlSettingsTV::instance->m_videoZoomMode;
+        if (AVOutputTV::instance->m_isDisabledHdmiIn4KZoom) {
+            if (!(AVOutputTV::instance->m_currentHdmiInResoluton<dsVIDEO_PIXELRES_3840x2160 ||
+               (dsVIDEO_PIXELRES_MAX == AVOutputTV::instance->m_currentHdmiInResoluton))){
+                *mode = (tvDisplayMode_t)AVOutputTV::instance->m_videoZoomMode;
                 LOGWARN("tvmgrplugin: %s: Getting zoom mode %d for display, for 4K and above", __FUNCTION__, *mode);
                 return tvERROR_NONE;
             }
@@ -730,7 +730,7 @@ namespace Plugin {
         return ret;
     }
 
-    uint32_t ControlSettingsTV::resetAspectRatio(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::resetAspectRatio(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
         std::string pqmode;
@@ -775,7 +775,7 @@ namespace Plugin {
         }
     }
 
-    tvError_t ControlSettingsTV::setDefaultAspectRatio(std::string pqmode,std::string  format,std::string source)
+    tvError_t AVOutputTV::setDefaultAspectRatio(std::string pqmode,std::string  format,std::string source)
     {
         tvDisplayMode_t mode = tvDisplayMode_MAX;
         TR181_ParamData_t param;
@@ -848,7 +848,7 @@ namespace Plugin {
         return ret;
     }
 
-    uint32_t ControlSettingsTV::getVideoFormat(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getVideoFormat(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
         //PLUGIN_Lock(Lock);
@@ -866,7 +866,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::getVideoResolution(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getVideoResolution(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
         //PLUGIN_Lock(Lock);
@@ -884,7 +884,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::getVideoFrameRate(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getVideoFrameRate(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
         tvVideoFrameRate_t videoFramerate;
@@ -901,7 +901,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::getBacklight(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getBacklight(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
 
@@ -937,7 +937,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::getBacklight2(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getBacklight2(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
 
@@ -978,7 +978,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::setBacklight(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::setBacklight(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
      
@@ -1026,7 +1026,7 @@ namespace Plugin {
 
     }
 
-    uint32_t ControlSettingsTV::resetBacklight(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::resetBacklight(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
         std::string value;
@@ -1105,7 +1105,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::getBacklightCaps(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getBacklightCaps(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
         std::vector<std::string> range;
@@ -1157,7 +1157,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::getBrightness(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getBrightness(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
 
@@ -1192,7 +1192,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::getBrightness2(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getBrightness2(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
 
@@ -1233,7 +1233,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::setBrightness(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::setBrightness(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
 
@@ -1289,7 +1289,7 @@ namespace Plugin {
 
     }
 
-    uint32_t ControlSettingsTV::resetBrightness(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::resetBrightness(const JsonObject& parameters, JsonObject& response)
     {
 
         LOGINFO("Entry\n");
@@ -1354,7 +1354,7 @@ namespace Plugin {
 
     }
 
-    uint32_t ControlSettingsTV::getBrightnessCaps(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getBrightnessCaps(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
 	std::vector<std::string> range;
@@ -1406,7 +1406,7 @@ namespace Plugin {
 	}
     }
 
-    uint32_t ControlSettingsTV::getContrast(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getContrast(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
 
@@ -1441,7 +1441,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::getContrast2(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getContrast2(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
 
@@ -1482,7 +1482,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::setContrast(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::setContrast(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
 
@@ -1538,7 +1538,7 @@ namespace Plugin {
 
     }
 
-    uint32_t ControlSettingsTV::resetContrast(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::resetContrast(const JsonObject& parameters, JsonObject& response)
     {
 
         LOGINFO("Entry\n");
@@ -1602,7 +1602,7 @@ namespace Plugin {
 
     }
 
-    uint32_t ControlSettingsTV::getContrastCaps(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getContrastCaps(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
         std::vector<std::string> range;
@@ -1654,7 +1654,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::getSaturation(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getSaturation(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
 
@@ -1689,7 +1689,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::getSaturation2(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getSaturation2(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
 
@@ -1730,7 +1730,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::setSaturation(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::setSaturation(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
 
@@ -1787,7 +1787,7 @@ namespace Plugin {
 
     }
 
-    uint32_t ControlSettingsTV::resetSaturation(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::resetSaturation(const JsonObject& parameters, JsonObject& response)
     {
 
         LOGINFO("Entry\n");
@@ -1859,7 +1859,7 @@ namespace Plugin {
 
     }
 
-    uint32_t ControlSettingsTV::getSaturationCaps(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getSaturationCaps(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
         std::vector<std::string> range;
@@ -1911,7 +1911,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::getSharpness(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getSharpness(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
 
@@ -1946,7 +1946,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::getSharpness2(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getSharpness2(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
 
@@ -1987,7 +1987,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::setSharpness(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::setSharpness(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
 
@@ -2043,7 +2043,7 @@ namespace Plugin {
 
     }
 
-    uint32_t ControlSettingsTV::resetSharpness(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::resetSharpness(const JsonObject& parameters, JsonObject& response)
     {
 
         LOGINFO("Entry\n");
@@ -2107,7 +2107,7 @@ namespace Plugin {
 
     }
 
-    uint32_t ControlSettingsTV::getSharpnessCaps(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getSharpnessCaps(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
         std::vector<std::string> range;
@@ -2159,7 +2159,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::getHue(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getHue(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
 
@@ -2194,7 +2194,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::getHue2(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getHue2(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
 
@@ -2235,7 +2235,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::setHue(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::setHue(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
 
@@ -2292,7 +2292,7 @@ namespace Plugin {
 
     }
 
-    uint32_t ControlSettingsTV::resetHue(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::resetHue(const JsonObject& parameters, JsonObject& response)
     {
 
         LOGINFO("Entry\n");
@@ -2356,7 +2356,7 @@ namespace Plugin {
 
     }
 
-    uint32_t ControlSettingsTV::getHueCaps(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getHueCaps(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
         std::vector<std::string> range;
@@ -2408,7 +2408,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::getColorTemperature(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getColorTemperature(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
 
@@ -2469,7 +2469,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::getColorTemperature2(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getColorTemperature2(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
 
@@ -2536,7 +2536,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::setColorTemperature(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::setColorTemperature(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
 
@@ -2605,7 +2605,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::resetColorTemperature(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::resetColorTemperature(const JsonObject& parameters, JsonObject& response)
     {
 
         LOGINFO("Entry\n");
@@ -2669,7 +2669,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::getColorTemperatureCaps(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getColorTemperatureCaps(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
         std::vector<std::string> range;
@@ -2721,7 +2721,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::getComponentSaturation(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getComponentSaturation(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
 
@@ -2776,7 +2776,7 @@ namespace Plugin {
 
     }
 
-    uint32_t ControlSettingsTV::setComponentSaturation(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::setComponentSaturation(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
         std::string value;
@@ -2869,7 +2869,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::resetComponentSaturation(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::resetComponentSaturation(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
 
@@ -2943,7 +2943,7 @@ namespace Plugin {
     }
 
 
-    uint32_t ControlSettingsTV::getComponentHue(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getComponentHue(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
 
@@ -2996,7 +2996,7 @@ namespace Plugin {
     }
 
 
-    uint32_t ControlSettingsTV::setComponentHue(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::setComponentHue(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
         std::string value;
@@ -3088,7 +3088,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::resetComponentHue(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::resetComponentHue(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
 
@@ -3160,7 +3160,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::getComponentLuma(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getComponentLuma(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
 
@@ -3212,7 +3212,7 @@ namespace Plugin {
         }
     }
     
-    uint32_t ControlSettingsTV::setComponentLuma(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::setComponentLuma(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
         std::string value;
@@ -3305,7 +3305,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::resetComponentLuma(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::resetComponentLuma(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
 
@@ -3377,7 +3377,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::getComponentCaps(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getComponentCaps(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
         std::vector<std::string> range;
@@ -3429,7 +3429,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::getBacklightDimmingMode(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getBacklightDimmingMode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
 
@@ -3480,7 +3480,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::setBacklightDimmingMode(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::setBacklightDimmingMode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
 
@@ -3544,7 +3544,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::resetBacklightDimmingMode(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::resetBacklightDimmingMode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
 
@@ -3614,7 +3614,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::getDimmingModeCaps(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getDimmingModeCaps(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
         std::vector<std::string> supportedDimmingMode;
@@ -3666,7 +3666,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::getAutoBacklightControl(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getAutoBacklightControl(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
         tvBacklightMode_t blMode;
@@ -3725,7 +3725,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::setAutoBacklightControl(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::setAutoBacklightControl(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
         std::string value;
@@ -3788,7 +3788,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::resetAutoBacklightControl(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::resetAutoBacklightControl(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
         tvError_t ret = tvERROR_NONE;
@@ -3869,7 +3869,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::getAutoBacklightControlCaps(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getAutoBacklightControlCaps(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
         std::vector<std::string> range;
@@ -3921,7 +3921,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::getSupportedDolbyVisionModes(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getSupportedDolbyVisionModes(const JsonObject& parameters, JsonObject& response)
     {
 
         LOGINFO("Entry\n");
@@ -3946,7 +3946,7 @@ namespace Plugin {
 
     }
 
-    uint32_t ControlSettingsTV::getDolbyVisionMode(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getDolbyVisionMode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
         std::string dolby_vision;
@@ -3961,7 +3961,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::setDolbyVisionMode(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::setDolbyVisionMode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
         std::string value;
@@ -3999,7 +3999,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::resetDolbyVisionMode(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::resetDolbyVisionMode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
         std::string value;
@@ -4058,7 +4058,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::getDolbyVisionModeCaps(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getDolbyVisionModeCaps(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
         std::vector<std::string> range;
@@ -4110,7 +4110,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::getSupportedHDR10Modes(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getSupportedHDR10Modes(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
         pic_modes_t *hdr10Modes;
@@ -4133,7 +4133,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::setHDR10Mode(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::setHDR10Mode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
         std::string value;
@@ -4172,7 +4172,7 @@ namespace Plugin {
     }
 
       
-    uint32_t ControlSettingsTV::getHDR10Mode(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getHDR10Mode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
         std::string hdr10;
@@ -4188,7 +4188,7 @@ namespace Plugin {
 
     }
 
-    uint32_t ControlSettingsTV::resetHDR10Mode(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::resetHDR10Mode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
         std::string value;
@@ -4250,7 +4250,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::getHDR10ModeCaps(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getHDR10ModeCaps(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
         std::vector<std::string> range;
@@ -4302,7 +4302,7 @@ namespace Plugin {
         }
     }
     
-    uint32_t ControlSettingsTV::getSupportedHLGModes(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getSupportedHLGModes(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
         pic_modes_t *hlgModes;
@@ -4325,7 +4325,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::getHLGMode(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getHLGMode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
         std::string hlg;
@@ -4340,7 +4340,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::setHLGMode(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::setHLGMode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
         std::string value;
@@ -4378,7 +4378,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::resetHLGMode(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::resetHLGMode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
         std::string value;
@@ -4437,7 +4437,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::getHLGModeCaps(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getHLGModeCaps(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
         std::vector<std::string> range;
@@ -4489,7 +4489,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::getWBInfo(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getWBInfo(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
         JsonArray supportedWBSelectors;
@@ -4546,7 +4546,7 @@ namespace Plugin {
         returnResponse(true);
     }
 
-    uint32_t ControlSettingsTV::getWBCtrl(const JsonObject& parameters,JsonObject& response)
+    uint32_t AVOutputTV::getWBCtrl(const JsonObject& parameters,JsonObject& response)
     {
         LOGINFO("Entry\n");
         JsonArray applies;
@@ -4606,7 +4606,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::setWBCtrl(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::setWBCtrl(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
         JsonArray applies;
@@ -4699,7 +4699,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::resetWBCtrl(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::resetWBCtrl(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
         tvError_t ret = tvERROR_NONE;
@@ -4753,7 +4753,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::getSupportedPictureModes(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getSupportedPictureModes(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
         pic_modes_t *pictureModes;
@@ -4777,7 +4777,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::getPictureMode(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getPictureMode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
         std::string picturemode;
@@ -4814,7 +4814,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::setPictureMode(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::setPictureMode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
         std::string value;
@@ -4867,7 +4867,7 @@ namespace Plugin {
 
                 std::string tr181_param_name = "";
                 tr181_param_name += std::string(TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
-                // framing Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.ControlSettings.Source.source_index[x].PictureModeString.value
+                // framing Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.Source.source_index[x].PictureModeString.value
                 tr181_param_name += "."+std::to_string(source_index[x])+"."+"PictureModeString";
                 tr181ErrorCode_t err = setLocalParam(rfc_caller_id, tr181_param_name.c_str(), value.c_str());
                 if ( err != tr181Success ) {
@@ -4892,7 +4892,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::resetPictureMode(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::resetPictureMode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
         tr181ErrorCode_t err = tr181Success;
@@ -4943,7 +4943,7 @@ namespace Plugin {
 	returnResponse(true;)
     }
 
-    uint32_t ControlSettingsTV::enableWBMode(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::enableWBMode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFOMETHOD();
         std::string value;
@@ -4971,7 +4971,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::setBacklightFade(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::setBacklightFade(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
         std::string from,to,duration;
@@ -5008,7 +5008,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::setLowLatencyState(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::setLowLatencyState(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
 
@@ -5058,7 +5058,7 @@ namespace Plugin {
         }
     }
 	
-    uint32_t ControlSettingsTV::getLowLatencyState(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getLowLatencyState(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
 
@@ -5093,7 +5093,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::resetLowLatencyState(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::resetLowLatencyState(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
 
@@ -5144,7 +5144,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t ControlSettingsTV::getLowLatencyStateCaps(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getLowLatencyStateCaps(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
         std::vector<std::string> range;

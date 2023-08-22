@@ -16,8 +16,8 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 */
-#ifndef CONTROLSETTINGS_COMMON_H
-#define CONTROLSETTINGS_COMMON_H
+#ifndef AVOUTPUT_COMMON_H
+#define AVOUTPUT_COMMON_H
 
 
 #define VIDEO_DESCRIPTION_MAX (25)

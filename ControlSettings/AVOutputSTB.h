@@ -17,15 +17,15 @@
 * limitations under the License.
 */
 
-#ifndef ControlSettingsSTB_H
-#define ControlSettingsSTB_H
+#ifndef AVOutputSTB_H
+#define AVOutputSTB_H
 
 #include "string.h"
 
 #include <pthread.h>
 #include "Module.h"
 
-#include "ControlSettingsCommon.h"
+#include "AVOutputCommon.h"
 #include "libIARM.h"
 #include "libIBusDaemon.h"
 #include "libIBus.h"
@@ -40,21 +40,21 @@
 namespace WPEFramework {
 namespace Plugin {
 
-class ControlSettingsSTB : public PluginHost::IPlugin, public PluginHost::JSONRPC {
+class AVOutputSTB : public PluginHost::IPlugin, public PluginHost::JSONRPC {
     private:
-        ControlSettingsSTB(const ControlSettingsSTB&) = delete;
-        ControlSettingsSTB& operator=(const ControlSettingsSTB&) = delete;
+        AVOutputSTB(const AVOutputSTB&) = delete;
+        AVOutputSTB& operator=(const AVOutputSTB&) = delete;
 
 	DECLARE_JSON_RPC_METHOD(getVolume)
         DECLARE_JSON_RPC_METHOD(setVolume)
 
     public:
-	ControlSettingsSTB();
-	~ControlSettingsSTB();
-        static ControlSettingsSTB *instance;
+	AVOutputSTB();
+	~AVOutputSTB();
+        static AVOutputSTB *instance;
         void Initialize();
         void Deinitialize();
-	static ControlSettingsSTB* getInstance() { return instance; }
+	static AVOutputSTB* getInstance() { return instance; }
         static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
         static void dsHdmiStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
         static void dsHdmiVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);

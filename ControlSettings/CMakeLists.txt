@@ -17,15 +17,15 @@
 
 cmake_minimum_required (VERSION 2.6)
 
-Project(CONTROLSETTINGS-PLUGINS)
+Project(AVOUTPUT-PLUGINS)
 
 set(CMAKE_BUILD_TYPE "Debug")
 
-set(PLUGIN_NAME ControlSettings)
+set(PLUGIN_NAME AVOutput)
 
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
-set(PLUGIN_CONTROLSETTINGS_AUTOSTART "true" CACHE STRING "Automatically start Tvmgr plugin")
+set(PLUGIN_AVOUTPUT_AUTOSTART "true" CACHE STRING "Automatically start AVOutput plugin")
 
 find_package(WPEFramework)
 find_package(${NAMESPACE}Plugins REQUIRED)
@@ -43,17 +43,17 @@ include_directories(${STAGING_INCDIR}/rdk/ds-hal)
 include_directories(${STAGING_INCDIR}/rdk/ds-rpc)
 include_directories(${STAGING_INCDIR}/rdk/ds)
 
-if (CONTROLSETTINGS_TV)
+if (AVOUTPUT_TV)
 add_library(${MODULE_NAME} SHARED
-    ControlSettingsTV.cpp 
-    ControlSettings.cpp
-    Module.cpp)
+	AVOutputTV.cpp 
+        AVOutput.cpp
+        Module.cpp)
 target_link_libraries(${MODULE_NAME} "-lglib-2.0 -lpthread -lIARMBus -ltvsettings-hal -ltr181api -lds")
 else()
 add_library(${MODULE_NAME} SHARED
-    ControlSettingsSTB.cpp
-    ControlSettings.cpp
-    Module.cpp)
+	AVOutputSTB.cpp
+        AVOutput.cpp
+        Module.cpp)
 target_link_libraries(${MODULE_NAME} "-lglib-2.0 -lpthread -lIARMBus -lds")
 endif()
 

@@ -17,8 +17,8 @@
 * limitations under the License.
 */
 
-#ifndef ControlSettingsTV_H
-#define ControlSettingsTV_H
+#ifndef AVOuputTV_H
+#define AVOuputTV_H
 
 #include "string.h"
 
@@ -30,7 +30,7 @@
 #include "tvError.h"
 #include "tvTypes.h"
 #include "tr181api.h"
-#include "ControlSettingsCommon.h"
+#include "AVOuputCommon.h"
 #include "libIARM.h"
 #include "libIBusDaemon.h"
 #include "libIBus.h"
@@ -44,10 +44,10 @@
 namespace WPEFramework {
 namespace Plugin {
 
-class ControlSettingsTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
+class AVOuputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
     private:
-        ControlSettingsTV(const ControlSettingsTV&) = delete;
-        ControlSettingsTV& operator=(const ControlSettingsTV&) = delete;
+        AVOuputTV(const AVOuputTV&) = delete;
+        AVOuputTV& operator=(const AVOuputTV&) = delete;
     public:
 	DECLARE_JSON_RPC_METHOD(getBacklight)
         DECLARE_JSON_RPC_METHOD(setBacklight)
@@ -147,13 +147,13 @@ class ControlSettingsTV : public PluginHost::IPlugin, public PluginHost::JSONRPC
         int m_videoZoomMode;
         bool m_isDisabledHdmiIn4KZoom;
         char rfc_caller_id[RFC_BUFF_MAX];
-        ControlSettingsTV();
-        ~ControlSettingsTV();
-        static ControlSettingsTV *instance;
+        AVOuputTV();
+        ~AVOuputTV();
+        static AVOuputTV *instance;
         void Initialize();
         void Deinitialize();
 
-	static ControlSettingsTV* getInstance() { return instance; }
+	static AVOuputTV* getInstance() { return instance; }
 	tvError_t setAspectRatioZoomSettings(tvDisplayMode_t mode);
         tvError_t getUserSelectedAspectRatio (tvDisplayMode_t* mode);
         tvError_t setDefaultAspectRatio(std::string pqmode="all",std::string format="all",std::string source="all");

@@ -1,6 +1,0 @@
-{
- "locator":"libWPEFrameworkControlSettings.so",
- "classname":"ControlSettings",
- "callsign":"org.rdk.ControlSettings",
- "autostart":true
-}

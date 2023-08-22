@@ -22,7 +22,7 @@
 
 
 #ifndef MODULE_NAME
-#define MODULE_NAME Plugin_ControlSettings
+#define MODULE_NAME Plugin_AVOutput
 #endif
 
 #include <core/core.h>

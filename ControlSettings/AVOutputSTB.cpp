@@ -18,64 +18,64 @@
 */
 
 #include <string>
-#include "ControlSettingsSTB.h"
+#include "AVOutputSTB.h"
 
 #define registerMethod(...) Register(__VA_ARGS__);GetHandler(2)->Register<JsonObject, JsonObject>(__VA_ARGS__)
 
 namespace WPEFramework {
 namespace Plugin {
 
-    ControlSettingsSTB* ControlSettingsSTB::instance = nullptr;
+    AVOutputSTB* AVOutputSTB::instance = nullptr;
 
-    ControlSettingsSTB::ControlSettingsSTB():PluginHost::JSONRPC()
+    AVOutputSTB::AVOutputSTB():PluginHost::JSONRPC()
     {
         LOGINFO("Entry\n"); 
         instance = this;
         CreateHandler({ 2 });
 
-        registerMethod("getVolume", &ControlSettingsSTB::getVolume, this );
-        registerMethod("setVolume", &ControlSettingsSTB::setVolume, this);
+        registerMethod("getVolume", &AVOutputSTB::getVolume, this );
+        registerMethod("setVolume", &AVOutputSTB::setVolume, this);
 
         LOGINFO("Exit\n");
     }
     
-    ControlSettingsSTB :: ~ControlSettingsSTB()
+    AVOutputSTB :: ~AVOutputSTB()
     {
         LOGINFO();
     }
 
-    void ControlSettingsSTB::Initialize()
+    void AVOutputSTB::Initialize()
     {
        LOGINFO("Entry\n");
        //Space for Device specific Init Sequence
        LOGINFO("Exit\n");
     }
 
-    void ControlSettingsSTB::Deinitialize()
+    void AVOutputSTB::Deinitialize()
     {
        LOGINFO("Entry\n");
        LOGINFO("Exit\n");
     }
 
     //Event
-    void ControlSettingsSTB::dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+    void AVOutputSTB::dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
     {
         LOGINFO("Entry %s\n",__FUNCTION__);
         LOGINFO("Exit %s\n",__FUNCTION__);
     }
 
-    void ControlSettingsSTB::dsHdmiStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+    void AVOutputSTB::dsHdmiStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
     {
         LOGINFO("Entry %s\n",__FUNCTION__);
         LOGINFO("Exit %s\n",__FUNCTION__);
     }
 
-    void ControlSettingsSTB::dsHdmiVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+    void AVOutputSTB::dsHdmiVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
     {
         LOGINFO("Entry %s\n",__FUNCTION__);
         LOGINFO("Exit %s\n",__FUNCTION__);
     }
-    uint32_t ControlSettingsSTB::getVolume(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputSTB::getVolume(const JsonObject& parameters, JsonObject& response)
     {
 
         LOGINFO("Entry\n");
@@ -84,7 +84,7 @@ namespace Plugin {
         returnResponse(true);
     }
 
-    uint32_t ControlSettingsSTB::setVolume(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputSTB::setVolume(const JsonObject& parameters, JsonObject& response)
     {
 
         LOGINFO("Entry\n");
