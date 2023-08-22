@@ -191,34 +191,6 @@ public:
     uint32_t IsAudioEquivalenceEnabled(bool& isEnbaled /* @out */) const override
     {
         isEnbaled = false;
-        try
-        {
-            if (device::Host::getInstance().isHDMIOutPortPresent())
-            {
-                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI0");
-                if (aPort.isConnected()) {
-                    isEnbaled = aPort.GetLEConfig();
-                    LOGINFO("IsAudioEquivalenceEnabled = %s", isEnbaled? "Enabled":"Disabled");
-                }
-                else
-                {
-                    TRACE(Trace::Information, (_T("IsAudioEquivalenceEnabled failure: HDMI0 not connected!")));
-
-                    LOGERR("IsAudioEquivalenceEnabled failure: HDMI0 not connected!");
-                }
-            }
-            else {
-                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("SPEAKER0");
-                isEnbaled = aPort.GetLEConfig();
-                LOGINFO("IsAudioEquivalenceEnabled = %s", isEnbaled? "Enabled":"Disabled");
-            }
-        }
-        catch(const device::Exception& err)
-        {
-            TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
-        }
-        TRACE(Trace::Information, (_T("Audio Equivalence = %d"), isEnbaled? "Enabled":"Disabled"));
-
 
         return (Core::ERROR_NONE);
     }
