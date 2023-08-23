@@ -124,6 +124,11 @@ uint32_t WifiManagerState::setEnabled(const JsonObject &parameters, JsonObject &
         setWifiStateCache(true, WifiState::DISABLED);
     }
 
+    // Update wifi state cache if wifi interface was enabled
+    else if (retVal == IARM_RESULT_SUCCESS && param.isInterfaceEnabled == true) {
+        setWifiStateCache(true, WifiState::DISCONNECTED);
+    }
+
     returnResponse(retVal == IARM_RESULT_SUCCESS);
 }
 
