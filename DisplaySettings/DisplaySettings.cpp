@@ -1339,10 +1339,55 @@ namespace WPEFramework {
             std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
             string videoDisplay = parameters.HasLabel("videoDisplay") ? parameters["videoDisplay"].String() : strVideoPort;
             bool success = true;
+	    int width = 0;
+	    int height = 0;
             try
             {
                 device::VideoOutputPort &vPort = device::Host::getInstance().getVideoOutputPort(videoDisplay);
-                response["resolution"] = vPort.getResolution().getName();
+                switch(vPort.getResolution().getName()) {
+		    case "480i":
+		    case "480p":
+			width =  720;
+			height = 480;
+		    break;
+		    case "576p50":
+        		width =  720;
+        		height = 576;
+		    break;
+		    case "720p":
+		    case "720p50":
+			width =  1280;
+			height = 720;
+		    break;
+		    case "1080p24":
+		    case "1080p":
+		    case "1080i50":
+		    case "1080i":
+			width =  1920;
+			height = 1080;
+		    break;
+		    case "2160p30":
+		    case "2160p60":
+			width =  3840;
+			height = 2160;
+		    break;
+		    case "4096x2160p24":
+		    case "4096x2160p25":
+		    case "4096x2160p30":
+		    case "4096x2160p50":
+		    case "4096x2160p60":
+			width =  4096;
+			height = 2160;
+		    break;
+		    default:
+			width =  1280;
+			height = 720;
+		    break;
+		    }
+
+		    response["resolution"] = vPort.getResolution().getName();
+		    response["w"] = width;
+		    response["h"] = height;
             }
             catch(const device::Exception& err)
             {
