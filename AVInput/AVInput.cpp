@@ -508,11 +508,12 @@ uint32_t AVInput::writeEDIDWrapper(const JsonObject& parameters, JsonObject& res
 {
     LOGINFOMETHOD();
 
-    int portId;
+    string sPortId = parameters["portId"].String();
+    int portId = 0;
     std::string message;
 
     if (parameters.HasLabel("portId") && parameters.HasLabel("message")) {
-        portId = parameters["portId"].Number();
+        portId = stoi(sPortId);
         message = parameters["message"].String();
     }
     else {
@@ -528,9 +529,10 @@ uint32_t AVInput::readEDIDWrapper(const JsonObject& parameters, JsonObject& resp
 {
     LOGINFOMETHOD();
 
+    string sPortId = parameters["portId"].String();
     int portId = 0;
     try {
-        portId = parameters["portId"].Number();
+        portId = stoi(sPortId);
     }catch (...) {
             LOGWARN("Invalid Arguments");
             returnResponse(false);
@@ -968,13 +970,14 @@ uint32_t AVInput::getSupportedGameFeatures(const JsonObject& parameters, JsonObj
 uint32_t AVInput::getGameFeatureStatusWrapper(const JsonObject& parameters, JsonObject& response)
 {
     string sGameFeature = "";
+    string sPortId = parameters["portId"].String();
     int portId = 0;
 
     LOGINFOMETHOD();
     if (parameters.HasLabel("portId") && parameters.HasLabel("gameFeature"))
     {
         try {
-            portId = parameters["portId"].Number();
+            portId = stoi(sPortId);
             sGameFeature = parameters["gameFeature"].String();
         }catch (...) {
             LOGWARN("Invalid Arguments");
@@ -1020,11 +1023,12 @@ uint32_t AVInput::getRawSPDWrapper(const JsonObject& parameters, JsonObject& res
 {
     LOGINFOMETHOD();
 
+    string sPortId = parameters["portId"].String();
     int portId = 0;
     if (parameters.HasLabel("portId"))
     {
         try {
-            portId = parameters["portId"].Number();
+            portId = stoi(sPortId);
         }catch (...) {
             LOGWARN("Invalid Arguments");
             returnResponse(false);
@@ -1049,11 +1053,12 @@ uint32_t AVInput::getSPDWrapper(const JsonObject& parameters, JsonObject& respon
 {
     LOGINFOMETHOD();
 
+    string sPortId = parameters["portId"].String();
     int portId = 0;
     if (parameters.HasLabel("portId"))
     {
         try {
-        portId = parameters["portId"].Number();
+            portId = stoi(sPortId);
         }catch (...) {
             LOGWARN("Invalid Arguments");
             returnResponse(false);
@@ -1151,12 +1156,13 @@ std::string AVInput::getSPD(int iPort)
 uint32_t AVInput::setEdidVersionWrapper(const JsonObject& parameters, JsonObject& response)
 {
     LOGINFOMETHOD();
+    string sPortId = parameters["portId"].String();
     int portId = 0;
     string sVersion = "";
     if (parameters.HasLabel("portId") && parameters.HasLabel("edidVersion"))
     {
         try {
-            portId = parameters["portId"].Number();
+            portId = stoi(sPortId);
             sVersion = parameters["edidVersion"].String();
         }catch (...) {
             LOGWARN("Invalid Arguments");
@@ -1204,13 +1210,14 @@ int AVInput::setEdidVersion(int iPort, int iEdidVer)
 
 uint32_t AVInput::getEdidVersionWrapper(const JsonObject& parameters, JsonObject& response)
 {
+    string sPortId = parameters["portId"].String();
     int portId = 0;
 
     LOGINFOMETHOD();
     if (parameters.HasLabel("portId"))
     {
         try {
-            portId = parameters["portId"].Number();
+            portId = stoi(sPortId);
         }
         catch (...) {
             LOGWARN("Invalid Arguments");
