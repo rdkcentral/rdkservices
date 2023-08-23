@@ -63,7 +63,7 @@ if(PLUGIN_CONTROLSERVICE)
     add_subdirectory(ControlService)
 endif()
 
-if(PLUGIN_CONTROLSETTINGS)
+if(PLUGIN_AVOUTPUT)
 	add_subdirectory(AVOutput)
 endif()
 
