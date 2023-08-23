@@ -44,10 +44,10 @@
 namespace WPEFramework {
 namespace Plugin {
 
-class AVOuputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
+class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
     private:
-        AVOuputTV(const AVOuputTV&) = delete;
-        AVOuputTV& operator=(const AVOuputTV&) = delete;
+        AVOutputTV(const AVOutputTV&) = delete;
+        AVOutputTV& operator=(const AVOutputTV&) = delete;
     public:
 	DECLARE_JSON_RPC_METHOD(getBacklight)
         DECLARE_JSON_RPC_METHOD(setBacklight)
@@ -147,13 +147,13 @@ class AVOuputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         int m_videoZoomMode;
         bool m_isDisabledHdmiIn4KZoom;
         char rfc_caller_id[RFC_BUFF_MAX];
-        AVOuputTV();
-        ~AVOuputTV();
-        static AVOuputTV *instance;
+        AVOutputTV();
+        ~AVOutputTV();
+        static AVOutputTV *instance;
         void Initialize();
         void Deinitialize();
 
-	static AVOuputTV* getInstance() { return instance; }
+	static AVOutputTV* getInstance() { return instance; }
 	tvError_t setAspectRatioZoomSettings(tvDisplayMode_t mode);
         tvError_t getUserSelectedAspectRatio (tvDisplayMode_t* mode);
         tvError_t setDefaultAspectRatio(std::string pqmode="all",std::string format="all",std::string source="all");
