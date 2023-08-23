@@ -64,7 +64,7 @@ if(PLUGIN_CONTROLSERVICE)
 endif()
 
 if(PLUGIN_CONTROLSETTINGS)
-    add_subdirectory(ControlSettings)
+	add_subdirectory(AVOutput)
 endif()
 
 if(PLUGIN_VOICECONTROL)

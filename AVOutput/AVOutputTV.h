@@ -30,7 +30,7 @@
 #include "tvError.h"
 #include "tvTypes.h"
 #include "tr181api.h"
-#include "AVOuputCommon.h"
+#include "AVOutputCommon.h"
 #include "libIARM.h"
 #include "libIBusDaemon.h"
 #include "libIBus.h"
