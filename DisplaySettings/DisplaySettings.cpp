@@ -1344,50 +1344,46 @@ namespace WPEFramework {
             try
             {
                 device::VideoOutputPort &vPort = device::Host::getInstance().getVideoOutputPort(videoDisplay);
-                switch(vPort.getResolution().getName()) {
-		    case "480i":
-		    case "480p":
-			width =  720;
-			height = 480;
-		    break;
-		    case "576p50":
-        		width =  720;
-        		height = 576;
-		    break;
-		    case "720p":
-		    case "720p50":
-			width =  1280;
-			height = 720;
-		    break;
-		    case "1080p24":
-		    case "1080p":
-		    case "1080i50":
-		    case "1080i":
-			width =  1920;
-			height = 1080;
-		    break;
-		    case "2160p30":
-		    case "2160p60":
-			width =  3840;
-			height = 2160;
-		    break;
-		    case "4096x2160p24":
-		    case "4096x2160p25":
-		    case "4096x2160p30":
-		    case "4096x2160p50":
-		    case "4096x2160p60":
-			width =  4096;
-			height = 2160;
-		    break;
-		    default:
-			width =  1280;
-			height = 720;
-		    break;
-		    }
+		string resolution = vPort.getResolution().getName();
+		if(strcmp(resolution,"480i")== 0 || strcmp(resolution,"480p")== 0)
+		{
+		    width =  720;
+		    height = 480;
+		}
+		else if(strcmp(resolution,"576p50")== 0)
+		{
+		    width =  720;
+		    height = 576;
+		}
+		else if(strcmp(resolution,"720p")== 0 || strcmp(resolution,"720p50")== 0)
+		{
+		    width =  1280;
+		    height = 720;
+		}
+		else if(strcmp(resolution,"1080p24")== 0 || strcmp(resolution,"1080p")== 0 || strcmp(resolution,"1080i50")== 0 || strcmp(resolution,"1080i")== 0)
+		{
+		    width =  1920;
+		    height = 1080;
+		}
+		else if(strcmp(resolution,"2160p30")== 0 || strcmp(resolution,"2160p60")== 0)
+		{
+		    width =  3840;
+		    height = 2160;
+		}
+		else if(strcmp(resolution,"4096x2160p24")== 0 || strcmp(resolution,"4096x2160p25")== 0 || strcmp(resolution,"4096x2160p30")== 0 || strcmp(resolution,"4096x2160p50")== 0 || strcmp(resolution,"4096x2160p60")== 0)
+		{
+		    width =  4096;
+		    height = 2160;
+		}
+		else
+		{
+		    width =  1280;
+		    height = 720;
+		}
 
-		    response["resolution"] = vPort.getResolution().getName();
-		    response["w"] = width;
-		    response["h"] = height;
+		response["resolution"] = vPort.getResolution().getName();
+		response["w"] = width;
+		response["h"] = height;
             }
             catch(const device::Exception& err)
             {
