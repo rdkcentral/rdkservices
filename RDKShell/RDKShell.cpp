@@ -197,6 +197,11 @@ bool sForceResidentAppLaunch = false;
 static bool sRunning = true;
 bool needsScreenshot = false;
 
+#ifdef HIBERNATE_NATIVE_APPS_ON_SUSPENDED
+std::mutex nativeAppWasResumedMutex;
+map<string,bool> nativeAppWasResumed;
+#endif
+
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
 #define RDKSHELL_POWER_TIME_WAIT 2.5
@@ -578,7 +583,38 @@ namespace WPEFramework {
                 JsonObject params;
                 params["client"] = mCallSign;
                 mRDKShell.notify(RDKShell::RDKSHELL_EVENT_ON_PLUGIN_SUSPENDED, params);
-            }            
+
+#ifdef HIBERNATE_NATIVE_APPS_ON_SUSPENDED
+                RFC_ParamData_t param;
+                if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AppHibernate.Enable", param)
+                    && strncasecmp(param.value, "true", 4) == 0)
+                {
+                    nativeAppWasResumedMutex.lock();
+                    if ((mCallSign.find("Netflix") != std::string::npos || mCallSign.find("Cobalt") != std::string::npos)
+                        && nativeAppWasResumed.find(mCallSign) != nativeAppWasResumed.end()
+                        && nativeAppWasResumed[mCallSign])
+                    {
+                        // call RDKShell.checkpoint
+                        std::thread requestsThread =
+                            std::thread([=]()
+                                        {
+                        JsonObject checkpointParams;
+                        JsonObject checkpointResponse;
+                        checkpointParams["callsign"] = mCallSign;
+                        mRDKShell.getThunderControllerClient("org.rdk.RDKShell.1")->Invoke<JsonObject, JsonObject>(0, "checkpoint", checkpointParams, checkpointResponse); });
+
+                        requestsThread.detach();
+                    }
+                    nativeAppWasResumedMutex.unlock();
+                }
+#endif
+            }
+#ifdef HIBERNATE_NATIVE_APPS_ON_SUSPENDED
+            nativeAppWasResumedMutex.lock();
+            nativeAppWasResumed[mCallSign] = (state == PluginHost::IStateControl::RESUMED);
+            nativeAppWasResumedMutex.unlock();
+#endif
+
           }
 
           BEGIN_INTERFACE_MAP(Notification)
@@ -880,6 +916,11 @@ namespace WPEFramework {
                 if ((currentState == PluginHost::IShell::DEACTIVATED) || (currentState == PluginHost::IShell::DESTROYED))
                 {
                      gApplicationsExitReason[service->Callsign()] = AppLastExitReason::DEACTIVATED;
+#ifdef HIBERNATE_NATIVE_APPS_ON_SUSPENDED
+                    nativeAppWasResumedMutex.lock();
+                    nativeAppWasResumed[service->Callsign()] = false;
+                    nativeAppWasResumedMutex.unlock();
+#endif
                 }
                 if(service->Reason() == PluginHost::IShell::FAILURE)
                 {
@@ -4754,23 +4795,25 @@ namespace WPEFramework {
                         {
                             std::string callsign;
                             service.Callsign.ToString(callsign);
-                            callsign.erase(std::remove(callsign.begin(),callsign.end(),'\"'),callsign.end());
 
+                            callsign.erase(std::remove(callsign.begin(),callsign.end(),'\"'),callsign.end());
                             WPEFramework::Core::JSON::String stateString;
                             const string callsignWithVersion = callsign + ".1";
-                            auto thunderPlugin = getThunderControllerClient(callsignWithVersion);
                             uint32_t stateStatus = 0;
 
 #ifdef HIBERNATE_SUPPORT_ENABLED
                             if(service.JSONState != PluginHost::MetaData::Service::state::HIBERNATED)
                             {
-                                stateStatus = thunderPlugin->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
+#endif
+                                stateStatus = getThunderControllerClient(callsignWithVersion)->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
+#ifdef HIBERNATE_SUPPORT_ENABLED
                             }
                             else
                             {
                                 stateString = "checkpointed";
                             }
 #endif
+
 
                             if (stateStatus == 0)
                             {
@@ -4780,7 +4823,7 @@ namespace WPEFramework {
                                 if(service.JSONState != PluginHost::MetaData::Service::state::HIBERNATED)
                                 {
 #endif
-                                    urlStatus = thunderPlugin->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "url",urlString);
+                                    urlStatus = getThunderControllerClient(callsignWithVersion)->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "url",urlString);
 #ifdef HIBERNATE_SUPPORT_ENABLED
                                 }
 #endif
@@ -5915,6 +5958,23 @@ namespace WPEFramework {
                     status = false;
                     response["message"] = "failed to checkpoint application, is being destroyed";
                     returnResponse(status);
+                }
+
+                if( callsign.find("Netflix") != string::npos || callsign.find("Cobalt") != string::npos )
+                {
+                    //Check if native app is suspended
+                    WPEFramework::Core::JSON::String stateString;
+                    const string callsignWithVersion = callsign + ".1";
+                    auto thunderPlugin = getThunderControllerClient(callsignWithVersion);
+                    uint32_t stateStatus = 0;
+                    stateStatus = thunderPlugin->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
+                    if(stateStatus || stateString != "suspended")
+                    {
+                        std::cout << "ignoring checkpoint for " << callsign << " as it is not suspended " << std::endl;
+                        status = false;
+                        response["message"] = "failed to checkpoint native application, not suspended";
+                        returnResponse(status);
+                    }
                 }
 
                 std::thread requestsThread =
