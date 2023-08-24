@@ -143,7 +143,8 @@ namespace Plugin {
         OCDM& operator=(const OCDM&) = delete;
 
         OCDM()
-            : _connectionId(0)
+            : _skipURL(0)
+            , _connectionId(0)
             , _service(nullptr)
             , _opencdmi(nullptr)
             , _memory(nullptr)
