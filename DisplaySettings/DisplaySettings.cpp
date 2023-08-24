@@ -1360,6 +1360,11 @@ namespace WPEFramework {
 		    width =  1280;
 		    height = 720;
 		}
+		else if(strcmp(res.c_str(),"768p")== 0)
+		{
+		    width =  1366;
+		    height = 768;
+		}
 		else if(strcmp(res.c_str(),"1080p24")== 0 || strcmp(res.c_str(),"1080p")== 0 || strcmp(res.c_str(),"1080i50")== 0 || strcmp(res.c_str(),"1080i")== 0)
 		{
 		    width =  1920;
