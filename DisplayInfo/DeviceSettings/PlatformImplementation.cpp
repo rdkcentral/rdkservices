@@ -216,7 +216,8 @@ public:
         if (ret == Core::ERROR_NONE)
         {
             uint32_t edidLen = edidVec.size();
-            unsigned char* edidbytes = new unsigned char [edidLen];
+            std::unique_ptr<unsigned char[]> edidbytes_ {new unsigned char [edidLen]};
+            unsigned char *edidbytes = edidbytes_.get();
             std::copy(edidVec.begin(), edidVec.end(), edidbytes);
             if (edid_parser::EDID_Verify(edidbytes, edidLen) == edid_parser::EDID_STATUS_OK)
             {
@@ -230,7 +231,6 @@ public:
                 TRACE(Trace::Information, (_T("EDID Verification failed")));
                 ret = Core::ERROR_GENERAL;
             }
-            delete edidbytes;
         }
         else
         {
@@ -582,7 +582,8 @@ public:
         if (ret == Core::ERROR_NONE)
         {
             uint32_t edidLen = edidVec.size();
-            unsigned char* edidbytes = new unsigned char [edidLen];
+            std::unique_ptr<unsigned char[]> edidbytes_ {new unsigned char [edidLen]};
+            unsigned char *edidbytes = edidbytes_.get();
             std::copy(edidVec.begin(), edidVec.end(), edidbytes);
             if (edid_parser::EDID_Verify(edidbytes, edidLen) == edid_parser::EDID_STATUS_OK)
             {
@@ -605,7 +606,6 @@ public:
                 TRACE(Trace::Error, (_T("EDID Verification failed")));
                 ret = Core::ERROR_GENERAL;
             }
-            delete edidbytes;
         }
         else
         {
