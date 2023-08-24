@@ -65,7 +65,6 @@ namespace Plugin {
 
         private:
             DisplayInfo& _parent;
-            Exchange::IConnectionProperties* _client;
         };
 
     public:
