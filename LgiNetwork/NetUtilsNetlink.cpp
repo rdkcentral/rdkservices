@@ -31,6 +31,7 @@ namespace WPEFramework {
 
         Netlink::Netlink() :
             m_fdNetlink(-1),
+            m_nlSockaddr(),
             m_netlinkProtect()
         {
         }
@@ -262,7 +263,7 @@ namespace WPEFramework {
          */
         bool Netlink::_getRoutesInformation(indexList &defaultInterfaceIndex, stringList &gatewayAddress)
         {
-            char msgBuffer[NETLINK_MESSAGE_BUFFER_SIZE];
+            alignas(alignof(struct nlmsghdr)) char msgBuffer[NETLINK_MESSAGE_BUFFER_SIZE];
             struct nlmsghdr *nlhdr;
             int msgLength = -1;
             unsigned index = 0;
