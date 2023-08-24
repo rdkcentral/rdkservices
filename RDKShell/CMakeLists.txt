@@ -23,6 +23,7 @@ set(PLUGIN_RDKSHELL_STARTUPORDER "" CACHE STRING "Automatically start RDKShell p
 
 option(PLUGIN_RDKSHELL_READ_MAC_ON_STARTUP "PLUGIN_RDKSHELL_READ_MAC_ON_STARTUP" OFF)
 option(PLUGIN_HIBERNATESUPPORT "Include hibernate support in the build." OFF)
+option(PLUGIN_HIBERNATE_NATIVE_APPS_ON_SUSPENDED "Try to hibernate native apps on suspended." OFF)
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(IARMBus)
@@ -53,6 +54,10 @@ target_compile_definitions(${MODULE_NAME} PRIVATE MODULE_NAME=Plugin_${PLUGIN_NA
 
 if(PLUGIN_HIBERNATESUPPORT)
         target_compile_definitions(${MODULE_NAME} PRIVATE HIBERNATE_SUPPORT_ENABLED=1)
+endif()
+
+if(PLUGIN_HIBERNATE_NATIVE_APPS_ON_SUSPENDED)
+        target_compile_definitions(${MODULE_NAME} PRIVATE HIBERNATE_NATIVE_APPS_ON_SUSPENDED=1)
 endif()
 
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers ${IARMBUS_INCLUDE_DIRS} )
