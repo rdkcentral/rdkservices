@@ -295,7 +295,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.portId | number | <sup>*(optional)*</sup> An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
+| params?.portId | string | <sup>*(optional)*</sup> An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
 
 ### Result
 
@@ -352,7 +352,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.portId | number | <sup>*(optional)*</sup> An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
+| params?.portId | string | <sup>*(optional)*</sup> An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
 
 ### Result
 
@@ -409,7 +409,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.portId | number | An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
+| params.portId | string | An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
 
 ### Result
 
@@ -466,7 +466,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.portId | number | An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
+| params.portId | string | An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
 
 ### Result
 
@@ -525,7 +525,7 @@ Activates the specified HDMI/Composite Input port as the primary video source.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.portId | number | <sup>*(optional)*</sup> An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
+| params?.portId | string | <sup>*(optional)*</sup> An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
 | params.typeOfInput | string | The type of Input - HDMI/COMPOSITE |
 
 ### Result
@@ -636,7 +636,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.portId | number | An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
+| params.portId | string | An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
 | params.edidVersion | string | The EDID version |
 
 ### Result
@@ -754,7 +754,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.portId | number | An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
+| params.portId | string | An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
 | params.message | string | A new EDID value |
 
 ### Result
@@ -862,7 +862,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.portId | number | <sup>*(optional)*</sup> An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
+| params?.portId | string | <sup>*(optional)*</sup> An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
 | params.gameFeature | string | Game Feature to which current status requested |
 
 ### Result
