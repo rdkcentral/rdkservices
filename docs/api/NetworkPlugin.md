@@ -2,7 +2,7 @@
 <a name="head.NetworkPlugin"></a>
 # NetworkPlugin
 
-**Version: [1.0.8](https://github.com/rdkcentral/rdkservices/blob/main/Network/CHANGELOG.md)**
+**Version: [1.1.0](https://github.com/rdkcentral/rdkservices/blob/main/Network/CHANGELOG.md)**
 
 A org.rdk.Network plugin for Thunder framework.
 
@@ -54,7 +54,7 @@ Network interface methods:
 | [getQuirks](#method.getQuirks) | Get standard string `RDK-20093` |
 | [getStbIp](#method.getStbIp) | Gets the IP address of the default interface |
 | [getSTBIPFamily](#method.getSTBIPFamily) | Gets the IP address of the default interface by address family |
-| [setConnectivityTestEndpoints](#method.setConnectivityTestEndpoints) | Sets the default list of endpoints used for a connectivity test |
+| [setConnectivityTestEndpoints](#method.setConnectivityTestEndpoints) | Set the list of endpoints used for a connectivity test |
 | [isConnectedToInternet](#method.isConnectedToInternet) | Whether the device has internet connectivity |
 | [getInternetConnectionState](#method.getInternetConnectionState) | Returns the internet connection state |
 | [getCaptivePortalURI](#method.getCaptivePortalURI) | Returns the captive portal URI if connected to any captive portal network |
@@ -68,6 +68,7 @@ Network interface methods:
 | [setIPSettings](#method.setIPSettings) | Sets the IP settings |
 | [getPublicIP](#method.getPublicIP) | It allows either zero parameter or with only interface and ipv6 parameter to determine WAN ip address |
 | [setStunEndPoint](#method.setStunEndPoint) | Set the Stun Endpoint used for getPublicIP |
+| [configurePNI](#method.configurePNI) | This method configures PNI to enable or disable Connectivity test |
 | [trace](#method.trace) | Traces the specified endpoint with the specified number of packets using `traceroute` |
 | [traceNamedEndpoint](#method.traceNamedEndpoint) | Traces the specified named endpoint with the specified number of packets using `traceroute` |
 
@@ -1225,6 +1226,58 @@ No Events
     }
 }
 ```
+
+<a name="method.configurePNI"></a>
+## *configurePNI [<sup>method</sup>](#head.Methods)*
+
+This method configures PNI to enable or disable Connectivity test. 
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object | it allows empty parameter too |
+| params.disableConnectivityTest | boolean | Connectivity test ON or OFF |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.Network.configurePNI",
+    "params": {
+        "disableConnectivityTest": true
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+
 
 <a name="method.trace"></a>
 ## *trace [<sup>method</sup>](#head.Methods)*
