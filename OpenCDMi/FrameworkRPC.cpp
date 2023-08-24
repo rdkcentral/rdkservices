@@ -50,11 +50,11 @@ namespace Plugin {
 
     static void TrimWs(const std::string& str, size_t& start, size_t& end)
     {
-        while(std::isspace(str[start]) && start < end) {
+        while(start < end && std::isspace(str[start])) {
             ++start;
         }
 
-        while(std::isspace(str[end - 1]) && end - 1 > 0) {
+        while(end > 1 && std::isspace(str[end - 1])) {
          --end;
         }
     }
@@ -1385,7 +1385,7 @@ namespace Plugin {
                     if (handle != nullptr) {
                         CDMi::ISystemFactory* entry = handle();
 
-                        if (handle != nullptr) {
+                        if (entry != nullptr) {
                             SystemFactory element;
                             element.Name = Core::ClassNameOnly(entry->KeySystem()).Text();
                             element.Factory = entry;
@@ -1461,26 +1461,23 @@ namespace Plugin {
             _engine = Core::ProxyType<RPC::InvokeServer>::Create(&Core::IWorkerPool::Instance());
             _service = new ExternalAccess(Core::NodeId(config.Connector.Value().c_str()), _entryPoint, _shell->ProxyStubPath(), _engine);
 
-            if (_service != nullptr) {
+            if (_service->IsListening() == false) {
+                delete _service;
+                _entryPoint->Release();
+                _engine.Release();
+                _service = nullptr;
+                _entryPoint = nullptr;
+            } else {
+                if (subSystem != nullptr) {
 
-                if (_service->IsListening() == false) {
-                    delete _service;
-                    _entryPoint->Release();
-                    _engine.Release();
-                    _service = nullptr;
-                    _entryPoint = nullptr;
-                } else {
-                    if (subSystem != nullptr) {
+                    // Announce the port on which we are listening
+                    Core::SystemInfo::SetEnvironment(_T("OPEN_CDM_SERVER"), config.Connector.Value(), true);
 
-                        // Announce the port on which we are listening
-                        Core::SystemInfo::SetEnvironment(_T("OPEN_CDM_SERVER"), config.Connector.Value(), true);
-
-                        ASSERT(subSystem->IsActive(PluginHost::ISubSystem::DECRYPTION) == false);
-                        subSystem->Set(PluginHost::ISubSystem::DECRYPTION, this);
-                    }
-                    if (_systemToFactory.size() == 0) {
-                        SYSLOG(Logging::Startup, (string(_T("OCDM server has NO key systems registered!!!"))));
-                    }
+                    ASSERT(subSystem->IsActive(PluginHost::ISubSystem::DECRYPTION) == false);
+                    subSystem->Set(PluginHost::ISubSystem::DECRYPTION, this);
+                }
+                if (_systemToFactory.size() == 0) {
+                    SYSLOG(Logging::Startup, (string(_T("OCDM server has NO key systems registered!!!"))));
                 }
             }
 
