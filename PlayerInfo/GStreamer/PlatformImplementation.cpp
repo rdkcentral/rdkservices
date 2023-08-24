@@ -58,10 +58,10 @@ private:
             for (auto index: caps) {
 
                 MediaTypes mediaType{gst_caps_from_string(index.first.c_str())};
-                if (elements = std::move(GstUtils::GstRegistryGetElementForMediaType(decoderFactories.get(), std::move(mediaType)))) {
+                if (elements = GstUtils::GstRegistryGetElementForMediaType(decoderFactories.get(), mediaType)) {
                     codecIteratorList.push_back(index.second);
 
-                } else if (elements = std::move(GstUtils::GstRegistryGetElementForMediaType(parserFactories.get(), std::move(mediaType)))) {
+                } else if (elements = GstUtils::GstRegistryGetElementForMediaType(parserFactories.get(), mediaType)) {
 
                     for (GList* iterator = elements.get(); iterator; iterator = iterator->next) {
 
@@ -73,7 +73,7 @@ private:
 
                             if (padTemplate->direction == GST_PAD_SRC) {
                                 MediaTypes mediaTypes{gst_static_pad_template_get_caps(padTemplate)};
-                                if (GstUtils::GstRegistryGetElementForMediaType(decoderFactories.get(), std::move(mediaTypes))) {
+                                if (GstUtils::GstRegistryGetElementForMediaType(decoderFactories.get(), mediaTypes)) {
                                     codecIteratorList.push_back(index.second);
                                 }
                             }
@@ -86,7 +86,7 @@ private:
          }
 
     private:
-        static inline FeatureList GstRegistryGetElementForMediaType(GList* elementsFactories, MediaTypes&& mediaTypes) {
+        static inline FeatureList GstRegistryGetElementForMediaType(GList* elementsFactories, const MediaTypes& mediaTypes) {
             FeatureList candidates{gst_element_factory_list_filter(elementsFactories, mediaTypes.get(), GST_PAD_SINK, false)};
 
             return (candidates);

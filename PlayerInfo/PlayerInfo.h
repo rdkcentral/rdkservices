@@ -65,7 +65,7 @@ namespace Plugin {
             DolbyNotification& operator=(const DolbyNotification&) = delete;
 
             explicit DolbyNotification(PlayerInfo* parent)
-                : _parent(*parent)
+                : _parent(*parent), _client(nullptr)
             {
                 ASSERT(parent != nullptr);
             }
@@ -110,6 +110,7 @@ namespace Plugin {
             , _player(nullptr)
             , _audioCodecs(nullptr)
             , _videoCodecs(nullptr)
+            , _dolbyOut(nullptr)
             , _dolbyNotification(this)
             , _notification(this)
             , _service(nullptr)

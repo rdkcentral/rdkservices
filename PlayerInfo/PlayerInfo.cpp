@@ -139,7 +139,6 @@ namespace Plugin {
 
         _service->Release();
         _service = nullptr;
-        _player = nullptr;
         
         _connectionId = 0;
 
