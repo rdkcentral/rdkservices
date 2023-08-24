@@ -12,7 +12,7 @@ namespace Utils {
  * @param[out] propertyValue - The value of the property will be stored in this string.
  * @return          bool  True if the property is found and successfully read, false otherwise.
  */
-bool readPropertyFromFile(const char* filename, const std::string& property, std::string& propertyValue)
+inline bool readPropertyFromFile(const char* filename, const std::string& property, std::string& propertyValue)
 {
     std::string line = "";
     bool found = false;
@@ -84,7 +84,7 @@ bool readPropertyFromFile(const char* filename, const std::string& property, std
  * @return  bool  True if the file is successfully read and its content is stored in 'content', false otherwise.
  */
 
-bool readFileContent(const char* filename, std::string& content)
+inline bool readFileContent(const char* filename, std::string& content)
 {
     char buffer[READ_BUFFER_SIZE];
     FILE* file = fopen(filename, "r");
@@ -113,7 +113,7 @@ bool readFileContent(const char* filename, std::string& content)
  * @param[in] path - The path to check.
  * @return bool - True if the path corresponds to a regular file, false otherwise.
  */
-bool isRegularFile(const std::string& path)
+inline bool isRegularFile(const std::string& path)
 {
     struct stat st;
     if (stat(path.c_str(), &st) == 0)
@@ -132,7 +132,7 @@ bool isRegularFile(const std::string& path)
  * @param[out] result - The search results will be stored in this string.Results are capped at 10.
  * @return bool - True if the search operation is successful, false otherwise.
  */
-bool searchFiles(std::string& inputPath, int maxDepth, int minDepth, const std::list<std::string>& exclusions, std::string& result)
+inline bool searchFiles(std::string& inputPath, int maxDepth, int minDepth, const std::list<std::string>& exclusions, std::string& result)
 {
     int count = 0;
     if (minDepth <= 0)
@@ -237,7 +237,7 @@ bool searchFiles(std::string& inputPath, int maxDepth, int minDepth, const std::
  * @param[out] expandedString - The string with variables replaced by values.
  * @return bool - True if the processing and replacement are successful, false otherwise.
  */
-bool ExpandPropertiesInString(const char* input, const char* filePath, std::string & expandedString)
+inline bool ExpandPropertiesInString(const char* input, const char* filePath, std::string & expandedString)
 {
     const char* variablePos = strchr(input, '$');
     while (variablePos)

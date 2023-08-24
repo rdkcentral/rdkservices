@@ -21,6 +21,7 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 set(PLUGIN_SYSTEMSERVICE_STARTUPORDER "" CACHE STRING "To configure startup order of SystemServices plugin")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
+find_library(PROCPS_LIBRARIES NAMES procps)
 
 if(BUILD_TESTS)
     add_subdirectory(TestClient)
@@ -60,6 +61,10 @@ else (IARMBus_FOUND)
     target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS})
     target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${IARMBUS_LIBRARIES})
 endif(IARMBus_FOUND)
+
+if(PROCPS_LIBRARIES)
+    target_link_libraries(${MODULE_NAME} PRIVATE ${PROCPS_LIBRARIES})
+endif(PROCPS_LIBRARIES)
 
 find_package(DS)
 if (DS_FOUND)

@@ -29,6 +29,9 @@
 
 #include "UtilsLogging.h"
 #include "UtilsfileExists.h"
+#include "UtilsFile.h"
+#include "UtilsString.h"
+#include "UtilsgetFileContent.h"
 
 /* Helper Functions */
 using namespace std;
@@ -285,26 +288,58 @@ bool getFileContent(std::string fileName, std::vector<std::string> & vecOfStrs)
     return retStatus;
 }
 
-/***
- * @brief	: Used to search for files in the given directory
- * @param1[in]	: Directory on which the search has to be performed
- * @param2[in]	: Filter for the search command
- * @return	: <vector<std::string>>; Vector of file names.
- */
-std::vector<std::string> searchAndGetFilesList(std::string path, std::string filter)
+bool getDownloadProgress(int& downloadPercent)
 {
-    int retStat = -1;
-    char buff[4096 + 1];
-    std::string command,totalStr;
-    std::vector<std::string> FileList;
+    bool retStatus = false;
+    string file_content = "";
+    string last_line = "";
+    string downloadprogress = "";
+    vector<string> stringList;
+    string str = "";
 
-    memset(buff, 0, 4096);
-    command = "find "+path+" -iname "+filter+" > /tmp/tempBuffer.dat";
-    retStat = system(command.c_str());
-    fprintf(stdout, "searchAndGetFilesList : retStat = %d\n", retStat);
-    getFileContent("/tmp/tempBuffer.dat", FileList);
+    /* read the file contents, which is equivalent to "cat /opt/curl_progress" */
+    retStatus = Utils::readFileContent(DOWNLOAD_PROGRESS_FILE, file_content);
+    LOGERR("file_content [%s].", file_content.c_str());
+    if (retStatus == true && (!file_content.empty()))
+    {
+        /* get the last non empty line, which is equivalent to "tr -s '\r' '\n' | tail -n 1" */
+        retStatus = Utils::getLastLine(file_content, last_line);
+        if (retStatus == true && (!last_line.empty()))
+        {
+              retStatus = false;
+              // trim the leading spaces, which is equivalent to "sed 's/^ *//g'"
+              Utils::String::ltrim(last_line);
+              // filter lines which has 'M' or 'G'  sed '/^[^M/G]*$/d', which is equivalent to "sed '/^[^M/G]*$/d'"
+              std::size_t found_M = last_line.find_first_of("M");
+              std::size_t found_G = last_line.find_first_of("G");
+              if ((found_M != std::string::npos) | (found_G != std::string::npos))
+              {
+                  /* Remove extra whitespaces from given input string, which is equivalent to "tr -s ' '" */
+                  Utils::String::removeExtraWhitespaces(last_line, str);
 
-    return FileList;
+                  /* Divide the input string into words with delimiter(space) and get the third word,
+                     which is equivalent to "cut -d ' ' -f3" */
+                  Utils::String::split(stringList, str, " ");
+                  if ((!stringList[2].empty()))
+                  {
+                      downloadprogress = stringList[2];
+                      retStatus = true;
+                  }
+              }
+        }
+    }
+
+    LOGINFO("downloadprogress [%s]", downloadprogress.c_str());
+    if (retStatus == true && !downloadprogress.empty())
+    {
+        downloadPercent = strtol(downloadprogress.c_str(), NULL, 10);
+        LOGINFO("FirmwareDownloadPercent = [%d]\n", downloadPercent);
+    }
+    else
+    {
+        LOGERR("Cannot read FirmwareDownloadPercent\n");
+    }
+    return retStatus;
 }
 
 /***
