@@ -1344,33 +1344,33 @@ namespace WPEFramework {
             try
             {
                 device::VideoOutputPort &vPort = device::Host::getInstance().getVideoOutputPort(videoDisplay);
-		string resolution = vPort.getResolution().getName();
-		if(strcmp(resolution,"480i")== 0 || strcmp(resolution,"480p")== 0)
+		string resolution = vPort.getresolution.().getName();
+		if(strcmp(resolution.c_str(),"480i")== 0 || strcmp(resolution.c_str(),"480p")== 0)
 		{
 		    width =  720;
 		    height = 480;
 		}
-		else if(strcmp(resolution,"576p50")== 0)
+		else if(strcmp(resolution.c_str(),"576p50")== 0)
 		{
 		    width =  720;
 		    height = 576;
 		}
-		else if(strcmp(resolution,"720p")== 0 || strcmp(resolution,"720p50")== 0)
+		else if(strcmp(resolution.c_str(),"720p")== 0 || strcmp(resolution.c_str(),"720p50")== 0)
 		{
 		    width =  1280;
 		    height = 720;
 		}
-		else if(strcmp(resolution,"1080p24")== 0 || strcmp(resolution,"1080p")== 0 || strcmp(resolution,"1080i50")== 0 || strcmp(resolution,"1080i")== 0)
+		else if(strcmp(resolution.c_str(),"1080p24")== 0 || strcmp(resolution.c_str(),"1080p")== 0 || strcmp(resolution.c_str(),"1080i50")== 0 || strcmp(resolution.c_str(),"1080i")== 0)
 		{
 		    width =  1920;
 		    height = 1080;
 		}
-		else if(strcmp(resolution,"2160p30")== 0 || strcmp(resolution,"2160p60")== 0)
+		else if(strcmp(resolution.c_str(),"2160p30")== 0 || strcmp(resolution.c_str(),"2160p60")== 0)
 		{
 		    width =  3840;
 		    height = 2160;
 		}
-		else if(strcmp(resolution,"4096x2160p24")== 0 || strcmp(resolution,"4096x2160p25")== 0 || strcmp(resolution,"4096x2160p30")== 0 || strcmp(resolution,"4096x2160p50")== 0 || strcmp(resolution,"4096x2160p60")== 0)
+		else if(strcmp(resolution.c_str(),"4096x2160p24")== 0 || strcmp(resolution.c_str(),"4096x2160p25")== 0 || strcmp(resolution.c_str(),"4096x2160p30")== 0 || strcmp(resolution.c_str(),"4096x2160p50")== 0 || strcmp(resolution.c_str(),"4096x2160p60")== 0)
 		{
 		    width =  4096;
 		    height = 2160;
@@ -1381,7 +1381,7 @@ namespace WPEFramework {
 		    height = 720;
 		}
 
-		response["resolution"] = vPort.getResolution().getName();
+		response["resolution"] = vPort.getresolution().getName();
 		response["w"] = width;
 		response["h"] = height;
             }
