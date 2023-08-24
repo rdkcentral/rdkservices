@@ -1339,38 +1339,38 @@ namespace WPEFramework {
             std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
             string videoDisplay = parameters.HasLabel("videoDisplay") ? parameters["videoDisplay"].String() : strVideoPort;
             bool success = true;
-	    int width = 0;
-	    int height = 0;
             try
             {
                 device::VideoOutputPort &vPort = device::Host::getInstance().getVideoOutputPort(videoDisplay);
-		string resolution = vPort.getresolution.().getName();
-		if(strcmp(resolution.c_str(),"480i")== 0 || strcmp(resolution.c_str(),"480p")== 0)
+		int width = 0;
+		int height = 0;
+		string res = vPort.getResolution().getName();
+		if(strcmp(res.c_str(),"480i")== 0 || strcmp(res.c_str(),"480p")== 0)
 		{
 		    width =  720;
 		    height = 480;
 		}
-		else if(strcmp(resolution.c_str(),"576p50")== 0)
+		else if(strcmp(res.c_str(),"576p50")== 0)
 		{
 		    width =  720;
 		    height = 576;
 		}
-		else if(strcmp(resolution.c_str(),"720p")== 0 || strcmp(resolution.c_str(),"720p50")== 0)
+		else if(strcmp(res.c_str(),"720p")== 0 || strcmp(res.c_str(),"720p50")== 0)
 		{
 		    width =  1280;
 		    height = 720;
 		}
-		else if(strcmp(resolution.c_str(),"1080p24")== 0 || strcmp(resolution.c_str(),"1080p")== 0 || strcmp(resolution.c_str(),"1080i50")== 0 || strcmp(resolution.c_str(),"1080i")== 0)
+		else if(strcmp(res.c_str(),"1080p24")== 0 || strcmp(res.c_str(),"1080p")== 0 || strcmp(res.c_str(),"1080i50")== 0 || strcmp(res.c_str(),"1080i")== 0)
 		{
 		    width =  1920;
 		    height = 1080;
 		}
-		else if(strcmp(resolution.c_str(),"2160p30")== 0 || strcmp(resolution.c_str(),"2160p60")== 0)
+		else if(strcmp(res.c_str(),"2160p30")== 0 || strcmp(res.c_str(),"2160p60")== 0)
 		{
 		    width =  3840;
 		    height = 2160;
 		}
-		else if(strcmp(resolution.c_str(),"4096x2160p24")== 0 || strcmp(resolution.c_str(),"4096x2160p25")== 0 || strcmp(resolution.c_str(),"4096x2160p30")== 0 || strcmp(resolution.c_str(),"4096x2160p50")== 0 || strcmp(resolution.c_str(),"4096x2160p60")== 0)
+		else if(strcmp(res.c_str(),"4096x2160p24")== 0 || strcmp(res.c_str(),"4096x2160p25")== 0 || strcmp(res.c_str(),"4096x2160p30")== 0 || strcmp(res.c_str(),"4096x2160p50")== 0 || strcmp(res.c_str(),"4096x2160p60")== 0)
 		{
 		    width =  4096;
 		    height = 2160;
@@ -1381,7 +1381,7 @@ namespace WPEFramework {
 		    height = 720;
 		}
 
-		response["resolution"] = vPort.getresolution().getName();
+		response["resolution"] = vPort.getResolution().getName();
 		response["w"] = width;
 		response["h"] = height;
             }
