@@ -18,9 +18,11 @@ set(EMPTY_HEADERS_DIRS
         ${BASEDIR}/Dobby/Public/Dobby
         ${BASEDIR}/Dobby/IpcService
         ${BASEDIR}/websocket
-	      ${BASEDIR}/rdk/control
+        ${BASEDIR}/rdk/control
         ${BASEDIR}/rdk/iarmmgrs
         ${BASEDIR}/rdkshell
+        ${BASEDIR}/systemservices
+        ${BASEDIR}/systemservices/proc
         )
 
 set(EMPTY_HEADERS
@@ -107,6 +109,7 @@ set(EMPTY_HEADERS
         ${BASEDIR}/rdk/control/ctrlm_ipc_rcu.h
         ${BASEDIR}/rdk/control/ctrlm_ipc_key_codes.h
         ${BASEDIR}/rdk_logger_milestone.h
+        ${BASEDIR}/systemservices/proc/readproc.h
         )
 
 file(MAKE_DIRECTORY ${EMPTY_HEADERS_DIRS})
@@ -141,6 +144,7 @@ set(FAKE_HEADERS
         ${BASEDIR}/RdkLoggerMilestone.h
         ${BASEDIR}/wpa_ctrl_mock.h
         ${BASEDIR}/secure_wrappermock.h
+        ${BASEDIR}/readprocMock.h
         )
 
 foreach (file ${FAKE_HEADERS})
