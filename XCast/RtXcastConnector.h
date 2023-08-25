@@ -35,7 +35,7 @@ using namespace std;
  */
 class RtXcastConnector {
 protected:
-    RtXcastConnector():m_runEventThread(true){
+    RtXcastConnector():m_observer(nullptr), m_runEventThread(true) {
         }
 public:
     virtual ~RtXcastConnector();
@@ -91,7 +91,6 @@ private:
     mutex m_threadlock;
     // Boolean event thread exit condition
     bool m_runEventThread;
-    bool m_IsDefaultDynamicAppListEnabled;
     // Member function to handle RT messages.
     void processRtMessages();
     bool IsAppEnabled(char* strAppName);

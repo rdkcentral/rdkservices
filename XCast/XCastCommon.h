@@ -38,8 +38,9 @@ typedef struct _DynamicAppConfig {
     char payload[DIAL_MAX_PAYLOAD+1];
 
     public:
-       _DynamicAppConfig(){
+       _DynamicAppConfig(const char *applicationName = nullptr){
            memset (appName, '\0', sizeof(appName));
+           if (applicationName) strncpy(appName, applicationName, sizeof(appName)-1);
            memset (prefixes, '\0', sizeof(prefixes));
            memset (cors, '\0', sizeof(cors));
            memset (query, '\0', sizeof(query));
