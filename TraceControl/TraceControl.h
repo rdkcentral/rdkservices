@@ -29,7 +29,7 @@ namespace Plugin {
     class TraceControl : public PluginHost::IPlugin, public PluginHost::IWeb, public PluginHost::JSONRPC {
 
     public:
-        enum state {
+        enum state : int {
             ENABLED,
             DISABLED,
             TRISTATED
