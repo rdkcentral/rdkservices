@@ -54,13 +54,13 @@ namespace WPEFramework {
 		LogicalAddress m_logicalAddress;
 		VendorID m_vendorID;
 		OSDName m_osdName;
-		//<Bits 16 - 1: unused><Bit 0: DevicePresent>
-		short m_deviceInfoStatus;
+		//<Bits 15 - 1: unused><Bit 0: DevicePresent>
+		int16_t m_deviceInfoStatus;
 	        bool m_isOSDNameUpdated;
 	        bool m_isVendorIDUpdated;
 
 		CECDeviceInfo()
-		: m_logicalAddress(0),m_vendorID(0,0,0),m_osdName("NA"), m_isOSDNameUpdated (false), m_isVendorIDUpdated (false)
+		: m_logicalAddress(0),m_vendorID(0,0,0),m_osdName("NA"), m_deviceInfoStatus(0), m_isOSDNameUpdated (false), m_isVendorIDUpdated (false)
 		{
 			BITMASK_CLEAR(m_deviceInfoStatus, 0xFFFF); //Clear all bits
 		}
