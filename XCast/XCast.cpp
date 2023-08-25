@@ -301,7 +301,7 @@ uint32_t XCast::setEnabled(const JsonObject& parameters, JsonObject& response)
          returnResponse(false);
     }
     m_xcastEnable= enabled;
-    if (m_xcastEnable && ( (m_standbyBehavior == true) || ((m_standbyBehavior == false)&&(m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON)) ) )
+    if (m_xcastEnable && ( m_standbyBehavior || m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON ))
         _rtConnector->enableCastService(m_friendlyName,true);
     else
         _rtConnector->enableCastService(m_friendlyName,false);
@@ -356,7 +356,7 @@ uint32_t XCast::setFriendlyName(const JsonObject& parameters, JsonObject& respon
          {
             m_friendlyName = paramStr;
             LOGINFO("XcastService::setFriendlyName  :%s",m_friendlyName.c_str());
-            if (m_xcastEnable && ( (m_standbyBehavior == true) || ((m_standbyBehavior == false)&&(m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON)) ) ) {
+            if (m_xcastEnable && ( m_standbyBehavior || m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON )) {
                _rtConnector->enableCastService(m_friendlyName,true);
             }
             else {
@@ -469,14 +469,8 @@ bool XCast::getEntryFromAppLaunchParamList (const char* appName, DynamicAppConfi
             if (0 == strcmp (regAppLaunchParam->appName, appName)) {
                 isEntryFound = true;
                 strcpy (retAppConfig.appName, regAppLaunchParam->appName);
-
-                if (regAppLaunchParam->query) {
-                    strcpy (retAppConfig.query, regAppLaunchParam->query);
-                }
-
-                if (regAppLaunchParam->payload) {
-                    strcpy (retAppConfig.payload, regAppLaunchParam->payload);
-                }
+                strcpy (retAppConfig.query, regAppLaunchParam->query);
+                strcpy (retAppConfig.payload, regAppLaunchParam->payload);
                 break;
             }
         }
@@ -526,7 +520,7 @@ bool XCast::deleteFromDynamicAppCache(vector<string>& appsToDelete) {
             //Delete the old unwanted item here.
             DynamicAppConfig* pDynamicAppConfigOld = m_appConfigCache[indexToDelete];
             m_appConfigCache.erase (m_appConfigCache.begin()+indexToDelete);
-            free (pDynamicAppConfigOld); pDynamicAppConfigOld = NULL;
+            delete pDynamicAppConfigOld; pDynamicAppConfigOld = NULL;
         }
         entriesTodelete.clear();
 
@@ -744,7 +738,7 @@ uint32_t XCast::registerApplications(const JsonObject& parameters, JsonObject& r
                _rtConnector->registerApplications (m_appConfigCache);
 
                /*Reenabling cast service after registering Applications*/
-               if (m_xcastEnable && ( (m_standbyBehavior == true) || ((m_standbyBehavior == false)&&(m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON)) ) ) {
+               if (m_xcastEnable && ( m_standbyBehavior || m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON )) {
                    LOGINFO("Enable CastService  m_xcastEnable: %d m_standbyBehavior: %d m_powerState:%d", m_xcastEnable, m_standbyBehavior, m_powerState);
                    _rtConnector->enableCastService(m_friendlyName,true);
                }
@@ -790,7 +784,7 @@ uint32_t XCast::unregisterApplications(const JsonObject& parameters, JsonObject&
                _rtConnector->registerApplications (appConfigList);
 
                /*Reenabling cast service after registering Applications*/
-               if (m_xcastEnable && ( (m_standbyBehavior == true) || ((m_standbyBehavior == false)&&(m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON)) ) ) {
+               if (m_xcastEnable && ( m_standbyBehavior || m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON)) {
                    LOGINFO("Enable CastService  m_xcastEnable: %d m_standbyBehavior: %d m_powerState:%d", m_xcastEnable, m_standbyBehavior, m_powerState);
                    _rtConnector->enableCastService(m_friendlyName,true);
                }
@@ -814,6 +808,10 @@ uint32_t XCast::unregisterApplications(const JsonObject& parameters, JsonObject&
 //Timer Functions
 void XCast::onLocateCastTimer()
 {
+    if (_rtConnector == nullptr) {
+        LOGINFO("XCast::onLocateCastTimer :_rtConnector is NULL");
+        return;
+    }
     int status = _rtConnector->connectToRemoteService();
     if(status != 0)
     {
@@ -823,25 +821,21 @@ void XCast::onLocateCastTimer()
     }// err != RT_OK
     m_locateCastTimer.stop();
 
-    if (NULL != _rtConnector) {
-        if (_rtConnector->IsDynamicAppListEnabled() && m_isDynamicRegistrationsRequired) {
+    if (_rtConnector->IsDynamicAppListEnabled() && m_isDynamicRegistrationsRequired) {
 
-            std::vector<DynamicAppConfig*> appConfigList;
-            {lock_guard<mutex> lck(m_appConfigMutex);
-                appConfigList = m_appConfigCache;
-            }
-            dumpDynamicAppConfigCache(string("m_appConfigCache"), appConfigList);
-            LOGINFO("XCast::onLocateCastTimer : calling registerApplications");
-            _rtConnector->registerApplications (appConfigList);
+        std::vector<DynamicAppConfig*> appConfigList;
+        {lock_guard<mutex> lck(m_appConfigMutex);
+            appConfigList = m_appConfigCache;
         }
-        else {
-            LOGINFO("XCast::onLocateCastTimer : DynamicAppList not enabled");
-        }
+        dumpDynamicAppConfigCache(string("m_appConfigCache"), appConfigList);
+        LOGINFO("XCast::onLocateCastTimer : calling registerApplications");
+        _rtConnector->registerApplications (appConfigList);
     }
     else {
-        LOGINFO("XCast::onLocateCastTimer :_rtConnector: %p",  _rtConnector);
+        LOGINFO("XCast::onLocateCastTimer : DynamicAppList not enabled");
     }
-    if (m_xcastEnable && ( (m_standbyBehavior == true) || ((m_standbyBehavior == false)&&(m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON)) ) ) {
+
+    if (m_xcastEnable && ( m_standbyBehavior || m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON )) {
         _rtConnector->enableCastService(m_friendlyName,true);
     }
     else {
@@ -895,9 +889,6 @@ void XCast::getUrlFromAppLaunchParams (const char *app_name, const char *payload
         bool first = true;
         if(payload != NULL && strlen(payload))
         {
-            if (!first) {
-                strcat(url, "&");
-            }
             first = false;
             strcat( url, "dial=");
             strcat( url, payload );
@@ -966,7 +957,7 @@ void XCast::onXcastApplicationLaunchRequestWithLaunchParam (string appName,
     char url[DIAL_MAX_PAYLOAD+DIAL_MAX_ADDITIONALURL+100] = {0,};
 
     if(_rtConnector) {
-        DynamicAppConfig appConfig{};
+        DynamicAppConfig appConfig {};
         getEntryFromAppLaunchParamList (appName.c_str(), appConfig);
 
         /*Replacing with App requested payload and query*/
