@@ -244,6 +244,9 @@
                     "rate":{
                         "$ref": "#/definitions/rate"
                     },
+                    "speechrate":{
+                        "$ref": "#/definitions/speechrate"
+                    },
                     "TTS_Status": {
                         "$ref": "#/definitions/TTS_Status"
                     },                    
