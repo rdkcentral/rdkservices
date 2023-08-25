@@ -108,8 +108,9 @@ namespace Plugin {
         virtual uint32_t SetFallbackText(const string scenario,const string value) override ;
         virtual uint32_t SetAPIKey(const string apikey) override ;
         virtual uint32_t SetPrimaryVolDuck(const uint8_t prim) override ;
+        virtual uint32_t SetACL(const string method,const string apps) override;
         virtual uint32_t GetConfiguration(Exchange::ITextToSpeech::Configuration &object/* @out */) const override;
-        virtual uint32_t Speak(const string text,uint32_t &speechid/* @out */,Exchange::ITextToSpeech::TTSErrorDetail &status/* @out */) override;
+        virtual uint32_t Speak(const string callsign,const string text,uint32_t &speechid/* @out */,Exchange::ITextToSpeech::TTSErrorDetail &status/* @out */) override;
         virtual uint32_t Cancel(const uint32_t speechid) override;
         virtual uint32_t Pause(const uint32_t speechid,Exchange::ITextToSpeech::TTSErrorDetail &status /* @out */) override;
         virtual uint32_t Resume(const uint32_t speechid,Exchange::ITextToSpeech::TTSErrorDetail &status /* @out */) override;
