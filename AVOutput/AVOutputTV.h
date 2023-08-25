@@ -17,8 +17,8 @@
 * limitations under the License.
 */
 
-#ifndef AVOuputTV_H
-#define AVOuputTV_H
+#ifndef AVOutputTV_H
+#define AVOutputTV_H
 
 #include "string.h"
 

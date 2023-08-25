@@ -18,7 +18,7 @@
 */
 
 #include <string>
-#include "AVOuputTV.h"
+#include "AVOutputTV.h"
 
 #define BUFFER_SIZE     (128)
 #define TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOuput.Source"
@@ -40,7 +40,7 @@ static const char *component_color[] = {
 namespace WPEFramework {
 namespace Plugin {
 
-    AVOuputTV* AVOuputTV::instance = nullptr;
+    AVOutputTV* AVOutputTV::instance = nullptr;
 
     static JsonArray getSupportedVideoFormat(void)
     {
@@ -193,34 +193,34 @@ namespace Plugin {
         return supportedFrameRate;
     }
 
-    AVOuputTV::AVOuputTV(): PluginHost::JSONRPC()
+    AVOutputTV::AVOutputTV(): PluginHost::JSONRPC()
 					    , m_currentHdmiInResoluton (dsVIDEO_PIXELRES_1920x1080)
                                             , m_videoZoomMode (tvDisplayMode_NORMAL)
                                             , m_isDisabledHdmiIn4KZoom (false)
 					    , rfc_caller_id()
     {
         LOGINFO("Entry\n");
-        AVOuputTV::instance = this;
+        AVOutputTV::instance = this;
 	CreateHandler({ 2 });
-        Register("getBacklight", &AVOuputTV::getBacklight, this);
-        registerMethod("setBacklight", &AVOuputTV::setBacklight, this);
-        registerMethod("resetBacklight", &AVOuputTV::resetBacklight, this);
-        registerMethod("getBacklightCaps", &AVOuputTV::getBacklightCaps, this);
-        registerMethod("getBrightnessCaps", &AVOuputTV::getBrightnessCaps, this);
-        Register("getBrightness", &AVOuputTV::getBrightness, this);
-        registerMethod("setBrightness", &AVOuputTV::setBrightness, this);
-        registerMethod("resetBrightness", &AVOuputTV::resetBrightness, this);
-        Register("getContrast", &AVOuputTV::getContrast, this);
-        registerMethod("setContrast", &AVOuputTV::setContrast, this);
-        registerMethod("resetContrast", &AVOuputTV::resetContrast, this);
-	registerMethod("getContrastCaps", &AVOuputTV::getContrastCaps, this);
-        Register("getSharpness", &AVOuputTV::getSharpness, this);
-        registerMethod("setSharpness", &AVOuputTV::setSharpness, this);
-        registerMethod("resetSharpness", &AVOuputTV::resetSharpness, this);
-	registerMethod("getSharpnessCaps", &AVOuputTV::getSharpnessCaps, this);
-        Register("getSaturation", &AVOuputTV::getSaturation, this);
-        registerMethod("setSaturation", &AVOuputTV::setSaturation, this);
-        registerMethod("resetSaturation", &AVOuputTV::resetSaturation, this);
+        Register("getBacklight", &AVOutputTV::getBacklight, this);
+        registerMethod("setBacklight", &AVOutputTV::setBacklight, this);
+        registerMethod("resetBacklight", &AVOutputTV::resetBacklight, this);
+        registerMethod("getBacklightCaps", &AVOutputTV::getBacklightCaps, this);
+        registerMethod("getBrightnessCaps", &AVOutputTV::getBrightnessCaps, this);
+        Register("getBrightness", &AVOutputTV::getBrightness, this);
+        registerMethod("setBrightness", &AVOutputTV::setBrightness, this);
+        registerMethod("resetBrightness", &AVOutputTV::resetBrightness, this);
+        Register("getContrast", &AVOutputTV::getContrast, this);
+        registerMethod("setContrast", &AVOutputTV::setContrast, this);
+        registerMethod("resetContrast", &AVOutputTV::resetContrast, this);
+	registerMethod("getContrastCaps", &AVOutputTV::getContrastCaps, this);
+        Register("getSharpness", &AVOutputTV::getSharpness, this);
+        registerMethod("setSharpness", &AVOutputTV::setSharpness, this);
+        registerMethod("resetSharpness", &AVOutputTV::resetSharpness, this);
+	registerMethod("getSharpnessCaps", &AVOutputTV::getSharpnessCaps, this);
+        Register("getSaturation", &AVOutputTV::getSaturation, this);
+        registerMethod("setSaturation", &AVOutputTV::setSaturation, this);
+        registerMethod("resetSaturation", &AVOutputTV::resetSaturation, this);
 	registerMethod("getSaturationCaps", &AVOutputTV::getSaturationCaps, this);
         Register("getHue", &AVOutputTV::getHue, this);
         registerMethod("setHue", &AVOutputTV::setHue, this);
