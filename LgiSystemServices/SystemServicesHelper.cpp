@@ -294,11 +294,9 @@ bool getFileContent(std::string fileName, std::vector<std::string> & vecOfStrs)
 std::vector<std::string> searchAndGetFilesList(std::string path, std::string filter)
 {
     int retStat = -1;
-    char buff[4096 + 1];
     std::string command,totalStr;
     std::vector<std::string> FileList;
 
-    memset(buff, 0, 4096);
     command = "find "+path+" -iname "+filter+" > /tmp/tempBuffer.dat";
     retStat = system(command.c_str());
     fprintf(stdout, "searchAndGetFilesList : retStat = %d\n", retStat);
@@ -585,3 +583,36 @@ bool parseConfigFile(const char* filename, string findkey, string &value)
         return false;
     }
 }
+
+const std::map<FwFailReason, string> FwFailReasonToText =
+        {
+                {FwFailReasonNone, "None"},
+                {FwFailReasonNotFound, "Not found"},
+                {FwFailReasonNetworkFailure, "Network failure"},
+                {FwFailReasonServerUnreachable, "Server unreachable"},
+                {FwFailReasonCorruptDownloadFile, "Corrupt download file"},
+                {FwFailReasonFailureInFlashWrite, "Failure in flash write"},
+                {FwFailReasonUpgradeFailedAfterFlashWrite, "Upgrade failed after flash write"},
+        };
+
+const std::map<string, FwFailReason> FwFailReasonFromText =
+        {
+                {"ESTB Download Failure", FwFailReasonServerUnreachable},
+                {"Image Download Failed - Unable to connect", FwFailReasonNetworkFailure},
+                {"Image Download Failed - Server not Found", FwFailReasonNotFound},
+                {"Image Download Failed - Error response from server", FwFailReasonServerUnreachable},
+                {"Image Download Failed - Unknown", FwFailReasonServerUnreachable},
+                {"Image download failed from server", FwFailReasonServerUnreachable}, // firmwareDwnld.sh only
+                {"RCDL Upgrade Failed", FwFailReasonFailureInFlashWrite},
+                {"ECM trigger failed", FwFailReasonFailureInFlashWrite},
+                {"Failed in flash write", FwFailReasonFailureInFlashWrite},
+                {"Flashing failed", FwFailReasonFailureInFlashWrite}, // userInitiatedFWDnld.sh only
+                {"Versions Match", FwFailReasonNone}, // XConf
+                {"Cloud FW Version is empty", FwFailReasonNone}, // XConf
+                {"Cloud FW Version is invalid", FwFailReasonNone}, // XConf
+                {"Invalid Request", FwFailReasonNone}, // XConf
+                {"Network Communication Error", FwFailReasonNone}, // XConf
+                {"Previous Upgrade In Progress", FwFailReasonNone}, // firmwareDwnld.sh only
+                {"Empty image name from CDL server", FwFailReasonNone}, // firmwareDwnld.sh only
+                {"Upgrade failed after flash write", FwFailReasonUpgradeFailedAfterFlashWrite},
+        };
