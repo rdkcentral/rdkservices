@@ -400,29 +400,6 @@ RtXcastConnector * RtXcastConnector::getInstance()
     return RtXcastConnector::_instance;
 }
 
-bool RtXcastConnector::IsDynamicAppListEnabled()
-{
-    bool ret = false;
-#ifdef RFC_ENABLED
-    RFC_ParamData_t param;
-    WDMP_STATUS wdmpStatus = getRFCParameter(const_cast<char *>("Xcast"), "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.XDial.DynamicAppList", &param);
-    if (wdmpStatus == WDMP_SUCCESS || wdmpStatus == WDMP_ERR_DEFAULT_VALUE)
-    {
-        if( param.type == WDMP_BOOLEAN )
-        {
-            if(strncasecmp(param.value,"true",4) == 0 )
-                ret = true;
-        }
-    }
-
-    LOGINFO(" IsDynamicAppListEnabled enabled ? %d , call value %d ", ret, wdmpStatus);
-#else
-    ret = true;
-#endif //RFC_ENABLED
-
-    return ret;
-}
-
 bool RtXcastConnector::IsAppEnabled(char* strAppName)
 {
     bool ret = false;

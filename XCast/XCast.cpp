@@ -87,7 +87,6 @@ SERVICE_REGISTRATION(XCast, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, 
 
 static RtXcastConnector * _rtConnector  = RtXcastConnector::getInstance();
 static int locateCastObjectRetryCount = 0;
-bool XCast::isCastEnabled = false;
 #ifdef XCAST_ENABLED_BY_DEFAULT
 bool XCast::m_xcastEnable = true;
 #else
@@ -99,16 +98,12 @@ bool XCast::m_standbyBehavior = true;
 #else
 bool XCast::m_standbyBehavior = false;
 #endif
-bool XCast::m_enableStatus = false;
 
 IARM_Bus_PWRMgr_PowerState_t XCast::m_powerState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
 
 XCast::XCast() : PluginHost::JSONRPC()
 , m_apiVersionNumber(1), m_isDynamicRegistrationsRequired(false)
 {
-    XCast::checkRFCServiceStatus();
-    if(XCast::isCastEnabled)
-    {
         LOGINFO("XcastService::Register methods and create onLocateCastTimer ");
         Register(METHOD_GET_API_VERSION_NUMBER, &XCast::getApiVersionNumber, this);
         Register(METHOD_ON_APPLICATION_STATE_CHANGED , &XCast::applicationStateChanged, this);
@@ -123,7 +118,6 @@ XCast::XCast() : PluginHost::JSONRPC()
         Register(METHOD_GET_PROTOCOLVERSION, &XCast::getProtocolVersion, this);
         
         m_locateCastTimer.connect( bind( &XCast::onLocateCastTimer, this ));
-    }
 }
 
 XCast::~XCast()
@@ -183,18 +177,11 @@ const string XCast::Initialize(PluginHost::IShell* /* service */)
     InitializeIARM();
     _rtConnector  = RtXcastConnector::getInstance();
     _rtConnector->setService(this);
-    if (XCast::isCastEnabled)
+    //TODO add rt intialization.
+    if( _rtConnector->initialize())
     {
-        //TODO add rt intialization.
-        if( _rtConnector->initialize())
-        {
-            //We give few seconds delay before the timer is fired.
-            m_locateCastTimer.start(LOCATE_CAST_FIRST_TIMEOUT_IN_MILLIS);
-        }
-    }
-    else
-    {
-        LOGINFO(" Cast service is disabled. Not initializing");
+        //We give few seconds delay before the timer is fired.
+       m_locateCastTimer.start(LOCATE_CAST_FIRST_TIMEOUT_IN_MILLIS);
     }
     // On success return empty, to indicate there is no error text.
     return (string());
@@ -207,10 +194,8 @@ void XCast::Deinitialize(PluginHost::IShell* /* service */)
     {
         m_locateCastTimer.stop();
     }
-    if( XCast::isCastEnabled){
-        _rtConnector->enableCastService(m_friendlyName,false);
-        _rtConnector->shutdown();
-    }
+    _rtConnector->enableCastService(m_friendlyName,false);
+    _rtConnector->shutdown();
     DeinitializeIARM();
 }
 
@@ -622,7 +607,6 @@ uint32_t XCast::registerApplications(const JsonObject& parameters, JsonObject& r
        if(_rtConnector)
        {
            LOGINFO("%s:%d _rtConnector Not NULL", __FUNCTION__, __LINE__);
-           if(_rtConnector->IsDynamicAppListEnabled()) {
                /*Disable cast service before registering Applications*/
                _rtConnector->enableCastService(m_friendlyName,false);
 
@@ -646,10 +630,6 @@ uint32_t XCast::registerApplications(const JsonObject& parameters, JsonObject& r
                    LOGINFO("CastService not enabled m_xcastEnable: %d m_standbyBehavior: %d m_powerState:%d", m_xcastEnable, m_standbyBehavior, m_powerState);
                }
                returnResponse(true);
-           }
-           else {
-               returnResponse(false);
-           }
        }
        else
            returnResponse(false);
@@ -669,7 +649,6 @@ uint32_t XCast::unregisterApplications(const JsonObject& parameters, JsonObject&
        if(_rtConnector)
        {
 	       LOGINFO("%s:%d _rtConnector Not NULL", __FUNCTION__, __LINE__);
-           if(_rtConnector->IsDynamicAppListEnabled()) {
                /*Disable cast service before registering Applications*/
                _rtConnector->enableCastService(m_friendlyName,false);
                m_isDynamicRegistrationsRequired = true;
@@ -692,10 +671,6 @@ uint32_t XCast::unregisterApplications(const JsonObject& parameters, JsonObject&
                    LOGINFO("CastService not enabled m_xcastEnable: %d m_standbyBehavior: %d m_powerState:%d", m_xcastEnable, m_standbyBehavior, m_powerState);
                }
                returnResponse(ret);
-           }
-           else {
-               returnResponse(false);
-           }
        }
        else
            returnResponse(false);
@@ -741,7 +716,7 @@ void XCast::onLocateCastTimer()
     m_locateCastTimer.stop();
 
     if (NULL != _rtConnector) {
-        if (_rtConnector->IsDynamicAppListEnabled() && m_isDynamicRegistrationsRequired) {
+        if (m_isDynamicRegistrationsRequired) {
 
             std::vector<DynamicAppConfig*> appConfigList;
             {lock_guard<mutex> lck(m_appConfigMutex);
@@ -752,7 +727,7 @@ void XCast::onLocateCastTimer()
             _rtConnector->registerApplications (appConfigList);
         }
         else {
-            LOGINFO("XCast::onLocateCastTimer : DynamicAppList not enabled");
+            LOGINFO("XCast::onLocateCastTimer : m_isDynamicRegistrationsRequired is false ");
         }
     }
     else {
@@ -980,28 +955,6 @@ void XCast::onXcastApplicationResumeRequest(string appName, string appID)
     params["applicationName"] = appName;
     params["applicationId"]= appID;
     sendNotify(EVT_ON_RESUME_REQUEST, params);
-}
-
-bool XCast::checkRFCServiceStatus()
-{
-#ifdef RFC_ENABLED
-    RFC_ParamData_t param;
-    WDMP_STATUS wdmpStatus = getRFCParameter(const_cast<char *>("Xcast"), "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.XDial.Enable", &param);
-    if (wdmpStatus == WDMP_SUCCESS || wdmpStatus == WDMP_ERR_DEFAULT_VALUE)
-    {
-        if( param.type == WDMP_BOOLEAN )
-        {
-            if(strncasecmp(param.value,"true",4) == 0 )
-                XCast::isCastEnabled = true;
-        }
-    }
-
-    LOGINFO(" Is cast enabled ? %d , call value %d ", isCastEnabled, wdmpStatus);
-#else
-    XCast::isCastEnabled = true;;
-#endif //RFC_ENABLED
-    
-    return XCast::isCastEnabled;
 }
 
 void XCast::threadPowerModeChangeEvent(void)
