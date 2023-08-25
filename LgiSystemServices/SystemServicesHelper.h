@@ -111,7 +111,7 @@ enum FirmwareUpdateState {
     FirmwareUpdateStateNoUpgradeNeeded
 };
 
-const string GZ_STATUS = "/opt/gzenabled";
+#define GZ_STATUS "/opt/gzenabled";
 
 /* Used as CURL Data buffer */
 struct write_result {
@@ -313,38 +313,8 @@ enum FwFailReason
     FwFailReasonUpgradeFailedAfterFlashWrite,
 };
 
-static const std::map<FwFailReason, string> FwFailReasonToText =
-        {
-                {FwFailReasonNone, "None"},
-                {FwFailReasonNotFound, "Not found"},
-                {FwFailReasonNetworkFailure, "Network failure"},
-                {FwFailReasonServerUnreachable, "Server unreachable"},
-                {FwFailReasonCorruptDownloadFile, "Corrupt download file"},
-                {FwFailReasonFailureInFlashWrite, "Failure in flash write"},
-                {FwFailReasonUpgradeFailedAfterFlashWrite, "Upgrade failed after flash write"},
-        };
-
-static const std::map<string, FwFailReason> FwFailReasonFromText =
-        {
-                {"ESTB Download Failure", FwFailReasonServerUnreachable},
-                {"Image Download Failed - Unable to connect", FwFailReasonNetworkFailure},
-                {"Image Download Failed - Server not Found", FwFailReasonNotFound},
-                {"Image Download Failed - Error response from server", FwFailReasonServerUnreachable},
-                {"Image Download Failed - Unknown", FwFailReasonServerUnreachable},
-                {"Image download failed from server", FwFailReasonServerUnreachable}, // firmwareDwnld.sh only
-                {"RCDL Upgrade Failed", FwFailReasonFailureInFlashWrite},
-                {"ECM trigger failed", FwFailReasonFailureInFlashWrite},
-                {"Failed in flash write", FwFailReasonFailureInFlashWrite},
-                {"Flashing failed", FwFailReasonFailureInFlashWrite}, // userInitiatedFWDnld.sh only
-                {"Versions Match", FwFailReasonNone}, // XConf
-                {"Cloud FW Version is empty", FwFailReasonNone}, // XConf
-                {"Cloud FW Version is invalid", FwFailReasonNone}, // XConf
-                {"Invalid Request", FwFailReasonNone}, // XConf
-                {"Network Communication Error", FwFailReasonNone}, // XConf
-                {"Previous Upgrade In Progress", FwFailReasonNone}, // firmwareDwnld.sh only
-                {"Empty image name from CDL server", FwFailReasonNone}, // firmwareDwnld.sh only
-                {"Upgrade failed after flash write", FwFailReasonUpgradeFailedAfterFlashWrite},
-        };
+extern const std::map<FwFailReason, string> FwFailReasonToText;
+extern const std::map<string, FwFailReason> FwFailReasonFromText;
 
 #endif /* __SYSTEM_SERVICE_HELPER_H__ */
 
