@@ -2670,7 +2670,7 @@ namespace WPEFramework {
 		string sMode = parameters["mode"].String();
                 string sLevel = parameters["level"].String();
                 dsVolumeLeveller_t volumeLeveller;
-                if ((Utils::isValidUnsignedInt ((char*)sMode.c_str()) == false) || (Utils::isValidUnsignedInt ((char*)sMode.c_str()) == false)) {
+                if (!Utils::isValidUnsignedInt(sMode.c_str()) || !Utils::isValidUnsignedInt(sLevel.c_str())) {
                     LOGWARN("mode and level should be an unsigned integer");
                     returnResponse(false);
                 }
@@ -4383,8 +4383,7 @@ namespace WPEFramework {
                             }
                         }
                         else{
-                            device::AudioStereoMode mode = device::AudioStereoMode::kStereo;  //default to stereo
-                            mode = aPort.getStereoMode(); //get Last User set stereo mode and set
+                            device::AudioStereoMode mode = aPort.getStereoMode(); //get Last User set stereo mode and set
                             if((mode == device::AudioStereoMode::kPassThru) && (types & dsAUDIOARCSUPPORT_ARC)
                                               && ((m_arcAudioEnabled != pEnable) || ( m_arcPendingSADRequest == true))){
                                 if (!DisplaySettings::_instance->requestShortAudioDescriptor()) {
@@ -4911,8 +4910,7 @@ namespace WPEFramework {
                             aPort.setStereoAuto(true,true);
                         }
                         else{
-                            device::AudioStereoMode mode = device::AudioStereoMode::kStereo;  //default to stereo
-                            mode = aPort.getStereoMode(); //get Last User set stereo mode and set
+                            device::AudioStereoMode mode = aPort.getStereoMode(); //get Last User set stereo mode and set
                             aPort.setStereoMode(mode.toString(), true);
                         }
                     }

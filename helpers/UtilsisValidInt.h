@@ -3,7 +3,7 @@
 #include <ctype.h>
 
 namespace Utils {
-inline bool isValidInt(char* x)
+inline bool isValidInt(const char* x)
 {
     bool Checked = true;
     int i = 0;
@@ -28,7 +28,7 @@ inline bool isValidInt(char* x)
     return Checked;
 }
 
-inline bool isValidUnsignedInt(char* x)
+inline bool isValidUnsignedInt(const char* x)
 {
     bool Checked = true;
     int i = 0;
