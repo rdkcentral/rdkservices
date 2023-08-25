@@ -24,11 +24,11 @@ typedef struct PROCTAB {
 } PROCTAB;
 
 // Initialize a PROCTAB structure holding needed call-to-call persistent data
-extern PROCTAB* openproc(int flags, ... /* pid_t*|uid_t*|dev_t*|char* [, int n] */ );
+PROCTAB* openproc(int flags, ... /* pid_t*|uid_t*|dev_t*|char* [, int n] */ );
 
 // Clean-up open files, etc from the openproc()
-extern void closeproc(PROCTAB* PT);
+void closeproc(PROCTAB* PT);
 
-extern proc_t* readproc(PROCTAB *__restrict const PT, proc_t *__restrict p);
+proc_t* readproc(PROCTAB *__restrict const PT, proc_t *__restrict p);
 
 #endif
