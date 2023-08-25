@@ -26,6 +26,21 @@ if(BUILD_TESTS)
     add_subdirectory(TestClient)
 endif()
 
+if(RDK_SERVICE_L2_TEST)
+add_library(${MODULE_NAME} SHARED
+        SystemServices.cpp
+        Module.cpp
+        cTimer.cpp
+        thermonitor.cpp
+        SystemServicesHelper.cpp
+        uploadlogs.cpp
+        platformcaps/platformcaps.cpp
+        platformcaps/platformcapsdata.cpp
+        platformcaps/platformcapsdatarpc.cpp
+        ../Tests/L2_tests/mocks/Iarmmock.cpp
+        ../Tests/L2_tests/mocks/Rfcmock.cpp)
+
+else (RDK_SERVICE_L2_TEST)
 add_library(${MODULE_NAME} SHARED
         SystemServices.cpp
         Module.cpp
@@ -37,6 +52,7 @@ add_library(${MODULE_NAME} SHARED
         platformcaps/platformcapsdata.cpp
         platformcaps/platformcapsdatarpc.cpp
         )
+endif()
 set_source_files_properties(SystemServices.cpp thermonitor.cpp platformcaps/platformcapsdata.cpp PROPERTIES COMPILE_FLAGS "-fexceptions")
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
