@@ -54,8 +54,8 @@ namespace WPEFramework {
 		LogicalAddress m_logicalAddress;
 		VendorID m_vendorID;
 		OSDName m_osdName;
-		//<Bits 16 - 1: unused><Bit 0: DevicePresent>
-		short m_deviceInfoStatus;
+		//<Bits 15 - 1: unused><Bit 0: DevicePresent>
+		int16_t m_deviceInfoStatus;
 	        bool m_isOSDNameUpdated;
 	        bool m_isVendorIDUpdated;
 

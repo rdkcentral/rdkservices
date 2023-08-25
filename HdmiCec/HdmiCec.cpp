@@ -298,11 +298,8 @@ namespace WPEFramework
                     case IARM_BUS_CECMGR_EVENT_STATUS_UPDATED:
                     {
                         IARM_Bus_CECMgr_Status_Updated_Param_t *evtData = new IARM_Bus_CECMgr_Status_Updated_Param_t;
-                        if(evtData)
-                        {
-                            memcpy(evtData,data,sizeof(IARM_Bus_CECMgr_Status_Updated_Param_t));
-                            HdmiCec::_instance->cecStatusUpdated(evtData);
-                        }
+                        memcpy(evtData,data,sizeof(IARM_Bus_CECMgr_Status_Updated_Param_t));
+                        HdmiCec::_instance->cecStatusUpdated(evtData);
                     }
                     break;
                     default:
@@ -677,14 +674,6 @@ namespace WPEFramework
 
         std::string HdmiCec::getName()
         {
-            //SVCLOG_WARN("%s \r\n",__FUNCTION__);
-            IARM_Result_t ret = IARM_RESULT_INVALID_STATE;
-            if (ret != IARM_RESULT_SUCCESS)
-            {
-                LOGWARN("getName :: IARM_BUS_CEC_HOST_GetOSDName failed ");
-                return "STB";
-            }
-
             return "STB";
         }
 
