@@ -87,9 +87,9 @@
             "example": "speak"
         },
         "apps": {
-            "summary": "Name of client application",
-            "type": "string",
-            "example": "WebApp"
+            "summary": "List of client application",
+            "type": "array",
+            "example": ["App1","App2"]
         }
     },
     "methods": {
@@ -626,14 +626,10 @@
                 "properties": {
                     "speechid": {
                         "$ref": "#/definitions/speechid"
-                    },
-                    "text": {
-                        "$ref": "#/definitions/text"
-                    }                    
+                    } 
                 },
                 "required": [
-                    "speechid",
-                    "text"
+                    "speechid"
                 ]
             }
         },
@@ -686,14 +682,10 @@
                 "properties": {
                     "speechid": {
                         "$ref": "#/definitions/speechid"
-                    },
-                    "text": {
-                        "$ref": "#/definitions/text"
                     }                    
                 },
                 "required": [
-                    "speechid",
-                    "text"
+                    "speechid"
                 ]
             }
         },
@@ -734,14 +726,10 @@
                 "properties": {
                     "speechid": {
                         "$ref": "#/definitions/speechid"
-                    },
-                    "text": {
-                        "$ref": "#/definitions/text"
                     }
                 },
                 "required": [
-                    "speechid",
-                    "text"
+                    "speechid"
                 ]
             }
         }
