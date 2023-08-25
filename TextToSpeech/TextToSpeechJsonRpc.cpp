@@ -152,6 +152,7 @@ namespace Plugin {
             response["ttsendpointsecured"]  = ttsConfig.ttsEndPointSecured;
             response["language"]            = ttsConfig.language;
             response["voice"]               = ttsConfig.voice;
+            response["speechrate"]          = ttsConfig.speechRate;
             response["rate"]                = (int) ttsConfig.rate;
             response["volume"]              = std::to_string(ttsConfig.volume);
             response["TTS_Status"] = static_cast<uint32_t> (TTS::TTS_OK);
@@ -169,6 +170,7 @@ namespace Plugin {
         config.ttsEndPointSecured = GET_STR(parameters, "ttsendpointsecured", "");
         config.language = GET_STR(parameters, "language", "");
         config.voice = GET_STR(parameters, "voice", "");
+        config.speechRate = GET_STR(parameters, "speechrate", "");
         config.volume = (uint8_t) std::stod(GET_STR(parameters, "volume", "0.0"));
 
         if(parameters.HasLabel("rate")) {
@@ -189,12 +191,6 @@ namespace Plugin {
                 apikey = GET_STR(auth,"value", "");
                 _tts->SetAPIKey(apikey);
             }
-        }
-
-        if(parameters.HasLabel("speechrate")) {
-            string speechrate;         
-            speechrate = parameters["speechrate"].String();
-            _tts->SetSpeechRate(speechrate);
         }
 
         if(parameters.HasLabel("fallbacktext")) {
