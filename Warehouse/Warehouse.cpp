@@ -73,7 +73,7 @@
 #define VERSION_FILE_NAME "/version.txt"
 #define CUSTOM_DATA_FILE "/lib/rdk/wh_api_5.conf"
 
-#define LIGHT_RESET_SCRIPT "rm -rf /opt/netflix/* SD_CARD_MOUNT_PATH/netflix/* /media/apps/sky/packages/NetflixApp/data.img XDG_DATA_HOME/* XDG_CACHE_HOME/* XDG_CACHE_HOME/../.sparkStorage/ /opt/QT/home/data/* /opt/hn_service_settings.conf /opt/apps/common/proxies.conf /opt/lib/bluetooth /opt/persistent/rdkservicestore"
+#define LIGHT_RESET_SCRIPT "rm -rf /opt/netflix/* /media/apps/sky/packages/NetflixApp/data.img SD_CARD_MOUNT_PATH/netflix/*  XDG_DATA_HOME/* XDG_CACHE_HOME/* XDG_CACHE_HOME/../.sparkStorage/ /opt/QT/home/data/* /opt/hn_service_settings.conf /opt/apps/common/proxies.conf /opt/lib/bluetooth /opt/persistent/rdkservicestore"
 #define INTERNAL_RESET_SCRIPT "rm -rf /opt/drm /opt/www/whitebox /opt/www/authService && /rebootNow.sh -s WarehouseService &"
 
 #define FRONT_PANEL_NONE -1
