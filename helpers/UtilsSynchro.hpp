@@ -10,10 +10,8 @@ using namespace WPEFramework;
 namespace Utils {
     namespace Synchro {
 
-        namespace {
-            // set when inside of getFunctionToCall wrapper (or locked IARM handler - see UtilsSynchroIarm.hpp)
-            thread_local bool isThreadUsingLockedApi = false;
-        }
+        // set when inside of getFunctionToCall wrapper (or locked IARM handler - see UtilsSynchroIarm.hpp)
+        thread_local bool isThreadUsingLockedApi = false;
 
         // keeps API locks, one per specific class
         template<class C>
