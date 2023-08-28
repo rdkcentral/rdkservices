@@ -28,7 +28,7 @@
 #include "ServiceMock.h"
 #include "SleepModeMock.h"
 #include "WrapsMock.h"
-#include "readprocMock.h"
+#include "readprocMockInterface.h"
 
 #include "deepSleepMgr.h"
 #include "exception.hpp"

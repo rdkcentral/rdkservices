@@ -144,7 +144,7 @@ set(FAKE_HEADERS
         ${BASEDIR}/RdkLoggerMilestone.h
         ${BASEDIR}/wpa_ctrl_mock.h
         ${BASEDIR}/secure_wrappermock.h
-        ${BASEDIR}/readprocMock.h
+        ${BASEDIR}/readprocMockInterface.h
         )
 
 foreach (file ${FAKE_HEADERS})
