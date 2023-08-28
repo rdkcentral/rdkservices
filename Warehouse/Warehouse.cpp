@@ -24,6 +24,7 @@
 
 #include <regex.h>
 #include <time.h>
+#include <sstream>
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "UtilsIarm.h"
@@ -80,6 +81,13 @@
 #define FRONT_PANEL_INPROGRESS 1
 #define FRONT_PANEL_FAILED 3
 #define FRONT_PANEL_INTERVAL 5000
+
+static const char WAREHOUSE_RESET_FLAG_FILE[] = "/opt/.rebootFlag";
+static const char RECEIVER_LOG_FILE[] = "/opt/logs/receiver.log";
+static const int READ_BUFFER_SZ = 1024;
+static const int MAX_LOG_SIZE = 128;
+
+
 
 // TODO: remove this
 #define registerMethod(...) for (uint8_t i = 1; GetHandler(i); i++) GetHandler(i)->Register<JsonObject, JsonObject>(__VA_ARGS__)
@@ -586,28 +594,20 @@ namespace WPEFramework
                 std::string var = script.substr(pos + rm[2].rm_so, rm[2].rm_eo - rm[2].rm_so);
                 std::string replace;
                 const char *envVar = getenv(var.c_str());
+                string scmp;
 
-                std::string scmp;
                 if ("SD_CARD_MOUNT_PATH" == var && (!envVar || 0 == *envVar))
                 {
-
-                    FILE *p = popen("cat  /proc/mounts | grep mmcblk0p1 | awk '{print $2}' ", "r");
-
-                    if(!p)
+                    /*getting the mount path from function if unable to get from env variables*/
+                    if (getSDCardMountPath(scmp) == true)
                     {
-                        LOGWARN("failed to run script to get SD_CARD_MOUNT_PATH");
+                        scmp.erase(0, scmp.find_first_not_of(" \n\r\t"));
+                        scmp.erase(scmp.find_last_not_of(" \n\r\t") + 1);
+                        envVar = scmp.c_str();
                     }
                     else
                     {
-                        char buf[256];
-                        while(fgets(buf, sizeof(buf), p) != NULL)
-                            scmp += buf;
-
-                        scmp.erase(0, scmp.find_first_not_of(" \n\r\t"));
-                        scmp.erase(scmp.find_last_not_of(" \n\r\t") + 1);
-
-                        envVar = scmp.c_str();
-                        pclose(p);
+                         LOGWARN("failed to get SD_CARD_MOUNT_PATH");
                     }
                 }
 
@@ -1023,8 +1023,8 @@ namespace WPEFramework
             fflush(stdout);
             /*Execute the script for Cold Factory Reset*/
             system("sh /lib/rdk/deviceReset.sh coldfactory");
-            system("echo 0 > /opt/.rebootFlag");
-            system("echo `/bin/timestamp` ------------- Rebooting due to Cold Factory Reset process --------------- >> /opt/logs/receiver.log");
+            resetWarehouseRebootFlag();
+            addLogToFile("------------- Rebooting due to Cold Factory Reset process --------------- ", RECEIVER_LOG_FILE);
             system("sleep 5; /rebootNow.sh -s PowerMgr_coldFactoryReset -o 'Rebooting the box due to Cold Factory Reset process ...'");
             return Core::ERROR_NONE;
         }
@@ -1038,8 +1038,8 @@ namespace WPEFramework
             fflush(stdout);
             /*Execute the script for Factory Reset*/
             system("sh /lib/rdk/deviceReset.sh factory");
-            system("echo 0 > /opt/.rebootFlag");
-            system("echo `/bin/timestamp` -------------Rebooting due to Factory Reset process-------------- >> /opt/logs/receiver.log");
+            resetWarehouseRebootFlag();
+            addLogToFile("-------------Rebooting due to Factory Reset process--------------", RECEIVER_LOG_FILE);
             return Core::ERROR_NONE;
         }
 
@@ -1048,9 +1048,9 @@ namespace WPEFramework
             LOGINFO("\n Reset: Processing Ware House Reset\n");
             fflush(stdout);
             /*Execute the script for Ware House Reset*/
-            system("echo 0 > /opt/.rebootFlag");
-            system("touch /tmp/.warehouse-reset"); 
-            system("echo `/bin/timestamp` ------------- Rebooting due to Warehouse Reset process--------------- >> /opt/logs/receiver.log");
+            resetWarehouseRebootFlag();
+            std::ofstream { "/tmp/.warehouse-reset" };
+            addLogToFile("------------- Rebooting due to Warehouse Reset process--------------", RECEIVER_LOG_FILE);
             return system("sh /lib/rdk/deviceReset.sh warehouse");
         }
 
@@ -1059,9 +1059,9 @@ namespace WPEFramework
             /*Code copied from X1.. Needs modification*/
             LOGINFO("\n Clear: Processing Ware House Clear\n");
             fflush(stdout);
-            system("echo 0 > /opt/.rebootFlag");
-            system("touch /tmp/.warehouse-clear"); 
-            system("echo `/bin/timestamp` ------------- Warehouse Clear  --------------- >> /opt/logs/receiver.log");
+            resetWarehouseRebootFlag();
+            std::ofstream { "/tmp/.warehouse-clear" };
+            addLogToFile("------------- Warehouse Clear  ---------------", RECEIVER_LOG_FILE);
             system("sh /lib/rdk/deviceReset.sh WAREHOUSE_CLEAR");
             return Core::ERROR_NONE;
         }
@@ -1069,9 +1069,8 @@ namespace WPEFramework
         uint32_t Warehouse::processWHClearNoReboot()
         {
             LOGINFO("\n Clear: Invoking Ware House Clear Request from APP\n");
-            LOGINFO("\n Clear: Invoking Ware House Clear Request from APP\n");
             fflush(stdout);
-            system("touch /tmp/.warehouse-clear");
+            std::ofstream { "/tmp/.warehouse-clear" };
             return system("sh /lib/rdk/deviceReset.sh WAREHOUSE_CLEAR --suppressReboot");
         }
 
@@ -1080,7 +1079,7 @@ namespace WPEFramework
             LOGINFO("\n Reset: Invoking Ware House Reset Request from APP\n");
             fflush(stdout);
             /*Execute the script for Ware House Reset*/
-            system("touch /tmp/.warehouse-reset");
+            std::ofstream { "/tmp/.warehouse-reset" };
             return system("sh /lib/rdk/deviceReset.sh warehouse --suppressReboot &");
         }
 
@@ -1089,10 +1088,93 @@ namespace WPEFramework
             LOGINFO("\n Reset: Processing User Factory Reset\n");
             fflush(stdout);
             /*Execute the script for User Factory Reset*/
-            system("echo 0 > /opt/.rebootFlag");
-            system("echo `/bin/timestamp` ------------- Rebooting due to User Factory Reset process--------------- >> /opt/logs/receiver.log");
+            resetWarehouseRebootFlag();
+            addLogToFile("------------- Rebooting due to User Factory Reset process---------------", RECEIVER_LOG_FILE);
             system("sh /lib/rdk/deviceReset.sh userfactory");
             return Core::ERROR_NONE;
+        }
+
+        void Warehouse::resetWarehouseRebootFlag()
+        {
+            FILE *fp = fopen(WAREHOUSE_RESET_FLAG_FILE, "w");
+            if (fp != NULL)
+            {
+                fputs("0\n", fp);
+                fclose(fp);
+            }
+            else
+            {
+                LOGWARN ("Warehouse::ResetWarehouseRebootFlag failed\n");
+            }
+        }
+
+        void Warehouse::getDateAndTime(string& utcDateTime)
+        {
+            char timeStringBuffer[128] = {'\0'};
+            time_t rawTime = time(0);
+            struct tm *gmt = gmtime(&rawTime);
+            strftime(timeStringBuffer, sizeof(timeStringBuffer), "%d.%m.%Y_%H.%M.%S", gmt);
+            utcDateTime = timeStringBuffer;
+            return;
+        }
+
+        void Warehouse::addLogToFile(char *log, const char *file_name)
+        {
+            char logWithTimeStamp[MAX_LOG_SIZE] = {0};
+            string utcDateTime = "";
+
+            getDateAndTime(utcDateTime);
+            snprintf(logWithTimeStamp, MAX_LOG_SIZE, "%s %s\n", utcDateTime.c_str(),log);
+
+            std::ofstream file(file_name, std::ios::app);
+
+            if (file.is_open())
+            {
+                file << logWithTimeStamp;
+                file.close();
+            }
+            else
+            {
+                LOGERR("Failed to open file %s\n", file_name);
+            }
+            return;
+        }
+
+        bool Warehouse::getSDCardMountPath(string& mount_path)
+        {
+            char buffer[READ_BUFFER_SZ];
+            FILE* file = fopen("/proc/mounts", "r");
+            bool found_keyword =false;
+
+            if (file)
+            {
+                while (fgets(buffer, sizeof(buffer), file) != NULL)
+                {
+                    char *line = strstr(buffer, "mmcblk0p1");
+                    char *line_end;
+                    if (line != nullptr)
+                    {
+                        // Skip the matching string
+                        while (*line && *line != ' ')
+                           line++;
+                        // Skip any spaces
+                        while (*line == ' ')
+                           line++;
+                        // Terminate the string at the first space after the path
+                        for (line_end = line; *line_end && *line_end != ' '; line_end++);
+                        *line_end = 0;
+                        mount_path = line;
+                        found_keyword = true;
+                        break;
+                    }
+                }
+                fclose(file);
+            }
+            else
+            {
+                LOGERR("Failed to open /proc/mounts");
+            }
+            return found_keyword;
         }
     } // namespace Plugin
 } // namespace WPEFramework

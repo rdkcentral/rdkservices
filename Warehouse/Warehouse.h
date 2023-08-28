@@ -116,6 +116,14 @@ namespace WPEFramework {
             END_INTERFACE_MAP
 
         private:
+            /*returns the UTC date and time in format DD.MM.YYYY_HH.MM.SS format eg : 11.08.2023_18:47:47*/
+            void getDateAndTime(string& utcDateTime);
+            /*Adds the given null terminated string to the given file*/
+            void addLogToFile(char *log, const char *file_name);
+            /*gets the SD card mount path by reading /proc/mounts, returns true on success, false otherwise*/
+            bool getSDCardMountPath(string&);
+            /*Adds 0 to file /opt/.rebootFlag*/
+            void resetWarehouseRebootFlag();
             void InitializeIARM();
             void DeinitializeIARM();
 
