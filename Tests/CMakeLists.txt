@@ -35,7 +35,8 @@ add_executable(${PROJECT_NAME}
         mocks/thunder/Module.cpp
         mocks/Wraps.cpp
         mocks/Dobby.cpp
-	mocks/rdkshell.cpp
+        mocks/rdkshell.cpp
+        mocks/readprocMock.cpp
         )
 
 set_source_files_properties(

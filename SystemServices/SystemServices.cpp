@@ -63,6 +63,7 @@
 #include "UtilscRunScript.h"
 #include "UtilsfileExists.h"
 #include "UtilsgetFileContent.h"
+#include "UtilsProcess.h"
 
 using namespace std;
 
@@ -612,22 +613,20 @@ namespace WPEFramework {
         uint32_t SystemServices::requestSystemReboot(const JsonObject& parameters,
                 JsonObject& response)
         {
-            int32_t nfxResult = E_NOK;
+            bool nfxResult = false;
             string customReason = "No custom reason provided";
             string otherReason = "No other reason supplied";
             bool result = false;
+            string fname = "nrdPluginApp";
 
-            nfxResult = system("pgrep nrdPluginApp");
-            if (E_OK == nfxResult) {
+            nfxResult = Utils::userDefinedPkill(fname);
+            if (true == nfxResult) {
                 LOGINFO("SystemService shutting down Netflix...\n");
-                nfxResult = system("pkill nrdPluginApp");
-                if (E_OK == nfxResult) {
-                    //give Netflix process some time to terminate gracefully.
-                    sleep(10);
-                } else {
-                    LOGINFO("SystemService unable to shutdown Netflix \
-                            process. nfxResult = %ld\n", (long int)nfxResult);
-                }
+                //give Netflix process some time to terminate gracefully.
+                sleep(10);
+            } else {
+                LOGINFO("SystemService unable to shutdown Netflix \
+                        process. nfxResult = %ld\n", (long int)nfxResult);
             }
 
             if (parameters.HasLabel("rebootReason")) {
@@ -2041,29 +2040,21 @@ namespace WPEFramework {
         {
             bool retStatus = false;
             int m_downloadPercent = -1;
-            if (Utils::fileExists("/opt/curl_progress")) {
-                /* TODO: replace with new implementation. */
-                FILE* fp = popen(CAT_DWNLDPROGRESSFILE_AND_GET_INFO, "r");
-                if (NULL != fp) {
-                    char output[8];
-                    if (NULL != fgets (output, 8, fp)) {
-                        output[strcspn(output, "\n")] = 0;
-                        if (*output) {
-                            m_downloadPercent = strtol(output, NULL, 10);
-                        }
-                        LOGWARN("FirmwareDownloadPercent = [%d]\n", m_downloadPercent);
-                    } else {
-                        LOGERR("Cannot read output from command\n");
-                    }
-                    pclose(fp);
-                } else {
-                    LOGERR("Cannot run command\n");
-                }
 
-                LOGWARN("FirmwareDownloadPercent = [%d]", m_downloadPercent);
+            if (Utils::fileExists(DOWNLOAD_PROGRESS_FILE))
+            {
+                if (true == getDownloadProgress(m_downloadPercent))
+                {
+                    retStatus = true;
+                }
+                else
+                {
+                    LOGERR("getDownloadProgress() failed");
+                }
                 response["downloadPercent"] = m_downloadPercent;
-                retStatus = true;
-            } else {
+            }
+            else
+           {
                 response["downloadPercent"] = -1;
                 retStatus = true;
             }
@@ -2684,31 +2675,26 @@ namespace WPEFramework {
         lock_guard<mutex> lck(m_uploadLogsMutex);
 
         if (-1 != m_uploadLogsPid) {
+            vector<int> processIds;
+            bool result = Utils::childProcessesWithPPID(m_uploadLogsPid, processIds);
 
-            // Kill child processes
-            std::stringstream cmd;
-            cmd << "pgrep -P " << m_uploadLogsPid;
-
-            FILE* fp = popen(cmd.str().c_str(), "r");
-            if (NULL != fp) {
-
-                char output[1024];
-                while (NULL != fgets (output, sizeof(output) - 1, fp)) {
-                    std::string line = output;
+            if (true == result) {
+                vector<int>::iterator pid_iterator = processIds.begin();
+                while (pid_iterator != processIds.end()) {
+                    std::string line = std::to_string(*pid_iterator);
                     line = trim(line);
-
                     char *end;
                     int pid = strtol(line.c_str(), &end, 10);
-
                     if (line.c_str() != end && 0 != pid && 1 != pid) {
                         kill(pid, SIGKILL);
-                    } else
+                    } else {
                         LOGERR("Bad pid: %d", pid);
+                    }
+                    pid_iterator++;
                 }
 
-                pclose(fp);
             } else {
-                LOGERR("Cannot run command\n");
+                LOGERR("Cannot get the child process Ids\n");
             }
 
             kill(m_uploadLogsPid, SIGKILL);

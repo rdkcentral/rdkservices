@@ -140,7 +140,7 @@ namespace String {
                                         "0123456789+/";
 
 
-    void imageEncoder(const uint8_t object[], const uint32_t length, const bool padding, string& result)
+    inline void imageEncoder(const uint8_t object[], const uint32_t length, const bool padding, string& result)
     {
         uint8_t state = 0;
         uint32_t index = 0;
@@ -182,7 +182,7 @@ namespace String {
 * @param[out] out_str - The output string (equals input_string with extra spaces removed)
 * @return true if the input string is a valid string
 */
-    bool removeExtraWhitespaces(string& in_str, string& out_str)
+    inline bool removeExtraWhitespaces(string& in_str, string& out_str)
     {
         bool ret_status = false;
         int idx = 0;

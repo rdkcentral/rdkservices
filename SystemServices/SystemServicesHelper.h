@@ -68,7 +68,7 @@
 #define OPT_DCM_PROPERTIES                      "/opt/dcm.properties"
 #define ETC_DCM_PROPERTIES                      "/etc/dcm.properties"
 #define TMP_DCM_SETTINGS                        "/tmp/DCMSettings.conf"
-
+#define DOWNLOAD_PROGRESS_FILE                  "/opt/curl_progress"
 
 #define MODE_TIMER_UPDATE_INTERVAL	1000
 #define CURL_BUFFER_SIZE	(64 * 1024) /* 256kB */
@@ -84,8 +84,6 @@
 #define TZ_ACCURACY_INITIAL "INITIAL"
 #define TZ_ACCURACY_INTERIM "INTERIM"
 #define TZ_ACCURACY_FINAL   "FINAL"
-
-#define CAT_DWNLDPROGRESSFILE_AND_GET_INFO "cat /opt/curl_progress | tr -s '\r' '\n' | tail -n 1 | sed 's/^ *//g' | sed '/^[^M/G]*$/d' | tr -s ' ' | cut -d ' ' -f3"
 
 enum eRetval { E_NOK = -1,
     E_OK };
@@ -186,6 +184,13 @@ void setJSONResponseArray(JsonObject& response, const char* key,
         const vector<string>& items);
 
 /***
+ * @brief  : Get the download progress from DOWNLOAD_PROGRESS_FILE file.
+ * @param1[out] :  Download percent from the DOWNLOAD_PROGRESS_FILE file.
+ * @return : <bool>; TRUE if succesfully get the download percent.
+ */
+bool getDownloadProgress(int& downloadPercent);
+
+/***
  * @brief	: Used to read file contents into a string
  * @param1[in]	: Complete file name with path
  * @param2[out]	: Destination string object filled with file contents
@@ -200,14 +205,6 @@ bool getFileContent(std::string fileName, std::string& fileContent);
  * @return : <bool>; TRUE if operation success; else FALSE.
  */
 bool getFileContent(std::string fileName, std::vector<std::string> & vecOfStrs);
-
-/***
- * @brief	: Used to search for files in the given directory
- * @param1[in]	: Directory on which the search has to be performed
- * @param2[in]	: Filter for the search command
- * @return	: <vector<std::string>>; Vector of file names.
- */
-std::vector<std::string> searchAndGetFilesList(std::string path, std::string filter);
 
 /***
  * @brief  : compare two C string case insensitively
