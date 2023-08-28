@@ -191,6 +191,62 @@ TTS_Error TTSManager::setAPIKey(string apikey)
     return TTS_OK;
 }
 
+TTS_Error TTSManager::setACL(const std::string method,const std::string apps)
+{
+   setAccessList(method,apps);
+   //abort existing speech if any
+   if(m_speaker)
+        m_speaker->cancelSpeech(0);
+   return TTS_OK;
+}
+
+bool TTSManager::setAccessList(const string &key,const string &value)
+{
+    std::map<std::string,std::string>::iterator itr = m_accessControlList.find(key);
+    if (itr !=  m_accessControlList.end())
+    {
+        TTSLOG_INFO("method %s found in accesslist...replacing value with %s\n",key.c_str(),value.c_str());
+        itr->second= value;
+        return 1;
+    }
+    else
+    {
+        TTSLOG_INFO("method %s not found..inserting to accesslist with value %s\n",key.c_str(),value.c_str());
+        m_accessControlList.insert(std::make_pair(key,value));
+        return 0;
+    }
+}
+
+bool TTSManager::checkAccess(const string &method,string &callsign)
+{
+    if(!m_accessControlList.empty())
+    {
+        std::map<std::string,std::string>::iterator itr = m_accessControlList.find(method);
+        if (itr !=  m_accessControlList.end())
+        {
+            string app_quote =  '\"' + callsign + '\"';//wrap it with double quote
+            TTSLOG_INFO("method %s found in accesslist and can be accessed by %s\n",method.c_str(),(itr->second).c_str());
+            if((itr->second).find(app_quote) != std::string::npos)
+            {
+                TTSLOG_INFO("%s app has access to method  %s\n",callsign.c_str(),method.c_str());
+                return true;
+            }
+
+            TTSLOG_WARNING("%s app does not have access to method  %s\n",callsign.c_str(),method.c_str());
+            return false;
+        }
+        else
+        {
+            TTSLOG_WARNING("method :%s not found in accesslist\n",method.c_str());
+            return false;
+        }
+    }
+    else
+    {
+        return true;
+    }
+}
+
 TTS_Error TTSManager::getConfiguration(Configuration &configuration) {
     TTSLOG_TRACE("Getting Default Configuration");
 
@@ -205,7 +261,7 @@ TTS_Error TTSManager::getConfiguration(Configuration &configuration) {
     return TTS_OK;
 }
 
-TTS_Error TTSManager::speak(int speechId, std::string text) {
+TTS_Error TTSManager::speak(int speechId, std::string callsign, std::string text) {
     TTSLOG_TRACE("Speak");
 
     if(!m_defaultConfiguration.isValid()) {
@@ -215,7 +271,15 @@ TTS_Error TTSManager::speak(int speechId, std::string text) {
 
     if(m_speaker) {
         // TODO: Currently 'secure' is set to true. Need to decide about this variable while Resident app integration.
-        m_speaker->speak(this, speechId , text, true,m_defaultConfiguration.primVolDuck());
+        if(checkAccess("speak", callsign))
+        {
+            m_speaker->speak(this, speechId , text, true, m_defaultConfiguration.primVolDuck());
+        }
+        else
+        {
+            TTSLOG_WARNING("No Speak access for callsign %s\n",callsign.c_str());
+            return TTS_NO_ACCESS;
+        }
     }
 
     return TTS_OK;
@@ -325,4 +389,5 @@ void TTSManager::playbackerror(uint32_t speech_id){
 
     m_callback->onPlaybackError(speech_id);
 }
+
 } // namespace TTS

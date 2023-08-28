@@ -470,11 +470,20 @@
                     "resolution": {
                         "$ref": "#/definitions/resolution"
                     },
+		    "w":{
+                        "$ref": "#/definitions/w"
+                    },
+                    "h":{
+                        "$ref": "#/definitions/h"
+                    },
                     "success": {
                         "$ref": "#/common/success"
                     }
                 },
                 "required": [
+		    "resolution",
+		    "w",
+		    "h",
                     "success"
                 ]
             }
