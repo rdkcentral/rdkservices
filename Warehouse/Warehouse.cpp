@@ -1118,7 +1118,7 @@ namespace WPEFramework
             return;
         }
 
-        void Warehouse::addLogToFile(char *log, const char *file_name)
+        void Warehouse::addLogToFile(const char *log, const char *file_name)
         {
             char logWithTimeStamp[MAX_LOG_SIZE] = {0};
             string utcDateTime = "";
