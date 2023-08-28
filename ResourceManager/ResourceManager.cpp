@@ -360,11 +360,13 @@ namespace WPEFramework {
             JsonObject result;
             JsonObject clientParam;
             JsonArray clientList = JsonArray(); 
+            JsonArray accessList = JsonArray();
 
             clientList.Add(client);
             clientParam.Set("method", "speak");
             clientParam["apps"] = clientList;
-            params["accesslist"] = clientParam;
+            accessList.Add(clientParam);
+            params["accesslist"] = accessList;
 
             std::string jsonstr;
             params.ToString(jsonstr);
