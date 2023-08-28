@@ -1,5 +1,5 @@
 #include "readprocMock.h"
-#include "readproc_Mock.h"
+#include "readprocMockInterface.h"
 
 readprocImplMock* impl = new readprocImplMock;
 

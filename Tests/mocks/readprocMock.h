@@ -1,7 +1,7 @@
 #pragma once
 
 #include <gmock/gmock.h>
-#include "readprocMock.h"
+#include "readprocMockInterface.h"
 
 class readprocImplMock : public readprocImpl {
 public:
