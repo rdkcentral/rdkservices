@@ -2,7 +2,7 @@
 <a name="NetworkPlugin"></a>
 # NetworkPlugin
 
-**Version: [1.0.10](https://github.com/rdkcentral/rdkservices/blob/main/Network/CHANGELOG.md)**
+**Version: [1.1.0](https://github.com/rdkcentral/rdkservices/blob/main/Network/CHANGELOG.md)**
 
 A org.rdk.Network plugin for Thunder framework.
 
@@ -71,6 +71,7 @@ Network interface methods:
 | [configurePNI](#configurePNI) | This method configures PNI to enable or disable Connectivity test |
 | [trace](#trace) | Traces the specified endpoint with the specified number of packets using `traceroute` |
 | [traceNamedEndpoint](#traceNamedEndpoint) | Traces the specified named endpoint with the specified number of packets using `traceroute` |
+
 
 <a name="getDefaultInterface"></a>
 ## *getDefaultInterface*
@@ -1224,7 +1225,7 @@ No Events
 <a name="configurePNI"></a>
 ## *configurePNI*
 
-This method configures PNI to enable or disable Connectivity test. 
+This method configures PNI to enable or disable Connectivity test.
 
 ### Events
 
@@ -1235,7 +1236,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object | it allows empty parameter too |
-| params.disableConnectivityTest | boolean | Connectivity test ON or OFF |
+| params.disableConnectivityTest | boolean | Disable Connectivity Test |
 
 ### Result
 
@@ -1270,8 +1271,6 @@ No Events
     }
 }
 ```
-
-
 
 <a name="trace"></a>
 ## *trace*
