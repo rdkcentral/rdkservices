@@ -112,7 +112,7 @@ static void getGraphicSize(uint32_t &w, uint32_t &h)
 
         /* Setup KMS */
         kms = kms_setup(drm_fd);
-        if( !kms->crtc ) {
+        if(!kms || !kms->crtc ) {
             cout << "[Realtek] kms_setup fail" << endl;
             break;
         }
@@ -152,6 +152,9 @@ static void getGraphicSize(uint32_t &w, uint32_t &h)
 
     cout << "[getGraphicSize] width : " << w << endl;
     cout << "[getGraphicSize] height : " << h << endl;
+    if(drm_fd >= 0){
+        close(drm_fd);
+    }
 }
 
 
