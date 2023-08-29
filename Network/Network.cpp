@@ -166,8 +166,6 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             m_useDefInterfaceCache = false;
             m_defInterfaceCache = "";
             m_defIpversionCache = "";
-            m_useInterfacesCache = false;
-            m_interfacesCache = {0};
             m_ipv4WifiCache = {0};
             m_ipv6WifiCache = {0};
             m_ipv4EthCache = {0};
@@ -385,23 +383,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
 
             if(m_isPluginInited)
             {
-                if (m_useInterfacesCache)
-                {
-                    memcpy(&list, &m_interfacesCache, sizeof(m_interfacesCache));
-                    result = true;
-                }
-                else if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getInterfaceList, (void*)&list, sizeof(list)))
-                {
-                    memcpy(&m_interfacesCache, &list, sizeof(list));
-                    m_useInterfacesCache = true;
-                    result = true;
-                }
-                else
-                {
-                    LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, __FUNCTION__);
-                }
-
-                if (result == true)
+                if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getInterfaceList, (void*)&list, sizeof(list)))
                 {
                     JsonArray networkInterfaces;
 
@@ -422,8 +404,12 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                     }
 
                     response["interfaces"] = networkInterfaces;
+                    result = true;
                 }
-
+                else
+                {
+                    LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, __FUNCTION__);
+                }
             }
             else
             {
@@ -1499,7 +1485,6 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             JsonObject params;
             params["interface"] = m_netUtils.getInterfaceDescription(interface);
             params["enabled"] = enabled;
-            m_useInterfacesCache = false;
             sendNotify("onInterfaceStatusChanged", params);
         }
 
@@ -1508,7 +1493,6 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             JsonObject params;
             params["interface"] = m_netUtils.getInterfaceDescription(interface);
             params["status"] = string (connected ? "CONNECTED" : "DISCONNECTED");
-            m_useInterfacesCache = false;
             m_useStbIPCache = false;
             m_useDefInterfaceCache = false;
             m_useIpv4WifiCache = false;
