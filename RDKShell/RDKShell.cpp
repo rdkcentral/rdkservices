@@ -910,8 +910,6 @@ namespace WPEFramework {
         {
             if (service)
             {
-                PluginHost::IShell::state currentState(service->State());
-
                 gExitReasonMutex.lock();
                 gApplicationsExitReason[service->Callsign()] = AppLastExitReason::DEACTIVATED;
                 if(service->Reason() == PluginHost::IShell::FAILURE)
