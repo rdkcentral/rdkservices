@@ -2281,6 +2281,18 @@ namespace WPEFramework {
                 std::string mimeType;
                 getMimeType(client, mimeType);
 
+#ifdef HIBERNATE_SUPPORT_ENABLED
+                // RDKShell::kill only destroys wayland display
+                // and hibernated app will not detect missing display.
+                // Wakeup app by getting its state
+                WPEFramework::Core::JSON::String stateString;
+                auto thunderPlugin = getThunderControllerClient(client);
+                if(thunderPlugin)
+                {
+                    thunderPlugin->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
+                }
+#endif
+
                 // Kill the display
                 result = kill(client);
                 if (!result)
