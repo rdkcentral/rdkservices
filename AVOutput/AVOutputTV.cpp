@@ -4811,7 +4811,7 @@ namespace Plugin {
         }
         LOGINFO("current source index[%d] \n", current_source);
 
-        source = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
                 format = "current";
 
