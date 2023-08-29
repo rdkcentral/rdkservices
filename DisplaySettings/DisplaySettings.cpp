@@ -1344,6 +1344,7 @@ namespace WPEFramework {
                 device::VideoOutputPort &vPort = device::Host::getInstance().getVideoOutputPort(videoDisplay);
 		int width = 0;
 		int height = 0;
+		bool progressive = false;
 		string res = vPort.getResolution().getName();
 		if(res.rfind("480", 0) == 0)
                 {
@@ -1386,9 +1387,14 @@ namespace WPEFramework {
                     height = 720;
                 }
 		
+		if(res.find('p') != std::string::npos) {
+                    progressive = true;
+                }
+
 		response["resolution"] = res;
 		response["w"] = width;
 		response["h"] = height;
+		response["progressive"] = progressive;
             }
             catch(const device::Exception& err)
             {
