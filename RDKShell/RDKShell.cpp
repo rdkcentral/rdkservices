@@ -965,7 +965,7 @@ namespace WPEFramework {
             }
         }
 
-        void RDKShell::MonitorClients::StateChange(PluginHost::IShell* service, std::string stateoverride)
+        void RDKShell::MonitorClients::StateChange(PluginHost::IShell* service)
         {
             if (service)
             {
