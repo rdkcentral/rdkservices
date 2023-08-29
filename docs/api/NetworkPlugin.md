@@ -68,6 +68,7 @@ Network interface methods:
 | [setIPSettings](#method.setIPSettings) | Sets the IP settings |
 | [getPublicIP](#method.getPublicIP) | It allows either zero parameter or with only interface and ipv6 parameter to determine WAN ip address |
 | [setStunEndPoint](#method.setStunEndPoint) | Set the Stun Endpoint used for getPublicIP |
+| [configurePNI](#method.configurePNI) | This method configures PNI to enable or disable Connectivity test |
 | [trace](#method.trace) | Traces the specified endpoint with the specified number of packets using `traceroute` |
 | [traceNamedEndpoint](#method.traceNamedEndpoint) | Traces the specified named endpoint with the specified number of packets using `traceroute` |
 
@@ -1225,6 +1226,58 @@ No Events
     }
 }
 ```
+
+<a name="method.configurePNI"></a>
+## *configurePNI [<sup>method</sup>](#head.Methods)*
+
+This method configures PNI to enable or disable Connectivity test. 
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object | it allows empty parameter too |
+| params.disableConnectivityTest | boolean | Connectivity test ON or OFF |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.Network.configurePNI",
+    "params": {
+        "disableConnectivityTest": true
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+
 
 <a name="method.trace"></a>
 ## *trace [<sup>method</sup>](#head.Methods)*

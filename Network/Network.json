@@ -145,8 +145,8 @@
             "summary": "Update `RDK-20093` string",
             "type": "string",
             "example": "RDK-20093"
-	},
-	"server":{
+	    },
+	    "server":{
             "summary": "STUN server",
             "type": "string",
             "example": "global.stun.twilio.com"
@@ -170,6 +170,11 @@
             "summary": "STUN server cache timeout",
             "type": "integer",
             "example": "0"
+        },
+        "disableConnectivityTest":{
+            "summary": "Disable Connectivity Test",
+            "type": "boolean",
+            "example": "true"
         }
     },
     "methods": {
@@ -901,6 +906,30 @@
                 ]
             }
         },
+         "configurePNI":{
+            "summary": "This method configures PNI to enable or disable Connectivity test.",
+            "params": {
+                "type":"object",
+                "summary":"it allows empty parameter too",
+                "properties": {
+                    "disableConnectivityTest": {
+                        "$ref": "#/definitions/disableConnectivityTest"
+                    }
+                }
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            }
+        },
+
         "trace":{
             "summary": "Traces the specified endpoint with the specified number of packets using `traceroute`.",
             "params": {
