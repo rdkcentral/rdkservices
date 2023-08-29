@@ -52,7 +52,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 4
-#define API_VERSION_NUMBER_PATCH 2
+#define API_VERSION_NUMBER_PATCH 3
 
 const string WPEFramework::Plugin::RDKShell::SERVICE_NAME = "org.rdk.RDKShell";
 //methods
@@ -906,6 +906,65 @@ namespace WPEFramework {
 	    return ignoreLaunch;
 	}
 
+        void RDKShell::MonitorClients::handleDeactivated(PluginHost::IShell* service)
+        {
+            if (service)
+            {
+                gExitReasonMutex.lock();
+                gApplicationsExitReason[service->Callsign()] = AppLastExitReason::DEACTIVATED;
+                if(service->Reason() == PluginHost::IShell::FAILURE)
+                {
+                    gApplicationsExitReason[service->Callsign()] = AppLastExitReason::CRASH;
+                }
+                gExitReasonMutex.unlock();
+
+                std::string configLine = service->ConfigLine();
+                if (configLine.empty())
+                {
+                    return;
+                }
+                JsonObject serviceConfig = JsonObject(configLine.c_str());
+                if (serviceConfig.HasLabel("clientidentifier"))
+                {
+                    std::string clientidentifier = serviceConfig["clientidentifier"].String();
+                    std::shared_ptr<KillClientRequest> request = std::make_shared<KillClientRequest>(service->Callsign());
+                    gRdkShellMutex.lock();
+                    gKillClientRequests.push_back(request);
+                    gRdkShellMutex.unlock();
+                    sem_wait(&request->mSemaphore);
+                    gRdkShellMutex.lock();
+                    RdkShell::CompositorController::removeListener(clientidentifier, mShell.mEventListener);
+                    gRdkShellMutex.unlock();
+                }
+                
+                gPluginDataMutex.lock();
+                std::map<std::string, PluginData>::iterator pluginToRemove = gActivePluginsData.find(service->Callsign());
+                if (pluginToRemove != gActivePluginsData.end())
+                {
+                    gActivePluginsData.erase(pluginToRemove);
+                }
+                std::map<std::string, PluginStateChangeData*>::iterator pluginStateChangeEntry = gPluginsEventListener.find(service->Callsign());
+                if (pluginStateChangeEntry != gPluginsEventListener.end())
+                {
+                    PluginStateChangeData* stateChangeData = pluginStateChangeEntry->second;
+                    if (nullptr != stateChangeData)
+                    {
+                        stateChangeData->resetConnection();
+                        delete stateChangeData;
+                    }
+                    pluginStateChangeEntry->second = nullptr;
+                    gPluginsEventListener.erase(pluginStateChangeEntry);
+                }
+                gPluginDataMutex.unlock();
+                gLaunchDestroyMutex.lock();
+                if (gExternalDestroyApplications.find(service->Callsign()) != gExternalDestroyApplications.end())
+                {
+                    gExternalDestroyApplications.erase(service->Callsign());
+                }
+                gLaunchDestroyMutex.unlock();
+            }
+        }
+
         void RDKShell::MonitorClients::StateChange(PluginHost::IShell* service)
         {
             if (service)
@@ -1034,7 +1093,7 @@ namespace WPEFramework {
                         notification->Release();
                     }
                 }
-                else if (currentState == PluginHost::IShell::DEACTIVATED)
+                else if ((currentState == PluginHost::IShell::DEACTIVATED))
                 {
                     std::string configLine = service->ConfigLine();
                     if (configLine.empty())
@@ -1099,7 +1158,8 @@ namespace WPEFramework {
        }
        void RDKShell::MonitorClients::Deactivated(const string& callsign, PluginHost::IShell* service)
        {
-            StateChange(service);
+            //StateChange(service);
+            handleDeactivated(service);
        }
        void RDKShell::MonitorClients::Unavailable(const string& callsign, PluginHost::IShell* service)
        {}
@@ -2220,6 +2280,18 @@ namespace WPEFramework {
                 // Get the client mime type
                 std::string mimeType;
                 getMimeType(client, mimeType);
+
+#ifdef HIBERNATE_SUPPORT_ENABLED
+                // RDKShell::kill only destroys wayland display
+                // and hibernated app will not detect missing display.
+                // Wakeup app by getting its state
+                WPEFramework::Core::JSON::String stateString;
+                auto thunderPlugin = getThunderControllerClient(client);
+                if(thunderPlugin)
+                {
+                    thunderPlugin->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
+                }
+#endif
 
                 // Kill the display
                 result = kill(client);

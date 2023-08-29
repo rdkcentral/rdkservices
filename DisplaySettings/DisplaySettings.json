@@ -135,6 +135,21 @@
             "type": "string",
             "example": "1080p"
         },
+	"w":{
+            "summary":"The width",
+            "type": "number",
+            "example": 1920
+        },
+        "h":{
+            "summary":"The height",
+            "type": "number",
+            "example": 1080
+        },
+	"progressive":{
+            "summary":"The type of scan signal",
+            "type": "boolean",
+            "example": true
+        },
         "soundMode": {
             "summary": "Sound mode. Possible values: `AUTO (Dolby Digital Plus)`, `AUTO (Dolby Digital 5.1)`, `AUTO (Stereo)`, `MONO`, `STEREO`, `SURROUND`, PASSTHRU.",
             "type":"string",
@@ -475,6 +490,9 @@
                     },
                     "h":{
                         "$ref": "#/definitions/h"
+                    },
+		    "progressive":{
+                        "$ref": "#/definitions/progressive"
                     },
                     "success": {
                         "$ref": "#/common/success"

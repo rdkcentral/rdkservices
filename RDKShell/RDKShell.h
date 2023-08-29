@@ -414,6 +414,7 @@ namespace WPEFramework {
 
               private:
                   virtual void StateChange(PluginHost::IShell* shell);
+                  void handleDeactivated(PluginHost::IShell* shell);
 #ifdef USE_THUNDER_R4
                   virtual void Activation(const string& name, PluginHost::IShell* plugin);
                   virtual void Deactivation(const string& name, PluginHost::IShell* plugin);
