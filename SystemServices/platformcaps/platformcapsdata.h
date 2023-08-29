@@ -153,7 +153,12 @@ private:
         ToMessage(parameters, message);
 
         const uint32_t channelId = ~0;
+#ifndef USE_THUNDER_R4
         auto resp = dispatcher_->Invoke("", channelId, *message);
+#else
+        Core::JSONRPC::Context context(channelId, message->Id.Value(), "");
+        auto resp = dispatcher_->Invoke(context, *message);
+#endif /* USE_THUNDER_R4 */
         if (resp->Error.IsSet()) {
           std::cout << "Call failed: " << message->Designator.Value() << " error: " << resp->Error.Text.Value() << "\n";
           return resp->Error.Code;

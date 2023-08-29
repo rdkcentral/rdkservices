@@ -92,6 +92,7 @@ namespace WPEFramework {
             uint32_t configureWakeupKeysWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t initializeIRDBWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t findMyRemoteWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t factoryReset(const JsonObject& parameters, JsonObject& response);
             //End methods
 
             //Begin events

@@ -104,7 +104,11 @@ namespace Plugin {
 
         _skipURL = static_cast<uint8_t>(webPrefix.length());
         _servicePrefix = webPrefix.substr(0, webPrefix.find(callsign));
+#ifdef USE_THUNDER_R4
+        Core::File aclFile(service->PersistentPath() + config.ACL.Value());
+#else
         Core::File aclFile(service->PersistentPath() + config.ACL.Value(), true);
+#endif /* USE_THUNDER_R4 */
 
         PluginHost::ISubSystem* subSystem = service->SubSystems();
 

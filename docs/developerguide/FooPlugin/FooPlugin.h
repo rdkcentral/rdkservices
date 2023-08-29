@@ -54,7 +54,7 @@ namespace WPEFramework
 
             uint32_t endpoint_setValue(const JsonObject &parameters, JsonObject &response);
 
-            virtual void event_onValueChanged(const string &key, const string &value);
+            void event_onValueChanged(const string &key, const string &value);
         };
 
     } // namespace Plugin

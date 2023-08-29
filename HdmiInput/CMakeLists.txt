@@ -21,7 +21,11 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 set(PLUGIN_HDMIINPUT_STARTUPORDER "" CACHE STRING "To configure startup order of HdmiInput plugin")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
-find_package(${NAMESPACE}Protocols REQUIRED)
+if (USE_THUNDER_R4)
+    find_package(${NAMESPACE}COM REQUIRED)
+else ()
+    find_package(${NAMESPACE}Protocols REQUIRED)
+endif (USE_THUNDER_R4)
 
 add_library(${MODULE_NAME} SHARED
         HdmiInput.cpp
@@ -36,10 +40,15 @@ target_compile_definitions(${MODULE_NAME} PRIVATE MODULE_NAME=Plugin_${PLUGIN_NA
 
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 
+if (USE_THUNDER_R4)
+target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}COM::${NAMESPACE}COM)
+else ()
 target_link_libraries(${MODULE_NAME}
         PRIVATE
         ${NAMESPACE}Protocols::${NAMESPACE}Protocols
         )
+endif (USE_THUNDER_R4)
+
 
 find_package(DS)
 find_package(IARMBus)

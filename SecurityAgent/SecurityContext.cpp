@@ -99,7 +99,7 @@ namespace Plugin {
     {
         bool bAllowed = ((_accessControlList != nullptr) && (_accessControlList->Allowed(_context.URL.Value(), message.Callsign(), message.Method())));
         if(!bAllowed)
-            SYSLOG(Logging::Notification, ("Access for token url [%s], plugin [%s], method [%s] not allowed", _context.URL.Value().c_str(),message.Callsign().c_str(),message.Method().c_str()));
+            SYSLOG(Logging::Notification, ("Thunder Access Blocked:%s,%s,%s", _context.URL.Value().c_str(),message.Callsign().c_str(),message.Method().c_str()));
         
         return bAllowed;
     }

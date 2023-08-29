@@ -53,7 +53,11 @@ namespace Plugin {
         typedef Web::WebLinkType<Core::SocketStream, Web::Response, Web::Request, Core::ProxyPoolType<Web::Response>&> BaseClass;
 
     public:
+#ifndef USE_THUNDER_R4
         LocationService(Core::IDispatchType<void>* update);
+#else
+        LocationService(Core::IDispatch* update);
+#endif /* USE_THUNDER_R4 */
         ~LocationService() override;
 
     public:

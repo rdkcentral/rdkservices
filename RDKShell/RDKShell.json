@@ -2232,6 +2232,59 @@
                     "success"
                 ]
             }
+        },
+        "checkpoint": {
+            "summary": "Checkpoint an application.",
+            "events": {
+                "onCheckpointed" : "Triggers when an application is checkpointed"
+            },
+            "params": {
+                "type": "object",
+                "properties":{
+                    "callsign": {
+                        "$ref": "#/definitions/callsign"
+                    },
+                    "timeout": {
+                        "summary": "Timeout in ms for checkpoint procedure",
+                        "type": "number",
+                        "example": 10000
+                    },
+                    "procsequence": {
+                        "summary": "Checkpoint sequence of application processes",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "LightningApp-0"
+                        }
+                    }
+                },
+                "required": [
+                    "callsign"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+        "restore": {
+            "summary": "Restore an application.",
+            "events": {
+                "onRestored" : "Triggers when an application is restored"
+            },
+            "params": {
+                "type": "object",
+                "properties":{
+                    "callsign": {
+                        "$ref": "#/definitions/callsign"
+                    }
+                },
+                "required": [
+                    "callsign"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
         }
     },
     "events": {
@@ -2543,6 +2596,42 @@
                 },
                 "required": [
                     "client"
+                ]
+            }
+        },
+        "onCheckpointed":{
+            "summary": "Triggers when an application is checkpointed.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "callsign":{
+                        "$ref": "#/definitions/callsign"
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "callsign",
+                    "success"
+                ]
+            }
+        },
+        "onRestored":{
+            "summary": "Triggers when an application is restored.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "callsign":{
+                        "$ref": "#/definitions/callsign"
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "callsign",
+                    "success"
                 ]
             }
         }

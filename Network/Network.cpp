@@ -100,6 +100,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
 
         Network::Network()
         : PluginHost::JSONRPC()
+        , m_service(nullptr)
         , m_apiVersionNumber(API_VERSION_NUMBER_MAJOR)
         {
             Network::_instance = this;
@@ -175,8 +176,11 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
         {
         }
 
-        const string Network::Initialize(PluginHost::IShell* /* service */)
+        const string Network::Initialize(PluginHost::IShell*  service )
         {
+            m_service = service;
+            m_service->AddRef();
+
             string msg;
             if (Utils::IARM::init())
             {
@@ -262,6 +266,9 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             Unregister("setStunEndPoint");
 
             Network::_instance = nullptr;
+
+            m_service->Release();
+            m_service = nullptr;
         }
 
         string Network::Information() const
@@ -1138,6 +1145,8 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                 response["primarydns"] = string(iarmData.primarydns,MAX_IP_ADDRESS_LEN - 1);
                 response["secondarydns"] = string(iarmData.secondarydns,MAX_IP_ADDRESS_LEN - 1);
                 errCode = iarmData.errCode;
+
+                m_ipversion = string(iarmData.ipversion);
             }
 
             return result;
@@ -1154,6 +1163,43 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                 {
                     LOGINFO("%s :: isconnected = %d \n",__FUNCTION__,isconnected);
                     response["connectedToInternet"] = isconnected;
+
+                    if (isconnected)
+                    {
+                        PluginHost::ISubSystem* subSystem = m_service->SubSystems();
+
+                        if (subSystem != nullptr) {
+
+                            const PluginHost::ISubSystem::IInternet* internet(subSystem->Get<PluginHost::ISubSystem::IInternet>());
+                            if (nullptr == internet)
+                            {
+                                if (m_ipversion.empty())
+                                {
+                                    JsonObject p, r;
+                                    getIPSettings(p, r);
+                                }
+
+                                if (m_publicIPAddress.empty())
+                                {
+                                    JsonObject p2, r2;
+                                    if (m_ipversion == "IPV6")
+                                        p2["ipv6"] = true;
+                                    getPublicIP(p2, r2);
+                                }
+
+                                if (!m_publicIPAddress.empty())
+                                {
+                                    subSystem->Set(PluginHost::ISubSystem::INTERNET, this);
+                                    LOGWARN("Set INTERNET ISubSystem");
+                                }
+                                else
+                                    LOGERR("Connected to Internet, but no publicIP");
+                            }
+    
+                            subSystem->Release();
+                        }
+                    }
+
                     result = true;
                 }
                 else
@@ -1402,6 +1448,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                 if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getPublicIP, (void *)&iarmData, sizeof(iarmData)))
                 {
                     response["public_ip"] = string(iarmData.public_ip);
+                    m_publicIPAddress = string(iarmData.public_ip);
                     result = true;
                 }
             }

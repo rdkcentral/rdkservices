@@ -22,7 +22,11 @@ set(PLUGIN_HDCPPROFILE_AUTOSTART "false" CACHE STRING "Automatically start HdcpP
 set(PLUGIN_HDCPPROFILE_STARTUPORDER "" CACHE STRING "To configure startup order of HdcpProfile plugin")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
-find_package(${NAMESPACE}Protocols REQUIRED)
+if (USE_THUNDER_R4)
+    find_package(${NAMESPACE}COM REQUIRED)
+else ()
+    find_package(${NAMESPACE}Protocols REQUIRED)
+endif (USE_THUNDER_R4)
 
 add_library(${MODULE_NAME} SHARED
         HdcpProfile.cpp
@@ -34,10 +38,14 @@ set_target_properties(${MODULE_NAME} PROPERTIES
 
 target_compile_definitions(${MODULE_NAME} PRIVATE MODULE_NAME=Plugin_${PLUGIN_NAME})
 
+if (USE_THUNDER_R4)
+target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}COM::${NAMESPACE}COM)
+else ()
 target_link_libraries(${MODULE_NAME}
         PRIVATE
         ${NAMESPACE}Protocols::${NAMESPACE}Protocols
         )
+endif (USE_THUNDER_R4)
 
 find_package(DS)
 find_package(IARMBus)

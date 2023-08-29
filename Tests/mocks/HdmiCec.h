@@ -30,6 +30,8 @@ enum {
     ROUTING_CHANGE = 0x80,
 	ROUTING_INFORMATION = 0x81,
 	SET_STREAM_PATH = 0x86,
+	GIVE_FEATURES   = 0xA5,
+	REPORT_FEATURES = 0xA6
 };
 
 typedef struct _dsHdmiInGetNumberOfInputsParam_t {
@@ -343,7 +345,8 @@ public:
 class Version : public CECBytes {
 public:
     enum {
-        V_1_4 = 0x05
+        V_1_4 = 0x05,
+	V_2_0 = 0x06
     };
 
     Version(int version)
@@ -489,6 +492,65 @@ public:
     {
         return str[0];
     }
+};
+
+class AllDeviceTypes : public CECBytes
+{
+public:
+    enum {
+        MAX_LEN = 1,
+    };
+
+    enum {
+        CEC_SWITCH = 2,
+        AUDIO_SYSTEM,
+        PLAYBACK_DEVICE,
+        TUNER,
+        RECORDING_DEVICE,
+        TV,
+    };
+
+    AllDeviceTypes(uint8_t types) : CECBytes((uint8_t)types) { };
+};
+
+class RcProfile : public CECBytes
+{
+public:
+    enum {
+        MAX_LEN = 4,
+    };
+
+    enum {
+        MEDIA_CONTEXT_MENU,
+        MEDIA_TOP_MENU,
+        CONTENTS_MENU,
+        DEVICE_SETUP_MENU,
+        DEVICE_ROOT_MENU,
+        RC_PROFILE_BIT = 6,
+    };
+
+    RcProfile(uint8_t info) : CECBytes((uint8_t)info) { };
+
+};
+
+class DeviceFeatures : public CECBytes
+{
+public:
+    enum {
+        MAX_LEN = 4,
+    };
+
+    enum {
+        RESERVED,
+        ARC_RX_SUPPORT,
+        SINK_ARC_TX_SUPPORT,
+        SET_AUDIO_RATE_SUPPORT,
+        CONTROLLED_BY_DECK,
+        SET_OSD_STRING_SUPPORT,
+        RECORD_TV_SCREEN_SUPPORT,
+    };
+
+    DeviceFeatures(uint8_t info) : CECBytes((uint8_t)info) { };
 };
 
 class DataBlock {
@@ -743,6 +805,22 @@ public:
         : osdName(OsdName){};
 
     OSDName osdName;
+};
+
+class GiveFeatures : public DataBlock {
+public:
+    Op_t opCode(void) const {return GIVE_FEATURES;}
+};
+
+class ReportFeatures : public DataBlock {
+public:
+    Op_t opCode(void) const {return REPORT_FEATURES;}
+    ReportFeatures(const Version &ver_sion,const AllDeviceTypes &allDevice_Types,const std::vector<RcProfile> rc_Profile,std::vector<DeviceFeatures> device_Features) : version(ver_sion), allDeviceTypes(allDevice_Types) {}
+
+    Version version;
+    AllDeviceTypes allDeviceTypes;
+    std::vector<RcProfile> rcProfile;
+    std::vector<DeviceFeatures> deviceFeatures;
 };
 
 class FrameListener {

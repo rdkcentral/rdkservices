@@ -103,6 +103,9 @@ private:
     void AVInputALLMChange( int port , bool allmMode);
     static void dsAVGameFeatureStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
+    void hdmiInputAviContentTypeChange(int port, int content_type);
+    static void dsAviContentTypeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+
 public:
     static AVInput* _instance;
 };

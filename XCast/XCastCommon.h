@@ -24,8 +24,9 @@
 #define __XCAST_COMMON_H__
 /*
  * The maximum DIAL payload accepted per the DIAL 1.6.1 specification.
+ * payload from xdialserver is URI encoded
  */
-#define DIAL_MAX_PAYLOAD (4096)
+#define DIAL_MAX_PAYLOAD (4096*3)
 
 
 typedef struct _DynamicAppConfig {

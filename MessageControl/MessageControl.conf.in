@@ -1,0 +1,23 @@
+autostart = "@PLUGIN_MESSAGECONTROL_AUTOSTART@"
+
+configuration = JSON()
+
+if boolean("@PLUGIN_MESSAGECONTROL_CONSOLE@"):
+  configuration.add("console", "@PLUGIN_MESSAGECONTROL_CONSOLE@")
+
+if boolean("@PLUGIN_MESSAGECONTROL_SYSLOG@"):
+  configuration.add("syslog", "@PLUGIN_MESSAGECONTROL_SYSLOG@")
+
+if boolean("@PLUGIN_MESSAGECONTROL_FILENAME@"):
+  configuration.add("filepath", "@PLUGIN_MESSAGECONTROL_FILENAME@")
+
+if boolean("@PLUGIN_MESSAGECONTROL_ABBREVIATED@"):
+  configuration.add("abbreviated", "@PLUGIN_MESSAGECONTROL_ABBREVIATED@")
+
+configuration.add("maxexportconnections", "@PLUGIN_MESSAGECONTROL_MAX_EXPORTCONNECTIONS@")
+
+if boolean("@PLUGIN_MESSAGECONTROL_REMOTE@"):
+  remote = JSON()
+  remote.add("port", "@PLUGIN_MESSAGECONTROL_PORT@")
+  remote.add("binding", "@PLUGIN_MESSAGECONTROL_BINDING@")
+  configuration.add("remote", remote)

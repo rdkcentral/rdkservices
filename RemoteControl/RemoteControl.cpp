@@ -35,6 +35,10 @@
 
 #define RF4CE_IEEE_MAC_ADDRESS_STR_MAX    24
 
+#define IARM_FACTORY_RESET_TIMEOUT  (15 * 1000)  // 15 seconds, in milliseconds
+#define IARM_IRDB_CALLS_TIMEOUT     (10 * 1000)  // 10 seconds, in milliseconds
+
+
 // Local types and definitions
 // Pairing validation status
 typedef enum
@@ -94,6 +98,7 @@ namespace WPEFramework {
             Register("configureWakeupKeys",    &RemoteControl::configureWakeupKeysWrapper,   this);
             Register("initializeIRDB",         &RemoteControl::initializeIRDBWrapper,        this);
             Register("findMyRemote",           &RemoteControl::findMyRemoteWrapper,          this);
+            Register("factoryReset",           &RemoteControl::factoryReset,                 this);
 
             setApiVersionNumber(1);
         }
@@ -1335,6 +1340,36 @@ namespace WPEFramework {
 
             returnResponse(bSuccess);
         }
+
+
+        uint32_t RemoteControl::factoryReset(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool bSuccess = false;
+
+            ctrlm_main_iarm_call_factory_reset_t reset;
+            memset((void*)&reset, 0, sizeof(reset));
+            reset.api_revision = CTRLM_MAIN_IARM_BUS_API_REVISION;
+            reset.network_id = CTRLM_MAIN_NETWORK_ID_ALL;
+    
+            // The default timeout for IARM calls is 5 seconds, but this call could take longer and we need to ensure the remotes receive
+            // the message before the larger system factory reset operation continues.  Therefore, make this timeout longer.
+            IARM_Result_t res = IARM_Bus_Call_with_IPCTimeout(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_MAIN_IARM_CALL_FACTORY_RESET, (void*)&reset, sizeof(reset), IARM_FACTORY_RESET_TIMEOUT);
+            if (res != IARM_RESULT_SUCCESS)
+            {
+                LOGERR("ERROR - CTRLM_MAIN_IARM_CALL_FACTORY_RESET IARM_Bus_Call FAILED, res: %d", (int)res);
+            }
+            else if (reset.result != CTRLM_IARM_CALL_RESULT_SUCCESS)
+            {
+                LOGERR("ERROR - CTRLM_MAIN_IARM_CALL_FACTORY_RESET FAILED, result: %d.", (int)reset.result);
+            }
+            else
+            {
+                bSuccess = true;
+            }
+
+            returnResponse(bSuccess);
+        }
         //End methods
 
 
@@ -1782,7 +1817,10 @@ namespace WPEFramework {
             irMfrParams.network_id   = networkId;
             irMfrParams.type = (avDevType == "AMP" ? CTRLM_IR_DEVICE_AMP : CTRLM_IR_DEVICE_TV);
             snprintf(irMfrParams.manufacturer, sizeof(irMfrParams.manufacturer), "%s", manufacturer.c_str());
-            res = IARM_Bus_Call(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_MAIN_IARM_CALL_IR_MANUFACTURERS, (void*)&irMfrParams, sizeof(irMfrParams));
+
+            // The default timeout for IARM calls is 5 seconds, but this call could take longer since the results could come from a cloud IRDB.
+            // So increase the timeout to IARM_IRDB_CALLS_TIMEOUT
+            res = IARM_Bus_Call_with_IPCTimeout(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_MAIN_IARM_CALL_IR_MANUFACTURERS, (void*)&irMfrParams, sizeof(irMfrParams), IARM_IRDB_CALLS_TIMEOUT);
             if (res != IARM_RESULT_SUCCESS)
             {
                 LOGERR("ERROR - CTRLM_MAIN_IARM_CALL_IR_MANUFACTURERS IARM_Bus_Call FAILED, res: %d", (int)res);
@@ -1840,7 +1878,10 @@ namespace WPEFramework {
             irModels.type = (avDevType == "AMP" ? CTRLM_IR_DEVICE_AMP : CTRLM_IR_DEVICE_TV);
             snprintf(irModels.manufacturer, sizeof(irModels.manufacturer), "%s", manufacturer.c_str());
             snprintf(irModels.model, sizeof(irModels.model), "%s", model.c_str());
-            res = IARM_Bus_Call(CTRLM_MAIN_IARM_BUS_NAME,  CTRLM_MAIN_IARM_CALL_IR_MODELS, (void*)&irModels, sizeof(irModels));
+
+            // The default timeout for IARM calls is 5 seconds, but this call could take longer since the results could come from a cloud IRDB.
+            // So increase the timeout to IARM_IRDB_CALLS_TIMEOUT
+            res = IARM_Bus_Call_with_IPCTimeout(CTRLM_MAIN_IARM_BUS_NAME,  CTRLM_MAIN_IARM_CALL_IR_MODELS, (void*)&irModels, sizeof(irModels), IARM_IRDB_CALLS_TIMEOUT);
             if (res != IARM_RESULT_SUCCESS)
             {
                 LOGERR("ERROR -  CTRLM_MAIN_IARM_CALL_IR_MODELS IARM_Bus_Call FAILED, res: %d", (int)res);
@@ -1895,7 +1936,10 @@ namespace WPEFramework {
             memset((void*)&irAutoLookup, 0, sizeof(irAutoLookup));
             irAutoLookup.api_revision = CTRLM_MAIN_IARM_BUS_API_REVISION;
             irAutoLookup.network_id   = networkId;
-            res = IARM_Bus_Call(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_MAIN_IARM_CALL_IR_AUTO_LOOKUP, (void*)&irAutoLookup, sizeof(irAutoLookup));
+            
+            // The default timeout for IARM calls is 5 seconds, but this call could take longer since the results could come from a cloud IRDB.
+            // So increase the timeout to IARM_IRDB_CALLS_TIMEOUT
+            res = IARM_Bus_Call_with_IPCTimeout(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_MAIN_IARM_CALL_IR_AUTO_LOOKUP, (void*)&irAutoLookup, sizeof(irAutoLookup), IARM_IRDB_CALLS_TIMEOUT);
             if (res != IARM_RESULT_SUCCESS)
             {
                 LOGERR("ERROR - CTRLM_MAIN_IARM_CALL_IR_AUTO_LOOKUP IARM_Bus_Call FAILED, res: %d", (int)res);
@@ -1953,7 +1997,10 @@ namespace WPEFramework {
             irCodes.type         = (avDevType == "AMP" ? CTRLM_IR_DEVICE_AMP : CTRLM_IR_DEVICE_TV);
             snprintf(irCodes.manufacturer, sizeof(irCodes.manufacturer), "%s", manufacturer.c_str());
             snprintf(irCodes.model, sizeof(irCodes.model), "%s", model.c_str());
-            res = IARM_Bus_Call(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_MAIN_IARM_CALL_IR_CODES, (void*)&irCodes, sizeof(irCodes));
+
+            // The default timeout for IARM calls is 5 seconds, but this call could take longer since the results could come from a cloud IRDB.
+            // So increase the timeout to IARM_IRDB_CALLS_TIMEOUT
+            res = IARM_Bus_Call_with_IPCTimeout(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_MAIN_IARM_CALL_IR_CODES, (void*)&irCodes, sizeof(irCodes), IARM_IRDB_CALLS_TIMEOUT);
             if (res != IARM_RESULT_SUCCESS)
             {
                 LOGERR("ERROR - CTRLM_MAIN_IARM_CALL_IR_CODES IARM_Bus_Call FAILED, res: %d", (int)res);
@@ -2263,7 +2310,10 @@ namespace WPEFramework {
             memset((void*)&initializeIRDBParams, 0, sizeof(initializeIRDBParams));
             initializeIRDBParams.api_revision   = CTRLM_MAIN_IARM_BUS_API_REVISION;
             initializeIRDBParams.network_id     = networkId;
-            res = IARM_Bus_Call(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_MAIN_IARM_CALL_IR_INITIALIZE, (void*)&initializeIRDBParams, sizeof(initializeIRDBParams));
+                
+            // The default timeout for IARM calls is 5 seconds, but this call could take longer since the results could come from a cloud IRDB.
+            // So increase the timeout to IARM_IRDB_CALLS_TIMEOUT
+            res = IARM_Bus_Call_with_IPCTimeout(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_MAIN_IARM_CALL_IR_INITIALIZE, (void*)&initializeIRDBParams, sizeof(initializeIRDBParams), IARM_IRDB_CALLS_TIMEOUT);
             if (res != IARM_RESULT_SUCCESS)
             {
                 LOGERR("ERROR - CTRLM_MAIN_IARM_CALL_IR_INITIALIZE IARM_Bus_Call FAILED, res: %d", (int)res);

@@ -45,6 +45,11 @@
             "type": "boolean",
             "example": false
         },
+        "friendlyName": {
+            "summary": "The friendly name of the device which used to display on the client device list",
+            "type": "string",
+            "example": "My Device"
+        },
         "modeInfo": {
             "summary": "The mode information",
             "type": "object",
@@ -1186,6 +1191,24 @@
                 ]
             }
         },
+        "getFriendlyName":{
+            "summary": "Returns the friendly name set by setFriendlyName API or default value.",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "friendlyName": {
+                        "$ref": "#/definitions/friendlyName"
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "friendlyName",
+                    "success"
+                ]
+            }
+        },
         "getTerritory":{
             "summary": "Gets the configured system territory and region. Territory is a ISO-3166-1 alpha-3 standard (see https://en.wikipedia.org/wiki/ISO_3166-1). Region is a ISO-3166-2 alpha-2 standard (see https://en.wikipedia.org/wiki/ISO_3166-2).",
             "result":{
@@ -1776,6 +1799,23 @@
                 "$ref": "#/common/result"
             }
         },
+        "setFriendlyName":{
+            "summary": "Sets the friendly name of device. It allows an applications to set friendly name value which could be used by different applications to list this device on client mobile application. The provided name should not be empty. Friendly name is persisted on device and reuse after each reboot until updated by the user",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "friendlyName": {
+                        "$ref": "#/definitions/friendlyName"
+                    }
+                },
+                "required": [
+                    "friendlyName"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
         "setTerritory":{
             "summary": "Sets the system territory and region.Territory is a ISO-3166-1 alpha-3 standard (see https://en.wikipedia.org/wiki/ISO_3166-1). Region is a ISO-3166-2 alpha-2 standard (see https://en.wikipedia.org/wiki/ISO_3166-2).",
 			"events":{
@@ -2107,6 +2147,20 @@
                 "required": [
                     "powerState",
                     "currentPowerState"
+                ]
+            }
+        },
+        "onFriendlyNameChanged":{
+            "summary": "Triggered when the device friendly name change",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "friendlyName": {
+                        "$ref": "#/definitions/friendlyName"
+                    }
+                },
+                "required": [
+                    "friendlyName"
                 ]
             }
         },

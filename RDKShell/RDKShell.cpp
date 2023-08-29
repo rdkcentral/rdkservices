@@ -141,6 +141,10 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_AV_BLOCKED_APPS
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_KEY_REPEAT_CONFIG = "keyRepeatConfig";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_GRAPHICS_FRAME_RATE = "getGraphicsFrameRate";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_GRAPHICS_FRAME_RATE = "setGraphicsFrameRate";
+#ifdef HIBERNATE_SUPPORT_ENABLED
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_CHECKPOINT = "checkpoint";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_RESTORE = "restore";
+#endif
 
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_USER_INACTIVITY = "onUserInactivity";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_LAUNCHED = "onApplicationLaunched";
@@ -162,6 +166,10 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_CRITICALLY_LO
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_EASTER_EGG = "onEasterEgg";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_WILL_DESTROY = "onWillDestroy";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_SCREENSHOT_COMPLETE = "onScreenshotComplete";
+#ifdef HIBERNATE_SUPPORT_ENABLED
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_CHECKPOINTED = "onCheckpointed";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_RESTORED = "onRestored";
+#endif
 
 using namespace std;
 using namespace RdkShell;
@@ -203,7 +211,7 @@ static uint32_t gWillDestroyEventWaitTime = RDKSHELL_WILLDESTROY_EVENT_WAITTIME;
 #define PERSISTENT_STORE_CALLSIGN "org.rdk.PersistentStore"
 #define LISA_CALLSIGN "LISA"
 
-#define RECONNECTION_TIME_IN_MILLISECONDS 10000
+#define RECONNECTION_TIME_IN_MILLISECONDS 5000
 
 #define REMOTECONTROL_CALLSIGN "org.rdk.RemoteControl.1"
 #define KEYCODE_INVALID -1
@@ -255,8 +263,11 @@ namespace WPEFramework {
 
         namespace {
             // rdk Shell should use inter faces
-
+#ifndef USE_THUNDER_R4
             class Job : public Core::IDispatchType<void> {
+#else
+            class Job : public Core::IDispatch {
+#endif /* USE_THUNDER_R4 */
             public:
                 Job(std::function<void()> work)
                     : _work(work)
@@ -274,7 +285,11 @@ namespace WPEFramework {
             {
                 uint32_t result = Core::ERROR_ASYNC_FAILED;
                 Core::Event event(false, true);
+#ifndef USE_THUNDER_R4
                 Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatchType<void>>(Core::ProxyType<Job>::Create([&]() {
+#else
+                Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatch>(Core::ProxyType<Job>::Create([&]() {
+#endif /* USE_THUNDER_R4 */
                     auto interface = shell->QueryInterfaceByCallsign<PluginHost::IController>("");
                     if (interface == nullptr) {
                         result = Core::ERROR_UNAVAILABLE;
@@ -369,7 +384,11 @@ namespace WPEFramework {
             {
                 uint32_t result = Core::ERROR_ASYNC_FAILED;
                 Core::Event event(false, true);
+#ifndef USE_THUNDER_R4
                 Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatchType<void>>(Core::ProxyType<Job>::Create([&]() {
+#else
+                Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatch>(Core::ProxyType<Job>::Create([&]() {
+#endif /* USE_THUNDER_R4 */
                     auto interface = shell->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
                     if (interface == nullptr) {
                         result = Core::ERROR_UNAVAILABLE;
@@ -388,7 +407,11 @@ namespace WPEFramework {
             {
                 uint32_t result = Core::ERROR_ASYNC_FAILED;
                 Core::Event event(false, true);
+#ifndef USE_THUNDER_R4
                 Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatchType<void>>(Core::ProxyType<Job>::Create([&]() {
+#else
+                Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatch>(Core::ProxyType<Job>::Create([&]() {
+#endif /* USE_THUNDER_R4 */
                     auto interface = shell->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
                     if (interface == nullptr) {
                         result = Core::ERROR_UNAVAILABLE;
@@ -503,7 +526,12 @@ namespace WPEFramework {
             ToMessage(parameters, message);
 
             const uint32_t channelId = ~0;
+#ifndef USE_THUNDER_R4
             auto resp =  dispatcher_->Invoke(sThunderSecurityToken, channelId, *message);
+#else
+            Core::JSONRPC::Context context(channelId, message->Id.Value(), sThunderSecurityToken) ;
+            auto resp = dispatcher_->Invoke(context, *message);
+#endif /* USE_THUNDER_R4 */
             if (resp->Error.IsSet()) {
               std::cout << "Call failed: " << message->Designator.Value() << " error: " <<  resp->Error.Text.Value() << "\n";
               return resp->Error.Code;
@@ -604,6 +632,7 @@ namespace WPEFramework {
 
         std::mutex gLaunchMutex;
         std::mutex gExitReasonMutex;
+	std::mutex gSubscribeMutex;
         int32_t gLaunchCount = 0;
 
         static std::thread shellThread;
@@ -684,6 +713,27 @@ namespace WPEFramework {
                     auto deactivateStatus = deactivate(mCurrentService, "ResidentApp");
                     std::cout << "deactivating resident app status " << deactivateStatus << std::endl;
                 }
+		else if (requestName.compare("susbscribeSystemEvent") == 0)
+                {
+                   gSubscribeMutex.lock();
+		   subscribeForSystemEvent("onSystemPowerStateChanged");
+		   gSubscribeMutex.unlock();
+                   std::cout << "subscribed system event " << std::endl;
+                   JsonObject joGetParams;
+                    JsonObject joGetResult;
+                    joGetParams["params"] = JsonObject();
+                    std::string getPowerStateInvoke = "org.rdk.System.1.getPowerState";
+                    auto thunderController = getThunderControllerClient();
+                    thunderController->Invoke<JsonObject, JsonObject>(5000, getPowerStateInvoke.c_str(), joGetParams, joGetResult);
+                    const std::string currentPowerState = joGetResult["powerState"].String();
+                    if (currentPowerState == "ON")
+                    {
+                        JsonObject request, response;
+                        request["callsign"] = "ResidentApp";
+                        request["visible"] = true;
+                        getThunderControllerClient("org.rdk.RDKShell.1")->Invoke<JsonObject, JsonObject>(0, "setVisibility", request, response);
+                    }
+		 }
                 else
                 {
                     std::string api("org.rdk.RDKShell.1.");
@@ -908,6 +958,13 @@ namespace WPEFramework {
                     sPersistentStoreFirstActivated = true;
                     gRdkShellMutex.unlock();
                 }
+		else if (currentState == PluginHost::IShell::ACTIVATED && service->Callsign() == SYSTEM_SERVICE_CALLSIGN)
+                {
+                        RDKShellApiRequest apiRequest;
+                        apiRequest.mName = "susbscribeSystemEvent";
+                        RDKShell* rdkshellPlugin = RDKShell::_instance;
+                        rdkshellPlugin->launchRequestThread(apiRequest);
+                }
                 else if (currentState == PluginHost::IShell::DEACTIVATION)
                 {
                     gLaunchDestroyMutex.lock();
@@ -985,6 +1042,27 @@ namespace WPEFramework {
                 }
             }
         }
+
+#ifdef USE_THUNDER_R4
+       void RDKShell::MonitorClients::Activation(const string& callsign, PluginHost::IShell* service)
+       {
+           StateChange(service);
+       }
+       void RDKShell::MonitorClients::Activated(const string& callsign, PluginHost::IShell* service)
+       {
+            StateChange(service);
+       }
+       void RDKShell::MonitorClients::Deactivation(const string& callsign, PluginHost::IShell* service)
+       {
+           StateChange(service);
+       }
+       void RDKShell::MonitorClients::Deactivated(const string& callsign, PluginHost::IShell* service)
+       {
+            StateChange(service);
+       }
+       void RDKShell::MonitorClients::Unavailable(const string& callsign, PluginHost::IShell* service)
+       {}
+#endif /* USE_THUNDER_R4 */
 
         bool RDKShell::ScreenCapture::Capture(ICapture::IStore& storer)
         {
@@ -1108,6 +1186,10 @@ namespace WPEFramework {
             Register(RDKSHELL_METHOD_SET_GRAPHICS_FRAME_RATE, &RDKShell::setGraphicsFrameRateWrapper, this);
             Register(RDKSHELL_METHOD_SET_AV_BLOCKED, &RDKShell::setAVBlockedWrapper, this);
             Register(RDKSHELL_METHOD_GET_AV_BLOCKED_APPS, &RDKShell::getBlockedAVApplicationsWrapper, this);
+#ifdef HIBERNATE_SUPPORT_ENABLED
+            Register(RDKSHELL_METHOD_CHECKPOINT, &RDKShell::checkpointWrapper, this);
+            Register(RDKSHELL_METHOD_RESTORE, &RDKShell::restoreWrapper, this);
+#endif
       	    m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
 
@@ -1449,7 +1531,12 @@ namespace WPEFramework {
             if((rdkshelltype != NULL) && (strcmp(rdkshelltype , "surface") == 0))
             {
 	      updateSurfaceClientIdentifiers(mCurrentService);
-	    } 
+	    }
+#ifdef ENABLE_RIALTO_FEATURE
+        LOGWARN("Creating rialto connector");
+        RialtoConnector *rialtoBridge = new RialtoConnector();
+        rialtoConnector = std::shared_ptr<RialtoConnector>(rialtoBridge);
+#endif //  ENABLE_RIALTO_FEATURE
             return "";
         }
 
@@ -1667,6 +1754,7 @@ namespace WPEFramework {
             {
                 std::string powerState = parameters["powerState"].String();
                 std::string prevState = parameters["currentPowerState"].String();
+		std::cout << "powerState and PrevState inside pluginEventHandler " << prevState << "to" << powerState << std::endl;
                 if ((powerState.compare("STANDBY") == 0) || (powerState.compare("LIGHT_SLEEP") == 0) || (powerState.compare("DEEP_SLEEP") == 0))
                 {
                     std::cout << "Received power state change to sleep " << std::endl;
@@ -1678,6 +1766,7 @@ namespace WPEFramework {
                 if ((prevState == "STANDBY" || prevState == "LIGHT_SLEEP" || prevState == "DEEP_SLEEP" || prevState == "OFF")
                     && powerState == "ON")
                 {
+		    std::cout << "received power state change to ON" << std::endl;
                     JsonObject request, response;
                     request["callsign"] = "ResidentApp";
                     request["visible"] = true;
@@ -2145,6 +2234,10 @@ namespace WPEFramework {
                             result = false;
                             response["message"] = "Failed to stop container";
                         }
+#ifdef ENABLE_RIALTO_FEATURE
+                            rialtoConnector->deactivateSession(client);
+                            //Should we wait for the state change ? Naaah
+#endif //ENABLE_RIALTO_FEATURE
                     }
                 }
             }
@@ -4163,7 +4256,9 @@ namespace WPEFramework {
                     // Starting a DAC app. Get the info from Packager
                     LOGINFO("Starting DAC app");
                     string bundlePath;
-
+#ifdef ENABLE_RIALTO_FEATURE
+                    string appId;
+#endif //ENABLE_RIALTO_FEATURE
                     {
                       // find the bundle location
                       JsonObject infoParams;
@@ -4207,6 +4302,9 @@ namespace WPEFramework {
                       {
                         LOGINFO("LISA not active");
                       }
+#ifdef ENABLE_RIALTO_FEATURE
+                      appId = id;
+#endif // ENABLE_RIALTO_FEATURE
                     }
 
                     if (bundlePath.empty())
@@ -4242,25 +4340,46 @@ namespace WPEFramework {
 
                     // We know where the app lives and are ready to start it,
                     // create a display with rdkshell
-                    if (!createDisplay(client, uri))
+                    if (!createDisplay(client, "wst-"+uri))
                     {
                         response["message"] = "Could not create display";
                         returnResponse(false);
                     }
 
                     string runtimeDir = getenv("XDG_RUNTIME_DIR");
-                    string display = runtimeDir + "/" + (gRdkShellSurfaceModeEnabled ? RDKSHELL_SURFACECLIENT_DISPLAYNAME : uri);
+                    string display = runtimeDir + "/" + (gRdkShellSurfaceModeEnabled ? RDKSHELL_SURFACECLIENT_DISPLAYNAME : "wst-"+uri);
 
                     // Set mime type
                     if (!setMimeType(client, mimeType))
                     {
                         LOGWARN("Failed to set mime type - non fatal...");
                     }
+#ifdef ENABLE_RIALTO_FEATURE
 
+                    if(!rialtoConnector->initialized())
+                    {
+                        LOGWARN("Initializing rialto connector....");
+                        rialtoConnector->initialize();
+                    }
+                    LOGWARN("Creating app session ....");
+                    if(!rialtoConnector->createAppSession(client,display, appId))
+                    {
+                        response["message"] = "Rialto app session initialisation failed";
+                        returnResponse(false);
+                    }
+                    if(!rialtoConnector->waitForStateChange(appId,RialtoServerStates::ACTIVE, RIALTO_TIMEOUT_MILLIS))
+                    {
+                        response["message"] = "Rialto app session not ready.";
+                        returnResponse(false);
+                    }
+#endif //ENABLE_RIALTO_FEATURE
                     // Start container
                     auto ociContainerPlugin = getOCIContainerPlugin();
                     if (!ociContainerPlugin)
                     {
+#ifdef ENABLE_RIALTO_FEATURE
+                        rialtoConnector->deactivateSession(client);
+#endif //ENABLE_RIALTO_FEATURE
                         response["message"] = "OCIContainer initialisation failed";
                         returnResponse(false);
                     }
@@ -4280,6 +4399,9 @@ namespace WPEFramework {
                     {
                         // Something went wrong starting the container, destory the display we just created
                         kill(client);
+#ifdef ENABLE_RIALTO_FEATURE
+                        rialtoConnector->deactivateSession(client);
+#endif //ENABLE_RIALTO_FEATURE
                         response["message"] = "Could not start Dobby container";
                         returnResponse(false);
                     }
@@ -4367,6 +4489,14 @@ namespace WPEFramework {
                         response["message"] = "Could not pause container";
                         returnResponse(false);
                     }
+#ifdef ENABLE_RIALTO_FEATURE
+                    rialtoConnector->suspendSession(client);
+                    if(!rialtoConnector->waitForStateChange(client,RialtoServerStates::INACTIVE, RIALTO_TIMEOUT_MILLIS))
+                    {
+                        response["message"] = "Rialto app session could not be set inactive.";
+                        returnResponse(false);
+		    }
+#endif //ENABLE_RIALTO_FEATURE
                 }
                 else
                 {
@@ -4421,7 +4551,14 @@ namespace WPEFramework {
                         response["message"] = "OCIContainer initialisation failed";
                         returnResponse(false);
                     }
-
+#ifdef ENABLE_RIALTO_FEATURE
+                    rialtoConnector->resumeSession(client);
+                    if(!rialtoConnector->waitForStateChange(client,RialtoServerStates::ACTIVE,RIALTO_TIMEOUT_MILLIS))
+                    {
+                        response["message"] = "Rialto app session not ready.";
+                        returnResponse(false);
+                    }
+#endif //ENABLE_RIALTO_FEATURE
                     JsonObject ociContainerResult;
                     JsonObject param;
 
@@ -4622,12 +4759,31 @@ namespace WPEFramework {
                             WPEFramework::Core::JSON::String stateString;
                             const string callsignWithVersion = callsign + ".1";
                             auto thunderPlugin = getThunderControllerClient(callsignWithVersion);
-                            uint32_t stateStatus = thunderPlugin->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
+                            uint32_t stateStatus = 0;
+
+#ifdef HIBERNATE_SUPPORT_ENABLED
+                            if(service.JSONState != PluginHost::MetaData::Service::state::HIBERNATED)
+                            {
+                                stateStatus = thunderPlugin->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
+                            }
+                            else
+                            {
+                                stateString = "checkpointed";
+                            }
+#endif
 
                             if (stateStatus == 0)
                             {
                                 WPEFramework::Core::JSON::String urlString;
-                                uint32_t urlStatus = thunderPlugin->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "url",urlString);
+                                uint32_t urlStatus = 1;
+#ifdef HIBERNATE_SUPPORT_ENABLED
+                                if(service.JSONState != PluginHost::MetaData::Service::state::HIBERNATED)
+                                {
+#endif
+                                    urlStatus = thunderPlugin->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "url",urlString);
+#ifdef HIBERNATE_SUPPORT_ENABLED
+                                }
+#endif
 
                                 JsonObject typeObject;
                                 typeObject["callsign"] = callsign;
@@ -5731,6 +5887,103 @@ namespace WPEFramework {
             }
             returnResponse(status);
         }
+
+#ifdef HIBERNATE_SUPPORT_ENABLED
+        uint32_t RDKShell::checkpointWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool status = false;
+            if (parameters.HasLabel("callsign"))
+            {
+                std::string callsign = parameters["callsign"].String();
+                bool isApplicationBeingDestroyed = false;
+
+                gLaunchDestroyMutex.lock();
+                if (gDestroyApplications.find(callsign) != gDestroyApplications.end())
+                {
+                    isApplicationBeingDestroyed = true;
+                }
+                if (gExternalDestroyApplications.find(callsign) != gExternalDestroyApplications.end())
+                {
+                    isApplicationBeingDestroyed = true;
+                }
+                gLaunchDestroyMutex.unlock();
+
+                if (isApplicationBeingDestroyed)
+                {
+                    std::cout << "ignoring checkpoint for " << callsign << " as it is being destroyed " << std::endl;
+                    status = false;
+                    response["message"] = "failed to checkpoint application, is being destroyed";
+                    returnResponse(status);
+                }
+
+                std::thread requestsThread =
+                std::thread([=]()
+                {
+                    auto thunderController = RDKShell::getThunderControllerClient();
+                    JsonObject request, result, eventMsg;
+                    request["callsign"] = callsign;
+                    request["timeout"] = RDKSHELL_THUNDER_TIMEOUT;
+                    if(parameters.HasLabel("timeout"))
+                    {
+                        request["timeout"] = parameters["timeout"];
+                    }
+                    if(parameters.HasLabel("procsequence"))
+                    {
+                        request["procsequence"] = parameters["procsequence"];
+                    }
+                    uint32_t errCode = thunderController->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "hibernate", request, result);
+                    if(errCode > 0)
+                    {
+                        eventMsg["success"] = false;
+                        eventMsg["message"] = result;
+                    }
+                    else
+                    {
+                        eventMsg["success"] = true;
+                    }
+                    notify(RDKShell::RDKSHELL_EVENT_ON_CHECKPOINTED, eventMsg);
+                });
+                requestsThread.detach();
+                status = true;
+            }
+
+            returnResponse(status);
+        }
+
+        uint32_t RDKShell::restoreWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool status = false;
+            if (parameters.HasLabel("callsign"))
+            {
+                std::string callsign = parameters["callsign"].String();
+                std::thread requestsThread =
+                std::thread([=]()
+                {
+                    auto thunderController = RDKShell::getThunderControllerClient();
+                    JsonObject request, result, eventMsg;
+                    request["callsign"] = callsign;
+
+                    uint32_t errCode = thunderController->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "activate", request, result);
+                    if(errCode > 0)
+                    {
+                        eventMsg["success"] = false;
+                        eventMsg["message"] = result;
+                    }
+                    else
+                    {
+                        eventMsg["success"] = true;
+                    }
+                    notify(RDKShell::RDKSHELL_EVENT_ON_RESTORED, eventMsg);
+                });
+                requestsThread.detach();
+                status = true;
+            }
+
+            returnResponse(status);
+        }
+#endif
 
         // Registered methods end
 
@@ -6933,7 +7186,7 @@ namespace WPEFramework {
                 if (Core::ERROR_NONE == subscribeForSystemEvent("onSystemPowerStateChanged"))
                 {  
                     m_timer.stop();
-                    std::cout << "Stopped SystemServices connection timer" << std::endl;
+                    std::cout << "Stopped SystemServices connection timer after subscription" << std::endl;
                 }
             }
         }
