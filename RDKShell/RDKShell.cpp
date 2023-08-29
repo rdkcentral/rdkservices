@@ -906,7 +906,68 @@ namespace WPEFramework {
 	    return ignoreLaunch;
 	}
 
-        void RDKShell::MonitorClients::StateChange(PluginHost::IShell* service)
+        void RDKShell::MonitorClients::handleDeactivated(PluginHost::IShell* service)
+        {
+            if (service)
+            {
+                PluginHost::IShell::state currentState(service->State());
+
+                gExitReasonMutex.lock();
+                gApplicationsExitReason[service->Callsign()] = AppLastExitReason::DEACTIVATED;
+                if(service->Reason() == PluginHost::IShell::FAILURE)
+                {
+                    gApplicationsExitReason[service->Callsign()] = AppLastExitReason::CRASH;
+                }
+                gExitReasonMutex.unlock();
+
+                std::string configLine = service->ConfigLine();
+                if (configLine.empty())
+                {
+                    return;
+                }
+                JsonObject serviceConfig = JsonObject(configLine.c_str());
+                if (serviceConfig.HasLabel("clientidentifier"))
+                {
+                    std::string clientidentifier = serviceConfig["clientidentifier"].String();
+                    std::shared_ptr<KillClientRequest> request = std::make_shared<KillClientRequest>(service->Callsign());
+                    gRdkShellMutex.lock();
+                    gKillClientRequests.push_back(request);
+                    gRdkShellMutex.unlock();
+                    sem_wait(&request->mSemaphore);
+                    gRdkShellMutex.lock();
+                    RdkShell::CompositorController::removeListener(clientidentifier, mShell.mEventListener);
+                    gRdkShellMutex.unlock();
+                }
+                
+                gPluginDataMutex.lock();
+                std::map<std::string, PluginData>::iterator pluginToRemove = gActivePluginsData.find(service->Callsign());
+                if (pluginToRemove != gActivePluginsData.end())
+                {
+                    gActivePluginsData.erase(pluginToRemove);
+                }
+                std::map<std::string, PluginStateChangeData*>::iterator pluginStateChangeEntry = gPluginsEventListener.find(service->Callsign());
+                if (pluginStateChangeEntry != gPluginsEventListener.end())
+                {
+                    PluginStateChangeData* stateChangeData = pluginStateChangeEntry->second;
+                    if (nullptr != stateChangeData)
+                    {
+                        stateChangeData->resetConnection();
+                        delete stateChangeData;
+                    }
+                    pluginStateChangeEntry->second = nullptr;
+                    gPluginsEventListener.erase(pluginStateChangeEntry);
+                }
+                gPluginDataMutex.unlock();
+                gLaunchDestroyMutex.lock();
+                if (gExternalDestroyApplications.find(service->Callsign()) != gExternalDestroyApplications.end())
+                {
+                    gExternalDestroyApplications.erase(service->Callsign());
+                }
+                gLaunchDestroyMutex.unlock();
+            }
+        }
+
+        void RDKShell::MonitorClients::StateChange(PluginHost::IShell* service, std::string stateoverride)
         {
             if (service)
             {
@@ -1034,7 +1095,7 @@ namespace WPEFramework {
                         notification->Release();
                     }
                 }
-                else if (currentState == PluginHost::IShell::DEACTIVATED)
+                else if ((currentState == PluginHost::IShell::DEACTIVATED))
                 {
                     std::string configLine = service->ConfigLine();
                     if (configLine.empty())
@@ -1099,7 +1160,8 @@ namespace WPEFramework {
        }
        void RDKShell::MonitorClients::Deactivated(const string& callsign, PluginHost::IShell* service)
        {
-            StateChange(service);
+            //StateChange(service);
+            handleDeactivated(service);
        }
        void RDKShell::MonitorClients::Unavailable(const string& callsign, PluginHost::IShell* service)
        {}
