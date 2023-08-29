@@ -350,11 +350,22 @@ namespace Plugin {
 
        // As we have source to picture mode mapping, get current source and
        // setting those picture mode
-       int current_source = 0; 
+       int current_source = 0;
+       int current_format = 0;
        std::string tr181_param_name = "";
+       // get current source
        GetCurrentSource(&current_source);
+
+       // get current format
+       if( HDR_TYPE_NONE == ConvertVideoFormatToHDRFormat(GetCurrentContentFormat())) {
+           current_format = (int)HDR_TYPE_SDR;
+       } else {
+           current_format = (int)ConvertVideoFormatToHDRFormat(GetCurrentContentFormat());
+       }
+
        tr181_param_name += std::string(TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
-       tr181_param_name += "."+std::to_string(current_source)+"."+"PictureModeString"; 
+       tr181_param_name += "."+std::to_string(current_source)+"."+"Format."+std::to_string(current_format)+"."+"PictureModeString";
+
        tr181ErrorCode_t err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
        if ( tr181Success == err )
        {
@@ -4782,7 +4793,9 @@ namespace Plugin {
         LOGINFO("Entry\n");
         std::string picturemode;
         std::string source;
+        std::string format;
         int current_source = 0;
+        int current_format = 0;
         std::string tr181_param_name;
         TR181_ParamData_t param = {0};
         tr181ErrorCode_t err = tr181Success;
@@ -4790,26 +4803,41 @@ namespace Plugin {
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
             source = "current";
-  
+
         if (source == "current") {
             GetCurrentSource(&current_source);
         } else {
                current_source = GetTVSourceIndex(source.c_str());
         }
         LOGINFO("current source index[%d] \n", current_source);
+
+        source = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+                format = "current";
+
+        if (format == "current") {
+                if( HDR_TYPE_NONE == ConvertVideoFormatToHDRFormat(GetCurrentContentFormat()))
+                        current_format = (int)HDR_TYPE_SDR;
+                else
+                        current_format = ConvertVideoFormatToHDRFormat(GetCurrentContentFormat());
+        } else {
+                current_format = ConvertFormatStringToHDRFormat(format.c_str());
+        }
+
+        LOGINFO("current format index[%d] \n", current_format);
         tr181_param_name += std::string(TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
-        tr181_param_name += "." + std::to_string(current_source) + "." + "PictureModeString";
-	LOGINFO("tr181 command[%s]", tr181_param_name.c_str());
+        tr181_param_name += "." + std::to_string(current_source) + "." + "Format."+std::to_string(current_source)+"."+"PictureModeString";
+        LOGINFO("tr181 command[%s]", tr181_param_name.c_str());
          err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
-        
-         if ( tr181Success != err ) { 
+
+         if ( tr181Success != err ) {
             returnResponse(false);
         }
         else {
             std::string s;
             s+=param.value;
             response["pictureMode"] = s;
-	    LOGINFO("Exit : getPictureMode() : %s\n",s.c_str());
+            LOGINFO("Exit : getPictureMode() : %s\n",s.c_str());
             returnResponse(true);
         }
     }
@@ -4819,6 +4847,7 @@ namespace Plugin {
         LOGINFO("Entry\n");
         std::string value;
         std::string source;
+        std::string format;
         char prevmode[PIC_MODE_NAME_MAX]={0};
         GetTVPictureMode(prevmode);
         int current_source = 0;
@@ -4830,6 +4859,11 @@ namespace Plugin {
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
             source = "all";
+
+        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        if(format.empty())
+            format = "all";
+
         // As only source need to validate, so pqmode and formate passing as currrent
         if( isSetRequired("current",source,"current") ) {
             LOGINFO("Proceed with SetTVPictureMode\n");
@@ -4856,29 +4890,83 @@ namespace Plugin {
                     {
                         token = strtok(NULL, " ");
                         source_index[count] = GetTVSourceIndex(token);
-                        printf("%s : Format[%d] : %s\n",__FUNCTION__,count,token);
+                        printf("%s : token %s\n",__FUNCTION__,token);
                         count++;
                     }
 
 		    numberofsource = count;
 	    }
 
-            for (int x = 0; x < numberofsource; x++ ) {
+            //3)check format
+            unsigned int contentFormats=0;
+            int formatarray_len = 0;
+            unsigned short numberOfSupportedFormats =  0;
+            int format_array[4] = {0};
 
-                std::string tr181_param_name = "";
-                tr181_param_name += std::string(TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
-                // framing Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.Source.source_index[x].PictureModeString.value
-                tr181_param_name += "."+std::to_string(source_index[x])+"."+"PictureModeString";
-                tr181ErrorCode_t err = setLocalParam(rfc_caller_id, tr181_param_name.c_str(), value.c_str());
-                if ( err != tr181Success ) {
-                    LOGWARN("setLocalParam for %s Failed : %s\n", TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM, getTR181ErrorString(err));
+            GetSupportedContentFormats(&contentFormats,&numberOfSupportedFormats);
+            formatarray_len = numberOfSupportedFormats;
+
+            if( (strncmp(format.c_str(),"All",strlen(format.c_str())) == 0) ||
+                (strncmp(format.c_str(),"all",strlen(format.c_str())) == 0) ||
+                (strncmp(format.c_str(),"Global",strlen(format.c_str())) == 0) ||
+		(strncmp(format.c_str(),"global",strlen(format.c_str())) == 0) )
+             {
+                 unsigned int lcount=0;
+                 for(;(lcount<sizeof(uint32_t)*8 && numberOfSupportedFormats);lcount++)
+                 {
+                     tvhdr_type_t formatToStore = (tvhdr_type_t)ConvertVideoFormatToHDRFormat((tvVideoHDRFormat_t)(contentFormats&(1<<lcount)));
+                     if(formatToStore!= HDR_TYPE_NONE)
+                     {
+                         numberOfSupportedFormats--;
+                     //formats.push_back(formatToStore);
+			format_array[lcount] = formatToStore;
+                     }
+                 }
+             }
+             else if( (strncmp(format.c_str(),"Current",strlen(format.c_str())) == 0) ||
+		      (strncmp(format.c_str(),"current",strlen(format.c_str())) == 0) )
+             {
+                formatarray_len = 1;
+                if( HDR_TYPE_NONE == ConvertVideoFormatToHDRFormat(GetCurrentContentFormat()))
+                    //formats.push_back(HDR_TYPE_SDR);//Save  To SDR if format is HDR_TYPE_NONE
+                    format_array[0] = HDR_TYPE_SDR;
+                else
+                    //formats.push_back(ConvertVideoFormatToHDRFormat(GetCurrentContentFormat()));
+                    format_array[0] = ConvertVideoFormatToHDRFormat(GetCurrentContentFormat());
+            }
+            else
+            {
+                char *formatString = strdup(format.c_str());
+		char *token = strtok(formatString, " ");
+                int count=0;
+                while (token != NULL)
+                {
+                    token = strtok(NULL, " ");
+                    format_array[formatarray_len] = (ConvertFormatStringToHDRFormat(token));//This function needs to be implemented
+                    printf("%s : Format :%s\n",__FUNCTION__,token);
+                    count++;
                 }
-                else {
-                    LOGINFO("setLocalParam for %s Successful, Value: %s\n", TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM, value.c_str());
-		    //pqmodeindex = getPQmodeindex(value(strin))
-		    int pqmodeindex = (int)GetTVPictureModeIndex(value.c_str());
-                    SaveSourcePictureMode(pqmodeindex, source_index[x]);
-		}
+                formatarray_len = count;
+            }
+
+            for (int x = 0; x < numberofsource; x++ ) {
+                for (int y = 0; y < formatarray_len; y++ ) {
+
+                    std::string tr181_param_name = "";
+                    tr181_param_name += std::string(TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
+                    // framing Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.Source.source_index[x].Format.format_index[x].PictureModeString.value
+                    tr181_param_name += "."+std::to_string(source_index[x])+"."+"Format."+std::to_string(format_array[y])+"."+"PictureModeString";
+                    tr181ErrorCode_t err = setLocalParam(rfc_caller_id, tr181_param_name.c_str(), value.c_str());
+                    if ( err != tr181Success ) {
+                        LOGWARN("setLocalParam for %s Failed : %s\n", TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM, getTR181ErrorString(err));
+                    }
+                    else {
+                        LOGINFO("setLocalParam for %s Successful, Value: %s\n", TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM, value.c_str());
+		        //pqmodeindex = getPQmodeindex(value(strin))
+		        int pqmodeindex = (int)GetTVPictureModeIndex(value.c_str());
+                        SaveSourcePictureMode(pqmodeindex, source_index[x]);
+		    }
+                }
             }
 
 	    //Filmmaker mode telemetry
@@ -4903,43 +4991,61 @@ namespace Plugin {
         GetAllSupportedSourceIndex(source_index);
         numberofsource = sizeof(source_index)/sizeof(source_index[0]);
 
+        unsigned int contentFormats=0;
+        unsigned short numberOfSupportedFormats =  0;
+  
+        GetSupportedContentFormats(&contentFormats,&numberOfSupportedFormats);
+
         for (int x = 0; x < numberofsource; x++ ) {
-            std::string tr181_param_name = "";
-            tr181_param_name += std::string(TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
-	    tr181_param_name += "."+std::to_string(source_index[x])+"."+"PictureModeString";
-       	    err = clearLocalParam(rfc_caller_id, tr181_param_name.c_str());
-            if ( err != tr181Success ) {
-                LOGWARN("clearLocalParam for %s Failed : %s\n", tr181_param_name.c_str(), getTR181ErrorString(err));
-                returnResponse(false);
-            }
-            else {
-                LOGINFO("clearLocalParam for %s Successful\n", tr181_param_name.c_str());
-                err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
-                if ( tr181Success == err )
-                {
-                    LOGINFO("getLocalParam for %s is %s\n", TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM, param.value);
-                    //get curren source and if matches save for that alone
-		    int current_source = 0;
-		    GetCurrentSource(&current_source);
-		    if (current_source == source_index[x]) {
-                        tvError_t ret = SetTVPictureMode(param.value);
-                        if(ret != tvERROR_NONE) {
-                            LOGWARN("Picture Mode set failed: %s\n",getErrorString(ret).c_str());
-                            returnResponse(false);
-                        }
-                        else {
-                            LOGINFO("Exit : Picture Mode reset successfully, value: %s\n", param.value);
-                        }
-		    }
-                }
-                else {
-                    LOGWARN("getLocalParam for %s failed\n", TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
+            for (int y = 0; y < numberOfSupportedFormats; y++) {
+
+                int format = ConvertVideoFormatToHDRFormat((tvVideoHDRFormat_t)(contentFormats&(1<<y)));
+
+                std::string tr181_param_name = "";
+                tr181_param_name += std::string(TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
+	        tr181_param_name += "."+std::to_string(source_index[x])+"."+"Format."+std::to_string(format)+"."+"PictureModeString";
+       	        err = clearLocalParam(rfc_caller_id, tr181_param_name.c_str());
+                if ( err != tr181Success ) {
+                    LOGWARN("clearLocalParam for %s Failed : %s\n", tr181_param_name.c_str(), getTR181ErrorString(err));
                     returnResponse(false);
                 }
-            }
-            int pqmodeindex = (int)GetTVPictureModeIndex(param.value);
-            SaveSourcePictureMode(pqmodeindex, source_index[x]);
-	}
+                else {
+                    LOGINFO("clearLocalParam for %s Successful\n", tr181_param_name.c_str());
+                    err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
+                    if ( tr181Success == err )
+                    {
+                        LOGINFO("getLocalParam for %s is %s\n", TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM, param.value);
+                        //get curren source and if matches save for that alone
+		        int current_source = 0;
+                        int current_format = 0;
+		        GetCurrentSource(&current_source);
+
+                        if( HDR_TYPE_NONE == ConvertVideoFormatToHDRFormat(GetCurrentContentFormat())) {
+                            current_format = (int)HDR_TYPE_SDR;
+                        } else {
+                            current_format = (int)ConvertVideoFormatToHDRFormat(GetCurrentContentFormat());
+                        }
+
+		        if (current_source == source_index[x] && current_format == format) {
+                            tvError_t ret = SetTVPictureMode(param.value);
+                            if(ret != tvERROR_NONE) {
+                                LOGWARN("Picture Mode set failed: %s\n",getErrorString(ret).c_str());
+                                returnResponse(false);
+                            }
+                            else {
+                                LOGINFO("Exit : Picture Mode reset successfully, value: %s\n", param.value);
+                            }
+		        }
+                    }
+                    else {
+                        LOGWARN("getLocalParam for %s failed\n", TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
+                        returnResponse(false);
+                    }
+                }
+                int pqmodeindex = (int)GetTVPictureModeIndex(param.value);
+                SaveSourcePictureMode(pqmodeindex, source_index[x]);
+	    }
+        }
 	returnResponse(true;)
     }
 
