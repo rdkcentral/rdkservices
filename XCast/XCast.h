@@ -96,7 +96,6 @@ private:
     /**
      * Whether Cast service is enabled by RFC
      */
-    static bool isCastEnabled;
     static bool m_xcastEnable;
     static IARM_Bus_PWRMgr_PowerState_t m_powerState;
     uint32_t m_apiVersionNumber;
@@ -105,7 +104,6 @@ private:
     std::vector<DynamicAppConfig*> m_appConfigCache;
     static string m_friendlyName;
     static bool m_standbyBehavior;
-    static bool m_enableStatus;
     //Timer related variables and functions
     TpTimer m_locateCastTimer;
     const void InitializeIARM();
@@ -122,7 +120,6 @@ private:
     /**
      * Check whether the xdial service is allowed in this device.
      */
-    static bool checkRFCServiceStatus();
     static void powerModeChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
     static void threadPowerModeChangeEvent(void);
 };

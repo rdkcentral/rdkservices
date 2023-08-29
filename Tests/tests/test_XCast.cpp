@@ -49,16 +49,6 @@ class XCastPreLoad : public ::testing::Test {
 
     XCastPreLoad() 
     {
-        RfcApi::getInstance().impl = &rfcApiImplMock;
-        ON_CALL(rfcApiImplMock, getRFCParameter(::testing::_, ::testing::_, ::testing::_))
-        .WillByDefault(::testing::Invoke(
-            [](char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData) {
-                EXPECT_EQ(string(pcCallerID), string("Xcast"));
-                EXPECT_EQ(string(pcParameterName), string("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.XDial.Enable"));
-                strncpy(pstParamData->value, "true", sizeof(pstParamData->value));
-                pstParamData->type = WDMP_BOOLEAN;
-                return WDMP_SUCCESS;
-            }));
     }
 
 };
@@ -130,17 +120,6 @@ protected:
                     return RT_OK;
                 })); 
         
-        ON_CALL(rfcApiImplMock, getRFCParameter(::testing::_, ::testing::_, ::testing::_))
-            .WillByDefault(::testing::Invoke(
-                [](char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData) {
-                    EXPECT_EQ(string(pcCallerID), string("Xcast"));
-                    EXPECT_EQ(string(pcParameterName), string("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.XDial.DynamicAppList"));
-                    strncpy(pstParamData->value, "true", sizeof(pstParamData->value));
-                    pstParamData->type = WDMP_BOOLEAN;
-                    return WDMP_SUCCESS;
-                }));
-        
-
         ON_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
                 [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {

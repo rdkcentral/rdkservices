@@ -76,7 +76,6 @@ public:
      *Call back function for rtConnection
      */
     int connectToRemoteService();
-    bool IsDynamicAppListEnabled();
     
     void setService(RtNotifier * service){
         m_observer = service;
@@ -91,7 +90,6 @@ private:
     mutex m_threadlock;
     // Boolean event thread exit condition
     bool m_runEventThread;
-    bool m_IsDefaultDynamicAppListEnabled;
     // Member function to handle RT messages.
     void processRtMessages();
     bool IsAppEnabled(char* strAppName);
