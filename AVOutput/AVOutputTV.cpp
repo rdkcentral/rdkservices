@@ -5042,6 +5042,7 @@ namespace Plugin {
                         returnResponse(false);
                     }
                 }
+
                 int pqmodeindex = (int)GetTVPictureModeIndex(param.value);
                 SaveSourcePictureMode(source_index[x], format, pqmodeindex);
 	    }
