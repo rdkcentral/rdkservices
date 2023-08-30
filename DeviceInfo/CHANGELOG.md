@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.7] - 2023-08-28
+### Fixed 
+- Added valid values for modelid and make property of DeviceInfo plugin for RPI
+
 ## [1.0.6] - 2023-06-05
 ### Added 
 - Added Support to build the plugin to both R4 & R2
