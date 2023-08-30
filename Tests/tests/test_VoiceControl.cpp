@@ -419,7 +419,7 @@ TEST_F(VoiceControlInitializedEventTest, onSessionEnd)
 
     memset(eventData, 0, len);
     eventData->api_revision = CTRLM_VOICE_IARM_BUS_API_REVISION;
-    sprintf(eventData->payload, "%s", onSessionEndParams.c_str());
+    snprintf(eventData->payload, len, "%s", onSessionEndParams.c_str());
 
     handler_.Subscribe(0, _T("onSessionEnd"), _T("org.rdk.VoiceControl"), message_);
     voiceEventHandler_(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_VOICE_IARM_EVENT_JSON_SESSION_END, eventData, len);
@@ -449,7 +449,7 @@ TEST_F(VoiceControlInitializedEventTest, onStreamBegin)
 
     memset(eventData, 0, len);
     eventData->api_revision = CTRLM_VOICE_IARM_BUS_API_REVISION;
-    sprintf(eventData->payload, "%s", onStreamBeginParams.c_str());
+    snprintf(eventData->payload, len, "%s", onStreamBeginParams.c_str());
 
     handler_.Subscribe(0, _T("onStreamBegin"), _T("org.rdk.VoiceControl"), message_);
     voiceEventHandler_(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_VOICE_IARM_EVENT_JSON_STREAM_BEGIN, eventData, len);
@@ -481,7 +481,7 @@ TEST_F(VoiceControlInitializedEventTest, onStreamEnd)
 
     memset(eventData, 0, len);
     eventData->api_revision = CTRLM_VOICE_IARM_BUS_API_REVISION;
-    sprintf(eventData->payload, "%s", onStreamEndParams.c_str());
+    snprintf(eventData->payload, len, "%s", onStreamEndParams.c_str());
 
     handler_.Subscribe(0, _T("onStreamEnd"), _T("org.rdk.VoiceControl"), message_);
     voiceEventHandler_(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_VOICE_IARM_EVENT_JSON_STREAM_END, eventData, len);
@@ -515,7 +515,7 @@ TEST_F(VoiceControlInitializedEventTest, onServerMessage)
 
     memset(eventData, 0, len);
     eventData->api_revision = CTRLM_VOICE_IARM_BUS_API_REVISION;
-    sprintf(eventData->payload, "%s", onServerMessageParams.c_str());
+    snprintf(eventData->payload, len, "%s", onServerMessageParams.c_str());
 
     handler_.Subscribe(0, _T("onServerMessage"), _T("org.rdk.VoiceControl"), message_);
     voiceEventHandler_(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_VOICE_IARM_EVENT_JSON_SERVER_MESSAGE, eventData, len);
@@ -547,7 +547,7 @@ TEST_F(VoiceControlInitializedEventTest, onKeywordVerification)
 
     memset(eventData, 0, len);
     eventData->api_revision = CTRLM_VOICE_IARM_BUS_API_REVISION;
-    sprintf(eventData->payload, "%s", onKeywordVerParams.c_str());
+    snprintf(eventData->payload, len, "%s", onKeywordVerParams.c_str());
 
     handler_.Subscribe(0, _T("onKeywordVerification"), _T("org.rdk.VoiceControl"), message_);
     voiceEventHandler_(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_VOICE_IARM_EVENT_JSON_KEYWORD_VERIFICATION, eventData, len);

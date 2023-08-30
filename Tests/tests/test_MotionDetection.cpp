@@ -82,16 +82,16 @@ TEST_F(MotionDetectionEventTest, getMotionDetectors)
                 
                 memset(pSensorStatus, 0, sizeof(MOTION_DETECTION_CurrentSensorSettings_t));
 
-                strcpy(pSensorStatus->m_sensorIndex, MOTION_DETECTOR);
-                strcpy(pSensorStatus->m_sensorDescription, MOTION_DETECTION_DESCRIPTION);
-                strcpy(pSensorStatus->m_sensorType, MOTION_DETECTOR_TYPE);
+                strncpy(pSensorStatus->m_sensorIndex, MOTION_DETECTOR, sizeof(pSensorStatus->m_sensorIndex) - 1);
+                strncpy(pSensorStatus->m_sensorDescription, MOTION_DETECTION_DESCRIPTION, sizeof(pSensorStatus->m_sensorDescription) - 1);
+                strncpy(pSensorStatus->m_sensorType, MOTION_DETECTOR_TYPE, sizeof(pSensorStatus->m_sensorType) - 1);
                 pSensorStatus->m_sensorDistance = MOTION_DETECTION_DISTANCE;
                 pSensorStatus->m_sensorAngle = MOTION_DETECTION_ANGLE;
                 pSensorStatus->m_sensitivityMode = 2;
                 
-                strcpy(pSensorStatus->m_sensitivity[SENSITIVITY_IDENTIFIER_1], STR_SENSITIVITY_LOW);
-                strcpy(pSensorStatus->m_sensitivity[SENSITIVITY_IDENTIFIER_2], STR_SENSITIVITY_MEDIUM);
-                strcpy(pSensorStatus->m_sensitivity[SENSITIVITY_IDENTIFIER_3], STR_SENSITIVITY_HIGH);
+                strncpy(pSensorStatus->m_sensitivity[SENSITIVITY_IDENTIFIER_1], STR_SENSITIVITY_LOW, sizeof(pSensorStatus->m_sensitivity[SENSITIVITY_IDENTIFIER_1]) - 1);
+                strncpy(pSensorStatus->m_sensitivity[SENSITIVITY_IDENTIFIER_2], STR_SENSITIVITY_MEDIUM, sizeof(pSensorStatus->m_sensitivity[SENSITIVITY_IDENTIFIER_2]) - 1);
+                strncpy(pSensorStatus->m_sensitivity[SENSITIVITY_IDENTIFIER_3], STR_SENSITIVITY_HIGH, sizeof(pSensorStatus->m_sensitivity[SENSITIVITY_IDENTIFIER_3]) - 1);
 
                 return MOTION_DETECTION_RESULT_SUCCESS;
             }));
