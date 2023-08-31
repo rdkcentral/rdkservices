@@ -4892,7 +4892,6 @@ namespace Plugin {
                     }
                     else {
                         LOGINFO("setLocalParam for %s Successful, Value: %s\n", TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM, value.c_str());
-		        //pqmodeindex = getPQmodeindex(value(strin))
 		        int pqmodeindex = (int)GetTVPictureModeIndex(value.c_str());
                         SaveSourcePictureMode(source_vec[x], format_vec[y], pqmodeindex);
 		    }
