@@ -46,7 +46,7 @@
 #include "UtilsString.h"
 
 #ifdef RDKSHELL_READ_MAC_ON_STARTUP
-#include "FactoryProtectHal.h"
+#include "DeviceMode.h"
 #endif //RDKSHELL_READ_MAC_ON_STARTUP
 
 
@@ -245,6 +245,22 @@ enum AppLastExitReason
     CRASH,
     DEACTIVATED
 };
+
+#ifdef RDKSHELL_READ_MAC_ON_STARTUP
+static bool checkFactoryMode_wrapper()
+{
+        Device_Mode_DeviceModes_t deviceMode;
+        bool ret = false;
+        Device_Mode_Result_t result = Device_Mode_getDeviceMode(&deviceMode);
+        if(result == DEVICE_MODE_RESULT_SUCCESS) {
+                if (deviceMode == DEVICE_MODE_FACTORY) {
+                        std::cout << "Device in FactoryMode\n";
+                        ret = true;
+                }
+        }
+        return ret;
+}
+#endif
 
 FactoryAppLaunchStatus sFactoryAppLaunchStatus = NOTLAUNCHED;
 
@@ -1318,27 +1334,8 @@ namespace WPEFramework {
             bool factoryMacMatched = false;
 #ifdef RFC_ENABLED
             #ifdef RDKSHELL_READ_MAC_ON_STARTUP
-            char* mac = new char[19];
-            tFHError retAPIStatus;
-            std::cout << "calling factory hal init\n";
-            factorySD1_init();
-            retAPIStatus = getEthernetMAC(mac);
-            if(retAPIStatus == E_OK)
-            {
-                if (strncasecmp(mac,"00:00:00:00:00:00",17) == 0)
-                {
-                    std::cout << "launching factory app as mac is matching... " << std::endl;
-                    factoryMacMatched = true;
-                }
-                else
-                {
-                    std::cout << "mac match failed... mac from hal - " << mac << std::endl;
-                }
-            }
-            else
-            {
-                std::cout << "reading stb mac hal api failed... " << std::endl;
-            }
+	    Device_Mode_Init();
+            factoryMacMatched = checkFactoryMode_wrapper();
             #else
             RFC_ParamData_t macparam;
             bool macret = Utils::getRFCConfig("Device.DeviceInfo.X_COMCAST-COM_STB_MAC", macparam);
@@ -6131,25 +6128,15 @@ namespace WPEFramework {
             std::cout << "inside of checkForBootupFactoryAppLaunch\n";
 #ifdef RFC_ENABLED
             #ifdef RDKSHELL_READ_MAC_ON_STARTUP
-            char* mac = new char[19];
-            tFHError retAPIStatus;
-            retAPIStatus = getEthernetMAC(mac);
-            if(retAPIStatus == E_OK)
-            {
-                if (strncasecmp(mac,"00:00:00:00:00:00",17) == 0)
-                {
-                    std::cout << "launching factory app as mac is matching... " << std::endl;
-                    return true;
-                }
-                else
-                {
-                    std::cout << "mac match failed... mac from hal - " << mac << std::endl;
-                }
-            }
-            else
-            {
-                std::cout << "reading stb mac via hal failed " << std::endl;
-            }
+	    if (checkFactoryMode_wrapper())
+	    {
+		    std::cout << "Device in FactoryMode\n";
+		    return true;
+	    }
+	    else
+	    {
+		    std::cout << "Device in User mode\n";
+	    }
             #else
             RFC_ParamData_t param;
             bool ret = Utils::getRFCConfig("Device.DeviceInfo.X_COMCAST-COM_STB_MAC", param);
