@@ -4865,7 +4865,7 @@ namespace Plugin {
             format = "all";
 
         // As only source need to validate, so pqmode and formate passing as currrent
-        if( isSetRequired("current",source,"current") ) {
+        if( isSetRequired("current",source,format) ) {
             LOGINFO("Proceed with SetTVPictureMode\n");
             ret = SetTVPictureMode(value.c_str());
          }
@@ -4873,89 +4873,19 @@ namespace Plugin {
             returnResponse(false);
         }
         else {
-            int source_index[SOURCES_SUPPORTED_MAX]={0};
-	    int numberofsource = 0;
-	    if (source == "all") {
-                GetAllSupportedSourceIndex(source_index);
-                numberofsource = sizeof(source_index)/sizeof(source_index[0]);
-	    } else if (source == "current") {
-              GetCurrentSource(&current_source);
-              source_index[0] = current_source;
-              numberofsource = 1;
-            }else {
-		    char *sourceString = strdup(source.c_str());
-		    char *token = strtok(sourceString, " ");
-                    int count=0;
-                    while (token != NULL)
-                    {
-                        token = strtok(NULL, " ");
-                        source_index[count] = GetTVSourceIndex(token);
-                        printf("%s : token %s\n",__FUNCTION__,token);
-                        count++;
-                    }
+	    std::vector<int> pq_mode_vec;
+	    std::vector<int> source_vec;
+	    std::vector<int> format_vec;
 
-		    numberofsource = count;
-	    }
-
-            //3)check format
-            unsigned int contentFormats=0;
-            int formatarray_len = 0;
-            unsigned short numberOfSupportedFormats =  0;
-            int format_array[4] = {0};
-
-            GetSupportedContentFormats(&contentFormats,&numberOfSupportedFormats);
-            formatarray_len = numberOfSupportedFormats;
-
-            if( (strncmp(format.c_str(),"All",strlen(format.c_str())) == 0) ||
-                (strncmp(format.c_str(),"all",strlen(format.c_str())) == 0) ||
-                (strncmp(format.c_str(),"Global",strlen(format.c_str())) == 0) ||
-		(strncmp(format.c_str(),"global",strlen(format.c_str())) == 0) )
-             {
-                 unsigned int lcount=0;
-                 for(;(lcount<sizeof(uint32_t)*8 && numberOfSupportedFormats);lcount++)
-                 {
-                     tvhdr_type_t formatToStore = (tvhdr_type_t)ConvertVideoFormatToHDRFormat((tvVideoHDRFormat_t)(contentFormats&(1<<lcount)));
-                     if(formatToStore!= HDR_TYPE_NONE)
-                     {
-                         numberOfSupportedFormats--;
-                     //formats.push_back(formatToStore);
-			format_array[lcount] = formatToStore;
-                     }
-                 }
-             }
-             else if( (strncmp(format.c_str(),"Current",strlen(format.c_str())) == 0) ||
-		      (strncmp(format.c_str(),"current",strlen(format.c_str())) == 0) )
-             {
-                formatarray_len = 1;
-                if( HDR_TYPE_NONE == ConvertVideoFormatToHDRFormat(GetCurrentContentFormat()))
-                    //formats.push_back(HDR_TYPE_SDR);//Save  To SDR if format is HDR_TYPE_NONE
-                    format_array[0] = HDR_TYPE_SDR;
-                else
-                    //formats.push_back(ConvertVideoFormatToHDRFormat(GetCurrentContentFormat()));
-                    format_array[0] = ConvertVideoFormatToHDRFormat(GetCurrentContentFormat());
-            }
-            else
-            {
-                char *formatString = strdup(format.c_str());
-		char *token = strtok(formatString, " ");
-                int count=0;
-                while (token != NULL)
-                {
-                    token = strtok(NULL, " ");
-                    format_array[formatarray_len] = (ConvertFormatStringToHDRFormat(token));//This function needs to be implemented
-                    printf("%s : Format :%s\n",__FUNCTION__,token);
-                    count++;
-                }
-                formatarray_len = count;
-            }
-
-            for (int x = 0; x < numberofsource; x++ ) {
-                for (int y = 0; y < formatarray_len; y++ ) {
+	    GetSaveConfig("current", source, format, source_vec, pq_mode_vec, format_vec);
+            
+	    for (int x = 0; x < source_vec.size(); x++ ) {
+                for (int y = 0; y < format_vec.size(); y++ ) {
 
                     std::string tr181_param_name = "";
                     tr181_param_name += std::string(TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
                     // framing Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.Source.source_index[x].Format.format_index[x].PictureModeString.value
-                    tr181_param_name += "."+std::to_string(source_index[x])+"."+"Format."+std::to_string(format_array[y])+"."+"PictureModeString";
+                    tr181_param_name += "."+std::to_string(source_vec[x])+"."+"Format."+std::to_string(format_vec[y])+"."+"PictureModeString";
                     tr181ErrorCode_t err = setLocalParam(rfc_caller_id, tr181_param_name.c_str(), value.c_str());
                     if ( err != tr181Success ) {
                         LOGWARN("setLocalParam for %s Failed : %s\n", TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM, getTR181ErrorString(err));
@@ -4964,7 +4894,7 @@ namespace Plugin {
                         LOGINFO("setLocalParam for %s Successful, Value: %s\n", TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM, value.c_str());
 		        //pqmodeindex = getPQmodeindex(value(strin))
 		        int pqmodeindex = (int)GetTVPictureModeIndex(value.c_str());
-                        SaveSourcePictureMode(source_index[x], format_array[y], pqmodeindex);
+                        SaveSourcePictureMode(source_vec[x], format_vec[y], pqmodeindex);
 		    }
                 }
             }
