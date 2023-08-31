@@ -511,8 +511,8 @@ No Events
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| params | object |  |
-| params.ipversion | string | Ipversion to query |
+| params | object | <sup>*(optional)*</sup> |
+| params?.ipversion | string | <sup>*(optional)*</sup> Either IPv4 or IPv6 |
 
 ### Result
 
@@ -520,7 +520,7 @@ No Events
 | :-------- | :-------- | :-------- |
 | result | object |  |
 | result.connectedToInternet | boolean | `true` if internet connectivity is detected, otherwise `false` |
-| result.ipversion | string | The IPVersion |
+| result?.ipversion | string | <sup>*(optional)*</sup> If the request is specific to IPv4 or IPv6 |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -569,15 +569,15 @@ No Events
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| params | object |  |
-| params.ipversion | string | Ipversion to query |
+| params | object | <sup>*(optional)*</sup>  |
+| params?.ipversion | string | <sup>*(optional)*</sup> Either IPv4 or IPv6 |
 
 ### Result
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.ipversion | string | The Ipversion |
+| result?.ipversion | string | <sup>*(optional)*</sup> If the request is specific to IPv4 or IPv6 |
 | result.state | integer | Internet Connection state |
 | result?.URI | string | <sup>*(optional)*</sup> Captive portal URI |
 | result.success | boolean | Whether the request succeeded |
