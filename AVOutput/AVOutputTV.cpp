@@ -353,17 +353,10 @@ namespace Plugin {
        // As we have source to picture mode mapping, get current source and
        // setting those picture mode
        int current_source = 0;
-       int current_format = 0;
+       int current_format = getContentFormatIndex(GetCurrentContentFormat());
        std::string tr181_param_name = "";
        // get current source
        GetCurrentSource(&current_source);
-
-       // get current format
-       if( HDR_TYPE_NONE == ConvertVideoFormatToHDRFormat(GetCurrentContentFormat())) {
-           current_format = (int)HDR_TYPE_SDR;
-       } else {
-           current_format = (int)ConvertVideoFormatToHDRFormat(GetCurrentContentFormat());
-       }
 
        tr181_param_name += std::string(TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
        tr181_param_name += "."+std::to_string(current_source)+"."+"Format."+std::to_string(current_format)+"."+"PictureModeString";
@@ -4790,6 +4783,53 @@ namespace Plugin {
         }
     }
 
+    tvContentFormatType_t AVOutputTV::ConvertFormatStringToTVContentFormat(const char *format)
+    {
+        tvContentFormatType_t ret = tvContentFormatType_SDR;
+
+        if( strncmp(format,"sdr",strlen(format)) == 0 || strncmp(format,"SDR",strlen(format)) == 0 )
+            ret = tvContentFormatType_SDR;
+        else if( strncmp(format,"hdr10",strlen(format)) == 0 || strncmp(format,"HDR10",strlen(format))==0 )
+            ret = tvContentFormatType_HDR10;
+        else if( strncmp(format,"hlg",strlen(format)) == 0 || strncmp(format,"HLG",strlen(format)) == 0 )
+            ret = tvContentFormatType_HLG;
+        else if( strncmp(format,"dolby",strlen(format)) == 0 || strncmp(format,"DOLBY",strlen(format)) == 0 )
+            ret=tvContentFormatType_DOVI;
+
+        return ret;
+    }
+
+    tvContentFormatType_t AVOutputTV::getContentFormatIndex(tvVideoHDRFormat_t formatToConvert)
+    {
+        /* default to SDR always*/
+        tvContentFormatType_t ret = tvContentFormatType_NONE;
+        switch(formatToConvert)
+        {
+            case tvVideoHDRFormat_HLG:
+                ret = tvContentFormatType_HLG;
+                break;
+
+            case tvVideoHDRFormat_HDR10:
+                ret = tvContentFormatType_HDR10;
+                break;
+
+            case tvVideoHDRFormat_HDR10PLUS:
+                ret =  tvContentFormatType_HDR10PLUS;
+                break;
+
+            case tvVideoHDRFormat_DV:
+                ret = tvContentFormatType_DOVI;
+                break;
+
+            case tvVideoHDRFormat_SDR:
+            case tvVideoHDRFormat_NONE:
+            default:
+                ret  = tvContentFormatType_SDR;
+                break;
+        }
+        return ret;
+    }
+
     uint32_t AVOutputTV::getPictureMode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
@@ -4809,7 +4849,7 @@ namespace Plugin {
         if (source == "current") {
             GetCurrentSource(&current_source);
         } else {
-               current_source = GetTVSourceIndex(source.c_str());
+            current_source = GetTVSourceIndex(source.c_str());
         }
         LOGINFO("current source index[%d] \n", current_source);
 
@@ -4818,12 +4858,9 @@ namespace Plugin {
                 format = "current";
 
         if (format == "current") {
-                if( HDR_TYPE_NONE == ConvertVideoFormatToHDRFormat(GetCurrentContentFormat()))
-                        current_format = (int)HDR_TYPE_SDR;
-                else
-                        current_format = ConvertVideoFormatToHDRFormat(GetCurrentContentFormat());
+            current_format = getContentFormatIndex(GetCurrentContentFormat());
         } else {
-                current_format = ConvertFormatStringToHDRFormat(format.c_str());
+           current_format = ConvertFormatStringToTVContentFormat(format.c_str()); 
         }
 
         LOGINFO("current format index[%d] \n", current_format);

@@ -160,6 +160,8 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
 	static void dsHdmiVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
         static void dsHdmiStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
         static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+	tvContentFormatType_t ConvertFormatStringToTVContentFormat(const char *format);
+	tvContentFormatType_t getContentFormatIndex(tvVideoHDRFormat_t formatToConvert);
 };
 
 }//namespace Plugin
