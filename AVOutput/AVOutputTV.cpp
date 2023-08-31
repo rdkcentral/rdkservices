@@ -4877,7 +4877,7 @@ namespace Plugin {
 	    std::vector<int> source_vec;
 	    std::vector<int> format_vec;
 
-	    GetSaveConfig("current", source, format, source_vec, pq_mode_vec, format_vec);
+	    GetSaveConfig("current", source.c_str(), format.c_str(), source_vec, pq_mode_vec, format_vec);
             
 	    for (int x = 0; x < source_vec.size(); x++ ) {
                 for (int y = 0; y < format_vec.size(); y++ ) {
