@@ -33,8 +33,8 @@ using namespace std;
 #define CIDR_NETMASK_IP_LEN 32
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 10
+#define API_VERSION_NUMBER_MINOR 1
+#define API_VERSION_NUMBER_PATCH 0
 
 /* Netsrvmgr Based Macros & Structures */
 #define IARM_BUS_NM_SRV_MGR_NAME "NET_SRV_MGR"
@@ -59,6 +59,7 @@ using namespace std;
 #define IARM_BUS_NETSRVMGR_API_stopConnectivityMonitoring "stopConnectivityMonitoring"
 #define IARM_BUS_NETSRVMGR_API_isAvailable "isAvailable"
 #define IARM_BUS_NETSRVMGR_API_getPublicIP "getPublicIP"
+#define IARM_BUS_NETSRVMGR_API_configurePNI "configurePNI"
 
 // TODO: remove this
 #define registerMethod(...) for (uint8_t i = 1; GetHandler(i); i++) GetHandler(i)->Register<JsonObject, JsonObject>(__VA_ARGS__)
@@ -142,6 +143,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             registerMethod("stopConnectivityMonitoring", &Network::stopConnectivityMonitoring, this);
             registerMethod("getPublicIP", &Network::getPublicIP, this);
             registerMethod("setStunEndPoint", &Network::setStunEndPoint, this);
+            registerMethod("configurePNI", &Network::configurePNI, this);
 
             const char * script1 = R"(grep DEVICE_TYPE /etc/device.properties | cut -d "=" -f2 | tr -d '\n')";
             m_isHybridDevice = Utils::cRunScript(script1).substr();
@@ -264,6 +266,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             Unregister("stopConnectivityMonitoring");
             Unregister("getPublicIP");
             Unregister("setStunEndPoint");
+            Unregister("configurePNI");
 
             Network::_instance = nullptr;
 
@@ -1393,6 +1396,32 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             getDefaultNumberParameter("cache_timeout", m_stunCacheTimeout, 0);
 
             returnResponse(true);
+        }
+
+        uint32_t Network::configurePNI(const JsonObject& parameters, JsonObject& response)
+        {
+            bool result = false;
+            IARM_BUS_NetSrvMgr_configurePNI_t pniConfig = {0};
+            if(m_isPluginInited)
+            {
+                bool disableConnTest = true;
+                getDefaultBoolParameter("disableConnectivityTest", disableConnTest, true);
+                pniConfig.disableConnectivityTest = disableConnTest;
+
+                if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_configurePNI, (void *)&pniConfig, sizeof(pniConfig)))
+                {
+                    LOGINFO ("Configured PNI Successfully. PNI.disableConnectivityTest=%d", disableConnTest);
+                    result = true;
+                }
+                else
+                    LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_configurePNI);
+            }
+            else
+            {
+                LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
+            }
+
+            returnResponse(result);
         }
 
         uint32_t Network::getPublicIPInternal(const JsonObject& parameters, JsonObject& response)

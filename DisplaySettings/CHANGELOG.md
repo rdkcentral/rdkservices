@@ -16,9 +16,14 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
-## [1.3.2] - 2023-08-22
+
+## [1.3.3] - 2023-08-22
 ### Added
 - Added Documentation for AC4 implementation in DisaplaySettings
+
+## [1.3.2] - 2023-08-23
+### Fixed
+- Handled case when HPD of AVR connection comes delayed. Reintiate ARC/eARC connection in this case.
 
 ## [1.3.1] - 2023-08-03
 ### Fixed
