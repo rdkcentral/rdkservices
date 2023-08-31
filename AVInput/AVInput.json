@@ -50,7 +50,7 @@
         },
         "portId":{
             "summary": "An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method",
-            "type": "number",
+            "type": "string",
             "example": "0"
         },
         "typeOfInput":{
