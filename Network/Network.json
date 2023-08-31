@@ -402,7 +402,7 @@
             }
         },
         "setConnectivityTestEndpoints":{
-            "summary": "Sets the default list of endpoints used for a connectivity test. Maximum number of endpoints is 5.",
+            "summary": "Set the list of endpoints used for a connectivity test. Endpoint should return HTTP Status 204 (No Content) for successful connection and Maximum number of endpoints is 5 . \n\nDefault endpoints:-\n* http://clients3.google.com/generate_204\n* http://edge-http.microsoft.com/captiveportal/generate_204\n* http://gstatic.com/generate_204",
             "params": {
                 "type":"object",
                 "properties": {
