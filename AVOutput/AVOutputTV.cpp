@@ -344,6 +344,7 @@ namespace Plugin {
 
        SyncPQParamsToDriverCache("current","current","current");
 
+       // source format specific sync to ssm data
        SyncSourceFormatPicModeToCache("current", "all", "all");
 
        std::thread syncThread = std::thread(StartSync);
