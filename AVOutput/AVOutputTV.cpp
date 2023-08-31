@@ -21,7 +21,6 @@
 #include "AVOutputTV.h"
 
 #define BUFFER_SIZE     (128)
-#define TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOuput.Source"
 
 #define registerMethod(...) Register(__VA_ARGS__);GetHandler(2)->Register<JsonObject, JsonObject>(__VA_ARGS__)
 
@@ -344,6 +343,8 @@ namespace Plugin {
        LocatePQSettingsFile(rfc_caller_id);
 
        SyncPQParamsToDriverCache("current","current","current");
+
+       SyncSourceFormatPicModeToCache("current", "all", "all");
 
        std::thread syncThread = std::thread(StartSync);
        syncThread.detach();
@@ -4914,24 +4915,19 @@ namespace Plugin {
         tr181ErrorCode_t err = tr181Success;
         TR181_ParamData_t param = {0};
         
-	int source_index[SOURCES_SUPPORTED_MAX]={0};
-        int numberofsource = 0;
-        GetAllSupportedSourceIndex(source_index);
-        numberofsource = sizeof(source_index)/sizeof(source_index[0]);
+        std::vector<int> pq_mode_vec;
+        std::vector<int> source_vec;
+        std::vector<int> format_vec;
 
-        unsigned int contentFormats=0;
-        unsigned short numberOfSupportedFormats =  0;
-  
-        GetSupportedContentFormats(&contentFormats,&numberOfSupportedFormats);
-
-        for (int x = 0; x < numberofsource; x++ ) {
-            for (int y = 0; y < numberOfSupportedFormats; y++) {
-
-                int format = ConvertVideoFormatToHDRFormat((tvVideoHDRFormat_t)(contentFormats&(1<<y)));
+        GetSaveConfig("current", "all", "all", source_vec, pq_mode_vec, format_vec);
+ 
+        for (int source : source_vec) {
+            for (int format : format_vec) {
 
                 std::string tr181_param_name = "";
                 tr181_param_name += std::string(TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
-	        tr181_param_name += "."+std::to_string(source_index[x])+"."+"Format."+std::to_string(format)+"."+"PictureModeString";
+	        tr181_param_name += "."+std::to_string(source)+"."+"Format."+std::to_string(format)+"."+"PictureModeString";
+
        	        err = clearLocalParam(rfc_caller_id, tr181_param_name.c_str());
                 if ( err != tr181Success ) {
                     LOGWARN("clearLocalParam for %s Failed : %s\n", tr181_param_name.c_str(), getTR181ErrorString(err));
@@ -4954,7 +4950,7 @@ namespace Plugin {
                             current_format = (int)ConvertVideoFormatToHDRFormat(GetCurrentContentFormat());
                         }
 
-		        if (current_source == source_index[x] && current_format == format) {
+		        if (current_source == source && current_format == format ) {
                             tvError_t ret = SetTVPictureMode(param.value);
                             if(ret != tvERROR_NONE) {
                                 LOGWARN("Picture Mode set failed: %s\n",getErrorString(ret).c_str());
@@ -4972,7 +4968,7 @@ namespace Plugin {
                 }
 
                 int pqmodeindex = (int)GetTVPictureModeIndex(param.value);
-                SaveSourcePictureMode(source_index[x], format, pqmodeindex);
+                SaveSourcePictureMode(source, format, pqmodeindex);
 	    }
         }
 	returnResponse(true;)
