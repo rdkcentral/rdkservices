@@ -4850,7 +4850,6 @@ namespace Plugin {
         std::string format;
         char prevmode[PIC_MODE_NAME_MAX]={0};
         GetTVPictureMode(prevmode);
-        int current_source = 0;
 
         tvError_t ret = tvERROR_NONE;
         value = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
@@ -4879,8 +4878,8 @@ namespace Plugin {
 
 	    GetSaveConfig("current", source.c_str(), format.c_str(), source_vec, pq_mode_vec, format_vec);
             
-	    for (int x = 0; x < source_vec.size(); x++ ) {
-                for (int y = 0; y < format_vec.size(); y++ ) {
+	    for (unsigned int x = 0; x < source_vec.size(); x++ ) {
+                for (unsigned int y = 0; y < format_vec.size(); y++ ) {
 
                     std::string tr181_param_name = "";
                     tr181_param_name += std::string(TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
