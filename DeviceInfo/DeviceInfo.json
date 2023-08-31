@@ -122,7 +122,9 @@
       "enum": [
         "tv",
         "IpStb",
-        "QamIpStb"
+        "QamIpStb",
+        "hybrid",
+        "mediaclient"
       ],
       "description": "Device type",
       "example": "IpStb"
