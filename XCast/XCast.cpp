@@ -458,14 +458,17 @@ bool XCast::getEntryFromAppLaunchParamList (const char* appName, DynamicAppConfi
         for (DynamicAppConfig* regAppLaunchParam : m_appConfigCache) {
             if (0 == strcmp (regAppLaunchParam->appName, appName)) {
                 isEntryFound = true;
-                strcpy (retAppConfig.appName, regAppLaunchParam->appName);
+                strncpy (retAppConfig.appName, regAppLaunchParam->appName, sizeof(retAppConfig.appName));
+                retAppConfig.appName[sizeof(retAppConfig.appName) - 1] = '\0';
 
                 if (regAppLaunchParam->query) {
-                    strcpy (retAppConfig.query, regAppLaunchParam->query);
+                    strncpy (retAppConfig.query, regAppLaunchParam->query, sizeof(retAppConfig.query));
+                    retAppConfig.query[sizeof(retAppConfig.query) - 1] = '\0';
                 }
 
                 if (regAppLaunchParam->payload) {
-                    strcpy (retAppConfig.payload, regAppLaunchParam->payload);
+                    strncpy (retAppConfig.payload, regAppLaunchParam->payload, sizeof(retAppConfig.payload));
+                    retAppConfig.payload[sizeof(retAppConfig.payload) - 1] = '\0';
                 }
                 break;
             }
@@ -595,7 +598,7 @@ void XCast::updateDynamicAppCache(JsonArray applications)
                     DynamicAppConfig* pDynamicAppConfig = (DynamicAppConfig*) malloc (sizeof(DynamicAppConfig));
                     memset ((void*)pDynamicAppConfig, '0', sizeof(DynamicAppConfig));
                     memset (pDynamicAppConfig->appName, '\0', sizeof(pDynamicAppConfig->appName));
-                    strcpy (pDynamicAppConfig->appName, itrName.c_str());
+                    strncpy (pDynamicAppConfig->appName, itrName.c_str(), sizeof(pDynamicAppConfig->appName) - 1);
                     memset (pDynamicAppConfig->prefixes, '\0', sizeof(pDynamicAppConfig->prefixes));
                     memset (pDynamicAppConfig->cors, '\0', sizeof(pDynamicAppConfig->cors));
                     memset (pDynamicAppConfig->query, '\0', sizeof(pDynamicAppConfig->query));
@@ -613,7 +616,7 @@ void XCast::updateDynamicAppCache(JsonArray applications)
                     itrPrefix = jPrefixes[i].String().c_str();
                     LOGINFO("%s, size:%d", itrPrefix.c_str(), (int)strlen (itrPrefix.c_str()));
                     for (DynamicAppConfig* pDynamicAppConfig : appConfigListTemp) {
-                        strcpy (pDynamicAppConfig->prefixes, itrPrefix.c_str());
+                        strncpy (pDynamicAppConfig->prefixes, itrPrefix.c_str(), sizeof(pDynamicAppConfig->prefixes) - 1);
                     }
                 }
             }
@@ -628,7 +631,7 @@ void XCast::updateDynamicAppCache(JsonArray applications)
                     itrCor = jCors[i].String().c_str();
                     LOGINFO("%s, size:%d", itrCor.c_str(), (int)strlen (itrCor.c_str()));
                     for (DynamicAppConfig* pDynamicAppConfig : appConfigListTemp) {
-                        strcpy (pDynamicAppConfig->cors, itrCor.c_str());
+                        strncpy (pDynamicAppConfig->cors, itrCor.c_str(), sizeof(pDynamicAppConfig->cors) - 1);
                     }
                 }
             }
@@ -680,10 +683,10 @@ void XCast::updateDynamicAppCache(JsonArray applications)
                 //Set launchParameters in list for later usage
                 for (DynamicAppConfig* pDynamicAppConfig : appConfigListTemp) {
                     if (jLaunchParam.HasLabel("query")) {
-                        strcpy (pDynamicAppConfig->query, jQuery.c_str());
+                        strncpy (pDynamicAppConfig->query, jQuery.c_str(), sizeof(pDynamicAppConfig->query) - 1);
                     }
                     if (jLaunchParam.HasLabel("payload")) {
-                        strcpy (pDynamicAppConfig->payload, jPayload.c_str());
+                        strncpy (pDynamicAppConfig->payload, jPayload.c_str(), sizeof(pDynamicAppConfig->payload) - 1);
                     }
                 }
 
@@ -886,47 +889,47 @@ void XCast::getUrlFromAppLaunchParams (const char *app_name, const char *payload
     memset (url, '\0', url_len);
     if(strcmp(app_name,"YouTube") == 0) {
         if ((payload != NULL) && (additional_data_url != NULL)){
-            sprintf( url, "https://www.youtube.com/tv?%s&additionalDataUrl=%s", payload, additional_data_url);
+            snprintf( url, url_len, "https://www.youtube.com/tv?%s&additionalDataUrl=%s", payload, additional_data_url);
         }else if (payload != NULL){
-            sprintf( url, "https://www.youtube.com/tv?%s", payload);
+            snprintf( url, url_len, "https://www.youtube.com/tv?%s", payload);
         }else{
-            sprintf( url, "https://www.youtube.com/tv");
+            snprintf( url, url_len, "https://www.youtube.com/tv");
         }
     }
     else if(strcmp(app_name,"YouTubeTV") == 0) {
         if ((payload != NULL) && (additional_data_url != NULL)){
-            sprintf( url, "https://www.youtube.com/tv/upg?%s&additionalDataUrl=%s", payload, additional_data_url);
+            snprintf( url, url_len, "https://www.youtube.com/tv/upg?%s&additionalDataUrl=%s", payload, additional_data_url);
         }else if (payload != NULL){
-            sprintf( url, "https://www.youtube.com/tv/upg?%s", payload);
+            snprintf( url, url_len, "https://www.youtube.com/tv/upg?%s", payload);
         }else{
-            sprintf( url, "https://www.youtube.com/tv/upg?");
+            snprintf( url, url_len, "https://www.youtube.com/tv/upg?");
         }
     }
     else if(strcmp(app_name,"YouTubeKids") == 0) {
         if ((payload != NULL) && (additional_data_url != NULL)){
-            sprintf( url, "https://www.youtube.com/tv_kids?%s&additionalDataUrl=%s", payload, additional_data_url);
+            snprintf( url, url_len, "https://www.youtube.com/tv_kids?%s&additionalDataUrl=%s", payload, additional_data_url);
         }else if (payload != NULL){
-            sprintf( url, "https://www.youtube.com/tv_kids?%s", payload);
+            snprintf( url, url_len, "https://www.youtube.com/tv_kids?%s", payload);
         }else{
-            sprintf( url, "https://www.youtube.com/tv_kids?");
+            snprintf( url, url_len, "https://www.youtube.com/tv_kids?");
         }
     }
     else if(strcmp(app_name,"Netflix") == 0) {
         memset( url, 0, url_len );
-        strcat( url, "source_type=12" );
+        strncat( url, "source_type=12", url_len - strlen(url) - 1);
         if(payload != NULL)
         {
             const char * pUrlEncodedParams;
             pUrlEncodedParams = payload;
             if( pUrlEncodedParams ){
-                strcat( url, "&dial=");
-                strcat( url, pUrlEncodedParams );
+                strncat( url, "&dial=", url_len - strlen(url) - 1);
+                strncat( url, pUrlEncodedParams, url_len - strlen(url) - 1);
             }
         }
 
         if(additional_data_url != NULL){
-            strcat(url, "&additionalDataUrl=");
-            strcat(url, additional_data_url);
+            strncat(url, "&additionalDataUrl=", url_len - strlen(url) - 1);
+            strncat(url, additional_data_url, url_len - strlen(url) - 1);
         }
     }
     else {
