@@ -238,6 +238,11 @@ namespace WPEFramework
 		if (parameters.HasLabel("plane")){
                         string sPlaneType = parameters["plane"].String();
                         planeType = stoi(sPlaneType);
+			if(planeType != 0 || planeType != 1)// planeType has to be primary(0) or secondary(1)
+			{
+				LOGWARN("planeType is invalid\n");
+				returnResponse(false);
+			}
                 }
             }catch (const std::exception& err) {
 		    LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
