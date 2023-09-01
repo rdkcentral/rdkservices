@@ -18,7 +18,6 @@ set(EMPTY_HEADERS_DIRS
         ${BASEDIR}/Dobby/Public/Dobby
         ${BASEDIR}/Dobby/IpcService
         ${BASEDIR}/websocket
-	      ${BASEDIR}/rdk/control
         ${BASEDIR}/rdk/iarmmgrs
 	${BASEDIR}/rdkshell
         ${BASEDIR}/opkg
@@ -102,10 +101,6 @@ set(EMPTY_HEADERS
 	${BASEDIR}/websocket/URL.h
         ${BASEDIR}/rdk/iarmmgrs/irMgr.h
         ${BASEDIR}/rdk/iarmmgrs/comcastIrKeyCodes.h
-        ${BASEDIR}/rdk/control/ctrlm_ipc.h
-        ${BASEDIR}/rdk/control/ctrlm_ipc_voice.h
-        ${BASEDIR}/rdk/control/ctrlm_ipc_rcu.h
-        ${BASEDIR}/rdk/control/ctrlm_ipc_key_codes.h
 	    ${BASEDIR}/rdk_logger_milestone.h
 	    ${BASEDIR}/opkg/opkg.h
 	    ${BASEDIR}/opkg/opkg_message.h
@@ -140,7 +135,6 @@ set(FAKE_HEADERS
         ${BASEDIR}/MotionDetection.h
         ${BASEDIR}/Dobby.h
         ${BASEDIR}/HdmiCec.h
-        ${BASEDIR}/Ctrlm.h
         ${BASEDIR}/rdkshell.h
 	      ${BASEDIR}/RdkLoggerMilestone.h
         )
@@ -218,9 +212,6 @@ set(PLUGIN_HDMICEC ON)
 set(PLUGIN_HDMICEC2 ON)
 set(PLUGIN_HDMICECSOURCE ON)
 set(PLUGIN_HDMICECSINK ON)
-set(PLUGIN_VOICECONTROL ON)
-set(PLUGIN_CONTROLSERVICE ON)
-set(PLUGIN_REMOTEACTIONMAPPING ON)
 set(PLUGIN_RDKSHELL ON)
 set(PLUGIN_MAINTENANCEMANAGER ON)
 set(PLUGIN_PACKAGER ON)
