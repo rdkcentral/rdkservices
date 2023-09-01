@@ -1302,7 +1302,6 @@ namespace WPEFramework
 	  uint32_t HdmiCecSink::getActiveSourceWrapper(const JsonObject& parameters, JsonObject& response)
        {
        		char routeString[1024] = {'\0'};
-			int length = 0;
 			std::stringstream temp;
 			
        		if ( HdmiCecSink::_instance->m_currentActiveSource != -1 )
@@ -1319,11 +1318,11 @@ namespace WPEFramework
 
 				if ( HdmiCecSink::_instance->deviceList[n].m_physicalAddr.getByteValue(0) != 0 )
 				{
-					snprintf(&routeString[length], sizeof(routeString) - length, "%s%d", "HDMI",(HdmiCecSink::_instance->deviceList[n].m_physicalAddr.getByteValue(0) - 1));
+					snprintf(routeString, sizeof(routeString), "%s%d", "HDMI",(HdmiCecSink::_instance->deviceList[n].m_physicalAddr.getByteValue(0) - 1));
 				}
 				else if ( HdmiCecSink::_instance->deviceList[n].m_physicalAddr.getByteValue(0) == 0 )
 				{
-					snprintf(&routeString[length], sizeof(routeString) - length, "%s", "TV");
+					snprintf(routeString, sizeof(routeString), "%s", "TV");
 				}
 				
 				temp << (char *)routeString;
