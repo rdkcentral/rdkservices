@@ -584,7 +584,7 @@
 			"example": "1"
 		    },
                     "audioOutputCompensated": {
-                        "summary": "Indicates whether Audio Output is delay compensated or not. 0 = (NA)Sent by Non-TV, 1 = TV's audio Output is delay compensated, 2 = Not delay compensated, 3 = Partially delayed.",
+                        "summary": "Indicates whether Audio Output is delay compensated or not. 0 = (NA)Sent by Non-TV, 1 = TV's audio Output is delay compensated, 2 = Not delay compensated, 3 = Partially delayed",
                         "type":"string",
                         "example": "1"
                     },
