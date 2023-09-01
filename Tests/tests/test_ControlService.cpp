@@ -156,8 +156,8 @@ TEST_F(ControlServiceTest, getAllRemoteData)
                 auto param = static_cast<ctrlm_main_iarm_call_network_status_t*>(arg);
                 memset(param, 0, sizeof(ctrlm_main_iarm_call_network_status_t));
 
-                sprintf(param->status.rf4ce.version_hal,  "%s", "GPv2.6.3.514598");
-                sprintf(param->status.rf4ce.chipset,      "%s", "GP502KXBG");
+                snprintf(param->status.rf4ce.version_hal, sizeof(param->status.rf4ce.version_hal), "%s", "GPv2.6.3.514598");
+                snprintf(param->status.rf4ce.chipset, sizeof(param->status.rf4ce.chipset), "%s", "GP502KXBG");
 
                 param->status.rf4ce.ieee_address             = (uint64_t) 0x00155F00205E1789;
                 param->status.rf4ce.controller_qty           = 1;
@@ -172,8 +172,8 @@ TEST_F(ControlServiceTest, getAllRemoteData)
                 auto param = static_cast<ctrlm_main_iarm_call_pairing_metrics_t*>(arg);
                 memset(param, 0, sizeof(ctrlm_main_iarm_call_pairing_metrics_t));
 
-                sprintf(param->last_non_screenbind_remote_type, "%s", "...");
-                sprintf(param->last_screenbind_remote_type,     "%s", "...");
+                snprintf(param->last_non_screenbind_remote_type, sizeof(param->last_non_screenbind_remote_type), "%s", "...");
+                snprintf(param->last_screenbind_remote_type, sizeof(param->last_screenbind_remote_type), "%s", "...");
 
                 param->num_screenbind_failures                = 1;
                 param->last_screenbind_error_timestamp        = 1589356931;
@@ -199,16 +199,16 @@ TEST_F(ControlServiceTest, getAllRemoteData)
                 auto param = static_cast<ctrlm_rcu_iarm_call_controller_status_t*>(arg);
                 memset(param, 0, sizeof(ctrlm_rcu_iarm_call_controller_status_t));
 
-                sprintf(param->status.type,                   "%s", "XR15-2");
-                sprintf(param->status.ir_db_code_tv,          "%s", "12371");
-                sprintf(param->status.ir_db_code_avr,         "%s", "31360");
-                sprintf(param->status.manufacturer,           "%s", "RS");
-                sprintf(param->status.chipset,                "%s", "QORVO");
-                sprintf(param->status.version_software,       "%s", "2.0.1.2");
-                sprintf(param->status.version_hardware,       "%s", "2.3.1.0");
-                sprintf(param->status.version_irdb,           "%s", "4.3.2.0");
-                sprintf(param->status.irdb_entry_id_name_tv,  "%s", "...");
-                sprintf(param->status.irdb_entry_id_name_avr, "%s", "...");
+                snprintf(param->status.type, sizeof(param->status.type), "%s", "XR15-2");
+                snprintf(param->status.ir_db_code_tv, sizeof(param->status.ir_db_code_tv), "%s", "12371");
+                snprintf(param->status.ir_db_code_avr, sizeof(param->status.ir_db_code_avr), "%s", "31360");
+                snprintf(param->status.manufacturer, sizeof(param->status.manufacturer), "%s", "RS");
+                snprintf(param->status.chipset, sizeof(param->status.chipset), "%s", "QORVO");
+                snprintf(param->status.version_software, sizeof(param->status.version_software), "%s", "2.0.1.2");
+                snprintf(param->status.version_hardware, sizeof(param->status.version_hardware), "%s", "2.3.1.0");
+                snprintf(param->status.version_irdb, sizeof(param->status.version_irdb), "%s", "4.3.2.0");
+                snprintf(param->status.irdb_entry_id_name_tv, sizeof(param->status.irdb_entry_id_name_tv), "%s", "...");
+                snprintf(param->status.irdb_entry_id_name_avr, sizeof(param->status.irdb_entry_id_name_avr), "%s", "...");
 
                 param->controller_id                                               = 1;
                 param->status.ieee_address                                         = (uint64_t) 0x00155F011C7F7359;
@@ -377,16 +377,16 @@ TEST_F(ControlServiceTest, getSingleRemoteData)
                 auto param = static_cast<ctrlm_rcu_iarm_call_controller_status_t*>(arg);
                 memset(param, 0, sizeof(ctrlm_rcu_iarm_call_controller_status_t));
 
-                sprintf(param->status.type,                   "%s", "XR15-2");
-                sprintf(param->status.ir_db_code_tv,          "%s", "12371");
-                sprintf(param->status.ir_db_code_avr,         "%s", "31360");
-                sprintf(param->status.manufacturer,           "%s", "RS");
-                sprintf(param->status.chipset,                "%s", "QORVO");
-                sprintf(param->status.version_software,       "%s", "2.0.1.2");
-                sprintf(param->status.version_hardware,       "%s", "2.3.1.0");
-                sprintf(param->status.version_irdb,           "%s", "4.3.2.0");
-                sprintf(param->status.irdb_entry_id_name_tv,  "%s", "...");
-                sprintf(param->status.irdb_entry_id_name_avr, "%s", "...");
+                snprintf(param->status.type, sizeof(param->status.type), "%s", "XR15-2");
+                snprintf(param->status.ir_db_code_tv, sizeof(param->status.ir_db_code_tv), "%s", "12371");
+                snprintf(param->status.ir_db_code_avr, sizeof(param->status.ir_db_code_avr), "%s", "31360");
+                snprintf(param->status.manufacturer, sizeof(param->status.manufacturer), "%s", "RS");
+                snprintf(param->status.chipset, sizeof(param->status.chipset), "%s", "QORVO");
+                snprintf(param->status.version_software, sizeof(param->status.version_software), "%s", "2.0.1.2");
+                snprintf(param->status.version_hardware, sizeof(param->status.version_hardware), "%s", "2.3.1.0");
+                snprintf(param->status.version_irdb, sizeof(param->status.version_irdb), "%s", "4.3.2.0");
+                snprintf(param->status.irdb_entry_id_name_tv, sizeof(param->status.irdb_entry_id_name_tv), "%s", "...");
+                snprintf(param->status.irdb_entry_id_name_avr, sizeof(param->status.irdb_entry_id_name_avr), "%s", "...");
 
                 param->controller_id                                               = 1;
                 param->status.ieee_address                                         = (uint64_t) 0x00155F011C7F7359;
@@ -517,7 +517,7 @@ TEST_F(ControlServiceTest, getLastKeypressSource)
                 auto param = static_cast<ctrlm_main_iarm_call_last_key_info_t*>(arg);
                 memset(param, 0, sizeof(ctrlm_main_iarm_call_last_key_info_t));
 
-                sprintf(param->source_name, "%s", "XR15-10");
+                snprintf(param->source_name, sizeof(param->source_name), "%s", "XR15-10");
 
                 param->result               = CTRLM_IARM_CALL_RESULT_SUCCESS;
                 param->controller_id        = 1;
@@ -566,16 +566,16 @@ TEST_F(ControlServiceTest, getLastPairedRemoteData)
                 auto param = static_cast<ctrlm_rcu_iarm_call_controller_status_t*>(arg);
                 memset(param, 0, sizeof(ctrlm_rcu_iarm_call_controller_status_t));
 
-                sprintf(param->status.type,                   "%s", "XR15-2");
-                sprintf(param->status.ir_db_code_tv,          "%s", "12371");
-                sprintf(param->status.ir_db_code_avr,         "%s", "31360");
-                sprintf(param->status.manufacturer,           "%s", "RS");
-                sprintf(param->status.chipset,                "%s", "QORVO");
-                sprintf(param->status.version_software,       "%s", "2.0.1.2");
-                sprintf(param->status.version_hardware,       "%s", "2.3.1.0");
-                sprintf(param->status.version_irdb,           "%s", "4.3.2.0");
-                sprintf(param->status.irdb_entry_id_name_tv,  "%s", "...");
-                sprintf(param->status.irdb_entry_id_name_avr, "%s", "...");
+                snprintf(param->status.type, sizeof(param->status.type), "%s", "XR15-2");
+                snprintf(param->status.ir_db_code_tv, sizeof(param->status.ir_db_code_tv), "%s", "12371");
+                snprintf(param->status.ir_db_code_avr, sizeof(param->status.ir_db_code_avr), "%s", "31360");
+                snprintf(param->status.manufacturer, sizeof(param->status.manufacturer), "%s", "RS");
+                snprintf(param->status.chipset, sizeof(param->status.chipset), "%s", "QORVO");
+                snprintf(param->status.version_software, sizeof(param->status.version_software), "%s", "2.0.1.2");
+                snprintf(param->status.version_hardware, sizeof(param->status.version_hardware), "%s", "2.3.1.0");
+                snprintf(param->status.version_irdb, sizeof(param->status.version_irdb), "%s", "4.3.2.0");
+                snprintf(param->status.irdb_entry_id_name_tv, sizeof(param->status.irdb_entry_id_name_tv), "%s", "...");
+                snprintf(param->status.irdb_entry_id_name_avr, sizeof(param->status.irdb_entry_id_name_avr), "%s", "...");
 
                 param->controller_id                                               = 1;
                 param->status.ieee_address                                         = (uint64_t) 0x00155F011C7F7359;
@@ -914,7 +914,7 @@ TEST_F(ControlServiceInitializedEventTest, onXRConfigurationComplete)
     eventData.controller_id = 1;
     eventData.result        = CTRLM_RCU_CONFIGURATION_RESULT_SUCCESS;
     eventData.binding_type  = CTRLM_RCU_BINDING_TYPE_AUTOMATIC;
-    sprintf(eventData.controller_type, "%s", "XR11");
+    snprintf(eventData.controller_type, sizeof(eventData.controller_type), "%s", "XR11");
 
     handler_.Subscribe(0, _T("onXRConfigurationComplete"), _T("org.rdk.ControlService"), message_);
     controlEventHandler_(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_CONFIGURATION_COMPLETE, &eventData, sizeof(ctrlm_rcu_iarm_event_configuration_complete_t));
@@ -944,7 +944,7 @@ TEST_F(ControlServiceInitializedEventTest, onXRPairingStart)
     eventData.validation_keys[0] = CTRLM_KEY_CODE_DIGIT_1;
     eventData.validation_keys[1] = CTRLM_KEY_CODE_DIGIT_3;
     eventData.validation_keys[2] = CTRLM_KEY_CODE_DIGIT_5;
-    sprintf(eventData.controller_type, "%s", "XR11");
+    snprintf(eventData.controller_type, sizeof(eventData.controller_type), "%s", "XR11");
 
     handler_.Subscribe(0, _T("onXRPairingStart"), _T("org.rdk.ControlService"), message_);
     controlEventHandler_(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_VALIDATION_BEGIN, &eventData, sizeof(ctrlm_rcu_iarm_event_validation_begin_t));
@@ -971,7 +971,7 @@ TEST_F(ControlServiceInitializedEventTest, onXRValidationComplete)
     eventData.controller_id = 1;
     eventData.binding_type  = CTRLM_RCU_BINDING_TYPE_AUTOMATIC;
     eventData.result        = CTRLM_RCU_VALIDATION_RESULT_SUCCESS;
-    sprintf(eventData.controller_type, "%s", "XR11");
+    snprintf(eventData.controller_type, sizeof(eventData.controller_type), "%s", "XR11");
 
     handler_.Subscribe(0, _T("onXRValidationComplete"), _T("org.rdk.ControlService"), message_);
     controlEventHandler_(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_VALIDATION_END, &eventData, sizeof(ctrlm_rcu_iarm_event_validation_end_t));
@@ -1012,14 +1012,14 @@ TEST_F(ControlServiceInitializedEventTest, onXRValidationUpdate)
     beginData.validation_keys[0] = CTRLM_KEY_CODE_DIGIT_1;
     beginData.validation_keys[1] = CTRLM_KEY_CODE_DIGIT_3;
     beginData.validation_keys[2] = CTRLM_KEY_CODE_DIGIT_5;
-    sprintf(beginData.controller_type, "%s", "XR11");
+    snprintf(beginData.controller_type, sizeof(beginData.controller_type), "%s", "XR11");
 
     eventData.api_revision  = CTRLM_RCU_IARM_BUS_API_REVISION;
     eventData.controller_id = 1;
     eventData.binding_type  = CTRLM_RCU_BINDING_TYPE_INTERACTIVE;
     eventData.key_code      = CTRLM_KEY_CODE_DIGIT_1;
     eventData.key_status    = CTRLM_KEY_STATUS_DOWN;
-    sprintf(eventData.controller_type, "%s", "XR11");
+    snprintf(eventData.controller_type, sizeof(eventData.controller_type), "%s", "XR11");
 
     handler_.Subscribe(0, _T("onXRPairingStart"), _T("org.rdk.ControlService"), message_);
     controlEventHandler_(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_VALIDATION_BEGIN, &beginData, sizeof(ctrlm_rcu_iarm_event_validation_begin_t));

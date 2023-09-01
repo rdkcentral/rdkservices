@@ -176,7 +176,7 @@ TEST_F(RemoteActionMappingTest, getLastUsedDeviceID)
                 auto param = static_cast<ctrlm_rcu_iarm_call_controller_status_t*>(arg);
                 memset(param, 0, sizeof(ctrlm_rcu_iarm_call_controller_status_t));
 
-                sprintf(param->status.type, "%s", "XR15-2");
+                snprintf(param->status.type, sizeof(param->status.type), "%s", "XR15-2");
                 param->status.time_last_key                 = 1580263335;
                 param->status.ir_db_code_download_supported = 1;
                 return IARM_RESULT_SUCCESS;
