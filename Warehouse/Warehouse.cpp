@@ -331,8 +331,7 @@ namespace WPEFramework
                 return false;
             }
 
-            strncpy(runScriptParam.script_path, script.c_str(), sizeof(runScriptParam.script_path));
-            runScriptParam.script_path[sizeof(runScriptParam.script_path) - 1] = '\0';
+            strcpy(runScriptParam.script_path, script.c_str());
             IARM_Bus_Call(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_API_RunScript, &runScriptParam, sizeof(runScriptParam));
             bool ok = runScriptParam.return_value == 0;
 
