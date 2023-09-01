@@ -16,6 +16,11 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.2.1] 2023-09-01
+### Fixed
+- Fixed the parameters of setLatencyInfo() in json file such that events following this method
+  are displayed properly
+
 ## [1.2.0] 2023-08-07
 ### Added
 - Added support for Dynamic Auto LipSync
