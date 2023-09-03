@@ -54,6 +54,8 @@
 #define HDMIINPUT_EVENT_ON_AVI_CONTENT_TYPE_CHANGED "hdmiContentTypeUpdate"
 #define HDMIINPUT_METHOD_GET_LOW_LATENCY_MODE "getTVLowLatencyMode"
 #define HDMIINPUT_METHOD_GET_AV_LATENCY "getAVLatency"
+#define HDMIINPUT_METHOD_SET_EDID_2_ALLM_SUPPORT "setEdid2AllmSupport" 
+#define HDMIINPUT_METHOD_GET_EDID_2_ALLM_SUPPORT "getEdid2AllmSupport"
 
 #define HDMICECSINK_CALLSIGN "org.rdk.HdmiCecSink"
 #define HDMICECSINK_CALLSIGN_VER HDMICECSINK_CALLSIGN".1"
@@ -123,7 +125,9 @@ namespace WPEFramework
             registerMethod(HDMIINPUT_METHOD_GAME_FEATURE_STATUS, &HdmiInput::getHdmiGameFeatureStatusWrapper, this);
 	    registerMethod(HDMIINPUT_METHOD_GET_AV_LATENCY, &HdmiInput::getAVLatency, this);
             registerMethod(HDMIINPUT_METHOD_GET_LOW_LATENCY_MODE, &HdmiInput::getTVLowLatencyMode, this);
-        }
+            registerMethod(HDMIINPUT_METHOD_SET_EDID_2_ALLM_SUPPORT, &HdmiInput::setEdid2AllmSupportWrapper, this);
+            registerMethod(HDMIINPUT_METHOD_GET_EDID_2_ALLM_SUPPORT, &HdmiInput::getEdid2AllmSupportWrapper, this);
+	}
 
         HdmiInput::~HdmiInput()
         {
@@ -229,9 +233,21 @@ namespace WPEFramework
             returnIfParamNotFound(parameters, "portId");
 
             string sPortId = parameters["portId"].String();
-            int portId = 0;
-            try {
+            bool audioMix = parameters["requestAudioMix"].Boolean();
+	    int portId = 0;
+	    //planeType = 0 -  primary, 1 - secondary video plane type
+	    int planeType = 0;
+	    try {
                 portId = stoi(sPortId);
+		if (parameters.HasLabel("plane")){
+                        string sPlaneType = parameters["plane"].String();
+                        planeType = stoi(sPlaneType);
+			if(!(planeType == 0 || planeType == 1))// planeType has to be primary(0) or secondary(1)
+			{
+				LOGWARN("planeType is invalid\n");
+				returnResponse(false);
+			}
+                }
             }catch (const std::exception& err) {
 		    LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
 		    returnResponse(false);
@@ -239,7 +255,7 @@ namespace WPEFramework
             bool success = true;
             try
             {
-                device::HdmiInput::getInstance().selectPort(portId);
+                device::HdmiInput::getInstance().selectPort(portId,audioMix,planeType);
             }
             catch (const device::Exception& err)
             {
@@ -1239,6 +1255,86 @@ namespace WPEFramework
 
             returnResponse(true);
        }
+       	int setEdid2AllmSupport(int portId, bool allmSupport)
+	{
+	    bool ret = true;
+    	    try
+	    {
+		device::HdmiInput::getInstance().setEdid2AllmSupport (portId, allmSupport);
+    		LOGWARN("HdmiInput::setEdid2AllmSupport allmsupport:%d", allmSupport);
+	    }
+            catch (const device::Exception& err)
+            {
+                LOG_DEVICE_EXCEPTION1(std::to_string(portId));
+                ret = false;
+            }
+	    return ret;
+	}
+
+	uint32_t HdmiInput::setEdid2AllmSupportWrapper(const JsonObject& parameters, JsonObject& response)
+	{
+	    LOGINFOMETHOD();
+
+	    returnIfParamNotFound(parameters, "portId");
+            returnIfParamNotFound(parameters, "allmSupport");
+
+	    int portId = 0;
+	    string sPortId = parameters["portId"].String();
+	    bool allmSupport = parameters["allmSupport"].Boolean();
+
+	    try {
+                portId = stoi(sPortId);
+            }catch (const std::exception& err) {
+                    LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
+		    returnResponse(false);
+            }
+
+	   bool result = setEdid2AllmSupport(portId, allmSupport);   
+	   if(result == true)
+	   {
+		 returnResponse(true);
+	   }
+	   else
+	   {
+		   returnResponse(false);
+	   }
+
+	}
+
+	int getEdid2AllmSupport(int portId)
+	{
+		bool allmSupportValue = true;
+		try
+            	{
+			device::HdmiInput::getInstance().getEdid2AllmSupport (portId, &allmSupportValue);
+			LOGWARN("HdmiInput::getEdid2AllmSupport:%d", allmSupportValue);
+		}
+	        catch (const device::Exception& err)
+            	{
+                	LOG_DEVICE_EXCEPTION1(std::to_string(portId));
+            	}
+		return allmSupportValue;
+	}
+
+	uint32_t HdmiInput::getEdid2AllmSupportWrapper(const JsonObject& parameters, JsonObject& response)
+	{
+	    LOGINFOMETHOD();
+	    string sPortId = parameters["portId"].String();
+            int portId = 0;
+	    returnIfParamNotFound(parameters, "portId");
+
+	    try {
+                portId = stoi(sPortId);
+            }catch (const std::exception& err) {
+		    LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
+		    returnResponse(false);
+            }
+
+	    bool allmSupport = getEdid2AllmSupport(portId);
+	    response["allmSupport"] = allmSupport;	
+	    returnResponse(true);
+	 }
+
 
         int HdmiInput::setEdidVersion(int iPort, int iEdidVer)
         {
