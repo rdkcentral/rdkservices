@@ -222,6 +222,16 @@
                 "properties": {
                     "portId":{
                         "$ref": "#/definitions/portId"
+                    },
+		    "audioMix":{
+                        "summary": "Defines whether the Audio mixing is true or false, This is an optional argument",
+                        "type": "boolean",
+                        "example": "true"
+                    },
+                    "planeType":{
+                        "summary": "Defines whether the video plane type, 0 - Primary video plane, 1 - Secondary Video Plane, Other values - Invalid - This is an optional argument ",
+                        "type": "integer",
+                        "example": "0"
                     }
                 },
                 "required": [

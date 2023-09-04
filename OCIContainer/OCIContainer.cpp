@@ -629,7 +629,7 @@ const int OCIContainer::GetContainerDescriptorFromId(const std::string& containe
     for (const std::pair<int32_t, std::string>& container : containers)
     {
         char strDescriptor[32];
-        snprintf(strDescriptor, sizeof(strDescriptor), "%d", container.first);
+        sprintf(strDescriptor, "%d", container.first);
 
         if ((containerId == strDescriptor) || (containerId == container.second))
         {
