@@ -653,6 +653,14 @@ public:
     {
         return impl->getAVLatency(audio_output_delay,video_latency);
     }
+    void setEdid2AllmSupport(int iport, bool allmSupport) const
+    {
+        return impl->setEdid2AllmSupport(iport,allmSupport);
+    }
+    void getEdid2AllmSupport(int iport, bool *allmSupport) const
+    {
+        return impl->getEdid2AllmSupport(iport,allmSupport);
+    }
 };
 
 }
