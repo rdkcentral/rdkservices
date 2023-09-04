@@ -4865,7 +4865,7 @@ namespace Plugin {
 
         LOGINFO("current format index[%d] \n", current_format);
         tr181_param_name += std::string(TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
-        tr181_param_name += "." + std::to_string(current_source) + "." + "Format."+std::to_string(current_source)+"."+"PictureModeString";
+        tr181_param_name += "." + std::to_string(current_source) + "." + "Format."+std::to_string(current_format)+"."+"PictureModeString";
         LOGINFO("tr181 command[%s]", tr181_param_name.c_str());
          err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
 
@@ -4923,7 +4923,8 @@ namespace Plugin {
                     std::string tr181_param_name = "";
                     tr181_param_name += std::string(TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
                     // framing Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.Source.source_index[x].Format.format_index[x].PictureModeString.value
-                    tr181_param_name += "."+std::to_string(source_vec[x])+"."+"Format."+std::to_string(format_vec[y])+"."+"PictureModeString";
+                    tr181_param_name += "."+std::to_string(source_vec[x])+"."+"Format."+
+			              std::to_string(ConvertHDRFormatToContentFormat((tvhdr_type_t)format_vec[y]))+"."+"PictureModeString";
                     tr181ErrorCode_t err = setLocalParam(rfc_caller_id, tr181_param_name.c_str(), value.c_str());
                     if ( err != tr181Success ) {
                         LOGWARN("setLocalParam for %s Failed : %s\n", TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM, getTR181ErrorString(err));
@@ -4964,7 +4965,8 @@ namespace Plugin {
 
                 std::string tr181_param_name = "";
                 tr181_param_name += std::string(TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
-	        tr181_param_name += "."+std::to_string(source)+"."+"Format."+std::to_string(format)+"."+"PictureModeString";
+	        tr181_param_name += "."+std::to_string(source)+"."+"Format."+
+			           std::to_string(ConvertHDRFormatToContentFormat((tvhdr_type_t)format))+"."+"PictureModeString";
 
        	        err = clearLocalParam(rfc_caller_id, tr181_param_name.c_str());
                 if ( err != tr181Success ) {
