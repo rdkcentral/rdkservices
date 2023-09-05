@@ -71,6 +71,8 @@ private:
     uint32_t getSPDWrapper(const JsonObject& parameters, JsonObject& response);
     uint32_t setEdidVersionWrapper(const JsonObject& parameters, JsonObject& response);
     uint32_t getEdidVersionWrapper(const JsonObject& parameters, JsonObject& response);
+    uint32_t setEdid2AllmSupportWrapper(const JsonObject& parameters, JsonObject& response);
+    uint32_t getEdid2AllmSupportWrapper(const JsonObject& parameters, JsonObject& response);
     uint32_t startInput(const JsonObject& parameters, JsonObject& response);
     uint32_t stopInput(const JsonObject& parameters, JsonObject& response);
     uint32_t setVideoRectangleWrapper(const JsonObject& parameters, JsonObject& response);
