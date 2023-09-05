@@ -131,7 +131,7 @@ namespace TTS {
         gmtime_r(&spec.tv_sec, &tm);
         long ms = spec.tv_nsec / 1.0e6;
 
-        snprintf(timestamp, sizeof(timestamp), "%02d%02d%02d-%02d:%02d:%02d.%03ld",
+        sprintf(timestamp, "%02d%02d%02d-%02d:%02d:%02d.%03ld",
                 tm.tm_year % 100,
                 tm.tm_mon + 1,
                 tm.tm_mday,

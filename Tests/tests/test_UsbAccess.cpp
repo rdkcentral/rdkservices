@@ -1444,7 +1444,7 @@ TEST_F(UsbAccessEventTest, archiveLogsSuccess_When_pathParamisEmpty)
             if (valueToReturn != NULL) {
                   char buffer[1024];
                   memset(buffer, 0, sizeof(buffer));
-                  strcpy(buffer, valueToReturn);
+                  strncpy(buffer, valueToReturn, sizeof(buffer) - 1);
                   FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
                   return pipe;
             } else {
@@ -1524,7 +1524,7 @@ TEST_F(UsbAccessEventTest, archiveLogsSuccess_onValidPath)
             if (valueToReturn != NULL) {
                   char buffer[1024];
                   memset(buffer, 0, sizeof(buffer));
-                  strcpy(buffer, valueToReturn);
+                  strncpy(buffer, valueToReturn, sizeof(buffer) - 1);
                   FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
                   return pipe;
             } else {
@@ -2168,7 +2168,8 @@ TEST_F(UsbAccessEventIarmTest, onUSBMountChangedSuccess)
 
     IARM_Bus_SYSMgr_EventData_t usbEventData;
     usbEventData.data.usbMountData.mounted= 1;
-    strcpy(usbEventData.data.usbMountData.dir, "/dev/sda1");
+    strncpy(usbEventData.data.usbMountData.dir, "/dev/sda1", sizeof(usbEventData.data.usbMountData.dir));
+    usbEventData.data.usbMountData.dir[sizeof(usbEventData.data.usbMountData.dir) - 1] = '\0';
     eventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_USB_MOUNT_CHANGED, &usbEventData, 1);
 
     EXPECT_EQ(Core::ERROR_NONE, onUSBMountChanged.Lock());
