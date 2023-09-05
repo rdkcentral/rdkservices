@@ -119,6 +119,11 @@ namespace Plugin {
 
     uint32_t DeviceInfoImplementation::DeviceType(string& deviceType) const
     {
+#ifdef BUILD_FOR_COMMUNITY
+        return GetFileRegex(_T("/etc/device.properties"),
+                std::regex("^DEVICE_TYPE(?:\\s*)=(?:\\s*)(?:\"{0,1})([^\"\\n]+)(?:\"{0,1})(?:\\s*)$"), deviceType);
+#endif
+
         return GetFileRegex(_T("/etc/authService.conf"),
             std::regex("^deviceType(?:\\s*)=(?:\\s*)(?:\"{0,1})([^\"\\n]+)(?:\"{0,1})(?:\\s*)$"), deviceType);
     }
