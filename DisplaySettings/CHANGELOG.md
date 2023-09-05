@@ -17,6 +17,10 @@ All notable changes to this RDK Service will be documented in this file.
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
 
+## [1.3.4] - 2023-09-05
+### Fixed
+Updated getCurrentResolution API to return resolution along with width, height and signal type.
+
 ## [1.3.3] - 2023-08-22
 ### Added
 - Added Documentation for AC4 implementation in DisaplaySettings
