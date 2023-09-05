@@ -291,8 +291,6 @@ namespace WPEFramework {
             std::atomic<bool> m_useDefInterfaceCache;
             string m_defInterfaceCache;
             string m_defIpversionCache;
-            std::atomic<bool> m_useInterfacesCache;
-            IARM_BUS_NetSrvMgr_InterfaceList_t m_interfacesCache;
 
             IARM_BUS_NetSrvMgr_Iface_Settings_t m_ipv4WifiCache;
             IARM_BUS_NetSrvMgr_Iface_Settings_t m_ipv6WifiCache;
