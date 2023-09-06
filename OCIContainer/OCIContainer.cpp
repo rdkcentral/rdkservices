@@ -10,7 +10,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 2
+#define API_VERSION_NUMBER_PATCH 4
 
 namespace WPEFramework
 {
@@ -629,7 +629,7 @@ const int OCIContainer::GetContainerDescriptorFromId(const std::string& containe
     for (const std::pair<int32_t, std::string>& container : containers)
     {
         char strDescriptor[32];
-        sprintf(strDescriptor, "%d", container.first);
+        snprintf(strDescriptor, sizeof(strDescriptor), "%d", container.first);
 
         if ((containerId == strDescriptor) || (containerId == container.second))
         {
