@@ -27,6 +27,7 @@
 #include "UtilscRunScript.h"
 #include "UtilsgetRFCConfig.h"
 #include "UtilsgetFileContent.h"
+#include "secure_wrapper.h"
 
 using namespace std;
 
@@ -63,6 +64,48 @@ using namespace std;
 
 // TODO: remove this
 #define registerMethod(...) for (uint8_t i = 1; GetHandler(i); i++) GetHandler(i)->Register<JsonObject, JsonObject>(__VA_ARGS__)
+
+bool getFilteredResult(FILE* pipe, std::string &res, const char *filters[], int num_filters)
+{
+    char buff[1024] = { '\0' };
+
+    if (pipe != nullptr)
+    {
+        while (fgets(buff, sizeof(buff), pipe) != nullptr)
+        {
+            bool matches_filter = false;
+            for (int i = 0; i < num_filters; ++i)
+            {
+                if (strstr(buff, filters[i]))
+                {
+                    matches_filter = true;
+                    break;
+                }
+            }
+
+            if (matches_filter)
+            {
+                size_t len = strlen(buff);
+                if (len > 0)
+                {
+                    // Remove newline characters from the end of the string
+                    while (len > 0 && buff[len - 1] == '\n')
+                    {
+                        buff[len - 1] = '\0';
+                        len--;
+                    }
+                    res += buff;
+                }
+            }
+        }
+        return true;
+    }
+    else
+    {
+        LOGERR("pipe is NULL");
+        return false;
+    }
+}
 
 namespace WPEFramework
 {
@@ -1629,10 +1672,29 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                     LOGINFO("Identified as hybrid device type");
                     if (m_defaultInterface.length() == 0)
                     {
-                        const char * script2 = R"(ip -6 route | grep ^default | tr -d "\n")";
+                        std::string res ;
+                        const char *filters[] = {"default"};
 
-                        string res = Utils::cRunScript(script2).substr();
-                        LOGWARN("script2 '%s' result: '%s'", script2, res.c_str());
+                        FILE* pipe = v_secure_popen("r", "ip -6 route");
+
+                        if (pipe != nullptr)
+                        {
+                            if (getFilteredResult(pipe, res, filters, sizeof(filters) / sizeof(filters[0])))
+                            {
+                                LOGINFO(" result is: '%s'", res.c_str());
+                            }
+                            else
+                            {
+                                LOGERR("Failed to execute command or filter the result");
+                            }
+                            v_secure_pclose(pipe);
+                        }
+                        else
+                        {
+                            LOGERR("v_secure_popen failed with result: %s", strerror(errno));
+                        }
+
+                        LOGINFO("result: '%s'",res.c_str());
 
                         size_t pos = res.find("via");
                         if (pos != string::npos)
@@ -1652,9 +1714,29 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
 
                         if (m_defaultInterface.length() == 0)
                         {
-                            const char * script3 = R"(route -n | grep 'UG[ \\t]' | tr -d "\n")";
-                            string res = Utils::cRunScript(script3).substr();
-                            LOGWARN("script3 '%s' result: '%s'", script3, res.c_str());
+                            std::string res ;
+                            const char *filters[] = {"UG ", "UG\t"};
+
+                            FILE* pipe = v_secure_popen("r", "route -n");
+
+                            if (pipe != nullptr)
+                            {
+                                if (getFilteredResult(pipe, res, filters, sizeof(filters) / sizeof(filters[0])))
+                                {
+                                    LOGINFO(" result is: '%s'", res.c_str());
+                                }
+                                else
+                                {
+                                    LOGERR("Failed to execute command or filter the result");
+                                }
+                                v_secure_pclose(pipe);
+                            }
+                            else
+                            {
+                                LOGERR("v_secure_popen failed with result: %s", strerror(errno));
+                            }
+
+                            LOGINFO("result: '%s'",res.c_str());
 
                             pos = res.find(" ");
                             if (pos != string::npos)
