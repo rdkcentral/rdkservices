@@ -55,7 +55,7 @@ typedef enum
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 2
+#define API_VERSION_NUMBER_PATCH 5
 
 using namespace std;
 
@@ -1897,7 +1897,7 @@ namespace WPEFramework {
             }
 
             // Store the STB-based information from the RF4CE network
-            sprintf(strMACAddress, "0x%016llX", netStatus.status.rf4ce.ieee_address);
+            snprintf(strMACAddress, sizeof(strMACAddress), "0x%016llX", netStatus.status.rf4ce.ieee_address);
             stbData["stbRf4ceMACAddress"]   = std::string(strMACAddress);
             stbData["stbRf4ceSocMfr"]       = std::string(netStatus.status.rf4ce.chipset);
             stbData["stbHALVersion"]        = std::string(netStatus.status.rf4ce.version_hal);
@@ -2010,7 +2010,7 @@ namespace WPEFramework {
 
             // Load the remoteInfo object with the data from the ctrlm_controller_status_t.
             remoteInfo["remoteId"]                  = JsonValue((int)ctrlStatus.controller_id);
-            sprintf(strMACAddress, "0x%016llX", ctrlStatus.status.ieee_address);
+            snprintf(strMACAddress, sizeof(strMACAddress), "0x%016llX", ctrlStatus.status.ieee_address);
             remoteInfo["remoteMACAddress"]          = std::string(strMACAddress);
             remoteInfo["remoteModel"]               = std::string(getRemoteModel(ctrlStatus.status.type));
             remoteInfo["remoteModelVersion"]        = std::string(getRemoteModelVersion(ctrlStatus.status.type));
