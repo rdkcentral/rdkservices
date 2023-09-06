@@ -18,15 +18,15 @@ class TTSDownloader
    TTSDownloader(TTSConfiguration &config);
    void download(TTSConfiguration config);
    void downloadThread();
-   void downloadFile(std::string tts_request);
+   bool downloadFile(std::string ttsRequest);
    void saveConfiguration(std::string path);   
 
    private:
    TTSConfiguration &m_defaultConfig;
    TTSConfiguration m_config;
    std::thread *m_downloadThread;
-   std::atomic<bool> active;
-   std::atomic<bool> needDownload;
+   std::atomic<bool> m_active;
+   std::atomic<bool> m_needDownload;
    std::mutex m_queueMutex;
    std::mutex m_objectMutex;
    std::condition_variable m_condition;
