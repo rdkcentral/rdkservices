@@ -16,6 +16,14 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.24] - 2023-10-03
+### Changed
+- Renamed partnerProvisioningContext to deviceInitializationContext for new WhoAmI specification
+
+## [1.0.23] - 2023-10-03
+### Security
+- Brought SecManager code under ENABLE_WHOAMI compile flag
+
 ## [1.0.22] - 2023-08-03
 ### Added
 - MM subscription to network event
