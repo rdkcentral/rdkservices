@@ -16,7 +16,11 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
-## [1.0.21] - 2023-09-0
+## [1.0.22] - 2023-09-08
+### Changed
+- Renamed partnerProvisioningContext to deviceInitializationContext for new WhoAmI specification
+
+## [1.0.21] - 2023-09-08
 ### Security
 - Brought SecManager code under ENABLE_WHOAMI compile flag
 
