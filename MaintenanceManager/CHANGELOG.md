@@ -16,6 +16,12 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.24] - 2023-10-26
+### Added
+- Brought SecManager code under ENABLE_WHOAMI compile flag
+- Renamed partnerProvisioningContext to deviceInitializationContext for new WhoAmI specification
+- Store partnerId in Authservice
+
 ## [1.0.23] - 2023-10-04
 ### Added
 - Implement Thunder Plugin Configuration for Kirkstone builds(CMake-3.20 & above)
@@ -23,10 +29,6 @@ All notable changes to this RDK Service will be documented in this file.
 ## [1.0.22] - 2023-08-03
 ### Added
 - MM subscription to network event
-
-## [1.0.22] - 2023-09-08
-### Changed
-- Renamed partnerProvisioningContext to deviceInitializationContext for new WhoAmI specification
 
 ## [1.0.21] - 2023-07-27
 ### Added

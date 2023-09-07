@@ -66,7 +66,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 22
+#define API_VERSION_NUMBER_PATCH 23
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 
@@ -75,9 +75,13 @@ using namespace std;
 #define TR181_AUTOREBOOT_ENABLE "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable"
 #define TR181_STOP_MAINTENANCE  "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.StopMaintenance.Enable"
 #define TR181_RDKVFWUPGRADER  "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKFirmwareUpgrader.Enable"
+
+#if defined(ENABLE_WHOAMI)
 #define TR181_PARTNER_ID "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.PartnerName"
 #define TR181_TARGET_PROPOSITION "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.TargetProposition"
 #define TR181_XCONFURL "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.XconfUrl"
+#endif
+
 #define INTERNET_CONNECTED_STATE 3
 
 string notifyStatusToString(Maint_notify_status_t &status)
@@ -233,11 +237,13 @@ namespace WPEFramework {
             "uploadSTBLogs.sh"
         };
 
+#if defined(ENABLE_WHOAMI)
         string deviceInitializationContext[] = {
             "partnerId",
             "targetProposition",
             "regionalConfigService"
         };
+#endif
 
         /**
          * Register MaintenanceManager module as wpeframework plugin
@@ -266,6 +272,7 @@ namespace WPEFramework {
             MaintenanceManager::m_task_map[task_names_foreground[2].c_str()]=false;
             MaintenanceManager::m_task_map[task_names_foreground[3].c_str()]=false;
 
+#if defined(ENABLE_WHOAMI)
             MaintenanceManager::m_param_map[deviceInitializationContext[0].c_str()] = TR181_PARTNER_ID;
             MaintenanceManager::m_param_map[deviceInitializationContext[1].c_str()] = TR181_TARGET_PROPOSITION;
             MaintenanceManager::m_param_map[deviceInitializationContext[2].c_str()] = TR181_XCONFURL;
@@ -273,6 +280,7 @@ namespace WPEFramework {
             MaintenanceManager::m_paramType_map[deviceInitializationContext[0].c_str()] = DATA_TYPE::WDMP_STRING;
             MaintenanceManager::m_paramType_map[deviceInitializationContext[1].c_str()] = DATA_TYPE::WDMP_STRING;
             MaintenanceManager::m_paramType_map[deviceInitializationContext[2].c_str()] = DATA_TYPE::WDMP_STRING;
+#endif
          }
 
         void MaintenanceManager::task_execution_thread(){
@@ -397,6 +405,7 @@ namespace WPEFramework {
             LOGINFO("Worker Thread Completed");
         }
 
+#if defined(ENABLE_WHOAMI)
         bool MaintenanceManager::knowWhoAmI()
         {
             bool success = false;
@@ -480,6 +489,7 @@ namespace WPEFramework {
             } while (!success);
             return success;
         }
+#endif
 
         // Thunder plugin communication
         WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* MaintenanceManager::getThunderPluginHandle(const char* callsign)
