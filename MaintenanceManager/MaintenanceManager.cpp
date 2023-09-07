@@ -36,6 +36,7 @@
 #include <iomanip>
 #include <bits/stdc++.h>
 #include <algorithm>
+#include <array>
 
 #include "MaintenanceManager.h"
 
@@ -238,7 +239,7 @@ namespace WPEFramework {
         };
 
 #if defined(ENABLE_WHOAMI)
-        string deviceInitializationContext[] = {
+        static const array<string, 3> kDeviceInitContextKeyVals = {
             "partnerId",
             "targetProposition",
             "regionalConfigService"
@@ -273,13 +274,13 @@ namespace WPEFramework {
             MaintenanceManager::m_task_map[task_names_foreground[3].c_str()]=false;
 
 #if defined(ENABLE_WHOAMI)
-            MaintenanceManager::m_param_map[deviceInitializationContext[0].c_str()] = TR181_PARTNER_ID;
-            MaintenanceManager::m_param_map[deviceInitializationContext[1].c_str()] = TR181_TARGET_PROPOSITION;
-            MaintenanceManager::m_param_map[deviceInitializationContext[2].c_str()] = TR181_XCONFURL;
+            MaintenanceManager::m_param_map[kDeviceInitContextKeyVals[0].c_str()] = TR181_PARTNER_ID;
+            MaintenanceManager::m_param_map[kDeviceInitContextKeyVals[1].c_str()] = TR181_TARGET_PROPOSITION;
+            MaintenanceManager::m_param_map[kDeviceInitContextKeyVals[2].c_str()] = TR181_XCONFURL;
 
-            MaintenanceManager::m_paramType_map[deviceInitializationContext[0].c_str()] = DATA_TYPE::WDMP_STRING;
-            MaintenanceManager::m_paramType_map[deviceInitializationContext[1].c_str()] = DATA_TYPE::WDMP_STRING;
-            MaintenanceManager::m_paramType_map[deviceInitializationContext[2].c_str()] = DATA_TYPE::WDMP_STRING;
+            MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[0].c_str()] = DATA_TYPE::WDMP_STRING;
+            MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[1].c_str()] = DATA_TYPE::WDMP_STRING;
+            MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[2].c_str()] = DATA_TYPE::WDMP_STRING;
 #endif
          }
 
@@ -430,20 +431,18 @@ namespace WPEFramework {
 
                         thunder_client->Invoke<JsonObject, JsonObject>(5000, "getDeviceInitializationContext", params, joGetResult);
                         if (joGetResult.HasLabel("success") && joGetResult["success"].Boolean()) {
-                            if (joGetResult.HasLabel("partnerProvisioningContext")) {
-                                JsonObject getProvisioningContext = joGetResult["partnerProvisioningContext"].Object();
-                                int size = (int)(sizeof(deviceInitializationContext)/sizeof(deviceInitializationContext[0]));
-                                for (int idx=0; idx < size; idx++) {
-                                    const char* key = deviceInitializationContext[idx].c_str();
-
-                                    // Retrive partnerProvisioningContext Value
-                                    string paramValue = getProvisioningContext[key].String();
+                            static const char* kDeviceInitializationContext = "deviceInitializationContext";
+                            if (joGetResult.HasLabel(kDeviceInitializationContext)) {
+                                JsonObject getInitializationContext = joGetResult[kDeviceInitializationContext].Object();
+                                for (const string& key : kDeviceInitContextKeyVals) {
+                                    // Retrieve deviceInitializationContext Value
+                                    string paramValue = getInitializationContext[key.c_str()].String();
 
                                     if (!paramValue.empty()) {
-                                        if (strcmp(key, "regionalConfigService") == 0) {
+                                        if (strcmp(key.c_str(), "regionalConfigService") == 0) {
                                             paramValue = "https://" + paramValue;
                                         }
-                                        LOGINFO("[partnerProvisioningContext] %s : %s", key, paramValue.c_str());
+                                        LOGINFO("[%s] %s : %s", kDeviceInitializationContext, key.c_str(), paramValue.c_str());
 
                                         // Retrieve tr181 parameter from m_param_map
                                         string rfc_parameter = m_param_map[key];
@@ -451,15 +450,15 @@ namespace WPEFramework {
                                         //  Retrieve parameter data type from m_paramType_map
                                         DATA_TYPE rfc_dataType = m_paramType_map[key];
 
-                                        // Set the RFC values for partnerProvisioningContext parameters
+                                        // Set the RFC values for deviceInitializationContext parameters
                                         setRFC(rfc_parameter.c_str(), paramValue.c_str(), rfc_dataType);
                                     } else {
-                                        LOGINFO("Not able to fetch %s value from partnerProvisioningContext", key);
+                                        LOGINFO("Not able to fetch %s value from %s", key.c_str(), kDeviceInitializationContext);
                                     }
                                 }
                                 success = true;
                             } else {
-                                LOGINFO("partnerProvisioningContext is not available in the response");
+                                LOGINFO("deviceInitializationContext is not available in the response");
                             }
                         } else {
                             // Get retryDelay value and sleep for that much seconds
