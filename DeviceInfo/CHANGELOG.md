@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.9] - 2023-09-12
+### Added
+- Implement Thunder Plugin Configuration for Kirkstone builds(CMake-3.20 & above)
+
 ## [1.0.8] - 2023-08-31
 ### Fixed 
 - Added valid values (hybrid/mediaclient) for devicetype property of DeviceInfo plugin for RPI

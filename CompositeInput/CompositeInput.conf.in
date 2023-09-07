@@ -1,0 +1,6 @@
+precondition = ["Platform"]
+callsign = "org.rdk.CompositeInput"
+autostart = "false"
+
+if boolean("@PLUGIN_COMPOSITEINPUT_STARTUPORDER@"):
+    startuporder = "@PLUGIN_COMPOSITEINPUT_STARTUPORDER@"
