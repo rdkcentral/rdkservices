@@ -4799,37 +4799,6 @@ namespace Plugin {
         return ret;
     }
 
-    tvContentFormatType_t AVOutputTV::getContentFormatIndex(tvVideoHDRFormat_t formatToConvert)
-    {
-        /* default to SDR always*/
-        tvContentFormatType_t ret = tvContentFormatType_NONE;
-        switch(formatToConvert)
-        {
-            case tvVideoHDRFormat_HLG:
-                ret = tvContentFormatType_HLG;
-                break;
-
-            case tvVideoHDRFormat_HDR10:
-                ret = tvContentFormatType_HDR10;
-                break;
-
-            case tvVideoHDRFormat_HDR10PLUS:
-                ret =  tvContentFormatType_HDR10PLUS;
-                break;
-
-            case tvVideoHDRFormat_DV:
-                ret = tvContentFormatType_DOVI;
-                break;
-
-            case tvVideoHDRFormat_SDR:
-            case tvVideoHDRFormat_NONE:
-            default:
-                ret  = tvContentFormatType_SDR;
-                break;
-        }
-        return ret;
-    }
-
     uint32_t AVOutputTV::getPictureMode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
