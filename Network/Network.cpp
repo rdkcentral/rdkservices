@@ -1079,6 +1079,10 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                 if (m_useIpv4WifiCache)
                 {
                     memcpy(&iarmData, &m_ipv4WifiCache, sizeof(m_ipv4WifiCache));
+                    if (m_ipv4WifiCache.errCode != NETWORK_IPADDRESS_ACQUIRED) {
+                        m_useIpv4WifiCache = false;
+                        m_ipv4WifiCache = {0};
+                    }
                     result = true;
                 }
             }
@@ -1090,6 +1094,10 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                 if (m_useIpv4EthCache)
                 {
                     memcpy(&iarmData, &m_ipv4EthCache, sizeof(m_ipv4EthCache));
+                    if (m_ipv4EthCache.errCode != NETWORK_IPADDRESS_ACQUIRED) {
+                        m_useIpv4EthCache = false;
+                        m_ipv4EthCache = {0};
+                    }
                     result = true;
                 }
             }
@@ -1101,6 +1109,10 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                 if (m_useIpv6WifiCache)
                 {
                     memcpy(&iarmData, &m_ipv6WifiCache, sizeof(m_ipv6WifiCache));
+                    if (m_ipv6WifiCache.errCode != NETWORK_IPADDRESS_ACQUIRED) {
+                        m_useIpv6WifiCache = false;
+                        m_ipv6WifiCache = {0};
+                    }
                     result = true;
                 }
             }
@@ -1112,6 +1124,10 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                 if (m_useIpv6EthCache)
                 {
                     memcpy(&iarmData, &m_ipv6EthCache, sizeof(m_ipv6EthCache));
+                    if (m_ipv6EthCache.errCode != NETWORK_IPADDRESS_ACQUIRED) {
+                        m_useIpv6EthCache = false;
+                        m_ipv6EthCache = {0};
+                    }
                     result = true;
                 }
             }
