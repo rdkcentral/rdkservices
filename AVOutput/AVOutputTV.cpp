@@ -4832,6 +4832,7 @@ namespace Plugin {
            current_format = ConvertFormatStringToTVContentFormat(format.c_str()); 
         }
 
+
         LOGINFO("current format index[%d] \n", current_format);
         tr181_param_name += std::string(TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
         tr181_param_name += "." + std::to_string(current_source) + "." + "Format."+std::to_string(current_format)+"."+"PictureModeString";
