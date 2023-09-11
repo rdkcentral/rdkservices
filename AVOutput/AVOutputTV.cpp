@@ -574,6 +574,8 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
+        ConvertParamToLowerCase(source, pqmode, format);
+
 	if( !isCapablityCheckPassed( pqmode, source, format, "AspectRatio" )) {
             LOGERR("%s: CapablityCheck failed for AspectRatio\n", __FUNCTION__);
             returnResponse(false);
@@ -748,6 +750,8 @@ namespace Plugin {
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
             format = "current";
+
+        ConvertParamToLowerCase(source, pqmode, format);
 
 	if( !isCapablityCheckPassed( pqmode, source, format, "AspectRatio" )) {
             LOGERR("%s: CapablityCheck failed for AspectRatio\n", __FUNCTION__);
@@ -966,6 +970,8 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
+        ConvertParamToLowerCase(source, pqmode, format);
+
 	if( !isCapablityCheckPassed( pqmode, source, format, "Backlight" )) {
             LOGERR("%s: CapablityCheck failed for Backlight\n", __FUNCTION__);
             returnResponse(false);
@@ -1009,6 +1015,8 @@ namespace Plugin {
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
             format = "current";
+
+        ConvertParamToLowerCase(source, pqmode, format);
 
         if( !isCapablityCheckPassed( pqmode, source, format, "Backlight" )) {
             LOGERR("%s: CapablityCheck failed for Backlight\n", __FUNCTION__);
@@ -1185,7 +1193,9 @@ namespace Plugin {
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
             format = "current";
-        
+       
+        ConvertParamToLowerCase(source, pqmode, format);
+ 
         if( !isCapablityCheckPassed( pqmode, source, format, "Brightness" )) {
             LOGERR("%s: CapablityCheck failed for Brightness\n", __FUNCTION__);
             returnResponse(false);
@@ -1239,6 +1249,8 @@ namespace Plugin {
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
             format = "current";
+
+        ConvertParamToLowerCase(source, pqmode, format);
 
 	if( !isCapablityCheckPassed( pqmode, source, format, "Brightness" )) {
             LOGERR("%s: CapablityCheck failed for Brightness\n", __FUNCTION__);
@@ -1397,7 +1409,9 @@ namespace Plugin {
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
             format = "current";
-        
+       
+        ConvertParamToLowerCase(source, pqmode, format);
+ 
         if( !isCapablityCheckPassed( pqmode, source, format, "Contrast" )) {
             LOGERR("%s: CapablityCheck failed for Contrast\n", __FUNCTION__);
             returnResponse(false);
@@ -1451,6 +1465,8 @@ namespace Plugin {
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
             format = "current";
+
+        ConvertParamToLowerCase(source, pqmode, format);
 
 	if( !isCapablityCheckPassed( pqmode, source, format, "Contrast" )) {
             LOGERR("%s: CapablityCheck failed for Contrast\n", __FUNCTION__);
@@ -1608,7 +1624,9 @@ namespace Plugin {
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
             format = "current";
-       
+      
+        ConvertParamToLowerCase(source, pqmode, format);
+ 
         if( !isCapablityCheckPassed( pqmode, source, format, "Saturation" )) {
             LOGERR("%s: CapablityCheck failed for Saturation\n", __FUNCTION__);
             returnResponse(false);
@@ -1663,6 +1681,8 @@ namespace Plugin {
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
             format = "current";
+
+        ConvertParamToLowerCase(source, pqmode, format);
 
         if( !isCapablityCheckPassed( pqmode, source, format, "Saturation" )) {
             LOGERR("%s: CapablityCheck failed for Saturation\n", __FUNCTION__);
@@ -1828,7 +1848,9 @@ namespace Plugin {
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
             format = "current";
-    
+   
+        ConvertParamToLowerCase(source, pqmode, format);
+ 
         if( !isCapablityCheckPassed( pqmode, source, format, "Sharpness" )) {
             LOGERR("%s: CapablityCheck failed for Sharpness\n", __FUNCTION__);
             returnResponse(false);
@@ -1882,6 +1904,8 @@ namespace Plugin {
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
             format = "current";
+
+        ConvertParamToLowerCase(source, pqmode, format);
 
         if( !isCapablityCheckPassed( pqmode, source, format, "Sharpness" )) {
             LOGERR("%s: CapablityCheck failed for Sharpness\n", __FUNCTION__);
@@ -2041,6 +2065,8 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
+        ConvertParamToLowerCase(source, pqmode, format);
+
         if( !isCapablityCheckPassed( pqmode, source, format, "Hue" )) {
             LOGERR("%s: CapablityCheck failed for Hue\n", __FUNCTION__);
             returnResponse(false);
@@ -2095,6 +2121,8 @@ namespace Plugin {
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
             format = "current";
+
+        ConvertParamToLowerCase(source, pqmode, format);
 
 	if( !isCapablityCheckPassed( pqmode, source, format, "Hue" )) {
             LOGERR("%s: CapablityCheck failed for Hue\n", __FUNCTION__);
@@ -2295,6 +2323,8 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
+        ConvertParamToLowerCase(source, pqmode, format);
+
         if( !isCapablityCheckPassed( pqmode, source, format, "ColorTemperature" )) {
             LOGERR("%s: CapablityCheck failed for colorTemperature\n", __FUNCTION__);
             returnResponse(false);
@@ -2347,6 +2377,8 @@ namespace Plugin {
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
             format = "current";
+
+        ConvertParamToLowerCase(source, pqmode, format);
 
         if( !isCapablityCheckPassed( pqmode, source, format, "ColorTemperature" )) {
             LOGERR("%s: CapablityCheck failed for colorTemperature\n", __FUNCTION__);
@@ -2529,7 +2561,9 @@ namespace Plugin {
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
             format = "current";
-        
+       
+        ConvertParamToLowerCase(source, pqmode, format);
+ 
         if( !isCapablityCheckPassed( pqmode, source, format, "Component" )) {
             LOGERR("%s: CapablityCheck failed for ComponentSaturation\n", __FUNCTION__);
             returnResponse(false);
@@ -2609,6 +2643,8 @@ namespace Plugin {
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
             format = "current";
+
+        ConvertParamToLowerCase(source, pqmode, format);
 	
         if( !isCapablityCheckPassed( pqmode, source, format, "Component" )) {
             LOGERR("%s: CapablityCheck failed for ComponentSaturation\n", __FUNCTION__);
@@ -2749,6 +2785,8 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
+        ConvertParamToLowerCase(source, pqmode, format);
+
 	if( !isCapablityCheckPassed( pqmode, source, format, "Component" )) {
             LOGERR("%s: CapablityCheck failed for ComponentHue\n", __FUNCTION__);
             returnResponse(false);
@@ -2828,6 +2866,8 @@ namespace Plugin {
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
             format = "current";
+
+        ConvertParamToLowerCase(source, pqmode, format);
 
 	if( !isCapablityCheckPassed( pqmode, source, format, "Component" )) {
             LOGERR("%s: CapablityCheck failed for ComponentHue\n", __FUNCTION__);
@@ -2964,6 +3004,8 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
+        ConvertParamToLowerCase(source, pqmode, format);
+
         if( !isCapablityCheckPassed( pqmode, source, format, "Component" )) {
             LOGERR("%s: CapablityCheck failed for ComponentLuma\n", __FUNCTION__);
             returnResponse(false);
@@ -3043,6 +3085,8 @@ namespace Plugin {
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
             format = "current";
+
+        ConvertParamToLowerCase(source, pqmode, format);
 
         if( !isCapablityCheckPassed( pqmode, source, format, "Component" )) {
             LOGERR("%s: CapablityCheck failed for ComponentHue\n", __FUNCTION__);
@@ -3227,6 +3271,8 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
+        ConvertParamToLowerCase(source, pqmode, format);
+
         if( !isCapablityCheckPassed( pqmode, source, format, "DimmingMode" )) {
             LOGERR("%s: CapablityCheck failed for DimmingMode\n", __FUNCTION__);
             returnResponse(false);
@@ -3286,6 +3332,8 @@ namespace Plugin {
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
             format = "current";
+
+        ConvertParamToLowerCase(source, pqmode, format);
 
         if( !isCapablityCheckPassed( pqmode, source, format, "DimmingMode" )) {
             LOGERR("%s: CapablityCheck failed for DimmingMode\n", __FUNCTION__);
@@ -3484,6 +3532,8 @@ namespace Plugin {
             returnResponse(false);
         }
 
+        ConvertParamToLowerCase(source, pqmode, format);
+
         if( !isCapablityCheckPassed( pqmode, source, format, "AutoBacklightControl" )) {
             LOGERR("%s: CapablityCheck failed for AutoBacklightControl\n", __FUNCTION__);
             returnResponse(false);
@@ -3527,6 +3577,8 @@ namespace Plugin {
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
             format = "global";
+
+        ConvertParamToLowerCase(source, pqmode, format);
 
 	if( !isCapablityCheckPassed( pqmode, source, format, "AutoBacklightControl" )) {
             LOGERR("%s: CapablityCheck failed for AutoBacklightControl\n", __FUNCTION__);
@@ -4362,6 +4414,8 @@ namespace Plugin {
         if(format.empty())
             format = "global";
 
+        ConvertParamToLowerCase(source, pqmode, format);
+
         if( !isCapablityCheckPassed( pqmode, source, format, "WhiteBalance" )) {
             LOGERR("%s: CapablityCheck failed for WhiteBalance\n", __FUNCTION__);
             returnResponse(false);
@@ -4448,6 +4502,8 @@ namespace Plugin {
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
             format = "global";
+
+        ConvertParamToLowerCase(source, pqmode, format);
 
         if( !isCapablityCheckPassed( pqmode, source, format, "WhiteBalance" )) {
             LOGERR("%s: CapablityCheck failed for WhiteBalance\n", __FUNCTION__);
