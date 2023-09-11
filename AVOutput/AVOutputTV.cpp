@@ -22,7 +22,7 @@
 
 #define BUFFER_SIZE     (128)
 
-#define registerMethod(...) Register(__VA_ARGS__);GetHandler(2)->Register<JsonObject, JsonObject>(__VA_ARGS__)
+#define registerMethod(...) for (uint8_t i = 1; GetHandler(i); i++) GetHandler(i)->Register<JsonObject, JsonObject>(__VA_ARGS__)
 
 static char videoDescBuffer[VIDEO_DESCRIPTION_MAX*VIDEO_DESCRIPTION_NAME_SIZE] = {0};
 
@@ -201,31 +201,31 @@ namespace Plugin {
         LOGINFO("Entry\n");
         AVOutputTV::instance = this;
 	CreateHandler({ 2 });
-        Register("getBacklight", &AVOutputTV::getBacklight, this);
+        registerMethod("getBacklight", &AVOutputTV::getBacklight, this);
         registerMethod("setBacklight", &AVOutputTV::setBacklight, this);
         registerMethod("resetBacklight", &AVOutputTV::resetBacklight, this);
         registerMethod("getBacklightCaps", &AVOutputTV::getBacklightCaps, this);
         registerMethod("getBrightnessCaps", &AVOutputTV::getBrightnessCaps, this);
-        Register("getBrightness", &AVOutputTV::getBrightness, this);
+        registerMethod("getBrightness", &AVOutputTV::getBrightness, this);
         registerMethod("setBrightness", &AVOutputTV::setBrightness, this);
         registerMethod("resetBrightness", &AVOutputTV::resetBrightness, this);
-        Register("getContrast", &AVOutputTV::getContrast, this);
+        registerMethod("getContrast", &AVOutputTV::getContrast, this);
         registerMethod("setContrast", &AVOutputTV::setContrast, this);
         registerMethod("resetContrast", &AVOutputTV::resetContrast, this);
 	registerMethod("getContrastCaps", &AVOutputTV::getContrastCaps, this);
-        Register("getSharpness", &AVOutputTV::getSharpness, this);
+        registerMethod("getSharpness", &AVOutputTV::getSharpness, this);
         registerMethod("setSharpness", &AVOutputTV::setSharpness, this);
         registerMethod("resetSharpness", &AVOutputTV::resetSharpness, this);
 	registerMethod("getSharpnessCaps", &AVOutputTV::getSharpnessCaps, this);
-        Register("getSaturation", &AVOutputTV::getSaturation, this);
+        registerMethod("getSaturation", &AVOutputTV::getSaturation, this);
         registerMethod("setSaturation", &AVOutputTV::setSaturation, this);
         registerMethod("resetSaturation", &AVOutputTV::resetSaturation, this);
 	registerMethod("getSaturationCaps", &AVOutputTV::getSaturationCaps, this);
-        Register("getHue", &AVOutputTV::getHue, this);
+        registerMethod("getHue", &AVOutputTV::getHue, this);
         registerMethod("setHue", &AVOutputTV::setHue, this);
         registerMethod("resetHue", &AVOutputTV::resetHue, this);
 	registerMethod("gethueCaps", &AVOutputTV::getHueCaps, this);
-        Register("getColorTemperature", &AVOutputTV::getColorTemperature, this);
+        registerMethod("getColorTemperature", &AVOutputTV::getColorTemperature, this);
         registerMethod("setColorTemperature", &AVOutputTV::setColorTemperature, this);
         registerMethod("resetColorTemperature", &AVOutputTV::resetColorTemperature, this);
 	registerMethod("getColorTemperatureCaps", &AVOutputTV::getColorTemperatureCaps, this);
@@ -275,13 +275,6 @@ namespace Plugin {
         registerMethod("resetAspectRatio", &AVOutputTV::resetAspectRatio, this);
         registerMethod("getAspectRatioCaps", &AVOutputTV::getAspectRatioCaps, this);
 
-	GetHandler(2)->Register<JsonObject, JsonObject>("getBacklight", &AVOutputTV::getBacklight2, this);
-        GetHandler(2)->Register<JsonObject, JsonObject>("getBrightness", &AVOutputTV::getBrightness2, this);
-        GetHandler(2)->Register<JsonObject, JsonObject>("getContrast", &AVOutputTV::getContrast2, this);
-        GetHandler(2)->Register<JsonObject, JsonObject>("getSharpness", &AVOutputTV::getSharpness2, this);
-        GetHandler(2)->Register<JsonObject, JsonObject>("getSaturation", &AVOutputTV::getSaturation2, this);
-        GetHandler(2)->Register<JsonObject, JsonObject>("gethue", &AVOutputTV::getHue2, this);
-        GetHandler(2)->Register<JsonObject, JsonObject>("getColorTemperature", &AVOutputTV::getColorTemperature2, this);
 
 	registerMethod("getPictureMode", &AVOutputTV::getPictureMode, this);
         registerMethod("setPictureMode", &AVOutputTV::setPictureMode, this);
@@ -915,47 +908,9 @@ namespace Plugin {
         std::string source;
         std::string format;
         std::string key;
-        int sourceIndex=0,pqIndex=0,formatIndex=0;
-        int backlight = 0,err = 0;
-
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "current";
-
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
-        if(source.empty())
-            source = "current";
-
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
-        if(format.empty())
-            format = "current";
-			
-        GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
-        err = GetLocalparam("Backlight",formatIndex,pqIndex,sourceIndex,backlight,PQ_PARAM_BACKLIGHT);
-        
-        if( err == 0 ) {
-            response["backlight"] = std::to_string(backlight);
-            LOGINFO("Exit : Backlight Value: %d \n", backlight);
-            returnResponse(true);
-        }
-        else {
-            returnResponse(false);
-        }
-    }
-
-    uint32_t AVOutputTV::getBacklight2(const JsonObject& parameters, JsonObject& response)
-    {
-        LOGINFO("Entry");
-
-        std::string pqmode;
-        std::string source;
-        std::string format;
-        std::string key;
         JsonObject range;
-        JsonObject backlightObj;
         range["From"] = 0;
         range["To"] = 100;
-        backlightObj["Range"] = range;
         int sourceIndex=0,pqIndex=0,formatIndex=0;
         int backlight = 0,err = 0;
 
@@ -974,8 +929,8 @@ namespace Plugin {
         GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         err = GetLocalparam("Backlight",formatIndex,pqIndex,sourceIndex,backlight, PQ_PARAM_BACKLIGHT);
         if( err == 0 ) {
-            backlightObj["Setting"] = std::to_string(backlight);
-            response["Backlight"] = backlightObj;
+            response["Backlight"] = std::to_string(backlight);
+            response["Range"] = range;
             LOGINFO("Exit : Backlight Value: %d \n", backlight);
             returnResponse(true);
         }
@@ -1170,49 +1125,13 @@ namespace Plugin {
         std::string pqmode;
         std::string source;
         std::string format;
-	std::string key;
-	int sourceIndex=0,pqIndex=0,formatIndex=0;
-        int brightness = 0;
-
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "current";
-
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
-        if(source.empty())
-            source = "current";
-
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
-        if(format.empty())
-            format = "current";
-
-        GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
-        int err = GetLocalparam("Brightness",formatIndex,pqIndex,sourceIndex,brightness,PQ_PARAM_BRIGHTNESS,false);
-        if( err == 0 ) {
-            response["brightness"] = std::to_string(brightness);
-            LOGINFO("Exit : Brightness Value: %d \n", brightness);
-            returnResponse(true);
-        }
-        else {
-            returnResponse(false);
-        }
-    }
-
-    uint32_t AVOutputTV::getBrightness2(const JsonObject& parameters, JsonObject& response)
-    {
-        LOGINFO("Entry");
-
-        std::string pqmode;
-        std::string source;
-        std::string format;
         std::string key;
         int sourceIndex=0,pqIndex=0,formatIndex=0;
         int brightness = 0;
+
         JsonObject range;
-        JsonObject brightnessObj;
         range["From"] = 0;
         range["To"] = 100;
-        brightnessObj["Range"] = range;
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
@@ -1229,8 +1148,8 @@ namespace Plugin {
         GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         int err = GetLocalparam("Brightness",formatIndex,pqIndex,sourceIndex,brightness, PQ_PARAM_BRIGHTNESS);
         if( err == 0 ) {
-            brightnessObj["Setting"] = std::to_string(brightness);
-            response["Brightness"] = brightnessObj;
+            response["Brightness"] = std::string(brightness);
+            response["Range"] = range;
             LOGINFO("Exit : Brightness Value: %d \n", brightness);
             returnResponse(true);
         }
@@ -1422,46 +1341,9 @@ namespace Plugin {
         std::string key;
         int sourceIndex=0,pqIndex=0,formatIndex=0;
         int contrast = 0;
-
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "current";
-
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
-        if(source.empty())
-            source = "current";
-
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
-        if(format.empty())
-            format = "current";
-
-        GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
-        int err = GetLocalparam("Contrast",formatIndex,pqIndex,sourceIndex,contrast,PQ_PARAM_CONTRAST);
-        if( err == 0 ) {
-            response["contrast"] = std::to_string(contrast);
-            LOGINFO("Exit : Contrast Value: %d \n", contrast);
-            returnResponse(true);
-        }
-        else {
-            returnResponse(false);
-        }
-    }
-
-    uint32_t AVOutputTV::getContrast2(const JsonObject& parameters, JsonObject& response)
-    {
-        LOGINFO("Entry");
-
-        std::string pqmode;
-        std::string source;
-        std::string format;
-        std::string key;
-        int sourceIndex=0,pqIndex=0,formatIndex=0;
-        int contrast = 0;
         JsonObject range;
-        JsonObject contrastObj;
         range["From"] = 0;
         range["To"] = 100;
-        contrastObj["Range"] = range;
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
@@ -1478,8 +1360,8 @@ namespace Plugin {
         GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         int err = GetLocalparam("Contrast",formatIndex,pqIndex,sourceIndex,contrast, PQ_PARAM_CONTRAST);
         if( err == 0 ) {
-            contrastObj["Setting"] = std::to_string(contrast);
-            response["Contrast"] = contrastObj;
+            response["Contrast"] = std::to_string(contrast);
+            response["Range"] = range;
             LOGINFO("Exit : Contrast Value: %d \n", contrast);
             returnResponse(true);
         }
@@ -1670,46 +1552,9 @@ namespace Plugin {
         std::string key;
         int sourceIndex=0,pqIndex=0,formatIndex=0;
         int saturation = 0;
-
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "current";
-
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
-        if(source.empty())
-            source = "current";
-
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
-        if(format.empty())
-            format = "current";
-
-        GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
-        int err = GetLocalparam("Saturation",formatIndex,pqIndex,sourceIndex,saturation, PQ_PARAM_SATURATION);
-        if( err == 0 ) {
-            response["saturation"] = std::to_string(saturation);
-            LOGINFO("Exit : Saturation Value: %d \n", saturation);
-            returnResponse(true);
-        }
-        else {
-            returnResponse(false);
-        }
-    }
-
-    uint32_t AVOutputTV::getSaturation2(const JsonObject& parameters, JsonObject& response)
-    {
-        LOGINFO("Entry");
-
-        std::string pqmode;
-        std::string source;
-        std::string format;
-        std::string key;
-        int sourceIndex=0,pqIndex=0,formatIndex=0;
-        int saturation = 0;
         JsonObject range;
-        JsonObject saturationObj;
         range["From"] = 0;
         range["To"] = 100;
-        saturationObj["Range"] = range;
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
@@ -1726,8 +1571,8 @@ namespace Plugin {
         GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         int err = GetLocalparam("Saturation",formatIndex,pqIndex,sourceIndex,saturation, PQ_PARAM_SATURATION);
         if( err == 0 ) {
-            saturationObj["Setting"] = std::to_string(saturation);
-            response["Saturation"] = saturationObj;
+            response["Saturation"] = std::to_string(saturation);
+            response["Range"] = range;
             LOGINFO("Exit : Saturation Value: %d \n", saturation);
             returnResponse(true);
         }
@@ -1927,46 +1772,9 @@ namespace Plugin {
         std::string key;
         int sourceIndex=0,pqIndex=0,formatIndex=0;
         int sharpness = 0;
-
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "current";
-
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
-        if(source.empty())
-            source = "current";
-
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
-        if(format.empty())
-            format = "current";
-
-        GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
-        int err = GetLocalparam("Sharpness",formatIndex,pqIndex,sourceIndex,sharpness, PQ_PARAM_SHARPNESS);
-        if( err == 0 ) {
-            response["sharpness"] = std::to_string(sharpness);
-            LOGINFO("Exit : Sharpness Value: %d \n", sharpness);
-            returnResponse(true);
-        }
-        else {
-            returnResponse(false);
-        }
-    }
-
-    uint32_t AVOutputTV::getSharpness2(const JsonObject& parameters, JsonObject& response)
-    {
-        LOGINFO("Entry");
-
-        std::string pqmode;
-        std::string source;
-        std::string format;
-        std::string key;
-        int sourceIndex=0,pqIndex=0,formatIndex=0;
-        int sharpness = 0;
         JsonObject range;
-        JsonObject sharpnessObj;
         range["From"] = 0;
         range["To"] = 100;
-        sharpnessObj["Range"] = range;
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
@@ -1983,8 +1791,8 @@ namespace Plugin {
         GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         int err = GetLocalparam("Sharpness",formatIndex,pqIndex,sourceIndex,sharpness, PQ_PARAM_SHARPNESS);
         if( err == 0 ) {
-            sharpnessObj["Setting"] = std::to_string(sharpness);
-            response["Sharpness"] = sharpnessObj;
+            response["Sharpness"] = std::to_string(sharpness);
+            response["Range"] = range;
             LOGINFO("Exit : Sharpness Value: %d \n", sharpness);
             returnResponse(true);
         }
@@ -2176,45 +1984,9 @@ namespace Plugin {
         int sourceIndex=0,pqIndex=0,formatIndex=0;
         int hue = 0;
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "current";
-
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
-        if(source.empty())
-            source = "current";
-
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
-        if(format.empty())
-            format = "current";
-
-        GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
-        int err = GetLocalparam("Hue",formatIndex,pqIndex,sourceIndex,hue, PQ_PARAM_HUE);
-        if( err == 0 ) {
-            response["hue"] = std::to_string(hue);
-            LOGINFO("Exit : Hue Value: %d \n", hue);
-            returnResponse(true);
-        }
-        else {
-            returnResponse(false);
-        }
-    }
-
-    uint32_t AVOutputTV::getHue2(const JsonObject& parameters, JsonObject& response)
-    {
-        LOGINFO("Entry");
-
-        std::string pqmode;
-        std::string source;
-        std::string format;
-        std::string key;
-        int sourceIndex=0,pqIndex=0,formatIndex=0;
-        int hue = 0;
         JsonObject range;
-        JsonObject hueObj;
         range["From"] = 0;
         range["To"] = 100;
-        hueObj["Range"] = range;
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
@@ -2231,8 +2003,8 @@ namespace Plugin {
         GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         int err = GetLocalparam("Hue",formatIndex,pqIndex,sourceIndex,hue, PQ_PARAM_HUE);
         if( err == 0 ) {
-            hueObj["Setting"] = std::to_string(hue);
-            response["Hue"] = hueObj;
+            response["Hue"] = std::to_string(hue);
+            response["Range"] = range;
             LOGINFO("Exit : Hue Value: %d \n", hue);
             returnResponse(true);
         }
@@ -2415,67 +2187,6 @@ namespace Plugin {
     }
 
     uint32_t AVOutputTV::getColorTemperature(const JsonObject& parameters, JsonObject& response)
-    {
-        LOGINFO("Entry");
-
-        std::string pqmode;
-        std::string source;
-        std::string format;
-        std::string key;
-        int sourceIndex=0,pqIndex=0,formatIndex=0;
-        int colortemp = 0;
-
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "current";
-
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
-        if(source.empty())
-            source = "current";
-
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
-        if(format.empty())
-            format = "current";
-
-        GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
-        int err = GetLocalparam("ColorTemp",formatIndex,pqIndex,sourceIndex,colortemp, PQ_PARAM_COLOR_TEMPERATURE);
-        if( err == 0 ) {
-            switch(colortemp) {
-
-                case tvColorTemp_STANDARD:
-                    LOGINFO("Color Temp Value: Standard\n");
-                    response["colorTemp"] = "Standard";
-                    break;
-
-                case tvColorTemp_WARM:
-                    LOGINFO("Color Temp Value: Warm\n");
-                    response["colorTemp"] = "Warm";
-                    break;
-
-                case tvColorTemp_COLD:
-                    LOGINFO("Color Temp Value: Cold\n");
-                    response["colorTemp"] = "Cold";
-                    break;
-
-                case tvColorTemp_USER:
-                    LOGINFO("Color Temp Value: User Defined\n");
-                    response["colorTemp"] = "User Defined";
-                    break;
-
-                default:
-                    LOGINFO("Color Temp Value: Standard\n");
-                    response["colorTemp"] = "Standard";
-                    break;
-            }
-            LOGINFO("Exit : ColorTemperature Value: %d \n", colortemp);
-            returnResponse(true);
-        }
-        else {
-            returnResponse(false);
-        }
-    }
-
-    uint32_t AVOutputTV::getColorTemperature2(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
 
@@ -3179,10 +2890,8 @@ namespace Plugin {
         tvDataComponentColor_t blLumaColor;
         int luma=0;
         JsonObject range;
-        JsonObject lumaColorObj;
         range["From"] = 0;
         range["To"] = 100;
-        lumaColorObj["Range"] = range;
 
         value = parameters.HasLabel("color") ? parameters["color"].String() : "";
         returnIfParamNotFound(parameters,"color");
@@ -3208,8 +2917,8 @@ namespace Plugin {
 	GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         int err = GetLocalparam(cms.c_str(),formatIndex,pqIndex,sourceIndex,luma,PQ_PARAM_COMPONENT_LUMA);
         if( err == 0 || err == 1 ) {//err value willbe 1 if cms is default.(SPECIAL case)
-            lumaColorObj["Setting"] = std::to_string(luma);
-            response["luma"] = lumaColorObj;
+            response["luma"] = std::to_string(luma);
+            response["Range"] = range;
             LOGINFO("Exit : Component Luma for color: %s Value: %d\n", value.c_str(),luma);
             returnResponse(true);
         }
@@ -3443,6 +3152,8 @@ namespace Plugin {
         std::string source;
         std::string format;
 	std::string key;
+	JsonObject range;
+	range["List"] = "local,global,fixed"
 	int sourceIndex=0,pqIndex=0,formatIndex=0;
         int dimmingMode = 0;
 
@@ -3479,6 +3190,7 @@ namespace Plugin {
                 
             }
             LOGINFO("Exit : DimmingMode Value: %d \n", dimmingMode);
+	    response["Range"] = range;
             returnResponse(true);
         }
         else {
@@ -3956,12 +3668,15 @@ namespace Plugin {
     {
         LOGINFO("Entry");
         std::string dolby_vision;
+        JsonObject range;
+	range["List"] = "dark,bright";
 
         if ( -1 == GetDolbyParams(tvContentFormatType_DOVI, dolby_vision)) {
             returnResponse(false);
         }
         else {
             response["DolbyVisionMode"] = dolby_vision;
+	    response["Range"] = range;
             LOGINFO("Exit getDolbyVisionMode(): %s\n",dolby_vision.c_str());
             returnResponse(true);
         }
@@ -4183,11 +3898,14 @@ namespace Plugin {
         LOGINFO("Entry\n");
         std::string hdr10;
 
+	JsonObject range;
+	range["List"] = "dark,bright";
         if ( -1 == GetDolbyParams(tvContentFormatType_HDR10, hdr10)) {
             returnResponse(false);
         }
         else {
             response["HDR10Mode"] = hdr10;
+            response["Range"] = range;
             LOGINFO("Exit getHDR10Mode(): %s\n",hdr10.c_str());
             returnResponse(true);
         }
@@ -4336,10 +4054,13 @@ namespace Plugin {
         LOGINFO("Entry\n");
         std::string hlg;
 
+	JsonObject range;
+	range["List"] = "dark,bright"
         if ( -1 == GetDolbyParams(tvContentFormatType_HLG, hlg)) {
             returnResponse(false);
         }
         else {
+            response["Range"] = range;
             response["HLGMode"] = hlg;
             LOGINFO("Exit getHLGMode(): %s\n",hlg.c_str());
             returnResponse(true);
@@ -4831,7 +4552,6 @@ namespace Plugin {
         } else {
            current_format = ConvertFormatStringToTVContentFormat(format.c_str()); 
         }
-
 
         LOGINFO("current format index[%d] \n", current_format);
         tr181_param_name += std::string(TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM);

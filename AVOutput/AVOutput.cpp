@@ -23,7 +23,7 @@
 
 const char* PLUGIN_IARM_BUS_NAME = "Thunder_Plugins";
 
-#define registerMethod(...) Register(__VA_ARGS__);GetHandler(2)->Register<JsonObject, JsonObject>(__VA_ARGS__)
+#define registerMethod(...) for (uint8_t i = 1; GetHandler(i); i++) GetHandler(i)->Register<JsonObject, JsonObject>(__VA_ARGS__)
 
 namespace WPEFramework {
 namespace Plugin {
@@ -39,7 +39,6 @@ namespace Plugin {
 	CreateHandler({ 2 });
 
         //Common API Registration
-
         LOGINFO("Exit \n");
     }
 
@@ -131,7 +130,7 @@ namespace Plugin {
 
         return (isRegistered == 1);
     }
-   
+
 } //namespace WPEFramework
 
 } //namespace Plugin

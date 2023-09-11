@@ -116,13 +116,6 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         DECLARE_JSON_RPC_METHOD(resetWBCtrl )
         DECLARE_JSON_RPC_METHOD(getWBCaps )
 
-        DECLARE_JSON_RPC_METHOD(getBacklight2 )
-        DECLARE_JSON_RPC_METHOD(getBrightness2 )
-        DECLARE_JSON_RPC_METHOD(getContrast2 )
-        DECLARE_JSON_RPC_METHOD(getSharpness2 )
-        DECLARE_JSON_RPC_METHOD(getSaturation2 )
-        DECLARE_JSON_RPC_METHOD(getHue2 )
-        DECLARE_JSON_RPC_METHOD(getColorTemperature2 )
         DECLARE_JSON_RPC_METHOD(getSupportedPictureModes )
         DECLARE_JSON_RPC_METHOD(getPictureMode )
         DECLARE_JSON_RPC_METHOD(setPictureMode )
