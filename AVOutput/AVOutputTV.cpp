@@ -1146,6 +1146,7 @@ namespace Plugin {
             format = "current";
 
         GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+
         int err = GetLocalparam("Brightness",formatIndex,pqIndex,sourceIndex,brightness, PQ_PARAM_BRIGHTNESS);
         if( err == 0 ) {
             response["Brightness"] = std::to_string(brightness);
