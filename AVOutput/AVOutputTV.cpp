@@ -1148,7 +1148,7 @@ namespace Plugin {
         GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         int err = GetLocalparam("Brightness",formatIndex,pqIndex,sourceIndex,brightness, PQ_PARAM_BRIGHTNESS);
         if( err == 0 ) {
-            response["Brightness"] = std::string(brightness);
+            response["Brightness"] = std::to_string(brightness);
             response["Range"] = range;
             LOGINFO("Exit : Brightness Value: %d \n", brightness);
             returnResponse(true);
@@ -3153,7 +3153,7 @@ namespace Plugin {
         std::string format;
 	std::string key;
 	JsonObject range;
-	range["List"] = "local,global,fixed"
+	range["List"] = "local,global,fixed";
 	int sourceIndex=0,pqIndex=0,formatIndex=0;
         int dimmingMode = 0;
 
@@ -4055,7 +4055,7 @@ namespace Plugin {
         std::string hlg;
 
 	JsonObject range;
-	range["List"] = "dark,bright"
+	range["List"] = "dark,bright";
         if ( -1 == GetDolbyParams(tvContentFormatType_HLG, hlg)) {
             returnResponse(false);
         }
