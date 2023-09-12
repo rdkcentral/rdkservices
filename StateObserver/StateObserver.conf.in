@@ -1,0 +1,6 @@
+precondition = ["Platform"]
+callsign = "com.comcast.StateObserver"
+autostart = "false"
+
+if boolean("@PLUGIN_STATEOBSERVER_STARTUPORDER@"):
+    startuporder = "@PLUGIN_STATEOBSERVER_STARTUPORDER@"

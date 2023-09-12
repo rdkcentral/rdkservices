@@ -1,0 +1,207 @@
+autostart = "@PLUGIN_MONITOR_AUTOSTART@"
+
+if boolean("@PLUGIN_MONITOR_STARTUPORDER@"):
+    startuporder = "@PLUGIN_MONITOR_STARTUPORDER@"
+
+configuration = JSON()
+
+observable_list = []
+
+if boolean("@PLUGIN_MONITOR_WEBKITBROWSER@"):
+    observable_config = JSON()
+    observable_config.add("callsign", "WebKitBrowser")
+    observable_config.add("memory", "5")
+    observable_config.add("memorylimit", "@PLUGIN_MONITOR_WEBKITBROWSER_MEMORYLIMIT@")
+    observable_config.add("operational", "1")
+    restart_config = JSON()
+    restart_config.add("window", "60")
+    restart_config.add("limit", "3")
+    observable_config.add("restart", restart_config)
+    observable_list.append(observable_config)
+
+if boolean("@PLUGIN_MONITOR_WEBKITBROWSER_YOUTUBE@"):
+    observable_config = JSON()
+    observable_config.add("callsign", "YouTube")
+    observable_config.add("memory", "5")
+    observable_config.add("memorylimit", "@PLUGIN_MONITOR_WEBKITBROWSER_YOUTUBE_MEMORYLIMIT@")
+    observable_config.add("operational", "1")
+    restart_config = JSON()
+    restart_config.add("window", "60")
+    restart_config.add("limit", "3")
+    observable_config.add("restart", restart_config)
+    observable_list.append(observable_config)
+
+if boolean("@PLUGIN_MONITOR_AMAZON@"):
+    observable_config = JSON()
+    observable_config.add("callsign", "Amazon")
+    observable_config.add("memory", "5")
+    observable_config.add("memorylimit", "@PLUGIN_MONITOR_AMAZON_MEMORYLIMIT@")
+    observable_config.add("operational", "1")
+    restart_config = JSON()
+    restart_config.add("window", "60")
+    restart_config.add("limit", "3")
+    observable_config.add("restart", restart_config)
+    observable_list.append(observable_config)
+
+if boolean("@PLUGIN_MONITOR_COBALT@"):
+    observable_config = JSON()
+    observable_config.add("callsign", "Cobalt")
+    observable_config.add("memory", "5")
+    observable_config.add("memorylimit", "@PLUGIN_MONITOR_COBALT_MEMORYLIMIT@")
+    observable_config.add("operational", "1")
+    restart_config = JSON()
+    restart_config.add("window", "60")
+    restart_config.add("limit", "3")
+    observable_config.add("restart", restart_config)
+    observable_list.append(observable_config)
+
+if boolean("@PLUGIN_MONITOR_WEBKITBROWSER_APPS@"):
+    observable_config = JSON()
+    observable_config.add("callsign", "Apps")
+    observable_config.add("memory", "5")
+    observable_config.add("memorylimit", "@PLUGIN_MONITOR_WEBKITBROWSER_APPS_MEMORYLIMIT@")
+    observable_config.add("operational", "1")
+    restart_config = JSON()
+    restart_config.add("window", "60")
+    restart_config.add("limit", "3")
+    observable_config.add("restart", restart_config)
+    observable_list.append(observable_config)
+
+if boolean("@PLUGIN_MONITOR_WEBKITBROWSER_UX@"):
+    observable_config = JSON()
+    observable_config.add("callsign", "UX")
+    observable_config.add("memory", "5")
+    observable_config.add("memorylimit", "@PLUGIN_MONITOR_WEBKITBROWSER_UX_MEMORYLIMIT@")
+    observable_config.add("operational", "1")
+    restart_config = JSON()
+    restart_config.add("window", "60")
+    restart_config.add("limit", "3")
+    observable_config.add("restart", restart_config)
+    observable_list.append(observable_config)
+
+if boolean("@PLUGIN_MONITOR_NETFLIX@"):
+    observable_config = JSON()
+    observable_config.add("callsign", "Netflix")
+    observable_config.add("memory", "5")
+    observable_config.add("memorylimit", "@PLUGIN_MONITOR_NETFLIX_MEMORYLIMIT@")
+    observable_config.add("operational", "1")
+    restart_config = JSON()
+    restart_config.add("window", "60")
+    restart_config.add("limit", "3")
+    observable_config.add("restart", restart_config)
+    observable_list.append(observable_config)
+
+if boolean("@PLUGIN_MONITOR_OUTOFPROCESS@"):
+    observable_config = JSON()
+    observable_config.add("callsign", "OutOfProcessPlugin")
+    observable_config.add("memory", "5")
+    observable_config.add("memorylimit", "3000")
+    observable_config.add("operational", "1")
+    restart_config = JSON()
+    restart_config.add("window", "60")
+    restart_config.add("limit", "3")
+    observable_config.add("restart", restart_config)
+    observable_list.append(observable_config)
+
+if boolean("@PLUGIN_MONITOR_TESTUTILITY@"):
+    observable_config = JSON()
+    observable_config.add("callsign", "TestUtility")
+    observable_config.add("memory", "5")
+    observable_config.add("memorylimit", "3000")
+    observable_config.add("operational", "1")
+    restart_config = JSON()
+    restart_config.add("window", "60")
+    restart_config.add("limit", "3")
+    observable_config.add("restart", restart_config)
+    observable_list.append(observable_config)
+
+if boolean("@PLUGIN_MONITOR_OPENCDMI@"):
+    observable_config = JSON()
+    observable_config.add("callsign", "OCDM")
+    observable_config.add("operational", "1")
+    restart_config = JSON()
+    restart_config.add("window", "60")
+    restart_config.add("limit", "3")
+    observable_config.add("restart", restart_config)
+    observable_list.append(observable_config)
+
+if boolean("@PLUGIN_MONITOR_TEXTTOSPEECH@"):
+    observable_config = JSON()
+    observable_config.add("callsign", "org.rdk.TextToSpeech")
+    observable_config.add("operational", "1")
+    restart_config = JSON()
+    restart_config.add("window", "60")
+    restart_config.add("limit", "3")
+    observable_config.add("restart", restart_config)
+    observable_list.append(observable_config)
+
+if boolean("@PLUGIN_MONITOR_SYSTEMAUDIOPLAYER@"):
+    observable_config = JSON()
+    observable_config.add("callsign", "org.rdk.SystemAudioPlayer")
+    observable_config.add("operational", "1")
+    restart_config = JSON()
+    restart_config.add("window", "60")
+    restart_config.add("limit", "3")
+    observable_config.add("restart", restart_config)
+    observable_list.append(observable_config)
+
+if boolean("@PLUGIN_MONITOR_WEBKITBROWSER_RESIDENT_APP@"):
+    observable_config = JSON()
+    observable_config.add("callsign", "ResidentApp")
+    observable_config.add("memory", "5")
+    observable_config.add("memorylimit", "@PLUGIN_MONITOR_WEBKITBROWSER_RESIDENT_APP_MEMORYLIMIT@")
+    observable_config.add("operational", "1")
+    restart_config = JSON()
+    restart_config.add("window", "60")
+    restart_config.add("limit", "3")
+    observable_config.add("restart", restart_config)
+    observable_list.append(observable_config)
+
+if boolean("@PLUGIN_MONITOR_CLONED_APPS@"):
+    observable_config = JSON()
+    observable_config.add("callsign", "SearchAndDiscovery")
+    observable_config.add("operational", "-1")
+    observable_config.add("memory", "5")
+    observable_config.add("memorylimit", "@PLUGIN_MONITOR_SEARCH_AND_DISCOVERY_MEMORYLIMIT@")
+    observable_list.append(observable_config)
+
+    for N in range(4):
+        #name = "HtmlApp-" + str(N)
+        observable_config = JSON()
+        observable_config.add("callsign", "HtmlApp-" + str(N))
+        observable_config.add("operational", "-1")
+        observable_config.add("memory", "5")
+        observable_config.add("memorylimit", "@PLUGIN_MONITOR_CLONED_APP_MEMORYLIMIT@")
+        observable_list.append(observable_config)
+
+    for N in range(4):
+        observable_config = JSON()
+        observable_config.add("callsign", "LightningApp-" + str(N))
+        observable_config.add("operational", "-1")
+        observable_config.add("memory", "5")
+        observable_config.add("memorylimit", "@PLUGIN_MONITOR_CLONED_APP_MEMORYLIMIT@")
+        observable_list.append(observable_config)
+
+    observable_config = JSON()
+    observable_config.add("callsign", "Cobalt-0")
+    observable_config.add("operational", "-1")
+    observable_config.add("memory", "5")
+    observable_config.add("memorylimit", "@PLUGIN_MONITOR_CLONED_APP_MEMORYLIMIT@")
+    observable_list.append(observable_config)
+
+    observable_config = JSON()
+    observable_config.add("callsign", "Netflix-0")
+    observable_config.add("operational", "-1")
+    observable_config.add("memory", "5")
+    observable_config.add("memorylimit", "@PLUGIN_MONITOR_NETFLIX_APP_MEMORYLIMIT@")
+    observable_list.append(observable_config)
+
+    observable_config = JSON()
+    observable_config.add("callsign", "JSPP")
+    observable_config.add("operational", "-1")
+    observable_config.add("memory", "5")
+    observable_config.add("memorylimit", "@PLUGIN_MONITOR_CLONED_APP_MEMORYLIMIT@")
+    observable_list.append(observable_config)
+
+configuration.add("observables", observable_list)
+
