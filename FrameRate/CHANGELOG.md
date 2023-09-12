@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.4] - 2023-09-12
+### Fixed
+- Sending FrameRate onDisplayFrameRateChanging and onDisplayFrameRateChanged events to wpeframework log with displayFrameRate params
+
 ## [1.0.3] - 2023-04-12
 ### Fixed
 - Fixed IARM_Bus_UnRegisterEventHandler  call to IARM_Bus_RemoveEventHandler
