@@ -17,6 +17,10 @@ All notable changes to this RDK Service will be documented in this file.
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
 
+## [1.3.5] - 2023-09-12
+### Fixed
+Fixed the errors in DisplaySettingsPLugin.md file 
+
 ## [1.3.4] - 2023-09-05
 ### Fixed
 Updated getCurrentResolution API to return resolution along with width, height and signal type.
