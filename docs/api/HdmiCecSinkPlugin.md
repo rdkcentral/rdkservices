@@ -2,7 +2,7 @@
 <a name="HdmiCecSinkPlugin"></a>
 # HdmiCecSinkPlugin
 
-**Version: [1.1.0](https://github.com/rdkcentral/rdkservices/blob/main/HdmiCecSink/CHANGELOG.md)**
+**Version: [1.2.1](https://github.com/rdkcentral/rdkservices/blob/main/HdmiCecSink/CHANGELOG.md)**
 
 A org.rdk.HdmiCecSink plugin for Thunder framework.
 
@@ -69,6 +69,7 @@ HdmiCecSink interface methods:
 | [setRoutingChange](#setRoutingChange) | Changes routing while switching between HDMI inputs and TV |
 | [setupARCRouting](#setupARCRouting) | Enable (or disable) HDMI-CEC Audio Return Channel (ARC) routing |
 | [setVendorId](#setVendorId) | Sets a vendor ID used by host device |
+| [setLatencyInfo](#setLatencyInfo) | Sets the Current Latency Values such as Video Latency, Latency Flags,Audio Output Compensated value and Audio Output Delay by sending \<Report Current Latency\> message for Dynamic Auto LipSync Feature |
 
 
 <a name="getActiveRoute"></a>
@@ -1158,6 +1159,62 @@ No Events
     "method": "org.rdk.HdmiCecSink.setVendorId",
     "params": {
         "vendorid": "0019fc"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="setLatencyInfo"></a>
+## *setLatencyInfo*
+
+Sets the Current Latency Values such as Video Latency, Latency Flags,Audio Output Compensated value and Audio Output Delay by sending \<Report Current Latency\> message for Dynamic Auto LipSync Feature.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.videoLatency | string | Indicates the Video Latency value of the target device |
+| params.lowLatencyMode | string | Indicates whether low latency Mode is 0 or 1 |
+| params.audioOutputCompensated | string | Indicates whether Audio Output is delay compensated or not. 0 = (NA)Sent by Non-TV, 1 = TV's audio Output is delay compensated, 2 = Not delay compensated, 3 = Partially delayed |
+| params.audioOutputDelay | string | Indicates the Audio Output Delay value of the target device |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.HdmiCecSink.setLatencyInfo",
+    "params": {
+        "videoLatency": "2",
+        "lowLatencyMode": "1",
+        "audioOutputCompensated": "1",
+        "audioOutputDelay": "20"
     }
 }
 ```

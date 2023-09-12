@@ -2,7 +2,7 @@
 <a name="TextToSpeech_Plugin"></a>
 # TextToSpeech Plugin
 
-**Version: [1.0.11](https://github.com/rdkcentral/rdkservices/blob/main/TextToSpeech/CHANGELOG.md)**
+**Version: [1.0.12](https://github.com/rdkcentral/rdkservices/blob/main/TextToSpeech/CHANGELOG.md)**
 
 A org.rdk.TextToSpeech plugin for Thunder framework.
 
@@ -293,6 +293,7 @@ This method takes no parameters.
 | result.voice | string | The TTS Voice |
 | result.volume | string | The TTS Volume |
 | result.rate | number | The TTS Rate |
+| result?.speechrate | string | <sup>*(optional)*</sup> TTS Rate for TTS2 endpoint |
 | result.TTS_Status | number |  (must be one of the following: *TTS_OK(0)*, *TTS_FAIL(1)*, *TTS_NOT_ENABLED(2)*, *TTS_INVALID_CONFIGURATION(3)*) |
 | result.success | boolean | Whether the request succeeded |
 
@@ -321,6 +322,7 @@ This method takes no parameters.
         "voice": "carol",
         "volume": "100.000000",
         "rate": 50,
+        "speechrate": "medium",
         "TTS_Status": 0,
         "success": true
     }

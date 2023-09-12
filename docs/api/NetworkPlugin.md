@@ -72,6 +72,7 @@ Network interface methods:
 | [trace](#trace) | Traces the specified endpoint with the specified number of packets using `traceroute` |
 | [traceNamedEndpoint](#traceNamedEndpoint) | Traces the specified named endpoint with the specified number of packets using `traceroute` |
 
+
 <a name="getDefaultInterface"></a>
 ## *getDefaultInterface*
 
@@ -421,7 +422,7 @@ No Events
     "id": 42,
     "method": "org.rdk.Network.getSTBIPFamily",
     "params": {
-        "family": "IPv4"
+        "family": "AF_INET"
     }
 }
 ```
@@ -503,10 +504,7 @@ No Events
 
 ### Parameters
 
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object | <sup>*(optional)*</sup> |
-| params?.ipversion | string | <sup>*(optional)*</sup> Either IPv4 or IPv6 |
+This method takes no parameters.
 
 ### Result
 
@@ -514,7 +512,6 @@ No Events
 | :-------- | :-------- | :-------- |
 | result | object |  |
 | result.connectedToInternet | boolean | `true` if internet connectivity is detected, otherwise `false` |
-| result?.ipversion | string | <sup>*(optional)*</sup> If the request is specific to IPv4 or IPv6 |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -526,9 +523,6 @@ No Events
     "jsonrpc": "2.0",
     "id": 42,
     "method": "org.rdk.Network.isConnectedToInternet"
-    "params": {
-        "ipversion": "IPv4"
-    }
 }
 ```
 
@@ -539,7 +533,6 @@ No Events
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "ipversion": "IPv4",
         "connectedToInternet": true,
         "success": true
     }
@@ -561,17 +554,13 @@ No Events
 
 ### Parameters
 
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object | <sup>*(optional)*</sup>  |
-| params?.ipversion | string | <sup>*(optional)*</sup> Either IPv4 or IPv6 |
+This method takes no parameters.
 
 ### Result
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result?.ipversion | string | <sup>*(optional)*</sup> If the request is specific to IPv4 or IPv6 |
 | result.state | integer | Internet Connection state |
 | result?.URI | string | <sup>*(optional)*</sup> Captive portal URI |
 | result.success | boolean | Whether the request succeeded |
@@ -584,10 +573,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Network.getInternetConnectionState",
-    "params": {
-        "ipversion": "IPv4"
-    }
+    "method": "org.rdk.Network.getInternetConnectionState"
 }
 ```
 
@@ -598,7 +584,6 @@ No Events
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "ipversion": "IPv4",
         "state": 2,
         "URI": "http://10.0.0.1/captiveportal.jst",
         "success": true
@@ -1102,7 +1087,7 @@ Sets the IP settings.All the inputs are mandatory for v1. But for v2, the interf
     "params": {
         "interface": "WIFI",
         "ipversion": "IPv4",
-        "autoconfig": false,
+        "autoconfig": true,
         "ipaddr": "192.168.1.101",
         "netmask": "255.255.255.0",
         "gateway": "192.168.1.1",
@@ -1240,7 +1225,7 @@ No Events
 <a name="configurePNI"></a>
 ## *configurePNI*
 
-This method configures PNI to enable or disable Connectivity test. 
+This method configures PNI to enable or disable Connectivity test.
 
 ### Events
 
@@ -1251,7 +1236,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object | it allows empty parameter too |
-| params.disableConnectivityTest | boolean | Connectivity test ON or OFF |
+| params.disableConnectivityTest | boolean | Disable Connectivity Test |
 
 ### Result
 
@@ -1286,8 +1271,6 @@ No Events
     }
 }
 ```
-
-
 
 <a name="trace"></a>
 ## *trace*

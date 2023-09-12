@@ -2,7 +2,7 @@
 <a name="XCast_Plugin"></a>
 # XCast Plugin
 
-**Version: [1.0.13](https://github.com/rdkcentral/rdkservices/blob/main/XCast/CHANGELOG.md)**
+**Version: [1.0.15](https://github.com/rdkcentral/rdkservices/blob/main/XCast/CHANGELOG.md)**
 
 A org.rdk.Xcast plugin for Thunder framework.
 

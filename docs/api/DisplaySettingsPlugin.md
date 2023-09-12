@@ -2,7 +2,7 @@
 <a name="DisplaySettings_Plugin"></a>
 # DisplaySettings Plugin
 
-**Version: [1.3.0](https://github.com/rdkcentral/rdkservices/blob/main/DisplaySettings/CHANGELOG.md)**
+**Version: [1.3.5](https://github.com/rdkcentral/rdkservices/blob/main/DisplaySettings/CHANGELOG.md)**
 
 A org.rdk.DisplaySettings plugin for Thunder framework.
 
@@ -62,6 +62,14 @@ DisplaySettings interface methods:
 | [getDolbyVolumeMode](#getDolbyVolumeMode) | Returns whether Dolby Volume mode is enabled or disabled (audio output port HDMI0) |
 | [getDRCMode](#getDRCMode) | Returns the current Dynamic Range Control mode |
 | [getEnableAudioPort](#getEnableAudioPort) |  Returns the current status of the specified input audio port |
+| [setAssociatedAudioMixing](#setAssociatedAudioMixing) | Sets the Associated Audio Mixing Enable/Disable |
+| [getAssociatedAudioMixing](#getAssociatedAudioMixing) | Returns the Associated Audio Mixing status |
+| [setFaderControl](#setFaderControl) | Sets the set the mixerbalance betweeen main and associated audio |
+| [getFaderControl](#getFaderControl) | Returns the mixerbalance betweeen main and associated audio |
+| [setPrimaryLanguage](#setPrimaryLanguage) | Sets the Primary language |
+| [getPrimaryLanguage](#getPrimaryLanguage) | Returns the Primary language |
+| [setSecondaryLanguage](#setSecondaryLanguage) | Sets the secondary language |
+| [getSecondaryLanguage](#getSecondaryLanguage) | Returns the Secondary language |
 | [getGain](#getGain) | Returns the current gain value |
 | [getGraphicEqualizerMode](#getGraphicEqualizerMode) | Returns the current Graphic Equalizer Mode setting (port HDMI0) |
 | [getIntelligentEqualizerMode](#getIntelligentEqualizerMode) | Returns the current Intelligent Equalizer Mode setting (port HDMI0) |
@@ -614,7 +622,10 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result?.resolution | string | <sup>*(optional)*</sup> Video display resolution |
+| result.resolution | string | Video display resolution |
+| result.w | number | The width |
+| result.h | number | The height |
+| result?.progressive | boolean | <sup>*(optional)*</sup> The type of scan signal |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -640,6 +651,9 @@ No Events
     "id": 42,
     "result": {
         "resolution": "1080p",
+        "w": 1920,
+        "h": 1080,
+        "progressive": true,
         "success": true
     }
 }
@@ -890,6 +904,422 @@ No Events
     "id": 42,
     "result": {
         "enable": true,
+        "success": true
+    }
+}
+```
+
+<a name="setAssociatedAudioMixing"></a>
+## *setAssociatedAudioMixing*
+
+Sets the Associated Audio Mixing Enable/Disable.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+| params.mixing | boolean | `true` enables the Associated Audio Mixing for specified audio port. `false` to disables |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.setAssociatedAudioMixing",
+    "params": {
+        "audioPort": "SPEAKER0",
+        "mixing": true
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="getAssociatedAudioMixing"></a>
+## *getAssociatedAudioMixing*
+
+Returns the Associated Audio Mixing status.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.mixing | boolean | `true` if Associated Audio Mixing enabled for the specified audio port, otherwise `false` |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.getAssociatedAudioMixing",
+    "params": {
+        "audioPort": "SPEAKER0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "mixing": true,
+        "success": true
+    }
+}
+```
+
+<a name="setFaderControl"></a>
+## *setFaderControl*
+
+Sets the set the mixerbalance betweeen main and associated audio.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+| params.mixerBalance | integer | Value between -32 to +32, where -32 means mute associated and +32 means mute main |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.setFaderControl",
+    "params": {
+        "audioPort": "SPEAKER0",
+        "mixerBalance": 31
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="getFaderControl"></a>
+## *getFaderControl*
+
+Returns the mixerbalance betweeen main and associated audio.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.mixerBalance | integer | Value between -32 to +32, where -32 means mute associated and +32 means mute main |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.getFaderControl",
+    "params": {
+        "audioPort": "SPEAKER0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "mixerBalance": 31,
+        "success": true
+    }
+}
+```
+
+<a name="setPrimaryLanguage"></a>
+## *setPrimaryLanguage*
+
+Sets the Primary language.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+| params.lang | string | 3 letter lang code should be used as per ISO 639 |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.setPrimaryLanguage",
+    "params": {
+        "audioPort": "SPEAKER0",
+        "lang": "eng"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="getPrimaryLanguage"></a>
+## *getPrimaryLanguage*
+
+Returns the Primary language.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.lang | string | 3 letter lang code should be used as per ISO 639 |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.getPrimaryLanguage",
+    "params": {
+        "audioPort": "SPEAKER0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "lang": "eng",
+        "success": true
+    }
+}
+```
+
+<a name="setSecondaryLanguage"></a>
+## *setSecondaryLanguage*
+
+Sets the secondary language.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+| params.lang | string | 3 letter lang code should be used as per ISO 639 |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.setSecondaryLanguage",
+    "params": {
+        "audioPort": "SPEAKER0",
+        "lang": "eng"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="getSecondaryLanguage"></a>
+## *getSecondaryLanguage*
+
+Returns the Secondary language.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.audioPort | string | <sup>*(optional)*</sup> Audio port name (`HDMI0`, `SPEAKER0`, `SPDIF0`, and so on). The default port is `HDMI0` if no port is specified |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.lang | string | 3 letter lang code should be used as per ISO 639 |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.DisplaySettings.getSecondaryLanguage",
+    "params": {
+        "audioPort": "SPEAKER0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "lang": "eng",
         "success": true
     }
 }
