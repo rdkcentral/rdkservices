@@ -125,7 +125,7 @@ namespace WPEFramework
 
                 in.getBuffer(&buf, &len);
                 for (unsigned int i = 0; i < len; i++) {
-                   sprintf(strBuffer + (i*3) , "%02X ",(uint8_t) *(buf + i));
+                   snprintf(strBuffer + (i*3) , sizeof(strBuffer) - (i*3), "%02X ",(uint8_t) *(buf + i));
                 }
                 LOGINFO("   >>>>>    Received CEC Frame: :%s \n",strBuffer);
 
