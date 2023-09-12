@@ -19,6 +19,10 @@ All notable changes to this RDK Service will be documented in this file.
 ### Added
 - added rawDeviceType parameter in getDiscoveredDevices
 
+## [1.0.3] - 2023-09-12
+### Added
+- Implement Thunder Plugin Configuration for Kirkstone builds(CMake-3.20 & above)
+
 ## [1.0.2] - 2022-11-21
 ### Fixed
 - Publish all the connect/disconnect events. Do not filter out
