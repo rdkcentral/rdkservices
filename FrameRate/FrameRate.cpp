@@ -51,7 +51,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 3
+#define API_VERSION_NUMBER_PATCH 4 
 
 namespace WPEFramework
 {
@@ -455,28 +455,54 @@ namespace WPEFramework
 
 	void FrameRate::FrameRatePreChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
+	    char dispFrameRate[20] ={0};
+            if (strcmp(owner, IARM_BUS_DSMGR_NAME) == 0)
+            {
+                switch (eventId) {
+                    case IARM_BUS_DSMGR_EVENT_DISPLAY_FRAMRATE_PRECHANGE:
+                        IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
+                        strcpy(dispFrameRate,eventData->data.DisplayFrameRateChange.framerate);
+                        break;
+                }
+            }
+
             if(FrameRate::_instance)
             {
-                FrameRate::_instance->frameRatePreChange();
+                FrameRate::_instance->frameRatePreChange(dispFrameRate);
             }
         }
 
-        void FrameRate::frameRatePreChange()
+        void FrameRate::frameRatePreChange(char *displayFrameRate)
         {
-            sendNotify(EVENT_FRAMERATE_PRECHANGE, JsonObject());
+            JsonObject params;
+            params["displayFrameRate"] = std::string(displayFrameRate);
+            sendNotify(EVENT_FRAMERATE_PRECHANGE, params);
         }
 
         void FrameRate::FrameRatePostChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
+	    char dispFrameRate[20] ={0};
+            if (strcmp(owner, IARM_BUS_DSMGR_NAME) == 0)
+            {
+                switch (eventId) {
+                    case IARM_BUS_DSMGR_EVENT_DISPLAY_FRAMRATE_POSTCHANGE:
+                        IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
+                        strcpy(dispFrameRate,eventData->data.DisplayFrameRateChange.framerate);
+                        break;
+                }
+            }
+
             if(FrameRate::_instance)
             {
-                FrameRate::_instance->frameRatePostChange();
+                FrameRate::_instance->frameRatePostChange(dispFrameRate);
             }
         }
 
-        void FrameRate::frameRatePostChange()
+        void FrameRate::frameRatePostChange(char *displayFrameRate)
         {
-            sendNotify(EVENT_FRAMERATE_POSTCHANGE, JsonObject());
+            JsonObject params;
+            params["displayFrameRate"] = std::string(displayFrameRate);
+            sendNotify(EVENT_FRAMERATE_POSTCHANGE, params);
         }
 
         
