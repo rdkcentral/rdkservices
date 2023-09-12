@@ -785,7 +785,7 @@
                 "properties": {
                     "lang": {
                         "summary": "3 letter lang code should be used as per ISO 639.",
-                        "type": "integer",
+                        "type": "string",
                         "example": "eng"
                     },
                     "success": {
@@ -838,7 +838,7 @@
                 "properties": {
                     "lang": {
                         "summary": "3 letter lang code should be used as per ISO 639.",
-                        "type": "integer",
+                        "type": "string",
                         "example": "eng"
                     },
                     "success": {
