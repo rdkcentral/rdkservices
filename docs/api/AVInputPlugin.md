@@ -2,7 +2,7 @@
 <a name="AVInput_Plugin"></a>
 # AVInput Plugin
 
-**Version: [1.3.0](https://github.com/rdkcentral/rdkservices/blob/main/AVInput/CHANGELOG.md)**
+**Version: [1.3.2](https://github.com/rdkcentral/rdkservices/blob/main/AVInput/CHANGELOG.md)**
 
 A org.rdk.AVInput plugin for Thunder framework.
 
@@ -295,7 +295,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.portId | number | <sup>*(optional)*</sup> An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
+| params?.portId | string | <sup>*(optional)*</sup> An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
 
 ### Result
 
@@ -321,7 +321,7 @@ No Events
     "id": 42,
     "method": "org.rdk.AVInput.getEdidVersion",
     "params": {
-        "portId": 0
+        "portId": "0"
     }
 }
 ```
@@ -352,7 +352,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.portId | number | <sup>*(optional)*</sup> An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
+| params?.portId | string | <sup>*(optional)*</sup> An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
 
 ### Result
 
@@ -378,7 +378,7 @@ No Events
     "id": 42,
     "method": "org.rdk.AVInput.getSPD",
     "params": {
-        "portId": 0
+        "portId": "0"
     }
 }
 ```
@@ -409,7 +409,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.portId | number | An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
+| params.portId | string | An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
 
 ### Result
 
@@ -435,7 +435,7 @@ No Events
     "id": 42,
     "method": "org.rdk.AVInput.getRawSPD",
     "params": {
-        "portId": 0
+        "portId": "0"
     }
 }
 ```
@@ -466,7 +466,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.portId | number | An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
+| params.portId | string | An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
 
 ### Result
 
@@ -492,7 +492,7 @@ No Events
     "id": 42,
     "method": "org.rdk.AVInput.readEDID",
     "params": {
-        "portId": 0
+        "portId": "0"
     }
 }
 ```
@@ -525,7 +525,7 @@ Activates the specified HDMI/Composite Input port as the primary video source.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.portId | number | <sup>*(optional)*</sup> An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
+| params?.portId | string | <sup>*(optional)*</sup> An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
 | params.typeOfInput | string | The type of Input - HDMI/COMPOSITE |
 
 ### Result
@@ -551,7 +551,7 @@ Activates the specified HDMI/Composite Input port as the primary video source.
     "id": 42,
     "method": "org.rdk.AVInput.startInput",
     "params": {
-        "portId": 0,
+        "portId": "0",
         "typeOfInput": "HDMI"
     }
 }
@@ -636,7 +636,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.portId | number | An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
+| params.portId | string | An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
 | params.edidVersion | string | The EDID version |
 
 ### Result
@@ -662,7 +662,7 @@ No Events
     "id": 42,
     "method": "org.rdk.AVInput.setEdidVersion",
     "params": {
-        "portId": 0,
+        "portId": "0",
         "edidVersion": "HDMI2.0"
     }
 }
@@ -754,7 +754,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.portId | number | An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
+| params.portId | string | An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
 | params.message | string | A new EDID value |
 
 ### Result
@@ -779,7 +779,7 @@ No Events
     "id": 42,
     "method": "org.rdk.AVInput.writeEDID",
     "params": {
-        "portId": 0,
+        "portId": "0",
         "message": "EDID"
     }
 }
@@ -862,7 +862,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.portId | number | <sup>*(optional)*</sup> An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
+| params?.portId | string | <sup>*(optional)*</sup> An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
 | params.gameFeature | string | Game Feature to which current status requested |
 
 ### Result
@@ -888,7 +888,7 @@ No Events
     "id": 42,
     "method": "org.rdk.AVInput.getGameFeatureStatus",
     "params": {
-        "portId": 0,
+        "portId": "0",
         "gameFeature": "ALLM"
     }
 }
