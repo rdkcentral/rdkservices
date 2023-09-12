@@ -1,0 +1,84 @@
+precondition = ["Provisioning"]
+autostart = "@PLUGIN_OPENCDMI_AUTOSTART@"
+
+if boolean("@PLUGIN_OPENCDMI_PLAYREADY_NEXUS@") or \
+    boolean("@PLUGIN_OPENCDMI_PLAYREADY_NEXUS_SVP@") or \
+    boolean("@PLUGIN_OPENCDMI_NAGRA@") :
+    precondition = ["Platform"]
+
+if boolean("@PLUGIN_OCDM_STARTUPORDER@"):
+    startuporder = "@PLUGIN_OCDM_STARTUPORDER@"
+
+configuration = JSON()
+configuration.add("sharepath", "/tmp/OCDM")
+if ("@PLUGIN_OPENCDMI_MODE@" == "off"):
+    configuration.add("outofprocess", "@PLUGIN_OPENCDMI_OOP@")
+
+systems = []
+
+if boolean("@PLUGIN_OPENCDMI_CLEARKEY@"):
+    keysystem = JSON()
+    keysystem.add("name", "ClearKey")
+    keysystem.add("designators", [ "org.chromium.externalclearkey", "org.w3.clearkey" ])
+    systems.append(keysystem)
+
+
+if boolean("@PLUGIN_OPENCDMI_PLAYREADY@") or \
+    boolean("@PLUGIN_OPENCDMI_PLAYREADY_NEXUS@") or \
+    boolean("@PLUGIN_OPENCDMI_PLAYREADY_NEXUS_SVP@") or \
+    boolean("@PLUGIN_OPENCDMI_PLAYREADY_VGDRM@") :
+    keysystem = JSON()
+    keysystem.add("name",  "PlayReady")
+    keysystem.add("designators", ["com.youtube.playready", "com.microsoft.playready", "com.netflix.playready"])
+    conf = JSON()
+    conf.add("metering", "@PLUGIN_OPENCDMI_PLAYREADY_METERING_CERTIFICATE@")
+    conf.add("read-dir", "@PLUGIN_OCDM_PLAYREADY_READ_DIR@")
+    conf.add("store-location", "@PLUGIN_OCDM_PLAYREADY_STORE_LOCATION@")
+    conf.add("certificatelabel", "@PLUGIN_OPENCDMI_PLAYREADY_CERTIFICATE_LABEL@")
+    keysystem.add("configuration", conf)
+    systems.append(keysystem)
+
+
+if boolean("@PLUGIN_OPENCDMI_WIDEVINE@") or boolean("@OPENCDMI_WIDEVINE_NEXUS_SVP@"):
+    keysystem = JSON()
+    keysystem.add("name", "WideVine")
+    keysystem.add("designators", [ "com.widevine.alpha" ])
+    conf = JSON()
+    conf.add("certificate", "@PLUGIN_OPENCDMI_WIDEVINE_DEVICE_CERTIFICATE@")
+    conf.add("keybox", "@PLUGIN_OPENCDMI_WIDEVINE_KEYBOX@")
+    conf.add("storagelocation", "@PLUGIN_OPENCDMI_WIDEVINE_STORAGE_LOCATION@")
+    keysystem.add("configuration", conf)
+    systems.append(keysystem)
+
+if boolean("@PLUGIN_OPENCDMI_NAGRA@"):
+    keysystem = JSON()
+    keysystem.add("name", "NagraSystem")
+    keysystem.add("designators", [ "com.nagra.system" ])
+    conf = JSON()
+    conf.add("operatorvault", "/tmp/ov.json")
+    conf.add("licensepath", "/tmp/licenses")
+    keysystem.add("configuration", conf)
+    systems.append(keysystem)
+
+    keysystem = JSON()
+    keysystem.add("name", "NagraConnect")
+    keysystem.add("designators", [ "com.nagra.connect" ])
+    systems.append(keysystem)
+
+if boolean("@PLUGIN_OPENCDMI_NCAS@"):
+    keysystem = JSON()
+    keysystem.add("name", "Ncas")
+    keysystem.add("designators", [ "com.ncas.alpha" ])
+    systems.append(keysystem)
+
+configuration.add("systems", systems)
+
+rootobject = JSON()
+
+rootobject.add("locator", "lib@PLUGIN_OCDM_IMPLEMENTATION@.so")
+rootobject.add("mode", "@PLUGIN_OPENCDMI_MODE@")
+if boolean("@PLUGIN_OPENCDMI_USER@"):
+    rootobject.add("user", "@PLUGIN_OPENCDMI_USER@")
+if boolean("@PLUGIN_OPENCDMI_GROUP@"):
+    rootobject.add("group", "@PLUGIN_OPENCDMI_GROUP@")
+configuration.add("root", rootobject)

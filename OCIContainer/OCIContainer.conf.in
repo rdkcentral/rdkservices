@@ -1,0 +1,6 @@
+precondition = ["Platform"]
+callsign = "org.rdk.OCIContainer"
+autostart = "true"
+
+if boolean("@PLUGIN_OCICONTAINER_STARTUPORDER@"):
+    startuporder = "@PLUGIN_OCICONTAINER_STARTUPORDER@"
