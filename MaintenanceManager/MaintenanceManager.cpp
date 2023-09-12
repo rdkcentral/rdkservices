@@ -1158,10 +1158,8 @@ namespace WPEFramework {
         {
             bool result = false;
             FILE *fp;
-			int start_time=0;
-
+	    int start_time=0;
             fp = fopen("/opt/rdk_maintenance.conf", "r");
-
             if(fp == NULL)
             {
                LOGERR("Error opening rdk_maintenance.conf file\n");
@@ -1172,8 +1170,7 @@ namespace WPEFramework {
               response["maintenanceStartTime"]=start_time;
               result=true;
               fclose(fp);
-			}
-			
+	    }
             returnResponse(result);
         }
 
