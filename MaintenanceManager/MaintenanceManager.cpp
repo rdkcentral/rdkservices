@@ -1157,14 +1157,23 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool result = false;
-            string starttime="";
+            FILE *fp;
+			int start_time=0;
 
-            starttime = Utils::cRunScript("/lib/rdk/getMaintenanceStartTime.sh &");
-            if (!starttime.empty()){
-                  response["maintenanceStartTime"]=stoi(starttime.c_str());
-                  result=true;
+            fp = fopen("/opt/rdk_maintenance.conf", "r");
+
+            if(fp == NULL)
+            {
+               LOGERR("Error opening rdk_maintenance.conf file\n");
             }
-
+            else
+            {
+              fscanf(fp,"maintenance_start_time=%d",&start_time);
+              response["maintenanceStartTime"]=start_time;
+              result=true;
+              fclose(fp);
+			}
+			
             returnResponse(result);
         }
 
