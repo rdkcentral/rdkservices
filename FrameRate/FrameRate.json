@@ -163,10 +163,30 @@
     },
     "events":{
         "onDisplayFrameRateChanging":{
-            "summary": "Triggered when the framerate changes started"
+            "summary": "Triggered when the framerate changes started",
+	    "params": {
+                "type":"object",
+                "properties": {
+                    "displayFrameRate": {
+                        "summary": "Display FrameRate changing",
+                        "type": "string",
+                        "example": "1920x1080x60"
+                    }
+                }
+            }
         },
         "onDisplayFrameRateChanged":{
-            "summary": "Triggered when the framerate changed"
+            "summary": "Triggered when the framerate changed",
+	    "params": {
+                "type":"object",
+                "properties": {
+                    "displayFrameRate": {
+                        "summary": "Display FrameRate changed",
+                        "type": "string",
+                        "example": "1920x1080x60"
+                    }
+                }
+            }
         },
         "onFpsEvent":{
             "summary": "Triggered at the end of each interval as defined by the `setCollectionFrequency` method and once after the `stopFpsCollection` method is invoked.",
