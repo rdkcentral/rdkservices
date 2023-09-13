@@ -57,7 +57,6 @@ namespace Plugin {
         ASSERT(_roomIds.empty() == true);
         ASSERT(_rooms.empty() == true);
         ASSERT(_roomACL.empty() == true);
-        ASSERT(_connectionId == 0);
 
         _service = service;
         _service->AddRef();
@@ -68,7 +67,9 @@ namespace Plugin {
             message = _T("RoomMaintainer couldnt be instantiated");
         }
         else {
+            RegisterAll();
             _roomAdmin->Register(this);
+            
         }
 
         if(message.length() != 0) {
@@ -92,6 +93,7 @@ namespace Plugin {
             _roomIds.clear();
             _roomAdmin->Unregister(this);
             _rooms.clear();
+            UnregisterAll();
 
             RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
             VARIABLE_IS_NOT_USED uint32_t result = _roomAdmin->Release();
