@@ -2683,6 +2683,7 @@ namespace WPEFramework
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_vendorID = appVendorId;
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_powerStatus = PowerStatus(powerState);
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_currentLanguage = defaultLanguage;
+						_instance->deviceList[_instance->m_logicalAddressAllocated].m_osdName = osdName.toString().c_str();
 						if(cecVersion == 2.0) {
 						    _instance->deviceList[_instance->m_logicalAddressAllocated].m_cecVersion = Version::V_2_0;
 						    _instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST),
