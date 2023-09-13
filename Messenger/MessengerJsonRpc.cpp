@@ -17,9 +17,9 @@
  * limitations under the License.
  */
  
+#include "Module.h"
 #include <interfaces/json/JsonData_Messenger.h>
 #include "Messenger.h"
-#include "Module.h"
 
 namespace WPEFramework {
 
@@ -32,7 +32,7 @@ namespace Plugin {
 
     void Messenger::RegisterAll()
     {
-        RegisterEventStatusListener(_T("roomupdate"), [this](const string& client, Status status) {
+        RegisterEventStatusListener(_T("roomupdate"), [this](const string&, Status status) {
             if (status == Status::registered) {
                 // Notify of all rooms created to date.
                 for (const string& room : _rooms) {
