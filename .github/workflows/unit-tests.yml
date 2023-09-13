@@ -2,13 +2,13 @@ name: unit-tests
 
 on:
   push:
-    branches: [ main, 'sprint/**', 'release/**' ]
+    branches: [ main, 'sprint/**', 'RDKTV-24790', 'release/**' ]
   pull_request:
-    branches: [ main, 'sprint/**', 'release/**' ]
+    branches: [ main, 'sprint/**', 'RDKTV-24790', 'release/**' ]
 
 env:
   BUILD_TYPE: Debug
-  THUNDER_REF: "39c82df24c7b4a4a10663cf527a3b289e7c1ceae"
+  THUNDER_REF: "c670f420a8fa7c37f91ba268eb39038f72aa74f6"
   INTERFACES_REF: "8d3bd0ddd187c6104543699041ec53e1e186d49a"
 
 
