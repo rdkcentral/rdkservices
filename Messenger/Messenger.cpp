@@ -96,7 +96,7 @@ namespace Plugin {
             UnregisterAll();
 
             RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
-            VARIABLE_IS_NOT_USED uint32_t result = _roomAdmin->Release();
+            uint32_t result = _roomAdmin->Release();
             _roomAdmin = nullptr;
             // It should have been the last reference we are releasing,
             // so it should end up in a DESCRUCTION_SUCCEEDED, if not we
