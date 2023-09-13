@@ -60,7 +60,7 @@ namespace Plugin {
 
         _service = service;
         _service->AddRef();
-        _service->Register(&_notification);
+   //     _service->Register(&_notification);
 
         _roomAdmin = service->Root<Exchange::IRoomAdministrator>(_connectionId, 2000, _T("RoomMaintainer"));
         if(_roomAdmin == nullptr) {
