@@ -2,7 +2,7 @@
 <a name="head.NetworkPlugin"></a>
 # NetworkPlugin
 
-**Version: [1.0.10](https://github.com/rdkcentral/rdkservices/blob/main/Network/CHANGELOG.md)**
+**Version: [1.2.0](https://github.com/rdkcentral/rdkservices/blob/main/Network/CHANGELOG.md)**
 
 A org.rdk.Network plugin for Thunder framework.
 
@@ -422,7 +422,7 @@ No Events
     "id": 42,
     "method": "org.rdk.Network.getSTBIPFamily",
     "params": {
-        "family": "AF_INET"
+        "family": "IPv4"
     }
 }
 ```
@@ -509,7 +509,10 @@ No Events
 
 ### Parameters
 
-This method takes no parameters.
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object | <sup>*(optional)*</sup> |
+| params?.ipversion | string | <sup>*(optional)*</sup> Either IPv4 or IPv6 |
 
 ### Result
 
@@ -517,6 +520,7 @@ This method takes no parameters.
 | :-------- | :-------- | :-------- |
 | result | object |  |
 | result.connectedToInternet | boolean | `true` if internet connectivity is detected, otherwise `false` |
+| result?.ipversion | string | <sup>*(optional)*</sup> If the request is specific to IPv4 or IPv6 |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -528,6 +532,9 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 42,
     "method": "org.rdk.Network.isConnectedToInternet"
+    "params": {
+        "ipversion": "IPv4"
+    }
 }
 ```
 
@@ -538,6 +545,7 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
+        "ipversion": "IPv4",
         "connectedToInternet": true,
         "success": true
     }
@@ -559,13 +567,17 @@ No Events
 
 ### Parameters
 
-This method takes no parameters.
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object | <sup>*(optional)*</sup>  |
+| params?.ipversion | string | <sup>*(optional)*</sup> Either IPv4 or IPv6 |
 
 ### Result
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
+| result?.ipversion | string | <sup>*(optional)*</sup> If the request is specific to IPv4 or IPv6 |
 | result.state | integer | Internet Connection state |
 | result?.URI | string | <sup>*(optional)*</sup> Captive portal URI |
 | result.success | boolean | Whether the request succeeded |
@@ -578,7 +590,10 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Network.getInternetConnectionState"
+    "method": "org.rdk.Network.getInternetConnectionState",
+    "params": {
+        "ipversion": "IPv4"
+    }
 }
 ```
 
@@ -589,6 +604,7 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
+        "ipversion": "IPv4",
         "state": 2,
         "URI": "http://10.0.0.1/captiveportal.jst",
         "success": true
@@ -1092,7 +1108,7 @@ Sets the IP settings.All the inputs are mandatory for v1. But for v2, the interf
     "params": {
         "interface": "WIFI",
         "ipversion": "IPv4",
-        "autoconfig": true,
+        "autoconfig": false,
         "ipaddr": "192.168.1.101",
         "netmask": "255.255.255.0",
         "gateway": "192.168.1.1",

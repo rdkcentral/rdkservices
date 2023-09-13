@@ -77,5 +77,11 @@ if (BUILD_DBUS)
     option(IARM_USE_DBUS "IARM_USE_DBUS" ON)
 endif()
 
+if (BUILD_FOR_COMMUNITY)
+    message("Building for COMMUNITY")
+    add_definitions (-DBUILD_FOR_COMMUNITY)
+endif()
+
+
 
 

@@ -1,0 +1,6 @@
+precondition = ["Platform"]
+callsign = "org.rdk.Xcast"
+autostart = "@PLUGIN_XCAST_AUTOSTART@"
+
+if boolean("@PLUGIN_XCAST_STARTUPORDER@"):
+    startuporder = "@PLUGIN_XCAST_STARTUPORDER@"

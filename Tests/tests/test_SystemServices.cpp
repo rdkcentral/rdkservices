@@ -2542,7 +2542,7 @@ TEST_F(SystemServicesTest, getDeviceInfoSuccess_onValidInput)
                   const char key_estb_mac[] = "12:34:56:78:90:AB";
                   char buffer[1024];
                   memset(buffer, 0, sizeof(buffer));
-                  strcpy(buffer, key_estb_mac);
+                  strncpy(buffer, key_estb_mac, sizeof(buffer) - 1);
                   FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
                   return pipe;
                }));
@@ -3700,7 +3700,7 @@ TEST_F(SystemServicesEventTest, onMacAddressesRetrieved)
             if (valueToReturn != NULL) {
                   char buffer[1024];
                   memset(buffer, 0, sizeof(buffer));
-                  strcpy(buffer, valueToReturn);
+                  strncpy(buffer, valueToReturn, sizeof(buffer) - 1);
                   FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
                   return pipe;
             } else {
@@ -3759,10 +3759,10 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WithHttpStatusCode4
                       memset(buffer, 0, sizeof(buffer));
                   if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
                       const char http_code_str[] = "460";
-                      strcpy(buffer, http_code_str);
+                      strncpy(buffer, http_code_str, sizeof(buffer) - 1);
                   } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
                       const char response_str[] = "{\"firmwareVersion\":\"1234\"}";
-                      strcpy(buffer, response_str);
+                      strncpy(buffer, response_str, sizeof(buffer) - 1);
                   }
                  FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
                  return pipe;
@@ -3808,10 +3808,10 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WithHttpStatusCode4
                       memset(buffer, 0, sizeof(buffer));
                   if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
                       const char http_code_str[] = "403";
-                      strcpy(buffer, http_code_str);
+                      strncpy(buffer, http_code_str, sizeof(buffer) - 1);
                   } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
                       const char response_str[] = "{\"firmwareVersion\":\"1234\"}";
-                      strcpy(buffer, response_str);
+                      strncpy(buffer, response_str, sizeof(buffer) - 1);
                   }
                  FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
                  return pipe;
@@ -3857,10 +3857,10 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WithHttpStatusCodeO
                       memset(buffer, 0, sizeof(buffer));
                   if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
                       const char http_code_str[] = "400";
-                      strcpy(buffer, http_code_str);
+                      strncpy(buffer, http_code_str, sizeof(buffer) - 1);
                   } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
                       const char response_str[] = "{\"firmwareVersion\":\"1234\"}";
-                      strcpy(buffer, response_str);
+                      strncpy(buffer, response_str, sizeof(buffer) - 1);
                   }
                  FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
                  return pipe;
@@ -3906,10 +3906,10 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvPROD)
                       memset(buffer, 0, sizeof(buffer));
                   if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
                       const char http_code_str[] = "460";
-                      strcpy(buffer, http_code_str);
+                      strncpy(buffer, http_code_str, sizeof(buffer) - 1);
                   } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
                       const char response_str[] = "{\"firmwareVersion\":\"1234\"}";
-                      strcpy(buffer, response_str);
+                      strncpy(buffer, response_str, sizeof(buffer) - 1);
                   }
                  FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
                  return pipe;
@@ -3955,10 +3955,10 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvDev)
                       memset(buffer, 0, sizeof(buffer));
                   if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
                       const char http_code_str[] = "460";
-                      strcpy(buffer, http_code_str);
+                      strncpy(buffer, http_code_str, sizeof(buffer) - 1);
                   } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
                       const char response_str[] = "{\"firmwareVersion\":\"1234\"}";
-                      strcpy(buffer, response_str);
+                      strncpy(buffer, response_str, sizeof(buffer) - 1);
                   }
                  FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
                  return pipe;
@@ -4005,10 +4005,10 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvVBN)
                       memset(buffer, 0, sizeof(buffer));
                   if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
                       const char http_code_str[] = "460";
-                      strcpy(buffer, http_code_str);
+                      strncpy(buffer, http_code_str, sizeof(buffer) - 1);
                   } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
                       const char response_str[] = "{\"firmwareVersion\":\"1234\"}";
-                      strcpy(buffer, response_str);
+                      strncpy(buffer, response_str, sizeof(buffer) - 1);
                   }
                  FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
                  return pipe;
@@ -4055,10 +4055,10 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvCqa)
                       memset(buffer, 0, sizeof(buffer));
                   if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
                       const char http_code_str[] = "460";
-                      strcpy(buffer, http_code_str);
+                      strncpy(buffer, http_code_str, sizeof(buffer) - 1);
                   } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
                       const char response_str[] = "{\"firmwareVersion\":\"1234\"}";
-                      strcpy(buffer, response_str);
+                      strncpy(buffer, response_str, sizeof(buffer) - 1);
                   }
                  FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
                  return pipe;
@@ -4105,10 +4105,10 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenEnvNotProdWitho
                       memset(buffer, 0, sizeof(buffer));
                   if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
                       const char http_code_str[] = "460";
-                      strcpy(buffer, http_code_str);
+                      strncpy(buffer, http_code_str, sizeof(buffer) - 1);
                   } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
                       const char response_str[] = "{\"firmwareVersion\":\"1234\"}";
-                      strcpy(buffer, response_str);
+                      strncpy(buffer, response_str, sizeof(buffer) - 1);
                   }
                  FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
                  return pipe;
@@ -4159,10 +4159,10 @@ TEST_F(SystemServicesEventTest, OnFirmwareUpdateInfoReceived_WhenEnvNotProdWithC
                       memset(buffer, 0, sizeof(buffer));
                   if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
                       const char http_code_str[] = "460";
-                      strcpy(buffer, http_code_str);
+                      strncpy(buffer, http_code_str, sizeof(buffer) - 1);
                   } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
                       const char response_str[] = "{\"firmwareVersion\":\"1234\"}";
-                      strcpy(buffer, response_str);
+                      strncpy(buffer, response_str, sizeof(buffer) - 1);
                   }
                  FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
                  return pipe;
@@ -4214,10 +4214,10 @@ TEST_F(SystemServicesEventTest, OnFirmwareUpdateInfoReceived_WhenEnvNotProdWithC
                       memset(buffer, 0, sizeof(buffer));
                   if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
                       const char http_code_str[] = "460";
-                      strcpy(buffer, http_code_str);
+                      strncpy(buffer, http_code_str, sizeof(buffer) - 1);
                   } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
                       const char response_str[] = "{\"firmwareVersion\":\"1234\"}";
-                      strcpy(buffer, response_str);
+                      strncpy(buffer, response_str, sizeof(buffer) - 1);
                   }
                  FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
                  return pipe;
@@ -4294,10 +4294,10 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenResponseEmpty)
                       memset(buffer, 0, sizeof(buffer));
                   if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
                       const char http_code_str[] = "460";
-                      strcpy(buffer, http_code_str);
+                      strncpy(buffer, http_code_str, sizeof(buffer) - 1);
                   } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
                       const char response_str[] = "";
-                      strcpy(buffer, response_str);
+                      strncpy(buffer, response_str, sizeof(buffer) - 1);
                   }
                  FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
                  return pipe;
@@ -4343,10 +4343,10 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenErrorInParsingR
                       memset(buffer, 0, sizeof(buffer));
                   if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
                       const char http_code_str[] = "460";
-                      strcpy(buffer, http_code_str);
+                      strncpy(buffer, http_code_str, sizeof(buffer) - 1);
                   } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
                       const char response_str[] = "firmwareVersion:1234";
-                      strcpy(buffer, response_str);
+                      strncpy(buffer, response_str, sizeof(buffer) - 1);
                   }
                  FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
                  return pipe;
@@ -4392,10 +4392,10 @@ TEST_F(SystemServicesEventTest, onFirmwareUpdateInfoReceived_WhenInvalidResponse
                       memset(buffer, 0, sizeof(buffer));
                   if (string(command) == string("cat /tmp/xconf_httpcode_thunder.txt")) {
                       const char http_code_str[] = "460";
-                      strcpy(buffer, http_code_str);
+                      strncpy(buffer, http_code_str, sizeof(buffer) - 1);
                   } else if (string(command) == string("cat /tmp/xconf_response_thunder.txt")) {
                       const char response_str[] = "{}";
-                      strcpy(buffer, response_str);
+                      strncpy(buffer, response_str, sizeof(buffer) - 1);
                   }
                  FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
                  return pipe;
@@ -5452,7 +5452,7 @@ TEST_F(SystemServicesTest, uploadLogFailed_whenArchieveLogsFailed)
                       memset(buffer, 0, sizeof(buffer));
                   if (string(command) == string(". /lib/rdk/utils.sh && getMacAddressOnly")) {
                       const char mac_Addr[] = "test_mac";
-                      strcpy(buffer, mac_Addr);
+                      strncpy(buffer, mac_Addr, sizeof(buffer) - 1);
                   }
                  FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
                  return pipe;
@@ -5484,7 +5484,7 @@ TEST_F(SystemServicesTest, uploadLogSuccess_withValidURL)
                       memset(buffer, 0, sizeof(buffer));
                   if (string(command) == string(". /lib/rdk/utils.sh && getMacAddressOnly")) {
                       const char mac_Addr[] = "test_mac";
-                      strcpy(buffer, mac_Addr);
+                      strncpy(buffer, mac_Addr, sizeof(buffer) - 1);
                   }
                  FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
                  return pipe;
@@ -5517,7 +5517,7 @@ TEST_F(SystemServicesTest, uploadLogSuccess_WithDefaultURL)
                       memset(buffer, 0, sizeof(buffer));
                   if (string(command) == string(". /lib/rdk/utils.sh && getMacAddressOnly")) {
                       const char mac_Addr[] = "test_mac";
-                      strcpy(buffer, mac_Addr);
+                      strncpy(buffer, mac_Addr, sizeof(buffer) - 1);
                   }
                  FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
                  return pipe;
