@@ -82,7 +82,7 @@ namespace Plugin {
     {
         ASSERT(service == _service);
 
-        _service->Unregister(&_notification);
+  //      _service->Unregister(&_notification);
 
         if(_roomAdmin != nullptr) {
             // Exit all the rooms (if any) that were joined by this client
