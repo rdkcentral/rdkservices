@@ -78,9 +78,13 @@ namespace Plugin {
             , _adminLock()
             , _notification(this)
         {
+            RegisterAll();
         }
 
-        ~Messenger() override = default;
+        ~Messenger()
+        {
+            UnregisterAll();
+        }
 
         // IPlugin methods
         const string Initialize(PluginHost::IShell* service) override;

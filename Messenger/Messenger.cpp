@@ -67,7 +67,6 @@ namespace Plugin {
             message = _T("RoomMaintainer couldnt be instantiated");
         }
         else {
-            RegisterAll();
             _roomAdmin->Register(this);
             
         }
@@ -93,7 +92,6 @@ namespace Plugin {
             _roomIds.clear();
             _roomAdmin->Unregister(this);
             _rooms.clear();
-            UnregisterAll();
 
 //            RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
             uint32_t result = _roomAdmin->Release();
@@ -101,7 +99,7 @@ namespace Plugin {
             // It should have been the last reference we are releasing,
             // so it should end up in a DESCRUCTION_SUCCEEDED, if not we
             // are leaking...
-//            ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
+            ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
 
             // If this was running in a (container) proccess...
 //            if (connection != nullptr) {
