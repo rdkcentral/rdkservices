@@ -51,9 +51,9 @@ class AVOutputSTB : public PluginHost::IPlugin, public PluginHost::JSONRPC {
     public:
 	AVOutputSTB();
 	~AVOutputSTB();
-        static AVOutputSTB *instance;
         void Initialize();
         void Deinitialize();
+        static AVOutputSTB *instance;
 	static AVOutputSTB* getInstance() { return instance; }
         static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
         static void dsHdmiStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
