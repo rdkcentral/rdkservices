@@ -1,0 +1,8 @@
+autostart = "@PLUGIN_PACKAGER_AUTOSTART@"
+
+configuration = JSON()
+
+rootobject = JSON()
+rootobject.add("mode", "@PLUGIN_PACKAGER_MODE@")
+configuration.add("root", rootobject)
+
