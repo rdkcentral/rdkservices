@@ -31,7 +31,6 @@ void kms_setup_encoder( int fd, kms_ctx *kms )
 
         kms->encoder = drmModeGetEncoder(fd,kms->res->encoders[i]);
         if(!kms->encoder){
-            cout << "[Realtek] drmModeGetEncoder fail" << endl;
             return;
         }
 
