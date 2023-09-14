@@ -1284,20 +1284,20 @@ namespace WPEFramework
 	    bool allmSupport = parameters["allmSupport"].Boolean();
 
 	    try {
-                portId = stoi(sPortId);
+                 portId = stoi(sPortId);
             }catch (const std::exception& err) {
-                    LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
-		    returnResponse(false);
+                 LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
+		 returnResponse(false);
             }
 
 	   bool result = setEdid2AllmSupport(portId, allmSupport);
 	   if(result == true)
 	   {
-		 returnResponse(true);
+		returnResponse(true);
 	   }
 	   else
 	   {
-		   returnResponse(false);
+	        returnResponse(false);
 	   }
 
 	}
