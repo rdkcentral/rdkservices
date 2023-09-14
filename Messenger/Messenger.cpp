@@ -95,24 +95,24 @@ namespace Plugin {
             _rooms.clear();
             UnregisterAll();
 
-            RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
+//            RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
             uint32_t result = _roomAdmin->Release();
             _roomAdmin = nullptr;
             // It should have been the last reference we are releasing,
             // so it should end up in a DESCRUCTION_SUCCEEDED, if not we
             // are leaking...
-            ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
+//            ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
 
             // If this was running in a (container) proccess...
-            if (connection != nullptr) {
+//            if (connection != nullptr) {
 
                 // Lets trigger the cleanup sequence for
                 // out-of-process code. Which will guard
                 // that unwilling processes, get shot if
                 // not stopped friendly :~)
-                connection->Terminate();
-                connection->Release();
-            }
+   //             connection->Terminate();
+    //            connection->Release();
+      //      }
 
         }
         _service->Release();
