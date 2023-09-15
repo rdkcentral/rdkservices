@@ -77,5 +77,8 @@ if (BUILD_DBUS)
     option(IARM_USE_DBUS "IARM_USE_DBUS" ON)
 endif()
 
-
+if (BUILD_ENABLE_DEVICE_MANUFACTURER_INFO)
+    message("Building with device manufacturer info")
+    add_definitions (-DENABLE_DEVICE_MANUFACTURER_INFO)
+endif()
 
