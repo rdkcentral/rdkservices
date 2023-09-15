@@ -52,7 +52,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 4
-#define API_VERSION_NUMBER_PATCH 2
+#define API_VERSION_NUMBER_PATCH 3
 
 const string WPEFramework::Plugin::RDKShell::SERVICE_NAME = "org.rdk.RDKShell";
 //methods
@@ -196,6 +196,11 @@ bool sFactoryModeBlockResidentApp = false;
 bool sForceResidentAppLaunch = false;
 static bool sRunning = true;
 bool needsScreenshot = false;
+
+#ifdef HIBERNATE_NATIVE_APPS_ON_SUSPENDED
+std::mutex nativeAppWasResumedMutex;
+map<string,bool> nativeAppWasResumed;
+#endif
 
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
@@ -578,7 +583,38 @@ namespace WPEFramework {
                 JsonObject params;
                 params["client"] = mCallSign;
                 mRDKShell.notify(RDKShell::RDKSHELL_EVENT_ON_PLUGIN_SUSPENDED, params);
-            }            
+
+#ifdef HIBERNATE_NATIVE_APPS_ON_SUSPENDED
+                RFC_ParamData_t param;
+                if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AppHibernate.Enable", param)
+                    && strncasecmp(param.value, "true", 4) == 0)
+                {
+                    nativeAppWasResumedMutex.lock();
+                    if ((mCallSign.find("Netflix") != std::string::npos || mCallSign.find("Cobalt") != std::string::npos)
+                        && nativeAppWasResumed.find(mCallSign) != nativeAppWasResumed.end()
+                        && nativeAppWasResumed[mCallSign])
+                    {
+                        // call RDKShell.checkpoint
+                        std::thread requestsThread =
+                            std::thread([=]()
+                                        {
+                        JsonObject checkpointParams;
+                        JsonObject checkpointResponse;
+                        checkpointParams["callsign"] = mCallSign;
+                        mRDKShell.getThunderControllerClient("org.rdk.RDKShell.1")->Invoke<JsonObject, JsonObject>(0, "checkpoint", checkpointParams, checkpointResponse); });
+
+                        requestsThread.detach();
+                    }
+                    nativeAppWasResumedMutex.unlock();
+                }
+#endif
+            }
+#ifdef HIBERNATE_NATIVE_APPS_ON_SUSPENDED
+            nativeAppWasResumedMutex.lock();
+            nativeAppWasResumed[mCallSign] = (state == PluginHost::IStateControl::RESUMED);
+            nativeAppWasResumedMutex.unlock();
+#endif
+
           }
 
           BEGIN_INTERFACE_MAP(Notification)
@@ -870,6 +906,65 @@ namespace WPEFramework {
 	    return ignoreLaunch;
 	}
 
+        void RDKShell::MonitorClients::handleDeactivated(PluginHost::IShell* service)
+        {
+            if (service)
+            {
+                gExitReasonMutex.lock();
+                gApplicationsExitReason[service->Callsign()] = AppLastExitReason::DEACTIVATED;
+                if(service->Reason() == PluginHost::IShell::FAILURE)
+                {
+                    gApplicationsExitReason[service->Callsign()] = AppLastExitReason::CRASH;
+                }
+                gExitReasonMutex.unlock();
+
+                std::string configLine = service->ConfigLine();
+                if (configLine.empty())
+                {
+                    return;
+                }
+                JsonObject serviceConfig = JsonObject(configLine.c_str());
+                if (serviceConfig.HasLabel("clientidentifier"))
+                {
+                    std::string clientidentifier = serviceConfig["clientidentifier"].String();
+                    std::shared_ptr<KillClientRequest> request = std::make_shared<KillClientRequest>(service->Callsign());
+                    gRdkShellMutex.lock();
+                    gKillClientRequests.push_back(request);
+                    gRdkShellMutex.unlock();
+                    sem_wait(&request->mSemaphore);
+                    gRdkShellMutex.lock();
+                    RdkShell::CompositorController::removeListener(clientidentifier, mShell.mEventListener);
+                    gRdkShellMutex.unlock();
+                }
+                
+                gPluginDataMutex.lock();
+                std::map<std::string, PluginData>::iterator pluginToRemove = gActivePluginsData.find(service->Callsign());
+                if (pluginToRemove != gActivePluginsData.end())
+                {
+                    gActivePluginsData.erase(pluginToRemove);
+                }
+                std::map<std::string, PluginStateChangeData*>::iterator pluginStateChangeEntry = gPluginsEventListener.find(service->Callsign());
+                if (pluginStateChangeEntry != gPluginsEventListener.end())
+                {
+                    PluginStateChangeData* stateChangeData = pluginStateChangeEntry->second;
+                    if (nullptr != stateChangeData)
+                    {
+                        stateChangeData->resetConnection();
+                        delete stateChangeData;
+                    }
+                    pluginStateChangeEntry->second = nullptr;
+                    gPluginsEventListener.erase(pluginStateChangeEntry);
+                }
+                gPluginDataMutex.unlock();
+                gLaunchDestroyMutex.lock();
+                if (gExternalDestroyApplications.find(service->Callsign()) != gExternalDestroyApplications.end())
+                {
+                    gExternalDestroyApplications.erase(service->Callsign());
+                }
+                gLaunchDestroyMutex.unlock();
+            }
+        }
+
         void RDKShell::MonitorClients::StateChange(PluginHost::IShell* service)
         {
             if (service)
@@ -880,6 +975,11 @@ namespace WPEFramework {
                 if ((currentState == PluginHost::IShell::DEACTIVATED) || (currentState == PluginHost::IShell::DESTROYED))
                 {
                      gApplicationsExitReason[service->Callsign()] = AppLastExitReason::DEACTIVATED;
+#ifdef HIBERNATE_NATIVE_APPS_ON_SUSPENDED
+                    nativeAppWasResumedMutex.lock();
+                    nativeAppWasResumed[service->Callsign()] = false;
+                    nativeAppWasResumedMutex.unlock();
+#endif
                 }
                 if(service->Reason() == PluginHost::IShell::FAILURE)
                 {
@@ -993,7 +1093,7 @@ namespace WPEFramework {
                         notification->Release();
                     }
                 }
-                else if (currentState == PluginHost::IShell::DEACTIVATED)
+                else if ((currentState == PluginHost::IShell::DEACTIVATED))
                 {
                     std::string configLine = service->ConfigLine();
                     if (configLine.empty())
@@ -1058,7 +1158,8 @@ namespace WPEFramework {
        }
        void RDKShell::MonitorClients::Deactivated(const string& callsign, PluginHost::IShell* service)
        {
-            StateChange(service);
+            //StateChange(service);
+            handleDeactivated(service);
        }
        void RDKShell::MonitorClients::Unavailable(const string& callsign, PluginHost::IShell* service)
        {}
@@ -1221,7 +1322,7 @@ namespace WPEFramework {
             tFHError retAPIStatus;
             std::cout << "calling factory hal init\n";
             factorySD1_init();
-            retAPIStatus = getEthernetMAC(&mac);
+            retAPIStatus = getEthernetMAC(mac);
             if(retAPIStatus == E_OK)
             {
                 if (strncasecmp(mac,"00:00:00:00:00:00",17) == 0)
@@ -2179,6 +2280,18 @@ namespace WPEFramework {
                 // Get the client mime type
                 std::string mimeType;
                 getMimeType(client, mimeType);
+
+#ifdef HIBERNATE_SUPPORT_ENABLED
+                // RDKShell::kill only destroys wayland display
+                // and hibernated app will not detect missing display.
+                // Wakeup app by getting its state
+                WPEFramework::Core::JSON::String stateString;
+                auto thunderPlugin = getThunderControllerClient(client);
+                if(thunderPlugin)
+                {
+                    thunderPlugin->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
+                }
+#endif
 
                 // Kill the display
                 result = kill(client);
@@ -4754,23 +4867,25 @@ namespace WPEFramework {
                         {
                             std::string callsign;
                             service.Callsign.ToString(callsign);
-                            callsign.erase(std::remove(callsign.begin(),callsign.end(),'\"'),callsign.end());
 
+                            callsign.erase(std::remove(callsign.begin(),callsign.end(),'\"'),callsign.end());
                             WPEFramework::Core::JSON::String stateString;
                             const string callsignWithVersion = callsign + ".1";
-                            auto thunderPlugin = getThunderControllerClient(callsignWithVersion);
                             uint32_t stateStatus = 0;
 
 #ifdef HIBERNATE_SUPPORT_ENABLED
                             if(service.JSONState != PluginHost::MetaData::Service::state::HIBERNATED)
                             {
-                                stateStatus = thunderPlugin->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
+#endif
+                                stateStatus = getThunderControllerClient(callsignWithVersion)->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
+#ifdef HIBERNATE_SUPPORT_ENABLED
                             }
                             else
                             {
                                 stateString = "checkpointed";
                             }
 #endif
+
 
                             if (stateStatus == 0)
                             {
@@ -4780,7 +4895,7 @@ namespace WPEFramework {
                                 if(service.JSONState != PluginHost::MetaData::Service::state::HIBERNATED)
                                 {
 #endif
-                                    urlStatus = thunderPlugin->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "url",urlString);
+                                    urlStatus = getThunderControllerClient(callsignWithVersion)->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "url",urlString);
 #ifdef HIBERNATE_SUPPORT_ENABLED
                                 }
 #endif
@@ -5917,6 +6032,23 @@ namespace WPEFramework {
                     returnResponse(status);
                 }
 
+                if( callsign.find("Netflix") != string::npos || callsign.find("Cobalt") != string::npos )
+                {
+                    //Check if native app is suspended
+                    WPEFramework::Core::JSON::String stateString;
+                    const string callsignWithVersion = callsign + ".1";
+                    auto thunderPlugin = getThunderControllerClient(callsignWithVersion);
+                    uint32_t stateStatus = 0;
+                    stateStatus = thunderPlugin->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
+                    if(stateStatus || stateString != "suspended")
+                    {
+                        std::cout << "ignoring checkpoint for " << callsign << " as it is not suspended " << std::endl;
+                        status = false;
+                        response["message"] = "failed to checkpoint native application, not suspended";
+                        returnResponse(status);
+                    }
+                }
+
                 std::thread requestsThread =
                 std::thread([=]()
                 {
@@ -6001,7 +6133,7 @@ namespace WPEFramework {
             #ifdef RDKSHELL_READ_MAC_ON_STARTUP
             char* mac = new char[19];
             tFHError retAPIStatus;
-            retAPIStatus = getEthernetMAC(&mac);
+            retAPIStatus = getEthernetMAC(mac);
             if(retAPIStatus == E_OK)
             {
                 if (strncasecmp(mac,"00:00:00:00:00:00",17) == 0)

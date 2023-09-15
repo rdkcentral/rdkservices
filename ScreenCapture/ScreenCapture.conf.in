@@ -1,0 +1,6 @@
+precondition = ["Platform"]
+callsign = "org.rdk.ScreenCapture"
+autostart = "false"
+
+if boolean("@PLUGIN_SCREENCAPTURE_STARTUPORDER@"):
+    startuporder = "@PLUGIN_SCREENCAPTURE_STARTUPORDER@"

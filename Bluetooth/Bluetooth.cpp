@@ -40,7 +40,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 1
+#define API_VERSION_NUMBER_PATCH 3
 
 const string WPEFramework::Plugin::Bluetooth::SERVICE_NAME = "org.rdk.Bluetooth";
 const string WPEFramework::Plugin::Bluetooth::METHOD_START_SCAN = "startScan";
@@ -396,6 +396,7 @@ namespace WPEFramework
                     deviceDetails["deviceType"] = string(BTRMGR_GetDeviceTypeAsString(discoveredDevices.m_deviceProperty[i].m_deviceType));
                     deviceDetails["connected"] = discoveredDevices.m_deviceProperty[i].m_isConnected?true:false;
                     deviceDetails["paired"] = discoveredDevices.m_deviceProperty[i].m_isPairedDevice?true:false;
+                    deviceDetails["rawDeviceType"] = std::to_string(discoveredDevices.m_deviceProperty[i].m_ui32DevClassBtSpec);    
                     deviceArray.Add(deviceDetails);
                 }
             }
