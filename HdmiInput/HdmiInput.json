@@ -110,39 +110,6 @@
                 ]
             }
         },
-	"getEdid2AllmSupport":{
-            "deprecated" : true,
-            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=getEdid2AllmSupport",
-            "summary": "Returns the EDID Allm bit value.",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "portId":{
-                        "$ref": "#/definitions/portId"
-                    }
-                },
-                "required": [
-                    "portid"
-                ]
-            },
-            "result": {
-                "type": "object",
-                "properties": {
-                    "allmSupport": {
-                        "summary": "The allm bit value in edid",
-                        "type": "boolean",
-                        "example": true
-                    },
-                    "success": {
-                        "$ref": "#/common/success"
-                    }
-                },
-                "required": [
-                    "allmSupport",
-                    "success"
-                ]
-            }
-	},
         "getHDMISPD": {
             "deprecated" : true,
             "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=getspd",
@@ -293,31 +260,6 @@
                     "success"
                 ]
             }            
-        },
-	"setEdid2AllmSupport": {
-            "deprecated" : true,
-            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=setedid2AllmSupport",
-            "summary": "Sets an HDMI ALLM bit in EDID.",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "portId":{
-                        "$ref": "#/definitions/portId"
-                    },
-                    "allmSupport":{
-                        "summary": "The ALLM support in EDID",
-                        "type": "boolean",
-                        "example": true
-                    }
-                },
-                "required": [
-                    "portId",
-                    "allmSupport"
-                ]
-            },
-            "result": {
-                "$ref": "#/common/result"
-            }
         },
         "setEdidVersion": {
             "deprecated" : true,
