@@ -31,7 +31,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 3
-#define API_VERSION_NUMBER_PATCH 0
+#define API_VERSION_NUMBER_PATCH 2
 
 #define HDMI 0
 #define COMPOSITE 1
@@ -325,7 +325,8 @@ string AVInput::currentVideoMode(bool &success)
 uint32_t AVInput::startInput(const JsonObject& parameters, JsonObject& response)
 {
     LOGINFOMETHOD();
-
+    
+    string sPortId = parameters["portId"].String();
     string sType = parameters["typeOfInput"].String();
     int portId = 0;
     int iType = 0;
@@ -333,16 +334,16 @@ uint32_t AVInput::startInput(const JsonObject& parameters, JsonObject& response)
     if (parameters.HasLabel("portId") && parameters.HasLabel("typeOfInput"))
     {
         try {
-            portId = parameters["portId"].Number();
+            portId = stoi(sPortId);
             iType = getTypeOfInput (sType);
         }catch (...) {
             LOGWARN("Invalid Arguments");
-            return Core::ERROR_BAD_REQUEST;
+            returnResponse(false);
         }
     }
     else {
         LOGWARN("Required parameters are not passed");
-        return Core::ERROR_BAD_REQUEST;
+        returnResponse(false);
     }
 
     try
@@ -356,9 +357,9 @@ uint32_t AVInput::startInput(const JsonObject& parameters, JsonObject& response)
     }
     catch (const device::Exception& err) {
         LOG_DEVICE_EXCEPTION1(std::to_string(portId));
-        return Core::ERROR_GENERAL;
+        returnResponse(false);
     }
-    return Core::ERROR_NONE;
+    returnResponse(true);
 }
 
 uint32_t AVInput::stopInput(const JsonObject& parameters, JsonObject& response)
@@ -373,11 +374,11 @@ uint32_t AVInput::stopInput(const JsonObject& parameters, JsonObject& response)
             iType = getTypeOfInput (sType);
         }catch (...) {
             LOGWARN("Invalid Arguments");
-            return Core::ERROR_BAD_REQUEST;
+            returnResponse(false);
         }
     else {
         LOGWARN("Required parameters are not passed");
-        return Core::ERROR_BAD_REQUEST;
+        returnResponse(false);
     }
 
     try
@@ -391,9 +392,9 @@ uint32_t AVInput::stopInput(const JsonObject& parameters, JsonObject& response)
     }
     catch (const device::Exception& err) {
         LOGWARN("AVInputService::stopInput Failed");
-        return Core::ERROR_GENERAL;
+        returnResponse(false);
     }
-    return Core::ERROR_NONE;
+    returnResponse(true);
 }
 
 uint32_t AVInput::setVideoRectangleWrapper(const JsonObject& parameters, JsonObject& response)
@@ -444,17 +445,17 @@ uint32_t AVInput::setVideoRectangleWrapper(const JsonObject& parameters, JsonObj
         }
         catch (...) {
             LOGWARN("Invalid Arguments");
-            return Core::ERROR_BAD_REQUEST;
+            returnResponse(false);
         }
 
         result = setVideoRectangle(x, y, w, h, t);
         if (false == result) {
             LOGWARN("AVInputService::setVideoRectangle Failed");
-            return Core::ERROR_GENERAL;
+            returnResponse(false);
         }
-        return Core::ERROR_NONE;
+        returnResponse(true);
     }
-    return Core::ERROR_BAD_REQUEST;
+    returnResponse(false);
 }
 
 bool AVInput::setVideoRectangle(int x, int y, int width, int height, int type)
@@ -488,7 +489,7 @@ uint32_t AVInput::getInputDevicesWrapper(const JsonObject& parameters, JsonObjec
             iType = getTypeOfInput (sType);
         }catch (...) {
             LOGWARN("Invalid Arguments");
-            return Core::ERROR_BAD_REQUEST;
+            returnResponse(false);
         }
         response["devices"] = getInputDevices(iType);
     }
@@ -500,48 +501,50 @@ uint32_t AVInput::getInputDevicesWrapper(const JsonObject& parameters, JsonObjec
         }
         response["devices"] = listHdmi;
     }
-    return Core::ERROR_NONE;
+    returnResponse(true);
 }
 
 uint32_t AVInput::writeEDIDWrapper(const JsonObject& parameters, JsonObject& response)
 {
     LOGINFOMETHOD();
 
-    int portId;
+    string sPortId = parameters["portId"].String();
+    int portId = 0;
     std::string message;
 
     if (parameters.HasLabel("portId") && parameters.HasLabel("message")) {
-        portId = parameters["portId"].Number();
+        portId = stoi(sPortId);
         message = parameters["message"].String();
     }
     else {
         LOGWARN("Required parameters are not passed");
-        return Core::ERROR_BAD_REQUEST;
+        returnResponse(false);
     }
 
     writeEDID(portId, message);
-    return Core::ERROR_NONE;
+    returnResponse(true);
 }
 
 uint32_t AVInput::readEDIDWrapper(const JsonObject& parameters, JsonObject& response)
 {
     LOGINFOMETHOD();
 
+    string sPortId = parameters["portId"].String();
     int portId = 0;
     try {
-        portId = parameters["portId"].Number();
+        portId = stoi(sPortId);
     }catch (...) {
             LOGWARN("Invalid Arguments");
-            return Core::ERROR_BAD_REQUEST;
+            returnResponse(false);
     }
 
     string edid = readEDID (portId);
     if (edid.empty()) {
-        return Core::ERROR_GENERAL;
+        returnResponse(false);
     }
     else {
         response["EDID"] = edid;
-        return Core::ERROR_NONE;
+        returnResponse(true);
     }
 }
 
@@ -955,33 +958,34 @@ uint32_t AVInput::getSupportedGameFeatures(const JsonObject& parameters, JsonObj
     }
 
     if (supportedFeatures.empty()) {
-        return Core::ERROR_GENERAL;
+       returnResponse(false);
     }
     else {
         setResponseArray(response, "supportedGameFeatures", supportedFeatures);
-        return Core::ERROR_NONE;
+        returnResponse(true);
     }
 }
 
 uint32_t AVInput::getGameFeatureStatusWrapper(const JsonObject& parameters, JsonObject& response)
 {
     string sGameFeature = "";
+    string sPortId = parameters["portId"].String();
     int portId = 0;
 
     LOGINFOMETHOD();
     if (parameters.HasLabel("portId") && parameters.HasLabel("gameFeature"))
     {
         try {
-            portId = parameters["portId"].Number();
+            portId = stoi(sPortId);
             sGameFeature = parameters["gameFeature"].String();
         }catch (...) {
             LOGWARN("Invalid Arguments");
-            return Core::ERROR_BAD_REQUEST;
+            returnResponse(false);
         }
     }
     else {
         LOGWARN("Required parameters are not passed");
-        return Core::ERROR_BAD_REQUEST;
+        returnResponse(false);
     }
 
     if (strcmp (sGameFeature.c_str(), "ALLM") == 0)
@@ -993,9 +997,9 @@ uint32_t AVInput::getGameFeatureStatusWrapper(const JsonObject& parameters, Json
     else
     {
         LOGWARN("AVInput::getGameFeatureStatusWrapper Mode is not supported. Supported mode: ALLM");
-        return Core::ERROR_BAD_REQUEST;
+	returnResponse(false);
     }
-    return Core::ERROR_NONE;
+    returnResponse(true);
 }
 
 bool AVInput::getALLMStatus(int iPort)
@@ -1018,28 +1022,29 @@ uint32_t AVInput::getRawSPDWrapper(const JsonObject& parameters, JsonObject& res
 {
     LOGINFOMETHOD();
 
+    string sPortId = parameters["portId"].String();
     int portId = 0;
     if (parameters.HasLabel("portId"))
     {
         try {
-            portId = parameters["portId"].Number();
+            portId = stoi(sPortId);
         }catch (...) {
             LOGWARN("Invalid Arguments");
-            return Core::ERROR_BAD_REQUEST;
+            returnResponse(false);
         }
     }
     else {
         LOGWARN("Required parameters are not passed");
-        return Core::ERROR_BAD_REQUEST;
+        returnResponse(false);
     }
 
     string spdInfo = getRawSPD (portId);
     response["HDMISPD"] = spdInfo;
     if (spdInfo.empty()) {
-        return Core::ERROR_GENERAL;
+        returnResponse(false);
     }
     else {
-        return Core::ERROR_NONE;
+        returnResponse(true);
     }
 }
 
@@ -1047,28 +1052,29 @@ uint32_t AVInput::getSPDWrapper(const JsonObject& parameters, JsonObject& respon
 {
     LOGINFOMETHOD();
 
+    string sPortId = parameters["portId"].String();
     int portId = 0;
     if (parameters.HasLabel("portId"))
     {
         try {
-        portId = parameters["portId"].Number();
+            portId = stoi(sPortId);
         }catch (...) {
             LOGWARN("Invalid Arguments");
-            return Core::ERROR_BAD_REQUEST;
+            returnResponse(false);
         }
     }
     else {
         LOGWARN("Required parameters are not passed");
-        return Core::ERROR_BAD_REQUEST;
+        returnResponse(false);
     }
 
     string spdInfo = getSPD (portId);
     response["HDMISPD"] = spdInfo;
     if (spdInfo.empty()) {
-        return Core::ERROR_GENERAL;
+        returnResponse(false);
     }
     else {
-        return Core::ERROR_NONE;
+        returnResponse(true);
     }
 }
 
@@ -1149,21 +1155,22 @@ std::string AVInput::getSPD(int iPort)
 uint32_t AVInput::setEdidVersionWrapper(const JsonObject& parameters, JsonObject& response)
 {
     LOGINFOMETHOD();
+    string sPortId = parameters["portId"].String();
     int portId = 0;
     string sVersion = "";
     if (parameters.HasLabel("portId") && parameters.HasLabel("edidVersion"))
     {
         try {
-            portId = parameters["portId"].Number();
+            portId = stoi(sPortId);
             sVersion = parameters["edidVersion"].String();
         }catch (...) {
             LOGWARN("Invalid Arguments");
-            return Core::ERROR_BAD_REQUEST;
+            returnResponse(false);
         }
     }
     else {
         LOGWARN("Required parameters are not passed");
-        return Core::ERROR_BAD_REQUEST;
+        returnResponse(false);
     }
 
     int edidVer = -1;
@@ -1175,14 +1182,14 @@ uint32_t AVInput::setEdidVersionWrapper(const JsonObject& parameters, JsonObject
     }
 
     if (edidVer < 0) {
-        return Core::ERROR_GENERAL;
+         returnResponse(false);
     }
     bool result = setEdidVersion (portId, edidVer);
     if (result == false) {
-        return Core::ERROR_GENERAL;
+        returnResponse(false);
     }
     else {
-        return Core::ERROR_NONE;
+        returnResponse(true);
     }
 }
 
@@ -1202,22 +1209,23 @@ int AVInput::setEdidVersion(int iPort, int iEdidVer)
 
 uint32_t AVInput::getEdidVersionWrapper(const JsonObject& parameters, JsonObject& response)
 {
+    string sPortId = parameters["portId"].String();
     int portId = 0;
 
     LOGINFOMETHOD();
     if (parameters.HasLabel("portId"))
     {
         try {
-            portId = parameters["portId"].Number();
+            portId = stoi(sPortId);
         }
         catch (...) {
             LOGWARN("Invalid Arguments");
-            return Core::ERROR_BAD_REQUEST;
+            returnResponse(false);
         }
     }
     else {
         LOGWARN("Required parameters are not passed");
-        return Core::ERROR_BAD_REQUEST;
+        returnResponse(false);
     }
 
     int edidVer = getEdidVersion (portId);
@@ -1231,10 +1239,10 @@ uint32_t AVInput::getEdidVersionWrapper(const JsonObject& parameters, JsonObject
     }
 
     if (edidVer < 0) {
-        return Core::ERROR_GENERAL;;
+        returnResponse(false);
     }
     else {
-        return Core::ERROR_NONE;
+        returnResponse(true);
     }
 }
 

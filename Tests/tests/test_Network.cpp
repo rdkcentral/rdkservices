@@ -266,8 +266,8 @@ TEST_F(NetworkTest, isConnectedToInternet)
                 EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_NM_SRV_MGR_NAME)));
                 EXPECT_EQ(string(methodName), string(_T(IARM_BUS_NETSRVMGR_API_isConnectedToInternet)));
                 *((bool*) arg) = true;
-
-                EXPECT_EQ(*((bool*) arg), true);
+                auto param = static_cast<IARM_BUS_NetSrvMgr_isConnectedtoInternet_t *>(arg);
+                param->isconnected = true;
 
                 return IARM_RESULT_SUCCESS;
             });

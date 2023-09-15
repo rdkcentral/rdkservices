@@ -17,48 +17,222 @@
 * limitations under the License.
 **/
 
+#include <algorithm>
+#include <regex>
+#include "Module.h"
 #include "UnifiedCASManagement.h"
+#include "LibMediaPlayerImpl.h"
+
+#include "UtilsCStr.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsIarm.h"
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 1
+#define API_VERSION_NUMBER_MINOR 2
 #define API_VERSION_NUMBER_PATCH 0
 
-namespace WPEFramework {
+const string WPEFramework::Plugin::UnifiedCASManagement::METHOD_MANAGE = "manage";
+const string WPEFramework::Plugin::UnifiedCASManagement::METHOD_UNMANAGE = "unmanage";
+const string WPEFramework::Plugin::UnifiedCASManagement::METHOD_SEND = "send";
+const string WPEFramework::Plugin::UnifiedCASManagement::EVENT_DATA = "data";
 
-    namespace Plugin {
+namespace WPEFramework
+{
 
-        UnifiedCASManagement* UnifiedCASManagement::_instance;
+namespace Plugin
+{
 
-        UnifiedCASManagement::UnifiedCASManagement() {
-            _instance = this;
-            m_RTPlayer = std::make_shared<RTPlayer>(this);
-	    m_sessionId = UNDEFINED_SESSION_ID;
-            RegisterAll();
-        }
+UnifiedCASManagement* UnifiedCASManagement::_instance = nullptr;
 
-        UnifiedCASManagement::~UnifiedCASManagement() {
-            UnregisterAll();
-            UnifiedCASManagement::_instance = nullptr;
-        }
+UnifiedCASManagement::UnifiedCASManagement()
+{
+#ifdef LMPLAYER_FOUND
+    m_player = std::make_shared<LibMediaPlayerImpl>(this);
+#else
+    m_player = nullptr;
+    LOGERR("NO VALID PLAYER AVAILABLE TO USE");
+#endif
+    _instance = this;
+    RegisterAll();
+}
 
-        const string UnifiedCASManagement::Initialize(PluginHost::IShell * /* service */)
+UnifiedCASManagement::~UnifiedCASManagement()
+{
+    UnregisterAll();
+    UnifiedCASManagement::_instance = nullptr;
+}
+
+const string UnifiedCASManagement::Initialize(PluginHost::IShell * /* service */)
+{
+    return (string());
+}
+
+void UnifiedCASManagement::Deinitialize(PluginHost::IShell * /* service */)
+{
+    UnifiedCASManagement::_instance = nullptr;
+}
+
+string UnifiedCASManagement::Information() const
+{
+    return (string());
+}
+
+//Registration
+SERVICE_REGISTRATION(UnifiedCASManagement, 1, 0);
+
+void UnifiedCASManagement::RegisterAll()
+{
+    Register(METHOD_MANAGE, &UnifiedCASManagement::manage, this);
+    Register(METHOD_UNMANAGE, &UnifiedCASManagement::unmanage, this);
+    Register(METHOD_SEND, &UnifiedCASManagement::send, this);
+}
+
+void UnifiedCASManagement::UnregisterAll()
+{
+    Unregister(METHOD_MANAGE);
+    Unregister(METHOD_UNMANAGE);
+    Unregister(METHOD_SEND);
+}
+
+// API implementation
+
+// Method: manage - Manage a well-known CAS
+// Return codes:
+//  - ERROR_NONE: Success
+uint32_t UnifiedCASManagement::manage(const JsonObject& params, JsonObject& response)
+{
+    bool success = false;
+
+    if(nullptr == m_player)
+    {
+        LOGERR("NO VALID PLAYER AVAILABLE TO USE");
+        returnResponse(success);
+    }
+
+    returnIfStringParamNotFound(params, "mode");
+    returnIfStringParamNotFound(params, "manage");
+
+    const std::string& mediaurl = params["mediaurl"].String();
+    const std::string& mode = params["mode"].String();
+    const std::string& manage = params["manage"].String();
+    const std::string& casinitdata = params["casinitdata"].String();
+    const std::string& casocdmid = params["casocdmid"].String();
+
+    LOGINFO("media URL:%s, ocdmid = %s", mediaurl.c_str(), casocdmid.c_str());
+
+    if(mode != "MODE_NONE")
+    {
+        LOGERR("mode must be MODE_NONE for CAS Management");
+    }
+    else if (manage != "MANAGE_FULL" && manage != "MANAGE_NO_PSI" && manage != "MANAGE_NO_TUNER")
+    {
+        LOGERR("manage must be MANAGE_ ... FULL, NO_PSI or NO_TUNER for CAS MAnagement");
+    }
+    else if(casocdmid.empty())
+    {
+        LOGERR("ocdmcasid is mandatory for CAS management session");
+    }
+    else
+    {
+        success = true;
+    }
+
+    if(success == false)
+    {
+        LOGERR("UnifiedCASManagement Open Session Failed");
+    }
+    else
+    {
+        JsonObject jsonParams;
+        jsonParams["mediaurl"] = mediaurl;
+        jsonParams["mode"] = mode;
+        jsonParams["manage"] = manage;
+        jsonParams["casinitdata"] = casinitdata;
+        jsonParams["casocdmid"] = casocdmid;
+
+        std::string openParams;
+        jsonParams.ToString(openParams);
+        LOGINFO("OpenData = %s\n", openParams.c_str());
+
+        if (false == m_player->openMediaPlayer(openParams, manage))
         {
-           // AVInput::_instance = this;
-           // InitializeIARM();
-
-            return (string());
+            LOGERR("Failed to open MediaPlayer");
+            success = false;
         }
+    }
+    returnResponse(success);
+}
 
-        void UnifiedCASManagement::Deinitialize(PluginHost::IShell * /* service */)
-        {
-           // DeinitializeIARM();
-            //AVInput::_instance = nullptr;
-            UnifiedCASManagement::_instance = nullptr;
-        }
+// Method: unmanage - Destroy a management session
+// Return codes:
+//  - ERROR_NONE: Success
+uint32_t UnifiedCASManagement::unmanage(const JsonObject& params, JsonObject& response)
+{
+    bool success = false;
 
-        string UnifiedCASManagement::Information() const
-        {
-            return (string());
-        }
-    } // namespace
+    if(nullptr == m_player)
+    {
+        LOGERR("NO VALID PLAYER AVAILABLE TO USE");
+        returnResponse(success);
+    }
+
+    if (false == m_player->closeMediaPlayer())
+    {
+         LOGERR("Failed to close MediaPlayer");
+         LOGWARN("Error in destroying CAS Management Session...\n");
+    }
+    else
+    {
+         LOGINFO("Successful in destroying CAS Management Session...\n");
+         success = true;
+    }
+    returnResponse(success);
+}
+
+// Method: send - Sends data to the remote CAS
+// Return codes:
+//  - ERROR_NONE: Success
+uint32_t UnifiedCASManagement::send(const JsonObject& params, JsonObject& response)
+{
+    bool success = false;
+
+    if(nullptr == m_player)
+    {
+        LOGERR("NO VALID PLAYER AVAILABLE TO USE");
+        returnResponse(success);
+    }
+
+    const std::string& payload = params["payload"].String();
+    const std::string& source = params["source"].String();
+    JsonObject jsonParams;
+    jsonParams["payload"] = payload;
+    jsonParams["source"] = source;
+
+    std::string data;
+    jsonParams.ToString(data);
+    LOGINFO("Send Data = %s\n", data.c_str());
+
+    if (false == m_player->requestCASData(data))
+    {
+        LOGERR("requestCASData failed");
+    }
+    else
+    {
+        LOGINFO("UnifiedCASManagement send Data succeeded.. Calling Play\n");
+        success = true;
+    }
+    returnResponse(success);
+}
+
+// Event: data - Sent when the CAS needs to send data to the caller
+void UnifiedCASManagement::event_data(const std::string& payload, const std::string& source)
+{
+    JsonObject params;
+    params["payload"] = payload;
+    params["source"] = source;
+    sendNotify(EVENT_DATA.c_str(), params);
+}
+
+} // namespace
+
 } // namespace

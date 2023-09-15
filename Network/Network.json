@@ -145,8 +145,8 @@
             "summary": "Update `RDK-20093` string",
             "type": "string",
             "example": "RDK-20093"
-	},
-	"server":{
+	    },
+	    "server":{
             "summary": "STUN server",
             "type": "string",
             "example": "global.stun.twilio.com"
@@ -170,6 +170,11 @@
             "summary": "STUN server cache timeout",
             "type": "integer",
             "example": "0"
+        },
+        "disableConnectivityTest":{
+            "summary": "Disable Connectivity Test",
+            "type": "boolean",
+            "example": "true"
         }
     },
     "methods": {
@@ -397,7 +402,7 @@
             }
         },
         "setConnectivityTestEndpoints":{
-            "summary": "Sets the default list of endpoints used for a connectivity test. Maximum number of endpoints is 5.",
+            "summary": "Set the list of endpoints used for a connectivity test. Endpoint should return HTTP Status 204 (No Content) for successful connection and Maximum number of endpoints is 5 . \n\nDefault endpoints:-\n* http://clients3.google.com/generate_204 \n* http://edge-http.microsoft.com/captiveportal/generate_204 \n* http://gstatic.com/generate_204 ",
             "params": {
                 "type":"object",
                 "properties": {
@@ -901,6 +906,30 @@
                 ]
             }
         },
+         "configurePNI":{
+            "summary": "This method configures PNI to enable or disable Connectivity test.",
+            "params": {
+                "type":"object",
+                "summary":"it allows empty parameter too",
+                "properties": {
+                    "disableConnectivityTest": {
+                        "$ref": "#/definitions/disableConnectivityTest"
+                    }
+                }
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            }
+        },
+
         "trace":{
             "summary": "Traces the specified endpoint with the specified number of packets using `traceroute`.",
             "params": {
