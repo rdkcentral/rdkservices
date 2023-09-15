@@ -123,7 +123,7 @@ namespace WPEFramework
             registerMethod(HDMIINPUT_METHOD_GAME_FEATURE_STATUS, &HdmiInput::getHdmiGameFeatureStatusWrapper, this);
 	    registerMethod(HDMIINPUT_METHOD_GET_AV_LATENCY, &HdmiInput::getAVLatency, this);
             registerMethod(HDMIINPUT_METHOD_GET_LOW_LATENCY_MODE, &HdmiInput::getTVLowLatencyMode, this);
-        }
+	}
 
         HdmiInput::~HdmiInput()
         {
@@ -230,6 +230,7 @@ namespace WPEFramework
 
             string sPortId = parameters["portId"].String();
             bool audioMix = parameters["requestAudioMix"].Boolean();
+            bool topMostPlane = parameters["topMost"].Boolean();
 	    int portId = 0;
 	    //planeType = 0 -  primary, 1 - secondary video plane type
 	    int planeType = 0;
@@ -251,7 +252,7 @@ namespace WPEFramework
             bool success = true;
             try
             {
-                device::HdmiInput::getInstance().selectPort(portId,audioMix,planeType);
+                device::HdmiInput::getInstance().selectPort(portId,audioMix,planeType,topMost);
             }
             catch (const device::Exception& err)
             {
