@@ -43,6 +43,7 @@
 #define HDMIINPUT_METHOD_START_HDMI_INPUT "startHdmiInput"
 #define HDMIINPUT_METHOD_STOP_HDMI_INPUT "stopHdmiInput"
 #define HDMIINPUT_METHOD_SCALE_HDMI_INPUT "setVideoRectangle"
+#define HDMIINPUT_METHOD_SET_PLANE_TOP_MOST "setPlaneTopMost"
 #define HDMIINPUT_METHOD_SUPPORTED_GAME_FEATURES "getSupportedGameFeatures"
 #define HDMIINPUT_METHOD_GAME_FEATURE_STATUS "getHdmiGameFeatureStatus"
 
@@ -123,7 +124,8 @@ namespace WPEFramework
             registerMethod(HDMIINPUT_METHOD_GAME_FEATURE_STATUS, &HdmiInput::getHdmiGameFeatureStatusWrapper, this);
 	    registerMethod(HDMIINPUT_METHOD_GET_AV_LATENCY, &HdmiInput::getAVLatency, this);
             registerMethod(HDMIINPUT_METHOD_GET_LOW_LATENCY_MODE, &HdmiInput::getTVLowLatencyMode, this);
-        }
+            registerMethod(HDMIINPUT_METHOD_SET_PLANE_TOP_MOST, &HdmiInput::setPlaneTopMost, this);
+	}
 
         HdmiInput::~HdmiInput()
         {
@@ -279,6 +281,26 @@ namespace WPEFramework
             returnResponse(success);
 
         }
+
+        uint32_t HdmiInput::setPlaneTopMost(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            returnIfParamNotFound(parameters, "topMost");
+
+	    bool topMostPlane = parameters["topMost"].Boolean();
+		// need to add the logic properly after amlogic implementation
+            bool success = true;
+            try
+            {
+                device::HdmiInput::getInstance().setPlaneTopMost(topMostPlane);
+            }
+            catch (const device::Exception& err)
+            {
+                LOGWARN("HdmiInputService::setPlaneTopMost Failed");
+                success = false;
+            }
+	     returnResponse(success);
+	}
 
         uint32_t HdmiInput::setVideoRectangleWrapper(const JsonObject& parameters, JsonObject& response)
         {
