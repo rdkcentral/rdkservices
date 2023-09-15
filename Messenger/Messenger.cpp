@@ -49,6 +49,8 @@ namespace Plugin {
 
     /* virtual */ const string Messenger::Initialize(PluginHost::IShell* service)
     {
+        string message;
+
         ASSERT(service != nullptr);
         ASSERT(_service == nullptr);
         ASSERT(_roomAdmin == nullptr);
@@ -58,35 +60,62 @@ namespace Plugin {
 
         _service = service;
         _service->AddRef();
+   //     _service->Register(&_notification);
 
         _roomAdmin = service->Root<Exchange::IRoomAdministrator>(_connectionId, 2000, _T("RoomMaintainer"));
-        ASSERT(_roomAdmin != nullptr);
+        if(_roomAdmin == nullptr) {
+            message = _T("RoomMaintainer couldnt be instantiated");
+        }
+        else {
+            _roomAdmin->Register(this);
+            
+        }
 
-        _roomAdmin->Register(this);
-
-        return { };
+        if(message.length() != 0) {
+            Deinitialize(service);
+        }
+        return message;
     }
 
     /* virtual */ void Messenger::Deinitialize(PluginHost::IShell* service)
     {
         ASSERT(service == _service);
 
-        // Exit all the rooms (if any) that were joined by this client
-        for (auto& room : _roomIds) {
-            room.second->Release();
+  //      _service->Unregister(&_notification);
+
+        if(_roomAdmin != nullptr) {
+            // Exit all the rooms (if any) that were joined by this client
+            for (auto& room : _roomIds) {
+                room.second->Release();
+            }
+
+            _roomIds.clear();
+            _roomAdmin->Unregister(this);
+            _rooms.clear();
+
+            RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
+            uint32_t result = _roomAdmin->Release();
+            _roomAdmin = nullptr;
+            // It should have been the last reference we are releasing,
+            // so it should end up in a DESCRUCTION_SUCCEEDED, if not we
+            // are leaking...
+            ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
+
+            // If this was running in a (container) proccess...
+            if (connection != nullptr) {
+
+                // Lets trigger the cleanup sequence for
+                // out-of-process code. Which will guard
+                // that unwilling processes, get shot if
+                // not stopped friendly :~)
+                connection->Terminate();
+                connection->Release();
+            }
+
         }
-
-        _roomIds.clear();
-
-        _roomAdmin->Unregister(this);
-        _rooms.clear();
-
-        _roomAdmin->Release();
-        _roomAdmin = nullptr;
-
         _service->Release();
         _service = nullptr;
-
+        _connectionId = 0;
         _roomACL.clear();
     }
 
@@ -205,6 +234,17 @@ namespace Plugin {
         return roomId;
     }
 
+    void Messenger::Deactivated(RPC::IRemoteConnection* connection)
+    {
+        if (connection->Id() == _connectionId) {
+
+            ASSERT(_service != nullptr);
+
+            Core::IWorkerPool::Instance().Submit(PluginHost::IShell::Job::Create(_service,
+                PluginHost::IShell::DEACTIVATED,
+                PluginHost::IShell::FAILURE));
+        }
+    }
 } // namespace Plugin
 
 } // WPEFramework
