@@ -1042,7 +1042,6 @@ namespace WPEFramework {
 
         RDKShell::RDKShell()
                 : PluginHost::JSONRPC(),
-                mEnableUserInactivityNotification(true),
                 mClientsMonitor(Core::Service<MonitorClients>::Create<MonitorClients>(this)),
                 mCurrentService(nullptr), mLastWakeupKeyCode(0),
                 mLastWakeupKeyModifiers(0),
@@ -1212,30 +1211,8 @@ namespace WPEFramework {
 #else
             std::cout << "rfc is disabled and unable to check for stb mac " << std::endl;
 #endif
-#ifdef RFC_ENABLED
-            RFC_ParamData_t param;
-            bool ret = Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.UserInactivityNotification.Enable", param);
-            if (true == ret && param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0))
-            {
-              mEnableUserInactivityNotification = true;
-              enableInactivityReporting(true);
-              ret = Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Power.UserInactivityNotification.TimeMinutes", param);
-              if (true == ret)
-              {
-                try
-                {
-                  CompositorController::setInactivityInterval(std::stod(param.value));
-                }
-                catch (...)
-                { 
-                  std::cout << "RDKShell unable to set inactivity interval  " << std::endl;
-                }
-              }
-            }
-#else
-            mEnableUserInactivityNotification = true;
             enableInactivityReporting(true);
-#endif
+            CompositorController::setInactivityInterval(15);
 
             // TODO: use interfaces and remove token
             auto security = mCurrentService->QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
@@ -1646,7 +1623,6 @@ namespace WPEFramework {
             mRemoteShell = false;
             CompositorController::setEventListener(nullptr);
             mEventListener = nullptr;
-            mEnableUserInactivityNotification = false;
             gActivePluginsData.clear();
             gRdkShellMutex.lock();
             for (unsigned int i=0; i<gCreateDisplayRequests.size(); i++)
@@ -3155,11 +3131,6 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
             bool result = true;
-            if (false == mEnableUserInactivityNotification)
-            {
-                result = false;
-                response["message"] = "feature is not enabled";
-            }
 
             if (!parameters.HasLabel("enable"))
             {
@@ -3183,11 +3154,6 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
             bool result = true;
-            if (false == mEnableUserInactivityNotification)
-            {
-                result = false;
-                response["message"] = "feature is not enabled";
-            }
 
             if (!parameters.HasLabel("interval"))
             {
@@ -3213,11 +3179,6 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
             bool result = true;
-            if (false == mEnableUserInactivityNotification)
-            {
-                result = false;
-                response["message"] = "feature is not enabled";
-            }
             if (result)
             {
                 result = resetInactivityTime();
