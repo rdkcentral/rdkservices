@@ -1,0 +1,6 @@
+precondition = ["Platform"]
+callsign = "org.rdk.DeviceDiagnostics"
+autostart = "false"
+
+if boolean("@PLUGIN_DEVICEDIAGNOSTICS_STARTUPORDER@"):
+    startuporder = "@PLUGIN_DEVICEDIAGNOSTICS_STARTUPORDER@"

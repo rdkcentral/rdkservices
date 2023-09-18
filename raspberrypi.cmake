@@ -77,5 +77,15 @@ if (BUILD_DBUS)
     option(IARM_USE_DBUS "IARM_USE_DBUS" ON)
 endif()
 
+if (BUILD_FOR_COMMUNITY)
+    message("Building for COMMUNITY")
+    add_definitions (-DBUILD_FOR_COMMUNITY)
+endif()
+
+if (BUILD_ENABLE_DEVICE_MANUFACTURER_INFO)
+    message("Building with device manufacturer info")
+    add_definitions (-DENABLE_DEVICE_MANUFACTURER_INFO)
+endif()
+
 
 
