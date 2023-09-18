@@ -152,9 +152,6 @@ static void getGraphicSize(uint32_t &w, uint32_t &h)
 
     cout << "[getGraphicSize] width : " << w << endl;
     cout << "[getGraphicSize] height : " << h << endl;
-    if(drm_fd >= 0){
-        close(drm_fd);
-    }
 }
 
 
