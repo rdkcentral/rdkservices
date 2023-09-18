@@ -485,6 +485,7 @@ This method takes no parameters.
 | result.discoveredDevices[#].deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
 | result.discoveredDevices[#].name | string | Name of the Bluetooth Device |
 | result.discoveredDevices[#].deviceType | string | Device class (for example: `headset`, `speakers`, etc.) |
+| result.discoveredDevices[#]rawDeviceType | string | Bluetooth device class as decimal |
 | result.discoveredDevices[#].connected | boolean | Whether the device is connected |
 | result.discoveredDevices[#].paired | boolean | Whether paired or not |
 | result.success | boolean | Whether the request succeeded |
