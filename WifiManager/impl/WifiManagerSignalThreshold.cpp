@@ -98,12 +98,7 @@ WifiManagerSignalThreshold::WifiManagerSignalThreshold():
 {
 }
 
-
 WifiManagerSignalThreshold::~WifiManagerSignalThreshold()
-{
-}
-
-void WifiManagerSignalThreshold::stopSignalThresholdThread()
 {
     stopThread();
 }
@@ -191,6 +186,7 @@ void WifiManagerSignalThreshold::loop(int interval)
         if (running)
         {
             getSignalData(signalStrength, strength);
+
 
             if (strength != lastStrength)
             {

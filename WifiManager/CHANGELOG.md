@@ -23,10 +23,6 @@ All notable changes to this RDK Service will be documented in this file.
 ### Fixed
 - Fixed IARM_Bus_UnRegisterEventHandler  call to IARM_Bus_RemoveEventHandler
 
-## [1.0.5] - 2023-02-16
-### Fixed
-- Fix for WPEFramework crash with callstack std::execute
-
 ## [1.0.4] - 2022-12-13
 ### Added
 - Added WifiManager plugin unitTest cases.
