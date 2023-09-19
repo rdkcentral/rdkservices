@@ -1252,7 +1252,7 @@ namespace WPEFramework
             returnResponse(true);
        }
 
-	int HdmiInput::setEdidVersion(int iPort, int iEdidVer)
+        int HdmiInput::setEdidVersion(int iPort, int iEdidVer)
         {
             bool ret = true;
             try
