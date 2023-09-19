@@ -1,0 +1,6 @@
+precondition = ["Platform"]
+callsign = "org.rdk.HdcpProfile"
+autostart = "@PLUGIN_HDCPPROFILE_AUTOSTART@"
+
+if boolean("@PLUGIN_HDCPPROFILE_STARTUPORDER@"):
+    startuporder = "@PLUGIN_HDCPPROFILE_STARTUPORDER@"

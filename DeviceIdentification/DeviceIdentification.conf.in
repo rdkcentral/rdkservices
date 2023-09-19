@@ -1,0 +1,15 @@
+precondition = ["Platform"]
+autostart = "@PLUGIN_DEVICEIDENTIFICATION_AUTOSTART@"
+
+if boolean("@PLUGIN_DEVICEIDENTIFICATION_STARTUPORDER@"):
+    startuporder = "@PLUGIN_DEVICEIDENTIFICATION_STARTUPORDER@"
+
+configuration = JSON()
+
+if boolean("@GENERIC_DEVICEIDENTIFIATION@"):
+    if boolean("@PLUGIN_DEVICEIDENTIFICATION_INTERFACE_NAME@"):
+        configuration.add("interface", PLUGIN_DEVICEIDENTIFICATION_INTERFACE_NAME)
+
+rootobject = JSON()
+rootobject.add("mode", "@PLUGIN_DEVICEIDENTIFICATION_MODE@")
+configuration.add("root", rootobject)
