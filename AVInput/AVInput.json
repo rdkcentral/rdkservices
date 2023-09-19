@@ -194,7 +194,7 @@
                 "type": "object",
                 "properties": {
                     "allmSupport": {
-                        "summary": "The allm bit value in edid",
+                        "summary": "The ALLM bit value in edid",
                         "type": "boolean",
                         "example": true
                     },

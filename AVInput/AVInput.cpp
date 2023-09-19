@@ -1203,9 +1203,9 @@ uint32_t AVInput::setEdid2AllmSupportWrapper(const JsonObject& parameters, JsonO
 
 }
 
-int getEdid2AllmSupport(int portId)
+bool getEdid2AllmSupport(int portId,bool allmSupportValue)
 {
-	bool allmSupportValue = true;
+	bool ret = true;
 	try
 	{
 		device::HdmiInput::getInstance().getEdid2AllmSupport (portId, &allmSupportValue);
@@ -1214,27 +1214,37 @@ int getEdid2AllmSupport(int portId)
 	catch (const device::Exception& err)
 	{
 		LOG_DEVICE_EXCEPTION1(std::to_string(portId));
+		ret = false;
 	}
-	return allmSupportValue;
+	return ret;
 }
 
 uint32_t AVInput::getEdid2AllmSupportWrapper(const JsonObject& parameters, JsonObject& response)
 {
 	LOGINFOMETHOD();
 	string sPortId = parameters["portId"].String();
+
 	int portId = 0;
+	bool allmSupport = true;
 	returnIfParamNotFound(parameters, "portId");
 
 	try {
-			portId = stoi(sPortId);
+		portId = stoi(sPortId);
 	}catch (const std::exception& err) {
 		LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
 		returnResponse(false);
 	}
 
-	bool allmSupport = getEdid2AllmSupport(portId);
-	response["allmSupport"] = allmSupport;
-	returnResponse(true);
+	bool result = getEdid2AllmSupport(portId,allmSupport);
+	if(result == true)
+	{
+	     response["allmSupport"] = allmSupport;
+	     returnResponse(true);
+	}
+	else
+	{
+	    returnResponse(false);
+	}
 }
 
 uint32_t AVInput::setEdidVersionWrapper(const JsonObject& parameters, JsonObject& response)
