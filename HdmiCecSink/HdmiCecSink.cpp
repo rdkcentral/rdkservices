@@ -206,7 +206,7 @@ namespace WPEFramework
 
                 in.getBuffer(&buf, &len);
                 for (unsigned int i = 0; i < len; i++) {
-                   sprintf(strBuffer + (i*3) , "%02X ",(uint8_t) *(buf + i));
+                   snprintf(strBuffer + (i*3) , sizeof(strBuffer) - (i*3), "%02X ",(uint8_t) *(buf + i));
                 }
                 LOGINFO("   >>>>>    Received CEC Frame: :%s \n",strBuffer);
 
@@ -1302,7 +1302,6 @@ namespace WPEFramework
 	  uint32_t HdmiCecSink::getActiveSourceWrapper(const JsonObject& parameters, JsonObject& response)
        {
        		char routeString[1024] = {'\0'};
-			int length = 0;
 			std::stringstream temp;
 			
        		if ( HdmiCecSink::_instance->m_currentActiveSource != -1 )
@@ -1319,11 +1318,11 @@ namespace WPEFramework
 
 				if ( HdmiCecSink::_instance->deviceList[n].m_physicalAddr.getByteValue(0) != 0 )
 				{
-					sprintf(&routeString[length], "%s%d", "HDMI",(HdmiCecSink::_instance->deviceList[n].m_physicalAddr.getByteValue(0) - 1));
+					snprintf(routeString, sizeof(routeString), "%s%d", "HDMI",(HdmiCecSink::_instance->deviceList[n].m_physicalAddr.getByteValue(0) - 1));
 				}
 				else if ( HdmiCecSink::_instance->deviceList[n].m_physicalAddr.getByteValue(0) == 0 )
 				{
-					sprintf(&routeString[length], "%s", "TV");
+					snprintf(routeString, sizeof(routeString), "%s", "TV");
 				}
 				
 				temp << (char *)routeString;
@@ -1472,15 +1471,15 @@ namespace WPEFramework
 										
 							pathList.Add(device);
 							
-							sprintf(&routeString[length], "%s", _instance->deviceList[route[i]].m_logicalAddress.toString().c_str());
+							snprintf(&routeString[length], sizeof(routeString) - length, "%s", _instance->deviceList[route[i]].m_logicalAddress.toString().c_str());
 							length += _instance->deviceList[route[i]].m_logicalAddress.toString().length();
-							sprintf(&routeString[length], "(%s", _instance->deviceList[route[i]].m_osdName.toString().c_str());
+							snprintf(&routeString[length], sizeof(routeString) - length, "(%s", _instance->deviceList[route[i]].m_osdName.toString().c_str());
 							length += _instance->deviceList[route[i]].m_osdName.toString().length();
-							sprintf(&routeString[length], "%s", ")-->");
+							snprintf(&routeString[length], sizeof(routeString) - length, "%s", ")-->");
 							length += strlen(")-->");
 							if( i + 1 ==  route.size() )
 							{
-								sprintf(&routeString[length], "%s%d", "HDMI",(HdmiCecSink::_instance->deviceList[route[i]].m_physicalAddr.getByteValue(0) - 1));
+								snprintf(&routeString[length], sizeof(routeString) - length, "%s%d", "HDMI",(HdmiCecSink::_instance->deviceList[route[i]].m_physicalAddr.getByteValue(0) - 1));
 							}
 						}
 					}
@@ -2684,6 +2683,7 @@ namespace WPEFramework
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_vendorID = appVendorId;
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_powerStatus = PowerStatus(powerState);
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_currentLanguage = defaultLanguage;
+						_instance->deviceList[_instance->m_logicalAddressAllocated].m_osdName = osdName.toString().c_str();
 						if(cecVersion == 2.0) {
 						    _instance->deviceList[_instance->m_logicalAddressAllocated].m_cecVersion = Version::V_2_0;
 						    _instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST),
