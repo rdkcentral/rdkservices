@@ -53,6 +53,7 @@ namespace Plugin {
 
         ASSERT(service != nullptr);
         ASSERT(_service == nullptr);
+        ASSERT(_connectionId == 0);
         ASSERT(_roomAdmin == nullptr);
         ASSERT(_roomIds.empty() == true);
         ASSERT(_rooms.empty() == true);
@@ -60,7 +61,7 @@ namespace Plugin {
 
         _service = service;
         _service->AddRef();
-   //     _service->Register(&_notification);
+        _service->Register(&_notification);
 
         _roomAdmin = service->Root<Exchange::IRoomAdministrator>(_connectionId, 2000, _T("RoomMaintainer"));
         if(_roomAdmin == nullptr) {
@@ -93,28 +94,29 @@ namespace Plugin {
             _roomAdmin->Unregister(this);
             _rooms.clear();
 
-//            RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
-            uint32_t result = _roomAdmin->Release();
+            RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
+            VARIABLE_IS_NOT_USED uint32_t result = _roomAdmin->Release();
             _roomAdmin = nullptr;
             // It should have been the last reference we are releasing,
             // so it should end up in a DESCRUCTION_SUCCEEDED, if not we
             // are leaking...
-      //      ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
+            ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
 
             // If this was running in a (container) proccess...
-    //        if (connection != nullptr) {
+            if (connection != nullptr) {
 
                 // Lets trigger the cleanup sequence for
                 // out-of-process code. Which will guard
                 // that unwilling processes, get shot if
                 // not stopped friendly :~)
-  //              connection->Terminate();
-  //              connection->Release();
-        //    }
+                connection->Terminate();
+                connection->Release();
+            }
 
         }
         _service->Release();
         _service = nullptr;
+        _roomAdmin = nullptr;
         _connectionId = 0;
         _roomACL.clear();
     }
