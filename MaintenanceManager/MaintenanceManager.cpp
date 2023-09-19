@@ -219,7 +219,11 @@ namespace WPEFramework {
         string task_names_foreground[]={
             "/lib/rdk/StartDCM_maintaince.sh",
             "/lib/rdk/RFCbase.sh",
+#if defined(ENABLE_RDKVFW_RDKE)
+            "/usr/bin/rdkvfwupgrader 0 1 >> /opt/logs/swupdate.log",
+#else
             "/lib/rdk/swupdate_utility.sh >> /opt/logs/swupdate.log",
+#endif
             "/lib/rdk/Start_uploadSTBLogs.sh"
         };
 
@@ -228,7 +232,11 @@ namespace WPEFramework {
         string script_names[]={
             "DCMscript_maintaince.sh",
             "RFCbase.sh",
+#if defined(ENABLE_RDKVFW_RDKE)
+	    "rdkvfwupgrader"
+#else
             "swupdate_utility.sh",
+#endif
             "uploadSTBLogs.sh"
         };
 
@@ -1286,8 +1294,12 @@ namespace WPEFramework {
 	    bool rdkvfwrfc=false;
 	    // 1 = Foreground and 0 = background
 	    int mode = 1;
-
+#if defined(ENABLE_RDKVFW_RDKE)
+	    LOGINFO("RDKE Device.Mode change allow anytime.\n");
+	    rdkvfwrfc=true;// With out reading rfc setting this value to true So that below mode change condition will execute
+#else
             rdkvfwrfc = readRFC(TR181_RDKVFWUPGRADER);
+#endif
             /* Label should have maintenance mode and softwareOptout field */
             if ( parameters.HasLabel("maintenanceMode") && parameters.HasLabel("optOut") ){
 
@@ -1319,7 +1331,8 @@ namespace WPEFramework {
                     g_currentMode = new_mode;
                     m_setting.setValue("background_flag", bg_flag);
 		}else {
-                     /*If firmware rfc is true and IARM bus component present allow to change maintenance mode*/
+                     /*If firmware rfc is true and IARM bus component present allow to change maintenance mode.
+		      * In case of RDKE defulting c based firmware download so need rfc read.*/
 	            if (rdkvfwrfc == true) {
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
                     LOGINFO("SetMaintenanceMode new_mode = %s\n",new_mode.c_str());
@@ -1553,7 +1566,16 @@ namespace WPEFramework {
             LOGINFO("PID of %s is %d \n", taskname , (int)pid_num);
             if( pid_num != -1){
                 /* send the signal to task to terminate */
+#if defined(ENABLE_RDKVFW_RDKE)
+		if (strstr(taskname, "rdkvfwupgrader")) {
+		    LOGINFO("Sending SIGUSR1 signal to %s\n", taskname);
+                    k_ret = kill( pid_num, SIGUSR1 );
+		}else{
+                    k_ret = kill( pid_num, sig_to_send );
+		}
+#else
                 k_ret = kill( pid_num, sig_to_send );
+#endif
                 LOGINFO(" %s sent signal %d\n", taskname, sig_to_send );
                 if (k_ret == 0){
                    LOGINFO(" %s Terminated\n", taskname );
