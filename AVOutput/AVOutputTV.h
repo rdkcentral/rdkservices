@@ -78,6 +78,7 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         DECLARE_JSON_RPC_METHOD(getAspectRatio2)
         DECLARE_JSON_RPC_METHOD(getDolbyVisionMode)
 
+
 	/*Get Capability API's*/
         DECLARE_JSON_RPC_METHOD(getBacklightCaps)
 	DECLARE_JSON_RPC_METHOD(getContrastCaps)
