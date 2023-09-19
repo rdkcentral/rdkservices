@@ -11,7 +11,6 @@ if boolean("@PLUGIN_OCDM_STARTUPORDER@"):
 
 configuration = JSON()
 configuration.add("sharepath", "/tmp/OCDM")
-configuration.add("connector", "/tmp/OCDM/ocdm")
 if ("@PLUGIN_OPENCDMI_MODE@" == "off"):
     configuration.add("outofprocess", "@PLUGIN_OPENCDMI_OOP@")
 
