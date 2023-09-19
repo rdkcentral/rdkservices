@@ -73,7 +73,6 @@ set(EMPTY_HEADERS
         ${BASEDIR}/rdkshell/eastereggs.h
         ${BASEDIR}/rdkshell/application.h
         ${BASEDIR}/rdkshell/linuxkeys.h
-        ${BASEDIR}/framebuffer-api.h
         ${BASEDIR}/libudev.h
         ${BASEDIR}/rfcapi.h
         ${BASEDIR}/rbus.h
@@ -126,7 +125,6 @@ message("Adding compiler and linker options for all targets")
 file(GLOB BASEDIR Tests/mocks)
 set(FAKE_HEADERS
         ${BASEDIR}/devicesettings.h
-        ${BASEDIR}/FrameBuffer.h
         ${BASEDIR}/Iarm.h
         ${BASEDIR}/Rfc.h
         ${BASEDIR}/RBus.h
@@ -155,7 +153,7 @@ add_definitions(
         -DENABLE_DEEP_SLEEP
         -DENABLE_SET_WAKEUP_SRC_CONFIG
         -DENABLE_THERMAL_PROTECTION
-        -DUSE_FRAMEBUFFER_SCREENCAPTURE
+        -DUSE_DRM_SCREENCAPTURE
         -DHAS_API_SYSTEM
         -DHAS_API_POWERSTATE
         -DHAS_RBUS
