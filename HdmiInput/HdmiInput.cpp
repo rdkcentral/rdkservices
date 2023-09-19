@@ -252,7 +252,7 @@ namespace WPEFramework
             bool success = true;
             try
             {
-                device::HdmiInput::getInstance().selectPort(portId,audioMix,planeType,topMost);
+                device::HdmiInput::getInstance().selectPort(portId,audioMix,planeType,topMostPlane);
             }
             catch (const device::Exception& err)
             {
