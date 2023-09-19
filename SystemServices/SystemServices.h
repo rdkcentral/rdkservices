@@ -63,7 +63,7 @@ using std::ofstream;
 #define EVT_ONREBOOTREQUEST               "onRebootRequest"
 #define EVT_ON_SYSTEM_CLOCK_SET           "onSystemClockSet"
 #define EVT_ONFWPENDINGREBOOT             "onFirmwarePendingReboot" /* Auto Reboot notifier */
-#define EVT_ONREBOOTREQUEST               "onRebootRequest"
+#define EVT_ONPWRMGRREBOOTREQUEST         "onPwrMgrRebootRequest"
 #define EVT_ONTERRITORYCHANGED            "onTerritoryChanged"
 #define EVT_ONTIMEZONEDSTCHANGED          "onTimeZoneDSTChanged"
 #define EVT_FRIENDLYNAMECHANGED           "onFriendlyNameChanged"
@@ -190,7 +190,7 @@ namespace WPEFramework {
                 /* Events : Begin */
                 void onFirmwareUpdateInfoRecieved(string CallGUID);
                 void onSystemPowerStateChanged(string currentPowerState, string powerState);
-                void onPwrMgrReboot(string requestedApp, string rebootReason);
+                void onPwrMgrRebootRequest(string requestedApp, string rebootReason);
                 void onNetorkModeChanged(bool betworkStandbyMode);
                 void onSystemModeChanged(string mode);
                 void onFirmwareUpdateStateChange(int state);
@@ -198,7 +198,7 @@ namespace WPEFramework {
                 void onLogUpload(int newState);
                 void onTemperatureThresholdChanged(string thresholdType,
                         bool exceed, float temperature);
-                void onRebootRequest(string reason);
+                void onRebootRequest(string requestedApp, string rebootReason);
                 void onFirmwarePendingReboot(int seconds); /* Event handler for Pending Reboot */
 		void onTerritoryChanged(string oldTerritory, string newTerritory, string oldRegion="", string newRegion="");
 		void onTimeZoneDSTChanged(string oldTimeZone, string newTimeZone, string oldAccuracy, string newAccuracy);
