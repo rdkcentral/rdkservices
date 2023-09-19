@@ -280,8 +280,8 @@ namespace WPEFramework
             returnResponse(success);
 
         }
-
-        uint32_t HdmiInput::setVideoRectangleWrapper(const JsonObject& parameters, JsonObject& response)
+        
+	uint32_t HdmiInput::setVideoRectangleWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
 
