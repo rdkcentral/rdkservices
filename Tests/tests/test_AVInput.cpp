@@ -44,6 +44,8 @@ TEST_F(AVInputTest, RegisteredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("numberOfInputs")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("currentVideoMode")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("contentProtected")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setEdid2AllmSupport")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getEdid2AllmSupport")));
 }
 
 TEST_F(AVInputTest, contentProtected)
@@ -69,3 +71,23 @@ TEST_F(AVInputDsTest, currentVideoMode)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("currentVideoMode"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"currentVideoMode\":\"unknown\",\"success\":true}"));
 }
+
+TEST_F(AVInputDsTest, getEdid2AllmSupport)
+{
+    ON_CALL(hdmiInputImplMock, getEdid2AllmSupport())
+        .WillByDefault(::testing::Return(string("unknown")));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getEdid2AllmSupport"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"allmSupport\":true,\"success\":true}"));
+}
+
+
+TEST_F(AVInputDsTest, setEdid2AllmSupport)
+{
+    ON_CALL(hdmiInputImplMock, setEdid2AllmSupport())
+        .WillByDefault(::testing::Return(string("unknown")));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setEdid2AllmSupport"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+}
+

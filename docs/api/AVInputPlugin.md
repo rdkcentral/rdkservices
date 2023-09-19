@@ -1077,4 +1077,116 @@ Triggered whenever game feature(ALLM) status changes for an HDMI Input.
     }
 }
 ```
+<a name="getEdid2AllmSupport"></a>
+## *getEdid2AllmSupport*
+
+Returns `allmSupport` value as `true` if the ALLM support is enabled; otherwise, it returns `false`.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| param.portId | integer | port ID of the hdmi port|
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.allmSupport | boolean | whether the ALLM support is enabled or not |
+| result.success | boolean | Whether the request succeeded |
+
+### Errors
+
+| Code | Message | Description |
+| :-------- | :-------- | :-------- |
+| 1 | ```ERROR_GENERAL``` | General error |
+| 30 | ```ERROR_BAD_REQUEST``` | portId is invalid |
+
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.AVInput.getEdid2AllmSupport",
+    "params": {"portId":1}
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "allmSupport": true,
+        "success": true
+    }
+}
+
+```
+<a name="setEdid2AllmSupport"></a>
+## *setEdid2AllmSupport*
+
+Sets `allmSupport` bit to `true` if the ALLM support needs to be enabled; otherwise, it is set to `false`.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| param.portId | integer | port ID of the hdmi port|
+| allmSupport| boolean | sets to true or false based on ALLM support needed|
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Errors
+
+| Code | Message | Description |
+| :-------- | :-------- | :-------- |
+| 1 | ```ERROR_GENERAL``` | General error |
+| 30 | ```ERROR_BAD_REQUEST``` | portId is invalid |
+
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.AVInput.setEdid2AllmSupport",
+    "params": {"portId":1,"allmSupport":true}
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
 

@@ -178,7 +178,7 @@
 	"getEdid2AllmSupport":{
             "deprecated" : true,
             "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=getEdid2AllmSupport",
-            "summary": "Returns the EDID Allm bit value.",
+            "summary": "Returns the EDID ALLM bit value.",
             "params": {
                 "type":"object",
                 "properties": {
