@@ -32,7 +32,11 @@ const string WPEFramework::Plugin::UsbAccess::EVT_ON_USB_MOUNT_CHANGED = "onUSBM
 const string WPEFramework::Plugin::UsbAccess::EVT_ON_ARCHIVE_LOGS = "onArchiveLogs";
 const string WPEFramework::Plugin::UsbAccess::REGEX_BIN = "[\\w-]*\\.{0,1}[\\w-]*\\.bin";
 const string WPEFramework::Plugin::UsbAccess::REGEX_FILE =
+<<<<<<< HEAD
 				"^[^.,`~?!@#%^&*()+={}\\[\\]<>]+\\.(png|jpg|jpeg|tiff|bmp|mp4|mov|avi|mp3|wav|m4a|flac|aac|wma|txt|bin|enc|ts)$";
+=======
+				"^[a-zA-Z0-9_-]+\\.(png|jpg|jpeg|tiff|bmp|mp4|mov|avi|mp3|wav|m4a|flac|aac|wma|txt|bin|enc|ts)$";
+>>>>>>> ed08d9536d65b00cb71a17cc0073f81cbb33db27
 const string WPEFramework::Plugin::UsbAccess::REGEX_PATH = "^\\/([\\w-]+\\/)+$";
 const string WPEFramework::Plugin::UsbAccess::PATH_DEVICE_PROPERTIES = "/etc/device.properties";
 const std::list<string> WPEFramework::Plugin::UsbAccess::ADDITIONAL_FW_PATHS {"UsbTestFWUpdate", "UsbProdFWUpdate"};
@@ -134,6 +138,10 @@ namespace Plugin {
             static string result;
             static std::once_flag flag;
             std::call_once(flag, [&](){
+<<<<<<< HEAD
+=======
+                string model = findProp(UsbAccess::PATH_DEVICE_PROPERTIES.c_str(), "MODEL_NUM");
+>>>>>>> ed08d9536d65b00cb71a17cc0073f81cbb33db27
                 result = UsbAccess::REGEX_PATH;
 
                 LOGINFO("regex for device is '%s'", result.c_str());
@@ -501,6 +509,10 @@ namespace Plugin {
         {
             runScript(path,name);
             result = true;
+<<<<<<< HEAD
+=======
+            LOGINFO("inside if of regex check");
+>>>>>>> ed08d9536d65b00cb71a17cc0073f81cbb33db27
         }
         if (!result)
             response["error"] = "invalid filename";
