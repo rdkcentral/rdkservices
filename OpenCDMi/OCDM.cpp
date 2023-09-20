@@ -74,9 +74,9 @@ namespace OCDM {
                 return (IsOperational() ? 1 : 0);
             }
 #ifndef USE_THUNDER_R4
-            virtual bool IsOperational() const
+            virtual bool IsOperational() const override // TODO is it 'const bool' or 'bool' in TH2?
 #else
-            virtual const bool IsOperational() const
+            virtual bool IsOperational() const override
 #endif /* USE_THUNDER_R4 */
             {
                 return _main.IsActive();
