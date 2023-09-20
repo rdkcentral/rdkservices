@@ -175,6 +175,39 @@
                 }
             ]
         },
+	"getEdid2AllmSupport":{
+            "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=getEdid2AllmSupport",
+            "summary": "Returns the EDID ALLM bit value.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "portId":{
+                        "$ref": "#/definitions/portId"
+                    }
+                },
+                "required": [
+                    "portid"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "allmSupport": {
+                        "summary": "The ALLM bit value in edid",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "allmSupport",
+                    "success"
+                ]
+            }
+	},
         "getEdidVersion":{
             "summary": "Returns the EDID version.",
             "params": {
@@ -387,6 +420,31 @@
                     "$ref": "#/common/errors/badrequest"
                 }
             ]
+        },
+	"setEdid2AllmSupport": {
+            "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=setedid2AllmSupport",
+            "summary": "Sets an HDMI ALLM bit in EDID.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "portId":{
+                        "$ref": "#/definitions/portId"
+                    },
+                    "allmSupport":{
+                        "summary": "The ALLM support in EDID",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "portId",
+                    "allmSupport"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
         },
         "setEdidVersion": {
             "summary": "Sets an HDMI EDID version.",
