@@ -16,8 +16,8 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 ## [1.2.2] - 2023-09-20
-### Added
-- Implement cache logic for get internet state
+### Fixed
+- Fixed multiple concurrent isConnectedToInternet() requests by using the cache
 
 ## [1.2.1] - 2023-09-12
 ### Added
