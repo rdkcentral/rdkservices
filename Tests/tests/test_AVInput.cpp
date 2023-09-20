@@ -74,7 +74,7 @@ TEST_F(AVInputDsTest, currentVideoMode)
 
 TEST_F(AVInputDsTest, getEdid2AllmSupport)
 {
-    ON_CALL(hdmiInputImplMock, getEdid2AllmSupport())
+    ON_CALL(hdmiInputImplMock, getEdid2AllmSupport(::testing::_,::testing::_))
         .WillByDefault(::testing::Return(string("unknown")));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getEdid2AllmSupport"), _T("{\"portId\": \"0\",\"allmSupport\":true}"), response));
@@ -84,7 +84,7 @@ TEST_F(AVInputDsTest, getEdid2AllmSupport)
 
 TEST_F(AVInputDsTest, setEdid2AllmSupport)
 {
-    ON_CALL(hdmiInputImplMock, setEdid2AllmSupport())
+    ON_CALL(hdmiInputImplMock, setEdid2AllmSupport(::testing::_,::testing::_))
         .WillByDefault(::testing::Return(string("unknown")));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setEdid2AllmSupport"), _T("{\"portId\": \"0\",\"allmSupport\":true}"), response));
