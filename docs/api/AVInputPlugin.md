@@ -1076,3 +1076,4 @@ Triggered whenever game feature(ALLM) status changes for an HDMI Input.
         "mode": true
     }
 }
+```
