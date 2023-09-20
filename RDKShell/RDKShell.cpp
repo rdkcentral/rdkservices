@@ -46,13 +46,13 @@
 #include "UtilsString.h"
 
 #ifdef RDKSHELL_READ_MAC_ON_STARTUP
-#include "FactoryProtectHal.h"
+#include "DeviceMode.h"
 #endif //RDKSHELL_READ_MAC_ON_STARTUP
 
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 4
-#define API_VERSION_NUMBER_PATCH 4
+#define API_VERSION_NUMBER_PATCH 2
 
 const string WPEFramework::Plugin::RDKShell::SERVICE_NAME = "org.rdk.RDKShell";
 //methods
@@ -162,7 +162,6 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_DEVICE_CRITICALLY_LO
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_EASTER_EGG = "onEasterEgg";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_WILL_DESTROY = "onWillDestroy";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_SCREENSHOT_COMPLETE = "onScreenshotComplete";
-
 using namespace std;
 using namespace RdkShell;
 using namespace Utils;
@@ -232,6 +231,22 @@ enum AppLastExitReason
     CRASH,
     DEACTIVATED
 };
+
+#ifdef RDKSHELL_READ_MAC_ON_STARTUP
+static bool checkFactoryMode_wrapper()
+{
+        Device_Mode_DeviceModes_t deviceMode;
+        bool ret = false;
+        Device_Mode_Result_t result = Device_Mode_getDeviceMode(&deviceMode);
+        if(result == DEVICE_MODE_RESULT_SUCCESS) {
+                if (deviceMode == DEVICE_MODE_FACTORY) {
+                        std::cout << "Device in FactoryMode\n";
+                        ret = true;
+                }
+        }
+        return ret;
+}
+#endif
 
 FactoryAppLaunchStatus sFactoryAppLaunchStatus = NOTLAUNCHED;
 
@@ -684,7 +699,7 @@ namespace WPEFramework {
                 {
                     launchFactoryAppWrapper(apiRequest.mRequest, result);
                 }
-		        else if (requestName.compare("launchResidentApp") == 0)
+			else if (requestName.compare("launchResidentApp") == 0)
                 {
                     launchResidentAppWrapper(apiRequest.mRequest, result);
                 }
@@ -1178,7 +1193,7 @@ namespace WPEFramework {
             Register(RDKSHELL_METHOD_SET_GRAPHICS_FRAME_RATE, &RDKShell::setGraphicsFrameRateWrapper, this);
             Register(RDKSHELL_METHOD_SET_AV_BLOCKED, &RDKShell::setAVBlockedWrapper, this);
             Register(RDKSHELL_METHOD_GET_AV_BLOCKED_APPS, &RDKShell::getBlockedAVApplicationsWrapper, this);
-      	    m_timer.connect(std::bind(&RDKShell::onTimer, this));
+	    m_timer.connect(std::bind(&RDKShell::onTimer, this));
         }
 
         RDKShell::~RDKShell()
@@ -1205,27 +1220,8 @@ namespace WPEFramework {
             bool factoryMacMatched = false;
 #ifdef RFC_ENABLED
             #ifdef RDKSHELL_READ_MAC_ON_STARTUP
-            char* mac = new char[19];
-            tFHError retAPIStatus;
-            std::cout << "calling factory hal init\n";
-            factorySD1_init();
-            retAPIStatus = getEthernetMAC(&mac);
-            if(retAPIStatus == E_OK)
-            {
-                if (strncasecmp(mac,"00:00:00:00:00:00",17) == 0)
-                {
-                    std::cout << "launching factory app as mac is matching... " << std::endl;
-                    factoryMacMatched = true;
-                }
-                else
-                {
-                    std::cout << "mac match failed... mac from hal - " << mac << std::endl;
-                }
-            }
-            else
-            {
-                std::cout << "reading stb mac hal api failed... " << std::endl;
-            }
+	    Device_Mode_Init();
+            factoryMacMatched = checkFactoryMode_wrapper();
             #else
             RFC_ParamData_t macparam;
             bool macret = Utils::getRFCConfig("Device.DeviceInfo.X_COMCAST-COM_STB_MAC", macparam);
@@ -1886,8 +1882,7 @@ namespace WPEFramework {
               std::cout << "easter eggs disabled and not processing event" << std::endl;
               return;
           }
-          
-          if (actionJson.length() == 0)
+	  if (actionJson.length() == 0)
           {
             JsonObject params;
             params["name"] = name;
@@ -1952,8 +1947,71 @@ namespace WPEFramework {
                     }
                 }
               }
-            }
-            catch(...)
+	      else if(actionObject.HasLabel("initData")){
+		      JsonArray setparams;
+		      JsonArray Params;
+		      JsonObject initDataSize;
+		      JsonObject invokeobject;
+		      JsonObject nameobject;
+		      JsonObject namespacekey;
+		      JsonObject namespaceValue;
+		      std::string callsign;
+		      std::string namespaceval;
+		      std::string key;
+		      std::string KeyValue;
+		      std::string CallsignValue;
+		      std::string value;
+
+		      JsonArray initData = actionObject["initData"].Array(); 
+
+		      initDataSize  = initData[0].Object();
+		      if (initDataSize.HasLabel("initDataSize")){  
+			      std::string value = initDataSize["initDataSize"].String();	
+		      }
+		      setparams = actionObject["invoke"].Array();
+		      invokeobject = setparams[0].Object();
+		      if (invokeobject.HasLabel("invoke")){
+			      callsign = invokeobject["invoke"].String();
+		      }
+		      Params = actionObject["params"].Array();
+		      nameobject = Params[0].Object();
+		      if (nameobject.HasLabel("namespace")) {
+			      namespaceval = nameobject["namespace"].String();
+		      } 
+		      namespacekey = Params[1].Object();
+		      if (namespacekey.HasLabel("key")) {
+			      key = namespacekey["key"].String();
+		      }
+
+		      namespaceValue = Params[2].Object(); 
+		      if (namespaceValue.HasLabel("value")) {
+			      KeyValue = namespaceValue["value"].String();
+		      }
+
+		      setValue(mShell.mCurrentService, namespaceval, key, KeyValue);
+
+		      JsonObject RDklaunch = initData[1].Object();
+
+		      if (RDklaunch.HasLabel("invoke")) {
+			      CallsignValue = RDklaunch["Value"].String();
+		      }
+
+		      size_t lastPositionOfDot1 = CallsignValue.find_last_of(".");
+		      auto thunderController1 = getThunderControllerClient();
+
+		      if (lastPositionOfDot1 != std::string::npos) {
+			      std::string callsign1 = CallsignValue.substr(0, lastPositionOfDot1);
+			      std::cout << "callsign will be " << callsign1 << std::endl;
+
+			      if (callsign1.compare("org.rdk.RDKShell.1") != 0) {
+				      activate(mShell.mCurrentService, callsign1);
+			      }
+		      }
+
+	      }
+	    }
+
+	  catch(...)
             {
               std::cout << "error in parsing action for easter egg " << std::endl;
             }
@@ -3551,6 +3609,10 @@ namespace WPEFramework {
                     std::cout << "new launch count loc1: 0\n";
                     returnResponse(false);
                 }
+                else if ((true == newPluginFound) && (type != callsign))
+                {
+                    type = callsign;
+                }
                 else if (!newPluginFound)
                 {
                     std::cout << "attempting to clone type: " << type << " into " << callsign << std::endl;
@@ -4346,8 +4408,11 @@ namespace WPEFramework {
 
                     if(!rialtoConnector->initialized())
                     {
+                        string sesEnv,rialtoDebug;
                         LOGWARN("Initializing rialto connector....");
-                        rialtoConnector->initialize();
+                        Core::SystemInfo::GetEnvironment(_T("SESSION_SERVER_ENV_VARS"), sesEnv);
+                        Core::SystemInfo::GetEnvironment(_T("RIALTO_DEBUG"), rialtoDebug);
+                        rialtoConnector->initialize(sesEnv,rialtoDebug);
                     }
                     LOGWARN("Creating app session ....");
                     if(!rialtoConnector->createAppSession(client,display, appId))
@@ -4355,7 +4420,7 @@ namespace WPEFramework {
                         response["message"] = "Rialto app session initialisation failed";
                         returnResponse(false);
                     }
-                    if(!rialtoConnector->waitForStateChange(appId,RialtoServerStates::ACTIVE, RIALTO_TIMEOUT_MILLIS))
+                    if(rialtoConnector->waitForStateChange(appId,RialtoServerStates::INACTIVE,200))
                     {
                         response["message"] = "Rialto app session not ready.";
                         returnResponse(false);
@@ -4365,9 +4430,6 @@ namespace WPEFramework {
                     auto ociContainerPlugin = getOCIContainerPlugin();
                     if (!ociContainerPlugin)
                     {
-#ifdef ENABLE_RIALTO_FEATURE
-                        rialtoConnector->deactivateSession(client);
-#endif //ENABLE_RIALTO_FEATURE
                         response["message"] = "OCIContainer initialisation failed";
                         returnResponse(false);
                     }
@@ -4387,9 +4449,6 @@ namespace WPEFramework {
                     {
                         // Something went wrong starting the container, destory the display we just created
                         kill(client);
-#ifdef ENABLE_RIALTO_FEATURE
-                        rialtoConnector->deactivateSession(client);
-#endif //ENABLE_RIALTO_FEATURE
                         response["message"] = "Could not start Dobby container";
                         returnResponse(false);
                     }
@@ -4479,11 +4538,7 @@ namespace WPEFramework {
                     }
 #ifdef ENABLE_RIALTO_FEATURE
                     rialtoConnector->suspendSession(client);
-                    if(!rialtoConnector->waitForStateChange(client,RialtoServerStates::INACTIVE, RIALTO_TIMEOUT_MILLIS))
-                    {
-                        response["message"] = "Rialto app session could not be set inactive.";
-                        returnResponse(false);
-		    }
+                    //Do we need to wait for state change ?
 #endif //ENABLE_RIALTO_FEATURE
                 }
                 else
@@ -4541,7 +4596,7 @@ namespace WPEFramework {
                     }
 #ifdef ENABLE_RIALTO_FEATURE
                     rialtoConnector->resumeSession(client);
-                    if(!rialtoConnector->waitForStateChange(client,RialtoServerStates::ACTIVE,RIALTO_TIMEOUT_MILLIS))
+                    if(rialtoConnector->waitForStateChange(client,RialtoServerStates::ACTIVE,200))
                     {
                         response["message"] = "Rialto app session not ready.";
                         returnResponse(false);
@@ -4937,7 +4992,7 @@ namespace WPEFramework {
             }
 
             char* factoryAppUrl = getenv("RDKSHELL_FACTORY_APP_URL");
-            if (NULL != factoryAppUrl)
+            if (true)
             {
                 if (parameters.HasLabel("resetagingtime"))
                 {
@@ -4956,7 +5011,14 @@ namespace WPEFramework {
                 JsonObject launchRequest, configuration;
                 launchRequest["callsign"] = "factoryapp";
                 launchRequest["type"] = "ResidentApp";
-                launchRequest["uri"] = std::string(factoryAppUrl);
+                if (NULL != factoryAppUrl)
+                {
+                    launchRequest["uri"] = std::string(factoryAppUrl);
+                }
+                else
+                {
+                    launchRequest["uri"] = std::string("http://localhost:50050/factoryui/index.html?cfg=Hisense");
+                }
                 configuration["uri"] = launchRequest["uri"];
                 launchRequest["focused"] = true;
                 launchRequest["configuration"] = configuration;
@@ -5871,24 +5933,14 @@ namespace WPEFramework {
             std::cout << "inside of checkForBootupFactoryAppLaunch\n";
 #ifdef RFC_ENABLED
             #ifdef RDKSHELL_READ_MAC_ON_STARTUP
-            char* mac = new char[19];
-            tFHError retAPIStatus;
-            retAPIStatus = getEthernetMAC(&mac);
-            if(retAPIStatus == E_OK)
+            if (checkFactoryMode_wrapper())
             {
-                if (strncasecmp(mac,"00:00:00:00:00:00",17) == 0)
-                {
-                    std::cout << "launching factory app as mac is matching... " << std::endl;
-                    return true;
-                }
-                else
-                {
-                    std::cout << "mac match failed... mac from hal - " << mac << std::endl;
-                }
+                std::cout << "Device in FactoryMode\n";
+                return true;
             }
             else
             {
-                std::cout << "reading stb mac via hal failed " << std::endl;
+                std::cout << "Device in User mode\n";
             }
             #else
             RFC_ParamData_t param;
