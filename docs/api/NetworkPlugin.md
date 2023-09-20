@@ -2,7 +2,7 @@
 <a name="NetworkPlugin"></a>
 # NetworkPlugin
 
-**Version: [1.0.10](https://github.com/rdkcentral/rdkservices/blob/main/Network/CHANGELOG.md)**
+**Version: [1.2.0](https://github.com/rdkcentral/rdkservices/blob/main/Network/CHANGELOG.md)**
 
 A org.rdk.Network plugin for Thunder framework.
 
@@ -54,7 +54,7 @@ Network interface methods:
 | [getQuirks](#getQuirks) | Get standard string `RDK-20093` |
 | [getStbIp](#getStbIp) | Gets the IP address of the default interface |
 | [getSTBIPFamily](#getSTBIPFamily) | Gets the IP address of the default interface by address family |
-| [setConnectivityTestEndpoints](#setConnectivityTestEndpoints) | Sets the default list of endpoints used for a connectivity test |
+| [setConnectivityTestEndpoints](#setConnectivityTestEndpoints) | Set the list of endpoints used for a connectivity test |
 | [isConnectedToInternet](#isConnectedToInternet) | Whether the device has internet connectivity |
 | [getInternetConnectionState](#getInternetConnectionState) | Returns the internet connection state |
 | [getCaptivePortalURI](#getCaptivePortalURI) | Returns the captive portal URI if connected to any captive portal network |
@@ -71,6 +71,7 @@ Network interface methods:
 | [configurePNI](#configurePNI) | This method configures PNI to enable or disable Connectivity test |
 | [trace](#trace) | Traces the specified endpoint with the specified number of packets using `traceroute` |
 | [traceNamedEndpoint](#traceNamedEndpoint) | Traces the specified named endpoint with the specified number of packets using `traceroute` |
+
 
 <a name="getDefaultInterface"></a>
 ## *getDefaultInterface*
@@ -442,7 +443,12 @@ No Events
 <a name="setConnectivityTestEndpoints"></a>
 ## *setConnectivityTestEndpoints*
 
-Sets the default list of endpoints used for a connectivity test. Maximum number of endpoints is 5.
+Set the list of endpoints used for a connectivity test. Endpoint should return HTTP Status 204 (No Content) for successful connection and Maximum number of endpoints is 5 . 
+
+Default endpoints:-
+* http://clients3.google.com/generate_204 
+* http://edge-http.microsoft.com/captiveportal/generate_204 
+* http://gstatic.com/generate_204 .
 
 ### Events
 
@@ -1224,7 +1230,7 @@ No Events
 <a name="configurePNI"></a>
 ## *configurePNI*
 
-This method configures PNI to enable or disable Connectivity test. 
+This method configures PNI to enable or disable Connectivity test.
 
 ### Events
 
@@ -1235,7 +1241,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object | it allows empty parameter too |
-| params.disableConnectivityTest | boolean | Connectivity test ON or OFF |
+| params.disableConnectivityTest | boolean | Disable Connectivity Test |
 
 ### Result
 
@@ -1270,8 +1276,6 @@ No Events
     }
 }
 ```
-
-
 
 <a name="trace"></a>
 ## *trace*

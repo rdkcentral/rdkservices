@@ -98,12 +98,20 @@ typedef enum _InternetConnectionState_t {
     FULLY_CONNECTED
 }InternetConnectionState_t;
 
+typedef enum _NetworkManager_IPRESOLVE_ErrorCode_t
+{
+  NSM_IPRESOLVE_WHATEVER=0,
+  NSM_IPRESOLVE_V4,
+  NSM_IPRESOLVE_V6
+} NetworkManager_IPRESOLVE_t;
+
 typedef struct
 {
     int connectivityState;
     int monitorInterval;
     bool monitorConnectivity;
     char captivePortalURI[MAX_URI_LEN];
+    NetworkManager_IPRESOLVE_t ipversion;
 } IARM_BUS_NetSrvMgr_Iface_InternetConnectivityStatus_t;
 
 typedef struct {
@@ -118,6 +126,12 @@ typedef struct {
 
 typedef IARM_BUS_NetSrvMgr_Iface_EventInterfaceStatus_t IARM_BUS_NetSrvMgr_Iface_EventInterfaceEnabledStatus_t;
 typedef IARM_BUS_NetSrvMgr_Iface_EventInterfaceStatus_t IARM_BUS_NetSrvMgr_Iface_EventInterfaceConnectionStatus_t;
+
+typedef struct
+{
+    NetworkManager_IPRESOLVE_t ipversion;
+    bool isconnected;
+} IARM_BUS_NetSrvMgr_isConnectedtoInternet_t;
 
 typedef struct {
     char interface[16];
@@ -291,8 +305,6 @@ namespace WPEFramework {
             std::atomic<bool> m_useDefInterfaceCache;
             string m_defInterfaceCache;
             string m_defIpversionCache;
-            std::atomic<bool> m_useInterfacesCache;
-            IARM_BUS_NetSrvMgr_InterfaceList_t m_interfacesCache;
 
             IARM_BUS_NetSrvMgr_Iface_Settings_t m_ipv4WifiCache;
             IARM_BUS_NetSrvMgr_Iface_Settings_t m_ipv6WifiCache;
