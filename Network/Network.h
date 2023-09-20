@@ -301,10 +301,22 @@ namespace WPEFramework {
             std::atomic<bool> m_useIpv4EthCache;
             std::atomic<bool> m_useIpv6EthCache;
             std::atomic<bool> m_useStbIPCache;
+            std::atomic<bool> m_useIPv4InternetCache;
+            std::atomic<bool> m_useIPv6InternetCache;
+            std::atomic<bool> m_useInternetCache;
+            std::atomic<bool> m_useIPv4ConnectionStateCache;
+            std::atomic<bool> m_useIPv6ConnectionStateCache;
+            std::atomic<bool> m_useConnectionStateCache;
             string m_stbIpCache;
             std::atomic<bool> m_useDefInterfaceCache;
             string m_defInterfaceCache;
             string m_defIpversionCache;
+            IARM_BUS_NetSrvMgr_isConnectedtoInternet_t m_ipv4InternetCache;
+            IARM_BUS_NetSrvMgr_isConnectedtoInternet_t m_ipv6InternetCache;
+            IARM_BUS_NetSrvMgr_isConnectedtoInternet_t m_InternetCache;
+            IARM_BUS_NetSrvMgr_Iface_InternetConnectivityStatus_t m_ipv4ConnectionStateCache;
+            IARM_BUS_NetSrvMgr_Iface_InternetConnectivityStatus_t m_ipv6ConnectionStateCache;
+            IARM_BUS_NetSrvMgr_Iface_InternetConnectivityStatus_t m_ConnectionStateCache;
 
             IARM_BUS_NetSrvMgr_Iface_Settings_t m_ipv4WifiCache;
             IARM_BUS_NetSrvMgr_Iface_Settings_t m_ipv6WifiCache;
