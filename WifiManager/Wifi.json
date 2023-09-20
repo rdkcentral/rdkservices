@@ -502,10 +502,16 @@
                         "summary": "`true` to enable or `false` to disable",
                         "type": "boolean",
                         "example": true
+                    },
+		    "persist": {
+                        "summary": "`true` to persist after reboot or `false` to not persist after reboot",
+                        "type": "boolean",
+                        "example": true
                     }
                 },
                 "required": [
-                    "enable"
+                    "enable",
+		    "persist"
                 ]
             },
             "result": {
