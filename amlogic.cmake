@@ -69,6 +69,11 @@ if (BUILD_DISABLE_HOME_NETWORKING_V2)
     add_definitions (-DDISABLE_API_HOME_NETWORKING_2)
 endif()
 
+if (ENABLE_RDKVFW_RDKE)
+    message("Enable ENABLE_RDKVFW_RDKE")
+    add_definitions (-DENABLE_RDKVFW_RDKE=ON)
+endif()
+
 if (BUILD_DBUS)
     message("Building for DBUS")
 
