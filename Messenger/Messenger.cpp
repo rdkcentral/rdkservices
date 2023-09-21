@@ -61,7 +61,7 @@ namespace Plugin {
 
         _service = service;
         _service->AddRef();
-        _service->Register(&_notification);
+     //   _service->Register(&_notification);
 
         _roomAdmin = service->Root<Exchange::IRoomAdministrator>(_connectionId, 2000, _T("RoomMaintainer"));
         if(_roomAdmin == nullptr) {
@@ -82,7 +82,7 @@ namespace Plugin {
     {
         ASSERT(service == _service);
 
-        _service->Unregister(&_notification);
+ //       _service->Unregister(&_notification);
 
         if(_roomAdmin != nullptr) {
             // Exit all the rooms (if any) that were joined by this client
