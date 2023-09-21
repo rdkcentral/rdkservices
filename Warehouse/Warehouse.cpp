@@ -85,7 +85,6 @@
 #define FRONT_PANEL_INTERVAL 5000
 
 static const char WAREHOUSE_RESET_FLAG_FILE[] = "/opt/.rebootFlag";
-static const char RECEIVER_LOG_FILE[] = "/opt/logs/receiver.log";
 static const int READ_BUFFER_SZ = 1024;
 static const int MAX_LOG_SIZE = 128;
 
@@ -1047,10 +1046,10 @@ namespace WPEFramework
             LOGINFO(" Reset: ...Clearing data from your box before reseting \n");
             fflush(stdout);
             /*Execute the script for Cold Factory Reset*/
-            system("sh /lib/rdk/deviceReset.sh coldfactory");
+            v_secure_system("sh /lib/rdk/deviceReset.sh coldfactory");
             resetWarehouseRebootFlag();
-            addLogToFile("------------- Rebooting due to Cold Factory Reset process --------------- ", RECEIVER_LOG_FILE);
-            system("sleep 5; /rebootNow.sh -s PowerMgr_coldFactoryReset -o 'Rebooting the box due to Cold Factory Reset process ...'");
+            sleep(5);
+            v_secure_system(" /rebootNow.sh -s PowerMgr_coldFactoryReset -o 'Rebooting the box due to Cold Factory Reset process ...'");
             return Core::ERROR_NONE;
         }
 
@@ -1062,9 +1061,8 @@ namespace WPEFramework
             LOGINFO("Reset: ...Clearing data from your box before reseting \n");
             fflush(stdout);
             /*Execute the script for Factory Reset*/
-            system("sh /lib/rdk/deviceReset.sh factory");
+            v_secure_system("sh /lib/rdk/deviceReset.sh factory");
             resetWarehouseRebootFlag();
-            addLogToFile("-------------Rebooting due to Factory Reset process--------------", RECEIVER_LOG_FILE);
             return Core::ERROR_NONE;
         }
 
@@ -1075,8 +1073,7 @@ namespace WPEFramework
             /*Execute the script for Ware House Reset*/
             resetWarehouseRebootFlag();
             std::ofstream { "/tmp/.warehouse-reset" };
-            addLogToFile("------------- Rebooting due to Warehouse Reset process--------------", RECEIVER_LOG_FILE);
-            return system("sh /lib/rdk/deviceReset.sh warehouse");
+            return v_secure_system("sh /lib/rdk/deviceReset.sh warehouse");
         }
 
         uint32_t Warehouse::processWHClear()
@@ -1086,8 +1083,7 @@ namespace WPEFramework
             fflush(stdout);
             resetWarehouseRebootFlag();
             std::ofstream { "/tmp/.warehouse-clear" };
-            addLogToFile("------------- Warehouse Clear  ---------------", RECEIVER_LOG_FILE);
-            system("sh /lib/rdk/deviceReset.sh WAREHOUSE_CLEAR");
+            v_secure_system("sh /lib/rdk/deviceReset.sh WAREHOUSE_CLEAR");
             return Core::ERROR_NONE;
         }
 
@@ -1096,7 +1092,7 @@ namespace WPEFramework
             LOGINFO("\n Clear: Invoking Ware House Clear Request from APP\n");
             fflush(stdout);
             std::ofstream { "/tmp/.warehouse-clear" };
-            return system("sh /lib/rdk/deviceReset.sh WAREHOUSE_CLEAR --suppressReboot");
+            return v_secure_system("sh /lib/rdk/deviceReset.sh WAREHOUSE_CLEAR --suppressReboot");
         }
 
         uint32_t Warehouse::processWHResetNoReboot()
@@ -1105,7 +1101,7 @@ namespace WPEFramework
             fflush(stdout);
             /*Execute the script for Ware House Reset*/
             std::ofstream { "/tmp/.warehouse-reset" };
-            return system("sh /lib/rdk/deviceReset.sh warehouse --suppressReboot &");
+            return v_secure_system("sh /lib/rdk/deviceReset.sh warehouse --suppressReboot &");
         }
 
         uint32_t Warehouse::processUserFactoryReset()
@@ -1114,8 +1110,7 @@ namespace WPEFramework
             fflush(stdout);
             /*Execute the script for User Factory Reset*/
             resetWarehouseRebootFlag();
-            addLogToFile("------------- Rebooting due to User Factory Reset process---------------", RECEIVER_LOG_FILE);
-            system("sh /lib/rdk/deviceReset.sh userfactory");
+            v_secure_system("sh /lib/rdk/deviceReset.sh userfactory");
             return Core::ERROR_NONE;
         }
 
@@ -1140,28 +1135,6 @@ namespace WPEFramework
             struct tm *gmt = gmtime(&rawTime);
             strftime(timeStringBuffer, sizeof(timeStringBuffer), "%d.%m.%Y_%H.%M.%S", gmt);
             utcDateTime = timeStringBuffer;
-            return;
-        }
-
-        void Warehouse::addLogToFile(const char *log, const char *file_name)
-        {
-            char logWithTimeStamp[MAX_LOG_SIZE] = {0};
-            string utcDateTime = "";
-
-            getDateAndTime(utcDateTime);
-            snprintf(logWithTimeStamp, MAX_LOG_SIZE, "%s %s\n", utcDateTime.c_str(),log);
-
-            std::ofstream file(file_name, std::ios::app);
-
-            if (file.is_open())
-            {
-                file << logWithTimeStamp;
-                file.close();
-            }
-            else
-            {
-                LOGERR("Failed to open file %s\n", file_name);
-            }
             return;
         }
 
