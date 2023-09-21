@@ -12,19 +12,19 @@ namespace TTS
 
 class TTSURLConstructer
 {
-   public:
-   ~TTSURLConstructer();
-   TTSURLConstructer();
-   std::string constructURL(TTSConfiguration &config,std::string text,bool isfallback);
-   void sanitizeString(const std::string &input, std::string &sanitizedString);
-   bool isSilentPunctuation(const char c);
-   void replaceSuccesivePunctuation(std::string& subject);
-   void replaceIfIsolated(std::string& subject, const std::string& search, const std::string& replace, bool skipIsolationCheck = false);
-   void curlSanitize(std::string &url);
+    public:
+    ~TTSURLConstructer();
+    TTSURLConstructer();
+    std::string constructURL(TTSConfiguration &config ,std::string text, bool isFallback, bool isLocal);
 
-   private:
-   //TTSConfiguration &m_defaultConfig;
-   
+    private:
+    std::string httpgetURL(TTSConfiguration &config, std::string text, bool isFallback, bool isLocal);
+    std::string httppostURL(TTSConfiguration &config, std::string text, bool isFallback);
+    void sanitizeString(const std::string &input, std::string &sanitizedString);
+    bool isSilentPunctuation(const char c);
+    void replaceSuccesivePunctuation(std::string& subject);
+    void replaceIfIsolated(std::string& subject, const std::string& search, const std::string& replace, bool skipIsolationCheck = false);
+    void curlSanitize(std::string &url);
 };
 
 }
