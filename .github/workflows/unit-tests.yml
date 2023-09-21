@@ -187,6 +187,7 @@ jobs:
           rfcapi.h
           rbus.h
           telemetry_busmessage_sender.h
+          secure_wrapper.h
           maintenanceMGR.h
           pkg.h
 
