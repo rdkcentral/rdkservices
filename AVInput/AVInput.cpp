@@ -1203,13 +1203,13 @@ uint32_t AVInput::setEdid2AllmSupportWrapper(const JsonObject& parameters, JsonO
 
 }
 
-bool getEdid2AllmSupport(int portId,bool allmSupportValue)
+bool getEdid2AllmSupport(int portId,bool *allmSupportValue)
 {
 	bool ret = true;
 	try
 	{
-		device::HdmiInput::getInstance().getEdid2AllmSupport (portId, &allmSupportValue);
-		LOGWARN("AVInput - getEdid2AllmSupport:%d", allmSupportValue);
+		device::HdmiInput::getInstance().getEdid2AllmSupport (portId, allmSupportValue);
+		LOGINFO("AVInput - getEdid2AllmSupport:%d", allmSupportValue);
 	}
 	catch (const device::Exception& err)
 	{
@@ -1236,6 +1236,7 @@ uint32_t AVInput::getEdid2AllmSupportWrapper(const JsonObject& parameters, JsonO
 	}
 
 	bool result = getEdid2AllmSupport(portId,allmSupport);
+	LOGINFO("AVInput - getEdid2AllmSupport result:%d", allmSupport);
 	if(result == true)
 	{
 	     response["allmSupport"] = allmSupport;
