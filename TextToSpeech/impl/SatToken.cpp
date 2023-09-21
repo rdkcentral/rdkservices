@@ -17,23 +17,24 @@ namespace TTS {
 
 using namespace ::TTS;
 
-SatToken* SatToken::getInstance(const string callsign)
-{
+SatToken* SatToken::getInstance(const string callsign) {
     static SatToken *instance = new SatToken(callsign);
     return instance;
 }
 
-SatToken::SatToken(const string callsign)
-{
+SatToken::SatToken(const string callsign) {
     m_callsign = callsign;
     m_callsign.append(CALLSIGN_VER);
     string token = getSecurityToken();
-    m_authService = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(_T(m_callsign.c_str()),"", false, token);
+    if(token.empty()) {
+        m_authService = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(_T(m_callsign.c_str()),"");
+    } else {
+        m_authService = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(_T(m_callsign.c_str()),"", false, token);
+    }
     getServiceAccessToken();
 }
 
-string SatToken::getSecurityToken()
-{
+string SatToken::getSecurityToken() {
     std::string token = "token=";
     int tokenLength = 0;
     unsigned char buffer[MAX_SECURITY_TOKEN_SIZE] = {0};
@@ -56,16 +57,16 @@ string SatToken::getSecurityToken()
             }
             file.Close();
         }
-
-        if(endpoint.empty()) {
+     
+        if(endpoint.empty()) 
             endpoint = _T("127.0.0.1:9998");
-            TTSLOG_INFO("Thunder RPC Endpoint read from config file - %s", endpoint.c_str());
-            Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), endpoint);
-        }
-    }
 
-     string payload = "http://localhost";
-     if(payload.empty()) {
+        TTSLOG_INFO("Thunder RPC Endpoint read from config file - %s", endpoint.c_str());
+        Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), endpoint);
+    }
+        
+    string payload = "http://localhost";
+    if(payload.empty()) {
           tokenLength = GetSecurityToken(sizeof(buffer), buffer);
      } else {
           int buffLength = std::min(sizeof(buffer), payload.length());
@@ -83,8 +84,7 @@ string SatToken::getSecurityToken()
      return token;
 }
 
-void SatToken::getServiceAccessToken()
-{
+void SatToken::getServiceAccessToken() {
     if(m_authService != nullptr) {
         JsonObject joGetParams, joGetResult;
         auto status = m_authService->Invoke<JsonObject, JsonObject>(1000, "getServiceAccessToken", joGetParams, joGetResult);
@@ -107,8 +107,7 @@ void SatToken::getServiceAccessToken()
     }
 }
 
-void SatToken::serviceAccessTokenChangedEventHandler(const JsonObject& parameters)
-{
+void SatToken::serviceAccessTokenChangedEventHandler(const JsonObject& parameters) {
     TTSLOG_INFO("SAT changed");
     getServiceAccessToken();
 }
