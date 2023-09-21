@@ -1208,7 +1208,7 @@ bool getEdid2AllmSupport(int portId,bool *allmSupportValue)
 	bool ret = true;
 	try
 	{
-		device::HdmiInput::getInstance().getEdid2AllmSupport (portId, &allmSupportValue);
+		device::HdmiInput::getInstance().getEdid2AllmSupport (portId, allmSupportValue);
 		LOGWARN("AVInput - getEdid2AllmSupport:%d", *allmSupportValue);
 	}
 	catch (const device::Exception& err)
