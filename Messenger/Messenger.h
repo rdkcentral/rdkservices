@@ -234,7 +234,9 @@ namespace Plugin {
         std::set<string> _rooms;
         std::map<string, std::list<string>> _roomACL;
         mutable Core::CriticalSection _adminLock;
+#ifdef USE_THUNDER_R4
         Core::Sink<Notification> _notification;
+#endif
     }; // class Messenger
 
 } // namespace Plugin
