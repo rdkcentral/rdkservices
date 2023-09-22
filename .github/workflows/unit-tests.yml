@@ -2,9 +2,9 @@ name: unit-tests
 
 on:
   push:
-    branches: [ main, 'sprint/**', 'RDKTV-24790', 'release/**']
+    branches: [ main, 'sprint/**', 'release/**']
   pull_request:
-    branches: [ main, 'sprint/**', 'RDKTV-24790', 'release/**']
+    branches: [ main, 'sprint/**', 'release/**']
 
 env:
   BUILD_TYPE: Debug
