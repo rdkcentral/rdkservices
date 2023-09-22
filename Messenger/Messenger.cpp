@@ -54,15 +54,17 @@ namespace Plugin {
         ASSERT(service != nullptr);
         ASSERT(_service == nullptr);
         ASSERT(_roomAdmin == nullptr);
-        ASSERT(_connectionId == 0);
         ASSERT(_roomIds.empty() == true);
         ASSERT(_rooms.empty() == true);
         ASSERT(_roomACL.empty() == true);
-
+#ifdef USE_THUNDER_R4
+        ASSERT(_connectionId == 0);
+#endif
         _service = service;
         _service->AddRef();
-     //   _service->Register(&_notification);
-
+#ifdef USE_THUNDER_R4
+        _service->Register(&_notification);
+#endif
         _roomAdmin = service->Root<Exchange::IRoomAdministrator>(_connectionId, 2000, _T("RoomMaintainer"));
         if(_roomAdmin == nullptr) {
             message = _T("RoomMaintainer couldnt be instantiated");
@@ -82,7 +84,9 @@ namespace Plugin {
     {
         ASSERT(service == _service);
 
- //       _service->Unregister(&_notification);
+#ifdef USE_THUNDER_R4
+        _service->Unregister(&_notification);
+#endif
 
         if(_roomAdmin != nullptr) {
             // Exit all the rooms (if any) that were joined by this client
@@ -94,29 +98,35 @@ namespace Plugin {
             _roomAdmin->Unregister(this);
             _rooms.clear();
 
-//            RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
-            VARIABLE_IS_NOT_USED uint32_t result = _roomAdmin->Release();
+#ifdef USE_THUNDER_R4
+            RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
+#endif
+	    VARIABLE_IS_NOT_USED uint32_t result = _roomAdmin->Release();
             _roomAdmin = nullptr;
-            // It should have been the last reference we are releasing,
+
+#ifdef USE_THUNDER_R4
+	    // It should have been the last reference we are releasing,
             // so it should end up in a DESCRUCTION_SUCCEEDED, if not we
             // are leaking...
             ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
 
             // If this was running in a (container) proccess...
-   //         if (connection != nullptr) {
+               if (connection != nullptr) {
 
                 // Lets trigger the cleanup sequence for
                 // out-of-process code. Which will guard
                 // that unwilling processes, get shot if
                 // not stopped friendly :~)
-               //  connection->Terminate();
-              //   connection->Release();
-     //       }
-
+                connection->Terminate();
+                connection->Release();
+            }
+#endif
         }
         _service->Release();
         _service = nullptr;
-        _connectionId = 0;
+#ifdef USE_THUNDER_R4
+	_connectionId = 0;
+#endif
         _roomACL.clear();
     }
 
@@ -235,6 +245,7 @@ namespace Plugin {
         return roomId;
     }
 
+#ifdef USE_THUNDER_R4
     void Messenger::Deactivated(RPC::IRemoteConnection* connection)
     {
         if (connection->Id() == _connectionId) {
@@ -246,6 +257,7 @@ namespace Plugin {
                 PluginHost::IShell::FAILURE));
         }
     }
+#endif
 } // namespace Plugin
 
 } // WPEFramework

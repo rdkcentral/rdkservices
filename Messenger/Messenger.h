@@ -33,6 +33,7 @@ namespace Plugin {
     class Messenger : public PluginHost::IPlugin
                     , public Exchange::IRoomAdministrator::INotification
                     , public PluginHost::JSONRPCSupportsEventStatus {
+#ifdef USE_THUNDER_R4
     private:
         class Notification : public RPC::IRemoteConnection::INotification {
         public:
@@ -63,6 +64,7 @@ namespace Plugin {
         private:
             Messenger& _parent;
         };
+#endif
 
     public:
         Messenger(const Messenger&) = delete;
@@ -76,7 +78,9 @@ namespace Plugin {
             , _roomAdmin(nullptr)
             , _roomIds()
             , _adminLock()
+#ifdef USE_THUNDER_R4
             , _notification(this)
+#endif
         {
             RegisterAll();
         }
@@ -203,7 +207,9 @@ namespace Plugin {
         }
 
     private:
+#ifdef USE_THUNDER_R4
         void Deactivated(RPC::IRemoteConnection* connection);
+#endif
         string GenerateRoomId(const string& roomName, const string& userName);
         bool SubscribeUserUpdate(const string& roomId, bool subscribe);
 
