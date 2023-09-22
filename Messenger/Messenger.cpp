@@ -109,8 +109,8 @@ namespace Plugin {
                 // out-of-process code. Which will guard
                 // that unwilling processes, get shot if
                 // not stopped friendly :~)
-    //            connection->Terminate();
-     //           connection->Release();
+               //  connection->Terminate();
+              //   connection->Release();
      //       }
 
         }
