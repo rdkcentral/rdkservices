@@ -89,7 +89,11 @@ namespace Plugin {
     // TokenCheckFunction
 
     // Note, token is assumed to be a URL
+#ifndef USE_THUNDER_R4
     bool Messenger::CheckToken(const string& token, const string& method, const string& parameters)
+#else
+    PluginHost::JSONRPC::classification Messenger::CheckToken(const string& token, const string& method, const string& parameters)
+#endif
     {
         bool result = false;
 
@@ -172,8 +176,11 @@ namespace Plugin {
                 _adminLock.Unlock();
             }
         }
-
+#ifndef USE_THUNDER_R4
         return result;
+#else
+        return (result ? PluginHost::JSONRPC::classification::VALID : PluginHost::JSONRPC::classification::INVALID);
+#endif
     }
 
 } // namespace Plugin
