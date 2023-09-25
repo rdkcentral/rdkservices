@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.1.1]
+### Fixed
+- Failed to activate Messenger Plugin and bring the Messenger changes to main branch
+
 ## [1.0.1]
 ### Fixed
 - Do not send roomupdate on unregister
