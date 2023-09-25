@@ -17,7 +17,7 @@ All notable changes to this RDK Service will be documented in this file.
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 ## [1.5.0] - 2023-09-22
 ### Fixed
-- Added Factory-hal api
+- Updating getEthernetMac usage as per factory-hal code review recommendation
 
 ## [1.4.5] - 2023-08-29
 ### Fixed
