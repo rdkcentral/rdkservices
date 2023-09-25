@@ -15,6 +15,10 @@ All notable changes to this RDK Service will be documented in this file.
 * Changes in CHANGELOG should be updated when commits are added to the main or release branches. There should be one CHANGELOG entry per JIRA Ticket. This is not enforced on sprint branches since there could be multiple changes for the same JIRA ticket during development. 
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
+## [1.4.6] - 2023-09-22
+### Fixed
+- Updating getEthernetMac usage as per factory-hal code review recommendation
+
 ## [1.4.5] - 2023-08-29
 ### Fixed
 - Handled Deactivation Event that is specific to Thunder 4.2

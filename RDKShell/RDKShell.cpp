@@ -52,7 +52,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 4
-#define API_VERSION_NUMBER_PATCH 5
+#define API_VERSION_NUMBER_PATCH 6
 
 const string WPEFramework::Plugin::RDKShell::SERVICE_NAME = "org.rdk.RDKShell";
 //methods
@@ -1269,7 +1269,7 @@ namespace WPEFramework {
             tFHError retAPIStatus;
             std::cout << "calling factory hal init\n";
             factorySD1_init();
-            retAPIStatus = getEthernetMAC(&mac);
+            retAPIStatus = getEthernetMAC(mac);
             if(retAPIStatus == E_OK)
             {
                 if (strncasecmp(mac,"00:00:00:00:00:00",17) == 0)
@@ -5933,7 +5933,7 @@ namespace WPEFramework {
             #ifdef RDKSHELL_READ_MAC_ON_STARTUP
             char* mac = new char[19];
             tFHError retAPIStatus;
-            retAPIStatus = getEthernetMAC(&mac);
+            retAPIStatus = getEthernetMAC(mac);
             if(retAPIStatus == E_OK)
             {
                 if (strncasecmp(mac,"00:00:00:00:00:00",17) == 0)
