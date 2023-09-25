@@ -1,0 +1,6 @@
+precondition = ["Platform"]
+callsign = "org.rdk.ResourceManager"
+autostart = "true"
+
+if boolean("@PLUGIN_RESOURCE_MANAGER_STARTUPORDER@"):
+    startuporder = "@PLUGIN_RESOURCE_MANAGER_STARTUPORDER@"

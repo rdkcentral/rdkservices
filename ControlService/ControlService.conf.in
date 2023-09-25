@@ -1,0 +1,6 @@
+precondition = ["Platform"]
+callsign = "org.rdk.ControlService"
+autostart = "false"
+
+if boolean("@PLUGIN_CONTROLSERVICE_STARTUPORDER@"):
+    startuporder = "@PLUGIN_CONTROLSERVICE_STARTUPORDER@"

@@ -1,0 +1,6 @@
+precondition = ["Platform"]
+callsign = "org.rdk.RemoteActionMapping"
+autostart = "false"
+
+if boolean("@PLUGIN_REMOTEACTIONMAPPING_STARTUPORDER@"):
+    startuporder = "@PLUGIN_REMOTEACTIONMAPPING_STARTUPORDER@"
