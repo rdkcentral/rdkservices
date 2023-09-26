@@ -38,6 +38,8 @@
 #include "libIBus.h"
 #include "libIBusDaemon.h"
 #include "dsMgr.h"
+#include "dsregisterlog.h"
+#include "dsclientregisterlog.h"
 
 #define EDID_MAX_HORIZONTAL_SIZE 21
 #define EDID_MAX_VERTICAL_SIZE   22
@@ -65,6 +67,8 @@ public:
             IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_RES_POSTCHANGE, ResolutionChange) );
 
             //TODO: this is probably per process so we either need to be running in our own process or be carefull no other plugin is calling it
+            DS_RegisterForLog(dslogCallback);
+            DSClient_RegisterForLog(dslogCallback);
             device::Manager::Initialize();
             TRACE(Trace::Information, (_T("device::Manager::Initialize success")));
         }
@@ -783,6 +787,29 @@ private:
         return ret;
     }
 
+    static void dslogCallback(int priority,const char *buff)
+    {
+        if(priority == 0)
+        {
+            TRACE_GLOBAL(Trace::Information, (_T("%s"),buff));
+        }
+        else if(priority == 1)
+        {
+            TRACE_GLOBAL(Trace::Warning, (_T("%s"), buff));
+        }
+        else if(priority == 2)
+        {
+            TRACE_GLOBAL(Trace::Error, (_T("%s"), buff));
+        }
+        else if(priority == 3)
+        {
+            TRACE_GLOBAL(Trace::Information, (_T("%s"), buff));
+        }
+        else
+        {
+            TRACE_GLOBAL(Trace::Error, (_T("[%s] invalid priority:0x%x"), __FUNCTION__, priority));
+        }
+    }
 
 public:
     static DisplayInfoImplementation* _instance;
