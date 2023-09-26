@@ -1,7 +1,5 @@
 autostart = "true"
-
-if boolean("@PLUGIN_DEVICEINFO_STARTUPORDER@"):
-    startuporder = "@PLUGIN_DEVICEINFO_STARTUPORDER@"
+startuporder = "@PLUGIN_DEVICEINFO_STARTUPORDER@"
 
 configuration = JSON()
 

@@ -1,7 +1,5 @@
 autostart = "@PLUGIN_MONITOR_AUTOSTART@"
-
-if boolean("@PLUGIN_MONITOR_STARTUPORDER@"):
-    startuporder = "@PLUGIN_MONITOR_STARTUPORDER@"
+startuporder = "@PLUGIN_MONITOR_STARTUPORDER@"
 
 configuration = JSON()
 

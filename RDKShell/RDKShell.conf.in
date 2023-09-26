@@ -1,6 +1,4 @@
 precondition = ["Platform"]
 callsign = "org.rdk.RDKShell"
 autostart = "@PLUGIN_RDKSHELL_AUTOSTART@"
-
-if boolean("@PLUGIN_RDKSHELL_STARTUPORDER@"):
-    startuporder = "@PLUGIN_RDKSHELL_STARTUPORDER@"
+startuporder = "@PLUGIN_RDKSHELL_STARTUPORDER@"
