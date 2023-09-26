@@ -1,7 +1,5 @@
 autostart = "true"
-
-if boolean("@PLUGIN_SECURITYAGENT_STARTUPORDER@"):
-    startuporder = "@PLUGIN_SECURITYAGENT_STARTUPORDER@"
+startuporder = "@PLUGIN_SECURITYAGENT_STARTUPORDER@"
 
 configuration = JSON()
 

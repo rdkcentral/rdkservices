@@ -1,5 +1,4 @@
-if boolean("@PLUGIN_WEBKITBROWSER_STARTUPORDER@"):
-    startuporder = "@PLUGIN_WEBKITBROWSER_STARTUPORDER@"
+startuporder = "@PLUGIN_WEBKITBROWSER_STARTUPORDER@"
 
 if boolean("@PLUGIN_WEBSERVER@"):
     precondition = ["Graphics" "WebSource"]

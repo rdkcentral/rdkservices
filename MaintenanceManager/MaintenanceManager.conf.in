@@ -1,6 +1,4 @@
 precondition = ["Platform"]
 callsign = "org.rdk.MaintenanceManager"
 autostart = "true"
-
-if boolean("@PLUGIN_MAINTENANCEMGR_STARTUPORDER@"):
-    startuporder = "@PLUGIN_MAINTENANCEMGR_STARTUPORDER@"
+startuporder = "@PLUGIN_MAINTENANCEMGR_STARTUPORDER@"

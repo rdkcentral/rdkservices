@@ -1,6 +1,4 @@
 precondition = ["Platform"]
 callsign = "org.rdk.DisplaySettings"
 autostart = "@PLUGIN_DISPLAYSETTINGS_AUTOSTART@"
-
-if boolean("@PLUGIN_DISPLAYSETTINGS_STARTUPORDER@"):
-    startuporder = "@PLUGIN_DISPLAYSETTINGS_STARTUPORDER@"
+startuporder = "@PLUGIN_DISPLAYSETTINGS_STARTUPORDER@"

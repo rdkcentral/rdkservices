@@ -1,6 +1,4 @@
 precondition = ["Platform"]
 callsign = "org.rdk.Wifi"
 autostart = "true"
-
-if boolean("@PLUGIN_WIFI_STARTUPORDER@"):
-    startuporder = "@PLUGIN_WIFI_STARTUPORDER@"
+startuporder = "@PLUGIN_WIFI_STARTUPORDER@"

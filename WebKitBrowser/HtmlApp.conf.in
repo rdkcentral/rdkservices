@@ -1,5 +1,4 @@
-if boolean("@PLUGIN_HTML_APP_STARTUPORDER@"):
-    startuporder = "@PLUGIN_HTML_APP_STARTUPORDER@"
+startuporder = "@PLUGIN_HTML_APP_STARTUPORDER@"
 
 precondition = ["Graphics"]
 autostart = "@PLUGIN_HTML_APP_AUTOSTART@"
