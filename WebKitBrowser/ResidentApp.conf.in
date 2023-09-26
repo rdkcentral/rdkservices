@@ -1,7 +1,5 @@
 precondition = ["Graphics"]
-
-if boolean("@PLUGIN_RESIDENT_APP_STARTUPORDER@"):
-    startuporder = "@PLUGIN_RESIDENT_APP_STARTUPORDER@"
+startuporder = "@PLUGIN_RESIDENT_APP_STARTUPORDER@"
 autostart = "@PLUGIN_RESIDENT_APP_AUTOSTART@"
 resumed = "true"
 persistentpathpostfix = "@PLUGIN_RESIDENT_APP_PERSISTENTPATHPOSTFIX@"

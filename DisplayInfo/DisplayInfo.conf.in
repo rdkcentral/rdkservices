@@ -1,5 +1,6 @@
 precondition = ["Platform"]
 autostart = "@PLUGIN_DISPLAYINFO_AUTOSTART@"
+startuporder = "@PLUGIN_DISPLAYINFO_STARTUPORDER@"
 
 configuration = JSON()
 
@@ -23,8 +24,6 @@ if boolean("@PLUGIN_DISPLAYINFO_USE_BEST_MODE@"):
     configuration.add("gpuMemoryUnitMultiplier", PLUGIN_DISPLAYINFO_GPU_MEMORY_UNIT_MULTIPLIER)
 if boolean("@PLUGIN_DISPLAYINFO_HDCP_LEVEL@"):
     configuration.add("hdcplevel", PLUGIN_DISPLAYINFO_HDCP_LEVEL)	
-if boolean("@PLUGIN_DISPLAYINFO_STARTUPORDER@"):
-    configuration.add("startuporder", PLUGIN_DISPLAYINFO_STARTUPORDER)
 
 rootobject = JSON()
 rootobject.add("mode", "@PLUGIN_DISPLAYINFO_MODE@")
