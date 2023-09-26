@@ -1,7 +1,5 @@
 precondition = ["Graphics"]
-
-if boolean("@PLUGIN_SEARCH_AND_DISCOVERY_APP_STARTUPORDER@"):
-    startuporder = "@PLUGIN_SEARCH_AND_DISCOVERY_APP_STARTUPORDER@"
+startuporder = "@PLUGIN_SEARCH_AND_DISCOVERY_APP_STARTUPORDER@"
 
 autostart = "@PLUGIN_SEARCH_AND_DISCOVERY_APP_AUTOSTART@"
 resumed =  "true"

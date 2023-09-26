@@ -1,6 +1,4 @@
 precondition = ["Platform"]
 callsign = "org.rdk.AVInput"
 autostart = "false"
-
-if boolean("@PLUGIN_AVINPUT_STARTUPORDER@"):
-    startuporder = "@PLUGIN_AVINPUT_STARTUPORDER@"
+startuporder = "@PLUGIN_AVINPUT_STARTUPORDER@"

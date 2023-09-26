@@ -1,6 +1,4 @@
 precondition = ["Platform"]
 callsign = "org.rdk.HdmiInput"
 autostart = "false"
-
-if boolean("@PLUGIN_HDMIINPUT_STARTUPORDER@"):
-    startuporder = "@PLUGIN_HDMIINPUT_STARTUPORDER@"
+startuporder = "@PLUGIN_HDMIINPUT_STARTUPORDER@"

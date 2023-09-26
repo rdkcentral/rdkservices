@@ -1,6 +1,4 @@
 precondition = ["Platform"]
 callsign = "org.rdk.Timer"
 autostart = "false"
-
-if boolean("@PLUGIN_TIMER_STARTUPORDER@"):
-    startuporder = "@PLUGIN_TIMER_STARTUPORDER@"
+startuporder = "@PLUGIN_TIMER_STARTUPORDER@"

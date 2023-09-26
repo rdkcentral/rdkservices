@@ -1,7 +1,5 @@
 autostart = "@PLUGIN_PLAYERINFO_AUTOSTART@"
-
-if boolean("@PLUGIN_PLAYERINFO_STARTUPORDER@"):
-    startuporder = "@PLUGIN_PLAYERINFO_STARTUPORDER@"
+startuporder = "@PLUGIN_PLAYERINFO_STARTUPORDER@"
 
 configuration = JSON()
 

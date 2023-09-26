@@ -1,6 +1,4 @@
 precondition = ["Platform"]
 callsign = "org.rdk.ContinueWatching"
 autostart = "false"
-
-if boolean("@PLUGIN_CONTINUEWATCHING_STARTUPORDER@"):
-    startuporder = "@PLUGIN_CONTINUEWATCHING_STARTUPORDER@"
+startuporder = "@PLUGIN_CONTINUEWATCHING_STARTUPORDER@"

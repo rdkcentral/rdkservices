@@ -1,8 +1,6 @@
 precondition = ["Network"]
 autostart = "@PLUGIN_LOCATIONSYNC_AUTOSTART@"
-
-if boolean("@PLUGIN_LOCATIONSYNC_STARTUPORDER@"):
-    startuporder = "@PLUGIN_LOCATIONSYNC_STARTUPORDER@"
+startuporder = "@PLUGIN_LOCATIONSYNC_STARTUPORDER@"
 
 configuration = JSON()
 
