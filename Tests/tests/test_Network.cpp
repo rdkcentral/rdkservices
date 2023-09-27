@@ -379,7 +379,10 @@ TEST_F(NetworkTest, getInternetConnectionState)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getInternetConnectionState"), _T("{}"), response));
 	EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"state\":1")));
 	EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"success\":true")));
+}
 
+TEST_F(NetworkTest, getInternetConnectionState2)
+{
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
     .Times(::testing::AnyNumber())
     .WillRepeatedly(

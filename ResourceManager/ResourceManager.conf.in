@@ -1,0 +1,4 @@
+precondition = ["Platform"]
+callsign = "org.rdk.ResourceManager"
+autostart = "true"
+startuporder = "@PLUGIN_RESOURCE_MANAGER_STARTUPORDER@"
