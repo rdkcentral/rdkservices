@@ -124,12 +124,14 @@ string moduleStatusToString(IARM_Maint_module_status_t &status)
 {
     string ret_status="";
     switch(status){
+#ifndef DCM_REMOVAL_MM
         case MAINT_DCM_COMPLETE:
             ret_status="MAINTENANCE_DCM_COMPLETE";
             break;
         case MAINT_DCM_ERROR:
             ret_status="MAINTENANCE_DCM_ERROR";
             break;
+#endif
         case MAINT_RFC_COMPLETE:
             ret_status="MAINTENANCE_RFC_COMPLETE";
             break;
@@ -217,7 +219,9 @@ namespace WPEFramework {
         cSettings MaintenanceManager::m_setting(MAINTENANCE_MGR_RECORD_FILE);
 
         string task_names_foreground[]={
+#ifndef DCM_REMOVAL_MM
             "/lib/rdk/StartDCM_maintaince.sh",
+#endif
             "/lib/rdk/RFCbase.sh",
             "/lib/rdk/swupdate_utility.sh >> /opt/logs/swupdate.log",
             "/lib/rdk/Start_uploadSTBLogs.sh"
@@ -226,8 +230,10 @@ namespace WPEFramework {
         vector<string> tasks;
 
         string script_names[]={
+#ifndef DCM_REMOVAL_MM
             "DCMscript_maintaince.sh",
-            "RFCbase.sh",
+#endif
+		"RFCbase.sh",
             "swupdate_utility.sh",
             "uploadSTBLogs.sh"
         };
@@ -263,8 +269,9 @@ namespace WPEFramework {
             MaintenanceManager::m_task_map[task_names_foreground[0].c_str()]=false;
             MaintenanceManager::m_task_map[task_names_foreground[1].c_str()]=false;
             MaintenanceManager::m_task_map[task_names_foreground[2].c_str()]=false;
+#ifndef DCM_REMOVAL_MM
             MaintenanceManager::m_task_map[task_names_foreground[3].c_str()]=false;
-
+#endif
             MaintenanceManager::m_param_map[deviceInitializationContext[0].c_str()] = TR181_PARTNER_ID;
             MaintenanceManager::m_param_map[deviceInitializationContext[1].c_str()] = TR181_TARGET_PROPOSITION;
             MaintenanceManager::m_param_map[deviceInitializationContext[2].c_str()] = TR181_XCONFURL;
@@ -333,14 +340,17 @@ namespace WPEFramework {
 
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type){
                 LOGINFO("---------------UNSOLICITED_MAINTENANCE--------------");
+#ifndef DCM_REMOVAL_MM
 #ifndef ENABLE_WHOAMI
                 tasks.push_back(task_names_foreground[0].c_str());
+#endif
 #endif
             }
             else if( SOLICITED_MAINTENANCE == g_maintenance_type){
                 LOGINFO("=============SOLICITED_MAINTENANCE===============");
             }
 
+#ifndef DCM_REMOVAL_MM 
 #if defined(ENABLE_WHOAMI)
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type) {
                 tasks.push_back(task_names_foreground[1].c_str());
@@ -373,6 +383,30 @@ namespace WPEFramework {
             tasks.push_back(task_names_foreground[1].c_str());
             tasks.push_back(task_names_foreground[2].c_str());
             tasks.push_back(task_names_foreground[3].c_str());
+#endif
+#else
+			tasks.push_back(task_names_foreground[0].c_str());
+			tasks.push_back(task_names_foreground[1].c_str());
+			tasks.push_back(task_names_foreground[2].c_str());
+
+#if defined(SUPPRESS_MAINTENANCE)
+            /* decide which all tasks are needed based on the activation status */
+            if (activationStatus){
+                if(skipFirmwareCheck){
+                    /* set the task status of swupdate */
+                    SET_STATUS(g_task_status,DIFD_SUCCESS);
+                    SET_STATUS(g_task_status,DIFD_COMPLETE);
+
+                    /* Add tasks */
+                    tasks.push_back(task_names_foreground[0].c_str());
+                    tasks.push_back(task_names_foreground[2].c_str());
+                }else{
+                    tasks.push_back(task_names_foreground[0].c_str());
+                    tasks.push_back(task_names_foreground[1].c_str());
+                    tasks.push_back(task_names_foreground[2].c_str());
+                }
+            }
+#endif
 #endif
             std::unique_lock<std::mutex> lck(m_callMutex);
 
@@ -832,10 +866,16 @@ namespace WPEFramework {
             IARM_Maint_module_status_t module_status;
             time_t successfulTime;
             string str_successfulTime="";
+#ifndef DCM_REMOVAL_MM
             auto task_status_DCM=m_task_map.find(task_names_foreground[0].c_str());
             auto task_status_RFC=m_task_map.find(task_names_foreground[1].c_str());
             auto task_status_FWDLD=m_task_map.find(task_names_foreground[2].c_str());
             auto task_status_LOGUPLD=m_task_map.find(task_names_foreground[3].c_str());
+#else
+			auto task_status_RFC=m_task_map.find(task_names_foreground[0].c_str());
+            auto task_status_FWDLD=m_task_map.find(task_names_foreground[1].c_str());
+            auto task_status_LOGUPLD=m_task_map.find(task_names_foreground[2].c_str());
+#endif
 
             IARM_Bus_MaintMGR_EventId_t event = (IARM_Bus_MaintMGR_EventId_t)eventId;
             LOGINFO("Maintenance Event-ID = %d \n",event);
@@ -867,6 +907,7 @@ namespace WPEFramework {
                                  m_task_map[task_names_foreground[1].c_str()]=false;
                             }
                             break;
+#ifndef DCM_REMOVAL_MM
                         case MAINT_DCM_COMPLETE :
                             if(task_status_DCM->second != true) {
                                  LOGINFO("Ignoring Event DCM_COMPLETE");
@@ -879,6 +920,7 @@ namespace WPEFramework {
                                 m_task_map[task_names_foreground[0].c_str()]=false;
                             }
                             break;
+#endif
                         case MAINT_FWDOWNLOAD_COMPLETE :
                             if(task_status_FWDLD->second != true) {
                                  LOGINFO("Ignoring Event MAINT_FWDOWNLOAD_COMPLETE");
@@ -919,6 +961,7 @@ namespace WPEFramework {
                             m_task_map[task_names_foreground[2].c_str()]=false;
                             LOGINFO("FW Download task aborted \n");
                             break;
+#ifndef DCM_REMOVAL_MM
                         case MAINT_DCM_ERROR:
                             if(task_status_DCM->second != true) {
                                  LOGINFO("Ignoring Event DCM_ERROR");
@@ -931,6 +974,7 @@ namespace WPEFramework {
                                 m_task_map[task_names_foreground[0].c_str()]=false;
                             }
                             break;
+#endif
                         case MAINT_RFC_ERROR:
                             if(task_status_RFC->second != true) {
                                  LOGINFO("Ignoring Event RFC_ERROR");
@@ -969,11 +1013,13 @@ namespace WPEFramework {
                                 m_task_map[task_names_foreground[2].c_str()]=false;
                             }
                             break;
+#ifndef DCM_REMOVAL_MM
                        case MAINT_DCM_INPROGRESS:
                             m_task_map[task_names_foreground[0].c_str()]=true;
                             /*will be set to false once COMEPLETE/ERROR received for DCM*/
                             LOGINFO(" DCM already IN PROGRESS -> setting m_task_map of DCM to true \n");
                             break;
+#endif
                        case MAINT_RFC_INPROGRESS:
                             m_task_map[task_names_foreground[1].c_str()]=true;
                             /*will be set to false once COMEPLETE/ERROR received for RFC*/
@@ -1405,11 +1451,12 @@ namespace WPEFramework {
 
                         m_abort_flag=false;
 
+#ifndef DCM_REMOVAL_MM
                         /* we dont touch the dcm so
                          * we say DCM is success and complete */
                         SET_STATUS(g_task_status,DCM_SUCCESS);
                         SET_STATUS(g_task_status,DCM_COMPLETE);
-
+#endif
                         /* isRebootPending will be set to true
                          * irrespective of XConf configuration */
                         g_is_reboot_pending="true";
@@ -1460,7 +1507,11 @@ namespace WPEFramework {
 	        string codeDLtask;
             int k_ret=EINVAL;
             int i=0;
+#ifndef DCM_REMOVAL_MM
             bool task_status[4]={false};
+#else
+			bool task_status[3]={false};
+#endif
             bool result=false;
 
             LOGINFO("Stopping maintenance activities");
@@ -1471,6 +1522,7 @@ namespace WPEFramework {
                 // Set the condition flag m_abort_flag to true
                 m_abort_flag = true;
 
+#ifndef DCM_REMOVAL_MM
                 auto task_status_DCM=m_task_map.find(task_names_foreground[0].c_str());
                 auto task_status_RFC=m_task_map.find(task_names_foreground[1].c_str());
                 auto task_status_FWDLD=m_task_map.find(task_names_foreground[2].c_str());
@@ -1480,8 +1532,8 @@ namespace WPEFramework {
                 task_status[1] = task_status_RFC->second;
                 task_status[2] = task_status_FWDLD->second;
                 task_status[3] = task_status_LOGUPLD->second;
-
-                for (i=0;i<4;i++) {
+				
+				for (i=0;i<4;i++) {
                     LOGINFO("task status [%d]  = %s ScriptName %s",i,(task_status[i])? "true":"false",script_names[i].c_str());
                 }
                 for (i=0;i<4;i++){
@@ -1499,7 +1551,34 @@ namespace WPEFramework {
                         LOGINFO("Task[%d] is false \n",i);
                     }
                 }
+#else
+                auto task_status_RFC=m_task_map.find(task_names_foreground[0].c_str());
+                auto task_status_FWDLD=m_task_map.find(task_names_foreground[1].c_str());
+                auto task_status_LOGUPLD=m_task_map.find(task_names_foreground[2].c_str());
 
+                task_status[0] = task_status_RFC->second;
+                task_status[1] = task_status_FWDLD->second;
+                task_status[2] = task_status_LOGUPLD->second;
+				
+				for (i=0;i<3;i++) {
+                    LOGINFO("task status [%d]  = %s ScriptName %s",i,(task_status[i])? "true":"false",script_names[i].c_str());
+                }
+                for (i=0;i<3;i++){
+                    if(task_status[i]){
+
+                        k_ret = abortTask( script_names[i].c_str() );        // default signal is SIGABRT
+
+                        if( k_ret == 0 ) {                                      // if task(s) was(were) killed successfully ...                    
+                            m_task_map[task_names_foreground[i].c_str()]=false; // set it to false 
+                        }
+                        /* No need to loop again */
+                        break;
+                    }
+                    else{
+                        LOGINFO("Task[%d] is false \n",i);
+                    }
+                }
+#endif
                 result=true;
             }
             else {

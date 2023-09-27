@@ -167,4 +167,5 @@ if(DEFINES,USE_XI1_MORE_DEFINITIONS)
     add_definitions (-DENABLE_GET_SET_APIVERSION)   
 endif()
 
+add_definitions (-DDCM_REMOVAL_MM)
 
