@@ -872,7 +872,7 @@ namespace WPEFramework {
             auto task_status_FWDLD=m_task_map.find(task_names_foreground[2].c_str());
             auto task_status_LOGUPLD=m_task_map.find(task_names_foreground[3].c_str());
 #else
-			auto task_status_RFC=m_task_map.find(task_names_foreground[0].c_str());
+	    auto task_status_RFC=m_task_map.find(task_names_foreground[0].c_str());
             auto task_status_FWDLD=m_task_map.find(task_names_foreground[1].c_str());
             auto task_status_LOGUPLD=m_task_map.find(task_names_foreground[2].c_str());
 #endif
@@ -904,7 +904,11 @@ namespace WPEFramework {
                                  SET_STATUS(g_task_status,RFC_SUCCESS);
                                  SET_STATUS(g_task_status,RFC_COMPLETE);
                                  task_thread.notify_one();
+#ifndef DCM_TASK_REMOVAL
                                  m_task_map[task_names_foreground[1].c_str()]=false;
+#else
+                                 m_task_map[task_names_foreground[0].c_str()]=false;
+#endif
                             }
                             break;
 #ifndef DCM_TASK_REMOVAL
@@ -930,7 +934,11 @@ namespace WPEFramework {
                                 SET_STATUS(g_task_status,DIFD_SUCCESS);
                                 SET_STATUS(g_task_status,DIFD_COMPLETE);
                                 task_thread.notify_one();
+#ifndef DCM_TASK_REMOVAL
                                 m_task_map[task_names_foreground[2].c_str()]=false;
+#else
+                                m_task_map[task_names_foreground[1].c_str()]=false;
+#endif
                             }
                             break;
                        case MAINT_LOGUPLOAD_COMPLETE :
@@ -942,7 +950,11 @@ namespace WPEFramework {
                                 SET_STATUS(g_task_status,LOGUPLOAD_SUCCESS);
                                 SET_STATUS(g_task_status,LOGUPLOAD_COMPLETE);
                                 task_thread.notify_one();
+#ifndef DCM_TASK_REMOVAL
                                 m_task_map[task_names_foreground[3].c_str()]=false;
+#else
+                                m_task_map[task_names_foreground[2].c_str()]=false;
+#endif
                             }
 
                             break;
@@ -958,7 +970,11 @@ namespace WPEFramework {
                             /* we say FW update task complete */
                             SET_STATUS(g_task_status,DIFD_COMPLETE);
                             task_thread.notify_one();
+#ifndef DCM_TASK_REMOVAL
                             m_task_map[task_names_foreground[2].c_str()]=false;
+#else
+			    m_task_map[task_names_foreground[1].c_str()]=false;
+#endif
                             LOGINFO("FW Download task aborted \n");
                             break;
 #ifndef DCM_TASK_REMOVAL
@@ -984,7 +1000,11 @@ namespace WPEFramework {
                                  SET_STATUS(g_task_status,RFC_COMPLETE);
                                  task_thread.notify_one();
                                  LOGINFO("Error encountered in RFC script task \n");
+#ifndef DCM_TASK_REMOVAL
                                  m_task_map[task_names_foreground[1].c_str()]=false;
+#else
+                                 m_task_map[task_names_foreground[0].c_str()]=false;
+#endif
                             }
 
                             break;
@@ -997,9 +1017,12 @@ namespace WPEFramework {
                                 SET_STATUS(g_task_status,LOGUPLOAD_COMPLETE);
                                 task_thread.notify_one();
                                 LOGINFO("Error encountered in LOGUPLOAD script task \n");
+#ifndef DCM_TASK_REMOVAL
                                 m_task_map[task_names_foreground[3].c_str()]=false;
+#else
+                                m_task_map[task_names_foreground[2].c_str()]=false;
+#endif			    
                             }
-
                             break;
                        case MAINT_FWDOWNLOAD_ERROR:
                             if(task_status_FWDLD->second != true) {
@@ -1010,7 +1033,11 @@ namespace WPEFramework {
                                 SET_STATUS(g_task_status,DIFD_COMPLETE);
                                 task_thread.notify_one();
                                 LOGINFO("Error encountered in SWUPDATE script task \n");
+#ifndef DCM_TASK_REMOVAL
                                 m_task_map[task_names_foreground[2].c_str()]=false;
+#else
+                                m_task_map[task_names_foreground[1].c_str()]=false;
+#endif
                             }
                             break;
 #ifndef DCM_TASK_REMOVAL
@@ -1021,17 +1048,29 @@ namespace WPEFramework {
                             break;
 #endif
                        case MAINT_RFC_INPROGRESS:
+#ifndef DCM_TASK_REMOVAL
                             m_task_map[task_names_foreground[1].c_str()]=true;
+#else
+                            m_task_map[task_names_foreground[0].c_str()]=true;
+#endif
                             /*will be set to false once COMEPLETE/ERROR received for RFC*/
                             LOGINFO(" RFC already IN PROGRESS -> setting m_task_map of RFC to true \n");
                             break;
                        case MAINT_FWDOWNLOAD_INPROGRESS:
+#ifndef DCM_TASK_REMOVAL
                             m_task_map[task_names_foreground[2].c_str()]=true;
+#else
+                            m_task_map[task_names_foreground[1].c_str()]=true;
+#endif
                             /*will be set to false once COMEPLETE/ERROR received for FWDOWNLOAD*/
                             LOGINFO(" FWDOWNLOAD already IN PROGRESS -> setting m_task_map of FWDOWNLOAD to true \n");
                             break;
                        case MAINT_LOGUPLOAD_INPROGRESS:
+#ifndef DCM_TASK_REMOVAL
                             m_task_map[task_names_foreground[3].c_str()]=true;
+#else
+                            m_task_map[task_names_foreground[2].c_str()]=true;
+#endif
                             /*will be set to false once COMEPLETE/ERROR received for LOGUPLOAD*/
                             LOGINFO(" LOGUPLOAD already IN PROGRESS -> setting m_task_map of LOGUPLOAD to true \n");
                             break;
