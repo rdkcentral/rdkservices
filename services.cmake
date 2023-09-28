@@ -270,8 +270,3 @@ if(BUILD_ENABLE_ERM)
 endif()
 
 add_definitions(-DRDK_LOG_MILESTONE)
-
-
-add_definitions (-DPLUGIN_LEDCONTROL)
-option(PLUGIN_LEDCONTROL "PLUGIN_LEDCONTROL" ON)
-
