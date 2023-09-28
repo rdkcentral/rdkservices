@@ -68,7 +68,7 @@ typedef enum{
 #define FOREGROUND_MODE "FOREGROUND"
 #define BACKGROUND_MODE "BACKGROUND"
 
-#ifndef DCM_REMOVAL_MM
+#ifndef DCM_TASK_REMOVAL
 
 #define TASKS_COMPLETED                0xAA
 #define ALL_TASKS_SUCCESS              0xFF
