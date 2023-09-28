@@ -110,7 +110,7 @@ if(PLUGIN_DATACAPTURE)
     add_subdirectory(DataCapture)
 endif()
 
-if(HAS_FRONT_PANEL)
+if(PLUGIN_FRONTPANEL OR HAS_FRONT_PANEL)
     add_subdirectory(FrontPanel)
 endif()
 
