@@ -166,4 +166,4 @@ if(BUILD_ENABLE_APP_CONTROL_AUDIOPORT_INIT)
    add_definitions (-DAPP_CONTROL_AUDIOPORT_INIT)
 endif()
 
-add_definitions (-DDCM_REMOVAL)
+add_definitions (-DDCM_TASK_REMOVAL)
