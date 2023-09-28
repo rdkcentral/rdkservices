@@ -124,7 +124,7 @@ string moduleStatusToString(IARM_Maint_module_status_t &status)
 {
     string ret_status="";
     switch(status){
-#ifndef DCM_REMOVAL_MM
+#ifndef DCM_TASK_REMOVAL
         case MAINT_DCM_COMPLETE:
             ret_status="MAINTENANCE_DCM_COMPLETE";
             break;
@@ -219,7 +219,7 @@ namespace WPEFramework {
         cSettings MaintenanceManager::m_setting(MAINTENANCE_MGR_RECORD_FILE);
 
         string task_names_foreground[]={
-#ifndef DCM_REMOVAL_MM
+#ifndef DCM_TASK_REMOVAL
             "/lib/rdk/StartDCM_maintaince.sh",
 #endif
             "/lib/rdk/RFCbase.sh",
@@ -230,7 +230,7 @@ namespace WPEFramework {
         vector<string> tasks;
 
         string script_names[]={
-#ifndef DCM_REMOVAL_MM
+#ifndef DCM_TASK_REMOVAL
             "DCMscript_maintaince.sh",
 #endif
 		"RFCbase.sh",
@@ -269,7 +269,7 @@ namespace WPEFramework {
             MaintenanceManager::m_task_map[task_names_foreground[0].c_str()]=false;
             MaintenanceManager::m_task_map[task_names_foreground[1].c_str()]=false;
             MaintenanceManager::m_task_map[task_names_foreground[2].c_str()]=false;
-#ifndef DCM_REMOVAL_MM
+#ifndef DCM_TASK_REMOVAL
             MaintenanceManager::m_task_map[task_names_foreground[3].c_str()]=false;
 #endif
             MaintenanceManager::m_param_map[deviceInitializationContext[0].c_str()] = TR181_PARTNER_ID;
@@ -340,7 +340,7 @@ namespace WPEFramework {
 
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type){
                 LOGINFO("---------------UNSOLICITED_MAINTENANCE--------------");
-#ifndef DCM_REMOVAL_MM
+#ifndef DCM_TASK_REMOVAL
 #ifndef ENABLE_WHOAMI
                 tasks.push_back(task_names_foreground[0].c_str());
 #endif
@@ -350,7 +350,7 @@ namespace WPEFramework {
                 LOGINFO("=============SOLICITED_MAINTENANCE===============");
             }
 
-#ifndef DCM_REMOVAL_MM 
+#ifndef DCM_TASK_REMOVAL
 #if defined(ENABLE_WHOAMI)
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type) {
                 tasks.push_back(task_names_foreground[1].c_str());
@@ -866,7 +866,7 @@ namespace WPEFramework {
             IARM_Maint_module_status_t module_status;
             time_t successfulTime;
             string str_successfulTime="";
-#ifndef DCM_REMOVAL_MM
+#ifndef DCM_TASK_REMOVAL
             auto task_status_DCM=m_task_map.find(task_names_foreground[0].c_str());
             auto task_status_RFC=m_task_map.find(task_names_foreground[1].c_str());
             auto task_status_FWDLD=m_task_map.find(task_names_foreground[2].c_str());
@@ -907,7 +907,7 @@ namespace WPEFramework {
                                  m_task_map[task_names_foreground[1].c_str()]=false;
                             }
                             break;
-#ifndef DCM_REMOVAL_MM
+#ifndef DCM_TASK_REMOVAL
                         case MAINT_DCM_COMPLETE :
                             if(task_status_DCM->second != true) {
                                  LOGINFO("Ignoring Event DCM_COMPLETE");
@@ -961,7 +961,7 @@ namespace WPEFramework {
                             m_task_map[task_names_foreground[2].c_str()]=false;
                             LOGINFO("FW Download task aborted \n");
                             break;
-#ifndef DCM_REMOVAL_MM
+#ifndef DCM_TASK_REMOVAL
                         case MAINT_DCM_ERROR:
                             if(task_status_DCM->second != true) {
                                  LOGINFO("Ignoring Event DCM_ERROR");
@@ -1013,7 +1013,7 @@ namespace WPEFramework {
                                 m_task_map[task_names_foreground[2].c_str()]=false;
                             }
                             break;
-#ifndef DCM_REMOVAL_MM
+#ifndef DCM_TASK_REMOVAL
                        case MAINT_DCM_INPROGRESS:
                             m_task_map[task_names_foreground[0].c_str()]=true;
                             /*will be set to false once COMEPLETE/ERROR received for DCM*/
@@ -1451,7 +1451,7 @@ namespace WPEFramework {
 
                         m_abort_flag=false;
 
-#ifndef DCM_REMOVAL_MM
+#ifndef DCM_TASK_REMOVAL
                         /* we dont touch the dcm so
                          * we say DCM is success and complete */
                         SET_STATUS(g_task_status,DCM_SUCCESS);
@@ -1507,7 +1507,7 @@ namespace WPEFramework {
 	        string codeDLtask;
             int k_ret=EINVAL;
             int i=0;
-#ifndef DCM_REMOVAL_MM
+#ifndef DCM_TASK_REMOVAL
             bool task_status[4]={false};
 #else
 			bool task_status[3]={false};
@@ -1522,7 +1522,7 @@ namespace WPEFramework {
                 // Set the condition flag m_abort_flag to true
                 m_abort_flag = true;
 
-#ifndef DCM_REMOVAL_MM
+#ifndef DCM_TASK_REMOVAL
                 auto task_status_DCM=m_task_map.find(task_names_foreground[0].c_str());
                 auto task_status_RFC=m_task_map.find(task_names_foreground[1].c_str());
                 auto task_status_FWDLD=m_task_map.find(task_names_foreground[2].c_str());
