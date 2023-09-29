@@ -6,8 +6,7 @@ if boolean("@PLUGIN_OPENCDMI_PLAYREADY_NEXUS@") or \
     boolean("@PLUGIN_OPENCDMI_NAGRA@") :
     precondition = ["Platform"]
 
-if boolean("@PLUGIN_OCDM_STARTUPORDER@"):
-    startuporder = "@PLUGIN_OCDM_STARTUPORDER@"
+startuporder = "@PLUGIN_OCDM_STARTUPORDER@"
 
 configuration = JSON()
 configuration.add("sharepath", "/tmp/OCDM")
