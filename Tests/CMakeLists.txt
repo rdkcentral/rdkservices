@@ -85,9 +85,6 @@ include_directories(../LocationSync
         ../XCast
         ../FrontPanel
 	../HdmiCecSink
-        ../VoiceControl
-        ../ControlService
-        ../RemoteActionMapping
 	../RDKShell
         ../MaintenanceManager
         ../Packager
@@ -125,9 +122,6 @@ link_directories(../LocationSync
         ../XCast
         ../FrontPanel
 	../HdmiCecSink
-        ../VoiceControl
-        ../ControlService
-        ../RemoteActionMapping
 	../RDKShell
         ../MaintenanceManager
         ../Packager
@@ -169,9 +163,6 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}XCast
         ${NAMESPACE}FrontPanel
 	${NAMESPACE}HdmiCecSink
-        ${NAMESPACE}VoiceControl
-        ${NAMESPACE}ControlService
-        ${NAMESPACE}RemoteActionMapping
 	${NAMESPACE}RDKShell
         ${NAMESPACE}MaintenanceManager
         ${NAMESPACE}Packager
