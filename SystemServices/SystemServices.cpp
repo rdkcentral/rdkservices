@@ -660,6 +660,7 @@ namespace WPEFramework {
             if(IARM_RESULT_SUCCESS != iarmcallstatus) {
                 LOGWARN("requestSystemReboot: IARM_BUS_PWRMGR_API_Reboot failed with code %d.\n", iarmcallstatus); 
             }
+	    onRebootRequest(rebootParam.requestor,rebootParam.reboot_reason_other);
             response["IARM_Bus_Call_STATUS"] = static_cast <int32_t> (iarmcallstatus);
             result = true;
             returnResponse(result);
@@ -857,13 +858,13 @@ namespace WPEFramework {
             sendNotify(EVT_ONSYSTEMPOWERSTATECHANGED, params);
         }
 
-        void SystemServices::onPwrMgrReboot(string requestedApp, string rebootReason)
+        void SystemServices::onPwrMgrRebootRequest(string requestedApp, string rebootReason)
         {
             JsonObject params;
             params["requestedApp"] = requestedApp;
             params["rebootReason"] = rebootReason;
-
-            sendNotify(EVT_ONREBOOTREQUEST, params);
+	    LOGINFO("Notifying onPwrMgrRebootRequest\n");
+            sendNotify(EVT_ONPWRMGRREBOOTREQUEST, params);
         }
 
         void SystemServices::onNetorkModeChanged(bool bNetworkStandbyMode)
@@ -4213,7 +4214,7 @@ namespace WPEFramework {
                         IARM_Bus_PWRMgr_RebootParam_t *eventData = (IARM_Bus_PWRMgr_RebootParam_t *)data;
 
                         if (SystemServices::_instance) {
-                            SystemServices::_instance->onPwrMgrReboot(eventData->requestor, eventData->reboot_reason_other);
+                            SystemServices::_instance->onPwrMgrRebootRequest(eventData->requestor, eventData->reboot_reason_other);
                         } else {
                             LOGERR("SystemServices::_instance is NULL.\n");
                         }
@@ -4438,10 +4439,11 @@ namespace WPEFramework {
          * @param2[in]  : string; reboot reason
          * @Event [out] : {"rebootReason": <string_ReasonForReboot>}
          */
-        void SystemServices::onRebootRequest(string reason)
+        void SystemServices::onRebootRequest(string requestedApp, string rebootReason)
         {
             JsonObject params;
-            params["rebootReason"] = reason;
+	    params["requestedApp"] = requestedApp;
+            params["rebootReason"] = rebootReason;
             LOGINFO("Notifying onRebootRequest\n");
             sendNotify(EVT_ONREBOOTREQUEST, params);
         }
