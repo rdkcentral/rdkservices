@@ -592,6 +592,8 @@ public:
     virtual void getHdmiALLMStatus(int iHdmiPort, bool* allmStatus) const = 0;
     virtual void getSupportedGameFeatures(std::vector<std::string>& featureList) const = 0;
     virtual void getAVLatency(int *audio_output_delay, int *video_latency) const = 0;
+    virtual void setEdid2AllmSupport(int iHdmiPort, bool allmsupport) const = 0;
+    virtual void getEdid2AllmSupport(int iHdmiPort, bool *allmsupport) const = 0;
 };
 
 class HdmiInput {
@@ -652,6 +654,14 @@ public:
     void getAVLatency(int *audio_output_delay, int *video_latency) const
     {
         return impl->getAVLatency(audio_output_delay,video_latency);
+    }
+    void setEdid2AllmSupport(int iport, bool allmSupport) const
+    {
+        return impl->setEdid2AllmSupport(iport,allmSupport);
+    }
+    void getEdid2AllmSupport(int iport, bool *allmSupport) const
+    {
+        return impl->getEdid2AllmSupport(iport,allmSupport);
     }
 };
 
