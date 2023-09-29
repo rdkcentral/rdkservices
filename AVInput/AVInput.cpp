@@ -45,6 +45,8 @@
 #define AVINPUT_METHOD_READ_SPD "getSPD"
 #define AVINPUT_METHOD_SET_EDID_VERSION "setEdidVersion"
 #define AVINPUT_METHOD_GET_EDID_VERSION "getEdidVersion"
+#define AVINPUT_METHOD_SET_EDID_ALLM_SUPPORT "setEdid2AllmSupport"
+#define AVINPUT_METHOD_GET_EDID_ALLM_SUPPORT "getEdid2AllmSupport"
 #define AVINPUT_METHOD_START_INPUT "startInput"
 #define AVINPUT_METHOD_STOP_INPUT "stopInput"
 #define AVINPUT_METHOD_SCALE_INPUT "setVideoRectangle"
@@ -213,6 +215,8 @@ void AVInput::RegisterAll()
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_READ_SPD), &AVInput::getSPDWrapper, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_SET_EDID_VERSION), &AVInput::setEdidVersionWrapper, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_GET_EDID_VERSION), &AVInput::getEdidVersionWrapper, this);
+    Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_SET_EDID_ALLM_SUPPORT), &AVInput::setEdid2AllmSupportWrapper, this);
+    Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_GET_EDID_ALLM_SUPPORT), &AVInput::getEdid2AllmSupportWrapper, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_START_INPUT), &AVInput::startInput, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_STOP_INPUT), &AVInput::stopInput, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_SCALE_INPUT), &AVInput::setVideoRectangleWrapper, this);
@@ -1150,6 +1154,96 @@ std::string AVInput::getSPD(int iPort)
         LOG_DEVICE_EXCEPTION1(std::to_string(iPort));
     }
     return spdbase64;
+}
+
+int setEdid2AllmSupport(int portId, bool allmSupport)
+{
+	bool ret = true;
+	try
+	{
+	   device::HdmiInput::getInstance().setEdid2AllmSupport (portId, allmSupport);
+	   LOGWARN("AVInput -  allmsupport:%d", allmSupport);
+	}
+	catch (const device::Exception& err)
+	{
+		LOG_DEVICE_EXCEPTION1(std::to_string(portId));
+		ret = false;
+	}
+return ret;
+}
+
+uint32_t AVInput::setEdid2AllmSupportWrapper(const JsonObject& parameters, JsonObject& response)
+{
+	LOGINFOMETHOD();
+
+	returnIfParamNotFound(parameters, "portId");
+	returnIfParamNotFound(parameters, "allmSupport");
+
+	int portId = 0;
+	string sPortId = parameters["portId"].String();
+	bool allmSupport = parameters["allmSupport"].Boolean();
+
+	try {
+		portId = stoi(sPortId);
+	}catch (const std::exception& err) {
+		LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
+		returnResponse(false);
+	}
+
+	bool result = setEdid2AllmSupport(portId, allmSupport);
+	if(result == true)
+	{
+	   returnResponse(true);
+	}
+	else
+	{
+	   returnResponse(false);
+	}
+
+}
+
+bool getEdid2AllmSupport(int portId,bool *allmSupportValue)
+{
+	bool ret = true;
+	try
+	{
+		device::HdmiInput::getInstance().getEdid2AllmSupport (portId, allmSupportValue);
+		LOGINFO("AVInput - getEdid2AllmSupport:%d", *allmSupportValue);
+	}
+	catch (const device::Exception& err)
+	{
+		LOG_DEVICE_EXCEPTION1(std::to_string(portId));
+		ret = false;
+	}
+	return ret;
+}
+
+uint32_t AVInput::getEdid2AllmSupportWrapper(const JsonObject& parameters, JsonObject& response)
+{
+	LOGINFOMETHOD();
+	string sPortId = parameters["portId"].String();
+
+	int portId = 0;
+	bool allmSupport = true;
+	returnIfParamNotFound(parameters, "portId");
+
+	try {
+		portId = stoi(sPortId);
+	}catch (const std::exception& err) {
+		LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
+		returnResponse(false);
+	}
+
+	bool result = getEdid2AllmSupport(portId, &allmSupport);
+	if(result == true)
+	{
+	     response["allmSupport"] = allmSupport;
+	     returnResponse(true);
+	}
+	else
+	{
+	    returnResponse(false);
+	}
 }
 
 uint32_t AVInput::setEdidVersionWrapper(const JsonObject& parameters, JsonObject& response)

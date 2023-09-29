@@ -17,6 +17,8 @@ public:
     MOCK_METHOD(void, getHDMISPDInfo, (int iHdmiPort, std::vector<uint8_t> &data), (const, override));
     MOCK_METHOD(void, setEdidVersion, (int iHdmiPort, int iEdidVersion), (const, override));
     MOCK_METHOD(void, getEdidVersion, (int iHdmiPort, int *iEdidVersion), (const, override));
+    MOCK_METHOD(void, setEdid2AllmSupport, (int iHdmiPort, bool allmSupport), (const, override));
+    MOCK_METHOD(void, getEdid2AllmSupport, (int iHdmiPort, bool *allmSupport), (const, override));
     MOCK_METHOD(void, getHdmiALLMStatus, (int iHdmiPort, bool *allmStatus), (const, override));
     MOCK_METHOD(void, getSupportedGameFeatures, (std::vector<std::string> &featureList), (const, override));
     MOCK_METHOD(void, getAVLatency, (int *audio_output_delay,int *video_latency), (const, override));
