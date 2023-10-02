@@ -29,7 +29,11 @@ void kms_setup_encoder( int fd, kms_ctx *kms )
 
         kms->encoder = drmModeGetEncoder(fd,kms->res->encoders[i]);
 
-        if ( kms->encoder && ( kms->encoder->encoder_id == kms->connector->encoder_id ) ) {
+        if(!kms->encoder){
+            return;
+        }
+
+        if ( kms->encoder->encoder_id == kms->connector->encoder_id ) {
 
             kms->encoder_id = kms->encoder->encoder_id;
             return;
