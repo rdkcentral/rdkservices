@@ -230,7 +230,7 @@ public:
                 TRACE(Trace::Information, (_T("EDID Verification failed")));
                 ret = Core::ERROR_GENERAL;
             }
-            delete edidbytes;
+            delete[] edidbytes;
         }
         else
         {
@@ -605,7 +605,7 @@ public:
                 TRACE(Trace::Error, (_T("EDID Verification failed")));
                 ret = Core::ERROR_GENERAL;
             }
-            delete edidbytes;
+            delete[] edidbytes;
         }
         else
         {
