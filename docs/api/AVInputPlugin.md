@@ -2,7 +2,7 @@
 <a name="AVInput_Plugin"></a>
 # AVInput Plugin
 
-**Version: [1.3.2](https://github.com/rdkcentral/rdkservices/blob/main/AVInput/CHANGELOG.md)**
+**Version: [1.4.0](https://github.com/rdkcentral/rdkservices/blob/main/AVInput/CHANGELOG.md)**
 
 A org.rdk.AVInput plugin for Thunder framework.
 
@@ -51,12 +51,14 @@ AVInput interface methods:
 | [currentVideoMode](#currentVideoMode) | Returns a string encoding the video mode being supplied by the device currently attached to the HDMI input |
 | [numberOfInputs](#numberOfInputs) | Returns an integer that specifies the number of available inputs |
 | [getInputDevices](#getInputDevices) | Returns an array of available HDMI/Composite Input ports |
+| [getEdid2AllmSupport](#getEdid2AllmSupport) | Returns the EDID ALLM bit value |
 | [getEdidVersion](#getEdidVersion) | Returns the EDID version |
 | [getSPD](#getSPD) | Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device |
 | [getRawSPD](#getRawSPD) | Returns the Source Data Product Descriptor (SPD) infoFrame packet information for the specified HDMI Input device as raw bits |
 | [readEDID](#readEDID) | Returns the current EDID value |
 | [startInput](#startInput) | Activates the specified HDMI/Composite Input port as the primary video source |
 | [stopInput](#stopInput) | Deactivates the HDMI/Composite Input port currently selected as the primary video source |
+| [setEdid2AllmSupport](#setEdid2AllmSupport) | Sets an HDMI ALLM bit in EDID |
 | [setEdidVersion](#setEdidVersion) | Sets an HDMI EDID version |
 | [setVideoRectangle](#setVideoRectangle) | Sets an HDMI/Composite Input video window |
 | [writeEDID](#writeEDID) | Changes a current EDID value |
@@ -277,6 +279,60 @@ No Events
                 "connected": true
             }
         ]
+    }
+}
+```
+
+<a name="getEdid2AllmSupport"></a>
+## *getEdid2AllmSupport*
+
+Returns the EDID ALLM bit value.
+
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=getEdid2AllmSupport)
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.portId | string | <sup>*(optional)*</sup> An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.allmSupport | boolean | The ALLM bit value in edid |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.AVInput.getEdid2AllmSupport",
+    "params": {
+        "portId": "0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "allmSupport": true,
+        "success": true
     }
 }
 ```
@@ -619,6 +675,60 @@ Deactivates the HDMI/Composite Input port currently selected as the primary vide
     "jsonrpc": "2.0",
     "id": 42,
     "result": null
+}
+```
+
+<a name="setEdid2AllmSupport"></a>
+## *setEdid2AllmSupport*
+
+Sets an HDMI ALLM bit in EDID.
+
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=setedid2AllmSupport)
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.portId | string | An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
+| params.allmSupport | boolean | The ALLM support in EDID |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.AVInput.setEdid2AllmSupport",
+    "params": {
+        "portId": "0",
+        "allmSupport": true
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
 }
 ```
 
