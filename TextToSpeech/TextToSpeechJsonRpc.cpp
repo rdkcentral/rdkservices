@@ -90,27 +90,27 @@ namespace Plugin {
 
     uint32_t TextToSpeech::SetACL(const JsonObject& parameters, JsonObject& response)
     {
-        CHECK_TTS_PARAMETER_RETURN_ON_FAIL("accesslist");
-        TTSLOG_INFO("SetACL request:%s\n",parameters["accesslist"].String().c_str());
-        JsonArray list = parameters["accesslist"].Array();
-        JsonArray::Iterator it = list.Elements();
-        while(it.Next())
-        {
-            JsonObject accesslist = it.Current().Object();
-            if (accesslist.HasLabel("method") && accesslist.HasLabel("apps"))
+        if(_tts) {
+            CHECK_TTS_PARAMETER_RETURN_ON_FAIL("accesslist");
+            TTSLOG_INFO("SetACL request:%s\n",parameters["accesslist"].String().c_str());
+            JsonArray list = parameters["accesslist"].Array();
+            JsonArray::Iterator it = list.Elements();
+            while(it.Next())
             {
-                m_AccessMutex.lock();
-                AddToAccessList(accesslist["method"].String(),accesslist["apps"].String());
-                m_AccessMutex.unlock();
+                JsonObject accesslist = it.Current().Object();
+                if (accesslist.HasLabel("method") && accesslist.HasLabel("apps"))
+                {
+                    _tts->SetACL(accesslist["method"].String(),accesslist["apps"].String());
+                }
+                else
+                {
+                    TTSLOG_WARNING("SetACL wrong input parameters\n");
+                    returnResponse(false);
+                }
             }
-            else
-            {
-                TTSLOG_WARNING("SetACL wrong input parameters\n");
-                returnResponse(false);
-            }
+            returnResponse(true);
         }
-        m_AclCalled = true;
-        returnResponse(true);
+        return Core::ERROR_NONE;
     }
 
     uint32_t TextToSpeech::Enable(const JsonObject& parameters, JsonObject& response)
@@ -230,23 +230,15 @@ namespace Plugin {
     uint32_t TextToSpeech::Speak(const JsonObject& parameters, JsonObject& response)
     {
         CHECK_TTS_PARAMETER_RETURN_ON_FAIL("text");
-        std::string callsign = parameters["callsign"].String();
-        // if setACL() not called,  we ignore speak's callsign parameter
-        if(!m_AclCalled || (m_AclCalled && HasAccess("speak",callsign)))
-        {
-            if(_tts) {
-                uint32_t speechid;
-                Exchange::ITextToSpeech::TTSErrorDetail status;
-                _tts->Speak(parameters["text"].String(),speechid,status);
-                response["speechid"] = (int) speechid;
-                response["TTS_Status"] = static_cast<uint32_t>(status);
-                returnResponse(status ==  Exchange::ITextToSpeech::TTSErrorDetail::TTS_OK);
-            }
+        if(_tts) {
+            uint32_t speechid;
+            Exchange::ITextToSpeech::TTSErrorDetail status;
+            _tts->Speak(parameters["callsign"].String(),parameters["text"].String(),speechid,status);
+            response["speechid"] = (int) speechid;
+            response["TTS_Status"] = static_cast<uint32_t>(status);
+            returnResponse(status ==  Exchange::ITextToSpeech::TTSErrorDetail::TTS_OK);
         }
-        TTSLOG_WARNING("No Speak access for callsign %s\n",callsign.c_str());
-        response["speechid"] = (int) -1;
-        response["TTS_Status"] = static_cast<uint32_t>(TTS::TTS_NO_ACCESS);
-        returnResponse(false);
+        return Core::ERROR_NONE;
     }
 
     uint32_t TextToSpeech::Cancel(const JsonObject& parameters, JsonObject& response)

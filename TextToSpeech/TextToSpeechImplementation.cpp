@@ -226,6 +226,17 @@ namespace Plugin {
         TTSLOG_INFO("api key updated\n");
         return (Core::ERROR_NONE);
     }
+
+    uint32_t TextToSpeechImplementation::SetACL(const string method,const string apps)
+    {
+        CHECK_TTS_MANAGER_RETURN_ON_FAIL();
+        _adminLock.Lock();
+        auto status = _ttsManager->setACL(method,apps);
+        _adminLock.Unlock();
+        TTSLOG_INFO("setACL invoked with method %s and app list %s",method.c_str(),apps.c_str());
+        logResponse(status);
+        return (status == TTS::TTS_OK) ? (Core::ERROR_NONE) : (Core::ERROR_GENERAL);
+    }
     
     uint32_t TextToSpeechImplementation::GetConfiguration(Exchange::ITextToSpeech::Configuration &exchangeConfig) const
     {
@@ -274,12 +285,12 @@ namespace Plugin {
         return ++counter;
     }
 
-    uint32_t TextToSpeechImplementation::Speak(const string text,uint32_t &speechid,Exchange::ITextToSpeech::TTSErrorDetail &ttsStatus)
+    uint32_t TextToSpeechImplementation::Speak(const string callsign,const string text,uint32_t &speechid,Exchange::ITextToSpeech::TTSErrorDetail &ttsStatus)
     {
         CHECK_TTS_MANAGER_RETURN_ON_FAIL();
         _adminLock.Lock();
         speechid = nextSpeechId();
-        auto status = _ttsManager->speak(speechid,text);
+        auto status = _ttsManager->speak(speechid,callsign,text);
         ttsStatus = (Exchange::ITextToSpeech::TTSErrorDetail) status;
         _adminLock.Unlock();
 
