@@ -69,6 +69,7 @@ MiracastGstPlayer::MiracastGstPlayer()
     m_currentPosition = 0.0f;
     m_buffering_level = 100;
     m_player_statistics_tid = 0;
+    m_elts = G_QUEUE_INIT;
     MIRACASTLOG_TRACE("Exiting...");
 }
 
@@ -250,6 +251,18 @@ bool MiracastGstPlayer::changePipelineState(GstState state) const
     return status;
 }
 
+void MiracastGstPlayer::element_setup(GstElement * playbin, GstElement * element, GQueue * elts)
+{
+    GstElementFactory *f = gst_element_get_factory (element);
+    MIRACASTLOG_INFO("element_setup  name: %s \n",f ? GST_OBJECT_NAME (f) : GST_OBJECT_NAME (element));
+    if(g_strcmp0(GST_OBJECT_NAME (f),"tsdemux")==0 )
+    {
+        g_object_set(G_OBJECT(f), "ignore-pcr", true , nullptr);
+        MIRACASTLOG_INFO("set property ignore-pcr to true\n");
+    }
+    g_queue_push_tail (elts, f ? GST_OBJECT_NAME (f) : GST_OBJECT_NAME (element));
+}
+
 bool MiracastGstPlayer::createPipeline()
 {
     MIRACASTLOG_TRACE("Entering..!!!");
@@ -259,6 +272,7 @@ bool MiracastGstPlayer::createPipeline()
     // gint flags;
     m_bReady = false;
     m_currentPosition = 0.0f;
+    m_elts = G_QUEUE_INIT;
 
     /* create gst pipeline */
     m_main_loop_context = g_main_context_new();
@@ -323,6 +337,10 @@ bool MiracastGstPlayer::createPipeline()
     }
 #endif
     updateVideoSinkRectangle();
+    MIRACASTLOG_INFO("!!! Configuring element-setup callback !!!\n");
+    g_signal_connect (m_pipeline, "element-setup", G_CALLBACK(element_setup),&m_elts);
+    MIRACASTLOG_INFO("!!! Configuring element-setup callback DONE !!!\n");
+
     g_object_set(m_pipeline, "video-sink", m_video_sink, nullptr);
 
     if ( nullptr != m_audio_sink )

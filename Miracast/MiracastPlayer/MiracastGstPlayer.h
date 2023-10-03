@@ -46,6 +46,8 @@ public:
     double get_current_position();
     bool get_player_statistics();
     void print_pipeline_state();
+    GQueue m_elts;
+    static void element_setup(GstElement * playbin, GstElement * element, GQueue * elts);
 
 private:
     GstElement *m_pipeline{nullptr};
