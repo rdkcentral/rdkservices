@@ -1,0 +1,6 @@
+autostart = "@PLUGIN_PERFORMANCEMETRICS_AUTOSTART@"
+configuration = JSON()
+if boolean("@PLUGIN_PERFORMANCEMETRICS_WEBKITBROWSER_CLASSNAME@"):
+    configuration.add("classname", "WebKitBrowser")
+else:
+    configuration.add("callsign", "WebKitBrowser")
