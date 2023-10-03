@@ -5858,6 +5858,7 @@ namespace Plugin {
                                  ret |= SaveDisplayMode(source,mode,format,params[0]);
                                  break;
                              case PQ_PARAM_LOCALDIMMING_LEVEL:
+			     {
                                  int dimmingLevel=0,edidLevel=0;
                                  if(sync)
                                  {
@@ -5872,9 +5873,10 @@ namespace Plugin {
                                  GetLDIMAndEDIDLevel(params[0],format,&dimmingLevel,&edidLevel,mode);
                                  ret |= SaveLocalDimmingLevel(source, mode,format,dimmingLevel);
                                  break;
-			      case PQ_PARAM_CMS:
-			      case PQ_PARAM_LDIM:
-			      default:
+			     }
+			     case PQ_PARAM_CMS:
+			     case PQ_PARAM_LDIM:
+			     default:
 				 break;
                         }
                     }
