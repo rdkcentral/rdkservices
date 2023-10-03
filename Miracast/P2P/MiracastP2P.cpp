@@ -29,7 +29,6 @@
 
 /* @TODO: Make a provision to read dynamic i/f files */
 #define WPA_SUP_CTRL "/var/run/wpa_supplicant/p2p-dev-wlan0"
-#define WPA_SUP_GLOBAL_CTRL "/opt/wpa_supplicant/wlan0-3.global"
 
 #define P2P_SUPPORTED_MAX_FRIENDLY_NAME_LENGTH   (32)
 #define P2P_TRIMMING_CHAR   CONTINUE_CHAR
@@ -96,6 +95,7 @@ void MiracastP2P::destroyInstance()
     MIRACASTLOG_TRACE("Exiting...");
 }
 
+#if 0
 static P2P_EVENTS convertIARMtoP2P(IARM_EventId_t eventId)
 {
     return (P2P_EVENTS)eventId;
@@ -113,6 +113,7 @@ static void iarmEvtHandler(const char *owner, IARM_EventId_t eventId, void *data
     }
     MIRACASTLOG_TRACE("Exiting..");
 }
+#endif
 
 /* The control and monitoring interface is defined and initialized during the init phase */
 void p2p_monitor_thread(void *ptr);
@@ -420,6 +421,7 @@ MiracastError MiracastP2P::Init( void )
 
     MIRACASTLOG_TRACE("Entering..");
 
+#if 0
     if (getenv("ENABLE_MIRACAST_IARM") != NULL)
         m_isIARMEnabled = true;
 
@@ -439,6 +441,7 @@ MiracastError MiracastP2P::Init( void )
         IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, (IARM_Bus_NMgr_P2P_EventId_t)IARM_BUS_WIFI_P2P_EVENT_onError, iarmEvtHandler);
     }
     else
+#endif
     {
         ret_code = p2pInit();
         if (MIRACAST_OK != ret_code){

@@ -1,4 +1,0 @@
-precondition = ["Platform"]
-callsign = "org.rdk.MiracastTestApp"
-autostart = "false"
-startuporder = "@PLUGIN_MIRACASTTESTAPP_STARTUPORDER@"
