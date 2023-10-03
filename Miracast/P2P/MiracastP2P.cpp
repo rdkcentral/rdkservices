@@ -44,7 +44,6 @@ MiracastP2P::MiracastP2P(void)
     m_wpa_p2p_cmd_ctrl_iface = nullptr;
     m_wpa_p2p_ctrl_monitor = nullptr;
     m_stop_p2p_monitor = false;
-    m_isIARMEnabled = false;
     m_isWiFiDisplayParamsEnabled = false;
 
     m_authType = MIRACAST_DFLT_CFG_METHOD;
@@ -57,7 +56,7 @@ MiracastP2P::MiracastP2P(void)
 MiracastP2P::~MiracastP2P()
 {
     MIRACASTLOG_TRACE("Entering..");
-    if ( false == m_isIARMEnabled )
+
     {
         p2pUninit();
     }
@@ -94,26 +93,6 @@ void MiracastP2P::destroyInstance()
     }
     MIRACASTLOG_TRACE("Exiting...");
 }
-
-#if 0
-static P2P_EVENTS convertIARMtoP2P(IARM_EventId_t eventId)
-{
-    return (P2P_EVENTS)eventId;
-}
-
-static void iarmEvtHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
-{
-    MIRACASTLOG_TRACE("Entering..");
-    if (strcmp(owner, IARM_BUS_NM_SRV_MGR_NAME) == 0)
-    {
-        P2P_EVENTS p2pEventId = convertIARMtoP2P(eventId);
-        MiracastError error_code = MIRACAST_OK;
-        MiracastController *miracast_obj = MiracastController::getInstance(error_code);
-        miracast_obj->event_handler(p2pEventId, data, len,true);
-    }
-    MIRACASTLOG_TRACE("Exiting..");
-}
-#endif
 
 /* The control and monitoring interface is defined and initialized during the init phase */
 void p2p_monitor_thread(void *ptr);
@@ -384,27 +363,8 @@ int MiracastP2P::p2pExecute(char *cmd, enum INTERFACE iface, char *ret_buf)
 MiracastError MiracastP2P::executeCommand(std::string command, int interface, std::string &retBuffer)
 {
     MIRACASTLOG_TRACE("Entering..");
+
     MIRACASTLOG_INFO("Executing P2P command %s", command.c_str());
-    if (m_isIARMEnabled)
-    {
-        IARM_Result_t retVal = IARM_RESULT_SUCCESS;
-        IARM_Bus_WiFiSrvMgr_P2P_Param_t param;
-        memset(&param, 0, sizeof(param));
-        strcpy(param.cmd, command.c_str());
-        param.iface = interface;
-        retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_executeP2PCommand, (void *)&param, sizeof(param));
-        if (retVal == IARM_RESULT_SUCCESS)
-        {
-            retBuffer = param.return_buffer;
-            MIRACASTLOG_TRACE("Exiting...");
-            return MIRACAST_OK;
-        }
-        else{
-            MIRACASTLOG_TRACE("Exiting...");
-            return MIRACAST_FAIL;
-        }
-    }
-    else
     {
         char ret_buffer[2048] = {0};
         p2pExecute((char *)command.c_str(), static_cast<P2P_INTERFACE>(interface), ret_buffer);
@@ -421,27 +381,6 @@ MiracastError MiracastP2P::Init( void )
 
     MIRACASTLOG_TRACE("Entering..");
 
-#if 0
-    if (getenv("ENABLE_MIRACAST_IARM") != NULL)
-        m_isIARMEnabled = true;
-
-    if (m_isIARMEnabled)
-    {
-        IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, (IARM_Bus_NMgr_P2P_EventId_t)IARM_BUS_WIFI_P2P_EVENT_onFound, iarmEvtHandler);
-        IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, (IARM_Bus_NMgr_P2P_EventId_t)IARM_BUS_WIFI_P2P_EVENT_Provision, iarmEvtHandler);
-        IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, (IARM_Bus_NMgr_P2P_EventId_t)IARM_BUS_WIFI_P2P_EVENT_onStop, iarmEvtHandler);
-        IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, (IARM_Bus_NMgr_P2P_EventId_t)IARM_BUS_WIFI_P2P_EVENT_onGoNegReq, iarmEvtHandler);
-        IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, (IARM_Bus_NMgr_P2P_EventId_t)IARM_BUS_WIFI_P2P_EVENT_onGoNegSuccess, iarmEvtHandler);
-        IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, (IARM_Bus_NMgr_P2P_EventId_t)IARM_BUS_WIFI_P2P_EVENT_onGoNegFailure, iarmEvtHandler);
-        IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, (IARM_Bus_NMgr_P2P_EventId_t)IARM_BUS_WIFI_P2P_EVENT_onGroupStarted, iarmEvtHandler);
-        IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, (IARM_Bus_NMgr_P2P_EventId_t)IARM_BUS_WIFI_P2P_EVENT_onFormationSuccess, iarmEvtHandler);
-        IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, (IARM_Bus_NMgr_P2P_EventId_t)IARM_BUS_WIFI_P2P_EVENT_onFormationFailure, iarmEvtHandler);
-        IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, (IARM_Bus_NMgr_P2P_EventId_t)IARM_BUS_WIFI_P2P_EVENT_onDeviceLost, iarmEvtHandler);
-        IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, (IARM_Bus_NMgr_P2P_EventId_t)IARM_BUS_WIFI_P2P_EVENT_onGroupRemoved, iarmEvtHandler);
-        IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, (IARM_Bus_NMgr_P2P_EventId_t)IARM_BUS_WIFI_P2P_EVENT_onError, iarmEvtHandler);
-    }
-    else
-#endif
     {
         ret_code = p2pInit();
         if (MIRACAST_OK != ret_code){

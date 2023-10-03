@@ -36,7 +36,6 @@
 #include "MiracastP2P.h"
 #include "MiracastLogger.h"
 #include "MiracastRtspMsg.h"
-//#include "wifiSrvMgrIarmIf.h"
 
 using namespace std;
 using namespace MIRACAST;
@@ -50,7 +49,7 @@ public:
                                             MiracastServiceNotifier *notifier = nullptr);
     static void destroyInstance();
 
-    void event_handler(P2P_EVENTS eventId, void *data, size_t len, bool isIARMEnabled = false);
+    void event_handler(P2P_EVENTS eventId, void *data, size_t len );
 
     MiracastError discover_devices();
     MiracastError connect_device(std::string mac);

@@ -528,19 +528,12 @@ void MiracastController::stop_session(bool stop_streaming_needed)
     MIRACASTLOG_TRACE("Exiting...");
 }
 
-void MiracastController::event_handler(P2P_EVENTS eventId, void *data, size_t len, bool isIARMEnabled)
+void MiracastController::event_handler(P2P_EVENTS eventId, void *data, size_t len )
 {
     CONTROLLER_MSGQ_STRUCT controller_msgq_data = {0};
     std::string event_buffer;
     MIRACASTLOG_TRACE("Entering...");
-#if 0
-    if (isIARMEnabled)
-    {
-        IARM_BUS_WiFiSrvMgr_P2P_EventData_t *EventData = (IARM_BUS_WiFiSrvMgr_P2P_EventData_t *)data;
-        event_buffer = EventData->event_data;
-    }
-    else
-#endif
+
     {
         event_buffer = (char *)data;
         free(data);

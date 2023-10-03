@@ -23,7 +23,6 @@
 #include <string.h>
 #include <MiracastServiceError.h>
 #include <MiracastLogger.h>
-#include "wifiSrvMgrIarmIf.h"
 
 using namespace std;
 using namespace MIRACAST;
@@ -74,7 +73,6 @@ private:
     bool m_stop_p2p_monitor;
     char m_event_buffer[2048];
     size_t m_event_buffer_len;
-    bool m_isIARMEnabled;
     bool m_isWiFiDisplayParamsEnabled;
     pthread_t m_p2p_ctrl_monitor_thread_id;
 
