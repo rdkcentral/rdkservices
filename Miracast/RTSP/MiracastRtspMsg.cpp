@@ -1189,8 +1189,6 @@ RTSP_STATUS MiracastRTSPMsg::validate_rtsp_m1_msg_m2_send_request(std::string rt
     const char *require_tag = get_parser_field_by_index(RTSP_REQUIRE_FIELD),
                 *sequence_tag = get_parser_field_by_index(RTSP_SEQUENCE_FIELD);
 
-    MIRACASTLOG_TRACE("RTSP_REQUIRE_FIELD[%s]RTSP_SEQUENCE_FIELD[%s]", require_tag,sequence_tag);
-
     while (std::getline(ss, line))
     {
         if (line.find(require_tag) != std::string::npos)
@@ -1478,13 +1476,13 @@ RTSP_STATUS MiracastRTSPMsg::validate_rtsp_m6_ack_m7_send_request(std::string rt
     std::string session_number = "",
                 clientPortValue = "";
     int timeoutValue = -1;
-    const char  *sequence_tag = get_parser_field_by_index(RTSP_SEQUENCE_FIELD);
+    const char  *session_tag = get_parser_field_by_index(RTSP_SESSION_FIELD);
 
     MIRACASTLOG_TRACE("Entering...");
 
     while (std::getline(ss, line))
     {
-        if (line.find(sequence_tag) != std::string::npos) {
+        if (line.find(session_tag) != std::string::npos) {
             std::regex sessionRegex("Session: ([0-9a-fA-F]+)(?:;timeout=([0-9]+))?");
             std::smatch match;
             if (std::regex_search(line, match, sessionRegex) && match.size() == 3) {
