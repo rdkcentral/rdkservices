@@ -21,6 +21,7 @@
 #define AVOutputTV_H
 
 #include "string.h"
+#include <set>
 
 #include "tvTypes.h"
 #include "tvLog.h"
@@ -40,6 +41,37 @@
 #include "dsError.h"
 #include "dsMgr.h"
 #include "hdmiIn.hpp"
+#include "als_bl_iniparser.h"
+#include "bl_table.h"
+#include <numeric>
+
+//Macro
+#define RFC_BUFF_MAX 100
+#define BACKLIGHT_RAW_VALUE_MAX    (255)
+#define AVOUTPUT_RFC_CALLERID        "AVOutput"
+#define AVOUTPUT_RFC_CALLERID_OVERRIDE        "../../opt/panel/tvsettings"
+#define AVOUTPUT_OVERRIDE_PATH       "/opt/panel/tvsettings.ini"
+#define AVOUTPUT_CONVERTERBOARD_PANELID     "0_0_00"
+#define AVOUTPUT_GENERIC_STRING_RFC_PARAM    "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput."
+#define AVOUTPUT_BACKLIGHT_SDR_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.SDR.Backlight"
+#define AVOUTPUT_BACKLIGHT_HDR_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.HDR.Backlight"
+#define AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM  "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.AutoBacklightMode"
+#define AVOUTPUT_DOLBYVISIONMODE_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.DolbyVisionMode"
+#define AVOUTPUT_HLGMODE_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.HLGMode"
+#define AVOUTPUT_HDR10MODE_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.HDR10Mode"
+#define AVOUTPUT_DIMMING_MODE_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.DimmingMode"
+#define AVOUTPUT_PICTUREMODE_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.PictureMode"
+#define AVOUTPUT_PICTUREMODE_STRING_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.PictureModeString"
+#define AVOUTPUT_ASPECTRATIO_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.AspectRatio"
+#define AVOUTPUT_BACKLIGHT_CONTROL_USE_GBF_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.UseGBFForBacklightControl"
+#define AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.Source"
+
+#define STRING_DIRTY  ".Dirty."
+#define STRING_PICMODE  "PicMode."
+#define STRING_FORMAT  "Format."
+#define STRING_DEFAULT  "Default"
+#define STRING_SOURCE    "Source."
+#define CREATE_DIRTY(__X__) (__X__+=STRING_DIRTY)
 
 namespace WPEFramework {
 namespace Plugin {
@@ -88,7 +120,7 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
 	DECLARE_JSON_RPC_METHOD(getHueCaps)
 	DECLARE_JSON_RPC_METHOD(getColorTemperatureCaps)
 	DECLARE_JSON_RPC_METHOD(getComponentCaps )
-	DECLARE_JSON_RPC_METHOD(getDimmingModeCaps )
+	DECLARE_JSON_RPC_METHOD(getBacklightDimmingModeCaps )
 	DECLARE_JSON_RPC_METHOD(getAutoBacklightControlCaps )
         DECLARE_JSON_RPC_METHOD(getDolbyVisionModeCaps )
         DECLARE_JSON_RPC_METHOD(getHDR10ModeCaps )
@@ -140,11 +172,62 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         DECLARE_JSON_RPC_METHOD(resetAspectRatio)
         DECLARE_JSON_RPC_METHOD(resetLowLatencyState)
 
+    private:
+        std::string getErrorString (tvError_t eReturn);
+	bool isBacklightUsingGlobalBacklightFactor(void);
+	void LocatePQSettingsFile(void);
+	int InitializeSDRHDRBacklight(void);
+	tvContentFormatType_t getContentFormatIndex(tvVideoHDRFormat_t formatToConvert);
+	void convertParamToLowerCase(std::string &source, std::string &pqmode, std::string &format);
+        int convertToValidInputParameter(std::string & source, std::string & pqmode, std::string & format);
+	tvError_t updatePQParamToLocalCache(std::string forParam, int source, int pqmode, int format, int value,bool setNotDelete);
+        int updatePQParamsToCache( std::string action, std::string tr181ParamName, std::string pqmode, std::string source, std::string format, tvPQParameterIndex_t pqParamIndex, int params[] );
+        void spliltCapablities( std::vector<std::string> &range,std::vector<std::string> &pqmode,std::vector<std::string> &format,std::vector<std::string> &source, std::string rangeInfo, std::string pqmodeInfo, std::string formatInfo, std::string sourceInfo );
+	bool isCapablityCheckPassed( std::string pqmodeInputInfo,std::string sourceInputInfo,std::string formatInputInfo,std::string param );
+        uint32_t generateStorageIdentifier(std::string &key, std::string forParam,int contentFormat, int pqmode, int source);
+        uint32_t generateStorageIdentifierDirty(std::string &key, std::string forParam,uint32_t contentFormat, int pqmode);
+	int getSaveConfig(std::string pqmode, std::string source, std::string format,std::vector<int> &sources,std::vector<int> &picturemodes, std::vector<int> &formats);
+	int getLocalparam(std::string forParam,int formatIndex,int pqIndex,int sourceIndex,int &value,
+		  tvPQParameterIndex_t pqParamIndex ,bool cms=false,int tunnel_type=0);
+	tvError_t SyncPQParamsToDriverCache(std::string pqmode, std::string source, std::string format);
+	int SyncSourceFormatPicModeToCache(std::string pqmode, std::string source, std::string format);
+	bool isSetRequired(std::string pqmode,std::string source,std::string format);
+	void getParamIndex(string source,string pqmode,string format,int& sourceIndex,int& pqmodeIndex,int& formatIndex);
+	tvDataComponentColor_t getComponentColorEnum(std::string colorName);
+	int getDolbyParams(tvContentFormatType_t format, std::string &s);
+	tvError_t getParamsCaps(std::vector<std::string> &range, std::vector<std::string> &pqmode, std::vector<std::string> &source, std::vector<std::string> &format,std::string param );
+	int getDimmingModeIndex(string mode);
+	int saveLocalDimmingLevelToDriverCache(std::string action,std::string pqmode, std::string source, std::string format,int params[] );
+        void getDimmingModeStringFromEnum(int value, std::string &toStore);
+	void getColorTempStringFromEnum(int value, std::string &toStore);
+	int ReadBacklightFromTable(char *panelId);
+	int syncCMSParams(std::string pqParam,tvCMS_tunel_t tunnel_type,std::string pqmode, std::string source, std::string format);
+	tvError_t syncCMSParamsToDriverCache(std::string pqmode, std::string source, std::string format);
+	int getCurrentPictureMode(char *picMode);
+	std::string convertToString(std::vector<std::string> vec_strings);
+	std::string convertSourceIndexToString(int sourceIndex);
+	std::string convertVideoFormatToString( int formatIndex );
+	bool isIncluded(const std::set<string> set1,const std::set<string> set2);
+	void convertUserScaleBacklightToDriverScale(int format,int * params);
+	int getDolbyParamToSync(int& value);
+	int getHDR10ParamToSync(int& value);
+	int getHLGParamToSync( int& value);
+	int getHDR10ModeIndex(const char * hdr10Mode);
+        int getHLGModeIndex(const char * hlgMode);
+        void spliltStringsAndConvertToSet( std::string pqmodeInfo,std::string formatInfo,std::string sourceInfo,std::set<string> &pqmode, std::set<string> &format, std::set<string> &source);
+	std::string getDolbyModeStringFromEnum( tvDolbyMode_t mode);
+	void SyncWBparams(void);
+        tvError_t  SyncWBFromLocalCache( );
+        tvError_t CheckWBMigration();
+
     public:
         int m_currentHdmiInResoluton;
         int m_videoZoomMode;
         bool m_isDisabledHdmiIn4KZoom;
         char rfc_caller_id[RFC_BUFF_MAX];
+	bool appUsesGlobalBackLightFactor;
+	int pic_mode_index[PIC_MODES_SUPPORTED_MAX];
+	int source_index[SOURCES_SUPPORTED_MAX];
         AVOutputTV();
         ~AVOutputTV();
         void Initialize();
@@ -159,6 +242,11 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         tvError_t getUserSelectedAspectRatio (tvDisplayMode_t* mode);
         tvError_t setDefaultAspectRatio(std::string pqmode="all",std::string format="all",std::string source="all");
 	tvContentFormatType_t ConvertFormatStringToTVContentFormat(const char *format);
+
+	void NotifyVideoFormatChange(tvVideoHDRFormat_t format);
+        void NotifyVideoContentChange(tvContentType_t mode);
+        void NotifyVideoResolutionChange(tvResolutionParam_t resolution);
+        void NotifyVideoFrameRateChange(tvVideoFrameRate_t frameRate);
 };
 
 }//namespace Plugin

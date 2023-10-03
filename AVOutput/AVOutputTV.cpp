@@ -25,6 +25,9 @@
 #define registerMethod(...) for (uint8_t i = 1; GetHandler(i); i++) GetHandler(i)->Register<JsonObject, JsonObject>(__VA_ARGS__)
 
 static char videoDescBuffer[VIDEO_DESCRIPTION_MAX*VIDEO_DESCRIPTION_NAME_SIZE] = {0};
+static tvBacklightInfo_t  blInfo = {0};
+static int numberModesSupported = 0;
+static int numberSourcesSupported = 0;
 
 static const char *component_color[] = {
     [COLOR_ENABLE] = "enable",
@@ -41,6 +44,82 @@ namespace Plugin {
 
     AVOutputTV* AVOutputTV::instance = nullptr;
 
+    static void tvVideoFormatChangeHandler(tvVideoHDRFormat_t format, void *userData)
+    {
+        LOGINFO("tvVideoFormatChangeHandler format:%d \n",format);
+        AVOutputTV *obj = (AVOutputTV *)userData;
+        if(obj)obj->NotifyVideoFormatChange(format);
+    }
+
+    static void tvVideoContentChangeHandler(tvContentType_t mode, void *userData)
+    {
+        LOGINFO("tvVideoContentChangeHandler content:%d \n",mode);
+        AVOutputTV *obj = (AVOutputTV *)userData;
+        if(obj)obj->NotifyVideoContentChange(mode);
+    }
+
+    static void tvVideoResolutionChangeHandler(tvResolutionParam_t resolution, void *userData)
+    {
+        LOGINFO("tvVideoResolutionChangeHandler resolution:%d\n",resolution.resolutionValue);
+        AVOutputTV *obj = (AVOutputTV *)userData;
+        if(obj)obj->NotifyVideoResolutionChange(resolution);
+    }
+
+    static void tvVideoFrameRateChangeHandler(tvVideoFrameRate_t frameRate, void *userData)
+    {
+        LOGINFO("tvVideoFrameRateChangeHandler format:%d \n",frameRate);
+        AVOutputTV *obj = (AVOutputTV *)userData;
+        if(obj)obj->NotifyVideoFrameRateChange(frameRate);
+    }
+
+    static const char *getVideoContentTypeToString(tvContentType_t content)
+    {
+        const char *strValue = "NONE";
+        switch(content) {
+            case tvContentType_FMM:
+                LOGINFO("Content Type: FMM\n");
+                strValue = "0x01";
+                break;
+            default:
+                LOGINFO("Content Type: NONE\n");
+                strValue = "0x00";
+                break;
+        } 
+        return strValue;
+    }
+
+    static const char *getVideoFormatTypeToString(tvVideoHDRFormat_t format)
+    {
+        const char *strValue = "NONE";
+        switch(format) {
+            case tvVideoHDRFormat_SDR:
+                LOGINFO("Video Format: SDR\n");
+                strValue = "SDR";
+                break;
+            case tvVideoHDRFormat_HDR10:
+                LOGINFO("Video Format: HDR10\n");
+                strValue = "HDR10";
+                break;
+            case tvVideoHDRFormat_HDR10PLUS:
+                LOGINFO("Video Format: HDR10PLUS\n");
+                strValue = "HDR10PLUS";
+                break;
+            case tvVideoHDRFormat_HLG:
+                LOGINFO("Video Format: HLG\n");
+                strValue = "HLG";
+                break;
+            case tvVideoHDRFormat_DV:
+                LOGINFO("Video Format: DV\n");
+                strValue = "DV";
+                break;
+            default:
+                LOGINFO("Video Format:: NONE\n");
+                strValue = "NONE";
+                break;
+        }
+        return strValue;
+    }
+
     static JsonArray getSupportedVideoFormat(void)
     {
         JsonArray supportedHdrFormat;
@@ -56,7 +135,7 @@ namespace Plugin {
                 supportedHdrFormat.Add(videoDescBuffer+(index*VIDEO_DESCRIPTION_NAME_SIZE));
             }
         }else{
-            printf("%s : Reading supported video format failed %d", __FUNCTION__, ret);
+            LOGWARN("%s : Reading supported video format failed %d", __FUNCTION__, ret);
         }
 
         return supportedHdrFormat;
@@ -69,7 +148,7 @@ namespace Plugin {
         if ( resolution.resolutionValue != tvVideoResolution_NONE ) {
             strValue = std::to_string(resolution.frameWidth) + "*" + std::to_string(resolution.frameHeight) + interlaceValue;
         }
-        printf("Video Resolution:[%s]\n", strValue.c_str());
+        LOGINFO("Video Resolution:[%s]\n", strValue.c_str());
         return strValue;
     }
 
@@ -88,82 +167,51 @@ namespace Plugin {
                 supportedResolution.Add(videoDescBuffer+(index*VIDEO_DESCRIPTION_NAME_SIZE));
             }
         }else{
-            printf("%s : Reading supported video resolutions failed %d", __FUNCTION__, ret);
+            LOGWARN("%s : Reading supported video resolutions failed %d", __FUNCTION__, ret);
         }
 
         return supportedResolution;
     }
 
-    static const char *getVideoFormatTypeToString(tvVideoHDRFormat_t format)
-    {
-        const char *strValue = "NONE";
-        switch(format) {
-            case tvVideoHDRFormat_SDR:
-                printf("Video Format: SDR\n");
-                strValue = "SDR";
-                break;
-            case tvVideoHDRFormat_HDR10:
-                printf("Video Format: HDR10\n");
-                strValue = "HDR10";
-                break;
-            case tvVideoHDRFormat_HDR10PLUS:
-                printf("Video Format: HDR10PLUS\n");
-                strValue = "HDR10PLUS";
-                break;
-            case tvVideoHDRFormat_HLG:
-                printf("Video Format: HLG\n");
-                strValue = "HLG";
-                break;
-            case tvVideoHDRFormat_DV:
-                printf("Video Format: DV\n");
-                strValue = "DV";
-                break;
-            default:
-                printf("Video Format:: NONE\n");
-                strValue = "NONE";
-                break;
-        }
-        return strValue;
-    }
 
     static const char *getVideoFrameRateTypeToString(tvVideoFrameRate_t frameRate)
-   {
+    {
        const char *strValue = "NONE";
        switch(frameRate) {
             case tvVideoFrameRate_24:
-                printf("Video FrameRate: 24\n");
+                LOGINFO("Video FrameRate: 24\n");
                 strValue = "24";
                 break;
             case tvVideoFrameRate_25:
-                printf("Video FrameRate: 25\n");
+                LOGINFO("Video FrameRate: 25\n");
                 strValue = "25";
                 break;
             case tvVideoFrameRate_30:
-                printf("Video FrameRate: 30\n");
+                LOGINFO("Video FrameRate: 30\n");
                 strValue = "30";
                 break;
             case tvVideoFrameRate_50:
-                printf("Video FrameRate: 50\n");
+                LOGINFO("Video FrameRate: 50\n");
                 strValue = "50";
                 break;
             case tvVideoFrameRate_60:
-                printf("Video FrameRate: 60\n");
+                LOGINFO("Video FrameRate: 60\n");
                 strValue = "60";
                 break;
             case tvVideoFrameRate_23dot98:
-                printf("Video FrameRate: 23.98\n");
+                LOGINFO("Video FrameRate: 23.98\n");
                 strValue = "23.98";
                 break;
             case tvVideoFrameRate_29dot97:
-                printf("Video FrameRate: 29.97\n");
+                LOGINFO("Video FrameRate: 29.97\n");
                 strValue = "29.97";
                 break;
             case tvVideoFrameRate_59dot94:
-                printf("Video FrameRate: 59.94\n");
+                LOGINFO("Video FrameRate: 59.94\n");
                 strValue = "59.94";
                 break;
             default:
-                printf("Video FrameRate: NONE\n");
+                LOGINFO("Video FrameRate: NONE\n");
                 strValue = "NONE";
                 break;
 
@@ -186,10 +234,79 @@ namespace Plugin {
                 supportedFrameRate.Add(videoDescBuffer+(index*VIDEO_DESCRIPTION_NAME_SIZE));
             }
         }else{
-            printf("%s : Reading supported video frame rate failed %d", __FUNCTION__, ret);
+            LOGWARN("%s : Reading supported video frame rate failed %d", __FUNCTION__, ret);
         }
 
         return supportedFrameRate;
+    }
+
+    void AVOutputTV::NotifyVideoFormatChange(tvVideoHDRFormat_t format)
+    {
+        JsonObject response;
+        response["currentVideoFormat"] = getVideoFormatTypeToString(format);
+        response["supportedVideoFormat"] = getSupportedVideoFormat();
+        sendNotify("videoFormatChanged", response);
+    }
+
+    void AVOutputTV::NotifyVideoContentChange(tvContentType_t mode)
+    {
+        JsonObject response;
+        response["currentVideoContent"] = getVideoContentTypeToString(mode);
+        sendNotify("videoContentChanged", response);
+    }
+
+    void AVOutputTV::NotifyVideoResolutionChange(tvResolutionParam_t resolution)
+    {
+        JsonObject response;
+        response["currentVideoResolution"] = getVideoResolutionTypeToString(resolution);
+        response["supportedVideoResolution"] = getSupportedVideoResolution();
+        sendNotify("videoResolutionChanged", response);
+    }
+
+    void AVOutputTV::NotifyVideoFrameRateChange(tvVideoFrameRate_t frameRate)
+    {
+        JsonObject response;
+        response["currentVideoFrameRate"] = getVideoFrameRateTypeToString(frameRate);
+        response["supportedVideoFrameRate"] = getSupportedVideoFrameRate();
+        sendNotify("videoFrameRateChanged", response);
+    }
+
+    std::string AVOutputTV::getErrorString (tvError_t eReturn)
+    {
+        switch (eReturn)
+        {
+            case tvERROR_NONE:
+                return "API SUCCESS";
+            case tvERROR_GENERAL:
+                return "API FAILED";
+            case tvERROR_OPERATION_NOT_SUPPORTED:
+                return "OPERATION NOT SUPPORTED ERROR";
+            case tvERROR_INVALID_PARAM:
+                return "INVALID PARAM ERROR";
+            case tvERROR_INVALID_STATE:
+                return "INVALID STATE ERROR";
+         }
+         return "UNKNOWN ERROR";
+    }
+
+    bool AVOutputTV::isBacklightUsingGlobalBacklightFactor(void)
+    {
+        TR181_ParamData_t param;
+        bool ret  =false;
+
+        memset(&param, 0, sizeof(param));
+
+        tr181ErrorCode_t err = getLocalParam(rfc_caller_id, AVOUTPUT_BACKLIGHT_CONTROL_USE_GBF_RFC_PARAM,&param);
+        if ( err != tr181Success ) {
+            LOGWARN("getLocalParam for %s Failed : %s\n", AVOUTPUT_BACKLIGHT_CONTROL_USE_GBF_RFC_PARAM, getTR181ErrorString(err));
+        }
+        else {
+            if(!std::string(param.value).compare("true"))
+            {
+                ret = true;
+            }
+        }
+        return ret;
     }
 
     AVOutputTV::AVOutputTV(): PluginHost::JSONRPC()
@@ -243,7 +360,7 @@ namespace Plugin {
         registerMethod("getBacklightDimmingMode", &AVOutputTV::getBacklightDimmingMode, this);
         registerMethod("setBacklightDimmingMode", &AVOutputTV::setBacklightDimmingMode, this);
         registerMethod("resetBacklightDimmingMode", &AVOutputTV::resetBacklightDimmingMode, this);
-        registerMethod("getDimmingModeCaps", &AVOutputTV::getDimmingModeCaps, this);
+        registerMethod("getBacklightDimmingModeCaps", &AVOutputTV::getBacklightDimmingModeCaps, this);
         registerMethod("getAutoBacklightControl", &AVOutputTV::getAutoBacklightControl, this);
         registerMethod("setAutoBacklightControl", &AVOutputTV::setAutoBacklightControl, this);
         registerMethod("resetAutoBacklightControl", &AVOutputTV::resetAutoBacklightControl, this);
@@ -270,8 +387,8 @@ namespace Plugin {
 	registerMethod("setWBCtrl", &AVOutputTV::setWBCtrl, this);
 	registerMethod("resetWBCtrl", &AVOutputTV::resetWBCtrl, this);
 
-	registerMethod("getAspectRatio2", &AVOutputTV::getAspectRatio2, this);
-        registerMethod("setAspectRatio2", &AVOutputTV::setAspectRatio2, this);
+	registerMethod("getAspectRatio", &AVOutputTV::getAspectRatio2, this);
+        registerMethod("setAspectRatio", &AVOutputTV::setAspectRatio2, this);
         registerMethod("resetAspectRatio", &AVOutputTV::resetAspectRatio, this);
         registerMethod("getAspectRatioCaps", &AVOutputTV::getAspectRatioCaps, this);
 
@@ -299,14 +416,14 @@ namespace Plugin {
 
     void AVOutputTV::Initialize()
     {
-       LOGINFO("Entry\n");
+        LOGINFO("Entry\n");
        
-       tvError_t ret = tvERROR_NONE;
+        tvError_t ret = tvERROR_NONE;
 
-       TR181_ParamData_t param;
-       memset(&param, 0, sizeof(param));
+        TR181_ParamData_t param;
+        memset(&param, 0, sizeof(param));
 
-       try {
+        try {
             dsVideoPortResolution_t vidResolution;
             device::HdmiInput::getInstance().getCurrentVideoModeObj(vidResolution);
             m_currentHdmiInResoluton = vidResolution.pixelResolution;
@@ -317,41 +434,59 @@ namespace Plugin {
 
         ret = tvInit();
 
-        if(ret != tvERROR_NONE) {
+        if(ret != tvERROR_NONE)
             LOGERR("Platform Init failed, ret: %s \n", getErrorString(ret).c_str());
-
-        }
-        else{
+        else
             LOGINFO("Platform Init successful...\n");
-            ret = tvSD3toCriSyncInit();
-            if(ret != tvERROR_NONE) {
-                LOGERR(" SD3 <->cri_data sync failed, ret: %s \n", getErrorString(ret).c_str());
-            }
-            else {
-                LOGERR(" SD3 <->cri_data sync success, ret: %s \n", getErrorString(ret).c_str());
-            }
 
-        }
+        tvVideoFormatCallbackData callbackData = {this,tvVideoFormatChangeHandler};
+        RegisterVideoFormatChangeCB(callbackData);
 
-       LocatePQSettingsFile(rfc_caller_id);
+        tvVideoContentCallbackData ConcallbackData = {this,tvVideoContentChangeHandler};
+        RegisterVideoContentChangeCB(ConcallbackData);
 
-       SyncPQParamsToDriverCache("current","current","current");
+        tvVideoResolutionCallbackData RescallbackData = {this,tvVideoResolutionChangeHandler};
+        RegisterVideoResolutionChangeCB(RescallbackData);
 
-       // source format specific sync to ssm data
-       SyncSourceFormatPicModeToCache("current", "all", "all");
+        tvVideoFrameRateCallbackData FpscallbackData = {this,tvVideoFrameRateChangeHandler};
+        RegisterVideoFrameRateChangeCB(FpscallbackData);
 
-       std::thread syncThread = std::thread(StartSync);
-       syncThread.detach();
+	appUsesGlobalBackLightFactor = isBacklightUsingGlobalBacklightFactor();
 
-       // As we have source to picture mode mapping, get current source and
-       // setting those picture mode
-       int current_source = 0;
-       int current_format = getContentFormatIndex(GetCurrentContentFormat());
-       std::string tr181_param_name = "";
-       // get current source
-       GetCurrentSource(&current_source);
+        LocatePQSettingsFile();
 
-       tr181_param_name += std::string(TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
+	GetAllSupportedPicModeIndex(pic_mode_index);
+
+        GetAllSupportedSourceIndex(source_index);
+
+	//Get number of pqmode supported
+        numberModesSupported=GetNumberOfModesupported();
+
+	//Get number of source supported
+	numberSourcesSupported = GetNumberOfSourcesSupported( );
+
+        SyncPQParamsToDriverCache("all","all","all");
+
+        // source format specific sync to ssm data
+        SyncSourceFormatPicModeToCache("current", "all", "all");//Tamil--need to move it to SyncPQPAramsToDriverCache
+
+       if(appUsesGlobalBackLightFactor)
+       {
+           if(!InitializeSDRHDRBacklight())
+               LOGINFO("%s:InitializeSDRHDRBacklight() : Success\n",__FUNCTION__);
+           else
+               LOGWARN("%s:InitializeSDRHDRBacklight() : Failed\n",__FUNCTION__);
+       }	
+
+        // As we have source to picture mode mapping, get current source and
+        // setting those picture mode
+        int current_source = 0;
+        int current_format = getContentFormatIndex(GetCurrentContentFormat());
+        std::string tr181_param_name = "";
+        // get current source
+        GetCurrentSource(&current_source);
+
+       tr181_param_name += std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
        tr181_param_name += "."+std::to_string(current_source)+"."+"Format."+std::to_string(current_format)+"."+"PictureModeString";
 
        tr181ErrorCode_t err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
@@ -374,10 +509,10 @@ namespace Plugin {
 
        tvBacklightMode_t blMode = tvBacklightMode_NONE;
        memset(&param, 0, sizeof(param));
-       err = getLocalParam(rfc_caller_id, TVSETTINGS_AUTO_BACKLIGHT_MODE_RFC_PARAM, &param);
+       err = getLocalParam(rfc_caller_id, AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM, &param);
        if ( tr181Success == err )
        {
-           LOGINFO("getLocalParam for %s is %s\n", TVSETTINGS_AUTO_BACKLIGHT_MODE_RFC_PARAM, param.value);
+           LOGINFO("getLocalParam for %s is %s\n", AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM, param.value);
 
            if(!std::string(param.value).compare("none")) {
                blMode = tvBacklightMode_NONE;
@@ -406,7 +541,7 @@ namespace Plugin {
         }
 	else
         {
-            LOGWARN("getLocalParam for %s Failed : %s\n", TVSETTINGS_AUTO_BACKLIGHT_MODE_RFC_PARAM, getTR181ErrorString(err));
+            LOGWARN("getLocalParam for %s Failed : %s\n", AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM, getTR181ErrorString(err));
         }
         setDefaultAspectRatio();
 
@@ -517,7 +652,7 @@ namespace Plugin {
 
         unsigned int index = 0;
 
-        tvError_t ret = GetParamsCaps(range,pqmode,source,format,"AspectRatio");
+        tvError_t ret = getParamsCaps(range,pqmode,source,format,"AspectRatio");
 
         if(ret != tvERROR_NONE) {
             returnResponse(false);
@@ -574,9 +709,9 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        ConvertParamToLowerCase(source, pqmode, format);
+        convertParamToLowerCase(source, pqmode, format);
 
-        ConvertToValidInputParameter(source, pqmode, format);
+        convertToValidInputParameter(source, pqmode, format);
 
 	if( !isCapablityCheckPassed( pqmode, source, format, "AspectRatio" )) {
             LOGERR("%s: CapablityCheck failed for AspectRatio\n", __FUNCTION__);
@@ -614,18 +749,18 @@ namespace Plugin {
             //Save DisplayMode to localstore and ssm_data
             int params[3]={0};
             params[0]=mode;
-            int retval=UpdatePQParamsToCache("set","AspectRatio",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_ASPECT_RATIO,params);;
+            int retval=updatePQParamsToCache("set","AspectRatio",pqmode,source,format,PQ_PARAM_ASPECT_RATIO,params);;
 
             if(retval != 0) {
                 LOGWARN("Failed to Save DisplayMode to ssm_data\n");
             }
 
-            tr181ErrorCode_t err = setLocalParam(rfc_caller_id, TVSETTINGS_ASPECTRATIO_RFC_PARAM, value.c_str());
+            tr181ErrorCode_t err = setLocalParam(rfc_caller_id, AVOUTPUT_ASPECTRATIO_RFC_PARAM, value.c_str());
             if ( err != tr181Success ) {
-                LOGWARN("setLocalParam for %s Failed : %s\n", TVSETTINGS_ASPECTRATIO_RFC_PARAM, getTR181ErrorString(err));
+                LOGWARN("setLocalParam for %s Failed : %s\n", AVOUTPUT_ASPECTRATIO_RFC_PARAM, getTR181ErrorString(err));
             }
             else {
-                LOGINFO("setLocalParam for %s Successful, Value: %s\n", TVSETTINGS_ASPECTRATIO_RFC_PARAM, value.c_str());
+                LOGINFO("setLocalParam for %s Successful, Value: %s\n", AVOUTPUT_ASPECTRATIO_RFC_PARAM, value.c_str());
             }
             LOGINFO("Exit : SetAspectRatio2() value : %s\n",value.c_str());
             returnResponse(true);
@@ -753,22 +888,22 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        ConvertParamToLowerCase(source, pqmode, format);
+        convertParamToLowerCase(source, pqmode, format);
 
-        ConvertToValidInputParameter(source, pqmode, format);
+        convertToValidInputParameter(source, pqmode, format);
 
 	if( !isCapablityCheckPassed( pqmode, source, format, "AspectRatio" )) {
             LOGERR("%s: CapablityCheck failed for AspectRatio\n", __FUNCTION__);
             returnResponse(false);
         }
 
-        tr181ErrorCode_t err = clearLocalParam(rfc_caller_id,TVSETTINGS_ASPECTRATIO_RFC_PARAM);
+        tr181ErrorCode_t err = clearLocalParam(rfc_caller_id,AVOUTPUT_ASPECTRATIO_RFC_PARAM);
         if ( err != tr181Success ) {
-            LOGWARN("clearLocalParam for %s Failed : %s\n", TVSETTINGS_ASPECTRATIO_RFC_PARAM, getTR181ErrorString(err));
+            LOGWARN("clearLocalParam for %s Failed : %s\n", AVOUTPUT_ASPECTRATIO_RFC_PARAM, getTR181ErrorString(err));
             ret  = tvERROR_GENERAL;
         }
         else {
-            LOGINFO("clearLocalParam for %s Successful\n", TVSETTINGS_ASPECTRATIO_RFC_PARAM);
+            LOGINFO("clearLocalParam for %s Successful\n", AVOUTPUT_ASPECTRATIO_RFC_PARAM);
             ret = setDefaultAspectRatio(pqmode,source,format);
         }
 	if(ret != tvERROR_NONE)
@@ -789,10 +924,10 @@ namespace Plugin {
         tvError_t ret = tvERROR_NONE;
 
         memset(&param, 0, sizeof(param));
-        tr181ErrorCode_t err = getLocalParam(rfc_caller_id, TVSETTINGS_ASPECTRATIO_RFC_PARAM, &param);
+        tr181ErrorCode_t err = getLocalParam(rfc_caller_id, AVOUTPUT_ASPECTRATIO_RFC_PARAM, &param);
         if ( tr181Success == err )
         {
-            LOGINFO("getLocalParam for %s is %s\n", TVSETTINGS_ASPECTRATIO_RFC_PARAM, param.value);
+            LOGINFO("getLocalParam for %s is %s\n", AVOUTPUT_ASPECTRATIO_RFC_PARAM, param.value);
 
             if(!std::string(param.value).compare("16:9")) {
                 mode = tvDisplayMode_16x9;
@@ -838,7 +973,7 @@ namespace Plugin {
                 //Save DisplayMode to ssm_data
                 int params[3]={0};
                 params[0]=mode;
-                int retval=UpdatePQParamsToCache("set","AspectRatio",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_ASPECT_RATIO,params);
+                int retval=updatePQParamsToCache("set","AspectRatio",pqmode,source,format,PQ_PARAM_ASPECT_RATIO,params);
 
                 if(retval != 0) {
                     LOGWARN("Failed to Save DisplayMode to ssm_data\n");
@@ -849,7 +984,7 @@ namespace Plugin {
         }
 	else
         {
-            LOGWARN("getLocalParam for %s Failed : %s\n", TVSETTINGS_ASPECTRATIO_RFC_PARAM, getTR181ErrorString(err));
+            LOGWARN("getLocalParam for %s Failed : %s\n", AVOUTPUT_ASPECTRATIO_RFC_PARAM, getTR181ErrorString(err));
             ret = tvERROR_GENERAL;
         }
         return ret;
@@ -934,8 +1069,8 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
-        err = GetLocalparam("Backlight",formatIndex,pqIndex,sourceIndex,backlight, PQ_PARAM_BACKLIGHT);
+        getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+        err = getLocalparam("Backlight",formatIndex,pqIndex,sourceIndex,backlight, PQ_PARAM_BACKLIGHT);
         if( err == 0 ) {
             response["Backlight"] = std::to_string(backlight);
             response["Range"] = range;
@@ -974,9 +1109,9 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        ConvertParamToLowerCase(source, pqmode, format);
+        convertParamToLowerCase(source, pqmode, format);
 
-        ConvertToValidInputParameter(source, pqmode, format);
+        convertToValidInputParameter(source, pqmode, format);
 
 	if( !isCapablityCheckPassed( pqmode, source, format, "Backlight" )) {
             LOGERR("%s: CapablityCheck failed for Backlight\n", __FUNCTION__);
@@ -985,20 +1120,25 @@ namespace Plugin {
 
         if( isSetRequired(pqmode,source,format) ) { //Needs rework
             LOGINFO("Proceed with setBacklight\n");
-            ret = SetBacklight(backlight,pqmode.c_str(),format.c_str(),source.c_str(),true);
+            ret = SetBacklight(backlight);
         }
 
         if(ret != tvERROR_NONE) {
-            LOGWARN("Failed to set backlight\n");
+            LOGWARN("Failed to set Backlight\n");
             returnResponse(false);
         }
         else {
-            LOGINFO("Exit : setBacklight successful to value: %d\n",backlight);
+            int params[3]={0};
+            params[0]=backlight;
+            int retval= updatePQParamsToCache("set","Backlight",pqmode,source,format,PQ_PARAM_BACKLIGHT,params);
+            if(retval != 0 ) {
+                LOGWARN("Failed to Save Backlight to ssm_data\n");
+            }
+            LOGINFO("Exit : setBacklight successful to value: %d\n", backlight);
             returnResponse(true);
         }
 
     }
-
     uint32_t AVOutputTV::resetBacklight(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
@@ -1022,9 +1162,9 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        ConvertParamToLowerCase(source, pqmode, format);
+        convertParamToLowerCase(source, pqmode, format);
 
-        ConvertToValidInputParameter(source, pqmode, format);
+        convertToValidInputParameter(source, pqmode, format);
 
         if( !isCapablityCheckPassed( pqmode, source, format, "Backlight" )) {
             LOGERR("%s: CapablityCheck failed for Backlight\n", __FUNCTION__);
@@ -1033,38 +1173,38 @@ namespace Plugin {
 
         if( isSetRequired(pqmode,source,format) ) { //Needs rework
             LOGINFO("Proceed with setBacklight\n");
-            ret = SetBacklight(backlight,pqmode.c_str(),format.c_str(),source.c_str(),true);
+            ret = SetBacklight(backlight);
         }
 
-       // if(appUsesGlobalBackLightFactor){
-            tr181ErrorCode_t err = clearLocalParam(rfc_caller_id, TVSETTINGS_BACKLIGHT_SDR_RFC_PARAM);
+     /*  if(appUsesGlobalBackLightFactor){
+            tr181ErrorCode_t err = clearLocalParam(rfc_caller_id, AVOUTPUT_BACKLIGHT_SDR_RFC_PARAM);
             if ( err != tr181Success ) {
-                LOGWARN("ClearLocalParam for %s Failed : %s\n", TVSETTINGS_BACKLIGHT_SDR_RFC_PARAM, getTR181ErrorString(err));
+                LOGWARN("ClearLocalParam for %s Failed : %s\n", AVOUTPUT_BACKLIGHT_SDR_RFC_PARAM, getTR181ErrorString(err));
                 ret = tvERROR_GENERAL;
             }
             else {
-                LOGINFO("ClearLocalParam for %s Successful\n", TVSETTINGS_BACKLIGHT_SDR_RFC_PARAM);
+                LOGINFO("ClearLocalParam for %s Successful\n", AVOUTPUT_BACKLIGHT_SDR_RFC_PARAM);
             }
-            err = clearLocalParam(rfc_caller_id, TVSETTINGS_BACKLIGHT_HDR_RFC_PARAM);
+            err = clearLocalParam(rfc_caller_id, AVOUTPUT_BACKLIGHT_HDR_RFC_PARAM);
             if ( err != tr181Success ) {
-                LOGWARN("ClearLocalParam for %s Failed : %s\n", TVSETTINGS_BACKLIGHT_HDR_RFC_PARAM, getTR181ErrorString(err));
+                LOGWARN("ClearLocalParam for %s Failed : %s\n", AVOUTPUT_BACKLIGHT_HDR_RFC_PARAM, getTR181ErrorString(err));
                 ret = tvERROR_GENERAL;
             }
-//      }
+        }*/
         /* non backlight factor path */
-	int retval= UpdatePQParamsToCache("reset","Backlight",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_BACKLIGHT,params);
+	int retval= updatePQParamsToCache("reset","Backlight",pqmode,source,format,PQ_PARAM_BACKLIGHT,params);
         if(retval != 0 ) {
             LOGWARN("Failed to reset Backlight\n");
             returnResponse(false);
         }
         else {
-            GetParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
-            int err = GetLocalparam("Backlight",formatIndex,pqIndex,sourceIndex,backlight, PQ_PARAM_BACKLIGHT);
+            getParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
+            int err = getLocalparam("Backlight",formatIndex,pqIndex,sourceIndex,backlight, PQ_PARAM_BACKLIGHT);
             if( err == 0 ) {
-                LOGINFO("%s : GetLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,backlight);
+                LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,backlight);
                 if( isSetRequired(pqmode,source,format) ) { //Needs rework
                     LOGINFO("Proceed with setBacklight\n");
-                    ret = SetBacklight(backlight,pqmode.c_str(),format.c_str(),source.c_str(),false);
+                    ret = SetBacklight(backlight);
                 }
             }
             else
@@ -1102,7 +1242,7 @@ namespace Plugin {
 
         unsigned int index = 0;
 
-        tvError_t ret = GetParamsCaps(range,pqmode,source,format,"Backlight");
+        tvError_t ret = getParamsCaps(range,pqmode,source,format,"Backlight");
 
         if(ret != tvERROR_NONE) {
             returnResponse(false);
@@ -1161,9 +1301,18 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+        convertParamToLowerCase(source, pqmode, format);
 
-        int err = GetLocalparam("Brightness",formatIndex,pqIndex,sourceIndex,brightness, PQ_PARAM_BRIGHTNESS);
+        convertToValidInputParameter(source, pqmode, format);
+
+        if( !isCapablityCheckPassed( pqmode, source, format, "Brightness" )) {
+            LOGERR("%s: CapablityCheck failed for Brightness\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+
+        int err = getLocalparam("Brightness",formatIndex,pqIndex,sourceIndex,brightness, PQ_PARAM_BRIGHTNESS);
         if( err == 0 ) {
             response["Brightness"] = std::to_string(brightness);
             response["Range"] = range;
@@ -1202,9 +1351,9 @@ namespace Plugin {
         if(format.empty())
             format = "current";
        
-        ConvertParamToLowerCase(source, pqmode, format);
+        convertParamToLowerCase(source, pqmode, format);
 
-        ConvertToValidInputParameter(source, pqmode, format);
+        convertToValidInputParameter(source, pqmode, format);
 
         if( !isCapablityCheckPassed( pqmode, source, format, "Brightness" )) {
             LOGERR("%s: CapablityCheck failed for Brightness\n", __FUNCTION__);
@@ -1225,7 +1374,7 @@ namespace Plugin {
         else {
             int params[3]={0};
             params[0]=brightness;
-            int retval= UpdatePQParamsToCache("set","Brightness",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_BRIGHTNESS,params);
+            int retval= updatePQParamsToCache("set","Brightness",pqmode,source,format,PQ_PARAM_BRIGHTNESS,params);
             if(retval != 0 ) {
                 LOGWARN("Failed to Save Brightness to ssm_data\n");
             }
@@ -1260,9 +1409,9 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        ConvertParamToLowerCase(source, pqmode, format);
+        convertParamToLowerCase(source, pqmode, format);
 
-        ConvertToValidInputParameter(source, pqmode, format);
+        convertToValidInputParameter(source, pqmode, format);
 
 	if( !isCapablityCheckPassed( pqmode, source, format, "Brightness" )) {
             LOGERR("%s: CapablityCheck failed for Brightness\n", __FUNCTION__);
@@ -1276,16 +1425,16 @@ namespace Plugin {
 	else
             LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
 
-        int retval= UpdatePQParamsToCache("reset","Brightness",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_BRIGHTNESS,params);
+        int retval= updatePQParamsToCache("reset","Brightness",pqmode,source,format,PQ_PARAM_BRIGHTNESS,params);
         if(retval != 0 ) {
             LOGWARN("Failed to reset Brightness\n");
             returnResponse(false);
         }
         else {
-            GetParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
-            int err = GetLocalparam("Brightness",formatIndex,pqIndex,sourceIndex,brightness, PQ_PARAM_BRIGHTNESS);
+            getParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
+            int err = getLocalparam("Brightness",formatIndex,pqIndex,sourceIndex,brightness, PQ_PARAM_BRIGHTNESS);
             if( err == 0 ) {
-                LOGINFO("%s : GetLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,brightness);
+                LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,brightness);
                 ret = SetBrightness(brightness);
             }
             else
@@ -1324,7 +1473,7 @@ namespace Plugin {
 
 	unsigned int index = 0;
 
-	tvError_t ret = GetParamsCaps(range,pqmode,source,format,"Brightness");
+	tvError_t ret = getParamsCaps(range,pqmode,source,format,"Brightness");
 
 	if(ret != tvERROR_NONE) {
             returnResponse(false);
@@ -1382,8 +1531,8 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
-        int err = GetLocalparam("Contrast",formatIndex,pqIndex,sourceIndex,contrast, PQ_PARAM_CONTRAST);
+        getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+        int err = getLocalparam("Contrast",formatIndex,pqIndex,sourceIndex,contrast, PQ_PARAM_CONTRAST);
         if( err == 0 ) {
             response["Contrast"] = std::to_string(contrast);
             response["Range"] = range;
@@ -1422,9 +1571,9 @@ namespace Plugin {
         if(format.empty())
             format = "current";
        
-        ConvertParamToLowerCase(source, pqmode, format);
+        convertParamToLowerCase(source, pqmode, format);
 
-        ConvertToValidInputParameter(source, pqmode, format);
+        convertToValidInputParameter(source, pqmode, format);
  
         if( !isCapablityCheckPassed( pqmode, source, format, "Contrast" )) {
             LOGERR("%s: CapablityCheck failed for Contrast\n", __FUNCTION__);
@@ -1445,7 +1594,7 @@ namespace Plugin {
         else {
             int params[3]={0};
             params[0]=contrast;
-            int retval= UpdatePQParamsToCache("set","Contrast",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_CONTRAST,params);
+            int retval= updatePQParamsToCache("set","Contrast",pqmode,source,format,PQ_PARAM_CONTRAST,params);
             if(retval != 0 ) {
                 LOGWARN("Failed to Save Contrast to ssm_data\n");
             }
@@ -1480,26 +1629,26 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        ConvertParamToLowerCase(source, pqmode, format);
+        convertParamToLowerCase(source, pqmode, format);
 
-        ConvertToValidInputParameter(source, pqmode, format);
+        convertToValidInputParameter(source, pqmode, format);
 
 	if( !isCapablityCheckPassed( pqmode, source, format, "Contrast" )) {
             LOGERR("%s: CapablityCheck failed for Contrast\n", __FUNCTION__);
             returnResponse(false);
         }
 
-        int retval= UpdatePQParamsToCache("reset","Contrast",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_CONTRAST,params);
+        int retval= updatePQParamsToCache("reset","Contrast",pqmode,source,format,PQ_PARAM_CONTRAST,params);
 
         if(retval != 0 ) {
             LOGWARN("Failed to reset Contrast\n");
             returnResponse(false);
         }
         else {
-            GetParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
-            int err = GetLocalparam("Contrast",formatIndex,pqIndex,sourceIndex,contrast,PQ_PARAM_CONTRAST);
+            getParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
+            int err = getLocalparam("Contrast",formatIndex,pqIndex,sourceIndex,contrast,PQ_PARAM_CONTRAST);
             if( err == 0 ) {
-                LOGINFO("%s : GetLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,contrast);
+                LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,contrast);
                 if( isSetRequired(pqmode,source,format) ) {
                     LOGINFO("Proceed with %s \n",__FUNCTION__);
                     ret = SetContrast(contrast);
@@ -1543,7 +1692,7 @@ namespace Plugin {
 
         unsigned int index = 0;
 
-        tvError_t ret = GetParamsCaps(range,pqmode,source,format,"Contrast");
+        tvError_t ret = getParamsCaps(range,pqmode,source,format,"Contrast");
 
         if(ret != tvERROR_NONE) {
             returnResponse(false);
@@ -1601,8 +1750,8 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
-        int err = GetLocalparam("Saturation",formatIndex,pqIndex,sourceIndex,saturation, PQ_PARAM_SATURATION);
+        getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+        int err = getLocalparam("Saturation",formatIndex,pqIndex,sourceIndex,saturation, PQ_PARAM_SATURATION);
         if( err == 0 ) {
             response["Saturation"] = std::to_string(saturation);
             response["Range"] = range;
@@ -1641,9 +1790,9 @@ namespace Plugin {
         if(format.empty())
             format = "current";
       
-        ConvertParamToLowerCase(source, pqmode, format);
+        convertParamToLowerCase(source, pqmode, format);
 
-        ConvertToValidInputParameter(source, pqmode, format);
+        convertToValidInputParameter(source, pqmode, format);
 
         if( !isCapablityCheckPassed( pqmode, source, format, "Saturation" )) {
             LOGERR("%s: CapablityCheck failed for Saturation\n", __FUNCTION__);
@@ -1665,7 +1814,7 @@ namespace Plugin {
         else {
             int params[3]={0};
             params[0]=saturation;
-            int retval= UpdatePQParamsToCache("set","Saturation",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_SATURATION,params);
+            int retval= updatePQParamsToCache("set","Saturation",pqmode,source,format,PQ_PARAM_SATURATION,params);
             if(retval != 0 ) {
                 LOGWARN("Failed to Save Saturation to ssm_data\n");
             }
@@ -1700,9 +1849,9 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        ConvertParamToLowerCase(source, pqmode, format);
+        convertParamToLowerCase(source, pqmode, format);
 
-        ConvertToValidInputParameter(source, pqmode, format);
+        convertToValidInputParameter(source, pqmode, format);
 
         if( !isCapablityCheckPassed( pqmode, source, format, "Saturation" )) {
             LOGERR("%s: CapablityCheck failed for Saturation\n", __FUNCTION__);
@@ -1716,17 +1865,17 @@ namespace Plugin {
         else
             LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
 
-        int retval= UpdatePQParamsToCache("reset","Saturation",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_SATURATION,params);
+        int retval= updatePQParamsToCache("reset","Saturation",pqmode,source,format,PQ_PARAM_SATURATION,params);
 
         if(retval != 0 ) {
             LOGWARN("Failed to reset Saturation\n");
             returnResponse(false);
         }
         else {
-            GetParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
-            int err = GetLocalparam("Saturation",formatIndex,pqIndex,sourceIndex,saturation,PQ_PARAM_SATURATION);
+            getParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
+            int err = getLocalparam("Saturation",formatIndex,pqIndex,sourceIndex,saturation,PQ_PARAM_SATURATION);
             if( err == 0 ) {
-                LOGINFO("%s : GetLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,saturation);
+                LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,saturation);
                 if( isSetRequired(pqmode,source,format) ) {
                     LOGINFO("Proceed with %s\n",__FUNCTION__);
                     ret = SetSaturation(saturation);
@@ -1771,7 +1920,7 @@ namespace Plugin {
 
         unsigned int index = 0;
 
-        tvError_t ret = GetParamsCaps(range,pqmode,source,format,"Saturation");
+        tvError_t ret = getParamsCaps(range,pqmode,source,format,"Saturation");
 
         if(ret != tvERROR_NONE) {
             returnResponse(false);
@@ -1829,8 +1978,8 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
-        int err = GetLocalparam("Sharpness",formatIndex,pqIndex,sourceIndex,sharpness, PQ_PARAM_SHARPNESS);
+        getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+        int err = getLocalparam("Sharpness",formatIndex,pqIndex,sourceIndex,sharpness, PQ_PARAM_SHARPNESS);
         if( err == 0 ) {
             response["Sharpness"] = std::to_string(sharpness);
             response["Range"] = range;
@@ -1869,9 +2018,9 @@ namespace Plugin {
         if(format.empty())
             format = "current";
    
-        ConvertParamToLowerCase(source, pqmode, format);
+        convertParamToLowerCase(source, pqmode, format);
 
-        ConvertToValidInputParameter(source, pqmode, format);
+        convertToValidInputParameter(source, pqmode, format);
  
         if( !isCapablityCheckPassed( pqmode, source, format, "Sharpness" )) {
             LOGERR("%s: CapablityCheck failed for Sharpness\n", __FUNCTION__);
@@ -1892,7 +2041,7 @@ namespace Plugin {
         else {
             int params[3]={0};
             params[0]=sharpness;
-            int retval= UpdatePQParamsToCache("set","Sharpness",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_SHARPNESS,params);
+            int retval= updatePQParamsToCache("set","Sharpness",pqmode,source,format,PQ_PARAM_SHARPNESS,params);
             if(retval != 0 ) {
                 LOGWARN("Failed to Save Sharpness to ssm_data\n");
             }
@@ -1927,26 +2076,26 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        ConvertParamToLowerCase(source, pqmode, format);
+        convertParamToLowerCase(source, pqmode, format);
 
-        ConvertToValidInputParameter(source, pqmode, format);
+        convertToValidInputParameter(source, pqmode, format);
 
         if( !isCapablityCheckPassed( pqmode, source, format, "Sharpness" )) {
             LOGERR("%s: CapablityCheck failed for Sharpness\n", __FUNCTION__);
             returnResponse(false);
         }
 
-        int retval= UpdatePQParamsToCache("reset","Sharpness",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_SHARPNESS,params);
+        int retval= updatePQParamsToCache("reset","Sharpness",pqmode,source,format,PQ_PARAM_SHARPNESS,params);
 
         if(retval != 0 ) {
             LOGWARN("Failed to reset Sharpness\n");
             returnResponse(false);
         }
         else {
-            GetParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
-            int err = GetLocalparam("Sharpness",formatIndex,pqIndex,sourceIndex,sharpness, PQ_PARAM_SHARPNESS);
+            getParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
+            int err = getLocalparam("Sharpness",formatIndex,pqIndex,sourceIndex,sharpness, PQ_PARAM_SHARPNESS);
             if( err == 0 ) {
-                LOGINFO("%s : GetLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,sharpness);
+                LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,sharpness);
                 if( isSetRequired(pqmode,source,format) ) {
                     LOGINFO("Proceed with %s\n",__FUNCTION__);
                     ret = SetSharpness(sharpness);
@@ -1990,7 +2139,7 @@ namespace Plugin {
 
         unsigned int index = 0;
 
-        tvError_t ret = GetParamsCaps(range,pqmode,source,format,"Sharpness");
+        tvError_t ret = getParamsCaps(range,pqmode,source,format,"Sharpness");
 
         if(ret != tvERROR_NONE) {
             returnResponse(false);
@@ -2049,8 +2198,8 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
-        int err = GetLocalparam("Hue",formatIndex,pqIndex,sourceIndex,hue, PQ_PARAM_HUE);
+        getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+        int err = getLocalparam("Hue",formatIndex,pqIndex,sourceIndex,hue, PQ_PARAM_HUE);
         if( err == 0 ) {
             response["Hue"] = std::to_string(hue);
             response["Range"] = range;
@@ -2089,9 +2238,9 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        ConvertParamToLowerCase(source, pqmode, format);
+        convertParamToLowerCase(source, pqmode, format);
 
-        ConvertToValidInputParameter(source, pqmode, format);
+        convertToValidInputParameter(source, pqmode, format);
 
         if( !isCapablityCheckPassed( pqmode, source, format, "Hue" )) {
             LOGERR("%s: CapablityCheck failed for Hue\n", __FUNCTION__);
@@ -2113,7 +2262,7 @@ namespace Plugin {
         else {
             int params[3]={0};
             params[0]=hue;
-            int retval= UpdatePQParamsToCache("set","Hue",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_HUE,params);
+            int retval= updatePQParamsToCache("set","Hue",pqmode,source,format,PQ_PARAM_HUE,params);
             if(retval != 0 ) {
                 LOGWARN("Failed to Save Hue to ssm_data\n");
             }
@@ -2148,26 +2297,26 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        ConvertParamToLowerCase(source, pqmode, format);
+        convertParamToLowerCase(source, pqmode, format);
 
-        ConvertToValidInputParameter(source, pqmode, format);
+        convertToValidInputParameter(source, pqmode, format);
 
 	if( !isCapablityCheckPassed( pqmode, source, format, "Hue" )) {
             LOGERR("%s: CapablityCheck failed for Hue\n", __FUNCTION__);
             returnResponse(false);
         }
 
-        int retval= UpdatePQParamsToCache("reset","Hue",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_HUE,params);
+        int retval= updatePQParamsToCache("reset","Hue",pqmode,source,format,PQ_PARAM_HUE,params);
 
         if(retval != 0 ) {
             LOGWARN("Failed to reset Hue\n");
             returnResponse(false);
         }
         else {
-            GetParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
-            int err = GetLocalparam("Hue",formatIndex,pqIndex,sourceIndex,hue,PQ_PARAM_HUE);
+            getParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
+            int err = getLocalparam("Hue",formatIndex,pqIndex,sourceIndex,hue,PQ_PARAM_HUE);
             if( err == 0 ) {
-                LOGINFO("%s : GetLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,hue);
+                LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,hue);
                 if( isSetRequired(pqmode,source,format) ) {
                     LOGINFO("Proceed with %s\n",__FUNCTION__);
                     ret = SetHue(hue);
@@ -2211,7 +2360,7 @@ namespace Plugin {
 
         unsigned int index = 0;
 
-        tvError_t ret = GetParamsCaps(range,pqmode,source,format,"Hue");
+        tvError_t ret = getParamsCaps(range,pqmode,source,format,"Hue");
 
         if(ret != tvERROR_NONE) {
             returnResponse(false);
@@ -2271,8 +2420,8 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
-        int err = GetLocalparam("ColorTemp",formatIndex,pqIndex,sourceIndex,colortemp,PQ_PARAM_COLOR_TEMPERATURE);
+        getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+        int err = getLocalparam("ColorTemp",formatIndex,pqIndex,sourceIndex,colortemp,PQ_PARAM_COLOR_TEMPERATURE);
         if( err == 0 ) {
             switch(colortemp) {
 
@@ -2351,9 +2500,9 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        ConvertParamToLowerCase(source, pqmode, format);
+        convertParamToLowerCase(source, pqmode, format);
 
-        ConvertToValidInputParameter(source, pqmode, format);
+        convertToValidInputParameter(source, pqmode, format);
 
         if( !isCapablityCheckPassed( pqmode, source, format, "ColorTemperature" )) {
             LOGERR("%s: CapablityCheck failed for colorTemperature\n", __FUNCTION__);
@@ -2374,7 +2523,7 @@ namespace Plugin {
         else {
             int params[3]={0};
             params[0]=colortemp;
-            int retval= UpdatePQParamsToCache("set","ColorTemp",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_COLOR_TEMPERATURE,params);
+            int retval= updatePQParamsToCache("set","ColorTemp",pqmode,source,format,PQ_PARAM_COLOR_TEMPERATURE,params);
             if(retval != 0 ) {
                 LOGWARN("Failed to Save ColorTemperature to ssm_data\n");
             }
@@ -2408,26 +2557,26 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        ConvertParamToLowerCase(source, pqmode, format);
+        convertParamToLowerCase(source, pqmode, format);
 
-        ConvertToValidInputParameter(source, pqmode, format);
+        convertToValidInputParameter(source, pqmode, format);
 
         if( !isCapablityCheckPassed( pqmode, source, format, "ColorTemperature" )) {
             LOGERR("%s: CapablityCheck failed for colorTemperature\n", __FUNCTION__);
             returnResponse(false);
         }
 
-        int retval= UpdatePQParamsToCache("reset","ColorTemp",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_COLOR_TEMPERATURE,params);
+        int retval= updatePQParamsToCache("reset","ColorTemp",pqmode,source,format,PQ_PARAM_COLOR_TEMPERATURE,params);
 
         if(retval != 0 ) {
             LOGWARN("Failed to reset ColorTemperature\n");
             returnResponse(false);
         }
         else {
-            GetParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
-            int err = GetLocalparam("ColorTemp",formatIndex,pqIndex,sourceIndex,colortemp,PQ_PARAM_COLOR_TEMPERATURE);
+            getParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
+            int err = getLocalparam("ColorTemp",formatIndex,pqIndex,sourceIndex,colortemp,PQ_PARAM_COLOR_TEMPERATURE);
             if( err == 0 ) {
-                LOGINFO("%s : GetLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,colortemp);
+                LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,colortemp);
                 if( isSetRequired(pqmode,source,format) ) {
                     LOGINFO("Proceed with %s\n",__FUNCTION__);
                     ret = SetColorTemperature((tvColorTemp_t)colortemp);
@@ -2471,7 +2620,7 @@ namespace Plugin {
 
         unsigned int index = 0;
 
-        tvError_t ret = GetParamsCaps(range,pqmode,source,format,"ColorTemperature");
+        tvError_t ret = getParamsCaps(range,pqmode,source,format,"ColorTemperature");
 
         if(ret != tvERROR_NONE) {
             returnResponse(false);
@@ -2536,15 +2685,15 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        blSaturationColor =  GetComponentColorEnum(value);
+        blSaturationColor =  getComponentColorEnum(value);
         if(blSaturationColor ==tvDataColor_MAX)
         {
             returnResponse(false);
         }
         cms += value;
-        GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+        getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
 
-	int err = GetLocalparam(cms.c_str(),formatIndex,pqIndex,sourceIndex,saturation,
+	int err = getLocalparam(cms.c_str(),formatIndex,pqIndex,sourceIndex,saturation,
 			        PQ_PARAM_COMPONENT_SATURATION);
 	if( err == 0 || err == 1 ) {//err value willbe 1 if cms is default.(SPECIAL case)
             saturationColorObj["Setting"] = std::to_string(saturation);
@@ -2576,7 +2725,7 @@ namespace Plugin {
         value = parameters.HasLabel("color") ? parameters["color"].String() : "";
         returnIfParamNotFound(parameters,"color");
 
-	blSaturationColor =  GetComponentColorEnum(value);
+	blSaturationColor =  getComponentColorEnum(value);
         if(blSaturationColor ==tvDataColor_MAX)
         {
             returnResponse(false);
@@ -2594,9 +2743,9 @@ namespace Plugin {
         if(format.empty())
             format = "current";
        
-        ConvertParamToLowerCase(source, pqmode, format);
+        convertParamToLowerCase(source, pqmode, format);
 
-        ConvertToValidInputParameter(source, pqmode, format);
+        convertToValidInputParameter(source, pqmode, format);
  
         if( !isCapablityCheckPassed( pqmode, source, format, "Component" )) {
             LOGERR("%s: CapablityCheck failed for ComponentSaturation\n", __FUNCTION__);
@@ -2620,7 +2769,7 @@ namespace Plugin {
             cms_params[0]=COLOR_STATE;
             cms_params[1]=COLOR_ENABLE;
             cms_params[2]=COMPONENT_ENABLE;
-            int retval = UpdatePQParamsToCache("set","cms.enable",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_COMPONENT_SATURATION,cms_params);
+            int retval = updatePQParamsToCache("set","cms.enable",pqmode,source,format,PQ_PARAM_COMPONENT_SATURATION,cms_params);
             if(retval != 0) {
                 LOGWARN("Failed to Save enableflag to ssm_data\n");
             }
@@ -2645,7 +2794,7 @@ namespace Plugin {
 
             char tr181format[64]={0};
             snprintf(tr181format,sizeof(tr181format),"saturation.%s",component_color[ConvertTVColorToVendorColor(blSaturationColor)]);
-            int retval=UpdatePQParamsToCache("set",tr181format,pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_COMPONENT_SATURATION,params);
+            int retval=updatePQParamsToCache("set",tr181format,pqmode,source,format,PQ_PARAM_COMPONENT_SATURATION,params);
 
             if(retval != 0) {
                 LOGWARN("Failed to Save component saturation to ssm_data\n");
@@ -2678,9 +2827,9 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        ConvertParamToLowerCase(source, pqmode, format);
+        convertParamToLowerCase(source, pqmode, format);
 
-        ConvertToValidInputParameter(source, pqmode, format);
+        convertToValidInputParameter(source, pqmode, format);
 	
         if( !isCapablityCheckPassed( pqmode, source, format, "Component" )) {
             LOGERR("%s: CapablityCheck failed for ComponentSaturation\n", __FUNCTION__);
@@ -2700,7 +2849,7 @@ namespace Plugin {
             int params[3]={0};
             params[0]=COLOR_STATE;
             params[1]=COLOR_ENABLE;
-            int ret=UpdatePQParamsToCache("reset","cms.enable",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_COMPONENT_SATURATION,params);
+            int ret=updatePQParamsToCache("reset","cms.enable",pqmode,source,format,PQ_PARAM_COMPONENT_SATURATION,params);
             if(ret != 0) {
                 LOGWARN("Failed to Save enable flag to ssm_data\n");
             }
@@ -2710,7 +2859,7 @@ namespace Plugin {
                 params[0]=COLOR_SATURATION;
                 params[1]=color;
                 snprintf(param,sizeof(param),"saturation.%s",component_color[color]);
-                ret |= UpdatePQParamsToCache("reset",param,pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_COMPONENT_SATURATION,params);
+                ret |= updatePQParamsToCache("reset",param,pqmode,source,format,PQ_PARAM_COMPONENT_SATURATION,params);
                 memset(&param, 0, sizeof(param));
             }
 
@@ -2766,14 +2915,14 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        blHueColor =  GetComponentColorEnum(value);
+        blHueColor =  getComponentColorEnum(value);
         if(blHueColor ==tvDataColor_MAX)
         {
             returnResponse(false);
         }
         cms += value;
-        GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
-        int err = GetLocalparam(cms.c_str(),formatIndex,pqIndex,sourceIndex,hue,PQ_PARAM_COMPONENT_HUE );
+        getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+        int err = getLocalparam(cms.c_str(),formatIndex,pqIndex,sourceIndex,hue,PQ_PARAM_COMPONENT_HUE );
         if( err == 0 || err == 1 ) {//err value willbe 1 if cms is default.(SPECIAL case)
             hueColorObj["Setting"] = std::to_string(hue);
             response["hue"] = hueColorObj;
@@ -2803,7 +2952,7 @@ namespace Plugin {
         value = parameters.HasLabel("color") ? parameters["color"].String() : "";
         returnIfParamNotFound(parameters,"color");
 
-        blHueColor =  GetComponentColorEnum(value);
+        blHueColor =  getComponentColorEnum(value);
         if(blHueColor ==tvDataColor_MAX)
         {
             returnResponse(false);
@@ -2821,9 +2970,9 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        ConvertParamToLowerCase(source, pqmode, format);
+        convertParamToLowerCase(source, pqmode, format);
 
-        ConvertToValidInputParameter(source, pqmode, format);
+        convertToValidInputParameter(source, pqmode, format);
 
 	if( !isCapablityCheckPassed( pqmode, source, format, "Component" )) {
             LOGERR("%s: CapablityCheck failed for ComponentHue\n", __FUNCTION__);
@@ -2847,7 +2996,7 @@ namespace Plugin {
             cms_params[0]=COLOR_STATE;
             cms_params[1]=COLOR_ENABLE;
             cms_params[2]=COMPONENT_ENABLE;
-            int retval = UpdatePQParamsToCache("set","cms.enable",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_COMPONENT_HUE,cms_params);
+            int retval = updatePQParamsToCache("set","cms.enable",pqmode,source,format,PQ_PARAM_COMPONENT_HUE,cms_params);
             if(retval != 0) {
                 LOGWARN("Failed to Save enableflag to ssm_data\n");
             }
@@ -2872,7 +3021,7 @@ namespace Plugin {
 
             char tr181format[64]={0};
             snprintf(tr181format,sizeof(tr181format),"hue.%s",component_color[ConvertTVColorToVendorColor(blHueColor)]);
-            int retval=UpdatePQParamsToCache("set",tr181format,pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_COMPONENT_HUE,params);
+            int retval=updatePQParamsToCache("set",tr181format,pqmode,source,format,PQ_PARAM_COMPONENT_HUE,params);
 
             if(retval != 0) {
                 LOGWARN("Failed to Save component hue to ssm_data\n");
@@ -2905,9 +3054,9 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        ConvertParamToLowerCase(source, pqmode, format);
+        convertParamToLowerCase(source, pqmode, format);
 
-        ConvertToValidInputParameter(source, pqmode, format);
+        convertToValidInputParameter(source, pqmode, format);
 
 	if( !isCapablityCheckPassed( pqmode, source, format, "Component" )) {
             LOGERR("%s: CapablityCheck failed for ComponentHue\n", __FUNCTION__);
@@ -2926,7 +3075,7 @@ namespace Plugin {
             int params[3]={0};
             params[0]=COLOR_STATE;
             params[1]=COLOR_ENABLE;
-            int ret=UpdatePQParamsToCache("reset","cms.enable",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_COMPONENT_HUE,params);
+            int ret=updatePQParamsToCache("reset","cms.enable",pqmode,source,format,PQ_PARAM_COMPONENT_HUE,params);
             if(ret != 0) {
                 LOGWARN("Failed to Save enable flag to ssm_data\n");
             }
@@ -2936,7 +3085,7 @@ namespace Plugin {
                 params[0]=COLOR_HUE;
                 params[1]=color;
                 snprintf(param,sizeof(param),"hue.%s",component_color[color]);
-                ret |= UpdatePQParamsToCache("reset",param,pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_COMPONENT_HUE,params);
+                ret |= updatePQParamsToCache("reset",param,pqmode,source,format,PQ_PARAM_COMPONENT_HUE,params);
                 memset(&param, 0, sizeof(param));
             }
 
@@ -2989,14 +3138,14 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        blLumaColor =  GetComponentColorEnum(value);
+        blLumaColor =  getComponentColorEnum(value);
         if(blLumaColor ==tvDataColor_MAX)
         {
             returnResponse(false);
         }
         cms += value;
-	GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
-        int err = GetLocalparam(cms.c_str(),formatIndex,pqIndex,sourceIndex,luma,PQ_PARAM_COMPONENT_LUMA);
+	getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+        int err = getLocalparam(cms.c_str(),formatIndex,pqIndex,sourceIndex,luma,PQ_PARAM_COMPONENT_LUMA);
         if( err == 0 || err == 1 ) {//err value willbe 1 if cms is default.(SPECIAL case)
             response["luma"] = std::to_string(luma);
             response["Range"] = range;
@@ -3026,7 +3175,7 @@ namespace Plugin {
         value = parameters.HasLabel("color") ? parameters["color"].String() : "";
         returnIfParamNotFound(parameters,"color");
 
-        blLumaColor =  GetComponentColorEnum(value);
+        blLumaColor =  getComponentColorEnum(value);
         if(blLumaColor ==tvDataColor_MAX)
         {
             returnResponse(false);
@@ -3044,9 +3193,9 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        ConvertParamToLowerCase(source, pqmode, format);
+        convertParamToLowerCase(source, pqmode, format);
 
-        ConvertToValidInputParameter(source, pqmode, format);
+        convertToValidInputParameter(source, pqmode, format);
 
         if( !isCapablityCheckPassed( pqmode, source, format, "Component" )) {
             LOGERR("%s: CapablityCheck failed for ComponentLuma\n", __FUNCTION__);
@@ -3070,7 +3219,7 @@ namespace Plugin {
             cms_params[0]=COLOR_STATE;
             cms_params[1]=COLOR_ENABLE;
             cms_params[2]=COMPONENT_ENABLE;
-            int retval = UpdatePQParamsToCache("set","cms.enable",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_COMPONENT_LUMA,cms_params);
+            int retval = updatePQParamsToCache("set","cms.enable",pqmode,source,format,PQ_PARAM_COMPONENT_LUMA,cms_params);
             if(retval != 0) {
                 LOGWARN("Failed to Save enableflag to ssm_data\n");
             }
@@ -3095,7 +3244,7 @@ namespace Plugin {
 
             char tr181format[64]={0};
             snprintf(tr181format,sizeof(tr181format),"luma.%s",component_color[ConvertTVColorToVendorColor(blLumaColor)]);
-            int retval=UpdatePQParamsToCache("set",tr181format,pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_COMPONENT_LUMA,params);
+            int retval=updatePQParamsToCache("set",tr181format,pqmode,source,format,PQ_PARAM_COMPONENT_LUMA,params);
 
             if(retval != 0) {
                 LOGWARN("Failed to Save component luma to ssm_data\n");
@@ -3128,9 +3277,9 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        ConvertParamToLowerCase(source, pqmode, format);
+        convertParamToLowerCase(source, pqmode, format);
 
-        ConvertToValidInputParameter(source, pqmode, format);
+        convertToValidInputParameter(source, pqmode, format);
 
         if( !isCapablityCheckPassed( pqmode, source, format, "Component" )) {
             LOGERR("%s: CapablityCheck failed for ComponentHue\n", __FUNCTION__);
@@ -3149,7 +3298,7 @@ namespace Plugin {
             int params[3]={0};
             params[0]=COLOR_STATE;
             params[1]=COLOR_ENABLE;
-            int ret=UpdatePQParamsToCache("reset","cms.enable",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_COMPONENT_LUMA,params);
+            int ret=updatePQParamsToCache("reset","cms.enable",pqmode,source,format,PQ_PARAM_COMPONENT_LUMA,params);
             if(ret != 0) {
                 LOGWARN("Failed to Save enable flag to ssm_data\n");
             }
@@ -3159,7 +3308,7 @@ namespace Plugin {
                 params[0]=COLOR_LUMA;
                 params[1]=color;
                 snprintf(param,sizeof(param),"luma.%s",component_color[color]);
-                ret |= UpdatePQParamsToCache("reset",param,pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_COMPONENT_LUMA,params);
+                ret |= updatePQParamsToCache("reset",param,pqmode,source,format,PQ_PARAM_COMPONENT_LUMA,params);
                 memset(&param, 0, sizeof(param));
             }
 
@@ -3201,7 +3350,7 @@ namespace Plugin {
 
         unsigned int index = 0;
 
-        tvError_t ret = GetParamsCaps(range,pqmode,source,format,"CMS");
+        tvError_t ret = getParamsCaps(range,pqmode,source,format,"CMS");
 
         if(ret != tvERROR_NONE) {
             returnResponse(false);
@@ -3258,8 +3407,8 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
-        int err = GetLocalparam("DimmingMode",formatIndex,pqIndex,sourceIndex,dimmingMode, PQ_PARAM_DIMMINGMODE);
+        getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+        int err = getLocalparam("DimmingMode",formatIndex,pqIndex,sourceIndex,dimmingMode, PQ_PARAM_DIMMINGMODE);
         if( err == 0 ) {
             switch(dimmingMode) {
                 case tvDimmingMode_Fixed:
@@ -3301,7 +3450,7 @@ namespace Plugin {
         value = parameters.HasLabel("DimmingMode") ? parameters["DimmingMode"].String() : "";
         returnIfParamNotFound(parameters,"DimmingMode");
 
-        dimmingMode = GetDimmingModeIndex(value.c_str());
+        dimmingMode = getDimmingModeIndex(value);
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
@@ -3315,9 +3464,9 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        ConvertParamToLowerCase(source, pqmode, format);
+        convertParamToLowerCase(source, pqmode, format);
 
-        ConvertToValidInputParameter(source, pqmode, format);
+        convertToValidInputParameter(source, pqmode, format);
 
         if( !isCapablityCheckPassed( pqmode, source, format, "DimmingMode" )) {
             LOGERR("%s: CapablityCheck failed for DimmingMode\n", __FUNCTION__);
@@ -3339,13 +3488,13 @@ namespace Plugin {
         else {
             int params[3]={0};
             params[0]=dimmingMode;
-            int retval= UpdatePQParamsToCache("set","DimmingMode",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_DIMMINGMODE,params);
+            int retval= updatePQParamsToCache("set","DimmingMode",pqmode,source,format,PQ_PARAM_DIMMINGMODE,params);
             if(retval != 0 ) {
                 LOGWARN("Failed to Save DimmingMode to ssm_data\n");
             }
 
             //Update DimmingLevel to ssmdata
-	    retval = SaveLocalDimmingLevelToDriverCache("set",pqmode.c_str(),source.c_str(),format.c_str(),params);
+	    retval = saveLocalDimmingLevelToDriverCache("set",pqmode,source,format,params);
             if( retval != 0 ) {
                 LOGWARN("Failed to Save DimmingLevel to ssmdata\n");
             }
@@ -3379,29 +3528,29 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        ConvertParamToLowerCase(source, pqmode, format);
+        convertParamToLowerCase(source, pqmode, format);
 
-        ConvertToValidInputParameter(source, pqmode, format);
+        convertToValidInputParameter(source, pqmode, format);
 
         if( !isCapablityCheckPassed( pqmode, source, format, "DimmingMode" )) {
             LOGERR("%s: CapablityCheck failed for DimmingMode\n", __FUNCTION__);
             returnResponse(false);
         }
 
-	int retval= UpdatePQParamsToCache("reset","DimmingMode",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_DIMMINGMODE,params);
+	int retval= updatePQParamsToCache("reset","DimmingMode",pqmode,source,format,PQ_PARAM_DIMMINGMODE,params);
 
         if(retval != 0 ) {
             LOGWARN("Failed to reset ldim\n");
             returnResponse(false);
         }
         else {
-            GetParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
-            int err = GetLocalparam("DimmingMode",formatIndex,pqIndex,sourceIndex,dMode, PQ_PARAM_DIMMINGMODE);
+            getParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
+            int err = getLocalparam("DimmingMode",formatIndex,pqIndex,sourceIndex,dMode, PQ_PARAM_DIMMINGMODE);
             if( err == 0 ) {
-                LOGINFO("%s : GetLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,dMode);
+                LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,dMode);
                 if( isSetRequired(pqmode,source,format) ) {
                     LOGINFO("Proceed with %s\n",__FUNCTION__);
-		    GetDimmingModeStringFromEnum(dMode,dimmingMode);
+		    getDimmingModeStringFromEnum(dMode,dimmingMode);
                     ret = SetTVDimmingMode(dimmingMode.c_str());
                 }
                 else
@@ -3419,7 +3568,7 @@ namespace Plugin {
         {
             //Update DimmingLevel to ssmdata
 	    params[0] = dMode;
-            retval = SaveLocalDimmingLevelToDriverCache("reset",pqmode.c_str(),source.c_str(),format.c_str(),params);
+            retval = saveLocalDimmingLevelToDriverCache("reset",pqmode,source,format,params);
             if( retval != 0 ) {
                 LOGWARN("Failed to Save DimmingLevel to ssmdata\n");
             }
@@ -3429,7 +3578,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t AVOutputTV::getDimmingModeCaps(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getBacklightDimmingModeCaps(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
         std::vector<std::string> supportedDimmingMode;
@@ -3449,7 +3598,7 @@ namespace Plugin {
 
         unsigned int index = 0;
 
-        tvError_t ret = GetParamsCaps(supportedDimmingMode,pqmode,source,format,"DimmingMode");
+        tvError_t ret = getParamsCaps(supportedDimmingMode,pqmode,source,format,"DimmingMode");
 
         if(ret != tvERROR_NONE) {
             returnResponse(false);
@@ -3580,9 +3729,9 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        ConvertParamToLowerCase(source, pqmode, format);
+        convertParamToLowerCase(source, pqmode, format);
 
-        ConvertToValidInputParameter(source, pqmode, format);
+        convertToValidInputParameter(source, pqmode, format);
 
         if( !isCapablityCheckPassed( pqmode, source, format, "AutoBacklightControl" )) {
             LOGERR("%s: CapablityCheck failed for AutoBacklightControl\n", __FUNCTION__);
@@ -3595,12 +3744,12 @@ namespace Plugin {
             returnResponse(false);
         }
         else {
-            tr181ErrorCode_t err = setLocalParam(rfc_caller_id, TVSETTINGS_AUTO_BACKLIGHT_MODE_RFC_PARAM, value.c_str());
+            tr181ErrorCode_t err = setLocalParam(rfc_caller_id, AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM, value.c_str());
             if ( err != tr181Success ) {
-                LOGWARN("setLocalParam for %s Failed : %s\n", TVSETTINGS_AUTO_BACKLIGHT_MODE_RFC_PARAM, getTR181ErrorString(err));
+                LOGWARN("setLocalParam for %s Failed : %s\n", AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM, getTR181ErrorString(err));
             }
             else {
-                LOGINFO("setLocalParam for %s Successful, Value: %s\n", TVSETTINGS_AUTO_BACKLIGHT_MODE_RFC_PARAM, value.c_str());
+                LOGINFO("setLocalParam for %s Successful, Value: %s\n", AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM, value.c_str());
             }
             LOGINFO("Exit : value :%s\n",value.c_str());
             returnResponse(true);
@@ -3628,33 +3777,33 @@ namespace Plugin {
         if(format.empty())
             format = "global";
 
-        ConvertParamToLowerCase(source, pqmode, format);
+        convertParamToLowerCase(source, pqmode, format);
 
-        ConvertToValidInputParameter(source, pqmode, format);
+        convertToValidInputParameter(source, pqmode, format);
 
 	if( !isCapablityCheckPassed( pqmode, source, format, "AutoBacklightControl" )) {
             LOGERR("%s: CapablityCheck failed for AutoBacklightControl\n", __FUNCTION__);
             returnResponse(false);
         }
 
-        tr181ErrorCode_t err = clearLocalParam(rfc_caller_id,TVSETTINGS_AUTO_BACKLIGHT_MODE_RFC_PARAM);
+        tr181ErrorCode_t err = clearLocalParam(rfc_caller_id,AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM);
         if ( err != tr181Success ) {
-            LOGWARN("clearLocalParam for %s Failed : %s\n", TVSETTINGS_AUTO_BACKLIGHT_MODE_RFC_PARAM, getTR181ErrorString(err));
+            LOGWARN("clearLocalParam for %s Failed : %s\n", AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM, getTR181ErrorString(err));
             ret  = tvERROR_GENERAL;
         }
         else {
-            LOGINFO("clearLocalParam for %s Successful\n", TVSETTINGS_AUTO_BACKLIGHT_MODE_RFC_PARAM);
+            LOGINFO("clearLocalParam for %s Successful\n", AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM);
 
             TR181_ParamData_t param;
             memset(&param, 0, sizeof(param));
 
-            tr181ErrorCode_t err = getLocalParam(rfc_caller_id, TVSETTINGS_AUTO_BACKLIGHT_MODE_RFC_PARAM,&param);
+            tr181ErrorCode_t err = getLocalParam(rfc_caller_id, AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM,&param);
             if ( err != tr181Success ) {
-                LOGWARN("getLocalParam for %s Failed : %s\n", TVSETTINGS_AUTO_BACKLIGHT_MODE_RFC_PARAM, getTR181ErrorString(err));
+                LOGWARN("getLocalParam for %s Failed : %s\n", AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM, getTR181ErrorString(err));
                 ret  = tvERROR_GENERAL;
             }
             else {
-                LOGINFO("getLocalParam for %s Successful\n", TVSETTINGS_AUTO_BACKLIGHT_MODE_RFC_PARAM);
+                LOGINFO("getLocalParam for %s Successful\n", AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM);
 
                 tvBacklightMode_t blMode = tvBacklightMode_NONE;
 
@@ -3712,7 +3861,7 @@ namespace Plugin {
 
         unsigned int index = 0;
 
-        tvError_t ret = GetParamsCaps(range,pqmode,source,format,"AutoBacklightControl");
+        tvError_t ret = getParamsCaps(range,pqmode,source,format,"AutoBacklightControl");
 
         if(ret != tvERROR_NONE) {
             returnResponse(false);
@@ -3776,7 +3925,7 @@ namespace Plugin {
         JsonObject range;
 	range["List"] = "dark,bright";
 
-        if ( -1 == GetDolbyParams(tvContentFormatType_DOVI, dolby_vision)) {
+        if ( -1 == getDolbyParams(tvContentFormatType_DOVI, dolby_vision)) {
             returnResponse(false);
         }
         else {
@@ -3808,16 +3957,16 @@ namespace Plugin {
         else {
             int params[3]={0};
             params[0]=GetDolbyModeIndex(value.c_str());
-            int retval=UpdatePQParamsToCache("set","DolbyVisionMode", "all","all","dolby",PQ_PARAM_DOLBY_MODE,params);
+            int retval=updatePQParamsToCache("set","DolbyVisionMode", "all","all","dolby",PQ_PARAM_DOLBY_MODE,params);
             if(retval != 0) {
                 LOGWARN("Failed to Save DolbyVisionMode to ssm_data\n");
             }
-            tr181ErrorCode_t err = setLocalParam(rfc_caller_id, TVSETTINGS_DOLBYVISIONMODE_RFC_PARAM, value.c_str());
+            tr181ErrorCode_t err = setLocalParam(rfc_caller_id, AVOUTPUT_DOLBYVISIONMODE_RFC_PARAM, value.c_str());
             if ( err != tr181Success ) {
-                LOGWARN("setLocalParam for %s Failed : %s\n", TVSETTINGS_DOLBYVISIONMODE_RFC_PARAM, getTR181ErrorString(err));
+                LOGWARN("setLocalParam for %s Failed : %s\n", AVOUTPUT_DOLBYVISIONMODE_RFC_PARAM, getTR181ErrorString(err));
             }
             else {
-                LOGINFO("setLocalParam for %s Successful, Value: %s\n", TVSETTINGS_DOLBYVISIONMODE_RFC_PARAM, value.c_str());
+                LOGINFO("setLocalParam for %s Successful, Value: %s\n", AVOUTPUT_DOLBYVISIONMODE_RFC_PARAM, value.c_str());
             }
 
             LOGINFO("Exit\n");
@@ -3836,23 +3985,23 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        tr181ErrorCode_t err = clearLocalParam(rfc_caller_id,TVSETTINGS_DOLBYVISIONMODE_RFC_PARAM);
+        tr181ErrorCode_t err = clearLocalParam(rfc_caller_id,AVOUTPUT_DOLBYVISIONMODE_RFC_PARAM);
         if ( err != tr181Success ) {
-            LOGWARN("clearLocalParam for %s Failed : %s\n", TVSETTINGS_DOLBYVISIONMODE_RFC_PARAM, getTR181ErrorString(err));
+            LOGWARN("clearLocalParam for %s Failed : %s\n", AVOUTPUT_DOLBYVISIONMODE_RFC_PARAM, getTR181ErrorString(err));
             ret  = tvERROR_GENERAL;
         }
         else {
-            LOGINFO("clearLocalParam for %s Successful\n", TVSETTINGS_DOLBYVISIONMODE_RFC_PARAM);
+            LOGINFO("clearLocalParam for %s Successful\n", AVOUTPUT_DOLBYVISIONMODE_RFC_PARAM);
 
             TR181_ParamData_t param;
             memset(&param, 0, sizeof(param));
-            tr181ErrorCode_t err = getLocalParam(rfc_caller_id, TVSETTINGS_DOLBYVISIONMODE_RFC_PARAM,&param);
+            tr181ErrorCode_t err = getLocalParam(rfc_caller_id, AVOUTPUT_DOLBYVISIONMODE_RFC_PARAM,&param);
             if ( err != tr181Success ) {
-                LOGWARN("getLocalParam for %s Failed : %s\n", TVSETTINGS_DOLBYVISIONMODE_RFC_PARAM, getTR181ErrorString(err));
+                LOGWARN("getLocalParam for %s Failed : %s\n", AVOUTPUT_DOLBYVISIONMODE_RFC_PARAM, getTR181ErrorString(err));
                 ret  = tvERROR_GENERAL;
             }
             else {
-                LOGINFO("getLocalParam for %s Successful\n", TVSETTINGS_DOLBYVISIONMODE_RFC_PARAM);
+                LOGINFO("getLocalParam for %s Successful\n", AVOUTPUT_DOLBYVISIONMODE_RFC_PARAM);
 
                 ret = SetTVDolbyVisionMode(param.value);
                 if(ret != tvERROR_NONE) {
@@ -3864,7 +4013,7 @@ namespace Plugin {
                     //Save DolbyVisionMode to ssm_data
                     int params[3]={0};
                     params[0]=GetDolbyModeIndex(param.value);
-                    int retval=UpdatePQParamsToCache("reset","DolbyVisionMode","all","all","dolby",PQ_PARAM_DOLBY_MODE,params);
+                    int retval=updatePQParamsToCache("reset","DolbyVisionMode","all","all","dolby",PQ_PARAM_DOLBY_MODE,params);
 
                     if(retval != 0) {
                         LOGWARN("Failed to Save DolbyVisionMode to ssm_data\n");
@@ -3904,7 +4053,7 @@ namespace Plugin {
 
         unsigned int index = 0;
 
-        tvError_t ret = GetParamsCaps(range,pqmode,source,format,"DolbyVisionMode");
+        tvError_t ret = getParamsCaps(range,pqmode,source,format,"DolbyVisionMode");
 
         if(ret != tvERROR_NONE) {
             returnResponse(false);
@@ -3967,29 +4116,24 @@ namespace Plugin {
         value = parameters.HasLabel("HDR10Mode") ? parameters["HDR10Mode"].String() : "";
         returnIfParamNotFound(parameters,"HDR10Mode");
 
-	if( !isCapablityCheckPassed( "global", "global", "hdr10", "HDR10Mode" )) {
-            LOGERR("%s: CapablityCheck failed for HDR10Mode\n", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        tvError_t ret = SetTVHDR10Mode(value.c_str());
+	    tvError_t ret = SetTVHDR10Mode(value.c_str());
 
         if(ret != tvERROR_NONE) {
             returnResponse(false);
         }
         else {
             int params[3]={0};
-            params[0]=GetHDR10ModeIndex(value.c_str());
-            int retval=UpdatePQParamsToCache("set","HDR10Mode", "all","all","hdr10",PQ_PARAM_HDR10_MODE,params);
+            params[0]=getHDR10ModeIndex(value.c_str());
+            int retval=updatePQParamsToCache("set","HDR10Mode", "all","all","hdr10",PQ_PARAM_HDR10_MODE,params);
             if(retval != 0) {
                 LOGWARN("Failed to Save HDR10Mode to ssm_data\n");
             }
-            tr181ErrorCode_t err = setLocalParam(rfc_caller_id, TVSETTINGS_HDR10MODE_RFC_PARAM, value.c_str());
+            tr181ErrorCode_t err = setLocalParam(rfc_caller_id, AVOUTPUT_HDR10MODE_RFC_PARAM, value.c_str());
             if ( err != tr181Success ) {
-                LOGWARN("setLocalParam for %s Failed : %s\n", TVSETTINGS_HDR10MODE_RFC_PARAM, getTR181ErrorString(err));
+                LOGWARN("setLocalParam for %s Failed : %s\n", AVOUTPUT_HDR10MODE_RFC_PARAM, getTR181ErrorString(err));
             }
             else {
-                LOGINFO("setLocalParam for %s Successful, Value: %s\n", TVSETTINGS_HDR10MODE_RFC_PARAM, value.c_str());
+                LOGINFO("setLocalParam for %s Successful, Value: %s\n", AVOUTPUT_HDR10MODE_RFC_PARAM, value.c_str());
             }
 
             LOGINFO("Exit\n");
@@ -4005,7 +4149,7 @@ namespace Plugin {
 
 	JsonObject range;
 	range["List"] = "dark,bright";
-        if ( -1 == GetDolbyParams(tvContentFormatType_HDR10, hdr10)) {
+        if ( -1 == getDolbyParams(tvContentFormatType_HDR10, hdr10)) {
             returnResponse(false);
         }
         else {
@@ -4031,23 +4175,23 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        tr181ErrorCode_t err = clearLocalParam(rfc_caller_id,TVSETTINGS_HDR10MODE_RFC_PARAM);
+        tr181ErrorCode_t err = clearLocalParam(rfc_caller_id,AVOUTPUT_HDR10MODE_RFC_PARAM);
         if ( err != tr181Success ) {
-            LOGWARN("clearLocalParam for %s Failed : %s\n", TVSETTINGS_HDR10MODE_RFC_PARAM, getTR181ErrorString(err));
+            LOGWARN("clearLocalParam for %s Failed : %s\n", AVOUTPUT_HDR10MODE_RFC_PARAM, getTR181ErrorString(err));
             ret  = tvERROR_GENERAL;
         }
         else {
-            LOGINFO("clearLocalParam for %s Successful\n", TVSETTINGS_HDR10MODE_RFC_PARAM);
+            LOGINFO("clearLocalParam for %s Successful\n", AVOUTPUT_HDR10MODE_RFC_PARAM);
 
             TR181_ParamData_t param;
             memset(&param, 0, sizeof(param));
-			tr181ErrorCode_t err = getLocalParam(rfc_caller_id, TVSETTINGS_HDR10MODE_RFC_PARAM,&param);
+			tr181ErrorCode_t err = getLocalParam(rfc_caller_id, AVOUTPUT_HDR10MODE_RFC_PARAM,&param);
             if ( err != tr181Success ) {
-                LOGWARN("getLocalParam for %s Failed : %s\n", TVSETTINGS_HDR10MODE_RFC_PARAM, getTR181ErrorString(err));
+                LOGWARN("getLocalParam for %s Failed : %s\n", AVOUTPUT_HDR10MODE_RFC_PARAM, getTR181ErrorString(err));
                 ret  = tvERROR_GENERAL;
             }
             else {
-                LOGINFO("getLocalParam for %s Successful\n", TVSETTINGS_HDR10MODE_RFC_PARAM);
+                LOGINFO("getLocalParam for %s Successful\n", AVOUTPUT_HDR10MODE_RFC_PARAM);
 
                 ret = SetTVHDR10Mode(param.value);
                 if(ret != tvERROR_NONE) {
@@ -4058,8 +4202,8 @@ namespace Plugin {
                     LOGINFO("DV Mode initialized successfully value %s\n",param.value);
                     //Save HDR10Mode to ssm_data
                     int params[3]={0};
-                    params[0]=GetHDR10ModeIndex(param.value);
-                    int retval=UpdatePQParamsToCache("reset","HDR10Mode","all","all","hdr10",PQ_PARAM_HDR10_MODE,params);
+                    params[0]=getHDR10ModeIndex(param.value);
+                    int retval=updatePQParamsToCache("reset","HDR10Mode","all","all","hdr10",PQ_PARAM_HDR10_MODE,params);
 
                     if(retval != 0) {
                         LOGWARN("Failed to Save HDR10Mode to ssm_data\n");
@@ -4099,7 +4243,7 @@ namespace Plugin {
 
         unsigned int index = 0;
 
-        tvError_t ret = GetParamsCaps(range,pqmode,source,format,"HDR10Mode");
+        tvError_t ret = getParamsCaps(range,pqmode,source,format,"HDR10Mode");
 
         if(ret != tvERROR_NONE) {
             returnResponse(false);
@@ -4161,7 +4305,7 @@ namespace Plugin {
 
 	JsonObject range;
 	range["List"] = "dark,bright";
-        if ( -1 == GetDolbyParams(tvContentFormatType_HLG, hlg)) {
+        if ( -1 == getDolbyParams(tvContentFormatType_HLG, hlg)) {
             returnResponse(false);
         }
         else {
@@ -4180,29 +4324,24 @@ namespace Plugin {
         value = parameters.HasLabel("HLGMode") ? parameters["HLGMode"].String() : "";
         returnIfParamNotFound(parameters,"HLGMode");
 
-	if( !isCapablityCheckPassed( "global", "global", "hlg", "HLGMode" )) {
-            LOGERR("%s: CapablityCheck failed for HLGMode\n", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        tvError_t ret = SetTVHLGMode(value.c_str());
+	    tvError_t ret = SetTVHLGMode(value.c_str());
 
         if(ret != tvERROR_NONE) {
             returnResponse(false);
         }
         else {
             int params[3]={0};
-            params[0]=GetHLGModeIndex(value.c_str());
-            int retval=UpdatePQParamsToCache("set","HLGMode","all","all","hlg",PQ_PARAM_HLG_MODE,params);
+            params[0]=getHLGModeIndex(value.c_str());
+            int retval=updatePQParamsToCache("set","HLGMode","all","all","hlg",PQ_PARAM_HLG_MODE,params);
             if(retval != 0) {
                 LOGWARN("Failed to Save HLGMode to ssm_data\n");
             }
-            tr181ErrorCode_t err = setLocalParam(rfc_caller_id, TVSETTINGS_HLGMODE_RFC_PARAM, value.c_str());
+            tr181ErrorCode_t err = setLocalParam(rfc_caller_id, AVOUTPUT_HLGMODE_RFC_PARAM, value.c_str());
             if ( err != tr181Success ) {
-                LOGWARN("setLocalParam for %s Failed : %s\n", TVSETTINGS_HLGMODE_RFC_PARAM, getTR181ErrorString(err));
+                LOGWARN("setLocalParam for %s Failed : %s\n", AVOUTPUT_HLGMODE_RFC_PARAM, getTR181ErrorString(err));
             }
             else {
-                LOGINFO("setLocalParam for %s Successful, Value: %s\n", TVSETTINGS_HLGMODE_RFC_PARAM, value.c_str());
+                LOGINFO("setLocalParam for %s Successful, Value: %s\n", AVOUTPUT_HLGMODE_RFC_PARAM, value.c_str());
             }
 
             LOGINFO("Exit\n");
@@ -4221,23 +4360,23 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        tr181ErrorCode_t err = clearLocalParam(rfc_caller_id,TVSETTINGS_HLGMODE_RFC_PARAM);
+        tr181ErrorCode_t err = clearLocalParam(rfc_caller_id,AVOUTPUT_HLGMODE_RFC_PARAM);
         if ( err != tr181Success ) {
-            LOGWARN("clearLocalParam for %s Failed : %s\n", TVSETTINGS_HLGMODE_RFC_PARAM, getTR181ErrorString(err));
+            LOGWARN("clearLocalParam for %s Failed : %s\n", AVOUTPUT_HLGMODE_RFC_PARAM, getTR181ErrorString(err));
             ret  = tvERROR_GENERAL;
         }
         else {
-            LOGINFO("clearLocalParam for %s Successful\n", TVSETTINGS_HLGMODE_RFC_PARAM);
+            LOGINFO("clearLocalParam for %s Successful\n", AVOUTPUT_HLGMODE_RFC_PARAM);
 
             TR181_ParamData_t param;
             memset(&param, 0, sizeof(param));
-			tr181ErrorCode_t err = getLocalParam(rfc_caller_id, TVSETTINGS_HLGMODE_RFC_PARAM,&param);
+			tr181ErrorCode_t err = getLocalParam(rfc_caller_id, AVOUTPUT_HLGMODE_RFC_PARAM,&param);
             if ( err != tr181Success ) {
-                LOGWARN("getLocalParam for %s Failed : %s\n", TVSETTINGS_HLGMODE_RFC_PARAM, getTR181ErrorString(err));
+                LOGWARN("getLocalParam for %s Failed : %s\n", AVOUTPUT_HLGMODE_RFC_PARAM, getTR181ErrorString(err));
                 ret  = tvERROR_GENERAL;
             }
             else {
-                LOGINFO("getLocalParam for %s Successful\n", TVSETTINGS_HLGMODE_RFC_PARAM);
+                LOGINFO("getLocalParam for %s Successful\n", AVOUTPUT_HLGMODE_RFC_PARAM);
 
                 ret = SetTVHLGMode(param.value);
                 if(ret != tvERROR_NONE) {
@@ -4248,8 +4387,8 @@ namespace Plugin {
                     LOGINFO("DV Mode initialized successfully value %s\n",param.value);
                     //Save HLGMode to ssm_data
                     int params[3]={0};
-                    params[0]=GetHLGModeIndex(param.value);
-                    int retval=UpdatePQParamsToCache("reset","HLGMode","all","all","hlg",PQ_PARAM_HLG_MODE,params);
+                    params[0]=getHLGModeIndex(param.value);
+                    int retval=updatePQParamsToCache("reset","HLGMode","all","all","hlg",PQ_PARAM_HLG_MODE,params);
 
                     if(retval != 0) {
                         LOGWARN("Failed to Save HLGMode to ssm_data\n");
@@ -4289,7 +4428,7 @@ namespace Plugin {
 
         unsigned int index = 0;
 
-        tvError_t ret = GetParamsCaps(range,pqmode,source,format,"HLGMode");
+        tvError_t ret = getParamsCaps(range,pqmode,source,format,"HLGMode");
 
         if(ret != tvERROR_NONE) {
             returnResponse(false);
@@ -4466,9 +4605,9 @@ namespace Plugin {
         if(format.empty())
             format = "global";
 
-        ConvertParamToLowerCase(source, pqmode, format);
+        convertParamToLowerCase(source, pqmode, format);
 
-        ConvertToValidInputParameter(source, pqmode, format);
+        convertToValidInputParameter(source, pqmode, format);
 
         if( !isCapablityCheckPassed( pqmode, source, format, "WhiteBalance" )) {
             LOGERR("%s: CapablityCheck failed for WhiteBalance\n", __FUNCTION__);
@@ -4513,7 +4652,7 @@ namespace Plugin {
                     returnResponse(false);
                 } else {
                     //set it to local cache
-                    std::string identifier = TVSETTINGS_GENERIC_STRING_RFC_PARAM;
+                    std::string identifier = AVOUTPUT_GENERIC_STRING_RFC_PARAM;
                     identifier+=std::string("wb")+std::string(STRING_DIRTY)+color+"."+ctrl;
                     tr181ErrorCode_t err = setLocalParam(rfc_caller_id, identifier.c_str(), val.c_str());
                     if ( err != tr181Success ) {
@@ -4539,54 +4678,38 @@ namespace Plugin {
     {
         LOGINFO("Entry\n");
         tvError_t ret = tvERROR_NONE;
-
-        std::string value;
-        std::string pqmode;
-        std::string source;
-        std::string format;
-
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "global";
-
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
-        if(format.empty())
-            format = "global";
-
-        ConvertParamToLowerCase(source, pqmode, format);
-
-        ConvertToValidInputParameter(source, pqmode, format);
-
-        if( !isCapablityCheckPassed( pqmode, source, format, "WhiteBalance" )) {
-            LOGERR("%s: CapablityCheck failed for WhiteBalance\n", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        string identifier=(std::string(TVSETTINGS_GENERIC_STRING_RFC_PARAM)+std::string("wb."));
+        
+	string identifier=(std::string(AVOUTPUT_GENERIC_STRING_RFC_PARAM)+std::string("sdr")+std::string(".wb."));
 
         tr181ErrorCode_t err = clearLocalParam(rfc_caller_id,identifier.c_str());
         if ( err != tr181Success ) {
             LOGWARN("clearLocalParam for %s Failed : %s\n",identifier.c_str(),getTR181ErrorString(err));
             ret  = tvERROR_GENERAL;
         }else{
-            tvDataColor_t WBValues={0};
-            //get the defaults
-            ret = GetCustomWBValuesFromLocalCache(WBValues);
-            if(ret == tvERROR_NONE)
-            {
-                //set the defaults and save
-                ret = SyncCustomWBValuesToDriverCache(WBValues,true);
+            identifier=(std::string(AVOUTPUT_GENERIC_STRING_RFC_PARAM)+std::string("hdr")+std::string(".wb."));
+            if ( err != tr181Success ) {
+                LOGWARN("clearLocalParam for %s Failed : %s\n",identifier.c_str(),getTR181ErrorString(err));
+                ret  = tvERROR_GENERAL;
             }
         }
+        if( ret == tvERROR_NONE )
+        {
+            if( tvERROR_NONE != SyncWBFromLocalCache( ) )
+            {
+                LOGWARN("%s: Sync WB Failed!!! \n",__FUNCTION__);
+                ret  = tvERROR_GENERAL;
+            }
+            else
+                LOGINFO("%s: Sync WB Success!!! \n",__FUNCTION__);
+            }
+            else
+            returnResponse(false);
+
         if(ret != tvERROR_NONE)
         {
             returnResponse(false);
         }
-        else
+	else
         {
             LOGINFO("Exit : Successfully reset user WB Entries \n");
             returnResponse(true);
@@ -4667,7 +4790,7 @@ namespace Plugin {
         }
 
         LOGINFO("current format index[%d] \n", current_format);
-        tr181_param_name += std::string(TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
+        tr181_param_name += std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
         tr181_param_name += "." + std::to_string(current_source) + "." + "Format."+std::to_string(current_format)+"."+"PictureModeString";
         LOGINFO("tr181 command[%s]", tr181_param_name.c_str());
          err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
@@ -4718,22 +4841,22 @@ namespace Plugin {
 	    std::vector<int> source_vec;
 	    std::vector<int> format_vec;
 
-	    GetSaveConfig("current", source.c_str(), format.c_str(), source_vec, pq_mode_vec, format_vec);
+	    getSaveConfig("current", source.c_str(), format.c_str(), source_vec, pq_mode_vec, format_vec);
             
 	    for (unsigned int x = 0; x < source_vec.size(); x++ ) {
                 for (unsigned int y = 0; y < format_vec.size(); y++ ) {
 
                     std::string tr181_param_name = "";
-                    tr181_param_name += std::string(TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
+                    tr181_param_name += std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
                     // framing Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.Source.source_index[x].Format.format_index[x].PictureModeString.value
                     tr181_param_name += "."+std::to_string(source_vec[x])+"."+"Format."+
 			              std::to_string(ConvertHDRFormatToContentFormat((tvhdr_type_t)format_vec[y]))+"."+"PictureModeString";
                     tr181ErrorCode_t err = setLocalParam(rfc_caller_id, tr181_param_name.c_str(), value.c_str());
                     if ( err != tr181Success ) {
-                        LOGWARN("setLocalParam for %s Failed : %s\n", TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM, getTR181ErrorString(err));
+                        LOGWARN("setLocalParam for %s Failed : %s\n", AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM, getTR181ErrorString(err));
                     }
                     else {
-                        LOGINFO("setLocalParam for %s Successful, Value: %s\n", TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM, value.c_str());
+                        LOGINFO("setLocalParam for %s Successful, Value: %s\n", AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM, value.c_str());
 		        int pqmodeindex = (int)GetTVPictureModeIndex(value.c_str());
                         SaveSourcePictureMode(source_vec[x], format_vec[y], pqmodeindex);
 		    }
@@ -4761,13 +4884,13 @@ namespace Plugin {
         std::vector<int> source_vec;
         std::vector<int> format_vec;
 
-        GetSaveConfig("current", "all", "all", source_vec, pq_mode_vec, format_vec);
+        getSaveConfig("current", "all", "all", source_vec, pq_mode_vec, format_vec);
  
         for (int source : source_vec) {
             for (int format : format_vec) {
 
                 std::string tr181_param_name = "";
-                tr181_param_name += std::string(TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
+                tr181_param_name += std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
 	        tr181_param_name += "."+std::to_string(source)+"."+"Format."+
 			           std::to_string(ConvertHDRFormatToContentFormat((tvhdr_type_t)format))+"."+"PictureModeString";
 
@@ -4781,7 +4904,7 @@ namespace Plugin {
                     err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
                     if ( tr181Success == err )
                     {
-                        LOGINFO("getLocalParam for %s is %s\n", TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM, param.value);
+                        LOGINFO("getLocalParam for %s is %s\n", AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM, param.value);
                         //get curren source and if matches save for that alone
 		        int current_source = 0;
                         int current_format = 0;
@@ -4805,7 +4928,7 @@ namespace Plugin {
 		        }
                     }
                     else {
-                        LOGWARN("getLocalParam for %s failed\n", TVSETTINGS_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
+                        LOGWARN("getLocalParam for %s failed\n", AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
                         returnResponse(false);
                     }
                 }
@@ -4923,7 +5046,7 @@ namespace Plugin {
         else {
             int params[3]={0};
             params[0]=lowLatencyIndex;
-            int retval= UpdatePQParamsToCache("set","LowLatencyState",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_LOWLATENCY_STATE,params);
+            int retval= updatePQParamsToCache("set","LowLatencyState",pqmode,source,format,PQ_PARAM_LOWLATENCY_STATE,params);
             if(retval != 0 ) {
                 LOGWARN("Failed to SaveLowLatency to ssm_data\n");
             }
@@ -4955,8 +5078,8 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        GetParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
-        int err = GetLocalparam("LowLatencyState",formatIndex,pqIndex,sourceIndex,lowlatencystate, PQ_PARAM_LOWLATENCY_STATE);
+        getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+        int err = getLocalparam("LowLatencyState",formatIndex,pqIndex,sourceIndex,lowlatencystate, PQ_PARAM_LOWLATENCY_STATE);
         if( err == 0 ) {
             response["LowLatencyState"] = std::to_string(lowlatencystate);
             LOGINFO("Exit : LowLatencyState Value: %d \n", lowlatencystate);
@@ -4991,16 +5114,16 @@ namespace Plugin {
         if(format.empty())
             format = "current";
 
-        int retval= UpdatePQParamsToCache("reset","LowLatencyState",pqmode.c_str(),source.c_str(),format.c_str(),PQ_PARAM_LOWLATENCY_STATE,params);
+        int retval= updatePQParamsToCache("reset","LowLatencyState",pqmode,source,format,PQ_PARAM_LOWLATENCY_STATE,params);
         if(retval != 0 ) {
             LOGWARN("Failed to clear Lowlatency from ssmdata and localstore\n");
             returnResponse(false);
         }
 		else {
-            GetParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
-            int err = GetLocalparam("LowLatencyState",formatIndex,pqIndex,sourceIndex,lowlatencystate,PQ_PARAM_LOWLATENCY_STATE);
+            getParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
+            int err = getLocalparam("LowLatencyState",formatIndex,pqIndex,sourceIndex,lowlatencystate,PQ_PARAM_LOWLATENCY_STATE);
             if( err == 0 ) {
-                LOGINFO("%s : GetLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,lowlatencystate);
+                LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,lowlatencystate);
                 ret = SetLowLatencyState(lowlatencystate);
             }
             else
@@ -5038,7 +5161,7 @@ namespace Plugin {
 
         unsigned int index = 0;
 
-        tvError_t ret = GetParamsCaps(range,pqmode,source,format,"LowLatencyState");
+        tvError_t ret = getParamsCaps(range,pqmode,source,format,"LowLatencyState");
 
         if(ret != tvERROR_NONE) {
             returnResponse(false);
@@ -5069,6 +5192,1586 @@ namespace Plugin {
             returnResponse(true);
         }
     }
+   
+//Helper Function
+
+    void AVOutputTV::LocatePQSettingsFile()
+    {
+        LOGINFO("Entry\n");
+        char panelId[20] = {0};
+        std::string PQFileName = AVOUTPUT_RFC_CALLERID;
+        std::string FilePath = "/etc/rfcdefaults/";
+
+        /* The if condition is to override the tvsettings ini file so it helps the PQ tuning process for new panels */
+        if(access(AVOUTPUT_OVERRIDE_PATH, F_OK) == 0){
+            PQFileName = std::string(AVOUTPUT_RFC_CALLERID_OVERRIDE);
+        }else{
+            int val=GetPanelID(panelId);
+            if(val==0)
+            {
+                LOGINFO("%s : panel id read is : %s\n",__FUNCTION__,panelId);
+                if(strncmp(panelId,AVOUTPUT_CONVERTERBOARD_PANELID,strlen(AVOUTPUT_CONVERTERBOARD_PANELID))!=0)
+                {
+                    PQFileName+=std::string("_")+panelId;
+                    struct stat tmp_st;
+
+                    LOGINFO("%s: Looking for %s.ini \n",__FUNCTION__,PQFileName.c_str());
+                    if(stat((FilePath+PQFileName+std::string(".ini")).c_str(), &tmp_st)!=0)
+                    {
+                        //fall back
+                        LOGINFO("%s not available in %s Fall back to default\n",PQFileName.c_str(),FilePath.c_str());
+                        PQFileName =std::string(AVOUTPUT_RFC_CALLERID);
+                    }
+                }
+            }
+            else{
+                LOGINFO("%s : GetPanelID failed : %d\n",__FUNCTION__,val);
+            }
+        }
+        strncpy(rfc_caller_id,PQFileName.c_str(),PQFileName.size());
+        LOGINFO("%s : Default tvsettings file : %s\n",__FUNCTION__,rfc_caller_id);
+    }
+
+    tvContentFormatType_t AVOutputTV::getContentFormatIndex(tvVideoHDRFormat_t formatToConvert)
+    {
+        /* default to SDR always*/
+        tvContentFormatType_t ret = tvContentFormatType_NONE;
+        switch(formatToConvert)
+        {
+            case tvVideoHDRFormat_HLG:
+                ret = tvContentFormatType_HLG;
+                break;
+
+            case tvVideoHDRFormat_HDR10:
+                ret = tvContentFormatType_HDR10;
+                break;
+
+            case tvVideoHDRFormat_HDR10PLUS:
+                ret =  tvContentFormatType_HDR10PLUS;
+                break;
+
+            case tvVideoHDRFormat_DV:
+                ret = tvContentFormatType_DOVI;
+                break;
+
+            case tvVideoHDRFormat_SDR:
+            case tvVideoHDRFormat_NONE:
+            default:
+                ret  = tvContentFormatType_SDR;
+                break;
+        }
+        return ret;
+    }
+
+    tvError_t AVOutputTV::SyncPQParamsToDriverCache(std::string pqmode,std::string source,std::string format)
+    {
+        int params[3]={0};
+
+        LOGINFO("Entry %s : pqmode : %s source : %s format : %s\n",__FUNCTION__,pqmode.c_str(),source.c_str(),format.c_str());
+
+        convertParamToLowerCase(source, pqmode, format);
+
+        convertToValidInputParameter(source, pqmode, format);
+
+        if( !updatePQParamsToCache("sync","Brightness",pqmode,source,format,PQ_PARAM_BRIGHTNESS,params))
+            LOGINFO("Brightness Successfully sync to Drive Cache\n");
+        else
+            LOGINFO("Brightness Sync to cache Failed !!!\n");
+
+        if( !updatePQParamsToCache("sync","Contrast",pqmode,source,format,PQ_PARAM_CONTRAST,params))
+            LOGINFO("Contrast Successfully Synced to Drive Cache\n");
+        else
+            LOGINFO("Contrast Sync to cache Failed !!!\n");
+
+        if( !updatePQParamsToCache("sync","Sharpness",pqmode,source,format,PQ_PARAM_SHARPNESS,params))
+            LOGINFO("Sharpness Successfully Synced to Drive Cache\n");
+        else
+            LOGINFO("Sharpness Sync to cache Failed !!!\n");
+
+        if( !updatePQParamsToCache("sync","Saturation",pqmode,source,format,PQ_PARAM_SATURATION,params))
+            LOGINFO("Saturation Successfully Synced to Drive Cache\n");
+        else
+            LOGINFO("Saturation Sync to cache Failed !!!\n");
+
+	if( !updatePQParamsToCache("sync","Hue",pqmode,source,format,PQ_PARAM_HUE,params))
+            LOGINFO("Hue Successfully Synced to Drive Cache\n");
+        else
+            LOGINFO("Hue Sync to cache Failed !!!\n");
+
+        if( !updatePQParamsToCache("sync","ColorTemp",pqmode,source,format,PQ_PARAM_COLOR_TEMPERATURE,params))
+            LOGINFO("ColorTemp Successfully Synced to Drive Cache\n");
+        else
+            LOGINFO("ColorTemp Sync to cache Failed !!!\n");
+
+        if( !updatePQParamsToCache("sync","DolbyVisionMode",pqmode,source,format,PQ_PARAM_DOLBY_MODE,params))
+            LOGINFO("dvmode Successfully Synced to Drive Cache\n");
+        else
+            LOGINFO("dvmode Sync to cache Failed !!!\n");
+
+        if( !updatePQParamsToCache("sync","DimmingMode",pqmode,source,format,PQ_PARAM_DIMMINGMODE,params))
+            LOGINFO("dimmingmode Successfully Synced to Drive Cache\n");
+        else
+            LOGINFO("dimmingmode Sync to cache Failed !!!\n");
+
+        if(appUsesGlobalBackLightFactor){
+            if( !updatePQParamsToCache("sync","HLGMode",pqmode,source,format,PQ_PARAM_HLG_MODE,params))
+                LOGINFO("hlgmode Successfully Synced to Drive Cache\n");
+            else
+                LOGINFO("hlgmode Sync to cache Failed !!!\n");
+
+            if( !updatePQParamsToCache("sync","HDR10Mode",pqmode,source,format,PQ_PARAM_HDR10_MODE,params))
+                LOGINFO("hdr10mode Successfully Synced to Drive Cache\n");
+            else
+                LOGINFO("hdr10mode Sync to cache Failed !!!\n");
+        }
+
+	if( !updatePQParamsToCache("sync","Backlight",pqmode,source,format,PQ_PARAM_BACKLIGHT,params) )
+            LOGINFO("Backlight Successfully Synced to Drive Cache\n");
+        else
+            LOGINFO("Backlight Sync to cache Failed !!!\n");
+
+        if(appUsesGlobalBackLightFactor)
+        {
+            syncCMSParamsToDriverCache(pqmode,source,format);
+
+            SyncWBparams();
+        }
+        LOGINFO("Exit %s : pqmode : %s source : %s format : %s\n",__FUNCTION__,pqmode.c_str(),source.c_str(),format.c_str());
+        return tvERROR_NONE;
+    }
+
+    int AVOutputTV::SyncSourceFormatPicModeToCache(std::string pqmode, std::string source, std::string format)
+    {
+        std::vector<int> sources;
+        std::vector<int> pictureModes;
+        std::vector<int> formats;
+        tr181ErrorCode_t err = tr181Success;
+        TR181_ParamData_t param = {0};
+        int ret = 0;
+
+        ret = getSaveConfig(pqmode, source, format, sources, pictureModes, formats);
+
+        if (ret == 0 )
+        {
+            for (int source : sources) 
+            {
+                for (int format : formats)
+                {
+                    std::string tr181_param_name = "";
+                    tr181_param_name += std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
+                    tr181_param_name += "."+std::to_string(source)+"."+"Format."+
+                                         std::to_string(ConvertHDRFormatToContentFormat((tvhdr_type_t)format))+"."+"PictureModeString";
+
+                    err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
+                    if ( tr181Success == err ) 
+                    {
+                        int pqmodeindex = (int)GetTVPictureModeIndex(param.value);
+
+                        tvError_t tv_err = SaveSourcePictureMode(source, format, pqmodeindex);
+                        if (tv_err != tvERROR_NONE)
+                        {
+                            LOGWARN("failed to SaveSourcePictureMode \n");
+                            return -1;
+                        }
+                    } 
+                    else
+                    {
+                        LOGWARN("Failed to get the getLocalParam \n");
+                        return -1;
+                    }
+                }
+            }
+        }
+        return ret;
+   }
+
+   int AVOutputTV::InitializeSDRHDRBacklight(void)
+    {
+        char panelId[20] = {0};
+        int val=GetPanelID(panelId);
+        int ret=0;
+
+        if (val != 0)
+        {
+            LOGINFO("Failed to read panel id!!! Set 55 panel as default\n");
+            memset(panelId,0,sizeof(panelId));
+            GetDefaultPanelID(panelId);
+            LOGINFO("Panel ID : %s \n",panelId);
+        }
+        else
+            LOGINFO("Read panel id ok [%s] \n", panelId);
+
+        /* Load Default Panel ID for Converter Boards*/
+        if(strncmp(panelId,AVOUTPUT_CONVERTERBOARD_PANELID,strlen(AVOUTPUT_CONVERTERBOARD_PANELID))==0)
+        {
+            memset(panelId,0,sizeof(panelId));
+            GetDefaultPanelID(panelId);
+            LOGINFO("Load 55 panel values as default panel ID : %s\n",panelId);
+        }
+
+        val=ReadBacklightFromTable(panelId);
+        if(val == 0)
+            LOGINFO("Backlight read success from backlight_default.ini\n");
+        else
+            LOGWARN("Backlight read failed from backlight_default.ini\n");
+
+        return ret;
+    }
+
+    void AVOutputTV::convertParamToLowerCase(std::string &source, std::string &pqmode, std::string &format)
+    {
+        LOGINFO("%s : Entry Source : %s, pqmode : %s, format: %s \n",__FUNCTION__,source.c_str(),pqmode.c_str(), format.c_str());
+        transform(source.begin(), source.end(), source.begin(), ::tolower);
+        transform(pqmode.begin(), pqmode.end(), pqmode.begin(), ::tolower);
+        transform(format.begin(), format.end(), format.begin(), ::tolower);
+
+        LOGINFO("%s : Exit Source : %s, pqmode : %s, format: %s \n",__FUNCTION__,source.c_str(),pqmode.c_str(), format.c_str());
+    }
+
+    int AVOutputTV::convertToValidInputParameter(std::string & source, std::string & pqmode, std::string & format) 
+    {
+        std::vector<std::string> temp_vec;
+        std::string temp_string;
+        std::string temp_pqmode = pqmode;
+        std::string temp_source = source;
+        std::string temp_format = format;
+
+        LOGINFO("Entry %s source %s pqmode %s format %s \n", __FUNCTION__, source.c_str(), pqmode.c_str(), format.c_str());
+        // converting pq to valid paramter format
+        if (pqmode == "all") 
+        {
+            pic_modes_t *availableModes;
+            unsigned short num_pqmodes = 0;
+            GetTVSupportedPictureModes(&availableModes, &num_pqmodes);
+
+            for(int count = 0;count < num_pqmodes; count++)
+ 	    {
+                temp_string.clear();
+                temp_string += availableModes[count].value;
+                LOGINFO("ALL:%s \n", temp_string.c_str());
+                temp_vec.push_back(temp_string);
+            }
+        }
+        else if (pqmode == "current")
+        {
+            char picMode[PIC_MODE_NAME_MAX]={0};
+            if(!getCurrentPictureMode(picMode)) 
+	    {
+                LOGINFO("Failed to get the current picture mode\n");
+                return -1;
+            } 
+	    else 
+            {
+                temp_string.clear();
+                temp_string += picMode;
+                LOGINFO("current PQmode :%s \n", temp_string.c_str());
+                temp_vec.push_back(temp_string);
+            }
+        } 
+        else 
+        {
+            char *modeString = strdup(temp_pqmode.c_str());
+            char *token = NULL;
+            while ( (token = strtok_r(modeString," ",&modeString)) )
+            {
+                temp_string.clear();
+                temp_string += token;
+                LOGINFO("Multiple/single PQmode:%s \n", temp_string.c_str());
+                temp_vec.push_back(temp_string);
+            }
+        }
+
+        // convert List of PQ mode to single string
+        if (temp_vec.size() != 0) {
+            pqmode = convertToString(temp_vec);
+        }
+     
+        //unsetting all vector data
+        if (temp_vec.size() != 0 ) temp_vec.clear();
+        if (temp_string != "") temp_string.clear();
+
+        // convert source into valid parameter format
+        if (source == "all") 
+        {
+            pic_modes_t *availableSources;
+            unsigned short num_source = 0;
+            GetTVSupportedSources(&availableSources, &num_source);
+            for (int count = 0; count < num_source; count++)
+	    {
+                temp_string.clear();
+                temp_string +=  availableSources[count].name;
+                LOGINFO("ALL source:%s \n", temp_string.c_str());
+                temp_vec.push_back(temp_string);
+            }
+        }
+        else if (source == "current") 
+        {
+            int currentSource = 0;
+            tvError_t ret = GetCurrentSource(&currentSource);
+            
+	    if(ret != tvERROR_NONE)
+                LOGWARN("%s: GetCurrentSource( ) Failed \n",__FUNCTION__);
+          
+      	    temp_string.clear();
+            temp_string = convertSourceIndexToString(currentSource);
+            LOGINFO("current source:%s \n", temp_string.c_str());
+            temp_vec.push_back(temp_string);
+        } 
+        else 
+        {
+            char *sourceString = strdup(temp_source.c_str());
+            char *token = NULL;
+            while ((token = strtok_r(sourceString," ",&sourceString))) 
+            {
+                temp_string.clear();
+                temp_string += token;
+                LOGINFO("single/multiple source:%s \n", temp_string.c_str());
+                temp_vec.push_back(temp_string);
+            }
+        }
+
+	// convert List ofsource to single string
+        if (temp_vec.size() != 0) {
+             source = convertToString(temp_vec);
+        }
+        //unsetting all vector data
+        if (temp_vec.size() != 0) temp_vec.clear();
+        if (temp_string != "") temp_string.clear();
+
+        //convert format into valid parameter
+        if (format == "all") 
+        {
+            char * format;
+            unsigned short num_format = 0;
+            tvError_t ret = GetTVSupportedFormats(&format, &num_format);
+            if (ret == tvERROR_NONE) 
+            {
+                for (int count = 0; count < num_format; count++) 
+                {
+                    temp_string.clear();
+                    temp_string += format+(count*FORMAT_NAME_SIZE);
+                    LOGINFO("ALL format:%s \n", temp_string.c_str());
+                    if (temp_string != "none") {
+                        temp_vec.push_back(temp_string);
+                    }
+                }
+            }
+            else 
+	    {
+                LOGINFO("Failed to read the format. \n");
+                return -1;
+            }
+        } 
+	else if (format == "current") 
+	{
+          temp_string.clear();
+          temp_string += convertVideoFormatToString( GetCurrentContentFormat());
+          LOGINFO("current:%s \n", temp_string.c_str());
+          temp_vec.push_back(temp_string);
+        }
+        else
+       	{
+            char *formatString = strdup(temp_format.c_str());
+            char *token = NULL;
+            while ( ( token = strtok_r(formatString," ",&formatString) )) 
+            {
+                temp_string.clear();
+                temp_string += token;
+                LOGINFO("single/mutiple:%s \n", temp_string.c_str());
+                temp_vec.push_back(temp_string);
+            }
+        }
+
+	// convert List of format to single string
+        if (temp_vec.size() != 0) {
+            format = convertToString(temp_vec);
+        }
+        return 0;
+        LOGINFO("Exit %s source %s pqmode %s format %s \n", __FUNCTION__, source.c_str(), pqmode.c_str(), format.c_str());
+    }
+
+    tvError_t AVOutputTV::getParamsCaps(std::vector<std::string> &range
+                , std::vector<std::string> &pqmode, std::vector<std::string> &source, std::vector<std::string> &format,std::string param )
+    {
+        tvError_t ret = tvERROR_NONE;
+    
+        std::string rangeInfo;
+        std::string sourceInfo;
+        std::string formatInfo;
+        std::string pqmodeInfo;
+    
+        if( ReadCapablitiesFromConf( rangeInfo, pqmodeInfo, formatInfo ,sourceInfo,param ))
+        {
+            LOGERR( "%s: ReadCapablitiesFromConf Failed !!!\n",__FUNCTION__);
+            return tvERROR_GENERAL;
+        }
+        else
+        {
+            LOGINFO("%s : range : %s pqmode : %s source : %s format : %s param : %s \n",__FUNCTION__,rangeInfo.c_str(), pqmodeInfo.c_str(), sourceInfo.c_str(), formatInfo.c_str(),param.c_str() );
+            spliltCapablities( range, pqmode, format, source, rangeInfo, pqmodeInfo, formatInfo, sourceInfo );
+        }
+    
+        return ret;
+    }
+
+    void AVOutputTV::spliltCapablities( std::vector<std::string> &range,std::vector<std::string> &pqmode,std::vector<std::string> &format,std::vector<std::string> &source, std::string rangeInfo, std::string pqmodeInfo, std::string formatInfo, std::string sourceInfo )
+    {
+        std::string token;
+        std::stringstream rangeStream(rangeInfo);
+        std::stringstream pqmodeStream(pqmodeInfo);
+        std::stringstream formatStream(formatInfo);
+        std::stringstream sourceStream(sourceInfo);
+    
+        while( getline(rangeStream,token,','))
+        {
+            range.push_back(token );
+            token.clear();
+        }
+    
+        while( getline(pqmodeStream,token,',') )
+        {
+            pqmode.push_back(token );
+            token.clear();
+        }
+    
+        while( getline(formatStream,token,','))
+        {
+            format.push_back( token );
+            token.clear();
+        }
+    
+        while( getline(sourceStream,token,',') )
+        {
+            source.push_back( token );
+            token.clear();
+        }
+    
+        LOGINFO("All the vectors \n");
+        LOGINFO("Range :\n");
+    
+        for( std::string param : range )
+            LOGINFO("%s ", param.c_str() );
+    
+        for( std::string param : pqmode )
+            LOGINFO("%s ", param.c_str() );
+    
+        for( std::string param : format )
+            LOGINFO("%s ", param.c_str() );
+    
+        for( std::string param : source )
+            LOGINFO("%s ",param.c_str() );
+    
+        LOGINFO("\n");
+    }
+
+    bool AVOutputTV::isCapablityCheckPassed( std::string  pqmodeInputInfo,std::string sourceInputInfo,std::string formatInputInfo,std::string param )
+    {
+
+        std::string rangeCapInfo;
+        std::string sourceCapInfo;
+        std::string formatCapInfo;
+        std::string pqmodeCapInfo;
+
+        std::set<string> pqmodeCapSet;
+        std::set<string> formatCapSet;
+        std::set<string> sourceCapset;
+        std::set<string> pqmodeInputSet;
+        std::set<string> formatInputSet;
+        std::set<string> sourceInputSet;
+
+        if( ReadCapablitiesFromConf( rangeCapInfo, pqmodeCapInfo, formatCapInfo, sourceCapInfo,param) )
+        {
+            LOGINFO( "%s: readCapablitiesFromConf Failed !!!\n",__FUNCTION__);
+            return false;
+        }
+
+        //Compare capablityInfo with Input params
+
+        //1.convertCapablity Info to set for comparison
+        spliltStringsAndConvertToSet( pqmodeCapInfo, formatCapInfo, sourceCapInfo, pqmodeCapSet, formatCapSet, sourceCapset);
+
+        //2.convert Application Input Info to set for comparison
+        spliltStringsAndConvertToSet( pqmodeInputInfo, formatInputInfo, sourceInputInfo, pqmodeInputSet, formatInputSet, sourceInputSet );
+
+        //3.Compare Each pqmode/format/source InputInfo against CapablityInfo
+        if ( isIncluded(pqmodeCapSet,pqmodeInputSet) && isIncluded(formatCapSet,formatInputSet) && isIncluded(sourceCapset,sourceInputSet) )
+        {
+            LOGINFO("%s : Capablity Chesk passed \n", __FUNCTION__);
+            return true;
+        }
+        else
+        {
+            LOGERR("%s : Capablity Check Failed \n", __FUNCTION__);
+            return false;
+        }
+    }
+
+    int AVOutputTV::updatePQParamsToCache( std::string action, std::string tr181ParamName, std::string pqmode, std::string source, std::string format, tvPQParameterIndex_t pqParamIndex, int params[] )
+    {
+        LOGINFO("Entry : %s\n",__FUNCTION__);
+        std::vector<int> sources;
+        std::vector<int> pictureModes;
+        std::vector<int> formats;
+        int ret = 0;
+        bool sync = !(action.compare("sync"));
+        bool reset = !(action.compare("reset"));
+        bool set = !(action.compare("set"));
+
+        LOGINFO("%s: Entry param : %s Action : %s pqmode : %s source :%s format :%s\n",__FUNCTION__,tr181ParamName.c_str(),action.c_str(),pqmode.c_str(),source.c_str(),format.c_str() );
+        ret = getSaveConfig(pqmode, source, format, sources, pictureModes, formats);
+        if( 0 == ret )
+        {
+            for(int source: sources)
+            {
+                for(int mode : pictureModes)
+                {
+                    for(int format : formats)
+                    {
+                        switch(pqParamIndex)
+                        {
+                            case PQ_PARAM_BRIGHTNESS:
+                            case PQ_PARAM_CONTRAST:
+                            case PQ_PARAM_BACKLIGHT:
+                            case PQ_PARAM_SATURATION:
+                            case PQ_PARAM_SHARPNESS:
+                            case PQ_PARAM_HUE:
+                            case PQ_PARAM_COLOR_TEMPERATURE:
+                            case PQ_PARAM_DIMMINGMODE:
+                            case PQ_PARAM_LOWLATENCY_STATE:
+                                if(reset)
+                                    ret |= updatePQParamToLocalCache(tr181ParamName,source, mode, format,0,false);
+                                if(sync || reset)
+                                {
+                                    int value=0;
+                                    if(!getLocalparam(tr181ParamName,format,mode,source,value,pqParamIndex,sync))
+                                        LOGINFO("Found param  %s pqmode : %d format:%d  source : %d value:%d\n",tr181ParamName.c_str(),mode,format,source,value);
+                                    else
+                                    {
+                                        LOGINFO("Value not found in ini %s pqmode : %d format:%d source : %d value:%d\n",tr181ParamName.c_str(),mode,format,source,value);
+                                        continue;
+                                    }
+                                    params[0]=value;
+                                }
+                                if(set)
+                                {
+                                    //SpecialCase to store UserScale backlight in localstore only products using global BLF
+                                    if(( !tr181ParamName.compare("Backlight") == 0) &&  appUsesGlobalBackLightFactor)
+                                        ret |= updatePQParamToLocalCache(tr181ParamName,source, mode, format, params[1],true);
+                                    else
+                                        ret |= updatePQParamToLocalCache(tr181ParamName,source, mode, format, params[0],true);
+                                }
+                                break;
+                            default:
+                                break;
+                        }
+
+            	    switch(pqParamIndex)
+                        {
+                            case PQ_PARAM_BRIGHTNESS:
+                                ret |= SaveBrightness(source, mode,format,params[0]);
+                                break;
+                            case PQ_PARAM_CONTRAST:
+                                ret |= SaveContrast(source, mode,format,params[0]);
+                                break;
+                            case PQ_PARAM_SHARPNESS:
+                                ret |= SaveSharpness(source, mode,format,params[0]);
+                                break;
+                            case PQ_PARAM_HUE:
+                                ret |= SaveHue(source, mode,format,params[0]);
+                                break;
+                            case PQ_PARAM_SATURATION:
+                                ret |= SaveSaturation(source, mode,format,params[0]);
+                                break;
+                            case PQ_PARAM_COLOR_TEMPERATURE:
+                                ret |= SaveColorTemperature(source, mode,format,params[0]);
+                                break;
+                            case PQ_PARAM_BACKLIGHT:
+                                if( (sync || reset) && appUsesGlobalBackLightFactor )
+                                    convertUserScaleBacklightToDriverScale(format,params);
+
+                                ret |= SaveBacklight(source, mode,format,params[0]);
+                                break;
+                            case PQ_PARAM_DIMMINGMODE:
+                                ret |= SaveDynamicBacklight(source,mode,format,params[0]);
+                                break;
+                            case PQ_PARAM_LOWLATENCY_STATE:
+                                ret |= SaveLowLatencyState(source, mode,format,params[0]);
+                                break;
+                            case PQ_PARAM_COMPONENT_HUE:
+                            case PQ_PARAM_COMPONENT_SATURATION:
+                            case PQ_PARAM_COMPONENT_LUMA:
+                                if(reset)
+                                    ret |= updatePQParamToLocalCache(tr181ParamName,source, mode, format,0,false);
+                                if(sync || reset)
+                                {
+                                    int value=0;
+                                    if(!getLocalparam(tr181ParamName,format,mode,source,value,pqParamIndex,sync,params[1]))
+                                        LOGINFO("Found param from tr181 CMS pqmode : %d format:%d value:%d\n",mode,format,value);
+                                    else{
+                                        if(sync) /*block default cms sync to save tvsettings init time*/
+                                            continue;
+                                    }
+                                    params[2]=value;
+                                }
+                                ret |= SaveCMS(source, mode,format,params[0],params[1],params[2]);
+                                if(set)
+                                    ret |= updatePQParamToLocalCache(tr181ParamName,source,mode, format, params[2],true);
+                                break;
+                            case PQ_PARAM_DOLBY_MODE:
+                                if(sync)
+                                {
+                                    int value=0;
+                                    if( !getDolbyParamToSync(value) )
+                                         LOGINFO("Found param dvmode pqmode : %d format:%d value:%d\n",mode,format,value);
+                                    else
+                                         LOGERR("value not found in ini dvmode pqmode : %d format:%d value:%d\n",mode,format,value);
+                                     params[0]=value;
+                                 }
+                                 ret |= SaveDolbyMode(source, mode,format,params[0]);
+                                 break;
+                             case PQ_PARAM_HDR10_MODE:
+                                 if(sync){
+                                      int value=0;
+                                      if( !getHDR10ParamToSync(value) )
+                                          LOGINFO("Found param hdr10mode pqmode : %d format:%d value:%d\n",mode,format,value);
+                                      else
+                                          LOGERR("value not found  hdr10mode pqmode : %d format:%d value:%d\n",mode,format,value);
+
+                                      params[0]=value;
+                                 }
+                                 ret |= SaveDolbyMode(source, mode,format,params[0]);
+                                 break;
+
+                             case PQ_PARAM_HLG_MODE:
+                                 if(sync){
+                                    int value=0;
+                                    if( !getHLGParamToSync(value) )
+                                        LOGINFO("Found param  hlgmode pqmode : %d format:%d value:%d\n",mode,format,value);
+                                    else
+                                        LOGERR("value not found hlgmode pqmode : %d format:%d value:%d\n",mode,format,value);
+
+                                    params[0]=value;
+                                 }
+                                 ret |= SaveDolbyMode(source, mode,format,params[0]);
+                                 break;
+                             case PQ_PARAM_ASPECT_RATIO:
+                                 ret |= SaveDisplayMode(source,mode,format,params[0]);
+                                 break;
+                             case PQ_PARAM_LOCALDIMMING_LEVEL:
+                                 int dimmingLevel=0,edidLevel=0;
+                                 if(sync)
+                                 {
+                                     int value=0;
+                                     if(!getLocalparam(tr181ParamName,format,mode,source,value,pqParamIndex,sync))
+                                         LOGINFO("Found param from tr181 ldim pqmode : %d format:%d value:%d \n",mode,format,value);
+                                     else
+                                         LOGERR("value not found in tr181 ldim pqmode : %d format:%d value:%d \n",mode,format,value);
+
+                                     params[0]=value;
+                                 }
+                                 GetLDIMAndEDIDLevel(params[0],format,&dimmingLevel,&edidLevel,mode);
+                                 ret |= SaveLocalDimmingLevel(source, mode,format,dimmingLevel);
+                                 break;
+                        }
+                    }
+                }
+           }
+
+        }
+        return ret;
+    }
+
+    tvError_t AVOutputTV::updatePQParamToLocalCache(std::string forParam, int source, int pqmode, int format, int value,bool setNotDelete)
+    {
+        tvError_t ret = tvERROR_NONE;
+        std::string key;
+
+        LOGINFO("Entry : %s source:%d,pqmode:%d,format:%d\n",__FUNCTION__,source,pqmode,format);
+
+        format=ConvertHDRFormatToContentFormat((tvhdr_type_t)format);
+        key.clear();
+        generateStorageIdentifier(key,forParam,format,pqmode,source);
+        if(key.empty())
+        {
+            LOGERR("generateStorageIdentifierDirty failed\n");
+            ret = tvERROR_GENERAL;
+        }
+        else
+        {
+            tr181ErrorCode_t err  = tr181Success;
+            if(setNotDelete)
+            {
+                std::string toStore = std::to_string(value);
+                if (forParam.compare("ColorTemp") == 0)
+                {
+                    getColorTempStringFromEnum(value, toStore);
+                }
+                else if(forParam.compare("DimmingMode") == 0 )
+                {
+                    getDimmingModeStringFromEnum(value, toStore);
+                }
+                err = setLocalParam(rfc_caller_id, key.c_str(),toStore.c_str());
+
+            }
+            else
+            {
+                err = clearLocalParam(rfc_caller_id, key.c_str());
+            }
+
+            if ( err != tr181Success ) {
+                LOGERR("%s for %s Failed : %s\n", setNotDelete?"Set":"Delete", key.c_str(), getTR181ErrorString(err));
+                ret = tvERROR_GENERAL;
+            }
+            else {
+                LOGINFO("%s for %s Successful \n", setNotDelete?"Set":"Delete",key.c_str());
+            }
+        }
+        return ret;
+    }
+
+    int AVOutputTV::getSaveConfig(std::string pqmode, std::string source, std::string format,std::vector<int> &sources,std::vector<int> &picturemodes, std::vector<int> &formats)
+    {
+        LOGINFO("Entry : %s pqmode : %s source :%s format :%s\n",__FUNCTION__,pqmode.c_str(),source.c_str(),format.c_str());
+
+        int ret = 0;
+
+        //1)Check pqmode
+        if( pqmode.compare("global") == 0)
+        {
+            int lCount = 0;
+            for(;lCount<numberModesSupported;lCount++)
+                picturemodes.push_back(pic_mode_index[lCount]);
+        }
+        else
+        {
+            char *modeString = strdup(pqmode.c_str());
+            char *token = NULL;
+            while ((token = strtok_r(modeString,",",&modeString)))
+            {
+                picturemodes.push_back(GetTVPictureModeIndex(token));
+                LOGINFO("%s : PQmode: %s\n",__FUNCTION__,token);
+            }
+        }
+
+        //2)Check Source
+        if( (source.compare("global") == 0) == 0)
+        {
+            int lCount = 0;
+            for(;lCount<numberSourcesSupported;lCount++)
+                sources.push_back(source_index[lCount]);
+        }
+        else
+        {
+            char *sourceString = strdup(source.c_str());
+            char *token = NULL;
+            while ((token = strtok_r(sourceString,",",&sourceString)))
+            {
+                sources.push_back(GetTVSourceIndex(token));
+                LOGINFO("%s : Source %s\n",__FUNCTION__,token);
+            }
+        }
+
+        //3)check format
+        unsigned int contentFormats=0;
+        unsigned short numberOfSupportedFormats =  0;
+
+        GetSupportedContentFormats(&contentFormats,&numberOfSupportedFormats);
+
+        if( format.compare("global") == 0)
+        {
+             unsigned int lcount=0;
+             for(;(lcount<sizeof(uint32_t)*8 && numberOfSupportedFormats);lcount++)
+             {
+                 tvhdr_type_t formatToStore = (tvhdr_type_t)ConvertVideoFormatToHDRFormat((tvVideoHDRFormat_t)(contentFormats&(1<<lcount)));
+                 if(formatToStore!= HDR_TYPE_NONE)
+                 {
+                     numberOfSupportedFormats--;
+                     formats.push_back(formatToStore);
+                 }
+             }
+        }
+        else
+        {
+            char *formatString = strdup(format.c_str());
+            char *token = NULL;
+            while ((token = strtok_r(formatString,",",&formatString)))
+            {
+                formats.push_back(ConvertFormatStringToHDRFormat(token));
+                LOGINFO("%s : Format: %s\n",__FUNCTION__,token);
+            }
+        }
+
+        LOGINFO("Exit : %s ret : %d\n",__FUNCTION__,ret);
+        return ret;
+    }
+
+    uint32_t AVOutputTV::generateStorageIdentifier(std::string &key, std::string forParam,int contentFormat, int pqmode, int source)
+    {
+        key+=std::string(AVOUTPUT_GENERIC_STRING_RFC_PARAM);
+        key+=STRING_SOURCE+std::to_string(source)+std::string(".")+STRING_PICMODE+std::to_string(pqmode)+std::string(".")+std::string(STRING_FORMAT)+std::to_string(contentFormat)+std::string(".")+forParam;
+        return tvERROR_NONE;
+    }
+
+    uint32_t AVOutputTV::generateStorageIdentifierDirty(std::string &key, std::string forParam,uint32_t contentFormat, int pqmode)
+    {
+        key+=std::string(AVOUTPUT_GENERIC_STRING_RFC_PARAM);
+        key+=STRING_PICMODE+std::to_string(pqmode)+std::string(".")+std::string(STRING_FORMAT)+std::to_string(contentFormat);
+        CREATE_DIRTY(key)+=forParam;
+
+        return tvERROR_NONE;
+    }
+
+    int AVOutputTV::getLocalparam( std::string forParam,int formatIndex,int pqIndex,int sourceIndex,int & value,tvPQParameterIndex_t pqParamIndex,bool sync,int color )
+    {
+        string key;
+        //int value = 0;
+        TR181_ParamData_t param={0};
+        int formatVendorIndex = formatIndex;
+
+        formatIndex=ConvertHDRFormatToContentFormat((tvhdr_type_t)formatIndex);
+        generateStorageIdentifier(key,forParam,formatIndex,pqIndex,sourceIndex);
+        if(key.empty())
+        {
+            LOGERR("generateStorageIdentifier failed\n");
+            return -1;
+        }
+
+       tr181ErrorCode_t err=getLocalParam(rfc_caller_id, key.c_str(), &param);
+
+       if ( tr181Success == err )//Fetch new tr181format values
+       {
+           if( !forParam.compare("ColorTemp") == 0 )
+           {
+               if (strncmp(param.value, "Standard", strlen(param.value))==0)
+                   value=tvColorTemp_STANDARD;
+               else if (strncmp(param.value, "Warm", strlen(param.value))==0)
+                   value=tvColorTemp_WARM;
+               else if (strncmp(param.value, "Cold", strlen(param.value))==0)
+                   value=tvColorTemp_COLD;
+               else if (strncmp(param.value, "User Defined", strlen(param.value))==0)
+                   value=tvColorTemp_USER;
+               else
+                   value=tvColorTemp_STANDARD;
+               return 0;
+           }
+           else if( !forParam.compare("DimmingMode") == 0 )
+           {
+               if (strncmp(param.value, "fixed", strlen(param.value))==0)
+                   value=tvDimmingMode_Fixed;
+               else if (strncmp(param.value, "local", strlen(param.value))==0)
+                   value=tvDimmingMode_Local;
+               else if (strncmp(param.value, "global", strlen(param.value))==0)
+                   value=tvDimmingMode_Global;
+               return 0;
+           }
+           else
+           {
+               value=std::stoi(param.value);
+               return 0;
+           }
+        }
+        else // default value from DB
+        {
+            if( sync )
+            {
+                LOGINFO("Function %s: pqmode : %d format : %d source : %d \n", __FUNCTION__, pqIndex,formatIndex,sourceIndex);
+                return 1;
+            }
+            GetDefaultParams(pqIndex,sourceIndex,formatVendorIndex,pqParamIndex,&value);
+            LOGINFO("Default value from DB : %s : %d \n",key.c_str(),value);
+            return 0;
+        }
+    }
+
+    bool AVOutputTV::isSetRequired(std::string pqmode,std::string source,std::string format)
+    {
+        bool ret=false;
+        char picMode[PIC_MODE_NAME_MAX]={0};
+	tvError_t retVal = tvERROR_NONE;
+	int sourceIndex = 0;
+        std::string currentPicMode;
+        std::string currentSource;
+        std::string currentFormat;
+        std::string space_delimiter = " ";
+
+        //GetCurrent pqmode
+        if(!getCurrentPictureMode(picMode))
+            LOGERR("Failed to get the current picture mode\n");
+
+        currentPicMode = picMode; //Convert to string
+
+        //GetCurrentSource
+	retVal = GetCurrentSource(&sourceIndex);
+	if(retVal != tvERROR_NONE) 
+        {
+             LOGERR("%s : GetCurrentSource( ) Failed\n",__FUNCTION__);
+             return false;
+        }
+        currentSource = convertSourceIndexToString(sourceIndex);
+
+        //GetCurrentFormat
+        currentFormat = convertVideoFormatToString( GetCurrentContentFormat());
+
+        LOGINFO("%s : currentSource = %s,currentPicMode = %s,currentFormat = %s\n",__FUNCTION__,currentSource.c_str(),currentPicMode.c_str(),currentFormat.c_str());
+        LOGINFO("%s : source = %s,PicMode = %s, format= %s\n",__FUNCTION__,source.c_str(),pqmode.c_str(),format.c_str());
+
+        if( ( pqmode.compare("current") == 0 || (pqmode.find(currentPicMode) != std::string::npos) ||
+              pqmode.compare("all") == 0 || pqmode.compare("global") == 0) &&
+            (source.compare("current") == 0 || (source.find(currentSource) != std::string::npos)  ||
+              source.compare("all") == 0 || source.compare("global") == 0) &&
+            (format.compare("current") == 0 || (format.find(currentFormat) !=  std::string::npos) || format.compare("all") == 0 ||
+              format.compare("global") == 0 )  )
+            ret=true;
+
+        return ret;
+    }
+
+    void AVOutputTV::getParamIndex(string source,string pqmode,string format,int& sourceIndex,int& pqmodeIndex,int& formatIndex)
+    {
+        LOGINFO("Entry\n");
+
+        //Convert Global to Current
+        if( (strncmp(source.c_str(),"global",strlen(source.c_str())) == 0) )
+             source = "current";
+
+        if( (strncmp(source.c_str(),"current",strlen(source.c_str())) == 0) )
+            GetCurrentSource(&sourceIndex);
+        else
+            sourceIndex = GetTVSourceIndex(source.c_str());
+
+        if( (strncmp(pqmode.c_str(),"current",strlen(pqmode.c_str())) == 0) )
+        {
+            char picMode[PIC_MODE_NAME_MAX]={0};
+            if(!getCurrentPictureMode(picMode))
+                LOGERR("Failed to get the current picture mode\n");
+            else
+                pqmodeIndex = GetTVPictureModeIndex(picMode);
+        }
+        else
+            pqmodeIndex = GetTVPictureModeIndex(pqmode.c_str());
+
+        if( (strncmp(format.c_str(),"current",strlen(format.c_str())) == 0) )
+        {
+            formatIndex = ConvertVideoFormatToHDRFormat(GetCurrentContentFormat());
+            if( HDR_TYPE_NONE == formatIndex )
+                formatIndex = HDR_TYPE_SDR; //Consider format invalid as SDR
+        }
+        else
+            formatIndex = ConvertFormatStringToHDRFormat(format.c_str());
+
+        LOGINFO("%s: Exit sourceIndex = %d pqmodeIndex = %d formatIndex = %d\n",__FUNCTION__,sourceIndex,pqmodeIndex,formatIndex);
+
+    }
+
+    tvDataComponentColor_t AVOutputTV::getComponentColorEnum(std::string colorName)
+    {
+        tvDataComponentColor_t CompColorEnum = tvDataColor_MAX;
+
+        if(!colorName.compare("none")) {
+            CompColorEnum = tvDataColor_NONE;
+        }
+        else if (!colorName.compare("red")){
+            CompColorEnum = tvDataColor_RED;
+        }
+        else if (!colorName.compare("green")){
+            CompColorEnum = tvDataColor_GREEN;
+        }
+        else if (!colorName.compare("blue")){
+            CompColorEnum = tvDataColor_BLUE;
+        }
+        else if (!colorName.compare("yellow")){
+            CompColorEnum = tvDataColor_YELLOW;
+        }
+        else if (!colorName.compare("cyan")){
+            CompColorEnum = tvDataColor_CYAN;
+        }
+        else if (!colorName.compare("magenta")){
+            CompColorEnum = tvDataColor_MAGENTA;
+        }
+        return CompColorEnum;
+    }
+
+    int AVOutputTV::getDolbyParams(tvContentFormatType_t format, std::string &s) 
+    {
+        int ret = -1;
+        TR181_ParamData_t param;
+	std::string rfc_param = AVOUTPUT_HDR10MODE_RFC_PARAM;
+        int dolby_mode_value = 0;
+        int sourceIndex = 0;
+        GetCurrentSource(&sourceIndex);
+
+        memset(&param, 0, sizeof(param));
+        if (format == tvContentFormatType_HLG ) {
+            rfc_param = AVOUTPUT_HLGMODE_RFC_PARAM;
+        } else if (format == tvContentFormatType_DOVI) {
+            rfc_param = AVOUTPUT_DOLBYVISIONMODE_RFC_PARAM;
+        }
+
+        tr181ErrorCode_t err = getLocalParam(rfc_caller_id, rfc_param.c_str(), &param);
+        if ( tr181Success != err) {
+            tvError_t retVal = GetDefaultParams(GetCurrentPQIndex(),sourceIndex,ConvertHDRFormatToContentFormat((tvhdr_type_t)format), PQ_PARAM_DOLBY_MODE,&dolby_mode_value);
+	    if( retVal != tvERROR_NONE )
+            {
+                LOGERR("%s : failed\n",__FUNCTION__);
+		return ret;
+            }
+            s = getDolbyModeStringFromEnum((tvDolbyMode_t)dolby_mode_value);
+            ret = 0;
+        } 
+	else 
+	{
+            s += param.value;
+            ret = 0;
+        }
+        return ret;
+    }
+
+    int AVOutputTV::getDimmingModeIndex(std::string mode)
+    {
+        unsigned short index = 1;
+
+        if(!mode.compare("local") == 0 )
+            index=tvDimmingMode_Local;
+        else if(!mode.compare("fixed") == 0 )
+            index=tvDimmingMode_Fixed;
+        else if(!mode.compare("global") == 0 )
+            index=tvDimmingMode_Global;
+        else
+            LOGINFO("Return Default Dimmingmode:%d!!!\n",index);
+
+        return index;
+    }
+
+    int AVOutputTV::saveLocalDimmingLevelToDriverCache(std::string action,std::string pqmode, std::string source, std::string format,int params[] )
+    {
+        int ret = 0;
+    
+        if( appUsesGlobalBackLightFactor )
+            ret = updatePQParamsToCache(action,"LocalDimmingLevel",pqmode,source,format,PQ_PARAM_LOCALDIMMING_LEVEL,params);
+        else
+            LOGINFO("%s : Not Required !!!\n",__FUNCTION__);
+    
+        return ret;
+    }
+
+    void AVOutputTV::getDimmingModeStringFromEnum(int value, std::string &toStore)
+    {
+        const char *color_temp_string[] = {
+                    [tvDimmingMode_Fixed] = "fixed",
+                    [tvDimmingMode_Local] = "local",
+                    [tvDimmingMode_Global] = "global",
+                };
+        toStore.clear();
+        toStore+=color_temp_string[value];
+    }
+
+    void AVOutputTV::getColorTempStringFromEnum(int value, std::string &toStore)
+    {
+        const char *color_temp_string[] = {
+                    [tvColorTemp_STANDARD] = "Standard",
+                    [tvColorTemp_WARM] = "Warm",
+                    [tvColorTemp_COLD] = "Cold",
+                    [tvColorTemp_USER] = "User Defined"
+                };
+        toStore.clear();
+        toStore+=color_temp_string[value];
+    }
+
+    int AVOutputTV::ReadBacklightFromTable(char *panelId)
+    {
+        std::string temp_panelid=std::string(panelId);
+        temp_panelid=std::string(temp_panelid.rbegin(),temp_panelid.rend());//reverse
+        std::string delimiter="_";
+        temp_panelid=temp_panelid.erase(0, temp_panelid.find(delimiter) + delimiter.length());//remove the first _ token
+        temp_panelid=std::string(temp_panelid.rbegin(),temp_panelid.rend());  //reverse again
+
+        LOGINFO("%s: Looking at %s / %s for BLT \n",__FUNCTION__,panelId,temp_panelid.c_str());
+
+        try
+        {
+            CIniFile inFile(BACKLIGHT_FILE_NAME);
+
+            for(int i = 0 ; i < BACKLIGHT_CURVE_MAX_INDEX; i++ )
+            {
+                std::string s;
+                s = temp_panelid+ "_" + std::string("SDR") + ".bl_" + std::to_string(i);
+                blInfo.sdrBLCurve[i] = inFile.Get<int>(s);
+                LOGINFO("bl_table_sdr[%d] = %u\n", i, blInfo.sdrBLCurve[i] );
+            }
+
+            for(int j = 0 ; j < BACKLIGHT_CURVE_MAX_INDEX; j++ )
+            {
+                std::string s;
+                s = temp_panelid+ "_" + std::string("HDR") + ".bl_" + std::to_string(j);
+                blInfo.hdrBLCurve[j] = inFile.Get<int>(s);
+                LOGINFO("bl_table_hdr[%d] = %u\n", j, blInfo.hdrBLCurve[j] );
+            }
+        }
+	catch(const boost::property_tree::ptree_error &e)
+        {
+            LOGERR("%s: error %s::config table entry not found in ini file\n",__FUNCTION__,e.what());
+            return -1;
+        }
+        {
+            blInfo.defaultBLSDR = defaultSDR;
+            blInfo.defaultBLHDR = defaultHDR;
+            SetBacklightInfo(&blInfo);
+        }
+        return 0;
+    }
+
+    int AVOutputTV::getCurrentPictureMode(char *picMode)
+    {
+        tvError_t  ret = tvERROR_NONE;
+        TR181_ParamData_t param;
+        std::string tr181_param_name;
+        int currentSource = 0;
+        int current_format = 0;
+
+        ret = GetCurrentSource(&currentSource);
+        if(ret != tvERROR_NONE)
+        {
+            LOGERR("GetCurrentSource() Failed set source to default\n");
+	    return 0;
+        }
+
+        current_format = getContentFormatIndex(GetCurrentContentFormat());
+        if ( current_format  == tvVideoHDRFormat_NONE) current_format  = tvVideoHDRFormat_SDR;
+
+        tr181_param_name += std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
+        tr181_param_name += "." + std::to_string(currentSource) + "." + "Format."+std::to_string(current_format)+"."+"PictureModeString";
+
+        memset(&param, 0, sizeof(param));
+
+        tr181ErrorCode_t err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
+        if ( err == tr181Success ) 
+        {
+            strncpy(picMode, param.value, strlen(param.value)+1);
+            LOGINFO("getLocalParam success, mode = %s\n", picMode);
+            return 1;
+        }
+        else 
+	{
+            LOGERR("getLocalParam failed");
+            return 0;
+        }
+    }
+
+    int AVOutputTV::syncCMSParams(std::string pqParam,tvCMS_tunel_t tunnel_type,std::string pqmode, std::string source, std::string format)
+    {
+        int ret=0;
+	std::string cms_param;
+        int params[3]={0};
+        tvPQParameterIndex_t index;
+
+        for(int color=COLOR_RED;color<=COLOR_YELLOW;color++)
+        {
+            cms_param = pqParam + ".";
+	    cms_param += component_color[color];
+            params[0]=tunnel_type;//tunnel_type
+            params[1]=color;//color_type
+            params[2]=0;//value
+
+            if( COLOR_SATURATION == tunnel_type )
+                index = PQ_PARAM_COMPONENT_SATURATION;
+            else if(COLOR_HUE == tunnel_type )
+                index = PQ_PARAM_COMPONENT_HUE;
+            else
+                index = PQ_PARAM_COMPONENT_LUMA;
+
+
+            if(!updatePQParamsToCache("sync",cms_param,pqmode,source,format,index,params))
+                ret |= 0;
+            else
+                ret |= 1;
+        }
+        return ret;
+    }
+
+    tvError_t AVOutputTV::syncCMSParamsToDriverCache(std::string pqmode, std::string source, std::string format)
+    {
+        int cms_enable[3]={0};
+        cms_enable[0]=COLOR_STATE;//tunel_type
+        cms_enable[1]=COLOR_ENABLE;//color_type
+        cms_enable[2]=0;//value
+
+        if(! updatePQParamsToCache("sync","cms.enable",pqmode,source,format,PQ_PARAM_SATURATION,cms_enable))
+            LOGINFO("CMS Enable Flag  Successfully Synced to Drive Cache\n");
+        else
+            LOGERR("CMS Enable Flag Sync to cache Failed !!!\n");
+
+        if( !syncCMSParams("saturation",COLOR_SATURATION,pqmode,source,format))
+            LOGINFO("Component saturation Successfully Synced to Drive Cache\n");
+        else
+            LOGERR("Component saturation Sync to cache Failed !!!\n");
+
+        if( !syncCMSParams("hue",COLOR_HUE,pqmode,source,format))
+            LOGINFO("Component hue Successfully Synced to Drive Cache\n");
+        else
+            LOGERR("Component hue to cache Failed !!!\n");
+
+        if( !syncCMSParams("luma",COLOR_LUMA,pqmode,source,format))
+            LOGINFO("Component Luma Successfully Synced to Drive Cache\n");
+        else
+            LOGERR("Component Luma Sync to cache Failed !!!\n");
+
+        return tvERROR_NONE;
+    }
+
+    void AVOutputTV::SyncWBparams(void)
+    {
+
+        if ( tvERROR_NONE != CheckWBMigration( ) )
+            LOGWARN("%s: Migration Failed \n",__FUNCTION__);
+
+        if( tvERROR_NONE != SyncWBFromLocalCache( ) )
+            LOGWARN("%s: Sync WB Failed!!! \n",__FUNCTION__);
+        else
+            LOGINFO("%s: Sync WB Success!!! \n",__FUNCTION__);
+    }
+
+    tvError_t AVOutputTV::CheckWBMigration()
+    {
+        TR181_ParamData_t param={0};
+        tvError_t ret = tvERROR_NONE;
+        std::vector<std::string> allCtrls{ "gain", "offset"};
+        std::vector<std::string> allColors{ "red", "green","blue"};
+
+        LOGINFO("Entry");
+        for(std::string color : allColors)
+        {
+            for(std::string ctrl : allCtrls)
+            {
+                std::string identifier=std::string(AVOUTPUT_GENERIC_STRING_RFC_PARAM)+std::string("wb");
+                tr181ErrorCode_t err;
+                identifier+=std::string(STRING_DIRTY)+color+"."+ctrl;
+                err = getLocalParam(rfc_caller_id, identifier.c_str(), &param);
+                if ( tr181Success == err )
+                {
+                    //set SDR
+                    string key = std::string(AVOUTPUT_GENERIC_STRING_RFC_PARAM)+std::string("sdr.wb.")+color+"."+ctrl;
+                    tr181ErrorCode_t err = setLocalParam(rfc_caller_id, key.c_str(), param.value);
+                    if ( err != tr181Success )
+                        LOGWARN("setLocalParam for %s Failed : %s\n", key.c_str(), getTR181ErrorString(err));
+                    else
+                        LOGINFO("setLocalParam for %s Successful, Value: %s\n", key.c_str(), param.value);
+
+                    key.clear();
+		    //set HDR
+                    key = std::string(AVOUTPUT_GENERIC_STRING_RFC_PARAM)+std::string("hdr.wb.")+color+"."+ctrl;
+                    err = setLocalParam(rfc_caller_id, key.c_str(), param.value);
+                    if ( err != tr181Success )
+                        LOGWARN("setLocalParam for %s Failed : %s\n", key.c_str(), getTR181ErrorString(err));
+                    else
+                        LOGINFO("setLocalParam for %s Successful, Value: %s\n", key.c_str(), param.value);
+
+                    key.clear();
+
+                    //clear old dirty values
+                    err = clearLocalParam(rfc_caller_id,identifier.c_str());
+                    if ( err != tr181Success ) {
+                        LOGWARN("clearLocalParam for %s Failed : %s\n",identifier.c_str(),getTR181ErrorString(err));
+                        ret  = tvERROR_GENERAL;
+                    }
+
+                    LOGINFO(" Migration completed \n");
+                }
+                else
+                    LOGINFO("%s No old dirty values in local store - Migration not required\n",identifier.c_str());
+            }
+        }
+        LOGINFO("Exit\n");
+        return ret;
+    }
+   
+    tvError_t AVOutputTV::SyncWBFromLocalCache( )
+    {
+        TR181_ParamData_t param={0};
+        tvError_t ret = tvERROR_NONE;
+        std::vector<std::string> allCtrls{ "gain", "offset"};
+        std::vector<std::string> allColors{ "red", "green","blue"};
+        std::vector<std::string> formats{ "sdr","hdr"};
+
+        LOGINFO("Entry");
+        for(std::string color : allColors)
+        {
+            for(std::string ctrl : allCtrls)
+            {
+                for(std::string format : formats)
+                {
+                    string identifier=std::string(AVOUTPUT_GENERIC_STRING_RFC_PARAM)+format+std::string(".wb.");
+                    int value =0;
+                    tr181ErrorCode_t err;
+                    identifier+=color+"."+ctrl;
+                    err = getLocalParam(rfc_caller_id, identifier.c_str(), &param);
+                    if ( tr181Success == err )
+                    {
+                        value = std::stoi(param.value);
+                        LOGINFO("%s  : %d\n",identifier.c_str(),value);
+                        int rgbType = GetWBRgbType(color.c_str(),ctrl.c_str());
+                        ret  = SaveColorTemperatureUser(rgbType,value,(strcmp(format.c_str(),"sdr") == 0)?0:1);
+                        if(tvERROR_NONE!= ret)
+                            LOGWARN("WB Entry for %s.%s.%s fail to save to driver\n",format.c_str(),color.c_str(),ctrl.c_str());
+                        else
+                            LOGINFO("WB Entry for %s.%s.%s=%d saved to driver\n",format.c_str(),color.c_str(),ctrl.c_str(),value);
+                    }
+		    else
+                    {
+                        LOGINFO("%s  Failed trying dirty\n",identifier.c_str());
+                        ret = tvERROR_GENERAL;
+                    }
+                }
+            }
+        }
+        return ret;
+    }
+
+    std::string AVOutputTV::convertToString(std::vector<std::string> vec_strings)
+    {
+        std::string result = std::accumulate(vec_strings.begin(), vec_strings.end(), std::string(),
+            [](const std::string& a, const std::string& b) -> std::string {
+                return a.empty() ? b : a + "," + b;
+            });
+        return result;
+    }
+
+    std::string AVOutputTV::convertSourceIndexToString(int sourceIndex)
+    {
+        std::string source="mpeg";//default
+    
+        switch(sourceIndex)
+        {
+            case 1:
+                source="av1";
+                break;
+            case 5:
+                source="hdmi1";
+                break;
+            case 6:
+                source="hdmi2";
+                break;
+            case 7:
+                source="hdmi3";
+                break;
+            case 10:
+            default:
+                source="mpeg";
+                break;
+        }
+        return source;
+    }
+
+    std::string AVOutputTV::convertVideoFormatToString( int formatIndex )
+    {
+        std::string format="sdr";//default
+    
+        switch(formatIndex)
+        {
+            case tvVideoHDRFormat_HLG:
+                format="hlg";
+                break;
+            case tvVideoHDRFormat_HDR10:
+                format="hdr10";
+                break;
+            case tvVideoHDRFormat_DV:
+                format="dv";
+                break;
+            case tvVideoHDRFormat_HDR10PLUS:
+                format="hdr10plus";
+                break;
+            case tvVideoHDRFormat_SDR:
+            case tvVideoHDRFormat_NONE:
+            default:
+                format="sdr";
+                break;
+        }
+        return format;
+    }
+
+    bool AVOutputTV::isIncluded(const std::set<string> set1,const std::set<string> set2)
+    {
+        for( const auto& element : set2){
+            if(set1.find(element) == set1.end())
+                return false;
+        }
+        return true;
+    }
+
+    void AVOutputTV::convertUserScaleBacklightToDriverScale(int format,int * params)
+    {
+        //Check the format if SDR use SDR array else use HDR array.
+        int * arrayToCheck=( HDR_TYPE_SDR == format )?blInfo.sdrBLCurve:blInfo.hdrBLCurve;
+        int backlightInCurve = arrayToCheck[params[0]];
+        params[0] = (backlightInCurve*100)/BACKLIGHT_RAW_VALUE_MAX;
+    }
+    
+    int AVOutputTV::getDolbyParamToSync(int& value)
+    {
+        int ret=0;
+        TR181_ParamData_t param;
+
+        memset(&param, 0, sizeof(param));
+        tr181ErrorCode_t err = getLocalParam(rfc_caller_id, AVOUTPUT_DOLBYVISIONMODE_RFC_PARAM, &param);
+        if ( tr181Success == err )
+        {
+            value=GetDolbyModeIndex(param.value);
+        }
+        else
+        {
+            LOGERR("Unable to fetch %s from localstore\n",AVOUTPUT_DOLBYVISIONMODE_RFC_PARAM);
+            ret=-1;
+        }
+        return ret;
+    }     
+
+    int AVOutputTV::getHDR10ParamToSync(int& value)
+    {
+        int ret=0;
+        TR181_ParamData_t param;
+
+        memset(&param, 0, sizeof(param));
+        tr181ErrorCode_t err = getLocalParam(rfc_caller_id, AVOUTPUT_HDR10MODE_RFC_PARAM, &param);
+        if ( tr181Success == err )
+        {
+            value=getHDR10ModeIndex(param.value);
+        }
+        else
+        {
+            LOGERR("Unable to fetch %s from localstore\n",AVOUTPUT_HDR10MODE_RFC_PARAM);
+            ret=-1;
+        }
+        return ret;
+    }
+
+    int AVOutputTV::getHLGParamToSync(int& value)
+    {
+        int ret=0;
+        TR181_ParamData_t param;
+
+        memset(&param, 0, sizeof(param));
+        tr181ErrorCode_t err = getLocalParam(rfc_caller_id, AVOUTPUT_HLGMODE_RFC_PARAM, &param);
+        if ( tr181Success == err )
+        {
+            value=getHLGModeIndex(param.value);
+        }
+        else
+        {
+            LOGERR("Unable to fetch %s from localstore\n",AVOUTPUT_HLGMODE_RFC_PARAM);
+            ret=-1;
+        }
+        return ret;
+    }
+
+    int AVOutputTV::getHDR10ModeIndex(const char * hdr10Mode)
+    {
+        int mode = 0;
+        pic_modes_t *hdr10Modes;
+        unsigned short totalAvailable = 0;
+    
+        tvError_t ret = GetTVSupportedHDR10Modes(&hdr10Modes,&totalAvailable);
+        if(ret == tvERROR_NONE) {
+            for(int count = 0;count <totalAvailable;count++ )
+            {
+                if(strncmp(hdr10Mode, hdr10Modes[count].name, strlen(hdr10Mode))==0){
+                    mode = hdr10Modes[count].value;
+                    break;
+                }
+    
+            }
+        }else{
+            mode = -1;
+            LOGERR("(%s):get supported mode is failed\n", __func__);
+        }
+    
+        return mode;
+    }
+
+    int AVOutputTV::getHLGModeIndex(const char * hlgMode)
+    {
+        int mode = 0;
+        pic_modes_t *hlgModes;
+        unsigned short totalAvailable = 0;
+    
+        tvError_t ret = GetTVSupportedHLGModes(&hlgModes,&totalAvailable);
+        if(ret == tvERROR_NONE) {
+            for(int count = 0;count <totalAvailable;count++ )
+            {
+                if(strncmp(hlgMode, hlgModes[count].name, strlen(hlgMode))==0){
+                    mode = hlgModes[count].value;
+                    break;
+                }
+    
+            }
+        }else{
+            mode = -1;
+            LOGERR("(%s):get supported mode is failed\n", __func__);
+        }
+    
+        return mode;
+    }
+
+    void AVOutputTV::spliltStringsAndConvertToSet( std::string pqmodeInfo,std::string formatInfo,std::string sourceInfo,std::set<string> &pqmode, std::set<string> &format, std::set<string> &source)
+    {
+        std::string token;
+        std::stringstream pqmodeStream(pqmodeInfo);
+        std::stringstream formatStream(formatInfo);
+        std::stringstream sourceStream(sourceInfo);
+    
+        while( getline(pqmodeStream,token,',') )
+        {
+            pqmode.insert( token );
+            token.clear();
+        }
+    
+        while( getline(formatStream,token,',') )
+        {
+            format.insert( token );
+            token.clear();
+        }
+    
+        while( getline(sourceStream,token,','))
+        {
+            source.insert( token );
+            token.clear();
+        }
+    
+        LOGINFO("All the Sets \n");
+        LOGINFO("Range :\n");
+    
+        for( std::string param : pqmode )
+            LOGINFO("%s \n", param.c_str());
+    
+        for( std::string param : format )
+            LOGINFO("%s \n", param.c_str());
+    
+        for( std::string param : source )
+            LOGINFO("%s \n",param.c_str());
+    
+        LOGINFO("\n");
+    }
+
+    std::string AVOutputTV::getDolbyModeStringFromEnum( tvDolbyMode_t mode)
+
+    {
+            std::string value;
+            switch(mode)
+            {
+                case tvDolbyMode_Dark:
+                case tvHDR10Mode_Dark:
+                case tvHLGMode_Dark:
+                        value = "Dark";
+                        break;
+                case tvDolbyMode_Bright:
+                case tvHDR10Mode_Bright:
+                case tvHLGMode_Bright:
+                        value = "Bright";
+                        break;
+                default:
+                        break;
+            }
+            return value;
+    }
+    
 
 }//namespace Plugin
 }//namespace WPEFramework
