@@ -945,6 +945,11 @@ namespace WPEFramework {
             {
                 gExitReasonMutex.lock();
                 gApplicationsExitReason[service->Callsign()] = AppLastExitReason::DEACTIVATED;
+#ifdef HIBERNATE_NATIVE_APPS_ON_SUSPENDED
+                nativeAppWasResumedMutex.lock();
+                nativeAppWasResumed[service->Callsign()] = false;
+                nativeAppWasResumedMutex.unlock();
+#endif
                 if(service->Reason() == PluginHost::IShell::FAILURE)
                 {
                     gApplicationsExitReason[service->Callsign()] = AppLastExitReason::CRASH;
