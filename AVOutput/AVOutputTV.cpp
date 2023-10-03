@@ -5872,6 +5872,8 @@ namespace Plugin {
                                  GetLDIMAndEDIDLevel(params[0],format,&dimmingLevel,&edidLevel,mode);
                                  ret |= SaveLocalDimmingLevel(source, mode,format,dimmingLevel);
                                  break;
+			      case PQ_PARAM_CMS:
+			      case PQ_PARAM_LDIM:
 			      default:
 				 break;
                         }
