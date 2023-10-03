@@ -36,6 +36,7 @@
 #include <iomanip>
 #include <bits/stdc++.h>
 #include <algorithm>
+#include <array>
 
 #include "MaintenanceManager.h"
 
@@ -66,7 +67,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 22
+#define API_VERSION_NUMBER_PATCH 24
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 
@@ -75,9 +76,13 @@ using namespace std;
 #define TR181_AUTOREBOOT_ENABLE "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable"
 #define TR181_STOP_MAINTENANCE  "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.StopMaintenance.Enable"
 #define TR181_RDKVFWUPGRADER  "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.RDKFirmwareUpgrader.Enable"
+
+#if defined(ENABLE_WHOAMI)
 #define TR181_PARTNER_ID "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.PartnerName"
 #define TR181_TARGET_PROPOSITION "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.TargetProposition"
 #define TR181_XCONFURL "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.XconfUrl"
+#endif
+
 #define INTERNET_CONNECTED_STATE 3
 
 string notifyStatusToString(Maint_notify_status_t &status)
@@ -233,11 +238,13 @@ namespace WPEFramework {
             "uploadSTBLogs.sh"
         };
 
-        string deviceInitializationContext[] = {
+#if defined(ENABLE_WHOAMI)
+        static const array<string, 3> kDeviceInitContextKeyVals = {
             "partnerId",
             "targetProposition",
             "regionalConfigService"
         };
+#endif
 
         /**
          * Register MaintenanceManager module as wpeframework plugin
@@ -266,13 +273,15 @@ namespace WPEFramework {
             MaintenanceManager::m_task_map[task_names_foreground[2].c_str()]=false;
             MaintenanceManager::m_task_map[task_names_foreground[3].c_str()]=false;
 
-            MaintenanceManager::m_param_map[deviceInitializationContext[0].c_str()] = TR181_PARTNER_ID;
-            MaintenanceManager::m_param_map[deviceInitializationContext[1].c_str()] = TR181_TARGET_PROPOSITION;
-            MaintenanceManager::m_param_map[deviceInitializationContext[2].c_str()] = TR181_XCONFURL;
+#if defined(ENABLE_WHOAMI)
+            MaintenanceManager::m_param_map[kDeviceInitContextKeyVals[0].c_str()] = TR181_PARTNER_ID;
+            MaintenanceManager::m_param_map[kDeviceInitContextKeyVals[1].c_str()] = TR181_TARGET_PROPOSITION;
+            MaintenanceManager::m_param_map[kDeviceInitContextKeyVals[2].c_str()] = TR181_XCONFURL;
 
-            MaintenanceManager::m_paramType_map[deviceInitializationContext[0].c_str()] = DATA_TYPE::WDMP_STRING;
-            MaintenanceManager::m_paramType_map[deviceInitializationContext[1].c_str()] = DATA_TYPE::WDMP_STRING;
-            MaintenanceManager::m_paramType_map[deviceInitializationContext[2].c_str()] = DATA_TYPE::WDMP_STRING;
+            MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[0].c_str()] = DATA_TYPE::WDMP_STRING;
+            MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[1].c_str()] = DATA_TYPE::WDMP_STRING;
+            MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[2].c_str()] = DATA_TYPE::WDMP_STRING;
+#endif
          }
 
         void MaintenanceManager::task_execution_thread(){
@@ -397,6 +406,7 @@ namespace WPEFramework {
             LOGINFO("Worker Thread Completed");
         }
 
+#if defined(ENABLE_WHOAMI)
         bool MaintenanceManager::knowWhoAmI()
         {
             bool success = false;
@@ -421,20 +431,18 @@ namespace WPEFramework {
 
                         thunder_client->Invoke<JsonObject, JsonObject>(5000, "getDeviceInitializationContext", params, joGetResult);
                         if (joGetResult.HasLabel("success") && joGetResult["success"].Boolean()) {
-                            if (joGetResult.HasLabel("partnerProvisioningContext")) {
-                                JsonObject getProvisioningContext = joGetResult["partnerProvisioningContext"].Object();
-                                int size = (int)(sizeof(deviceInitializationContext)/sizeof(deviceInitializationContext[0]));
-                                for (int idx=0; idx < size; idx++) {
-                                    const char* key = deviceInitializationContext[idx].c_str();
-
-                                    // Retrive partnerProvisioningContext Value
-                                    string paramValue = getProvisioningContext[key].String();
+                            static const char* kDeviceInitializationContext = "deviceInitializationContext";
+                            if (joGetResult.HasLabel(kDeviceInitializationContext)) {
+                                JsonObject getInitializationContext = joGetResult[kDeviceInitializationContext].Object();
+                                for (const string& key : kDeviceInitContextKeyVals) {
+                                    // Retrieve deviceInitializationContext Value
+                                    string paramValue = getInitializationContext[key.c_str()].String();
 
                                     if (!paramValue.empty()) {
-                                        if (strcmp(key, "regionalConfigService") == 0) {
+                                        if (strcmp(key.c_str(), "regionalConfigService") == 0) {
                                             paramValue = "https://" + paramValue;
                                         }
-                                        LOGINFO("[partnerProvisioningContext] %s : %s", key, paramValue.c_str());
+                                        LOGINFO("[%s] %s : %s", kDeviceInitializationContext, key.c_str(), paramValue.c_str());
 
                                         // Retrieve tr181 parameter from m_param_map
                                         string rfc_parameter = m_param_map[key];
@@ -442,15 +450,15 @@ namespace WPEFramework {
                                         //  Retrieve parameter data type from m_paramType_map
                                         DATA_TYPE rfc_dataType = m_paramType_map[key];
 
-                                        // Set the RFC values for partnerProvisioningContext parameters
+                                        // Set the RFC values for deviceInitializationContext parameters
                                         setRFC(rfc_parameter.c_str(), paramValue.c_str(), rfc_dataType);
                                     } else {
-                                        LOGINFO("Not able to fetch %s value from partnerProvisioningContext", key);
+                                        LOGINFO("Not able to fetch %s value from %s", key.c_str(), kDeviceInitializationContext);
                                     }
                                 }
                                 success = true;
                             } else {
-                                LOGINFO("partnerProvisioningContext is not available in the response");
+                                LOGINFO("deviceInitializationContext is not available in the response");
                             }
                         } else {
                             // Get retryDelay value and sleep for that much seconds
@@ -480,6 +488,7 @@ namespace WPEFramework {
             } while (!success);
             return success;
         }
+#endif
 
         // Thunder plugin communication
         WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* MaintenanceManager::getThunderPluginHandle(const char* callsign)
