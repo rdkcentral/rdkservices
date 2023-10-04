@@ -434,10 +434,18 @@ namespace Plugin {
 
         ret = tvInit();
 
-        if(ret != tvERROR_NONE)
+        if(ret != tvERROR_NONE) {
             LOGERR("Platform Init failed, ret: %s \n", getErrorString(ret).c_str());
-        else
+	} else {
             LOGINFO("Platform Init successful...\n");
+            ret = tvSD3toCriSyncInit();
+            if(ret != tvERROR_NONE) {
+                LOGERR(" SD3 <->cri_data sync failed, ret: %s \n", getErrorString(ret).c_str());
+            }
+            else {
+                LOGERR(" SD3 <->cri_data sync success, ret: %s \n", getErrorString(ret).c_str());
+            }
+        }
 
         tvVideoFormatCallbackData callbackData = {this,tvVideoFormatChangeHandler};
         RegisterVideoFormatChangeCB(callbackData);
