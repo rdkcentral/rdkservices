@@ -253,14 +253,17 @@ bool MiracastGstPlayer::changePipelineState(GstState state) const
 
 void MiracastGstPlayer::element_setup(GstElement * playbin, GstElement * element, GQueue * elts)
 {
-    GstElementFactory *f = gst_element_get_factory (element);
-    MIRACASTLOG_INFO("element_setup  name: %s \n",f ? GST_OBJECT_NAME (f) : GST_OBJECT_NAME (element));
-    if(g_strcmp0(GST_OBJECT_NAME (f),"tsdemux")==0 )
+    GstElementFactory *eltfact = gst_element_get_factory (element);
+
+    MIRACASTLOG_TRACE("eltfact: [%x]\n",eltfact);
+    MIRACASTLOG_TRACE("name: [%s]\n",eltfact ? GST_OBJECT_NAME (eltfact) : GST_OBJECT_NAME (element));
+
+    if( nullptr != eltfact && ( 0 == g_strcmp0(GST_OBJECT_NAME (eltfact),"tsdemux")))
     {
-        g_object_set(G_OBJECT(f), "ignore-pcr", true , nullptr);
+        g_object_set(G_OBJECT(eltfact), "ignore-pcr", true , nullptr);
         MIRACASTLOG_INFO("set property ignore-pcr to true\n");
     }
-    g_queue_push_tail (elts, f ? GST_OBJECT_NAME (f) : GST_OBJECT_NAME (element));
+    g_queue_push_tail (elts, eltfact ? GST_OBJECT_NAME (eltfact) : GST_OBJECT_NAME (element));
 }
 
 bool MiracastGstPlayer::createPipeline()
