@@ -465,10 +465,10 @@ namespace Plugin {
 	//Get number of source supported
 	numberSourcesSupported = GetNumberOfSourcesSupported( );
 
-        SyncPQParamsToDriverCache("all","all","all");
+        SyncPQParamsToDriverCache("global","global","global");
 
         // source format specific sync to ssm data
-        SyncSourceFormatPicModeToCache("current", "all", "all");//Tamil--need to move it to SyncPQPAramsToDriverCache
+        SyncSourceFormatPicModeToCache("current", "global", "global");//Tamil--need to move it to SyncPQPAramsToDriverCache
 
        if(appUsesGlobalBackLightFactor)
        {
@@ -699,15 +699,15 @@ namespace Plugin {
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
-            pqmode = "current";
+            pqmode = "global";
 
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
-            source = "current";
+            source = "global";
 
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
-            format = "current";
+            format = "global";
 
         convertParamToLowerCase(source, pqmode, format);
 
@@ -878,15 +878,15 @@ namespace Plugin {
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
-            pqmode = "current";
+            pqmode = "global";
 
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
-            source = "current";
+            source = "global";
 
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
-            format = "current";
+            format = "global";
 
         convertParamToLowerCase(source, pqmode, format);
 
@@ -1099,15 +1099,15 @@ namespace Plugin {
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
-            pqmode = "current";
+            pqmode = "global";
 
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
-            source = "current";
+            source = "global";
 
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
-            format = "current";
+            format = "global";
 
         convertParamToLowerCase(source, pqmode, format);
 
@@ -1152,15 +1152,15 @@ namespace Plugin {
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
-            pqmode = "current";
+            pqmode = "global";
 
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
-            source = "current";
+            source = "global";
 
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
-            format = "current";
+            format = "global";
 
         convertParamToLowerCase(source, pqmode, format);
 
@@ -1291,15 +1291,15 @@ namespace Plugin {
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
-            pqmode = "current";
+            pqmode = "global";
 
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
-            source = "current";
+            source = "global";
 
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
-            format = "current";
+            format = "global";
 
         convertParamToLowerCase(source, pqmode, format);
 
@@ -1341,15 +1341,15 @@ namespace Plugin {
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
-            pqmode = "current";
+            pqmode = "global";
 
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
-            source = "current";
+            source = "global";
 
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
-            format = "current";
+            format = "global";
        
         convertParamToLowerCase(source, pqmode, format);
 
@@ -1399,15 +1399,15 @@ namespace Plugin {
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
-            pqmode = "current";
+            pqmode = "global";
 
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
-            source = "current";
+            source = "global";
 
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
-            format = "current";
+            format = "global";
 
         convertParamToLowerCase(source, pqmode, format);
 
@@ -1521,15 +1521,15 @@ namespace Plugin {
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
-            pqmode = "current";
+            pqmode = "global";
 
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
-            source = "current";
+            source = "global";
 
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
-            format = "current";
+            format = "global";
 
         getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         int err = getLocalparam("Contrast",formatIndex,pqIndex,sourceIndex,contrast, PQ_PARAM_CONTRAST);
@@ -1561,15 +1561,15 @@ namespace Plugin {
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
-            pqmode = "current";
+            pqmode = "global";
 
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
-            source = "current";
+            source = "global";
 
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
-            format = "current";
+            format = "global";
        
         convertParamToLowerCase(source, pqmode, format);
 
@@ -1619,15 +1619,15 @@ namespace Plugin {
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
-            pqmode = "current";
+            pqmode = "global";
 
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
-            source = "current";
+            source = "global";
 
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
-            format = "current";
+            format = "global";
 
         convertParamToLowerCase(source, pqmode, format);
 
@@ -1740,15 +1740,15 @@ namespace Plugin {
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
-            pqmode = "current";
+            pqmode = "global";
 
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
-            source = "current";
+            source = "global";
 
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
-            format = "current";
+            format = "global";
 
         getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         int err = getLocalparam("Saturation",formatIndex,pqIndex,sourceIndex,saturation, PQ_PARAM_SATURATION);
@@ -1780,15 +1780,15 @@ namespace Plugin {
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
-            pqmode = "current";
+            pqmode = "global";
 
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
-            source = "current";
+            source = "global";
 
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
-            format = "current";
+            format = "global";
       
         convertParamToLowerCase(source, pqmode, format);
 
@@ -1839,15 +1839,15 @@ namespace Plugin {
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
-            pqmode = "current";
+            pqmode = "global";
 
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
-            source = "current";
+            source = "global";
 
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
-            format = "current";
+            format = "global";
 
         convertParamToLowerCase(source, pqmode, format);
 
@@ -1968,15 +1968,15 @@ namespace Plugin {
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
-            pqmode = "current";
+            pqmode = "global";
 
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
-            source = "current";
+            source = "global";
 
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
-            format = "current";
+            format = "global";
 
         getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         int err = getLocalparam("Sharpness",formatIndex,pqIndex,sourceIndex,sharpness, PQ_PARAM_SHARPNESS);
@@ -2008,15 +2008,15 @@ namespace Plugin {
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
-            pqmode = "current";
+            pqmode = "global";
 
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
-            source = "current";
+            source = "global";
 
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
-            format = "current";
+            format = "global";
    
         convertParamToLowerCase(source, pqmode, format);
 
@@ -2066,15 +2066,15 @@ namespace Plugin {
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
-            pqmode = "current";
+            pqmode = "global";
 
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
-            source = "current";
+            source = "global";
 
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
-            format = "current";
+            format = "global";
 
         convertParamToLowerCase(source, pqmode, format);
 
@@ -2188,15 +2188,15 @@ namespace Plugin {
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
-            pqmode = "current";
+            pqmode = "global";
 
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
-            source = "current";
+            source = "global";
 
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
-            format = "current";
+            format = "global";
 
         getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         int err = getLocalparam("Hue",formatIndex,pqIndex,sourceIndex,hue, PQ_PARAM_HUE);
@@ -2228,15 +2228,15 @@ namespace Plugin {
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
-            pqmode = "current";
+            pqmode = "global";
 
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
-            source = "current";
+            source = "global";
 
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
-            format = "current";
+            format = "global";
 
         convertParamToLowerCase(source, pqmode, format);
 
@@ -2287,15 +2287,15 @@ namespace Plugin {
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
-            pqmode = "current";
+            pqmode = "global";
 
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
-            source = "current";
+            source = "global";
 
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
-            format = "current";
+            format = "global";
 
         convertParamToLowerCase(source, pqmode, format);
 
@@ -2490,15 +2490,15 @@ namespace Plugin {
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
-            pqmode = "current";
+            pqmode = "global";
 
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
-            source = "current";
+            source = "global";
 
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
-            format = "current";
+            format = "global";
 
         convertParamToLowerCase(source, pqmode, format);
 
@@ -2547,15 +2547,15 @@ namespace Plugin {
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
-            pqmode = "current";
+            pqmode = "global";
 
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
-            source = "current";
+            source = "global";
 
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
-            format = "current";
+            format = "global";
 
         convertParamToLowerCase(source, pqmode, format);
 
@@ -2733,15 +2733,15 @@ namespace Plugin {
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
-            pqmode = "current";
+            pqmode = "global";
 
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
-            source = "current";
+            source = "global";
 
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
-            format = "current";
+            format = "global";
        
         convertParamToLowerCase(source, pqmode, format);
 
@@ -2817,15 +2817,15 @@ namespace Plugin {
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
-            pqmode = "current";
+            pqmode = "global";
 
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
-            source = "current";
+            source = "global";
 
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
-            format = "current";
+            format = "global";
 
         convertParamToLowerCase(source, pqmode, format);
 
@@ -2960,15 +2960,15 @@ namespace Plugin {
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
-            pqmode = "current";
+            pqmode = "global";
 
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
-            source = "current";
+            source = "global";
 
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
-            format = "current";
+            format = "global";
 
         convertParamToLowerCase(source, pqmode, format);
 
@@ -3044,15 +3044,15 @@ namespace Plugin {
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
-            pqmode = "current";
+            pqmode = "global";
 
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
-            source = "current";
+            source = "global";
 
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
-            format = "current";
+            format = "global";
 
         convertParamToLowerCase(source, pqmode, format);
 
@@ -3183,15 +3183,15 @@ namespace Plugin {
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
-            pqmode = "current";
+            pqmode = "global";
 
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
-            source = "current";
+            source = "global";
 
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
-            format = "current";
+            format = "global";
 
         convertParamToLowerCase(source, pqmode, format);
 
@@ -3267,15 +3267,15 @@ namespace Plugin {
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
-            pqmode = "current";
+            pqmode = "global";
 
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
-            source = "current";
+            source = "global";
 
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
-            format = "current";
+            format = "global";
 
         convertParamToLowerCase(source, pqmode, format);
 
@@ -3454,15 +3454,15 @@ namespace Plugin {
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
-            pqmode = "current";
+            pqmode = "global";
 
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
-            source = "current";
+            source = "global";
 
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
-            format = "current";
+            format = "global";
 
         convertParamToLowerCase(source, pqmode, format);
 
@@ -3518,15 +3518,15 @@ namespace Plugin {
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
-            pqmode = "current";
+            pqmode = "global";
 
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
-            source = "current";
+            source = "global";
 
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
-            format = "current";
+            format = "global";
 
         convertParamToLowerCase(source, pqmode, format);
 
@@ -4822,11 +4822,11 @@ namespace Plugin {
 
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
-            source = "all";
+            source = "global";
 
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
-            format = "all";
+            format = "global";
 
         // As only source need to validate, so pqmode and formate passing as currrent
         if( isSetRequired("current",source,format) ) {
@@ -4884,7 +4884,7 @@ namespace Plugin {
         std::vector<int> source_vec;
         std::vector<int> format_vec;
 
-        getSaveConfig("current", "all", "all", source_vec, pq_mode_vec, format_vec);
+        getSaveConfig("current", "global", "global", source_vec, pq_mode_vec, format_vec);
  
         for (int source : source_vec) {
             for (int format : format_vec) {
@@ -5022,15 +5022,15 @@ namespace Plugin {
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
-            pqmode = "current";
+            pqmode = "global";
 
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
-            source = "current";
+            source = "global";
 
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
-            format = "current";
+            format = "global";
 
         if( isSetRequired(pqmode,source,format) ) {
              LOGINFO("Proceed with setLowLatencyState\n");
@@ -5104,15 +5104,15 @@ namespace Plugin {
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
-            pqmode = "current";
+            pqmode = "global";
 
         source = parameters.HasLabel("source") ? parameters["source"].String() : "";
         if(source.empty())
-            source = "current";
+            source = "global";
 
         format = parameters.HasLabel("format") ? parameters["format"].String() : "";
         if(format.empty())
-            format = "current";
+            format = "global";
 
         int retval= updatePQParamsToCache("reset","LowLatencyState",pqmode,source,format,PQ_PARAM_LOWLATENCY_STATE,params);
         if(retval != 0 ) {
@@ -5438,7 +5438,7 @@ namespace Plugin {
 
         LOGINFO("Entry %s source %s pqmode %s format %s \n", __FUNCTION__, source.c_str(), pqmode.c_str(), format.c_str());
         // converting pq to valid paramter format
-        if (pqmode == "all") 
+        if (pqmode == "global") 
         {
             pic_modes_t *availableModes;
             unsigned short num_pqmodes = 0;
@@ -5491,7 +5491,7 @@ namespace Plugin {
         if (temp_string != "") temp_string.clear();
 
         // convert source into valid parameter format
-        if (source == "all") 
+        if (source == "global") 
         {
             pic_modes_t *availableSources;
             unsigned short num_source = 0;
@@ -5539,7 +5539,7 @@ namespace Plugin {
         if (temp_string != "") temp_string.clear();
 
         //convert format into valid parameter
-        if (format == "all") 
+        if (format == "global") 
         {
             char * format;
             unsigned short num_format = 0;
@@ -6122,10 +6122,10 @@ namespace Plugin {
         LOGINFO("%s : source = %s,PicMode = %s, format= %s\n",__FUNCTION__,source.c_str(),pqmode.c_str(),format.c_str());
 
         if( ( pqmode.compare("current") == 0 || (pqmode.find(currentPicMode) != std::string::npos) ||
-              pqmode.compare("all") == 0 || pqmode.compare("global") == 0) &&
+              pqmode.compare("global") == 0) &&
             (source.compare("current") == 0 || (source.find(currentSource) != std::string::npos)  ||
-              source.compare("all") == 0 || source.compare("global") == 0) &&
-            (format.compare("current") == 0 || (format.find(currentFormat) !=  std::string::npos) || format.compare("all") == 0 ||
+              source.compare("global") == 0) &&
+            (format.compare("current") == 0 || (format.find(currentFormat) !=  std::string::npos) ||
               format.compare("global") == 0 )  )
             ret=true;
 
