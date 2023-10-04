@@ -1,9 +1,7 @@
 precondition = ["Platform"]
 callsign = "org.rdk.TextToSpeech"
 autostart = "@PLUGIN_TEXTTOSPEECH_AUTOSTART@"
-
-if boolean("@PLUGIN_TEXTTOSPEECH_STARTUPORDER@"):
-    startuporder = "@PLUGIN_TEXTTOSPEECH_STARTUPORDER@"
+startuporder = "@PLUGIN_TEXTTOSPEECH_STARTUPORDER@"
 
 configuration = JSON()
 

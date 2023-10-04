@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.1.16] - 2023-09-20
+### Added
+- Implement Thunder Plugin Configuration for Kirkstone builds(CMake-3.20 & above)
+
 ## [1.1.15] - 2023-04-11
 ### Fixed
 - Change clock type to monotonic based

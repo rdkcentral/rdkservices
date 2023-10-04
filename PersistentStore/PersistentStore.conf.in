@@ -1,9 +1,7 @@
-autostart = "false"
 precondition = ["Platform"]
 callsign = "org.rdk.PersistentStore"
-
-if boolean("@PLUGIN_PERSISTENTSTORE_STARTUPORDER@"):
-    startuporder = "@PLUGIN_PERSISTENTSTORE_STARTUPORDER@"
+autostart = "true"
+startuporder = "@PLUGIN_PERSISTENTSTORE_STARTUPORDER@"
 
 configuration = JSON()
 
