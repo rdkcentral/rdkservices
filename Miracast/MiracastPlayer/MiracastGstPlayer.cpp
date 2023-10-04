@@ -337,9 +337,13 @@ bool MiracastGstPlayer::createPipeline()
     }
 #endif
     updateVideoSinkRectangle();
-    MIRACASTLOG_INFO("!!! Configuring element-setup callback !!!\n");
-    g_signal_connect (m_pipeline, "element-setup", G_CALLBACK(element_setup),&m_elts);
-    MIRACASTLOG_INFO("!!! Configuring element-setup callback DONE !!!\n");
+
+    if (0 != access("/opt/miracast_avoid_element_setup", F_OK))
+    {
+        MIRACASTLOG_INFO("!!! Configuring element-setup callback !!!\n");
+        g_signal_connect (m_pipeline, "element-setup", G_CALLBACK(element_setup),&m_elts);
+        MIRACASTLOG_INFO("!!! Configuring element-setup callback DONE !!!\n");
+    }
 
     g_object_set(m_pipeline, "video-sink", m_video_sink, nullptr);
 
