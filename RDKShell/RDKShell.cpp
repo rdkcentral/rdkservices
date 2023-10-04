@@ -1557,6 +1557,11 @@ namespace WPEFramework {
                       }
                       request->mResult = CompositorController::kill(request->mClient);
                       gKillClientRequests.erase(gKillClientRequests.begin());
+		      /*
+		       * onApplicationTerminated never reaches the intendend audiences, since we remove the listeners before
+		       * the callbacks are made from westeros. This is a hack to imitate the same
+		       */
+		      mEventListener->onApplicationTerminated(request->mClient);
                       sem_post(&request->mSemaphore);
                   }
                   if (receivedResolutionRequest)
