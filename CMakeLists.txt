@@ -29,6 +29,9 @@ option(COMCAST_CONFIG "Comcast services configuration" ON)
 if(COMCAST_CONFIG)
     include(services.cmake)
 endif()
+if(RDK_SERVICES_TEST_L2)
+    include(l2tests.cmake)
+endif()
 
 option(PLUGIN_OCICONTAINER "Include OCIContainer plugin" OFF)
 
@@ -278,6 +281,11 @@ endif()
 if(RDK_SERVICES_TEST)
     add_subdirectory(Tests)
 endif()
+
+if(RDK_SERVICE_L2_TEST)
+    add_subdirectory(Tests/L2_tests)
+endif()
+
 
 if(PLUGIN_UNIFIEDCASMANAGEMENT)
     add_subdirectory(UnifiedCASManagement)
