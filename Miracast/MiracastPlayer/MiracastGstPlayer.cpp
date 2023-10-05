@@ -251,6 +251,49 @@ bool MiracastGstPlayer::changePipelineState(GstState state) const
     return status;
 }
 
+std::string MiracastGstPlayer::parse_opt_flag( std::string file_name , bool integer_check )
+{
+    std::string return_buffer = "";
+    std::ifstream parse_opt_flag_file( file_name.c_str());
+
+    if (!parse_opt_flag_file)
+    {
+        MIRACASTLOG_ERROR("Failed to open [%s] file\n",file_name.c_str());
+    }
+    else
+    {
+        std::string word;
+        parse_opt_flag_file >> word;
+        parse_opt_flag_file.close();
+
+        return_buffer = word;
+
+        if (integer_check)
+        {
+            if (word.empty())
+            {
+                integer_check = false;
+            }
+            else
+            {
+                for (char c : word) {
+                    if (!isdigit(c))
+                    {
+                        integer_check = false;
+                        break;
+                    }
+                }
+            }
+
+            if ( false == integer_check )
+            {
+                return_buffer = "";
+            }
+        }
+    }
+    return return_buffer;
+}
+
 void MiracastGstPlayer::element_setup(GstElement * playbin, GstElement * element, GQueue * elts)
 {
     GstElementFactory *eltfact = gst_element_get_factory (element);
@@ -258,10 +301,41 @@ void MiracastGstPlayer::element_setup(GstElement * playbin, GstElement * element
     MIRACASTLOG_TRACE("eltfact: [%x]\n",eltfact);
     MIRACASTLOG_TRACE("name: [%s]\n",eltfact ? GST_OBJECT_NAME (eltfact) : GST_OBJECT_NAME (element));
 
-    if( nullptr != eltfact && ( 0 == g_strcmp0(GST_OBJECT_NAME (eltfact),"tsdemux")))
+    if ( nullptr != eltfact && ( 0 == g_strcmp0(GST_OBJECT_NAME (eltfact),"tsdemux")))
     {
         g_object_set(G_OBJECT(eltfact), "ignore-pcr", true , nullptr);
         MIRACASTLOG_INFO("set property ignore-pcr to true\n");
+    }
+    else if ( nullptr != eltfact && ( 0 == g_strcmp0(GST_OBJECT_NAME (eltfact),"multiqueue")))
+    {
+        std::string opt_flag_buffer = "";
+        uint64_t    max_size_buffers = 0,
+                    max_size_bytes = 0,
+                    max_size_time = 0;
+
+        opt_flag_buffer = parse_opt_flag( "/opt/miracast_max-size-buffers" , true );
+        if (!opt_flag_buffer.empty())
+        {
+            max_size_buffers = std::stoull(opt_flag_buffer.c_str());
+            g_object_set(G_OBJECT(eltfact), "max-size-buffers", max_size_buffers , NULL);
+            MIRACASTLOG_INFO("set max-size-buffers to [%llu]\n",max_size_buffers);
+        }
+
+        opt_flag_buffer = parse_opt_flag( "/opt/miracast_max-size-bytes" , true );
+        if (!opt_flag_buffer.empty())
+        {
+            max_size_bytes = std::stoull(opt_flag_buffer.c_str());
+            g_object_set(G_OBJECT(eltfact), "max-size-bytes", max_size_bytes , NULL);
+            MIRACASTLOG_INFO("set max-size-bytes to [%llu]\n",max_size_bytes);
+        }
+
+        opt_flag_buffer = parse_opt_flag( "/opt/miracast_max-size-time" , true );
+        if (!opt_flag_buffer.empty())
+        {
+            max_size_time = std::stoull(opt_flag_buffer.c_str());
+            g_object_set(G_OBJECT(eltfact), "max-size-time", max_size_time , NULL);
+            MIRACASTLOG_INFO("set max-size-time to [%llu]\n",max_size_time);
+        }
     }
     g_queue_push_tail (elts, eltfact ? GST_OBJECT_NAME (eltfact) : GST_OBJECT_NAME (element));
 }
@@ -308,10 +382,6 @@ bool MiracastGstPlayer::createPipeline()
 
     g_object_set(m_pipeline, "flags", flagAudio | flagVideo | flagNativeVideo | flagBuffering, nullptr);
 
-    MIRACASTLOG_INFO("Miracast playbin uri [ %s ]", m_uri.c_str());
-
-    g_object_set(m_pipeline, "uri", (const gchar *)m_uri.c_str(), nullptr);
-
     m_video_sink = gst_element_factory_make("westerossink", nullptr);
 
     bool westerossink_immediate_output = true;
@@ -354,6 +424,9 @@ bool MiracastGstPlayer::createPipeline()
     {
         g_object_set(m_pipeline, "audio-sink", m_audio_sink, nullptr);
     }
+
+    MIRACASTLOG_INFO("Miracast playbin uri [ %s ]", m_uri.c_str());
+    g_object_set(m_pipeline, "uri", (const gchar *)m_uri.c_str(), nullptr);
 
     bus = gst_element_get_bus(m_pipeline);
     m_bus_watch_id = gst_bus_add_watch(bus, (GstBusFunc)busMessageCb, this);

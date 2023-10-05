@@ -48,6 +48,7 @@ public:
     void print_pipeline_state();
     GQueue m_elts;
     static void element_setup(GstElement * playbin, GstElement * element, GQueue * elts);
+    static std::string parse_opt_flag( std::string file_name , bool integer_check = false );
 
 private:
     GstElement *m_pipeline{nullptr};
