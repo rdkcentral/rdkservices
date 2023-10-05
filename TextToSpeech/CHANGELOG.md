@@ -39,6 +39,10 @@ All notable changes to this RDK Service will be documented in this file.
 ### Added
 - SAT token appending,speechrate parameter for flex 2.0
 
+## [1.0.9] - 2023-09-12
+### Added
+- Implement Thunder Plugin Configuration for Kirkstone builds(CMake-3.20 & above)
+
 ## [1.0.8] - 2023-07-03
 ### Fixed
 - Rate not intialized to 0

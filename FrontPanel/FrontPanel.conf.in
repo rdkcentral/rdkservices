@@ -1,0 +1,4 @@
+precondition = ["Platform"]
+callsign = "org.rdk.FrontPanel"
+autostart = "false"
+startuporder = "@PLUGIN_FRONTPANEL_STARTUPORDER@"

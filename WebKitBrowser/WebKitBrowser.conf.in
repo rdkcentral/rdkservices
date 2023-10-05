@@ -1,0 +1,80 @@
+startuporder = "@PLUGIN_WEBKITBROWSER_STARTUPORDER@"
+
+if boolean("@PLUGIN_WEBSERVER@"):
+    precondition = ["Graphics" "WebSource"]
+else:
+    precondition = ["Graphics"]
+
+
+autostart = "@PLUGIN_WEBKITBROWSER_AUTOSTART@"
+resumed =  "@PLUGIN_WEBKITBROWSER_RESUMED@"
+
+persistentpathpostfix = "@PLUGIN_WEBKITBROWSER_PERSISTENTPATHPOSTFIX@"
+
+configuration = JSON()
+
+configuration.add("url", "@PLUGIN_WEBKITBROWSER_STARTURL@")
+configuration.add("useragent", "@PLUGIN_WEBKITBROWSER_USERAGENT@")
+
+if not boolean("@WEBKIT_GLIB_API@"):
+    configuration.add("injectedbundle", "libWPEInjectedBundle@CMAKE_SHARED_LIBRARY_SUFFIX@")
+else:
+    configuration.add("extensiondir", "@PLUGIN_WEBKITBROWSER_EXTENSION_DIRECTORY@")
+
+configuration.add("transparent", "@PLUGIN_WEBKITBROWSER_TRANSPARENT@")
+configuration.add("compositor", "noaa")
+configuration.add("inspector", "@PLUGIN_WEBKITBROWSER_WEBINSPECTOR_ADDRESS@")
+configuration.add("fps", "true")
+configuration.add("cursor", "false")
+configuration.add("touch", "false")
+configuration.add("msebuffers", "@PLUGIN_WEBKITBROWSER_MSEBUFFERS@")
+configuration.add("thunderdecryptorpreference", "@PLUGIN_WEBKITBROWSER_THUNDER_DECRYPTOR_PREFERENCE@")
+configuration.add("memoryprofile", "@PLUGIN_WEBKITBROWSER_MEMORYPROFILE@")
+configuration.add("mediacontenttypesrequiringhardwaresupport",
+                    "@PLUGIN_WEBKITBROWSER_MEDIA_CONTENT_TYPES_REQUIRING_HARDWARE_SUPPORT@")
+configuration.add("mediadiskcache", "@PLUGIN_WEBKITBROWSER_MEDIADISKCACHE@")
+configuration.add("diskcachedir", "@PLUGIN_WEBKITBROWSER_DISKCACHEDIR@")
+configuration.add("diskcache", "@PLUGIN_WEBKITBROWSER_DISKCACHE@")
+configuration.add("xhrcache", "@PLUGIN_WEBKITBROWSER_XHRCACHE@")
+configuration.add("webgl", "@PLUGIN_WEBKITBROWSER_WEBGL@")
+configuration.add("threadedpainting", "@PLUGIN_WEBKITBROWSER_THREADEDPAINTING@")
+configuration.add("height", "@PLUGIN_WEBKITBROWSER_HEIGHT@")
+configuration.add("width", "@PLUGIN_WEBKITBROWSER_WIDTH@")
+configuration.add("clientidentifier", "@PLUGIN_WEBKITBROWSER_CLIENTIDENTIFIER@")
+configuration.add("localstorageenabled", "@PLUGIN_WEBKITBROWSER_LOCALSTORAGE_ENABLE@")
+configuration.add("localstorage", "@PLUGIN_WEBKITBROWSER_LOCALSTORAGE@")
+configuration.add("cookiestorage", "@PLUGIN_WEBKITBROWSER_COOKIESTORAGE@")
+configuration.add("indexeddbenabled", "@PLUGIN_WEBKITBROWSER_INDEXEDDB_ENABLE@")
+configuration.add("indexeddbpath", "@PLUGIN_WEBKITBROWSER_INDEXEDDB_PATH@")
+configuration.add("indexeddbsize", "@PLUGIN_WEBKITBROWSER_INDEXEDDB_SIZE@")
+
+if boolean("@PLUGIN_WEBKITBROWSER_WINDOWCLOSE@"):
+    configuration.add("windowclose", "@PLUGIN_WEBKITBROWSER_WINDOWCLOSE@")
+
+configuration.add("execpath", "@PLUGIN_WEBKITBROWSER_ALTERNATIVE_EXEC_PATH@")
+configuration.add("proxy", "@PLUGIN_WEBKITBROWSER_HTTP_PROXY@")
+configuration.add("proxyexclusion", "@PLUGIN_WEBKITBROWSER_HTTP_PROXY_EXCLUSION@")
+configuration.add("clientcert", "@PLUGIN_WEBKITBROWSER_CLIENT_CERT@")
+configuration.add("clientcertkey", "@PLUGIN_WEBKITBROWSER_CLIENT_CERT_KEY@")
+configuration.add("logtosystemconsoleenabled", "@PLUGIN_WEBKITBROWSER_LOGTOSYSTEMCONSOLE@")
+configuration.add("secure", "@PLUGIN_WEBKITBROWSER_SECURE@")
+configuration.add("watchdogchecktimeoutinseconds", 10)
+configuration.add("watchdoghangthresholdtinseconds", 60)
+
+root = JSON()
+root.add("mode", "@PLUGIN_WEBKITBROWSER_MODE@")
+root.add("locator", "lib@PLUGIN_WEBKITBROWSER_IMPLEMENTATION@.so")
+root.add("user", "@PLUGIN_WEBKITBROWSER_USER@")
+root.add("group", "@PLUGIN_WEBKITBROWSER_GROUP@")
+configuration.add("root", root)
+
+javascript = JSON()
+javascript.add("useJIT", "true" if boolean("@PLUGIN_WEBKITBROWSER_ENABLE_JIT@") else "false")
+javascript.add("useDFG", "true" if boolean("@PLUGIN_WEBKITBROWSER_ENABLE_DFG@") else "false")
+configuration.add("javascript", javascript)
+
+memory = JSON()
+
+memory.add("webprocesslimit", "@PLUGIN_WEBKITBROWSER_MEMORYPRESSURE_WEBPROCESSLIMIT@")
+memory.add("networkprocesslimit", "@PLUGIN_WEBKITBROWSER_MEMORYPRESSURE_NETWORKPROCESSLIMIT@")
+configuration.add("memory", memory)

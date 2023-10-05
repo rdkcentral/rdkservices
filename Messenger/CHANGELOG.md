@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.1.2] - 2023-09-12
+### Added
+- Implement Thunder Plugin Configuration for Kirkstone builds(CMake-3.20 & above)
+
 ## [1.1.1]
 ### Fixed
 - Failed to activate Messenger Plugin and bring the Messenger changes to main branch

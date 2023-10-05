@@ -1,0 +1,7 @@
+autostart = "true"
+startuporder = "@PLUGIN_SECURITYAGENT_STARTUPORDER@"
+
+configuration = JSON()
+
+configuration.add("acl", "@PLUGIN_SECURITYAGENT_ACL_FILE_NAME@")
+configuration.add("dac", "@PLUGIN_SECURITYAGENT_DAC_FOLDER@")

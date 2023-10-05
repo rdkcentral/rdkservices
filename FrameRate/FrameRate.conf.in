@@ -1,0 +1,4 @@
+precondition = ["Platform"]
+callsign = "org.rdk.FrameRate"
+autostart = "false"
+startuporder = "@PLUGIN_FRAMERATE_STARTUPORDER@"

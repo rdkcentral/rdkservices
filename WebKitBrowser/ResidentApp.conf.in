@@ -1,0 +1,66 @@
+precondition = ["Graphics"]
+startuporder = "@PLUGIN_RESIDENT_APP_STARTUPORDER@"
+autostart = "@PLUGIN_RESIDENT_APP_AUTOSTART@"
+resumed = "true"
+persistentpathpostfix = "@PLUGIN_RESIDENT_APP_PERSISTENTPATHPOSTFIX@"
+
+configuration = JSON()
+
+configuration.add("url", "@PLUGIN_RESIDENT_APP_STARTURL@")
+configuration.add("useragent", "@PLUGIN_RESIDENT_APP_USERAGENT@")
+
+if not boolean("@WEBKIT_GLIB_API@"):
+    configuration.add("injectedbundle", "libWPEInjectedBundle@CMAKE_SHARED_LIBRARY_SUFFIX@")
+else:
+    configuration.add("extensiondir", "@PLUGIN_WEBKITBROWSER_EXTENSION_DIRECTORY@")
+
+configuration.add("transparent", "@PLUGIN_WEBKITBROWSER_TRANSPARENT@")
+configuration.add("compositor", "@PLUGIN_RESIDENT_APP_COMPOSITOR@")
+configuration.add("inspector", "@PLUGIN_RESIDENT_APP_WEBINSPECTOR_ADDRESS@")
+configuration.add("fps", "false")
+configuration.add("cursor", "false")
+configuration.add("touch", "false")
+configuration.add("msebuffers", "audio:2m,video:15m,text:1m")
+configuration.add("memoryprofile", "@PLUGIN_WEBKITBROWSER_MEMORYPROFILE@")
+configuration.add("mediadiskcache", "@PLUGIN_WEBKITBROWSER_MEDIADISKCACHE@")
+configuration.add("diskcache", "@PLUGIN_WEBKITBROWSER_DISKCACHE@")
+configuration.add("xhrcache", "@PLUGIN_WEBKITBROWSER_XHRCACHE@")
+configuration.add("noncompositedwebgl", "true")
+configuration.add("webgl", "@PLUGIN_WEBKITBROWSER_WEBGL@")
+configuration.add("threadedpainting", "@PLUGIN_WEBKITBROWSER_THREADEDPAINTING@")
+configuration.add("diskcachedir", "@PLUGIN_RESIDENT_APP_DISKCACHEDIR@")
+configuration.add("height", "@PLUGIN_WEBKITBROWSER_HEIGHT@")
+configuration.add("width", "@PLUGIN_WEBKITBROWSER_WIDTH@")
+configuration.add("clientidentifier", "@PLUGIN_RESIDENT_APP_CLIENTIDENTIFIER@")
+configuration.add("localstorageenabled", "@PLUGIN_RESIDENT_APP_LOCALSTORAGE_ENABLE@")
+configuration.add("localstorage", "@PLUGIN_RESIDENT_APP_LOCALSTORAGE@")
+configuration.add("localstoragesize", "@PLUGIN_RESIDENT_APP_LOCALSTORAGESIZE@")
+configuration.add("cookiestorage", "@PLUGIN_RESIDENT_APP_COOKIESTORAGE@")
+configuration.add("indexeddbenabled", "@PLUGIN_RESIDENT_APP_INDEXEDDB_ENABLE@")
+configuration.add("indexeddbpath", "@PLUGIN_RESIDENT_APP_INDEXEDDB_PATH@")
+configuration.add("indexeddbsize", "@PLUGIN_RESIDENT_APP_INDEXEDDB_SIZE@")
+
+if "@PLUGIN_WEBKITBROWSER_CLIENT_CERT@" != "" and "@PLUGIN_WEBKITBROWSER_CLIENT_CERT_KEY@" != "":
+    configuration.add("clientcert", "@PLUGIN_WEBKITBROWSER_CLIENT_CERT@")
+    configuration.add("clientcertkey", "@PLUGIN_WEBKITBROWSER_CLIENT_CERT_KEY@")
+
+if boolean("@PLUGIN_RESIDENT_APP_LOGTOSYSTEMCONSOLE@"):
+    configuration.add("logtosystemconsoleenabled", "true")
+
+configuration.add("secure", "@PLUGIN_RESIDENT_APP_SECURE@")
+configuration.add("watchdogchecktimeoutinseconds", "10")
+configuration.add("watchdoghangthresholdtinseconds", "60")
+
+rootobject = JSON()
+rootobject.add("mode", "@PLUGIN_RESIDENT_APP_MODE@")
+rootobject.add("locator", "lib@PLUGIN_WEBKITBROWSER_IMPLEMENTATION@.so")
+rootobject.add("user", "@PLUGIN_WEBKITBROWSER_USER@")
+rootobject.add("group", "@PLUGIN_WEBKITBROWSER_GROUP@")
+configuration.add("root", rootobject)
+
+memory = JSON()
+
+memory.add("webprocesslimit", "@PLUGIN_RESIDENT_APP_MEMORYPRESSURE_WEBPROCESSLIMIT@")
+memory.add("networkprocesslimit", "@PLUGIN_RESIDENT_APP_MEMORYPRESSURE_NETWORKPROCESSLIMIT@")
+configuration.add("memory", memory)
+
