@@ -5438,29 +5438,10 @@ namespace Plugin {
 
     int AVOutputTV::convertToValidInputParameter(std::string & source, std::string & pqmode, std::string & format) 
     {
-        std::vector<std::string> temp_vec;
-        std::string temp_string;
-        std::string temp_pqmode = pqmode;
-        std::string temp_source = source;
-        std::string temp_format = format;
 
         LOGINFO("Entry %s source %s pqmode %s format %s \n", __FUNCTION__, source.c_str(), pqmode.c_str(), format.c_str());
         // converting pq to valid paramter format
-        if (pqmode == "global") 
-        {
-            pic_modes_t *availableModes;
-            unsigned short num_pqmodes = 0;
-            GetTVSupportedPictureModes(&availableModes, &num_pqmodes);
-
-            for(int count = 0;count < num_pqmodes; count++)
- 	    {
-                temp_string.clear();
-                temp_string += availableModes[count].value;
-                LOGINFO("ALL:%s \n", temp_string.c_str());
-                temp_vec.push_back(temp_string);
-            }
-        }
-        else if (pqmode == "current")
+        if (pqmode == "current")
         {
             char picMode[PIC_MODE_NAME_MAX]={0};
             if(!getCurrentPictureMode(picMode)) 
@@ -5470,49 +5451,12 @@ namespace Plugin {
             } 
 	    else 
             {
-                temp_string.clear();
-                temp_string += picMode;
-                LOGINFO("current PQmode :%s \n", temp_string.c_str());
-                temp_vec.push_back(temp_string);
+                pqmode = picMode;
+                LOGINFO("current PQmode :%s \n", pqmode.c_str());
             }
         } 
-        else 
-        {
-            char *modeString = strdup(temp_pqmode.c_str());
-            char *token = NULL;
-            while ( (token = strtok_r(modeString," ",&modeString)) )
-            {
-                temp_string.clear();
-                temp_string += token;
-                LOGINFO("Multiple/single PQmode:%s \n", temp_string.c_str());
-                temp_vec.push_back(temp_string);
-            }
-        }
 
-        // convert List of PQ mode to single string
-        if (temp_vec.size() != 0) {
-            pqmode = convertToString(temp_vec);
-        }
-     
-        //unsetting all vector data
-        if (temp_vec.size() != 0 ) temp_vec.clear();
-        if (temp_string != "") temp_string.clear();
-
-        // convert source into valid parameter format
-        if (source == "global") 
-        {
-            pic_modes_t *availableSources;
-            unsigned short num_source = 0;
-            GetTVSupportedSources(&availableSources, &num_source);
-            for (int count = 0; count < num_source; count++)
-	    {
-                temp_string.clear();
-                temp_string +=  availableSources[count].name;
-                LOGINFO("ALL source:%s \n", temp_string.c_str());
-                temp_vec.push_back(temp_string);
-            }
-        }
-        else if (source == "current") 
+        if (source == "current") 
         {
             int currentSource = 0;
             tvError_t ret = GetCurrentSource(&currentSource);
@@ -5520,80 +5464,16 @@ namespace Plugin {
 	    if(ret != tvERROR_NONE)
                 LOGWARN("%s: GetCurrentSource( ) Failed \n",__FUNCTION__);
           
-      	    temp_string.clear();
-            temp_string = convertSourceIndexToString(currentSource);
-            LOGINFO("current source:%s \n", temp_string.c_str());
-            temp_vec.push_back(temp_string);
+            source = convertSourceIndexToString(currentSource);
+            LOGINFO("current source:%s \n", source.c_str());
         } 
-        else 
-        {
-            char *sourceString = strdup(temp_source.c_str());
-            char *token = NULL;
-            while ((token = strtok_r(sourceString," ",&sourceString))) 
-            {
-                temp_string.clear();
-                temp_string += token;
-                LOGINFO("single/multiple source:%s \n", temp_string.c_str());
-                temp_vec.push_back(temp_string);
-            }
-        }
 
-	// convert List ofsource to single string
-        if (temp_vec.size() != 0) {
-             source = convertToString(temp_vec);
-        }
-        //unsetting all vector data
-        if (temp_vec.size() != 0) temp_vec.clear();
-        if (temp_string != "") temp_string.clear();
-
-        //convert format into valid parameter
-        if (format == "global") 
-        {
-            char * format;
-            unsigned short num_format = 0;
-            tvError_t ret = GetTVSupportedFormats(&format, &num_format);
-            if (ret == tvERROR_NONE) 
-            {
-                for (int count = 0; count < num_format; count++) 
-                {
-                    temp_string.clear();
-                    temp_string += format+(count*FORMAT_NAME_SIZE);
-                    LOGINFO("ALL format:%s \n", temp_string.c_str());
-                    if (temp_string != "none") {
-                        temp_vec.push_back(temp_string);
-                    }
-                }
-            }
-            else 
-	    {
-                LOGINFO("Failed to read the format. \n");
-                return -1;
-            }
-        } 
-	else if (format == "current") 
+	if (format == "current") 
 	{
-          temp_string.clear();
-          temp_string += convertVideoFormatToString( GetCurrentContentFormat());
-          LOGINFO("current:%s \n", temp_string.c_str());
-          temp_vec.push_back(temp_string);
-        }
-        else
-       	{
-            char *formatString = strdup(temp_format.c_str());
-            char *token = NULL;
-            while ( ( token = strtok_r(formatString," ",&formatString) )) 
-            {
-                temp_string.clear();
-                temp_string += token;
-                LOGINFO("single/mutiple:%s \n", temp_string.c_str());
-                temp_vec.push_back(temp_string);
-            }
+          format = convertVideoFormatToString( GetCurrentContentFormat());
+          LOGINFO("current:%s \n", format.c_str());
         }
 
-	// convert List of format to single string
-        if (temp_vec.size() != 0) {
-            format = convertToString(temp_vec);
-        }
         return 0;
         LOGINFO("Exit %s source %s pqmode %s format %s \n", __FUNCTION__, source.c_str(), pqmode.c_str(), format.c_str());
     }
@@ -6129,12 +6009,9 @@ namespace Plugin {
         LOGINFO("%s : currentSource = %s,currentPicMode = %s,currentFormat = %s\n",__FUNCTION__,currentSource.c_str(),currentPicMode.c_str(),currentFormat.c_str());
         LOGINFO("%s : source = %s,PicMode = %s, format= %s\n",__FUNCTION__,source.c_str(),pqmode.c_str(),format.c_str());
 
-        if( ( pqmode.compare("current") == 0 || (pqmode.find(currentPicMode) != std::string::npos) ||
-              pqmode.compare("global") == 0) &&
-            (source.compare("current") == 0 || (source.find(currentSource) != std::string::npos)  ||
-              source.compare("global") == 0) &&
-            (format.compare("current") == 0 || (format.find(currentFormat) !=  std::string::npos) ||
-              format.compare("global") == 0 )  )
+        if( ( (pqmode.find(currentPicMode) != std::string::npos) || (pqmode.compare("global") == 0) ) &&
+            ( (source.find(currentSource) != std::string::npos)  || (source.compare("global") == 0) ) &&
+            ( (format.find(currentFormat) !=  std::string::npos) || (format.compare("global") == 0) )  )
             ret=true;
 
         return ret;
@@ -6538,15 +6415,6 @@ namespace Plugin {
             }
         }
         return ret;
-    }
-
-    std::string AVOutputTV::convertToString(std::vector<std::string> vec_strings)
-    {
-        std::string result = std::accumulate(vec_strings.begin(), vec_strings.end(), std::string(),
-            [](const std::string& a, const std::string& b) -> std::string {
-                return a.empty() ? b : a + "," + b;
-            });
-        return result;
     }
 
     std::string AVOutputTV::convertSourceIndexToString(int sourceIndex)

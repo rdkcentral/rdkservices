@@ -204,7 +204,6 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
 	int syncCMSParams(std::string pqParam,tvCMS_tunel_t tunnel_type,std::string pqmode, std::string source, std::string format);
 	tvError_t syncCMSParamsToDriverCache(std::string pqmode, std::string source, std::string format);
 	int getCurrentPictureMode(char *picMode);
-	std::string convertToString(std::vector<std::string> vec_strings);
 	std::string convertSourceIndexToString(int sourceIndex);
 	std::string convertVideoFormatToString( int formatIndex );
 	bool isIncluded(const std::set<string> set1,const std::set<string> set2);
