@@ -1221,7 +1221,11 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             LOGWARN("SystemService updatingFirmware\n");
+#if defined(ENABLE_RDKVFW_RDKE)
+	    string command("/usr/bin/rdkvfwupgrader 0 4 >> /opt/logs/swupdate.log &");
+#else
             string command("/lib/rdk/deviceInitiatedFWDnld.sh 0 4 >> /opt/logs/swupdate.log &");
+#endif
             Utils::cRunScript(command.c_str());
             returnResponse(true);
         }

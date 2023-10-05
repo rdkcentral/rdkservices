@@ -61,6 +61,11 @@ if (ENABLE_WHOAMI)
     add_definitions (-DENABLE_WHOAMI=ON)
 endif()
 
+if (ENABLE_RDKVFW_RDKE)
+    message("Enable ENABLE_RDKVFW_RDKE")
+    add_definitions (-DENABLE_RDKVFW_RDKE=ON)
+endif()
+
 if (BUILD_ENABLE_HDCP)
     message("Building with hdcp profile")
     add_definitions (-DBUILD_ENABLE_HDCP)
