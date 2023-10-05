@@ -1,0 +1,9 @@
+precondition = ["Network"]
+autostart = "@PLUGIN_LOCATIONSYNC_AUTOSTART@"
+startuporder = "@PLUGIN_LOCATIONSYNC_STARTUPORDER@"
+
+configuration = JSON()
+
+configuration.add("interval", 10)
+configuration.add("retries", 60)
+configuration.add("source", "@PLUGIN_LOCATIONSYNC_URI@")

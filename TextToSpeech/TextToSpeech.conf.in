@@ -1,0 +1,29 @@
+precondition = ["Platform"]
+callsign = "org.rdk.TextToSpeech"
+autostart = "@PLUGIN_TEXTTOSPEECH_AUTOSTART@"
+startuporder = "@PLUGIN_TEXTTOSPEECH_STARTUPORDER@"
+
+configuration = JSON()
+
+configuration.add("endpoint", "@PLUGIN_TEXTTOSPEECH_ENDPOINT@")
+configuration.add("secureendpoint", "@PLUGIN_TEXTTOSPEECH_SECURE_ENDPOINT@")
+configuration.add("endpoint_type", "@PLUGIN_TEXTTOSPEECH_ENDPOINT_TYPE@")
+configuration.add("speechrate", "@PLUGIN_TEXTTOSPEECH_SPEECHRATE@")
+configuration.add("satplugincallsign", "@PLUGIN_TEXTTOSPEECH_SATPLUGINCALLSIGN@")
+configuration.add("language", "@PLUGIN_TEXTTOSPEECH_LANGUAGE@")
+configuration.add("volume", "@PLUGIN_TEXTTOSPEECH_VOLUME@")
+configuration.add("rate", "@PLUGIN_TEXTTOSPEECH_RATE@")
+
+voices = JSON()
+
+voices.add("en-US", "@PLUGIN_TEXTTOSPEECH_VOICE_FOR_EN@")
+voices.add("es-MX", "@PLUGIN_TEXTTOSPEECH_VOICE_FOR_ES@")
+voices.add("fr-CA", "@PLUGIN_TEXTTOSPEECH_VOICE_FOR_FR@")
+voices.add("en-GB", "@PLUGIN_TEXTTOSPEECH_VOICE_FOR_GB@")
+voices.add("de-DE", "@PLUGIN_TEXTTOSPEECH_VOICE_FOR_DE@")
+voices.add("it-IT", "@PLUGIN_TEXTTOSPEECH_VOICE_FOR_IT@")
+configuration.add("voices", voices)
+
+rootobject = JSON()
+rootobject.add("mode", "@PLUGIN_TEXTTOSPEECH_MODE@")
+configuration.add("root", rootobject)

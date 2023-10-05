@@ -2,7 +2,7 @@
 <a name="UserPreferences_Plugin"></a>
 # UserPreferences Plugin
 
-**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/UserPreferences/CHANGELOG.md)**
+**Version: [1.0.1](https://github.com/rdkcentral/rdkservices/blob/main/UserPreferences/CHANGELOG.md)**
 
 A org.rdk.UserPreferences plugin for Thunder framework.
 
