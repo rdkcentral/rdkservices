@@ -306,7 +306,9 @@ void MiracastGstPlayer::element_setup(GstElement * playbin, GstElement * element
         g_object_set(G_OBJECT(eltfact), "ignore-pcr", true , nullptr);
         MIRACASTLOG_INFO("set property ignore-pcr to true\n");
     }
-    else if ( nullptr != eltfact && ( 0 == g_strcmp0(GST_OBJECT_NAME (eltfact),"multiqueue")))
+    else if (( nullptr != eltfact ) &&
+            (( 0 == g_strcmp0(GST_OBJECT_NAME (eltfact),"multiqueue"))||
+            ( 0 == g_strcmp0(GST_OBJECT_NAME (eltfact),"queue"))))
     {
         std::string opt_flag_buffer = "";
         uint64_t    max_size_buffers = 0,
@@ -384,11 +386,11 @@ bool MiracastGstPlayer::createPipeline()
 
     m_video_sink = gst_element_factory_make("westerossink", nullptr);
 
-    bool westerossink_immediate_output = true;
+    bool westerossink_immediate_output = false;
 
-    if (0 == access("/opt/miracast_avoid_immediateoutput", F_OK))
+    if (0 == access("/opt/miracast_use_immediateoutput", F_OK))
     {
-        westerossink_immediate_output = false;
+        westerossink_immediate_output = true;
     }
 
     if(g_object_class_find_property(G_OBJECT_GET_CLASS(m_video_sink), "immediate-output"))
@@ -397,9 +399,14 @@ bool MiracastGstPlayer::createPipeline()
         MIRACASTLOG_INFO("Set immediate-output as [%x] \n",westerossink_immediate_output);
     }
 #if defined(PLATFORM_AMLOGIC)
-    if (0 != access("/opt/miracast_avoid_amlhalasink", F_OK))
+    if (0 == access("/opt/miracast_use_amlhalasink", F_OK))
     {
-        bool amlhalasink_direct_mode = false;
+        bool amlhalasink_direct_mode = true;
+
+        if (0 == access("/opt/miracast_amlasink_disable_dm", F_OK))
+        {
+            amlhalasink_direct_mode = false;
+        }
         m_audio_sink = gst_element_factory_make("amlhalasink", nullptr);
 
         if(g_object_class_find_property(G_OBJECT_GET_CLASS(m_audio_sink), "direct-mode"))

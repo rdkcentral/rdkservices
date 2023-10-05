@@ -346,6 +346,7 @@ void MiracastP2P::p2pCtrlMonitorThread()
                 }
             }
         }
+        usleep(50000);
     }
     MIRACASTLOG_TRACE("Exiting ctrl monitor thread");
 }
