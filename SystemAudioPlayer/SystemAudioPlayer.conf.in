@@ -1,0 +1,9 @@
+precondition = ["Platform"]
+callsign = "org.rdk.SystemAudioPlayer"
+startuporder = "@PLUGIN_SYSTEMAUDIOPLAYER_STARTUPORDER@"
+autostart = "@PLUGIN_SYSTEMAUDIOPLAYER_AUTOSTART@"
+
+configuration = JSON()
+rootobject = JSON()
+rootobject.add("mode", "@PLUGIN_SYSTEMAUDIOPLAYER_MODE@")
+configuration.add("root", rootobject)

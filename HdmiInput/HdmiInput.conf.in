@@ -1,0 +1,4 @@
+precondition = ["Platform"]
+callsign = "org.rdk.HdmiInput"
+autostart = "false"
+startuporder = "@PLUGIN_HDMIINPUT_STARTUPORDER@"

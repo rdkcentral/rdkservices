@@ -1,0 +1,4 @@
+precondition = ["Platform"]
+callsign = "org.rdk.Network"
+autostart = "true"
+startuporder = "@PLUGIN_NETWORK_STARTUPORDER@"
