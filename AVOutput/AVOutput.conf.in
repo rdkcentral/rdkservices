@@ -1,0 +1,10 @@
+autostart = "true"
+
+if boolean("@PLUGIN_AVOUTPUT_STARTUPORDER@"):
+    startuporder = "@PLUGIN_AVOUTPUT_STARTUPORDER@"
+
+configuration = JSON()
+
+rootobject = JSON()
+rootobject.add("mode", "@PLUGIN_AVOUTPUT_MODE@")
+configuration.add("root", rootobject)
