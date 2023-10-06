@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.24] - 2023-10-09
+### Added
+- Added support to set partnerID through Authservice received from gdi
+
 ## [1.0.24] - 2023-10-03
 ### Changed
 - Renamed partnerProvisioningContext to deviceInitializationContext for new WhoAmI specification
