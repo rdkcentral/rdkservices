@@ -2367,6 +2367,14 @@ static GSourceFuncs _handlerIntervention =
 
             _adminLock.Unlock();
         }
+        void OnLoadRedirected(const string& URL)
+        {
+            std::unique_lock<std::mutex> lock{urlData_.mutex};
+            if (urlData_.loadResult.waitForFailedOrFinished) {
+                TRACE_L1("Redirected, storing new loadResult URL: %s", URL.c_str());
+                urlData_.loadResult.loadUrl = URL;
+            }
+        }
         void OnStateChange(const PluginHost::IStateControl::state newState)
         {
             _adminLock.Lock();
@@ -3092,6 +3100,11 @@ static GSourceFuncs _handlerIntervention =
                     return;
                 }
                 browser->OnLoadFinished(Core::ToString(uri.c_str()));
+            }
+            else if (loadEvent == WEBKIT_LOAD_REDIRECTED)
+            {
+                const std::string uri = webkit_web_view_get_uri(webView);
+                browser->OnLoadRedirected(uri);
             }
         }
         static void loadFailedCallback(WebKitWebView*, WebKitLoadEvent loadEvent, const gchar* failingURI, GError* error, WebKitImplementation* browser)
