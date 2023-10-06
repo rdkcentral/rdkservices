@@ -1951,22 +1951,25 @@ namespace Plugin {
                 rangeArray.Add(range[index]);
 
             response["rangeInfo"]=rangeArray;
-
-            for (index = 0; index < pqmode.size(); index++)
-                pqmodeArray.Add(pqmode[index]);
-
-            response["pqmodeInfo"]=pqmodeArray;
-
-            for (index = 0; index < source.size(); index++)
-                sourceArray.Add(source[index]);
-
-            response["sourceInfo"]=sourceArray;
-
-            for (index = 0; index < format.size(); index++)
-                formatArray.Add(format[index]);
-
-            response["formatInfo"]=formatArray;
-
+            
+	    if (!pqmode.empty()) {
+                for (index = 0; index < pqmode.size(); index++) {
+                    pqmodeArray.Add(pqmode[index]);
+                }
+                response["pqmodeInfo"]=pqmodeArray;
+            }
+	    if (!source.empty()) {
+                for (index = 0; index < source.size(); index++) {
+                    sourceArray.Add(source[index]);
+                }
+                response["sourceInfo"]=sourceArray;
+            }
+	    if (!format.empty()) {
+                for (index = 0; index < format.size(); index++) {
+                    formatArray.Add(format[index]);
+                }
+                response["formatInfo"]=formatArray;
+            }
             LOGINFO("Exit\n");
             returnResponse(true);
         }
@@ -2170,22 +2173,25 @@ namespace Plugin {
                 rangeArray.Add(range[index]);
 
             response["rangeInfo"]=rangeArray;
-
-            for (index = 0; index < pqmode.size(); index++)
-                pqmodeArray.Add(pqmode[index]);
-
-            response["pqmodeInfo"]=pqmodeArray;
-
-            for (index = 0; index < source.size(); index++)
-                sourceArray.Add(source[index]);
-
-            response["sourceInfo"]=sourceArray;
-
-            for (index = 0; index < format.size(); index++)
-                formatArray.Add(format[index]);
-
-            response["formatInfo"]=formatArray;
-
+          
+	    if (!pqmode.empty()) {
+                for (index = 0; index < pqmode.size(); index++) {
+                    pqmodeArray.Add(pqmode[index]);
+                }
+                response["pqmodeInfo"]=pqmodeArray;
+            }
+	    if (!source.empty()) {
+                for (index = 0; index < source.size(); index++) {
+                    sourceArray.Add(source[index]);
+                }
+                response["sourceInfo"]=sourceArray;
+            }
+	    if (!format.empty()) {
+                for (index = 0; index < format.size(); index++) {
+                    formatArray.Add(format[index]);
+                }
+                response["formatInfo"]=formatArray;
+            }
             LOGINFO("Exit\n");
             returnResponse(true);
         }
@@ -2391,22 +2397,25 @@ namespace Plugin {
                 rangeArray.Add(range[index]);
 
             response["rangeInfo"]=rangeArray;
-
-            for (index = 0; index < pqmode.size(); index++)
-                pqmodeArray.Add(pqmode[index]);
-
-            response["pqmodeInfo"]=pqmodeArray;
-
-            for (index = 0; index < source.size(); index++)
-                sourceArray.Add(source[index]);
-
-            response["sourceInfo"]=sourceArray;
-
-            for (index = 0; index < format.size(); index++)
-                formatArray.Add(format[index]);
-
-            response["formatInfo"]=formatArray;
-
+            
+            if (!pqmode.empty()) {
+                for (index = 0; index < pqmode.size(); index++) {
+                    pqmodeArray.Add(pqmode[index]);
+                }
+                response["pqmodeInfo"]=pqmodeArray;
+            }
+            if (!source.empty()) {
+                for (index = 0; index < source.size(); index++) {
+                    sourceArray.Add(source[index]);
+                }
+                response["sourceInfo"]=sourceArray;
+            }
+            if (!format.empty()) {
+                for (index = 0; index < format.size(); index++) {
+                    formatArray.Add(format[index]);
+                }
+                response["formatInfo"]=formatArray;
+            }
             LOGINFO("Exit\n");
             returnResponse(true);
         }
@@ -2652,21 +2661,24 @@ namespace Plugin {
 
             response["rangeInfo"]=rangeArray;
 
-            for (index = 0; index < pqmode.size(); index++)
-                pqmodeArray.Add(pqmode[index]);
-
-            response["pqmodeInfo"]=pqmodeArray;
-
-            for (index = 0; index < source.size(); index++)
-                sourceArray.Add(source[index]);
-
-            response["sourceInfo"]=sourceArray;
-
-            for (index = 0; index < format.size(); index++)
-                formatArray.Add(format[index]);
-
-            response["formatInfo"]=formatArray;
-
+            if (!pqmode.empty()) {
+                for (index = 0; index < pqmode.size(); index++) {
+                    pqmodeArray.Add(pqmode[index]);
+                }
+                response["pqmodeInfo"]=pqmodeArray;
+            }
+            if (!source.empty()) {
+                for (index = 0; index < source.size(); index++) {
+                    sourceArray.Add(source[index]);
+                }
+                response["sourceInfo"]=sourceArray;
+            }
+            if (!format.empty()) {
+                for (index = 0; index < format.size(); index++) {
+                    formatArray.Add(format[index]);
+                }
+                response["formatInfo"]=formatArray;
+            }
             LOGINFO("Exit\n");
             returnResponse(true);
         }
@@ -3382,21 +3394,24 @@ namespace Plugin {
 
             response["rangeInfo"]=rangeArray;
 
-            for (index = 0; index < pqmode.size(); index++)
-                pqmodeArray.Add(pqmode[index]);
-
-            response["pqmodeInfo"]=pqmodeArray;
-
-            for (index = 0; index < source.size(); index++)
-                sourceArray.Add(source[index]);
-
-            response["sourceInfo"]=sourceArray;
-
-            for (index = 0; index < format.size(); index++)
-                formatArray.Add(format[index]);
-
-            response["formatInfo"]=formatArray;
-
+            if (!pqmode.empty()) {
+                for (index = 0; index < pqmode.size(); index++) {
+                    pqmodeArray.Add(pqmode[index]);
+                }
+                response["pqmodeInfo"]=pqmodeArray;
+            }
+            if (!source.empty()) {
+                for (index = 0; index < source.size(); index++) {
+                    sourceArray.Add(source[index]);
+                }
+                response["sourceInfo"]=sourceArray;
+            }
+            if (!format.empty()) {
+                for (index = 0; index < format.size(); index++) {
+                    formatArray.Add(format[index]);
+                }
+                response["formatInfo"]=formatArray;
+            }
             LOGINFO("Exit\n");
             returnResponse(true);
         }
@@ -3629,22 +3644,25 @@ namespace Plugin {
                 supportedDimmingModeArray.Add(supportedDimmingMode[index]);
 
             response["supportedDimmingModeInfo"]=supportedDimmingModeArray;
-
-            for (index = 0; index < pqmode.size(); index++)
-                pqmodeArray.Add(pqmode[index]);
-
-            response["pqmodeInfo"]=pqmodeArray;
-
-            for (index = 0; index < source.size(); index++)
-                sourceArray.Add(source[index]);
-
-            response["sourceInfo"]=sourceArray;
-
-            for (index = 0; index < format.size(); index++)
-                formatArray.Add(format[index]);
-
-            response["formatInfo"]=formatArray;
-
+             
+            if (!pqmode.empty()) {
+                for (index = 0; index < pqmode.size(); index++) {
+                    pqmodeArray.Add(pqmode[index]);
+                }
+                response["pqmodeInfo"]=pqmodeArray;
+            }
+            if (!source.empty()) {
+                for (index = 0; index < source.size(); index++) {
+                    sourceArray.Add(source[index]);
+                }
+                response["sourceInfo"]=sourceArray;
+            }
+            if (!format.empty()) {
+                for (index = 0; index < format.size(); index++) {
+                    formatArray.Add(format[index]);
+                }
+                response["formatInfo"]=formatArray;
+            }
             LOGINFO("Exit\n");
             returnResponse(true);
         }
@@ -3893,21 +3911,24 @@ namespace Plugin {
 
             response["AutoBacklightControlInfo"]=rangeArray;
 
-            for (index = 0; index < pqmode.size(); index++)
-                pqmodeArray.Add(pqmode[index]);
-
-            response["pqmodeInfo"]=pqmodeArray;
-
-            for (index = 0; index < source.size(); index++)
-                sourceArray.Add(source[index]);
-
-            response["sourceInfo"]=sourceArray;
-
-            for (index = 0; index < format.size(); index++)
-                formatArray.Add(format[index]);
-
-            response["formatInfo"]=formatArray;
-
+            if (!pqmode.empty()) {
+                for (index = 0; index < pqmode.size(); index++) {
+                    pqmodeArray.Add(pqmode[index]);
+                }
+                response["pqmodeInfo"]=pqmodeArray;
+            }
+            if (!source.empty()) {
+                for (index = 0; index < source.size(); index++) {
+                    sourceArray.Add(source[index]);
+                }
+                response["sourceInfo"]=sourceArray;
+            }
+            if (!format.empty()) {
+                for (index = 0; index < format.size(); index++) {
+                    formatArray.Add(format[index]);
+                }
+                response["formatInfo"]=formatArray;
+            }
             LOGINFO("Exit\n");
             returnResponse(true);
         }
@@ -4084,22 +4105,24 @@ namespace Plugin {
                 rangeArray.Add(range[index]);
 
             response["DolbyVisionModeInfo"]=rangeArray;
-
-            for (index = 0; index < pqmode.size(); index++)
-                pqmodeArray.Add(pqmode[index]);
-
-            response["pqmodeInfo"]=pqmodeArray;
-
-            for (index = 0; index < source.size(); index++)
-                sourceArray.Add(source[index]);
-
-            response["sourceInfo"]=sourceArray;
-
-            for (index = 0; index < format.size(); index++)
-                formatArray.Add(format[index]);
-
-            response["formatInfo"]=formatArray;
-
+            if (!pqmode.empty()) {
+                for (index = 0; index < pqmode.size(); index++) {
+                    pqmodeArray.Add(pqmode[index]);
+                }
+                response["pqmodeInfo"]=pqmodeArray;
+            }
+            if (!source.empty()) {
+                for (index = 0; index < source.size(); index++) {
+                    sourceArray.Add(source[index]);
+                }
+                response["sourceInfo"]=sourceArray;
+            }
+            if (!format.empty()) {
+                for (index = 0; index < format.size(); index++) {
+                    formatArray.Add(format[index]);
+                }
+                response["formatInfo"]=formatArray;
+            }
             LOGINFO("Exit\n");
             returnResponse(true);
         }
@@ -4274,22 +4297,24 @@ namespace Plugin {
                 rangeArray.Add(range[index]);
 
             response["HDR10ModeInfo"]=rangeArray;
-
-            for (index = 0; index < pqmode.size(); index++)
-                pqmodeArray.Add(pqmode[index]);
-
-            response["pqmodeInfo"]=pqmodeArray;
-
-            for (index = 0; index < source.size(); index++)
-                sourceArray.Add(source[index]);
-
-            response["sourceInfo"]=sourceArray;
-
-            for (index = 0; index < format.size(); index++)
-                formatArray.Add(format[index]);
-
-            response["formatInfo"]=formatArray;
-
+            if (!pqmode.empty()) {
+                for (index = 0; index < pqmode.size(); index++) {
+                    pqmodeArray.Add(pqmode[index]);
+                }
+                response["pqmodeInfo"]=pqmodeArray;
+            }
+            if(!source.empty()) {
+                for (index = 0; index < source.size(); index++) {
+                    sourceArray.Add(source[index]);
+                }
+                response["sourceInfo"]=sourceArray;
+            }
+            if (!format.empty()) {
+                for (index = 0; index < format.size(); index++) {
+                    formatArray.Add(format[index]);
+                }
+                response["formatInfo"]=formatArray;
+            }
             LOGINFO("Exit\n");
             returnResponse(true);
         }
@@ -4459,22 +4484,24 @@ namespace Plugin {
                 rangeArray.Add(range[index]);
 
             response["HLG10ModeInfo"]=rangeArray;
-
-            for (index = 0; index < pqmode.size(); index++)
-                pqmodeArray.Add(pqmode[index]);
-
-            response["pqmodeInfo"]=pqmodeArray;
-
-            for (index = 0; index < source.size(); index++)
-                sourceArray.Add(source[index]);
-
-            response["sourceInfo"]=sourceArray;
-
-            for (index = 0; index < format.size(); index++)
-                formatArray.Add(format[index]);
-
-            response["formatInfo"]=formatArray;
-
+            if (!pqmode.empty()) {
+                for (index = 0; index < pqmode.size(); index++) {
+                    pqmodeArray.Add(pqmode[index]);
+                }
+                response["pqmodeInfo"]=pqmodeArray;
+            }
+            if (!source.empty()) {
+                for (index = 0; index < source.size(); index++) {
+                    sourceArray.Add(source[index]);
+                }
+                response["sourceInfo"]=sourceArray;
+            }
+            if (!format.empty()) {
+                for (index = 0; index < format.size(); index++) {
+                    formatArray.Add(format[index]);
+                }
+                response["formatInfo"]=formatArray;
+            }
             LOGINFO("Exit\n");
             returnResponse(true);
         }
@@ -5192,22 +5219,24 @@ namespace Plugin {
                 rangeArray.Add(range[index]);
 
             response["LowLatencyInfo"]=rangeArray;
-
-            for (index = 0; index < pqmode.size(); index++)
-                pqmodeArray.Add(pqmode[index]);
-
-            response["pqmodeInfo"]=pqmodeArray;
-
-            for (index = 0; index < source.size(); index++)
-                sourceArray.Add(source[index]);
-
-            response["sourceInfo"]=sourceArray;
-
-            for (index = 0; index < format.size(); index++)
-                formatArray.Add(format[index]);
-
-            response["formatInfo"]=formatArray;
-
+            if (!pqmode.empty()) {
+                for (index = 0; index < pqmode.size(); index++) {
+                    pqmodeArray.Add(pqmode[index]);
+                }
+                response["pqmodeInfo"]=pqmodeArray;
+            }
+            if (!source.empty()) {
+                for (index = 0; index < source.size(); index++) {
+                    sourceArray.Add(source[index]);
+                }
+                response["sourceInfo"]=sourceArray;
+            }
+            if (!format.empty()) {
+                for (index = 0; index < format.size(); index++) {
+                    formatArray.Add(format[index]);
+                }
+                response["formatInfo"]=formatArray;
+            }
             LOGINFO("Exit\n");
             returnResponse(true);
         }
