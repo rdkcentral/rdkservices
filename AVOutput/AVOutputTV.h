@@ -194,7 +194,7 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
 	bool isSetRequired(std::string pqmode,std::string source,std::string format);
 	void getParamIndex(string source,string pqmode,string format,int& sourceIndex,int& pqmodeIndex,int& formatIndex);
 	tvDataComponentColor_t getComponentColorEnum(std::string colorName);
-	int getDolbyParams(tvContentFormatType_t format, std::string &s);
+	int getDolbyParams(tvContentFormatType_t format, std::string &s, std::string source = "");
 	tvError_t getParamsCaps(std::vector<std::string> &range, std::vector<std::string> &pqmode, std::vector<std::string> &source, std::vector<std::string> &format,std::string param );
 	int getDimmingModeIndex(string mode);
 	int saveLocalDimmingLevelToDriverCache(std::string action,std::string pqmode, std::string source, std::string format,int params[] );

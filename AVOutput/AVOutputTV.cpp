@@ -3963,10 +3963,18 @@ namespace Plugin {
     {
         LOGINFO("Entry");
         std::string dolby_vision;
+        std::string source;
         JsonObject range;
-	range["List"] = "dark,bright";
+	range["list"] = "dark,bright";
 
-        if ( -1 == getDolbyParams(tvContentFormatType_DOVI, dolby_vision)) {
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
+
+        if (source.empty()) source = "current";
+
+        /* Since dolby vision mode is source specific, convert source current to valid input*/
+        convertToValidInputParameter(source, "current", "dv");
+
+        if ( -1 == getDolbyParams(tvContentFormatType_DOVI, dolby_vision, source)) {
             returnResponse(false);
         }
         else {
@@ -3981,34 +3989,53 @@ namespace Plugin {
     {
         LOGINFO("Entry\n");
         std::string value;
+        std::string source;
 	
 	value = parameters.HasLabel("DolbyVisionMode") ? parameters["DolbyVisionMode"].String() : "";
         returnIfParamNotFound(parameters,"DolbyVisionMode");
 
-        if( !isCapablityCheckPassed( "global", "global", "dolby", "DolbyVisionMode" )) {
+	source =  parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
+	if (source.empty()) source = "global";
+
+        if( !isCapablityCheckPassed( "global", source, "dv", "DolbyVisionMode" )) {
             LOGERR("%s: CapablityCheck failed for DolbyVisionMode\n", __FUNCTION__);
             returnResponse(false);
         }
 
-        tvError_t ret = SetTVDolbyVisionMode(value.c_str());
-
+	tvError_t ret = tvERROR_NONE;
+	if( isSetRequired("current",source,"dv") ) {
+            ret = SetTVDolbyVisionMode(value.c_str());
+        }
         if(ret != tvERROR_NONE) {
             returnResponse(false);
         }
         else {
             int params[3]={0};
             params[0]=GetDolbyModeIndex(value.c_str());
-            int retval=updatePQParamsToCache("set","DolbyVisionMode", "all","all","dolby",PQ_PARAM_DOLBY_MODE,params);
+            int retval=updatePQParamsToCache("set","DolbyVisionMode", "global",source,"dv",PQ_PARAM_DOLBY_MODE,params);
             if(retval != 0) {
                 LOGWARN("Failed to Save DolbyVisionMode to ssm_data\n");
             }
-            tr181ErrorCode_t err = setLocalParam(rfc_caller_id, AVOUTPUT_DOLBYVISIONMODE_RFC_PARAM, value.c_str());
-            if ( err != tr181Success ) {
-                LOGWARN("setLocalParam for %s Failed : %s\n", AVOUTPUT_DOLBYVISIONMODE_RFC_PARAM, getTR181ErrorString(err));
-            }
-            else {
-                LOGINFO("setLocalParam for %s Successful, Value: %s\n", AVOUTPUT_DOLBYVISIONMODE_RFC_PARAM, value.c_str());
-            }
+
+            std::vector<int> sourceVec;
+	    std::vector<int> pqmodeVec;
+            std::vector<int> formatVec;
+
+            getSaveConfig("global", source, "global", sourceVec, pqmodeVec, formatVec);
+
+            for (unsigned int x = 0; x < sourceVec.size(); x++ ) {
+                std::string tr181_param_name = "";
+		tr181_param_name += std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
+		tr181_param_name += "."+std::to_string(sourceVec[x])+"."+"DolbyVisionMode";
+
+		tr181ErrorCode_t err = setLocalParam(rfc_caller_id, tr181_param_name.c_str(), value.c_str());
+		if ( err != tr181Success ) {
+                    LOGWARN("setLocalParam for %s Failed : %s\n", AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM, getTR181ErrorString(err));
+                }
+                else {
+                    LOGINFO("setLocalParam for %s Successful, Value: %s\n", AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM, value.c_str());
+                }
+	    }
 
             LOGINFO("Exit\n");
             returnResponse(true);
@@ -4019,50 +4046,68 @@ namespace Plugin {
     {
         LOGINFO("Entry\n");
         std::string value;
+        std::string source;
+
+        std::vector<int> sourceVec;
+        std::vector<int> pqmodeVec;
+        std::vector<int> formatVec;
+
         tvError_t ret = tvERROR_NONE;
 
-	if( !isCapablityCheckPassed( "global", "global", "dolby", "DolbyVisionMode" )) {
+        source =  parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
+        if (source.empty()) source = "global";
+
+
+	if( !isCapablityCheckPassed( "global", source, "dv", "DolbyVisionMode" )) {
             LOGERR("%s: CapablityCheck failed for DolbyVisionMode\n", __FUNCTION__);
             returnResponse(false);
         }
 
-        tr181ErrorCode_t err = clearLocalParam(rfc_caller_id,AVOUTPUT_DOLBYVISIONMODE_RFC_PARAM);
-        if ( err != tr181Success ) {
-            LOGWARN("clearLocalParam for %s Failed : %s\n", AVOUTPUT_DOLBYVISIONMODE_RFC_PARAM, getTR181ErrorString(err));
-            ret  = tvERROR_GENERAL;
-        }
-        else {
-            LOGINFO("clearLocalParam for %s Successful\n", AVOUTPUT_DOLBYVISIONMODE_RFC_PARAM);
+        getSaveConfig("global", source, "dv", sourceVec, pqmodeVec, formatVec);
 
-            TR181_ParamData_t param;
-            memset(&param, 0, sizeof(param));
-            tr181ErrorCode_t err = getLocalParam(rfc_caller_id, AVOUTPUT_DOLBYVISIONMODE_RFC_PARAM,&param);
+        for (unsigned int x = 0; x < sourceVec.size(); x++ ) {
+            std::string tr181_param_name;
+            std::string dolbyVision;
+            tr181_param_name += std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
+            tr181_param_name += "."+std::to_string(sourceVec[x])+"."+"DolbyVisionMode";
+
+            tr181ErrorCode_t err = clearLocalParam(rfc_caller_id, tr181_param_name.c_str());
             if ( err != tr181Success ) {
-                LOGWARN("getLocalParam for %s Failed : %s\n", AVOUTPUT_DOLBYVISIONMODE_RFC_PARAM, getTR181ErrorString(err));
+                LOGWARN("clearLocalParam for %s Failed : %s\n", tr181_param_name.c_str(), getTR181ErrorString(err));
                 ret  = tvERROR_GENERAL;
             }
             else {
-                LOGINFO("getLocalParam for %s Successful\n", AVOUTPUT_DOLBYVISIONMODE_RFC_PARAM);
+                LOGINFO("clearLocalParam for %s Successful\n", tr181_param_name.c_str());
 
-                ret = SetTVDolbyVisionMode(param.value);
-                if(ret != tvERROR_NONE) {
-                    LOGWARN("DV Mode set failed: %s\n",getErrorString(ret).c_str());
+                if ( -1 == getDolbyParams(tvContentFormatType_DOVI, dolbyVision, convertSourceIndexToString(sourceVec[x]))) {
+                    returnResponse(false);
                 }
+
                 else {
+                    LOGINFO("getLocalParam for %s Successful\n", tr181_param_name.c_str());
+                    if( isSetRequired("current", convertSourceIndexToString(sourceVec[x]),"dv") ) {
+                        ret = SetTVDolbyVisionMode(param.value);
+                    }
+                    if(ret != tvERROR_NONE) {
+                        LOGWARN("DV Mode set failed: %s\n",getErrorString(ret).c_str());
+                    }
+                    else {
 
-                    LOGINFO("DV Mode initialized successfully value %s\n",param.value);
-                    //Save DolbyVisionMode to ssm_data
-                    int params[3]={0};
-                    params[0]=GetDolbyModeIndex(param.value);
-                    int retval=updatePQParamsToCache("reset","DolbyVisionMode","all","all","dolby",PQ_PARAM_DOLBY_MODE,params);
+                        LOGINFO("DV Mode initialized successfully value %s\n",dolbyVision.c_str());
+                        //Save DolbyVisionMode to ssm_data
+                        int params[3]={0};
+                        params[0]=GetDolbyModeIndex(dolbyVision.c_str());
+                        int retval=updatePQParamsToCache("reset","DolbyVisionMode","global",convertSourceIndexToString(sourceVec[x]),"dv"
+                                                          ,PQ_PARAM_DOLBY_MODE,params);
 
-                    if(retval != 0) {
-                        LOGWARN("Failed to Save DolbyVisionMode to ssm_data\n");
-                        ret=tvERROR_GENERAL;
+                        if(retval != 0) {
+                            LOGWARN("Failed to Save DolbyVisionMode to ssm_data\n");
+                            ret=tvERROR_GENERAL;
+                        }
                     }
                 }
             }
-        }
+        } // loop
         if(ret != tvERROR_NONE)
         {
             returnResponse(false);
@@ -6123,20 +6168,24 @@ namespace Plugin {
         return CompColorEnum;
     }
 
-    int AVOutputTV::getDolbyParams(tvContentFormatType_t format, std::string &s) 
+    int AVOutputTV::getDolbyParams(tvContentFormatType_t format, std::string &s, std::string source) 
     {
         int ret = -1;
         TR181_ParamData_t param;
 	std::string rfc_param = AVOUTPUT_HDR10MODE_RFC_PARAM;
         int dolby_mode_value = 0;
         int sourceIndex = 0;
-        GetCurrentSource(&sourceIndex);
-
+        /*Since dolby vision is source specific, we should for check for specific source*/
+        if (!source.empty()) {
+            sourceIndex = GetTVSourceIndex(source.c_str());
+        else {
+            GetCurrentSource(&sourceIndex);
+        }
         memset(&param, 0, sizeof(param));
         if (format == tvContentFormatType_HLG ) {
             rfc_param = AVOUTPUT_HLGMODE_RFC_PARAM;
         } else if (format == tvContentFormatType_DOVI) {
-            rfc_param = AVOUTPUT_DOLBYVISIONMODE_RFC_PARAM;
+            rfc_param = AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM + std::to_string(sourceIndex) + "."+"DolbyVisionMode";
         }
 
         tr181ErrorCode_t err = getLocalParam(rfc_caller_id, rfc_param.c_str(), &param);
@@ -6528,22 +6577,29 @@ namespace Plugin {
         params[0] = (backlightInCurve*100)/BACKLIGHT_RAW_VALUE_MAX;
     }
     
-    int AVOutputTV::getDolbyParamToSync(int& value)
+    int AVOutputTV::getDolbyParamToSync(int sourceIndex, int& value)
     {
         int ret=0;
         TR181_ParamData_t param;
-
+        std ::string rfc_param = AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM + std::to_string(sourceIndex) + "."+"DolbyVisionMode";
         memset(&param, 0, sizeof(param));
-        tr181ErrorCode_t err = getLocalParam(rfc_caller_id, AVOUTPUT_DOLBYVISIONMODE_RFC_PARAM, &param);
-        if ( tr181Success == err )
-        {
-            value=GetDolbyModeIndex(param.value);
+        tr181ErrorCode_t err = getLocalParam(rfc_caller_id, rfc_param.c_str(), &param);
+
+        if ( tr181Success != err) {
+            tvError_t retVal = GetDefaultParams(GetCurrentPQIndex(),sourceIndex,ConvertHDRFormatToContentFormat((tvhdr_type_t)format), PQ_PARAM_DOLBY_MODE, &value);
+            if( retVal != tvERROR_NONE )
+            {
+                LOGERR("%s : failed\n",__FUNCTION__);
+                return -1;
+            }
+            ret = 0;
         }
         else
         {
-            LOGERR("Unable to fetch %s from localstore\n",AVOUTPUT_DOLBYVISIONMODE_RFC_PARAM);
-            ret=-1;
+            value=GetDolbyModeIndex(param.value);
+            ret = 0;
         }
+
         return ret;
     }     
 
