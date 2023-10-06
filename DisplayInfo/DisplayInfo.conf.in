@@ -1,0 +1,30 @@
+precondition = ["Platform"]
+autostart = "@PLUGIN_DISPLAYINFO_AUTOSTART@"
+startuporder = "@PLUGIN_DISPLAYINFO_STARTUPORDER@"
+
+configuration = JSON()
+
+if boolean("@PLUGIN_DISPLAYINFO_USE_BEST_MODE@"):
+    configuration.add("useBestMode", PLUGIN_DISPLAYINFO_USE_BEST_MODE)
+if boolean("@PLUGIN_DISPLAYINFO_DRM_DEVICE_NAME@"):
+    configuration.add("drmDeviceName", PLUGIN_DISPLAYINFO_DRM_DEVICE_NAME)
+if boolean("@PLUGIN_DISPLAYINFO_USE_BEST_MODE@"):
+    configuration.add("drmSubsystemPath", PLUGIN_DISPLAYINFO_EDID_FILEPATH)
+if boolean("@PLUGIN_DISPLAYINFO_USE_BEST_MODE@"):
+    configuration.add("hdcpLevelFilepath", PLUGIN_DISPLAYINFO_HDCP_LEVEL_FILEPATH)
+if boolean("@PLUGIN_DISPLAYINFO_USE_BEST_MODE@"):
+    configuration.add("hdrLevelFilepath", PLUGIN_DISPLAYINFO_HDR_LEVEL_FILEPATH)
+if boolean("@PLUGIN_DISPLAYINFO_USE_BEST_MODE@"):
+    configuration.add("gpuMemoryFile", PLUGIN_DISPLAYINFO_GPU_MEMORY_FILE)
+if boolean("@PLUGIN_DISPLAYINFO_USE_BEST_MODE@"):
+    configuration.add("gpuMemoryFreePattern", PLUGIN_DISPLAYINFO_GPU_MEMORY_FREE_PATTERN)
+if boolean("@PLUGIN_DISPLAYINFO_USE_BEST_MODE@"):
+    configuration.add("gpuMemoryTotalPattern", PLUGIN_DISPLAYINFO_GPU_MEMORY_TOTAL_PATTERN)
+if boolean("@PLUGIN_DISPLAYINFO_USE_BEST_MODE@"):
+    configuration.add("gpuMemoryUnitMultiplier", PLUGIN_DISPLAYINFO_GPU_MEMORY_UNIT_MULTIPLIER)
+if boolean("@PLUGIN_DISPLAYINFO_HDCP_LEVEL@"):
+    configuration.add("hdcplevel", PLUGIN_DISPLAYINFO_HDCP_LEVEL)	
+
+rootobject = JSON()
+rootobject.add("mode", "@PLUGIN_DISPLAYINFO_MODE@")
+configuration.add("root", rootobject)

@@ -1,0 +1,4 @@
+precondition = ["Platform"]
+callsign = "org.rdk.AVInput"
+autostart = "false"
+startuporder = "@PLUGIN_AVINPUT_STARTUPORDER@"
