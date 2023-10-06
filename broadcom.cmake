@@ -324,6 +324,7 @@ if(DEFINES,USE_COMMON_XG1_XI3)
     add_definitions (-DENABLE_GET_SET_APIVERSION)   
 endif()
 
+add_definitions (-DDCM_TASK_REMOVAL)
 
 	# Front panel support
 #if(HAS_FRONT_PANEL)
