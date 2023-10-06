@@ -1,0 +1,4 @@
+precondition = ["Platform"]
+callsign = "org.rdk.Xcast"
+autostart = "@PLUGIN_XCAST_AUTOSTART@"
+startuporder = "@PLUGIN_XCAST_STARTUPORDER@"
