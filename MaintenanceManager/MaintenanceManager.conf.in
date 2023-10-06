@@ -1,0 +1,4 @@
+precondition = ["Platform"]
+callsign = "org.rdk.MaintenanceManager"
+autostart = "true"
+startuporder = "@PLUGIN_MAINTENANCEMGR_STARTUPORDER@"

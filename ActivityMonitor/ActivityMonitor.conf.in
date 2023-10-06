@@ -1,0 +1,4 @@
+precondition = ["Platform"]
+callsign = "org.rdk.ActivityMonitor"
+autostart = "false"
+startuporder = "@PLUGIN_ACTIVITYMONITOR_STARTUPORDER@"

@@ -1,0 +1,144 @@
+precondition = ["Graphics"]
+autostart = "@PLUGIN_JSPP_AUTOSTART@"
+startuporder = "@PLUGIN_JSPP_STARTUPORDER@"
+persistentpathpostfix = "@PLUGIN_JSPP_PERSISTENTPATHPOSTFIX@"
+
+
+configuration = JSON()
+
+configuration.add("url", "@PLUGIN_JSPP_STARTURL@")
+configuration.add("useragent", "@PLUGIN_JSPP_USERAGENT@")
+
+if not boolean("@WEBKIT_GLIB_API@"):
+    configuration.add("injectedbundle", "libWPEInjectedBundle@CMAKE_SHARED_LIBRARY_SUFFIX@")
+else:
+    configuration.add("extensiondir", "@PLUGIN_WEBKITBROWSER_EXTENSION_DIRECTORY@")
+
+configuration.add("transparent", "@PLUGIN_WEBKITBROWSER_TRANSPARENT@")
+configuration.add("compositor", "noaa")
+configuration.add("inspector", "@PLUGIN_JSPP_WEBINSPECTOR_ADDRESS@")
+configuration.add("fps", "true")
+configuration.add("cursor", "false")
+configuration.add("touch", "false")
+configuration.add("msebuffers", "@PLUGIN_WEBKITBROWSER_MSEBUFFERS@")
+configuration.add("memoryprofile", "@PLUGIN_WEBKITBROWSER_MEMORYPROFILE@")
+configuration.add("memorypressure", "@PLUGIN_JSPP_MEMORYPRESSURE@")
+configuration.add("mediadiskcache", "@PLUGIN_WEBKITBROWSER_MEDIADISKCACHE@")
+configuration.add("diskcache", "@PLUGIN_JSPP_DISKCACHE@")
+configuration.add("xhrcache", "@PLUGIN_WEBKITBROWSER_XHRCACHE@")
+configuration.add("webgl", "@PLUGIN_WEBKITBROWSER_WEBGL@")
+configuration.add("threadedpainting", "@PLUGIN_WEBKITBROWSER_THREADEDPAINTING@")
+configuration.add("diskcachedir", "@PLUGIN_JSPP_DISKCACHEDIR@")
+configuration.add("height", "@PLUGIN_WEBKITBROWSER_HEIGHT@")
+configuration.add("width", "@PLUGIN_WEBKITBROWSER_WIDTH@")
+configuration.add("clientidentifier", "@PLUGIN_JSPP_CLIENTIDENTIFIER@")
+configuration.add("localstorageenabled", "@PLUGIN_JSPP_LOCALSTORAGE_ENABLE@")
+configuration.add("localstorage", "@PLUGIN_JSPP_LOCALSTORAGE@")
+configuration.add("localstoragesize", "@PLUGIN_JSPP_LOCALSTORAGESIZE@")
+configuration.add("cookiestorage", "@PLUGIN_JSPP_COOKIESTORAGE@")
+
+if boolean("@PLUGIN_JSPP_WINDOWCLOSE@"):
+    configuration.add("windowclose", "true")
+
+if "@PLUGIN_WEBKITBROWSER_CLIENT_CERT@" != "" and "@PLUGIN_WEBKITBROWSER_CLIENT_CERT_KEY@" != "":
+    configuration.add("clientcert", "@PLUGIN_WEBKITBROWSER_CLIENT_CERT@")
+    configuration.add("clientcertkey", "@PLUGIN_WEBKITBROWSER_CLIENT_CERT_KEY@")
+
+if boolean("@PLUGIN_JSPP_LOGTOSYSTEMCONSOLE@"):
+    configuration.add("logtosystemconsoleenabled", "@PLUGIN_JSPP_LOGTOSYSTEMCONSOLE@")
+
+configuration.add("secure", "@PLUGIN_JSPP_SECURE@")
+configuration.add("watchdogchecktimeoutinseconds", "10")
+configuration.add("watchdoghangthresholdtinseconds", "60")
+configuration.add("loadblankpageonsuspendenabled", "false")
+
+environmentvariables = []
+
+conf1 = JSON()
+conf2 = JSON()
+conf3 = JSON()
+conf4 = JSON()
+conf5 = JSON()
+conf6 = JSON()
+conf7 = JSON()
+conf8 = JSON()
+conf9 = JSON()
+conf10 = JSON()
+
+conf1.add("name","AAMP_ENABLE_OPT_OVERRIDE")
+conf1.add("value","TRUE")
+environmentvariables.append(conf1)
+
+conf2.add("name","AAMP_ENABLE_WESTEROS_SINK")
+conf2.add("value","1")
+environmentvariables.append(conf2)
+
+conf3.add("name","ENABLE_FOG_OPT_OVERRIDE")
+conf3.add("value","1")
+environmentvariables.append(conf3)
+
+conf4.add("name","WESTEROS_SINK_VIRTUAL_HEIGHT")
+conf4.add("value",1080)
+environmentvariables.append(conf4)
+
+conf5.add("name","WESTEROS_SINK_VIRTUAL_WIDTH")
+conf5.add("value",1920)
+environmentvariables.append(conf5)
+
+conf6.add("name","GST_HWAVSYNC")
+conf6.add("value","0")
+environmentvariables.append(conf6)
+
+conf7.add("name","GST_PLAYERSINKBIN_DELAY")
+conf7.add("value",800000000)
+environmentvariables.append(conf7)
+
+conf8.add("name","GST_REGISTRY_FORK")
+conf8.add("value","no")
+environmentvariables.append(conf8)
+
+conf9.add("name","XDG_DATA_HOME")
+conf9.add("value","/opt/QT/home")
+environmentvariables.append(conf9)
+
+conf10.add("name","PROCESS_NAME")
+conf10.add("value","JSPPWebProcess")
+environmentvariables.append(conf10)
+
+configuration.add("environmentvariables", environmentvariables)
+
+configuration.add("loggingtarget", "sky-jspp.service")
+rootobject = JSON()
+rootobject.add("mode", "@PLUGIN_JSPP_MODE@")
+rootobject.add("locator", "lib@PLUGIN_WEBKITBROWSER_IMPLEMENTATION@.so")
+rootobject.add("user", "@PLUGIN_WEBKITBROWSER_USER@")
+rootobject.add("group", "@PLUGIN_WEBKITBROWSER_GROUP@")
+configuration.add("root", rootobject)
+
+memory = JSON()
+
+webprocesssettings = JSON()
+networkprocesssettings = JSON()
+
+if ("@PLUGIN_JSPP_MEMORYPRESSURE_WEBPROCESS_SETTINGS_LIMIT@ OR (@PLUGIN_JSPP_MEMORYPRESSURE_WEBPROCESS_SETTINGS_GPU_LIMIT@ AND @PLUGIN_JSPP_MEMORYPRESSURE_WEBPROCESS_SETTINGS_GPU_FILE@) OR @PLUGIN_JSPP_MEMORYPRESSURE_WEBPROCESS_SETTINGS_POLLINTERVAL@"):
+
+    if ("@PLUGIN_JSPP_MEMORYPRESSURE_WEBPROCESS_SETTINGS_LIMIT@"):
+        webprocesssettings.add("limit", "@PLUGIN_JSPP_MEMORYPRESSURE_WEBPROCESS_SETTINGS_LIMIT@")
+
+    if ("@PLUGIN_JSPP_MEMORYPRESSURE_WEBPROCESS_SETTINGS_GPU_LIMIT@ AND @PLUGIN_JSPP_MEMORYPRESSURE_WEBPROCESS_SETTINGS_GPU_FILE@"):
+        webprocesssettings.add("gpulimit","@PLUGIN_JSPP_MEMORYPRESSURE_WEBPROCESS_SETTINGS_GPU_LIMIT@")
+        webprocesssettings.add("gpufile", "@PLUGIN_JSPP_MEMORYPRESSURE_WEBPROCESS_SETTINGS_GPU_FILE@")
+
+    if ("@PLUGIN_JSPP_MEMORYPRESSURE_WEBPROCESS_SETTINGS_POLLINTERVAL@"):
+        webprocesssettings.add("pollinterval", "@PLUGIN_JSPP_MEMORYPRESSURE_WEBPROCESS_SETTINGS_POLLINTERVAL@")
+
+memory.add("webprocesssettings", webprocesssettings)
+
+if ("@PLUGIN_JSPP_MEMORYPRESSURE_NETWORKPROCESS_SETTINGS_LIMIT@ OR @PLUGIN_JSPP_MEMORYPRESSURE_NETWORKPROCESS_SETTINGS_POLLINTERVAL@"):
+    if ("@PLUGIN_JSPP_MEMORYPRESSURE_NETWORKPROCESS_SETTINGS_LIMIT@"):
+        networkprocesssettings.add("limit", "@PLUGIN_JSPP_MEMORYPRESSURE_NETWORKPROCESS_SETTINGS_LIMIT@")
+    if ("@PLUGIN_JSPP_MEMORYPRESSURE_NETWORKPROCESS_SETTINGS_POLLINTERVAL@"):
+        networkprocesssettings.add("pollinterval", "@PLUGIN_JSPP_MEMORYPRESSURE_NETWORKPROCESS_SETTINGS_POLLINTERVAL@")
+memory.add("networkprocesssettings", networkprocesssettings)
+configuration.add("memory", memory)
+
