@@ -672,21 +672,24 @@ namespace Plugin {
 
             response["AspectRatioInfo"]=rangeArray;
 
-            for (index = 0; index < pqmode.size(); index++)
-                pqmodeArray.Add(pqmode[index]);
-
-            response["pqmodeInfo"]=pqmodeArray;
-
-            for (index = 0; index < source.size(); index++)
-                sourceArray.Add(source[index]);
-
-            response["sourceInfo"]=sourceArray;
-
-            for (index = 0; index < format.size(); index++)
-                formatArray.Add(format[index]);
-
-            response["formatInfo"]=formatArray;
-
+            if (!pqmode.empty()) {
+                for (index = 0; index < pqmode.size(); index++) {
+                    pqmodeArray.Add(pqmode[index]);
+                }
+                response["pqmodeInfo"]=pqmodeArray;
+            }
+            if (!source.empty()) {
+                for (index = 0; index < source.size(); index++) {
+                    sourceArray.Add(source[index]);
+                }
+                response["sourceInfo"]=sourceArray;
+            }
+            if (!format.empty()) {
+                for (index = 0; index < format.size(); index++) {
+                    formatArray.Add(format[index]);
+                }
+                response["formatInfo"]=formatArray;
+            }
             LOGINFO("Exit\n");
             returnResponse(true);
         }
@@ -1262,21 +1265,24 @@ namespace Plugin {
 
             response["rangeInfo"]=rangeArray;
 
-            for (index = 0; index < pqmode.size(); index++)
-                pqmodeArray.Add(pqmode[index]);
-
-            response["pqmodeInfo"]=pqmodeArray;
-
-            for (index = 0; index < source.size(); index++)
-                sourceArray.Add(source[index]);
-
-            response["sourceInfo"]=sourceArray;
-
-            for (index = 0; index < format.size(); index++)
-                formatArray.Add(format[index]);
-
-            response["formatInfo"]=formatArray;
-
+            if (!pqmode.empty()) {
+                for (index = 0; index < pqmode.size(); index++) {
+                    pqmodeArray.Add(pqmode[index]);
+                }
+                response["pqmodeInfo"]=pqmodeArray;
+            }
+            if (!source.empty()) {
+                for (index = 0; index < source.size(); index++) {
+                    sourceArray.Add(source[index]);
+                }
+                response["sourceInfo"]=sourceArray;
+            }
+            if (!format.empty()) {
+                for (index = 0; index < format.size(); index++) {
+                    formatArray.Add(format[index]);
+                }
+                response["formatInfo"]=formatArray;
+            }
             LOGINFO("Exit\n");
             returnResponse(true);
         }
@@ -1322,8 +1328,8 @@ namespace Plugin {
 
         int err = getLocalparam("Brightness",formatIndex,pqIndex,sourceIndex,brightness, PQ_PARAM_BRIGHTNESS);
         if( err == 0 ) {
-            response["Brightness"] = std::to_string(brightness);
-            response["Range"] = range;
+            response["brightness"] = std::to_string(brightness);
+            response["range"] = range;
             LOGINFO("Exit : Brightness Value: %d \n", brightness);
             returnResponse(true);
         }
@@ -1493,21 +1499,24 @@ namespace Plugin {
 
             response["rangeInfo"]=rangeArray;
 
-            for (index = 0; index < pqmode.size(); index++)
-                pqmodeArray.Add(pqmode[index]);
-
-            response["pqmodeInfo"]=pqmodeArray;
-
-            for (index = 0; index < source.size(); index++)
-                sourceArray.Add(source[index]);
-
-            response["sourceInfo"]=sourceArray;
-
-            for (index = 0; index < format.size(); index++)
-                formatArray.Add(format[index]);
-
-	    response["formatInfo"]=formatArray;
-
+            if (!pqmode.empty()) {
+                for (index = 0; index < pqmode.size(); index++) {
+                    pqmodeArray.Add(pqmode[index]);
+                }
+                response["pqmodeInfo"]=pqmodeArray;
+            }
+            if (!source.empty()) {
+                for (index = 0; index < source.size(); index++) {
+                    sourceArray.Add(source[index]);
+                }
+                response["sourceInfo"]=sourceArray;
+            }
+            if (!format.empty()) {
+                for (index = 0; index < format.size(); index++) {
+                    formatArray.Add(format[index]);
+                }
+	        response["formatInfo"]=formatArray;
+            }
             LOGINFO("Exit\n");
             returnResponse(true);
 	}
@@ -1711,22 +1720,25 @@ namespace Plugin {
                 rangeArray.Add(range[index]);
 
             response["rangeInfo"]=rangeArray;
-
-            for (index = 0; index < pqmode.size(); index++)
-                pqmodeArray.Add(pqmode[index]);
-
-            response["pqmodeInfo"]=pqmodeArray;
-
-            for (index = 0; index < source.size(); index++)
-                sourceArray.Add(source[index]);
-
-            response["sourceInfo"]=sourceArray;
-
-            for (index = 0; index < format.size(); index++)
-                formatArray.Add(format[index]);
-
-            response["formatInfo"]=formatArray;
-
+            
+            if (!pqmode.empty()) {
+                for (index = 0; index < pqmode.size(); index++) {
+                    pqmodeArray.Add(pqmode[index]);
+                }
+                response["pqmodeInfo"]=pqmodeArray;
+            }
+            if (!source.empty()) {
+                for (index = 0; index < source.size(); index++) {
+                    sourceArray.Add(source[index]);
+                }
+                response["sourceInfo"]=sourceArray;
+            }
+            if (!format.empty()) {
+                for (index = 0; index < format.size(); index++) {
+                    formatArray.Add(format[index]);
+                }
+                response["formatInfo"]=formatArray;
+            }
             LOGINFO("Exit\n");
             returnResponse(true);
         }
@@ -5848,7 +5860,7 @@ namespace Plugin {
         }
 
         //2)Check Source
-        if( (source.compare("global") == 0) == 0)
+        if( source.compare("global") == 0)
         {
             int lCount = 0;
             for(;lCount<numberSourcesSupported;lCount++)
