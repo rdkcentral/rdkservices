@@ -16,7 +16,7 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.8)
-project(RdkServicesTest)
+project(RdkServicesL1Test)
 
 set(CMAKE_CXX_STANDARD 11)
 
@@ -32,11 +32,10 @@ FetchContent_MakeAvailable(googletest)
 file(GLOB TESTS tests/*.cpp)
 add_executable(${PROJECT_NAME}
         ${TESTS}
-        mocks/thunder/Module.cpp
-        mocks/Wraps.cpp
-        mocks/Dobby.cpp
-        mocks/rdkshell.cpp
-        mocks/readprocMock.cpp
+        ../mocks/thunder/Module.cpp
+        ../mocks/Wraps.cpp
+        ../mocks/Dobby.cpp
+        ../mocks/rdkshell.cpp
         )
 
 set_source_files_properties(
@@ -52,59 +51,59 @@ set_source_files_properties(
         PROPERTIES COMPILE_FLAGS "-fexceptions")
 
 include_directories(
-        ../PersistentStore
-        ../DeviceDiagnostics
-        ../FrameRate
-        ../AVInput
-        ../Telemetry
-        ../ScreenCapture
-        ../UsbAccess
-        ../UserPreferences
-        ../DeviceInfo
-        ../helpers
-        ../SystemServices
-        ../HdmiInput
-        ../HdcpProfile
-        ../Network
-	    ../WifiManager
-        ../Warehouse
-        ../MotionDetection
-        ../CompositeInput
-        ../OCIContainer
-        ../HdmiCec_2
-        ../HdmiCecSource
-        ../XCast
-        ../FrontPanel
-	../HdmiCecSink
-        ../VoiceControl
-        ../RDKShell
+        ../../PersistentStore
+        ../..//DeviceDiagnostics
+        ../../FrameRate
+        ../../AVInput
+        ../../Telemetry
+        ../../ScreenCapture
+        ../../UsbAccess
+        ../../UserPreferences
+        ../../DeviceInfo
+        ../../helpers
+        ../../SystemServices
+        ../../HdmiInput
+        ../../HdcpProfile
+        ../../Network
+	../../WifiManager
+        ../../Warehouse
+        ../../MotionDetection
+        ../../CompositeInput
+        ../../OCIContainer
+        ../../HdmiCec_2
+        ../../HdmiCecSource
+        ../../XCast
+        ../../FrontPanel
+	../../HdmiCecSink
+        ../../VoiceControl
+        ../../RDKShell
         )
 link_directories(
-        ../PersistentStore
-        ../DeviceDiagnostics
-        ../FrameRate
-        ../AVInput
-        ../Telemetry
-        ../ScreenCapture
-        ../UsbAccess
-        ../SystemServices
-        ../UserPreferences
-        ../DeviceInfo
-        ../HdmiInput
-        ../HdcpProfile
-        ../Network
-	    ../WifiManager
-        ../Warehouse
-        ../MotionDetection
-        ../CompositeInput
-        ../OCIContainer
-        ../HdmiCec_2
-        ../HdmiCecSource
-        ../XCast
-        ../FrontPanel
-	../HdmiCecSink
-        ../VoiceControl
-        ../RDKShell
+        ../../PersistentStore
+        ../../DeviceDiagnostics
+        ../../FrameRate
+        ../../AVInput
+        ../../Telemetry
+        ../../ScreenCapture
+        ../../UsbAccess
+        ../../SystemServices
+        ../../UserPreferences
+        ../../DeviceInfo
+        ../../HdmiInput
+        ../../HdcpProfile
+        ../../Network
+	../../WifiManager
+        ../../Warehouse
+        ../../MotionDetection
+        ../../CompositeInput
+        ../../OCIContainer
+        ../../HdmiCec_2
+        ../../HdmiCecSource
+        ../../XCast
+        ../../FrontPanel
+	../../HdmiCecSink
+        ../../VoiceControl
+        ../../RDKShell
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -141,9 +140,9 @@ target_include_directories(${PROJECT_NAME}
         PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
         $<INSTALL_INTERFACE:include>
-        mocks
-        mocks/devicesettings
-        mocks/thunder
+        ../mocks
+        ../mocks/devicesettings
+        ../mocks/thunder
         )
 
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)

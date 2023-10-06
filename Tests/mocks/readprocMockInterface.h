@@ -32,9 +32,35 @@ public:
  
 };
 
-PROCTAB* openproc(int flags, ... /* pid_t*|uid_t*|dev_t*|char* [, int n] */ );
-void closeproc(PROCTAB* PT);
-proc_t* readproc(PROCTAB *__restrict const PT, proc_t *__restrict p);
+class ProcImpl {
+public:
+    static ProcImpl& getInstance()
+    {
+        static ProcImpl instance;
+        return instance;
+    }
+
+    readprocImpl* impl;
+    static PROCTAB* openproc(int flags, ... /* pid_t*|uid_t*|dev_t*|char* [, int n] */ )
+    {
+        return getInstance().impl->openproc(flags);
+    }
+
+    static void closeproc(PROCTAB* PT)
+    {
+        return getInstance().impl->closeproc(PT);
+    }
+
+    static proc_t* readproc(PROCTAB *__restrict const PT, proc_t *__restrict p)
+    {
+        return getInstance().impl->readproc(PT,p);
+    }
+
+};
+
+constexpr auto openproc = &ProcImpl::openproc;
+constexpr auto closeproc = &ProcImpl::closeproc;
+constexpr auto readproc = &ProcImpl::readproc;
 
 
 
