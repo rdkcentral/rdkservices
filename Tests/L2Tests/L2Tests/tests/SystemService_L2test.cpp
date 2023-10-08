@@ -16,12 +16,12 @@ using ::testing::NiceMock;
 using namespace WPEFramework;
 using testing::StrictMock;
 
-enum SystemServiceL2test_async_events_t{
+typedef enum {
     SYSTEMSERVICEL2TEST_SYSTEMSTATE_CHANGED,
     SYSTEMSERVICEL2TEST_THERMALSTATE_CHANGED,
     SYSTEMSERVICEL2TEST_LOGUPLOADSTATE_CHANGED,
-    SYSTEMSERVICEL2TEST_STATE_TEST_EVENT_NONE = 0xff
-};
+    SYSTEMSERVICEL2TEST_STATE_INVALID = 0xff
+}SystemServiceL2test_async_events_t;
 /**
  * @brief Internal test mock class
  *
@@ -41,16 +41,16 @@ class AsyncHandlerMock
 };
 
 /* Systemservice L2 test class declaration */
-class Systemservice_L2test : public L2TestMocks {
+class SystemService_L2Test : public L2TestMocks {
 protected:
     IARM_EventHandler_t systemStateChanged = nullptr;
     IARM_EventHandler_t thermMgrEventsHandler = nullptr;
     IARM_EventHandler_t powerEventHandler = nullptr;
 
-    Systemservice_L2test();
-    virtual ~Systemservice_L2test() override;
+    SystemService_L2Test();
+    virtual ~SystemService_L2Test() override;
 
-       public:
+    public:
         /**
          * @brief called when Temperature threshold 
          * changed notification received from IARM
@@ -75,7 +75,6 @@ protected:
       SystemServiceL2test_async_events_t WaitForRequestStatus(uint32_t timeout_ms);
 
     private:
-
         /** @brief Mutex */
         std::mutex m_mutex;
 
@@ -90,12 +89,11 @@ protected:
 /**
  * @brief Constructor for SystemServices L2 test class
  */
-Systemservice_L2test::Systemservice_L2test()
+SystemService_L2Test::SystemService_L2Test()
         : L2TestMocks()
-         ,m_event_signalled(SYSTEMSERVICEL2TEST_STATE_TEST_EVENT_NONE)
 {
         uint32_t status = Core::ERROR_GENERAL;
-
+        m_event_signalled = SYSTEMSERVICEL2TEST_STATE_INVALID;
         /* Set all the asynchronouse event handler with IARM bus to handle various events*/
         ON_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
         .WillByDefault(::testing::Invoke(
@@ -121,10 +119,10 @@ Systemservice_L2test::Systemservice_L2test()
 /**
  * @brief Destructor for SystemServices L2 test class
  */
-Systemservice_L2test::~Systemservice_L2test()
+SystemService_L2Test::~SystemService_L2Test()
 {
     uint32_t status = Core::ERROR_GENERAL;
-    m_event_signalled = SYSTEMSERVICEL2TEST_STATE_TEST_EVENT_NONE;
+    m_event_signalled = SYSTEMSERVICEL2TEST_STATE_INVALID;
 
     status = DeactivateService("org.rdk.System");
     EXPECT_EQ(Core::ERROR_NONE, status);
@@ -136,7 +134,7 @@ Systemservice_L2test::~Systemservice_L2test()
  *
  * @param[in] message from system service on the change
  */
-void Systemservice_L2test::onTemperatureThresholdChanged(const JsonObject &message)
+void SystemService_L2Test::onTemperatureThresholdChanged(const JsonObject &message)
 {
   TEST_LOG("onTemperatureThresholdChanged event triggered ***\n");
    std::unique_lock<std::mutex> lock(m_mutex);
@@ -157,7 +155,7 @@ void Systemservice_L2test::onTemperatureThresholdChanged(const JsonObject &messa
  *
  * @param[in] message from system service on the change
  */
-void Systemservice_L2test::onLogUploadChanged(const JsonObject &message)
+void SystemService_L2Test::onLogUploadChanged(const JsonObject &message)
 {
   TEST_LOG("onLogUploadChanged event triggered ******\n");
    std::unique_lock<std::mutex> lock(m_mutex);
@@ -178,7 +176,7 @@ void Systemservice_L2test::onLogUploadChanged(const JsonObject &message)
  *
  * @param[in] message from system service on the change
  */
-void Systemservice_L2test::onSystemPowerStateChanged(const JsonObject &message)
+void SystemService_L2Test::onSystemPowerStateChanged(const JsonObject &message)
 {
     TEST_LOG("onSystemPowerStateChanged event triggered ******\n");
     std::unique_lock<std::mutex> lock(m_mutex);
@@ -198,14 +196,14 @@ void Systemservice_L2test::onSystemPowerStateChanged(const JsonObject &message)
  *
  * @param[in] timeout_ms timeout for waiting
  */
-SystemServiceL2test_async_events_t Systemservice_L2test::WaitForRequestStatus(uint32_t timeout_ms)
+SystemServiceL2test_async_events_t SystemService_L2Test::WaitForRequestStatus(uint32_t timeout_ms)
 {
     std::unique_lock<std::mutex> lock(m_mutex);
     auto now = std::chrono::system_clock::now();
     std::chrono::milliseconds timeout(timeout_ms);
-    SystemServiceL2test_async_events_t signalled = SYSTEMSERVICEL2TEST_STATE_TEST_EVENT_NONE;
+    SystemServiceL2test_async_events_t signalled = SYSTEMSERVICEL2TEST_STATE_INVALID;
 
-   while (SYSTEMSERVICEL2TEST_STATE_TEST_EVENT_NONE== m_event_signalled)
+   while (SYSTEMSERVICEL2TEST_STATE_INVALID== m_event_signalled)
    {
       if (m_condition_variable.wait_until(lock, now + timeout) == std::cv_status::timeout)
       {
@@ -215,7 +213,7 @@ SystemServiceL2test_async_events_t Systemservice_L2test::WaitForRequestStatus(ui
    }
 
     signalled = m_event_signalled;
-    m_event_signalled = SYSTEMSERVICEL2TEST_STATE_TEST_EVENT_NONE;
+    m_event_signalled = SYSTEMSERVICEL2TEST_STATE_INVALID;
     
     return signalled;
 }
@@ -249,18 +247,17 @@ MATCHER_P(MatchRequestStatus, data, "")
 ** 4. Verify that threshold change event is notified
 *******************************************************/
 
-TEST_F(Systemservice_L2test,SystemServiceGetSetTemperature)
+TEST_F(SystemService_L2Test,SystemServiceGetSetTemperature)
 {
     JSONRPC::LinkType<Core::JSON::IElement> jsonrpc(SYSTEM_CALLSIGN, L2TEST_CALLSIGN);
     StrictMock<AsyncHandlerMock> async_handler;
     uint32_t status = Core::ERROR_GENERAL;
     JsonObject params,thresholds;
     JsonObject result;
-    SystemServiceL2test_async_events_t signalled = SYSTEMSERVICEL2TEST_STATE_TEST_EVENT_NONE;
+    SystemServiceL2test_async_events_t signalled = SYSTEMSERVICEL2TEST_STATE_INVALID;
     std::string message;
    JsonObject expected_status;
 
-    /* Get temperature from systemservice*/
     ON_CALL(iarmBusImplMock, IARM_Bus_Call)
    .   WillByDefault(
           [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -289,8 +286,7 @@ TEST_F(Systemservice_L2test,SystemServiceGetSetTemperature)
 
     EXPECT_EQ(Core::ERROR_NONE, status);
 
-    /*Set temperature threshold */
-
+    /* Set Threshold */
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
         .Times(::testing::AnyNumber())
         .WillRepeatedly(
@@ -321,16 +317,14 @@ TEST_F(Systemservice_L2test,SystemServiceGetSetTemperature)
     message = "{\"thresholdType\":\"WARN\",\"exceeded\":true,\"temperature\":\"100.000000\"}";
     expected_status.FromString(message);
     EXPECT_CALL(async_handler, onTemperatureThresholdChanged(MatchRequestStatus(expected_status)))
-        .WillOnce(Invoke(this, &Systemservice_L2test::onTemperatureThresholdChanged));
+        .WillOnce(Invoke(this, &SystemService_L2Test::onTemperatureThresholdChanged));
 
-    /* Temperature threshold change event triggered from IARM */
     IARM_Bus_PWRMgr_EventData_t param;
     param.data.therm.newLevel = IARM_BUS_PWRMGR_TEMPERATURE_HIGH;
     param.data.therm.curLevel = IARM_BUS_PWRMGR_TEMPERATURE_NORMAL;
     param.data.therm.curTemperature = 100;
     thermMgrEventsHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED, &param, 0);
 
-    /* Verify that threshold change event is notified */
     signalled = WaitForRequestStatus(JSON_TIMEOUT);
     EXPECT_EQ(signalled,SYSTEMSERVICEL2TEST_THERMALSTATE_CHANGED);
 
@@ -347,14 +341,14 @@ TEST_F(Systemservice_L2test,SystemServiceGetSetTemperature)
 ** 5. Verify UPLOAD_ABORTED event triggered because of power state
 ** 6. Verify Systemstate event triggered and verify the response
 *******************************************************/
-TEST_F(Systemservice_L2test,SystemServiceUploadLogsandSystempowerstatechange)
+TEST_F(SystemService_L2Test,SystemServiceUploadLogsAndSystemPowerStateChange)
 {
     JSONRPC::LinkType<Core::JSON::IElement> jsonrpc(SYSTEM_CALLSIGN,L2TEST_CALLSIGN);
     StrictMock<AsyncHandlerMock> async_handler;
     uint32_t status = Core::ERROR_GENERAL;
     JsonObject params;
     JsonObject result;
-    SystemServiceL2test_async_events_t signalled = SYSTEMSERVICEL2TEST_STATE_TEST_EVENT_NONE;
+    SystemServiceL2test_async_events_t signalled = SYSTEMSERVICEL2TEST_STATE_INVALID;
     std::string message;
     JsonObject expected_status;
    
@@ -395,7 +389,6 @@ TEST_F(Systemservice_L2test,SystemServiceUploadLogsandSystempowerstatechange)
     tmpDcmSettings.close();
     EXPECT_TRUE(Core::File(string(_T("/tmp/DCMSettings.conf"))).Exists());
 
-    /* Start Log upload */
     status = InvokeServiceMethod("org.rdk.System.1", "uploadLogsAsync", params, result);
     EXPECT_EQ(Core::ERROR_NONE, status);
 
@@ -405,7 +398,7 @@ TEST_F(Systemservice_L2test,SystemServiceUploadLogsandSystempowerstatechange)
     EXPECT_FALSE(result.HasLabel("errorCode"));
     EXPECT_FALSE(result.HasLabel("errorDescription"));
 
-    /* Subscribe for LoguploadUpdates. */
+    /* Register for abortlog event. */
     status = jsonrpc.Subscribe<JsonObject>(JSON_TIMEOUT,
                                            _T("onLogUpload"),
                                            &AsyncHandlerMock::onLogUploadChanged,
@@ -413,7 +406,7 @@ TEST_F(Systemservice_L2test,SystemServiceUploadLogsandSystempowerstatechange)
 
     EXPECT_EQ(Core::ERROR_NONE, status);
 
-    /* Subscribe for powerstate change. */
+    /* Register for Powerstate change event. */
     status = jsonrpc.Subscribe<JsonObject>(JSON_TIMEOUT,
                                            _T("onSystemPowerStateChanged"),
                                            &AsyncHandlerMock::onSystemPowerStateChanged,
@@ -425,25 +418,22 @@ TEST_F(Systemservice_L2test,SystemServiceUploadLogsandSystempowerstatechange)
     message = "{\"logUploadStatus\":\"UPLOAD_ABORTED\"}";
     expected_status.FromString(message);
     EXPECT_CALL(async_handler, onLogUploadChanged(MatchRequestStatus(expected_status)))
-        .WillOnce(Invoke(this, &Systemservice_L2test::onLogUploadChanged));
+        .WillOnce(Invoke(this, &SystemService_L2Test::onLogUploadChanged));
 
     /* Request status for Onlogupload. */
     message = "{\"powerState\":\"DEEP_SLEEP\",\"currentPowerState\":\"ON\"}";
     expected_status.FromString(message);
     EXPECT_CALL(async_handler, onSystemPowerStateChanged(MatchRequestStatus(expected_status)))
-        .WillOnce(Invoke(this, &Systemservice_L2test::onSystemPowerStateChanged));
+        .WillOnce(Invoke(this, &SystemService_L2Test::onSystemPowerStateChanged));
 
-    /* Trigger system power state change from ON -> DEEP_SLEEP */
     IARM_Bus_PWRMgr_EventData_t param;
     param.data.state.curState = IARM_BUS_PWRMGR_POWERSTATE_ON;
     param.data.state.newState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP;
     powerEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, &param, 0);
 
-    /* Verify UPLOAD_ABORTED event triggered because of power state */
     signalled = WaitForRequestStatus(JSON_TIMEOUT);
     EXPECT_EQ(signalled,SYSTEMSERVICEL2TEST_LOGUPLOADSTATE_CHANGED);
 
-    /* Verify Systemstate event triggered and verify the response */
     signalled = WaitForRequestStatus(JSON_TIMEOUT);
     EXPECT_EQ(signalled,SYSTEMSERVICEL2TEST_SYSTEMSTATE_CHANGED);
 

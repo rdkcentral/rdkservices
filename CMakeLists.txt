@@ -69,7 +69,7 @@ if(PLUGIN_SYSTEMSERVICES)
     add_subdirectory(SystemServices)
 endif()
 if(RDK_SERVICE_L2_TEST)
-    add_subdirectory(L2Tests)
+    add_subdirectory(Tests/L2Tests/L2Tests)
     add_subdirectory(Tests/L2Tests)
 endif()
 

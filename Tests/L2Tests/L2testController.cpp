@@ -38,7 +38,7 @@
 #endif
 #define TEST_CALLSIGN                   _T("thunder_tests.1")           /* Test module callsign. */
 #define L2TEST_CALLSIGN                   _T("org.rdk.L2Tests.1")       /* L2 Test module callsign. */
-#define THUNDER_CMD_LENGTH                 512                          /* Command length to run thunder in isolation . */
+#define THUNDER_CMD_LENGTH                 1024                          /* Command length to run thunder in isolation . */
 
 #ifndef TEST_COMPLETION_TIMEOUT
 #define TEST_COMPLETION_TIMEOUT                  600000                  /* Overall L2 Test completion timeout in milliseconds. */

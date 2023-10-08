@@ -47,7 +47,6 @@ L2TestMocks::L2TestMocks()
 /* L2TestMock Destructor */
 L2TestMocks::~L2TestMocks()
 {
-
    RfcApi::getInstance().impl = nullptr;
    IarmBus::getInstance().impl = nullptr;
    ProcImpl::getInstance().impl = nullptr;

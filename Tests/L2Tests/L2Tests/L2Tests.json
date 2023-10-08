@@ -1,5 +1,5 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",	
     "jsonrpc": "2.0",
     "info": {
         "title": "L2Tests API", 
@@ -19,16 +19,16 @@
                         "summary": "RDK service name",
                         "type": "string",
                         "example": "System"
-                    }
-	         }
-	     },
-            "result":{
-                "type":"object",
-                 "properties": {
-                    "Success": {
-                        "summary": "Value zero for no error",
-                        "type": "integer",
-                        "example": "0"
+	                    }
+	              }
+		     },
+	         "result":{
+	               "type":"object",
+	                "properties": {
+	                    "Success": {
+	                        "summary": "Value zero for no error",
+	                        "type": "integer",
+	                        "example": "0"
                     }
                  }
              }

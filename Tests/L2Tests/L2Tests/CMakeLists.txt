@@ -40,9 +40,9 @@ target_compile_definitions(${MODULE_NAME}
 target_compile_options(${MODULE_NAME} PRIVATE -Wno-error)
 target_link_libraries(${MODULE_NAME} PRIVATE gmock_main ${NAMESPACE}Plugins::${NAMESPACE}Plugins)
 
-target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
+target_include_directories(${MODULE_NAME} PRIVATE ../../../helpers)
 target_include_directories(${MODULE_NAME} PRIVATE ./)
-target_include_directories(${MODULE_NAME} PRIVATE ../Tests/mocks)
+target_include_directories(${MODULE_NAME} PRIVATE ../../mocks)
  
 install(TARGETS ${MODULE_NAME}
     DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
