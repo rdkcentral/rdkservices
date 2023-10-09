@@ -141,16 +141,6 @@ namespace Plugin {
         return supportedHdrFormat;
     }
 
-    static JsonArray getSupportedVideoSource(void) {
-        JsonArray supportedSource;
-        int lCount = 0;
-        for(;lCount<numberSourcesSupported;lCount++) {
-            supportedSource.Add(convertSourceIndexToString(source_index[lCount]));
-        }
-
-	return supportedSource;
-    }
-
     static std::string getVideoResolutionTypeToString(tvResolutionParam_t resolution)
     {
         std::string strValue = "NONE";
@@ -297,6 +287,16 @@ namespace Plugin {
                 return "INVALID STATE ERROR";
          }
          return "UNKNOWN ERROR";
+    }
+
+    JsonArray AVOutputTV::getSupportedVideoSource(void) {
+        JsonArray supportedSource;
+        int lCount = 0;
+        for(;lCount<numberSourcesSupported;lCount++) {
+            supportedSource.Add(convertSourceIndexToString(source_index[lCount]));
+        }
+
+        return supportedSource;
     }
 
     bool AVOutputTV::isBacklightUsingGlobalBacklightFactor(void)
@@ -4849,7 +4849,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t AVOutputTV::getSupportedVideoSources(JsonObject& response) {
+    uint32_t AVOutputTV::getSupportedVideoSources(const JsonObject& parameters, JsonObject& response) {
 	    LOGINFO("Entry\n");
 	    response["supportedVideoSource"] = getSupportedVideoSource();
 	    returnResponse(true); 
@@ -5308,7 +5308,27 @@ namespace Plugin {
             returnResponse(true);
         }
     }
-   
+  
+    uint32_t AVOutputTV::getVideoSource(const JsonObject& parameters,JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+        //PLUGIN_Lock(Lock);
+
+        int currentSource = 0;
+
+        tvError_t ret = GetCurrentSource(&currentSource);
+        response["supportedVideoSource"] = getSupportedVideoSource();
+        if(ret != tvERROR_NONE) {
+            response["currentVideoSource"] = "NONE";
+            returnResponse(false);
+        }
+        else {
+            response["currentVideoSource"] = convertSourceIndexToString(currentSource);
+            LOGINFO("Exit: getVideoSource :%d   success \n", currentSource);
+            returnResponse(true);
+        }
+    }
+ 
 //Helper Function
 
     void AVOutputTV::LocatePQSettingsFile()
@@ -6608,7 +6628,7 @@ namespace Plugin {
         tr181ErrorCode_t err = getLocalParam(rfc_caller_id, rfc_param.c_str(), &param);
 
         if ( tr181Success != err) {
-            tvError_t retVal = GetDefaultParams(GetCurrentPQIndex(),sourceIndex, format, PQ_PARAM_DOLBY_MODE, &value);
+            tvError_t retVal = GetDefaultParams(GetCurrentPQIndex(),sourceIndex, formatIndex, PQ_PARAM_DOLBY_MODE, &value);
             if( retVal != tvERROR_NONE )
             {
                 LOGERR("%s : failed\n",__FUNCTION__);
@@ -6771,26 +6791,6 @@ namespace Plugin {
                         break;
             }
             return value;
-    }
-
-    uint32_t AVOutputTV::getVideoSource(JsonObject& response)
-    {
-        LOGINFO("Entry\n");
-        //PLUGIN_Lock(Lock);
-
-        int currentSource = 0;
-
-        tvError_t ret = GetCurrentSource(&currentSource);
-        response["supportedVideoSource"] = getSupportedVideoSource();
-        if(ret != tvERROR_NONE) {
-            response["currentVideoSource"] = "NONE";
-            returnResponse(false);
-        }
-        else {
-            response["currentVideoSource"] = convertSourceIndexToString(currentSource);
-            LOGINFO("Exit: getVideoSource :%d   success \n", currentSource);
-            returnResponse(true);
-        }
     }
 
 }//namespace Plugin

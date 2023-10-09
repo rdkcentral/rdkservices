@@ -220,6 +220,7 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
 	void SyncWBparams(void);
         tvError_t  SyncWBFromLocalCache( );
         tvError_t CheckWBMigration();
+        JsonArray getSupportedVideoSource(void);
 
     public:
         int m_currentHdmiInResoluton;
