@@ -123,6 +123,7 @@ uint32_t L2testController::PerformL2Tests(JsonObject &params, JsonObject &result
     params.ToString(message);
     L2TEST_LOG("Invoking %s.parameters %s", L2TEST_CALLSIGN, message.c_str());
 
+    /* clearing JSON object result*/
     results = JsonObject();
     status = jsonrpc.Invoke<JsonObject, JsonObject>(TEST_COMPLETION_TIMEOUT, std::string(_T("PerformL2Tests")), params, results);
 
