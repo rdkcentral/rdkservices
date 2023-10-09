@@ -544,10 +544,7 @@ namespace WPEFramework {
             PluginHost::IShell::state state;
             WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
 
-            /* check if plugin active */
-            PluginHost::IShell::state state = PluginHost::IShell::state::UNAVAILABLE;
-
-            if ((getServiceState(m_service, "org.rdk.AuthService", state) != Core::ERROR_NONE) || (state != PluginHost::IShell::state::ACTIVATED)) {
+            if ((getServiceState(m_service, "org.rdk.AuthService", state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
                 thunder_client=getThunderPluginHandle(authservice_callsign);
 
                 if (thunder_client == nullptr) {
