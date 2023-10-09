@@ -208,7 +208,7 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
 	std::string convertVideoFormatToString( int formatIndex );
 	bool isIncluded(const std::set<string> set1,const std::set<string> set2);
 	void convertUserScaleBacklightToDriverScale(int format,int * params);
-	int getDolbyParamToSync(int& value);
+	int getDolbyParamToSync(int sourceIndex, int& value);
 	int getHDR10ParamToSync(int& value);
 	int getHLGParamToSync( int& value);
 	int getHDR10ModeIndex(const char * hdr10Mode);

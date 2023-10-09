@@ -3964,6 +3964,8 @@ namespace Plugin {
         LOGINFO("Entry");
         std::string dolby_vision;
         std::string source;
+        std::string pqmode;
+        std::string format;
         JsonObject range;
 	range["list"] = "dark,bright";
 
@@ -3972,7 +3974,9 @@ namespace Plugin {
         if (source.empty()) source = "current";
 
         /* Since dolby vision mode is source specific, convert source current to valid input*/
-        convertToValidInputParameter(source, "current", "dv");
+	pqmode = "current";
+	format = "dv";
+        convertToValidInputParameter(source, pqmode, format);
 
         if ( -1 == getDolbyParams(tvContentFormatType_DOVI, dolby_vision, source)) {
             returnResponse(false);
@@ -4086,7 +4090,7 @@ namespace Plugin {
                 else {
                     LOGINFO("getLocalParam for %s Successful\n", tr181_param_name.c_str());
                     if( isSetRequired("current", convertSourceIndexToString(sourceVec[x]),"dv") ) {
-                        ret = SetTVDolbyVisionMode(param.value);
+                        ret = SetTVDolbyVisionMode(dolbyVision.c_str());
                     }
                     if(ret != tvERROR_NONE) {
                         LOGWARN("DV Mode set failed: %s\n",getErrorString(ret).c_str());
@@ -6178,7 +6182,7 @@ namespace Plugin {
         /*Since dolby vision is source specific, we should for check for specific source*/
         if (!source.empty()) {
             sourceIndex = GetTVSourceIndex(source.c_str());
-        else {
+	} else {
             GetCurrentSource(&sourceIndex);
         }
         memset(&param, 0, sizeof(param));
