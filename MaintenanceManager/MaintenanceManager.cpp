@@ -67,7 +67,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 24
+#define API_VERSION_NUMBER_PATCH 26
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 
@@ -452,6 +452,10 @@ namespace WPEFramework {
 
                                         // Set the RFC values for deviceInitializationContext parameters
                                         setRFC(rfc_parameter.c_str(), paramValue.c_str(), rfc_dataType);
+
+                                        if (strcmp(key.c_str(), "partnerId") == 0) {
+                                             setPartnerId(paramValue);
+                                        }
                                     } else {
                                         LOGINFO("Not able to fetch %s value from %s", key.c_str(), kDeviceInitializationContext);
                                     }
@@ -532,6 +536,33 @@ namespace WPEFramework {
                 LOGINFO("Failed setting %s parameter", rfc);
             }
             return result;
+        }
+
+        void MaintenanceManager::setPartnerId(string partnerid)
+        {
+            const char* authservice_callsign = "org.rdk.AuthService.1";
+            PluginHost::IShell::state state;
+            WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
+
+            if ((getServiceState(m_service, "org.rdk.AuthService", state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
+                thunder_client=getThunderPluginHandle(authservice_callsign);
+
+                if (thunder_client == nullptr) {
+                    LOGINFO("Failed to get plugin handle");
+                } else {
+                    JsonObject joGetParams;
+                    JsonObject joGetResult;
+
+                    joGetParams["partnerId"] = partnerid;
+
+                    thunder_client->Invoke<JsonObject, JsonObject>(5000, "setPartnerId", joGetParams, joGetResult);
+                    if (joGetResult.HasLabel("success") && joGetResult["success"].Boolean()) {
+                        LOGINFO("Successfully set the partnerId via Authservice");
+                    } else {
+                        LOGINFO("Failed to set the partnerId through Authservice");
+                    }
+                }
+            }
         }
 
         bool MaintenanceManager::subscribeForInternetStatusEvent(string event)
