@@ -670,7 +670,7 @@ namespace Plugin {
             for (index = 0; index < range.size(); index++)
                 rangeArray.Add(range[index]);
 
-            response["AspectRatioInfo"]=rangeArray;
+            response["aspectRatioInfo"]=rangeArray;
 
             if (!pqmode.empty()) {
                 for (index = 0; index < pqmode.size(); index++) {
@@ -832,7 +832,7 @@ namespace Plugin {
                     LOGINFO("Aspect Ratio: TV AUTO\n");
                     break;
             }
-            response["AspectRatio"] = dispModeObj;
+            response["aspectRatio"] = dispModeObj;
             returnResponse(true);
         }
     }
@@ -1083,8 +1083,8 @@ namespace Plugin {
         getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         err = getLocalparam("Backlight",formatIndex,pqIndex,sourceIndex,backlight, PQ_PARAM_BACKLIGHT);
         if( err == 0 ) {
-            response["Backlight"] = std::to_string(backlight);
-            response["Range"] = range;
+            response["backlight"] = backlight;
+            response["range"] = range;
             LOGINFO("Exit : Backlight Value: %d \n", backlight);
             returnResponse(true);
         }
@@ -1328,7 +1328,7 @@ namespace Plugin {
 
         int err = getLocalparam("Brightness",formatIndex,pqIndex,sourceIndex,brightness, PQ_PARAM_BRIGHTNESS);
         if( err == 0 ) {
-            response["brightness"] = std::to_string(brightness);
+            response["brightness"] = brightness;
             response["range"] = range;
             LOGINFO("Exit : Brightness Value: %d \n", brightness);
             returnResponse(true);
@@ -1551,8 +1551,8 @@ namespace Plugin {
         getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         int err = getLocalparam("Contrast",formatIndex,pqIndex,sourceIndex,contrast, PQ_PARAM_CONTRAST);
         if( err == 0 ) {
-            response["Contrast"] = std::to_string(contrast);
-            response["Range"] = range;
+            response["contrast"] = contrast;
+            response["range"] = range;
             LOGINFO("Exit : Contrast Value: %d \n", contrast);
             returnResponse(true);
         }
@@ -1773,8 +1773,8 @@ namespace Plugin {
         getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         int err = getLocalparam("Saturation",formatIndex,pqIndex,sourceIndex,saturation, PQ_PARAM_SATURATION);
         if( err == 0 ) {
-            response["Saturation"] = std::to_string(saturation);
-            response["Range"] = range;
+            response["saturation"] = saturation;
+            response["range"] = range;
             LOGINFO("Exit : Saturation Value: %d \n", saturation);
             returnResponse(true);
         }
@@ -2004,8 +2004,8 @@ namespace Plugin {
         getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         int err = getLocalparam("Sharpness",formatIndex,pqIndex,sourceIndex,sharpness, PQ_PARAM_SHARPNESS);
         if( err == 0 ) {
-            response["Sharpness"] = std::to_string(sharpness);
-            response["Range"] = range;
+            response["sharpness"] = sharpness;
+            response["range"] = range;
             LOGINFO("Exit : Sharpness Value: %d \n", sharpness);
             returnResponse(true);
         }
@@ -2227,8 +2227,8 @@ namespace Plugin {
         getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         int err = getLocalparam("Hue",formatIndex,pqIndex,sourceIndex,hue, PQ_PARAM_HUE);
         if( err == 0 ) {
-            response["Hue"] = std::to_string(hue);
-            response["Range"] = range;
+            response["hue"] = hue;
+            response["range"] = range;
             LOGINFO("Exit : Hue Value: %d \n", hue);
             returnResponse(true);
         }
@@ -2480,7 +2480,7 @@ namespace Plugin {
                     break;
             }
             LOGINFO("Exit : ColorTemperature Value: %d \n", colortemp);
-            response["ColorTemperature"] = ctObj;
+            response["colorTemperature"] = ctObj;
             returnResponse(true);
         }
         else {
@@ -2728,7 +2728,7 @@ namespace Plugin {
 	int err = getLocalparam(cms.c_str(),formatIndex,pqIndex,sourceIndex,saturation,
 			        PQ_PARAM_COMPONENT_SATURATION);
 	if( err == 0 || err == 1 ) {//err value willbe 1 if cms is default.(SPECIAL case)
-            saturationColorObj["Setting"] = std::to_string(saturation);
+            saturationColorObj["Setting"] = saturation;
             response["saturation"] = saturationColorObj;
             LOGINFO("Exit : Component Saturation for color: %s Value: %d\n", value.c_str(),saturation);
             returnResponse(true);
@@ -2956,7 +2956,7 @@ namespace Plugin {
         getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         int err = getLocalparam(cms.c_str(),formatIndex,pqIndex,sourceIndex,hue,PQ_PARAM_COMPONENT_HUE );
         if( err == 0 || err == 1 ) {//err value willbe 1 if cms is default.(SPECIAL case)
-            hueColorObj["Setting"] = std::to_string(hue);
+            hueColorObj["Setting"] = hue;
             response["hue"] = hueColorObj;
             LOGINFO("Exit : Component Hue for color: %s Value: %d\n", value.c_str(),hue);
             returnResponse(true);
@@ -3179,8 +3179,8 @@ namespace Plugin {
 	getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         int err = getLocalparam(cms.c_str(),formatIndex,pqIndex,sourceIndex,luma,PQ_PARAM_COMPONENT_LUMA);
         if( err == 0 || err == 1 ) {//err value willbe 1 if cms is default.(SPECIAL case)
-            response["luma"] = std::to_string(luma);
-            response["Range"] = range;
+            response["luma"] = luma;
+            response["range"] = range;
             LOGINFO("Exit : Component Luma for color: %s Value: %d\n", value.c_str(),luma);
             returnResponse(true);
         }
@@ -3463,7 +3463,7 @@ namespace Plugin {
                 
             }
             LOGINFO("Exit : DimmingMode Value: %d \n", dimmingMode);
-	    response["Range"] = range;
+	    response["range"] = range;
             returnResponse(true);
         }
         else {
@@ -3909,7 +3909,7 @@ namespace Plugin {
             for (index = 0; index < range.size(); index++)
                 rangeArray.Add(range[index]);
 
-            response["AutoBacklightControlInfo"]=rangeArray;
+            response["autoBacklightControlInfo"]=rangeArray;
 
             if (!pqmode.empty()) {
                 for (index = 0; index < pqmode.size(); index++) {
@@ -3982,8 +3982,8 @@ namespace Plugin {
             returnResponse(false);
         }
         else {
-            response["DolbyVisionMode"] = dolby_vision;
-	    response["Range"] = range;
+            response["dolbyVisionMode"] = dolby_vision;
+	    response["range"] = range;
             LOGINFO("Exit getDolbyVisionMode(): %s\n",dolby_vision.c_str());
             returnResponse(true);
         }
@@ -3995,8 +3995,8 @@ namespace Plugin {
         std::string value;
         std::string source;
 	
-	value = parameters.HasLabel("DolbyVisionMode") ? parameters["DolbyVisionMode"].String() : "";
-        returnIfParamNotFound(parameters,"DolbyVisionMode");
+	value = parameters.HasLabel("dolbyVisionMode") ? parameters["dolbyVisionMode"].String() : "";
+        returnIfParamNotFound(parameters,"dolbyVisionMode");
 
 	source =  parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
 	if (source.empty()) source = "global";
@@ -4194,7 +4194,7 @@ namespace Plugin {
                 SupportedHDR10Modes.Add(hdr10Modes[count].name);
             }
 
-            response["SupportedHDR10Modes"] = SupportedHDR10Modes;
+            response["supportedHDR10Modes"] = SupportedHDR10Modes;
             LOGINFO("Exit\n");
             returnResponse(true);
         }
@@ -4245,8 +4245,8 @@ namespace Plugin {
             returnResponse(false);
         }
         else {
-            response["HDR10Mode"] = hdr10;
-            response["Range"] = range;
+            response["hdr10Mode"] = hdr10;
+            response["range"] = range;
             LOGINFO("Exit getHDR10Mode(): %s\n",hdr10.c_str());
             returnResponse(true);
         }
@@ -4386,7 +4386,7 @@ namespace Plugin {
                 SupportedHLGModes.Add(hlgModes[count].name);
             }
 
-            response["SupportedHLGModes"] = SupportedHLGModes;
+            response["supportedHLGModes"] = SupportedHLGModes;
             LOGINFO("Exit\n");
             returnResponse(true);
         }
@@ -4403,8 +4403,8 @@ namespace Plugin {
             returnResponse(false);
         }
         else {
-            response["Range"] = range;
-            response["HLGMode"] = hlg;
+            response["range"] = range;
+            response["hlgMode"] = hlg;
             LOGINFO("Exit getHLGMode(): %s\n",hlg.c_str());
             returnResponse(true);
         }
@@ -5177,7 +5177,7 @@ namespace Plugin {
         getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         int err = getLocalparam("LowLatencyState",formatIndex,pqIndex,sourceIndex,lowlatencystate, PQ_PARAM_LOWLATENCY_STATE);
         if( err == 0 ) {
-            response["LowLatencyState"] = std::to_string(lowlatencystate);
+            response["lowLatencyState"] = std::to_string(lowlatencystate);
             LOGINFO("Exit : LowLatencyState Value: %d \n", lowlatencystate);
             returnResponse(true);
         }
