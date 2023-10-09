@@ -29,36 +29,6 @@ jobs:
             coverage: without-coverage
 
     steps:
-      - name: Set up cache
-        # Cache Thunder/ThunderInterfaces.
-        # https://github.com/actions/cache
-        # https://docs.github.com/en/rest/actions/cache
-        # Modify the key if changing the list.
-        if: ${{ !env.ACT }}
-        id: cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            build/Thunder
-            build/ThunderInterfaces
-            build/ThunderTools
-            install
-            !install/etc/WPEFramework/plugins
-            !install/usr/bin/RdkServicesTest
-            !install/usr/include/gmock
-            !install/usr/include/gtest
-            !install/usr/lib/libgmockd.a
-            !install/usr/lib/libgmock_maind.a
-            !install/usr/lib/libgtestd.a
-            !install/usr/lib/libgtest_maind.a
-            !install/usr/lib/cmake/GTest
-            !install/usr/lib/pkgconfig/gmock.pc
-            !install/usr/lib/pkgconfig/gmock_main.pc
-            !install/usr/lib/pkgconfig/gtest.pc
-            !install/usr/lib/pkgconfig/gtest_main.pc
-            !install/usr/lib/wpeframework/plugins
-          key: ${{ runner.os }}-${{ env.THUNDER_REF }}-${{ env.INTERFACES_REF }}-2
-
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
