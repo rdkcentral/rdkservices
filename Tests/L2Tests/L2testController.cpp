@@ -67,7 +67,7 @@ L2testController* L2testController::getInstance()
     return instancePtr;
   }
 }
-void L2testController::StartThunder()
+bool L2testController::StartThunder()
 {
     char command[THUNDER_CMD_LENGTH];
     char address[THUNDER_ADDRESS_LENGTH];
@@ -81,7 +81,7 @@ void L2testController::StartThunder()
                "For example:\n"
                "$ export PATH=`pwd`/install/usr/bin:$PATH\n"
                "$ export LD_LIBRARY_PATH=`pwd`/install/usr/lib:$LD_LIBRARY_PATH\n");
-        return;
+        return false;
     }
 
     /* Allow time for the server to start. */
@@ -91,6 +91,7 @@ void L2testController::StartThunder()
     snprintf(address, sizeof(address), "%s:%s", THUNDER_ADDRESS, THUNDER_PORT);
     WPEFramework::Core::SystemInfo::SetEnvironment(THUNDER_ACCESS, address);
 
+    return true;
 }
 
 void L2testController::StopThunder()
@@ -123,7 +124,6 @@ uint32_t L2testController::PerformL2Tests(JsonObject &params, JsonObject &result
     params.ToString(message);
     L2TEST_LOG("Invoking %s.parameters %s", L2TEST_CALLSIGN, message.c_str());
 
-    /* clearing JSON object result*/
     results = JsonObject();
     status = jsonrpc.Invoke<JsonObject, JsonObject>(TEST_COMPLETION_TIMEOUT, std::string(_T("PerformL2Tests")), params, results);
 
@@ -140,12 +140,18 @@ int main(int argc, char **argv)
     uint32_t status = Core::ERROR_GENERAL;
     int arguments=1;
     std::string message;
+    int return_status = -1;
     L2testController* L2testobj
       = L2testController ::getInstance();
 
 
     L2TEST_LOG("Starting Thunder");
-    L2testobj->StartThunder();
+    if (false == L2testobj->StartThunder())
+    {
+        L2TEST_LOG("Failed to start thunder \n");
+        return return_status;
+    }
+
     L2TEST_LOG("Argument count = %d\n",argc);
 
     /* L2 tests can be run with different options
@@ -173,13 +179,12 @@ int main(int argc, char **argv)
            arguments++;
         }
         params["test_suite_list"] = message;
+        L2TEST_LOG("gtest filter = %s\n",message.c_str());
     }
     else
     {
         L2TEST_LOG("No Extra Argument passed");
     }
-
-    L2TEST_LOG("gtest filter = %s\n",message.c_str());
 
     L2TEST_LOG("PerformL2Tests from Test Controller");
     status = L2testobj->PerformL2Tests(params, result);
@@ -187,11 +192,16 @@ int main(int argc, char **argv)
     {
        L2TEST_LOG("Issue with starting L2 test in test plugin");
     }
+    else
+    {
+       L2TEST_LOG("Successfully ran L2 tests");
+       return_status = 0;
+    }
 
     L2TEST_LOG("Stoppng Thunder");
     L2testobj->StopThunder();
 
-    return 0;
+    return return_status;
     
 }
 

@@ -48,7 +48,7 @@ class L2testController
          * @brief Spawn Thunder process in isolation
          *
          */
-        void StartThunder();
+        bool StartThunder();
 
         /**
          * @brief Stops thunder

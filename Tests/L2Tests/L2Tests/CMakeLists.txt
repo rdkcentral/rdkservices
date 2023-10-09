@@ -25,8 +25,8 @@ add_library(${MODULE_NAME} SHARED
     Module.cpp
     L2Tests.cpp
     L2TestsMock.cpp
-    tests/SystemService_L2test.cpp
-    tests/UsbAccess_l2tests.cpp)
+    tests/SystemService_L2Test.cpp
+    tests/UsbAccess_L2Test.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
