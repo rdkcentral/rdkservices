@@ -2,7 +2,7 @@
 <a name="SystemAudioPlayer_Plugin"></a>
 # SystemAudioPlayer Plugin
 
-**Version: [1.0.6](https://github.com/rdkcentral/rdkservices/blob/main/SystemAudioPlayer/CHANGELOG.md)**
+**Version: [1.0.7](https://github.com/rdkcentral/rdkservices/blob/main/SystemAudioPlayer/CHANGELOG.md)**
 
 A org.rdk.SystemAudioPlayer plugin for Thunder framework.
 

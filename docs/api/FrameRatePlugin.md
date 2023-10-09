@@ -2,7 +2,7 @@
 <a name="FrameRate_Plugin"></a>
 # FrameRate Plugin
 
-**Version: [1.0.3](https://github.com/rdkcentral/rdkservices/blob/main/FrameRate/CHANGELOG.md)**
+**Version: [1.0.4](https://github.com/rdkcentral/rdkservices/blob/main/FrameRate/CHANGELOG.md)**
 
 A org.rdk.FrameRate plugin for Thunder framework.
 
