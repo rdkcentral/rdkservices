@@ -2,9 +2,9 @@ name: l2-tests
 
 on:
   push:
-    branches: [ main, 'sprint/**','topic/simplification_rdkvs', 'release/**' ]
+    branches: [ main, 'sprint/**','topic/simplification_rdkvs','5th_oct_topic_L2branch', 'release/**' ]
   pull_request:
-    branches: [ main, 'sprint/**', 'topic/simplification_rdkvs','release/**' ]
+    branches: [ main, 'sprint/**', 'topic/simplification_rdkvs','5th_oct_topic_L2branch,'release/**' ]
 
 env:
   BUILD_TYPE: Debug
