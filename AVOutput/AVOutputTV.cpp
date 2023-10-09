@@ -725,11 +725,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "global";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "global";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "global";
 
@@ -904,11 +904,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "global";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "global";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "global";
 
@@ -1083,11 +1083,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "current";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "current";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "current";
 
@@ -1122,11 +1122,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "global";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "global";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "global";
 
@@ -1175,11 +1175,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "global";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "global";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "global";
 
@@ -1292,11 +1292,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "global";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "global";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "global";
 
@@ -1341,11 +1341,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "global";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "global";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "global";
        
@@ -1399,11 +1399,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "global";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "global";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "global";
 
@@ -1517,11 +1517,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "global";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "global";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "global";
 
@@ -1556,11 +1556,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "global";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "global";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "global";
        
@@ -1614,11 +1614,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "global";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "global";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "global";
 
@@ -1733,11 +1733,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "global";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "global";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "global";
 
@@ -1772,11 +1772,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "global";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "global";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "global";
       
@@ -1831,11 +1831,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "global";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "global";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "global";
 
@@ -1950,11 +1950,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "global";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "global";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "global";
 
@@ -1989,11 +1989,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "global";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "global";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "global";
    
@@ -2047,11 +2047,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "global";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "global";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "global";
 
@@ -2166,11 +2166,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "global";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "global";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "global";
 
@@ -2205,11 +2205,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "global";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "global";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "global";
 
@@ -2264,11 +2264,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "global";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "global";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "global";
 
@@ -2383,11 +2383,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "current";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "current";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "current";
 
@@ -2462,11 +2462,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "global";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "global";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "global";
 
@@ -2519,11 +2519,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "global";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "global";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "global";
 
@@ -2642,11 +2642,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "current";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "current";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "current";
 
@@ -2699,11 +2699,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "global";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "global";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "global";
        
@@ -2783,11 +2783,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "global";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "global";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "global";
 
@@ -2866,11 +2866,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "current";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "current";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "current";
 
@@ -2920,11 +2920,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "global";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "global";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "global";
 
@@ -3004,11 +3004,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "global";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "global";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "global";
 
@@ -3085,11 +3085,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "current";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "current";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "current";
 
@@ -3139,11 +3139,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "global";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "global";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "global";
 
@@ -3223,11 +3223,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "global";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "global";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "global";
 
@@ -3349,11 +3349,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "current";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "current";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "current";
 
@@ -3405,11 +3405,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "global";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "global";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "global";
 
@@ -3469,11 +3469,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "global";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "global";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "global";
 
@@ -3656,11 +3656,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "global";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "global";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "global";
 
@@ -3720,11 +3720,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "global";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "global";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "global";
 
@@ -4577,11 +4577,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "global";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "global";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "global";
 
@@ -4753,7 +4753,7 @@ namespace Plugin {
         TR181_ParamData_t param = {0};
         tr181ErrorCode_t err = tr181Success;
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "current";
 
@@ -4764,7 +4764,7 @@ namespace Plugin {
         }
         LOGINFO("current source index[%d] \n", current_source);
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
                 format = "current";
 
@@ -4805,11 +4805,11 @@ namespace Plugin {
         value = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         returnIfParamNotFound(parameters,"pictureMode");
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "global";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "global";
 
@@ -5009,11 +5009,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "global";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "global";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "global";
 
@@ -5055,11 +5055,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "current";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "current";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "current";
 
@@ -5091,11 +5091,11 @@ namespace Plugin {
         if(pqmode.empty())
             pqmode = "global";
 
-        source = parameters.HasLabel("source") ? parameters["source"].String() : "";
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
         if(source.empty())
             source = "global";
 
-        format = parameters.HasLabel("format") ? parameters["format"].String() : "";
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
         if(format.empty())
             format = "global";
 
@@ -5645,7 +5645,7 @@ namespace Plugin {
                                 if(set)
                                 {
                                     //SpecialCase to store UserScale backlight in localstore only products using global BLF
-                                    if(( !tr181ParamName.compare("Backlight") == 0) &&  appUsesGlobalBackLightFactor)
+                                    if(( tr181ParamName.compare("Backlight") == 0) &&  appUsesGlobalBackLightFactor)
                                         ret |= updatePQParamToLocalCache(tr181ParamName,source, mode, format, params[1],true);
                                     else
                                         ret |= updatePQParamToLocalCache(tr181ParamName,source, mode, format, params[0],true);
@@ -5936,7 +5936,7 @@ namespace Plugin {
 
        if ( tr181Success == err )//Fetch new tr181format values
        {
-           if( !forParam.compare("ColorTemp") == 0 )
+           if( forParam.compare("ColorTemp") == 0 )
            {
                if (strncmp(param.value, "Standard", strlen(param.value))==0)
                    value=tvColorTemp_STANDARD;
@@ -5950,7 +5950,7 @@ namespace Plugin {
                    value=tvColorTemp_STANDARD;
                return 0;
            }
-           else if( !forParam.compare("DimmingMode") == 0 )
+           else if( forParam.compare("DimmingMode") == 0 )
            {
                if (strncmp(param.value, "fixed", strlen(param.value))==0)
                    value=tvDimmingMode_Fixed;
@@ -6127,11 +6127,11 @@ namespace Plugin {
     {
         unsigned short index = 1;
 
-        if(!mode.compare("local") == 0 )
+        if(mode.compare("local") == 0 )
             index=tvDimmingMode_Local;
-        else if(!mode.compare("fixed") == 0 )
+        else if(mode.compare("fixed") == 0 )
             index=tvDimmingMode_Fixed;
-        else if(!mode.compare("global") == 0 )
+        else if(mode.compare("global") == 0 )
             index=tvDimmingMode_Global;
         else
             LOGINFO("Return Default Dimmingmode:%d!!!\n",index);
