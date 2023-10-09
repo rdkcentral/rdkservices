@@ -1075,10 +1075,8 @@ namespace Plugin {
         std::string source;
         std::string format;
         std::string key;
-        JsonObject range;
-        range["From"] = 0;
-        range["To"] = 100;
-        int sourceIndex=0,pqIndex=0,formatIndex=0;
+        
+	int sourceIndex=0,pqIndex=0,formatIndex=0;
         int backlight = 0,err = 0;
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
@@ -1097,7 +1095,6 @@ namespace Plugin {
         err = getLocalparam("Backlight",formatIndex,pqIndex,sourceIndex,backlight, PQ_PARAM_BACKLIGHT);
         if( err == 0 ) {
             response["backlight"] = backlight;
-            response["range"] = range;
             LOGINFO("Exit : Backlight Value: %d \n", backlight);
             returnResponse(true);
         }
@@ -1195,44 +1192,28 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        if( isSetRequired(pqmode,source,format) ) { //Needs rework
-            LOGINFO("Proceed with setBacklight\n");
-            ret = SetBacklight(backlight);
-        }
-
-     /*  if(appUsesGlobalBackLightFactor){
-            tr181ErrorCode_t err = clearLocalParam(rfc_caller_id, AVOUTPUT_BACKLIGHT_SDR_RFC_PARAM);
-            if ( err != tr181Success ) {
-                LOGWARN("ClearLocalParam for %s Failed : %s\n", AVOUTPUT_BACKLIGHT_SDR_RFC_PARAM, getTR181ErrorString(err));
-                ret = tvERROR_GENERAL;
-            }
-            else {
-                LOGINFO("ClearLocalParam for %s Successful\n", AVOUTPUT_BACKLIGHT_SDR_RFC_PARAM);
-            }
-            err = clearLocalParam(rfc_caller_id, AVOUTPUT_BACKLIGHT_HDR_RFC_PARAM);
-            if ( err != tr181Success ) {
-                LOGWARN("ClearLocalParam for %s Failed : %s\n", AVOUTPUT_BACKLIGHT_HDR_RFC_PARAM, getTR181ErrorString(err));
-                ret = tvERROR_GENERAL;
-            }
-        }*/
-        /* non backlight factor path */
 	int retval= updatePQParamsToCache("reset","Backlight",pqmode,source,format,PQ_PARAM_BACKLIGHT,params);
-        if(retval != 0 ) {
+        if(retval != 0 )
+	{
             LOGWARN("Failed to reset Backlight\n");
             returnResponse(false);
         }
-        else {
-            getParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
-            int err = getLocalparam("Backlight",formatIndex,pqIndex,sourceIndex,backlight, PQ_PARAM_BACKLIGHT);
-            if( err == 0 ) {
-                LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,backlight);
-                if( isSetRequired(pqmode,source,format) ) { //Needs rework
-                    LOGINFO("Proceed with setBacklight\n");
+        else
+	{
+	    if (isSetRequired(pqmode,source,format))
+	    {
+                getParamIndex("current","current", "current",sourceIndex,pqIndex,formatIndex);
+                int err = getLocalparam("Backlight",formatIndex,pqIndex,sourceIndex,backlight, PQ_PARAM_BACKLIGHT);
+                if( err == 0 )
+		{
+                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,backlight);
                     ret = SetBacklight(backlight);
                 }
-            }
-            else
-                LOGINFO("%s : GetLcoalParam Failed \n",__FUNCTION__);
+                else
+		{
+                    LOGINFO("%s : GetLocalParam Failed \n",__FUNCTION__);
+	        }
+	    }
         }
 
         if(ret != tvERROR_NONE)
@@ -1258,11 +1239,6 @@ namespace Plugin {
         JsonArray pqmodeArray;
         JsonArray formatArray;
         JsonArray sourceArray;
-
-        JsonObject rangeInfo;
-        JsonObject pqmodeInfo;
-        JsonObject sourceInfo;
-        JsonObject formatInfo;
 
         unsigned int index = 0;
 
@@ -1312,10 +1288,6 @@ namespace Plugin {
         int sourceIndex=0,pqIndex=0,formatIndex=0;
         int brightness = 0;
 
-        JsonObject range;
-        range["From"] = 0;
-        range["To"] = 100;
-
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
             pqmode = "global";
@@ -1342,7 +1314,6 @@ namespace Plugin {
         int err = getLocalparam("Brightness",formatIndex,pqIndex,sourceIndex,brightness, PQ_PARAM_BRIGHTNESS);
         if( err == 0 ) {
             response["brightness"] = brightness;
-            response["range"] = range;
             LOGINFO("Exit : Brightness Value: %d \n", brightness);
             returnResponse(true);
         }
@@ -1445,27 +1416,28 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        if( isSetRequired(pqmode,source,format) ) {
-             LOGINFO("Proceed with %s \n",__FUNCTION__);
-             ret = SetBrightness(brightness);
-        }
-	else
-            LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
-
         int retval= updatePQParamsToCache("reset","Brightness",pqmode,source,format,PQ_PARAM_BRIGHTNESS,params);
-        if(retval != 0 ) {
+        if(retval != 0 )
+        {
             LOGWARN("Failed to reset Brightness\n");
             returnResponse(false);
         }
-        else {
-            getParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
-            int err = getLocalparam("Brightness",formatIndex,pqIndex,sourceIndex,brightness, PQ_PARAM_BRIGHTNESS);
-            if( err == 0 ) {
-                LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,brightness);
-                ret = SetBrightness(brightness);
+        else
+        {
+            if (isSetRequired(pqmode,source,format))
+            {
+                getParamIndex("current","current", "current",sourceIndex,pqIndex,formatIndex);
+                int err = getLocalparam("Brightness",formatIndex,pqIndex,sourceIndex,brightness, PQ_PARAM_BRIGHTNESS);
+                if( err == 0 )
+                {
+                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,brightness);
+                    ret = SetBrightness(brightness);
+                }
+                else
+                {
+                    LOGINFO("%s : GetLocalParam Failed \n",__FUNCTION__);
+                }
             }
-            else
-                LOGINFO("%s : GetLcoalParam Failed \n",__FUNCTION__);
         }
 
         if(ret != tvERROR_NONE)
@@ -1492,11 +1464,6 @@ namespace Plugin {
         JsonArray pqmodeArray;
         JsonArray formatArray;
         JsonArray sourceArray;
-
-	JsonObject rangeInfo;
-	JsonObject pqmodeInfo;
-	JsonObject sourceInfo;
-	JsonObject formatInfo;
 
 	unsigned int index = 0;
 
@@ -1545,9 +1512,6 @@ namespace Plugin {
         std::string key;
         int sourceIndex=0,pqIndex=0,formatIndex=0;
         int contrast = 0;
-        JsonObject range;
-        range["From"] = 0;
-        range["To"] = 100;
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
@@ -1565,7 +1529,6 @@ namespace Plugin {
         int err = getLocalparam("Contrast",formatIndex,pqIndex,sourceIndex,contrast, PQ_PARAM_CONTRAST);
         if( err == 0 ) {
             response["contrast"] = contrast;
-            response["range"] = range;
             LOGINFO("Exit : Contrast Value: %d \n", contrast);
             returnResponse(true);
         }
@@ -1670,24 +1633,27 @@ namespace Plugin {
 
         int retval= updatePQParamsToCache("reset","Contrast",pqmode,source,format,PQ_PARAM_CONTRAST,params);
 
-        if(retval != 0 ) {
+        if(retval != 0 )
+        {
             LOGWARN("Failed to reset Contrast\n");
             returnResponse(false);
         }
-        else {
-            getParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
-            int err = getLocalparam("Contrast",formatIndex,pqIndex,sourceIndex,contrast,PQ_PARAM_CONTRAST);
-            if( err == 0 ) {
-                LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,contrast);
-                if( isSetRequired(pqmode,source,format) ) {
-                    LOGINFO("Proceed with %s \n",__FUNCTION__);
+        else
+        {
+            if (isSetRequired(pqmode,source,format))
+            {
+                getParamIndex("current","current", "current",sourceIndex,pqIndex,formatIndex);
+                int err = getLocalparam("Contrast",formatIndex,pqIndex,sourceIndex,contrast, PQ_PARAM_CONTRAST);
+                if( err == 0 )
+                {
+                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,contrast);
                     ret = SetContrast(contrast);
                 }
                 else
-                    LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
+                {
+                    LOGINFO("%s : GetLocalParam Failed \n",__FUNCTION__);
+                }
             }
-            else
-                LOGINFO("%s : GetLcoalParam Failed \n",__FUNCTION__);
         }
 
         if(ret != tvERROR_NONE)
@@ -1714,11 +1680,6 @@ namespace Plugin {
         JsonArray pqmodeArray;
         JsonArray formatArray;
         JsonArray sourceArray;
-
-        JsonObject rangeInfo;
-        JsonObject pqmodeInfo;
-        JsonObject sourceInfo;
-        JsonObject formatInfo;
 
         unsigned int index = 0;
 
@@ -1767,9 +1728,6 @@ namespace Plugin {
         std::string key;
         int sourceIndex=0,pqIndex=0,formatIndex=0;
         int saturation = 0;
-        JsonObject range;
-        range["From"] = 0;
-        range["To"] = 100;
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
@@ -1787,7 +1745,6 @@ namespace Plugin {
         int err = getLocalparam("Saturation",formatIndex,pqIndex,sourceIndex,saturation, PQ_PARAM_SATURATION);
         if( err == 0 ) {
             response["saturation"] = saturation;
-            response["range"] = range;
             LOGINFO("Exit : Saturation Value: %d \n", saturation);
             returnResponse(true);
         }
@@ -1891,34 +1848,29 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        if( isSetRequired(pqmode,source,format) ) {
-             LOGINFO("Proceed with %s\n",__FUNCTION__);
-             ret = SetSaturation(saturation);
-        }
-        else
-            LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
-
         int retval= updatePQParamsToCache("reset","Saturation",pqmode,source,format,PQ_PARAM_SATURATION,params);
 
-        if(retval != 0 ) {
+        if(retval != 0 )
+        {
             LOGWARN("Failed to reset Saturation\n");
             returnResponse(false);
         }
-        else {
-            getParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
-            int err = getLocalparam("Saturation",formatIndex,pqIndex,sourceIndex,saturation,PQ_PARAM_SATURATION);
-            if( err == 0 ) {
-                LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,saturation);
-                if( isSetRequired(pqmode,source,format) ) {
-                    LOGINFO("Proceed with %s\n",__FUNCTION__);
+        else
+        {
+            if (isSetRequired(pqmode,source,format))
+            {
+                getParamIndex("current","current", "current",sourceIndex,pqIndex,formatIndex);
+                int err = getLocalparam("Saturation",formatIndex,pqIndex,sourceIndex, saturation, PQ_PARAM_SATURATION);
+                if( err == 0 )
+                {
+                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,saturation);
                     ret = SetSaturation(saturation);
                 }
                 else
-                    LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
-
+                {
+                    LOGINFO("%s : GetLocalParam Failed \n",__FUNCTION__);
+                }
             }
-            else
-                LOGINFO("%s : GetLcoalParam Failed \n",__FUNCTION__);
         }
 
         if(ret != tvERROR_NONE)
@@ -1945,11 +1897,6 @@ namespace Plugin {
         JsonArray pqmodeArray;
         JsonArray formatArray;
         JsonArray sourceArray;
-
-        JsonObject rangeInfo;
-        JsonObject pqmodeInfo;
-        JsonObject sourceInfo;
-        JsonObject formatInfo;
 
         unsigned int index = 0;
 
@@ -1998,9 +1945,6 @@ namespace Plugin {
         std::string key;
         int sourceIndex=0,pqIndex=0,formatIndex=0;
         int sharpness = 0;
-        JsonObject range;
-        range["From"] = 0;
-        range["To"] = 100;
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
@@ -2018,7 +1962,6 @@ namespace Plugin {
         int err = getLocalparam("Sharpness",formatIndex,pqIndex,sourceIndex,sharpness, PQ_PARAM_SHARPNESS);
         if( err == 0 ) {
             response["sharpness"] = sharpness;
-            response["range"] = range;
             LOGINFO("Exit : Sharpness Value: %d \n", sharpness);
             returnResponse(true);
         }
@@ -2123,24 +2066,27 @@ namespace Plugin {
 
         int retval= updatePQParamsToCache("reset","Sharpness",pqmode,source,format,PQ_PARAM_SHARPNESS,params);
 
-        if(retval != 0 ) {
+        if(retval != 0 )
+        {
             LOGWARN("Failed to reset Sharpness\n");
             returnResponse(false);
         }
-        else {
-            getParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
-            int err = getLocalparam("Sharpness",formatIndex,pqIndex,sourceIndex,sharpness, PQ_PARAM_SHARPNESS);
-            if( err == 0 ) {
-                LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,sharpness);
-                if( isSetRequired(pqmode,source,format) ) {
-                    LOGINFO("Proceed with %s\n",__FUNCTION__);
+        else
+        {
+            if (isSetRequired(pqmode,source,format))
+            {
+                getParamIndex("current","current", "current",sourceIndex,pqIndex,formatIndex);
+                int err = getLocalparam("Sharpness",formatIndex,pqIndex,sourceIndex, sharpness, PQ_PARAM_SHARPNESS);
+                if( err == 0 )
+                {
+                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,sharpness);
                     ret = SetSharpness(sharpness);
                 }
                 else
-                    LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
+                {
+                    LOGINFO("%s : GetLocalParam Failed \n",__FUNCTION__);
+                }
             }
-            else
-                LOGINFO("%s : GetLcoalParam Failed \n",__FUNCTION__);
         }
 
         if(ret != tvERROR_NONE)
@@ -2167,11 +2113,6 @@ namespace Plugin {
         JsonArray pqmodeArray;
         JsonArray formatArray;
         JsonArray sourceArray;
-
-        JsonObject rangeInfo;
-        JsonObject pqmodeInfo;
-        JsonObject sourceInfo;
-        JsonObject formatInfo;
 
         unsigned int index = 0;
 
@@ -2221,10 +2162,6 @@ namespace Plugin {
         int sourceIndex=0,pqIndex=0,formatIndex=0;
         int hue = 0;
 
-        JsonObject range;
-        range["From"] = 0;
-        range["To"] = 100;
-
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
             pqmode = "global";
@@ -2241,7 +2178,6 @@ namespace Plugin {
         int err = getLocalparam("Hue",formatIndex,pqIndex,sourceIndex,hue, PQ_PARAM_HUE);
         if( err == 0 ) {
             response["hue"] = hue;
-            response["range"] = range;
             LOGINFO("Exit : Hue Value: %d \n", hue);
             returnResponse(true);
         }
@@ -2347,24 +2283,27 @@ namespace Plugin {
 
         int retval= updatePQParamsToCache("reset","Hue",pqmode,source,format,PQ_PARAM_HUE,params);
 
-        if(retval != 0 ) {
+        if(retval != 0 )
+        {
             LOGWARN("Failed to reset Hue\n");
             returnResponse(false);
         }
-        else {
-            getParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
-            int err = getLocalparam("Hue",formatIndex,pqIndex,sourceIndex,hue,PQ_PARAM_HUE);
-            if( err == 0 ) {
-                LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,hue);
-                if( isSetRequired(pqmode,source,format) ) {
-                    LOGINFO("Proceed with %s\n",__FUNCTION__);
+        else
+        {
+            if (isSetRequired(pqmode,source,format))
+            {
+                getParamIndex("current","current", "current",sourceIndex,pqIndex,formatIndex);
+                int err = getLocalparam("Hue",formatIndex,pqIndex,sourceIndex, hue, PQ_PARAM_HUE);
+                if( err == 0 )
+                {
+                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,hue);
                     ret = SetHue(hue);
                 }
                 else
-                    LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
+                {
+                    LOGINFO("%s : GetLocalParam Failed \n",__FUNCTION__);
+                }
             }
-            else
-                LOGINFO("%s : GetLcoalParam Failed \n",__FUNCTION__);
         }
 
         if(ret != tvERROR_NONE)
@@ -2391,11 +2330,6 @@ namespace Plugin {
         JsonArray pqmodeArray;
         JsonArray formatArray;
         JsonArray sourceArray;
-
-        JsonObject rangeInfo;
-        JsonObject pqmodeInfo;
-        JsonObject sourceInfo;
-        JsonObject formatInfo;
 
         unsigned int index = 0;
 
@@ -2444,11 +2378,6 @@ namespace Plugin {
         std::string key;
         int sourceIndex=0,pqIndex=0,formatIndex=0;
         int colortemp = 0;
-		JsonObject ctObj;
-        JsonArray ctOptions;
-        ctOptions.Add("Standard"); ctOptions.Add("Warm"); ctOptions.Add("Cold"); ctOptions.Add("User Defined");
-        ctObj["Selected"] = "Standard";
-        ctObj["Options"] = ctOptions;
 
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         if(pqmode.empty())
@@ -2469,31 +2398,30 @@ namespace Plugin {
 
                 case tvColorTemp_STANDARD:
                     LOGINFO("Color Temp Value: Standard\n");
-                    ctObj["Selected"] = "Standard";
+                    response["colorTemperature"] = "Standard";
                     break;
 
                 case tvColorTemp_WARM:
                     LOGINFO("Color Temp Value: Warm\n");
-                    ctObj["Selected"] = "Warm";
+                    response["colorTemperature"] = "Warm";
                     break;
 
                 case tvColorTemp_COLD:
                     LOGINFO("Color Temp Value: Cold\n");
-                    ctObj["Selected"] = "Cold";
+                    response["colorTemperature"] = "Cold";
                     break;
 
                 case tvColorTemp_USER:
                     LOGINFO("Color Temp Value: User Defined\n");
-                    ctObj["Selected"] = "User Defined";
+                    response["colorTemperature"] = "User Defined";
                     break;
 
                 default:
                     LOGINFO("Color Temp Value: Standard\n");
-                    ctObj["Selected"] = "Standard";
+                    response["colorTemperature"] = "Standard";
                     break;
             }
             LOGINFO("Exit : ColorTemperature Value: %d \n", colortemp);
-            response["colorTemperature"] = ctObj;
             returnResponse(true);
         }
         else {
@@ -2610,25 +2538,27 @@ namespace Plugin {
 
         int retval= updatePQParamsToCache("reset","ColorTemp",pqmode,source,format,PQ_PARAM_COLOR_TEMPERATURE,params);
 
-        if(retval != 0 ) {
+        if(retval != 0 )
+        {
             LOGWARN("Failed to reset ColorTemperature\n");
             returnResponse(false);
         }
-        else {
-            getParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
-            int err = getLocalparam("ColorTemp",formatIndex,pqIndex,sourceIndex,colortemp,PQ_PARAM_COLOR_TEMPERATURE);
-            if( err == 0 ) {
-                LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,colortemp);
-                if( isSetRequired(pqmode,source,format) ) {
-                    LOGINFO("Proceed with %s\n",__FUNCTION__);
+        else
+        {
+            if (isSetRequired(pqmode,source,format))
+            {
+                getParamIndex("current","current", "current",sourceIndex,pqIndex,formatIndex);
+                int err = getLocalparam("ColorTemp",formatIndex,pqIndex,sourceIndex, colortemp, PQ_PARAM_COLOR_TEMPERATURE);
+                if( err == 0 )
+                {
+                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex, colortemp);
                     ret = SetColorTemperature((tvColorTemp_t)colortemp);
                 }
                 else
-                    LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
-
+                {
+                    LOGINFO("%s : GetLocalParam Failed \n",__FUNCTION__);
+                }
             }
-            else
-                LOGINFO("%s : GetLcoalParam Failed \n",__FUNCTION__);
         }
 
         if(ret != tvERROR_NONE)
@@ -2654,11 +2584,6 @@ namespace Plugin {
         JsonArray pqmodeArray;
         JsonArray formatArray;
         JsonArray sourceArray;
-
-        JsonObject rangeInfo;
-        JsonObject pqmodeInfo;
-        JsonObject sourceInfo;
-        JsonObject formatInfo;
 
         unsigned int index = 0;
 
@@ -2709,11 +2634,6 @@ namespace Plugin {
 	int sourceIndex=0,pqIndex=0,formatIndex=0;
         tvDataComponentColor_t blSaturationColor;
         int saturation=0;
-        JsonObject range;
-        JsonObject saturationColorObj;
-        range["From"] = 0;
-        range["To"] = 100;
-        saturationColorObj["Range"] = range;
 
 	value = parameters.HasLabel("color") ? parameters["color"].String() : "";
         returnIfParamNotFound(parameters,"color");
@@ -2741,8 +2661,7 @@ namespace Plugin {
 	int err = getLocalparam(cms.c_str(),formatIndex,pqIndex,sourceIndex,saturation,
 			        PQ_PARAM_COMPONENT_SATURATION);
 	if( err == 0 || err == 1 ) {//err value willbe 1 if cms is default.(SPECIAL case)
-            saturationColorObj["Setting"] = saturation;
-            response["saturation"] = saturationColorObj;
+            response["saturation"] = saturation;
             LOGINFO("Exit : Component Saturation for color: %s Value: %d\n", value.c_str(),saturation);
             returnResponse(true);
         }
@@ -2939,11 +2858,6 @@ namespace Plugin {
         tvDataComponentColor_t blHueColor;
 	int sourceIndex=0,pqIndex=0,formatIndex=0;
         int hue=0;
-        JsonObject range;
-        JsonObject hueColorObj;
-        range["From"] = 0;
-        range["To"] = 100;
-        hueColorObj["Range"] = range;
 
         value = parameters.HasLabel("color") ? parameters["color"].String() : "";
         returnIfParamNotFound(parameters,"color");
@@ -2969,8 +2883,7 @@ namespace Plugin {
         getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         int err = getLocalparam(cms.c_str(),formatIndex,pqIndex,sourceIndex,hue,PQ_PARAM_COMPONENT_HUE );
         if( err == 0 || err == 1 ) {//err value willbe 1 if cms is default.(SPECIAL case)
-            hueColorObj["Setting"] = hue;
-            response["hue"] = hueColorObj;
+            response["hue"] = hue;
             LOGINFO("Exit : Component Hue for color: %s Value: %d\n", value.c_str(),hue);
             returnResponse(true);
         }
@@ -3164,9 +3077,6 @@ namespace Plugin {
         int sourceIndex=0,pqIndex=0,formatIndex=0;
         tvDataComponentColor_t blLumaColor;
         int luma=0;
-        JsonObject range;
-        range["From"] = 0;
-        range["To"] = 100;
 
         value = parameters.HasLabel("color") ? parameters["color"].String() : "";
         returnIfParamNotFound(parameters,"color");
@@ -3193,7 +3103,6 @@ namespace Plugin {
         int err = getLocalparam(cms.c_str(),formatIndex,pqIndex,sourceIndex,luma,PQ_PARAM_COMPONENT_LUMA);
         if( err == 0 || err == 1 ) {//err value willbe 1 if cms is default.(SPECIAL case)
             response["luma"] = luma;
-            response["range"] = range;
             LOGINFO("Exit : Component Luma for color: %s Value: %d\n", value.c_str(),luma);
             returnResponse(true);
         }
@@ -3388,11 +3297,6 @@ namespace Plugin {
         JsonArray formatArray;
         JsonArray sourceArray;
 
-        JsonObject rangeInfo;
-        JsonObject pqmodeInfo;
-        JsonObject sourceInfo;
-        JsonObject formatInfo;
-
         unsigned int index = 0;
 
         tvError_t ret = getParamsCaps(range,pqmode,source,format,"CMS");
@@ -3438,8 +3342,6 @@ namespace Plugin {
         std::string source;
         std::string format;
 	std::string key;
-	JsonObject range;
-	range["List"] = "local,global,fixed";
 	int sourceIndex=0,pqIndex=0,formatIndex=0;
         int dimmingMode = 0;
 
@@ -3476,7 +3378,6 @@ namespace Plugin {
                 
             }
             LOGINFO("Exit : DimmingMode Value: %d \n", dimmingMode);
-	    response["range"] = range;
             returnResponse(true);
         }
         else {
@@ -3587,25 +3488,29 @@ namespace Plugin {
 
 	int retval= updatePQParamsToCache("reset","DimmingMode",pqmode,source,format,PQ_PARAM_DIMMINGMODE,params);
 
-        if(retval != 0 ) {
+        if(retval != 0 )
+        {
             LOGWARN("Failed to reset ldim\n");
             returnResponse(false);
         }
-        else {
-            getParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
-            int err = getLocalparam("DimmingMode",formatIndex,pqIndex,sourceIndex,dMode, PQ_PARAM_DIMMINGMODE);
-            if( err == 0 ) {
-                LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,dMode);
-                if( isSetRequired(pqmode,source,format) ) {
-                    LOGINFO("Proceed with %s\n",__FUNCTION__);
-		    getDimmingModeStringFromEnum(dMode,dimmingMode);
+
+        else
+        {
+            if (isSetRequired(pqmode,source,format))
+            {
+                getParamIndex("current","current", "current",sourceIndex,pqIndex,formatIndex);
+                int err = getLocalparam("DimmingMode",formatIndex,pqIndex,sourceIndex, dMode, PQ_PARAM_DIMMINGMODE);
+                if( err == 0 )
+                {
+                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex, dMode);
+                    getDimmingModeStringFromEnum(dMode,dimmingMode);
                     ret = SetTVDimmingMode(dimmingMode.c_str());
                 }
                 else
-                    LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
+                {
+                    LOGINFO("%s : GetLocalParam Failed \n",__FUNCTION__);
+                }
             }
-            else
-                LOGINFO("%s : GetLcoalParam Failed \n",__FUNCTION__);
         }
 
         if(ret != tvERROR_NONE)
@@ -3638,11 +3543,6 @@ namespace Plugin {
         JsonArray pqmodeArray;
         JsonArray formatArray;
         JsonArray sourceArray;
-
-        JsonObject supportedDimmingModeInfo;
-        JsonObject pqmodeInfo;
-        JsonObject sourceInfo;
-        JsonObject formatInfo;
 
         unsigned int index = 0;
 
@@ -3905,11 +3805,6 @@ namespace Plugin {
         JsonArray formatArray;
         JsonArray sourceArray;
 
-        JsonObject AutoBacklightControlInfo;
-        JsonObject pqmodeInfo;
-        JsonObject sourceInfo;
-        JsonObject formatInfo;
-
         unsigned int index = 0;
 
         tvError_t ret = getParamsCaps(range,pqmode,source,format,"AutoBacklightControl");
@@ -3965,7 +3860,7 @@ namespace Plugin {
                 SupportedDVModes.Add(dvModes[count].name);
             }
 
-            response["SupportedDVModes"] = SupportedDVModes;
+            response["supportedDVModes"] = SupportedDVModes;
             LOGINFO("Exit\n");
             returnResponse(true);
         }
@@ -3979,8 +3874,6 @@ namespace Plugin {
         std::string source;
         std::string pqmode;
         std::string format;
-        JsonObject range;
-	range["list"] = "dark,bright";
 
         source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
 
@@ -3996,7 +3889,6 @@ namespace Plugin {
         }
         else {
             response["dolbyVisionMode"] = dolby_vision;
-	    response["range"] = range;
             LOGINFO("Exit getDolbyVisionMode(): %s\n",dolby_vision.c_str());
             returnResponse(true);
         }
@@ -4149,11 +4041,6 @@ namespace Plugin {
         JsonArray formatArray;
         JsonArray sourceArray;
 
-        JsonObject DolbyVisionModeInfo;
-        JsonObject pqmodeInfo;
-        JsonObject sourceInfo;
-        JsonObject formatInfo;
-
         unsigned int index = 0;
 
         tvError_t ret = getParamsCaps(range,pqmode,source,format,"DolbyVisionMode");
@@ -4252,14 +4139,11 @@ namespace Plugin {
         LOGINFO("Entry\n");
         std::string hdr10;
 
-	JsonObject range;
-	range["List"] = "dark,bright";
         if ( -1 == getDolbyParams(tvContentFormatType_HDR10, hdr10)) {
             returnResponse(false);
         }
         else {
             response["hdr10Mode"] = hdr10;
-            response["range"] = range;
             LOGINFO("Exit getHDR10Mode(): %s\n",hdr10.c_str());
             returnResponse(true);
         }
@@ -4341,11 +4225,6 @@ namespace Plugin {
         JsonArray formatArray;
         JsonArray sourceArray;
 
-        JsonObject HDR10ModeInfo;
-        JsonObject pqmodeInfo;
-        JsonObject sourceInfo;
-        JsonObject formatInfo;
-
         unsigned int index = 0;
 
         tvError_t ret = getParamsCaps(range,pqmode,source,format,"HDR10Mode");
@@ -4410,13 +4289,10 @@ namespace Plugin {
         LOGINFO("Entry\n");
         std::string hlg;
 
-	JsonObject range;
-	range["List"] = "dark,bright";
         if ( -1 == getDolbyParams(tvContentFormatType_HLG, hlg)) {
             returnResponse(false);
         }
         else {
-            response["range"] = range;
             response["hlgMode"] = hlg;
             LOGINFO("Exit getHLGMode(): %s\n",hlg.c_str());
             returnResponse(true);
@@ -4439,7 +4315,7 @@ namespace Plugin {
         else {
             int params[3]={0};
             params[0]=getHLGModeIndex(value.c_str());
-            int retval=updatePQParamsToCache("set","HLGMode","all","all","hlg",PQ_PARAM_HLG_MODE,params);
+            int retval=updatePQParamsToCache("set","HLGMode","global","global","hlg",PQ_PARAM_HLG_MODE,params);
             if(retval != 0) {
                 LOGWARN("Failed to Save HLGMode to ssm_data\n");
             }
@@ -4495,7 +4371,7 @@ namespace Plugin {
                     //Save HLGMode to ssm_data
                     int params[3]={0};
                     params[0]=getHLGModeIndex(param.value);
-                    int retval=updatePQParamsToCache("reset","HLGMode","all","all","hlg",PQ_PARAM_HLG_MODE,params);
+                    int retval=updatePQParamsToCache("reset","HLGMode","global","global","hlg",PQ_PARAM_HLG_MODE,params);
 
                     if(retval != 0) {
                         LOGWARN("Failed to Save HLGMode to ssm_data\n");
@@ -4527,11 +4403,6 @@ namespace Plugin {
         JsonArray pqmodeArray;
         JsonArray formatArray;
         JsonArray sourceArray;
-
-        JsonObject HLG10ModeInfo;
-        JsonObject pqmodeInfo;
-        JsonObject sourceInfo;
-        JsonObject formatInfo;
 
         unsigned int index = 0;
 
@@ -5229,19 +5100,27 @@ namespace Plugin {
             format = "global";
 
         int retval= updatePQParamsToCache("reset","LowLatencyState",pqmode,source,format,PQ_PARAM_LOWLATENCY_STATE,params);
-        if(retval != 0 ) {
+        if(retval != 0 )
+        {
             LOGWARN("Failed to clear Lowlatency from ssmdata and localstore\n");
             returnResponse(false);
         }
-		else {
-            getParamIndex("current","current","current",sourceIndex,pqIndex,formatIndex);
-            int err = getLocalparam("LowLatencyState",formatIndex,pqIndex,sourceIndex,lowlatencystate,PQ_PARAM_LOWLATENCY_STATE);
-            if( err == 0 ) {
-                LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,lowlatencystate);
-                ret = SetLowLatencyState(lowlatencystate);
+        else
+        {
+            if (isSetRequired(pqmode,source,format))
+            {
+                getParamIndex("current","current", "current",sourceIndex,pqIndex,formatIndex);
+                int err = getLocalparam("LowLatencyState",formatIndex,pqIndex,sourceIndex, lowlatencystate, PQ_PARAM_LOWLATENCY_STATE);
+                if( err == 0 )
+                {
+                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex, lowlatencystate);
+                    ret = SetLowLatencyState(lowlatencystate);
+                }
+                else
+                {
+                    LOGINFO("%s : GetLocalParam Failed \n",__FUNCTION__);
+                }
             }
-            else
-                LOGINFO("%s : GetLcoalParam Failed \n",__FUNCTION__);
         }
 
         if(ret != tvERROR_NONE)
@@ -5267,11 +5146,6 @@ namespace Plugin {
         JsonArray pqmodeArray;
         JsonArray formatArray;
         JsonArray sourceArray;
-
-        JsonObject LowLatencyInfo;
-        JsonObject pqmodeInfo;
-        JsonObject sourceInfo;
-        JsonObject formatInfo;
 
         unsigned int index = 0;
 
