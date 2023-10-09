@@ -141,6 +141,16 @@ namespace Plugin {
         return supportedHdrFormat;
     }
 
+    static JsonArray getSupportedVideoSource(void) {
+        JsonArray supportedSource;
+        int lCount = 0;
+        for(;lCount<numberSourcesSupported;lCount++) {
+            supportedSource.Add(convertSourceIndexToString(source_index[lCount]));
+        }
+
+	return supportedSource;
+    }
+
     static std::string getVideoResolutionTypeToString(tvResolutionParam_t resolution)
     {
         std::string strValue = "NONE";
@@ -381,6 +391,8 @@ namespace Plugin {
 	registerMethod("setHDR10Mode", &AVOutputTV::setHDR10Mode, this);
 	registerMethod("resetHDR10Mode", &AVOutputTV::resetHDR10Mode, this);
 	registerMethod("getHDR10ModeCaps", &AVOutputTV::getHDR10ModeCaps, this);
+	registerMethod("getVideoFormat", &AVOutputTV::getVideoFormat, this);
+	registerMethod("getVideoSource", &AVOutputTV::getVideoSource, this);
 	
 	registerMethod("getWBInfo", &AVOutputTV::getWBInfo, this);
 	registerMethod("getWBCtrl", &AVOutputTV::getWBCtrl, this);
@@ -397,6 +409,7 @@ namespace Plugin {
         registerMethod("setPictureMode", &AVOutputTV::setPictureMode, this);
 	registerMethod("resetPictureMode", &AVOutputTV::resetPictureMode, this);
         registerMethod("getSupportedPictureModes", &AVOutputTV::getSupportedPictureModes, this);
+        registerMethod("getSupportedVideoSources", &AVOutputTV::getSupportedVideoSources, this);
 	registerMethod("enableWBMode", &AVOutputTV::enableWBMode, this);
 
 	registerMethod("setBacklightFade", &AVOutputTV::setBacklightFade, this);
@@ -4836,6 +4849,11 @@ namespace Plugin {
         }
     }
 
+    uint32_t AVOutputTV::getSupportedVideoSources(JsonObject& response) {
+	    LOGINFO("Entry\n");
+	    response["supportedVideoSource"] = getSupportedVideoSource();
+	    returnResponse(true); 
+    }
     tvContentFormatType_t AVOutputTV::ConvertFormatStringToTVContentFormat(const char *format)
     {
         tvContentFormatType_t ret = tvContentFormatType_SDR;
@@ -5799,7 +5817,7 @@ namespace Plugin {
                                 if(sync)
                                 {
                                     int value=0;
-                                    if( !getDolbyParamToSync(value) )
+                                    if( !getDolbyParamToSync(source, format, value) )
                                          LOGINFO("Found param dvmode pqmode : %d format:%d value:%d\n",mode,format,value);
                                     else
                                          LOGERR("value not found in ini dvmode pqmode : %d format:%d value:%d\n",mode,format,value);
@@ -6581,7 +6599,7 @@ namespace Plugin {
         params[0] = (backlightInCurve*100)/BACKLIGHT_RAW_VALUE_MAX;
     }
     
-    int AVOutputTV::getDolbyParamToSync(int sourceIndex, int& value)
+    int AVOutputTV::getDolbyParamToSync(int sourceIndex, int formatIndex, int& value)
     {
         int ret=0;
         TR181_ParamData_t param;
@@ -6590,7 +6608,7 @@ namespace Plugin {
         tr181ErrorCode_t err = getLocalParam(rfc_caller_id, rfc_param.c_str(), &param);
 
         if ( tr181Success != err) {
-            tvError_t retVal = GetDefaultParams(GetCurrentPQIndex(),sourceIndex,ConvertHDRFormatToContentFormat((tvhdr_type_t)format), PQ_PARAM_DOLBY_MODE, &value);
+            tvError_t retVal = GetDefaultParams(GetCurrentPQIndex(),sourceIndex, format, PQ_PARAM_DOLBY_MODE, &value);
             if( retVal != tvERROR_NONE )
             {
                 LOGERR("%s : failed\n",__FUNCTION__);
@@ -6754,7 +6772,26 @@ namespace Plugin {
             }
             return value;
     }
-    
+
+    uint32_t AVOutputTV::getVideoSource(JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+        //PLUGIN_Lock(Lock);
+
+        int currentSource = 0;
+
+        tvError_t ret = GetCurrentSource(&currentSource);
+        response["supportedVideoSource"] = getSupportedVideoSource();
+        if(ret != tvERROR_NONE) {
+            response["currentVideoSource"] = "NONE";
+            returnResponse(false);
+        }
+        else {
+            response["currentVideoSource"] = convertSourceIndexToString(currentSource);
+            LOGINFO("Exit: getVideoSource :%d   success \n", currentSource);
+            returnResponse(true);
+        }
+    }
 
 }//namespace Plugin
 }//namespace WPEFramework

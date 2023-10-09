@@ -102,8 +102,10 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         DECLARE_JSON_RPC_METHOD(getWBInfo )
         DECLARE_JSON_RPC_METHOD(getWBCtrl )
         DECLARE_JSON_RPC_METHOD(getSupportedPictureModes )
+        DECLARE_JSON_RPC_METHOD(getSupportedVideoSources)
         DECLARE_JSON_RPC_METHOD(getPictureMode )
         DECLARE_JSON_RPC_METHOD(getVideoFormat)
+        DECLARE_JSON_RPC_METHOD(getVideoSource)
         DECLARE_JSON_RPC_METHOD(getVideoFrameRate)
         DECLARE_JSON_RPC_METHOD(getVideoResolution)
 	DECLARE_JSON_RPC_METHOD(getLowLatencyState)
@@ -208,7 +210,7 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
 	std::string convertVideoFormatToString( int formatIndex );
 	bool isIncluded(const std::set<string> set1,const std::set<string> set2);
 	void convertUserScaleBacklightToDriverScale(int format,int * params);
-	int getDolbyParamToSync(int sourceIndex, int& value);
+	int getDolbyParamToSync(int sourceIndex, int formatIndex, int& value);
 	int getHDR10ParamToSync(int& value);
 	int getHLGParamToSync( int& value);
 	int getHDR10ModeIndex(const char * hdr10Mode);
