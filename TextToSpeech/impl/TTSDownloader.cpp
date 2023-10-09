@@ -70,7 +70,7 @@ void TTSDownloader::downloadThread()
         TTSURLConstructer url;
 
         m_objectMutex.lock();
-        ttsRequest = url.constructURL(m_config, "", true);
+        ttsRequest = url.constructURL(m_config, "", true, false);
         m_objectMutex.unlock();
 
         if((ttsRequest.compare("null")) == 0)
