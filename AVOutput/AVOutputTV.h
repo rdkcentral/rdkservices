@@ -221,6 +221,8 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         tvError_t  SyncWBFromLocalCache( );
         tvError_t CheckWBMigration();
         JsonArray getSupportedVideoSource(void);
+        int parsingSetInputArgument(const JsonObject& parameters, std::string & source, std::string & pqmode, std::string & format);
+        int parsingGetInputArgument(const JsonObject& parameters, std::string & source, std::string & pqmode, std::string & format);
 
     public:
         int m_currentHdmiInResoluton;

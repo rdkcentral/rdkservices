@@ -721,21 +721,11 @@ namespace Plugin {
         value = parameters.HasLabel("aspectRatio") ? parameters["aspectRatio"].String() : "";
         returnIfParamNotFound(parameters,"aspectRatio");
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "global";
-
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "global";
-
-        convertParamToLowerCase(source, pqmode, format);
-
-        convertToValidInputParameter(source, pqmode, format);
+        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
 	if( !isCapablityCheckPassed( pqmode, source, format, "AspectRatio" )) {
             LOGERR("%s: CapablityCheck failed for AspectRatio\n", __FUNCTION__);
@@ -900,21 +890,11 @@ namespace Plugin {
         std::string format;
         tvError_t ret = tvERROR_NONE;
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "global";
-
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "global";
-
-        convertParamToLowerCase(source, pqmode, format);
-
-        convertToValidInputParameter(source, pqmode, format);
+        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
 	if( !isCapablityCheckPassed( pqmode, source, format, "AspectRatio" )) {
             LOGERR("%s: CapablityCheck failed for AspectRatio\n", __FUNCTION__);
@@ -1079,17 +1059,16 @@ namespace Plugin {
 	int sourceIndex=0,pqIndex=0,formatIndex=0;
         int backlight = 0,err = 0;
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "current";
+        if (parsingGetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "current";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "current";
+        if( !isCapablityCheckPassed( pqmode, source, format, "Backlight" )) {
+            LOGERR("%s: CapablityCheck failed for Backlight\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         err = getLocalparam("Backlight",formatIndex,pqIndex,sourceIndex,backlight, PQ_PARAM_BACKLIGHT);
@@ -1118,21 +1097,11 @@ namespace Plugin {
         returnIfParamNotFound(parameters,"backlight");
         backlight = std::stoi(value);
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "global";
-
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "global";
-
-        convertParamToLowerCase(source, pqmode, format);
-
-        convertToValidInputParameter(source, pqmode, format);
+        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
 	if( !isCapablityCheckPassed( pqmode, source, format, "Backlight" )) {
             LOGERR("%s: CapablityCheck failed for Backlight\n", __FUNCTION__);
@@ -1171,21 +1140,11 @@ namespace Plugin {
         int params[3]={0};
         tvError_t ret = tvERROR_NONE;
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "global";
-
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "global";
-
-        convertParamToLowerCase(source, pqmode, format);
-
-        convertToValidInputParameter(source, pqmode, format);
+        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         if( !isCapablityCheckPassed( pqmode, source, format, "Backlight" )) {
             LOGERR("%s: CapablityCheck failed for Backlight\n", __FUNCTION__);
@@ -1228,14 +1187,15 @@ namespace Plugin {
     }
 
     uint32_t AVOutputTV::getBacklightCaps(const JsonObject& parameters, JsonObject& response)
-    {
+     {
         LOGINFO("Entry");
         std::vector<std::string> range;
         std::vector<std::string> pqmode;
         std::vector<std::string> source;
         std::vector<std::string> format;
-
-        JsonArray rangeArray;
+   
+	JsonObject rangeObj;
+        //JsonArray rangeArray;
         JsonArray pqmodeArray;
         JsonArray formatArray;
         JsonArray sourceArray;
@@ -1249,10 +1209,9 @@ namespace Plugin {
         }
         else
         {
-            for (index = 0; index < range.size(); index++)
-                rangeArray.Add(range[index]);
-
-            response["rangeInfo"]=rangeArray;
+            rangeObj["from"] = stoi(range[0]);
+            rangeObj["to"] = stoi(range[1]);
+            response["rangeInfo"]=rangeObj;
 
             if (!pqmode.empty()) {
                 for (index = 0; index < pqmode.size(); index++) {
@@ -1288,21 +1247,11 @@ namespace Plugin {
         int sourceIndex=0,pqIndex=0,formatIndex=0;
         int brightness = 0;
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "global";
-
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "global";
-
-        convertParamToLowerCase(source, pqmode, format);
-
-        convertToValidInputParameter(source, pqmode, format);
+        if (parsingGetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         if( !isCapablityCheckPassed( pqmode, source, format, "Brightness" )) {
             LOGERR("%s: CapablityCheck failed for Brightness\n", __FUNCTION__);
@@ -1337,21 +1286,11 @@ namespace Plugin {
         returnIfParamNotFound(parameters,"brightness");
         brightness = stoi(value);
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "global";
-
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "global";
-       
-        convertParamToLowerCase(source, pqmode, format);
-
-        convertToValidInputParameter(source, pqmode, format);
+        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         if( !isCapablityCheckPassed( pqmode, source, format, "Brightness" )) {
             LOGERR("%s: CapablityCheck failed for Brightness\n", __FUNCTION__);
@@ -1395,21 +1334,11 @@ namespace Plugin {
         int params[3]={0};
         tvError_t ret = tvERROR_NONE;
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "global";
-
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "global";
-
-        convertParamToLowerCase(source, pqmode, format);
-
-        convertToValidInputParameter(source, pqmode, format);
+        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
 	if( !isCapablityCheckPassed( pqmode, source, format, "Brightness" )) {
             LOGERR("%s: CapablityCheck failed for Brightness\n", __FUNCTION__);
@@ -1460,10 +1389,10 @@ namespace Plugin {
         std::vector<std::string> source;
         std::vector<std::string> format;
         
-        JsonArray rangeArray;
         JsonArray pqmodeArray;
         JsonArray formatArray;
         JsonArray sourceArray;
+        JsonObject rangeObj;
 
 	unsigned int index = 0;
 
@@ -1474,10 +1403,9 @@ namespace Plugin {
         }
         else
         {
-            for (index = 0; index < range.size(); index++)
-                rangeArray.Add(range[index]);
-
-            response["rangeInfo"]=rangeArray;
+            rangeObj["from"] = stoi(range[0]);
+            rangeObj["to"] = stoi(range[1]);
+            response["rangeInfo"]=rangeObj;
 
             if (!pqmode.empty()) {
                 for (index = 0; index < pqmode.size(); index++) {
@@ -1513,17 +1441,16 @@ namespace Plugin {
         int sourceIndex=0,pqIndex=0,formatIndex=0;
         int contrast = 0;
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "global";
+        if (parsingGetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "global";
+        if( !isCapablityCheckPassed( pqmode, source, format, "Contrast" )) {
+            LOGERR("%s: CapablityCheck failed for Contrast\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         int err = getLocalparam("Contrast",formatIndex,pqIndex,sourceIndex,contrast, PQ_PARAM_CONTRAST);
@@ -1552,22 +1479,12 @@ namespace Plugin {
         returnIfParamNotFound(parameters,"contrast");
         contrast = stoi(value);
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "global";
+        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "global";
-       
-        convertParamToLowerCase(source, pqmode, format);
-
-        convertToValidInputParameter(source, pqmode, format);
- 
         if( !isCapablityCheckPassed( pqmode, source, format, "Contrast" )) {
             LOGERR("%s: CapablityCheck failed for Contrast\n", __FUNCTION__);
             returnResponse(false);
@@ -1610,21 +1527,11 @@ namespace Plugin {
         int params[3]={0};
         tvError_t ret = tvERROR_NONE;
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "global";
-
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "global";
-
-        convertParamToLowerCase(source, pqmode, format);
-
-        convertToValidInputParameter(source, pqmode, format);
+        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
 	if( !isCapablityCheckPassed( pqmode, source, format, "Contrast" )) {
             LOGERR("%s: CapablityCheck failed for Contrast\n", __FUNCTION__);
@@ -1691,7 +1598,7 @@ namespace Plugin {
         else
         {
             for (index = 0; index < range.size(); index++)
-                rangeArray.Add(range[index]);
+                rangeArray.Add(stoi(range[index]));
 
             response["rangeInfo"]=rangeArray;
             
@@ -1729,17 +1636,16 @@ namespace Plugin {
         int sourceIndex=0,pqIndex=0,formatIndex=0;
         int saturation = 0;
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "global";
+        if (parsingGetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "global";
+        if( !isCapablityCheckPassed( pqmode, source, format, "Saturation" )) {
+            LOGERR("%s: CapablityCheck failed for Saturation\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         int err = getLocalparam("Saturation",formatIndex,pqIndex,sourceIndex,saturation, PQ_PARAM_SATURATION);
@@ -1768,22 +1674,12 @@ namespace Plugin {
         returnIfParamNotFound(parameters,"saturation");
         saturation = stoi(value);
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "global";
-
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "global";
-      
-        convertParamToLowerCase(source, pqmode, format);
-
-        convertToValidInputParameter(source, pqmode, format);
-
+        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
+ 
         if( !isCapablityCheckPassed( pqmode, source, format, "Saturation" )) {
             LOGERR("%s: CapablityCheck failed for Saturation\n", __FUNCTION__);
             returnResponse(false);
@@ -1827,21 +1723,11 @@ namespace Plugin {
         int params[3]={0};
         tvError_t ret = tvERROR_NONE;
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "global";
-
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "global";
-
-        convertParamToLowerCase(source, pqmode, format);
-
-        convertToValidInputParameter(source, pqmode, format);
+        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         if( !isCapablityCheckPassed( pqmode, source, format, "Saturation" )) {
             LOGERR("%s: CapablityCheck failed for Saturation\n", __FUNCTION__);
@@ -1908,7 +1794,7 @@ namespace Plugin {
         else
         {
             for (index = 0; index < range.size(); index++)
-                rangeArray.Add(range[index]);
+                rangeArray.Add(stoi(range[index]));
 
             response["rangeInfo"]=rangeArray;
             
@@ -1946,17 +1832,16 @@ namespace Plugin {
         int sourceIndex=0,pqIndex=0,formatIndex=0;
         int sharpness = 0;
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "global";
+        if (parsingGetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "global";
+        if( !isCapablityCheckPassed( pqmode, source, format, "Sharpness" )) {
+            LOGERR("%s: CapablityCheck failed for Sharpness\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         int err = getLocalparam("Sharpness",formatIndex,pqIndex,sourceIndex,sharpness, PQ_PARAM_SHARPNESS);
@@ -1985,21 +1870,11 @@ namespace Plugin {
         returnIfParamNotFound(parameters,"sharpness");
         sharpness = stoi(value);
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "global";
-
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "global";
-   
-        convertParamToLowerCase(source, pqmode, format);
-
-        convertToValidInputParameter(source, pqmode, format);
+        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
  
         if( !isCapablityCheckPassed( pqmode, source, format, "Sharpness" )) {
             LOGERR("%s: CapablityCheck failed for Sharpness\n", __FUNCTION__);
@@ -2043,21 +1918,11 @@ namespace Plugin {
         int params[3]={0};
         tvError_t ret = tvERROR_NONE;
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "global";
-
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "global";
-
-        convertParamToLowerCase(source, pqmode, format);
-
-        convertToValidInputParameter(source, pqmode, format);
+        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         if( !isCapablityCheckPassed( pqmode, source, format, "Sharpness" )) {
             LOGERR("%s: CapablityCheck failed for Sharpness\n", __FUNCTION__);
@@ -2124,7 +1989,7 @@ namespace Plugin {
         else
         {
             for (index = 0; index < range.size(); index++)
-                rangeArray.Add(range[index]);
+                rangeArray.Add(stoi(range[index]));
 
             response["rangeInfo"]=rangeArray;
           
@@ -2162,17 +2027,16 @@ namespace Plugin {
         int sourceIndex=0,pqIndex=0,formatIndex=0;
         int hue = 0;
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "global";
+        if (parsingGetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "global";
+        if( !isCapablityCheckPassed( pqmode, source, format, "Hue" )) {
+            LOGERR("%s: CapablityCheck failed for Hue\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         int err = getLocalparam("Hue",formatIndex,pqIndex,sourceIndex,hue, PQ_PARAM_HUE);
@@ -2201,21 +2065,11 @@ namespace Plugin {
         returnIfParamNotFound(parameters,"hue");
         hue = stoi(value);
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "global";
-
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "global";
-
-        convertParamToLowerCase(source, pqmode, format);
-
-        convertToValidInputParameter(source, pqmode, format);
+        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         if( !isCapablityCheckPassed( pqmode, source, format, "Hue" )) {
             LOGERR("%s: CapablityCheck failed for Hue\n", __FUNCTION__);
@@ -2260,21 +2114,11 @@ namespace Plugin {
         int params[3]={0};
         tvError_t ret = tvERROR_NONE;
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "global";
-
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "global";
-
-        convertParamToLowerCase(source, pqmode, format);
-
-        convertToValidInputParameter(source, pqmode, format);
+        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
 	if( !isCapablityCheckPassed( pqmode, source, format, "Hue" )) {
             LOGERR("%s: CapablityCheck failed for Hue\n", __FUNCTION__);
@@ -2341,7 +2185,7 @@ namespace Plugin {
         else
         {
             for (index = 0; index < range.size(); index++)
-                rangeArray.Add(range[index]);
+                rangeArray.Add(stoi(range[index]));
 
             response["rangeInfo"]=rangeArray;
             
@@ -2379,19 +2223,19 @@ namespace Plugin {
         int sourceIndex=0,pqIndex=0,formatIndex=0;
         int colortemp = 0;
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "current";
+        if (parsingGetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "current";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "current";
+        if( !isCapablityCheckPassed( pqmode, source, format, "Hue" )) {
+            LOGERR("%s: CapablityCheck failed for Hue\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+
         int err = getLocalparam("ColorTemp",formatIndex,pqIndex,sourceIndex,colortemp,PQ_PARAM_COLOR_TEMPERATURE);
         if( err == 0 ) {
             switch(colortemp) {
@@ -2458,21 +2302,11 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "global";
-
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "global";
-
-        convertParamToLowerCase(source, pqmode, format);
-
-        convertToValidInputParameter(source, pqmode, format);
+        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         if( !isCapablityCheckPassed( pqmode, source, format, "ColorTemperature" )) {
             LOGERR("%s: CapablityCheck failed for colorTemperature\n", __FUNCTION__);
@@ -2515,21 +2349,11 @@ namespace Plugin {
         int params[3]={0};
         tvError_t ret = tvERROR_NONE;
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "global";
-
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "global";
-
-        convertParamToLowerCase(source, pqmode, format);
-
-        convertToValidInputParameter(source, pqmode, format);
+        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         if( !isCapablityCheckPassed( pqmode, source, format, "ColorTemperature" )) {
             LOGERR("%s: CapablityCheck failed for colorTemperature\n", __FUNCTION__);
@@ -2638,17 +2462,16 @@ namespace Plugin {
 	value = parameters.HasLabel("color") ? parameters["color"].String() : "";
         returnIfParamNotFound(parameters,"color");
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "current";
+        if (parsingGetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "current";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "current";
+        if( !isCapablityCheckPassed( pqmode, source, format, "Component" )) {
+            LOGERR("%s: CapablityCheck failed for ComponentSaturation\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         blSaturationColor =  getComponentColorEnum(value);
         if(blSaturationColor ==tvDataColor_MAX)
@@ -2695,21 +2518,11 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "global";
-
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "global";
-       
-        convertParamToLowerCase(source, pqmode, format);
-
-        convertToValidInputParameter(source, pqmode, format);
+        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
  
         if( !isCapablityCheckPassed( pqmode, source, format, "Component" )) {
             LOGERR("%s: CapablityCheck failed for ComponentSaturation\n", __FUNCTION__);
@@ -2779,22 +2592,12 @@ namespace Plugin {
         tvError_t err = tvERROR_NONE;
 	char param[BUFFER_SIZE]={0};
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "global";
+        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "global";
-
-        convertParamToLowerCase(source, pqmode, format);
-
-        convertToValidInputParameter(source, pqmode, format);
-	
         if( !isCapablityCheckPassed( pqmode, source, format, "Component" )) {
             LOGERR("%s: CapablityCheck failed for ComponentSaturation\n", __FUNCTION__);
             returnResponse(false);
@@ -2862,17 +2665,16 @@ namespace Plugin {
         value = parameters.HasLabel("color") ? parameters["color"].String() : "";
         returnIfParamNotFound(parameters,"color");
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "current";
+        if (parsingGetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "current";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "current";
+        if( !isCapablityCheckPassed( pqmode, source, format, "Component" )) {
+            LOGERR("%s: CapablityCheck failed for ComponentHue\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         blHueColor =  getComponentColorEnum(value);
         if(blHueColor ==tvDataColor_MAX)
@@ -2916,21 +2718,11 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "global";
-
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "global";
-
-        convertParamToLowerCase(source, pqmode, format);
-
-        convertToValidInputParameter(source, pqmode, format);
+        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
 	if( !isCapablityCheckPassed( pqmode, source, format, "Component" )) {
             LOGERR("%s: CapablityCheck failed for ComponentHue\n", __FUNCTION__);
@@ -3000,21 +2792,11 @@ namespace Plugin {
         tvError_t err = tvERROR_NONE;
         char param[BUFFER_SIZE]={0};
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "global";
-
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "global";
-
-        convertParamToLowerCase(source, pqmode, format);
-
-        convertToValidInputParameter(source, pqmode, format);
+        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
 	if( !isCapablityCheckPassed( pqmode, source, format, "Component" )) {
             LOGERR("%s: CapablityCheck failed for ComponentHue\n", __FUNCTION__);
@@ -3081,17 +2863,16 @@ namespace Plugin {
         value = parameters.HasLabel("color") ? parameters["color"].String() : "";
         returnIfParamNotFound(parameters,"color");
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "current";
+        if (parsingGetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "current";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "current";
+        if( !isCapablityCheckPassed( pqmode, source, format, "Component" )) {
+            LOGERR("%s: CapablityCheck failed for ComponentLuma\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         blLumaColor =  getComponentColorEnum(value);
         if(blLumaColor ==tvDataColor_MAX)
@@ -3135,21 +2916,11 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "global";
-
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "global";
-
-        convertParamToLowerCase(source, pqmode, format);
-
-        convertToValidInputParameter(source, pqmode, format);
+        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         if( !isCapablityCheckPassed( pqmode, source, format, "Component" )) {
             LOGERR("%s: CapablityCheck failed for ComponentLuma\n", __FUNCTION__);
@@ -3219,21 +2990,11 @@ namespace Plugin {
         tvError_t err = tvERROR_NONE;
         char param[BUFFER_SIZE]={0};
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "global";
-
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "global";
-
-        convertParamToLowerCase(source, pqmode, format);
-
-        convertToValidInputParameter(source, pqmode, format);
+        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         if( !isCapablityCheckPassed( pqmode, source, format, "Component" )) {
             LOGERR("%s: CapablityCheck failed for ComponentHue\n", __FUNCTION__);
@@ -3307,7 +3068,7 @@ namespace Plugin {
         else
         {
             for (index = 0; index < range.size(); index++)
-                rangeArray.Add(range[index]);
+                rangeArray.Add(stoi(range[index]));
 
             response["rangeInfo"]=rangeArray;
 
@@ -3345,19 +3106,19 @@ namespace Plugin {
 	int sourceIndex=0,pqIndex=0,formatIndex=0;
         int dimmingMode = 0;
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "current";
+        if (parsingGetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "current";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "current";
+        if( !isCapablityCheckPassed( pqmode, source, format, "DimmingMode" )) {
+            LOGERR("%s: CapablityCheck failed for DimmingMode\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+
         int err = getLocalparam("DimmingMode",formatIndex,pqIndex,sourceIndex,dimmingMode, PQ_PARAM_DIMMINGMODE);
         if( err == 0 ) {
             switch(dimmingMode) {
@@ -3401,21 +3162,11 @@ namespace Plugin {
 
         dimmingMode = getDimmingModeIndex(value);
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "global";
-
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "global";
-
-        convertParamToLowerCase(source, pqmode, format);
-
-        convertToValidInputParameter(source, pqmode, format);
+        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         if( !isCapablityCheckPassed( pqmode, source, format, "DimmingMode" )) {
             LOGERR("%s: CapablityCheck failed for DimmingMode\n", __FUNCTION__);
@@ -3465,21 +3216,11 @@ namespace Plugin {
         int params[3]={0};
         tvError_t ret = tvERROR_NONE;
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "global";
-
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "global";
-
-        convertParamToLowerCase(source, pqmode, format);
-
-        convertToValidInputParameter(source, pqmode, format);
+        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         if( !isCapablityCheckPassed( pqmode, source, format, "DimmingMode" )) {
             LOGERR("%s: CapablityCheck failed for DimmingMode\n", __FUNCTION__);
@@ -3652,18 +3393,6 @@ namespace Plugin {
         value = parameters.HasLabel("mode") ? parameters["mode"].String() : "";
         returnIfParamNotFound(parameters,"mode");
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "global";
-
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "global";
-
         if(!value.compare("none")) {
             blMode = tvBacklightMode_NONE;
         }
@@ -3680,9 +3409,11 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        convertParamToLowerCase(source, pqmode, format);
-
-        convertToValidInputParameter(source, pqmode, format);
+        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         if( !isCapablityCheckPassed( pqmode, source, format, "AutoBacklightControl" )) {
             LOGERR("%s: CapablityCheck failed for AutoBacklightControl\n", __FUNCTION__);
@@ -3716,21 +3447,11 @@ namespace Plugin {
         std::string source;
         std::string format;
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "global";
-
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "global";
-
-        convertParamToLowerCase(source, pqmode, format);
-
-        convertToValidInputParameter(source, pqmode, format);
+        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
 	if( !isCapablityCheckPassed( pqmode, source, format, "AutoBacklightControl" )) {
             LOGERR("%s: CapablityCheck failed for AutoBacklightControl\n", __FUNCTION__);
@@ -4573,21 +4294,11 @@ namespace Plugin {
         std::string format;
         tvError_t ret = tvERROR_NONE;
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "global";
-
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "global";
-
-        convertParamToLowerCase(source, pqmode, format);
-
-        convertToValidInputParameter(source, pqmode, format);
+        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         if( !isCapablityCheckPassed( pqmode, source, format, "WhiteBalance" )) {
             LOGERR("%s: CapablityCheck failed for WhiteBalance\n", __FUNCTION__);
@@ -4747,32 +4458,21 @@ namespace Plugin {
         std::string picturemode;
         std::string source;
         std::string format;
+        std::string dummyPqmode;
         int current_source = 0;
         int current_format = 0;
+        int pqIndex = 0;
         std::string tr181_param_name;
         TR181_ParamData_t param = {0};
         tr181ErrorCode_t err = tr181Success;
 
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "current";
-
-        if (source == "current") {
-            GetCurrentSource(&current_source);
-        } else {
-            current_source = GetTVSourceIndex(source.c_str());
+        if (parsingGetInputArgument(parameters, source, dummyPqmode, format) != 0)
+        {
+            LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
+            returnResponse(false);
         }
-        LOGINFO("current source index[%d] \n", current_source);
 
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-                format = "current";
-
-        if (format == "current") {
-            current_format = getContentFormatIndex(GetCurrentContentFormat());
-        } else {
-           current_format = ConvertFormatStringToTVContentFormat(format.c_str()); 
-        }
+        getParamIndex(source, dummyPqmode,format,current_source,pqIndex,current_format);
 
         LOGINFO("current format index[%d] \n", current_format);
         tr181_param_name += std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
@@ -4798,6 +4498,7 @@ namespace Plugin {
         std::string value;
         std::string source;
         std::string format;
+        std::string dummpy_pqmode;
         char prevmode[PIC_MODE_NAME_MAX]={0};
         GetTVPictureMode(prevmode);
 
@@ -4805,15 +4506,13 @@ namespace Plugin {
         value = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
         returnIfParamNotFound(parameters,"pictureMode");
 
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "global";
-
         // As only source need to validate, so pqmode and formate passing as currrent
+        if (parsingSetInputArgument(parameters, source, dummpy_pqmode, format) != 0)
+        {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
+
         if( isSetRequired("current",source,format) ) {
             LOGINFO("Proceed with SetTVPictureMode\n");
             ret = SetTVPictureMode(value.c_str());
@@ -4868,8 +4567,18 @@ namespace Plugin {
         std::vector<int> pq_mode_vec;
         std::vector<int> source_vec;
         std::vector<int> format_vec;
+        std::string source;
+        std::string dummpy_pqmode;
+        std::string format;
 
-        getSaveConfig("current", "global", "global", source_vec, pq_mode_vec, format_vec);
+        // As only source need to validate, so pqmode and formate passing as currrent
+        if (parsingSetInputArgument(parameters, source, dummpy_pqmode, format) != 0)
+        {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        getSaveConfig("current", source, format, source_vec, pq_mode_vec, format_vec);
  
         for (int source : source_vec) {
             for (int format : format_vec) {
@@ -5005,24 +4714,25 @@ namespace Plugin {
         returnIfParamNotFound(parameters,"LowLatencyState");
         lowLatencyIndex = stoi(value);
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "global";
+        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "global";
+        if( !isCapablityCheckPassed( source, pqmode, format, "LowLatencyState" )) {
+            LOGERR("%s: CapablityCheck failed for LowLatencyState\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         if( isSetRequired(pqmode,source,format) ) {
              LOGINFO("Proceed with setLowLatencyState\n");
              ret = SetLowLatencyState( lowLatencyIndex );
         }
-		else
+	else
+        {
             LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
+        }
 
         if(ret != tvERROR_NONE) {
             LOGWARN("Failed to setLowLatency\n");
@@ -5051,17 +4761,16 @@ namespace Plugin {
         int sourceIndex=0,pqIndex=0,formatIndex=0;
         int lowlatencystate = 0;
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "current";
+        if (parsingGetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "current";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "current";
+        if( !isCapablityCheckPassed( source, pqmode, format, "LowLatencyState" )) {
+            LOGERR("%s: CapablityCheck failed for LowLatencyState\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         int err = getLocalparam("LowLatencyState",formatIndex,pqIndex,sourceIndex,lowlatencystate, PQ_PARAM_LOWLATENCY_STATE);
@@ -5087,17 +4796,16 @@ namespace Plugin {
         int params[3]={0};
         tvError_t ret = tvERROR_NONE;
 
-        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
-        if(pqmode.empty())
-            pqmode = "global";
+        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
-        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
-        if(source.empty())
-            source = "global";
-
-        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-        if(format.empty())
-            format = "global";
+        if( !isCapablityCheckPassed( source, pqmode, format, "LowLatencyState" )) {
+            LOGERR("%s: CapablityCheck failed for LowLatencyState\n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         int retval= updatePQParamsToCache("reset","LowLatencyState",pqmode,source,format,PQ_PARAM_LOWLATENCY_STATE,params);
         if(retval != 0 )
@@ -5157,7 +4865,7 @@ namespace Plugin {
         else
         {
             for (index = 0; index < range.size(); index++)
-                rangeArray.Add(range[index]);
+                rangeArray.Add(stoi(range[index]));
 
             response["LowLatencyInfo"]=rangeArray;
             if (!pqmode.empty()) {
@@ -5278,8 +4986,6 @@ namespace Plugin {
         int params[3]={0};
 
         LOGINFO("Entry %s : pqmode : %s source : %s format : %s\n",__FUNCTION__,pqmode.c_str(),source.c_str(),format.c_str());
-
-        convertParamToLowerCase(source, pqmode, format);
 
         convertToValidInputParameter(source, pqmode, format);
 
@@ -5442,6 +5148,9 @@ namespace Plugin {
     {
 
         LOGINFO("Entry %s source %s pqmode %s format %s \n", __FUNCTION__, source.c_str(), pqmode.c_str(), format.c_str());
+
+        convertParamToLowerCase(source, pqmode, format);
+
         // converting pq to valid paramter format
         if (pqmode == "current")
         {
@@ -5832,7 +5541,7 @@ namespace Plugin {
         int ret = 0;
 
         //1)Check pqmode
-        if( pqmode.compare("global") == 0)
+        if( (pqmode.compare("global") == 0) || (pqmode.empty()) )
         {
             int lCount = 0;
             for(;lCount<numberModesSupported;lCount++)
@@ -5850,7 +5559,7 @@ namespace Plugin {
         }
 
         //2)Check Source
-        if( source.compare("global") == 0)
+        if( (source.compare("global") == 0) || (source.empty()) )
         {
             int lCount = 0;
             for(;lCount<numberSourcesSupported;lCount++)
@@ -5873,7 +5582,7 @@ namespace Plugin {
 
         GetSupportedContentFormats(&contentFormats,&numberOfSupportedFormats);
 
-        if( format.compare("global") == 0)
+        if( (format.compare("global") == 0) || (format.empty()) )
         {
              unsigned int lcount=0;
              for(;(lcount<sizeof(uint32_t)*8 && numberOfSupportedFormats);lcount++)
@@ -5988,7 +5697,6 @@ namespace Plugin {
         std::string currentPicMode;
         std::string currentSource;
         std::string currentFormat;
-        std::string space_delimiter = " ";
 
         //GetCurrent pqmode
         if(!getCurrentPictureMode(picMode))
@@ -6665,6 +6373,59 @@ namespace Plugin {
                         break;
             }
             return value;
+    }
+
+    int AVOutputTV::parsingSetInputArgument(const JsonObject& parameters, std::string & source,
+                                             std::string & pqmode, std::string & format) {
+
+        JsonArray sourceArray;
+	JsonArray pqmodeArray;
+	JsonArray formatArray;
+		
+	pqmodeArray = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].Array() : JsonArray();
+        for (int i = 0; i < pqmodeArray.Length(); ++i) {
+            pqmode += pqmodeArray[i].String();
+            if (i != (pqmodeArray.Length() - 1) ) pqmode += ",";
+	}
+		
+	sourceArray = parameters.HasLabel("videoSource") ? parameters["videoSource"].Array() : JsonArray();
+        for (int i = 0; i < sourceArray.Length(); ++i) {
+            source += sourceArray[i].String();
+            if (i != (sourceArray.Length() - 1) ) source += ",";
+	}
+
+	formatArray = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].Array() : JsonArray();
+        for (int i = 0; i < formatArray.Length(); ++i) {
+	    format += formatArray[i].String();
+            if (i != (formatArray.Length() - 1) ) format += ",";
+	}
+
+	LOGINFO("%s source:[%s] pqmode[%s] format[%s]", __FUNCTION__,source.c_str(), pqmode.c_str(), format.c_str());
+
+        if (convertToValidInputParameter(source, pqmode, format) != 0) {
+            LOGERR("%s: Failed to convert the input paramters. \n", __FUNCTION__);
+            return -1;
+        }
+
+	return 0;
+    }
+
+    int AVOutputTV::parsingGetInputArgument(const JsonObject& parameters,
+                                         std::string & source, std::string & pqmode, std::string & format) {
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
+
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
+
+        LOGINFO("%s source:[%s] pqmode[%s] format[%s]", __FUNCTION__,source.c_str(), pqmode.c_str(), format.c_str());
+
+        if (convertToValidInputParameter(source, pqmode, format) != 0) {
+            LOGERR("%s: Failed to convert the input paramters. \n", __FUNCTION__);
+            return -1;
+        }
+
+        return 0;
     }
 
 }//namespace Plugin
