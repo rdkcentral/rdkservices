@@ -689,19 +689,19 @@ namespace Plugin {
                 for (index = 0; index < pqmode.size(); index++) {
                     pqmodeArray.Add(pqmode[index]);
                 }
-                response["pqmodeInfo"]=pqmodeArray;
+                response["pictureModeInfo"]=pqmodeArray;
             }
             if (!source.empty()) {
                 for (index = 0; index < source.size(); index++) {
                     sourceArray.Add(source[index]);
                 }
-                response["sourceInfo"]=sourceArray;
+                response["videoSourceInfo"]=sourceArray;
             }
             if (!format.empty()) {
                 for (index = 0; index < format.size(); index++) {
                     formatArray.Add(format[index]);
                 }
-                response["formatInfo"]=formatArray;
+                response["videoFormatInfo"]=formatArray;
             }
             LOGINFO("Exit\n");
             returnResponse(true);
@@ -1217,19 +1217,19 @@ namespace Plugin {
                 for (index = 0; index < pqmode.size(); index++) {
                     pqmodeArray.Add(pqmode[index]);
                 }
-                response["pqmodeInfo"]=pqmodeArray;
+                response["pictureModeInfo"]=pqmodeArray;
             }
             if (!source.empty()) {
                 for (index = 0; index < source.size(); index++) {
                     sourceArray.Add(source[index]);
                 }
-                response["sourceInfo"]=sourceArray;
+                response["videoSourceInfo"]=sourceArray;
             }
             if (!format.empty()) {
                 for (index = 0; index < format.size(); index++) {
                     formatArray.Add(format[index]);
                 }
-                response["formatInfo"]=formatArray;
+                response["videoFormatInfo"]=formatArray;
             }
             LOGINFO("Exit\n");
             returnResponse(true);
@@ -1411,19 +1411,19 @@ namespace Plugin {
                 for (index = 0; index < pqmode.size(); index++) {
                     pqmodeArray.Add(pqmode[index]);
                 }
-                response["pqmodeInfo"]=pqmodeArray;
+                response["pictureModeInfo"]=pqmodeArray;
             }
             if (!source.empty()) {
                 for (index = 0; index < source.size(); index++) {
                     sourceArray.Add(source[index]);
                 }
-                response["sourceInfo"]=sourceArray;
+                response["videoSourceInfo"]=sourceArray;
             }
             if (!format.empty()) {
                 for (index = 0; index < format.size(); index++) {
                     formatArray.Add(format[index]);
                 }
-	        response["formatInfo"]=formatArray;
+	        response["videoFormatInfo"]=formatArray;
             }
             LOGINFO("Exit\n");
             returnResponse(true);
@@ -1606,19 +1606,19 @@ namespace Plugin {
                 for (index = 0; index < pqmode.size(); index++) {
                     pqmodeArray.Add(pqmode[index]);
                 }
-                response["pqmodeInfo"]=pqmodeArray;
+                response["pictureModeInfo"]=pqmodeArray;
             }
             if (!source.empty()) {
                 for (index = 0; index < source.size(); index++) {
                     sourceArray.Add(source[index]);
                 }
-                response["sourceInfo"]=sourceArray;
+                response["videoSourceInfo"]=sourceArray;
             }
             if (!format.empty()) {
                 for (index = 0; index < format.size(); index++) {
                     formatArray.Add(format[index]);
                 }
-                response["formatInfo"]=formatArray;
+                response["videoFormatInfo"]=formatArray;
             }
             LOGINFO("Exit\n");
             returnResponse(true);
@@ -1802,19 +1802,19 @@ namespace Plugin {
                 for (index = 0; index < pqmode.size(); index++) {
                     pqmodeArray.Add(pqmode[index]);
                 }
-                response["pqmodeInfo"]=pqmodeArray;
+                response["pictureModeInfo"]=pqmodeArray;
             }
 	    if (!source.empty()) {
                 for (index = 0; index < source.size(); index++) {
                     sourceArray.Add(source[index]);
                 }
-                response["sourceInfo"]=sourceArray;
+                response["videoSourceInfo"]=sourceArray;
             }
 	    if (!format.empty()) {
                 for (index = 0; index < format.size(); index++) {
                     formatArray.Add(format[index]);
                 }
-                response["formatInfo"]=formatArray;
+                response["videoFormatInfo"]=formatArray;
             }
             LOGINFO("Exit\n");
             returnResponse(true);
@@ -1997,19 +1997,19 @@ namespace Plugin {
                 for (index = 0; index < pqmode.size(); index++) {
                     pqmodeArray.Add(pqmode[index]);
                 }
-                response["pqmodeInfo"]=pqmodeArray;
+                response["pictureModeInfo"]=pqmodeArray;
             }
 	    if (!source.empty()) {
                 for (index = 0; index < source.size(); index++) {
                     sourceArray.Add(source[index]);
                 }
-                response["sourceInfo"]=sourceArray;
+                response["videoSourceInfo"]=sourceArray;
             }
 	    if (!format.empty()) {
                 for (index = 0; index < format.size(); index++) {
                     formatArray.Add(format[index]);
                 }
-                response["formatInfo"]=formatArray;
+                response["videoFormatInfo"]=formatArray;
             }
             LOGINFO("Exit\n");
             returnResponse(true);
@@ -2193,19 +2193,19 @@ namespace Plugin {
                 for (index = 0; index < pqmode.size(); index++) {
                     pqmodeArray.Add(pqmode[index]);
                 }
-                response["pqmodeInfo"]=pqmodeArray;
+                response["pictureModeInfo"]=pqmodeArray;
             }
             if (!source.empty()) {
                 for (index = 0; index < source.size(); index++) {
                     sourceArray.Add(source[index]);
                 }
-                response["sourceInfo"]=sourceArray;
+                response["videoSourceInfo"]=sourceArray;
             }
             if (!format.empty()) {
                 for (index = 0; index < format.size(); index++) {
                     formatArray.Add(format[index]);
                 }
-                response["formatInfo"]=formatArray;
+                response["videoFormatInfo"]=formatArray;
             }
             LOGINFO("Exit\n");
             returnResponse(true);
@@ -2427,19 +2427,19 @@ namespace Plugin {
                 for (index = 0; index < pqmode.size(); index++) {
                     pqmodeArray.Add(pqmode[index]);
                 }
-                response["pqmodeInfo"]=pqmodeArray;
+                response["pictureModeInfo"]=pqmodeArray;
             }
             if (!source.empty()) {
                 for (index = 0; index < source.size(); index++) {
                     sourceArray.Add(source[index]);
                 }
-                response["sourceInfo"]=sourceArray;
+                response["videoSourceInfo"]=sourceArray;
             }
             if (!format.empty()) {
                 for (index = 0; index < format.size(); index++) {
                     formatArray.Add(format[index]);
                 }
-                response["formatInfo"]=formatArray;
+                response["videoFormatInfo"]=formatArray;
             }
             LOGINFO("Exit\n");
             returnResponse(true);
@@ -3076,19 +3076,19 @@ namespace Plugin {
                 for (index = 0; index < pqmode.size(); index++) {
                     pqmodeArray.Add(pqmode[index]);
                 }
-                response["pqmodeInfo"]=pqmodeArray;
+                response["pictureModeInfo"]=pqmodeArray;
             }
             if (!source.empty()) {
                 for (index = 0; index < source.size(); index++) {
                     sourceArray.Add(source[index]);
                 }
-                response["sourceInfo"]=sourceArray;
+                response["videoSourceInfo"]=sourceArray;
             }
             if (!format.empty()) {
                 for (index = 0; index < format.size(); index++) {
                     formatArray.Add(format[index]);
                 }
-                response["formatInfo"]=formatArray;
+                response["videoFormatInfo"]=formatArray;
             }
             LOGINFO("Exit\n");
             returnResponse(true);
@@ -3303,19 +3303,19 @@ namespace Plugin {
                 for (index = 0; index < pqmode.size(); index++) {
                     pqmodeArray.Add(pqmode[index]);
                 }
-                response["pqmodeInfo"]=pqmodeArray;
+                response["pictureModeInfo"]=pqmodeArray;
             }
             if (!source.empty()) {
                 for (index = 0; index < source.size(); index++) {
                     sourceArray.Add(source[index]);
                 }
-                response["sourceInfo"]=sourceArray;
+                response["videoSourceInfo"]=sourceArray;
             }
             if (!format.empty()) {
                 for (index = 0; index < format.size(); index++) {
                     formatArray.Add(format[index]);
                 }
-                response["formatInfo"]=formatArray;
+                response["videoFormatInfo"]=formatArray;
             }
             LOGINFO("Exit\n");
             returnResponse(true);
@@ -3544,19 +3544,19 @@ namespace Plugin {
                 for (index = 0; index < pqmode.size(); index++) {
                     pqmodeArray.Add(pqmode[index]);
                 }
-                response["pqmodeInfo"]=pqmodeArray;
+                response["pictureModeInfo"]=pqmodeArray;
             }
             if (!source.empty()) {
                 for (index = 0; index < source.size(); index++) {
                     sourceArray.Add(source[index]);
                 }
-                response["sourceInfo"]=sourceArray;
+                response["videoSourceInfo"]=sourceArray;
             }
             if (!format.empty()) {
                 for (index = 0; index < format.size(); index++) {
                     formatArray.Add(format[index]);
                 }
-                response["formatInfo"]=formatArray;
+                response["videoFormatInfo"]=formatArray;
             }
             LOGINFO("Exit\n");
             returnResponse(true);
@@ -3779,19 +3779,19 @@ namespace Plugin {
                 for (index = 0; index < pqmode.size(); index++) {
                     pqmodeArray.Add(pqmode[index]);
                 }
-                response["pqmodeInfo"]=pqmodeArray;
+                response["pictureModeInfo"]=pqmodeArray;
             }
             if (!source.empty()) {
                 for (index = 0; index < source.size(); index++) {
                     sourceArray.Add(source[index]);
                 }
-                response["sourceInfo"]=sourceArray;
+                response["videoSourceInfo"]=sourceArray;
             }
             if (!format.empty()) {
                 for (index = 0; index < format.size(); index++) {
                     formatArray.Add(format[index]);
                 }
-                response["formatInfo"]=formatArray;
+                response["videoFormatInfo"]=formatArray;
             }
             LOGINFO("Exit\n");
             returnResponse(true);
@@ -3963,19 +3963,19 @@ namespace Plugin {
                 for (index = 0; index < pqmode.size(); index++) {
                     pqmodeArray.Add(pqmode[index]);
                 }
-                response["pqmodeInfo"]=pqmodeArray;
+                response["pictureModeInfo"]=pqmodeArray;
             }
             if(!source.empty()) {
                 for (index = 0; index < source.size(); index++) {
                     sourceArray.Add(source[index]);
                 }
-                response["sourceInfo"]=sourceArray;
+                response["videoSourceInfo"]=sourceArray;
             }
             if (!format.empty()) {
                 for (index = 0; index < format.size(); index++) {
                     formatArray.Add(format[index]);
                 }
-                response["formatInfo"]=formatArray;
+                response["videoFormatInfo"]=formatArray;
             }
             LOGINFO("Exit\n");
             returnResponse(true);
@@ -4142,19 +4142,19 @@ namespace Plugin {
                 for (index = 0; index < pqmode.size(); index++) {
                     pqmodeArray.Add(pqmode[index]);
                 }
-                response["pqmodeInfo"]=pqmodeArray;
+                response["pictureModeInfo"]=pqmodeArray;
             }
             if (!source.empty()) {
                 for (index = 0; index < source.size(); index++) {
                     sourceArray.Add(source[index]);
                 }
-                response["sourceInfo"]=sourceArray;
+                response["videoSourceInfo"]=sourceArray;
             }
             if (!format.empty()) {
                 for (index = 0; index < format.size(); index++) {
                     formatArray.Add(format[index]);
                 }
-                response["formatInfo"]=formatArray;
+                response["videoFormatInfo"]=formatArray;
             }
             LOGINFO("Exit\n");
             returnResponse(true);
@@ -4872,19 +4872,19 @@ namespace Plugin {
                 for (index = 0; index < pqmode.size(); index++) {
                     pqmodeArray.Add(pqmode[index]);
                 }
-                response["pqmodeInfo"]=pqmodeArray;
+                response["pictureModeInfo"]=pqmodeArray;
             }
             if (!source.empty()) {
                 for (index = 0; index < source.size(); index++) {
                     sourceArray.Add(source[index]);
                 }
-                response["sourceInfo"]=sourceArray;
+                response["videoSourceInfo"]=sourceArray;
             }
             if (!format.empty()) {
                 for (index = 0; index < format.size(); index++) {
                     formatArray.Add(format[index]);
                 }
-                response["formatInfo"]=formatArray;
+                response["videoFormatInfo"]=formatArray;
             }
             LOGINFO("Exit\n");
             returnResponse(true);
