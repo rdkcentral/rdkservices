@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+# [1.0.18] - 2023-10-21
+### Added
+- Added offline/online endpoint switch feature
+
 # [1.0.17] - 2023-10-20
 ### Fixed
 - Fixed crash with TTS::TTSManager::interrupted signature
