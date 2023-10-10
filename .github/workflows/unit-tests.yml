@@ -8,8 +8,8 @@ on:
 
 env:
   BUILD_TYPE: Debug
-  THUNDER_REF: "R2-v1.14"
-  INTERFACES_REF: "R2-v1.14"
+  THUNDER_REF: "39c82df24c7b4a4a10663cf527a3b289e7c1ceae"
+  INTERFACES_REF: "8d3bd0ddd187c6104543699041ec53e1e186d49a"
 
 
 jobs:
@@ -188,6 +188,7 @@ jobs:
           rfcapi.h
           rbus.h
           telemetry_busmessage_sender.h
+          secure_wrapper.h
           maintenanceMGR.h
           pkg.h
 
@@ -224,6 +225,7 @@ jobs:
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Udev.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/maintenanceMGR.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/pkg.h
+          -include ${{github.workspace}}/rdkservices/Tests/mocks/secure_wrappermock.h
           -Wall -Werror
           -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog
           -DENABLE_TELEMETRY_LOGGING
@@ -336,7 +338,7 @@ jobs:
           --show-reachable=yes
           --track-fds=yes
           --fair-sched=try
-          RdkServicesTest
+          RdkServicesTest 
 
       - name: Generate coverage
         if: ${{ matrix.coverage == 'with-coverage' && !env.ACT }}

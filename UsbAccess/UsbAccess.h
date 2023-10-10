@@ -29,7 +29,7 @@ namespace Plugin {
     public /*constants*/:
         static const string SERVICE_NAME;
         //methods
-        static const string METHOD_GET_FILE_LIST;
+        static const string METHOD_GET_FILE_LIST;	
         static const string METHOD_CREATE_LINK;
         static const string METHOD_CLEAR_LINK;
         static const string METHOD_GET_AVAILABLE_FIRMWARE_FILES;
@@ -44,6 +44,7 @@ namespace Plugin {
         static const string LINK_PATH;
         static const string REGEX_BIN;
         static const string REGEX_FILE;
+        static const string REGEX_PATH;
         static const string PATH_DEVICE_PROPERTIES;
         static const std::list<string> ADDITIONAL_FW_PATHS;
         static const string ARCHIVE_LOGS_SCRIPT;
