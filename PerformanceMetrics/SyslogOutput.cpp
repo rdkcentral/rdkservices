@@ -27,6 +27,8 @@
 
 #include <sys/sysinfo.h>
 
+#define SERVER_DETAILS  "127.0.0.1:9998"
+
 namespace WPEFramework {
 namespace Plugin {
 
@@ -273,6 +275,23 @@ public:
                 extended->Release();
             }
         }
+
+        auto security = service.QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
+        if (security != nullptr) {
+            string payload = "http://localhost";
+            if (security->CreateToken(
+                    static_cast<uint16_t>(payload.length()),
+                    reinterpret_cast<const uint8_t*>(payload.c_str()),
+                    sThunderSecurityToken)
+                == Core::ERROR_NONE) {
+                    SYSLOG(Logging::Notification, (_T( "PerformanceMetrics got security token")));
+                } else {
+                    SYSLOG(Logging::Notification, (_T( "PerformanceMetrics failed to get security token")));
+                }
+                security->Release();
+        } else
+            SYSLOG(Logging::Notification, (_T( "No security agent")));
+
     }
 
     void Disable() override 
@@ -364,6 +383,14 @@ public:
     {
     }
 private:
+
+    std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> getTelemetryPlugin()
+    {
+        string query = "token=" + sThunderSecurityToken;
+        Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(SERVER_DETAILS)));
+        return std::make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>>("org.rdk.Telemetry.1", "", false, query);
+    }
+
     void OutputLoadFinishedMetrics(const URLLoadedMetrics& urloadedmetrics, 
                                    const string& URL, 
                                    const uint64_t urllaunchtime_ms,
@@ -404,6 +431,24 @@ private:
 
         string outputstring;
         output.ToString(outputstring);
+
+        JsonArray array;
+        JsonObject const metrics(outputstring);
+        JsonObject::Iterator it = metrics.Variants();
+        while (it.Next()) {
+            array.Add(it.Current().String().c_str());
+        }
+
+        string eventValue;
+        array.ToString(eventValue);
+
+        auto telemetryPlugin = getTelemetryPlugin();
+        JsonObject param;
+        JsonObject result;
+        param["eventName"] = string("LaunchMetrics_accum");
+        param["eventValue"] = eventValue;
+        telemetryPlugin->Invoke<JsonObject, JsonObject>(5000, "logApplicationEvent", param, result);
+
         SYSLOG(Logging::Notification, (_T( "%s Launch Metrics: %s "), _callsign.c_str(), outputstring.c_str()));
     }
 
@@ -428,6 +473,7 @@ private:
     URLLoadedMetrics _urloadmetrics;
     Core::Time::microsecondsfromepoch _timeIdleFirstStart;
     mutable Core::CriticalSection _adminLock;
+    string sThunderSecurityToken;
 };
 
 constexpr char SysLogOuput::webProcessName[];
