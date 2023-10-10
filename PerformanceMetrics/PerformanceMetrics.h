@@ -22,6 +22,7 @@
 #include "Module.h"
 #include <interfaces/IMemory.h>
 #include <interfaces/IBrowser.h>
+#include <interfaces/ITelemetry.h>
 
 #include <memory>
 
