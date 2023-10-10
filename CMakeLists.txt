@@ -67,6 +67,10 @@ if(PLUGIN_CONTROLSERVICE)
     add_subdirectory(ControlService)
 endif()
 
+if(PLUGIN_AVOUTPUT)
+	add_subdirectory(AVOutput)
+endif()
+
 if(PLUGIN_VOICECONTROL)
     add_subdirectory(VoiceControl)
 endif()
