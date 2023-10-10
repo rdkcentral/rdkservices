@@ -43,6 +43,8 @@
 #include "frontpanel.h"
 
 #include "rfcapi.h"
+#include "secure_wrapper.h"
+
 
 #define WAREHOUSE_RFC_CALLERID                  "Warehouse"
 #define WAREHOUSE_HOSTCLIENT_NAME1_RFC_PARAM    "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.CommonProperties.WarehouseHost.CName1"
@@ -229,7 +231,7 @@ namespace WPEFramework
             }
             if (resetType.compare("COLD") == 0)
             {
-                LOGINFO("%s reset...", resetType.c_str());
+                LOGINFO("%s reset...and m_isPwrMgr2RFCEnabled as %d", resetType.c_str(), Warehouse::_instance->m_isPwrMgr2RFCEnabled);
 
                 if (Warehouse::_instance->m_isPwrMgr2RFCEnabled) {
                     ret = Warehouse::_instance->processColdFactoryReset();
