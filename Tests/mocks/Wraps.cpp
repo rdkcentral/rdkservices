@@ -60,3 +60,14 @@ extern "C" int __wrap_unlink(const char* filePath)
 {
     return Wraps::getInstance().unlink(filePath);
 }
+
+
+extern "C" int __wrap_v_secure_system(const char *command, ...)
+{
+    va_list args;
+    int ret;
+    va_start(args, command);
+    ret = Wraps::getInstance().v_secure_system(command, args);
+    va_end(args);
+    return ret;
+}

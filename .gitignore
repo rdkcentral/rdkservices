@@ -51,3 +51,4 @@ uninstall.cmake
 install_manifest.txt
 CTestTestfile.cmake
 output/
+*.bak

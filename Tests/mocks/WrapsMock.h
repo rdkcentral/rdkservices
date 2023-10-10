@@ -19,4 +19,5 @@ public:
     MOCK_METHOD(FILE*, v_secure_popen, (const char *direction, const char *command, va_list args), (override));
     MOCK_METHOD(int, v_secure_pclose, (FILE *file), (override));
     MOCK_METHOD(int, unlink, (const char* filePath), (override));
+    MOCK_METHOD(int, v_secure_system, (const char *command, va_list args), (override));
 };

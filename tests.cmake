@@ -110,6 +110,7 @@ set(EMPTY_HEADERS
         ${BASEDIR}/rdk/control/ctrlm_ipc_key_codes.h
         ${BASEDIR}/rdk_logger_milestone.h
         ${BASEDIR}/systemservices/proc/readproc.h
+        ${BASEDIR}/systemservices/secure_wrappermock.h
         )
 
 file(MAKE_DIRECTORY ${EMPTY_HEADERS_DIRS})
@@ -153,7 +154,7 @@ endforeach ()
 
 add_compile_options(-Wall -Werror)
 
-add_link_options(-Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog -Wl,-wrap,wpa_ctrl_open -Wl,-wrap,wpa_ctrl_request -Wl,-wrap,wpa_ctrl_close -Wl,-wrap,v_secure_popen -Wl,-wrap,v_secure_pclose -Wl,-wrap,unlink)
+add_link_options(-Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog -Wl,-wrap,wpa_ctrl_open -Wl,-wrap,wpa_ctrl_request -Wl,-wrap,wpa_ctrl_close -Wl,-wrap,v_secure_popen -Wl,-wrap,v_secure_pclose -Wl,-wrap,unlink -Wl,-wrap,v_secure_system)
 
 add_definitions(
         -DENABLE_TELEMETRY_LOGGING
