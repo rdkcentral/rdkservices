@@ -231,6 +231,7 @@ namespace WPEFramework
 	    string sPortId = parameters["portId"].String();
             bool audioMix = parameters["requestAudioMix"].Boolean();
 	    int portId = 0;    
+	    
 	    //planeType = 0 -  primary, 1 - secondary video plane type
 	    int planeType = 0;
 	    try {
