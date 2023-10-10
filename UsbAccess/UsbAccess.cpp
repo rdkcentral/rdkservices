@@ -504,7 +504,11 @@ namespace Plugin {
         }
         if (!result)
         {
+<<<<<<< HEAD
             response["error"] = "invalid filename";
+=======
+            response["error"] = "invalid filename"
+>>>>>>> 24bb4238da36039aee6f76d20eb8878ba3ad15ce
 	}
             
         returnResponse(result);
