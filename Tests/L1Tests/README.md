@@ -24,7 +24,7 @@ Create a [personal access token](https://docs.github.com/en/authentication/keepi
 Invoke the workflow:
 
 ```shell script
-act -W .github/workflows/unit-tests.yml -s GITHUB_TOKEN=[token]
+act -W .github/workflows/l1-tests.yml -s GITHUB_TOKEN=[token]
 ```
 
 `-r, --reuse` to reuse the container.
@@ -38,11 +38,11 @@ docker exec -it <container name> /bin/bash
 
 ## FAQ ##
 
-1. The commands to build and run tests are in [unit-tests.yml](../.github/workflows/unit-tests.yml).
+1. The commands to build and run tests are in [l1-tests.yml](../.github/workflows/l1-tests.yml).
  For the queries on syntax please refer to the [Workflow syntax for GitHub Actions](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions).
 
 2. External dependencies need to be mocked.
- For each external header, add one into the [tests.cmake](../tests.cmake) (preserve the original path parts, if needed).
+ For each external header, add one into the [l1tests.cmake](../l1tests.cmake) (preserve the original path parts, if needed).
  For each external declaration, add one into the [mocks folder](./mocks).
  For the queries on mocks please refer to the [gMock Cookbook](http://google.github.io/googletest/gmock_cook_book.html).
 
