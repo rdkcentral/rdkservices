@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <mutex>
 #include <fstream>
+#include "secure_wrapper.h"
 
 #include "libIBus.h"
 #include "sysMgr.h"
@@ -31,7 +32,8 @@ const string WPEFramework::Plugin::UsbAccess::EVT_ON_USB_MOUNT_CHANGED = "onUSBM
 const string WPEFramework::Plugin::UsbAccess::EVT_ON_ARCHIVE_LOGS = "onArchiveLogs";
 const string WPEFramework::Plugin::UsbAccess::REGEX_BIN = "[\\w-]*\\.{0,1}[\\w-]*\\.bin";
 const string WPEFramework::Plugin::UsbAccess::REGEX_FILE =
-				"^[^.].*\\.(png|jpg|jpeg|tiff|tif|bmp|mp4|mov|avi|mp3|wav|m4a|flac|mp4|aac|wma|txt|bin|enc|ts)$";
+				"^[^.,`~?!$@#%^&*()+={}\\[\\]<>\\s]+\\.(png|jpg|jpeg|tiff|tif|bmp|mp4|mov|avi|mp3|wav|m4a|flac|aac|wma|txt|bin|enc|ts)$";
+const string WPEFramework::Plugin::UsbAccess::REGEX_PATH = "^\\/([\\w-]+\\/)+$";
 const string WPEFramework::Plugin::UsbAccess::PATH_DEVICE_PROPERTIES = "/etc/device.properties";
 const std::list<string> WPEFramework::Plugin::UsbAccess::ADDITIONAL_FW_PATHS {"UsbTestFWUpdate", "UsbProdFWUpdate"};
 const string WPEFramework::Plugin::UsbAccess::ARCHIVE_LOGS_SCRIPT = "/lib/rdk/usbLogUpload.sh";
@@ -81,8 +83,13 @@ namespace Plugin {
             return (0 == remove(to.c_str()));
         }
 
-        int runScript(const char *command) {
-            int result = system(command);
+        int runScript(const string path, const string name) {
+        int result = v_secure_system(
+        "/lib/rdk/userInitiatedFWDnld.sh %s '%s' '%s' %d >> /opt/logs/swupdate.log &",
+        "usb",
+        path.c_str(),
+        name.c_str(),
+        0);
             if (result != -1 && WIFEXITED(result)) {
                 result = WEXITSTATUS(result);
             }
@@ -118,6 +125,19 @@ namespace Plugin {
                 result = (model + UsbAccess::REGEX_BIN);
 
                 LOGINFO("bin file regex for device '%s' is '%s'", model.c_str(), result.c_str());
+                
+            });
+            return result;
+        }
+        string deviceSpecificRegexPath(){
+            static string result;
+            static std::once_flag flag;
+            std::call_once(flag, [&](){
+                string model = findProp(UsbAccess::PATH_DEVICE_PROPERTIES.c_str(), "MODEL_NUM");
+                result = UsbAccess::REGEX_PATH;
+
+                LOGINFO("regex for device is '%s'", result.c_str());
+
             });
             return result;
         }
@@ -264,9 +284,10 @@ namespace Plugin {
             {
                 absPath = joinPaths(*paths.begin(), pathParam);
             }
+            
             result = getFileList(absPath, files, REGEX_FILE, true);
+            
         }
-
         if (!result)
             response["error"] = "not found";
         else
@@ -397,7 +418,6 @@ namespace Plugin {
                     m_CreatedLinkIds.erase(nUsbNum);
             }
         }
-
         if (!result)
             response["error"] = "could not remove symlink";
 
@@ -468,37 +488,25 @@ namespace Plugin {
         LOGINFOMETHOD();
 
         bool result = false;
-
         string fileName;
         if (parameters.HasLabel("fileName"))
             fileName = parameters["fileName"].String();
 
         string name = fileName.substr(fileName.find_last_of("/\\") + 1);
-        string path = fileName.substr(0, fileName.find_last_of("/\\"));
-
+        string path = fileName.substr(0, fileName.find_last_of("/\\ ") + 1);
         if (fileName.find('\'') == string::npos &&
             !name.empty() && !path.empty() &&
-            std::regex_match(name, std::regex(deviceSpecificRegexBin(), std::regex_constants::icase)) == true)
+            std::regex_match(name, std::regex(deviceSpecificRegexBin(), std::regex_constants::icase)) &&
+            std::regex_match(path,std::regex(deviceSpecificRegexPath(), std::regex_constants::icase)) == true)
         {
-            char buff[1000];
-            size_t n = sizeof(buff);
-            int size = snprintf(buff, n,
-                    "/lib/rdk/userInitiatedFWDnld.sh %s '%s' '%s' %d >> /opt/logs/swupdate.log &",
-                    "usb",
-                    path.c_str(),
-                    name.c_str(),
-                    0);
-            if (size > 0 && (size_t)size < n)
-            {
-                int rc = runScript(buff);
-                LOGINFO("'%s' return code: %d", buff, rc);
-                result = true;
-            }
+            runScript(path,name);
+            result = true;
         }
-
         if (!result)
+        {
             response["error"] = "invalid filename";
-
+	}
+            
         returnResponse(result);
     }
 
@@ -578,7 +586,7 @@ namespace Plugin {
             if(!usbPath.empty())
             {
                 string script = (ARCHIVE_LOGS_SCRIPT + " " + usbPath);
-                FILE* fp = popen(script.c_str(), "r");
+                FILE* fp =  v_secure_popen("r","%s",script.c_str());
                 if (NULL != fp) {
                     char buf[256];
                     while(fgets(buf, sizeof(buf), fp) != NULL)
@@ -593,9 +601,8 @@ namespace Plugin {
                     error = ScriptError;
                 }
 
-                int rc = pclose(fp);
-                // int rc = runScript(script.c_str());
-                LOGINFO("'%s' exit code: %d", script.c_str(), rc);
+                int rc = v_secure_pclose(fp);
+                LOGINFO("exit code: %d", rc);
                 error = static_cast<ArchiveLogsError>(rc);
             }
         }

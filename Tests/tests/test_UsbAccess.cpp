@@ -8,6 +8,7 @@
 
 #include "UdevMock.h"
 #include "WrapsMock.h"
+#include "secure_wrappermock.h"
 
 using ::testing::NiceMock;
 using namespace WPEFramework;
@@ -111,6 +112,7 @@ TEST_F(UsbAccessTest, RegisteredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("updateFirmware")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("ArchiveLogs")));
 }
+
 extern "C" FILE* __real_popen(const char* command, const char* type);
 
 TEST_F(UsbAccessTest, UpdateFirmware)
@@ -118,17 +120,21 @@ TEST_F(UsbAccessTest, UpdateFirmware)
     Udev::getInstance().impl = &udevImplMock;
     Wraps::getInstance().impl = &wrapsImplMock;
 
-    EXPECT_CALL(wrapsImplMock, system(::testing::_))
+    EXPECT_CALL(wrapsImplMock, v_secure_system(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
-            [&](const char* command) {
+            [&](const char* command, va_list args) {
                 /*Since we have added the "etc/device.properties" file in the test fixture, it can be opened,
                 and the model number is now available. Therefore, we need to change the input parameter for this test API as well as the corresponding string in the system command to match the model number.*/
-                EXPECT_EQ(string(command), string(_T("/lib/rdk/userInitiatedFWDnld.sh usb '/tmp;reboot;' 'HSTP11MWR.bin' 0 >> /opt/logs/swupdate.log &")));
+                va_list args2;
+                va_copy(args2,args);
+                char strFmt[256];
+                vsnprintf(strFmt, sizeof(strFmt), command, args2);
+                EXPECT_EQ(string(strFmt), string(_T("/lib/rdk/userInitiatedFWDnld.sh usb '/tmp/reboot/' 'HSTP11MWR.bin' 0 >> /opt/logs/swupdate.log &")));
                 return 0;
             }));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("updateFirmware"), _T("{\"fileName\":\"/tmp;reboot;/HSTP11MWR.bin\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("updateFirmware"), _T("{\"fileName\":\"/tmp/reboot/HSTP11MWR.bin\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("updateFirmware"), _T("{\"fileName\":\"/tmp\';reboot;/my.bin\"}"), response));
@@ -1230,7 +1236,8 @@ TEST_F(UsbAccessEventTest, onArchiveLogsFailure_when_pathParamNotFoundInMountedp
                 EXPECT_TRUE(json->ToString(text));
                 EXPECT_EQ(text, "{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.UsbAccess.onArchiveLogs\",\"params\":{\"error\":\"No USB\",\"success\":false,\"path\":\"\"}}");
                 onArchiveLogs.SetEvent();
-                return Core::ERROR_NONE;
+		return Core::ERROR_NONE;
+	
           }));
 
     handler.Subscribe(0, _T("onArchiveLogs"), _T("org.rdk.UsbAccess"), message);
@@ -1283,15 +1290,20 @@ TEST_F(UsbAccessEventTest, onArchiveLogsFailure_when_FileFailedtoOpen)
         }
     }));
 
-    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+    EXPECT_CALL(wrapsImplMock, v_secure_popen(::testing::_, ::testing::_, ::testing::_))
         .Times(::testing::AnyNumber())
         .WillRepeatedly(::testing::Invoke(
-            [&](const char* command, const char* type) {
-                EXPECT_EQ(string(command), string(_T("/lib/rdk/usbLogUpload.sh /run/sda1")));
+            [&](const char *direction, const char *command, va_list args) {
+                va_list args2;
+                va_copy(args2, args);
+                char strFmt[256];
+                vsnprintf(strFmt, sizeof(strFmt), command, args2);
+                va_end(args2); 
+                EXPECT_EQ(string(strFmt), string(_T("/lib/rdk/usbLogUpload.sh /run/sda1")));
                 return nullptr;
             }));
 
-    ON_CALL(wrapsImplMock, pclose(::testing::_))
+    ON_CALL(wrapsImplMock, v_secure_pclose(::testing::_))
         .WillByDefault(::testing::Invoke(
             [&](FILE* pipe){
                 return -1;
@@ -1358,15 +1370,20 @@ TEST_F(UsbAccessEventTest, onArchiveLogsFailure_when_FileFailedtoTerminate)
         }
     }));
 
-    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+    EXPECT_CALL(wrapsImplMock, v_secure_popen(::testing::_, ::testing::_, ::testing::_))
         .Times(::testing::AnyNumber())
         .WillRepeatedly(::testing::Invoke(
-            [&](const char* command, const char* type) {
-                EXPECT_EQ(string(command), string(_T("/lib/rdk/usbLogUpload.sh /run/sda1")));
-                return __real_popen(command, type);
+            [&](const char *direction, const char *command, va_list args) {
+                va_list args2;
+                va_copy(args2, args);
+                char strFmt[256];
+                vsnprintf(strFmt, sizeof(strFmt), command, args2);
+                va_end(args2); 
+                EXPECT_EQ(string(strFmt), string(_T("/lib/rdk/usbLogUpload.sh /run/sda1")));
+                return __real_popen(strFmt, direction);
             }));
 
-    ON_CALL(wrapsImplMock, pclose(::testing::_))
+    ON_CALL(wrapsImplMock, v_secure_pclose(::testing::_))
         .WillByDefault(::testing::Invoke(
             [&](FILE* pipe){
                 return -1;
@@ -1434,11 +1451,16 @@ TEST_F(UsbAccessEventTest, archiveLogsSuccess_When_pathParamisEmpty)
         }
     }));
 
-    ON_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+    ON_CALL(wrapsImplMock, v_secure_popen(::testing::_, ::testing::_, ::testing::_))
      .WillByDefault(::testing::Invoke(
-        [&](const char* command, const char* type) -> FILE* {
+        [&](const char *direction, const char *command, va_list args) -> FILE* {
             const char* valueToReturn = NULL;
-            if (strcmp(command, "/lib/rdk/usbLogUpload.sh /run/sda1") == 0) {
+            va_list args2;
+            va_copy(args2, args);
+            char strFmt[256];
+            vsnprintf(strFmt, sizeof(strFmt), command, args2);
+            va_end(args2); 
+            if (strcmp(strFmt, "/lib/rdk/usbLogUpload.sh /run/sda1") == 0) {
                 valueToReturn = "/run/sda1/5C3400F15492_Logs_12-05-22-10-41PM.tgz";
             }
             if (valueToReturn != NULL) {
@@ -1514,11 +1536,16 @@ TEST_F(UsbAccessEventTest, archiveLogsSuccess_onValidPath)
         }
     }));
 
-    ON_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+    ON_CALL(wrapsImplMock, v_secure_popen(::testing::_, ::testing::_, ::testing::_))
      .WillByDefault(::testing::Invoke(
-        [&](const char* command, const char* type) -> FILE* {
+        [&](const char *direction, const char *command, va_list args) -> FILE* {
             const char* valueToReturn = NULL;
-            if (strcmp(command, "/lib/rdk/usbLogUpload.sh /run/sda1") == 0) {
+            va_list args2;
+            va_copy(args2, args);
+            char strFmt[256];
+            vsnprintf(strFmt, sizeof(strFmt), command, args2);
+            va_end(args2); 
+            if (strcmp(strFmt, "/lib/rdk/usbLogUpload.sh /run/sda1") == 0) {
                 valueToReturn = "/run/sda1/5C3400F15492_Logs_12-05-22-10-41PM.tgz";
             }
             if (valueToReturn != NULL) {
