@@ -5127,15 +5127,46 @@ namespace Plugin {
         LOGINFO("%s : Exit Source : %s, pqmode : %s, format: %s \n",__FUNCTION__,source.c_str(),pqmode.c_str(), format.c_str());
     }
 
+    std::string AVOutputTV::convertToString(std::vector<std::string> vec_strings)
+    {
+        std::string result = std::accumulate(vec_strings.begin(), vec_strings.end(), std::string(),
+            [](const std::string& a, const std::string& b) -> std::string {
+                return a.empty() ? b : a + "," + b;
+            });
+        return result;
+    }
+
     int AVOutputTV::convertToValidInputParameter(std::string & source, std::string & pqmode, std::string & format) 
     {
 
         LOGINFO("Entry %s source %s pqmode %s format %s \n", __FUNCTION__, source.c_str(), pqmode.c_str(), format.c_str());
 
         convertParamToLowerCase(source, pqmode, format);
+       
+        std::vector<std::string> temp_vec;
+        std::string temp_string;
 
         // converting pq to valid paramter format
-        if (pqmode == "current")
+        if (pqmode == "global")
+        {
+            pic_modes_t *availableModes;
+            unsigned short num_pqmodes = 0;
+            GetTVSupportedPictureModes(&availableModes, &num_pqmodes);
+
+            for(int count = 0;count < num_pqmodes; count++)
+            {
+                temp_string.clear();
+                temp_string += availableModes[count].value;
+                LOGINFO("ALL:%s \n", temp_string.c_str());
+                temp_vec.push_back(temp_string);
+            }
+            if (temp_vec.size() != 0) {
+                pqmode = convertToString(temp_vec);
+            }
+            if (temp_vec.size() != 0 ) temp_vec.clear();
+            if (!temp_string.empty()) temp_string.clear();
+        }
+        else if (pqmode == "current")
         {
             char picMode[PIC_MODE_NAME_MAX]={0};
             if(!getCurrentPictureMode(picMode)) 
@@ -5148,9 +5179,27 @@ namespace Plugin {
                 pqmode = picMode;
                 LOGINFO("current PQmode :%s \n", pqmode.c_str());
             }
-        } 
+        }
 
-        if (source == "current") 
+        if (source == "global")
+        {
+            pic_modes_t *availableSources;
+            unsigned short num_source = 0;
+            GetTVSupportedSources(&availableSources, &num_source);
+            for (int count = 0; count < num_source; count++)
+            {
+                temp_string.clear();
+                temp_string +=  availableSources[count].name;
+                LOGINFO("ALL source:%s \n", temp_string.c_str());
+                temp_vec.push_back(temp_string);
+            }
+            if (temp_vec.size() != 0) {
+                source = convertToString(temp_vec);
+            }
+            if (temp_vec.size() != 0 ) temp_vec.clear();
+            if (!temp_string.empty()) temp_string.clear();
+        } 
+        else if (source == "current") 
         {
             int currentSource = 0;
             tvError_t ret = GetCurrentSource(&currentSource);
@@ -5162,7 +5211,36 @@ namespace Plugin {
             LOGINFO("current source:%s \n", source.c_str());
         } 
 
-	if (format == "current") 
+        //convert format into valid parameter
+        if (format == "global")
+        {
+            char * formatVal;
+            unsigned short num_format = 0;
+            tvError_t ret = GetTVSupportedFormats(&formatVal, &num_format);
+            if (ret == tvERROR_NONE)
+            {
+                for (int count = 0; count < num_format; count++)
+                {
+                    temp_string.clear();
+                    temp_string += formatVal+(count*FORMAT_NAME_SIZE);
+                    LOGINFO("ALL format:%s \n", temp_string.c_str());
+                    if (temp_string != "none") {
+                        temp_vec.push_back(temp_string);
+                    }
+                }
+            }
+            else
+            {
+                LOGINFO("Failed to read the format. \n");
+                return -1;
+            }
+            if (temp_vec.size() != 0) {
+                format = convertToString(temp_vec);
+            }
+            if (temp_vec.size() != 0 ) temp_vec.clear();
+            if (!temp_string.empty()) temp_string.clear();
+        }
+	else if (format == "current") 
 	{
           format = convertVideoFormatToString( GetCurrentContentFormat());
           LOGINFO("current:%s \n", format.c_str());

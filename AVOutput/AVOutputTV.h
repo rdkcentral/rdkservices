@@ -223,6 +223,7 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         JsonArray getSupportedVideoSource(void);
         int parsingSetInputArgument(const JsonObject& parameters, std::string & source, std::string & pqmode, std::string & format);
         int parsingGetInputArgument(const JsonObject& parameters, std::string & source, std::string & pqmode, std::string & format);
+        std::string convertToString(std::vector<std::string> vec_strings);
 
     public:
         int m_currentHdmiInResoluton;
