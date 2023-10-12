@@ -65,9 +65,9 @@
 
 using namespace std;
 
-#define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 7
-#define API_VERSION_NUMBER_PATCH 2
+#define API_VERSION_NUMBER_MAJOR 3
+#define API_VERSION_NUMBER_MINOR 0
+#define API_VERSION_NUMBER_PATCH 0
 
 #define MAX_REBOOT_DELAY 86400 /* 24Hr = 86400 sec */
 #define TR181_FW_DELAY_REBOOT "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"
@@ -396,8 +396,6 @@ namespace WPEFramework {
 #endif /* HAS_API_SYSTEM && HAS_API_POWERSTATE */
             registerMethod("setGzEnabled", &SystemServices::setGZEnabled, this);
             registerMethod("isGzEnabled", &SystemServices::isGZEnabled, this);
-            registerMethod("hasRebootBeenRequested",
-                    &SystemServices::isRebootRequested, this);
             registerMethod("getMode", &SystemServices::getMode, this);
             registerMethod("updateFirmware", &SystemServices::updateFirmware, this);
             registerMethod("setMode", &SystemServices::setMode, this);
@@ -3695,20 +3693,6 @@ namespace WPEFramework {
 		returnResponse(retVal);
 	}//end of setPower State
 #endif /* HAS_API_SYSTEM && HAS_API_POWERSTATE */
-
-        /***
-         * @brief : To check if Reboot has been requested or not.
-         *
-         * @param1[in]  : query parameter.
-         * @param2[out] : {"result":{"rebootRequested":false,"success":<bool>}}
-         * @return      : Core::<StatusCode>
-         */
-        uint32_t SystemServices::isRebootRequested(const JsonObject& parameters,
-                JsonObject& response)
-        {
-            response["rebootRequested"] = false;
-            returnResponse(true);
-        }//end of isRebootRequested
 
         /***
          * @brief : To set GZ Status.
