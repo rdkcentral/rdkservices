@@ -4886,7 +4886,6 @@ namespace Plugin {
     {
         LOGINFO("Entry\n");
         //PLUGIN_Lock(Lock);
-
         int currentSource = 0;
 
         tvError_t ret = GetCurrentSource(&currentSource);
