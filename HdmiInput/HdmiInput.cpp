@@ -230,7 +230,8 @@ namespace WPEFramework
 
             string sPortId = parameters["portId"].String();
             bool audioMix = parameters["requestAudioMix"].Boolean();
-            bool topMostPlane = parameters["topMost"].Boolean();
+            bool topMostPlane = parameters.HasLabel("topMost") ? parameters["topMost"].Boolean() : true;
+            LOGINFO("topMost value in thunder: %d\n",topMostPlane);
 	    int portId = 0;
 	    //planeType = 0 -  primary, 1 - secondary video plane type
 	    int planeType = 0;
