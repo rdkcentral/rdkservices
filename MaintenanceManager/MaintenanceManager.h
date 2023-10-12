@@ -154,6 +154,7 @@ namespace WPEFramework {
                 bool checkAutoRebootFlag();
                 bool readRFC(const char *);
                 bool setRFC(const char*, const char*, DATA_TYPE);
+                void setPartnerId(string);
                 WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* getThunderPluginHandle(const char*);
                 bool stopMaintenanceTasks();
                 bool subscribeForInternetStatusEvent(string);
