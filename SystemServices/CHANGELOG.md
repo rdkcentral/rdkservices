@@ -16,7 +16,7 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
-## [1.7.2] - 2023-10-12
+## [2.7.1] - 2023-10-12
 ### Removed
 - Removed the hardcoded implementation of hasRebootBeenRequested
 
