@@ -2,7 +2,7 @@
 <a name="HdmiInputPlugin"></a>
 # HdmiInputPlugin
 
-**Version: [1.1.0](https://github.com/rdkcentral/rdkservices/blob/main/HdmiInput/CHANGELOG.md)**
+**Version: [1.1.1](https://github.com/rdkcentral/rdkservices/blob/main/HdmiInput/CHANGELOG.md)**
 
 A org.rdk.HdmiInput plugin for Thunder framework.
 

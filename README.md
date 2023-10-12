@@ -149,21 +149,42 @@ Use the existing services as a guide when learning the structure of both the plu
 
 ## Coding Guidelines ##
 
-1. Be Consistent
+1. Style Guide
 
-    * The point of having style guidelines is to have a common vocabulary of coding so people can concentrate on what you’re saying rather than on how you’re saying it.
+    The point of having style guidelines is to have a common vocabulary of coding so people can concentrate on what you’re saying rather than on how you’re saying it. If the code you add to a file looks drastically different from the existing code around it, it throws readers out of their rhythm. Please Avoid this. If you’re editing code, take a few minutes to determine the coding style of the component and apply the same style.
 
-    * If the code you add to a file looks drastically different from the existing code around it, it throws readers out of their rhythm. Avoid this.
-
-    * If you’re editing code, take a few minutes to determine the coding style of the component and apply the same style.
-
-    * To maintain uniformity in all text-editors, set TAB size to 2 or 4 spaces and replace TAB by SPACES
-
-    * If they use spaces around all their arithmetic operators, you should too.
+    * All RDK Services must have a callsign with a prefix of `org.rdk`. RDK Service name must use PascalCase (first letter of each word is capitalized). For instance org.rdk.**P**ersistent**S**tore
     
-    * If the comments have little boxes of hash marks around them, make your comments have little boxes of hash marks around them too.
+    * API & Event Names should use camelCase (first word is lowercase & first letter of subsequent words are capitalized). For instance getDeviceInfo, onAppResumed.
 
-    * Minimise the use of exceptions and handle exceptions locally if possible
+    * JSON parameter names in request and responses should use camelCase and be valid ascii strings. For instance "updateAvailable".
+
+    * API getters should start with get. For instance [getDefaultInterface](https://rdkcentral.github.io/rdkservices/#/api/NetworkPlugin?id=getdefaultinterface). Setters should start with set. For instance [setDefaultInterface](https://rdkcentral.github.io/rdkservices/#/api/NetworkPlugin?id=setdefaultinterface).
+
+    * Event names should follow the convention **on[Noun Object][Action Verb]**. 
+        * Object should be a noun and provide useful context on the event. 
+        * Action should be a verb. Use present and past tenses to indicate if the event is triggered before or after. 
+        * For instance onAppResumed, onAppResuming.
+    <br><br>
+    * Capitalize acronyms by default. So use set**HDMI**Enabled instead of set**Hdmi**Enabled.
+
+    * Ensure JSON-RPC API responses return either result or error object on success or error respectively. Please refer to [JSON-RPC Spec](https://www.jsonrpc.org/specification#response_object) for more details on expected members in the response object. Highlighting important members below.
+        * result
+            * This member is REQUIRED on success.
+            * This member MUST NOT exist if there was an error invoking the method.
+        * error
+            * This member is REQUIRED on error.
+            * This member MUST NOT exist if there was no error triggered during invocation.
+            * The value for this member MUST be an Object as defined below.
+                * code
+                    * A Number that indicates the error type that occurred.
+                    * This MUST be an integer.
+                * message
+                    * A String providing a short description of the error.
+                    * The message SHOULD be limited to a concise single sentence.
+        * Either the result member or error member MUST be included, but both members MUST NOT be included.
+
+    * To maintain uniformity in all text-editors, set TAB size to 2 or 4 spaces and replace TAB by SPACES.
     
 2. RDK services are implemented as Thunder Plugins and must adhere to the [PluginHost::IPlugin](https://github.com/rdkcentral/Thunder/blob/master/Source/plugins/IPlugin.h) interface. If a RDK service handles WEB requests it implements [PluginHost::IWeb](https://github.com/rdkcentral/Thunder/blob/master/Source/plugins/IPlugin.h). If it activates/deactivates and handles JSON-RPC it implements [PluginHost::IDispatcher](https://github.com/rdkcentral/Thunder/blob/master/Source/plugins/JSONRPC.h) (or derives from PluginHost::JSONRPC). If it implements custom interfaces it adds them to [ThunderInterfaces](https://github.com/rdkcentral/ThunderInterfaces) for RPC. If it exposes interfaces to other processes via RPC it develops an [RPC::Communicator](https://github.com/rdkcentral/Thunder/blob/master/Source/com/Communicator.h). A service specifies its interfaces like this:
 
@@ -174,11 +195,7 @@ Use the existing services as a guide when learning the structure of both the plu
     END_INTERFACE_MAP
 ```
 
-3. All RDK Services must have a callsign with a prefix of `org.rdk`. RDK Service name must be CamelCase and start with a capital letter.
-
-4. All method, parameter and event names must be camelCase and start with a lowercase letter.
-
-5. MODULE_NAME
+3. MODULE_NAME
 
     * Thunder provides a trace and warning reporting feature. To accurately identify the source of a warning, Thunder needs to know the human readable name of the package (executable or library). This package name is defined by the MODULE_NAME and declared by the  MODULE_NAME_DECLARATION()
 
@@ -196,18 +213,18 @@ Use the existing services as a guide when learning the structure of both the plu
         MODULE_NAME_DECLARATION(BUILD_REFERENCE)
         ```
 
-6. A service is registered in a translation unit via a mandatory SERVICE_REGISTRATION(MyService, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH)
+4. A service is registered in a translation unit via a mandatory SERVICE_REGISTRATION(MyService, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH)
 
-7. MyPlugin.config can specify: autostart, startuporder, custom properties (passed to the service during activation via PluginHost::IShell::ConfigLine()). During the project configuration, write_config(MyPlugin) in CMakeLists.txt uses MyPlugin.config to generate and install a corresponding json file. Refer to [PersistentStore.config](https://github.com/rdkcentral/rdkservices/blob/main//PersistentStore/PersistentStore.config)
+5. MyPlugin.config can specify: autostart, startuporder, custom properties (passed to the service during activation via PluginHost::IShell::ConfigLine()). During the project configuration, write_config(MyPlugin) in CMakeLists.txt uses MyPlugin.config to generate and install a corresponding json file. Refer to [PersistentStore.config](https://github.com/rdkcentral/rdkservices/blob/main//PersistentStore/PersistentStore.config)
 
-8. MyPlugin.json documents JSON-RPC interface. It's added to both plugin folder and ThunderInterfaces. The latter generates classes for parameters or enums that can be included like #include <interfaces/json/JsonData_MyPlugin.h>. In the plugin code, JSON-RPC methods and properties are registered like this:
+6. MyPlugin.json documents JSON-RPC interface. It's added to both plugin folder and ThunderInterfaces. The latter generates classes for parameters or enums that can be included like #include <interfaces/json/JsonData_MyPlugin.h>. In the plugin code, JSON-RPC methods and properties are registered like this:
 
 ```shell
     Register<void /*input params*/, void /*output params*/>(_T("sync"), &MyPlugin::endpoint_sync, this);
     Property<LocationData>(_T("location"), &MyPlugin::get_location /*getter*/, nullptr /*setter*/, this);
 ```
 
-9. Initialization and Cleanup
+7. Initialization and Cleanup
 
     * Keep Plugin Constructors & Destructors lean. Most initialization should be done within Initialize() which gets called when the plugin is activated. More on that below. This will ensure that WPEFramework boots up faster since most of the plugins are not auto-started or activated on bootup. Similarly most of the plugin cleanup should happen within Deinitialize() instead of the destructor.
 
@@ -215,7 +232,7 @@ Use the existing services as a guide when learning the structure of both the plu
     
     * Ensure that any std::threads created are joined within Deinitialize() or the destructor to avoid [std::terminate](https://en.cppreference.com/w/cpp/thread/thread/~thread) exception. Use the [ThreadRAII](helpers/UtilsThreadRAII.h) class for creating threads which will ensure that the thread gets joined before destruction.
 
-10.  Inter-plugin communication - There might be use cases where one RDK Service or plugin needs to call APIs in another RDK Service. Don't use JSON-RPC for such communication since it's an overhead and not preferred for inter-plugin communication. JSON-RPC must be used only by applications. Instead use COM RPC through the IShell Interface API [QueryInterfaceByCallsign()](https://github.com/rdkcentral/Thunder/blob/R2/Source/plugins/IShell.h#L210) exposed for each Plugin. Here is an [example](https://github.com/rdkcentral/rdkservices/blob/main/Messenger/MessengerSecurity.cpp#L35). 
+8.  Inter-plugin communication - There might be use cases where one RDK Service or plugin needs to call APIs in another RDK Service. Don't use JSON-RPC for such communication since it's an overhead and not preferred for inter-plugin communication. JSON-RPC must be used only by applications. Instead use COM RPC through the IShell Interface API [QueryInterfaceByCallsign()](https://github.com/rdkcentral/Thunder/blob/R2/Source/plugins/IShell.h#L210) exposed for each Plugin. Here is an [example](https://github.com/rdkcentral/rdkservices/blob/main/Messenger/MessengerSecurity.cpp#L35). 
     <br><br>
 
 ## Versioning ##

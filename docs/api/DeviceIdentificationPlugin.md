@@ -2,7 +2,7 @@
 <a name="DeviceIdentification_Plugin"></a>
 # DeviceIdentification Plugin
 
-**Version: [1.0.3](https://github.com/rdkcentral/rdkservices/blob/main/DeviceIdentification/CHANGELOG.md)**
+**Version: [1.0.4](https://github.com/rdkcentral/rdkservices/blob/main/DeviceIdentification/CHANGELOG.md)**
 
 A DeviceIdentification plugin for Thunder framework.
 

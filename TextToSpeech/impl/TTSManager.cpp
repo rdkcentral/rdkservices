@@ -115,11 +115,32 @@ TTS_Error TTSManager::listVoices(std::string language, std::vector<std::string> 
     return TTS_OK;
 }
 
+TTS_Error TTSManager::listLocalVoices(std::string language, std::vector<std::string> &voices) {
+     if(language.empty()) {
+        voices.push_back(m_defaultConfiguration.localVoice());
+     } else {
+         const std::string key = std::string("voice_for_local_") + language;
+         auto it = m_defaultConfiguration.m_others.find(key);
+         if (it != m_defaultConfiguration.m_others.end()) {
+             voices.push_back(it->second);
+         }
+     }
+     return TTS_OK;
+}
+
 TTS_Error TTSManager::setConfiguration(Configuration &configuration) {
     std::string v = m_defaultConfiguration.voice();
+    
+    bool endpointUpdated = false;
+    endpointUpdated |= m_defaultConfiguration.setEndPoint(configuration.ttsEndPoint);
+    endpointUpdated |= m_defaultConfiguration.setSecureEndPoint(configuration.ttsEndPointSecured);
 
-    m_defaultConfiguration.setEndPoint(configuration.ttsEndPoint);
-    m_defaultConfiguration.setSecureEndPoint(configuration.ttsEndPointSecured);
+    /* If new endpoint url provided is using localhost always use that endpoint for VG*/
+    if( m_defaultConfiguration.hasValidLocalEndpoint() && endpointUpdated ) {
+        string url = m_defaultConfiguration.secureEndPoint();
+        if((url.rfind(LOOPBACK_ENDPOINT,0) != std::string::npos)  || (url.rfind(LOCALHOST_ENDPOINT,0) != std::string::npos))
+            m_defaultConfiguration.setLocalEndPoint("");
+    }
 
     /* Set default voice for the language only when voice is empty*/
     if(!configuration.language.empty() && configuration.voice.empty()) {
@@ -138,6 +159,20 @@ TTS_Error TTSManager::setConfiguration(Configuration &configuration) {
         m_needsConfigStoreUpdate |= m_defaultConfiguration.setVoice(configuration.voice);
         m_needsConfigStoreUpdate |= m_defaultConfiguration.setLanguage(configuration.language);
     }
+
+    bool languageUpdated = m_defaultConfiguration.setLanguage(configuration.language);
+    m_needsConfigStoreUpdate |= languageUpdated;
+
+    if( m_defaultConfiguration.hasValidLocalEndpoint() && languageUpdated ) {
+        std::vector<std::string> localVoices;
+        listLocalVoices(m_defaultConfiguration.language(),localVoices);
+        if(localVoices.empty()) {
+            TTSLOG_WARNING("Local Voice is empty and no voices are defined for the specified language ('%s')!!!", m_defaultConfiguration.language().c_str());
+            return TTS_FAIL;
+        } else {
+            m_defaultConfiguration.setLocalVoice(localVoices.front());
+        }
+     }
 
     m_needsConfigStoreUpdate |= m_defaultConfiguration.setVolume(configuration.volume);
     m_needsConfigStoreUpdate |= m_defaultConfiguration.setRate(configuration.rate);

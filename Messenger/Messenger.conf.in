@@ -1,0 +1,8 @@
+autostart = "@PLUGIN_MESSENGER_AUTOSTART@"
+startuporder = "@PLUGIN_MESSENGER_STARTUPORDER@"
+
+configuration = JSON()
+rootobject = JSON()
+
+rootobject.add("mode", "@PLUGIN_MESSENGER_MODE@")
+configuration.add("root", rootobject)
