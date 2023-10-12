@@ -1240,6 +1240,106 @@ namespace WPEFramework {
 
                     returnResponse(result);
                 }
+
+	/** @brief This Function calculates the maintanance start time from RDK maintenance conf file values.
+	 *
+	 *  @param[in]  maintenance_start_time get maintenance start time
+	 *
+	 */
+
+	void CalculateStartTime(int *maintenance_start_time)
+	{
+		FILE *fp_time;
+		FILE *fp;
+		FILE *fptr;
+		char offset[10],timezone[20],tz_offset_pos;
+		char cmd[50];
+		char tz_mode[20];
+		int start_time_in_sec=0,second=0,current_epoch_value=0,calculated_epoch_value=0,start_time=0;
+		int start_time_sec,start_time_min,start_time_hr,tz_offset_in_sec=0,tz_offset_min=0,tz_offset_hr=0,cron_time_in_sec=0;
+		struct timeval epoch;
+		int offset_value,start_hr=0,start_min=0;
+
+		if ((fp_time = fopen("/opt/rdk_maintenance.conf", "r")) == NULL) {
+			LOGERR("Error! File cannot be opened.");
+		}
+
+		fscanf(fp_time, "start_hr=\"%d\"\n", &start_hr);
+		fscanf(fp_time, "start_min=\"%d\"\n", &start_min);
+		fscanf(fp_time, "tz_mode=\"%[^\"]s\"\n", tz_mode);
+		cron_time_in_sec=((start_hr*60*60)+(start_min*60));
+
+		time_t rawtime = time(NULL);
+		if (rawtime == -1) {
+			LOGINFO("time() function failed");
+		}
+		struct tm *ptm = localtime(&rawtime);
+		if (ptm == NULL) {
+			LOGINFO("localtime function failed");
+		}
+
+		if ((fptr = fopen("/opt/persistent/timeZoneDST", "r")) == NULL) {
+			LOGERR("Error! File cannot be opened.");
+		}
+		fscanf(fptr, "%[^\n]", timezone);
+		fclose(fptr);
+
+		sprintf(cmd,"TZ=%s %s",timezone,"date +%z");
+		fp = popen(cmd, "r");
+		if (fp == NULL) {
+			printf("Failed to run command\n" );
+		}
+		while (fgets(offset, sizeof(offset), fp) != NULL) {
+			printf("\n OFFSET %s",offset);
+		}
+
+		pclose(fp);
+
+		if((strcmp(tz_mode,"Local time")==0))
+		{
+			LOGINFO("Time Zone check achieved");
+			tz_offset_pos = offset[0];
+			offset[0] = '0';
+			offset_value = atoi(offset);
+			tz_offset_hr = (offset_value/100);
+			tz_offset_min = (offset_value%100);
+			tz_offset_in_sec=(tz_offset_hr*60*60+tz_offset_min*60);
+
+			if(tz_offset_pos== '-')
+				start_time_in_sec=(cron_time_in_sec+tz_offset_in_sec);
+			else
+				start_time_in_sec=(cron_time_in_sec-tz_offset_in_sec);
+		}
+
+		if(start_time_in_sec > 86400)
+			start_time_in_sec-=86400;
+		else if(start_time_in_sec < 0)
+			start_time_in_sec+=86400;
+
+		start_time = start_time_in_sec;
+		start_time_sec=(start_time%60);
+		start_time=(start_time/60);
+		start_time_min=(start_time%60);
+		start_time=(start_time/60);
+		start_time_hr=(start_time%60);
+
+		ptm->tm_hour = start_time_hr;
+		ptm->tm_min = start_time_min;
+		ptm->tm_sec = start_time_sec;
+		calculated_epoch_value = timegm(ptm);
+
+		gettimeofday(&epoch, NULL);
+		current_epoch_value = epoch.tv_sec;
+		second = calculated_epoch_value - current_epoch_value;
+
+		if(second < 10)
+			calculated_epoch_value+=86399;
+
+		*maintenance_start_time=calculated_epoch_value;
+
+		fclose(fp_time);
+	}
+
         /*
          * @brief This function returns the start time of the maintenance activity.
          * @param1[in]: {"jsonrpc":"2.0","id":"3","method":"org.rdk.MaintenanceManager.1.getMaintenanceStartTime","params":{}}''
@@ -1250,13 +1350,12 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool result = false;
-            string starttime="";
-
-            starttime = Utils::cRunScript("/lib/rdk/getMaintenanceStartTime.sh &");
-            if (!starttime.empty()){
-                  response["maintenanceStartTime"]=stoi(starttime.c_str());
-                  result=true;
-            }
+            int start_time=0;
+			CalculateStartTime(&starttime);
+			if (starttime!=0){
+				response["maintenanceStartTime"]=starttime;
+				result=true;
+			}
 
             returnResponse(result);
         }
