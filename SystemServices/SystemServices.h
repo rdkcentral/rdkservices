@@ -219,7 +219,6 @@ namespace WPEFramework {
                 uint32_t setDevicePowerState(const JsonObject& parameters,JsonObject& response);
 #endif /* HAS_API_SYSTEM && HAS_API_POWERSTATE */
 
-                uint32_t isRebootRequested(const JsonObject& parameters,JsonObject& response);
                 uint32_t setGZEnabled(const JsonObject& parameters,JsonObject& response);
                 uint32_t isGZEnabled(const JsonObject& parameters,JsonObject& response);
                 uint32_t getSystemVersions(const JsonObject& parameters, JsonObject& response);

@@ -396,8 +396,6 @@ namespace WPEFramework {
 #endif /* HAS_API_SYSTEM && HAS_API_POWERSTATE */
             registerMethod("setGzEnabled", &SystemServices::setGZEnabled, this);
             registerMethod("isGzEnabled", &SystemServices::isGZEnabled, this);
-            registerMethod("hasRebootBeenRequested",
-                    &SystemServices::isRebootRequested, this);
             registerMethod("getMode", &SystemServices::getMode, this);
             registerMethod("updateFirmware", &SystemServices::updateFirmware, this);
             registerMethod("setMode", &SystemServices::setMode, this);
@@ -3691,20 +3689,6 @@ namespace WPEFramework {
 		returnResponse(retVal);
 	}//end of setPower State
 #endif /* HAS_API_SYSTEM && HAS_API_POWERSTATE */
-
-        /***
-         * @brief : To check if Reboot has been requested or not.
-         *
-         * @param1[in]  : query parameter.
-         * @param2[out] : {"result":{"rebootRequested":false,"success":<bool>}}
-         * @return      : Core::<StatusCode>
-         */
-        uint32_t SystemServices::isRebootRequested(const JsonObject& parameters,
-                JsonObject& response)
-        {
-            response["rebootRequested"] = false;
-            returnResponse(true);
-        }//end of isRebootRequested
 
         /***
          * @brief : To set GZ Status.
