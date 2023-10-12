@@ -5156,7 +5156,7 @@ namespace Plugin {
             for(int count = 0;count < num_pqmodes; count++)
             {
                 temp_string.clear();
-                temp_string += availableModes[count].value;
+                temp_string += availableModes[count].name;
                 LOGINFO("ALL:%s \n", temp_string.c_str());
                 temp_vec.push_back(temp_string);
             }
@@ -5598,7 +5598,7 @@ namespace Plugin {
         int ret = 0;
 
         //1)Check pqmode
-        if( (pqmode.compare("global") == 0) || (pqmode.empty()) )
+        if( (pqmode.compare("global") == 0) || (pqmode.compare("none") == 0 ) )
         {
             int lCount = 0;
             for(;lCount<numberModesSupported;lCount++)
@@ -5616,7 +5616,7 @@ namespace Plugin {
         }
 
         //2)Check Source
-        if( (source.compare("global") == 0) || (source.empty()) )
+        if( (source.compare("global") == 0) || (source.compare("none") == 0) )
         {
             int lCount = 0;
             for(;lCount<numberSourcesSupported;lCount++)
@@ -5639,7 +5639,7 @@ namespace Plugin {
 
         GetSupportedContentFormats(&contentFormats,&numberOfSupportedFormats);
 
-        if( (format.compare("global") == 0) || (format.empty()) )
+        if( (format.compare("global") == 0) || (format.compare("none") == 0) )
         {
              unsigned int lcount=0;
              for(;(lcount<sizeof(uint32_t)*8 && numberOfSupportedFormats);lcount++)
@@ -5799,7 +5799,7 @@ namespace Plugin {
     {
         LOGINFO("Entry\n");
 
-        if(source.empty() || source.compare("current") == 0 )
+        if( source.compare("none") == 0 || source.compare("current") == 0 )
         {
             GetCurrentSource(&sourceIndex);
         }
@@ -5807,7 +5807,7 @@ namespace Plugin {
         {
             sourceIndex = GetTVSourceIndex(source.c_str());
         }
-        if( pqmode.empty() || pqmode.compare("current") == 0)
+        if( pqmode.compare("none") == 0 || pqmode.compare("current") == 0)
         {
             char picMode[PIC_MODE_NAME_MAX]={0};
             if(!getCurrentPictureMode(picMode))
@@ -5820,7 +5820,7 @@ namespace Plugin {
             pqmodeIndex = GetTVPictureModeIndex(pqmode.c_str());
         }
 
-        if(format.empty() || format.compare("current") == 0)
+        if( format.compare("none") == 0 || format.compare("current") == 0)
         {
             formatIndex = ConvertVideoFormatToHDRFormat(GetCurrentContentFormat());
             if( HDR_TYPE_NONE == formatIndex )
