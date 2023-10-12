@@ -16,7 +16,7 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
-## [1.7.1] - 2023-10-12
+## [1.7.2] - 2023-10-12
 ### Changed
 - SystemServices: Fix setting LIGHT_SLEEP. Fix returned values from getPowerState when preferredStandbyMode is set.
 
@@ -74,7 +74,7 @@ All notable changes to this RDK Service will be documented in this file.
 - Added "accuracy" property to getTimeZoneDST/setTimeZoneDST calls
 - Added "oldAccuracy" and "newAccuracy" properties to onTimeZoneDSTChanged event
 
-## [1.1.11] - 2023-01-2
+## [1.1.11] - 2023-01-24
 ### Fixed
 - Added setting of "TZ" env variable to setTimeZoneDST call.
 
