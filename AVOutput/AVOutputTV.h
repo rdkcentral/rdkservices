@@ -103,6 +103,7 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         DECLARE_JSON_RPC_METHOD(getWBCtrl )
         DECLARE_JSON_RPC_METHOD(getSupportedPictureModes )
         DECLARE_JSON_RPC_METHOD(getSupportedVideoSources)
+        DECLARE_JSON_RPC_METHOD(getSupportedVideoFormats)
         DECLARE_JSON_RPC_METHOD(getPictureMode )
         DECLARE_JSON_RPC_METHOD(getVideoFormat)
         DECLARE_JSON_RPC_METHOD(getVideoSource)
