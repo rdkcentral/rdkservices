@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.7.1] - 2023-10-12
+### Changed
+- SystemServices: Fix setting LIGHT_SLEEP. Fix returned values from getPowerState when preferredStandbyMode is set.
+
 ## [1.7.1] - 2023-10-04
 ### Added
 - Implement Thunder Plugin Configuration for Kirkstone builds(CMake-3.20 & above)
@@ -70,7 +74,7 @@ All notable changes to this RDK Service will be documented in this file.
 - Added "accuracy" property to getTimeZoneDST/setTimeZoneDST calls
 - Added "oldAccuracy" and "newAccuracy" properties to onTimeZoneDSTChanged event
 
-## [1.1.11] - 2023-01-24
+## [1.1.11] - 2023-01-2
 ### Fixed
 - Added setting of "TZ" env variable to setTimeZoneDST call.
 
