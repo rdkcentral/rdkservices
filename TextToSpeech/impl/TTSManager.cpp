@@ -41,7 +41,8 @@ TTSManager::TTSManager(TTSEventCallback *callback) :
 
 TTSManager::~TTSManager() {
     TTSLOG_TRACE("TTSManager::~TTSManager");
-    m_callback = NULL;
+    TTSEventCallback dummyCallback;
+    m_callback = &dummyCallback;
 
     // Clear Speaker Instance
     if(m_speaker) {
