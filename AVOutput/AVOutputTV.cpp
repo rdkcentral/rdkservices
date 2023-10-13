@@ -693,13 +693,13 @@ namespace Plugin {
                 }
                 response["pictureModeInfo"]=pqmodeArray;
             }
-            if (source.compare("none") != 0) {
+            if ((source.front()).compare("none") != 0) {
                 for (index = 0; index < source.size(); index++) {
                     sourceArray.Add(source[index]);
                 }
                 response["videoSourceInfo"]=sourceArray;
             }
-            if (format.compare("none") != 0) {
+            if ((format.front()).compare("none") != 0) {
                 for (index = 0; index < format.size(); index++) {
                     formatArray.Add(format[index]);
                 }
@@ -4454,6 +4454,7 @@ namespace Plugin {
 	std::vector<std::string> pqmode;
 	std::vector<std::string> format;
 
+	unsigned int index = 0;
         tvError_t ret = getParamsCaps(range,pqmode,source,format,"PictureMode");
 
         if(ret != tvERROR_NONE) {
