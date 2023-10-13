@@ -408,6 +408,7 @@ namespace Plugin {
 	registerMethod("getPictureMode", &AVOutputTV::getPictureMode, this);
         registerMethod("setPictureMode", &AVOutputTV::setPictureMode, this);
 	registerMethod("resetPictureMode", &AVOutputTV::resetPictureMode, this);
+	registerMethod("getPictureModeCaps", &AVOutputTV::getPictureModeCaps, this);
         registerMethod("getSupportedPictureModes", &AVOutputTV::getSupportedPictureModes, this);
         registerMethod("getSupportedVideoSources", &AVOutputTV::getSupportedVideoSources, this);
         registerMethod("getSupportedVideoFormats", &AVOutputTV::getSupportedVideoFormats, this);
@@ -686,19 +687,19 @@ namespace Plugin {
 
             response["aspectRatioInfo"]=rangeArray;
 
-            if (!pqmode.empty()) {
+            if (pqmode.front().compare("none") != 0) {
                 for (index = 0; index < pqmode.size(); index++) {
                     pqmodeArray.Add(pqmode[index]);
                 }
                 response["pictureModeInfo"]=pqmodeArray;
             }
-            if (!source.empty()) {
+            if (source.compare("none") != 0) {
                 for (index = 0; index < source.size(); index++) {
                     sourceArray.Add(source[index]);
                 }
                 response["videoSourceInfo"]=sourceArray;
             }
-            if (!format.empty()) {
+            if (format.compare("none") != 0) {
                 for (index = 0; index < format.size(); index++) {
                     formatArray.Add(format[index]);
                 }
@@ -1214,19 +1215,19 @@ namespace Plugin {
             rangeObj["to"] = stoi(range[1]);
             response["rangeInfo"]=rangeObj;
 
-            if (!pqmode.empty()) {
+            if ((pqmode.front()).compare("none") != 0) {
                 for (index = 0; index < pqmode.size(); index++) {
                     pqmodeArray.Add(pqmode[index]);
                 }
                 response["pictureModeInfo"]=pqmodeArray;
             }
-            if (!source.empty()) {
+            if ((source.front()).compare("none") != 0) {
                 for (index = 0; index < source.size(); index++) {
                     sourceArray.Add(source[index]);
                 }
                 response["videoSourceInfo"]=sourceArray;
             }
-            if (!format.empty()) {
+            if ((format.front()).compare("none") != 0) {
                 for (index = 0; index < format.size(); index++) {
                     formatArray.Add(format[index]);
                 }
@@ -1408,19 +1409,19 @@ namespace Plugin {
             rangeObj["to"] = stoi(range[1]);
             response["rangeInfo"]=rangeObj;
 
-            if (!pqmode.empty()) {
+            if ((pqmode.front()).compare("none") != 0) {
                 for (index = 0; index < pqmode.size(); index++) {
                     pqmodeArray.Add(pqmode[index]);
                 }
                 response["pictureModeInfo"]=pqmodeArray;
             }
-            if (!source.empty()) {
+            if ((source.front()).compare("none") != 0) {
                 for (index = 0; index < source.size(); index++) {
                     sourceArray.Add(source[index]);
                 }
                 response["videoSourceInfo"]=sourceArray;
             }
-            if (!format.empty()) {
+            if ((format.front()).compare("none") != 0) {
                 for (index = 0; index < format.size(); index++) {
                     formatArray.Add(format[index]);
                 }
@@ -1603,19 +1604,19 @@ namespace Plugin {
 
             response["rangeInfo"]=rangeArray;
             
-            if (!pqmode.empty()) {
+            if ((pqmode.front()).compare("none") != 0) {
                 for (index = 0; index < pqmode.size(); index++) {
                     pqmodeArray.Add(pqmode[index]);
                 }
                 response["pictureModeInfo"]=pqmodeArray;
             }
-            if (!source.empty()) {
+            if ((source.front()).compare("none") != 0) {
                 for (index = 0; index < source.size(); index++) {
                     sourceArray.Add(source[index]);
                 }
                 response["videoSourceInfo"]=sourceArray;
             }
-            if (!format.empty()) {
+            if ((format.front()).compare("none") != 0) {
                 for (index = 0; index < format.size(); index++) {
                     formatArray.Add(format[index]);
                 }
@@ -1799,19 +1800,19 @@ namespace Plugin {
 
             response["rangeInfo"]=rangeArray;
             
-	    if (!pqmode.empty()) {
+	    if ((pqmode.front()).compare("none") != 0) {
                 for (index = 0; index < pqmode.size(); index++) {
                     pqmodeArray.Add(pqmode[index]);
                 }
                 response["pictureModeInfo"]=pqmodeArray;
             }
-	    if (!source.empty()) {
+	    if ((source.front()).compare("none") != 0) {
                 for (index = 0; index < source.size(); index++) {
                     sourceArray.Add(source[index]);
                 }
                 response["videoSourceInfo"]=sourceArray;
             }
-	    if (!format.empty()) {
+	    if ((format.front()).compare("none") != 0) {
                 for (index = 0; index < format.size(); index++) {
                     formatArray.Add(format[index]);
                 }
@@ -1994,19 +1995,19 @@ namespace Plugin {
 
             response["rangeInfo"]=rangeArray;
           
-	    if (!pqmode.empty()) {
+	    if ((pqmode.front()).compare("none") != 0) {
                 for (index = 0; index < pqmode.size(); index++) {
                     pqmodeArray.Add(pqmode[index]);
                 }
                 response["pictureModeInfo"]=pqmodeArray;
             }
-	    if (!source.empty()) {
+	    if ((source.front()).compare("none") != 0) {
                 for (index = 0; index < source.size(); index++) {
                     sourceArray.Add(source[index]);
                 }
                 response["videoSourceInfo"]=sourceArray;
             }
-	    if (!format.empty()) {
+	    if ((format.front()).compare("none") != 0) {
                 for (index = 0; index < format.size(); index++) {
                     formatArray.Add(format[index]);
                 }
@@ -2190,19 +2191,19 @@ namespace Plugin {
 
             response["rangeInfo"]=rangeArray;
             
-            if (!pqmode.empty()) {
+            if ((pqmode.front()).compare("none") != 0) {
                 for (index = 0; index < pqmode.size(); index++) {
                     pqmodeArray.Add(pqmode[index]);
                 }
                 response["pictureModeInfo"]=pqmodeArray;
             }
-            if (!source.empty()) {
+            if ((source.front()).compare("none") != 0) {
                 for (index = 0; index < source.size(); index++) {
                     sourceArray.Add(source[index]);
                 }
                 response["videoSourceInfo"]=sourceArray;
             }
-            if (!format.empty()) {
+            if ((format.front()).compare("none") != 0) {
                 for (index = 0; index < format.size(); index++) {
                     formatArray.Add(format[index]);
                 }
@@ -2424,19 +2425,19 @@ namespace Plugin {
 
             response["rangeInfo"]=rangeArray;
 
-            if (!pqmode.empty()) {
+            if (((pqmode.front()).compare("none") != 0)) {
                 for (index = 0; index < pqmode.size(); index++) {
                     pqmodeArray.Add(pqmode[index]);
                 }
                 response["pictureModeInfo"]=pqmodeArray;
             }
-            if (!source.empty()) {
+            if ((source.front()).compare("none") != 0) {
                 for (index = 0; index < source.size(); index++) {
                     sourceArray.Add(source[index]);
                 }
                 response["videoSourceInfo"]=sourceArray;
             }
-            if (!format.empty()) {
+            if ((format.front()).compare("none") != 0) {
                 for (index = 0; index < format.size(); index++) {
                     formatArray.Add(format[index]);
                 }
@@ -3073,19 +3074,19 @@ namespace Plugin {
 
             response["rangeInfo"]=rangeArray;
 
-            if (!pqmode.empty()) {
+            if (((pqmode.front()).compare("none") != 0)) {
                 for (index = 0; index < pqmode.size(); index++) {
                     pqmodeArray.Add(pqmode[index]);
                 }
                 response["pictureModeInfo"]=pqmodeArray;
             }
-            if (!source.empty()) {
+            if (((source.front()).compare("none") != 0)) {
                 for (index = 0; index < source.size(); index++) {
                     sourceArray.Add(source[index]);
                 }
                 response["videoSourceInfo"]=sourceArray;
             }
-            if (!format.empty()) {
+            if (((format.front()).compare("none") != 0)) {
                 for (index = 0; index < format.size(); index++) {
                     formatArray.Add(format[index]);
                 }
@@ -3300,19 +3301,19 @@ namespace Plugin {
 
             response["supportedDimmingModeInfo"]=supportedDimmingModeArray;
              
-            if (!pqmode.empty()) {
+            if (((pqmode.front()).compare("none") != 0)) {
                 for (index = 0; index < pqmode.size(); index++) {
                     pqmodeArray.Add(pqmode[index]);
                 }
                 response["pictureModeInfo"]=pqmodeArray;
             }
-            if (!source.empty()) {
+            if ((source.front()).compare("none") != 0) {
                 for (index = 0; index < source.size(); index++) {
                     sourceArray.Add(source[index]);
                 }
                 response["videoSourceInfo"]=sourceArray;
             }
-            if (!format.empty()) {
+            if ((format.front()).compare("none") != 0) {
                 for (index = 0; index < format.size(); index++) {
                     formatArray.Add(format[index]);
                 }
@@ -3541,19 +3542,19 @@ namespace Plugin {
 
             response["autoBacklightControlInfo"]=rangeArray;
 
-            if (!pqmode.empty()) {
+            if ((pqmode.front()).compare("none") != 0) {
                 for (index = 0; index < pqmode.size(); index++) {
                     pqmodeArray.Add(pqmode[index]);
                 }
                 response["pictureModeInfo"]=pqmodeArray;
             }
-            if (!source.empty()) {
+            if ((source.front()).compare("none") != 0) {
                 for (index = 0; index < source.size(); index++) {
                     sourceArray.Add(source[index]);
                 }
                 response["videoSourceInfo"]=sourceArray;
             }
-            if (!format.empty()) {
+            if ((format.front()).compare("none") != 0) {
                 for (index = 0; index < format.size(); index++) {
                     formatArray.Add(format[index]);
                 }
@@ -3759,19 +3760,19 @@ namespace Plugin {
                 rangeArray.Add(range[index]);
 
             response["DolbyVisionModeInfo"]=rangeArray;
-            if (!pqmode.empty()) {
+            if ((pqmode.front()).compare("none") != 0) {
                 for (index = 0; index < pqmode.size(); index++) {
                     pqmodeArray.Add(pqmode[index]);
                 }
                 response["pictureModeInfo"]=pqmodeArray;
             }
-            if (!source.empty()) {
+            if ((source.front()).compare("none") != 0) {
                 for (index = 0; index < source.size(); index++) {
                     sourceArray.Add(source[index]);
                 }
                 response["videoSourceInfo"]=sourceArray;
             }
-            if (!format.empty()) {
+            if ((format.front()).compare("none") != 0) {
                 for (index = 0; index < format.size(); index++) {
                     formatArray.Add(format[index]);
                 }
@@ -3943,19 +3944,19 @@ namespace Plugin {
                 rangeArray.Add(range[index]);
 
             response["HDR10ModeInfo"]=rangeArray;
-            if (!pqmode.empty()) {
+            if ((pqmode.front()).compare("none") != 0) {
                 for (index = 0; index < pqmode.size(); index++) {
                     pqmodeArray.Add(pqmode[index]);
                 }
                 response["pictureModeInfo"]=pqmodeArray;
             }
-            if(!source.empty()) {
+            if ((source.front()).compare("none") != 0) {
                 for (index = 0; index < source.size(); index++) {
                     sourceArray.Add(source[index]);
                 }
                 response["videoSourceInfo"]=sourceArray;
             }
-            if (!format.empty()) {
+            if ((format.front()).compare("none") != 0) {
                 for (index = 0; index < format.size(); index++) {
                     formatArray.Add(format[index]);
                 }
@@ -4122,19 +4123,19 @@ namespace Plugin {
                 rangeArray.Add(range[index]);
 
             response["HLG10ModeInfo"]=rangeArray;
-            if (!pqmode.empty()) {
+            if ((pqmode.front()).compare("none") != 0) {
                 for (index = 0; index < pqmode.size(); index++) {
                     pqmodeArray.Add(pqmode[index]);
                 }
                 response["pictureModeInfo"]=pqmodeArray;
             }
-            if (!source.empty()) {
+            if ((source.front()).compare("none") != 0) {
                 for (index = 0; index < source.size(); index++) {
                     sourceArray.Add(source[index]);
                 }
                 response["videoSourceInfo"]=sourceArray;
             }
-            if (!format.empty()) {
+            if ((format.front()).compare("none") != 0) {
                 for (index = 0; index < format.size(); index++) {
                     formatArray.Add(format[index]);
                 }
@@ -4442,7 +4443,40 @@ namespace Plugin {
 
         return ret;
     }
+    
+    uint32_t AVOutputTV::getPictureModeCaps(const JsonObject& parameters, JsonObject& response) {
 
+        JsonArray sourceArray;
+        JsonArray formatArray;
+        
+	std::vector<std::string> range;
+	std::vector<std::string> source;
+	std::vector<std::string> pqmode;
+	std::vector<std::string> format;
+
+        tvError_t ret = getParamsCaps(range,pqmode,source,format,"PictureMode");
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false);
+        }
+        else
+        {
+            if ((source.front()).compare("none") != 0) {
+                for (index = 0; index < source.size(); index++) {
+                    sourceArray.Add(source[index]);
+                }
+                response["videoSourceInfo"]=sourceArray;
+            }
+            if ((format.front()).compare("none") != 0) {
+                for (index = 0; index < format.size(); index++) {
+                    formatArray.Add(format[index]);
+                }
+                response["videoFormatInfo"]=formatArray;
+            }
+            LOGINFO("Exit\n");
+            returnResponse(true);
+        }
+    }
     uint32_t AVOutputTV::getPictureMode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
@@ -4463,7 +4497,14 @@ namespace Plugin {
             returnResponse(false);
         }
 
+        if( !isCapablityCheckPassed( source, dummyPqmode, format, "PictureMode" )) {
+            LOGERR("%s: CapablityCheck failed for PictureMode\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
         getParamIndex(source, dummyPqmode,format,current_source,pqIndex,current_format);
+
+        current_format = ConvertHDRFormatToContentFormat((tvhdr_type_t)current_format);
 
         LOGINFO("current format index[%d] \n", current_format);
         tr181_param_name += std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
@@ -4859,19 +4900,19 @@ namespace Plugin {
                 rangeArray.Add(stoi(range[index]));
 
             response["LowLatencyInfo"]=rangeArray;
-            if (!pqmode.empty()) {
+            if ((pqmode.front()).compare("none") != 0) {
                 for (index = 0; index < pqmode.size(); index++) {
                     pqmodeArray.Add(pqmode[index]);
                 }
                 response["pictureModeInfo"]=pqmodeArray;
             }
-            if (!source.empty()) {
+            if ((source.front()).compare("none") != 0) {
                 for (index = 0; index < source.size(); index++) {
                     sourceArray.Add(source[index]);
                 }
                 response["videoSourceInfo"]=sourceArray;
             }
-            if (!format.empty()) {
+            if ((format.front()).compare("none") != 0) {
                 for (index = 0; index < format.size(); index++) {
                     formatArray.Add(format[index]);
                 }
@@ -5187,6 +5228,9 @@ namespace Plugin {
                 LOGINFO("current PQmode :%s \n", pqmode.c_str());
             }
         }
+	else if (pqmode.empty()) {
+	    pqmode = "none";
+	}
 
         if (source == "global")
         {
@@ -5216,7 +5260,10 @@ namespace Plugin {
           
             source = convertSourceIndexToString(currentSource);
             LOGINFO("current source:%s \n", source.c_str());
-        } 
+        }
+        else if (source.empty()) {
+	    source = "none";
+	}	
 
         //convert format into valid parameter
         if (format == "global")
@@ -5252,6 +5299,9 @@ namespace Plugin {
           format = convertVideoFormatToString( GetCurrentContentFormat());
           LOGINFO("current:%s \n", format.c_str());
         }
+	else if (format.empty()) {
+	    format = "none";
+	}
 
         return 0;
         LOGINFO("Exit %s source %s pqmode %s format %s \n", __FUNCTION__, source.c_str(), pqmode.c_str(), format.c_str());
@@ -5804,7 +5854,7 @@ namespace Plugin {
 
     void AVOutputTV::getParamIndex(string source,string pqmode,string format,int& sourceIndex,int& pqmodeIndex,int& formatIndex)
     {
-        LOGINFO("Entry\n");
+	LOGINFO("Entry : %s pqmode : %s source :%s format :%s\n",__FUNCTION__,pqmode.c_str(),source.c_str(),format.c_str());
 
         if( source.compare("none") == 0 || source.compare("current") == 0 )
         {

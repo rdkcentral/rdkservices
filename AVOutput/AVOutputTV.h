@@ -131,6 +131,7 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         DECLARE_JSON_RPC_METHOD(getWBCaps )
         DECLARE_JSON_RPC_METHOD(getAspectRatioCaps)
         DECLARE_JSON_RPC_METHOD(getLowLatencyStateCaps)
+        DECLARE_JSON_RPC_METHOD(getPictureModeCaps)
 
 	/*Set API's*/
         DECLARE_JSON_RPC_METHOD(setBacklight)
