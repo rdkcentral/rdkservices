@@ -406,31 +406,37 @@ namespace Plugin {
 
     void TextToSpeechImplementation::onTTSStateChanged(bool state)
     {
+        TTSLOG_INFO("Notify onttsstatechanged, state: %s", (state ? "true" : "false"));
         dispatchEvent(STATE_CHANGED, JsonValue((bool)state));
     }
 
     void TextToSpeechImplementation::onVoiceChanged(std::string voice)
     {
+        TTSLOG_INFO("Notify onvoicechanged, voice: %s", voice.c_str());
         dispatchEvent(VOICE_CHANGED, JsonValue((std::string)voice));
     }
 
     void TextToSpeechImplementation::onWillSpeak(TTS::SpeechData &data)
     {
+        TTSLOG_INFO("Notify onwillspeak, speechId: %d", data.id);
         dispatchEvent(WILL_SPEAK, JsonValue((int)data.id));
     }
 
     void TextToSpeechImplementation::onSpeechStart(TTS::SpeechData &data)
     {
+        TTSLOG_INFO("Notify onspeechstart, speechId: %d", data.id);
         dispatchEvent(SPEECH_START, JsonValue((int)data.id));
     }
 
     void TextToSpeechImplementation::onSpeechPause(uint32_t speechId)
     {
+        TTSLOG_INFO("Notify onspeechpause, speechId: %d", speechId);
         dispatchEvent(SPEECH_PAUSE, JsonValue((int)speechId));
     }
 
     void TextToSpeechImplementation::onSpeechResume(uint32_t speechId)
     {
+        TTSLOG_INFO("Notify onspeechresume, speechId: %d", speechId);
         dispatchEvent(SPEECH_RESUME, JsonValue((int)speechId));
     }
 
@@ -450,21 +456,25 @@ namespace Plugin {
 
     void TextToSpeechImplementation::onSpeechInterrupted(uint32_t speechId)
     {
+        TTSLOG_INFO("Notify onspeechinterrupted, speechId: %d", speechId);
         dispatchEvent(SPEECH_INTERRUPT, JsonValue((int)speechId));
     }
 
     void TextToSpeechImplementation::onNetworkError(uint32_t speechId)
     {
+        TTSLOG_INFO("Notify onnetworkerror, speechId: %d", speechId);
         dispatchEvent(NETWORK_ERROR, JsonValue((int)speechId));
     }
 
     void TextToSpeechImplementation::onPlaybackError(uint32_t speechId)
     {
+        TTSLOG_INFO("Notify onplaybackerror, speechId: %d", speechId);
         dispatchEvent(PLAYBACK_ERROR, JsonValue((int)speechId));
     }
 
     void TextToSpeechImplementation::onSpeechComplete(TTS::SpeechData &data)
     {
+        TTSLOG_INFO("Notify onspeechcomplete, speechId: %d", data.id);
         dispatchEvent(SPEECH_COMPLETE, JsonValue((int)data.id));
     }
 
