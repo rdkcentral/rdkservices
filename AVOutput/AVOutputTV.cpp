@@ -6261,12 +6261,12 @@ namespace Plugin {
 
     std::string AVOutputTV::convertSourceIndexToString(int sourceIndex)
     {
-        std::string source="mpeg";//default
+        std::string source="ip";//default
     
         switch(sourceIndex)
         {
             case 1:
-                source="av1";
+                source="composite";
                 break;
             case 5:
                 source="hdmi1";
@@ -6278,8 +6278,12 @@ namespace Plugin {
                 source="hdmi3";
                 break;
             case 10:
+		source="ip";
+		break;
+	    case 11:
+		source="tuner";
+		break;
             default:
-                source="mpeg";
                 break;
         }
         return source;
@@ -6490,12 +6494,12 @@ namespace Plugin {
                 case tvDolbyMode_Dark:
                 case tvHDR10Mode_Dark:
                 case tvHLGMode_Dark:
-                        value = "Dark";
+                        value = "dark";
                         break;
                 case tvDolbyMode_Bright:
                 case tvHDR10Mode_Bright:
                 case tvHLGMode_Bright:
-                        value = "Bright";
+                        value = "bright";
                         break;
                 default:
                         break;
