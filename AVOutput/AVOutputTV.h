@@ -185,7 +185,7 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
 	int InitializeSDRHDRBacklight(void);
 	tvContentFormatType_t getContentFormatIndex(tvVideoHDRFormat_t formatToConvert);
 	void convertParamToLowerCase(std::string &source, std::string &pqmode, std::string &format);
-        int convertToValidInputParameter(std::string & source, std::string & pqmode, std::string & format);
+        int convertToValidInputParameter(std::string pqparam, std::string & source, std::string & pqmode, std::string & format);
 	tvError_t updatePQParamToLocalCache(std::string forParam, int source, int pqmode, int format, int value,bool setNotDelete);
         int updatePQParamsToCache( std::string action, std::string tr181ParamName, std::string pqmode, std::string source, std::string format, tvPQParameterIndex_t pqParamIndex, int params[] );
         void spliltCapablities( std::vector<std::string> &range,std::vector<std::string> &pqmode,std::vector<std::string> &format,std::vector<std::string> &source, std::string rangeInfo, std::string pqmodeInfo, std::string formatInfo, std::string sourceInfo );
@@ -225,8 +225,8 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         tvError_t  SyncWBFromLocalCache( );
         tvError_t CheckWBMigration();
         JsonArray getSupportedVideoSource(void);
-        int parsingSetInputArgument(const JsonObject& parameters, std::string & source, std::string & pqmode, std::string & format);
-        int parsingGetInputArgument(const JsonObject& parameters, std::string & source, std::string & pqmode, std::string & format);
+        int parsingSetInputArgument(const JsonObject& parameters, std::string pqparam,std::string & source, std::string & pqmode, std::string & format);
+        int parsingGetInputArgument(const JsonObject& parameters, std::string pqparam,std::string & source, std::string & pqmode, std::string & format);
         std::string convertToString(std::vector<std::string> vec_strings);
         int FetchCapablities(string pqparam, string & source, string & pqmode, string & format);
 

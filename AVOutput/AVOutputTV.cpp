@@ -725,7 +725,7 @@ namespace Plugin {
         value = parameters.HasLabel("aspectRatio") ? parameters["aspectRatio"].String() : "";
         returnIfParamNotFound(parameters,"aspectRatio");
 
-        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingSetInputArgument(parameters, "AspectRatio",source, pqmode, format) != 0)
         {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
@@ -894,7 +894,7 @@ namespace Plugin {
         std::string format;
         tvError_t ret = tvERROR_NONE;
 
-        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingSetInputArgument(parameters, "AspectRatio",source, pqmode, format) != 0)
         {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
@@ -1063,7 +1063,7 @@ namespace Plugin {
 	int sourceIndex=0,pqIndex=0,formatIndex=0;
         int backlight = 0,err = 0;
 
-        if (parsingGetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingGetInputArgument(parameters, "Backlight",source, pqmode, format) != 0)
         {
             LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
             returnResponse(false);
@@ -1101,7 +1101,7 @@ namespace Plugin {
         returnIfParamNotFound(parameters,"backlight");
         backlight = std::stoi(value);
 
-        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingSetInputArgument(parameters, "Backlight",source, pqmode, format) != 0)
         {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
@@ -1144,7 +1144,7 @@ namespace Plugin {
         int params[3]={0};
         tvError_t ret = tvERROR_NONE;
 
-        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingSetInputArgument(parameters, "Backlight",source, pqmode, format) != 0)
         {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
@@ -1251,7 +1251,7 @@ namespace Plugin {
         int sourceIndex=0,pqIndex=0,formatIndex=0;
         int brightness = 0;
 
-        if (parsingGetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingGetInputArgument(parameters, "Brightness",source, pqmode, format) != 0)
         {
             LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
             returnResponse(false);
@@ -1290,7 +1290,7 @@ namespace Plugin {
         returnIfParamNotFound(parameters,"brightness");
         brightness = stoi(value);
 
-        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingSetInputArgument(parameters, "Brightness",source, pqmode, format) != 0)
         {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
@@ -1338,7 +1338,7 @@ namespace Plugin {
         int params[3]={0};
         tvError_t ret = tvERROR_NONE;
 
-        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingSetInputArgument(parameters, "Brightness",source, pqmode, format) != 0)
         {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
@@ -1445,7 +1445,7 @@ namespace Plugin {
         int sourceIndex=0,pqIndex=0,formatIndex=0;
         int contrast = 0;
 
-        if (parsingGetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingGetInputArgument(parameters, "Contrast",source, pqmode, format) != 0)
         {
             LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
             returnResponse(false);
@@ -1483,7 +1483,7 @@ namespace Plugin {
         returnIfParamNotFound(parameters,"contrast");
         contrast = stoi(value);
 
-        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingSetInputArgument(parameters, "Contrast",source, pqmode, format) != 0)
         {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
@@ -1531,7 +1531,7 @@ namespace Plugin {
         int params[3]={0};
         tvError_t ret = tvERROR_NONE;
 
-        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingSetInputArgument(parameters, "Contrast",source, pqmode, format) != 0)
         {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
@@ -1640,7 +1640,7 @@ namespace Plugin {
         int sourceIndex=0,pqIndex=0,formatIndex=0;
         int saturation = 0;
 
-        if (parsingGetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingGetInputArgument(parameters, "Saturation",source, pqmode, format) != 0)
         {
             LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
             returnResponse(false);
@@ -1678,7 +1678,7 @@ namespace Plugin {
         returnIfParamNotFound(parameters,"saturation");
         saturation = stoi(value);
 
-        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingSetInputArgument(parameters, "Saturation",source, pqmode, format) != 0)
         {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
@@ -1727,7 +1727,7 @@ namespace Plugin {
         int params[3]={0};
         tvError_t ret = tvERROR_NONE;
 
-        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingSetInputArgument(parameters, "Saturation",source, pqmode, format) != 0)
         {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
@@ -1836,7 +1836,7 @@ namespace Plugin {
         int sourceIndex=0,pqIndex=0,formatIndex=0;
         int sharpness = 0;
 
-        if (parsingGetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingGetInputArgument(parameters, "Sharpness",source, pqmode, format) != 0)
         {
             LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
             returnResponse(false);
@@ -1874,7 +1874,7 @@ namespace Plugin {
         returnIfParamNotFound(parameters,"sharpness");
         sharpness = stoi(value);
 
-        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingSetInputArgument(parameters, "Sharpness",source, pqmode, format) != 0)
         {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
@@ -1922,7 +1922,7 @@ namespace Plugin {
         int params[3]={0};
         tvError_t ret = tvERROR_NONE;
 
-        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingSetInputArgument(parameters, "Sharpness",source, pqmode, format) != 0)
         {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
@@ -2031,7 +2031,7 @@ namespace Plugin {
         int sourceIndex=0,pqIndex=0,formatIndex=0;
         int hue = 0;
 
-        if (parsingGetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingGetInputArgument(parameters, "Hue",source, pqmode, format) != 0)
         {
             LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
             returnResponse(false);
@@ -2069,7 +2069,7 @@ namespace Plugin {
         returnIfParamNotFound(parameters,"hue");
         hue = stoi(value);
 
-        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingSetInputArgument(parameters, "Hue",source, pqmode, format) != 0)
         {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
@@ -2118,7 +2118,7 @@ namespace Plugin {
         int params[3]={0};
         tvError_t ret = tvERROR_NONE;
 
-        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingSetInputArgument(parameters, "Hue",source, pqmode, format) != 0)
         {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
@@ -2227,13 +2227,13 @@ namespace Plugin {
         int sourceIndex=0,pqIndex=0,formatIndex=0;
         int colortemp = 0;
 
-        if (parsingGetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingGetInputArgument(parameters, "ColorTemperature",source, pqmode, format) != 0)
         {
             LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
             returnResponse(false);
         }
 
-        if( !isCapablityCheckPassed( pqmode, source, format, "Hue" )) {
+        if( !isCapablityCheckPassed( pqmode, source, format, "ColorTemperature" )) {
             LOGERR("%s: CapablityCheck failed for Hue\n", __FUNCTION__);
             returnResponse(false);
         }
@@ -2306,7 +2306,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingSetInputArgument(parameters, "ColorTemperature",source, pqmode, format) != 0)
         {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
@@ -2353,7 +2353,7 @@ namespace Plugin {
         int params[3]={0};
         tvError_t ret = tvERROR_NONE;
 
-        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingSetInputArgument(parameters, "ColorTemperature",source, pqmode, format) != 0)
         {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
@@ -2466,13 +2466,13 @@ namespace Plugin {
 	value = parameters.HasLabel("color") ? parameters["color"].String() : "";
         returnIfParamNotFound(parameters,"color");
 
-        if (parsingGetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingGetInputArgument(parameters, "ComponentSaturation",source, pqmode, format) != 0)
         {
             LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
             returnResponse(false);
         }
 
-        if( !isCapablityCheckPassed( pqmode, source, format, "Component" )) {
+        if( !isCapablityCheckPassed( pqmode, source, format, "ComponentSaturation" )) {
             LOGERR("%s: CapablityCheck failed for ComponentSaturation\n", __FUNCTION__);
             returnResponse(false);
         }
@@ -2522,13 +2522,13 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingSetInputArgument(parameters, "ComponentSaturation",source, pqmode, format) != 0)
         {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
         }
  
-        if( !isCapablityCheckPassed( pqmode, source, format, "Component" )) {
+        if( !isCapablityCheckPassed( pqmode, source, format, "ComponentSaturation" )) {
             LOGERR("%s: CapablityCheck failed for ComponentSaturation\n", __FUNCTION__);
             returnResponse(false);
         }
@@ -2596,13 +2596,13 @@ namespace Plugin {
         tvError_t err = tvERROR_NONE;
 	char param[BUFFER_SIZE]={0};
 
-        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingSetInputArgument(parameters, "ComponentSaturation",source, pqmode, format) != 0)
         {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
         }
 
-        if( !isCapablityCheckPassed( pqmode, source, format, "Component" )) {
+        if( !isCapablityCheckPassed( pqmode, source, format, "ComponentSaturation" )) {
             LOGERR("%s: CapablityCheck failed for ComponentSaturation\n", __FUNCTION__);
             returnResponse(false);
         }
@@ -2669,13 +2669,13 @@ namespace Plugin {
         value = parameters.HasLabel("color") ? parameters["color"].String() : "";
         returnIfParamNotFound(parameters,"color");
 
-        if (parsingGetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingGetInputArgument(parameters, "ComponentHue",source, pqmode, format) != 0)
         {
             LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
             returnResponse(false);
         }
 
-        if( !isCapablityCheckPassed( pqmode, source, format, "Component" )) {
+        if( !isCapablityCheckPassed( pqmode, source, format, "ComponentHue" )) {
             LOGERR("%s: CapablityCheck failed for ComponentHue\n", __FUNCTION__);
             returnResponse(false);
         }
@@ -2722,13 +2722,13 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingSetInputArgument(parameters, "ComponentHue",source, pqmode, format) != 0)
         {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
         }
 
-	if( !isCapablityCheckPassed( pqmode, source, format, "Component" )) {
+	if( !isCapablityCheckPassed( pqmode, source, format, "ComponentHue" )) {
             LOGERR("%s: CapablityCheck failed for ComponentHue\n", __FUNCTION__);
             returnResponse(false);
         }
@@ -2796,13 +2796,13 @@ namespace Plugin {
         tvError_t err = tvERROR_NONE;
         char param[BUFFER_SIZE]={0};
 
-        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingSetInputArgument(parameters, "ComponentHue",source, pqmode, format) != 0)
         {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
         }
 
-	if( !isCapablityCheckPassed( pqmode, source, format, "Component" )) {
+	if( !isCapablityCheckPassed( pqmode, source, format, "ComponentHue" )) {
             LOGERR("%s: CapablityCheck failed for ComponentHue\n", __FUNCTION__);
             returnResponse(false);
         }
@@ -2867,13 +2867,13 @@ namespace Plugin {
         value = parameters.HasLabel("color") ? parameters["color"].String() : "";
         returnIfParamNotFound(parameters,"color");
 
-        if (parsingGetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingGetInputArgument(parameters, "ComponentLuma",source, pqmode, format) != 0)
         {
             LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
             returnResponse(false);
         }
 
-        if( !isCapablityCheckPassed( pqmode, source, format, "Component" )) {
+        if( !isCapablityCheckPassed( pqmode, source, format, "ComponentLuma" )) {
             LOGERR("%s: CapablityCheck failed for ComponentLuma\n", __FUNCTION__);
             returnResponse(false);
         }
@@ -2920,13 +2920,13 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingSetInputArgument(parameters, "ComponentLuma",source, pqmode, format) != 0)
         {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
         }
 
-        if( !isCapablityCheckPassed( pqmode, source, format, "Component" )) {
+        if( !isCapablityCheckPassed( pqmode, source, format, "ComponentLuma" )) {
             LOGERR("%s: CapablityCheck failed for ComponentLuma\n", __FUNCTION__);
             returnResponse(false);
         }
@@ -2994,13 +2994,13 @@ namespace Plugin {
         tvError_t err = tvERROR_NONE;
         char param[BUFFER_SIZE]={0};
 
-        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingSetInputArgument(parameters, "ComponentHue",source, pqmode, format) != 0)
         {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
         }
 
-        if( !isCapablityCheckPassed( pqmode, source, format, "Component" )) {
+        if( !isCapablityCheckPassed( pqmode, source, format, "ComponentHue" )) {
             LOGERR("%s: CapablityCheck failed for ComponentHue\n", __FUNCTION__);
             returnResponse(false);
         }
@@ -3110,7 +3110,7 @@ namespace Plugin {
 	int sourceIndex=0,pqIndex=0,formatIndex=0;
         int dimmingMode = 0;
 
-        if (parsingGetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingGetInputArgument(parameters, "DimmingMode",source, pqmode, format) != 0)
         {
             LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
             returnResponse(false);
@@ -3166,7 +3166,7 @@ namespace Plugin {
 
         dimmingMode = getDimmingModeIndex(value);
 
-        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingSetInputArgument(parameters, "DimmingMode",source, pqmode, format) != 0)
         {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
@@ -3220,7 +3220,7 @@ namespace Plugin {
         int params[3]={0};
         tvError_t ret = tvERROR_NONE;
 
-        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingSetInputArgument(parameters, "DimmingMode",source, pqmode, format) != 0)
         {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
@@ -3413,7 +3413,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingSetInputArgument(parameters, "AutoBacklightControl",source, pqmode, format) != 0)
         {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
@@ -3451,7 +3451,7 @@ namespace Plugin {
         std::string source;
         std::string format;
 
-        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingSetInputArgument(parameters, "AutoBacklightControl",source, pqmode, format) != 0)
         {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
@@ -3603,7 +3603,7 @@ namespace Plugin {
 
         int sourceIndex=0,pqIndex=0,formatIndex=0;
          
-        if (parsingGetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingGetInputArgument(parameters, "DolbyVisionMode",source, pqmode, format) != 0)
         {
             LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
             returnResponse(false);
@@ -3642,7 +3642,7 @@ namespace Plugin {
         value = parameters.HasLabel("dolbyVisionMode") ? parameters["dolbyVisionMode"].String() : "";
         returnIfParamNotFound(parameters,"dolbyVisionMode");
 
-        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingSetInputArgument(parameters, "DolbyVisionMode",source, pqmode, format) != 0)
         {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
@@ -3688,7 +3688,7 @@ namespace Plugin {
         int params[3]={0};
         tvError_t ret = tvERROR_NONE;
 
-        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingSetInputArgument(parameters, "DolbyVisionMode",source, pqmode, format) != 0)
         {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
@@ -4281,7 +4281,7 @@ namespace Plugin {
         std::string format;
         tvError_t ret = tvERROR_NONE;
 
-        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingSetInputArgument(parameters, "WhiteBalance",source, pqmode, format) != 0)
         {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
@@ -4506,7 +4506,7 @@ namespace Plugin {
         TR181_ParamData_t param = {0};
         tr181ErrorCode_t err = tr181Success;
 
-        if (parsingGetInputArgument(parameters, source, dummyPqmode, format) != 0)
+        if (parsingGetInputArgument(parameters, "PictureMode",source, dummyPqmode, format) != 0)
         {
             LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
             returnResponse(false);
@@ -4554,7 +4554,7 @@ namespace Plugin {
         returnIfParamNotFound(parameters,"pictureMode");
 
         // As only source need to validate, so pqmode and formate passing as currrent
-        if (parsingSetInputArgument(parameters, source, dummyPqmode, format) != 0)
+        if (parsingSetInputArgument(parameters, "PictureMode",source, dummyPqmode, format) != 0)
         {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
@@ -4624,7 +4624,7 @@ namespace Plugin {
         std::string format;
 
         // As only source need to validate, so pqmode and formate passing as currrent
-        if (parsingSetInputArgument(parameters, source, dummyPqmode, format) != 0)
+        if (parsingSetInputArgument(parameters, "PictureMode",source, dummyPqmode, format) != 0)
         {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
@@ -4771,7 +4771,7 @@ namespace Plugin {
         returnIfParamNotFound(parameters,"LowLatencyState");
         lowLatencyIndex = stoi(value);
 
-        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingSetInputArgument(parameters, "LowLatencyState",source, pqmode, format) != 0)
         {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
@@ -4818,7 +4818,7 @@ namespace Plugin {
         int sourceIndex=0,pqIndex=0,formatIndex=0;
         int lowlatencystate = 0;
 
-        if (parsingGetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingGetInputArgument(parameters, "LowLatencyState",source, pqmode, format) != 0)
         {
             LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
             returnResponse(false);
@@ -4853,7 +4853,7 @@ namespace Plugin {
         int params[3]={0};
         tvError_t ret = tvERROR_NONE;
 
-        if (parsingSetInputArgument(parameters, source, pqmode, format) != 0)
+        if (parsingSetInputArgument(parameters, "LowLatencyState",source, pqmode, format) != 0)
         {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
@@ -5040,10 +5040,11 @@ namespace Plugin {
     tvError_t AVOutputTV::SyncPQParamsToDriverCache(std::string pqmode,std::string source,std::string format)
     {
         int params[3]={0};
+	std::string pqparam;
 
         LOGINFO("Entry %s : pqmode : %s source : %s format : %s\n",__FUNCTION__,pqmode.c_str(),source.c_str(),format.c_str());
 
-        convertToValidInputParameter(source, pqmode, format);
+        convertToValidInputParameter(pqparam,source, pqmode, format);
 
         if( !updatePQParamsToCache("sync","Brightness",pqmode,source,format,PQ_PARAM_BRIGHTNESS,params))
             LOGINFO("Brightness Successfully sync to Drive Cache\n");
@@ -5209,19 +5210,21 @@ namespace Plugin {
         return result;
     }
 
-    int AVOutputTV::convertToValidInputParameter(std::string & source, std::string & pqmode, std::string & format) 
+    int AVOutputTV::convertToValidInputParameter(std::string pqparam, std::string & source, std::string & pqmode, std::string & format) 
     {
 
         LOGINFO("Entry %s source %s pqmode %s format %s \n", __FUNCTION__, source.c_str(), pqmode.c_str(), format.c_str());
 
         convertParamToLowerCase(source, pqmode, format);
        
-        std::vector<std::string> temp_vec;
-        std::string temp_string;
+        //std::vector<std::string> temp_vec;
+        //std::string temp_string;
 
         // converting pq to valid paramter format
         if (pqmode == "global")
         {
+            if (FetchCapablities(pqparam, source, pqmode, format) != 0) return -1;
+#if 0
             pic_modes_t *availableModes;
             unsigned short num_pqmodes = 0;
             GetTVSupportedPictureModes(&availableModes, &num_pqmodes);
@@ -5238,6 +5241,8 @@ namespace Plugin {
             }
             if (temp_vec.size() != 0 ) temp_vec.clear();
             if (!temp_string.empty()) temp_string.clear();
+#endif
+            
         }
         else if (pqmode == "current")
         {
@@ -5259,6 +5264,7 @@ namespace Plugin {
 
         if (source == "global")
         {
+#if 0
             pic_modes_t *availableSources;
             unsigned short num_source = 0;
             GetTVSupportedSources(&availableSources, &num_source);
@@ -5274,6 +5280,8 @@ namespace Plugin {
             }
             if (temp_vec.size() != 0 ) temp_vec.clear();
             if (!temp_string.empty()) temp_string.clear();
+#endif
+            if (FetchCapablities(pqparam, source, pqmode, format) != 0) return -1;
         } 
         else if (source == "current") 
         {
@@ -5293,6 +5301,7 @@ namespace Plugin {
         //convert format into valid parameter
         if (format == "global")
         {
+#if 0
             char * formatVal;
             unsigned short num_format = 0;
             tvError_t ret = GetTVSupportedFormats(&formatVal, &num_format);
@@ -5318,6 +5327,8 @@ namespace Plugin {
             }
             if (temp_vec.size() != 0 ) temp_vec.clear();
             if (!temp_string.empty()) temp_string.clear();
+#endif
+            if (FetchCapablities(pqparam, source, pqmode, format) != 0) return -1;
         }
 	else if (format == "current") 
 	{
@@ -6531,7 +6542,7 @@ namespace Plugin {
             return value;
     }
 
-    int AVOutputTV::parsingSetInputArgument(const JsonObject& parameters, std::string & source,
+    int AVOutputTV::parsingSetInputArgument(const JsonObject& parameters, std::string pqparam, std::string & source,
                                              std::string & pqmode, std::string & format) {
 
         JsonArray sourceArray;
@@ -6558,7 +6569,7 @@ namespace Plugin {
 
 	LOGINFO("%s source:[%s] pqmode[%s] format[%s]", __FUNCTION__,source.c_str(), pqmode.c_str(), format.c_str());
 
-        if (convertToValidInputParameter(source, pqmode, format) != 0) {
+        if (convertToValidInputParameter(pqparam, source, pqmode, format) != 0) {
             LOGERR("%s: Failed to convert the input paramters. \n", __FUNCTION__);
             return -1;
         }
@@ -6566,7 +6577,7 @@ namespace Plugin {
 	return 0;
     }
 
-    int AVOutputTV::parsingGetInputArgument(const JsonObject& parameters,
+    int AVOutputTV::parsingGetInputArgument(const JsonObject& parameters, std::string pqparam,
                                          std::string & source, std::string & pqmode, std::string & format) {
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
 
@@ -6576,7 +6587,7 @@ namespace Plugin {
 
         LOGINFO("%s source:[%s] pqmode[%s] format[%s]", __FUNCTION__,source.c_str(), pqmode.c_str(), format.c_str());
 
-        if (convertToValidInputParameter(source, pqmode, format) != 0) {
+        if (convertToValidInputParameter(pqparam,source, pqmode, format) != 0) {
             LOGERR("%s: Failed to convert the input paramters. \n", __FUNCTION__);
             return -1;
         }
@@ -6591,7 +6602,17 @@ namespace Plugin {
         std::vector<std::string> pqmodeVec;
         std::vector<std::string> formatVec;
 
-        getParamsCaps(range, pqmodeVec, sourceVec, formatVec, pqparam);
+       tvError_t ret = tvERROR_NONE;
+       
+       // for sync cases no need to fetch the capability data
+       if (pqparam.empty()) return 0;
+
+       ret = getParamsCaps(range, pqmodeVec, sourceVec, formatVec, pqparam);
+
+       if (ret != tvERROR_NONE) {
+           LOGINFO("%s: failed to get the capability \n", __FUNCTION__);
+           return -1;
+       }
 
        if (sourceVec.size() != 0) {
             source = convertToString(sourceVec);
