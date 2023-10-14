@@ -5044,8 +5044,6 @@ namespace Plugin {
 
         LOGINFO("Entry %s : pqmode : %s source : %s format : %s\n",__FUNCTION__,pqmode.c_str(),source.c_str(),format.c_str());
 
-        convertToValidInputParameter(pqparam,source, pqmode, format);
-
         if( !updatePQParamsToCache("sync","Brightness",pqmode,source,format,PQ_PARAM_BRIGHTNESS,params))
             LOGINFO("Brightness Successfully sync to Drive Cache\n");
         else
@@ -6604,9 +6602,6 @@ namespace Plugin {
 
        tvError_t ret = tvERROR_NONE;
        
-       // for sync cases no need to fetch the capability data
-       if (pqparam.empty()) return 0;
-
        ret = getParamsCaps(range, pqmodeVec, sourceVec, formatVec, pqparam);
 
        if (ret != tvERROR_NONE) {
