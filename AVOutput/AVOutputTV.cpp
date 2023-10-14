@@ -5040,7 +5040,6 @@ namespace Plugin {
     tvError_t AVOutputTV::SyncPQParamsToDriverCache(std::string pqmode,std::string source,std::string format)
     {
         int params[3]={0};
-	std::string pqparam;
 
         LOGINFO("Entry %s : pqmode : %s source : %s format : %s\n",__FUNCTION__,pqmode.c_str(),source.c_str(),format.c_str());
 
