@@ -140,8 +140,8 @@ bool MiracastGstPlayer::updateVideoSinkRectangle(void)
 
     MIRACASTLOG_TRACE("Entering...");
 
-    if (( nullptr != m_video_sink ) &&
-        ( 0 < m_video_rect_st.width ) && ( 0 < m_video_rect_st.height )){
+    if (( nullptr != m_video_sink ) && ( 0 < m_video_rect_st.width ) && ( 0 < m_video_rect_st.height ))
+    {
         char rectString[64];
         sprintf(rectString,"%d,%d,%d,%d", m_video_rect_st.startX, m_video_rect_st.startY,
                 m_video_rect_st.width, m_video_rect_st.height);
@@ -175,6 +175,7 @@ bool MiracastGstPlayer::resume()
     return changePipelineState(GST_STATE_PLAYING);
 }
 
+#if 0
 bool MiracastGstPlayer::stop()
 {
     MIRACASTLOG_TRACE("Entering..");
@@ -240,6 +241,118 @@ bool MiracastGstPlayer::changePipelineState(GstState state) const
     }
     MIRACASTLOG_INFO("Changing state to %s.", gst_element_state_get_name(state));
     if (gst_element_set_state(m_pipeline, state) != GST_STATE_CHANGE_FAILURE)
+    {
+        status = true;
+    }
+    else
+    {
+        status = false;
+    }
+    MIRACASTLOG_TRACE("Exiting..!!!");
+    return status;
+}
+#else
+bool MiracastGstPlayer::stop()
+{
+    MIRACASTLOG_TRACE("Entering..");
+
+    if (!m_udpsrc2appsink_pipeline || !m_playbin2appsrc_pipeline)
+    {
+        MIRACASTLOG_ERROR("Pipeline is NULL");
+        return false;
+    }
+
+    if (m_player_statistics_tid){
+        pthread_cancel(m_player_statistics_tid);
+        m_player_statistics_tid = 0;
+    }
+
+    if (m_playback_thread)
+    {
+        pthread_cancel(m_playback_thread);
+        m_playback_thread = 0;
+    }
+
+    GstStateChangeReturn ret;
+    ret = gst_element_set_state(m_playbin2appsrc_pipeline, GST_STATE_NULL);
+    ret = gst_element_set_state(m_udpsrc2appsink_pipeline, GST_STATE_NULL);
+
+    if (ret == GST_STATE_CHANGE_FAILURE)
+    {
+        MIRACASTLOG_ERROR("Failed to set gst_element_set_state as NULL");
+    }
+
+    GstBus *bus = nullptr;
+
+    bus = gst_pipeline_get_bus(GST_PIPELINE(m_playbin2appsrc_pipeline));
+    if (bus)
+    {
+        gst_bus_set_sync_handler(bus, nullptr, nullptr, nullptr);
+        gst_object_unref(bus);
+    }
+
+    bus = gst_pipeline_get_bus(GST_PIPELINE(m_udpsrc2appsink_pipeline));
+    if (bus)
+    {
+        gst_bus_set_sync_handler(bus, nullptr, nullptr, nullptr);
+        gst_object_unref(bus);
+    }
+
+    if (m_main_loop)
+    {
+        g_main_loop_unref(m_main_loop);
+    }
+    if (m_main_loop_context)
+    {
+        g_main_context_unref(m_main_loop_context);
+    }
+    if (m_playbin2appsrc_pipeline)
+    {
+        g_object_unref(m_playbin2appsrc_pipeline);
+        m_playbin2appsrc_pipeline = nullptr;
+    }
+
+    if (m_udpsrc2appsink_pipeline)
+    {
+        g_object_unref(m_udpsrc2appsink_pipeline);
+        m_udpsrc2appsink_pipeline = nullptr;
+    }
+    MIRACASTLOG_TRACE("Exiting..");
+    return true;
+}
+#endif
+
+bool MiracastGstPlayer::changePipelineState(GstState state) const
+{
+    MIRACASTLOG_TRACE("Entering..!!!");
+    GstStateChangeReturn ret;
+    bool status = false;
+    GstState current, pending;
+    current = pending = GST_STATE_VOID_PENDING;
+    ret = gst_element_get_state(m_playbin2appsrc_pipeline, &current, &pending, 0);
+
+    if ((ret != GST_STATE_CHANGE_FAILURE) && (current == state || pending == state))
+    {
+        status = true;
+    }
+    MIRACASTLOG_INFO("[PLAYBIN2APPSRC]Changing state to %s.", gst_element_state_get_name(state));
+    if (gst_element_set_state(m_playbin2appsrc_pipeline, state) != GST_STATE_CHANGE_FAILURE)
+    {
+        status = true;
+    }
+    else
+    {
+        status = false;
+    }
+
+    ret = gst_element_get_state(m_udpsrc2appsink_pipeline, &current, &pending, 0);
+
+    if ((ret != GST_STATE_CHANGE_FAILURE) && (current == state || pending == state))
+    {
+        status = true;
+    }
+    MIRACASTLOG_INFO("[UDPSRC2APPSINK]Changing state to %s.", gst_element_state_get_name(state));
+    if (gst_element_set_state(m_udpsrc2appsink_pipeline, state) != GST_STATE_CHANGE_FAILURE)
     {
         status = true;
     }
@@ -342,6 +455,312 @@ void MiracastGstPlayer::element_setup(GstElement * playbin, GstElement * element
     g_queue_push_tail (elts, eltfact ? GST_OBJECT_NAME (eltfact) : GST_OBJECT_NAME (element));
 }
 
+gboolean MiracastGstPlayer::on_udpsrc2appsink_bus_message(GstBus *bus, GstMessage *msg, gpointer user_data)
+{
+    MiracastGstPlayer *self = static_cast<MiracastGstPlayer *>(user_data);
+
+    //MIRACASTLOG_TRACE("Entering...\n");
+    switch (GST_MESSAGE_TYPE(msg))
+    {
+        case GST_MESSAGE_ERROR:
+        {
+            GError *error;
+            gchar *info;
+            gst_message_parse_error(msg, &error, &info);
+            MIRACASTLOG_ERROR("Error received from element [%s | %s | %s].", GST_OBJECT_NAME(msg->src), error->message, info ? info : "none");
+            g_error_free(error);
+            g_free(info);
+            gst_element_set_state(self->m_udpsrc2appsink_pipeline, GST_STATE_READY);
+            g_main_loop_quit(self->m_main_loop);
+            break;
+        }
+        case GST_MESSAGE_EOS:
+        {
+            MIRACASTLOG_INFO("End-Of-Stream reached.");
+            self->m_bBuffering = false;
+            gst_element_set_state(self->m_udpsrc2appsink_pipeline, GST_STATE_READY); // TBD ? (Should be do explicitly or destry automatically.)
+            g_main_loop_quit(self->m_main_loop);
+        }
+        break;
+        case GST_MESSAGE_STATE_CHANGED:
+        {
+            MIRACASTLOG_INFO("!!!! GST_MESSAGE_STATE_CHANGED !!!!\n");
+            if (GST_MESSAGE_SRC(msg) == GST_OBJECT(self->m_udpsrc2appsink_pipeline))
+            {
+                GstState old, now, pending;
+                static int id = 0;
+                id++;
+                gst_message_parse_state_changed(msg, &old, &now, &pending);
+                if (memcmp(GST_OBJECT_NAME(GST_MESSAGE_SRC(msg)), "playbin", 7) == 0)
+                {
+                    MIRACASTLOG_ERROR("Element [%s], Pipeline state change from Old [%s] -> New [%s] and Pending state is [%s]", GST_ELEMENT_NAME(GST_MESSAGE_SRC(msg)),
+                                    gst_element_state_get_name(old), gst_element_state_get_name(now), gst_element_state_get_name(pending));
+                }
+                std::string file_name = "miracast_udpsrc2appsink_";
+                file_name += (GST_OBJECT_NAME(self->m_udpsrc2appsink_pipeline));
+                file_name += "_" + std::to_string(id);
+                file_name += "_";
+                file_name += gst_element_state_get_name(old);
+                file_name += "_";
+                file_name += gst_element_state_get_name(now);
+
+                GST_DEBUG_BIN_TO_DOT_FILE((GstBin *)self->m_udpsrc2appsink_pipeline, GST_DEBUG_GRAPH_SHOW_ALL, file_name.c_str());
+            }
+            break;
+        }
+        case GST_MESSAGE_BUFFERING:
+        {
+            /* If the stream is live, no need to do anything. */
+            if (self->m_is_live)
+            {
+                break;
+            }
+            gint percent = 0;
+            gst_message_parse_buffering(msg, &percent);
+            MIRACASTLOG_VERBOSE("Buffering [%3d%%].", percent);
+            self->m_bBuffering = true;
+            /* Wait until buffering is complete before start/resume playing */
+            if (percent < 100)
+                gst_element_set_state(self->m_udpsrc2appsink_pipeline, GST_STATE_PAUSED);
+            else
+                gst_element_set_state(self->m_udpsrc2appsink_pipeline, GST_STATE_PLAYING);
+            break;
+        }
+        case GST_MESSAGE_TAG:
+            break;
+        case GST_MESSAGE_CLOCK_LOST:
+        {
+            /* The current clock as selected by the pipeline became unusable, then select a new clock */
+            gst_element_set_state(self->m_udpsrc2appsink_pipeline, GST_STATE_PAUSED);
+            gst_element_set_state(self->m_udpsrc2appsink_pipeline, GST_STATE_PLAYING);
+        }
+        break;
+        case GST_MESSAGE_QOS:
+        {
+            MIRACASTLOG_VERBOSE("Received [%s], a buffer was dropped or an element changed its processing strategy for Quality of Service reasons.", gst_message_type_get_name(msg->type));
+            GstFormat format;
+            guint64 processed;
+            guint64 dropped;
+            gst_message_parse_qos_stats(msg, &format, &processed, &dropped);
+            MIRACASTLOG_WARNING("Format [%s], Processed [%lu], Dropped [%lu].", gst_format_get_name(format), processed, dropped);
+
+            gint64 jitter;
+            gdouble proportion;
+            gint quality;
+            gst_message_parse_qos_values(msg, &jitter, &proportion, &quality);
+            MIRACASTLOG_WARNING("Jitter [%lu], Proportion [%lf],  Quality [%u].", jitter, proportion, quality);
+
+            gboolean live;
+            guint64 running_time;
+            guint64 stream_time;
+            guint64 timestamp;
+            guint64 duration;
+            gst_message_parse_qos(msg, &live, &running_time, &stream_time, &timestamp, &duration);
+            MIRACASTLOG_WARNING("live stream [%d], runninng_time [%lu], stream_time [%lu], timestamp [%lu], duration [%lu].", live, running_time, stream_time, timestamp, duration);
+            break;
+        }
+        break;
+        default:
+        {
+        }
+        break;
+    }
+    MIRACASTLOG_TRACE("Exiting...\n");
+    return TRUE;
+}
+
+gboolean MiracastGstPlayer::on_playbin2appsrc_bus_message(GstBus *bus, GstMessage *msg, gpointer user_data)
+{
+    MiracastGstPlayer *self = static_cast<MiracastGstPlayer *>(user_data);
+
+    //MIRACASTLOG_TRACE("Entering...\n");
+    switch (GST_MESSAGE_TYPE(msg))
+    {
+        case GST_MESSAGE_ERROR:
+        {
+            GError *error;
+            gchar *info;
+            gst_message_parse_error(msg, &error, &info);
+            MIRACASTLOG_ERROR("Error received from element [%s | %s | %s].", GST_OBJECT_NAME(msg->src), error->message, info ? info : "none");
+            g_error_free(error);
+            g_free(info);
+            gst_element_set_state(self->m_playbin2appsrc_pipeline, GST_STATE_READY);
+            g_main_loop_quit(self->m_main_loop);
+            break;
+        }
+        case GST_MESSAGE_EOS:
+        {
+            MIRACASTLOG_INFO("!!!!GST_MESSAGE_EOS reached !!!!");
+            self->m_bBuffering = false;
+            gst_element_set_state(self->m_playbin2appsrc_pipeline, GST_STATE_READY); // TBD ? (Should be do explicitly or destry automatically.)
+            g_main_loop_quit(self->m_main_loop);
+        }
+        break;
+        case GST_MESSAGE_STATE_CHANGED:
+        {
+            MIRACASTLOG_INFO("!!!! GST_MESSAGE_STATE_CHANGED !!!!\n");
+            if (GST_MESSAGE_SRC(msg) == GST_OBJECT(self->m_playbin2appsrc_pipeline))
+            {
+                GstState old, now, pending;
+                static int id = 0;
+                id++;
+                gst_message_parse_state_changed(msg, &old, &now, &pending);
+                if (memcmp(GST_OBJECT_NAME(GST_MESSAGE_SRC(msg)), "playbin", 7) == 0)
+                {
+                    MIRACASTLOG_ERROR("Element [%s], Pipeline state change from Old [%s] -> New [%s] and Pending state is [%s]", GST_ELEMENT_NAME(GST_MESSAGE_SRC(msg)),
+                                    gst_element_state_get_name(old), gst_element_state_get_name(now), gst_element_state_get_name(pending));
+                }
+                std::string file_name = "miracast_playbin2appsrc_";
+                file_name += (GST_OBJECT_NAME(self->m_playbin2appsrc_pipeline));
+                file_name += "_" + std::to_string(id);
+                file_name += "_";
+                file_name += gst_element_state_get_name(old);
+                file_name += "_";
+                file_name += gst_element_state_get_name(now);
+
+                GST_DEBUG_BIN_TO_DOT_FILE((GstBin *)self->m_playbin2appsrc_pipeline, GST_DEBUG_GRAPH_SHOW_ALL, file_name.c_str());
+            }
+            break;
+        }
+        case GST_MESSAGE_BUFFERING:
+        {
+            /* If the stream is live, no need to do anything. */
+            if (self->m_is_live)
+            {
+                break;
+            }
+            gint percent = 0;
+            gst_message_parse_buffering(msg, &percent);
+            MIRACASTLOG_VERBOSE("Buffering [%3d%%].", percent);
+            self->m_bBuffering = true;
+
+            /* Wait until buffering is complete before start/resume playing */
+            if (percent < 100)
+                gst_element_set_state(self->m_playbin2appsrc_pipeline, GST_STATE_PAUSED);
+            else
+                gst_element_set_state(self->m_playbin2appsrc_pipeline, GST_STATE_PLAYING);
+        }
+        break;
+        case GST_MESSAGE_TAG:
+            break;
+        case GST_MESSAGE_CLOCK_LOST:
+        {
+            /* The current clock as selected by the pipeline became unusable, then select a new clock */
+            gst_element_set_state(self->m_playbin2appsrc_pipeline, GST_STATE_PAUSED);
+            gst_element_set_state(self->m_playbin2appsrc_pipeline, GST_STATE_PLAYING);
+        }
+        break;
+        case GST_MESSAGE_QOS:
+        {
+            MIRACASTLOG_VERBOSE("Received [%s], a buffer was dropped or an element changed its processing strategy for Quality of Service reasons.", gst_message_type_get_name(msg->type));
+            GstFormat format;
+            guint64 processed;
+            guint64 dropped;
+            gst_message_parse_qos_stats(msg, &format, &processed, &dropped);
+            MIRACASTLOG_WARNING("Format [%s], Processed [%lu], Dropped [%lu].", gst_format_get_name(format), processed, dropped);
+
+            gint64 jitter;
+            gdouble proportion;
+            gint quality;
+            gst_message_parse_qos_values(msg, &jitter, &proportion, &quality);
+            MIRACASTLOG_WARNING("Jitter [%lu], Proportion [%lf],  Quality [%u].", jitter, proportion, quality);
+
+            gboolean live;
+            guint64 running_time;
+            guint64 stream_time;
+            guint64 timestamp;
+            guint64 duration;
+            gst_message_parse_qos(msg, &live, &running_time, &stream_time, &timestamp, &duration);
+            MIRACASTLOG_WARNING("live stream [%d], runninng_time [%lu], stream_time [%lu], timestamp [%lu], duration [%lu].", live, running_time, stream_time, timestamp, duration);
+        }
+        break;
+        default:
+        {
+        }
+        break;
+    }
+    //MIRACASTLOG_TRACE("Exiting...\n");
+    return TRUE;
+}
+
+void MiracastGstPlayer::appsrc_need_data(GstAppSrc *src, guint length, gpointer user_data)
+{
+    MIRACASTLOG_TRACE("Entering...\n");
+    MiracastGstPlayer *self = static_cast<MiracastGstPlayer *>(user_data);
+    MIRACASTLOG_INFO("AppSrc empty\n");
+    self->bPushData = true;
+    MIRACASTLOG_TRACE("Exiting...\n");
+    return;
+}
+
+void MiracastGstPlayer::appsrc_enough_data(GstAppSrc *src, gpointer user_data)
+{
+    MIRACASTLOG_TRACE("Entering...\n");
+    MiracastGstPlayer *self = static_cast<MiracastGstPlayer *>(user_data);
+    MIRACASTLOG_INFO("!!!!! AppSrc Full !!!!\n");
+    self->bPushData = false;
+    MIRACASTLOG_TRACE("Exiting...\n");
+    return;
+}
+
+/* This function is called when playbin2 has created the appsrc element, so we have
+ * a chance to configure it. */
+void MiracastGstPlayer::playbin_source_setup(GstElement *pipeline, GstElement *source, gpointer user_data)
+{
+    MiracastGstPlayer *self = static_cast<MiracastGstPlayer *>(user_data);
+    MIRACASTLOG_TRACE("Entering...\n");
+    MIRACASTLOG_INFO("Source has been created. Configuring.\n");
+
+    self->m_appsrc = source;
+
+    // Set AppSrc parameters
+    GstAppSrcCallbacks callbacks = {appsrc_need_data, appsrc_enough_data, NULL};
+    gst_app_src_set_callbacks(GST_APP_SRC(self->m_appsrc), &callbacks, user_data , NULL);
+    g_object_set(GST_APP_SRC(self->m_appsrc), "format", GST_FORMAT_TIME, NULL);
+
+    /* we can set the length in appsrc. This allows some elements to estimate the
+     * total duration of the stream. It's a good idea to set the property when you
+     * can but it's not required. */
+    //g_object_set(self->app_src, "size", (gint64)self->length, NULL);
+
+    /* configure the appsrc, we will push data into the appsrc from the
+     * mainloop. */
+    //g_signal_connect(self->m_appsrc, "need-data", G_CALLBACK(start_feed), app);
+    //g_signal_connect(self->m_appsrc, "enough-data", G_CALLBACK(stop_feed), app);
+
+    // g_object_set (self->m_appsrc, "caps", self->capsSrc, NULL);
+    // gst_app_src_set_caps ((GstAppSrc*)self->m_appsrc, self->capsSrc);
+    g_object_set(GST_APP_SRC(self->m_appsrc), "max-bytes", (guint64) 30 * 1024 * 1024, NULL);
+    MIRACASTLOG_TRACE("Exiting...\n");
+}
+
+GstFlowReturn MiracastGstPlayer::on_new_sample_from_udpsrc(GstElement *element, gpointer user_data)
+{
+    MIRACASTLOG_TRACE("Entering...\n");
+    MiracastGstPlayer *self = static_cast<MiracastGstPlayer *>(user_data);
+    GstSample *sample = gst_app_sink_pull_sample(GST_APP_SINK(element));
+
+    if (sample)
+    {
+        GstBuffer *buffer = gst_sample_get_buffer(sample);
+        guint32 buffer_size = 0;
+        if (buffer)
+        {
+            buffer_size = gst_buffer_get_size(buffer);
+            MIRACASTLOG_TRACE("Buffer size: %u bytes\n", buffer_size);
+        }
+
+        // Push the buffer to appsrc in the second pipeline
+        GstFlowReturn ret;
+        g_signal_emit_by_name(self->m_appsrc, "push-buffer", buffer, &ret);
+        gst_sample_unref(sample);
+        MIRACASTLOG_TRACE("!!!! Sample Buffer pushed to Appsrc [%u] !!!!\n",buffer_size);
+    }
+    MIRACASTLOG_TRACE("Exiting...\n");
+    return GST_FLOW_OK;
+}
+
+#if 0
 bool MiracastGstPlayer::createPipeline()
 {
     MIRACASTLOG_TRACE("Entering..!!!");
@@ -470,6 +889,110 @@ bool MiracastGstPlayer::createPipeline()
     MIRACASTLOG_TRACE("Exit..!!!");
     return true;
 }
+#else
+bool MiracastGstPlayer::createPipeline()
+{
+    MIRACASTLOG_TRACE("Entering..!!!");
+
+    GstStateChangeReturn ret;
+    GstBus *bus = nullptr;
+    // gint flags;
+    m_bReady = false;
+    m_currentPosition = 0.0f;
+    m_elts = G_QUEUE_INIT;
+
+    /* create gst pipeline */
+    m_main_loop_context = g_main_context_new();
+    g_main_context_push_thread_default(m_main_loop_context);
+    m_main_loop = g_main_loop_new(m_main_loop_context, FALSE);
+
+    // Create a new pipeline
+    m_udpsrc2appsink_pipeline = gst_pipeline_new("miracast_udpsrc2appsink");
+
+    // Create elements
+    m_udpsrc = gst_element_factory_make("udpsrc", "miracast_udpsrc");
+    m_appsink = gst_element_factory_make("appsink", "miracast_appsink");
+
+    if (!m_udpsrc2appsink_pipeline || !m_udpsrc || !m_appsink )
+    {
+        MIRACASTLOG_ERROR("Not all elements could be created.\n");
+        return -1;
+    }
+
+    // Set the UDP source properties
+    g_object_set(G_OBJECT(m_udpsrc), "port", 1990, NULL);
+
+    /* to be notified of messages from this pipeline, mostly EOS */
+    bus = gst_element_get_bus(m_udpsrc2appsink_pipeline);
+    gst_bus_add_watch(bus, (GstBusFunc)on_udpsrc2appsink_bus_message, this);
+    gst_object_unref(bus);
+
+    // Configure the appsink
+    g_object_set(G_OBJECT(m_appsink), "emit-signals", TRUE, "sync", FALSE, NULL);
+
+    // Set up a signal handler for new buffer signals from appsink
+    g_signal_connect(m_appsink, "new-sample", G_CALLBACK(on_new_sample_from_udpsrc), this);
+
+    // Add elements to the pipeline
+    gst_bin_add_many(GST_BIN(m_udpsrc2appsink_pipeline), m_udpsrc, m_appsink, NULL);
+
+    // Link udpsrc to appsink
+    if (!gst_element_link(m_udpsrc, m_appsink))
+    {
+        MIRACASTLOG_ERROR("Elements could not be linked.\n");
+        gst_object_unref(m_udpsrc2appsink_pipeline);
+        return false;
+    }
+
+    // Set up pipeline
+    m_playbin2appsrc_pipeline = gst_element_factory_make("playbin", "miracast_playbin");
+    if (!m_playbin2appsrc_pipeline)
+    {
+        MIRACASTLOG_ERROR( "Failed to create pipeline.\n");
+        gst_object_unref(m_udpsrc2appsink_pipeline);
+        return false;
+    }
+    else
+    {
+        bus = gst_element_get_bus (m_playbin2appsrc_pipeline);
+        gst_bus_add_watch (bus, (GstBusFunc) on_playbin2appsrc_bus_message, this);
+        gst_object_unref (bus);
+
+        // Pipeline created
+        g_object_set(m_playbin2appsrc_pipeline, "uri", "appsrc://", NULL);
+        g_signal_connect(m_playbin2appsrc_pipeline, "source-setup", G_CALLBACK(playbin_source_setup), this);
+    }
+
+    m_video_sink = gst_element_factory_make("westerossink", nullptr);
+
+    updateVideoSinkRectangle();
+
+    g_object_set(m_playbin2appsrc_pipeline, "video-sink", m_video_sink, nullptr);
+
+    g_main_context_pop_thread_default(m_main_loop_context);
+    pthread_create(&m_playback_thread, nullptr, MiracastGstPlayer::playbackThread, this);
+    pthread_create(&m_player_statistics_tid, nullptr, MiracastGstPlayer::monitor_player_statistics_thread, this);
+
+    ret = gst_element_set_state(m_udpsrc2appsink_pipeline, GST_STATE_PLAYING);
+    gst_element_set_state(m_playbin2appsrc_pipeline, GST_STATE_PLAYING);
+
+    if (ret == GST_STATE_CHANGE_FAILURE)
+    {
+        MIRACASTLOG_ERROR("Unable to set the pipeline to the playing state.");
+        gst_object_unref(m_udpsrc2appsink_pipeline);
+        gst_object_unref(m_playbin2appsrc_pipeline);
+        return false;
+    }
+    else if (ret == GST_STATE_CHANGE_NO_PREROLL)
+    {
+        MIRACASTLOG_INFO("Streaming live");
+        m_is_live = true;
+    }
+
+    MIRACASTLOG_TRACE("Exit..!!!");
+    return true;
+}
+#endif
 
 void *MiracastGstPlayer::playbackThread(void *ctx)
 {
@@ -575,7 +1098,7 @@ gboolean MiracastGstPlayer::busMessageCb(GstBus *bus, GstMessage *msg, gpointer 
                 MIRACASTLOG_ERROR("Element [%s], Pipeline state change from Old [%s] -> New [%s] and Pending state is [%s]", GST_ELEMENT_NAME(GST_MESSAGE_SRC(msg)),
                                   gst_element_state_get_name(old), gst_element_state_get_name(now), gst_element_state_get_name(pending));
             }
-            std::string file_name = "miracast_progressive";
+            std::string file_name = "miracast_progressive_";
             file_name += (GST_OBJECT_NAME(self->m_pipeline));
             file_name += "_" + std::to_string(id);
             file_name += "_";
@@ -669,12 +1192,18 @@ gboolean MiracastGstPlayer::busMessageCb(GstBus *bus, GstMessage *msg, gpointer 
     return TRUE;
 }
 
-double MiracastGstPlayer::getDuration()
+double MiracastGstPlayer::getDuration( GstElement *pipeline )
 {
     MIRACASTLOG_TRACE("Entering..!!!");
     gint64 duration = 0;
     double ret = 0.0f;
-    if (gst_element_query_duration(m_pipeline, GST_FORMAT_TIME, &duration) && GST_CLOCK_TIME_IS_VALID(duration))
+
+    if ( nullptr == pipeline )
+    {
+        pipeline = m_pipeline;
+    }
+
+    if (gst_element_query_duration(pipeline, GST_FORMAT_TIME, &duration) && GST_CLOCK_TIME_IS_VALID(duration))
     {
         ret = static_cast<double>(duration) / GST_SECOND;
     }
@@ -682,20 +1211,25 @@ double MiracastGstPlayer::getDuration()
     return ret;
 }
 
-double MiracastGstPlayer::getCurrentPosition()
+double MiracastGstPlayer::getCurrentPosition(GstElement *pipeline)
 {
     MIRACASTLOG_TRACE("Entering..!!!");
     gint64 position = 0;
 
-    if (gst_element_query_position(m_pipeline, GST_FORMAT_TIME, &position))
+    if ( nullptr == pipeline )
     {
-        m_currentPosition = static_cast<double>(position) / GST_SECOND;
+        pipeline = m_pipeline;
+    }
+
+    if (gst_element_query_position(pipeline, GST_FORMAT_TIME, &position))
+    {
+        position = static_cast<double>(position) / GST_SECOND;
     }
     MIRACASTLOG_TRACE("Exiting..!!!");
-    return m_currentPosition;
+    return position;
 }
 
-bool MiracastGstPlayer::seekTo(double seconds)
+bool MiracastGstPlayer::seekTo(double seconds, GstElement *pipeline )
 {
     MIRACASTLOG_TRACE("Entering..!!!");
     bool ret = false;
@@ -704,7 +1238,12 @@ bool MiracastGstPlayer::seekTo(double seconds)
 
     MIRACASTLOG_VERBOSE("seekToPos=%f", seconds);
 
-    if (!gst_element_seek(m_pipeline, 1.0, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, GST_SEEK_TYPE_SET, cur, GST_SEEK_TYPE_NONE, GST_CLOCK_TIME_NONE))
+    if ( nullptr == pipeline )
+    {
+        pipeline = m_pipeline;
+    }
+
+    if (!gst_element_seek(pipeline, 1.0, GST_FORMAT_TIME, GST_SEEK_FLAG_FLUSH, GST_SEEK_TYPE_SET, cur, GST_SEEK_TYPE_NONE, GST_CLOCK_TIME_NONE))
     {
         MIRACASTLOG_VERBOSE("SeekToPos success\n");
         ret = true;
@@ -717,12 +1256,18 @@ bool MiracastGstPlayer::seekTo(double seconds)
     return ret;
 }
 
-void MiracastGstPlayer::print_pipeline_state()
+void MiracastGstPlayer::print_pipeline_state(GstElement *pipeline)
 {
     MIRACASTLOG_TRACE("Entering..!!!");
-    if ( nullptr == m_pipeline )
+
+    if ( nullptr == pipeline )
     {
-        MIRACASTLOG_ERROR("m_pipeline is NULL. Can't proceed with print_pipeline_state(). \n");
+        pipeline = m_pipeline;
+    }
+
+    if ( nullptr == pipeline )
+    {
+        MIRACASTLOG_ERROR("pipeline is NULL. Can't proceed with print_pipeline_state(). \n");
     }
     else
     {
@@ -730,9 +1275,12 @@ void MiracastGstPlayer::print_pipeline_state()
         GstStateChangeReturn ret_state = GST_STATE_CHANGE_FAILURE;
         current = pending = GST_STATE_VOID_PENDING;
 
-        ret_state = gst_element_get_state(m_pipeline, &current, &pending, 0);
-        MIRACASTLOG_VERBOSE("\nPipeline State - Current:[%s], Pending:[%s],Ret:[%d]\n",
-                            gst_element_state_get_name(current),gst_element_state_get_name(pending),ret_state);
+        ret_state = gst_element_get_state(pipeline, &current, &pending, 0);
+        MIRACASTLOG_VERBOSE("\n[%s]Pipeline State - Current:[%s], Pending:[%s],Ret:[%d]\n",
+                            gst_element_get_name(pipeline),
+                            gst_element_state_get_name(current),
+                            gst_element_state_get_name(pending),
+                            ret_state);
     }
     MIRACASTLOG_TRACE("Exiting..!!!");
 }
@@ -750,7 +1298,12 @@ bool MiracastGstPlayer::get_player_statistics()
     }
     MIRACASTLOG_VERBOSE("\n============= Player Statistics =============\n");
 
+#if 0
     double cur_position = getCurrentPosition();
+#else
+    double udpsrc2appsink_cur_pos = getCurrentPosition(m_udpsrc2appsink_pipeline);
+    double playbin2appsrc_cur_pos = getCurrentPosition(m_playbin2appsrc_pipeline);
+#endif
 
     g_object_get( G_OBJECT(m_video_sink), "stats", &stats, nullptr );
 
@@ -767,26 +1320,35 @@ bool MiracastGstPlayer::get_player_statistics()
         if ( value )
         {
            render_frame = g_value_get_uint64( value );
+           MIRACASTLOG_TRACE("!!!! render_frame[%lu] !!!",render_frame);
         }
         /* Get Dropped Frames*/
         value = gst_structure_get_value( stats, (const gchar *)"dropped" );
         if ( value )
         {
            dropped_frame = g_value_get_uint64( value );
+           MIRACASTLOG_TRACE("!!!! dropped_frame[%lu] !!!",dropped_frame);
         }
-        gst_structure_free( stats );
         
         total_video_frames = render_frame + dropped_frame;
         dropped_video_frames = dropped_frame;
 
-        MIRACASTLOG_VERBOSE("\nCurrent PTS: [ %f ], Total Frames: [ %lu], Rendered Frames : [ %lu ], Dropped Frames: [%lu]\n",
-                            cur_position,
+        MIRACASTLOG_VERBOSE("\nCurrent UDPSRC2APPSINK-PTS: [ %f ], PLAYBIN2APPSRC-PTS: [ %f ]\n",
+                            udpsrc2appsink_cur_pos,
+                            playbin2appsrc_cur_pos);
+        MIRACASTLOG_VERBOSE("\nTotal Frames: [ %lu], Rendered Frames : [ %lu ], Dropped Frames: [%lu]\n",
                             total_video_frames,
                             render_frame,
                             dropped_video_frames);
+        gst_structure_free( stats );
      }
-     print_pipeline_state();
-     MIRACASTLOG_VERBOSE("\n=============================================\n");
-     MIRACASTLOG_TRACE("Exiting..!!!");	
-     return ret;
+#if 0
+    print_pipeline_state();
+#else
+    print_pipeline_state(m_udpsrc2appsink_pipeline);
+    print_pipeline_state(m_playbin2appsrc_pipeline);
+#endif
+    MIRACASTLOG_VERBOSE("\n=============================================\n");
+    MIRACASTLOG_TRACE("Exiting..!!!");	
+    return ret;
 }
