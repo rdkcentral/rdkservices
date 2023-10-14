@@ -4545,7 +4545,7 @@ namespace Plugin {
         std::string value;
         std::string source;
         std::string format;
-        std::string dummpy_pqmode;
+        std::string dummyPqmode;
         char prevmode[PIC_MODE_NAME_MAX]={0};
         GetTVPictureMode(prevmode);
 
@@ -4554,7 +4554,7 @@ namespace Plugin {
         returnIfParamNotFound(parameters,"pictureMode");
 
         // As only source need to validate, so pqmode and formate passing as currrent
-        if (parsingSetInputArgument(parameters, source, dummpy_pqmode, format) != 0)
+        if (parsingSetInputArgument(parameters, source, dummyPqmode, format) != 0)
         {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
@@ -4777,7 +4777,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        if( !isCapablityCheckPassed( source, pqmode, format, "LowLatencyState" )) {
+        if( !isCapablityCheckPassed(pqmode, source, format, "LowLatencyState" )) {
             LOGERR("%s: CapablityCheck failed for LowLatencyState\n", __FUNCTION__);
             returnResponse(false);
         }
@@ -4824,7 +4824,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        if( !isCapablityCheckPassed( source, pqmode, format, "LowLatencyState" )) {
+        if( !isCapablityCheckPassed( pqmode, source, format, "LowLatencyState" )) {
             LOGERR("%s: CapablityCheck failed for LowLatencyState\n", __FUNCTION__);
             returnResponse(false);
         }
@@ -4859,7 +4859,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        if( !isCapablityCheckPassed( source, pqmode, format, "LowLatencyState" )) {
+        if( !isCapablityCheckPassed( pqmode, source, format, "LowLatencyState" )) {
             LOGERR("%s: CapablityCheck failed for LowLatencyState\n", __FUNCTION__);
             returnResponse(false);
         }
@@ -6590,9 +6590,8 @@ namespace Plugin {
         std::vector<std::string> sourceVec;
         std::vector<std::string> pqmodeVec;
         std::vector<std::string> formatVec;
-        if(pqparam.compare("Backlight") == 0) {
-            getParamsCaps(range, pqmodeVec, sourceVec, formatVec, "Backlight");
-        }
+
+        getParamsCaps(range, pqmodeVec, sourceVec, formatVec, pqparam);
 
        if (sourceVec.size() != 0) {
             source = convertToString(sourceVec);
@@ -6605,7 +6604,7 @@ namespace Plugin {
        if (formatVec.size() != 0) {
             format = convertToString(formatVec);
        }
-
+       return 0;
     }
 
 }//namespace Plugin
