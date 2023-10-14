@@ -412,6 +412,8 @@ namespace Plugin {
         registerMethod("getSupportedPictureModes", &AVOutputTV::getSupportedPictureModes, this);
         registerMethod("getSupportedVideoSources", &AVOutputTV::getSupportedVideoSources, this);
         registerMethod("getSupportedVideoFormats", &AVOutputTV::getSupportedVideoFormats, this);
+        registerMethod("getSupportedVideoFrameRates", &AVOutputTV::getSupportedVideoFrameRates, this);
+        registerMethod("getSupportedVideoResolutions", &AVOutputTV::getSupportedVideoResolutions, this);
 	registerMethod("enableWBMode", &AVOutputTV::enableWBMode, this);
 
 	registerMethod("setBacklightFade", &AVOutputTV::setBacklightFade, this);
@@ -4425,6 +4427,18 @@ namespace Plugin {
     uint32_t AVOutputTV::getSupportedVideoFormats(const JsonObject& parameters, JsonObject& response) {
             LOGINFO("Entry\n");
             response["supportedVideoFormat"] = getAvailableVideoFormat();
+            returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::getSupportedVideoFrameRates(const JsonObject& parameters, JsonObject& response) {
+            LOGINFO("Entry\n");
+            response["supportedVideoFrameRate"] = getSupportedVideoFrameRate();
+            returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::getSupportedVideoResolutions(const JsonObject& parameters, JsonObject& response) {
+            LOGINFO("Entry\n");
+            response["supportedVideoResolution"] = getSupportedVideoResolution();
             returnResponse(true);
     }
 
