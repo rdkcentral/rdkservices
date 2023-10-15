@@ -423,6 +423,13 @@ namespace WPEFramework
             return Core::ERROR_NONE;
         }
 
+        uint32_t Telemetry::LogApplicationEvent(const string marker, const string event)
+        {
+                LOGINFO("Marker:%s, Event:%s", marker.c_str(), event.c_str());
+                Utils::Telemetry::sendMessage((char *)marker.c_str(), (char *)event.c_str());
+                return Core::ERROR_NONE;
+        }
+
         uint32_t Telemetry::uploadReport(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
