@@ -1053,7 +1053,7 @@ namespace WPEFramework
                 memcpy(&pre,spdVect.data(),sizeof(struct dsSpd_infoframe_st));
 
               char str[200] = {0};
-               sprintf(str, "Packet Type:%02X,Version:%u,Length:%u,vendor name:%s,product des:%s,source info:%02X"
+               snprintf(str, sizeof(str), "Packet Type:%02X,Version:%u,Length:%u,vendor name:%s,product des:%s,source info:%02X"
 ,pre.pkttype,pre.version,pre.length,pre.vendor_name,pre.product_des,pre.source_info);
               spdbase64 = str;
                }
