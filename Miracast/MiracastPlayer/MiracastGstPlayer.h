@@ -29,6 +29,8 @@
 #include <pthread.h>
 #include <stdint.h>
 
+#define DEFAULT_MAX_PUSH_BUFFER_SIZE    ( 1 * 1024 * 1024 )
+
 class MiracastGstPlayer
 {
 public:
@@ -52,14 +54,18 @@ public:
     static std::string parse_opt_flag( std::string file_name , bool integer_check = false );
 
 private:
-    GstElement *m_pipeline{nullptr};
+    GstElement  *m_pipeline{nullptr};
 
-    GstElement *m_udpsrc2appsink_pipeline{nullptr};
-    GstElement *m_playbin2appsrc_pipeline{nullptr};
-    GstElement *m_udpsrc{nullptr};
-    GstElement *m_appsink{nullptr};
-    GstElement *m_appsrc{nullptr};
-    gboolean bPushData;
+    GstElement  *m_udpsrc2appsink_pipeline{nullptr};
+    GstElement  *m_playbin2appsrc_pipeline{nullptr};
+    GstElement  *m_udpsrc{nullptr};
+    GstElement  *m_appsink{nullptr};
+    GstElement  *m_appsrc{nullptr};
+    gboolean    bPushData;
+    guint64     m_max_pushbuffer_size{DEFAULT_MAX_PUSH_BUFFER_SIZE};
+    guint64     m_current_pushbuffer_size{0};
+    guint8      *m_push_buffer_ptr{nullptr};
+    guint8      *m_current_buffer_ptr{nullptr};
 
     std::string m_uri;
     int m_bus_watch_id{-1};

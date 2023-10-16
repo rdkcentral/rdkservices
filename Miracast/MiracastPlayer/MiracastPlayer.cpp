@@ -19,7 +19,7 @@
 
 #include <algorithm>
 #include <regex>
-#include "rdk/iarmmgrs-hal/pwrMgr.h"
+//#include "rdk/iarmmgrs-hal/pwrMgr.h"
 #include "MiracastPlayer.h"
 #include <UtilsJsonRpc.h>
 #include "UtilsIarm.h"

@@ -24,7 +24,6 @@
 
 #include "Module.h"
 #include <securityagent/SecurityTokenUtil.h>
-#include "libIARM.h"
 #include "MiracastRtspMsg.h"
 #include "MiracastGstPlayer.h"
 
