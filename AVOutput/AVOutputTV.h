@@ -112,8 +112,8 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         DECLARE_JSON_RPC_METHOD(getVideoFrameRate)
         DECLARE_JSON_RPC_METHOD(getVideoResolution)
 	DECLARE_JSON_RPC_METHOD(getLowLatencyState)
-        DECLARE_JSON_RPC_METHOD(getAspectRatio2)
         DECLARE_JSON_RPC_METHOD(getDolbyVisionMode)
+        DECLARE_JSON_RPC_METHOD(getZoomMode)
 
 
 	/*Get Capability API's*/
@@ -131,7 +131,7 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         DECLARE_JSON_RPC_METHOD(getHDR10ModeCaps )
         DECLARE_JSON_RPC_METHOD(getHLGModeCaps )
         DECLARE_JSON_RPC_METHOD(getWBCaps )
-        DECLARE_JSON_RPC_METHOD(getAspectRatioCaps)
+        DECLARE_JSON_RPC_METHOD(getZoomModeCaps)
         DECLARE_JSON_RPC_METHOD(getLowLatencyStateCaps)
         DECLARE_JSON_RPC_METHOD(getPictureModeCaps)
 
@@ -154,7 +154,7 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         DECLARE_JSON_RPC_METHOD(setWBCtrl )
         DECLARE_JSON_RPC_METHOD(setPictureMode )
         DECLARE_JSON_RPC_METHOD(setBacklightFade )
-        DECLARE_JSON_RPC_METHOD(setAspectRatio2)
+        DECLARE_JSON_RPC_METHOD(setZoomMode)
         DECLARE_JSON_RPC_METHOD(setLowLatencyState)
         DECLARE_JSON_RPC_METHOD(enableWBMode )
 	/*Reset API's*/
@@ -175,7 +175,7 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         DECLARE_JSON_RPC_METHOD(resetHLGMode )
         DECLARE_JSON_RPC_METHOD(resetWBCtrl )
         DECLARE_JSON_RPC_METHOD(resetPictureMode )
-        DECLARE_JSON_RPC_METHOD(resetAspectRatio)
+        DECLARE_JSON_RPC_METHOD(resetZoomMode)
         DECLARE_JSON_RPC_METHOD(resetLowLatencyState)
 
     private:
@@ -198,7 +198,7 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
 	tvError_t SyncPQParamsToDriverCache(std::string pqmode, std::string source, std::string format);
 	int SyncSourceFormatPicModeToCache(std::string pqmode, std::string source, std::string format);
 	bool isSetRequired(std::string pqmode,std::string source,std::string format);
-	void getParamIndex(string source,string pqmode,string format,int& sourceIndex,int& pqmodeIndex,int& formatIndex);
+	int getParamIndex(string source,string pqmode,string format,int& sourceIndex,int& pqmodeIndex,int& formatIndex);
 	tvDataComponentColor_t getComponentColorEnum(std::string colorName);
 	int getDolbyParams(tvContentFormatType_t format, std::string &s, std::string source = "");
 	tvError_t getParamsCaps(std::vector<std::string> &range, std::vector<std::string> &pqmode, std::vector<std::string> &source, std::vector<std::string> &format,std::string param );

@@ -393,16 +393,18 @@ namespace Plugin {
 	registerMethod("getHDR10ModeCaps", &AVOutputTV::getHDR10ModeCaps, this);
 	registerMethod("getVideoFormat", &AVOutputTV::getVideoFormat, this);
 	registerMethod("getVideoSource", &AVOutputTV::getVideoSource, this);
+	registerMethod("getVideoFrameRate", &AVOutputTV::getVideoFrameRate, this);
+	registerMethod("getVideoResolution", &AVOutputTV::getVideoFrameRate, this);
 	
 	registerMethod("getWBInfo", &AVOutputTV::getWBInfo, this);
 	registerMethod("getWBCtrl", &AVOutputTV::getWBCtrl, this);
 	registerMethod("setWBCtrl", &AVOutputTV::setWBCtrl, this);
 	registerMethod("resetWBCtrl", &AVOutputTV::resetWBCtrl, this);
 
-	registerMethod("getAspectRatio", &AVOutputTV::getAspectRatio2, this);
-        registerMethod("setAspectRatio", &AVOutputTV::setAspectRatio2, this);
-        registerMethod("resetAspectRatio", &AVOutputTV::resetAspectRatio, this);
-        registerMethod("getAspectRatioCaps", &AVOutputTV::getAspectRatioCaps, this);
+	registerMethod("getZoomMode", &AVOutputTV::getZoomMode, this);
+        registerMethod("getZoomMode", &AVOutputTV::setZoomMode, this);
+        registerMethod("resetZoomMode", &AVOutputTV::resetZoomMode, this);
+        registerMethod("getZoomModeCaps", &AVOutputTV::getZoomModeCaps, this);
 
 
 	registerMethod("getPictureMode", &AVOutputTV::getPictureMode, this);
@@ -657,7 +659,7 @@ namespace Plugin {
         }
     }
     
-    uint32_t AVOutputTV::getAspectRatioCaps(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getZoomModeCaps(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
         std::vector<std::string> range;
@@ -669,11 +671,6 @@ namespace Plugin {
         JsonArray pqmodeArray;
         JsonArray formatArray;
         JsonArray sourceArray;
-
-        JsonObject AspectRatioInfo;
-        JsonObject pqmodeInfo;
-        JsonObject sourceInfo;
-        JsonObject formatInfo;
 
         unsigned int index = 0;
 
@@ -687,7 +684,7 @@ namespace Plugin {
             for (index = 0; index < range.size(); index++)
                 rangeArray.Add(range[index]);
 
-            response["aspectRatioInfo"]=rangeArray;
+            response["options"]=rangeArray;
 
             if (pqmode.front().compare("none") != 0) {
                 for (index = 0; index < pqmode.size(); index++) {
@@ -712,7 +709,7 @@ namespace Plugin {
         }
     }
 
-    uint32_t AVOutputTV::setAspectRatio2(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::setZoomMode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
         std::string value;
@@ -722,8 +719,8 @@ namespace Plugin {
         std::string format;
 
 
-        value = parameters.HasLabel("aspectRatio") ? parameters["aspectRatio"].String() : "";
-        returnIfParamNotFound(parameters,"aspectRatio");
+        value = parameters.HasLabel("zoomMode") ? parameters["zoomMode"].String() : "";
+        returnIfParamNotFound(parameters,"zoomMode");
 
         if (parsingSetInputArgument(parameters, "AspectRatio",source, pqmode, format) != 0)
         {
@@ -785,17 +782,11 @@ namespace Plugin {
         }
     }
 
-    uint32_t AVOutputTV::getAspectRatio2(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::getZoomMode(const JsonObject& parameters, JsonObject& response)
     {
 
         LOGINFO("Entry\n");
         tvDisplayMode_t mode;
-        JsonObject dispModeObj;
-        JsonArray dispOptions ;
-        dispOptions.Add("TV AUTO"); dispOptions.Add("TV DIRECT"); dispOptions.Add("TV NORMAL");
-        dispOptions.Add("TV 16X9 STRETCH"); dispOptions.Add("TV 4X3 PILLARBOX"); dispOptions.Add("TV ZOOM");
-        dispModeObj["Selected"] = "TV AUTO";
-        dispModeObj["Options"] = dispOptions;
 
         tvError_t ret = getUserSelectedAspectRatio (&mode);
 
@@ -807,39 +798,39 @@ namespace Plugin {
 
                 case tvDisplayMode_16x9:
                     LOGINFO("Aspect Ratio: TV 16X9 STRETCH\n");
-                    dispModeObj["Selected"] = "TV 16X9 STRETCH";
+                    response["zoomMode"] = "TV 16X9 STRETCH";
                     break;
 
                 case tvDisplayMode_4x3:
                     LOGINFO("Aspect Ratio: TV 4X3 PILLARBOX\n");
-                    dispModeObj["Selected"] = "TV 4X3 PILLARBOX";
+                    response["zoomMode"] = "TV 4X3 PILLARBOX";
                     break;
 
                 case tvDisplayMode_NORMAL:
                     LOGINFO("Aspect Ratio: TV Normal\n");
-                    dispModeObj["Selected"] = "TV NORMAL";
+                    response["zoomMode"] = "TV NORMAL";
                     break;
 
                 case tvDisplayMode_AUTO:
                     LOGINFO("Aspect Ratio: TV AUTO\n");
-                    dispModeObj["Selected"] = "TV AUTO";
+                    response["zoomMode"] = "TV AUTO";
                     break;
 
                 case tvDisplayMode_DIRECT:
                     LOGINFO("Aspect Ratio: TV DIRECT\n");
-                    dispModeObj["Selected"] = "TV DIRECT";
+                    response["zoomMode"] = "TV DIRECT";
                     break;
 
                 case tvDisplayMode_ZOOM:
                     LOGINFO("Aspect Ratio: TV ZOOM\n");
-                    dispModeObj["Selected"] = "TV ZOOM";
+                    response["zoomMode"] = "TV ZOOM";
                     break;
 
                 default:
                     LOGINFO("Aspect Ratio: TV AUTO\n");
+                    response["zoomMode"] = "TV AUTO";
                     break;
             }
-            response["aspectRatio"] = dispModeObj;
             returnResponse(true);
         }
     }
@@ -886,7 +877,7 @@ namespace Plugin {
         return ret;
     }
 
-    uint32_t AVOutputTV::resetAspectRatio(const JsonObject& parameters, JsonObject& response)
+    uint32_t AVOutputTV::resetZoomMode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
         std::string pqmode;
@@ -1022,7 +1013,7 @@ namespace Plugin {
         //PLUGIN_Lock(Lock);
         tvResolutionParam_t videoResolution;
         tvError_t ret = GetVideoResolution(&videoResolution);
-        response["supportedVideoResolution"] = getSupportedVideoResolution();
+        //response["supportedVideoResolution"] = getSupportedVideoResolution();
         if(ret != tvERROR_NONE) {
             response["currentVideoResolution"] = "NONE";
             returnResponse(false);
@@ -1039,7 +1030,7 @@ namespace Plugin {
         LOGINFO("Entry\n");
         tvVideoFrameRate_t videoFramerate;
         tvError_t ret = GetVideoFrameRate(&videoFramerate);
-        response["supportedFrameRate"] = getSupportedVideoFrameRate();
+        //response["supportedFrameRate"] = getSupportedVideoFrameRate();
         if(ret != tvERROR_NONE) {
             response["currentVideoFrameRate"] = "NONE";
             returnResponse(false);
@@ -1068,13 +1059,17 @@ namespace Plugin {
             LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
             returnResponse(false);
         }
-
+#if 0
         if( !isCapablityCheckPassed( pqmode, source, format, "Backlight" )) {
             LOGERR("%s: CapablityCheck failed for Backlight\n", __FUNCTION__);
             returnResponse(false);
         }
+#endif
+        if (getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex) == -1) {
+            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
-        getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         err = getLocalparam("Backlight",formatIndex,pqIndex,sourceIndex,backlight, PQ_PARAM_BACKLIGHT);
         if( err == 0 ) {
             response["backlight"] = backlight;
@@ -1256,13 +1251,16 @@ namespace Plugin {
             LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
             returnResponse(false);
         }
-
+#if 0
         if( !isCapablityCheckPassed( pqmode, source, format, "Brightness" )) {
             LOGERR("%s: CapablityCheck failed for Brightness\n", __FUNCTION__);
             returnResponse(false);
         }
-
-        getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+#endif
+        if (getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex) == -1) {
+            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         int err = getLocalparam("Brightness",formatIndex,pqIndex,sourceIndex,brightness, PQ_PARAM_BRIGHTNESS);
         if( err == 0 ) {
@@ -1450,13 +1448,17 @@ namespace Plugin {
             LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
             returnResponse(false);
         }
-
+#if 0
         if( !isCapablityCheckPassed( pqmode, source, format, "Contrast" )) {
             LOGERR("%s: CapablityCheck failed for Contrast\n", __FUNCTION__);
             returnResponse(false);
         }
+#endif
+        if (getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex) == -1) {
+            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
-        getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         int err = getLocalparam("Contrast",formatIndex,pqIndex,sourceIndex,contrast, PQ_PARAM_CONTRAST);
         if( err == 0 ) {
             response["contrast"] = contrast;
@@ -1592,6 +1594,7 @@ namespace Plugin {
         JsonArray formatArray;
         JsonArray sourceArray;
 
+	JsonObject rangeObj;
         unsigned int index = 0;
 
         tvError_t ret = getParamsCaps(range,pqmode,source,format,"Contrast");
@@ -1601,10 +1604,9 @@ namespace Plugin {
         }
         else
         {
-            for (index = 0; index < range.size(); index++)
-                rangeArray.Add(stoi(range[index]));
-
-            response["rangeInfo"]=rangeArray;
+            rangeObj["from"] = stoi(range[0]);
+            rangeObj["to"] = stoi(range[1]);
+            response["rangeInfo"]=rangeObj;
             
             if ((pqmode.front()).compare("none") != 0) {
                 for (index = 0; index < pqmode.size(); index++) {
@@ -1645,13 +1647,17 @@ namespace Plugin {
             LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
             returnResponse(false);
         }
-
+#if 0
         if( !isCapablityCheckPassed( pqmode, source, format, "Saturation" )) {
             LOGERR("%s: CapablityCheck failed for Saturation\n", __FUNCTION__);
             returnResponse(false);
         }
+#endif
+        if (getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex) == -1) {
+            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
-        getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         int err = getLocalparam("Saturation",formatIndex,pqIndex,sourceIndex,saturation, PQ_PARAM_SATURATION);
         if( err == 0 ) {
             response["saturation"] = saturation;
@@ -1789,6 +1795,7 @@ namespace Plugin {
         JsonArray sourceArray;
 
         unsigned int index = 0;
+        JsonObject rangeObj;
 
         tvError_t ret = getParamsCaps(range,pqmode,source,format,"Saturation");
 
@@ -1797,10 +1804,10 @@ namespace Plugin {
         }
         else
         {
-            for (index = 0; index < range.size(); index++)
-                rangeArray.Add(stoi(range[index]));
+            rangeObj["from"] = stoi(range[0]);
+            rangeObj["to"] = stoi(range[1]);
+            response["rangeInfo"]=rangeObj;
 
-            response["rangeInfo"]=rangeArray;
             
 	    if ((pqmode.front()).compare("none") != 0) {
                 for (index = 0; index < pqmode.size(); index++) {
@@ -1841,13 +1848,17 @@ namespace Plugin {
             LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
             returnResponse(false);
         }
-
+#if 0
         if( !isCapablityCheckPassed( pqmode, source, format, "Sharpness" )) {
             LOGERR("%s: CapablityCheck failed for Sharpness\n", __FUNCTION__);
             returnResponse(false);
         }
+#endif
+        if (getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex) == -1) {
+            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
-        getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         int err = getLocalparam("Sharpness",formatIndex,pqIndex,sourceIndex,sharpness, PQ_PARAM_SHARPNESS);
         if( err == 0 ) {
             response["sharpness"] = sharpness;
@@ -1983,6 +1994,7 @@ namespace Plugin {
         JsonArray formatArray;
         JsonArray sourceArray;
 
+        JsonObject rangeObj;
         unsigned int index = 0;
 
         tvError_t ret = getParamsCaps(range,pqmode,source,format,"Sharpness");
@@ -1992,11 +2004,10 @@ namespace Plugin {
         }
         else
         {
-            for (index = 0; index < range.size(); index++)
-                rangeArray.Add(stoi(range[index]));
-
-            response["rangeInfo"]=rangeArray;
-          
+            rangeObj["from"] = stoi(range[0]);
+            rangeObj["to"] = stoi(range[1]);
+            response["rangeInfo"]=rangeObj;
+ 
 	    if ((pqmode.front()).compare("none") != 0) {
                 for (index = 0; index < pqmode.size(); index++) {
                     pqmodeArray.Add(pqmode[index]);
@@ -2036,13 +2047,17 @@ namespace Plugin {
             LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
             returnResponse(false);
         }
-
+#if 0
         if( !isCapablityCheckPassed( pqmode, source, format, "Hue" )) {
             LOGERR("%s: CapablityCheck failed for Hue\n", __FUNCTION__);
             returnResponse(false);
         }
+#endif
+        if (getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex) == -1) {
+            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
-        getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         int err = getLocalparam("Hue",formatIndex,pqIndex,sourceIndex,hue, PQ_PARAM_HUE);
         if( err == 0 ) {
             response["hue"] = hue;
@@ -2179,6 +2194,7 @@ namespace Plugin {
         JsonArray formatArray;
         JsonArray sourceArray;
 
+        JsonObject rangeObj;
         unsigned int index = 0;
 
         tvError_t ret = getParamsCaps(range,pqmode,source,format,"Hue");
@@ -2188,11 +2204,10 @@ namespace Plugin {
         }
         else
         {
-            for (index = 0; index < range.size(); index++)
-                rangeArray.Add(stoi(range[index]));
+            rangeObj["from"] = stoi(range[0]);
+            rangeObj["to"] = stoi(range[1]);
+            response["rangeInfo"]=rangeObj; 
 
-            response["rangeInfo"]=rangeArray;
-            
             if ((pqmode.front()).compare("none") != 0) {
                 for (index = 0; index < pqmode.size(); index++) {
                     pqmodeArray.Add(pqmode[index]);
@@ -2232,13 +2247,16 @@ namespace Plugin {
             LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
             returnResponse(false);
         }
-
+#if 0
         if( !isCapablityCheckPassed( pqmode, source, format, "ColorTemperature" )) {
             LOGERR("%s: CapablityCheck failed for Hue\n", __FUNCTION__);
             returnResponse(false);
         }
-
-        getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+#endif
+        if (getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex) == -1) {
+            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         int err = getLocalparam("ColorTemp",formatIndex,pqIndex,sourceIndex,colortemp,PQ_PARAM_COLOR_TEMPERATURE);
         if( err == 0 ) {
@@ -2288,8 +2306,8 @@ namespace Plugin {
         int colortemp = 0;
         tvError_t ret = tvERROR_NONE;
 
-        value = parameters.HasLabel("colorTemp") ? parameters["colorTemp"].String() : "";
-        returnIfParamNotFound(parameters,"colorTemp");
+        value = parameters.HasLabel("colorTemperature") ? parameters["colorTemperature"].String() : "";
+        returnIfParamNotFound(parameters,"colorTemperature");
         if(!value.compare("Standard")) {
             colortemp = tvColorTemp_STANDARD;
         }
@@ -2425,7 +2443,7 @@ namespace Plugin {
             for (index = 0; index < range.size(); index++)
                 rangeArray.Add(range[index]);
 
-            response["rangeInfo"]=rangeArray;
+            response["options"]=rangeArray;
 
             if (((pqmode.front()).compare("none") != 0)) {
                 for (index = 0; index < pqmode.size(); index++) {
@@ -2471,19 +2489,23 @@ namespace Plugin {
             LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
             returnResponse(false);
         }
-
+#if 0
         if( !isCapablityCheckPassed( pqmode, source, format, "ComponentSaturation" )) {
             LOGERR("%s: CapablityCheck failed for ComponentSaturation\n", __FUNCTION__);
             returnResponse(false);
         }
-
+#endif
         blSaturationColor =  getComponentColorEnum(value);
         if(blSaturationColor ==tvDataColor_MAX)
         {
             returnResponse(false);
         }
         cms += value;
-        getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+
+        if (getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex) == -1) {
+            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
 	int err = getLocalparam(cms.c_str(),formatIndex,pqIndex,sourceIndex,saturation,
 			        PQ_PARAM_COMPONENT_SATURATION);
@@ -2674,19 +2696,24 @@ namespace Plugin {
             LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
             returnResponse(false);
         }
-
+#if 0
         if( !isCapablityCheckPassed( pqmode, source, format, "ComponentHue" )) {
             LOGERR("%s: CapablityCheck failed for ComponentHue\n", __FUNCTION__);
             returnResponse(false);
         }
-
+#endif
         blHueColor =  getComponentColorEnum(value);
         if(blHueColor ==tvDataColor_MAX)
         {
             returnResponse(false);
         }
         cms += value;
-        getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+
+        if (getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex) == -1) {
+            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+            returnResponse(false);
+        }
+
         int err = getLocalparam(cms.c_str(),formatIndex,pqIndex,sourceIndex,hue,PQ_PARAM_COMPONENT_HUE );
         if( err == 0 || err == 1 ) {//err value willbe 1 if cms is default.(SPECIAL case)
             response["hue"] = hue;
@@ -2872,19 +2899,24 @@ namespace Plugin {
             LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
             returnResponse(false);
         }
-
+#if 0
         if( !isCapablityCheckPassed( pqmode, source, format, "ComponentLuma" )) {
             LOGERR("%s: CapablityCheck failed for ComponentLuma\n", __FUNCTION__);
             returnResponse(false);
         }
-
+#endif
         blLumaColor =  getComponentColorEnum(value);
         if(blLumaColor ==tvDataColor_MAX)
         {
             returnResponse(false);
         }
         cms += value;
-	getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+
+        if (getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex) == -1) {
+            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+            returnResponse(false);
+        }
+
         int err = getLocalparam(cms.c_str(),formatIndex,pqIndex,sourceIndex,luma,PQ_PARAM_COMPONENT_LUMA);
         if( err == 0 || err == 1 ) {//err value willbe 1 if cms is default.(SPECIAL case)
             response["luma"] = luma;
@@ -3115,13 +3147,17 @@ namespace Plugin {
             LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
             returnResponse(false);
         }
-
+#if 0
         if( !isCapablityCheckPassed( pqmode, source, format, "DimmingMode" )) {
             LOGERR("%s: CapablityCheck failed for DimmingMode\n", __FUNCTION__);
             returnResponse(false);
         }
+#endif
+        if (getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex) == -1) {
+            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
-        getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
 
         int err = getLocalparam("DimmingMode",formatIndex,pqIndex,sourceIndex,dimmingMode, PQ_PARAM_DIMMINGMODE);
         if( err == 0 ) {
@@ -3301,7 +3337,7 @@ namespace Plugin {
             for (index = 0; index < supportedDimmingMode.size(); index++)
                 supportedDimmingModeArray.Add(supportedDimmingMode[index]);
 
-            response["supportedDimmingModeInfo"]=supportedDimmingModeArray;
+            response["options"]=supportedDimmingModeArray;
              
             if (((pqmode.front()).compare("none") != 0)) {
                 for (index = 0; index < pqmode.size(); index++) {
@@ -3542,7 +3578,7 @@ namespace Plugin {
             for (index = 0; index < range.size(); index++)
                 rangeArray.Add(range[index]);
 
-            response["autoBacklightControlInfo"]=rangeArray;
+            response["options"]=rangeArray;
 
             if ((pqmode.front()).compare("none") != 0) {
                 for (index = 0; index < pqmode.size(); index++) {
@@ -3608,15 +3644,20 @@ namespace Plugin {
             LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
             returnResponse(false);
         }
-
+#if 0
         if( !isCapablityCheckPassed( pqmode, source, format, "DolbyVisionMode" )) {
             LOGERR("%s: CapablityCheck failed for DolbyVisionMode\n", __FUNCTION__);
             returnResponse(false);
         }
-
+#endif
         // Since it is dolby vision mode, to should get only for dolby vision format
         format = "dv";
-        getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
+
+        if (getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex) == -1) {
+            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+            returnResponse(false);
+        }
+
         err = getLocalparam("DolbyVisionMode",formatIndex,pqIndex,sourceIndex,dolbyMode, PQ_PARAM_DOLBY_MODE);
         if( err == 0 ) {
             response["dolbyVisionMode"] = getDolbyModeStringFromEnum((tvDolbyMode_t)dolbyMode);
@@ -3761,7 +3802,7 @@ namespace Plugin {
             for (index = 0; index < range.size(); index++)
                 rangeArray.Add(range[index]);
 
-            response["DolbyVisionModeInfo"]=rangeArray;
+            response["options"]=rangeArray;
             if ((pqmode.front()).compare("none") != 0) {
                 for (index = 0; index < pqmode.size(); index++) {
                     pqmodeArray.Add(pqmode[index]);
@@ -4511,13 +4552,16 @@ namespace Plugin {
             LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
             returnResponse(false);
         }
-
+#if 0
         if( !isCapablityCheckPassed( dummyPqmode, source, format, "PictureMode" )) {
             LOGERR("%s: CapablityCheck failed for PictureMode\n", __FUNCTION__);
             returnResponse(false);
         }
-
-        getParamIndex(source, dummyPqmode,format,current_source,pqIndex,current_format);
+#endif
+        if (getParamIndex(source,dummyPqmode,format,current_source,pqIndex,current_format) == -1) {
+            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
         current_format = ConvertHDRFormatToContentFormat((tvhdr_type_t)current_format);
 
@@ -4823,13 +4867,17 @@ namespace Plugin {
             LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
             returnResponse(false);
         }
-
+#if 0
         if( !isCapablityCheckPassed( pqmode, source, format, "LowLatencyState" )) {
             LOGERR("%s: CapablityCheck failed for LowLatencyState\n", __FUNCTION__);
             returnResponse(false);
         }
+#endif
+        if (getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex) == -1) {
+            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+            returnResponse(false);
+        }
 
-        getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex);
         int err = getLocalparam("LowLatencyState",formatIndex,pqIndex,sourceIndex,lowlatencystate, PQ_PARAM_LOWLATENCY_STATE);
         if( err == 0 ) {
             response["lowLatencyState"] = std::to_string(lowlatencystate);
@@ -5885,7 +5933,7 @@ namespace Plugin {
         return ret;
     }
 
-    void AVOutputTV::getParamIndex(string source,string pqmode,string format,int& sourceIndex,int& pqmodeIndex,int& formatIndex)
+    int AVOutputTV::getParamIndex(string source,string pqmode,string format,int& sourceIndex,int& pqmodeIndex,int& formatIndex)
     {
 	LOGINFO("Entry : %s pqmode : %s source :%s format :%s\n",__FUNCTION__,pqmode.c_str(),source.c_str(),format.c_str());
 
@@ -5922,6 +5970,9 @@ namespace Plugin {
         }
         LOGINFO("%s: Exit sourceIndex = %d pqmodeIndex = %d formatIndex = %d\n",__FUNCTION__,sourceIndex,pqmodeIndex,formatIndex);
 
+        if (sourceIndex == tvSource_MAX || pqmodeIndex == tvPictureMode_MAX || formatIndex == HDR_TYPE_MAX) return -1;
+
+	return 0;
     }
 
     tvDataComponentColor_t AVOutputTV::getComponentColorEnum(std::string colorName)
