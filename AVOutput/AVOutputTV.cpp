@@ -5268,7 +5268,17 @@ namespace Plugin {
         // converting pq to valid paramter format
         if (pqmode == "global")
         {
-            if (FetchCapablities(pqparam, source, pqmode, format) != 0) return -1;
+            std::string localSource;
+            std::string localPqmode;
+            std::string localFormat;
+            if (FetchCapablities(pqparam, localSource, localPqmode, localFormat) == 0) {
+                pqmode = localPqmode;
+            }
+            else
+            {
+                LOGINFO("%s, Failed to get picturemode capability\n", __FUNCTION__);
+                return -1;
+            }
 #if 0
             pic_modes_t *availableModes;
             unsigned short num_pqmodes = 0;
@@ -5326,7 +5336,17 @@ namespace Plugin {
             if (temp_vec.size() != 0 ) temp_vec.clear();
             if (!temp_string.empty()) temp_string.clear();
 #endif
-            if (FetchCapablities(pqparam, source, pqmode, format) != 0) return -1;
+            std::string localSource;
+            std::string localPqmode;
+            std::string localFormat;
+            if (FetchCapablities(pqparam, localSource, localPqmode, localFormat) == 0) {
+                source = localSource;
+            }
+            else
+            {
+                LOGINFO("%s, Failed to get source capability\n", __FUNCTION__);
+                return -1;
+            }
         } 
         else if (source == "current") 
         {
@@ -5373,7 +5393,17 @@ namespace Plugin {
             if (temp_vec.size() != 0 ) temp_vec.clear();
             if (!temp_string.empty()) temp_string.clear();
 #endif
-            if (FetchCapablities(pqparam, source, pqmode, format) != 0) return -1;
+            std::string localSource;
+            std::string localPqmode;
+            std::string localFormat;
+            if (FetchCapablities(pqparam, localSource, localPqmode, localFormat) == 0) {
+                format = localFormat;
+            }
+            else
+            {
+                LOGINFO("%s, Failed to get format capability\n", __FUNCTION__);
+                return -1;
+            }
         }
 	else if (format == "current") 
 	{
