@@ -78,11 +78,11 @@ namespace Plugin {
         switch(content) {
             case tvContentType_FMM:
                 LOGINFO("Content Type: FMM\n");
-                strValue = "0x01";
+                strValue = "true";
                 break;
             default:
                 LOGINFO("Content Type: NONE\n");
-                strValue = "0x00";
+                strValue = "false";
                 break;
         } 
         return strValue;
@@ -351,7 +351,7 @@ namespace Plugin {
         registerMethod("getHue", &AVOutputTV::getHue, this);
         registerMethod("setHue", &AVOutputTV::setHue, this);
         registerMethod("resetHue", &AVOutputTV::resetHue, this);
-	registerMethod("gethueCaps", &AVOutputTV::getHueCaps, this);
+	registerMethod("getHueCaps", &AVOutputTV::getHueCaps, this);
         registerMethod("getColorTemperature", &AVOutputTV::getColorTemperature, this);
         registerMethod("setColorTemperature", &AVOutputTV::setColorTemperature, this);
         registerMethod("resetColorTemperature", &AVOutputTV::resetColorTemperature, this);
@@ -394,7 +394,7 @@ namespace Plugin {
 	registerMethod("getVideoFormat", &AVOutputTV::getVideoFormat, this);
 	registerMethod("getVideoSource", &AVOutputTV::getVideoSource, this);
 	registerMethod("getVideoFrameRate", &AVOutputTV::getVideoFrameRate, this);
-	registerMethod("getVideoResolution", &AVOutputTV::getVideoFrameRate, this);
+	registerMethod("getVideoResolution", &AVOutputTV::getVideoResolution, this);
 	
 	registerMethod("getWBInfo", &AVOutputTV::getWBInfo, this);
 	registerMethod("getWBCtrl", &AVOutputTV::getWBCtrl, this);
