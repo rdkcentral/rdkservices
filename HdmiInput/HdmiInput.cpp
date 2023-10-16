@@ -227,11 +227,24 @@ namespace WPEFramework
         {
             LOGINFOMETHOD();
             returnIfParamNotFound(parameters, "portId");
-
-            string sPortId = parameters["portId"].String();
-            int portId = 0;
-            try {
-                portId = stoi(sPortId);
+            
+	    string sPortId = parameters["portId"].String();
+            bool audioMix = parameters["requestAudioMix"].Boolean();
+	    int portId = 0;    
+	    
+	    //planeType = 0 -  primary, 1 - secondary video plane type
+	    int planeType = 0;
+	    try {
+	        portId = stoi(sPortId);
+		if (parameters.HasLabel("plane")){
+                     string sPlaneType = parameters["plane"].String();
+                     planeType = stoi(sPlaneType);
+		     if(!(planeType == 0 || planeType == 1))// planeType has to be primary(0) or secondary(1)
+		     {
+			  LOGWARN("planeType is invalid\n");
+			  returnResponse(false);
+	             }
+                }
             }catch (const std::exception& err) {
 		    LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
 		    returnResponse(false);
@@ -239,9 +252,9 @@ namespace WPEFramework
             bool success = true;
             try
             {
-                device::HdmiInput::getInstance().selectPort(portId);
+                device::HdmiInput::getInstance().selectPort(portId,audioMix,planeType);
             }
-            catch (const device::Exception& err)
+	    catch (const device::Exception& err)
             {
                 LOG_DEVICE_EXCEPTION1(sPortId);
                 success = false;
