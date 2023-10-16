@@ -2,7 +2,7 @@
 <a name="ScreenCapture_Plugin"></a>
 # ScreenCapture Plugin
 
-**Version: [1.0.1](https://github.com/rdkcentral/rdkservices/blob/main/ScreenCapture/CHANGELOG.md)**
+**Version: [1.0.2](https://github.com/rdkcentral/rdkservices/blob/main/ScreenCapture/CHANGELOG.md)**
 
 A org.rdk.ScreenCapture plugin for Thunder framework.
 
