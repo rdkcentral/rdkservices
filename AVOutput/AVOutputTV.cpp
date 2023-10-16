@@ -4453,7 +4453,7 @@ namespace Plugin {
                 // printf("Added Mode %s %s \n",pictureModes[count].name,SupportedPicModes[count].String().c_str());
             }
 
-            response["SupportedPicmodes"] = SupportedPicModes;
+            response["supportedPictureModes"] = SupportedPicModes;
             LOGINFO("Exit\n");
             returnResponse(true);
         }
