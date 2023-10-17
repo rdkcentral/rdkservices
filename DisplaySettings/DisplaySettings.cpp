@@ -2957,6 +2957,7 @@ namespace WPEFramework {
                 try
                 {
                         device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+			cache_volumelevel = (int)aPort.getLevel();
                         aPort.setLevel(level);
                         if(cache_volumelevel != (int)level)
                         {
