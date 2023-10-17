@@ -2,7 +2,7 @@
 <a name="TextToSpeech_Plugin"></a>
 # TextToSpeech Plugin
 
-**Version: [1.0.13](https://github.com/rdkcentral/rdkservices/blob/main/TextToSpeech/CHANGELOG.md)**
+**Version: [1.0.15](https://github.com/rdkcentral/rdkservices/blob/main/TextToSpeech/CHANGELOG.md)**
 
 A org.rdk.TextToSpeech plugin for Thunder framework.
 
@@ -751,7 +751,8 @@ No Events
 | params.accesslist | array |  |
 | params.accesslist[#] | object |  |
 | params.accesslist[#].method | string | Method of TTS function to be performed |
-| params.accesslist[#].apps | string | Name of client application |
+| params.accesslist[#].apps | array | List of client application |
+| params.accesslist[#].apps[#] | string |  |
 
 ### Result
 
@@ -773,7 +774,9 @@ No Events
         "accesslist": [
             {
                 "method": "speak",
-                "apps": "WebApp"
+                "apps": [
+                    "App1"
+                ]
             }
         ]
     }
@@ -874,7 +877,6 @@ Triggered when the speech completes.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.speechid | number | The speech ID |
-| params.text | string | The text input |
 
 ### Example
 
@@ -883,8 +885,7 @@ Triggered when the speech completes.
     "jsonrpc": "2.0",
     "method": "client.events.onspeechcomplete",
     "params": {
-        "speechid": 1,
-        "text": "speech_1"
+        "speechid": 1
     }
 }
 ```
@@ -972,7 +973,6 @@ Triggered when the speech start.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.speechid | number | The speech ID |
-| params.text | string | The text input |
 
 ### Example
 
@@ -981,8 +981,7 @@ Triggered when the speech start.
     "jsonrpc": "2.0",
     "method": "client.events.onspeechstart",
     "params": {
-        "speechid": 1,
-        "text": "speech_1"
+        "speechid": 1
     }
 }
 ```
@@ -1046,7 +1045,6 @@ Triggered when the text to speech conversion is about to start. It provides the 
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.speechid | number | The speech ID |
-| params.text | string | The text input |
 
 ### Example
 
@@ -1055,8 +1053,7 @@ Triggered when the text to speech conversion is about to start. It provides the 
     "jsonrpc": "2.0",
     "method": "client.events.onwillspeak",
     "params": {
-        "speechid": 1,
-        "text": "speech_1"
+        "speechid": 1
     }
 }
 ```

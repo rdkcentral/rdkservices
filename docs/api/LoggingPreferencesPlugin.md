@@ -2,7 +2,7 @@
 <a name="LoggingPreferencesPlugin"></a>
 # LoggingPreferencesPlugin
 
-**Version: [1.0.1](https://github.com/rdkcentral/rdkservices/blob/main/LoggingPreferences/CHANGELOG.md)**
+**Version: [1.0.2](https://github.com/rdkcentral/rdkservices/blob/main/LoggingPreferences/CHANGELOG.md)**
 
 A org.rdk.LoggingPreferences plugin for Thunder framework.
 
