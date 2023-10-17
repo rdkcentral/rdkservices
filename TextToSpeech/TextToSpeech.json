@@ -89,7 +89,10 @@
         "apps": {
             "summary": "List of client application",
             "type": "array",
-            "example": ["App1","App2"]
+            "items": {
+                "type": "string",
+                "example": "App1"
+           }
         }
     },
     "methods": {
