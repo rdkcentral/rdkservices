@@ -424,6 +424,9 @@ typedef struct _DSMgr_EventData_t {
                int audio_output_delay;
                int video_latency;
         }hdmi_in_av_latency; /*HDMI in AVLatency change*/
+	struct _DISPLAY_FRAMERATE_CHANGE {
+            char framerate[20];
+        }DisplayFrameRateChange;
     } data;
 } IARM_Bus_DSMgr_EventData_t;
 
