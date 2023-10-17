@@ -2196,13 +2196,17 @@ namespace WPEFramework {
          */
         void SystemServices::onFirmwareUpdateStateChange(int newState)
         {
-            JsonObject params;
+            if (newState != m_FwUpdateState_LatestEvent) {
+                JsonObject params;
+                const FirmwareUpdateState firmwareUpdateState = (FirmwareUpdateState)newState;
+                m_FwUpdateState_LatestEvent=(int)firmwareUpdateState;
+                params["firmwareUpdateStateChange"] = (int)firmwareUpdateState;
+                LOGINFO("New firmwareUpdateState = %d\n", (int)firmwareUpdateState);
+                sendNotify(EVT_ONFIRMWAREUPDATESTATECHANGED, params);
 
-            const FirmwareUpdateState firmwareUpdateState = (FirmwareUpdateState)newState;
-            m_FwUpdateState_LatestEvent=(int)firmwareUpdateState;
-            params["firmwareUpdateStateChange"] = (int)firmwareUpdateState;
-            LOGINFO("New firmwareUpdateState = %d\n", (int)firmwareUpdateState);
-            sendNotify(EVT_ONFIRMWAREUPDATESTATECHANGED, params);
+            } else {
+                LOGINFO("Got event with same irmwareUpdateState = %d\n", newState);
+            }
         }
 
         /***
