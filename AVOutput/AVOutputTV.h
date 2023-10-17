@@ -62,7 +62,7 @@
 #define AVOUTPUT_DIMMING_MODE_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.DimmingMode"
 #define AVOUTPUT_PICTUREMODE_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.PictureMode"
 #define AVOUTPUT_PICTUREMODE_STRING_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.PictureModeString"
-#define AVOUTPUT_ASPECTRATIO_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.AspectRatio"
+#define AVOUTPUT_ASPECTRATIO_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.ZoomMode"
 #define AVOUTPUT_BACKLIGHT_CONTROL_USE_GBF_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.UseGBFForBacklightControl"
 #define AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.Source"
 
@@ -102,10 +102,10 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         DECLARE_JSON_RPC_METHOD(getWBInfo )
         DECLARE_JSON_RPC_METHOD(getWBCtrl )
         DECLARE_JSON_RPC_METHOD(getSupportedPictureModes )
-        DECLARE_JSON_RPC_METHOD(getSupportedVideoSources)
-        DECLARE_JSON_RPC_METHOD(getSupportedVideoFormats)
-        DECLARE_JSON_RPC_METHOD(getSupportedVideoFrameRates)
-        DECLARE_JSON_RPC_METHOD(getSupportedVideoResolutions)
+        DECLARE_JSON_RPC_METHOD(getVideoSourceCaps)
+        DECLARE_JSON_RPC_METHOD(getVideoFormatCaps)
+        DECLARE_JSON_RPC_METHOD(getVideoFrameRateCaps)
+        DECLARE_JSON_RPC_METHOD(getVideoResolutionCaps)
         DECLARE_JSON_RPC_METHOD(getPictureMode )
         DECLARE_JSON_RPC_METHOD(getVideoFormat)
         DECLARE_JSON_RPC_METHOD(getVideoSource)

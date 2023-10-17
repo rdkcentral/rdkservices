@@ -402,7 +402,7 @@ namespace Plugin {
 	registerMethod("resetWBCtrl", &AVOutputTV::resetWBCtrl, this);
 
 	registerMethod("getZoomMode", &AVOutputTV::getZoomMode, this);
-        registerMethod("getZoomMode", &AVOutputTV::setZoomMode, this);
+        registerMethod("setZoomMode", &AVOutputTV::setZoomMode, this);
         registerMethod("resetZoomMode", &AVOutputTV::resetZoomMode, this);
         registerMethod("getZoomModeCaps", &AVOutputTV::getZoomModeCaps, this);
 
@@ -412,10 +412,10 @@ namespace Plugin {
 	registerMethod("resetPictureMode", &AVOutputTV::resetPictureMode, this);
 	registerMethod("getPictureModeCaps", &AVOutputTV::getPictureModeCaps, this);
         registerMethod("getSupportedPictureModes", &AVOutputTV::getSupportedPictureModes, this);
-        registerMethod("getSupportedVideoSources", &AVOutputTV::getSupportedVideoSources, this);
-        registerMethod("getSupportedVideoFormats", &AVOutputTV::getSupportedVideoFormats, this);
-        registerMethod("getSupportedVideoFrameRates", &AVOutputTV::getSupportedVideoFrameRates, this);
-        registerMethod("getSupportedVideoResolutions", &AVOutputTV::getSupportedVideoResolutions, this);
+        registerMethod("getVideoSourceCaps", &AVOutputTV::getVideoSourceCaps, this);
+        registerMethod("getVideoFormatCaps", &AVOutputTV::getVideoFormatCaps, this);
+        registerMethod("getVideoFrameRateCaps", &AVOutputTV::getVideoFrameRateCaps, this);
+        registerMethod("getVideoResolutionCaps", &AVOutputTV::getVideoResolutionCaps, this);
 	registerMethod("enableWBMode", &AVOutputTV::enableWBMode, this);
 
 	registerMethod("setBacklightFade", &AVOutputTV::setBacklightFade, this);
@@ -4459,27 +4459,27 @@ namespace Plugin {
         }
     }
 
-    uint32_t AVOutputTV::getSupportedVideoSources(const JsonObject& parameters, JsonObject& response) {
+    uint32_t AVOutputTV::getVideoSourceCaps(const JsonObject& parameters, JsonObject& response) {
 	    LOGINFO("Entry\n");
-	    response["supportedVideoSource"] = getSupportedVideoSource();
+	    response["options"] = getSupportedVideoSource();
 	    returnResponse(true); 
     }
 
-    uint32_t AVOutputTV::getSupportedVideoFormats(const JsonObject& parameters, JsonObject& response) {
+    uint32_t AVOutputTV::getVideoFormatCaps(const JsonObject& parameters, JsonObject& response) {
             LOGINFO("Entry\n");
-            response["supportedVideoFormat"] = getAvailableVideoFormat();
+            response["options"] = getAvailableVideoFormat();
             returnResponse(true);
     }
 
-    uint32_t AVOutputTV::getSupportedVideoFrameRates(const JsonObject& parameters, JsonObject& response) {
+    uint32_t AVOutputTV::getVideoFrameRateCaps(const JsonObject& parameters, JsonObject& response) {
             LOGINFO("Entry\n");
-            response["supportedVideoFrameRate"] = getSupportedVideoFrameRate();
+            response["options"] = getSupportedVideoFrameRate();
             returnResponse(true);
     }
 
-    uint32_t AVOutputTV::getSupportedVideoResolutions(const JsonObject& parameters, JsonObject& response) {
+    uint32_t AVOutputTV::getVideoResolutionCaps(const JsonObject& parameters, JsonObject& response) {
             LOGINFO("Entry\n");
-            response["supportedVideoResolution"] = getSupportedVideoResolution();
+            response["options"] = getSupportedVideoResolution();
             returnResponse(true);
     }
 
@@ -4503,6 +4503,7 @@ namespace Plugin {
 
         JsonArray sourceArray;
         JsonArray formatArray;
+        JsonArray rangeArray;
         
 	std::vector<std::string> range;
 	std::vector<std::string> source;
@@ -4517,6 +4518,14 @@ namespace Plugin {
         }
         else
         {
+      
+            if ((range.front()).compare("none") != 0) {
+                for (index = 0; index < range.size(); index++) {
+                    rangeArray.Add(range[index]);
+                }
+                response["options"]=rangeArray;
+            }
+ 
             if ((source.front()).compare("none") != 0) {
                 for (index = 0; index < source.size(); index++) {
                     sourceArray.Add(source[index]);
