@@ -23,9 +23,13 @@
 #include <string>
 #include <vector>
 #include <gst/gst.h>
+#include <gst/app/gstappsink.h>
+#include <gst/app/gstappsrc.h>
 #include <glib.h>
 #include <pthread.h>
 #include <stdint.h>
+
+#define DEFAULT_MAX_PUSH_BUFFER_SIZE    ( 1 * 1024 * 1024 )
 
 class MiracastGstPlayer
 {
@@ -40,18 +44,29 @@ public:
     int getPlayerstate();
     bool setUri(std::string ipaddr, std::string port);
     std::string getUri();
-    double getDuration();
-    double getCurrentPosition();
-    bool seekTo(double seconds);
-    double get_current_position();
+    double getDuration(GstElement *pipeline = nullptr);
+    bool seekTo(double seconds,GstElement *pipeline = nullptr);
+    double getCurrentPosition(GstElement *pipeline = nullptr);
     bool get_player_statistics();
-    void print_pipeline_state();
+    void print_pipeline_state(GstElement *pipeline = nullptr);
     GQueue m_elts;
     static void element_setup(GstElement * playbin, GstElement * element, GQueue * elts);
     static std::string parse_opt_flag( std::string file_name , bool integer_check = false );
 
 private:
-    GstElement *m_pipeline{nullptr};
+    GstElement  *m_pipeline{nullptr};
+
+    GstElement  *m_udpsrc2appsink_pipeline{nullptr};
+    GstElement  *m_playbin2appsrc_pipeline{nullptr};
+    GstElement  *m_udpsrc{nullptr};
+    GstElement  *m_appsink{nullptr};
+    GstElement  *m_appsrc{nullptr};
+    gboolean    bPushData;
+    guint64     m_max_pushbuffer_size{DEFAULT_MAX_PUSH_BUFFER_SIZE};
+    guint64     m_current_pushbuffer_size{0};
+    guint8      *m_push_buffer_ptr{nullptr};
+    guint8      *m_current_buffer_ptr{nullptr};
+
     std::string m_uri;
     int m_bus_watch_id{-1};
     bool m_bBuffering;
@@ -74,6 +89,13 @@ private:
     bool updateVideoSinkRectangle(void);
     static gboolean busMessageCb(GstBus *bus, GstMessage *msg, gpointer user_data);
     bool changePipelineState(GstState state) const;
+
+    static gboolean on_playbin2appsrc_bus_message(GstBus *bus, GstMessage *msg, gpointer user_data);
+    static gboolean on_udpsrc2appsink_bus_message(GstBus *bus, GstMessage *msg, gpointer user_data);
+    static void playbin_source_setup(GstElement *pipeline, GstElement *source, gpointer user_data);
+    static void appsrc_need_data(GstAppSrc *src, guint length, gpointer user_data);
+    static void appsrc_enough_data(GstAppSrc *src, gpointer user_data);
+    static GstFlowReturn on_new_sample_from_udpsrc(GstElement *element, gpointer user_data);
 
     static void *playbackThread(void *ctx);
     GMainLoop *m_main_loop{nullptr};
