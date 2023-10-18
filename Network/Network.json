@@ -443,49 +443,6 @@
                 ]
             }
         },
-        "getInternetConnectionState":{
-            "summary": "Returns the internet connection state. The possible internet connection state are as follows. \n* `0`: NO_INTERNET - No internet connection  \n* `1`: LIMITED_INTERNET - Internet connection limited  \n* `2`: CAPTIVE_PORTAL - Captive portal found  \n* `3`: FULLY_CONNECTED - Fully connected to internet",
-            "result": {
-                "type": "object",
-                "properties": {
-                    "state": {
-                        "$ref": "#/definitions/state"
-                    },
-                     "URI": {
-                        "summary": "Captive portal URI",
-                        "type": "string",
-                        "example": "http://10.0.0.1/captiveportal.jst"
-                    },
-                    "success":{
-                        "$ref": "#/common/success"
-                    }
-                },
-                "required": [
-                    "state",
-                    "success"
-                ]
-            }
-        },
-        "getCaptivePortalURI":{
-            "summary": "Returns the captive portal URI if connected to any captive portal network.",
-            "result": {
-                "type": "object",
-                "properties": {
-                     "URI": {
-                        "summary": "Captive portal URI",
-                        "type": "string",
-                        "example": "http://10.0.0.1/captiveportal.jst"
-                    },
-                    "success":{
-                        "$ref": "#/common/success"
-                    }
-                },
-                "required": [
-                    "URI",
-                    "success"
-                ]
-            }
-        },
         "startConnectivityMonitoring":{
             "summary": "Enable a continuous monitoring of internet connectivity with heart beat interval thats given.",
             "events":{

@@ -45,7 +45,6 @@ typedef enum _NetworkManager_EventId_t {
     IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS,
     IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS,
     IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE,
-    IARM_BUS_NETWORK_MANAGER_EVENT_INTERNET_CONNECTION_CHANGED,
     IARM_BUS_NETWORK_MANAGER_MAX,
 } IARM_Bus_NetworkManager_EventId_t;
 
@@ -213,9 +212,7 @@ namespace WPEFramework {
             uint32_t getSTBIPFamily(const JsonObject& parameters, JsonObject& response);
             uint32_t isConnectedToInternet(const JsonObject& parameters, JsonObject& response);
             uint32_t setConnectivityTestEndpoints(const JsonObject& parameters, JsonObject& response);
-            uint32_t getInternetConnectionState(const JsonObject& parameters, JsonObject& response);
             uint32_t startConnectivityMonitoring(const JsonObject& parameters, JsonObject& response);
-            uint32_t getCaptivePortalURI(const JsonObject& parameters, JsonObject& response);
             uint32_t stopConnectivityMonitoring(const JsonObject& parameters, JsonObject& response);
             uint32_t getPublicIP(const JsonObject& parameters, JsonObject& response);
             uint32_t setStunEndPoint(const JsonObject& parameters, JsonObject& response);
@@ -304,9 +301,6 @@ namespace WPEFramework {
             std::atomic<bool> m_useIPv4InternetCache;
             std::atomic<bool> m_useIPv6InternetCache;
             std::atomic<bool> m_useInternetCache;
-            std::atomic<bool> m_useIPv4ConnectionStateCache;
-            std::atomic<bool> m_useIPv6ConnectionStateCache;
-            std::atomic<bool> m_useConnectionStateCache;
             string m_stbIpCache;
             std::atomic<bool> m_useDefInterfaceCache;
             string m_defInterfaceCache;
@@ -314,9 +308,6 @@ namespace WPEFramework {
             IARM_BUS_NetSrvMgr_isConnectedtoInternet_t m_ipv4InternetCache;
             IARM_BUS_NetSrvMgr_isConnectedtoInternet_t m_ipv6InternetCache;
             IARM_BUS_NetSrvMgr_isConnectedtoInternet_t m_InternetCache;
-            IARM_BUS_NetSrvMgr_Iface_InternetConnectivityStatus_t m_ipv4ConnectionStateCache;
-            IARM_BUS_NetSrvMgr_Iface_InternetConnectivityStatus_t m_ipv6ConnectionStateCache;
-            IARM_BUS_NetSrvMgr_Iface_InternetConnectivityStatus_t m_ConnectionStateCache;
 
             IARM_BUS_NetSrvMgr_Iface_Settings_t m_ipv4WifiCache;
             IARM_BUS_NetSrvMgr_Iface_Settings_t m_ipv6WifiCache;

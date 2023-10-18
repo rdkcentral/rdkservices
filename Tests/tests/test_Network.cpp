@@ -62,7 +62,6 @@ protected:
         IARM_EventHandler_t interfaceConnection;
         IARM_EventHandler_t interfaceIpaddress;
         IARM_EventHandler_t defaultInterface;
-        IARM_EventHandler_t internetStateChanged;
 
         EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call_with_IPCTimeout)
             .Times(::testing::AnyNumber())
@@ -87,9 +86,6 @@ protected:
             }
             if ((string(IARM_BUS_NM_SRV_MGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE)) {
                 defaultInterface = handler;
-            }
-            if ((string(IARM_BUS_NM_SRV_MGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_NETWORK_MANAGER_EVENT_INTERNET_CONNECTION_CHANGED)) {
-                internetStateChanged = handler;
             }
             return IARM_RESULT_SUCCESS;
         }));
@@ -116,7 +112,6 @@ TEST_F(NetworkTest, RegisteredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getPublicIP")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getSTBIPFamily")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setConnectivityTestEndpoints")));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getCaptivePortalURI")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("startConnectivityMonitoring")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("stopConnectivityMonitoring")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setDefaultInterface")));
@@ -363,6 +358,7 @@ TEST_F(NetworkTest, setConnectivityTestEndpoints)
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
+/*
 TEST_F(NetworkTest, getInternetConnectionState)
 {
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
@@ -438,6 +434,7 @@ TEST_F(NetworkTest, getCaptivePortalURI)
 	EXPECT_THAT(response, ::testing::ContainsRegex(_T("10.0.0.1")));
 	EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"success\":true")));
 }
+*/
 
 TEST_F(NetworkTest, startConnectivityMonitoring)
 {
