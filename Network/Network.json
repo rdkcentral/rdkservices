@@ -402,16 +402,16 @@
             }
         },
         "setConnectivityTestEndpoints":{
-            "summary": "Set the list of endpoints used for a connectivity test. Endpoint should return HTTP Status 204 (No Content) for successful connection and Maximum number of endpoints is 5 . \n\nDefault endpoints:-\n* http://clients3.google.com/generate_204 \n* http://edge-http.microsoft.com/captiveportal/generate_204 \n* http://gstatic.com/generate_204 ",
+            "summary": "Specify a custom list of endpoints for connectivity testing. When both isConnectedToInternet and startConnectivityMonitoring APIs are invoked, these custom endpoints will be used instead of the default ones",
             "params": {
                 "type":"object",
                 "properties": {
                     "endpoints": {
-                        "summary": "A list of endpoints to test",
+                        "summary": "A list of endpoints to test internet connectivity",
                         "type": "array",
                         "items": {
                             "type": "string",
-                            "example": "http://clients3.google.com/generate_204"
+                            "example": "google.com"
                         }
                     }
                 },
@@ -424,7 +424,15 @@
             }
         },
         "isConnectedToInternet":{
-            "summary": "Whether the device has internet connectivity. This API might take up to 2s to validate internet connectivity.",
+            "summary": "This API verifies whether the device is connected to the internet, and might require up to 2 seconds for the validation. If no custom endpoints are set, it will utilize the default endpoints as specified in the plugin configuration file.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "ipversion": {
+                        "$ref": "#/definitions/ipversion"
+                    }
+                }
+            },
             "result": {
                 "type": "object",
                 "properties": {
@@ -444,7 +452,7 @@
             }
         },
         "startConnectivityMonitoring":{
-            "summary": "Enable a continuous monitoring of internet connectivity with heart beat interval thats given.",
+            "summary": "This API enables continuous monitoring of internet connectivity with a specified heartbeat interval. Before initiating the connectivity monitoring, it is necessary to set the monitoring endpoint using the setConnectivityTestEndpoints API; otherwise, an error will be returned.",
             "events":{
                  "onInternetStatusChange" : "Triggered when internet connection state changed."
             },
@@ -452,7 +460,7 @@
                 "type":"object",
                 "properties": {
                     "interval": {
-                        "summary": "Interval in sec. Default value 600 sec and interval should be greater than 5 sec",
+                        "summary": "Interval in sec. interval should be greater than 5 sec",
                         "type": "number",
                         "example": "30"
                     }
@@ -1068,7 +1076,7 @@
             }
         },
         "onInternetStatusChange":{
-            "summary": "Triggered when internet connection state changed.The possible internet connection status are `NO_INTERNET`, `LIMITED_INTERNET`, `CAPTIVE_PORTAL`, `FULLY_CONNECTED`",
+            "summary": "Triggered when internet connection state changed.The possible internet connection status are `NO_INTERNET`, `FULLY_CONNECTED`",
             "params": {
                 "type": "object",
                 "properties": {

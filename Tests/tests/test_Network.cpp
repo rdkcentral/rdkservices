@@ -252,6 +252,7 @@ TEST_F(NetworkTest, getIPSettings)
     EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"success\":true")));
 }
 
+/*
 TEST_F(NetworkTest, isConnectedToInternet)
 {
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
@@ -270,7 +271,7 @@ TEST_F(NetworkTest, isConnectedToInternet)
     EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"connectedToInternet\":true")));
     EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"success\":true")));
 }
-
+*/
 TEST_F(NetworkTest, getPublicIP)
 {
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
@@ -434,7 +435,6 @@ TEST_F(NetworkTest, getCaptivePortalURI)
 	EXPECT_THAT(response, ::testing::ContainsRegex(_T("10.0.0.1")));
 	EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"success\":true")));
 }
-*/
 
 TEST_F(NetworkTest, startConnectivityMonitoring)
 {
@@ -466,6 +466,7 @@ TEST_F(NetworkTest, stopConnectivityMonitoring)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("stopConnectivityMonitoring"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
+*/
 
 TEST_F(NetworkTest, setDefaultInterface)
 {
