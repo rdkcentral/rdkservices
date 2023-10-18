@@ -470,6 +470,7 @@ gboolean MiracastGstPlayer::on_udpsrc2appsink_bus_message(GstBus *bus, GstMessag
             MIRACASTLOG_ERROR("Error received from element [%s | %s | %s].", GST_OBJECT_NAME(msg->src), error->message, info ? info : "none");
             g_error_free(error);
             g_free(info);
+            GST_DEBUG_BIN_TO_DOT_FILE((GstBin *)self->m_udpsrc2appsink_pipeline, GST_DEBUG_GRAPH_SHOW_ALL, "miracast_udpsrc2appsink_error");
             gst_element_set_state(self->m_udpsrc2appsink_pipeline, GST_STATE_READY);
             g_main_loop_quit(self->m_main_loop);
             break;
@@ -584,6 +585,7 @@ gboolean MiracastGstPlayer::on_playbin2appsrc_bus_message(GstBus *bus, GstMessag
             MIRACASTLOG_ERROR("Error received from element [%s | %s | %s].", GST_OBJECT_NAME(msg->src), error->message, info ? info : "none");
             g_error_free(error);
             g_free(info);
+            GST_DEBUG_BIN_TO_DOT_FILE((GstBin *)self->m_playbin2appsrc_pipeline, GST_DEBUG_GRAPH_SHOW_ALL, "miracast_playbin2appsrc_error");
             gst_element_set_state(self->m_playbin2appsrc_pipeline, GST_STATE_READY);
             g_main_loop_quit(self->m_main_loop);
             break;
@@ -736,32 +738,10 @@ void MiracastGstPlayer::playbin_source_setup(GstElement *pipeline, GstElement *s
 
 GstFlowReturn MiracastGstPlayer::on_new_sample_from_udpsrc(GstElement *element, gpointer user_data)
 {
-    GstFlowReturn ret = GST_FLOW_ERROR;
+    MIRACASTLOG_TRACE("Entering...\n");
+    GstFlowReturn ret = GST_FLOW_OK;
     MiracastGstPlayer *self = static_cast<MiracastGstPlayer *>(user_data);
     GstSample *sample = gst_app_sink_pull_sample(GST_APP_SINK(element));
-
-    MIRACASTLOG_TRACE("Entering...");
-
-    if (0 == access("/opt/miracast_new_sample", F_OK))
-    {
-        if (sample)
-        {
-            GstBuffer *buffer = gst_sample_get_buffer(sample);
-            guint32 buffer_size = 0;
-            if (buffer)
-            {
-                buffer_size = gst_buffer_get_size(buffer);
-                MIRACASTLOG_TRACE("Buffer size: %u bytes\n", buffer_size);
-            }
-
-            // Push the buffer to appsrc in the second pipeline
-            GstFlowReturn ret;
-            g_signal_emit_by_name(self->m_appsrc, "push-buffer", buffer, &ret);
-            gst_sample_unref(sample);
-            MIRACASTLOG_TRACE("!!!! Sample Buffer pushed to Appsrc [%u] !!!!\n",buffer_size);
-        }
-        return GST_FLOW_OK;
-    }
 
     if ( nullptr == sample )
     {
@@ -779,54 +759,29 @@ GstFlowReturn MiracastGstPlayer::on_new_sample_from_udpsrc(GstElement *element, 
         return GST_FLOW_ERROR;
     }
 
-    guint8  extracted_buffer[2048] = {0};
-    guint64 buffer_size = gst_buffer_get_size(gstbuffer);
-
-    if ( 2048 < buffer_size )
-    {
-        MIRACASTLOG_WARNING("!!!! Exceeds 2K buffer length. So need to handle it !!!!");
-    }
-
-    MIRACASTLOG_TRACE("buffer_size[%llu]",buffer_size);
-
-    guint64 extracted_buffer_size = gst_buffer_extract( gstbuffer,
-                                                        0,
-                                                        extracted_buffer,
-                                                        sizeof(extracted_buffer));
-    if ( 0 == extracted_buffer_size )
+    GstMapInfo extract_map_info;
+    if ( TRUE != gst_buffer_map(gstbuffer, &extract_map_info, GST_MAP_READ))
     {
         MIRACASTLOG_ERROR("Failed to do Extract the Gst Buffer");
-        gst_buffer_unref(gstbuffer);
         gst_sample_unref(sample);
         MIRACASTLOG_TRACE("Exiting..!!!");
         return GST_FLOW_ERROR;
     }
 
-    MIRACASTLOG_TRACE("extracted_buffer_size[%llu]",extracted_buffer_size);
-    MIRACASTLOG_TRACE("m_current_pushbuffer_size[%llu]buffer_size[%llu]m_max_pushbuffer_size[%llu]",
-                            self->m_current_pushbuffer_size,
-                            buffer_size,
-                            self->m_max_pushbuffer_size);
-
-    if (self->m_current_pushbuffer_size + buffer_size <= self->m_max_pushbuffer_size )
+    if (self->m_current_pushbuffer_size + extract_map_info.size < self->m_max_pushbuffer_size )
     {
-        MIRACASTLOG_TRACE("m_current_pushbuffer_size[%llu]buffer_size[%llu]m_max_pushbuffer_size[%llu]",
-                            self->m_current_pushbuffer_size,
-                            buffer_size,
-                            self->m_max_pushbuffer_size);
         // Append the data to the m_push_buffer_ptr
-        memcpy(self->m_current_buffer_ptr, extracted_buffer , extracted_buffer_size );
-        MIRACASTLOG_TRACE("Buffer Copied");
-        self->m_current_buffer_ptr += extracted_buffer_size;
-        self->m_current_pushbuffer_size += extracted_buffer_size;
-
-        MIRACASTLOG_TRACE("m_current_pushbuffer_size[%llu]",self->m_current_pushbuffer_size);
+        memcpy(self->m_current_buffer_ptr, extract_map_info.data , extract_map_info.size );
+        MIRACASTLOG_INFO("=== Received Buffer from [ UDPSrc -> Appsink] Gst Buffer Size : %u\n", extract_map_info.size);
+        //self->m_current_buffer_ptr = (((guint8*)self->m_current_buffer_ptr) + extract_map_info.size);
+        self->m_current_buffer_ptr += extract_map_info.size;
+        self->m_current_pushbuffer_size += extract_map_info.size;
     }
     else
     {
-        MIRACASTLOG_TRACE(" !!!! Entering to push buffer to appsrc !!!! ");
-        // Push the m_push_buffer_ptr as a GstBuffer to appsrc
-        GstBuffer *gstdatapushbuffer = gst_buffer_new_wrapped(self->m_push_buffer_ptr, self->m_current_pushbuffer_size);
+        // Create a new GST buffer wrapped around the CPU buffer
+        void *mem = g_memdup(self->m_push_buffer_ptr, self->m_current_pushbuffer_size);
+        GstBuffer *gstdatapushbuffer = gst_buffer_new_wrapped(mem, self->m_current_pushbuffer_size);
 
         if ( nullptr == gstdatapushbuffer )
         {
@@ -835,27 +790,40 @@ GstFlowReturn MiracastGstPlayer::on_new_sample_from_udpsrc(GstElement *element, 
         }
         else
         {
-            MIRACASTLOG_TRACE("!!!! Before Submit Sample !!!!\n");
-            // Push the buffer to appsrc in the second pipeline
-            g_signal_emit_by_name(self->m_appsrc, "push-buffer", gstdatapushbuffer, &ret);
-            MIRACASTLOG_TRACE("!!!! Submit Sample !!!!\n");
+            // Create a new GST sample using the new buffer
+            GstSample *newSample = gst_sample_new(gstdatapushbuffer, nullptr, nullptr, nullptr);
 
-            // Reset the self->m_push_buffer_ptr
-            self->m_current_buffer_ptr = self->m_push_buffer_ptr;
-            self->m_current_pushbuffer_size = 0;
-
-            // Append the new data to the reset self->m_push_buffer_ptr
-            memcpy(self->m_current_buffer_ptr, extracted_buffer , extracted_buffer_size);
-            self->m_current_buffer_ptr += extracted_buffer_size;
-            self->m_current_pushbuffer_size += extracted_buffer_size;
+            if ( nullptr == newSample )
+            {
+                MIRACASTLOG_ERROR("Failed to do gst_buffer_new_wrapped");
+                ret = GST_FLOW_ERROR;
+            }
+            else
+            {
+                // Push the new sample to the appsrc
+                MIRACASTLOG_TRACE("Before : gst_app_src_push_sample ()");
+                ret = gst_app_src_push_sample(GST_APP_SRC(self->m_appsrc), newSample);
+                MIRACASTLOG_TRACE("After : gst_app_src_push_sample ()");
+                // unref the new sample
+                gst_sample_unref(newSample);
+                MIRACASTLOG_TRACE("New sample pushed to Appsrc, Buffer size [%u]\n ", gst_buffer_get_size(gstdatapushbuffer));
+                // Reset the self->m_push_buffer_ptr
+                self->m_current_buffer_ptr = self->m_push_buffer_ptr;
+                memcpy(self->m_current_buffer_ptr, extract_map_info.data, extract_map_info.size);
+                //self->m_current_buffer_ptr = (((guint8*)self->m_current_buffer_ptr) + extract_map_info.size);
+                self->m_current_buffer_ptr += extract_map_info.size;
+                self->m_current_pushbuffer_size = extract_map_info.size;
+            }
+            // unref the new buffer
             gst_buffer_unref(gstdatapushbuffer);
         }
     }
-    // Release the buffer
-    //gst_buffer_unref(gstbuffer);
+    // Unmap the GStreamer buffer
+    gst_buffer_unmap(gstbuffer, &extract_map_info);
+    // unref the pulled sample
     gst_sample_unref(sample);
     MIRACASTLOG_TRACE("Exiting..!!!");
-    return GST_FLOW_OK;
+    return ret;
 }
 
 #if 0
@@ -988,6 +956,130 @@ bool MiracastGstPlayer::createPipeline()
     return true;
 }
 #else
+
+#if 1
+bool MiracastGstPlayer::createPipeline()
+{
+    GstStateChangeReturn ret;
+    GstBus *bus = nullptr;
+
+    /* create gst pipeline */
+    m_main_loop_context = g_main_context_new();
+    g_main_context_push_thread_default(m_main_loop_context);
+    m_main_loop = g_main_loop_new(m_main_loop_context, FALSE);
+
+    // Create a new pipeline
+    m_udpsrc2appsink_pipeline = gst_pipeline_new("miracast_udpsrc2appsink");
+
+    // Create elements
+    m_udpsrc = gst_element_factory_make("udpsrc", "miracast_udpsrc");
+    m_appsink = gst_element_factory_make("appsink", "miracast_appsink");
+
+    if (!m_udpsrc2appsink_pipeline || !m_udpsrc || !m_appsink)
+    {
+        MIRACASTLOG_ERROR("Not all elements could be created.\n");
+        return -1;
+    }
+
+    // Set the UDP source properties
+    g_object_set(G_OBJECT(m_udpsrc), "port", 1990, NULL);
+
+    /* to be notified of messages from this pipeline, mostly EOS */
+    bus = gst_element_get_bus(m_udpsrc2appsink_pipeline);
+    gst_bus_add_watch(bus, (GstBusFunc)on_udpsrc2appsink_bus_message, this);
+    gst_object_unref(bus);
+    
+    std::string opt_flag_buffer = parse_opt_flag( "/opt/miracast_max_pushbuffer_size" , true );
+
+    if (!opt_flag_buffer.empty())
+    {
+        m_max_pushbuffer_size = std::stoull(opt_flag_buffer.c_str());
+        MIRACASTLOG_INFO("Max pushbuffer size configured as [%llu]\n",m_max_pushbuffer_size);
+    }
+    else
+    {
+        m_max_pushbuffer_size = DEFAULT_MAX_PUSH_BUFFER_SIZE;
+        MIRACASTLOG_INFO("Default Max pushbuffer size configured as [%llu]\n",m_max_pushbuffer_size);
+    }
+    
+    // Configure the appsink
+    g_object_set(G_OBJECT(m_appsink), "emit-signals", TRUE, "sync", FALSE, NULL);
+    
+    //gst_base_sink_set_sync(GST_BASE_SINK_CAST(appsink), false);
+    //MIRACASTLOG_INFO("===> gst_base_sink_set_sync, set to False\n");
+    g_object_set(G_OBJECT(m_appsink), "async", FALSE, NULL);
+
+    m_push_buffer_ptr = (guint8*)(g_malloc0(m_max_pushbuffer_size));
+
+    // Check if memory allocation succeeded
+    if ( nullptr == m_push_buffer_ptr )
+    {
+        MIRACASTLOG_ERROR("Memory allocation failed for [%llu].\n",m_max_pushbuffer_size);
+        return 1;
+    }
+
+    m_current_buffer_ptr = m_push_buffer_ptr;
+
+    // Set up a signal handler for new buffer signals from appsink
+    g_signal_connect(m_appsink, "new-sample", G_CALLBACK(on_new_sample_from_udpsrc), this);
+
+    // Add elements to the pipeline
+    gst_bin_add_many(GST_BIN(m_udpsrc2appsink_pipeline), m_udpsrc, m_appsink, NULL);
+
+    // Link udpsrc to appsink
+    if (!gst_element_link(m_udpsrc, m_appsink))
+    {
+        MIRACASTLOG_ERROR("Elements could not be linked.\n");
+        gst_object_unref(m_udpsrc2appsink_pipeline);
+        return -1;
+    }
+
+    // Set up pipeline
+    m_playbin2appsrc_pipeline = gst_element_factory_make("playbin", "miracast_playbin");
+    if (!m_playbin2appsrc_pipeline)
+    {
+        MIRACASTLOG_ERROR( "Failed to create pipeline.\n");
+    }
+    else
+    {
+        bus = gst_element_get_bus (m_playbin2appsrc_pipeline);
+        gst_bus_add_watch (bus, (GstBusFunc) on_playbin2appsrc_bus_message, this);
+        gst_object_unref (bus);
+
+        // Pipeline created
+        g_object_set(m_playbin2appsrc_pipeline, "uri", "appsrc://", NULL);
+        g_signal_connect(m_playbin2appsrc_pipeline, "source-setup", G_CALLBACK(playbin_source_setup), this);
+    }
+    m_video_sink = gst_element_factory_make("westerossink", nullptr);
+
+    updateVideoSinkRectangle();
+
+    g_object_set(m_playbin2appsrc_pipeline, "video-sink", m_video_sink, nullptr);
+
+    g_main_context_pop_thread_default(m_main_loop_context);
+    pthread_create(&m_playback_thread, nullptr, MiracastGstPlayer::playbackThread, this);
+    pthread_create(&m_player_statistics_tid, nullptr, MiracastGstPlayer::monitor_player_statistics_thread, this);
+
+    ret = gst_element_set_state(m_udpsrc2appsink_pipeline, GST_STATE_PLAYING);
+    ret = gst_element_set_state(m_playbin2appsrc_pipeline, GST_STATE_PLAYING);
+
+    if (ret == GST_STATE_CHANGE_FAILURE)
+    {
+        MIRACASTLOG_ERROR("Unable to set the pipeline to the playing state.");
+        gst_object_unref(m_udpsrc2appsink_pipeline);
+        gst_object_unref(m_playbin2appsrc_pipeline);
+        return false;
+    }
+    else if (ret == GST_STATE_CHANGE_NO_PREROLL)
+    {
+        MIRACASTLOG_INFO("Streaming live");
+        m_is_live = true;
+    }
+
+    MIRACASTLOG_TRACE("Exit..!!!");
+    return true;
+}
+#else
 bool MiracastGstPlayer::createPipeline()
 {
     MIRACASTLOG_TRACE("Entering..!!!");
@@ -1001,31 +1093,29 @@ bool MiracastGstPlayer::createPipeline()
 
     m_push_buffer_ptr = nullptr;
 
-    uint64_t max_push_buffer_size = 0;
     std::string opt_flag_buffer = parse_opt_flag( "/opt/miracast_max_pushbuffer_size" , true );
 
     if (!opt_flag_buffer.empty())
     {
-        max_push_buffer_size = std::stoull(opt_flag_buffer.c_str());
-        MIRACASTLOG_INFO("Max pushbuffer size configured as [%llu]\n",max_push_buffer_size);
+        m_max_pushbuffer_size = std::stoull(opt_flag_buffer.c_str());
+        MIRACASTLOG_INFO("Max pushbuffer size configured as [%llu]\n",m_max_pushbuffer_size);
     }
     else
     {
-        max_push_buffer_size = DEFAULT_MAX_PUSH_BUFFER_SIZE;
-        MIRACASTLOG_INFO("Default Max pushbuffer size configured as [%llu]\n",max_push_buffer_size);
+        m_max_pushbuffer_size = DEFAULT_MAX_PUSH_BUFFER_SIZE;
+        MIRACASTLOG_INFO("Default Max pushbuffer size configured as [%llu]\n",m_max_pushbuffer_size);
     }
 
-    m_push_buffer_ptr = new guint8[max_push_buffer_size];
+    m_push_buffer_ptr = g_malloc0(m_max_pushbuffer_size);
 
     // Check if memory allocation succeeded
     if ( nullptr == m_push_buffer_ptr )
     {
-        g_print("Memory allocation failed for [%llu].\n",max_push_buffer_size);
+        g_print("Memory allocation failed for [%llu].\n",m_max_pushbuffer_size);
         return 1;
     }
 
     m_current_buffer_ptr = m_push_buffer_ptr;
-    m_max_pushbuffer_size = max_push_buffer_size;
 
     /* create gst pipeline */
     m_main_loop_context = g_main_context_new();
@@ -1055,6 +1145,10 @@ bool MiracastGstPlayer::createPipeline()
 
     // Configure the appsink
     g_object_set(G_OBJECT(m_appsink), "emit-signals", TRUE, "sync", FALSE, NULL);
+
+    //gst_base_sink_set_sync(GST_BASE_SINK_CAST(appsink), false);
+    //MIRACASTLOG_INFO("===> gst_base_sink_set_sync, set to False\n");
+    g_object_set(G_OBJECT(m_appsink), "async", FALSE, NULL);
 
     // Set up a signal handler for new buffer signals from appsink
     g_signal_connect(m_appsink, "new-sample", G_CALLBACK(on_new_sample_from_udpsrc), this);
@@ -1100,7 +1194,7 @@ bool MiracastGstPlayer::createPipeline()
     pthread_create(&m_player_statistics_tid, nullptr, MiracastGstPlayer::monitor_player_statistics_thread, this);
 
     ret = gst_element_set_state(m_udpsrc2appsink_pipeline, GST_STATE_PLAYING);
-    gst_element_set_state(m_playbin2appsrc_pipeline, GST_STATE_PLAYING);
+    ret = gst_element_set_state(m_playbin2appsrc_pipeline, GST_STATE_PLAYING);
 
     if (ret == GST_STATE_CHANGE_FAILURE)
     {
@@ -1118,6 +1212,7 @@ bool MiracastGstPlayer::createPipeline()
     MIRACASTLOG_TRACE("Exit..!!!");
     return true;
 }
+#endif
 #endif
 
 void *MiracastGstPlayer::playbackThread(void *ctx)
