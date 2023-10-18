@@ -28,6 +28,7 @@ static char videoDescBuffer[VIDEO_DESCRIPTION_MAX*VIDEO_DESCRIPTION_NAME_SIZE] =
 static tvBacklightInfo_t  blInfo = {0};
 static int numberModesSupported = 0;
 static int numberSourcesSupported = 0;
+static bool filmMakerMode= false;
 
 static const char *component_color[] = {
     [COLOR_ENABLE] = "enable",
@@ -51,11 +52,11 @@ namespace Plugin {
         if(obj)obj->NotifyVideoFormatChange(format);
     }
 
-    static void tvVideoContentChangeHandler(tvContentType_t mode, void *userData)
+    static void tvFilmMakerModeChangeHandler(tvContentType_t mode, void *userData)
     {
-        LOGINFO("tvVideoContentChangeHandler content:%d \n",mode);
+        LOGINFO("tvFilmMakerModeChangeHandler content:%d \n",mode);
         AVOutputTV *obj = (AVOutputTV *)userData;
-        if(obj)obj->NotifyVideoContentChange(mode);
+        if(obj)obj->NotifyFilmMakerModeChange(mode);
     }
 
     static void tvVideoResolutionChangeHandler(tvResolutionParam_t resolution, void *userData)
@@ -248,13 +249,29 @@ namespace Plugin {
         sendNotify("videoFormatChanged", response);
     }
 
-    void AVOutputTV::NotifyVideoContentChange(tvContentType_t mode)
+    void AVOutputTV::NotifyFilmMakerModeChange(tvContentType_t mode)
     {
         JsonObject response;
-        response["currentVideoContent"] = getVideoContentTypeToString(mode);
-        sendNotify("videoContentChanged", response);
+	std::string fmmMode;
+	fmmMode = getVideoContentTypeToString(mode);
+        response["filmMakerMode"] = fmmMode;
+
+        if (fmmMode.compare("true") == 0 ) {
+	    filmMakerMode = true;
+	}
+	else
+	{
+	    filmMakerMode = false;
+	}
+        sendNotify("filmMakerModeChanged", response);
     }
 
+    uint32_t AVOutputTV::getFilmMakeModeStatus(const JsonObject & parameters, JsonObject & response)
+    {
+	response["filmMakerMode"] = filmMakerMode;
+	returnResponse(true);
+    }
+	
     void AVOutputTV::NotifyVideoResolutionChange(tvResolutionParam_t resolution)
     {
         JsonObject response;
@@ -395,6 +412,7 @@ namespace Plugin {
 	registerMethod("getVideoSource", &AVOutputTV::getVideoSource, this);
 	registerMethod("getVideoFrameRate", &AVOutputTV::getVideoFrameRate, this);
 	registerMethod("getVideoResolution", &AVOutputTV::getVideoResolution, this);
+	registerMethod("getFilmMakeModeStatus", &AVOutputTV::getFilmMakeModeStatus, this);
 	
 	registerMethod("getWBInfo", &AVOutputTV::getWBInfo, this);
 	registerMethod("getWBCtrl", &AVOutputTV::getWBCtrl, this);
@@ -469,7 +487,7 @@ namespace Plugin {
         tvVideoFormatCallbackData callbackData = {this,tvVideoFormatChangeHandler};
         RegisterVideoFormatChangeCB(callbackData);
 
-        tvVideoContentCallbackData ConcallbackData = {this,tvVideoContentChangeHandler};
+        tvVideoContentCallbackData ConcallbackData = {this,tvFilmMakerModeChangeHandler};
         RegisterVideoContentChangeCB(ConcallbackData);
 
         tvVideoResolutionCallbackData RescallbackData = {this,tvVideoResolutionChangeHandler};

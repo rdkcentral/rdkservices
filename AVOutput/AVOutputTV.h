@@ -114,6 +114,7 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
 	DECLARE_JSON_RPC_METHOD(getLowLatencyState)
         DECLARE_JSON_RPC_METHOD(getDolbyVisionMode)
         DECLARE_JSON_RPC_METHOD(getZoomMode)
+        DECLARE_JSON_RPC_METHOD(getFilmMakeModeStatus)
 
 
 	/*Get Capability API's*/
@@ -254,7 +255,7 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
 	tvContentFormatType_t ConvertFormatStringToTVContentFormat(const char *format);
 
 	void NotifyVideoFormatChange(tvVideoHDRFormat_t format);
-        void NotifyVideoContentChange(tvContentType_t mode);
+        void NotifyFilmMakerModeChange(tvContentType_t mode);
         void NotifyVideoResolutionChange(tvResolutionParam_t resolution);
         void NotifyVideoFrameRateChange(tvVideoFrameRate_t frameRate);
 };
