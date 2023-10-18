@@ -2078,11 +2078,11 @@ static GSourceFuncs _handlerIntervention =
 
             /* TODO: This configuration is temporary. It'll be moved to plugin config file when architecture will be defined. */
             std::string wpeClientCertsConf {
-                "https://ipsecure.int.bbc.co.uk/=/run/certificates/bbc-iplayer-cert.pem,/run/privatekeys/bbc-iplayer-key.pem\r\n"
-                "https://ipsecure.test.bbc.co.uk/=/run/certificates/bbc-iplayer-cert.pem,/run/privatekeys/bbc-iplayer-key.pem\r\n"
-                "https://ipsecure.stage.bbc.co.uk/=/run/certificates/bbc-iplayer-cert.pem,/run/privatekeys/bbc-iplayer-key.pem\r\n"
-                "https://securegate.iplayer.bbc.co.uk/=/run/certificates/bbc-iplayer-cert.pem,/run/privatekeys/bbc-iplayer-key.pem\r\n"
-                "https://pac.networking.certification.bbctvapps.co.uk/=/run/certificates/bbc-iplayer-cert.pem,/run/privatekeys/bbc-iplayer-key.pem\r\n"};
+                "https://ipsecure.int.bbc.co.uk/=/etc/ssl/private/bbc-iplayer-cert.pem,/etc/ssl/private/bbc-iplayer-key.pem\r\n"
+                "https://ipsecure.test.bbc.co.uk/=/etc/ssl/private/bbc-iplayer-cert.pem,/etc/ssl/private/bbc-iplayer-key.pem\r\n"
+                "https://ipsecure.stage.bbc.co.uk/=/etc/ssl/private/bbc-iplayer-cert.pem,/etc/ssl/private/bbc-iplayer-key.pem\r\n"
+                "https://securegate.iplayer.bbc.co.uk/=/etc/ssl/private/bbc-iplayer-cert.pem,/etc/ssl/private/bbc-iplayer-key.pem\r\n"
+                "https://pac.networking.certification.bbctvapps.co.uk/=/etc/ssl/private/bbc-iplayer-cert.pem,/etc/ssl/private/bbc-iplayer-key.pem\r\n"};
 
             std::string urls;
             constexpr auto kUrlsSep = "|";  // not allowed in URI
