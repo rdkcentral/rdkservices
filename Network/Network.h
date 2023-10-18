@@ -98,12 +98,6 @@ typedef struct {
 typedef IARM_BUS_NetSrvMgr_Iface_EventInterfaceStatus_t IARM_BUS_NetSrvMgr_Iface_EventInterfaceEnabledStatus_t;
 typedef IARM_BUS_NetSrvMgr_Iface_EventInterfaceStatus_t IARM_BUS_NetSrvMgr_Iface_EventInterfaceConnectionStatus_t;
 
-typedef struct
-{
-    NetworkManager_IPRESOLVE_t ipversion;
-    bool isconnected;
-} IARM_BUS_NetSrvMgr_isConnectedtoInternet_t;
-
 typedef struct {
     char interface[16];
     char ip_address[MAX_IP_ADDRESS_LEN];
@@ -323,9 +317,9 @@ namespace WPEFramework {
             std::atomic<bool> m_useDefInterfaceCache;
             string m_defInterfaceCache;
             string m_defIpversionCache;
-            nsm_internetState m_ipv4InternetCache;
-            nsm_internetState m_ipv6InternetCache;
-            nsm_internetState m_InternetCache;
+            bool m_ipv4InternetCache;
+            bool m_ipv6InternetCache;
+            bool m_InternetCache;
 
             IARM_BUS_NetSrvMgr_Iface_Settings_t m_ipv4WifiCache;
             IARM_BUS_NetSrvMgr_Iface_Settings_t m_ipv6WifiCache;
