@@ -26,6 +26,7 @@
 #include "UtilsString.h"
 #include "UtilscRunScript.h"
 #include "UtilsgetRFCConfig.h"
+#include "NetworkConnectivity.h"
 
 using namespace std;
 
@@ -52,10 +53,6 @@ using namespace std;
 #define IARM_BUS_NETSRVMGR_API_setIPSettings "setIPSettings"
 #define IARM_BUS_NETSRVMGR_API_getIPSettings "getIPSettings"
 #define IARM_BUS_NETSRVMGR_API_getSTBip_family "getSTBip_family"
-#define IARM_BUS_NETSRVMGR_API_isConnectedToInternet "isConnectedToInternet"
-#define IARM_BUS_NETSRVMGR_API_setConnectivityTestEndpoints "setConnectivityTestEndpoints"
-#define IARM_BUS_NETSRVMGR_API_startConnectivityMonitoring "startConnectivityMonitoring"
-#define IARM_BUS_NETSRVMGR_API_stopConnectivityMonitoring "stopConnectivityMonitoring"
 #define IARM_BUS_NETSRVMGR_API_isAvailable "isAvailable"
 #define IARM_BUS_NETSRVMGR_API_getPublicIP "getPublicIP"
 #define IARM_BUS_NETSRVMGR_API_configurePNI "configurePNI"
@@ -183,7 +180,8 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
         {
             m_service = service;
             m_service->AddRef();
-
+            config.FromString(service->ConfigLine());
+            connectivityMonitor.setConnectivityDefaultEndpoints(config.getEndpoints());
             string msg;
             if (Utils::IARM::init())
             {
@@ -1142,42 +1140,36 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
         uint32_t Network::isConnectedToInternet (const JsonObject &parameters, JsonObject &response)
         {
             bool result = false;
-            std::string ipversion;
+            bool isconnected = false;
+            std::string ipversionStr;
+            nsm_ipversion ipversion = ipresolve_whatever;
 
             if(m_isPluginInited)
             {
-                IARM_BUS_NetSrvMgr_isConnectedtoInternet_t param;
-                IARM_Result_t retVal;
-                getDefaultStringParameter("ipversion", ipversion, "");
-                Utils::String::toUpper(ipversion);
-                if ((ipversion == "IPV4") && m_useIPv4InternetCache)
+                getDefaultStringParameter("ipversion", ipversionStr, "");
+                Utils::String::toUpper(ipversionStr);
+                if ((ipversionStr == "IPV4") && m_useIPv4InternetCache)
                 {
-                    memcpy(&param, &m_ipv4InternetCache, sizeof(m_ipv4InternetCache));
-                    retVal = IARM_RESULT_SUCCESS;
+                    isconnected = m_ipv4InternetCache;
                 }
-                else if ((ipversion == "IPV6") && m_useIPv6InternetCache)
+                else if ((ipversionStr == "IPV6") && m_useIPv6InternetCache)
                 {
-                    memcpy(&param, &m_ipv6InternetCache, sizeof(m_ipv6InternetCache));
-                    retVal = IARM_RESULT_SUCCESS;
+                    isconnected = m_ipv6InternetCache;
                 }
-                else if ((ipversion == "") && m_useInternetCache)
+                else if ((ipversionStr == "") && m_useInternetCache)
                 {
-                    memcpy(&param, &m_InternetCache, sizeof(m_InternetCache));
-                    retVal = IARM_RESULT_SUCCESS;
+                    isconnected = m_InternetCache;
                 }
                 else
                 {
-                    if (ipversion == "IPV4")
-                        param.ipversion = NSM_IPRESOLVE_V4;
-                    else if (ipversion == "IPV6")
-                        param.ipversion = NSM_IPRESOLVE_V6;
-                    else
-                        param.ipversion = NSM_IPRESOLVE_WHATEVER;
+                    if (ipversionStr == "IPV4")
+                        ipversion = ipresolve_v4;
+                    else if (ipversionStr == "IPV6")
+                        ipversion = ipresolve_v6;
 
-                    param.isconnected = false;
-                    retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isConnectedToInternet, (void*) &param, sizeof(param));
+                    isconnected = connectivityMonitor.isConnectedToInternet(ipversion);
 
-                    if (param.isconnected)
+                    if (isconnected)
                     {
                         PluginHost::ISubSystem* subSystem = m_service->SubSystems();
 
@@ -1213,36 +1205,27 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                         }
                     }
 
-                    if (ipversion == "IPV4")
+                    if (ipversionStr == "IPV4")
                     {
                         m_useIPv4InternetCache = true;
-                        memcpy(&m_ipv4InternetCache, &param, sizeof(param));
+                        m_ipv4InternetCache = isconnected;
                     }
-                    else if (ipversion == "IPV6")
+                    else if (ipversionStr == "IPV6")
                     {
-                         m_useIPv6InternetCache = true;
-                         memcpy(&m_ipv6InternetCache, &param, sizeof(param));
+                        m_useIPv6InternetCache = true;
+                        m_ipv6InternetCache = isconnected; 
                     }
                     else
                     {
                         m_useInternetCache = true;
-                        memcpy(&m_InternetCache, &param, sizeof(param));
+                        m_InternetCache = isconnected; 
                     }
                 }
 
-                if (retVal == IARM_RESULT_SUCCESS)
-                {
-                    LOGINFO("%s :: isconnected = %d \n",__FUNCTION__, param.isconnected);
-                    response["connectedToInternet"] = param.isconnected;
-                    if(ipversion == "IPV4" || ipversion == "IPV6")
-                        response["ipversion"] = ipversion.c_str();
-
-                    result = true;
-                }
-                else
-                {
-                    LOGWARN("Call to %s for %s failed\n", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isConnectedToInternet);
-                }
+                response["connectedToInternet"] = isconnected;
+                if(ipversionStr == "IPV4" || ipversionStr == "IPV6")
+                    response["ipversion"] = ipversionStr.c_str();
+                result = true;
             }
             else
             {
@@ -1254,85 +1237,50 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
         uint32_t Network::setConnectivityTestEndpoints (const JsonObject &parameters, JsonObject &response)
         {
             bool result = false;
-            JsonArray endpoints = parameters["endpoints"].Array();
-            if(m_isPluginInited)
+            JsonArray endpointsJsonArray = parameters["endpoints"].Array();
+
+            if (0 == endpointsJsonArray.Length() || MAX_ENDPOINTS < endpointsJsonArray.Length())
             {
-                if (0 == endpoints.Length() || MAX_ENDPOINTS < endpoints.Length())
+                LOGWARN("1 to %d TestUrls are allowed", MAX_ENDPOINTS);
+                returnResponse(result);
+            }
+
+            std::vector<std::string> endpoints;
+            JsonArray::Iterator index(endpointsJsonArray.Elements());
+            while (index.Next() == true)
+            {
+                if (Core::JSON::Variant::type::STRING == index.Current().Content())
                 {
-                    LOGWARN("1 to %d TestUrls are allowed", MAX_ENDPOINTS);
-                    returnResponse(result);
-                }
-                IARM_BUS_NetSrvMgr_Iface_TestEndpoints_t iarmData;
-                JsonArray::Iterator index(endpoints.Elements());
-                iarmData.size = 0;
-                while (index.Next() == true)
-                {
-                    if (Core::JSON::Variant::type::STRING == index.Current().Content())
-                    {
-                        strncpy(iarmData.endpoints[iarmData.size], index.Current().String().c_str(), MAX_ENDPOINT_SIZE);
-                        iarmData.size++;
-                    }
-                    else
-                    {
-                        LOGWARN("Unexpected variant type");
-                        returnResponse(result);
-                    }
-                }
-                if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setConnectivityTestEndpoints, (void*) &iarmData, sizeof(iarmData)))
-                {
-                    result = true;
+                    endpoints.push_back(index.Current().String().c_str());
                 }
                 else
                 {
-                    LOGWARN("Call to %s for %s failed\n", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setConnectivityTestEndpoints);
+                    LOGWARN("Unexpected variant type");
+                    returnResponse(result);
                 }
             }
-            else
-            {
-                LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
-            }
-
+            connectivityMonitor.setConnectivityMonitorEndpoints(endpoints);
+            result = true;
             returnResponse(result);
         }
 
         uint32_t Network::startConnectivityMonitoring(const JsonObject& parameters, JsonObject& response)
         {
             bool result = false;
-            IARM_BUS_NetSrvMgr_Iface_InternetConnectivityStatus_t iarmData;
-
             if (parameters.HasLabel("interval"))
             {
-                iarmData.monitorConnectivity = true;
-                iarmData.monitorInterval = parameters["interval"].Number();
-                if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_startConnectivityMonitoring, (void *)&iarmData, sizeof(iarmData)))
-                {
-                    LOGINFO ("starting connectivity monitor with %d sec interval", iarmData.monitorInterval);
-                    result = true;
-                }
-                else
-                    LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_startConnectivityMonitoring);
+                result = connectivityMonitor.startConnectivityMonitor(parameters["interval"].Number());
             }
             else
             {
                 LOGWARN("interval parameter not included");
             }
-
             returnResponse(result);
         }
 
         uint32_t Network::stopConnectivityMonitoring(const JsonObject& parameters, JsonObject& response)
         {
-            bool result = false;
-            IARM_BUS_NetSrvMgr_Iface_InternetConnectivityStatus_t iarmData;
-            iarmData.monitorConnectivity = false;
-            if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_stopConnectivityMonitoring, (void *)&iarmData, sizeof(iarmData)))
-            {
-                LOGINFO ("connectivity monitor stopped !");
-                result = true;
-            }
-            else
-                LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_stopConnectivityMonitoring);
-
+            bool result = connectivityMonitor.stopConnectivityMonitor();
             returnResponse(result);
         }
 
@@ -1457,6 +1405,18 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             return (Core::ERROR_NONE);
         }
 
+       void Network::notifyInternetStatusChange(nsm_internetState InternetConnectionState)
+        {
+            static nsm_internetState prveInternetState = NO_INTERNET;
+            if(prveInternetState != InternetConnectionState)
+            {
+                if (Network::_instance)
+                    Network::_instance->onInternetStatusChange(InternetConnectionState);
+                else
+                    LOGWARN("WARNING - cannot notify InternetStatusChange events without a Network plugin instance!");
+            }
+        }
+
         /*
          * Notifications
          */
@@ -1489,7 +1449,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             sendNotify("onConnectionStatusChanged", params);
         }
 
-        void Network::onInternetStatusChange(InternetConnectionState_t InternetConnectionState)
+        void Network::onInternetStatusChange(nsm_internetState InternetConnectionState)
         {
             JsonObject params;
             m_useInternetCache = false;
