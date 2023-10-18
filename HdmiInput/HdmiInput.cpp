@@ -230,7 +230,7 @@ namespace WPEFramework
             
 	    string sPortId = parameters["portId"].String();
             bool audioMix = parameters["requestAudioMix"].Boolean();
-	    bool topMostPlane = parameters.HasLabel("topMost") ? parameters["topMost"].Boolean() : true;
+	    bool topMostPlane = parameters.HasLabel("topMost") ? parameters["topMost"].Boolean() : false;//topMost default is false
             LOGINFO("topMost value in thunder: %d\n",topMostPlane);
 	    int portId = 0;    
 	    

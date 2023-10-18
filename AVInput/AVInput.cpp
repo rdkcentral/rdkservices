@@ -333,7 +333,7 @@ uint32_t AVInput::startInput(const JsonObject& parameters, JsonObject& response)
     string sPortId = parameters["portId"].String();
     bool audioMix = parameters["requestAudioMix"].Boolean();
     string sType = parameters["typeOfInput"].String();
-    bool topMostPlane = parameters.HasLabel("topMost") ? parameters["topMost"].Boolean() : true;
+    bool topMostPlane = parameters.HasLabel("topMost") ? parameters["topMost"].Boolean() : false;// default topMost is false
     LOGINFO("topMost value in thunder: %d\n",topMostPlane);
     int portId = 0;
     int iType = 0;
