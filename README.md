@@ -232,7 +232,7 @@ Use the existing services as a guide when learning the structure of both the plu
     
     * Ensure that any std::threads created are joined within Deinitialize() or the destructor to avoid [std::terminate](https://en.cppreference.com/w/cpp/thread/thread/~thread) exception. Use the [ThreadRAII](helpers/UtilsThreadRAII.h) class for creating threads which will ensure that the thread gets joined before destruction.
 
-8.  Inter-plugin communication - There might be use cases where one RDK Service or plugin needs to call APIs in another RDK Service. Don't use JSON-RPC for such communication since it's an overhead and not preferred for inter-plugin communication. JSON-RPC must be used only by applications. Instead use COM RPC through the IShell Interface API [QueryInterfaceByCallsign()](https://github.com/rdkcentral/Thunder/blob/R2/Source/plugins/IShell.h#L210) exposed for each Plugin. Here is an [example](https://github.com/rdkcentral/rdkservices/blob/main/Messenger/MessengerSecurity.cpp#L35). 
+8.  Inter-plugin communication - There might be use cases where one RDK Service or plugin needs to call APIs in another RDK Service. Don't use JSON-RPC for such communication since it's an overhead and not preferred for inter-plugin communication. JSON-RPC must be used only by applications. Instead use COM RPC through the IShell Interface API [QueryInterfaceByCallsign()](https://github.com/rdkcentral/Thunder/blob/R4/Source/plugins/IShell.h#L247) exposed for each Plugin. Here is an [example](https://github.com/rdkcentral/rdkservices/blob/main/MaintenanceManager/MaintenanceManager.cpp#L199). 
     <br><br>
 
 ## Versioning ##
@@ -284,7 +284,7 @@ Use the existing services as a guide when learning the structure of both the plu
 
 * Deprecation
     * Breaking changes to the API that requires a major version update should first go through Deprecation by doing a minor version update. We recommend atleast 2 RDK releases with the deprecated API/s and minor version update to give time for clients and apps to make changes to remove the deprecated API. Following needs to be done for deprecation.
-        * The API/s getting deprecated should be marked with a ["deprecated"](https://github.com/rdkcentral/rdkservices/blob/main/SystemServices/System.json#L287) label in the json schema. This will ensure that it's updated in the API [documentation.](https://rdkcentral.github.io/rdkservices/#/api/SystemPlugin?id=cachecontains)
+        * The API/s getting deprecated should be marked with a ["deprecated"](https://github.com/rdkcentral/rdkservices/blob/main/SystemServices/System.json#L356) label in the json schema. This will ensure that it's updated in the API [documentation.](https://rdkcentral.github.io/rdkservices/#/api/SystemPlugin?id=cachecontains)
         * Add a changelog entry with minor version update and include **Deprecated** label to call out the API/s getting deprecated. 
         * If this API/s is getting replaced by a newer API then it can come in the same minor version update with changelog entry with **Added** label.
     <br><br>
