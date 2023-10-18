@@ -63,7 +63,12 @@
              "type": "integer",
              "example": "0"
 	 },
-        "typeOfInput":{
+         "topMost":{
+             "summary": "Defines whether the Hdmi Input should be over or under the other video plane",
+             "type": "boolean",
+             "example": "true"
+         },
+	 "typeOfInput":{
             "summary": "The type of Input - HDMI/COMPOSITE",
             "type": "string",
             "example": "HDMI"
@@ -380,7 +385,16 @@
                     },
                     "typeOfInput":{
                         "$ref": "#/definitions/typeOfInput"
-                    }
+                    },
+		    "audioMix":{
+			    "$ref": "#/definitions/audioMix"
+	            },
+		    "planeType":{
+			    "$ref": "#/definitions/planeType"
+		    },
+		    "topMost":{
+			    "$ref": "#/definitions/topMost"
+		    }
                 },
                 "required": [
                     "portid",
