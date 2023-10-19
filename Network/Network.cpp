@@ -1200,6 +1200,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                     response["connectedToInternet"] = param.isconnected;
                     if(ipversion == "IPV4" || ipversion == "IPV6")
                         response["ipversion"] = ipversion.c_str();
+
                     if (param.isconnected)
                     {
                         PluginHost::ISubSystem* subSystem = m_service->SubSystems();
@@ -1209,27 +1210,8 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                             const PluginHost::ISubSystem::IInternet* internet(subSystem->Get<PluginHost::ISubSystem::IInternet>());
                             if (nullptr == internet)
                             {
-                                if (m_ipversion.empty())
-                                {
-                                    JsonObject p, r;
-                                    getIPSettings(p, r);
-                                }
-
-                                if (m_publicIPAddress.empty())
-                                {
-                                    JsonObject p2, r2;
-                                    if (m_ipversion == "IPV6")
-                                        p2["ipv6"] = true;
-                                    getPublicIP(p2, r2);
-                                }
-
-                                if (!m_publicIPAddress.empty())
-                                {
                                     subSystem->Set(PluginHost::ISubSystem::INTERNET, this);
                                     LOGWARN("Set INTERNET ISubSystem");
-                                }
-                                else
-                                    LOGERR("Connected to Internet, but no publicIP");
                             }
  
                             subSystem->Release();
