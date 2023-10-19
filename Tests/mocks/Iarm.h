@@ -665,5 +665,6 @@ typedef enum _DSMgr_EventId_t {
     IARM_BUS_DSMGR_EVENT_DISPLAY_FRAMRATE_POSTCHANGE, /*!< Frame rate post change */
     IARM_BUS_DSMGR_EVENT_AUDIO_PORT_STATE, /*!< Audio Port Init State */
     IARM_BUS_DSMGR_EVENT_SLEEP_MODE_CHANGED, /*!< Sleep Mode Change Event*/
+     IARM_BUS_DSMGR_EVENT_HDMI_IN_AVI_CONTENT_TYPE, /*<HDMI IN content type event */
     IARM_BUS_DSMGR_EVENT_MAX, /*!< Max Event  */
 } IARM_Bus_DSMgr_EventId_t;
