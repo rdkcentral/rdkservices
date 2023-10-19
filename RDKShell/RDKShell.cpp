@@ -6342,10 +6342,6 @@ namespace WPEFramework {
             std::cout << "inside of checkForBootupFactoryAppLaunch\n";
 #ifdef RFC_ENABLED
             #ifdef RDKSHELL_READ_MAC_ON_STARTUP
-            char* mac = new char[19];
-            tFHError retAPIStatus;
-            retAPIStatus = getEthernetMAC(mac);
-            if(retAPIStatus == E_OK)
             if (checkFactoryMode_wrapper()) 
       	    {
                     std::cout << "Device in FactoryMode\n";
