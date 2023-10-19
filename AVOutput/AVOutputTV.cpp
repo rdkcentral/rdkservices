@@ -1077,12 +1077,14 @@ namespace Plugin {
             LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
             returnResponse(false);
         }
-#if 0
+        
+        if (isPlatformSupport("Backlight") != 0) returnResponse(false);
+
         if( !isCapablityCheckPassed( pqmode, source, format, "Backlight" )) {
             LOGERR("%s: CapablityCheck failed for Backlight\n", __FUNCTION__);
             returnResponse(false);
         }
-#endif
+
         if (getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex) == -1) {
             LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
             returnResponse(false);
@@ -1119,6 +1121,8 @@ namespace Plugin {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
         }
+
+        if (isPlatformSupport("Backlight") != 0 ) returnResponse(false);
 
 	if( !isCapablityCheckPassed( pqmode, source, format, "Backlight" )) {
             LOGERR("%s: CapablityCheck failed for Backlight\n", __FUNCTION__);
@@ -1162,6 +1166,8 @@ namespace Plugin {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
         }
+
+        if (isPlatformSupport("Backlight") != 0) returnResponse(false);
 
         if( !isCapablityCheckPassed( pqmode, source, format, "Backlight" )) {
             LOGERR("%s: CapablityCheck failed for Backlight\n", __FUNCTION__);
@@ -1210,7 +1216,9 @@ namespace Plugin {
         std::vector<std::string> pqmode;
         std::vector<std::string> source;
         std::vector<std::string> format;
-   
+  
+        std::string isPlatformSupport;
+
 	JsonObject rangeObj;
         //JsonArray rangeArray;
         JsonArray pqmodeArray;
@@ -1219,13 +1227,15 @@ namespace Plugin {
 
         unsigned int index = 0;
 
-        tvError_t ret = getParamsCaps(range,pqmode,source,format,"Backlight");
+        tvError_t ret = getParamsCaps(range,pqmode,source,format,"Backlight", isPlatformSupport);
 
         if(ret != tvERROR_NONE) {
             returnResponse(false);
         }
         else
         {
+	    response["platformSupport"] = (isPlatformSupport.compare("true") == 0)  ? true : false;
+
             rangeObj["from"] = stoi(range[0]);
             rangeObj["to"] = stoi(range[1]);
             response["rangeInfo"]=rangeObj;
@@ -3662,12 +3672,14 @@ namespace Plugin {
             LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
             returnResponse(false);
         }
-#if 0
+
+        if (isPlatformSupport("DolbyVisionMode") != 0) returnResponse(false);
+
         if( !isCapablityCheckPassed( pqmode, source, format, "DolbyVisionMode" )) {
             LOGERR("%s: CapablityCheck failed for DolbyVisionMode\n", __FUNCTION__);
             returnResponse(false);
         }
-#endif
+
         // Since it is dolby vision mode, to should get only for dolby vision format
         format = "dv";
 
@@ -3706,6 +3718,8 @@ namespace Plugin {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
         }
+
+        if (isPlatformSupport("DolbyVisionMode") != 0) returnResponse(false);
 
         if( !isCapablityCheckPassed( pqmode, source, format, "DolbyVisionMode" )) {
             LOGERR("%s: CapablityCheck failed for DolbyVisionMode\n", __FUNCTION__);
@@ -3752,6 +3766,8 @@ namespace Plugin {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
         }
+
+        if (isPlatformSupport("DolbyVisionMode") != 0) returnResponse(false);
 
         if( !isCapablityCheckPassed( pqmode, source, format, "DolbyVisionMode" )) {
             LOGERR("%s: CapablityCheck failed for DolbyVisionMode\n", __FUNCTION__);
@@ -3802,6 +3818,7 @@ namespace Plugin {
         std::vector<std::string> pqmode;
         std::vector<std::string> source;
         std::vector<std::string> format;
+        std::string isPlatformSupport;
 
         JsonArray rangeArray;
         JsonArray pqmodeArray;
@@ -3810,13 +3827,16 @@ namespace Plugin {
 
         unsigned int index = 0;
 
-        tvError_t ret = getParamsCaps(range,pqmode,source,format,"DolbyVisionMode");
+        tvError_t ret = getParamsCaps(range,pqmode,source,format,"DolbyVisionMode", isPlatformSupport);
 
         if(ret != tvERROR_NONE) {
             returnResponse(false);
         }
         else
         {
+	   
+	    response["platformSupport"] = (isPlatformSupport.compare("true") == 0 ) ? true : false;
+
             for (index = 0; index < range.size(); index++)
                 rangeArray.Add(range[index]);
 
@@ -4001,6 +4021,7 @@ namespace Plugin {
         }
         else
         {
+
             for (index = 0; index < range.size(); index++)
                 rangeArray.Add(range[index]);
 
@@ -4180,6 +4201,7 @@ namespace Plugin {
         }
         else
         {
+
             for (index = 0; index < range.size(); index++)
                 rangeArray.Add(range[index]);
 
@@ -5454,8 +5476,10 @@ namespace Plugin {
         std::string sourceInfo;
         std::string formatInfo;
         std::string pqmodeInfo;
-    
-        if( ReadCapablitiesFromConf( rangeInfo, pqmodeInfo, formatInfo ,sourceInfo,param ))
+   
+        std::string platformsupport;
+
+        if( ReadCapablitiesFromConf( rangeInfo, pqmodeInfo, formatInfo ,sourceInfo,param, platformsupport))
         {
             LOGERR( "%s: ReadCapablitiesFromConf Failed !!!\n",__FUNCTION__);
             return tvERROR_GENERAL;
@@ -5466,6 +5490,32 @@ namespace Plugin {
             spliltCapablities( range, pqmode, format, source, rangeInfo, pqmodeInfo, formatInfo, sourceInfo );
         }
     
+        return ret;
+    }
+
+    tvError_t AVOutputTV::getParamsCaps(std::vector<std::string> &range
+                , std::vector<std::string> &pqmode, std::vector<std::string> &source, std::vector<std::string> &format,std::string param,
+                 std::string & isPlatformSupport)
+    {
+        tvError_t ret = tvERROR_NONE;
+
+        std::string rangeInfo;
+        std::string sourceInfo;
+        std::string formatInfo;
+        std::string pqmodeInfo;
+
+        if( ReadCapablitiesFromConf( rangeInfo, pqmodeInfo, formatInfo ,sourceInfo,param, isPlatformSupport))
+        {
+            LOGERR( "%s: ReadCapablitiesFromConf Failed !!!\n",__FUNCTION__);
+            return tvERROR_GENERAL;
+        }
+        else
+        {
+            LOGINFO("%s : range : %s pqmode : %s source : %s format : %s param : %s \n",__FUNCTION__,rangeInfo.c_str(), pqmodeInfo.c_str(),
+ sourceInfo.c_str(), formatInfo.c_str(),param.c_str() );
+            spliltCapablities( range, pqmode, format, source, rangeInfo, pqmodeInfo, formatInfo, sourceInfo );
+        }
+
         return ret;
     }
 
@@ -5526,6 +5576,7 @@ namespace Plugin {
         std::string sourceCapInfo;
         std::string formatCapInfo;
         std::string pqmodeCapInfo;
+	std::string isPlatformSupport;
 
         std::set<string> pqmodeCapSet;
         std::set<string> formatCapSet;
@@ -5533,8 +5584,8 @@ namespace Plugin {
         std::set<string> pqmodeInputSet;
         std::set<string> formatInputSet;
         std::set<string> sourceInputSet;
-
-        if( ReadCapablitiesFromConf( rangeCapInfo, pqmodeCapInfo, formatCapInfo, sourceCapInfo,param) )
+        
+        if( ReadCapablitiesFromConf( rangeCapInfo, pqmodeCapInfo, formatCapInfo, sourceCapInfo,param, isPlatformSupport) )
         {
             LOGINFO( "%s: readCapablitiesFromConf Failed !!!\n",__FUNCTION__);
             return false;
@@ -6698,6 +6749,30 @@ namespace Plugin {
         }
 
         return 0;
+    }
+
+    int AVOutputTV::isPlatformSupport(std::string pqparam)
+    {
+        std::vector<std::string> range;
+        std::vector<std::string> sourceVec;
+        std::vector<std::string> pqmodeVec;
+        std::vector<std::string> formatVec;
+        std::string isPlatformSupport;
+
+        tvError_t ret = getParamsCaps(range, pqmodeVec, sourceVec, formatVec, pqparam, isPlatformSupport);
+
+        if (ret != tvERROR_NONE) {
+           LOGINFO("%s: failed to get the capability \n", __FUNCTION__);
+           return -1;
+        }
+        else
+	{
+	    if(isPlatformSupport.compare("true") != 0) {
+	        LOGERR("%s: platform support not available\n", __FUNCTION__);
+		return -1;
+            }
+        }
+	return 0;
     }
 
     int AVOutputTV::FetchCapablities(string pqparam, string & source, string & pqmode, string & format) {
