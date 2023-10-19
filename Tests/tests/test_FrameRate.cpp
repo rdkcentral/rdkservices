@@ -7,6 +7,7 @@
 #include "IarmBusMock.h"
 #include "ServiceMock.h"
 #include "VideoDeviceMock.h"
+#include "devicesettings.h"
 #include "dsMgr.h"
 
 using namespace WPEFramework;
@@ -32,8 +33,8 @@ protected:
 class FrameRateInitializedTest : public FrameRateTest {
 protected:
     NiceMock<IarmBusImplMock> iarmBusImplMock;
-    IARM_EventHandler_t handlerOnDisplayFrameRateChanging;
-    IARM_EventHandler_t handlerOnDisplayFrameRateChanged;
+    IARM_EventHandler_t FrameRatePreChange;
+    IARM_EventHandler_t FrameRatePostChange;
 
     FrameRateInitializedTest()
         : FrameRateTest()
@@ -43,11 +44,11 @@ protected:
         ON_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
                 [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
-                    if ((string(IARM_BUS_DSMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_DSMGR_EVENT_DISPLAY_FRAMRATE_PRECHANGE)) {
-                        handlerOnDisplayFrameRateChanging = handler;
+                    if ((string(IARM_BUS_DSMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_DSMGR_EVENT_DISPLAY_FRAMRATE_PRECHANGE)) 			{
+			FrameRatePreChange = handler;
                     }
-                    if ((string(IARM_BUS_DSMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_DSMGR_EVENT_DISPLAY_FRAMRATE_POSTCHANGE)) {
-                        handlerOnDisplayFrameRateChanged = handler;
+                    if ((string(IARM_BUS_DSMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_DSMGR_EVENT_DISPLAY_FRAMRATE_POSTCHANGE))			{
+			FrameRatePostChange = handler;
                     }
                     return IARM_RESULT_SUCCESS;
                 }));
@@ -199,7 +200,7 @@ TEST_F(FrameRateDsTest, DISABLED_getDisplayFrameRate)
 
 TEST_F(FrameRateInitializedEventTest, onDisplayFrameRateChanging)
 {
-    ASSERT_TRUE(handlerOnDisplayFrameRateChanging != nullptr);
+    ASSERT_TRUE(FrameRatePreChange != nullptr);
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
@@ -208,22 +209,23 @@ TEST_F(FrameRateInitializedEventTest, onDisplayFrameRateChanging)
                 EXPECT_TRUE(json->ToString(text));
                 EXPECT_EQ(text, string(_T("{"
                                           "\"jsonrpc\":\"2.0\","
-                                          "\"method\":\"org.rdk.FrameRate.onDisplayFrameRateChanging\","
-                                          "\"params\":{}"
+                                          "\"method\":\"client.events.onDisplayFrameRateChanging.onDisplayFrameRateChanging\","
+                                          "\"params\":{\"displayFrameRate\":\"3840x2160px48\"}"
                                           "}")));
-
                 return Core::ERROR_NONE;
             }));
+    IARM_Bus_DSMgr_EventData_t eventData;
+    strcpy(eventData.data.DisplayFrameRateChange.framerate,"3840x2160px48");
 
-    ASSERT_TRUE(handlerOnDisplayFrameRateChanging != nullptr);
-    handler.Subscribe(0, _T("onDisplayFrameRateChanging"), _T("org.rdk.FrameRate"), message);
-    handlerOnDisplayFrameRateChanging(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_DISPLAY_FRAMRATE_PRECHANGE, nullptr, 0);
-    handler.Unsubscribe(0, _T("onDisplayFrameRateChanging"), _T("org.rdk.FrameRate"), message);
+    ASSERT_TRUE(FrameRatePreChange != nullptr);
+    handler.Subscribe(0, _T("onDisplayFrameRateChanging"), _T("client.events.onDisplayFrameRateChanging"), message);
+    FrameRatePreChange(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_DISPLAY_FRAMRATE_PRECHANGE, &eventData , sizeof(eventData));
+    handler.Unsubscribe(0, _T("onDisplayFrameRateChanging"), _T("client.events.onDisplayFrameRateChanging"), message);
 }
 
 TEST_F(FrameRateInitializedEventTest, onDisplayFrameRateChanged)
 {
-    ASSERT_TRUE(handlerOnDisplayFrameRateChanged != nullptr);
+    ASSERT_TRUE(FrameRatePostChange != nullptr);
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
@@ -232,15 +234,16 @@ TEST_F(FrameRateInitializedEventTest, onDisplayFrameRateChanged)
                 EXPECT_TRUE(json->ToString(text));
                 EXPECT_EQ(text, string(_T("{"
                                           "\"jsonrpc\":\"2.0\","
-                                          "\"method\":\"org.rdk.FrameRate.onDisplayFrameRateChanged\","
-                                          "\"params\":{}"
+                                          "\"method\":\"client.events.onDisplayFrameRateChanged.onDisplayFrameRateChanged\","
+                                          "\"params\":{\"displayFrameRate\":\"3840x2160px48\"}"
                                           "}")));
-
                 return Core::ERROR_NONE;
             }));
+    IARM_Bus_DSMgr_EventData_t eventData;
+    strcpy(eventData.data.DisplayFrameRateChange.framerate,"3840x2160px48");
 
-    ASSERT_TRUE(handlerOnDisplayFrameRateChanged != nullptr);
-    handler.Subscribe(0, _T("onDisplayFrameRateChanged"), _T("org.rdk.FrameRate"), message);
-    handlerOnDisplayFrameRateChanged(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_DISPLAY_FRAMRATE_POSTCHANGE, nullptr, 0);
-    handler.Unsubscribe(0, _T("onDisplayFrameRateChanged"), _T("org.rdk.FrameRate"), message);
+    ASSERT_TRUE(FrameRatePostChange != nullptr);
+    handler.Subscribe(0, _T("onDisplayFrameRateChanged"), _T("client.events.onDisplayFrameRateChanged"), message);
+    FrameRatePostChange(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_DISPLAY_FRAMRATE_POSTCHANGE, &eventData , sizeof(eventData));
+    handler.Unsubscribe(0, _T("onDisplayFrameRateChanged"), _T("client.events.onDisplayFrameRateChanged"), message);
 }
