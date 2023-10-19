@@ -521,7 +521,25 @@ private:
         {"2160p50", RESOLUTION_2160P50},
         {"2160p30", RESOLUTION_2160P30},
         {"2160p60", RESOLUTION_2160P60},
-        {"2160p", RESOLUTION_2160P}
+        {"2160p", RESOLUTION_2160P},
+        {"600p24", RESOLUTION_600P24},
+        {"600p25", RESOLUTION_600P25},
+        {"600p30", RESOLUTION_600P30},
+        {"600p50", RESOLUTION_600P50},
+        {"600p60", RESOLUTION_600P60},
+        {"600p", RESOLUTION_600P},
+        {"768p24", RESOLUTION_768P24},
+        {"768p25", RESOLUTION_768P25},
+        {"768p30", RESOLUTION_768P30},
+        {"768p50", RESOLUTION_768P50},
+        {"768p60", RESOLUTION_768P60},
+        {"768p", RESOLUTION_768P},
+        {"3840x1080p24", RESOLUTION_3840x1080P24},
+        {"3840x1080p25", RESOLUTION_3840x1080P25},
+        {"3840x1080p30", RESOLUTION_3840x1080P30},
+        {"3840x1080p50", RESOLUTION_3840x1080P50},
+        {"3840x1080p60", RESOLUTION_3840x1080P60},
+        {"3840x1080p", RESOLUTION_3840x1080P}
     };
     std::list<Exchange::Dolby::IOutput::INotification*> _observers;
     mutable Core::CriticalSection _adminLock;
