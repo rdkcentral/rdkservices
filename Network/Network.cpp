@@ -1450,6 +1450,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             m_useIPv6InternetCache = false;
 
             sendNotify("onConnectionStatusChanged", params);
+            ConnectivityMonitor.signalConnectivityMonitor();
         }
 
         void Network::onInternetStatusChange(nsm_internetState InternetConnectionState)
@@ -1478,7 +1479,6 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                     return;
                 break;
             }
-            LOGINFO("onInternetStatusChange Event State = %d", InternetConnectionState);
             sendNotify("onInternetStatusChange", params);
         }
 
@@ -1516,6 +1516,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             m_useInternetCache = false;
             params["status"] = string (acquired ? "ACQUIRED" : "LOST");
             sendNotify("onIPAddressStatusChanged", params);
+            ConnectivityMonitor.signalConnectivityMonitor();
         }
 
         void Network::onDefaultInterfaceChanged(string oldInterface, string newInterface)
@@ -1537,6 +1538,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             m_gatewayInterface = "";
             m_defInterfaceCache = m_netUtils.getInterfaceDescription(newInterface);
             sendNotify("onDefaultInterfaceChanged", params);
+            ConnectivityMonitor.signalConnectivityMonitor();
         }
 
         void Network::eventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)

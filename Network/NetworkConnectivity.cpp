@@ -248,7 +248,7 @@ namespace WPEFramework {
             }
     #endif
         }
-        LOGINFO("connectivity = %d, endpoints count = %d, handles = %d, deadline = %ld, time_now = %ld, time_earlier = %ld",
+       // LOGINFO("connectivity = %d, endpoints count = %d, handles = %d, deadline = %ld, time_now = %ld, time_earlier = %ld",
             connectivity, endpoints_count, handles, deadline, time_now, time_earlier);
         for (const auto& curl_easy_handle : curl_easy_handles)
         {
@@ -258,22 +258,23 @@ namespace WPEFramework {
         }
         curl_multi_cleanup(curl_multi_handle);
 
-        if((endpoints_count == 1) && (connectivity == 1)) // for one endpoint
+        if(endpoints_count == 1) // for one endpoint
         {
-            return true;
+            if(connectivity == 1)
+                return true;
         }
         else if (endpoints_count > 1)
         {
             int successRate;
-            if(endpoints_count % 2) //odd number Eg:- 5/2 = 2.5 ~= 3
+            if(endpoints_count % 2)
             {
                 successRate = (endpoints_count/2) + 1;
             }
-            else    //even number Eg:- 6/2 = 3
+            else
             {
                 successRate = endpoints_count/2;
             }
-            LOGINFO("50 percentage endpoints count %d", successRate);
+            //LOGINFO("50 percentage endpoints count %d", successRate);
             if(connectivity >= successRate) // checking ~50% endpoints connectivity
                 return true;
         }
