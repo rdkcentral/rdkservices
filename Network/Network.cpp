@@ -94,6 +94,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
     {
         SERVICE_REGISTRATION(Network, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
         Network* Network::_instance = nullptr;
+        std::atomic<bool> Network::g_InternetConnected(false);
 
         Network::Network()
         : PluginHost::JSONRPC()
@@ -170,7 +171,6 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             m_InternetCache = {};
             m_ipv4InternetCache = {};
             m_ipv6InternetCache = {};
-            g_InternetConnected = false;
         }
 
         Network::~Network()
@@ -1170,7 +1170,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                         ipversion = ipresolve_v6;
 
                     isconnected = connectivityMonitor.isConnectedToInternet(ipversion);
-                    g_InternetConnected = isconnected;
+                    Network::g_InternetConnected = isconnected;
 
                     if (isconnected)
                     {
@@ -1418,8 +1418,6 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                 else
                     LOGWARN("WARNING - cannot notify InternetStatusChange events without a Network plugin instance!");
             }
-
-            g_InternetConnected = (InternetConnectionState == FULLY_CONNECTED)? true : false;
         }
 
         /*

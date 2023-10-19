@@ -353,7 +353,9 @@ namespace WPEFramework {
                 else
                     break;
             }
-            nsm_internetState InternetConnectionState = (isConnectedToInternet(ipresolve_whatever) == true) ? FULLY_CONNECTED : NO_INTERNET;
+            bool isconnected = isConnectedToInternet(ipresolve_whatever);
+            Network::g_InternetConnected = isconnected;
+            nsm_internetState InternetConnectionState = (isconnected == true) ? FULLY_CONNECTED : NO_INTERNET;
             Network::notifyInternetStatusChange(InternetConnectionState);
         }
         LOGWARN("Connectivity monitor exiting");

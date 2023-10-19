@@ -321,7 +321,7 @@ namespace WPEFramework {
             bool m_ipv6InternetCache;
             bool m_InternetCache;
 
-            std::atomic<bool> g_InternetConnected;
+            static std::atomic<bool> g_InternetConnected;
 
             IARM_BUS_NetSrvMgr_Iface_Settings_t m_ipv4WifiCache;
             IARM_BUS_NetSrvMgr_Iface_Settings_t m_ipv6WifiCache;
