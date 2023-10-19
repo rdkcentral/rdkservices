@@ -170,6 +170,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             m_InternetCache = {};
             m_ipv4InternetCache = {};
             m_ipv6InternetCache = {};
+            g_InternetConnected = false;
         }
 
         Network::~Network()
@@ -182,6 +183,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             m_service->AddRef();
             config.FromString(service->ConfigLine());
             connectivityMonitor.setConnectivityDefaultEndpoints(config.getEndpoints());
+            connectivityMonitor.setConnectivityMonitorEndpoints(config.getEndpoints());
             string msg;
             if (Utils::IARM::init())
             {
@@ -1168,6 +1170,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                         ipversion = ipresolve_v6;
 
                     isconnected = connectivityMonitor.isConnectedToInternet(ipversion);
+                    g_InternetConnected = isconnected;
 
                     if (isconnected)
                     {
@@ -1415,6 +1418,8 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                 else
                     LOGWARN("WARNING - cannot notify InternetStatusChange events without a Network plugin instance!");
             }
+
+            g_InternetConnected = (InternetConnectionState == FULLY_CONNECTED)? true : false;
         }
 
         /*
