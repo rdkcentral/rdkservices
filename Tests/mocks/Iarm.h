@@ -245,9 +245,9 @@ typedef enum _DeepSleep_WakeupReason_t {
     DEEPSLEEP_WAKEUPREASON_UNKNOWN
 } DeepSleep_WakeupReason_t;
 
-typedef struct _DeepSleepMgr_WakeupKeyCode_Param_t {
+typedef struct _IARM_Bus_DeepSleepMgr_WakeupKeyCode_Param_t {
     unsigned int keyCode;
-} DeepSleepMgr_WakeupKeyCode_Param_t;
+} IARM_Bus_DeepSleepMgr_WakeupKeyCode_Param_t;
 
 #define IARM_BUS_MFRLIB_NAME "MFRLib"
 #define IARM_BUS_MFRLIB_API_SetBootLoaderPattern "mfrSetBootloaderPattern"
