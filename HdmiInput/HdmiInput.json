@@ -549,7 +549,31 @@
                     "mode"
                 ]
             }
-        }
+        },
+	"hdmiContentTypeUpdate": {
+            "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/HdmiInputPlugin?id=hdmiContentTypeUpdate",
+            "summary": "Triggered whenever AV Infoframe content type changes for an HDMI Input",
+            "params": {
+                "type": "object",
+                "properties": {
+                   "id": {
+                        "summary": "Hdmi Input port ID for which content type change event received",
+                        "type": "integer",
+                        "example": 1
+                    },
+                   "aviContentType": {
+                        "summary": "new Content type received for the active hdmi input port",
+                        "type": "integer",
+                        "example": 1
+                    }
+                },
+                "required": [
+                    "id",
+                    "aviContentType"
+                ]
+            }
+	}
 
     }
 }
