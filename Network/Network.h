@@ -290,6 +290,7 @@ namespace WPEFramework {
             static Network *getInstance() {return _instance;}
             Config config;
             ConnectivityMonitor& connectivityMonitor = ConnectivityMonitor::getInstance();
+            static std::atomic<bool> g_InternetConnected;
 
         private:
             PluginHost::IShell* m_service;
@@ -321,7 +322,6 @@ namespace WPEFramework {
             bool m_ipv6InternetCache;
             bool m_InternetCache;
 
-            static std::atomic<bool> g_InternetConnected;
 
             IARM_BUS_NetSrvMgr_Iface_Settings_t m_ipv4WifiCache;
             IARM_BUS_NetSrvMgr_Iface_Settings_t m_ipv6WifiCache;
