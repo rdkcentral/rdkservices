@@ -1079,12 +1079,12 @@ namespace Plugin {
         }
         
         if (isPlatformSupport("Backlight") != 0) returnResponse(false);
-
+#if 0
         if( !isCapablityCheckPassed( pqmode, source, format, "Backlight" )) {
             LOGERR("%s: CapablityCheck failed for Backlight\n", __FUNCTION__);
             returnResponse(false);
         }
-
+#endif
         if (getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex) == -1) {
             LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
             returnResponse(false);
@@ -3674,12 +3674,12 @@ namespace Plugin {
         }
 
         if (isPlatformSupport("DolbyVisionMode") != 0) returnResponse(false);
-
+#if 0
         if( !isCapablityCheckPassed( pqmode, source, format, "DolbyVisionMode" )) {
             LOGERR("%s: CapablityCheck failed for DolbyVisionMode\n", __FUNCTION__);
             returnResponse(false);
         }
-
+#endif
         // Since it is dolby vision mode, to should get only for dolby vision format
         format = "dv";
 
