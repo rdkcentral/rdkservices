@@ -266,7 +266,7 @@ namespace Plugin {
         sendNotify("filmMakerModeChanged", response);
     }
 
-    uint32_t AVOutputTV::getFilmMakeModeStatus(const JsonObject & parameters, JsonObject & response)
+    uint32_t AVOutputTV::getFilmMakerMode(const JsonObject & parameters, JsonObject & response)
     {
 	response["filmMakerMode"] = filmMakerMode;
 	returnResponse(true);
@@ -412,7 +412,7 @@ namespace Plugin {
 	registerMethod("getVideoSource", &AVOutputTV::getVideoSource, this);
 	registerMethod("getVideoFrameRate", &AVOutputTV::getVideoFrameRate, this);
 	registerMethod("getVideoResolution", &AVOutputTV::getVideoResolution, this);
-	registerMethod("getFilmMakeModeStatus", &AVOutputTV::getFilmMakeModeStatus, this);
+	registerMethod("getFilmMakerMode", &AVOutputTV::getFilmMakeMode, this);
 	
 	registerMethod("getWBInfo", &AVOutputTV::getWBInfo, this);
 	registerMethod("getWBCtrl", &AVOutputTV::getWBCtrl, this);
