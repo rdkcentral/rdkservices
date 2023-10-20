@@ -412,7 +412,7 @@ namespace Plugin {
 	registerMethod("getVideoSource", &AVOutputTV::getVideoSource, this);
 	registerMethod("getVideoFrameRate", &AVOutputTV::getVideoFrameRate, this);
 	registerMethod("getVideoResolution", &AVOutputTV::getVideoResolution, this);
-	registerMethod("getFilmMakerMode", &AVOutputTV::getFilmMakeMode, this);
+	registerMethod("getFilmMakerMode", &AVOutputTV::getFilmMakerMode, this);
 	
 	registerMethod("getWBInfo", &AVOutputTV::getWBInfo, this);
 	registerMethod("getWBCtrl", &AVOutputTV::getWBCtrl, this);
