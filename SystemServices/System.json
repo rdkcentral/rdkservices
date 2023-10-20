@@ -1444,26 +1444,6 @@
                 ]
             }
         },
-        "hasRebootBeenRequested":{
-            "summary": "Checks whether a reboot has been requested.",
-            "result": {
-                "type": "object",
-                "properties": {
-                    "rebootRequested": {
-                        "summary": "`true` if a reboot has been requested, otherwise `false`",
-                        "type": "boolean",
-                        "example": false
-                    },
-                    "success":{
-                        "$ref": "#/common/success"
-                    }
-                },
-                "required": [
-                    "rebootRequested",
-                    "success"
-                ]
-            }
-        },
         "isGzEnabled":{
 	    "deprecated" : true,
             "summary": "Checks whether GZ is enabled.",
