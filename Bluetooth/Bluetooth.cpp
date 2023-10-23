@@ -40,7 +40,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 4
+#define API_VERSION_NUMBER_PATCH 5
 
 const string WPEFramework::Plugin::Bluetooth::SERVICE_NAME = "org.rdk.Bluetooth";
 const string WPEFramework::Plugin::Bluetooth::METHOD_START_SCAN = "startScan";
@@ -808,6 +808,7 @@ namespace WPEFramework
                 deviceDetails["MAC"] = string(deviceProperty.m_deviceAddress);
                 deviceDetails["signalStrength"] = std::to_string(deviceProperty.m_signalLevel);
                 deviceDetails["rssi"] =  std::to_string(deviceProperty.m_rssi);
+                deviceDetails["batteryLevel"] =  std::to_string(deviceProperty.m_batteryLevel);
                 for (int i = 0; i < deviceProperty.m_serviceInfo.m_numOfService; i++)
                 {
                     profileInfo += string(deviceProperty.m_serviceInfo.m_profileInfo[i].m_profile);
