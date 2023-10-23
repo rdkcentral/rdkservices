@@ -243,6 +243,9 @@ static bool checkFactoryMode_wrapper()
                 if (deviceMode == DEVICE_MODE_FACTORY) {
                         std::cout << "Device in FactoryMode\n";
                         ret = true;
+                } else if (deviceMode == DEVICE_MODE_USER) {
+                        std::cout << "Device to be in User mode\n";
+                        ret = false;
                 }
         }
         return ret;
@@ -1298,8 +1301,21 @@ namespace WPEFramework {
             #ifdef RDKSHELL_READ_MAC_ON_STARTUP
 	    Device_Mode_Init();
             factoryMacMatched = checkFactoryMode_wrapper();
+	    #ifdef RDKSHELL_DUAL_FTA_SUPPORT
+	    bool isAssemblyFactoryMode = false;
+	    #endif
+	    #ifdef RDKSHELL_IGNORE_PS_FLAG_ON_MBFTA
+            if(factoryMacMatched == false) {
+                    std::cout << "Modifying persistent store entry to false\n";
+                    uint32_t setStatus = setValue(mCurrentService, "FactoryTest", "FactoryMode", "false");
+                    std::cout << "set status: " << setStatus << std::endl;
+            } else {
+            #endif
             #ifdef RDKSHELL_DUAL_FTA_SUPPORT
-            bool isAssemblyFactoryMode = checkAssemblyFactoryMode_wrapper();
+            isAssemblyFactoryMode = checkAssemblyFactoryMode_wrapper();
+            #endif
+	    #ifdef RDKSHELL_IGNORE_PS_FLAG_ON_MBFTA
+            }
             #endif
             #else
             RFC_ParamData_t macparam;
@@ -6037,10 +6053,15 @@ namespace WPEFramework {
                     std::cout << "Device in FactoryMode\n";
 		    return true;
             }
-            else
+	    #ifdef RDKSHELL_IGNORE_PS_FLAG_ON_MBFTA
+	    else
             {
-		    std::cout << "Device in User mode\n"; 
-	    }
+		    std::cout << "Device in User mode\n";
+            	    std::cout << "Modifying persistent store entry to false\n";
+                    uint32_t setStatus = setValue(mCurrentService, "FactoryTest", "FactoryMode", "false");
+                    std::cout << "set status: " << setStatus << std::endl;
+            }
+            #endif
             #else
             RFC_ParamData_t param;
             bool ret = Utils::getRFCConfig("Device.DeviceInfo.X_COMCAST-COM_STB_MAC", param);
