@@ -1356,11 +1356,6 @@ namespace WPEFramework {
                     width =  720;
                     height = 576;
                 }
-		else if(res.rfind("600", 0) == 0)
-                {
-                    width =  1024;
-                    height = 600;
-                }
                 else if(res.rfind("720", 0) == 0)
                 {
                     width =  1280;
@@ -1385,11 +1380,6 @@ namespace WPEFramework {
                 {
                     width =  4096;
                     height = 2160;
-                }
-		else if(res.rfind("3840x1080", 0) == 0)
-                {
-                    width =  3840;
-                    height = 1080;
                 }
                 else
                 {
