@@ -46,7 +46,7 @@
 #include "UtilsString.h"
 
 #ifdef RDKSHELL_READ_MAC_ON_STARTUP
-#include "FactoryProtectHal.h"
+#include "DeviceMode.h"
 #endif //RDKSHELL_READ_MAC_ON_STARTUP
 
 
@@ -232,6 +232,37 @@ enum AppLastExitReason
     CRASH,
     DEACTIVATED
 };
+
+#ifdef RDKSHELL_READ_MAC_ON_STARTUP
+static bool checkFactoryMode_wrapper()
+{
+        Device_Mode_DeviceModes_t deviceMode;
+        bool ret = false;
+        Device_Mode_Result_t result = Device_Mode_getDeviceMode(&deviceMode);
+        if(result == DEVICE_MODE_RESULT_SUCCESS) {
+                if (deviceMode == DEVICE_MODE_FACTORY) {
+                        std::cout << "Device in FactoryMode\n";
+                        ret = true;
+                }
+        }
+        return ret;
+}
+#endif
+#ifdef RDKSHELL_DUAL_FTA_SUPPORT
+static bool checkAssemblyFactoryMode_wrapper()
+{
+        Device_Mode_FactoryModes_t factoryMode;
+        bool ret = false;
+        Device_Mode_Result_t result = Device_Mode_getFactoryMode(&factoryMode);
+        if(result == DEVICE_MODE_RESULT_SUCCESS) {
+                if (factoryMode == DEVICE_MODE_ODM_FACTORY_MODE) {
+                        std::cout << "Device in Assembly FactoryMode\n";
+                        ret = true;
+                }
+        }
+        return ret;
+}
+#endif
 
 FactoryAppLaunchStatus sFactoryAppLaunchStatus = NOTLAUNCHED;
 
@@ -1265,27 +1296,11 @@ namespace WPEFramework {
             bool factoryMacMatched = false;
 #ifdef RFC_ENABLED
             #ifdef RDKSHELL_READ_MAC_ON_STARTUP
-            char* mac = new char[19];
-            tFHError retAPIStatus;
-            std::cout << "calling factory hal init\n";
-            factorySD1_init();
-            retAPIStatus = getEthernetMAC(mac);
-            if(retAPIStatus == E_OK)
-            {
-                if (strncasecmp(mac,"00:00:00:00:00:00",17) == 0)
-                {
-                    std::cout << "launching factory app as mac is matching... " << std::endl;
-                    factoryMacMatched = true;
-                }
-                else
-                {
-                    std::cout << "mac match failed... mac from hal - " << mac << std::endl;
-                }
-            }
-            else
-            {
-                std::cout << "reading stb mac hal api failed... " << std::endl;
-            }
+	    Device_Mode_Init();
+            factoryMacMatched = checkFactoryMode_wrapper();
+            #ifdef RDKSHELL_DUAL_FTA_SUPPORT
+            bool isAssemblyFactoryMode = checkAssemblyFactoryMode_wrapper();
+            #endif
             #else
             RFC_ParamData_t macparam;
             bool macret = Utils::getRFCConfig("Device.DeviceInfo.X_COMCAST-COM_STB_MAC", macparam);
@@ -1408,6 +1423,9 @@ namespace WPEFramework {
                                 request["nokillresapp"] = "true";
                             }
                             request["resetagingtime"] = "true";
+			    #ifdef RDKSHELL_DUAL_FTA_SUPPORT
+                            request["factoryappstage"] = isAssemblyFactoryMode ? "assembly" : "mainboard" ;
+                            #endif
                             RDKShellApiRequest apiRequest;
                             apiRequest.mName = "launchFactoryApp";
                             apiRequest.mRequest = request;
@@ -1466,7 +1484,10 @@ namespace WPEFramework {
                             request["nokillresapp"] = "true";
                         }
                         request["resetagingtime"] = "true";
-                        RDKShellApiRequest apiRequest;
+			#ifdef RDKSHELL_DUAL_FTA_SUPPORT
+			request["factoryappstage"] = isAssemblyFactoryMode ? "assembly" : "mainboard" ;
+			#endif
+			RDKShellApiRequest apiRequest;
                         apiRequest.mName = "launchFactoryApp";
                         apiRequest.mRequest = request;
                         rdkshellPlugin->launchRequestThread(apiRequest);
@@ -1958,6 +1979,7 @@ namespace WPEFramework {
             try
             {
               JsonObject actionObject = JsonObject(actionJson.c_str());
+	      std::cout << "RDKShell onEasterEgg event actionJsonstring .. " << actionJson.c_str() << std::endl;
               if (actionObject.HasLabel("invoke"))
               {
                 std::string invoke = actionObject["invoke"].String();
@@ -2012,7 +2034,69 @@ namespace WPEFramework {
                     }
                 }
               }
-            }
+	      else if(actionObject.HasLabel("initData")){
+                      JsonObject setparams;
+                      JsonObject initDataSize;
+                      JsonObject invokeobject;
+                      JsonObject nameobject;
+                      JsonObject namespacekey;
+                      JsonObject namespaceValue;
+                      std::string callsign;
+                      std::string namespaceval;
+                      std::string key;
+                      std::string KeyValue;
+                      std::string CallsignValue;
+                      std::string value;
+                      std::string initDataSizevalue;
+                      JsonObject Params;
+                      std::cout << "RDKShell onEasterEgg event to process initData...\n";
+
+                      JsonArray initData = actionObject["initData"].Array();
+
+                      initDataSize  = initData[0].Object();
+                      int initDataSizeCount = 0;
+                      if (initDataSize.HasLabel("initDataSize")){
+                             initDataSizeCount = initDataSize["initDataSize"].Number();
+                      }
+                      for (int setVal = 1; setVal < initDataSizeCount;setVal++) {
+                          setparams = initData[setVal].Object();
+                          if (setparams.HasLabel("invoke")){
+                              callsign = setparams["invoke"].String();
+                          }
+                          if (setparams.HasLabel("params")){
+                               Params = setparams["params"].Object();
+                          }
+
+                          if (Params.HasLabel("namespace")) {
+                              namespaceval = Params["namespace"].String();
+                          }
+                          if (Params.HasLabel("key")) {
+                              key = Params["key"].String();
+                          }
+                          if (Params.HasLabel("value")) {
+                              KeyValue = Params["value"].String();
+                          }
+                          std::cout << "RDKShell onEasterEgg calling setValue." << namespaceval << key<< KeyValue << std::endl;
+                          setValue(mShell.mCurrentService, namespaceval, key, KeyValue);
+                      }
+                      JsonObject RDklaunch = initData[initDataSizeCount].Object();
+
+                      if (RDklaunch.HasLabel("invoke")) {
+                             CallsignValue = RDklaunch["invoke"].String();
+                      }
+                      std::cout << "RDKShell onEasterEgg event to process KeyValue .." << CallsignValue << std::endl;
+                      auto thunderController1 = getThunderControllerClient();
+
+
+                      std::cout << "invoking method " << CallsignValue.c_str() << std::endl;
+                      JsonObject joResult;
+                      std::cout << " before filling apiRequest \n";
+                      RDKShellApiRequest apiRequest;
+                      apiRequest.mName = CallsignValue.substr(19);
+                      apiRequest.mRequest = RDklaunch.HasLabel("params")?RDklaunch["params"].Object():JsonObject();
+                      mShell.launchRequestThread(apiRequest);
+	         }
+	    }
             catch(...)
             {
               std::cout << "error in parsing action for easter egg " << std::endl;
@@ -4996,8 +5080,25 @@ namespace WPEFramework {
                 }
             }
 
+            #ifdef RDKSHELL_DUAL_FTA_SUPPORT
+            char* factoryAppUrl = NULL;
+            if (parameters.HasLabel("factoryappstage"))
+            {
+                std::string ftaStage;
+                getStringParameter("factoryappstage", ftaStage);
+                if (ftaStage == "assembly")
+                {
+                    factoryAppUrl = getenv("RDKSHELL_ASSEMBLY_FACTORY_APP_URL");
+                }
+                else if (ftaStage == "mainboard")
+                {
+                    factoryAppUrl = getenv("RDKSHELL_MAINBOARD_MANUFACTURING_FACTORY_APP_URL");
+                }
+            }
+            #else
             char* factoryAppUrl = getenv("RDKSHELL_FACTORY_APP_URL");
-            if (NULL != factoryAppUrl)
+            #endif
+	    if (NULL != factoryAppUrl)
             {
                 if (parameters.HasLabel("resetagingtime"))
                 {
@@ -5931,25 +6032,15 @@ namespace WPEFramework {
             std::cout << "inside of checkForBootupFactoryAppLaunch\n";
 #ifdef RFC_ENABLED
             #ifdef RDKSHELL_READ_MAC_ON_STARTUP
-            char* mac = new char[19];
-            tFHError retAPIStatus;
-            retAPIStatus = getEthernetMAC(mac);
-            if(retAPIStatus == E_OK)
-            {
-                if (strncasecmp(mac,"00:00:00:00:00:00",17) == 0)
-                {
-                    std::cout << "launching factory app as mac is matching... " << std::endl;
-                    return true;
-                }
-                else
-                {
-                    std::cout << "mac match failed... mac from hal - " << mac << std::endl;
-                }
+	    if (checkFactoryMode_wrapper())
+      	    {
+                    std::cout << "Device in FactoryMode\n";
+		    return true;
             }
             else
             {
-                std::cout << "reading stb mac via hal failed " << std::endl;
-            }
+		    std::cout << "Device in User mode\n"; 
+	    }
             #else
             RFC_ParamData_t param;
             bool ret = Utils::getRFCConfig("Device.DeviceInfo.X_COMCAST-COM_STB_MAC", param);
