@@ -2,7 +2,7 @@
 <a name="Warehouse_Plugin"></a>
 # Warehouse Plugin
 
-**Version: [1.0.6](https://github.com/rdkcentral/rdkservices/blob/main/Warehouse/CHANGELOG.md)**
+**Version: [1.0.7](https://github.com/rdkcentral/rdkservices/blob/main/Warehouse/CHANGELOG.md)**
 
 A org.rdk.Warehouse plugin for Thunder framework.
 

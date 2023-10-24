@@ -16,6 +16,14 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+# [1.0.17] - 2023-10-20
+### Fixed
+- Fixed crash with TTS::TTSManager::interrupted signature
+
+# [1.0.16] - 2023-10-18
+### Changed
+- Added missing TTS Event Logs
+
 ## [1.0.15] - 2023-10-10
 ### Changed
 - Changed string functions to safer versions

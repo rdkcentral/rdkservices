@@ -2,7 +2,7 @@
 <a name="LEDControl_Plugin"></a>
 # LEDControl Plugin
 
-**Version: [1.0.1](https://github.com/rdkcentral/rdkservices/blob/main/LEDControl/CHANGELOG.md)**
+**Version: [1.0.2](https://github.com/rdkcentral/rdkservices/blob/main/LEDControl/CHANGELOG.md)**
 
 A org.rdk.LEDControl plugin for Thunder framework.
 
