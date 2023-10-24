@@ -69,6 +69,12 @@ if(PLUGIN_WEBKITBROWSER_CUSTOM_PROCESS_INFO)
     target_compile_definitions(${MODULE_NAME} PRIVATE ENABLE_CUSTOM_PROCESS_INFO)
 endif()
 
+if (PLUGIN_WEBKITBROWSER_TESTING)
+    target_compile_definitions(${MODULE_NAME} PRIVATE ENABLE_TESTING)
+    target_include_directories(${MODULE_NAME} PRIVATE ../Testing/Extension)
+    target_sources(${MODULE_NAME} PRIVATE ../Testing/Extension/testrunnerextension.cpp)
+endif()
+
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)

@@ -53,6 +53,10 @@
 #include "ProcessInfo.h"
 #endif
 
+#if defined(ENABLE_TESTING)
+#include <TestRunnerJS.h>
+#endif
+
 using namespace WPEFramework;
 
 static Core::NodeId GetConnectionNode()
@@ -97,10 +101,11 @@ public:
         _extension = WEBKIT_WEB_EXTENSION(g_object_ref(extension));
         _logToSystemConsoleEnabled = FALSE;
 
-        const char *uid;
-        const char *whitelist;
+        const char *uid = nullptr;
+        const char *whitelist = nullptr;
 
-        g_variant_get((GVariant*) userData, "(&sm&sb)", &uid, &whitelist, &_logToSystemConsoleEnabled);
+        if (userData)
+            g_variant_get((GVariant*) userData, "(&sm&sbb)", &uid, &whitelist, &_logToSystemConsoleEnabled, &_enableTesting);
 
         if (_logToSystemConsoleEnabled && Core::SystemInfo::GetEnvironment(string(_T("CLIENT_IDENTIFIER")), _consoleLogPrefix))
           _consoleLogPrefix = _consoleLogPrefix.substr(0, _consoleLogPrefix.find(','));
@@ -109,7 +114,7 @@ public:
           webkit_script_world_get_default(),
           "window-object-cleared",
           G_CALLBACK(windowObjectClearedCallback),
-          nullptr);
+          this);
 
         g_signal_connect(
           extension,
@@ -149,7 +154,7 @@ public:
     }
 
 private:
-    static void windowObjectClearedCallback(WebKitScriptWorld* world, WebKitWebPage* page, WebKitFrame* frame)
+    static void windowObjectClearedCallback(WebKitScriptWorld* world, WebKitWebPage* page, WebKitFrame* frame, PluginHost* host)
     {
         JavaScript::Milestone::InjectJS(world, frame);
         JavaScript::NotifyWPEFramework::InjectJS(world, frame);
@@ -165,6 +170,11 @@ private:
 #ifdef  ENABLE_AAMP_JSBINDINGS
         JavaScript::AAMP::LoadJSBindings(world, frame);
 #endif
+
+#ifdef  ENABLE_TESTING
+        if (host->_enableTesting)
+            JavaScript::TestRunner::InjectJS(world, page, frame);
+#endif  // ENABLE_TESTING
 
     }
     static void pageCreatedCallback(VARIABLE_IS_NOT_USED WebKitWebExtension* webExtension,
@@ -204,6 +214,11 @@ private:
             JavaScript::BridgeObject::HandleMessageToPage(page, name, message);
         }
 #endif
+#ifdef ENABLE_TESTING
+        else if (g_str_has_prefix(name, Testing::Tags::TestRunnerPrefix)) {
+            JavaScript::TestRunner::HandleMessageToPage(page, message);
+        }
+#endif
         return TRUE;
     }
     static gboolean sendRequestCallback(WebKitWebPage* page, WebKitURIRequest* request, WebKitURIResponse*)
@@ -231,6 +246,7 @@ private:
 
     string _consoleLogPrefix;
     gboolean _logToSystemConsoleEnabled;
+    gboolean _enableTesting;
     WebKitWebExtension* _extension;
 } _wpeFrameworkClient;
 
