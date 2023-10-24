@@ -770,6 +770,7 @@ No Events
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.enable | boolean | `true` to enable or `false` to disable |
+| params.persist | boolean | `true` to persist Wifi state after reboot or `false` to not persist Wifi state after reboot |
 
 ### Result
 
@@ -788,7 +789,8 @@ No Events
     "id": 42,
     "method": "org.rdk.Wifi.setEnabled",
     "params": {
-        "enable": true
+        "enable": true,
+	"persist": false
     }
 }
 ```
