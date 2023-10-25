@@ -173,7 +173,7 @@ static std::vector<DeviceFeatures> deviceFeatures = {DEVICE_FEATURES_TV};
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 2
-#define API_VERSION_NUMBER_PATCH 3
+#define API_VERSION_NUMBER_PATCH 4
 
 namespace WPEFramework
 {
@@ -2684,6 +2684,7 @@ namespace WPEFramework
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_vendorID = appVendorId;
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_powerStatus = PowerStatus(powerState);
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_currentLanguage = defaultLanguage;
+						_instance->deviceList[_instance->m_logicalAddressAllocated].m_osdName = osdName.toString().c_str();
 						if(cecVersion == 2.0) {
 						    _instance->deviceList[_instance->m_logicalAddressAllocated].m_cecVersion = Version::V_2_0;
 						    _instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST),
