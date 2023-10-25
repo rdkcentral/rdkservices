@@ -25,6 +25,8 @@
 #include "Module.h"
 #include "NetUtils.h"
 #include "libIARM.h"
+#include "UtilsLogging.h"
+#include "NetworkConnectivity.h"
 
 
 // Define this to use netlink calls (where there may be an alternative method but netlink could provide
@@ -85,35 +87,6 @@ typedef struct {
     NetworkManager_GetIPSettings_ErrorCode_t errCode;
 } IARM_BUS_NetSrvMgr_Iface_Settings_t;
 
-typedef struct
-{
-    unsigned char size;
-    char          endpoints[MAX_ENDPOINTS][MAX_ENDPOINT_SIZE];
-} IARM_BUS_NetSrvMgr_Iface_TestEndpoints_t;
-
-typedef enum _InternetConnectionState_t {
-    NO_INTERNET,
-    LIMITED_INTERNET,
-    CAPTIVE_PORTAL,
-    FULLY_CONNECTED
-}InternetConnectionState_t;
-
-typedef enum _NetworkManager_IPRESOLVE_ErrorCode_t
-{
-  NSM_IPRESOLVE_WHATEVER=0,
-  NSM_IPRESOLVE_V4,
-  NSM_IPRESOLVE_V6
-} NetworkManager_IPRESOLVE_t;
-
-typedef struct
-{
-    int connectivityState;
-    int monitorInterval;
-    bool monitorConnectivity;
-    char captivePortalURI[MAX_URI_LEN];
-    NetworkManager_IPRESOLVE_t ipversion;
-} IARM_BUS_NetSrvMgr_Iface_InternetConnectivityStatus_t;
-
 typedef struct {
     char interface[16];
     char gateway[MAX_IP_ADDRESS_LEN];
@@ -126,12 +99,6 @@ typedef struct {
 
 typedef IARM_BUS_NetSrvMgr_Iface_EventInterfaceStatus_t IARM_BUS_NetSrvMgr_Iface_EventInterfaceEnabledStatus_t;
 typedef IARM_BUS_NetSrvMgr_Iface_EventInterfaceStatus_t IARM_BUS_NetSrvMgr_Iface_EventInterfaceConnectionStatus_t;
-
-typedef struct
-{
-    NetworkManager_IPRESOLVE_t ipversion;
-    bool isconnected;
-} IARM_BUS_NetSrvMgr_isConnectedtoInternet_t;
 
 typedef struct {
     char interface[16];
@@ -181,6 +148,50 @@ namespace WPEFramework {
             , public PluginHost::JSONRPC
             , public PluginHost::ISubSystem::IInternet
         {
+        public:
+
+            class Config : public Core::JSON::Container {
+                private:
+                    Config(const Config&) = delete;
+                    Config& operator=(const Config&) = delete;
+
+                public:
+                    Config()
+                    {
+                        Add(_T("endpoint_1"), &endpoint_1);
+                        Add(_T("endpoint_2"), &endpoint_2);
+                        Add(_T("endpoint_3"), &endpoint_3);
+                        Add(_T("endpoint_4"), &endpoint_4);
+                        Add(_T("endpoint_5"), &endpoint_5);
+                    }
+                    ~Config()
+                    {
+                    }
+
+                    std::vector<std::string> getEndpoints()
+                    {
+                        int count = 0;
+                        std::vector<std::string> endpoints;
+                        endpoints.push_back(endpoint_1.Value().c_str());
+                        endpoints.push_back(endpoint_2.Value().c_str());
+                        endpoints.push_back(endpoint_3.Value().c_str());
+                        endpoints.push_back(endpoint_4.Value().c_str());
+                        endpoints.push_back(endpoint_5.Value().c_str());
+                        for (const std::string& str : endpoints)
+                            LOGINFO("endpoint-%d = %s", count++, str.c_str());
+                        return endpoints;
+                    }
+
+                public:
+                    Core::JSON::String endpoint_1;
+                    Core::JSON::String endpoint_2;
+                    Core::JSON::String endpoint_3;
+                    Core::JSON::String endpoint_4;
+                    Core::JSON::String endpoint_5;
+            };
+
+            static void notifyInternetStatusChange(nsm_internetState InternetConnectionState, bool notifyNow);
+
         private:
 
             // We do not allow this plugin to be copied !!
@@ -224,7 +235,7 @@ namespace WPEFramework {
 
             void onInterfaceEnabledStatusChanged(std::string interface, bool enabled);
             void onInterfaceConnectionStatusChanged(std::string interface, bool connected);
-            void onInternetStatusChange(InternetConnectionState_t InternetConnectionState);
+            void onInternetStatusChange(nsm_internetState InternetConnectionState);
             void onInterfaceIPAddressChanged(std::string interface, std::string ipv6Addr, std::string ipv4Addr, bool acquired);
             void onDefaultInterfaceChanged(std::string oldInterface, std::string newInterface);
 
@@ -281,6 +292,8 @@ namespace WPEFramework {
         public:
             static Network *_instance;
             static Network *getInstance() {return _instance;}
+            Config config;
+            ConnectivityMonitor& connectivityMonitor = ConnectivityMonitor::getInstance();
 
         private:
             PluginHost::IShell* m_service;
@@ -311,12 +324,12 @@ namespace WPEFramework {
             std::atomic<bool> m_useDefInterfaceCache;
             string m_defInterfaceCache;
             string m_defIpversionCache;
-            IARM_BUS_NetSrvMgr_isConnectedtoInternet_t m_ipv4InternetCache;
-            IARM_BUS_NetSrvMgr_isConnectedtoInternet_t m_ipv6InternetCache;
-            IARM_BUS_NetSrvMgr_isConnectedtoInternet_t m_InternetCache;
-            IARM_BUS_NetSrvMgr_Iface_InternetConnectivityStatus_t m_ipv4ConnectionStateCache;
-            IARM_BUS_NetSrvMgr_Iface_InternetConnectivityStatus_t m_ipv6ConnectionStateCache;
-            IARM_BUS_NetSrvMgr_Iface_InternetConnectivityStatus_t m_ConnectionStateCache;
+            bool m_ipv4InternetCache;
+            bool m_ipv6InternetCache;
+            bool m_InternetCache;
+            nsm_internetState m_ipv4ConnectionStateCache;
+            nsm_internetState m_ipv6ConnectionStateCache;
+            nsm_internetState m_ConnectionStateCache;
 
             IARM_BUS_NetSrvMgr_Iface_Settings_t m_ipv4WifiCache;
             IARM_BUS_NetSrvMgr_Iface_Settings_t m_ipv6WifiCache;
