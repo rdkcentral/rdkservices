@@ -1158,9 +1158,6 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             bool result = false;
             std::string ipversion;
 
-            if(!m_isPluginInited)
-                EnsureNetSrvMgrRunning();
-
             if(m_isPluginInited)
             {
                 IARM_BUS_NetSrvMgr_isConnectedtoInternet_t param;
