@@ -1238,9 +1238,6 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                         m_InternetCache = isconnected; 
                     }
                 }
-
-                LOGINFO("ipversionStr %s", ipversionStr.c_str());
-
                 response["connectedToInternet"] = isconnected;
                 if(ipversionStr == "IPV4" || ipversionStr == "IPV6")
                     response["ipversion"] = ipversionStr.c_str();
@@ -1301,9 +1298,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             if(m_isPluginInited)
             {
                 getDefaultStringParameter("ipversion", ipversionStr, "");
-                LOGINFO("ipversionStr %s", ipversionStr.c_str());
                 Utils::String::toUpper(ipversionStr);
-                LOGINFO("ipversionStr %s", ipversionStr.c_str());
                 if ((ipversionStr == "IPV4") && m_useIPv4ConnectionStateCache)
                 {
                     internetState = m_ipv4ConnectionStateCache;
@@ -1341,7 +1336,6 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                         m_ConnectionStateCache = internetState;
                     }
                 }
-   
                 LOGINFO("InternetConnectionState = %d ", static_cast<int>(internetState));
                 response["state"] = static_cast<int>(internetState);
                 if(ipversionStr == "IPV4" || ipversionStr == "IPV6")
