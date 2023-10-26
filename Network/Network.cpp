@@ -1204,7 +1204,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                                 if (m_publicIPAddress.empty())
                                 {
                                     JsonObject p2, r2;
-                                    if (m_ipversion == "IPV6")
+                                    if (ipversionStr == "IPV6")
                                         p2["ipv6"] = true;
                                     getPublicIP(p2, r2);
                                 }
