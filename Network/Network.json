@@ -425,6 +425,14 @@
         },
         "isConnectedToInternet":{
             "summary": "Whether the device has internet connectivity. This API might take up to 2s to validate internet connectivity.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "ipversion": {
+                        "$ref": "#/definitions/ipversion"
+                    }
+                }
+            },
             "result": {
                 "type": "object",
                 "properties": {
@@ -432,6 +440,9 @@
                         "summary": "`true` if internet connectivity is detected, otherwise `false`",
                         "type": "boolean",
                         "example": true
+                    },
+                    "ipversion": {
+                        "$ref": "#/definitions/ipversion"
                     },
                     "success": {
                         "$ref": "#/common/success"
@@ -445,6 +456,14 @@
         },
         "getInternetConnectionState":{
             "summary": "Returns the internet connection state. The possible internet connection state are as follows. \n* `0`: NO_INTERNET - No internet connection  \n* `1`: LIMITED_INTERNET - Internet connection limited  \n* `2`: CAPTIVE_PORTAL - Captive portal found  \n* `3`: FULLY_CONNECTED - Fully connected to internet",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "ipversion": {
+                        "$ref": "#/definitions/ipversion"
+                    }
+                }
+            },
             "result": {
                 "type": "object",
                 "properties": {
@@ -455,6 +474,9 @@
                         "summary": "Captive portal URI",
                         "type": "string",
                         "example": "http://10.0.0.1/captiveportal.jst"
+                    },
+                    "ipversion": {
+                        "$ref": "#/definitions/ipversion"
                     },
                     "success":{
                         "$ref": "#/common/success"

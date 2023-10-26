@@ -2,3 +2,11 @@ precondition = ["Platform"]
 callsign = "org.rdk.Network"
 autostart = "true"
 startuporder = "@PLUGIN_NETWORK_STARTUPORDER@"
+
+configuration = JSON()
+
+configuration.add("endpoint_1", "@PLUGIN_NETWORK_CONNECTIVITY_ENDPOINT_1@")
+configuration.add("endpoint_2", "@PLUGIN_NETWORK_CONNECTIVITY_ENDPOINT_2@")
+configuration.add("endpoint_3", "@PLUGIN_NETWORK_CONNECTIVITY_ENDPOINT_3@")
+configuration.add("endpoint_4", "@PLUGIN_NETWORK_CONNECTIVITY_ENDPOINT_4@")
+configuration.add("endpoint_5", "@PLUGIN_NETWORK_CONNECTIVITY_ENDPOINT_5@")
