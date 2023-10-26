@@ -16,9 +16,9 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
-## [1.2.3] - 2023-10-20
-### Changed
-- modify connectivity monitor api's
+## [1.3.0] - 2023-10-20
+### Added 
+- Implemented connectivity monitor class
 
 ## [1.2.2] - 2023-09-29
 ### Added
