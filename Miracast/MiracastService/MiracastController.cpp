@@ -516,6 +516,13 @@ void MiracastController::stop_session(bool stop_streaming_needed)
     }
 #endif
     stop_discover_devices();
+    remove_P2PGroupInstance();
+    MIRACASTLOG_TRACE("Exiting...");
+}
+
+void MiracastController::remove_P2PGroupInstance(void)
+{
+    MIRACASTLOG_TRACE("Entering...");
     if (m_groupInfo)
     {
         if (( true == m_groupInfo->isGO )&&(nullptr != m_p2p_ctrl_obj))
@@ -584,13 +591,28 @@ MiracastError MiracastController::stop_discover_devices(void)
     return ret;
 }
 
-MiracastError MiracastController::connect_device(std::string MAC)
+MiracastError MiracastController::connect_device(std::string device_mac , std::string device_name )
 {
     MIRACASTLOG_TRACE("Entering...");
-    MIRACASTLOG_VERBOSE("Connecting to the MAC - %s", MAC.c_str());
+    MIRACASTLOG_VERBOSE("Connecting to the MAC - %s", device_mac.c_str());
     MiracastError ret = MIRACAST_FAIL;
-    if (nullptr != m_p2p_ctrl_obj){
-        ret = m_p2p_ctrl_obj->connect_device(MAC);
+
+    if (nullptr != m_p2p_ctrl_obj)
+    {
+        ret = m_p2p_ctrl_obj->connect_device(device_mac);
+        if (MIRACAST_OK == ret )
+        {
+            set_WFDSourceMACAddress(device_mac);
+            set_WFDSourceName(device_name);
+        }
+        else
+        {
+            MIRACASTLOG_ERROR("!!! P2P Connect Failure for Device[%s - %s] !!!",device_name.c_str(),device_mac.c_str());
+            if ( nullptr != m_notify_handler )
+            {
+                m_notify_handler->onMiracastServiceClientConnectionError( device_mac , device_name , MIRACAST_SERVICE_ERR_CODE_P2P_CONNECT_ERROR );
+            }
+        }
     }
     MIRACASTLOG_TRACE("Exiting...");
     return ret;
@@ -817,7 +839,8 @@ void MiracastController::Controller_Thread(void *args)
     bool    new_thunder_req_client_connection_sent = false,
             another_thunder_req_client_connection_sent = false,
             start_discovering_enabled = false,
-            session_restart_required = false;
+            session_restart_required = false,
+            p2p_group_instance_alive = false;
 
     MIRACASTLOG_TRACE("Entering...");
 
@@ -1037,6 +1060,7 @@ void MiracastController::Controller_Thread(void *args)
                                         /* Enabled the Device Discovery to allow other device to cast */
                                         discover_devices();
                                         session_restart_required = false;
+                                        p2p_group_instance_alive = true;
                                     #endif
                                 }
                             }
@@ -1145,6 +1169,7 @@ void MiracastController::Controller_Thread(void *args)
                                     /* Enabled the Device Discovery to allow other device to cast */
                                     discover_devices();
                                     session_restart_required = false;
+                                    p2p_group_instance_alive = true;
                                 #endif
                                 // STB is the GO in the p2p group
                                 m_groupInfo->isGO = true;
@@ -1155,12 +1180,19 @@ void MiracastController::Controller_Thread(void *args)
                             if ( CONTROLLER_GO_GROUP_FORMATION_FAILURE == controller_msgq_data.state )
                             {
                                 error_code = MIRACAST_SERVICE_ERR_CODE_P2P_GROUP_FORMATION_ERROR;
-                                MIRACASTLOG_TRACE("CONTROLLER_GO_GROUP_FORMATION_FAILURE Received\n");
+                                MIRACASTLOG_ERROR("CONTROLLER_GO_GROUP_FORMATION_FAILURE Received\n");
                             }
                             else if ( CONTROLLER_GO_NEG_FAILURE == controller_msgq_data.state )
                             {
                                 error_code = MIRACAST_SERVICE_ERR_CODE_P2P_GROUP_NEGO_ERROR;
-                                MIRACASTLOG_TRACE("CONTROLLER_GO_NEG_FAILURE Received\n");
+                                MIRACASTLOG_ERROR("CONTROLLER_GO_NEG_FAILURE Received\n");
+                            }
+
+                            if ( p2p_group_instance_alive )
+                            {
+                                MIRACASTLOG_ERROR("!!! [GROUP_FORMATION/NEG_FAILURE - %#08X] Received after P2P GROUP START!!!\n",
+                                                    controller_msgq_data.state );
+                                p2p_group_instance_alive = false;
                             }
                         }
 
@@ -1180,6 +1212,24 @@ void MiracastController::Controller_Thread(void *args)
                     case CONTROLLER_GO_GROUP_REMOVED:
                     {
                         MIRACASTLOG_TRACE("CONTROLLER_GO_GROUP_REMOVED Received\n");
+                        if ( p2p_group_instance_alive )
+                        {
+                            std::string device_name = get_NewSourceName(),
+                                        mac_address = get_NewSourceMACAddress();
+
+                            if ( ! mac_address.empty())
+                            {
+                                MIRACASTLOG_TRACE("Applying 5sec delay...\n");
+                                sleep(5);
+                                connect_device(mac_address,device_name);
+                                reset_NewSourceName();
+                                reset_NewSourceMACAddress();
+                            }
+                            new_thunder_req_client_connection_sent = false;
+                            another_thunder_req_client_connection_sent = false;
+                            session_restart_required = true;
+                            p2p_group_instance_alive = false;
+                        }
                     }
                     break;
                     case CONTROLLER_GO_STOP_FIND:
@@ -1316,19 +1366,36 @@ void MiracastController::Controller_Thread(void *args)
                         std::string mac_address = event_buffer;
                         std::string device_name = get_device_name(mac_address);
 
-                        if (MIRACAST_OK == connect_device(mac_address))
+                        if ( false == p2p_group_instance_alive )
                         {
-                            set_WFDSourceMACAddress(mac_address);
-                            set_WFDSourceName(device_name);
+                            connect_device(mac_address,device_name);
+                            new_thunder_req_client_connection_sent = false;
+                            another_thunder_req_client_connection_sent = false;
+                            session_restart_required = true;
                         }
-                        else if ( nullptr != m_notify_handler )
+                        else
                         {
-                            m_notify_handler->onMiracastServiceClientConnectionError( mac_address , device_name , MIRACAST_SERVICE_ERR_CODE_P2P_CONNECT_ERROR );
+                            if ( get_NewSourceMACAddress().empty())
+                            {
+                                MIRACASTLOG_TRACE("!!! Caching New Connection until P2P Group remove properly !!!");
+                                set_NewSourceMACAddress(mac_address);
+                                set_NewSourceName(device_name);
+                            }
+                            else
+                            {
+                                MIRACASTLOG_ERROR("!!! Unable to Cache Connection[%s - %s] as [%s - %s] was already cached !!!",
+                                                    device_name,
+                                                    mac_address,
+                                                    get_NewSourceName(),
+                                                    get_NewSourceMACAddress());
+                            }
                         }
-
-                        new_thunder_req_client_connection_sent = false;
-                        another_thunder_req_client_connection_sent = false;
-                        session_restart_required = true;
+                    }
+                    break;
+                    case CONTROLLER_FLUSH_CURRENT_SESSION:
+                    {
+                        MIRACASTLOG_TRACE("CONTROLLER_FLUSH_CURRENT_SESSION Received\n");
+                        remove_P2PGroupInstance();
                     }
                     break;
                     case CONTROLLER_CONNECT_REQ_REJECT:
@@ -1453,6 +1520,12 @@ void MiracastController::ThunderReqHandler_Thread(void *args)
                 }
             }
             break;
+            case THUNDER_REQ_HLDR_FLUSH_SESSION:
+            {
+                MIRACASTLOG_TRACE("[CONTROLLER_FLUSH_CURRENT_SESSION]\n");
+                controller_msgq_data.state = CONTROLLER_FLUSH_CURRENT_SESSION;
+            }
+            break;
             case THUNDER_REQ_HLDR_SHUTDOWN_APP:
             {
                 MIRACASTLOG_TRACE("[THUNDER_REQ_HLDR_SHUTDOWN_APP]\n");
@@ -1522,6 +1595,12 @@ void MiracastController::send_msg_thunder_msg_hdler_thread(MIRACAST_SERVICE_STAT
             thunder_req_msgq_data.state = THUNDER_REQ_HLDR_RESTART_DISCOVER;
         }
         break;
+        case MIRACAST_SERVICE_FLUSH_SESSION:
+        {
+            MIRACASTLOG_TRACE("[MIRACAST_SERVICE_FLUSH_SESSION]\n");
+            thunder_req_msgq_data.state = THUNDER_REQ_HLDR_FLUSH_SESSION;
+        }
+        break;
         case MIRACAST_SERVICE_SHUTDOWN:
         {
             MIRACASTLOG_TRACE("[MIRACAST_SERVICE_SHUTDOWN]\n");
@@ -1587,6 +1666,13 @@ void MiracastController::restart_session_discovery(void )
     MIRACASTLOG_TRACE("Exiting...");
 }
 
+void MiracastController::flush_current_session(void )
+{
+    MIRACASTLOG_TRACE("Entering...");
+    send_msg_thunder_msg_hdler_thread(MIRACAST_SERVICE_FLUSH_SESSION);
+    MIRACASTLOG_TRACE("Exiting...");
+}
+
 void MiracastController::accept_client_connection(std::string is_accepted)
 {
     MIRACAST_SERVICE_STATES state = MIRACAST_SERVICE_REJECT_CLIENT;
@@ -1648,6 +1734,36 @@ void MiracastController::reset_WFDSourceMACAddress(void)
 void MiracastController::reset_WFDSourceName(void)
 {
     m_connected_device_name.clear();
+}
+
+void MiracastController::set_NewSourceMACAddress(std::string mac_address)
+{
+    m_new_device_mac_addr = mac_address;
+}
+
+void MiracastController::set_NewSourceName(std::string device_name)
+{
+    m_new_device_name = device_name;
+}
+
+std::string MiracastController::get_NewSourceName(void)
+{
+    return m_new_device_name;
+}
+
+std::string MiracastController::get_NewSourceMACAddress(void)
+{
+    return m_new_device_mac_addr;
+}
+
+void MiracastController::reset_NewSourceMACAddress(void)
+{
+    m_new_device_mac_addr.clear();
+}
+
+void MiracastController::reset_NewSourceName(void)
+{
+    m_new_device_name.clear();
 }
 
 bool MiracastController::set_WFDVideoFormat( RTSP_WFD_VIDEO_FMT_STRUCT video_fmt )

@@ -483,6 +483,7 @@ namespace WPEFramework
 					if ( MIRACAST_PLAYER_REASON_CODE_NEW_SRC_DEV_CONNECT_REQ == stop_reason_code )
 					{
 						MIRACASTLOG_INFO("!!! STOPPED RECEIVED FOR NEW CONECTION !!!");
+						m_miracast_ctrler_obj->flush_current_session();
 					}
 					else
 					{

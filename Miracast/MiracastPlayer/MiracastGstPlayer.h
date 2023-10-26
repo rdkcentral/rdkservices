@@ -59,6 +59,7 @@ private:
     GstElement  *m_udpsrc2appsink_pipeline{nullptr};
     GstElement  *m_playbin2appsrc_pipeline{nullptr};
     GstElement  *m_udpsrc{nullptr};
+    GstElement  *m_rtpmp2tdepay{nullptr};
     GstElement  *m_appsink{nullptr};
     GstElement  *m_appsrc{nullptr};
     gboolean    bPushData;

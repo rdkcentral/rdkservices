@@ -52,7 +52,7 @@ public:
     void event_handler(P2P_EVENTS eventId, void *data, size_t len );
 
     MiracastError discover_devices();
-    MiracastError connect_device(std::string mac);
+    MiracastError connect_device(std::string device_mac , std::string device_name );
     MiracastError start_streaming();
 
     std::string get_localIp();
@@ -85,6 +85,8 @@ public:
     MiracastError stop_discover_devices();
     MiracastError set_WFDParameters(void);
     void restart_session_discovery(void );
+    void flush_current_session(void);
+    void remove_P2PGroupInstance(void);
     void restart_session(bool start_discovering_enabled);
     void stop_session(bool stop_streaming_needed = false);
     std::string get_device_name(std::string mac);
@@ -103,6 +105,13 @@ public:
     std::string get_WFDSourceMACAddress(void);
     void reset_WFDSourceMACAddress(void);
     void reset_WFDSourceName(void);
+
+    void set_NewSourceMACAddress(std::string MAC_Addr);
+    void set_NewSourceName(std::string device_name);
+    std::string get_NewSourceName(void);
+    std::string get_NewSourceMACAddress(void);
+    void reset_NewSourceMACAddress(void);
+    void reset_NewSourceName(void);
 
 private:
     static MiracastController *m_miracast_ctrl_obj;
@@ -123,6 +132,8 @@ private:
     MiracastServiceNotifier *m_notify_handler;
     std::string m_connected_mac_addr;
     std::string m_connected_device_name;
+    std::string m_new_device_mac_addr;
+    std::string m_new_device_name;
     std::string m_localIp;
     vector<DeviceInfo *> m_deviceInfoList;
     GroupInfo *m_groupInfo;

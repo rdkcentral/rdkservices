@@ -973,9 +973,10 @@ bool MiracastGstPlayer::createPipeline()
 
     // Create elements
     m_udpsrc = gst_element_factory_make("udpsrc", "miracast_udpsrc");
+    m_rtpmp2tdepay = gst_element_factory_make("rtpmp2tdepay", "miracast_rtpmp2tdepay");
     m_appsink = gst_element_factory_make("appsink", "miracast_appsink");
 
-    if (!m_udpsrc2appsink_pipeline || !m_udpsrc || !m_appsink)
+    if (!m_udpsrc2appsink_pipeline || !m_udpsrc || !m_rtpmp2tdepay || !m_appsink)
     {
         MIRACASTLOG_ERROR("Not all elements could be created.\n");
         return -1;
@@ -983,6 +984,9 @@ bool MiracastGstPlayer::createPipeline()
 
     // Set the UDP source properties
     g_object_set(G_OBJECT(m_udpsrc), "port", 1990, NULL);
+
+    GstCaps *caps = gst_caps_new_simple("application/x-rtp", "media", G_TYPE_STRING, "video", NULL);
+    g_object_set(G_OBJECT(m_udpsrc), "caps", caps, NULL);
 
     /* to be notified of messages from this pipeline, mostly EOS */
     bus = gst_element_get_bus(m_udpsrc2appsink_pipeline);
@@ -1024,10 +1028,10 @@ bool MiracastGstPlayer::createPipeline()
     g_signal_connect(m_appsink, "new-sample", G_CALLBACK(on_new_sample_from_udpsrc), this);
 
     // Add elements to the pipeline
-    gst_bin_add_many(GST_BIN(m_udpsrc2appsink_pipeline), m_udpsrc, m_appsink, NULL);
+    gst_bin_add_many(GST_BIN(m_udpsrc2appsink_pipeline), m_udpsrc, m_rtpmp2tdepay, m_appsink, NULL);
 
     // Link udpsrc to appsink
-    if (!gst_element_link(m_udpsrc, m_appsink))
+    if (!gst_element_link_many( m_udpsrc, m_rtpmp2tdepay , m_appsink, nullptr ))
     {
         MIRACASTLOG_ERROR("Elements could not be linked.\n");
         gst_object_unref(m_udpsrc2appsink_pipeline);
