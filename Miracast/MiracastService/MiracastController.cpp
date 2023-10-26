@@ -1219,8 +1219,8 @@ void MiracastController::Controller_Thread(void *args)
 
                             if ( ! mac_address.empty())
                             {
-                                MIRACASTLOG_TRACE("Applying 5sec delay...\n");
-                                sleep(5);
+                                //MIRACASTLOG_TRACE("Applying 5sec delay...\n");
+                                //sleep(5);
                                 connect_device(mac_address,device_name);
                                 reset_NewSourceName();
                                 reset_NewSourceMACAddress();
@@ -1442,6 +1442,8 @@ void MiracastController::ThunderReqHandler_Thread(void *args)
 {
     CONTROLLER_MSGQ_STRUCT controller_msgq_data = {0};
     THUNDER_REQ_HDLR_MSGQ_STRUCT thunder_req_hdlr_msgq_data = {0};
+    std::string  current_device_name = "",
+                current_device_mac_addr  = "";
     bool send_message = false;
 
     MIRACASTLOG_TRACE("Entering...");
@@ -1478,51 +1480,45 @@ void MiracastController::ThunderReqHandler_Thread(void *args)
             break;
             case THUNDER_REQ_HLDR_CONNECT_DEVICE_FROM_CONTROLLER:
             {
-                std::string device_name = thunder_req_hdlr_msgq_data.buffer_user_data;
-                std::string MAC = thunder_req_hdlr_msgq_data.msg_buffer;
+                current_device_name = thunder_req_hdlr_msgq_data.buffer_user_data;
+                current_device_mac_addr = thunder_req_hdlr_msgq_data.msg_buffer;
 
                 send_message = true;
-                MIRACASTLOG_TRACE("\n################# GO DEVICE[%s - %s] wants to connect: #################\n", device_name.c_str(), MAC.c_str());
+                MIRACASTLOG_INFO("!!!! DEVICE[%s - %s] wants to connect !!!!",
+                                    current_device_name.c_str(), 
+                                    current_device_mac_addr.c_str());
                 if (nullptr != m_notify_handler)
                 {
-                    m_notify_handler->onMiracastServiceClientConnectionRequest(MAC, device_name);
+                    m_notify_handler->onMiracastServiceClientConnectionRequest(current_device_mac_addr, current_device_name);
                 }
-
-                if (true == m_thunder_req_handler_thread->receive_message(&thunder_req_hdlr_msgq_data, sizeof(thunder_req_hdlr_msgq_data), THUNDER_REQ_THREAD_CLIENT_CONNECTION_WAITTIME))
+            }
+            break;
+            case THUNDER_REQ_HLDR_CONNECT_DEVICE_ACCEPTED:
+            case THUNDER_REQ_HLDR_CONNECT_DEVICE_REJECTED:
+            {
+                std::string reason = "";
+                if ( THUNDER_REQ_HLDR_CONNECT_DEVICE_ACCEPTED == thunder_req_hdlr_msgq_data.state )
                 {
-                    MIRACASTLOG_TRACE("ThunderReqHandler Msg Received [%#08X]\n", thunder_req_hdlr_msgq_data.state);
-                    if (THUNDER_REQ_HLDR_CONNECT_DEVICE_ACCEPTED == thunder_req_hdlr_msgq_data.state)
-                    {
-                        strcpy(controller_msgq_data.msg_buffer, MAC.c_str());
-                        controller_msgq_data.state = CONTROLLER_CONNECT_REQ_FROM_THUNDER;
-                    }
-                    else if (THUNDER_REQ_HLDR_CONNECT_DEVICE_REJECTED == thunder_req_hdlr_msgq_data.state)
-                    {
-                        controller_msgq_data.state = CONTROLLER_CONNECT_REQ_REJECT;
-                    }
-                    else if (THUNDER_REQ_HLDR_SHUTDOWN_APP == thunder_req_hdlr_msgq_data.state)
-                    {
-                        controller_msgq_data.state = CONTROLLER_SELF_ABORT;
-                    }
-                    else if (THUNDER_REQ_HLDR_STOP_DISCOVER == thunder_req_hdlr_msgq_data.state)
-                    {
-                        controller_msgq_data.state = CONTROLLER_STOP_DISCOVERING;
-                    }
-                    else
-                    {
-                        controller_msgq_data.state = CONTROLLER_INVALID_STATE;
-                    }
+                    strcpy(controller_msgq_data.msg_buffer, current_device_mac_addr.c_str());
+                    controller_msgq_data.state = CONTROLLER_CONNECT_REQ_FROM_THUNDER;
+                    reason = "Accepted";
                 }
                 else
                 {
-                    MIRACASTLOG_TRACE("[CONTROLLER_CONNECT_REQ_TIMEOUT]\n");
-                    controller_msgq_data.state = CONTROLLER_CONNECT_REQ_TIMEOUT;
+                    controller_msgq_data.state = CONTROLLER_CONNECT_REQ_REJECT;
+                    reason = "Rejected";
                 }
+                MIRACASTLOG_INFO("!!!! DEVICE[%s - %s] Connection Request has '%s' !!!!",
+                                    current_device_name.c_str(), 
+                                    current_device_mac_addr.c_str(),
+                                    reason.c_str());
+                current_device_name.clear();
+                current_device_mac_addr.clear();
             }
             break;
             case THUNDER_REQ_HLDR_FLUSH_SESSION:
             {
-                MIRACASTLOG_TRACE("[CONTROLLER_FLUSH_CURRENT_SESSION]\n");
+                MIRACASTLOG_TRACE("[Flushing Current Session]\n");
                 controller_msgq_data.state = CONTROLLER_FLUSH_CURRENT_SESSION;
             }
             break;
@@ -1678,7 +1674,6 @@ void MiracastController::accept_client_connection(std::string is_accepted)
     MIRACAST_SERVICE_STATES state = MIRACAST_SERVICE_REJECT_CLIENT;
 
     MIRACASTLOG_TRACE("Entering...");
-
     if ("Accept" == is_accepted)
     {
         MIRACASTLOG_VERBOSE("Client Connection Request accepted\n");
@@ -1687,7 +1682,9 @@ void MiracastController::accept_client_connection(std::string is_accepted)
     else
     {
         MIRACASTLOG_VERBOSE("Client Connection Request Rejected\n");
+        state = MIRACAST_SERVICE_REJECT_CLIENT;
     }
+
     send_msg_thunder_msg_hdler_thread(state);
     MIRACASTLOG_TRACE("Exiting...");
 }
