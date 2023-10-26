@@ -34,7 +34,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 2
-#define API_VERSION_NUMBER_PATCH 0
+#define API_VERSION_NUMBER_PATCH 3
 
 /* Netsrvmgr Based Macros & Structures */
 #define IARM_BUS_NM_SRV_MGR_NAME "NET_SRV_MGR"
@@ -1158,38 +1158,28 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             bool result = false;
             std::string ipversion;
 
+            if(!m_isPluginInited)
+                EnsureNetSrvMgrRunning();
+
             if(m_isPluginInited)
             {
                 IARM_BUS_NetSrvMgr_isConnectedtoInternet_t param;
-                IARM_Result_t retVal;
                 getDefaultStringParameter("ipversion", ipversion, "");
                 Utils::String::toUpper(ipversion);
-                if ((ipversion == "IPV4") && m_useIPv4InternetCache)
-                {
-                    memcpy(&param, &m_ipv4InternetCache, sizeof(m_ipv4InternetCache));
-                    retVal = IARM_RESULT_SUCCESS;
-                }
-                else if ((ipversion == "IPV6") && m_useIPv6InternetCache)
-                {
-                    memcpy(&param, &m_ipv6InternetCache, sizeof(m_ipv6InternetCache));
-                    retVal = IARM_RESULT_SUCCESS;
-                }
-                else if ((ipversion == "") && m_useInternetCache)
-                {
-                    memcpy(&param, &m_InternetCache, sizeof(m_InternetCache));
-                    retVal = IARM_RESULT_SUCCESS;
-                }
+                if (ipversion == "IPV4")
+                    param.ipversion = NSM_IPRESOLVE_V4;
+                else if (ipversion == "IPV6")
+                    param.ipversion = NSM_IPRESOLVE_V6;
                 else
-                {
-                    if (ipversion == "IPV4")
-                        param.ipversion = NSM_IPRESOLVE_V4;
-                    else if (ipversion == "IPV6")
-                        param.ipversion = NSM_IPRESOLVE_V6;
-                    else
-                        param.ipversion = NSM_IPRESOLVE_WHATEVER;
+                    param.ipversion = NSM_IPRESOLVE_WHATEVER;
 
-                    param.isconnected = false;
-                    retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isConnectedToInternet, (void*) &param, sizeof(param));
+                param.isconnected = false;
+                if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isConnectedToInternet, (void*) &param, sizeof(param)))
+                {
+                    LOGINFO("%s :: isconnected = %d \n",__FUNCTION__, param.isconnected);
+                    response["connectedToInternet"] = param.isconnected;
+                    if(ipversion == "IPV4" || ipversion == "IPV6")
+                        response["ipversion"] = ipversion.c_str();
 
                     if (param.isconnected)
                     {
@@ -1200,56 +1190,13 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                             const PluginHost::ISubSystem::IInternet* internet(subSystem->Get<PluginHost::ISubSystem::IInternet>());
                             if (nullptr == internet)
                             {
-                                if (m_ipversion.empty())
-                                {
-                                    JsonObject p, r;
-                                    getIPSettings(p, r);
-                                }
-
-                                if (m_publicIPAddress.empty())
-                                {
-                                    JsonObject p2, r2;
-                                    if (m_ipversion == "IPV6")
-                                        p2["ipv6"] = true;
-                                    getPublicIP(p2, r2);
-                                }
-
-                                if (!m_publicIPAddress.empty())
-                                {
                                     subSystem->Set(PluginHost::ISubSystem::INTERNET, this);
                                     LOGWARN("Set INTERNET ISubSystem");
-                                }
-                                else
-                                    LOGERR("Connected to Internet, but no publicIP");
                             }
  
                             subSystem->Release();
                         }
                     }
-
-                    if (ipversion == "IPV4")
-                    {
-                        m_useIPv4InternetCache = true;
-                        memcpy(&m_ipv4InternetCache, &param, sizeof(param));
-                    }
-                    else if (ipversion == "IPV6")
-                    {
-                         m_useIPv6InternetCache = true;
-                         memcpy(&m_ipv6InternetCache, &param, sizeof(param));
-                    }
-                    else
-                    {
-                        m_useInternetCache = true;
-                        memcpy(&m_InternetCache, &param, sizeof(param));
-                    }
-                }
-
-                if (retVal == IARM_RESULT_SUCCESS)
-                {
-                    LOGINFO("%s :: isconnected = %d \n",__FUNCTION__, param.isconnected);
-                    response["connectedToInternet"] = param.isconnected;
-                    if(ipversion == "IPV4" || ipversion == "IPV6")
-                        response["ipversion"] = ipversion.c_str();
 
                     result = true;
                 }
