@@ -65,6 +65,8 @@ namespace WPEFramework {
 
             mDisableBlacklist = (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemanager.Blacklist.Enable", param) &&
                                          (param.type == WDMP_BOOLEAN) && (strncasecmp(param.value, "false", 5) == 0));
+            mDisableReserveTTS = (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemanager.ReserveTTS.Enable", param) &&
+                                         (param.type == WDMP_BOOLEAN) && (strncasecmp(param.value, "false", 5) == 0));
 
 #else
             std::cout<<"ENABLE_ERM not defined"<<std::endl;
@@ -190,7 +192,7 @@ namespace WPEFramework {
             LOGINFOMETHOD();
             bool status = false;
 
-	    if ((parameters.HasLabel("appid")) && (false == mDisableBlacklist))
+	    if ((parameters.HasLabel("appid")) && (false == mDisableReserveTTS))
 	    {
 		std::string app = parameters["appid"].String();
                 std::cout<<"appid : "<< app << std::endl;
@@ -199,10 +201,10 @@ namespace WPEFramework {
             }
             else
             {
-                if (mDisableBlacklist)
+                if (mDisableReserveTTS)
                 {
                     status = true;
-                    response["message"] = "Blacklist RFC is disabled";
+                    response["message"] = "ReserveTTS RFC is disabled";
                 }
                 else
                 {
