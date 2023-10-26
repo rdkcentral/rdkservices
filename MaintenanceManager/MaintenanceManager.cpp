@@ -1350,7 +1350,7 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool result = false;
-            int start_time=0;
+            int starttime=0;
 			CalculateStartTime(&starttime);
 			if (starttime!=0){
 				response["maintenanceStartTime"]=starttime;
