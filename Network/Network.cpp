@@ -1158,28 +1158,38 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             bool result = false;
             std::string ipversion;
 
-            if(!m_isPluginInited)
-                EnsureNetSrvMgrRunning();
-
             if(m_isPluginInited)
             {
                 IARM_BUS_NetSrvMgr_isConnectedtoInternet_t param;
+                IARM_Result_t retVal;
                 getDefaultStringParameter("ipversion", ipversion, "");
                 Utils::String::toUpper(ipversion);
-                if (ipversion == "IPV4")
-                    param.ipversion = NSM_IPRESOLVE_V4;
-                else if (ipversion == "IPV6")
-                    param.ipversion = NSM_IPRESOLVE_V6;
-                else
-                    param.ipversion = NSM_IPRESOLVE_WHATEVER;
-
-                param.isconnected = false;
-                if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isConnectedToInternet, (void*) &param, sizeof(param)))
+                if ((ipversion == "IPV4") && m_useIPv4InternetCache)
                 {
-                    LOGINFO("%s :: isconnected = %d \n",__FUNCTION__, param.isconnected);
-                    response["connectedToInternet"] = param.isconnected;
-                    if(ipversion == "IPV4" || ipversion == "IPV6")
-                        response["ipversion"] = ipversion.c_str();
+                    memcpy(&param, &m_ipv4InternetCache, sizeof(m_ipv4InternetCache));
+                    retVal = IARM_RESULT_SUCCESS;
+                }
+                else if ((ipversion == "IPV6") && m_useIPv6InternetCache)
+                {
+                    memcpy(&param, &m_ipv6InternetCache, sizeof(m_ipv6InternetCache));
+                    retVal = IARM_RESULT_SUCCESS;
+                }
+                else if ((ipversion == "") && m_useInternetCache)
+                {
+                    memcpy(&param, &m_InternetCache, sizeof(m_InternetCache));
+                    retVal = IARM_RESULT_SUCCESS;
+                }
+                else
+                {
+                    if (ipversion == "IPV4")
+                        param.ipversion = NSM_IPRESOLVE_V4;
+                    else if (ipversion == "IPV6")
+                        param.ipversion = NSM_IPRESOLVE_V6;
+                    else
+                        param.ipversion = NSM_IPRESOLVE_WHATEVER;
+
+                    param.isconnected = false;
+                    retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isConnectedToInternet, (void*) &param, sizeof(param));
 
                     if (param.isconnected)
                     {
@@ -1190,13 +1200,37 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                             const PluginHost::ISubSystem::IInternet* internet(subSystem->Get<PluginHost::ISubSystem::IInternet>());
                             if (nullptr == internet)
                             {
-                                    subSystem->Set(PluginHost::ISubSystem::INTERNET, this);
-                                    LOGWARN("Set INTERNET ISubSystem");
+                                subSystem->Set(PluginHost::ISubSystem::INTERNET, this);
+                                LOGWARN("Set INTERNET ISubSystem");
                             }
  
                             subSystem->Release();
                         }
                     }
+
+                    if (ipversion == "IPV4")
+                    {
+                        m_useIPv4InternetCache = true;
+                        memcpy(&m_ipv4InternetCache, &param, sizeof(param));
+                    }
+                    else if (ipversion == "IPV6")
+                    {
+                         m_useIPv6InternetCache = true;
+                         memcpy(&m_ipv6InternetCache, &param, sizeof(param));
+                    }
+                    else
+                    {
+                        m_useInternetCache = true;
+                        memcpy(&m_InternetCache, &param, sizeof(param));
+                    }
+                }
+
+                if (retVal == IARM_RESULT_SUCCESS)
+                {
+                    LOGINFO("%s :: isconnected = %d \n",__FUNCTION__, param.isconnected);
+                    response["connectedToInternet"] = param.isconnected;
+                    if(ipversion == "IPV4" || ipversion == "IPV6")
+                        response["ipversion"] = ipversion.c_str();
 
                     result = true;
                 }
@@ -1210,7 +1244,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                 LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
             }
             returnResponse(result);
-        }
+        }   
 
         uint32_t Network::setConnectivityTestEndpoints (const JsonObject &parameters, JsonObject &response)
         {
