@@ -63,8 +63,12 @@ namespace WPEFramework {
 
             RFC_ParamData_t param;
 
-            mDisableBlacklist = (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemanager.Blacklist.Enable", param) &&
-                                         (param.type == WDMP_BOOLEAN) && (strncasecmp(param.value, "false", 5) == 0));
+            mDisableBlacklist = true;
+
+            if (true == Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemanager.Blacklist.Enable", param))
+            {
+                mDisableBlacklist =  ((param.type == WDMP_BOOLEAN) && (strncasecmp(param.value, "false", 5) == 0));
+            }
 
 #else
             std::cout<<"ENABLE_ERM not defined"<<std::endl;
