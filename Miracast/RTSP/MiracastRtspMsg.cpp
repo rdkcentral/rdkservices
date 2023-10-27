@@ -1525,6 +1525,11 @@ RTSP_STATUS MiracastRTSPMsg::validate_rtsp_m6_ack_m7_send_request(std::string rt
         m_wfd_src_session_timeout = timeoutValue;
     }
 
+#ifndef MIRACAST_CERT_BUILD
+    m_wfd_src_session_timeout += RTSP_KEEP_ALIVE_WAIT_TIMEOUT_OFFSET_SEC;
+    MIRACASTLOG_TRACE("SessionTimeout has updated as [%s]",m_wfd_src_session_timeout);
+#endif
+
     if (!clientPortValue.empty())
     {
         status_code = send_rtsp_reply_sink2src(RTSP_MSG_FMT_M7_REQUEST);
