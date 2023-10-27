@@ -197,11 +197,6 @@ bool sForceResidentAppLaunch = false;
 static bool sRunning = true;
 bool needsScreenshot = false;
 
-#ifdef HIBERNATE_NATIVE_APPS_ON_SUSPENDED
-std::mutex nativeAppWasResumedMutex;
-map<string,bool> nativeAppWasResumed;
-#endif
-
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
 #define RDKSHELL_POWER_TIME_WAIT 2.5
@@ -622,10 +617,7 @@ namespace WPEFramework {
                 if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AppHibernate.Enable", param)
                     && strncasecmp(param.value, "true", 4) == 0)
                 {
-                    nativeAppWasResumedMutex.lock();
-                    if ((mCallSign.find("Netflix") != std::string::npos || mCallSign.find("Cobalt") != std::string::npos)
-                        && nativeAppWasResumed.find(mCallSign) != nativeAppWasResumed.end()
-                        && nativeAppWasResumed[mCallSign])
+                    if ((mCallSign.find("Netflix") != std::string::npos || mCallSign.find("Cobalt") != std::string::npos))
                     {
                         // call RDKShell.hibernate
                         std::thread requestsThread =
@@ -638,15 +630,9 @@ namespace WPEFramework {
 
                         requestsThread.detach();
                     }
-                    nativeAppWasResumedMutex.unlock();
                 }
 #endif
             }
-#ifdef HIBERNATE_NATIVE_APPS_ON_SUSPENDED
-            nativeAppWasResumedMutex.lock();
-            nativeAppWasResumed[mCallSign] = (state == PluginHost::IStateControl::RESUMED);
-            nativeAppWasResumedMutex.unlock();
-#endif
 
           }
 
@@ -945,11 +931,6 @@ namespace WPEFramework {
             {
                 gExitReasonMutex.lock();
                 gApplicationsExitReason[service->Callsign()] = AppLastExitReason::DEACTIVATED;
-#ifdef HIBERNATE_NATIVE_APPS_ON_SUSPENDED
-                nativeAppWasResumedMutex.lock();
-                nativeAppWasResumed[service->Callsign()] = false;
-                nativeAppWasResumedMutex.unlock();
-#endif
                 if(service->Reason() == PluginHost::IShell::FAILURE)
                 {
                     gApplicationsExitReason[service->Callsign()] = AppLastExitReason::CRASH;
@@ -1013,11 +994,6 @@ namespace WPEFramework {
                 if ((currentState == PluginHost::IShell::DEACTIVATED) || (currentState == PluginHost::IShell::DESTROYED))
                 {
                      gApplicationsExitReason[service->Callsign()] = AppLastExitReason::DEACTIVATED;
-#ifdef HIBERNATE_NATIVE_APPS_ON_SUSPENDED
-                    nativeAppWasResumedMutex.lock();
-                    nativeAppWasResumed[service->Callsign()] = false;
-                    nativeAppWasResumedMutex.unlock();
-#endif
                 }
                 if(service->Reason() == PluginHost::IShell::FAILURE)
                 {
