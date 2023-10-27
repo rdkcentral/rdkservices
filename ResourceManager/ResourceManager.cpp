@@ -62,11 +62,17 @@ namespace WPEFramework {
             std::cout<<"EssRMgrCreate "<<((mEssRMgr != nullptr)?"succeeded":"failed")<<std::endl;
 
             RFC_ParamData_t param;
+            mDisableBlacklist = true;
+            mDisableReserveTTS = true;
 
-            mDisableBlacklist = (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemanager.Blacklist.Enable", param) &&
-                                         (param.type == WDMP_BOOLEAN) && (strncasecmp(param.value, "false", 5) == 0));
-            mDisableReserveTTS = (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemanager.ReserveTTS.Enable", param) &&
-                                         (param.type == WDMP_BOOLEAN) && (strncasecmp(param.value, "false", 5) == 0));
+            if (true == Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemanager.Blacklist.Enable", param))
+            {
+                mDisableBlacklist =  ((param.type == WDMP_BOOLEAN) && (strncasecmp(param.value, "false", 5) == 0));
+            }
+            if (true == Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemanager.ReserveTTS.Enable", param))
+            {
+                mDisableReserveTTS = ((param.type == WDMP_BOOLEAN) && (strncasecmp(param.value, "false", 5) == 0));
+            }
 
 #else
             std::cout<<"ENABLE_ERM not defined"<<std::endl;
