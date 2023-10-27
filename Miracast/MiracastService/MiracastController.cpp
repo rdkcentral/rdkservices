@@ -1219,8 +1219,8 @@ void MiracastController::Controller_Thread(void *args)
 
                             if ( ! mac_address.empty())
                             {
-                                //MIRACASTLOG_TRACE("Applying 5sec delay...\n");
-                                //sleep(5);
+                                MIRACASTLOG_TRACE("!!!! Applying 5s delay !!!!");
+                                sleep(5);
                                 connect_device(mac_address,device_name);
                                 reset_NewSourceName();
                                 reset_NewSourceMACAddress();

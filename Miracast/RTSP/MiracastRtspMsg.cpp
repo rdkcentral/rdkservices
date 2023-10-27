@@ -234,6 +234,12 @@ MiracastRTSPMsg::MiracastRTSPMsg()
     default_configuration = RTSP_DFLT_CLIENT_RTP_PORTS;
     set_WFDClientRTPPorts(default_configuration);
 
+#ifndef MIRACAST_CERT_BUILD
+    m_wfd_src_req_timeout += RTSP_REQ_RESP_RECV_TIMEOUT_OFFSET_MSEC;
+    m_wfd_src_res_timeout += RTSP_REQ_RESP_RECV_TIMEOUT_OFFSET_MSEC;
+    MIRACASTLOG_TRACE("RequestResponse Timeouts have updated as [%u,%u]",m_wfd_src_req_timeout,m_wfd_src_res_timeout);
+#endif
+
     MIRACASTLOG_TRACE("Exiting...");
 }
 MiracastRTSPMsg::~MiracastRTSPMsg()
@@ -1527,7 +1533,7 @@ RTSP_STATUS MiracastRTSPMsg::validate_rtsp_m6_ack_m7_send_request(std::string rt
 
 #ifndef MIRACAST_CERT_BUILD
     m_wfd_src_session_timeout += RTSP_KEEP_ALIVE_WAIT_TIMEOUT_OFFSET_SEC;
-    MIRACASTLOG_TRACE("SessionTimeout has updated as [%s]",m_wfd_src_session_timeout);
+    MIRACASTLOG_TRACE("SessionTimeout has updated as [%d]",m_wfd_src_session_timeout);
 #endif
 
     if (!clientPortValue.empty())
