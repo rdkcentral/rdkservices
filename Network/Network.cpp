@@ -1518,7 +1518,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
 
        void Network::notifyInternetStatusChange(nsm_internetState InternetConnectionState, bool notifyNow)
         {
-            static nsm_internetState prveInternetState = UNKNOWN;
+            static nsm_internetState prveInternetState = nsm_internetState::UNKNOWN;
             if( (prveInternetState != InternetConnectionState) || notifyNow)
             {
                 if (Network::_instance) {
