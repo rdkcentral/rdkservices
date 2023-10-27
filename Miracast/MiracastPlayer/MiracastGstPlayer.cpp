@@ -733,6 +733,14 @@ void MiracastGstPlayer::playbin_source_setup(GstElement *pipeline, GstElement *s
     // g_object_set (self->m_appsrc, "caps", self->capsSrc, NULL);
     // gst_app_src_set_caps ((GstAppSrc*)self->m_appsrc, self->capsSrc);
     g_object_set(GST_APP_SRC(self->m_appsrc), "max-bytes", (guint64) 20 * 1024 * 1024, NULL);
+
+    const gchar *set_cap = "video/mpegts, systemstream=(boolean)true, packetsize=(int)188";
+    GstCaps *caps = gst_caps_from_string(set_cap);
+    if(caps)
+    {
+        g_object_set(GST_APP_SRC(self->m_appsrc), "caps", caps, NULL);
+        gst_caps_unref(caps);
+    }
     MIRACASTLOG_TRACE("Exiting...\n");
 }
 
