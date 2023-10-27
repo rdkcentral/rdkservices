@@ -58,6 +58,11 @@ if(PLUGIN_REMOTEACTIONMAPPING)
     add_subdirectory(RemoteActionMapping)
 endif()
 
+if(ENABLE_COMMUNITY_DEVICE_TYPE)
+   add_definitions(-DENABLE_COMMUNITY_DEVICE_TYPE)
+endif()
+
+
 if(PLUGIN_CONTROLSERVICE)
     add_subdirectory(ControlService)
 endif()

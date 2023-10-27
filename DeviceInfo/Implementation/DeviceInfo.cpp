@@ -119,8 +119,19 @@ namespace Plugin {
 
     uint32_t DeviceInfoImplementation::DeviceType(string& deviceType) const
     {
-        return GetFileRegex(_T("/etc/authService.conf"),
-            std::regex("^deviceType(?:\\s*)=(?:\\s*)(?:\"{0,1})([^\"\\n]+)(?:\"{0,1})(?:\\s*)$"), deviceType);
+#ifndef ENABLE_COMMUNITY_DEVICE_TYPE
+        return GetFileRegex(_T("/etc/authService.conf"),std::regex("^deviceType(?:\\s*)=(?:\\s*)(?:\"{0,1})([^\"\\n]+)(?:\"{0,1})(?:\\s*)$"), deviceType);
+#else
+        const char* device_type;
+        uint32_t result = GetFileRegex(_T("/etc/authService.conf"),
+            std::regex("^deviceType(?:\\s*)=(?:\\s*)(?:\"{0,1})([^\"\\n]+)(?:\"{0,1})(?:\\s*)$"), deviceType)
+            == Core::ERROR_NONE ? Core::ERROR_NONE
+            : GetFileRegex(_T("/etc/device.properties"),
+                                        std::regex("^DEVICE_TYPE(?:\\s*)=(?:\\s*)(?:\"{0,1})([^\"\\n]+)(?:\"{0,1})(?:\\s*)$"), deviceType);
+        device_type = deviceType.c_str();
+        deviceType = (strcmp("mediaclient",device_type)==0)?("IpStb"):((strcmp("hybrid",device_type)==0)?("QamIpStb"):("TV"));
+        return result;
+#endif
     }
 
     uint32_t DeviceInfoImplementation::DistributorId(string& distributorId) const

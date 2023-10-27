@@ -502,7 +502,12 @@
                         "summary": "`true` to enable or `false` to disable",
                         "type": "boolean",
                         "example": true
-                    }
+                    },
+		    "persist": {
+                        "summary": "`true` to persist Wifi state after reboot or `false` to not persist Wifi state after reboot",
+                        "type": "boolean",
+                        "example": false
+		    }
                 },
                 "required": [
                     "enable"
