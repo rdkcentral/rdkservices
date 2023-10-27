@@ -4736,7 +4736,7 @@ namespace WPEFramework {
                             }
                             else
                             {
-                                stateString = "checkpointed";
+                                stateString = "hibernated";
                             }
 #endif
 
