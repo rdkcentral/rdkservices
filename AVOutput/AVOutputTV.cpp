@@ -4504,6 +4504,9 @@ namespace Plugin {
         JsonArray rangeArray;
 
         std::vector<std::string> range;
+        std::vector<std::string> pqmode;
+        std::vector<std::string> source;
+        std::vector<std::string> format;
 
         tvError_t ret = getParamsCaps(range,pqmode,source,format,"VideoSource");
 
@@ -4529,6 +4532,9 @@ namespace Plugin {
         JsonArray rangeArray;
 
         std::vector<std::string> range;
+        std::vector<std::string> pqmode;
+        std::vector<std::string> source;
+        std::vector<std::string> format;
 
         tvError_t ret = getParamsCaps(range,pqmode,source,format,"VideoFormat");
 
