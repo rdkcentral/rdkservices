@@ -51,7 +51,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 5
+#define API_VERSION_NUMBER_PATCH 6
 
 namespace WPEFramework
 {
@@ -266,13 +266,17 @@ namespace WPEFramework
             LOGINFOMETHOD();
             returnIfParamNotFound(parameters, "framerate");
 
+	    bool hasPersist = parameters.HasLabel("persist");
+	    bool persist = hasPersist ? parameters["persist"].Boolean() : false;
+	    if (!hasPersist) LOGINFO("%s persist: false",__FUNCTION__); else LOGINFO("%s persist: true",__FUNCTION__);
+
             string sFramerate = parameters["framerate"].String();
 
             bool success = true;
             try
             {
                 device::VideoDevice &device = device::Host::getInstance().getVideoDevices().at(0);
-                device.setDisplayframerate(sFramerate.c_str());
+                device.setDisplayframerate(sFramerate.c_str(), persist);
             }
             catch (const device::Exception& err)
             {

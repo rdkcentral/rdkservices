@@ -2,7 +2,7 @@
 <a name="FrameRate_Plugin"></a>
 # FrameRate Plugin
 
-**Version: [1.0.5](https://github.com/rdkcentral/rdkservices/blob/main/FrameRate/CHANGELOG.md)**
+**Version: [1.0.6](https://github.com/rdkcentral/rdkservices/blob/main/FrameRate/CHANGELOG.md)**
 
 A org.rdk.FrameRate plugin for Thunder framework.
 
@@ -216,6 +216,7 @@ Sets the display framerate values.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.framerate | string | The display framerate setting (width x height x framerate) |
+| params.persist | boolean | persist set as `true` means display framerate persist after reboot, persist set as `false` means display framerate not persist after reboot |
 
 ### Result
 
@@ -234,7 +235,8 @@ Sets the display framerate values.
     "id": 42,
     "method": "org.rdk.FrameRate.setDisplayFrameRate",
     "params": {
-        "framerate": "3840x2160px48"
+        "framerate": "3840x2160px48",
+	"persist": false
     }
 }
 ```

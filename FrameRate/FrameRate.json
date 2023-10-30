@@ -98,6 +98,11 @@
                 "properties": {
                     "framerate": {
                         "$ref": "#/definitions/framerate"
+                    },
+		    "persist": {
+                        "summary": "`true` to persist Display Framerate after reboot or `false` to not persist Display Framerate after reboot",
+                        "type": "boolean",
+                        "example": false
                     }
                 },
                 "required": [
