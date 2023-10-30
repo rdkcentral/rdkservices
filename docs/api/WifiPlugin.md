@@ -2,7 +2,7 @@
 <a name="Wifi_Plugin"></a>
 # Wifi Plugin
 
-**Version: [1.0.8](https://github.com/rdkcentral/rdkservices/blob/main/WifiManager/CHANGELOG.md)**
+**Version: [1.0.9](https://github.com/rdkcentral/rdkservices/blob/main/WifiManager/CHANGELOG.md)**
 
 A org.rdk.Wifi plugin for Thunder framework.
 
@@ -770,7 +770,7 @@ No Events
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.enable | boolean | `true` to enable or `false` to disable |
-| params.persist | boolean | `true` to persist Wifi state after reboot or `false` to not persist Wifi state after reboot |
+| params?.persist | boolean | <sup>*(optional)*</sup> `true` to persist Wifi state after reboot or `false` to not persist Wifi state after reboot |
 
 ### Result
 
@@ -790,7 +790,7 @@ No Events
     "method": "org.rdk.Wifi.setEnabled",
     "params": {
         "enable": true,
-	"persist": false
+        "persist": false
     }
 }
 ```
