@@ -4522,9 +4522,8 @@ namespace Plugin {
                 response["options"]=rangeArray;
             }
         }
-            LOGINFO("Exit\n");
-            returnResponse(true);
-        }
+        LOGINFO("Exit\n");
+        returnResponse(true);
     }
 
     uint32_t AVOutputTV::getVideoFormatCaps(const JsonObject& parameters, JsonObject& response) {
@@ -4550,9 +4549,8 @@ namespace Plugin {
                 response["options"]=rangeArray;
             }
         }
-            LOGINFO("Exit\n");
-            returnResponse(true);
-        }
+        LOGINFO("Exit\n");
+        returnResponse(true);
     }
 
     uint32_t AVOutputTV::getVideoFrameRateCaps(const JsonObject& parameters, JsonObject& response) {
