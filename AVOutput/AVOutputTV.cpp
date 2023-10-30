@@ -5918,11 +5918,11 @@ namespace Plugin {
         //else
         //{
             char *sourceString = strdup(source.c_str());
-            char *token = NULL;
-            while ((token = strtok_r(sourceString,",",&sourceString)))
+            char *sourceToken = NULL;
+            while ((sourceToken = strtok_r(sourceString,",",&sourceString)))
             {
-                sources.push_back(GetTVSourceIndex(token));
-                LOGINFO("%s : Source %s\n",__FUNCTION__,token);
+                sources.push_back(GetTVSourceIndex(sourceToken));
+                LOGINFO("%s : Source %s\n",__FUNCTION__,sourceToken);
             }
         //}
 
@@ -5950,11 +5950,11 @@ namespace Plugin {
         {
 #endif
             char *formatString = strdup(format.c_str());
-            char *token = NULL;
-            while ((token = strtok_r(formatString,",",&formatString)))
+            char *formatToken = NULL;
+            while ((formatToken = strtok_r(formatString,",",&formatString)))
             {
-                formats.push_back(ConvertFormatStringToHDRFormat(token));
-                LOGINFO("%s : Format: %s\n",__FUNCTION__,token);
+                formats.push_back(ConvertFormatStringToHDRFormat(formatToken));
+                LOGINFO("%s : Format: %s\n",__FUNCTION__,formatToken);
             }
         //}
 
@@ -6866,8 +6866,8 @@ namespace Plugin {
        return 0;
     }
 
-    int getAvailableCapabilityModesWrapper(std::string & source, std::string & pqmode, std::string & format) {
-        tvError_t ret = tvERROR_NONE;
+    int AVOutputTV::getAvailableCapabilityModesWrapper(std::string & source, std::string & pqmode, std::string & format) {
+        tvError_t err = tvERROR_NONE;
         std::vector<std::string> range;
         std::vector<std::string> picmodeVec;
         std::vector<std::string> sourceVec;
@@ -6898,7 +6898,7 @@ namespace Plugin {
 	 return 0;
     }
 
-    int getAvailableCapabilityModes(std::string & source, std::string & pqmode, std::string & format)
+    int AVOutputTV::getAvailableCapabilityModes(std::string & source, std::string & pqmode, std::string & format)
     {
         std::string localSource;
         std::string localPqmode;
