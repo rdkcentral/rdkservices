@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.4.10] - 2023-10-23
+### Added
+- RDKShell changes for ignoring factoryMode
+
 ## [1.4.9] - 2023-10-19
 ### Added
 - RDKShell changes to use DeviceModeSelector Plugin
