@@ -4500,15 +4500,53 @@ namespace Plugin {
     }
 
     uint32_t AVOutputTV::getVideoSourceCaps(const JsonObject& parameters, JsonObject& response) {
-	    LOGINFO("Entry\n");
-	    response["options"] = getSupportedVideoSource();
-	    returnResponse(true); 
+
+        JsonArray rangeArray;
+
+        std::vector<std::string> range;
+
+        tvError_t ret = getParamsCaps(range,pqmode,source,format,"VideoSource");
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false);
+        }
+        else
+        {
+            if ((range.front()).compare("none") != 0) {
+                for (unsigned int index = 0; index < range.size(); index++) {
+                    rangeArray.Add(range[index]);
+                }
+                response["options"]=rangeArray;
+            }
+        }
+            LOGINFO("Exit\n");
+            returnResponse(true);
+        }
     }
 
     uint32_t AVOutputTV::getVideoFormatCaps(const JsonObject& parameters, JsonObject& response) {
-            LOGINFO("Entry\n");
-            response["options"] = getAvailableVideoFormat();
+
+        JsonArray rangeArray;
+
+        std::vector<std::string> range;
+
+        tvError_t ret = getParamsCaps(range,pqmode,source,format,"VideoFormat");
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false);
+        }
+        else
+        {
+            if ((range.front()).compare("none") != 0) {
+                for (unsigned int index = 0; index < range.size(); index++) {
+                    rangeArray.Add(range[index]);
+                }
+                response["options"]=rangeArray;
+            }
+        }
+            LOGINFO("Exit\n");
             returnResponse(true);
+        }
     }
 
     uint32_t AVOutputTV::getVideoFrameRateCaps(const JsonObject& parameters, JsonObject& response) {
@@ -5310,7 +5348,6 @@ namespace Plugin {
         LOGINFO("Entry %s source %s pqmode %s format %s \n", __FUNCTION__, source.c_str(), pqmode.c_str(), format.c_str());
 
         convertParamToLowerCase(source, pqmode, format);
-       
         //std::vector<std::string> temp_vec;
         //std::string temp_string;
 
@@ -5322,6 +5359,7 @@ namespace Plugin {
             std::string localFormat;
             if (FetchCapablities(pqparam, localSource, localPqmode, localFormat) == 0) {
                 pqmode = localPqmode;
+		//if pqmode none from capabilty then lets keep pqmode as global to fail the capabilty
             }
             else
             {
@@ -5362,9 +5400,9 @@ namespace Plugin {
                 LOGINFO("current PQmode :%s \n", pqmode.c_str());
             }
         }
-	else if (pqmode.empty()) {
-	    pqmode = "none";
-	}
+	//else if (pqmode.empty()) {
+	//    pqmode = "none";
+	//}
 
         if (source == "global")
         {
@@ -5408,9 +5446,9 @@ namespace Plugin {
             source = convertSourceIndexToString(currentSource);
             LOGINFO("current source:%s \n", source.c_str());
         }
-        else if (source.empty()) {
-	    source = "none";
-	}	
+        //else if (source.empty()) {
+	//    source = "none";
+	//}	
 
         //convert format into valid parameter
         if (format == "global")
@@ -5459,12 +5497,12 @@ namespace Plugin {
           format = convertVideoFormatToString( GetCurrentContentFormat());
           LOGINFO("current:%s \n", format.c_str());
         }
-	else if (format.empty()) {
-	    format = "none";
-	}
+	//else if (format.empty()) {
+	//    format = "none";
+	//}
 
-        return 0;
         LOGINFO("Exit %s source %s pqmode %s format %s \n", __FUNCTION__, source.c_str(), pqmode.c_str(), format.c_str());
+        return 0;
     }
 
     tvError_t AVOutputTV::getParamsCaps(std::vector<std::string> &range
@@ -5843,15 +5881,20 @@ namespace Plugin {
 
         int ret = 0;
 
-        //1)Check pqmode
-        if( (pqmode.compare("global") == 0) || (pqmode.compare("none") == 0 ) )
+        if (getAvailableCapabilityModes(source, pqmode, format) != 0)
         {
-            int lCount = 0;
-            for(;lCount<numberModesSupported;lCount++)
-                picturemodes.push_back(pic_mode_index[lCount]);
+            LOGERR("%s: failed to get picture/source/format mode capability \n", __FUNCTION__);
+            return -1;
         }
-        else
-        {
+        //1)Check pqmode
+        //if( (pqmode.compare("global") == 0) || (pqmode.compare("none") == 0 ) )
+        //{
+        //    int lCount = 0;
+       //     for(;lCount<numberModesSupported;lCount++)
+       //         picturemodes.push_back(pic_mode_index[lCount]);
+        //}
+        //else
+        //{
             char *modeString = strdup(pqmode.c_str());
             char *token = NULL;
             while ((token = strtok_r(modeString,",",&modeString)))
@@ -5859,17 +5902,17 @@ namespace Plugin {
                 picturemodes.push_back(GetTVPictureModeIndex(token));
                 LOGINFO("%s : PQmode: %s\n",__FUNCTION__,token);
             }
-        }
+        //}
 
         //2)Check Source
-        if( (source.compare("global") == 0) || (source.compare("none") == 0) )
-        {
-            int lCount = 0;
-            for(;lCount<numberSourcesSupported;lCount++)
-                sources.push_back(source_index[lCount]);
-        }
-        else
-        {
+        //if( (source.compare("global") == 0) || (source.compare("none") == 0) )
+        //{
+        //    int lCount = 0;
+        //    for(;lCount<numberSourcesSupported;lCount++)
+        //        sources.push_back(source_index[lCount]);
+        //}
+        //else
+        //{
             char *sourceString = strdup(source.c_str());
             char *token = NULL;
             while ((token = strtok_r(sourceString,",",&sourceString)))
@@ -5877,9 +5920,10 @@ namespace Plugin {
                 sources.push_back(GetTVSourceIndex(token));
                 LOGINFO("%s : Source %s\n",__FUNCTION__,token);
             }
-        }
+        //}
 
         //3)check format
+#if 0
         unsigned int contentFormats=0;
         unsigned short numberOfSupportedFormats =  0;
 
@@ -5900,6 +5944,7 @@ namespace Plugin {
         }
         else
         {
+#endif
             char *formatString = strdup(format.c_str());
             char *token = NULL;
             while ((token = strtok_r(formatString,",",&formatString)))
@@ -5907,9 +5952,9 @@ namespace Plugin {
                 formats.push_back(ConvertFormatStringToHDRFormat(token));
                 LOGINFO("%s : Format: %s\n",__FUNCTION__,token);
             }
-        }
+        //}
 
-        LOGINFO("Exit : %s ret : %d\n",__FUNCTION__,ret);
+        LOGINFO("Exit : %s pqmode : %s source :%s format :%s ret:%d\n",__FUNCTION__,pqmode.c_str(),source.c_str(),format.c_str(), ret);
         return ret;
     }
 
@@ -6033,9 +6078,12 @@ namespace Plugin {
         LOGINFO("%s : currentSource = %s,currentPicMode = %s,currentFormat = %s\n",__FUNCTION__,currentSource.c_str(),currentPicMode.c_str(),currentFormat.c_str());
         LOGINFO("%s : source = %s,PicMode = %s, format= %s\n",__FUNCTION__,source.c_str(),pqmode.c_str(),format.c_str());
 
-        if( ((pqmode.find(currentPicMode) != std::string::npos) || (pqmode.compare("global") == 0)  || (pqmode.compare("current") == 0)) &&
-           ((source.find(currentSource) != std::string::npos)  || (source.compare("global") == 0) || (source.compare("current") == 0)) &&
-           ( (format.find(currentFormat) !=  std::string::npos) || (format.compare("global") == 0) || (format.compare("current") == 0)) )
+        if( ( (pqmode.find(currentPicMode) != std::string::npos) || (pqmode.compare("global") == 0)  || (pqmode.compare("current") == 0) ||
+            (pqmode.compare("none") == 0) ) &&
+           ((source.find(currentSource) != std::string::npos)  || (source.compare("global") == 0) || (source.compare("current") == 0) ||
+            (source.compare("none") == 0) ) &&
+           ( (format.find(currentFormat) !=  std::string::npos) || (format.compare("global") == 0) || (format.compare("current") == 0) ||
+             (format.compare("none") == 0) ) )
             ret=true;
 
         return ret;
@@ -6705,6 +6753,7 @@ namespace Plugin {
 	JsonArray pqmodeArray;
 	JsonArray formatArray;
 		
+
 	pqmodeArray = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].Array() : JsonArray();
         for (int i = 0; i < pqmodeArray.Length(); ++i) {
             pqmode += pqmodeArray[i].String();
@@ -6725,6 +6774,10 @@ namespace Plugin {
 
 	LOGINFO("%s source:[%s] pqmode[%s] format[%s]", __FUNCTION__,source.c_str(), pqmode.c_str(), format.c_str());
 
+        if (source.empty()) source = "global";
+        if (pqmode.empty()) pqmode = "global";
+        if (format.empty()) format = "global";
+
         if (convertToValidInputParameter(pqparam, source, pqmode, format) != 0) {
             LOGERR("%s: Failed to convert the input paramters. \n", __FUNCTION__);
             return -1;
@@ -6742,6 +6795,10 @@ namespace Plugin {
         format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
 
         LOGINFO("%s source:[%s] pqmode[%s] format[%s]", __FUNCTION__,source.c_str(), pqmode.c_str(), format.c_str());
+
+        if (source.empty()) source = "current";
+        if (pqmode.empty()) pqmode = "current";
+        if (format.empty()) format = "current";
 
         if (convertToValidInputParameter(pqparam,source, pqmode, format) != 0) {
             LOGERR("%s: Failed to convert the input paramters. \n", __FUNCTION__);
@@ -6804,6 +6861,71 @@ namespace Plugin {
             format = convertToString(formatVec);
        }
        return 0;
+    }
+
+    int getAvailableCapabilityModesWrapper(std::string & source, std::string & pqmode, std::string & format) {
+        tvError_t ret = tvERROR_NONE;
+        std::vector<std::string> range;
+        std::vector<std::string> picmodeVec;
+        std::vector<std::string> sourceVec;
+        std::vector<std::string> formatVec;
+
+         err = getParamsCaps(range,picmodeVec,sourceVec,formatVec,"PictureMode");
+         if (err != tvERROR_NONE) {
+             LOGERR("%s: failed to get picture mode capability \n", __FUNCTION__);
+             return -1;
+         }
+         pqmode = convertToString(range);
+
+         if(!range.empty()) range.clear();
+         err = getParamsCaps(range,picmodeVec,sourceVec,formatVec,"VideoSource");
+         if (err != tvERROR_NONE) {
+             LOGERR("%s: failed to get picture mode capability \n", __FUNCTION__);
+             return -1;
+         }
+         source = convertToString(range);
+
+         if(!range.empty()) range.clear();
+         err = getParamsCaps(range,picmodeVec,sourceVec,formatVec,"VideoFormat");
+         if (err != tvERROR_NONE) {
+             LOGERR("%s: failed to get picture mode capability \n", __FUNCTION__);
+             return -1;
+         }
+         format = convertToString(range);
+	 return 0;
+    }
+
+    int getAvailableCapabilityModes(std::string & source, std::string & pqmode, std::string & format)
+    {
+        std::string localSource;
+        std::string localPqmode;
+        std::string localFormat;
+
+        if ((pqmode.compare("none") == 0 ))
+        {
+            if (getAvailableCapabilityModesWrapper(localSource, pqmode, localFormat) != 0)
+            {
+                LOGERR("%s: failed to get picture mode capability \n", __FUNCTION__);
+                return -1;
+            }
+        }
+
+        if( (source.compare("none") == 0))
+        {
+            if (getAvailableCapabilityModesWrapper(source, localPqmode, localFormat) != 0) {
+                LOGERR("%s: failed to get source mode capability \n", __FUNCTION__);
+                return -1;
+            }
+        }
+
+        if( (format.compare("none") == 0) )
+        {
+            if (getAvailableCapabilityModesWrapper(localSource, localPqmode, format) != 0) {
+                LOGERR("%s: failed to get source mode capability \n", __FUNCTION__);
+                return -1;
+            }
+        }
+        return 0;
     }
 
 }//namespace Plugin
