@@ -6800,6 +6800,12 @@ namespace Plugin {
 
         LOGINFO("%s source:[%s] pqmode[%s] format[%s]", __FUNCTION__,source.c_str(), pqmode.c_str(), format.c_str());
 
+	if ( (source.compare("global") == 0) || (pqmode.compare("global") == 0) || (format.compare("global") == 0) )
+	{
+	    LOGERR("%s: get cannot fetch the global inputs \n", __FUNCTION__);
+	    return -1;
+	}
+
         if (source.empty()) source = "current";
         if (pqmode.empty()) pqmode = "current";
         if (format.empty()) format = "current";
