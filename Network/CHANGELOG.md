@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.2.3] - 2023-10-23
+### Fixed
+- Fixed the isConnectedToInternet method to not to call getPublicIP; as they are independent RPCs.
+
 ## [1.2.2] - 2023-09-29
 ### Added
 - Implement Thunder Plugin Configuration for Kirkstone builds(CMake-3.20 & above)

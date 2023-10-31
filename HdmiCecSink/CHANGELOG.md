@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.2.4] - 2023-10-25
+### Fixed
+- Fixed OSDName return value 
+
 ## [1.2.3] - 2023-10-10
 ### Changed
 - Changed string functions to safer versions
