@@ -145,8 +145,8 @@ bool MiracastGstPlayer::updateVideoSinkRectangle(void)
         char rectString[64];
         sprintf(rectString,"%d,%d,%d,%d", m_video_rect_st.startX, m_video_rect_st.startY,
                 m_video_rect_st.width, m_video_rect_st.height);
-        //g_object_set(G_OBJECT(m_video_sink), "rectangle", rectString, NULL);
-        g_object_set(G_OBJECT(m_video_sink), "window-set", rectString, NULL);
+        //g_object_set(G_OBJECT(m_video_sink), "rectangle", rectString, nullptr);
+        g_object_set(G_OBJECT(m_video_sink), "window-set", rectString, nullptr);
     }
 
     MIRACASTLOG_TRACE("Exiting...");
@@ -432,7 +432,7 @@ void MiracastGstPlayer::element_setup(GstElement * playbin, GstElement * element
         if (!opt_flag_buffer.empty())
         {
             max_size_buffers = std::stoull(opt_flag_buffer.c_str());
-            g_object_set(G_OBJECT(eltfact), "max-size-buffers", max_size_buffers , NULL);
+            g_object_set(G_OBJECT(eltfact), "max-size-buffers", max_size_buffers , nullptr);
             MIRACASTLOG_INFO("set max-size-buffers to [%llu]\n",max_size_buffers);
         }
 
@@ -440,7 +440,7 @@ void MiracastGstPlayer::element_setup(GstElement * playbin, GstElement * element
         if (!opt_flag_buffer.empty())
         {
             max_size_bytes = std::stoull(opt_flag_buffer.c_str());
-            g_object_set(G_OBJECT(eltfact), "max-size-bytes", max_size_bytes , NULL);
+            g_object_set(G_OBJECT(eltfact), "max-size-bytes", max_size_bytes , nullptr);
             MIRACASTLOG_INFO("set max-size-bytes to [%llu]\n",max_size_bytes);
         }
 
@@ -448,7 +448,7 @@ void MiracastGstPlayer::element_setup(GstElement * playbin, GstElement * element
         if (!opt_flag_buffer.empty())
         {
             max_size_time = std::stoull(opt_flag_buffer.c_str());
-            g_object_set(G_OBJECT(eltfact), "max-size-time", max_size_time , NULL);
+            g_object_set(G_OBJECT(eltfact), "max-size-time", max_size_time , nullptr);
             MIRACASTLOG_INFO("set max-size-time to [%llu]\n",max_size_time);
         }
     }
@@ -716,32 +716,65 @@ void MiracastGstPlayer::playbin_source_setup(GstElement *pipeline, GstElement *s
     self->m_appsrc = source;
 
     // Set AppSrc parameters
-    GstAppSrcCallbacks callbacks = {appsrc_need_data, appsrc_enough_data, NULL};
-    gst_app_src_set_callbacks(GST_APP_SRC(self->m_appsrc), &callbacks, user_data , NULL);
-    g_object_set(GST_APP_SRC(self->m_appsrc), "format", GST_FORMAT_TIME, NULL);
+    GstAppSrcCallbacks callbacks = {appsrc_need_data, appsrc_enough_data, nullptr};
+    gst_app_src_set_callbacks(GST_APP_SRC(self->m_appsrc), &callbacks, user_data , nullptr);
+    g_object_set(GST_APP_SRC(self->m_appsrc), "format", GST_FORMAT_TIME, nullptr);
 
     /* we can set the length in appsrc. This allows some elements to estimate the
      * total duration of the stream. It's a good idea to set the property when you
      * can but it's not required. */
-    //g_object_set(self->app_src, "size", (gint64)self->length, NULL);
+    //g_object_set(self->app_src, "size", (gint64)self->length, nullptr);
 
     /* configure the appsrc, we will push data into the appsrc from the
      * mainloop. */
     //g_signal_connect(self->m_appsrc, "need-data", G_CALLBACK(start_feed), app);
     //g_signal_connect(self->m_appsrc, "enough-data", G_CALLBACK(stop_feed), app);
 
-    // g_object_set (self->m_appsrc, "caps", self->capsSrc, NULL);
+    // g_object_set (self->m_appsrc, "caps", self->capsSrc, nullptr);
     // gst_app_src_set_caps ((GstAppSrc*)self->m_appsrc, self->capsSrc);
-    g_object_set(GST_APP_SRC(self->m_appsrc), "max-bytes", (guint64) 20 * 1024 * 1024, NULL);
+    g_object_set(GST_APP_SRC(self->m_appsrc), "max-bytes", (guint64) 20 * 1024 * 1024, nullptr);
 
     const gchar *set_cap = "video/mpegts, systemstream=(boolean)true, packetsize=(int)188";
     GstCaps *caps = gst_caps_from_string(set_cap);
     if(caps)
     {
-        g_object_set(GST_APP_SRC(self->m_appsrc), "caps", caps, NULL);
+        g_object_set(GST_APP_SRC(self->m_appsrc), "caps", caps, nullptr);
         gst_caps_unref(caps);
     }
     MIRACASTLOG_TRACE("Exiting...\n");
+}
+
+void MiracastGstPlayer::queue_callback(GstElement* object, gpointer user_data)
+{
+    if ( nullptr != user_data )
+    {
+        MIRACASTLOG_INFO("queue [ %s ]", (const char *)user_data);
+    }
+    else
+    {
+        MIRACASTLOG_ERROR("queue [!!! userdata NULL !!!]");
+    }
+}
+
+void MiracastGstPlayer::configure_queue(GstElement * queue)
+{
+    static const bool enable_queue_signals = true;
+
+    g_object_set(G_OBJECT(queue), "min-threshold-time", (guint64)(1*1000*1000*1000), nullptr);
+    guint64 limit = 5*1000*1000*1000UL;
+    g_object_set(G_OBJECT(queue), "max-size-time", limit, nullptr);
+    g_object_set(G_OBJECT(queue), "max-size-buffers", 0, nullptr);
+    g_object_set(G_OBJECT(queue), "max-size-bytes", 0, nullptr);
+
+    if(enable_queue_signals)
+    {
+        g_signal_connect(queue, "underrun", G_CALLBACK(&queue_callback), (gpointer)"underflow");
+        g_signal_connect(queue, "overrun", G_CALLBACK(& queue_callback), (gpointer)"overrun");
+    }
+    else
+    {
+        g_object_set(G_OBJECT(queue), "silent", (gboolean)(TRUE), nullptr);
+    }
 }
 
 GstFlowReturn MiracastGstPlayer::on_new_sample_from_udpsrc(GstElement *element, gpointer user_data)
@@ -982,26 +1015,64 @@ bool MiracastGstPlayer::createPipeline()
     // Create elements
     m_udpsrc = gst_element_factory_make("udpsrc", "miracast_udpsrc");
     m_rtpmp2tdepay = gst_element_factory_make("rtpmp2tdepay", "miracast_rtpmp2tdepay");
+    m_rtpjitterbuffer = gst_element_factory_make("rtpjitterbuffer", "miracast_rtpjitterbuffer");
+    m_appsinkqueue = gst_element_factory_make("queue", "appsink_queue");
     m_appsink = gst_element_factory_make("appsink", "miracast_appsink");
 
-    if (!m_udpsrc2appsink_pipeline || !m_udpsrc || !m_rtpmp2tdepay || !m_appsink)
+    if (!m_udpsrc2appsink_pipeline || !m_udpsrc || !m_rtpmp2tdepay || !m_rtpjitterbuffer || !m_appsinkqueue || !m_appsink )
     {
         MIRACASTLOG_ERROR("Not all elements could be created.\n");
         return -1;
     }
 
-    // Set the UDP source properties
-    g_object_set(G_OBJECT(m_udpsrc), "port", 1990, NULL);
+    // Configuring Appsink Queue
+    configure_queue(m_appsinkqueue);
 
-    GstCaps *caps = gst_caps_new_simple("application/x-rtp", "media", G_TYPE_STRING, "video", NULL);
-    g_object_set(G_OBJECT(m_udpsrc), "caps", caps, NULL);
+    // Set the UDP source properties
+    g_object_set(G_OBJECT(m_udpsrc), "port", 1990, nullptr);
+
+    GstCaps *caps = gst_caps_new_simple("application/x-rtp", "media", G_TYPE_STRING, "video", nullptr);
+    g_object_set(G_OBJECT(m_udpsrc), "caps", caps, nullptr);
+
+    guint64 testbuffersize = 0;
+    std::string opt_flag_buffer = "";
+
+    opt_flag_buffer = parse_opt_flag( "/opt/miracast_udpsrc_mtu_size" , true );
+    testbuffersize = 64*1024;
+    if (!opt_flag_buffer.empty())
+    {
+        testbuffersize = std::stoull(opt_flag_buffer.c_str());
+    }
+
+    MIRACASTLOG_INFO("setting mtu value to udpsrc as [%llu]\n",testbuffersize);
+    g_object_set(G_OBJECT(m_udpsrc), "mtu", testbuffersize, nullptr);
+
+    opt_flag_buffer = parse_opt_flag( "/opt/miracast_udpsrc_blocksize" , true );
+    testbuffersize = 64*1024;
+    if (!opt_flag_buffer.empty())
+    {
+        testbuffersize = std::stoull(opt_flag_buffer.c_str());
+    }
+
+    MIRACASTLOG_INFO("setting blocksize value to udpsrc as [%llu]\n",testbuffersize);
+    g_object_set(G_OBJECT(m_udpsrc), "blocksize", testbuffersize, nullptr);
+
+    opt_flag_buffer = parse_opt_flag( "/opt/miracast_udpsrc_buffersize" , true );
+    testbuffersize = 64*1024;
+    if (!opt_flag_buffer.empty())
+    {
+        testbuffersize = std::stoull(opt_flag_buffer.c_str());
+    }
+
+    MIRACASTLOG_INFO("setting buffer-size value to udpsrc as [%llu]\n",testbuffersize);
+    g_object_set(G_OBJECT(m_udpsrc), "buffer-size", testbuffersize, nullptr);
 
     /* to be notified of messages from this pipeline, mostly EOS */
     bus = gst_element_get_bus(m_udpsrc2appsink_pipeline);
     gst_bus_add_watch(bus, (GstBusFunc)on_udpsrc2appsink_bus_message, this);
     gst_object_unref(bus);
     
-    std::string opt_flag_buffer = parse_opt_flag( "/opt/miracast_max_pushbuffer_size" , true );
+    opt_flag_buffer = parse_opt_flag( "/opt/miracast_max_pushbuffer_size" , true );
 
     if (!opt_flag_buffer.empty())
     {
@@ -1015,11 +1086,11 @@ bool MiracastGstPlayer::createPipeline()
     }
     
     // Configure the appsink
-    g_object_set(G_OBJECT(m_appsink), "emit-signals", TRUE, "sync", FALSE, NULL);
+    g_object_set(G_OBJECT(m_appsink), "emit-signals", TRUE, "sync", FALSE, nullptr);
     
     //gst_base_sink_set_sync(GST_BASE_SINK_CAST(appsink), false);
     //MIRACASTLOG_INFO("===> gst_base_sink_set_sync, set to False\n");
-    g_object_set(G_OBJECT(m_appsink), "async", FALSE, NULL);
+    g_object_set(G_OBJECT(m_appsink), "async", FALSE, nullptr);
 
     m_push_buffer_ptr = (guint8*)(g_malloc0(m_max_pushbuffer_size));
 
@@ -1036,10 +1107,15 @@ bool MiracastGstPlayer::createPipeline()
     g_signal_connect(m_appsink, "new-sample", G_CALLBACK(on_new_sample_from_udpsrc), this);
 
     // Add elements to the pipeline
-    gst_bin_add_many(GST_BIN(m_udpsrc2appsink_pipeline), m_udpsrc, m_rtpmp2tdepay, m_appsink, NULL);
+    // gst_bin_add_many(GST_BIN(m_udpsrc2appsink_pipeline), m_udpsrc, m_rtpmp2tdepay, m_appsink, nullptr);
+    // gst_bin_add_many(GST_BIN(m_udpsrc2appsink_pipeline), m_udpsrc, m_rtpjitterbuffer, m_rtpmp2tdepay, m_appsinkqueue, m_appsink, nullptr);
+    gst_bin_add_many(GST_BIN(m_udpsrc2appsink_pipeline), m_udpsrc, m_rtpmp2tdepay, m_appsinkqueue , m_appsink, nullptr );
 
     // Link udpsrc to appsink
-    if (!gst_element_link_many( m_udpsrc, m_rtpmp2tdepay , m_appsink, nullptr ))
+    //if (!gst_element_link_many( m_udpsrc, m_rtpmp2tdepay , m_appsink, nullptr ))
+    //if (!gst_element_link_many(m_udpsrc, m_rtpjitterbuffer, m_rtpmp2tdepay, m_appsinkqueue, m_appsink, nullptr ))
+    if (!gst_element_link_many(m_udpsrc, m_rtpmp2tdepay, m_appsinkqueue, m_appsink, nullptr ))
+    
     {
         MIRACASTLOG_ERROR("Elements could not be linked.\n");
         gst_object_unref(m_udpsrc2appsink_pipeline);
@@ -1059,7 +1135,7 @@ bool MiracastGstPlayer::createPipeline()
         gst_object_unref (bus);
 
         // Pipeline created
-        g_object_set(m_playbin2appsrc_pipeline, "uri", "appsrc://", NULL);
+        g_object_set(m_playbin2appsrc_pipeline, "uri", "appsrc://", nullptr);
         g_signal_connect(m_playbin2appsrc_pipeline, "source-setup", G_CALLBACK(playbin_source_setup), this);
     }
     m_video_sink = gst_element_factory_make("westerossink", nullptr);
@@ -1148,7 +1224,7 @@ bool MiracastGstPlayer::createPipeline()
     }
 
     // Set the UDP source properties
-    g_object_set(G_OBJECT(m_udpsrc), "port", 1990, NULL);
+    g_object_set(G_OBJECT(m_udpsrc), "port", 1990, nullptr);
 
     /* to be notified of messages from this pipeline, mostly EOS */
     bus = gst_element_get_bus(m_udpsrc2appsink_pipeline);
@@ -1156,17 +1232,17 @@ bool MiracastGstPlayer::createPipeline()
     gst_object_unref(bus);
 
     // Configure the appsink
-    g_object_set(G_OBJECT(m_appsink), "emit-signals", TRUE, "sync", FALSE, NULL);
+    g_object_set(G_OBJECT(m_appsink), "emit-signals", TRUE, "sync", FALSE, nullptr);
 
     //gst_base_sink_set_sync(GST_BASE_SINK_CAST(appsink), false);
     //MIRACASTLOG_INFO("===> gst_base_sink_set_sync, set to False\n");
-    g_object_set(G_OBJECT(m_appsink), "async", FALSE, NULL);
+    g_object_set(G_OBJECT(m_appsink), "async", FALSE, nullptr);
 
     // Set up a signal handler for new buffer signals from appsink
     g_signal_connect(m_appsink, "new-sample", G_CALLBACK(on_new_sample_from_udpsrc), this);
 
     // Add elements to the pipeline
-    gst_bin_add_many(GST_BIN(m_udpsrc2appsink_pipeline), m_udpsrc, m_appsink, NULL);
+    gst_bin_add_many(GST_BIN(m_udpsrc2appsink_pipeline), m_udpsrc, m_appsink, nullptr);
 
     // Link udpsrc to appsink
     if (!gst_element_link(m_udpsrc, m_appsink))
@@ -1191,7 +1267,7 @@ bool MiracastGstPlayer::createPipeline()
         gst_object_unref (bus);
 
         // Pipeline created
-        g_object_set(m_playbin2appsrc_pipeline, "uri", "appsrc://", NULL);
+        g_object_set(m_playbin2appsrc_pipeline, "uri", "appsrc://", nullptr);
         g_signal_connect(m_playbin2appsrc_pipeline, "source-setup", G_CALLBACK(playbin_source_setup), this);
     }
 

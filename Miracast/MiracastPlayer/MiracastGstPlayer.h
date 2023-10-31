@@ -60,6 +60,8 @@ private:
     GstElement  *m_playbin2appsrc_pipeline{nullptr};
     GstElement  *m_udpsrc{nullptr};
     GstElement  *m_rtpmp2tdepay{nullptr};
+    GstElement  *m_rtpjitterbuffer{nullptr};
+    GstElement  *m_appsinkqueue{nullptr};
     GstElement  *m_appsink{nullptr};
     GstElement  *m_appsrc{nullptr};
     gboolean    bPushData;
@@ -97,6 +99,8 @@ private:
     static void appsrc_need_data(GstAppSrc *src, guint length, gpointer user_data);
     static void appsrc_enough_data(GstAppSrc *src, gpointer user_data);
     static GstFlowReturn on_new_sample_from_udpsrc(GstElement *element, gpointer user_data);
+    static void configure_queue(GstElement * queue);
+    static void queue_callback(GstElement* object, gpointer user_data);
 
     static void *playbackThread(void *ctx);
     GMainLoop *m_main_loop{nullptr};
