@@ -76,9 +76,14 @@ public:
     TTS_Error setFallbackText(FallbackData &data);
     TTS_Error setPrimaryVolDuck(const uint8_t prim);
     TTS_Error setAPIKey(string apikey);
+    TTS_Error setACL(std::string method,std::string apps);
+
+    //Access control
+    bool setAccessList(const string &key,const string &value);
+    bool checkAccess(const string &method,string &callsign);
 
     //Speak APIs
-    TTS_Error speak(int speechId, std::string text);
+    TTS_Error speak(int speechId, std::string callsign, std::string text);
     TTS_Error pause(uint32_t id);
     TTS_Error resume(uint32_t id);
     TTS_Error shut(uint32_t id);
@@ -105,6 +110,7 @@ private:
     TTSSpeaker *m_speaker;
     bool m_needsConfigStoreUpdate;
     TTSDownloader *m_downloader;
+    std::map<std::string,std::string> m_accessControlList;
 };
 
 } // namespace TTS
