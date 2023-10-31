@@ -1067,6 +1067,9 @@ bool MiracastGstPlayer::createPipeline()
     MIRACASTLOG_INFO("setting buffer-size value to udpsrc as [%llu]\n",testbuffersize);
     g_object_set(G_OBJECT(m_udpsrc), "buffer-size", testbuffersize, nullptr);
 
+    GstCaps *caps = gst_caps_new_simple("application/x-rtp", "media", G_TYPE_STRING, "video", NULL);
+    g_object_set(G_OBJECT(m_udpsrc), "caps", caps, NULL);
+
     /* to be notified of messages from this pipeline, mostly EOS */
     bus = gst_element_get_bus(m_udpsrc2appsink_pipeline);
     gst_bus_add_watch(bus, (GstBusFunc)on_udpsrc2appsink_bus_message, this);
@@ -1115,7 +1118,6 @@ bool MiracastGstPlayer::createPipeline()
     //if (!gst_element_link_many( m_udpsrc, m_rtpmp2tdepay , m_appsink, nullptr ))
     //if (!gst_element_link_many(m_udpsrc, m_rtpjitterbuffer, m_rtpmp2tdepay, m_appsinkqueue, m_appsink, nullptr ))
     if (!gst_element_link_many(m_udpsrc, m_rtpmp2tdepay, m_appsinkqueue, m_appsink, nullptr ))
-    
     {
         MIRACASTLOG_ERROR("Elements could not be linked.\n");
         gst_object_unref(m_udpsrc2appsink_pipeline);

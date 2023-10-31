@@ -1522,6 +1522,12 @@ void MiracastController::ThunderReqHandler_Thread(void *args)
                 controller_msgq_data.state = CONTROLLER_FLUSH_CURRENT_SESSION;
             }
             break;
+            case THUNDER_REQ_HLDR_FLUSH_SESSION:
+            {
+                MIRACASTLOG_TRACE("[CONTROLLER_FLUSH_CURRENT_SESSION]\n");
+                controller_msgq_data.state = CONTROLLER_FLUSH_CURRENT_SESSION;
+            }
+            break;
             case THUNDER_REQ_HLDR_SHUTDOWN_APP:
             {
                 MIRACASTLOG_TRACE("[THUNDER_REQ_HLDR_SHUTDOWN_APP]\n");
