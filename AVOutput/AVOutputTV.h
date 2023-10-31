@@ -233,7 +233,7 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         std::string convertToString(std::vector<std::string> vec_strings);
         int FetchCapablities(string pqparam, string & source, string & pqmode, string & format);
         int isPlatformSupport(std::string pqparam);
-        int getAvailableCapabilityModesWrapper(std::string & source, std::string & pqmode, std::string & format);
+        int getAvailableCapabilityModesWrapper(std::string param, std::string & outparam);
 	int getAvailableCapabilityModes(std::string & source, std::string & pqmode, std::string & format);
 
     public:

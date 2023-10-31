@@ -6872,47 +6872,29 @@ namespace Plugin {
        return 0;
     }
 
-    int AVOutputTV::getAvailableCapabilityModesWrapper(std::string & source, std::string & pqmode, std::string & format) {
+    int AVOutputTV::getAvailableCapabilityModesWrapper(std::string param, std::string & outparam)
+    {
         tvError_t err = tvERROR_NONE;
         std::vector<std::string> range;
         std::vector<std::string> picmodeVec;
         std::vector<std::string> sourceVec;
         std::vector<std::string> formatVec;
 
-         err = getParamsCaps(range,picmodeVec,sourceVec,formatVec,"PictureMode");
+         err = getParamsCaps(range,picmodeVec,sourceVec,formatVec, param);
          if (err != tvERROR_NONE) {
-             LOGERR("%s: failed to get picture mode capability \n", __FUNCTION__);
+             LOGERR("%s: failed to get [%s] capability \n", __FUNCTION__, param.c_str());
              return -1;
          }
-         pqmode = convertToString(range);
+         outparam = convertToString(range);
 
-         if(!range.empty()) range.clear();
-         err = getParamsCaps(range,picmodeVec,sourceVec,formatVec,"VideoSource");
-         if (err != tvERROR_NONE) {
-             LOGERR("%s: failed to get picture mode capability \n", __FUNCTION__);
-             return -1;
-         }
-         source = convertToString(range);
-
-         if(!range.empty()) range.clear();
-         err = getParamsCaps(range,picmodeVec,sourceVec,formatVec,"VideoFormat");
-         if (err != tvERROR_NONE) {
-             LOGERR("%s: failed to get picture mode capability \n", __FUNCTION__);
-             return -1;
-         }
-         format = convertToString(range);
 	 return 0;
     }
 
     int AVOutputTV::getAvailableCapabilityModes(std::string & source, std::string & pqmode, std::string & format)
     {
-        std::string localSource;
-        std::string localPqmode;
-        std::string localFormat;
-
         if ((pqmode.compare("none") == 0 ))
         {
-            if (getAvailableCapabilityModesWrapper(localSource, pqmode, localFormat) != 0)
+            if (getAvailableCapabilityModesWrapper("PictureMode", pqmode) != 0)
             {
                 LOGERR("%s: failed to get picture mode capability \n", __FUNCTION__);
                 return -1;
@@ -6921,16 +6903,16 @@ namespace Plugin {
 
         if( (source.compare("none") == 0))
         {
-            if (getAvailableCapabilityModesWrapper(source, localPqmode, localFormat) != 0) {
-                LOGERR("%s: failed to get source mode capability \n", __FUNCTION__);
+            if (getAvailableCapabilityModesWrapper("VideoSource",source) != 0) {
+                LOGERR("%s: failed to get source capability \n", __FUNCTION__);
                 return -1;
             }
         }
 
         if( (format.compare("none") == 0) )
         {
-            if (getAvailableCapabilityModesWrapper(localSource, localPqmode, format) != 0) {
-                LOGERR("%s: failed to get source mode capability \n", __FUNCTION__);
+            if (getAvailableCapabilityModesWrapper("VideoFormat",format) != 0) {
+                LOGERR("%s: failed to get format capability \n", __FUNCTION__);
                 return -1;
             }
         }
