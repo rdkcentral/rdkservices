@@ -719,19 +719,8 @@ void MiracastGstPlayer::playbin_source_setup(GstElement *pipeline, GstElement *s
     GstAppSrcCallbacks callbacks = {appsrc_need_data, appsrc_enough_data, nullptr};
     gst_app_src_set_callbacks(GST_APP_SRC(self->m_appsrc), &callbacks, user_data , nullptr);
     g_object_set(GST_APP_SRC(self->m_appsrc), "format", GST_FORMAT_TIME, nullptr);
+    g_object_set(GST_APP_SRC(pData->appsrc), "is-live", true, nullptr);
 
-    /* we can set the length in appsrc. This allows some elements to estimate the
-     * total duration of the stream. It's a good idea to set the property when you
-     * can but it's not required. */
-    //g_object_set(self->app_src, "size", (gint64)self->length, nullptr);
-
-    /* configure the appsrc, we will push data into the appsrc from the
-     * mainloop. */
-    //g_signal_connect(self->m_appsrc, "need-data", G_CALLBACK(start_feed), app);
-    //g_signal_connect(self->m_appsrc, "enough-data", G_CALLBACK(stop_feed), app);
-
-    // g_object_set (self->m_appsrc, "caps", self->capsSrc, nullptr);
-    // gst_app_src_set_caps ((GstAppSrc*)self->m_appsrc, self->capsSrc);
     g_object_set(GST_APP_SRC(self->m_appsrc), "max-bytes", (guint64) 20 * 1024 * 1024, nullptr);
 
     const gchar *set_cap = "video/mpegts, systemstream=(boolean)true, packetsize=(int)188";
@@ -758,7 +747,7 @@ void MiracastGstPlayer::queue_callback(GstElement* object, gpointer user_data)
 
 void MiracastGstPlayer::configure_queue(GstElement * queue)
 {
-    static const bool enable_queue_signals = true;
+    static const bool enable_queue_signals = false;
 
     g_object_set(G_OBJECT(queue), "min-threshold-time", (guint64)(1*1000*1000*1000), nullptr);
     guint64 limit = 5*1000*1000*1000UL;
@@ -1067,8 +1056,6 @@ bool MiracastGstPlayer::createPipeline()
     MIRACASTLOG_INFO("setting buffer-size value to udpsrc as [%llu]\n",testbuffersize);
     g_object_set(G_OBJECT(m_udpsrc), "buffer-size", testbuffersize, nullptr);
 
-    GstCaps *caps = gst_caps_new_simple("application/x-rtp", "media", G_TYPE_STRING, "video", NULL);
-    g_object_set(G_OBJECT(m_udpsrc), "caps", caps, NULL);
 
     /* to be notified of messages from this pipeline, mostly EOS */
     bus = gst_element_get_bus(m_udpsrc2appsink_pipeline);
