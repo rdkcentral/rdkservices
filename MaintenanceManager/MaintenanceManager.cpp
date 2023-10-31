@@ -67,7 +67,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 26
+#define API_VERSION_NUMBER_PATCH 27
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 
@@ -328,6 +328,11 @@ namespace WPEFramework {
     }
 #endif
 
+#if defined(ENABLE_WHOAMI)
+            if (checkActivatedStatus() != "activated" && isDeviceOnline() == true) {
+                LOGINFO("Executing Maintenance tasks since it is a first time activation");
+            }
+#else
             if ( false == internetConnectStatus ) {
                 m_statusMutex.lock();
                 MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
@@ -339,6 +344,7 @@ namespace WPEFramework {
                 }
                 return;
             }
+#endif
 
             LOGINFO("Reboot_Pending :%s",g_is_reboot_pending.c_str());
 
