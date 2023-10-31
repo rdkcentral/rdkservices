@@ -142,7 +142,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_KEY_REPEAT_CONFIG =
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_GRAPHICS_FRAME_RATE = "getGraphicsFrameRate";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_GRAPHICS_FRAME_RATE = "setGraphicsFrameRate";
 #ifdef HIBERNATE_SUPPORT_ENABLED
-const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_CHECKPOINT = "checkpoint";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_HIBERNATE = "hibernate";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_RESTORE = "restore";
 #endif
 
@@ -167,7 +167,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_EASTER_EGG = "onE
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_WILL_DESTROY = "onWillDestroy";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_SCREENSHOT_COMPLETE = "onScreenshotComplete";
 #ifdef HIBERNATE_SUPPORT_ENABLED
-const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_CHECKPOINTED = "onCheckpointed";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_HIBERNATED = "onHibernated";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_RESTORED = "onRestored";
 #endif
 
@@ -574,14 +574,14 @@ namespace WPEFramework {
                         && nativeAppWasResumed.find(mCallSign) != nativeAppWasResumed.end()
                         && nativeAppWasResumed[mCallSign])
                     {
-                        // call RDKShell.checkpoint
+                        // call RDKShell.hibernate
                         std::thread requestsThread =
                             std::thread([=]()
                                         {
-                        JsonObject checkpointParams;
-                        JsonObject checkpointResponse;
-                        checkpointParams["callsign"] = mCallSign;
-                        mRDKShell.getThunderControllerClient("org.rdk.RDKShell.1")->Invoke<JsonObject, JsonObject>(0, "checkpoint", checkpointParams, checkpointResponse); });
+                        JsonObject hibernateParams;
+                        JsonObject hibernatetResponse;
+                        hibernateParams["callsign"] = mCallSign;
+                        mRDKShell.getThunderControllerClient("org.rdk.RDKShell.1")->Invoke<JsonObject, JsonObject>(0, "hibernate", hibernateParams, hibernatetResponse); });
 
                         requestsThread.detach();
                     }
@@ -1187,7 +1187,7 @@ namespace WPEFramework {
             Register(RDKSHELL_METHOD_SET_AV_BLOCKED, &RDKShell::setAVBlockedWrapper, this);
             Register(RDKSHELL_METHOD_GET_AV_BLOCKED_APPS, &RDKShell::getBlockedAVApplicationsWrapper, this);
 #ifdef HIBERNATE_SUPPORT_ENABLED
-            Register(RDKSHELL_METHOD_CHECKPOINT, &RDKShell::checkpointWrapper, this);
+            Register(RDKSHELL_METHOD_HIBERNATE, &RDKShell::hibernateWrapper, this);
             Register(RDKSHELL_METHOD_RESTORE, &RDKShell::restoreWrapper, this);
 #endif
       	    m_timer.connect(std::bind(&RDKShell::onTimer, this));
@@ -5858,7 +5858,7 @@ namespace WPEFramework {
         }
 
 #ifdef HIBERNATE_SUPPORT_ENABLED
-        uint32_t RDKShell::checkpointWrapper(const JsonObject& parameters, JsonObject& response)
+        uint32_t RDKShell::hibernateWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
             bool status = false;
@@ -5880,9 +5880,9 @@ namespace WPEFramework {
 
                 if (isApplicationBeingDestroyed)
                 {
-                    std::cout << "ignoring checkpoint for " << callsign << " as it is being destroyed " << std::endl;
+                    std::cout << "ignoring hibernate for " << callsign << " as it is being destroyed " << std::endl;
                     status = false;
-                    response["message"] = "failed to checkpoint application, is being destroyed";
+                    response["message"] = "failed to hibernate application, is being destroyed";
                     returnResponse(status);
                 }
 
@@ -5896,9 +5896,9 @@ namespace WPEFramework {
                     stateStatus = thunderPlugin->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
                     if(stateStatus || stateString != "suspended")
                     {
-                        std::cout << "ignoring checkpoint for " << callsign << " as it is not suspended " << std::endl;
+                        std::cout << "ignoring hibenrate for " << callsign << " as it is not suspended " << std::endl;
                         status = false;
-                        response["message"] = "failed to checkpoint native application, not suspended";
+                        response["message"] = "failed to hibernate native application, not suspended";
                         returnResponse(status);
                     }
                 }
@@ -5928,7 +5928,7 @@ namespace WPEFramework {
                     {
                         eventMsg["success"] = true;
                     }
-                    notify(RDKShell::RDKSHELL_EVENT_ON_CHECKPOINTED, eventMsg);
+                    notify(RDKShell::RDKSHELL_EVENT_ON_HIBERNATED, eventMsg);
                 });
                 requestsThread.detach();
                 status = true;
