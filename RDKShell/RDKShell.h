@@ -146,7 +146,7 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_GET_GRAPHICS_FRAME_RATE;
             static const string RDKSHELL_METHOD_SET_GRAPHICS_FRAME_RATE;
 #ifdef HIBERNATE_SUPPORT_ENABLED
-            static const string RDKSHELL_METHOD_CHECKPOINT;
+            static const string RDKSHELL_METHOD_HIBERNATE;
             static const string RDKSHELL_METHOD_RESTORE;
 #endif
 
@@ -172,7 +172,7 @@ namespace WPEFramework {
             static const string RDKSHELL_EVENT_ON_WILL_DESTROY;
             static const string RDKSHELL_EVENT_ON_SCREENSHOT_COMPLETE;
 #ifdef HIBERNATE_SUPPORT_ENABLED
-            static const string RDKSHELL_EVENT_ON_CHECKPOINTED;
+            static const string RDKSHELL_EVENT_ON_HIBERNATED;
             static const string RDKSHELL_EVENT_ON_RESTORED;
 #endif
 
@@ -270,7 +270,7 @@ namespace WPEFramework {
             uint32_t getGraphicsFrameRateWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setGraphicsFrameRateWrapper(const JsonObject& parameters, JsonObject& response);
 #ifdef HIBERNATE_SUPPORT_ENABLED
-            uint32_t checkpointWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t hibernateWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t restoreWrapper(const JsonObject& parameters, JsonObject& response);
 #endif
 
