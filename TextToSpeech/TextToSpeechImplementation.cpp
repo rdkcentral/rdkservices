@@ -36,7 +36,6 @@
 
 namespace WPEFramework {
 namespace Plugin {
-
     SERVICE_REGISTRATION(TextToSpeechImplementation, TTS_MAJOR_VERSION, TTS_MINOR_VERSION);
 
     TTS::TTSManager* TextToSpeechImplementation::_ttsManager = NULL;
@@ -66,6 +65,7 @@ namespace Plugin {
         TTS::TTSConfiguration *ttsConfig = _ttsManager->configuration();
         ttsConfig->setEndPoint(GET_STR(config, "endpoint", ""));
         ttsConfig->setSecureEndPoint(GET_STR(config, "secureendpoint", ""));
+        ttsConfig->setLocalEndPoint(GET_STR(config, "localendpoint", ""));
         ttsConfig->setLanguage(GET_STR(config, "language", "en-US"));
         ttsConfig->setVoice(GET_STR(config, "voice", ""));
         ttsConfig->setEndpointType(GET_STR(config, "endpoint_type", "TTS1"));
@@ -86,9 +86,16 @@ namespace Plugin {
         } else {
             TTSLOG_WARNING("Doesn't find default voice configuration");
         }
+        if(config.HasLabel("local_voices")) {
+            JsonObject voices = config["local_voices"].Object();
+            JsonObject::Iterator it = voices.Variants();
+            while(it.Next())
+                ttsConfig->m_others["voice_for_local_" + string(it.Label())] = it.Current().String();
+        }
         ttsConfig->loadFromConfigStore();
         TTSLOG_INFO("TTSEndPoint : %s", ttsConfig->endPoint().c_str());
         TTSLOG_INFO("SecureTTSEndPoint : %s", ttsConfig->secureEndPoint().c_str());
+        TTSLOG_INFO("LocalTTSEndPoint : %s", ttsConfig->localEndPoint().c_str());
         TTSLOG_INFO("Language : %s", ttsConfig->language().c_str());
         TTSLOG_INFO("Voice : %s", ttsConfig->voice().c_str());
         TTSLOG_INFO("Volume : %lf", ttsConfig->volume());
@@ -101,6 +108,18 @@ namespace Plugin {
         while( it != ttsConfig->m_others.end()) {
             TTSLOG_INFO("%s : %s", it->first.c_str(), it->second.c_str());
             ++it;
+        }
+
+        if(ttsConfig->hasValidLocalEndpoint()) {
+            TTSLOG_INFO("Online/offline endpoint switch enabled");
+            std::vector<std::string> localVoices;
+            _ttsManager->listLocalVoices(ttsConfig->language(), localVoices);
+            if(localVoices.empty()) {
+              TTSLOG_WARNING("Local Voice is empty and no voices are defined for the specified language ('%s')!!!", ttsConfig->language().c_str());
+              return TTS::TTS_FAIL;
+            } else {
+              ttsConfig->setLocalVoice(localVoices.front());
+            }
         }
 
         _ttsManager->enableTTS(ttsConfig->enabled());
