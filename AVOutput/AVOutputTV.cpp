@@ -40,6 +40,7 @@ static const char *component_color[] = {
     [COLOR_YELLOW] = "yellow"
 };
 
+
 namespace WPEFramework {
 namespace Plugin {
 
@@ -121,7 +122,7 @@ namespace Plugin {
         return strValue;
     }
 
-    static JsonArray getAvailableVideoFormat(void)
+    /*static JsonArray getAvailableVideoFormat(void)
     {
         JsonArray supportedHdrFormat;
         tvError_t ret = tvERROR_NONE;
@@ -141,6 +142,7 @@ namespace Plugin {
 
         return supportedHdrFormat;
     }
+    */
 
     static std::string getVideoResolutionTypeToString(tvResolutionParam_t resolution)
     {
@@ -153,7 +155,7 @@ namespace Plugin {
         return strValue;
     }
 
-    static JsonArray getSupportedVideoResolution(void)
+    /*static JsonArray getSupportedVideoResolution(void)
     {
         JsonArray supportedResolution;
         tvError_t ret = tvERROR_NONE;
@@ -173,7 +175,7 @@ namespace Plugin {
 
         return supportedResolution;
     }
-
+    */
 
     static const char *getVideoFrameRateTypeToString(tvVideoFrameRate_t frameRate)
     {
@@ -252,12 +254,12 @@ namespace Plugin {
     void AVOutputTV::NotifyFilmMakerModeChange(tvContentType_t mode)
     {
         JsonObject response;
-        JsonArray array;
+        JsonArray rangeArray;
 	bool fmmMode;
 	fmmMode = getVideoContentTypeToString(mode);
         response["filmMakerMode"] = fmmMode;
 
-        if (getCapabilitySource(JsonArray & rangeArray) == 0)
+        if (getCapabilitySource(rangeArray) == 0)
         {
             response["filmMakerModeSource"] = rangeArray;
         }
@@ -510,10 +512,10 @@ namespace Plugin {
 	//Get number of source supported
 	numberSourcesSupported = GetNumberOfSourcesSupported( );
 
-        SyncPQParamsToDriverCache("global","global","global");
+        SyncPQParamsToDriverCache("Global","Global","Global");
 
         // source format specific sync to ssm data
-        SyncSourceFormatPicModeToCache("current", "global", "global");//Tamil--need to move it to SyncPQPAramsToDriverCache
+        SyncSourceFormatPicModeToCache("Current", "Global", "Global");//Tamil--need to move it to SyncPQPAramsToDriverCache
 
        if(appUsesGlobalBackLightFactor)
        {
@@ -1184,7 +1186,7 @@ namespace Plugin {
 	{
 	    if (isSetRequired(pqmode,source,format))
 	    {
-                getParamIndex("current","current", "current",sourceIndex,pqIndex,formatIndex);
+                getParamIndex("Current","Current", "Current",sourceIndex,pqIndex,formatIndex);
                 int err = getLocalparam("Backlight",formatIndex,pqIndex,sourceIndex,backlight, PQ_PARAM_BACKLIGHT);
                 if( err == 0 )
 		{
@@ -1385,7 +1387,7 @@ namespace Plugin {
         {
             if (isSetRequired(pqmode,source,format))
             {
-                getParamIndex("current","current", "current",sourceIndex,pqIndex,formatIndex);
+                getParamIndex("Current","Current", "Current",sourceIndex,pqIndex,formatIndex);
                 int err = getLocalparam("Brightness",formatIndex,pqIndex,sourceIndex,brightness, PQ_PARAM_BRIGHTNESS);
                 if( err == 0 )
                 {
@@ -1583,7 +1585,7 @@ namespace Plugin {
         {
             if (isSetRequired(pqmode,source,format))
             {
-                getParamIndex("current","current", "current",sourceIndex,pqIndex,formatIndex);
+                getParamIndex("Current","Current", "Current",sourceIndex,pqIndex,formatIndex);
                 int err = getLocalparam("Contrast",formatIndex,pqIndex,sourceIndex,contrast, PQ_PARAM_CONTRAST);
                 if( err == 0 )
                 {
@@ -1783,7 +1785,7 @@ namespace Plugin {
         {
             if (isSetRequired(pqmode,source,format))
             {
-                getParamIndex("current","current", "current",sourceIndex,pqIndex,formatIndex);
+                getParamIndex("Current","Current", "Current",sourceIndex,pqIndex,formatIndex);
                 int err = getLocalparam("Saturation",formatIndex,pqIndex,sourceIndex, saturation, PQ_PARAM_SATURATION);
                 if( err == 0 )
                 {
@@ -1983,7 +1985,7 @@ namespace Plugin {
         {
             if (isSetRequired(pqmode,source,format))
             {
-                getParamIndex("current","current", "current",sourceIndex,pqIndex,formatIndex);
+                getParamIndex("Current","Current", "Current",sourceIndex,pqIndex,formatIndex);
                 int err = getLocalparam("Sharpness",formatIndex,pqIndex,sourceIndex, sharpness, PQ_PARAM_SHARPNESS);
                 if( err == 0 )
                 {
@@ -2183,7 +2185,7 @@ namespace Plugin {
         {
             if (isSetRequired(pqmode,source,format))
             {
-                getParamIndex("current","current", "current",sourceIndex,pqIndex,formatIndex);
+                getParamIndex("Current","Current", "Current",sourceIndex,pqIndex,formatIndex);
                 int err = getLocalparam("Hue",formatIndex,pqIndex,sourceIndex, hue, PQ_PARAM_HUE);
                 if( err == 0 )
                 {
@@ -2421,7 +2423,7 @@ namespace Plugin {
         {
             if (isSetRequired(pqmode,source,format))
             {
-                getParamIndex("current","current", "current",sourceIndex,pqIndex,formatIndex);
+                getParamIndex("Current","Current", "Current",sourceIndex,pqIndex,formatIndex);
                 int err = getLocalparam("ColorTemp",formatIndex,pqIndex,sourceIndex, colortemp, PQ_PARAM_COLOR_TEMPERATURE);
                 if( err == 0 )
                 {
@@ -3307,7 +3309,7 @@ namespace Plugin {
         {
             if (isSetRequired(pqmode,source,format))
             {
-                getParamIndex("current","current", "current",sourceIndex,pqIndex,formatIndex);
+                getParamIndex("Current","Current", "Current",sourceIndex,pqIndex,formatIndex);
                 int err = getLocalparam("DimmingMode",formatIndex,pqIndex,sourceIndex, dMode, PQ_PARAM_DIMMINGMODE);
                 if( err == 0 )
                 {
@@ -3726,7 +3728,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        if( isSetRequired("current",source,"dv") ) {
+        if( isSetRequired("Current",source,"dv") ) {
             LOGINFO("Proceed with setDolbyVisionMode\n\n");
             ret = SetTVDolbyVisionMode(value.c_str());
         }
@@ -3783,9 +3785,9 @@ namespace Plugin {
         }
         else
         {
-            if (isSetRequired("current",source,format))
+            if (isSetRequired("Current",source,format))
             {
-                getParamIndex("current","current", format,sourceIndex,pqIndex,formatIndex);
+                getParamIndex("Current","Current", format,sourceIndex,pqIndex,formatIndex);
                 int err = getLocalparam("DolbyVisionMode",formatIndex,pqIndex,sourceIndex, dolbyMode, PQ_PARAM_DOLBY_MODE);
                 if( err == 0 )
                 {
@@ -3946,7 +3948,7 @@ namespace Plugin {
         std::string format;
         tvError_t ret = tvERROR_NONE;
 
-	if( !isCapablityCheckPassed( "global", "global", "hdr10", "HDR10Mode" )) {
+	if( !isCapablityCheckPassed( "Global", "Global", "hdr10", "HDR10Mode" )) {
             LOGERR("%s: CapablityCheck failed for HDR10Mode\n", __FUNCTION__);
             returnResponse(false);
         }
@@ -4103,7 +4105,7 @@ namespace Plugin {
         else {
             int params[3]={0};
             params[0]=getHLGModeIndex(value.c_str());
-            int retval=updatePQParamsToCache("set","HLGMode","global","global","hlg",PQ_PARAM_HLG_MODE,params);
+            int retval=updatePQParamsToCache("set","HLGMode","Global","Global","hlg",PQ_PARAM_HLG_MODE,params);
             if(retval != 0) {
                 LOGWARN("Failed to Save HLGMode to ssm_data\n");
             }
@@ -4126,7 +4128,7 @@ namespace Plugin {
         std::string value;
         tvError_t ret = tvERROR_NONE;
 
-	if( !isCapablityCheckPassed( "global", "global", "hlg", "HLGMode" )) {
+	if( !isCapablityCheckPassed( "Global", "Global", "hlg", "HLGMode" )) {
             LOGERR("%s: CapablityCheck failed for HLGMode\n", __FUNCTION__);
             returnResponse(false);
         }
@@ -4159,7 +4161,7 @@ namespace Plugin {
                     //Save HLGMode to ssm_data
                     int params[3]={0};
                     params[0]=getHLGModeIndex(param.value);
-                    int retval=updatePQParamsToCache("reset","HLGMode","global","global","hlg",PQ_PARAM_HLG_MODE,params);
+                    int retval=updatePQParamsToCache("reset","HLGMode","Global","Global","hlg",PQ_PARAM_HLG_MODE,params);
 
                     if(retval != 0) {
                         LOGWARN("Failed to Save HLGMode to ssm_data\n");
@@ -4499,8 +4501,9 @@ namespace Plugin {
         }
     }
 
-    static int getCapabilitySource(JsonArray & rangeArray)
+    int AVOutputTV::getCapabilitySource(JsonArray & rangeArray)
     {
+	std::vector<string> range,pqmode,source,format;
 
 	tvError_t ret = getParamsCaps(range,pqmode,source,format,"VideoSource");
 
@@ -4722,7 +4725,8 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        if( isSetRequired("current",source,format) ) {
+        if( isSetRequired("Current",source,format) ) {
+	    transform(value.begin(), value.end(), value.begin(), ::tolower);
             LOGINFO("Proceed with SetTVPictureMode\n");
             ret = SetTVPictureMode(value.c_str());
          }
@@ -4734,7 +4738,7 @@ namespace Plugin {
 	    std::vector<int> source_vec;
 	    std::vector<int> format_vec;
 
-	    getSaveConfig("current", source.c_str(), format.c_str(), source_vec, pq_mode_vec, format_vec);
+	    getSaveConfig("Current", source.c_str(), format.c_str(), source_vec, pq_mode_vec, format_vec);
             
 	    for (unsigned int x = 0; x < source_vec.size(); x++ ) {
                 for (unsigned int y = 0; y < format_vec.size(); y++ ) {
@@ -4792,7 +4796,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        getSaveConfig("current", source, format, source_vec, pq_mode_vec, format_vec);
+        getSaveConfig("Current", source, format, source_vec, pq_mode_vec, format_vec);
  
         for (int source : source_vec) {
             for (int format : format_vec) {
@@ -4825,7 +4829,10 @@ namespace Plugin {
                         }
 
 		        if (current_source == source && current_format == format ) {
-                            tvError_t ret = SetTVPictureMode(param.value);
+			    std::string setparam = param.value;
+			    transform(setparam.begin(), setparam.end(), setparam.begin(), ::tolower);
+
+                            tvError_t ret = SetTVPictureMode(setparam.c_str());
                             if(ret != tvERROR_NONE) {
                                 LOGWARN("Picture Mode set failed: %s\n",getErrorString(ret).c_str());
                                 returnResponse(false);
@@ -5035,7 +5042,7 @@ namespace Plugin {
         {
             if (isSetRequired(pqmode,source,format))
             {
-                getParamIndex("current","current", "current",sourceIndex,pqIndex,formatIndex);
+                getParamIndex("Current","Current", "Current",sourceIndex,pqIndex,formatIndex);
                 int err = getLocalparam("LowLatencyState",formatIndex,pqIndex,sourceIndex, lowlatencystate, PQ_PARAM_LOWLATENCY_STATE);
                 if( err == 0 )
                 {
@@ -5349,7 +5356,7 @@ namespace Plugin {
         return ret;
     }
 
-    void AVOutputTV::convertParamToLowerCase(std::string &source, std::string &pqmode, std::string &format)
+    /*void AVOutputTV::convertParamToLowerCase(std::string &source, std::string &pqmode, std::string &format)
     {
         LOGINFO("%s : Entry Source : %s, pqmode : %s, format: %s \n",__FUNCTION__,source.c_str(),pqmode.c_str(), format.c_str());
         transform(source.begin(), source.end(), source.begin(), ::tolower);
@@ -5357,7 +5364,7 @@ namespace Plugin {
         transform(format.begin(), format.end(), format.begin(), ::tolower);
 
         LOGINFO("%s : Exit Source : %s, pqmode : %s, format: %s \n",__FUNCTION__,source.c_str(),pqmode.c_str(), format.c_str());
-    }
+    }*/
 
     std::string AVOutputTV::convertToString(std::vector<std::string> vec_strings)
     {
@@ -5373,12 +5380,12 @@ namespace Plugin {
 
         LOGINFO("Entry %s source %s pqmode %s format %s \n", __FUNCTION__, source.c_str(), pqmode.c_str(), format.c_str());
 
-        convertParamToLowerCase(source, pqmode, format);
+    //    convertParamToLowerCase(source, pqmode, format);
         //std::vector<std::string> temp_vec;
         //std::string temp_string;
 
         // converting pq to valid paramter format
-        if (pqmode == "global")
+        if (pqmode == "Global")
         {
             std::string localSource;
             std::string localPqmode;
@@ -5412,25 +5419,25 @@ namespace Plugin {
 #endif
             
         }
-        else if (pqmode == "current")
+        else if (pqmode == "Current")
         {
             char picMode[PIC_MODE_NAME_MAX]={0};
             if(!getCurrentPictureMode(picMode)) 
 	    {
-                LOGINFO("Failed to get the current picture mode\n");
+                LOGINFO("Failed to get the Current picture mode\n");
                 return -1;
             } 
 	    else 
             {
                 pqmode = picMode;
-                LOGINFO("current PQmode :%s \n", pqmode.c_str());
+                LOGINFO("Current PQmode :%s \n", pqmode.c_str());
             }
         }
 	//else if (pqmode.empty()) {
 	//    pqmode = "none";
 	//}
 
-        if (source == "global")
+        if (source == "Global")
         {
 #if 0
             pic_modes_t *availableSources;
@@ -5461,7 +5468,7 @@ namespace Plugin {
                 return -1;
             }
         } 
-        else if (source == "current") 
+        else if (source == "Current") 
         {
             int currentSource = 0;
             tvError_t ret = GetCurrentSource(&currentSource);
@@ -5477,7 +5484,7 @@ namespace Plugin {
 	//}	
 
         //convert format into valid parameter
-        if (format == "global")
+        if (format == "Global")
         {
 #if 0
             char * formatVal;
@@ -5518,10 +5525,10 @@ namespace Plugin {
                 return -1;
             }
         }
-	else if (format == "current") 
+	else if (format == "Current") 
 	{
           format = convertVideoFormatToString( GetCurrentContentFormat());
-          LOGINFO("current:%s \n", format.c_str());
+          LOGINFO("Current:%s \n", format.c_str());
         }
 	//else if (format.empty()) {
 	//    format = "none";
@@ -5913,7 +5920,7 @@ namespace Plugin {
             return -1;
         }
         //1)Check pqmode
-        //if( (pqmode.compare("global") == 0) || (pqmode.compare("none") == 0 ) )
+        //if( (pqmode.compare("Global") == 0) || (pqmode.compare("none") == 0 ) )
         //{
         //    int lCount = 0;
        //     for(;lCount<numberModesSupported;lCount++)
@@ -5931,7 +5938,7 @@ namespace Plugin {
         //}
 
         //2)Check Source
-        //if( (source.compare("global") == 0) || (source.compare("none") == 0) )
+        //if( (source.compare("Global") == 0) || (source.compare("none") == 0) )
         //{
         //    int lCount = 0;
         //    for(;lCount<numberSourcesSupported;lCount++)
@@ -5955,7 +5962,7 @@ namespace Plugin {
 
         GetSupportedContentFormats(&contentFormats,&numberOfSupportedFormats);
 
-        if( (format.compare("global") == 0) || (format.compare("none") == 0) )
+        if( (format.compare("Global") == 0) || (format.compare("none") == 0) )
         {
              unsigned int lcount=0;
              for(;(lcount<sizeof(uint32_t)*8 && numberOfSupportedFormats);lcount++)
@@ -6104,11 +6111,11 @@ namespace Plugin {
         LOGINFO("%s : currentSource = %s,currentPicMode = %s,currentFormat = %s\n",__FUNCTION__,currentSource.c_str(),currentPicMode.c_str(),currentFormat.c_str());
         LOGINFO("%s : source = %s,PicMode = %s, format= %s\n",__FUNCTION__,source.c_str(),pqmode.c_str(),format.c_str());
 
-        if( ( (pqmode.find(currentPicMode) != std::string::npos) || (pqmode.compare("global") == 0)  || (pqmode.compare("current") == 0) ||
+        if( ( (pqmode.find(currentPicMode) != std::string::npos) || (pqmode.compare("Global") == 0)  || (pqmode.compare("Current") == 0) ||
             (pqmode.compare("none") == 0) ) &&
-           ((source.find(currentSource) != std::string::npos)  || (source.compare("global") == 0) || (source.compare("current") == 0) ||
+           ((source.find(currentSource) != std::string::npos)  || (source.compare("Global") == 0) || (source.compare("Current") == 0) ||
             (source.compare("none") == 0) ) &&
-           ( (format.find(currentFormat) !=  std::string::npos) || (format.compare("global") == 0) || (format.compare("current") == 0) ||
+           ( (format.find(currentFormat) !=  std::string::npos) || (format.compare("Global") == 0) || (format.compare("Current") == 0) ||
              (format.compare("none") == 0) ) )
             ret=true;
 
@@ -6119,7 +6126,7 @@ namespace Plugin {
     {
 	LOGINFO("Entry : %s pqmode : %s source :%s format :%s\n",__FUNCTION__,pqmode.c_str(),source.c_str(),format.c_str());
 
-        if( source.compare("none") == 0 || source.compare("current") == 0 )
+        if( source.compare("none") == 0 || source.compare("Current") == 0 )
         {
             GetCurrentSource(&sourceIndex);
         }
@@ -6127,11 +6134,11 @@ namespace Plugin {
         {
             sourceIndex = GetTVSourceIndex(source.c_str());
         }
-        if( pqmode.compare("none") == 0 || pqmode.compare("current") == 0)
+        if( pqmode.compare("none") == 0 || pqmode.compare("Current") == 0)
         {
             char picMode[PIC_MODE_NAME_MAX]={0};
             if(!getCurrentPictureMode(picMode))
-                LOGERR("Failed to get the current picture mode\n");
+                LOGERR("Failed to get the Current picture mode\n");
             else
                 pqmodeIndex = GetTVPictureModeIndex(picMode);
         }
@@ -6140,7 +6147,7 @@ namespace Plugin {
             pqmodeIndex = GetTVPictureModeIndex(pqmode.c_str());
         }
 
-        if( format.compare("none") == 0 || format.compare("current") == 0)
+        if( format.compare("none") == 0 || format.compare("Current") == 0)
         {
             formatIndex = ConvertVideoFormatToHDRFormat(GetCurrentContentFormat());
             if( HDR_TYPE_NONE == formatIndex )
@@ -6800,9 +6807,9 @@ namespace Plugin {
 
 	LOGINFO("%s source:[%s] pqmode[%s] format[%s]", __FUNCTION__,source.c_str(), pqmode.c_str(), format.c_str());
 
-        if (source.empty()) source = "global";
-        if (pqmode.empty()) pqmode = "global";
-        if (format.empty()) format = "global";
+        if (source.empty()) source = "Global";
+        if (pqmode.empty()) pqmode = "Global";
+        if (format.empty()) format = "Global";
 
         if (convertToValidInputParameter(pqparam, source, pqmode, format) != 0) {
             LOGERR("%s: Failed to convert the input paramters. \n", __FUNCTION__);
@@ -6822,15 +6829,15 @@ namespace Plugin {
 
         LOGINFO("%s source:[%s] pqmode[%s] format[%s]", __FUNCTION__,source.c_str(), pqmode.c_str(), format.c_str());
 
-	if ( (source.compare("global") == 0) || (pqmode.compare("global") == 0) || (format.compare("global") == 0) )
+	if ( (source.compare("Global") == 0) || (pqmode.compare("Global") == 0) || (format.compare("Global") == 0) )
 	{
-	    LOGERR("%s: get cannot fetch the global inputs \n", __FUNCTION__);
+	    LOGERR("%s: get cannot fetch the Global inputs \n", __FUNCTION__);
 	    return -1;
 	}
 
-        if (source.empty()) source = "current";
-        if (pqmode.empty()) pqmode = "current";
-        if (format.empty()) format = "current";
+        if (source.empty()) source = "Current";
+        if (pqmode.empty()) pqmode = "Current";
+        if (format.empty()) format = "Current";
 
         if (convertToValidInputParameter(pqparam,source, pqmode, format) != 0) {
             LOGERR("%s: Failed to convert the input paramters. \n", __FUNCTION__);
