@@ -73,20 +73,20 @@ namespace Plugin {
         if(obj)obj->NotifyVideoFrameRateChange(frameRate);
     }
 
-    static const char *getVideoContentTypeToString(tvContentType_t content)
+    static bool getVideoContentTypeToString(tvContentType_t content)
     {
-        const char *strValue = "NONE";
+        bool fmmMode = false;
         switch(content) {
             case tvContentType_FMM:
                 LOGINFO("Content Type: FMM\n");
-                strValue = "true";
+                fmmMode = true;
                 break;
             default:
                 LOGINFO("Content Type: NONE\n");
-                strValue = "false";
+                fmmMode = false;
                 break;
         } 
-        return strValue;
+        return fmmMode;
     }
 
     static const char *getVideoFormatTypeToString(tvVideoHDRFormat_t format)
@@ -245,25 +245,25 @@ namespace Plugin {
     {
         JsonObject response;
         response["currentVideoFormat"] = getVideoFormatTypeToString(format);
-        response["supportedVideoFormat"] = getAvailableVideoFormat();
-        sendNotify("videoFormatChanged", response);
+        //response["supportedVideoFormat"] = getAvailableVideoFormat();
+        sendNotify("onVideoFormatChanged", response);
     }
 
     void AVOutputTV::NotifyFilmMakerModeChange(tvContentType_t mode)
     {
         JsonObject response;
-	std::string fmmMode;
+        JsonArray array;
+	bool fmmMode;
 	fmmMode = getVideoContentTypeToString(mode);
         response["filmMakerMode"] = fmmMode;
 
-        if (fmmMode.compare("true") == 0 ) {
-	    filmMakerMode = true;
-	}
-	else
-	{
-	    filmMakerMode = false;
-	}
-        sendNotify("filmMakerModeChanged", response);
+        if (getCapabilitySource(JsonArray & rangeArray) == 0)
+        {
+            response["filmMakerModeSource"] = rangeArray;
+        }
+        // cache for latest fmm mode
+	filmMakerMode = fmmMode;
+        sendNotify("onVideoContentChanged", response);
     }
 
     uint32_t AVOutputTV::getFilmMakerMode(const JsonObject & parameters, JsonObject & response)
@@ -276,16 +276,16 @@ namespace Plugin {
     {
         JsonObject response;
         response["currentVideoResolution"] = getVideoResolutionTypeToString(resolution);
-        response["supportedVideoResolution"] = getSupportedVideoResolution();
-        sendNotify("videoResolutionChanged", response);
+        //response["supportedVideoResolution"] = getSupportedVideoResolution();
+        sendNotify("onVideoResolutionChanged", response);
     }
 
     void AVOutputTV::NotifyVideoFrameRateChange(tvVideoFrameRate_t frameRate)
     {
         JsonObject response;
         response["currentVideoFrameRate"] = getVideoFrameRateTypeToString(frameRate);
-        response["supportedVideoFrameRate"] = getSupportedVideoFrameRate();
-        sendNotify("videoFrameRateChanged", response);
+        //response["supportedVideoFrameRate"] = getSupportedVideoFrameRate();
+        sendNotify("onVideoFrameRateChanged", response);
     }
 
     std::string AVOutputTV::getErrorString (tvError_t eReturn)
@@ -4499,6 +4499,25 @@ namespace Plugin {
         }
     }
 
+    static int getCapabilitySource(JsonArray & rangeArray)
+    {
+
+	tvError_t ret = getParamsCaps(range,pqmode,source,format,"VideoSource");
+
+        if(ret != tvERROR_NONE) {
+            return -1;
+        }
+        else
+        {
+            if ((range.front()).compare("none") != 0) {
+                for (unsigned int index = 0; index < range.size(); index++) {
+                    rangeArray.Add(range[index]);
+                }
+            }
+        }
+        return 0;
+    }
+
     uint32_t AVOutputTV::getVideoSourceCaps(const JsonObject& parameters, JsonObject& response) {
 
         JsonArray rangeArray;
@@ -4508,20 +4527,22 @@ namespace Plugin {
         std::vector<std::string> source;
         std::vector<std::string> format;
 
-        tvError_t ret = getParamsCaps(range,pqmode,source,format,"VideoSource");
+        if (getCapabilitySource(rangeArray) != 0)
+        {
+        //tvError_t ret = getParamsCaps(range,pqmode,source,format,"VideoSource");
 
-        if(ret != tvERROR_NONE) {
+        //if(ret != tvERROR_NONE) {
             returnResponse(false);
         }
-        else
-        {
-            if ((range.front()).compare("none") != 0) {
-                for (unsigned int index = 0; index < range.size(); index++) {
-                    rangeArray.Add(range[index]);
-                }
-                response["options"]=rangeArray;
-            }
-        }
+        //else
+        //{
+        //    if ((range.front()).compare("none") != 0) {
+        //        for (unsigned int index = 0; index < range.size(); index++) {
+        //            rangeArray.Add(range[index]);
+        //        }
+        response["options"]=rangeArray;
+         //   }
+       // }
         LOGINFO("Exit\n");
         returnResponse(true);
     }
@@ -4555,13 +4576,14 @@ namespace Plugin {
 
     uint32_t AVOutputTV::getVideoFrameRateCaps(const JsonObject& parameters, JsonObject& response) {
             LOGINFO("Entry\n");
-            response["options"] = getSupportedVideoFrameRate();
+            response["videoFrameRates"] = getSupportedVideoFrameRate();
             returnResponse(true);
     }
 
     uint32_t AVOutputTV::getVideoResolutionCaps(const JsonObject& parameters, JsonObject& response) {
             LOGINFO("Entry\n");
-            response["options"] = getSupportedVideoResolution();
+            //response["options"] = getSupportedVideoResolution();
+            response["maxResolution"] = "4096*2160p";
             returnResponse(true);
     }
 
