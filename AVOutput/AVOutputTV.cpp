@@ -4829,6 +4829,7 @@ namespace Plugin {
                         }
 
 		        if (current_source == source && current_format == format ) {
+			    //as hal using loer across converting to lower
 			    std::string setparam = param.value;
 			    transform(setparam.begin(), setparam.end(), setparam.begin(), ::tolower);
 
