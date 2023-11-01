@@ -607,10 +607,13 @@ gboolean MiracastGstPlayer::on_playbin2appsrc_bus_message(GstBus *bus, GstMessag
                 static int id = 0;
                 id++;
                 gst_message_parse_state_changed(msg, &old, &now, &pending);
-                if (memcmp(GST_OBJECT_NAME(GST_MESSAGE_SRC(msg)), "playbin", 7) == 0)
+                if (memcmp(GST_OBJECT_NAME(GST_MESSAGE_SRC(msg)), "miracast_playbin", 7) == 0)
                 {
-                    MIRACASTLOG_ERROR("Element [%s], Pipeline state change from Old [%s] -> New [%s] and Pending state is [%s]", GST_ELEMENT_NAME(GST_MESSAGE_SRC(msg)),
-                                    gst_element_state_get_name(old), gst_element_state_get_name(now), gst_element_state_get_name(pending));
+                    MIRACASTLOG_INFO("Element [%s], Pipeline state change from Old [%s] -> New [%s] and Pending state is [%s]",
+                                        GST_ELEMENT_NAME(GST_MESSAGE_SRC(msg)),
+                                        gst_element_state_get_name(old),
+                                        gst_element_state_get_name(now),
+                                        gst_element_state_get_name(pending));
                 }
                 std::string file_name = "miracast_playbin2appsrc_";
                 file_name += (GST_OBJECT_NAME(self->m_playbin2appsrc_pipeline));
@@ -724,7 +727,7 @@ void MiracastGstPlayer::playbin_source_setup(GstElement *pipeline, GstElement *s
     std::string opt_max_bytes = "";
     opt_max_bytes = parse_opt_flag( "/opt/miracast_appsrc_max_bytes" , true );
 
-    test_max_size = 3*1024*1024;
+    guint64 test_max_size = 3*1024*1024;
 
     if (!opt_max_bytes.empty())
     {
@@ -1064,9 +1067,6 @@ bool MiracastGstPlayer::createPipeline()
 
     MIRACASTLOG_INFO("setting buffer-size value to udpsrc as [%llu]\n",testbuffersize);
     g_object_set(G_OBJECT(m_udpsrc), "buffer-size", testbuffersize, nullptr);
-
-    GstCaps *caps = gst_caps_new_simple("application/x-rtp", "media", G_TYPE_STRING, "video", NULL);
-    g_object_set(G_OBJECT(m_udpsrc), "caps", caps, NULL);
 
     /* to be notified of messages from this pipeline, mostly EOS */
     bus = gst_element_get_bus(m_udpsrc2appsink_pipeline);
