@@ -967,7 +967,7 @@ namespace WPEFramework {
                            sem_wait(&request->mSemaphore);
                        }
                        gRdkShellMutex.lock();
-                       RdkShell::CompositorController::addListener(clientidentifier, mShell.mEventListener);
+                       RdkShell::CompositorController::addListener(service->Callsign(), mShell.mEventListener);
                        gRdkShellMutex.unlock();
                        gPluginDataMutex.lock();
                        std::string className = service->ClassName();
@@ -1075,7 +1075,7 @@ namespace WPEFramework {
                     gRdkShellMutex.unlock();
                     sem_wait(&request->mSemaphore);
                     gRdkShellMutex.lock();
-                    RdkShell::CompositorController::removeListener(clientidentifier, mShell.mEventListener);
+                    RdkShell::CompositorController::removeListener(service->Callsign(), mShell.mEventListener);
                     gRdkShellMutex.unlock();
                 }
                 
@@ -2563,6 +2563,9 @@ namespace WPEFramework {
                             //Should we wait for the state change ? Naaah
 #endif //ENABLE_RIALTO_FEATURE
                     }
+		    JsonObject params;
+                    params["client"] = client;
+                    notify(RDKSHELL_EVENT_ON_APP_TERMINATED, params);
                 }
             }
             returnResponse(result);
@@ -4729,6 +4732,9 @@ namespace WPEFramework {
                         response["message"] = "Could not start Dobby container";
                         returnResponse(false);
                     }
+		    JsonObject params;
+                    params["client"] = client;
+                    notify(RDKSHELL_EVENT_ON_APP_LAUNCHED, params);
                 }
                 else if (mimeType == RDKSHELL_APPLICATION_MIME_TYPE_NATIVE)
                 {
