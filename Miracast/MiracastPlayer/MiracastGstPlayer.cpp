@@ -586,8 +586,8 @@ gboolean MiracastGstPlayer::on_playbin2appsrc_bus_message(GstBus *bus, GstMessag
             g_error_free(error);
             g_free(info);
             GST_DEBUG_BIN_TO_DOT_FILE((GstBin *)self->m_playbin2appsrc_pipeline, GST_DEBUG_GRAPH_SHOW_ALL, "miracast_playbin2appsrc_error");
-            gst_element_set_state(self->m_playbin2appsrc_pipeline, GST_STATE_READY);
-            g_main_loop_quit(self->m_main_loop);
+            // gst_element_set_state(self->m_playbin2appsrc_pipeline, GST_STATE_READY);
+            // g_main_loop_quit(self->m_main_loop);
             break;
         }
         case GST_MESSAGE_EOS:
@@ -710,7 +710,10 @@ void MiracastGstPlayer::appsrc_enough_data(GstAppSrc *src, gpointer user_data)
 void MiracastGstPlayer::playbin_source_setup(GstElement *pipeline, GstElement *source, gpointer user_data)
 {
     MiracastGstPlayer *self = static_cast<MiracastGstPlayer *>(user_data);
+    guint64 test_max_size = 0;
+
     MIRACASTLOG_TRACE("Entering...\n");
+
     MIRACASTLOG_INFO("Source has been created. Configuring.\n");
 
     self->m_appsrc = source;
@@ -719,9 +722,18 @@ void MiracastGstPlayer::playbin_source_setup(GstElement *pipeline, GstElement *s
     GstAppSrcCallbacks callbacks = {appsrc_need_data, appsrc_enough_data, nullptr};
     gst_app_src_set_callbacks(GST_APP_SRC(self->m_appsrc), &callbacks, user_data , nullptr);
     g_object_set(GST_APP_SRC(self->m_appsrc), "format", GST_FORMAT_TIME, nullptr);
-    g_object_set(GST_APP_SRC(pData->appsrc), "is-live", true, nullptr);
+    g_object_set(GST_APP_SRC(self->m_appsrc), "is-live", true, nullptr);
 
-    g_object_set(GST_APP_SRC(self->m_appsrc), "max-bytes", (guint64) 20 * 1024 * 1024, nullptr);
+    std::string opt_max_bytes = "";
+    opt_max_bytes = parse_opt_flag( "/opt/miracast_appsrc_max_bytes" , true );
+
+    test_max_size = 3*1024*1024;
+
+    if (!opt_max_bytes.empty())
+    {
+        test_max_size = std::stoull(opt_max_bytes.c_str());
+    }
+    g_object_set(GST_APP_SRC(self->m_appsrc), "max-bytes", (guint64) test_max_size, nullptr);
 
     const gchar *set_cap = "video/mpegts, systemstream=(boolean)true, packetsize=(int)188";
     GstCaps *caps = gst_caps_from_string(set_cap);
@@ -1124,8 +1136,8 @@ bool MiracastGstPlayer::createPipeline()
         gst_object_unref (bus);
 
         // Pipeline created
-        g_object_set(m_playbin2appsrc_pipeline, "uri", "appsrc://", nullptr);
         g_signal_connect(m_playbin2appsrc_pipeline, "source-setup", G_CALLBACK(playbin_source_setup), this);
+        g_object_set(m_playbin2appsrc_pipeline, "uri", "appsrc://", nullptr);
     }
     m_video_sink = gst_element_factory_make("westerossink", nullptr);
 
