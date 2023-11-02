@@ -3691,7 +3691,7 @@ namespace Plugin {
         }
 #endif
         // Since it is dolby vision mode, to should get only for dolby vision format
-        format = "dv";
+        format = "DV";
 
         if (getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex) == -1) {
             LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
