@@ -4699,6 +4699,29 @@ namespace Plugin {
         }
     }
 
+    int AVOutputTV::validatePictureMode(std::string inputValue) {
+
+        std::vector<std::string> range;
+        std::vector<std::string> pqmode;
+        std::vector<std::string> source;
+        std::vector<std::string> format;
+
+        tvError_t ret = getParamsCaps(range, pqmode, source, format, "PictureMode");
+
+        if (ret != tvERROR_NONE) {
+            LOGERR("Failed to fetch the picturemode capability \n");
+            return -1;
+        }
+
+	auto iter = find(range.begin(), range.end(), inputValue);
+
+        if (iter == range.end()) {
+            return -1;
+        }
+
+        return 0;
+    }
+
     uint32_t AVOutputTV::setPictureMode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
@@ -4720,6 +4743,10 @@ namespace Plugin {
             returnResponse(false);
         }
 
+        if (validatePictureMode(value) != 0) {
+            LOGERR("%s: Range validation failed for PictureMode\n", __FUNCTION__);
+            returnResponse(false);
+        }
         if( !isCapablityCheckPassed( dummyPqmode, source,format, "PictureMode" )) {
             LOGERR("%s: CapablityCheck failed for PictureMode\n", __FUNCTION__);
             returnResponse(false);
@@ -6139,7 +6166,7 @@ namespace Plugin {
         }
         else
         {
-	    std::string local;
+	    std::string local = source;
 	    transform(local.begin(), local.end(), local.begin(), ::tolower);
             sourceIndex = GetTVSourceIndex(local.c_str());
         }
@@ -6915,6 +6942,9 @@ namespace Plugin {
        if (formatVec.size() != 0) {
             format = convertToString(formatVec);
        }
+
+       //start validate the Range for all params - TODO
+       
        return 0;
     }
 
