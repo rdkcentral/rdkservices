@@ -73,6 +73,8 @@ namespace WPEFramework {
             bool reserveTTSResource(const string& client);
 
             EssRMgr* mEssRMgr;
+            bool mDisableBlacklist;
+            bool mDisableReserveTTS;
             PluginHost::IShell* mCurrentService;
             std::map<std::string, bool> mAppsAVBlacklistStatus;
 

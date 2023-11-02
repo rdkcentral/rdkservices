@@ -102,7 +102,7 @@ namespace WPEFramework {
         private: /*internal methods*/
             void getStatusSupport(string& status);
             bool isAdapterDiscoverable();
-            string startDeviceDiscovery(int timeout, const string &discProfile = "LOUDSPEAKER, HEADPHONES, WEARABLE HEADSET, HIFI AUDIO DEVICE");
+            string startDeviceDiscovery(int timeout, const string &discProfile = "DEFAULT");
             bool stopDeviceDiscovery();
             void startDiscoveryTimer(int msec);
             void stopDiscoveryTimer();
