@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.4.11] - 2023-11-16
+### Added
+- onApplicationLaunched event and proper error messages are not triggering for DAC apps
+
 ## [1.4.10] - 2023-10-23
 ### Added
 - RDKShell changes for ignoring factoryMode
