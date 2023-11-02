@@ -20,6 +20,8 @@
 #pragma once
 
 #include "Module.h"
+#include <interfaces/Ids.h>
+#include <interfaces/ITelemetry.h>
 
 namespace WPEFramework {
 
@@ -38,7 +40,7 @@ namespace WPEFramework {
         // As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
         // this class exposes a public method called, Notify(), using this methods, all subscribed clients
         // will receive a JSONRPC message as a notification, in case this method is called.
-        class Telemetry : public PluginHost::IPlugin, public PluginHost::JSONRPC {
+        class Telemetry : public Exchange::ITelemetry, public PluginHost::IPlugin, public PluginHost::JSONRPC {
         private:
 
             // We do not allow this plugin to be copied !!
@@ -64,10 +66,13 @@ namespace WPEFramework {
             virtual void Deinitialize(PluginHost::IShell* service) override;
             virtual string Information() const override { return {}; }
 
+            virtual uint32_t LogApplicationEvent(const string marker, const string event) override;
+
             uint32_t UploadReport();
             uint32_t AbortReport();
 
             BEGIN_INTERFACE_MAP(Telemetry)
+            INTERFACE_ENTRY(Exchange::ITelemetry)
             INTERFACE_ENTRY(PluginHost::IPlugin)
             INTERFACE_ENTRY(PluginHost::IDispatcher)
             END_INTERFACE_MAP

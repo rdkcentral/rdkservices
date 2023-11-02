@@ -104,7 +104,7 @@ public:
         }
     }
 
-    void Deactivated(const uint32_t uptime) override 
+    void Deactivated(const uint32_t uptime) override
     {
         TRACE(Trace::Metric, (_T("Plugin %s deactivated, uptime(s): %u"), _callsign.c_str(), (uptime/1000)));
     }
@@ -162,7 +162,7 @@ public:
     {
     }
 
-    void Deactivated(const uint32_t uptime) override 
+    void Deactivated(const uint32_t uptime) override
     {
         TRACE(Trace::Metric, (_T("Plugin %s deactivated, uptime(s): %u"), _callsign.c_str(), (uptime/1000)));
     }
