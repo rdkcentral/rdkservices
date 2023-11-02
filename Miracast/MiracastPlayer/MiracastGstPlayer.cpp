@@ -793,7 +793,10 @@ void MiracastGstPlayer::appsrc_enough_data(GstAppSrc *src, gpointer user_data)
 void MiracastGstPlayer::playbin_source_setup(GstElement *pipeline, GstElement *source, gpointer user_data)
 {
     MiracastGstPlayer *self = static_cast<MiracastGstPlayer *>(user_data);
+    guint64 test_max_size = 0;
+
     MIRACASTLOG_TRACE("Entering...\n");
+
     MIRACASTLOG_INFO("Source has been created. Configuring.\n");
 
     self->m_appsrc = source;
