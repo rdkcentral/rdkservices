@@ -108,6 +108,20 @@ private:
     
     pthread_t m_player_statistics_tid;
     static void *monitor_player_statistics_thread(void *ctx);
+
+    GstElement *m_tsparse{nullptr};
+    GstElement *m_tsdemux{nullptr};
+
+    GstElement *m_vQueue{nullptr};
+    GstElement *m_h264parse{nullptr};
+
+    GstElement *m_aQueue{nullptr};
+    GstElement *m_aacparse{nullptr};
+    GstElement *m_avdec_aac{nullptr};
+    GstElement *m_audioconvert{nullptr};
+    static gboolean ManualPipelineBusCallback(GstBus *bus, GstMessage *msg, gpointer userdata);
+    static void new_pad_added_handler(GstElement *gstelement, GstPad *new_pad, gpointer userdata);
+    bool createNewManualPipeline();
 };
 
 #endif /* MiracastGstPlayer_hpp */
