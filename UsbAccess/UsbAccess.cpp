@@ -31,8 +31,8 @@ const string WPEFramework::Plugin::UsbAccess::EVT_ON_USB_MOUNT_CHANGED = "onUSBM
 const string WPEFramework::Plugin::UsbAccess::EVT_ON_ARCHIVE_LOGS = "onArchiveLogs";
 const string WPEFramework::Plugin::UsbAccess::REGEX_BIN = "[\\w-]*\\.{0,1}[\\w-]*\\.bin";
 const string WPEFramework::Plugin::UsbAccess::REGEX_FILE =
-				"^[^,`~?!$@#%^&*+={}\\[\\]<>]+\\.(png|jpg|jpeg|tiff|tif|bmp|mp4|mov|avi|mp3|wav|m4a|flac|aac|wma|txt|bin|enc|ts)$";
-const string WPEFramework::Plugin::UsbAccess::REGEX_PATH = "^\\/([^.,!@#$%&*(){}<>\\[\\]\\s]+\\/)+$";
+				"^[^,`~?!$@#%^&*+={}\\[\\]<>]+\\.(png|jpg|jpeg|tiff|tif|bmp|mp4|mov|avi|mp3|wav|m4a|flac|aac|wma|txt|bin|enc|ts)$";  //here we are restriced Special Characters like (,`~?!$@#%^&*+={}[]<>)
+const string WPEFramework::Plugin::UsbAccess::REGEX_PATH = "^\\/([~`.,!@#$%^&*()+={}<>\\[\\]\\s]+\\/)+$"; // here we are restriced Special Characters like (~`.,!@#$%^&*()+={}<>[]\\s(space))3
 const string WPEFramework::Plugin::UsbAccess::PATH_DEVICE_PROPERTIES = "/etc/device.properties";
 const std::list<string> WPEFramework::Plugin::UsbAccess::ADDITIONAL_FW_PATHS {"UsbTestFWUpdate", "UsbProdFWUpdate"};
 const string WPEFramework::Plugin::UsbAccess::ARCHIVE_LOGS_SCRIPT = "/lib/rdk/usbLogUpload.sh";
