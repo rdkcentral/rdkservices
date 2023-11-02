@@ -113,6 +113,8 @@ public:
     void reset_NewSourceMACAddress(void);
     void reset_NewSourceName(void);
 
+    void setP2PBackendDiscovery(bool is_enabled);
+
 private:
     static MiracastController *m_miracast_ctrl_obj;
     MiracastController();
@@ -126,6 +128,7 @@ private:
     MiracastError connect_Sink();
     MiracastError create_ControllerFramework(void);
     MiracastError destroy_ControllerFramework(void);
+    void checkAndInitiateP2PBackendDiscovery(void);
 
     void set_localIp(std::string ipAddr);
 
@@ -138,6 +141,7 @@ private:
     vector<DeviceInfo *> m_deviceInfoList;
     GroupInfo *m_groupInfo;
     bool m_connectionStatus;
+    bool m_p2p_backend_discovery{false};
     // int m_hdcptcpSockfd;
 
     /*members for interacting with wpa_supplicant*/

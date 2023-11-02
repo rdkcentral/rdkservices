@@ -72,6 +72,7 @@ MiracastController::MiracastController(void)
     m_thunder_req_handler_thread = nullptr;
     m_controller_thread = nullptr;
     m_tcpserverSockfd = -1;
+    m_p2p_backend_discovery = false;
 
     MIRACASTLOG_TRACE("Exiting...");
 }
@@ -535,6 +536,20 @@ void MiracastController::remove_P2PGroupInstance(void)
     MIRACASTLOG_TRACE("Exiting...");
 }
 
+void MiracastController::checkAndInitiateP2PBackendDiscovery(void)
+{
+    if ( m_p2p_backend_discovery )
+    {
+        MIRACASTLOG_INFO("!!! BACKEND P2P DISCOVERY HAS BEEN STARTED !!!");
+        /* Enabled the Device Discovery to allow other device to cast */
+        discover_devices();
+    }
+    else
+    {
+        MIRACASTLOG_INFO("!!! BACKEND P2P DISCOVERY HAS DISABLED !!!");
+    }
+}
+
 void MiracastController::event_handler(P2P_EVENTS eventId, void *data, size_t len )
 {
     CONTROLLER_MSGQ_STRUCT controller_msgq_data = {0};
@@ -995,6 +1010,7 @@ void MiracastController::Controller_Thread(void *args)
 
                             if (found != std::string::npos)
                             {
+                                MIRACASTLOG_INFO("!!!! P2P GROUP STARTED IN CLIENT MODE !!!!");
                                 m_groupInfo->ipAddr = parse_p2p_event_data(event_buffer.c_str(), "ip_addr");
                                 m_groupInfo->ipMask = parse_p2p_event_data(event_buffer.c_str(), "ip_mask");
                                 m_groupInfo->goIPAddr = parse_p2p_event_data(event_buffer.c_str(), "go_ip_addr");
@@ -1056,9 +1072,8 @@ void MiracastController::Controller_Thread(void *args)
                                         {
                                             m_notify_handler->onMiracastServiceLaunchRequest(src_dev_ip, src_dev_mac, src_dev_name, sink_dev_ip);
                                         }
-                                        MIRACASTLOG_INFO("!!! P2P CLIENT AGAIN STARTED DISCOVERY !!!");
-                                        /* Enabled the Device Discovery to allow other device to cast */
-                                        discover_devices();
+
+                                        checkAndInitiateP2PBackendDiscovery();
                                         session_restart_required = false;
                                         p2p_group_instance_alive = true;
                                     #endif
@@ -1066,6 +1081,7 @@ void MiracastController::Controller_Thread(void *args)
                             }
                             else
                             {
+                                MIRACASTLOG_INFO("!!!! P2P GROUP STARTED IN GO MODE !!!!");
                                 std::string remote_address = "";
                                 size_t found_go = event_buffer.find("GO");
                                 m_groupInfo->interface = event_buffer.substr(found_space, found_go - found_space);
@@ -1165,9 +1181,9 @@ void MiracastController::Controller_Thread(void *args)
                                     {
                                         m_notify_handler->onMiracastServiceLaunchRequest(src_dev_ip, src_dev_mac, src_dev_name, sink_dev_ip);
                                     }
-                                    MIRACASTLOG_INFO("!!! P2P GO AGAIN STARTED DISCOVERY !!!");
-                                    /* Enabled the Device Discovery to allow other device to cast */
-                                    discover_devices();
+
+                                    checkAndInitiateP2PBackendDiscovery();
+
                                     session_restart_required = false;
                                     p2p_group_instance_alive = true;
                                 #endif
@@ -1652,6 +1668,13 @@ void MiracastController::set_enable(bool is_enabled)
     }
 
     send_msg_thunder_msg_hdler_thread(state);
+    MIRACASTLOG_TRACE("Exiting...");
+}
+
+void MiracastController::setP2PBackendDiscovery(bool is_enabled)
+{
+    MIRACASTLOG_TRACE("Entering [%x]...",is_enabled);
+    m_p2p_backend_discovery = is_enabled;
     MIRACASTLOG_TRACE("Exiting...");
 }
 

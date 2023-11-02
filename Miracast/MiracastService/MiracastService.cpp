@@ -31,6 +31,7 @@ const string WPEFramework::Plugin::MiracastService::SERVICE_NAME = "org.rdk.Mira
 
 const string WPEFramework::Plugin::MiracastService::METHOD_MIRACAST_SET_ENABLE = "setEnable";
 const string WPEFramework::Plugin::MiracastService::METHOD_MIRACAST_GET_ENABLE = "getEnable";
+const string WPEFramework::Plugin::MiracastService::METHOD_MIRACAST_SET_P2P_BACKEND_DISCOVERY = "setP2PBackendDiscovery";
 const string WPEFramework::Plugin::MiracastService::METHOD_MIRACAST_CLIENT_CONNECT = "acceptClientConnection";
 const string WPEFramework::Plugin::MiracastService::METHOD_MIRACAST_STOP_CLIENT_CONNECT = "stopClientConnection";
 const string WPEFramework::Plugin::MiracastService::METHOD_MIRACAST_SET_UPDATE_PLAYER_STATE = "updatePlayerState";
@@ -89,6 +90,7 @@ namespace WPEFramework
 
 			Register(METHOD_MIRACAST_SET_ENABLE, &MiracastService::setEnable, this);
 			Register(METHOD_MIRACAST_GET_ENABLE, &MiracastService::getEnable, this);
+			Register(METHOD_MIRACAST_SET_P2P_BACKEND_DISCOVERY, &MiracastService::setP2PBackendDiscovery, this);
 			Register(METHOD_MIRACAST_CLIENT_CONNECT, &MiracastService::acceptClientConnection, this);
 			Register(METHOD_MIRACAST_STOP_CLIENT_CONNECT, &MiracastService::stopClientConnection, this);
 			Register(METHOD_MIRACAST_SET_UPDATE_PLAYER_STATE, &MiracastService::updatePlayerState, this);
@@ -312,6 +314,30 @@ namespace WPEFramework
 			MIRACASTLOG_INFO("Entering..!!!");
 			response["enabled"] = m_isServiceEnabled;
 			returnResponse(true);
+		}
+
+		/**
+		 * @brief This method used to Enable/Disable the Miracast P2P Backend Discovery.
+		 *
+		 * @param: None.
+		 * @return Returns the success code of underlying method.
+		 */
+		uint32_t MiracastService::setP2PBackendDiscovery(const JsonObject &parameters, JsonObject &response)
+		{
+			bool success = false;
+			bool is_enabled = true;
+
+			MIRACASTLOG_INFO("Entering..!!!");
+			if (parameters.HasLabel("enabled"))
+			{
+				getBoolParameter("enabled", is_enabled);
+				m_miracast_ctrler_obj->setP2PBackendDiscovery(is_enabled);
+			}
+			else
+			{
+				response["message"] = "Invalid parameter passed";
+			}
+			returnResponse(success);
 		}
 
 		/**

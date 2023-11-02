@@ -54,6 +54,7 @@ namespace WPEFramework
             // methods
             static const string METHOD_MIRACAST_SET_ENABLE;
             static const string METHOD_MIRACAST_GET_ENABLE;
+            static const string METHOD_MIRACAST_SET_P2P_BACKEND_DISCOVERY;
             static const string METHOD_MIRACAST_CLIENT_CONNECT;
             static const string METHOD_MIRACAST_STOP_CLIENT_CONNECT;
             static const string METHOD_MIRACAST_SET_UPDATE_PLAYER_STATE;
@@ -91,6 +92,7 @@ namespace WPEFramework
             WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> *m_SystemPluginObj = NULL;
             uint32_t setEnable(const JsonObject &parameters, JsonObject &response);
             uint32_t getEnable(const JsonObject &parameters, JsonObject &response);
+            uint32_t setP2PBackendDiscovery(const JsonObject &parameters, JsonObject &response);
             uint32_t acceptClientConnection(const JsonObject &parameters, JsonObject &response);
             uint32_t stopClientConnection(const JsonObject &parameters, JsonObject &response);
             uint32_t updatePlayerState(const JsonObject &parameters, JsonObject &response);
