@@ -237,6 +237,7 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
 	int getAvailableCapabilityModes(std::string & source, std::string & pqmode, std::string & format);
 	int getCapabilitySource(JsonArray &rangeArray);
         int validatePictureMode(std::string inputValue);
+        int getRangeCapability(std::string param, std::vector<std::string> & rangeInfo);
 
     public:
         int m_currentHdmiInResoluton;

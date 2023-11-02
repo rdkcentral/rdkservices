@@ -222,7 +222,7 @@ namespace Plugin {
         return strValue;
     }
 
-    static JsonArray getSupportedVideoFrameRate(void)
+    /*static JsonArray getSupportedVideoFrameRate(void)
     {
         JsonArray supportedFrameRate;
         tvError_t ret = tvERROR_NONE;
@@ -241,7 +241,7 @@ namespace Plugin {
         }
 
         return supportedFrameRate;
-    }
+    }*/
 
     void AVOutputTV::NotifyVideoFormatChange(tvVideoHDRFormat_t format)
     {
@@ -4529,6 +4529,24 @@ namespace Plugin {
         return 0;
     }
 
+    int AVOutputTV::getRangeCapability(std::string param, std::vector<std::string> & rangeInfo)
+    {
+        std::vector<string> range,pqmode,source,format;
+
+        tvError_t ret = getParamsCaps(range,pqmode,source,format, param);
+
+        if(ret != tvERROR_NONE) {
+            return -1;
+        }
+        else
+        {
+            if ((range.front()).compare("none") != 0) {
+                rangeInfo = range;
+            }
+        }
+        return 0;
+    }
+
     uint32_t AVOutputTV::getVideoSourceCaps(const JsonObject& parameters, JsonObject& response) {
 
         JsonArray rangeArray;
@@ -4586,9 +4604,21 @@ namespace Plugin {
     }
 
     uint32_t AVOutputTV::getVideoFrameRateCaps(const JsonObject& parameters, JsonObject& response) {
-            LOGINFO("Entry\n");
-            response["videoFrameRates"] = getSupportedVideoFrameRate();
-            returnResponse(true);
+        LOGINFO("Entry\n");
+        
+        std::vector<std::string> rangeInfo;
+        JsonArray rangeArray;
+       
+        if ( getRangeCapability("VideoFrameRate", rangeInfo) != 0 ) {
+            returnResponse(false);
+        } 
+        
+        for (unsigned int index = 0; index < rangeInfo.size(); index++) {
+            rangeArray.Add(std::stof(rangeInfo[index]));
+        }
+
+        response["videoFrameRates"] = rangeArray;
+        returnResponse(true);
     }
 
     uint32_t AVOutputTV::getVideoResolutionCaps(const JsonObject& parameters, JsonObject& response) {
