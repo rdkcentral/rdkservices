@@ -52,7 +52,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 4
-#define API_VERSION_NUMBER_PATCH 6
+#define API_VERSION_NUMBER_PATCH 11
 
 const string WPEFramework::Plugin::RDKShell::SERVICE_NAME = "org.rdk.RDKShell";
 //methods
@@ -895,6 +895,85 @@ namespace WPEFramework {
 	    return ignoreLaunch;
 	}
 
+	void RDKShell::MonitorClients::handleInitialize(PluginHost::IShell* service)
+        {
+                if(service)
+                {
+                   std::string configLine = service->ConfigLine();
+                   if (configLine.empty())
+                   {
+                       return;
+                   }
+                   JsonObject serviceConfig = JsonObject(configLine.c_str());
+                   if (serviceConfig.HasLabel("clientidentifier"))
+                   {
+                       std::string clientidentifier = serviceConfig["clientidentifier"].String();
+                      std::string serviceCallsign = service->Callsign();
+                       if ((serviceCallsign == RESIDENTAPP_CALLSIGN) && ignoreResidentAppLaunch())
+                       {
+                           std::cout << "Resident app activation early !!! " << std::endl;
+                           return;
+                       }
+                       if (!isClientExists(serviceCallsign))
+                       {
+                           std::shared_ptr<CreateDisplayRequest> request = std::make_shared<CreateDisplayRequest>(serviceCallsign, clientidentifier);
+                           gRdkShellMutex.lock();
+                           gCreateDisplayRequests.push_back(request);
+                           gRdkShellMutex.unlock();
+                           sem_wait(&request->mSemaphore);
+                       }
+                       gRdkShellMutex.lock();
+                       RdkShell::CompositorController::addListener(service->Callsign(), mShell.mEventListener);
+                       gRdkShellMutex.unlock();
+                       gPluginDataMutex.lock();
+                       std::string className = service->ClassName();
+                       PluginData pluginData;
+                       pluginData.mClassName = className;
+                       if (gActivePluginsData.find(serviceCallsign) == gActivePluginsData.end())
+                       {
+                           gActivePluginsData[serviceCallsign] = pluginData;
+                       }
+                       gPluginDataMutex.unlock();
+                   }
+                }
+           }
+
+        void  RDKShell::MonitorClients::handleActivated(PluginHost::IShell* service)
+        {
+                if(service)
+                {
+                        if(service->Callsign() == RESIDENTAPP_CALLSIGN)
+                        {
+                                bool ignoreLaunch = ignoreResidentAppLaunch(true);
+                                if (ignoreLaunch)
+                                {
+                                  std::cout << "deactivating resident app as factory mode is set" << std::endl;
+                                  JsonObject destroyRequest;
+                                 destroyRequest["callsign"] = "ResidentApp";
+                                  RDKShellApiRequest apiRequest;
+                                  apiRequest.mName = "destroy";
+                                  apiRequest.mRequest = destroyRequest;
+                                  RDKShell* rdkshellPlugin = RDKShell::_instance;
+                                   rdkshellPlugin->launchRequestThread(apiRequest);
+                                }
+                        }
+                        else if(service->Callsign() == PERSISTENT_STORE_CALLSIGN && !sPersistentStoreFirstActivated)
+                        {
+                                std::cout << "persistent store activated\n";
+                                gRdkShellMutex.lock();
+                                sPersistentStoreFirstActivated = true;
+                                gRdkShellMutex.unlock();
+                        }
+                        else if(service->Callsign() == SYSTEM_SERVICE_CALLSIGN)
+                        {
+                                RDKShellApiRequest apiRequest;
+                        apiRequest.mName = "susbscribeSystemEvent";
+                        RDKShell* rdkshellPlugin = RDKShell::_instance;
+                        rdkshellPlugin->launchRequestThread(apiRequest);
+                        }
+                }
+        }
+
         void RDKShell::MonitorClients::handleDeactivated(PluginHost::IShell* service)
         {
             if (service)
@@ -922,7 +1001,7 @@ namespace WPEFramework {
                     gRdkShellMutex.unlock();
                     sem_wait(&request->mSemaphore);
                     gRdkShellMutex.lock();
-                    RdkShell::CompositorController::removeListener(clientidentifier, mShell.mEventListener);
+                    RdkShell::CompositorController::removeListener(service->Callsign(), mShell.mEventListener);
                     gRdkShellMutex.unlock();
                 }
                 
@@ -4553,6 +4632,9 @@ namespace WPEFramework {
                         response["message"] = "Could not start Dobby container";
                         returnResponse(false);
                     }
+		    JsonObject params;
+                    params["client"] = client;
+                    notify(RDKSHELL_EVENT_ON_APP_LAUNCHED, params);
                 }
                 else if (mimeType == RDKSHELL_APPLICATION_MIME_TYPE_NATIVE)
                 {
