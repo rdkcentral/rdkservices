@@ -319,8 +319,8 @@ namespace WPEFramework {
 #endif
 
 #if defined(ENABLE_WHOAMI)
+    string activation_status = "";
     if (UNSOLICITED_MAINTENANCE == g_maintenance_type) {
-        string activation_status = "";
         /* WhoAmI check*/
         bool whoAmIStatus = knowWhoAmI(activation_status);
         if (whoAmIStatus) {
@@ -341,7 +341,6 @@ namespace WPEFramework {
                 }
                 return;
             }
-#endif
 
             LOGINFO("Reboot_Pending :%s",g_is_reboot_pending.c_str());
 
