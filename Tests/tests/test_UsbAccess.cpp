@@ -120,6 +120,22 @@ TEST_F(UsbAccessTest, RegisteredMethods)
 }
 extern "C" FILE* __real_popen(const char* command, const char* type);
 
+/*******************************************************************************************************************
+* Test function for UpdateFirmware 
+* UpdateFirmware : 
+*		   Updates the firmware using the specified file retrieved from the getAvailableFirmwareFiles method.          
+*
+*		   @return Whether the request succeeded or failed.
+********************************************************************************************************************/
+
+/** 
+* @breif : UpdateFirmware when path is found
+*	   Check if path is matching with the files retrived from the getAvailableFirmwareFiles method.
+
+* @param[in]    :  path to file retrieved from getAvailableFirmwareFiles method.
+* @return       :  {\"success\":true} for a vaild path and filename or error code : ERROR_GENERAL for invaild path and file names 
+**/
+
 TEST_F(UsbAccessTest, UpdateFirmware)
 {
     Udev::getInstance().impl = &udevImplMock;
