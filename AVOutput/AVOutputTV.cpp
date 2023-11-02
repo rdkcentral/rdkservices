@@ -4726,9 +4726,10 @@ namespace Plugin {
         }
 
         if( isSetRequired("Current",source,format) ) {
-	    transform(value.begin(), value.end(), value.begin(), ::tolower);
+	    std::string local = value;
+	    transform(local.begin(), local.end(), local.begin(), ::tolower);
             LOGINFO("Proceed with SetTVPictureMode\n");
-            ret = SetTVPictureMode(value.c_str());
+            ret = SetTVPictureMode(local.c_str());
          }
         if(ret != tvERROR_NONE) {
             returnResponse(false);
@@ -5933,8 +5934,11 @@ namespace Plugin {
             char *token = NULL;
             while ((token = strtok_r(modeString,",",&modeString)))
             {
-                picturemodes.push_back(GetTVPictureModeIndex(token));
-                LOGINFO("%s : PQmode: %s\n",__FUNCTION__,token);
+		std::string local = token;
+		// due to sync hal, hal having small pq params
+                transform(local.begin(), local.end(), local.begin(), ::tolower);
+                picturemodes.push_back(GetTVPictureModeIndex(local.c_str()));
+                LOGINFO("%s : PQmode: token : %s local:%s\n",__FUNCTION__,token, local.c_str());
             }
         //}
 
@@ -5951,8 +5955,10 @@ namespace Plugin {
             char *sourceToken = NULL;
             while ((sourceToken = strtok_r(sourceString,",",&sourceString)))
             {
-                sources.push_back(GetTVSourceIndex(sourceToken));
-                LOGINFO("%s : Source %s\n",__FUNCTION__,sourceToken);
+		std::string local = sourceToken;
+                transform(local.begin(), local.end(), local.begin(), ::tolower);
+                sources.push_back(GetTVSourceIndex(local.c_str()));
+                LOGINFO("%s : Source %s local %s\n",__FUNCTION__,sourceToken, local.c_str());
             }
         //}
 
@@ -6133,19 +6139,29 @@ namespace Plugin {
         }
         else
         {
-            sourceIndex = GetTVSourceIndex(source.c_str());
+	    std::string local;
+	    transform(local.begin(), local.end(), local.begin(), ::tolower);
+            sourceIndex = GetTVSourceIndex(local.c_str());
         }
         if( pqmode.compare("none") == 0 || pqmode.compare("Current") == 0)
         {
             char picMode[PIC_MODE_NAME_MAX]={0};
             if(!getCurrentPictureMode(picMode))
+	    {
                 LOGERR("Failed to get the Current picture mode\n");
+	    }
             else
-                pqmodeIndex = GetTVPictureModeIndex(picMode);
+	    {
+		std::string local = picMode;
+		transform(local.begin(), local.end(), local.begin(), ::tolower);
+                pqmodeIndex = GetTVPictureModeIndex(local.c_str());
+	    }
         }
         else
-        { 
-            pqmodeIndex = GetTVPictureModeIndex(pqmode.c_str());
+        {
+	    std::string local = pqmode;
+            transform(local.begin(), local.end(), local.begin(), ::tolower);	    
+            pqmodeIndex = GetTVPictureModeIndex(local.c_str());
         }
 
         if( format.compare("none") == 0 || format.compare("Current") == 0)
@@ -6534,27 +6550,27 @@ namespace Plugin {
 
     std::string AVOutputTV::convertSourceIndexToString(int sourceIndex)
     {
-        std::string source="ip";//default
+        std::string source="IP";//default
     
         switch(sourceIndex)
         {
             case 1:
-                source="composite";
+                source="Composite1";
                 break;
             case 5:
-                source="hdmi1";
+                source="HDMI1";
                 break;
             case 6:
-                source="hdmi2";
+                source="HDMI2";
                 break;
             case 7:
-                source="hdmi3";
+                source="HDMI3";
                 break;
             case 10:
-		source="ip";
+		source="IP";
 		break;
 	    case 11:
-		source="tuner";
+		source="Tuner";
 		break;
             default:
                 break;
@@ -6564,26 +6580,26 @@ namespace Plugin {
 
     std::string AVOutputTV::convertVideoFormatToString( int formatIndex )
     {
-        std::string format="sdr";//default
+        std::string format="SDR";//default
     
         switch(formatIndex)
         {
             case tvVideoHDRFormat_HLG:
-                format="hlg";
+                format="HLG";
                 break;
             case tvVideoHDRFormat_HDR10:
-                format="hdr10";
+                format="HDR10";
                 break;
             case tvVideoHDRFormat_DV:
-                format="dv";
+                format="DV";
                 break;
             case tvVideoHDRFormat_HDR10PLUS:
-                format="hdr10plus";
+                format="HDR10PLUS";
                 break;
             case tvVideoHDRFormat_SDR:
             case tvVideoHDRFormat_NONE:
             default:
-                format="sdr";
+                format="SDR";
                 break;
         }
         return format;
