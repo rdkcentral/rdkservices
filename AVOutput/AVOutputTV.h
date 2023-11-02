@@ -114,7 +114,7 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
 	DECLARE_JSON_RPC_METHOD(getLowLatencyState)
         DECLARE_JSON_RPC_METHOD(getDolbyVisionMode)
         DECLARE_JSON_RPC_METHOD(getZoomMode)
-        DECLARE_JSON_RPC_METHOD(getFilmMakerMode)
+        DECLARE_JSON_RPC_METHOD(getVideoContentType)
 
 
 	/*Get Capability API's*/

@@ -261,16 +261,24 @@ namespace Plugin {
 
         if (getCapabilitySource(rangeArray) == 0)
         {
-            response["filmMakerModeSource"] = rangeArray;
+            response["filmMakerModeSources"] = rangeArray;
         }
         // cache for latest fmm mode
 	filmMakerMode = fmmMode;
         sendNotify("onVideoContentChanged", response);
     }
 
-    uint32_t AVOutputTV::getFilmMakerMode(const JsonObject & parameters, JsonObject & response)
+    uint32_t AVOutputTV::getVideoContentType(const JsonObject & parameters, JsonObject & response)
     {
-	response["filmMakerMode"] = filmMakerMode;
+        JsonArray rangeArray;
+
+	response["currentFilmMakerMode"] = filmMakerMode;
+
+        if (getCapabilitySource(rangeArray) == 0)
+        {
+            response["currentFilmMakerModeSources"] = rangeArray;
+        }
+
 	returnResponse(true);
     }
 	
@@ -414,7 +422,7 @@ namespace Plugin {
 	registerMethod("getVideoSource", &AVOutputTV::getVideoSource, this);
 	registerMethod("getVideoFrameRate", &AVOutputTV::getVideoFrameRate, this);
 	registerMethod("getVideoResolution", &AVOutputTV::getVideoResolution, this);
-	registerMethod("getFilmMakerMode", &AVOutputTV::getFilmMakerMode, this);
+	registerMethod("getVideoContentType", &AVOutputTV::getVideoContentType, this);
 	
 	registerMethod("getWBInfo", &AVOutputTV::getWBInfo, this);
 	registerMethod("getWBCtrl", &AVOutputTV::getWBCtrl, this);
