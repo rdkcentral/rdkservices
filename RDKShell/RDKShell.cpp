@@ -52,7 +52,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 4
-#define API_VERSION_NUMBER_PATCH 6
+#define API_VERSION_NUMBER_PATCH 11
 
 const string WPEFramework::Plugin::RDKShell::SERVICE_NAME = "org.rdk.RDKShell";
 //methods
@@ -922,7 +922,7 @@ namespace WPEFramework {
                     gRdkShellMutex.unlock();
                     sem_wait(&request->mSemaphore);
                     gRdkShellMutex.lock();
-                    RdkShell::CompositorController::removeListener(clientidentifier, mShell.mEventListener);
+                    RdkShell::CompositorController::removeListener(service->Callsign(), mShell.mEventListener);
                     gRdkShellMutex.unlock();
                 }
                 
@@ -4553,6 +4553,9 @@ namespace WPEFramework {
                         response["message"] = "Could not start Dobby container";
                         returnResponse(false);
                     }
+		    JsonObject params;
+                    params["client"] = client;
+                    notify(RDKSHELL_EVENT_ON_APP_LAUNCHED, params);
                 }
                 else if (mimeType == RDKSHELL_APPLICATION_MIME_TYPE_NATIVE)
                 {
