@@ -42,6 +42,8 @@
 #define API_VERSION_NUMBER_MINOR 0
 #define API_VERSION_NUMBER_PATCH 5
 
+
+
 const string WPEFramework::Plugin::Bluetooth::SERVICE_NAME = "org.rdk.Bluetooth";
 const string WPEFramework::Plugin::Bluetooth::METHOD_START_SCAN = "startScan";
 const string WPEFramework::Plugin::Bluetooth::METHOD_STOP_SCAN = "stopScan";
@@ -282,7 +284,7 @@ namespace WPEFramework
                     LOGERR("Failed to get the number of adapters..!");
 
                 if (numOfAdapters) {
-                    BTRMGR_DeviceOperationType_t lenDevOpDiscType = BTRMGR_DEVICE_OP_TYPE_AUDIO_OUTPUT;
+                    BTRMGR_DeviceOperationType_t lenDevOpDiscType = BTRMGR_DEVICE_OP_TYPE_UNKNOWN;
 
                     if (Utils::String::contains(discProfile, "LOUDSPEAKER") ||
                         Utils::String::contains(discProfile, "HEADPHONES") ||

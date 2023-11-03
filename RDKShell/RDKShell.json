@@ -2233,10 +2233,10 @@
                 ]
             }
         },
-        "checkpoint": {
-            "summary": "Checkpoint an application.",
+        "hibernate": {
+            "summary": "Hibernate an application.",
             "events": {
-                "onCheckpointed" : "Triggers when an application is checkpointed"
+                "onHibernated" : "Triggers when an application is hibernated"
             },
             "params": {
                 "type": "object",
@@ -2245,12 +2245,12 @@
                         "$ref": "#/definitions/callsign"
                     },
                     "timeout": {
-                        "summary": "Timeout in ms for checkpoint procedure",
+                        "summary": "Timeout in ms for hibernate procedure",
                         "type": "number",
                         "example": 10000
                     },
                     "procsequence": {
-                        "summary": "Checkpoint sequence of application processes",
+                        "summary": "Hibernate sequence of application processes",
                         "type": "array",
                         "items": {
                             "type": "string",
@@ -2599,8 +2599,8 @@
                 ]
             }
         },
-        "onCheckpointed":{
-            "summary": "Triggers when an application is checkpointed.",
+        "onHibernated":{
+            "summary": "Triggers when an application is hibernated.",
             "params": {
                 "type": "object",
                 "properties": {

@@ -18,6 +18,7 @@
  * **/
 
 #include "ResourceManager.h"
+#include "UtilsgetRFCConfig.h"
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
@@ -59,6 +60,20 @@ namespace WPEFramework {
 #ifdef ENABLE_ERM
             mEssRMgr = EssRMgrCreate();
             std::cout<<"EssRMgrCreate "<<((mEssRMgr != nullptr)?"succeeded":"failed")<<std::endl;
+
+            RFC_ParamData_t param;
+            mDisableBlacklist = true;
+            mDisableReserveTTS = true;
+
+            if (true == Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemanager.Blacklist.Enable", param))
+            {
+                mDisableBlacklist =  ((param.type == WDMP_BOOLEAN) && (strncasecmp(param.value, "false", 5) == 0));
+            }
+            if (true == Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Resourcemanager.ReserveTTS.Enable", param))
+            {
+                mDisableReserveTTS = ((param.type == WDMP_BOOLEAN) && (strncasecmp(param.value, "false", 5) == 0));
+            }
+
 #else
             std::cout<<"ENABLE_ERM not defined"<<std::endl;
 #endif
@@ -119,7 +134,7 @@ namespace WPEFramework {
             LOGINFOMETHOD();
 
             bool status = true;
-            if (nullptr != mEssRMgr)
+            if ((nullptr != mEssRMgr) && (false == mDisableBlacklist))
             {
                 if (parameters.HasLabel("appid") && parameters.HasLabel("blocked"))
                 {
@@ -140,7 +155,7 @@ namespace WPEFramework {
             }
             else
             {
-                response["message"] = "ERM not enabled";
+                response["message"] = (mDisableBlacklist)?"Blacklist RFC is disabled":"ERM not enabled";
             }
             returnResponse(status);
         }
@@ -183,7 +198,7 @@ namespace WPEFramework {
             LOGINFOMETHOD();
             bool status = false;
 
-	    if (parameters.HasLabel("appid")) 
+	    if ((parameters.HasLabel("appid")) && (false == mDisableReserveTTS))
 	    {
 		std::string app = parameters["appid"].String();
                 std::cout<<"appid : "<< app << std::endl;
@@ -192,9 +207,17 @@ namespace WPEFramework {
             }
             else
             {
-                std::string jsonstr;
-                parameters.ToString(jsonstr);
-                std::cout<<"ERROR: appid required in "<< jsonstr << std::endl;
+                if (mDisableReserveTTS)
+                {
+                    status = true;
+                    response["message"] = "ReserveTTS RFC is disabled";
+                }
+                else
+                {
+                    std::string jsonstr;
+                    parameters.ToString(jsonstr);
+                    std::cout<<"ERROR: appid required in "<< jsonstr << std::endl;
+                }
             }
 
             returnResponse(status);
