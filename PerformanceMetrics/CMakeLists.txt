@@ -36,6 +36,7 @@ set(PLUGIN_PERFORMANCEMETRICS_WEBKITBROWSER_APPS "${PLUGIN_WEBKITBROWSER_APPS}" 
 set(PLUGIN_PERFORMANCEMETRICS_WEBKITBROWSER_RESIDENT_APP "${PLUGIN_WEBKITBROWSER_RESIDENT_APP}" CACHE BOOL "Enable monitor for the Performance Metrics Resident App plugin")
 set(PLUGIN_PERFORMANCEMETRICS_WEBKITBROWSER_UX "${PLUGIN_WEBKITBROWSER_UX}" CACHE BOOL "Enable monitor for the Performance Metrics UX plugin")
 set(PLUGIN_PERFORMANCEMETRICS_WEBKITBROWSER_YOUTUBE "${PLUGIN_WEBKITBROWSER_YOUTUBE}" CACHE BOOL "Enable monitor for the Performance Metrics Youtube plugin")
+set(PLUGIN_PERFORMANCEMETRICS_WEBKITBROWSER_CLASSNAME OFF CACHE BOOL "Enable monitor for the Performance Metrics plugin by classname")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
@@ -54,6 +55,7 @@ elseif (PLUGIN_PERFORMANCEMETRICS_LOGGER_IMPLEMENTATION STREQUAL "SYSLOG")
     target_sources(${MODULE_NAME}
         PRIVATE
             SyslogOutput.cpp)
+    target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 else()
     message(FATAL_ERROR "There is no output implementation specified for the Performance Metrics plugin")
 endif()
@@ -70,7 +72,7 @@ target_link_libraries(${MODULE_NAME}
 install(TARGETS ${MODULE_NAME} 
     DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
 
-if(PLUGIN_PERFORMANCEMETRICS_WEBKITBROWSER)
+if(PLUGIN_PERFORMANCEMETRICS_WEBKITBROWSER OR PLUGIN_PERFORMANCEMETRICS_WEBKITBROWSER_CLASSNAME)
     write_config( PLUGINS PerfMetricsWebKitBrowser )
 endif()
 
@@ -78,7 +80,7 @@ if(PLUGIN_PERFORMANCEMETRICS_WEBKITBROWSER_APPS)
     write_config( PLUGINS PerfMetricsApps )
 endif()
 
-if(PLUGIN_PERFORMANCEMETRICS_WEBKITBROWSER_RESIDENT_APP)
+if(PLUGIN_PERFORMANCEMETRICS_WEBKITBROWSER_RESIDENT_APP AND !PLUGIN_PERFORMANCEMETRICS_WEBKITBROWSER_CLASSNAME)
     write_config( PLUGINS PerfMetricsResidentApp )
 endif()
 
