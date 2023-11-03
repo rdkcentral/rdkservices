@@ -6863,6 +6863,7 @@ namespace Plugin {
                 default:
                         break;
             }
+
             return value;
     }
 
