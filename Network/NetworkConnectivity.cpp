@@ -366,7 +366,7 @@ namespace WPEFramework {
             std::unique_lock<std::mutex> lock(mutex_);
             if (cv_.wait_for(lock, std::chrono::seconds(timeout.load())) == std::cv_status::timeout)
             {
-                LOGINFO("Connectivity monitor thread timeout");
+                //LOGINFO("Connectivity monitor thread timeout");
                 notifyNow.store(false);
             }
             else
