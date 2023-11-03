@@ -2,7 +2,7 @@
 <a name="Bluetooth_Plugin"></a>
 # Bluetooth Plugin
 
-**Version: [1.0.2](https://github.com/rdkcentral/rdkservices/blob/main/Bluetooth/CHANGELOG.md)**
+**Version: [1.0.4](https://github.com/rdkcentral/rdkservices/blob/main/Bluetooth/CHANGELOG.md)**
 
 A org.rdk.Bluetooth plugin for Thunder framework.
 
@@ -423,6 +423,7 @@ No Events
 | result.deviceInfo.MAC | string | MAC address of the device |
 | result.deviceInfo.rssi | string | Received signal strength of the device |
 | result.deviceInfo.signalStrength | string | Bluetooth signal strength |
+| result.deviceInfo.batteryLevel | string | Bluetooth battery level |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -455,7 +456,8 @@ No Events
             "manufacturer": "640",
             "MAC": "E8:FB:E9:0C:XX:80",
             "rssi": "0",
-            "signalStrength": "0"
+            "signalStrength": "0",
+            "batteryLevel": "53"
         },
         "success": true
     }
