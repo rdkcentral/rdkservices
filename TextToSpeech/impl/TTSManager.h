@@ -83,6 +83,7 @@ public:
     //Access control
     bool setAccessList(const string &key,const string &value);
     bool checkAccess(const string &method,string &callsign);
+    void setAccessRestriction(string acl_policy);
 
     //Speak APIs
     TTS_Error speak(int speechId, std::string callsign, std::string text);
@@ -111,6 +112,7 @@ private:
     TTSEventCallback *m_callback;
     TTSSpeaker *m_speaker;
     bool m_needsConfigStoreUpdate;
+    bool m_accessRestricted;
     TTSDownloader *m_downloader;
     std::map<std::string,std::string> m_accessControlList;
 };

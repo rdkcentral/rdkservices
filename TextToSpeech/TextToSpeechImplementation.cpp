@@ -123,6 +123,7 @@ namespace Plugin {
         }
 
         _ttsManager->enableTTS(ttsConfig->enabled());
+        _ttsManager->setAccessRestriction(GET_STR(config, "acl_default_policy", "ALLOW"));
         return 0;
     }
 

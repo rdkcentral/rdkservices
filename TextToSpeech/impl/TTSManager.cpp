@@ -236,6 +236,11 @@ TTS_Error TTSManager::setACL(const std::string method,const std::string apps)
    return TTS_OK;
 }
 
+void TTSManager::setAccessRestriction(string acl_policy)
+{
+   m_accessRestricted = (acl_policy.compare("DISALLOW") == 0) ? true : false;
+}
+
 bool TTSManager::setAccessList(const string &key,const string &value)
 {
     std::map<std::string,std::string>::iterator itr = m_accessControlList.find(key);
@@ -279,7 +284,7 @@ bool TTSManager::checkAccess(const string &method,string &callsign)
     }
     else
     {
-        return true;
+        return m_accessRestricted ? false : true;
     }
 }
 
