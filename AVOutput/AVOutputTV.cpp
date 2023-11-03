@@ -3731,12 +3731,17 @@ namespace Plugin {
 
         if (isPlatformSupport("DolbyVisionMode") != 0) returnResponse(false);
 
+        if (validateInputParameter("DolbyVisionMode",value) != 0) {
+            LOGERR("%s: Range validation failed for DolbyVisionMode\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
         if( !isCapablityCheckPassed( pqmode, source, format, "DolbyVisionMode" )) {
             LOGERR("%s: CapablityCheck failed for DolbyVisionMode\n", __FUNCTION__);
             returnResponse(false);
         }
 
-        if( isSetRequired("Current",source,"dv") ) {
+        if( isSetRequired("Current",source,"DV") ) {
             LOGINFO("Proceed with setDolbyVisionMode\n\n");
             ret = SetTVDolbyVisionMode(value.c_str());
         }
@@ -3748,7 +3753,7 @@ namespace Plugin {
         else {
             int params[3]={0};
             params[0]=GetDolbyModeIndex(value.c_str());
-            format = "dv";
+            format = "DV";
             int retval= updatePQParamsToCache("set","DolbyVisionMode",pqmode,source,format,PQ_PARAM_DOLBY_MODE,params);
             if(retval != 0 ) {
                 LOGWARN("Failed to Save Dolbyvision mode\n");
@@ -3784,7 +3789,7 @@ namespace Plugin {
             returnResponse(false);
         }
         
-        format = "dv";
+        format = "DV";
         int retval= updatePQParamsToCache("reset","DolbyVisionMode",pqmode,source,format,PQ_PARAM_DOLBY_MODE,params);
         if(retval != 0 )
         {
@@ -4737,17 +4742,17 @@ namespace Plugin {
         }
     }
 
-    int AVOutputTV::validatePictureMode(std::string inputValue) {
+    int AVOutputTV::validateInputParameter(std::string param, std::string inputValue) {
 
         std::vector<std::string> range;
         std::vector<std::string> pqmode;
         std::vector<std::string> source;
         std::vector<std::string> format;
 
-        tvError_t ret = getParamsCaps(range, pqmode, source, format, "PictureMode");
+        tvError_t ret = getParamsCaps(range, pqmode, source, format, param);
 
         if (ret != tvERROR_NONE) {
-            LOGERR("Failed to fetch the picturemode capability \n");
+            LOGERR("Failed to fetch the range capability[%s] \n", param.c_str());
             return -1;
         }
 
@@ -4781,7 +4786,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        if (validatePictureMode(value) != 0) {
+        if (validateInputParameter("PictureMode",value) != 0) {
             LOGERR("%s: Range validation failed for PictureMode\n", __FUNCTION__);
             returnResponse(false);
         }
@@ -5308,7 +5313,7 @@ namespace Plugin {
         else
             LOGINFO("ColorTemp Sync to cache Failed !!!\n");
 
-        if( !updatePQParamsToCache("sync","DolbyVisionMode",pqmode,source,"dv",PQ_PARAM_DOLBY_MODE,params))
+        if( !updatePQParamsToCache("sync","DolbyVisionMode",pqmode,source,"DV",PQ_PARAM_DOLBY_MODE,params))
             LOGINFO("dvmode Successfully Synced to Drive Cache\n");
         else
             LOGINFO("dvmode Sync to cache Failed !!!\n");
@@ -5319,12 +5324,12 @@ namespace Plugin {
             LOGINFO("dimmingmode Sync to cache Failed !!!\n");
 
         if(appUsesGlobalBackLightFactor){
-            if( !updatePQParamsToCache("sync","HLGMode",pqmode,source,"hlg",PQ_PARAM_HLG_MODE,params))
+            if( !updatePQParamsToCache("sync","HLGMode",pqmode,source,"HLG",PQ_PARAM_HLG_MODE,params))
                 LOGINFO("hlgmode Successfully Synced to Drive Cache\n");
             else
                 LOGINFO("hlgmode Sync to cache Failed !!!\n");
 
-            if( !updatePQParamsToCache("sync","HDR10Mode",pqmode,source,"hdr10",PQ_PARAM_HDR10_MODE,params))
+            if( !updatePQParamsToCache("sync","HDR10Mode",pqmode,source,"HDR10",PQ_PARAM_HDR10_MODE,params))
                 LOGINFO("hdr10mode Successfully Synced to Drive Cache\n");
             else
                 LOGINFO("hdr10mode Sync to cache Failed !!!\n");
@@ -6125,7 +6130,7 @@ namespace Plugin {
            }
 	   else if ( forParam.compare("DolbyVisionMode") == 0)
 	   {
-	       if (strncmp(param.value, "dark", strlen(param.value)) == 0) {
+	       if (strncmp(param.value, "Dark", strlen(param.value)) == 0) {
 	           value = tvDolbyMode_Dark; 
                }
 	       else {
@@ -6848,12 +6853,12 @@ namespace Plugin {
                 case tvDolbyMode_Dark:
                 case tvHDR10Mode_Dark:
                 case tvHLGMode_Dark:
-                        value = "dark";
+                        value = "Dark";
                         break;
                 case tvDolbyMode_Bright:
                 case tvHDR10Mode_Bright:
                 case tvHLGMode_Bright:
-                        value = "bright";
+                        value = "Bright";
                         break;
                 default:
                         break;
