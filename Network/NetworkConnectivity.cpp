@@ -314,6 +314,7 @@ namespace WPEFramework {
         if (!isMonitorThreadRunning())
         {
             stopFlag.store(false);
+            notifyNow.store(false);
             thread_ = std::thread(&ConnectivityMonitor::connectivityMonitorFunction, this);
             threadRunning = true;
             LOGINFO("Connectivity monitor started with %d", timeout.load());
@@ -352,6 +353,7 @@ namespace WPEFramework {
     {
         if (isMonitorThreadRunning())
         {
+            notifyNow.store(true);
             cv_.notify_all();
             LOGINFO("Connectivity monitor triggered ");
         }
@@ -361,26 +363,24 @@ namespace WPEFramework {
     {
         while (!stopFlag)
         {
-            bool notifyNow = false;
             std::unique_lock<std::mutex> lock(mutex_);
             if (cv_.wait_for(lock, std::chrono::seconds(timeout.load())) == std::cv_status::timeout)
             {
                 LOGINFO("Connectivity monitor thread timeout");
-                notifyNow = false;
+                notifyNow.store(false);
             }
             else
             {
                 if(!stopFlag)
                 {
                     LOGINFO("Connectivity monitor received a trigger");
-                    notifyNow = true;
                 }
                 else
                     break;
             }
             bool isconnected = isConnectedToInternet(NSM_IPRESOLVE_WHATEVER);
             nsm_internetState InternetConnectionState = (isconnected == true) ? FULLY_CONNECTED : NO_INTERNET;
-            Network::notifyInternetStatusChange(InternetConnectionState, notifyNow);
+            Network::notifyInternetStatusChange(InternetConnectionState, notifyNow.load());
         }
         LOGWARN("Connectivity monitor exiting");
     }
