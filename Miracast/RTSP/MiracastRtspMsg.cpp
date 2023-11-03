@@ -937,7 +937,7 @@ RTSP_STATUS MiracastRTSPMsg::receive_buffer_timedOut(int socket_fd, void *buffer
             status = RTSP_MSG_FAILURE;
         }
     }
-    MIRACASTLOG_INFO("received string(%d) - %s\n", recv_return, buffer);
+    MIRACASTLOG_VERBOSE("received string(%d) - %s\n", recv_return, buffer);
     MIRACASTLOG_TRACE("Exiting [%d]...",status);
     return status;
 }
@@ -1064,7 +1064,7 @@ RTSP_STATUS MiracastRTSPMsg::send_rstp_msg(int socket_fd, std::string rtsp_respo
         return RTSP_MSG_FAILURE;
     }
 
-    MIRACASTLOG_INFO("Sending the RTSP Msg [%d] Data[%s]\n", read_ret, rtsp_response_buffer.c_str());
+    MIRACASTLOG_TRACE("Sending the RTSP Msg [%d] Data[%s]\n", read_ret, rtsp_response_buffer.c_str());
     return RTSP_MSG_SUCCESS;
 }
 
@@ -1186,7 +1186,7 @@ RTSP_STATUS MiracastRTSPMsg::validate_rtsp_m1_msg_m2_send_request(std::string rt
     MIRACASTLOG_TRACE("Entering...");
     
     std::string m1_msg_resp_sink2src = "";
-    MIRACASTLOG_INFO("M1 OPTIONS packet received");
+    MIRACASTLOG_VERBOSE("M1 OPTIONS packet received");
     std::stringstream ss(rtsp_m1_msg_buffer);
     std::string prefix = "";
     std::string req_str;
@@ -1215,23 +1215,23 @@ RTSP_STATUS MiracastRTSPMsg::validate_rtsp_m1_msg_m2_send_request(std::string rt
 
     m1_msg_resp_sink2src = generate_request_response_msg(RTSP_MSG_FMT_M1_RESPONSE, seq_str, req_str);
 
-    MIRACASTLOG_INFO("Sending the M1 response \n-[%s]", m1_msg_resp_sink2src.c_str());
+    MIRACASTLOG_VERBOSE("Sending the M1 response \n-[%s]", m1_msg_resp_sink2src.c_str());
 
     status_code = send_rstp_msg(m_tcpSockfd, m1_msg_resp_sink2src);
 
     if (RTSP_MSG_SUCCESS == status_code)
     {
         std::string m2_msg_req_sink2src = "";
-        MIRACASTLOG_INFO("M1 response sent\n");
+        MIRACASTLOG_VERBOSE("M1 response sent\n");
 
         m2_msg_req_sink2src = generate_request_response_msg(RTSP_MSG_FMT_M2_REQUEST, empty_string, req_str);
 
-        MIRACASTLOG_INFO("%s", m2_msg_req_sink2src.c_str());
-        MIRACASTLOG_INFO("Sending the M2 request \n");
+        MIRACASTLOG_VERBOSE("%s", m2_msg_req_sink2src.c_str());
+        MIRACASTLOG_VERBOSE("Sending the M2 request \n");
         status_code = send_rstp_msg(m_tcpSockfd, m2_msg_req_sink2src);
         if (RTSP_MSG_SUCCESS == status_code)
         {
-            MIRACASTLOG_INFO("M2 request sent\n");
+            MIRACASTLOG_VERBOSE("M2 request sent\n");
             set_wait_timeout(m_wfd_src_res_timeout);
         }
         else
@@ -1305,7 +1305,7 @@ RTSP_STATUS MiracastRTSPMsg::validate_rtsp_m2_request_ack(std::string rtsp_m1_re
 
         if (allRequiredFieldsPresent){
             status_code = RTSP_MSG_SUCCESS;
-            MIRACASTLOG_INFO("[M2 ack OK]");
+            MIRACASTLOG_VERBOSE("[M2 ack OK]");
         }
     }
     else{
@@ -1325,7 +1325,7 @@ RTSP_STATUS MiracastRTSPMsg::validate_rtsp_m3_response_back(std::string rtsp_m3_
 {
     RTSP_STATUS status_code = RTSP_INVALID_MSG_RECEIVED;
     MIRACASTLOG_TRACE("Entering...");
-    MIRACASTLOG_INFO("M3 request received");
+    MIRACASTLOG_VERBOSE("M3 request received");
 
     std::string content_buffer = "";
     std::string m3_msg_resp_sink2src = "";
@@ -1365,13 +1365,13 @@ RTSP_STATUS MiracastRTSPMsg::validate_rtsp_m3_response_back(std::string rtsp_m3_
 
     m3_msg_resp_sink2src = generate_request_response_msg(RTSP_MSG_FMT_M3_RESPONSE, seq_str, content_buffer);
 
-    MIRACASTLOG_INFO("%s", m3_msg_resp_sink2src.c_str());
+    MIRACASTLOG_VERBOSE("%s", m3_msg_resp_sink2src.c_str());
 
     status_code = send_rstp_msg(m_tcpSockfd, m3_msg_resp_sink2src);
 
     if (RTSP_MSG_SUCCESS == status_code)
     {
-        MIRACASTLOG_INFO("Sending the M3 response \n");
+        MIRACASTLOG_VERBOSE("Sending the M3 response \n");
     }
     else
     {
@@ -1416,11 +1416,11 @@ RTSP_STATUS MiracastRTSPMsg::validate_rtsp_m4_response_back(std::string rtsp_m4_
 
     m4_msg_resp_sink2src = generate_request_response_msg( RTSP_MSG_FMT_M4_RESPONSE,seq_str,empty_string);
 
-    MIRACASTLOG_INFO("Sending the M4 response \n");
+    MIRACASTLOG_VERBOSE("Sending the M4 response \n");
     status_code = send_rstp_msg(m_tcpSockfd, m4_msg_resp_sink2src);
     if (RTSP_MSG_SUCCESS == status_code)
     {
-        MIRACASTLOG_INFO("M4 response sent\n");
+        MIRACASTLOG_VERBOSE("M4 response sent\n");
     }
     else
     {
@@ -1456,11 +1456,11 @@ RTSP_STATUS MiracastRTSPMsg::validate_rtsp_m5_msg_m6_send_request(std::string rt
 
     m5_msg_resp_sink2src = generate_request_response_msg(RTSP_MSG_FMT_M5_RESPONSE, seq_str, empty_string);
 
-    MIRACASTLOG_INFO("Sending the M5 response \n");
+    MIRACASTLOG_VERBOSE("Sending the M5 response \n");
     status_code = send_rstp_msg(m_tcpSockfd, m5_msg_resp_sink2src);
     if (RTSP_MSG_SUCCESS == status_code)
     {
-        MIRACASTLOG_INFO("M5 Response has sent\n");
+        MIRACASTLOG_VERBOSE("M5 Response has sent\n");
 
         status_code = send_rtsp_reply_sink2src(RTSP_MSG_FMT_M6_REQUEST);
         set_wait_timeout(m_wfd_src_res_timeout);
@@ -1692,11 +1692,11 @@ RTSP_STATUS MiracastRTSPMsg::send_rtsp_reply_sink2src( RTSP_MSG_FMT_SINK2SRC req
             std::string rtsp_request_buffer = "";
             rtsp_request_buffer = generate_request_response_msg(req_fmt, received_seq_num , empty_string , error_code );
 
-            MIRACASTLOG_INFO("Sending the RTSP Msg for [%#04X] format\n",req_fmt);
+            MIRACASTLOG_VERBOSE("Sending the RTSP Msg for [%#04X] format\n",req_fmt);
             status_code = send_rstp_msg(m_tcpSockfd, rtsp_request_buffer);
             if (RTSP_MSG_SUCCESS == status_code)
             {
-                MIRACASTLOG_INFO("RTSP Msg has sent\n");
+                MIRACASTLOG_VERBOSE("RTSP Msg has sent\n");
             }
             else
             {
@@ -1761,12 +1761,12 @@ RTSP_STATUS MiracastRTSPMsg::rtsp_sink2src_request_msg_handling(eCONTROLLER_FW_S
             if ( RTSP_MSG_FMT_PLAY_REQUEST == request_mode )
             {
                 miracastGstPlayerObj->resume();
-                MIRACASTLOG_INFO("GstPlayback resumed...");
+                MIRACASTLOG_VERBOSE("GstPlayback resumed...");
             }
             else if ( RTSP_MSG_FMT_PAUSE_REQUEST == request_mode )
             {
                 miracastGstPlayerObj->pause();
-                MIRACASTLOG_INFO("GstPlayback paused...");
+                MIRACASTLOG_VERBOSE("GstPlayback paused...");
             }
         }
     }
@@ -1797,9 +1797,9 @@ MiracastError MiracastRTSPMsg::start_streaming( VIDEO_RECT_STRUCT video_rect )
             std::getline(decoder_error_proc_policy_file, new_error_proc_policy);
             decoder_error_proc_policy_file.close();
 
-            MIRACASTLOG_INFO("decoder_error_proc_policy_file reading from file [/opt/aml_dec_error_proc_policy], new_error_proc_policy as [%s] ",
+            MIRACASTLOG_VERBOSE("decoder_error_proc_policy_file reading from file [/opt/aml_dec_error_proc_policy], new_error_proc_policy as [%s] ",
                                 new_error_proc_policy.c_str());
-            MIRACASTLOG_INFO("Overwriting error_proc_policy default[%s] with new[%s]",
+            MIRACASTLOG_VERBOSE("Overwriting error_proc_policy default[%s] with new[%s]",
                                 default_error_proc_policy.c_str(),
                                 new_error_proc_policy.c_str());
             default_error_proc_policy = new_error_proc_policy;
@@ -1810,10 +1810,10 @@ MiracastError MiracastRTSPMsg::start_streaming( VIDEO_RECT_STRUCT video_rect )
             sprintf(command, "echo %s > /sys/module/amvdec_mh264/parameters/error_proc_policy",
                     default_error_proc_policy.c_str());
 
-            MIRACASTLOG_INFO("command for applying error_proc_policy[%s]",command);
+            MIRACASTLOG_VERBOSE("command for applying error_proc_policy[%s]",command);
             if (0 == system(command))
             {
-                MIRACASTLOG_INFO("error_proc_policy applied successfully");
+                MIRACASTLOG_VERBOSE("error_proc_policy applied successfully");
             }
             else
             {
@@ -1829,10 +1829,10 @@ MiracastError MiracastRTSPMsg::start_streaming( VIDEO_RECT_STRUCT video_rect )
     if (mcgstfile.is_open())
     {
         std::getline(mcgstfile, gstreamerPipeline);
-        MIRACASTLOG_INFO("gstpipeline reading from file [%s], gstreamerPipeline as [ %s] ", mcastfile, gstreamerPipeline.c_str());
+        MIRACASTLOG_VERBOSE("gstpipeline reading from file [%s], gstreamerPipeline as [ %s] ", mcastfile, gstreamerPipeline.c_str());
         mcgstfile.close();
         if (0 == system(gstreamerPipeline.c_str()))
-            MIRACASTLOG_INFO("Pipeline created successfully ");
+            MIRACASTLOG_VERBOSE("Pipeline created successfully ");
         else
         {
             MIRACASTLOG_ERROR("Pipeline creation failure");
@@ -1844,12 +1844,12 @@ MiracastError MiracastRTSPMsg::start_streaming( VIDEO_RECT_STRUCT video_rect )
         if (access("/opt/miracast_gst", F_OK) == 0)
         {
             gstreamerPipeline = "GST_DEBUG=3 gst-launch-1.0 -vvv playbin uri=udp://0.0.0.0:1990 video-sink=\"westerossink\"";
-            MIRACASTLOG_INFO("pipeline constructed is --> %s", gstreamerPipeline.c_str());
+            MIRACASTLOG_VERBOSE("pipeline constructed is --> %s", gstreamerPipeline.c_str());
             if (0 == system(gstreamerPipeline.c_str()))
-                MIRACASTLOG_INFO("Pipeline created successfully ");
+                MIRACASTLOG_VERBOSE("Pipeline created successfully ");
             else
             {
-                MIRACASTLOG_INFO("Pipeline creation failure");
+                MIRACASTLOG_ERROR("Pipeline creation failure");
                 return MIRACAST_FAIL;
             }
         }
@@ -1936,18 +1936,18 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
 
         if ( RTSP_START_RECEIVE_MSGS == rtsp_message_data.state )
         {
-            MIRACASTLOG_INFO("RTSP_START_RECEIVE_MSGS ACTION Received\n");
+            MIRACASTLOG_VERBOSE("RTSP_START_RECEIVE_MSGS ACTION Received\n");
             store_srcsink_info( rtsp_message_data.source_dev_name , 
                                 rtsp_message_data.source_dev_mac ,
                                 rtsp_message_data.source_dev_ip,
                                 rtsp_message_data.sink_dev_ip );
 
-            MIRACASTLOG_INFO("dev_name[%s]dev_mac[%s]dev_ip[%s]sink_ip[%s]",
+            MIRACASTLOG_VERBOSE("dev_name[%s]dev_mac[%s]dev_ip[%s]sink_ip[%s]",
                                 rtsp_message_data.source_dev_name,
                                 rtsp_message_data.source_dev_mac,
                                 rtsp_message_data.source_dev_ip,
                                 rtsp_message_data.sink_dev_ip);
-            MIRACASTLOG_INFO("VideoRect[%d,%d,%d,%d]",
+            MIRACASTLOG_VERBOSE("VideoRect[%d,%d,%d,%d]",
                                 rtsp_message_data.videorect.startX,
                                 rtsp_message_data.videorect.startY,
                                 rtsp_message_data.videorect.width,
@@ -2021,7 +2021,7 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
 
         if ((RTSP_MSG_SUCCESS == status_code) || (RTSP_M1_M7_MSG_EXCHANGE_RECEIVED == status_code ))
         {
-            MIRACASTLOG_INFO("RTSP_M1_M7_MSG_EXCHANGE_RECEIVED \n", rtsp_message_data.state);
+            MIRACASTLOG_VERBOSE("RTSP_M1_M7_MSG_EXCHANGE_RECEIVED \n", rtsp_message_data.state);
             start_monitor_keep_alive_msg = true;
             start_streaming(video_rect_st);
             set_state(MIRACAST_PLAYER_STATE_PLAYING , true );

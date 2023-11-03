@@ -146,3 +146,48 @@ int8_t MiracastThread::receive_message(void *message, size_t msg_size, int sem_w
     MIRACASTLOG_TRACE("Exiting...");
     return status;
 }
+
+#if 0
+std::string parse_opt_flag( std::string file_name , bool integer_check )
+{
+    std::string return_buffer = "";
+    std::ifstream parse_opt_flag_file( file_name.c_str());
+
+    if (!parse_opt_flag_file)
+    {
+        MIRACASTLOG_ERROR("Failed to open [%s] file\n",file_name.c_str());
+    }
+    else
+    {
+        std::string word;
+        parse_opt_flag_file >> word;
+        parse_opt_flag_file.close();
+
+        return_buffer = word;
+
+        if (integer_check)
+        {
+            if (word.empty())
+            {
+                integer_check = false;
+            }
+            else
+            {
+                for (char c : word) {
+                    if (!isdigit(c))
+                    {
+                        integer_check = false;
+                        break;
+                    }
+                }
+            }
+
+            if ( false == integer_check )
+            {
+                return_buffer = "";
+            }
+        }
+    }
+    return return_buffer;
+}
+#endif
