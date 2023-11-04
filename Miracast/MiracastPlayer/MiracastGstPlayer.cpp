@@ -48,7 +48,7 @@ void MiracastGstPlayer::destroyInstance()
         mMiracastGstPlayer->stop();
         if (mMiracastGstPlayer->stop())
         {
-            MIRACASTLOG_ERROR("Stop miracast player");
+            MIRACASTLOG_INFO("Stop miracast player");
         }
         else
         {
@@ -454,11 +454,6 @@ void MiracastGstPlayer::print_pipeline_state(GstElement *pipeline)
 
     if ( nullptr == pipeline )
     {
-        pipeline = m_pipeline;
-    }
-
-    if ( nullptr == pipeline )
-    {
         MIRACASTLOG_ERROR("pipeline is NULL. Can't proceed with print_pipeline_state(). \n");
     }
     else
@@ -527,7 +522,7 @@ bool MiracastGstPlayer::get_player_statistics()
                             dropped_video_frames);
         gst_structure_free( stats );
      }
-    print_pipeline_state();
+    print_pipeline_state(m_pipeline);
     MIRACASTLOG_INFO("\n=============================================\n");
     MIRACASTLOG_TRACE("Exiting..!!!");	
     return ret;
@@ -668,10 +663,9 @@ void MiracastGstPlayer::pad_added_handler(GstElement *gstelement, GstPad *new_pa
 
     if (!self->m_pipeline)
     {
-        MIRACASTLOG_ERROR("failed to link elements!");
+        MIRACASTLOG_ERROR("failed to link elements and Exiting...!!!");
         gst_object_unref(self->m_pipeline);
         self->m_pipeline = NULL;
-        MIRACASTLOG_TRACE("Exiting..!!!");
         return;
     }
 
