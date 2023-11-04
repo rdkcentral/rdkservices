@@ -94,6 +94,7 @@ namespace WPEFramework {
                 std::thread thread_;
                 std::atomic<bool> stopFlag;
                 std::atomic<bool> threadRunning;
+                std::atomic<bool> notifyNow;
                 std::condition_variable cv_;
                 std::atomic<int> timeout;
                 std::vector<std::string> monitorEndpoints;
