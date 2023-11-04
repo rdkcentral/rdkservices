@@ -76,18 +76,19 @@ private:
     bool m_isWiFiDisplayParamsEnabled;
     pthread_t m_p2p_ctrl_monitor_thread_id;
 
-    MiracastError p2pInit();
+    MiracastError p2pInit(std::string p2p_ctrl_iface);
     MiracastError p2pUninit();
     MiracastError executeCommand(std::string command, int interface, std::string &retBuffer);
     int p2pExecute(char *cmd, enum INTERFACE iface, char *status);
     int p2pWpaCtrlSendCmd(char *cmd, struct wpa_ctrl *wpa_p2p_ctrl_iface, char *ret_buf);
+    void Release_P2PCtrlInterface(void);
 
 public:
-    static MiracastP2P *getInstance(MiracastError &error_code);
+    static MiracastP2P *getInstance(MiracastError &error_code,std::string p2p_ctrl_iface);
     static void destroyInstance();
 
     /*members for interacting with wpa_supplicant*/
-    MiracastError Init();
+    MiracastError Init(std::string p2p_ctrl_iface);
     void p2pCtrlMonitorThread();
     MiracastError set_WFDParameters(void);
     void reset_WFDParameters();

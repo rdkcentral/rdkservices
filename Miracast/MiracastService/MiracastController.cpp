@@ -25,12 +25,9 @@ void ControllerThreadCallback(void *args);
 void MiracastServiceTestNotifierThreadCallback(void *args);
 #endif
 
-//#define UDHCPD_BASED_DHCP_SERVER_ENABLED
-#define DNSMASQ_BASED_DHCP_SERVER_ENABLED
-
 MiracastController *MiracastController::m_miracast_ctrl_obj{nullptr};
 
-MiracastController *MiracastController::getInstance(MiracastError &error_code, MiracastServiceNotifier *notifier)
+MiracastController *MiracastController::getInstance(MiracastError &error_code, MiracastServiceNotifier *notifier, std::string p2p_ctrl_iface)
 {
     MIRACASTLOG_TRACE("Entering...");
     if (nullptr == m_miracast_ctrl_obj)
@@ -39,8 +36,9 @@ MiracastController *MiracastController::getInstance(MiracastError &error_code, M
         if (nullptr != m_miracast_ctrl_obj)
         {
             m_miracast_ctrl_obj->m_notify_handler = notifier;
-            error_code = m_miracast_ctrl_obj->create_ControllerFramework();
-            if ( MIRACAST_OK != error_code ){
+            error_code = m_miracast_ctrl_obj->create_ControllerFramework(p2p_ctrl_iface);
+            if ( MIRACAST_OK != error_code )
+            {
                 delete m_miracast_ctrl_obj;
                 m_miracast_ctrl_obj = nullptr;
             }
@@ -68,7 +66,6 @@ MiracastController::MiracastController(void)
 
     m_groupInfo = nullptr;
     m_p2p_ctrl_obj = nullptr;
-    //m_rtsp_msg = nullptr;
     m_thunder_req_handler_thread = nullptr;
     m_controller_thread = nullptr;
     m_tcpserverSockfd = -1;
@@ -96,7 +93,7 @@ MiracastController::~MiracastController()
     MIRACASTLOG_TRACE("Exiting...");
 }
 
-MiracastError MiracastController::create_ControllerFramework(void)
+MiracastError MiracastController::create_ControllerFramework(std::string p2p_ctrl_iface)
 {
     MiracastError ret_code = MIRACAST_OK;
     MIRACASTLOG_TRACE("Entering...");
@@ -123,7 +120,7 @@ MiracastError MiracastController::create_ControllerFramework(void)
         ret_code = MIRACAST_CONTROLLER_INIT_FAILED;
     }
     else{
-        m_p2p_ctrl_obj = MiracastP2P::getInstance(ret_code);
+        m_p2p_ctrl_obj = MiracastP2P::getInstance(ret_code,p2p_ctrl_iface);
     }
     if ( MIRACAST_OK != ret_code ){
         destroy_ControllerFramework();
@@ -299,29 +296,14 @@ MiracastError MiracastController::start_DHCPServer(std::string interface)
 
     MIRACASTLOG_VERBOSE("command : [%s]", command.c_str());
     system(command.c_str());
+    command = "ps -ax | awk '/dnsmasq -p0 -i/ && !/grep/ {print $1}' | xargs kill -9";
 
-    std::ifstream custom_dnsmasq_commands("/opt/miracast_custom_dnsmasq");
-    std::string mcast_dnsmasq;
-    if (custom_dnsmasq_commands.is_open())
-    {
-        std::getline(custom_dnsmasq_commands, mcast_dnsmasq);
-        MIRACASTLOG_INFO("dnsmasq reading from file [/opt/miracast_custom_dnsmasq] as [ %s] ", mcast_dnsmasq.c_str());
-        custom_dnsmasq_commands.close();
-        command = mcast_dnsmasq;
-        command.append(" -i ");
-        command.append(interface.c_str());
-    }
-    else
-    {
-        command = "ps -ax | awk '/dnsmasq -p0 -i/ && !/grep/ {print $1}' | xargs kill -9";
+    MIRACASTLOG_VERBOSE("command : [%s]", command.c_str());
+    system(command.c_str());
 
-        MIRACASTLOG_VERBOSE("command : [%s]", command.c_str());
-        system(command.c_str());
-
-        command = "/usr/bin/dnsmasq -p0 -i ";
-        command.append(interface.c_str());
-        command.append(" -F 192.168.59.50,192.168.59.230,255.255.255.0,24h --log-queries=extra");
-    }
+    command = "/usr/bin/dnsmasq -p0 -i ";
+    command.append(interface.c_str());
+    command.append(" -F 192.168.59.50,192.168.59.230,255.255.255.0,24h --log-queries=extra");
 
     MIRACASTLOG_VERBOSE("command : [%s]", command.c_str());
     system(command.c_str());
@@ -539,14 +521,6 @@ MiracastError MiracastController::connect_device(std::string device_mac , std::s
     return ret;
 }
 
-MiracastError MiracastController::disconnect_device()
-{
-    MIRACASTLOG_TRACE("Entering...");
-    //stop_streaming(CONTROLLER_TEARDOWN_REQ_FROM_THUNDER);
-    MIRACASTLOG_TRACE("Exiting...");
-    return MIRACAST_OK;
-}
-
 std::string MiracastController::get_localIp()
 {
     MIRACASTLOG_TRACE("Entering...");
@@ -662,8 +636,6 @@ void MiracastController::Controller_Thread(void *args)
         if (CONTROLLER_SELF_ABORT == controller_msgq_data.state)
         {
             MIRACASTLOG_TRACE("CONTROLLER_SELF_ABORT Received.\n");
-
-            //stop_streaming(CONTROLLER_SELF_ABORT);
             break;
         }
 
@@ -843,6 +815,7 @@ void MiracastController::Controller_Thread(void *args)
                                     {
                                         m_notify_handler->onMiracastServiceLaunchRequest(src_dev_ip, src_dev_mac, src_dev_name, sink_dev_ip);
                                     }
+
                                     checkAndInitiateP2PBackendDiscovery();
                                     session_restart_required = false;
                                     p2p_group_instance_alive = true;
@@ -1259,12 +1232,6 @@ void MiracastController::ThunderReqHandler_Thread(void *args)
     MIRACASTLOG_TRACE("Exiting...");
 }
 
-void MiracastController::send_msg_rtsp_msg_hdler_thread(eCONTROLLER_FW_STATES state)
-{
-    MIRACASTLOG_TRACE("Entering...");
-    MIRACASTLOG_TRACE("Exiting...");
-}
-
 void MiracastController::send_msg_thunder_msg_hdler_thread(MIRACAST_SERVICE_STATES state, std::string action_buffer, std::string user_data)
 {
     THUNDER_REQ_HDLR_MSGQ_STRUCT thunder_req_msgq_data = {0};
@@ -1467,22 +1434,6 @@ void MiracastController::reset_NewSourceMACAddress(void)
 void MiracastController::reset_NewSourceName(void)
 {
     m_new_device_name.clear();
-}
-
-bool MiracastController::set_WFDVideoFormat( RTSP_WFD_VIDEO_FMT_STRUCT video_fmt )
-{
-    bool ret = false;
-    MIRACASTLOG_TRACE("Entering...");
-    MIRACASTLOG_TRACE("Exiting...");
-    return ret;
-}
-
-bool MiracastController::set_WFDAudioCodecs( RTSP_WFD_AUDIO_FMT_STRUCT audio_fmt )
-{
-    bool ret = false;
-    MIRACASTLOG_TRACE("Entering...");
-    MIRACASTLOG_TRACE("Exiting...");
-    return ret;
 }
 
 void ThunderReqHandlerCallback(void *args)

@@ -806,8 +806,8 @@ bool MiracastGstPlayer::createPipeline()
     }
 
     /*{{{ udpsrc related element configuration*/
-    MIRACASTLOG_INFO(">>>>>>>udpsrc configuration start");
-    MIRACASTLOG_INFO("Set the port[%llu] and to udp source.",m_streaming_port);
+    MIRACASTLOG_TRACE(">>>>>>>udpsrc configuration start");
+    MIRACASTLOG_TRACE("Set the port[%llu] and to udp source.",m_streaming_port);
     g_object_set(G_OBJECT(m_udpsrc), "port", m_streaming_port, nullptr);
     //g_object_set(G_OBJECT(m_udpsrc), "uri", m_uri.c_str(), nullptr);
 
@@ -822,7 +822,7 @@ bool MiracastGstPlayer::createPipeline()
     {
         MIRACASTLOG_ERROR("Unable to Set caps to udp source.");
     }
-    MIRACASTLOG_INFO("udpsrc configuration end<<<<<<<<");
+    MIRACASTLOG_TRACE("udpsrc configuration end<<<<<<<<");
     /*}}}*/
 
     /*{{{ rtpjitterbuffer related element configuration*/

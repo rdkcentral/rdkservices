@@ -19,10 +19,12 @@
 
 #include <algorithm>
 #include <regex>
-//#include "rdk/iarmmgrs-hal/pwrMgr.h"
 #include "MiracastService.h"
 #include "UtilsJsonRpc.h"
 #include "UtilsIarm.h"
+#include <fstream>
+
+#define MIRACAST_DEVICE_PROPERTIES_FILE          "/etc/device.properties"
 
 const short WPEFramework::Plugin::MiracastService::API_VERSION_NUMBER_MAJOR = 1;
 const short WPEFramework::Plugin::MiracastService::API_VERSION_NUMBER_MINOR = 0;
@@ -168,18 +170,20 @@ namespace WPEFramework
 
 		const string MiracastService::Initialize(PluginHost::IShell *service)
 		{
-			string msg;
+			string	msg,
+					p2p_ctrl_iface = "";
 			MIRACASTLOG_INFO("Entering..!!!");
-			if (0 == access("/opt/miracast_disable", F_OK))
+
+			if (!(envGetValue("WIFI_P2P_CTRL_INTERFACE", p2p_ctrl_iface)))
 			{
-				msg = "'/opt/miracast_disable' flag available";
-				return msg;
+				return "WIFI_P2P_CTRL_INTERFACE not configured in device properties file";
 			}
+
 			if (!m_isServiceInitialized)
 			{
 				MiracastError ret_code = MIRACAST_OK;
 		
-				m_miracast_ctrler_obj = MiracastController::getInstance(ret_code, this);
+				m_miracast_ctrler_obj = MiracastController::getInstance(ret_code, this,p2p_ctrl_iface);
 				if (nullptr != m_miracast_ctrler_obj)
 				{
 					m_CurrentService = service;
@@ -341,6 +345,35 @@ namespace WPEFramework
 		}
 
 		/**
+		 * @brief This method used to Get the value of the given key from the environment (device properties file).
+		 *
+		 * @param: key and value reference pointer.
+		 * @return Returns the true or false.
+		 */
+		bool MiracastService::envGetValue(const char *key, std::string &value)
+		{
+			std::ifstream fs(MIRACAST_DEVICE_PROPERTIES_FILE, std::ifstream::in);
+			std::string::size_type delimpos;
+			std::string line;
+			if (!fs.fail())
+			{
+				while (std::getline(fs, line))
+				{
+					if (!line.empty() && ((delimpos = line.find('=')) > 0))
+					{
+						std::string itemKey = line.substr(0, delimpos);
+						if (itemKey == key)
+						{
+							value = line.substr(delimpos + 1, std::string::npos);
+							return true;
+						}
+					}
+				}
+			}
+			return false;
+		}
+
+		/**
 		 * @brief This method used to accept or reject the WFD connection request.
 		 *
 		 * @param: None.
@@ -421,54 +454,7 @@ namespace WPEFramework
 			MIRACASTLOG_INFO("Exiting..!!!");
 			returnResponse(success);
 		}
-#if 0
-		/**
-		 * @brief This method used to stop the client connection.
-		 *
-		 * @param: None.
-		 * @return Returns the success code of underlying method.
-		 */
-		uint32_t MiracastService::stopClientConnection(const JsonObject &parameters, JsonObject &response)
-		{
-			bool success = false;
-			std::string mac_addr = "";
 
-			MIRACASTLOG_INFO("Entering..!!!");
-
-			if (parameters.HasLabel("mac"))
-			{
-				mac_addr = parameters["mac"].String();
-				const std::regex mac_regex("^([0-9a-f]{2}[:]){5}([0-9a-f]{2})$");
-
-				if (true == std::regex_match(mac_addr, mac_regex))
-				{
-					if (true == m_miracast_ctrler_obj->stop_client_connection(mac_addr))
-					{
-						success = true;
-						response["message"] = "Successfully Initiated the Stop WFD Client Connection";
-						MIRACASTLOG_INFO("Successfully Initiated the Stop WFD Client Connection");
-					}
-					else
-					{
-						LOGERR("MAC Address[%s] not connected yet", mac_addr.c_str());
-						response["message"] = "MAC Address not connected yet.";
-					}
-				}
-				else
-				{
-					LOGERR("Invalid MAC Address[%s] passed", mac_addr.c_str());
-					response["message"] = "Invalid MAC Address";
-				}
-			}
-			else
-			{
-				LOGERR("Invalid parameter passed");
-				response["message"] = "Invalid parameter passed";
-			}
-
-			returnResponse(success);
-		}
-#endif
 		/**
 		 * @brief This method used to update the Player State for MiracastService Plugin.
 		 *
@@ -834,10 +820,6 @@ namespace WPEFramework
 			{
 				is_another_connect_request = true;
 				MIRACASTLOG_WARNING("Another Connect Request received while casting\n");
-				if (0 == access("/opt/miracast_reject_new_request", F_OK))
-				{
-					requestStatus = "Reject";
-				}
 			}
 
 			if (0 == access("/opt/miracast_autoconnect", F_OK))

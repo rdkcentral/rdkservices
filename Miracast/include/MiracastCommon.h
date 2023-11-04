@@ -47,7 +47,7 @@ using namespace MIRACAST;
 #define THREAD_RECV_MSG_INDEFINITE_WAIT (-1)
 #define THREAD_RECV_MSG_WAIT_IMMEDIATE ( 0 )
 
-#define WPA_SUP_DFLT_CTRL_PATH "/var/run/wpa_supplicant/p2p-dev-wlan0"
+#define WPA_SUP_DFLT_CTRL_PATH "/var/run/wpa_supplicant/"
 
 typedef enum controller_framework_states_e
 {

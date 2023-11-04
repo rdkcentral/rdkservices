@@ -45,15 +45,13 @@ using namespace MIRACAST;
 class MiracastController
 {
 public:
-    static MiracastController *getInstance( MiracastError &error_code , 
-                                            MiracastServiceNotifier *notifier = nullptr);
+    static MiracastController *getInstance( MiracastError &error_code , MiracastServiceNotifier *notifier = nullptr, std::string p2p_ctrl_iface = "");
     static void destroyInstance();
 
     void event_handler(P2P_EVENTS eventId, void *data, size_t len );
 
     MiracastError discover_devices();
     MiracastError connect_device(std::string device_mac , std::string device_name );
-    MiracastError start_streaming();
 
     std::string get_localIp();
     std::string get_wfd_streaming_port_number();
@@ -63,10 +61,7 @@ public:
     bool get_connection_status();
     DeviceInfo *get_device_details(std::string mac);
 
-    MiracastError stop_streaming(eCONTROLLER_FW_STATES state = CONTROLLER_STOP_STREAMING);
-    MiracastError disconnect_device();
     void send_msg_thunder_msg_hdler_thread(MIRACAST_SERVICE_STATES state, std::string buffer = "", std::string user_data = "");
-    void send_msg_rtsp_msg_hdler_thread(eCONTROLLER_FW_STATES state);
 
     void Controller_Thread(void *args);
     void ThunderReqHandler_Thread(void *args);
@@ -95,8 +90,6 @@ public:
     void set_enable(bool is_enabled);
     void accept_client_connection(std::string is_accepted);
     bool stop_client_connection(std::string mac_address);
-    bool set_WFDVideoFormat( RTSP_WFD_VIDEO_FMT_STRUCT video_fmt );
-    bool set_WFDAudioCodecs( RTSP_WFD_AUDIO_FMT_STRUCT st_audio_fmt );
     eMIRA_PLAYER_STATES m_ePlayer_state;
 
     void set_WFDSourceMACAddress(std::string MAC_Addr);
@@ -126,7 +119,7 @@ private:
     std::string start_DHCPClient(std::string interface, std::string &default_gw_ip_addr);
     MiracastError initiate_TCP(std::string go_ip);
     MiracastError connect_Sink();
-    MiracastError create_ControllerFramework(void);
+    MiracastError create_ControllerFramework(std::string p2p_ctrl_iface);
     MiracastError destroy_ControllerFramework(void);
     void checkAndInitiateP2PBackendDiscovery(void);
 
@@ -142,7 +135,6 @@ private:
     GroupInfo *m_groupInfo;
     bool m_connectionStatus;
     bool m_p2p_backend_discovery{false};
-    // int m_hdcptcpSockfd;
 
     /*members for interacting with wpa_supplicant*/
     MiracastP2P *m_p2p_ctrl_obj;
@@ -150,7 +142,6 @@ private:
     MiracastRTSPMsg *m_rtsp_msg;
     MiracastThread *m_thunder_req_handler_thread;
     MiracastThread *m_controller_thread;
-    //MiracastThread *m_hdcp_handler_thread;
     int m_tcpserverSockfd;
     eCONTROLLER_FW_STATES convertP2PtoSessionActions(P2P_EVENTS eventId);
     MiracastError start_DHCPServer(std::string interface);

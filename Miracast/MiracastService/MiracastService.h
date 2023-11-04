@@ -102,6 +102,7 @@ namespace WPEFramework
             void getSystemPlugin();
             int updateSystemFriendlyName();
             void onFriendlyNameUpdateHandler(const JsonObject &parameters);
+            bool envGetValue(const char *key, std::string &value);
 
             // We do not allow this plugin to be copied !!
             MiracastService(const MiracastService &) = delete;
