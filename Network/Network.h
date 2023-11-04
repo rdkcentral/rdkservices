@@ -157,6 +157,9 @@ namespace WPEFramework {
 
                 public:
                     Config()
+                        : endpoint_1("xfinity.com")
+                        , endpoint_2("google.com")
+                        , endpoint_3("espn.com")
                     {
                         Add(_T("endpoint_1"), &endpoint_1);
                         Add(_T("endpoint_2"), &endpoint_2);
