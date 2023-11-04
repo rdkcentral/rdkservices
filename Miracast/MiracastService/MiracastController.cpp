@@ -228,17 +228,9 @@ std::string MiracastController::start_DHCPClient(std::string interface, std::str
 
     sprintf(command, "/sbin/udhcpc -v -i ");
     sprintf(command + strlen(command), interface.c_str());
-
-    if (0 == access("/opt/miracast/p2p_udhcpc.script", F_OK))
-    {
-        sprintf(command + strlen(command), " -s /opt/miracast/p2p_udhcpc.script 2>&1");
-    }
-    else
-    {
-        sprintf(command + strlen(command), " -s /etc/netsrvmgr/p2p_udhcpc.script 2>&1");
-    }
-
+    sprintf(command + strlen(command), " -s /etc/netsrvmgr/p2p_udhcpc.script 2>&1");
     MIRACASTLOG_VERBOSE("command : [%s]", command);
+
     while ( retry_count-- )
     {
         popen_file_ptr = popen(command, "r");
@@ -307,24 +299,7 @@ MiracastError MiracastController::start_DHCPServer(std::string interface)
 
     MIRACASTLOG_VERBOSE("command : [%s]", command.c_str());
     system(command.c_str());
-#if defined(UDHCPD_BASED_DHCP_SERVER_ENABLED)
-    command = "ps -ax | grep \"udhcpd\" | grep \"miracast\" | awk '{print $1}' | xargs kill -9";
 
-    system(command.c_str());
-    MIRACASTLOG_VERBOSE("command : [%s]\n",command.c_str());
-
-    system("cp /opt/miracast/udhcpd.conf /opt/secure/wifi/udhcpd_miracast.conf -f");
-
-    command = "sed -i 's/NEW_P2P_GRP_IFACE/";
-    command.append(interface.c_str());
-    command.append("/g' /opt/secure/wifi/udhcpd_miracast.conf");
-
-    system(command.c_str());
-    MIRACASTLOG_VERBOSE("command : [%s]", command.c_str());
-
-    command = "udhcpd -S ";
-    command.append("/opt/secure/wifi/udhcpd_miracast.conf");
-#elif defined(DNSMASQ_BASED_DHCP_SERVER_ENABLED)
     std::ifstream custom_dnsmasq_commands("/opt/miracast_custom_dnsmasq");
     std::string mcast_dnsmasq;
     if (custom_dnsmasq_commands.is_open())
@@ -347,77 +322,14 @@ MiracastError MiracastController::start_DHCPServer(std::string interface)
         command.append(interface.c_str());
         command.append(" -F 192.168.59.50,192.168.59.230,255.255.255.0,24h --log-queries=extra");
     }
-#endif
-    MIRACASTLOG_VERBOSE("command : [%s]", command.c_str());
-    system(command.c_str());
-
-#if 0
-    command = "wpa_cli -i ";
-    command.append(interface.c_str());
-    command.append(" wps_pbc");
 
     MIRACASTLOG_VERBOSE("command : [%s]", command.c_str());
     system(command.c_str());
-
-    struct sockaddr_in serverAddress;
-
-    if ( -1 != m_tcpserverSockfd ){
-        close( m_tcpserverSockfd );
-        m_tcpserverSockfd = -1;
-    }
-
-    // Create socket
-    m_tcpserverSockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (m_tcpserverSockfd < 0) {
-        MIRACASTLOG_ERROR("Error opening socket");
-        return MIRACAST_FAIL;
-    }
-
-    // Make the socket non-blocking
-    int flags = fcntl(m_tcpserverSockfd, F_GETFL, 0);
-    fcntl(m_tcpserverSockfd, F_SETFL, flags | O_NONBLOCK);
-
-    memset(&serverAddress, 0, sizeof(serverAddress));
-
-    serverAddress.sin_family = AF_INET;
-    serverAddress.sin_addr.s_addr = INADDR_ANY;
-    serverAddress.sin_port = htons(7236);
-
-    // Bind the socket to the specified address and port
-    if (bind(m_tcpserverSockfd, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) < 0) {
-        MIRACASTLOG_ERROR("Binding failed");
-        close(m_tcpserverSockfd);
-        m_tcpserverSockfd = -1;
-        return MIRACAST_FAIL;
-    }
-
-    // Listen for incoming connections
-    if (listen(m_tcpserverSockfd, 5) < 0) {
-        MIRACASTLOG_ERROR("Error listening");
-        close(m_tcpserverSockfd);
-        m_tcpserverSockfd = -1;
-        return MIRACAST_FAIL;
-    }
-
-    MIRACASTLOG_VERBOSE("Listening for incoming connections...\n");
-#endif
 
     MIRACASTLOG_TRACE("Exiting...");
 
     return MIRACAST_OK;
 }
-#ifdef NATIVE_PLAYER_INTEGRATED
-MiracastError MiracastController::initiate_TCP(std::string goIP)
-{
-    MIRACASTLOG_TRACE("Entering...");
-    MiracastError ret = MIRACAST_FAIL;
-    if (nullptr != m_rtsp_msg){
-        ret = m_rtsp_msg->initiate_TCP(goIP);
-    }
-    MIRACASTLOG_TRACE("Exiting...");
-    return ret;
-}
-#endif
 
 eCONTROLLER_FW_STATES MiracastController::convertP2PtoSessionActions(P2P_EVENTS eventId)
 {
@@ -510,12 +422,6 @@ void MiracastController::restart_session(bool start_discovering_enabled)
 void MiracastController::stop_session(bool stop_streaming_needed)
 {
     MIRACASTLOG_TRACE("Entering...");
-// TODO: Similar Handling need to handle at MiracastPlayer when request come from RA not from WFD Src
-#ifdef NATIVE_PLAYER_INTEGRATED
-    if (true == stop_streaming_needed){
-        stop_streaming(CONTROLLER_TEARDOWN_REQ_FROM_THUNDER);
-    }
-#endif
     stop_discover_devices();
     remove_P2PGroupInstance();
     MIRACASTLOG_TRACE("Exiting...");
@@ -633,113 +539,6 @@ MiracastError MiracastController::connect_device(std::string device_mac , std::s
     return ret;
 }
 
-#if 0
-MiracastError MiracastController::start_streaming()
-{
-    MIRACASTLOG_TRACE("Entering...");
-    const char *mcastIptableFile = "/opt/mcast_iptable.txt";
-    std::ifstream mIpfile(mcastIptableFile);
-    std::string mcast_iptable;
-    if (mIpfile.is_open())
-    {
-        std::getline(mIpfile, mcast_iptable);
-        MIRACASTLOG_INFO("Iptable reading from file [%s] as [ %s] ", mcastIptableFile, mcast_iptable.c_str());
-        system(mcast_iptable.c_str());
-        mIpfile.close();
-    }
-    else
-    {
-        //
-    }
-    MIRACASTLOG_INFO("Casting started. Player initiated");
-    std::string gstreamerPipeline;
-
-    const char *mcastfile = "/opt/mcastgstpipline.txt";
-    std::ifstream mcgstfile(mcastfile);
-
-    if (mcgstfile.is_open())
-    {
-        std::getline(mcgstfile, gstreamerPipeline);
-        MIRACASTLOG_INFO("gstpipeline reading from file [%s], gstreamerPipeline as [ %s] ", mcastfile, gstreamerPipeline.c_str());
-        mcgstfile.close();
-        if (0 == system(gstreamerPipeline.c_str()))
-            MIRACASTLOG_INFO("Pipeline created successfully ");
-        else
-        {
-            MIRACASTLOG_INFO("Pipeline creation failure");
-            return MIRACAST_FAIL;
-        }
-    }
-    else
-    {
-        if (access("/opt/miracast_gst", F_OK) == 0)
-        {
-            gstreamerPipeline = "GST_DEBUG=3 gst-launch-1.0 -vvv playbin uri=udp://0.0.0.0:1990 video-sink=\"westerossink\"";
-            MIRACASTLOG_INFO("pipeline constructed is --> %s", gstreamerPipeline.c_str());
-            if (0 == system(gstreamerPipeline.c_str()))
-                MIRACASTLOG_INFO("Pipeline created successfully ");
-            else
-            {
-                MIRACASTLOG_INFO("Pipeline creation failure");
-                return MIRACAST_FAIL;
-            }
-        }
-        else
-        {
-            #ifdef NATIVE_PLAYER_INTEGRATED
-            MiracastPlayer *miracastPlayerObj = MiracastPlayer::getInstance();
-            std::string port = get_wfd_streaming_port_number();
-            std::string local_ip = get_localIp();
-            miracastPlayerObj->launch(local_ip, port);
-            #endif
-        }
-    }
-
-    if (nullptr != m_notify_handler){
-        std::string MAC = get_WFDSourceMACAddress();
-        std::string device_name = get_WFDSourceName();
-        m_notify_handler->onMiracastServiceClientConnectionStarted(MAC, device_name);
-    }
-    MIRACASTLOG_TRACE("Exiting...");
-    return MIRACAST_OK;
-}
-
-MiracastError MiracastController::stop_streaming(eCONTROLLER_FW_STATES state )
-{
-    MIRACASTLOG_TRACE("Entering...");
-
-    if ((CONTROLLER_SELF_ABORT == state)||
-        (CONTROLLER_TEARDOWN_REQ_FROM_THUNDER == state)||
-        (CONTROLLER_STOP_STREAMING == state))
-    {
-        if (CONTROLLER_STOP_STREAMING != state){
-            eCONTROLLER_FW_STATES rtsp_state = RTSP_TEARDOWN_FROM_SINK2SRC;
-
-            if (CONTROLLER_SELF_ABORT == state){
-                rtsp_state = RTSP_SELF_ABORT;
-            }
-            send_msg_rtsp_msg_hdler_thread(rtsp_state);
-        }
-        if (!get_connected_device_mac().empty())
-        {
-            #ifdef NATIVE_PLAYER_INTEGRATED
-                if (CONTROLLER_SELF_ABORT == state)
-                {
-                    MiracastPlayer::destroyInstance();
-                }
-                else
-                {
-                    MiracastPlayer *miracastPlayerObj = MiracastPlayer::getInstance();
-                    miracastPlayerObj->stop();
-                }
-            #endif
-        }
-    }
-    MIRACASTLOG_TRACE("Exiting...");
-    return MIRACAST_OK;
-}
-#endif
-
 MiracastError MiracastController::disconnect_device()
 {
     MIRACASTLOG_TRACE("Entering...");
@@ -759,17 +558,6 @@ std::string MiracastController::get_localIp()
     MIRACASTLOG_TRACE("Exiting...");
     return ip_addr;
 }
-
-#ifdef NATIVE_PLAYER_INTEGRATED
-std::string MiracastController::get_wfd_streaming_port_number()
-{
-    std::string port_number = "";
-    if (nullptr != m_rtsp_msg){
-        port_number = m_rtsp_msg->get_WFDStreamingPortNumber();
-    }
-    return port_number;
-}
-#endif
 
 std::string MiracastController::get_connected_device_mac()
 {
@@ -1047,36 +835,17 @@ void MiracastController::Controller_Thread(void *args)
                                         MIRACASTLOG_VERBOSE("default_gw_ip [%s]\n", default_gw_ip.c_str());
                                         m_groupInfo->goIPAddr.append(default_gw_ip);
                                     }
-                                    #ifdef NATIVE_PLAYER_INTEGRATED
-                                        MIRACASTLOG_VERBOSE("initiate_TCP started GO IP[%s]\n", m_groupInfo->goIPAddr.c_str());
-                                        ret = initiate_TCP(m_groupInfo->goIPAddr);
-                                        MIRACASTLOG_VERBOSE("initiate_TCP done ret[%x]\n", ret);
-                                        if (MIRACAST_OK == ret)
-                                        {
-                                            MIRACASTLOG_TRACE("RTSP Thread Initialated with RTSP_START_RECEIVE_MSGS\n");
-                                            send_msg_rtsp_msg_hdler_thread(RTSP_START_RECEIVE_MSGS);
-                                            /*RTSP Thread will notify whether session restart required or not*/
-                                            session_restart_required = false;
-                                            ret = MIRACAST_FAIL;
-                                        }
-                                        else
-                                        {
-                                            MIRACASTLOG_ERROR("TCP connection Failed");
-                                        }
-                                    #else
-                                        src_dev_ip = m_groupInfo->goIPAddr;
-                                        src_dev_mac = m_groupInfo->goDevAddr;
-                                        src_dev_name = get_WFDSourceName();
-                                        sink_dev_ip = m_groupInfo->localIPAddr;
-                                        if (nullptr != m_notify_handler)
-                                        {
-                                            m_notify_handler->onMiracastServiceLaunchRequest(src_dev_ip, src_dev_mac, src_dev_name, sink_dev_ip);
-                                        }
-
-                                        checkAndInitiateP2PBackendDiscovery();
-                                        session_restart_required = false;
-                                        p2p_group_instance_alive = true;
-                                    #endif
+                                    src_dev_ip = m_groupInfo->goIPAddr;
+                                    src_dev_mac = m_groupInfo->goDevAddr;
+                                    src_dev_name = get_WFDSourceName();
+                                    sink_dev_ip = m_groupInfo->localIPAddr;
+                                    if (nullptr != m_notify_handler)
+                                    {
+                                        m_notify_handler->onMiracastServiceLaunchRequest(src_dev_ip, src_dev_mac, src_dev_name, sink_dev_ip);
+                                    }
+                                    checkAndInitiateP2PBackendDiscovery();
+                                    session_restart_required = false;
+                                    p2p_group_instance_alive = true;
                                 }
                             }
                             else
@@ -1108,8 +877,6 @@ void MiracastController::Controller_Thread(void *args)
                                 char *current_line_buffer = nullptr;
                                 std::size_t len = 0;
                                 unsigned char retry_count = 5;
-
-                                //system("dumpleases -f /var/lib/misc/udhcpd.leases | awk 'NR>1 {print $2}' | xargs -n 1 ping -c 1 &");
 
                                 sprintf( command,
                                             "cat /proc/net/arp | grep \"%s\" | awk '{print $1}'",
@@ -1146,47 +913,23 @@ void MiracastController::Controller_Thread(void *args)
                                         if (!popen_buffer.empty()){
                                             MIRACASTLOG_VERBOSE("%s is success and popen_buffer[%s]\n", command,popen_buffer.c_str());
                                             remote_address = popen_buffer;
-                                            //sprintf( command, "ping -c 1 -W 3 %s", remote_address.c_str());
-                                            //system(command);
                                             sleep(1);
                                             break;
                                         }
                                     }
                                     sleep(1);
                                 }
-
-                                #ifdef NATIVE_PLAYER_INTEGRATED
-                                    MIRACASTLOG_VERBOSE("initiate_TCP started GO IP[%s]\n", remote_address.c_str());
-                                    ret = initiate_TCP( remote_address );
-                                    MIRACASTLOG_VERBOSE("initiate_TCP done ret[%x]\n", ret);
-                                    if (MIRACAST_OK == ret)
-                                    {
-                                        m_groupInfo->localIPAddr = "192.168.59.1";
-                                        MIRACASTLOG_TRACE("RTSP Thread Initialated with RTSP_START_RECEIVE_MSGS\n");
-                                        send_msg_rtsp_msg_hdler_thread(RTSP_START_RECEIVE_MSGS);
-                                        /*RTSP Thread will notify whether session restart required or not*/
-                                        session_restart_required = false;
-                                        ret = MIRACAST_FAIL;
-                                    }
-                                    else
-                                    {
-                                        MIRACASTLOG_ERROR("TCP connection Failed");
-                                    }
-                                #else
-                                    src_dev_ip = remote_address;
-                                    src_dev_mac = m_groupInfo->goDevAddr;
-                                    src_dev_name = get_WFDSourceName();
-                                    sink_dev_ip = "192.168.59.1";
-                                    if (nullptr != m_notify_handler)
-                                    {
-                                        m_notify_handler->onMiracastServiceLaunchRequest(src_dev_ip, src_dev_mac, src_dev_name, sink_dev_ip);
-                                    }
-
-                                    checkAndInitiateP2PBackendDiscovery();
-
-                                    session_restart_required = false;
-                                    p2p_group_instance_alive = true;
-                                #endif
+                                src_dev_ip = remote_address;
+                                src_dev_mac = m_groupInfo->goDevAddr;
+                                src_dev_name = get_WFDSourceName();
+                                sink_dev_ip = "192.168.59.1";
+                                if (nullptr != m_notify_handler)
+                                {
+                                    m_notify_handler->onMiracastServiceLaunchRequest(src_dev_ip, src_dev_mac, src_dev_name, sink_dev_ip);
+                                }
+                                checkAndInitiateP2PBackendDiscovery();
+                                session_restart_required = false;
+                                p2p_group_instance_alive = true;
                                 // STB is the GO in the p2p group
                                 m_groupInfo->isGO = true;
                             }
@@ -1277,61 +1020,6 @@ void MiracastController::Controller_Thread(void *args)
                 }
             }
             break;
-#ifdef NATIVE_PLAYER_INTEGRATED
-            case RTSP_MSG:
-            {
-                MIRACASTLOG_TRACE("RTSP_MSG type received");
-                switch (controller_msgq_data.state)
-                {
-                    case CONTROLLER_RTSP_MSG_RECEIVED_PROPERLY:
-                    {
-                        MIRACASTLOG_TRACE("[CONTROLLER_RTSP_MSG_RECEIVED_PROPERLY] Received\n");
-                        start_streaming();
-                        m_connectionStatus = true;
-                    }
-                    break;
-                    case CONTROLLER_RTSP_MSG_TIMEDOUT:
-                    case CONTROLLER_RTSP_INVALID_MESSAGE:
-                    case CONTROLLER_RTSP_SEND_REQ_RESP_FAILED:
-                    case CONTROLLER_RTSP_TEARDOWN_REQ_RECEIVED:
-                    case CONTROLLER_RTSP_RESTART_DISCOVERING:
-                    {
-                        std::string MAC = "";
-                        std::string device_name = "";
-
-                        // TODO: Need to retrieve active device info as RTSP moved to MiracastPlayer
-                        if (nullptr != m_rtsp_msg){
-                            MAC = m_rtsp_msg->get_WFDSourceMACAddress();
-                            device_name = m_rtsp_msg->get_WFDSourceName();
-                        }
-
-                        m_connectionStatus = false;
-
-                        if (nullptr != m_notify_handler){
-                            if (CONTROLLER_RTSP_TEARDOWN_REQ_RECEIVED == controller_msgq_data.state)
-                            {
-                                MIRACASTLOG_TRACE("[TEARDOWN_REQ] Received\n");
-                                m_notify_handler->onMiracastServiceClientStopRequest(MAC, device_name);
-                            }
-                            else if (CONTROLLER_RTSP_RESTART_DISCOVERING != controller_msgq_data.state)
-                            {
-                                MIRACASTLOG_TRACE("[TIMEDOUT/SEND_REQ_RESP_FAIL/INVALID_MESSAG/GO_NEG/GROUP_FORMATION_FAILURE] Received\n");
-                                m_notify_handler->onMiracastServiceClientConnectionError(MAC, device_name);
-                            }
-                        }
-                        stop_streaming();
-                        restart_session(start_discovering_enabled);
-                    }
-                    break;
-                    default:
-                    {
-                        MIRACASTLOG_ERROR("Invalid state received with RTSP_MSG\n");
-                    }
-                    break;
-                }
-            }
-            break;
-#endif
             case CONTRLR_FW_MSG:
             {
                 MIRACASTLOG_TRACE("CONTRLR_FW_MSG type received");
@@ -1574,11 +1262,6 @@ void MiracastController::ThunderReqHandler_Thread(void *args)
 void MiracastController::send_msg_rtsp_msg_hdler_thread(eCONTROLLER_FW_STATES state)
 {
     MIRACASTLOG_TRACE("Entering...");
-#ifdef NATIVE_PLAYER_INTEGRATED
-    if (nullptr != m_rtsp_msg){
-        m_rtsp_msg->send_msgto_rtsp_msg_hdler_thread(state);
-    }
-#endif
     MIRACASTLOG_TRACE("Exiting...");
 }
 
@@ -1790,12 +1473,6 @@ bool MiracastController::set_WFDVideoFormat( RTSP_WFD_VIDEO_FMT_STRUCT video_fmt
 {
     bool ret = false;
     MIRACASTLOG_TRACE("Entering...");
-#ifdef NATIVE_PLAYER_INTEGRATED
-    if ( nullptr != m_rtsp_msg )
-    {
-        ret = m_rtsp_msg->set_WFDVideoFormat(video_fmt);
-    }
-#endif
     MIRACASTLOG_TRACE("Exiting...");
     return ret;
 }
@@ -1804,12 +1481,6 @@ bool MiracastController::set_WFDAudioCodecs( RTSP_WFD_AUDIO_FMT_STRUCT audio_fmt
 {
     bool ret = false;
     MIRACASTLOG_TRACE("Entering...");
-#ifdef NATIVE_PLAYER_INTEGRATED
-    if ( nullptr != m_rtsp_msg )
-    {
-        ret = m_rtsp_msg->set_WFDAudioCodecs(audio_fmt);
-    }
-#endif
     MIRACASTLOG_TRACE("Exiting...");
     return ret;
 }
