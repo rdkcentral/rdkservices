@@ -208,7 +208,8 @@ std::string MiracastController::start_DHCPClient(std::string interface, std::str
     char sys_cls_file_ifidx[128] = {0};
     std::string local_addr = "",
                 gw_ip_addr = "",
-                popen_buffer = "";
+                popen_buffer = "",
+                system_cmd_buffer = "";
     FILE *popen_file_ptr = nullptr;
     char *current_line_buffer = nullptr;
     std::size_t len = 0;
@@ -222,6 +223,10 @@ std::string MiracastController::start_DHCPClient(std::string interface, std::str
         MIRACASTLOG_ERROR("Could not find [%s]\n",sys_cls_file_ifidx);
         return std::string("");
     }
+
+    system_cmd_buffer = "ps -ax | awk '/p2p_udhcpc/ && !/grep/ {print $1}' | xargs kill -9";
+    MIRACASTLOG_VERBOSE("Flush old udhcpc p2p instance command : [%s]", system_cmd_buffer.c_str());
+    system(system_cmd_buffer.c_str());
 
     sprintf(command, "/sbin/udhcpc -v -i ");
     sprintf(command + strlen(command), interface.c_str());

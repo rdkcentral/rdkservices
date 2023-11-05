@@ -1064,7 +1064,7 @@ RTSP_STATUS MiracastRTSPMsg::send_rstp_msg(int socket_fd, std::string rtsp_respo
         return RTSP_MSG_FAILURE;
     }
 
-    MIRACASTLOG_TRACE("Sending the RTSP Msg [%d] Data[%s]\n", read_ret, rtsp_response_buffer.c_str());
+    MIRACASTLOG_VERBOSE("Sending the RTSP Msg [%d] Data[%s]\n", read_ret, rtsp_response_buffer.c_str());
     return RTSP_MSG_SUCCESS;
 }
 
@@ -1552,11 +1552,16 @@ RTSP_STATUS MiracastRTSPMsg::validate_rtsp_m6_ack_m7_send_request(std::string rt
 RTSP_STATUS MiracastRTSPMsg::validate_rtsp_trigger_request_ack(std::string rtsp_trigger_req_ack_buffer , std::string received_seq_num )
 {
     RTSP_STATUS status_code = RTSP_MSG_FAILURE;
+    std::string reported_seq_num = get_RequestSequenceNumber();
     MIRACASTLOG_TRACE("Entering...");
 
-    if (0 != (get_RequestSequenceNumber().compare(received_seq_num)))
+    if (0 != (reported_seq_num.compare(received_seq_num)))
     {
         send_rtsp_reply_sink2src( RTSP_MSG_FMT_REPORT_ERROR , received_seq_num, RTSP_ERRORCODE_BAD_REQUEST );
+        MIRACASTLOG_ERROR("Invalid Sequence Number received [%s] in trigger[%s]. Reported is [%s]",
+                            received_seq_num.c_str(),
+                            rtsp_trigger_req_ack_buffer.c_str(),
+                            reported_seq_num.c_str());
     }
     else
     {
@@ -2021,7 +2026,7 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
 
         if ((RTSP_MSG_SUCCESS == status_code) || (RTSP_M1_M7_MSG_EXCHANGE_RECEIVED == status_code ))
         {
-            MIRACASTLOG_VERBOSE("RTSP_M1_M7_MSG_EXCHANGE_RECEIVED \n", rtsp_message_data.state);
+            MIRACASTLOG_INFO("!!!! RTSP_M1_M7_MSG_EXCHANGE_RECEIVED[%#04X] !!!!", status_code);
             start_monitor_keep_alive_msg = true;
             start_streaming(video_rect_st);
             set_state(MIRACAST_PLAYER_STATE_PLAYING , true );
@@ -2078,7 +2083,7 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
             elapsed_seconds = current_time.tv_sec - start_time.tv_sec;
             if (elapsed_seconds > m_wfd_src_session_timeout)
             {
-                MIRACASTLOG_INFO("!!! RTSP M16 TIMEOUT !!!\n");
+                MIRACASTLOG_INFO("!!! RTSP M16 TIMEOUT[%d] Elapsed[%d]!!!",m_wfd_src_session_timeout,elapsed_seconds);
                 set_state(MIRACAST_PLAYER_STATE_STOPPED , true , MIRACAST_PLAYER_REASON_CODE_RTSP_TIMEOUT );
                 break;
             }
@@ -2101,6 +2106,7 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
                 {
                     // Refresh the Keep Alive Time
                     clock_gettime(CLOCK_REALTIME, &start_time);
+                    MIRACASTLOG_INFO("!!! Refresh the Keep Alive Time !!!");
                 }
                 else if ((RTSP_MSG_TEARDOWN_REQUEST == status_code)||
                         ( RTSP_METHOD_NOT_SUPPORTED == status_code ))
@@ -2161,16 +2167,16 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
                             if ( RTSP_PLAY_FROM_SINK2SRC == rtsp_message_data.state )
                             {
                                 set_state(MIRACAST_PLAYER_STATE_PLAYING );
-                                MIRACASTLOG_TRACE("[RTSP_PLAY] ACTION Received\n");
+                                MIRACASTLOG_INFO("[RTSP_PLAY] ACTION Received\n");
                             }
                             else if ( RTSP_PAUSE_FROM_SINK2SRC == rtsp_message_data.state )
                             {
                                 set_state(MIRACAST_PLAYER_STATE_PAUSED );
-                                MIRACASTLOG_TRACE("[RTSP_PAUSE] ACTION Received\n");
+                                MIRACASTLOG_INFO("[RTSP_PAUSE] ACTION Received\n");
                             }
                             else if ( RTSP_TEARDOWN_FROM_SINK2SRC == rtsp_message_data.state )
                             {
-                                MIRACASTLOG_TRACE("[RTSP_TEARDOWN] ACTION Received\n");
+                                MIRACASTLOG_INFO("[RTSP_TEARDOWN] ACTION Received\n");
                             }
                         }
                         if ((RTSP_MSG_FAILURE == rtsp_sink2src_request_msg_handling(rtsp_message_data.state)) ||
