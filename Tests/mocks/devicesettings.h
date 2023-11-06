@@ -621,7 +621,7 @@ public:
     {
         return impl->getCurrentVideoMode();
     }
-    void selectPort(int8_t Port,bool audioMix = false,int videoPlane = 0,,bool topMost = false) const
+    void selectPort(int8_t Port,bool audioMix = false,int videoPlane = 0,bool topMost = false) const
     {
         return impl->selectPort(Port,audioMix,videoPlane,topMost);
     }
