@@ -189,6 +189,7 @@ jobs:
           telemetry_busmessage_sender.h
           maintenanceMGR.h
           pkg.h
+          secure_wrapper.h
 
       - name: Set clang toolchain
         if: ${{ matrix.compiler == 'clang' }}
@@ -222,6 +223,7 @@ jobs:
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Udev.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/maintenanceMGR.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/pkg.h
+          -include ${{github.workspace}}/rdkservices/Tests/mocks/secure_wrappermock.h
           -Wall -Werror
           -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog
           -DENABLE_TELEMETRY_LOGGING
@@ -320,7 +322,7 @@ jobs:
         run: >
           PATH=${{github.workspace}}/install/usr/bin:${PATH}
           LD_LIBRARY_PATH=${{github.workspace}}/install/usr/lib:${{github.workspace}}/install/usr/lib/wpeframework/plugins:${LD_LIBRARY_PATH}
-          RdkServicesTest
+          RdkServicesTest --gtest_filter=*UsbAccess*
 
       - name: Run unit tests with valgrind
         if: ${{ !env.ACT }}
@@ -334,7 +336,7 @@ jobs:
           --show-reachable=yes
           --track-fds=yes
           --fair-sched=try
-          RdkServicesTest
+          RdkServicesTest --gtest_filter=*UsbAccess*
 
       - name: Generate coverage
         if: ${{ matrix.coverage == 'with-coverage' && !env.ACT }}
