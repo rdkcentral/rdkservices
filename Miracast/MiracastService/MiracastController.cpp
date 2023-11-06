@@ -213,7 +213,7 @@ std::string MiracastController::start_DHCPClient(std::string interface, std::str
     FILE *popen_file_ptr = nullptr;
     char *current_line_buffer = nullptr;
     std::size_t len = 0;
-    unsigned char retry_count = 3;
+    unsigned char retry_count = 5;
 
     sprintf( sys_cls_file_ifidx , "/sys/class/net/%s/ifindex" , interface.c_str());
 
@@ -223,10 +223,6 @@ std::string MiracastController::start_DHCPClient(std::string interface, std::str
         MIRACASTLOG_ERROR("Could not find [%s]\n",sys_cls_file_ifidx);
         return std::string("");
     }
-
-    system_cmd_buffer = "ps -ax | awk '/p2p_udhcpc/ && !/grep/ {print $1}' | xargs kill -9";
-    MIRACASTLOG_VERBOSE("Flush old udhcpc p2p instance command : [%s]", system_cmd_buffer.c_str());
-    system(system_cmd_buffer.c_str());
 
     sprintf(command, "/sbin/udhcpc -v -i ");
     sprintf(command + strlen(command), interface.c_str());
@@ -290,7 +286,7 @@ std::string MiracastController::start_DHCPClient(std::string interface, std::str
     return local_addr;
 }
 
-MiracastError MiracastController::start_DHCPServer(std::string interface)
+std::string MiracastController::start_DHCPServer(std::string interface)
 {
     MIRACASTLOG_TRACE("Entering...");
     std::string command = "";
@@ -298,24 +294,18 @@ MiracastError MiracastController::start_DHCPServer(std::string interface)
     command = "ifconfig ";
     command.append(interface.c_str());
     command.append(" 192.168.59.1 netmask 255.255.255.0 up");
-
-    MIRACASTLOG_VERBOSE("command : [%s]", command.c_str());
-    system(command.c_str());
-    command = "ps -ax | awk '/dnsmasq -p0 -i/ && !/grep/ {print $1}' | xargs kill -9";
-
     MIRACASTLOG_VERBOSE("command : [%s]", command.c_str());
     system(command.c_str());
 
     command = "/usr/bin/dnsmasq -p0 -i ";
     command.append(interface.c_str());
     command.append(" -F 192.168.59.50,192.168.59.230,255.255.255.0,24h --log-queries=extra");
-
     MIRACASTLOG_VERBOSE("command : [%s]", command.c_str());
     system(command.c_str());
 
     MIRACASTLOG_TRACE("Exiting...");
 
-    return MIRACAST_OK;
+    return "192.168.59.1";
 }
 
 eCONTROLLER_FW_STATES MiracastController::convertP2PtoSessionActions(P2P_EVENTS eventId)
@@ -419,10 +409,23 @@ void MiracastController::remove_P2PGroupInstance(void)
     MIRACASTLOG_TRACE("Entering...");
     if (m_groupInfo)
     {
+        std::string system_cmd_buffer = "";
+
         if (( true == m_groupInfo->isGO )&&(nullptr != m_p2p_ctrl_obj))
         {
             m_p2p_ctrl_obj->remove_GroupInterface( m_groupInfo->interface );
         }
+        if ( true == m_groupInfo->isGO )
+        {
+            system_cmd_buffer = "ps -ax | awk '/dnsmasq -p0 -i/ && !/grep/ {print $1}' | xargs kill -9";
+            MIRACASTLOG_VERBOSE("Terminate old dnsmasq instance: [%s]",system_cmd_buffer.c_str());
+        }
+        else
+        {
+            system_cmd_buffer = "ps -ax | awk '/p2p_udhcpc/ && !/grep/ {print $1}' | xargs kill -9";
+            MIRACASTLOG_VERBOSE("Terminate old udhcpc p2p instance : [%s]", system_cmd_buffer.c_str());
+        }
+        system(system_cmd_buffer.c_str());
         delete m_groupInfo;
         m_groupInfo = nullptr;
     }
@@ -763,6 +766,8 @@ void MiracastController::Controller_Thread(void *args)
 
                         if ( CONTROLLER_GO_GROUP_STARTED == controller_msgq_data.state )
                         {
+                            std::string remote_address = "",
+                                        local_address  = "";
                             std::string src_dev_ip = "",
                                         src_dev_mac = "",
                                         src_dev_name = "",
@@ -809,27 +814,16 @@ void MiracastController::Controller_Thread(void *args)
                                 {
                                     if (m_groupInfo->goIPAddr.empty())
                                     {
-                                        MIRACASTLOG_VERBOSE("default_gw_ip [%s]\n", default_gw_ip.c_str());
+                                        MIRACASTLOG_INFO("Could be Persistent Group checking default_gw_ip [%s]\n", default_gw_ip.c_str());
                                         m_groupInfo->goIPAddr.append(default_gw_ip);
                                     }
-                                    src_dev_ip = m_groupInfo->goIPAddr;
-                                    src_dev_mac = m_groupInfo->goDevAddr;
-                                    src_dev_name = get_WFDSourceName();
-                                    sink_dev_ip = m_groupInfo->localIPAddr;
-                                    if (nullptr != m_notify_handler)
-                                    {
-                                        m_notify_handler->onMiracastServiceLaunchRequest(src_dev_ip, src_dev_mac, src_dev_name, sink_dev_ip);
-                                    }
-
-                                    checkAndInitiateP2PBackendDiscovery();
-                                    session_restart_required = false;
-                                    p2p_group_instance_alive = true;
+                                    remote_address = m_groupInfo->goIPAddr;
+                                    local_address = m_groupInfo->localIPAddr;
                                 }
                             }
                             else
                             {
                                 MIRACASTLOG_INFO("!!!! P2P GROUP STARTED IN GO MODE !!!!");
-                                std::string remote_address = "";
                                 size_t found_go = event_buffer.find("GO");
                                 m_groupInfo->interface = event_buffer.substr(found_space, found_go - found_space);
                                 m_groupInfo->goDevAddr = parse_p2p_event_data(event_buffer.c_str(), "go_dev_addr");
@@ -845,7 +839,8 @@ void MiracastController::Controller_Thread(void *args)
                                     system(tcpdump.c_str());
                                 }
 
-                                start_DHCPServer( m_groupInfo->interface );
+                                local_address = start_DHCPServer( m_groupInfo->interface );
+                                m_groupInfo->isGO = true;
 
                                 std::string mac_address = get_WFDSourceMACAddress();
                                 char data[1024] = {0};
@@ -854,7 +849,7 @@ void MiracastController::Controller_Thread(void *args)
                                 FILE *popen_file_ptr = nullptr;
                                 char *current_line_buffer = nullptr;
                                 std::size_t len = 0;
-                                unsigned char retry_count = 5;
+                                unsigned char retry_count = 15;
 
                                 sprintf( command,
                                             "cat /proc/net/arp | grep \"%s\" | awk '{print $1}'",
@@ -862,7 +857,7 @@ void MiracastController::Controller_Thread(void *args)
 
                                 while ( retry_count-- )
                                 {
-                                    MIRACASTLOG_VERBOSE("command is [%s]\n", command);
+                                    MIRACASTLOG_INFO("command is [%s]\n", command);
                                     popen_file_ptr = popen(command, "r");
                                     if (!popen_file_ptr)
                                     {
@@ -874,7 +869,7 @@ void MiracastController::Controller_Thread(void *args)
                                         while (getline(&current_line_buffer, &len, popen_file_ptr) != -1)
                                         {
                                             sprintf(data + strlen(data), current_line_buffer);
-                                            MIRACASTLOG_VERBOSE("data : [%s]", data);
+                                            MIRACASTLOG_INFO("data : [%s]", data);
                                         }
                                         pclose(popen_file_ptr);
                                         popen_file_ptr = nullptr;
@@ -883,13 +878,13 @@ void MiracastController::Controller_Thread(void *args)
                                         REMOVE_R(popen_buffer);
                                         REMOVE_N(popen_buffer);
 
-                                        MIRACASTLOG_VERBOSE("popen_buffer is [%s]\n", popen_buffer.c_str());
+                                        MIRACASTLOG_INFO("popen_buffer is [%s]\n", popen_buffer.c_str());
 
                                         free(current_line_buffer);
                                         current_line_buffer = nullptr;
 
                                         if (!popen_buffer.empty()){
-                                            MIRACASTLOG_VERBOSE("%s is success and popen_buffer[%s]\n", command,popen_buffer.c_str());
+                                            MIRACASTLOG_INFO("%s is success and popen_buffer[%s]\n", command,popen_buffer.c_str());
                                             remote_address = popen_buffer;
                                             sleep(1);
                                             break;
@@ -897,10 +892,18 @@ void MiracastController::Controller_Thread(void *args)
                                     }
                                     sleep(1);
                                 }
+                            }
+                            if (!remote_address.empty())
+                            {
                                 src_dev_ip = remote_address;
                                 src_dev_mac = m_groupInfo->goDevAddr;
                                 src_dev_name = get_WFDSourceName();
-                                sink_dev_ip = "192.168.59.1";
+                                sink_dev_ip = local_address;
+                                MIRACASTLOG_INFO("!!!! LaunchRequest src_dev_name[%s]src_dev_mac[%s]src_dev_ip[%s]sink_dev_ip[%s] !!!!",
+                                                    src_dev_name.c_str(),
+                                                    src_dev_mac.c_str(),
+                                                    src_dev_ip.c_str(),
+                                                    sink_dev_ip.c_str());
                                 if (nullptr != m_notify_handler)
                                 {
                                     m_notify_handler->onMiracastServiceLaunchRequest(src_dev_ip, src_dev_mac, src_dev_name, sink_dev_ip);
@@ -908,8 +911,13 @@ void MiracastController::Controller_Thread(void *args)
                                 checkAndInitiateP2PBackendDiscovery();
                                 session_restart_required = false;
                                 p2p_group_instance_alive = true;
-                                // STB is the GO in the p2p group
-                                m_groupInfo->isGO = true;
+                            }
+                            else
+                            {
+                                error_code = MIRACAST_SERVICE_ERR_CODE_GENERIC_FAILURE;
+                                session_restart_required = true;
+                                MIRACASTLOG_ERROR("!!!! Unable to get the Source Device IP and Terminating Group Here !!!!");
+                                remove_P2PGroupInstance();
                             }
                         }
                         else

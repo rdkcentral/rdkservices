@@ -879,22 +879,22 @@ namespace WPEFramework
 			MIRACASTLOG_INFO("Exiting..!!!");
 		}
 
-		std::string MiracastService::reasonDescription(eMIRACAST_SERVICE_ERR_CODE e) throw()
+		std::string MiracastService::reasonDescription(eMIRACAST_SERVICE_ERR_CODE e)
 		{
 			switch (e)
 			{
-			case MIRACAST_SERVICE_ERR_CODE_SUCCESS:
-				return "SUCCESS";
-			case MIRACAST_SERVICE_ERR_CODE_P2P_GROUP_NEGO_ERROR:
-				return "P2P GROUP NEGOTIATION FAILURE.";
-			case MIRACAST_SERVICE_ERR_CODE_P2P_GROUP_FORMATION_ERROR:
-				return "P2P GROUP FORMATION FAILURE.";
-			case MIRACAST_SERVICE_ERR_CODE_GENERIC_FAILURE:
-				return "P2P GENERIC FAILURE.";
-			case MIRACAST_SERVICE_ERR_CODE_P2P_CONNECT_ERROR:
-				return "P2P CONNECT FAILURE.";
-			default:
-				throw std::invalid_argument("Unimplemented item");
+				case MIRACAST_SERVICE_ERR_CODE_SUCCESS:
+					return "SUCCESS";
+				case MIRACAST_SERVICE_ERR_CODE_P2P_GROUP_NEGO_ERROR:
+					return "P2P GROUP NEGOTIATION FAILURE.";
+				case MIRACAST_SERVICE_ERR_CODE_P2P_GROUP_FORMATION_ERROR:
+					return "P2P GROUP FORMATION FAILURE.";
+				case MIRACAST_SERVICE_ERR_CODE_GENERIC_FAILURE:
+					return "P2P GENERIC FAILURE.";
+				case MIRACAST_SERVICE_ERR_CODE_P2P_CONNECT_ERROR:
+					return "P2P CONNECT FAILURE.";
+				default:
+					return "Unimplemented item";
 			}
 		}
 

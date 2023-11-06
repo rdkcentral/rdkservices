@@ -144,7 +144,7 @@ private:
     MiracastThread *m_controller_thread;
     int m_tcpserverSockfd;
     eCONTROLLER_FW_STATES convertP2PtoSessionActions(P2P_EVENTS eventId);
-    MiracastError start_DHCPServer(std::string interface);
+    std::string start_DHCPServer(std::string interface);
 };
 
 #endif
