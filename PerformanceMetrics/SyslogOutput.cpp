@@ -27,6 +27,8 @@
 
 #include <sys/sysinfo.h>
 
+#include "UtilsTelemetry.h"
+
 namespace WPEFramework {
 namespace Plugin {
 
@@ -185,6 +187,7 @@ private:
                 , LaunchTime()
                 , LoadSuccess()
                 , NbrLoaded()
+                , Callsign()
             {
                 Add(_T("MemTotal"), &MemoryTotal);
                 Add(_T("MemFree"), &MemoryFree);
@@ -202,6 +205,7 @@ private:
                 Add(_T("LaunchTime"), &LaunchTime);
                 Add(_T("AppLoadSuccess"), &LoadSuccess);
                 Add(_T("webPageLoadNum"), &NbrLoaded);
+                Add(_T("CallSign"), &Callsign);
             }
             ~MetricsAsJson() override = default;
 
@@ -225,6 +229,7 @@ private:
             Core::JSON::DecUInt64 LaunchTime;
             Core::JSON::DecUInt8 LoadSuccess; // kept backwards compatibility, use 0 and 1 instead of bool
             Core::JSON::DecUInt32 NbrLoaded;
+            Core::JSON::String Callsign;
     };
 
 public:
@@ -234,13 +239,16 @@ public:
     SysLogOuput() 
         : PerformanceMetrics::IBrowserMetricsLogger()
         , _callsign()
+        , _service(nullptr)
         , _memory(nullptr)
         , _processmemory(nullptr)
         , _cold(true)
         , _urloadmetrics()
         , _timeIdleFirstStart(0)
         , _adminLock()
+        , _lastURL()
         {
+            Utils::Telemetry::init();
         }
     ~SysLogOuput() override
     {
@@ -254,6 +262,8 @@ public:
         ASSERT(_processmemory == nullptr);
 
         _callsign = callsign;
+        _service = &service;
+        _service->AddRef();
         _memory = service.QueryInterface<Exchange::IMemory>();
         if( _memory != nullptr ) {
             Exchange::IMemoryExtended* extended = _memory->QueryInterface<Exchange::IMemoryExtended>();
@@ -277,6 +287,10 @@ public:
 
     void Disable() override 
     {
+        if(_service != nullptr) {
+            _service->Release();
+            _service = nullptr;
+        }
         if(_memory != nullptr) {
             _memory->Release();
             _memory = nullptr;
@@ -294,6 +308,11 @@ public:
 
     void Deactivated(const uint32_t) override 
     {
+        PluginHost::IShell::reason reason = _service->Reason();
+        if(reason == PluginHost::IShell::FAILURE || reason == PluginHost::IShell::MEMORY_EXCEEDED)
+        {
+            SYSLOG(Logging::Notification, (_T("Browser::Deactivated { \"URL\": %s , \"Reason\": %d }"), getHostName(_lastURL).c_str(), reason));
+        }
     }
 
     void Resumed() override
@@ -305,8 +324,23 @@ public:
         _timeIdleFirstStart = Core::Time::Now().Ticks();
     }
 
+    string getHostName(string _URL){
+        std::size_t startIdx = _URL.find("://");
+        if(startIdx == std::string::npos)
+            return _URL;
+        else {
+            startIdx += 3; // skip "://"
+            size_t endIdx = _URL.find("/",startIdx);
+            if(endIdx == std::string::npos)
+                return _URL.substr(startIdx);
+            else
+                return _URL.substr(startIdx, endIdx - startIdx);
+        }
+    }
+
     void LoadFinished(const string& URL, const int32_t, const bool success, const uint32_t totalsuccess, const uint32_t totalfailed) override 
     {
+        _cold = (totalsuccess <= 1)?true:false;
         if( ( URL != startURL ) && ( _timeIdleFirstStart > 0 ) ) {
             _adminLock.Lock();
             URLLoadedMetrics metrics(_urloadmetrics);
@@ -314,12 +348,9 @@ public:
                         
             uint64_t urllaunchtime_ms = ( ( Core::Time::Now().Ticks() - metrics.StartLoad() ) / Core::Time::TicksPerMillisecond);
 
-            OutputLoadFinishedMetrics(metrics, URL, urllaunchtime_ms, success, totalsuccess + totalfailed);
+            OutputLoadFinishedMetrics(metrics, getHostName(URL), urllaunchtime_ms, success, totalsuccess + totalfailed);
 
             _timeIdleFirstStart = 0; // we only measure on first non about:blank url handling
-        }
-        if( success == true ) { // note explicitely set outside the about blank check
-            _cold = false; //note do not use _cold = (success != true) as that will reset it when a page could not be loaded
         }
     }
 
@@ -354,6 +385,7 @@ public:
             _adminLock.Lock();
             _urloadmetrics = std::move(metrics);
             _adminLock.Unlock();
+            _lastURL = URL;
         }
     }
 
@@ -378,9 +410,9 @@ private:
         output.Uptime = urloadedmetrics.Uptime();
 
         static const float LA_SCALE = static_cast<float>(1 << SI_LOAD_SHIFT);
-        output.LoadAvarage = std::to_string(urloadedmetrics.AverageLoad()[0] / LA_SCALE) + " " +
-                             std::to_string(urloadedmetrics.AverageLoad()[1] / LA_SCALE) + " " +
-                             std::to_string(urloadedmetrics.AverageLoad()[2] / LA_SCALE);
+        output.LoadAvarage = std::to_string(urloadedmetrics.AverageLoad()[0] / LA_SCALE).substr(0,4) + " " +
+                             std::to_string(urloadedmetrics.AverageLoad()[1] / LA_SCALE).substr(0,4) + " " +
+                             std::to_string(urloadedmetrics.AverageLoad()[2] / LA_SCALE).substr(0,4);
 
         static const long NPROC_ONLN = sysconf(_SC_NPROCESSORS_ONLN);
         output.NbrProcessors = NPROC_ONLN;
@@ -401,10 +433,24 @@ private:
         output.LaunchTime = urllaunchtime_ms;
         output.LoadSuccess = success;
         output.NbrLoaded = totalloaded;
+        output.Callsign = _callsign;
 
         string outputstring;
         output.ToString(outputstring);
-        SYSLOG(Logging::Notification, (_T( "%s Launch Metrics: %s "), _callsign.c_str(), outputstring.c_str()));
+        JsonArray array;
+        JsonObject const metrics(outputstring);
+        JsonObject::Iterator it = metrics.Variants();
+        while (it.Next()) {
+            array.Add(it.Current().String().c_str());
+        }
+        string eventValue;
+        array.ToString(eventValue);
+
+        string eventName("LaunchMetrics_accum");
+
+        Utils::Telemetry::sendMessage((char *)eventName.c_str(), (char *)eventValue.c_str());
+
+	SYSLOG(Logging::Notification, (_T( "%s Launch Metrics: %s "), _callsign.c_str(), outputstring.c_str()));
     }
 
     string GetProcessStatmLine(const uint32_t pid) 
@@ -422,12 +468,14 @@ private:
 
 private:
     string _callsign;
+    PluginHost::IShell* _service;
     Exchange::IMemory* _memory;
     Exchange::IProcessMemory* _processmemory;
     bool _cold;
     URLLoadedMetrics _urloadmetrics;
     Core::Time::microsecondsfromepoch _timeIdleFirstStart;
     mutable Core::CriticalSection _adminLock;
+    string _lastURL;
 };
 
 constexpr char SysLogOuput::webProcessName[];
