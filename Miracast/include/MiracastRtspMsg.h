@@ -524,6 +524,7 @@ private:
     MiracastRTSPMsg(const MiracastRTSPMsg &) = delete;
 
     int m_tcpSockfd;
+    int m_epollfd;
     unsigned int m_wfd_src_req_timeout;
     unsigned int m_wfd_src_res_timeout;
     unsigned int m_current_wait_time_ms;
@@ -569,6 +570,7 @@ private:
 
     void send_msgto_controller_thread(eCONTROLLER_FW_STATES state);
     MiracastError create_RTSPThread(void);
+    void Release_SocketAndEpollDescriptor(void);
 
     RTSP_STATUS validate_rtsp_m1_msg_m2_send_request(std::string rtsp_m1_msg_buffer);
     RTSP_STATUS validate_rtsp_m2_request_ack(std::string rtsp_m1_response_ack_buffer);

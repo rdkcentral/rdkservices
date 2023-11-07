@@ -195,6 +195,7 @@ MiracastRTSPMsg::MiracastRTSPMsg()
 
     MIRACASTLOG_TRACE("Entering...");
     m_tcpSockfd = -1;
+    m_epollfd = -1;
     m_streaming_started = false;
 
     m_wfd_src_req_timeout = RTSP_REQUEST_RECV_TIMEOUT;
@@ -254,11 +255,21 @@ MiracastRTSPMsg::~MiracastRTSPMsg()
     destroy_TestNotifier();
 #endif
 
+    Release_SocketAndEpollDescriptor();
+}
+
+void MiracastRTSPMsg::Release_SocketAndEpollDescriptor(void)
+{
     MIRACASTLOG_TRACE("Entering...");
     if (-1 != m_tcpSockfd)
     {
         close(m_tcpSockfd);
         m_tcpSockfd = -1;
+    }
+    if ( -1 != m_epollfd )
+    {
+        close(m_epollfd);
+        m_epollfd = -1;
     }
     MIRACASTLOG_TRACE("Exiting...");
 }
@@ -972,81 +983,91 @@ MiracastError MiracastRTSPMsg::initiate_TCP(std::string goIP)
 
     struct sockaddr_storage in_addr = str_addr;
 
-    if (-1 != m_tcpSockfd){
-        close(m_tcpSockfd);
-        m_tcpSockfd = -1;
-    }
+    unsigned char retry_count = 5;
+    unsigned int current_waittime = SOCKET_DFLT_WAIT_TIMEOUT / retry_count;
+    bool is_connected = false;
 
-    m_tcpSockfd = socket(in_addr.ss_family, SOCK_STREAM | SOCK_CLOEXEC, 0);
-    if (m_tcpSockfd < 0)
+    while ( retry_count-- && ( false == is_connected ))
     {
-        MIRACASTLOG_ERROR("TCP Socket creation error %s", strerror(errno));
-        return MIRACAST_FAIL;
-    }
+        Release_SocketAndEpollDescriptor();
 
-    /*---Add socket to epoll---*/
-    int epfd = epoll_create(1);
-    struct epoll_event event;
-    event.events = EPOLLIN | EPOLLOUT;
-    event.data.fd = m_tcpSockfd;
-    epoll_ctl(epfd, EPOLL_CTL_ADD, m_tcpSockfd, &event);
-
-    fcntl(m_tcpSockfd, F_SETFL, O_NONBLOCK);
-    MIRACASTLOG_INFO("NON_BLOCKING Socket Enabled...\n");
-
-    r = connect(m_tcpSockfd, (struct sockaddr *)&in_addr, addr_size);
-    if (r < 0)
-    {
-        if (errno != EINPROGRESS)
+        m_tcpSockfd = socket(in_addr.ss_family, SOCK_STREAM | SOCK_CLOEXEC, 0);
+        if (m_tcpSockfd < 0)
         {
-            MIRACASTLOG_INFO("Event %s received(%d)", strerror(errno), errno);
+            MIRACASTLOG_ERROR("TCP Socket creation error %s", strerror(errno));
+            continue;
         }
-        else
+
+        /*---Add socket to epoll---*/
+        m_epollfd = epoll_create(1);
+        struct epoll_event event;
+        event.events = EPOLLIN | EPOLLOUT;
+        event.data.fd = m_tcpSockfd;
+        epoll_ctl(m_epollfd, EPOLL_CTL_ADD, m_tcpSockfd, &event);
+
+        fcntl(m_tcpSockfd, F_SETFL, O_NONBLOCK);
+        MIRACASTLOG_INFO("NON_BLOCKING Socket Enabled...\n");
+
+        r = connect(m_tcpSockfd, (struct sockaddr *)&in_addr, addr_size);
+        if (r < 0)
         {
-            // connection in progress
-            if (!wait_data_timeout(m_tcpSockfd, SOCKET_DFLT_WAIT_TIMEOUT))
+            if (errno != EINPROGRESS)
             {
-                // connection timed out or failed
-                MIRACASTLOG_ERROR("Socket Connection Timedout ...\n");
+                MIRACASTLOG_INFO("Event %s received(%d)", strerror(errno), errno);
             }
             else
             {
-                // connection successful
-                // do something with the connected socket
-                MIRACASTLOG_INFO("Socket Connected Successfully ...\n");
-                ret = MIRACAST_OK;
+                MIRACASTLOG_INFO("WaitingTime[%u] for Socket Connection",current_waittime);
+                // connection in progress
+                if (!wait_data_timeout(m_tcpSockfd, current_waittime ))
+                {
+                    // connection timed out or failed
+                    MIRACASTLOG_ERROR("Socket Connection Timedout %s received(%d)...", strerror(errno), errno);
+                }
+                else
+                {
+                    // connection successful
+                    // do something with the connected socket
+                    MIRACASTLOG_INFO("Socket Connected Successfully ...\n");
+                    ret = MIRACAST_OK;
+                    is_connected = true;
+                }
+            }
+        }
+        else
+        {
+            MIRACASTLOG_INFO("Socket Connected Successfully ...\n");
+            ret = MIRACAST_OK;
+            is_connected = true;
+        }
+    }
+
+    if (is_connected)
+    {
+        /*---Wait for socket connect to complete---*/
+        num_ready = epoll_wait(m_epollfd, events, MAX_EPOLL_EVENTS, 1000 /*timeout*/);
+        for (i = 0; i < num_ready; i++)
+        {
+            if (events[i].events & EPOLLOUT)
+            {
+                MIRACASTLOG_INFO("Socket(%d) %d connected (EPOLLOUT)", i, events[i].data.fd);
+            }
+        }
+
+        num_ready = epoll_wait(m_epollfd, events, MAX_EPOLL_EVENTS, 1000 /*timeout*/);
+        for (i = 0; i < num_ready; i++)
+        {
+            if (events[i].events & EPOLLOUT)
+            {
+                MIRACASTLOG_INFO("Socket %d got some data via EPOLLOUT", events[i].data.fd);
+                break;
             }
         }
     }
-    else
-    {
-        MIRACASTLOG_INFO("Socket Connected Successfully ...\n");
-        ret = MIRACAST_OK;
-    }
 
-    /*---Wait for socket connect to complete---*/
-    num_ready = epoll_wait(epfd, events, MAX_EPOLL_EVENTS, 1000 /*timeout*/);
-    for (i = 0; i < num_ready; i++)
+    if ( MIRACAST_FAIL == ret )
     {
-        if (events[i].events & EPOLLOUT)
-        {
-            MIRACASTLOG_INFO("Socket(%d) %d connected (EPOLLOUT)", i, events[i].data.fd);
-        }
-    }
-
-    num_ready = epoll_wait(epfd, events, MAX_EPOLL_EVENTS, 1000 /*timeout*/);
-    for (i = 0; i < num_ready; i++)
-    {
-        if (events[i].events & EPOLLOUT)
-        {
-            MIRACASTLOG_INFO("Socket %d got some data via EPOLLOUT", events[i].data.fd);
-            break;
-        }
-    }
-
-    if ( MIRACAST_FAIL == ret ){
-        close(m_tcpSockfd);
-        m_tcpSockfd = -1;
+        Release_SocketAndEpollDescriptor();
     }
 
     MIRACASTLOG_TRACE("Exiting...");
@@ -2234,13 +2255,7 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
                 }
             }
         }
-
-        if ( -1 != m_tcpSockfd )
-        {
-            close(m_tcpSockfd);
-            MIRACASTLOG_TRACE("Socket connection closed...");
-            m_tcpSockfd = -1;
-        }
+        Release_SocketAndEpollDescriptor();
     }
     MIRACASTLOG_TRACE("Exiting...");
 }
