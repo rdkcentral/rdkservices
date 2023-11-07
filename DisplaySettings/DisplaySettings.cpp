@@ -2947,7 +2947,7 @@ namespace WPEFramework {
                 returnIfParamNotFound(parameters, "volumeLevel");
                 string sLevel = parameters["volumeLevel"].String();
                 float level = 0;
-                int cache_volumelevel = 0;
+                int current_volumelevel = 0;
                 try {
                         level = stof(sLevel);
                 }catch (const device::Exception& err) {
@@ -2960,10 +2960,10 @@ namespace WPEFramework {
                 try
                 {
                         device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
+			current_volumelevel = (int)aPort.getLevel();
                         aPort.setLevel(level);
-                        if(cache_volumelevel != (int)level)
+                        if(current_volumelevel != (int)level)
                         {
-                            cache_volumelevel = (int)level;
                             JsonObject params;
                             params["volumeLevel"] = (int)level;
                             sendNotify("volumeLevelChanged", params);

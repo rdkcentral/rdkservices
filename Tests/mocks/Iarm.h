@@ -245,9 +245,9 @@ typedef enum _DeepSleep_WakeupReason_t {
     DEEPSLEEP_WAKEUPREASON_UNKNOWN
 } DeepSleep_WakeupReason_t;
 
-typedef struct _IARM_Bus_DeepSleepMgr_WakeupKeyCode_Param_t {
+typedef struct _DeepSleepMgr_WakeupKeyCode_Param_t {
     unsigned int keyCode;
-} IARM_Bus_DeepSleepMgr_WakeupKeyCode_Param_t;
+} DeepSleepMgr_WakeupKeyCode_Param_t;
 
 #define IARM_BUS_MFRLIB_NAME "MFRLib"
 #define IARM_BUS_MFRLIB_API_SetBootLoaderPattern "mfrSetBootloaderPattern"
@@ -600,7 +600,8 @@ typedef enum _SYSMgr_FirmwareUpdateState_t {
     IARM_BUS_SYSMGR_FIRMWARE_UPDATE_STATE_VALIDATION_COMPLETE = 5,
     IARM_BUS_SYSMGR_FIRMWARE_UPDATE_STATE_PREPARING_TO_REBOOT = 6,
     IARM_BUS_SYSMGR_FIRMWARE_UPDATE_STATE_ONHOLD_FOR_OPTOUT = 7, /* On Hold for opt-out */
-    IARM_BUS_SYSMGR_FIRMWARE_UPDATE_STATE_CRITICAL_REBOOT = 8
+    IARM_BUS_SYSMGR_FIRMWARE_UPDATE_STATE_CRITICAL_REBOOT = 8,
+    IARM_BUS_SYSMGR_FIRMWARE_UPDATE_STATE_NO_UPGRADE_REQUIRED = 9
 } IARM_Bus_SYSMGR_FirmwareUpdateState_t;
 
 typedef enum _SYSMgr_LogUpload_t
