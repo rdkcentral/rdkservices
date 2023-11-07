@@ -125,8 +125,6 @@ namespace Plugin {
                 // Seems the ID is already in here, thats odd, and impossible :-)
                 ObservingMap::iterator index = _observing.find(id);
 
-                ASSERT(index != _observing.end());
-
                 if (index == _observing.end()) {
                     _observing.emplace(std::piecewise_construct,
                         std::make_tuple(id),
@@ -141,8 +139,6 @@ namespace Plugin {
                 _job.Submit();
             }
             void Deactivated(RPC::IRemoteConnection* connection) override {
-
-                ASSERT(connection != nullptr);
 
                 uint32_t id = connection->Id();
 
@@ -179,35 +175,20 @@ namespace Plugin {
             {
                 _adminLock.Lock();
 
-                bool done = false;
+                ObservingMap::iterator index = _observing.begin();
 
-                while (done == false) {
-                    Observers::iterator index = _observing.begin();
-
-                    while (done == false) {
-                        if (index->second == state::ATTACHING) {
-                            const uint32_t id = index->first;
-                            index->second = state::OBSERVING;
-                            _adminLock.Unlock();
-                            _parent.Attach(id);
-                            _adminLock.Lock();
-                            break;
-                        }
-                        else if (index->second == state::DETACHING) {
-                            const uint32_t id = index->first;
-                            _observing.erase(index);
-                            _adminLock.Unlock();
-                            _parent.Detach(id);
-                            _adminLock.Lock();
-                            break;
-                        }
-                        else {
-                            index++;
-
-                            if (index == _observing.end()) {
-                                done = true;
-                            }
-                        }
+                while (index != _observing.end()) {
+                    if (index->second == state::ATTACHING) {
+                        index->second = state::OBSERVING;
+                        _parent.Attach(index->first);
+                        index++;
+                    }
+                    else if (index->second == state::DETACHING) {
+                        _parent.Detach(index->first);
+                        index = _observing.erase(index);
+                    }
+                    else {
+                        index++;
                     }
                 }
 
