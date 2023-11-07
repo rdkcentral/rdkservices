@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.1.18] - 2023-11-07
+### Changed
+- Extend memory pressure configuration
+
 ## [1.1.17] - 2023-10-04
 ### Added
 - Implement Thunder Plugin Configuration for Kirkstone builds(CMake-3.20 & above)
