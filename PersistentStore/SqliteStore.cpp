@@ -711,7 +711,7 @@ bool SqliteStore::IsEncrypted() const
 
     if (file.Exists() && file.Open(true)) {
         const uint32_t bufLen = strlen(SQLITE_FILE_HEADER);
-        char buffer[bufLen];
+        char buffer[bufLen + 1];
 
         result =
             (file.Read(reinterpret_cast<uint8_t *>(buffer), bufLen) != bufLen) ||
