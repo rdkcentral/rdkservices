@@ -2,7 +2,7 @@
 <a name="Bluetooth_Plugin"></a>
 # Bluetooth Plugin
 
-**Version: [1.0.5](https://github.com/rdkcentral/rdkservices/blob/main/Bluetooth/CHANGELOG.md)**
+**Version: [1.0.6](https://github.com/rdkcentral/rdkservices/blob/main/Bluetooth/CHANGELOG.md)**
 
 A org.rdk.Bluetooth plugin for Thunder framework.
 
@@ -423,9 +423,9 @@ No Events
 | result.deviceInfo.MAC | string | MAC address of the device |
 | result.deviceInfo.rssi | string | Received signal strength of the device |
 | result.deviceInfo.signalStrength | string | Bluetooth signal strength |
-| result.deviceInfo.batteryLevel | string | Bluetooth battery level |
-| result.deviceInfo.modalias | string | Bluetooth device modalias |
-| result.deviceInfo.firmwareRevision | string | Bluetooth device firmware revision | 
+| result.deviceInfo?.batteryLevel | string | <sup>*(optional)*</sup> Battery level of the connected bluetooth device, 0 if no battery level found |
+| result.deviceInfo?.modalias | string | <sup>*(optional)*</sup> The modalias for the device - if no modalias is present it will be an empty string |
+| result.deviceInfo?.firmwareRevision | string | <sup>*(optional)*</sup> The firmware revision for a particular device creaded from the modalias - if no modalias is present it will be an empty string |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -459,7 +459,9 @@ No Events
             "MAC": "E8:FB:E9:0C:XX:80",
             "rssi": "0",
             "signalStrength": "0",
-            "batteryLevel": "53"
+            "batteryLevel": "53",
+            "modalias": "v:0B13p:045Ed:0517",
+            "firmwareRevision": "5.1.7"
         },
         "success": true
     }
