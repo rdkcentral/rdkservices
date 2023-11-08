@@ -417,6 +417,7 @@ namespace WPEFramework {
 		  void handleInitialize(PluginHost::IShell* shell);
                   void handleActivated(PluginHost::IShell* shell);
                   void handleDeactivated(PluginHost::IShell* shell);
+                  void handleDeinitialized(PluginHost::IShell* shell);
 #ifdef USE_THUNDER_R4
 		  virtual void Initialize(VARIABLE_IS_NOT_USED const string& callsign, VARIABLE_IS_NOT_USED PluginHost::IShell* plugin);
                   virtual void Activation(const string& name, PluginHost::IShell* plugin);
