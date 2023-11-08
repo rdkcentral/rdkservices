@@ -336,6 +336,8 @@ uint32_t AVInput::startInput(const JsonObject& parameters, JsonObject& response)
     int portId = 0;
     int iType = 0;
     int planeType = 0; //planeType = 0 -  primary, 1 - secondary video plane type
+    bool topMostPlane = parameters["topMost"].Boolean();
+    LOGINFO("topMost value in thunder: %d\n",topMostPlane);
     if (parameters.HasLabel("portId") && parameters.HasLabel("typeOfInput"))
     {
         try {
@@ -363,7 +365,7 @@ uint32_t AVInput::startInput(const JsonObject& parameters, JsonObject& response)
     try
     {
         if (iType == HDMI) {
-           device::HdmiInput::getInstance().selectPort(portId,audioMix,planeType);
+           device::HdmiInput::getInstance().selectPort(portId,audioMix,planeType,topMostPlane);
     }
     else if(iType == COMPOSITE) {
             device::CompositeInput::getInstance().selectPort(portId);

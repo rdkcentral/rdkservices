@@ -232,6 +232,11 @@
                         "summary": "Defines whether the video plane type, 0 - Primary video plane, 1 - Secondary Video Plane, Other values - Invalid - This is an optional argument ",
                         "type": "integer",
                         "example": "0"
+	            },
+		    "topMost":{
+                        "summary": "Defines whether the Hdmi Input should be over or under the other video plane",
+                        "type": "boolean",
+                        "example": "true"
                     }
                 },
                 "required": [
