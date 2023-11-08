@@ -650,6 +650,7 @@ namespace WPEFramework {
             strncpy(rebootParam.requestor, "SystemServices", sizeof(rebootParam.requestor));
             strncpy(rebootParam.reboot_reason_custom, customReason.c_str(), sizeof(rebootParam.reboot_reason_custom));
             strncpy(rebootParam.reboot_reason_other, otherReason.c_str(), sizeof(rebootParam.reboot_reason_other));
+            rebootParam.reboot_reason_other[sizeof(rebootParam.reboot_reason_other) - 1] = '\0';
             LOGINFO("requestSystemReboot: custom reason: %s, other reason: %s\n", rebootParam.reboot_reason_custom,
                 rebootParam.reboot_reason_other);
 
