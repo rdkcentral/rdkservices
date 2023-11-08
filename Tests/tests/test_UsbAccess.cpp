@@ -590,7 +590,7 @@ TEST_F(UsbAccessTest, getFileListSuccess_withSpecialCharacters)
     }));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFileList"), _T("{\"path\":\"/run/media/sda1/logs/PreviousLogs\"}"), response));
-    EXPECT_EQ(response, string("{\"path\":\"\\/run\\/media\\/sda1\\/logs\\/PreviousLogs\",\"contents\":[{\"name\":\"..\",\"t\":\"d\"},{\"name\":\"logFile.txt\",\"t\":\"f\"},{\"name\":\".\",\"t\":\"d\"},{\"name\":\"file1.txt\",\"t\":\"f\"}],\"success\":true}"));
+    EXPECT_EQ(response, string("{\"path\":\"\\/run\\/media\\/sda1\\/logs\\/PreviousLogs\",\"contents\":[{\"name\":\".\",\"t\":\"d\"},{\"name\":\"..\",\"t\":\"d\"},{\"name\":\"file1.txt\",\"t\":\"f\"},{\"name\":\"logfile.txt\",\"t\":\"f\"}],\"success\":true}"));
     
 for (const auto& fileName1 :fileNames) {
 	std::string filePaths = directory + fileName1;
