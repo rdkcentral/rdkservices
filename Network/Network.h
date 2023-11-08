@@ -199,7 +199,6 @@ namespace WPEFramework {
             void onInterfaceIPAddressChanged(std::string interface, std::string ipv6Addr, std::string ipv4Addr, bool acquired);
             void onDefaultInterfaceChanged(std::string oldInterface, std::string newInterface);
 
-            static void eventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             void iarmEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
             // Netmask Validation
@@ -222,6 +221,7 @@ namespace WPEFramework {
         public:
             Network();
             virtual ~Network();
+	    static void eventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
             //Build QueryInterface implementation, specifying all possible interfaces to be returned.
             BEGIN_INTERFACE_MAP(Network)
