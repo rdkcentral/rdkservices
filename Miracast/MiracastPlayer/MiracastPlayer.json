@@ -1,0 +1,9 @@
+{
+ "locator":"libWPEFrameworkMiracastPlayer.so",
+ "classname":"MiracastPlayer",
+ "precondition":[
+  "Platform"
+ ],
+ "callsign":"org.rdk.MiracastPlayer",
+ "autostart":false
+}

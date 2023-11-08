@@ -1,0 +1,174 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "MiracastServicePlugin",
+        "class": "MiracastService",
+        "description": "The MiracastService plugin provides methods and events to support Screen Mirroring via WiFi-Direct."
+    },
+    "common": {
+        "$ref": "../common/common.json"
+    },
+    "definitions": {
+        "enabled": {
+            "summary":"`true` for enabled or `false` for disabled",
+            "type":"boolean",
+            "example": true
+        },
+        "requestStatus": {
+            "summary":"`Accept` for connect device request or `Reject` for denying connect device request",
+            "type":"string",
+            "example": "Accept or Reject"
+        },
+        "clientName": {
+            "summary":"WiFi-Direct Source name",
+            "type":"string",
+            "example": "Manufacturer WiFi-Direct Name"
+        },
+        "clientMac":{
+            "summary":"case-sensitive. MAC Address of WiFi-Direct Source in lower case",
+            "type":"string",
+            "example":"ab:cd:ef:12:34:56"
+        }
+    },
+    "methods": {
+        "setEnable":{
+            "summary": "Enable or disable MiracastService service.  When disabled, the WiFi-Direct Source should not be able to discover CPE as a Screen Mirroring.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "enabled": {
+                        "$ref": "#/definitions/enabled"
+                    }
+                },
+                "required": [
+                    "enabled"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+        "getEnable":{
+            "summary": "Reports whether MiracastService discovery enabled or disabled.",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "enabled": {
+                        "$ref": "#/definitions/enabled"
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "enabled",
+                    "success"
+		]
+            }
+        },
+        "acceptClientConnectionRequest":{
+            "summary": "When onClientConnectionRequest event received, need to respond back with acceptClientConnectionRequest whether Accept or Reject, Otherwise it get timedout",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "enabled": {
+                        "$ref": "#/definitions/requestStatus"
+                    }
+                },
+                "required": [
+                    "requestStatus"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        }
+    },
+    "events": {
+        "onClientConnectionRequest":{
+            "summary": "Triggered when the Miracast thunder plugin receives new connection request from the client.  The resident application is responsible for calling the acceptClientConnectionReject API to Accept or Reject the request.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "clientName": {
+                        "$ref": "#/definitions/clientName"
+                    },
+                    "clientMac":{
+                        "$ref": "#/definitions/clientMac"
+                    }
+                },
+                "required": [
+                    "clientName",
+                    "clientMac"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+        "onClientStopRequest":{
+            "summary": "Triggered when the Mira cast plugin receives stop connection request from client. Application exit the current session and could go to Home Screen.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "clientName": {
+                        "$ref": "#/definitions/clientName"
+                    },
+                    "clientMac":{
+                        "$ref": "#/definitions/clientMac"
+                    }
+                },
+                "required": [
+                    "clientName",
+                    "clientMac"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+        "onClientConnectionStarted":{
+            "summary": "Triggered when the Miracast plugin successfully start the playback of Miracast session.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "clientName": {
+                        "$ref": "#/definitions/clientName"
+                    },
+                    "clientMac":{
+                        "$ref": "#/definitions/clientMac"
+                    }
+                },
+                "required": [
+                    "clientName",
+                    "clientMac"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+        "onClientConnectionError":{
+            "summary": "Triggered when the Mira cast plugin failed to start the playback of Miracast session due to some error.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "clientName": {
+                        "$ref": "#/definitions/clientName"
+                    },
+                    "clientMac":{
+                        "$ref": "#/definitions/clientMac"
+                    }
+                },
+                "required": [
+                    "clientName",
+                    "clientMac"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        }
+    }
+}
