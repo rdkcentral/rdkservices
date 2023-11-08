@@ -616,7 +616,7 @@ namespace WPEFramework
             BTRMGR_Result_t rc = BTRMGR_RESULT_SUCCESS;
             JsonObject response; // responding with a single object
 
-            char adapterName[BTRMGR_NAME_LEN_MAX];
+            char adapterName[BTRMGR_NAME_LEN_MAX] = '\0';
             rc = BTRMGR_GetAdapterName (0, &adapterName[0]);
             if (BTRMGR_RESULT_SUCCESS != rc)
             {
