@@ -2,7 +2,7 @@
 <a name="FrameRate_Plugin"></a>
 # FrameRate Plugin
 
-**Version: [1.0.4](https://github.com/rdkcentral/rdkservices/blob/main/FrameRate/CHANGELOG.md)**
+**Version: [1.0.5](https://github.com/rdkcentral/rdkservices/blob/main/FrameRate/CHANGELOG.md)**
 
 A org.rdk.FrameRate plugin for Thunder framework.
 
@@ -464,14 +464,20 @@ Triggered when the framerate changes started.
 
 ### Parameters
 
-This event carries no parameters.
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.displayFrameRate | string | Video Display FrameRate changing |
 
 ### Example
 
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.onDisplayFrameRateChanging"
+    "method": "client.events.onDisplayFrameRateChanging",
+    "params": {
+        "displayFrameRate": "1920x1080x60"
+    }
 }
 ```
 
@@ -482,14 +488,20 @@ Triggered when the framerate changed.
 
 ### Parameters
 
-This event carries no parameters.
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.displayFrameRate | string | Video Display FrameRate changed |
 
 ### Example
 
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.onDisplayFrameRateChanged"
+    "method": "client.events.onDisplayFrameRateChanged",
+    "params": {
+        "displayFrameRate": "1920x1080x60"
+    }
 }
 ```
 
