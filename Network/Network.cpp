@@ -35,7 +35,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 3
-#define API_VERSION_NUMBER_PATCH 1
+#define API_VERSION_NUMBER_PATCH 2
 
 /* Netsrvmgr Based Macros & Structures */
 #define IARM_BUS_NM_SRV_MGR_NAME "NET_SRV_MGR"
@@ -462,6 +462,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
 
                         IARM_BUS_NetSrvMgr_Iface_EventData_t iarmData = { 0 };
                     strncpy(iarmData.setInterface, interface.c_str(), INTERFACE_SIZE);
+                    iarmData.setInterface[sizeof(iarmData.setInterface) - 1] = '\0';
                     iarmData.persist = persist;
 
                     if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setDefaultInterface, (void *)&iarmData, sizeof(iarmData)))
@@ -853,7 +854,9 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
 
                 IARM_BUS_NetSrvMgr_Iface_Settings_t iarmData = {0};
                 strncpy(iarmData.interface, interface.c_str(), 16);
+                iarmData.interface[sizeof(iarmData.interface) - 1] = '\0';
                 strncpy(iarmData.ipversion, ipversion.c_str(), 16);
+                iarmData.ipversion[sizeof(iarmData.ipversion) - 1] = '\0';
                 iarmData.autoconfig = autoconfig;
                 strncpy(iarmData.ipaddress, ipaddr.c_str(), 16);
                 strncpy(iarmData.netmask, netmask.c_str(), 16);
@@ -1036,7 +1039,9 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
         bool Network::getIPIARMWrapper(IARM_BUS_NetSrvMgr_Iface_Settings_t& iarmData, const string interface, const string ipversion)
         {
            strncpy(iarmData.interface, interface.c_str(), 16);
+           iarmData.interface[sizeof(iarmData.interface) - 1] = '\0';
            strncpy(iarmData.ipversion, ipversion.c_str(), 16);
+           iarmData.ipversion[sizeof(iarmData.ipversion) - 1] = '\0';
            if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getIPSettings, (void *)&iarmData, sizeof(iarmData)))
                 return true;
            return false;
@@ -1396,7 +1401,9 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                 getNumberParameter("cache_timeout", iarmData.cache_timeout);
 
                 strncpy(iarmData.server, server.c_str(), MAX_HOST_NAME_LEN);
+                iarmData.server[sizeof(iarmData.server) - 1] = '\0';
                 strncpy(iarmData.interface, iface.c_str(), 16);
+                iarmData.interface[sizeof(iarmData.interface) - 1] = '\0';
 
                 iarmData.public_ip[0] = '\0';
 
