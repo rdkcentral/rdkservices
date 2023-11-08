@@ -322,7 +322,7 @@ jobs:
         run: >
           PATH=${{github.workspace}}/install/usr/bin:${PATH}
           LD_LIBRARY_PATH=${{github.workspace}}/install/usr/lib:${{github.workspace}}/install/usr/lib/wpeframework/plugins:${LD_LIBRARY_PATH}
-          RdkServicesTest --gtest_filter=*UsbAccess*
+          RdkServicesTest
 
       - name: Run unit tests with valgrind
         if: ${{ !env.ACT }}
@@ -336,7 +336,7 @@ jobs:
           --show-reachable=yes
           --track-fds=yes
           --fair-sched=try
-          RdkServicesTest --gtest_filter=*UsbAccess*
+          RdkServicesTest
 
       - name: Generate coverage
         if: ${{ matrix.coverage == 'with-coverage' && !env.ACT }}
