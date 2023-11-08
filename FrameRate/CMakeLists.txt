@@ -32,13 +32,34 @@ set_target_properties(${MODULE_NAME} PROPERTIES
 
 target_compile_definitions(${MODULE_NAME} PRIVATE MODULE_NAME=Plugin_${PLUGIN_NAME})
 
-find_package(DS)
+if (NOT RDK_SERVICES_TEST)
+    target_compile_options(${MODULE_NAME} PRIVATE -Wno-error)
+endif ()
+
+list(APPEND CMAKE_MODULE_PATH
+        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
+
 find_package(IARMBus)
+if (IARMBus_FOUND)
+    target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS})
+    target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${IARMBUS_LIBRARIES})
+else (IARMBus_FOUND)
+    message ("Module IARMBus required.")
+    target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS})
+    target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${IARMBUS_LIBRARIES})
+endif(IARMBus_FOUND)
 
-add_definitions(-DDS_FOUND)
+find_package(DS)
+if (DS_FOUND)
+        find_package(IARMBus)
+    add_definitions(-DDS_FOUND)
+    target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS})
+    target_include_directories(${MODULE_NAME} PRIVATE ${DS_INCLUDE_DIRS})
+    target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${IARMBUS_LIBRARIES} ${DS_LIBRARIES})
+else (DS_FOUND)
+    target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins)
+endif(DS_FOUND)
 
-target_include_directories(${MODULE_NAME} PRIVATE ${DS_INCLUDE_DIRS})
-target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS})
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 
 set_source_files_properties(FrameRate.cpp PROPERTIES COMPILE_FLAGS "-fexceptions")

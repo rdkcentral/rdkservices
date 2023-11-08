@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.1] - 2023-11-08
+### Changed
+-  Added an RFC to control reserveTTS API
+
 ## [1.0.0] - 2023-07-06
 ### Added
 - Add CHANGELOG
