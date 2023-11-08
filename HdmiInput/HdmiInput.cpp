@@ -231,7 +231,7 @@ namespace WPEFramework
 	    string sPortId = parameters["portId"].String();
             bool audioMix = parameters["requestAudioMix"].Boolean();
 	    int portId = 0;    
-	    
+	    bool topMostPlane = parameters["topMost"].Boolean();
 	    //planeType = 0 -  primary, 1 - secondary video plane type
 	    int planeType = 0;
 	    try {
@@ -252,7 +252,7 @@ namespace WPEFramework
             bool success = true;
             try
             {
-                device::HdmiInput::getInstance().selectPort(portId,audioMix,planeType);
+                device::HdmiInput::getInstance().selectPort(portId,audioMix,planeType,topMostPlane);
             }
 	    catch (const device::Exception& err)
             {
