@@ -1059,7 +1059,13 @@ namespace WPEFramework {
                     gApplicationsExitReason[service->Callsign()] = AppLastExitReason::CRASH;
                 }
                 gExitReasonMutex.unlock();
+            }
+        }
 
+        void RDKShell::MonitorClients::handleDeinitialized(PluginHost::IShell* service)
+        {
+            if (service)
+            {
                 std::string configLine = service->ConfigLine();
                 if (configLine.empty())
                 {
@@ -1106,6 +1112,7 @@ namespace WPEFramework {
                 gLaunchDestroyMutex.unlock();
             }
         }
+
 
         void RDKShell::MonitorClients::StateChange(PluginHost::IShell* service)
         {
@@ -1304,7 +1311,9 @@ namespace WPEFramework {
             handleDeactivated(service);
        }
         void RDKShell::MonitorClients::Deinitialized(VARIABLE_IS_NOT_USED const string& callsign, VARIABLE_IS_NOT_USED PluginHost::IShell* service)
-       {}
+        {
+            handleDeinitialized(service);
+        }
        void RDKShell::MonitorClients::Unavailable(const string& callsign, PluginHost::IShell* service)
        {}
 #endif /* USE_THUNDER_R4 */
