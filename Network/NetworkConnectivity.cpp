@@ -65,17 +65,6 @@ namespace WPEFramework {
         return readStrings;
     }
 
-    /*
-        [Connectivity_Config]
-        CONNECTIVITY_ENDPOINT_1=http://clients3.google.com/generate_204
-        CONNECTIVITY_ENDPOINT_2=http://gstatic.com/generate_204
-        CONNECTIVITY_ENDPOINT_3=
-        CONNECTIVITY_ENDPOINT_4=
-        CONNECTIVITY_ENDPOINT_5=
-        CONNECTIVITY_MONITOR_ENABLE=1
-        CONNECTIVITY_MONITOR_INTERVAL=30
-    */
-
     void Connectivity::loadConnectivityConfig(const std::string& configFilePath)
     {
         std::ifstream configFile(configFilePath);

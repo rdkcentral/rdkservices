@@ -11,7 +11,7 @@
 #include "Module.h"
 
 #define CAPTIVEPORTAL_MAX_LEN 512
-#define DEFAULT_MONITOR_TIMEOUT 5 // in seconds
+#define DEFAULT_MONITOR_TIMEOUT 60 // in seconds
 
 enum nsm_ipversion {
     NSM_IPRESOLVE_WHATEVER  = 0, /* default, resolves addresses to all IP*/
@@ -68,7 +68,17 @@ namespace WPEFramework {
             const Connectivity& operator=(const Connectivity&) = delete;
 
         public:
-            Connectivity(const std::string& configFilePath = "/etc/netsrvmgr.conf") { loadConnectivityConfig(configFilePath); }
+            Connectivity(const std::string& configFilePath = "/etc/netsrvmgr.conf")
+            {
+                loadConnectivityConfig(configFilePath);
+                if(m_defaultEndpoints.empty())
+                {
+                    LOGERR("NETSRVMGR CONFIGURATION ERROR: CONNECTIVITY ENDPOINT EMPTY");
+                    m_defaultEndpoints.clear();
+                    m_defaultEndpoints.push_back("http://gstatic.com/generate_204");
+                    m_defaultEndpoints.push_back("http://clients3.google.com/generate_204");
+                }
+            }
             ~Connectivity(){}
 
             nsm_internetState testConnectivity(const std::vector<std::string>& endpoints, long timeout_ms, nsm_ipversion ipversion);
