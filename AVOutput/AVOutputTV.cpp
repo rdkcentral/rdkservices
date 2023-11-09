@@ -4914,7 +4914,7 @@ namespace Plugin {
                                 LOGINFO("Exit : Picture Mode reset successfully, value: %s\n", param.value);
                             }
 		        }
-                        int pqmodeindex = (int)GetTVPictureModeIndex(setparam);
+                        int pqmodeindex = (int)GetTVPictureModeIndex(setparam.c_str());
                         SaveSourcePictureMode(source, format, pqmodeindex);
                     }
                     else {
