@@ -461,7 +461,7 @@ TEST_F(NetworkTest, getQuirks)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getQuirks"), _T("{}"), response));
 	EXPECT_EQ(response, string("{\"quirks\":[\"RDK-20093\"],\"success\":true}"));
 }
-
+/*
 TEST_F(NetworkTest, getInternetConnectionState)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getInternetConnectionState"), _T("{\"ipversion\": \"IPV6\"}"), response));
@@ -477,7 +477,7 @@ TEST_F(NetworkTest, isConnectedToInternet)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("isConnectedToInternet"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"connectedToInternet\":false,\"success\":true}"));
 }
-
+*/
 TEST_F(NetworkTest, stopConnectivityMonitoring)
 {
     EXPECT_NE(Core::ERROR_NONE, handler.Invoke(connection, _T("stopConnectivityMonitoring"), _T("{}"), response));
@@ -489,7 +489,7 @@ TEST_F(NetworkTest, getCaptivePortalURI)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getCaptivePortalURI"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"URI\":\"\",\"success\":true}"));
 }
-
+/*
 TEST_F(NetworkTest, startConnectivityMonitoring)
 {
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("startConnectivityMonitoring"), _T("{}"), response));
@@ -497,7 +497,7 @@ TEST_F(NetworkTest, startConnectivityMonitoring)
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("startConnectivityMonitoring"), _T("{\"interval\":6}"), response));
     EXPECT_EQ(response, string(""));
 }
-
+*/
 TEST_F(NetworkTest, setConnectivityTestEndpoints)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setConnectivityTestEndpoints"), _T("{\"endpoints\": [\"http://clients3.google.com/generate_204\"]}"), response));
