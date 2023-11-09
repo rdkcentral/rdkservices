@@ -920,6 +920,7 @@ typedef enum _IARM_Bus_NMgr_WiFi_EventId_t {
 #define IARM_BUS_NETSRVMGR_API_stopConnectivityMonitoring "stopConnectivityMonitoring"
 #define IARM_BUS_NETSRVMGR_API_isAvailable "isAvailable"
 #define IARM_BUS_NETSRVMGR_API_getPublicIP "getPublicIP"
+#define IARM_BUS_NETSRVMGR_API_configurePNI "configurePNI"
 
 // TODO: remove this
 #define registerMethod(...) for (uint8_t i = 1; GetHandler(i); i++) GetHandler(i)->Register<JsonObject, JsonObject>(__VA_ARGS__)
