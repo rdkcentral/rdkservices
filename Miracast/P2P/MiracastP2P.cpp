@@ -363,12 +363,12 @@ MiracastError MiracastP2P::executeCommand(std::string command, int interface, st
 {
     MIRACASTLOG_TRACE("Entering..");
 
-    MIRACASTLOG_VERBOSE("Executing P2P command %s", command.c_str());
+    MIRACASTLOG_INFO("Executing P2P command %s", command.c_str());
     {
         char ret_buffer[2048] = {0};
         p2pExecute((char *)command.c_str(), static_cast<P2P_INTERFACE>(interface), ret_buffer);
         retBuffer = ret_buffer;
-        MIRACASTLOG_VERBOSE("command return buffer is - %s", retBuffer.c_str());
+        MIRACASTLOG_INFO("command return buffer is - %s", retBuffer.c_str());
     }
     MIRACASTLOG_TRACE("Exiting..");
     return MIRACAST_OK;

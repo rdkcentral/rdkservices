@@ -152,14 +152,22 @@ bool MiracastGstPlayer::updateVideoSinkRectangle(void)
     return ret;
 }
 
-bool MiracastGstPlayer::launch(std::string localip , std::string streaming_port)
+bool MiracastGstPlayer::launch(std::string localip , std::string streaming_port, MiracastRTSPMsg *rtsp_instance)
 {
     bool ret = false;
 
     if (setUri(localip, streaming_port))
     {
         m_streaming_port = std::stoull(streaming_port.c_str());
+        if ( nullptr != rtsp_instance )
+        {
+            m_rtsp_reference_instance = rtsp_instance;
+        }
         ret = createPipeline();
+        if ( !ret ){
+            m_rtsp_reference_instance = nullptr;
+            MIRACASTLOG_ERROR("Failed to create the pipeline");
+        }
     }
     return ret;
 }
@@ -710,6 +718,38 @@ void MiracastGstPlayer::pad_added_handler(GstElement *gstelement, GstPad *new_pa
     MIRACASTLOG_TRACE("Exiting..!!!");
 }
 
+/**
+ * @brief Callback invoked after first video frame decoded
+ * @param[in] object pointer to element raising the callback
+ * @param[in] arg0 number of arguments
+ * @param[in] arg1 array of arguments
+ * @param[in] _this pointer to MiracastGstPlayer instance
+ */
+void MiracastGstPlayer::onFirstVideoFrameCallback(GstElement* object, guint arg0, gpointer arg1,gpointer userdata)
+{
+    MIRACASTLOG_TRACE("Entering..!!!");
+    MiracastGstPlayer *self = static_cast<MiracastGstPlayer*>(userdata);
+        self->m_firstVideoFrameReceived = true;
+    MIRACASTLOG_INFO("!!! First Video Frame has received !!!");
+    self->notifyPlaybackState(MIRACAST_GSTPLAYER_STATE_FIRST_VIDEO_FRAME_RECEIVED);
+    MIRACASTLOG_TRACE("Exiting..!!!");
+}
+
+void MiracastGstPlayer::notifyPlaybackState(eMIRA_GSTPLAYER_STATES gst_player_state)
+{
+    MIRACASTLOG_TRACE("Entering..!!!");
+    if ( nullptr != m_rtsp_reference_instance )
+    {
+        RTSP_HLDR_MSGQ_STRUCT rtsp_hldr_msgq_data = {0};
+
+        rtsp_hldr_msgq_data.state = RTSP_NOTIFY_GSTPLAYER_STATE;
+        rtsp_hldr_msgq_data.gst_player_state = gst_player_state;
+        MIRACASTLOG_INFO("!!! GstPlayer to RTSP [%#08X] !!!",gst_player_state);
+        m_rtsp_reference_instance->send_msgto_rtsp_msg_hdler_thread(rtsp_hldr_msgq_data);
+    }
+    MIRACASTLOG_TRACE("Exiting..!!!");
+}
+
 bool MiracastGstPlayer::createPipeline()
 {
     MIRACASTLOG_TRACE("Entering..!!!");
@@ -858,6 +898,7 @@ bool MiracastGstPlayer::createPipeline()
     /*{{{ westerossink related element configuration*/
     MIRACASTLOG_TRACE(">>>>>>>westerossink configuration start");
     updateVideoSinkRectangle();
+    g_signal_connect(m_video_sink, "first-video-frame-callback",G_CALLBACK(onFirstVideoFrameCallback), (gpointer)this);
     MIRACASTLOG_TRACE("westerossink configuration end<<<<<<<<");
     /*}}}*/
 
