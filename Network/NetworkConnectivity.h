@@ -116,7 +116,11 @@ namespace WPEFramework {
                 void resetConnectivityCache() { g_internetState = nsm_internetState::UNKNOWN;}
 
             private:
-                ConnectivityMonitor() : stopFlag(false), threadRunning(false) { setConnectivityMonitorEndpoints(getConnectivityDefaultEndpoints()); }
+                ConnectivityMonitor() : stopFlag(false), threadRunning(false)
+                {
+                    setConnectivityMonitorEndpoints(getConnectivityDefaultEndpoints());
+                }
+
                 ~ConnectivityMonitor() {
                     stopConnectivityMonitor();
                 }
