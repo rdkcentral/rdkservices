@@ -4795,9 +4795,9 @@ namespace Plugin {
             returnResponse(false);
         }
 
+	std::string local = value;
+	transform(local.begin(), local.end(), local.begin(), ::tolower);
         if( isSetRequired("Current",source,format) ) {
-	    std::string local = value;
-	    transform(local.begin(), local.end(), local.begin(), ::tolower);
             LOGINFO("Proceed with SetTVPictureMode\n");
             ret = SetTVPictureMode(local.c_str());
          }
@@ -4825,7 +4825,7 @@ namespace Plugin {
                     }
                     else {
                         LOGINFO("setLocalParam for %s Successful, Value: %s\n", AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM, value.c_str());
-		        int pqmodeindex = (int)GetTVPictureModeIndex(value.c_str());
+		        int pqmodeindex = (int)GetTVPictureModeIndex(local.c_str());
                         SaveSourcePictureMode(source_vec[x], format_vec[y], pqmodeindex);
 		    }
                 }
@@ -4899,10 +4899,11 @@ namespace Plugin {
                             current_format = (int)ConvertVideoFormatToHDRFormat(GetCurrentContentFormat());
                         }
 
+			//as hal using loer across converting to lower
+			std::string setparam = param.value;
+			transform(setparam.begin(), setparam.end(), setparam.begin(), ::tolower);
+
 		        if (current_source == source && current_format == format ) {
-			    //as hal using loer across converting to lower
-			    std::string setparam = param.value;
-			    transform(setparam.begin(), setparam.end(), setparam.begin(), ::tolower);
 
                             tvError_t ret = SetTVPictureMode(setparam.c_str());
                             if(ret != tvERROR_NONE) {
@@ -4913,15 +4914,14 @@ namespace Plugin {
                                 LOGINFO("Exit : Picture Mode reset successfully, value: %s\n", param.value);
                             }
 		        }
+                        int pqmodeindex = (int)GetTVPictureModeIndex(setparam);
+                        SaveSourcePictureMode(source, format, pqmodeindex);
                     }
                     else {
                         LOGWARN("getLocalParam for %s failed\n", AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
                         returnResponse(false);
                     }
                 }
-
-                int pqmodeindex = (int)GetTVPictureModeIndex(param.value);
-                SaveSourcePictureMode(source, format, pqmodeindex);
 	    }
         }
 	returnResponse(true;)
