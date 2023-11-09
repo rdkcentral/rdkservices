@@ -815,7 +815,7 @@ bool MiracastGstPlayer::createPipeline()
     if (caps)
     {
         g_object_set(m_udpsrc, "caps", caps, nullptr);
-        gst_caps_unref(caps);gst_caps_unref(caps);
+        gst_caps_unref(caps);
         MIRACASTLOG_TRACE("Set the caps to udp source.");
     }
     else
