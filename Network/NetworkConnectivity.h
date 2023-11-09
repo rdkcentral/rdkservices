@@ -75,7 +75,6 @@ namespace WPEFramework {
                 {
                     LOGERR("NETSRVMGR CONFIGURATION ERROR: CONNECTIVITY ENDPOINT EMPTY");
                     m_defaultEndpoints.clear();
-                    m_defaultEndpoints.push_back("http://gstatic.com/generate_204");
                     m_defaultEndpoints.push_back("http://clients3.google.com/generate_204");
                 }
             }
