@@ -895,24 +895,24 @@ bool MiracastGstPlayer::createPipeline()
     if (ret == GST_STATE_CHANGE_FAILURE)
     {
         MIRACASTLOG_ERROR("Unable to set the pipeline to the playing state.");
-        gst_object_unref(m_audio_sink);
-        gst_object_unref(m_audioconvert);
-        gst_object_unref(m_avdec_aac);
-        gst_object_unref(m_aacparse);
-        gst_object_unref(m_aQueue);
+        if(m_audio_sink) gst_object_unref(m_audio_sink);
+        if(m_audioconvert) gst_object_unref(m_audioconvert);
+        if(m_avdec_aac) gst_object_unref(m_avdec_aac);
+        if(m_aacparse) gst_object_unref(m_aacparse);
+        if(m_aQueue) gst_object_unref(m_aQueue);
 
-        gst_object_unref(m_video_sink);
-        gst_object_unref(m_h264parse);
-        gst_object_unref(m_vQueue);
+        if(m_video_sink) gst_object_unref(m_video_sink);
+        if(m_h264parse) gst_object_unref(m_h264parse);
+        if(m_vQueue) gst_object_unref(m_vQueue);
 
-        gst_object_unref(m_tsdemux);
-        gst_object_unref(m_tsparse);
+        if(m_tsdemux) gst_object_unref(m_tsdemux);
+        if(m_tsparse) gst_object_unref(m_tsparse);
 
-        gst_object_unref(m_rtpmp2tdepay);
-        gst_object_unref(m_rtpjitterbuffer);
-        gst_object_unref(m_udpsrc);
+        if(m_rtpmp2tdepay) gst_object_unref(m_rtpmp2tdepay);
+        if(m_rtpjitterbuffer) gst_object_unref(m_rtpjitterbuffer);
+        if(m_udpsrc) gst_object_unref(m_udpsrc);
 
-        gst_object_unref(m_pipeline);
+        if(m_pipeline) gst_object_unref(m_pipeline);
         return_value = false;
     }
     else if (ret == GST_STATE_CHANGE_NO_PREROLL)
