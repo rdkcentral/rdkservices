@@ -4899,7 +4899,7 @@ namespace Plugin {
                             current_format = (int)ConvertVideoFormatToHDRFormat(GetCurrentContentFormat());
                         }
 
-			//as hal using loer across converting to lower
+			//as hal using lower across converting to lower
 			std::string setparam = param.value;
 			transform(setparam.begin(), setparam.end(), setparam.begin(), ::tolower);
 
