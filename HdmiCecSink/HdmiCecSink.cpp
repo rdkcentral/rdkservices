@@ -3398,21 +3398,19 @@ namespace WPEFramework
                     keyInfo = _instance->m_SendKeyQueue.front();
                     _instance->m_SendKeyQueue.pop();
 
-                LOGINFO("threadSendKeyEvent : logical addr:0x%x keyCode: 0x%x  queue size :%zu \n",keyInfo.logicalAddr,keyInfo.keyCode,_instance->m_SendKeyQueue.size());
-				if(keyInfo.UserControl == "sendUserControlPressed" )
+		    		if(keyInfo.UserControl == "sendUserControlPressed" )
                                {
-                                  LOGINFO(" thread sendUserControlPressed \n");
+                                        LOGINFO("sendUserControlPressed : logical addr:0x%x keyCode: 0x%x  queue size :%zu \n",keyInfo.logicalAddr,keyInfo.keyCode,_instance->m_SendKeyQueue.size());
                                        _instance->sendUserControlPressed(keyInfo.logicalAddr,keyInfo.keyCode);
                                }
                                else if(keyInfo.UserControl == "sendUserControlReleased")
                                {
-                                         LOGINFO("thread sendUserControlReleased \n");
+                                	LOGINFO("sendUserControlReleased : logical addr:0x%x  queue size :%zu \n",keyInfo.logicalAddr,_instance->m_SendKeyQueue.size());
                                        _instance->sendUserControlReleased(keyInfo.logicalAddr);
                                }
-
                                else
                                {
-                                        LOGINFO("thread sendKeyPressEvent \n");
+                                        LOGINFO("sendKeyPressEvent : logical addr:0x%x keyCode: 0x%x  queue size :%zu \n",keyInfo.logicalAddr,keyInfo.keyCode,_instance->m_SendKeyQueue.size());
                                        _instance->sendKeyPressEvent(keyInfo.logicalAddr,keyInfo.keyCode);
                                        _instance->sendKeyReleaseEvent(keyInfo.logicalAddr);
                                }
