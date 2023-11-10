@@ -1036,9 +1036,22 @@ void MiracastController::Controller_Thread(void *args)
                     break;
                     case CONTROLLER_RESTART_DISCOVERING:
                     {
+                        std::string cached_mac_address = get_NewSourceMACAddress(),
+                                    mac_address = controller_msgq_data.msg_buffer;
                         MIRACASTLOG_INFO("CONTROLLER_RESTART_DISCOVERING Received\n");
                         m_connectionStatus = false;
+
+                        if ((!cached_mac_address.empty()) && ( 0 == mac_address.compare(cached_mac_address)))
+                        {
+                            reset_NewSourceMACAddress();
+                            reset_NewSourceName();
+                            MIRACASTLOG_INFO("[%s] Cached Device info removed...",cached_mac_address.c_str());
+                        }
                         restart_session(start_discovering_enabled);
+                        new_thunder_req_client_connection_sent = false;
+                        another_thunder_req_client_connection_sent = false;
+                        session_restart_required = true;
+                        p2p_group_instance_alive = false;
                     }
                     break;
                     case CONTROLLER_START_STREAMING:
@@ -1172,8 +1185,13 @@ void MiracastController::ThunderReqHandler_Thread(void *args)
             break;
             case THUNDER_REQ_HLDR_RESTART_DISCOVER:
             {
-                MIRACASTLOG_INFO("[THUNDER_REQ_HLDR_RESTART_DISCOVER]\n");
+                std::string device_mac_address = thunder_req_hdlr_msgq_data.msg_buffer;
                 controller_msgq_data.state = CONTROLLER_RESTART_DISCOVERING;
+                if ( !device_mac_address.empty())
+                {
+                    strcpy(controller_msgq_data.msg_buffer, device_mac_address.c_str());
+                }
+                MIRACASTLOG_INFO("[THUNDER_REQ_HLDR_RESTART_DISCOVER][%s]",device_mac_address.c_str());
             }
             break;
             case THUNDER_REQ_HLDR_CONNECT_DEVICE_FROM_CONTROLLER:
@@ -1274,8 +1292,12 @@ void MiracastController::send_msg_thunder_msg_hdler_thread(MIRACAST_SERVICE_STAT
         break;
         case MIRACAST_SERVICE_WFD_RESTART:
         {
-            MIRACASTLOG_INFO("[MIRACAST_SERVICE_WFD_RESTART]\n");
+            MIRACASTLOG_INFO("[MIRACAST_SERVICE_WFD_RESTART][%s]",action_buffer.c_str());
             thunder_req_msgq_data.state = THUNDER_REQ_HLDR_RESTART_DISCOVER;
+            if ( !action_buffer.empty())
+            {
+                memcpy(thunder_req_msgq_data.msg_buffer, action_buffer.c_str(), action_buffer.length());
+            }
         }
         break;
         case MIRACAST_SERVICE_FLUSH_SESSION:
@@ -1349,10 +1371,10 @@ void MiracastController::setP2PBackendDiscovery(bool is_enabled)
     MIRACASTLOG_TRACE("Exiting...");
 }
 
-void MiracastController::restart_session_discovery(void )
+void MiracastController::restart_session_discovery(std::string mac_address)
 {
     MIRACASTLOG_TRACE("Entering...");
-    send_msg_thunder_msg_hdler_thread(MIRACAST_SERVICE_WFD_RESTART);
+    send_msg_thunder_msg_hdler_thread(MIRACAST_SERVICE_WFD_RESTART,mac_address);
     MIRACASTLOG_TRACE("Exiting...");
 }
 

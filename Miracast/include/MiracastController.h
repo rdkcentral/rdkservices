@@ -79,7 +79,7 @@ public:
 
     MiracastError stop_discover_devices();
     MiracastError set_WFDParameters(void);
-    void restart_session_discovery(void );
+    void restart_session_discovery(std::string mac_address="");
     void flush_current_session(void);
     void remove_P2PGroupInstance(void);
     void restart_session(bool start_discovering_enabled);
