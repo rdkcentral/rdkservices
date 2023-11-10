@@ -196,6 +196,7 @@ bool sFactoryModeBlockResidentApp = false;
 bool sForceResidentAppLaunch = false;
 static bool sRunning = true;
 bool needsScreenshot = false;
+sem_t gInitializeSemaphore;
 
 #ifdef HIBERNATE_NATIVE_APPS_ON_SUSPENDED
 std::mutex nativeAppWasResumedMutex;
@@ -1432,6 +1433,7 @@ namespace WPEFramework {
             }
 
             mErmEnabled = CompositorController::isErmEnabled();
+            sem_init(&gInitializeSemaphore, 0, 0);
             shellThread = std::thread([=]() {
                 bool isRunning = true;
                 gRdkShellMutex.lock();
@@ -1476,6 +1478,7 @@ namespace WPEFramework {
                 isRunning = sRunning;
                 gRdkShellMutex.unlock();
                 gRdkShellSurfaceModeEnabled = CompositorController::isSurfaceModeEnabled();
+                sem_post(&gInitializeSemaphore);
                 while(isRunning) {
                   const double maxSleepTime = (1000 / gCurrentFramerate) * 1000;
                   double startFrameTime = RdkShell::microseconds();
@@ -1638,6 +1641,7 @@ namespace WPEFramework {
         RialtoConnector *rialtoBridge = new RialtoConnector();
         rialtoConnector = std::shared_ptr<RialtoConnector>(rialtoBridge);
 #endif //  ENABLE_RIALTO_FEATURE
+            sem_wait(&gInitializeSemaphore);
             return "";
         }
 
@@ -1818,6 +1822,7 @@ namespace WPEFramework {
             gKillClientRequests.clear();
             gRdkShellMutex.unlock();
             gExternalDestroyApplications.clear();
+            sem_destroy(&gInitializeSemaphore);
         }
 
         string RDKShell::Information() const
