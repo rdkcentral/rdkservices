@@ -150,6 +150,11 @@
             "type":"string",
             "example":"0"
         },
+        "batteryLevel": {
+            "summary":"Battery level of the connected bluetooth device, 0 if no battery level found",
+            "type":"string",
+            "example": "53"
+        },
         "eventType":{
             "summary": "Name of a request-time event (for example, `onPairingRequest`, `onConnectionRequest`, `onPlaybackRequest`)",
             "type":"string",
@@ -438,6 +443,9 @@
                             },
                             "signalStrength": {
                                 "$ref": "#/definitions/signalStrength"
+                            },
+                            "batteryLevel": {
+                                "$ref": "#/definitions/batteryLevel"
                             }
                         },
                         "required": [

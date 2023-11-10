@@ -150,47 +150,7 @@ namespace WPEFramework {
         {
         public:
 
-            class Config : public Core::JSON::Container {
-                private:
-                    Config(const Config&) = delete;
-                    Config& operator=(const Config&) = delete;
-
-                public:
-                    Config()
-                    {
-                        Add(_T("endpoint_1"), &endpoint_1);
-                        Add(_T("endpoint_2"), &endpoint_2);
-                        Add(_T("endpoint_3"), &endpoint_3);
-                        Add(_T("endpoint_4"), &endpoint_4);
-                        Add(_T("endpoint_5"), &endpoint_5);
-                    }
-                    ~Config()
-                    {
-                    }
-
-                    std::vector<std::string> getEndpoints()
-                    {
-                        int count = 0;
-                        std::vector<std::string> endpoints;
-                        endpoints.push_back(endpoint_1.Value().c_str());
-                        endpoints.push_back(endpoint_2.Value().c_str());
-                        endpoints.push_back(endpoint_3.Value().c_str());
-                        endpoints.push_back(endpoint_4.Value().c_str());
-                        endpoints.push_back(endpoint_5.Value().c_str());
-                        for (const std::string& str : endpoints)
-                            LOGINFO("endpoint-%d = %s", count++, str.c_str());
-                        return endpoints;
-                    }
-
-                public:
-                    Core::JSON::String endpoint_1;
-                    Core::JSON::String endpoint_2;
-                    Core::JSON::String endpoint_3;
-                    Core::JSON::String endpoint_4;
-                    Core::JSON::String endpoint_5;
-            };
-
-            static void notifyInternetStatusChange(nsm_internetState InternetConnectionState, bool notifyNow);
+            static void notifyInternetStatusChange(nsm_internetState InternetConnectionState);
 
         private:
 
@@ -257,6 +217,7 @@ namespace WPEFramework {
             JsonObject _doPingNamedEndpoint(const std::string& guid, const std::string& endpointName, int packets);
             bool getIPSettingsInternal(const JsonObject& parameters, JsonObject& response,int& errCode);
             uint32_t setIPSettingsInternal(const JsonObject& parameters, JsonObject& response);
+            void setInternetSubsystem();
 
         public:
             Network();
@@ -314,22 +275,10 @@ namespace WPEFramework {
             std::atomic<bool> m_useIpv4EthCache;
             std::atomic<bool> m_useIpv6EthCache;
             std::atomic<bool> m_useStbIPCache;
-            std::atomic<bool> m_useIPv4InternetCache;
-            std::atomic<bool> m_useIPv6InternetCache;
-            std::atomic<bool> m_useInternetCache;
-            std::atomic<bool> m_useIPv4ConnectionStateCache;
-            std::atomic<bool> m_useIPv6ConnectionStateCache;
-            std::atomic<bool> m_useConnectionStateCache;
             string m_stbIpCache;
             std::atomic<bool> m_useDefInterfaceCache;
             string m_defInterfaceCache;
             string m_defIpversionCache;
-            bool m_ipv4InternetCache;
-            bool m_ipv6InternetCache;
-            bool m_InternetCache;
-            nsm_internetState m_ipv4ConnectionStateCache;
-            nsm_internetState m_ipv6ConnectionStateCache;
-            nsm_internetState m_ConnectionStateCache;
 
             IARM_BUS_NetSrvMgr_Iface_Settings_t m_ipv4WifiCache;
             IARM_BUS_NetSrvMgr_Iface_Settings_t m_ipv6WifiCache;
