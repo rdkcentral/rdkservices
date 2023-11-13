@@ -263,6 +263,11 @@ if (BUILD_XI3)
     add_definitions (-DBUILD_XI3)
     #To enable dlna Mimetype only for Xi3 builds
 
+    if (LOGUPLOAD_BEFORE_DEEPSLEEP)
+        message("Enabling LOGUPLOAD_BEFORE_DEEPSLEEP")
+        add_definitions (-DLOGUPLOAD_BEFORE_DEEPSLEEP)
+    endif()
+
     add_definitions (-DENABLE_DEEP_SLEEP)
     add_definitions (-DUSE_COMMON_XG1_XI3)
     add_definitions (-DUSE_UIMAF)
