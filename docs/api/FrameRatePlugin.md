@@ -467,7 +467,7 @@ Triggered when the framerate changes started.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.displayFrameRate | string | video display framerate |
+| params.displayFrameRate | string | Video Display FrameRate changing |
 
 ### Example
 
@@ -491,7 +491,7 @@ Triggered when the framerate changed.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.displayFrameRate | string | video display framerate |
+| params.displayFrameRate | string | Video Display FrameRate changed |
 
 ### Example
 
