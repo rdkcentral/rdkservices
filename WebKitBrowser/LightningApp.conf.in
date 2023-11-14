@@ -1,5 +1,4 @@
-if boolean("@PLUGIN_LIGHTNING_APP_STARTUPORDER@"):
-    startuporder = "@PLUGIN_LIGHTNING_APP_STARTUPORDER@"
+startuporder = "@PLUGIN_LIGHTNING_APP_STARTUPORDER@"
 
 precondition = ["Graphics"]
 autostart = "@PLUGIN_LIGHTNING_APP_AUTOSTART@"

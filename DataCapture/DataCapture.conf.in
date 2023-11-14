@@ -1,6 +1,4 @@
 precondition = ["Platform"]
 callsign = "org.rdk.dataCapture"
 autostart = "false"
-
-if boolean("@PLUGIN_DATACAPTURE_STARTUPORDER@"):
-    startuporder = "@PLUGIN_DATACAPTURE_STARTUPORDER@"
+startuporder = "@PLUGIN_DATACAPTURE_STARTUPORDER@"

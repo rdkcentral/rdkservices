@@ -1,6 +1,4 @@
 precondition = ["Platform"]
 callsign = "org.rdk.LEDControl"
 autostart = "false"
-
-if boolean("@PLUGIN_LEDCONTROL_STARTUPORDER@"):
-    startuporder = "@PLUGIN_LEDCONTROL_STARTUPORDER@"
+startuporder = "@PLUGIN_LEDCONTROL_STARTUPORDER@"

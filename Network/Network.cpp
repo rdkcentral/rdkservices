@@ -1641,6 +1641,12 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
         void Network::onInternetStatusChange(InternetConnectionState_t InternetConnectionState)
         {
             JsonObject params;
+            m_useInternetCache = false;
+            m_useConnectionStateCache = false;
+            m_useIPv4InternetCache = false;
+            m_useIPv4ConnectionStateCache = false;
+            m_useIPv6InternetCache = false;
+            m_useIPv6ConnectionStateCache = false;
             params["state"] = static_cast <int> (InternetConnectionState);
             switch (InternetConnectionState)
             {
