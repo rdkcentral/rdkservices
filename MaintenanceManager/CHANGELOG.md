@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.25] - 2023-11-09
+### Changed
+- Proceed with maintenance tasks during first time activation once we got internet
+
 ## [1.0.24] - 2023-10-26
 ### Added
 - Brought SecManager code under ENABLE_WHOAMI compile flag

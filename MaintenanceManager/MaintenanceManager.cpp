@@ -67,7 +67,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 26
+#define API_VERSION_NUMBER_PATCH 27
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 
@@ -319,16 +319,18 @@ namespace WPEFramework {
 #endif
 
 #if defined(ENABLE_WHOAMI)
+    string activation_status = "";
     if (UNSOLICITED_MAINTENANCE == g_maintenance_type) {
         /* WhoAmI check*/
-        bool whoAmIStatus = knowWhoAmI();
+        bool whoAmIStatus = knowWhoAmI(activation_status);
         if (whoAmIStatus) {
             LOGINFO("knowWhoAmI() returned successfully");
         }
     }
-#endif
-
+            if ( false == internetConnectStatus && activation_status == "activated" ) {
+#else
             if ( false == internetConnectStatus ) {
+#endif
                 m_statusMutex.lock();
                 MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
                 m_statusMutex.unlock();
@@ -407,7 +409,7 @@ namespace WPEFramework {
         }
 
 #if defined(ENABLE_WHOAMI)
-        bool MaintenanceManager::knowWhoAmI()
+        bool MaintenanceManager::knowWhoAmI(string &activation_status)
         {
             bool success = false;
             int retryDelay = 10;
@@ -478,7 +480,8 @@ namespace WPEFramework {
 
 		retryCount++;
                 if (retryCount == 4 && !success) {
-                    if (checkActivatedStatus() == "activated") {
+                    activation_status = checkActivatedStatus();
+                    if (activation_status == "activated") {
                         LOGINFO("Device is already activated. Exiting from knowWhoAmI()");
                         success = true;
                     }
