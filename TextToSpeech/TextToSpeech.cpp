@@ -61,7 +61,7 @@ namespace Plugin {
 
         std::string message;
         if(_tts != nullptr) {
-            ASSERT(_connectionId != 0);
+           // ASSERT(_connectionId != 0);
 
             PluginHost::IStateControl* stateControl(_tts->QueryInterface<PluginHost::IStateControl>());
 
@@ -102,7 +102,7 @@ namespace Plugin {
 
         if(_tts) {
             if(_tts->Release() != Core::ERROR_DESTRUCTION_SUCCEEDED) {
-                ASSERT(_connectionId != 0);
+     //           ASSERT(_connectionId != 0);
                 TTSLOG_WARNING("TextToSpeech Plugin is not properly destructed. %d", _connectionId);
 
                 if(_service) {

@@ -8,8 +8,8 @@ on:
 
 env:
   BUILD_TYPE: Debug
-  THUNDER_REF: "R2-v1.14"
-  INTERFACES_REF: "R2-v1.14"
+  THUNDER_REF: "5e7c0b1ed3c3dd0fc31c86518a364388dc24273b"
+  INTERFACES_REF: "669d9c6e5ed7a5938ff26e1e7736adf485c7a205"
 
 
 jobs:
@@ -75,6 +75,11 @@ jobs:
           sudo apt update
           &&
           sudo apt install -y libsqlite3-dev libcurl4-openssl-dev valgrind lcov clang libsystemd-dev
+          
+      - name: Install GStreamer
+        run: |
+           sudo apt update
+           sudo apt install -y libunwind-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
 
       - name: Checkout Thunder
         if: steps.cache.outputs.cache-hit != 'true'
@@ -190,6 +195,8 @@ jobs:
           telemetry_busmessage_sender.h
           maintenanceMGR.h
           pkg.h
+          &&
+          cp -r /usr/include/gstreamer-1.0/gst /usr/include/glib-2.0/* /usr/lib/x86_64-linux-gnu/glib-2.0/include/* .
 
       - name: Set clang toolchain
         if: ${{ matrix.compiler == 'clang' }}
@@ -269,6 +276,7 @@ jobs:
           -DPLUGIN_WAREHOUSE=ON
           -DPLUGIN_ACTIVITYMONITOR=ON
           -DDS_FOUND=ON
+          -DPLUGIN_TEXTTOSPEECH=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           &&
           cmake --build build/rdkservices -j8

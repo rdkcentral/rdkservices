@@ -88,6 +88,7 @@ include_directories(../LocationSync
 	../RDKShell
         ../MaintenanceManager
         ../Packager
+        ../TextToSpeech
         )
 link_directories(../LocationSync
         ../PersistentStore
@@ -125,6 +126,7 @@ link_directories(../LocationSync
 	../RDKShell
         ../MaintenanceManager
         ../Packager
+        ../TextToSpeech
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -166,6 +168,7 @@ target_link_libraries(${PROJECT_NAME}
 	${NAMESPACE}RDKShell
         ${NAMESPACE}MaintenanceManager
         ${NAMESPACE}Packager
+        ${NAMESPACE}TextToSpeech
         )
 
 target_include_directories(${PROJECT_NAME}
