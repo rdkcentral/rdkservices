@@ -795,7 +795,6 @@
                 ]
             }
         },
-
         "reportAudioDeviceConnectedStatus": {
             "summary": "Triggered when an audio device is added or removed",
             "params": {
