@@ -53,8 +53,11 @@ typedef enum p2p_events_e
 }
 P2P_EVENTS;
 
+#define MIRACAST_ENABLE_P2P_SCAN_INTERVAL
+
 #define MIRACAST_DFLT_NAME "Miracast-Generic"
 #define MIRACAST_DFLT_CFG_METHOD "pbc"
+#define MIRACAST_DFLT_P2P_SCAN_INTERVAL_MSEC "3000"
 
 class MiracastP2P
 {

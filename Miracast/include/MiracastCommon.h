@@ -370,4 +370,12 @@ private:
     void (*m_thread_callback)(void *);
     void *m_thread_user_data;
 };
+
+// Static member function in a class
+class MiracastCommon
+{
+    public:
+        static std::string parse_opt_flag( std::string file_name , bool integer_check );
+};
+
 #endif

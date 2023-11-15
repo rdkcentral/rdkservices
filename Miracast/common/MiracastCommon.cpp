@@ -147,8 +147,7 @@ int8_t MiracastThread::receive_message(void *message, size_t msg_size, int sem_w
     return status;
 }
 
-#if 0
-std::string parse_opt_flag( std::string file_name , bool integer_check )
+std::string MiracastCommon::parse_opt_flag( std::string file_name , bool integer_check )
 {
     std::string return_buffer = "";
     std::ifstream parse_opt_flag_file( file_name.c_str());
@@ -190,4 +189,3 @@ std::string parse_opt_flag( std::string file_name , bool integer_check )
     }
     return return_buffer;
 }
-#endif
