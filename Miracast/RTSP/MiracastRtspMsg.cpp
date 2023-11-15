@@ -815,7 +815,7 @@ std::string MiracastRTSPMsg::generate_request_response_msg(RTSP_MSG_FMT_SINK2SRC
 
 std::string MiracastRTSPMsg::generate_RequestSequenceNumber(void)
 {
-    int next_number = std::stoi(m_current_sequence_number.empty() ? "0" : m_current_sequence_number) + 1;
+    int next_number = std::stoi(m_current_sequence_number.empty() ? "1" : m_current_sequence_number) + 1;
     m_current_sequence_number = std::to_string(next_number);
     return m_current_sequence_number;
 }
