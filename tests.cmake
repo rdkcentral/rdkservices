@@ -161,6 +161,7 @@ add_definitions(
         -DXCAST_ENABLED_BY_DEFAULT
         -DCLOCK_BRIGHTNESS_ENABLED
         -DUSE_DS
+        -DUNIT_TESTING
 )
 
 message("Setting build options")
