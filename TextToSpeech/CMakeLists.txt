@@ -12,7 +12,13 @@ if(NOT WPEFRAMEWORK_SECURITYUTIL_FOUND)
     add_definitions(-DSECURITY_TOKEN_ENABLED=0)
 endif()
 
-add_subdirectory(test)
+set_source_files_properties(
+        TextToSpeechImplementation.cpp
+        PROPERTIES COMPILE_FLAGS "-fexceptions")
+
+set_source_files_properties(
+        TextToSpeechJsonRpc.cpp
+        PROPERTIES COMPILE_FLAGS "-fexceptions")
 
 add_library(${MODULE_NAME} SHARED
         Module.cpp
