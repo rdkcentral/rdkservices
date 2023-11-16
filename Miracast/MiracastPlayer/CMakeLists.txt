@@ -46,7 +46,7 @@ target_include_directories(${MODULE_NAME} PRIVATE ${GSTREAMER_INCLUDES})
 target_include_directories(${MODULE_NAME} PRIVATE ${GSTREAMERBASE_INCLUDE_DIRS})
 
 #target_compile_options(${MODULE_NAME} PRIVATE -Wno-error -fpermissive -Os -pipe -g -feliminate-unused-debug-types -Wl,-O1 -Wl,--hash-style=gnu -Wl,--as-needed)
-target_compile_options(${MODULE_NAME} PRIVATE -DENABLE_MIRACAST_PLAYER_TEST_NOTIFIER)
+#target_compile_options(${MODULE_NAME} PRIVATE -DENABLE_MIRACAST_PLAYER_TEST_NOTIFIER)
 
 target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins)
 target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}SecurityUtil)
