@@ -409,8 +409,13 @@ MiracastError MiracastP2P::set_WFDParameters(void)
         executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
         command = "P2P_PEER FIRST";
         executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
-        command = "P2P_SET disallow_freq 5180-5900";
-        executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
+
+        if (0 != access("/opt/miracast_p2p_avoid_5Ghz", F_OK))
+        {
+            command = "P2P_SET disallow_freq 5180-5900";
+            executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
+        }
+
         command = "WFD_SUBELEM_SET 0";
         executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
         command = "WFD_SUBELEM_SET 0 000600111c4400c8";
