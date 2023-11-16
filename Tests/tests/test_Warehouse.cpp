@@ -595,7 +595,7 @@ TEST_F(WarehouseInitializedTest, lightReset)
                 {
                     auto* runScriptParam = static_cast<IARM_Bus_SYSMgr_RunScript_t*>(arg);
                     runScriptParam->return_value = 0;
-                    EXPECT_EQ(string(runScriptParam->script_path), string("rm -rf /opt/netflix/* /opt/QT/home/data/* /opt/hn_service_settings.conf /opt/apps/common/proxies.conf /opt/lib/bluetooth /opt/persistent/rdkservicestore"));
+                    EXPECT_EQ(string(runScriptParam->script_path), string("rm -rf /opt/netflix/* /media/apps/sky/packages/NetflixApp/data.img /opt/QT/home/data/* /opt/hn_service_settings.conf /opt/apps/common/proxies.conf /opt/lib/bluetooth /opt/persistent/rdkservicestore"));
                 }
                 return IARM_RESULT_SUCCESS;
             });
