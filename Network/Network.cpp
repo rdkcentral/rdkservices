@@ -1084,7 +1084,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             {
                 if ((!m_useIpv4EthCache) && (getIPIARMWrapper(m_ipv4EthCache, interface, ipversion)))
                 {
-                    if(NETWORK_IPADDRESS_ACQUIRED == m_ipv4EthCache.errCode)
+                    if(NETWORK_IPADDRESS_ACQUIRED == m_useIpv4EthCache.errCode)
                         m_useIpv4EthCache = true;
                 }
 
@@ -1098,7 +1098,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             {
                 if ((!m_useIpv6WifiCache) && (getIPIARMWrapper(m_ipv6WifiCache, interface, ipversion)))
                 {
-                    if(NETWORK_IPADDRESS_ACQUIRED == m_ipv6WifiCache.errCode)
+                    if(NETWORK_IPADDRESS_ACQUIRED == m_useIpv6WifiCache.errCode)
                         m_useIpv6WifiCache = true;
                 }
 
@@ -1112,7 +1112,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             {
                 if ((!m_useIpv6EthCache) && (getIPIARMWrapper(m_ipv6EthCache, interface, ipversion)))
                 {
-                    if(NETWORK_IPADDRESS_ACQUIRED == m_ipv6EthCache.errCode)
+                    if(NETWORK_IPADDRESS_ACQUIRED == m_useIpv6EthCache.errCode)
                         m_useIpv6EthCache = true;
                 }
 
