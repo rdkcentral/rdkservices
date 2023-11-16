@@ -95,7 +95,6 @@ typedef enum SME_t {
 	SME_getTemperatureThresholds,
 	SME_getTimeZoneDST,
 	SME_getXconfParams,
-	SME_hasRebootBeenRequested,
 	SME_isGzEnabled,
 	SME_queryMocaStatus,
 	SME_reboot,
@@ -149,7 +148,6 @@ std::map<SME_t, std::string> SMName = {
 	{SME_getTemperatureThresholds, "getTemperatureThresholds"},
 	{SME_getTimeZoneDST, "getTimeZoneDST"},
 	{SME_getXconfParams, "getXconfParams"},
-	{SME_hasRebootBeenRequested, "hasRebootBeenRequested"},
 	{SME_isGzEnabled, "isGzEnabled"},
 	{SME_queryMocaStatus, "queryMocaStatus"},
 	{SME_reboot, "reboot"},
@@ -608,19 +606,6 @@ void getXconfParams(std::string methodName, JSONRPC::LinkType<Core::JSON::IEleme
 	}
 }
 
-void hasRebootBeenRequested(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
-{
-	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
-
-	JsonObject parameters, response;
-	std::string result;
-
-	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
-		response.ToString(result);
-		printf("\nResponse: '%s'\n", result.c_str());
-	}
-}
-
 void isGzEnabled(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
 	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
@@ -1030,7 +1015,6 @@ int EvaluateMethods(JSONRPC::LinkType<Core::JSON::IElement>* remoteObject)
 			case SME_getTemperatureThresholds: getTemperatureThresholds(getMethodName((SME_t)retStatus), remoteObject); break;
 			case SME_getTimeZoneDST: getTimeZoneDST(getMethodName((SME_t)retStatus), remoteObject); break;
 			case SME_getXconfParams: getXconfParams(getMethodName((SME_t)retStatus), remoteObject); break;
-			case SME_hasRebootBeenRequested: hasRebootBeenRequested(getMethodName((SME_t)retStatus), remoteObject); break;
 			case SME_isGzEnabled: isGzEnabled(getMethodName((SME_t)retStatus), remoteObject); break;
 			case SME_queryMocaStatus: queryMocaStatus(getMethodName((SME_t)retStatus), remoteObject); break;
 			case SME_reboot: reboot(getMethodName((SME_t)retStatus), remoteObject); break;
