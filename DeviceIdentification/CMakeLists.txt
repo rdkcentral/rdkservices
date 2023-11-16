@@ -27,7 +27,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 message("Setup ${MODULE_NAME} v${PROJECT_VERSION}")
 
-set(PLUGIN_DEVICEIDENTIFICATION_AUTOSTART "true" CACHE STRING "Automatically start DeviceIdentification plugin")
+set(PLUGIN_DEVICEIDENTIFICATION_AUTOSTART "false" CACHE STRING "Automatically start DeviceIdentification plugin")
 set(PLUGIN_DEVICEIDENTIFICATION_STARTUPORDER "" CACHE STRING "Start-up order for DeviceIdentification plugin")
 set(PLUGIN_DEVICEIDENTIFICATION_MODE "Off" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
 set(PLUGIN_DEVICEIDENTIFICATION_INTERFACE_NAME "eth0" CACHE STRING "Ethernet Card name which has to be associated for the Raw Device Id creation")
