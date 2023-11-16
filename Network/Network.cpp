@@ -1069,10 +1069,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             if (Utils::String::equal(ipversion, "ipv4") && Utils::String::equal(interface, "wifi"))
             {
                 if ((!m_useIpv4WifiCache) && (getIPIARMWrapper(m_ipv4WifiCache, interface, ipversion)))
-                {
-                    if(NETWORK_IPADDRESS_ACQUIRED == m_ipv4WifiCache.errCode)
-                        m_useIpv4WifiCache = true;
-                }
+                    m_useIpv4WifiCache = true;
 
                 if (m_useIpv4WifiCache)
                 {
@@ -1083,10 +1080,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             else if (Utils::String::equal(ipversion, "ipv4") && Utils::String::equal(interface, "ethernet"))
             {
                 if ((!m_useIpv4EthCache) && (getIPIARMWrapper(m_ipv4EthCache, interface, ipversion)))
-                {
-                    if(NETWORK_IPADDRESS_ACQUIRED == m_useIpv4EthCache.errCode)
-                        m_useIpv4EthCache = true;
-                }
+                    m_useIpv4EthCache = true;
 
                 if (m_useIpv4EthCache)
                 {
@@ -1097,10 +1091,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             else if (Utils::String::equal(ipversion, "ipv6") && Utils::String::equal(interface, "wifi"))
             {
                 if ((!m_useIpv6WifiCache) && (getIPIARMWrapper(m_ipv6WifiCache, interface, ipversion)))
-                {
-                    if(NETWORK_IPADDRESS_ACQUIRED == m_useIpv6WifiCache.errCode)
-                        m_useIpv6WifiCache = true;
-                }
+                    m_useIpv6WifiCache = true;
 
                 if (m_useIpv6WifiCache)
                 {
@@ -1111,10 +1102,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             else if (Utils::String::equal(ipversion, "ipv6") && Utils::String::equal(interface, "ethernet"))
             {
                 if ((!m_useIpv6EthCache) && (getIPIARMWrapper(m_ipv6EthCache, interface, ipversion)))
-                {
-                    if(NETWORK_IPADDRESS_ACQUIRED == m_useIpv6EthCache.errCode)
-                        m_useIpv6EthCache = true;
-                }
+                    m_useIpv6EthCache = true;
 
                 if (m_useIpv6EthCache)
                 {
