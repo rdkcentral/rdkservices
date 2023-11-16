@@ -35,7 +35,7 @@ set_target_properties(${MODULE_NAME} PROPERTIES
 target_include_directories(${MODULE_NAME} PRIVATE ./ ../include ../../helpers ${IARMBUS_INCLUDE_DIRS} ${GLIB_INCLUDE_DIRS})
 
 #target_compile_options(${MODULE_NAME} PRIVATE -Wno-error -fpermissive -Os -pipe -g -feliminate-unused-debug-types -Wl,-O1 -Wl,--hash-style=gnu -Wl,--as-needed)
-#target_compile_options(${MODULE_NAME} PRIVATE -DENABLE_MIRACAST_SERVICE_TEST_NOTIFIER)
+target_compile_options(${MODULE_NAME} PRIVATE -DENABLE_MIRACAST_SERVICE_TEST_NOTIFIER)
 
 target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${NAMESPACE}SecurityUtil ${IARMBUS_LIBRARIES} ${GLIB_LIBRARIES} -lwpa_client -lpthread -lrdkloggers)
 
