@@ -56,6 +56,7 @@ private:
         , _statmline()
         , _startload_ms(0)
         , _idletime_s(0)
+        , _cold(false)
         {
         }
         ~URLLoadedMetrics() = default;
@@ -70,6 +71,7 @@ private:
         , _statmline(copy._statmline)
         , _startload_ms(copy._startload_ms)
         , _idletime_s(copy._idletime_s)
+        , _cold(copy._cold)
         { 
         }
 
@@ -85,6 +87,7 @@ private:
                 _statmline = copy._statmline;
                 _startload_ms = copy._startload_ms;
                 _idletime_s = copy._idletime_s;
+                _cold=copy._cold;
             }
 
             return *this;
@@ -100,6 +103,7 @@ private:
         , _statmline(std::move(orig._statmline))
         , _startload_ms(orig._startload_ms)
         , _idletime_s(orig._idletime_s)
+        , _cold(orig._cold)
         {
         }
 
@@ -114,6 +118,7 @@ private:
             _statmline = std::move(orig._statmline);
             _startload_ms = orig._startload_ms;
             _idletime_s = orig._idletime_s;
+            _cold = orig._cold;
 
             return *this;
         }
@@ -145,6 +150,9 @@ private:
         uint64_t IdleTime() const { return _idletime_s; }
         void IdleTime(const uint64_t idletime) { _idletime_s = idletime; }
 
+        bool IsColdLaunch() const { return _cold; }
+        void SetColdLaunch(bool mode) { _cold= mode; }
+
     private:
         uint64_t _total;
         uint64_t _free;
@@ -155,12 +163,13 @@ private:
         string _statmline;
         Core::Time::microsecondsfromepoch _startload_ms;
         uint32_t _idletime_s;
+        bool _cold;
     };
 
     public:
 
         enum class ModeType {
-            HOT,
+            WARM,
             COLD
         };
 
@@ -171,6 +180,8 @@ private:
 
             MetricsAsJson()
                 : Core::JSON::Container()
+                , Mode(ModeType::WARM)
+                , AppType()
                 , MemoryTotal()
                 , MemoryFree()
                 , MemorySwapped()
@@ -181,14 +192,14 @@ private:
                 , ProcessPID()
                 , Appname()
                 , StatmLine()
-                , Mode(ModeType::COLD)
-                , AppType()
                 , IdleTime()
                 , LaunchTime()
                 , LoadSuccess()
                 , NbrLoaded()
                 , Callsign()
             {
+                Add(_T("LaunchState"), &Mode);
+                Add(_T("AppType"), &AppType);
                 Add(_T("MemTotal"), &MemoryTotal);
                 Add(_T("MemFree"), &MemoryFree);
                 Add(_T("MemSwapped"), &MemorySwapped);
@@ -199,8 +210,6 @@ private:
                 Add(_T("ProcessPID"), &ProcessPID);
                 Add(_T("AppName"), &Appname);
                 Add(_T("webProcessStatmLine"), &StatmLine);
-                Add(_T("LaunchState"), &Mode);
-                Add(_T("AppType"), &AppType);
                 Add(_T("webProcessIdleTime"), &IdleTime);
                 Add(_T("LaunchTime"), &LaunchTime);
                 Add(_T("AppLoadSuccess"), &LoadSuccess);
@@ -213,6 +222,8 @@ private:
             MetricsAsJson& operator=(const MetricsAsJson&) = delete;
 
         public:
+            Core::JSON::EnumType<ModeType> Mode;
+            Core::JSON::String AppType;
             Core::JSON::DecUInt64 MemoryTotal;
             Core::JSON::DecUInt64 MemoryFree;
             Core::JSON::DecUInt64 MemorySwapped;
@@ -223,8 +234,6 @@ private:
             Core::JSON::DecUInt32 ProcessPID;
             Core::JSON::String Appname;
             Core::JSON::String StatmLine;
-            Core::JSON::EnumType<ModeType> Mode; 
-            Core::JSON::String AppType;
             Core::JSON::DecUInt32 IdleTime;
             Core::JSON::DecUInt64 LaunchTime;
             Core::JSON::DecUInt8 LoadSuccess; // kept backwards compatibility, use 0 and 1 instead of bool
@@ -245,8 +254,11 @@ public:
         , _cold(true)
         , _urloadmetrics()
         , _timeIdleFirstStart(0)
+        , _timePluginStart(0)
         , _adminLock()
         , _lastURL()
+        , _didLogLaunchMetrics(false)
+        , _lastLoggedApp()
         {
             Utils::Telemetry::init();
         }
@@ -304,6 +316,7 @@ public:
     void Activated() 
     {
         _timeIdleFirstStart = Core::Time::Now().Ticks();
+        _timePluginStart = Core::Time::Now().Ticks();
     }
 
     void Deactivated(const uint32_t) override 
@@ -340,13 +353,15 @@ public:
 
     void LoadFinished(const string& URL, const int32_t, const bool success, const uint32_t totalsuccess, const uint32_t totalfailed) override 
     {
-        _cold = (totalsuccess <= 1)?true:false;
-        if( ( URL != startURL ) && ( _timeIdleFirstStart > 0 ) ) {
+        if( URL != startURL ) {
             _adminLock.Lock();
             URLLoadedMetrics metrics(_urloadmetrics);
             _adminLock.Unlock();
                         
             uint64_t urllaunchtime_ms = ( ( Core::Time::Now().Ticks() - metrics.StartLoad() ) / Core::Time::TicksPerMillisecond);
+
+           if(strcmp(getHostName(URL).c_str(), _lastLoggedApp.c_str()))
+               _didLogLaunchMetrics = false;
 
             OutputLoadFinishedMetrics(metrics, getHostName(URL), urllaunchtime_ms, success, totalsuccess + totalfailed);
 
@@ -356,7 +371,7 @@ public:
 
     void URLChange(const string& URL, const bool) override 
     {
-        if( ( URL != startURL ) && ( _timeIdleFirstStart > 0 ) ) {
+        if( URL != startURL ) {
             URLLoadedMetrics metrics;
             Core::SystemInfo::MemorySnapshot snapshot = Core::SystemInfo::Instance().TakeMemorySnapshot();
             metrics.Total(snapshot.Total());
@@ -382,6 +397,11 @@ public:
             metrics.StartLoad(Core::Time::Now().Ticks());
             metrics.IdleTime((Core::Time::Now().Ticks() - _timeIdleFirstStart) / Core::Time::MicroSecondsPerSecond );
 
+            uint64_t timeLaunched = 0;
+            timeLaunched = (Core::Time::Now().Ticks() - _timePluginStart) / Core::Time::MicroSecondsPerSecond;
+            if(timeLaunched < 2)
+                metrics.SetColdLaunch(true);
+
             _adminLock.Lock();
             _urloadmetrics = std::move(metrics);
             _adminLock.Unlock();
@@ -402,11 +422,16 @@ private:
                                    const bool success, 
                                    const uint32_t totalloaded) 
     {
+        if(_didLogLaunchMetrics)
+            return;
+
         MetricsAsJson output;
 
-        output.MemoryTotal = urloadedmetrics.Total();
-        output.MemoryFree = urloadedmetrics.Free();
-        output.MemorySwapped = urloadedmetrics.Swapped();
+        output.Mode = ( urloadedmetrics.IsColdLaunch() == true ? ModeType::COLD : ModeType::WARM );
+        output.AppType = _T("Web");
+        output.MemoryTotal = urloadedmetrics.Total()/(1024);
+        output.MemoryFree = urloadedmetrics.Free()/(1024);
+        output.MemorySwapped = urloadedmetrics.Swapped()/(1024);
         output.Uptime = urloadedmetrics.Uptime();
 
         static const float LA_SCALE = static_cast<float>(1 << SI_LOAD_SHIFT);
@@ -427,8 +452,6 @@ private:
 
         output.Appname = URL;
         output.StatmLine = urloadedmetrics.StatmLine();
-        output.Mode = ( _cold == true ? ModeType::COLD : ModeType::HOT );
-        output.AppType = _T("Web");
         output.IdleTime = urloadedmetrics.IdleTime();
         output.LaunchTime = urllaunchtime_ms;
         output.LoadSuccess = success;
@@ -451,6 +474,8 @@ private:
         Utils::Telemetry::sendMessage((char *)eventName.c_str(), (char *)eventValue.c_str());
 
 	SYSLOG(Logging::Notification, (_T( "%s Launch Metrics: %s "), _callsign.c_str(), outputstring.c_str()));
+        _didLogLaunchMetrics = true;
+        _lastLoggedApp = URL;
     }
 
     string GetProcessStatmLine(const uint32_t pid) 
@@ -474,8 +499,11 @@ private:
     bool _cold;
     URLLoadedMetrics _urloadmetrics;
     Core::Time::microsecondsfromepoch _timeIdleFirstStart;
+    Core::Time::microsecondsfromepoch _timePluginStart;
     mutable Core::CriticalSection _adminLock;
     string _lastURL;
+    bool _didLogLaunchMetrics;
+    string _lastLoggedApp;
 };
 
 constexpr char SysLogOuput::webProcessName[];
@@ -494,7 +522,7 @@ template std::unique_ptr<PerformanceMetrics::IBrowserMetricsLogger> PerformanceM
 ENUM_CONVERSION_BEGIN(WPEFramework::Plugin::SysLogOuput::ModeType)
 
     { Plugin::SysLogOuput::ModeType::COLD, _TXT("Cold") },
-    { Plugin::SysLogOuput::ModeType::HOT, _TXT("Hot") },
+    { Plugin::SysLogOuput::ModeType::WARM, _TXT("Warm") },
 
 ENUM_CONVERSION_END(Plugin::SysLogOuput::ModeType);
 
