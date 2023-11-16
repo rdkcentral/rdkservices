@@ -92,6 +92,23 @@
                         },
                         "required": []
                     },
+                    "mixedcontentwhitelist": {
+                        "type": "object",
+                        "properties": {
+                            "origin": {
+                                "description": "Origin domain allowed to access mixed content in domain, * can be used as a wildcard",
+                                "type": "string"
+                            },
+                            "domain": {
+                                "description": "Mixed content domain allowed to access from origin, * can be used as wildcard",
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                        },
+                        "required": []
+                    },
                     "localstorageenabled": {
                         "summary": "Controls the local storage availability",
                         "type": "boolean"                        

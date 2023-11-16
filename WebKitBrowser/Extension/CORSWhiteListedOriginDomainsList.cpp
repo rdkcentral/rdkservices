@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-#include "WhiteListedOriginDomainsList.h"
+#include "CORSWhiteListedOriginDomainsList.h"
 
 using std::unique_ptr;
 using std::vector;
@@ -25,51 +25,39 @@ using std::vector;
 namespace WPEFramework {
 namespace WebKit {
 
-    // Parses JSON containing white listed CORS origin-domain pairs.
-    static void ParseWhiteList(const string& jsonString, WhiteListedOriginDomainsList::WhiteMap& info)
+    CORSWhiteListedOriginDomainsList::CORSWhiteListedOriginDomainsList(const char* jsonString)
     {
         // Origin/Domain pair stored in JSON string.
-        class JSONEntry : public Core::JSON::Container {
+        class CORSJSONEntry : public JSONEntry {
         private:
-            JSONEntry& operator=(const JSONEntry&) = delete;
+            CORSJSONEntry& operator=(const CORSJSONEntry&) = delete;
 
         public:
-            JSONEntry()
-                : Core::JSON::Container()
-                , Origin()
-                , Domain()
+            CORSJSONEntry()
+                : JSONEntry()
                 , SubDomain(true)
             {
-                Add(_T("origin"), &Origin);
-                Add(_T("domain"), &Domain);
                 Add(_T("subdomain"), &SubDomain);
             }
-            JSONEntry(const JSONEntry& rhs)
-                : Core::JSON::Container()
-                , Origin(rhs.Origin)
-                , Domain(rhs.Domain)
+            CORSJSONEntry(const CORSJSONEntry& rhs)
+                : JSONEntry(rhs)
                 , SubDomain(rhs.SubDomain)
             {
-                Add(_T("origin"), &Origin);
-                Add(_T("domain"), &Domain);
                 Add(_T("subdomain"), &SubDomain);
             }
 
-        public:
-            Core::JSON::String Origin;
-            Core::JSON::ArrayType<Core::JSON::String> Domain;
             Core::JSON::Boolean SubDomain;
         };
 
-        Core::JSON::ArrayType<JSONEntry> entries;
+        Core::JSON::ArrayType<CORSJSONEntry> entries;
         entries.FromString(jsonString);
-        Core::JSON::ArrayType<JSONEntry>::Iterator originIndex(entries.Elements());
+        Core::JSON::ArrayType<CORSJSONEntry>::Iterator originIndex(entries.Elements());
 
         while (originIndex.Next() == true) {
 
             if ((originIndex.Current().Origin.IsSet() == true) && (originIndex.Current().Domain.IsSet() == true)) {
 
-                WhiteListedOriginDomainsList::Domains& domains(info[originIndex.Current().Origin.Value()]);
+                CORSWhiteListedOriginDomainsList::Domains& domains(_whiteMap[originIndex.Current().Origin.Value()]);
 
                 Core::JSON::ArrayType<Core::JSON::String>::Iterator domainIndex(originIndex.Current().Domain.Elements());
                 bool subDomain(originIndex.Current().SubDomain.Value());
@@ -81,15 +69,8 @@ namespace WebKit {
         }
     }
 
-    /* static */unique_ptr<WhiteListedOriginDomainsList> WhiteListedOriginDomainsList::Parse(const char* whitelist)
-    {
-        unique_ptr<WhiteListedOriginDomainsList> whiteList(new WhiteListedOriginDomainsList());
-        ParseWhiteList(whitelist, whiteList->_whiteMap);
-        return whiteList;
-    }
-
     // Adds stored entries to WebKit.
-    void WhiteListedOriginDomainsList::AddWhiteListToWebKit(WebKitWebExtension* extension)
+    void CORSWhiteListedOriginDomainsList::AddToWebKit(WebKitWebExtension* extension)
     {
         WhiteMap::const_iterator index(_whiteMap.begin());
 
