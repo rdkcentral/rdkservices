@@ -1270,34 +1270,43 @@ RTSP_STATUS MiracastRTSPMsg::validate_rtsp_m1_msg_m2_send_request(std::string rt
     return (status_code);
 }
 
-RTSP_STATUS MiracastRTSPMsg::validate_rtsp_m2_request_ack(std::string rtsp_m1_response_ack_buffer)
+RTSP_STATUS MiracastRTSPMsg::validate_rtsp_m2_request_ack(std::string rtsp_m2_resp_ack_buffer)
 {
     RTSP_STATUS status_code = RTSP_INVALID_MSG_RECEIVED;
 
     MIRACASTLOG_TRACE("Entering...");
-    std::stringstream ss(rtsp_m1_response_ack_buffer);
+    std::stringstream ss(rtsp_m2_resp_ack_buffer);
     std::string prefix = "";
     std::string public_str;
     std::string seq_str;
     std::string line;
     const char *public_tag = get_parser_field_by_index(RTSP_PUBLIC_FIELD),
                 *sequence_tag = get_parser_field_by_index(RTSP_SEQUENCE_FIELD);
+    bool    foundSequence = false;
+    int processedBytes = 0,
+        totalLen = rtsp_m2_resp_ack_buffer.length();
 
-    while (std::getline(ss, line))
+    while (std::getline(ss, line,'\n'))
     {
+        processedBytes += line.length() + 1; // Add 1 for '\n'
+
         if (line.find(public_tag) != std::string::npos)
         {
             prefix = public_tag;
             public_str = line.substr(prefix.length());
             REMOVE_R(public_str);
             REMOVE_N(public_str);
+            ss.get();
+            processedBytes += 2; // Skip next '\r\n' line
+            break;
         }
-        else if (line.find(sequence_tag) != std::string::npos)
+        else if (( false == foundSequence) &&(line.find(sequence_tag) != std::string::npos))
         {
             prefix = sequence_tag;
             seq_str = line.substr(prefix.length());
             REMOVE_R(seq_str);
             REMOVE_N(seq_str);
+            foundSequence = true;
         }
     }
 
@@ -1338,6 +1347,20 @@ RTSP_STATUS MiracastRTSPMsg::validate_rtsp_m2_request_ack(std::string rtsp_m1_re
     if (  RTSP_MSG_SUCCESS != status_code )
     {
         send_rtsp_reply_sink2src( RTSP_MSG_FMT_REPORT_ERROR , seq_str, RTSP_ERRORCODE_BAD_REQUEST );
+    }
+
+    MIRACASTLOG_INFO("#### totalLen[%d] and processedBytes[%d] ####", totalLen,processedBytes);
+
+    if ( 0 >= ( totalLen - processedBytes))
+    {
+        MIRACASTLOG_INFO("#### [M2-ack] only Received ####");
+    }
+    else
+    {
+        std::string m3_request_buffer = rtsp_m2_resp_ack_buffer.substr(processedBytes, totalLen - processedBytes);
+        MIRACASTLOG_INFO("#### [M2-ack + M3 Req] Received M3[%s]  ####", m3_request_buffer.c_str());
+        status_code = validate_rtsp_receive_buffer_handling(m3_request_buffer);
+        MIRACASTLOG_INFO("#### Response[%#04X] ####", status_code);
     }
     set_wait_timeout(m_wfd_src_req_timeout);
     MIRACASTLOG_TRACE("Exiting...");
@@ -2011,8 +2034,9 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
             rtsp_msg_buffer.clear();
             rtsp_msg_buffer = rtsp_message_socket;
 
+            MIRACASTLOG_INFO("#### [M1-M7] RTSP SockMsg Received [%s] ####", rtsp_msg_buffer.c_str());
             status_code = validate_rtsp_receive_buffer_handling(rtsp_msg_buffer);
-            MIRACASTLOG_INFO("#### [M1-M7] RTSP SockMsg Received [%s] and Response[%#04X] ####", rtsp_message_socket, status_code);
+            MIRACASTLOG_INFO("#### [M1-M7] RTSP Response[%#04X] ####", status_code);
 
             if ((RTSP_MSG_SUCCESS != status_code) || 
                 (RTSP_M1_M7_MSG_EXCHANGE_RECEIVED == status_code))
@@ -2048,6 +2072,7 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
             MIRACASTLOG_INFO("!!!! RTSP_M1_M7_MSG_EXCHANGE_RECEIVED[%#04X] !!!!", status_code);
             start_monitor_keep_alive_msg = true;
             start_streaming(video_rect_st);
+            MIRACASTLOG_INFO("!!!! GstPlayer instance created, Waiting for first-frame !!!!");
             //set_state(MIRACAST_PLAYER_STATE_PLAYING , true );
         }
         else
@@ -2117,8 +2142,9 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
                 rtsp_msg_buffer.clear();
                 rtsp_msg_buffer = rtsp_message_socket;
 
+                MIRACASTLOG_INFO("#### [POST_M1-M7] RTSP SockMsg Received [%s] ####", rtsp_msg_buffer.c_str());
                 status_code = validate_rtsp_post_m1_m7_xchange(rtsp_msg_buffer);
-                MIRACASTLOG_INFO("#### [POST_M1-M7] RTSP SockMsg Received [%s] and Response[%#04X] ####", rtsp_message_socket, status_code);
+                MIRACASTLOG_INFO("#### [POST_M1-M7] RTSP Response[%#04X] ####",status_code);
 
                 if ( RTSP_KEEP_ALIVE_MSG_RECEIVED == status_code )
                 {
