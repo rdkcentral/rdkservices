@@ -439,20 +439,6 @@ MiracastError MiracastP2P::discover_devices(void)
 
     command = "P2P_FIND";
 
-#ifdef ENABLE_DELAY_FOR_MIRACAST_P2P_SCAN
-    opt_flag_buffer = MiracastCommon::parse_opt_flag( "/opt/miracast_p2p_scan_delay" , true );
-    if (!opt_flag_buffer.empty())
-    {
-        command = command + " delay=" + opt_flag_buffer;
-        MIRACASTLOG_INFO("P2P scan delay[%s]",opt_flag_buffer.c_str());
-    }
-    else
-    {
-        command = command + " delay=" + MIRACAST_DFLT_P2P_SCAN_INTERVAL_MSEC;
-        MIRACASTLOG_INFO("P2P scan default delay[%s]",MIRACAST_DFLT_P2P_SCAN_INTERVAL_MSEC);
-    }
-#endif /* ENABLE_DELAY_FOR_MIRACAST_P2P_SCAN */
-
     ret = executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
     if (ret != MIRACAST_OK)
     {
