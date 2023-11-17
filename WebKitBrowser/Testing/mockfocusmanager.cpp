@@ -26,8 +26,8 @@ class MockFocusManager : public Testing::FocusManager
 public:
     MockFocusManager() = default;
 
-    bool Start() override {};
-    bool Stop() override {};
+    bool Start() override { return true; };
+    bool Stop() override { return true; };
 };
 
 } // namespace
