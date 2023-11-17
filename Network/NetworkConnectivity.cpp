@@ -445,7 +445,7 @@ namespace WPEFramework {
             return false;
         }
 
-        timeout.store(timeoutInSeconds >= defaultTimeoutInSec ? timeoutInSeconds:defaultTimeoutInSec);
+        timeout.store(timeoutInSeconds >= MONITOR_TIMEOUT_INTERVAL_MIN ? timeoutInSeconds:defaultTimeoutInSec);
 
         if (!isMonitorThreadRunning())
         {
