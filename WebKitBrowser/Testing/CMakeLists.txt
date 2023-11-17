@@ -15,8 +15,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+option(PLUGIN_WEBKITBROWSER_TESTING_USE_WESTEROS "Enable westeros simpleshell protocol for input focus stacking" OFF)
+
 target_include_directories(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE Testing)
 target_sources(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE
     Testing/testrunner.cpp
-    Testing/mockfocusmanager.cpp
 )
+
+if (PLUGIN_WEBKITBROWSER_TESTING_USE_WESTEROS)
+    target_sources(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE Testing/westerosfocusmanager.cpp)
+    target_link_libraries(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE
+        wayland-client
+        westeros_simpleshell_client
+    )
+else()
+    target_sources(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE Testing/mockfocusmanager.cpp)
+endif()
+
