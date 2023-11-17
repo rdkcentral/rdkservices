@@ -51,6 +51,8 @@ option(PLUGIN_APPS_ENABLE_DFG "Enable the use of DFG javascript optimalization" 
 option(PLUGIN_WEBKITBROWSER_CLOUD_COOKIEJAR "Enable support for exporting/importing cookie jar" OFF)
 option(PLUGIN_WEBKITBROWSER_LOGGING_UTILS "Enable possibility to redirect stdout/err to specific systemd service" OFF)
 
+option(PLUGIN_WEBKITBROWSER_ODH_TELEMETRY "Enable ODH telemetry" ON)
+
 set(PLUGIN_WEBKITBROWSER_IMPLEMENTATION "${MODULE_NAME}Impl" CACHE STRING "Specify a library with a webkit implementation." )
 
 set(PLUGIN_WEBKITBROWSER_AUTOSTART "false" CACHE STRING "Automatically start WebKitBrowser plugin")
@@ -218,6 +220,16 @@ target_link_libraries(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION}
         WPEBackend::WPEBackend
         WPEWebKit::WPEWebKit
         OpenSSL::Crypto)
+
+if (PLUGIN_WEBKITBROWSER_ODH_TELEMETRY)
+    find_package(OdhErrTelemetry REQUIRED)
+    target_link_libraries(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION}
+        PRIVATE
+        OdhErrTelemetry::OdhErrTelemetry)
+    target_compile_definitions(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION}
+        PRIVATE
+        USE_ODH_TELEMETRY=1)
+endif()
 
 if (PLUGIN_WEBKITBROWSER_CLOUD_COOKIEJAR)
     find_package(ZLIB REQUIRED)

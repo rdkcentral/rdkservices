@@ -28,6 +28,8 @@
 
 #include "Module.h"
 
+#include "odhlog.h"
+
 #ifdef WEBKIT_GLIB_API
 #include <wpe/webkit.h>
 #include "Tags.h"
@@ -941,12 +943,22 @@ static GSourceFuncs _handlerIntervention =
             // The WebKitBrowser (WPE) can only be instantiated once (it is a process wide singleton !!!!)
             ASSERT(implementation == nullptr);
 
+#ifdef USE_ODH_TELEMETRY
+            // Initialize ODH reporting for WebKitBrowser
+            if (odh_error_report_init("WebKitBrowser")) {
+                TRACE(Trace::Error, (_T("Failed to initialize ODH reporting")));
+            } else {
+                ODH_WARNING("WPE0010", WPE_CONTEXT, "ThunderWebKitBrowser started: %p", this);
+            }
+#endif
             implementation = this;
         }
         ~WebKitImplementation() override
         {
             Block();
-
+#ifdef USE_ODH_TELEMETRY
+            odh_error_report_deinit(ODH_ERROR_REPORT_DEINIT_MODE_DEFERRED);
+#endif
             if (_loop != nullptr) {
                 if (g_main_loop_is_running(_loop) == FALSE) {
                     g_main_context_invoke(_context, [](gpointer data) -> gboolean {
@@ -1849,6 +1861,7 @@ static GSourceFuncs _handlerIntervention =
             using namespace std::chrono;
 
             TRACE_L1("New URL: %s", URL.c_str());
+            ODH_WARNING("WPE0020", WPE_CONTEXT_WITH_URL(URL.c_str()), "New URL: %s", URL.c_str());
 
             if (_context != nullptr) {
                 using SetURLData = std::tuple<WebKitImplementation*, string>;
@@ -1902,6 +1915,15 @@ static GSourceFuncs _handlerIntervention =
                 const auto diff = steady_clock::now() - now;
 
                 TRACE_L1(
+                        "URL: %s, load result %s(%d), %dms",
+                        urlData_.url.c_str(),
+                        Core::ERROR_NONE == urlData_.result ? "OK" : "NOK",
+                        int(urlData_.result),
+                        int(duration_cast<milliseconds>(diff).count()));
+
+                ODH_WARNING(
+                        "WPE0040",
+                        WPE_CONTEXT_WITH_URL(urlData_.url.c_str()),
                         "URL: %s, load result %s(%d), %dms",
                         urlData_.url.c_str(),
                         Core::ERROR_NONE == urlData_.result ? "OK" : "NOK",
@@ -2272,6 +2294,7 @@ static GSourceFuncs _handlerIntervention =
             bool isNewUrlBootUrl = URL == _bootUrl;
             if(!isCurrentUrlBootUrl && isNewUrlBootUrl && !_bootUrl.empty()) {
                 TRACE_L1("New URL: %s", URL.c_str());
+                ODH_WARNING("WPE0040", WPE_CONTEXT_WITH_URL(URL.c_str()), "New URL: %s", URL.c_str());
             }
 
             urlValue(URL);
@@ -2366,6 +2389,7 @@ static GSourceFuncs _handlerIntervention =
             }
 
             _adminLock.Unlock();
+            ODH_ERROR("WPE0030", WPE_CONTEXT_WITH_URL(url.c_str()), "Failed to load URL: %s", url.c_str());
         }
         void OnLoadRedirected(const string& URL)
         {
