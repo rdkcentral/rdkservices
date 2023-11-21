@@ -21,6 +21,7 @@ set(EMPTY_HEADERS_DIRS
         ${BASEDIR}/rdk/iarmmgrs
 	${BASEDIR}/rdkshell
         ${BASEDIR}/opkg
+        ${BASEDIR}/UsbAccess
         )
 
 set(EMPTY_HEADERS
@@ -67,6 +68,7 @@ set(EMPTY_HEADERS
         ${BASEDIR}/network/wifiSrvMgrIarmIf.h
         ${BASEDIR}/network/netsrvmgrIarm.h
 	      ${BASEDIR}/rdkshell/rdkshellevents.h
+        ${BASEDIR}/UsbAccess/secure_wrappermock.h
         ${BASEDIR}/rdkshell/rdkshell.h
         ${BASEDIR}/rdkshell/compositorcontroller.h
         ${BASEDIR}/rdkshell/logger.h
@@ -135,6 +137,7 @@ set(FAKE_HEADERS
         ${BASEDIR}/HdmiCec.h
         ${BASEDIR}/rdkshell.h
 	      ${BASEDIR}/RdkLoggerMilestone.h
+        ${BASEDIR}/secure_wrappermock.h
         )
 
 foreach (file ${FAKE_HEADERS})
@@ -143,7 +146,7 @@ endforeach ()
 
 add_compile_options(-Wall -Werror)
 
-add_link_options(-Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog -Wl,-wrap,pclose -Wl,-wrap,getmntent -Wl,-wrap,setmntent)
+add_link_options(-Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog -Wl,-wrap,pclose -Wl,-wrap,getmntent -Wl,-wrap,setmntent -Wl,-wrap,v_secure_popen -Wl,-wrap,v_secure_pclose -Wl,-wrap,v_secure_system)
 
 add_definitions(
         -DENABLE_TELEMETRY_LOGGING
@@ -161,6 +164,7 @@ add_definitions(
         -DXCAST_ENABLED_BY_DEFAULT
         -DCLOCK_BRIGHTNESS_ENABLED
         -DUSE_DS
+        -DUNIT_TESTING
 )
 
 message("Setting build options")

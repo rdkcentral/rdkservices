@@ -3,6 +3,7 @@
 #include <string>
 #include <atomic>
 #include <vector>
+#include <map>
 #include <curl/curl.h>
 #include <condition_variable>
 #include <mutex>
@@ -10,7 +11,8 @@
 #include "Module.h"
 
 #define CAPTIVEPORTAL_MAX_LEN 512
-#define DEFAULT_MONITOR_TIMEOUT 5
+#define DEFAULT_MONITOR_TIMEOUT 60 // in seconds
+#define MONITOR_TIMEOUT_INTERVAL_MIN 5
 
 enum nsm_ipversion {
     NSM_IPRESOLVE_WHATEVER  = 0, /* default, resolves addresses to all IP*/
@@ -26,9 +28,23 @@ enum nsm_internetState {
     FULLY_CONNECTED
 };
 
+enum nsm_connectivity_httpcode {
+    HttpStatus_response_error               = 99,
+    HttpStatus_200_OK                      = 200,
+    HttpStatus_204_No_Content              = 204,
+    HttpStatus_301_Moved_Permanentl        = 301,
+    HttpStatus_302_Found                   = 302,     // captive portal
+    HttpStatus_307_Temporary_Redirect      = 307,
+    HttpStatus_308_Permanent_Redirect      = 308,
+    HttpStatus_403_Forbidden               = 403,
+    HttpStatus_404_Not_Found               = 404,
+    HttpStatus_511_Authentication_Required = 511      // captive portal RFC 6585
+};
+
 namespace WPEFramework {
     namespace Plugin {
 
+        /* save user specific endponint in to a chache file and load form the file if monitorEndpoints are empty case wpeframework restared */
         class EndpointCache {
             public:
                 static EndpointCache& getInstance() {
@@ -53,12 +69,33 @@ namespace WPEFramework {
             const Connectivity& operator=(const Connectivity&) = delete;
 
         public:
-            Connectivity(){}
+            Connectivity(const std::string& configFilePath = "/etc/netsrvmgr.conf")
+            {
+                loadConnectivityConfig(configFilePath);
+                if(m_defaultEndpoints.empty())
+                {
+                    LOGERR("NETSRVMGR CONFIGURATION ERROR: CONNECTIVITY ENDPOINT EMPTY");
+                    m_defaultEndpoints.clear();
+                    m_defaultEndpoints.push_back("http://clients3.google.com/generate_204");
+                }
+            }
             ~Connectivity(){}
 
-            bool testConnectivity(const std::vector<std::string>& endpoints, long timeout_ms, nsm_ipversion ipversion);
-            void setConnectivityDefaultEndpoints(const std::vector<std::string> &endpoints);
-            std::vector<std::string> _defaultEndpoints;
+            nsm_internetState testConnectivity(const std::vector<std::string>& endpoints, long timeout_ms, nsm_ipversion ipversion);
+            std::vector<std::string> getConnectivityDefaultEndpoints() { return m_defaultEndpoints; };
+            std::string getCaptivePortal() { const std::lock_guard<std::mutex> lock(capitiveMutex); return g_captivePortal; }
+            void setCaptivePortal(const char* captivePortal) {const std::lock_guard<std::mutex> lock(capitiveMutex); g_captivePortal = captivePortal; }
+
+        private:
+            void loadConnectivityConfig(const std::string& configFilePath);
+            nsm_internetState checkInternetStateFromResponseCode(const std::vector<int>& responses);
+
+            std::vector<std::string> m_defaultEndpoints;
+            std::map<std::string, std::string> configMap;
+            std::mutex capitiveMutex;
+            std::string g_captivePortal;
+            bool configMonitorConnectivityEnabled = false;
+            int configMonitorInterval = DEFAULT_MONITOR_TIMEOUT;
         };
 
         class ConnectivityMonitor : public Connectivity {
@@ -77,9 +114,14 @@ namespace WPEFramework {
                 bool isConnectivityMonitorEndpointSet();
                 bool isMonitorThreadRunning();
                 void signalConnectivityMonitor();
+                void resetConnectivityCache() { g_internetState = nsm_internetState::UNKNOWN;}
 
             private:
-                ConnectivityMonitor() : stopFlag(false), threadRunning(false) {}
+                ConnectivityMonitor() : stopFlag(false), threadRunning(false)
+                {
+                    setConnectivityMonitorEndpoints(getConnectivityDefaultEndpoints());
+                }
+
                 ~ConnectivityMonitor() {
                     stopConnectivityMonitor();
                 }
@@ -94,13 +136,13 @@ namespace WPEFramework {
                 std::thread thread_;
                 std::atomic<bool> stopFlag;
                 std::atomic<bool> threadRunning;
-                std::atomic<bool> notifyNow;
                 std::condition_variable cv_;
                 std::atomic<int> timeout;
                 std::vector<std::string> monitorEndpoints;
                 const int defaultTimeoutInSec = DEFAULT_MONITOR_TIMEOUT;
                 std::mutex mutex_;
                 std::mutex endpointMutex;
+                std::atomic<nsm_internetState> g_internetState = {nsm_internetState::UNKNOWN};
         };
     } // namespace Plugin
 } // namespace WPEFramework

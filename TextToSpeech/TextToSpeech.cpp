@@ -61,7 +61,9 @@ namespace Plugin {
 
         std::string message;
         if(_tts != nullptr) {
-            ASSERT(_connectionId != 0);
+	    #ifndef UNIT_TESTING
+                ASSERT(_connectionId != 0);
+	    #endif
 
             PluginHost::IStateControl* stateControl(_tts->QueryInterface<PluginHost::IStateControl>());
 

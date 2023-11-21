@@ -50,6 +50,7 @@ option(PLUGIN_APPS_ENABLE_JIT "Enable the use of JIT javascript optimalization" 
 option(PLUGIN_APPS_ENABLE_DFG "Enable the use of DFG javascript optimalization" OFF)
 option(PLUGIN_WEBKITBROWSER_CLOUD_COOKIEJAR "Enable support for exporting/importing cookie jar" OFF)
 option(PLUGIN_WEBKITBROWSER_LOGGING_UTILS "Enable possibility to redirect stdout/err to specific systemd service" OFF)
+option(PLUGIN_WEBKITBROWSER_TESTING "Enable testing framework with custom JS APIs" OFF)
 
 set(PLUGIN_WEBKITBROWSER_IMPLEMENTATION "${MODULE_NAME}Impl" CACHE STRING "Specify a library with a webkit implementation." )
 
@@ -275,6 +276,13 @@ endif()
 if (PLUGIN_WEBKITBROWSER_LOGGING_UTILS)
     target_compile_definitions(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE ENABLE_LOGGING_UTILS)
     target_sources(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE LoggingUtils.cpp)
+endif()
+
+if (PLUGIN_WEBKITBROWSER_TESTING AND WEBKIT_GLIB_API)
+    # Enable for GLIB Api only
+    target_compile_definitions(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE ENABLE_TESTING)
+    target_include_directories(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE Testing)
+    target_sources(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE Testing/testrunner.cpp)
 endif()
 
 if(WPE_WEBKIT_DEPRECATED_API)
