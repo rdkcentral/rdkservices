@@ -281,8 +281,7 @@ endif()
 if (PLUGIN_WEBKITBROWSER_TESTING AND WEBKIT_GLIB_API)
     # Enable for GLIB Api only
     target_compile_definitions(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE ENABLE_TESTING)
-    target_include_directories(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE Testing)
-    target_sources(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE Testing/testrunner.cpp)
+    include(Testing/CMakeLists.txt)
 endif()
 
 if(WPE_WEBKIT_DEPRECATED_API)
