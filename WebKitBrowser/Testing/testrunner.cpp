@@ -18,8 +18,10 @@
  */
 
 #include "testrunner.h"
+#include "focusmanager.h"
 
 #include <cassert>
+#include <map>
 #include <string>
 #include <wpe/webkit.h>
 #include <wpe/wpe.h>
@@ -43,14 +45,22 @@ private:
                                        WebKitUserMessage *message);
     bool handleTestCaseEnded(WebKitUserMessage *message);
 
+    void sendTestCaseResponse(bool success, const char* msg);
     bool createSubView();
     bool prepareExtensionsDir();
+    void setParentVisibility(bool visible);
 
     static void initWebExtensionsCallback(WebKitWebContext *context,
                                           void *userData);
     static bool userMessageReceivedCallback(WebKitWebView *webView,
                                             WebKitUserMessage *message,
                                             void *userData);
+    static void webProcessTerminatedCallback(WebKitWebView* webView,
+                                             WebKitWebProcessTerminationReason reason,
+                                             void *userData);
+    static void loadFailedCallback(WebKitWebView* webView, WebKitLoadEvent loadEvent,
+                                   const gchar* failingURI, GError* error, void *userData);
+
 private:
     std::string m_extensionDir;
     WebKitWebView* m_parentView = nullptr;
@@ -69,6 +79,9 @@ bool TestRunnerImpl::EnsureInitialized(WebKitWebView* parent_view, const char* e
 
     m_extensionDir = extension_dir;
     m_parentView = parent_view;
+
+    Testing::FocusManager::Instance()->Start();
+
     return true;
 }
 
@@ -105,6 +118,9 @@ bool TestRunnerImpl::handleRunTestCase(WebKitUserMessage *message) {
     auto msgName = std::string(Testing::Tags::TestRunnerPrefix) + Testing::Tags::TestRunnerCreateViewReply;
     WebKitUserMessage* reply = webkit_user_message_new(msgName.c_str(), g_variant_new("b", true));
     webkit_user_message_send_reply(message, reply);
+
+    // hide parent page so we are able to see a video layer
+    setParentVisibility(false);
     return true;
 }
 
@@ -128,15 +144,26 @@ bool TestRunnerImpl::createSubView() {
     g_object_unref(webkitContext);
 
     g_signal_connect(m_testCaseView, "user-message-received", G_CALLBACK(userMessageReceivedCallback), this);
+    g_signal_connect(m_testCaseView, "web-process-terminated", G_CALLBACK(webProcessTerminatedCallback), this);
+    g_signal_connect(m_testCaseView, "load-failed", G_CALLBACK(loadFailedCallback), this);
     // TODO: need to handle those signals
-    // g_signal_connect(m_testCaseView, "web-process-terminated", G_CALLBACK(webProcessTerminatedCallback), this);
     // g_signal_connect(m_testCaseView, "notify::is-web-process-responsive", G_CALLBACK(isWebProcessResponsiveCallback), this);
-    // g_signal_connect(m_testCaseView, "load-failed", reinterpret_cast<GCallback>(loadFailedCallback), this);
     return true;
+}
+
+void TestRunnerImpl::setParentVisibility(bool visible) {
+    auto* backend = webkit_web_view_backend_get_wpe_backend(webkit_web_view_get_backend(m_parentView));
+    assert(backend);
+    if (visible) {
+        wpe_view_backend_add_activity_state(backend, wpe_view_activity_state_in_window);
+    } else {
+        wpe_view_backend_remove_activity_state(backend, wpe_view_activity_state_in_window);
+    }
 }
 
 bool TestRunnerImpl::handleDestroyTestCase(WebKitUserMessage *message) {
     g_clear_object(&m_testCaseView);
+    setParentVisibility(true);
     return true;
 }
 
@@ -168,12 +195,20 @@ bool TestRunnerImpl::handleTestCaseEnded(WebKitUserMessage *message) {
     const char* msg = nullptr;
     g_variant_get(payload, "(b&s)", &success, &msg);
 
+    sendTestCaseResponse(success, msg);
+
+    return true;
+}
+
+void TestRunnerImpl::sendTestCaseResponse(bool success, const char* msg) {
+    if (!msg) {
+        msg = "(no message)";
+    }
     auto msgName = std::string(Testing::Tags::TestRunnerPrefix) + Testing::Tags::TestRunnerCaseEnded;
     webkit_web_view_send_message_to_page(
         m_parentView,
         webkit_user_message_new(msgName.c_str(), g_variant_new("(bs)", success, msg)),
                                 nullptr, nullptr, nullptr);
-    return true;
 }
 
 void TestRunnerImpl::initWebExtensionsCallback(WebKitWebContext *context,
@@ -191,6 +226,39 @@ bool TestRunnerImpl::userMessageReceivedCallback(WebKitWebView *webView,
 {
     TestRunnerImpl* runner = (TestRunnerImpl*)userData;
     return runner->handleUserMessageFromTestCase(webView, message);
+}
+
+void TestRunnerImpl::webProcessTerminatedCallback(WebKitWebView* webView,
+                                                  WebKitWebProcessTerminationReason reason,
+                                                  void *userData)
+{
+    static auto reasons = []() {
+        std::map<WebKitWebProcessTerminationReason, const char*> reasons;
+#define EMPLACE_ENTRY(entry) reasons.emplace(entry, #entry)
+        EMPLACE_ENTRY(WEBKIT_WEB_PROCESS_CRASHED);
+        EMPLACE_ENTRY(WEBKIT_WEB_PROCESS_EXCEEDED_MEMORY_LIMIT);
+        EMPLACE_ENTRY(WEBKIT_WEB_PROCESS_TERMINATED_BY_API);
+#undef EMPLACE_ENTRY
+        return reasons;
+    }();
+
+    g_warning("TestRunner: webProcessTerminatedCallback %d : %s", reason, reasons[reason]);
+    std::string message = "TERMINATED: ";
+    message += std::to_string(reason) + "[" + reasons[reason] + "]";
+
+    TestRunnerImpl* runner = (TestRunnerImpl*)userData;
+    runner->sendTestCaseResponse(false, message.c_str());
+}
+
+void TestRunnerImpl::loadFailedCallback(WebKitWebView* webView, WebKitLoadEvent loadEvent,
+                                        const gchar* failingURI, GError* error, void *userData)
+{
+    g_warning("TestRunner: Failed to load URL %s [%s]", failingURI, error->message);
+    std::string message = "LOAD_FAILED: ";
+    message += error->message;
+
+    TestRunnerImpl* runner = (TestRunnerImpl*)userData;
+    runner->sendTestCaseResponse(false, message.c_str());
 }
 
 } // namespace
