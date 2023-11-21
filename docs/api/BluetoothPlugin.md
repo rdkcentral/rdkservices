@@ -2,7 +2,7 @@
 <a name="Bluetooth_Plugin"></a>
 # Bluetooth Plugin
 
-**Version: [1.0.6](https://github.com/rdkcentral/rdkservices/blob/main/Bluetooth/CHANGELOG.md)**
+**Version: [1.0.7](https://github.com/rdkcentral/rdkservices/blob/main/Bluetooth/CHANGELOG.md)**
 
 A org.rdk.Bluetooth plugin for Thunder framework.
 
@@ -424,6 +424,8 @@ No Events
 | result.deviceInfo.rssi | string | Received signal strength of the device |
 | result.deviceInfo.signalStrength | string | Bluetooth signal strength |
 | result.deviceInfo.batteryLevel | string | Bluetooth battery level |
+| result.deviceInfo.modalias | string | Bluetooth device modalias |
+| result.deviceInfo.firmwareRevision | string | Bluetooth device firmware revision | 
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
