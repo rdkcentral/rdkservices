@@ -34,7 +34,7 @@ class MiracastGstPlayer
 public:
     static MiracastGstPlayer *getInstance();
     static void destroyInstance();
-    bool launch(std::string localip , std::string streaming_port);
+    bool launch(std::string localip , std::string streaming_port,MiracastRTSPMsg *rtsp_instance);
     bool stop();
     bool pause();
     bool resume();
@@ -62,6 +62,8 @@ private:
     GstElement *m_aacparse{nullptr};
     GstElement *m_avdec_aac{nullptr};
     GstElement *m_audioconvert{nullptr};
+    bool m_firstVideoFrameReceived{false};
+    MiracastRTSPMsg *m_rtsp_reference_instance{nullptr};
 
     std::string m_uri;
     guint64 m_streaming_port;
@@ -84,6 +86,8 @@ private:
 
     bool createPipeline();
     bool updateVideoSinkRectangle(void);
+    static void onFirstVideoFrameCallback(GstElement* object, guint arg0, gpointer arg1,gpointer userdata);
+    void notifyPlaybackState(eMIRA_GSTPLAYER_STATES gst_player_state);
     static gboolean busMessageCb(GstBus *bus, GstMessage *msg, gpointer user_data);
     bool changePipelineState(GstState state) const;
 

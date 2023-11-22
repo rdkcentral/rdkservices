@@ -29,7 +29,7 @@
 #define MAX_EPOLL_EVENTS 64
 #define RTSP_REQUEST_RECV_TIMEOUT   ( 6 * ONE_SECOND_IN_MILLISEC )
 #define RTSP_RESPONSE_RECV_TIMEOUT  ( 5 * ONE_SECOND_IN_MILLISEC )
-#define SOCKET_DFLT_WAIT_TIMEOUT    ( 30 * ONE_SECOND_IN_MILLISEC )
+#define SOCKET_DFLT_WAIT_TIMEOUT    ( 15 * ONE_SECOND_IN_MILLISEC )
 #define RTSP_DFLT_KEEP_ALIVE_WAIT_TIMEOUT_SEC   ( 60 )
 #define RTSP_KEEP_ALIVE_POLL_WAIT_TIMEOUT   ( ONE_SECOND_IN_MILLISEC )
 #define RTSP_KEEP_ALIVE_WAIT_TIMEOUT_OFFSET_SEC   ( 20 )
@@ -524,6 +524,7 @@ private:
     MiracastRTSPMsg(const MiracastRTSPMsg &) = delete;
 
     int m_tcpSockfd;
+    int m_epollfd;
     unsigned int m_wfd_src_req_timeout;
     unsigned int m_wfd_src_res_timeout;
     unsigned int m_current_wait_time_ms;
@@ -569,6 +570,7 @@ private:
 
     void send_msgto_controller_thread(eCONTROLLER_FW_STATES state);
     MiracastError create_RTSPThread(void);
+    void Release_SocketAndEpollDescriptor(void);
 
     RTSP_STATUS validate_rtsp_m1_msg_m2_send_request(std::string rtsp_m1_msg_buffer);
     RTSP_STATUS validate_rtsp_m2_request_ack(std::string rtsp_m1_response_ack_buffer);

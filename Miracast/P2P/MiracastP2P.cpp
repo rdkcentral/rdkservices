@@ -363,12 +363,12 @@ MiracastError MiracastP2P::executeCommand(std::string command, int interface, st
 {
     MIRACASTLOG_TRACE("Entering..");
 
-    MIRACASTLOG_VERBOSE("Executing P2P command %s", command.c_str());
+    MIRACASTLOG_INFO("Executing P2P command %s", command.c_str());
     {
         char ret_buffer[2048] = {0};
         p2pExecute((char *)command.c_str(), static_cast<P2P_INTERFACE>(interface), ret_buffer);
         retBuffer = ret_buffer;
-        MIRACASTLOG_VERBOSE("command return buffer is - %s", retBuffer.c_str());
+        MIRACASTLOG_INFO("command return buffer is - %s", retBuffer.c_str());
     }
     MIRACASTLOG_TRACE("Exiting..");
     return MIRACAST_OK;
@@ -407,10 +407,7 @@ MiracastError MiracastP2P::set_WFDParameters(void)
         executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
         command = "SET wifi_display 1";
         executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
-        command = "P2P_PEER FIRST";
-        executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
-        command = "P2P_SET disallow_freq 5180-5900";
-        executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
+
         command = "WFD_SUBELEM_SET 0";
         executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
         command = "WFD_SUBELEM_SET 0 000600111c4400c8";
@@ -437,10 +434,11 @@ void MiracastP2P::reset_WFDParameters(void)
 MiracastError MiracastP2P::discover_devices(void)
 {
     MiracastError ret = MIRACAST_FAIL;
-    std::string command, retBuffer;
+    std::string command, retBuffer,opt_flag_buffer;
     MIRACASTLOG_TRACE("Entering..");
 
     command = "P2P_FIND";
+
     ret = executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
     if (ret != MIRACAST_OK)
     {

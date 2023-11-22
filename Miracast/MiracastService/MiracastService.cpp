@@ -47,7 +47,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 0
+#define API_VERSION_NUMBER_PATCH 1
 
 #define SERVER_DETAILS "127.0.0.1:9998"
 #define SYSTEM_CALLSIGN "org.rdk.System"
@@ -430,13 +430,21 @@ namespace WPEFramework
 				getStringParameter("name", name);
 				getStringParameter("mac", mac);
 
-				if (( 0 == name.compare(m_miracast_ctrler_obj->get_WFDSourceName())) &&
-					( 0 == mac.compare(m_miracast_ctrler_obj->get_WFDSourceMACAddress())))
+				if ((( 0 == name.compare(m_miracast_ctrler_obj->get_WFDSourceName())) &&
+					( 0 == mac.compare(m_miracast_ctrler_obj->get_WFDSourceMACAddress())))||
+					(( 0 == name.compare(m_miracast_ctrler_obj->get_NewSourceName())) &&
+					( 0 == mac.compare(m_miracast_ctrler_obj->get_NewSourceMACAddress()))))
 				{
+					std::string cached_mac_address = "";
+					if ( 0 == mac.compare(m_miracast_ctrler_obj->get_NewSourceMACAddress()))
+					{
+						cached_mac_address = mac;
+					}
+
 					if ( MIRACAST_SERVICE_STATE_PLAYER_LAUNCHED != m_eService_state )
 					{
 						m_eService_state = MIRACAST_SERVICE_STATE_APP_REQ_TO_ABORT_CONNECTION;
-						m_miracast_ctrler_obj->restart_session_discovery();
+						m_miracast_ctrler_obj->restart_session_discovery(cached_mac_address);
 						success = true;
 					}
 					else

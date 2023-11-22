@@ -107,7 +107,8 @@ typedef enum controller_framework_states_e
     RTSP_PLAY_FROM_SINK2SRC = 0x000FF000C,
     RTSP_UPDATE_VIDEO_RECT = 0x000FF000D,
     RTSP_STOP_STREAMING = 0x0000FF0E,
-    RTSP_SELF_ABORT = 0x000FF000F,
+    RTSP_NOTIFY_GSTPLAYER_STATE = 0x000FF000F,
+    RTSP_SELF_ABORT = 0x000FF0010,
     RTSP_INVALID_ACTION
 } eCONTROLLER_FW_STATES;
 
@@ -172,6 +173,16 @@ typedef enum miracast_player_states_e
     MIRACAST_PLAYER_STATE_M1_M7_XCHANGE_DONE,
     MIRACAST_PLAYER_STATE_SELF_ABORT,
 } eMIRA_PLAYER_STATES;
+
+typedef enum miracast_gstplayer_states_e
+{
+    MIRACAST_GSTPLAYER_STATE_IDLE   = 0x01,
+    MIRACAST_GSTPLAYER_STATE_FIRST_VIDEO_FRAME_RECEIVED = 0x02,
+    MIRACAST_GSTPLAYER_STATE_PLAYING = 0x03,
+    MIRACAST_GSTPLAYER_STATE_STOPPED = 0x04,
+    MIRACAST_GSTPLAYER_STATE_PAUSED = 0x05,
+    MIRACAST_GSTPLAYER_STATE_MAX,
+} eMIRA_GSTPLAYER_STATES;
 
 typedef enum miracast_service_error_code_e
 {
@@ -238,6 +249,7 @@ typedef struct rtsp_hldr_msgq_st
     VIDEO_RECT_STRUCT videorect;
     eCONTROLLER_FW_STATES state;
     eM_PLAYER_STOP_REASON_CODE stop_reason_code;
+    eMIRA_GSTPLAYER_STATES  gst_player_state;
 } RTSP_HLDR_MSGQ_STRUCT;
 
 typedef struct thunder_req_hldr_msg_st
@@ -358,4 +370,12 @@ private:
     void (*m_thread_callback)(void *);
     void *m_thread_user_data;
 };
+
+// Static member function in a class
+class MiracastCommon
+{
+    public:
+        static std::string parse_opt_flag( std::string file_name , bool integer_check );
+};
+
 #endif
