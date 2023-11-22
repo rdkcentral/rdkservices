@@ -520,10 +520,10 @@ namespace Plugin {
 	//Get number of source supported
 	numberSourcesSupported = GetNumberOfSourcesSupported( );
 
-        SyncPQParamsToDriverCache("Global","Global","Global");
+        SyncPQParamsToDriverCache("none","none","none");
 
         // source format specific sync to ssm data
-        SyncSourceFormatPicModeToCache("Current", "Global", "Global");//Tamil--need to move it to SyncPQPAramsToDriverCache
+        SyncSourceFormatPicModeToCache("Current", "none", "none");
 
        if(appUsesGlobalBackLightFactor)
        {
