@@ -14,6 +14,13 @@ All notable changes to this RDK Service will be documented in this file.
 
     For more details, refer to versioning section under Main README.
 
+## [1.0.1] - 2023-11-22
+### Added
+- Enabled the necessary logs in both MiracastService and MiracastPlayer plugins
+- Fixed the Device goes Offline issue
+- Fixed the ENT-32203 Error issue
+- Implemented the first-frame-video-callback to fix the couple of secs Blank observed while streaming
+
 ## [1.0.0] - 2023-11-01
 ### Added
-- New RDK Service MiracastService to manage screen mirrorning with the device via WiFi-Direct
+- New RDK Service MiracastService and MiracastPlayer to manage screen mirrorning with the device via WiFi-Direct
