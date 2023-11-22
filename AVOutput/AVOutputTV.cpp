@@ -5377,7 +5377,7 @@ namespace Plugin {
                     {
 			std::string local = param.value;
 			transform(local.begin(), local.end(), local.begin(), ::tolower); 
-                        int pqmodeindex = (int)GetTVPictureModeIndex(local.str());
+                        int pqmodeindex = (int)GetTVPictureModeIndex(local.c_str());
 
                         tvError_t tv_err = SaveSourcePictureMode(source, format, pqmodeindex);
                         if (tv_err != tvERROR_NONE)
