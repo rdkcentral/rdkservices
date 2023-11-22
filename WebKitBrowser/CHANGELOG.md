@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.1.19] - 2023-11-22
+### Changed
+- Fix memory pressure settings config generation
+
 ## [1.1.18] - 2023-11-07
 ### Changed
 - Extend memory pressure configuration
