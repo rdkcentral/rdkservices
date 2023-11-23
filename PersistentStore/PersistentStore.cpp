@@ -19,9 +19,26 @@
 
 #include "PersistentStore.h"
 
-#include "SqliteStore.h"
+#if defined(SQLITE_HAS_CODEC)
+#if defined(USE_PLABELS)
+#include "sqlite/see/SqliteSeeDbPlabels.h"
+#else
+#include "sqlite/see/SqliteSeeDb.h"
+#endif
+#else
+#include "sqlite/SqliteDb.h"
+#endif
 
-#include "UtilsFile.h"
+#include "sqlite/SqliteStore2.h"
+#include "sqlite/SqliteStore2WithReconnect.h"
+#if defined(WITH_CLOCK_SYNC)
+#include "sqlite/SqliteStore2WithClockSync.h"
+#endif
+#include "sqlite/SqliteStoreCache.h"
+#include "sqlite/SqliteStoreInspector.h"
+#include "sqlite/SqliteStoreInspectorWithReconnect.h"
+
+#include <fstream>
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
@@ -39,92 +56,107 @@ namespace {
         // Terminations
         {},
         // Controls
-        {}
-    );
+        {});
 }
 
 namespace Plugin {
 
-SERVICE_REGISTRATION(PersistentStore, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
+    SERVICE_REGISTRATION(PersistentStore, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
-PersistentStore::PersistentStore()
-    : PluginHost::JSONRPC(),
-      _store(Core::Service<SqliteStore>::Create<Exchange::IStore>()),
-      _storeCache(static_cast<SqliteStore *>(_store)),
-      _storeListing(static_cast<SqliteStore *>(_store)),
-      _storeSink(this)
-{
-    RegisterAll();
-}
+    const string PersistentStore::Initialize(PluginHost::IShell* service)
+    {
+        string result;
 
-PersistentStore::~PersistentStore()
-{
-    UnregisterAll();
+        ASSERT(service != nullptr);
 
-    _store->Release();
-}
+        auto configLine = service->ConfigLine();
+        _config.FromString(configLine);
 
-const string PersistentStore::Initialize(PluginHost::IShell *service)
-{
-    string result;
+        ASSERT(!_config.Path.Value().empty());
 
-    ASSERT(service != nullptr);
+        {
+            Core::File file(_config.Path.Value());
+            Core::File oldFile(_config.LegacyPath.Value());
+            if (file.Name() != oldFile.Name()) {
+                if (oldFile.Exists()) {
+                    if (!file.Exists()) {
+                        // Rename will fail if the files are not on the same filesystem
+                        // Make a copy and then remove the original file
+                        std::ifstream in(oldFile.Name(), std::ios::in | std::ios::binary);
+                        std::ofstream out(file.Name(), std::ios::out | std::ios::binary);
+                        out << in.rdbuf();
+                    }
 
-    string configLine = service->ConfigLine();
-    _config.FromString(configLine);
-
-    ASSERT(!_config.Path.Value().empty());
-
-    Core::File file(_config.Path.Value());
-
-    Core::Directory(file.PathName().c_str()).CreatePath();
-
-    if (!file.Exists()) {
-        for (auto i : LegacyLocations()) {
-            Core::File from(i);
-
-            if (from.Exists()) {
-                if (!Utils::MoveFile(from.Name(), file.Name())) {
-                    result = "move failed";
+                    oldFile.Destroy();
                 }
-                break;
             }
         }
+
+        auto sqliteDb =
+#if defined(SQLITE_HAS_CODEC)
+#if defined(USE_PLABELS)
+            Core::Service<SqliteSeeDb>::Create<ISqliteDb>(
+                _config.Path.Value(), _config.MaxSize.Value(), _config.MaxValue.Value(), _config.Key.Value())
+#else
+            Core::Service<SqliteSeeDbPlabels>::Create<ISqliteDb>(
+                _config.Path.Value(), _config.MaxSize.Value(), _config.MaxValue.Value(), _config.Key.Value())
+#endif
+#else
+            Core::Service<SqliteDb>::Create<ISqliteDb>(
+                _config.Path.Value(), _config.MaxSize.Value(), _config.MaxValue.Value())
+#endif
+            ;
+        if (sqliteDb->Open() != Core::ERROR_NONE) {
+            result = "init failed";
+        } else {
+            _store2 = Core::Service<Store2>::Create<Exchange::IStore2>();
+            static_cast<Store2*>(_store2)->ScopeMap.emplace(
+                Exchange::IStore2::ScopeType::DEVICE,
+#if defined(WITH_CLOCK_SYNC)
+                Core::Service<SqliteStore2WithClockSync<SqliteStore2WithReconnect<SqliteStore2>>>::Create<Exchange::IStore2>(sqliteDb))
+#else
+                Core::Service<SqliteStore2WithReconnect<SqliteStore2>>::Create<Exchange::IStore2>(sqliteDb))
+#endif
+                ;
+            _store2->Register(&_store2Sink);
+
+            _storeCache = Core::Service<SqliteStoreCache>::Create<Exchange::IStoreCache>(sqliteDb);
+
+            _storeInspector = Core::Service<StoreInspector>::Create<Exchange::IStoreInspector>();
+            static_cast<StoreInspector*>(_storeInspector)->ScopeMap.emplace(Exchange::IStoreInspector::ScopeType::DEVICE, Core::Service<SqliteStoreInspectorWithReconnect<SqliteStoreInspector>>::Create<Exchange::IStoreInspector>(sqliteDb));
+
+            _store = Core::Service<Store>::Create<Exchange::IStore>(_store2);
+        }
+        sqliteDb->Release();
+
+        return result;
     }
 
-    if (result.empty()) {
-        if (static_cast<SqliteStore *>(_store)->Open(
-            _config.Path.Value(),
-            _config.Key.Value(),
-            _config.MaxSize.Value(),
-            _config.MaxValue.Value()) != Core::ERROR_NONE) {
-            result = "init failed";
+    void PersistentStore::Deinitialize(PluginHost::IShell* /* service */)
+    {
+        if (_store) {
+            _store->Release();
+            _store = nullptr;
+        }
+        if (_store2) {
+            _store2->Unregister(&_store2Sink);
+            _store2->Release();
+            _store2 = nullptr;
+        }
+        if (_storeCache) {
+            _storeCache->Release();
+            _storeCache = nullptr;
+        }
+        if (_storeInspector) {
+            _storeInspector->Release();
+            _storeInspector = nullptr;
         }
     }
 
-    if (result.empty()) {
-        _storeSink.Initialize(_store);
+    string PersistentStore::Information() const
+    {
+        return (string());
     }
-
-    return result;
-}
-
-void PersistentStore::Deinitialize(PluginHost::IShell * /* service */)
-{
-    static_cast<SqliteStore *>(_store)->Term();
-
-    _storeSink.Deinitialize();
-}
-
-string PersistentStore::Information() const
-{
-    return (string());
-}
-
-std::vector<string> PersistentStore::LegacyLocations() const
-{
-    return {"/opt/persistent/rdkservicestore"};
-}
 
 } // namespace Plugin
 } // namespace WPEFramework

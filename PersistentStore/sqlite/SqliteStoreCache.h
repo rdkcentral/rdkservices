@@ -19,16 +19,42 @@
 
 #pragma once
 
-#include "Module.h"
+#include "ISqliteDb.h"
+
+#include <interfaces/IStoreCache.h>
 
 namespace WPEFramework {
 namespace Plugin {
 
-struct IStoreListing : virtual public Core::IUnknown {
-    virtual uint32_t GetKeys(const string &ns, std::vector<string> &keys /* @out */) = 0;
-    virtual uint32_t GetNamespaces(std::vector<string> &namespaces /* @out */) = 0;
-    virtual uint32_t GetStorageSize(std::map<string, uint64_t> &namespaceSizes /* @out */) = 0;
-};
+    class SqliteStoreCache : public Exchange::IStoreCache {
+    private:
+        SqliteStoreCache(const SqliteStoreCache&) = delete;
+        SqliteStoreCache& operator=(const SqliteStoreCache&) = delete;
+
+    public:
+        SqliteStoreCache(ISqliteDb* db)
+            : _data(db)
+        {
+            ASSERT(_data != nullptr);
+            _data->AddRef();
+        }
+        virtual ~SqliteStoreCache() override
+        {
+            _data->Release();
+        }
+
+    public:
+        // IStoreCache methods
+
+        virtual uint32_t FlushCache() override;
+
+        BEGIN_INTERFACE_MAP(SqliteStoreCache)
+        INTERFACE_ENTRY(Exchange::IStoreCache)
+        END_INTERFACE_MAP
+
+    private:
+        ISqliteDb* _data;
+    };
 
 } // namespace Plugin
 } // namespace WPEFramework

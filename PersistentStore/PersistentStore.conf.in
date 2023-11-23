@@ -6,6 +6,7 @@ startuporder = "@PLUGIN_PERSISTENTSTORE_STARTUPORDER@"
 configuration = JSON()
 
 configuration.add("path", "@PLUGIN_PERSISTENTSTORE_PATH@")
+configuration.add("legacypath", "/opt/persistent/rdkservicestore")
 configuration.add("key", "@PLUGIN_PERSISTENTSTORE_KEY@")
 configuration.add("maxsize", 1000000)
 configuration.add("maxvalue", 3000)

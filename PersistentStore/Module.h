@@ -22,8 +22,11 @@
 #define MODULE_NAME Plugin_PersistentStore
 #endif
 
+// R4...
+//#include <definitions/definitions.h>
+// R2...
+#include <interfaces/definitions.h>
 #include <plugins/plugins.h>
-#include <tracing/tracing.h>
 
 #undef EXTERNAL
 #define EXTERNAL
