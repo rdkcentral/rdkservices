@@ -437,6 +437,7 @@ namespace Plugin {
 
 	registerMethod("getPictureMode", &AVOutputTV::getPictureMode, this);
         registerMethod("setPictureMode", &AVOutputTV::setPictureMode, this);
+	registerMethod("signalFilmMakerMode", &AVOutputTV::signalFilmMakerMode, this);
 	registerMethod("resetPictureMode", &AVOutputTV::resetPictureMode, this);
 	registerMethod("getPictureModeCaps", &AVOutputTV::getPictureModeCaps, this);
         registerMethod("getSupportedPictureModes", &AVOutputTV::getSupportedPictureModes, this);
@@ -4925,6 +4926,30 @@ namespace Plugin {
 	    }
         }
 	returnResponse(true;)
+    }
+
+    uint32_t AVOutputTV::signalFilmMakerMode(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+        PLUGIN_Lock(tvLock);
+        std::string value;
+        char prevmode[PIC_MODE_NAME_MAX]={0};
+        GetTVPictureMode(prevmode);
+
+        value = parameters.HasLabel("signalFilmMakerMode") ? parameters["signalFilmMakerMode"].String() : "";
+        returnIfParamNotFound(value);
+	
+	if(strncmp(value.c_str(),"ON",strlen(value.c_str())))
+	{
+		NotifyFilmMakerModeChange(tvContentType_FMM);
+		LOGINFO(" enabling Film makermode \n");
+	}
+	else
+	{
+		LOGINFO(" disabling Film makermode \n");
+		NotifyFilmMakerModeChange(tvContentType_NONE);
+	}
+	returnResponse(true, "success");
     }
 
     uint32_t AVOutputTV::enableWBMode(const JsonObject& parameters, JsonObject& response)

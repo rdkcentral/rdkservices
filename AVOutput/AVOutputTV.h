@@ -154,6 +154,7 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         DECLARE_JSON_RPC_METHOD(setHDR10Mode )
         DECLARE_JSON_RPC_METHOD(setWBCtrl )
         DECLARE_JSON_RPC_METHOD(setPictureMode )
+	DECLARE_JSON_RPC_METHOD(signalFilmMakerMode)
         DECLARE_JSON_RPC_METHOD(setBacklightFade )
         DECLARE_JSON_RPC_METHOD(setZoomMode)
         DECLARE_JSON_RPC_METHOD(setLowLatencyState)
