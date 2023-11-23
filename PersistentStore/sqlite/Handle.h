@@ -19,16 +19,42 @@
 
 #pragma once
 
-#include "Module.h"
+#include "../Module.h"
+
+#include <sqlite3.h>
 
 namespace WPEFramework {
 namespace Plugin {
+    namespace Sqlite {
 
-struct IStoreListing : virtual public Core::IUnknown {
-    virtual uint32_t GetKeys(const string &ns, std::vector<string> &keys /* @out */) = 0;
-    virtual uint32_t GetNamespaces(std::vector<string> &namespaces /* @out */) = 0;
-    virtual uint32_t GetStorageSize(std::map<string, uint64_t> &namespaceSizes /* @out */) = 0;
-};
+        class Handle {
+        private:
+            Handle(const Handle&) = delete;
+            Handle& operator=(const Handle&) = delete;
 
+        public:
+            Handle()
+                : _data(nullptr)
+            {
+                Open();
+            }
+            virtual ~Handle() { Close(); }
+
+            virtual uint32_t Open();
+            inline operator sqlite3*()
+            {
+                return (_data);
+            }
+
+        private:
+            uint32_t Close();
+            uint32_t CreateSchema();
+
+        private:
+            sqlite3* _data;
+            Core::CriticalSection _dataLock;
+        };
+
+    } // namespace Sqlite
 } // namespace Plugin
 } // namespace WPEFramework
