@@ -5,6 +5,8 @@
 #include "ServiceMock.h"
 #include "IarmBusMock.h"
 #include "WrapsMock.h"
+#include "FactoriesImplementation.h"
+#include "WifiManagerDefines.h"
 
 using namespace WPEFramework;
 
@@ -19,6 +21,7 @@ protected:
     Core::JSONRPC::Message message;
     WrapsImplMock wrapsImplMock;
     NiceMock<IarmBusImplMock> iarmBusImplMock;
+    ServiceMock services;
 
     WifiManagerTest()
         : plugin(Core::ProxyType<Plugin::WifiManager>::Create())
@@ -34,6 +37,32 @@ protected:
         IarmBus::getInstance().impl = nullptr;
     }
 };
+
+class WifiInitializedEventTest : public WifiManagerTest {
+protected:
+    FactoriesImplementation factoriesImplementation;
+    PluginHost::IDispatcher* dispatcher;
+
+
+    WifiInitializedEventTest()
+        : WifiManagerTest()
+    {
+        PluginHost::IFactories::Assign(&factoriesImplementation);
+
+        dispatcher = static_cast<PluginHost::IDispatcher*>(
+            plugin->QueryInterface(PluginHost::IDispatcher::ID));
+        dispatcher->Activate(&services);
+    }
+
+    virtual ~WifiInitializedEventTest() override
+    {
+        dispatcher->Deactivate();
+        dispatcher->Release();
+        PluginHost::IFactories::Assign(nullptr);
+
+    }
+};
+
 
 TEST_F(WifiManagerTest, TestedAPIsShouldExist)
 {
@@ -107,6 +136,41 @@ TEST_F(WifiManagerTest, getPairedSSID)
     EXPECT_EQ(response, string("{\"ssid\":\"rdk.test.wifi.network\",\"success\":true}"));
 }
 
+TEST_F(WifiManagerTest, getPairedSSIDi_cache)
+{
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_NM_SRV_MGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_WIFI_MGR_API_getPairedSSIDInfo)));
+                auto param = static_cast<IARM_Bus_WiFiSrvMgr_Param_t*>(arg);
+                memcpy(&param->data.getPairedSSID, "rdk.test.wifi.network", sizeof("rdk.test.wifi.network"));
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPairedSSID"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"ssid\":\"rdk.test.wifi.network\",\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPairedSSID"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"ssid\":\"rdk.test.wifi.network\",\"success\":true}"));
+}
+
+TEST_F(WifiManagerTest, getPairedSSID_failed)
+{
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_NM_SRV_MGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_WIFI_MGR_API_getPairedSSIDInfo)));
+                auto param = static_cast<IARM_Bus_WiFiSrvMgr_Param_t*>(arg);
+                memcpy(&param->data.getPairedSSID, "rdk.test.wifi.network", sizeof("rdk.test.wifi.network"));
+                return IARM_RESULT_IPCCORE_FAIL;
+            });
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getPairedSSID"), _T("{}"), response));
+}
+
 TEST_F(WifiManagerTest, getPairedSSIDInfo)
 {
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
@@ -126,6 +190,48 @@ TEST_F(WifiManagerTest, getPairedSSIDInfo)
     EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"ssid\":\"rdk.test.wifi.network\"")));
     EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"bssid\":\"ff:ff:ff:ff:ff:ff\"")));
 }
+
+TEST_F(WifiManagerTest, getPairedSSIDInfo_cache)
+{
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_NM_SRV_MGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_WIFI_MGR_API_getPairedSSIDInfo)));
+                auto param = static_cast<IARM_Bus_WiFiSrvMgr_Param_t*>(arg);
+                memcpy(&param->data.getPairedSSIDInfo.ssid, "rdk.test.wifi.network", sizeof("rdk.test.wifi.network"));
+                memcpy(&param->data.getPairedSSIDInfo.bssid, "ff:ff:ff:ff:ff:ff", sizeof("ff:ff:ff:ff:ff:ff"));
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPairedSSIDInfo"), _T("{}"), response));
+    EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"success\":true")));
+    EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"ssid\":\"rdk.test.wifi.network\"")));
+    EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"bssid\":\"ff:ff:ff:ff:ff:ff\"")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPairedSSIDInfo"), _T("{}"), response));
+    EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"success\":true")));
+    EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"ssid\":\"rdk.test.wifi.network\"")));
+    EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"bssid\":\"ff:ff:ff:ff:ff:ff\"")));
+}
+
+TEST_F(WifiManagerTest, getPairedSSIDInfo_fail)
+{
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_NM_SRV_MGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_WIFI_MGR_API_getPairedSSIDInfo)));
+                auto param = static_cast<IARM_Bus_WiFiSrvMgr_Param_t*>(arg);
+                memcpy(&param->data.getPairedSSIDInfo.ssid, "rdk.test.wifi.network", sizeof("rdk.test.wifi.network"));
+                memcpy(&param->data.getPairedSSIDInfo.bssid, "ff:ff:ff:ff:ff:ff", sizeof("ff:ff:ff:ff:ff:ff"));
+                return IARM_RESULT_IPCCORE_FAIL;
+            });
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getPairedSSIDInfo"), _T("{}"), response));
+}
+
 
 TEST_F(WifiManagerTest, getConnectedSSID)
 {
@@ -242,6 +348,25 @@ TEST_F(WifiManagerTest, isPaired)
     EXPECT_EQ(response, string("{\"result\":0,\"success\":true}"));
 }
 
+TEST_F(WifiManagerTest, isPaired_cache)
+{
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_NM_SRV_MGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_WIFI_MGR_API_getPairedSSIDInfo)));
+                auto param = static_cast<IARM_Bus_WiFiSrvMgr_Param_t*>(arg);
+                memcpy(&param->data.getPairedSSIDInfo.ssid, "123412341234", sizeof("123412341234"));
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("isPaired"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"result\":0,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("isPaired"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"result\":0,\"success\":true}"));
+}
+
 TEST_F(WifiManagerTest, startScan)
 {
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
@@ -284,6 +409,57 @@ TEST_F(WifiManagerTest, stopScan)
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
+TEST_F(WifiManagerTest, cancelWPSPairing)
+{
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_NM_SRV_MGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_WIFI_MGR_API_cancelWPSPairing)));
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("cancelWPSPairing"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"result\":\"\",\"success\":true}"));
+}
+
+TEST_F(WifiManagerTest, initiateWPSPairing)
+{
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_NM_SRV_MGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_WIFI_MGR_API_initiateWPSPairing)));
+                return IARM_RESULT_SUCCESS;
+            });
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("initiateWPSPairing"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"result\":\"\",\"success\":true}"));
+}
+
+TEST_F(WifiManagerTest, initiateWPSPairing2)
+{
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_NM_SRV_MGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_WIFI_MGR_API_initiateWPSPairing2)));
+                return IARM_RESULT_SUCCESS;
+            });
+
+
+    JsonObject jsonObj;
+    JsonObject res;
+    jsonObj["method"] = "PIN";
+    jsonObj["wps_pin"] = "88888888";
+    uint32_t result = plugin->initiateWPSPairing2(jsonObj,res);
+    EXPECT_EQ(result, 0);
+}
+
+
 TEST_F(WifiManagerTest, SignalThresholdChangeEnabled)
 {
     ServiceMock service;
@@ -310,3 +486,91 @@ TEST_F(WifiManagerTest, getQuirks)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getQuirks"), _T("{}"), response));
     EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"success\":true")));
 }
+
+TEST_F(WifiInitializedEventTest, onWIFIStateChanged)
+{
+    EXPECT_CALL(services, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, string(_T("{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.WifiManager.onWIFIStateChanged\",\"params\":{\"state\":1,\"isLNF\":false}}")));
+                return Core::ERROR_NONE;
+            }));
+    WPEFramework::Plugin::WifiState intData = WPEFramework::Plugin::WifiState::DISABLED;
+    handler.Subscribe(0, _T("onWIFIStateChanged"), _T("org.rdk.WifiManager"), message);
+    plugin->onWIFIStateChanged(intData,false);
+    handler.Unsubscribe(0, _T("onWIFIStateChanged"), _T("org.rdk.WifiManager"), message);
+}
+
+TEST_F(WifiInitializedEventTest, onSSIDsChanged)
+{
+    EXPECT_CALL(services, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, string(_T("{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.WifiManager.onSSIDsChanged\",\"params\":{}}")));
+                return Core::ERROR_NONE;
+            }));
+    handler.Subscribe(0, _T("onSSIDsChanged"), _T("org.rdk.WifiManager"), message);
+    plugin->onSSIDsChanged();
+    handler.Unsubscribe(0, _T("onSSIDsChanged"), _T("org.rdk.WifiManager"), message);
+}
+TEST_F(WifiInitializedEventTest, onWifiSignalThresholdChanged)
+{
+    EXPECT_CALL(services, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, string(_T("{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.WifiManager.onWifiSignalThresholdChanged\",\"params\":{\"signalStrength\":\"-27.000000\",\"strength\":\"Excellent\"}}")));
+                return Core::ERROR_NONE;
+            }));
+    handler.Subscribe(0, _T("onWifiSignalThresholdChanged"), _T("org.rdk.WifiManager"), message);
+    plugin->onWifiSignalThresholdChanged(-27.000000,"Excellent");
+    handler.Unsubscribe(0, _T("onWifiSignalThresholdChanged"), _T("org.rdk.WifiManager"), message);
+}
+
+TEST_F(WifiInitializedEventTest, onError)
+{
+    EXPECT_CALL(services, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, string(_T("{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.WifiManager.onError\",\"params\":{\"code\":2}}")));
+                return Core::ERROR_NONE;
+            }));
+    WPEFramework::Plugin::ErrorCode intData = WPEFramework::Plugin::ErrorCode::CONNECTION_FAILED;
+    handler.Subscribe(0, _T("onError"), _T("org.rdk.WifiManager"), message);
+    plugin->onError(intData);
+    handler.Unsubscribe(0, _T("onError"), _T("org.rdk.WifiManager"), message);
+}
+
+
+TEST_F(WifiInitializedEventTest, onAvailableSSIDs)
+{
+    EXPECT_CALL(services, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, string(_T("{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.WifiManager.onAvailableSSIDs\",\"params\":{\"ssid\":\"123412341234\",\"security\":2,\"signalStrength\":\"-27.000000\",\"frequency\":\"2.442000\"}}")));
+                return Core::ERROR_NONE;
+            }));
+    JsonObject jsonObj;
+    jsonObj["ssid"] = "123412341234";
+    jsonObj["security"] = 2;
+    jsonObj["signalStrength"] = "-27.000000";
+    jsonObj["frequency"] = "2.442000";
+    handler.Subscribe(0, _T("onAvailableSSIDs"), _T("org.rdk.WifiManager"), message);
+    plugin->onAvailableSSIDs(jsonObj);
+    handler.Unsubscribe(0, _T("onAvailableSSIDs"), _T("org.rdk.WifiManager"), message);
+}
+
