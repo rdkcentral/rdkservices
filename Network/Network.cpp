@@ -1275,7 +1275,6 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
 
             if(m_isPluginInited)
             {
-                LOGERR("Captive potal URI feature not include");
                 response["URI"] = connectivityMonitor.getCaptivePortalURI();
             }
             else
