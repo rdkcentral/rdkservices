@@ -21,6 +21,8 @@
 #include "UtilsJsonRpc.h"
 #include "UtilsUnused.h"
 #include "impl/TTSCommon.h"
+#include "UtilsisValidInt.h"
+#include <regex>
 
 #define GET_STR(map, key, def) ((map.HasLabel(key) && !map[key].String().empty() && map[key].String() != "null") ? map[key].String() : def)
 
@@ -95,12 +97,13 @@ namespace Plugin {
             TTSLOG_INFO("SetACL request:%s\n",parameters["accesslist"].String().c_str());
             JsonArray list = parameters["accesslist"].Array();
             JsonArray::Iterator it = list.Elements();
+            uint32_t status;
             while(it.Next())
             {
                 JsonObject accesslist = it.Current().Object();
                 if (accesslist.HasLabel("method") && accesslist.HasLabel("apps"))
                 {
-                    _tts->SetACL(accesslist["method"].String(),accesslist["apps"].String());
+                   status = _tts->SetACL(accesslist["method"].String(),accesslist["apps"].String());
                 }
                 else
                 {
@@ -108,7 +111,7 @@ namespace Plugin {
                     returnResponse(false);
                 }
             }
-            returnResponse(true);
+            returnResponse(status ? false : true);
         }
         return Core::ERROR_NONE;
     }
@@ -129,16 +132,16 @@ namespace Plugin {
         if(_tts) {
             CHECK_TTS_PARAMETER_RETURN_ON_FAIL("language");
             RPC::IStringIterator* voices = nullptr;
-            _tts->ListVoices(parameters["language"].String(),voices);
+            auto status = _tts->ListVoices(parameters["language"].String(),voices);
             JsonArray arr;
             string element;
             while (voices->Next(element) == true) {
                 arr.Add(JsonValue(element));
             }
             response["voices"] = arr;
-            response["TTS_Status"] = static_cast<uint32_t> (TTS::TTS_OK);
+            response["TTS_Status"] = status
             voices->Release();
-            returnResponse(true);
+            returnResponse(status ? false:true);
         }
         return Core::ERROR_NONE;
     }
@@ -166,17 +169,58 @@ namespace Plugin {
     {
         if(_tts) {
         Exchange::ITextToSpeech::Configuration config;
-        config.ttsEndPoint = GET_STR(parameters, "ttsendpoint", "");
-        config.ttsEndPointSecured = GET_STR(parameters, "ttsendpointsecured", "");
+        std::string proxyTtsEndPoint = GET_STR(parameters, "ttsendpoint", "");
+        std::regex urlPattern(R"((https?|ftp):\/\/\S+\/\S*)",std::regex::icase);
+        if(regex_match(proxyTtsEndPoint,urlPattern)){
+            config.ttsEndPoint = proxyTtsEndPoint;
+        }
+        else{
+            config.ttsEndPoint = "";
+        }
+        std::string proxyTtsEndPointSecured = GET_STR(parameters, "ttsendpointsecured", "");
+        if(regex_match(proxyTtsEndPointSecured,urlPattern)){
+            config.ttsEndPointSecured = proxyTtsEndPointSecured;
+        }
+        else{
+            config.ttsEndPointSecured = "";
+        }
         config.language = GET_STR(parameters, "language", "");
-        config.voice = GET_STR(parameters, "voice", "");
-        config.speechRate = GET_STR(parameters, "speechrate", "");
-        config.volume = (uint8_t) std::stod(GET_STR(parameters, "volume", "0.0"));
+        std::set<std::string> languageSet = {"en-US","en-MX"};
+        config.language = languageSet.find(config.language) != languageSet.end() ? config.language : "";
+        std::string proxyVoice = GET_STR(parameters, "voice", "");
+        if(proxyVoice.c_str()[0] == ' ' || Utils::isValidUnsignedInt(const_cast<char*>(proxyVoice.c_str()))){
+            config.voice = "";
+        }
+        else{
+            config.voice = proxyVoice;
+        }
+        std::string proxySpeechRate = GET_STR(parameters, "speechrate", "");
+        if(proxySpeechRate == "slow" || proxySpeechRate == "medium" || proxySpeechRate == "fast" || proxySpeechRate == "faster"){
+            config.speechRate = proxySpeechRate;
+        }
+        else{
+            config.speechRate = "";
+        }
+        uint8_t proxyVolume = 0;
+        try
+        {
+            proxyVolume = (uint8_t) std::stod(GET_STR(parameters, "volume", "0.0"));
+        }
+        catch(...){
+            proxyVolume = (uint8_t) std::stod("0.0");
+        }
+        config.volume = proxyVolume;
 
         if(parameters.HasLabel("rate")) {
             int rate=0;
             getNumberParameter("rate", rate);
+            try{
             config.rate = static_cast<uint8_t>(rate);
+            }
+            catch(...)
+            {
+            config.rate = 0;
+            }
         }
         else {
             config.rate = 0;
@@ -188,7 +232,13 @@ namespace Plugin {
             auth = parameters["authinfo"].Object();
             if(((auth["type"].String()).compare("apikey")) == 0)
             {
-                apikey = GET_STR(auth,"value", "");
+                std::string proxyApiKey = GET_STR(auth,"value", "");
+                if(proxyApiKey.c_str()[0] == ' ' || proxyApiKey == "invalid"){
+                apikey = "";
+                }
+                else{
+                apikey = proxyApiKey;
+                }
                 _tts->SetAPIKey(apikey);
             }
         }
@@ -201,10 +251,16 @@ namespace Plugin {
             value    = fallback["value"].String();
             _tts->SetFallbackText(scenario,value);
         }
-
+        
         if(parameters.HasLabel("primvolduckpercent")) {
            int8_t  primVolDuck;
-           primVolDuck = (int8_t) std::stoi(GET_STR(parameters,"primvolduckpercent","-1"));
+           try{
+               primVolDuck = (int8_t) std::stoi(GET_STR(parameters,"primvolduckpercent","-1"));
+           }
+           catch(...)
+           {
+               primVolDuck = (int8_t) std::stoi("-1");
+           }
            _tts->SetPrimaryVolDuck(primVolDuck);
         }
          Exchange::ITextToSpeech::TTSErrorDetail status;
@@ -245,6 +301,12 @@ namespace Plugin {
     {
         CHECK_TTS_PARAMETER_RETURN_ON_FAIL("speechid");
         if(_tts) {
+             auto status = Utils::isValidUnsignedInt(const_cast<char*>(parameters["speechid"].String().c_str()));
+             if(!status)
+             {
+             response["TTS_Status"] = static_cast<uint32_t> (TTS::TTS_FAIL);
+             returnResponse(false);
+             }
             _tts->Cancel(parameters["speechid"].Number());
             response["TTS_Status"] = static_cast<uint32_t> (TTS::TTS_OK);
             returnResponse(true);
@@ -282,6 +344,12 @@ namespace Plugin {
         if(_tts) {
             bool isspeaking = false;
             Exchange::ITextToSpeech::SpeechState state;
+            auto status = Utils::isValidUnsignedInt(const_cast<char*>(parameters["speechid"].String().c_str()));
+            if(!status){
+            response["speaking"] = isspeaking;
+            response["TTS_Status"] = static_cast<uint32_t> (TTS::TTS_FAIL);
+            returnResponse(false);
+            }
             _tts->GetSpeechState(parameters["speechid"].Number(),state);
             if(state == Exchange::ITextToSpeech::SpeechState::SPEECH_IN_PROGRESS)
             {
@@ -298,6 +366,11 @@ namespace Plugin {
     {
         if(_tts) {
             Exchange::ITextToSpeech::SpeechState state;
+            auto status = Utils::isValidUnsignedInt(const_cast<char*>(parameters["speechid"].String().c_str()));
+            if(!status){
+            response["TTS_Status"] = static_cast<uint32_t> (TTS::TTS_FAIL);
+            returnResponse(false);
+            }
             _tts->GetSpeechState(parameters["speechid"].Number(),state);
             response["speechstate"] = (int) state;
             response["TTS_Status"] = static_cast<uint32_t> (TTS::TTS_OK);
