@@ -402,7 +402,7 @@
             }
         },
         "setConnectivityTestEndpoints":{
-            "summary": "Set the list of endpoints used for a connectivity test. Endpoint should return HTTP Status 204 (No Content) for successful connection and Maximum number of endpoints is 5 . \n\nDefault endpoints:-\n* http://clients3.google.com/generate_204 \n* http://edge-http.microsoft.com/captiveportal/generate_204 \n* http://gstatic.com/generate_204 ",
+            "summary": "Define up to 5 endpoints for a connectivity test. Successful connections are verified with HTTP Status code 204 (No Content). Priority is given to endpoints configured in /etc/netsrvmgr.conf. In case of errors or if not configured, the default endpoints are considered: `http://clients3.google.com/generate_204`.",
             "params": {
                 "type":"object",
                 "properties": {
@@ -517,7 +517,7 @@
                 "type":"object",
                 "properties": {
                     "interval": {
-                        "summary": "Interval in sec. Default value 600 sec and interval should be greater than 5 sec",
+                        "summary": "Interval in sec. Default value 60 sec and interval should be greater than 5 sec",
                         "type": "number",
                         "example": "30"
                     }
