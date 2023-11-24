@@ -89,6 +89,9 @@ bool TTSManager::isTTSEnabled() {
 TTS_Error TTSManager::listVoices(std::string language, std::vector<std::string> &voices) {
     bool returnCurrentConfiguration = false;
     std::string key = std::string("voice_for_"); // return all voices
+    if(!isLanguageValid(language)){
+        return TTS_FAIL;
+    }
 
     if(language.empty()) {
         returnCurrentConfiguration = true; // return voice for the configured language
@@ -117,6 +120,9 @@ TTS_Error TTSManager::listVoices(std::string language, std::vector<std::string> 
 }
 
 TTS_Error TTSManager::listLocalVoices(std::string language, std::vector<std::string> &voices) {
+     if(!isLanguageValid(language)){
+        return TTS_FAIL;
+     }
      if(language.empty()) {
         voices.push_back(m_defaultConfiguration.localVoice());
      } else {
@@ -229,6 +235,12 @@ TTS_Error TTSManager::setAPIKey(string apikey)
 
 TTS_Error TTSManager::setACL(const std::string method,const std::string apps)
 {
+   if(method != "speak"){
+   return TTS_FAIL;
+   }
+   if(apps.empty() || apps.c_str()[0] == ' ' || apps == "NULL"){
+   return TTS_FAIL;
+   }
    setAccessList(method,apps);
    //abort existing speech if any
    if(m_speaker)

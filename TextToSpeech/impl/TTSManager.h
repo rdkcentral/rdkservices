@@ -24,7 +24,7 @@
 #include "TTSSpeaker.h"
 #include "TTSConfiguration.h"
 #include "TTSDownloader.h"
-
+#include <set>
 #include <vector>
 
 namespace TTS {
@@ -105,6 +105,8 @@ public:
     virtual void interrupted(uint32_t speech_id);
     virtual void networkerror(uint32_t speech_id);
     virtual void playbackerror(uint32_t speech_id);
+    //String Validation
+    bool isLanguageValid(const std::string language){return languageSet.find(language) != languageSet.end();}
 
 private:
     TTSConfiguration m_defaultConfiguration;
@@ -113,6 +115,7 @@ private:
     bool m_needsConfigStoreUpdate;
     TTSDownloader *m_downloader;
     std::map<std::string,std::string> m_accessControlList;
+    std::set<std::string> languageSet = {"","en-US","en-MX"};
 };
 
 } // namespace TTS
