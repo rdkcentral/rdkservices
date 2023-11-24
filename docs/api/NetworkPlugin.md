@@ -443,7 +443,7 @@ No Events
 <a name="method.setConnectivityTestEndpoints"></a>
 ## *setConnectivityTestEndpoints [<sup>method</sup>](#head.Methods)*
 
-Define up to 5 endpoints for a connectivity test. Successful connections are verified with HTTP Status code 204 (No Content). Priority is given to endpoints configured in /etc/netsrvmgr.conf. In case of errors or if not configured, the default endpoints are considered: `http://clients3.google.com/generate_204` and `http://gstatic.com/generate_204`.
+Define up to 5 endpoints for a connectivity test. Successful connections are verified with HTTP Status code 204 (No Content). Priority is given to endpoints configured in /etc/netsrvmgr.conf. In case of errors or if not configured, the default endpoints are considered: `http://clients3.google.com/generate_204`.
 
 ### Events
 
