@@ -54,7 +54,7 @@ Network interface methods:
 | [getQuirks](#method.getQuirks) | Get standard string `RDK-20093` |
 | [getStbIp](#method.getStbIp) | Gets the IP address of the default interface |
 | [getSTBIPFamily](#method.getSTBIPFamily) | Gets the IP address of the default interface by address family |
-| [setConnectivityTestEndpoints](#method.setConnectivityTestEndpoints) | Set the list of endpoints used for a connectivity test |
+| [setConnectivityTestEndpoints](#method.setConnectivityTestEndpoints) | Define up to 5 endpoints for a connectivity test |
 | [isConnectedToInternet](#method.isConnectedToInternet) | Whether the device has internet connectivity |
 | [getInternetConnectionState](#method.getInternetConnectionState) | Returns the internet connection state |
 | [getCaptivePortalURI](#method.getCaptivePortalURI) | Returns the captive portal URI if connected to any captive portal network |
@@ -443,12 +443,7 @@ No Events
 <a name="method.setConnectivityTestEndpoints"></a>
 ## *setConnectivityTestEndpoints [<sup>method</sup>](#head.Methods)*
 
-Set the list of endpoints used for a connectivity test. Endpoint should return HTTP Status 204 (No Content) for successful connection and Maximum number of endpoints is 5 . 
-
-Default endpoints:-
-* http://clients3.google.com/generate_204 
-* http://edge-http.microsoft.com/captiveportal/generate_204 
-* http://gstatic.com/generate_204 .
+Define up to 5 endpoints for a connectivity test. Successful connections are verified with HTTP Status code 204 (No Content). Priority is given to endpoints configured in /etc/netsrvmgr.conf. In case of errors or if not configured, the default endpoints are considered: `http://clients3.google.com/generate_204` and `http://gstatic.com/generate_204`.
 
 ### Events
 
@@ -673,7 +668,7 @@ Enable a continuous monitoring of internet connectivity with heart beat interval
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.interval | number | Interval in sec. Default value 600 sec and interval should be greater than 5 sec |
+| params.interval | number | Interval in sec. Default value 60 sec and interval should be greater than 5 sec |
 
 ### Result
 
