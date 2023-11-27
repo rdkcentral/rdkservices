@@ -4938,7 +4938,7 @@ namespace Plugin {
         value = parameters.HasLabel("signalFilmMakerMode") ? parameters["signalFilmMakerMode"].String() : "";
         returnIfParamNotFound(parameters, "signalFilmMakerMode");
 	
-	if(strncmp(value.c_str(),"ON",strlen(value.c_str())))
+	if(strncmp(value.c_str(),"ON",strlen(value.c_str())) == 0)
 	{
 		NotifyFilmMakerModeChange(tvContentType_FMM);
 		LOGINFO(" enabling Film makermode \n");
