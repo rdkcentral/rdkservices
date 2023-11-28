@@ -19,7 +19,7 @@ All notable changes to this RDK Service will be documented in this file.
 ## [1.2.5] - 2023-11-28
 ### Added
 - Added HDMI-CEC key repeat for press and hold 
-- Added reportFeatureAbortEvent
+- Added reportFeatureAbortEvent 
 
 ## [1.2.4] - 2023-10-25
 ### Fixed
