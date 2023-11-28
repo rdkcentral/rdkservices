@@ -18,7 +18,7 @@ All notable changes to this RDK Service will be documented in this file.
 
 ## [1.4.11] - 2023-11-28
 ### Added
-- RDKShell changes for dual ODM FTA for Pioneer V2
+- RDKShell changes for dual ODM FTA
 
 ## [1.4.10] - 2023-10-23
 ### Added
