@@ -38,6 +38,7 @@
 #include <algorithm>
 
 #include "MaintenanceManager.h"
+#include <secure_wrapper.h>
 
 #include "UtilsIarm.h"
 #include "UtilsJsonRpc.h"
@@ -231,6 +232,14 @@ namespace WPEFramework {
             "/lib/rdk/Start_uploadSTBLogs.sh"
         };
 
+        string compare_strings[]={
+            "/lib/rdk/StartDCM_maintaince.sh",
+            "/lib/rdk/RFCbase.sh",
+            "/usr/bin/rdkvfwupgrader 0 1 >> /opt/logs/swupdate.log",
+            "/lib/rdk/swupdate_utility.sh >> /opt/logs/swupdate.log",
+            "/lib/rdk/Start_uploadSTBLogs.sh"
+        };
+
         vector<string> tasks;
 
         string script_names[]={
@@ -291,7 +300,6 @@ namespace WPEFramework {
 
         void MaintenanceManager::task_execution_thread(){
             uint8_t i=0;
-            string cmd="";
             bool internetConnectStatus=false;
 
             LOGINFO("Executing Maintenance tasks");
@@ -418,22 +426,89 @@ namespace WPEFramework {
 #endif
             std::unique_lock<std::mutex> lck(m_callMutex);
 
-            for( i = 0; i < tasks.size() && !m_abort_flag; i++) {
-                cmd = tasks[i];
-                cmd += " &";
-                cmd += "\0";
+            for (i = 0; i < tasks.size() && !m_abort_flag; i++)
+            {
                 m_task_map[tasks[i]] = true;
 
-                if ( !m_abort_flag ){
-                    LOGINFO("Starting Script (SM) :  %s \n",cmd.c_str());
-                    system(cmd.c_str());
+                if (!m_abort_flag)
+                {
+                    LOGINFO("Starting Script (SM) :  %s \n",tasks[i].c_str());
 
-                    LOGINFO("Waiting to unlock.. [%d/%d]",i+1,tasks.size());
-                    task_thread.wait(lck);
+                    if (tasks[i] == compare_strings[0])
+                    {
+                        v_secure_system("/lib/rdk/StartDCM_maintaince.sh &");
+                        LOGINFO("Waiting to unlock.. [%d/%d]",i+1,tasks.size());
+                        task_thread.wait(lck);
+                    }
+                    else if (tasks[i] == compare_strings[1])
+                    {
+                        v_secure_system("/lib/rdk/RFCbase.sh &");
+                        LOGINFO("Waiting to unlock.. [%d/%d]",i+1,tasks.size());
+                        task_thread.wait(lck);
+                    }
+                    else if(tasks[i] == compare_strings[2])
+                    {
+                        char buff[1024] = { '\0' };
+
+                        FILE* pipe2 = v_secure_popen("r", "/usr/bin/rdkvfwupgrader %s %s %s", "0", "1", "&");
+                        FILE *fp2 = fopen("/opt/logs/swupdate.log", "a");
+                        LOGINFO("Waiting to unlock.. [%d/%d]",i+1,tasks.size());
+                        task_thread.wait(lck);
+
+                        if (pipe2 && fp2)
+                        {
+                            memset(buff, 0, sizeof(buff));
+                            while (fgets(buff, sizeof(buff), pipe2))
+                            {
+                                fputs(buff, fp2);
+                                memset(buff, 0, sizeof(buff));
+                            }
+                            v_secure_pclose(pipe2);
+                            fclose(fp2);
+                        }
+                        else
+                        {
+                            LOGERR("Unable to run /usr/bin/rdkvfwupgrader script");
+                        }
+                    }
+                    else if (tasks[i] == compare_strings[3])
+                    {
+                        char buff[1024] = { '\0' };
+
+                        FILE* pipe1 = v_secure_popen("r", "/lib/rdk/swupdate_utility.sh %s", "&");
+                        FILE *fp = fopen("/opt/logs/swupdate.log", "a");
+                        LOGINFO("Waiting to unlock.. [%d/%d]",i+1,tasks.size());
+                        task_thread.wait(lck);
+
+                        if (pipe1 && fp)
+                        {
+                            memset(buff, 0, sizeof(buff));
+                            while (fgets(buff, sizeof(buff), pipe1))
+                            {
+                                fputs(buff, fp);
+                                memset(buff, 0, sizeof(buff));
+                            }
+                            v_secure_pclose(pipe1);
+                            fclose(fp);
+                        }
+                        else
+                        {
+                            LOGERR("Unable to run /lib/rdk/swupdate_utility.sh script");
+                        }
+                    }
+                    else if (tasks[i] == compare_strings[4])
+                    {
+                        v_secure_system("/lib/rdk/Start_uploadSTBLogs.sh &");
+                        LOGINFO("Waiting to unlock.. [%d/%d]",i+1,tasks.size());
+                        task_thread.wait(lck);
+                    }
+                    else
+                    {
+                        LOGERR("Script [%s] is not in the list.So not running the script. \n",tasks[i].c_str());
+                    }
                 }
             }
-
-	    m_abort_flag=false;
+            m_abort_flag=false;
             LOGINFO("Worker Thread Completed");
         }
 
