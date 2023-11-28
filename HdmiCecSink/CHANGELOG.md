@@ -15,6 +15,10 @@ All notable changes to this RDK Service will be documented in this file.
 * Changes in CHANGELOG should be updated when commits are added to the main or release branches. There should be one CHANGELOG entry per JIRA Ticket. This is not enforced on sprint branches since there could be multiple changes for the same JIRA ticket during development. 
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
+## [1.2.5] 2023-11-28
+### Added
+- Added HDMI-CEC key repeat for press and hold
+- Added reportFeatureAbortEvent
 
 ## [1.2.4] - 2023-10-25
 ### Fixed
