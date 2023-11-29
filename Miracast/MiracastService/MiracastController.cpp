@@ -443,6 +443,7 @@ void MiracastController::checkAndInitiateP2PBackendDiscovery(void)
     else
     {
         MIRACASTLOG_INFO("!!! BACKEND P2P DISCOVERY HAS DISABLED !!!");
+        stop_discover_devices();
     }
 }
 
