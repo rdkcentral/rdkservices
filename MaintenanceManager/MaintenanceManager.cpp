@@ -222,7 +222,11 @@ namespace WPEFramework {
 #ifndef DCM_TASK_REMOVAL
             "/lib/rdk/StartDCM_maintaince.sh",
 #endif
+#if defined(ENABLE_RDKVRFC_RDKE)
+	    "/usr/bin/rfcMgr >> /opt/logs/rfcscript.log
+#else
             "/lib/rdk/RFCbase.sh",
+#endif
 #if defined(ENABLE_RDKVFW_RDKE)
             "/usr/bin/rdkvfwupgrader 0 1 >> /opt/logs/swupdate.log",
 #else
@@ -237,7 +241,11 @@ namespace WPEFramework {
 #ifndef DCM_TASK_REMOVAL
             "DCMscript_maintaince.sh",
 #endif
-		"RFCbase.sh",
+#if defined(ENABLE_RDKVRFC_RDKE)
+             "rfcMgr",
+#else
+	     "RFCbase.sh",
+#endif
 #if defined(ENABLE_RDKVFW_RDKE)
 	    "rdkvfwupgrader",
 #else
@@ -1783,6 +1791,15 @@ namespace WPEFramework {
             LOGINFO("PID of %s is %d \n", taskname , (int)pid_num);
             if( pid_num != -1){
                 /* send the signal to task to terminate */
+#if defined(ENABLE_RDKVRFC_RDKE)
+		if (strstr(taskname, "rfcMgr")) {
+		    LOGINFO("Sending SIGUSR1 signal to %s\n", taskname);
+                    k_ret = kill( pid_num, SIGUSR1 );
+		}else{
+                    k_ret = kill( pid_num, sig_to_send );
+		}
+#endif
+
 #if defined(ENABLE_RDKVFW_RDKE)
 		if (strstr(taskname, "rdkvfwupgrader")) {
 		    LOGINFO("Sending SIGUSR1 signal to %s\n", taskname);
