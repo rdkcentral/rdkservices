@@ -223,7 +223,7 @@ namespace WPEFramework {
             "/lib/rdk/StartDCM_maintaince.sh",
 #endif
 #if defined(ENABLE_RDKVRFC_RDKE)
-	    "/usr/bin/rfcMgr >> /opt/logs/rfcscript.log
+	    "/usr/bin/rfcMgr >> /opt/logs/rfcscript.log"
 #else
             "/lib/rdk/RFCbase.sh",
 #endif
