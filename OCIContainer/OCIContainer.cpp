@@ -4,7 +4,6 @@
 
 #include <Dobby/DobbyProxy.h>
 #include <Dobby/IpcService/IpcFactory.h>
-#include <omi_proxy.hpp>
 
 #include "UtilsJsonRpc.h"
 
@@ -79,9 +78,8 @@ const string OCIContainer::Initialize(PluginHost::IShell *service)
     // Register a state change event listener
     mEventListenerId = mDobbyProxy->registerListener(stateListener, static_cast<const void*>(this));
 
-    mOmiProxy = std::make_shared<omi::OmiProxy>();
-
-    mOmiListenerId = mOmiProxy->registerListener(omiErrorListener, static_cast<const void*>(this));
+    mOmiProxy.Run();
+    mOmiListenerId = mOmiProxy.registerListener(omiErrorListener, static_cast<const void*>(this));
 
     return string();
 }
@@ -89,7 +87,8 @@ const string OCIContainer::Initialize(PluginHost::IShell *service)
 void OCIContainer::Deinitialize(PluginHost::IShell *service)
 {
     mDobbyProxy->unregisterListener(mEventListenerId);
-    mOmiProxy->unregisterListener(mOmiListenerId);
+    mOmiProxy.unregisterListener(mOmiListenerId);
+    mOmiProxy.Stop();
     Unregister("listContainers");
     Unregister("getContainerState");
     Unregister("getContainerInfo");
@@ -306,7 +305,7 @@ uint32_t OCIContainer::startContainer(const JsonObject &parameters, JsonObject &
 
     const bool encrypted = is_encrypted(bundlePath);
 
-    if (encrypted && !mOmiProxy->mountCryptedBundle(id,
+    if (encrypted && !mOmiProxy.mountCryptedBundle(id,
                                        bundlePath + "rootfs.img",
                                        bundlePath + "config.json.jwt",
                                        containerPath))
@@ -350,7 +349,7 @@ uint32_t OCIContainer::startContainer(const JsonObject &parameters, JsonObject &
     {
         LOGERR("Failed to start container - internal Dobby error.");
 
-        if (encrypted && !mOmiProxy->umountCryptedBundle(id.c_str()))
+        if (encrypted && !mOmiProxy.umountCryptedBundle(id.c_str()))
         {
             LOGERR("Failed to umount container %s - sync unmount request to omi failed.", id.c_str());
             response["error"] = "dobby start failed, unmount failed";
@@ -398,7 +397,7 @@ uint32_t OCIContainer::startContainerFromCryptedBundle(const JsonObject &paramet
 
     std::string containerPath;
 
-    if (!mOmiProxy->mountCryptedBundle(id,
+    if (!mOmiProxy.mountCryptedBundle(id,
                                        rootfsPath,
                                        configPath,
                                        containerPath))
@@ -434,7 +433,7 @@ uint32_t OCIContainer::startContainerFromCryptedBundle(const JsonObject &paramet
     {
         LOGERR("Failed to start container - internal Dobby error. Unmounting container.");
 
-        if (!mOmiProxy->umountCryptedBundle(id.c_str())) {
+        if (!mOmiProxy.umountCryptedBundle(id.c_str())) {
             LOGERR("Failed to umount container %s - sync unmount request to omi failed.", id.c_str());
             response["error"] = "dobby start failed, unmount failed";
         } else {
@@ -688,7 +687,7 @@ void OCIContainer::onContainerStarted(int32_t descriptor, const std::string& nam
 void OCIContainer::onContainerStopped(int32_t descriptor, const std::string& name)
 {
 
-    if (!mOmiProxy->umountCryptedBundle(name))
+    if (!mOmiProxy.umountCryptedBundle(name))
     {
         LOGERR("Failed to umount container %s - sync unmount request to omi failed.", name.c_str());
     }
@@ -775,13 +774,13 @@ const void OCIContainer::stateListener(int32_t descriptor, const std::string& na
  * @param err        Error type
  * @param _this      Callback parameters, or in this case, the pointer to 'this'
  */
-const void OCIContainer::omiErrorListener(const std::string& id, omi::IOmiProxy::ErrorType err, const void* _this)
+const void OCIContainer::omiErrorListener(const std::string& id, OmiDbus::OmiClient::ErrorType err, const void* _this)
 {
 
     // Cast const void* back to OCIContainer* type to get 'this'
     OCIContainer* __this = const_cast<OCIContainer*>(reinterpret_cast<const OCIContainer*>(_this));
 
-    if (__this != nullptr && err == omi::IOmiProxy::ErrorType::verityFailed)
+    if (__this != nullptr && err == OmiDbus::OmiClient::ErrorType::verityFailed)
     {
         __this->onVerityFailed(id);
     }

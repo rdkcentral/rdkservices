@@ -6,20 +6,17 @@ set(PLUGIN_OCICONTAINER_STARTUPORDER "" CACHE STRING "To configure startup order
 find_package(PkgConfig)
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(Dobby CONFIG)
+find_package(LibGlib REQUIRED)
+find_package(LibGio REQUIRED)
 
 # Temporary fix to get defines in Dobby. Will be removed later.
 add_definitions( -DRDK )
 
-pkg_search_module(OMI_CLIENT "omiclientlib")
-
-if(NOT OMI_CLIENT_FOUND)
-    set(OMI_CLIENT_INCLUDE_DIRS stubs)
-    message("Using stubs for omiclientlib")
-endif()
-
 add_library(${MODULE_NAME} SHARED
         OCIContainer.cpp
         Module.cpp
+        dbus/omi_dbus_api.c
+        dbus/omi_client.cpp
 )
 
 set_target_properties(${MODULE_NAME} PROPERTIES
@@ -49,7 +46,8 @@ find_package_handle_standard_args(
 target_include_directories(${MODULE_NAME}
         PRIVATE
         ../helpers
-        ${OMI_CLIENT_INCLUDE_DIRS}
+        ${LIBGLIB_INCLUDE_DIRS}
+        ${LIBGIO_INCLUDE_DIRS}
 )
 
 
@@ -59,7 +57,8 @@ target_link_libraries(${MODULE_NAME}
         ${DOBBY_LIBRARIES}
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
         ${SYSTEMD_LIBRARIES}
-        ${OMI_CLIENT_LIBRARIES}
+        ${LIBGIO_LIBRARIES}
+        ${LIBGLIB_LIBRARIES}
 )
 
 # ${NAMESPACE}Protocols::${NAMESPACE}Protocols

@@ -7,9 +7,8 @@
 
 #include <vector>
 #include <map>
-#include <i_omi_proxy.hpp>
 
-#include <i_omi_proxy.hpp>
+#include "dbus/omi_client.hpp"
 
 namespace WPEFramework
 {
@@ -75,8 +74,8 @@ private:
     std::shared_ptr<AI_IPC::IIpcService> mIpcService; // Ipc Service instance
     const int GetContainerDescriptorFromId(const std::string& containerId);
     static const void stateListener(int32_t descriptor, const std::string& name, IDobbyProxyEvents::ContainerState state, const void* _this);
-    static const void omiErrorListener(const std::string& id, omi::IOmiProxy::ErrorType err, const void* _this);
-    std::shared_ptr<omi::IOmiProxy> mOmiProxy;
+    static const void omiErrorListener(const std::string& id, OmiDbus::OmiClient::ErrorType err, const void* _this);
+    OmiDbus::OmiClient mOmiProxy;
 };
 } // namespace Plugin
 } // namespace WPEFramework
