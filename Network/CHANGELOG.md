@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.3.1] - 2023-11-30
+### Fixed
+- Addressed the IPv4 & IPv6 cache issue where it was not suppose to be cached when DNS or other parameter is not received yet
+
 ## [1.3.0] - 2023-11-25
 ### Added 
 - added connectivity monitor class remove Connectivity related IARM Calls

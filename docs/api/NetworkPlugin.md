@@ -2,7 +2,7 @@
 <a name="head.NetworkPlugin"></a>
 # NetworkPlugin
 
-**Version: [1.3.0](https://github.com/rdkcentral/rdkservices/blob/main/Network/CHANGELOG.md)**
+**Version: [1.3.1](https://github.com/rdkcentral/rdkservices/blob/main/Network/CHANGELOG.md)**
 
 A org.rdk.Network plugin for Thunder framework.
 
