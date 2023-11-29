@@ -79,7 +79,7 @@ const string OCIContainer::Initialize(PluginHost::IShell *service)
     mEventListenerId = mDobbyProxy->registerListener(stateListener, static_cast<const void*>(this));
 
     mOmiProxy.Run();
-    mOmiListenerId = mOmiProxy.registerListener(omiErrorListener, static_cast<const void*>(this));
+    mOmiProxy.registerListener(omiErrorListener, static_cast<const void*>(this));
 
     return string();
 }
@@ -87,7 +87,7 @@ const string OCIContainer::Initialize(PluginHost::IShell *service)
 void OCIContainer::Deinitialize(PluginHost::IShell *service)
 {
     mDobbyProxy->unregisterListener(mEventListenerId);
-    mOmiProxy.unregisterListener(mOmiListenerId);
+    mOmiProxy.unregisterListener();
     mOmiProxy.Stop();
     Unregister("listContainers");
     Unregister("getContainerState");

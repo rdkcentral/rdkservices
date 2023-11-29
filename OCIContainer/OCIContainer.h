@@ -69,7 +69,6 @@ public:
 
 private:
     int mEventListenerId; // Dobby event listener ID
-    long unsigned mOmiListenerId;
     std::shared_ptr<IDobbyProxy> mDobbyProxy; // DobbyProxy instance
     std::shared_ptr<AI_IPC::IIpcService> mIpcService; // Ipc Service instance
     const int GetContainerDescriptorFromId(const std::string& containerId);

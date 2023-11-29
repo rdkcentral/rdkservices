@@ -8,16 +8,8 @@
 #include <thread>
 #include <future>
 #include <vector>
-#include <map>
-#include <gio/gio.h>
-#include <glib.h>
 
 #include "omi_dbus_api.h"
-
-#include "../Module.h"
-
-#define OMI_CONFIG_DBUS_INTERFACE_NAME        "com.lgi.onemw.omi1"
-#define OMI_CONFIG_DBUS_INTERFACE_OBJECT_PATH "/com/lgi/onemw/omi1"
 
 namespace OmiDbus
 {
@@ -42,8 +34,8 @@ public:
                                     const std::string& config_json_path,
                                     std::string& bundlePath /*out parameter*/);
     bool umountCryptedBundle(const std::string& id);
-    long unsigned registerListener(const OmiErrorListener &listener, const void* cbParams);
-    void unregisterListener(long unsigned tag);
+    void registerListener(const OmiErrorListener &listener, const void* cbParams);
+    void unregisterListener();
     
 private:
     void handleVerityFailed(GVariant *parameters);

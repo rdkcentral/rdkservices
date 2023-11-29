@@ -4,16 +4,18 @@
 
 #include <algorithm>
 #include <functional>
-#include <cstring>
-#include <cerrno>
-#include <string>
-#include <thread>
+
 #include <gio/gio.h>
 #include <glib.h>
-#include <signal.h>
-#include <unistd.h>
+
 #include "omi_client.hpp"
 #include "UtilsLogging.h"
+#include "../Module.h"
+
+namespace {
+  const char *OMI_CONFIG_DBUS_INTERFACE_NAME = "com.lgi.onemw.omi1";
+  const char *OMI_CONFIG_DBUS_INTERFACE_OBJECT_PATH = "/com/lgi/onemw/omi1";
+}
 
 namespace OmiDbus
 {
@@ -27,7 +29,8 @@ OmiClient::OmiClient()
 
 OmiClient::~OmiClient()
 {
-    if (m_interface) {
+    if (m_interface)
+    {
         Stop();
     }
     LOGINFO("user_data: %p", this);
@@ -52,7 +55,8 @@ void OmiClient::connectSignal(const char* signalName,
 void OmiClient::disconnectAllSignals()
 {
     auto object = m_interface->proxy;
-    for (auto handle : m_signalHandles) {
+    for (auto handle : m_signalHandles)
+    {
         g_signal_handler_disconnect(object, handle);
     }
     m_signalHandles.clear();
@@ -113,13 +117,12 @@ bool OmiClient::umountCryptedBundle(const std::string& id)  {
                                  nullptr);
 }
 
-long unsigned OmiClient::registerListener(const OmiErrorListener &listener, const void* cbParams)  {
+void OmiClient::registerListener(const OmiErrorListener &listener, const void* cbParams)  {
     std::unique_lock<std::mutex> lock(m_listener_mtx);
     m_listener = std::make_pair(listener, cbParams);
-    return 0;
 }
 
-void OmiClient::unregisterListener(long unsigned tag)  {
+void OmiClient::unregisterListener()  {
     std::unique_lock<std::mutex> lock(m_listener_mtx);
     m_listener = std::make_pair(OmiErrorListener(), nullptr);
 }
