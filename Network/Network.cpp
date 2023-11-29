@@ -153,19 +153,15 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             m_stunBindTimeout = 30;
             m_stunCacheTimeout = 0;
             m_stunSync = true;
-            m_useIpv4WifiCache = false;
-            m_useIpv6WifiCache = false;
-            m_useIpv4EthCache = false;
-            m_useIpv6EthCache = false;
+            m_useIpv4Cache = false;
+            m_useIpv6Cache = false;
             m_useStbIPCache = false;
             m_stbIpCache = "";
             m_useDefInterfaceCache = false;
             m_defInterfaceCache = "";
             m_defIpversionCache = "";
-            m_ipv4WifiCache = {0};
-            m_ipv6WifiCache = {0};
-            m_ipv4EthCache = {0};
-            m_ipv6EthCache = {0};
+            m_ipv4Cache = {0};
+            m_ipv6Cache = {0};
         }
 
         Network::~Network()
@@ -1047,8 +1043,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
            strncpy(iarmData.ipversion, ipversion.c_str(), 16);
            iarmData.ipversion[sizeof(iarmData.ipversion) - 1] = '\0';
            if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getIPSettings, (void *)&iarmData, sizeof(iarmData)))
-               return true;
-
+                return true;
            return false;
         }
 
@@ -1066,62 +1061,58 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             if (ipversion.empty())
                 ipversion = m_defIpversionCache;
 
+            Utils::String::toUpper(interface);
+            Utils::String::toUpper(ipversion);
+
             IARM_BUS_NetSrvMgr_Iface_Settings_t iarmData = { 0 };
-            strncpy(iarmData.interface, interface.c_str(), 16);
-            iarmData.interface[sizeof(iarmData.interface) - 1] = '\0';
-            strncpy(iarmData.ipversion, ipversion.c_str(), 16);
-            iarmData.ipversion[sizeof(iarmData.ipversion) - 1] = '\0';
-            iarmData.isSupported = true;
-
-            if (Utils::String::equal(ipversion, "ipv4") && Utils::String::equal(interface, "wifi"))
+            if(Utils::String::equal(ipversion, "IPV4") && m_useIpv4Cache && Utils::String::equal(interface, m_ipv4Cache.interface))
             {
-                if ((!m_useIpv4WifiCache) && (getIPIARMWrapper(m_ipv4WifiCache, interface, ipversion)))
-                    m_useIpv4WifiCache = true;
-
-                if (m_useIpv4WifiCache)
-                {
-                    memcpy(&iarmData, &m_ipv4WifiCache, sizeof(m_ipv4WifiCache));
-                    result = true;
-                }
-            }
-            else if (Utils::String::equal(ipversion, "ipv4") && Utils::String::equal(interface, "ethernet"))
-            {
-                if ((!m_useIpv4EthCache) && (getIPIARMWrapper(m_ipv4EthCache, interface, ipversion)))
-                    m_useIpv4EthCache = true;
-
-                if (m_useIpv4EthCache)
-                {
-                    memcpy(&iarmData, &m_ipv4EthCache, sizeof(m_ipv4EthCache));
-                    result = true;
-                }
-            }
-            else if (Utils::String::equal(ipversion, "ipv6") && Utils::String::equal(interface, "wifi"))
-            {
-                if ((!m_useIpv6WifiCache) && (getIPIARMWrapper(m_ipv6WifiCache, interface, ipversion)))
-                    m_useIpv6WifiCache = true;
-
-                if (m_useIpv6WifiCache)
-                {
-                    memcpy(&iarmData, &m_ipv6WifiCache, sizeof(m_ipv6WifiCache));
-                    result = true;
-                }
-            }
-            else if (Utils::String::equal(ipversion, "ipv6") && Utils::String::equal(interface, "ethernet"))
-            {
-                if ((!m_useIpv6EthCache) && (getIPIARMWrapper(m_ipv6EthCache, interface, ipversion)))
-                    m_useIpv6EthCache = true;
-
-                if (m_useIpv6EthCache)
-                {
-                    memcpy(&iarmData, &m_ipv6EthCache, sizeof(m_ipv6EthCache));
-                    result = true;
-                }
-            }
-            else if (getIPIARMWrapper(iarmData, interface, ipversion))
-            {
+                LOGINFO("Reading Ipv4 cache");
+                memcpy(&iarmData, &m_ipv4Cache, sizeof(m_ipv4Cache));
                 result = true;
-                m_defInterfaceCache = string(iarmData.interface);
-                m_defIpversionCache = string(iarmData.ipversion);
+            }
+            else if (Utils::String::equal(ipversion, "IPV6") && m_useIpv6Cache && Utils::String::equal(interface, m_ipv6Cache.interface))
+            {
+                LOGINFO("Reading Ipv6 cache");
+                memcpy(&iarmData, &m_ipv6Cache, sizeof(m_ipv6Cache));
+                result = true;
+            }
+            else
+            {
+                iarmData.isSupported = true;
+                if(getIPIARMWrapper(iarmData, interface, ipversion))
+                {
+                    if(strcmp(iarmData.ipversion, "IPV4") == 0)
+                    {
+                        if(NETWORK_IPADDRESS_ACQUIRED == iarmData.errCode)
+                        {
+                            memcpy(&m_ipv4Cache, &iarmData, sizeof(m_ipv4Cache));
+                            m_useIpv4Cache = true;
+                        }
+                        result = true;
+                    }
+                    else if(strcmp(iarmData.ipversion, "IPV6") == 0)
+                    {
+                        if(NETWORK_IPADDRESS_ACQUIRED == iarmData.errCode)
+                        {
+                            memcpy(&m_ipv6Cache, &iarmData, sizeof(m_ipv6Cache));
+                            m_useIpv6Cache = true;
+                        }
+                        result = true;
+                    }
+                    else
+                    {
+                        LOGERR("wrong ipversion returned ! <%s>", iarmData.ipversion);
+                    }
+
+                    if (ipversion.empty() || interface.empty())
+                    {
+                        m_defInterfaceCache = string(iarmData.interface);
+                        m_defIpversionCache = string(iarmData.ipversion);
+                    }
+                }
+                else
+                    LOGERR ("IARM Call Failed: %s", IARM_BUS_NETSRVMGR_API_getIPSettings);
             }
 
             if (result == true)
@@ -1139,7 +1130,6 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
 
                 m_ipversion = string(iarmData.ipversion);
             }
-
             return result;
         }
 
@@ -1465,10 +1455,8 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             params["status"] = string (connected ? "CONNECTED" : "DISCONNECTED");
             m_useStbIPCache = false;
             m_useDefInterfaceCache = false;
-            m_useIpv4WifiCache = false;
-            m_useIpv6WifiCache = false;
-            m_useIpv4EthCache = false;
-            m_useIpv6EthCache = false;
+            m_useIpv4Cache = false;
+            m_useIpv6Cache = false;
             m_defIpversionCache = "";
             m_defInterfaceCache = "";
 
@@ -1512,26 +1500,12 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             if (!ipv6Addr.empty())
             {
                 params["ip6Address"] = ipv6Addr;
-                if (Utils::String::equal(onInterface, "wifi"))
-                {
-                    m_useIpv6WifiCache = false;
-                }
-                else if (Utils::String::equal(onInterface, "ethernet"))
-                {
-                    m_useIpv6EthCache = false;
-                }
+                m_useIpv6Cache = false;
             }
             if (!ipv4Addr.empty())
             {
                 params["ip4Address"] = ipv4Addr;
-                if (Utils::String::equal(onInterface, "wifi"))
-                {
-                    m_useIpv4WifiCache = false;
-                }
-                else if (Utils::String::equal(onInterface, "ethernet"))
-                {
-                    m_useIpv4EthCache = false;
-                }
+                m_useIpv4Cache = false;
             }
             params["status"] = string (acquired ? "ACQUIRED" : "LOST");
             sendNotify("onIPAddressStatusChanged", params);
@@ -1545,10 +1519,8 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             params["newInterfaceName"] = m_netUtils.getInterfaceDescription(newInterface);
             m_useStbIPCache = false;
             m_useDefInterfaceCache = false;
-            m_useIpv4WifiCache = false;
-            m_useIpv6WifiCache = false;
-            m_useIpv4EthCache = false;
-            m_useIpv6EthCache = false;
+            m_useIpv4Cache = false;
+            m_useIpv6Cache = false;
             m_defIpversionCache = "";
             m_defaultInterface = ""; /* REFPLTV-1319 : Resetting when there is switch in interface, to get new value in getDefaultInterface() */
             m_gatewayInterface = "";
