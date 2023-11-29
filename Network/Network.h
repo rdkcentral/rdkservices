@@ -270,20 +270,16 @@ namespace WPEFramework {
             uint16_t m_stunCacheTimeout;
             bool m_stunSync;
             uint32_t m_apiVersionNumber;
-            std::atomic<bool> m_useIpv4WifiCache;
-            std::atomic<bool> m_useIpv6WifiCache;
-            std::atomic<bool> m_useIpv4EthCache;
-            std::atomic<bool> m_useIpv6EthCache;
+            std::atomic<bool> m_useIpv4Cache;
+            std::atomic<bool> m_useIpv6Cache;
             std::atomic<bool> m_useStbIPCache;
             string m_stbIpCache;
             std::atomic<bool> m_useDefInterfaceCache;
             string m_defInterfaceCache;
             string m_defIpversionCache;
 
-            IARM_BUS_NetSrvMgr_Iface_Settings_t m_ipv4WifiCache;
-            IARM_BUS_NetSrvMgr_Iface_Settings_t m_ipv6WifiCache;
-            IARM_BUS_NetSrvMgr_Iface_Settings_t m_ipv4EthCache;
-            IARM_BUS_NetSrvMgr_Iface_Settings_t m_ipv6EthCache;
+            IARM_BUS_NetSrvMgr_Iface_Settings_t m_ipv4Cache;
+            IARM_BUS_NetSrvMgr_Iface_Settings_t m_ipv6Cache;
         };
     } // namespace Plugin
 } // namespace WPEFramework
