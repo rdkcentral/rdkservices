@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.7] - 2023-11-29
+### Fixed
+- Timeout to launch this process is increased to 15s, to fix the bootup issue
+
 ## [1.0.6] - 2023-08-02
 ### Fixed
 - Fixed warnings treated as errors for emulator build
