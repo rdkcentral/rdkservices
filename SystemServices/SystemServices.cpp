@@ -2367,9 +2367,10 @@ namespace WPEFramework {
 
                                 if( (timeZone.compare("Universal")) == 0) {
                                      isUniversal = true;
+                                     isOlson = false;
                                 }
 
-                                if(!isUniversal) {
+                                if(isOlson) {
                                     if( (pos == string::npos) ||  ( (pos != string::npos) &&  (pos+1 == timeZone.length())  )   ) {
 				        LOGERR("Invalid timezone format received : %s . Timezone should be in either Universal or  Olson format  Ex : America/New_York .  \n", timeZone.c_str());
                                         isOlson = false;
