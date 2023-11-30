@@ -223,7 +223,11 @@ namespace WPEFramework {
 #ifndef DCM_TASK_REMOVAL
             "/lib/rdk/StartDCM_maintaince.sh",
 #endif
+#if defined(ENABLE_RDKVRFC_RDKE)
+	    "/usr/bin/rfcMgr >> /opt/logs/rfcscript.log"
+#else
             "/lib/rdk/RFCbase.sh",
+#endif
 #if defined(ENABLE_RDKVFW_RDKE)
             "/usr/bin/rdkvfwupgrader 0 1 >> /opt/logs/swupdate.log",
 #else
@@ -237,7 +241,8 @@ namespace WPEFramework {
             "/lib/rdk/RFCbase.sh",
             "/usr/bin/rdkvfwupgrader 0 1 >> /opt/logs/swupdate.log",
             "/lib/rdk/swupdate_utility.sh >> /opt/logs/swupdate.log",
-            "/lib/rdk/Start_uploadSTBLogs.sh"
+            "/lib/rdk/Start_uploadSTBLogs.sh",
+	    "/usr/bin/rfcMgr >> /opt/logs/rfcscript.log"
         };
 
         vector<string> tasks;
@@ -246,7 +251,11 @@ namespace WPEFramework {
 #ifndef DCM_TASK_REMOVAL
             "DCMscript_maintaince.sh",
 #endif
-		"RFCbase.sh",
+#if defined(ENABLE_RDKVRFC_RDKE)
+             "rfcMgr",
+#else
+	     "RFCbase.sh",
+#endif
 #if defined(ENABLE_RDKVFW_RDKE)
 	    "rdkvfwupgrader",
 #else
@@ -502,6 +511,31 @@ namespace WPEFramework {
                         LOGINFO("Waiting to unlock.. [%d/%d]",i+1,tasks.size());
                         task_thread.wait(lck);
                     }
+                    else if (tasks[i] == compare_strings[5])
+		    {
+                        char buff[1024] = { '\0' };
+
+                        FILE* pipe2 = v_secure_popen("r", "/usr/bin/rfcMgr %s", "&");
+                        FILE *fp2 = fopen("/opt/logs/rfcscript.log", "a");
+                        LOGINFO("Waiting to unlock.. [%d/%d]",i+1,tasks.size());
+                        task_thread.wait(lck);
+
+                        if (pipe2 && fp2)
+                        {
+                            memset(buff, 0, sizeof(buff));
+                            while (fgets(buff, sizeof(buff), pipe2))
+                            {
+                                fputs(buff, fp2);
+                                memset(buff, 0, sizeof(buff));
+                            }
+                            v_secure_pclose(pipe2);
+                            fclose(fp2);
+                        }
+                        else
+                        {
+                            LOGERR("Unable to run /usr/bin/rfcMgr bin");
+                        }
+		    }
                     else
                     {
                         LOGERR("Script [%s] is not in the list.So not running the script. \n",tasks[i].c_str());
@@ -1858,6 +1892,15 @@ namespace WPEFramework {
             LOGINFO("PID of %s is %d \n", taskname , (int)pid_num);
             if( pid_num != -1){
                 /* send the signal to task to terminate */
+#if defined(ENABLE_RDKVRFC_RDKE)
+		if (strstr(taskname, "rfcMgr")) {
+		    LOGINFO("Sending SIGUSR1 signal to %s\n", taskname);
+                    k_ret = kill( pid_num, SIGUSR1 );
+		}else{
+                    k_ret = kill( pid_num, sig_to_send );
+		}
+#endif
+
 #if defined(ENABLE_RDKVFW_RDKE)
 		if (strstr(taskname, "rdkvfwupgrader")) {
 		    LOGINFO("Sending SIGUSR1 signal to %s\n", taskname);

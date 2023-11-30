@@ -74,6 +74,11 @@ if (ENABLE_RDKVFW_RDKE)
     add_definitions (-DENABLE_RDKVFW_RDKE=ON)
 endif()
 
+if (ENABLE_RDKVRFC_RDKE)
+	message("Enable ENABLE_RDKVRFC_RDKE")
+	add_definitions (-DENABLE_RDKVRFC_RDKE=ON)
+endif()
+
 if (BUILD_DBUS)
     message("Building for DBUS")
 
