@@ -99,18 +99,26 @@ namespace Plugin {
         CONVERT_PARAMETERS_TOJSON();
         CHECK_SAP_PARAMETER_RETURN_ON_FAIL("audiotype");
         CHECK_SAP_PARAMETER_RETURN_ON_FAIL("sourcetype");
+        CHECK_SAP_PARAMETER_RETURN_ON_FAIL("playmode");
         SAPLOG_INFO("SAP: SystemAudioPlayerImplementation Open\n");
-        AudioType audioType;
-        SourceType sourceType;
-        PlayMode playMode;
-        std::string s_audioType,s_sourceType,s_playMode;
-      
-        s_audioType = parameters["audiotype"].String(); 
-        s_sourceType = parameters["sourcetype"].String();
-        s_playMode = parameters["playmode"].String();    
-        audioType = audioTypeFromString( s_audioType);
-        sourceType = sourceTypeFromString( s_sourceType);
-        playMode = playModeFromString( s_playMode);
+
+        auto audioType = audioTypeFromString(parameters["audiotype"].String());
+        if(audioType == AudioType::AudioType_None) {
+            SAPLOG_INFO("SystemAudioPlayerImplementation Open Audiotype :%s is not supported", parameters["audiotype"].String().c_str());
+            returnResponse(false);
+        }
+
+        auto sourceType = sourceTypeFromString(parameters["sourcetype"].String());
+        if(sourceType == SourceType::SourceType_None) {
+            SAPLOG_INFO("SystemAudioPlayerImplementation Open SourceType :%s is not supported", parameters["sourcetype"].String().c_str());
+            returnResponse(false);
+        }
+
+        auto playMode = playModeFromString(parameters["playmode"].String());
+        if(playMode == PlayMode::PlayMode_None) {
+            SAPLOG_INFO("SystemAudioPlayerImplementation Open PlayMode :%s is not supported", parameters["playmode"].String().c_str());
+            returnResponse(false);
+        }
 
         int id;
         _adminLock.Lock();      
@@ -170,6 +178,7 @@ namespace Plugin {
         string url;
         int playerid;
         url = parameters["url"].String();
+        CHECK_SAP_PARAMETER_URL_VALID_RETURN_ON_FAIL(url.c_str());
         extractFileProtocol(url); //we do not store file:// for file playback
         _adminLock.Lock();
         if(GetSessionFromUrl(url,playerid))
@@ -199,18 +208,22 @@ namespace Plugin {
         _adminLock.Lock();
          player = getObjectFromMap(id); 
         _adminLock.Unlock();
-        if(player != NULL)
-        {
-            if(player->getSourceType() == SourceType::FILESRC)
-            {
-                if(!extractFileProtocol(url))
-                {
+
+         if(player != NULL) {
+            string sourceType = sourceTypeToString(player->getSourceType());
+            if(!std::regex_match(url, patternMap.at(sourceType))) {
+                SAPLOG_ERROR("SAP: SystemAudioPlayerImplementation Source %s and Url %s is different",sourceType.c_str(),url.c_str());
+                returnResponse(false);
+            }
+
+            if(player->getSourceType() == SourceType::FILESRC) {
+                if(!extractFileProtocol(url)) {
                     returnResponse(false);
                 }
             }
+
             _adminLock.Lock();
-            if(SameModeNotPlaying(player,id))
-            {
+            if(SameModeNotPlaying(player,id)) {
                 _adminLock.Unlock();
                 player->Play(url);
                 returnResponse(true);
@@ -232,7 +245,7 @@ namespace Plugin {
         LOGINFO("PlayBuffer request\n");
         getNumberParameter("id", id);
         data = parameters["data"].String();
-        LOGINFO("data size %d\n",data.size());
+        LOGINFO("data size %ld\n",data.size());
         _adminLock.Lock();
          player = getObjectFromMap(id);
         _adminLock.Unlock();
@@ -243,7 +256,7 @@ namespace Plugin {
             size_t decworkspace_size = b64_get_decoded_buffer_size(dectokenVec.size());
             uint8_t *decworkspace = new uint8_t[decworkspace_size];
             size_t decnum_chars = b64_decode(e, dectokenVec.size(),decworkspace);
-            LOGINFO("decode size %d\n", decworkspace_size);
+            LOGINFO("decode size %ld\n", decworkspace_size);
             player->PlayBuffer((const char*)decworkspace,decnum_chars);
             delete []decworkspace;
             
@@ -316,7 +329,7 @@ namespace Plugin {
         _adminLock.Lock();
         player = getObjectFromMap(playerId);
         _adminLock.Unlock();
-        if (player != NULL &&  ( primVol >= 0 && thisVol >= 0 ) )
+        if (player != NULL &&  ( primVol >= 0 && primVol <= 100 && thisVol >= 0 && thisVol <=100) )
         {
             player->SetMixerLevels(primVol, thisVol);
             result = true;
@@ -359,7 +372,7 @@ namespace Plugin {
         _adminLock.Lock();
         player = getObjectFromMap(playerId);
         _adminLock.Unlock();
-        if (player != NULL &&  ( thresHold >= 0.0 && detectTimeMs >= 0 && holdTimeMs >= 0 && duckPercent >= 0 ) )
+        if (player != NULL &&  ( thresHold >= 0.0 && detectTimeMs >= 0 && holdTimeMs >= 0 && duckPercent >= 0 && duckPercent <=100) )
         {
             player->SetSmartVolControl( smartVolumeEnable, thresHold, detectTimeMs, holdTimeMs, duckPercent);
             result = true;
@@ -412,12 +425,20 @@ namespace Plugin {
 
     uint32_t SystemAudioPlayerImplementation::IsPlaying(const string &input, string &output)
     {
+        SAPLOG_INFO("SystemAudioPlayerImplementation Got IsPlayingrequest :%s\n",input.c_str());
         CONVERT_PARAMETERS_TOJSON();
+        AudioPlayer *player;
+        int id;
+        bool ret = false;
+        getNumberParameter("id", id);
+        SAPLOG_INFO("SAP: SystemAudioPlayerImplementation IsPlaying\n");
         _adminLock.Lock();
-
+        player = getObjectFromMap(id);
         _adminLock.Unlock();
-
-        return Core::ERROR_NONE;
+        if(player != NULL) {
+            ret = player->isPlaying();;
+        }
+        returnResponse(ret);
     }
 
     impl::SecurityParameters SystemAudioPlayerImplementation::extractSecurityParams(const JsonObject& params) const

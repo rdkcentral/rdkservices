@@ -11,7 +11,6 @@ env:
   THUNDER_REF: "5e7c0b1ed3c3dd0fc31c86518a364388dc24273b"
   INTERFACES_REF: "669d9c6e5ed7a5938ff26e1e7736adf485c7a205"
 
-
 jobs:
   unit-tests:
     name: Build and run unit tests
@@ -57,7 +56,7 @@ jobs:
             !install/usr/lib/pkgconfig/gtest.pc
             !install/usr/lib/pkgconfig/gtest_main.pc
             !install/usr/lib/wpeframework/plugins
-          key: ${{ runner.os }}-${{ env.THUNDER_REF }}-${{ env.INTERFACES_REF }}-2
+          key: ${{ runner.os }}-${{ env.THUNDER_REF }}-${{ env.INTERFACES_REF }}-3
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -74,12 +73,22 @@ jobs:
         run: >
           sudo apt update
           &&
-          sudo apt install -y libsqlite3-dev libcurl4-openssl-dev valgrind lcov clang libsystemd-dev
+          sudo apt install -y libsqlite3-dev libcurl4-openssl-dev valgrind lcov clang libsystemd-dev libboost-all-dev libwebsocketpp-dev meson libcunit1 libcunit1-dev
 
       - name: Install GStreamer
         run: |
            sudo apt update
            sudo apt install -y libunwind-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
+
+      - name: Build trevor-base64
+        run: |
+            if [ ! -d "trower-base64" ]; then
+            git clone https://github.com/xmidt-org/trower-base64.git
+            fi
+            cd trower-base64
+            meson setup --warnlevel 3 --werror build
+            ninja -C build
+            sudo ninja -C build install
 
       - name: Checkout Thunder
         if: steps.cache.outputs.cache-hit != 'true'
@@ -95,6 +104,7 @@ jobs:
           cmake
           -S "${{github.workspace}}/Thunder/Tools"
           -B build/ThunderTools
+          -DEXCEPTIONS_ENABLE=ON
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
           -DGENERIC_CMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
@@ -111,6 +121,7 @@ jobs:
           -DBUILD_TYPE=${{env.BUILD_TYPE}}
           -DBINDING=127.0.0.1
           -DPORT=55555
+          -DEXCEPTIONS_ENABLE=ON
           &&
           cmake --build build/Thunder -j8
           &&
@@ -130,6 +141,7 @@ jobs:
           cmake
           -S "${{github.workspace}}/ThunderInterfaces"
           -B build/ThunderInterfaces
+          -DEXCEPTIONS_ENABLE=ON
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
           &&
@@ -196,7 +208,7 @@ jobs:
           pkg.h
           secure_wrapper.h
           &&
-          cp -r /usr/include/gstreamer-1.0/gst /usr/include/glib-2.0/* /usr/lib/x86_64-linux-gnu/glib-2.0/include/* .
+          cp -r /usr/include/gstreamer-1.0/gst /usr/include/glib-2.0/* /usr/lib/x86_64-linux-gnu/glib-2.0/include/* /usr/local/include/trower-base64/base64.h .
 
       - name: Set clang toolchain
         if: ${{ matrix.compiler == 'clang' }}
@@ -215,6 +227,7 @@ jobs:
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
           -DCMAKE_CXX_FLAGS="
+          -DEXCEPTIONS_ENABLE=ON
           -fprofile-arcs
           -ftest-coverage
           -I ${{github.workspace}}/rdkservices/Tests/headers
@@ -233,7 +246,7 @@ jobs:
           -include ${{github.workspace}}/rdkservices/Tests/mocks/maintenanceMGR.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/pkg.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/secure_wrappermock.h
-          -Wall -Werror
+          -Wall -Werror -Wno-error=format=
           -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog
           -DENABLE_TELEMETRY_LOGGING
           -DUSE_IARMBUS
@@ -279,6 +292,7 @@ jobs:
           -DPLUGIN_ACTIVITYMONITOR=ON
           -DDS_FOUND=ON
           -DPLUGIN_TEXTTOSPEECH=ON
+          -DPLUGIN_SYSTEMAUDIOPLAYER=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           &&
           cmake --build build/rdkservices -j8
