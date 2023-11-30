@@ -276,14 +276,9 @@ static bool checkAssemblyFactoryMode_wrapper()
         Device_Mode_Result_t result = Device_Mode_getFactoryMode(&factoryMode);
         if(result == DEVICE_MODE_RESULT_SUCCESS) {
 #ifdef RDKSHELL_DUAL_ODM_SUPPORT
-                if (factoryMode == DEVICE_MODE_ODM_1_FACTORY_MODE) {
-                        std::cout << "Device in Assembly 1 FactoryMode\n";
-                        sFactoryMode = DEVICE_MODE_ODM_1_FACTORY_MODE;
-                        ret = true;
-                }
-                else if (factoryMode == DEVICE_MODE_ODM_2_FACTORY_MODE) {
-                        std::cout << "Device in Assembly 2 FactoryMode\n";
-                        sFactoryMode = DEVICE_MODE_ODM_2_FACTORY_MODE;
+                if (factoryMode == DEVICE_MODE_ODM_1_FACTORY_MODE || factoryMode == DEVICE_MODE_ODM_2_FACTORY_MODE) {
+			std::cout << "Device in Assembly FactoryMode\n";
+                        sFactoryMode = factoryMode;
                         ret = true;
                 }
 #else		
