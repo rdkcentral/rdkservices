@@ -62,6 +62,8 @@
 #define HDMICECSINK_METHOD_SEND_STANDBY_MESSAGE            "sendStandbyMessage"
 #define HDMICECSINK_METHOD_SEND_AUDIO_DEVICE_POWER_ON "sendAudioDevicePowerOnMessage"
 #define HDMICECSINK_METHOD_SEND_KEY_PRESS                          "sendKeyPressEvent"
+#define HDMICECSINK_METHOD_SEND_USER_CONTROL_PRESSED          "sendUserControlPressed"
+#define HDMICECSINK_METHOD_SEND_USER_CONTROL_RELEASED         "sendUserControlReleased"
 #define HDMICECSINK_METHOD_SEND_GIVE_AUDIO_STATUS          "sendGetAudioStatusMessage"
 #define HDMICECSINK_METHOD_GET_AUDIO_DEVICE_CONNECTED_STATUS   "getAudioDeviceConnectedStatus"
 #define HDMICECSINK_METHOD_REQUEST_AUDIO_DEVICE_POWER_STATUS   "requestAudioDevicePowerStatus"
@@ -124,6 +126,7 @@ enum {
 	HDMICECSINK_EVENT_AUDIO_DEVICE_CONNECTED_STATUS,
 	HDMICECSINK_EVENT_CEC_ENABLED,
         HDMICECSINK_EVENT_AUDIO_DEVICE_POWER_STATUS,
+	HDMICECSINK_EVENT_FEATURE_ABORT_EVENT,
 };
 
 static const char *eventString[] = {
@@ -144,7 +147,8 @@ static const char *eventString[] = {
         "reportAudioStatusEvent",
 	"reportAudioDeviceConnectedStatus",
 	"reportCecEnabledEvent",
-        "reportAudioDevicePowerStatus"
+        "reportAudioDevicePowerStatus",
+	"reportFeatureAbortEvent"
 };
 	
 
@@ -172,8 +176,8 @@ static std::vector<RcProfile> rcProfile = {RC_PROFILE_TV};
 static std::vector<DeviceFeatures> deviceFeatures = {DEVICE_FEATURES_TV};
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 2
-#define API_VERSION_NUMBER_PATCH 4
+#define API_VERSION_NUMBER_MINOR 3
+#define API_VERSION_NUMBER_PATCH 0
 
 namespace WPEFramework
 {
@@ -487,6 +491,12 @@ namespace WPEFramework
 				HdmiCecSink::_instance->deviceList[header.from.toInt()].m_featureAborts.push_back(msg);
 			 }
 
+			LogicalAddress logicaladdress = header.from.toInt();
+                        OpCode featureOpcode =  msg.feature;
+			AbortReason abortReason = msg.reason;
+
+                        HdmiCecSink::_instance->reportFeatureAbortEvent(logicaladdress,featureOpcode,abortReason);
+
                          if(msg.feature.opCode() == REQUEST_SHORT_AUDIO_DESCRIPTOR)
 		         {
                             JsonArray audiodescriptor;
@@ -635,6 +645,8 @@ namespace WPEFramework
                    Register(HDMICECSINK_METHOD_SEND_STANDBY_MESSAGE, &HdmiCecSink::sendStandbyMessageWrapper, this);
 		   Register(HDMICECSINK_METHOD_SEND_AUDIO_DEVICE_POWER_ON, &HdmiCecSink::sendAudioDevicePowerOnMsgWrapper, this);
 		   Register(HDMICECSINK_METHOD_SEND_KEY_PRESS,&HdmiCecSink::sendRemoteKeyPressWrapper,this);
+		   Register(HDMICECSINK_METHOD_SEND_USER_CONTROL_PRESSED,&HdmiCecSink::sendUserControlPressedWrapper,this);
+                   Register(HDMICECSINK_METHOD_SEND_USER_CONTROL_RELEASED,&HdmiCecSink::sendUserControlReleasedWrapper,this);
 		   Register(HDMICECSINK_METHOD_SEND_GIVE_AUDIO_STATUS,&HdmiCecSink::sendGiveAudioStatusWrapper,this);
 		   Register(HDMICECSINK_METHOD_GET_AUDIO_DEVICE_CONNECTED_STATUS,&HdmiCecSink::getAudioDeviceConnectedStatusWrapper,this);
                    Register(HDMICECSINK_METHOD_REQUEST_AUDIO_DEVICE_POWER_STATUS,&HdmiCecSink::requestAudioDevicePowerStatusWrapper,this);
@@ -1197,6 +1209,78 @@ namespace WPEFramework
 
                    }
 		 }
+
+		 void HdmiCecSink::sendUserControlPressed(const int logicalAddress, int keyCode)
+                 {
+                    if(!(_instance->smConnection))
+                        return;
+                   LOGINFO(" sendUserControlPressed logicalAddress 0x%x keycode 0x%x\n",logicalAddress,keyCode);
+                    switch(keyCode)
+                   {
+                       case VOLUME_UP:
+                          _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_VOLUME_UP)),100);
+                          break;
+                      case VOLUME_DOWN:
+                          _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_VOLUME_DOWN)), 100);
+                          break;
+                      case MUTE:
+                           _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_MUTE)), 100);
+                           break;
+                       case UP:
+                           _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_UP)), 100);
+                           break;
+                       case DOWN:
+                           _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_DOWN)), 100);
+                           break;
+                       case LEFT:
+                           _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_LEFT)), 100);
+                           break;
+                       case RIGHT:
+                           _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_RIGHT)), 100);
+                           break;
+                       case SELECT:
+                           _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_SELECT)), 100);
+                           break;
+                       case HOME:
+                           _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_HOME)), 100);
+                           break;
+                       case BACK:
+                           _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_BACK)), 100);
+                           break;
+                       case NUMBER_0:
+                           _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_NUM_0)), 100);
+                           break;
+                       case NUMBER_1:
+                           _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_NUM_1)), 100);
+                           break;
+                       case NUMBER_2:
+                           _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_NUM_2)), 100);
+                           break;
+                       case NUMBER_3:
+                           _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_NUM_3)), 100);
+                           break;
+                       case NUMBER_4:
+                           _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_NUM_4)), 100);
+                           break;
+                       case NUMBER_5:
+                           _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_NUM_5)), 100);
+                           break;
+                       case NUMBER_6:
+                           _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_NUM_6)), 100);
+                           break;
+                       case NUMBER_7:
+                           _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_NUM_7)), 100);
+                           break;
+                       case NUMBER_8:
+                           _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_NUM_8)), 100);
+                           break;
+                       case NUMBER_9:
+                           _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlPressed(UICommand::UI_COMMAND_NUM_9)), 100);
+                           break;
+
+                  }
+                }
+
 		 void HdmiCecSink::sendKeyReleaseEvent(const int logicalAddress)
 		 {
                     if(!(_instance->smConnection))
@@ -1204,6 +1288,15 @@ namespace WPEFramework
 		 _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlReleased()), 100);
 
 		 }
+
+		 void HdmiCecSink::sendUserControlReleased(const int logicalAddress)
+                 {
+                    if(!(_instance->smConnection))
+                        return;
+                   LOGINFO(" User Control Released \n");
+                 _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlReleased()), 100);
+                 }
+
          void  HdmiCecSink::sendDeviceUpdateInfo(const int logicalAddress)
          {
             JsonObject params;
@@ -1638,6 +1731,7 @@ namespace WPEFramework
 			SendKeyInfo keyInfo;
 			keyInfo.logicalAddr = stoi(logicalAddress);
 			keyInfo.keyCode     = stoi(keyCode);
+			keyInfo.UserControl = "sendKeyPressEvent";
 			std::unique_lock<std::mutex> lk(m_sendKeyEventMutex);
 			m_SendKeyQueue.push(keyInfo);
                         m_sendKeyEventThreadRun = true;
@@ -1645,6 +1739,41 @@ namespace WPEFramework
             LOGINFO("Post send key press event to queue size:%zu \n",m_SendKeyQueue.size());
 			returnResponse(true);
 		}
+
+		uint32_t HdmiCecSink::sendUserControlPressedWrapper(const JsonObject& parameters, JsonObject& response)
+                {
+            returnIfParamNotFound(parameters, "logicalAddress");
+                        returnIfParamNotFound(parameters, "keyCode");
+                        string logicalAddress = parameters["logicalAddress"].String();
+                        string keyCode = parameters["keyCode"].String();
+                        SendKeyInfo keyInfo;
+                        keyInfo.logicalAddr = stoi(logicalAddress);
+                        keyInfo.keyCode     = stoi(keyCode);
+                       keyInfo.UserControl = "sendUserControlPressed";
+                        std::unique_lock<std::mutex> lk(m_sendKeyEventMutex);
+                        m_SendKeyQueue.push(keyInfo);
+                        m_sendKeyEventThreadRun = true;
+                        m_sendKeyCV.notify_one();
+            LOGINFO("User control pressed, queue size:%zu \n",m_SendKeyQueue.size());
+                        returnResponse(true);
+                }
+
+		uint32_t HdmiCecSink::sendUserControlReleasedWrapper(const JsonObject& parameters, JsonObject& response)
+                {
+            returnIfParamNotFound(parameters, "logicalAddress");
+                        string logicalAddress = parameters["logicalAddress"].String();
+                        SendKeyInfo keyInfo;
+                        keyInfo.logicalAddr = stoi(logicalAddress);
+                        keyInfo.keyCode     = 0;
+                       keyInfo.UserControl = "sendUserControlReleased";
+                        std::unique_lock<std::mutex> lk(m_sendKeyEventMutex);
+                        m_SendKeyQueue.push(keyInfo);
+                        m_sendKeyEventThreadRun = true;
+                        m_sendKeyCV.notify_one();
+            LOGINFO("User Control Released, queue size:%zu \n",m_SendKeyQueue.size());
+                        returnResponse(true);
+		}
+
 	   uint32_t HdmiCecSink::sendGiveAudioStatusWrapper(const JsonObject& parameters, JsonObject& response)
            {
 	      sendGiveAudioStatusMsg();
@@ -2108,6 +2237,17 @@ namespace WPEFramework
 		       LOGINFO(" Sending FeatureAbort to %s for opcode %s with reason %s ",logicalAddress.toString().c_str(),feature.toString().c_str(),reason.toString().c_str());
                        _instance->smConnection->sendTo(logicalAddress, MessageEncoder().encode(FeatureAbort(feature,reason)), 500);
                  }
+
+               void HdmiCecSink::reportFeatureAbortEvent(const LogicalAddress logicalAddress, const OpCode featureOpcode, const AbortReason abortReason)
+               {
+                        LOGINFO(" Notifying the UI FeatureAbort from the %s for the opcode %s with the reason %s ",logicalAddress.toString().c_str(),featureOpcode.toString().c_str(),abortReason.toString().c_str());
+                        JsonObject params;
+                        params["LogicalAddress"] = logicalAddress.toInt();
+                        params["opcode"] = featureOpcode.opCode();
+                        params["FeatureAbortReason"] = abortReason.toInt();
+                        sendNotify(eventString[HDMICECSINK_EVENT_FEATURE_ABORT_EVENT], params);
+               }
+
 	void HdmiCecSink::pingDevices(std::vector<int> &connected , std::vector<int> &disconnected)
         {
         	int i;
@@ -3258,13 +3398,22 @@ namespace WPEFramework
                     keyInfo = _instance->m_SendKeyQueue.front();
                     _instance->m_SendKeyQueue.pop();
 
-                LOGINFO("sendRemoteKeyThread : logical addr:0x%x keyCode: 0x%x  queue size :%zu \n",keyInfo.logicalAddr,keyInfo.keyCode,_instance->m_SendKeyQueue.size());
-			    _instance->sendKeyPressEvent(keyInfo.logicalAddr,keyInfo.keyCode);
-			    _instance->sendKeyReleaseEvent(keyInfo.logicalAddr);
-			    if((_instance->m_SendKeyQueue.size()<=1 || (_instance->m_SendKeyQueue.size() % 2 == 0)) && ((keyInfo.keyCode == VOLUME_UP) || (keyInfo.keyCode == VOLUME_DOWN) || (keyInfo.keyCode == MUTE)) )
-			    {
-			        _instance->sendGiveAudioStatusMsg();
-			    }
+		    if(keyInfo.UserControl == "sendUserControlPressed" )
+		    {
+			    LOGINFO("sendUserControlPressed : logical addr:0x%x keyCode: 0x%x  queue size :%zu \n",keyInfo.logicalAddr,keyInfo.keyCode,_instance->m_SendKeyQueue.size());
+			    _instance->sendUserControlPressed(keyInfo.logicalAddr,keyInfo.keyCode);
+		    }
+		    else if(keyInfo.UserControl == "sendUserControlReleased")
+		    {
+			    LOGINFO("sendUserControlReleased : logical addr:0x%x  queue size :%zu \n",keyInfo.logicalAddr,_instance->m_SendKeyQueue.size());
+			    _instance->sendUserControlReleased(keyInfo.logicalAddr);
+		    }
+		    else
+		    {
+			    LOGINFO("sendKeyPressEvent : logical addr:0x%x keyCode: 0x%x  queue size :%zu \n",keyInfo.logicalAddr,keyInfo.keyCode,_instance->m_SendKeyQueue.size());
+                            _instance->sendKeyPressEvent(keyInfo.logicalAddr,keyInfo.keyCode);
+                            _instance->sendKeyReleaseEvent(keyInfo.logicalAddr);
+                    }
 
             }//while(!_instance->m_sendKeyEventThreadExit)
         }//threadSendKeyEvent
