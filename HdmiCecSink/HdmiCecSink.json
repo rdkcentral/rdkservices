@@ -416,6 +416,46 @@
                 "$ref": "#/common/result"
             }
         },
+        "sendUserControlPressed": {
+            "summary": "Sends the CEC \\<User Control Pressed\\> message when TV remote key is pressed.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "logicalAddress":{
+                        "$ref": "#/definitions/logicalAddress"
+                    },
+                    "keyCode":{
+                         "summary":"The key code for the pressed key. Possible values : `0x41` (VOLUME_UP), `0x42` (VOLUME_DOWN), `0x43` (MUTE), `0x01` (UP), `0x02` (DOWN), `0x03` (LEFT), `0x04` (RIGHT), `0x00` (SELECT), `0x09` (HOME), `0x0D` (BACK), `0x20` (NUMBER_0), `0x21` (NUMBER_1), `0x22` (NUMBER_2), `0x23` (NUMBER_3), `0x24` (NUMBER_4), `0x25` (NUMBER_5), `0x26` (NUMBER_6), `0x27` (NUMBER_7), `0x28` (NUMBER_8), `0x29` (NUMBER_9)",
+                         "type": "integer",
+                         "example": 65
+                    }
+                },
+                "required": [
+                    "logicalAddress",
+                    "keyCode"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+        "sendUserControlReleased": {
+            "summary": "Sends the CEC \\<User Control released\\> message when TV remote key is released.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "logicalAddress":{
+                        "$ref": "#/definitions/logicalAddress"
+                    }
+                },
+                "required": [
+                    "logicalAddress"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
         "sendStandbyMessage": {
             "summary": "Sends a CEC \\<Standby\\> message to the logical address of the device.",
             "result": {
@@ -796,6 +836,34 @@
                 "required": [
                     "muteStatus",
                     "volumeLevel"
+                ]
+            }
+        },
+	"reportFeatureAbortEvent": {
+            "summary": "Triggered when CEC \\<Feature Abort\\> message of device is received",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "logicalAddress": {
+                         "summary": "Logical address of the device",
+                         "type": "integer",
+                         "example": 4
+                    },
+                    "opcode": {
+                        "summary": "The opcode send to the device",
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "FeatureAbortReason": {
+                        "summary": "Reason for the feature abort",
+                        "type": "integer",
+                        "example": 0
+                    }
+                },
+                "required": [
+                    "logicalAddress",
+                    "opcode",
+                    "FeatureAbortReason"
                 ]
             }
         },
