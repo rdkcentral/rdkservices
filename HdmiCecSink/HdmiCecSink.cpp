@@ -176,8 +176,8 @@ static std::vector<RcProfile> rcProfile = {RC_PROFILE_TV};
 static std::vector<DeviceFeatures> deviceFeatures = {DEVICE_FEATURES_TV};
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 2
-#define API_VERSION_NUMBER_PATCH 5
+#define API_VERSION_NUMBER_MINOR 3
+#define API_VERSION_NUMBER_PATCH 0
 
 namespace WPEFramework
 {
