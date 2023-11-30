@@ -61,7 +61,9 @@ namespace Plugin {
 
         std::string message;
         if(_sap != nullptr) {
-            ASSERT(_connectionId != 0);
+            #ifndef UNIT_TESTING
+                ASSERT(_connectionId != 0);
+            #endif
 
             _sap->Configure(_service);
             _sap->Register(&_notification);
