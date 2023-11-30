@@ -17,6 +17,9 @@
 
 GMainLoop* AudioPlayer::m_main_loop=NULL;
 GThread* AudioPlayer::m_main_loop_thread=NULL;
+std::mutex AudioPlayer::m_eventMutex;
+std::condition_variable AudioPlayer::m_eventCondition;
+bool AudioPlayer::m_isLoopStarted = false;
 SAPEventCallback* AudioPlayer::m_callback=NULL;
 
 //TODO Dock primary volume , if both APP & SYSTEM mode are playing
@@ -90,25 +93,57 @@ void AudioPlayer::Init(SAPEventCallback *callback)
     SAPLOG_INFO("SAP: AudioPlayer Init\n");
     if(!gst_is_initialized())
         gst_init(NULL,NULL);
+
     m_main_loop_thread = g_thread_new("BusWatch", (void* (*)(void*)) event_loop, NULL);
-    m_callback = callback;
-    Soc_Initialize();
+    waitForMainLoop();
+    
+    std::unique_lock<std::mutex> lock(m_eventMutex);
+    if (m_isLoopStarted) {
+        m_callback = callback;
+        Soc_Initialize();
+    }
 }
 
-void AudioPlayer::DeInit()
-{   
-    SAPLOG_INFO("SAP: AudioPlayer DeInit\n");
-    if(g_main_loop_is_running(m_main_loop))
-        g_main_loop_quit(m_main_loop);
-    g_thread_join(m_main_loop_thread);
-    Soc_Deinitialize();
-    SAPLOG_INFO("SAP: AudioPlayer DeInit last\n");
+void AudioPlayer::waitForMainLoop()
+{
+    std::unique_lock<std::mutex> lock(m_eventMutex);
+    while(!m_eventCondition.wait_for(lock, std::chrono::seconds(1), [] {
+        return AudioPlayer::m_isLoopStarted;
+    }));
 }
 
 void AudioPlayer::event_loop()
 {
     m_main_loop = g_main_loop_new(NULL, false);
+
+    g_timeout_add(0, [] (gpointer data) -> gboolean {
+        std::unique_lock<std::mutex> lock(AudioPlayer::m_eventMutex);
+        AudioPlayer::m_isLoopStarted = true;
+        AudioPlayer::m_eventCondition.notify_one();
+        return G_SOURCE_REMOVE;
+    }, nullptr);
+
     g_main_loop_run(m_main_loop);
+}
+
+void AudioPlayer::DeInit()
+{
+    SAPLOG_INFO("SAP: AudioPlayer DeInit\n");
+    waitForMainLoop();
+
+    if(m_main_loop && g_main_loop_is_running(m_main_loop)) {
+        g_main_loop_quit(m_main_loop);
+        g_main_loop_unref(m_main_loop);
+    }
+    m_main_loop = nullptr;
+
+    if(m_main_loop_thread)
+        g_thread_join(m_main_loop_thread);
+    m_main_loop_thread = nullptr;
+
+    std::unique_lock<std::mutex> lock(m_eventMutex);
+    Soc_Deinitialize();
+    m_isLoopStarted = false;
 }
 
 //Set PCM audio Caps

@@ -22,6 +22,8 @@
 #include "UtilsJsonRpc.h"
 #include <mutex>
 
+#include "TextToSpeechValidator.h"
+
 #define TTS_MAJOR_VERSION 1
 #define TTS_MINOR_VERSION 0
 
@@ -36,6 +38,7 @@
 
 namespace WPEFramework {
 namespace Plugin {
+
     SERVICE_REGISTRATION(TextToSpeechImplementation, TTS_MAJOR_VERSION, TTS_MINOR_VERSION);
 
     TTS::TTSManager* TextToSpeechImplementation::_ttsManager = NULL;
@@ -59,6 +62,17 @@ namespace Plugin {
         if(!_ttsManager)
             return 0;
 
+        InputValidation::Instance().setLogger([] (const char *log) { TTSLOG_WARNING(log); });
+        InputValidation::Instance().addValidator("ttsendpoint", ExpectedValues<std::string>("^https?://[a-zA-Z0-9]+.*"));
+        InputValidation::Instance().addValidator("ttsendpointsecured", ExpectedValues<std::string>("^https://[a-zA-Z0-9]+.*"));
+        InputValidation::Instance().addValidator("double_str", ExpectedValues<std::string>("^-?[0-9]+(\\.[0-9]+)?"));
+        InputValidation::Instance().addValidator("speechid", ExpectedValues<uint32_t>(1, UINT32_MAX));
+        InputValidation::Instance().addValidator("speechrate", ExpectedValues<std::string>({"slow", "medium", "fast", "faster", "fastest"}));
+        InputValidation::Instance().addValidator("rate", ExpectedValues<uint8_t>(0, 100));
+        InputValidation::Instance().addValidator("volume", ExpectedValues<uint8_t>(0, 100));
+        InputValidation::Instance().addValidator("primvolduckpercent", ExpectedValues<std::string>("^-?[0-9]+$"));
+        InputValidation::Instance().addValidator("setPrimaryVolDuck", ExpectedValues<uint8_t>(0, 100));
+
         JsonObject config;
         config.FromString(service->ConfigLine());
 
@@ -75,23 +89,40 @@ namespace Plugin {
         ttsConfig->setPrimVolDuck(std::stoi(GET_STR(config,"primvolduckpercent", "25")));
         ttsConfig->setSATPluginCallsign(GET_STR(config, "satplugincallsign", ""));
 
+        std::set<std::string> expectedLanguageSet;
+        std::set<std::string> expectedVoicesSet;
+
         if(config.HasLabel("voices")) {
             JsonObject voices = config["voices"].Object();
-            JsonObject::Iterator it = voices.Variants();
-            while(it.Next())
+            for(JsonObject::Iterator it = voices.Variants(); it.Next(); ) {
                 ttsConfig->m_others["voice_for_" + string(it.Label())] = it.Current().String();
+                expectedLanguageSet.insert(string(it.Label()));
+                expectedVoicesSet.insert(it.Current().String());
+            }
 
             if(!config.HasLabel("voice"))
                 ttsConfig->setVoice(ttsConfig->voice());
         } else {
             TTSLOG_WARNING("Doesn't find default voice configuration");
         }
+
         if(config.HasLabel("local_voices")) {
             JsonObject voices = config["local_voices"].Object();
-            JsonObject::Iterator it = voices.Variants();
-            while(it.Next())
+            for(JsonObject::Iterator it = voices.Variants(); it.Next(); ) {
                 ttsConfig->m_others["voice_for_local_" + string(it.Label())] = it.Current().String();
+                expectedLanguageSet.insert(string(it.Label()));
+                expectedVoicesSet.insert(it.Current().String());
+            }
         }
+
+#ifndef UNIT_TESTING
+        InputValidation::Instance().addValidator("language", ExpectedValues<std::string>(expectedLanguageSet));
+        InputValidation::Instance().addValidator("voice", ExpectedValues<std::string>(expectedVoicesSet));
+#else
+        InputValidation::Instance().addValidator("language", ExpectedValues<std::string>(expectedLanguageSetCollection));
+        InputValidation::Instance().addValidator("voice", ExpectedValues<std::string>(expectedVoicesSetCollection));
+#endif
+
         ttsConfig->loadFromConfigStore();
         TTSLOG_INFO("TTSEndPoint : %s", ttsConfig->endPoint().c_str());
         TTSLOG_INFO("SecureTTSEndPoint : %s", ttsConfig->secureEndPoint().c_str());
@@ -168,9 +199,11 @@ namespace Plugin {
     uint32_t TextToSpeechImplementation::Enable(const bool enable)
     {
         CHECK_TTS_MANAGER_RETURN_ON_FAIL();
+
         _adminLock.Lock();
         auto status = _ttsManager->enableTTS(enable);
         _adminLock.Unlock();
+
         TTSLOG_INFO("Enable TTS %s", enable ? "Enabled" : "Disabled");
         logResponse(status);
         return (status == TTS::TTS_OK) ? (Core::ERROR_NONE) : (Core::ERROR_GENERAL);
@@ -179,17 +212,35 @@ namespace Plugin {
     uint32_t TextToSpeechImplementation::ListVoices(const string language,RPC::IStringIterator*& voices) const
     {
         CHECK_TTS_MANAGER_RETURN_ON_FAIL();
-        _adminLock.Lock();
         std::vector<std::string> voice;
-        auto status = _ttsManager->listVoices(language,voice);
+        auto status = TTS::TTS_FAIL;
+
+        if(InputValidation::Instance().validate("language", language)) {
+            _adminLock.Lock();
+            status = _ttsManager->listVoices(language, voice);
+            _adminLock.Unlock();
+        }
+
         voices = (Core::Service<RPC::StringIterator>::Create<RPC::IStringIterator>(voice));
-        _adminLock.Unlock();
         logResponse(status);
         return (status == TTS::TTS_OK) ? (Core::ERROR_NONE) : (Core::ERROR_GENERAL);
     }
 
     uint32_t TextToSpeechImplementation::SetConfiguration(const Exchange::ITextToSpeech::Configuration &object,Exchange::ITextToSpeech::TTSErrorDetail &ttsStatus)
     {
+        ttsStatus = (Exchange::ITextToSpeech::TTSErrorDetail) Exchange::ITextToSpeech::TTS_INVALID_CONFIGURATION;
+
+        if((!object.ttsEndPoint.empty() && !InputValidation::Instance().validate("ttsendpoint", object.ttsEndPoint))
+        || (!object.ttsEndPointSecured.empty() && !InputValidation::Instance().validate("ttsendpointsecured", object.ttsEndPointSecured))
+        || (!object.speechRate.empty() && !InputValidation::Instance().validate("speechrate", object.speechRate))
+        || (!object.language.empty() && !InputValidation::Instance().validate("language", object.language))
+        || (!object.voice.empty() && !InputValidation::Instance().validate("voice", object.voice))
+        || (!InputValidation::Instance().validate("rate", object.rate))
+        || (!InputValidation::Instance().validate("volume", object.volume))) {
+            TTSLOG_WARNING("Input configuration(s) are invalid");
+            return Core::ERROR_GENERAL;
+        }
+
         TTS::Configuration config;
         config.ttsEndPoint = object.ttsEndPoint;
         config.ttsEndPointSecured = object.ttsEndPointSecured;
@@ -198,6 +249,7 @@ namespace Plugin {
         config.speechRate = object.speechRate;
         config.volume = (double) object.volume;
         config.rate =  object.rate;
+
         _adminLock.Lock();
         auto status = _ttsManager->setConfiguration(config);
         ttsStatus = (Exchange::ITextToSpeech::TTSErrorDetail) status;
@@ -211,6 +263,7 @@ namespace Plugin {
         TTSLOG_INFO("Volume : %lf",config.volume);
         TTSLOG_INFO("Rate : %u", config.rate);
         TTSLOG_INFO("SpeechRate : %s", config.speechRate.c_str());
+
         logResponse(status);
         return (status == TTS::TTS_OK) ? (Core::ERROR_NONE) : (Core::ERROR_GENERAL);
     }
@@ -221,18 +274,24 @@ namespace Plugin {
         data.scenario = scenario;
         data.value = value;
         data.path ="";
+
         _adminLock.Lock();
         _ttsManager->setFallbackText(data);
         _adminLock.Unlock();
+
         TTSLOG_INFO("Fallback text updated scenario %s.. value %s\n",scenario.c_str(),value.c_str());
         return (Core::ERROR_NONE);
     }
 
     uint32_t TextToSpeechImplementation::SetPrimaryVolDuck(const uint8_t prim)
     {
+        if(!InputValidation::Instance().validate("setPrimaryVolDuck", prim))
+            return Core::ERROR_GENERAL;
+
         _adminLock.Lock();
         _ttsManager->setPrimaryVolDuck((int8_t)prim);
         _adminLock.Unlock();
+
         TTSLOG_INFO("prim volume duck updated %d\n",prim);
         return (Core::ERROR_NONE);
     }
@@ -242,6 +301,7 @@ namespace Plugin {
         _adminLock.Lock();
         _ttsManager->setAPIKey(apikey);
         _adminLock.Unlock();
+
         TTSLOG_INFO("api key updated\n");
         return (Core::ERROR_NONE);
     }
@@ -249,9 +309,17 @@ namespace Plugin {
     uint32_t TextToSpeechImplementation::SetACL(const string method,const string apps)
     {
         CHECK_TTS_MANAGER_RETURN_ON_FAIL();
+
+        if(method != "speak")
+            return Core::ERROR_GENERAL;
+
+        if(apps.empty() || apps.c_str()[0] == ' ' || apps == "NULL")
+           return Core::ERROR_GENERAL;
+
         _adminLock.Lock();
         auto status = _ttsManager->setACL(method,apps);
         _adminLock.Unlock();
+
         TTSLOG_INFO("setACL invoked with method %s and app list %s",method.c_str(),apps.c_str());
         logResponse(status);
         return (status == TTS::TTS_OK) ? (Core::ERROR_NONE) : (Core::ERROR_GENERAL);
@@ -259,8 +327,9 @@ namespace Plugin {
     
     uint32_t TextToSpeechImplementation::GetConfiguration(Exchange::ITextToSpeech::Configuration &exchangeConfig) const
     {
-        _adminLock.Lock();
         TTS::Configuration ttsConfig;
+
+        _adminLock.Lock();
         auto status = _ttsManager->getConfiguration(ttsConfig);
         _adminLock.Unlock();
 
@@ -273,6 +342,7 @@ namespace Plugin {
             exchangeConfig.rate               = (uint8_t) ttsConfig.rate;
             exchangeConfig.volume             = (uint8_t) ttsConfig.volume;
         }
+
         TTSLOG_INFO("Get Configuration invoked\n");
         TTSLOG_INFO("TTSEndPoint : %s",  ttsConfig.ttsEndPoint.c_str());
         TTSLOG_INFO("SecureTTSEndPoint : %s", ttsConfig.ttsEndPointSecured.c_str());
@@ -281,6 +351,7 @@ namespace Plugin {
         TTSLOG_INFO("Volume : %lf", ttsConfig.volume);
         TTSLOG_INFO("Rate : %u",  ttsConfig.rate);
         TTSLOG_INFO("SpeechRate : %s",  ttsConfig.speechRate.c_str());
+
         logResponse(status);
         return (status == TTS::TTS_OK) ? (Core::ERROR_NONE) : (Core::ERROR_GENERAL);
     }
@@ -288,9 +359,11 @@ namespace Plugin {
     uint32_t TextToSpeechImplementation::Enable(bool &enable) const
     {
         CHECK_TTS_MANAGER_RETURN_ON_FAIL();
+
         _adminLock.Lock();
         enable = _ttsManager->isTTSEnabled();
         _adminLock.Unlock();
+
         TTSLOG_INFO("Is TTS Enabled %s", enable ? "Enabled" : "Disabled");
         return (Core::ERROR_NONE);
     }
@@ -307,6 +380,7 @@ namespace Plugin {
     uint32_t TextToSpeechImplementation::Speak(const string callsign,const string text,uint32_t &speechid,Exchange::ITextToSpeech::TTSErrorDetail &ttsStatus)
     {
         CHECK_TTS_MANAGER_RETURN_ON_FAIL();
+
         _adminLock.Lock();
         speechid = nextSpeechId();
         auto status = _ttsManager->speak(speechid,callsign,text);
@@ -314,9 +388,8 @@ namespace Plugin {
         _adminLock.Unlock();
 
         if(status != TTS::TTS_OK)
-         {
             speechid = -1;
-         }
+
         TTSLOG_INFO("Speak invoked with text %s and speech id returned %d\n",text.c_str(),speechid);
         logResponse(status);
         return (status == TTS::TTS_OK) ? (Core::ERROR_NONE) : (Core::ERROR_GENERAL);
@@ -325,9 +398,14 @@ namespace Plugin {
     uint32_t TextToSpeechImplementation::Cancel(const uint32_t speechid)
     {
         CHECK_TTS_MANAGER_RETURN_ON_FAIL();
-        _adminLock.Lock();
-        auto status = _ttsManager->shut(speechid);
-        _adminLock.Unlock();
+        auto status = TTS::TTS_FAIL;
+
+        if(InputValidation::Instance().validate("speechid",speechid)) {
+            _adminLock.Lock();
+            status = _ttsManager->shut(speechid);
+            _adminLock.Unlock();
+        }
+
         TTSLOG_INFO("Cancel invoked with speechid %d",speechid);
         logResponse(status);
         return (status == TTS::TTS_OK) ? (Core::ERROR_NONE) : (Core::ERROR_GENERAL);
@@ -336,10 +414,12 @@ namespace Plugin {
     uint32_t TextToSpeechImplementation::Pause(const uint32_t speechid,Exchange::ITextToSpeech::TTSErrorDetail &ttsStatus)
     {
         CHECK_TTS_MANAGER_RETURN_ON_FAIL();
+
         _adminLock.Lock();
         auto status =  _ttsManager->pause(speechid);
         ttsStatus = (Exchange::ITextToSpeech::TTSErrorDetail) status;
         _adminLock.Unlock();
+
         TTSLOG_INFO("Pause invoked with speechid %d",speechid);
         logResponse(status);
         return (status == TTS::TTS_OK) ? (Core::ERROR_NONE) : (Core::ERROR_GENERAL);
@@ -348,10 +428,12 @@ namespace Plugin {
     uint32_t TextToSpeechImplementation::Resume(const uint32_t speechid,Exchange::ITextToSpeech::TTSErrorDetail &ttsStatus)
     {
         CHECK_TTS_MANAGER_RETURN_ON_FAIL();
+
         _adminLock.Lock();
         auto status = _ttsManager->resume(speechid);
         ttsStatus = (Exchange::ITextToSpeech::TTSErrorDetail) status;
         _adminLock.Unlock();
+
         TTSLOG_INFO("Resume invoked with speechid %d",speechid);
         logResponse(status);
         return (status == TTS::TTS_OK) ? (Core::ERROR_NONE) : (Core::ERROR_GENERAL);
@@ -361,10 +443,15 @@ namespace Plugin {
     uint32_t TextToSpeechImplementation::GetSpeechState(const  uint32_t speechid,Exchange::ITextToSpeech::SpeechState &estate)
     {
         CHECK_TTS_MANAGER_RETURN_ON_FAIL();
-        _adminLock.Lock();
         TTS::SpeechState state;
-        auto status = _ttsManager->getSpeechState(speechid, state);
-        _adminLock.Unlock();
+        auto status = TTS::TTS_FAIL;
+
+        if(InputValidation::Instance().validate("speechid", speechid)) {
+            _adminLock.Lock();
+            status = _ttsManager->getSpeechState(speechid, state);
+            _adminLock.Unlock();
+        }
+
         if(status == TTS::TTS_OK)
             estate = (Exchange::ITextToSpeech::SpeechState) state;
 

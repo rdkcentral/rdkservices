@@ -16,7 +16,11 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
-## [1.0.8] - 2023-10-10
+### [1.0.9] - 2023-12-22
+### Added
+- Added UT for SystemAudioPlayer
+
+# [1.0.8] - 2023-10-10
 ### Changed
 - Changed string functions to safer versions
 
