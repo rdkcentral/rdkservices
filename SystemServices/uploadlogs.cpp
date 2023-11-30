@@ -33,7 +33,6 @@
 #include "UtilsfileExists.h"
 
 #define TR181_MTLS_LOGUPLOAD "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MTLS.mTlsLogUpload.Enable"
-#define TR181_LOGUPLOAD_BEF_DEEPSLEEP "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.LogUploadBeforeDeepSleep.Enable"
 
 namespace WPEFramework
 {
@@ -258,22 +257,6 @@ bool checkmTlsLogUploadFlag(){
     return ret;
 }
 
-bool checkLogUploadBeforeDeepSleepFlag(){
-    bool ret=false;
-    RFC_ParamData_t param;
-    WDMP_STATUS wdmpStatus = getRFCParameter(const_cast<char *>("SystemServices"),TR181_LOGUPLOAD_BEF_DEEPSLEEP, &param);
-    if (wdmpStatus == WDMP_SUCCESS || wdmpStatus == WDMP_ERR_DEFAULT_VALUE){
-        if( param.type == WDMP_BOOLEAN ){
-            if(strncasecmp(param.value,"true",4) == 0 ){
-                ret=true;
-            }
-        }
-    }
-    LOGINFO(" mTlsLogUpload.Enable = %s , call value %d ", (ret == true)?"true":"false", wdmpStatus);
-    return ret;
-}
-
-
 bool getDCMconfigDetails(string &upload_protocol,string &httplink, string &uploadCheck){
 
     string dcminfo;
@@ -350,39 +333,6 @@ std::int32_t getUploadLogParameters(string &tftp_server, string &upload_protocol
         upload_httplink=regex_replace(httplink,regex("cgi-bin"),"secure/cgi-bin");
        }
    }
-
-   return E_OK;
-}
-
-
-/* Call uploadSTBLogs.sh direclty by preparing the url
- * and other details
- */
-
-std::int32_t LogUploadBeforeDeepSleep()
-{
-    /* Check the RFC flag */
-    if( !checkLogUploadBeforeDeepSleepFlag()){
-        LOGINFO("LogUploadBeforeDeepSleep RFC is False.\n");
-        return E_NOK;
-    }
-
-    if ( !Utils::fileExists("/lib/rdk/uploadSTBLogs.sh") ){
-        return E_NOK;
-    }
-
-    string tftp_server;
-    string upload_protocol;
-    string upload_httplink;
-    string calledFromPlugin="1";
-
-    if (E_NOK == getUploadLogParameters(tftp_server, upload_protocol, upload_httplink))
-        return E_NOK;
-
-   string cmd;
-   cmd = "nice -n 19 /bin/busybox sh /lib/rdk/uploadSTBLogs.sh " + tftp_server + " 0 1 0 " + upload_protocol + " " + upload_httplink + " " + calledFromPlugin + " & " + " \0";
-   int exec_status = system(cmd.c_str());
-   LOGINFO("CMD %s [exec_status:%d]",cmd.c_str(), exec_status);
 
    return E_OK;
 }
