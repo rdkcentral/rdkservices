@@ -198,6 +198,11 @@ static bool sRunning = true;
 bool needsScreenshot = false;
 sem_t gInitializeSemaphore;
 
+#ifdef HIBERNATE_SUPPORT_ENABLED
+std::mutex gSuspendedOrHibernatedApplicationsMutex;
+map<string, bool> gSuspendedOrHibernatedApplications;
+#endif
+
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
 #define RDKSHELL_POWER_TIME_WAIT 2.5
@@ -606,6 +611,11 @@ namespace WPEFramework {
                mRDKShell.notify(RDKShell::RDKSHELL_EVENT_ON_LAUNCHED, params);
                mLaunchEnabled = false;
             }
+#ifdef HIBERNATE_SUPPORT_ENABLED
+            gSuspendedOrHibernatedApplicationsMutex.lock();
+            gSuspendedOrHibernatedApplications[mCallSign] = isSuspended;
+            gSuspendedOrHibernatedApplicationsMutex.unlock();
+#endif
 
             if (isSuspended)
             {
@@ -1036,6 +1046,17 @@ namespace WPEFramework {
                     }
                 gExitReasonMutex.lock();
                 gApplicationsExitReason[service->Callsign()] = AppLastExitReason::DEACTIVATED;
+
+#ifdef HIBERNATE_SUPPORT_ENABLED
+                //Reset app suspended/hibernated
+                gSuspendedOrHibernatedApplicationsMutex.lock();
+                auto suspendedOrHibernatedIt = gSuspendedOrHibernatedApplications.find(service->Callsign());
+                if (suspendedOrHibernatedIt != gSuspendedOrHibernatedApplications.end())
+                {
+                    gSuspendedOrHibernatedApplications.erase(suspendedOrHibernatedIt);
+                }
+                gSuspendedOrHibernatedApplicationsMutex.unlock();
+#endif
                 if(service->Reason() == PluginHost::IShell::FAILURE)
                 {
                     gApplicationsExitReason[service->Callsign()] = AppLastExitReason::CRASH;
@@ -1106,6 +1127,16 @@ namespace WPEFramework {
                 if ((currentState == PluginHost::IShell::DEACTIVATED) || (currentState == PluginHost::IShell::DESTROYED))
                 {
                      gApplicationsExitReason[service->Callsign()] = AppLastExitReason::DEACTIVATED;
+#ifdef HIBERNATE_SUPPORT_ENABLED
+                    //Reset app suspended/hibernated on Deactivation/Destroy
+                    gSuspendedOrHibernatedApplicationsMutex.lock();
+                    auto suspendedOrHibernatedIt = gSuspendedOrHibernatedApplications.find(service->Callsign());
+                    if (suspendedOrHibernatedIt != gSuspendedOrHibernatedApplications.end())
+                    {
+                        gSuspendedOrHibernatedApplications.erase(suspendedOrHibernatedIt);
+                    }
+                    gSuspendedOrHibernatedApplicationsMutex.unlock();
+#endif
                 }
                 if(service->Reason() == PluginHost::IShell::FAILURE)
                 {
@@ -3839,6 +3870,16 @@ namespace WPEFramework {
                         setAVBlocked(callsign, blockAV);
                     }
                 }
+#ifdef HIBERNATE_SUPPORT_ENABLED
+                //Reset app suspended/hibernated for launch
+                gSuspendedOrHibernatedApplicationsMutex.lock();
+                auto suspendedOrHibernatedIt = gSuspendedOrHibernatedApplications.find(appCallsign);
+                if (suspendedOrHibernatedIt != gSuspendedOrHibernatedApplications.end())
+                {
+                    gSuspendedOrHibernatedApplications.erase(suspendedOrHibernatedIt);
+                }
+                gSuspendedOrHibernatedApplicationsMutex.unlock();
+#endif
 
                 //check to see if plugin already exists
                 bool newPluginFound = false;
@@ -6293,6 +6334,9 @@ namespace WPEFramework {
                     else
                     {
                         eventMsg["success"] = true;
+                        gSuspendedOrHibernatedApplicationsMutex.lock();
+                        gSuspendedOrHibernatedApplications[callsign] = true;
+                        gSuspendedOrHibernatedApplicationsMutex.unlock();
                     }
                     notify(RDKShell::RDKSHELL_EVENT_ON_HIBERNATED, eventMsg);
                 });
@@ -6595,14 +6639,34 @@ namespace WPEFramework {
                         std::string compositorName = toLower(previousFocusedIterator->first);
                         if (compositorName == previousFocusedClient)
                         {
-                            std::cout << "setting the focus of " << compositorName << " to false " << std::endl;
-                            Exchange::IFocus *focusedCallsign = mCurrentService->QueryInterfaceByCallsign<Exchange::IFocus>(previousFocusedIterator->first);
-                            if (focusedCallsign != NULL)
+#ifdef HIBERNATE_SUPPORT_ENABLED
+                            // Skip for suspended and hibernated apps, since not needed and may cause unwanted restore from hibernation
+                            bool skipFocus = false;
+                            gSuspendedOrHibernatedApplicationsMutex.lock();
+                            if (gSuspendedOrHibernatedApplications.find(previousFocusedIterator->first) != gSuspendedOrHibernatedApplications.end())
                             {
-                                uint32_t status = focusedCallsign->Focused(false);
-                                std::cout << "result of set focus to false: " << status << std::endl;
-                                focusedCallsign->Release();
+                                skipFocus = gSuspendedOrHibernatedApplications[previousFocusedIterator->first];
                             }
+
+                            if (skipFocus == false)
+                            {
+#endif
+                                std::cout << "setting the focus of " << compositorName << " to false " << std::endl;
+                                Exchange::IFocus *focusedCallsign = mCurrentService->QueryInterfaceByCallsign<Exchange::IFocus>(previousFocusedIterator->first);
+                                if (focusedCallsign != NULL)
+                                {
+                                    uint32_t status = focusedCallsign->Focused(false);
+                                    std::cout << "result of set focus to false: " << status << std::endl;
+                                    focusedCallsign->Release();
+                                }
+#ifdef HIBERNATE_SUPPORT_ENABLED
+                             }
+                            else
+                            {
+                                std::cout << "setting the focus for " << compositorName << " to false skipped, plugin suspended or hibernated " << std::endl;
+                            }
+                            gSuspendedOrHibernatedApplicationsMutex.unlock();
+#endif
                             break;
                         }
                     }

@@ -60,7 +60,7 @@ stopScan:
 {"jsonrpc":"2.0","id":3,"result":{"success":true}}
 
 getDiscoveredDevices:
-{"jsonrpc":"2.0","id":3,"result":{"discoveredDevices":[{"deviceID":"61579454946360","name":"[TV] UE32J5530","deviceType":"TV","rawDeviceType": "2360344","connected":false,"paired":false}],"success":true}}
+{"jsonrpc":"2.0","id":3,"result":{"discoveredDevices":[{"deviceID":"61579454946360","name":"[TV] UE32J5530","deviceType":"TV","rawDeviceType": "2360344","rawBleDeviceType": "180","connected":false,"paired":false}],"success":true}}
 
 getPairedDevices:
 {"jsonrpc":"2.0","id":3,"result":{"pairedDevices":[{"deviceID":"256168644324480","name":"Eleven","deviceType":"SMARTPHONE","connected":true},{"deviceID":"26499258260618","name":"Little Big","deviceType":"SMARTPHONE","connected":false}],"success":true}}
@@ -84,7 +84,7 @@ setAudioStream:
 {"jsonrpc":"2.0","id":3,"result":{"success":true}}
 
 getDeviceInfo:
-{"jsonrpc":"2.0","id":3,"result":{"deviceInfo":{"deviceID":"256168644324480","name":"Eleven","deviceType":"SMARTPHONE","manufacturer":"640","MAC":"E8:FB:E9:0C:2C:80","signalStrength":"0","rssi":"0","batteryLevel":"53","supportedProfile":"Not Identified;Not Identified;Audio Source;AV Remote Target;AV Remote;Not Identified;Handsfree - Audio Gateway;Not Identified;Not Identified;PnP Information;Generic Attribute;Not Identified"},"success":true}}
+{"jsonrpc":"2.0","id":3,"result":{"deviceInfo":{"deviceID":"256168644324480","name":"Eleven","deviceType":"SMARTPHONE","manufacturer":"640","MAC":"E8:FB:E9:0C:2C:80","signalStrength":"0","rssi":"0","batteryLevel":"53","modalias":"v:0B13, p:045E, d:0517","firmwareRevision":"5.1.7","supportedProfile":"Not Identified;Not Identified;Audio Source;AV Remote Target;AV Remote;Not Identified;Handsfree - Audio Gateway;Not Identified;Not Identified;PnP Information;Generic Attribute;Not Identified"},"success":true}}
 
 getAudioInfo:
 {"jsonrpc":"2.0","id":3,"result":{"trackInfo":{"album":"Spacebound Apes","genre":"Jazz","title":"Grace","artist":"Neil Cowley Trio","ui32Duration":"217292","ui32TrackNumber":"1","ui32NumberOfTracks":"73"},"success":true}}

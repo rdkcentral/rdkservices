@@ -199,7 +199,6 @@ namespace WPEFramework {
             void onInterfaceIPAddressChanged(std::string interface, std::string ipv6Addr, std::string ipv4Addr, bool acquired);
             void onDefaultInterfaceChanged(std::string oldInterface, std::string newInterface);
 
-            static void eventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             void iarmEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
             // Netmask Validation
@@ -222,6 +221,7 @@ namespace WPEFramework {
         public:
             Network();
             virtual ~Network();
+	    static void eventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
             //Build QueryInterface implementation, specifying all possible interfaces to be returned.
             BEGIN_INTERFACE_MAP(Network)
@@ -270,20 +270,16 @@ namespace WPEFramework {
             uint16_t m_stunCacheTimeout;
             bool m_stunSync;
             uint32_t m_apiVersionNumber;
-            std::atomic<bool> m_useIpv4WifiCache;
-            std::atomic<bool> m_useIpv6WifiCache;
-            std::atomic<bool> m_useIpv4EthCache;
-            std::atomic<bool> m_useIpv6EthCache;
+            std::atomic<bool> m_useIpv4Cache;
+            std::atomic<bool> m_useIpv6Cache;
             std::atomic<bool> m_useStbIPCache;
             string m_stbIpCache;
             std::atomic<bool> m_useDefInterfaceCache;
             string m_defInterfaceCache;
             string m_defIpversionCache;
 
-            IARM_BUS_NetSrvMgr_Iface_Settings_t m_ipv4WifiCache;
-            IARM_BUS_NetSrvMgr_Iface_Settings_t m_ipv6WifiCache;
-            IARM_BUS_NetSrvMgr_Iface_Settings_t m_ipv4EthCache;
-            IARM_BUS_NetSrvMgr_Iface_Settings_t m_ipv6EthCache;
+            IARM_BUS_NetSrvMgr_Iface_Settings_t m_ipv4Cache;
+            IARM_BUS_NetSrvMgr_Iface_Settings_t m_ipv6Cache;
         };
     } // namespace Plugin
 } // namespace WPEFramework
