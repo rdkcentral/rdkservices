@@ -333,7 +333,7 @@ TEST_F(SystemServicesEventTest, Timezone)
     Core::Event changed8(false, true);
 
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
-        .Times(4)
+        .Times(8)
         .WillOnce(::testing::Invoke(
             [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
                 string text;
@@ -527,7 +527,7 @@ TEST_F(SystemServicesEventTest, Timezone)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTimeZoneDST"), _T("{\"timeZone\":\"America/New_York\",\"accuracy\":\"<wrong accuracy>\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 
-    EXPECT_EQ(Core::ERROR_NONE, changed3.Lock());
+    EXPECT_EQ(Core::ERROR_NONE, changed4.Lock());
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTimeZoneDST"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"timeZone\":\"America\\/New_York\",\"accuracy\":\"FINAL\",\"success\":true}"));
