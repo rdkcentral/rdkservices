@@ -259,7 +259,6 @@ class AVOutputTV : public AVOutputBase {
         char rfc_caller_id[RFC_BUFF_MAX];
 	bool appUsesGlobalBackLightFactor;
 	int pic_mode_index[PIC_MODES_SUPPORTED_MAX];
-	int source_index[SOURCES_SUPPORTED_MAX];
         AVOutputTV();
         ~AVOutputTV();
 
