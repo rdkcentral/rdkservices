@@ -663,13 +663,13 @@ namespace Plugin {
         tvError_t ret = tvERROR_NONE;
 	TR181_ParamData_t param;
         int current_source = 0;
-        int current_format = getContentFormatIndex(GetCurrentContentFormat());
+        int current_format = ConvertVideoFormatToHDRFormat(GetCurrentContentFormat());
         std::string tr181_param_name = "";
         // get current source
         GetCurrentSource(&current_source);
 
        tr181_param_name += std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
-       tr181_param_name += "."+std::to_string(current_source)+"."+"Format."+std::to_string(current_format)+"."+"PictureModeString";
+       tr181_param_name += "."+convertSourceIndexToString(current_source)+"."+"Format."+convertVideoFormatToString(current_format)+"."+"PictureModeString";
 
        tr181ErrorCode_t err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
        if ( tr181Success == err )
@@ -6094,7 +6094,8 @@ namespace Plugin {
         }
 	else if (format == "Current") 
 	{
-          format = convertVideoFormatToString( GetCurrentContentFormat());
+	  int formatIndex = (int)ConvertVideoFormatToHDRFormat(GetCurrentContentFormat())
+          format = convertVideoFormatToString(formatIndex);
           LOGINFO("Current:%s \n", format.c_str());
         }
 
@@ -6686,7 +6687,8 @@ namespace Plugin {
         currentSource = convertSourceIndexToString(sourceIndex);
 
         //GetCurrentFormat
-        currentFormat = convertVideoFormatToString( GetCurrentContentFormat());
+	int formatIndex = ConvertVideoFormatToHDRFormat(GetCurrentContentFormat());
+        currentFormat = convertVideoFormatToString(formatIndex);
 
         LOGINFO("%s : currentSource = %s,currentPicMode = %s,currentFormat = %s\n",__FUNCTION__,currentSource.c_str(),currentPicMode.c_str(),currentFormat.c_str());
         LOGINFO("%s : source = %s,PicMode = %s, format= %s\n",__FUNCTION__,source.c_str(),pqmode.c_str(),format.c_str());
@@ -6939,11 +6941,11 @@ namespace Plugin {
 	    return 0;
         }
 
-        current_format = getContentFormatIndex(GetCurrentContentFormat());
-        if ( current_format  == tvVideoHDRFormat_NONE) current_format  = tvVideoHDRFormat_SDR;
+        current_format = ConvertVideoFormatToHDRFormat(GetCurrentContentFormat());
+        if ( current_format  == HDR_TYPE_NONE) current_format  = HDR_TYPE_SDR;
 
         tr181_param_name += std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
-        tr181_param_name += "." + getSourceIndex(currentSource) + "." + "Format."+getFormatIndex(current_format)+"."+"PictureModeString";
+        tr181_param_name += "." + convertSourceIndexToString(currentSource) + "." + "Format."+convertVideoFormatToString(current_format)+"."+"PictureModeString";
 
         memset(&param, 0, sizeof(param));
 
