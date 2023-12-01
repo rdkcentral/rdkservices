@@ -6943,7 +6943,7 @@ namespace Plugin {
         if ( current_format  == tvVideoHDRFormat_NONE) current_format  = tvVideoHDRFormat_SDR;
 
         tr181_param_name += std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
-        tr181_param_name += "." + std::to_string(currentSource) + "." + "Format."+std::to_string(current_format)+"."+"PictureModeString";
+        tr181_param_name += "." + getSourceIndex(currentSource) + "." + "Format."+getFormatIndex(current_format)+"."+"PictureModeString";
 
         memset(&param, 0, sizeof(param));
 
