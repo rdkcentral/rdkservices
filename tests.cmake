@@ -136,7 +136,7 @@ set(FAKE_HEADERS
         ${BASEDIR}/Dobby.h
         ${BASEDIR}/HdmiCec.h
         ${BASEDIR}/rdkshell.h
-	      ${BASEDIR}/RdkLoggerMilestone.h
+	${BASEDIR}/RdkLoggerMilestone.h
         ${BASEDIR}/secure_wrappermock.h
         )
 
@@ -216,5 +216,5 @@ set(PLUGIN_HDMICECSINK ON)
 set(PLUGIN_RDKSHELL ON)
 set(PLUGIN_MAINTENANCEMANAGER ON)
 set(PLUGIN_PACKAGER ON)
-
+set(PLUGIN_SYSTEMAUDIOPLAYER ON)
 set(DS_FOUND ON)
