@@ -17,8 +17,8 @@
 * limitations under the License.
 */
 
-#ifndef AVOUTPUT_H
-#define AVOUTPUT_H
+#ifndef AVOUTPUTBASE_H
+#define AVOUTPUTBASE_H
 
 #include <string>
 #include "libIARM.h"
@@ -34,38 +34,34 @@
 #include <sys/stat.h>
 #include <vector>
 
-//Default AVOutputSTB
-#ifndef DEVICE_TYPE
-#define DEVICE_TYPE AVOutputSTB
-#include "AVOutputSTB.h"
-#else
-#include "AVOutputTV.h"
-#endif
+#define DECLARE_JSON_RPC_METHOD(method) \
+	uint32_t method(const JsonObject& parameters, JsonObject& response);
 
 namespace WPEFramework {
 namespace Plugin {
 
-    class AVOutput : public DEVICE_TYPE {
+    class AVOutputBase : public PluginHost::IPlugin, public PluginHost::JSONRPC {
 
     private:
-        AVOutput(const AVOutput&) = delete;
-        AVOutput& operator=(const AVOutput&) = delete;
+        AVOutputBase(const AVOutputBase&) = delete;
+        AVOutputBase& operator=(const AVOutputBase&) = delete;
 
    public:
-        AVOutput();
-        ~AVOutput();
+        AVOutputBase();
+        ~AVOutputBase();
     public:
+        uint8_t _skipURL;
+        bool isIARMConnected();
+        bool IARMinit();
         //   IPlugin methods
         // -------------------------------------------------------------------------------------------------------
-        const std::string Initialize(PluginHost::IShell* service);
-        void Deinitialize(PluginHost::IShell* service);
-        virtual string Information() const override { return {}; }
-	virtual void AddRef() const { }
-	virtual uint32_t Release() const {return 0; }
-        BEGIN_INTERFACE_MAP(AVOutput)
-        INTERFACE_ENTRY(PluginHost::IPlugin)
-        INTERFACE_ENTRY(PluginHost::IDispatcher)
-        END_INTERFACE_MAP
+        virtual void Initialize();
+        virtual void Deinitialize();
+        virtual void dsHdmiVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+        virtual void dsHdmiStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+        virtual void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+	virtual void InitializeIARM();
+        virtual void DeinitializeIARM();
    };
 }
 }

@@ -25,7 +25,7 @@
 #include <pthread.h>
 #include "Module.h"
 
-#include "AVOutputCommon.h"
+#include "AVOutputBase.h"
 #include "libIARM.h"
 #include "libIBusDaemon.h"
 #include "libIBus.h"
@@ -40,7 +40,8 @@
 namespace WPEFramework {
 namespace Plugin {
 
-class AVOutputSTB : public PluginHost::IPlugin, public PluginHost::JSONRPC {
+//class AVOutputSTB : public PluginHost::IPlugin, public PluginHost::JSONRPC {
+class AVOutputSTB : public AVOutputBase {
     private:
         AVOutputSTB(const AVOutputSTB&) = delete;
         AVOutputSTB& operator=(const AVOutputSTB&) = delete;
@@ -51,13 +52,8 @@ class AVOutputSTB : public PluginHost::IPlugin, public PluginHost::JSONRPC {
     public:
 	AVOutputSTB();
 	~AVOutputSTB();
-        void Initialize();
-        void Deinitialize();
         static AVOutputSTB *instance;
 	static AVOutputSTB* getInstance() { return instance; }
-        static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
-        static void dsHdmiStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
-        static void dsHdmiVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 };
 
 }//namespace Plugin

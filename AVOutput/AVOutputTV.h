@@ -31,7 +31,7 @@
 #include "tvError.h"
 #include "tvTypes.h"
 #include "tr181api.h"
-#include "AVOutputCommon.h"
+#include "AVOutputBase.h"
 #include "libIARM.h"
 #include "libIBusDaemon.h"
 #include "libIBus.h"
@@ -49,8 +49,8 @@
 #define RFC_BUFF_MAX 100
 #define BACKLIGHT_RAW_VALUE_MAX    (255)
 #define AVOUTPUT_RFC_CALLERID        "AVOutput"
-#define AVOUTPUT_RFC_CALLERID_OVERRIDE        "../../opt/panel/tvsettings"
-#define AVOUTPUT_OVERRIDE_PATH       "/opt/panel/tvsettings.ini"
+#define AVOUTPUT_RFC_CALLERID_OVERRIDE        "../../opt/panel/AVOutput"
+#define AVOUTPUT_OVERRIDE_PATH       "/opt/panel/AVOutput.ini"
 #define AVOUTPUT_CONVERTERBOARD_PANELID     "0_0_00"
 #define AVOUTPUT_GENERIC_STRING_RFC_PARAM    "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput."
 #define AVOUTPUT_BACKLIGHT_SDR_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.SDR.Backlight"
@@ -76,7 +76,8 @@
 namespace WPEFramework {
 namespace Plugin {
 
-class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
+//class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
+class AVOutputTV : public AVOutputBase {
     private:
         AVOutputTV(const AVOutputTV&) = delete;
         AVOutputTV& operator=(const AVOutputTV&) = delete;
@@ -190,7 +191,7 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         int convertToValidInputParameter(std::string pqparam, std::string & source, std::string & pqmode, std::string & format);
 	tvError_t updatePQParamToLocalCache(std::string forParam, int source, int pqmode, int format, int value,bool setNotDelete);
         int updatePQParamsToCache( std::string action, std::string tr181ParamName, std::string pqmode, std::string source, std::string format, tvPQParameterIndex_t pqParamIndex, int params[] );
-        void spliltCapablities( std::vector<std::string> &range,std::vector<std::string> &pqmode,std::vector<std::string> &format,std::vector<std::string> &source, std::string rangeInfo, std::string pqmodeInfo, std::string formatInfo, std::string sourceInfo );
+        void spliltCapablities( std::vector<std::string> &range,std::vector<std::string> &pqmode,std::vector<std::string> &format,std::vector<std::string> &source, std::vector<string> &index,std::string rangeInfo, std::string pqmodeInfo, std::string formatInfo, std::string sourceInfo, std::string indexInfo);
 	bool isCapablityCheckPassed( std::string pqmodeInputInfo,std::string sourceInputInfo,std::string formatInputInfo,std::string param );
         uint32_t generateStorageIdentifier(std::string &key, std::string forParam,int contentFormat, int pqmode, int source);
         uint32_t generateStorageIdentifierDirty(std::string &key, std::string forParam,uint32_t contentFormat, int pqmode);
@@ -205,7 +206,8 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
 	int getDolbyParams(tvContentFormatType_t format, std::string &s, std::string source = "");
 	tvError_t getParamsCaps(std::vector<std::string> &range, std::vector<std::string> &pqmode, std::vector<std::string> &source, std::vector<std::string> &format,std::string param );
         tvError_t getParamsCaps(std::vector<std::string> &range, std::vector<std::string> &pqmode, std::vector<std::string> &source,
-                                std::vector<std::string> &format,std::string param , std::string & isPlatformSupport);
+                                std::vector<std::string> &format,std::string param , std::string & isPlatformSupport,
+				std::vector<std::string> & index);
 	int getDimmingModeIndex(string mode);
 	int saveLocalDimmingLevelToDriverCache(std::string action,std::string pqmode, std::string source, std::string format,int params[] );
         void getDimmingModeStringFromEnum(int value, std::string &toStore);
@@ -214,8 +216,8 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
 	int syncCMSParams(std::string pqParam,tvCMS_tunel_t tunnel_type,std::string pqmode, std::string source, std::string format);
 	tvError_t syncCMSParamsToDriverCache(std::string pqmode, std::string source, std::string format);
 	int getCurrentPictureMode(char *picMode);
-	std::string convertSourceIndexToString(int sourceIndex);
-	std::string convertVideoFormatToString( int formatIndex );
+	//std::string convertSourceIndexToString(int sourceIndex);
+	//std::string convertVideoFormatToString( int formatIndex );
 	bool isIncluded(const std::set<string> set1,const std::set<string> set2);
 	void convertUserScaleBacklightToDriverScale(int format,int * params);
 	int getDolbyParamToSync(int sourceIndex, int formatIndex, int& value);
@@ -239,6 +241,16 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
 	int getCapabilitySource(JsonArray &rangeArray);
         int validateInputParameter(std::string param, std::string inputValue);
         int getRangeCapability(std::string param, std::vector<std::string> & rangeInfo);
+        int validateIntegerInputParameter(std::string param, int inputValue);
+        int getPqParamIndex();
+        tvError_t InitializeBacklightMode();
+	tvError_t InitializePictureMode();
+        string convertSourceIndexToString(int source);
+	string convertVideoFormatToString(int format);
+	string convertPictureIndexToString(int pqmode);
+        int getPictureModeIndex(std::string pqmode);
+	int getSourceIndex(std::string source);
+	int getFormatIndex(std::string format);
 
     public:
         int m_currentHdmiInResoluton;
@@ -250,14 +262,10 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
 	int source_index[SOURCES_SUPPORTED_MAX];
         AVOutputTV();
         ~AVOutputTV();
-        void Initialize();
-        void Deinitialize();
 
         static AVOutputTV *instance;
 	static AVOutputTV* getInstance() { return instance; }
-	static void dsHdmiVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
-        static void dsHdmiStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
-        static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+
 	tvError_t setAspectRatioZoomSettings(tvDisplayMode_t mode);
         tvError_t getUserSelectedAspectRatio (tvDisplayMode_t* mode);
         tvError_t setDefaultAspectRatio(std::string pqmode="all",std::string format="all",std::string source="all");
@@ -267,6 +275,14 @@ class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
         void NotifyFilmMakerModeChange(tvContentType_t mode);
         void NotifyVideoResolutionChange(tvResolutionParam_t resolution);
         void NotifyVideoFrameRateChange(tvVideoFrameRate_t frameRate);
+	//override API
+	void dsHdmiVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+        void dsHdmiStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+        void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+        void Initialize();
+        void Deinitialize();
+        void InitializeIARM();
+        void DeinitializeIARM();
 };
 
 }//namespace Plugin

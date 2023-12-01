@@ -27,11 +27,10 @@ namespace Plugin {
 
     AVOutputSTB* AVOutputSTB::instance = nullptr;
 
-    AVOutputSTB::AVOutputSTB():PluginHost::JSONRPC()
+    AVOutputSTB::AVOutputSTB()
     {
         LOGINFO("Entry\n"); 
         instance = this;
-        CreateHandler({ 2 });
 
         registerMethod("getVolume", &AVOutputSTB::getVolume, this );
         registerMethod("setVolume", &AVOutputSTB::setVolume, this);
@@ -44,51 +43,17 @@ namespace Plugin {
         LOGINFO();
     }
 
-    void AVOutputSTB::Initialize()
-    {
-       LOGINFO("Entry\n");
-       //Space for Device specific Init Sequence
-       LOGINFO("Exit\n");
-    }
-
-    void AVOutputSTB::Deinitialize()
-    {
-       LOGINFO("Entry\n");
-       LOGINFO("Exit\n");
-    }
-
-    //Event
-    void AVOutputSTB::dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
-    {
-        LOGINFO("Entry %s\n",__FUNCTION__);
-        LOGINFO("Exit %s\n",__FUNCTION__);
-    }
-
-    void AVOutputSTB::dsHdmiStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
-    {
-        LOGINFO("Entry %s\n",__FUNCTION__);
-        LOGINFO("Exit %s\n",__FUNCTION__);
-    }
-
-    void AVOutputSTB::dsHdmiVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
-    {
-        LOGINFO("Entry %s\n",__FUNCTION__);
-        LOGINFO("Exit %s\n",__FUNCTION__);
-    }
     uint32_t AVOutputSTB::getVolume(const JsonObject& parameters, JsonObject& response)
     {
 
         LOGINFO("Entry\n");
-        //PLUGIN_Lock(Lock);
         LOGINFO("Exit : %s\n",__FUNCTION__);
         returnResponse(true);
     }
-
     uint32_t AVOutputSTB::setVolume(const JsonObject& parameters, JsonObject& response)
     {
 
         LOGINFO("Entry\n");
-        //PLUGIN_Lock(Lock);
         LOGINFO("Exit : %s\n",__FUNCTION__);
         returnResponse(true);
     }
