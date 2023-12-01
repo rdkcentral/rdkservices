@@ -266,9 +266,9 @@ namespace Plugin {
     int AVOutputTV::getPictureModeIndex(std::string pqparam)
     {
 	int index = -1;
-        std::map<std::string, int> :: iterator it = supportedPictureModemap.begin();
+        std::map<std::string, int> :: iterator it;
 
-	while(it != supportedPictureModemap.end())
+	for(it = supportedPictureModemap.begin(); it != supportedPictureModemap.end(); it++)
 	{
 	    if (it->first == pqparam)
 	    {
@@ -282,9 +282,9 @@ namespace Plugin {
     int AVOutputTV::getSourceIndex(std::string pqparam)
     {
 	int index = -1;
-        std::map<std::string, int> :: iterator it = supportedSourcemap.begin();
+        std::map<std::string, int> :: iterator it;
 
-        while(it != supportedSourcemap.end())
+	for(it = supportedSourcemap.begin(); it != supportedSourcemap.end(); it++)
         {
             if (it->first == pqparam)
             {
@@ -298,9 +298,9 @@ namespace Plugin {
     int AVOutputTV::getFormatIndex(std::string pqparam)
     {
         int index = -1;
-        std::map<std::string, int> :: iterator it = supportedFormatmap.begin();
+        std::map<std::string, int> :: iterator it;
 
-        while(it != supportedFormatmap.end())
+	for(it =  supportedFormatmap.begin(); it !=  supportedFormatmap.end(); it++)
         {
             if (it->first == pqparam)
             {
@@ -5433,7 +5433,7 @@ namespace Plugin {
                                 LOGINFO("Exit : Picture Mode reset successfully, value: %s\n", param.value);
                             }
 		        }
-                        int pqmodeindex = (int)getPictureModeIndex(setparam);
+                        int pqmodeindex = (int)getPictureModeIndex(param.value);
                         SaveSourcePictureMode(source, format, pqmodeindex);
                     }
                     else 
@@ -5943,15 +5943,14 @@ namespace Plugin {
                 {
                     std::string tr181_param_name = "";
                     tr181_param_name += std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
-                    tr181_param_name += "."+std::to_string(source)+"."+"Format."+
-                                         std::to_string(ConvertHDRFormatToContentFormat((tvhdr_type_t)format))+"."+"PictureModeString";
+                    tr181_param_name += "."+convertSourceIndexToString(source)+"."+"Format."+
+                                         convertVideoFormatToString(format)+"."+"PictureModeString";
 
                     err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
                     if ( tr181Success == err ) 
                     {
 			std::string local = param.value;
-			transform(local.begin(), local.end(), local.begin(), ::tolower); 
-                        int pqmodeindex = (int)GetTVPictureModeIndex(local.c_str());
+                        int pqmodeindex = (int)getPictureModeIndex(local);
 
                         tvError_t tv_err = SaveSourcePictureMode(source, format, pqmodeindex);
                         if (tv_err != tvERROR_NONE)
@@ -6533,8 +6532,8 @@ namespace Plugin {
     string AVOutputTV::convertSourceIndexToString(int source)
     {
         std::string ret;
-	std::map<std::string, int> :: iterator it = supportedSourcemap.begin();
-        while(it != supportedSourcemap.end())
+	std::map<std::string, int> :: iterator it;
+	for (it = supportedSourcemap.begin(); it != supportedSourcemap.end(); it++)
         {
             if (it->second == source)
             {
@@ -6548,8 +6547,8 @@ namespace Plugin {
     string AVOutputTV::convertVideoFormatToString(int format)
     {
         std::string ret;
-        std::map<std::string, int> :: iterator it = supportedFormatmap.begin();
-        while(it != supportedFormatmap.end())
+        std::map<std::string, int> :: iterator it;
+	for (it = supportedFormatmap.begin(); it != supportedFormatmap.end(); it++)
         {
             if (it->second == format)
             {
@@ -6563,8 +6562,8 @@ namespace Plugin {
     string AVOutputTV::convertPictureIndexToString(int pqmode)
     {
         std::string ret;
-        std::map<std::string, int> :: iterator it = supportedPictureModemap.begin();
-        while(it != supportedPictureModemap.end())
+        std::map<std::string, int> :: iterator it;
+	for(it = supportedPictureModemap.begin(); it != supportedPictureModemap.end(); it++)
         {
             if (it->second == pqmode)
             {
