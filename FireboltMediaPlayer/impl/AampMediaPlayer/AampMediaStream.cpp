@@ -407,6 +407,8 @@ namespace {
             ADD_SETTER_INT(minBitrate, SetMinimumBitrate)
             ADD_SETTER_INT(maxBitrate, SetMaximumBitrate)
             ADD_SETTER_STRINGNULL(preferredAudioLanguage, SetPreferredLanguages)
+            ADD_SETTER_BOOLEAN(AudioOnlyPb, SetAudioOnlyPb)
+            ADD_SETTER_BOOLEAN(b64LicenseWrapping, Setb64LicenseWrapping)
             ADD_SETTER_UNSUPPORTED(timeShiftBufferLength);
             ADD_SETTER_BOOLEAN(stereoOnly, SetStereoOnlyPlayback)
             ADD_SETTER_INT(liveOffset, SetLiveOffset)
@@ -606,12 +608,16 @@ namespace WPEFramework {
             bool descriptiveTrackNameValue = false;
             bool enableVideoRectangleValue = false;
             bool enableVideoRectangleSet = false;
+            string customLicenseHeader;
+            string customHeader;
 
             // Iterate through the configuration settings
             string const idLabel("id");
             string const langCodePreferenceLabel("langCodePreference");
             string const descriptiveTrackNameLabel("descriptiveTrackName");
             string const enableVideoRectangleLabel("enableVideoRectangle");
+            string const customLicenseHeaderLabel("customLicenseHeader");
+            string const customHeaderLabel("customHeader");
             JsonObject const config(configurationJson);
             JsonObject::Iterator it = config.Variants();
             while (it.Next())
@@ -629,6 +635,10 @@ namespace WPEFramework {
                     (void)Settings::extractSetting(descriptiveTrackNameLabel, it.Current(), descriptiveTrackNameValue);
                 else if (label == enableVideoRectangleLabel)
                     enableVideoRectangleSet = Settings::extractSetting(descriptiveTrackNameLabel, it.Current(), enableVideoRectangleValue);
+                else if (label == customLicenseHeaderLabel)
+                      (void)Settings::extractSetting(customLicenseHeaderLabel, it.Current(), customLicenseHeader);
+                else if (label == customHeaderLabel)
+                      (void)Settings::extractSetting(customHeaderLabel, it.Current(), customHeader);
                 else
                     ConfigurationSettings::getInstance().apply(_aampPlayer, label, it.Current());
             }
@@ -642,6 +652,60 @@ namespace WPEFramework {
             if (enableVideoRectangleSet) {
                 LOGINFO("Invoking PlayerInstanceAAMP::EnableVideoRectangle(%s)", enableVideoRectangleValue ? "true" : "false");
                 _aampPlayer->EnableVideoRectangle(enableVideoRectangleValue);
+            }
+
+            if (!customLicenseHeader.empty()){
+	        LOGINFO("Init customLicenseHeader config=%s", customLicenseHeader.c_str());
+               	char* token = NULL;
+		char* tokenHeader = NULL;
+		char* str = (char*) customLicenseHeader.c_str();
+		while ((token = strtok_r(str, ";", &str)))
+		{
+			int headerTokenIndex = 0;
+			std::string headerName;
+			std::vector<std::string> headerValue;
+			while ((tokenHeader = strtok_r(token, ":", &token)))
+			{
+				if(headerTokenIndex == 0)
+					headerName = tokenHeader;
+				else if(headerTokenIndex == 1)
+					headerValue.push_back(std::string(tokenHeader));
+				else
+					break;
+				headerTokenIndex++;
+			}
+			if(!headerName.empty() && !headerValue.empty())
+			{
+				_aampPlayer->AddCustomHTTPHeader(headerName, headerValue, true);
+			}
+		}
+            }
+
+            if (!customHeader.empty()){
+                LOGINFO("Init customHeader config=%s", customHeader.c_str());
+                char* token = NULL;
+                char* tokenHeader = NULL;
+                char* str = (char*) customHeader.c_str();
+                while ((token = strtok_r(str, ";", &str)))
+                {
+                        int headerTokenIndex = 0;
+                        std::string headerName;
+                        std::vector<std::string> headerValue;
+                        while ((tokenHeader = strtok_r(token, ":", &token)))
+                        {
+                                if(headerTokenIndex == 0)
+                                        headerName = tokenHeader;
+                                else if(headerTokenIndex == 1)
+                                        headerValue.push_back(std::string(tokenHeader));
+                                else
+                                        break;
+                                headerTokenIndex++;
+                        }
+                        if(!headerName.empty() && !headerValue.empty())
+                        {
+                                _aampPlayer->AddCustomHTTPHeader(headerName, headerValue, false);
+                        }
+                }
             }
 
             _adminLock.Unlock();
