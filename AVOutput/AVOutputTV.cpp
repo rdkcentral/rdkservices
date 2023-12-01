@@ -6094,7 +6094,7 @@ namespace Plugin {
         }
 	else if (format == "Current") 
 	{
-	  int formatIndex = (int)ConvertVideoFormatToHDRFormat(GetCurrentContentFormat())
+	  int formatIndex = (int)ConvertVideoFormatToHDRFormat(GetCurrentContentFormat());
           format = convertVideoFormatToString(formatIndex);
           LOGINFO("Current:%s \n", format.c_str());
         }
