@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.9] - 2023-12-03
+### Fixed
+- Timeout to launch this process is increased to 15s, to fix the bootup issue
+
 ## [1.0.8] - 2023-10-10
 ### Changed
 - Changed string functions to safer versions
