@@ -2,7 +2,7 @@
 <a name="ActivityMonitor_Plugin"></a>
 # ActivityMonitor Plugin
 
-**Version: [1.0.3](https://github.com/rdkcentral/rdkservices/blob/main/ActivityMonitor/CHANGELOG.md)**
+**Version: [1.0.4](https://github.com/rdkcentral/rdkservices/blob/main/ActivityMonitor/CHANGELOG.md)**
 
 A org.rdk.ActivityMonitor plugin for Thunder framework.
 

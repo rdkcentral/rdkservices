@@ -1,5 +1,5 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="head.NetworkPlugin"></a>
+<a name="NetworkPlugin"></a>
 # NetworkPlugin
 
 **Version: [1.3.1](https://github.com/rdkcentral/rdkservices/blob/main/Network/CHANGELOG.md)**
@@ -8,25 +8,25 @@ A org.rdk.Network plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Abbreviation, Acronyms and Terms](#head.Abbreviation,_Acronyms_and_Terms)
-- [Description](#head.Description)
-- [Configuration](#head.Configuration)
-- [Methods](#head.Methods)
-- [Notifications](#head.Notifications)
+- [Abbreviation, Acronyms and Terms](#Abbreviation,_Acronyms_and_Terms)
+- [Description](#Description)
+- [Configuration](#Configuration)
+- [Methods](#Methods)
+- [Notifications](#Notifications)
 
-<a name="head.Abbreviation,_Acronyms_and_Terms"></a>
+<a name="Abbreviation,_Acronyms_and_Terms"></a>
 # Abbreviation, Acronyms and Terms
 
 [[Refer to this link](userguide/aat.md)]
 
-<a name="head.Description"></a>
+<a name="Description"></a>
 # Description
 
 The `Network` plugin allows you to manage network interfaces on a set-top box.
 
-The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
+The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
 
-<a name="head.Configuration"></a>
+<a name="Configuration"></a>
 # Configuration
 
 The table below lists configuration options of the plugin.
@@ -38,7 +38,7 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkNetwork.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
-<a name="head.Methods"></a>
+<a name="Methods"></a>
 # Methods
 
 The following methods are provided by the org.rdk.Network plugin:
@@ -47,34 +47,34 @@ Network interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [getDefaultInterface](#method.getDefaultInterface) | Gets the default network interface |
-| [getInterfaces](#method.getInterfaces) | Returns a list of interfaces supported by this device including their state |
-| [getIPSettings](#method.getIPSettings) | Gets the IP setting for the given interface |
-| [getNamedEndpoints](#method.getNamedEndpoints) | Returns a list of endpoint names |
-| [getQuirks](#method.getQuirks) | Get standard string `RDK-20093` |
-| [getStbIp](#method.getStbIp) | Gets the IP address of the default interface |
-| [getSTBIPFamily](#method.getSTBIPFamily) | Gets the IP address of the default interface by address family |
-| [setConnectivityTestEndpoints](#method.setConnectivityTestEndpoints) | Define up to 5 endpoints for a connectivity test |
-| [isConnectedToInternet](#method.isConnectedToInternet) | Whether the device has internet connectivity |
-| [getInternetConnectionState](#method.getInternetConnectionState) | Returns the internet connection state |
-| [getCaptivePortalURI](#method.getCaptivePortalURI) | Returns the captive portal URI if connected to any captive portal network |
-| [startConnectivityMonitoring](#method.startConnectivityMonitoring) | Enable a continuous monitoring of internet connectivity with heart beat interval thats given |
-| [stopConnectivityMonitoring](#method.stopConnectivityMonitoring) | Stops the connectivity monitoring |
-| [isInterfaceEnabled](#method.isInterfaceEnabled) | Whether the specified interface is enabled |
-| [ping](#method.ping) | Pings the specified endpoint with the specified number of packets |
-| [pingNamedEndpoint](#method.pingNamedEndpoint) | Pings the specified named endpoint with the specified number of packets |
-| [setDefaultInterface](#method.setDefaultInterface) | Sets the default interface |
-| [setInterfaceEnabled](#method.setInterfaceEnabled) | Enables the specified interface |
-| [setIPSettings](#method.setIPSettings) | Sets the IP settings |
-| [getPublicIP](#method.getPublicIP) | It allows either zero parameter or with only interface and ipv6 parameter to determine WAN ip address |
-| [setStunEndPoint](#method.setStunEndPoint) | Set the Stun Endpoint used for getPublicIP |
-| [configurePNI](#method.configurePNI) | This method configures PNI to enable or disable Connectivity test |
-| [trace](#method.trace) | Traces the specified endpoint with the specified number of packets using `traceroute` |
-| [traceNamedEndpoint](#method.traceNamedEndpoint) | Traces the specified named endpoint with the specified number of packets using `traceroute` |
+| [getDefaultInterface](#getDefaultInterface) | Gets the default network interface |
+| [getInterfaces](#getInterfaces) | Returns a list of interfaces supported by this device including their state |
+| [getIPSettings](#getIPSettings) | Gets the IP setting for the given interface |
+| [getNamedEndpoints](#getNamedEndpoints) | Returns a list of endpoint names |
+| [getQuirks](#getQuirks) | Get standard string `RDK-20093` |
+| [getStbIp](#getStbIp) | Gets the IP address of the default interface |
+| [getSTBIPFamily](#getSTBIPFamily) | Gets the IP address of the default interface by address family |
+| [setConnectivityTestEndpoints](#setConnectivityTestEndpoints) | Define up to 5 endpoints for a connectivity test |
+| [isConnectedToInternet](#isConnectedToInternet) | Whether the device has internet connectivity |
+| [getInternetConnectionState](#getInternetConnectionState) | Returns the internet connection state |
+| [getCaptivePortalURI](#getCaptivePortalURI) | Returns the captive portal URI if connected to any captive portal network |
+| [startConnectivityMonitoring](#startConnectivityMonitoring) | Enable a continuous monitoring of internet connectivity with heart beat interval thats given |
+| [stopConnectivityMonitoring](#stopConnectivityMonitoring) | Stops the connectivity monitoring |
+| [isInterfaceEnabled](#isInterfaceEnabled) | Whether the specified interface is enabled |
+| [ping](#ping) | Pings the specified endpoint with the specified number of packets |
+| [pingNamedEndpoint](#pingNamedEndpoint) | Pings the specified named endpoint with the specified number of packets |
+| [setDefaultInterface](#setDefaultInterface) | Sets the default interface |
+| [setInterfaceEnabled](#setInterfaceEnabled) | Enables the specified interface |
+| [setIPSettings](#setIPSettings) | Sets the IP settings |
+| [getPublicIP](#getPublicIP) | It allows either zero parameter or with only interface and ipv6 parameter to determine WAN ip address |
+| [setStunEndPoint](#setStunEndPoint) | Set the Stun Endpoint used for getPublicIP |
+| [configurePNI](#configurePNI) | This method configures PNI to enable or disable Connectivity test |
+| [trace](#trace) | Traces the specified endpoint with the specified number of packets using `traceroute` |
+| [traceNamedEndpoint](#traceNamedEndpoint) | Traces the specified named endpoint with the specified number of packets using `traceroute` |
 
 
-<a name="method.getDefaultInterface"></a>
-## *getDefaultInterface [<sup>method</sup>](#head.Methods)*
+<a name="getDefaultInterface"></a>
+## *getDefaultInterface*
 
 Gets the default network interface. The active network interface is defined as the one that can make requests to the external network. Returns one of the supported interfaces as per `getInterfaces`, or an empty value which indicates that there is no default network interface.
 
@@ -119,8 +119,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getInterfaces"></a>
-## *getInterfaces [<sup>method</sup>](#head.Methods)*
+<a name="getInterfaces"></a>
+## *getInterfaces*
 
 Returns a list of interfaces supported by this device including their state.
 
@@ -177,8 +177,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getIPSettings"></a>
-## *getIPSettings [<sup>method</sup>](#head.Methods)*
+<a name="getIPSettings"></a>
+## *getIPSettings*
 
 Gets the IP setting for the given interface.
 
@@ -247,8 +247,8 @@ No Events
 }
 ```
 
-<a name="method.getNamedEndpoints"></a>
-## *getNamedEndpoints [<sup>method</sup>](#head.Methods)*
+<a name="getNamedEndpoints"></a>
+## *getNamedEndpoints*
 
 Returns a list of endpoint names. Currently supported endpoint names are: `CMTS`.
 
@@ -296,8 +296,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getQuirks"></a>
-## *getQuirks [<sup>method</sup>](#head.Methods)*
+<a name="getQuirks"></a>
+## *getQuirks*
 
 Get standard string `RDK-20093`.
 
@@ -342,8 +342,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getStbIp"></a>
-## *getStbIp [<sup>method</sup>](#head.Methods)*
+<a name="getStbIp"></a>
+## *getStbIp*
 
 Gets the IP address of the default interface.
 
@@ -388,8 +388,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getSTBIPFamily"></a>
-## *getSTBIPFamily [<sup>method</sup>](#head.Methods)*
+<a name="getSTBIPFamily"></a>
+## *getSTBIPFamily*
 
 Gets the IP address of the default interface by address family.
 
@@ -440,8 +440,8 @@ No Events
 }
 ```
 
-<a name="method.setConnectivityTestEndpoints"></a>
-## *setConnectivityTestEndpoints [<sup>method</sup>](#head.Methods)*
+<a name="setConnectivityTestEndpoints"></a>
+## *setConnectivityTestEndpoints*
 
 Define up to 5 endpoints for a connectivity test. Successful connections are verified with HTTP Status code 204 (No Content). Priority is given to endpoints configured in /etc/netsrvmgr.conf. In case of errors or if not configured, the default endpoints are considered: `http://clients3.google.com/generate_204`.
 
@@ -493,8 +493,8 @@ No Events
 }
 ```
 
-<a name="method.isConnectedToInternet"></a>
-## *isConnectedToInternet [<sup>method</sup>](#head.Methods)*
+<a name="isConnectedToInternet"></a>
+## *isConnectedToInternet*
 
 Whether the device has internet connectivity. This API might take up to 2s to validate internet connectivity.
 
@@ -547,8 +547,8 @@ No Events
 }
 ```
 
-<a name="method.getInternetConnectionState"></a>
-## *getInternetConnectionState [<sup>method</sup>](#head.Methods)*
+<a name="getInternetConnectionState"></a>
+## *getInternetConnectionState*
 
 Returns the internet connection state. The possible internet connection state are as follows. 
 * `0`: NO_INTERNET - No internet connection  
@@ -607,8 +607,8 @@ No Events
 }
 ```
 
-<a name="method.getCaptivePortalURI"></a>
-## *getCaptivePortalURI [<sup>method</sup>](#head.Methods)*
+<a name="getCaptivePortalURI"></a>
+## *getCaptivePortalURI*
 
 Returns the captive portal URI if connected to any captive portal network.
 
@@ -653,8 +653,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.startConnectivityMonitoring"></a>
-## *startConnectivityMonitoring [<sup>method</sup>](#head.Methods)*
+<a name="startConnectivityMonitoring"></a>
+## *startConnectivityMonitoring*
 
 Enable a continuous monitoring of internet connectivity with heart beat interval thats given.
 
@@ -662,7 +662,7 @@ Enable a continuous monitoring of internet connectivity with heart beat interval
 
 | Event | Description |
 | :-------- | :-------- |
-| [onInternetStatusChange](#event.onInternetStatusChange) | Triggered when internet connection state changed. |
+| [onInternetStatusChange](#onInternetStatusChange) | Triggered when internet connection state changed. |
 ### Parameters
 
 | Name | Type | Description |
@@ -704,8 +704,8 @@ Enable a continuous monitoring of internet connectivity with heart beat interval
 }
 ```
 
-<a name="method.stopConnectivityMonitoring"></a>
-## *stopConnectivityMonitoring [<sup>method</sup>](#head.Methods)*
+<a name="stopConnectivityMonitoring"></a>
+## *stopConnectivityMonitoring*
 
 Stops the connectivity monitoring.
 
@@ -748,8 +748,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.isInterfaceEnabled"></a>
-## *isInterfaceEnabled [<sup>method</sup>](#head.Methods)*
+<a name="isInterfaceEnabled"></a>
+## *isInterfaceEnabled*
 
 Whether the specified interface is enabled.
 
@@ -800,8 +800,8 @@ No Events
 }
 ```
 
-<a name="method.ping"></a>
-## *ping [<sup>method</sup>](#head.Methods)*
+<a name="ping"></a>
+## *ping*
 
 Pings the specified endpoint with the specified number of packets.
 
@@ -874,8 +874,8 @@ No Events
 }
 ```
 
-<a name="method.pingNamedEndpoint"></a>
-## *pingNamedEndpoint [<sup>method</sup>](#head.Methods)*
+<a name="pingNamedEndpoint"></a>
+## *pingNamedEndpoint*
 
 Pings the specified named endpoint with the specified number of packets. Only names returned by `getNamedEndpoints` can be used. The named endpoint is resolved to a specific host or IP address on the device side based on the `endpointName`.
 
@@ -948,8 +948,8 @@ No Events
 }
 ```
 
-<a name="method.setDefaultInterface"></a>
-## *setDefaultInterface [<sup>method</sup>](#head.Methods)*
+<a name="setDefaultInterface"></a>
+## *setDefaultInterface*
 
 Sets the default interface. The call fails if the interface is not enabled.
 
@@ -957,10 +957,10 @@ Sets the default interface. The call fails if the interface is not enabled.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onInterfaceStatusChanged](#event.onInterfaceStatusChanged) | Triggered when device’s default interface changed. |
-| [onConnectionStatusChanged](#event.onConnectionStatusChanged) | Triggered when interface’s status changes to enabled/disabled. |
-| [onIPAddressStatusChanged](#event.onIPAddressStatusChanged) | Triggered when the device connects to router. |
-| [onDefaultInterfaceChanged](#event.onDefaultInterfaceChanged) | Triggered when each IP address is lost or acquired. |
+| [onInterfaceStatusChanged](#onInterfaceStatusChanged) | Triggered when device’s default interface changed. |
+| [onConnectionStatusChanged](#onConnectionStatusChanged) | Triggered when interface’s status changes to enabled/disabled. |
+| [onIPAddressStatusChanged](#onIPAddressStatusChanged) | Triggered when the device connects to router. |
+| [onDefaultInterfaceChanged](#onDefaultInterfaceChanged) | Triggered when each IP address is lost or acquired. |
 ### Parameters
 
 | Name | Type | Description |
@@ -1004,8 +1004,8 @@ Sets the default interface. The call fails if the interface is not enabled.
 }
 ```
 
-<a name="method.setInterfaceEnabled"></a>
-## *setInterfaceEnabled [<sup>method</sup>](#head.Methods)*
+<a name="setInterfaceEnabled"></a>
+## *setInterfaceEnabled*
 
 Enables the specified interface.
 
@@ -1013,7 +1013,7 @@ Enables the specified interface.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onInterfaceStatusChanged](#event.onInterfaceStatusChanged) | Triggered when interface’s status changes to enabled/disabled. |
+| [onInterfaceStatusChanged](#onInterfaceStatusChanged) | Triggered when interface’s status changes to enabled/disabled. |
 ### Parameters
 
 | Name | Type | Description |
@@ -1059,8 +1059,8 @@ Enables the specified interface.
 }
 ```
 
-<a name="method.setIPSettings"></a>
-## *setIPSettings [<sup>method</sup>](#head.Methods)*
+<a name="setIPSettings"></a>
+## *setIPSettings*
 
 Sets the IP settings.All the inputs are mandatory for v1. But for v2, the interface and autconfig params are mandatory input to autoconfig IP settings & other parameters not required. For manual IP, all the input parameters are mandatory except secondaryDNS.
 
@@ -1068,7 +1068,7 @@ Sets the IP settings.All the inputs are mandatory for v1. But for v2, the interf
 
 | Event | Description |
 | :-------- | :-------- |
-| [onIPAddressStatusChanged](#event.onIPAddressStatusChanged) | Triggered when each IP address is lost or acquired. |
+| [onIPAddressStatusChanged](#onIPAddressStatusChanged) | Triggered when each IP address is lost or acquired. |
 ### Parameters
 
 | Name | Type | Description |
@@ -1126,8 +1126,8 @@ Sets the IP settings.All the inputs are mandatory for v1. But for v2, the interf
 }
 ```
 
-<a name="method.getPublicIP"></a>
-## *getPublicIP [<sup>method</sup>](#head.Methods)*
+<a name="getPublicIP"></a>
+## *getPublicIP*
 
 It allows either zero parameter or with only interface and ipv6 parameter to determine WAN ip address.
 
@@ -1180,8 +1180,8 @@ No Events
 }
 ```
 
-<a name="method.setStunEndPoint"></a>
-## *setStunEndPoint [<sup>method</sup>](#head.Methods)*
+<a name="setStunEndPoint"></a>
+## *setStunEndPoint*
 
 Set the Stun Endpoint used for getPublicIP.
 
@@ -1238,8 +1238,8 @@ No Events
 }
 ```
 
-<a name="method.configurePNI"></a>
-## *configurePNI [<sup>method</sup>](#head.Methods)*
+<a name="configurePNI"></a>
+## *configurePNI*
 
 This method configures PNI to enable or disable Connectivity test.
 
@@ -1288,8 +1288,8 @@ No Events
 }
 ```
 
-<a name="method.trace"></a>
-## *trace [<sup>method</sup>](#head.Methods)*
+<a name="trace"></a>
+## *trace*
 
 Traces the specified endpoint with the specified number of packets using `traceroute`.
 
@@ -1346,8 +1346,8 @@ No Events
 }
 ```
 
-<a name="method.traceNamedEndpoint"></a>
-## *traceNamedEndpoint [<sup>method</sup>](#head.Methods)*
+<a name="traceNamedEndpoint"></a>
+## *traceNamedEndpoint*
 
 Traces the specified named endpoint with the specified number of packets using `traceroute`.
 
@@ -1404,10 +1404,10 @@ No Events
 }
 ```
 
-<a name="head.Notifications"></a>
+<a name="Notifications"></a>
 # Notifications
 
-Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
+Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#Thunder)] for information on how to register for a notification.
 
 The following events are provided by the org.rdk.Network plugin:
 
@@ -1415,15 +1415,15 @@ Network interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onInterfaceStatusChanged](#event.onInterfaceStatusChanged) | Triggered when an interface becomes enabled or disabled |
-| [onConnectionStatusChanged](#event.onConnectionStatusChanged) | Triggered when a connection is made or lost |
-| [onIPAddressStatusChanged](#event.onIPAddressStatusChanged) | Triggered when an IP Address is assigned or lost |
-| [onDefaultInterfaceChanged](#event.onDefaultInterfaceChanged) | Triggered when the default interface changes, regardless if it's from a system operation or through the `setDefaultInterface` method |
-| [onInternetStatusChange](#event.onInternetStatusChange) | Triggered when internet connection state changed |
+| [onInterfaceStatusChanged](#onInterfaceStatusChanged) | Triggered when an interface becomes enabled or disabled |
+| [onConnectionStatusChanged](#onConnectionStatusChanged) | Triggered when a connection is made or lost |
+| [onIPAddressStatusChanged](#onIPAddressStatusChanged) | Triggered when an IP Address is assigned or lost |
+| [onDefaultInterfaceChanged](#onDefaultInterfaceChanged) | Triggered when the default interface changes, regardless if it's from a system operation or through the `setDefaultInterface` method |
+| [onInternetStatusChange](#onInternetStatusChange) | Triggered when internet connection state changed |
 
 
-<a name="event.onInterfaceStatusChanged"></a>
-## *onInterfaceStatusChanged [<sup>event</sup>](#head.Notifications)*
+<a name="onInterfaceStatusChanged"></a>
+## *onInterfaceStatusChanged*
 
 Triggered when an interface becomes enabled or disabled.
 
@@ -1448,8 +1448,8 @@ Triggered when an interface becomes enabled or disabled.
 }
 ```
 
-<a name="event.onConnectionStatusChanged"></a>
-## *onConnectionStatusChanged [<sup>event</sup>](#head.Notifications)*
+<a name="onConnectionStatusChanged"></a>
+## *onConnectionStatusChanged*
 
 Triggered when a connection is made or lost.
 
@@ -1474,8 +1474,8 @@ Triggered when a connection is made or lost.
 }
 ```
 
-<a name="event.onIPAddressStatusChanged"></a>
-## *onIPAddressStatusChanged [<sup>event</sup>](#head.Notifications)*
+<a name="onIPAddressStatusChanged"></a>
+## *onIPAddressStatusChanged*
 
 Triggered when an IP Address is assigned or lost.
 
@@ -1504,10 +1504,10 @@ Triggered when an IP Address is assigned or lost.
 }
 ```
 
-<a name="event.onDefaultInterfaceChanged"></a>
-## *onDefaultInterfaceChanged [<sup>event</sup>](#head.Notifications)*
+<a name="onDefaultInterfaceChanged"></a>
+## *onDefaultInterfaceChanged*
 
-Triggered when the default interface changes, regardless if it's from a system operation or through the `setDefaultInterface` method.
+Triggered when the default interface changes, regardless if it's from a system operation or through the `setDefaultInterface` 
 
 ### Parameters
 
@@ -1530,8 +1530,8 @@ Triggered when the default interface changes, regardless if it's from a system o
 }
 ```
 
-<a name="event.onInternetStatusChange"></a>
-## *onInternetStatusChange [<sup>event</sup>](#head.Notifications)*
+<a name="onInternetStatusChange"></a>
+## *onInternetStatusChange*
 
 Triggered when internet connection state changed.The possible internet connection status are `NO_INTERNET`, `LIMITED_INTERNET`, `CAPTIVE_PORTAL`, `FULLY_CONNECTED`.
 
