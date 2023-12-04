@@ -2,7 +2,7 @@
 <a name="HdmiCecSinkPlugin"></a>
 # HdmiCecSinkPlugin
 
-**Version: [1.2.4](https://github.com/rdkcentral/rdkservices/blob/main/HdmiCecSink/CHANGELOG.md)**
+**Version: [1.3.0](https://github.com/rdkcentral/rdkservices/blob/main/HdmiCecSink/CHANGELOG.md)**
 
 A org.rdk.HdmiCecSink plugin for Thunder framework.
 
@@ -60,6 +60,8 @@ HdmiCecSink interface methods:
 | [sendAudioDevicePowerOnMessage](#sendAudioDevicePowerOnMessage) | This message is used to power on the connected audio device |
 | [sendGetAudioStatusMessage](#sendGetAudioStatusMessage) | Sends the CEC \<Give Audio Status\> message to request the audio status |
 | [sendKeyPressEvent](#sendKeyPressEvent) | Sends the CEC \<User Control Pressed\> message when TV remote key is pressed |
+| [sendUserControlPressed](#sendUserControlPressed) | Sends the CEC \<User Control Pressed\> message when TV remote key is pressed |
+| [sendUserControlReleased](#sendUserControlReleased) | Sends the CEC \<User Control released\> message when TV remote key is released |
 | [sendStandbyMessage](#sendStandbyMessage) | Sends a CEC \<Standby\> message to the logical address of the device |
 | [setActivePath](#setActivePath) | Sets the source device to active (`setStreamPath`) |
 | [setActiveSource](#setActiveSource) | Sets the current active source as TV (physical address 0 |
@@ -732,6 +734,108 @@ No Events
 }
 ```
 
+<a name="sendUserControlPressed"></a>
+## *sendUserControlPressed*
+
+Sends the CEC \<User Control Pressed\> message when TV remote key is pressed.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.logicalAddress | integer | Logical address of the device |
+| params.keyCode | integer | The key code for the pressed key. Possible values : `0x41` (VOLUME_UP), `0x42` (VOLUME_DOWN), `0x43` (MUTE), `0x01` (UP), `0x02` (DOWN), `0x03` (LEFT), `0x04` (RIGHT), `0x00` (SELECT), `0x09` (HOME), `0x0D` (BACK), `0x20` (NUMBER_0), `0x21` (NUMBER_1), `0x22` (NUMBER_2), `0x23` (NUMBER_3), `0x24` (NUMBER_4), `0x25` (NUMBER_5), `0x26` (NUMBER_6), `0x27` (NUMBER_7), `0x28` (NUMBER_8), `0x29` (NUMBER_9) |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.HdmiCecSink.sendUserControlPressed",
+    "params": {
+        "logicalAddress": 4,
+        "keyCode": 65
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="sendUserControlReleased"></a>
+## *sendUserControlReleased*
+
+Sends the CEC \<User Control released\> message when TV remote key is released.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.logicalAddress | integer | Logical address of the device |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.HdmiCecSink.sendUserControlReleased",
+    "params": {
+        "logicalAddress": 4
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="sendStandbyMessage"></a>
 ## *sendStandbyMessage*
 
@@ -1254,6 +1358,7 @@ HdmiCecSink interface events:
 | [onWakeupFromStandby](#onWakeupFromStandby) | Triggered when the TV is in standby mode and it receives \<Image View ON\>/ \<Text View ON\>/ \<Active Source\> CEC message from the connected source device |
 | [reportAudioDeviceConnectedStatus](#reportAudioDeviceConnectedStatus) | Triggered when an audio device is added or removed |
 | [reportAudioStatusEvent](#reportAudioStatusEvent) | Triggered when CEC \<Report Audio Status\> message of device is received |
+| [reportFeatureAbortEvent](#reportFeatureAbortEvent) | Triggered when CEC \<Feature Abort\> message of device is received |
 | [reportCecEnabledEvent](#reportCecEnabledEvent) | Triggered when the HDMI-CEC is enabled |
 | [setSystemAudioModeEvent](#setSystemAudioModeEvent) | Triggered when CEC \<Set System Audio Mode\> message of device is received |
 | [shortAudiodesciptorEvent](#shortAudiodesciptorEvent) | Triggered when SAD is received from the connected audio device |
@@ -1552,6 +1657,34 @@ Triggered when CEC \<Report Audio Status\> message of device is received.
     "params": {
         "muteStatus": 0,
         "volumeLevel": 28
+    }
+}
+```
+
+<a name="reportFeatureAbortEvent"></a>
+## *reportFeatureAbortEvent*
+
+Triggered when CEC \<Feature Abort\> message of device is received.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.logicalAddress | integer | Logical address of the device |
+| params.opcode | integer | The opcode send to the device |
+| params.FeatureAbortReason | integer | Reason for the feature abort |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.reportFeatureAbortEvent",
+    "params": {
+        "logicalAddress": 4,
+        "opcode": 0,
+        "FeatureAbortReason": 0
     }
 }
 ```
