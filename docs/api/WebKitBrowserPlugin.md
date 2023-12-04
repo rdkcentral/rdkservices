@@ -2,7 +2,7 @@
 <a name="WebKitBrowser_Plugin"></a>
 # WebKitBrowser Plugin
 
-**Version: [1.1.17](https://github.com/rdkcentral/rdkservices/blob/main/WebKitBrowser/CHANGELOG.md)**
+**Version: [1.1.19](https://github.com/rdkcentral/rdkservices/blob/main/WebKitBrowser/CHANGELOG.md)**
 
 A WebKitBrowser plugin for Thunder framework.
 
