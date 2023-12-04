@@ -245,7 +245,7 @@ namespace Plugin {
         LOGINFO("PlayBuffer request\n");
         getNumberParameter("id", id);
         data = parameters["data"].String();
-        LOGINFO("data size %ld\n",data.size());
+        LOGINFO("data size %d\n",data.size());
         _adminLock.Lock();
          player = getObjectFromMap(id);
         _adminLock.Unlock();
@@ -256,7 +256,7 @@ namespace Plugin {
             size_t decworkspace_size = b64_get_decoded_buffer_size(dectokenVec.size());
             uint8_t *decworkspace = new uint8_t[decworkspace_size];
             size_t decnum_chars = b64_decode(e, dectokenVec.size(),decworkspace);
-            LOGINFO("decode size %ld\n", decworkspace_size);
+            LOGINFO("decode size %d\n", decworkspace_size);
             player->PlayBuffer((const char*)decworkspace,decnum_chars);
             delete []decworkspace;
             
