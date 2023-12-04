@@ -324,7 +324,15 @@ public:
         PluginHost::IShell::reason reason = _service->Reason();
         if(reason == PluginHost::IShell::FAILURE || reason == PluginHost::IShell::MEMORY_EXCEEDED)
         {
-            SYSLOG(Logging::Notification, (_T("Browser::Deactivated { \"URL\": %s , \"Reason\": %d }"), getHostName(_lastURL).c_str(), reason));
+            SYSLOG(Logging::Notification, (_T("Browser::Deactivated ( \"URL\": %s , \"Reason\": %d )"), getHostName(_lastURL).c_str(), reason));
+            string eventName("BrowserDeactivation_accum");
+            string eventValue;
+            JsonArray array;
+
+            array.Add(getHostName(_lastURL).c_str());
+            array.Add(reason);
+            array.ToString(eventValue);
+            Utils::Telemetry::sendMessage((char *)eventName.c_str(), (char *)eventValue.c_str());
         }
     }
 
