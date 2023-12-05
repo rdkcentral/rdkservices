@@ -224,7 +224,7 @@ namespace WPEFramework {
             "/lib/rdk/StartDCM_maintaince.sh",
 #endif
 #if defined(ENABLE_RDKVRFC_RDKE)
-	    "/usr/bin/rfcMgr >> /opt/logs/rfcscript.log"
+	    "/usr/bin/rfcMgr >> /opt/logs/rfcscript.log",
 #else
             "/lib/rdk/RFCbase.sh",
 #endif
@@ -242,7 +242,7 @@ namespace WPEFramework {
             "/usr/bin/rdkvfwupgrader 0 1 >> /opt/logs/swupdate.log",
             "/lib/rdk/swupdate_utility.sh >> /opt/logs/swupdate.log",
             "/lib/rdk/Start_uploadSTBLogs.sh",
-	          "/usr/bin/rfcMgr >> /opt/logs/rfcscript.log"
+	    "/usr/bin/rfcMgr >> /opt/logs/rfcscript.log"
         };
 
         vector<string> tasks;
@@ -257,7 +257,7 @@ namespace WPEFramework {
            "RFCbase.sh",
 #endif
 #if defined(ENABLE_RDKVFW_RDKE)
-	          "rdkvfwupgrader",
+	    "rdkvfwupgrader",
 #else
             "swupdate_utility.sh",
 #endif
@@ -1896,8 +1896,6 @@ namespace WPEFramework {
 		if (strstr(taskname, "rfcMgr")) {
 		    LOGINFO("Sending SIGUSR1 signal to %s\n", taskname);
                     k_ret = kill( pid_num, SIGUSR1 );
-		}else{
-                    k_ret = kill( pid_num, sig_to_send );
 		}
 #endif
 
