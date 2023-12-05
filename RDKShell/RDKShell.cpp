@@ -1641,7 +1641,7 @@ namespace WPEFramework {
             }
 
             mErmEnabled = CompositorController::isErmEnabled();
-            sem_init(&gInitializeSemaphore, 0, 0);
+            //sem_init(&gInitializeSemaphore, 0, 0);
             shellThread = std::thread([=]() {
                 bool isRunning = true;
                 gRdkShellMutex.lock();
@@ -2036,7 +2036,7 @@ namespace WPEFramework {
             gKillClientRequests.clear();
             gRdkShellMutex.unlock();
             gExternalDestroyApplications.clear();
-            sem_destroy(&gInitializeSemaphore);
+            //sem_destroy(&gInitializeSemaphore);
         }
 
         string RDKShell::Information() const
