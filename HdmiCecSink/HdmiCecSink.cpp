@@ -897,7 +897,7 @@ namespace WPEFramework
 						if ( powerState != DEVICE_POWER_STATE_ON )
 						{
 						   /*  reset the current active source when TV on going to standby */
-                           HdmiCecSink::_instance->m_currentActiveSource = -1;
+                           			    HdmiCecSink::_instance->m_currentActiveSource = -1;
 						}
                                                 /* Initiate a ping straight away */
                                                 HdmiCecSink::_instance->m_pollNextState = POLL_THREAD_STATE_PING;
