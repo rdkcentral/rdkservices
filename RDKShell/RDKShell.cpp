@@ -1855,7 +1855,7 @@ namespace WPEFramework {
         RialtoConnector *rialtoBridge = new RialtoConnector();
         rialtoConnector = std::shared_ptr<RialtoConnector>(rialtoBridge);
 #endif //  ENABLE_RIALTO_FEATURE
-            sem_wait(&gInitializeSemaphore);
+            //sem_wait(&gInitializeSemaphore);
             return "";
         }
 
