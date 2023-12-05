@@ -18,7 +18,7 @@ All notable changes to this RDK Service will be documented in this file.
 
 ## [1.0.4] - 2023-12-05
 ### Fixed
-- Increased persistent key store value to 3k
+- Increased persistent key storage value to 3k
 
 
 ## [1.0.3] - 2023-09-12
