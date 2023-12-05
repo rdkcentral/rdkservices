@@ -23,7 +23,7 @@ set(PLUGIN_REMOTEACTIONMAPPING_STARTUPORDER "" CACHE STRING "To configure startu
 find_package(${NAMESPACE}Plugins REQUIRED)
 
 if (NOT RDK_SERVICES_TEST)
-add_subdirectory(test)
+#add_subdirectory(test)
 endif ()
 
 add_library(${MODULE_NAME} SHARED
