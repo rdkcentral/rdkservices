@@ -16,6 +16,11 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+
+## [1.0.3] - 2023-12-05
+### Fixed
+- Increased persistent key storage value to 3k
+
 ## [1.0.2] - 2022-12-08
 ### Fixed
 - Remove the old workaround for an empty config
