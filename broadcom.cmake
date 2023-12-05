@@ -68,7 +68,7 @@ endif()
 
 if (ENABLE_RDKVRFC_RDKE)
 	message("Enable ENABLE_RDKVRFC_RDKE")
-	add_definitions (-DENABLE_RDKVRC_RDKE=ON)
+	add_definitions (-DENABLE_RDKVRFC_RDKE=ON)
 endif()
 
 if (BUILD_ENABLE_HDCP)
