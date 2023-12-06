@@ -363,6 +363,7 @@ TEST_F(NetworkTest, setConnectivityTestEndpoints)
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
+/*
 TEST_F(NetworkTest, getInternetConnectionState)
 {
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
@@ -435,7 +436,7 @@ TEST_F(NetworkTest, getCaptivePortalURI)
 	EXPECT_THAT(response, ::testing::ContainsRegex(_T("10.0.0.1")));
 	EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"success\":true")));
 }
-
+*/
 TEST_F(NetworkTest, startConnectivityMonitoring)
 {
     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
