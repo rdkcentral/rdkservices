@@ -520,7 +520,7 @@ namespace WPEFramework {
                         LOGINFO("Waiting to unlock.. [%d/%d]",i+1,tasks.size());
                         task_thread.wait(lck);
 
-                        if (pipe2 && fp2)
+                        if ((pipe2 != NULL) && (fp2 != NULL))
                         {
                             memset(buff, 0, sizeof(buff));
                             while (fgets(buff, sizeof(buff), pipe2))
