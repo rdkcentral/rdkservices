@@ -1265,7 +1265,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
         uint32_t Network::getInternetConnectionState(const JsonObject& parameters, JsonObject& response)
         {
             bool result = false;
-            JsonObjec isConnectedToInternetResponse;
+            JsonObject isConnectedToInternetResponse;
             if(isConnectedToInternet(parameters, isConnectedToInternetResponse) == WPEFramework::Core::ERROR_NONE)
             {
                 bool isConnected = isConnectedToInternetResponse["connectedToInternet"].Boolean();
@@ -1279,47 +1279,6 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             }
 
             returnResponse(result);
-
-/*
-            IARM_BUS_NetSrvMgr_isConnectedtoInternet_t iarmData;
-            bool result = false;
-            std::string ipversion;
-
-            iarmData.isconnected = false;
-            if(m_isPluginInited)
-            {
-                getDefaultStringParameter("ipversion", ipversion, "");
-                Utils::String::toUpper(ipversion);
-                if (ipversion == "IPV4")
-                    iarmData.ipversion = NSM_IPRESOLVE_V4;
-                else if (ipversion == "IPV6")
-                    iarmData.ipversion = NSM_IPRESOLVE_V6;
-                else
-                    iarmData.ipversion = NSM_IPRESOLVE_WHATEVER;
-
-                if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isConnectedToInternet, (void*)&iarmData, sizeof(iarmData)))
-                {
-                    LOGINFO("InternetConnectionState = %d ", iarmData.isconnected ? FULLY_CONNECTED : NO_INTERNET);
-                    response["state"] = static_cast <int>(iarmData.isconnected ? FULLY_CONNECTED : NO_INTERNET);
-                    if(ipversion == "IPV4" || ipversion == "IPV6")
-                        response["ipversion"] = ipversion.c_str();
-                    else
-                        Network::onInternetStatusChange(iarmData.isconnected ? FULLY_CONNECTED : NO_INTERNET);
-
-                    result = true;
-                }
-                else
-                {
-                    LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, __FUNCTION__);
-                }
-            }
-            else
-            {
-                LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
-            }
-
-            returnResponse(result);
-*/
         }
 
         uint32_t Network::getCaptivePortalURI(const JsonObject& parameters, JsonObject& response)
