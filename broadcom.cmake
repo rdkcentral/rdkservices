@@ -66,6 +66,11 @@ if (ENABLE_RDKVFW_RDKE)
     add_definitions (-DENABLE_RDKVFW_RDKE=ON)
 endif()
 
+if (ENABLE_RDKVRFC_RDKE)
+	message("Enable ENABLE_RDKVRFC_RDKE")
+	add_definitions (-DENABLE_RDKVRFC_RDKE=ON)
+endif()
+
 if (BUILD_ENABLE_HDCP)
     message("Building with hdcp profile")
     add_definitions (-DBUILD_ENABLE_HDCP)
@@ -324,6 +329,7 @@ if(DEFINES,USE_COMMON_XG1_XI3)
     add_definitions (-DENABLE_GET_SET_APIVERSION)   
 endif()
 
+add_definitions (-DDCM_TASK_REMOVAL)
 
 	# Front panel support
 #if(HAS_FRONT_PANEL)

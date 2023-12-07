@@ -1,10 +1,10 @@
-name: unit-tests
+name: l2-tests
 
 on:
   push:
-    branches: [ main, 'sprint/**', 'topic/simplification_rdkvs', 'release/**' ]
+    branches: [ main, 'sprint/**','topic/simplification_rdkvs', 'release/**' ]
   pull_request:
-    branches: [ main, 'sprint/**', 'topic/simplification_rdkvs', 'release/**' ]
+    branches: [ main, 'sprint/**', 'topic/simplification_rdkvs','release/**' ]
 
 env:
   BUILD_TYPE: Debug
@@ -13,8 +13,8 @@ env:
 
 
 jobs:
-  unit-tests:
-    name: Build and run unit tests
+  l2-tests:
+    name: Build and run L2 tests
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -29,36 +29,6 @@ jobs:
             coverage: without-coverage
 
     steps:
-      - name: Set up cache
-        # Cache Thunder/ThunderInterfaces.
-        # https://github.com/actions/cache
-        # https://docs.github.com/en/rest/actions/cache
-        # Modify the key if changing the list.
-        if: ${{ !env.ACT }}
-        id: cache
-        uses: actions/cache@v3
-        with:
-          path: |
-            build/Thunder
-            build/ThunderInterfaces
-            build/ThunderTools
-            install
-            !install/etc/WPEFramework/plugins
-            !install/usr/bin/RdkServicesTest
-            !install/usr/include/gmock
-            !install/usr/include/gtest
-            !install/usr/lib/libgmockd.a
-            !install/usr/lib/libgmock_maind.a
-            !install/usr/lib/libgtestd.a
-            !install/usr/lib/libgtest_maind.a
-            !install/usr/lib/cmake/GTest
-            !install/usr/lib/pkgconfig/gmock.pc
-            !install/usr/lib/pkgconfig/gmock_main.pc
-            !install/usr/lib/pkgconfig/gtest.pc
-            !install/usr/lib/pkgconfig/gtest_main.pc
-            !install/usr/lib/wpeframework/plugins
-          key: ${{ runner.os }}-${{ env.THUNDER_REF }}-${{ env.INTERFACES_REF }}-2
-
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -77,15 +47,25 @@ jobs:
           sudo apt install -y libsqlite3-dev libcurl4-openssl-dev valgrind lcov clang libsystemd-dev
 
       - name: Checkout Thunder
-        if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
         with:
           repository: rdkcentral/Thunder
           path: Thunder
           ref: ${{env.THUNDER_REF}}
 
+      - name: Checkout rdkservices
+        uses: actions/checkout@v3
+        with:
+          path: rdkservices
+
+      - name: Apply patch
+        run: >
+              cd "${{github.workspace}}/Thunder"
+              &&
+              git apply "${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0001-RDK-30034-callsign.patch"
+
+
       - name: Build Thunder
-        if: steps.cache.outputs.cache-hit != 'true'
         run: >
           cmake
           -S "${{github.workspace}}/Thunder/Tools"
@@ -105,14 +85,13 @@ jobs:
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
           -DBUILD_TYPE=${{env.BUILD_TYPE}}
           -DBINDING=127.0.0.1
-          -DPORT=55555
+          -DPORT=9998
           &&
           cmake --build build/Thunder -j8
           &&
           cmake --install build/Thunder
 
       - name: Checkout ThunderInterfaces
-        if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
         with:
           repository: rdkcentral/ThunderInterfaces
@@ -120,7 +99,6 @@ jobs:
           ref: ${{env.INTERFACES_REF}}
 
       - name: Build ThunderInterfaces
-        if: steps.cache.outputs.cache-hit != 'true'
         run: >
           cmake
           -S "${{github.workspace}}/ThunderInterfaces"
@@ -132,11 +110,6 @@ jobs:
           &&
           cmake --install build/ThunderInterfaces
 
-      - name: Checkout rdkservices
-        uses: actions/checkout@v3
-        with:
-          path: rdkservices
-
       - name: Generate external headers
         # Empty headers to mute errors
         run: >
@@ -144,52 +117,28 @@ jobs:
           &&
           mkdir -p
           headers
-          headers/audiocapturemgr
           headers/rdk/ds
           headers/rdk/iarmbus
           headers/rdk/iarmmgrs-hal
-          headers/ccec/drivers
-          headers/network
+          headers/systemservices
+          headers/systemservices/proc
           &&
           cd headers
           &&
           touch
-          audiocapturemgr/audiocapturemgr_iarm.h
-          ccec/drivers/CecIARMBusMgr.h
-          rdk/ds/audioOutputPort.hpp
-          rdk/ds/compositeIn.hpp
-          rdk/ds/dsDisplay.h
-          rdk/ds/dsError.h
-          rdk/ds/dsMgr.h
-          rdk/ds/dsTypes.h
-          rdk/ds/dsUtl.h
-          rdk/ds/exception.hpp
-          rdk/ds/hdmiIn.hpp
           rdk/ds/host.hpp
-          rdk/ds/list.hpp
-          rdk/ds/manager.hpp
-          rdk/ds/sleepMode.hpp
-          rdk/ds/videoDevice.hpp
           rdk/ds/videoOutputPort.hpp
-          rdk/ds/videoOutputPortConfig.hpp
-          rdk/ds/videoOutputPortType.hpp
-          rdk/ds/videoResolution.hpp
+          rdk/ds/audioOutputPort.hpp
+          rdk/ds/sleepMode.hpp
           rdk/iarmbus/libIARM.h
           rdk/iarmbus/libIBus.h
           rdk/iarmbus/libIBusDaemon.h
-          rdk/iarmmgrs-hal/deepSleepMgr.h
           rdk/iarmmgrs-hal/mfrMgr.h
           rdk/iarmmgrs-hal/pwrMgr.h
           rdk/iarmmgrs-hal/sysMgr.h
-          network/wifiSrvMgrIarmIf.h
-          network/netsrvmgrIarm.h
-          framebuffer-api.h
-          libudev.h
           rfcapi.h
-          rbus.h
-          telemetry_busmessage_sender.h
-          wpa_ctrl.h
-          secure_wrapper.h
+          systemservices/proc/readproc.h
+
 
       - name: Set clang toolchain
         if: ${{ matrix.compiler == 'clang' }}
@@ -209,65 +158,27 @@ jobs:
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
           -DCMAKE_CXX_FLAGS="
           -I ${{github.workspace}}/rdkservices/Tests/headers
-          -I ${{github.workspace}}/rdkservices/Tests/headers/audiocapturemgr
           -I ${{github.workspace}}/rdkservices/Tests/headers/rdk/ds
           -I ${{github.workspace}}/rdkservices/Tests/headers/rdk/iarmbus
           -I ${{github.workspace}}/rdkservices/Tests/headers/rdk/iarmmgrs-hal
-          -I ${{github.workspace}}/rdkservices/Tests/headers/ccec/drivers
-          -I ${{github.workspace}}/rdkservices/Tests/headers/network
+          -I ${{github.workspace}}/rdkservices/Tests/headers/systemservices
+          -I ${{github.workspace}}/rdkservices/Tests/headers/systemservices/proc
           -include ${{github.workspace}}/rdkservices/Tests/mocks/devicesettings.h
-          -include ${{github.workspace}}/rdkservices/Tests/mocks/FrameBuffer.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Iarm.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Rfc.h
-          -include ${{github.workspace}}/rdkservices/Tests/mocks/RBus.h
-          -include ${{github.workspace}}/rdkservices/Tests/mocks/Telemetry.h
-          -include ${{github.workspace}}/rdkservices/Tests/mocks/Udev.h
-          -include ${{github.workspace}}/rdkservices/Tests/mocks/wpa_ctrl_mock.h
-          -include ${{github.workspace}}/rdkservices/Tests/mocks/secure_wrappermock.h
+          -include ${{github.workspace}}/rdkservices/Tests/mocks/readprocMockInterface.h
           -Wall -Werror
-          -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog
-          -DENABLE_TELEMETRY_LOGGING
           -DUSE_IARMBUS
-          -DENABLE_SYSTEM_GET_STORE_DEMO_LINK
-          -DENABLE_DEEP_SLEEP
-          -DENABLE_SET_WAKEUP_SRC_CONFIG
-          -DENABLE_THERMAL_PROTECTION
-          -DUSE_FRAMEBUFFER_SCREENCAPTURE
-          -DHAS_API_SYSTEM
-          -DHAS_API_POWERSTATE
-          -DHAS_RBUS
-          -DENABLE_DEVICE_MANUFACTURER_INFO"
+          -DENABLE_THERMAL_PROTECTION"
           -DCOMCAST_CONFIG=OFF
           -DCMAKE_DISABLE_FIND_PACKAGE_DS=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_IARMBus=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_Udev=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_RFC=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_RBus=ON
-          -DPLUGIN_DATACAPTURE=ON
-          -DPLUGIN_DEVICEDIAGNOSTICS=ON
-          -DPLUGIN_LOCATIONSYNC=ON
-          -DPLUGIN_PERSISTENTSTORE=ON
-          -DPLUGIN_TIMER=ON
-          -DPLUGIN_SECURITYAGENT=ON
-          -DPLUGIN_DEVICEIDENTIFICATION=ON
-          -DPLUGIN_FRAMERATE=ON
-          -DPLUGIN_AVINPUT=ON
-          -DPLUGIN_TELEMETRY=ON
-          -DPLUGIN_SCREENCAPTURE=ON
-          -DPLUGIN_USBACCESS=ON
-          -DPLUGIN_LOGGINGPREFERENCES=ON
-          -DPLUGIN_USERPREFERENCES=ON
-          -DPLUGIN_MESSENGER=ON
-          -DPLUGIN_DEVICEINFO=ON
           -DPLUGIN_SYSTEMSERVICES=ON
-          -DRDK_SERVICES_TEST=ON
-          -DPLUGIN_HDMIINPUT=ON
-          -DPLUGIN_HDCPPROFILE=ON
-          -DPLUGIN_NETWORK=ON
-          -DPLUGIN_WIFIMANAGER=ON
-          -DPLUGIN_TRACECONTROL=ON
-          -DPLUGIN_WAREHOUSE=ON
-          -DPLUGIN_ACTIVITYMONITOR=ON
+          -DPLUGIN_L2Tests=ON
+          -DRDK_SERVICE_L2_TEST=ON
           -DDS_FOUND=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           &&
@@ -285,28 +196,46 @@ jobs:
           /opt/secure/persistent/System
           /opt/logs
           /lib/rdk
+          /run/media/sda1/logs/PreviousLogs
+          /run/sda1/UsbTestFWUpdate
+          /run/sda1/UsbProdFWUpdate
+          /run/sda2
           &&
           sudo touch
           /opt/standbyReason.txt
           /opt/tmtryoptout
           /opt/fwdnldstatus.txt
+          /opt/dcm.properties
           /etc/device.properties
+          /etc/dcm.properties
           /etc/authService.conf
           /version.txt
+          /run/media/sda1/logs/PreviousLogs/logFile.txt
+          /run/sda1/HSTP11MWR_5.11p5s1_VBN_sdy.bin
+          /run/sda1/UsbTestFWUpdate/HSTP11MWR_3.11p5s1_VBN_sdy.bin
+          /run/sda1/UsbProdFWUpdate/HSTP11MWR_4.11p5s1_VBN_sdy.bin
+          /lib/rdk/getMaintenanceStartTime.sh
+          /tmp/opkg.conf
+          /tmp/system_service_temp.conf
           &&
           sudo chmod 777
           /opt/standbyReason.txt
           /opt/tmtryoptout
           /opt/fwdnldstatus.txt
+          /opt/dcm.properties
           /etc/device.properties
+          /etc/dcm.properties          
           /etc/authService.conf
           /version.txt
+          /lib/rdk/getMaintenanceStartTime.sh
+          /tmp/opkg.conf
+          /tmp/system_service_temp.conf
 
       - name: Run unit tests without valgrind
         run: >
           PATH=${{github.workspace}}/install/usr/bin:${PATH}
           LD_LIBRARY_PATH=${{github.workspace}}/install/usr/lib:${{github.workspace}}/install/usr/lib/wpeframework/plugins:${LD_LIBRARY_PATH}
-          RdkServicesTest
+          RdkServicesL2Test
 
       - name: Run unit tests with valgrind
         if: ${{ !env.ACT }}
@@ -320,7 +249,7 @@ jobs:
           --show-reachable=yes
           --track-fds=yes
           --fair-sched=try
-          RdkServicesTest
+          RdkServicesL2Test
 
       - name: Generate coverage
         if: ${{ matrix.coverage == 'with-coverage' && !env.ACT }}
@@ -336,7 +265,7 @@ jobs:
           '*/install/usr/include/*'
           '*/Tests/headers/*'
           '*/Tests/mocks/*'
-          '*/Tests/tests/*'
+          '*/Tests/L2Tests/*'
           -o filtered_coverage.info
           &&
           genhtml

@@ -38,6 +38,7 @@
 #include <algorithm>
 
 #include "MaintenanceManager.h"
+#include <secure_wrapper.h>
 
 #include "UtilsIarm.h"
 #include "UtilsJsonRpc.h"
@@ -124,12 +125,14 @@ string moduleStatusToString(IARM_Maint_module_status_t &status)
 {
     string ret_status="";
     switch(status){
+#ifndef DCM_TASK_REMOVAL
         case MAINT_DCM_COMPLETE:
             ret_status="MAINTENANCE_DCM_COMPLETE";
             break;
         case MAINT_DCM_ERROR:
             ret_status="MAINTENANCE_DCM_ERROR";
             break;
+#endif
         case MAINT_RFC_COMPLETE:
             ret_status="MAINTENANCE_RFC_COMPLETE";
             break;
@@ -217,8 +220,14 @@ namespace WPEFramework {
         cSettings MaintenanceManager::m_setting(MAINTENANCE_MGR_RECORD_FILE);
 
         string task_names_foreground[]={
+#ifndef DCM_TASK_REMOVAL
             "/lib/rdk/StartDCM_maintaince.sh",
+#endif
+#if defined(ENABLE_RDKVRFC_RDKE)
+	    "/usr/bin/rfcMgr >> /opt/logs/rfcscript.log",
+#else
             "/lib/rdk/RFCbase.sh",
+#endif
 #if defined(ENABLE_RDKVFW_RDKE)
             "/usr/bin/rdkvfwupgrader 0 1 >> /opt/logs/swupdate.log",
 #else
@@ -227,11 +236,26 @@ namespace WPEFramework {
             "/lib/rdk/Start_uploadSTBLogs.sh"
         };
 
+        string compare_strings[]={
+            "/lib/rdk/StartDCM_maintaince.sh",
+            "/lib/rdk/RFCbase.sh",
+            "/usr/bin/rdkvfwupgrader 0 1 >> /opt/logs/swupdate.log",
+            "/lib/rdk/swupdate_utility.sh >> /opt/logs/swupdate.log",
+            "/lib/rdk/Start_uploadSTBLogs.sh",
+	    "/usr/bin/rfcMgr >> /opt/logs/rfcscript.log"
+        };
+
         vector<string> tasks;
 
         string script_names[]={
+#ifndef DCM_TASK_REMOVAL
             "DCMscript_maintaince.sh",
-            "RFCbase.sh",
+#endif
+#if defined(ENABLE_RDKVRFC_RDKE)
+             "rfcMgr",
+#else
+           "RFCbase.sh",
+#endif
 #if defined(ENABLE_RDKVFW_RDKE)
 	    "rdkvfwupgrader",
 #else
@@ -271,8 +295,9 @@ namespace WPEFramework {
             MaintenanceManager::m_task_map[task_names_foreground[0].c_str()]=false;
             MaintenanceManager::m_task_map[task_names_foreground[1].c_str()]=false;
             MaintenanceManager::m_task_map[task_names_foreground[2].c_str()]=false;
+#ifndef DCM_TASK_REMOVAL
             MaintenanceManager::m_task_map[task_names_foreground[3].c_str()]=false;
-
+#endif
             MaintenanceManager::m_param_map[deviceInitializationContext[0].c_str()] = TR181_PARTNER_ID;
             MaintenanceManager::m_param_map[deviceInitializationContext[1].c_str()] = TR181_TARGET_PROPOSITION;
             MaintenanceManager::m_param_map[deviceInitializationContext[2].c_str()] = TR181_XCONFURL;
@@ -284,7 +309,6 @@ namespace WPEFramework {
 
         void MaintenanceManager::task_execution_thread(){
             uint8_t i=0;
-            string cmd="";
             bool internetConnectStatus=false;
 
             LOGINFO("Executing Maintenance tasks");
@@ -341,14 +365,17 @@ namespace WPEFramework {
 
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type){
                 LOGINFO("---------------UNSOLICITED_MAINTENANCE--------------");
+#ifndef DCM_TASK_REMOVAL
 #ifndef ENABLE_WHOAMI
                 tasks.push_back(task_names_foreground[0].c_str());
+#endif
 #endif
             }
             else if( SOLICITED_MAINTENANCE == g_maintenance_type){
                 LOGINFO("=============SOLICITED_MAINTENANCE===============");
             }
 
+#ifndef DCM_TASK_REMOVAL
 #if defined(ENABLE_WHOAMI)
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type) {
                 tasks.push_back(task_names_foreground[1].c_str());
@@ -382,24 +409,140 @@ namespace WPEFramework {
             tasks.push_back(task_names_foreground[2].c_str());
             tasks.push_back(task_names_foreground[3].c_str());
 #endif
-            std::unique_lock<std::mutex> lck(m_callMutex);
+#else
+			tasks.push_back(task_names_foreground[0].c_str());
+			tasks.push_back(task_names_foreground[1].c_str());
+			tasks.push_back(task_names_foreground[2].c_str());
 
-            for( i = 0; i < tasks.size() && !m_abort_flag; i++) {
-                cmd = tasks[i];
-                cmd += " &";
-                cmd += "\0";
-                m_task_map[tasks[i]] = true;
+#if defined(SUPPRESS_MAINTENANCE)
+            /* decide which all tasks are needed based on the activation status */
+            if (activationStatus){
+                if(skipFirmwareCheck){
+                    /* set the task status of swupdate */
+                    SET_STATUS(g_task_status,DIFD_SUCCESS);
+                    SET_STATUS(g_task_status,DIFD_COMPLETE);
 
-                if ( !m_abort_flag ){
-                    LOGINFO("Starting Script (SM) :  %s \n",cmd.c_str());
-                    system(cmd.c_str());
-
-                    LOGINFO("Waiting to unlock.. [%d/%d]",i+1,tasks.size());
-                    task_thread.wait(lck);
+                    /* Add tasks */
+                    tasks.push_back(task_names_foreground[0].c_str());
+                    tasks.push_back(task_names_foreground[2].c_str());
+                }else{
+                    tasks.push_back(task_names_foreground[0].c_str());
+                    tasks.push_back(task_names_foreground[1].c_str());
+                    tasks.push_back(task_names_foreground[2].c_str());
                 }
             }
+#endif
+#endif
+            std::unique_lock<std::mutex> lck(m_callMutex);
 
-	    m_abort_flag=false;
+            for (i = 0; i < tasks.size() && !m_abort_flag; i++)
+            {
+                m_task_map[tasks[i]] = true;
+
+                if (!m_abort_flag)
+                {
+                    LOGINFO("Starting Script (SM) :  %s \n",tasks[i].c_str());
+
+                    if (tasks[i] == compare_strings[0])
+                    {
+                        v_secure_system("/lib/rdk/StartDCM_maintaince.sh &");
+                        LOGINFO("Waiting to unlock.. [%d/%d]",i+1,tasks.size());
+                        task_thread.wait(lck);
+                    }
+                    else if (tasks[i] == compare_strings[1])
+                    {
+                        v_secure_system("/lib/rdk/RFCbase.sh &");
+                        LOGINFO("Waiting to unlock.. [%d/%d]",i+1,tasks.size());
+                        task_thread.wait(lck);
+                    }
+                    else if(tasks[i] == compare_strings[2])
+                    {
+                        char buff[1024] = { '\0' };
+
+                        FILE* pipe2 = v_secure_popen("r", "/usr/bin/rdkvfwupgrader %s %s %s", "0", "1", "&");
+                        FILE *fp2 = fopen("/opt/logs/swupdate.log", "a");
+                        LOGINFO("Waiting to unlock.. [%d/%d]",i+1,tasks.size());
+                        task_thread.wait(lck);
+
+                        if (pipe2 && fp2)
+                        {
+                            memset(buff, 0, sizeof(buff));
+                            while (fgets(buff, sizeof(buff), pipe2))
+                            {
+                                fputs(buff, fp2);
+                                memset(buff, 0, sizeof(buff));
+                            }
+                            v_secure_pclose(pipe2);
+                            fclose(fp2);
+                        }
+                        else
+                        {
+                            LOGERR("Unable to run /usr/bin/rdkvfwupgrader script");
+                        }
+                    }
+                    else if (tasks[i] == compare_strings[3])
+                    {
+                        char buff[1024] = { '\0' };
+
+                        FILE* pipe1 = v_secure_popen("r", "/lib/rdk/swupdate_utility.sh %s", "&");
+                        FILE *fp = fopen("/opt/logs/swupdate.log", "a");
+                        LOGINFO("Waiting to unlock.. [%d/%d]",i+1,tasks.size());
+                        task_thread.wait(lck);
+
+                        if (pipe1 && fp)
+                        {
+                            memset(buff, 0, sizeof(buff));
+                            while (fgets(buff, sizeof(buff), pipe1))
+                            {
+                                fputs(buff, fp);
+                                memset(buff, 0, sizeof(buff));
+                            }
+                            v_secure_pclose(pipe1);
+                            fclose(fp);
+                        }
+                        else
+                        {
+                            LOGERR("Unable to run /lib/rdk/swupdate_utility.sh script");
+                        }
+                    }
+                    else if (tasks[i] == compare_strings[4])
+                    {
+                        v_secure_system("/lib/rdk/Start_uploadSTBLogs.sh &");
+                        LOGINFO("Waiting to unlock.. [%d/%d]",i+1,tasks.size());
+                        task_thread.wait(lck);
+                    }
+                    else if (tasks[i] == compare_strings[5])
+		    {
+                        char buff[1024] = { '\0' };
+
+                        FILE* pipe2 = v_secure_popen("r", "/usr/bin/rfcMgr %s", "&");
+                        FILE *fp2 = fopen("/opt/logs/rfcscript.log", "a");
+                        LOGINFO("Waiting to unlock.. [%d/%d]",i+1,tasks.size());
+                        task_thread.wait(lck);
+
+                        if ((pipe2 != NULL) && (fp2 != NULL))
+                        {
+                            memset(buff, 0, sizeof(buff));
+                            while (fgets(buff, sizeof(buff), pipe2))
+                            {
+                                fputs(buff, fp2);
+                                memset(buff, 0, sizeof(buff));
+                            }
+                            v_secure_pclose(pipe2);
+                            fclose(fp2);
+                        }
+                    else
+                    {
+                            LOGERR("Unable to run /usr/bin/rfcMgr bin");
+                        }
+		    }
+                    else
+                    {
+                        LOGERR("Script [%s] is not in the list.So not running the script. \n",tasks[i].c_str());
+                    }
+                }
+            }
+            m_abort_flag=false;
             LOGINFO("Worker Thread Completed");
         }
 
@@ -840,10 +983,16 @@ namespace WPEFramework {
             IARM_Maint_module_status_t module_status;
             time_t successfulTime;
             string str_successfulTime="";
+#ifndef DCM_TASK_REMOVAL
             auto task_status_DCM=m_task_map.find(task_names_foreground[0].c_str());
             auto task_status_RFC=m_task_map.find(task_names_foreground[1].c_str());
             auto task_status_FWDLD=m_task_map.find(task_names_foreground[2].c_str());
             auto task_status_LOGUPLD=m_task_map.find(task_names_foreground[3].c_str());
+#else
+	    auto task_status_RFC=m_task_map.find(task_names_foreground[0].c_str());
+            auto task_status_FWDLD=m_task_map.find(task_names_foreground[1].c_str());
+            auto task_status_LOGUPLD=m_task_map.find(task_names_foreground[2].c_str());
+#endif
 
             IARM_Bus_MaintMGR_EventId_t event = (IARM_Bus_MaintMGR_EventId_t)eventId;
             LOGINFO("Maintenance Event-ID = %d \n",event);
@@ -872,9 +1021,14 @@ namespace WPEFramework {
                                  SET_STATUS(g_task_status,RFC_SUCCESS);
                                  SET_STATUS(g_task_status,RFC_COMPLETE);
                                  task_thread.notify_one();
+#ifndef DCM_TASK_REMOVAL
                                  m_task_map[task_names_foreground[1].c_str()]=false;
+#else
+                                 m_task_map[task_names_foreground[0].c_str()]=false;
+#endif
                             }
                             break;
+#ifndef DCM_TASK_REMOVAL
                         case MAINT_DCM_COMPLETE :
                             if(task_status_DCM->second != true) {
                                  LOGINFO("Ignoring Event DCM_COMPLETE");
@@ -887,6 +1041,7 @@ namespace WPEFramework {
                                 m_task_map[task_names_foreground[0].c_str()]=false;
                             }
                             break;
+#endif
                         case MAINT_FWDOWNLOAD_COMPLETE :
                             if(task_status_FWDLD->second != true) {
                                  LOGINFO("Ignoring Event MAINT_FWDOWNLOAD_COMPLETE");
@@ -896,7 +1051,11 @@ namespace WPEFramework {
                                 SET_STATUS(g_task_status,DIFD_SUCCESS);
                                 SET_STATUS(g_task_status,DIFD_COMPLETE);
                                 task_thread.notify_one();
+#ifndef DCM_TASK_REMOVAL
                                 m_task_map[task_names_foreground[2].c_str()]=false;
+#else
+                                m_task_map[task_names_foreground[1].c_str()]=false;
+#endif
                             }
                             break;
                        case MAINT_LOGUPLOAD_COMPLETE :
@@ -908,7 +1067,11 @@ namespace WPEFramework {
                                 SET_STATUS(g_task_status,LOGUPLOAD_SUCCESS);
                                 SET_STATUS(g_task_status,LOGUPLOAD_COMPLETE);
                                 task_thread.notify_one();
+#ifndef DCM_TASK_REMOVAL
                                 m_task_map[task_names_foreground[3].c_str()]=false;
+#else
+                                m_task_map[task_names_foreground[2].c_str()]=false;
+#endif
                             }
 
                             break;
@@ -924,9 +1087,14 @@ namespace WPEFramework {
                             /* we say FW update task complete */
                             SET_STATUS(g_task_status,DIFD_COMPLETE);
                             task_thread.notify_one();
+#ifndef DCM_TASK_REMOVAL
                             m_task_map[task_names_foreground[2].c_str()]=false;
+#else
+			    m_task_map[task_names_foreground[1].c_str()]=false;
+#endif
                             LOGINFO("FW Download task aborted \n");
                             break;
+#ifndef DCM_TASK_REMOVAL
                         case MAINT_DCM_ERROR:
                             if(task_status_DCM->second != true) {
                                  LOGINFO("Ignoring Event DCM_ERROR");
@@ -939,6 +1107,7 @@ namespace WPEFramework {
                                 m_task_map[task_names_foreground[0].c_str()]=false;
                             }
                             break;
+#endif
                         case MAINT_RFC_ERROR:
                             if(task_status_RFC->second != true) {
                                  LOGINFO("Ignoring Event RFC_ERROR");
@@ -948,7 +1117,11 @@ namespace WPEFramework {
                                  SET_STATUS(g_task_status,RFC_COMPLETE);
                                  task_thread.notify_one();
                                  LOGINFO("Error encountered in RFC script task \n");
+#ifndef DCM_TASK_REMOVAL
                                  m_task_map[task_names_foreground[1].c_str()]=false;
+#else
+                                 m_task_map[task_names_foreground[0].c_str()]=false;
+#endif
                             }
 
                             break;
@@ -961,9 +1134,12 @@ namespace WPEFramework {
                                 SET_STATUS(g_task_status,LOGUPLOAD_COMPLETE);
                                 task_thread.notify_one();
                                 LOGINFO("Error encountered in LOGUPLOAD script task \n");
+#ifndef DCM_TASK_REMOVAL
                                 m_task_map[task_names_foreground[3].c_str()]=false;
+#else
+                                m_task_map[task_names_foreground[2].c_str()]=false;
+#endif			    
                             }
-
                             break;
                        case MAINT_FWDOWNLOAD_ERROR:
                             if(task_status_FWDLD->second != true) {
@@ -974,26 +1150,44 @@ namespace WPEFramework {
                                 SET_STATUS(g_task_status,DIFD_COMPLETE);
                                 task_thread.notify_one();
                                 LOGINFO("Error encountered in SWUPDATE script task \n");
+#ifndef DCM_TASK_REMOVAL
                                 m_task_map[task_names_foreground[2].c_str()]=false;
+#else
+                                m_task_map[task_names_foreground[1].c_str()]=false;
+#endif
                             }
                             break;
+#ifndef DCM_TASK_REMOVAL
                        case MAINT_DCM_INPROGRESS:
                             m_task_map[task_names_foreground[0].c_str()]=true;
                             /*will be set to false once COMEPLETE/ERROR received for DCM*/
                             LOGINFO(" DCM already IN PROGRESS -> setting m_task_map of DCM to true \n");
                             break;
+#endif
                        case MAINT_RFC_INPROGRESS:
+#ifndef DCM_TASK_REMOVAL
                             m_task_map[task_names_foreground[1].c_str()]=true;
+#else
+                            m_task_map[task_names_foreground[0].c_str()]=true;
+#endif
                             /*will be set to false once COMEPLETE/ERROR received for RFC*/
                             LOGINFO(" RFC already IN PROGRESS -> setting m_task_map of RFC to true \n");
                             break;
                        case MAINT_FWDOWNLOAD_INPROGRESS:
+#ifndef DCM_TASK_REMOVAL
                             m_task_map[task_names_foreground[2].c_str()]=true;
+#else
+                            m_task_map[task_names_foreground[1].c_str()]=true;
+#endif
                             /*will be set to false once COMEPLETE/ERROR received for FWDOWNLOAD*/
                             LOGINFO(" FWDOWNLOAD already IN PROGRESS -> setting m_task_map of FWDOWNLOAD to true \n");
                             break;
                        case MAINT_LOGUPLOAD_INPROGRESS:
+#ifndef DCM_TASK_REMOVAL
                             m_task_map[task_names_foreground[3].c_str()]=true;
+#else
+                            m_task_map[task_names_foreground[2].c_str()]=true;
+#endif
                             /*will be set to false once COMEPLETE/ERROR received for LOGUPLOAD*/
                             LOGINFO(" LOGUPLOAD already IN PROGRESS -> setting m_task_map of LOGUPLOAD to true \n");
                             break;
@@ -1155,6 +1349,106 @@ namespace WPEFramework {
 
                     returnResponse(result);
                 }
+
+	/** @brief This Function calculates the maintanance start time from RDK maintenance conf file values.
+	 *
+	 *  @param[in]  maintenance_start_time get maintenance start time
+	 *
+	 */
+
+	void CalculateStartTime(int *maintenance_start_time)
+	{
+		FILE *fp_time;
+		FILE *fp;
+		FILE *fptr;
+		char offset[10],timezone[20],tz_offset_pos;
+		char cmd[50];
+		char tz_mode[20];
+		int start_time_in_sec=0,second=0,current_epoch_value=0,calculated_epoch_value=0,start_time=0;
+		int start_time_sec,start_time_min,start_time_hr,tz_offset_in_sec=0,tz_offset_min=0,tz_offset_hr=0,cron_time_in_sec=0;
+		struct timeval epoch;
+		int offset_value,start_hr=0,start_min=0;
+
+		if ((fp_time = fopen("/opt/rdk_maintenance.conf", "r")) == NULL) {
+			LOGERR("Error! File cannot be opened.");
+		}
+
+		fscanf(fp_time, "start_hr=\"%d\"\n", &start_hr);
+		fscanf(fp_time, "start_min=\"%d\"\n", &start_min);
+		fscanf(fp_time, "tz_mode=\"%[^\"]s\"\n", tz_mode);
+		cron_time_in_sec=((start_hr*60*60)+(start_min*60));
+
+		time_t rawtime = time(NULL);
+		if (rawtime == -1) {
+			LOGINFO("time() function failed");
+		}
+		struct tm *ptm = localtime(&rawtime);
+		if (ptm == NULL) {
+			LOGINFO("localtime function failed");
+		}
+
+		if ((fptr = fopen("/opt/persistent/timeZoneDST", "r")) == NULL) {
+			LOGERR("Error! File cannot be opened.");
+		}
+		fscanf(fptr, "%[^\n]", timezone);
+		fclose(fptr);
+
+		sprintf(cmd,"TZ=%s %s",timezone,"date +%z");
+		fp = popen(cmd, "r");
+		if (fp == NULL) {
+			printf("Failed to run command\n" );
+		}
+		while (fgets(offset, sizeof(offset), fp) != NULL) {
+			printf("\n OFFSET %s",offset);
+		}
+
+		pclose(fp);
+
+		if((strcmp(tz_mode,"Local time")==0))
+		{
+			LOGINFO("Time Zone check achieved");
+			tz_offset_pos = offset[0];
+			offset[0] = '0';
+			offset_value = atoi(offset);
+			tz_offset_hr = (offset_value/100);
+			tz_offset_min = (offset_value%100);
+			tz_offset_in_sec=(tz_offset_hr*60*60+tz_offset_min*60);
+
+			if(tz_offset_pos== '-')
+				start_time_in_sec=(cron_time_in_sec+tz_offset_in_sec);
+			else
+				start_time_in_sec=(cron_time_in_sec-tz_offset_in_sec);
+		}
+
+		if(start_time_in_sec > 86400)
+			start_time_in_sec-=86400;
+		else if(start_time_in_sec < 0)
+			start_time_in_sec+=86400;
+
+		start_time = start_time_in_sec;
+		start_time_sec=(start_time%60);
+		start_time=(start_time/60);
+		start_time_min=(start_time%60);
+		start_time=(start_time/60);
+		start_time_hr=(start_time%60);
+
+		ptm->tm_hour = start_time_hr;
+		ptm->tm_min = start_time_min;
+		ptm->tm_sec = start_time_sec;
+		calculated_epoch_value = timegm(ptm);
+
+		gettimeofday(&epoch, NULL);
+		current_epoch_value = epoch.tv_sec;
+		second = calculated_epoch_value - current_epoch_value;
+
+		if(second < 10)
+			calculated_epoch_value+=86399;
+
+		*maintenance_start_time=calculated_epoch_value;
+
+		fclose(fp_time);
+	}
+
         /*
          * @brief This function returns the start time of the maintenance activity.
          * @param1[in]: {"jsonrpc":"2.0","id":"3","method":"org.rdk.MaintenanceManager.1.getMaintenanceStartTime","params":{}}''
@@ -1165,13 +1459,12 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool result = false;
-            string starttime="";
-
-            starttime = Utils::cRunScript("/lib/rdk/getMaintenanceStartTime.sh &");
-            if (!starttime.empty()){
-                  response["maintenanceStartTime"]=stoi(starttime.c_str());
-                  result=true;
-            }
+            int starttime=0;
+			CalculateStartTime(&starttime);
+			if (starttime!=0){
+				response["maintenanceStartTime"]=starttime;
+				result=true;
+			}
 
             returnResponse(result);
         }
@@ -1418,11 +1711,12 @@ namespace WPEFramework {
 
                         m_abort_flag=false;
 
+#ifndef DCM_TASK_REMOVAL
                         /* we dont touch the dcm so
                          * we say DCM is success and complete */
                         SET_STATUS(g_task_status,DCM_SUCCESS);
                         SET_STATUS(g_task_status,DCM_COMPLETE);
-
+#endif
                         /* isRebootPending will be set to true
                          * irrespective of XConf configuration */
                         g_is_reboot_pending="true";
@@ -1473,7 +1767,11 @@ namespace WPEFramework {
 	        string codeDLtask;
             int k_ret=EINVAL;
             int i=0;
+#ifndef DCM_TASK_REMOVAL
             bool task_status[4]={false};
+#else
+			bool task_status[3]={false};
+#endif
             bool result=false;
 
             LOGINFO("Stopping maintenance activities");
@@ -1484,6 +1782,7 @@ namespace WPEFramework {
                 // Set the condition flag m_abort_flag to true
                 m_abort_flag = true;
 
+#ifndef DCM_TASK_REMOVAL
                 auto task_status_DCM=m_task_map.find(task_names_foreground[0].c_str());
                 auto task_status_RFC=m_task_map.find(task_names_foreground[1].c_str());
                 auto task_status_FWDLD=m_task_map.find(task_names_foreground[2].c_str());
@@ -1493,8 +1792,8 @@ namespace WPEFramework {
                 task_status[1] = task_status_RFC->second;
                 task_status[2] = task_status_FWDLD->second;
                 task_status[3] = task_status_LOGUPLD->second;
-
-                for (i=0;i<4;i++) {
+				
+				for (i=0;i<4;i++) {
                     LOGINFO("task status [%d]  = %s ScriptName %s",i,(task_status[i])? "true":"false",script_names[i].c_str());
                 }
                 for (i=0;i<4;i++){
@@ -1512,7 +1811,34 @@ namespace WPEFramework {
                         LOGINFO("Task[%d] is false \n",i);
                     }
                 }
+#else
+                auto task_status_RFC=m_task_map.find(task_names_foreground[0].c_str());
+                auto task_status_FWDLD=m_task_map.find(task_names_foreground[1].c_str());
+                auto task_status_LOGUPLD=m_task_map.find(task_names_foreground[2].c_str());
 
+                task_status[0] = task_status_RFC->second;
+                task_status[1] = task_status_FWDLD->second;
+                task_status[2] = task_status_LOGUPLD->second;
+				
+				for (i=0;i<3;i++) {
+                    LOGINFO("task status [%d]  = %s ScriptName %s",i,(task_status[i])? "true":"false",script_names[i].c_str());
+                }
+                for (i=0;i<3;i++){
+                    if(task_status[i]){
+
+                        k_ret = abortTask( script_names[i].c_str() );        // default signal is SIGABRT
+
+                        if( k_ret == 0 ) {                                      // if task(s) was(were) killed successfully ...                    
+                            m_task_map[task_names_foreground[i].c_str()]=false; // set it to false 
+                        }
+                        /* No need to loop again */
+                        break;
+                    }
+                    else{
+                        LOGINFO("Task[%d] is false \n",i);
+                    }
+                }
+#endif
                 result=true;
             }
             else {
@@ -1566,6 +1892,13 @@ namespace WPEFramework {
             LOGINFO("PID of %s is %d \n", taskname , (int)pid_num);
             if( pid_num != -1){
                 /* send the signal to task to terminate */
+#if defined(ENABLE_RDKVRFC_RDKE)
+		if (strstr(taskname, "rfcMgr")) {
+		    LOGINFO("Sending SIGUSR1 signal to %s\n", taskname);
+                    k_ret = kill( pid_num, SIGUSR1 );
+		}
+#endif
+
 #if defined(ENABLE_RDKVFW_RDKE)
 		if (strstr(taskname, "rdkvfwupgrader")) {
 		    LOGINFO("Sending SIGUSR1 signal to %s\n", taskname);
