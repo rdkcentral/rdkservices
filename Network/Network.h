@@ -92,6 +92,7 @@ typedef struct
 } IARM_BUS_NetSrvMgr_Iface_TestEndpoints_t;
 
 typedef enum _InternetConnectionState_t {
+    UNKNOWN = -1,
     NO_INTERNET,
     LIMITED_INTERNET,
     CAPTIVE_PORTAL,

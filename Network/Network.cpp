@@ -1161,10 +1161,13 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                 param.isconnected = false;
                 if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isConnectedToInternet, (void*) &param, sizeof(param)))
                 {
-                    LOGINFO("%s :: isconnected = %d \n",__FUNCTION__, param.isconnected);
+                    LOGINFO("isconnected = %d", param.isconnected);
                     response["connectedToInternet"] = param.isconnected;
                     if(ipversion == "IPV4" || ipversion == "IPV6")
                         response["ipversion"] = ipversion.c_str();
+                    else /* notify internet state only if ip resolve is whatever*/
+                        Network::onInternetStatusChange(param.isconnected ? FULLY_CONNECTED : NO_INTERNET);
+
                     if (param.isconnected)
                     {
                         PluginHost::ISubSystem* subSystem = m_service->SubSystems();
@@ -1261,42 +1264,18 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
 
         uint32_t Network::getInternetConnectionState(const JsonObject& parameters, JsonObject& response)
         {
-            IARM_BUS_NetSrvMgr_Iface_InternetConnectivityStatus_t iarmData;
             bool result = false;
-            std::string ipversion;
-
-            if(m_isPluginInited)
+            JsonObject isConnectedToInternetResponse;
+            if(isConnectedToInternet(parameters, isConnectedToInternetResponse) == WPEFramework::Core::ERROR_NONE)
             {
-                getDefaultStringParameter("ipversion", ipversion, "");
-                Utils::String::toUpper(ipversion);
-                if (ipversion == "IPV4")
-                    iarmData.ipversion = NSM_IPRESOLVE_V4;
-                else if (ipversion == "IPV6")
-                    iarmData.ipversion = NSM_IPRESOLVE_V6;
-                else
-                    iarmData.ipversion = NSM_IPRESOLVE_WHATEVER;
-
-                if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getInternetConnectionState, (void*)&iarmData, sizeof(iarmData)))
+                bool isConnected = isConnectedToInternetResponse["connectedToInternet"].Boolean();
+                response["state"] = static_cast <int>(isConnected ? FULLY_CONNECTED : NO_INTERNET);
+                if ( (isConnectedToInternetResponse.HasLabel("ipversion")) && \
+                     (WPEFramework::Core::JSON::Variant::type::STRING == isConnectedToInternetResponse["ipversion"].Content()) )
                 {
-                    LOGINFO("InternetConnectionState = %d ",iarmData.connectivityState);
-                    response["state"] = iarmData.connectivityState;
-                    if(ipversion == "IPV4" || ipversion == "IPV6")
-                        response["ipversion"] = ipversion.c_str();
-		    if (iarmData.connectivityState == CAPTIVE_PORTAL)
-                    {
-                        LOGINFO("Captive potal found URI = %s ", iarmData.captivePortalURI);
-                        response["URI"] = string(iarmData.captivePortalURI, MAX_URI_LEN - 1);
-                    }
-                    result = true;
+                    response["ipversion"] = isConnectedToInternetResponse["ipversion"].String();
                 }
-                else
-                {
-                    LOGWARN ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, __FUNCTION__);
-                }
-            }
-            else
-            {
-                LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
+                result = true;
             }
 
             returnResponse(result);
@@ -1530,29 +1509,36 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
 
         void Network::onInternetStatusChange(InternetConnectionState_t InternetConnectionState)
         {
-            JsonObject params;
-            params["state"] = static_cast <int> (InternetConnectionState);
-            switch (InternetConnectionState)
+            static InternetConnectionState_t previousInternetState = _InternetConnectionState_t::UNKNOWN;
+
+            if(previousInternetState != InternetConnectionState)
             {
-                case NO_INTERNET:
-                    params["status"] = string("NO_INTERNET");
-                break;
-                case LIMITED_INTERNET:
-                    params["status"] = string("LIMITED_INTERNET");
-                break;
-                case CAPTIVE_PORTAL:
-                    params["status"] = string("CAPTIVE_PORTAL");
-                break;
-                case FULLY_CONNECTED:
-                    params["status"] = string("FULLY_CONNECTED");
-                break;
-                default:
-                    LOGERR("onInternetStatusChange event date error <%d>", InternetConnectionState);
-                    return;
-                break;
+                previousInternetState = InternetConnectionState;
+
+                JsonObject params;
+                params["state"] = static_cast <int> (InternetConnectionState);
+                switch (InternetConnectionState)
+                {
+                    case NO_INTERNET:
+                        params["status"] = string("NO_INTERNET");
+                    break;
+                    case LIMITED_INTERNET:
+                        params["status"] = string("LIMITED_INTERNET");
+                    break;
+                    case CAPTIVE_PORTAL:
+                        params["status"] = string("CAPTIVE_PORTAL");
+                    break;
+                    case FULLY_CONNECTED:
+                        params["status"] = string("FULLY_CONNECTED");
+                    break;
+                    default:
+                        LOGERR("onInternetStatusChange event date error <%d>", InternetConnectionState);
+                        return;
+                    break;
+                }
+                LOGINFO("onInternetStatusChange Event State = %d", InternetConnectionState);
+                sendNotify("onInternetStatusChange", params);
             }
-            LOGINFO("onInternetStatusChange Event State = %d", InternetConnectionState);
-            sendNotify("onInternetStatusChange", params);
         }
 
         void Network::onInterfaceIPAddressChanged(string interface, string ipv6Addr, string ipv4Addr, bool acquired)
