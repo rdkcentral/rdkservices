@@ -478,6 +478,7 @@ TEST_F(SystemServicesEventTest, Timezone)
 
                 return Core::ERROR_NONE;
             }))
+
         .WillOnce(::testing::Invoke(
             [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
                 string text;
@@ -488,7 +489,7 @@ TEST_F(SystemServicesEventTest, Timezone)
                                           "\"params\":"
                                           "{"
                                           "\"oldTimeZone\":\"Universal\","
-                                          "\"newTimeZone\":\"Universal\","
+                                          "\"newTimeZone\":\"America\\/New_York\","
                                           "\"oldAccuracy\":\"FINAL\","
                                           "\"newAccuracy\":\"FINAL\""
                                           "}"
@@ -555,14 +556,14 @@ TEST_F(SystemServicesEventTest, Timezone)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTimeZoneDST"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"timeZone\":\"Universal\",\"accuracy\":\"FINAL\",\"success\":true}"));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTimeZoneDST"), _T("{\"timeZone\":\"Universal\",\"accuracy\":\"<wrong accuracy>\"}"), response));
+ 
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTimeZoneDST"), _T("{\"timeZone\":\"America/New_York\",\"accuracy\":\"<wrong accuracy>\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 
     EXPECT_EQ(Core::ERROR_NONE, changed8.Lock());
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTimeZoneDST"), _T("{}"), response));
-    EXPECT_EQ(response, string("{\"timeZone\":\"Universal\",\"accuracy\":\"FINAL\",\"success\":true}"));
+    EXPECT_EQ(response, string("{\"timeZone\":\"America\\/New_York\",\"accuracy\":\"FINAL\",\"success\":true}"));
     
     handler.Unsubscribe(0, _T("onTimeZoneDSTChanged"), _T("org.rdk.System"), message);
 }
