@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.1] - 2023-12-07
+### Added
+- Added MediaEngineRMF.conf.in file to remove build error for hybrid image with Thunder4 enabled.
+
 ## [1.0.0] - 2023-01-10
 ### Added
 - Added support for video playback via RDK mediaframework (RMF). It's in early stages and capabilities are limited to channel change ability and little else.
