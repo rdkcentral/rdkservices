@@ -1,5 +1,6 @@
 precondition = ["Graphics"]
 autostart = "@PLUGIN_JSPP_AUTOSTART@"
+resumed = "@PLUGIN_JSPP_RESUMED@"
 startuporder = "@PLUGIN_JSPP_STARTUPORDER@"
 persistentpathpostfix = "@PLUGIN_JSPP_PERSISTENTPATHPOSTFIX@"
 
