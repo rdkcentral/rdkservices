@@ -1161,7 +1161,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                 param.isconnected = false;
                 if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isConnectedToInternet, (void*) &param, sizeof(param)))
                 {
-                    LOGINFO("%s :: isconnected = %d \n",__FUNCTION__, param.isconnected);
+                    LOGINFO("isconnected = %d", param.isconnected);
                     response["connectedToInternet"] = param.isconnected;
                     if(ipversion == "IPV4" || ipversion == "IPV6")
                         response["ipversion"] = ipversion.c_str();
@@ -1264,6 +1264,23 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
 
         uint32_t Network::getInternetConnectionState(const JsonObject& parameters, JsonObject& response)
         {
+            bool result = false;
+            JsonObjec isConnectedToInternetResponse;
+            if(isConnectedToInternet(parameters, isConnectedToInternetResponse) == WPEFramework::Core::ERROR_NONE)
+            {
+                bool isConnected = isConnectedToInternetResponse["connectedToInternet"].Boolean();
+                response["state"] = static_cast <int>(isConnected ? FULLY_CONNECTED : NO_INTERNET);
+                if ( (isConnectedToInternetResponse.HasLabel("ipversion")) && \
+                     (WPEFramework::Core::JSON::Variant::type::STRING == isConnectedToInternetResponse["ipversion"].Content()) )
+                {
+                    response["ipversion"] = isConnectedToInternetResponse["ipversion"].String();
+                }
+                result = true;
+            }
+
+            returnResponse(result);
+
+/*
             IARM_BUS_NetSrvMgr_isConnectedtoInternet_t iarmData;
             bool result = false;
             std::string ipversion;
@@ -1302,6 +1319,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             }
 
             returnResponse(result);
+*/
         }
 
         uint32_t Network::getCaptivePortalURI(const JsonObject& parameters, JsonObject& response)
