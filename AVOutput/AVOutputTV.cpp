@@ -664,6 +664,7 @@ namespace Plugin {
 	TR181_ParamData_t param;
         int current_source = 0;
         int current_format = ConvertVideoFormatToHDRFormat(GetCurrentContentFormat());
+	if ( current_format  == HDR_TYPE_NONE) current_format  = HDR_TYPE_SDR;
         std::string tr181_param_name = "";
         // get current source
         GetCurrentSource(&current_source);
@@ -6094,6 +6095,7 @@ namespace Plugin {
 	else if (format == "Current") 
 	{
 	  int formatIndex = (int)ConvertVideoFormatToHDRFormat(GetCurrentContentFormat());
+	  if ( formatIndex  == HDR_TYPE_NONE) formatIndex  = HDR_TYPE_SDR;
           format = convertVideoFormatToString(formatIndex);
           LOGINFO("Current:%s \n", format.c_str());
         }
@@ -6687,6 +6689,7 @@ namespace Plugin {
 
         //GetCurrentFormat
 	int formatIndex = ConvertVideoFormatToHDRFormat(GetCurrentContentFormat());
+	if ( formatIndex  == HDR_TYPE_NONE) formatIndex = HDR_TYPE_SDR;
         currentFormat = convertVideoFormatToString(formatIndex);
 
         LOGINFO("%s : currentSource = %s,currentPicMode = %s,currentFormat = %s\n",__FUNCTION__,currentSource.c_str(),currentPicMode.c_str(),currentFormat.c_str());
