@@ -18,9 +18,11 @@
  */
 
 #include "TextToSpeech.h"
+#include "TextToSpeechValidator.h"
 #include "UtilsJsonRpc.h"
 #include "UtilsUnused.h"
 #include "impl/TTSCommon.h"
+#include "UtilsString.h"
 
 #define GET_STR(map, key, def) ((map.HasLabel(key) && !map[key].String().empty() && map[key].String() != "null") ? map[key].String() : def)
 
@@ -88,26 +90,34 @@ namespace Plugin {
         }
     }
 
-    uint32_t TextToSpeech::SetACL(const JsonObject& parameters, JsonObject& response)
+uint32_t TextToSpeech::SetACL(const JsonObject& parameters, JsonObject& response)
     {
         if(_tts) {
             CHECK_TTS_PARAMETER_RETURN_ON_FAIL("accesslist");
             TTSLOG_INFO("SetACL request:%s\n",parameters["accesslist"].String().c_str());
             JsonArray list = parameters["accesslist"].Array();
-            JsonArray::Iterator it = list.Elements();
-            while(it.Next())
+
+            for (JsonArray::Iterator it = list.Elements(); it.Next();)
             {
                 JsonObject accesslist = it.Current().Object();
-                if (accesslist.HasLabel("method") && accesslist.HasLabel("apps"))
-                {
-                    _tts->SetACL(accesslist["method"].String(),accesslist["apps"].String());
-                }
-                else
+
+                std::string method = accesslist["method"].String();
+                std::string apps = accesslist["apps"].String();
+                Utils::String::trim(apps);
+
+                if (method != "speak" ||  apps.empty() || apps == "NULL")
                 {
                     TTSLOG_WARNING("SetACL wrong input parameters\n");
                     returnResponse(false);
                 }
             }
+
+            for (JsonArray::Iterator it = list.Elements(); it.Next();)
+            {
+                JsonObject accesslist = it.Current().Object();
+                _tts->SetACL(accesslist["method"].String(), accesslist["apps"].String());
+            }
+
             returnResponse(true);
         }
         return Core::ERROR_NONE;
@@ -129,16 +139,16 @@ namespace Plugin {
         if(_tts) {
             CHECK_TTS_PARAMETER_RETURN_ON_FAIL("language");
             RPC::IStringIterator* voices = nullptr;
-            _tts->ListVoices(parameters["language"].String(),voices);
+            auto status = _tts->ListVoices(parameters["language"].String(), voices);
             JsonArray arr;
             string element;
             while (voices->Next(element) == true) {
                 arr.Add(JsonValue(element));
             }
             response["voices"] = arr;
-            response["TTS_Status"] = static_cast<uint32_t> (TTS::TTS_OK);
+            response["TTS_Status"] = status;
             voices->Release();
-            returnResponse(true);
+            returnResponse((status == TTS::TTS_OK) ? true : false);
         }
         return Core::ERROR_NONE;
     }
@@ -159,61 +169,64 @@ namespace Plugin {
             returnResponse(true);
          }
          return Core::ERROR_NONE;
-
     }
 
     uint32_t TextToSpeech::SetConfiguration(const JsonObject& parameters, JsonObject& response)
     {
         if(_tts) {
-        Exchange::ITextToSpeech::Configuration config;
-        config.ttsEndPoint = GET_STR(parameters, "ttsendpoint", "");
-        config.ttsEndPointSecured = GET_STR(parameters, "ttsendpointsecured", "");
-        config.language = GET_STR(parameters, "language", "");
-        config.voice = GET_STR(parameters, "voice", "");
-        config.speechRate = GET_STR(parameters, "speechrate", "");
-        config.volume = (uint8_t) std::stod(GET_STR(parameters, "volume", "0.0"));
+            Exchange::ITextToSpeech::TTSErrorDetail status = Exchange::ITextToSpeech::TTSErrorDetail::TTS_FAIL;
+            Exchange::ITextToSpeech::Configuration config;
+            config.ttsEndPoint = GET_STR(parameters, "ttsendpoint", "");
+            config.ttsEndPointSecured = GET_STR(parameters, "ttsendpointsecured", "");
+            config.language = GET_STR(parameters, "language", "");
+            config.voice = GET_STR(parameters, "voice", "");
+            config.speechRate = GET_STR(parameters, "speechrate", "");
 
-        if(parameters.HasLabel("rate")) {
-            int rate=0;
-            getNumberParameter("rate", rate);
-            config.rate = static_cast<uint8_t>(rate);
-        }
-        else {
-            config.rate = 0;
-        }
+            std::string proxyVolume = GET_STR(parameters, "volume", "0.0");
+            if(!InputValidation::Instance().validate("double_str", proxyVolume))
+                goto config_failure;
+            config.volume = (uint8_t) std::stod(proxyVolume);
 
-        if(parameters.HasLabel("authinfo")) {
-            JsonObject auth;
-            string apikey;
-            auth = parameters["authinfo"].Object();
-            if(((auth["type"].String()).compare("apikey")) == 0)
-            {
-                apikey = GET_STR(auth,"value", "");
-                _tts->SetAPIKey(apikey);
+            if(parameters.HasLabel("rate")) {
+                int rate=0;
+                getNumberParameter("rate", rate);
+                config.rate = static_cast<uint8_t>(rate);
+            } else {
+                config.rate = 0;
             }
-        }
 
-        if(parameters.HasLabel("fallbacktext")) {
-            JsonObject fallback;
-            string scenario,value;
-            fallback = parameters["fallbacktext"].Object();
-            scenario = fallback["scenario"].String();
-            value    = fallback["value"].String();
-            _tts->SetFallbackText(scenario,value);
-        }
+            if(parameters.HasLabel("authinfo")) {
+                JsonObject auth = parameters["authinfo"].Object();
+                if(auth["type"].String().compare("apikey") == 0) {
+                    _tts->SetAPIKey(GET_STR(auth, "value", ""));
+                } else {
+                    goto config_failure;
+                }
+            }
 
-        if(parameters.HasLabel("primvolduckpercent")) {
-           int8_t  primVolDuck;
-           primVolDuck = (int8_t) std::stoi(GET_STR(parameters,"primvolduckpercent","-1"));
-           _tts->SetPrimaryVolDuck(primVolDuck);
+            if(parameters.HasLabel("fallbacktext")) {
+                JsonObject fallback = parameters["fallbacktext"].Object();
+                _tts->SetFallbackText(fallback["scenario"].String(), fallback["value"].String());
+            }
+
+            if(parameters.HasLabel("primvolduckpercent")) {
+                std::string primVolDuckProxy = GET_STR(parameters, "primvolduckpercent", "-1");
+                if(!InputValidation::Instance().validate("primvolduckpercent", primVolDuckProxy))
+                    goto config_failure;
+
+                int8_t primVolDuck = (int8_t) std::stoi(primVolDuckProxy);
+                if(Core::ERROR_NONE != _tts->SetPrimaryVolDuck(primVolDuck))
+                    goto config_failure;
+            }
+
+            _tts->SetConfiguration(config, status);
+
+        config_failure:
+            response["TTS_Status"] = static_cast<uint32_t>(status);
+            returnResponse(status == Exchange::ITextToSpeech::TTSErrorDetail::TTS_OK);
         }
-         Exchange::ITextToSpeech::TTSErrorDetail status;
-         _tts->SetConfiguration(config,status);
-         response["TTS_Status"] = static_cast<uint32_t>(status);
-         returnResponse(status == Exchange::ITextToSpeech::TTSErrorDetail::TTS_OK);
-     }
-     return Core::ERROR_NONE;
-}
+        return Core::ERROR_NONE;
+    }
 
     uint32_t TextToSpeech::IsEnabled(const JsonObject& parameters ,JsonObject& response)
     {
@@ -245,13 +258,12 @@ namespace Plugin {
     {
         CHECK_TTS_PARAMETER_RETURN_ON_FAIL("speechid");
         if(_tts) {
-            _tts->Cancel(parameters["speechid"].Number());
-            response["TTS_Status"] = static_cast<uint32_t> (TTS::TTS_OK);
-            returnResponse(true);
+            auto status = _tts->Cancel(parameters["speechid"].Number());
+            response["TTS_Status"] = status;
+            returnResponse((status == TTS::TTS_OK) ? true : false);
         }
         return Core::ERROR_NONE;
     }
-
 
     uint32_t TextToSpeech::Pause(const JsonObject& parameters, JsonObject& response)
     {
@@ -282,14 +294,14 @@ namespace Plugin {
         if(_tts) {
             bool isspeaking = false;
             Exchange::ITextToSpeech::SpeechState state;
-            _tts->GetSpeechState(parameters["speechid"].Number(),state);
+            auto status = _tts->GetSpeechState(parameters["speechid"].Number(),state);
+
             if(state == Exchange::ITextToSpeech::SpeechState::SPEECH_IN_PROGRESS)
-            {
                isspeaking = true;
-            }
+
             response["speaking"] = isspeaking;
-            response["TTS_Status"] = static_cast<uint32_t> (TTS::TTS_OK);
-            returnResponse(true);
+            response["TTS_Status"] = status;
+            returnResponse((status == TTS::TTS_OK) ? true : false);
         }
         return Core::ERROR_NONE;
     }
@@ -298,10 +310,10 @@ namespace Plugin {
     {
         if(_tts) {
             Exchange::ITextToSpeech::SpeechState state;
-            _tts->GetSpeechState(parameters["speechid"].Number(),state);
+            auto status = _tts->GetSpeechState(parameters["speechid"].Number(),state);
             response["speechstate"] = (int) state;
-            response["TTS_Status"] = static_cast<uint32_t> (TTS::TTS_OK);
-            returnResponse(true);
+            response["TTS_Status"] = status;
+            returnResponse((status == TTS::TTS_OK) ? true : false);
         }
         return Core::ERROR_NONE;
     }
