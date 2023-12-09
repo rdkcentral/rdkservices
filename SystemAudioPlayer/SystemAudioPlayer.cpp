@@ -57,7 +57,7 @@ namespace Plugin {
 
         _service->Register(&_notification);
 
-        _sap = _service->Root<Exchange::ISystemAudioPlayer>(_connectionId, 5000, _T("SystemAudioPlayerImplementation"));
+        _sap = _service->Root<Exchange::ISystemAudioPlayer>(_connectionId, 15000, _T("SystemAudioPlayerImplementation"));
 
         std::string message;
         if(_sap != nullptr) {
