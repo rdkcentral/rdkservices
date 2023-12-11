@@ -1,7 +1,6 @@
 #include <stdarg.h>
 #include <syslog.h>
 #include "Wraps.h"
-#include <unistd.h>
 
 extern "C" int __wrap_system(const char* command)
 {
@@ -45,8 +44,7 @@ extern "C" FILE * __wrap_v_secure_popen(const char *direction, const char *comma
     va_list args;
     FILE *retFp = nullptr;
     va_start(args, command);
-    Wraps::getInstance().v_secure_popen(direction, command, args);
-    retFp = v_secure_popen(direction, command, &args);
+    retFp = Wraps::getInstance().v_secure_popen(direction, command, args);
     va_end(args);
     return retFp;
 }
@@ -59,4 +57,14 @@ extern "C" int __wrap_v_secure_pclose(FILE *file)
 extern "C" int __wrap_unlink(const char* filePath)
 {
     return Wraps::getInstance().unlink(filePath);
+}
+
+extern "C" int __wrap_v_secure_system(const char *command, ...)
+{
+    va_list args;
+    int ret;
+    va_start(args, command);
+    ret = Wraps::getInstance().v_secure_system(command, args);
+    va_end(args);
+    return ret;
 }
