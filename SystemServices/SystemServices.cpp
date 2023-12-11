@@ -35,6 +35,7 @@
 #include "SystemServices.h"
 #include "StateObserverHelper.h"
 #include "uploadlogs.h"
+#include "secure_wrapper.h"
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "libIBusDaemon.h"
@@ -878,8 +879,7 @@ namespace WPEFramework {
                  mocaFile.open(MOCA_FILE, ios::out);
                      if (mocaFile) {
                          mocaFile.close();
-                         /* TODO: replace system() */
-                         eRetval = system("/etc/init.d/moca_init start");
+                         eRetval = v_secure_system("/etc/init.d/moca_init start");
                      } else {
                          LOGERR("moca file open failed\n");
                          populateResponseWithError(SysSrv_FileAccessFailed, response);
@@ -887,8 +887,7 @@ namespace WPEFramework {
                  } else {
                      std::remove(MOCA_FILE);
                      if (!Utils::fileExists(MOCA_FILE)) {
-                         /* TODO: replace system() */
-                         eRetval = system("/etc/init.d/moca_init start");
+                         eRetval = v_secure_system("/etc/init.d/moca_init start");
                      } else {
                          LOGERR("moca file remove failed\n");
                          populateResponseWithError(SysSrv_FileAccessFailed, response);

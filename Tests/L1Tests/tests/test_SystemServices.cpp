@@ -32,6 +32,7 @@
 
 #include "deepSleepMgr.h"
 #include "exception.hpp"
+#include "secure_wrappermock.h"
 
 #include <fstream>
 
@@ -551,9 +552,9 @@ TEST_F(SystemServicesTest, SystemVersions)
 
 TEST_F(SystemServicesTest, MocaStatus)
 {
-    ON_CALL(wrapsImplMock, system(::testing::_))
+    ON_CALL(wrapsImplMock, v_secure_system(::testing::_, ::testing::_))
         .WillByDefault(::testing::Invoke(
-            [&](const char* command) {
+            [&](const char *command, va_list args) {
                 EXPECT_EQ(string(command), string(_T("/etc/init.d/moca_init start")));
                 return 0;
             }));
