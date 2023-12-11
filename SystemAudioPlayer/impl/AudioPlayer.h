@@ -83,6 +83,9 @@ class AudioPlayer
     int m_duckPercent;
     static GMainLoop   *m_main_loop;
     static GThread     *m_main_loop_thread;
+    static bool m_isLoopStarted;
+    static std::mutex m_eventMutex;
+    static std::condition_variable m_eventCondition;
     static SAPEventCallback *m_callback;
     int objectIdentifier;
     std::atomic<bool> m_isPaused;
@@ -144,6 +147,7 @@ class AudioPlayer
     gboolean PushDataAppSrc();
     static void Init(SAPEventCallback *callback);
     static void DeInit();
+    static void waitForMainLoop();
     static int GstBusCallback(GstBus *bus, GstMessage *message, gpointer data); 
     static void event_loop();
     int getObjectIdentifier();
