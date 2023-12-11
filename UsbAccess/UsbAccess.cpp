@@ -584,7 +584,9 @@ namespace Plugin {
             if(!usbPath.empty())
             {
                 string script = (ARCHIVE_LOGS_SCRIPT + " " + usbPath);
-                FILE* fp =  v_secure_popen("r","%s",script.c_str());
+                //FILE* fp =  v_secure_popen("r","%s",script.c_str());
+		LOGINFO("Revert secure open")
+		FILE* fp = popen(script.c_str(), "r");
                 if (NULL != fp) {
                     char buf[256];
                     while(fgets(buf, sizeof(buf), fp) != NULL)
@@ -599,7 +601,7 @@ namespace Plugin {
                     error = ScriptError;
                 }
 
-                int rc = v_secure_pclose(fp);
+                int rc = pclose(fp);
                 // int rc = runScript(script.c_str());
                 LOGINFO("'%s' exit code: %d", script.c_str(), rc);
                 error = static_cast<ArchiveLogsError>(rc);
