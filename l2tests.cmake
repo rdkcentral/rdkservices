@@ -44,6 +44,7 @@ set(EMPTY_HEADERS
          ${BASEDIR}/rdk/ds/sleepMode.hpp
          ${BASEDIR}/rfcapi.h
          ${BASEDIR}/systemservices/proc/readproc.h
+         ${BASEDIR}/systemservices/secure_wrapper.h
         )
 
 file(MAKE_DIRECTORY ${EMPTY_HEADERS_DIRS})
@@ -67,6 +68,7 @@ set(FAKE_HEADERS
         ${BASEDIR}/Iarm.h
         ${BASEDIR}/Rfc.h
         ${BASEDIR}/readprocMockInterface.h
+        ${BASEDIR}/secure_wrappermock.h
         )
 
 foreach (file ${FAKE_HEADERS})

@@ -27,6 +27,8 @@
 #include "ServiceMock.h"
 #include "RfcApiMock.h"
 #include "WrapsMock.h"
+#include "secure_wrappermock.h"
+
 
 using namespace WPEFramework;
 
@@ -334,10 +336,10 @@ TEST_F(WarehouseResetDeviceTest, ColdFactoryResetDevicePwrMgr2RFCEnabled)
     //Enable Power manager 2
     plugin->m_isPwrMgr2RFCEnabled = true;
 
-    EXPECT_CALL(wrapsImplMock, system(::testing::_))
+    EXPECT_CALL(wrapsImplMock, v_secure_system(::testing::_, ::testing::_))
         .Times(2)
         .WillOnce(::testing::Invoke(
-            [](const char* command) {
+            [](const char *command, va_list args) {
                 EXPECT_EQ(string(command), string("sh /lib/rdk/deviceReset.sh coldfactory"));
                 return Core::ERROR_NONE;
             }))
@@ -356,10 +358,10 @@ TEST_F(WarehouseResetDeviceTest, FactoryResetDevicePwrMgr2RFCEnabled)
     //Enable Power manager 2
     plugin->m_isPwrMgr2RFCEnabled = true;
 
-    EXPECT_CALL(wrapsImplMock, system(::testing::_))
+    EXPECT_CALL(wrapsImplMock, v_secure_system(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
-            [](const char* command) {
+            [](const char *command, va_list args) {
                 EXPECT_EQ(string(command), string("sh /lib/rdk/deviceReset.sh factory"));
                 return Core::ERROR_NONE;
             }))
@@ -378,10 +380,10 @@ TEST_F(WarehouseResetDeviceTest, UserFactoryResetDevicePwrMgr2RFCEnabled)
     //Enable Power manager 2
     plugin->m_isPwrMgr2RFCEnabled = true;
 
-    EXPECT_CALL(wrapsImplMock, system(::testing::_))
+    EXPECT_CALL(wrapsImplMock, v_secure_system(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
-            [](const char* command) {
+            [](const char *command, va_list args) {
                 EXPECT_EQ(string(command), string("sh /lib/rdk/deviceReset.sh userfactory"));
                 return Core::ERROR_NONE;
             }));
@@ -399,10 +401,10 @@ TEST_F(WarehouseResetDeviceTest, WarehouseClearResetDevicePwrMgr2RFCEnabled)
     //Enable Power manager 2
     plugin->m_isPwrMgr2RFCEnabled = true;
 
-    EXPECT_CALL(wrapsImplMock, system(::testing::_))
+    EXPECT_CALL(wrapsImplMock, v_secure_system(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
-            [](const char* command) {
+            [](const char *command, va_list args) {
                 EXPECT_EQ(string(command), string("sh /lib/rdk/deviceReset.sh WAREHOUSE_CLEAR"));
                 return Core::ERROR_NONE;
             }));
@@ -421,10 +423,10 @@ TEST_F(WarehouseInitializedTest, WarehouseClearResetDeviceNoResponsePwrMgr2RFCEn
     //Enable Power manager 2
     plugin->m_isPwrMgr2RFCEnabled = true;
 
-    EXPECT_CALL(wrapsImplMock, system(::testing::_))
+    EXPECT_CALL(wrapsImplMock, v_secure_system(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
-            [&](const char* command) {
+            [&](const char *command, va_list args) {
                 EXPECT_EQ(string(command), string("sh /lib/rdk/deviceReset.sh WAREHOUSE_CLEAR --suppressReboot"));
                 resetCallRxed.SetEvent();
                 return Core::ERROR_NONE;
@@ -443,10 +445,10 @@ TEST_F(WarehouseResetDeviceTest, GenericResetDevicePwrMgr2RFCEnabled)
     //Enable Power manager 2
     plugin->m_isPwrMgr2RFCEnabled = true;
 
-    EXPECT_CALL(wrapsImplMock, system(::testing::_))
+    EXPECT_CALL(wrapsImplMock, v_secure_system(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
-            [](const char* command) {
+            [](const char *command, va_list args) {
                 EXPECT_EQ(string(command), string("sh /lib/rdk/deviceReset.sh warehouse"));
                 return Core::ERROR_NONE;
             }));
@@ -465,10 +467,10 @@ TEST_F(WarehouseInitializedTest, GenericResetDeviceNoResponsePwrMgr2RFCEnabled)
     //Enable Power manager 2
     plugin->m_isPwrMgr2RFCEnabled = true;
 
-    EXPECT_CALL(wrapsImplMock, system(::testing::_))
+    EXPECT_CALL(wrapsImplMock, v_secure_system(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
-            [&](const char* command) {
+            [&](const char *command, va_list args) {
                 EXPECT_EQ(string(command), string("sh /lib/rdk/deviceReset.sh warehouse --suppressReboot &"));
                 resetCallRxed.SetEvent();
                 return Core::ERROR_NONE;
@@ -487,10 +489,10 @@ TEST_F(WarehouseResetDeviceFailureTest, UserFactoryResetDeviceFailurePwrMgr2RFCE
     //Enable Power manager 2
     plugin->m_isPwrMgr2RFCEnabled = true;
 
-    EXPECT_CALL(wrapsImplMock, system(::testing::_))
+    EXPECT_CALL(wrapsImplMock, v_secure_system(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
-            [](const char* command) {
+            [](const char *command, va_list args) {
                 EXPECT_EQ(string(command), string("sh /lib/rdk/deviceReset.sh warehouse --suppressReboot &"));
                 return Core::ERROR_GENERAL;
             }));
