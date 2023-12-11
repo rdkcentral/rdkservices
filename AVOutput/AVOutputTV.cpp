@@ -19,6 +19,7 @@
 
 #include <string>
 #include "AVOutputTV.h"
+#include "UtilsIarm.h"
 
 #define BUFFER_SIZE     (128)
 
@@ -518,7 +519,7 @@ namespace Plugin {
     AVOutputTV :: ~AVOutputTV()
     {
         LOGINFO();
-        AVOutputBase::DeinitializeIARM();	
+        DeinitializeIARM();	
     }
 
     void AVOutputTV::Initialize()
@@ -7521,22 +7522,30 @@ namespace Plugin {
 
     void AVOutputTV::InitializeIARM()
     {
-	LOGINFO("Entry\n");
-	//call to base to initialize common iarm event registration
         AVOutputBase::InitializeIARM();
-
-	//in future, if any tv specific iarm event registration can be done here
-	LOGINFO("Exit\n");
+#if !defined (HDMIIN_4K_ZOOM)
+        if (IARMinit())
+        {
+            IARM_Result_t res;
+            IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS, dsHdmiStatusEventHandler) );
+            IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE, dsHdmiVideoModeEventHandler) );
+            IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG, dsHdmiEventHandler) );
+        }
+#endif
     }
 
     void AVOutputTV::DeinitializeIARM()
     {
-        LOGINFO("Entry\n");
-        //call to base to initialize common iarm event registration
         AVOutputBase::DeinitializeIARM();
-
-        //in future, if any tv specific iarm event registration can be done here
-	LOGINFO("Exit\n");
+#if !defined (HDMIIN_4K_ZOOM)
+        if (isIARMConnected())
+        {
+            IARM_Result_t res;
+            IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS, dsHdmiStatusEventHandler) );
+            IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE, dsHdmiVideoModeEventHandler) );
+            IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG, dsHdmiEventHandler) );
+        }
+#endif
     }
 
 }//namespace Plugin

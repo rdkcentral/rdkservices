@@ -275,9 +275,9 @@ class AVOutputTV : public AVOutputBase {
         void NotifyVideoResolutionChange(tvResolutionParam_t resolution);
         void NotifyVideoFrameRateChange(tvVideoFrameRate_t frameRate);
 	//override API
-	void dsHdmiVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
-        void dsHdmiStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
-        void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+	static void dsHdmiVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+        static void dsHdmiStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+        static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
         void Initialize();
         void Deinitialize();
         void InitializeIARM();

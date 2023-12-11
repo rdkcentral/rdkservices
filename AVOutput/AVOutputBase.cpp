@@ -52,31 +52,16 @@ namespace Plugin {
 	LOGINFO("Exit\n");
 
     }
-
     void AVOutputBase::InitializeIARM()
     {
-#if !defined (HDMIIN_4K_ZOOM)
-        if (IARMinit())
-        {
-            IARM_Result_t res;
-            IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS, dsHdmiStatusEventHandler) );
-            IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE, dsHdmiVideoModeEventHandler) );
-            IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG, dsHdmiEventHandler) );
-        }
-#endif
+        LOGINFO("Entry\n");
+        LOGINFO("Exit\n");
     }
 
     void AVOutputBase::DeinitializeIARM()
     {
-#if !defined (HDMIIN_4K_ZOOM)
-        if (isIARMConnected())
-        {
-            IARM_Result_t res;
-            IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS, dsHdmiStatusEventHandler) );
-            IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE, dsHdmiVideoModeEventHandler) );
-            IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG, dsHdmiEventHandler) );
-        }
-#endif
+        LOGINFO("Entry\n");
+        LOGINFO("Exit\n");
     }
 
     bool AVOutputBase::IARMinit() {
@@ -117,25 +102,6 @@ namespace Plugin {
 
         return (isRegistered == 1);
     }
-
-    void AVOutputBase::dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
-    {
-        LOGINFO("Entry %s\n",__FUNCTION__);
-        LOGINFO("Exit %s\n",__FUNCTION__);
-    }
-
-    void AVOutputBase::dsHdmiStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
-    {
-        LOGINFO("Entry %s\n",__FUNCTION__);
-        LOGINFO("Exit %s\n",__FUNCTION__);
-    }
-
-    void AVOutputBase::dsHdmiVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
-    {
-        LOGINFO("Entry %s\n",__FUNCTION__);
-        LOGINFO("Exit %s\n",__FUNCTION__);
-    }
-
 } //namespace WPEFramework
 
 } //namespace Plugin

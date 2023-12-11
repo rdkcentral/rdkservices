@@ -57,9 +57,6 @@ namespace Plugin {
         // -------------------------------------------------------------------------------------------------------
         virtual void Initialize();
         virtual void Deinitialize();
-        virtual void dsHdmiVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
-        virtual void dsHdmiStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
-        virtual void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 	virtual void InitializeIARM();
         virtual void DeinitializeIARM();
    };
