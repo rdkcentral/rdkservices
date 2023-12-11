@@ -18,7 +18,7 @@ All notable changes to this RDK Service will be documented in this file.
 
 ## [1.0.5] - 2023-12-11
 ### Fixed
-- Thunder R4, Increased persistent key storage value to 3k in config.in
+- Increased persistent key storage value to 3k in config.in for Thunder R4
 
 ## [1.0.4] - 2023-12-05
 ### Fixed
