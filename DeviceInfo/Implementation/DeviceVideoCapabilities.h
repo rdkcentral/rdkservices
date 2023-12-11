@@ -7,9 +7,11 @@
 #include <interfaces/IDeviceInfo2.h>
 #endif /* USE_THUNDER_R4 */
 
+#include "dsinitmanager/DSManagerPlugin.h"
+
 namespace WPEFramework {
 namespace Plugin {
-    class DeviceVideoCapabilities : public Exchange::IDeviceVideoCapabilities {
+    class DeviceVideoCapabilities : public Exchange::IDeviceVideoCapabilities, public DSManagerPlugin {
     private:
         DeviceVideoCapabilities(const DeviceVideoCapabilities&) = delete;
         DeviceVideoCapabilities& operator=(const DeviceVideoCapabilities&) = delete;

@@ -46,15 +46,16 @@ endif (USE_THUNDER_R4)
 
 find_package(DS)
 find_package(IARMBus)
+find_package(DSInit REQUIRED)
 
-target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS})
+target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS} ${DSINIT_INCLUDE_DIRS})
 target_include_directories(${MODULE_NAME} PRIVATE ${DS_INCLUDE_DIRS})
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 
 
 set_source_files_properties(HdcpProfile.cpp PROPERTIES COMPILE_FLAGS "-fexceptions")
 
-target_link_libraries(${MODULE_NAME} PUBLIC ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${IARMBUS_LIBRARIES} ${DS_LIBRARIES} )
+target_link_libraries(${MODULE_NAME} PUBLIC ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${IARMBUS_LIBRARIES} ${DS_LIBRARIES} ${DSINIT_LIBRARIES} )
 
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)

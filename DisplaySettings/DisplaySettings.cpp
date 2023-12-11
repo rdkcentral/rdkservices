@@ -622,16 +622,6 @@ namespace WPEFramework {
             {
                 m_isPwrMgr2RFCEnabled = true;
             }
-            try
-            {
-                //TODO(MROLLINS) this is probably per process so we either need to be running in our own process or be carefull no other plugin is calling it
-                device::Manager::Initialize();
-                LOGINFO("device::Manager::Initialize success");
-            }
-            catch(...)
-            {
-                LOGINFO("device::Manager::Initialize failed");
-            }
         }
 
         void DisplaySettings::DeinitializeIARM()
@@ -655,19 +645,6 @@ namespace WPEFramework {
                 IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_FADER_CONTROL_CHANGED, dsSettingsChangeEventHandler) );
                 IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_PRIMARY_LANGUAGE_CHANGED, dsSettingsChangeEventHandler) );
                 IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_SECONDARY_LANGUAGE_CHANGED, dsSettingsChangeEventHandler) );
-            }
-
-            try
-            {
-                //TODO(MROLLINS) this is probably per process so we either need to be running in our own process or be carefull no other plugin is calling it
-                //No need to call device::Manager::DeInitialize for individual plugin. As it is a singleton instance and shared among all wpeframework plugins
-                //Expecting DisplaySettings will be alive for complete run time of wpeframework
-                device::Manager::DeInitialize();
-                LOGINFO("device::Manager::DeInitialize success");
-            }
-            catch(...)
-            {
-                LOGINFO("device::Manager::DeInitialize failed");
             }
         }
 

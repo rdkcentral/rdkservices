@@ -7,9 +7,11 @@
 #include <interfaces/IDeviceInfo2.h>
 #endif /* USE_THUNDER_R4 */
 
+#include "dsinitmanager/DSManagerPlugin.h"
+
 namespace WPEFramework {
 namespace Plugin {
-    class DeviceAudioCapabilities : public Exchange::IDeviceAudioCapabilities {
+    class DeviceAudioCapabilities : public Exchange::IDeviceAudioCapabilities, public DSManagerPlugin {
     private:
         DeviceAudioCapabilities(const DeviceAudioCapabilities&) = delete;
         DeviceAudioCapabilities& operator=(const DeviceAudioCapabilities&) = delete;

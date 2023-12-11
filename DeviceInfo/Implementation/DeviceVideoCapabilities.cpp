@@ -15,15 +15,6 @@ namespace Plugin {
     DeviceVideoCapabilities::DeviceVideoCapabilities()
     {
         Utils::IARM::init();
-
-        try {
-            device::Manager::Initialize();
-        } catch (const device::Exception& e) {
-            TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
-        } catch (const std::exception& e) {
-            TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
-        } catch (...) {
-        }
     }
 
     uint32_t DeviceVideoCapabilities::SupportedVideoDisplays(RPC::IStringIterator*& supportedVideoDisplays) const

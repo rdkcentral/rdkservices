@@ -27,6 +27,7 @@ find_package(CompileSettingsDebug CONFIG REQUIRED)
 find_package(RFC)
 find_package(DS)
 find_package(IARMBus)
+find_package(DSInit REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
         DeviceInfo.cpp
@@ -45,6 +46,7 @@ target_include_directories(${MODULE_NAME} PRIVATE
         ${RFC_INCLUDE_DIRS}
         ${DS_INCLUDE_DIRS}
         ${IARMBUS_INCLUDE_DIRS}
+        ${DSINIT_INCLUDE_DIRS}
         ../helpers)
 
 set_source_files_properties(
@@ -60,6 +62,7 @@ target_link_libraries(${MODULE_NAME}
         ${NAMESPACE}Definitions::${NAMESPACE}Definitions
         ${RFC_LIBRARIES}
         ${DS_LIBRARIES}
+        ${DSINIT_LIBRARIES}
         ${IARMBUS_LIBRARIES})
 
 install(TARGETS ${MODULE_NAME}

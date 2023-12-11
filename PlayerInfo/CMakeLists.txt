@@ -66,14 +66,17 @@ if (GSTREAMER_FOUND)
     if (USE_DEVICESETTINGS)
         find_package(DS REQUIRED)
         find_package(IARMBus REQUIRED)
+        find_package(DSInit REQUIRED)
         target_include_directories(${MODULE_NAME} PRIVATE
             ${IARMBUS_INCLUDE_DIRS}
             ${DS_INCLUDE_DIRS}
+            ${DSINIT_INCLUDE_DIRS}
             ../helpers)
         target_link_libraries(${MODULE_NAME} PRIVATE
             ${NAMESPACE}Plugins::${NAMESPACE}Plugins
             ${IARMBUS_LIBRARIES}
-            ${DS_LIBRARIES})
+            ${DS_LIBRARIES}
+            ${DSINIT_LIBRARIES})
         target_sources(${MODULE_NAME}
             PRIVATE
                 DeviceSettings/PlatformImplementation.cpp)

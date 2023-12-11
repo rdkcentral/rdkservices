@@ -34,11 +34,12 @@
 #include "dsMgr.h"
 
 #include "manager.hpp"
+#include "dsinitmanager/DSManagerPlugin.h"
 
 namespace WPEFramework {
 namespace Plugin {
 
-class PlayerInfoImplementation : public Exchange::IPlayerProperties, public Exchange::Dolby::IOutput
+class PlayerInfoImplementation : public Exchange::IPlayerProperties, public Exchange::Dolby::IOutput, public DSManagerPlugin
 {
 private:
 
@@ -122,7 +123,6 @@ public:
         UpdateAudioCodecInfo();
         UpdateVideoCodecInfo();
         Utils::IARM::init();
-        device::Manager::Initialize();
         IARM_Result_t res;
         IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_MODE, AudioModeHandler) );
         PlayerInfoImplementation::_instance = this;

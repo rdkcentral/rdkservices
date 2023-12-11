@@ -84,7 +84,6 @@ namespace WPEFramework
         {
             HdcpProfile::_instance = this;
             InitializeIARM();
-            device::Manager::Initialize();
             return (string());
         }
 

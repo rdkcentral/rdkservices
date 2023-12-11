@@ -22,6 +22,8 @@ set(PLUGIN_DISPLAYSETTINGS_AUTOSTART "false" CACHE STRING "Automatically start D
 set(PLUGIN_DISPLAYSETTINGS_STARTUPORDER "" CACHE STRING "To configure startup order of DisplaySettings plugin")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
+find_package(DSInit REQUIRED)
+
 
 add_library(${MODULE_NAME} SHARED
         DisplaySettings.cpp
@@ -33,7 +35,7 @@ set_target_properties(${MODULE_NAME} PROPERTIES
 
 target_compile_definitions(${MODULE_NAME} PRIVATE MODULE_NAME=Plugin_${PLUGIN_NAME})
 
-target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
+target_include_directories(${MODULE_NAME} PRIVATE ../helpers ${DSINIT_INCLUDE_DIRS})
 
 find_package(DS)
 if (DS_FOUND)
@@ -41,7 +43,7 @@ if (DS_FOUND)
     add_definitions(-DDS_FOUND)
     target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS})
     target_include_directories(${MODULE_NAME} PRIVATE ${DS_INCLUDE_DIRS})
-    target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${IARMBUS_LIBRARIES} ${DS_LIBRARIES} "-ltr181api")
+    target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${IARMBUS_LIBRARIES} ${DS_LIBRARIES} "-ltr181api"  ${DSINIT_LIBRARIES})
 else (DS_FOUND)
     target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins)
 endif(DS_FOUND)
