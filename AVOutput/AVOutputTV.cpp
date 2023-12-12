@@ -695,6 +695,7 @@ namespace Plugin {
            ret = tvERROR_GENERAL;
            LOGWARN("getLocalParam for %s Failed : %s\n", tr181_param_name.c_str(), getTR181ErrorString(err));
        }
+
        return ret;
     }
 
