@@ -1287,7 +1287,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             bool result = false;
             if (parameters.HasLabel("interval"))
             {
-                result = connectivityMonitor.startConnectivityMonitor(parameters["interval"].Number());
+                result = connectivityMonitor.startContinuousConnectivityMonitor(parameters["interval"].Number());
             }
             else
             {
@@ -1299,7 +1299,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
 
         uint32_t Network::stopConnectivityMonitoring(const JsonObject& parameters, JsonObject& response)
         {
-            bool result = connectivityMonitor.stopConnectivityMonitor();
+            bool result = connectivityMonitor.stopContinuousConnectivityMonitor();
             returnResponse(result);
         }
 
@@ -1461,7 +1461,19 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             m_defInterfaceCache = "";
 
             sendNotify("onConnectionStatusChanged", params);
-            connectivityMonitor.signalConnectivityMonitor();
+            if(connected)
+            {
+                connectivityMonitor.startAutoExitConnectivityMonitor(30);
+            }
+            else
+            {
+                if (!connectivityMonitor.isMonitorThreadRunning())
+                {
+                    /*run the thread again to notify no_internet state*/
+                    connectivityMonitor.startAutoExitConnectivityMonitor(30);
+                }
+                connectivityMonitor.stopAutoExitConnectivityMonitor();
+            }
         }
 
         void Network::onInternetStatusChange(nsm_internetState InternetConnectionState)

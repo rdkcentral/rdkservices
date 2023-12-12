@@ -436,29 +436,64 @@ namespace WPEFramework {
         return InternetConnectionState;
     }
 
-    bool ConnectivityMonitor::startConnectivityMonitor(int timeoutInSeconds)
+    bool ConnectivityMonitor::startContinuousConnectivityMonitor(int timeoutInSeconds)
     {
-
         if(!isConnectivityMonitorEndpointSet())
         {
             LOGINFO("Connectivity monitor endpoints are not set !");
             return false;
         }
 
+        autoExit = false;
+        stopFlag = false;
         timeout.store(timeoutInSeconds >= MONITOR_TIMEOUT_INTERVAL_MIN ? timeoutInSeconds:defaultTimeoutInSec);
 
-        if (!isMonitorThreadRunning())
-        {
-            stopFlag.store(false);
-            thread_ = std::thread(&ConnectivityMonitor::connectivityMonitorFunction, this);
-            threadRunning = true;
-            LOGINFO("Connectivity monitor started with %d", timeout.load());
-        }
-        else
+        if (isMonitorThreadRunning())
         {
             cv_.notify_all();
             LOGINFO("Connectivity monitor Restarted with %d", timeout.load());
         }
+        else
+        {
+            thread_ = std::thread(&ConnectivityMonitor::connectivityMonitorFunction, this);
+            thread_.detach();
+            threadRunning = true;
+            LOGINFO("Connectivity monitor started with %d", timeout.load());
+        }
+
+        return true;
+    }
+
+    bool ConnectivityMonitor::startAutoExitConnectivityMonitor(int timeoutInSeconds)
+    {
+        if(!isConnectivityMonitorEndpointSet())
+        {
+            LOGINFO("Connectivity monitor endpoints are not set !");
+            return false;
+        }
+
+        if (isMonitorThreadRunning())
+        {
+            cv_.notify_all();
+            if(autoExit == false)
+                LOGINFO("ContinuousConnectivityMonitor is active");
+            else
+            {
+                stopFlag = false;
+                LOGINFO("AutoExitConnectivityMonitor is active");
+            }
+        }
+        else
+        {
+            autoExit = true;
+            stopFlag = false;
+            timeout.store(timeoutInSeconds >= MONITOR_TIMEOUT_INTERVAL_MIN ? timeoutInSeconds:defaultTimeoutInSec);
+            thread_ = std::thread(&ConnectivityMonitor::connectivityMonitorFunction, this);
+            thread_.detach();
+            threadRunning = true;
+            LOGINFO("AutoExitConnectivityMonitor started with %d", timeout.load());
+        }
+
         return true;
     }
 
@@ -467,22 +502,41 @@ namespace WPEFramework {
         return threadRunning.load();
     }
 
-    bool ConnectivityMonitor::stopConnectivityMonitor()
+    bool ConnectivityMonitor::stopAutoExitConnectivityMonitor()
     {
-        if (isMonitorThreadRunning()) {
-            stopFlag.store(true);
-            cv_.notify_all();
-            if (thread_.joinable()) {
-                thread_.join();
-                threadRunning = false;
-                LOGINFO("Connectivity monitor stopped");
-                g_internetState.store(nsm_internetState::UNKNOWN);
+        if (isMonitorThreadRunning())
+        {
+            if(autoExit == false)
+            {
+                LOGWARN("Auto exit connectivity monitor not running");
+                return true;
             }
-            return true;
+            else
+            {
+                LOGINFO("Stoping auto exit connectivity monitor");
+                autoExit = false;
+                stopFlag = true;
+                cv_.notify_all();
+            }
         }
         else
+            LOGWARN("Auto exit connectivity monitor not running");
+    
+        return true;
+    }
+
+    bool ConnectivityMonitor::stopContinuousConnectivityMonitor()
+    {
+        if (!isMonitorThreadRunning())
+        {
             LOGWARN("Connectivity monitor not running");
-        return false;
+            return false;
+        }
+
+        stopFlag = true;
+        cv_.notify_all();
+        LOGINFO("Continuous Connectivity monitor stopped");
+        return true;
     }
 
     void ConnectivityMonitor::signalConnectivityMonitor()
@@ -498,7 +552,7 @@ namespace WPEFramework {
     void ConnectivityMonitor::connectivityMonitorFunction()
     {
         nsm_internetState InternetConnectionState = nsm_internetState::UNKNOWN;
-        while (!stopFlag)
+        do
         {
             InternetConnectionState = testConnectivity(getConnectivityMonitorEndpoints(), 2000, NSM_IPRESOLVE_WHATEVER);
             if(g_internetState.load() != InternetConnectionState)
@@ -507,6 +561,18 @@ namespace WPEFramework {
                 Network::notifyInternetStatusChange(g_internetState.load());
             }
 
+            if(autoExit && (g_internetState.load() == FULLY_CONNECTED))
+            {
+                autoExit = false;
+                stopFlag = true;
+                LOGINFO("autoExit active and internet state is FULLY_CONNECTED");
+                break;
+            }
+
+            if(stopFlag)
+            {
+                break;
+            }
             //wait for next timout or conditon signal
             std::unique_lock<std::mutex> lock(mutex_);
             if (cv_.wait_for(lock, std::chrono::seconds(timeout.load())) == std::cv_status::timeout)
@@ -520,7 +586,12 @@ namespace WPEFramework {
                     LOGINFO("Connectivity monitor received a trigger");
                 }
             }
-        }
+
+        } while (!stopFlag);
+
+        threadRunning = false;
+        stopFlag = false;
+        g_internetState = nsm_internetState::UNKNOWN;
         LOGWARN("Connectivity monitor exiting");
     }
 

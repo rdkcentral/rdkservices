@@ -109,21 +109,23 @@ namespace WPEFramework {
                 nsm_internetState getInternetConnectionState(nsm_ipversion ipversion);
                 std::string getCaptivePortalURI();
                 void setConnectivityMonitorEndpoints(const std::vector<std::string> &endpoints);
-                bool startConnectivityMonitor(int timeoutInSeconds);
-                bool stopConnectivityMonitor();
+                bool startContinuousConnectivityMonitor(int timeoutInSeconds);
+                bool startAutoExitConnectivityMonitor(int timeoutInSeconds);
+                bool stopContinuousConnectivityMonitor();
+                bool stopAutoExitConnectivityMonitor();
                 bool isConnectivityMonitorEndpointSet();
                 bool isMonitorThreadRunning();
                 void signalConnectivityMonitor();
                 void resetConnectivityCache() { g_internetState = nsm_internetState::UNKNOWN;}
 
             private:
-                ConnectivityMonitor() : stopFlag(false), threadRunning(false)
+                ConnectivityMonitor() : stopFlag(false), threadRunning(false), autoExit(false)
                 {
                     setConnectivityMonitorEndpoints(getConnectivityDefaultEndpoints());
                 }
 
                 ~ConnectivityMonitor() {
-                    stopConnectivityMonitor();
+                    stopContinuousConnectivityMonitor();
                 }
 
                 std::vector<std::string> getConnectivityMonitorEndpoints();
@@ -136,6 +138,7 @@ namespace WPEFramework {
                 std::thread thread_;
                 std::atomic<bool> stopFlag;
                 std::atomic<bool> threadRunning;
+                std::atomic<bool> autoExit;
                 std::condition_variable cv_;
                 std::atomic<int> timeout;
                 std::vector<std::string> monitorEndpoints;
