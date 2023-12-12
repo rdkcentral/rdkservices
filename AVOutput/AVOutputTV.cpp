@@ -676,8 +676,10 @@ namespace Plugin {
        tr181ErrorCode_t err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
        if ( tr181Success == err )
        {
+	   std::string local = param.value;
+           transform(local.begin(), local.end(), local.begin(), ::tolower);
            LOGINFO("getLocalParam for %s is %s\n", tr181_param_name.c_str(), param.value);
-           ret = SetTVPictureMode(param.value);
+           ret = SetTVPictureMode(local.c_str());
 
            if(ret != tvERROR_NONE) 
 	   {
@@ -5223,7 +5225,7 @@ namespace Plugin {
         if ( (param == "ColorTemperature") ||
              (param == "DimmingMode") || (param == "AutoBacklightControl") ||
              (param == "DolbyVisionMode") || (param == "HDR10Mode") ||
-            (param == "HLGMode") || (param == "AspectRatio") )
+            (param == "HLGMode") || (param == "AspectRatio") || (param == "PictureMode") )
         {
 	    auto iter = find(range.begin(), range.end(), inputValue);
 
