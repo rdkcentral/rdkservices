@@ -789,19 +789,19 @@ private:
 
     static void dslogCallback(int priority,const char *buff)
     {
-        if(priority == DS_LOG_LEVEL_INFO)
+        if(priority == 0)
         {
             TRACE_GLOBAL(Trace::Information, (_T("%s"),buff));
         }
-        else if(priority == DS_LOG_LEVEL_WARN)
+        else if(priority == 1)
         {
             TRACE_GLOBAL(Trace::Warning, (_T("%s"), buff));
         }
-        else if(priority == DS_LOG_LEVEL_ERROR)
+        else if(priority == 2)
         {
             TRACE_GLOBAL(Trace::Error, (_T("%s"), buff));
         }
-        else if(priority == DS_LOG_LEVEL_DEBUG)
+        else if(priority == 3)
         {
             TRACE_GLOBAL(Trace::Information, (_T("%s"), buff));
         }
