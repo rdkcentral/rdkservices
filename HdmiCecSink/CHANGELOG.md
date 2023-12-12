@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.3.1] - 2023-12-12
+### Fixed
+- Reset the Activesource on putting the TV to standby
+
 ## [1.3.0] 2023-11-30
 ### Added
 - Added HDMI-CEC key repeat for press and hold
