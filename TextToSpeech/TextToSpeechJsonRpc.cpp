@@ -44,6 +44,10 @@ namespace Plugin {
         Register("getspeechstate", &TextToSpeech::GetSpeechState, this);
         Register("setACL", &TextToSpeech::SetACL, this);
         Register("getapiversion", &TextToSpeech::getapiversion, this);
+
+        InputValidation::Instance().setLogger([] (const char *log) { TTSLOG_WARNING(log); });
+        InputValidation::Instance().addValidator("double_str", ExpectedValues<std::string>("^-?[0-9]+(\\.[0-9]+)?"));
+        InputValidation::Instance().addValidator("primvolduckpercent", ExpectedValues<std::string>("^-?[0-9]+$"));
     }
     
     bool TextToSpeech::AddToAccessList(const string &key,const string &value)
