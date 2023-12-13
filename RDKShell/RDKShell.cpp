@@ -197,6 +197,10 @@ bool sForceResidentAppLaunch = false;
 static bool sRunning = true;
 bool needsScreenshot = false;
 
+#ifdef RDKSHELL_DUAL_ODM_SUPPORT
+static Device_Mode_FactoryModes_t sFactoryMode = DEVICE_MODE_CVTE_B1_AGING;
+#endif
+
 #ifdef HIBERNATE_SUPPORT_ENABLED
 std::mutex gSuspendedOrHibernatedApplicationsMutex;
 map<string, bool> gSuspendedOrHibernatedApplications;
@@ -271,12 +275,59 @@ static bool checkAssemblyFactoryMode_wrapper()
         bool ret = false;
         Device_Mode_Result_t result = Device_Mode_getFactoryMode(&factoryMode);
         if(result == DEVICE_MODE_RESULT_SUCCESS) {
+#ifdef RDKSHELL_DUAL_ODM_SUPPORT
+                if (factoryMode == DEVICE_MODE_ODM_1_FACTORY_MODE || factoryMode == DEVICE_MODE_ODM_2_FACTORY_MODE) {
+			std::cout << "Device in Assembly FactoryMode\n";
+                        sFactoryMode = factoryMode;
+                        ret = true;
+                }
+#else
                 if (factoryMode == DEVICE_MODE_ODM_FACTORY_MODE) {
                         std::cout << "Device in Assembly FactoryMode\n";
                         ret = true;
                 }
+#endif		
         }
         return ret;
+}
+
+char* getFactoryAppUrl()
+{
+	char* factoryAppUrl = NULL;
+#ifdef RDKSHELL_DUAL_ODM_SUPPORT
+	bool isOdmEnabled = checkAssemblyFactoryMode_wrapper();
+	if ((sFactoryMode == DEVICE_MODE_ODM_1_FACTORY_MODE) && (isOdmEnabled == true))
+	{
+		factoryAppUrl = getenv("RDKSHELL_ASSEMBLY_FACTORY_APP_URL");
+	}
+	else if ((sFactoryMode == DEVICE_MODE_ODM_2_FACTORY_MODE) && (isOdmEnabled == true))
+	{
+		factoryAppUrl = getenv("RDKSHELL_ASSEMBLY_FACTORY_2_APP_URL");
+	}
+	else if (isOdmEnabled == false)
+	{
+		Device_Mode_FactoryModes_t factoryMode;
+		Device_Mode_Result_t result = Device_Mode_getODMModeFromPID(&factoryMode);
+		if(result == DEVICE_MODE_RESULT_SUCCESS) {
+			if (factoryMode == DEVICE_MODE_ODM_1_FACTORY_MODE || factoryMode == DEVICE_MODE_ODM_FACTORY_MODE) {
+				factoryAppUrl = getenv("RDKSHELL_ASSEMBLY_FACTORY_APP_URL");
+			} else if (factoryMode == DEVICE_MODE_ODM_2_FACTORY_MODE) {
+				factoryAppUrl = getenv("RDKSHELL_ASSEMBLY_FACTORY_2_APP_URL");
+			} else if(factoryMode == DEVICE_MODE_CVTE_AT_MODE) {
+				factoryAppUrl = getenv("RDKSHELL_MAINBOARD_MANUFACTURING_FACTORY_APP_URL");
+			} else {
+				factoryAppUrl = getenv("RDKSHELL_MAINBOARD_MANUFACTURING_FACTORY_APP_URL");
+			}
+		}
+	}
+	else
+	{
+		factoryAppUrl = getenv("RDKSHELL_MAINBOARD_MANUFACTURING_FACTORY_APP_URL");
+	}
+#else
+	factoryAppUrl = getenv("RDKSHELL_ASSEMBLY_FACTORY_APP_URL");
+#endif
+	return factoryAppUrl;
 }
 #endif
 FactoryAppLaunchStatus sFactoryAppLaunchStatus = NOTLAUNCHED;
@@ -5211,7 +5262,7 @@ namespace WPEFramework {
                 getStringParameter("factoryappstage", ftaStage);
                 if (ftaStage == "assembly")
                 {
-                    factoryAppUrl = getenv("RDKSHELL_ASSEMBLY_FACTORY_APP_URL");
+                    factoryAppUrl = getFactoryAppUrl();
                 }
                 else if (ftaStage == "mainboard")
                 {
