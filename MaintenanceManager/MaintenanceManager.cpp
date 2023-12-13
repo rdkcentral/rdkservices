@@ -515,6 +515,11 @@ namespace WPEFramework {
 		    {
                         char buff[1024] = { '\0' };
 
+			const char *cmd = "/usr/bin/rfcMgr >> /opt/logs/rfcscript.log";
+
+			system(cmd);
+
+#if 0
                         FILE* pipe2 = v_secure_popen("r", "/usr/bin/rfcMgr %s", "&");
                         FILE *fp2 = fopen("/opt/logs/rfcscript.log", "a");
 
@@ -533,6 +538,7 @@ namespace WPEFramework {
                         {
                             LOGERR("Unable to run /usr/bin/rfcMgr bin");
                         }
+#endif
                         LOGINFO("Waiting to unlock.. [%d/%d]",i+1,tasks.size());
                         task_thread.wait(lck);
 		    }
