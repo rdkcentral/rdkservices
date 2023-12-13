@@ -517,8 +517,6 @@ namespace WPEFramework {
 
                         FILE* pipe2 = v_secure_popen("r", "/usr/bin/rfcMgr %s", "&");
                         FILE *fp2 = fopen("/opt/logs/rfcscript.log", "a");
-                        LOGINFO("Waiting to unlock.. [%d/%d]",i+1,tasks.size());
-                        task_thread.wait(lck);
 
                         if ((pipe2 != NULL) && (fp2 != NULL))
                         {
@@ -531,10 +529,12 @@ namespace WPEFramework {
                             v_secure_pclose(pipe2);
                             fclose(fp2);
                         }
-                    else
-                    {
+                        else
+                        {
                             LOGERR("Unable to run /usr/bin/rfcMgr bin");
                         }
+                        LOGINFO("Waiting to unlock.. [%d/%d]",i+1,tasks.size());
+                        task_thread.wait(lck);
 		    }
                     else
                     {
