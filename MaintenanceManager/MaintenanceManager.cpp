@@ -513,15 +513,12 @@ namespace WPEFramework {
                     }
                     else if (tasks[i] == compare_strings[5])
 		    {
-                        char buff[1024] = { '\0' };
 
-			const char *cmd = "/usr/bin/rfcMgr >> /opt/logs/rfcscript.log";
-
-			system(cmd);
-
+			v_secure_system("/usr/bin/rfcMgr > /opt/logs/rfc_manager.log &");
 #if 0
+                        char buff[1024] = { '\0' };
                         FILE* pipe2 = v_secure_popen("r", "/usr/bin/rfcMgr %s", "&");
-                        FILE *fp2 = fopen("/opt/logs/rfcscript.log", "a");
+                        FILE* fp2 = fopen("/opt/logs/rfcscript.log", "a");
 
                         if ((pipe2 != NULL) && (fp2 != NULL))
                         {
