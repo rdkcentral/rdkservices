@@ -7,7 +7,7 @@
 #include <interfaces/IDeviceInfo2.h>
 #endif /* USE_THUNDER_R4 */
 
-#include "dsinitmanager/DSManagerPlugin.h"
+#include "dsmanagerplugin/DSManagerPlugin.h"
 
 namespace WPEFramework {
 namespace Plugin {

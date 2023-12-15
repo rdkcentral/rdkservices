@@ -38,6 +38,7 @@
 #include "libIBus.h"
 #include "libIBusDaemon.h"
 #include "dsMgr.h"
+#include "dsmanagerplugin/DSManagerPlugin.h"
 
 #define EDID_MAX_HORIZONTAL_SIZE 21
 #define EDID_MAX_VERTICAL_SIZE   22
@@ -49,7 +50,8 @@ class DisplayInfoImplementation :
     public Exchange::IGraphicsProperties,
     public Exchange::IConnectionProperties,
     public Exchange::IHDRProperties,
-    public Exchange::IDisplayProperties  {
+    public Exchange::IDisplayProperties,
+    public DSManagerPlugin  {
 private:
     using HdrteratorImplementation = RPC::IteratorType<Exchange::IHDRProperties::IHDRIterator>;
     using ColorimetryIteratorImplementation = RPC::IteratorType<Exchange::IDisplayProperties::IColorimetryIterator>;

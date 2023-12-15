@@ -34,7 +34,7 @@
 #include "dsMgr.h"
 
 #include "manager.hpp"
-#include "dsinitmanager/DSManagerPlugin.h"
+#include "dsmanagerplugin/DSManagerPlugin.h"
 
 namespace WPEFramework {
 namespace Plugin {

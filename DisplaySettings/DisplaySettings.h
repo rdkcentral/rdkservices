@@ -28,7 +28,7 @@
 #include "irMgr.h"
 #include "pwrMgr.h"
 #include "rfcapi.h"
-#include "dsinitmanager/DSManagerPlugin.h"
+#include "dsmanagerplugin/DSManagerPlugin.h"
 
 namespace WPEFramework {
 

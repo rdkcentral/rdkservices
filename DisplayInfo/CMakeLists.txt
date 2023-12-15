@@ -33,6 +33,7 @@ set(PLUGIN_DISPLAYINFO_STARTUPORDER "" CACHE STRING "Automatically start Display
 set(PLUGIN_DISPLAYINFO_MODE "Off" CACHE STRING "Set DisplayInfo plugin mode, controls if the plugin should run in its own process, in process or remote.")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
+find_package(${NAMESPACE}DSManagerPlugin REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
 find_package(BCM_HOST QUIET)
@@ -58,6 +59,7 @@ target_link_libraries(${MODULE_NAME}
     PRIVATE
         CompileSettingsDebug::CompileSettingsDebug
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
+        ${NAMESPACE}DSManagerPlugin::${NAMESPACE}DSManagerPlugin
         ${NAMESPACE}Definitions::${NAMESPACE}Definitions)
 
 if (PLUGIN_DISPLAYINFO_BCM_VERSION_MAJOR)
@@ -69,15 +71,12 @@ endif()
 if (USE_DEVICESETTINGS)
     find_package(DS REQUIRED)
     find_package(IARMBus REQUIRED)
-    find_package(DSInit REQUIRED)
     target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS}
         ${DS_INCLUDE_DIRS}
-        ${DSINIT_INCLUDE_DIRS}
         ../helpers)
     target_link_libraries(${MODULE_NAME} PRIVATE
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
         ${IARMBUS_LIBRARIES}
-        ${DSINIT_LIBRARIES}
         ${DS_LIBRARIES})
     target_sources(${MODULE_NAME}
         PRIVATE

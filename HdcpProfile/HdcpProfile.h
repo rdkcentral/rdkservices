@@ -22,7 +22,7 @@
 #include "libIBus.h"
 
 #include "Module.h"
-#include "dsinitmanager/DSManagerPlugin.h"
+#include "dsmanagerplugin/DSManagerPlugin.h"
 
 namespace WPEFramework {
 

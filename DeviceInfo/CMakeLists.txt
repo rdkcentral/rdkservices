@@ -22,12 +22,12 @@ set(PLUGIN_DEVICEINFO_MODE "Off" CACHE STRING "Controls if the plugin should run
 set(PLUGIN_DEVICEINFO_STARTUPORDER "" CACHE STRING "Start-up order for DeviceInfo plugin")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
+find_package(${NAMESPACE}DSManagerPlugin REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
 find_package(RFC)
 find_package(DS)
 find_package(IARMBus)
-find_package(DSInit REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
         DeviceInfo.cpp
@@ -46,7 +46,6 @@ target_include_directories(${MODULE_NAME} PRIVATE
         ${RFC_INCLUDE_DIRS}
         ${DS_INCLUDE_DIRS}
         ${IARMBUS_INCLUDE_DIRS}
-        ${DSINIT_INCLUDE_DIRS}
         ../helpers)
 
 set_source_files_properties(
@@ -59,10 +58,10 @@ target_link_libraries(${MODULE_NAME}
         PRIVATE
         CompileSettingsDebug::CompileSettingsDebug
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
+        ${NAMESPACE}DSManagerPlugin::${NAMESPACE}DSManagerPlugin
         ${NAMESPACE}Definitions::${NAMESPACE}Definitions
         ${RFC_LIBRARIES}
         ${DS_LIBRARIES}
-        ${DSINIT_LIBRARIES}
         ${IARMBUS_LIBRARIES})
 
 install(TARGETS ${MODULE_NAME}
