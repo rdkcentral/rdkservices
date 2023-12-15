@@ -69,7 +69,6 @@
              "example": "true"
          },
 	"typeOfInput":{
-	"typeOfInput":{
             "summary": "The type of Input - HDMI/COMPOSITE",
             "type": "string",
             "example": "HDMI"
