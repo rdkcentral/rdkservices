@@ -513,28 +513,10 @@ namespace WPEFramework {
                     }
                     else if (tasks[i] == compare_strings[5])
 		    {
-                        char buff[1024] = { '\0' };
 
-                        FILE* pipe2 = v_secure_popen("r", "/usr/bin/rfcMgr %s", "&");
-                        FILE *fp2 = fopen("/opt/logs/rfcscript.log", "a");
+			v_secure_system("/usr/bin/rfcMgr >> /opt/logs/rfcscript.log &");
                         LOGINFO("Waiting to unlock.. [%d/%d]",i+1,tasks.size());
                         task_thread.wait(lck);
-
-                        if ((pipe2 != NULL) && (fp2 != NULL))
-                        {
-                            memset(buff, 0, sizeof(buff));
-                            while (fgets(buff, sizeof(buff), pipe2))
-                            {
-                                fputs(buff, fp2);
-                                memset(buff, 0, sizeof(buff));
-                            }
-                            v_secure_pclose(pipe2);
-                            fclose(fp2);
-                        }
-                    else
-                    {
-                            LOGERR("Unable to run /usr/bin/rfcMgr bin");
-                        }
 		    }
                     else
                     {
