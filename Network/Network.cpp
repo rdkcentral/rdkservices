@@ -202,7 +202,6 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                     IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS, eventHandler) );
                     IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS, eventHandler) );
                     IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE, eventHandler) );
-                    IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERNET_CONNECTION_CHANGED, eventHandler) );
                     LOGINFO("Successfully activated Network Plugin");
                     m_isPluginInited = true;
                 }
@@ -231,7 +230,6 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS, eventHandler) );
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS, eventHandler) );
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE, eventHandler) );
-                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERNET_CONNECTION_CHANGED, eventHandler) );
             }
             Unregister("getQuirks");
             Unregister("getInterfaces");
@@ -352,7 +350,6 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS, eventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS, eventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE, eventHandler) );
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERNET_CONNECTION_CHANGED, eventHandler) );
                 LOGINFO("NETWORK_AVAILABILITY_RETRY_SUCCESS: threadEventRegistration successfully subscribed to IARM event for Network Plugin");
                 m_isPluginInited = true;
             }
@@ -1287,7 +1284,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             bool result = false;
             if (parameters.HasLabel("interval"))
             {
-                result = connectivityMonitor.startContinuousConnectivityMonitor(parameters["interval"].Number());
+                result = connectivityMonitor.doContinuousConnectivityMonitoring(parameters["interval"].Number());
             }
             else
             {
@@ -1299,7 +1296,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
 
         uint32_t Network::stopConnectivityMonitoring(const JsonObject& parameters, JsonObject& response)
         {
-            bool result = connectivityMonitor.stopContinuousConnectivityMonitor();
+            bool result = connectivityMonitor.stopContinuousConnectivityMonitoring();
             returnResponse(result);
         }
 
@@ -1463,16 +1460,16 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             sendNotify("onConnectionStatusChanged", params);
             if(connected)
             {
-                connectivityMonitor.startAutoExitConnectivityMonitor(30);
+                connectivityMonitor.doInitialConnectivityMonitoring(30);
             }
             else
             {
                 if (!connectivityMonitor.isMonitorThreadRunning())
                 {
                     /*run the thread again to notify no_internet state*/
-                    connectivityMonitor.startAutoExitConnectivityMonitor(30);
+                    connectivityMonitor.doInitialConnectivityMonitoring(30);
                 }
-                connectivityMonitor.stopAutoExitConnectivityMonitor();
+                connectivityMonitor.stopInitialConnectivityMonitoring();
             }
         }
 
