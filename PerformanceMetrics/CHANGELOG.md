@@ -16,30 +16,8 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
-## [1.0.5] - 2023-12-13
-### Changed
-- Remove remoteActionMappingTestClient from build
-
-## [1.0.4] - 2023-09-12
-### Added
-- Implement Thunder Plugin Configuration for Kirkstone builds(CMake-3.20 & above)
-
-## [1.0.3] - 2023-06-05
-### Added 
-- Added Support to build the plugin to both R4 & R2
-
-## [1.0.2] - 2023-04-10
-### Fixed
-- Fixed warnings treated as errors for unit tests workflow
-
-## [1.0.1] - 2022-10-04
-### Fixed
-- Fixed warnings that are treated as errors with "-Wall -Werror"
 
 ## [1.0.0] - 2022-05-11
-### Added
-- Add CHANGELOG
+### Changed
+- Browser LaunchMetrics updated 
 
-### Change
-- Reset API version to 1.0.0
-- Change README to inform how to update changelog and API version
