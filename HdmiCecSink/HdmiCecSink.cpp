@@ -172,8 +172,8 @@ static std::vector<RcProfile> rcProfile = {RC_PROFILE_TV};
 static std::vector<DeviceFeatures> deviceFeatures = {DEVICE_FEATURES_TV};
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 14
+#define API_VERSION_NUMBER_MINOR 2
+#define API_VERSION_NUMBER_PATCH 3
 
 namespace WPEFramework
 {
@@ -884,8 +884,8 @@ namespace WPEFramework
 
 						if ( powerState != DEVICE_POWER_STATE_ON )
 						{
-						   /*  set the current active source to TV on going to standby */
-                                                   HdmiCecSink::_instance->m_currentActiveSource = _instance->m_logicalAddressAllocated;
+						   /*  reset the current active source when TV on going to standby */
+                           			    HdmiCecSink::_instance->m_currentActiveSource = -1;
 						}
                                                 /* Initiate a ping straight away */
                                                 HdmiCecSink::_instance->m_pollNextState = POLL_THREAD_STATE_PING;
@@ -2677,9 +2677,7 @@ namespace WPEFramework
 						_instance->m_numberOfDevices = 0;
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_deviceType = DeviceType::TV;
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_isDevicePresent = true;
-                                                _instance->deviceList[_instance->m_logicalAddressAllocated].update(physical_addr);
-                                                _instance->m_currentActiveSource = _instance->m_logicalAddressAllocated;
-                                                _instance->deviceList[_instance->m_logicalAddressAllocated].m_isActiveSource = true;
+                       				_instance->deviceList[_instance->m_logicalAddressAllocated].update(physical_addr);
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_cecVersion = Version::V_1_4;
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_vendorID = appVendorId;
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_powerStatus = PowerStatus(powerState);
