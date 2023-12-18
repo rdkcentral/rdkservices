@@ -203,8 +203,6 @@ uint32_t TextToSpeech::SetACL(const JsonObject& parameters, JsonObject& response
                 JsonObject auth = parameters["authinfo"].Object();
                 if(auth["type"].String().compare("apikey") == 0) {
                     _tts->SetAPIKey(GET_STR(auth, "value", ""));
-                } else {
-                    goto config_failure;
                 }
             }
 
