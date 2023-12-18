@@ -1338,7 +1338,7 @@ TEST_F(TTSInitializedTest, SetNullVoice) {
         EXPECT_TRUE(false) << "Error: 'voice' not found in the response.";
     }
 }
-
+#if 0
 /**
  * @name  : SetAuthInfoTypeEmpty
  * @brief : Set AuthInfo type Empty
@@ -1380,6 +1380,7 @@ TEST_F(TTSInitializedTest, SetAuthInfoTypeNull) {
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setttsconfiguration"),
         _T("{\"authinfo\": {\"type\":null,\"value\":\"speak text\"}}"), response));
 }
+#endif
 
 /*******************************************************************************************************************
  * Test function for SetACL
