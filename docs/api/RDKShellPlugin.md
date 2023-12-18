@@ -2,7 +2,7 @@
 <a name="RDKShell_Plugin"></a>
 # RDKShell Plugin
 
-**Version: [1.4.10](https://github.com/rdkcentral/rdkservices/blob/main/RDKShell/CHANGELOG.md)**
+**Version: [1.4.11](https://github.com/rdkcentral/rdkservices/blob/main/RDKShell/CHANGELOG.md)**
 
 A org.rdk.RDKShell plugin for Thunder framework.
 
@@ -125,6 +125,8 @@ RDKShell interface methods:
 | [keyRepeatConfig](#keyRepeatConfig) | Customizes key repeats |
 | [setAVBlocked](#setAVBlocked) | adds/removes the list of applications with the given callsigns to/from the blacklist |
 | [getBlockedAVApplications](#getBlockedAVApplications) | Gets a list of blacklisted clients |
+| [hibernate](#hibernate) | Hibernate an application |
+| [restore](#restore) | Restore an application |
 
 
 <a name="addAnimation"></a>
@@ -4274,6 +4276,115 @@ This method takes no parameters.
 }
 ```
 
+<a name="hibernate"></a>
+## *hibernate*
+
+Hibernate an application.
+
+### Events
+
+| Event | Description |
+| :-------- | :-------- |
+| [onHibernated](#onHibernated) | Triggers when an application is hibernated |
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.callsign | string | The application callsign |
+| params?.timeout | number | <sup>*(optional)*</sup> Timeout in ms for hibernate procedure |
+| params?.procsequence | array | <sup>*(optional)*</sup> Hibernate sequence of application processes |
+| params?.procsequence[#] | string | <sup>*(optional)*</sup>  |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.hibernate",
+    "params": {
+        "callsign": "Cobalt",
+        "timeout": 10000,
+        "procsequence": [
+            "LightningApp-0"
+        ]
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="restore"></a>
+## *restore*
+
+Restore an application.
+
+### Events
+
+| Event | Description |
+| :-------- | :-------- |
+| [onRestored](#onRestored) | Triggers when an application is restored |
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.callsign | string | The application callsign |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.restore",
+    "params": {
+        "callsign": "Cobalt"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="Notifications"></a>
 # Notifications
 
@@ -4306,6 +4417,8 @@ RDKShell interface events:
 | [onScreenshotComplete](#onScreenshotComplete) | Triggered when a screenshot is captured successfully using `getScreenshot` method |
 | [onBlur](#onBlur) | Triggered when the focused client is blurred |
 | [onFocus](#onFocus) | Triggered when a client is set to focus |
+| [onHibernated](#onHibernated) | Triggers when an application is hibernated |
+| [onRestored](#onRestored) | Triggers when an application is restored |
 
 
 <a name="onApplicationActivated"></a>
@@ -4810,6 +4923,58 @@ Triggered when a client is set to focus.
     "method": "client.events.onFocus",
     "params": {
         "client": "HtmlApp"
+    }
+}
+```
+
+<a name="onHibernated"></a>
+## *onHibernated*
+
+Triggers when an application is hibernated.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.callsign | string | The application callsign |
+| params.success | boolean | Whether the request succeeded |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onHibernated",
+    "params": {
+        "callsign": "Cobalt",
+        "success": true
+    }
+}
+```
+
+<a name="onRestored"></a>
+## *onRestored*
+
+Triggers when an application is restored.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.callsign | string | The application callsign |
+| params.success | boolean | Whether the request succeeded |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onRestored",
+    "params": {
+        "callsign": "Cobalt",
+        "success": true
     }
 }
 ```
