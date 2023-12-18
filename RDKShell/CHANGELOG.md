@@ -19,6 +19,10 @@ All notable changes to this RDK Service will be documented in this file.
 ### Added
 - Added Hibernate and Restore api and Auto Hibernation for suspended native apps
 
+## [1.4.11] - 2023-11-17
+### Added
+- onApplicationLaunched event and proper error messages are not triggering for DAC apps
+
 ## [1.4.10] - 2023-10-23
 ### Added
 - RDKShell changes for ignoring factoryMode
