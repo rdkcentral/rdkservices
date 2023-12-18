@@ -1197,19 +1197,25 @@ namespace WPEFramework
 
        uint32_t HdmiCecSink::getEnabledWrapper(const JsonObject& parameters, JsonObject& response)
        {
+	    LOGINFO("Amit getEnabled entering");
             response["enabled"] = getEnabled();
+	    LOGINFO("Amit getEnabled exit true");
             returnResponse(true);
        }
 
        uint32_t HdmiCecSink::getAudioDeviceConnectedStatusWrapper(const JsonObject& parameters, JsonObject& response)
        {
+	    LOGINFO("Amit getAudioDeviceConnectedStatus entering");
             response["connected"] = getAudioDeviceConnectedStatus();
+	    LOGINFO("Amit getAudioDeviceConnectedStatus exit true");
             returnResponse(true);
        }
 
        uint32_t HdmiCecSink::requestAudioDevicePowerStatusWrapper(const JsonObject& parameters, JsonObject& response)
        {
+	    LOGINFO("Amit requestAudioDevicePowerStatus entering");
             requestAudioDevicePowerStatus();
+	    LOGINFO("Amit requestAudioDevicePowerStatus exit true");
             returnResponse(true);
        }
 
@@ -1496,7 +1502,7 @@ namespace WPEFramework
         }
         uint32_t HdmiCecSink::setArcEnableDisableWrapper(const JsonObject& parameters, JsonObject& response)
        {
-           
+            LOGINFO("Amit setupARCRouting entering");          
             bool enabled = false;
 
             if (parameters.HasLabel("enabled"))
@@ -1505,6 +1511,7 @@ namespace WPEFramework
             }
             else
             {
+                LOGINFO("Amit setupARCRouting exit false");          
                 returnResponse(false);
             }
             if(enabled)
@@ -1517,6 +1524,7 @@ namespace WPEFramework
 			
 	    }
             
+            LOGINFO("Amit setupARCRouting exit true");          
             returnResponse(true);
        }
         uint32_t HdmiCecSink::getVendorIdWrapper(const JsonObject& parameters, JsonObject& response)
@@ -1528,7 +1536,9 @@ namespace WPEFramework
 
         uint32_t HdmiCecSink::requestShortAudioDescriptorWrapper(const JsonObject& parameters, JsonObject& response)
 	{
+		        LOGINFO("Amit requestShortAudioDescriptor entering");
 			requestShortaudioDescriptor();
+			LOGINFO("Amit requestShortAudioDescriptor exit true");
 			returnResponse(true);
 	}
         uint32_t HdmiCecSink::sendStandbyMessageWrapper(const JsonObject& parameters, JsonObject& response)
@@ -1540,7 +1550,9 @@ namespace WPEFramework
         uint32_t HdmiCecSink::sendAudioDevicePowerOnMsgWrapper(const JsonObject& parameters, JsonObject& response)
         {
 	    LOGINFO("%s invoked. \n",__FUNCTION__);
+	    LOGINFO("Amit systemAudioModeRequest entering");
             systemAudioModeRequest();
+	    LOGINFO("Amit systemAudioModeRequest exit true");
 	    returnResponse(true);
         }
 		uint32_t HdmiCecSink::sendRemoteKeyPressWrapper(const JsonObject& parameters, JsonObject& response)
@@ -2962,19 +2974,24 @@ namespace WPEFramework
 
             
             LOGINFO("getEnabled :%d ",cecEnableStatus);
-            if(true == cecEnableStatus)
+            if(true == cecEnableStatus) {
                 return true;
-            else
+	    }
+            else {
                 return false;
+	    }
         }
 
         bool HdmiCecSink::getAudioDeviceConnectedStatus()
         {
             LOGINFO("getAudioDeviceConnectedStatus :%d ", hdmiCecAudioDeviceConnected);
-            if(true == hdmiCecAudioDeviceConnected)
+            if(true == hdmiCecAudioDeviceConnected) {
+
                 return true;
-            else
+	    }
+            else {
                 return false;
+	    }
         }
         //Arc Routing related  functions
         void HdmiCecSink::startArc()
