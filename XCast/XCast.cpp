@@ -666,6 +666,7 @@ void XCast::updateDynamicAppCache(string strApps)
             }
 
             jProperties = cJSON_GetObjectItem(itrApp, "properties");
+	    int  allowStop = 0;
             if (!cJSON_IsObject(jProperties)) {
                 LOGINFO ("Invalid property format at application index %d", iIndex);
             }
@@ -676,10 +677,11 @@ void XCast::updateDynamicAppCache(string strApps)
                 }
                 else {
                     LOGINFO("allowStop: %d", jAllowStop->valueint);
-                    for (DynamicAppConfig* pDynamicAppConfig : appConfigListTemp) {
-                        pDynamicAppConfig->allowStop = jAllowStop->valueint;
-                    }
+		    allowStop = jAllowStop->valueint;
                 }
+            }
+            for (DynamicAppConfig* pDynamicAppConfig : appConfigListTemp) {
+                pDynamicAppConfig->allowStop = allowStop;
             }
 
             jLaunchParam = cJSON_GetObjectItem(itrApp, "launchParameters");
