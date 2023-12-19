@@ -6135,23 +6135,6 @@ namespace Plugin {
             index.push_back( token );
             token.clear();
         }
-        LOGINFO("Range :\n");
-    
-        for( std::string param : range )
-            LOGINFO("%s ", param.c_str() );
-    
-        for( std::string param : pqmode )
-            LOGINFO("%s ", param.c_str() );
-    
-        for( std::string param : format )
-            LOGINFO("%s ", param.c_str() );
-    
-        for( std::string param : source )
-            LOGINFO("%s ",param.c_str() );
-    
-        for( std::string param : index )
-            LOGINFO("%s ",param.c_str() );
-        LOGINFO("\n");
     }
 
     bool AVOutputTV::isCapablityCheckPassed( std::string  pqmodeInputInfo,std::string sourceInputInfo,std::string formatInputInfo,std::string param )
@@ -6236,23 +6219,12 @@ namespace Plugin {
                                 if(sync || reset)
                                 {
                                     int value=0;
-                                    if(!getLocalparam(tr181ParamName,format,mode,source,value,pqParamIndex,sync))
-				    {
-				    }
-                                    else
-                                    {
-                                        LOGINFO("Value not found in ini %s pqmode : %d format:%d source : %d value:%d\n",tr181ParamName.c_str(),mode,format,source,value);
-                                        continue;
-                                    }
+                                    if(getLocalparam(tr181ParamName,format,mode,source,value,pqParamIndex,sync)) continue;
                                     params[0]=value;
                                 }
                                 if(set)
                                 {
-                                    //SpecialCase to store UserScale backlight in localstore only products using global BLF
-                                    if(( tr181ParamName.compare("Backlight") == 0) &&  appUsesGlobalBackLightFactor)
-                                        ret |= updatePQParamToLocalCache(tr181ParamName,source, mode, format, params[1],true);
-                                    else
-                                        ret |= updatePQParamToLocalCache(tr181ParamName,source, mode, format, params[0],true);
+                                    ret |= updatePQParamToLocalCache(tr181ParamName,source, mode, format, params[0],true);
                                 }
                                 break;
                             default:
@@ -6317,13 +6289,7 @@ namespace Plugin {
                              case PQ_PARAM_HDR10_MODE:
                                  if(sync){
                                       int value=0;
-                                      if( !getHDR10ParamToSync(value) )
-				      {
-				      }
-                                      else
-				      {
-                                          LOGERR("value not found  hdr10mode pqmode : %d format:%d value:%d\n",mode,format,value);
-                                      }
+                                      getHDR10ParamToSync(value);
                                       params[0]=value;
                                  }
                                  ret |= SaveDolbyMode(source, mode,format,params[0]);
@@ -6332,13 +6298,7 @@ namespace Plugin {
                              case PQ_PARAM_HLG_MODE:
                                  if(sync){
                                     int value=0;
-                                    if( !getHLGParamToSync(value) )
-				    {
-			            }
-                                    else
-				    {
-                                        LOGERR("value not found hlgmode pqmode : %d format:%d value:%d\n",mode,format,value);
-                                    }
+                                    getHLGParamToSync(value);
                                     params[0]=value;
                                  }
                                  ret |= SaveDolbyMode(source, mode,format,params[0]);
@@ -6352,14 +6312,7 @@ namespace Plugin {
                                  if(sync)
                                  {
                                      int value=0;
-                                     if(!getLocalparam(tr181ParamName,format,mode,source,value,pqParamIndex,sync))
-				     {
-			             }
-                                     else
-				     {
-                                         LOGERR("value not found in tr181 ldim pqmode : %d format:%d value:%d \n",mode,format,value);
-				     }
-
+                                     getLocalparam(tr181ParamName,format,mode,source,value,pqParamIndex,sync);
                                      params[0]=value;
                                  }
                                  GetLDIMAndEDIDLevel(params[0],format,&dimmingLevel,&edidLevel,mode);
@@ -6587,7 +6540,6 @@ namespace Plugin {
         {
             if( sync )
             {
-                LOGINFO("Function %s: pqmode : %d format : %d source : %d \n", __FUNCTION__, pqIndex,formatIndex,sourceIndex);
                 return 1;
             }
             GetDefaultParams(pqIndex,sourceIndex,formatIndex,pqParamIndex,&value);
@@ -7227,19 +7179,6 @@ namespace Plugin {
             source.insert( token );
             token.clear();
         }
-    
-        LOGINFO("Set Range :\n");
-    
-        for( std::string param : pqmode )
-            LOGINFO("%s \n", param.c_str());
-    
-        for( std::string param : format )
-            LOGINFO("%s \n", param.c_str());
-    
-        for( std::string param : source )
-            LOGINFO("%s \n",param.c_str());
-    
-        LOGINFO("\n");
     }
 
     std::string AVOutputTV::getDolbyModeStringFromEnum( tvDolbyMode_t mode)
