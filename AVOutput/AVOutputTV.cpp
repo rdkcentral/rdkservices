@@ -201,7 +201,6 @@ namespace Plugin {
                 for (unsigned int i = 0; i< localrange.size(); i++)
                 {
                     supportedSourcemap[localrange[i]] = stoi(index[i]);
-                    LOGINFO("fetch the soure[%s] index[%d] \n", localrange[i].c_str(), stoi(index[i]));
                 }
             }
         }
@@ -226,7 +225,6 @@ namespace Plugin {
                 for (unsigned int i = 0; i< localrange.size(); i++)
                 {
                     supportedPictureModemap[localrange[i]] = stoi(index[i]);
-                    LOGINFO("fetch the picture[%s] index[%d] \n", localrange[i].c_str(), stoi(index[i]));
                 }
             }
         }
@@ -250,7 +248,6 @@ namespace Plugin {
             {
                 for (unsigned int i = 0; i< localrange.size(); i++)
                 {
-                    LOGINFO("fetch the format[%s] index[%d] \n", localrange[i].c_str(), stoi(index[i]));
                     supportedFormatmap[localrange[i]] = stoi(index[i]);
                 }
             }
@@ -678,7 +675,6 @@ namespace Plugin {
        {
 	   std::string local = param.value;
            transform(local.begin(), local.end(), local.begin(), ::tolower);
-           LOGINFO("getLocalParam for %s is %s\n", tr181_param_name.c_str(), param.value);
            ret = SetTVPictureMode(local.c_str());
 
            if(ret != tvERROR_NONE) 
@@ -687,7 +683,8 @@ namespace Plugin {
            }
            else 
 	   {
-               LOGINFO("Picture Mode initialized successfully, value: %s\n", param.value);
+               LOGINFO("Picture Mode initialized successfully, tr181 value [%s] value: %s\n", tr181_param_name.c_str(),
+			param.value);
            }
        }
        else
@@ -940,7 +937,7 @@ namespace Plugin {
 	    {
                 LOGINFO("setLocalParam for %s Successful, Value: %s\n", AVOUTPUT_ASPECTRATIO_RFC_PARAM, value.c_str());
             }
-            LOGINFO("Exit : SetAspectRatio2() value : %s\n",value.c_str());
+            LOGINFO("Exit : SetAspectRatio() value : %s\n",value.c_str());
             returnResponse(true);
         }
     }
@@ -1003,27 +1000,27 @@ namespace Plugin {
     tvError_t AVOutputTV::setAspectRatioZoomSettings(tvDisplayMode_t mode)
     {
         tvError_t ret = tvERROR_GENERAL;
-        LOGERR("tvmgrplugin: %s mode selected is: %d", __FUNCTION__, m_videoZoomMode);
+        LOGERR("%s: mode selected is: %d", __FUNCTION__, m_videoZoomMode);
 #if !defined (HDMIIN_4K_ZOOM)
         if (AVOutputTV::instance->m_isDisabledHdmiIn4KZoom) 
 	{
             if (AVOutputTV::instance->m_currentHdmiInResoluton<dsVIDEO_PIXELRES_3840x2160 ||
                 (dsVIDEO_PIXELRES_MAX == m_currentHdmiInResoluton))
 	    {
-                LOGWARN("tvmgrplugin: %s: Setting %d zoom mode for below 4K", __FUNCTION__, m_videoZoomMode);
+                LOGWARN("%s: Setting %d zoom mode for below 4K", __FUNCTION__, m_videoZoomMode);
 #endif
                 ret = SetAspectRatio(mode);
 #if !defined (HDMIIN_4K_ZOOM)
             }
 	    else 
 	    {
-                LOGWARN("tvmgrplugin: %s: Setting auto zoom mode for 4K and above", __FUNCTION__);
+                LOGWARN("%s: Setting auto zoom mode for 4K and above", __FUNCTION__);
                 ret = SetAspectRatio(tvDisplayMode_AUTO);
             }
         } 
 	else 
 	{
-            LOGWARN("tvmgrplugin: %s: HdmiInput is not started yet. m_isDisabledHdmiIn4KZoom: %d", __FUNCTION__, AVOutputTV::instance->m_isDisabledHdmiIn4KZoom);
+            LOGWARN("%s: HdmiInput is not started yet. m_isDisabledHdmiIn4KZoom: %d", __FUNCTION__, AVOutputTV::instance->m_isDisabledHdmiIn4KZoom);
             ret = SetAspectRatio((tvDisplayMode_t)m_videoZoomMode);
         }
 #endif
@@ -1034,14 +1031,14 @@ namespace Plugin {
     {
         tvError_t ret = tvERROR_GENERAL;
 #if !defined (HDMIIN_4K_ZOOM)
-        LOGERR("controlsettingsplugin: %s mode selected is: %d", __FUNCTION__, m_videoZoomMode);
+        LOGERR("%s:mode selected is: %d", __FUNCTION__, m_videoZoomMode);
         if (AVOutputTV::instance->m_isDisabledHdmiIn4KZoom) 
 	{
             if (!(AVOutputTV::instance->m_currentHdmiInResoluton<dsVIDEO_PIXELRES_3840x2160 ||
                (dsVIDEO_PIXELRES_MAX == AVOutputTV::instance->m_currentHdmiInResoluton)))
 	    {
                 *mode = (tvDisplayMode_t)AVOutputTV::instance->m_videoZoomMode;
-                LOGWARN("tvmgrplugin: %s: Getting zoom mode %d for display, for 4K and above", __FUNCTION__, *mode);
+                LOGWARN("%s: Getting zoom mode %d for display, for 4K and above", __FUNCTION__, *mode);
                 return tvERROR_NONE;
             }
         }
@@ -1073,12 +1070,11 @@ namespace Plugin {
         tr181ErrorCode_t err = clearLocalParam(rfc_caller_id,AVOUTPUT_ASPECTRATIO_RFC_PARAM);
         if ( err != tr181Success ) 
 	{
-            LOGWARN("clearLocalParam for %s Failed : %s\n", AVOUTPUT_ASPECTRATIO_RFC_PARAM, getTR181ErrorString(err));
+            LOGERR("clearLocalParam for %s Failed : %s\n", AVOUTPUT_ASPECTRATIO_RFC_PARAM, getTR181ErrorString(err));
             ret  = tvERROR_GENERAL;
         }
         else 
 	{
-            LOGINFO("clearLocalParam for %s Successful\n", AVOUTPUT_ASPECTRATIO_RFC_PARAM);
             ret = setDefaultAspectRatio(pqmode,source,format);
         }
 	if(ret != tvERROR_NONE)
@@ -1102,8 +1098,6 @@ namespace Plugin {
         tr181ErrorCode_t err = getLocalParam(rfc_caller_id, AVOUTPUT_ASPECTRATIO_RFC_PARAM, &param);
         if ( tr181Success == err )
         {
-            LOGINFO("getLocalParam for %s is %s\n", AVOUTPUT_ASPECTRATIO_RFC_PARAM, param.value);
-
             if(!std::string(param.value).compare("16:9")) 
 	    {
                 mode = tvDisplayMode_16x9;
@@ -1526,8 +1520,6 @@ namespace Plugin {
              LOGINFO("Proceed with %s \n",__FUNCTION__);
              ret = SetBrightness(brightness);
         }
-        else
-            LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
 
 	if(ret != tvERROR_NONE) 
 	{
@@ -1740,8 +1732,6 @@ namespace Plugin {
              LOGINFO("Proceed with %s \n",__FUNCTION__);
              ret = SetContrast(contrast);
         }
-        else
-            LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
 
         if(ret != tvERROR_NONE) 
 	{
@@ -1955,9 +1945,6 @@ namespace Plugin {
              LOGINFO("Proceed with %s\n",__FUNCTION__);
              ret = SetSaturation(saturation);
         }
-        else
-            LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
-
 
         if(ret != tvERROR_NONE) 
 	{
@@ -2173,8 +2160,6 @@ namespace Plugin {
              LOGINFO("Proceed with %s\n",__FUNCTION__);
              ret = SetSharpness(sharpness);
         }
-        else
-            LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
 
         if(ret != tvERROR_NONE) 
 	{
@@ -2389,9 +2374,6 @@ namespace Plugin {
              LOGINFO("Proceed with %s\n",__FUNCTION__);
              ret = SetHue(hue);
         }
-        else
-            LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
-
 
         if(ret != tvERROR_NONE) 
 	{
@@ -2644,8 +2626,6 @@ namespace Plugin {
              LOGINFO("Proceed with %s\n",__FUNCTION__);
              ret = SetColorTemperature((tvColorTemp_t)colortemp);
         }
-        else
-            LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
 
         if(ret != tvERROR_NONE) 
 	{
@@ -2873,8 +2853,6 @@ namespace Plugin {
              LOGINFO("Proceed with %s\n",__FUNCTION__);
              ret = SetCMSState(COLOR_STATE,COLOR_ENABLE,COMPONENT_ENABLE);
         }
-        else
-            LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
 
         if(ret != tvERROR_NONE) 
 	{
@@ -2892,7 +2870,6 @@ namespace Plugin {
 	    {
                 LOGWARN("Failed to Save enableflag to ssm_data\n");
             }
-            LOGINFO("CMS Enable Success to localstore\n");
         }
         
 	if( isSetRequired(pqmode,source,format) ) 
@@ -2900,8 +2877,6 @@ namespace Plugin {
              LOGINFO("Proceed with %s\n",__FUNCTION__);
              ret = SetCurrentComponentSaturation(blSaturationColor, saturation);
         }
-        else
-            LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
 
         if(ret != tvERROR_NONE) 
 	{
@@ -2955,9 +2930,6 @@ namespace Plugin {
              LOGINFO("Proceed with %s\n",__FUNCTION__);
               err = SetCMSState(COLOR_STATE,COLOR_ENABLE,COMPONENT_DISABLE);
         }
-        else
-            LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
-
 
         if(err == tvERROR_NONE)
         {
@@ -3087,8 +3059,6 @@ namespace Plugin {
              LOGINFO("Proceed with %s\n",__FUNCTION__);
              ret = SetCMSState(COLOR_STATE,COLOR_ENABLE,COMPONENT_ENABLE);
         }
-        else
-            LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
 
         if(ret != tvERROR_NONE) 
 	{
@@ -3106,7 +3076,6 @@ namespace Plugin {
 	    {
                 LOGWARN("Failed to Save enableflag to ssm_data\n");
             }
-            LOGINFO("CMS Enable Success to localstore\n");
         }
         
 	if( isSetRequired(pqmode,source,format) ) 
@@ -3114,8 +3083,6 @@ namespace Plugin {
              LOGINFO("Proceed with %s\n",__FUNCTION__);
              ret = SetCurrentComponentHue(blHueColor, hue);
         }
-        else
-            LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
 
         if(ret != tvERROR_NONE) 
 	{
@@ -3169,8 +3136,6 @@ namespace Plugin {
              LOGINFO("Proceed with %s\n",__FUNCTION__);
              err = SetCMSState(COLOR_STATE,COLOR_ENABLE,COMPONENT_DISABLE);
         }
-        else
-            LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
 
         if(err == tvERROR_NONE)
         {
@@ -3299,8 +3264,6 @@ namespace Plugin {
              LOGINFO("Proceed with %s\n",__FUNCTION__);
              ret = SetCMSState(COLOR_STATE,COLOR_ENABLE,COMPONENT_ENABLE);
         }
-        else
-            LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
 
         if(ret != tvERROR_NONE) 
 	{
@@ -3318,7 +3281,6 @@ namespace Plugin {
 	    {
                 LOGWARN("Failed to Save enableflag to ssm_data\n");
             }
-            LOGINFO("CMS Enable Success to localstore\n");
         }
 
         if( isSetRequired(pqmode,source,format) ) 
@@ -3326,8 +3288,6 @@ namespace Plugin {
              LOGINFO("Proceed with %s\n",__FUNCTION__);
              ret = SetCurrentComponentLuma(blLumaColor, luma);
         }
-        else
-            LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
 
         if(ret != tvERROR_NONE) 
 	{
@@ -3381,8 +3341,6 @@ namespace Plugin {
              LOGINFO("Proceed with %s\n",__FUNCTION__);
              err = SetCMSState(COLOR_STATE,COLOR_ENABLE,COMPONENT_DISABLE);
         }
-        else
-            LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
 
         if(err == tvERROR_NONE)
         {
@@ -3571,9 +3529,6 @@ namespace Plugin {
              LOGINFO("Proceed with %s\n",__FUNCTION__);
              ret = SetTVDimmingMode(value.c_str());
         }
-        else
-            LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
-
 
 	if(ret != tvERROR_NONE) 
 	{
@@ -3888,8 +3843,6 @@ namespace Plugin {
         }
         else 
 	{
-            LOGINFO("clearLocalParam for %s Successful\n", AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM);
-
             TR181_ParamData_t param;
             memset(&param, 0, sizeof(param));
 
@@ -3901,8 +3854,6 @@ namespace Plugin {
             }
             else 
 	    {
-                LOGINFO("getLocalParam for %s Successful\n", AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM);
-
                 tvBacklightMode_t blMode = tvBacklightMode_NONE;
 
                 if(!std::string(param.value).compare("none")) 
@@ -4361,8 +4312,6 @@ namespace Plugin {
         }
         else 
 	{
-            LOGINFO("clearLocalParam for %s Successful\n", AVOUTPUT_HDR10MODE_RFC_PARAM);
-
             TR181_ParamData_t param;
             memset(&param, 0, sizeof(param));
 			tr181ErrorCode_t err = getLocalParam(rfc_caller_id, AVOUTPUT_HDR10MODE_RFC_PARAM,&param);
@@ -4373,8 +4322,6 @@ namespace Plugin {
             }
             else 
 	    {
-                LOGINFO("getLocalParam for %s Successful\n", AVOUTPUT_HDR10MODE_RFC_PARAM);
-
                 ret = SetTVHDR10Mode(param.value);
                 if(ret != tvERROR_NONE) 
 		{
@@ -4564,8 +4511,6 @@ namespace Plugin {
         }
         else 
 	{
-            LOGINFO("clearLocalParam for %s Successful\n", AVOUTPUT_HLGMODE_RFC_PARAM);
-
             TR181_ParamData_t param;
             memset(&param, 0, sizeof(param));
 			tr181ErrorCode_t err = getLocalParam(rfc_caller_id, AVOUTPUT_HLGMODE_RFC_PARAM,&param);
@@ -4576,8 +4521,6 @@ namespace Plugin {
             }
             else 
 	    {
-                LOGINFO("getLocalParam for %s Successful\n", AVOUTPUT_HLGMODE_RFC_PARAM);
-
                 ret = SetTVHLGMode(param.value);
                 if(ret != tvERROR_NONE) 
 		{
@@ -5187,10 +5130,8 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        LOGINFO("current format index[%d] \n", current_format);
         tr181_param_name += std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
         tr181_param_name += "." + convertSourceIndexToString(current_source) + "." + "Format."+convertVideoFormatToString(current_format)+"."+"PictureModeString";
-        LOGINFO("tr181 command[%s]", tr181_param_name.c_str());
          err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
 
          if ( tr181Success != err ) 
@@ -5232,6 +5173,7 @@ namespace Plugin {
 
             if (iter == range.end()) 
 	    {
+		LOGERR("Not a valid input value[%s].\n", inputValue.c_str());
                 return -1;
             }
         }
@@ -5401,11 +5343,9 @@ namespace Plugin {
                 }
                 else 
 		{
-                    LOGINFO("clearLocalParam for %s Successful\n", tr181_param_name.c_str());
                     err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
                     if ( tr181Success == err )
                     {
-                        LOGINFO("getLocalParam for %s is %s\n", AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM, param.value);
                         //get curren source and if matches save for that alone
 		        int current_source = 0;
                         int current_format = 0;
@@ -5587,10 +5527,6 @@ namespace Plugin {
 	{
              LOGINFO("Proceed with setLowLatencyState\n");
              ret = SetLowLatencyState( lowLatencyIndex );
-        }
-	else
-        {
-            LOGINFO("%s: Set not required for this request!!! Just Save it\n",__FUNCTION__);
         }
 
         if(ret != tvERROR_NONE) 
@@ -6049,7 +5985,6 @@ namespace Plugin {
 	    else 
             {
                 pqmode = picMode;
-                LOGINFO("Current PQmode :%s \n", pqmode.c_str());
             }
         }
 
@@ -6074,10 +6009,11 @@ namespace Plugin {
             tvError_t ret = GetCurrentSource(&currentSource);
             
 	    if(ret != tvERROR_NONE)
+	    {
                 LOGWARN("%s: GetCurrentSource( ) Failed \n",__FUNCTION__);
-          
+		return -1;
+            }  
             source = convertSourceIndexToString(currentSource);
-            LOGINFO("current source:%s \n", source.c_str());
         }
 
         //convert format into valid parameter
@@ -6101,7 +6037,6 @@ namespace Plugin {
 	  int formatIndex = (int)ConvertVideoFormatToHDRFormat(GetCurrentContentFormat());
 	  if ( formatIndex  == HDR_TYPE_NONE) formatIndex  = HDR_TYPE_SDR;
           format = convertVideoFormatToString(formatIndex);
-          LOGINFO("Current:%s \n", format.c_str());
         }
 
         LOGINFO("Exit %s source %s pqmode %s format %s \n", __FUNCTION__, source.c_str(), pqmode.c_str(), format.c_str());
@@ -6129,7 +6064,6 @@ namespace Plugin {
         }
         else
         {
-            LOGINFO("%s : range : %s pqmode : %s source : %s format : %s param : %s \n",__FUNCTION__,rangeInfo.c_str(), pqmodeInfo.c_str(), sourceInfo.c_str(), formatInfo.c_str(),param.c_str() );
             spliltCapablities( range, pqmode, format, source, localIndex,rangeInfo, pqmodeInfo, formatInfo, sourceInfo , indexInfo);
         }
     
@@ -6155,8 +6089,6 @@ namespace Plugin {
         }
         else
         {
-            LOGINFO("%s : range : %s pqmode : %s source : %s format : %s index: %s param : %s \n",__FUNCTION__,rangeInfo.c_str(),
-                     pqmodeInfo.c_str(), sourceInfo.c_str(), formatInfo.c_str(), indexInfo.c_str(), param.c_str() );
             spliltCapablities( range, pqmode, format, source, index,rangeInfo, pqmodeInfo, formatInfo, sourceInfo, indexInfo);
         }
 
@@ -6203,7 +6135,6 @@ namespace Plugin {
             index.push_back( token );
             token.clear();
         }
-        LOGINFO("All the vectors \n");
         LOGINFO("Range :\n");
     
         for( std::string param : range )
@@ -6306,7 +6237,6 @@ namespace Plugin {
                                 {
                                     int value=0;
                                     if(!getLocalparam(tr181ParamName,format,mode,source,value,pqParamIndex,sync))
-                                        LOGINFO("Found param  %s pqmode : %d format:%d  source : %d value:%d\n",tr181ParamName.c_str(),mode,format,source,value);
                                     else
                                     {
                                         LOGINFO("Value not found in ini %s pqmode : %d format:%d source : %d value:%d\n",tr181ParamName.c_str(),mode,format,source,value);
@@ -6386,7 +6316,6 @@ namespace Plugin {
                                  if(sync){
                                       int value=0;
                                       if( !getHDR10ParamToSync(value) )
-                                          LOGINFO("Found param hdr10mode pqmode : %d format:%d value:%d\n",mode,format,value);
                                       else
                                           LOGERR("value not found  hdr10mode pqmode : %d format:%d value:%d\n",mode,format,value);
 
@@ -6399,7 +6328,6 @@ namespace Plugin {
                                  if(sync){
                                     int value=0;
                                     if( !getHLGParamToSync(value) )
-                                        LOGINFO("Found param  hlgmode pqmode : %d format:%d value:%d\n",mode,format,value);
                                     else
                                         LOGERR("value not found hlgmode pqmode : %d format:%d value:%d\n",mode,format,value);
 
@@ -6417,7 +6345,6 @@ namespace Plugin {
                                  {
                                      int value=0;
                                      if(!getLocalparam(tr181ParamName,format,mode,source,value,pqParamIndex,sync))
-                                         LOGINFO("Found param from tr181 ldim pqmode : %d format:%d value:%d \n",mode,format,value);
                                      else
                                          LOGERR("value not found in tr181 ldim pqmode : %d format:%d value:%d \n",mode,format,value);
 
@@ -6444,8 +6371,6 @@ namespace Plugin {
     {
         tvError_t ret = tvERROR_NONE;
         std::string key;
-
-        LOGINFO("Entry : %s source:%d,pqmode:%d,format:%d\n",__FUNCTION__,source,pqmode,format);
 
         generateStorageIdentifier(key,forParam,format,pqmode,source);
         if(key.empty())
@@ -6484,10 +6409,6 @@ namespace Plugin {
                 LOGERR("%s for %s Failed : %s\n", setNotDelete?"Set":"Delete", key.c_str(), getTR181ErrorString(err));
                 ret = tvERROR_GENERAL;
             }
-            else 
-	    {
-                LOGINFO("%s for %s Successful \n", setNotDelete?"Set":"Delete",key.c_str());
-            }
         }
         return ret;
     }
@@ -6510,7 +6431,6 @@ namespace Plugin {
         {
 	    std::string local = token;
             picturemodes.push_back(getPictureModeIndex(local));
-            LOGINFO("%s : PQmode: token : %s local:%s\n",__FUNCTION__,token, local.c_str());
         }
         //source
         char *sourceString = strdup(source.c_str());
@@ -6519,7 +6439,6 @@ namespace Plugin {
         {
             std::string local = sourceToken;
             sources.push_back(getSourceIndex(local));
-            LOGINFO("%s : Source %s local %s\n",__FUNCTION__,sourceToken, local.c_str());
         }
         //3)check format
         char *formatString = strdup(format.c_str());
@@ -6528,7 +6447,6 @@ namespace Plugin {
         {
             std::string local = formatToken;
             formats.push_back(getFormatIndex(local));
-            LOGINFO("%s : Format: %s\n",__FUNCTION__,formatToken);
         }
 
         LOGINFO("Exit : %s pqmode : %s source :%s format :%s ret:%d\n",__FUNCTION__,pqmode.c_str(),source.c_str(),format.c_str(), ret);
@@ -6696,8 +6614,6 @@ namespace Plugin {
 	if ( formatIndex  == HDR_TYPE_NONE) formatIndex = HDR_TYPE_SDR;
         currentFormat = convertVideoFormatToString(formatIndex);
 
-        LOGINFO("%s : currentSource = %s,currentPicMode = %s,currentFormat = %s\n",__FUNCTION__,currentSource.c_str(),currentPicMode.c_str(),currentFormat.c_str());
-        LOGINFO("%s : source = %s,PicMode = %s, format= %s\n",__FUNCTION__,source.c_str(),pqmode.c_str(),format.c_str());
 
         if( ( (pqmode.find(currentPicMode) != std::string::npos) || (pqmode.compare("Global") == 0)  || (pqmode.compare("Current") == 0) ||
             (pqmode.compare("none") == 0) ) &&
@@ -7300,8 +7216,7 @@ namespace Plugin {
             token.clear();
         }
     
-        LOGINFO("All the Sets \n");
-        LOGINFO("Range :\n");
+        LOGINFO("Set Range :\n");
     
         for( std::string param : pqmode )
             LOGINFO("%s \n", param.c_str());
@@ -7367,8 +7282,6 @@ namespace Plugin {
             if (i != (formatArray.Length() - 1) ) format += ",";
 	}
 
-	LOGINFO("%s source:[%s] pqmode[%s] format[%s]", __FUNCTION__,source.c_str(), pqmode.c_str(), format.c_str());
-
         if (source.empty()) source = "Global";
         if (pqmode.empty()) pqmode = "Global";
         if (format.empty()) format = "Global";
@@ -7389,8 +7302,6 @@ namespace Plugin {
         source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
 
         format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
-
-        LOGINFO("%s source:[%s] pqmode[%s] format[%s]", __FUNCTION__,source.c_str(), pqmode.c_str(), format.c_str());
 
 	if ( (source.compare("Global") == 0) || (pqmode.compare("Global") == 0) || (format.compare("Global") == 0) )
 	{
