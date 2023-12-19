@@ -64,8 +64,8 @@
 #define registerMethod(...) for (uint8_t i = 1; GetHandler(i); i++) GetHandler(i)->Register<JsonObject, JsonObject>(__VA_ARGS__)
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 1
-#define API_VERSION_NUMBER_PATCH 2
+#define API_VERSION_NUMBER_MINOR 2
+#define API_VERSION_NUMBER_PATCH 0
 
 static int audio_output_delay = 100;
 static int video_latency = 20;
@@ -229,17 +229,31 @@ namespace WPEFramework
             returnIfParamNotFound(parameters, "portId");
 
             string sPortId = parameters["portId"].String();
-            int portId = 0;
-            try {
-                portId = stoi(sPortId);
-            }catch (const std::exception& err) {
+            bool audioMix = parameters["requestAudioMix"].Boolean();
+	    int portId = 0;    
+	    bool topMostPlane = parameters["topMost"].Boolean();
+
+	    //planeType = 0 -  primary, 1 - secondary video plane type
+	    int planeType = 0;
+	    try {
+	        portId = stoi(sPortId);
+		if (parameters.HasLabel("plane")){
+                     string sPlaneType = parameters["plane"].String();
+                     planeType = stoi(sPlaneType);
+		     if(!(planeType == 0 || planeType == 1))// planeType has to be primary(0) or secondary(1)
+		     {
+			  LOGWARN("planeType is invalid\n");
+			  returnResponse(false);
+	             }
+                }
+	    }catch (const std::exception& err) {
 		    LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
 		    returnResponse(false);
             }
             bool success = true;
             try
             {
-                device::HdmiInput::getInstance().selectPort(portId);
+                device::HdmiInput::getInstance().selectPort(portId,audioMix,planeType,topMostPlane);
             }
             catch (const device::Exception& err)
             {
