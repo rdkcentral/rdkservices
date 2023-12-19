@@ -6237,6 +6237,8 @@ namespace Plugin {
                                 {
                                     int value=0;
                                     if(!getLocalparam(tr181ParamName,format,mode,source,value,pqParamIndex,sync))
+				    {
+				    }
                                     else
                                     {
                                         LOGINFO("Value not found in ini %s pqmode : %d format:%d source : %d value:%d\n",tr181ParamName.c_str(),mode,format,source,value);
@@ -6316,9 +6318,12 @@ namespace Plugin {
                                  if(sync){
                                       int value=0;
                                       if( !getHDR10ParamToSync(value) )
+				      {
+				      }
                                       else
+				      {
                                           LOGERR("value not found  hdr10mode pqmode : %d format:%d value:%d\n",mode,format,value);
-
+                                      }
                                       params[0]=value;
                                  }
                                  ret |= SaveDolbyMode(source, mode,format,params[0]);
@@ -6328,9 +6333,12 @@ namespace Plugin {
                                  if(sync){
                                     int value=0;
                                     if( !getHLGParamToSync(value) )
+				    {
+			            }
                                     else
+				    {
                                         LOGERR("value not found hlgmode pqmode : %d format:%d value:%d\n",mode,format,value);
-
+                                    }
                                     params[0]=value;
                                  }
                                  ret |= SaveDolbyMode(source, mode,format,params[0]);
@@ -6345,8 +6353,12 @@ namespace Plugin {
                                  {
                                      int value=0;
                                      if(!getLocalparam(tr181ParamName,format,mode,source,value,pqParamIndex,sync))
+				     {
+			             }
                                      else
+				     {
                                          LOGERR("value not found in tr181 ldim pqmode : %d format:%d value:%d \n",mode,format,value);
+				     }
 
                                      params[0]=value;
                                  }
