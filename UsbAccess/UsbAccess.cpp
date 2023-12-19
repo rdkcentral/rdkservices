@@ -578,7 +578,7 @@ namespace Plugin {
             if(!usbPath.empty())
             {
                 string script = (ARCHIVE_LOGS_SCRIPT + " " + usbPath);
-                FILE* fp = popen(script.c_str(), "r");
+                FILE* fp = v_secure_popen("r","%s %s",ARCHIVE_LOGS_SCRIPT.c_str(),usbPath.c_str());
                 if (NULL != fp) {
                     char buf[256];
                     while(fgets(buf, sizeof(buf), fp) != NULL)
