@@ -84,6 +84,7 @@ std::string  TTSURLConstructer::httppostURL(TTSConfiguration &config, std::strin
         jsonConfig["language"] = config.language();
         jsonConfig["voice"] = config.voice();
         jsonConfig["encoding"] = "mp3";
+        jsonConfig["speed"] = config.speechRate();
         jsonConfig.ToString(post_data);
         TTSLOG_INFO("gcd postdata :%s\n",post_data.c_str());
 
