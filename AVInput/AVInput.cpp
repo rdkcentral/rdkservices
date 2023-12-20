@@ -30,7 +30,7 @@
 #include <algorithm>
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 4
+#define API_VERSION_NUMBER_MINOR 5
 #define API_VERSION_NUMBER_PATCH 0
 
 #define HDMI 0
@@ -332,15 +332,27 @@ uint32_t AVInput::startInput(const JsonObject& parameters, JsonObject& response)
     
     string sPortId = parameters["portId"].String();
     string sType = parameters["typeOfInput"].String();
+    bool audioMix = parameters["requestAudioMix"].Boolean();
     int portId = 0;
     int iType = 0;
-
+    int planeType = 0; //planeType = 0 -  primary, 1 - secondary video plane type
+    bool topMostPlane = parameters["topMost"].Boolean();
+    LOGINFO("topMost value in thunder: %d\n",topMostPlane); 
     if (parameters.HasLabel("portId") && parameters.HasLabel("typeOfInput"))
     {
         try {
             portId = stoi(sPortId);
             iType = getTypeOfInput (sType);
-        }catch (...) {
+   	    if (parameters.HasLabel("plane")){
+                     string sPlaneType = parameters["plane"].String();
+                     planeType = stoi(sPlaneType);
+		     if(!(planeType == 0 || planeType == 1))// planeType has to be primary(0) or secondary(1)
+		     {
+			  LOGWARN("planeType is invalid\n");
+			  returnResponse(false);
+	             }
+             }
+   	}catch (...) {
             LOGWARN("Invalid Arguments");
             returnResponse(false);
         }
@@ -353,7 +365,7 @@ uint32_t AVInput::startInput(const JsonObject& parameters, JsonObject& response)
     try
     {
         if (iType == HDMI) {
-            device::HdmiInput::getInstance().selectPort(portId);
+            device::HdmiInput::getInstance().selectPort(portId,audioMix,planeType,topMostPlane);
     }
     else if(iType == COMPOSITE) {
             device::CompositeInput::getInstance().selectPort(portId);
