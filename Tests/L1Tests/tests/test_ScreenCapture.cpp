@@ -41,7 +41,7 @@ protected:
         PluginHost::IFactories::Assign(&factoriesImplementation);
 
         dispatcher = static_cast<PluginHost::IDispatcher*>(
-            plugin->QueryInterface(PluginHost::IDispatcher::ID));
+        plugin->QueryInterface(PluginHost::IDispatcher::ID));
         dispatcher->Activate(&service);
     }
     virtual ~ScreenCaptureEventTest() override
@@ -57,16 +57,22 @@ protected:
 
 class ScreenCaptureFrameBufferTest : public ScreenCaptureEventTest {
 protected:
-    NiceMock<FrameBufferApiImplMock> frameBufferApiImplMock;
-
+    FrameBufferApiImplMock   *p_frameBufferApiImplMock = nullptr ;
     ScreenCaptureFrameBufferTest()
         : ScreenCaptureEventTest()
     {
-        FrameBufferApi::getInstance().impl = &frameBufferApiImplMock;
+        p_frameBufferApiImplMock  = new NiceMock <FrameBufferApiImplMock>;
+        FrameBufferApi::setImpl(p_frameBufferApiImplMock);
+
     }
     virtual ~ScreenCaptureFrameBufferTest() override
     {
-        FrameBufferApi::getInstance().impl = nullptr;
+        FrameBufferApi::setImpl(nullptr);
+        if (p_frameBufferApiImplMock != nullptr)
+        {
+            delete p_frameBufferApiImplMock;
+            p_frameBufferApiImplMock = nullptr;
+        }
     }
 };
 
@@ -81,10 +87,10 @@ TEST_F(ScreenCaptureFrameBufferTest, FrameBufferUpload)
     PixelFormat pixelFormat = {32, 24, 0, 1, 255, 255, 255, 16, 8, 0};
     vnc_uint8_t* frameBuffer = (vnc_uint8_t*) malloc(5120 * 720);
     memset(frameBuffer, 0xff, 5120 * 720);
-    
+
     Core::Event uploadComplete(false, true);
-    
-    EXPECT_CALL(frameBufferApiImplMock, fbCreate(::testing::_))
+
+    EXPECT_CALL(*p_frameBufferApiImplMock, fbCreate(::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
             [&](FBContext** fbctx) {
@@ -92,31 +98,31 @@ TEST_F(ScreenCaptureFrameBufferTest, FrameBufferUpload)
                 return ErrNone;
             }));
 
-    ON_CALL(frameBufferApiImplMock, fbInit(::testing::_, ::testing::_, ::testing::_))
+    ON_CALL(*p_frameBufferApiImplMock, fbInit(::testing::_, ::testing::_, ::testing::_))
         .WillByDefault(
             ::testing::Return(ErrNone));
 
-    ON_CALL(frameBufferApiImplMock, fbGetPixelFormat(::testing::_))
+    ON_CALL(*p_frameBufferApiImplMock, fbGetPixelFormat(::testing::_))
         .WillByDefault(
             ::testing::Return(&pixelFormat));
 
-    ON_CALL(frameBufferApiImplMock, fbGetWidth(::testing::_))
+    ON_CALL(*p_frameBufferApiImplMock, fbGetWidth(::testing::_))
         .WillByDefault(
             ::testing::Return(1280));
 
-    ON_CALL(frameBufferApiImplMock, fbGetHeight(::testing::_))
+    ON_CALL(*p_frameBufferApiImplMock, fbGetHeight(::testing::_))
         .WillByDefault(
             ::testing::Return(720));
 
-    ON_CALL(frameBufferApiImplMock, fbGetStride(::testing::_))
+    ON_CALL(*p_frameBufferApiImplMock, fbGetStride(::testing::_))
         .WillByDefault(
             ::testing::Return(5120));
 
-    EXPECT_CALL(frameBufferApiImplMock, fbGetFramebuffer(::testing::_))
+    EXPECT_CALL(*p_frameBufferApiImplMock, fbGetFramebuffer(::testing::_))
         .Times(1)
         .WillOnce(::testing::Return(frameBuffer));
 
-    EXPECT_CALL(frameBufferApiImplMock, fbDestroy(::testing::_))
+    EXPECT_CALL(*p_frameBufferApiImplMock, fbDestroy(::testing::_))
         .Times(1)
         .WillOnce(::testing::Return(ErrNone));
 
@@ -128,7 +134,7 @@ TEST_F(ScreenCaptureFrameBufferTest, FrameBufferUpload)
                 EXPECT_TRUE(json->ToString(text));
 
                 EXPECT_EQ(text, string(_T(
-                	"{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.ScreenCapture.uploadComplete\",\"params\":{\"status\":true,\"message\":\"Success\",\"call_guid\":\"\"}}"
+                        "{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.ScreenCapture.uploadComplete\",\"params\":{\"status\":true,\"message\":\"Success\",\"call_guid\":\"\"}}"
                 )));
 
                 uploadComplete.SetEvent();

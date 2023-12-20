@@ -27,19 +27,22 @@ protected:
 class OCIContainerInitializedTest : public OCIContainerTest {
 protected:
     NiceMock<ServiceMock> service;
-    DobbyProxyMock dobbymock;
-    IpcServiceMock ipcservicemock;
+    DobbyProxyMock    *p_dobbymock = nullptr ;
+    IpcServiceMock    *p_ipcservicemock = nullptr ;
 
     OCIContainerInitializedTest()
         : OCIContainerTest()
     {
-        DobbyProxy::getInstance().impl = &dobbymock;
-        IpcService::getInstance().impl = &ipcservicemock;
+        p_dobbymock  = new NiceMock <DobbyProxyMock>;
+        DobbyProxy::setImpl(p_dobbymock);
 
-        EXPECT_CALL(ipcservicemock, start())
+        p_ipcservicemock  = new NiceMock <IpcServiceMock>;
+        IpcService::setImpl(p_ipcservicemock);
+
+        EXPECT_CALL(*p_ipcservicemock, start())
             .WillOnce(::testing::Return(true));
 
-        EXPECT_CALL(dobbymock, registerListener(::testing::_, ::testing::_))
+        EXPECT_CALL(*p_dobbymock, registerListener(::testing::_, ::testing::_))
             .WillOnce(::testing::Return(5));
 
         EXPECT_EQ(string(""), plugin->Initialize(&service));
@@ -47,10 +50,23 @@ protected:
 
     virtual ~OCIContainerInitializedTest() override
     {
-        EXPECT_CALL(dobbymock, unregisterListener(5))
+        EXPECT_CALL(*p_dobbymock, unregisterListener(5))
             .WillOnce(::testing::Return());
 
         plugin->Deinitialize(&service);
+        DobbyProxy::setImpl(nullptr);
+        if (p_dobbymock != nullptr)
+        {
+            delete p_dobbymock;
+            p_dobbymock = nullptr;
+        }
+
+        IpcService::setImpl(nullptr);
+        if (p_ipcservicemock != nullptr)
+        {
+            delete p_ipcservicemock;
+            p_ipcservicemock = nullptr;
+        }
     }
 };
 
@@ -72,7 +88,7 @@ TEST_F(OCIContainerTest, RegisteredMethods)
 TEST_F(OCIContainerInitializedTest, listContainersTest)
 {
     std::list<std::pair<int32_t, std::string>> containerslist = {{91, "com.bskyb.epgui"},{94, "Netflix"}};
-    EXPECT_CALL(dobbymock, listContainers())
+    EXPECT_CALL(*p_dobbymock, listContainers())
         .WillOnce(::testing::Return(containerslist));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("listContainers"), _T("{}"), response));
@@ -82,10 +98,10 @@ TEST_F(OCIContainerInitializedTest, listContainersTest)
 TEST_F(OCIContainerInitializedTest, getContainerStateTest)
 {
     std::list<std::pair<int32_t, std::string>> containerslist = {{91, "com.bskyb.epgui"},{94, "Netflix"}};
-    EXPECT_CALL(dobbymock, listContainers())
+    EXPECT_CALL(*p_dobbymock, listContainers())
         .WillOnce(::testing::Return(containerslist));
 
-    EXPECT_CALL(dobbymock, getContainerState(91))
+    EXPECT_CALL(*p_dobbymock, getContainerState(91))
         .WillOnce(::testing::Return(IDobbyProxyEvents::ContainerState::Running));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getContainerState"), _T("{"
@@ -97,10 +113,10 @@ TEST_F(OCIContainerInitializedTest, getContainerStateTest)
 TEST_F(OCIContainerInitializedTest, getContainerInfoTest)
 {
     std::list<std::pair<int32_t, std::string>> containerslist = {{91, "com.bskyb.epgui"},{94, "Netflix"}};
-    EXPECT_CALL(dobbymock, listContainers())
+    EXPECT_CALL(*p_dobbymock, listContainers())
         .WillOnce(::testing::Return(containerslist));
 
-    EXPECT_CALL(dobbymock, getContainerInfo(91))
+    EXPECT_CALL(*p_dobbymock, getContainerInfo(91))
         .WillOnce(::testing::Return("{\"cpu\":{\"usage\" :{\"percpu\" :[3661526845,3773518079,4484546066,4700379608],"
    "\"total\" : 16619970598}},\"gpu\":{\"memory\" :{\"failcnt\" : 0,\"limit\" : 209715200,\"max\" : 3911680,\"usage\" : 0}},"
    "\"id\":\"Cobalt-0\",\"ion\":{\"heaps\" :{\"ion.\" :{\"failcnt\" : null,\"limit\" : null,\"max\" : null,\"usage\" : null}}},"
@@ -133,7 +149,7 @@ TEST_F(OCIContainerInitializedTest, getContainerInfoTest)
 
 TEST_F(OCIContainerInitializedTest, startContainerTest)
 {
-    EXPECT_CALL(dobbymock, startContainerFromBundle(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
+    EXPECT_CALL(*p_dobbymock, startContainerFromBundle(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
         .WillOnce(::testing::Return(91));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startContainer"), _T("{"
@@ -144,7 +160,7 @@ TEST_F(OCIContainerInitializedTest, startContainerTest)
 
 TEST_F(OCIContainerInitializedTest, startContainerFromDobbySpecTest)
 {
-    EXPECT_CALL(dobbymock, startContainerFromSpec(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
+    EXPECT_CALL(*p_dobbymock, startContainerFromSpec(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
         .WillOnce(::testing::Return(91));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startContainerFromDobbySpec"), _T("{"
@@ -156,10 +172,10 @@ TEST_F(OCIContainerInitializedTest, startContainerFromDobbySpecTest)
 TEST_F(OCIContainerInitializedTest, stopContainerTest)
 {
     std::list<std::pair<int32_t, std::string>> containerslist = {{91, "com.bskyb.epgui"},{94, "Netflix"}};
-    EXPECT_CALL(dobbymock, listContainers())
+    EXPECT_CALL(*p_dobbymock, listContainers())
         .WillOnce(::testing::Return(containerslist));
 
-    EXPECT_CALL(dobbymock, stopContainer(91, ::testing::_))
+    EXPECT_CALL(*p_dobbymock, stopContainer(91, ::testing::_))
         .WillOnce(::testing::Return(true));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("stopContainer"), _T("{"
@@ -170,10 +186,10 @@ TEST_F(OCIContainerInitializedTest, stopContainerTest)
 TEST_F(OCIContainerInitializedTest, pauseContainerTest)
 {
     std::list<std::pair<int32_t, std::string>> containerslist = {{91, "com.bskyb.epgui"},{94, "Netflix"}};
-    EXPECT_CALL(dobbymock, listContainers())
+    EXPECT_CALL(*p_dobbymock, listContainers())
         .WillOnce(::testing::Return(containerslist));
 
-    EXPECT_CALL(dobbymock, pauseContainer(91))
+    EXPECT_CALL(*p_dobbymock, pauseContainer(91))
         .WillOnce(::testing::Return(true));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("pauseContainer"), _T("{"
@@ -184,10 +200,10 @@ TEST_F(OCIContainerInitializedTest, pauseContainerTest)
 TEST_F(OCIContainerInitializedTest, resumeContainerTest)
 {
     std::list<std::pair<int32_t, std::string>> containerslist = {{91, "com.bskyb.epgui"},{94, "Netflix"}};
-    EXPECT_CALL(dobbymock, listContainers())
+    EXPECT_CALL(*p_dobbymock, listContainers())
         .WillOnce(::testing::Return(containerslist));
 
-    EXPECT_CALL(dobbymock, resumeContainer(91))
+    EXPECT_CALL(*p_dobbymock, resumeContainer(91))
         .WillOnce(::testing::Return(true));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("resumeContainer"), _T("{"
@@ -198,10 +214,10 @@ TEST_F(OCIContainerInitializedTest, resumeContainerTest)
 TEST_F(OCIContainerInitializedTest, executeCommandTest)
 {
     std::list<std::pair<int32_t, std::string>> containerslist = {{91, "com.bskyb.epgui"},{94, "Netflix"}};
-    EXPECT_CALL(dobbymock, listContainers())
+    EXPECT_CALL(*p_dobbymock, listContainers())
         .WillOnce(::testing::Return(containerslist));
 
-    EXPECT_CALL(dobbymock, execInContainer(91, ::testing::_, ::testing::_))
+    EXPECT_CALL(*p_dobbymock, execInContainer(91, ::testing::_, ::testing::_))
         .WillOnce(::testing::Return(true));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("executeCommand"), _T("{"

@@ -41,19 +41,25 @@ protected:
     Core::JSONRPC::Handler&               handler_;
     Core::JSONRPC::Connection             connection_;
     string                                response_;
-    NiceMock<IarmBusImplMock>             iarmBusImplMock_;
+    IarmBusImplMock   *p_iarmBusImplMock = nullptr ;
 
     VoiceControlTest()
         : plugin_(Core::ProxyType<Plugin::VoiceControl>::Create())
         , handler_(*plugin_)
         , connection_(1, 0)
     {
-        IarmBus::getInstance().impl = &iarmBusImplMock_;
+        p_iarmBusImplMock  = new NiceMock <IarmBusImplMock>;
+        IarmBus::setImpl(p_iarmBusImplMock);
     }
 
     virtual ~VoiceControlTest() override
     {
-        IarmBus::getInstance().impl = nullptr;
+        IarmBus::setImpl(nullptr);
+        if (p_iarmBusImplMock != nullptr)
+        {
+            delete p_iarmBusImplMock;
+            p_iarmBusImplMock = nullptr;
+        }
     }
 };
 
@@ -83,14 +89,14 @@ protected:
     VoiceControlInitializedEventTest() :
         VoiceControlTest()
     {
-        EXPECT_CALL(iarmBusImplMock_, IARM_Bus_RegisterEventHandler(StrEq(CTRLM_MAIN_IARM_BUS_NAME), _, _))
+        EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_RegisterEventHandler(StrEq(CTRLM_MAIN_IARM_BUS_NAME), _, _))
             .WillRepeatedly(Invoke(
                 [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
                     EXPECT_TRUE(isValidCtrlmVoiceIarmEvent(eventId));
                     voiceEventHandler_ = handler;
                     return IARM_RESULT_SUCCESS;
                 }));
-        ON_CALL(iarmBusImplMock_, IARM_Bus_Call(StrEq(CTRLM_MAIN_IARM_BUS_NAME), StrEq(CTRLM_VOICE_IARM_CALL_STATUS), _, _))
+        ON_CALL(*p_iarmBusImplMock, IARM_Bus_Call(StrEq(CTRLM_MAIN_IARM_BUS_NAME), StrEq(CTRLM_VOICE_IARM_CALL_STATUS), _, _))
             .WillByDefault(Invoke(
                 [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                     auto param = static_cast<ctrlm_voice_iarm_call_json_t*>(arg);
@@ -127,7 +133,7 @@ TEST_F(VoiceControlTest, RegisteredMethods)
 
 TEST_F(VoiceControlTest, voiceStatus)
 {
-    ON_CALL(iarmBusImplMock_, IARM_Bus_Call(StrEq(CTRLM_MAIN_IARM_BUS_NAME), StrEq(CTRLM_VOICE_IARM_CALL_STATUS), _, _))
+    ON_CALL(*p_iarmBusImplMock, IARM_Bus_Call(StrEq(CTRLM_MAIN_IARM_BUS_NAME), StrEq(CTRLM_VOICE_IARM_CALL_STATUS), _, _))
         .WillByDefault(Invoke(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 auto param = static_cast<ctrlm_voice_iarm_call_json_t*>(arg);
@@ -160,7 +166,7 @@ TEST_F(VoiceControlTest, voiceStatus)
 
 TEST_F(VoiceControlTest, configureVoice)
 {
-    ON_CALL(iarmBusImplMock_, IARM_Bus_Call(StrEq(CTRLM_MAIN_IARM_BUS_NAME), StrEq(CTRLM_VOICE_IARM_CALL_CONFIGURE_VOICE), _, _))
+    ON_CALL(*p_iarmBusImplMock, IARM_Bus_Call(StrEq(CTRLM_MAIN_IARM_BUS_NAME), StrEq(CTRLM_VOICE_IARM_CALL_CONFIGURE_VOICE), _, _))
         .WillByDefault(Invoke(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 auto param = static_cast<ctrlm_voice_iarm_call_json_t*>(arg);
@@ -186,7 +192,7 @@ TEST_F(VoiceControlTest, configureVoice)
 
 TEST_F(VoiceControlTest, setVoiceInit)
 {
-    ON_CALL(iarmBusImplMock_, IARM_Bus_Call(StrEq(CTRLM_MAIN_IARM_BUS_NAME), StrEq(CTRLM_VOICE_IARM_CALL_SET_VOICE_INIT), _, _))
+    ON_CALL(*p_iarmBusImplMock, IARM_Bus_Call(StrEq(CTRLM_MAIN_IARM_BUS_NAME), StrEq(CTRLM_VOICE_IARM_CALL_SET_VOICE_INIT), _, _))
         .WillByDefault(Invoke(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 auto param = static_cast<ctrlm_voice_iarm_call_json_t*>(arg);
@@ -203,7 +209,7 @@ TEST_F(VoiceControlTest, setVoiceInit)
 
 TEST_F(VoiceControlTest, sendVoiceMessage)
 {
-    ON_CALL(iarmBusImplMock_, IARM_Bus_Call(StrEq(CTRLM_MAIN_IARM_BUS_NAME), StrEq(CTRLM_VOICE_IARM_CALL_SEND_VOICE_MESSAGE), _, _))
+    ON_CALL(*p_iarmBusImplMock, IARM_Bus_Call(StrEq(CTRLM_MAIN_IARM_BUS_NAME), StrEq(CTRLM_VOICE_IARM_CALL_SEND_VOICE_MESSAGE), _, _))
         .WillByDefault(Invoke(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 auto param = static_cast<ctrlm_voice_iarm_call_json_t*>(arg);
@@ -217,7 +223,7 @@ TEST_F(VoiceControlTest, sendVoiceMessage)
 
 TEST_F(VoiceControlTest, voiceSessionTypes)
 {
-    ON_CALL(iarmBusImplMock_, IARM_Bus_Call(StrEq(CTRLM_MAIN_IARM_BUS_NAME), StrEq(CTRLM_VOICE_IARM_CALL_SESSION_TYPES), _, _))
+    ON_CALL(*p_iarmBusImplMock, IARM_Bus_Call(StrEq(CTRLM_MAIN_IARM_BUS_NAME), StrEq(CTRLM_VOICE_IARM_CALL_SESSION_TYPES), _, _))
         .WillByDefault(Invoke(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 auto param = static_cast<ctrlm_voice_iarm_call_json_t*>(arg);
@@ -232,7 +238,7 @@ TEST_F(VoiceControlTest, voiceSessionTypes)
 
 TEST_F(VoiceControlTest, voiceSessionByTextWithInvalidType)
 {
-    ON_CALL(iarmBusImplMock_, IARM_Bus_Call(StrEq(CTRLM_MAIN_IARM_BUS_NAME), StrEq(CTRLM_VOICE_IARM_CALL_SESSION_REQUEST), _, _))
+    ON_CALL(*p_iarmBusImplMock, IARM_Bus_Call(StrEq(CTRLM_MAIN_IARM_BUS_NAME), StrEq(CTRLM_VOICE_IARM_CALL_SESSION_REQUEST), _, _))
         .WillByDefault(Invoke(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 auto param = static_cast<ctrlm_voice_iarm_call_json_t*>(arg);
@@ -250,7 +256,7 @@ TEST_F(VoiceControlTest, voiceSessionByTextWithInvalidType)
 
 TEST_F(VoiceControlTest, voiceSessionByTextWithFfType)
 {
-    ON_CALL(iarmBusImplMock_, IARM_Bus_Call(StrEq(CTRLM_MAIN_IARM_BUS_NAME), StrEq(CTRLM_VOICE_IARM_CALL_SESSION_REQUEST), _, _))
+    ON_CALL(*p_iarmBusImplMock, IARM_Bus_Call(StrEq(CTRLM_MAIN_IARM_BUS_NAME), StrEq(CTRLM_VOICE_IARM_CALL_SESSION_REQUEST), _, _))
         .WillByDefault(Invoke(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 auto param = static_cast<ctrlm_voice_iarm_call_json_t*>(arg);
@@ -268,7 +274,7 @@ TEST_F(VoiceControlTest, voiceSessionByTextWithFfType)
 
 TEST_F(VoiceControlTest, voiceSessionByTextWithMicType)
 {
-    ON_CALL(iarmBusImplMock_, IARM_Bus_Call(StrEq(CTRLM_MAIN_IARM_BUS_NAME), StrEq(CTRLM_VOICE_IARM_CALL_SESSION_REQUEST), _, _))
+    ON_CALL(*p_iarmBusImplMock, IARM_Bus_Call(StrEq(CTRLM_MAIN_IARM_BUS_NAME), StrEq(CTRLM_VOICE_IARM_CALL_SESSION_REQUEST), _, _))
         .WillByDefault(Invoke(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 auto param = static_cast<ctrlm_voice_iarm_call_json_t*>(arg);
@@ -286,7 +292,7 @@ TEST_F(VoiceControlTest, voiceSessionByTextWithMicType)
 
 TEST_F(VoiceControlTest, voiceSessionByTextWithNoOrPttType)
 {
-    ON_CALL(iarmBusImplMock_, IARM_Bus_Call(StrEq(CTRLM_MAIN_IARM_BUS_NAME), StrEq(CTRLM_VOICE_IARM_CALL_SESSION_REQUEST), _, _))
+    ON_CALL(*p_iarmBusImplMock, IARM_Bus_Call(StrEq(CTRLM_MAIN_IARM_BUS_NAME), StrEq(CTRLM_VOICE_IARM_CALL_SESSION_REQUEST), _, _))
         .WillByDefault(Invoke(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 auto param = static_cast<ctrlm_voice_iarm_call_json_t*>(arg);
@@ -307,7 +313,7 @@ TEST_F(VoiceControlTest, voiceSessionByTextWithNoOrPttType)
 
 TEST_F(VoiceControlTest, voiceSessionRequest)
 {
-    ON_CALL(iarmBusImplMock_, IARM_Bus_Call(StrEq(CTRLM_MAIN_IARM_BUS_NAME), StrEq(CTRLM_VOICE_IARM_CALL_SESSION_REQUEST), _, _))
+    ON_CALL(*p_iarmBusImplMock, IARM_Bus_Call(StrEq(CTRLM_MAIN_IARM_BUS_NAME), StrEq(CTRLM_VOICE_IARM_CALL_SESSION_REQUEST), _, _))
         .WillByDefault(Invoke(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 auto param = static_cast<ctrlm_voice_iarm_call_json_t*>(arg);
@@ -325,7 +331,7 @@ TEST_F(VoiceControlTest, voiceSessionRequest)
 
 TEST_F(VoiceControlTest, voiceSessionTerminate)
 {
-    ON_CALL(iarmBusImplMock_, IARM_Bus_Call(StrEq(CTRLM_MAIN_IARM_BUS_NAME), StrEq(CTRLM_VOICE_IARM_CALL_SESSION_TERMINATE), _, _))
+    ON_CALL(*p_iarmBusImplMock, IARM_Bus_Call(StrEq(CTRLM_MAIN_IARM_BUS_NAME), StrEq(CTRLM_VOICE_IARM_CALL_SESSION_TERMINATE), _, _))
         .WillByDefault(Invoke(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 auto param = static_cast<ctrlm_voice_iarm_call_json_t*>(arg);

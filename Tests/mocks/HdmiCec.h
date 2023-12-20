@@ -25,11 +25,11 @@ enum {
     REPORT_ARC_TERMINATED = 0XC2,
     REQUEST_ARC_INITIATION = 0XC3,
     REQUEST_ARC_TERMINATION = 0XC4,
-	REQUEST_CURRENT_LATENCY = 0xA7,
-	REPORT_CURRENT_LATENCY = 0xA8,
+    REQUEST_CURRENT_LATENCY = 0xA7,
+    REPORT_CURRENT_LATENCY = 0xA8,
     ROUTING_CHANGE = 0x80,
-	ROUTING_INFORMATION = 0x81,
-	SET_STREAM_PATH = 0x86,
+    ROUTING_INFORMATION = 0x81,
+    SET_STREAM_PATH = 0x86,
 };
 
 typedef struct _dsHdmiInGetNumberOfInputsParam_t {
@@ -88,8 +88,8 @@ public:
 
     void getBuffer(const uint8_t** buf, size_t* len) const
     {
-		*len = this->len_;
-		*buf = this->buf_;
+                *len = this->len_;
+                *buf = this->buf_;
     }
 
 private:
@@ -101,8 +101,8 @@ class CECBytes {
 protected:
     std::vector<uint8_t> str;
     CECBytes(const uint8_t val){
-		str.push_back(val);
-	}
+                str.push_back(val);
+        }
     CECBytes(const uint8_t* buf, size_t len) {
         if(buf && len){
             for(size_t i =0; i < len; i++){
@@ -192,13 +192,13 @@ public:
 
     enum {
         TV = 0x0,
-		RECORDING_DEVICE,
-		RESERVED,
-		TUNER,
-		PLAYBACK_DEVICE,
-		AUDIO_SYSTEM,
-		PURE_CEC_SWITCH,
-		VIDEO_PROCESSOR,
+                RECORDING_DEVICE,
+                RESERVED,
+                TUNER,
+                PLAYBACK_DEVICE,
+                AUDIO_SYSTEM,
+                PURE_CEC_SWITCH,
+                VIDEO_PROCESSOR,
     };
 
     DeviceType(const CECFrame& frame, size_t startPos)
@@ -312,13 +312,13 @@ public:
     LogicalAddress(int addr = UNREGISTERED)
         : CECBytes((uint8_t)addr){};
 
-	int toInt() const
+        int toInt() const
     {
         return str[0];
     }
 
     int getType(void) const {
-		static int _type[] = {
+                static int _type[] = {
             DeviceType::TV,
             DeviceType::RECORDING_DEVICE,
             DeviceType::RECORDING_DEVICE,
@@ -337,7 +337,7 @@ public:
             DeviceType::RESERVED,
         };
         return _type[str[0]];
-	}
+        }
 };
 
 class Version : public CECBytes {
@@ -726,15 +726,13 @@ public:
 class MessageDecoder {
 private:
     MessageProcessor& processor;
+protected:
+    static MessageDecoderImpl* impl;
 
 public:
-    MessageDecoderImpl* impl;
-    MessageDecoder(MessageProcessor& proc)
-        : processor(proc){};
-
-    void decode(const CECFrame& in) {
-        return impl->decode(in);
-    }
+    static void setImpl(MessageDecoderImpl* newImpl);
+    MessageDecoder(MessageProcessor& proc);
+    void decode(const CECFrame& in);
 };
 
 class SetOSDName : public DataBlock {
@@ -766,54 +764,23 @@ public:
 };
 
 class Connection {
+protected:
+    static ConnectionImpl* impl;
+
 public:
-    ConnectionImpl* impl;
-
-    Connection(const LogicalAddress& source = LogicalAddress::UNREGISTERED, bool opened = true, const std::string& name = "") {}
-
-    static Connection& getInstance() {
-        static Connection instance;
-        return instance;
-    };
-
-    void open(void) {
-        return getInstance().impl->open();
-    }
-
-    void close(void) {
-        return getInstance().impl->close();
-    }
-
-    void addFrameListener(FrameListener* listener) {
-        return getInstance().impl->addFrameListener(listener);
-    }
-
-    void ping(const LogicalAddress& from, const LogicalAddress& to, const Throw_e& doThrow) {
-        return getInstance().impl->ping(from, to, doThrow);
-    }
-
-    void sendToAsync(const LogicalAddress& to, const CECFrame& frame) {
-        return getInstance().impl->sendToAsync(to, frame);
-    }
-
-    void sendTo(const LogicalAddress& to, const CECFrame& frame) {
-        return getInstance().impl->sendTo(to, frame);
-    }
-
-    void sendTo(const LogicalAddress& to, const CECFrame& frame, int timeout) {
-        return getInstance().impl->sendTo(to, frame, timeout);
-    }
-
-    void poll(const LogicalAddress& from, const Throw_e& doThrow) {
-        return getInstance().impl->poll(from, doThrow);
-    }
-
-    void sendAsync(const CECFrame &frame){
-		return getInstance().impl->sendAsync(frame);
-	}
-
-    void setSource(LogicalAddress& from) {
-    }
+    Connection(const LogicalAddress& source = LogicalAddress::UNREGISTERED, bool opened = true, const std::string& name = "");
+    static Connection& getInstance();
+    static void setImpl(ConnectionImpl* newImpl);
+    void open();
+    void close();
+    void addFrameListener(FrameListener* listener);
+    void ping(const LogicalAddress& from, const LogicalAddress& to, const Throw_e& doThrow);
+    void sendToAsync(const LogicalAddress& to, const CECFrame& frame);
+    void sendTo(const LogicalAddress& to, const CECFrame& frame);
+    void sendTo(const LogicalAddress& to, const CECFrame& frame, int timeout);
+    void poll(const LogicalAddress& from, const Throw_e& doThrow);
+    void sendAsync(const CECFrame& frame);
+    void setSource(LogicalAddress& from);
 };
 
 class SystemAudioModeRequest : public DataBlock {
@@ -841,40 +808,20 @@ public:
 };
 
 class LibCCEC {
+protected:
+        static  LibCCECImpl* impl;
 public:
-    LibCCEC(void){};
+    static LibCCEC& getInstance();
+    static void setImpl(LibCCECImpl* newImpl);
 
-    static LibCCEC& getInstance(){
-        static LibCCEC instance;
-        return instance;
-    };
+    void init(const char* name);
+    void init();
+    void term();
+    void getPhysicalAddress(uint32_t* physicalAddress);
+    int addLogicalAddress(const LogicalAddress& source);
+    int getLogicalAddress(int devType);
 
-    LibCCECImpl* impl;
-    void init(const char* name){
-        return impl->init(name);
-    }
-
-    void init(){
-        return impl->init();
-    }
-
-    void term(){
-        return;
-    }
-
-    void getPhysicalAddress(uint32_t* physicalAddress){
-        return impl->getPhysicalAddress(physicalAddress);
-    }
-
-    int addLogicalAddress(const LogicalAddress& source){
-        return impl->addLogicalAddress(source);
-    }
-
-    int getLogicalAddress(int devType){
-        return impl->getLogicalAddress(devType);
-    }
 };
-
 class RequestArcInitiation : public DataBlock {
 public:
     Op_t opCode(void) const { return REQUEST_ARC_INITIATION; }
@@ -898,7 +845,7 @@ public:
 class RequestCurrentLatency : public DataBlock
 {
 public:
-	Op_t opCode(void) const {return REQUEST_CURRENT_LATENCY;}
+        Op_t opCode(void) const {return REQUEST_CURRENT_LATENCY;}
     RequestCurrentLatency(const PhysicalAddress &physicaladdres = {0xf,0xf,0xf,0xf} ): physicaladdress(physicaladdres) {}
     PhysicalAddress physicaladdress;
 };
@@ -917,29 +864,22 @@ public:
 };
 
 class MessageEncoder {
+protected:
+        static MessageEncoderImpl* impl;
 public:
-    MessageEncoderImpl* impl;
-    MessageEncoder(){};
-    static MessageEncoder& getInstance()
-    {
-        static MessageEncoder instance;
-        return instance;
-    }
-    CECFrame& encode(const UserControlPressed m)
-    {
-        return getInstance().impl->encode(m);
-    }
-    CECFrame& encode(const DataBlock m)
-    {
-        return getInstance().impl->encode(m);
-    }
+
+    static void setImpl(MessageEncoderImpl* newImpl);
+
+    CECFrame& encode(const UserControlPressed m);
+    CECFrame& encode(const DataBlock m);
+
 };
 
 class IOException : public Exception
 {
-	public:
-		virtual const char* what() const throw()
-		{
-			return "IO Exception..";
-		}
+        public:
+                virtual const char* what() const throw()
+                {
+                        return "IO Exception..";
+                }
 };

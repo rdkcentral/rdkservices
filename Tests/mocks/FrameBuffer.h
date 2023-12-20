@@ -82,61 +82,27 @@ public:
 };
 
 class FrameBufferApi {
+protected:
+    static FrameBufferApiImpl* impl;
 public:
-    static FrameBufferApi& getInstance()
-    {
-        static FrameBufferApi instance;
-        return instance;
-    }
-
-    FrameBufferApiImpl* impl;
-
-    static ErrCode fbCreate(FBContext** fbctx)
-    {
-        return getInstance().impl->fbCreate(fbctx);
-    }
-
-    static ErrCode fbInit(FBContext* fbctx, VncServerFramebufferAPI* server, void* serverctx)
-    {
-        return getInstance().impl->fbInit(fbctx, server, serverctx);
-    }
-
-    static ErrCode fbDestroy(FBContext* fbctx)
-    {
-        return getInstance().impl->fbDestroy(fbctx);
-    }
-
-    static vnc_uint8_t* fbGetFramebuffer(FBContext* fbctx)
-    {
-        return getInstance().impl->fbGetFramebuffer(fbctx);
-    }
-
-    static PixelFormat* fbGetPixelFormat(FBContext* fbctx)
-    {
-        return getInstance().impl->fbGetPixelFormat(fbctx);
-    }
-
-    static vnc_uint16_t fbGetWidth(FBContext* fbctx)
-    {
-        return getInstance().impl->fbGetWidth(fbctx);
-    }
-
-    static vnc_uint16_t fbGetHeight(FBContext* fbctx)
-    {
-        return getInstance().impl->fbGetHeight(fbctx);
-    }
-
-    static vnc_uint16_t fbGetStride(FBContext* fbctx)
-    {
-        return getInstance().impl->fbGetStride(fbctx);
-    }
+    FrameBufferApi();
+    FrameBufferApi(const FrameBufferApi &obj) = delete;
+    static void setImpl(FrameBufferApiImpl* newImpl);
+    static ErrCode fbCreate(FBContext** fbctx);
+    static ErrCode fbInit(FBContext* fbctx, VncServerFramebufferAPI* server, void* serverctx);
+    static ErrCode fbDestroy(FBContext* fbctx);
+    static vnc_uint8_t* fbGetFramebuffer(FBContext* fbctx);
+    static PixelFormat* fbGetPixelFormat(FBContext* fbctx);
+    static vnc_uint16_t fbGetWidth(FBContext* fbctx);
+    static vnc_uint16_t fbGetHeight(FBContext* fbctx);
+    static vnc_uint16_t fbGetStride(FBContext* fbctx);
 };
 
-constexpr auto fbCreate = &FrameBufferApi::fbCreate;
-constexpr auto fbInit = &FrameBufferApi::fbInit;
-constexpr auto fbDestroy = &FrameBufferApi::fbDestroy;
-constexpr auto fbGetFramebuffer = &FrameBufferApi::fbGetFramebuffer;
-constexpr auto fbGetPixelFormat = &FrameBufferApi::fbGetPixelFormat;
-constexpr auto fbGetWidth = &FrameBufferApi::fbGetWidth;
-constexpr auto fbGetHeight = &FrameBufferApi::fbGetHeight;
-constexpr auto fbGetStride = &FrameBufferApi::fbGetStride;
+extern ErrCode (*fbCreate)(FBContext**);
+extern ErrCode (*fbInit)(FBContext*,VncServerFramebufferAPI*,void*);
+extern ErrCode (*fbDestroy)(FBContext*);
+extern vnc_uint8_t* (*fbGetFramebuffer)(FBContext*);
+extern PixelFormat* (*fbGetPixelFormat)(FBContext*);
+extern vnc_uint16_t (*fbGetWidth)(FBContext*);
+extern vnc_uint16_t (*fbGetHeight)(FBContext*);
+extern vnc_uint16_t (*fbGetStride)(FBContext*) ;

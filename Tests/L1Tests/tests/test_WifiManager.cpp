@@ -18,21 +18,35 @@ protected:
     Core::JSONRPC::Connection connection;
     string response;
     Core::JSONRPC::Message message;
-    WrapsImplMock wrapsImplMock;
-    NiceMock<IarmBusImplMock> iarmBusImplMock;
+    WrapsImplMock     *p_wrapsImplMock   = nullptr ;
+    IarmBusImplMock   *p_iarmBusImplMock = nullptr ;
 
     WifiManagerTest()
         : plugin(Core::ProxyType<Plugin::WifiManager>::Create())
         , handler(*(plugin))
         , connection(1, 0)
     {
-        Wraps::getInstance().impl = &wrapsImplMock;
-        IarmBus::getInstance().impl = &iarmBusImplMock;
+        p_wrapsImplMock  = new NiceMock <WrapsImplMock>;
+        Wraps::setImpl(p_wrapsImplMock);
+
+        p_iarmBusImplMock  = new NiceMock <IarmBusImplMock>;
+        IarmBus::setImpl(p_iarmBusImplMock);
     }
     virtual ~WifiManagerTest() override
     {
-        Wraps::getInstance().impl = nullptr;
-        IarmBus::getInstance().impl = nullptr;
+        Wraps::setImpl(nullptr);
+        if (p_wrapsImplMock != nullptr)
+        {
+            delete p_wrapsImplMock;
+            p_wrapsImplMock = nullptr;
+        }
+
+        IarmBus::setImpl(nullptr);
+        if (p_iarmBusImplMock != nullptr)
+        {
+            delete p_iarmBusImplMock;
+            p_iarmBusImplMock = nullptr;
+        }
     }
 };
 
@@ -60,7 +74,7 @@ TEST_F(WifiManagerTest, TestedAPIsShouldExist)
 
 TEST_F(WifiManagerTest, setEnabled)
 {
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .Times(::testing::AnyNumber())
         .WillRepeatedly(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -76,7 +90,7 @@ TEST_F(WifiManagerTest, setEnabled)
 
 TEST_F(WifiManagerTest, getCurrentState)
 {
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .Times(::testing::AnyNumber())
         .WillRepeatedly(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -93,7 +107,7 @@ TEST_F(WifiManagerTest, getCurrentState)
 
 TEST_F(WifiManagerTest, getPairedSSID)
 {
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .Times(::testing::AnyNumber())
         .WillRepeatedly(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -110,7 +124,7 @@ TEST_F(WifiManagerTest, getPairedSSID)
 
 TEST_F(WifiManagerTest, getPairedSSIDInfo)
 {
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .Times(::testing::AnyNumber())
         .WillRepeatedly(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -130,7 +144,7 @@ TEST_F(WifiManagerTest, getPairedSSIDInfo)
 
 TEST_F(WifiManagerTest, getConnectedSSID)
 {
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .Times(::testing::AnyNumber())
         .WillRepeatedly(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -158,7 +172,7 @@ TEST_F(WifiManagerTest, getConnectedSSID)
 
 TEST_F(WifiManagerTest, connect)
 {
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .Times(::testing::AnyNumber())
         .WillRepeatedly(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -177,7 +191,7 @@ TEST_F(WifiManagerTest, connect)
 
 TEST_F(WifiManagerTest, disconnect)
 {
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .Times(::testing::AnyNumber())
         .WillRepeatedly(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -193,7 +207,7 @@ TEST_F(WifiManagerTest, disconnect)
 
 TEST_F(WifiManagerTest, saveSSID)
 {
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .Times(::testing::AnyNumber())
         .WillRepeatedly(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -212,7 +226,7 @@ TEST_F(WifiManagerTest, saveSSID)
 
 TEST_F(WifiManagerTest, clearSSID)
 {
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .Times(::testing::AnyNumber())
         .WillRepeatedly(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -228,7 +242,7 @@ TEST_F(WifiManagerTest, clearSSID)
 
 TEST_F(WifiManagerTest, isPaired)
 {
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .Times(::testing::AnyNumber())
         .WillRepeatedly(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -245,7 +259,7 @@ TEST_F(WifiManagerTest, isPaired)
 
 TEST_F(WifiManagerTest, startScan)
 {
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .Times(::testing::AnyNumber())
         .WillRepeatedly(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -257,7 +271,7 @@ TEST_F(WifiManagerTest, startScan)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startScan"), _T("{\"incremental\": false,\"ssid\": \"...\",\"frequency\": \"...\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .Times(::testing::AnyNumber())
         .WillRepeatedly(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -272,7 +286,7 @@ TEST_F(WifiManagerTest, startScan)
 
 TEST_F(WifiManagerTest, stopScan)
 {
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .Times(::testing::AnyNumber())
         .WillRepeatedly(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {

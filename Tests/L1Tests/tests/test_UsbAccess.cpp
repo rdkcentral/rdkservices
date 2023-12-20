@@ -36,13 +36,16 @@ TEST_F(UsbAccessTest, RegisteredMethods)
 
 TEST_F(UsbAccessTest, UpdateFirmware)
 {
-    UdevImplMock udevImplMock;
-    WrapsImplMock wrapsImplMock;
+    UdevImplMock   *p_udevImplMock = nullptr ;
+    WrapsImplMock  *p_wrapsImplMock   = nullptr ;
 
-    Udev::getInstance().impl = &udevImplMock;
-    Wraps::getInstance().impl = &wrapsImplMock;
+    p_wrapsImplMock  = new testing::NiceMock <WrapsImplMock>;
+    Wraps::setImpl(p_wrapsImplMock);
 
-    EXPECT_CALL(wrapsImplMock, system(::testing::_))
+    p_udevImplMock  = new testing::NiceMock <UdevImplMock>;
+    Udev::setImpl(p_udevImplMock);
+
+    EXPECT_CALL(*p_wrapsImplMock, system(::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
             [&](const char* command) {
@@ -56,6 +59,17 @@ TEST_F(UsbAccessTest, UpdateFirmware)
 
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("updateFirmware"), _T("{\"fileName\":\"/tmp\';reboot;/my.bin\"}"), response));
 
-    Udev::getInstance().impl = nullptr;
-    Wraps::getInstance().impl = nullptr;
+    Udev::setImpl(nullptr);
+    if (p_udevImplMock != nullptr)
+    {
+        delete p_udevImplMock;
+        p_udevImplMock = nullptr;
+    }
+
+    Wraps::setImpl(nullptr);
+    if (p_wrapsImplMock != nullptr)
+    {
+        delete p_wrapsImplMock;
+        p_wrapsImplMock = nullptr;
+    }
 }

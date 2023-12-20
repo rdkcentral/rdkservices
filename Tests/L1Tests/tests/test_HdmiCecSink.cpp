@@ -12,13 +12,13 @@ using ::testing::NiceMock;
 
 class HdmiCecSinkTest : public ::testing::Test {
 protected:
+    IarmBusImplMock         *p_iarmBusImplMock = nullptr ;
+    ConnectionImplMock      *p_connectionImplMock = nullptr ;
+    MessageEncoderMock      *p_messageEncoderMock = nullptr ;
+    LibCCECImplMock         *p_libCCECImplMock = nullptr ;
     Core::ProxyType<Plugin::HdmiCecSink> plugin;
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
-    NiceMock<LibCCECImplMock> libCCECImplMock;
-    NiceMock<IarmBusImplMock> iarmBusImplMock;
-    NiceMock<ConnectionImplMock> connectionImplMock;
-    NiceMock<MessageEncoderMock> messageEncoderMock;
     IARM_EventHandler_t pwrMgrModeChangeEventHandler;
     IARM_EventHandler_t dsHdmiEventHandler;
     IARM_EventHandler_t dsHdmiCecSinkEventHandler;
@@ -28,29 +28,36 @@ protected:
         , handler(*(plugin))
         , connection(1, 0)
     {
-        IarmBus::getInstance().impl = &iarmBusImplMock;
-        LibCCEC::getInstance().impl = &libCCECImplMock;
-        Connection::getInstance().impl = &connectionImplMock;
-        MessageEncoder::getInstance().impl = &messageEncoderMock;
+        p_iarmBusImplMock  = new NiceMock <IarmBusImplMock>;
+        IarmBus::setImpl(p_iarmBusImplMock);
 
-        ON_CALL(connectionImplMock, poll(::testing::_, ::testing::_))
+        p_libCCECImplMock  = new testing::NiceMock <LibCCECImplMock>;
+        LibCCEC::setImpl(p_libCCECImplMock);
+
+        p_messageEncoderMock  = new testing::NiceMock <MessageEncoderMock>;
+        MessageEncoder::setImpl(p_messageEncoderMock);
+
+        p_connectionImplMock  = new testing::NiceMock <ConnectionImplMock>;
+        Connection::setImpl(p_connectionImplMock);
+
+        ON_CALL(*p_connectionImplMock, poll(::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
                 [&](const LogicalAddress &from, const Throw_e &doThrow) {
                 throw CECNoAckException();
                 }));
 
-        EXPECT_CALL(libCCECImplMock, getPhysicalAddress(::testing::_))
+        EXPECT_CALL(*p_libCCECImplMock, getPhysicalAddress(::testing::_))
             .WillRepeatedly(::testing::Invoke(
                 [&](uint32_t *physAddress) {
                     *physAddress = (uint32_t)0x12345678;
                 }));
 
-        ON_CALL(messageEncoderMock, encode(::testing::Matcher<const DataBlock&>(::testing::_)))
+        ON_CALL(*p_messageEncoderMock, encode(::testing::Matcher<const DataBlock&>(::testing::_)))
             .WillByDefault(::testing::ReturnRef(CECFrame::getInstance()));
-        ON_CALL(messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
+        ON_CALL(*p_messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
            .WillByDefault(::testing::ReturnRef(CECFrame::getInstance()));
 
-        ON_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
+        ON_CALL(*p_iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
                 [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
                     if ((string(IARM_BUS_PWRMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_PWRMGR_EVENT_MODECHANGED)) {
@@ -68,7 +75,7 @@ protected:
                     return IARM_RESULT_SUCCESS;
                 }));
 
-        ON_CALL(connectionImplMock, open())
+        ON_CALL(*p_connectionImplMock, open())
             .WillByDefault(::testing::Return());
 
         EXPECT_EQ(string(""), plugin->Initialize(nullptr));
@@ -77,20 +84,40 @@ protected:
     virtual ~HdmiCecSinkTest() override
     {
         plugin->Deinitialize(nullptr);
-        IarmBus::getInstance().impl = nullptr;
-        LibCCEC::getInstance().impl = nullptr;
-        Connection::getInstance().impl = nullptr;
-        MessageEncoder::getInstance().impl = nullptr;
+        IarmBus::setImpl(nullptr);
+        if (p_iarmBusImplMock != nullptr)
+        {
+            delete p_iarmBusImplMock;
+            p_iarmBusImplMock = nullptr;
+        }
+        LibCCEC::setImpl(nullptr);
+        if (p_libCCECImplMock != nullptr)
+        {
+            delete p_libCCECImplMock;
+            p_libCCECImplMock = nullptr;
+        }
+        Connection::setImpl(nullptr);
+        if (p_connectionImplMock != nullptr)
+        {
+            delete p_connectionImplMock;
+            p_connectionImplMock = nullptr;
+        }
+        MessageEncoder::setImpl(nullptr);
+        if (p_messageEncoderMock != nullptr)
+        {
+            delete p_messageEncoderMock;
+            p_messageEncoderMock = nullptr;
+        }
     }
 };
 
 class HdmiCecSinkDsTest : public HdmiCecSinkTest {
 protected:
     string response;
-    
+
     HdmiCecSinkDsTest(): HdmiCecSinkTest()
     {
-        ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        ON_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
             .WillByDefault(
                 [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                     if (strcmp(methodName, IARM_BUS_PWRMGR_API_GetPowerState) == 0) {
@@ -113,7 +140,7 @@ protected:
                     }
                     return IARM_RESULT_SUCCESS;
                 });
-        
+
         EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setEnabled"), _T("{\"enabled\": true}"), response));
         EXPECT_EQ(response, string("{\"success\":true}"));
     }
@@ -215,7 +242,7 @@ TEST_F(HdmiCecSinkDsTest, setActivePathMissingParam)
 
 TEST_F(HdmiCecSinkDsTest, setActivePath)
 {
-    EXPECT_CALL(connectionImplMock, sendTo(::testing::_, ::testing::_, ::testing::_))
+    EXPECT_CALL(*p_connectionImplMock, sendTo(::testing::_, ::testing::_, ::testing::_))
         .WillRepeatedly(::testing::Invoke(
             [&](const LogicalAddress &to, const CECFrame &frame, int timeout) {
                EXPECT_EQ(to.toInt(), LogicalAddress::BROADCAST);
@@ -236,7 +263,7 @@ TEST_F(HdmiCecSinkDsTest, setRoutingChange)
 {
     std::this_thread::sleep_for(std::chrono::seconds(30));
 
-    EXPECT_CALL(connectionImplMock, sendTo(::testing::_, ::testing::_, ::testing::_))
+    EXPECT_CALL(*p_connectionImplMock, sendTo(::testing::_, ::testing::_, ::testing::_))
         .WillRepeatedly(::testing::Invoke(
             [&](const LogicalAddress &to, const CECFrame &frame, int timeout) {
                 EXPECT_EQ(to.toInt(), LogicalAddress::BROADCAST);
@@ -255,7 +282,7 @@ TEST_F(HdmiCecSinkDsTest, setMenuLanguageInvalidParam)
 
 TEST_F(HdmiCecSinkDsTest, setMenuLanguage)
 {
-    EXPECT_CALL(connectionImplMock, sendTo(::testing::_, ::testing::_, ::testing::_))
+    EXPECT_CALL(*p_connectionImplMock, sendTo(::testing::_, ::testing::_, ::testing::_))
         .WillRepeatedly(::testing::Invoke(
             [&](const LogicalAddress &to, const CECFrame &frame, int timeout) {
                 EXPECT_LE(to.toInt(), LogicalAddress::BROADCAST);
@@ -319,7 +346,7 @@ TEST_F(HdmiCecSinkInitializedEventDsTest, HdmiCecEnableStatus)
     ASSERT_TRUE(dsHdmiCecSinkEventHandler != nullptr);
     IARM_Bus_CECMgr_Status_Updated_Param_t eventData;
     dsHdmiCecSinkEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED, &eventData , 0);
-    
+
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getEnabled"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"enabled\":true,\"success\":true}"));
 }

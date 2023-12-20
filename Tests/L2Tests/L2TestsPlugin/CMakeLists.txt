@@ -32,21 +32,31 @@ set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)
 
-target_compile_definitions(${MODULE_NAME} 
-							PRIVATE 
-							MODULE_NAME=Plugin_${PLUGIN_NAME}
-							THUNDER_PORT="${THUNDER_PORT}")
+target_compile_definitions(${MODULE_NAME}
+        PRIVATE
+        MODULE_NAME=Plugin_${PLUGIN_NAME}
+        THUNDER_PORT="${THUNDER_PORT}")
 
 target_compile_options(${MODULE_NAME} PRIVATE -Wno-error)
 target_link_libraries(${MODULE_NAME} PRIVATE gmock_main ${NAMESPACE}Plugins::${NAMESPACE}Plugins)
 
+
+find_library(TESTMOCKLIB_LIBRARIES NAMES TestMocklib)
+if (TESTMOCKLIB_LIBRARIES)
+    message ("Found mock library - ${TESTMOCKLIB_LIBRARIES}")
+    target_link_libraries(${MODULE_NAME} PRIVATE ${TESTMOCKLIB_LIBRARIES})
+else (TESTMOCKLIB_LIBRARIES)
+     message ("Require ${TESTMOCKLIB_LIBRARIES} library")
+endif (TESTMOCKLIB_LIBRARIES)
+
+
 target_include_directories(${MODULE_NAME} PRIVATE ../../../helpers)
 target_include_directories(${MODULE_NAME} PRIVATE ./)
 target_include_directories(${MODULE_NAME} PRIVATE ../../mocks)
- 
+
 install(TARGETS ${MODULE_NAME}
     DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
- 
+
 write_config(${PLUGIN_NAME})
 
 

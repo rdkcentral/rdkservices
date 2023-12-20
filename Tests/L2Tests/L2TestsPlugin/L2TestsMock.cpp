@@ -18,7 +18,7 @@
 
 #include <string>
 #include <sstream>
- 
+
 #include "L2TestsMock.h"
 
 
@@ -36,20 +36,48 @@ using namespace WPEFramework;
 /* L2TestMock consturctor */
 L2TestMocks::L2TestMocks()
 {
-    RfcApi::getInstance().impl = &rfcApiImplMock;
-    IarmBus::getInstance().impl = &iarmBusImplMock;
-    ProcImpl::getInstance().impl = &ReadprocImplMock;
+    p_iarmBusImplMock   = new NiceMock <IarmBusImplMock>;
+    p_readprocImplMock  = new NiceMock <readprocImplMock>;
+    p_rfcApiImplMock    = new NiceMock <RfcApiImplMock>;
+    p_wrapsImplMock     = new NiceMock <WrapsImplMock>;
 
-    thunder_address = THUNDER_ADDRESS + std::string(THUNDER_PORT);
+    IarmBus::setImpl(p_iarmBusImplMock);
+    ProcImpl::setImpl(p_readprocImplMock);
+    RfcApi::setImpl(p_rfcApiImplMock);
+    Wraps::setImpl(p_wrapsImplMock);
+
+   thunder_address = THUNDER_ADDRESS + std::string(THUNDER_PORT);
    (void)Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), thunder_address);
 }
 
 /* L2TestMock Destructor */
 L2TestMocks::~L2TestMocks()
 {
-   RfcApi::getInstance().impl = nullptr;
-   IarmBus::getInstance().impl = nullptr;
-   ProcImpl::getInstance().impl = nullptr;
+
+   IarmBus::setImpl(nullptr);
+   if (p_iarmBusImplMock != nullptr)
+   {
+        delete p_iarmBusImplMock;
+        p_iarmBusImplMock = nullptr;
+   }
+   RfcApi::setImpl(nullptr);
+   if (p_rfcApiImplMock != nullptr)
+   {
+        delete p_rfcApiImplMock;
+        p_rfcApiImplMock = nullptr;
+   }
+   ProcImpl::setImpl(nullptr);
+   if (p_readprocImplMock != nullptr)
+   {
+        delete p_readprocImplMock;
+        p_readprocImplMock = nullptr;
+   }
+   Wraps::setImpl(nullptr);
+   if (p_wrapsImplMock != nullptr)
+   {
+        delete p_wrapsImplMock;
+        p_wrapsImplMock = nullptr;
+   }
 }
 
 /**

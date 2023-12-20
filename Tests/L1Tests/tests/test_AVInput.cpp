@@ -26,16 +26,22 @@ protected:
 
 class AVInputDsTest : public AVInputTest {
 protected:
-    NiceMock<HdmiInputImplMock> hdmiInputImplMock;
+    HdmiInputImplMock   *p_hdmiInputImplMock = nullptr ;
 
     AVInputDsTest()
         : AVInputTest()
     {
-        device::HdmiInput::getInstance().impl = &hdmiInputImplMock;
+        p_hdmiInputImplMock  = new NiceMock <HdmiInputImplMock>;
+        device::HdmiInput::setImpl(p_hdmiInputImplMock);
     }
     virtual ~AVInputDsTest() override
     {
-        device::HdmiInput::getInstance().impl = nullptr;
+        device::HdmiInput::setImpl(nullptr);
+        if (p_hdmiInputImplMock != nullptr)
+        {
+            delete p_hdmiInputImplMock;
+            p_hdmiInputImplMock = nullptr;
+        }
     }
 };
 
@@ -54,7 +60,7 @@ TEST_F(AVInputTest, contentProtected)
 
 TEST_F(AVInputDsTest, numberOfInputs)
 {
-    ON_CALL(hdmiInputImplMock, getNumberOfInputs())
+    ON_CALL(*p_hdmiInputImplMock, getNumberOfInputs())
         .WillByDefault(::testing::Return(1));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("numberOfInputs"), _T("{}"), response));
@@ -63,7 +69,7 @@ TEST_F(AVInputDsTest, numberOfInputs)
 
 TEST_F(AVInputDsTest, currentVideoMode)
 {
-    ON_CALL(hdmiInputImplMock, getCurrentVideoMode())
+    ON_CALL(*p_hdmiInputImplMock, getCurrentVideoMode())
         .WillByDefault(::testing::Return(string("unknown")));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("currentVideoMode"), _T("{}"), response));

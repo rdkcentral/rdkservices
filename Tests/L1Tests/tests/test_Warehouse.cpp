@@ -56,18 +56,25 @@ protected:
 
 class WarehouseInitializedTest : public WarehouseTest {
 protected:
-    NiceMock<IarmBusImplMock> iarmBusImplMock;
-    NiceMock<RfcApiImplMock> rfcApiImplMock;
-    NiceMock<WrapsImplMock> wrapsImplMock;
+    IarmBusImplMock   *p_iarmBusImplMock = nullptr ;
+    RfcApiImplMock    *p_rfcApiImplMock  = nullptr ;
+    WrapsImplMock     *p_wrapsImplMock   = nullptr ;
+
     IARM_EventHandler_t whMgrStatusChangeEventsHandler;
 
     WarehouseInitializedTest()
              : WarehouseTest()
     {
-        IarmBus::getInstance().impl = &iarmBusImplMock;
-        RfcApi::getInstance().impl = &rfcApiImplMock;
-        Wraps::getInstance().impl = &wrapsImplMock;
-        EXPECT_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
+        p_iarmBusImplMock  = new NiceMock <IarmBusImplMock>;
+        IarmBus::setImpl(p_iarmBusImplMock);
+
+        p_rfcApiImplMock  = new NiceMock <RfcApiImplMock>;
+        RfcApi::setImpl(p_rfcApiImplMock);
+
+        p_wrapsImplMock  = new NiceMock <WrapsImplMock>;
+        Wraps::setImpl(p_wrapsImplMock);
+
+        EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
             .Times(1)
             .WillOnce(::testing::Invoke(
                 [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
@@ -81,9 +88,27 @@ protected:
     virtual ~WarehouseInitializedTest() override
     {
         plugin->Deinitialize(nullptr);
-        IarmBus::getInstance().impl = nullptr;
-        RfcApi::getInstance().impl = nullptr;
-        Wraps::getInstance().impl = nullptr;
+
+        IarmBus::setImpl(nullptr);
+        if (p_iarmBusImplMock != nullptr)
+        {
+            delete p_iarmBusImplMock;
+            p_iarmBusImplMock = nullptr;
+        }
+
+        RfcApi::setImpl(nullptr);
+        if (p_rfcApiImplMock != nullptr)
+        {
+            delete p_rfcApiImplMock;
+            p_rfcApiImplMock = nullptr;
+        }
+
+        Wraps::setImpl(nullptr);
+        if (p_wrapsImplMock != nullptr)
+        {
+            delete p_wrapsImplMock;
+            p_wrapsImplMock = nullptr;
+        }
     }
 };
 
@@ -158,7 +183,7 @@ protected:
 
 TEST_F(WarehouseResetDeviceTest, ColdFactoryResetDevice)
 {
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .Times(1)
         .WillOnce(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -176,7 +201,7 @@ TEST_F(WarehouseResetDeviceTest, ColdFactoryResetDevice)
 
 TEST_F(WarehouseResetDeviceTest, FactoryResetDevice)
 {
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .Times(1)
         .WillOnce(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -193,7 +218,7 @@ TEST_F(WarehouseResetDeviceTest, FactoryResetDevice)
 
 TEST_F(WarehouseResetDeviceTest, UserFactoryResetDevice)
 {
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .Times(1)
         .WillOnce(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -210,7 +235,7 @@ TEST_F(WarehouseResetDeviceTest, UserFactoryResetDevice)
 
 TEST_F(WarehouseResetDeviceTest, WarehouseClearResetDevice)
 {
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .Times(1)
         .WillOnce(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -228,7 +253,7 @@ TEST_F(WarehouseResetDeviceTest, WarehouseClearResetDevice)
 TEST_F(WarehouseInitializedTest, WarehouseClearResetDeviceNoResponse)
 {
     Core::Event resetCallRxed(false, true);
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .Times(1)
         .WillOnce(
             [&](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -246,7 +271,7 @@ TEST_F(WarehouseInitializedTest, WarehouseClearResetDeviceNoResponse)
 
 TEST_F(WarehouseResetDeviceTest, GenericResetDevice)
 {
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .Times(1)
         .WillOnce(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -264,7 +289,7 @@ TEST_F(WarehouseResetDeviceTest, GenericResetDevice)
 TEST_F(WarehouseInitializedTest, GenericResetDeviceNoResponse)
 {
     Core::Event resetCallRxed(false, true);
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .Times(1)
         .WillOnce(
             [&](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -315,7 +340,7 @@ protected:
 
 TEST_F(WarehouseResetDeviceFailureTest, UserFactoryResetDeviceFailure)
 {
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .Times(1)
         .WillOnce(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -336,7 +361,7 @@ TEST_F(WarehouseResetDeviceTest, ColdFactoryResetDevicePwrMgr2RFCEnabled)
     //Enable Power manager 2
     plugin->m_isPwrMgr2RFCEnabled = true;
 
-    EXPECT_CALL(wrapsImplMock, v_secure_system(::testing::_, ::testing::_))
+    EXPECT_CALL(*p_wrapsImplMock, v_secure_system(::testing::_, ::testing::_))
         .Times(2)
         .WillOnce(::testing::Invoke(
             [](const char *command, va_list args) {
@@ -358,7 +383,7 @@ TEST_F(WarehouseResetDeviceTest, FactoryResetDevicePwrMgr2RFCEnabled)
     //Enable Power manager 2
     plugin->m_isPwrMgr2RFCEnabled = true;
 
-    EXPECT_CALL(wrapsImplMock, v_secure_system(::testing::_, ::testing::_))
+    EXPECT_CALL(*p_wrapsImplMock, v_secure_system(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](const char *command, va_list args) {
@@ -380,7 +405,7 @@ TEST_F(WarehouseResetDeviceTest, UserFactoryResetDevicePwrMgr2RFCEnabled)
     //Enable Power manager 2
     plugin->m_isPwrMgr2RFCEnabled = true;
 
-    EXPECT_CALL(wrapsImplMock, v_secure_system(::testing::_, ::testing::_))
+    EXPECT_CALL(*p_wrapsImplMock, v_secure_system(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](const char *command, va_list args) {
@@ -401,7 +426,7 @@ TEST_F(WarehouseResetDeviceTest, WarehouseClearResetDevicePwrMgr2RFCEnabled)
     //Enable Power manager 2
     plugin->m_isPwrMgr2RFCEnabled = true;
 
-    EXPECT_CALL(wrapsImplMock, v_secure_system(::testing::_, ::testing::_))
+    EXPECT_CALL(*p_wrapsImplMock, v_secure_system(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](const char *command, va_list args) {
@@ -423,7 +448,7 @@ TEST_F(WarehouseInitializedTest, WarehouseClearResetDeviceNoResponsePwrMgr2RFCEn
     //Enable Power manager 2
     plugin->m_isPwrMgr2RFCEnabled = true;
 
-    EXPECT_CALL(wrapsImplMock, v_secure_system(::testing::_, ::testing::_))
+    EXPECT_CALL(*p_wrapsImplMock, v_secure_system(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
             [&](const char *command, va_list args) {
@@ -445,7 +470,7 @@ TEST_F(WarehouseResetDeviceTest, GenericResetDevicePwrMgr2RFCEnabled)
     //Enable Power manager 2
     plugin->m_isPwrMgr2RFCEnabled = true;
 
-    EXPECT_CALL(wrapsImplMock, v_secure_system(::testing::_, ::testing::_))
+    EXPECT_CALL(*p_wrapsImplMock, v_secure_system(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](const char *command, va_list args) {
@@ -467,7 +492,7 @@ TEST_F(WarehouseInitializedTest, GenericResetDeviceNoResponsePwrMgr2RFCEnabled)
     //Enable Power manager 2
     plugin->m_isPwrMgr2RFCEnabled = true;
 
-    EXPECT_CALL(wrapsImplMock, v_secure_system(::testing::_, ::testing::_))
+    EXPECT_CALL(*p_wrapsImplMock, v_secure_system(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
             [&](const char *command, va_list args) {
@@ -489,7 +514,7 @@ TEST_F(WarehouseResetDeviceFailureTest, UserFactoryResetDeviceFailurePwrMgr2RFCE
     //Enable Power manager 2
     plugin->m_isPwrMgr2RFCEnabled = true;
 
-    EXPECT_CALL(wrapsImplMock, v_secure_system(::testing::_, ::testing::_))
+    EXPECT_CALL(*p_wrapsImplMock, v_secure_system(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](const char *command, va_list args) {
@@ -516,7 +541,7 @@ TEST_F(WarehouseInitializedTest, internalResetFailPassPhrase)
 
 TEST_F(WarehouseInitializedTest, internalResetScriptFail)
 {
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .Times(1)
         .WillOnce(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -536,7 +561,7 @@ TEST_F(WarehouseInitializedTest, internalResetScriptFail)
 
 TEST_F(WarehouseInitializedTest, internalReset)
 {
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .Times(1)
         .WillOnce(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -557,7 +582,7 @@ TEST_F(WarehouseInitializedTest, internalReset)
 
 TEST_F(WarehouseInitializedTest, lightResetScriptFail)
 {
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .Times(1)
         .WillOnce(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -577,7 +602,7 @@ TEST_F(WarehouseInitializedTest, lightResetScriptFail)
 
 TEST_F(WarehouseInitializedTest, lightReset)
 {
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .Times(1)
         .WillOnce(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -633,7 +658,7 @@ TEST_F(WarehouseInitializedTest, isClean)
 
 TEST_F(WarehouseInitializedTest, executeHardwareTest)
 {
-    EXPECT_CALL(rfcApiImplMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_))
+    EXPECT_CALL(*p_rfcApiImplMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_))
         .Times(2)
         .WillOnce(::testing::Invoke(
             [](char* pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
@@ -659,7 +684,7 @@ TEST_F(WarehouseInitializedTest, executeHardwareTest)
 
 TEST_F(WarehouseInitializedTest, getHardwareTestResults)
 {
-    EXPECT_CALL(rfcApiImplMock, getRFCParameter(::testing::_, ::testing::_, ::testing::_))
+    EXPECT_CALL(*p_rfcApiImplMock, getRFCParameter(::testing::_, ::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData) {
@@ -668,7 +693,7 @@ TEST_F(WarehouseInitializedTest, getHardwareTestResults)
                 strncpy(pstParamData->value, "test", sizeof(pstParamData->value));
                 return WDMP_SUCCESS;
             }));
-    EXPECT_CALL(rfcApiImplMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_))
+    EXPECT_CALL(*p_rfcApiImplMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](char* pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
@@ -698,7 +723,7 @@ TEST_F(WarehouseInitializedTest, getDeviceInfo)
                                     "model_number=ABC123ADS\n"
                                     "wifi_mac=12:34:56:78:90:AB\"\n";
 
-    ON_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+    ON_CALL(*p_wrapsImplMock, popen(::testing::_, ::testing::_))
         .WillByDefault(::testing::Invoke(
             [&](const char* command, const char* type) -> FILE* {
                 EXPECT_EQ(string(command), string(_T("sh /lib/rdk/getDeviceDetails.sh read")));

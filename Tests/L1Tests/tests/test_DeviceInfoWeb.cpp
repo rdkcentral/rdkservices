@@ -46,8 +46,9 @@ protected:
 class DeviceInfoWebInitializedTest : public DeviceInfoWebTest {
 protected:
     NiceMock<FactoriesImplementation> factoriesImplementation;
-    NiceMock<IarmBusImplMock> iarmBusImplMock;
-    NiceMock<ManagerImplMock> managerImplMock;
+    IarmBusImplMock   *p_iarmBusImplMock = nullptr ;
+    ManagerImplMock   *p_managerImplMock = nullptr ;
+
     NiceMock<ServiceMock> service;
     Core::Sink<NiceMock<SystemInfo>> subSystem;
 
@@ -55,8 +56,11 @@ protected:
         : DeviceInfoWebTest()
     {
         PluginHost::IFactories::Assign(&factoriesImplementation);
-        IarmBus::getInstance().impl = &iarmBusImplMock;
-        device::Manager::getInstance().impl = &managerImplMock;
+        p_iarmBusImplMock  = new NiceMock <IarmBusImplMock>;
+        IarmBus::setImpl(p_iarmBusImplMock);
+
+        p_managerImplMock  = new NiceMock <ManagerImplMock>;
+        device::Manager::setImpl(p_managerImplMock);
 
         ON_CALL(service, ConfigLine())
             .WillByDefault(::testing::Return("{\"root\":{\"mode\":\"Off\"}}"));
@@ -77,8 +81,18 @@ protected:
         plugin->Deinitialize(&service);
 
         PluginHost::IFactories::Assign(nullptr);
-        IarmBus::getInstance().impl = nullptr;
-        device::Manager::getInstance().impl = nullptr;
+        IarmBus::setImpl(nullptr);
+        if (p_iarmBusImplMock != nullptr)
+        {
+            delete p_iarmBusImplMock;
+            p_iarmBusImplMock = nullptr;
+        }
+        device::Manager::setImpl(nullptr);
+        if (p_managerImplMock != nullptr)
+        {
+            delete p_managerImplMock;
+            p_managerImplMock = nullptr;
+        }
     }
 };
 
