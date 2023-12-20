@@ -62,6 +62,7 @@ namespace Plugin {
         if(!_ttsManager)
             return 0;
 
+        InputValidation::Instance().setLogger([] (const char *log) { TTSLOG_WARNING(log); });
         InputValidation::Instance().addValidator("ttsendpoint", ExpectedValues<std::string>("^https?://[a-zA-Z0-9]+.*"));
         InputValidation::Instance().addValidator("ttsendpointsecured", ExpectedValues<std::string>("^https://[a-zA-Z0-9]+.*"));
         InputValidation::Instance().addValidator("double_str", ExpectedValues<std::string>("^-?[0-9]+(\\.[0-9]+)?"));
