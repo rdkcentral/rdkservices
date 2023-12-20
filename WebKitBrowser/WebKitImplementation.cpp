@@ -2895,7 +2895,11 @@ static GSourceFuncs _handlerIntervention =
             }
 
             if (!_config.CertificateCheck) {
+#if WEBKIT_CHECK_VERSION(2, 38, 0)
+                webkit_website_data_manager_set_tls_errors_policy(webkit_web_context_get_website_data_manager(wkContext), WEBKIT_TLS_ERRORS_POLICY_IGNORE);
+#else
                 webkit_web_context_set_tls_errors_policy(wkContext, WEBKIT_TLS_ERRORS_POLICY_IGNORE);
+#endif
             }
 
             auto* languages = static_cast<char**>(g_new0(char*, _config.Languages.Length() + 1));
