@@ -46,28 +46,70 @@ protected:
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
     string response;
-    NiceMock<RfcApiImplMock> rfcApiImplMock;
-    NiceMock<WrapsImplMock> wrapsImplMock;
-    NiceMock<IarmBusImplMock> iarmBusImplMock;
-    NiceMock<HostImplMock> hostImplMock;
+    RfcApiImplMock    *p_rfcApiImplMock  = nullptr;
+    IarmBusImplMock   *p_iarmBusImplMock = nullptr;
+    WrapsImplMock     *p_wrapsImplMock   = nullptr;
+    Wraps             *p_wraps           = nullptr;
+    SleepModeMock     *p_sleepModeMock   = nullptr;
+    HostImplMock      *p_hostImplMock    = nullptr;
 
     SystemServicesTest()
         : plugin(Core::ProxyType<Plugin::SystemServices>::Create())
         , handler(*plugin)
         , connection(1, 0)
     {
-        RfcApi::getInstance().impl = &rfcApiImplMock;
-        Wraps::getInstance().impl = &wrapsImplMock;
-        IarmBus::getInstance().impl = &iarmBusImplMock;
-        device::Host::getInstance().impl = &hostImplMock;
+        p_rfcApiImplMock  = new NiceMock <RfcApiImplMock>;
+        RfcApi::setImpl(p_rfcApiImplMock);
+
+        p_wrapsImplMock  = new NiceMock <WrapsImplMock>;
+        Wraps::setImpl(p_wrapsImplMock);
+
+        p_iarmBusImplMock  = new NiceMock <IarmBusImplMock>;
+        IarmBus::setImpl(p_iarmBusImplMock);
+
+        p_hostImplMock  = new NiceMock <HostImplMock>;
+        device::Host::setImpl(p_hostImplMock);
+
+        p_sleepModeMock  = new NiceMock <SleepModeMock>;
+        device::SleepMode::setImpl(p_sleepModeMock);
     }
 
     virtual ~SystemServicesTest() override
     {
-        RfcApi::getInstance().impl = nullptr;
-        Wraps::getInstance().impl = nullptr;
-        IarmBus::getInstance().impl = nullptr;
-        device::Host::getInstance().impl = nullptr;
+        RfcApi::setImpl(nullptr);
+        if (p_rfcApiImplMock != nullptr)
+        {
+            delete p_rfcApiImplMock;
+            p_rfcApiImplMock = nullptr;
+        }
+
+        Wraps::setImpl(nullptr);
+        if (p_wrapsImplMock != nullptr)
+        {
+            delete p_wrapsImplMock;
+            p_wrapsImplMock = nullptr;
+        }
+
+        IarmBus::setImpl(nullptr);
+        if (p_iarmBusImplMock != nullptr)
+        {
+            delete p_iarmBusImplMock;
+            p_iarmBusImplMock = nullptr;
+        }
+
+        device::SleepMode::setImpl(nullptr);
+        if (p_sleepModeMock != nullptr)
+        {
+            delete p_sleepModeMock;
+            p_sleepModeMock = nullptr;
+        }
+
+        device::Host::setImpl(nullptr);
+        if (p_hostImplMock != nullptr)
+        {
+            delete p_hostImplMock;
+            p_hostImplMock = nullptr;
+        }
     }
 };
 
@@ -84,7 +126,7 @@ protected:
         PluginHost::IFactories::Assign(&factoriesImplementation);
 
         dispatcher = static_cast<PluginHost::IDispatcher*>(
-            plugin->QueryInterface(PluginHost::IDispatcher::ID));
+        plugin->QueryInterface(PluginHost::IDispatcher::ID));
         dispatcher->Activate(&service);
     }
 
@@ -106,7 +148,7 @@ protected:
     SystemServicesEventIarmTest()
         : SystemServicesEventTest()
     {
-        ON_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
+        ON_CALL(*p_iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
                 [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
                     if ((string(IARM_BUS_SYSMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE)) {
@@ -222,7 +264,7 @@ TEST_F(SystemServicesEventTest, PendingReboot)
 
     handler.Subscribe(0, _T("onFirmwarePendingReboot"), _T("org.rdk.System"), message);
 
-    EXPECT_CALL(rfcApiImplMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_))
+    EXPECT_CALL(*p_rfcApiImplMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](char* pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
@@ -241,7 +283,7 @@ TEST_F(SystemServicesEventTest, PendingReboot)
 
 TEST_F(SystemServicesTest, AutoReboot)
 {
-    EXPECT_CALL(rfcApiImplMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_))
+    EXPECT_CALL(*p_rfcApiImplMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](char* pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
@@ -257,7 +299,7 @@ TEST_F(SystemServicesTest, AutoReboot)
 
 TEST_F(SystemServicesTest, RebootDelay)
 {
-    EXPECT_CALL(rfcApiImplMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_))
+    EXPECT_CALL(*p_rfcApiImplMock, setRFCParameter(::testing::_, ::testing::_, ::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](char* pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType) {
@@ -552,7 +594,7 @@ TEST_F(SystemServicesTest, SystemVersions)
 
 TEST_F(SystemServicesTest, MocaStatus)
 {
-    ON_CALL(wrapsImplMock, v_secure_system(::testing::_, ::testing::_))
+    ON_CALL(*p_wrapsImplMock, v_secure_system(::testing::_, ::testing::_))
         .WillByDefault(::testing::Invoke(
             [&](const char *command, va_list args) {
                 EXPECT_EQ(string(command), string(_T("/etc/init.d/moca_init start")));
@@ -576,7 +618,7 @@ TEST_F(SystemServicesTest, MocaStatus)
 
 TEST_F(SystemServicesTest, updateFirmware)
 {
-    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+    EXPECT_CALL(*p_wrapsImplMock, popen(::testing::_, ::testing::_))
         .Times(::testing::AnyNumber())
         .WillRepeatedly(::testing::Invoke(
             [&](const char* command, const char* type) {
@@ -597,7 +639,7 @@ TEST_F(SystemServicesTest, Mode)
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{}}"), response));
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"unknown\",\"duration\":0}}"), response));
 
-    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+    ON_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .WillByDefault(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_DAEMON_NAME)));
@@ -605,7 +647,7 @@ TEST_F(SystemServicesTest, Mode)
                 return IARM_RESULT_SUCCESS;
             });
 
-    ON_CALL(wrapsImplMock, system(::testing::_))
+    ON_CALL(*p_wrapsImplMock, system(::testing::_))
         .WillByDefault(::testing::Invoke(
             [&](const char* command) {
                 EXPECT_EQ(string(command), string(_T("rm -f /opt/warehouse_mode_active")));
@@ -623,7 +665,7 @@ TEST_F(SystemServicesTest, setDeepSleepTimer)
 {
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setDeepSleepTimer"), _T("{}"), response));
 
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .Times(::testing::AnyNumber())
         .WillRepeatedly(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -640,7 +682,7 @@ TEST_F(SystemServicesTest, setNetworkStandbyMode)
 {
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setNetworkStandbyMode"), _T("{}"), response));
 
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .Times(::testing::AnyNumber())
         .WillRepeatedly(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -655,7 +697,7 @@ TEST_F(SystemServicesTest, setNetworkStandbyMode)
 
 TEST_F(SystemServicesTest, getNetworkStandbyMode)
 {
-    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+    ON_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .WillByDefault(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
@@ -672,16 +714,14 @@ TEST_F(SystemServicesTest, getNetworkStandbyMode)
 TEST_F(SystemServicesTest, setPreferredStandbyMode)
 {
     device::SleepMode mode;
-    NiceMock<SleepModeMock> sleepModeMock;
-    device::SleepMode::getInstance().impl = &sleepModeMock;
 
-    ON_CALL(sleepModeMock, getInstanceByName)
+        ON_CALL(*p_sleepModeMock, getInstanceByName)
         .WillByDefault(::testing::Invoke(
             [&](const std::string& name) -> device::SleepMode& {
                 EXPECT_EQ(name, "LIGHT_SLEEP");
                 return mode;
             }));
-    EXPECT_CALL(hostImplMock, setPreferredSleepMode)
+    EXPECT_CALL(*p_hostImplMock, setPreferredSleepMode)
         .Times(2)
         .WillOnce(::testing::Return(0))
         .WillOnce(::testing::Invoke(
@@ -698,19 +738,18 @@ TEST_F(SystemServicesTest, setPreferredStandbyMode)
 TEST_F(SystemServicesTest, getPreferredStandbyMode)
 {
     device::SleepMode mode;
-    NiceMock<SleepModeMock> sleepModeMock;
-    mode.impl = &sleepModeMock;
+
     string sleepModeString(_T("DEEP_SLEEP"));
 
-    ON_CALL(hostImplMock, getPreferredSleepMode)
+    ON_CALL(*p_hostImplMock, getPreferredSleepMode)
         .WillByDefault(::testing::Return(mode));
-    ON_CALL(sleepModeMock, toString)
+    ON_CALL(*p_sleepModeMock, toString)
         .WillByDefault(::testing::ReturnRef(sleepModeString));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getPreferredStandbyMode"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"preferredStandbyMode\":\"DEEP_SLEEP\",\"success\":true}"));
 
-    ON_CALL(hostImplMock, getPreferredSleepMode)
+    ON_CALL(*p_hostImplMock, getPreferredSleepMode)
         .WillByDefault(::testing::Invoke(
             []() -> device::SleepMode {
                 throw device::Exception("test");
@@ -722,19 +761,17 @@ TEST_F(SystemServicesTest, getPreferredStandbyMode)
 TEST_F(SystemServicesTest, getAvailableStandbyModes)
 {
     device::SleepMode mode;
-    NiceMock<SleepModeMock> sleepModeMock;
-    mode.impl = &sleepModeMock;
     string sleepModeString(_T("DEEP_SLEEP"));
 
-    ON_CALL(hostImplMock, getAvailableSleepModes)
+    ON_CALL(*p_hostImplMock, getAvailableSleepModes)
         .WillByDefault(::testing::Return(std::vector<device::SleepMode>({ mode })));
-    ON_CALL(sleepModeMock, toString)
+    ON_CALL(*p_sleepModeMock, toString)
         .WillByDefault(::testing::ReturnRef(sleepModeString));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getAvailableStandbyModes"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"supportedStandbyModes\":[\"DEEP_SLEEP\"],\"success\":true}"));
 
-    ON_CALL(hostImplMock, getAvailableSleepModes)
+    ON_CALL(*p_hostImplMock, getAvailableSleepModes)
         .WillByDefault(::testing::Invoke(
             []() -> device::List<device::SleepMode> {
                 throw device::Exception("test");
@@ -745,7 +782,7 @@ TEST_F(SystemServicesTest, getAvailableStandbyModes)
 
 TEST_F(SystemServicesTest, getWakeupReason)
 {
-    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+    ON_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .WillByDefault(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_DEEPSLEEPMGR_NAME)));
@@ -761,7 +798,7 @@ TEST_F(SystemServicesTest, getWakeupReason)
 
 TEST_F(SystemServicesTest, getLastWakeupKeyCode)
 {
-    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+    ON_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .WillByDefault(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_DEEPSLEEPMGR_NAME)));
@@ -895,7 +932,7 @@ extern "C" FILE* __real_popen(const char* command, const char* type);
 
 TEST_F(SystemServicesTest, getTimeZones)
 {
-    ON_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+    ON_CALL(*p_wrapsImplMock, popen(::testing::_, ::testing::_))
         .WillByDefault(::testing::Invoke(
             [&](const char* command, const char* type) -> FILE* {
                 EXPECT_THAT(string(command), ::testing::MatchesRegex("zdump \\/usr\\/share\\/zoneinfo/.+"));
@@ -918,7 +955,7 @@ TEST_F(SystemServicesTest, getLastDeepSleepReason)
 
 TEST_F(SystemServicesTest, getCoreTemperature)
 {
-    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+    ON_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .WillByDefault(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
@@ -935,7 +972,7 @@ TEST_F(SystemServicesTest, getCoreTemperature)
 
 TEST_F(SystemServicesTest, getTemperatureThresholds)
 {
-    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+    ON_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .WillByDefault(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
@@ -957,7 +994,7 @@ TEST_F(SystemServicesTest, getTemperatureThresholds)
 
 TEST_F(SystemServicesTest, setTemperatureThresholds)
 {
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .Times(::testing::AnyNumber())
         .WillRepeatedly(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -976,7 +1013,7 @@ TEST_F(SystemServicesTest, setTemperatureThresholds)
 
 TEST_F(SystemServicesTest, getOvertempGraceInterval)
 {
-    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+    ON_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .WillByDefault(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
@@ -993,7 +1030,7 @@ TEST_F(SystemServicesTest, getOvertempGraceInterval)
 
 TEST_F(SystemServicesTest, setOvertempGraceInterval)
 {
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .Times(::testing::AnyNumber())
         .WillRepeatedly(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -1015,7 +1052,7 @@ TEST_F(SystemServicesTest, getRFCConfig)
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getRFCConfig"), _T("{\"rfclist\":[]}"), response));
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getRFCConfig"), _T("{\"rfclist\":[\"#@!\"]}"), response));
 
-    ON_CALL(rfcApiImplMock, getRFCParameter(::testing::_, ::testing::_, ::testing::_))
+    ON_CALL(*p_rfcApiImplMock, getRFCParameter(::testing::_, ::testing::_, ::testing::_))
         .WillByDefault(::testing::Invoke(
             [](char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData) {
                 EXPECT_EQ(string(pcCallerID), string("SystemServices"));
@@ -1040,7 +1077,7 @@ TEST_F(SystemServicesTest, enableXREConnectionRetention)
 
 TEST_F(SystemServicesTest, getPowerState)
 {
-    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+    ON_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .WillByDefault(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
@@ -1056,7 +1093,7 @@ TEST_F(SystemServicesTest, getPowerState)
 
 TEST_F(SystemServicesTest, setPowerState)
 {
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .Times(::testing::AnyNumber())
         .WillRepeatedly(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -1083,7 +1120,7 @@ TEST_F(SystemServicesTest, getPowerStateIsManagedByDevice)
 
 TEST_F(SystemServicesTest, getPowerStateBeforeReboot)
 {
-    ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+    ON_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .WillByDefault(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
@@ -1099,7 +1136,7 @@ TEST_F(SystemServicesTest, getPowerStateBeforeReboot)
 
 TEST_F(SystemServicesTest, setWakeupSrcConfiguration)
 {
-    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .Times(::testing::AnyNumber())
         .WillRepeatedly(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
@@ -1155,7 +1192,7 @@ TEST_F(SystemServicesTest, deletePersistentPath)
             }));
     ON_CALL(amazonService, PersistentPath())
         .WillByDefault(::testing::Return(amazonPersistentPath));
-    EXPECT_CALL(wrapsImplMock, system(::testing::_))
+    EXPECT_CALL(*p_wrapsImplMock, system(::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
             [&](const char* command) {
@@ -1309,7 +1346,7 @@ TEST_F(SystemServicesTest, clearLastDeepSleepReasonFailed_When_unlinkFailed)
 {
     const char* filepath = "/opt/standbyReason.txt";
     EXPECT_TRUE(Core::File(string(_T("/opt/standbyReason.txt"))).Exists());
-    EXPECT_CALL(wrapsImplMock, unlink(::testing::_))
+    EXPECT_CALL(*p_wrapsImplMock, unlink(::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
             [&](const char* command) {
@@ -1331,7 +1368,7 @@ TEST_F(SystemServicesTest, clearLastDeepSleepReasonSuccess_When_unlinkSucceed)
 {
     const char* filepath = "/opt/standbyReason.txt";
     EXPECT_TRUE(Core::File(string(_T("/opt/standbyReason.txt"))).Exists());
-    EXPECT_CALL(wrapsImplMock, unlink(::testing::_))
+    EXPECT_CALL(*p_wrapsImplMock, unlink(::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
             [&](const char* command) {

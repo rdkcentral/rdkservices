@@ -83,6 +83,8 @@ add_definitions(
          -DRFC_ENABLED
          -DUSE_DS
          -DENABLE_THERMAL_PROTECTION
+         -DHAS_API_SYSTEM
+         -DHAS_API_POWERSTATE
 )
 
 

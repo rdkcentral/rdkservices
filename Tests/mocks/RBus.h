@@ -38,43 +38,23 @@ public:
 };
 
 class RBusApi {
+protected:
+    static RBusApiImpl* impl;
+
 public:
-    static RBusApi& getInstance()
-    {
-        static RBusApi instance;
-        return instance;
-    }
 
-    RBusApiImpl* impl;
-
-    static rbusError_t rbus_open(rbusHandle_t* handle, char const* componentName)
-    {
-        return getInstance().impl->rbus_open(handle, componentName);
-    }
-
-    static rbusError_t rbusMethod_InvokeAsync(rbusHandle_t handle, char const* methodName, rbusObject_t inParams, rbusMethodAsyncRespHandler_t callback,  int timeout)
-    {
-        return getInstance().impl->rbusMethod_InvokeAsync(handle, methodName, inParams, callback, timeout);
-    }
-
-    static rbusValue_t rbusObject_GetValue(rbusObject_t object, char const* name)
-    {
-        return getInstance().impl->rbusObject_GetValue(object, name);
-    }
-
-    static char const* rbusValue_GetString(rbusValue_t value, int* len)
-    {
-        return getInstance().impl->rbusValue_GetString(value, len);
-    }
-
-    static rbusError_t rbus_close(rbusHandle_t handle)
-    {
-        return getInstance().impl->rbus_close(handle);
-    }
+    RBusApi();
+    RBusApi(const RBusApi &obj) = delete;
+    static void setImpl(RBusApiImpl* newImpl);
+    static rbusError_t rbus_open(rbusHandle_t* handle, char const* componentName);
+    static rbusError_t rbusMethod_InvokeAsync(rbusHandle_t handle, char const* methodName, rbusObject_t inParams, rbusMethodAsyncRespHandler_t callback,  int timeout);
+    static rbusValue_t rbusObject_GetValue(rbusObject_t object, char const* name);
+    static char const* rbusValue_GetString(rbusValue_t value, int* len);
+    static rbusError_t rbus_close(rbusHandle_t handle);
 };
 
-constexpr auto rbus_open = &RBusApi::rbus_open;
-constexpr auto rbusMethod_InvokeAsync = &RBusApi::rbusMethod_InvokeAsync;
-constexpr auto rbusObject_GetValue = &RBusApi::rbusObject_GetValue;
-constexpr auto rbusValue_GetString = &RBusApi::rbusValue_GetString;
-constexpr auto rbus_close = &RBusApi::rbus_close;
+extern rbusError_t (*rbus_open)(rbusHandle_t*,char const* );
+extern rbusError_t (*rbusMethod_InvokeAsync)(rbusHandle_t,char const*, rbusObject_t,rbusMethodAsyncRespHandler_t,int);
+extern rbusValue_t (*rbusObject_GetValue)(rbusObject_t,char const*);
+extern char const* (*rbusValue_GetString)(rbusValue_t,int*);
+extern rbusError_t (*rbus_close)(rbusHandle_t);

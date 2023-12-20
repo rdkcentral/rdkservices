@@ -12,13 +12,14 @@ using ::testing::NiceMock;
 
 class DeviceInfoTest : public ::testing::Test {
 protected:
-    NiceMock<IarmBusImplMock> iarmBusImplMock;
+    IarmBusImplMock   *p_iarmBusImplMock = nullptr ;
     Core::ProxyType<Plugin::DeviceInfoImplementation> deviceInfoImplementation;
     Exchange::IDeviceInfo* interface;
 
     DeviceInfoTest()
     {
-        IarmBus::getInstance().impl = &iarmBusImplMock;
+        p_iarmBusImplMock  = new NiceMock <IarmBusImplMock>;
+        IarmBus::setImpl(p_iarmBusImplMock);
 
         deviceInfoImplementation = Core::ProxyType<Plugin::DeviceInfoImplementation>::Create();
 
@@ -28,7 +29,12 @@ protected:
     virtual ~DeviceInfoTest()
     {
         interface->Release();
-        IarmBus::getInstance().impl = nullptr;
+        IarmBus::setImpl(nullptr);
+        if (p_iarmBusImplMock != nullptr)
+        {
+            delete p_iarmBusImplMock;
+            p_iarmBusImplMock = nullptr;
+        }
     }
 
     virtual void SetUp()

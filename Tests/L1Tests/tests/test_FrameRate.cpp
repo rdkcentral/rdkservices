@@ -31,16 +31,17 @@ protected:
 
 class FrameRateInitializedTest : public FrameRateTest {
 protected:
-    NiceMock<IarmBusImplMock> iarmBusImplMock;
+    IarmBusImplMock   *p_iarmBusImplMock = nullptr ;
     IARM_EventHandler_t handlerOnDisplayFrameRateChanging;
     IARM_EventHandler_t handlerOnDisplayFrameRateChanged;
 
     FrameRateInitializedTest()
         : FrameRateTest()
     {
-        IarmBus::getInstance().impl = &iarmBusImplMock;
+        p_iarmBusImplMock  = new NiceMock <IarmBusImplMock>;
+        IarmBus::setImpl(p_iarmBusImplMock);
 
-        ON_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
+        ON_CALL(*p_iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
                 [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
                     if ((string(IARM_BUS_DSMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_DSMGR_EVENT_DISPLAY_FRAMRATE_PRECHANGE)) {
@@ -57,8 +58,12 @@ protected:
     virtual ~FrameRateInitializedTest() override
     {
         plugin->Deinitialize(nullptr);
-
-        IarmBus::getInstance().impl = nullptr;
+        IarmBus::setImpl(nullptr);
+        if (p_iarmBusImplMock != nullptr)
+        {
+            delete p_iarmBusImplMock;
+            p_iarmBusImplMock = nullptr;
+        }
     }
 };
 
@@ -89,22 +94,36 @@ protected:
 
 class FrameRateDsTest : public FrameRateTest {
 protected:
-    HostImplMock hostImplMock;
-    VideoDeviceMock videoDeviceMock;
-    device::VideoDevice videoDevice;
+    HostImplMock      *p_hostImplMock = nullptr;
+    VideoDeviceMock   *p_videoDeviceMock = nullptr;
 
     FrameRateDsTest()
         : FrameRateTest()
     {
-        device::Host::getInstance().impl = &hostImplMock;
-        videoDevice.impl = &videoDeviceMock;
+        p_hostImplMock  = new NiceMock <HostImplMock>;
+        device::Host::setImpl(p_hostImplMock);
 
-        ON_CALL(hostImplMock, getVideoDevices())
+        device::VideoDevice videoDevice;
+        p_videoDeviceMock  = new NiceMock <VideoDeviceMock>;
+        device::VideoDevice::setImpl(p_videoDeviceMock);
+
+        ON_CALL(*p_hostImplMock, getVideoDevices())
             .WillByDefault(::testing::Return(device::List<device::VideoDevice>({ videoDevice })));
     }
     virtual ~FrameRateDsTest() override
     {
-        device::Host::getInstance().impl = nullptr;
+        device::VideoDevice::setImpl(nullptr);
+        if (p_videoDeviceMock != nullptr)
+        {
+            delete p_videoDeviceMock;
+            p_videoDeviceMock = nullptr;
+        }
+        device::Host::setImpl(nullptr);
+        if (p_hostImplMock != nullptr)
+        {
+            delete p_hostImplMock;
+            p_hostImplMock = nullptr;
+        }
     }
 };
 
@@ -137,7 +156,7 @@ TEST_F(FrameRateTest, setCollectionFrequency_startFpsCollection_stopFpsCollectio
  */
 TEST_F(FrameRateDsTest, DISABLED_setFrmMode)
 {
-    ON_CALL(videoDeviceMock, setFRFMode(::testing::_))
+    ON_CALL(*p_videoDeviceMock, setFRFMode(::testing::_))
         .WillByDefault(::testing::Invoke(
             [&](int param) {
                 EXPECT_EQ(param, 0);
@@ -153,7 +172,7 @@ TEST_F(FrameRateDsTest, DISABLED_setFrmMode)
  */
 TEST_F(FrameRateDsTest, DISABLED_getFrmMode)
 {
-    ON_CALL(videoDeviceMock, getFRFMode(::testing::_))
+    ON_CALL(*p_videoDeviceMock, getFRFMode(::testing::_))
         .WillByDefault(::testing::Invoke(
             [&](int* param) {
                 *param = 0;
@@ -169,7 +188,7 @@ TEST_F(FrameRateDsTest, DISABLED_getFrmMode)
  */
 TEST_F(FrameRateDsTest, DISABLED_setDisplayFrameRate)
 {
-    ON_CALL(videoDeviceMock, setDisplayframerate(::testing::_))
+    ON_CALL(*p_videoDeviceMock, setDisplayframerate(::testing::_))
         .WillByDefault(::testing::Invoke(
             [&](const char* param) {
                 EXPECT_EQ(param, string("3840x2160px48"));
@@ -185,7 +204,7 @@ TEST_F(FrameRateDsTest, DISABLED_setDisplayFrameRate)
  */
 TEST_F(FrameRateDsTest, DISABLED_getDisplayFrameRate)
 {
-    ON_CALL(videoDeviceMock, getCurrentDisframerate(::testing::_))
+    ON_CALL(*p_videoDeviceMock, getCurrentDisframerate(::testing::_))
         .WillByDefault(::testing::Invoke(
             [&](char* param) {
                 string framerate("3840x2160px48");

@@ -11,7 +11,7 @@ using ::testing::Eq;
 
 class CompositeInputTest : public ::testing::Test {
 protected:
-	NiceMock<IarmBusImplMock> iarmBusImplMock;
+    IarmBusImplMock   *p_iarmBusImplMock = nullptr ;
     Core::ProxyType<Plugin::CompositeInput> plugin;
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
@@ -23,23 +23,30 @@ protected:
         , connection(1, 0)
     {
     }
-    virtual ~CompositeInputTest() 
+    virtual ~CompositeInputTest()
     {
     }
 };
 
 class CompositeInputDsTest : public CompositeInputTest {
 protected:
-	NiceMock<CompositeInputImplMock> compositeInputImplMock;
+
+    CompositeInputImplMock   *p_compositeInputImplMock = nullptr ;
 
     CompositeInputDsTest()
         : CompositeInputTest()
     {
-        device::CompositeInput::getInstance().impl = &compositeInputImplMock;
+        p_compositeInputImplMock  = new NiceMock <CompositeInputImplMock>;
+        device::CompositeInput::setImpl(p_compositeInputImplMock);
     }
     virtual ~CompositeInputDsTest() override
     {
-        device::CompositeInput::getInstance().impl = nullptr;
+        device::CompositeInput::setImpl(nullptr);
+        if (p_compositeInputImplMock != nullptr)
+        {
+            delete p_compositeInputImplMock;
+            p_compositeInputImplMock = nullptr;
+        }
     }
 };
 
@@ -53,9 +60,10 @@ protected:
  CompositeInputInitializedTest()
         : CompositeInputTest()
     {
-        IarmBus::getInstance().impl = &iarmBusImplMock;
+        p_iarmBusImplMock  = new NiceMock <IarmBusImplMock>;
+        IarmBus::setImpl(p_iarmBusImplMock);
 
-        ON_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
+        ON_CALL(*p_iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
                 [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
                     if ((string(IARM_BUS_DSMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_HOTPLUG)) {
@@ -79,7 +87,12 @@ protected:
     {
         plugin->Deinitialize(nullptr);
 
-        IarmBus::getInstance().impl = nullptr;
+        IarmBus::setImpl(nullptr);
+        if (p_iarmBusImplMock != nullptr)
+        {
+            delete p_iarmBusImplMock;
+            p_iarmBusImplMock = nullptr;
+        }
     }
 };
 
@@ -112,23 +125,29 @@ protected:
 
 class CompositeInputInitializedEventDsTest : public CompositeInputInitializedEventTest {
 protected:
-    NiceMock<CompositeInputImplMock> compositeInputImplMock;
+    CompositeInputImplMock   *p_compositeInputImplMock = nullptr ;
 
     CompositeInputInitializedEventDsTest()
         : CompositeInputInitializedEventTest()
     {
-        device::CompositeInput::getInstance().impl = &compositeInputImplMock;
+        p_compositeInputImplMock  = new NiceMock <CompositeInputImplMock>;
+        device::CompositeInput::setImpl(p_compositeInputImplMock);
     }
 
     virtual ~CompositeInputInitializedEventDsTest() override
     {
-        device::CompositeInput::getInstance().impl = nullptr;
+        device::CompositeInput::setImpl(nullptr);
+        if (p_compositeInputImplMock != nullptr)
+        {
+            delete p_compositeInputImplMock;
+            p_compositeInputImplMock = nullptr;
+        }
     }
 };
 
 TEST_F(CompositeInputTest, RegisteredMethods)
 {
- 
+
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getCompositeInputDevices")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("startCompositeInput")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("stopCompositeInput")));
@@ -137,10 +156,10 @@ TEST_F(CompositeInputTest, RegisteredMethods)
 
 TEST_F(CompositeInputDsTest, getCompositeInputDevices)
 {
-    ON_CALL(compositeInputImplMock, getNumberOfInputs())
-	    .WillByDefault(::testing::Return(1));
-    ON_CALL(compositeInputImplMock, isPortConnected(::testing::_))
-	    .WillByDefault(::testing::Return(true));
+    ON_CALL(*p_compositeInputImplMock, getNumberOfInputs())
+            .WillByDefault(::testing::Return(1));
+    ON_CALL(*p_compositeInputImplMock, isPortConnected(::testing::_))
+            .WillByDefault(::testing::Return(true));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getCompositeInputDevices"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"devices\":[{\"id\":0,\"locator\":\"cvbsin:\\/\\/localhost\\/deviceid\\/0\",\"connected\":\"true\"}],\"success\":true}"));
 }
@@ -153,7 +172,7 @@ TEST_F(CompositeInputDsTest, startCompositeInputInvalid)
 
 TEST_F(CompositeInputDsTest, startCompositeInput)
 {
-	EXPECT_CALL(compositeInputImplMock, selectPort(::testing::_))
+        EXPECT_CALL(*p_compositeInputImplMock, selectPort(::testing::_))
     .Times(1)
     .WillOnce(::testing::Invoke(
         [](int8_t Port) {
@@ -172,11 +191,11 @@ TEST_F(CompositeInputDsTest, setVideoRectangleInvalid)
 
 TEST_F(CompositeInputDsTest, setVideoRectangle)
 {
-     EXPECT_CALL(compositeInputImplMock, scaleVideo(::testing::_,::testing::_,::testing::_,::testing::_))
+     EXPECT_CALL(*p_compositeInputImplMock, scaleVideo(::testing::_,::testing::_,::testing::_,::testing::_))
     .Times(1)
     .WillOnce(::testing::Invoke(
-		[](int32_t x, int32_t y, int32_t width, int32_t height) {
-            
+                [](int32_t x, int32_t y, int32_t width, int32_t height) {
+
         }));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setVideoRectangle"), _T("{\"x\": 0,\"y\": 0,\"w\": 1920,\"h\": 1080}"), response));
@@ -186,9 +205,9 @@ TEST_F(CompositeInputDsTest, setVideoRectangle)
 TEST_F(CompositeInputInitializedEventDsTest, onDevicesChanged)
 {
    ASSERT_TRUE(dsCompositeEventHandler != nullptr);
-    ON_CALL(compositeInputImplMock, getNumberOfInputs())
+    ON_CALL(*p_compositeInputImplMock, getNumberOfInputs())
         .WillByDefault(::testing::Return(1));
-    ON_CALL(compositeInputImplMock, isPortConnected(::testing::_))
+    ON_CALL(*p_compositeInputImplMock, isPortConnected(::testing::_))
         .WillByDefault(::testing::Return(true));
 
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))

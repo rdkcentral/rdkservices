@@ -57,76 +57,99 @@ protected:
 };
 class HdmiCec_2DsTest : public HdmiCec_2Test {
 protected:
-    testing::NiceMock<LibCCECImplMock> libCCECImplMock;
-    testing::NiceMock<ConnectionImplMock> connectionImplMock;
+    LibCCECImplMock         *p_libCCECImplMock = nullptr ;
+    ConnectionImplMock      *p_connectionImplMock = nullptr ;
     HdmiCec_2DsTest()
         : HdmiCec_2Test()
     {
-        LibCCEC::getInstance().impl = &libCCECImplMock;
+         p_libCCECImplMock  = new testing::NiceMock <LibCCECImplMock>;
+         LibCCEC::setImpl(p_libCCECImplMock);
+
     }
     virtual ~HdmiCec_2DsTest() override
     {
-        LibCCEC::getInstance().impl = nullptr;
+        LibCCEC::setImpl(nullptr);
+        if (p_libCCECImplMock != nullptr)
+            {
+                delete p_libCCECImplMock;
+                p_libCCECImplMock = nullptr;
+            }
     }
 };
 
 class HdmiCec_2InitializedTest : public HdmiCec_2Test {
 protected:
-    testing::NiceMock<IarmBusImplMock> iarmBusImplMock;
+    IarmBusImplMock         *p_iarmBusImplMock = nullptr ;
+    ManagerImplMock         *p_managerImplMock = nullptr ;
+    HostImplMock            *p_hostImplMock = nullptr ;
+    LibCCECImplMock         *p_libCCECImplMock = nullptr ;
+    ConnectionImplMock      *p_connectionImplMock = nullptr ;
+    VideoOutputPortMock     *p_videoOutputPortMock = nullptr ;
+    MessageEncoderMock      *p_messageEncoderMock = nullptr ;
+
     IARM_EventHandler_t cecMgrEventHandler;
     IARM_EventHandler_t dsHdmiEventHandler;
     IARM_EventHandler_t pwrMgrEventHandler;
-    testing::NiceMock<LibCCECImplMock> libCCECImplMock;
 
-    testing::NiceMock<ManagerImplMock> managerImplMock;
-    testing::NiceMock<HostImplMock> hostImplMock;
 
-    testing::NiceMock<ConnectionImplMock> connectionImplMock;
-    testing::NiceMock<VideoOutputPortMock> videoOutputPortMock;
+    DisplayMock      *p_displayMock = nullptr ;
 
-    testing::NiceMock<MessageEncoderMock> messageEncoderMock;
-    testing::NiceMock<DisplayMock> displayMock;
-    
 
     HdmiCec_2InitializedTest()
         : HdmiCec_2Test()
     {
-        IarmBus::getInstance().impl = &iarmBusImplMock;
-        device::Manager::getInstance().impl = &managerImplMock;
-        device::Host::getInstance().impl = &hostImplMock;
-        LibCCEC::getInstance().impl = &libCCECImplMock;
-        MessageEncoder::getInstance().impl = &messageEncoderMock;
-        Connection::getInstance().impl = &connectionImplMock;
-        device::VideoOutputPort::getInstance().impl = &videoOutputPortMock;;
-        device::Display::getInstance().impl = &displayMock;
+        p_iarmBusImplMock  = new testing::NiceMock <IarmBusImplMock>;
+        IarmBus::setImpl(p_iarmBusImplMock);
+
+        p_hostImplMock  = new testing::NiceMock <HostImplMock>;
+        device::Host::setImpl(p_hostImplMock);
+
+        p_managerImplMock  = new testing::NiceMock <ManagerImplMock>;
+        device::Manager::setImpl(p_managerImplMock);
+
+        p_libCCECImplMock  = new testing::NiceMock <LibCCECImplMock>;
+        LibCCEC::setImpl(p_libCCECImplMock);
+
+        p_messageEncoderMock  = new testing::NiceMock <MessageEncoderMock>;
+        MessageEncoder::setImpl(p_messageEncoderMock);
+
+        p_connectionImplMock  = new testing::NiceMock <ConnectionImplMock>;
+        Connection::setImpl(p_connectionImplMock);
+
+        p_videoOutputPortMock  = new testing::NiceMock <VideoOutputPortMock>;
+        device::VideoOutputPort::setImpl(p_videoOutputPortMock);
+
+        p_displayMock  = new testing::NiceMock <DisplayMock>;
+        device::Display::setImpl(p_displayMock);
+
 
         //OnCall required for intialize to run properly
-        ON_CALL(hostImplMock, getVideoOutputPort(::testing::_))
+        ON_CALL(*p_hostImplMock, getVideoOutputPort(::testing::_))
             .WillByDefault(::testing::ReturnRef(device::VideoOutputPort::getInstance()));
 
-        ON_CALL(videoOutputPortMock, getDisplay())
+        ON_CALL(*p_videoOutputPortMock, getDisplay())
             .WillByDefault(::testing::ReturnRef(device::Display::getInstance()));
 
-        ON_CALL(videoOutputPortMock, isDisplayConnected())
+        ON_CALL(*p_videoOutputPortMock, isDisplayConnected())
             .WillByDefault(::testing::Return(true));
 
-        ON_CALL(messageEncoderMock, encode(::testing::Matcher<const DataBlock&>(::testing::_)))
+        ON_CALL(*p_messageEncoderMock, encode(::testing::Matcher<const DataBlock&>(::testing::_)))
             .WillByDefault(::testing::ReturnRef(CECFrame::getInstance()));
 
-        ON_CALL(displayMock, getEDIDBytes(::testing::_))
+        ON_CALL(*p_displayMock, getEDIDBytes(::testing::_))
             .WillByDefault(::testing::Invoke(
                 [&](std::vector<uint8_t> &edidVec2) {
                     edidVec2 = std::vector<uint8_t>({ 't', 'e', 's', 't' });
-                }));       
+                }));
 
-        ON_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
+        ON_CALL(*p_iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
                 [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
                    if ((string(IARM_BUS_CECMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED)) {
                         EXPECT_TRUE(handler != nullptr);
                         cecMgrEventHandler = handler;
                     }
-		        if ((string(IARM_BUS_CECMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_CECMGR_EVENT_STATUS_UPDATED)) {
+                        if ((string(IARM_BUS_CECMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_CECMGR_EVENT_STATUS_UPDATED)) {
                         EXPECT_TRUE(handler != nullptr);
                         cecMgrEventHandler = handler;
                     }
@@ -142,12 +165,12 @@ protected:
                     return IARM_RESULT_SUCCESS;
                 }));
 
-        ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+        ON_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .WillByDefault(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 if (strcmp(methodName, IARM_BUS_PWRMGR_API_GetPowerState) == 0) {
                     auto* param = static_cast<IARM_Bus_PWRMgr_GetPowerState_Param_t*>(arg);
-                    param->curState = IARM_BUS_PWRMGR_POWERSTATE_ON; 
+                    param->curState = IARM_BUS_PWRMGR_POWERSTATE_ON;
                 }
                 return IARM_RESULT_SUCCESS;
             });
@@ -155,36 +178,74 @@ protected:
 
         EXPECT_EQ(string(""), plugin->Initialize(nullptr));
         //Set enabled needs to be
-        ON_CALL(libCCECImplMock, getLogicalAddress(::testing::_))
+        ON_CALL(*p_libCCECImplMock, getLogicalAddress(::testing::_))
             .WillByDefault(::testing::Return(1));
-        ON_CALL(connectionImplMock, open())
+        ON_CALL(*p_connectionImplMock, open())
             .WillByDefault(::testing::Return());
-        ON_CALL(connectionImplMock, addFrameListener(::testing::_))
+        ON_CALL(*p_connectionImplMock, addFrameListener(::testing::_))
             .WillByDefault(::testing::Return());
         EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setEnabled"), _T("{\"enabled\": true}"), response));
         EXPECT_EQ(response, string("{\"success\":true}"));
-        
+
     }
     virtual ~HdmiCec_2InitializedTest() override
     {
             int lCounter = 0;
             while ((Plugin::HdmiCec_2::_instance->deviceList[0].m_isOSDNameUpdated) && (lCounter < (2*10))) { //sleep for 2sec.
-	        	usleep (100 * 1000); //sleep for 100 milli sec
-	        	lCounter ++;
-	        }
+                        usleep (100 * 1000); //sleep for 100 milli sec
+                        lCounter ++;
+                }
             EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setEnabled"), _T("{\"enabled\": false}"), response));
             EXPECT_EQ(response, string("{\"success\":true}"));
             plugin->Deinitialize(nullptr);
-            device::Manager::getInstance().impl = nullptr;
-            device::Host::getInstance().impl = nullptr;
-            LibCCEC::getInstance().impl = nullptr;
-            MessageEncoder::getInstance().impl = nullptr;
-            IarmBus::getInstance().impl = nullptr;
-            Connection::getInstance().impl = nullptr;   
-            device::Display::getInstance().impl = nullptr;   
-         
-
-
+            IarmBus::setImpl(nullptr);
+            if (p_iarmBusImplMock != nullptr)
+            {
+                delete p_iarmBusImplMock;
+                p_iarmBusImplMock = nullptr;
+            }
+            device::Display::setImpl(nullptr);
+            if (p_displayMock != nullptr)
+            {
+                delete p_displayMock;
+                p_displayMock = nullptr;
+            }
+            device::VideoOutputPort::setImpl(nullptr);
+            if (p_videoOutputPortMock != nullptr)
+            {
+                delete p_videoOutputPortMock;
+                p_videoOutputPortMock = nullptr;
+            }
+            device::Manager::setImpl(nullptr);
+            if (p_managerImplMock != nullptr)
+            {
+                delete p_managerImplMock;
+                p_managerImplMock = nullptr;
+            }
+            device::Host::setImpl(nullptr);
+            if (p_hostImplMock != nullptr)
+            {
+                delete p_hostImplMock;
+                p_hostImplMock = nullptr;
+            }
+            LibCCEC::setImpl(nullptr);
+            if (p_libCCECImplMock != nullptr)
+            {
+                delete p_libCCECImplMock;
+                p_libCCECImplMock = nullptr;
+            }
+            Connection::setImpl(nullptr);
+            if (p_connectionImplMock != nullptr)
+            {
+                delete p_connectionImplMock;
+                p_connectionImplMock = nullptr;
+            }
+            MessageEncoder::setImpl(nullptr);
+            if (p_messageEncoderMock != nullptr)
+            {
+                delete p_messageEncoderMock;
+                p_messageEncoderMock = nullptr;
+            }
     }
 };
 class HdmiCec_2InitializedEventTest : public HdmiCec_2InitializedTest {
@@ -193,12 +254,12 @@ protected:
     Core::JSONRPC::Message message;
     FactoriesImplementation factoriesImplementation;
     PluginHost::IDispatcher* dispatcher;
-    
+
 
     HdmiCec_2InitializedEventTest()
         : HdmiCec_2InitializedTest()
     {
-        PluginHost::IFactories::Assign(&factoriesImplementation);	
+        PluginHost::IFactories::Assign(&factoriesImplementation);
 
         dispatcher = static_cast<PluginHost::IDispatcher*>(
             plugin->QueryInterface(PluginHost::IDispatcher::ID));
@@ -210,7 +271,7 @@ protected:
         dispatcher->Deactivate();
         dispatcher->Release();
         PluginHost::IFactories::Assign(nullptr);
-        
+
     }
 };
 
@@ -230,7 +291,7 @@ TEST_F(HdmiCec_2Test, RegisteredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setOSDName")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setOTPEnabled")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setVendorId")));
-    
+
 }
 
 TEST_F(HdmiCec_2DsTest, getEnabledFalse)
@@ -256,7 +317,7 @@ TEST_F(HdmiCec_2InitializedTest, getActiveSourceStatusTrue)
         EXPECT_EQ(response, string("{\"success\":true}"));
 
     //Sets Activesource to true
-	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("performOTPAction"), _T("{\"enabled\": true}"), response));
+        EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("performOTPAction"), _T("{\"enabled\": true}"), response));
         EXPECT_EQ(response, string("{\"success\":true}"));
 
 
@@ -275,13 +336,13 @@ TEST_F(HdmiCec_2InitializedTest, getActiveSourceStatusFalse)
 
 
 TEST_F(HdmiCec_2InitializedTest, getDeviceList)
-{  
+{
     int iCounter = 0;
     //Checking to see if one of the values has been filled in (as the rest get filled in at the same time, and waiting if its not.
     while ((!Plugin::HdmiCec_2::_instance->deviceList[0].m_isOSDNameUpdated) && (iCounter < (2*10))) { //sleep for 2sec.
-		usleep (100 * 1000); //sleep for 100 milli sec
-		iCounter ++;
-	}
+                usleep (100 * 1000); //sleep for 100 milli sec
+                iCounter ++;
+        }
 
     const char* val = "TEST";
     OSDName name = OSDName(val);
@@ -298,7 +359,7 @@ TEST_F(HdmiCec_2InitializedTest, getDeviceList)
     proc.process(osdName, header); //calls the process that sets osdName for LogicalAddress = 1
     proc.process(vendorid, header); //calls the process that sets vendorID for LogicalAddress = 1
 
-    
+
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceList"), _T(""), response));
 
     EXPECT_EQ(response, string(_T("{\"numberofdevices\":14,\"deviceList\":[{\"logicalAddress\":1,\"osdName\":\"TEST\",\"vendorID\":\"123\"},{\"logicalAddress\":2,\"osdName\":\"NA\",\"vendorID\":\"000\"},{\"logicalAddress\":3,\"osdName\":\"NA\",\"vendorID\":\"000\"},{\"logicalAddress\":4,\"osdName\":\"NA\",\"vendorID\":\"000\"},{\"logicalAddress\":5,\"osdName\":\"NA\",\"vendorID\":\"000\"},{\"logicalAddress\":6,\"osdName\":\"NA\",\"vendorID\":\"000\"},{\"logicalAddress\":7,\"osdName\":\"NA\",\"vendorID\":\"000\"},{\"logicalAddress\":8,\"osdName\":\"NA\",\"vendorID\":\"000\"},{\"logicalAddress\":9,\"osdName\":\"NA\",\"vendorID\":\"000\"},{\"logicalAddress\":10,\"osdName\":\"NA\",\"vendorID\":\"000\"},{\"logicalAddress\":11,\"osdName\":\"NA\",\"vendorID\":\"000\"},{\"logicalAddress\":12,\"osdName\":\"NA\",\"vendorID\":\"000\"},{\"logicalAddress\":13,\"osdName\":\"NA\",\"vendorID\":\"000\"},{\"logicalAddress\":14,\"osdName\":\"NA\",\"vendorID\":\"000\"}],\"success\":true}")));
@@ -316,7 +377,7 @@ TEST_F(HdmiCec_2InitializedTest, getOTPEnabled)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getOTPEnabled"), _T("{}"), response));
         EXPECT_EQ(response, string("{\"enabled\":true,\"success\":true}"));
 
-   
+
 }
 
 
@@ -359,22 +420,22 @@ TEST_F(HdmiCec_2InitializedTest, setOTPEnabled)
 
 }
 
- 
+
 
 TEST_F(HdmiCec_2InitializedTest, sendKeyPressEventUp)
 {
-    ON_CALL(messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
+    ON_CALL(*p_messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
             .WillByDefault(::testing::Invoke(
             [](const UserControlPressed& m) -> CECFrame&  {
                 EXPECT_EQ(m.uiCommand.toInt(),UICommand::UI_COMMAND_VOLUME_UP );
                 return CECFrame::getInstance();
             }));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 65}"), response));
-        EXPECT_EQ(response, string("{\"success\":true}"));    
+        EXPECT_EQ(response, string("{\"success\":true}"));
 }
 TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent2)
 {
-    ON_CALL(messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
+    ON_CALL(*p_messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
             .WillByDefault(::testing::Invoke(
             [](const UserControlPressed& m) -> CECFrame&  {
                 EXPECT_EQ(m.uiCommand.toInt(),UICommand::UI_COMMAND_VOLUME_DOWN );
@@ -386,7 +447,7 @@ TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent2)
 }
 TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent3)
 {
-    ON_CALL(messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
+    ON_CALL(*p_messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
             .WillByDefault(::testing::Invoke(
             [](const UserControlPressed& m) -> CECFrame&  {
                 EXPECT_EQ(m.uiCommand.toInt(),UICommand::UI_COMMAND_MUTE );
@@ -397,7 +458,7 @@ TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent3)
 }
 TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent4)
 {
-    ON_CALL(messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
+    ON_CALL(*p_messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
             .WillByDefault(::testing::Invoke(
             [](const UserControlPressed& m) -> CECFrame&  {
                 EXPECT_EQ(m.uiCommand.toInt(),UICommand::UI_COMMAND_UP );
@@ -408,7 +469,7 @@ TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent4)
 }
 TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent5)
 {
-    ON_CALL(messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
+    ON_CALL(*p_messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
             .WillByDefault(::testing::Invoke(
             [](const UserControlPressed& m) -> CECFrame&  {
                 EXPECT_EQ(m.uiCommand.toInt(),UICommand::UI_COMMAND_DOWN );
@@ -416,11 +477,11 @@ TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent5)
             }));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("sendKeyPressEvent"), _T("{\"logicalAddress\": 0, \"keyCode\": 2}"), response));
         EXPECT_EQ(response, string("{\"success\":true}"));
-    
+
 }
 TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent6)
 {
-    ON_CALL(messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
+    ON_CALL(*p_messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
             .WillByDefault(::testing::Invoke(
             [](const UserControlPressed& m) -> CECFrame&  {
                 EXPECT_EQ(m.uiCommand.toInt(),UICommand::UI_COMMAND_LEFT );
@@ -432,7 +493,7 @@ TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent6)
 }
 TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent7)
 {
-    ON_CALL(messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
+    ON_CALL(*p_messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
             .WillByDefault(::testing::Invoke(
             [](const UserControlPressed& m) -> CECFrame&  {
                 EXPECT_EQ(m.uiCommand.toInt(),UICommand::UI_COMMAND_RIGHT );
@@ -444,7 +505,7 @@ TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent7)
 }
 TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent8)
 {
-    ON_CALL(messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
+    ON_CALL(*p_messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
             .WillByDefault(::testing::Invoke(
             [](const UserControlPressed& m) -> CECFrame&  {
                 EXPECT_EQ(m.uiCommand.toInt(),UICommand::UI_COMMAND_SELECT );
@@ -455,7 +516,7 @@ TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent8)
 }
 TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent9)
 {
-    ON_CALL(messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
+    ON_CALL(*p_messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
             .WillByDefault(::testing::Invoke(
             [](const UserControlPressed& m) -> CECFrame&  {
                 EXPECT_EQ(m.uiCommand.toInt(),UICommand::UI_COMMAND_HOME );
@@ -467,7 +528,7 @@ TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent9)
 }
 TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent10)
 {
-    ON_CALL(messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
+    ON_CALL(*p_messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
             .WillByDefault(::testing::Invoke(
             [](const UserControlPressed& m) -> CECFrame&  {
                 EXPECT_EQ(m.uiCommand.toInt(),UICommand::UI_COMMAND_BACK );
@@ -479,7 +540,7 @@ TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent10)
 }
 TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent11)
 {
-    ON_CALL(messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
+    ON_CALL(*p_messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
             .WillByDefault(::testing::Invoke(
             [](const UserControlPressed& m) -> CECFrame&  {
                 EXPECT_EQ(m.uiCommand.toInt(),UICommand::UI_COMMAND_NUM_0 );
@@ -491,7 +552,7 @@ TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent11)
 }
 TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent12)
 {
-    ON_CALL(messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
+    ON_CALL(*p_messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
             .WillByDefault(::testing::Invoke(
             [](const UserControlPressed& m) -> CECFrame&  {
                 EXPECT_EQ(m.uiCommand.toInt(),UICommand::UI_COMMAND_NUM_1 );
@@ -503,7 +564,7 @@ TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent12)
 }
 TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent13)
 {
-    ON_CALL(messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
+    ON_CALL(*p_messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
             .WillByDefault(::testing::Invoke(
             [](const UserControlPressed& m) -> CECFrame&  {
                 EXPECT_EQ(m.uiCommand.toInt(),UICommand::UI_COMMAND_NUM_2 );
@@ -515,7 +576,7 @@ TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent13)
 }
 TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent14)
 {
-    ON_CALL(messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
+    ON_CALL(*p_messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
             .WillByDefault(::testing::Invoke(
             [](const UserControlPressed& m) -> CECFrame&  {
                 EXPECT_EQ(m.uiCommand.toInt(),UICommand::UI_COMMAND_NUM_3 );
@@ -527,7 +588,7 @@ TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent14)
 }
 TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent15)
 {
-    ON_CALL(messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
+    ON_CALL(*p_messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
             .WillByDefault(::testing::Invoke(
             [](const UserControlPressed& m) -> CECFrame&  {
                 EXPECT_EQ(m.uiCommand.toInt(),UICommand::UI_COMMAND_NUM_4 );
@@ -539,7 +600,7 @@ TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent15)
 }
 TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent16)
 {
-    ON_CALL(messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
+    ON_CALL(*p_messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
             .WillByDefault(::testing::Invoke(
             [](const UserControlPressed& m) -> CECFrame&  {
                 EXPECT_EQ(m.uiCommand.toInt(),UICommand::UI_COMMAND_NUM_5 );
@@ -551,7 +612,7 @@ TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent16)
 }
 TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent17)
 {
-    ON_CALL(messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
+    ON_CALL(*p_messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
             .WillByDefault(::testing::Invoke(
             [](const UserControlPressed& m) -> CECFrame&  {
                 EXPECT_EQ(m.uiCommand.toInt(),UICommand::UI_COMMAND_NUM_6 );
@@ -563,7 +624,7 @@ TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent17)
 }
 TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent18)
 {
-    ON_CALL(messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
+    ON_CALL(*p_messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
             .WillByDefault(::testing::Invoke(
             [](const UserControlPressed& m) -> CECFrame&  {
                 EXPECT_EQ(m.uiCommand.toInt(),UICommand::UI_COMMAND_NUM_7 );
@@ -576,7 +637,7 @@ TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent18)
 }
 TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent19)
 {
-    ON_CALL(messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
+    ON_CALL(*p_messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
             .WillByDefault(::testing::Invoke(
             [](const UserControlPressed& m) -> CECFrame&  {
                 EXPECT_EQ(m.uiCommand.toInt(),UICommand::UI_COMMAND_NUM_8 );
@@ -588,7 +649,7 @@ TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent19)
 }
 TEST_F(HdmiCec_2InitializedTest, sendKeyPressEvent20)
 {
-    ON_CALL(messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
+    ON_CALL(*p_messageEncoderMock, encode(::testing::Matcher<const UserControlPressed&>(::testing::_)))
             .WillByDefault(::testing::Invoke(
             [](const UserControlPressed& m) -> CECFrame&  {
                 EXPECT_EQ(m.uiCommand.toInt(),UICommand::UI_COMMAND_NUM_9 );

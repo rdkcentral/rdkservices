@@ -34,7 +34,7 @@
 #include "RtObjectRefMock.h"
 #include "RtArrayObjectMock.h"
 
-//Required, xdialCastObj cannot be moved into the .h, as we don't 
+//Required, xdialCastObj cannot be moved into the .h, as we don't
 //want header includes to have access to the object
 #include "RtXcastConnector.cpp"
 
@@ -45,9 +45,9 @@ using ::testing::Eq;
 
 class XCastPreLoad : public ::testing::Test {
     protected:
-    NiceMock<RfcApiImplMock> rfcApiImplMock;
+    RfcApiImplMock   *p_rfcApiImplMock = nullptr ;
 
-    XCastPreLoad() 
+    XCastPreLoad()
     {
     }
 
@@ -66,7 +66,7 @@ protected:
         , handler(*(plugin))
         , connection(1, 0)
     {
-        
+
 
     }
     virtual ~XCastTest() = default;
@@ -74,53 +74,69 @@ protected:
 
 class XCastDsTest : public XCastTest {
 protected:
-    NiceMock<rtObjectBaseMock> rtBaseMock;
+    rtObjectBaseMock   *p_rtBaseMock = nullptr ;
 
     XCastDsTest()
         : XCastTest()
     {
-        rtObjectBase::getInstance().impl = &rtBaseMock;
+        rtObjectBase::setImpl(p_rtBaseMock);
     }
     virtual ~XCastDsTest() override
     {
-        rtObjectBase::getInstance().impl = nullptr;
+        if (p_rtBaseMock != nullptr)
+        {
+            delete p_rtBaseMock;
+            p_rtBaseMock = nullptr;
+        }
+
     }
 };
 
 class XCastInitializedTest : public XCastTest {
 protected:
-    NiceMock<IarmBusImplMock> iarmBusImplMock;
+    IarmBusImplMock   *p_iarmBusImplMock = nullptr ;
     IARM_EventHandler_t dsHdmiEventHandler;
     IARM_EventHandler_t dsHdmiStatusEventHandler;
     IARM_EventHandler_t dsHdmiSignalStatusEventHandler;
     IARM_EventHandler_t dsHdmiVideoModeEventHandler;
     IARM_EventHandler_t dsHdmiGameFeatureStatusEventHandler;
 
-    NiceMock<floatingRtFunctionsMock> rtFloatingMock;
-    NiceMock<rtObjectBaseMock> rtBaseMock;
-    NiceMock<rtObjectRefMock> rtRefMock;
-    NiceMock<rtArrayObjectMock> rtArrayMock;
+    floatingRtFunctionsMock   *p_rtFloatingMock = nullptr ;
+    rtObjectBaseMock   *p_rtBaseMock = nullptr ;
+    rtObjectRefMock    *p_rtRefMock = nullptr ;
+    rtArrayObjectMock    *p_rtArrayMock = nullptr ;
 
 
     XCastInitializedTest()
         : XCastTest()
     {
-        IarmBus::getInstance().impl = &iarmBusImplMock;
-        rtObjectBase::getInstance().impl = &rtBaseMock;
-        rtObjectRef::getInstance().impl = &rtRefMock;
-        floatingRtFunctions::getInstance().impl = &rtFloatingMock;
-        RfcApi::getInstance().impl = &rfcApiImplMock;
-        rtArrayObject::getInstance().impl = &rtArrayMock;
-        
-        ON_CALL(rtFloatingMock, rtRemoteLocateObject(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
+        p_iarmBusImplMock  = new NiceMock <IarmBusImplMock>;
+        IarmBus::setImpl(p_iarmBusImplMock);
+
+        p_rtBaseMock  = new NiceMock <rtObjectBaseMock>;
+        rtObjectBase::setImpl(p_rtBaseMock);
+
+        p_rtRefMock  = new NiceMock <rtObjectRefMock>;
+        rtObjectRef::setImpl(p_rtRefMock);
+
+        p_rtFloatingMock  = new NiceMock <floatingRtFunctionsMock>;
+        floatingRtFunctions::setImpl(p_rtFloatingMock);
+
+        p_rfcApiImplMock  = new NiceMock <RfcApiImplMock>;
+        RfcApi::setImpl(p_rfcApiImplMock);
+
+        p_rtArrayMock  = new NiceMock <rtArrayObjectMock>;
+        rtArrayObject::setImpl(p_rtArrayMock);
+
+        ON_CALL(*p_rtFloatingMock, rtRemoteLocateObject(::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
                 [&](rtRemoteEnvironment *env, const char* str, rtObjectRef& obj, int x, remoteDisconnectCallback back, void *cbdata=NULL) {
                     rtIObject rtIObj;
                     obj = &rtIObj;
                     return RT_OK;
-                })); 
-        
-        ON_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
+                }));
+
+        ON_CALL(*p_iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
                 [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
                     /*if ((string(IARM_BUS_PWRMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_PWRMGR_API_GetPowerState)) {
@@ -129,7 +145,7 @@ protected:
                     }*/
                     return IARM_RESULT_SUCCESS;
                 }));
-        ON_CALL(iarmBusImplMock, IARM_Bus_Call(::testing::_, ::testing::_, ::testing::_, ::testing::_))
+        ON_CALL(*p_iarmBusImplMock, IARM_Bus_Call(::testing::_, ::testing::_, ::testing::_, ::testing::_))
         .WillByDefault(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 auto* param = static_cast<IARM_Bus_PWRMgr_GetPowerState_Param_t*>(arg);
@@ -138,22 +154,22 @@ protected:
             });
 
 
-        ON_CALL(rtRefMock, send(::testing::_, ::testing::_,::testing::_))
+        ON_CALL(*p_rtRefMock, send(::testing::_, ::testing::_,::testing::_))
             .WillByDefault(
             [](const char* messageName, const char* method, rtFunctionCallback* callback) {
                 delete callback;
                 callback = nullptr;
                 return RT_OK;
-            }); 
+            });
 
         EXPECT_EQ(string(""), plugin->Initialize(nullptr));
 
         //Wait until threads populate xdialCastObj.
         int iCounter = 0;
         while ((xdialCastObj == NULL) && (iCounter < (5*10))) { //sleep for 2sec.
-	    	usleep (100 * 1000); //sleep for 100 milli sec
-	    	iCounter ++;
-	    }
+                usleep (100 * 1000); //sleep for 100 milli sec
+                iCounter ++;
+            }
 
         //required to enable some backend processes for certain functions.
         EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setEnabled"), _T("{\"enabled\": true}"), response));
@@ -162,12 +178,42 @@ protected:
     virtual ~XCastInitializedTest() override
     {
         plugin->Deinitialize(nullptr);
-        RfcApi::getInstance().impl = nullptr;
-        floatingRtFunctions::getInstance().impl = nullptr;
-        rtObjectBase::getInstance().impl = nullptr;
-        IarmBus::getInstance().impl = nullptr;
-        rtObjectRef::getInstance().impl = nullptr;
-        rtArrayObject::getInstance().impl = nullptr;
+        RfcApi::setImpl(nullptr);
+        if (p_rfcApiImplMock != nullptr)
+        {
+            delete p_rfcApiImplMock;
+            p_rfcApiImplMock = nullptr;
+        }
+        floatingRtFunctions::setImpl(nullptr);
+        if (p_rtFloatingMock != nullptr)
+        {
+            delete p_rtFloatingMock;
+            p_rtFloatingMock = nullptr;
+        }
+        IarmBus::setImpl(nullptr);
+        if (p_iarmBusImplMock != nullptr)
+        {
+            delete p_iarmBusImplMock;
+            p_iarmBusImplMock = nullptr;
+        }
+        rtObjectBase::setImpl(nullptr);
+        if (p_rtBaseMock != nullptr)
+        {
+            delete p_rtBaseMock;
+            p_rtBaseMock = nullptr;
+        }
+        rtObjectRef::setImpl(nullptr);
+        if (p_rtRefMock != nullptr)
+        {
+            delete p_rtRefMock;
+            p_rtRefMock = nullptr;
+        }
+        rtArrayObject::setImpl(nullptr);
+        if (p_rtArrayMock != nullptr)
+        {
+            delete p_rtArrayMock;
+            p_rtArrayMock = nullptr;
+        }
     }
 };
 
@@ -185,7 +231,7 @@ protected:
         PluginHost::IFactories::Assign(&factoriesImplementation);
 
         dispatcher = static_cast<PluginHost::IDispatcher*>(
-            plugin->QueryInterface(PluginHost::IDispatcher::ID));
+        plugin->QueryInterface(PluginHost::IDispatcher::ID));
         dispatcher->Activate(&service);
     }
 
@@ -247,7 +293,7 @@ TEST_F(XCastDsTest, getsetStandbyBehavoir)
 
 TEST_F(XCastInitializedTest, onApplicationStateChanged)
 {
-    EXPECT_CALL(rtBaseMock, set(::testing::_, ::testing::Matcher<const char*>(::testing::_)))
+    EXPECT_CALL(*p_rtBaseMock, set(::testing::_, ::testing::Matcher<const char*>(::testing::_)))
             .WillOnce(::testing::Invoke(
                 [](const char* name, const char* value) {
                     std::string cnv = value;
@@ -275,8 +321,8 @@ TEST_F(XCastInitializedTest, onApplicationStateChanged)
             .WillRepeatedly(::testing::Invoke(
                 [](const char* name, const char* value) {
                     return RT_OK;
-                })); 
-    ON_CALL(rtRefMock, send(::testing::_, ::testing::Matcher<rtObjectRef&>(::testing::_)))
+                }));
+    ON_CALL(*p_rtRefMock, send(::testing::_, ::testing::Matcher<rtObjectRef&>(::testing::_)))
             .WillByDefault(::testing::Invoke(
                 [](const char* messageName, rtObjectRef& ref) {
                     delete ref.mRef;
@@ -284,12 +330,12 @@ TEST_F(XCastInitializedTest, onApplicationStateChanged)
                 }));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("onApplicationStateChanged"), _T("{\"applicationName\": \"NetflixApp\", \"state\":\"running\", \"applicationId\": \"1234\", \"error\": \"\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
-    
+
 }
 
 TEST_F(XCastInitializedTest, getProtocolVersionInitialized)
 {
-    ON_CALL(rtBaseMock, sendReturns(::testing::_, ::testing::_))
+    ON_CALL(*p_rtBaseMock, sendReturns(::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
                 [&](const char* messageName, rtString& result) {
 
@@ -297,7 +343,7 @@ TEST_F(XCastInitializedTest, getProtocolVersionInitialized)
                     result = tmp.c_str();
 
                     return RT_OK;
-                })); 
+                }));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getProtocolVersion"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"version\":\"test\",\"success\":true}"));
 }
@@ -311,7 +357,7 @@ TEST_F(XCastInitializedTest, unregisterApplications)
 TEST_F(XCastInitializedTest, unRegisterAllApplications)
 {
 
-    EXPECT_CALL(rtArrayMock, pushBack(::testing::Matcher<const char*>(::testing::_)))
+    EXPECT_CALL(*p_rtArrayMock, pushBack(::testing::Matcher<const char*>(::testing::_)))
             .WillOnce(::testing::Invoke(
                 [](const char* value) {
                     std::string strValue = value;
@@ -359,7 +405,7 @@ TEST_F(XCastInitializedTest, unRegisterAllApplications)
                     EXPECT_EQ("netflix.com", strValue);
                 }));
             //Last three are the ones remaining afte youtube has been unregistered.
-    EXPECT_CALL(rtBaseMock, set(::testing::_, ::testing::Matcher<bool>(::testing::_)))
+    EXPECT_CALL(*p_rtBaseMock, set(::testing::_, ::testing::Matcher<bool>(::testing::_)))
             .WillOnce(::testing::Invoke(
                 [](const char* name, bool value) {
                     bool testBool = true;
@@ -394,7 +440,7 @@ TEST_F(XCastInitializedTest, unRegisterAllApplications)
 TEST_F(XCastInitializedTest, registerApplications)
 {
 
-    EXPECT_CALL(rtArrayMock, pushBack(::testing::Matcher<const char*>(::testing::_)))
+    EXPECT_CALL(*p_rtArrayMock, pushBack(::testing::Matcher<const char*>(::testing::_)))
             .WillOnce(::testing::Invoke(
                 [](const char* value) {
                     std::string strValue = value;
@@ -426,7 +472,7 @@ TEST_F(XCastInitializedTest, registerApplications)
                     EXPECT_EQ("netflix.com", strValue);
                 }));
             //Last three are the ones remaining afte youtube has been unregistered.
-    EXPECT_CALL(rtBaseMock, set(::testing::_, ::testing::Matcher<bool>(::testing::_)))
+    EXPECT_CALL(*p_rtBaseMock, set(::testing::_, ::testing::Matcher<bool>(::testing::_)))
             .WillOnce(::testing::Invoke(
                 [](const char* name, bool value) {
                     bool testBool = true;
@@ -461,10 +507,10 @@ TEST_F(XCastInitializedEventTest, onApplicationHideRequest)
                 EXPECT_EQ(text, string(_T("{\"jsonrpc\":\"2.0\",\"method\":\"client.events.onApplicationHideRequest\",\"params\":{\"applicationName\":\"NetflixApp\",\"applicationId\":\"1234\"}}")));
                 return Core::ERROR_NONE;
             }));
-    
+
     handler.Subscribe(0, _T("onApplicationHideRequest"), _T("client.events"), message);
     plugin->onXcastApplicationHideRequest("Netflix", "1234");
-    handler.Unsubscribe(0, _T("onApplicationHideRequest"), _T("client.events"), message); 
+    handler.Unsubscribe(0, _T("onApplicationHideRequest"), _T("client.events"), message);
 }
 TEST_F(XCastInitializedEventTest, onApplicationStateRequest)
 {
@@ -477,10 +523,10 @@ TEST_F(XCastInitializedEventTest, onApplicationStateRequest)
                 EXPECT_EQ(text, string(_T("{\"jsonrpc\":\"2.0\",\"method\":\"client.events.onApplicationStateRequest\",\"params\":{\"applicationName\":\"NetflixApp\",\"applicationId\":\"1234\"}}")));
                 return Core::ERROR_NONE;
             }));
-    
+
     handler.Subscribe(0, _T("onApplicationStateRequest"), _T("client.events"), message);
     plugin->onXcastApplicationStateRequest("Netflix", "1234");
-    handler.Unsubscribe(0, _T("onApplicationStateRequest"), _T("client.events"), message); 
+    handler.Unsubscribe(0, _T("onApplicationStateRequest"), _T("client.events"), message);
 }
 TEST_F(XCastInitializedEventTest, onApplicationLaunchRequest)
 {
@@ -493,10 +539,10 @@ TEST_F(XCastInitializedEventTest, onApplicationLaunchRequest)
                 EXPECT_EQ(text, string(_T("{\"jsonrpc\":\"2.0\",\"method\":\"client.events.onApplicationLaunchRequest\",\"params\":{\"applicationName\":\"Netflix\",\"parameters\":{\"url\":\"1234\"}}}")));
                 return Core::ERROR_NONE;
             }));
-    
+
     handler.Subscribe(0, _T("onApplicationLaunchRequest"), _T("client.events"), message);
     plugin->onXcastApplicationLaunchRequest("Netflix", "1234");
-    handler.Unsubscribe(0, _T("onApplicationLaunchRequest"), _T("client.events"), message); 
+    handler.Unsubscribe(0, _T("onApplicationLaunchRequest"), _T("client.events"), message);
 }
 TEST_F(XCastInitializedEventTest, onApplicationResumeRequest)
 {
@@ -509,10 +555,10 @@ TEST_F(XCastInitializedEventTest, onApplicationResumeRequest)
                 EXPECT_EQ(text, string(_T("{\"jsonrpc\":\"2.0\",\"method\":\"client.events.onApplicationResumeRequest\",\"params\":{\"applicationName\":\"NetflixApp\",\"applicationId\":\"1234\"}}")));
                 return Core::ERROR_NONE;
             }));
-    
+
     handler.Subscribe(0, _T("onApplicationResumeRequest"), _T("client.events"), message);
     plugin->onXcastApplicationResumeRequest("Netflix", "1234");
-    handler.Unsubscribe(0, _T("onApplicationResumeRequest"), _T("client.events"), message); 
+    handler.Unsubscribe(0, _T("onApplicationResumeRequest"), _T("client.events"), message);
 }
 TEST_F(XCastInitializedEventTest, onApplicationStopRequest)
 {
@@ -525,8 +571,8 @@ TEST_F(XCastInitializedEventTest, onApplicationStopRequest)
                 EXPECT_EQ(text, string(_T("{\"jsonrpc\":\"2.0\",\"method\":\"client.events.onApplicationStopRequest\",\"params\":{\"applicationName\":\"Netflix\",\"applicationId\":\"1234\"}}")));
                 return Core::ERROR_NONE;
             }));
-    
+
     handler.Subscribe(0, _T("onApplicationStopRequest"), _T("client.events"), message);
     plugin->onXcastApplicationStopRequest("Netflix", "1234");
-    handler.Unsubscribe(0, _T("onApplicationStopRequest"), _T("client.events"), message); 
+    handler.Unsubscribe(0, _T("onApplicationStopRequest"), _T("client.events"), message);
 }

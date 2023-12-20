@@ -28,15 +28,19 @@
 #include "RfcApiMock.h"
 #include "readprocMock.h"
 #include "readprocMockInterface.h"
+#include "WrapsMock.h"
 
 using ::testing::NiceMock;
 using namespace WPEFramework;
 
 class L2TestMocks : public ::testing::Test {
 protected:
-        NiceMock<RfcApiImplMock> rfcApiImplMock;
-        NiceMock<IarmBusImplMock> iarmBusImplMock;
-        NiceMock<readprocImplMock> ReadprocImplMock;
+        RfcApiImplMock   *p_rfcApiImplMock = nullptr ;
+        RfcApi           *p_rfcApi         = nullptr ;
+        IarmBusImplMock  *p_iarmBusImplMock = nullptr ;
+        readprocImplMock *p_readprocImplMock = nullptr ;
+        ProcImpl         *p_procImpl           = nullptr ;
+        WrapsImplMock    *p_wrapsImplMock = nullptr ;
         std::string thunder_address;
 
         L2TestMocks();

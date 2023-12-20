@@ -32,6 +32,16 @@ FetchContent_MakeAvailable(googletest)
 file(GLOB TESTS tests/*.cpp)
 add_executable(${PROJECT_NAME}
         ${TESTS}
+        ../mocks/Rfc.cpp
+        ../mocks/Iarm.cpp
+        ../mocks/RBus.cpp
+        ../mocks/FrameBuffer.cpp
+        ../mocks/MotionDetection.cpp
+        ../mocks/Telemetry.cpp
+        ../mocks/Udev.cpp
+        ../mocks/devicesettings.cpp
+        ../mocks/HdmiCec.cpp
+        ../mocks/readprocMockInterface.cpp
         ../mocks/thunder/Module.cpp
         ../mocks/Wraps.cpp
         ../mocks/Dobby.cpp

@@ -32,21 +32,22 @@ protected:
 class MotionDetectionEventTest : public MotionDetectionTest {
 protected:
 
-    NiceMock<MotionDetectionImplMock> motionDetectionImplMock;
+    MotionDetectionImplMock   *p_motionDetectionImplMock = nullptr ;
 
     MotionDetectionEventTest()
         : MotionDetectionTest()
     {
 
-            MotionDetection::getInstance().impl = &motionDetectionImplMock;
+          p_motionDetectionImplMock  = new NiceMock <MotionDetectionImplMock>;
+          MotionDetection::setImpl(p_motionDetectionImplMock);
 
-          ON_CALL(motionDetectionImplMock, MOTION_DETECTION_Platform_Init())
+          ON_CALL(*p_motionDetectionImplMock, MOTION_DETECTION_Platform_Init())
               .WillByDefault(::testing::Return(MOTION_DETECTION_RESULT_SUCCESS));
 
-          ON_CALL(motionDetectionImplMock, MOTION_DETECTION_RegisterEventCallback(::testing::_))
+          ON_CALL(*p_motionDetectionImplMock, MOTION_DETECTION_RegisterEventCallback(::testing::_))
               .WillByDefault(::testing::Return(MOTION_DETECTION_RESULT_SUCCESS));
 
-          ON_CALL(motionDetectionImplMock, MOTION_DETECTION_DisarmMotionDetector(::testing::_))
+          ON_CALL(*p_motionDetectionImplMock, MOTION_DETECTION_DisarmMotionDetector(::testing::_))
               .WillByDefault(::testing::Return(MOTION_DETECTION_RESULT_SUCCESS));
 
            EXPECT_EQ(string(""), plugin->Initialize(nullptr));
@@ -54,8 +55,13 @@ protected:
     }
     virtual ~MotionDetectionEventTest() override
     {
-
         plugin->Deinitialize(nullptr);
+        MotionDetection::setImpl(nullptr);
+        if (p_motionDetectionImplMock != nullptr)
+        {
+            delete p_motionDetectionImplMock;
+            p_motionDetectionImplMock = nullptr;
+        }
     }
 };
 
@@ -75,11 +81,11 @@ TEST_F(MotionDetectionTest, RegisteredMethods)
 
 TEST_F(MotionDetectionEventTest, getMotionDetectors)
 {
-		EXPECT_CALL(motionDetectionImplMock, MOTION_DETECTION_GetMotionDetectors(::testing::_))
-			.Times(1)
-			.WillOnce(::testing::Invoke(   
-				[](MOTION_DETECTION_CurrentSensorSettings_t *pSensorStatus) {
-                
+                EXPECT_CALL(*p_motionDetectionImplMock, MOTION_DETECTION_GetMotionDetectors(::testing::_))
+                        .Times(1)
+                        .WillOnce(::testing::Invoke(
+                                [](MOTION_DETECTION_CurrentSensorSettings_t *pSensorStatus) {
+
                 memset(pSensorStatus, 0, sizeof(MOTION_DETECTION_CurrentSensorSettings_t));
 
                 strcpy(pSensorStatus->m_sensorIndex, MOTION_DETECTOR);
@@ -88,7 +94,7 @@ TEST_F(MotionDetectionEventTest, getMotionDetectors)
                 pSensorStatus->m_sensorDistance = MOTION_DETECTION_DISTANCE;
                 pSensorStatus->m_sensorAngle = MOTION_DETECTION_ANGLE;
                 pSensorStatus->m_sensitivityMode = 2;
-                
+
                 strcpy(pSensorStatus->m_sensitivity[SENSITIVITY_IDENTIFIER_1], STR_SENSITIVITY_LOW);
                 strcpy(pSensorStatus->m_sensitivity[SENSITIVITY_IDENTIFIER_2], STR_SENSITIVITY_MEDIUM);
                 strcpy(pSensorStatus->m_sensitivity[SENSITIVITY_IDENTIFIER_3], STR_SENSITIVITY_HIGH);
@@ -102,10 +108,10 @@ TEST_F(MotionDetectionEventTest, getMotionDetectors)
 
 TEST_F(MotionDetectionEventTest, armmotiondetected)
 {
-	EXPECT_CALL(motionDetectionImplMock, MOTION_DETECTION_ArmMotionDetector(::testing::_,::testing::_))
+    EXPECT_CALL(*p_motionDetectionImplMock, MOTION_DETECTION_ArmMotionDetector(::testing::_,::testing::_))
     .Times(1)
     .WillOnce(::testing::Invoke(
-		[](MOTION_DETECTION_Mode_t mode,std::string index) {
+                [](MOTION_DETECTION_Mode_t mode,std::string index) {
                 return MOTION_DETECTION_RESULT_SUCCESS;
             }));
 
@@ -115,10 +121,10 @@ TEST_F(MotionDetectionEventTest, armmotiondetected)
 
 TEST_F(MotionDetectionEventTest, armmotiondetectedInvalid)
 {
-    EXPECT_CALL(motionDetectionImplMock, MOTION_DETECTION_ArmMotionDetector(::testing::_,::testing::_))
+    EXPECT_CALL(*p_motionDetectionImplMock, MOTION_DETECTION_ArmMotionDetector(::testing::_,::testing::_))
     .Times(1)
     .WillOnce(::testing::Invoke(
-		[](MOTION_DETECTION_Mode_t mode, std::string index) {
+                [](MOTION_DETECTION_Mode_t mode, std::string index) {
                 return MOTION_DETECTION_RESULT_INDEX_ERROR;
             }));
 
@@ -128,9 +134,9 @@ TEST_F(MotionDetectionEventTest, armmotiondetectedInvalid)
 
 TEST_F(MotionDetectionEventTest, disarm)
 {
-	EXPECT_CALL(motionDetectionImplMock, MOTION_DETECTION_DisarmMotionDetector(::testing::_))
-		.Times(1)
-		.WillOnce(::testing::Invoke(
+        EXPECT_CALL(*p_motionDetectionImplMock, MOTION_DETECTION_DisarmMotionDetector(::testing::_))
+                .Times(1)
+                .WillOnce(::testing::Invoke(
             [](std::string index) {
                 return MOTION_DETECTION_RESULT_SUCCESS;
             }));
@@ -141,7 +147,7 @@ TEST_F(MotionDetectionEventTest, disarm)
 
 TEST_F(MotionDetectionEventTest, disarmInvalid)
 {
-	EXPECT_CALL(motionDetectionImplMock, MOTION_DETECTION_DisarmMotionDetector(::testing::_))
+        EXPECT_CALL(*p_motionDetectionImplMock, MOTION_DETECTION_DisarmMotionDetector(::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
             [](std::string index) {
@@ -155,7 +161,7 @@ TEST_F(MotionDetectionEventTest, disarmInvalid)
 
 TEST_F(MotionDetectionEventTest, isarmed)
 {
-	EXPECT_CALL(motionDetectionImplMock,MOTION_DETECTION_IsMotionDetectorArmed(::testing::_,::testing::_))
+     EXPECT_CALL(*p_motionDetectionImplMock,MOTION_DETECTION_IsMotionDetectorArmed(::testing::_,::testing::_))
     .Times(1)
     .WillOnce(::testing::Invoke(
             [](std::string index, bool *isArmed) {
@@ -170,10 +176,10 @@ TEST_F(MotionDetectionEventTest, isarmed)
 
 TEST_F(MotionDetectionEventTest, isarmedInvalid)
 {
-    EXPECT_CALL(motionDetectionImplMock,MOTION_DETECTION_IsMotionDetectorArmed(::testing::_,::testing::_))
+    EXPECT_CALL(*p_motionDetectionImplMock,MOTION_DETECTION_IsMotionDetectorArmed(::testing::_,::testing::_))
     .Times(1)
     .WillOnce(::testing::Invoke(
-			[](std::string index, bool *isArmed) {
+                        [](std::string index, bool *isArmed) {
                 return MOTION_DETECTION_RESULT_INDEX_ERROR;
             }));
 
@@ -184,7 +190,7 @@ TEST_F(MotionDetectionEventTest, isarmedInvalid)
 
 TEST_F(MotionDetectionEventTest, setNoMotionPeriod)
 {
-	EXPECT_CALL(motionDetectionImplMock, MOTION_DETECTION_SetNoMotionPeriod(::testing::_,::testing::_))
+    EXPECT_CALL(*p_motionDetectionImplMock, MOTION_DETECTION_SetNoMotionPeriod(::testing::_,::testing::_))
     .Times(1)
     .WillOnce(::testing::Invoke(
             [](std::string index, unsigned int period) {
@@ -198,10 +204,11 @@ TEST_F(MotionDetectionEventTest, setNoMotionPeriod)
 
 TEST_F(MotionDetectionEventTest, setNoMotionPeriodInvalid)
 {
-	EXPECT_CALL(motionDetectionImplMock, MOTION_DETECTION_SetNoMotionPeriod(::testing::_,::testing::_))
+    EXPECT_CALL(*p_motionDetectionImplMock, MOTION_DETECTION_SetNoMotionPeriod(::testing::_,::testing::_))
     .Times(1)
     .WillOnce(::testing::Invoke(
-            [](std::string index, unsigned int period) {
+
+       [](std::string index, unsigned int period) {
                 return MOTION_DETECTION_RESULT_INDEX_ERROR;
             }));
 
@@ -212,10 +219,10 @@ TEST_F(MotionDetectionEventTest, setNoMotionPeriodInvalid)
 
 TEST_F(MotionDetectionEventTest, getNoMotionPeriod)
 {
-	EXPECT_CALL(motionDetectionImplMock, MOTION_DETECTION_GetNoMotionPeriod(::testing::_,::testing::_))
+     EXPECT_CALL(*p_motionDetectionImplMock, MOTION_DETECTION_GetNoMotionPeriod(::testing::_,::testing::_))
     .Times(1)
-    .WillOnce(::testing::Invoke(          
-			[](std::string index, unsigned int *noMotionPeriod) {
+    .WillOnce(::testing::Invoke(
+                        [](std::string index, unsigned int *noMotionPeriod) {
                 *noMotionPeriod =(unsigned int)10;
                 return MOTION_DETECTION_RESULT_SUCCESS;
             }));
@@ -226,7 +233,7 @@ TEST_F(MotionDetectionEventTest, getNoMotionPeriod)
 
 TEST_F(MotionDetectionEventTest, getNoMotionPeriodInvalid)
 {
-	EXPECT_CALL(motionDetectionImplMock, MOTION_DETECTION_GetNoMotionPeriod(::testing::_,::testing::_))
+     EXPECT_CALL(*p_motionDetectionImplMock, MOTION_DETECTION_GetNoMotionPeriod(::testing::_,::testing::_))
     .Times(1)
     .WillOnce(::testing::Invoke(
             [](std::string index, unsigned int *noMotionPeriod) {
@@ -239,7 +246,7 @@ TEST_F(MotionDetectionEventTest, getNoMotionPeriodInvalid)
 
 TEST_F(MotionDetectionEventTest, setSensitivity)
 {
-	EXPECT_CALL(motionDetectionImplMock,MOTION_DETECTION_SetSensitivity(::testing::_,::testing::_,::testing::_))
+     EXPECT_CALL(*p_motionDetectionImplMock,MOTION_DETECTION_SetSensitivity(::testing::_,::testing::_,::testing::_))
     .Times(1)
     .WillOnce(::testing::Invoke(
             [](std::string index, std::string sensitivity, int inferredMode) {
@@ -259,7 +266,7 @@ TEST_F(MotionDetectionEventTest, setSensitivityInvalid)
 
 TEST_F(MotionDetectionEventTest, getSensitivity)
 {
-	 EXPECT_CALL(motionDetectionImplMock,MOTION_DETECTION_GetSensitivity(::testing::_,::testing::_,::testing::_))
+     EXPECT_CALL(*p_motionDetectionImplMock,MOTION_DETECTION_GetSensitivity(::testing::_,::testing::_,::testing::_))
     .Times(1)
     .WillOnce(::testing::Invoke(
             [](std::string index, char** sensitivity, int* currentMode) {
@@ -276,7 +283,7 @@ TEST_F(MotionDetectionEventTest, getSensitivity)
 
 TEST_F(MotionDetectionEventTest, getSensitivityInvalid)
 {
-     EXPECT_CALL(motionDetectionImplMock,MOTION_DETECTION_GetSensitivity(::testing::_,::testing::_,::testing::_))
+     EXPECT_CALL(*p_motionDetectionImplMock,MOTION_DETECTION_GetSensitivity(::testing::_,::testing::_,::testing::_))
     .Times(1)
     .WillOnce(::testing::Invoke(
             [](std::string index, char** sensitivity, int* currentMode) {
@@ -300,7 +307,7 @@ TEST_F(MotionDetectionEventTest, getLastMotionEventElapsedTime)
 
 TEST_F(MotionDetectionEventTest, setMotionEventsActivePeriod)
 {
-	EXPECT_CALL(motionDetectionImplMock,MOTION_DETECTION_SetActivePeriod(::testing::_,::testing::_))
+     EXPECT_CALL(*p_motionDetectionImplMock,MOTION_DETECTION_SetActivePeriod(::testing::_,::testing::_))
     .Times(1)
     .WillOnce(::testing::Invoke(
             [](std::string index, MOTION_DETECTION_TimeRange_t timeSet) {

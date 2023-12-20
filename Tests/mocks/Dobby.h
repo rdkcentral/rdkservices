@@ -44,52 +44,20 @@ std::shared_ptr<IIpcService> createIpcService(const std::string& address, const 
 class IpcService : public AI_IPC::IIpcService
                  , public std::enable_shared_from_this<IpcService> {
 
+protected:
+    static IIpcService* impl;
 public:
-    static IpcService& getInstance()
-    {
-        static IpcService instance;
-        return instance;
-    }
+    IpcService();
+    IpcService(const IpcService &obj) = delete;
+    static void setImpl(IIpcService* newImpl);
+    IpcService(const std::string& dbusAddress, const std::string& serviceName, int defaultTimeoutMs = -1);
+    bool isValid() const ;
+    void flush();
+    bool start();
+    bool stop();
+    bool isServiceAvailable(const std::string& serviceName) const;
+    std::string getBusAddress() const;
 
-    IIpcService* impl;
-
-    IpcService(const std::string& dbusAddress, const std::string& serviceName, int defaultTimeoutMs = -1)
-    {
-    }
-
-    IpcService()
-    {
-    }
-
-    bool isValid() const 
-    {
-        return getInstance().impl->isValid();
-    }
-
-    void flush()
-    {
-        return getInstance().impl->flush();
-    }
-
-    bool start()
-    {
-        return getInstance().impl->start();
-    }
-
-    bool stop()
-    {
-        return getInstance().impl->stop();
-    }
-
-    bool isServiceAvailable(const std::string& serviceName) const
-    {
-        return getInstance().impl->isServiceAvailable(serviceName);
-    }
-
-    std::string getBusAddress() const
-    {
-        return getInstance().impl->getBusAddress();
-    }
 };
 
 class IDobbyProxyEvents {
@@ -167,56 +135,22 @@ public:
 class DobbyProxy : public IDobbyProxy {
 
 protected:
-
+   static IDobbyProxy* impl;
 public:
-    static DobbyProxy& getInstance()
-    {
-        static DobbyProxy instance;
-        return instance;
-    }
-
-    IDobbyProxy* impl;
-
-    DobbyProxy()
-    {
-    }
-
+    DobbyProxy();
+    DobbyProxy(const DobbyProxy &obj) = delete;
+    static void setImpl(IDobbyProxy* newImpl);
     DobbyProxy(const std::shared_ptr<AI_IPC::IIpcService>& ipcService,
                const std::string& serviceName,
-               const std::string& objectName)
-    {
-    }
+               const std::string& objectName);
 
-    bool  shutdown() const
-    {
-        return getInstance().impl->shutdown();
-    }
-
-    bool ping() const
-    {
-        return getInstance().impl->ping();
-    }
-
-    bool isAlive(const std::chrono::milliseconds& timeout) const
-    {
-        return getInstance().impl->isAlive(timeout);
-    }
-
-    bool setLogMethod(uint32_t method, int pipeFd) const
-    {
-        return getInstance().impl->setLogMethod(method, pipeFd);
-    }
-
-    bool setLogLevel(int level) const
-    {
-        return getInstance().impl->setLogLevel(level);
-    }
-
+    bool  shutdown() const;
+    bool ping() const;
+    bool isAlive(const std::chrono::milliseconds& timeout) const;
+    bool setLogMethod(uint32_t method, int pipeFd) const;
+    bool setLogLevel(int level) const;
     bool setAIDbusAddress(bool privateBus,
-                          const std::string& address) const
-    {
-        return getInstance().impl->setAIDbusAddress(privateBus, address);
-    }
+                          const std::string& address) const;
 
 public:
     // Control interface
@@ -225,69 +159,24 @@ public:
                                    const std::list<int>& files,
                                    const std::string& command = "",
                                    const std::string& displaySocket = "",
-                                   const std::vector<std::string>& envVars = std::vector<std::string>()) const
-    {
-        return getInstance().impl->startContainerFromSpec(id, jsonSpec, files, command, displaySocket, envVars);
-    }
-
-
-    int32_t startContainerFromBundle(const std::string& id,
+                                   const std::vector<std::string>& envVars = std::vector<std::string>()) const;
+   int32_t startContainerFromBundle(const std::string& id,
                                      const std::string& bundlePath,
                                      const std::list<int>& files,
                                      const std::string& command = "",
                                      const std::string& displaySocket = "",
-                                     const std::vector<std::string>& envVars = std::vector<std::string>()) const
-    {
-        return getInstance().impl->startContainerFromBundle(id, bundlePath, files, command, displaySocket, envVars);
-    }
-
-    bool stopContainer(int32_t cd, bool withPrejudice) const
-    {
-        return getInstance().impl->stopContainer(cd, withPrejudice);
-    }
-
-    bool pauseContainer(int32_t cd) const
-    {
-        return getInstance().impl->pauseContainer(cd);
-    }
-
-    bool resumeContainer(int32_t cd) const
-    {
-        return getInstance().impl->resumeContainer(cd);
-    }
-
+                                     const std::vector<std::string>& envVars = std::vector<std::string>()) const;
+    bool stopContainer(int32_t cd, bool withPrejudice) const;
+    bool pauseContainer(int32_t cd) const;
+    bool resumeContainer(int32_t cd) const;
     bool execInContainer(int32_t cd,
                          const std::string& options,
-                         const std::string& command) const
-    {
-        return getInstance().impl->execInContainer(cd, options, command);
-    }
-
-    int getContainerState(int32_t cd) const
-    {
-        return getInstance().impl->getContainerState(cd);
-    }
-
-    int registerListener(const StateChangeListener &listener, const void* cbParams)
-    {
-        return getInstance().impl->registerListener(listener, cbParams);
-    }
-
-    void unregisterListener(int tag)
-    {
-        getInstance().impl->unregisterListener(tag);
-    }
-
-    std::string getContainerInfo(int32_t descriptor) const
-    {
-        return getInstance().impl->getContainerInfo(descriptor);
-    }
-
-    std::list<std::pair<int32_t, std::string>> listContainers() const
-    {
-        return getInstance().impl->listContainers();
-    }
-
+                         const std::string& command) const;
+    int getContainerState(int32_t cd) const;
+    int registerListener(const StateChangeListener &listener, const void* cbParams);
+    void unregisterListener(int tag);
+    std::string getContainerInfo(int32_t descriptor) const;
+    std::list<std::pair<int32_t, std::string>> listContainers() const;
 
 private:
     const std::shared_ptr<AI_IPC::IIpcService> mIpcService;

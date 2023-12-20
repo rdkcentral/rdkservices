@@ -36,19 +36,42 @@ protected:
 
 class HDCPProfileDsTest : public HDCPProfileTest {
 protected:
-    NiceMock<HostImplMock> hostImplMock;
-    NiceMock<VideoOutputPortConfigImplMock> videoOutputPortConfigImplMock;
+    HostImplMock             *p_hostImplMock = nullptr ;
+    VideoOutputPortConfigImplMock      *p_videoOutputPortConfigImplMock = nullptr ;
+    VideoOutputPortMock                *p_videoOutputPortMock = nullptr ;
 
     HDCPProfileDsTest()
         : HDCPProfileTest()
     {
-        device::Host::getInstance().impl = &hostImplMock;
-        device::VideoOutputPortConfig::getInstance().impl = &videoOutputPortConfigImplMock;
+        p_hostImplMock  = new NiceMock <HostImplMock>;
+        device::Host::setImpl(p_hostImplMock);
+
+        p_videoOutputPortConfigImplMock  = new NiceMock <VideoOutputPortConfigImplMock>;
+        device::VideoOutputPortConfig::setImpl(p_videoOutputPortConfigImplMock);
+
+        p_videoOutputPortMock  = new NiceMock <VideoOutputPortMock>;
+        device::VideoOutputPort::setImpl(p_videoOutputPortMock);
     }
     virtual ~HDCPProfileDsTest() override
     {
-        device::Host::getInstance().impl = nullptr;
-        device::VideoOutputPortConfig::getInstance().impl = nullptr;
+        device::VideoOutputPort::setImpl(nullptr);
+        if (p_videoOutputPortMock != nullptr)
+        {
+            delete p_videoOutputPortMock;
+            p_videoOutputPortMock = nullptr;
+        }
+        device::VideoOutputPortConfig::setImpl(nullptr);
+        if (p_videoOutputPortConfigImplMock != nullptr)
+        {
+            delete p_videoOutputPortConfigImplMock;
+            p_videoOutputPortConfigImplMock = nullptr;
+        }
+        device::Host::setImpl(nullptr);
+        if (p_hostImplMock != nullptr)
+        {
+            delete p_hostImplMock;
+            p_hostImplMock = nullptr;
+        }
     }
 };
 
@@ -67,6 +90,7 @@ protected:
         dispatcher = static_cast<PluginHost::IDispatcher*>(
             plugin->QueryInterface(PluginHost::IDispatcher::ID));
         dispatcher->Activate(&service);
+
     }
 
     virtual ~HDCPProfileEventTest() override
@@ -75,26 +99,29 @@ protected:
         dispatcher->Release();
 
         PluginHost::IFactories::Assign(nullptr);
+
     }
 };
 
 class HDCPProfileEventIarmTest : public HDCPProfileEventTest {
 protected:
-    NiceMock<IarmBusImplMock> iarmBusImplMock;
-    ManagerImplMock managerImplMock;
+    IarmBusImplMock   *p_iarmBusImplMock = nullptr ;
+    ManagerImplMock   *p_managerImplMock = nullptr ;
     IARM_EventHandler_t dsHdmiEventHandler;
 
     HDCPProfileEventIarmTest()
         : HDCPProfileEventTest()
     {
-        IarmBus::getInstance().impl = &iarmBusImplMock;
-        device::Manager::getInstance().impl = &managerImplMock;
+        p_iarmBusImplMock  = new NiceMock <IarmBusImplMock>;
+        IarmBus::setImpl(p_iarmBusImplMock);
+        p_managerImplMock  = new NiceMock <ManagerImplMock>;
+        device::Manager::setImpl(p_managerImplMock);
 
-        EXPECT_CALL(managerImplMock, Initialize())
+        EXPECT_CALL(*p_managerImplMock, Initialize())
             .Times(::testing::AnyNumber())
             .WillRepeatedly(::testing::Return());
 
-        ON_CALL(iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
+        ON_CALL(*p_iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
             .WillByDefault(::testing::Invoke(
                 [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
                     if ((string(IARM_BUS_DSMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG)) {
@@ -112,8 +139,18 @@ protected:
     virtual ~HDCPProfileEventIarmTest() override
     {
         plugin->Deinitialize(&service);
-        IarmBus::getInstance().impl = nullptr;
-        device::Manager::getInstance().impl = nullptr;
+        IarmBus::setImpl(nullptr);
+        if (p_iarmBusImplMock != nullptr)
+        {
+            delete p_iarmBusImplMock;
+            p_iarmBusImplMock = nullptr;
+        }
+        device::Manager::setImpl(nullptr);
+        if (p_managerImplMock != nullptr)
+        {
+            delete p_managerImplMock;
+            p_managerImplMock = nullptr;
+        }
     }
 };
 
@@ -125,28 +162,25 @@ TEST_F(HDCPProfileTest, RegisteredMethods)
 
 TEST_F(HDCPProfileDsTest, getHDCPStatus_isConnected_false)
 {
-    NiceMock<VideoOutputPortMock> videoOutputPortMock;
     device::VideoOutputPort videoOutputPort;
-    videoOutputPort.impl = &videoOutputPortMock;
-
 
     string videoPort(_T("HDMI0"));
 
-    ON_CALL(hostImplMock, getDefaultVideoPortName())
+    ON_CALL(*p_hostImplMock, getDefaultVideoPortName())
         .WillByDefault(::testing::Return(videoPort));
-    ON_CALL(videoOutputPortConfigImplMock, getPort(::testing::_))
+    ON_CALL(*p_videoOutputPortConfigImplMock, getPort(::testing::_))
         .WillByDefault(::testing::ReturnRef(videoOutputPort));
-    ON_CALL(videoOutputPortMock, isDisplayConnected())
+    ON_CALL(*p_videoOutputPortMock, isDisplayConnected())
         .WillByDefault(::testing::Return(false));
-    ON_CALL(videoOutputPortMock, getHDCPProtocol())
+    ON_CALL(*p_videoOutputPortMock, getHDCPProtocol())
         .WillByDefault(::testing::Return(dsHDCP_VERSION_2X));
-    ON_CALL(videoOutputPortMock, getHDCPStatus())
+    ON_CALL(*p_videoOutputPortMock, getHDCPStatus())
         .WillByDefault(::testing::Return(dsHDCP_STATUS_UNPOWERED));
-    ON_CALL(videoOutputPortMock, isContentProtected())
+    ON_CALL(*p_videoOutputPortMock, isContentProtected())
         .WillByDefault(::testing::Return(0));
-    ON_CALL(videoOutputPortMock, getHDCPReceiverProtocol())
+    ON_CALL(*p_videoOutputPortMock, getHDCPReceiverProtocol())
         .WillByDefault(::testing::Return(dsHDCP_VERSION_MAX));
-    ON_CALL(videoOutputPortMock, getHDCPCurrentProtocol())
+    ON_CALL(*p_videoOutputPortMock, getHDCPCurrentProtocol())
         .WillByDefault(::testing::Return(dsHDCP_VERSION_MAX));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getHDCPStatus"), _T(""), response));
@@ -169,26 +203,24 @@ TEST_F(HDCPProfileDsTest, getHDCPStatus_isConnected_true)
 {
     NiceMock<VideoOutputPortMock> videoOutputPortMock;
     device::VideoOutputPort videoOutputPort;
-    videoOutputPort.impl = &videoOutputPortMock;
-
 
     string videoPort(_T("HDMI0"));
 
-    ON_CALL(hostImplMock, getDefaultVideoPortName())
+    ON_CALL(*p_hostImplMock, getDefaultVideoPortName())
         .WillByDefault(::testing::Return(videoPort));
-    ON_CALL(videoOutputPortConfigImplMock, getPort(::testing::_))
+    ON_CALL(*p_videoOutputPortConfigImplMock, getPort(::testing::_))
         .WillByDefault(::testing::ReturnRef(videoOutputPort));
-    ON_CALL(videoOutputPortMock, isDisplayConnected())
+    ON_CALL(*p_videoOutputPortMock, isDisplayConnected())
         .WillByDefault(::testing::Return(true));
-    ON_CALL(videoOutputPortMock, getHDCPProtocol())
+    ON_CALL(*p_videoOutputPortMock, getHDCPProtocol())
         .WillByDefault(::testing::Return(dsHDCP_VERSION_2X));
-    ON_CALL(videoOutputPortMock, getHDCPStatus())
+    ON_CALL(*p_videoOutputPortMock, getHDCPStatus())
         .WillByDefault(::testing::Return(dsHDCP_STATUS_AUTHENTICATED));
-    ON_CALL(videoOutputPortMock, isContentProtected())
+    ON_CALL(*p_videoOutputPortMock, isContentProtected())
         .WillByDefault(::testing::Return(true));
-    ON_CALL(videoOutputPortMock, getHDCPReceiverProtocol())
+    ON_CALL(*p_videoOutputPortMock, getHDCPReceiverProtocol())
         .WillByDefault(::testing::Return(dsHDCP_VERSION_2X));
-    ON_CALL(videoOutputPortMock, getHDCPCurrentProtocol())
+    ON_CALL(*p_videoOutputPortMock, getHDCPCurrentProtocol())
         .WillByDefault(::testing::Return(dsHDCP_VERSION_2X));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getHDCPStatus"), _T(""), response));
@@ -211,16 +243,13 @@ TEST_F(HDCPProfileDsTest, getSettopHDCPSupport_Hdcp_v1x)
 {
     NiceMock<VideoOutputPortMock> videoOutputPortMock;
     device::VideoOutputPort videoOutputPort;
-    videoOutputPort.impl = &videoOutputPortMock;
-
-
     string videoPort(_T("HDMI0"));
 
-    ON_CALL(hostImplMock, getDefaultVideoPortName())
+    ON_CALL(*p_hostImplMock, getDefaultVideoPortName())
         .WillByDefault(::testing::Return(videoPort));
-    ON_CALL(videoOutputPortConfigImplMock, getPort(::testing::_))
+    ON_CALL(*p_videoOutputPortConfigImplMock, getPort(::testing::_))
         .WillByDefault(::testing::ReturnRef(videoOutputPort));
-    ON_CALL(videoOutputPortMock, getHDCPProtocol())
+    ON_CALL(*p_videoOutputPortMock, getHDCPProtocol())
         .WillByDefault(::testing::Return(dsHDCP_VERSION_1X));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getSettopHDCPSupport"), _T(""), response));
@@ -235,16 +264,13 @@ TEST_F(HDCPProfileDsTest, getSettopHDCPSupport_Hdcp_v2x)
 {
     NiceMock<VideoOutputPortMock> videoOutputPortMock;
     device::VideoOutputPort videoOutputPort;
-    videoOutputPort.impl = &videoOutputPortMock;
-
-
     string videoPort(_T("HDMI0"));
 
-    ON_CALL(hostImplMock, getDefaultVideoPortName())
+    ON_CALL(*p_hostImplMock, getDefaultVideoPortName())
         .WillByDefault(::testing::Return(videoPort));
-    ON_CALL(videoOutputPortConfigImplMock, getPort(::testing::_))
+    ON_CALL(*p_videoOutputPortConfigImplMock, getPort(::testing::_))
         .WillByDefault(::testing::ReturnRef(videoOutputPort));
-    ON_CALL(videoOutputPortMock, getHDCPProtocol())
+    ON_CALL(*p_videoOutputPortMock, getHDCPProtocol())
         .WillByDefault(::testing::Return(dsHDCP_VERSION_2X));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getSettopHDCPSupport"), _T(""), response));
@@ -263,26 +289,23 @@ TEST_F(HDCPProfileEventIarmTest, onDisplayConnectionChanged)
 
     NiceMock<VideoOutputPortMock> videoOutputPortMock;
     device::VideoOutputPort videoOutputPort;
-    videoOutputPort.impl = &videoOutputPortMock;
-
-
     string videoPort(_T("HDMI0"));
 
-    ON_CALL(hostImplMock, getDefaultVideoPortName())
+    ON_CALL(*p_hostImplMock, getDefaultVideoPortName())
         .WillByDefault(::testing::Return(videoPort));
-    ON_CALL(videoOutputPortConfigImplMock, getPort(::testing::_))
+    ON_CALL(*p_videoOutputPortConfigImplMock, getPort(::testing::_))
         .WillByDefault(::testing::ReturnRef(videoOutputPort));
-    ON_CALL(videoOutputPortMock, isDisplayConnected())
+    ON_CALL(*p_videoOutputPortMock, isDisplayConnected())
         .WillByDefault(::testing::Return(true));
-    ON_CALL(videoOutputPortMock, getHDCPProtocol())
+    ON_CALL(*p_videoOutputPortMock, getHDCPProtocol())
         .WillByDefault(::testing::Return(dsHDCP_VERSION_2X));
-    ON_CALL(videoOutputPortMock, getHDCPStatus())
+    ON_CALL(*p_videoOutputPortMock, getHDCPStatus())
         .WillByDefault(::testing::Return(dsHDCP_STATUS_AUTHENTICATED));
-    ON_CALL(videoOutputPortMock, isContentProtected())
+    ON_CALL(*p_videoOutputPortMock, isContentProtected())
         .WillByDefault(::testing::Return(true));
-    ON_CALL(videoOutputPortMock, getHDCPReceiverProtocol())
+    ON_CALL(*p_videoOutputPortMock, getHDCPReceiverProtocol())
         .WillByDefault(::testing::Return(dsHDCP_VERSION_2X));
-    ON_CALL(videoOutputPortMock, getHDCPCurrentProtocol())
+    ON_CALL(*p_videoOutputPortMock, getHDCPCurrentProtocol())
         .WillByDefault(::testing::Return(dsHDCP_VERSION_2X));
 
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
@@ -334,27 +357,26 @@ TEST_F(HDCPProfileEventIarmTest, onHdmiOutputHDCPStatusEvent)
 
     NiceMock<VideoOutputPortMock> videoOutputPortMock;
     device::VideoOutputPort videoOutputPort;
-    videoOutputPort.impl = &videoOutputPortMock;
 
     string videoPort(_T("HDMI0"));
 
-    ON_CALL(hostImplMock, getDefaultVideoPortName())
+    ON_CALL(*p_hostImplMock, getDefaultVideoPortName())
         .WillByDefault(::testing::Return(videoPort));
-    ON_CALL(videoOutputPortConfigImplMock, getPort(::testing::_))
+    ON_CALL(*p_videoOutputPortConfigImplMock, getPort(::testing::_))
         .WillByDefault(::testing::ReturnRef(videoOutputPort));
-    ON_CALL(videoOutputPortMock, isDisplayConnected())
+    ON_CALL(*p_videoOutputPortMock, isDisplayConnected())
         .WillByDefault(::testing::Return(true));
-    ON_CALL(videoOutputPortMock, getHDCPProtocol())
+    ON_CALL(*p_videoOutputPortMock, getHDCPProtocol())
         .WillByDefault(::testing::Return(dsHDCP_VERSION_2X));
-    ON_CALL(videoOutputPortMock, getHDCPStatus())
+    ON_CALL(*p_videoOutputPortMock, getHDCPStatus())
         .WillByDefault(::testing::Return(dsHDCP_STATUS_AUTHENTICATED));
-    ON_CALL(videoOutputPortMock, isContentProtected())
+    ON_CALL(*p_videoOutputPortMock, isContentProtected())
         .WillByDefault(::testing::Return(true));
-    ON_CALL(videoOutputPortMock, getHDCPReceiverProtocol())
+    ON_CALL(*p_videoOutputPortMock, getHDCPReceiverProtocol())
         .WillByDefault(::testing::Return(dsHDCP_VERSION_2X));
-    ON_CALL(videoOutputPortMock, getHDCPCurrentProtocol())
+    ON_CALL(*p_videoOutputPortMock, getHDCPCurrentProtocol())
         .WillByDefault(::testing::Return(dsHDCP_VERSION_2X));
-    
+
       EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
@@ -377,19 +399,19 @@ TEST_F(HDCPProfileEventIarmTest, onHdmiOutputHDCPStatusEvent)
                 "\"currentHDCPVersion\":\"2.2\""
                 "\\}"
                 "\\}"
-                "\\}"))); 
+                "\\}")));
 
                 onDisplayConnectionChanged.SetEvent();
 
                 return Core::ERROR_NONE;
             }));
 
-      ON_CALL(iarmBusImplMock, IARM_Bus_Call)
+      ON_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .WillByDefault(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 if (strcmp(methodName, IARM_BUS_PWRMGR_API_GetPowerState) == 0) {
                     auto* param = static_cast<IARM_Bus_PWRMgr_GetPowerState_Param_t*>(arg);
-                    param->curState = IARM_BUS_PWRMGR_POWERSTATE_ON; 
+                    param->curState = IARM_BUS_PWRMGR_POWERSTATE_ON;
                 }
                 return IARM_RESULT_SUCCESS;
             });
