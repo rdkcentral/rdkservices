@@ -1947,7 +1947,7 @@ namespace WPEFramework {
                         config.rfc = rfc;
                         config.thunderApi = thunderApi;
                         config.params = params;
-                        gStartupConfigs.push_back(config);
+                        gStartupConfigs.push_back(config); //CID 282775 not found in latest
                     }
                 }
                 else
@@ -3540,9 +3540,10 @@ namespace WPEFramework {
                 gSplashScreenDisplayTime = displayTime;
                 receivedShowSplashScreenRequest = true;
                 gRdkShellMutex.unlock();
-                if (false == result) {
-                    response["message"] = "failed to show splash screen";
-                }
+                //CID 177978 Logically dead code
+                // if (false == result) {
+                //     response["message"] = "failed to show splash screen";
+                // }
             }
             returnResponse(result);
         }
@@ -4325,11 +4326,11 @@ namespace WPEFramework {
                         std::cout << "scaling app to fit full screen" << std::endl;
                         double sx = 1.0;
                         double sy = 1.0;
-                        if (width != screenWidth)
+                         if (width != screenWidth && width !=0) //CID 175306
                         {
                             sx = (double)screenWidth / (double)width;
                         }
-                        if (height != screenHeight)
+                        if (height != screenHeight && height!=0) //CID 175325
                         {
                             sy = (double)screenHeight / (double)height;
                         }
@@ -4752,8 +4753,11 @@ namespace WPEFramework {
                         returnResponse(false);
                     }
 
-                    string runtimeDir = getenv("XDG_RUNTIME_DIR");
-                    string display = runtimeDir + "/" + (gRdkShellSurfaceModeEnabled ? RDKSHELL_SURFACECLIENT_DISPLAYNAME : "wst-"+uri);
+                    char* runtimeDir = getenv("XDG_RUNTIME_DIR"); //CID 177982
+                    string display;
+                    if(NULL != runtimeDir){
+                        display = string(runtimeDir) + "/" + (gRdkShellSurfaceModeEnabled ? RDKSHELL_SURFACECLIENT_DISPLAYNAME : "wst-"+uri);
+                    }
 
                     // Set mime type
                     if (!setMimeType(client, mimeType))
@@ -6181,7 +6185,7 @@ namespace WPEFramework {
             {
                 string input = parameters["input"].String();
 
-                if (input != "default" || input != "keyboard")
+                if (input != "default" && input != "keyboard") //CID 328473 Integer handling issues
                 {
                     response["message"] = "not supported input type";
                     returnResponse(false);
@@ -6567,7 +6571,7 @@ namespace WPEFramework {
             if (displayNameItr != gPluginDisplayNameMap.end())
             {
                 std::string clientId(callsign + ',' + displayNameItr->second);
-                std::cout << "setAVBlocked callsign: " << callsign << " clientIdentifier:<"<<clientId<<">blockAV:"<<std::boolalpha << blockAV << std::endl;
+                std::cout << "setAVBlocked callsign: " << callsign << " clientIdentifier:<"<<clientId<<">blockAV:"<<std::boolalpha << blockAV << std::noboolalpha << std::endl; // CID 283204
                 status = CompositorController::setAVBlocked(clientId, blockAV);
             }
             else
@@ -7593,18 +7597,20 @@ namespace WPEFramework {
             bool isSuspended = params["suspended"].Boolean();
             if (mLaunchEnabled)
             {
-               JsonObject params;
-               params["client"] = mCallSign;
-               params["launchType"] = (isSuspended)?"suspend":"resume";
-               mRDKShell.notify(RDKShell::RDKSHELL_EVENT_ON_LAUNCHED, params);
-               mLaunchEnabled = false;
+                //CID 164080 changes params name
+              JsonObject launchParams;
+              launchParams["client"] = mCallSign;
+              launchParams["launchType"] = (isSuspended)?"suspend":"resume";
+              mRDKShell.notify(RDKShell::RDKSHELL_EVENT_ON_LAUNCHED,launchParams);
+              mLaunchEnabled = false;
             }
 
             if (isSuspended)
             {
-                JsonObject params;
-                params["client"] = mCallSign;
-                mRDKShell.notify(RDKShell::RDKSHELL_EVENT_ON_PLUGIN_SUSPENDED, params);
+                //CID 164090 changed params name
+                JsonObject suspendedParams;
+                suspendedParams["client"] = mCallSign;
+                mRDKShell.notify(RDKShell::RDKSHELL_EVENT_ON_PLUGIN_SUSPENDED,suspendedParams);
             }
         }
 
