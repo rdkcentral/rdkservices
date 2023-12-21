@@ -155,6 +155,16 @@
             "type":"string",
             "example": "53"
         },
+        "modalias": {
+            "summary":"The modalias for the device - if no modalias is present it will be an empty string",
+            "type":"string",
+            "example": "v:0B13p:045Ed:0517"
+        },
+        "firmwareRevision": {
+            "summary":"The firmware revision for a particular device creaded from the modalias - if no modalias is present it will be an empty string",
+            "type":"string",
+            "example": "5.1.7"
+        },
         "eventType":{
             "summary": "Name of a request-time event (for example, `onPairingRequest`, `onConnectionRequest`, `onPlaybackRequest`)",
             "type":"string",
@@ -446,6 +456,12 @@
                             },
                             "batteryLevel": {
                                 "$ref": "#/definitions/batteryLevel"
+                            },
+                            "modalias": {
+                                "$ref": "#/definitions/modalias"
+                            },
+                            "firmwareRevision": {
+                                "$ref": "#/definitions/firmwareRevision"
                             }
                         },
                         "required": [
