@@ -7,7 +7,7 @@
 #include <algorithm>
 #include <mutex>
 #include <fstream>
-
+#include "secure_wrapper.h"
 #include "libIBus.h"
 #include "sysMgr.h"
 
