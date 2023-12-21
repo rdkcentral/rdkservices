@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.1.20] - 2023-12-21
+### Changed
+- Add test runner support
+
 ## [1.1.19] - 2023-11-22
 ### Changed
 - Fix memory pressure settings config generation
