@@ -16,7 +16,12 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
-## [1.0.19] - 2023-11-08
+### [1.0.20] - 2023-12-22
+### Added
+- Added UnitTestCases for TTS
+- Added Validation checks for TTS
+
+# [1.0.19] - 2023-11-08
 ### Added
 - Added UnitTestCases for TTS (Phase1)
 

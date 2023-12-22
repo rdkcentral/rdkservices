@@ -28,12 +28,24 @@
 #include "impl/logger.h"
 #include "impl/SecurityParameters.h"
 #include <vector>
+#include <regex>
 
 #define CHECK_SAP_PARAMETER_RETURN_ON_FAIL(param) do {\
     if(!parameters.HasLabel(param)) { \
         LOGERR("Parameter \"%s\" is not found", param); \
         returnResponse(false); \
     } } while(0)
+
+#define CHECK_SAP_PARAMETER_URL_VALID_RETURN_ON_FAIL(param) do {\
+        if(param[0] == '\0') { \
+            returnResponse(false); \
+        } \
+        std::regex uriRegex("(file:///.*|((ws|wss)://.*)|data://.*|(https?://.*)|(http://.*))"); \
+        bool status = std::regex_match(param, uriRegex); \
+        if(!status) { \
+            returnResponse(false); \
+        } \
+} while(0)
 
 #define CHECK_SAP_CONFIG_RETURN_ON_FAIL(param) do {\
     if(!config.HasLabel(param)) { \
@@ -49,6 +61,12 @@
         catch (...) { param = 0; } \
 }
 
+const static std::map<std::string, std::regex> patternMap = {
+    {"websocket", std::regex("^(ws|wss)://.*")},
+    {"data", std::regex("^data://.*")},
+    {"filesrc", std::regex("^file:///.*")},
+    {"httpsrc", std::regex("^(http|https)://.*")}
+};
 
 namespace WPEFramework {
 namespace Plugin {
