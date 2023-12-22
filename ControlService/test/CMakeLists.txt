@@ -17,6 +17,8 @@
 
 set(PLUGIN_NAME controlSvcTestClient)
 
+find_package(${NAMESPACE}Core REQUIRED)
+
 if (USE_THUNDER_R4)
     find_package(${NAMESPACE}COM REQUIRED)
     find_package(${NAMESPACE}WebSocket REQUIRED)
@@ -30,6 +32,8 @@ set_target_properties(${PLUGIN_NAME} PROPERTIES
     CXX_STANDARD 11
     CXX_STANDARD_REQUIRED YES
     )
+
+target_link_libraries(${PLUGIN_NAME} PRIVATE ${NAMESPACE}Core::${NAMESPACE}Core)
 
 if (USE_THUNDER_R4)
 target_link_libraries(${PLUGIN_NAME} PRIVATE ${NAMESPACE}COM::${NAMESPACE}COM ${NAMESPACE}WebSocket::${NAMESPACE}WebSocket)
