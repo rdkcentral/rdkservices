@@ -2,7 +2,7 @@
 <a name="AVInput_Plugin"></a>
 # AVInput Plugin
 
-**Version: [1.4.1](https://github.com/rdkcentral/rdkservices/blob/main/AVInput/CHANGELOG.md)**
+**Version: [1.5.0](https://github.com/rdkcentral/rdkservices/blob/main/AVInput/CHANGELOG.md)**
 
 A org.rdk.AVInput plugin for Thunder framework.
 
@@ -583,6 +583,9 @@ Activates the specified HDMI/Composite Input port as the primary video source.
 | params | object |  |
 | params?.portId | string | <sup>*(optional)*</sup> An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
 | params.typeOfInput | string | The type of Input - HDMI/COMPOSITE |
+| params?.audioMix | boolean | <sup>*(optional)*</sup> Defines whether the Audio mixing is true or false, This is an optional argument |
+| params?.planeType | integer | <sup>*(optional)*</sup> Defines whether the video plane type, 0 - Primary video plane, 1 - Secondary Video Plane, Other values - Invalid - This is an optional argument  |
+| params?.topMost | boolean | <sup>*(optional)*</sup> Defines whether the Hdmi Input should be over or under the other video plane |
 
 ### Result
 
@@ -608,7 +611,10 @@ Activates the specified HDMI/Composite Input port as the primary video source.
     "method": "org.rdk.AVInput.startInput",
     "params": {
         "portId": "0",
-        "typeOfInput": "HDMI"
+        "typeOfInput": "HDMI",
+        "audioMix": true,
+        "planeType": 0,
+        "topMost": true
     }
 }
 ```
