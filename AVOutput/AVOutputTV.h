@@ -65,6 +65,7 @@
 #define AVOUTPUT_ASPECTRATIO_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.ZoomMode"
 #define AVOUTPUT_BACKLIGHT_CONTROL_USE_GBF_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.UseGBFForBacklightControl"
 #define AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.Source"
+#define AVOUTPUT_DALS_RFC_PARAM "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AVOutput.DynamicAutoLatency"
 
 #define STRING_DIRTY  ".Dirty."
 #define STRING_PICMODE  "PicMode."
@@ -251,6 +252,8 @@ class AVOutputTV : public AVOutputBase {
         int getPictureModeIndex(std::string pqmode);
 	int getSourceIndex(std::string source);
 	int getFormatIndex(std::string format);
+        void getDynamicAutoLatencyConfig();
+	void BroadcastLowLatencyModeChangeEvent(bool lowLatencyMode);
 
     public:
         int m_currentHdmiInResoluton;

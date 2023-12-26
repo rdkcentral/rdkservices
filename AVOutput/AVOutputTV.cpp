@@ -30,6 +30,7 @@ static bool filmMakerMode= false;
 static std::map<std::string, int> supportedSourcemap;
 static std::map<std::string, int> supportedPictureModemap;
 static std::map<std::string, int> supportedFormatmap;
+static bool m_isDalsEnabled = false;
 
 static const char *component_color[] = {
     [COLOR_ENABLE] = "enable",
@@ -519,6 +520,20 @@ namespace Plugin {
         DeinitializeIARM();	
     }
 
+    void AVOutput::getDynamicAutoLatencyConfig()
+    {
+        RFC_ParamData_t param = {0};
+        WDMP_STATUS status = getRFCParameter(AVOUTPUT_RFC_CALLERID, AVOUTPUT_DALS_RFC_PARAM, &param);
+        LOGINFO("RFC value for DALS - %s", param.value);
+        if(WDMP_SUCCESS == status && param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0)) {
+         m_isDalsEnabled = true;
+         LOGINFO("Value of m_isDalsEnabled is %d", m_isDalsEnabled);
+        }
+        else {
+         LOGINFO("Failed to fetch RFC or DALS is disabled");
+        }
+    }
+
     void AVOutputTV::Initialize()
     {
         LOGINFO("Entry\n");
@@ -527,6 +542,8 @@ namespace Plugin {
 
         TR181_ParamData_t param;
         memset(&param, 0, sizeof(param));
+        
+        getDynamicAutoLatencyConfig();
 
         try {
             dsVideoPortResolution_t vidResolution;
@@ -581,6 +598,8 @@ namespace Plugin {
             LOGWARN("Failed to get the supported index from capability \n");
         }
         SyncPQParamsToDriverCache("none","none","none");
+	
+        setDefaultAspectRatio();
 
         // source format specific sync to ssm data
         SyncSourceFormatPicModeToCache("Current", "none", "none");
@@ -599,7 +618,6 @@ namespace Plugin {
 
        InitializeBacklightMode();
 
-       setDefaultAspectRatio();
 
         LOGINFO("Exit\n" );
     }
@@ -4685,6 +4703,8 @@ namespace Plugin {
         std::string color;
         std::string ctrl;
         int value;
+        int dimminglevel = 1; // default is dimming ON (boost)
+
         if ((parameters.HasLabel("applies")) && (parameters.HasLabel("color")) && (parameters.HasLabel("ctrl")))
         {
             color = parameters["color"].String();
@@ -4720,28 +4740,41 @@ namespace Plugin {
 
                 LOGINFO("input source : %s\ncolortemp : %s\ncolor : %s\nctrl : %s\n", inputSrc.c_str(), colorTemp.c_str(), color.c_str(), ctrl.c_str());
                 // Call to HAL API to getWBctrl
-                tvError_t ret = getWBctrl (const_cast <char *> (inputSrc.c_str()), const_cast <char *> (colorTemp.c_str()), const_cast <char *> (color.c_str()), const_cast <char *> (ctrl.c_str()), &value);
-                if(ret != tvERROR_NONE) 
-		{
-                    LOGWARN("getWBCtrl failed");
-                    returnResponse(false);
-                } 
-		else 
-		{
-                    LOGINFO("Exit : getWBCtrl success");
-                    response["value"] = value;
-                    returnResponse(true);
-                }
+                TR181_ParamData_t param={0};
+                std::string identifier = AVOUTPUT_GENERIC_STRING_RFC_PARAM;
 
-            } 
-	    else 
-	    {
-                returnResponse(false);
+                ret = GetLocalDimmingLevel(&dimminglevel);
+                std::string format= std::string("sdr");
+                if ( isCurrentTypeHDR() && ( (dimminglevel==1) || (dimminglevel==2) ) )
+                {
+                    format = std::string("hdr");
+                }
+                else
+                {
+                    format = std::string("sdr");
+                }
+                
+                identifier += format + std::string(".wb.") + color + "." + ctrl;
+
+                tr181ErrorCode_t err = getLocalParam(rfc_caller_id, identifier.c_str(), &param);
+                if ( tr181Success == err )
+                {
+                    LOGINFO("Exit : getWBCtrl success identifier[%s]:= paramValue[%s]", identifier.c_str(), param.value);
+                    std::string s;
+                    s+=param.value;
+                    response["value"] = atoi(s.c_str());
+
+                    returnResponse(true, "success");
+                }
+                else {
+                    LOGWARN("%s : getWBCtrl failed: Key : %s\n",__FUNCTION__,identifier);
+                    returnResponse(false,getErrorString(tvERROR_GENERAL).c_str());
+                }
+            } else {
+                returnResponse(false, "wrong selector value");
             }
-        } 
-	else 
-	{
-            returnResponse(false);
+        } else {
+            returnResponse(false, "Missing Parameter");
         }
     }
 
@@ -4759,6 +4792,7 @@ namespace Plugin {
         std::string pqmode;
         std::string source;
         std::string format;
+        int dimminglevel = 1; // default is dimming ON (boost)
         tvError_t ret = tvERROR_NONE;
 
         if (parsingSetInputArgument(parameters, "WhiteBalance",source, pqmode, format) != 0)
@@ -4818,7 +4852,19 @@ namespace Plugin {
 		{
                     //set it to local cache
                     std::string identifier = AVOUTPUT_GENERIC_STRING_RFC_PARAM;
-                    identifier+=std::string("wb")+std::string(STRING_DIRTY)+color+"."+ctrl;
+                    
+                    ret = GetLocalDimmingLevel(&dimminglevel);
+                    std::string format= std::string("sdr");
+                    
+                    if ( isCurrentTypeHDR() && ( (dimminglevel==1) || (dimminglevel==2) ) )
+                    {
+                        format = std::string("hdr");
+                    }
+                    else
+                    {
+                        format = std::string("sdr");
+                    }                    
+                    identifier += format + std::string(".wb.") + color + "." + ctrl;
                     tr181ErrorCode_t err = setLocalParam(rfc_caller_id, identifier.c_str(), val.c_str());
                     if ( err != tr181Success ) 
 		    {
@@ -4859,7 +4905,9 @@ namespace Plugin {
         }
 	else
 	{
+            identifier.clear();
             identifier=(std::string(AVOUTPUT_GENERIC_STRING_RFC_PARAM)+std::string("hdr")+std::string(".wb."));
+            err = clearLocalParam(rfc_caller_id,identifier.c_str());
             if ( err != tr181Success ) 
 	    {
                 LOGWARN("clearLocalParam for %s Failed : %s\n",identifier.c_str(),getTR181ErrorString(err));
@@ -5211,6 +5259,14 @@ namespace Plugin {
         return 0;
     }
 
+    void AVOutput::BroadcastLowLatencyModeChangeEvent(bool lowLatencyMode)
+    {
+           LOGINFO("Entry:%d\n",lowLatencyMode);
+     	   JsonObject response;
+    	   response["lowLatencyMode"] = lowLatencyMode;
+      	   sendNotify("gameModeEvent", response);
+    }
+
     uint32_t AVOutputTV::setPictureMode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
@@ -5291,6 +5347,17 @@ namespace Plugin {
                 LOGINFO("%s mode has been enabled",value.c_str());
             else if(!strncmp(prevmode,"filmmaker",strlen(prevmode)) && strncmp(value.c_str(),"filmmaker",strlen(value.c_str())))
                 LOGINFO("%s mode has been disabled",prevmode);
+
+            LOGINFO("Broadcasting the low latency change event \n");
+
+	    if(m_isDalsEnabled)
+            {
+                //GameModebroadcast
+                if(!strncmp(value.c_str(),"game",strlen(value.c_str())) && strncmp(prevmode,"game",strlen(prevmode)))
+                    BroadcastLowLatencyModeChangeEvent(1);
+                else if(!strncmp(prevmode,"game",strlen(prevmode)) && strncmp(value.c_str(),"game",strlen(value.c_str())))
+                    BroadcastLowLatencyModeChangeEvent(0);
+	    }
 
             LOGINFO("Exit : Value : %s \n",value.c_str());
             returnResponse(true);
