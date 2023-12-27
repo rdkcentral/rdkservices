@@ -20,6 +20,7 @@
 #include <string>
 #include "AVOutputTV.h"
 #include "UtilsIarm.h"
+#include "rfcapi.h"
 
 #define BUFFER_SIZE     (128)
 
@@ -520,7 +521,7 @@ namespace Plugin {
         DeinitializeIARM();	
     }
 
-    void AVOutput::getDynamicAutoLatencyConfig()
+    void AVOutputTV::getDynamicAutoLatencyConfig()
     {
         RFC_ParamData_t param = {0};
         WDMP_STATUS status = getRFCParameter(AVOUTPUT_RFC_CALLERID, AVOUTPUT_DALS_RFC_PARAM, &param);
@@ -4764,17 +4765,17 @@ namespace Plugin {
                     s+=param.value;
                     response["value"] = atoi(s.c_str());
 
-                    returnResponse(true, "success");
+                    returnResponse(true);
                 }
                 else {
                     LOGWARN("%s : getWBCtrl failed: Key : %s\n",__FUNCTION__,identifier);
-                    returnResponse(false,getErrorString(tvERROR_GENERAL).c_str());
+                    returnResponse(false);
                 }
             } else {
-                returnResponse(false, "wrong selector value");
+                returnResponse(false);
             }
         } else {
-            returnResponse(false, "Missing Parameter");
+            returnResponse(false);
         }
     }
 
