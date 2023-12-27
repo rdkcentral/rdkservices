@@ -4767,7 +4767,7 @@ namespace Plugin {
                     returnResponse(true);
                 }
                 else {
-                    LOGWARN("%s : getWBCtrl failed: Key : %s\n",__FUNCTION__,identifier);
+                    LOGWARN("%s : getWBCtrl failed: Key : %s\n",__FUNCTION__,identifier.c_str());
                     returnResponse(false);
                 }
             } else {
