@@ -4703,7 +4703,6 @@ namespace Plugin {
         std::vector<std::string> index;
         std::string color;
         std::string ctrl;
-        int value;
         int dimminglevel = 1; // default is dimming ON (boost)
 
         if ((parameters.HasLabel("applies")) && (parameters.HasLabel("color")) && (parameters.HasLabel("ctrl")))
@@ -4744,7 +4743,7 @@ namespace Plugin {
                 TR181_ParamData_t param={0};
                 std::string identifier = AVOUTPUT_GENERIC_STRING_RFC_PARAM;
 
-                ret = GetLocalDimmingLevel(&dimminglevel);
+                GetLocalDimmingLevel(&dimminglevel);
                 std::string format= std::string("sdr");
                 if ( isCurrentTypeHDR() && ( (dimminglevel==1) || (dimminglevel==2) ) )
                 {
@@ -4854,7 +4853,7 @@ namespace Plugin {
                     //set it to local cache
                     std::string identifier = AVOUTPUT_GENERIC_STRING_RFC_PARAM;
                     
-                    ret = GetLocalDimmingLevel(&dimminglevel);
+                    GetLocalDimmingLevel(&dimminglevel);
                     std::string format= std::string("sdr");
                     
                     if ( isCurrentTypeHDR() && ( (dimminglevel==1) || (dimminglevel==2) ) )
@@ -5260,7 +5259,7 @@ namespace Plugin {
         return 0;
     }
 
-    void AVOutput::BroadcastLowLatencyModeChangeEvent(bool lowLatencyMode)
+    void AVOutputTV::BroadcastLowLatencyModeChangeEvent(bool lowLatencyMode)
     {
            LOGINFO("Entry:%d\n",lowLatencyMode);
      	   JsonObject response;
