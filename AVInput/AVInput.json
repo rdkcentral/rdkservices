@@ -684,6 +684,11 @@
                             "type": "integer",
                             "example": 0
                     }
+		     "planeType": {
+                            "summary": "Defines whether the video plane type, 0 - Primary video plane, 1 - Secondary Video Plane, Other values - Invalid ",
+                            "type": "integer",
+                            "example": 0
+                    }
                 },
                 "required": [
                     "id",
