@@ -71,6 +71,7 @@ static int audio_output_delay = 100;
 static int video_latency = 20;
 #define TVMGR_GAME_MODE_EVENT "gameModeEvent"
 static bool lowLatencyMode = false;
+static int planeType = 0;
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 using namespace std;
@@ -233,7 +234,7 @@ namespace WPEFramework
 	    int portId = 0;    
 	    bool topMostPlane = parameters["topMost"].Boolean();
 	    //planeType = 0 -  primary, 1 - secondary video plane type
-	    int planeType = 0;
+	    planeType = 0;// default video plane
 	    try {
 	        portId = stoi(sPortId);
 		if (parameters.HasLabel("plane")){
@@ -271,6 +272,7 @@ namespace WPEFramework
             try
             {
                 device::HdmiInput::getInstance().selectPort(-1);
+		planeType = -1;// plane index when stopping hdmi input
             }
             catch (const device::Exception& err)
             {
@@ -556,6 +558,8 @@ namespace WPEFramework
 	    else {
                 params["status"] = "stopped";
             }
+            
+	    params["plane"] = planeType;
 
             sendNotify(HDMIINPUT_EVENT_ON_STATUS_CHANGED, params);
         }

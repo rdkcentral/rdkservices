@@ -62,6 +62,7 @@
 #define AVINPUT_EVENT_ON_GAME_FEATURE_STATUS_CHANGED "gameFeatureStatusUpdate"
 #define AVINPUT_EVENT_ON_AVI_CONTENT_TYPE_CHANGED "aviContentTypeUpdate"
 
+static int planeType = 0;
 using namespace std;
 int getTypeOfInput(string sType)
 {
@@ -335,7 +336,7 @@ uint32_t AVInput::startInput(const JsonObject& parameters, JsonObject& response)
     string sType = parameters["typeOfInput"].String();
     int portId = 0;
     int iType = 0;
-    int planeType = 0; //planeType = 0 -  primary, 1 - secondary video plane type
+    planeType = 0; //planeType = 0 -  primary, 1 - secondary video plane type
     bool topMostPlane = parameters["topMost"].Boolean();
     LOGINFO("topMost value in thunder: %d\n",topMostPlane);
     if (parameters.HasLabel("portId") && parameters.HasLabel("typeOfInput"))
@@ -405,6 +406,7 @@ uint32_t AVInput::stopInput(const JsonObject& parameters, JsonObject& response)
         else if (iType == COMPOSITE) {
             device::CompositeInput::getInstance().selectPort(-1);
         }
+	planeType = -1;
     }
     catch (const device::Exception& err) {
         LOGWARN("AVInputService::stopInput Failed");
@@ -723,6 +725,8 @@ void AVInput::AVInputStatusChange( int port , bool isPresented, int type)
     else {
         params["status"] = "stopped";
     }
+    params["plane"] = planeType;
+
     sendNotify(AVINPUT_EVENT_ON_STATUS_CHANGED, params);
 }
 
