@@ -948,7 +948,8 @@ static GSourceFuncs _handlerIntervention =
             if (odh_error_report_init("WebKitBrowser")) {
                 TRACE(Trace::Error, (_T("Failed to initialize ODH reporting")));
             } else {
-                ODH_WARNING("WPE0010", WPE_CONTEXT, "ThunderWebKitBrowser started: %p", this);
+                ODH_WARNING("WPE0010", WPE_CONTEXT, "ThunderWebKitBrowser started: %p, WebKit version: %d.%d.%d",
+                        this, WEBKIT_MAJOR_VERSION, WEBKIT_MINOR_VERSION, WEBKIT_MICRO_VERSION);
             }
 #endif
             implementation = this;
