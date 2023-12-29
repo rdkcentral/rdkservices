@@ -1,13 +1,11 @@
 project(NetworkManagerInterface)
 find_package(WPEFramework REQUIRED)
-find_package(${NAMESPACE}Core)
-find_package(${NAMESPACE}COM)
+find_package(${NAMESPACE}Core REQUIRED)
+find_package(${NAMESPACE}COM REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
-
-
-set(ProxyStubGenerator_DIR ${CMAKE_SYSROOT}${CMAKE_INSTALL_PREFIX}/tools/cmake ${ProxyStubGenerator_DIR})
 find_package(ProxyStubGenerator REQUIRED)
 
+set(ProxyStubGenerator_DIR ${CMAKE_SYSROOT}${CMAKE_INSTALL_PREFIX}/tools/cmake ${ProxyStubGenerator_DIR})
 
 if(NOT GENERATOR_SEARCH_PATH)
     set(GENERATOR_SEARCH_PATH ${CMAKE_SYSROOT}${CMAKE_INSTALL_PREFIX}/include/${NAMESPACE})

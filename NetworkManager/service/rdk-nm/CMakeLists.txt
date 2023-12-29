@@ -1,4 +1,4 @@
-find_package(IARMBus)
+find_package(IARMBus REQUIRED)
 find_package(${NAMESPACE}Core REQUIRED)
 find_package(${NAMESPACE}Plugins REQUIRED)
 
