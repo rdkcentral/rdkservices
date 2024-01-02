@@ -22,8 +22,8 @@
 #include "Module.h"
 
 // Include the interface we created
-#include <interfaces/INetworkManager.h>
-//#include "INetworkManager.h"
+//#include <interfaces/INetworkManager.h>
+#include "INetworkManager.h"
 
 #include <string>
 #include <atomic>
