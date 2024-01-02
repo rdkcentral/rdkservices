@@ -49,6 +49,23 @@
  *
  * You should be capable of just using "Notify".
  */
+#if (THUNDER_VERSION_MAJOR == 4 && THUNDER_VERSION_MINOR == 4)
+
+#define sendNotify(event,params) { \
+    std::string json; \
+    params.ToString(json); \
+    LOGINFO("Notify %s %s", event, json.c_str()); \
+    Notify(event,params); \
+}
+
+#define sendNotifyMaskParameters(event,params) { \
+    std::string json; \
+    params.ToString(json); \
+    LOGINFO("Notify %s <***>", event); \
+    Notify(event,params); \
+}
+
+#else
 
 #define sendNotify(event,params) { \
     std::string json; \
@@ -63,6 +80,7 @@
     for (uint8_t i = 1; GetHandler(i); i++) GetHandler(i)->Notify(event,params); \
 }
 
+#endif
 /**
  * DO NOT USE THIS.
  *

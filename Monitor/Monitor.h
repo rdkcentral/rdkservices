@@ -819,7 +819,7 @@ namespace Plugin {
 
                 _adminLock.Unlock();
             }
-#ifdef USE_THUNDER_R4
+#if (THUNDER_VERSION_MAJOR == 4 && THUNDER_VERSION_MINOR == 2)
             void Activation(const string& name, PluginHost::IShell* service) override
             {
                 StateChange(service);
@@ -829,7 +829,8 @@ namespace Plugin {
            {
                StateChange(service);
            }
-
+#endif
+#if (THUNDER_VERSION_MAJOR == 4 && THUNDER_VERSION_MINOR == 4 || THUNDER_VERSION_MAJOR == 4 && THUNDER_VERSION_MINOR == 2)
            void Activated (const string& callsign, PluginHost::IShell* service) override
            {
                 StateChange(service);
@@ -841,7 +842,7 @@ namespace Plugin {
            void Unavailable(const string&, PluginHost::IShell*) override
            {
            }
-#endif /* USE_THUNDER_R4 */
+#endif
             void Snapshot(Core::JSON::ArrayType<Monitor::Data>& snapshot)
             {
                 _adminLock.Lock();
@@ -990,8 +991,11 @@ namespace Plugin {
                                 Core::EnumerateType<PluginHost::IShell::reason> why(((value & MonitorObject::EXCEEDED_MEMORY) != 0) ? PluginHost::IShell::MEMORY_EXCEEDED : PluginHost::IShell::FAILURE);
 
                                 const string message("{\"callsign\": \"" + plugin->Callsign() + "\", \"action\": \"Deactivate\", \"reason\": \"" + why.Data() + "\" }");
-#ifdef USE_THUNDER_R4
+#if (THUNDER_VERSION_MAJOR == 4 && THUNDER_VERSION_MINOR == 4)
+                                SYSLOG(Logging::Fatal, (_T("FORCED Shutdown: %s by reason: %s."), plugin->Callsign().c_str(), why.Data()));
+#elif (THUNDER_VERSION_MAJOR == 4 && THUNDER_VERSION_MINOR == 2)
                                 SYSLOG_GLOBAL(Logging::Fatal, (_T("FORCED Shutdown: %s by reason: %s."), plugin->Callsign().c_str(), why.Data()));
+
 #else
                                 SYSLOG(Trace::Fatal, (_T("FORCED Shutdown: %s by reason: %s."), plugin->Callsign().c_str(), why.Data()));
 #endif /* USE_THUNDER_R4 */
