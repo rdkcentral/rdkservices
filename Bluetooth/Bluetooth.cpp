@@ -40,7 +40,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 5
+#define API_VERSION_NUMBER_PATCH 6
 
 const string WPEFramework::Plugin::Bluetooth::SERVICE_NAME = "org.rdk.Bluetooth";
 const string WPEFramework::Plugin::Bluetooth::METHOD_START_SCAN = "startScan";
@@ -396,7 +396,8 @@ namespace WPEFramework
                     deviceDetails["deviceType"] = string(BTRMGR_GetDeviceTypeAsString(discoveredDevices.m_deviceProperty[i].m_deviceType));
                     deviceDetails["connected"] = discoveredDevices.m_deviceProperty[i].m_isConnected?true:false;
                     deviceDetails["paired"] = discoveredDevices.m_deviceProperty[i].m_isPairedDevice?true:false;
-                    deviceDetails["rawDeviceType"] = std::to_string(discoveredDevices.m_deviceProperty[i].m_ui32DevClassBtSpec);    
+                    deviceDetails["rawDeviceType"] = std::to_string(discoveredDevices.m_deviceProperty[i].m_ui32DevClassBtSpec);
+                    deviceDetails["rawBleDeviceType"] = std::to_string(discoveredDevices.m_deviceProperty[i].m_ui16DevAppearanceBleSpec);
                     deviceArray.Add(deviceDetails);
                 }
             }
@@ -880,6 +881,7 @@ namespace WPEFramework
                     params["name"] = string(eventMsg.m_discoveredDevice.m_name);
                     params["deviceType"] = BTRMGR_GetDeviceTypeAsString(eventMsg.m_discoveredDevice.m_deviceType);
                     params["rawDeviceType"] = C_STR(std::to_string(eventMsg.m_discoveredDevice.m_ui32DevClassBtSpec));
+                    params["rawBleDeviceType"] = C_STR(std::to_string(eventMsg.m_discoveredDevice.m_ui16DevAppearanceBleSpec));
                     params["lastConnectedState"] = eventMsg.m_discoveredDevice.m_isLastConnectedDevice ? true : false;
                     params["paired"] = eventMsg.m_discoveredDevice.m_isPairedDevice ? true : false;
                     params["connected"] = eventMsg.m_discoveredDevice.m_isConnected ? true : false;
@@ -894,6 +896,7 @@ namespace WPEFramework
                     params["name"] = string(eventMsg.m_pairedDevice.m_name);
                     params["deviceType"] = BTRMGR_GetDeviceTypeAsString(eventMsg.m_pairedDevice.m_deviceType);
                     params["rawDeviceType"] = std::to_string(eventMsg.m_pairedDevice.m_ui32DevClassBtSpec);
+                    params["rawBleDeviceType"] = std::to_string(eventMsg.m_pairedDevice.m_ui16DevAppearanceBleSpec);
                     params["lastConnectedState"] = eventMsg.m_pairedDevice.m_isLastConnectedDevice ? true : false;
                     params["paired"] = false;
                     params["connected"] = eventMsg.m_pairedDevice.m_isConnected ? true : false;
@@ -909,6 +912,7 @@ namespace WPEFramework
                     params["name"] = string(eventMsg.m_pairedDevice.m_name);
                     params["deviceType"] = BTRMGR_GetDeviceTypeAsString(eventMsg.m_pairedDevice.m_deviceType);
                     params["rawDeviceType"] = std::to_string(eventMsg.m_pairedDevice.m_ui32DevClassBtSpec);
+                    params["rawBleDeviceType"] = std::to_string(eventMsg.m_pairedDevice.m_ui16DevAppearanceBleSpec);
                     params["lastConnectedState"] = eventMsg.m_pairedDevice.m_isLastConnectedDevice ? true : false;
                     params["paired"] = true;
                     params["connected"] = eventMsg.m_pairedDevice.m_isConnected ? true : false;
@@ -956,6 +960,7 @@ namespace WPEFramework
                     params["name"] = string(eventMsg.m_discoveredDevice.m_name);
                     params["deviceType"] = BTRMGR_GetDeviceTypeAsString(eventMsg.m_discoveredDevice.m_deviceType);
                     params["rawDeviceType"] = std::to_string(eventMsg.m_discoveredDevice.m_ui32DevClassBtSpec);
+                    params["rawBleDeviceType"] = std::to_string(eventMsg.m_discoveredDevice.m_ui16DevAppearanceBleSpec);
                     params["lastConnectedState"] = eventMsg.m_discoveredDevice.m_isLastConnectedDevice ? true : false;
                     params["paired"] = eventMsg.m_discoveredDevice.m_isPairedDevice ? true : false;
                     params["connected"] = eventMsg.m_discoveredDevice.m_isConnected ? true : false;
@@ -970,6 +975,7 @@ namespace WPEFramework
                     params["name"] = string(eventMsg.m_pairedDevice.m_name);
                     params["deviceType"] = BTRMGR_GetDeviceTypeAsString(eventMsg.m_pairedDevice.m_deviceType);
                     params["rawDeviceType"] = std::to_string(eventMsg.m_pairedDevice.m_ui32DevClassBtSpec);
+                    params["rawBleDeviceType"] = std::to_string(eventMsg.m_pairedDevice.m_ui16DevAppearanceBleSpec);
                     params["lastConnectedState"] = eventMsg.m_pairedDevice.m_isLastConnectedDevice ? true : false;
                     params["paired"] = true;
                     params["connected"] = eventMsg.m_pairedDevice.m_isConnected ? true : false;
@@ -984,6 +990,7 @@ namespace WPEFramework
                     params["name"] = string(eventMsg.m_pairedDevice.m_name);
                     params["deviceType"] = BTRMGR_GetDeviceTypeAsString(eventMsg.m_pairedDevice.m_deviceType);
                     params["rawDeviceType"] = std::to_string(eventMsg.m_pairedDevice.m_ui32DevClassBtSpec);
+                    params["rawBleDeviceType"] = std::to_string(eventMsg.m_pairedDevice.m_ui16DevAppearanceBleSpec);
                     params["lastConnectedState"] = eventMsg.m_pairedDevice.m_isLastConnectedDevice ? true : false;
                     params["paired"] = true;
                     params["connected"] = eventMsg.m_pairedDevice.m_isConnected ? true : false;
@@ -1094,6 +1101,7 @@ namespace WPEFramework
                     params["name"] = string(eventMsg.m_pairedDevice.m_name);
                     params["deviceType"] = BTRMGR_GetDeviceTypeAsString(eventMsg.m_pairedDevice.m_deviceType);
                     params["rawDeviceType"] = std::to_string(eventMsg.m_pairedDevice.m_ui32DevClassBtSpec);
+                    params["rawBleDeviceType"] = std::to_string(eventMsg.m_pairedDevice.m_ui16DevAppearanceBleSpec);
                     params["lastConnectedState"] = eventMsg.m_pairedDevice.m_isLastConnectedDevice?true:false;
 
                     eventId = EVT_DEVICE_FOUND;
@@ -1104,6 +1112,7 @@ namespace WPEFramework
                     params["name"] = string(eventMsg.m_pairedDevice.m_name);
                     params["deviceType"] = BTRMGR_GetDeviceTypeAsString(eventMsg.m_pairedDevice.m_deviceType);
                     params["rawDeviceType"] = std::to_string(eventMsg.m_pairedDevice.m_ui32DevClassBtSpec);
+                    params["rawBleDeviceType"] = std::to_string(eventMsg.m_pairedDevice.m_ui16DevAppearanceBleSpec);
                     params["lastConnectedState"] = eventMsg.m_pairedDevice.m_isLastConnectedDevice?true:false;
                     eventId = EVT_DEVICE_LOST_OR_OUT_OF_RANGE;
                     break;
@@ -1114,6 +1123,7 @@ namespace WPEFramework
                     params["name"] = string(eventMsg.m_discoveredDevice.m_name);
                     params["deviceType"] = BTRMGR_GetDeviceTypeAsString(eventMsg.m_discoveredDevice.m_deviceType);
                     params["rawDeviceType"] = std::to_string(eventMsg.m_discoveredDevice.m_ui32DevClassBtSpec);
+                    params["rawBleDeviceType"] = std::to_string(eventMsg.m_discoveredDevice.m_ui16DevAppearanceBleSpec);
                     params["lastConnectedState"] = eventMsg.m_discoveredDevice.m_isLastConnectedDevice? true:false;
                     params["paired"] = eventMsg.m_discoveredDevice.m_isPairedDevice ? true:false;
 

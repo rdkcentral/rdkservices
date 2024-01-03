@@ -60,7 +60,7 @@ stopScan:
 {"jsonrpc":"2.0","id":3,"result":{"success":true}}
 
 getDiscoveredDevices:
-{"jsonrpc":"2.0","id":3,"result":{"discoveredDevices":[{"deviceID":"61579454946360","name":"[TV] UE32J5530","deviceType":"TV","rawDeviceType": "2360344","connected":false,"paired":false}],"success":true}}
+{"jsonrpc":"2.0","id":3,"result":{"discoveredDevices":[{"deviceID":"61579454946360","name":"[TV] UE32J5530","deviceType":"TV","rawDeviceType": "2360344","rawBleDeviceType": "180","connected":false,"paired":false}],"success":true}}
 
 getPairedDevices:
 {"jsonrpc":"2.0","id":3,"result":{"pairedDevices":[{"deviceID":"256168644324480","name":"Eleven","deviceType":"SMARTPHONE","connected":true},{"deviceID":"26499258260618","name":"Little Big","deviceType":"SMARTPHONE","connected":false}],"success":true}}
