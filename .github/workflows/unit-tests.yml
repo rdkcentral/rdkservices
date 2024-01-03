@@ -189,6 +189,7 @@ jobs:
           telemetry_busmessage_sender.h
           maintenanceMGR.h
           pkg.h
+          secure_wrapper.h
 
       - name: Set clang toolchain
         if: ${{ matrix.compiler == 'clang' }}
