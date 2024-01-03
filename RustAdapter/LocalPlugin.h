@@ -72,8 +72,7 @@ public:
   /**
    * IDispatcher::Activate
    */
-#if ((THUNDER_VERSION_MAJOR == 4) || (THUNDER_VERSION_MAJOR == 2))
-#if (THUNDER_VERSION_MINOR != 4)
+#if ((THUNDER_VERSION_MAJOR == 2) || ((THUNDER_VERSION_MAJOR == 4) && (THUNDER_VERSION_MINOR == 2)))
   void Activate(PluginHost::IShell *shell) override;
   /**
    *
