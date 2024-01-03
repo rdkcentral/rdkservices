@@ -253,8 +253,7 @@ WPEFramework::Core::hresult WPEFramework::Plugin::Rust::LocalPlugin::Validate(co
 #endif
 
 
-#if (THUNDER_VERSION_MAJOR == 2 || THUNDER_VERSION_MAJOR == 4)
-#if (THUNDER_VERSION_MINOR != 4)
+#if ((THUNDER_VERSION_MAJOR == 2) || ((THUNDER_VERSION_MAJOR == 4) && (THUNDER_VERSION_MINOR == 2)))
 void
 WPEFramework::Plugin::Rust::LocalPlugin::Activate(
   WPEFramework::PluginHost::IShell *shell)
@@ -265,7 +264,6 @@ void
 WPEFramework::Plugin::Rust::LocalPlugin::Deactivate()
 {
 }
-#endif
 #endif
 bool
 WPEFramework::Plugin::Rust::LocalPlugin::Attach(PluginHost::Channel &channel)
