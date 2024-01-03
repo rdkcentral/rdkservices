@@ -127,8 +127,7 @@ RemotePlugin::Invoke(
 }
 #endif
 
-#if ((THUNDER_VERSION_MAJOR == 2) || (THUNDER_VERSION_MAJOR == 4))
-#if (THUNDER_VERSION_MINOR != 4)
+#if ((THUNDER_VERSION_MAJOR == 2) || ((THUNDER_VERSION_MAJOR == 4) && (THUNDER_VERSION_MINOR == 2)))
 void
 RemotePlugin::Activate(
   WPEFramework::PluginHost::IShell *shell)
@@ -139,7 +138,6 @@ void
 RemotePlugin::Deactivate()
 {
 }
-#endif
 #endif
 
 bool
