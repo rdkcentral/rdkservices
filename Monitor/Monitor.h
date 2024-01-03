@@ -992,17 +992,7 @@ namespace Plugin {
                                 Core::EnumerateType<PluginHost::IShell::reason> why(((value & MonitorObject::EXCEEDED_MEMORY) != 0) ? PluginHost::IShell::MEMORY_EXCEEDED : PluginHost::IShell::FAILURE);
 
                                 const string message("{\"callsign\": \"" + plugin->Callsign() + "\", \"action\": \"Deactivate\", \"reason\": \"" + why.Data() + "\" }");
-#if (THUNDER_VERSION_MAJOR >= 4)
-
-#if (THUNDER_VERSION_MINOR == 4)
                                 SYSLOG(Logging::Fatal, (_T("FORCED Shutdown: %s by reason: %s."), plugin->Callsign().c_str(), why.Data()));
-#elif (THUNDER_VERSION_MINOR == 2)
-                                SYSLOG_GLOBAL(Logging::Fatal, (_T("FORCED Shutdown: %s by reason: %s."), plugin->Callsign().c_str(), why.Data()));
-
-#else
-                                SYSLOG(Trace::Fatal, (_T("FORCED Shutdown: %s by reason: %s."), plugin->Callsign().c_str(), why.Data()));
-#endif
-#endif
                                 _service->Notify(message);
 
                                 _parent.event_action(plugin->Callsign(), "Deactivate", why.Data());
