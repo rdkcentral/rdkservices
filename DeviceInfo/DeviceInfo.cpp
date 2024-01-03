@@ -161,13 +161,10 @@ namespace Plugin {
         Core::SystemInfo& singleton(Core::SystemInfo::Instance());
 
         systemInfo.Time = Core::Time::Now().ToRFC1123(true);
-#if (THUNDER_VERSION_MAJOR >= 4)
-
-#if (THUNDER_VERSION_MINOR == 4)
+#if ((THUNDER_VERSION_MAJOR >= 4) && (THUNDER_VERSION_MINOR >= 4))
 	systemInfo.Version = _subSystem->Version() + _T("#") + _subSystem->BuildTreeHash();
 #else
 	systemInfo.Version = _service->Version() + _T("#") + _subSystem->BuildTreeHash();
-#endif
 #endif
         systemInfo.Uptime = singleton.GetUpTime();
         systemInfo.Freeram = singleton.GetFreeRam();
