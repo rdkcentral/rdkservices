@@ -194,6 +194,7 @@ jobs:
           telemetry_busmessage_sender.h
           maintenanceMGR.h
           pkg.h
+          secure_wrapper.h
           &&
           cp -r /usr/include/gstreamer-1.0/gst /usr/include/glib-2.0/* /usr/lib/x86_64-linux-gnu/glib-2.0/include/* .
 
@@ -231,6 +232,7 @@ jobs:
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Udev.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/maintenanceMGR.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/pkg.h
+          -include ${{github.workspace}}/rdkservices/Tests/mocks/secure_wrappermock.h
           -Wall -Werror
           -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog
           -DENABLE_TELEMETRY_LOGGING
