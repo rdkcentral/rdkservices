@@ -44,6 +44,7 @@ namespace Plugin {
         static const string LINK_PATH;
         static const string REGEX_BIN;
         static const string REGEX_FILE;
+        static const string REGEX_PATH;        
         static const string PATH_DEVICE_PROPERTIES;
         static const std::list<string> ADDITIONAL_FW_PATHS;
         static const string ARCHIVE_LOGS_SCRIPT;
