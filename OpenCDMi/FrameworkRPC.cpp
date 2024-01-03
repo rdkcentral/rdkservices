@@ -114,7 +114,9 @@ namespace Plugin {
                 : RPC::Communicator(source, _T(""), Core::ProxyType<Core::IIPCServer>(engine))
                 , _parentInterface(parentInterface)
             {
+#if ((THUNDER_VERSION_MAJOR == 2) || ((THUNDER_VERSION_MAJOR == 4) && (THUNDER_VERSION_MINOR == 2)))
                 engine->Announcements(Announcement());
+#endif
                 Open(Core::infinite);
             }
             ~ExternalAccess()
