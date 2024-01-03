@@ -37,3 +37,30 @@ extern "C" struct mntent* __wrap_getmntent(FILE* pipe)
 {
     return Wraps::getInstance().getmntent(pipe);
 }
+
+extern "C" FILE * __wrap_v_secure_popen(const char *direction, const char *command, ...) 
+{
+    va_list args;
+    FILE *retFp = nullptr;
+    va_start(args, command);
+    retFp = Wraps::getInstance().v_secure_popen(direction, command, args);
+    va_end(args);
+    return retFp;
+}
+
+
+extern "C" int __wrap_v_secure_pclose(FILE *file)
+{
+    return Wraps::getInstance().v_secure_pclose(file);
+}
+
+
+extern "C" int __wrap_v_secure_system(const char *command, ...)
+{
+    int ret;
+    va_list args;
+    va_start(args,command);
+    ret = Wraps::getInstance().v_secure_system(command, args);
+    va_end(args);
+    return ret;
+}

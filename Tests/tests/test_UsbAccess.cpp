@@ -6,8 +6,14 @@
 #include "FactoriesImplementation.h"
 #include "UsbAccess.h"
 
+#include <fstream> // Added for file creation
+#include <string>
+#include <vector>
+#include <cstdio>
+
 #include "UdevMock.h"
 #include "WrapsMock.h"
+#include "secure_wrappermock.h"
 
 using ::testing::NiceMock;
 using namespace WPEFramework;
@@ -113,25 +119,53 @@ TEST_F(UsbAccessTest, RegisteredMethods)
 }
 extern "C" FILE* __real_popen(const char* command, const char* type);
 
+/*******************************************************************************************************************
+* Test function for UpdateFirmware 
+* UpdateFirmware : 
+*		   Updates the firmware using the specified file retrieved from the getAvailableFirmwareFiles method.          
+*
+*		   @return Whether the request succeeded or failed.
+********************************************************************************************************************/
+
+/** 
+* @breif : UpdateFirmware when path is found
+*	   Check if path is matching with the files retrived from the getAvailableFirmwareFiles method.
+* @param[in]    :  path to file retrieved from getAvailableFirmwareFiles method.
+* @return       :  {\"success\":true} for a vaild path and filename or error code : ERROR_GENERAL for invaild path and file names 
+**/
+
 TEST_F(UsbAccessTest, UpdateFirmware)
 {
     Udev::getInstance().impl = &udevImplMock;
     Wraps::getInstance().impl = &wrapsImplMock;
 
-    EXPECT_CALL(wrapsImplMock, system(::testing::_))
+    EXPECT_CALL(wrapsImplMock, v_secure_system(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
-            [&](const char* command) {
+            [&](const char* command, va_list args) {
                 /*Since we have added the "etc/device.properties" file in the test fixture, it can be opened,
                 and the model number is now available. Therefore, we need to change the input parameter for this test API as well as the corresponding string in the system command to match the model number.*/
-                EXPECT_EQ(string(command), string(_T("/lib/rdk/userInitiatedFWDnld.sh usb '/tmp;reboot;' 'HSTP11MWR.bin' 0 >> /opt/logs/swupdate.log &")));
+                 va_list args2;
+                va_copy(args2,args);
+                char strFmt[256];
+                vsnprintf(strFmt, sizeof(strFmt), command, args2);
+                EXPECT_EQ(string(strFmt), string(_T("/lib/rdk/userInitiatedFWDnld.sh usb '/tmp/reboot/' 'HSTP11MWR.bin' 0 >> /opt/logs/swupdate.log &")));
                 return 0;
             }));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("updateFirmware"), _T("{\"fileName\":\"/tmp;reboot;/HSTP11MWR.bin\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("updateFirmware"), _T("{\"fileName\":\"/tmp/reboot/HSTP11MWR.bin\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("updateFirmware"), _T("{\"fileName\":\"/tmp\';reboot;/my.bin\"}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("updateFirmware"), _T("{\"fileName\":\"/tm!p/reboot/HSTP11MWR.bin\"}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("updateFirmware"), _T("{\"fileName\":\"/$tmp/reboot/HSTP11MWR.bin\"}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("updateFirmware"), _T("{\"fileName\":\"/@tmp/reboot/HSTP11MWR.bin\"}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("updateFirmware"), _T("{\"fileName\":\"/#tmp/reboot/HSTP11MWR.bin\"}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("updateFirmware"), _T("{\"fileName\":\"/%tmp/reboot/HSTP11MWR.bin\"}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("updateFirmware"), _T("{\"fileName\":\"/*tmp/reboot/HSTP11MWR.bin\"}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("updateFirmware"), _T("{\"fileName\":\"/tmp:/reboot/HSTP11MWR.bin\"}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("updateFirmware"), _T("{\"fileName\":\"/tmp;/reboot/HSTP11MWR.bin\"}"), response));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("updateFirmware"), _T("{\"fileName\":\"/&tmp/reboot/HSTP11MWR.bin\"}"), response));
 }
 
 /*******************************************************************************************************************
@@ -493,6 +527,76 @@ TEST_F(UsbAccessTest, getFileListSuccess_withRelativePathParam)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFileList"), _T("{\"path\":\"sda1/logs/PreviousLogs\"}"), response));
     EXPECT_EQ(response, string("{\"path\":\"\\/run\\/media\\/sda1\\/logs\\/PreviousLogs\",\"contents\":[{\"name\":\".\",\"t\":\"d\"},{\"name\":\"..\",\"t\":\"d\"},{\"name\":\"logFile.txt\",\"t\":\"f\"}],\"success\":true}"));
+}
+/**
+ * @brief : getFileList when absolute path is found
+ *          Check if an absolute path matching the path parameter is found in the mounted paths
+ *          then  getFileList shall be succeeded and retrieves the list of files from the absolute path which dont have any special characters.
+ * @param[in]   :  Valid parameters with the "path" label
+ * @return      :  response object containing the list of retrieved files which dont have any special characters and success status as true
+ */
+TEST_F(UsbAccessTest, getFileListSuccess_withSpecialCharacters)
+{   
+    std::string directory = "/run/media/sda1/logs/PreviousLogs/";
+    std::vector<std::string> fileNames = {"file1.txt","!file.txt", "@file.txt", "$file.txt", "%file.txt", "*file.txt", "~file.txt", "&file.txt", "*file.txt", "+file.txt", "fi?le.txt", "file=.txt","fi^le.txt"};
+    for (const auto& fileName : fileNames){
+    std::string filePath = directory + fileName;
+    std::ofstream fileStream(filePath);
+    }
+
+    Udev::getInstance().impl = &udevImplMock;
+    Wraps::getInstance().impl = &wrapsImplMock;
+
+    EXPECT_CALL(udevImplMock, udev_enumerate_get_list_entry(testing::_))
+        .WillOnce(testing::Return(reinterpret_cast<struct udev_list_entry*>(0x3)));
+    EXPECT_CALL(udevImplMock, udev_list_entry_get_name(testing::_))
+         .WillRepeatedly(testing::Return("/dev/sda1"));
+
+    EXPECT_CALL(udevImplMock, udev_device_get_parent_with_subsystem_devtype(testing::_, testing::_, testing::_))
+        .WillRepeatedly(testing::Return(reinterpret_cast<struct udev_device*>(0x5)));
+
+    EXPECT_CALL(udevImplMock, udev_device_get_devtype(testing::_))
+        .WillRepeatedly(testing::Return("disk"));
+
+    EXPECT_CALL(udevImplMock, udev_device_get_devnode(testing::_))
+        .WillRepeatedly(testing::Return("/dev/sda1"));
+
+    EXPECT_CALL(wrapsImplMock, getmntent(testing::_))
+      .WillRepeatedly(::testing::Invoke(
+       [&](FILE*) -> struct mntent* {
+        static struct mntent entry1;
+        static struct mntent entry2;
+
+        entry1.mnt_fsname = const_cast<char*>("/dev/sda1"); // Set the value for mnt_fsname
+        entry1.mnt_dir = const_cast<char*>("/run/media/sda1/logs/");    // Set the value for mnt_dir
+
+        entry2.mnt_fsname = const_cast<char*>("/dev/sdb1"); // Set the value for mnt_fsname
+        entry2.mnt_dir = const_cast<char*>("/run/media/sdb1/logs");    // Set the value for mnt_dir
+
+        static int callCount = 0;
+        if (callCount == 0) {
+            callCount++;
+            return &entry1;
+        } else if (callCount == 1) {
+            callCount++;
+            return &entry2;
+        } else {
+            return static_cast<struct mntent*>(NULL);
+        }
+    }));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFileList"), _T("{\"path\":\"/run/media/sda1/logs/PreviousLogs\"}"), response));
+    EXPECT_THAT(response, ::testing::MatchesRegex("\\{"
+                                                "\"path\":\"\\\\/run\\\\/media\\\\/sda1\\\\/logs\\\\/PreviousLogs\","
+                                                "\"contents\":"
+                                                "\\[(\\{\"name\":\"(.|..|file1.txt|logFile.txt)\",\"t\":\"(f|d)\"\\},{0,}){0,}\\],"
+                                                "\"success\":true"
+                                                "\\}"));
+
+for (const auto& fileName1 :fileNames) {
+	std::string filePaths = directory + fileName1;
+	std::remove(filePaths.c_str());
+	}
 }
  /*Test cases for getFileList ends here*/
 
@@ -1283,15 +1387,21 @@ TEST_F(UsbAccessEventTest, onArchiveLogsFailure_when_FileFailedtoOpen)
         }
     }));
 
-    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+    EXPECT_CALL(wrapsImplMock, v_secure_popen(::testing::_, ::testing::_, ::testing::_))
         .Times(::testing::AnyNumber())
         .WillRepeatedly(::testing::Invoke(
-            [&](const char* command, const char* type) {
-                EXPECT_EQ(string(command), string(_T("/lib/rdk/usbLogUpload.sh /run/sda1")));
+             [&](const char *direction, const char *command, va_list args) 
+             {
+                va_list args2;
+                va_copy(args2, args);
+                char strFmt[256];
+                vsnprintf(strFmt, sizeof(strFmt), command, args2);
+                va_end(args2); 
+                EXPECT_EQ(string(strFmt), string(_T("/lib/rdk/usbLogUpload.sh /run/sda1")));
                 return nullptr;
             }));
 
-    ON_CALL(wrapsImplMock, pclose(::testing::_))
+    ON_CALL(wrapsImplMock, v_secure_pclose(::testing::_))
         .WillByDefault(::testing::Invoke(
             [&](FILE* pipe){
                 return -1;
@@ -1358,15 +1468,20 @@ TEST_F(UsbAccessEventTest, onArchiveLogsFailure_when_FileFailedtoTerminate)
         }
     }));
 
-    EXPECT_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+    EXPECT_CALL(wrapsImplMock, v_secure_popen(::testing::_, ::testing::_))
         .Times(::testing::AnyNumber())
         .WillRepeatedly(::testing::Invoke(
-            [&](const char* command, const char* type) {
-                EXPECT_EQ(string(command), string(_T("/lib/rdk/usbLogUpload.sh /run/sda1")));
-                return __real_popen(command, type);
+             [&](const char *direction, const char *command, va_list args) {
+                va_list args2;
+                va_copy(args2, args);
+                char strFmt[256];
+                vsnprintf(strFmt, sizeof(strFmt), command, args2);
+                va_end(args2); 
+                EXPECT_EQ(string(strFmt), string(_T("/lib/rdk/usbLogUpload.sh /run/sda1")));
+                return __real_popen(strFmt, direction);
             }));
 
-    ON_CALL(wrapsImplMock, pclose(::testing::_))
+    ON_CALL(wrapsImplMock, v_secure_pclose(::testing::_))
         .WillByDefault(::testing::Invoke(
             [&](FILE* pipe){
                 return -1;
@@ -1434,11 +1549,16 @@ TEST_F(UsbAccessEventTest, archiveLogsSuccess_When_pathParamisEmpty)
         }
     }));
 
-    ON_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+     ON_CALL(wrapsImplMock, v_secure_popen(::testing::_, ::testing::_, ::testing::_))
      .WillByDefault(::testing::Invoke(
-        [&](const char* command, const char* type) -> FILE* {
+        [&](const char *direction, const char *command, va_list args) -> FILE* {
             const char* valueToReturn = NULL;
-            if (strcmp(command, "/lib/rdk/usbLogUpload.sh /run/sda1") == 0) {
+            va_list args2;
+            va_copy(args2, args);
+            char strFmt[256];
+            vsnprintf(strFmt, sizeof(strFmt), command, args2);
+            va_end(args2);     
+            if (strcmp(strFmt, "/lib/rdk/usbLogUpload.sh /run/sda1") == 0) {
                 valueToReturn = "/run/sda1/5C3400F15492_Logs_12-05-22-10-41PM.tgz";
             }
             if (valueToReturn != NULL) {
@@ -1514,11 +1634,16 @@ TEST_F(UsbAccessEventTest, archiveLogsSuccess_onValidPath)
         }
     }));
 
-    ON_CALL(wrapsImplMock, popen(::testing::_, ::testing::_))
+    ON_CALL(wrapsImplMock, v_secure_popen(::testing::_, ::testing::_, ::testing::_))
      .WillByDefault(::testing::Invoke(
-        [&](const char* command, const char* type) -> FILE* {
+        [&](const char *direction, const char *command, va_list args) -> FILE* {
             const char* valueToReturn = NULL;
-            if (strcmp(command, "/lib/rdk/usbLogUpload.sh /run/sda1") == 0) {
+            va_list args2;
+            va_copy(args2, args);
+            char strFmt[256];
+            vsnprintf(strFmt, sizeof(strFmt), command, args2);
+            va_end(args2); 
+            if (strcmp(strFmt, "/lib/rdk/usbLogUpload.sh /run/sda1") == 0) {
                 valueToReturn = "/run/sda1/5C3400F15492_Logs_12-05-22-10-41PM.tgz";
             }
             if (valueToReturn != NULL) {
