@@ -2,7 +2,7 @@
 <a name="Bluetooth_Plugin"></a>
 # Bluetooth Plugin
 
-**Version: [1.0.5](https://github.com/rdkcentral/rdkservices/blob/main/Bluetooth/CHANGELOG.md)**
+**Version: [1.0.6](https://github.com/rdkcentral/rdkservices/blob/main/Bluetooth/CHANGELOG.md)**
 
 A org.rdk.Bluetooth plugin for Thunder framework.
 
@@ -489,6 +489,8 @@ This method takes no parameters.
 | result.discoveredDevices[#].deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
 | result.discoveredDevices[#].name | string | Name of the Bluetooth Device |
 | result.discoveredDevices[#].deviceType | string | Device class (for example: `headset`, `speakers`, etc.) |
+| result.discoveredDevices[#]rawDeviceType | string | Bluetooth device class as decimal |
+| result.discoveredDevices[#]rawBleDeviceType | string | Bluetooth (LE) device appearance as decimal |
 | result.discoveredDevices[#].connected | boolean | Whether the device is connected |
 | result.discoveredDevices[#].paired | boolean | Whether paired or not |
 | result.success | boolean | Whether the request succeeded |
@@ -1385,7 +1387,8 @@ Triggered during device discovery when a new device is discovered or a discovere
 | params.discoveryType | string | either `DISCOVERED` or `LOST` |
 | params.name | string | Name of the Bluetooth Device |
 | params.deviceType | string | Device class (for example: `headset`, `speakers`, etc.) |
-| params.rawDeviceType | string | Bluetooth device class as hex code |
+| params.rawDeviceType | string | Bluetooth device class as decimal |
+| params.rawBleDeviceType | string | Bluetooth (LE) device appearance as decimal |
 | params.lastConnectedState | boolean | Whether the device was last to connect. Only the last connected device has a value of `true` |
 | params.paired | boolean | Whether the device is paired. 1. `true` if the device is paired when the PAIRING_CHANGE status is sent 2. `false` if the device is unpaired. **Note** The set-top box does not retain/store all paired devices across previous power cycles. In addition, if the device is unpaired as part of a previous operation and the same device gets detected in a new discovery cycle, the device will not be a paired device |
 
@@ -1400,7 +1403,8 @@ Triggered during device discovery when a new device is discovered or a discovere
         "discoveryType": "DISCOVERED",
         "name": "[TV] UE32J5530",
         "deviceType": "TV",
-        "rawDeviceType": "0x060104",
+        "rawDeviceType": "2360344",
+        "rawBleDeviceType": "0",
         "lastConnectedState": true,
         "paired": true
     }
@@ -1591,7 +1595,8 @@ Triggered when the previous request to pair or connect failed. In absence of a f
 | params.deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
 | params.name | string | Name of the Bluetooth Device |
 | params.deviceType | string | Device class (for example: `headset`, `speakers`, etc.) |
-| params.rawDeviceType | string | Bluetooth device class as hex code |
+| params.rawDeviceType | string | Bluetooth device class as decimal |
+| params.rawBleDeviceType | string | Bluetooth (LE) device appearance as decimal |
 | params.lastConnectedState | boolean | Whether the device was last to connect. Only the last connected device has a value of `true` |
 | params.paired | boolean | Whether paired or not |
 | params.connected | boolean | Whether the device is connected. `true` if the device is connected when the `CONNECTION_CHANGE` status is sent. `false` if the device is disconnected |
@@ -1607,7 +1612,8 @@ Triggered when the previous request to pair or connect failed. In absence of a f
         "deviceID": "61579454946360",
         "name": "[TV] UE32J5530",
         "deviceType": "TV",
-        "rawDeviceType": "0x060104",
+        "rawDeviceType": "2360344",
+        "rawBleDeviceType": "0",
         "lastConnectedState": true,
         "paired": true,
         "connected": true
@@ -1633,7 +1639,8 @@ Triggered when the Bluetooth functionality status changes. Supported statuses ar
 | params.deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
 | params.name | string | Name of the Bluetooth Device |
 | params.deviceType | string | Device class (for example: `headset`, `speakers`, etc.) |
-| params.rawDeviceType | string | Bluetooth device class as hex code |
+| params.rawDeviceType | string | Bluetooth device class as decimal |
+| params.rawBleDeviceType | string | Bluetooth (LE) device appearance as decimal |
 | params.lastConnectedState | boolean | Whether the device was last to connect. Only the last connected device has a value of `true` |
 | params.paired | boolean | Whether paired or not |
 | params.connected | boolean | Whether device connected or not |
@@ -1649,7 +1656,8 @@ Triggered when the Bluetooth functionality status changes. Supported statuses ar
         "deviceID": "61579454946360",
         "name": "[TV] UE32J5530",
         "deviceType": "TV",
-        "rawDeviceType": "0x060104",
+        "rawDeviceType": "2360344",
+        "rawBleDeviceType": "0",
         "lastConnectedState": true,
         "paired": true,
         "connected": false
@@ -1670,7 +1678,8 @@ Triggered when the new device got discovered.
 | params.deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
 | params.name | string | Name of the Bluetooth Device |
 | params.deviceType | string | Device class (for example: `headset`, `speakers`, etc.) |
-| params.rawDeviceType | string | Bluetooth device class as hex code |
+| params.rawDeviceType | string | Bluetooth device class as decimal |
+| params.rawBleDeviceType | string | Bluetooth (LE) device appearance as decimal |
 | params.lastConnectedState | boolean | Whether the device was last to connect. Only the last connected device has a value of `true` |
 
 ### Example
@@ -1683,7 +1692,8 @@ Triggered when the new device got discovered.
         "deviceID": "61579454946360",
         "name": "[TV] UE32J5530",
         "deviceType": "TV",
-        "rawDeviceType": "0x060104",
+        "rawDeviceType": "2360344",
+        "rawBleDeviceType": "0",
         "lastConnectedState": true
     }
 }
@@ -1702,7 +1712,8 @@ Triggered when any discovered device lost or out of range.
 | params.deviceID | string | ID that is derived from the Bluetooth MAC address. 6 byte MAC value is packed into 8 byte with leading zeros for first 2 bytes |
 | params.name | string | Name of the Bluetooth Device |
 | params.deviceType | string | Device class (for example: `headset`, `speakers`, etc.) |
-| params.rawDeviceType | string | Bluetooth device class as hex code |
+| params.rawDeviceType | string | Bluetooth device class as decimal |
+| params.rawBleDeviceType | string | Bluetooth (LE) device appearance as decimal |
 | params.lastConnectedState | boolean | Whether the device was last to connect. Only the last connected device has a value of `true` |
 
 ### Example
@@ -1715,7 +1726,8 @@ Triggered when any discovered device lost or out of range.
         "deviceID": "61579454946360",
         "name": "[TV] UE32J5530",
         "deviceType": "TV",
-        "rawDeviceType": "0x060104",
+        "rawDeviceType": "2360344",
+        "rawBleDeviceType": "0",
         "lastConnectedState": true
     }
 }
