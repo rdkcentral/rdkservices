@@ -1,0 +1,6 @@
+{
+ "locator":"libWPEFrameworkAVOutput.so",
+ "classname":"AVOutput",
+ "callsign":"org.rdk.AVOutput",
+ "autostart":true
+}
