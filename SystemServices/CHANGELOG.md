@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [2.0.4] - 2024-02-13
+### Fixed
+- Fix for getPlatformConfiguration API in system plugin
+
 ## [2.0.3] - 2023-01-26
 ### Changed
 - RDK-44991: Upgrade Flex-2.0 devices to use Thunder R4.4.1
@@ -27,6 +31,10 @@ All notable changes to this RDK Service will be documented in this file.
 ## [2.0.1] - 2024-01-02
 ### Security
 - resolved security vulnerabilities
+
+## [1.7.4] - 2023-01-04
+### Fixed
+- Fix for getPlatformConfiguration api returning empty deviceType
 
 ## [2.0.0] - 2023-11-17
 ### Removed
