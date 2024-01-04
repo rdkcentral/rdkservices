@@ -42,7 +42,6 @@
 #include "dsMgr.h"
 #include "hdmiIn.hpp"
 #include "als_bl_iniparser.h"
-#include "bl_table.h"
 #include <numeric>
 
 //Macro
@@ -53,8 +52,6 @@
 #define AVOUTPUT_OVERRIDE_PATH       "/opt/panel/AVOutput.ini"
 #define AVOUTPUT_CONVERTERBOARD_PANELID     "0_0_00"
 #define AVOUTPUT_GENERIC_STRING_RFC_PARAM    "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput."
-#define AVOUTPUT_BACKLIGHT_SDR_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.SDR.Backlight"
-#define AVOUTPUT_BACKLIGHT_HDR_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.HDR.Backlight"
 #define AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM  "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.AutoBacklightMode"
 #define AVOUTPUT_DOLBYVISIONMODE_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.DolbyVisionMode"
 #define AVOUTPUT_HLGMODE_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.HLGMode"
@@ -63,7 +60,6 @@
 #define AVOUTPUT_PICTUREMODE_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.PictureMode"
 #define AVOUTPUT_PICTUREMODE_STRING_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.PictureModeString"
 #define AVOUTPUT_ASPECTRATIO_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.ZoomMode"
-#define AVOUTPUT_BACKLIGHT_CONTROL_USE_GBF_RFC_PARAM      "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.UseGBFForBacklightControl"
 #define AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.Source"
 #define AVOUTPUT_DALS_RFC_PARAM "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AVOutput.DynamicAutoLatency"
 
@@ -91,18 +87,12 @@ class AVOutputTV : public AVOutputBase {
         DECLARE_JSON_RPC_METHOD(getSaturation )
         DECLARE_JSON_RPC_METHOD(getHue )
         DECLARE_JSON_RPC_METHOD(getColorTemperature )
-        DECLARE_JSON_RPC_METHOD(getComponentHue )
-        DECLARE_JSON_RPC_METHOD(getComponentLuma )
-        DECLARE_JSON_RPC_METHOD(getComponentSaturation )
         DECLARE_JSON_RPC_METHOD(getBacklightDimmingMode )
-        DECLARE_JSON_RPC_METHOD(getAutoBacklightControl )
         DECLARE_JSON_RPC_METHOD(getSupportedDolbyVisionModes )
         DECLARE_JSON_RPC_METHOD(getSupportedHLGModes )
         DECLARE_JSON_RPC_METHOD(getHLGMode )
         DECLARE_JSON_RPC_METHOD(getSupportedHDR10Modes )
         DECLARE_JSON_RPC_METHOD(getHDR10Mode )
-        DECLARE_JSON_RPC_METHOD(getWBInfo )
-        DECLARE_JSON_RPC_METHOD(getWBCtrl )
         DECLARE_JSON_RPC_METHOD(getSupportedPictureModes )
         DECLARE_JSON_RPC_METHOD(getVideoSourceCaps)
         DECLARE_JSON_RPC_METHOD(getVideoFormatCaps)
@@ -127,13 +117,10 @@ class AVOutputTV : public AVOutputBase {
 	DECLARE_JSON_RPC_METHOD(getSaturationCaps)
 	DECLARE_JSON_RPC_METHOD(getHueCaps)
 	DECLARE_JSON_RPC_METHOD(getColorTemperatureCaps)
-	DECLARE_JSON_RPC_METHOD(getComponentCaps )
 	DECLARE_JSON_RPC_METHOD(getBacklightDimmingModeCaps )
-	DECLARE_JSON_RPC_METHOD(getAutoBacklightControlCaps )
         DECLARE_JSON_RPC_METHOD(getDolbyVisionModeCaps )
         DECLARE_JSON_RPC_METHOD(getHDR10ModeCaps )
         DECLARE_JSON_RPC_METHOD(getHLGModeCaps )
-        DECLARE_JSON_RPC_METHOD(getWBCaps )
         DECLARE_JSON_RPC_METHOD(getZoomModeCaps)
         DECLARE_JSON_RPC_METHOD(getLowLatencyStateCaps)
         DECLARE_JSON_RPC_METHOD(getPictureModeCaps)
@@ -146,21 +133,15 @@ class AVOutputTV : public AVOutputBase {
         DECLARE_JSON_RPC_METHOD(setSaturation )
         DECLARE_JSON_RPC_METHOD(setHue )
         DECLARE_JSON_RPC_METHOD(setColorTemperature )
-        DECLARE_JSON_RPC_METHOD(setComponentSaturation )
-        DECLARE_JSON_RPC_METHOD(setComponentHue )
-        DECLARE_JSON_RPC_METHOD(setComponentLuma )
         DECLARE_JSON_RPC_METHOD(setBacklightDimmingMode )
-        DECLARE_JSON_RPC_METHOD(setAutoBacklightControl )
         DECLARE_JSON_RPC_METHOD(setDolbyVisionMode )
         DECLARE_JSON_RPC_METHOD(setHLGMode )
         DECLARE_JSON_RPC_METHOD(setHDR10Mode )
         DECLARE_JSON_RPC_METHOD(setWBCtrl )
         DECLARE_JSON_RPC_METHOD(setPictureMode )
 	DECLARE_JSON_RPC_METHOD(signalFilmMakerMode)
-        DECLARE_JSON_RPC_METHOD(setBacklightFade )
         DECLARE_JSON_RPC_METHOD(setZoomMode)
         DECLARE_JSON_RPC_METHOD(setLowLatencyState)
-        DECLARE_JSON_RPC_METHOD(enableWBMode )
 	/*Reset API's*/
         DECLARE_JSON_RPC_METHOD(resetBacklight)
         DECLARE_JSON_RPC_METHOD(resetBrightness )
@@ -169,24 +150,17 @@ class AVOutputTV : public AVOutputBase {
         DECLARE_JSON_RPC_METHOD(resetSaturation )
         DECLARE_JSON_RPC_METHOD(resetHue )
         DECLARE_JSON_RPC_METHOD(resetColorTemperature )
-        DECLARE_JSON_RPC_METHOD(resetComponentSaturation )
-        DECLARE_JSON_RPC_METHOD(resetComponentHue )
-        DECLARE_JSON_RPC_METHOD(resetComponentLuma )
         DECLARE_JSON_RPC_METHOD(resetBacklightDimmingMode )
-        DECLARE_JSON_RPC_METHOD(resetAutoBacklightControl )
         DECLARE_JSON_RPC_METHOD(resetDolbyVisionMode )
         DECLARE_JSON_RPC_METHOD(resetHDR10Mode )
         DECLARE_JSON_RPC_METHOD(resetHLGMode )
-        DECLARE_JSON_RPC_METHOD(resetWBCtrl )
         DECLARE_JSON_RPC_METHOD(resetPictureMode )
         DECLARE_JSON_RPC_METHOD(resetZoomMode)
         DECLARE_JSON_RPC_METHOD(resetLowLatencyState)
 
     private:
         std::string getErrorString (tvError_t eReturn);
-	bool isBacklightUsingGlobalBacklightFactor(void);
 	void LocatePQSettingsFile(void);
-	int InitializeSDRHDRBacklight(void);
 	tvContentFormatType_t getContentFormatIndex(tvVideoHDRFormat_t formatToConvert);
 	void convertParamToLowerCase(std::string &source, std::string &pqmode, std::string &format);
         int convertToValidInputParameter(std::string pqparam, std::string & source, std::string & pqmode, std::string & format);
@@ -210,12 +184,8 @@ class AVOutputTV : public AVOutputBase {
                                 std::vector<std::string> &format,std::string param , std::string & isPlatformSupport,
 				std::vector<std::string> & index);
 	int getDimmingModeIndex(string mode);
-	int saveLocalDimmingLevelToDriverCache(std::string action,std::string pqmode, std::string source, std::string format,int params[] );
         void getDimmingModeStringFromEnum(int value, std::string &toStore);
 	void getColorTempStringFromEnum(int value, std::string &toStore);
-	int ReadBacklightFromTable(char *panelId);
-	int syncCMSParams(std::string pqParam,tvCMS_tunel_t tunnel_type,std::string pqmode, std::string source, std::string format);
-	tvError_t syncCMSParamsToDriverCache(std::string pqmode, std::string source, std::string format);
 	int getCurrentPictureMode(char *picMode);
 	//std::string convertSourceIndexToString(int sourceIndex);
 	//std::string convertVideoFormatToString( int formatIndex );
@@ -228,9 +198,6 @@ class AVOutputTV : public AVOutputBase {
         int getHLGModeIndex(const char * hlgMode);
         void spliltStringsAndConvertToSet( std::string pqmodeInfo,std::string formatInfo,std::string sourceInfo,std::set<string> &pqmode, std::set<string> &format, std::set<string> &source);
 	std::string getDolbyModeStringFromEnum( tvDolbyMode_t mode);
-	void SyncWBparams(void);
-        tvError_t  SyncWBFromLocalCache( );
-        tvError_t CheckWBMigration();
         JsonArray getSupportedVideoSource(void);
         int parsingSetInputArgument(const JsonObject& parameters, std::string pqparam,std::string & source, std::string & pqmode, std::string & format);
         int parsingGetInputArgument(const JsonObject& parameters, std::string pqparam,std::string & source, std::string & pqmode, std::string & format);
@@ -244,7 +211,6 @@ class AVOutputTV : public AVOutputBase {
         int getRangeCapability(std::string param, std::vector<std::string> & rangeInfo);
         int validateIntegerInputParameter(std::string param, int inputValue);
         int getPqParamIndex();
-        tvError_t InitializeBacklightMode();
 	tvError_t InitializePictureMode();
         string convertSourceIndexToString(int source);
 	string convertVideoFormatToString(int format);
