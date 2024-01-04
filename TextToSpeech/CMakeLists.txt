@@ -12,10 +12,6 @@ if(NOT WPEFRAMEWORK_SECURITYUTIL_FOUND)
     add_definitions(-DSECURITY_TOKEN_ENABLED=0)
 endif()
 
-if (NOT RDK_SERVICES_TEST)
-    add_subdirectory(test)
-endif()
-
 set_source_files_properties(
         TextToSpeechImplementation.cpp
         PROPERTIES COMPILE_FLAGS "-fexceptions")
