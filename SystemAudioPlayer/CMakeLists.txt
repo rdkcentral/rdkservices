@@ -15,10 +15,6 @@ find_package(Boost COMPONENTS system filesystem REQUIRED)
 find_package(websocketpp REQUIRED)
 find_package(OpenSSL REQUIRED)
 
-if (NOT RDK_SERVICES_TEST)
-    add_subdirectory(test)
-endif()
-
 set_source_files_properties(
     SystemAudioPlayerImplementation.cpp
     PROPERTIES COMPILE_FLAGS "-fexceptions")
