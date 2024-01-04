@@ -48,6 +48,7 @@ string PlatformCapsData::GetModel() {
       .Get(_T("model_number")).String();
 }
 
+#ifndef ENABLE_COMMUNITY_DEVICE_TYPE
 string PlatformCapsData::GetDeviceType() {
   auto hex = jsonRpc.invoke(_T("org.rdk.AuthService"),
                             _T("getDeviceInfo"), 10000)
@@ -58,6 +59,13 @@ string PlatformCapsData::GetDeviceType() {
   std::regex_search(deviceInfo, m, std::regex("deviceType=(\\w+),"));
   return (m.empty() ? string() : m[1]);
 }
+#else
+string PlatformCapsData::GetDeviceType() {
+  return jsonRpc.invoke(_T("org.rdk.System"),
+                        _T("getDeviceInfo"), 10000)
+      .Get(_T("device_type")).String();
+}
+#endif
 
 string PlatformCapsData::GetHDRCapability() {
   JsonArray hdrCaps = jsonRpc.invoke(_T("org.rdk.DisplaySettings"),

@@ -16,6 +16,9 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.7.4] - 2023-01-04
+### Fixed
+- Fix for getPlatformConfiguration api returning empty deviceType
 
 ## [2.0.0] - 2023-11-17
 ### Removed
