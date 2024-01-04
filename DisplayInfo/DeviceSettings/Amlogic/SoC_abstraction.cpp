@@ -113,7 +113,7 @@ static void getGraphicSize(uint32_t &w, uint32_t &h)
 
         /* Setup KMS */
         kms = kms_setup(drm_fd);
-        if(!kms || !kms->crtc ) {
+        if( !kms || !kms->crtc ) {
             cout << "[Amlogic] kms_setup fail" << endl;
             break;
         }
