@@ -15,7 +15,9 @@ find_package(Boost COMPONENTS system filesystem REQUIRED)
 find_package(websocketpp REQUIRED)
 find_package(OpenSSL REQUIRED)
 
-add_subdirectory(test)
+set_source_files_properties(
+    SystemAudioPlayerImplementation.cpp
+    PROPERTIES COMPILE_FLAGS "-fexceptions")
 
 add_library(${MODULE_NAME} SHARED
         Module.cpp
@@ -64,6 +66,11 @@ elseif (BUILD_BROADCOM)
     target_sources(${MODULE_NAME}
         PRIVATE
             impl/broadcom/SoC_abstraction.cpp
+    )
+elseif (RDK_SERVICES_TEST)
+    target_sources(${MODULE_NAME}
+        PRIVATE
+            test/SoC_abstraction.cpp
     )
 endif()
 
