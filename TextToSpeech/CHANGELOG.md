@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.21] - 2024-01-05
+### Added
+- Added UT and Validation Checks
+
 ## [1.0.20] - 2024-01-02
 ### Security
 - resolved security vulnerabilities
