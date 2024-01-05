@@ -28,7 +28,6 @@ FetchContent_Declare(
         URL https://github.com/google/googletest/archive/609281088cfefc76f9d0ce82e1ff6c30cc3591e5.zip
 )
 FetchContent_MakeAvailable(googletest)
-
 file(GLOB TESTS tests/*.cpp)
 add_executable(${PROJECT_NAME}
         ${TESTS}
@@ -89,6 +88,7 @@ include_directories(../LocationSync
         ../MaintenanceManager
         ../Packager
 	../TextToSpeech
+	../SystemAudioPlayer
         )
 link_directories(../LocationSync
         ../PersistentStore
@@ -127,6 +127,7 @@ link_directories(../LocationSync
         ../MaintenanceManager
         ../Packager
 	../TextToSpeech
+	../SystemAudioPlayer
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -169,6 +170,7 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}MaintenanceManager
         ${NAMESPACE}Packager
 	${NAMESPACE}TextToSpeech
+	${NAMESPACE}SystemAudioPlayer
         )
 
 target_include_directories(${PROJECT_NAME}
