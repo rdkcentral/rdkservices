@@ -62,7 +62,6 @@ protected:
         IARM_EventHandler_t interfaceConnection;
         IARM_EventHandler_t interfaceIpaddress;
         IARM_EventHandler_t defaultInterface;
-        IARM_EventHandler_t internetStateChanged;
 
         EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call_with_IPCTimeout)
             .Times(::testing::AnyNumber())
@@ -88,9 +87,6 @@ protected:
             if ((string(IARM_BUS_NM_SRV_MGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE)) {
                 defaultInterface = handler;
             }
-            if ((string(IARM_BUS_NM_SRV_MGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_NETWORK_MANAGER_EVENT_INTERNET_CONNECTION_CHANGED)) {
-                internetStateChanged = handler;
-            }
             return IARM_RESULT_SUCCESS;
         }));
 
@@ -113,6 +109,7 @@ TEST_F(NetworkTest, RegisteredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getDefaultInterface")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getIPSettings")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("isConnectedToInternet")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getInternetConnectionState")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getPublicIP")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getSTBIPFamily")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setConnectivityTestEndpoints")));
@@ -461,15 +458,33 @@ TEST_F(NetworkTest, getQuirks)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getQuirks"), _T("{}"), response));
 	EXPECT_EQ(response, string("{\"quirks\":[\"RDK-20093\"],\"success\":true}"));
 }
-/*
+
 TEST_F(NetworkTest, getInternetConnectionState)
 {
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setConnectivityTestEndpoints"), _T("{\"endpoints\": [\"http://localhost:8000\"]}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getInternetConnectionState"), _T("{\"ipversion\": \"IPV6\"}"), response));
     EXPECT_EQ(response, string("{\"state\":0,\"ipversion\":\"IPV6\",\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getInternetConnectionState"), _T("{\"ipversion\": \"IPV4\"}"), response));
+    EXPECT_EQ(response, string("{\"state\":0,\"ipversion\":\"IPV4\",\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getInternetConnectionState"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"state\":0,\"success\":true}"));
+}
+
+TEST_F(NetworkTest, getInternetConnectionState_cache)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setConnectivityTestEndpoints"), _T("{\"endpoints\": [\"http://localhost:8000\"]}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getInternetConnectionState"), _T("{\"ipversion\": \"IPV4\"}"), response));
+    EXPECT_EQ(response, string("{\"state\":0,\"ipversion\":\"IPV4\",\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getInternetConnectionState"), _T("{\"ipversion\": \"IPV4\"}"), response));
+    EXPECT_EQ(response, string("{\"state\":0,\"ipversion\":\"IPV4\",\"success\":true}"));
 }
 
 TEST_F(NetworkTest, isConnectedToInternet)
 {
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setConnectivityTestEndpoints"), _T("{\"endpoints\": [\"http://localhost:8000\"]}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("isConnectedToInternet"), _T("{\"ipversion\": \"IPV6\"}"), response));
     EXPECT_EQ(response, string("{\"connectedToInternet\":false,\"ipversion\":\"IPV6\",\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("isConnectedToInternet"), _T("{\"ipversion\": \"IPV4\"}"), response));
@@ -477,11 +492,29 @@ TEST_F(NetworkTest, isConnectedToInternet)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("isConnectedToInternet"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"connectedToInternet\":false,\"success\":true}"));
 }
-*/
+
 TEST_F(NetworkTest, stopConnectivityMonitoring)
 {
     EXPECT_NE(Core::ERROR_NONE, handler.Invoke(connection, _T("stopConnectivityMonitoring"), _T("{}"), response));
     EXPECT_NE(response, string("{\"connectedToInternet\":false,\"ipversion\":\"IPV6\",\"success\":true}"));
+}
+
+TEST_F(NetworkTest, isConnectedToInternet_cache)
+{   
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setConnectivityTestEndpoints"), _T("{\"endpoints\": [\"http://localhost:8000\"]}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("isConnectedToInternet"), _T("{\"ipversion\": \"IPV6\"}"), response));
+    EXPECT_EQ(response, string("{\"connectedToInternet\":false,\"ipversion\":\"IPV6\",\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("isConnectedToInternet"), _T("{\"ipversion\": \"IPV6\"}"), response));
+    EXPECT_EQ(response, string("{\"connectedToInternet\":false,\"ipversion\":\"IPV6\",\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("isConnectedToInternet"), _T("{\"ipversion\": \"IPV4\"}"), response));
+    EXPECT_EQ(response, string("{\"connectedToInternet\":false,\"ipversion\":\"IPV4\",\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("isConnectedToInternet"), _T("{\"ipversion\": \"IPV4\"}"), response));
+    EXPECT_EQ(response, string("{\"connectedToInternet\":false,\"ipversion\":\"IPV4\",\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("isConnectedToInternet"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"connectedToInternet\":false,\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("isConnectedToInternet"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"connectedToInternet\":false,\"success\":true}"));
 }
 
 TEST_F(NetworkTest, getCaptivePortalURI)
@@ -490,16 +523,207 @@ TEST_F(NetworkTest, getCaptivePortalURI)
     EXPECT_EQ(response, string("{\"URI\":\"\",\"success\":true}"));
 }
 /*
-TEST_F(NetworkTest, startConnectivityMonitoring)
+TEST_F(NetworkInitializedEventTest, ConnectivityMonitoring)
 {
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("startConnectivityMonitoring"), _T("{}"), response));
-    EXPECT_EQ(response, string(""));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("startConnectivityMonitoring"), _T("{\"interval\":6}"), response));
-    EXPECT_EQ(response, string(""));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setConnectivityTestEndpoints"), _T("{\"endpoints\": [\"http://localhost:8000\"]}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+
+    Core::Event onInternetStatusChange(false, true);
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, string(_T("{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.Network.onInternetStatusChange\",\"params\":{\"state\":0,\"status\":\"NO_INTERNET\"}}")));
+                onInternetStatusChange.SetEvent();
+                return Core::ERROR_NONE;
+            }));
+
+    handler.Subscribe(0, _T("onInternetStatusChange"), _T("org.rdk.Network"), message);
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startConnectivityMonitoring"), _T("{\"interval\":6}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, onInternetStatusChange.Lock());
+    handler.Unsubscribe(0, _T("onInternetStatusChange"), _T("org.rdk.Network"), message);
+    EXPECT_NE(Core::ERROR_GENERAL, handler.Invoke(connection, _T("stopConnectivityMonitoring"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
 }
 */
+
 TEST_F(NetworkTest, setConnectivityTestEndpoints)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setConnectivityTestEndpoints"), _T("{\"endpoints\": [\"http://clients3.google.com/generate_204\"]}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
+
+/*
+TEST_F(NetworkTest, setStunEndPoint)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setStunEndPoint"), _T("{}"), response));
+    //EXPECT_EQ(response, string("{\"quirks\":[\"RDK-20093\"],\"success\":true}"));
+}
+
+TEST_F(NetworkTest, configurePNI)
+{
+     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_NM_SRV_MGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_NETSRVMGR_API_configurePNI)));
+                return IARM_RESULT_SUCCESS;
+            });
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("configurePNI"), _T("{}"), response));
+}
+
+TEST_F(NetworkTest, configurePNI_fail)
+{
+     EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_NM_SRV_MGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_NETSRVMGR_API_configurePNI)));
+                return IARM_RESULT_IPCCORE_FAIL;
+            });
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("configurePNI"), _T("{}"), response));
+}
+
+TEST_F(NetworkInitializedEventTest, onInterfaceStatusChanged)
+{
+    EXPECT_CALL(iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_NM_SRV_MGR_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_NETSRVMGR_API_getInterfaceList)));
+                auto param = static_cast<IARM_BUS_NetSrvMgr_InterfaceList_t *>(arg);
+
+                                param->size = 1;
+                memcpy(&param->interfaces[0].name, "eth0", sizeof("eth0"));
+                memcpy(&param->interfaces[0].mac, "AA:AA:AA:AA:AA:AA", sizeof("AA:AA:AA:AA:AA:AA"));
+                param->interfaces[0].flags = 69699;
+
+                return IARM_RESULT_SUCCESS;
+            });
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getInterfaces"), _T("{}"), response));
+        EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"interface\":\"ETHERNET\"")));
+        EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"macAddress\":\"AA:AA:AA:AA:AA:AA\"")));
+        EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"enabled\":true")));
+        EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"connected\":true")));
+        EXPECT_THAT(response, ::testing::ContainsRegex(_T("\"success\":true")));
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, string(_T("{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.Network.onInterfaceStatusChanged\",\"params\":{\"interface\":\"ETHERNET\",\"enabled\":true}}")));
+                return Core::ERROR_NONE;
+            }));
+    IARM_BUS_NetSrvMgr_Iface_EventInterfaceEnabledStatus_t intData;
+    intData.status = 1;
+    strcpy(intData.interface,"eth0");
+    handler.Subscribe(0, _T("onInterfaceStatusChanged"), _T("org.rdk.Network"), message);
+    plugin->eventHandler("NET_SRV_MGR", IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS, static_cast<void*>(&intData), sizeof(intData));
+    handler.Unsubscribe(0, _T("onInterfaceStatusChanged"), _T("org.rdk.Network"), message);
+}
+
+TEST_F(NetworkInitializedEventTest, onConnectionStatusChanged)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setConnectivityTestEndpoints"), _T("{\"endpoints\": [\"http://localhost:8000\"]}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+    
+    Core::Event onInternetStatusChange(false, true);
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(2)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, string(_T("{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.Network.onConnectionStatusChanged\",\"params\":{\"interface\":\"ETHERNET\",\"status\":\"CONNECTED\"}}")));
+                return Core::ERROR_NONE;
+            }))
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, string(_T("{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.Network.onInternetStatusChange\",\"params\":{\"state\":0,\"status\":\"NO_INTERNET\"}}")));
+                onInternetStatusChange.SetEvent();
+            return Core::ERROR_NONE;
+        }));
+
+    IARM_BUS_NetSrvMgr_Iface_EventInterfaceConnectionStatus_t intData;
+    intData.status = 1;
+    strcpy(intData.interface,"eth0");
+    handler.Subscribe(0, _T("onConnectionStatusChanged"), _T("org.rdk.Network"), message);
+    handler.Subscribe(0, _T("onInternetStatusChange"), _T("org.rdk.Network"), message);
+    plugin->eventHandler("NET_SRV_MGR", IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS, static_cast<void*>(&intData), sizeof(intData));
+    handler.Unsubscribe(0, _T("onConnectionStatusChanged"), _T("org.rdk.Network"), message);
+    EXPECT_EQ(Core::ERROR_NONE, onInternetStatusChange.Lock());
+    handler.Unsubscribe(0, _T("onInternetStatusChange"), _T("org.rdk.Network"), message);
+    EXPECT_NE(Core::ERROR_GENERAL, handler.Invoke(connection, _T("stopConnectivityMonitoring"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+}
+
+TEST_F(NetworkInitializedEventTest, onIPAddressStatusChanged)
+{
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, string(_T("{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.Network.onIPAddressStatusChanged\",\"params\":{\"interface\":\"ETHERNET\",\"ip4Address\":\"192.168.1.10\",\"status\":\"ACQUIRED\"}}")));
+                return Core::ERROR_NONE;
+            }));
+    IARM_BUS_NetSrvMgr_Iface_EventInterfaceIPAddress_t intData;
+    intData.is_ipv6 = 0;
+    strcpy(intData.interface,"eth0");
+    intData.acquired = 1;
+    strcpy(intData.ip_address,"192.168.1.10");
+    handler.Subscribe(0, _T("onIPAddressStatusChanged"), _T("org.rdk.Network"), message);
+    plugin->eventHandler("NET_SRV_MGR", IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS, static_cast<void*>(&intData), sizeof(intData));
+    handler.Unsubscribe(0, _T("onIPAddressStatusChanged"), _T("org.rdk.Network"), message);
+}
+
+TEST_F(NetworkInitializedEventTest, onDefaultInterfaceChanged)
+{
+    Core::Event onDefaultInterfaceChanged(false, true);
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, string(_T("{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.Network.onDefaultInterfaceChanged\",\"params\":{\"oldInterfaceName\":\"\",\"newInterfaceName\":\"ETHERNET\"}}")));
+                onDefaultInterfaceChanged.SetEvent();
+                return Core::ERROR_NONE;
+            }));
+    IARM_BUS_NetSrvMgr_Iface_EventDefaultInterface_t intData;
+    strcpy(intData.newInterface,"eth0");
+    handler.Subscribe(0, _T("onDefaultInterfaceChanged"), _T("org.rdk.Network"), message);
+    plugin->eventHandler("NET_SRV_MGR", IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE, static_cast<void*>(&intData), sizeof(intData));
+    EXPECT_EQ(Core::ERROR_NONE, onDefaultInterfaceChanged.Lock());
+    handler.Unsubscribe(0, _T("onDefaultInterfaceChanged"), _T("org.rdk.Network"), message);
+}
+
+TEST_F(NetworkInitializedEventTest, onInternetStatusChange)
+{
+    Core::Event onInternetStatusChange(false, true);
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, string(_T("{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.Network.onInternetStatusChange\",\"params\":{\"state\":0,\"status\":\"NO_INTERNET\"}}")));
+                onInternetStatusChange.SetEvent();
+                return Core::ERROR_NONE;
+            }));
+    nsm_internetState  intData = NO_INTERNET;
+    handler.Subscribe(0, _T("onInternetStatusChange"), _T("org.rdk.Network"), message);
+    plugin->notifyInternetStatusChange(intData);
+    EXPECT_EQ(Core::ERROR_NONE, onInternetStatusChange.Lock());
+    handler.Unsubscribe(0, _T("onInternetStatusChange"), _T("org.rdk.Network"), message);
+}
+*/
