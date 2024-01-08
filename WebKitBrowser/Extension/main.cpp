@@ -195,6 +195,8 @@ private:
                 G_CALLBACK(didStartProvisionalLoadForFrame), nullptr);
 #endif
     }
+
+PUSH_WARNING(DISABLE_WARNING_DEPRECATED_USE)
     static void consoleMessageSentCallback(VARIABLE_IS_NOT_USED WebKitWebPage* page, WebKitConsoleMessage* message, PluginHost* host)
     {
         string messageString = Core::ToString(webkit_console_message_get_text(message));
@@ -202,6 +204,8 @@ private:
 
         TRACE_GLOBAL(BrowserConsoleLog, (host->_consoleLogPrefix, messageString, line, 0));
     }
+POP_WARNING()
+
     static gboolean userMessageReceivedCallback(WebKitWebPage* page, WebKitUserMessage* message)
     {
         const char* name = webkit_user_message_get_name(message);
