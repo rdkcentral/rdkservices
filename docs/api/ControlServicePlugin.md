@@ -2,7 +2,7 @@
 <a name="ControlService_Plugin"></a>
 # ControlService Plugin
 
-**Version: [1.0.5](https://github.com/rdkcentral/rdkservices/blob/main/ControlService/CHANGELOG.md)**
+**Version: [1.0.6](https://github.com/rdkcentral/rdkservices/blob/main/ControlService/CHANGELOG.md)**
 
 A org.rdk.ControlService plugin for Thunder framework.
 

@@ -2,7 +2,7 @@
 <a name="MediaEngineRMF_Plugin"></a>
 # MediaEngineRMF Plugin
 
-**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/MediaEngineRMF/CHANGELOG.md)**
+**Version: [1.0.1](https://github.com/rdkcentral/rdkservices/blob/main/MediaEngineRMF/CHANGELOG.md)**
 
 A org.rdk.MediaEngineRMF plugin for Thunder framework.
 
