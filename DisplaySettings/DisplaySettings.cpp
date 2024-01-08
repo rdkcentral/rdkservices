@@ -85,7 +85,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 3
-#define API_VERSION_NUMBER_PATCH 7
+#define API_VERSION_NUMBER_PATCH 8
 
 static bool isCecEnabled = false;
 static int  hdmiArcPortId = -1;
@@ -1129,11 +1129,14 @@ namespace WPEFramework {
                 if(tvResolutions & dsTV_RESOLUTION_1080i)supportedTvResolutions.emplace_back("1080i");
                 if(tvResolutions & dsTV_RESOLUTION_1080p)supportedTvResolutions.emplace_back("1080p");
 		if(tvResolutions & dsTV_RESOLUTION_1080p24)supportedTvResolutions.emplace_back("1080p24");
+		if(tvResolutions & dsTV_RESOLUTION_1080p25)supportedTvResolutions.emplace_back("1080p25");
 		if(tvResolutions & dsTV_RESOLUTION_1080i25)supportedTvResolutions.emplace_back("1080i25");
 		if(tvResolutions & dsTV_RESOLUTION_1080p30)supportedTvResolutions.emplace_back("1080p30");
 		if(tvResolutions & dsTV_RESOLUTION_1080i50)supportedTvResolutions.emplace_back("1080i50");
 		if(tvResolutions & dsTV_RESOLUTION_1080p50)supportedTvResolutions.emplace_back("1080p50");
                 if(tvResolutions & dsTV_RESOLUTION_1080p60)supportedTvResolutions.emplace_back("1080p60");
+		if(tvResolutions & dsTV_RESOLUTION_2160p24)supportedTvResolutions.emplace_back("2160p24");
+		if(tvResolutions & dsTV_RESOLUTION_2160p25)supportedTvResolutions.emplace_back("2160p25");
                 if(tvResolutions & dsTV_RESOLUTION_2160p30)supportedTvResolutions.emplace_back("2160p30");
 		if(tvResolutions & dsTV_RESOLUTION_2160p50)supportedTvResolutions.emplace_back("2160p50");
                 if(tvResolutions & dsTV_RESOLUTION_2160p60)supportedTvResolutions.emplace_back("2160p60");
