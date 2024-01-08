@@ -900,8 +900,8 @@ bool MiracastGstPlayer::createPipeline()
     MIRACASTLOG_TRACE(">>>>>>>westerossink configuration start");
     updateVideoSinkRectangle();
     
-    /* Set AV Sync Mode to IPTV(3) */
-    //g_object_set(G_OBJECT(m_video_sink), "avsync-mode", "3", nullptr);
+    /* Set immediate-output Mode to IPTV(3) */
+    //g_object_set(G_OBJECT(m_video_sink), "immediate-output", true, nullptr);
     
     g_signal_connect(m_video_sink, "first-video-frame-callback",G_CALLBACK(onFirstVideoFrameCallback), (gpointer)this);
     MIRACASTLOG_TRACE("westerossink configuration end<<<<<<<<");
@@ -922,7 +922,10 @@ bool MiracastGstPlayer::createPipeline()
     MIRACASTLOG_TRACE("Set disable-xrun as true to amlhalasink");
     g_object_set(G_OBJECT(m_audio_sink), "disable-xrun" , true, nullptr );
     MIRACASTLOG_INFO("Set avsync-mode as 2 to amlhalasink");
-    g_object_set(G_OBJECT(m_audio_sink), "avsync-mode" ,"2", nullptr );
+    g_object_set(G_OBJECT(m_audio_sink), "avsync-mode" ,2, nullptr );
+    
+    //MIRACASTLOG_INFO("Set direct-mode as False to amlhalasink");
+    //g_object_set(G_OBJECT(m_audio_sink), "direct-mode" , false, nullptr );
     MIRACASTLOG_TRACE("amlhalasink configuration end<<<<<<<<");
     /*}}}*/
 
