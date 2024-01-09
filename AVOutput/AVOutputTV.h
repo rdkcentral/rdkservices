@@ -74,172 +74,186 @@ namespace Plugin {
 //class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
 class AVOutputTV : public AVOutputBase {
     private:
-        AVOutputTV(const AVOutputTV&) = delete;
-        AVOutputTV& operator=(const AVOutputTV&) = delete;
+		AVOutputTV(const AVOutputTV&) = delete;
+		AVOutputTV& operator=(const AVOutputTV&) = delete;
     public:
-	/*Get API's*/
-	DECLARE_JSON_RPC_METHOD(getBacklight)
-        DECLARE_JSON_RPC_METHOD(getBrightness )
-        DECLARE_JSON_RPC_METHOD(getContrast )
-        DECLARE_JSON_RPC_METHOD(getSharpness )
-        DECLARE_JSON_RPC_METHOD(getSaturation )
-        DECLARE_JSON_RPC_METHOD(getHue )
-        DECLARE_JSON_RPC_METHOD(getColorTemperature )
-        DECLARE_JSON_RPC_METHOD(getBacklightDimmingMode )
-        DECLARE_JSON_RPC_METHOD(getSupportedDolbyVisionModes )
-        DECLARE_JSON_RPC_METHOD(getSupportedPictureModes )
-        DECLARE_JSON_RPC_METHOD(getVideoSourceCaps)
-        DECLARE_JSON_RPC_METHOD(getVideoFormatCaps)
-        DECLARE_JSON_RPC_METHOD(getVideoFrameRateCaps)
-        DECLARE_JSON_RPC_METHOD(getVideoResolutionCaps)
-        DECLARE_JSON_RPC_METHOD(getPictureMode )
-        DECLARE_JSON_RPC_METHOD(getVideoFormat)
-        DECLARE_JSON_RPC_METHOD(getVideoSource)
-        DECLARE_JSON_RPC_METHOD(getVideoFrameRate)
-        DECLARE_JSON_RPC_METHOD(getVideoResolution)
-	DECLARE_JSON_RPC_METHOD(getLowLatencyState)
-        DECLARE_JSON_RPC_METHOD(getDolbyVisionMode)
-        DECLARE_JSON_RPC_METHOD(getZoomMode)
-        DECLARE_JSON_RPC_METHOD(getVideoContentType)
+		/*Get API's*/
+		DECLARE_JSON_RPC_METHOD(getBacklight)
+		DECLARE_JSON_RPC_METHOD(getBrightness )
+		DECLARE_JSON_RPC_METHOD(getContrast )
+		DECLARE_JSON_RPC_METHOD(getSharpness )
+		DECLARE_JSON_RPC_METHOD(getSaturation )
+		DECLARE_JSON_RPC_METHOD(getHue )
+		DECLARE_JSON_RPC_METHOD(getColorTemperature )
+		DECLARE_JSON_RPC_METHOD(getBacklightDimmingMode )
+		DECLARE_JSON_RPC_METHOD(getSupportedDolbyVisionModes )
+		DECLARE_JSON_RPC_METHOD(getSupportedPictureModes )
+		DECLARE_JSON_RPC_METHOD(getVideoSourceCaps)
+		DECLARE_JSON_RPC_METHOD(getVideoFormatCaps)
+		DECLARE_JSON_RPC_METHOD(getVideoFrameRateCaps)
+		DECLARE_JSON_RPC_METHOD(getVideoResolutionCaps)
+		DECLARE_JSON_RPC_METHOD(getPictureMode )
+		DECLARE_JSON_RPC_METHOD(getVideoFormat)
+		DECLARE_JSON_RPC_METHOD(getVideoSource)
+		DECLARE_JSON_RPC_METHOD(getVideoFrameRate)
+		DECLARE_JSON_RPC_METHOD(getVideoResolution)
+		DECLARE_JSON_RPC_METHOD(getLowLatencyState)
+		DECLARE_JSON_RPC_METHOD(getDolbyVisionMode)
+		DECLARE_JSON_RPC_METHOD(getZoomMode)
+		DECLARE_JSON_RPC_METHOD(getVideoContentType)
 
 
-	/*Get Capability API's*/
-        DECLARE_JSON_RPC_METHOD(getBacklightCaps)
-	DECLARE_JSON_RPC_METHOD(getContrastCaps)
-	DECLARE_JSON_RPC_METHOD(getBrightnessCaps)
-	DECLARE_JSON_RPC_METHOD(getSharpnessCaps)
-	DECLARE_JSON_RPC_METHOD(getSaturationCaps)
-	DECLARE_JSON_RPC_METHOD(getHueCaps)
-	DECLARE_JSON_RPC_METHOD(getColorTemperatureCaps)
-	DECLARE_JSON_RPC_METHOD(getBacklightDimmingModeCaps )
-        DECLARE_JSON_RPC_METHOD(getDolbyVisionModeCaps )
-        DECLARE_JSON_RPC_METHOD(getZoomModeCaps)
-        DECLARE_JSON_RPC_METHOD(getLowLatencyStateCaps)
-        DECLARE_JSON_RPC_METHOD(getPictureModeCaps)
+		/*Get Capability API's*/
+		DECLARE_JSON_RPC_METHOD(getBacklightCaps)
+		DECLARE_JSON_RPC_METHOD(getContrastCaps)
+		DECLARE_JSON_RPC_METHOD(getBrightnessCaps)
+		DECLARE_JSON_RPC_METHOD(getSharpnessCaps)
+		DECLARE_JSON_RPC_METHOD(getSaturationCaps)
+		DECLARE_JSON_RPC_METHOD(getHueCaps)
+		DECLARE_JSON_RPC_METHOD(getColorTemperatureCaps)
+		DECLARE_JSON_RPC_METHOD(getBacklightDimmingModeCaps )
+		DECLARE_JSON_RPC_METHOD(getDolbyVisionModeCaps )
+		DECLARE_JSON_RPC_METHOD(getZoomModeCaps)
+		DECLARE_JSON_RPC_METHOD(getLowLatencyStateCaps)
+		DECLARE_JSON_RPC_METHOD(getPictureModeCaps)
 
-	/*Set API's*/
-        DECLARE_JSON_RPC_METHOD(setBacklight)
-        DECLARE_JSON_RPC_METHOD(setBrightness)
-        DECLARE_JSON_RPC_METHOD(setContrast )
-        DECLARE_JSON_RPC_METHOD(setSharpness )
-        DECLARE_JSON_RPC_METHOD(setSaturation )
-        DECLARE_JSON_RPC_METHOD(setHue )
-        DECLARE_JSON_RPC_METHOD(setColorTemperature )
-        DECLARE_JSON_RPC_METHOD(setBacklightDimmingMode )
-        DECLARE_JSON_RPC_METHOD(setDolbyVisionMode )
-        DECLARE_JSON_RPC_METHOD(setWBCtrl )
-        DECLARE_JSON_RPC_METHOD(setPictureMode )
-	DECLARE_JSON_RPC_METHOD(signalFilmMakerMode)
-        DECLARE_JSON_RPC_METHOD(setZoomMode)
-        DECLARE_JSON_RPC_METHOD(setLowLatencyState)
-	/*Reset API's*/
-        DECLARE_JSON_RPC_METHOD(resetBacklight)
-        DECLARE_JSON_RPC_METHOD(resetBrightness )
-        DECLARE_JSON_RPC_METHOD(resetContrast )
-        DECLARE_JSON_RPC_METHOD(resetSharpness )
-        DECLARE_JSON_RPC_METHOD(resetSaturation )
-        DECLARE_JSON_RPC_METHOD(resetHue )
-        DECLARE_JSON_RPC_METHOD(resetColorTemperature )
-        DECLARE_JSON_RPC_METHOD(resetBacklightDimmingMode )
-        DECLARE_JSON_RPC_METHOD(resetDolbyVisionMode )
-        DECLARE_JSON_RPC_METHOD(resetPictureMode )
-        DECLARE_JSON_RPC_METHOD(resetZoomMode)
-        DECLARE_JSON_RPC_METHOD(resetLowLatencyState)
+		/*Set API's*/
+		DECLARE_JSON_RPC_METHOD(setBacklight)
+		DECLARE_JSON_RPC_METHOD(setBrightness)
+		DECLARE_JSON_RPC_METHOD(setContrast )
+		DECLARE_JSON_RPC_METHOD(setSharpness )
+		DECLARE_JSON_RPC_METHOD(setSaturation )
+		DECLARE_JSON_RPC_METHOD(setHue )
+		DECLARE_JSON_RPC_METHOD(setColorTemperature )
+		DECLARE_JSON_RPC_METHOD(setBacklightDimmingMode )
+		DECLARE_JSON_RPC_METHOD(setDolbyVisionMode )
+		DECLARE_JSON_RPC_METHOD(setWBCtrl )
+		DECLARE_JSON_RPC_METHOD(setPictureMode )
+		DECLARE_JSON_RPC_METHOD(signalFilmMakerMode)
+		DECLARE_JSON_RPC_METHOD(setZoomMode)
+		DECLARE_JSON_RPC_METHOD(setLowLatencyState)
+		/*Reset API's*/
+		DECLARE_JSON_RPC_METHOD(resetBacklight)
+		DECLARE_JSON_RPC_METHOD(resetBrightness )
+		DECLARE_JSON_RPC_METHOD(resetContrast )
+		DECLARE_JSON_RPC_METHOD(resetSharpness )
+		DECLARE_JSON_RPC_METHOD(resetSaturation )
+		DECLARE_JSON_RPC_METHOD(resetHue )
+		DECLARE_JSON_RPC_METHOD(resetColorTemperature )
+		DECLARE_JSON_RPC_METHOD(resetBacklightDimmingMode )
+		DECLARE_JSON_RPC_METHOD(resetDolbyVisionMode )
+		DECLARE_JSON_RPC_METHOD(resetPictureMode )
+		DECLARE_JSON_RPC_METHOD(resetZoomMode)
+		DECLARE_JSON_RPC_METHOD(resetLowLatencyState)
 
     private:
-        std::string getErrorString (tvError_t eReturn);
-	void LocatePQSettingsFile(void);
-	tvContentFormatType_t getContentFormatIndex(tvVideoHDRFormat_t formatToConvert);
-	void convertParamToLowerCase(std::string &source, std::string &pqmode, std::string &format);
-        int convertToValidInputParameter(std::string pqparam, std::string & source, std::string & pqmode, std::string & format);
-	tvError_t updatePQParamToLocalCache(std::string forParam, int source, int pqmode, int format, int value,bool setNotDelete);
-        int updatePQParamsToCache( std::string action, std::string tr181ParamName, std::string pqmode, std::string source, std::string format, tvPQParameterIndex_t pqParamIndex, int params[] );
-        void spliltCapablities( std::vector<std::string> &range,std::vector<std::string> &pqmode,std::vector<std::string> &format,std::vector<std::string> &source, std::vector<string> &index,std::string rangeInfo, std::string pqmodeInfo, std::string formatInfo, std::string sourceInfo, std::string indexInfo);
-	bool isCapablityCheckPassed( std::string pqmodeInputInfo,std::string sourceInputInfo,std::string formatInputInfo,std::string param );
-        uint32_t generateStorageIdentifier(std::string &key, std::string forParam,int contentFormat, int pqmode, int source);
-        uint32_t generateStorageIdentifierDirty(std::string &key, std::string forParam,uint32_t contentFormat, int pqmode);
-	int getSaveConfig(std::string pqmode, std::string source, std::string format,std::vector<int> &sources,std::vector<int> &picturemodes, std::vector<int> &formats);
-	int getLocalparam(std::string forParam,int formatIndex,int pqIndex,int sourceIndex,int &value,
+
+		
+		tvContentFormatType_t getContentFormatIndex(tvVideoHDRFormat_t formatToConvert);
+		int getPictureModeIndex(std::string pqmode);
+		int getSourceIndex(std::string source);
+		int getFormatIndex(std::string format);		
+		int getPqParamIndex();
+		int getParamIndex(string source,string pqmode,string format,int& sourceIndex,int& pqmodeIndex,int& formatIndex);
+		int getHDR10ModeIndex(const char * hdr10Mode);
+		int getHLGModeIndex(const char * hlgMode);
+		int GetDolbyModeIndex(const char * dolbyMode);
+		tvDimmingMode_t getDimmingModeIndex(string mode);
+		
+		bool isIncluded(const std::set<string> set1,const std::set<string> set2);
+		bool isSetRequired(std::string pqmode,std::string source,std::string format);
+		int isPlatformSupport(std::string pqparam);
+		
+		void spliltCapablities( std::vector<std::string> &range,std::vector<std::string> &pqmode,std::vector<std::string> &format,std::vector<std::string> &source, std::vector<string> &index,std::string rangeInfo, std::string pqmodeInfo, std::string formatInfo, std::string sourceInfo, std::string indexInfo);
+		bool isCapablityCheckPassed( std::string pqmodeInputInfo,std::string sourceInputInfo,std::string formatInputInfo,std::string param );
+		int parsingSetInputArgument(const JsonObject& parameters, std::string pqparam,std::string & source, std::string & pqmode, std::string & format);
+		int parsingGetInputArgument(const JsonObject& parameters, std::string pqparam,std::string & source, std::string & pqmode, std::string & format);
+		void spliltStringsAndConvertToSet( std::string pqmodeInfo,std::string formatInfo,std::string sourceInfo,std::set<string> &pqmode, std::set<string> &format, std::set<string> &source);
+		int validateIntegerInputParameter(std::string param, int inputValue);
+		int FetchCapablities(string pqparam, string & source, string & pqmode, string & format);
+		int validateInputParameter(std::string param, std::string inputValue);
+
+
+		void LocatePQSettingsFile(void);
+		tvError_t InitializePictureMode();		
+		
+
+		std::string convertToString(std::vector<std::string> vec_strings);
+		void convertParamToLowerCase(std::string &source, std::string &pqmode, std::string &format);
+		int convertToValidInputParameter(std::string pqparam, std::string & source, std::string & pqmode, std::string & format);
+		string convertSourceIndexToString(int source);
+		string convertVideoFormatToString(int format);
+		string convertPictureIndexToString(int pqmode);
+		tvContentFormatType_t ConvertFormatStringToTVContentFormat(const char *format);
+		//std::string convertSourceIndexToString(int sourceIndex);
+		//std::string convertVideoFormatToString( int formatIndex );
+		void convertUserScaleBacklightToDriverScale(int format,int * params);
+		
+		tvError_t updatePQParamToLocalCache(std::string forParam, int source, int pqmode, int format, int value,bool setNotDelete);
+		int updatePQParamsToCache( std::string action, std::string tr181ParamName, std::string pqmode, std::string source, std::string format, tvPQParameterIndex_t pqParamIndex, int params[] );
+		tvError_t SyncPQParamsToDriverCache(std::string pqmode, std::string source, std::string format);
+		int SyncSourceFormatPicModeToCache(std::string pqmode, std::string source, std::string format);
+		
+		uint32_t generateStorageIdentifier(std::string &key, std::string forParam,int contentFormat, int pqmode, int source);
+		uint32_t generateStorageIdentifierDirty(std::string &key, std::string forParam,uint32_t contentFormat, int pqmode);
+
+		std::string getErrorString (tvError_t eReturn);
+		int getSaveConfig(std::string pqmode, std::string source, std::string format,std::vector<int> &sources,std::vector<int> &picturemodes, std::vector<int> &formats);
+		int getLocalparam(std::string forParam,int formatIndex,int pqIndex,int sourceIndex,int &value,
 		  tvPQParameterIndex_t pqParamIndex ,bool cms=false,int tunnel_type=0);
-	tvError_t SyncPQParamsToDriverCache(std::string pqmode, std::string source, std::string format);
-	int SyncSourceFormatPicModeToCache(std::string pqmode, std::string source, std::string format);
-	bool isSetRequired(std::string pqmode,std::string source,std::string format);
-	int getParamIndex(string source,string pqmode,string format,int& sourceIndex,int& pqmodeIndex,int& formatIndex);
-	tvDataComponentColor_t getComponentColorEnum(std::string colorName);
-	int getDolbyParams(tvContentFormatType_t format, std::string &s, std::string source = "");
-	tvError_t getParamsCaps(std::vector<std::string> &range, std::vector<std::string> &pqmode, std::vector<std::string> &source, std::vector<std::string> &format,std::string param );
-        tvError_t getParamsCaps(std::vector<std::string> &range, std::vector<std::string> &pqmode, std::vector<std::string> &source,
-                                std::vector<std::string> &format,std::string param , std::string & isPlatformSupport,
+		tvDataComponentColor_t getComponentColorEnum(std::string colorName);
+		int getDolbyParams(tvContentFormatType_t format, std::string &s, std::string source = "");
+		tvError_t getParamsCaps(std::vector<std::string> &range, std::vector<std::string> &pqmode, std::vector<std::string> &source, std::vector<std::string> &format,std::string param );
+		tvError_t getParamsCaps(std::vector<std::string> &range, std::vector<std::string> &pqmode, std::vector<std::string> &source,
+		                        std::vector<std::string> &format,std::string param , std::string & isPlatformSupport,
 				std::vector<std::string> & index);
-	tvDimmingMode_t getDimmingModeIndex(string mode);
-        void getDimmingModeStringFromEnum(int value, std::string &toStore);
-	void getColorTempStringFromEnum(int value, std::string &toStore);
-	int getCurrentPictureMode(char *picMode);
-	//std::string convertSourceIndexToString(int sourceIndex);
-	//std::string convertVideoFormatToString( int formatIndex );
-	bool isIncluded(const std::set<string> set1,const std::set<string> set2);
-	void convertUserScaleBacklightToDriverScale(int format,int * params);
-	int getDolbyParamToSync(int sourceIndex, int formatIndex, int& value);
-	int getHDR10ParamToSync(int& value);
-	int getHLGParamToSync( int& value);
-	int getHDR10ModeIndex(const char * hdr10Mode);
-        int getHLGModeIndex(const char * hlgMode);
-        void spliltStringsAndConvertToSet( std::string pqmodeInfo,std::string formatInfo,std::string sourceInfo,std::set<string> &pqmode, std::set<string> &format, std::set<string> &source);
-	std::string getDolbyModeStringFromEnum( tvDolbyMode_t mode);
-        JsonArray getSupportedVideoSource(void);
-        int parsingSetInputArgument(const JsonObject& parameters, std::string pqparam,std::string & source, std::string & pqmode, std::string & format);
-        int parsingGetInputArgument(const JsonObject& parameters, std::string pqparam,std::string & source, std::string & pqmode, std::string & format);
-        std::string convertToString(std::vector<std::string> vec_strings);
-        int FetchCapablities(string pqparam, string & source, string & pqmode, string & format);
-        int isPlatformSupport(std::string pqparam);
-        int getAvailableCapabilityModesWrapper(std::string param, std::string & outparam);
-	int getAvailableCapabilityModes(std::string & source, std::string & pqmode, std::string & format);
-	int getCapabilitySource(JsonArray &rangeArray);
-        int validateInputParameter(std::string param, std::string inputValue);
-        int getRangeCapability(std::string param, std::vector<std::string> & rangeInfo);
-        int validateIntegerInputParameter(std::string param, int inputValue);
-        int getPqParamIndex();
-	tvError_t InitializePictureMode();
-        string convertSourceIndexToString(int source);
-	string convertVideoFormatToString(int format);
-	string convertPictureIndexToString(int pqmode);
-        int getPictureModeIndex(std::string pqmode);
-	int getSourceIndex(std::string source);
-	int getFormatIndex(std::string format);
-        void getDynamicAutoLatencyConfig();
-	void BroadcastLowLatencyModeChangeEvent(bool lowLatencyMode);
-        int GetDolbyModeIndex(const char * dolbyMode);
+		void getDimmingModeStringFromEnum(int value, std::string &toStore);
+		void getColorTempStringFromEnum(int value, std::string &toStore);
+		int getCurrentPictureMode(char *picMode);
+		int getDolbyParamToSync(int sourceIndex, int formatIndex, int& value);
+		int getHDR10ParamToSync(int& value);
+		int getHLGParamToSync( int& value);
+		std::string getDolbyModeStringFromEnum( tvDolbyMode_t mode);
+		JsonArray getSupportedVideoSource(void);
+		int getAvailableCapabilityModesWrapper(std::string param, std::string & outparam);
+		int getAvailableCapabilityModes(std::string & source, std::string & pqmode, std::string & format);
+		int getCapabilitySource(JsonArray &rangeArray);
+		int getRangeCapability(std::string param, std::vector<std::string> & rangeInfo);
+		void getDynamicAutoLatencyConfig();
+		tvError_t getUserSelectedAspectRatio (tvDisplayMode_t* mode);
 
-    public:
-        int m_currentHdmiInResoluton;
-        int m_videoZoomMode;
-        bool m_isDisabledHdmiIn4KZoom;
-        char rfc_caller_id[RFC_BUFF_MAX];
-	bool appUsesGlobalBackLightFactor;
-	int pic_mode_index[PIC_MODES_SUPPORTED_MAX];
-        AVOutputTV();
-        ~AVOutputTV();
+		void BroadcastLowLatencyModeChangeEvent(bool lowLatencyMode);
+		tvError_t setAspectRatioZoomSettings(tvDisplayMode_t mode);
+		tvError_t setDefaultAspectRatio(std::string pqmode="all",std::string format="all",std::string source="all");
 
-        static AVOutputTV *instance;
-	static AVOutputTV* getInstance() { return instance; }
+	public:
+		int m_currentHdmiInResoluton;
+		int m_videoZoomMode;
+		bool m_isDisabledHdmiIn4KZoom;
+		char rfc_caller_id[RFC_BUFF_MAX];
+		bool appUsesGlobalBackLightFactor;
+		int pic_mode_index[PIC_MODES_SUPPORTED_MAX];
+		
+		AVOutputTV();
+		~AVOutputTV();
 
-	tvError_t setAspectRatioZoomSettings(tvDisplayMode_t mode);
-        tvError_t getUserSelectedAspectRatio (tvDisplayMode_t* mode);
-        tvError_t setDefaultAspectRatio(std::string pqmode="all",std::string format="all",std::string source="all");
-	tvContentFormatType_t ConvertFormatStringToTVContentFormat(const char *format);
+		static AVOutputTV *instance;
+		static AVOutputTV* getInstance() { return instance; }
 
-	void NotifyVideoFormatChange(tvVideoFormatType_t format);
-        void NotifyFilmMakerModeChange(tvContentType_t mode);
-        void NotifyVideoResolutionChange(tvResolutionParam_t resolution);
-        void NotifyVideoFrameRateChange(tvVideoFrameRate_t frameRate);
-	//override API
-	static void dsHdmiVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
-        static void dsHdmiStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
-        static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
-        void Initialize();
-        void Deinitialize();
-        void InitializeIARM();
-        void DeinitializeIARM();
+		void NotifyVideoFormatChange(tvVideoFormatType_t format);
+		void NotifyFilmMakerModeChange(tvContentType_t mode);
+		void NotifyVideoResolutionChange(tvResolutionParam_t resolution);
+		void NotifyVideoFrameRateChange(tvVideoFrameRate_t frameRate);
+		
+		//override API
+		static void dsHdmiVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+		static void dsHdmiStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+		static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+		
+		void Initialize();
+		void Deinitialize();
+		void InitializeIARM();
+		void DeinitializeIARM();
 };
 
 }//namespace Plugin

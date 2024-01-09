@@ -173,132 +173,6 @@ namespace Plugin {
         return strValue;
     }
 
-    int AVOutputTV::getPqParamIndex()
-    {
-        std::vector<std::string> localpq;
-        std::vector<std::string> localformat;
-        std::vector<std::string> localsource;
-        std::vector<std::string> localrange;
-        std::string platformsupport;
-        std::vector<std::string> index;
-
-        tvError_t ret = getParamsCaps(localrange, localpq, localformat, localsource,
-                                          "VideoSource", platformsupport, index);
-        if (ret == tvERROR_NONE)
-        {
-            if (localrange.size() == index.size())
-            {
-                for (unsigned int i = 0; i< localrange.size(); i++)
-                {
-                    supportedSourcemap[localrange[i]] = stoi(index[i]);
-                }
-            }
-        }
-        else
-        {
-            LOGERR("%s: Failed to fetch the source index \n", __FUNCTION__);
-            return -1;
-        }
-       
-        if (!localpq.empty()) localpq.clear();
-        if (!localformat.empty()) localformat.clear();
-        if (!localsource.empty()) localsource.clear();
-        if (!localrange.empty()) localrange.clear();
-        if(!index.empty()) index.clear();
-
-        ret = getParamsCaps(localrange, localpq, localformat, localsource,
-                                      "PictureMode", platformsupport, index);
-        if (ret == tvERROR_NONE)
-        {
-            if (localrange.size() == index.size())
-            {
-                for (unsigned int i = 0; i< localrange.size(); i++)
-                {
-                    supportedPictureModemap[localrange[i]] = stoi(index[i]);
-                }
-            }
-        }
-        else
-        {
-            LOGERR("%s: Failed to fetch the picture index \n", __FUNCTION__);
-            return -1;
-        }
-
-        if (!localpq.empty()) localpq.clear();
-        if (!localformat.empty()) localformat.clear();
-        if (!localsource.empty()) localsource.clear();
-        if (!localrange.empty()) localrange.clear();
-        if(!index.empty()) index.clear();
-
-        ret = getParamsCaps(localrange, localpq, localformat, localsource,
-                                      "VideoFormat", platformsupport, index);
-        if (ret == tvERROR_NONE)
-        {
-            if (localrange.size() == index.size())
-            {
-                for (unsigned int i = 0; i< localrange.size(); i++)
-                {
-                    supportedFormatmap[localrange[i]] = stoi(index[i]);
-                }
-            }
-        }
-        else
-        {
-            LOGERR("%s: Failed to fetch the format index \n", __FUNCTION__);
-            return -1;
-        }
-
-        return 0;
-    }
-
-    int AVOutputTV::getPictureModeIndex(std::string pqparam)
-    {
-	int index = -1;
-        std::map<std::string, int> :: iterator it;
-
-	for(it = supportedPictureModemap.begin(); it != supportedPictureModemap.end(); it++)
-	{
-	    if (it->first == pqparam)
-	    {
-	        index = it->second;
-		break;
-	    }
-	}
-	return index;
-    }
-
-    int AVOutputTV::getSourceIndex(std::string pqparam)
-    {
-	int index = -1;
-        std::map<std::string, int> :: iterator it;
-
-	for(it = supportedSourcemap.begin(); it != supportedSourcemap.end(); it++)
-        {
-            if (it->first == pqparam)
-            {
-                index = it->second;
-                break;
-            }
-        }
-        return index;
-    }
-
-    int AVOutputTV::getFormatIndex(std::string pqparam)
-    {
-        int index = -1;
-        std::map<std::string, int> :: iterator it;
-
-	for(it =  supportedFormatmap.begin(); it !=  supportedFormatmap.end(); it++)
-        {
-            if (it->first == pqparam)
-            {
-                index = it->second;
-                break;
-            }
-        }
-        return index;
-    }
-
     void AVOutputTV::NotifyVideoFormatChange(tvVideoFormatType_t format)
     {
         JsonObject response;
@@ -319,24 +193,10 @@ namespace Plugin {
             response["filmMakerModeSources"] = rangeArray;
         }
         // cache for latest fmm mode
-	filmMakerMode = fmmMode;
+		filmMakerMode = fmmMode;
         sendNotify("onVideoContentChanged", response);
     }
 
-    uint32_t AVOutputTV::getVideoContentType(const JsonObject & parameters, JsonObject & response)
-    {
-        JsonArray rangeArray;
-
-	response["currentFilmMakerMode"] = filmMakerMode;
-
-        if (getCapabilitySource(rangeArray) == 0)
-        {
-            response["currentFilmMakerModeSources"] = rangeArray;
-        }
-
-	returnResponse(true);
-    }
-	
     void AVOutputTV::NotifyVideoResolutionChange(tvResolutionParam_t resolution)
     {
         JsonObject response;
@@ -351,22 +211,76 @@ namespace Plugin {
         sendNotify("onVideoFrameRateChanged", response);
     }
 
-    std::string AVOutputTV::getErrorString (tvError_t eReturn)
+	//Event
+    void AVOutputTV::dsHdmiStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
     {
-        switch (eReturn)
-        {
-            case tvERROR_NONE:
-                return "API SUCCESS";
-            case tvERROR_GENERAL:
-                return "API FAILED";
-            case tvERROR_OPERATION_NOT_SUPPORTED:
-                return "OPERATION NOT SUPPORTED ERROR";
-            case tvERROR_INVALID_PARAM:
-                return "INVALID PARAM ERROR";
-            case tvERROR_INVALID_STATE:
-                return "INVALID STATE ERROR";
-         }
-         return "UNKNOWN ERROR";
+        if(!AVOutputTV::instance)
+	    return;
+
+	 if (IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS == eventId)
+	 {
+             IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
+             int hdmi_in_port = eventData->data.hdmi_in_status.port;
+             bool hdmi_in_status = eventData->data.hdmi_in_status.isPresented;
+             LOGWARN("AVOutputPlugins: Received IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS  event	port: %d, started: %d", hdmi_in_port,hdmi_in_status);
+	     if (!hdmi_in_status)
+	     {
+	         tvError_t ret = tvERROR_NONE;
+		 AVOutputTV::instance->m_isDisabledHdmiIn4KZoom = false;
+	         LOGWARN("AVOutputPlugins: Hdmi streaming stopped here reapply the global zoom settings:%d here. m_isDisabledHdmiIn4KZoom: %d", AVOutputTV::instance->m_videoZoomMode, AVOutputTV::instance->m_isDisabledHdmiIn4KZoom);
+		 ret = SetAspectRatio((tvDisplayMode_t)AVOutputTV::instance->m_videoZoomMode);
+		 if (ret != tvERROR_NONE) 
+	         {
+		     LOGWARN("SetAspectRatio set Failed");
+		 }
+	     }
+	     else 
+	     {
+	         AVOutputTV::instance->m_isDisabledHdmiIn4KZoom = true;
+                 LOGWARN("AVOutputPlugins: m_isDisabledHdmiIn4KZoom: %d", AVOutputTV::instance->m_isDisabledHdmiIn4KZoom);
+             }
+	 }
+    }
+	
+    void AVOutputTV::dsHdmiVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+    {
+        if(!AVOutputTV::instance)
+	    return;
+
+	if (IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE == eventId)
+	{
+	    IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
+	    int hdmi_in_port = eventData->data.hdmi_in_video_mode.port;
+	    dsVideoPortResolution_t resolution;
+	    AVOutputTV::instance->m_currentHdmiInResoluton = eventData->data.hdmi_in_video_mode.resolution.pixelResolution;
+	    resolution.pixelResolution =  eventData->data.hdmi_in_video_mode.resolution.pixelResolution;
+	    resolution.interlaced =  eventData->data.hdmi_in_video_mode.resolution.interlaced;
+	    resolution.frameRate =  eventData->data.hdmi_in_video_mode.resolution.frameRate;
+	    LOGWARN("AVOutputPlugins: Received IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE	event  port: %d, pixelResolution: %d, interlaced : %d, frameRate: %d \n", hdmi_in_port,resolution.pixelResolution, resolution.interlaced, resolution.frameRate);
+	    if (AVOutputTV::instance->m_isDisabledHdmiIn4KZoom) 
+	    {
+                tvError_t ret = tvERROR_NONE;
+		if (AVOutputTV::instance->m_currentHdmiInResoluton<dsVIDEO_PIXELRES_3840x2160 ||
+				 (dsVIDEO_PIXELRES_MAX == AVOutputTV::instance->m_currentHdmiInResoluton))
+	        {
+		    LOGWARN("AVOutputPlugins: Setting %d zoom mode for below 4K", AVOutputTV::instance->m_videoZoomMode);
+		    ret = SetAspectRatio((tvDisplayMode_t)AVOutputTV::instance->m_videoZoomMode);
+		}
+	        else 
+	        {
+		    LOGWARN("AVOutputPlugins: Setting auto zoom mode for 4K and above");
+		    ret = SetAspectRatio(tvDisplayMode_AUTO);
+	        }
+		if (ret != tvERROR_NONE) 
+	        {
+		    LOGWARN("SetAspectRatio set Failed");
+		}
+	    } 
+	    else 
+	    {
+	        LOGWARN("AVOutputPlugins: %s: HdmiInput is not started yet. m_isDisabledHdmiIn4KZoom: %d", __FUNCTION__, AVOutputTV::instance->m_isDisabledHdmiIn4KZoom);
+	    }
+        }
     }
 
     AVOutputTV::AVOutputTV(): m_currentHdmiInResoluton (dsVIDEO_PIXELRES_1920x1080)
@@ -377,74 +291,74 @@ namespace Plugin {
         LOGINFO("Entry\n");
         AVOutputTV::instance = this;
 
-	InitializeIARM();
+		InitializeIARM();
 
-        registerMethod("getBacklight", &AVOutputTV::getBacklight, this);
-        registerMethod("setBacklight", &AVOutputTV::setBacklight, this);
-        registerMethod("resetBacklight", &AVOutputTV::resetBacklight, this);
-        registerMethod("getBacklightCaps", &AVOutputTV::getBacklightCaps, this);
-        registerMethod("getBrightnessCaps", &AVOutputTV::getBrightnessCaps, this);
-        registerMethod("getBrightness", &AVOutputTV::getBrightness, this);
-        registerMethod("setBrightness", &AVOutputTV::setBrightness, this);
-        registerMethod("resetBrightness", &AVOutputTV::resetBrightness, this);
-        registerMethod("getContrast", &AVOutputTV::getContrast, this);
-        registerMethod("setContrast", &AVOutputTV::setContrast, this);
-        registerMethod("resetContrast", &AVOutputTV::resetContrast, this);
-	registerMethod("getContrastCaps", &AVOutputTV::getContrastCaps, this);
-        registerMethod("getSharpness", &AVOutputTV::getSharpness, this);
-        registerMethod("setSharpness", &AVOutputTV::setSharpness, this);
-        registerMethod("resetSharpness", &AVOutputTV::resetSharpness, this);
-	registerMethod("getSharpnessCaps", &AVOutputTV::getSharpnessCaps, this);
-        registerMethod("getSaturation", &AVOutputTV::getSaturation, this);
-        registerMethod("setSaturation", &AVOutputTV::setSaturation, this);
-        registerMethod("resetSaturation", &AVOutputTV::resetSaturation, this);
-	registerMethod("getSaturationCaps", &AVOutputTV::getSaturationCaps, this);
-        registerMethod("getHue", &AVOutputTV::getHue, this);
-        registerMethod("setHue", &AVOutputTV::setHue, this);
-        registerMethod("resetHue", &AVOutputTV::resetHue, this);
-	registerMethod("getHueCaps", &AVOutputTV::getHueCaps, this);
-        registerMethod("getColorTemperature", &AVOutputTV::getColorTemperature, this);
-        registerMethod("setColorTemperature", &AVOutputTV::setColorTemperature, this);
-        registerMethod("resetColorTemperature", &AVOutputTV::resetColorTemperature, this);
-	registerMethod("getColorTemperatureCaps", &AVOutputTV::getColorTemperatureCaps, this);
+		registerMethod("getBacklight", &AVOutputTV::getBacklight, this);
+		registerMethod("setBacklight", &AVOutputTV::setBacklight, this);
+		registerMethod("resetBacklight", &AVOutputTV::resetBacklight, this);
+		registerMethod("getBacklightCaps", &AVOutputTV::getBacklightCaps, this);
+		registerMethod("getBrightnessCaps", &AVOutputTV::getBrightnessCaps, this);
+		registerMethod("getBrightness", &AVOutputTV::getBrightness, this);
+		registerMethod("setBrightness", &AVOutputTV::setBrightness, this);
+		registerMethod("resetBrightness", &AVOutputTV::resetBrightness, this);
+		registerMethod("getContrast", &AVOutputTV::getContrast, this);
+		registerMethod("setContrast", &AVOutputTV::setContrast, this);
+		registerMethod("resetContrast", &AVOutputTV::resetContrast, this);
+		registerMethod("getContrastCaps", &AVOutputTV::getContrastCaps, this);
+		registerMethod("getSharpness", &AVOutputTV::getSharpness, this);
+		registerMethod("setSharpness", &AVOutputTV::setSharpness, this);
+		registerMethod("resetSharpness", &AVOutputTV::resetSharpness, this);
+		registerMethod("getSharpnessCaps", &AVOutputTV::getSharpnessCaps, this);
+		registerMethod("getSaturation", &AVOutputTV::getSaturation, this);
+		registerMethod("setSaturation", &AVOutputTV::setSaturation, this);
+		registerMethod("resetSaturation", &AVOutputTV::resetSaturation, this);
+		registerMethod("getSaturationCaps", &AVOutputTV::getSaturationCaps, this);
+		registerMethod("getHue", &AVOutputTV::getHue, this);
+		registerMethod("setHue", &AVOutputTV::setHue, this);
+		registerMethod("resetHue", &AVOutputTV::resetHue, this);
+		registerMethod("getHueCaps", &AVOutputTV::getHueCaps, this);
+		registerMethod("getColorTemperature", &AVOutputTV::getColorTemperature, this);
+		registerMethod("setColorTemperature", &AVOutputTV::setColorTemperature, this);
+		registerMethod("resetColorTemperature", &AVOutputTV::resetColorTemperature, this);
+		registerMethod("getColorTemperatureCaps", &AVOutputTV::getColorTemperatureCaps, this);
 
-        registerMethod("getBacklightDimmingMode", &AVOutputTV::getBacklightDimmingMode, this);
-        registerMethod("setBacklightDimmingMode", &AVOutputTV::setBacklightDimmingMode, this);
-        registerMethod("resetBacklightDimmingMode", &AVOutputTV::resetBacklightDimmingMode, this);
-        registerMethod("getBacklightDimmingModeCaps", &AVOutputTV::getBacklightDimmingModeCaps, this);
+		registerMethod("getBacklightDimmingMode", &AVOutputTV::getBacklightDimmingMode, this);
+		registerMethod("setBacklightDimmingMode", &AVOutputTV::setBacklightDimmingMode, this);
+		registerMethod("resetBacklightDimmingMode", &AVOutputTV::resetBacklightDimmingMode, this);
+		registerMethod("getBacklightDimmingModeCaps", &AVOutputTV::getBacklightDimmingModeCaps, this);
 
-        registerMethod("getSupportedDolbyVisionModes", &AVOutputTV::getSupportedDolbyVisionModes, this);
-        registerMethod("getDolbyVisionMode", &AVOutputTV::getDolbyVisionMode, this);
-        registerMethod("setDolbyVisionMode", &AVOutputTV::setDolbyVisionMode, this);
-        registerMethod("resetDolbyVisionMode", &AVOutputTV::resetDolbyVisionMode, this);
-        registerMethod("getDolbyVisionModeCaps", &AVOutputTV::getDolbyVisionModeCaps, this);
-	registerMethod("getVideoFormat", &AVOutputTV::getVideoFormat, this);
-	registerMethod("getVideoSource", &AVOutputTV::getVideoSource, this);
-	registerMethod("getVideoFrameRate", &AVOutputTV::getVideoFrameRate, this);
-	registerMethod("getVideoResolution", &AVOutputTV::getVideoResolution, this);
-	registerMethod("getVideoContentType", &AVOutputTV::getVideoContentType, this);
-	
-	registerMethod("getZoomMode", &AVOutputTV::getZoomMode, this);
-        registerMethod("setZoomMode", &AVOutputTV::setZoomMode, this);
-        registerMethod("resetZoomMode", &AVOutputTV::resetZoomMode, this);
-        registerMethod("getZoomModeCaps", &AVOutputTV::getZoomModeCaps, this);
+		registerMethod("getSupportedDolbyVisionModes", &AVOutputTV::getSupportedDolbyVisionModes, this);
+		registerMethod("getDolbyVisionMode", &AVOutputTV::getDolbyVisionMode, this);
+		registerMethod("setDolbyVisionMode", &AVOutputTV::setDolbyVisionMode, this);
+		registerMethod("resetDolbyVisionMode", &AVOutputTV::resetDolbyVisionMode, this);
+		registerMethod("getDolbyVisionModeCaps", &AVOutputTV::getDolbyVisionModeCaps, this);
+		registerMethod("getVideoFormat", &AVOutputTV::getVideoFormat, this);
+		registerMethod("getVideoSource", &AVOutputTV::getVideoSource, this);
+		registerMethod("getVideoFrameRate", &AVOutputTV::getVideoFrameRate, this);
+		registerMethod("getVideoResolution", &AVOutputTV::getVideoResolution, this);
+		registerMethod("getVideoContentType", &AVOutputTV::getVideoContentType, this);
+
+		registerMethod("getZoomMode", &AVOutputTV::getZoomMode, this);
+		registerMethod("setZoomMode", &AVOutputTV::setZoomMode, this);
+		registerMethod("resetZoomMode", &AVOutputTV::resetZoomMode, this);
+		registerMethod("getZoomModeCaps", &AVOutputTV::getZoomModeCaps, this);
 
 
-	registerMethod("getPictureMode", &AVOutputTV::getPictureMode, this);
-        registerMethod("setPictureMode", &AVOutputTV::setPictureMode, this);
-	registerMethod("signalFilmMakerMode", &AVOutputTV::signalFilmMakerMode, this);
-	registerMethod("resetPictureMode", &AVOutputTV::resetPictureMode, this);
-	registerMethod("getPictureModeCaps", &AVOutputTV::getPictureModeCaps, this);
-        registerMethod("getSupportedPictureModes", &AVOutputTV::getSupportedPictureModes, this);
-        registerMethod("getVideoSourceCaps", &AVOutputTV::getVideoSourceCaps, this);
-        registerMethod("getVideoFormatCaps", &AVOutputTV::getVideoFormatCaps, this);
-        registerMethod("getVideoFrameRateCaps", &AVOutputTV::getVideoFrameRateCaps, this);
-        registerMethod("getVideoResolutionCaps", &AVOutputTV::getVideoResolutionCaps, this);
+		registerMethod("getPictureMode", &AVOutputTV::getPictureMode, this);
+		registerMethod("setPictureMode", &AVOutputTV::setPictureMode, this);
+		registerMethod("signalFilmMakerMode", &AVOutputTV::signalFilmMakerMode, this);
+		registerMethod("resetPictureMode", &AVOutputTV::resetPictureMode, this);
+		registerMethod("getPictureModeCaps", &AVOutputTV::getPictureModeCaps, this);
+		registerMethod("getSupportedPictureModes", &AVOutputTV::getSupportedPictureModes, this);
+		registerMethod("getVideoSourceCaps", &AVOutputTV::getVideoSourceCaps, this);
+		registerMethod("getVideoFormatCaps", &AVOutputTV::getVideoFormatCaps, this);
+		registerMethod("getVideoFrameRateCaps", &AVOutputTV::getVideoFrameRateCaps, this);
+		registerMethod("getVideoResolutionCaps", &AVOutputTV::getVideoResolutionCaps, this);
 
-	registerMethod("getLowLatencyState", &AVOutputTV::getLowLatencyState, this);
-        registerMethod("setLowLatencyState", &AVOutputTV::setLowLatencyState, this);
-        registerMethod("resetLowLatencyState", &AVOutputTV::resetLowLatencyState, this);
-        registerMethod("getLowLatencyStateCaps", &AVOutputTV::getLowLatencyStateCaps, this);
+		registerMethod("getLowLatencyState", &AVOutputTV::getLowLatencyState, this);
+		registerMethod("setLowLatencyState", &AVOutputTV::setLowLatencyState, this);
+		registerMethod("resetLowLatencyState", &AVOutputTV::resetLowLatencyState, this);
+		registerMethod("getLowLatencyStateCaps", &AVOutputTV::getLowLatencyStateCaps, this);
 
         LOGINFO("Exit\n");
     }
@@ -453,20 +367,6 @@ namespace Plugin {
     {
         LOGINFO();
         DeinitializeIARM();	
-    }
-
-    void AVOutputTV::getDynamicAutoLatencyConfig()
-    {
-        RFC_ParamData_t param = {0};
-        WDMP_STATUS status = getRFCParameter(AVOUTPUT_RFC_CALLERID, AVOUTPUT_DALS_RFC_PARAM, &param);
-        LOGINFO("RFC value for DALS - %s", param.value);
-        if(WDMP_SUCCESS == status && param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0)) {
-         m_isDalsEnabled = true;
-         LOGINFO("Value of m_isDalsEnabled is %d", m_isDalsEnabled);
-        }
-        else {
-         LOGINFO("Failed to fetch RFC or DALS is disabled");
-        }
     }
 
     void AVOutputTV::Initialize()
@@ -545,48 +445,6 @@ namespace Plugin {
         LOGINFO("Exit\n" );
     }
 
-    tvError_t AVOutputTV::InitializePictureMode()
-    {
-        tvError_t ret = tvERROR_NONE;
-	TR181_ParamData_t param;
-        int current_source = 0;
-        std::string tr181_param_name = "";
-	tvVideoFormatType_t current_format = VIDEO_FORMAT_NONE;
-
-        GetCurrentVideoFormat(&current_format);
-	if ( current_format  == VIDEO_FORMAT_NONE) current_format  = VIDEO_FORMAT_SDR;
-        // get current source
-        GetCurrentSource(&current_source);
-
-       tr181_param_name += std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
-       tr181_param_name += "."+convertSourceIndexToString(current_source)+"."+"Format."+convertVideoFormatToString(current_format)+"."+"PictureModeString";
-
-       tr181ErrorCode_t err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
-       if ( tr181Success == err )
-       {
-	   std::string local = param.value;
-           transform(local.begin(), local.end(), local.begin(), ::tolower);
-           ret = SetTVPictureMode(local.c_str());
-
-           if(ret != tvERROR_NONE) 
-	   {
-               LOGWARN("Picture Mode set failed: %s\n",getErrorString(ret).c_str());
-           }
-           else 
-	   {
-               LOGINFO("Picture Mode initialized successfully, tr181 value [%s] value: %s\n", tr181_param_name.c_str(),
-			param.value);
-           }
-       }
-       else
-       {
-           ret = tvERROR_GENERAL;
-           LOGWARN("getLocalParam for %s Failed : %s\n", tr181_param_name.c_str(), getTR181ErrorString(err));
-       }
-
-       return ret;
-    }
-
     void AVOutputTV::Deinitialize()
     {
        LOGINFO("Entry\n");
@@ -606,78 +464,6 @@ namespace Plugin {
        LOGINFO("Exit\n");
     }
 
-    //Event
-    void AVOutputTV::dsHdmiStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
-    {
-        if(!AVOutputTV::instance)
-            return;
-
-        if (IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS == eventId)
-        {
-            IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
-            int hdmi_in_port = eventData->data.hdmi_in_status.port;
-            bool hdmi_in_status = eventData->data.hdmi_in_status.isPresented;
-            LOGWARN("AVOutputPlugins: Received IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS  event  port: %d, started: %d", hdmi_in_port,hdmi_in_status);
-            if (!hdmi_in_status)
-	    {
-                tvError_t ret = tvERROR_NONE;
-                AVOutputTV::instance->m_isDisabledHdmiIn4KZoom = false;
-                LOGWARN("AVOutputPlugins: Hdmi streaming stopped here reapply the global zoom settings:%d here. m_isDisabledHdmiIn4KZoom: %d", AVOutputTV::instance->m_videoZoomMode, AVOutputTV::instance->m_isDisabledHdmiIn4KZoom);
-                ret = SetAspectRatio((tvDisplayMode_t)AVOutputTV::instance->m_videoZoomMode);
-                if (ret != tvERROR_NONE) 
-		{
-                    LOGWARN("SetAspectRatio set Failed");
-                }
-            }
-	    else 
-	    {
-                AVOutputTV::instance->m_isDisabledHdmiIn4KZoom = true;
-                LOGWARN("AVOutputPlugins: m_isDisabledHdmiIn4KZoom: %d", AVOutputTV::instance->m_isDisabledHdmiIn4KZoom);
-            }
-        }
-    }
-
-    void AVOutputTV::dsHdmiVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
-    {
-        if(!AVOutputTV::instance)
-            return;
-
-        if (IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE == eventId)
-        {
-            IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
-            int hdmi_in_port = eventData->data.hdmi_in_video_mode.port;
-            dsVideoPortResolution_t resolution;
-            AVOutputTV::instance->m_currentHdmiInResoluton = eventData->data.hdmi_in_video_mode.resolution.pixelResolution;
-            resolution.pixelResolution =  eventData->data.hdmi_in_video_mode.resolution.pixelResolution;
-            resolution.interlaced =  eventData->data.hdmi_in_video_mode.resolution.interlaced;
-            resolution.frameRate =  eventData->data.hdmi_in_video_mode.resolution.frameRate;
-            LOGWARN("AVOutputPlugins: Received IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE  event  port: %d, pixelResolution: %d, interlaced : %d, frameRate: %d \n", hdmi_in_port,resolution.pixelResolution, resolution.interlaced, resolution.frameRate);
-            if (AVOutputTV::instance->m_isDisabledHdmiIn4KZoom) 
-	    {
-                tvError_t ret = tvERROR_NONE;
-                if (AVOutputTV::instance->m_currentHdmiInResoluton<dsVIDEO_PIXELRES_3840x2160 ||
-                    (dsVIDEO_PIXELRES_MAX == AVOutputTV::instance->m_currentHdmiInResoluton))
-		{
-                    LOGWARN("AVOutputPlugins: Setting %d zoom mode for below 4K", AVOutputTV::instance->m_videoZoomMode);
-                    ret = SetAspectRatio((tvDisplayMode_t)AVOutputTV::instance->m_videoZoomMode);
-                }
-		else 
-		{
-                    LOGWARN("AVOutputPlugins: Setting auto zoom mode for 4K and above");
-                    ret = SetAspectRatio(tvDisplayMode_AUTO);
-                }
-                if (ret != tvERROR_NONE) 
-		{
-                    LOGWARN("SetAspectRatio set Failed");
-                }
-            } 
-	    else 
-	    {
-                LOGWARN("AVOutputPlugins: %s: HdmiInput is not started yet. m_isDisabledHdmiIn4KZoom: %d", __FUNCTION__, AVOutputTV::instance->m_isDisabledHdmiIn4KZoom);
-            }
-        }
-    }
-    
     uint32_t AVOutputTV::getZoomModeCaps(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
@@ -880,56 +666,6 @@ namespace Plugin {
             }
             returnResponse(true);
         }
-    }
-
-    tvError_t AVOutputTV::setAspectRatioZoomSettings(tvDisplayMode_t mode)
-    {
-        tvError_t ret = tvERROR_GENERAL;
-        LOGERR("%s: mode selected is: %d", __FUNCTION__, m_videoZoomMode);
-#if !defined (HDMIIN_4K_ZOOM)
-        if (AVOutputTV::instance->m_isDisabledHdmiIn4KZoom) 
-	{
-            if (AVOutputTV::instance->m_currentHdmiInResoluton<dsVIDEO_PIXELRES_3840x2160 ||
-                (dsVIDEO_PIXELRES_MAX == m_currentHdmiInResoluton))
-	    {
-                LOGWARN("%s: Setting %d zoom mode for below 4K", __FUNCTION__, m_videoZoomMode);
-#endif
-                ret = SetAspectRatio(mode);
-#if !defined (HDMIIN_4K_ZOOM)
-            }
-	    else 
-	    {
-                LOGWARN("%s: Setting auto zoom mode for 4K and above", __FUNCTION__);
-                ret = SetAspectRatio(tvDisplayMode_AUTO);
-            }
-        } 
-	else 
-	{
-            LOGWARN("%s: HdmiInput is not started yet. m_isDisabledHdmiIn4KZoom: %d", __FUNCTION__, AVOutputTV::instance->m_isDisabledHdmiIn4KZoom);
-            ret = SetAspectRatio((tvDisplayMode_t)m_videoZoomMode);
-        }
-#endif
-        return ret;
-    }
-
-    tvError_t AVOutputTV::getUserSelectedAspectRatio (tvDisplayMode_t* mode)
-    {
-        tvError_t ret = tvERROR_GENERAL;
-#if !defined (HDMIIN_4K_ZOOM)
-        LOGERR("%s:mode selected is: %d", __FUNCTION__, m_videoZoomMode);
-        if (AVOutputTV::instance->m_isDisabledHdmiIn4KZoom) 
-	{
-            if (!(AVOutputTV::instance->m_currentHdmiInResoluton<dsVIDEO_PIXELRES_3840x2160 ||
-               (dsVIDEO_PIXELRES_MAX == AVOutputTV::instance->m_currentHdmiInResoluton)))
-	    {
-                *mode = (tvDisplayMode_t)AVOutputTV::instance->m_videoZoomMode;
-                LOGWARN("%s: Getting zoom mode %d for display, for 4K and above", __FUNCTION__, *mode);
-                return tvERROR_NONE;
-            }
-        }
-#endif
-        ret = GetAspectRatio(mode);
-        return ret;
     }
 
     uint32_t AVOutputTV::resetZoomMode(const JsonObject& parameters, JsonObject& response)
@@ -3302,22 +3038,6 @@ namespace Plugin {
             returnResponse(true);
     }
 
-    tvContentFormatType_t AVOutputTV::ConvertFormatStringToTVContentFormat(const char *format)
-    {
-        tvContentFormatType_t ret = tvContentFormatType_SDR;
-
-        if( strncmp(format,"sdr",strlen(format)) == 0 || strncmp(format,"SDR",strlen(format)) == 0 )
-            ret = tvContentFormatType_SDR;
-        else if( strncmp(format,"hdr10",strlen(format)) == 0 || strncmp(format,"HDR10",strlen(format))==0 )
-            ret = tvContentFormatType_HDR10;
-        else if( strncmp(format,"hlg",strlen(format)) == 0 || strncmp(format,"HLG",strlen(format)) == 0 )
-            ret = tvContentFormatType_HLG;
-        else if( strncmp(format,"dolby",strlen(format)) == 0 || strncmp(format,"DOLBY",strlen(format)) == 0 )
-            ret=tvContentFormatType_DOVI;
-
-        return ret;
-    }
-    
     uint32_t AVOutputTV::getPictureModeCaps(const JsonObject& parameters, JsonObject& response) 
     {
 
@@ -3412,77 +3132,6 @@ namespace Plugin {
             LOGINFO("Exit : getPictureMode() : %s\n",s.c_str());
             returnResponse(true);
         }
-    }
-
-    int AVOutputTV::validateInputParameter(std::string param, std::string inputValue) 
-    {
-
-        std::vector<std::string> range;
-        std::vector<std::string> pqmode;
-        std::vector<std::string> source;
-        std::vector<std::string> format;
-
-        tvError_t ret = getParamsCaps(range, pqmode, source, format, param);
-
-        if (ret != tvERROR_NONE) 
-	{
-            LOGERR("Failed to fetch the range capability[%s] \n", param.c_str());
-            return -1;
-        }
-
-        if ( (param == "ColorTemperature") ||
-             (param == "DimmingMode") || (param == "AutoBacklightControl") ||
-             (param == "DolbyVisionMode") || (param == "HDR10Mode") ||
-            (param == "HLGMode") || (param == "AspectRatio") || (param == "PictureMode") )
-        {
-	    auto iter = find(range.begin(), range.end(), inputValue);
-
-            if (iter == range.end()) 
-	    {
-		LOGERR("Not a valid input value[%s].\n", inputValue.c_str());
-                return -1;
-            }
-        }
-        return 0;
-    }
-
-    int AVOutputTV::validateIntegerInputParameter(std::string param, int inputValue) 
-    {
-
-        std::vector<std::string> range;
-        std::vector<std::string> pqmode;
-        std::vector<std::string> source;
-        std::vector<std::string> format;
-
-        tvError_t ret = getParamsCaps(range, pqmode, source, format, param);
-
-        if (ret != tvERROR_NONE) 
-	{
-            LOGERR("Failed to fetch the range capability[%s] \n", param.c_str());
-            return -1;
-        }
-
-        if ( (param == "Brightness") || (param == "Contrast") ||
-             (param == "Sharpness") || (param == "Saturation") ||
-             (param == "Hue") || (param == "WhiteBalance") ||
-            (param == "ComponentSaturation") || (param == "Backlight") ||
-            (param == "ComponentHue") || (param == "ComponentLuma") || (param == "LowLatencyState") )
-        {
-            if (inputValue < stoi(range[0]) || inputValue > stoi(range[1]))
-            {
-                LOGERR("wrong Input value[%d]", inputValue);
-                return -1;
-            }
-        }
-        return 0;
-    }
-
-    void AVOutputTV::BroadcastLowLatencyModeChangeEvent(bool lowLatencyMode)
-    {
-           LOGINFO("Entry:%d\n",lowLatencyMode);
-     	   JsonObject response;
-    	   response["lowLatencyMode"] = lowLatencyMode;
-      	   sendNotify("gameModeEvent", response);
     }
 
     uint32_t AVOutputTV::setPictureMode(const JsonObject& parameters, JsonObject& response)
@@ -3925,7 +3574,23 @@ namespace Plugin {
             returnResponse(true);
         }
     }
- 
+
+
+	uint32_t AVOutputTV::getVideoContentType(const JsonObject & parameters, JsonObject & response)
+    {
+        JsonArray rangeArray;
+
+		response["currentFilmMakerMode"] = filmMakerMode;
+
+        if (getCapabilitySource(rangeArray) == 0)
+        {
+            response["currentFilmMakerModeSources"] = rangeArray;
+        }
+
+		returnResponse(true);
+    }
+
+	/*********************************************************************************************************/
 //Helper Function
 
     void AVOutputTV::LocatePQSettingsFile()
@@ -5338,30 +5003,368 @@ namespace Plugin {
         return 0;
     }
 
-    void AVOutputTV::InitializeIARM()
+	tvContentFormatType_t AVOutputTV::ConvertFormatStringToTVContentFormat(const char *format)
     {
-        AVOutputBase::InitializeIARM();
-#if !defined (HDMIIN_4K_ZOOM)
-        if (IARMinit())
-        {
-            IARM_Result_t res;
-            IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS, dsHdmiStatusEventHandler) );
-            IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE, dsHdmiVideoModeEventHandler) );
-        }
-#endif
+        tvContentFormatType_t ret = tvContentFormatType_SDR;
+
+        if( strncmp(format,"sdr",strlen(format)) == 0 || strncmp(format,"SDR",strlen(format)) == 0 )
+            ret = tvContentFormatType_SDR;
+        else if( strncmp(format,"hdr10",strlen(format)) == 0 || strncmp(format,"HDR10",strlen(format))==0 )
+            ret = tvContentFormatType_HDR10;
+        else if( strncmp(format,"hlg",strlen(format)) == 0 || strncmp(format,"HLG",strlen(format)) == 0 )
+            ret = tvContentFormatType_HLG;
+        else if( strncmp(format,"dolby",strlen(format)) == 0 || strncmp(format,"DOLBY",strlen(format)) == 0 )
+            ret=tvContentFormatType_DOVI;
+
+        return ret;
     }
 
-    void AVOutputTV::DeinitializeIARM()
+	    int AVOutputTV::validateInputParameter(std::string param, std::string inputValue) 
     {
-        AVOutputBase::DeinitializeIARM();
-#if !defined (HDMIIN_4K_ZOOM)
-        if (isIARMConnected())
+
+        std::vector<std::string> range;
+        std::vector<std::string> pqmode;
+        std::vector<std::string> source;
+        std::vector<std::string> format;
+
+        tvError_t ret = getParamsCaps(range, pqmode, source, format, param);
+
+        if (ret != tvERROR_NONE) 
+	{
+            LOGERR("Failed to fetch the range capability[%s] \n", param.c_str());
+            return -1;
+        }
+
+        if ( (param == "ColorTemperature") ||
+             (param == "DimmingMode") || (param == "AutoBacklightControl") ||
+             (param == "DolbyVisionMode") || (param == "HDR10Mode") ||
+            (param == "HLGMode") || (param == "AspectRatio") || (param == "PictureMode") )
         {
-            IARM_Result_t res;
-            IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS, dsHdmiStatusEventHandler) );
-            IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE, dsHdmiVideoModeEventHandler) );
+	    auto iter = find(range.begin(), range.end(), inputValue);
+
+            if (iter == range.end()) 
+	    {
+		LOGERR("Not a valid input value[%s].\n", inputValue.c_str());
+                return -1;
+            }
+        }
+        return 0;
+    }
+
+    int AVOutputTV::validateIntegerInputParameter(std::string param, int inputValue) 
+    {
+
+        std::vector<std::string> range;
+        std::vector<std::string> pqmode;
+        std::vector<std::string> source;
+        std::vector<std::string> format;
+
+        tvError_t ret = getParamsCaps(range, pqmode, source, format, param);
+
+        if (ret != tvERROR_NONE) 
+	{
+            LOGERR("Failed to fetch the range capability[%s] \n", param.c_str());
+            return -1;
+        }
+
+        if ( (param == "Brightness") || (param == "Contrast") ||
+             (param == "Sharpness") || (param == "Saturation") ||
+             (param == "Hue") || (param == "WhiteBalance") ||
+            (param == "ComponentSaturation") || (param == "Backlight") ||
+            (param == "ComponentHue") || (param == "ComponentLuma") || (param == "LowLatencyState") )
+        {
+            if (inputValue < stoi(range[0]) || inputValue > stoi(range[1]))
+            {
+                LOGERR("wrong Input value[%d]", inputValue);
+                return -1;
+            }
+        }
+        return 0;
+    }
+
+    void AVOutputTV::BroadcastLowLatencyModeChangeEvent(bool lowLatencyMode)
+    {
+           LOGINFO("Entry:%d\n",lowLatencyMode);
+     	   JsonObject response;
+    	   response["lowLatencyMode"] = lowLatencyMode;
+      	   sendNotify("gameModeEvent", response);
+    }
+
+	int AVOutputTV::getPqParamIndex()
+    {
+        std::vector<std::string> localpq;
+        std::vector<std::string> localformat;
+        std::vector<std::string> localsource;
+        std::vector<std::string> localrange;
+        std::string platformsupport;
+        std::vector<std::string> index;
+
+        tvError_t ret = getParamsCaps(localrange, localpq, localformat, localsource,
+                                          "VideoSource", platformsupport, index);
+        if (ret == tvERROR_NONE)
+        {
+            if (localrange.size() == index.size())
+            {
+                for (unsigned int i = 0; i< localrange.size(); i++)
+                {
+                    supportedSourcemap[localrange[i]] = stoi(index[i]);
+                }
+            }
+        }
+        else
+        {
+            LOGERR("%s: Failed to fetch the source index \n", __FUNCTION__);
+            return -1;
+        }
+       
+        if (!localpq.empty()) localpq.clear();
+        if (!localformat.empty()) localformat.clear();
+        if (!localsource.empty()) localsource.clear();
+        if (!localrange.empty()) localrange.clear();
+        if(!index.empty()) index.clear();
+
+        ret = getParamsCaps(localrange, localpq, localformat, localsource,
+                                      "PictureMode", platformsupport, index);
+        if (ret == tvERROR_NONE)
+        {
+            if (localrange.size() == index.size())
+            {
+                for (unsigned int i = 0; i< localrange.size(); i++)
+                {
+                    supportedPictureModemap[localrange[i]] = stoi(index[i]);
+                }
+            }
+        }
+        else
+        {
+            LOGERR("%s: Failed to fetch the picture index \n", __FUNCTION__);
+            return -1;
+        }
+
+        if (!localpq.empty()) localpq.clear();
+        if (!localformat.empty()) localformat.clear();
+        if (!localsource.empty()) localsource.clear();
+        if (!localrange.empty()) localrange.clear();
+        if(!index.empty()) index.clear();
+
+        ret = getParamsCaps(localrange, localpq, localformat, localsource,
+                                      "VideoFormat", platformsupport, index);
+        if (ret == tvERROR_NONE)
+        {
+            if (localrange.size() == index.size())
+            {
+                for (unsigned int i = 0; i< localrange.size(); i++)
+                {
+                    supportedFormatmap[localrange[i]] = stoi(index[i]);
+                }
+            }
+        }
+        else
+        {
+            LOGERR("%s: Failed to fetch the format index \n", __FUNCTION__);
+            return -1;
+        }
+
+        return 0;
+    }
+
+    int AVOutputTV::getPictureModeIndex(std::string pqparam)
+    {
+	int index = -1;
+        std::map<std::string, int> :: iterator it;
+
+		for(it = supportedPictureModemap.begin(); it != supportedPictureModemap.end(); it++)
+		{
+		    if (it->first == pqparam)
+		    {
+		        index = it->second;
+			break;
+		    }
+		}
+		return index;
+    }
+
+    int AVOutputTV::getSourceIndex(std::string pqparam)
+    {
+		int index = -1;
+        std::map<std::string, int> :: iterator it;
+
+		for(it = supportedSourcemap.begin(); it != supportedSourcemap.end(); it++)
+        {
+            if (it->first == pqparam)
+            {
+                index = it->second;
+                break;
+            }
+        }
+        return index;
+    }
+
+    int AVOutputTV::getFormatIndex(std::string pqparam)
+    {
+        int index = -1;
+        std::map<std::string, int> :: iterator it;
+
+		for(it =  supportedFormatmap.begin(); it !=  supportedFormatmap.end(); it++)
+        {
+            if (it->first == pqparam)
+            {
+                index = it->second;
+                break;
+            }
+        }
+        return index;
+    }
+
+	std::string AVOutputTV::getErrorString (tvError_t eReturn)
+    {
+        switch (eReturn)
+        {
+            case tvERROR_NONE:
+                return "API SUCCESS";
+            case tvERROR_GENERAL:
+                return "API FAILED";
+            case tvERROR_OPERATION_NOT_SUPPORTED:
+                return "OPERATION NOT SUPPORTED ERROR";
+            case tvERROR_INVALID_PARAM:
+                return "INVALID PARAM ERROR";
+            case tvERROR_INVALID_STATE:
+                return "INVALID STATE ERROR";
+         }
+         return "UNKNOWN ERROR";
+    }
+
+	void AVOutputTV::getDynamicAutoLatencyConfig()
+    {
+        RFC_ParamData_t param = {0};
+        WDMP_STATUS status = getRFCParameter(AVOUTPUT_RFC_CALLERID, AVOUTPUT_DALS_RFC_PARAM, &param);
+        LOGINFO("RFC value for DALS - %s", param.value);
+        if(WDMP_SUCCESS == status && param.type == WDMP_BOOLEAN && (strncasecmp(param.value,"true",4) == 0)) {
+         m_isDalsEnabled = true;
+         LOGINFO("Value of m_isDalsEnabled is %d", m_isDalsEnabled);
+        }
+        else {
+         LOGINFO("Failed to fetch RFC or DALS is disabled");
+        }
+    }
+
+
+	void AVOutputTV::InitializeIARM()
+	{
+		AVOutputBase::InitializeIARM();
+#if !defined (HDMIIN_4K_ZOOM)
+		if (IARMinit())
+		{
+			IARM_Result_t res;
+			IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS, dsHdmiStatusEventHandler) );
+			IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE, dsHdmiVideoModeEventHandler) );
+		}
+#endif
+	}
+
+	void AVOutputTV::DeinitializeIARM()
+	{
+		AVOutputBase::DeinitializeIARM();
+#if !defined (HDMIIN_4K_ZOOM)
+		if (isIARMConnected())
+		{
+			IARM_Result_t res;
+			IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS, dsHdmiStatusEventHandler) );
+			IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE, dsHdmiVideoModeEventHandler) );
+		}
+#endif
+	}
+
+    tvError_t AVOutputTV::InitializePictureMode()
+    {
+        tvError_t ret = tvERROR_NONE;
+	TR181_ParamData_t param;
+        int current_source = 0;
+        std::string tr181_param_name = "";
+	tvVideoFormatType_t current_format = VIDEO_FORMAT_NONE;
+
+        GetCurrentVideoFormat(&current_format);
+	if ( current_format  == VIDEO_FORMAT_NONE) current_format  = VIDEO_FORMAT_SDR;
+        // get current source
+        GetCurrentSource(&current_source);
+
+       tr181_param_name += std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
+       tr181_param_name += "."+convertSourceIndexToString(current_source)+"."+"Format."+convertVideoFormatToString(current_format)+"."+"PictureModeString";
+
+       tr181ErrorCode_t err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
+       if ( tr181Success == err )
+       {
+	   std::string local = param.value;
+           transform(local.begin(), local.end(), local.begin(), ::tolower);
+           ret = SetTVPictureMode(local.c_str());
+
+           if(ret != tvERROR_NONE) 
+	   {
+               LOGWARN("Picture Mode set failed: %s\n",getErrorString(ret).c_str());
+           }
+           else 
+	   {
+               LOGINFO("Picture Mode initialized successfully, tr181 value [%s] value: %s\n", tr181_param_name.c_str(),
+			param.value);
+           }
+       }
+       else
+       {
+           ret = tvERROR_GENERAL;
+           LOGWARN("getLocalParam for %s Failed : %s\n", tr181_param_name.c_str(), getTR181ErrorString(err));
+       }
+
+       return ret;
+    }
+
+	tvError_t AVOutputTV::setAspectRatioZoomSettings(tvDisplayMode_t mode)
+    {
+        tvError_t ret = tvERROR_GENERAL;
+        LOGERR("%s: mode selected is: %d", __FUNCTION__, m_videoZoomMode);
+#if !defined (HDMIIN_4K_ZOOM)
+        if (AVOutputTV::instance->m_isDisabledHdmiIn4KZoom) 
+	{
+            if (AVOutputTV::instance->m_currentHdmiInResoluton<dsVIDEO_PIXELRES_3840x2160 ||
+                (dsVIDEO_PIXELRES_MAX == m_currentHdmiInResoluton))
+	    {
+                LOGWARN("%s: Setting %d zoom mode for below 4K", __FUNCTION__, m_videoZoomMode);
+#endif
+                ret = SetAspectRatio(mode);
+#if !defined (HDMIIN_4K_ZOOM)
+            }
+	    else 
+	    {
+                LOGWARN("%s: Setting auto zoom mode for 4K and above", __FUNCTION__);
+                ret = SetAspectRatio(tvDisplayMode_AUTO);
+            }
+        } 
+	else 
+	{
+            LOGWARN("%s: HdmiInput is not started yet. m_isDisabledHdmiIn4KZoom: %d", __FUNCTION__, AVOutputTV::instance->m_isDisabledHdmiIn4KZoom);
+            ret = SetAspectRatio((tvDisplayMode_t)m_videoZoomMode);
         }
 #endif
+        return ret;
+    }
+
+    tvError_t AVOutputTV::getUserSelectedAspectRatio (tvDisplayMode_t* mode)
+    {
+        tvError_t ret = tvERROR_GENERAL;
+#if !defined (HDMIIN_4K_ZOOM)
+        LOGERR("%s:mode selected is: %d", __FUNCTION__, m_videoZoomMode);
+        if (AVOutputTV::instance->m_isDisabledHdmiIn4KZoom) 
+	{
+            if (!(AVOutputTV::instance->m_currentHdmiInResoluton<dsVIDEO_PIXELRES_3840x2160 ||
+               (dsVIDEO_PIXELRES_MAX == AVOutputTV::instance->m_currentHdmiInResoluton)))
+	    {
+                *mode = (tvDisplayMode_t)AVOutputTV::instance->m_videoZoomMode;
+                LOGWARN("%s: Getting zoom mode %d for display, for 4K and above", __FUNCTION__, *mode);
+                return tvERROR_NONE;
+            }
+        }
+#endif
+        ret = GetAspectRatio(mode);
+        return ret;
     }
 
 }//namespace Plugin
