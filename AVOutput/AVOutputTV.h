@@ -24,7 +24,6 @@
 #include <set>
 
 #include "tvTypes.h"
-#include "tvLog.h"
 #include "tvSettings.h"
 #include <pthread.h>
 #include "Module.h"
@@ -41,7 +40,6 @@
 #include "dsError.h"
 #include "dsMgr.h"
 #include "hdmiIn.hpp"
-#include "als_bl_iniparser.h"
 #include <numeric>
 
 //Macro
@@ -89,10 +87,6 @@ class AVOutputTV : public AVOutputBase {
         DECLARE_JSON_RPC_METHOD(getColorTemperature )
         DECLARE_JSON_RPC_METHOD(getBacklightDimmingMode )
         DECLARE_JSON_RPC_METHOD(getSupportedDolbyVisionModes )
-        DECLARE_JSON_RPC_METHOD(getSupportedHLGModes )
-        DECLARE_JSON_RPC_METHOD(getHLGMode )
-        DECLARE_JSON_RPC_METHOD(getSupportedHDR10Modes )
-        DECLARE_JSON_RPC_METHOD(getHDR10Mode )
         DECLARE_JSON_RPC_METHOD(getSupportedPictureModes )
         DECLARE_JSON_RPC_METHOD(getVideoSourceCaps)
         DECLARE_JSON_RPC_METHOD(getVideoFormatCaps)
@@ -119,8 +113,6 @@ class AVOutputTV : public AVOutputBase {
 	DECLARE_JSON_RPC_METHOD(getColorTemperatureCaps)
 	DECLARE_JSON_RPC_METHOD(getBacklightDimmingModeCaps )
         DECLARE_JSON_RPC_METHOD(getDolbyVisionModeCaps )
-        DECLARE_JSON_RPC_METHOD(getHDR10ModeCaps )
-        DECLARE_JSON_RPC_METHOD(getHLGModeCaps )
         DECLARE_JSON_RPC_METHOD(getZoomModeCaps)
         DECLARE_JSON_RPC_METHOD(getLowLatencyStateCaps)
         DECLARE_JSON_RPC_METHOD(getPictureModeCaps)
@@ -135,8 +127,6 @@ class AVOutputTV : public AVOutputBase {
         DECLARE_JSON_RPC_METHOD(setColorTemperature )
         DECLARE_JSON_RPC_METHOD(setBacklightDimmingMode )
         DECLARE_JSON_RPC_METHOD(setDolbyVisionMode )
-        DECLARE_JSON_RPC_METHOD(setHLGMode )
-        DECLARE_JSON_RPC_METHOD(setHDR10Mode )
         DECLARE_JSON_RPC_METHOD(setWBCtrl )
         DECLARE_JSON_RPC_METHOD(setPictureMode )
 	DECLARE_JSON_RPC_METHOD(signalFilmMakerMode)
@@ -152,8 +142,6 @@ class AVOutputTV : public AVOutputBase {
         DECLARE_JSON_RPC_METHOD(resetColorTemperature )
         DECLARE_JSON_RPC_METHOD(resetBacklightDimmingMode )
         DECLARE_JSON_RPC_METHOD(resetDolbyVisionMode )
-        DECLARE_JSON_RPC_METHOD(resetHDR10Mode )
-        DECLARE_JSON_RPC_METHOD(resetHLGMode )
         DECLARE_JSON_RPC_METHOD(resetPictureMode )
         DECLARE_JSON_RPC_METHOD(resetZoomMode)
         DECLARE_JSON_RPC_METHOD(resetLowLatencyState)
@@ -183,7 +171,7 @@ class AVOutputTV : public AVOutputBase {
         tvError_t getParamsCaps(std::vector<std::string> &range, std::vector<std::string> &pqmode, std::vector<std::string> &source,
                                 std::vector<std::string> &format,std::string param , std::string & isPlatformSupport,
 				std::vector<std::string> & index);
-	int getDimmingModeIndex(string mode);
+	tvDimmingMode_t getDimmingModeIndex(string mode);
         void getDimmingModeStringFromEnum(int value, std::string &toStore);
 	void getColorTempStringFromEnum(int value, std::string &toStore);
 	int getCurrentPictureMode(char *picMode);
@@ -220,6 +208,7 @@ class AVOutputTV : public AVOutputBase {
 	int getFormatIndex(std::string format);
         void getDynamicAutoLatencyConfig();
 	void BroadcastLowLatencyModeChangeEvent(bool lowLatencyMode);
+        int GetDolbyModeIndex(const char * dolbyMode);
 
     public:
         int m_currentHdmiInResoluton;
@@ -239,7 +228,7 @@ class AVOutputTV : public AVOutputBase {
         tvError_t setDefaultAspectRatio(std::string pqmode="all",std::string format="all",std::string source="all");
 	tvContentFormatType_t ConvertFormatStringToTVContentFormat(const char *format);
 
-	void NotifyVideoFormatChange(tvVideoHDRFormat_t format);
+	void NotifyVideoFormatChange(tvVideoFormatType_t format);
         void NotifyFilmMakerModeChange(tvContentType_t mode);
         void NotifyVideoResolutionChange(tvResolutionParam_t resolution);
         void NotifyVideoFrameRateChange(tvVideoFrameRate_t frameRate);

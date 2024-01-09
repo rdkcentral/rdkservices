@@ -37,7 +37,7 @@ namespace Plugin {
 
     AVOutputTV* AVOutputTV::instance = nullptr;
 
-    static void tvVideoFormatChangeHandler(tvVideoHDRFormat_t format, void *userData)
+    static void tvVideoFormatChangeHandler(tvVideoFormatType_t format, void *userData)
     {
         LOGINFO("tvVideoFormatChangeHandler format:%d \n",format);
         AVOutputTV *obj = (AVOutputTV *)userData;
@@ -82,28 +82,28 @@ namespace Plugin {
         return fmmMode;
     }
 
-    static const char *getVideoFormatTypeToString(tvVideoHDRFormat_t format)
+    static const char *getVideoFormatTypeToString(tvVideoFormatType_t format)
     {
         const char *strValue = "NONE";
         switch(format) 
 	{
-            case tvVideoHDRFormat_SDR:
+            case VIDEO_FORMAT_SDR:
                 LOGINFO("Video Format: SDR\n");
                 strValue = "SDR";
                 break;
-            case tvVideoHDRFormat_HDR10:
+            case VIDEO_FORMAT_HDR10:
                 LOGINFO("Video Format: HDR10\n");
                 strValue = "HDR10";
                 break;
-            case tvVideoHDRFormat_HDR10PLUS:
+            case VIDEO_FORMAT_HDR10PLUS:
                 LOGINFO("Video Format: HDR10PLUS\n");
                 strValue = "HDR10PLUS";
                 break;
-            case tvVideoHDRFormat_HLG:
+            case VIDEO_FORMAT_HLG:
                 LOGINFO("Video Format: HLG\n");
                 strValue = "HLG";
                 break;
-            case tvVideoHDRFormat_DV:
+            case VIDEO_FORMAT_DV:
                 LOGINFO("Video Format: DV\n");
                 strValue = "DV";
                 break;
@@ -299,7 +299,7 @@ namespace Plugin {
         return index;
     }
 
-    void AVOutputTV::NotifyVideoFormatChange(tvVideoHDRFormat_t format)
+    void AVOutputTV::NotifyVideoFormatChange(tvVideoFormatType_t format)
     {
         JsonObject response;
         response["currentVideoFormat"] = getVideoFormatTypeToString(format);
@@ -418,16 +418,6 @@ namespace Plugin {
         registerMethod("setDolbyVisionMode", &AVOutputTV::setDolbyVisionMode, this);
         registerMethod("resetDolbyVisionMode", &AVOutputTV::resetDolbyVisionMode, this);
         registerMethod("getDolbyVisionModeCaps", &AVOutputTV::getDolbyVisionModeCaps, this);
-        registerMethod("getSupportedHLGModes", &AVOutputTV::getSupportedHLGModes, this);
-        registerMethod("getHLGMode", &AVOutputTV::getHLGMode, this);
-        registerMethod("setHLGMode", &AVOutputTV::setHLGMode, this);
-        registerMethod("resetHLGMode", &AVOutputTV::resetHLGMode, this);
-	registerMethod("getHLGModeCaps", &AVOutputTV::getHLGModeCaps, this);
-        registerMethod("getSupportedHDR10Modes", &AVOutputTV::getSupportedHDR10Modes, this);
-	registerMethod("getHDR10Mode", &AVOutputTV::getHDR10Mode, this);
-	registerMethod("setHDR10Mode", &AVOutputTV::setHDR10Mode, this);
-	registerMethod("resetHDR10Mode", &AVOutputTV::resetHDR10Mode, this);
-	registerMethod("getHDR10ModeCaps", &AVOutputTV::getHDR10ModeCaps, this);
 	registerMethod("getVideoFormat", &AVOutputTV::getVideoFormat, this);
 	registerMethod("getVideoSource", &AVOutputTV::getVideoSource, this);
 	registerMethod("getVideoFrameRate", &AVOutputTV::getVideoFrameRate, this);
@@ -501,7 +491,7 @@ namespace Plugin {
         }
         LOGWARN("AVOutputPlugins: AVOutput Initialize m_currentHdmiInResoluton:%d m_mod:%d", m_currentHdmiInResoluton, m_videoZoomMode);
 
-        ret = tvInit();
+        ret = TvInit();
        
         if(ret != tvERROR_NONE) 
 	{
@@ -510,7 +500,7 @@ namespace Plugin {
 	else 
 	{
             LOGINFO("Platform Init successful...\n");
-            ret = tvSD3toCriSyncInit();
+            ret = TvSyncCalibrationInfoODM();
             if(ret != tvERROR_NONE) 
 	    {
                 LOGERR(" SD3 <->cri_data sync failed, ret: %s \n", getErrorString(ret).c_str());
@@ -560,9 +550,11 @@ namespace Plugin {
         tvError_t ret = tvERROR_NONE;
 	TR181_ParamData_t param;
         int current_source = 0;
-        int current_format = ConvertVideoFormatToHDRFormat(GetCurrentContentFormat());
-	if ( current_format  == HDR_TYPE_NONE) current_format  = HDR_TYPE_SDR;
         std::string tr181_param_name = "";
+	tvVideoFormatType_t current_format = VIDEO_FORMAT_NONE;
+
+        GetCurrentVideoFormat(&current_format);
+	if ( current_format  == VIDEO_FORMAT_NONE) current_format  = VIDEO_FORMAT_SDR;
         // get current source
         GetCurrentSource(&current_source);
 
@@ -600,7 +592,7 @@ namespace Plugin {
        LOGINFO("Entry\n");
 
        tvError_t ret = tvERROR_NONE;
-       ret = tvTerm();
+       ret = TvTerm();
 
        if(ret != tvERROR_NONE) 
        {
@@ -1069,7 +1061,7 @@ namespace Plugin {
     uint32_t AVOutputTV::getVideoFormat(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
-        tvVideoHDRFormat_t videoFormat;
+        tvVideoFormatType_t videoFormat;
         tvError_t ret = GetCurrentVideoFormat(&videoFormat);
         if(ret != tvERROR_NONE) 
 	{
@@ -1088,7 +1080,7 @@ namespace Plugin {
     {
         LOGINFO("Entry\n");
         tvResolutionParam_t videoResolution;
-        tvError_t ret = GetVideoResolution(&videoResolution);
+        tvError_t ret = GetCurrentVideoResolution(&videoResolution);
         if(ret != tvERROR_NONE) 
 	{
             response["currentVideoResolution"] = "NONE";
@@ -1106,7 +1098,7 @@ namespace Plugin {
     {
         LOGINFO("Entry\n");
         tvVideoFrameRate_t videoFramerate;
-        tvError_t ret = GetVideoFrameRate(&videoFramerate);
+        tvError_t ret = GetCurrentVideoFrameRate(&videoFramerate);
         if(ret != tvERROR_NONE) 
 	{
             response["currentVideoFrameRate"] = "NONE";
@@ -2476,7 +2468,7 @@ namespace Plugin {
         std::string pqmode;
         std::string source;
         std::string format;
-        int colortemp = 0;
+        tvColorTemp_t colortemp = tvColorTemp_MAX;
         tvError_t ret = tvERROR_NONE;
 
         value = parameters.HasLabel("colorTemperature") ? parameters["colorTemperature"].String() : "";
@@ -2527,7 +2519,7 @@ namespace Plugin {
         }
         else {
             int params[3]={0};
-            params[0]=colortemp;
+            params[0]=(int)colortemp;
             int retval= updatePQParamsToCache("set","ColorTemp",pqmode,source,format,PQ_PARAM_COLOR_TEMPERATURE,params);
             if(retval != 0 ) 
 	    {
@@ -2756,7 +2748,7 @@ namespace Plugin {
         else 
 	{
             int params[3]={0};
-            params[0]=dimmingMode;
+            params[0]=(int)dimmingMode;
             int retval= updatePQParamsToCache("set","DimmingMode",pqmode,source,format,PQ_PARAM_DIMMINGMODE,params);
             if(retval != 0 ) 
 	    {
@@ -2893,7 +2885,7 @@ namespace Plugin {
         LOGINFO("Entry\n");
         pic_modes_t *dvModes;
         unsigned short totalAvailable = 0;
-        tvError_t ret = GetTVSupportedDVModes(&dvModes,&totalAvailable);
+        tvError_t ret = GetTVSupportedDolbyVisionModesODM(&dvModes,&totalAvailable);
         if(ret != tvERROR_NONE) 
 	{
             returnResponse(false);
@@ -2992,7 +2984,7 @@ namespace Plugin {
         if( isSetRequired("Current",source,"DV") ) 
 	{
             LOGINFO("Proceed with setDolbyVisionMode\n\n");
-            ret = SetTVDolbyVisionMode(value.c_str());
+            ret = SetTVDolbyVisionModeODM(value.c_str());
         }
 
         if(ret != tvERROR_NONE) 
@@ -3014,6 +3006,30 @@ namespace Plugin {
             returnResponse(true);
         }
 
+    }
+
+    int AVOutputTV::GetDolbyModeIndex(const char * dolbyMode)
+    {
+        int mode = 0;
+        pic_modes_t *dolbyModes     ;
+        unsigned short totalAvailable = 0;
+
+        tvError_t ret = GetTVSupportedDolbyVisionModesODM(&dolbyModes,&totalAvailable);
+        if(ret == tvERROR_NONE) {
+            for(int count = 0;count <totalAvailable;count++ )
+            {
+                if(strncmp(dolbyMode, dolbyModes[count].name, strlen(dolbyMode))==0){
+                    mode = dolbyModes[count].value;
+                    break;
+                }
+
+            }
+        }else{
+            mode = -1;
+            printf("(%s):get supported mode is failed\n", __func__);
+        }
+
+        return mode;
     }
 
     uint32_t AVOutputTV::resetDolbyVisionMode(const JsonObject& parameters, JsonObject& response)
@@ -3059,7 +3075,7 @@ namespace Plugin {
                 {
                     std::string dolbyModeValue = getDolbyModeStringFromEnum((tvDolbyMode_t)dolbyMode);
                     LOGINFO("%s : getLocalparam success format :%d source : %d format : %d dolbyvalue : %s\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex, dolbyModeValue.c_str());
-                    ret = SetTVDolbyVisionMode(dolbyModeValue.c_str());
+                    ret = SetTVDolbyVisionModeODM(dolbyModeValue.c_str());
                 }
                 else
                 {
@@ -3111,410 +3127,6 @@ namespace Plugin {
                 rangeArray.Add(range[index]);
 
             response["options"]=rangeArray;
-            if ((pqmode.front()).compare("none") != 0) 
-	    {
-                for (index = 0; index < pqmode.size(); index++) 
-		{
-                    pqmodeArray.Add(pqmode[index]);
-                }
-                response["pictureModeInfo"]=pqmodeArray;
-            }
-            if ((source.front()).compare("none") != 0) 
-	    {
-                for (index = 0; index < source.size(); index++) 
-		{
-                    sourceArray.Add(source[index]);
-                }
-                response["videoSourceInfo"]=sourceArray;
-            }
-            if ((format.front()).compare("none") != 0) 
-	    {
-                for (index = 0; index < format.size(); index++) 
-		{
-                    formatArray.Add(format[index]);
-                }
-                response["videoFormatInfo"]=formatArray;
-            }
-            LOGINFO("Exit\n");
-            returnResponse(true);
-        }
-    }
-
-    uint32_t AVOutputTV::getSupportedHDR10Modes(const JsonObject& parameters, JsonObject& response)
-    {
-        LOGINFO("Entry\n");
-        pic_modes_t *hdr10Modes;
-        unsigned short totalAvailable = 0;
-        tvError_t ret = GetTVSupportedHDR10Modes(&hdr10Modes,&totalAvailable);
-        if(ret != tvERROR_NONE) 
-	{
-            returnResponse(false);
-        }
-        else 
-	{
-            JsonArray SupportedHDR10Modes;
-
-            for(int count = 0;count <totalAvailable;count++ )
-            {
-                SupportedHDR10Modes.Add(hdr10Modes[count].name);
-            }
-
-            response["supportedHDR10Modes"] = SupportedHDR10Modes;
-            LOGINFO("Exit\n");
-            returnResponse(true);
-        }
-    }
-
-    uint32_t AVOutputTV::setHDR10Mode(const JsonObject& parameters, JsonObject& response)
-    {
-        LOGINFO("Entry\n");
-        std::string value;
-
-        value = parameters.HasLabel("HDR10Mode") ? parameters["HDR10Mode"].String() : "";
-        returnIfParamNotFound(parameters,"HDR10Mode");
-
-	tvError_t ret = SetTVHDR10Mode(value.c_str());
-
-        if(ret != tvERROR_NONE) 
-	{
-            returnResponse(false);
-        }
-        else 
-	{
-            int params[3]={0};
-            params[0]=getHDR10ModeIndex(value.c_str());
-            int retval=updatePQParamsToCache("set","HDR10Mode", "all","all","hdr10",PQ_PARAM_HDR10_MODE,params);
-            if(retval != 0) 
-	    {
-                LOGWARN("Failed to Save HDR10Mode to ssm_data\n");
-            }
-            tr181ErrorCode_t err = setLocalParam(rfc_caller_id, AVOUTPUT_HDR10MODE_RFC_PARAM, value.c_str());
-            if ( err != tr181Success ) 
-	    {
-                LOGWARN("setLocalParam for %s Failed : %s\n", AVOUTPUT_HDR10MODE_RFC_PARAM, getTR181ErrorString(err));
-            }
-            else 
-	    {
-                LOGINFO("setLocalParam for %s Successful, Value: %s\n", AVOUTPUT_HDR10MODE_RFC_PARAM, value.c_str());
-            }
-
-            LOGINFO("Exit\n");
-            returnResponse(true);
-        }
-    }
-
-      
-    uint32_t AVOutputTV::getHDR10Mode(const JsonObject& parameters, JsonObject& response)
-    {
-        LOGINFO("Entry\n");
-        std::string hdr10;
-
-        if ( -1 == getDolbyParams(tvContentFormatType_HDR10, hdr10)) 
-	{
-            returnResponse(false);
-        }
-        else 
-	{
-            response["hdr10Mode"] = hdr10;
-            LOGINFO("Exit getHDR10Mode(): %s\n",hdr10.c_str());
-            returnResponse(true);
-        }
-
-    }
-
-    uint32_t AVOutputTV::resetHDR10Mode(const JsonObject& parameters, JsonObject& response)
-    {
-        LOGINFO("Entry\n");
-        std::string value;
-        std::string pqmode;
-        std::string source;
-        std::string format;
-        tvError_t ret = tvERROR_NONE;
-
-	if( !isCapablityCheckPassed( "Global", "Global", "hdr10", "HDR10Mode" )) 
-	{
-            LOGERR("%s: CapablityCheck failed for HDR10Mode\n", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        tr181ErrorCode_t err = clearLocalParam(rfc_caller_id,AVOUTPUT_HDR10MODE_RFC_PARAM);
-        if ( err != tr181Success ) 
-	{
-            LOGWARN("clearLocalParam for %s Failed : %s\n", AVOUTPUT_HDR10MODE_RFC_PARAM, getTR181ErrorString(err));
-            ret  = tvERROR_GENERAL;
-        }
-        else 
-	{
-            TR181_ParamData_t param;
-            memset(&param, 0, sizeof(param));
-			tr181ErrorCode_t err = getLocalParam(rfc_caller_id, AVOUTPUT_HDR10MODE_RFC_PARAM,&param);
-            if ( err != tr181Success ) 
-	    {
-                LOGWARN("getLocalParam for %s Failed : %s\n", AVOUTPUT_HDR10MODE_RFC_PARAM, getTR181ErrorString(err));
-                ret  = tvERROR_GENERAL;
-            }
-            else 
-	    {
-                ret = SetTVHDR10Mode(param.value);
-                if(ret != tvERROR_NONE) 
-		{
-                    LOGWARN("DV Mode set failed: %s\n",getErrorString(ret).c_str());
-                }
-                else 
-		{
-                    LOGINFO("DV Mode initialized successfully value %s\n",param.value);
-                    //Save HDR10Mode to ssm_data
-                    int params[3]={0};
-                    params[0]=getHDR10ModeIndex(param.value);
-                    int retval=updatePQParamsToCache("reset","HDR10Mode","all","all","hdr10",PQ_PARAM_HDR10_MODE,params);
-
-                    if(retval != 0) 
-		    {
-                        LOGWARN("Failed to Save HDR10Mode to ssm_data\n");
-                        ret=tvERROR_GENERAL;
-                    }
-                }
-            }
-        }
-        if(ret != tvERROR_NONE)
-        {
-            returnResponse(false);
-        }
-        else
-        {
-            LOGINFO("Exit : %s \n",__FUNCTION__);
-            returnResponse(true);
-        }
-    }
-
-    uint32_t AVOutputTV::getHDR10ModeCaps(const JsonObject& parameters, JsonObject& response)
-    {
-        LOGINFO("Entry");
-        std::vector<std::string> range;
-        std::vector<std::string> pqmode;
-        std::vector<std::string> source;
-        std::vector<std::string> format;
-
-        JsonArray rangeArray;
-        JsonArray pqmodeArray;
-        JsonArray formatArray;
-        JsonArray sourceArray;
-
-        unsigned int index = 0;
-
-        tvError_t ret = getParamsCaps(range,pqmode,source,format,"HDR10Mode");
-
-        if(ret != tvERROR_NONE) 
-	{
-            returnResponse(false);
-        }
-        else
-        {
-
-            for (index = 0; index < range.size(); index++)
-                rangeArray.Add(range[index]);
-
-            response["HDR10ModeInfo"]=rangeArray;
-            if ((pqmode.front()).compare("none") != 0) 
-	    {
-                for (index = 0; index < pqmode.size(); index++) 
-		{
-                    pqmodeArray.Add(pqmode[index]);
-                }
-                response["pictureModeInfo"]=pqmodeArray;
-            }
-            if ((source.front()).compare("none") != 0) 
-	    {
-                for (index = 0; index < source.size(); index++) 
-		{
-                    sourceArray.Add(source[index]);
-                }
-                response["videoSourceInfo"]=sourceArray;
-            }
-            if ((format.front()).compare("none") != 0) 
-	    {
-                for (index = 0; index < format.size(); index++) 
-		{
-                    formatArray.Add(format[index]);
-                }
-                response["videoFormatInfo"]=formatArray;
-            }
-            LOGINFO("Exit\n");
-            returnResponse(true);
-        }
-    }
-    
-    uint32_t AVOutputTV::getSupportedHLGModes(const JsonObject& parameters, JsonObject& response)
-    {
-        LOGINFO("Entry\n");
-        pic_modes_t *hlgModes;
-        unsigned short totalAvailable = 0;
-        tvError_t ret = GetTVSupportedHLGModes(&hlgModes,&totalAvailable);
-        if(ret != tvERROR_NONE) 
-	{
-            returnResponse(false);
-        }
-        else 
-	{
-            JsonArray SupportedHLGModes;
-
-            for(int count = 0;count <totalAvailable;count++ )
-            {
-                SupportedHLGModes.Add(hlgModes[count].name);
-            }
-
-            response["supportedHLGModes"] = SupportedHLGModes;
-            LOGINFO("Exit\n");
-            returnResponse(true);
-        }
-    }
-
-    uint32_t AVOutputTV::getHLGMode(const JsonObject& parameters, JsonObject& response)
-    {
-        LOGINFO("Entry\n");
-        std::string hlg;
-
-        if ( -1 == getDolbyParams(tvContentFormatType_HLG, hlg)) 
-	{
-            returnResponse(false);
-        }
-        else 
-	{
-            response["hlgMode"] = hlg;
-            LOGINFO("Exit getHLGMode(): %s\n",hlg.c_str());
-            returnResponse(true);
-        }
-    }
-
-    uint32_t AVOutputTV::setHLGMode(const JsonObject& parameters, JsonObject& response)
-    {
-        LOGINFO("Entry\n");
-        std::string value;
-
-        value = parameters.HasLabel("HLGMode") ? parameters["HLGMode"].String() : "";
-        returnIfParamNotFound(parameters,"HLGMode");
-
-	tvError_t ret = SetTVHLGMode(value.c_str());
-
-        if(ret != tvERROR_NONE) 
-	{
-            returnResponse(false);
-        }
-        else 
-	{
-            int params[3]={0};
-            params[0]=getHLGModeIndex(value.c_str());
-            int retval=updatePQParamsToCache("set","HLGMode","Global","Global","hlg",PQ_PARAM_HLG_MODE,params);
-            if(retval != 0) 
-	    {
-                LOGWARN("Failed to Save HLGMode to ssm_data\n");
-            }
-            tr181ErrorCode_t err = setLocalParam(rfc_caller_id, AVOUTPUT_HLGMODE_RFC_PARAM, value.c_str());
-            if ( err != tr181Success ) 
-	    {
-                LOGWARN("setLocalParam for %s Failed : %s\n", AVOUTPUT_HLGMODE_RFC_PARAM, getTR181ErrorString(err));
-            }
-            else 
-	    {
-                LOGINFO("setLocalParam for %s Successful, Value: %s\n", AVOUTPUT_HLGMODE_RFC_PARAM, value.c_str());
-            }
-
-            LOGINFO("Exit\n");
-            returnResponse(true);
-        }
-    }
-
-    uint32_t AVOutputTV::resetHLGMode(const JsonObject& parameters, JsonObject& response)
-    {
-        LOGINFO("Entry\n");
-        std::string value;
-        tvError_t ret = tvERROR_NONE;
-
-	if( !isCapablityCheckPassed( "Global", "Global", "hlg", "HLGMode" )) 
-	{
-            LOGERR("%s: CapablityCheck failed for HLGMode\n", __FUNCTION__);
-            returnResponse(false);
-        }
-
-        tr181ErrorCode_t err = clearLocalParam(rfc_caller_id,AVOUTPUT_HLGMODE_RFC_PARAM);
-        if ( err != tr181Success ) 
-	{
-            LOGWARN("clearLocalParam for %s Failed : %s\n", AVOUTPUT_HLGMODE_RFC_PARAM, getTR181ErrorString(err));
-            ret  = tvERROR_GENERAL;
-        }
-        else 
-	{
-            TR181_ParamData_t param;
-            memset(&param, 0, sizeof(param));
-			tr181ErrorCode_t err = getLocalParam(rfc_caller_id, AVOUTPUT_HLGMODE_RFC_PARAM,&param);
-            if ( err != tr181Success ) 
-	    {
-                LOGWARN("getLocalParam for %s Failed : %s\n", AVOUTPUT_HLGMODE_RFC_PARAM, getTR181ErrorString(err));
-                ret  = tvERROR_GENERAL;
-            }
-            else 
-	    {
-                ret = SetTVHLGMode(param.value);
-                if(ret != tvERROR_NONE) 
-		{
-                    LOGWARN("DV Mode set failed: %s\n",getErrorString(ret).c_str());
-                }
-                else 
-		{
-
-                    LOGINFO("DV Mode initialized successfully value %s\n",param.value);
-                    //Save HLGMode to ssm_data
-                    int params[3]={0};
-                    params[0]=getHLGModeIndex(param.value);
-                    int retval=updatePQParamsToCache("reset","HLGMode","Global","Global","hlg",PQ_PARAM_HLG_MODE,params);
-
-                    if(retval != 0) 
-		    {
-                        LOGWARN("Failed to Save HLGMode to ssm_data\n");
-                        ret=tvERROR_GENERAL;
-                    }
-                }
-            }
-        }
-        if(ret != tvERROR_NONE)
-        {
-            returnResponse(false);
-        }
-        else
-        {
-            LOGINFO("Exit : %s \n",__FUNCTION__);
-            returnResponse(true);
-        }
-    }
-
-    uint32_t AVOutputTV::getHLGModeCaps(const JsonObject& parameters, JsonObject& response)
-    {
-        LOGINFO("Entry");
-        std::vector<std::string> range;
-        std::vector<std::string> pqmode;
-        std::vector<std::string> source;
-        std::vector<std::string> format;
-
-        JsonArray rangeArray;
-        JsonArray pqmodeArray;
-        JsonArray formatArray;
-        JsonArray sourceArray;
-
-        unsigned int index = 0;
-
-        tvError_t ret = getParamsCaps(range,pqmode,source,format,"HLGMode");
-
-        if(ret != tvERROR_NONE) 
-	{
-            returnResponse(false);
-        }
-        else
-        {
-
-            for (index = 0; index < range.size(); index++)
-                rangeArray.Add(range[index]);
-
-            response["HLG10ModeInfo"]=rangeArray;
             if ((pqmode.front()).compare("none") != 0) 
 	    {
                 for (index = 0; index < pqmode.size(); index++) 
@@ -3924,16 +3536,17 @@ namespace Plugin {
 
 	    getSaveConfig("Current", source.c_str(), format.c_str(), source_vec, pq_mode_vec, format_vec);
             
-	    for (unsigned int x = 0; x < source_vec.size(); x++ ) 
+	    for (int sourceType : source_vec) 
 	    {
-                for (unsigned int y = 0; y < format_vec.size(); y++ ) 
+                tvVideoSrcType_t source = (tvVideoSrcType_t)sourceType;
+                for (int formatType : format_vec) 
 		{
-
+                    tvVideoFormatType_t format = (tvVideoFormatType_t)formatType;
                     std::string tr181_param_name = "";
                     tr181_param_name += std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
                     // framing Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.AVOutput.Source.source_index[x].Format.format_index[x].PictureModeString.value
-                    tr181_param_name += "."+convertSourceIndexToString(source_vec[x])+"."+"Format."+
-			              convertVideoFormatToString(format_vec[y])+"."+"PictureModeString";
+                    tr181_param_name += "."+convertSourceIndexToString(source)+"."+"Format."+
+			              convertVideoFormatToString(format)+"."+"PictureModeString";
                     tr181ErrorCode_t err = setLocalParam(rfc_caller_id, tr181_param_name.c_str(), value.c_str());
                     if ( err != tr181Success ) 
 		    {
@@ -3943,7 +3556,7 @@ namespace Plugin {
 		    {
                         LOGINFO("setLocalParam for %s Successful, Value: %s\n", AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM, value.c_str());
 		        int pqmodeindex = (int)getPictureModeIndex(value);
-                        SaveSourcePictureMode(source_vec[x], format_vec[y], pqmodeindex);
+                        SaveSourcePictureMode(source, format, pqmodeindex);
 		    }
                 }
             }
@@ -4000,13 +3613,14 @@ namespace Plugin {
  
         for (int source : source_vec) 
 	{
+            tvVideoSrcType_t sourceType = (tvVideoSrcType_t)source;
             for (int format : format_vec) 
 	    {
-
+                tvVideoFormatType_t formatType = (tvVideoFormatType_t)format;
                 std::string tr181_param_name = "";
                 tr181_param_name += std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
-	        tr181_param_name += "."+convertSourceIndexToString(source)+"."+"Format."+
-			           convertVideoFormatToString(format)+"."+"PictureModeString";
+	        tr181_param_name += "."+convertSourceIndexToString(sourceType)+"."+"Format."+
+			           convertVideoFormatToString(formatType)+"."+"PictureModeString";
 
        	        err = clearLocalParam(rfc_caller_id, tr181_param_name.c_str());
                 if ( err != tr181Success ) 
@@ -4021,23 +3635,20 @@ namespace Plugin {
                     {
                         //get curren source and if matches save for that alone
 		        int current_source = 0;
-                        int current_format = 0;
 		        GetCurrentSource(&current_source);
 
-                        if( HDR_TYPE_NONE == ConvertVideoFormatToHDRFormat(GetCurrentContentFormat())) 
+			tvVideoFormatType_t current_format = VIDEO_FORMAT_NONE;
+			GetCurrentVideoFormat(&current_format);
+                        if( current_format == VIDEO_FORMAT_NONE) 
 			{
-                            current_format = (int)HDR_TYPE_SDR;
+                            current_format = VIDEO_FORMAT_SDR;
                         } 
-			else 
-			{
-                            current_format = (int)ConvertVideoFormatToHDRFormat(GetCurrentContentFormat());
-                        }
 
 			//as hal using lower across converting to lower
 			std::string setparam = param.value;
 			transform(setparam.begin(), setparam.end(), setparam.begin(), ::tolower);
 
-		        if (current_source == source && current_format == format ) 
+		        if (current_source == sourceType && current_format == formatType) 
 			{
 
                             tvError_t ret = SetTVPictureMode(setparam.c_str());
@@ -4052,7 +3663,7 @@ namespace Plugin {
                             }
 		        }
                         int pqmodeindex = (int)getPictureModeIndex(param.value);
-                        SaveSourcePictureMode(source, format, pqmodeindex);
+                        SaveSourcePictureMode(sourceType, formatType, pqmodeindex);
                     }
                     else 
 		    {
@@ -4331,7 +3942,7 @@ namespace Plugin {
         }
 	else
 	{
-            int val=GetPanelID(panelId);
+            int val=GetPanelIDODM(panelId);
             if(val==0)
             {
                 LOGINFO("%s : panel id read is : %s\n",__FUNCTION__,panelId);
@@ -4459,12 +4070,14 @@ namespace Plugin {
         {
             for (int source : sources) 
             {
+                tvVideoSrcType_t sourceType = (tvVideoSrcType_t)source;
                 for (int format : formats)
                 {
+                    tvVideoFormatType_t formatType = (tvVideoFormatType_t)format;
                     std::string tr181_param_name = "";
                     tr181_param_name += std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
-                    tr181_param_name += "."+convertSourceIndexToString(source)+"."+"Format."+
-                                         convertVideoFormatToString(format)+"."+"PictureModeString";
+                    tr181_param_name += "."+convertSourceIndexToString(sourceType)+"."+"Format."+
+                                         convertVideoFormatToString(formatType)+"."+"PictureModeString";
 
                     err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
                     if ( tr181Success == err ) 
@@ -4472,7 +4085,7 @@ namespace Plugin {
 			std::string local = param.value;
                         int pqmodeindex = (int)getPictureModeIndex(local);
 
-                        tvError_t tv_err = SaveSourcePictureMode(source, format, pqmodeindex);
+                        tvError_t tv_err = SaveSourcePictureMode(sourceType, formatType, pqmodeindex);
                         if (tv_err != tvERROR_NONE)
                         {
                             LOGWARN("failed to SaveSourcePictureMode \n");
@@ -4580,8 +4193,9 @@ namespace Plugin {
         }
 	else if (format == "Current") 
 	{
-	  int formatIndex = (int)ConvertVideoFormatToHDRFormat(GetCurrentContentFormat());
-	  if ( formatIndex  == HDR_TYPE_NONE) formatIndex  = HDR_TYPE_SDR;
+	  tvVideoFormatType_t formatIndex = VIDEO_FORMAT_NONE;
+	  GetCurrentVideoFormat(&formatIndex);
+	  if ( formatIndex  == VIDEO_FORMAT_NONE) formatIndex  = VIDEO_FORMAT_SDR;
           format = convertVideoFormatToString(formatIndex);
         }
 
@@ -4603,7 +4217,7 @@ namespace Plugin {
         std::string indexInfo;
         std::vector<std::string> localIndex;
 
-        if( ReadCapablitiesFromConf( rangeInfo, pqmodeInfo, formatInfo ,sourceInfo,param, platformsupport, indexInfo))
+        if( ReadCapablitiesFromConfODM( rangeInfo, pqmodeInfo, formatInfo ,sourceInfo,param, platformsupport, indexInfo))
         {
             LOGERR( "%s: ReadCapablitiesFromConf Failed !!!\n",__FUNCTION__);
             return tvERROR_GENERAL;
@@ -4628,7 +4242,7 @@ namespace Plugin {
         std::string pqmodeInfo;
         std::string indexInfo;
 
-        if( ReadCapablitiesFromConf( rangeInfo, pqmodeInfo, formatInfo ,sourceInfo,param, isPlatformSupport, indexInfo))
+        if( ReadCapablitiesFromConfODM( rangeInfo, pqmodeInfo, formatInfo ,sourceInfo,param, isPlatformSupport, indexInfo))
         {
             LOGERR( "%s: ReadCapablitiesFromConf Failed !!!\n",__FUNCTION__);
             return tvERROR_GENERAL;
@@ -4700,7 +4314,7 @@ namespace Plugin {
         std::set<string> formatInputSet;
         std::set<string> sourceInputSet;
         
-        if( ReadCapablitiesFromConf( rangeCapInfo, pqmodeCapInfo, formatCapInfo, sourceCapInfo,param, isPlatformSupport, indexInfo) )
+        if( ReadCapablitiesFromConfODM( rangeCapInfo, pqmodeCapInfo, formatCapInfo, sourceCapInfo,param, isPlatformSupport, indexInfo) )
         {
             LOGINFO( "%s: readCapablitiesFromConf Failed !!!\n",__FUNCTION__);
             return false;
@@ -4742,12 +4356,14 @@ namespace Plugin {
         ret = getSaveConfig(pqmode, source, format, sources, pictureModes, formats);
         if( 0 == ret )
         {
-            for(int source: sources)
+            for(int sourceType: sources)
             {
+                tvVideoSrcType_t source = (tvVideoSrcType_t)sourceType;
                 for(int mode : pictureModes)
                 {
-                    for(int format : formats)
+                    for(int formatType : formats)
                     {
+                        tvVideoFormatType_t format = (tvVideoFormatType_t)formatType;
                         switch(pqParamIndex)
                         {
                             case PQ_PARAM_BRIGHTNESS:
@@ -4795,13 +4411,13 @@ namespace Plugin {
                                 ret |= SaveSaturation(source, mode,format,params[0]);
                                 break;
                             case PQ_PARAM_COLOR_TEMPERATURE:
-                                ret |= SaveColorTemperature(source, mode,format,params[0]);
+                                ret |= SaveColorTemperature(source, mode,format,(tvColorTemp_t)params[0]);
                                 break;
                             case PQ_PARAM_BACKLIGHT:
                                 ret |= SaveBacklight(source, mode,format,params[0]);
                                 break;
                             case PQ_PARAM_DIMMINGMODE:
-                                ret |= SaveDynamicBacklight(source,mode,format,params[0]);
+                                ret |= SaveTVDimmingMode(source,mode,format,(tvDimmingMode_t)params[0]);
                                 break;
                             case PQ_PARAM_LOWLATENCY_STATE:
                                 ret |= SaveLowLatencyState(source, mode,format,params[0]);
@@ -4822,12 +4438,12 @@ namespace Plugin {
                                     }
                                     params[2]=value;
                                 }
-                                ret |= SaveCMS(source, mode,format,params[0],params[1],params[2]);
+                                ret |= SaveCMS(source, mode,format,(tvComponentType_t)params[0],(tvDataComponentColor_t)params[1],params[2]);
                                 if(set)
                                     ret |= updatePQParamToLocalCache(tr181ParamName,source,mode, format, params[2],true);
                                 break;
                             case PQ_PARAM_DOLBY_MODE:
-                                 ret |= SaveDolbyMode(source, mode,format,params[0]);
+                                 ret |= SaveTVDolbyVisionMode(source, mode,format,(tvDolbyMode_t)params[0]);
                                  break;
                              case PQ_PARAM_HDR10_MODE:
                                  if(sync){
@@ -4835,7 +4451,7 @@ namespace Plugin {
                                       getHDR10ParamToSync(value);
                                       params[0]=value;
                                  }
-                                 ret |= SaveDolbyMode(source, mode,format,params[0]);
+                                 ret |= SaveTVDolbyVisionMode(source, mode,format,(tvDolbyMode_t)params[0]);
                                  break;
 
                              case PQ_PARAM_HLG_MODE:
@@ -4844,22 +4460,20 @@ namespace Plugin {
                                     getHLGParamToSync(value);
                                     params[0]=value;
                                  }
-                                 ret |= SaveDolbyMode(source, mode,format,params[0]);
+                                 ret |= SaveTVDolbyVisionMode(source, mode,format,(tvDolbyMode_t)params[0]);
                                  break;
                              case PQ_PARAM_ASPECT_RATIO:
-                                 ret |= SaveDisplayMode(source,mode,format,params[0]);
+                                 ret |= SaveAspectRatio(source,mode,format,(tvDisplayMode_t)params[0]);
                                  break;
                              case PQ_PARAM_LOCALDIMMING_LEVEL:
 			     {
-                                 int dimmingLevel=0,edidLevel=0;
                                  if(sync)
                                  {
                                      int value=0;
                                      getLocalparam(tr181ParamName,format,mode,source,value,pqParamIndex,sync);
                                      params[0]=value;
                                  }
-                                 GetLDIMAndEDIDLevel(params[0],format,&dimmingLevel,&edidLevel,mode);
-                                 ret |= SaveLocalDimmingLevel(source, mode,format,dimmingLevel);
+                                 ret |= SaveTVDimmingMode(source, mode,format,(tvDimmingMode_t)params[0]);
                                  break;
 			     }
 			     case PQ_PARAM_CMS:
@@ -5085,7 +4699,7 @@ namespace Plugin {
             {
                 return 1;
             }
-            GetDefaultParams(pqIndex,sourceIndex,formatIndex,pqParamIndex,&value);
+            GetDefaultParams(pqIndex,(tvVideoSrcType_t)sourceIndex,(tvVideoFormatType_t)formatIndex,pqParamIndex,&value);
             LOGINFO("Default value from DB : %s : %d \n",key.c_str(),value);
             return 0;
         }
@@ -5117,8 +4731,9 @@ namespace Plugin {
         currentSource = convertSourceIndexToString(sourceIndex);
 
         //GetCurrentFormat
-	int formatIndex = ConvertVideoFormatToHDRFormat(GetCurrentContentFormat());
-	if ( formatIndex  == HDR_TYPE_NONE) formatIndex = HDR_TYPE_SDR;
+	tvVideoFormatType_t formatIndex = VIDEO_FORMAT_NONE;
+	GetCurrentVideoFormat(&formatIndex);
+	if ( formatIndex  == VIDEO_FORMAT_NONE) formatIndex = VIDEO_FORMAT_SDR;
         currentFormat = convertVideoFormatToString(formatIndex);
 
 
@@ -5165,9 +4780,10 @@ namespace Plugin {
 
         if( format.compare("none") == 0 || format.compare("Current") == 0)
         {
-            formatIndex = ConvertVideoFormatToHDRFormat(GetCurrentContentFormat());
-            if( HDR_TYPE_NONE == formatIndex )
-                formatIndex = HDR_TYPE_SDR; //Consider format invalid as SDR
+	    tvVideoFormatType_t formatIndex = VIDEO_FORMAT_NONE;
+            GetCurrentVideoFormat(&formatIndex);
+            if( VIDEO_FORMAT_NONE == formatIndex )
+                formatIndex = VIDEO_FORMAT_SDR;
         }
         else
         {
@@ -5231,6 +4847,18 @@ namespace Plugin {
 	{
             GetCurrentSource(&sourceIndex);
         }
+
+        char picMode[PIC_MODE_NAME_MAX]={0};
+        int pqmodeIndex = 0;
+        if(!getCurrentPictureMode(picMode))
+        {
+            LOGERR("Failed to get the Current picture mode\n");
+        }
+        else
+        {
+            std::string local = picMode;
+            pqmodeIndex = getPictureModeIndex(local);
+        }
         memset(&param, 0, sizeof(param));
         if (format == tvContentFormatType_HLG ) 
 	{
@@ -5244,7 +4872,9 @@ namespace Plugin {
         tr181ErrorCode_t err = getLocalParam(rfc_caller_id, rfc_param.c_str(), &param);
         if ( tr181Success != err) 
 	{
-            tvError_t retVal = GetDefaultParams(GetCurrentPQIndex(),sourceIndex,ConvertHDRFormatToContentFormat((tvhdr_type_t)format), PQ_PARAM_DOLBY_MODE,&dolby_mode_value);
+            tvError_t retVal = GetDefaultParams(pqmodeIndex,(tvVideoSrcType_t)sourceIndex,
+			                         (tvVideoFormatType_t)ConvertHDRFormatToContentFormatODM((tvhdr_type_t)format),
+						 PQ_PARAM_DOLBY_MODE,&dolby_mode_value);
 	    if( retVal != tvERROR_NONE )
             {
                 LOGERR("%s : failed\n",__FUNCTION__);
@@ -5261,9 +4891,9 @@ namespace Plugin {
         return ret;
     }
 
-    int AVOutputTV::getDimmingModeIndex(std::string mode)
+    tvDimmingMode_t AVOutputTV::getDimmingModeIndex(std::string mode)
     {
-        unsigned short index = 1;
+        tvDimmingMode_t index = tvDimmingMode_MAX;
 
         if(mode.compare("local") == 0 )
             index=tvDimmingMode_Local;
@@ -5306,7 +4936,6 @@ namespace Plugin {
         TR181_ParamData_t param;
         std::string tr181_param_name;
         int currentSource = 0;
-        int current_format = 0;
 
         ret = GetCurrentSource(&currentSource);
         if(ret != tvERROR_NONE)
@@ -5315,8 +4944,9 @@ namespace Plugin {
 	    return 0;
         }
 
-        current_format = ConvertVideoFormatToHDRFormat(GetCurrentContentFormat());
-        if ( current_format  == HDR_TYPE_NONE) current_format  = HDR_TYPE_SDR;
+	tvVideoFormatType_t current_format = VIDEO_FORMAT_NONE;
+        GetCurrentVideoFormat(&current_format);
+        if ( current_format  == VIDEO_FORMAT_NONE) current_format  = VIDEO_FORMAT_SDR;
 
         tr181_param_name += std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
         tr181_param_name += "." + convertSourceIndexToString(currentSource) + "." + "Format."+convertVideoFormatToString(current_format)+"."+"PictureModeString";
@@ -5350,13 +4980,25 @@ namespace Plugin {
     {
         int ret=0;
         TR181_ParamData_t param;
+        int pqmodeIndex = 0;
+        char picMode[PIC_MODE_NAME_MAX]={0};
+        if(!getCurrentPictureMode(picMode))
+        {
+            LOGERR("Failed to get the Current picture mode\n");
+        }
+        else
+        {
+            std::string local = picMode;
+            pqmodeIndex = getPictureModeIndex(local);
+        }
         std ::string rfc_param = AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM + std::to_string(sourceIndex) + "."+"DolbyVisionMode";
         memset(&param, 0, sizeof(param));
         tr181ErrorCode_t err = getLocalParam(rfc_caller_id, rfc_param.c_str(), &param);
 
         if ( tr181Success != err) 
 	{
-            tvError_t retVal = GetDefaultParams(GetCurrentPQIndex(),sourceIndex, formatIndex, PQ_PARAM_DOLBY_MODE, &value);
+            tvError_t retVal = GetDefaultParams(pqmodeIndex,(tvVideoSrcType_t)sourceIndex, (tvVideoFormatType_t)formatIndex,
+			                        PQ_PARAM_DOLBY_MODE, &value);
             if( retVal != tvERROR_NONE )
             {
                 LOGERR("%s : failed\n",__FUNCTION__);
@@ -5417,7 +5059,7 @@ namespace Plugin {
         pic_modes_t *hdr10Modes;
         unsigned short totalAvailable = 0;
     
-        tvError_t ret = GetTVSupportedHDR10Modes(&hdr10Modes,&totalAvailable);
+        tvError_t ret = GetTVSupportedHDR10ModesODM(&hdr10Modes,&totalAvailable);
         if(ret == tvERROR_NONE) 
 	{
             for(int count = 0;count <totalAvailable;count++ )
@@ -5444,7 +5086,7 @@ namespace Plugin {
         pic_modes_t *hlgModes;
         unsigned short totalAvailable = 0;
     
-        tvError_t ret = GetTVSupportedHLGModes(&hlgModes,&totalAvailable);
+        tvError_t ret = GetTVSupportedHLGModesODM(&hlgModes,&totalAvailable);
         if(ret == tvERROR_NONE) 
 	{
             for(int count = 0;count <totalAvailable;count++ )
