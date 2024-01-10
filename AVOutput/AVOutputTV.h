@@ -155,8 +155,6 @@ class AVOutputTV : public AVOutputBase {
 		int getFormatIndex(std::string format);		
 		int getPqParamIndex();
 		int getParamIndex(string source,string pqmode,string format,int& sourceIndex,int& pqmodeIndex,int& formatIndex);
-		int getHDR10ModeIndex(const char * hdr10Mode);
-		int getHLGModeIndex(const char * hlgMode);
 		int GetDolbyModeIndex(const char * dolbyMode);
 		tvDimmingMode_t getDimmingModeIndex(string mode);
 		
@@ -173,8 +171,9 @@ class AVOutputTV : public AVOutputBase {
 		int FetchCapablities(string pqparam, string & source, string & pqmode, string & format);
 		int validateInputParameter(std::string param, std::string inputValue);
 
-
+                /* AVoutput ini file default entries */
 		void LocatePQSettingsFile(void);
+		/* Intialise the last set picture mode at bootup */
 		tvError_t InitializePictureMode();		
 		
 
@@ -188,16 +187,26 @@ class AVOutputTV : public AVOutputBase {
 		//std::string convertSourceIndexToString(int sourceIndex);
 		//std::string convertVideoFormatToString( int formatIndex );
 		void convertUserScaleBacklightToDriverScale(int format,int * params);
-		
-		tvError_t updatePQParamToLocalCache(std::string forParam, int source, int pqmode, int format, int value,bool setNotDelete);
-		int updatePQParamsToCache( std::string action, std::string tr181ParamName, std::string pqmode, std::string source, std::string format, tvPQParameterIndex_t pqParamIndex, int params[] );
-		tvError_t SyncPQParamsToDriverCache(std::string pqmode, std::string source, std::string format);
-		int SyncSourceFormatPicModeToCache(std::string pqmode, std::string source, std::string format);
+	
+	        /* Update TR181 with new values when app calls set/reset calls */	
+		tvError_t UpdateAVoutputTVParamToHAL(std::string forParam, int source, int pqmode, int format, int value,bool setNotDelete);
+		/* updatePQParamsToCache will call updatePQParamToLocalCache for writing to TR181.
+		 * it will call TVSettings HAL for setting/saving the value
+		 * Will be called whenever the application invokes set/reset call
+		 */
+		int UpdateAVoutputTVParam( std::string action, std::string tr181ParamName, std::string pqmode, std::string source, std::string format, tvPQParameterIndex_t pqParamIndex, int params[] );
+
+		/* Every bootup this function is called to sync TR181 to TVSettings HAL for saving the value */
+		tvError_t SyncAvoutputTVParamsToHAL(std::string pqmode, std::string source, std::string format);
+		/* Every Bootup this function is called to sync TR181 to TVSettings HAL for saving the picture mode assiocation to source */
+		int SyncAvoutputTVPQModeParamsToHAL(std::string pqmode, std::string source, std::string format);
 		
 		uint32_t generateStorageIdentifier(std::string &key, std::string forParam,int contentFormat, int pqmode, int source);
 		uint32_t generateStorageIdentifierDirty(std::string &key, std::string forParam,uint32_t contentFormat, int pqmode);
 
 		std::string getErrorString (tvError_t eReturn);
+
+		/* Get function to query TR181 entries or pq capability.ini file*/
 		int getSaveConfig(std::string pqmode, std::string source, std::string format,std::vector<int> &sources,std::vector<int> &picturemodes, std::vector<int> &formats);
 		int getLocalparam(std::string forParam,int formatIndex,int pqIndex,int sourceIndex,int &value,
 		  tvPQParameterIndex_t pqParamIndex ,bool cms=false,int tunnel_type=0);
@@ -211,8 +220,6 @@ class AVOutputTV : public AVOutputBase {
 		void getColorTempStringFromEnum(int value, std::string &toStore);
 		int getCurrentPictureMode(char *picMode);
 		int getDolbyParamToSync(int sourceIndex, int formatIndex, int& value);
-		int getHDR10ParamToSync(int& value);
-		int getHLGParamToSync( int& value);
 		std::string getDolbyModeStringFromEnum( tvDolbyMode_t mode);
 		JsonArray getSupportedVideoSource(void);
 		int getAvailableCapabilityModesWrapper(std::string param, std::string & outparam);
