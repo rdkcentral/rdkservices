@@ -1,0 +1,591 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "NetworkManager",
+        "class": "NetworkManager",
+        "description": "The `NetworkManager` plugin allows you to manage network and wifi interfaces on a set-top box."
+    },
+    "common": {
+        "$ref": "../../common/common.json"
+    },
+    "definitions": {
+        "interface": {
+            "summary": "An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface in `getInterfaces`",
+            "type": "string",
+            "example": "wlan0"
+        },
+        "ipversion": {
+            "summary": "either IPv4 or IPv6",
+            "type": "string",
+            "example": "IPv4"
+        },
+        "autoconfig": {
+            "summary": "`true` if DHCP is used, `false` if IP is configured manually",
+            "type": "boolean",
+            "example": true
+        },
+        "dhcpserver": {
+            "summary": "The DHCP Server address",
+            "type": "string",
+            "example": "192.168.1.1"
+        },
+        "ipaddress": {
+            "summary": "The IP address",
+            "type": "string",
+            "example": "192.168.1.101"
+        },
+        "prefix": {
+            "summary": "The prefix number",
+            "type": "integer",
+            "example": 123
+        },
+        "v6LinkLocal": {
+            "summary": "The v6LinkLocal",
+            "type": "string",
+            "example": "192.168.1.1"
+        },
+        "gateway": {
+            "summary": "The gateway address",
+            "type": "string",
+            "example": "192.168.1.1"
+        },
+        "primarydns": {
+            "summary": "The primary DNS address",
+            "type": "string",
+            "example": "192.168.1.1"
+        },
+        "secondarydns": {
+            "summary": "The secondary DNS address",
+            "type": "string",
+            "example": "192.168.1.2"
+        },
+        "port":{
+            "summary": "STUN server port",
+            "type": "integer",
+            "example": "3478"
+        },
+        "endPoint":{
+            "summary": "STUN server endPoint",
+            "type": "string",
+            "example": "stun.l.google.com"
+        },
+        "endpoint":{
+            "summary": "The host name or IP address",
+            "type": "string",
+            "example": "45.57.221.20"
+        },
+        "bindTimeout":{
+            "summary": "STUN server bind timeout",
+            "type": "integer",
+            "example": "30"
+        },
+        "cacheTimeout":{
+            "summary": "STUN server cache timeout",
+            "type": "integer",
+            "example": "0"
+        },
+        "state": {
+            "summary": "Internet Connection state",
+            "type": "integer",
+            "example": 2
+        },
+        "guid": {
+            "summary": "The globally unique identifier",
+            "type": "string",
+            "example": ""
+        },
+        "noOfRequest": {
+            "summary": "The number of packets to send. Default is 15.",
+            "type": "integer",
+            "example": 10
+        },
+        "timeout":{
+            "summary": "STUN server bind timeout",
+            "type": "integer",
+            "example": "30"
+        }
+    },
+    "methods": {
+        "GetPrimaryInterface": {
+            "summary": "Gets the Primary/default network interface. The active network interface is defined as the one that can make requests to the external network. Returns one of the supported interfaces as per `getInterfaces`, or an empty value which indicates that there is no default network interface.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "interface": {
+                        "$ref": "#/definitions/interface"
+                    }
+                },
+                "required": [
+                    "interface"
+                ]
+            }
+        },
+        "SetPrimaryInterface":{
+            "summary": "Sets the Primary/default interface. The call fails if the interface is not enabled.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "interface": {
+                        "$ref": "#/definitions/interface"
+                    },
+                    "persist":{
+                        "summary": "Whether the default interface setting persists after reboot. When `true`, this interface is enabled as the default interface currently AND on the next reboot. When `false`, this interface is only the default during this session.",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "interface",
+                    "persist"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+        "GetIPSettings":{
+            "summary": "Gets the IP setting for the given interface.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "interface": {
+                        "$ref": "#/definitions/interface"
+                    },
+                    "ipversion": {
+                        "$ref": "#/definitions/ipversion"
+                    }
+                },
+                "required": [
+                    "interface"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "interface": {
+                        "$ref": "#/definitions/interface"
+                    },
+                    "ipversion": {
+                        "$ref": "#/definitions/ipversion"
+                    },
+                    "autoconfig": {
+                        "$ref": "#/definitions/autoconfig"
+                    },
+                    "dhcpserver": {
+                        "$ref": "#/definitions/dhcpserver"
+                    },
+                    "ipaddress": {
+                        "$ref": "#/definitions/ipaddress"
+                    },
+                    "prefix": {
+                        "$ref": "#/definitions/prefix"
+                    },
+                    "gateway": {
+                        "$ref": "#/definitions/gateway"
+                    },
+                    "v6LinkLocal": {
+                        "$ref": "#/definitions/v6LinkLocal"
+                    },
+                    "primarydns": {
+                        "$ref": "#/definitions/primarydns"
+                    },
+                    "secondarydns": {
+                        "$ref": "#/definitions/secondarydns"
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "interface",
+                    "ipversion",
+                    "autoconfig",
+                    "ipaddress",
+                    "prefix",
+                    "v6LinkLocal",
+                    "gateway",
+                    "primarydns",
+                    "secondarydns",
+                    "success"  
+                ]
+            }
+        },
+        "SetIPSettings":{
+            "summary": "Sets the IP settings.All the inputs are mandatory for v1. But for v2, the interface and autconfig params are mandatory input to autoconfig IP settings & other parameters not required. For manual IP, all the input parameters are mandatory except secondaryDNS.",
+            "events":{
+                "onIPAddressStatusChanged" : "Triggered when each IP address is lost or acquired."
+            },
+            "params": {
+                "type":"object",
+                "properties": {
+                    "interface": {
+                        "$ref": "#/definitions/interface"
+                    },
+                    "ipversion": {
+                        "$ref": "#/definitions/ipversion"
+                    },
+                    "autoconfig": {
+                        "$ref": "#/definitions/autoconfig"
+                    },
+                    "ipaddress": {
+                        "$ref": "#/definitions/ipaddress"
+                    },
+                    "prefix": {
+                        "$ref": "#/definitions/prefix"
+                    },
+                    "gateway": {
+                        "$ref": "#/definitions/gateway"
+                    },
+                    "primarydns": {
+                        "$ref": "#/definitions/primarydns"
+                    },
+                    "secondarydns": {
+                        "$ref": "#/definitions/secondarydns"
+                    }
+                },
+                "required": [
+                    "interface",
+                    "ipversion",
+                    "autoconfig",
+                    "ipaddress",
+                    "prefix",
+                    "gateway",
+                    "primarydns",
+                    "secondarydns"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "success"  
+                ]
+            }
+        },
+        "GetStunEndpoint": {
+            "summary": "Get the Stun Endpoint used for getPublicIP.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "endPoint": {
+                        "$ref": "#/definitions/endPoint"
+                    },
+                    "port": {
+                        "$ref": "#/definitions/port"
+                    },
+                    "bindTimeout": {
+                        "$ref": "#/definitions/bindTimeout"
+                    },
+                    "cacheTimeout": {
+                        "$ref": "#/definitions/cacheTimeout"
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "endPoint",
+                    "port",
+                    "bindTimeout",
+                    "cacheTimeout",
+                    "success"
+                ]
+            }
+        },
+        "setStunEndPoint":{
+            "summary": "Set the Stun Endpoint used for getPublicIP.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "endPoint": {
+                        "$ref": "#/definitions/endPoint"
+                    },
+                    "port": {
+                        "$ref": "#/definitions/port"
+                    },
+                    "bindTimeout": {
+                        "$ref": "#/definitions/bindTimeout"
+                    },
+                    "cacheTimeout": {
+                        "$ref": "#/definitions/cacheTimeout"
+                    }
+                },
+                "required": [
+                    "endPoint",
+                    "port",
+                    "bindTimeout",
+                    "cacheTimeout"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+               },
+                "required": [
+                    "public_ip",
+                    "success"
+                ]
+            }
+        },
+        "GetConnectivityTestEndpoints":{
+            "summary": "Get connectivity test endpoints. on success list out the connectivity test points connections.",
+            "result": {
+                "type":"object",
+                "properties": {
+                    "endpoints": {
+                        "summary": "",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "http://clients3.google.com/generate_204"
+                        }
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "endpoints",
+                    "success"
+                ]
+            }
+        },
+        "SetConnectivityTestEndpoints":{
+            "summary": "Define up to 5 endpoints for a connectivity test. Successful connections are verified with HTTP Status code 204 (No Content). Priority is given to endpoints configured in /etc/netsrvmgr.conf. In case of errors or if not configured, the default endpoints are considered: `http://clients3.google.com/generate_204`.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "endpoints": {
+                        "summary": "A list of endpoints to test",
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "http://clients3.google.com/generate_204"
+                        }
+                    }
+                },
+                "required": [
+                    "endpoints"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+        "IsConnectedToInternet":{
+            "summary": "Whether the device has internet connectivity. This API might take up to 2s to validate internet connectivity.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "ipversion": {
+                        "$ref": "#/definitions/ipversion"
+                    }
+                }
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "isConnectedToInternet": {
+                        "summary": "`true` if internet connectivity is detected, otherwise `false`",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "internetState": {
+                        "$ref": "#/definitions/state"
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "isConnectedToInternet",
+                    "internetState",
+                    "success"
+                ]
+            }
+        },
+        "GetCaptivePortalURI":{
+            "summary": "Returns the captive portal URI if connected to any captive portal network.",
+            "result": {
+                "type": "object",
+                "properties": {
+                     "uri": {
+                        "summary": "Captive portal URI",
+                        "type": "string",
+                        "example": "http://10.0.0.1/captiveportal.jst"
+                    },
+                    "success":{
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "uri",
+                    "success"
+                ]
+            }
+        },
+        "StartConnectivityMonitoring":{
+            "summary": "Enable a continuous monitoring of internet connectivity with heart beat interval thats given.",
+            "events":{
+                 "onInternetStatusChange" : "Triggered when internet connection state changed."
+            },
+            "params": {
+                "type":"object",
+                "properties": {
+                    "interval": {
+                        "summary": "Interval in sec. Default value 60 sec and interval should be greater than 5 sec",
+                        "type": "number",
+                        "example": "30"
+                    }
+                },
+                "required": [
+                    "interval"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "success":{
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            }
+        },
+        "StopConnectivityMonitoring":{
+            "summary": "Stops the connectivity monitoring.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "success":{
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            }
+        },
+         "getPublicIP":{
+            "summary": "It allows either zero parameter or with only interface and ipv6 parameter to determine WAN ip address.",
+            "params": {
+                "type":"object",
+                "summary":"it allows empty parameter too",
+                "properties": {
+                    "ipversion": {
+                        "$ref": "#/definitions/ipversion"
+                    }
+                },
+                "required": [
+                    "ipversion"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "publicIP":{
+                        "summary": "Returns an public ip of the device ,if ipv6 is `true`,returns IPv6 public ip , otherwise returns IPv4 public ip",
+                        "type":"string",
+                        "example": "69.136.49.95"
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "publicIP",
+                    "success"
+                ]
+            }
+        },
+        "ping":{
+            "summary": "Pings the specified endpoint with the specified number of packets.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "endpoint":{
+                        "$ref": "#/definitions/endpoint"
+                    },
+                    "ipversion": {
+                        "$ref": "#/definitions/ipversion"
+                    },
+                    "noOfRequest": {
+                        "$ref": "#/definitions/noOfRequest"
+                    },
+                    "timeout": {
+                        "$ref": "#/definitions/timeout"
+                    },
+                    "guid": {
+                        "$ref": "#/definitions/guid"
+                    }
+                },
+                "required": [
+                    "endpoint",
+                    "ipversion",
+                    "noOfRequest",
+                    "timeout",
+                    "guid"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            }
+        },
+
+        "trace":{
+            "summary": "Traces the specified endpoint with the specified number of packets using `traceroute`.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "endpoint":{
+                        "$ref": "#/definitions/endpoint"                       
+                    },
+                    "ipversion": {
+                        "$ref": "#/definitions/ipversion"
+                    },
+                    "noOfRequest": {
+                        "$ref": "#/definitions/noOfRequest"
+                    },
+                    "guid": {
+                        "$ref": "#/definitions/guid"
+                    }
+                },
+                "required": [
+                    "endpoint",
+                    "ipversion",
+                    "noOfRequest",
+                    "guid"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            }
+        }
+    }
+}
