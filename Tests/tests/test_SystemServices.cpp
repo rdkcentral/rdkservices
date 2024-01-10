@@ -1228,7 +1228,7 @@ TEST_F(SystemServicesTest, getLastWakeupKeyCode)
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_DEEPSLEEPMGR_NAME)));
                 EXPECT_EQ(string(methodName), string(_T(IARM_BUS_DEEPSLEEPMGR_API_GetLastWakeupKeyCode)));
-                auto param = static_cast<IARM_Bus_DeepSleepMgr_WakeupKeyCode_Param_t*>(arg);
+                auto param = static_cast<DeepSleepMgr_WakeupKeyCode_Param_t*>(arg);
                 param->keyCode = 5;
                 return IARM_RESULT_SUCCESS;
             });
