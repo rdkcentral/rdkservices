@@ -2,7 +2,7 @@
 * If not stated otherwise in this file or this component's LICENSE file the
 * following copyright and licenses apply:
 *
-* Copyright 2022 Sky UK
+* Copyright 2024 Sky UK
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -930,7 +930,7 @@ namespace Plugin {
 
         if(ret != tvERROR_NONE) 
 	{
-            LOGWARN("Failed to set Backlight\n");
+            LOGERR("Failed to set Backlight\n");
             returnResponse(false);
         }
         else 
@@ -1144,7 +1144,7 @@ namespace Plugin {
 
 	if(ret != tvERROR_NONE) 
 	{
-            LOGWARN("Failed to set Brightness\n");
+            LOGERR("Failed to set Brightness\n");
             returnResponse(false);
         }
         else 
@@ -1356,7 +1356,7 @@ namespace Plugin {
 
         if(ret != tvERROR_NONE) 
 	{
-            LOGWARN("Failed to set Contrast\n");
+            LOGERR("Failed to set Contrast\n");
             returnResponse(false);
         }
         else 
@@ -1569,7 +1569,7 @@ namespace Plugin {
 
         if(ret != tvERROR_NONE) 
 	{
-            LOGWARN("Failed to set Saturation\n");
+            LOGERR("Failed to set Saturation\n");
             returnResponse(false);
         }
         else 
@@ -1784,7 +1784,7 @@ namespace Plugin {
 
         if(ret != tvERROR_NONE) 
 	{
-            LOGWARN("Failed to set Sharpness\n");
+            LOGERR("Failed to set Sharpness\n");
             returnResponse(false);
         }
         else 
@@ -1998,7 +1998,7 @@ namespace Plugin {
 
         if(ret != tvERROR_NONE) 
 	{
-            LOGWARN("Failed to set Hue\n");
+            LOGERR("Failed to set Hue\n");
             returnResponse(false);
         }
         else 
@@ -2250,7 +2250,7 @@ namespace Plugin {
 
         if(ret != tvERROR_NONE) 
 	{
-            LOGWARN("Failed to set ColorTemperature\n");
+            LOGERR("Failed to set ColorTemperature\n");
             returnResponse(false);
         }
         else {
@@ -2478,7 +2478,7 @@ namespace Plugin {
 
 	if(ret != tvERROR_NONE) 
 	{
-            LOGWARN("Failed to set DimmingMode\n");
+            LOGERR("Failed to set DimmingMode\n");
             returnResponse(false);
         }
         else 
@@ -2725,7 +2725,7 @@ namespace Plugin {
 
         if(ret != tvERROR_NONE) 
 	{
-            LOGWARN("Failed to set DolbyVisionMode\n\n");
+            LOGERR("Failed to set DolbyVisionMode\n\n");
             returnResponse(false);
         }
         else 
@@ -3389,7 +3389,7 @@ namespace Plugin {
 
         if(ret != tvERROR_NONE) 
 	{
-            LOGWARN("Failed to setLowLatency\n");
+            LOGERR("Failed to setLowLatency\n");
             returnResponse(false);
         }
         else 
