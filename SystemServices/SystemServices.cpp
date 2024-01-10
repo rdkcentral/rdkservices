@@ -1875,7 +1875,7 @@ namespace WPEFramework {
          uint32_t SystemServices::getLastWakeupKeyCode(const JsonObject& parameters, JsonObject& response)
          {
               bool status = false;
-              IARM_Bus_DeepSleepMgr_WakeupKeyCode_Param_t param;
+              DeepSleepMgr_WakeupKeyCode_Param_t param;
               uint32_t wakeupKeyCode = 0;
 
               IARM_Result_t res = IARM_Bus_Call((m_isPwrMgr2RFCEnabled)? IARM_BUS_PWRMGR_NAME : IARM_BUS_DEEPSLEEPMGR_NAME,
