@@ -327,9 +327,13 @@ TEST_F(SystemServicesEventTest, Timezone)
     Core::Event changed2(false, true);
     Core::Event changed3(false, true);
     Core::Event changed4(false, true);
+    Core::Event changed5(false, true);
+    Core::Event changed6(false, true);
+    Core::Event changed7(false, true);
+    Core::Event changed8(false, true);
 
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
-        .Times(4)
+        .Times(8)
         .WillOnce(::testing::Invoke(
             [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
                 string text;
@@ -411,6 +415,90 @@ TEST_F(SystemServicesEventTest, Timezone)
                 changed4.SetEvent();
 
                 return Core::ERROR_NONE;
+            }))
+
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_THAT(text, ::testing::MatchesRegex(_T("\\{"
+                                                             "\"jsonrpc\":\"2.0\","
+                                                             "\"method\":\"org.rdk.System.onTimeZoneDSTChanged\","
+                                                             "\"params\":"
+                                                             "\\{"
+                                                             "\"oldTimeZone\":\".*\","
+                                                             "\"newTimeZone\":\"Universal\","
+                                                             "\"oldAccuracy\":\".*\","
+                                                             "\"newAccuracy\":\".*\""
+                                                             "\\}"
+                                                             "\\}")));
+
+                changed5.SetEvent();
+
+                return Core::ERROR_NONE;
+            }))
+
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, string(_T("{"
+                                          "\"jsonrpc\":\"2.0\","
+                                          "\"method\":\"org.rdk.System.onTimeZoneDSTChanged\","
+                                          "\"params\":"
+                                          "{"
+                                          "\"oldTimeZone\":\"Universal\","
+                                          "\"newTimeZone\":\"Universal\","
+                                          "\"oldAccuracy\":\"INITIAL\","
+                                          "\"newAccuracy\":\"INTERIM\""
+                                          "}"
+                                          "}")));
+
+                changed6.SetEvent();
+
+                return Core::ERROR_NONE;
+            }))
+
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, string(_T("{"
+                                          "\"jsonrpc\":\"2.0\","
+                                          "\"method\":\"org.rdk.System.onTimeZoneDSTChanged\","
+                                          "\"params\":"
+                                          "{"
+                                          "\"oldTimeZone\":\"Universal\","
+                                          "\"newTimeZone\":\"Universal\","
+                                          "\"oldAccuracy\":\"INTERIM\","
+                                          "\"newAccuracy\":\"FINAL\""
+                                          "}"
+                                          "}")));
+
+                changed7.SetEvent();
+
+                return Core::ERROR_NONE;
+            }))
+
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, string(_T("{"
+                                          "\"jsonrpc\":\"2.0\","
+                                          "\"method\":\"org.rdk.System.onTimeZoneDSTChanged\","
+                                          "\"params\":"
+                                          "{"
+                                          "\"oldTimeZone\":\"Universal\","
+                                          "\"newTimeZone\":\"America\\/New_York\","
+                                          "\"oldAccuracy\":\"FINAL\","
+                                          "\"newAccuracy\":\"FINAL\""
+                                          "}"
+                                          "}")));
+
+                changed8.SetEvent();
+
+                return Core::ERROR_NONE;
             })) ;
 
     handler.Subscribe(0, _T("onTimeZoneDSTChanged"), _T("org.rdk.System"), message);
@@ -441,7 +529,37 @@ TEST_F(SystemServicesEventTest, Timezone)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTimeZoneDST"), _T("{\"timeZone\":\"America/New_York\",\"accuracy\":\"<wrong accuracy>\"}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 
-    EXPECT_EQ(Core::ERROR_NONE, changed3.Lock());
+    EXPECT_EQ(Core::ERROR_NONE, changed4.Lock());
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTimeZoneDST"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"timeZone\":\"America\\/New_York\",\"accuracy\":\"FINAL\",\"success\":true}"));
+    
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTimeZoneDST"), _T("{\"timeZone\":\"Universal\",\"accuracy\":\"INITIAL\"}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, changed5.Lock());
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTimeZoneDST"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"timeZone\":\"Universal\",\"accuracy\":\"INITIAL\",\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTimeZoneDST"), _T("{\"timeZone\":\"Universal\",\"accuracy\":\"INTERIM\"}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, changed6.Lock());
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTimeZoneDST"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"timeZone\":\"Universal\",\"accuracy\":\"INTERIM\",\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTimeZoneDST"), _T("{\"timeZone\":\"Universal\",\"accuracy\":\"FINAL\"}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, changed7.Lock());
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTimeZoneDST"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"timeZone\":\"Universal\",\"accuracy\":\"FINAL\",\"success\":true}"));
+ 
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setTimeZoneDST"), _T("{\"timeZone\":\"America/New_York\",\"accuracy\":\"<wrong accuracy>\"}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, changed8.Lock());
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getTimeZoneDST"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"timeZone\":\"America\\/New_York\",\"accuracy\":\"FINAL\",\"success\":true}"));

@@ -67,7 +67,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 2
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 1
+#define API_VERSION_NUMBER_PATCH 2
 
 #define MAX_REBOOT_DELAY 86400 /* 24Hr = 86400 sec */
 #define TR181_FW_DELAY_REBOOT "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"
@@ -2355,6 +2355,8 @@ namespace WPEFramework {
                 JsonObject& response)
 	{
 		bool resp = true;
+                bool isUniversal = false, isOlson = true;
+
 		if (parameters.HasLabel("timeZone")) {
 			std::string dir = dirnameOf(TZ_FILE);
 			std::string timeZone = "";
@@ -2364,11 +2366,21 @@ namespace WPEFramework {
 				if (timeZone.empty() || (timeZone == "null")) {
 					LOGERR("Empty timeZone received.");
 				}
-				else if( (pos == string::npos) ||  ( (pos != string::npos) &&  (pos+1 == timeZone.length())  )   )
-				{
-					LOGERR("Invalid timezone format received : %s . Timezone should be in Olson format  Ex : America/New_York .  \n", timeZone.c_str());
-				}
-				else {
+
+                                if( (timeZone.compare("Universal")) == 0) {
+                                     isUniversal = true;
+                                     isOlson = false;
+                                }
+
+                                if(isOlson) {
+
+				     if( (pos == string::npos) ||  ( (pos != string::npos) &&  (pos+1 == timeZone.length())  )   )
+				     {
+					LOGERR("Invalid timezone format received : %s . Timezone should be in either Universal or  Olson format  Ex : America/New_York . \n", timeZone.c_str());
+				     }
+                                }
+
+                                if( (isUniversal == true) || (isOlson == true)) {
 					std::string path =ZONEINFO_DIR;
 					path += "/";
 					std::string country = timeZone.substr(0,pos);
