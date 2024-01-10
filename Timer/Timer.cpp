@@ -18,6 +18,7 @@
 **/
 
 #include "Timer.h"
+#include "irMgr.h"
 
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
@@ -130,7 +131,7 @@ namespace WPEFramework
             for (auto it = m_runningItems.cbegin(); it != m_runningItems.cend(); ++it)
             {
                 unsigned int timerId = *it;
-                if (timerId < 0 || timerId >= m_timerItems.size())
+                if (timerId >= m_timerItems.size()) //CID 144111
                 {
                     LOGERR("Internal error: wrong timerId");
                     continue;
@@ -223,7 +224,7 @@ namespace WPEFramework
             for (auto it = m_runningItems.cbegin(); it != m_runningItems.cend(); ++it)
             {
                 unsigned int timerId = *it;
-                if (timerId < 0 || timerId >= m_timerItems.size())
+                if (timerId >= m_timerItems.size()) //cID 144114
                 {
                     LOGERR("Internal error: wrong timerId");
                     continue;
@@ -316,7 +317,8 @@ namespace WPEFramework
 
             item.state = INITIAL;
             item.interval = std::stod(parameters["interval"].String());
-
+            item.repeatInterval = 0.0;
+            item.remindBefore = 0.0;
             item.mode = GENERIC;
             if (parameters.HasLabel("mode"))
             {
@@ -352,7 +354,7 @@ namespace WPEFramework
             unsigned int timerId;
             getNumberParameter("timerId", timerId);
 
-            if (timerId >=0 && timerId < m_timerItems.size())
+            if (timerId < m_timerItems.size()) //CID 144115
             {
                 if (CANCELED != m_timerItems[timerId].state)
                 {
@@ -382,7 +384,7 @@ namespace WPEFramework
             unsigned int timerId;
             getNumberParameter("timerId", timerId);
 
-            if (timerId >=0 && timerId < m_timerItems.size())
+            if (timerId < m_timerItems.size())//CID 144112
             {
                 if (RUNNING == m_timerItems[timerId].state)
                 {
@@ -412,7 +414,7 @@ namespace WPEFramework
             unsigned int timerId;
             getNumberParameter("timerId", timerId);
 
-            if (timerId >=0 && timerId < m_timerItems.size())
+            if (timerId < m_timerItems.size()) //CID 144110
             {
                 if (SUSPENDED == m_timerItems[timerId].state)
                 {
@@ -443,7 +445,7 @@ namespace WPEFramework
             unsigned int timerId;
             getNumberParameter("timerId", timerId);
 
-            if (timerId >= 0 && timerId < m_timerItems.size())
+            if (timerId < m_timerItems.size()) //CID 144113
             {
                 getTimerStatus(timerId, response);
             }
