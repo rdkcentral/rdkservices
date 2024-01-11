@@ -1906,7 +1906,7 @@ namespace WPEFramework {
             gRdkShellMutex.lock();
             for (unsigned int i=0; i<gCreateDisplayRequests.size(); i++)
             {
-                if (gCreateDisplayRequests[i])
+                if (gCreateDisplayRequests[i]) //CID 283089
                 {
                     sem_destroy(&gCreateDisplayRequests[i]->mSemaphore);
                     gCreateDisplayRequests[i] = nullptr;
@@ -4211,11 +4211,11 @@ namespace WPEFramework {
                         std::cout << "scaling app to fit full screen" << std::endl;
                         double sx = 1.0;
                         double sy = 1.0;
-                       if (width != screenWidth && width !=0)
+                       if (width != screenWidth && width !=0) //CID 175306
                         {
                             sx = (double)screenWidth / (double)width;
                         }
-                        if (height != screenHeight && height!=0)
+                        if (height != screenHeight && height!=0) //CID 175325
                         {
                             sy = (double)screenHeight / (double)height;
                         }
@@ -4638,7 +4638,7 @@ namespace WPEFramework {
                         returnResponse(false);
                     }
 
-                    char* runtimeDir = getenv("XDG_RUNTIME_DIR");
+                    char* runtimeDir = getenv("XDG_RUNTIME_DIR"); //CID 177982
                     string display;
                     if(NULL != runtimeDir){
                         display = string(runtimeDir) + "/" + (gRdkShellSurfaceModeEnabled ? RDKSHELL_SURFACECLIENT_DISPLAYNAME : "wst-"+uri);
@@ -6070,7 +6070,7 @@ namespace WPEFramework {
             {
                 string input = parameters["input"].String();
 
-                if (input != "default" && input != "keyboard")
+                if (input != "default" && input != "keyboard") //CID 328473
                 {
                     response["message"] = "not supported input type";
                     returnResponse(false);
@@ -6456,7 +6456,7 @@ namespace WPEFramework {
             if (displayNameItr != gPluginDisplayNameMap.end())
             {
                 std::string clientId(callsign + ',' + displayNameItr->second);
-                std::cout << "setAVBlocked callsign: " << callsign << " clientIdentifier:<"<<clientId<<">blockAV:"<<std::boolalpha << blockAV << std::noboolalpha << std::endl;
+                std::cout << "setAVBlocked callsign: " << callsign << " clientIdentifier:<"<<clientId<<">blockAV:"<<std::boolalpha << blockAV << std::noboolalpha << std::endl; // CID 283204
                 status = CompositorController::setAVBlocked(clientId, blockAV);
             }
             else
@@ -7482,6 +7482,7 @@ namespace WPEFramework {
             bool isSuspended = params["suspended"].Boolean();
         if (mLaunchEnabled)
             {
+	      //CID 164080 changes params name	
               JsonObject launchParams;
               launchParams["client"] = mCallSign;
               launchParams["launchType"] = (isSuspended)?"suspend":"resume";
@@ -7491,6 +7492,7 @@ namespace WPEFramework {
 
             if (isSuspended)
             {
+		//CID 164090 changed params name	
                 JsonObject suspendedParams;
                 suspendedParams["client"] = mCallSign;
                 mRDKShell.notify(RDKShell::RDKSHELL_EVENT_ON_PLUGIN_SUSPENDED,suspendedParams);
