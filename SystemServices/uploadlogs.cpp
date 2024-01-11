@@ -31,6 +31,7 @@
 #include "UtilsLogging.h"
 #include "UtilscRunScript.h"
 #include "UtilsfileExists.h"
+#include "secure_wrapper.h"
 
 #define TR181_MTLS_LOGUPLOAD "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.MTLS.mTlsLogUpload.Enable"
 
@@ -109,11 +110,21 @@ namespace
     err_t archiveLogs(const string& filename, string& path)
     {
         err_t ret = OK;
-
         string tmp = "/tmp/" + filename;
-        string cmd = "tar -C /opt/logs -zcf " + tmp + " ./";
+        string cmd = tmp + " ./";
+        FILE *pipe = NULL;
 
-        Utils::cRunScript(C_STR(cmd));
+        pipe = v_secure_popen("r", "tar -C /opt/logs -zcf %s ./",C_STR(tmp));
+        if (pipe == NULL)
+        {
+            LOGERR("%s: v_secure_popen failed with result: %s", __FUNCTION__,
+                             strerror(errno));
+        }
+        else
+        {
+            v_secure_pclose(pipe);
+        }
+
         if (!Utils::fileExists(C_STR(tmp)))
             ret = TarFail;
         else
