@@ -35,7 +35,7 @@ add_library(${MODULE_NAME} SHARED
 )
 
 if(ENABLE_LEGACY_NSM_SUPPORT)
-add_library(${MODULE_NAME} SHARED NetworkManagerLegacy.cpp)
+target_sources(${MODULE_NAME} PRIVATE NetworkManagerLegacy.cpp)
 endif ()
 
 if(ENABLE_LEGACY_NSM_SUPPORT)
