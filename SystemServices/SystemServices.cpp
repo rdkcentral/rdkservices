@@ -1221,11 +1221,29 @@ namespace WPEFramework {
         {
             LOGWARN("SystemService updatingFirmware\n");
 #if defined(ENABLE_RDKVFW_RDKE)
-	    string command("/usr/bin/rdkvfwupgrader 0 4 >> /opt/logs/swupdate.log &");
+            char buff[1024] = { '\0' };
+
+            FILE* pipe2 = v_secure_popen("r", "/usr/bin/rdkvfwupgrader %s %s %s", "0", "4", "&");
+            FILE *fp2 = fopen("/opt/logs/swupdate.log", "a");
+            if (pipe2 && fp2)
+            {
+                memset(buff, 0, sizeof(buff));
+                while (fgets(buff, sizeof(buff), pipe2))
+                {
+                    fputs(buff, fp2);
+                    memset(buff, 0, sizeof(buff));
+                }
+                v_secure_pclose(pipe2);
+                fclose(fp2);
+            }
+            else
+            {
+                LOGERR("Unable to run /usr/bin/rdkvfwupgrader script");
+            }
 #else
             string command("/lib/rdk/deviceInitiatedFWDnld.sh 0 4 >> /opt/logs/swupdate.log &");
-#endif
             Utils::cRunScript(command.c_str());
+#endif
             returnResponse(true);
         }
 
@@ -2340,114 +2358,115 @@ namespace WPEFramework {
          */
         uint32_t SystemServices::setTimeZoneDST(const JsonObject& parameters,
                 JsonObject& response)
-	{
-		bool resp = true;
-		if (parameters.HasLabel("timeZone")) {
-			std::string dir = dirnameOf(TZ_FILE);
-			std::string timeZone = "";
-			try {
-				timeZone = parameters["timeZone"].String();
-				size_t pos = timeZone.find("/");
-				if (timeZone.empty() || (timeZone == "null")) {
-					LOGERR("Empty timeZone received.");
-				}
-				else if( (pos == string::npos) ||  ( (pos != string::npos) &&  (pos+1 == timeZone.length())  )   )
-				{
-					LOGERR("Invalid timezone format received : %s . Timezone should be in Olson format  Ex : America/New_York .  \n", timeZone.c_str());
-				}
-				else {
-					std::string path =ZONEINFO_DIR;
-					path += "/";
-					std::string country = timeZone.substr(0,pos);
-					std::string city = path+timeZone;
-					if( dirExists(path+country)  && Utils::fileExists(city.c_str()) ) 
-					{
-						if (!dirExists(dir)) {
-							std::string command = "mkdir -p " + dir + " \0";
-							Utils::cRunScript(command.c_str());
-						} else {
-							//Do nothing//
-						}
-						std::string oldTimeZoneDST = getTimeZoneDSTHelper();
-						
-						if (oldTimeZoneDST != timeZone) {
-							FILE *f = fopen(TZ_FILE, "w");
-							if (f) {
-								if (timeZone.size() != fwrite(timeZone.c_str(), 1, timeZone.size(), f))
-								{
-									LOGERR("Failed to write %s", TZ_FILE);
-									resp = false;
-								}
+        {
+            bool resp = true;
+            if (parameters.HasLabel("timeZone")) {
+                std::string dir = dirnameOf(TZ_FILE);
+                std::string timeZone = "";
+                try {
+                    timeZone = parameters["timeZone"].String();
+                    size_t pos = timeZone.find("/");
+                    if (timeZone.empty() || (timeZone == "null")) {
+                        LOGERR("Empty timeZone received.");
+                    }
+                    else if( (pos == string::npos) ||  ( (pos != string::npos) &&  (pos+1 == timeZone.length())  )   )
+                    {
+                        LOGERR("Invalid timezone format received : %s . Timezone should be in Olson format  Ex : America/New_York .  \n", timeZone.c_str());
+                    }
+                    else {
+                        std::string path =ZONEINFO_DIR;
+                        path += "/";
+                        std::string country = timeZone.substr(0,pos);
+                        std::string city = path+timeZone;
+                        if( dirExists(path+country)  && Utils::fileExists(city.c_str()) )
+                        {
+                            if (!dirExists(dir)) {
+                                if (Core::Directory(dir.c_str()).CreatePath() == false)
+                                {
+                                    LOGERR("Error creating dir");
+                                }
+                            } else {
+                                //Do nothing//
+                            }
+                            std::string oldTimeZoneDST = getTimeZoneDSTHelper();
+                            if (oldTimeZoneDST != timeZone) {
+                                FILE *f = fopen(TZ_FILE, "w");
+                                if (f) {
+                                    if (timeZone.size() != fwrite(timeZone.c_str(), 1, timeZone.size(), f))
+                                    {
+                                        LOGERR("Failed to write %s", TZ_FILE);
+                                        resp = false;
+                                    }
 
-								fflush(f);
-								fsync(fileno(f));
-								fclose(f);
+                                    fflush(f);
+                                    fsync(fileno(f));
+                                    fclose(f);
 #ifdef ENABLE_LINK_LOCALTIME
-								// Now create the linux link back to the zone info file to our writeable localtime
-                                				if (Utils::fileExists(LOCALTIME_FILE)) {
-                                					remove (LOCALTIME_FILE);
-                                				}
+                                    // Now create the linux link back to the zone info file to our writeable localtime
+                                    if (Utils::fileExists(LOCALTIME_FILE)) {
+                                        remove (LOCALTIME_FILE);
+                                    }
 
-								LOGWARN("Linux localtime linked to %s\n", city.c_str());
-								symlink(city.c_str(), LOCALTIME_FILE);
+                                    LOGWARN("Linux localtime linked to %s\n", city.c_str());
+                                    symlink(city.c_str(), LOCALTIME_FILE);
 #endif
-							} else {
-								LOGERR("Unable to open %s file.\n", TZ_FILE);
-								populateResponseWithError(SysSrv_FileAccessFailed, response);
-								resp = false;
-							}
-						}
+                                } else {
+                                    LOGERR("Unable to open %s file.\n", TZ_FILE);
+                                    populateResponseWithError(SysSrv_FileAccessFailed, response);
+                                    resp = false;
+                                }
+                            }
 
-						std::string oldAccuracy = getTimeZoneAccuracyDSTHelper();
-						std::string accuracy = oldAccuracy;
+                            std::string oldAccuracy = getTimeZoneAccuracyDSTHelper();
+                            std::string accuracy = oldAccuracy;
 
-						if (parameters.HasLabel("accuracy")) {
-							accuracy = parameters["accuracy"].String();
-							if (accuracy != TZ_ACCURACY_INITIAL && accuracy != TZ_ACCURACY_INTERIM && accuracy != TZ_ACCURACY_FINAL) {
-								LOGERR("Wrong TimeZone Accuracy: %s", accuracy.c_str());
-								accuracy = oldAccuracy;
-							}
-						}
+                            if (parameters.HasLabel("accuracy")) {
+                                accuracy = parameters["accuracy"].String();
+                                if (accuracy != TZ_ACCURACY_INITIAL && accuracy != TZ_ACCURACY_INTERIM && accuracy != TZ_ACCURACY_FINAL) {
+                                    LOGERR("Wrong TimeZone Accuracy: %s", accuracy.c_str());
+                                    accuracy = oldAccuracy;
+                                }
+                            }
 
-						if (accuracy != oldAccuracy) {
-							FILE *f = fopen(TZ_ACCURACY_FILE, "w");
-							if (f) {
-								if (accuracy.size() != fwrite(accuracy.c_str(), 1, accuracy.size(), f))
-								{
-									LOGERR("Failed to write %s", TZ_ACCURACY_FILE);
-									resp = false;
-								}
+                            if (accuracy != oldAccuracy) {
+                                FILE *f = fopen(TZ_ACCURACY_FILE, "w");
+                                if (f) {
+                                    if (accuracy.size() != fwrite(accuracy.c_str(), 1, accuracy.size(), f))
+                                    {
+                                        LOGERR("Failed to write %s", TZ_ACCURACY_FILE);
+                                        resp = false;
+                                    }
 
-								fflush(f);
-								fsync(fileno(f));
-								fclose(f);
-							}
-						}
+                                    fflush(f);
+                                    fsync(fileno(f));
+                                    fclose(f);
+                                }
+                            }
 
-						if (SystemServices::_instance && (oldTimeZoneDST != timeZone || oldAccuracy != accuracy))
-							SystemServices::_instance->onTimeZoneDSTChanged(oldTimeZoneDST,timeZone,oldAccuracy, accuracy);
+                            if (SystemServices::_instance && (oldTimeZoneDST != timeZone || oldAccuracy != accuracy))
+                                SystemServices::_instance->onTimeZoneDSTChanged(oldTimeZoneDST,timeZone,oldAccuracy, accuracy);
 
-					}
-					else{
-						LOGERR("Invalid timeZone  %s received. Timezone not supported in TZ Database. \n", timeZone.c_str());
-						populateResponseWithError(SysSrv_FileNotPresent, response);
-						resp = false;
-					}
+                        }
+                        else{
+                            LOGERR("Invalid timeZone  %s received. Timezone not supported in TZ Database. \n", timeZone.c_str());
+                            populateResponseWithError(SysSrv_FileNotPresent, response);
+                            resp = false;
+                        }
 
 #ifdef DISABLE_GEOGRAPHY_TIMEZONE
-                    std::string tzenv = ":";
-                    tzenv += timeZone;
-                    Core::SystemInfo::SetEnvironment(_T("TZ"), tzenv.c_str());
+                        std::string tzenv = ":";
+                        tzenv += timeZone;
+                        Core::SystemInfo::SetEnvironment(_T("TZ"), tzenv.c_str());
 #endif
-				}
-			} catch (...) {
-				LOGERR("catch block : parameters[\"timeZone\"]...");
-			}
-		} else {
-			populateResponseWithError(SysSrv_MissingKeyValues, response);
-		}
-		returnResponse(resp);
-	}
+                    }
+                } catch (...) {
+                    LOGERR("catch block : parameters[\"timeZone\"]...");
+                }
+            } else {
+                populateResponseWithError(SysSrv_MissingKeyValues, response);
+            }
+            returnResponse(resp);
+        }
 
 
 	uint32_t SystemServices::setTerritory(const JsonObject& parameters, JsonObject& response)
