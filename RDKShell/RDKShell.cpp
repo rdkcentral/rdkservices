@@ -25,6 +25,7 @@
 #include <thread>
 #include <fstream>
 #include <sstream>
+#include <condition_variable>
 #include <unistd.h>
 #include <rdkshell/compositorcontroller.h>
 #include <rdkshell/application.h>
@@ -52,7 +53,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 4
-#define API_VERSION_NUMBER_PATCH 11
+#define API_VERSION_NUMBER_PATCH 13
 
 const string WPEFramework::Plugin::RDKShell::SERVICE_NAME = "org.rdk.RDKShell";
 //methods
@@ -204,6 +205,10 @@ static Device_Mode_FactoryModes_t sFactoryMode = DEVICE_MODE_CVTE_B1_AGING;
 #ifdef HIBERNATE_SUPPORT_ENABLED
 std::mutex gSuspendedOrHibernatedApplicationsMutex;
 map<string, bool> gSuspendedOrHibernatedApplications;
+
+std::mutex gHibernateBlockedMutex;
+int gHibernateBlocked;
+std::condition_variable gHibernateBlockedCondVariable;
 #endif
 
 #define ANY_KEY 65536
@@ -249,6 +254,48 @@ enum AppLastExitReason
     CRASH,
     DEACTIVATED
 };
+
+
+#ifdef HIBERNATE_SUPPORT_ENABLED
+
+static void setHibernateBlocked(bool val)
+{
+	std::unique_lock<std::mutex> lock(gHibernateBlockedMutex);
+	if (val)
+	{
+		gHibernateBlocked++;
+	}
+	else
+	{
+		gHibernateBlocked--;
+	}
+	std::cout << "setHibernateBlocked("<< gHibernateBlocked <<")" << std::endl;
+    lock.unlock();
+	gHibernateBlockedCondVariable.notify_all();
+}
+
+static bool waitForHibernateUnblocked(int timeoutMs)
+{
+	std::unique_lock<std::mutex> lock(gHibernateBlockedMutex);
+	while (gHibernateBlocked > 0)
+	{
+	    std::cout << "Hibernation blocked, waiting" << std::endl;
+		if (gHibernateBlockedCondVariable.wait_for(lock, std::chrono::milliseconds(timeoutMs))
+		    == std::cv_status::timeout)
+		    break;
+	}
+
+	if (gHibernateBlocked > 0)
+	{
+		std::cout << "Hibernation still blocked after "  << timeoutMs << "ms !" << std::endl;
+		return false;
+	}
+
+	std::cout << "Hibernation not blocked" << std::endl;
+	return true;
+}
+
+#endif
 
 #ifdef RDKSHELL_READ_MAC_ON_STARTUP
 static bool checkFactoryMode_wrapper()
@@ -6241,6 +6288,16 @@ namespace WPEFramework {
                 std::thread requestsThread =
                 std::thread([=]()
                 {
+                    if (!waitForHibernateUnblocked(RDKSHELL_THUNDER_TIMEOUT))
+                    {
+                        std::cout << "Hibernation of " << callsign << " ignored!" << std::endl;
+                        JsonObject eventMsg;
+                        eventMsg["success"] = false;
+                        eventMsg["message"] = "hibernation blocked";
+                        notify(RDKShell::RDKSHELL_EVENT_ON_HIBERNATED, eventMsg);
+                        return;
+                    }
+
                     auto thunderController = RDKShell::getThunderControllerClient();
                     JsonObject request, result, eventMsg;
                     request["callsign"] = callsign;
@@ -6576,6 +6633,17 @@ namespace WPEFramework {
                                 skipFocus = gSuspendedOrHibernatedApplications[previousFocusedIterator->first];
                             }
 
+                            // If app is not suspended nor hibernated, the hibernation for app can still be triggered
+                            // while waiting in a call to QueryInterfaceByCallsign() or Focused(). Further execution
+                            // of QueryInterfaceByCallsign() or Focused() may cause unwanted wakeup.
+                            // Make sure all new hibernations are blocked untill setting the focuse to false finished
+                            if (skipFocus == false)
+                            {
+                                setHibernateBlocked(true);
+                            }
+
+                            gSuspendedOrHibernatedApplicationsMutex.unlock();
+
                             if (skipFocus == false)
                             {
 #endif
@@ -6588,12 +6656,12 @@ namespace WPEFramework {
                                     focusedCallsign->Release();
                                 }
 #ifdef HIBERNATE_SUPPORT_ENABLED
+                                setHibernateBlocked(false);
                              }
                             else
                             {
                                 std::cout << "setting the focus for " << compositorName << " to false skipped, plugin suspended or hibernated " << std::endl;
                             }
-                            gSuspendedOrHibernatedApplicationsMutex.unlock();
 #endif
                             break;
                         }
