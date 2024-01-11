@@ -221,11 +221,16 @@ namespace WPEFramework
             // JSON-RPC setup
             void RegisterAllMethods();
             void UnregisterAllMethods();
+#ifdef ENABLE_LEGACY_NSM_SUPPORT
+            void RegisterLegacyMethods();
+            void UnregisterLegacyMethods();
+#endif
 
             // JSON-RPC methods (take JSON in, spit JSON back out)
             uint32_t GetAvailableInterfaces (const JsonObject& parameters, JsonObject& response);
             uint32_t GetPrimaryInterface (const JsonObject& parameters, JsonObject& response);
             uint32_t SetPrimaryInterface (const JsonObject& parameters, JsonObject& response);
+            uint32_t SetInterfaceEnabled (const JsonObject& parameters, JsonObject& response);
             uint32_t GetIPSettings(const JsonObject& parameters, JsonObject& response);
             uint32_t SetIPSettings(const JsonObject& parameters, JsonObject& response);
             uint32_t GetStunEndpoint(const JsonObject& parameters, JsonObject& response);
@@ -251,7 +256,39 @@ namespace WPEFramework
             uint32_t StopWPS(const JsonObject& parameters, JsonObject& response);
             uint32_t GetWiFiSignalStrength(const JsonObject& parameters, JsonObject& response);
             uint32_t GetSupportedSecurityModes(const JsonObject& parameters, JsonObject& response);
- 
+#ifdef ENABLE_LEGACY_NSM_SUPPORT
+            uint32_t getInterfaces (const JsonObject& parameters, JsonObject& response);
+            uint32_t isInterfaceEnabled (const JsonObject& parameters, JsonObject& response);
+            uint32_t setInterfaceEnabled (const JsonObject& parameters, JsonObject& response);
+            uint32_t getStbIp (const JsonObject& parameters, JsonObject& response);
+            uint32_t getSTBIPFamily (const JsonObject& parameters, JsonObject& response);
+            uint32_t getPublicIP (const JsonObject& parameters, JsonObject& response);
+            uint32_t getDefaultInterface(const JsonObject& parameters, JsonObject& response);
+            uint32_t setDefaultInterface(const JsonObject& parameters, JsonObject& response);
+            uint32_t setIPSettings(const JsonObject& parameters, JsonObject& response);
+            uint32_t getIPSettings(const JsonObject& parameters, JsonObject& response);
+            uint32_t getInternetConnectionState(const JsonObject& parameters, JsonObject& response);
+            uint32_t ping(const JsonObject& parameters, JsonObject& response);
+            uint32_t isConnectedToInternet(const JsonObject& parameters, JsonObject& response);
+            uint32_t setConnectivityTestEndpoints(const JsonObject& parameters, JsonObject& response);
+            uint32_t startConnectivityMonitoring(const JsonObject& parameters, JsonObject& response);
+            uint32_t getCaptivePortalURI(const JsonObject& parameters, JsonObject& response);
+            uint32_t stopConnectivityMonitoring(const JsonObject& parameters, JsonObject& response);
+            uint32_t getPairedSSID(const JsonObject& parameters, JsonObject& response);
+            uint32_t getPairedSSIDInfo(const JsonObject& parameters, JsonObject& response);
+            uint32_t initiateWPSPairing(const JsonObject& parameters, JsonObject& response);
+            uint32_t isPaired(const JsonObject& parameters, JsonObject& response);
+            uint32_t saveSSID(const JsonObject& parameters, JsonObject& response);
+            uint32_t cancelWPSPairing(const JsonObject& parameters, JsonObject& response);
+            uint32_t clearSSID(const JsonObject& parameters, JsonObject& response);
+            uint32_t connect(const JsonObject& parameters, JsonObject& response);
+            uint32_t disconnect(const JsonObject& parameters, JsonObject& response);
+            uint32_t getConnectedSSID(const JsonObject& parameters, JsonObject& response);
+            uint32_t getSupportedSecurityModes(const JsonObject& parameters, JsonObject& response);
+            uint32_t startScan(const JsonObject& parameters, JsonObject& response);
+            uint32_t stopScan(const JsonObject& parameters, JsonObject& response);
+            uint32_t setEnabled(const JsonObject& parameters, JsonObject& response);
+#endif
         private:
             uint32_t _connectionId;
             PluginHost::IShell *_service;
