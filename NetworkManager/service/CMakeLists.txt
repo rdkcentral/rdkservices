@@ -31,6 +31,9 @@ message("Setup ${PROJECT_NAME} v${PROJECT_VERSION}")
 add_library(${MODULE_NAME} SHARED
         NetworkManager.cpp
         NetworkManagerJsonRpc.cpp
+if(ENABLE_LEGACY_NSM_SUPPORT)
+        NetworkManagerLegacy.cpp
+endif ()
         Module.cpp
 )
 
