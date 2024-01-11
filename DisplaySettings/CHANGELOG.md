@@ -24,6 +24,10 @@ All notable changes to this RDK Service will be documented in this file.
 ### Fixed
 - Added event for volume increase/decrease/mute/unmute events
 
+## [1.1.0] - 2023-06-08
+### Changed
+- Handled identifying Atmos sink capability for all audio output ports and host capability
+
 ## [1.0.23] - 2023-06-05
 ### Added 
 - Added Support to build the plugin to both R4 & R2
