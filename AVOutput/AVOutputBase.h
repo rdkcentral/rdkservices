@@ -51,8 +51,6 @@ namespace Plugin {
         ~AVOutputBase();
     public:
         uint8_t _skipURL;
-        bool isIARMConnected();
-        bool IARMinit();
         //   IPlugin methods
         // -------------------------------------------------------------------------------------------------------
         virtual void Initialize();

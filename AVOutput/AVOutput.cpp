@@ -28,15 +28,11 @@ namespace Plugin {
 
     AVOutput::AVOutput()
     {
-        LOGINFO("Entry\n");
-
-        //Common API Registration
-        LOGINFO("Exit \n");
+        LOGINFO("CTOR\n");
     }
 
     AVOutput::~AVOutput()
     {
-        LOGINFO();
     }
 
     const std::string AVOutput::Initialize(PluginHost::IShell* service)

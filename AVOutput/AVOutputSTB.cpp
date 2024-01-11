@@ -29,35 +29,14 @@ namespace Plugin {
 
     AVOutputSTB::AVOutputSTB()
     {
-        LOGINFO("Entry\n"); 
+        LOGINFO("CTOR\n"); 
         instance = this;
 
-        registerMethod("getVolume", &AVOutputSTB::getVolume, this );
-        registerMethod("setVolume", &AVOutputSTB::setVolume, this);
-
-        LOGINFO("Exit\n");
     }
     
     AVOutputSTB :: ~AVOutputSTB()
     {
-        LOGINFO();
     }
-
-    uint32_t AVOutputSTB::getVolume(const JsonObject& parameters, JsonObject& response)
-    {
-
-        LOGINFO("Entry\n");
-        LOGINFO("Exit : %s\n",__FUNCTION__);
-        returnResponse(true);
-    }
-    uint32_t AVOutputSTB::setVolume(const JsonObject& parameters, JsonObject& response)
-    {
-
-        LOGINFO("Entry\n");
-        LOGINFO("Exit : %s\n",__FUNCTION__);
-        returnResponse(true);
-    }
-
 
 }//namespace Plugin
 }//namespace WPEFramework

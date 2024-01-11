@@ -88,30 +88,25 @@ namespace Plugin {
         switch(format) 
 	{
             case VIDEO_FORMAT_SDR:
-                LOGINFO("Video Format: SDR\n");
                 strValue = "SDR";
                 break;
             case VIDEO_FORMAT_HDR10:
-                LOGINFO("Video Format: HDR10\n");
                 strValue = "HDR10";
                 break;
             case VIDEO_FORMAT_HDR10PLUS:
-                LOGINFO("Video Format: HDR10PLUS\n");
                 strValue = "HDR10PLUS";
                 break;
             case VIDEO_FORMAT_HLG:
-                LOGINFO("Video Format: HLG\n");
                 strValue = "HLG";
                 break;
             case VIDEO_FORMAT_DV:
-                LOGINFO("Video Format: DV\n");
                 strValue = "DV";
                 break;
             default:
-                LOGINFO("Video Format:: NONE\n");
                 strValue = "NONE";
                 break;
         }
+	LOGINFO("Video Format:%s\n", strValue);
         return strValue;
     }
 
@@ -133,43 +128,35 @@ namespace Plugin {
        switch(frameRate) 
        {
             case tvVideoFrameRate_24:
-                LOGINFO("Video FrameRate: 24\n");
                 strValue = "24";
                 break;
             case tvVideoFrameRate_25:
-                LOGINFO("Video FrameRate: 25\n");
                 strValue = "25";
                 break;
             case tvVideoFrameRate_30:
-                LOGINFO("Video FrameRate: 30\n");
                 strValue = "30";
                 break;
             case tvVideoFrameRate_50:
-                LOGINFO("Video FrameRate: 50\n");
                 strValue = "50";
                 break;
             case tvVideoFrameRate_60:
-                LOGINFO("Video FrameRate: 60\n");
                 strValue = "60";
                 break;
             case tvVideoFrameRate_23dot98:
-                LOGINFO("Video FrameRate: 23.98\n");
                 strValue = "23.98";
                 break;
             case tvVideoFrameRate_29dot97:
-                LOGINFO("Video FrameRate: 29.97\n");
                 strValue = "29.97";
                 break;
             case tvVideoFrameRate_59dot94:
-                LOGINFO("Video FrameRate: 59.94\n");
                 strValue = "59.94";
                 break;
             default:
-                LOGINFO("Video FrameRate: NONE\n");
                 strValue = "NONE";
                 break;
 
         }
+        LOGINFO("Video FrameRate: %s\n",strValue);
         return strValue;
     }
 
@@ -288,7 +275,7 @@ namespace Plugin {
                             , m_isDisabledHdmiIn4KZoom (false)
 	                    , rfc_caller_id()
     {
-        LOGINFO("Entry\n");
+        LOGINFO("CTOR\n");
         AVOutputTV::instance = this;
 
 		InitializeIARM();
@@ -365,7 +352,6 @@ namespace Plugin {
     
     AVOutputTV :: ~AVOutputTV()
     {
-        LOGINFO();
         DeinitializeIARM();	
     }
 
@@ -596,13 +582,15 @@ namespace Plugin {
 
             if(retval != 0) 
 	    {
-                LOGWARN("Failed to Save DisplayMode to ssm_data\n");
+                LOGERR("Failed to Save DisplayMode to ssm_data\n");
+		returnResponse(false);
             }
 
             tr181ErrorCode_t err = setLocalParam(rfc_caller_id, AVOUTPUT_ASPECTRATIO_RFC_PARAM, value.c_str());
             if ( err != tr181Success ) 
 	    {
-                LOGWARN("setLocalParam for %s Failed : %s\n", AVOUTPUT_ASPECTRATIO_RFC_PARAM, getTR181ErrorString(err));
+                LOGERR("setLocalParam for %s Failed : %s\n", AVOUTPUT_ASPECTRATIO_RFC_PARAM, getTR181ErrorString(err));
+		returnResponse(false);
             }
             else 
 	    {
@@ -769,7 +757,7 @@ namespace Plugin {
 
             if(ret != tvERROR_NONE) 
 	    {
-                LOGWARN("AspectRatio  set failed: %s\n",getErrorString(ret).c_str());
+                LOGERR("AspectRatio  set failed: %s\n",getErrorString(ret).c_str());
             }
             else 
 	    {
@@ -780,7 +768,8 @@ namespace Plugin {
 
                 if(retval != 0) 
 		{
-                    LOGWARN("Failed to Save DisplayMode to ssm_data\n");
+                    LOGERR("Failed to Save DisplayMode to ssm_data\n");
+		    ret = tvERROR_GENERAL;
                 }
                 LOGINFO("Aspect Ratio initialized successfully, value: %s\n", param.value);
             }
@@ -788,7 +777,7 @@ namespace Plugin {
         }
 	else
         {
-            LOGWARN("getLocalParam for %s Failed : %s\n", AVOUTPUT_ASPECTRATIO_RFC_PARAM, getTR181ErrorString(err));
+            LOGERR("getLocalParam for %s Failed : %s\n", AVOUTPUT_ASPECTRATIO_RFC_PARAM, getTR181ErrorString(err));
             ret = tvERROR_GENERAL;
         }
         return ret;
@@ -940,7 +929,8 @@ namespace Plugin {
             int retval= UpdateAVoutputTVParam("set","Backlight",pqmode,source,format,PQ_PARAM_BACKLIGHT,params);
             if(retval != 0 ) 
 	    {
-                LOGWARN("Failed to Save Backlight to ssm_data\n");
+                LOGERR("Failed to Save Backlight to ssm_data\n");
+		returnResponse(false);
             }
             LOGINFO("Exit : setBacklight successful to value: %d\n", backlight);
             returnResponse(true);
@@ -975,7 +965,7 @@ namespace Plugin {
 	int retval= UpdateAVoutputTVParam("reset","Backlight",pqmode,source,format,PQ_PARAM_BACKLIGHT,params);
         if(retval != 0 )
 	{
-            LOGWARN("Failed to reset Backlight\n");
+            LOGERR("Failed to reset Backlight\n");
             returnResponse(false);
         }
         else
@@ -991,7 +981,8 @@ namespace Plugin {
                 }
                 else
 		{
-                    LOGINFO("%s : GetLocalParam Failed \n",__FUNCTION__);
+                    LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
+		    ret = tvERROR_GENERAL;
 	        }
 	    }
         }
@@ -1080,7 +1071,7 @@ namespace Plugin {
 
         if (parsingGetInputArgument(parameters, "Brightness",source, pqmode, format) != 0)
         {
-            LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
+            LOGERR("%s: Failed to parse argument\n", __FUNCTION__);
             returnResponse(false);
         }
 
@@ -1154,7 +1145,8 @@ namespace Plugin {
             int retval= UpdateAVoutputTVParam("set","Brightness",pqmode,source,format,PQ_PARAM_BRIGHTNESS,params);
             if(retval != 0 ) 
 	    {
-                LOGWARN("Failed to Save Brightness to ssm_data\n");
+                LOGERR("Failed to Save Brightness to ssm_data\n");
+		returnResponse(false);
             }
             LOGINFO("Exit : setBrightness successful to value: %d\n", brightness);
             returnResponse(true);
@@ -1206,7 +1198,8 @@ namespace Plugin {
                 }
                 else
                 {
-                    LOGINFO("%s : GetLocalParam Failed \n",__FUNCTION__);
+                    LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
+		    ret = tvERROR_GENERAL;
                 }
             }
         }
@@ -1366,7 +1359,8 @@ namespace Plugin {
             int retval= UpdateAVoutputTVParam("set","Contrast",pqmode,source,format,PQ_PARAM_CONTRAST,params);
             if(retval != 0 ) 
 	    {
-                LOGWARN("Failed to Save Contrast to ssm_data\n");
+                LOGERR("Failed to Save Contrast to ssm_data\n");
+		returnResponse(false);
             }
             LOGINFO("Exit : setContrast successful to value: %d\n", contrast);
             returnResponse(true);
@@ -1419,7 +1413,8 @@ namespace Plugin {
                 }
                 else
                 {
-                    LOGINFO("%s : GetLocalParam Failed \n",__FUNCTION__);
+                    LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
+		    ret = tvERROR_GENERAL;
                 }
             }
         }
@@ -1579,7 +1574,8 @@ namespace Plugin {
             int retval= UpdateAVoutputTVParam("set","Saturation",pqmode,source,format,PQ_PARAM_SATURATION,params);
             if(retval != 0 ) 
 	    {
-                LOGWARN("Failed to Save Saturation to ssm_data\n");
+                LOGERR("Failed to Save Saturation to ssm_data\n");
+		returnResponse(false);
             }
             LOGINFO("Exit : setSaturation successful to value: %d\n", saturation);
             returnResponse(true);
@@ -1616,7 +1612,7 @@ namespace Plugin {
 
         if(retval != 0 )
         {
-            LOGWARN("Failed to reset Saturation\n");
+            LOGERR("Failed to reset Saturation\n");
             returnResponse(false);
         }
         else
@@ -1632,7 +1628,8 @@ namespace Plugin {
                 }
                 else
                 {
-                    LOGINFO("%s : GetLocalParam Failed \n",__FUNCTION__);
+                    LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
+		    ret = tvERROR_GENERAL;
                 }
             }
         }
@@ -1794,7 +1791,8 @@ namespace Plugin {
             int retval= UpdateAVoutputTVParam("set","Sharpness",pqmode,source,format,PQ_PARAM_SHARPNESS,params);
             if(retval != 0 ) 
 	    {
-                LOGWARN("Failed to Save Sharpness to ssm_data\n");
+                LOGERR("Failed to Save Sharpness to ssm_data\n");
+		returnResponse(false);
             }
             LOGINFO("Exit : setSharpness successful to value: %d\n", sharpness);
             returnResponse(true);
@@ -1831,7 +1829,7 @@ namespace Plugin {
 
         if(retval != 0 )
         {
-            LOGWARN("Failed to reset Sharpness\n");
+            LOGERR("Failed to reset Sharpness\n");
             returnResponse(false);
         }
         else
@@ -1847,7 +1845,8 @@ namespace Plugin {
                 }
                 else
                 {
-                    LOGINFO("%s : GetLocalParam Failed \n",__FUNCTION__);
+                    LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
+		    ret = tvERROR_GENERAL;
                 }
             }
         }
@@ -2008,7 +2007,8 @@ namespace Plugin {
             int retval= UpdateAVoutputTVParam("set","Hue",pqmode,source,format,PQ_PARAM_HUE,params);
             if(retval != 0 ) 
 	    {
-                LOGWARN("Failed to Save Hue to ssm_data\n");
+                LOGERR("Failed to Save Hue to ssm_data\n");
+		returnResponse(false);
             }
             LOGINFO("Exit : setHue successful to value: %d\n", hue);
             returnResponse(true);
@@ -2045,7 +2045,7 @@ namespace Plugin {
 
         if(retval != 0 )
         {
-            LOGWARN("Failed to reset Hue\n");
+            LOGERR("Failed to reset Hue\n");
             returnResponse(false);
         }
         else
@@ -2061,7 +2061,8 @@ namespace Plugin {
                 }
                 else
                 {
-                    LOGINFO("%s : GetLocalParam Failed \n",__FUNCTION__);
+                    LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
+		    ret = tvERROR_GENERAL;
                 }
             }
         }
@@ -2259,7 +2260,8 @@ namespace Plugin {
             int retval= UpdateAVoutputTVParam("set","ColorTemp",pqmode,source,format,PQ_PARAM_COLOR_TEMPERATURE,params);
             if(retval != 0 ) 
 	    {
-                LOGWARN("Failed to Save ColorTemperature to ssm_data\n");
+                LOGERR("Failed to Save ColorTemperature to ssm_data\n");
+		returnResponse(false);
             }
             LOGINFO("Exit : setColorTemperature successful to value: %d\n", colortemp);
             returnResponse(true);
@@ -2295,7 +2297,7 @@ namespace Plugin {
 
         if(retval != 0 )
         {
-            LOGWARN("Failed to reset ColorTemperature\n");
+            LOGERR("Failed to reset ColorTemperature\n");
             returnResponse(false);
         }
         else
@@ -2311,7 +2313,8 @@ namespace Plugin {
                 }
                 else
                 {
-                    LOGINFO("%s : GetLocalParam Failed \n",__FUNCTION__);
+                    LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
+		    ret = tvERROR_GENERAL;
                 }
             }
         }
@@ -2488,7 +2491,8 @@ namespace Plugin {
             int retval= UpdateAVoutputTVParam("set","DimmingMode",pqmode,source,format,PQ_PARAM_DIMMINGMODE,params);
             if(retval != 0 ) 
 	    {
-                LOGWARN("Failed to Save DimmingMode to ssm_data\n");
+                LOGERR("Failed to Save DimmingMode to ssm_data\n");
+                returnResponse(false);
             }
 
             LOGINFO("Exit : setDimmingMode successful to value: %d\n", dimmingMode);
@@ -2524,7 +2528,7 @@ namespace Plugin {
 
         if(retval != 0 )
         {
-            LOGWARN("Failed to reset ldim\n");
+            LOGERR("Failed to reset ldim\n");
             returnResponse(false);
         }
 
@@ -2542,7 +2546,8 @@ namespace Plugin {
                 }
                 else
                 {
-                    LOGINFO("%s : GetLocalParam Failed \n",__FUNCTION__);
+                    LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
+		    ret = tvERROR_GENERAL;
                 }
             }
         }
@@ -2736,7 +2741,8 @@ namespace Plugin {
             int retval= UpdateAVoutputTVParam("set","DolbyVisionMode",pqmode,source,format,PQ_PARAM_DOLBY_MODE,params);
             if(retval != 0 ) 
 	    {
-                LOGWARN("Failed to Save Dolbyvision mode\n");
+                LOGERR("Failed to Save Dolbyvision mode\n");
+		returnResponse(false);
             }
             LOGINFO("Exit : Dolbyvision successful to value: %s\n", value.c_str());
             returnResponse(true);
@@ -2798,7 +2804,7 @@ namespace Plugin {
         int retval= UpdateAVoutputTVParam("reset","DolbyVisionMode",pqmode,source,format,PQ_PARAM_DOLBY_MODE,params);
         if(retval != 0 )
         {
-            LOGWARN("Failed to reset DolbyVisionMode\n");
+            LOGERR("Failed to reset DolbyVisionMode\n");
             returnResponse(false);
         }
         else
@@ -2815,7 +2821,8 @@ namespace Plugin {
                 }
                 else
                 {
-                    LOGINFO("%s : GetLocalParam Failed \n",__FUNCTION__);
+                    LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
+		    ret = tvERROR_GENERAL;
                 }
             }
         }
@@ -3199,7 +3206,8 @@ namespace Plugin {
                     tr181ErrorCode_t err = setLocalParam(rfc_caller_id, tr181_param_name.c_str(), value.c_str());
                     if ( err != tr181Success ) 
 		    {
-                        LOGWARN("setLocalParam for %s Failed : %s\n", AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM, getTR181ErrorString(err));
+                        LOGERR("setLocalParam for %s Failed : %s\n", AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM, getTR181ErrorString(err));
+			returnResponse(false);
                     }
                     else 
 		    {
@@ -3283,7 +3291,7 @@ namespace Plugin {
                     if ( tr181Success == err )
                     {
                         //get curren source and if matches save for that alone
-		        int current_source = 0;
+		        tvVideoSrcType_t current_source = VIDEO_SOURCE_IP;
 		        GetCurrentSource(&current_source);
 
 			tvVideoFormatType_t current_format = VIDEO_FORMAT_NONE;
@@ -3399,7 +3407,8 @@ namespace Plugin {
             int retval= UpdateAVoutputTVParam("set","LowLatencyState",pqmode,source,format,PQ_PARAM_LOWLATENCY_STATE,params);
             if(retval != 0 ) 
 	    {
-                LOGWARN("Failed to SaveLowLatency to ssm_data\n");
+                LOGERR("Failed to SaveLowLatency to ssm_data\n");
+		returnResponse(false);
             }
             LOGINFO("Exit : setLowLatency successful to value: %d\n", lowLatencyIndex);
             returnResponse(true);
@@ -3468,7 +3477,7 @@ namespace Plugin {
         int retval= UpdateAVoutputTVParam("reset","LowLatencyState",pqmode,source,format,PQ_PARAM_LOWLATENCY_STATE,params);
         if(retval != 0 )
         {
-            LOGWARN("Failed to clear Lowlatency from ssmdata and localstore\n");
+            LOGERR("Failed to clear Lowlatency from ssmdata and localstore\n");
             returnResponse(false);
         }
         else
@@ -3484,7 +3493,8 @@ namespace Plugin {
                 }
                 else
                 {
-                    LOGINFO("%s : GetLocalParam Failed \n",__FUNCTION__);
+                    LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
+		    ret = tvERROR_GENERAL;
                 }
             }
         }
@@ -3559,7 +3569,7 @@ namespace Plugin {
     uint32_t AVOutputTV::getVideoSource(const JsonObject& parameters,JsonObject& response)
     {
         LOGINFO("Entry\n");
-        int currentSource = 0;
+        tvVideoSrcType_t currentSource = VIDEO_SOURCE_IP;
 
         tvError_t ret = GetCurrentSource(&currentSource);
         if(ret != tvERROR_NONE) 
@@ -3674,47 +3684,47 @@ namespace Plugin {
         if( !UpdateAVoutputTVParam("sync","Brightness",pqmode,source,format,PQ_PARAM_BRIGHTNESS,params))
             LOGINFO("Brightness Successfully sync to Drive Cache\n");
         else
-            LOGINFO("Brightness Sync to cache Failed !!!\n");
+            LOGERR("Brightness Sync to cache Failed !!!\n");
 
         if( !UpdateAVoutputTVParam("sync","Contrast",pqmode,source,format,PQ_PARAM_CONTRAST,params))
             LOGINFO("Contrast Successfully Synced to Drive Cache\n");
         else
-            LOGINFO("Contrast Sync to cache Failed !!!\n");
+            LOGERR("Contrast Sync to cache Failed !!!\n");
 
         if( !UpdateAVoutputTVParam("sync","Sharpness",pqmode,source,format,PQ_PARAM_SHARPNESS,params))
             LOGINFO("Sharpness Successfully Synced to Drive Cache\n");
         else
-            LOGINFO("Sharpness Sync to cache Failed !!!\n");
+            LOGERR("Sharpness Sync to cache Failed !!!\n");
 
         if( !UpdateAVoutputTVParam("sync","Saturation",pqmode,source,format,PQ_PARAM_SATURATION,params))
             LOGINFO("Saturation Successfully Synced to Drive Cache\n");
         else
-            LOGINFO("Saturation Sync to cache Failed !!!\n");
+            LOGERR("Saturation Sync to cache Failed !!!\n");
 
 	if( !UpdateAVoutputTVParam("sync","Hue",pqmode,source,format,PQ_PARAM_HUE,params))
             LOGINFO("Hue Successfully Synced to Drive Cache\n");
         else
-            LOGINFO("Hue Sync to cache Failed !!!\n");
+            LOGERR("Hue Sync to cache Failed !!!\n");
 
         if( !UpdateAVoutputTVParam("sync","ColorTemp",pqmode,source,format,PQ_PARAM_COLOR_TEMPERATURE,params))
             LOGINFO("ColorTemp Successfully Synced to Drive Cache\n");
         else
-            LOGINFO("ColorTemp Sync to cache Failed !!!\n");
+            LOGERR("ColorTemp Sync to cache Failed !!!\n");
 
         if( !UpdateAVoutputTVParam("sync","DolbyVisionMode",pqmode,source,"DV",PQ_PARAM_DOLBY_MODE,params))
             LOGINFO("dvmode Successfully Synced to Drive Cache\n");
         else
-            LOGINFO("dvmode Sync to cache Failed !!!\n");
+            LOGERR("dvmode Sync to cache Failed !!!\n");
 
         if( !UpdateAVoutputTVParam("sync","DimmingMode",pqmode,source,format,PQ_PARAM_DIMMINGMODE,params))
             LOGINFO("dimmingmode Successfully Synced to Drive Cache\n");
         else
-            LOGINFO("dimmingmode Sync to cache Failed !!!\n");
+            LOGERR("dimmingmode Sync to cache Failed !!!\n");
 
 	if( !UpdateAVoutputTVParam("sync","Backlight",pqmode,source,format,PQ_PARAM_BACKLIGHT,params) )
             LOGINFO("Backlight Successfully Synced to Drive Cache\n");
         else
-            LOGINFO("Backlight Sync to cache Failed !!!\n");
+            LOGERR("Backlight Sync to cache Failed !!!\n");
 
         LOGINFO("Exit %s : pqmode : %s source : %s format : %s\n",__FUNCTION__,pqmode.c_str(),source.c_str(),format.c_str());
         return tvERROR_NONE;
@@ -3829,7 +3839,7 @@ namespace Plugin {
         } 
         else if (source == "Current") 
         {
-            int currentSource = 0;
+            tvVideoSrcType_t currentSource = VIDEO_SOURCE_IP;
             tvError_t ret = GetCurrentSource(&currentSource);
             
 	    if(ret != tvERROR_NONE)
@@ -4359,7 +4369,7 @@ namespace Plugin {
         bool ret=false;
         char picMode[PIC_MODE_NAME_MAX]={0};
 	tvError_t retVal = tvERROR_NONE;
-	int sourceIndex = 0;
+	tvVideoSrcType_t sourceIndex = VIDEO_SOURCE_IP;
         std::string currentPicMode;
         std::string currentSource;
         std::string currentFormat;
@@ -4403,7 +4413,9 @@ namespace Plugin {
 
         if( source.compare("none") == 0 || source.compare("Current") == 0 )
         {
-            GetCurrentSource(&sourceIndex);
+	    tvVideoSrcType_t currentSource = VIDEO_SOURCE_IP;
+            GetCurrentSource(&currentSource);
+	    sourceIndex = (int)currentSource;
         }
         else
         {
@@ -4429,9 +4441,9 @@ namespace Plugin {
 
         if( format.compare("none") == 0 || format.compare("Current") == 0)
         {
-	    tvVideoFormatType_t formatIndex = VIDEO_FORMAT_NONE;
-            GetCurrentVideoFormat(&formatIndex);
-            if( VIDEO_FORMAT_NONE == formatIndex )
+	    tvVideoFormatType_t currentFormat = VIDEO_FORMAT_NONE;
+            GetCurrentVideoFormat(&currentFormat);
+            if( VIDEO_FORMAT_NONE == currentFormat )
                 formatIndex = VIDEO_FORMAT_SDR;
         }
         else
@@ -4486,11 +4498,11 @@ namespace Plugin {
         TR181_ParamData_t param;
 	std::string rfc_param = AVOUTPUT_HDR10MODE_RFC_PARAM;
         int dolby_mode_value = 0;
-        int sourceIndex = 0;
+        tvVideoSrcType_t sourceIndex = VIDEO_SOURCE_IP;
         /*Since dolby vision is source specific, we should for check for specific source*/
         if (!source.empty()) 
 	{
-            sourceIndex = getSourceIndex(source);
+            sourceIndex = (tvVideoSrcType_t)getSourceIndex(source);
 	} 
 	else 
 	{
@@ -4584,7 +4596,7 @@ namespace Plugin {
         tvError_t  ret = tvERROR_NONE;
         TR181_ParamData_t param;
         std::string tr181_param_name;
-        int currentSource = 0;
+        tvVideoSrcType_t currentSource = VIDEO_SOURCE_IP;
 
         ret = GetCurrentSource(&currentSource);
         if(ret != tvERROR_NONE)
@@ -5144,7 +5156,7 @@ namespace Plugin {
 	{
 		AVOutputBase::InitializeIARM();
 #if !defined (HDMIIN_4K_ZOOM)
-		if (IARMinit())
+		if (Utils::IARM::init())
 		{
 			IARM_Result_t res;
 			IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS, dsHdmiStatusEventHandler) );
@@ -5157,7 +5169,7 @@ namespace Plugin {
 	{
 		AVOutputBase::DeinitializeIARM();
 #if !defined (HDMIIN_4K_ZOOM)
-		if (isIARMConnected())
+		if (Utils::IARM::isConnected())
 		{
 			IARM_Result_t res;
 			IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS, dsHdmiStatusEventHandler) );
@@ -5170,7 +5182,7 @@ namespace Plugin {
     {
         tvError_t ret = tvERROR_NONE;
 	TR181_ParamData_t param;
-        int current_source = 0;
+        tvVideoSrcType_t current_source = VIDEO_SOURCE_IP;
         std::string tr181_param_name = "";
 	tvVideoFormatType_t current_format = VIDEO_FORMAT_NONE;
 

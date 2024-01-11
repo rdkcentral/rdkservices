@@ -29,79 +29,33 @@ namespace Plugin {
     AVOutputBase::AVOutputBase()
                : _skipURL(0)
     {
-        LOGINFO("Entry\n");
-        //Common API Registration
-        LOGINFO("Exit \n");
+        LOGINFO("CTOR\n");
     }
 
     AVOutputBase::~AVOutputBase()
     {
-        LOGINFO();
     }
 
     void AVOutputBase::Initialize()
     {
-	LOGINFO("Entry\n");
-	LOGINFO("Exit\n");
+	LOGINFO("AVOutputBase Initialize\n");
         
     }
 
     void AVOutputBase::Deinitialize()
     {
-	LOGINFO("Entry\n");
-	LOGINFO("Exit\n");
-
+	LOGINFO("AVOutputBase Deinitialize\n");
     }
     void AVOutputBase::InitializeIARM()
     {
-        LOGINFO("Entry\n");
-        LOGINFO("Exit\n");
+        LOGINFO("AVOutputBase InitializeIARM \n");
     }
 
     void AVOutputBase::DeinitializeIARM()
     {
-        LOGINFO("Entry\n");
-        LOGINFO("Exit\n");
+        LOGINFO("AVOutputBase De-InitializeIARM \n");
     }
 
-    bool AVOutputBase::IARMinit() {
-        IARM_Result_t res;
-        bool result = false;
-
-        if ( Utils::IARM::isConnected() ) {
-            LOGINFO("AVOutputPlugin: IARM already connected");
-            result = true;
-        } else {
-            result = Utils::IARM::init();
-            LOGINFO("AVOutputPlugin: IARM_Bus_Init: %d", result);
-            if ( result /* already inited or connected */) {
-
-                res = IARM_Bus_Connect();
-                LOGINFO("AVOutputPlugin: IARM_Bus_Connect: %d", res);
-                if (res == IARM_RESULT_SUCCESS ||
-                    res == IARM_RESULT_INVALID_STATE /* already connected or not inited */) {
-
-                    result = Utils::IARM::isConnected();
-                } else {
-                    LOGERR("AVOutputPlugin: IARM_Bus_Connect failure: %d", res);
-                }
-            } else {
-                LOGERR("AVOutputPlugin: IARM_Bus_Init failure");
-            }
-        }
-
-        return result;
-    }
-
-    bool AVOutputBase::isIARMConnected() 
-    {
-        IARM_Result_t res;
-        int isRegistered = 0;
-        res = IARM_Bus_IsConnected(PLUGIN_IARM_BUS_NAME, &isRegistered);
-        LOGINFO("AVOutputPlugin: IARM_Bus_IsConnected: %d (%d)", res, isRegistered);
-
-        return (isRegistered == 1);
-    }
 } //namespace WPEFramework
 
 } //namespace Plugin

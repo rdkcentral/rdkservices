@@ -46,9 +46,6 @@ class AVOutputSTB : public AVOutputBase {
         AVOutputSTB(const AVOutputSTB&) = delete;
         AVOutputSTB& operator=(const AVOutputSTB&) = delete;
 
-	DECLARE_JSON_RPC_METHOD(getVolume)
-        DECLARE_JSON_RPC_METHOD(setVolume)
-
     public:
 	AVOutputSTB();
 	~AVOutputSTB();
