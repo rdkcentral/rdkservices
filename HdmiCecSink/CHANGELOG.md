@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.2.3] - 2024-01-09
+### Fixed
+- Send Physical address synchronously and retried
+
 ## [1.2.2] - 2023-10-04
 ### Added
 - Implement Thunder Plugin Configuration for Kirkstone builds(CMake-3.20 & above)

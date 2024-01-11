@@ -172,8 +172,8 @@ static std::vector<RcProfile> rcProfile = {RC_PROFILE_TV};
 static std::vector<DeviceFeatures> deviceFeatures = {DEVICE_FEATURES_TV};
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 14
+#define API_VERSION_NUMBER_MINOR 2
+#define API_VERSION_NUMBER_PATCH 3
 
 namespace WPEFramework
 {
@@ -314,7 +314,7 @@ namespace WPEFramework
                  try
                  { 
                      LOGINFO(" sending ReportPhysicalAddress response physical_addr :%s logicalAddress :%x \n",physical_addr.toString().c_str(), logicalAddress.toInt());
-                     conn.sendToAsync(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(ReportPhysicalAddress(physical_addr,logicalAddress.toInt())));
+                     conn.sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(ReportPhysicalAddress(physical_addr,logicalAddress.toInt())), 500);
                  } 
                  catch(...)
                  {
