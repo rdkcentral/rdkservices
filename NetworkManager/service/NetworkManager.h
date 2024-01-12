@@ -296,8 +296,6 @@ namespace WPEFramework
             uint32_t getInterfaces (const JsonObject& parameters, JsonObject& response);
             uint32_t isInterfaceEnabled (const JsonObject& parameters, JsonObject& response);
             uint32_t setInterfaceEnabled (const JsonObject& parameters, JsonObject& response);
-            uint32_t getStbIp (const JsonObject& parameters, JsonObject& response);
-            uint32_t getSTBIPFamily (const JsonObject& parameters, JsonObject& response);
             uint32_t getPublicIP (const JsonObject& parameters, JsonObject& response);
             uint32_t getDefaultInterface(const JsonObject& parameters, JsonObject& response);
             uint32_t setDefaultInterface(const JsonObject& parameters, JsonObject& response);
@@ -323,7 +321,6 @@ namespace WPEFramework
             uint32_t getSupportedSecurityModes(const JsonObject& parameters, JsonObject& response);
             uint32_t startScan(const JsonObject& parameters, JsonObject& response);
             uint32_t stopScan(const JsonObject& parameters, JsonObject& response);
-            uint32_t setEnabled(const JsonObject& parameters, JsonObject& response);
 #endif
         private:
             uint32_t _connectionId;

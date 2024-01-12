@@ -191,7 +191,9 @@ namespace WPEFramework
             tmpParameters["autoconfig"] = parameters["autoconfig"];
             tmpParameters["ipaddress"] = parameters["ipaddr"];
             auto it = std::find(std::begin(CIDR_PREFIXES), std::end(CIDR_PREFIXES), parameters["netmask"].String());
-            if (it != std::end(CIDR_PREFIXES))
+            if (it == std::end(CIDR_PREFIXES))
+                return rc;
+            else
                 tmpParameters["prefix"] = std::distance(std::begin(CIDR_PREFIXES), it);
             tmpParameters["gateway"] = parameters["gateway"];
             tmpParameters["primarydns"] = parameters["primarydns"];
@@ -225,12 +227,15 @@ namespace WPEFramework
             if (Core::ERROR_NONE == rc)
             {
                 index = tmpResponse["prefix"].Number();
-                response["interface"]    = tmpParameters["interface"];
+                if(CIDR_NETMASK_IP_LEN <= index)
+                    return Core::ERROR_GENERAL;
+                else
+                    response["netmask"]  = CIDR_PREFIXES[index];
+                response["interface"]    = parameters["interface"];
                 response["ipversion"]    = tmpResponse["ipversion"];
                 response["autoconfig"]   = tmpResponse["autoconfig"];
                 response["dhcpserver"]   = tmpResponse["dhcpserver"];
                 response["ipaddr"]       = tmpResponse["ipaddress"];
-                response["netmask"]      = CIDR_PREFIXES[index];
                 response["gateway"]      = tmpResponse["gateway"];
                 response["primarydns"]   = tmpResponse["primarydns"];
                 response["secondarydns"] = tmpResponse["secondarydns"];
@@ -328,11 +333,11 @@ namespace WPEFramework
 
             tmpParameters["interface"] = interface;
             tmpParameters["ipversion"] = ipversion;
-            rc = GetIPSettings(tmpParameters, tmpResponse);
+            rc = GetPublicIP(tmpParameters, tmpResponse);
 
             if (Core::ERROR_NONE == rc)
             {
-                response["public_ip"]    = tmpResponse["ipaddress"];
+                response["public_ip"]    = tmpResponse["publicIP"];
                 response["success"]      = tmpResponse["success"];
             }
             return rc;
