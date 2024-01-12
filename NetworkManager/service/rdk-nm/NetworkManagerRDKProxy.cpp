@@ -4,6 +4,10 @@
 using namespace WPEFramework;
 using namespace WPEFramework::Plugin;
 using namespace std;
+
+namespace WPEC = WPEFramework::Core;
+namespace WPEJ = WPEFramework::Core::JSON;
+
 #define IARM_BUS_NM_SRV_MGR_NAME "NET_SRV_MGR"
 
 #define MAX_IP_ADDRESS_LEN          46

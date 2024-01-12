@@ -325,7 +325,7 @@ namespace WPEFramework
 
                 std::string json;
                 pingResult.ToString(json);
-                printf "params=%s\n", json.c_str());
+                printf("params=%s\n", json.c_str());
 
                 _notificationLock.Lock();
 
@@ -355,7 +355,7 @@ namespace WPEFramework
 
                 std::string json;
                 list.ToString(json);
-                printf "params=%s\n", json.c_str());
+                printf("params=%s\n", json.c_str());
 
                 _notificationLock.Lock();
 

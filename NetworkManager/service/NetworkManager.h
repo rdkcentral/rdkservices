@@ -137,8 +137,8 @@ namespace WPEFramework
                     JsonObject params;
                     params["prevState"] = static_cast <int> (oldState);
                     params["prevStatus"] = InternetStatusToString(oldState);
-                    params["state"] = static_cast <int> (currentActiveinterface);;
-                    params["status"] = InternetStatusToString(currentActiveinterface);
+                    params["state"] = static_cast <int> (newstate);;
+                    params["status"] = InternetStatusToString(newstate);
 
                     _parent.Notify("onInternetStatusChanged", params);
                 }
