@@ -1096,11 +1096,23 @@ namespace WPEFramework {
                 if(tvResolutions & dsTV_RESOLUTION_1080i)supportedTvResolutions.emplace_back("1080i");
                 if(tvResolutions & dsTV_RESOLUTION_1080p)supportedTvResolutions.emplace_back("1080p");
 		if(tvResolutions & dsTV_RESOLUTION_1080p24)supportedTvResolutions.emplace_back("1080p24");
-		if(tvResolutions & dsTV_RESOLUTION_1080i25)supportedTvResolutions.emplace_back("1080i25");
+#ifdef PLATFORM_BROADCOM
+                // additional mapping introduced by Broadcom in: https://code.rdkcentral.com/r/plugins/gitiles/collaboration/soc/broadcom/yocto_oe/layers/meta-rdk-broadcom-next/+/refs/tags/6.0.0_RELEASE/meta-brcm-refboard/meta-rdk-video/recipes-extended/devicesettings-hal-headers/files/SGMM393-104_TvResolutions_adding_more_resolutions.patch
+                if(tvResolutions & dsTV_RESOLUTION_1080p25)supportedTvResolutions.emplace_back("1080p25");
+#else
+                // HAL interface provided by Broadcom does not contain such resolution, dsTV_RESOLUTION_1080i25, removed by patch
+                // reference: https://code.rdkcentral.com/r/plugins/gitiles/collaboration/soc/broadcom/yocto_oe/layers/meta-rdk-broadcom-next/+/refs/tags/6.0.0_RELEASE/meta-brcm-refboard/meta-rdk-video/recipes-extended/devicesettings-hal-headers/files/SGMM393-104_TvResolutions_adding_more_resolutions.patch#9
+                if(tvResolutions & dsTV_RESOLUTION_1080i25)supportedTvResolutions.emplace_back("1080i25");
+#endif
 		if(tvResolutions & dsTV_RESOLUTION_1080p30)supportedTvResolutions.emplace_back("1080p30");
 		if(tvResolutions & dsTV_RESOLUTION_1080i50)supportedTvResolutions.emplace_back("1080i50");
 		if(tvResolutions & dsTV_RESOLUTION_1080p50)supportedTvResolutions.emplace_back("1080p50");
                 if(tvResolutions & dsTV_RESOLUTION_1080p60)supportedTvResolutions.emplace_back("1080p60");
+#ifdef PLATFORM_BROADCOM
+                // additional mapping introduced by Broadcom in: https://code.rdkcentral.com/r/plugins/gitiles/collaboration/soc/broadcom/yocto_oe/layers/meta-rdk-broadcom-next/+/refs/tags/6.0.0_RELEASE/meta-brcm-refboard/meta-rdk-video/recipes-extended/devicesettings-hal-headers/files/SGMM393-104_TvResolutions_adding_more_resolutions.patch
+                if(tvResolutions & dsTV_RESOLUTION_2160p24)supportedTvResolutions.emplace_back("2160p24");
+                if(tvResolutions & dsTV_RESOLUTION_2160p25)supportedTvResolutions.emplace_back("2160p25");
+#endif
                 if(tvResolutions & dsTV_RESOLUTION_2160p30)supportedTvResolutions.emplace_back("2160p30");
 		if(tvResolutions & dsTV_RESOLUTION_2160p50)supportedTvResolutions.emplace_back("2160p50");
                 if(tvResolutions & dsTV_RESOLUTION_2160p60)supportedTvResolutions.emplace_back("2160p60");
