@@ -25,20 +25,17 @@ namespace WPEFramework
 {
     namespace Plugin
     {
-#if 1
         static Plugin::Metadata<Plugin::NetworkManager> metadata(
             // Version (Major, Minor, Patch)
             NETWORKMANAGER_MAJOR_VERSION, NETWORKMANAGER_MINOR_VERSION, NETWORKMANAGER_PATCH_VERSION,
             // Preconditions
-            { subsystem::PLATFORM},
+            { subsystem::PLATFORM },
             // Terminations
             {},
             // Controls
-            { subsystem::INTERNET}
+            { subsystem::INTERNET }
         );
-#else
-        SERVICE_REGISTRATION(NetworkManager, NETWORKMANAGER_MAJOR_VERSION, NETWORKMANAGER_MINOR_VERSION, NETWORKMANAGER_PATCH_VERSION);
-#endif
+
         NetworkManager::NetworkManager()
             : _connectionId(0),
               _service(nullptr),

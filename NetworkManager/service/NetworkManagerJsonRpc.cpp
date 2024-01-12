@@ -19,8 +19,8 @@
 
 #include "NetworkManager.h"
 
-#define LOGINFOMETHOD() { std::string json; parameters.ToString(json); printf( "params=%s\n", json.c_str() ); }
-#define LOGTRACEMETHODFIN() { std::string json; response.ToString(json); printf( "response=%s\n", json.c_str() ); }
+#define LOGINFOMETHOD() { std::string json; parameters.ToString(json); printf("params=%s\n", json.c_str() ); }
+#define LOGTRACEMETHODFIN() { std::string json; response.ToString(json); printf("response=%s\n", json.c_str() ); }
 
 namespace WPEFramework
 {
@@ -115,7 +115,7 @@ namespace WPEFramework
 
             if (interfaces)
             {
-                printf ("received response\n");
+                printf("received response\n");
                 JsonArray array;
                 Exchange::INetworkManager::InterfaceDetails entry{};
                 while (interfaces->Next(entry) == true) {
@@ -130,7 +130,7 @@ namespace WPEFramework
                 }
 
                 interfaces->Release();
-                printf ("Sending Success\n");
+                printf("Sending Success\n");
                 response["interfaces"] = array;
                 response["success"] = true;
             }
@@ -572,7 +572,7 @@ namespace WPEFramework
             JsonArray ssids;
             ::WPEFramework::RPC::IIteratorType<string, RPC::ID_STRINGITERATOR>* _ssids{};
 
-            printf ("@@@@@ %s @@@@@@\n", __FUNCTION__);
+            printf("@@@@@ %s @@@@@@\n", __FUNCTION__);
             if (_NetworkManager)
                 rc = _NetworkManager->GetKnownSSIDs(_ssids);
 
