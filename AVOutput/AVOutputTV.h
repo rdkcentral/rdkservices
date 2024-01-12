@@ -230,6 +230,7 @@ class AVOutputTV : public AVOutputBase {
 		tvError_t getUserSelectedAspectRatio (tvDisplayMode_t* mode);
 
 		void BroadcastLowLatencyModeChangeEvent(bool lowLatencyMode);
+
 		tvError_t setAspectRatioZoomSettings(tvDisplayMode_t mode);
 		tvError_t setDefaultAspectRatio(std::string pqmode="all",std::string format="all",std::string source="all");
 
