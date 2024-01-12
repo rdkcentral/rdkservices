@@ -17,6 +17,10 @@ All notable changes to this RDK Service will be documented in this file.
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
 
+## [2.0.1] - 2024-01-02
+### Security
+- resolved security vulnerabilities
+
 ## [2.0.0] - 2023-11-17
 ### Removed
 - Removed the hardcoded implementation of hasRebootBeenRequested

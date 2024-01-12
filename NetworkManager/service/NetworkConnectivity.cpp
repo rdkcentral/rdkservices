@@ -175,9 +175,9 @@ namespace WPEFramework {
         else
         {
             if(isConnectivityMonitorEndpointSet())
-                internetState = testConnectivity(getConnectivityMonitorEndpoints(), 2000, ipversion);
+                internetState = testConnectivity(getConnectivityMonitorEndpoints(), TEST_CONNECTIVITY_DEFAULT_TIMEOUT_MS, ipversion);
             else
-                internetState = testConnectivity(getConnectivityDefaultEndpoints(), 2000, ipversion);
+                internetState = testConnectivity(getConnectivityDefaultEndpoints(), TEST_CONNECTIVITY_DEFAULT_TIMEOUT_MS, ipversion);
         }
 
         return internetState;
@@ -284,7 +284,8 @@ namespace WPEFramework {
             curl_easy_setopt(curl_easy_handle, CURLOPT_HTTPHEADER, chunk);
             curl_easy_setopt(curl_easy_handle, CURLOPT_USERAGENT, "RDKCaptiveCheck/1.0");
             /* set CURLOPT_HTTPGET option insted of CURLOPT_CONNECT_ONLY bcause we need to get the captiveportal URI not just connection only */
-            curl_easy_setopt(curl_easy_handle, CURLOPT_HTTPGET, 1L);
+            /* HTTPGET request added insted of HTTPHEAD request fix for DELIA-61526 */
+            curl_easy_setopt(curl_easy_handle, CURLOPT_HTTPGET, 1L); 
             curl_easy_setopt(curl_easy_handle, CURLOPT_WRITEFUNCTION, writeFunction);
             curl_easy_setopt(curl_easy_handle, CURLOPT_TIMEOUT_MS, deadline - current_time());
             if ((ipversion == CURL_IPRESOLVE_V4) || (ipversion == CURL_IPRESOLVE_V6))
@@ -433,9 +434,8 @@ namespace WPEFramework {
         return InternetConnectionState;
     }
 
-    bool ConnectivityMonitor::startConnectivityMonitor(int timeoutInSeconds)
+    bool ConnectivityMonitor::doContinuousConnectivityMonitoring(int timeoutInSeconds)
     {
-
         if(!isConnectivityMonitorEndpointSet())
         {
             printf("Connectivity monitor endpoints are not set !");
@@ -444,18 +444,63 @@ namespace WPEFramework {
 
         timeout.store(timeoutInSeconds >= MONITOR_TIMEOUT_INTERVAL_MIN ? timeoutInSeconds:defaultTimeoutInSec);
 
-        if (!isMonitorThreadRunning())
+        if (isMonitorThreadRunning())
         {
-            stopFlag.store(false);
+            isContinuesMonitoringNeeded = true;
+            cv_.notify_all();
+            printf("Connectivity monitor Restarted with %d", timeout.load());
+            //TODO check still active
+        }
+        else
+        {
+            if (thread_.joinable())
+            {
+                printf("Connectivity Monitor joinable Thread is active");
+                stopFlag = true;
+                cv_.notify_all();
+                thread_.join();
+            }
+
+            isContinuesMonitoringNeeded = true;
+            stopFlag = false;
             thread_ = std::thread(&ConnectivityMonitor::connectivityMonitorFunction, this);
             threadRunning = true;
             printf("Connectivity monitor started with %d", timeout.load());
         }
+
+        return true;
+    }
+
+    bool ConnectivityMonitor::doInitialConnectivityMonitoring(int timeoutInSeconds)
+    {
+        if(!isConnectivityMonitorEndpointSet())
+        {
+            printf("Connectivity monitor endpoints are not set !");
+            return false;
+        }
+
+        if (isMonitorThreadRunning())
+        {
+            printf("Connectivity Monitor Thread is active so notify");
+            cv_.notify_all();
+        }
         else
         {
-            cv_.notify_all();
-            printf("Connectivity monitor Restarted with %d", timeout.load());
+            if (thread_.joinable())
+            {
+                printf("Connectivity Monitor joinable Thread is active");
+                stopFlag = true;
+                cv_.notify_all();
+                thread_.join();
+            }
+
+            stopFlag = false;
+            timeout.store(timeoutInSeconds >= MONITOR_TIMEOUT_INTERVAL_MIN ? timeoutInSeconds:defaultTimeoutInSec);
+            thread_ = std::thread(&ConnectivityMonitor::connectivityMonitorFunction, this);
+            threadRunning = true;
+            printf("Initial Connectivity Monitoring started with %d", timeout.load());
         }
+
         return true;
     }
 
@@ -464,22 +509,56 @@ namespace WPEFramework {
         return threadRunning.load();
     }
 
-    bool ConnectivityMonitor::stopConnectivityMonitor()
+    bool ConnectivityMonitor::stopInitialConnectivityMonitoring()
     {
-        if (isMonitorThreadRunning()) {
-            stopFlag.store(true);
-            cv_.notify_all();
-            if (thread_.joinable()) {
-                thread_.join();
-                threadRunning = false;
-                printf("Connectivity monitor stopped");
-                g_internetState.store(nsm_internetState::UNKNOWN);
+        if (isMonitorThreadRunning())
+        {
+            if(isContinuesMonitoringNeeded)
+            {
+                printf("Continuous Connectivity Monitor is running");
+                return true;
             }
-            return true;
+            else
+            {
+                stopFlag = true;
+                cv_.notify_all();
+
+                if (thread_.joinable()) {
+                    thread_.join();
+                    threadRunning = false;
+                    printf("Stoping Initial Connectivity Monitor");
+                }
+                else
+                    printf("thread not joinable !");
+            }
         }
         else
+            printf("Continuous Connectivity Monitor not running");
+
+        return true;
+    }
+
+    bool ConnectivityMonitor::stopContinuousConnectivityMonitoring()
+    {
+        if (!isMonitorThreadRunning())
+        {
             printf("Connectivity monitor not running");
-        return false;
+            return false;
+        }
+
+        cv_.notify_all();
+        stopFlag = true;
+
+        if (thread_.joinable())
+        {
+            thread_.join();
+            isContinuesMonitoringNeeded = false;
+            threadRunning = false;
+            printf("Continuous Connectivity monitor stopped");
+        }
+        else
+            printf("thread not joinable !");
+        return true;
     }
 
     void ConnectivityMonitor::signalConnectivityMonitor()
@@ -495,15 +574,29 @@ namespace WPEFramework {
     void ConnectivityMonitor::connectivityMonitorFunction()
     {
         nsm_internetState InternetConnectionState = nsm_internetState::UNKNOWN;
-        while (!stopFlag)
+        do
         {
-            InternetConnectionState = testConnectivity(getConnectivityMonitorEndpoints(), 2000, NSM_IPRESOLVE_WHATEVER);
+            InternetConnectionState = testConnectivity(getConnectivityMonitorEndpoints(), TEST_CONNECTIVITY_DEFAULT_TIMEOUT_MS, NSM_IPRESOLVE_WHATEVER);
             if(g_internetState.load() != InternetConnectionState)
             {
                 g_internetState.store(InternetConnectionState);
                 //Network::notifyInternetStatusChange(g_internetState.load());
             }
 
+            if(!isContinuesMonitoringNeeded && (g_internetState.load() == FULLY_CONNECTED))
+            {
+                stopFlag = true;
+                printf("Initial Connectivity Monitoring done Exiting ... Internet state FULLY_CONNECTED");
+                threadRunning = false;
+                break;
+            }
+
+            if(stopFlag)
+            {
+                printf("stopFlag true exiting");
+                threadRunning = false;
+                break;
+            }
             //wait for next timout or conditon signal
             std::unique_lock<std::mutex> lock(mutex_);
             if (cv_.wait_for(lock, std::chrono::seconds(timeout.load())) == std::cv_status::timeout)
@@ -517,7 +610,9 @@ namespace WPEFramework {
                     printf("Connectivity monitor received a trigger");
                 }
             }
-        }
+
+        } while (!stopFlag);
+        g_internetState = nsm_internetState::UNKNOWN;
         printf("Connectivity monitor exiting");
     }
 
