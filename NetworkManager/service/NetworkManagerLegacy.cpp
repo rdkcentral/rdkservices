@@ -19,6 +19,8 @@
 
 #include "NetworkManager.h"
 
+using namespace WPEFramework::Plugin;
+
 namespace WPEFramework
 {
     namespace Plugin
@@ -36,8 +38,6 @@ namespace WPEFramework
         {
             Register("getInterfaces",                     &NetworkManager::getInterfaces, this);
             Register("isInterfaceEnabled",                &NetworkManager::isInterfaceEnabled, this);
-            Register("getStbIp",                          &NetworkManager::getStbIp, this);
-            Register("getSTBIPFamily",                    &NetworkManager::getSTBIPFamily, this);
             Register("getPublicIP",                       &NetworkManager::getPublicIP, this);
             Register("setInterfaceEnabled",               &NetworkManager::setInterfaceEnabled, this);
             Register("getDefaultInterface",               &NetworkManager::getDefaultInterface, this);
@@ -49,22 +49,21 @@ namespace WPEFramework
             Register("isConnectedToInternet",             &NetworkManager::isConnectedToInternet, this);
             Register("setConnectivityTestEndpoints",      &NetworkManager::SetConnectivityTestEndpoints, this);
             Register("startConnectivityMonitoring",       &NetworkManager::StartConnectivityMonitoring, this);
-            Register("getCaptivePortalURI",               &NetworkManager::getCaptivePortalURI, this);
+            Register("getCaptivePortalURI",               &NetworkManager::GetCaptivePortalURI, this);
             Register("stopConnectivityMonitoring",        &NetworkManager::StopConnectivityMonitoring, this);
-            Register("cancelWPSPairing",                  &NetworkManager::cancelWPSPairing, this);
+            Register("cancelWPSPairing",                  &NetworkManager::StopWPS, this);
             Register("clearSSID",                         &NetworkManager::clearSSID, this);
             Register("connect",                           &NetworkManager::WiFiConnect, this);
-            Register("disconnect",                        &NetworkManager::disconnect, this);
+            Register("disconnect",                        &NetworkManager::WiFiDisconnect, this);
             Register("getConnectedSSID",                  &NetworkManager::getConnectedSSID, this);
             Register("getConnectedSSID",                  &NetworkManager::getConnectedSSID, this);
             Register("startScan",                         &NetworkManager::StartWiFiScan, this);
             Register("stopScan",                          &NetworkManager::StopWiFiScan, this);
             Register("getPairedSSID",                     &NetworkManager::GetKnownSSIDs, this);
-            Register("getPairedSSIDInfo",                 &NetworkManager::getPairedSSIDInfo, this);
+            Register("getPairedSSIDInfo",                 &NetworkManager::GetConnectedSSID, this);
             Register("initiateWPSPairing",                &NetworkManager::StartWPS, this);
             Register("isPaired",                          &NetworkManager::isPaired, this);
             Register("saveSSID",                          &NetworkManager::AddToKnownSSIDs, this);
-            Register("setEnabled",                        &NetworkManager::setEnabled, this);
             Register("getSupportedSecurityModes",         &NetworkManager::GetSupportedSecurityModes, this);
         }
 
@@ -83,8 +82,6 @@ namespace WPEFramework
             Unregister("stopScan");
             Unregister("getInterfaces");
             Unregister("isInterfaceEnabled");
-            Unregister("getStbIp");
-            Unregister("getSTBIPFamily");
             Unregister("getPublicIP");
             Unregister("setInterfaceEnabled");
             Unregister("getDefaultInterface");
@@ -103,7 +100,6 @@ namespace WPEFramework
             Unregister("initiateWPSPairing");
             Unregister("isPaired");
             Unregister("saveSSID");
-            Unregister("setEnabled");
         }
 
         uint32_t NetworkManager::getInterfaces (const JsonObject& parameters, JsonObject& response)
@@ -135,7 +131,6 @@ namespace WPEFramework
         {
             uint32_t rc = Core::ERROR_GENERAL;
             string interface;
-            JsonObject tmpResponse;
             JsonObject tmpParameters;
             
             if("WIFI" == parameters["interface"].String())
@@ -145,11 +140,7 @@ namespace WPEFramework
             
             tmpParameters["interface"] = interface;
             tmpParameters["enabled"] = parameters["enabled"];
-            rc = SetInterfaceEnabled(tmpParameters, tmpResponse);
-            if (Core::ERROR_NONE == rc)
-            {
-                response["success"] = tmpResponse["success"];
-            }
+            rc = SetInterfaceEnabled(tmpParameters, response);
 
             return rc;
         }
@@ -173,7 +164,6 @@ namespace WPEFramework
         uint32_t NetworkManager::setDefaultInterface(const JsonObject& parameters, JsonObject& response)
         {
             uint32_t rc = Core::ERROR_GENERAL;
-            JsonObject tmpResponse;
             JsonObject tmpParameters;
             string interface;
             if("WIFI" == parameters["interface"].String())
@@ -181,12 +171,8 @@ namespace WPEFramework
             else if("ETHERNET" == parameters["interface"].String())
                 tmpParameters["interface"] = "eth0";
             
-            rc = SetPrimaryInterface(tmpParameters, tmpResponse);
+            rc = SetPrimaryInterface(tmpParameters, response);
 
-            if (Core::ERROR_NONE == rc)
-            { 
-                response["success"] = tmpResponse["success"];
-            }
             return rc;
         }
         uint32_t NetworkManager::setIPSettings(const JsonObject& parameters, JsonObject& response)
@@ -203,6 +189,13 @@ namespace WPEFramework
             
             tmpParameters["ipversion"] = parameters["ipversion"];
             tmpParameters["autoconfig"] = parameters["autoconfig"];
+            tmpParameters["ipaddress"] = parameters["ipaddr"];
+            auto it = std::find(std::begin(CIDR_PREFIXES), std::end(CIDR_PREFIXES), parameters["netmask"].String());
+            if (it != std::end(CIDR_PREFIXES))
+                tmpParameters["prefix"] = std::distance(std::begin(CIDR_PREFIXES), it);
+            tmpParameters["gateway"] = parameters["gateway"];
+            tmpParameters["primarydns"] = parameters["primarydns"];
+            tmpParameters["secondarydns"] = parameters["secondarydns"];
 
             rc = SetIPSettings(tmpParameters, tmpResponse);
 
@@ -219,6 +212,7 @@ namespace WPEFramework
             string interface;
             JsonObject tmpResponse;
             JsonObject tmpParameters;
+            size_t index;
 
             tmpParameters["ipversion"] = parameters["ipversion"];
             if ("WIFI" == parameters["interface"].String())
@@ -230,12 +224,13 @@ namespace WPEFramework
 
             if (Core::ERROR_NONE == rc)
             {
+                index = tmpResponse["prefix"].Number();
                 response["interface"]    = tmpParameters["interface"];
                 response["ipversion"]    = tmpResponse["ipversion"];
                 response["autoconfig"]   = tmpResponse["autoconfig"];
                 response["dhcpserver"]   = tmpResponse["dhcpserver"];
                 response["ipaddr"]       = tmpResponse["ipaddress"];
-                response["netmask"]      = tmpResponse["prefix"];
+                response["netmask"]      = CIDR_PREFIXES[index];
                 response["gateway"]      = tmpResponse["gateway"];
                 response["primarydns"]   = tmpResponse["primarydns"];
                 response["secondarydns"] = tmpResponse["secondarydns"];
@@ -265,26 +260,20 @@ namespace WPEFramework
             uint32_t rc1 = Core::ERROR_GENERAL;
             string endPoint;
             JsonObject tmpResponse;
-            JsonObject tmpCaptivePortalResponse;
+            JsonObject captivePortalResponse;
             JsonObject tmpParameters;
             string ipversion = parameters["ipversion"].String();
             rc = IsConnectedToInternet(parameters, tmpResponse);
             if (Core::ERROR_NONE == rc)
             {
-                if (tmpResponse["status"].String() == "LIMITED_INTERNET")
-                    response["state"] = 1;
-                else if (tmpResponse["status"].String() == "CAPTIVE_PORTAL")
+                response["state"] = tmpResponse["internetState"];
+                if (response["state"].Number() == 2)
                 {
-                    response["state"] = 2;
-                    rc1 = getCaptivePortalURI(tmpParameters, tmpCaptivePortalResponse);
+                    rc1 = getCaptivePortalURI(tmpParameters, captivePortalResponse);
 
                     if (Core::ERROR_NONE == rc1)
-                        response["URI"] = tmpCaptivePortalResponse["uri"];
+                        response["uri"] = captivePortalResponse["uri"];
                 }
-                else if (tmpResponse["status"].String() == "FULLY_CONNECTED")
-                    response["state"] = 3;
-                else
-                    response["state"] = 0;
                 response["ipversion"] = ipversion.c_str();
                 response["success"] = true;
             }
@@ -316,60 +305,6 @@ namespace WPEFramework
             if (Core::ERROR_NONE == rc)
             {
                 response["success"] = true;
-            }
-            return rc;
-        }
-        uint32_t NetworkManager::getCaptivePortalURI(const JsonObject& parameters, JsonObject& response)
-        {
-            uint32_t rc = Core::ERROR_GENERAL;
-            JsonObject tmpResponse;
-            
-            rc = GetCaptivePortalURI(parameters, tmpResponse);
-
-            if (Core::ERROR_NONE == rc)
-            {
-                response["URI"] = tmpResponse["uri"];
-                response["success"] = tmpResponse["success"];
-            }
-            return rc;
-        }
-        uint32_t NetworkManager::getStbIp(const JsonObject& parameters, JsonObject& response)
-        {
-            uint32_t rc = Core::ERROR_GENERAL;
-            string ipAddress{};
-            JsonObject tmpParameters;
-            JsonObject tmpResponse;
-
-            tmpParameters["ipversion"] = "IPv4";
-            rc = GetPublicIP(tmpParameters, tmpResponse);
-            
-            if (Core::ERROR_NONE == rc)
-            {
-                response["ip"] = tmpResponse["publicIP"];
-                response["success"] = tmpResponse["success"];
-            }
-            return rc;
-        }
-        uint32_t NetworkManager::getSTBIPFamily(const JsonObject& parameters, JsonObject& response)
-        {
-            uint32_t rc = Core::ERROR_GENERAL;
-            string ipversion{"IPv4"};
-            string ipAddress{};
-            JsonObject tmpParameters;
-            JsonObject tmpResponse;
-
-            if("AF_INET" == parameters["family"].String())
-                ipversion = "IPv4";
-            else if("AF_INET6" == parameters["family"].String())
-                ipversion = "IPv6";
-            
-            tmpParameters["ipversion"] = ipversion;            
-            rc = GetPublicIP(tmpParameters, tmpResponse);
-
-            if (Core::ERROR_NONE == rc)
-            {
-                response["ip"] = tmpResponse["publicIP"];;
-                response["success"] = tmpResponse["success"];
             }
             return rc;
         }
@@ -425,66 +360,17 @@ namespace WPEFramework
 
             return rc;
         }
-        uint32_t NetworkManager::cancelWPSPairing (const JsonObject& parameters, JsonObject& response)
-        {
-            uint32_t rc = Core::ERROR_GENERAL;
-            uint32_t result = 1;
-
-            rc = StopWPS(parameters, response);
-
-            if (Core::ERROR_NONE == rc)
-            {
-                result = 0;
-            }
-            response["result"] = result;
-            return rc;
-        }
         uint32_t NetworkManager::clearSSID (const JsonObject& parameters, JsonObject& response)
         {
             uint32_t rc = Core::ERROR_GENERAL;
-            uint32_t result = 1;
             JsonObject tmpParameters;
 
             tmpParameters["ssid"] = "";
             rc = RemoveKnownSSID(tmpParameters, response);
 
-            if (Core::ERROR_NONE == rc)
-            {
-                result = 0;
-            }
-            response["result"] = result;
-            return rc;
-        }
-        uint32_t NetworkManager::saveSSID (const JsonObject& parameters, JsonObject& response)
-        {
-            uint32_t rc = Core::ERROR_GENERAL;
-            uint32_t result = 1;
-            JsonObject tmpParameters;
-
-            rc = AddToKnownSSIDs(tmpParameters, response);
-
-            if (Core::ERROR_NONE == rc)
-            {
-                result = 0;
-            }
-            response["result"] = result;
             return rc;
         }
  
-        uint32_t NetworkManager::disconnect (const JsonObject& parameters, JsonObject& response)
-        {
-            uint32_t rc = Core::ERROR_GENERAL;
-            uint32_t result = 1;
-
-            rc = WiFiDisconnect(parameters, response);
-
-            if (Core::ERROR_NONE == rc)
-            {
-                result = 0;
-            }
-            response["result"] = result;
-            return rc;
-        }
         uint32_t NetworkManager::getConnectedSSID (const JsonObject& parameters, JsonObject& response)
         {
             uint32_t rc = Core::ERROR_GENERAL;
@@ -506,21 +392,6 @@ namespace WPEFramework
             return rc;
         }
         
-        uint32_t NetworkManager::getPairedSSIDInfo (const JsonObject& parameters, JsonObject& response)
-        {
-            uint32_t rc = Core::ERROR_GENERAL;
-            JsonObject tmpResponse;
-
-            rc = GetConnectedSSID(parameters, tmpResponse);
-
-            if (Core::ERROR_NONE == rc)
-            {
-                response["ssid"] = tmpResponse["ssid"];
-                response["bssid"] = tmpResponse["bssid"];
-                response["success"] = tmpResponse["success"];
-            }
-            return rc;
-        }
         uint32_t NetworkManager::isPaired (const JsonObject& parameters, JsonObject& response)
         {
             uint32_t rc = Core::ERROR_GENERAL;
@@ -529,7 +400,8 @@ namespace WPEFramework
 
             if (Core::ERROR_NONE == rc)
             {
-                if (response["ssids"].String().empty())
+                JsonArray array = response["ssids"].Array();
+                if (0 == array.Length())
                 {
                     response["result"] = 1;
                 }
@@ -537,23 +409,6 @@ namespace WPEFramework
                 {
                     response["result"] = 0;
                 }
-                response["success"] = true;
-            }
-            return rc;
-        }
-        uint32_t NetworkManager::setEnabled (const JsonObject& parameters, JsonObject& response)
-        {
-            uint32_t rc = Core::ERROR_GENERAL;
-            string interface = "wlan0";
-            bool isEnabled = parameters["enable"].Boolean();
-
-            if (_NetworkManager)
-                rc = _NetworkManager->SetInterfaceEnabled(interface, isEnabled);
-            else
-                rc = Core::ERROR_UNAVAILABLE;
-
-            if (Core::ERROR_NONE == rc)
-            {
                 response["success"] = true;
             }
             return rc;
