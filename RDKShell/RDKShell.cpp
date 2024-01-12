@@ -205,7 +205,6 @@ static Device_Mode_FactoryModes_t sFactoryMode = DEVICE_MODE_CVTE_B1_AGING;
 #ifdef HIBERNATE_SUPPORT_ENABLED
 std::mutex gSuspendedOrHibernatedApplicationsMutex;
 map<string, bool> gSuspendedOrHibernatedApplications;
-
 std::mutex gHibernateBlockedMutex;
 int gHibernateBlocked;
 std::condition_variable gHibernateBlockedCondVariable;
@@ -260,39 +259,35 @@ enum AppLastExitReason
 
 static void setHibernateBlocked(bool val)
 {
-	std::unique_lock<std::mutex> lock(gHibernateBlockedMutex);
-	if (val)
-	{
-		gHibernateBlocked++;
-	}
-	else
-	{
-		gHibernateBlocked--;
-	}
-	std::cout << "setHibernateBlocked("<< gHibernateBlocked <<")" << std::endl;
+    std::unique_lock<std::mutex> lock(gHibernateBlockedMutex);
+    if (val)
+    {
+        gHibernateBlocked++;
+    }
+    else
+    {
+        gHibernateBlocked--;
+    }
     lock.unlock();
-	gHibernateBlockedCondVariable.notify_all();
+    gHibernateBlockedCondVariable.notify_all();
 }
 
 static bool waitForHibernateUnblocked(int timeoutMs)
 {
-	std::unique_lock<std::mutex> lock(gHibernateBlockedMutex);
-	while (gHibernateBlocked > 0)
-	{
-	    std::cout << "Hibernation blocked, waiting" << std::endl;
-		if (gHibernateBlockedCondVariable.wait_for(lock, std::chrono::milliseconds(timeoutMs))
-		    == std::cv_status::timeout)
-		    break;
-	}
+    std::unique_lock<std::mutex> lock(gHibernateBlockedMutex);
+    while (gHibernateBlocked > 0)
+    {
+        if (gHibernateBlockedCondVariable.wait_for(lock, std::chrono::milliseconds(timeoutMs)) == std::cv_status::timeout)
+            break;
+    }
 
-	if (gHibernateBlocked > 0)
-	{
-		std::cout << "Hibernation still blocked after "  << timeoutMs << "ms !" << std::endl;
-		return false;
-	}
+    if (gHibernateBlocked > 0)
+    {
+        std::cout << "Hibernation still blocked after " << timeoutMs << "ms !" << std::endl;
+        return false;
+    }
 
-	std::cout << "Hibernation not blocked" << std::endl;
-	return true;
+    return true;
 }
 
 #endif
