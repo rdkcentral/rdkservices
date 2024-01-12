@@ -13,6 +13,7 @@
 #define CAPTIVEPORTAL_MAX_LEN 512
 #define DEFAULT_MONITOR_TIMEOUT 60 // in seconds
 #define MONITOR_TIMEOUT_INTERVAL_MIN 5
+#define TEST_CONNECTIVITY_DEFAULT_TIMEOUT_MS    2000
 
 enum nsm_ipversion {
     NSM_IPRESOLVE_WHATEVER  = 0, /* default, resolves addresses to all IP*/
@@ -110,21 +111,23 @@ namespace WPEFramework {
                 std::string getCaptivePortalURI();
                 void setConnectivityMonitorEndpoints(const std::vector<std::string> &endpoints);
                 std::vector<std::string> getConnectivityMonitorEndpoints();
-                bool startConnectivityMonitor(int timeoutInSeconds);
-                bool stopConnectivityMonitor();
+                bool doContinuousConnectivityMonitoring(int timeoutInSeconds);
+                bool doInitialConnectivityMonitoring(int timeoutInSeconds);
+                bool stopContinuousConnectivityMonitoring();
+                bool stopInitialConnectivityMonitoring();
                 bool isConnectivityMonitorEndpointSet();
                 bool isMonitorThreadRunning();
                 void signalConnectivityMonitor();
                 void resetConnectivityCache() { g_internetState = nsm_internetState::UNKNOWN;}
 
             private:
-                ConnectivityMonitor() : stopFlag(false), threadRunning(false)
+                ConnectivityMonitor() : stopFlag(false), threadRunning(false), isContinuesMonitoringNeeded(false)
                 {
                     setConnectivityMonitorEndpoints(getConnectivityDefaultEndpoints());
                 }
 
                 ~ConnectivityMonitor() {
-                    stopConnectivityMonitor();
+                    stopContinuousConnectivityMonitoring();
                 }
 
                 ConnectivityMonitor(const ConnectivityMonitor&) = delete;
@@ -136,6 +139,7 @@ namespace WPEFramework {
                 std::thread thread_;
                 std::atomic<bool> stopFlag;
                 std::atomic<bool> threadRunning;
+                std::atomic<bool> isContinuesMonitoringNeeded;
                 std::condition_variable cv_;
                 std::atomic<int> timeout;
                 std::vector<std::string> monitorEndpoints;

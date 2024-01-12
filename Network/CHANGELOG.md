@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.3.3] - 2024-01-02
+### Security
+- resolved security vulnerabilities
+
 ## [1.3.2] - 2023-12-21
 ### Changed
 - Changed eventHandler function to public
