@@ -179,7 +179,7 @@ namespace WPEFramework
         uint32_t NetworkManagerImplementation::StartConnectivityMonitoring(const uint32_t interval/* @in */)
         {
             LOG_ENTRY_FUNCTION();
-            if (connectivityMonitor.startConnectivityMonitor(interval))
+            if (connectivityMonitor.doContinuousConnectivityMonitoring(interval))
                 return Core::ERROR_NONE;
             else
                 return Core::ERROR_GENERAL;
@@ -189,7 +189,7 @@ namespace WPEFramework
         uint32_t NetworkManagerImplementation::StopConnectivityMonitoring(void) const
         {
             LOG_ENTRY_FUNCTION();
-            if (connectivityMonitor.stopConnectivityMonitor())
+            if (connectivityMonitor.stopContinuousConnectivityMonitoring())
                 return Core::ERROR_NONE;
             else
                 return Core::ERROR_GENERAL;

@@ -40,7 +40,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 6
+#define API_VERSION_NUMBER_PATCH 7
 
 const string WPEFramework::Plugin::Bluetooth::SERVICE_NAME = "org.rdk.Bluetooth";
 const string WPEFramework::Plugin::Bluetooth::METHOD_START_SCAN = "startScan";
@@ -618,6 +618,7 @@ namespace WPEFramework
             JsonObject response; // responding with a single object
 
             char adapterName[BTRMGR_NAME_LEN_MAX];
+            memset(adapterName, '\0', sizeof(adapterName));
             rc = BTRMGR_GetAdapterName (0, &adapterName[0]);
             if (BTRMGR_RESULT_SUCCESS != rc)
             {
