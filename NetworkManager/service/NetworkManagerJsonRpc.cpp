@@ -453,8 +453,10 @@ namespace WPEFramework
         {
             LOGINFOMETHOD();
             uint32_t rc = Core::ERROR_GENERAL;
-            const string ipversion = parameters["ipversion"].String();
             string ipAddress{};
+            string ipversion = "IPv4";
+            if (parameters.HasLabel("ipversion"))
+                ipversion = parameters["ipversion"].String();
 
             if (_NetworkManager)
                 rc = _NetworkManager->GetPublicIP(ipversion, ipAddress);
@@ -464,9 +466,25 @@ namespace WPEFramework
             if (Core::ERROR_NONE == rc)
             {
                 response["publicIP"] = ipAddress;
+                response["ipversion"] = ipversion;
                 response["success"] = true;
+
+                /* TODO :: Cache this public IP Address */
+                m_publicIPAddress = ipAddress;
+                m_publicIPAddressType = ipversion;
             }
             return rc;
+        }
+
+        void NetworkManager::PublishToThunderAboutInternet()
+        {
+            printf("No public IP persisted yet; Update the data");
+            if (m_publicIPAddress.empty())
+            {
+                JsonObject input, output;
+                GetPublicIP(input, output);
+            }
+            //TODO:: Report ISUBSYSTEM::Internet Ready. Get ISubsystem::Internet and if it is NULL, set it..
         }
 
         uint32_t NetworkManager::Ping(const JsonObject& parameters, JsonObject& response)

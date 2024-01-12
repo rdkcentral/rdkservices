@@ -435,7 +435,7 @@ namespace WPEFramework
                         string json;
                         ssids.ToString(json);
 
-                        ::_instance->ReportAvailableSSIDsEvent(ssids);
+                        ::_instance->ReportAvailableSSIDsEvent(json);
                     }
                     case IARM_BUS_WIFI_MGR_EVENT_onWIFIStateChanged:
                     {

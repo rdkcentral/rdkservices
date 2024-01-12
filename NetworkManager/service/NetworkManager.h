@@ -141,6 +141,12 @@ namespace WPEFramework
                     params["status"] = InternetStatusToString(newstate);
 
                     _parent.Notify("onInternetStatusChanged", params);
+
+                    if (Exchange::INetworkManager::InternetStatus::INTERNET_FULLY_CONNECTED == newstate)
+                    {
+                        printf("Notify Thunder ISubsystem");
+                        _parent.PublishToThunderAboutInternet();
+                    }
                 }
 
                 void onPingResponse(const string guid, const string pingStatistics) override
@@ -258,6 +264,8 @@ namespace WPEFramework
             {
                 return (m_publicIPAddress.empty() == true ? PluginHost::ISubSystem::IInternet::UNKNOWN : (m_publicIPAddressType == "IPV6" ? PluginHost::ISubSystem::IInternet::IPV6 : PluginHost::ISubSystem::IInternet::IPV4));
             }
+            void PublishToThunderAboutInternet();
+
         private:
             // Notification/event handlers
             // Clean up when we're told to deactivate
