@@ -22,7 +22,6 @@ set(PLUGIN_IMPLEMENTATION ${MODULE_NAME}Implementation)
 find_package(${NAMESPACE}Core REQUIRED)
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
-find_package(${NAMESPACE}COM REQUIRED)
 find_package(CURL)
 
 message("Setup ${PROJECT_NAME} v${PROJECT_VERSION}")

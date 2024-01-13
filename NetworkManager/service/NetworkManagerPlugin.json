@@ -2,10 +2,14 @@
     "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
     "jsonrpc": "2.0",
     "info": {
-        "title": "NetworkManager",
+        "title": "NetworkManager Plugin",
+        "callsign": "org.rdk.NetworkManager",
         "class": "NetworkManager",
-        "description": "The `NetworkManager` plugin allows you to manage network and wifi interfaces on a set-top box."
-    },
+        "locator": "libWPENetworkManager.so",
+        "status": "production",
+        "description": "The `NetworkManager` plugin allows you to manage Ethernet and Wifi interfaces on the device",
+        "version": "1.0.0"
+      },
     "common": {
         "$ref": "../../common/common.json"
     },

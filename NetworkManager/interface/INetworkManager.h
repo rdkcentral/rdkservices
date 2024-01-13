@@ -243,10 +243,12 @@ namespace WPEFramework
 
                 enum WiFiState : uint8_t
                 {
-                    WIFI_STATE_UNKNOWN,
+                    WIFI_STATE_UNINSTALLED,
+                    WIFI_STATE_DISABLED,
+                    WIFI_STATE_DISCONNECTED,
+                    WIFI_STATE_PAIRING,
                     WIFI_STATE_CONNECTING,
                     WIFI_STATE_CONNECTED,
-                    WIFI_STATE_DISCONNECTED,
                     WIFI_STATE_SSID_NOT_FOUND,
                     WIFI_STATE_SSID_CHANGED,
                     WIFI_STATE_CONNECTION_LOST,

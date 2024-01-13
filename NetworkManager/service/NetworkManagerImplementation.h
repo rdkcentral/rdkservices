@@ -33,7 +33,7 @@ using namespace std;
 #include "NetworkConnectivity.h"
 #include "StunClient.h"
 
-#define LOG_ENTRY_FUNCTION() { printf( "Entering=%s\n", __FUNCTION__ ); }
+#define LOG_ENTRY_FUNCTION() { printf("Entering=%s\n", __FUNCTION__ ); }
 
 namespace WPEFramework
 {

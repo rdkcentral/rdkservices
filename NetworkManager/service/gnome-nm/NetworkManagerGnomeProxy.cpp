@@ -378,7 +378,7 @@ namespace WPEFramework
                     case IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS:
                     {
                         IARM_BUS_NetSrvMgr_Iface_EventInterfaceEnabledStatus_t *e = (IARM_BUS_NetSrvMgr_Iface_EventInterfaceEnabledStatus_t*) data;
-                        printf ("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS :: %s \n", e->interface);
+                        printf("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS :: %s \n", e->interface);
                         if (e->status)
                             ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INotification::INTERFACE_ADDED, string(e->interface));
                         else
@@ -388,7 +388,7 @@ namespace WPEFramework
                     case IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS:
                     {
                         IARM_BUS_NetSrvMgr_Iface_EventInterfaceConnectionStatus_t *e = (IARM_BUS_NetSrvMgr_Iface_EventInterfaceConnectionStatus_t*) data;
-                        printf ("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS :: %s \n", e->interface);
+                        printf("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS :: %s \n", e->interface);
                         if (e->status)
                             ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INotification::INTERFACE_LINK_UP, string(e->interface));
                         else
@@ -398,7 +398,7 @@ namespace WPEFramework
                     case IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS:
                     {
                         IARM_BUS_NetSrvMgr_Iface_EventInterfaceIPAddress_t *e = (IARM_BUS_NetSrvMgr_Iface_EventInterfaceIPAddress_t*) data;
-                        printf ("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS :: %s -- %s \n", e->interface, e->ip_address);
+                        printf("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS :: %s -- %s \n", e->interface, e->ip_address);
 
                         ::_instance->ReportIPAddressChangedEvent(string(e->interface), e->acquired, e->is_ipv6, string(e->ip_address));
                         break;
@@ -406,7 +406,7 @@ namespace WPEFramework
                     case IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE:
                     {
                         IARM_BUS_NetSrvMgr_Iface_EventDefaultInterface_t *e = (IARM_BUS_NetSrvMgr_Iface_EventDefaultInterface_t*) data;
-                        printf ("IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE %s :: %s..\n", e->oldInterface, e->newInterface);
+                        printf("IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE %s :: %s..\n", e->oldInterface, e->newInterface);
 
                         ::_instance->ReportActiveInterfaceChangedEvent(e->oldInterface, e->newInterface);
                         break;
@@ -414,7 +414,7 @@ namespace WPEFramework
                     case IARM_BUS_WIFI_MGR_EVENT_onAvailableSSIDs:
                     {
                         IARM_BUS_WiFiSrvMgr_EventData_t *e = (IARM_BUS_WiFiSrvMgr_EventData_t*) data;
-                        printf ("IARM_BUS_WIFI_MGR_EVENT_onAvailableSSIDs\n");
+                        printf("IARM_BUS_WIFI_MGR_EVENT_onAvailableSSIDs\n");
                         std::string serialized(e->data.wifiSSIDList.ssid_list);
                         ::_instance->ReportAvailableSSIDsEvent(serialized);
                     }
@@ -508,14 +508,14 @@ namespace WPEFramework
         {
             LOG_ENTRY_FUNCTION();
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
-            printf ("@@@@%s@@@@\n", __FUNCTION__);
+            printf("@@@@%s@@@@\n", __FUNCTION__);
             IARM_BUS_NetSrvMgr_InterfaceList_t list;
             if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getInterfaceList, (void*)&list, sizeof(list)))
             {
                 std::vector<InterfaceDetails> interfaceList;
                 for (int i = 0; i < list.size; i++)
                 {
-                    printf ("Interface Name = %s\n", list.interfaces[i].name);
+                    printf("Interface Name = %s\n", list.interfaces[i].name);
                     string interfaceName(list.interfaces[i].name);
                     if (("eth0" == interfaceName) || ("wlan0" == interfaceName))
                     {
@@ -540,7 +540,7 @@ namespace WPEFramework
             }
             else
             {
-                printf ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, __FUNCTION__);
+                printf("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, __FUNCTION__);
             }
 
             return rc;
@@ -554,13 +554,13 @@ namespace WPEFramework
             IARM_BUS_NetSrvMgr_DefaultRoute_t defaultRoute = {0};
             if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getDefaultInterface, (void*)&defaultRoute, sizeof(defaultRoute)))
             {
-                printf ("Call to %s for %s returned interface = %s, gateway = %s", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getDefaultInterface, defaultRoute.interface, defaultRoute.gateway);
+                printf("Call to %s for %s returned interface = %s, gateway = %s", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getDefaultInterface, defaultRoute.interface, defaultRoute.gateway);
                 interface = m_defaultInterface = defaultRoute.interface;
                 rc = Core::ERROR_NONE;
             }
             else
             {
-                printf ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getDefaultInterface);
+                printf("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getDefaultInterface);
             }
             return rc;
         }
@@ -587,12 +587,12 @@ namespace WPEFramework
 
             if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setDefaultInterface, (void *)&iarmData, sizeof(iarmData)))
             {
-                printf ("Call to %s for %s success", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setDefaultInterface);
+                printf("Call to %s for %s success", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setDefaultInterface);
                 rc = Core::ERROR_NONE;
             }
             else
             {
-                printf ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setDefaultInterface);
+                printf("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setDefaultInterface);
             }
             return rc;
         }
@@ -619,12 +619,12 @@ namespace WPEFramework
             iarmData.persist = true;
             if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled, (void *)&iarmData, sizeof(iarmData)))
             {
-                printf ("Call to %s for %s success", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled);
+                printf("Call to %s for %s success", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled);
                 rc = Core::ERROR_NONE;
             }
             else
             {
-                printf ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled);
+                printf("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled);
             }
             return rc;
         }
@@ -740,7 +740,7 @@ namespace WPEFramework
                         else
                         {
                             rc = Core::ERROR_BAD_REQUEST;
-                            printf ("Given Input Address are not appropriate\n");
+                            printf("Given Input Address are not appropriate\n");
                         }
 
                         if (Core::ERROR_NONE == rc)
@@ -773,7 +773,7 @@ namespace WPEFramework
             else
             {
                 //FIXME : Add IPv6 support here
-                printf ("Setting IPv6 is not supported at this point in time. This is just a place holder\n");
+                printf("Setting IPv6 is not supported at this point in time. This is just a place holder\n");
                 rc = Core::ERROR_NOT_SUPPORTED;
             }
 
@@ -793,12 +793,12 @@ namespace WPEFramework
             retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_getAvailableSSIDsAsync, (void *)&param, sizeof(IARM_Bus_WiFiSrvMgr_SsidList_Param_t));
 
             if(retVal == IARM_RESULT_SUCCESS) {
-                printf ("Scan started\n");
+                printf("Scan started\n");
                 rc = Core::ERROR_NONE;
             }
             else
             {
-                printf ("StartScan failed\n");
+                printf("StartScan failed\n");
             }
             return rc;
         }
@@ -812,12 +812,12 @@ namespace WPEFramework
 
             if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_stopProgressiveWifiScanning, (void*) &param, sizeof(IARM_Bus_WiFiSrvMgr_Param_t)))
             {
-                printf ("StopScan Success\n");
+                printf("StopScan Success\n");
                 rc = Core::ERROR_NONE;
             }
             else
             {
-                printf ("StopScan failed\n");
+                printf("StopScan failed\n");
             }
             return rc;
         }
@@ -839,14 +839,14 @@ namespace WPEFramework
                 auto &connectedSsid = param.data.getConnectedSSID;
                 std::list<string> ssidList;
                 ssidList.push_back(string(connectedSsid.ssid));
-                printf ("GetKnownSSIDs Success\n");
+                printf("GetKnownSSIDs Success\n");
 
                 ssids = Core::Service<RPC::StringIterator>::Create<RPC::IStringIterator>(ssidList);
                 rc = Core::ERROR_NONE;
             }
             else
             {
-                printf ("GetKnownSSIDs failed\n");
+                printf("GetKnownSSIDs failed\n");
             }
             return rc;
         }
@@ -865,12 +865,12 @@ namespace WPEFramework
             IARM_Result_t retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_saveSSID, (void *)&param, sizeof(param));
             if(retVal == IARM_RESULT_SUCCESS)
             {
-                printf ("AddToKnownSSIDs Success\n");
+                printf("AddToKnownSSIDs Success\n");
                 rc = Core::ERROR_NONE;
             }
             else
             {
-                printf ("AddToKnownSSIDs failed\n");
+                printf("AddToKnownSSIDs failed\n");
             }
             return rc;
         }
@@ -890,12 +890,12 @@ namespace WPEFramework
             IARM_Result_t retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_clearSSID, (void *)&param, sizeof(param));
             if(retVal == IARM_RESULT_SUCCESS)
             {
-                printf ("RemoveKnownSSID Success\n");
+                printf("RemoveKnownSSID Success\n");
                 rc = Core::ERROR_NONE;
             }
             else
             {
-                printf ("RemoveKnownSSID failed\n");
+                printf("RemoveKnownSSID failed\n");
             }
             return rc;
         }
@@ -919,12 +919,12 @@ namespace WPEFramework
 
             if(retVal == IARM_RESULT_SUCCESS && param.status)
             {
-                printf ("WiFiConnect Success\n");
+                printf("WiFiConnect Success\n");
                 rc = Core::ERROR_NONE;
             }
             else
             {
-                printf ("WiFiConnect failed\n");
+                printf("WiFiConnect failed\n");
             }
             return rc;
         }
@@ -938,12 +938,12 @@ namespace WPEFramework
 
             if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_disconnectSSID, (void *)&param, sizeof(param)))
             {
-                printf ("WiFiDisconnect started\n");
+                printf("WiFiDisconnect started\n");
                 rc = Core::ERROR_NONE;
             }
             else
             {
-                printf ("WiFiDisconnect failed\n");
+                printf("WiFiDisconnect failed\n");
             }
             return rc;
         }
@@ -972,12 +972,12 @@ namespace WPEFramework
                 ssidInfo.m_rate             = to_string(connectedSsid.rate);
                 ssidInfo.m_noise            = to_string(connectedSsid.noise);
 
-                printf ("GetConnectedSSID Success\n");
+                printf("GetConnectedSSID Success\n");
                 rc = Core::ERROR_NONE;
             }
             else
             {
-                printf ("GetConnectedSSID failed\n");
+                printf("GetConnectedSSID failed\n");
             }
             return rc;
         }
@@ -1008,12 +1008,12 @@ namespace WPEFramework
                 else
                     quality = WIFI_SIGNAL_WEAK;
 
-                printf ("GetWiFiSignalStrength success\n");
+                printf("GetWiFiSignalStrength success\n");
                 rc = Core::ERROR_NONE;
             }
             else
             {
-                printf ("GetWiFiSignalStrength failed\n");
+                printf("GetWiFiSignalStrength failed\n");
             }
             return rc;
         }
@@ -1040,12 +1040,12 @@ namespace WPEFramework
 
             if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_initiateWPSPairing2, (void *)&wps_parameters, sizeof(wps_parameters)))
             {
-                printf ("StartWPS is success\n");
+                printf("StartWPS is success\n");
                 rc = Core::ERROR_NONE;
             }
             else
             {
-                printf ("StartWPS: Failed");                
+                printf("StartWPS: Failed");
             }
 
             return rc;
@@ -1059,12 +1059,12 @@ namespace WPEFramework
 
             if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_cancelWPSPairing, (void *)&param, sizeof(param)))
             {
-                printf ("StopWPS is success\n");
+                printf("StopWPS is success\n");
                 rc = Core::ERROR_NONE;
             }
             else
             {
-                printf ("StopWPS: Failed");                
+                printf("StopWPS: Failed");
             }
 
             return rc;
