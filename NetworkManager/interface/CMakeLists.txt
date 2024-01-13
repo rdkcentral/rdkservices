@@ -1,7 +1,6 @@
 project(NetworkManagerInterface)
 find_package(WPEFramework REQUIRED)
 find_package(${NAMESPACE}Core REQUIRED)
-find_package(${NAMESPACE}COM REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
 find_package(ProxyStubGenerator REQUIRED)
 
@@ -21,22 +20,12 @@ file(GLOB PROXY_STUB_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/generated/ProxyStubs*.
 set(TARGET ${NAMESPACE}NetworkManagerInterface)
 string(TOLOWER ${NAMESPACE} NAMESPACE_LIB)
 
-add_library(${TARGET} SHARED
-        ${PROXY_STUB_SOURCES}        
-        Module.cpp
-        )
+add_library(${TARGET} SHARED ${PROXY_STUB_SOURCES} Module.cpp)
 
 target_include_directories( ${TARGET} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 
-target_link_libraries(${TARGET}
-        PRIVATE
-                ${NAMESPACE}COM::${NAMESPACE}COM
-        )
-
-target_link_libraries(${TARGET}
-        PRIVATE
-          CompileSettingsDebug::CompileSettingsDebug
-        )
+target_link_libraries(${TARGET} PRIVATE ${NAMESPACE}Core::${NAMESPACE}Core)
+target_link_libraries(${TARGET} PRIVATE CompileSettingsDebug::CompileSettingsDebug)
 
 set_target_properties(${TargetMarshalling} PROPERTIES
         CXX_STANDARD 11
