@@ -2,7 +2,7 @@
 <a name="DisplayInfo_Plugin"></a>
 # DisplayInfo Plugin
 
-**Version: [1.0.4](https://github.com/rdkcentral/rdkservices/blob/main/DisplayInfo/CHANGELOG.md)**
+**Version: [1.0.5](https://github.com/rdkcentral/rdkservices/blob/main/DisplayInfo/CHANGELOG.md)**
 
 A DisplayInfo plugin for Thunder framework.
 
