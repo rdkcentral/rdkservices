@@ -499,6 +499,7 @@ namespace WPEFramework
                 {
                     LOGERR("ERROR - API_Send IARM_BUS_CECMGR FAILED, res: %d", (int)res);
                 }
+            }
 #endif
             JsonObject params;
             params["timerId"] = timerId;
