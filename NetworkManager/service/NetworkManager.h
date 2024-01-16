@@ -36,10 +36,7 @@ namespace WPEFramework
          * NetworkManager plugin that exposes an API over both COM-RPC and JSON-RPC
          *
          */
-        class NetworkManager : public PluginHost::IPlugin, public PluginHost::JSONRPC
-#if 1
-        , public PluginHost::ISubSystem::IInternet
-#endif
+        class NetworkManager : public PluginHost::IPlugin, public PluginHost::JSONRPC, public PluginHost::ISubSystem::IInternet
         {
             /**
              * Our notification handling code
@@ -56,7 +53,38 @@ namespace WPEFramework
                 Notification &operator=(const Notification &) = delete;
                 string InterfaceStateToString(Exchange::INetworkManager::INotification::InterfaceState event)
                 {
-                    return "Interface_ADDED";
+                    switch (event)
+                    {
+                        case Exchange::INetworkManager::INotification::INTERFACE_ADDED:
+                            return "Interface_Added";
+                        case Exchange::INetworkManager::INotification::INTERFACE_LINK_UP:
+                            return "Interface_Link_Up";
+                        case Exchange::INetworkManager::INotification::INTERFACE_LINK_DOWN:
+                            return "Interface_Link_Down";
+                        case Exchange::INetworkManager::INotification::INTERFACE_ACQUIRING_IP:
+                            return "Interface_Acquiring_IP";
+                        case Exchange::INetworkManager::INotification::INTERFACE_REMOVED:
+                            return "Interface_Removed";
+                        case Exchange::INetworkManager::INotification::INTERFACE_DISABLED:
+                            return "Interface_Disabled";
+                    }
+                    return "";
+                }
+
+                string InternetStatusToString(const Exchange::INetworkManager::InternetStatus internetStatus)
+                {
+                    switch (internetStatus)
+                    {
+                        case Exchange::INetworkManager::InternetStatus::INTERNET_LIMITED:
+                            return "LIMITED_INTERNET";
+                        case Exchange::INetworkManager::InternetStatus::INTERNET_CAPTIVE_PORTAL:
+                            return "CAPTIVE_PORTAL";
+                        case Exchange::INetworkManager::InternetStatus::INTERNET_FULLY_CONNECTED:
+                            return "FULLY_CONNECTED";
+                        default:
+                            return "NO_INTERNET";
+                    }
+                    return "";
                 }
 
             public:
@@ -74,9 +102,9 @@ namespace WPEFramework
                 {
                     JsonObject params;
                     params["interface"] = interface;
-                    params["state"] = InterfaceStateToString(event);;
+                    params["state"] = InterfaceStateToString(event);
+                    printf("%s\n", __FUNCTION__);
                     _parent.Notify("onInterfaceStateChanged", params);
-                    printf ("%s\n", __FUNCTION__);
                 }
 
                 void onIPAddressChanged(const string interface, const bool isAcquired, const bool isIPv6, const string ipAddress) override
@@ -89,23 +117,41 @@ namespace WPEFramework
                     else
                         params["ipv4"] = ipAddress;
 
+                    printf("%s\n", __FUNCTION__);
                     _parent.Notify("onIPAddressChanged", params);
-                    printf ("%s\n", __FUNCTION__);
                 }
 
                 void onActiveInterfaceChanged(const string prevActiveInterface, const string currentActiveinterface) override
                 {
-                    printf ("%s\n", __FUNCTION__);
+                    printf("%s\n", __FUNCTION__);
+                    JsonObject params;
+                    params["oldInterfaceName"] = prevActiveInterface;
+                    params["newInterfaceName"] = currentActiveinterface;
+
+                    _parent.Notify("onActiveInterfaceChanged", params);
                 }
 
                 void onInternetStatusChanged(const Exchange::INetworkManager::InternetStatus oldState, const Exchange::INetworkManager::InternetStatus newstate) override
                 {
-                    printf ("%s\n", __FUNCTION__);
+                    printf("%s\n", __FUNCTION__);
+                    JsonObject params;
+                    params["prevState"] = static_cast <int> (oldState);
+                    params["prevStatus"] = InternetStatusToString(oldState);
+                    params["state"] = static_cast <int> (newstate);;
+                    params["status"] = InternetStatusToString(newstate);
+
+                    _parent.Notify("onInternetStatusChanged", params);
+
+                    if (Exchange::INetworkManager::InternetStatus::INTERNET_FULLY_CONNECTED == newstate)
+                    {
+                        printf("Notify Thunder ISubsystem");
+                        _parent.PublishToThunderAboutInternet();
+                    }
                 }
 
                 void onPingResponse(const string guid, const string pingStatistics) override
                 {
-                    printf ("%s\n", __FUNCTION__);
+                    printf("%s\n", __FUNCTION__);
                     JsonObject params;
                     JsonObject result;
 
@@ -119,7 +165,7 @@ namespace WPEFramework
                 {
                     JsonObject params;
                     JsonObject result;
-                    printf ("%s\n", __FUNCTION__);
+                    printf("%s\n", __FUNCTION__);
 
                     params.FromString(traceResult);
                     result["traceResult"] = params;
@@ -130,15 +176,24 @@ namespace WPEFramework
                 // WiFi Notifications that other processes can subscribe to
                 void onAvailableSSIDs(const string jsonOfWiFiScanResults) override
                 {
-                    printf ("%s\n", __FUNCTION__);
+                    printf("%s\n", __FUNCTION__);
+                    JsonArray scanResults;
+                    JsonObject result;
+                    scanResults.FromString(jsonOfWiFiScanResults);
+                    result["ssids"] = scanResults;
+                    _parent.Notify("onAvailableSSIDs", result);
+
                 }
                 void onWiFiStateChanged(const Exchange::INetworkManager::INotification::WiFiState state) override
                 {
-                    printf ("%s\n", __FUNCTION__);
+                    printf("%s\n", __FUNCTION__);
+                    JsonObject result;
+                    result["state"] = static_cast <int> (state);
+                    _parent.Notify("onWiFiStateChanged", result);
                 }
                 void onWiFiSignalStrengthChanged(const string ssid, const string signalStrength, const Exchange::INetworkManager::WiFiSignalQuality quality) override
                 {
-                    printf ("%s\n", __FUNCTION__);
+                    printf("%s\n", __FUNCTION__);
                 }
 
 
@@ -186,9 +241,7 @@ namespace WPEFramework
             // Which interfaces do we implement?
             INTERFACE_ENTRY(PluginHost::IPlugin)
             INTERFACE_ENTRY(PluginHost::IDispatcher)
-#if 1
             INTERFACE_ENTRY(PluginHost::ISubSystem::IInternet)
-#endif
 
             // We need to tell Thunder that this plugin provides the INetworkManager interface, but
             // since it's not actually implemented here we tell Thunder where it can
@@ -198,7 +251,6 @@ namespace WPEFramework
             INTERFACE_AGGREGATE(Exchange::INetworkManager, _NetworkManager)
             END_INTERFACE_MAP
 
-#if 1
             /*
             * ------------------------------------------------------------------------------------------------------------
             * ISubSystem::IInternet methods
@@ -212,7 +264,8 @@ namespace WPEFramework
             {
                 return (m_publicIPAddress.empty() == true ? PluginHost::ISubSystem::IInternet::UNKNOWN : (m_publicIPAddressType == "IPV6" ? PluginHost::ISubSystem::IInternet::IPV6 : PluginHost::ISubSystem::IInternet::IPV4));
             }
-#endif
+            void PublishToThunderAboutInternet();
+
         private:
             // Notification/event handlers
             // Clean up when we're told to deactivate

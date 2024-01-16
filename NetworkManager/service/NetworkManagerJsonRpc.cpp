@@ -19,8 +19,8 @@
 
 #include "NetworkManager.h"
 
-#define LOGINFOMETHOD() { std::string json; parameters.ToString(json); printf( "params=%s\n", json.c_str() ); }
-#define LOGTRACEMETHODFIN() { std::string json; response.ToString(json); printf( "response=%s\n", json.c_str() ); }
+#define LOGINFOMETHOD() { std::string json; parameters.ToString(json); printf("params=%s\n", json.c_str() ); }
+#define LOGTRACEMETHODFIN() { std::string json; response.ToString(json); printf("response=%s\n", json.c_str() ); }
 
 namespace WPEFramework
 {
@@ -115,7 +115,7 @@ namespace WPEFramework
 
             if (interfaces)
             {
-                printf ("received response\n");
+                printf("received response\n");
                 JsonArray array;
                 Exchange::INetworkManager::InterfaceDetails entry{};
                 while (interfaces->Next(entry) == true) {
@@ -130,7 +130,7 @@ namespace WPEFramework
                 }
 
                 interfaces->Release();
-                printf ("Sending Success\n");
+                printf("Sending Success\n");
                 response["interfaces"] = array;
                 response["success"] = true;
             }
@@ -453,8 +453,10 @@ namespace WPEFramework
         {
             LOGINFOMETHOD();
             uint32_t rc = Core::ERROR_GENERAL;
-            const string ipversion = parameters["ipversion"].String();
             string ipAddress{};
+            string ipversion = "IPv4";
+            if (parameters.HasLabel("ipversion"))
+                ipversion = parameters["ipversion"].String();
 
             if (_NetworkManager)
                 rc = _NetworkManager->GetPublicIP(ipversion, ipAddress);
@@ -464,9 +466,25 @@ namespace WPEFramework
             if (Core::ERROR_NONE == rc)
             {
                 response["publicIP"] = ipAddress;
+                response["ipversion"] = ipversion;
                 response["success"] = true;
+
+                /* TODO :: Cache this public IP Address */
+                m_publicIPAddress = ipAddress;
+                m_publicIPAddressType = ipversion;
             }
             return rc;
+        }
+
+        void NetworkManager::PublishToThunderAboutInternet()
+        {
+            printf("No public IP persisted yet; Update the data");
+            if (m_publicIPAddress.empty())
+            {
+                JsonObject input, output;
+                GetPublicIP(input, output);
+            }
+            //TODO:: Report ISUBSYSTEM::Internet Ready. Get ISubsystem::Internet and if it is NULL, set it..
         }
 
         uint32_t NetworkManager::Ping(const JsonObject& parameters, JsonObject& response)
@@ -572,7 +590,7 @@ namespace WPEFramework
             JsonArray ssids;
             ::WPEFramework::RPC::IIteratorType<string, RPC::ID_STRINGITERATOR>* _ssids{};
 
-            printf ("@@@@@ %s @@@@@@\n", __FUNCTION__);
+            printf("@@@@@ %s @@@@@@\n", __FUNCTION__);
             if (_NetworkManager)
                 rc = _NetworkManager->GetKnownSSIDs(_ssids);
 
