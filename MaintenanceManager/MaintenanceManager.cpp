@@ -818,25 +818,22 @@ namespace WPEFramework {
             bool network_available =  false;
             LOGINFO("Checking device has network connectivity\n");
 
-            /* add 4 checks every 30 seconds */
-            int i=0;
-            do{
-	        network_available = checkNetwork();
-                if ( !network_available ){
-                    sleep(30);
-                    i++;
-                    LOGINFO("Network retries [%d/4] \n",i);
-                }else{
-                    break;
-                }
-            }while( i < MAX_NETWORK_RETRIES );
-
-            if ( network_available ){
-                return true;
-            }else {
-                return false;
-            }
-        }
+	    /* add 4 checks every 30 seconds */
+            network_available = checkNetwork();
+	    if (!network_available) {
+                int retry_count = 0;
+		while (retry_count < MAX_NETWORK_RETRIES) {
+		    retry_count++;
+		    LOGINFO("Network retries [%d/4] \n", retry_count);
+		    sleep(NETWORK_RETRY_INTERVAL);
+		    network_available = checkNetwork();
+		    if (network_available) {
+	                break;
+		    }
+		}
+	    }
+	    return network_available;
+	}
 
         MaintenanceManager::~MaintenanceManager()
         {

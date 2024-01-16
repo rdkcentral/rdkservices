@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.28] - 2024-01-16
+### Fixed
+- Fixed Network Retry logic in Maintenance Manager in isDeviceOnline()
+
 ## [1.0.26] - 2024-01-04
 ### Added
 - Add WAI Conditional Compile Code in amlogic.cmake and realtek.cmake
