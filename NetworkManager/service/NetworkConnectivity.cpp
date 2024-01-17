@@ -15,7 +15,6 @@
 #include "Module.h"
 #include "logger.h"
 #include "NetworkConnectivity.h"
-#include "INetworkManager.h"
 #include "NetworkManagerImplementation.h"
 
 namespace WPEFramework {
