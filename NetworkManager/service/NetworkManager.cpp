@@ -90,6 +90,9 @@ namespace WPEFramework
 
                 // Register all custom JSON-RPC methods
                 RegisterAllMethods();
+#ifdef ENABLE_LEGACY_NSM_SUPPORT
+                RegisterLegacyMethods();
+#endif
             }
             else
             {
@@ -128,6 +131,9 @@ namespace WPEFramework
                 //Exchange::JNetworkManager::Unregister(*this);
                 // Unregister all our JSON-RPC methods
                 UnregisterAllMethods();
+#ifdef ENABLE_LEGACY_NSM_SUPPORT
+                UnregisterLegacyMethods();
+#endif
                 _NetworkManager->Release();
             }
 
