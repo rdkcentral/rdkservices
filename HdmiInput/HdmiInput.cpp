@@ -71,7 +71,7 @@ static int audio_output_delay = 100;
 static int video_latency = 20;
 #define TVMGR_GAME_MODE_EVENT "gameModeEvent"
 static bool lowLatencyMode = false;
-static int planeType = 0;
+int planeType = 0;
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 using namespace std;
