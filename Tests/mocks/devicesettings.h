@@ -722,7 +722,7 @@ public:
     virtual int getFRFMode(int* frfmode) const = 0;
     virtual int setFRFMode(int frfmode) const = 0;
     virtual int getCurrentDisframerate(char* framerate) const = 0;
-    virtual int setDisplayframerate(const char* framerate) const = 0;
+    virtual int setDisplayframerate(const char* framerate, bool persist) const = 0;
 };
 
 class VideoDevice {
@@ -744,9 +744,9 @@ public:
         return impl->getCurrentDisframerate(framerate);
     }
 
-    int setDisplayframerate(const char* framerate) const
+    int setDisplayframerate(const char* framerate, bool persist) const
     {
-        return impl->setDisplayframerate(framerate);
+        return impl->setDisplayframerate(framerate, persist);
     }
 };
 

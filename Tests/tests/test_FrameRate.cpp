@@ -177,7 +177,7 @@ TEST_F(FrameRateDsTest, DISABLED_setDisplayFrameRate)
                 return 0;
             }));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setDisplayFrameRate"), _T("{\"framerate\":\"3840x2160px48\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setDisplayFrameRate"), _T("{\"framerate\":\"3840x2160px48\", \"persist\": false}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
 

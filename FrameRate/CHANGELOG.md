@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.6] - 2023-10-30
+### Added
+-  Added persist param for setDisplayFrameRate api to persist framerate after reboot other wise not persist framerate after reboot
+
 ## [1.0.5] - 2023-10-16
 ### Changed
 -  Sending FrameRate plugin onDisplayFrameRateChanging and onDisplayFrameRateChanged events to wpeframework log with displayFrameRate params
