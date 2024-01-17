@@ -12,8 +12,8 @@
 #include <atomic>
 #include <mutex>
 #include <curl/curl.h>
-#include "NetworkConnectivity.h"
 #include "Module.h"
+#include "NetworkConnectivity.h"
 
 
 namespace WPEFramework {
