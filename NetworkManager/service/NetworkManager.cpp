@@ -43,6 +43,7 @@ namespace WPEFramework
               _notification(this)
         {
             // Don't do any work in the constructor - all set up should be done in Initialize
+             NM::logger_init();
         }
 
         NetworkManager::~NetworkManager()
