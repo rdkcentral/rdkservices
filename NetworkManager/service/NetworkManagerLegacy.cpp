@@ -56,7 +56,6 @@ namespace WPEFramework
             Register("connect",                           &NetworkManager::WiFiConnect, this);
             Register("disconnect",                        &NetworkManager::WiFiDisconnect, this);
             Register("getConnectedSSID",                  &NetworkManager::getConnectedSSID, this);
-            Register("getConnectedSSID",                  &NetworkManager::getConnectedSSID, this);
             Register("startScan",                         &NetworkManager::StartWiFiScan, this);
             Register("stopScan",                          &NetworkManager::StopWiFiScan, this);
             Register("getPairedSSID",                     &NetworkManager::GetKnownSSIDs, this);
@@ -72,14 +71,6 @@ namespace WPEFramework
          */
         void NetworkManager::UnregisterLegacyMethods()
         {
-            Unregister("cancelWPSPairing");
-            Unregister("clearSSID");
-            Unregister("connect");
-            Unregister("disconnect");
-            Unregister("getConnectedSSID");
-            Unregister("getSupportedSecurityModes");
-            Unregister("startScan");
-            Unregister("stopScan");
             Unregister("getInterfaces");
             Unregister("isInterfaceEnabled");
             Unregister("getPublicIP");
@@ -95,11 +86,19 @@ namespace WPEFramework
             Unregister("startConnectivityMonitoring");
             Unregister("getCaptivePortalURI");
             Unregister("stopConnectivityMonitoring");
+            Unregister("cancelWPSPairing");
+            Unregister("clearSSID");
+            Unregister("connect");
+            Unregister("disconnect");
+            Unregister("getConnectedSSID");
+            Unregister("startScan");
+            Unregister("stopScan");
             Unregister("getPairedSSID");
             Unregister("getPairedSSIDInfo");
             Unregister("initiateWPSPairing");
             Unregister("isPaired");
             Unregister("saveSSID");
+            Unregister("getSupportedSecurityModes");
         }
 
 #define CIDR_NETMASK_IP_LEN 32
