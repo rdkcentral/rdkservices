@@ -196,6 +196,7 @@ set(PLUGIN_LIGHTNING_APP_MEMORYPRESSURE_NETWORKPROCESS_SETTINGS_POLLINTERVAL ${P
 set(PLUGIN_LIGHTNING_APP_COMPOSITOR "noaa" CACHE STRING "cairo compositor mode for Lightning App")
 
 set(PLUGIN_JSPP_AUTOSTART "false" CACHE STRING "Automatically start JSPP plugin")
+set(PLUGIN_JSPP_RESUMED "false" CACHE STRING "Set JSPP plugin resume state")
 set(PLUGIN_JSPP_STARTUPORDER "" CACHE STRING "To configure startup order of JSPP plugin")
 set(PLUGIN_JSPP_MODE "Local" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
 set(PLUGIN_JSPP_USERAGENT "${PLUGIN_WEBKITBROWSER_USERAGENT}" CACHE STRING "User agent string for JSPP")
