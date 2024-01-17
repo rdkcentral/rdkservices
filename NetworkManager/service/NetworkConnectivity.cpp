@@ -12,9 +12,9 @@
 #include <atomic>
 #include <mutex>
 #include <curl/curl.h>
-#include "Module.h"
-#include "logger.h"
 #include "NetworkConnectivity.h"
+#include "Module.h"
+
 
 namespace WPEFramework {
     namespace Plugin {
