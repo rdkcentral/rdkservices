@@ -9,7 +9,7 @@
         "status": "production",
         "description": "The `NetworkManager` plugin allows you to manage Ethernet and Wifi interfaces on the device",
         "version": "1.0.0"
-      },
+    },
     "common": {
         "$ref": "../../common/common.json"
     },
@@ -111,6 +111,62 @@
         }
     },
     "methods": {
+        "GetAvailableInterfaces":{
+            "summary": "Returns a list of interfaces supported by this device including their state.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "Interfaces": {
+                        "summary": "An interface",
+                        "type":"array",
+                        "items": {
+                            "type":"object",
+                            "properties": {
+                                "type":{
+                                    "summary": "Type",
+                                    "type": "string",
+                                    "example": ""
+                                },
+                                "name":{
+                                    "summary": "Name",
+                                    "type": "string",
+                                    "example": ""
+                                },
+                                "mac":{
+                                    "summary": "Interface MAC address",
+                                    "type": "string",
+                                    "example": "AA:AA:AA:AA:AA:AA"
+                                },
+                                "isEnabled":{
+                                    "summary": "Whether the interface is currently enabled",
+                                    "type": "boolean",
+                                    "example": true
+                                },
+                                "isConnected":{
+                                    "summary": "Whether the interface is currently connected",
+                                    "type": "boolean",
+                                    "example": true
+                                }
+                            },
+                            "required": [
+                                "type",
+                                "name",
+                                "mac",
+                                "isEnabled",
+                                "isConnected"
+                            ]
+                        }
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "interfaces",
+                    "success"
+                ]
+            }
+        },
         "GetPrimaryInterface": {
             "summary": "Gets the Primary/default network interface. The active network interface is defined as the one that can make requests to the external network. Returns one of the supported interfaces as per `getInterfaces`, or an empty value which indicates that there is no default network interface.",
             "result": {
@@ -127,6 +183,12 @@
         },
         "SetPrimaryInterface":{
             "summary": "Sets the Primary/default interface. The call fails if the interface is not enabled.",
+            "events":{
+                "onActiveInterfaceChanged" : "Triggered when device’s default interface changed.",
+                "onInterfaceStateChanged" : "Triggered when interface’s state changed",
+                "onIPAddressChanged" : "Triggered when the device connects to router.",
+                "onInternetStatusChanged" : "Triggered when each IP address is lost or acquired."
+            },
             "params": {
                 "type":"object",
                 "properties": {
@@ -218,7 +280,7 @@
         "SetIPSettings":{
             "summary": "Sets the IP settings.All the inputs are mandatory for v1. But for v2, the interface and autconfig params are mandatory input to autoconfig IP settings & other parameters not required. For manual IP, all the input parameters are mandatory except secondaryDNS.",
             "events":{
-                "onIPAddressStatusChanged" : "Triggered when each IP address is lost or acquired."
+                "onInternetStatusChanged" : "Triggered when each IP address is lost or acquired."
             },
             "params": {
                 "type":"object",
@@ -439,7 +501,7 @@
         "StartConnectivityMonitoring":{
             "summary": "Enable a continuous monitoring of internet connectivity with heart beat interval thats given.",
             "events":{
-                 "onInternetStatusChange" : "Triggered when internet connection state changed."
+                 "onInternetStatusChanged" : "Triggered when internet connection state changed."
             },
             "params": {
                 "type":"object",
@@ -514,6 +576,9 @@
         },
         "ping":{
             "summary": "Pings the specified endpoint with the specified number of packets.",
+            "events":{
+                "onPingResponse" : "Triggered when Ping request received."
+            },
             "params": {
                 "type":"object",
                 "properties": {
@@ -556,6 +621,9 @@
 
         "trace":{
             "summary": "Traces the specified endpoint with the specified number of packets using `traceroute`.",
+            "onTraceResponse":{
+                "onPingResponse" : "Triggered when Trace request received."
+            },
             "params": {
                 "type":"object",
                 "properties": {
@@ -588,6 +656,253 @@
                 },
                 "required": [
                     "success"
+                ]
+            }
+        },
+        "StartWiFiScan":{
+            "summary": "Scans for available SSIDs. Available SSIDs are returned in an `onAvailableSSIDs` event.",
+            "events": {
+                "onAvailableSSIDs" : "Triggered when list of SSIDs is available after the scan completes."
+            },
+            "params": {
+                "type": "object",
+                "properties": {
+                    "frequency": {
+                        "summary": "The frequency to scan. An empty or `null` value scans all frequencies. If a frequency is specified (2.4 or 5.0), then the results are only returned for matching frequencies.",
+                        "type": "string",
+                        "example": ""
+                    }
+                },
+                "required": [
+                    "frequency"
+                ]
+            },
+            "result": {
+                  "type": "object",
+                  "properties": {
+                     "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            }
+        },
+        "StopWiFiScan":{
+            "summary": "Stops scanning for SSIDs. Any discovered SSIDs from the call to the `startScan` method up to the point where this method is called are still returned.",
+            "result": {
+                "$ref": "#/common/result"
+            }
+        }
+    },
+    "events": {
+        "onInterfaceStateChanged":{
+            "summary": "Triggered when an interface becomes enabled or disabled.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "interface":{
+                        "$ref": "#/definitions/interface" 
+                    },
+                    "state":{
+                        "summary": "Whether the interface is enabled (`true`) or disabled (`false`)",
+                        "type": "string",
+                        "example": "Interface_ADDED"
+                    }
+                },
+                "required": [
+                    "interface",
+                    "state"
+                ]
+            }
+        },
+        "onIPAddressChanged":{
+            "summary": "Triggered when an IP Address is assigned or lost.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "interface":{
+                        "$ref": "#/definitions/interface" 
+                    },
+                    "ipv6":{
+                        "summary": "The IPv6 address for the interface",
+                        "type": "string",
+                        "example": "2001:0xx8:85a3:0000:0000:8x2x:0370:7334" 
+                    },
+                    "ipv4":{
+                        "summary": "The IPv4 address for the interface",
+                        "type": "string",
+                        "example": "192.168.1.2" 
+                    },
+                    "status":{
+                        "summary": "Whether IP address was acquired or lost",
+                        "type": "string",
+                        "enum": ["`ACQUIRED`", "`LOST`" ],
+                        "example": "ACQUIRED"
+                    }
+                },
+                "required": [
+                    "interface",
+                    "ipv6",
+                    "ip4",
+                    "status"
+                ]
+            }
+        },
+        "onActiveInterfaceChanged":{
+            "summary": "Triggered when the ac interface changes, regardless if it's from a system operation or through the `setDefaultInterface` method.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "oldInterfaceName":{
+                        "summary": "The previous interface that was changed",
+                        "type": "string",
+                        "example": "ETHERNET" 
+                    },
+                    "newInterfaceName":{
+                        "summary": "The current interface",
+                        "type": "string",
+                        "example": "WIFI" 
+                    }
+                },
+                "required": [
+                    "oldInterfaceName",
+                    "newInterfaceName"
+                ]
+            }
+        },
+        "onInternetStatusChange":{
+            "summary": "Triggered when internet connection state changed.The possible internet connection status are `NO_INTERNET`, `LIMITED_INTERNET`, `CAPTIVE_PORTAL`, `FULLY_CONNECTED`",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "PrevState":{
+                        "summary": "The privious internet connection state",
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "PrevStatus":{
+                        "summary": "The previous internet connection status",
+                        "type": "string",
+                        "example": "NO_INTERNET"
+                    },
+                    "state":{
+                        "summary": "The internet connection state",
+                        "type": "integer",
+                        "example": 0
+                    },
+                    "status":{
+                        "summary": "The internet connection status",
+                        "type": "string",
+                        "example": "NO_INTERNET"
+                    }
+                },
+                "required": [
+                    "PrevState",
+                    "PrevStatus",
+                    "state",
+                    "status"
+                ]
+            }
+        },
+        "onPingResponse":{
+            "summary": "Triggered when a connection is made or lost.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "pingStatistics":{
+                        "summary": "Ping Statistics",
+                        "type": "string",
+                        "example": ""	
+                    },
+                    "guid":{
+                        "$ref": "#/definitions/guid"
+                    }
+                },
+                "required": [
+                    "pingStatistics",
+                    "guid"
+                ]
+            }
+        },
+        "onTraceResponse":{
+            "summary": "Triggered when a connection is made or lost.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "traceResult":{
+                        "summary": "Trace Result",
+                        "type": "string",
+                        "example": ""	
+                    },
+                    "guid":{
+                        "$ref": "#/definitions/guid"
+                    }
+                },
+                "required": [
+                    "traceResult",
+                    "guid"
+                ]
+            }
+        },
+        "onAvailableSSIDs":{
+            "summary": "Triggered when got for scan.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "ssids":{
+                        "summary": "On Available SSID's",
+                        "type": "string",
+                        "example": ""	
+                    }
+                },
+                "required": [
+                    "ssids"
+                ]
+            }
+        },
+        "onWiFiStateChanged":{
+            "summary": "Triggered when WIFI connection state get changed.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "state":{
+                        "summary": "onWiFiStateChanged",
+                        "type": "integer",
+                        "example": "3"	
+                    }
+                },
+                "required": [
+                    "state"
+                ]
+            }
+        },
+        "onWiFiSignalStrengthChanged":{
+            "summary": "Triggered when WIFI connection Signal Strength get changed.",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "ssid":{
+                        "summary": "Signal Strength changed SSID",
+                        "type": "string",
+                        "example": "comcast123"	
+                    },
+                    "signalStrength":{
+                        "summary": "Signal Strength",
+                        "type": "string",
+                        "example": ""	
+                    },
+                    "quality":{
+                        "summary": "Signal quality",
+                        "type": "string",
+                        "example": ""	
+                    }
+                },
+                "required": [
+                    "ssid",
+                    "signalStrength",
+                    "quality"
                 ]
             }
         }

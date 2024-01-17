@@ -11,7 +11,9 @@ A NetworkManager plugin for Thunder framework.
 - [Abbreviation, Acronyms and Terms](#head.Abbreviation,_Acronyms_and_Terms)
 - [Description](#head.Description)
 - [Configuration](#head.Configuration)
+- [Interfaces](#head.Interfaces)
 - [Methods](#head.Methods)
+- [Notifications](#head.Notifications)
 
 <a name="head.Abbreviation,_Acronyms_and_Terms"></a>
 # Abbreviation, Acronyms and Terms
@@ -35,6 +37,13 @@ The table below lists configuration options of the plugin.
 | classname | string | Class name: *NetworkManager* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
+<a name="head.Interfaces"></a>
+# Interfaces
+
+This plugin implements the following interfaces:
+
+- [NetworkManager.json](https://github.com/rdkcentral/ThunderInterfaces/blob/master/interfaces/NetworkManager.json)
+
 <a name="head.Methods"></a>
 # Methods
 
@@ -44,6 +53,7 @@ NetworkManager interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
+| [GetAvailableInterfaces](#method.GetAvailableInterfaces) | Returns a list of interfaces supported by this device including their state |
 | [GetPrimaryInterface](#method.GetPrimaryInterface) | Gets the Primary/default network interface |
 | [SetPrimaryInterface](#method.SetPrimaryInterface) | Sets the Primary/default interface |
 | [GetIPSettings](#method.GetIPSettings) | Gets the IP setting for the given interface |
@@ -59,7 +69,69 @@ NetworkManager interface methods:
 | [getPublicIP](#method.getPublicIP) | It allows either zero parameter or with only interface and ipv6 parameter to determine WAN ip address |
 | [ping](#method.ping) | Pings the specified endpoint with the specified number of packets |
 | [trace](#method.trace) | Traces the specified endpoint with the specified number of packets using `traceroute` |
+| [StartWiFiScan](#method.StartWiFiScan) | Scans for available SSIDs |
+| [StopWiFiScan](#method.StopWiFiScan) | Stops scanning for SSIDs |
 
+
+<a name="method.GetAvailableInterfaces"></a>
+## *GetAvailableInterfaces [<sup>method</sup>](#head.Methods)*
+
+Returns a list of interfaces supported by this device including their state.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result?.Interfaces | array | <sup>*(optional)*</sup> An interface |
+| result?.Interfaces[#] | object | <sup>*(optional)*</sup>  |
+| result?.Interfaces[#].type | string | Type |
+| result?.Interfaces[#].name | string | Name |
+| result?.Interfaces[#].mac | string | Interface MAC address |
+| result?.Interfaces[#].isEnabled | boolean | Whether the interface is currently enabled |
+| result?.Interfaces[#].isConnected | boolean | Whether the interface is currently connected |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "NetworkManager.GetAvailableInterfaces"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "Interfaces": [
+            {
+                "type": "...",
+                "name": "...",
+                "mac": "AA:AA:AA:AA:AA:AA",
+                "isEnabled": true,
+                "isConnected": true
+            }
+        ],
+        "success": true
+    }
+}
+```
 
 <a name="method.GetPrimaryInterface"></a>
 ## *GetPrimaryInterface [<sup>method</sup>](#head.Methods)*
@@ -112,8 +184,12 @@ Sets the Primary/default interface. The call fails if the interface is not enabl
 
 ### Events
 
-No Events
-
+| Event | Description |
+| :-------- | :-------- |
+| [onActiveInterfaceChanged](#event.onActiveInterfaceChanged) | Triggered when device’s default interface changed. |
+| [onInterfaceStateChanged](#event.onInterfaceStateChanged) | Triggered when interface’s state changed |
+| [onIPAddressChanged](#event.onIPAddressChanged) | Triggered when the device connects to router. |
+| [onInternetStatusChanged](#event.onInternetStatusChanged) | Triggered when each IP address is lost or acquired. |
 ### Parameters
 
 | Name | Type | Description |
@@ -238,7 +314,7 @@ Sets the IP settings.All the inputs are mandatory for v1. But for v2, the interf
 
 | Event | Description |
 | :-------- | :-------- |
-| [onIPAddressStatusChanged](#event.onIPAddressStatusChanged) | Triggered when each IP address is lost or acquired. |
+| [onInternetStatusChanged](#event.onInternetStatusChanged) | Triggered when each IP address is lost or acquired. |
 ### Parameters
 
 | Name | Type | Description |
@@ -613,7 +689,7 @@ Enable a continuous monitoring of internet connectivity with heart beat interval
 
 | Event | Description |
 | :-------- | :-------- |
-| [onInternetStatusChange](#event.onInternetStatusChange) | Triggered when internet connection state changed. |
+| [onInternetStatusChanged](#event.onInternetStatusChanged) | Triggered when internet connection state changed. |
 ### Parameters
 
 | Name | Type | Description |
@@ -758,8 +834,9 @@ Pings the specified endpoint with the specified number of packets.
 
 ### Events
 
-No Events
-
+| Event | Description |
+| :-------- | :-------- |
+| [onPingResponse](#event.onPingResponse) | Triggered when Ping request received. |
 ### Parameters
 
 | Name | Type | Description |
@@ -861,6 +938,363 @@ No Events
     "id": 42,
     "result": {
         "success": true
+    }
+}
+```
+
+<a name="method.StartWiFiScan"></a>
+## *StartWiFiScan [<sup>method</sup>](#head.Methods)*
+
+Scans for available SSIDs. Available SSIDs are returned in an `onAvailableSSIDs` event.
+
+### Events
+
+| Event | Description |
+| :-------- | :-------- |
+| [onAvailableSSIDs](#event.onAvailableSSIDs) | Triggered when list of SSIDs is available after the scan completes. |
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.frequency | string | The frequency to scan. An empty or `null` value scans all frequencies. If a frequency is specified (2.4 or 5.0), then the results are only returned for matching frequencies |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "NetworkManager.StartWiFiScan",
+    "params": {
+        "frequency": "..."
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.StopWiFiScan"></a>
+## *StopWiFiScan [<sup>method</sup>](#head.Methods)*
+
+Stops scanning for SSIDs. Any discovered SSIDs from the call to the `startScan` method up to the point where this method is called are still returned.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "NetworkManager.StopWiFiScan"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="head.Notifications"></a>
+# Notifications
+
+Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
+
+The following events are provided by the NetworkManager plugin:
+
+NetworkManager interface events:
+
+| Event | Description |
+| :-------- | :-------- |
+| [onInterfaceStateChanged](#event.onInterfaceStateChanged) | Triggered when an interface becomes enabled or disabled |
+| [onIPAddressChanged](#event.onIPAddressChanged) | Triggered when an IP Address is assigned or lost |
+| [onActiveInterfaceChanged](#event.onActiveInterfaceChanged) | Triggered when the ac interface changes, regardless if it's from a system operation or through the `setDefaultInterface` method |
+| [onInternetStatusChange](#event.onInternetStatusChange) | Triggered when internet connection state changed |
+| [onPingResponse](#event.onPingResponse) | Triggered when a connection is made or lost |
+| [onTraceResponse](#event.onTraceResponse) | Triggered when a connection is made or lost |
+| [onAvailableSSIDs](#event.onAvailableSSIDs) | Triggered when got for scan |
+| [onWiFiStateChanged](#event.onWiFiStateChanged) | Triggered when WIFI connection state get changed |
+| [onWiFiSignalStrengthChanged](#event.onWiFiSignalStrengthChanged) | Triggered when WIFI connection Signal Strength get changed |
+
+
+<a name="event.onInterfaceStateChanged"></a>
+## *onInterfaceStateChanged [<sup>event</sup>](#head.Notifications)*
+
+Triggered when an interface becomes enabled or disabled.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface in `getInterfaces` |
+| params.state | string | Whether the interface is enabled (`true`) or disabled (`false`) |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onInterfaceStateChanged",
+    "params": {
+        "interface": "wlan0",
+        "state": "Interface_ADDED"
+    }
+}
+```
+
+<a name="event.onIPAddressChanged"></a>
+## *onIPAddressChanged [<sup>event</sup>](#head.Notifications)*
+
+Triggered when an IP Address is assigned or lost.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface in `getInterfaces` |
+| params.ipv6 | string | The IPv6 address for the interface |
+| params?.ipv4 | string | <sup>*(optional)*</sup> The IPv4 address for the interface |
+| params.status | string | Whether IP address was acquired or lost (must be one of the following: *`ACQUIRED`*, *`LOST`*) |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onIPAddressChanged",
+    "params": {
+        "interface": "wlan0",
+        "ipv6": "2001:0xx8:85a3:0000:0000:8x2x:0370:7334",
+        "ipv4": "192.168.1.2",
+        "status": "ACQUIRED"
+    }
+}
+```
+
+<a name="event.onActiveInterfaceChanged"></a>
+## *onActiveInterfaceChanged [<sup>event</sup>](#head.Notifications)*
+
+Triggered when the ac interface changes, regardless if it's from a system operation or through the `setDefaultInterface` method.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.oldInterfaceName | string | The previous interface that was changed |
+| params.newInterfaceName | string | The current interface |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onActiveInterfaceChanged",
+    "params": {
+        "oldInterfaceName": "ETHERNET",
+        "newInterfaceName": "WIFI"
+    }
+}
+```
+
+<a name="event.onInternetStatusChange"></a>
+## *onInternetStatusChange [<sup>event</sup>](#head.Notifications)*
+
+Triggered when internet connection state changed.The possible internet connection status are `NO_INTERNET`, `LIMITED_INTERNET`, `CAPTIVE_PORTAL`, `FULLY_CONNECTED`.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.PrevState | integer | The privious internet connection state |
+| params.PrevStatus | string | The previous internet connection status |
+| params.state | integer | The internet connection state |
+| params.status | string | The internet connection status |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onInternetStatusChange",
+    "params": {
+        "PrevState": 0,
+        "PrevStatus": "NO_INTERNET",
+        "state": 0,
+        "status": "NO_INTERNET"
+    }
+}
+```
+
+<a name="event.onPingResponse"></a>
+## *onPingResponse [<sup>event</sup>](#head.Notifications)*
+
+Triggered when a connection is made or lost.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.pingStatistics | string | Ping Statistics |
+| params.guid | string | The globally unique identifier |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onPingResponse",
+    "params": {
+        "pingStatistics": "...",
+        "guid": "..."
+    }
+}
+```
+
+<a name="event.onTraceResponse"></a>
+## *onTraceResponse [<sup>event</sup>](#head.Notifications)*
+
+Triggered when a connection is made or lost.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.traceResult | string | Trace Result |
+| params.guid | string | The globally unique identifier |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onTraceResponse",
+    "params": {
+        "traceResult": "...",
+        "guid": "..."
+    }
+}
+```
+
+<a name="event.onAvailableSSIDs"></a>
+## *onAvailableSSIDs [<sup>event</sup>](#head.Notifications)*
+
+Triggered when got for scan.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.ssids | string | On Available SSID's |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onAvailableSSIDs",
+    "params": {
+        "ssids": "..."
+    }
+}
+```
+
+<a name="event.onWiFiStateChanged"></a>
+## *onWiFiStateChanged [<sup>event</sup>](#head.Notifications)*
+
+Triggered when WIFI connection state get changed.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.state | integer | onWiFiStateChanged |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onWiFiStateChanged",
+    "params": {
+        "state": 3
+    }
+}
+```
+
+<a name="event.onWiFiSignalStrengthChanged"></a>
+## *onWiFiSignalStrengthChanged [<sup>event</sup>](#head.Notifications)*
+
+Triggered when WIFI connection Signal Strength get changed.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.ssid | string | Signal Strength changed SSID |
+| params.signalStrength | string | Signal Strength |
+| params.quality | string | Signal quality |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onWiFiSignalStrengthChanged",
+    "params": {
+        "ssid": "comcast123",
+        "signalStrength": "...",
+        "quality": "..."
     }
 }
 ```

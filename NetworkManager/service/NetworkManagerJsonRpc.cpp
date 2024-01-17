@@ -42,6 +42,7 @@ namespace WPEFramework
             Register("GetAvailableInterfaces",            &NetworkManager::GetAvailableInterfaces, this);
             Register("GetPrimaryInterface",               &NetworkManager::GetPrimaryInterface, this);
             Register("SetPrimaryInterface",               &NetworkManager::SetPrimaryInterface, this);
+            Register("SetInterfaceEnabled",               &NetworkManager::SetInterfaceEnabled, this);
             Register("GetIPSettings",                     &NetworkManager::GetIPSettings, this);
             Register("SetIPSettings",                     &NetworkManager::SetIPSettings, this);
             Register("GetStunEndpoint",                   &NetworkManager::GetStunEndpoint, this);
@@ -78,6 +79,7 @@ namespace WPEFramework
             Unregister("GetAvailableInterfaces");
             Unregister("GetPrimaryInterface");
             Unregister("SetPrimaryInterface");
+            Unregister("SetInterfaceEnabled");
             Unregister("GetIPSettings");
             Unregister("SetIPSettings");
             Unregister("GetStunEndpoint");
@@ -182,6 +184,24 @@ namespace WPEFramework
 
             if (Core::ERROR_NONE == rc)
             { 
+                response["success"] = true;
+            }
+            return rc;
+        }
+
+        uint32_t NetworkManager::SetInterfaceEnabled (const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            uint32_t rc = Core::ERROR_GENERAL;
+            string interface = parameters["interface"].String();
+            bool isEnabled = parameters["enable"].Boolean();
+            if (_NetworkManager)
+                rc = _NetworkManager->SetInterfaceEnabled(interface, isEnabled);
+            else
+                rc = Core::ERROR_UNAVAILABLE;
+
+            if (Core::ERROR_NONE == rc)
+            {
                 response["success"] = true;
             }
             return rc;
