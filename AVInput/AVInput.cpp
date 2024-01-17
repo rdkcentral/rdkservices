@@ -62,7 +62,7 @@
 #define AVINPUT_EVENT_ON_GAME_FEATURE_STATUS_CHANGED "gameFeatureStatusUpdate"
 #define AVINPUT_EVENT_ON_AVI_CONTENT_TYPE_CHANGED "aviContentTypeUpdate"
 
-static int planeType = 0;
+int planeType = 0;
 
 using namespace std;
 int getTypeOfInput(string sType)
