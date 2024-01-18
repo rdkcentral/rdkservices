@@ -71,7 +71,7 @@ static int audio_output_delay = 100;
 static int video_latency = 20;
 #define TVMGR_GAME_MODE_EVENT "gameModeEvent"
 static bool lowLatencyMode = false;
-int planeType = 0;
+static int planeType = 0;
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 using namespace std;
@@ -272,8 +272,8 @@ namespace WPEFramework
             bool success = true;
             try
             {
-                device::HdmiInput::getInstance().selectPort(-1);
 		planeType = -1;// plane index when stopping hdmi input
+                device::HdmiInput::getInstance().selectPort(-1);
             }
             catch (const device::Exception& err)
             {
