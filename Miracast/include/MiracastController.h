@@ -61,10 +61,12 @@ public:
     bool get_connection_status();
     DeviceInfo *get_device_details(std::string mac);
 
-    void send_msg_thunder_msg_hdler_thread(MIRACAST_SERVICE_STATES state, std::string buffer = "", std::string user_data = "");
+    //void send_msg_thunder_msg_hdler_thread(MIRACAST_SERVICE_STATES state, std::string buffer = "", std::string user_data = "");
+    void send_thundermsg_to_controller_thread(MIRACAST_SERVICE_STATES state, std::string buffer = "", std::string user_data = "");
 
     void Controller_Thread(void *args);
-    void ThunderReqHandler_Thread(void *args);
+    //void ThunderReqHandler_Thread(void *args);
+    void notify_ConnectionRequest(std::string device_name,std::string device_mac);
 
 #ifdef ENABLE_MIRACAST_SERVICE_TEST_NOTIFIER
     MiracastThread  *m_test_notifier_thread;
@@ -135,12 +137,14 @@ private:
     GroupInfo *m_groupInfo;
     bool m_connectionStatus;
     bool m_p2p_backend_discovery{false};
+    std::string  m_current_device_name;
+    std::string  m_current_device_mac_addr;
 
     /*members for interacting with wpa_supplicant*/
     MiracastP2P *m_p2p_ctrl_obj;
 
     MiracastRTSPMsg *m_rtsp_msg;
-    MiracastThread *m_thunder_req_handler_thread;
+    //MiracastThread *m_thunder_req_handler_thread;
     MiracastThread *m_controller_thread;
     int m_tcpserverSockfd;
     eCONTROLLER_FW_STATES convertP2PtoSessionActions(P2P_EVENTS eventId);
