@@ -18,6 +18,8 @@
 **/
 
 #include "NetworkManagerImplementation.h"
+#include "logger.h"
+#include "NetworkConnectivity.h"
 
 using namespace WPEFramework;
 using namespace WPEFramework::Plugin;
@@ -33,9 +35,16 @@ namespace WPEFramework
         NetworkManagerImplementation::NetworkManagerImplementation()
             : _notificationCallbacks({})
         {
+            /* Initialize Network Manager */
+            NM::logger_init();
+           // NM::set_log_level("info");
+
             LOG_ENTRY_FUNCTION();
             /* Name says it all */
             platform_init();
+
+            /* set the callback function of connectivity monitor*/
+            ConnectivityMonitor::getInstance()->registerConnectivityMonitorCallback(this);
 
             /* Initialize STUN Endpoints */
             m_stunEndPoint = "stun.l.google.com";
@@ -119,7 +128,7 @@ namespace WPEFramework
         uint32_t NetworkManagerImplementation::GetConnectivityTestEndpoints(IStringIterator*& endPoints/* @out */) const
         {
             LOG_ENTRY_FUNCTION();
-            std::vector<std::string> tmpEndPoints = connectivityMonitor.getConnectivityMonitorEndpoints();
+            std::vector<std::string> tmpEndPoints = ConnectivityMonitor::getInstance()->getConnectivityMonitorEndpoints();
             endPoints = (Core::Service<RPC::StringIterator>::Create<RPC::IStringIterator>(tmpEndPoints));
 
             return Core::ERROR_NONE;
@@ -137,7 +146,7 @@ namespace WPEFramework
                 {
                     tmpEndPoints.push_back(endPoint);
                 }
-                connectivityMonitor.setConnectivityMonitorEndpoints(tmpEndPoints);
+                ConnectivityMonitor::getInstance()->setConnectivityMonitorEndpoints(tmpEndPoints);
             }
             return Core::ERROR_NONE;
         }
@@ -154,7 +163,7 @@ namespace WPEFramework
             else if(0 == strcasecmp("IPv6", ipversion.c_str()))
                 tmpVersion = NSM_IPRESOLVE_V6;
 
-            isconnected = connectivityMonitor.getInternetConnectionState(tmpVersion);
+            isconnected = ConnectivityMonitor::getInstance()->getInternetConnectionState(tmpVersion);
             if (FULLY_CONNECTED == isconnected)
                 result = INTERNET_FULLY_CONNECTED;
             else if (CAPTIVE_PORTAL == isconnected)
@@ -171,7 +180,7 @@ namespace WPEFramework
         uint32_t NetworkManagerImplementation::GetCaptivePortalURI(string &endPoints/* @out */) const
         {
             LOG_ENTRY_FUNCTION();
-            endPoints = connectivityMonitor.getCaptivePortalURI();
+            endPoints = ConnectivityMonitor::getInstance()->getCaptivePortalURI();
             return Core::ERROR_NONE;
         }
 
@@ -179,7 +188,7 @@ namespace WPEFramework
         uint32_t NetworkManagerImplementation::StartConnectivityMonitoring(const uint32_t interval/* @in */)
         {
             LOG_ENTRY_FUNCTION();
-            if (connectivityMonitor.doContinuousConnectivityMonitoring(interval))
+            if (ConnectivityMonitor::getInstance()->doContinuousConnectivityMonitoring(interval))
                 return Core::ERROR_NONE;
             else
                 return Core::ERROR_GENERAL;
@@ -189,7 +198,7 @@ namespace WPEFramework
         uint32_t NetworkManagerImplementation::StopConnectivityMonitoring(void) const
         {
             LOG_ENTRY_FUNCTION();
-            if (connectivityMonitor.stopContinuousConnectivityMonitoring())
+            if (ConnectivityMonitor::getInstance()->stopContinuousConnectivityMonitoring())
                 return Core::ERROR_NONE;
             else
                 return Core::ERROR_GENERAL;
@@ -226,7 +235,7 @@ namespace WPEFramework
                 snprintf(cmd, sizeof(cmd), "ping -c %d -W %d '%s' 2>&1", noOfRequest, timeOutInSeconds, endpoint.c_str());
             }
             
-            printf("The Command is @%s@\n", cmd);
+            NMLOG_INFO ("The Command is @%s@", cmd);
             string commandToExecute(cmd);
             Core::IWorkerPool::Instance().Submit(Job::Create(this, NETMGR_PING, commandToExecute, guid));
 
@@ -243,7 +252,7 @@ namespace WPEFramework
             pipe = popen(commandToExecute.c_str(), "r");
             if (pipe == NULL)
             {   
-                printf("%s: failed to open file '%s' for read mode with result: %s", __FUNCTION__, commandToExecute.c_str(), strerror(errno));
+                NMLOG_INFO ("%s: failed to open file '%s' for read mode with result: %s", __FUNCTION__, commandToExecute.c_str(), strerror(errno));
                 return;
             }
 
@@ -325,11 +334,11 @@ namespace WPEFramework
 
                 std::string json;
                 pingResult.ToString(json);
-                printf("params=%s\n", json.c_str());
+                NMLOG_INFO("params=%s", json.c_str());
 
                 _notificationLock.Lock();
 
-                printf("We have %d subscribed clients to trigger notifications\n", (int) _notificationCallbacks.size());
+                NMLOG_INFO("We have %d subscribed clients to trigger notifications", (int) _notificationCallbacks.size());
                 for (const auto callback : _notificationCallbacks) {
                     callback->onPingResponse(guid, json);
                 }
@@ -355,11 +364,11 @@ namespace WPEFramework
 
                 std::string json;
                 list.ToString(json);
-                printf("params=%s\n", json.c_str());
+                NMLOG_INFO("params=%s", json.c_str());
 
                 _notificationLock.Lock();
 
-                printf("We have %d subscribed clients to trigger notifications\n", (int) _notificationCallbacks.size());
+                NMLOG_INFO("We have %d subscribed clients to trigger notifications", (int) _notificationCallbacks.size());
                 for (const auto callback : _notificationCallbacks) {
                     callback->onTraceResponse(guid, json);
                 }
@@ -381,7 +390,7 @@ namespace WPEFramework
                 snprintf(cmd, 256, "traceroute -w 3 -m 6 -q %d %s 52 2>&1", noOfRequest, endpoint.c_str());
             }
             
-            printf("The Command is @%s@\n", cmd);
+            NMLOG_INFO ("The Command is @%s@", cmd);
             string commandToExecute(cmd);
             Core::IWorkerPool::Instance().Submit(Job::Create(this, NETMGR_TRACE, commandToExecute, guid));
 
@@ -423,7 +432,7 @@ namespace WPEFramework
             LOG_ENTRY_FUNCTION();
             _notificationLock.Lock();
 
-            printf("We have %d subscribed clients to trigger notifications\n", (int) _notificationCallbacks.size());
+            NMLOG_INFO("We have %d subscribed clients to trigger notifications", (int) _notificationCallbacks.size());
             for (const auto callback : _notificationCallbacks) {
                 callback->onInterfaceStateChanged(state, interface);
             }
@@ -436,7 +445,7 @@ namespace WPEFramework
             LOG_ENTRY_FUNCTION();
             _notificationLock.Lock();
 
-            printf("We have %d subscribed clients to trigger notifications\n", (int) _notificationCallbacks.size());
+            NMLOG_INFO("We have %d subscribed clients to trigger notifications", (int) _notificationCallbacks.size());
             for (const auto callback : _notificationCallbacks) {
                 callback->onIPAddressChanged(interface, isAcquired, isIPv6, ipAddress);
             }
@@ -449,7 +458,7 @@ namespace WPEFramework
             LOG_ENTRY_FUNCTION();
             _notificationLock.Lock();
 
-            printf("We have %d subscribed clients to trigger notifications\n", (int) _notificationCallbacks.size());
+            NMLOG_INFO("We have %d subscribed clients to trigger notifications", (int) _notificationCallbacks.size());
             for (const auto callback : _notificationCallbacks) {
                 callback->onActiveInterfaceChanged(prevActiveInterface, currentActiveinterface);
             }
@@ -462,7 +471,7 @@ namespace WPEFramework
             LOG_ENTRY_FUNCTION();
             _notificationLock.Lock();
 
-            printf("We have %d subscribed clients to trigger notifications\n", (int) _notificationCallbacks.size());
+            NMLOG_INFO("We have %d subscribed clients to trigger notifications", (int) _notificationCallbacks.size());
             for (const auto callback : _notificationCallbacks) {
                 callback->onInternetStatusChanged(oldState, newstate);
             }
@@ -475,7 +484,7 @@ namespace WPEFramework
             LOG_ENTRY_FUNCTION();
             _notificationLock.Lock();
 
-            printf("scan result is, %s\n", jsonOfWiFiScanResults.c_str());
+            NMLOG_INFO("scan result is, %s", jsonOfWiFiScanResults.c_str());
             for (const auto callback : _notificationCallbacks) {
                 callback->onAvailableSSIDs(jsonOfWiFiScanResults);
             }
@@ -488,7 +497,7 @@ namespace WPEFramework
             LOG_ENTRY_FUNCTION();
             _notificationLock.Lock();
 
-            printf("We have %d subscribed clients to trigger notifications\n", (int) _notificationCallbacks.size());
+            NMLOG_INFO("We have %d subscribed clients to trigger notifications", (int) _notificationCallbacks.size());
             for (const auto callback : _notificationCallbacks) {
                 callback->onWiFiStateChanged(state);
             }

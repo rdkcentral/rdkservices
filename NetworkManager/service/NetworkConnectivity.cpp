@@ -15,8 +15,11 @@
 #include "Module.h"
 #include "NetworkConnectivity.h"
 
+
 namespace WPEFramework {
     namespace Plugin {
+
+    ConnectivityMonitor* ConnectivityMonitor::connectivityMonitor = nullptr;
 
     bool EndpointCache::isEndpointCashFileExist()
     {
@@ -34,11 +37,11 @@ namespace WPEFramework {
                 outputFile << str << '\n';
             }
             outputFile.close();
-            printf("Connectivity endpoints successfully written to a file");
+            NMLOG_INFO("Connectivity endpoints successfully written to a file");
         }
         else
         {
-            printf("Connectivity endpoints file write error");
+            NMLOG_ERROR("Connectivity endpoints file write error");
         }
     }
 
@@ -57,7 +60,7 @@ namespace WPEFramework {
         }
         else
         {
-            printf("Failed to open connectivity endpoint cache file");
+            NMLOG_ERROR("Failed to open connectivity endpoint cache file");
         }
         return readStrings;
     }
@@ -67,7 +70,7 @@ namespace WPEFramework {
         std::ifstream configFile(configFilePath);
         if (!configFile.is_open()) 
         {
-            printf("Unable to open the configuration file: %s", configFilePath.c_str());
+            NMLOG_ERROR("Unable to open the configuration file: %s", configFilePath.c_str());
             return;
         }
 
@@ -118,15 +121,15 @@ namespace WPEFramework {
 
         if(m_defaultEndpoints.empty())
         {
-            printf("Default endpoints are empty !!");
+            NMLOG_ERROR("Default endpoints are empty !!");
         }
         else
         {
             std::string endpoints_str;
             for (const auto& endpoint : m_defaultEndpoints)
                 endpoints_str.append(endpoint).append(" ");
-            printf("default endpoints count %d and endpoints:- %s", static_cast<int>(m_defaultEndpoints.size()), endpoints_str.c_str());
-            printf("default monitor connectivity interval: %d and monitor connectivity auto start : %s", configMonitorInterval, configMonitorConnectivityEnabled?"true":"false");
+            NMLOG_INFO("default endpoints count %d and endpoints:- %s", static_cast<int>(m_defaultEndpoints.size()), endpoints_str.c_str());
+            NMLOG_INFO("default monitor connectivity interval: %d and monitor connectivity auto start : %s", configMonitorInterval, configMonitorConnectivityEnabled?"true":"false");
         }
     }
 
@@ -143,7 +146,7 @@ namespace WPEFramework {
             std::string endpoints_str;
             for (const auto& endpoint : monitorEndpoints)
                 endpoints_str.append(endpoint).append(" ");
-            printf("updated endpoints count %d and endpoints:- %s", static_cast<int>(monitorEndpoints.size()), endpoints_str.c_str());
+            NMLOG_INFO("updated endpoints count %d and endpoints:- %s", static_cast<int>(monitorEndpoints.size()), endpoints_str.c_str());
             if(monitorEndpoints.size() > 0)
                 return true;
         }
@@ -154,11 +157,11 @@ namespace WPEFramework {
     {
         if (nsm_internetState::FULLY_CONNECTED == getInternetConnectionState(ipversion))
         {
-            printf("isConnectedToInternet = true");
+            NMLOG_INFO("isConnectedToInternet = true");
             return true;
         }
 
-        printf("isConnectedToInternet = false");
+        NMLOG_WARNING("isConnectedToInternet = false");
         return false;
     }
 
@@ -197,7 +200,7 @@ namespace WPEFramework {
                 return getCaptivePortal();
             }
             else
-                printf("No captive portal found !");
+                NMLOG_WARNING("No captive portal found !");
         }
         return std::string("");
     }
@@ -210,7 +213,7 @@ namespace WPEFramework {
             if(!endpoint.empty() && endpoint.size() > 3)
                 monitorEndpoints.push_back(endpoint.c_str());
             else
-                printf("endpoint not vallied = %s", endpoint.c_str());
+                NMLOG_INFO("endpoint not vallied = %s", endpoint.c_str());
         }
 
         // write the endpoints to a file
@@ -219,7 +222,7 @@ namespace WPEFramework {
         std::string endpoints_str;
         for (const auto& endpoint : monitorEndpoints)
             endpoints_str.append(endpoint).append(" ");
-        printf("Connectivity monitor endpoints -: %d :- %s", static_cast<int>(monitorEndpoints.size()), endpoints_str.c_str());
+        NMLOG_INFO("Connectivity monitor endpoints -: %d :- %s", static_cast<int>(monitorEndpoints.size()), endpoints_str.c_str());
     }
 
     std::vector<std::string> ConnectivityMonitor::getConnectivityMonitorEndpoints()
@@ -245,7 +248,7 @@ namespace WPEFramework {
     }
     static size_t writeFunction(void* ptr, size_t size, size_t nmemb, std::string* data) {
     #ifdef DBG_CURL_GET_RESPONSE
-        printf("%s",(char*)ptr);
+        NMLOG_TRACE("%s",(char*)ptr);
     #endif
         return size * nmemb;
     }
@@ -254,14 +257,14 @@ namespace WPEFramework {
     {
         long deadline = current_time() + timeout_ms, time_now = 0, time_earlier = 0;
         if(endpoints.size() < 1) {
-            printf("endpoints size error ! ");
+            NMLOG_ERROR("endpoints size error ! ");
             return NO_INTERNET;
         }
 
         CURLM *curl_multi_handle = curl_multi_init();
         if (!curl_multi_handle)
         {
-            printf("curl_multi_init returned NULL");
+            NMLOG_ERROR("curl_multi_init returned NULL");
             return NO_INTERNET;
         }
 
@@ -275,7 +278,7 @@ namespace WPEFramework {
             CURL *curl_easy_handle = curl_easy_init();
             if (!curl_easy_handle)
             {
-                printf("endpoint = <%s> curl_easy_init returned NULL", endpoint.c_str());
+                NMLOG_ERROR("endpoint = <%s> curl_easy_init returned NULL", endpoint.c_str());
                 continue;
             }
             curl_easy_setopt(curl_easy_handle, CURLOPT_URL, endpoint.c_str());
@@ -294,7 +297,7 @@ namespace WPEFramework {
                 curl_easy_setopt(curl_easy_handle, CURLOPT_VERBOSE, 1L);
             if (CURLM_OK != (mc = curl_multi_add_handle(curl_multi_handle, curl_easy_handle)))
             {
-                printf("endpoint = <%s> curl_multi_add_handle returned %d (%s)", endpoint.c_str(), mc, curl_multi_strerror(mc));
+                NMLOG_ERROR("endpoint = <%s> curl_multi_add_handle returned %d (%s)", endpoint.c_str(), mc, curl_multi_strerror(mc));
                 curl_easy_cleanup(curl_easy_handle);
                 continue;
             }
@@ -310,7 +313,7 @@ namespace WPEFramework {
         {
             if (CURLM_OK != (mc = curl_multi_perform(curl_multi_handle, &handles)))
             {
-                printf("curl_multi_perform returned %d (%s)", mc, curl_multi_strerror(mc));
+                NMLOG_ERROR("curl_multi_perform returned %d (%s)", mc, curl_multi_strerror(mc));
                 break;
             }
             for (CURLMsg *msg; NULL != (msg = curl_multi_info_read(curl_multi_handle, &msgs_left)); )
@@ -322,17 +325,17 @@ namespace WPEFramework {
                     curl_easy_getinfo(msg->easy_handle, CURLINFO_PRIVATE, &endpoint);
                     if (curl_easy_getinfo(msg->easy_handle, CURLINFO_RESPONSE_CODE, &response_code) == CURLE_OK)  {
                         if(curlVerboseEnabled())
-                            printf("endpoint = <%s> response code <%d>",endpoint, static_cast<int>(response_code));
+                            NMLOG_INFO("endpoint = <%s> response code <%d>",endpoint, static_cast<int>(response_code));
                         if (HttpStatus_302_Found == response_code) {
                             if ( (curl_easy_getinfo(msg->easy_handle, CURLINFO_REDIRECT_URL, &url) == CURLE_OK) && url != nullptr) {
-                                //printf("captive portal found !!!");
+                                //NMLOG_WARNING("captive portal found !!!");
                                 setCaptivePortal(url);
                             }
                         }
                     }
                 }
                 //else
-                //    printf("endpoint = <%s> error = %d (%s)", endpoint, msg->data.result, curl_easy_strerror(msg->data.result));
+                //    NMLOG_ERROR("endpoint = <%s> error = %d (%s)", endpoint, msg->data.result, curl_easy_strerror(msg->data.result));
                 http_responses.push_back(response_code);
             }
             time_earlier = time_now;
@@ -342,7 +345,7 @@ namespace WPEFramework {
     #if LIBCURL_VERSION_NUM < 0x074200
             if (CURLM_OK != (mc = curl_multi_wait(curl_multi_handle, NULL, 0, deadline - time_now, &numfds)))
             {
-                printf("curl_multi_wait returned %d (%s)", mc, curl_multi_strerror(mc));
+                NMLOG_ERROR("curl_multi_wait returned %d (%s)", mc, curl_multi_strerror(mc));
                 break;
             }
             if (numfds == 0)
@@ -356,19 +359,19 @@ namespace WPEFramework {
     #else
             if (CURLM_OK != (mc = curl_multi_poll(curl_multi_handle, NULL, 0, deadline - time_now, NULL)))
             {
-                printf("curl_multi_poll returned %d (%s)", mc, curl_multi_strerror(mc));
+                NMLOG_ERROR("curl_multi_poll returned %d (%s)", mc, curl_multi_strerror(mc));
                 break;
             }
     #endif
         }
         if(curlVerboseEnabled()) {
-            printf("endpoints count = %d response count %d, handles = %d, deadline = %ld, time_now = %ld, time_earlier = %ld",
+            NMLOG_INFO("endpoints count = %d response count %d, handles = %d, deadline = %ld, time_now = %ld, time_earlier = %ld",
                 static_cast<int>(endpoints.size()), static_cast<int>(http_responses.size()), handles, deadline, time_now, time_earlier);
         }
         for (const auto& curl_easy_handle : curl_easy_handles)
         {
             curl_easy_getinfo(curl_easy_handle, CURLINFO_PRIVATE, &endpoint);
-            //printf("endpoint = <%s> terminating attempt", endpoint);
+            //NMLOG_TRACE("endpoint = <%s> terminating attempt", endpoint);
             curl_multi_remove_handle(curl_multi_handle, curl_easy_handle);
             curl_easy_cleanup(curl_easy_handle);
         }
@@ -414,31 +417,39 @@ namespace WPEFramework {
             {
                 case HttpStatus_204_No_Content:
                     InternetConnectionState = FULLY_CONNECTED;
-                    printf("Internet State: FULLY_CONNECTED - %.1f%%", (percentage*100));
+                    NMLOG_INFO("Internet State: FULLY_CONNECTED - %.1f%%", (percentage*100));
                 break;
                 case HttpStatus_200_OK:
                     InternetConnectionState = LIMITED_INTERNET;
-                    printf("Internet State: LIMITED_INTERNET - %.1f%%", (percentage*100));
+                    NMLOG_INFO("Internet State: LIMITED_INTERNET - %.1f%%", (percentage*100));
                 break;
                 case HttpStatus_511_Authentication_Required:
                 case HttpStatus_302_Found:
                     InternetConnectionState = CAPTIVE_PORTAL;
-                    printf("Internet State: CAPTIVE_PORTAL -%.1f%%", (percentage*100));
+                    NMLOG_INFO("Internet State: CAPTIVE_PORTAL -%.1f%%", (percentage*100));
                 break;
                 default:
                     InternetConnectionState = NO_INTERNET;
-                    printf("Internet State: NO_INTERNET Response code: <%d> %.1f%%", static_cast<int>(http_response_code), (percentage*100));
+                    NMLOG_INFO("Internet State: NO_INTERNET Response code: <%d> %.1f%%", static_cast<int>(http_response_code), (percentage*100));
             }
         }
 
         return InternetConnectionState;
     }
 
+    void ConnectivityMonitor::registerConnectivityMonitorCallback(NetworkManagerImplementation * impl)
+    {
+        if(impl != nullptr)
+            networkManagerImpl = impl;
+        else
+            NMLOG_ERROR("NetworkManagerImplementation pointer null");
+    }
+
     bool ConnectivityMonitor::doContinuousConnectivityMonitoring(int timeoutInSeconds)
     {
         if(!isConnectivityMonitorEndpointSet())
         {
-            printf("Connectivity monitor endpoints are not set !");
+            NMLOG_INFO("Connectivity monitor endpoints are not set !");
             return false;
         }
 
@@ -448,14 +459,14 @@ namespace WPEFramework {
         {
             isContinuesMonitoringNeeded = true;
             cv_.notify_all();
-            printf("Connectivity monitor Restarted with %d", timeout.load());
+            NMLOG_INFO("Connectivity monitor Restarted with %d", timeout.load());
             //TODO check still active
         }
         else
         {
             if (thread_.joinable())
             {
-                printf("Connectivity Monitor joinable Thread is active");
+                NMLOG_WARNING("Connectivity Monitor joinable Thread is active");
                 stopFlag = true;
                 cv_.notify_all();
                 thread_.join();
@@ -465,7 +476,7 @@ namespace WPEFramework {
             stopFlag = false;
             thread_ = std::thread(&ConnectivityMonitor::connectivityMonitorFunction, this);
             threadRunning = true;
-            printf("Connectivity monitor started with %d", timeout.load());
+            NMLOG_INFO("Connectivity monitor started with %d", timeout.load());
         }
 
         return true;
@@ -475,20 +486,20 @@ namespace WPEFramework {
     {
         if(!isConnectivityMonitorEndpointSet())
         {
-            printf("Connectivity monitor endpoints are not set !");
+            NMLOG_INFO("Connectivity monitor endpoints are not set !");
             return false;
         }
 
         if (isMonitorThreadRunning())
         {
-            printf("Connectivity Monitor Thread is active so notify");
+            NMLOG_INFO("Connectivity Monitor Thread is active so notify");
             cv_.notify_all();
         }
         else
         {
             if (thread_.joinable())
             {
-                printf("Connectivity Monitor joinable Thread is active");
+                NMLOG_WARNING("Connectivity Monitor joinable Thread is active");
                 stopFlag = true;
                 cv_.notify_all();
                 thread_.join();
@@ -498,7 +509,7 @@ namespace WPEFramework {
             timeout.store(timeoutInSeconds >= MONITOR_TIMEOUT_INTERVAL_MIN ? timeoutInSeconds:defaultTimeoutInSec);
             thread_ = std::thread(&ConnectivityMonitor::connectivityMonitorFunction, this);
             threadRunning = true;
-            printf("Initial Connectivity Monitoring started with %d", timeout.load());
+            NMLOG_INFO("Initial Connectivity Monitoring started with %d", timeout.load());
         }
 
         return true;
@@ -515,7 +526,7 @@ namespace WPEFramework {
         {
             if(isContinuesMonitoringNeeded)
             {
-                printf("Continuous Connectivity Monitor is running");
+                NMLOG_WARNING("Continuous Connectivity Monitor is running");
                 return true;
             }
             else
@@ -526,14 +537,14 @@ namespace WPEFramework {
                 if (thread_.joinable()) {
                     thread_.join();
                     threadRunning = false;
-                    printf("Stoping Initial Connectivity Monitor");
+                    NMLOG_INFO("Stoping Initial Connectivity Monitor");
                 }
                 else
-                    printf("thread not joinable !");
+                    NMLOG_WARNING("thread not joinable !");
             }
         }
         else
-            printf("Continuous Connectivity Monitor not running");
+            NMLOG_WARNING("Continuous Connectivity Monitor not running");
 
         return true;
     }
@@ -542,7 +553,7 @@ namespace WPEFramework {
     {
         if (!isMonitorThreadRunning())
         {
-            printf("Connectivity monitor not running");
+            NMLOG_WARNING("Connectivity monitor not running");
             return false;
         }
 
@@ -554,10 +565,10 @@ namespace WPEFramework {
             thread_.join();
             isContinuesMonitoringNeeded = false;
             threadRunning = false;
-            printf("Continuous Connectivity monitor stopped");
+            NMLOG_INFO("Continuous Connectivity monitor stopped");
         }
         else
-            printf("thread not joinable !");
+            NMLOG_WARNING("thread not joinable !");
         return true;
     }
 
@@ -579,21 +590,30 @@ namespace WPEFramework {
             InternetConnectionState = testConnectivity(getConnectivityMonitorEndpoints(), TEST_CONNECTIVITY_DEFAULT_TIMEOUT_MS, NSM_IPRESOLVE_WHATEVER);
             if(g_internetState.load() != InternetConnectionState)
             {
+                if(networkManagerImpl != nullptr)
+                {
+                    Exchange::INetworkManager::InternetStatus oldState = static_cast<Exchange::INetworkManager::InternetStatus>(g_internetState.load());
+                    Exchange::INetworkManager::InternetStatus newstate = static_cast<Exchange::INetworkManager::InternetStatus>(InternetConnectionState);
+                    networkManagerImpl->ReportInternetStatusChangedEvent(oldState , newstate);
+                    NMLOG_TRACE("ReportInternetStatusChangedEvent called");
+                }
+                else
+                    NMLOG_WARNING("ReportInternetStatusChangedEvent callback not set");
+
                 g_internetState.store(InternetConnectionState);
-                //Network::notifyInternetStatusChange(g_internetState.load());
             }
 
             if(!isContinuesMonitoringNeeded && (g_internetState.load() == FULLY_CONNECTED))
             {
                 stopFlag = true;
-                printf("Initial Connectivity Monitoring done Exiting ... Internet state FULLY_CONNECTED");
+                NMLOG_INFO("Initial Connectivity Monitoring done Exiting ... Internet state FULLY_CONNECTED");
                 threadRunning = false;
                 break;
             }
 
             if(stopFlag)
             {
-                printf("stopFlag true exiting");
+                NMLOG_WARNING("stopFlag true exiting");
                 threadRunning = false;
                 break;
             }
@@ -601,19 +621,19 @@ namespace WPEFramework {
             std::unique_lock<std::mutex> lock(mutex_);
             if (cv_.wait_for(lock, std::chrono::seconds(timeout.load())) == std::cv_status::timeout)
             {
-                printf("Connectivity monitor thread timeout");
+                NMLOG_INFO("Connectivity monitor thread timeout");
             }
             else
             {
                 if(!stopFlag)
                 {
-                    printf("Connectivity monitor received a trigger");
+                    NMLOG_INFO("Connectivity monitor received a trigger");
                 }
             }
 
         } while (!stopFlag);
         g_internetState = nsm_internetState::UNKNOWN;
-        printf("Connectivity monitor exiting");
+        NMLOG_WARNING("Connectivity monitor exiting");
     }
 
     } // namespace Plugin
