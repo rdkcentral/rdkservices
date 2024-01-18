@@ -2,7 +2,7 @@
 <a name="HdmiInputPlugin"></a>
 # HdmiInputPlugin
 
-**Version: [1.1.2](https://github.com/rdkcentral/rdkservices/blob/main/HdmiInput/CHANGELOG.md)**
+**Version: [1.2.0](https://github.com/rdkcentral/rdkservices/blob/main/HdmiInput/CHANGELOG.md)**
 
 A org.rdk.HdmiInput plugin for Thunder framework.
 
@@ -356,6 +356,9 @@ Activates the specified HDMI Input port as the primary video source.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params?.portId | string | <sup>*(optional)*</sup> An ID of an HDMI Input port as returned by the `getHdmiInputDevices` method |
+| params?.audioMix | boolean | <sup>*(optional)*</sup> Defines whether the Audio mixing is true or false, This is an optional argument |
+| params?.planeType | integer | <sup>*(optional)*</sup> Defines whether the video plane type, 0 - Primary video plane, 1 - Secondary Video Plane, Other values - Invalid - This is an optional argument  |
+| params?.topMost | boolean | <sup>*(optional)*</sup> Defines whether the Hdmi Input should be over or under the other video plane |
 
 ### Result
 
@@ -374,7 +377,10 @@ Activates the specified HDMI Input port as the primary video source.
     "id": 42,
     "method": "org.rdk.HdmiInput.startHdmiInput",
     "params": {
-        "portId": "0"
+        "portId": "0",
+        "audioMix": true,
+        "planeType": 0,
+        "topMost": true
     }
 }
 ```
