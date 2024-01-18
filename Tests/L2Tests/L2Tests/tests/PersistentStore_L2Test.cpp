@@ -1,3 +1,5 @@
+#pragma once
+
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include "L2Tests.h"
@@ -8,7 +10,6 @@
 #include "readprocMockInterface.h"
 #include "SqliteStore.h"
 #include "PersistentStore.h"
-#pragma once
 #include <string>
 #include<functional>
 #include "ServiceMock.h"
@@ -23,7 +24,6 @@
 using ::testing::NiceMock;
 using namespace WPEFramework;
 using testing::StrictMock;
-
 
 /**
  * @brief Compare two request status objects
@@ -45,19 +45,6 @@ MATCHER_P(MatchRequestStatus, data, "")
     return match;
 }
 
-/**
- * @brief Internal test mock class
- *
- * Note that this is for internal test use only and doesn't mock any actual
- * concrete interface.
- */
-class PersistentStoreMock : public WPEFramework::Plugin::PersistentStore {
-public:
-    virtual ~PersistentStoreMock() = default;
-
-    MOCK_METHOD(std::vector<string>, LegacyLocations, (), (const, override));
-};
-
 class AsyncHandlerMock_PStore
 {
     public:
@@ -70,9 +57,8 @@ class AsyncHandlerMock_PStore
 class PersistentStore_L2Test : public L2TestMocks {
 protected:
     Core::JSONRPC::Message message;
-    NiceMock<ServiceMock> service;
     string response;
-    
+
     virtual ~PersistentStore_L2Test() override;
 
 public:
@@ -82,7 +68,6 @@ public:
 private:
     /** @brief Mutex */
     std::mutex m_mutex;
-
 };
 
 /**
@@ -94,20 +79,10 @@ PersistentStore_L2Test::PersistentStore_L2Test()
     TEST_LOG("*********************PersistentStore Constructor**************\n");
     uint32_t status = Core::ERROR_GENERAL;
     Core::JSONRPC::Message message;
-    ServiceMock service;
-    Core::ProxyType<PersistentStoreMock> plugin;
-        
-    ON_CALL(service, ConfigLine())
-        .WillByDefault(
-            ::testing::Return("{"
-                                "\"path\":\"/tmp/rdkservicestore\","
-                                "\"key\":null,"
-                                "\"maxsize\":20,"
-                                "\"maxvalue\":10"
-                                "}"));
-        /* Activate plugin in constructor */
-        status = ActivateService("org.rdk.PersistentStore");
-        EXPECT_EQ(Core::ERROR_NONE, status);
+
+    /* Activate plugin in constructor */
+    status = ActivateService("org.rdk.PersistentStore");
+    EXPECT_EQ(Core::ERROR_NONE, status);
 }
 
 /**
@@ -121,7 +96,6 @@ PersistentStore_L2Test::~PersistentStore_L2Test()
     EXPECT_EQ(Core::ERROR_NONE, status);
 }
 
-
 /**
  * @brief called when onValueChanged
  * changed notification received
@@ -132,9 +106,9 @@ PersistentStore_L2Test::~PersistentStore_L2Test()
 void PersistentStore_L2Test::onValueChanged(const JsonObject &message)
 {
     TEST_LOG("onValueChanged triggered ***\n");
-
-    std::string str;
-    message.ToString(str);
+	std::unique_lock<std::mutex> lock(m_mutex);
+	std::string str;
+	message.ToString(str);
 
     TEST_LOG("onValueChanged received: %s\n", str.c_str());
 }
@@ -151,7 +125,7 @@ TEST_F(PersistentStore_L2Test, PersistentStoregetSetValue)
     JSONRPC::LinkType<Core::JSON::IElement> jsonrpc(PERSISTENTSTORE_CALLSIGN, PERSISTENTL2TEST_CALLSIGN);
     StrictMock<AsyncHandlerMock_PStore> async_handler;
     uint32_t status = Core::ERROR_GENERAL;
-    JsonObject params,Value_param;
+    JsonObject params,params_get;
     JsonObject result;
     std::string message;
     JsonObject expected_status;
@@ -173,8 +147,6 @@ TEST_F(PersistentStore_L2Test, PersistentStoregetSetValue)
     EXPECT_CALL(async_handler, onValueChanged(MatchRequestStatus(expected_status)))
         .WillOnce(Invoke(this, &PersistentStore_L2Test::onValueChanged));
 
-
-
     // Test the setValue method.
     params["namespace"] = "ns1";
     params["key"] = "key1";
@@ -186,7 +158,6 @@ TEST_F(PersistentStore_L2Test, PersistentStoregetSetValue)
 
     EXPECT_TRUE(result["success"].Boolean());
 
-    JsonObject params_get;
     params_get["namespace"] = "ns1";
     params_get["key"] = "key1";
     status = InvokeServiceMethod("org.rdk.PersistentStore.1", "getValue", params_get, result);
