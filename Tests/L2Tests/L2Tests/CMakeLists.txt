@@ -21,11 +21,21 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 set(THUNDER_PORT 9998)
 find_package(${NAMESPACE}Plugins REQUIRED)
 
+include_directories(
+    ../../../PersistentStore
+    ../../../RDKShell
+)
+link_directories(
+    ../../../PersistentStore
+    ../../../RDKShell
+)
+
 add_library(${MODULE_NAME} SHARED
     Module.cpp
     L2Tests.cpp
     L2TestsMock.cpp
     tests/SystemService_L2Test.cpp
+    tests/PersistentStore_L2Test.cpp
     tests/UsbAccess_L2Test.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
@@ -43,6 +53,7 @@ target_link_libraries(${MODULE_NAME} PRIVATE gmock_main ${NAMESPACE}Plugins::${N
 target_include_directories(${MODULE_NAME} PRIVATE ../../../helpers)
 target_include_directories(${MODULE_NAME} PRIVATE ./)
 target_include_directories(${MODULE_NAME} PRIVATE ../../mocks)
+target_include_directories(${MODULE_NAME} PRIVATE ../../mocks/thunder)
  
 install(TARGETS ${MODULE_NAME}
     DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
