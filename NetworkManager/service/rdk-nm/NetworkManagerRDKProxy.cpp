@@ -368,12 +368,12 @@ namespace WPEFramework
  //               ::_instance->Event();
                 if (strcmp(owner, IARM_BUS_NM_SRV_MGR_NAME) != 0)
                 {
-                    printf("ERROR - unexpected event: owner %s, eventId: %d, data: %p, size: %d.\n", owner, (int)eventId, data, (int)len);
+                    NMLOG_ERROR("ERROR - unexpected event: owner %s, eventId: %d, data: %p, size: %d.", owner, (int)eventId, data, (int)len);
                     return;
                 }
                 if (data == nullptr || len == 0)
                 {
-                    printf("ERROR - event with NO DATA: eventId: %d, data: %p, size: %d.\n", (int)eventId, data, (int)len);
+                    NMLOG_ERROR("ERROR - event with NO DATA: eventId: %d, data: %p, size: %d.", (int)eventId, data, (int)len);
                     return;
                 }
 
@@ -382,7 +382,7 @@ namespace WPEFramework
                     case IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS:
                     {
                         IARM_BUS_NetSrvMgr_Iface_EventInterfaceEnabledStatus_t *e = (IARM_BUS_NetSrvMgr_Iface_EventInterfaceEnabledStatus_t*) data;
-                        printf("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS :: %s \n", e->interface);
+                        NMLOG_INFO ("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS :: %s", e->interface);
                         if (e->status)
                             ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INotification::INTERFACE_ADDED, string(e->interface));
                         else
@@ -392,7 +392,7 @@ namespace WPEFramework
                     case IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS:
                     {
                         IARM_BUS_NetSrvMgr_Iface_EventInterfaceConnectionStatus_t *e = (IARM_BUS_NetSrvMgr_Iface_EventInterfaceConnectionStatus_t*) data;
-                        printf("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS :: %s \n", e->interface);
+                        NMLOG_INFO ("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS :: %s", e->interface);
                         if (e->status)
                             ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INotification::INTERFACE_LINK_UP, string(e->interface));
                         else
@@ -402,7 +402,7 @@ namespace WPEFramework
                     case IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS:
                     {
                         IARM_BUS_NetSrvMgr_Iface_EventInterfaceIPAddress_t *e = (IARM_BUS_NetSrvMgr_Iface_EventInterfaceIPAddress_t*) data;
-                        printf("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS :: %s -- %s \n", e->interface, e->ip_address);
+                        NMLOG_INFO ("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS :: %s -- %s", e->interface, e->ip_address);
 
                         ::_instance->ReportIPAddressChangedEvent(string(e->interface), e->acquired, e->is_ipv6, string(e->ip_address));
                         break;
@@ -410,7 +410,7 @@ namespace WPEFramework
                     case IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE:
                     {
                         IARM_BUS_NetSrvMgr_Iface_EventDefaultInterface_t *e = (IARM_BUS_NetSrvMgr_Iface_EventDefaultInterface_t*) data;
-                        printf("IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE %s :: %s..\n", e->oldInterface, e->newInterface);
+                        NMLOG_INFO ("IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE %s :: %s..", e->oldInterface, e->newInterface);
 
                         ::_instance->ReportActiveInterfaceChangedEvent(e->oldInterface, e->newInterface);
                         break;
@@ -418,16 +418,16 @@ namespace WPEFramework
                     case IARM_BUS_WIFI_MGR_EVENT_onAvailableSSIDs:
                     {
                         IARM_BUS_WiFiSrvMgr_EventData_t *e = (IARM_BUS_WiFiSrvMgr_EventData_t*) data;
-                        printf("IARM_BUS_WIFI_MGR_EVENT_onAvailableSSIDs\n");
+                        NMLOG_INFO ("IARM_BUS_WIFI_MGR_EVENT_onAvailableSSIDs");
                         std::string serialized(e->data.wifiSSIDList.ssid_list);
                         JsonObject eventDocument;
                         WPEC::OptionalType<WPEJ::Error> error;
                         if (!WPEJ::IElement::FromString(serialized, eventDocument, error)) {
-                            printf("Failed to parse JSON document containing SSIDs. Due to: %s\n", WPEJ::ErrorDisplayMessage(error).c_str());
+                            NMLOG_ERROR("Failed to parse JSON document containing SSIDs. Due to: %s", WPEJ::ErrorDisplayMessage(error).c_str());
                             break;
                         }
                         if ((!eventDocument.HasLabel("getAvailableSSIDs")) || (eventDocument["getAvailableSSIDs"].Content() != WPEJ::Variant::type::ARRAY)) {
-                            printf("JSON document does not have key 'getAvailableSSIDs' as array\n");
+                            NMLOG_ERROR("JSON document does not have key 'getAvailableSSIDs' as array");
                             break;
                         }
 
@@ -441,7 +441,7 @@ namespace WPEFramework
                     {
                         IARM_BUS_WiFiSrvMgr_EventData_t* e = (IARM_BUS_WiFiSrvMgr_EventData_t *) data;
                         Exchange::INetworkManager::INotification::WiFiState state = Exchange::INetworkManager::INotification::WIFI_STATE_DISCONNECTED;
-                        printf("Event IARM_BUS_WIFI_MGR_EVENT_onWIFIStateChanged received; state=%d\n", e->data.wifiStateChange.state);
+                        NMLOG_INFO("Event IARM_BUS_WIFI_MGR_EVENT_onWIFIStateChanged received; state=%d", e->data.wifiStateChange.state);
 
                         switch (e->data.wifiStateChange.state)
                         {
@@ -472,13 +472,13 @@ namespace WPEFramework
                     }
                     default:
                     {
-                        printf("Event %d received; Unhandled\n", eventId);
+                        NMLOG_INFO("Event %d received; Unhandled", eventId);
                         break;
                     }
                 }
             }
             else
-                printf("WARNING - cannot handle IARM events without a Network plugin instance!\n");
+                NMLOG_WARNING("WARNING - cannot handle IARM events without a Network plugin instance!");
         }
 
         void NetworkManagerImplementation::platform_init()
@@ -489,12 +489,12 @@ namespace WPEFramework
             ::_instance = this;
 
             IARM_Result_t res = IARM_Bus_Init("netsrvmgr-thunder");
-            printf("IARM_Bus_Init: %d\n", res);
+            NMLOG_INFO("IARM_Bus_Init: %d", res);
             if (res == IARM_RESULT_SUCCESS || res == IARM_RESULT_INVALID_STATE /* already inited or connected */) {
                 res = IARM_Bus_Connect();
-                printf("IARM_Bus_Connect: %d\n", res);
+                NMLOG_INFO("IARM_Bus_Connect: %d", res);
             } else {
-                printf("IARM_Bus_Init failure: %d\n", res);
+                NMLOG_ERROR("IARM_Bus_Init failure: %d", res);
             }
 
 
@@ -504,7 +504,7 @@ namespace WPEFramework
             do{
                 retVal = IARM_Bus_Call_with_IPCTimeout(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isAvailable, (void *)&c, sizeof(c), (1000*10));
                 if(retVal != IARM_RESULT_SUCCESS){
-                    printf("NetSrvMgr is not available. Failed to activate Network Plugin, retry = %d\n", retry);
+                    NMLOG_INFO("NetSrvMgr is not available. Failed to activate Network Plugin, retry = %d", retry);
                     usleep(500*1000);
                     retry++;
                 }
@@ -513,7 +513,7 @@ namespace WPEFramework
             if(retVal != IARM_RESULT_SUCCESS)
             {
                 string msg = "NetSrvMgr is not available";
-                printf("NETWORK_NOT_READY: The NetSrvMgr Component is not available.Retrying in separate thread ::%s::\n", msg.c_str());
+                NMLOG_INFO("NETWORK_NOT_READY: The NetSrvMgr Component is not available.Retrying in separate thread ::%s::", msg.c_str());
             }
             else {
                 IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS, NetworkManagerInternalEventHandler);
@@ -531,14 +531,14 @@ namespace WPEFramework
         {
             LOG_ENTRY_FUNCTION();
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
-            printf("@@@@%s@@@@\n", __FUNCTION__);
+            NMLOG_TRACE ("@@@@%s@@@@", __FUNCTION__);
             IARM_BUS_NetSrvMgr_InterfaceList_t list;
             if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getInterfaceList, (void*)&list, sizeof(list)))
             {
                 std::vector<InterfaceDetails> interfaceList;
                 for (int i = 0; i < list.size; i++)
                 {
-                    printf("Interface Name = %s\n", list.interfaces[i].name);
+                    NMLOG_INFO ("Interface Name = %s", list.interfaces[i].name);
                     string interfaceName(list.interfaces[i].name);
                     if (("eth0" == interfaceName) || ("wlan0" == interfaceName))
                     {
@@ -563,7 +563,7 @@ namespace WPEFramework
             }
             else
             {
-                printf("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, __FUNCTION__);
+                NMLOG_ERROR ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, __FUNCTION__);
             }
 
             return rc;
@@ -577,13 +577,13 @@ namespace WPEFramework
             IARM_BUS_NetSrvMgr_DefaultRoute_t defaultRoute = {0};
             if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getDefaultInterface, (void*)&defaultRoute, sizeof(defaultRoute)))
             {
-                printf("Call to %s for %s returned interface = %s, gateway = %s", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getDefaultInterface, defaultRoute.interface, defaultRoute.gateway);
+                NMLOG_INFO ("Call to %s for %s returned interface = %s, gateway = %s", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getDefaultInterface, defaultRoute.interface, defaultRoute.gateway);
                 interface = m_defaultInterface = defaultRoute.interface;
                 rc = Core::ERROR_NONE;
             }
             else
             {
-                printf("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getDefaultInterface);
+                NMLOG_ERROR ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getDefaultInterface);
             }
             return rc;
         }
@@ -610,12 +610,12 @@ namespace WPEFramework
 
             if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setDefaultInterface, (void *)&iarmData, sizeof(iarmData)))
             {
-                printf("Call to %s for %s success", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setDefaultInterface);
+                NMLOG_INFO ("Call to %s for %s success", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setDefaultInterface);
                 rc = Core::ERROR_NONE;
             }
             else
             {
-                printf("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setDefaultInterface);
+                NMLOG_ERROR ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setDefaultInterface);
             }
             return rc;
         }
@@ -642,12 +642,12 @@ namespace WPEFramework
             iarmData.persist = true;
             if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled, (void *)&iarmData, sizeof(iarmData)))
             {
-                printf("Call to %s for %s success", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled);
+                NMLOG_INFO ("Call to %s for %s success", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled);
                 rc = Core::ERROR_NONE;
             }
             else
             {
-                printf("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled);
+                NMLOG_ERROR ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled);
             }
             return rc;
         }
@@ -672,10 +672,10 @@ namespace WPEFramework
 
             strncpy(iarmData.ipversion, ipversion.c_str(), 16);
             iarmData.isSupported = true;
-            printf("NetworkManagerImplementation::GetIPSettings - Before Calling IARM\n");
+            NMLOG_INFO("NetworkManagerImplementation::GetIPSettings - Before Calling IARM");
             if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getIPSettings, (void *)&iarmData, sizeof(iarmData)))
             {
-                printf("NetworkManagerImplementation::GetIPSettings - IARM Success.. Filling the data\n");
+                NMLOG_INFO("NetworkManagerImplementation::GetIPSettings - IARM Success.. Filling the data");
                 result.m_ipAddrType     = string(iarmData.ipversion);
                 result.m_autoConfig     = iarmData.autoconfig;
                 result.m_dhcpServer     = string(iarmData.dhcpserver,MAX_IP_ADDRESS_LEN - 1);
@@ -685,12 +685,12 @@ namespace WPEFramework
                 result.m_gateway        = string(iarmData.gateway,MAX_IP_ADDRESS_LEN - 1);
                 result.m_primaryDns     = string(iarmData.primarydns,MAX_IP_ADDRESS_LEN - 1);
                 result.m_secondaryDns   = string(iarmData.secondarydns,MAX_IP_ADDRESS_LEN - 1);
-                printf("NetworkManagerImplementation::GetIPSettings - IARM Success.. Filled the data\n");
+                NMLOG_INFO("NetworkManagerImplementation::GetIPSettings - IARM Success.. Filled the data");
                 rc = Core::ERROR_NONE;
             }
             else
             {
-                printf("NetworkManagerImplementation::GetIPSettings - Calling IARM Failed\n");
+                NMLOG_ERROR("NetworkManagerImplementation::GetIPSettings - Calling IARM Failed");
             }
 
             return rc;
@@ -777,29 +777,29 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
 
                             if (tmpIPAddress.s_addr == tmpGWAddress.s_addr)
                             {
-                                printf("Interface and Gateway IP are same , return false \n");
+                                NMLOG_INFO("Interface and Gateway IP are same , return false");
                                 rc = Core::ERROR_BAD_REQUEST;
                             }
                             if (bcastAddr1.s_addr != bcastAddr2.s_addr)
                             {
-                                printf("Interface and Gateway IP is not in same broadcast domain, return false \n");
+                                NMLOG_INFO("Interface and Gateway IP is not in same broadcast domain, return false");
                                 rc = Core::ERROR_BAD_REQUEST;
                             }
                             if (tmpIPAddress.s_addr == bcastAddr1.s_addr)
                             {
-                                printf("Interface and Broadcast IP is same, return false \n");
+                                NMLOG_INFO("Interface and Broadcast IP is same, return false");
                                 rc = Core::ERROR_BAD_REQUEST;
                             }
                             if (tmpGWAddress.s_addr == bcastAddr2.s_addr)
                             {
-                                printf("Gateway and Broadcast IP is same, return false \n");
+                                NMLOG_INFO("Gateway and Broadcast IP is same, return false");
                                 rc = Core::ERROR_BAD_REQUEST;
                             }
                         }
                         else
                         {
                             rc = Core::ERROR_BAD_REQUEST;
-                            printf("Given Input Address are not appropriate\n");
+                            NMLOG_INFO ("Given Input Address are not appropriate");
                         }
 
                         if (Core::ERROR_NONE == rc)
@@ -820,11 +820,11 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
                 {
                     if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setIPSettings, (void *) &iarmData, sizeof(iarmData)))
                     {
-                        printf("Set IP Successfully\n");
+                        NMLOG_INFO("Set IP Successfully");
                     }
                     else
                     {
-                        printf("Setting IP Failed\n");
+                        NMLOG_ERROR("Setting IP Failed");
                         rc = Core::ERROR_RPC_CALL_FAILED;
                     }
                 }
@@ -832,7 +832,7 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             else
             {
                 //FIXME : Add IPv6 support here
-                printf("Setting IPv6 is not supported at this point in time. This is just a place holder\n");
+                NMLOG_WARNING ("Setting IPv6 is not supported at this point in time. This is just a place holder");
                 rc = Core::ERROR_NOT_SUPPORTED;
             }
 
@@ -852,12 +852,12 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_getAvailableSSIDsAsync, (void *)&param, sizeof(IARM_Bus_WiFiSrvMgr_SsidList_Param_t));
 
             if(retVal == IARM_RESULT_SUCCESS) {
-                printf("Scan started\n");
+                NMLOG_INFO ("Scan started");
                 rc = Core::ERROR_NONE;
             }
             else
             {
-                printf("StartScan failed\n");
+                NMLOG_ERROR ("StartScan failed");
             }
             return rc;
         }
@@ -871,12 +871,12 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
 
             if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_stopProgressiveWifiScanning, (void*) &param, sizeof(IARM_Bus_WiFiSrvMgr_Param_t)))
             {
-                printf("StopScan Success\n");
+                NMLOG_INFO ("StopScan Success");
                 rc = Core::ERROR_NONE;
             }
             else
             {
-                printf("StopScan failed\n");
+                NMLOG_ERROR ("StopScan failed");
             }
             return rc;
         }
@@ -898,14 +898,14 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
                 auto &connectedSsid = param.data.getConnectedSSID;
                 std::list<string> ssidList;
                 ssidList.push_back(string(connectedSsid.ssid));
-                printf("GetKnownSSIDs Success\n");
+                NMLOG_INFO ("GetKnownSSIDs Success");
 
                 ssids = Core::Service<RPC::StringIterator>::Create<RPC::IStringIterator>(ssidList);
                 rc = Core::ERROR_NONE;
             }
             else
             {
-                printf("GetKnownSSIDs failed\n");
+                NMLOG_ERROR ("GetKnownSSIDs failed");
             }
             return rc;
         }
@@ -924,12 +924,12 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             IARM_Result_t retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_saveSSID, (void *)&param, sizeof(param));
             if(retVal == IARM_RESULT_SUCCESS)
             {
-                printf("AddToKnownSSIDs Success\n");
+                NMLOG_INFO ("AddToKnownSSIDs Success");
                 rc = Core::ERROR_NONE;
             }
             else
             {
-                printf("AddToKnownSSIDs failed\n");
+                NMLOG_ERROR ("AddToKnownSSIDs failed");
             }
             return rc;
         }
@@ -949,12 +949,12 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             IARM_Result_t retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_clearSSID, (void *)&param, sizeof(param));
             if(retVal == IARM_RESULT_SUCCESS)
             {
-                printf("RemoveKnownSSID Success\n");
+                NMLOG_INFO ("RemoveKnownSSID Success");
                 rc = Core::ERROR_NONE;
             }
             else
             {
-                printf("RemoveKnownSSID failed\n");
+                NMLOG_ERROR ("RemoveKnownSSID failed");
             }
             return rc;
         }
@@ -978,12 +978,12 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
 
             if(retVal == IARM_RESULT_SUCCESS && param.status)
             {
-                printf("WiFiConnect Success\n");
+                NMLOG_INFO ("WiFiConnect Success");
                 rc = Core::ERROR_NONE;
             }
             else
             {
-                printf("WiFiConnect failed\n");
+                NMLOG_ERROR ("WiFiConnect failed");
             }
             return rc;
         }
@@ -997,12 +997,12 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
 
             if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_disconnectSSID, (void *)&param, sizeof(param)))
             {
-                printf("WiFiDisconnect started\n");
+                NMLOG_INFO ("WiFiDisconnect started");
                 rc = Core::ERROR_NONE;
             }
             else
             {
-                printf("WiFiDisconnect failed\n");
+                NMLOG_ERROR ("WiFiDisconnect failed");
             }
             return rc;
         }
@@ -1031,12 +1031,12 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
                 ssidInfo.m_rate             = to_string(connectedSsid.rate);
                 ssidInfo.m_noise            = to_string(connectedSsid.noise);
 
-                printf("GetConnectedSSID Success\n");
+                NMLOG_INFO ("GetConnectedSSID Success");
                 rc = Core::ERROR_NONE;
             }
             else
             {
-                printf("GetConnectedSSID failed\n");
+                NMLOG_ERROR ("GetConnectedSSID failed");
             }
             return rc;
         }
@@ -1067,12 +1067,12 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
                 else
                     quality = WIFI_SIGNAL_WEAK;
 
-                printf("GetWiFiSignalStrength success\n");
+                NMLOG_INFO ("GetWiFiSignalStrength success");
                 rc = Core::ERROR_NONE;
             }
             else
             {
-                printf("GetWiFiSignalStrength failed\n");
+                NMLOG_ERROR ("GetWiFiSignalStrength failed");
             }
             return rc;
         }
@@ -1099,12 +1099,12 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
 
             if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_initiateWPSPairing2, (void *)&wps_parameters, sizeof(wps_parameters)))
             {
-                printf("StartWPS is success\n");
+                NMLOG_INFO ("StartWPS is success");
                 rc = Core::ERROR_NONE;
             }
             else
             {
-                printf("StartWPS: Failed");
+                NMLOG_ERROR ("StartWPS: Failed");                
             }
 
             return rc;
@@ -1118,12 +1118,12 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
 
             if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_cancelWPSPairing, (void *)&param, sizeof(param)))
             {
-                printf("StopWPS is success\n");
+                NMLOG_INFO ("StopWPS is success");
                 rc = Core::ERROR_NONE;
             }
             else
             {
-                printf("StopWPS: Failed");
+                NMLOG_ERROR ("StopWPS: Failed");                
             }
 
             return rc;

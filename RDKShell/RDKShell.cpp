@@ -2067,14 +2067,20 @@ namespace WPEFramework {
             gRdkShellMutex.lock();
             for (unsigned int i=0; i<gCreateDisplayRequests.size(); i++)
             {
-                sem_destroy(&gCreateDisplayRequests[i]->mSemaphore);
-                gCreateDisplayRequests[i] = nullptr;
+                if (gCreateDisplayRequests[i])
+                {
+                    sem_destroy(&gCreateDisplayRequests[i]->mSemaphore);
+                    gCreateDisplayRequests[i] = nullptr;
+                }
             }
             gCreateDisplayRequests.clear();
             for (unsigned int i=0; i<gKillClientRequests.size(); i++)
             {
-                sem_destroy(&gKillClientRequests[i]->mSemaphore);
-                gKillClientRequests[i] = nullptr;
+                if (gKillClientRequests[i])
+                {
+                    sem_destroy(&gKillClientRequests[i]->mSemaphore);
+                    gKillClientRequests[i] = nullptr;
+                }
             }
             gKillClientRequests.clear();
             gRdkShellMutex.unlock();
@@ -3583,9 +3589,6 @@ namespace WPEFramework {
                 gSplashScreenDisplayTime = displayTime;
                 receivedShowSplashScreenRequest = true;
                 gRdkShellMutex.unlock();
-                if (false == result) {
-                    response["message"] = "failed to show splash screen";
-                }
             }
             returnResponse(result);
         }
@@ -4368,11 +4371,11 @@ namespace WPEFramework {
                         std::cout << "scaling app to fit full screen" << std::endl;
                         double sx = 1.0;
                         double sy = 1.0;
-                        if (width != screenWidth)
+                        if (width != screenWidth && width !=0)
                         {
                             sx = (double)screenWidth / (double)width;
                         }
-                        if (height != screenHeight)
+                        if (height != screenHeight && height!=0)
                         {
                             sy = (double)screenHeight / (double)height;
                         }
@@ -4795,8 +4798,13 @@ namespace WPEFramework {
                         returnResponse(false);
                     }
 
-                    string runtimeDir = getenv("XDG_RUNTIME_DIR");
-                    string display = runtimeDir + "/" + (gRdkShellSurfaceModeEnabled ? RDKSHELL_SURFACECLIENT_DISPLAYNAME : "wst-"+uri);
+                    string str_runtimeDir;
+                    char* runtimeDir = getenv("XDG_RUNTIME_DIR");
+                    if(NULL != runtimeDir)
+                    {
+                        str_runtimeDir = string(runtimeDir);
+                    }
+                    string display = str_runtimeDir + "/" + (gRdkShellSurfaceModeEnabled ? RDKSHELL_SURFACECLIENT_DISPLAYNAME : "wst-"+uri);
 
                     // Set mime type
                     if (!setMimeType(client, mimeType))
@@ -6224,7 +6232,7 @@ namespace WPEFramework {
             {
                 string input = parameters["input"].String();
 
-                if (input != "default" || input != "keyboard")
+                if (input != "default" && input != "keyboard")
                 {
                     response["message"] = "not supported input type";
                     returnResponse(false);
@@ -6620,7 +6628,7 @@ namespace WPEFramework {
             if (displayNameItr != gPluginDisplayNameMap.end())
             {
                 std::string clientId(callsign + ',' + displayNameItr->second);
-                std::cout << "setAVBlocked callsign: " << callsign << " clientIdentifier:<"<<clientId<<">blockAV:"<<std::boolalpha << blockAV << std::endl;
+                std::cout << "setAVBlocked callsign: " << callsign << " clientIdentifier:<"<<clientId<<">blockAV:"<<std::boolalpha << blockAV << std::noboolalpha << std::endl;
                 status = CompositorController::setAVBlocked(clientId, blockAV);
             }
             else
@@ -7060,7 +7068,7 @@ namespace WPEFramework {
             bool ret = false;
             for (int i=0; i<keyInputs.Length(); i++) {
                 const JsonObject& keyInputInfo = keyInputs[i].Object();
-                uint32_t keyCode, flags=0;
+                uint32_t keyCode=0, flags=0;
                 std::string virtualKey("");
                 if (keyInputInfo.HasLabel("key"))
                 {
@@ -7657,18 +7665,18 @@ namespace WPEFramework {
             bool isSuspended = params["suspended"].Boolean();
             if (mLaunchEnabled)
             {
-               JsonObject params;
-               params["client"] = mCallSign;
-               params["launchType"] = (isSuspended)?"suspend":"resume";
-               mRDKShell.notify(RDKShell::RDKSHELL_EVENT_ON_LAUNCHED, params);
+               JsonObject launchParams;
+               launchParams["client"] = mCallSign;
+               launchParams["launchType"] = (isSuspended)?"suspend":"resume";
+               mRDKShell.notify(RDKShell::RDKSHELL_EVENT_ON_LAUNCHED, launchParams);
                mLaunchEnabled = false;
             }
 
             if (isSuspended)
             {
-                JsonObject params;
-                params["client"] = mCallSign;
-                mRDKShell.notify(RDKShell::RDKSHELL_EVENT_ON_PLUGIN_SUSPENDED, params);
+                JsonObject suspendedParams;
+                suspendedParams["client"] = mCallSign;
+                mRDKShell.notify(RDKShell::RDKSHELL_EVENT_ON_PLUGIN_SUSPENDED, suspendedParams);
             }
         }
 

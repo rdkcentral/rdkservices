@@ -5,7 +5,7 @@ find_package(${NAMESPACE}Plugins REQUIRED)
 add_library(
     NMWrapper
     SHARED
-    NetworkManagerRDKProxy.cpp)
+    NetworkManagerGnomeProxy.cpp)
 
 target_link_libraries(NMWrapper
         PRIVATE
