@@ -62,7 +62,7 @@
 #define AVINPUT_EVENT_ON_GAME_FEATURE_STATUS_CHANGED "gameFeatureStatusUpdate"
 #define AVINPUT_EVENT_ON_AVI_CONTENT_TYPE_CHANGED "aviContentTypeUpdate"
 
-int planeType = 0;
+static int planeType = 0;
 
 using namespace std;
 int getTypeOfInput(string sType)
@@ -401,13 +401,13 @@ uint32_t AVInput::stopInput(const JsonObject& parameters, JsonObject& response)
 
     try
     {
+        planeType = -1;
         if (iType == HDMI) {
             device::HdmiInput::getInstance().selectPort(-1);
         }
         else if (iType == COMPOSITE) {
             device::CompositeInput::getInstance().selectPort(-1);
         }
-	planeType = -1;
     }
     catch (const device::Exception& err) {
         LOGWARN("AVInputService::stopInput Failed");
