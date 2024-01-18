@@ -30,10 +30,10 @@ using namespace std;
 
 //#include <interfaces/INetworkManager.h>
 #include "INetworkManager.h"
-#include "NetworkConnectivity.h"
+#include "logger.h"
 #include "StunClient.h"
 
-#define LOG_ENTRY_FUNCTION() { printf( "Entering=%s\n", __FUNCTION__ ); }
+#define LOG_ENTRY_FUNCTION() { NMLOG_TRACE("Entering=%s", __FUNCTION__ ); }
 
 namespace WPEFramework
 {
@@ -146,7 +146,6 @@ namespace WPEFramework
             uint16_t m_stunPort;
             uint16_t m_stunBindTimeout;
             uint16_t m_stunCacheTimeout;
-            ConnectivityMonitor& connectivityMonitor = ConnectivityMonitor::getInstance();
 
         public:
             class EXTERNAL Job : public Core::IDispatch {

@@ -24,6 +24,7 @@
 // Include the interface we created
 //#include <interfaces/INetworkManager.h>
 #include "INetworkManager.h"
+#include "logger.h"
 
 #include <string>
 #include <atomic>
@@ -36,10 +37,7 @@ namespace WPEFramework
          * NetworkManager plugin that exposes an API over both COM-RPC and JSON-RPC
          *
          */
-        class NetworkManager : public PluginHost::IPlugin, public PluginHost::JSONRPC
-#if 1
-        , public PluginHost::ISubSystem::IInternet
-#endif
+        class NetworkManager : public PluginHost::IPlugin, public PluginHost::JSONRPC, public PluginHost::ISubSystem::IInternet
         {
             /**
              * Our notification handling code
@@ -56,7 +54,38 @@ namespace WPEFramework
                 Notification &operator=(const Notification &) = delete;
                 string InterfaceStateToString(Exchange::INetworkManager::INotification::InterfaceState event)
                 {
-                    return "Interface_ADDED";
+                    switch (event)
+                    {
+                        case Exchange::INetworkManager::INotification::INTERFACE_ADDED:
+                            return "Interface_Added";
+                        case Exchange::INetworkManager::INotification::INTERFACE_LINK_UP:
+                            return "Interface_Link_Up";
+                        case Exchange::INetworkManager::INotification::INTERFACE_LINK_DOWN:
+                            return "Interface_Link_Down";
+                        case Exchange::INetworkManager::INotification::INTERFACE_ACQUIRING_IP:
+                            return "Interface_Acquiring_IP";
+                        case Exchange::INetworkManager::INotification::INTERFACE_REMOVED:
+                            return "Interface_Removed";
+                        case Exchange::INetworkManager::INotification::INTERFACE_DISABLED:
+                            return "Interface_Disabled";
+                    }
+                    return "";
+                }
+
+                string InternetStatusToString(const Exchange::INetworkManager::InternetStatus internetStatus)
+                {
+                    switch (internetStatus)
+                    {
+                        case Exchange::INetworkManager::InternetStatus::INTERNET_LIMITED:
+                            return "LIMITED_INTERNET";
+                        case Exchange::INetworkManager::InternetStatus::INTERNET_CAPTIVE_PORTAL:
+                            return "CAPTIVE_PORTAL";
+                        case Exchange::INetworkManager::InternetStatus::INTERNET_FULLY_CONNECTED:
+                            return "FULLY_CONNECTED";
+                        default:
+                            return "NO_INTERNET";
+                    }
+                    return "";
                 }
 
             public:
@@ -72,15 +101,16 @@ namespace WPEFramework
             public:
                 void onInterfaceStateChanged(const Exchange::INetworkManager::INotification::InterfaceState event, const string interface) override
                 {
+                    NMLOG_TRACE("%s", __FUNCTION__);
                     JsonObject params;
                     params["interface"] = interface;
-                    params["state"] = InterfaceStateToString(event);;
+                    params["state"] = InterfaceStateToString(event);
                     _parent.Notify("onInterfaceStateChanged", params);
-                    printf ("%s\n", __FUNCTION__);
                 }
 
                 void onIPAddressChanged(const string interface, const bool isAcquired, const bool isIPv6, const string ipAddress) override
                 {
+                    NMLOG_TRACE("%s", __FUNCTION__);
                     JsonObject params;
                     params["interface"] = interface;
                     params["status"] = string (isAcquired ? "ACQUIRED" : "LOST");
@@ -90,22 +120,39 @@ namespace WPEFramework
                         params["ipv4"] = ipAddress;
 
                     _parent.Notify("onIPAddressChanged", params);
-                    printf ("%s\n", __FUNCTION__);
                 }
 
                 void onActiveInterfaceChanged(const string prevActiveInterface, const string currentActiveinterface) override
                 {
-                    printf ("%s\n", __FUNCTION__);
+                    NMLOG_TRACE("%s", __FUNCTION__);
+                    JsonObject params;
+                    params["oldInterfaceName"] = prevActiveInterface;
+                    params["newInterfaceName"] = currentActiveinterface;
+
+                    _parent.Notify("onActiveInterfaceChanged", params);
                 }
 
                 void onInternetStatusChanged(const Exchange::INetworkManager::InternetStatus oldState, const Exchange::INetworkManager::InternetStatus newstate) override
                 {
-                    printf ("%s\n", __FUNCTION__);
+                    NMLOG_TRACE("%s", __FUNCTION__);
+                    JsonObject params;
+                    params["prevState"] = static_cast <int> (oldState);
+                    params["prevStatus"] = InternetStatusToString(oldState);
+                    params["state"] = static_cast <int> (newstate);;
+                    params["status"] = InternetStatusToString(newstate);
+
+                    _parent.Notify("onInternetStatusChanged", params);
+
+                    if (Exchange::INetworkManager::InternetStatus::INTERNET_FULLY_CONNECTED == newstate)
+                    {
+                        NMLOG_INFO("Notify Thunder ISubsystem internet");
+                        _parent.PublishToThunderAboutInternet();
+                    }
                 }
 
                 void onPingResponse(const string guid, const string pingStatistics) override
                 {
-                    printf ("%s\n", __FUNCTION__);
+                    NMLOG_INFO ("%s", __FUNCTION__);
                     JsonObject params;
                     JsonObject result;
 
@@ -117,9 +164,9 @@ namespace WPEFramework
 
                 void onTraceResponse(const string guid, const string traceResult) override
                 {
+                    NMLOG_INFO ("%s", __FUNCTION__);
                     JsonObject params;
                     JsonObject result;
-                    printf ("%s\n", __FUNCTION__);
 
                     params.FromString(traceResult);
                     result["traceResult"] = params;
@@ -130,15 +177,24 @@ namespace WPEFramework
                 // WiFi Notifications that other processes can subscribe to
                 void onAvailableSSIDs(const string jsonOfWiFiScanResults) override
                 {
-                    printf ("%s\n", __FUNCTION__);
+                    NMLOG_TRACE("%s", __FUNCTION__);
+                    JsonArray scanResults;
+                    JsonObject result;
+                    scanResults.FromString(jsonOfWiFiScanResults);
+                    result["ssids"] = scanResults;
+                    _parent.Notify("onAvailableSSIDs", result);
+
                 }
                 void onWiFiStateChanged(const Exchange::INetworkManager::INotification::WiFiState state) override
                 {
-                    printf ("%s\n", __FUNCTION__);
+                    NMLOG_TRACE("%s", __FUNCTION__);
+                    JsonObject result;
+                    result["state"] = static_cast <int> (state);
+                    _parent.Notify("onWiFiStateChanged", result);
                 }
                 void onWiFiSignalStrengthChanged(const string ssid, const string signalStrength, const Exchange::INetworkManager::WiFiSignalQuality quality) override
                 {
-                    printf ("%s\n", __FUNCTION__);
+                    NMLOG_TRACE("%s", __FUNCTION__);
                 }
 
 
@@ -186,9 +242,7 @@ namespace WPEFramework
             // Which interfaces do we implement?
             INTERFACE_ENTRY(PluginHost::IPlugin)
             INTERFACE_ENTRY(PluginHost::IDispatcher)
-#if 1
             INTERFACE_ENTRY(PluginHost::ISubSystem::IInternet)
-#endif
 
             // We need to tell Thunder that this plugin provides the INetworkManager interface, but
             // since it's not actually implemented here we tell Thunder where it can
@@ -198,7 +252,6 @@ namespace WPEFramework
             INTERFACE_AGGREGATE(Exchange::INetworkManager, _NetworkManager)
             END_INTERFACE_MAP
 
-#if 1
             /*
             * ------------------------------------------------------------------------------------------------------------
             * ISubSystem::IInternet methods
@@ -212,7 +265,8 @@ namespace WPEFramework
             {
                 return (m_publicIPAddress.empty() == true ? PluginHost::ISubSystem::IInternet::UNKNOWN : (m_publicIPAddressType == "IPV6" ? PluginHost::ISubSystem::IInternet::IPV6 : PluginHost::ISubSystem::IInternet::IPV4));
             }
-#endif
+            void PublishToThunderAboutInternet();
+
         private:
             // Notification/event handlers
             // Clean up when we're told to deactivate
@@ -221,11 +275,17 @@ namespace WPEFramework
             // JSON-RPC setup
             void RegisterAllMethods();
             void UnregisterAllMethods();
+#ifdef ENABLE_LEGACY_NSM_SUPPORT
+            void RegisterLegacyMethods();
+            void UnregisterLegacyMethods();
+#endif
 
             // JSON-RPC methods (take JSON in, spit JSON back out)
+            uint32_t SetLogLevel (const JsonObject& parameters, JsonObject& response);
             uint32_t GetAvailableInterfaces (const JsonObject& parameters, JsonObject& response);
             uint32_t GetPrimaryInterface (const JsonObject& parameters, JsonObject& response);
             uint32_t SetPrimaryInterface (const JsonObject& parameters, JsonObject& response);
+            uint32_t SetInterfaceEnabled (const JsonObject& parameters, JsonObject& response);
             uint32_t GetIPSettings(const JsonObject& parameters, JsonObject& response);
             uint32_t SetIPSettings(const JsonObject& parameters, JsonObject& response);
             uint32_t GetStunEndpoint(const JsonObject& parameters, JsonObject& response);
@@ -251,7 +311,36 @@ namespace WPEFramework
             uint32_t StopWPS(const JsonObject& parameters, JsonObject& response);
             uint32_t GetWiFiSignalStrength(const JsonObject& parameters, JsonObject& response);
             uint32_t GetSupportedSecurityModes(const JsonObject& parameters, JsonObject& response);
- 
+#ifdef ENABLE_LEGACY_NSM_SUPPORT
+            uint32_t getInterfaces (const JsonObject& parameters, JsonObject& response);
+            uint32_t isInterfaceEnabled (const JsonObject& parameters, JsonObject& response);
+            uint32_t setInterfaceEnabled (const JsonObject& parameters, JsonObject& response);
+            uint32_t getPublicIP (const JsonObject& parameters, JsonObject& response);
+            uint32_t getDefaultInterface(const JsonObject& parameters, JsonObject& response);
+            uint32_t setDefaultInterface(const JsonObject& parameters, JsonObject& response);
+            uint32_t setIPSettings(const JsonObject& parameters, JsonObject& response);
+            uint32_t getIPSettings(const JsonObject& parameters, JsonObject& response);
+            uint32_t getInternetConnectionState(const JsonObject& parameters, JsonObject& response);
+            uint32_t ping(const JsonObject& parameters, JsonObject& response);
+            uint32_t isConnectedToInternet(const JsonObject& parameters, JsonObject& response);
+            uint32_t setConnectivityTestEndpoints(const JsonObject& parameters, JsonObject& response);
+            uint32_t startConnectivityMonitoring(const JsonObject& parameters, JsonObject& response);
+            uint32_t getCaptivePortalURI(const JsonObject& parameters, JsonObject& response);
+            uint32_t stopConnectivityMonitoring(const JsonObject& parameters, JsonObject& response);
+            uint32_t getPairedSSID(const JsonObject& parameters, JsonObject& response);
+            uint32_t getPairedSSIDInfo(const JsonObject& parameters, JsonObject& response);
+            uint32_t initiateWPSPairing(const JsonObject& parameters, JsonObject& response);
+            uint32_t isPaired(const JsonObject& parameters, JsonObject& response);
+            uint32_t saveSSID(const JsonObject& parameters, JsonObject& response);
+            uint32_t cancelWPSPairing(const JsonObject& parameters, JsonObject& response);
+            uint32_t clearSSID(const JsonObject& parameters, JsonObject& response);
+            uint32_t connect(const JsonObject& parameters, JsonObject& response);
+            uint32_t disconnect(const JsonObject& parameters, JsonObject& response);
+            uint32_t getConnectedSSID(const JsonObject& parameters, JsonObject& response);
+            uint32_t getSupportedSecurityModes(const JsonObject& parameters, JsonObject& response);
+            uint32_t startScan(const JsonObject& parameters, JsonObject& response);
+            uint32_t stopScan(const JsonObject& parameters, JsonObject& response);
+#endif
         private:
             uint32_t _connectionId;
             PluginHost::IShell *_service;

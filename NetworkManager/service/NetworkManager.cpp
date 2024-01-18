@@ -25,20 +25,17 @@ namespace WPEFramework
 {
     namespace Plugin
     {
-#if 1
         static Plugin::Metadata<Plugin::NetworkManager> metadata(
             // Version (Major, Minor, Patch)
             NETWORKMANAGER_MAJOR_VERSION, NETWORKMANAGER_MINOR_VERSION, NETWORKMANAGER_PATCH_VERSION,
             // Preconditions
-            { subsystem::PLATFORM},
+            { subsystem::PLATFORM },
             // Terminations
             {},
             // Controls
-            { subsystem::INTERNET}
+            { subsystem::INTERNET }
         );
-#else
-        SERVICE_REGISTRATION(NetworkManager, NETWORKMANAGER_MAJOR_VERSION, NETWORKMANAGER_MINOR_VERSION, NETWORKMANAGER_PATCH_VERSION);
-#endif
+
         NetworkManager::NetworkManager()
             : _connectionId(0),
               _service(nullptr),
@@ -70,7 +67,7 @@ namespace WPEFramework
             // Syslog Startup messages are always printed by default
             SYSLOG(Logging::Startup, (_T("Initializing NetworkManager")));
             SYSLOG(Logging::Startup, (_T("Initialize running in process %d"), Core::ProcessInfo().Id()));
-
+            NM::logger_init();
             // Register the Connection::Notification first. Do this before we start our actual plugin
             // in case something goes wrong or is disconnected - this way we know we're at least registered
             // for activate/deactivate events
@@ -93,6 +90,9 @@ namespace WPEFramework
 
                 // Register all custom JSON-RPC methods
                 RegisterAllMethods();
+#ifdef ENABLE_LEGACY_NSM_SUPPORT
+                RegisterLegacyMethods();
+#endif
             }
             else
             {
@@ -131,6 +131,9 @@ namespace WPEFramework
                 //Exchange::JNetworkManager::Unregister(*this);
                 // Unregister all our JSON-RPC methods
                 UnregisterAllMethods();
+#ifdef ENABLE_LEGACY_NSM_SUPPORT
+                UnregisterLegacyMethods();
+#endif
                 _NetworkManager->Release();
             }
 
