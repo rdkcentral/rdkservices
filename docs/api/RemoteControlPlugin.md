@@ -2,7 +2,7 @@
 <a name="RemoteControl_Plugin"></a>
 # RemoteControl Plugin
 
-**Version: [1.4.1](https://github.com/rdkcentral/rdkservices/blob/main/RemoteControl/CHANGELOG.md)**
+**Version: [1.4.2](https://github.com/rdkcentral/rdkservices/blob/main/RemoteControl/CHANGELOG.md)**
 
 A org.rdk.RemoteControl plugin for Thunder framework.
 
