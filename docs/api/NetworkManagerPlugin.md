@@ -1,10 +1,10 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="head.NetworkManager"></a>
-# NetworkManager
+<a name="head.NetworkManager_Plugin"></a>
+# NetworkManager Plugin
 
 **Version: [1.0.0]()**
 
-A NetworkManager plugin for Thunder framework.
+A org.rdk.NetworkManager plugin for Thunder framework.
 
 ### Table of Contents
 
@@ -23,7 +23,7 @@ A NetworkManager plugin for Thunder framework.
 <a name="head.Description"></a>
 # Description
 
-The `NetworkManager` plugin allows you to manage network and wifi interfaces on a set-top box.
+The `NetworkManager` plugin allows you to manage Ethernet and Wifi interfaces on the device.
 
 The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
 
@@ -34,7 +34,9 @@ The table below lists configuration options of the plugin.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| classname | string | Class name: *NetworkManager* |
+| callsign | string | Plugin instance name (default: *org.rdk.NetworkManager*) |
+| classname | string | Class name: *org.rdk.NetworkManager* |
+| locator | string | Library name: *libWPENetworkManager.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
 <a name="head.Interfaces"></a>
@@ -47,7 +49,7 @@ This plugin implements the following interfaces:
 <a name="head.Methods"></a>
 # Methods
 
-The following methods are provided by the NetworkManager plugin:
+The following methods are provided by the org.rdk.NetworkManager plugin:
 
 NetworkManager interface methods:
 
@@ -59,18 +61,28 @@ NetworkManager interface methods:
 | [GetIPSettings](#method.GetIPSettings) | Gets the IP setting for the given interface |
 | [SetIPSettings](#method.SetIPSettings) | Sets the IP settings |
 | [GetStunEndpoint](#method.GetStunEndpoint) | Get the Stun Endpoint used for getPublicIP |
-| [setStunEndPoint](#method.setStunEndPoint) | Set the Stun Endpoint used for getPublicIP |
+| [SetStunEndPoint](#method.SetStunEndPoint) | Set the Stun Endpoint used for getPublicIP |
 | [GetConnectivityTestEndpoints](#method.GetConnectivityTestEndpoints) | Get connectivity test endpoints |
 | [SetConnectivityTestEndpoints](#method.SetConnectivityTestEndpoints) | Define up to 5 endpoints for a connectivity test |
 | [IsConnectedToInternet](#method.IsConnectedToInternet) | Whether the device has internet connectivity |
 | [GetCaptivePortalURI](#method.GetCaptivePortalURI) | Returns the captive portal URI if connected to any captive portal network |
 | [StartConnectivityMonitoring](#method.StartConnectivityMonitoring) | Enable a continuous monitoring of internet connectivity with heart beat interval thats given |
 | [StopConnectivityMonitoring](#method.StopConnectivityMonitoring) | Stops the connectivity monitoring |
-| [getPublicIP](#method.getPublicIP) | It allows either zero parameter or with only interface and ipv6 parameter to determine WAN ip address |
-| [ping](#method.ping) | Pings the specified endpoint with the specified number of packets |
-| [trace](#method.trace) | Traces the specified endpoint with the specified number of packets using `traceroute` |
+| [GetPublicIP](#method.GetPublicIP) | It allows either zero parameter or with only interface and ipv6 parameter to determine WAN ip address |
+| [Ping](#method.Ping) | Pings the specified endpoint with the specified number of packets |
+| [Trace](#method.Trace) | Traces the specified endpoint with the specified number of packets using `traceroute` |
 | [StartWiFiScan](#method.StartWiFiScan) | Scans for available SSIDs |
 | [StopWiFiScan](#method.StopWiFiScan) | Stops scanning for SSIDs |
+| [GetKnownSSIDs](#method.GetKnownSSIDs) | Saved SSIDs list |
+| [AddToKnownSSIDs](#method.AddToKnownSSIDs) | Saves the SSID, passphrase, and security mode for future sessions |
+| [RemoveKnownSSID](#method.RemoveKnownSSID) | Remove given ssid from saved ssids |
+| [WiFiConnect](#method.WiFiConnect) | Attempts to connect to the specified SSID with the given passphrase |
+| [WiFiDisconnect](#method.WiFiDisconnect) | Disconnects from the SSID |
+| [GetConnectedSSID](#method.GetConnectedSSID) | Returns the connected SSID information |
+| [StartWPS](#method.StartWPS) | Initiates a connection using Wifi Protected Setup (WPS) |
+| [StopWPS](#method.StopWPS) | Cancels the in-progress WPS pairing operation |
+| [GetWiFiSignalStrength](#method.GetWiFiSignalStrength) | Get WiFiSignalStrength of connected SSID |
+| [GetSupportedSecurityModes](#method.GetSupportedSecurityModes) | Returns the Wifi security modes that the device supports |
 
 
 <a name="method.GetAvailableInterfaces"></a>
@@ -108,7 +120,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "NetworkManager.GetAvailableInterfaces"
+    "method": "org.rdk.NetworkManager.GetAvailableInterfaces"
 }
 ```
 
@@ -161,7 +173,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "NetworkManager.GetPrimaryInterface"
+    "method": "org.rdk.NetworkManager.GetPrimaryInterface"
 }
 ```
 
@@ -213,7 +225,7 @@ Sets the Primary/default interface. The call fails if the interface is not enabl
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "NetworkManager.SetPrimaryInterface",
+    "method": "org.rdk.NetworkManager.SetPrimaryInterface",
     "params": {
         "interface": "wlan0",
         "persist": true
@@ -275,7 +287,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "NetworkManager.GetIPSettings",
+    "method": "org.rdk.NetworkManager.GetIPSettings",
     "params": {
         "interface": "wlan0",
         "ipversion": "IPv4"
@@ -344,7 +356,7 @@ Sets the IP settings.All the inputs are mandatory for v1. But for v2, the interf
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "NetworkManager.SetIPSettings",
+    "method": "org.rdk.NetworkManager.SetIPSettings",
     "params": {
         "interface": "wlan0",
         "ipversion": "IPv4",
@@ -402,7 +414,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "NetworkManager.GetStunEndpoint"
+    "method": "org.rdk.NetworkManager.GetStunEndpoint"
 }
 ```
 
@@ -422,8 +434,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.setStunEndPoint"></a>
-## *setStunEndPoint [<sup>method</sup>](#head.Methods)*
+<a name="method.SetStunEndPoint"></a>
+## *SetStunEndPoint [<sup>method</sup>](#head.Methods)*
 
 Set the Stun Endpoint used for getPublicIP.
 
@@ -456,7 +468,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "NetworkManager.setStunEndPoint",
+    "method": "org.rdk.NetworkManager.SetStunEndPoint",
     "params": {
         "endPoint": "stun.l.google.com",
         "port": 3478,
@@ -508,7 +520,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "NetworkManager.GetConnectivityTestEndpoints"
+    "method": "org.rdk.NetworkManager.GetConnectivityTestEndpoints"
 }
 ```
 
@@ -559,7 +571,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "NetworkManager.SetConnectivityTestEndpoints",
+    "method": "org.rdk.NetworkManager.SetConnectivityTestEndpoints",
     "params": {
         "endpoints": [
             "http://clients3.google.com/generate_204"
@@ -602,7 +614,7 @@ No Events
 | :-------- | :-------- | :-------- |
 | result | object |  |
 | result.isConnectedToInternet | boolean | `true` if internet connectivity is detected, otherwise `false` |
-| result.internetState | integer | Internet Connection state |
+| result.internetState | integer | The Wifi operational state |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -613,7 +625,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "NetworkManager.IsConnectedToInternet",
+    "method": "org.rdk.NetworkManager.IsConnectedToInternet",
     "params": {
         "ipversion": "IPv4"
     }
@@ -663,7 +675,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "NetworkManager.GetCaptivePortalURI"
+    "method": "org.rdk.NetworkManager.GetCaptivePortalURI"
 }
 ```
 
@@ -712,7 +724,7 @@ Enable a continuous monitoring of internet connectivity with heart beat interval
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "NetworkManager.StartConnectivityMonitoring",
+    "method": "org.rdk.NetworkManager.StartConnectivityMonitoring",
     "params": {
         "interval": 30
     }
@@ -759,7 +771,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "NetworkManager.StopConnectivityMonitoring"
+    "method": "org.rdk.NetworkManager.StopConnectivityMonitoring"
 }
 ```
 
@@ -775,8 +787,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getPublicIP"></a>
-## *getPublicIP [<sup>method</sup>](#head.Methods)*
+<a name="method.GetPublicIP"></a>
+## *GetPublicIP [<sup>method</sup>](#head.Methods)*
 
 It allows either zero parameter or with only interface and ipv6 parameter to determine WAN ip address.
 
@@ -807,7 +819,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "NetworkManager.getPublicIP",
+    "method": "org.rdk.NetworkManager.GetPublicIP",
     "params": {
         "ipversion": "IPv4"
     }
@@ -827,8 +839,8 @@ No Events
 }
 ```
 
-<a name="method.ping"></a>
-## *ping [<sup>method</sup>](#head.Methods)*
+<a name="method.Ping"></a>
+## *Ping [<sup>method</sup>](#head.Methods)*
 
 Pings the specified endpoint with the specified number of packets.
 
@@ -836,7 +848,7 @@ Pings the specified endpoint with the specified number of packets.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onPingResponse](#event.onPingResponse) | Triggered when Ping request received. |
+| [onPingResponse](#event.onPingResponse) | Triggered when Ping request is success. |
 ### Parameters
 
 | Name | Type | Description |
@@ -863,7 +875,7 @@ Pings the specified endpoint with the specified number of packets.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "NetworkManager.ping",
+    "method": "org.rdk.NetworkManager.Ping",
     "params": {
         "endpoint": "45.57.221.20",
         "ipversion": "IPv4",
@@ -886,8 +898,8 @@ Pings the specified endpoint with the specified number of packets.
 }
 ```
 
-<a name="method.trace"></a>
-## *trace [<sup>method</sup>](#head.Methods)*
+<a name="method.Trace"></a>
+## *Trace [<sup>method</sup>](#head.Methods)*
 
 Traces the specified endpoint with the specified number of packets using `traceroute`.
 
@@ -920,7 +932,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "NetworkManager.trace",
+    "method": "org.rdk.NetworkManager.Trace",
     "params": {
         "endpoint": "45.57.221.20",
         "ipversion": "IPv4",
@@ -974,7 +986,7 @@ Scans for available SSIDs. Available SSIDs are returned in an `onAvailableSSIDs`
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "NetworkManager.StartWiFiScan",
+    "method": "org.rdk.NetworkManager.StartWiFiScan",
     "params": {
         "frequency": "..."
     }
@@ -1021,7 +1033,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "NetworkManager.StopWiFiScan"
+    "method": "org.rdk.NetworkManager.StopWiFiScan"
 }
 ```
 
@@ -1037,12 +1049,554 @@ This method takes no parameters.
 }
 ```
 
+<a name="method.GetKnownSSIDs"></a>
+## *GetKnownSSIDs [<sup>method</sup>](#head.Methods)*
+
+Saved SSIDs list.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.ssids | array | Known SSIDS |
+| result.ssids[#] | string |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.NetworkManager.GetKnownSSIDs"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "ssids": [
+            "Comcast123"
+        ],
+        "success": true
+    }
+}
+```
+
+<a name="method.AddToKnownSSIDs"></a>
+## *AddToKnownSSIDs [<sup>method</sup>](#head.Methods)*
+
+Saves the SSID, passphrase, and security mode for future sessions.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.ssid | string | The paired SSID |
+| params.passphrase | string | The access point password |
+| params.securityMode | integer | The security mode. See `getSupportedSecurityModes` |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.NetworkManager.AddToKnownSSIDs",
+    "params": {
+        "ssid": "123412341234",
+        "passphrase": "password",
+        "securityMode": 2
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.RemoveKnownSSID"></a>
+## *RemoveKnownSSID [<sup>method</sup>](#head.Methods)*
+
+Remove given ssid from saved ssids.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.ssid | string | The paired SSID |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.NetworkManager.RemoveKnownSSID",
+    "params": {
+        "ssid": "123412341234"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.WiFiConnect"></a>
+## *WiFiConnect [<sup>method</sup>](#head.Methods)*
+
+Attempts to connect to the specified SSID with the given passphrase. Passphrase can be `null` when the network security is `NONE`. When called with no arguments, this method attempts to connect to the saved SSID and password. See `saveSSID`.
+
+### Events
+
+| Event | Description |
+| :-------- | :-------- |
+| [onWiFiStateChanged](#event.onWiFiStateChanged) | Triggered when Wifi state changes to CONNECTING, CONNECTED . |
+| [onError](#event.onError) | Triggered when requested SSID connection fails. |
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.ssid | string | The paired SSID |
+| params.passphrase | string | The access point password |
+| params.securityMode | integer | The security mode. See `getSupportedSecurityModes` |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.NetworkManager.WiFiConnect",
+    "params": {
+        "ssid": "123412341234",
+        "passphrase": "password",
+        "securityMode": 2
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.WiFiDisconnect"></a>
+## *WiFiDisconnect [<sup>method</sup>](#head.Methods)*
+
+Disconnects from the SSID. A `result` value of `0` indicates that the SSID was disconnected. A nonzero value indicates that the SSID did not disconnect.
+
+### Events
+
+| Event | Description |
+| :-------- | :-------- |
+| [onWIFIStateChanged](#event.onWIFIStateChanged) | Triggered when Wifi state changes to DISCONNECTED (only if currently connected). |
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.NetworkManager.WiFiDisconnect"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.GetConnectedSSID"></a>
+## *GetConnectedSSID [<sup>method</sup>](#head.Methods)*
+
+Returns the connected SSID information.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.ssid | string | The paired SSID |
+| result.bssid | string | The paired BSSID |
+| result.securityMode | string | The security mode. See the `connect` method |
+| result.signalStrength | string | The RSSI value in dBm |
+| result.frequency | string | The supported frequency for this SSID in GHz |
+| result.rate | string | The physical data rate in Mbps |
+| result.noise | string | The average noise strength in dBm |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.NetworkManager.GetConnectedSSID"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "ssid": "123412341234",
+        "bssid": "ff:ff:ff:ff:ff:ff",
+        "securityMode": "5",
+        "signalStrength": "-27.000000",
+        "frequency": "2.442000",
+        "rate": "144.000000",
+        "noise": "-121.000000",
+        "success": true
+    }
+}
+```
+
+<a name="method.StartWPS"></a>
+## *StartWPS [<sup>method</sup>](#head.Methods)*
+
+Initiates a connection using Wifi Protected Setup (WPS). An existing connection will be disconnected before attempting to initiate a new connection. Failure in WPS pairing will trigger an error event.
+
+If the `method` parameter is set to `SERIALIZED_PIN`, then RDK retrieves the serialized pin using the Manufacturer (MFR) API. If the `method` parameter is set to `PIN`, then RDK use the pin supplied as part of the request. If the `method` parameter is set to `PBC`, then RDK uses Push Button Configuration (PBC) to obtain the pin.
+
+### Events
+
+| Event | Description |
+| :-------- | :-------- |
+| [onWIFIStateChanged](#event.onWIFIStateChanged) | Triggered when Wifi state changes to DISCONNECTED (only if currently connected), CONNECTING, CONNECTED. |
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.method | string | The method used to obtain the pin (must be one of the following: *PBC*, *PIN*, *SERIALIZED_PIN*) |
+| params.wps_pin | string | A valid 8 digit WPS pin number. Use this parameter when the `method` parameter is set to `PIN` |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result?.pin | string | <sup>*(optional)*</sup> The WPS pin value. Valid only when `method` is set to `PIN` or `SERIALIZED_PIN` |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.NetworkManager.StartWPS",
+    "params": {
+        "method": "PIN",
+        "wps_pin": "88888888"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "pin": "88888888",
+        "success": true
+    }
+}
+```
+
+<a name="method.StopWPS"></a>
+## *StopWPS [<sup>method</sup>](#head.Methods)*
+
+Cancels the in-progress WPS pairing operation. The operation forcefully stops the in-progress pairing attempt and aborts the current scan. WPS pairing must be in-progress for the operation to succeed.
+
+### Events
+
+| Event | Description |
+| :-------- | :-------- |
+| [onWIFIStateChanged](#event.onWIFIStateChanged) | Triggered when Wifi state changes to DISCONNECTED. |
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.NetworkManager.StopWPS"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.GetWiFiSignalStrength"></a>
+## *GetWiFiSignalStrength [<sup>method</sup>](#head.Methods)*
+
+Get WiFiSignalStrength of connected SSID.
+
+### Events
+
+| Event | Description |
+| :-------- | :-------- |
+| [onWiFiSignalStrengthChanged](#event.onWiFiSignalStrengthChanged) | Triggered when Wifi signal strength switches between Excellent, Good, Fair, Weak. |
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.ssid | string | The paired SSID |
+| result.signalStrength | string | The RSSI value in dBm |
+| result.quality | integer | Signal strength Quality |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.NetworkManager.GetWiFiSignalStrength"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "ssid": "123412341234",
+        "signalStrength": "-27.000000",
+        "quality": 123,
+        "success": true
+    }
+}
+```
+
+<a name="method.GetSupportedSecurityModes"></a>
+## *GetSupportedSecurityModes [<sup>method</sup>](#head.Methods)*
+
+Returns the Wifi security modes that the device supports.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.security_modes | object | The supported security modes and its associated integer value |
+| result.security_modes?.NET_WIFI_SECURITY_NONE | integer | <sup>*(optional)*</sup>  |
+| result.security_modes?.NET_WIFI_SECURITY_WEP_64 | integer | <sup>*(optional)*</sup>  |
+| result.security_modes?.NET_WIFI_SECURITY_WEP_128 | integer | <sup>*(optional)*</sup>  |
+| result.security_modes?.NET_WIFI_SECURITY_WPA_PSK_TKIP | integer | <sup>*(optional)*</sup>  |
+| result.security_modes?.NET_WIFI_SECURITY_WPA_PSK_AES | integer | <sup>*(optional)*</sup>  |
+| result.security_modes?.NET_WIFI_SECURITY_WPA2_PSK_TKIP | integer | <sup>*(optional)*</sup>  |
+| result.security_modes?.NET_WIFI_SECURITY_WPA2_PSK_AES | integer | <sup>*(optional)*</sup>  |
+| result.security_modes?.NET_WIFI_SECURITY_WPA_ENTERPRISE_TKIP | integer | <sup>*(optional)*</sup>  |
+| result.security_modes?.NET_WIFI_SECURITY_WPA_ENTERPRISE_AES | integer | <sup>*(optional)*</sup>  |
+| result.security_modes?.NET_WIFI_SECURITY_WPA2_ENTERPRISE_TKIP | integer | <sup>*(optional)*</sup>  |
+| result.security_modes?.NET_WIFI_SECURITY_WPA2_ENTERPRISE_AES | integer | <sup>*(optional)*</sup>  |
+| result.security_modes?.NET_WIFI_SECURITY_WPA_WPA2_PSK | integer | <sup>*(optional)*</sup>  |
+| result.security_modes?.NET_WIFI_SECURITY_WPA_WPA2_ENTERPRISE | integer | <sup>*(optional)*</sup>  |
+| result.security_modes?.NET_WIFI_SECURITY_WPA3_PSK_AES | integer | <sup>*(optional)*</sup>  |
+| result.security_modes?.NET_WIFI_SECURITY_WPA3_SAE | integer | <sup>*(optional)*</sup>  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.NetworkManager.GetSupportedSecurityModes"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "security_modes": {
+            "NET_WIFI_SECURITY_NONE": 0,
+            "NET_WIFI_SECURITY_WEP_64": 1,
+            "NET_WIFI_SECURITY_WEP_128": 2,
+            "NET_WIFI_SECURITY_WPA_PSK_TKIP": 3,
+            "NET_WIFI_SECURITY_WPA_PSK_AES": 4,
+            "NET_WIFI_SECURITY_WPA2_PSK_TKIP": 5,
+            "NET_WIFI_SECURITY_WPA2_PSK_AES": 6,
+            "NET_WIFI_SECURITY_WPA_ENTERPRISE_TKIP": 7,
+            "NET_WIFI_SECURITY_WPA_ENTERPRISE_AES": 8,
+            "NET_WIFI_SECURITY_WPA2_ENTERPRISE_TKIP": 9,
+            "NET_WIFI_SECURITY_WPA2_ENTERPRISE_AES": 10,
+            "NET_WIFI_SECURITY_WPA_WPA2_PSK": 11,
+            "NET_WIFI_SECURITY_WPA_WPA2_ENTERPRISE": 12,
+            "NET_WIFI_SECURITY_WPA3_PSK_AES": 13,
+            "NET_WIFI_SECURITY_WPA3_SAE": 14
+        },
+        "success": true
+    }
+}
+```
+
 <a name="head.Notifications"></a>
 # Notifications
 
 Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
 
-The following events are provided by the NetworkManager plugin:
+The following events are provided by the org.rdk.NetworkManager plugin:
 
 NetworkManager interface events:
 
