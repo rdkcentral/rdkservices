@@ -1,0 +1,11 @@
+autostart = "@PLUGIN_DTV_AUTOSTART@"
+precondition = ["Platform"]
+startuporder = 80
+
+configuration = JSON()
+configuration.add("subtitleprocessing", "false")
+configuration.add("teletextprocessing", "false")
+
+rootobject = JSON()
+rootobject.add("mode", "@PLUGIN_DTV_MODE@")
+configuration.add("root", rootobject)
