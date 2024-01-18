@@ -67,7 +67,7 @@ namespace WPEFramework
             // Syslog Startup messages are always printed by default
             SYSLOG(Logging::Startup, (_T("Initializing NetworkManager")));
             SYSLOG(Logging::Startup, (_T("Initialize running in process %d"), Core::ProcessInfo().Id()));
-
+            NM::logger_init();
             // Register the Connection::Notification first. Do this before we start our actual plugin
             // in case something goes wrong or is disconnected - this way we know we're at least registered
             // for activate/deactivate events

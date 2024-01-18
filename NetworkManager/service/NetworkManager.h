@@ -24,6 +24,7 @@
 // Include the interface we created
 //#include <interfaces/INetworkManager.h>
 #include "INetworkManager.h"
+#include "logger.h"
 
 #include <string>
 #include <atomic>
@@ -100,15 +101,16 @@ namespace WPEFramework
             public:
                 void onInterfaceStateChanged(const Exchange::INetworkManager::INotification::InterfaceState event, const string interface) override
                 {
+                    NMLOG_TRACE("%s", __FUNCTION__);
                     JsonObject params;
                     params["interface"] = interface;
                     params["state"] = InterfaceStateToString(event);
-                    printf("%s\n", __FUNCTION__);
                     _parent.Notify("onInterfaceStateChanged", params);
                 }
 
                 void onIPAddressChanged(const string interface, const bool isAcquired, const bool isIPv6, const string ipAddress) override
                 {
+                    NMLOG_TRACE("%s", __FUNCTION__);
                     JsonObject params;
                     params["interface"] = interface;
                     params["status"] = string (isAcquired ? "ACQUIRED" : "LOST");
@@ -117,13 +119,12 @@ namespace WPEFramework
                     else
                         params["ipv4"] = ipAddress;
 
-                    printf("%s\n", __FUNCTION__);
                     _parent.Notify("onIPAddressChanged", params);
                 }
 
                 void onActiveInterfaceChanged(const string prevActiveInterface, const string currentActiveinterface) override
                 {
-                    printf("%s\n", __FUNCTION__);
+                    NMLOG_TRACE("%s", __FUNCTION__);
                     JsonObject params;
                     params["oldInterfaceName"] = prevActiveInterface;
                     params["newInterfaceName"] = currentActiveinterface;
@@ -133,7 +134,7 @@ namespace WPEFramework
 
                 void onInternetStatusChanged(const Exchange::INetworkManager::InternetStatus oldState, const Exchange::INetworkManager::InternetStatus newstate) override
                 {
-                    printf("%s\n", __FUNCTION__);
+                    NMLOG_TRACE("%s", __FUNCTION__);
                     JsonObject params;
                     params["prevState"] = static_cast <int> (oldState);
                     params["prevStatus"] = InternetStatusToString(oldState);
@@ -144,14 +145,14 @@ namespace WPEFramework
 
                     if (Exchange::INetworkManager::InternetStatus::INTERNET_FULLY_CONNECTED == newstate)
                     {
-                        printf("Notify Thunder ISubsystem");
+                        NMLOG_INFO("Notify Thunder ISubsystem internet");
                         _parent.PublishToThunderAboutInternet();
                     }
                 }
 
                 void onPingResponse(const string guid, const string pingStatistics) override
                 {
-                    printf("%s\n", __FUNCTION__);
+                    NMLOG_INFO ("%s", __FUNCTION__);
                     JsonObject params;
                     JsonObject result;
 
@@ -163,9 +164,9 @@ namespace WPEFramework
 
                 void onTraceResponse(const string guid, const string traceResult) override
                 {
+                    NMLOG_INFO ("%s", __FUNCTION__);
                     JsonObject params;
                     JsonObject result;
-                    printf("%s\n", __FUNCTION__);
 
                     params.FromString(traceResult);
                     result["traceResult"] = params;
@@ -176,7 +177,7 @@ namespace WPEFramework
                 // WiFi Notifications that other processes can subscribe to
                 void onAvailableSSIDs(const string jsonOfWiFiScanResults) override
                 {
-                    printf("%s\n", __FUNCTION__);
+                    NMLOG_TRACE("%s", __FUNCTION__);
                     JsonArray scanResults;
                     JsonObject result;
                     scanResults.FromString(jsonOfWiFiScanResults);
@@ -186,14 +187,14 @@ namespace WPEFramework
                 }
                 void onWiFiStateChanged(const Exchange::INetworkManager::INotification::WiFiState state) override
                 {
-                    printf("%s\n", __FUNCTION__);
+                    NMLOG_TRACE("%s", __FUNCTION__);
                     JsonObject result;
                     result["state"] = static_cast <int> (state);
                     _parent.Notify("onWiFiStateChanged", result);
                 }
                 void onWiFiSignalStrengthChanged(const string ssid, const string signalStrength, const Exchange::INetworkManager::WiFiSignalQuality quality) override
                 {
-                    printf("%s\n", __FUNCTION__);
+                    NMLOG_TRACE("%s", __FUNCTION__);
                 }
 
 
@@ -280,6 +281,7 @@ namespace WPEFramework
 #endif
 
             // JSON-RPC methods (take JSON in, spit JSON back out)
+            uint32_t SetLogLevel (const JsonObject& parameters, JsonObject& response);
             uint32_t GetAvailableInterfaces (const JsonObject& parameters, JsonObject& response);
             uint32_t GetPrimaryInterface (const JsonObject& parameters, JsonObject& response);
             uint32_t SetPrimaryInterface (const JsonObject& parameters, JsonObject& response);

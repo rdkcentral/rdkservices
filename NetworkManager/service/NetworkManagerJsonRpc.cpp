@@ -18,9 +18,10 @@
 **/
 
 #include "NetworkManager.h"
+#include "logger.h"
 
-#define LOGINFOMETHOD() { std::string json; parameters.ToString(json); printf("params=%s\n", json.c_str() ); }
-#define LOGTRACEMETHODFIN() { std::string json; response.ToString(json); printf("response=%s\n", json.c_str() ); }
+#define LOGINFOMETHOD() { std::string json; parameters.ToString(json); NMLOG_TRACE("params=%s", json.c_str() ); }
+#define LOGTRACEMETHODFIN() { std::string json; response.ToString(json); NMLOG_TRACE("response=%s", json.c_str() ); }
 
 namespace WPEFramework
 {
@@ -37,6 +38,7 @@ namespace WPEFramework
          */
         void NetworkManager::RegisterAllMethods()
         {
+            Register("SetLogLevel",                       &NetworkManager::SetLogLevel, this);
             Register("GetAvailableInterfaces",            &NetworkManager::GetAvailableInterfaces, this);
             Register("GetPrimaryInterface",               &NetworkManager::GetPrimaryInterface, this);
             Register("SetPrimaryInterface",               &NetworkManager::SetPrimaryInterface, this);
@@ -73,6 +75,7 @@ namespace WPEFramework
          */
         void NetworkManager::UnregisterAllMethods()
         {
+            Unregister("SetLogLevel");
             Unregister("GetAvailableInterfaces");
             Unregister("GetPrimaryInterface");
             Unregister("SetPrimaryInterface");
@@ -104,6 +107,17 @@ namespace WPEFramework
             Unregister("GetSupportedSecurityModes");
         }
 
+        uint32_t NetworkManager::SetLogLevel (const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+
+            uint32_t rc = Core::ERROR_GENERAL;
+            string loglevel = parameters["loglevel"].String();
+            NM::set_loglevel(loglevel);
+            rc = Core::ERROR_NONE;
+            return rc;
+        }
+
         uint32_t NetworkManager::GetAvailableInterfaces (const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
@@ -117,7 +131,7 @@ namespace WPEFramework
 
             if (interfaces)
             {
-                printf("received response\n");
+                NMLOG_TRACE("received response");
                 JsonArray array;
                 Exchange::INetworkManager::InterfaceDetails entry{};
                 while (interfaces->Next(entry) == true) {
@@ -132,7 +146,7 @@ namespace WPEFramework
                 }
 
                 interfaces->Release();
-                printf("Sending Success\n");
+                NMLOG_TRACE("Sending Success");
                 response["interfaces"] = array;
                 response["success"] = true;
             }
@@ -339,7 +353,7 @@ namespace WPEFramework
 
             if (0 == array.Length() || 5 < array.Length())
             {
-                printf("minimum of 1 to maximum of 5 Urls are allowed\n");
+                NMLOG_TRACE("minimum of 1 to maximum of 5 Urls are allowed");
                 return rc;
             }
 
@@ -353,7 +367,7 @@ namespace WPEFramework
                 }
                 else
                 {
-                    printf("Unexpected variant type\n");
+                    NMLOG_TRACE("Unexpected variant type");
                     return rc;
                 }
             }
@@ -420,7 +434,6 @@ namespace WPEFramework
             LOGINFOMETHOD();
             uint32_t rc = Core::ERROR_GENERAL;
             string endPoint;
-
             if (_NetworkManager)
                 rc = _NetworkManager->GetCaptivePortalURI(endPoint);
             else
@@ -440,6 +453,7 @@ namespace WPEFramework
             uint32_t rc = Core::ERROR_GENERAL;
             uint32_t interval = parameters["interval"].Number();
 
+            NMLOG_TRACE("connectivity interval = %d", interval);
             if (_NetworkManager)
                 rc = _NetworkManager->StartConnectivityMonitoring(interval);
             else
@@ -498,7 +512,7 @@ namespace WPEFramework
 
         void NetworkManager::PublishToThunderAboutInternet()
         {
-            printf("No public IP persisted yet; Update the data");
+            NMLOG_TRACE("No public IP persisted yet; Update the data");
             if (m_publicIPAddress.empty())
             {
                 JsonObject input, output;
@@ -610,7 +624,7 @@ namespace WPEFramework
             JsonArray ssids;
             ::WPEFramework::RPC::IIteratorType<string, RPC::ID_STRINGITERATOR>* _ssids{};
 
-            printf("@@@@@ %s @@@@@@\n", __FUNCTION__);
+            NMLOG_TRACE("@@@@@ %s @@@@@@", __FUNCTION__);
             if (_NetworkManager)
                 rc = _NetworkManager->GetKnownSSIDs(_ssids);
 
