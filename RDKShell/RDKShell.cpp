@@ -25,6 +25,7 @@
 #include <thread>
 #include <fstream>
 #include <sstream>
+#include <condition_variable>
 #include <unistd.h>
 #include <rdkshell/compositorcontroller.h>
 #include <rdkshell/application.h>
@@ -196,6 +197,7 @@ bool sFactoryModeBlockResidentApp = false;
 bool sForceResidentAppLaunch = false;
 static bool sRunning = true;
 bool needsScreenshot = false;
+sem_t gInitializeSemaphore;
 
 #ifdef RDKSHELL_DUAL_ODM_SUPPORT
 static Device_Mode_FactoryModes_t sFactoryMode = DEVICE_MODE_CVTE_B1_AGING;
@@ -204,6 +206,9 @@ static Device_Mode_FactoryModes_t sFactoryMode = DEVICE_MODE_CVTE_B1_AGING;
 #ifdef HIBERNATE_SUPPORT_ENABLED
 std::mutex gSuspendedOrHibernatedApplicationsMutex;
 map<string, bool> gSuspendedOrHibernatedApplications;
+std::mutex gHibernateBlockedMutex;
+int gHibernateBlocked;
+std::condition_variable gHibernateBlockedCondVariable;
 #endif
 
 #define ANY_KEY 65536
@@ -249,6 +254,44 @@ enum AppLastExitReason
     CRASH,
     DEACTIVATED
 };
+
+
+#ifdef HIBERNATE_SUPPORT_ENABLED
+
+static void setHibernateBlocked(bool val)
+{
+    std::unique_lock<std::mutex> lock(gHibernateBlockedMutex);
+    if (val)
+    {
+        gHibernateBlocked++;
+    }
+    else
+    {
+        gHibernateBlocked--;
+    }
+    lock.unlock();
+    gHibernateBlockedCondVariable.notify_all();
+}
+
+static bool waitForHibernateUnblocked(int timeoutMs)
+{
+    std::unique_lock<std::mutex> lock(gHibernateBlockedMutex);
+    while (gHibernateBlocked > 0)
+    {
+        if (gHibernateBlockedCondVariable.wait_for(lock, std::chrono::milliseconds(timeoutMs)) == std::cv_status::timeout)
+            break;
+    }
+
+    if (gHibernateBlocked > 0)
+    {
+        std::cout << "Hibernation still blocked after " << timeoutMs << "ms !" << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+#endif
 
 #ifdef RDKSHELL_READ_MAC_ON_STARTUP
 static bool checkFactoryMode_wrapper()
@@ -987,10 +1030,114 @@ namespace WPEFramework {
 	    return ignoreLaunch;
 	}
 
+	void RDKShell::MonitorClients::handleInitialize(PluginHost::IShell* service)
+        {
+                if(service)
+                {
+                   std::string configLine = service->ConfigLine();
+                   if (configLine.empty())
+                   {
+                       return;
+                   }
+                   JsonObject serviceConfig = JsonObject(configLine.c_str());
+                   if (serviceConfig.HasLabel("clientidentifier"))
+                   {
+                       std::string clientidentifier = serviceConfig["clientidentifier"].String();
+                      std::string serviceCallsign = service->Callsign();
+                       if ((serviceCallsign == RESIDENTAPP_CALLSIGN) && ignoreResidentAppLaunch())
+                       {
+                           std::cout << "Resident app activation early !!! " << std::endl;
+                           return;
+                       }
+                       if (!isClientExists(serviceCallsign))
+                       {
+                           std::shared_ptr<CreateDisplayRequest> request = std::make_shared<CreateDisplayRequest>(serviceCallsign, clientidentifier);
+                           gRdkShellMutex.lock();
+                           gCreateDisplayRequests.push_back(request);
+                           gRdkShellMutex.unlock();
+                           sem_wait(&request->mSemaphore);
+                       }
+                       gRdkShellMutex.lock();
+                       RdkShell::CompositorController::addListener(clientidentifier, mShell.mEventListener);
+                       gRdkShellMutex.unlock();
+                       gPluginDataMutex.lock();
+                       std::string className = service->ClassName();
+                       PluginData pluginData;
+                       pluginData.mClassName = className;
+                       if (gActivePluginsData.find(serviceCallsign) == gActivePluginsData.end())
+                       {
+                           gActivePluginsData[serviceCallsign] = pluginData;
+                       }
+                       gPluginDataMutex.unlock();
+                   }
+                }
+           }
+
+        void  RDKShell::MonitorClients::handleActivated(PluginHost::IShell* service)
+        {
+                if(service)
+                {
+                        if(service->Callsign() == RESIDENTAPP_CALLSIGN)
+                        {
+                                bool ignoreLaunch = ignoreResidentAppLaunch(true);
+                                if (ignoreLaunch)
+                                {
+                                  std::cout << "deactivating resident app as factory mode is set" << std::endl;
+                                  JsonObject destroyRequest;
+                                 destroyRequest["callsign"] = "ResidentApp";
+                                  RDKShellApiRequest apiRequest;
+                                  apiRequest.mName = "destroy";
+                                  apiRequest.mRequest = destroyRequest;
+                                  RDKShell* rdkshellPlugin = RDKShell::_instance;
+                                   rdkshellPlugin->launchRequestThread(apiRequest);
+                                }
+                        }
+                        else if(service->Callsign() == PERSISTENT_STORE_CALLSIGN && !sPersistentStoreFirstActivated)
+                        {
+                                std::cout << "persistent store activated\n";
+                                gRdkShellMutex.lock();
+                                sPersistentStoreFirstActivated = true;
+                                gRdkShellMutex.unlock();
+                        }
+                        else if(service->Callsign() == SYSTEM_SERVICE_CALLSIGN)
+                        {
+                                RDKShellApiRequest apiRequest;
+                        apiRequest.mName = "susbscribeSystemEvent";
+                        RDKShell* rdkshellPlugin = RDKShell::_instance;
+                        rdkshellPlugin->launchRequestThread(apiRequest);
+                        }
+                }
+        }
+
         void RDKShell::MonitorClients::handleDeactivated(PluginHost::IShell* service)
         {
             if (service)
             {
+		 gLaunchDestroyMutex.lock();
+                if (gDestroyApplications.find(service->Callsign()) == gDestroyApplications.end())
+                {
+                     gExternalDestroyApplications[service->Callsign()] = true;
+                }
+                    gLaunchDestroyMutex.unlock();
+                    StateControlNotification* notification = nullptr;
+                    gPluginDataMutex.lock();
+                    auto notificationIt = gStateNotifications.find(service->Callsign());
+                    if (notificationIt != gStateNotifications.end())
+                    {
+                        notification = notificationIt->second;
+                        gStateNotifications.erase(notificationIt);
+                    }
+                    gPluginDataMutex.unlock();
+                    if (notification)
+                    {
+                        PluginHost::IStateControl* stateControl(service->QueryInterface<PluginHost::IStateControl>());
+                        if (stateControl != nullptr)
+                        {
+                            stateControl->Unregister(notification);
+                            stateControl->Release();
+                        }
+                        notification->Release();
+                    }
                 gExitReasonMutex.lock();
                 gApplicationsExitReason[service->Callsign()] = AppLastExitReason::DEACTIVATED;
 
@@ -1009,7 +1156,13 @@ namespace WPEFramework {
                     gApplicationsExitReason[service->Callsign()] = AppLastExitReason::CRASH;
                 }
                 gExitReasonMutex.unlock();
+            }
+        }
 
+        void RDKShell::MonitorClients::handleDeinitialized(PluginHost::IShell* service)
+        {
+            if (service)
+            {
                 std::string configLine = service->ConfigLine();
                 if (configLine.empty())
                 {
@@ -1056,6 +1209,7 @@ namespace WPEFramework {
                 gLaunchDestroyMutex.unlock();
             }
         }
+
 
         void RDKShell::MonitorClients::StateChange(PluginHost::IShell* service)
         {
@@ -1241,23 +1395,27 @@ namespace WPEFramework {
         }
 
 #ifdef USE_THUNDER_R4
-       void RDKShell::MonitorClients::Activation(const string& callsign, PluginHost::IShell* service)
+	void RDKShell::MonitorClients::Initialize(VARIABLE_IS_NOT_USED const string& callsign, VARIABLE_IS_NOT_USED PluginHost::IShell* service)
        {
-           StateChange(service);
+             handleInitialize(service);
        }
+       void RDKShell::MonitorClients::Activation(const string& callsign, PluginHost::IShell* service)
+       {}
        void RDKShell::MonitorClients::Activated(const string& callsign, PluginHost::IShell* service)
        {
-            StateChange(service);
+	    handleActivated(service);
        }
        void RDKShell::MonitorClients::Deactivation(const string& callsign, PluginHost::IShell* service)
-       {
-           StateChange(service);
-       }
+       {}
        void RDKShell::MonitorClients::Deactivated(const string& callsign, PluginHost::IShell* service)
        {
             //StateChange(service);
             handleDeactivated(service);
        }
+        void RDKShell::MonitorClients::Deinitialized(VARIABLE_IS_NOT_USED const string& callsign, VARIABLE_IS_NOT_USED PluginHost::IShell* service)
+        {
+            handleDeinitialized(service);
+        }
        void RDKShell::MonitorClients::Unavailable(const string& callsign, PluginHost::IShell* service)
        {}
 #endif /* USE_THUNDER_R4 */
@@ -1526,6 +1684,7 @@ namespace WPEFramework {
             }
 
             mErmEnabled = CompositorController::isErmEnabled();
+            sem_init(&gInitializeSemaphore, 0, 0);
             shellThread = std::thread([=]() {
                 bool isRunning = true;
                 gRdkShellMutex.lock();
@@ -1573,6 +1732,7 @@ namespace WPEFramework {
                 isRunning = sRunning;
                 gRdkShellMutex.unlock();
                 gRdkShellSurfaceModeEnabled = CompositorController::isSurfaceModeEnabled();
+                sem_post(&gInitializeSemaphore);
                 while(isRunning) {
                   const double maxSleepTime = (1000 / gCurrentFramerate) * 1000;
                   double startFrameTime = RdkShell::microseconds();
@@ -1738,6 +1898,7 @@ namespace WPEFramework {
         RialtoConnector *rialtoBridge = new RialtoConnector();
         rialtoConnector = std::shared_ptr<RialtoConnector>(rialtoBridge);
 #endif //  ENABLE_RIALTO_FEATURE
+            sem_wait(&gInitializeSemaphore);
             return "";
         }
 
@@ -1906,18 +2067,25 @@ namespace WPEFramework {
             gRdkShellMutex.lock();
             for (unsigned int i=0; i<gCreateDisplayRequests.size(); i++)
             {
-                sem_destroy(&gCreateDisplayRequests[i]->mSemaphore);
-                gCreateDisplayRequests[i] = nullptr;
+                if (gCreateDisplayRequests[i])
+                {
+                    sem_destroy(&gCreateDisplayRequests[i]->mSemaphore);
+                    gCreateDisplayRequests[i] = nullptr;
+                }
             }
             gCreateDisplayRequests.clear();
             for (unsigned int i=0; i<gKillClientRequests.size(); i++)
             {
-                sem_destroy(&gKillClientRequests[i]->mSemaphore);
-                gKillClientRequests[i] = nullptr;
+                if (gKillClientRequests[i])
+                {
+                    sem_destroy(&gKillClientRequests[i]->mSemaphore);
+                    gKillClientRequests[i] = nullptr;
+                }
             }
             gKillClientRequests.clear();
             gRdkShellMutex.unlock();
             gExternalDestroyApplications.clear();
+            sem_destroy(&gInitializeSemaphore);
         }
 
         string RDKShell::Information() const
@@ -3421,9 +3589,6 @@ namespace WPEFramework {
                 gSplashScreenDisplayTime = displayTime;
                 receivedShowSplashScreenRequest = true;
                 gRdkShellMutex.unlock();
-                if (false == result) {
-                    response["message"] = "failed to show splash screen";
-                }
             }
             returnResponse(result);
         }
@@ -4206,11 +4371,11 @@ namespace WPEFramework {
                         std::cout << "scaling app to fit full screen" << std::endl;
                         double sx = 1.0;
                         double sy = 1.0;
-                        if (width != screenWidth)
+                        if (width != screenWidth && width !=0)
                         {
                             sx = (double)screenWidth / (double)width;
                         }
-                        if (height != screenHeight)
+                        if (height != screenHeight && height!=0)
                         {
                             sy = (double)screenHeight / (double)height;
                         }
@@ -4633,8 +4798,13 @@ namespace WPEFramework {
                         returnResponse(false);
                     }
 
-                    string runtimeDir = getenv("XDG_RUNTIME_DIR");
-                    string display = runtimeDir + "/" + (gRdkShellSurfaceModeEnabled ? RDKSHELL_SURFACECLIENT_DISPLAYNAME : "wst-"+uri);
+                    string str_runtimeDir;
+                    char* runtimeDir = getenv("XDG_RUNTIME_DIR");
+                    if(NULL != runtimeDir)
+                    {
+                        str_runtimeDir = string(runtimeDir);
+                    }
+                    string display = str_runtimeDir + "/" + (gRdkShellSurfaceModeEnabled ? RDKSHELL_SURFACECLIENT_DISPLAYNAME : "wst-"+uri);
 
                     // Set mime type
                     if (!setMimeType(client, mimeType))
@@ -6062,7 +6232,7 @@ namespace WPEFramework {
             {
                 string input = parameters["input"].String();
 
-                if (input != "default" || input != "keyboard")
+                if (input != "default" && input != "keyboard")
                 {
                     response["message"] = "not supported input type";
                     returnResponse(false);
@@ -6245,6 +6415,16 @@ namespace WPEFramework {
                 std::thread requestsThread =
                 std::thread([=]()
                 {
+                    if (!waitForHibernateUnblocked(RDKSHELL_THUNDER_TIMEOUT))
+                    {
+                        std::cout << "Hibernation of " << callsign << " ignored!" << std::endl;
+                        JsonObject eventMsg;
+                        eventMsg["success"] = false;
+                        eventMsg["message"] = "hibernation blocked";
+                        notify(RDKShell::RDKSHELL_EVENT_ON_HIBERNATED, eventMsg);
+                        return;
+                    }
+
                     auto thunderController = RDKShell::getThunderControllerClient();
                     JsonObject request, result, eventMsg;
                     request["callsign"] = callsign;
@@ -6448,7 +6628,7 @@ namespace WPEFramework {
             if (displayNameItr != gPluginDisplayNameMap.end())
             {
                 std::string clientId(callsign + ',' + displayNameItr->second);
-                std::cout << "setAVBlocked callsign: " << callsign << " clientIdentifier:<"<<clientId<<">blockAV:"<<std::boolalpha << blockAV << std::endl;
+                std::cout << "setAVBlocked callsign: " << callsign << " clientIdentifier:<"<<clientId<<">blockAV:"<<std::boolalpha << blockAV << std::noboolalpha << std::endl;
                 status = CompositorController::setAVBlocked(clientId, blockAV);
             }
             else
@@ -6580,6 +6760,17 @@ namespace WPEFramework {
                                 skipFocus = gSuspendedOrHibernatedApplications[previousFocusedIterator->first];
                             }
 
+                            // If app is not suspended nor hibernated, the hibernation for app can still be triggered
+                            // while waiting in a call to QueryInterfaceByCallsign() or Focused(). Further execution
+                            // of QueryInterfaceByCallsign() or Focused() may cause unwanted wakeup.
+                            // Make sure all new hibernations are blocked untill setting the focuse to false finished
+                            if (skipFocus == false)
+                            {
+                                setHibernateBlocked(true);
+                            }
+
+                            gSuspendedOrHibernatedApplicationsMutex.unlock();
+
                             if (skipFocus == false)
                             {
 #endif
@@ -6592,12 +6783,12 @@ namespace WPEFramework {
                                     focusedCallsign->Release();
                                 }
 #ifdef HIBERNATE_SUPPORT_ENABLED
+                                setHibernateBlocked(false);
                              }
                             else
                             {
                                 std::cout << "setting the focus for " << compositorName << " to false skipped, plugin suspended or hibernated " << std::endl;
                             }
-                            gSuspendedOrHibernatedApplicationsMutex.unlock();
 #endif
                             break;
                         }
@@ -6877,7 +7068,7 @@ namespace WPEFramework {
             bool ret = false;
             for (int i=0; i<keyInputs.Length(); i++) {
                 const JsonObject& keyInputInfo = keyInputs[i].Object();
-                uint32_t keyCode, flags=0;
+                uint32_t keyCode=0, flags=0;
                 std::string virtualKey("");
                 if (keyInputInfo.HasLabel("key"))
                 {
@@ -7474,18 +7665,18 @@ namespace WPEFramework {
             bool isSuspended = params["suspended"].Boolean();
             if (mLaunchEnabled)
             {
-               JsonObject params;
-               params["client"] = mCallSign;
-               params["launchType"] = (isSuspended)?"suspend":"resume";
-               mRDKShell.notify(RDKShell::RDKSHELL_EVENT_ON_LAUNCHED, params);
+               JsonObject launchParams;
+               launchParams["client"] = mCallSign;
+               launchParams["launchType"] = (isSuspended)?"suspend":"resume";
+               mRDKShell.notify(RDKShell::RDKSHELL_EVENT_ON_LAUNCHED, launchParams);
                mLaunchEnabled = false;
             }
 
             if (isSuspended)
             {
-                JsonObject params;
-                params["client"] = mCallSign;
-                mRDKShell.notify(RDKShell::RDKSHELL_EVENT_ON_PLUGIN_SUSPENDED, params);
+                JsonObject suspendedParams;
+                suspendedParams["client"] = mCallSign;
+                mRDKShell.notify(RDKShell::RDKSHELL_EVENT_ON_PLUGIN_SUSPENDED, suspendedParams);
             }
         }
 

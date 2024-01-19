@@ -7,8 +7,9 @@
 #include <curl/curl.h>
 #include <condition_variable>
 #include <mutex>
-
+#include "logger.h"
 #include "Module.h"
+#include "NetworkManagerImplementation.h"
 
 #define CAPTIVEPORTAL_MAX_LEN 512
 #define DEFAULT_MONITOR_TIMEOUT 60 // in seconds
@@ -22,7 +23,7 @@ enum nsm_ipversion {
 };
 
 enum nsm_internetState {
-    UNKNOWN = -1,
+    UNKNOWN  = 0,
     NO_INTERNET,
     LIMITED_INTERNET,
     CAPTIVE_PORTAL,
@@ -75,7 +76,7 @@ namespace WPEFramework {
                 loadConnectivityConfig(configFilePath);
                 if(m_defaultEndpoints.empty())
                 {
-                    printf("NETSRVMGR CONFIGURATION ERROR: CONNECTIVITY ENDPOINT EMPTY");
+                    NMLOG_ERROR("NETSRVMGR CONFIGURATION ERROR: CONNECTIVITY ENDPOINT EMPTY");
                     m_defaultEndpoints.clear();
                     m_defaultEndpoints.push_back("http://clients3.google.com/generate_204");
                 }
@@ -101,11 +102,16 @@ namespace WPEFramework {
 
         class ConnectivityMonitor : public Connectivity {
             public:
-                static ConnectivityMonitor& getInstance() {
-                    static ConnectivityMonitor instance;
-                    return instance;
+                static ConnectivityMonitor* getInstance()
+                {
+                    if (connectivityMonitor == nullptr) {
+                       static ConnectivityMonitor instance;
+                       connectivityMonitor = &instance;
+                    }
+                    return connectivityMonitor;
                 }
 
+                void registerConnectivityMonitorCallback(NetworkManagerImplementation * impl);
                 bool isConnectedToInternet(nsm_ipversion ipversion);
                 nsm_internetState getInternetConnectionState(nsm_ipversion ipversion);
                 std::string getCaptivePortalURI();
@@ -147,6 +153,9 @@ namespace WPEFramework {
                 std::mutex mutex_;
                 std::mutex endpointMutex;
                 std::atomic<nsm_internetState> g_internetState = {nsm_internetState::UNKNOWN};
+            public:
+                static ConnectivityMonitor *connectivityMonitor;
+                NetworkManagerImplementation *networkManagerImpl = nullptr;
         };
     } // namespace Plugin
 } // namespace WPEFramework

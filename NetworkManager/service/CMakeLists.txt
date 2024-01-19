@@ -22,7 +22,6 @@ set(PLUGIN_IMPLEMENTATION ${MODULE_NAME}Implementation)
 find_package(${NAMESPACE}Core REQUIRED)
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
-find_package(${NAMESPACE}COM REQUIRED)
 find_package(CURL)
 
 message("Setup ${PROJECT_NAME} v${PROJECT_VERSION}")
@@ -31,8 +30,13 @@ message("Setup ${PROJECT_NAME} v${PROJECT_VERSION}")
 add_library(${MODULE_NAME} SHARED
         NetworkManager.cpp
         NetworkManagerJsonRpc.cpp
+        logger.cpp
         Module.cpp
 )
+
+if(ENABLE_LEGACY_NSM_SUPPORT)
+target_sources(${MODULE_NAME} PRIVATE NetworkManagerLegacy.cpp)
+endif ()
 
 if(ENABLE_LEGACY_NSM_SUPPORT)
 add_definitions(-DENABLE_LEGACY_NSM_SUPPORT)
@@ -68,6 +72,7 @@ add_library(${PLUGIN_IMPLEMENTATION} SHARED
         NetworkManagerImplementation.cpp
         NetworkConnectivity.cpp
         StunClient.cpp
+        logger.cpp
         Module.cpp
         ${PUBLIC_HEADERS}
 )
