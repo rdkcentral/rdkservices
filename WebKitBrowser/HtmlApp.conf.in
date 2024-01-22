@@ -39,7 +39,8 @@ configuration.add("localstoragesize", "@PLUGIN_HTML_APP_LOCALSTORAGESIZE@")
 configuration.add("cookiestorage", "@PLUGIN_HTML_APP_COOKIESTORAGE@")
 configuration.add("indexeddbenabled", "@PLUGIN_HTML_APP_INDEXEDDB_ENABLE@")
 configuration.add("indexeddbpath", "@PLUGIN_HTML_APP_INDEXEDDB_PATH@")
-configuration.add("indexeddbsize", "@PLUGIN_HTML_APP_INDEXEDDB_SIZE@")
+configuration.add("originstorageratio", "@PLUGIN_HTML_APP_ORIGIN_STORAGE_RATIO@")
+configuration.add("totalstorageratio", "@PLUGIN_HTML_APP_TOTAL_STORAGE_RATIO@")
 
 if boolean("@PLUGIN_HTML_APP_WINDOWCLOSE@"):
     configuration.add("windowclose", "true")
