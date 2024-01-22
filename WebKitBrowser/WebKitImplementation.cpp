@@ -567,7 +567,8 @@ static GSourceFuncs _handlerIntervention =
                 , LocalStorageSize()
                 , IndexedDBEnabled(false)
                 , IndexedDBPath()
-                , IndexedDBSize()
+                , OriginStorageRatio()
+                , TotalStorageRatio()
                 , Secure(false)
                 , InjectedBundle()
                 , Transparent(false)
@@ -631,7 +632,8 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("localstoragesize"), &LocalStorageSize);
                 Add(_T("indexeddbenabled"), &IndexedDBEnabled);
                 Add(_T("indexeddbpath"), &IndexedDBPath);
-                Add(_T("indexeddbsize"), &IndexedDBSize);
+                Add(_T("originstorageratio"), &OriginStorageRatio);
+                Add(_T("totalstorageratio"), &TotalStorageRatio);
                 Add(_T("secure"), &Secure);
                 Add(_T("injectedbundle"), &InjectedBundle);
                 Add(_T("transparent"), &Transparent);
@@ -702,7 +704,8 @@ static GSourceFuncs _handlerIntervention =
             Core::JSON::DecUInt16 LocalStorageSize;
             Core::JSON::Boolean IndexedDBEnabled;
             Core::JSON::String IndexedDBPath;
-            Core::JSON::DecUInt16 IndexedDBSize; // [KB]
+            Core::JSON::DecUInt8 OriginStorageRatio; // [percentage of volume space for each domain]
+            Core::JSON::DecUInt8 TotalStorageRatio; // [percentage of volume space for all domains]
             Core::JSON::Boolean Secure;
             Core::JSON::String InjectedBundle;
             Core::JSON::Boolean Transparent;
@@ -2784,18 +2787,24 @@ static GSourceFuncs _handlerIntervention =
                 }
                 g_mkdir_with_parents(wpeDiskCachePath, 0700);
 
+#if WEBKIT_CHECK_VERSION(2, 42, 0)
                 gchar* indexedDBPath = nullptr;
                 if (_config.IndexedDBPath.IsSet() && !_config.IndexedDBPath.Value().empty()) {
+                    _config.IndexedDBPath = _service->Substitute(_config.IndexedDBPath.Value());
+#ifdef USE_EXACT_PATHS
+                    indexedDBPath = g_build_filename(_config.IndexedDBPath.Value().c_str(), nullptr);
+#else
                     indexedDBPath = g_build_filename(_config.IndexedDBPath.Value().c_str(), "wpe", "databases", "indexeddb", nullptr);
+#endif
                 } else {
+#ifdef USE_EXACT_PATHS
+                    indexedDBPath = g_build_filename(g_get_user_cache_dir(), nullptr);
+#else
                     indexedDBPath = g_build_filename(g_get_user_cache_dir(), "wpe", "databases", "indexeddb", nullptr);
+#endif
                 }
                 g_mkdir_with_parents(indexedDBPath, 0700);
-
-                uint64_t indexedDBSizeBytes = 0;    // No limit by default, use WebKit defaults (1G at the moment of writing)
-                if (_config.IndexedDBSize.IsSet() && _config.IndexedDBSize.Value() != 0) {
-                    indexedDBSizeBytes = _config.IndexedDBSize.Value() * 1024;
-                }
+#endif
 
 #if HAS_MEMORY_PRESSURE_SETTINGS_API
                 if ((_config.Memory.IsSet() == true) && (_config.Memory.NetworkProcessSettings.IsSet() == true)) {
@@ -2810,16 +2819,36 @@ static GSourceFuncs _handlerIntervention =
                     webkit_memory_pressure_settings_free(memoryPressureSettings);
                 }
 #endif
+
+#if WEBKIT_CHECK_VERSION(2, 42, 0)
+                double originStorageRatio = -1.0;    // -1.0 means WebKit will use the default quota (1GB)
+                if (_config.OriginStorageRatio.IsSet() && _config.OriginStorageRatio.Value() != 0) {
+                    originStorageRatio = static_cast<double>(_config.OriginStorageRatio.Value());
+                }
+
+                double totalStorageRatio = -1.0;    // -1.0 means there's no limit for the total storage
+                if (_config.TotalStorageRatio.IsSet() && _config.TotalStorageRatio.Value() != 0) {
+                    totalStorageRatio = static_cast<double>(_config.TotalStorageRatio.Value());
+                }
+
                 auto* websiteDataManager = webkit_website_data_manager_new(
                     "local-storage-directory", wpeStoragePath,
                     "disk-cache-directory", wpeDiskCachePath,
                     "local-storage-quota", localStorageDatabaseQuotaInBytes,
                     "indexeddb-directory", indexedDBPath,
-                    "per-origin-storage-quota", indexedDBSizeBytes,
+                    "origin-storage-ratio", originStorageRatio,
+                    "total-storage-ratio", totalStorageRatio,
                      nullptr);
+                g_free(indexedDBPath);
+#else
+                auto* websiteDataManager = webkit_website_data_manager_new(
+                    "local-storage-directory", wpeStoragePath,
+                    "disk-cache-directory", wpeDiskCachePath,
+                    "local-storage-quota", localStorageDatabaseQuotaInBytes,
+                     nullptr);
+#endif
                 g_free(wpeStoragePath);
                 g_free(wpeDiskCachePath);
-                g_free(indexedDBPath);
 
 #if HAS_MEMORY_PRESSURE_SETTINGS_API
                 if ((_config.Memory.IsSet() == true) && (_config.Memory.WebProcessSettings.IsSet() == true)) {
