@@ -18,6 +18,13 @@ using ::testing::NiceMock;
 using namespace WPEFramework;
 using testing::StrictMock;
 
+typedef enum : uint32_t {
+    PERSISTENTSTOREL2TEST_ONVALUE_CHANGED = 0x00000001,
+    PERSISTENTSTOREL2TEST_ONSTORAGE_EXCEEDED=0x00000002,
+    PERSISTENTSTOREL2TEST_DATACORRUPTION=0x00000003,
+    PERSISTENTSTOREL2TEST_STATE_INVALID = 0x00000000
+}PersistentStoreL2test_async_events_t;
+
 /**
  * @brief Compare two request status objects
  *
@@ -56,11 +63,25 @@ protected:
 
 public:
     PersistentStore_L2Test();
+
+    /**
+     * @brief waits for the Trigger whenever any of the values stored are changed using setValue on asynchronous calls
+     */
     void onValueChanged(const JsonObject &message);
+    /**
+     * @brief waits for various status change on asynchronous calls
+     */
+    uint32_t WaitForRequestStatus(uint32_t timeout_ms,PersistentStoreL2test_async_events_t expected_status);
 
 private:
     /** @brief Mutex */
     std::mutex m_mutex;
+
+    /** @brief Condition variable */
+    std::condition_variable m_condition_variable;
+
+    /** @brief Event signalled flag */
+    uint32_t m_event_signalled;
 };
 
 /**
@@ -71,6 +92,7 @@ PersistentStore_L2Test::PersistentStore_L2Test()
 {
     TEST_LOG("*********************PersistentStore Constructor**************\n");
     uint32_t status = Core::ERROR_GENERAL;
+    m_event_signalled = PERSISTENTSTOREL2TEST_STATE_INVALID;
     Core::JSONRPC::Message message;
 
     /* Activate plugin in constructor */
@@ -85,6 +107,7 @@ PersistentStore_L2Test::~PersistentStore_L2Test()
 {
     TEST_LOG("************PersistentStore Destructor***********\n");
     uint32_t status = Core::ERROR_GENERAL;
+    m_event_signalled = PERSISTENTSTOREL2TEST_STATE_INVALID;
     status = DeactivateService("org.rdk.PersistentStore");
     EXPECT_EQ(Core::ERROR_NONE, status);
 }
@@ -104,6 +127,10 @@ void PersistentStore_L2Test::onValueChanged(const JsonObject &message)
 	message.ToString(str);
 
     TEST_LOG("onValueChanged received: %s\n", str.c_str());
+
+    /* Notify the requester thread. */
+    m_event_signalled |= PERSISTENTSTOREL2TEST_ONVALUE_CHANGED;
+    m_condition_variable.notify_one();
 }
 
 /********************************************************
@@ -120,6 +147,7 @@ TEST_F(PersistentStore_L2Test, PersistentStoregetSetValue)
     uint32_t status = Core::ERROR_GENERAL;
     JsonObject params,params_get;
     JsonObject result;
+    uint32_t signalled = PERSISTENTSTOREL2TEST_STATE_INVALID;
     std::string message;
     JsonObject expected_status;
 
@@ -157,6 +185,9 @@ TEST_F(PersistentStore_L2Test, PersistentStoregetSetValue)
     EXPECT_EQ(Core::ERROR_NONE, status);
     EXPECT_TRUE(result["success"].Boolean());
     EXPECT_STREQ("value1", result["value"].String().c_str());
+
+    signalled = WaitForRequestStatus(JSON_TIMEOUT,PERSISTENTSTOREL2TEST_ONVALUE_CHANGED);
+    EXPECT_TRUE(signalled & PERSISTENTSTOREL2TEST_ONVALUE_CHANGED);
 
     // Unregister for events.
     jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("onValueChanged"));
