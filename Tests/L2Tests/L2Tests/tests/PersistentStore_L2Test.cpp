@@ -133,6 +133,31 @@ void PersistentStore_L2Test::onValueChanged(const JsonObject &message)
     m_condition_variable.notify_one();
 }
 
+/**
+ * @brief waits for various status change on asynchronous calls
+ *
+ * @param[in] timeout_ms timeout for waiting
+ */
+uint32_t PersistentStore_L2Test::WaitForRequestStatus(uint32_t timeout_ms,PersistentStoreL2test_async_events_t expected_status)
+{
+    std::unique_lock<std::mutex> lock(m_mutex);
+    auto now = std::chrono::system_clock::now();
+    std::chrono::milliseconds timeout(timeout_ms);
+    uint32_t signalled = PERSISTENTSTOREL2TEST_STATE_INVALID;
+
+   while (!(expected_status & m_event_signalled))
+   {
+      if (m_condition_variable.wait_until(lock, now + timeout) == std::cv_status::timeout)
+      {
+         TEST_LOG("Timeout waiting for request status event");
+         break;
+      }
+   }
+
+    signalled = m_event_signalled;    
+    return signalled;
+}
+
 /********************************************************
 ************Test case Details **************************
 ** 1. Get value from PersistentStore
