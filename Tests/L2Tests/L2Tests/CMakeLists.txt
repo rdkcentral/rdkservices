@@ -21,15 +21,6 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 set(THUNDER_PORT 9998)
 find_package(${NAMESPACE}Plugins REQUIRED)
 
-include_directories(
-    ../../../PersistentStore
-    ../../../RDKShell
-)
-link_directories(
-    ../../../PersistentStore
-    ../../../RDKShell
-)
-
 add_library(${MODULE_NAME} SHARED
     Module.cpp
     L2Tests.cpp
