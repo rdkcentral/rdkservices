@@ -823,11 +823,11 @@ namespace WPEFramework {
 	    if (!network_available) {
                 int retry_count = 0;
 		while (retry_count < MAX_NETWORK_RETRIES) {
-		    retry_count++;
-		    LOGINFO("Network retries [%d/4] \n", retry_count);
-		    sleep(NETWORK_RETRY_INTERVAL);
+                    LOGINFO("Network not available. Sleeping for %d seconds", MAX_NETWORK_RETRIES);
+                    sleep(NETWORK_RETRY_INTERVAL);
+		    LOGINFO("Network retries [%d/4] \n", retry_count++);
 		    network_available = checkNetwork();
-		    if (network_available) {
+                    if (network_available) {
 	                break;
 		    }
 		}
