@@ -2305,7 +2305,6 @@ namespace WPEFramework {
                  device::Host::getInstance().getCurrentAudioFormat(audioFormat);
                  LOGINFO("current audio format: %d \n", audioFormat);
                  audioFormatToString(audioFormat, response);
-                 success = true;
              }
              catch (const device::Exception& err)
              {
@@ -2910,7 +2909,6 @@ namespace WPEFramework {
                 {
                         device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
                         aPort.setGain(newGain);
-                        success= true;
                 }
                 catch (const device::Exception& err)
                 {
@@ -2984,7 +2982,6 @@ namespace WPEFramework {
                             params["volumeLevel"] = (int)level;
                             sendNotify("volumeLevelChanged", params);
                         }
-                        success= true;
                 }
                 catch (const device::Exception& err)
                 {
