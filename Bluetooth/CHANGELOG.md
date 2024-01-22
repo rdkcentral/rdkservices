@@ -15,6 +15,10 @@ All notable changes to this RDK Service will be documented in this file.
 * Changes in CHANGELOG should be updated when commits are added to the main or release branches. There should be one CHANGELOG entry per JIRA Ticket. This is not enforced on sprint branches since there could be multiple changes for the same JIRA ticket during development. 
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
+## [1.0.8] - 2023-11-17
+## Added
+- view all audio and HID devices by default when doing a scan
+
 ## [1.0.7] - 2024-01-02
 ### Security
 - resolved security vulnerabilities

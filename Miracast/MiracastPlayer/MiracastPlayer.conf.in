@@ -1,0 +1,4 @@
+precondition = ["Platform"]
+callsign = "org.rdk.MiracastPlayer"
+autostart = "false"
+startuporder = "@PLUGIN_MIRACASTPLAYER_STARTUPORDER@"

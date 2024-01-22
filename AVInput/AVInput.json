@@ -678,7 +678,12 @@
                         "summary": "Status of the HDMI/Composite Input. Valid values are `started` or `stopped`.",
                         "type": "string",
                         "example": "started"
-                    }
+                    },
+		    "plane": {
+                            "summary": "Defines whether the video plane type, 0 - Primary video plane, 1 - Secondary Video Plane, Other values - Invalid ",
+                            "type": "integer",
+                            "example": 0
+		    }
                 },
                 "required": [
                     "id",
