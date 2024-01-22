@@ -64,6 +64,9 @@ namespace WPEFramework
 
         public:
             // Below Control APIs will work with RDK or GNome NW.
+            /* @brief Set the network manager plugin log level */
+            uint32_t SetLogLevel (const string& loglevel/* @in */) override;
+
             /* @brief Get all the Available Interfaces */
             uint32_t GetAvailableInterfaces (IInterfaceDetailsIterator*& interfaces/* @out */) override;
 

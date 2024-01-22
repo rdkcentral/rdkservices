@@ -99,6 +99,18 @@ namespace WPEFramework
             return Core::ERROR_NONE;
         }
 
+        /* @brief Set the network manager plugin log level */
+        uint32_t NetworkManagerImplementation::SetLogLevel (const string& loglevel/* @in */)
+        {
+            LOG_ENTRY_FUNCTION();
+            uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
+            NMLOG_INFO ("loglevel %s", loglevel.c_str());
+            if(!NM::set_loglevel(loglevel))
+                return Core::ERROR_GENERAL;
+
+            return Core::ERROR_NONE;
+        }
+
         /* @brief Get STUN Endpoint to be used for identifying Public IP */
         uint32_t NetworkManagerImplementation::GetStunEndpoint (string &endPoint /* @out */, uint32_t& port /* @out */, uint32_t& bindTimeout /* @out */, uint32_t& cacheTimeout /* @out */) const
         {

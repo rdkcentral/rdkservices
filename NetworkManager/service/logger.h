@@ -50,7 +50,7 @@ void logger_init();
 /**
  * @brief To set log level while runtime
  */
-void set_loglevel(std::string logLevel);
+bool set_loglevel(std::string logLevel);
 
 #define NM_assert(expr) do { \
       if ( __builtin_expect(expr, true) ) \
