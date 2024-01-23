@@ -15,7 +15,7 @@ jobs:
 
       - name: Get modified/added json files
         id: json-files
-        uses: tj-actions/changed-files@v19
+        uses: tj-actions/changed-files@v41
         with:
           files: |
             **/*.json
