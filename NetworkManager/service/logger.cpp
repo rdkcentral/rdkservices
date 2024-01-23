@@ -126,7 +126,7 @@ namespace NM {
             if (it != logLevels.end())
             {
                 gDefaultLogLevel = it->second;
-                NMLOG_ERROR("NetworkManager Plugin log level changed to %s ", logLevel.c_str());
+                NMLOG_INFO("NetworkManager logLevel:%s", logLevel.c_str());
                 return true;
             }
             else 
