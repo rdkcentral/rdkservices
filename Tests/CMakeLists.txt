@@ -51,7 +51,6 @@ set_source_files_properties(
         PROPERTIES COMPILE_FLAGS "-fexceptions")
 
 include_directories(../LocationSync
-        ../PersistentStore
         ../SecurityAgent
         ../DeviceIdentification
         ../DeviceDiagnostics
@@ -91,7 +90,6 @@ include_directories(../LocationSync
 	../SystemAudioPlayer
         )
 link_directories(../LocationSync
-        ../PersistentStore
         ../SecurityAgent
         ../DeviceIdentification
         ../DeviceDiagnostics
@@ -136,7 +134,6 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}DataCapture
         ${NAMESPACE}DeviceDiagnostics
         ${NAMESPACE}LocationSync
-        ${NAMESPACE}PersistentStore
         ${NAMESPACE}SecurityAgent
         ${NAMESPACE}DeviceIdentification
         ${NAMESPACE}FrameRate
