@@ -160,6 +160,9 @@ namespace WPEFramework
             using IStringIterator           = RPC::IIteratorType<string,               RPC::ID_STRINGITERATOR>;
 
 
+            /* @brief Set the network manager plugin log level */
+            virtual uint32_t SetLogLevel (const string& loglevel/* @in */) = 0 ;
+
             /* @brief Get all the Available Interfaces */
             virtual uint32_t GetAvailableInterfaces (IInterfaceDetailsIterator*& interfaces/* @out */) = 0 ;
 

@@ -113,8 +113,20 @@ namespace WPEFramework
 
             uint32_t rc = Core::ERROR_GENERAL;
             string loglevel = parameters["loglevel"].String();
-            NM::set_loglevel(loglevel);
-            rc = Core::ERROR_NONE;
+            NMLOG_TRACE("received loglevel %s", loglevel.c_str());
+            /* setting log level in NetworkManager.so library */
+            if(!NM::set_loglevel(loglevel))
+            {
+                NMLOG_ERROR("set loglevel in networkmanager library failed");
+                return rc;
+            }
+
+            /* setting log level in NetworkManagerImplementation.so library */
+            if (_NetworkManager)
+                rc = _NetworkManager->SetLogLevel(loglevel);
+            else
+                rc = Core::ERROR_UNAVAILABLE;
+
             return rc;
         }
 

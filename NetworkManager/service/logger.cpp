@@ -98,7 +98,7 @@ namespace NM {
 
 #else
 
-    static int gDefaultLogLevel = TRACE_LEVEL;
+    int gDefaultLogLevel = TRACE_LEVEL;
 
     void logger_init()
     {
@@ -108,7 +108,7 @@ namespace NM {
             gDefaultLogLevel = static_cast<LogLevel>(atoi(level));
     }
 
-    void set_loglevel(std::string logLevel)
+    bool set_loglevel(std::string logLevel)
     {
         if (!logLevel.empty()) {
             // Convert logLevel to uppercase
@@ -126,13 +126,16 @@ namespace NM {
             if (it != logLevels.end())
             {
                 gDefaultLogLevel = it->second;
-                NMLOG_FATAL("NetworkManager Plugin log level changed to %s ", logLevel.c_str());
+                NMLOG_INFO("NetworkManager logLevel:%s", logLevel.c_str());
+                return true;
             }
             else 
-                NMLOG_FATAL("logLevel not correct %s", logLevel.c_str());
+                NMLOG_ERROR("logLevel not correct %s", logLevel.c_str());
         }
         else
-            NMLOG_FATAL("logLevel is empty !");
+            NMLOG_ERROR("logLevel is empty !");
+
+        return false;
     }
 
     void log(LogLevel level,
