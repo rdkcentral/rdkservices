@@ -30,7 +30,7 @@ message("Setup ${PROJECT_NAME} v${PROJECT_VERSION}")
 add_library(${MODULE_NAME} SHARED
         NetworkManager.cpp
         NetworkManagerJsonRpc.cpp
-        logger.cpp
+        NetworkManagerLogger.cpp
         Module.cpp
 )
 
@@ -71,8 +71,8 @@ add_subdirectory(${PLUGIN_SOURCE_PATH})
 add_library(${PLUGIN_IMPLEMENTATION} SHARED
         NetworkManagerImplementation.cpp
         NetworkConnectivity.cpp
+        NetworkManagerLogger.cpp
         StunClient.cpp
-        logger.cpp
         Module.cpp
         ${PUBLIC_HEADERS}
 )
