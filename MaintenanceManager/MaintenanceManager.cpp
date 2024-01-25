@@ -819,23 +819,20 @@ namespace WPEFramework {
             LOGINFO("Checking device has network connectivity\n");
 
             /* add 4 checks every 30 seconds */
-            int i=0;
-            do{
-	        network_available = checkNetwork();
-                if ( !network_available ){
-                    sleep(30);
-                    i++;
-                    LOGINFO("Network retries [%d/4] \n",i);
-                }else{
-                    break;
+            network_available = checkNetwork();
+            if (!network_available) {
+                int retry_count = 0;
+                while (retry_count < MAX_NETWORK_RETRIES) {
+                    LOGINFO("Network not available. Sleeping for %d seconds", NETWORK_RETRY_INTERVAL);
+                    sleep(NETWORK_RETRY_INTERVAL);
+                    LOGINFO("Network retries [%d/%d] \n", ++retry_count, MAX_NETWORK_RETRIES);
+                    network_available = checkNetwork();
+                    if (network_available) {
+                        break;
+                    }
                 }
-            }while( i < MAX_NETWORK_RETRIES );
-
-            if ( network_available ){
-                return true;
-            }else {
-                return false;
             }
+            return network_available;
         }
 
         MaintenanceManager::~MaintenanceManager()
