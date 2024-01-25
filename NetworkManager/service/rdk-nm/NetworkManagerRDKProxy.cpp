@@ -531,7 +531,6 @@ namespace WPEFramework
         {
             LOG_ENTRY_FUNCTION();
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
-            NMLOG_TRACE ("@@@@%s@@@@", __FUNCTION__);
             IARM_BUS_NetSrvMgr_InterfaceList_t list;
             if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getInterfaceList, (void*)&list, sizeof(list)))
             {

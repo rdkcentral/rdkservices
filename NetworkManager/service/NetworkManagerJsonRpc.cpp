@@ -18,10 +18,11 @@
 **/
 
 #include "NetworkManager.h"
-#include "logger.h"
 
 #define LOGINFOMETHOD() { std::string json; parameters.ToString(json); NMLOG_TRACE("params=%s", json.c_str() ); }
 #define LOGTRACEMETHODFIN() { std::string json; response.ToString(json); NMLOG_TRACE("response=%s", json.c_str() ); }
+
+using namespace NetworkManagerLogger;
 
 namespace WPEFramework
 {
@@ -112,21 +113,23 @@ namespace WPEFramework
             LOGINFOMETHOD();
 
             uint32_t rc = Core::ERROR_GENERAL;
-            string loglevel = parameters["loglevel"].String();
-            NMLOG_TRACE("received loglevel %s", loglevel.c_str());
-            /* setting log level in NetworkManager.so library */
-            if(!NM::set_loglevel(loglevel))
+            LogLevel level = INFO_LEVEL;
+            if (parameters.HasLabel("logLevel"))
             {
-                NMLOG_ERROR("set loglevel in networkmanager library failed");
-                return rc;
+                level = static_cast <LogLevel> (parameters["logLevel"].Number());
+
+                NetworkManagerLogger::SetLevel(level);
+
+                const Exchange::INetworkManager::NMLogging log = static_cast <Exchange::INetworkManager::NMLogging> (level);
+                if (_NetworkManager)
+                    rc = _NetworkManager->SetLogLevel(log);
+                else
+                    rc = Core::ERROR_UNAVAILABLE;
             }
-
-            /* setting log level in NetworkManagerImplementation.so library */
-            if (_NetworkManager)
-                rc = _NetworkManager->SetLogLevel(loglevel);
-            else
-                rc = Core::ERROR_UNAVAILABLE;
-
+            if (Core::ERROR_NONE == rc)
+            {
+                response["success"] = true;
+            }
             return rc;
         }
 
@@ -536,6 +539,7 @@ namespace WPEFramework
         uint32_t NetworkManager::Ping(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
+            string result{};
             uint32_t rc = Core::ERROR_GENERAL;
             if (parameters.HasLabel("endpoint"))
             {
@@ -560,14 +564,17 @@ namespace WPEFramework
                     guid = parameters["guid"].String();
 
                 if (_NetworkManager)
-                    rc = _NetworkManager->Ping(ipversion, endpoint, noOfRequest, timeOutInSeconds, guid);
+                    rc = _NetworkManager->Ping(ipversion, endpoint, noOfRequest, timeOutInSeconds, guid, result);
                 else
                     rc = Core::ERROR_UNAVAILABLE;
             }
 
             if (Core::ERROR_NONE == rc)
             {
-                response["success"] = true;
+                JsonObject reply;
+                reply.FromString(result);
+                reply["success"] = true;
+                response = reply;
             }
             return rc;
         }
@@ -576,13 +583,14 @@ namespace WPEFramework
         {
             LOGINFOMETHOD();
             uint32_t rc = Core::ERROR_GENERAL;
+            string result{};
             const string ipversion      = parameters["ipversion"].String();
             const string endpoint       = parameters["endpoint"].String();
             const uint32_t noOfRequest  = parameters["noOfRequest"].Number();
             const string guid               = parameters["guid"].String();
 
             if (_NetworkManager)
-                rc = _NetworkManager->Trace(ipversion, endpoint, noOfRequest, guid);
+                rc = _NetworkManager->Trace(ipversion, endpoint, noOfRequest, guid, result);
             else
                 rc = Core::ERROR_UNAVAILABLE;
 
@@ -636,7 +644,6 @@ namespace WPEFramework
             JsonArray ssids;
             ::WPEFramework::RPC::IIteratorType<string, RPC::ID_STRINGITERATOR>* _ssids{};
 
-            NMLOG_TRACE("@@@@@ %s @@@@@@", __FUNCTION__);
             if (_NetworkManager)
                 rc = _NetworkManager->GetKnownSSIDs(_ssids);
 

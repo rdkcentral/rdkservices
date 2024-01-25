@@ -18,11 +18,11 @@
 **/
 
 #include "NetworkManagerImplementation.h"
-#include "logger.h"
 #include "NetworkConnectivity.h"
 
 using namespace WPEFramework;
 using namespace WPEFramework::Plugin;
+using namespace NetworkManagerLogger;
 
 #define CIDR_NETMASK_IP_LEN 32
 
@@ -36,8 +36,7 @@ namespace WPEFramework
             : _notificationCallbacks({})
         {
             /* Initialize Network Manager */
-            NM::logger_init();
-           // NM::set_log_level("info");
+            NetworkManagerLogger::Init();
 
             LOG_ENTRY_FUNCTION();
             /* Name says it all */
@@ -95,18 +94,6 @@ namespace WPEFramework
             }
 
             _notificationLock.Unlock();
-
-            return Core::ERROR_NONE;
-        }
-
-        /* @brief Set the network manager plugin log level */
-        uint32_t NetworkManagerImplementation::SetLogLevel (const string& loglevel/* @in */)
-        {
-            LOG_ENTRY_FUNCTION();
-            uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
-            NMLOG_INFO ("loglevel %s", loglevel.c_str());
-            if(!NM::set_loglevel(loglevel))
-                return Core::ERROR_GENERAL;
 
             return Core::ERROR_NONE;
         }
@@ -234,8 +221,15 @@ namespace WPEFramework
             }
         }
 
+        /* @brief Set the network manager plugin log level */
+        uint32_t NetworkManagerImplementation::SetLogLevel(const NMLogging& logLevel /* @in */)
+        {
+            NetworkManagerLogger::SetLevel((LogLevel)logLevel);
+            return Core::ERROR_NONE;
+        }
+
         /* @brief Request for ping and get the response in as event. The GUID used in the request will be returned in the event. */
-        uint32_t NetworkManagerImplementation::Ping (const string ipversion /* @in */,  const string endpoint /* @in */, const uint32_t noOfRequest /* @in */, const uint16_t timeOutInSeconds /* @in */, const string guid /* @in */)
+        uint32_t NetworkManagerImplementation::Ping (const string ipversion /* @in */,  const string endpoint /* @in */, const uint32_t noOfRequest /* @in */, const uint16_t timeOutInSeconds /* @in */, const string guid /* @in */, string& response /* @out */)
         {   
             char cmd[100] = "";
             if(0 == strcasecmp("IPv6", ipversion.c_str()))
@@ -247,14 +241,34 @@ namespace WPEFramework
                 snprintf(cmd, sizeof(cmd), "ping -c %d -W %d '%s' 2>&1", noOfRequest, timeOutInSeconds, endpoint.c_str());
             }
             
-            NMLOG_INFO ("The Command is @%s@", cmd);
+            NMLOG_INFO ("The Command is %s", cmd);
             string commandToExecute(cmd);
-            Core::IWorkerPool::Instance().Submit(Job::Create(this, NETMGR_PING, commandToExecute, guid));
+            executeExternally(NETMGR_PING, commandToExecute, response);
 
             return Core::ERROR_NONE;
         }
 
-        void NetworkManagerImplementation::Dispatch(NetworkEvents event, const string commandToExecute, const string guid)
+        /* @brief Request for trace get the response in as event. The GUID used in the request will be returned in the event. */
+        uint32_t NetworkManagerImplementation::Trace (const string ipversion /* @in */,  const string endpoint /* @in */, const uint32_t noOfRequest /* @in */, const string guid /* @in */, string& response /* @out */)
+        {
+            char cmd[256] = "";
+            if(0 == strcasecmp("IPv6", ipversion.c_str()))
+            {
+                snprintf(cmd, 256, "traceroute6 -w 3 -m 6 -q %d %s 64 2>&1", noOfRequest, endpoint.c_str());
+            }
+            else
+            {
+                snprintf(cmd, 256, "traceroute -w 3 -m 6 -q %d %s 52 2>&1", noOfRequest, endpoint.c_str());
+            }
+
+            NMLOG_INFO ("The Command is %s", cmd);
+            string commandToExecute(cmd);
+            executeExternally(NETMGR_TRACE, commandToExecute, response);
+
+            return Core::ERROR_NONE;
+        }
+
+        void NetworkManagerImplementation::executeExternally(NetworkEvents event, const string commandToExecute, string& response)
         {
             FILE *pipe = NULL;
             string output{};
@@ -342,21 +356,9 @@ namespace WPEFramework
                         pingResult["error"] = "Bad Address";
                     }
                 }
-                fclose(pipe);
 
-                std::string json;
-                pingResult.ToString(json);
-                NMLOG_INFO("params=%s", json.c_str());
-
-                _notificationLock.Lock();
-
-                NMLOG_INFO("We have %d subscribed clients to trigger notifications", (int) _notificationCallbacks.size());
-                for (const auto callback : _notificationCallbacks) {
-                    callback->onPingResponse(guid, json);
-                }
-
-                _notificationLock.Unlock();
-
+                pingResult.ToString(response);
+                NMLOG_INFO("Response is, %s", response.c_str());
             }
             else if (NETMGR_TRACE == event)
             {
@@ -372,43 +374,12 @@ namespace WPEFramework
                     list.Add(line);
                 }
 
-                fclose(pipe);
-
-                std::string json;
-                list.ToString(json);
-                NMLOG_INFO("params=%s", json.c_str());
-
-                _notificationLock.Lock();
-
-                NMLOG_INFO("We have %d subscribed clients to trigger notifications", (int) _notificationCallbacks.size());
-                for (const auto callback : _notificationCallbacks) {
-                    callback->onTraceResponse(guid, json);
-                }
-
-                _notificationLock.Unlock();
+                list.ToString(response);
+                NMLOG_INFO("Response is, %s", response.c_str());
             }
+            fclose(pipe);
+            return;
         }
-
-        /* @brief Request for trace get the response in as event. The GUID used in the request will be returned in the event. */
-        uint32_t NetworkManagerImplementation::Trace (const string ipversion /* @in */,  const string endpoint /* @in */, const uint32_t noOfRequest /* @in */, const string guid /* @in */)
-        {   
-            char cmd[256] = "";
-            if(0 == strcasecmp("IPv6", ipversion.c_str()))
-            {
-                snprintf(cmd, 256, "traceroute6 -w 3 -m 6 -q %d %s 64 2>&1", noOfRequest, endpoint.c_str());
-            }
-            else
-            {   
-                snprintf(cmd, 256, "traceroute -w 3 -m 6 -q %d %s 52 2>&1", noOfRequest, endpoint.c_str());
-            }
-            
-            NMLOG_INFO ("The Command is @%s@", cmd);
-            string commandToExecute(cmd);
-            Core::IWorkerPool::Instance().Submit(Job::Create(this, NETMGR_TRACE, commandToExecute, guid));
-
-            return Core::ERROR_NONE;
-        }
-
 
         // WiFi Specific Methods
         /* @brief Initiate a WIFI Scan; This is Async method and returns the scan results as Event */
