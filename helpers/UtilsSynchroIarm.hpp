@@ -53,16 +53,6 @@ namespace Utils {
         }
 
         template<class UsingClass>
-        static IARM_Result_t UnregisterLockedEventHandler(const char *ownerName, IARM_EventId_t eventId) {
-            auto generic_handler = _generic_iarm_handler<UsingClass>;
-            auto& handlers_map = IarmHandlers<UsingClass>::_registered_iarm_handlers;
-
-            std::lock_guard<std::recursive_mutex> lock(ApiLocks<UsingClass>::mtx);
-            handlers_map[ownerName].erase(eventId);
-            return ::IARM_Bus_UnRegisterEventHandler(ownerName, eventId);
-        }
-
-        template<class UsingClass>
         static IARM_Result_t RemoveLockedEventHandler(const char *ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
             auto& handlers_map = IarmHandlers<UsingClass>::_registered_iarm_handlers;
 
