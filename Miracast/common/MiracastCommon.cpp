@@ -154,7 +154,7 @@ std::string MiracastCommon::parse_opt_flag( std::string file_name , bool integer
 
     if (!parse_opt_flag_file)
     {
-        MIRACASTLOG_ERROR("Failed to open [%s] file\n",file_name.c_str());
+        MIRACASTLOG_WARNING("Failed to open [%s] file\n",file_name.c_str());
     }
     else
     {
@@ -165,7 +165,7 @@ std::string MiracastCommon::parse_opt_flag( std::string file_name , bool integer
         }
         else
         {
-            MIRACASTLOG_ERROR("No Content in [%s]",file_name.c_str());
+            MIRACASTLOG_WARNING("No Content in [%s]",file_name.c_str());
         }
         parse_opt_flag_file.close();
 

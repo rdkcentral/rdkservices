@@ -2103,11 +2103,11 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
 
         if ((RTSP_MSG_SUCCESS == status_code) || (RTSP_M1_M7_MSG_EXCHANGE_RECEIVED == status_code ))
         {
-            MIRACASTLOG_INFO("!!!! RTSP_M1_M7_MSG_EXCHANGE_RECEIVED[%#04X] !!!!", status_code);
+            MIRACASTLOG_INFO("#### [MCAST] RTSP_M1_M7_MSG_EXCHANGE_RECEIVED[%#04X] ####", status_code);
             start_monitor_keep_alive_msg = true;
             start_streaming(video_rect_st);
             MIRACASTLOG_INFO("!!!! GstPlayer instance created, Waiting for first-frame !!!!");
-            set_state(MIRACAST_PLAYER_STATE_PLAYING , true );
+            //set_state(MIRACAST_PLAYER_STATE_PLAYING , true );
         }
         else
         {
@@ -2115,34 +2115,34 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
 
             if (RTSP_INVALID_MSG_RECEIVED == status_code)
             {
-                MIRACASTLOG_ERROR("!!! INVALID RTSP MSG RECEIVED !!!\n");
+                MIRACASTLOG_ERROR("#### [MCAST] INVALID RTSP MSG RECEIVED ####");
             }
             else if (RTSP_MSG_FAILURE == status_code)
             {
-                MIRACASTLOG_ERROR("!!! RTSP SENT/RECV FAILED !!!\n");
+                MIRACASTLOG_ERROR("#### [MCAST] RTSP SENT/RECV FAILED ####");
             }
             else if ( RTSP_MSG_TEARDOWN_REQUEST == status_code )
             {
                 if ( MIRACAST_PLAYER_APP_REQ_TO_STOP_ON_EXIT == rtsp_message_data.stop_reason_code )
                 {
                     reason = MIRACAST_PLAYER_REASON_CODE_APP_REQ_TO_STOP;
-                    MIRACASTLOG_INFO("!!! APP REQUESTED TO STOP ON EXIT !!!\n");
+                    MIRACASTLOG_INFO("#### [MCAST] APP REQUESTED TO STOP ON EXIT ####");
                 }
                 else if ( MIRACAST_PLAYER_APP_REQ_TO_STOP_ON_NEW_CONNECTION == rtsp_message_data.stop_reason_code )
                 {
                     reason = MIRACAST_PLAYER_REASON_CODE_NEW_SRC_DEV_CONNECT_REQ;
-                    MIRACASTLOG_INFO("!!! APP REQUESTED TO STOP ON NEW CONNECTION !!!\n");
+                    MIRACASTLOG_INFO("#### [MCAST] APP REQUESTED TO STOP ON NEW CONNECTION ####");
                 }
             }
             else if ( RTSP_METHOD_NOT_SUPPORTED == status_code )
             {
                 reason = MIRACAST_PLAYER_REASON_CODE_RTSP_METHOD_NOT_SUPPORTED;
-                MIRACASTLOG_ERROR("!!! RTSP METHOD NOT SUPPORTED !!!\n");
+                MIRACASTLOG_ERROR("#### [MCAST] RTSP METHOD NOT SUPPORTED ####");
             }
             else
             {
                 reason = MIRACAST_PLAYER_REASON_CODE_RTSP_TIMEOUT;
-                MIRACASTLOG_INFO("!!! RTSP RECV TIMEOUT !!!\n");
+                MIRACASTLOG_INFO("#### [MCAST] RTSP RECV TIMEOUT ####");
             }
             set_state(MIRACAST_PLAYER_STATE_STOPPED , true , reason );
         }
@@ -2161,7 +2161,7 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
             elapsed_seconds = current_time.tv_sec - start_time.tv_sec;
             if (elapsed_seconds > m_wfd_src_session_timeout)
             {
-                MIRACASTLOG_INFO("!!! RTSP M16 TIMEOUT[%d] Elapsed[%d]!!!",m_wfd_src_session_timeout,elapsed_seconds);
+                MIRACASTLOG_INFO("#### [MCAST] RTSP M16 TIMEOUT[%d] Elapsed[%d] ####",m_wfd_src_session_timeout,elapsed_seconds);
                 set_state(MIRACAST_PLAYER_STATE_STOPPED , true , MIRACAST_PLAYER_REASON_CODE_RTSP_TIMEOUT );
                 break;
             }
@@ -2194,11 +2194,11 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
                     if (RTSP_MSG_TEARDOWN_REQUEST == status_code)
                     {
                         reason = MIRACAST_PLAYER_REASON_CODE_SRC_DEV_REQ_TO_STOP;
-                        MIRACASTLOG_INFO("!!! RTSP SRC DEV REQUESTED TO STOP !!!\n");
+                        MIRACASTLOG_INFO("#### [MCAST] RTSP SRC DEV REQUESTED TO STOP ####");
                     }
                     else
                     {
-                        MIRACASTLOG_ERROR("!!! RTSP METHOD NOT SUPPORTED !!!\n");
+                        MIRACASTLOG_ERROR("#### [MCAST] RTSP METHOD NOT SUPPORTED ####");
                     }
                     set_state(MIRACAST_PLAYER_STATE_STOPPED , true , reason );
                     break;
@@ -2207,14 +2207,14 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
                         (RTSP_MSG_TEARDOWN_REQUEST != status_code))
                 {
                     set_state(MIRACAST_PLAYER_STATE_STOPPED , true , MIRACAST_PLAYER_REASON_CODE_RTSP_ERROR );
-                    MIRACASTLOG_ERROR("!!! RTSP SENT/RECV FAILED !!!\n");
+                    MIRACASTLOG_ERROR("#### [MCAST] RTSP SENT/RECV FAILED ####");
                     break;
                 }
             }
             else if (RTSP_MSG_FAILURE == socket_state)
             {
                 set_state(MIRACAST_PLAYER_STATE_STOPPED , true , MIRACAST_PLAYER_REASON_CODE_RTSP_ERROR );
-                MIRACASTLOG_ERROR("!!! RTSP SEND/RECV FAILED !!!\n");
+                MIRACASTLOG_ERROR("#### RTSP SEND/RECV FAILED ####");
                 break;
             }
 
@@ -2309,7 +2309,7 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
                         MIRACASTLOG_INFO("!!! RTSP_NOTIFY_GSTPLAYER_STATE[%#08X] !!!\n",rtsp_message_data.gst_player_state);
                         if ( MIRACAST_GSTPLAYER_STATE_FIRST_VIDEO_FRAME_RECEIVED == rtsp_message_data.gst_player_state )
                         {
-                            //set_state(MIRACAST_PLAYER_STATE_PLAYING , true );
+                            set_state(MIRACAST_PLAYER_STATE_PLAYING , true );
                         }
                     }
                     break;
