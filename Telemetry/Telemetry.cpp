@@ -55,7 +55,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 2
-#define API_VERSION_NUMBER_PATCH 0
+#define API_VERSION_NUMBER_PATCH 2
 
 #ifdef HAS_RBUS
 static rbusError_t rbusHandleStatus = RBUS_ERROR_NOT_INITIALIZED;
@@ -216,7 +216,7 @@ namespace WPEFramework
             if (Utils::IARM::isConnected())
             {
                 IARM_Result_t res;
-                IARM_CHECK( IARM_Bus_UnRegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED));
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED,_powerEventHandler) );
             }
         }
 
