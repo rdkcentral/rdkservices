@@ -75,6 +75,8 @@ typedef enum{
 #define MAX_NETWORK_RETRIES             4
 #define MAX_ACTIVATION_RETRIES          4
 
+#define NETWORK_RETRY_INTERVAL          30
+
 #define DCM_SUCCESS                     0
 #define DCM_COMPLETE                    1
 #define RFC_SUCCESS                     2
