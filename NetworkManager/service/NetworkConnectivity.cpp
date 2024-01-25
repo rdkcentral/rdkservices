@@ -273,6 +273,7 @@ namespace WPEFramework {
         std::vector<int> http_responses;
         struct curl_slist *chunk = NULL;
         chunk = curl_slist_append(chunk, "Cache-Control: no-cache, no-store");
+        chunk = curl_slist_append(chunk, "Connection: close");
         for (const auto& endpoint : endpoints)
         {
             CURL *curl_easy_handle = curl_easy_init();
@@ -334,8 +335,8 @@ namespace WPEFramework {
                         }
                     }
                 }
-                //else
-                //    NMLOG_ERROR("endpoint = <%s> error = %d (%s)", endpoint, msg->data.result, curl_easy_strerror(msg->data.result));
+                else
+                    NMLOG_TRACE("endpoint = <%s> error = %d (%s)", endpoint, msg->data.result, curl_easy_strerror(msg->data.result));
                 http_responses.push_back(response_code);
             }
             time_earlier = time_now;

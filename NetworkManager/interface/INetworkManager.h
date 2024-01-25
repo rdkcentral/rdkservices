@@ -155,21 +155,30 @@ namespace WPEFramework
                 WIFI_SIGNAL_EXCELLENT
             };
 
+            enum NMLogging : uint8_t
+            {
+                LOG_LEVEL_FATAL,
+                LOG_LEVEL_ERROR,
+                LOG_LEVEL_WARNING,
+                LOG_LEVEL_INFO,
+                LOG_LEVEL_VERBOSE,
+                LOG_LEVEL_TRACE
+            };
+
             using IInterfaceDetailsIterator = RPC::IIteratorType<InterfaceDetails,     ID_NETWORKMANAGER_INTERFACE_DETAILS_ITERATOR>;
             using ISecurityModeIterator     = RPC::IIteratorType<WIFISecurityModeInfo, ID_NETWORKMANAGER_WIFI_SECURITY_MODE_ITERATOR>;
             using IStringIterator           = RPC::IIteratorType<string,               RPC::ID_STRINGITERATOR>;
 
-
             /* @brief Get all the Available Interfaces */
-            virtual uint32_t GetAvailableInterfaces (IInterfaceDetailsIterator*& interfaces/* @out */) = 0 ;
+            virtual uint32_t GetAvailableInterfaces (IInterfaceDetailsIterator*& interfaces/* @out */) = 0;
 
             /* @brief Get the Primary Interface used for external world communication */
-            virtual uint32_t GetPrimaryInterface (string& interface /* @out */) = 0 ;
+            virtual uint32_t GetPrimaryInterface (string& interface /* @out */) = 0;
             /* @brief Set the Primary Interface used for external world communication */
-            virtual uint32_t SetPrimaryInterface (const string& interface/* @in */) = 0 ;
+            virtual uint32_t SetPrimaryInterface (const string& interface/* @in */) = 0;
 
             /* @brief Set the active Interface used for external world communication */
-            virtual uint32_t SetInterfaceEnabled (const string& interface/* @in */, const bool& isEnabled /* @in */) = 0 ;
+            virtual uint32_t SetInterfaceEnabled (const string& interface/* @in */, const bool& isEnabled /* @in */) = 0;
 
 
             /* @brief Get IP Address Of the Interface */
@@ -188,23 +197,23 @@ namespace WPEFramework
             virtual uint32_t SetConnectivityTestEndpoints(IStringIterator* const endPoints /* @in */) = 0;
 
             /* @brief Get Internet Connectivty Status */ 
-            virtual uint32_t IsConnectedToInternet(const string &ipversion /* @in */, InternetStatus &result /* @out */) = 0 ;
+            virtual uint32_t IsConnectedToInternet(const string &ipversion /* @in */, InternetStatus &result /* @out */) = 0;
             /* @brief Get Authentication URL if the device is behind Captive Portal */ 
-            virtual uint32_t GetCaptivePortalURI(string &endPoints/* @out */) const = 0 ;
+            virtual uint32_t GetCaptivePortalURI(string &endPoints/* @out */) const = 0;
 
             /* @brief Start The Internet Connectivity Monitoring */ 
-            virtual uint32_t StartConnectivityMonitoring(const uint32_t interval /* @in */) = 0 ;
+            virtual uint32_t StartConnectivityMonitoring(const uint32_t interval /* @in */) = 0;
             /* @brief Stop The Internet Connectivity Monitoring */ 
-            virtual uint32_t StopConnectivityMonitoring(void) const = 0 ;
+            virtual uint32_t StopConnectivityMonitoring(void) const = 0;
 
             /* @brief Get the Public IP used for external world communication */
-            virtual uint32_t GetPublicIP (const string &ipversion /* @in */,  string& ipAddress /* @out */) = 0 ;
+            virtual uint32_t GetPublicIP (const string &ipversion /* @in */,  string& ipAddress /* @out */) = 0;
 
             /* @brief Request for ping and get the response in as event. The GUID used in the request will be returned in the event. */
-            virtual uint32_t Ping (const string ipversion /* @in */,  const string endpoint /* @in */, const uint32_t noOfRequest /* @in */, const uint16_t timeOutInSeconds /* @in */, const string guid /* @in */) = 0 ;
+            virtual uint32_t Ping (const string ipversion /* @in */,  const string endpoint /* @in */, const uint32_t noOfRequest /* @in */, const uint16_t timeOutInSeconds /* @in */, const string guid /* @in */, string& response /* @out */) = 0;
 
             /* @brief Request for trace get the response in as event. The GUID used in the request will be returned in the event. */
-            virtual uint32_t Trace (const string ipversion /* @in */,  const string endpoint /* @in */, const uint32_t noOfRequest /* @in */, const string guid /* @in */) = 0 ;
+            virtual uint32_t Trace (const string ipversion /* @in */,  const string endpoint /* @in */, const uint32_t noOfRequest /* @in */, const string guid /* @in */, string& response /* @out */) = 0;
 
 
             // WiFi Specific Methods
@@ -224,6 +233,9 @@ namespace WPEFramework
             virtual uint32_t StopWPS(void) = 0;
             virtual uint32_t GetWiFiSignalStrength(string& ssid /* @out */, string& signalStrength /* @out */, WiFiSignalQuality& quality /* @out */) = 0;
             virtual uint32_t GetSupportedSecurityModes(ISecurityModeIterator*& securityModes /* @out */) const = 0;
+
+            /* @brief Set the network manager plugin log level */
+            virtual uint32_t SetLogLevel(const NMLogging& logLevel /* @in */) = 0;
 
             /* @event */
             struct EXTERNAL INotification : virtual public Core::IUnknown
@@ -264,9 +276,6 @@ namespace WPEFramework
                 virtual void onActiveInterfaceChanged(const string prevActiveInterface /* @in */, const string currentActiveinterface /* @in */) = 0;
                 virtual void onIPAddressChanged(const string interface /* @in */, const bool isAcquired /* @in */, const bool isIPv6 /* @in */, const string ipAddress /* @in */) = 0;
                 virtual void onInternetStatusChanged(const InternetStatus oldState /* @in */, const InternetStatus newstate /* @in */) = 0;
-
-                virtual void onPingResponse(const string guid /* @in */, const string pingStatistics /* @in */) = 0;
-                virtual void onTraceResponse(const string guid, const string traceResult) = 0;
 
                 // WiFi Notifications that other processes can subscribe to
                 virtual void onAvailableSSIDs(const string jsonOfWiFiScanResults /* @in */) = 0;
