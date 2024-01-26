@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.6] - 2023-01-26
+### Changed
+- RDK-44991: Upgrade Flex-2.0 devices to use Thunder R4.4.1
+
 ## [1.0.5] - 2023-12-13
 ### Changed
 - Remove remoteActionMappingTestClient from build

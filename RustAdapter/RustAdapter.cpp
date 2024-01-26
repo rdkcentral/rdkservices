@@ -100,6 +100,14 @@ WPEFramework::Plugin::RustAdapter::Release() const
 }
 
 #if JSON_RPC_CONTEXT
+
+#if ((THUNDER_VERSION_MAJOR == 4) && (THUNDER_VERSION_MINOR == 4))
+WPEFramework::Core::hresult
+WPEFramework::Plugin::RustAdapter::Invoke(ICallback* callback, const uint32_t channelId, const uint32_t id, const string& token, const string& method, const string& parameters, string& response )
+{
+  return m_impl->Invoke(callback, channelId,id, token, method, parameters, response);
+}
+#else
 WPEFramework::Core::ProxyType<WPEFramework::Core::JSONRPC::Message>
 WPEFramework::Plugin::RustAdapter::Invoke(
   const WPEFramework::Core::JSONRPC::Context &ctx,
@@ -107,6 +115,8 @@ WPEFramework::Plugin::RustAdapter::Invoke(
 {
   return m_impl->Invoke(ctx, req);
 }
+#endif
+
 #else
 WPEFramework::Core::ProxyType<WPEFramework::Core::JSONRPC::Message> 
   WPEFramework::Plugin::RustAdapter::Invoke(
@@ -116,6 +126,7 @@ WPEFramework::Core::ProxyType<WPEFramework::Core::JSONRPC::Message>
 }
 #endif
 
+#if ((THUNDER_VERSION_MAJOR == 2) || ((THUNDER_VERSION_MAJOR == 4)  && (THUNDER_VERSION_MINOR == 2)))
 void
 WPEFramework::Plugin::RustAdapter::Activate(
   WPEFramework::PluginHost::IShell *shell)
@@ -129,6 +140,7 @@ WPEFramework::Plugin::RustAdapter::Deactivate()
   m_impl->Deactivate();
 }
 
+#endif
 bool
 WPEFramework::Plugin::RustAdapter::Attach(PluginHost::Channel &channel)
 {
@@ -141,13 +153,26 @@ WPEFramework::Plugin::RustAdapter::Detach(PluginHost::Channel &channel)
   m_impl->Detach(channel);
 }
 
-#if THUNDER_VERSION == 4
+#if ((THUNDER_VERSION_MAJOR == 4) && (THUNDER_VERSION_MINOR == 2))
 void
 WPEFramework::Plugin::RustAdapter::Close(const uint32_t channelId)
 {
     m_impl->Close(channelId);
 }
 #endif /* THUNDER_VERSION */
+
+#if ((THUNDER_VERSION_MAJOR == 4) && (THUNDER_VERSION_MINOR == 4))
+WPEFramework::Core::hresult WPEFramework::Plugin::RustAdapter::Revoke(ICallback* callback)
+{
+     return {};
+}
+
+WPEFramework::Core::hresult WPEFramework::Plugin::RustAdapter::Validate(const string& token, const string& method, const string& paramaters) const
+{
+  return {};
+}
+
+#endif
 
 WPEFramework::Core::ProxyType<WPEFramework::Core::JSON::IElement>
 WPEFramework::Plugin::RustAdapter::Inbound(const string &identifier)

@@ -2234,8 +2234,9 @@ namespace WPEFramework {
                     newState == IARM_BUS_SYSMGR_LOG_UPLOAD_ABORTED ? LOG_UPLOAD_STATUS_ABORTED : LOG_UPLOAD_STATUS_FAILURE;
 
                 sendNotify(EVT_ONLOGUPLOAD, params);
+#if ((THUNDER_VERSION_MAJOR == 2) || ((THUNDER_VERSION_MAJOR == 4) && (THUNDER_VERSION_MINOR == 2)))
                 GetHandler(2)->Notify(EVT_ONLOGUPLOAD, params);
-
+#endif
                 pid_t wp;
                 int status;
 

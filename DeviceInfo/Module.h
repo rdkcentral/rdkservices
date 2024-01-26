@@ -25,7 +25,11 @@
 #endif
 
 #include <plugins/plugins.h>
+#if ((THUNDER_VERSION_MAJOR >= 4) && (THUNDER_VERSION_MINOR == 4))
+#include <definitions/definitions.h>
+#else
 #include <interfaces/definitions.h>
+#endif
 
 #undef EXTERNAL
 #define EXTERNAL
