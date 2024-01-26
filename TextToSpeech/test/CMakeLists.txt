@@ -16,11 +16,15 @@
 # limitations under the License.
 
 set(PLUGIN_NAME TTSThunderAPITest)
+
+find_package(${NAMESPACE}Core REQUIRED)
+
 if (USE_THUNDER_R4)
     find_package(${NAMESPACE}COM REQUIRED)
 else ()
     find_package(${NAMESPACE}Protocols REQUIRED)
 endif (USE_THUNDER_R4)
+
 find_package(securityagent REQUIRED)
 
 option(PLUGIN_SECURITY_AGENT "Enable the Security Agent Features interface in javascript." OFF)
@@ -34,6 +38,8 @@ set_target_properties(${PLUGIN_NAME} PROPERTIES
 
 set(LIBRARIES WPEFrameworkSecurityUtil)
 target_include_directories(${PLUGIN_NAME} PRIVATE ../../helpers ../impl)
+
+target_link_libraries(${PLUGIN_NAME} PUBLIC ${LIBRARIES} PRIVATE ${NAMESPACE}Core::${NAMESPACE}Core)
 
 if (USE_THUNDER_R4)
 target_link_libraries(${PLUGIN_NAME} PUBLIC ${LIBRARIES} PRIVATE ${NAMESPACE}COM::${NAMESPACE}COM ${NAMESPACE}WebSocket::${NAMESPACE}WebSocket)

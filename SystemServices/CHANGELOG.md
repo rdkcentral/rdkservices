@@ -16,6 +16,9 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [2.0.3] - 2023-01-26
+### Changed
+- RDK-44991: Upgrade Flex-2.0 devices to use Thunder R4.4.1
 
 ## [2.0.2] - 2023-01-10
 ### Added
