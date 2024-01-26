@@ -2103,7 +2103,7 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
 
         if ((RTSP_MSG_SUCCESS == status_code) || (RTSP_M1_M7_MSG_EXCHANGE_RECEIVED == status_code ))
         {
-            MIRACASTLOG_INFO("#### [MCAST-TRIAGE-OK] RTSP_M1_M7_MSG_EXCHANGE_RECEIVED[%#04X] ####", status_code);
+            MIRACASTLOG_INFO("#### MCAST-TRIAGE-OK-RTSP-DONE RTSP_M1_M7_MSG_EXCHANGE_RECEIVED[%#04X] ####", status_code);
             start_monitor_keep_alive_msg = true;
             start_streaming(video_rect_st);
             MIRACASTLOG_INFO("!!!! GstPlayer instance created, Waiting for first-frame !!!!");
@@ -2115,34 +2115,34 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
 
             if (RTSP_INVALID_MSG_RECEIVED == status_code)
             {
-                MIRACASTLOG_ERROR("#### [MCAST-TRIAGE-NOK] INVALID RTSP MSG RECEIVED ####");
+                MIRACASTLOG_ERROR("#### MCAST-TRIAGE-NOK INVALID RTSP MSG RECEIVED ####");
             }
             else if (RTSP_MSG_FAILURE == status_code)
             {
-                MIRACASTLOG_ERROR("#### [MCAST-TRIAGE-NOK] RTSP SENT/RECV FAILED ####");
+                MIRACASTLOG_ERROR("#### MCAST-TRIAGE-NOK RTSP SENT/RECV FAILED ####");
             }
             else if ( RTSP_MSG_TEARDOWN_REQUEST == status_code )
             {
                 if ( MIRACAST_PLAYER_APP_REQ_TO_STOP_ON_EXIT == rtsp_message_data.stop_reason_code )
                 {
                     reason = MIRACAST_PLAYER_REASON_CODE_APP_REQ_TO_STOP;
-                    MIRACASTLOG_INFO("#### [MCAST-TRIAGE-OK] APP REQUESTED TO STOP ON EXIT ####");
+                    MIRACASTLOG_INFO("#### MCAST-TRIAGE-OK-APP-EXIT APP REQUESTED TO STOP ON EXIT ####");
                 }
                 else if ( MIRACAST_PLAYER_APP_REQ_TO_STOP_ON_NEW_CONNECTION == rtsp_message_data.stop_reason_code )
                 {
                     reason = MIRACAST_PLAYER_REASON_CODE_NEW_SRC_DEV_CONNECT_REQ;
-                    MIRACASTLOG_INFO("#### [MCAST-TRIAGE-OK] APP REQUESTED TO STOP ON NEW CONNECTION ####");
+                    MIRACASTLOG_INFO("#### MCAST-TRIAGE-OK-APP-STOP-ON-NEW-CONNECT APP REQUESTED TO STOP ON NEW CONNECTION ####");
                 }
             }
             else if ( RTSP_METHOD_NOT_SUPPORTED == status_code )
             {
                 reason = MIRACAST_PLAYER_REASON_CODE_RTSP_METHOD_NOT_SUPPORTED;
-                MIRACASTLOG_ERROR("#### [MCAST-TRIAGE-NOK] RTSP METHOD NOT SUPPORTED ####");
+                MIRACASTLOG_ERROR("#### MCAST-TRIAGE-NOK RTSP METHOD NOT SUPPORTED ####");
             }
             else
             {
                 reason = MIRACAST_PLAYER_REASON_CODE_RTSP_TIMEOUT;
-                MIRACASTLOG_INFO("#### [MCAST-TRIAGE-NOK] RTSP RECV TIMEOUT ####");
+                MIRACASTLOG_INFO("#### MCAST-TRIAGE-NOK RTSP RECV TIMEOUT ####");
             }
             set_state(MIRACAST_PLAYER_STATE_STOPPED , true , reason );
         }
@@ -2194,11 +2194,11 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
                     if (RTSP_MSG_TEARDOWN_REQUEST == status_code)
                     {
                         reason = MIRACAST_PLAYER_REASON_CODE_SRC_DEV_REQ_TO_STOP;
-                        MIRACASTLOG_INFO("#### [MCAST-TRIAGE-OK] RTSP SRC DEV REQUESTED TO STOP ####");
+                        MIRACASTLOG_INFO("#### MCAST-TRIAGE-OK-SRC_DEV-STOP SRC DEV REQUESTED TO STOP ####");
                     }
                     else
                     {
-                        MIRACASTLOG_ERROR("#### [MCAST-TRIAGE-NOK] RTSP METHOD NOT SUPPORTED ####");
+                        MIRACASTLOG_ERROR("#### MCAST-TRIAGE-NOK RTSP METHOD NOT SUPPORTED ####");
                     }
                     set_state(MIRACAST_PLAYER_STATE_STOPPED , true , reason );
                     break;
@@ -2207,7 +2207,7 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
                         (RTSP_MSG_TEARDOWN_REQUEST != status_code))
                 {
                     set_state(MIRACAST_PLAYER_STATE_STOPPED , true , MIRACAST_PLAYER_REASON_CODE_RTSP_ERROR );
-                    MIRACASTLOG_ERROR("#### [MCAST-TRIAGE-NOK] RTSP SENT/RECV FAILED ####");
+                    MIRACASTLOG_ERROR("#### MCAST-TRIAGE-NOK RTSP SENT/RECV FAILED ####");
                     break;
                 }
             }
