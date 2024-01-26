@@ -938,7 +938,7 @@ void MiracastController::Controller_Thread(void *args)
                                 src_dev_mac = get_WFDSourceMACAddress();;
                                 src_dev_name = get_WFDSourceName();
                                 sink_dev_ip = local_address;
-                                MIRACASTLOG_INFO("#### [MCAST-TRIAGE-OK] LAUNCH FOR SRC_NAME[%s] SRC_MAC[%s] SRC_IP[%s] SINK_IP[%s] ####",
+                                MIRACASTLOG_INFO("#### [MCAST-TRIAGE-OK-LAUNCH] LAUNCH REQ FOR SRC_NAME[%s] SRC_MAC[%s] SRC_IP[%s] SINK_IP[%s] ####",
                                                     src_dev_name.c_str(),
                                                     src_dev_mac.c_str(),
                                                     src_dev_ip.c_str(),
@@ -1613,7 +1613,7 @@ void MiracastController::notify_ConnectionRequest(std::string device_name,std::s
     m_current_device_name = device_name;
     m_current_device_mac_addr = device_mac;
 
-    MIRACASTLOG_INFO("#### [MCAST-TRIAGE-OK] DEVICE[%s - %s] connect request received ####",
+    MIRACASTLOG_INFO("#### [MCAST-TRIAGE-OK-CONNECT-REQ] DEVICE[%s - %s] CONNECT REQUEST RECEIVED ####",
                         m_current_device_name.c_str(), 
                         m_current_device_mac_addr.c_str());
     if (nullptr != m_notify_handler)
