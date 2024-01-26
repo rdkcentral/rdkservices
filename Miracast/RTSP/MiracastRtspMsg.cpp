@@ -2161,7 +2161,7 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
             elapsed_seconds = current_time.tv_sec - start_time.tv_sec;
             if (elapsed_seconds > m_wfd_src_session_timeout)
             {
-                MIRACASTLOG_INFO("#### [MCAST-TRIAGE-NOK] RTSP M16 TIMEOUT[%d] ELAPSED[%d] ####",m_wfd_src_session_timeout,elapsed_seconds);
+                MIRACASTLOG_INFO("#### MCAST-TRIAGE-NOK RTSP M16 TIMEOUT[%d] ELAPSED[%d] ####",m_wfd_src_session_timeout,elapsed_seconds);
                 set_state(MIRACAST_PLAYER_STATE_STOPPED , true , MIRACAST_PLAYER_REASON_CODE_RTSP_TIMEOUT );
                 break;
             }
