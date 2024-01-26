@@ -2214,7 +2214,7 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
             else if (RTSP_MSG_FAILURE == socket_state)
             {
                 set_state(MIRACAST_PLAYER_STATE_STOPPED , true , MIRACAST_PLAYER_REASON_CODE_RTSP_ERROR );
-                MIRACASTLOG_ERROR("#### RTSP SEND/RECV FAILED ####");
+                MIRACASTLOG_ERROR("#### MCAST-TRIAGE-NOK RTSP SEND/RECV FAILED ####");
                 break;
             }
 
