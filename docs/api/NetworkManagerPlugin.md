@@ -55,7 +55,8 @@ NetworkManager interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [GetAvailableInterfaces](#method.GetAvailableInterfaces) | Returns a list of interfaces supported by this device including their state |
+| [SetLogLevel](#method.SetLogLevel) | Set Log level for more information |
+| [GetAvailableInterfaces](#method.GetAvailableInterfaces) | Get Device supported list of available interface including their state |
 | [GetPrimaryInterface](#method.GetPrimaryInterface) | Gets the Primary/default network interface |
 | [SetPrimaryInterface](#method.SetPrimaryInterface) | Sets the Primary/default interface |
 | [GetIPSettings](#method.GetIPSettings) | Gets the IP setting for the given interface |
@@ -65,10 +66,10 @@ NetworkManager interface methods:
 | [GetConnectivityTestEndpoints](#method.GetConnectivityTestEndpoints) | Get connectivity test endpoints |
 | [SetConnectivityTestEndpoints](#method.SetConnectivityTestEndpoints) | Define up to 5 endpoints for a connectivity test |
 | [IsConnectedToInternet](#method.IsConnectedToInternet) | Whether the device has internet connectivity |
-| [GetCaptivePortalURI](#method.GetCaptivePortalURI) | Returns the captive portal URI if connected to any captive portal network |
+| [GetCaptivePortalURI](#method.GetCaptivePortalURI) | Gets the captive portal URI if connected to any captive portal network |
 | [StartConnectivityMonitoring](#method.StartConnectivityMonitoring) | Enable a continuous monitoring of internet connectivity with heart beat interval thats given |
 | [StopConnectivityMonitoring](#method.StopConnectivityMonitoring) | Stops the connectivity monitoring |
-| [GetPublicIP](#method.GetPublicIP) | It allows either zero parameter or with only interface and ipv6 parameter to determine WAN ip address |
+| [GetPublicIP](#method.GetPublicIP) | It allows either zero parameter or with only interface and ipversion parameter to determine WAN ip address |
 | [Ping](#method.Ping) | Pings the specified endpoint with the specified number of packets |
 | [Trace](#method.Trace) | Traces the specified endpoint with the specified number of packets using `traceroute` |
 | [StartWiFiScan](#method.StartWiFiScan) | Scans for available SSIDs |
@@ -85,10 +86,67 @@ NetworkManager interface methods:
 | [GetSupportedSecurityModes](#method.GetSupportedSecurityModes) | Returns the Wifi security modes that the device supports |
 
 
+<a name="method.SetLogLevel"></a>
+## *SetLogLevel [<sup>method</sup>](#head.Methods)*
+
+Set Log level for more information. The possible set log level are as follows. 
+* `0`: FATAL  
+* `1`: ERROR  
+* `2`: WARNING  
+* `3`: INFO 
+* `4`: VERBOSE 
+* `5`: TRACE 
+.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.loglevel | integer | Set Log level to get more information |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.NetworkManager.SetLogLevel",
+    "params": {
+        "loglevel": 1
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="method.GetAvailableInterfaces"></a>
 ## *GetAvailableInterfaces [<sup>method</sup>](#head.Methods)*
 
-Returns a list of interfaces supported by this device including their state.
+Get Device supported list of available interface including their state.
 
 ### Events
 
@@ -320,7 +378,7 @@ No Events
 <a name="method.SetIPSettings"></a>
 ## *SetIPSettings [<sup>method</sup>](#head.Methods)*
 
-Sets the IP settings.All the inputs are mandatory for v1. But for v2, the interface and autconfig params are mandatory input to autoconfig IP settings & other parameters not required. For manual IP, all the input parameters are mandatory except secondaryDNS.
+Sets the IP settings.
 
 ### Events
 
@@ -542,7 +600,7 @@ This method takes no parameters.
 <a name="method.SetConnectivityTestEndpoints"></a>
 ## *SetConnectivityTestEndpoints [<sup>method</sup>](#head.Methods)*
 
-Define up to 5 endpoints for a connectivity test. Successful connections are verified with HTTP Status code 204 (No Content). Priority is given to endpoints configured in /etc/netsrvmgr.conf. In case of errors or if not configured, the default endpoints are considered: `http://clients3.google.com/generate_204`.
+Define up to 5 endpoints for a connectivity test. Successful connections are verified with HTTP Status code 204 (No Content).
 
 ### Events
 
@@ -649,7 +707,7 @@ No Events
 <a name="method.GetCaptivePortalURI"></a>
 ## *GetCaptivePortalURI [<sup>method</sup>](#head.Methods)*
 
-Returns the captive portal URI if connected to any captive portal network.
+Gets the captive portal URI if connected to any captive portal network.
 
 ### Events
 
@@ -707,7 +765,7 @@ Enable a continuous monitoring of internet connectivity with heart beat interval
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.interval | number | Interval in sec. Default value 60 sec and interval should be greater than 5 sec |
+| params.interval | number | Interval in sec |
 
 ### Result
 
@@ -790,7 +848,7 @@ This method takes no parameters.
 <a name="method.GetPublicIP"></a>
 ## *GetPublicIP [<sup>method</sup>](#head.Methods)*
 
-It allows either zero parameter or with only interface and ipv6 parameter to determine WAN ip address.
+It allows either zero parameter or with only interface and ipversion parameter to determine WAN ip address.
 
 ### Events
 
@@ -808,7 +866,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.publicIP | string | Returns an public ip of the device ,if ipv6 is `true`,returns IPv6 public ip , otherwise returns IPv4 public ip |
+| result.publicIP | string | Returns an public ip of the device |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -1212,7 +1270,6 @@ Attempts to connect to the specified SSID with the given passphrase. Passphrase 
 | Event | Description |
 | :-------- | :-------- |
 | [onWiFiStateChanged](#event.onWiFiStateChanged) | Triggered when Wifi state changes to CONNECTING, CONNECTED . |
-| [onError](#event.onError) | Triggered when requested SSID connection fails. |
 ### Parameters
 
 | Name | Type | Description |
