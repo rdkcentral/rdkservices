@@ -904,9 +904,8 @@ Pings the specified endpoint with the specified number of packets.
 
 ### Events
 
-| Event | Description |
-| :-------- | :-------- |
-| [onPingResponse](#event.onPingResponse) | Triggered when Ping request is success. |
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -918,12 +917,23 @@ Pings the specified endpoint with the specified number of packets.
 | params.timeout | integer | STUN server bind timeout |
 | params.guid | string | The globally unique identifier |
 
+
 ### Result
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
+| result.target | string | The target IP address |
 | result.success | boolean | Whether the request succeeded |
+| result.packetsTransmitted | integer | The number of packets sent |
+| result.packetsReceived | integer | The number of packets received |
+| result.packetLoss | string | The number of packets lost |
+| result.tripMin | string | The minimum amount of time to receive the packets |
+| result.tripAvg | string | The average time to receive the packets |
+| result.tripMax | string | The maximum amount of time to receive the packets |
+| result.tripStdDev | string | The standard deviation for the trip |
+| result.error | string | An error message |
+| result.guid | string | The globally unique identifier |
 
 ### Example
 
@@ -980,7 +990,17 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
+| result.target | string | The target IP address |
 | result.success | boolean | Whether the request succeeded |
+| result.packetsTransmitted | integer | The number of packets sent |
+| result.packetsReceived | integer | The number of packets received |
+| result.packetLoss | string | The number of packets lost |
+| result.tripMin | string | The minimum amount of time to receive the packets |
+| result.tripAvg | string | The average time to receive the packets |
+| result.tripMax | string | The maximum amount of time to receive the packets |
+| result.tripStdDev | string | The standard deviation for the trip |
+| result.error | string | An error message |
+| result.guid | string | The globally unique identifier |
 
 ### Example
 
@@ -1663,8 +1683,6 @@ NetworkManager interface events:
 | [onIPAddressChanged](#event.onIPAddressChanged) | Triggered when an IP Address is assigned or lost |
 | [onActiveInterfaceChanged](#event.onActiveInterfaceChanged) | Triggered when the ac interface changes, regardless if it's from a system operation or through the `setDefaultInterface` method |
 | [onInternetStatusChange](#event.onInternetStatusChange) | Triggered when internet connection state changed |
-| [onPingResponse](#event.onPingResponse) | Triggered when a connection is made or lost |
-| [onTraceResponse](#event.onTraceResponse) | Triggered when a connection is made or lost |
 | [onAvailableSSIDs](#event.onAvailableSSIDs) | Triggered when got for scan |
 | [onWiFiStateChanged](#event.onWiFiStateChanged) | Triggered when WIFI connection state get changed |
 | [onWiFiSignalStrengthChanged](#event.onWiFiSignalStrengthChanged) | Triggered when WIFI connection Signal Strength get changed |
@@ -1778,58 +1796,6 @@ Triggered when internet connection state changed.The possible internet connectio
         "PrevStatus": "NO_INTERNET",
         "state": 0,
         "status": "NO_INTERNET"
-    }
-}
-```
-
-<a name="event.onPingResponse"></a>
-## *onPingResponse [<sup>event</sup>](#head.Notifications)*
-
-Triggered when a connection is made or lost.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.pingStatistics | string | Ping Statistics |
-| params.guid | string | The globally unique identifier |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.onPingResponse",
-    "params": {
-        "pingStatistics": "...",
-        "guid": "..."
-    }
-}
-```
-
-<a name="event.onTraceResponse"></a>
-## *onTraceResponse [<sup>event</sup>](#head.Notifications)*
-
-Triggered when a connection is made or lost.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.traceResult | string | Trace Result |
-| params.guid | string | The globally unique identifier |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.onTraceResponse",
-    "params": {
-        "traceResult": "...",
-        "guid": "..."
     }
 }
 ```
