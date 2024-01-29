@@ -4,7 +4,7 @@
 
 **Version: [1.0.0]()**
 
-A org.rdk.NetworkManager plugin for Thunder framework.
+A NetworkManager plugin for Thunder framework.
 
 ### Table of Contents
 
@@ -23,9 +23,8 @@ A org.rdk.NetworkManager plugin for Thunder framework.
 <a name="head.Description"></a>
 # Description
 
-The `NetworkManager` plugin allows you to manage Ethernet and Wifi interfaces on the device.
-
-The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
+A Unified `NetworkManager` plugin that allows you to manage Ethernet and Wifi interfaces on the device.
+The plugin is designed to be an out-of-process service to be handled by Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
 
 <a name="head.Configuration"></a>
 # Configuration
@@ -34,9 +33,9 @@ The table below lists configuration options of the plugin.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| callsign | string | Plugin instance name (default: *org.rdk.NetworkManager*) |
-| classname | string | Class name: *org.rdk.NetworkManager* |
-| locator | string | Library name: *libWPENetworkManager.so* |
+| callsign | string | Plugin instance name,  *org.rdk.NetworkManager* |
+| classname | string | Class name: *NetworkManager* |
+| locator | string | Library name: *libWPEFrameworkNetworkManager.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
 <a name="head.Interfaces"></a>
@@ -44,7 +43,7 @@ The table below lists configuration options of the plugin.
 
 This plugin implements the following interfaces:
 
-- [NetworkManager.json](https://github.com/rdkcentral/ThunderInterfaces/blob/master/interfaces/NetworkManager.json)
+- [NetworkManager.json](https://github.com/gururaajar/rdkservices/blob/sprint/2401/NetworkManager/service/NetworkManager.json)
 
 <a name="head.Methods"></a>
 # Methods
@@ -55,93 +54,36 @@ NetworkManager interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [SetLogLevel](#method.SetLogLevel) | Set Log level for more information |
-| [GetAvailableInterfaces](#method.GetAvailableInterfaces) | Get Device supported list of available interface including their state |
-| [GetPrimaryInterface](#method.GetPrimaryInterface) | Gets the Primary/default network interface |
-| [SetPrimaryInterface](#method.SetPrimaryInterface) | Sets the Primary/default interface |
+| [GetAvailableInterfaces](#method.GetAvailableInterfaces) | Get device supported list of available interface including their state |
+| [GetPrimaryInterface](#method.GetPrimaryInterface) | Gets the Primary/default network interface for the device |
+| [SetPrimaryInterface](#method.SetPrimaryInterface) | Sets the Primary/default interface for the device |
 | [GetIPSettings](#method.GetIPSettings) | Gets the IP setting for the given interface |
-| [SetIPSettings](#method.SetIPSettings) | Sets the IP settings |
-| [GetStunEndpoint](#method.GetStunEndpoint) | Get the Stun Endpoint used for getPublicIP |
-| [SetStunEndPoint](#method.SetStunEndPoint) | Set the Stun Endpoint used for getPublicIP |
-| [GetConnectivityTestEndpoints](#method.GetConnectivityTestEndpoints) | Get connectivity test endpoints |
-| [SetConnectivityTestEndpoints](#method.SetConnectivityTestEndpoints) | Define up to 5 endpoints for a connectivity test |
-| [IsConnectedToInternet](#method.IsConnectedToInternet) | Whether the device has internet connectivity |
+| [SetIPSettings](#method.SetIPSettings) | Sets the IP settings for the given interface |
+| [GetStunEndpoint](#method.GetStunEndpoint) | Get the STUN Endpoint that is used to identify public IP of the device |
+| [SetStunEndPoint](#method.SetStunEndPoint) | Set the STUN Endpoint to be used to identify public IP of the device |
+| [GetConnectivityTestEndpoints](#method.GetConnectivityTestEndpoints) | Gets currently used connectivity test endpoints |
+| [SetConnectivityTestEndpoints](#method.SetConnectivityTestEndpoints) | Sets connectivity test endpoints |
+| [IsConnectedToInternet](#method.IsConnectedToInternet) | Seeks Whether the device has internet connectivity |
 | [GetCaptivePortalURI](#method.GetCaptivePortalURI) | Gets the captive portal URI if connected to any captive portal network |
 | [StartConnectivityMonitoring](#method.StartConnectivityMonitoring) | Enable a continuous monitoring of internet connectivity with heart beat interval thats given |
 | [StopConnectivityMonitoring](#method.StopConnectivityMonitoring) | Stops the connectivity monitoring |
-| [GetPublicIP](#method.GetPublicIP) | It allows either zero parameter or with only interface and ipversion parameter to determine WAN ip address |
+| [GetPublicIP](#method.GetPublicIP) | Gets the internet/public IP Address of the device |
 | [Ping](#method.Ping) | Pings the specified endpoint with the specified number of packets |
 | [Trace](#method.Trace) | Traces the specified endpoint with the specified number of packets using `traceroute` |
-| [StartWiFiScan](#method.StartWiFiScan) | Scans for available SSIDs |
-| [StopWiFiScan](#method.StopWiFiScan) | Stops scanning for SSIDs |
-| [GetKnownSSIDs](#method.GetKnownSSIDs) | Saved SSIDs list |
-| [AddToKnownSSIDs](#method.AddToKnownSSIDs) | Saves the SSID, passphrase, and security mode for future sessions |
-| [RemoveKnownSSID](#method.RemoveKnownSSID) | Remove given ssid from saved ssids |
-| [WiFiConnect](#method.WiFiConnect) | Attempts to connect to the specified SSID with the given passphrase |
-| [WiFiDisconnect](#method.WiFiDisconnect) | Disconnects from the SSID |
+| [StartWiFiScan](#method.StartWiFiScan) | Initiates WiFi scaning |
+| [StopWiFiScan](#method.StopWiFiScan) | Stops WiFi scanning |
+| [GetKnownSSIDs](#method.GetKnownSSIDs) | Gets list of saved SSIDs |
+| [AddToKnownSSIDs](#method.AddToKnownSSIDs) | Saves the SSID, passphrase, and security mode for upcoming and future sessions |
+| [RemoveKnownSSID](#method.RemoveKnownSSID) | Remove given SSID from saved SSIDs |
+| [WiFiConnect](#method.WiFiConnect) | Initiates request to connect to the specified SSID with the given passphrase |
+| [WiFiDisconnect](#method.WiFiDisconnect) | Disconnects from the currently connected SSID |
 | [GetConnectedSSID](#method.GetConnectedSSID) | Returns the connected SSID information |
 | [StartWPS](#method.StartWPS) | Initiates a connection using Wifi Protected Setup (WPS) |
 | [StopWPS](#method.StopWPS) | Cancels the in-progress WPS pairing operation |
 | [GetWiFiSignalStrength](#method.GetWiFiSignalStrength) | Get WiFiSignalStrength of connected SSID |
 | [GetSupportedSecurityModes](#method.GetSupportedSecurityModes) | Returns the Wifi security modes that the device supports |
+| [SetLogLevel](#method.SetLogLevel) | To set the log level to the plugin for debugging purpose |
 
-
-<a name="method.SetLogLevel"></a>
-## *SetLogLevel [<sup>method</sup>](#head.Methods)*
-
-Set Log level for more information. The possible set log level are as follows. 
-* `0`: FATAL  
-* `1`: ERROR  
-* `2`: WARNING  
-* `3`: INFO 
-* `4`: VERBOSE 
-* `5`: TRACE 
-.
-
-### Events
-
-No Events
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.loglevel | integer | Set Log level to get more information |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.NetworkManager.SetLogLevel",
-    "params": {
-        "loglevel": 1
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "success": true
-    }
-}
-```
 
 <a name="method.GetAvailableInterfaces"></a>
 ## *GetAvailableInterfaces [<sup>method</sup>](#head.Methods)*
@@ -1876,3 +1818,59 @@ Triggered when WIFI connection Signal Strength get changed.
 }
 ```
 
+<a name="method.SetLogLevel"></a>
+## *SetLogLevel [<sup>method</sup>](#head.Methods)*
+
+Set Log level for more information. The possible set log level are as follows. 
+* `0`: FATAL  
+* `1`: ERROR  
+* `2`: WARNING  
+* `3`: INFO 
+* `4`: VERBOSE 
+* `5`: TRACE 
+.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.loglevel | integer | Set Log level to get more information |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.NetworkManager.SetLogLevel",
+    "params": {
+        "loglevel": 1
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
