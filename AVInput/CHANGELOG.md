@@ -16,7 +16,11 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+<<<<<<< HEAD
 ##[1.5.1] - 2024-01-29
+=======
+##[1.5.1] - 2024-01-25
+>>>>>>> 2bd38e15a5b67ae26e22900e1164e37a71c99760
 ###Added
 - Added a new parameter for plane in onInputStatusChangedEvent
 
