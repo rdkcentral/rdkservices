@@ -52,7 +52,9 @@ namespace Plugin {
                 if(_parentInterface != nullptr){
                     _parentInterface->AddRef();
                 }
-                engine->Announcements(Announcement());
+#if ((THUNDER_VERSION_MAJOR == 2) || ((THUNDER_VERSION_MAJOR == 4) && (THUNDER_VERSION_MINOR == 2)))
+		engine->Announcements(Announcement());
+#endif
                 Open(Core::infinite);
             }
             ~TokenDispatcher() override
