@@ -16,7 +16,11 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
-## [1.0.22] - 2023-01-26
+## [1.0.23] - 2024-01-29
+### Fixed
+- RDKTV-27784: Fixed bug in listVoices
+
+# [1.0.22] - 2023-01-26
 ### Changed
 - RDK-44991: Upgrade Flex-2.0 devices to use Thunder R4.4.1
 
