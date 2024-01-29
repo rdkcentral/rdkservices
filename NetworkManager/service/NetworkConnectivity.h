@@ -7,7 +7,7 @@
 #include <curl/curl.h>
 #include <condition_variable>
 #include <mutex>
-#include "logger.h"
+#include "NetworkManagerLogger.h"
 #include "Module.h"
 #include "NetworkManagerImplementation.h"
 
