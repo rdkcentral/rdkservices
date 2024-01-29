@@ -85,6 +85,11 @@ namespace WPEFramework
             // Still running inside the main WPEFramework process - the child process will have now been spawned and registered if necessary
             if (_NetworkManager != nullptr)
             {
+                // set the plugin configuration
+                Exchange::INetworkManager::NMLogging _loglevel;
+                _NetworkManager->Configure(_service->ConfigLine(), _loglevel);
+                // configure loglevel in libWPEFrameworkNetworkManager.so
+                NetworkManagerLogger::SetLevel(static_cast <NetworkManagerLogger::LogLevel>(_loglevel));
                 //Exchange::JNetworkManager::Register(*this, _NetworkManager);
                 _NetworkManager->Register(&_notification);
 
