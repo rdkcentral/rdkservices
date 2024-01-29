@@ -16,7 +16,7 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
-## [1.0.27] - 2024-01-29
+## [1.0.27] - 2024-01-16
 ### Fixed
 - Fixed Network Retry logic in Maintenance Manager in isDeviceOnline()
 
