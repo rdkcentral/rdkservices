@@ -156,8 +156,35 @@
         }
     },
     "methods": {
+        "SetLogLevel":{
+            "summary": "Set Log level for more information. The possible set log level are as follows. \n* `0`: FATAL  \n* `1`: ERROR  \n* `2`: WARNING  \n* `3`: INFO \n* `4`: VERBOSE \n* `5`: TRACE \n",
+            "params": {
+                "type": "object",
+                "properties": {
+                     "loglevel": {
+                        "summary": "Set Log level to get more information",
+                        "type": "integer",
+                        "example":1
+                    }
+                },
+                "required": [
+                    "loglevel"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            }
+        },
         "GetAvailableInterfaces":{
-            "summary": "Returns a list of interfaces supported by this device including their state.",
+            "summary": "Get Device supported list of available interface including their state.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -323,7 +350,7 @@
             }
         },
         "SetIPSettings":{
-            "summary": "Sets the IP settings.All the inputs are mandatory for v1. But for v2, the interface and autconfig params are mandatory input to autoconfig IP settings & other parameters not required. For manual IP, all the input parameters are mandatory except secondaryDNS.",
+            "summary": "Sets the IP settings.",
             "events":{
                 "onInternetStatusChanged" : "Triggered when each IP address is lost or acquired."
             },
@@ -470,7 +497,7 @@
             }
         },
         "SetConnectivityTestEndpoints":{
-            "summary": "Define up to 5 endpoints for a connectivity test. Successful connections are verified with HTTP Status code 204 (No Content). Priority is given to endpoints configured in /etc/netsrvmgr.conf. In case of errors or if not configured, the default endpoints are considered: `http://clients3.google.com/generate_204`.",
+            "summary": "Define up to 5 endpoints for a connectivity test. Successful connections are verified with HTTP Status code 204 (No Content)",
             "params": {
                 "type":"object",
                 "properties": {
@@ -524,7 +551,7 @@
             }
         },
         "GetCaptivePortalURI":{
-            "summary": "Returns the captive portal URI if connected to any captive portal network.",
+            "summary": "Gets the captive portal URI if connected to any captive portal network.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -552,7 +579,7 @@
                 "type":"object",
                 "properties": {
                     "interval": {
-                        "summary": "Interval in sec. Default value 60 sec and interval should be greater than 5 sec",
+                        "summary": "Interval in sec.",
                         "type": "number",
                         "example": "30"
                     }
@@ -588,7 +615,7 @@
             }
         },
          "GetPublicIP":{
-            "summary": "It allows either zero parameter or with only interface and ipv6 parameter to determine WAN ip address.",
+            "summary": "It allows either zero parameter or with only interface and ipversion parameter to determine WAN ip address.",
             "params": {
                 "type":"object",
                 "summary":"it allows empty parameter too",
@@ -605,7 +632,7 @@
                 "type": "object",
                 "properties": {
                     "publicIP":{
-                        "summary": "Returns an public ip of the device ,if ipv6 is `true`,returns IPv6 public ip , otherwise returns IPv4 public ip",
+                        "summary": "Returns an public ip of the device",
                         "type":"string",
                         "example": "69.136.49.95"
                     },
@@ -823,8 +850,7 @@
         "WiFiConnect":{
             "summary": "Attempts to connect to the specified SSID with the given passphrase. Passphrase can be `null` when the network security is `NONE`. When called with no arguments, this method attempts to connect to the saved SSID and password. See `saveSSID`.",
             "events":{
-                "onWiFiStateChanged" : "Triggered when Wifi state changes to CONNECTING, CONNECTED .",
-                "onError" : "Triggered when requested SSID connection fails."
+                "onWiFiStateChanged" : "Triggered when Wifi state changes to CONNECTING, CONNECTED ."
             },
             "params": {
                 "type": "object",
