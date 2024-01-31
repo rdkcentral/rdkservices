@@ -24,7 +24,7 @@
 
 #include "Module.h"
 #include <securityagent/SecurityTokenUtil.h>
-#include "MiracastRtspMsg.h"
+#include "MiracastRTSPMsg.h"
 #include "MiracastGstPlayer.h"
 
 using std::vector;
@@ -61,6 +61,7 @@ namespace WPEFramework
             static const string METHOD_MIRACAST_SET_AUDIO_FORMATS;
             static const string METHOD_MIRACAST_SET_RTSP_WAITTIMEOUT;
             static const string METHOD_MIRACAST_PLAYER_SET_LOG_LEVEL;
+            static const string METHOD_MIRACAST_PLAYER_SET_HDCP_STATE;
 
 #ifdef ENABLE_MIRACAST_PLAYER_TEST_NOTIFIER
             static const string METHOD_MIRACAST_TEST_NOTIFIER;
@@ -101,6 +102,7 @@ namespace WPEFramework
             uint32_t setAudioFormats(const JsonObject &parameters, JsonObject &response);
             uint32_t setRTSPWaitTimeout(const JsonObject &parameters, JsonObject &response);
             uint32_t setLogging(const JsonObject &parameters, JsonObject &response);
+            uint32_t setRTSPHDCPState(const JsonObject &parameters, JsonObject &response);
 
             std::string reasonDescription(eM_PLAYER_REASON_CODE);
             std::string stateDescription(eMIRA_PLAYER_STATES);
