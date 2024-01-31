@@ -105,8 +105,8 @@ This method takes no parameters.
 | result | object |  |
 | result?.Interfaces | array | <sup>*(optional)*</sup> An interface |
 | result?.Interfaces[#] | object | <sup>*(optional)*</sup>  |
-| result?.Interfaces[#].type | string | Type |
-| result?.Interfaces[#].name | string | Name |
+| result?.Interfaces[#].type | string | Interface Type |
+| result?.Interfaces[#].name | string | Interface Name. ex: eth0 or wlan0 |
 | result?.Interfaces[#].mac | string | Interface MAC address |
 | result?.Interfaces[#].isEnabled | boolean | Whether the interface is currently enabled |
 | result?.Interfaces[#].isConnected | boolean | Whether the interface is currently connected |
@@ -133,8 +133,8 @@ This method takes no parameters.
     "result": {
         "Interfaces": [
             {
-                "type": "...",
-                "name": "...",
+                "type": "ETHERNET",
+                "name": "eth0",
                 "mac": "AA:AA:AA:AA:AA:AA",
                 "isEnabled": true,
                 "isConnected": true
@@ -148,7 +148,7 @@ This method takes no parameters.
 <a name="method.GetPrimaryInterface"></a>
 ## *GetPrimaryInterface [<sup>method</sup>](#head.Methods)*
 
-Gets the Primary/default network interface. The active network interface is defined as the one that can make requests to the external network. Returns one of the supported interfaces as per `getInterfaces`, or an empty value which indicates that there is no default network interface.
+Gets the Primary/default network interface. The active network interface is defined as the one that can make requests to the external network. Returns one of the supported interfaces as per `GetAvailableInterfaces`, or an empty value which indicates that there is no default network interface.
 
 ### Events
 
@@ -163,7 +163,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface in `getInterfaces` |
+| result.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface in `GetAvailableInterfaces` |
 
 ### Example
 
@@ -192,7 +192,7 @@ This method takes no parameters.
 <a name="method.SetPrimaryInterface"></a>
 ## *SetPrimaryInterface [<sup>method</sup>](#head.Methods)*
 
-Sets the Primary/default interface. The call fails if the interface is not enabled.
+Sets the primary/default interface to be used for external/internet communication. This call fails if the interface is not enabled.
 
 ### Events
 
@@ -207,8 +207,7 @@ Sets the Primary/default interface. The call fails if the interface is not enabl
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface in `getInterfaces` |
-| params.persist | boolean | Whether the default interface setting persists after reboot. When `true`, this interface is enabled as the default interface currently AND on the next reboot. When `false`, this interface is only the default during this session |
+| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface in `GetAvailableInterfaces` |
 
 ### Result
 
@@ -227,8 +226,7 @@ Sets the Primary/default interface. The call fails if the interface is not enabl
     "id": 42,
     "method": "org.rdk.NetworkManager.SetPrimaryInterface",
     "params": {
-        "interface": "wlan0",
-        "persist": true
+        "interface": "wlan0"
     }
 }
 ```
@@ -259,7 +257,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface in `getInterfaces` |
+| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface |
 | params?.ipversion | string | <sup>*(optional)*</sup> either IPv4 or IPv6 |
 
 ### Result
@@ -267,7 +265,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface in `getInterfaces` |
+| result.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface |
 | result.ipversion | string | either IPv4 or IPv6 |
 | result.autoconfig | boolean | `true` if DHCP is used, `false` if IP is configured manually |
 | result?.dhcpserver | string | <sup>*(optional)*</sup> The DHCP Server address |
@@ -307,9 +305,8 @@ No Events
         "autoconfig": true,
         "dhcpserver": "192.168.1.1",
         "ipaddress": "192.168.1.101",
-        "prefix": 123,
+        "prefix": 24,
         "gateway": "192.168.1.1",
-        "v6LinkLocal": "192.168.1.1",
         "primarydns": "192.168.1.1",
         "secondarydns": "192.168.1.2",
         "success": true
@@ -332,7 +329,7 @@ Sets the IP settings.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface in `getInterfaces` |
+| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface |
 | params.ipversion | string | either IPv4 or IPv6 |
 | params.autoconfig | boolean | `true` if DHCP is used, `false` if IP is configured manually |
 | params.ipaddress | string | The IP address |
@@ -362,7 +359,7 @@ Sets the IP settings.
         "ipversion": "IPv4",
         "autoconfig": true,
         "ipaddress": "192.168.1.101",
-        "prefix": 123,
+        "prefix": 24,
         "gateway": "192.168.1.1",
         "primarydns": "192.168.1.1",
         "secondarydns": "192.168.1.2"
@@ -385,7 +382,7 @@ Sets the IP settings.
 <a name="method.GetStunEndpoint"></a>
 ## *GetStunEndpoint [<sup>method</sup>](#head.Methods)*
 
-Get the Stun Endpoint used for getPublicIP.
+Gets the Stun Endpoint used in getPublicIP to indentify the internet/public IP.
 
 ### Events
 
@@ -437,7 +434,7 @@ This method takes no parameters.
 <a name="method.SetStunEndPoint"></a>
 ## *SetStunEndPoint [<sup>method</sup>](#head.Methods)*
 
-Set the Stun Endpoint used for getPublicIP.
+Sets the Stun Endpoint used for getPublicIP to indentify the internet/public IP.
 
 ### Events
 
@@ -450,8 +447,8 @@ No Events
 | params | object |  |
 | params.endPoint | string | STUN server endPoint |
 | params.port | integer | STUN server port |
-| params.bindTimeout | integer | STUN server bind timeout |
-| params.cacheTimeout | integer | STUN server cache timeout |
+| params.bindTimeout | integer  | <sup>*(optional)*</sup> STUN server bind timeout |
+| params.cacheTimeout | integer | <sup>*(optional)*</sup> STUN server cache timeout |
 
 ### Result
 
@@ -542,7 +539,7 @@ This method takes no parameters.
 <a name="method.SetConnectivityTestEndpoints"></a>
 ## *SetConnectivityTestEndpoints [<sup>method</sup>](#head.Methods)*
 
-Define up to 5 endpoints for a connectivity test. Successful connections are verified with HTTP Status code 204 (No Content).
+This method used to set up to 5 endpoints for a connectivity test. Successful connections are verified with HTTP Status code 204 (No Content).
 
 ### Events
 
@@ -595,7 +592,7 @@ No Events
 <a name="method.IsConnectedToInternet"></a>
 ## *IsConnectedToInternet [<sup>method</sup>](#head.Methods)*
 
-Whether the device has internet connectivity. This API might take up to 2s to validate internet connectivity.
+Whether the device has internet connectivity. This API might take up to 3s to validate internet connectivity.
 
 ### Events
 
@@ -614,7 +611,7 @@ No Events
 | :-------- | :-------- | :-------- |
 | result | object |  |
 | result.isConnectedToInternet | boolean | `true` if internet connectivity is detected, otherwise `false` |
-| result.internetState | integer | The Wifi operational state |
+| result.internetState | integer | The internet state |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -695,7 +692,7 @@ This method takes no parameters.
 <a name="method.StartConnectivityMonitoring"></a>
 ## *StartConnectivityMonitoring [<sup>method</sup>](#head.Methods)*
 
-Enable a continuous monitoring of internet connectivity with heart beat interval thats given.
+This method enables continuous monitoring of internet connectivity with heart beat interval thats given. If the monitoring is already happening, it will be restarted with new given interval.
 
 ### Events
 
@@ -746,7 +743,7 @@ Enable a continuous monitoring of internet connectivity with heart beat interval
 <a name="method.StopConnectivityMonitoring"></a>
 ## *StopConnectivityMonitoring [<sup>method</sup>](#head.Methods)*
 
-Stops the connectivity monitoring.
+This method stops the continuous internet connectivity monitoring
 
 ### Events
 
@@ -790,7 +787,7 @@ This method takes no parameters.
 <a name="method.GetPublicIP"></a>
 ## *GetPublicIP [<sup>method</sup>](#head.Methods)*
 
-It allows either zero parameter or with only interface and ipversion parameter to determine WAN ip address.
+It allows either zero parameter or with only interface and ipversion parameter to determine public ip address.
 
 ### Events
 
@@ -856,8 +853,8 @@ No Events
 | params.endpoint | string | The host name or IP address |
 | params.ipversion | string | either IPv4 or IPv6 |
 | params.noOfRequest | integer | The number of packets to send. Default is 15 |
-| params.timeout | integer | STUN server bind timeout |
-| params.guid | string | The globally unique identifier |
+| params.timeout | integer | timeout |
+| params.guid | string | <sup>*(optional)*</sup> The globally unique identifier |
 
 
 ### Result
@@ -903,7 +900,17 @@ No Events
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "success": true
+        "target": "45.57.221.20",
+        "success": true,
+        "packetsTransmitted": 10,
+        "packetsReceived": 10,
+        "packetLoss": "0.0",
+        "tripMin": "61.264",
+        "tripAvg": "130.397",
+        "tripMax": "230.832",
+        "tripStdDev": "80.919",
+        "error": "...",
+        "guid": "..."
     }
 }
 ```
@@ -969,7 +976,10 @@ No Events
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "success": true
+        "target": "45.57.221.20",
+        "success": true,
+        "error": "...",
+        "results": "<<<traceroute command results>>>"
     }
 }
 ```
@@ -1640,7 +1650,7 @@ Triggered when an interface becomes enabled or disabled.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface in `getInterfaces` |
+| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface |
 | params.state | string | Whether the interface is enabled (`true`) or disabled (`false`) |
 
 ### Example
@@ -1666,7 +1676,7 @@ Triggered when an IP Address is assigned or lost.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface in `getInterfaces` |
+| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface |
 | params.ipv6 | string | The IPv6 address for the interface |
 | params?.ipv4 | string | <sup>*(optional)*</sup> The IPv4 address for the interface |
 | params.status | string | Whether IP address was acquired or lost (must be one of the following: *`ACQUIRED`*, *`LOST`*) |
