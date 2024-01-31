@@ -987,7 +987,7 @@ No Events
 <a name="method.StartWiFiScan"></a>
 ## *StartWiFiScan [<sup>method</sup>](#head.Methods)*
 
-Scans for available SSIDs. Available SSIDs are returned in an `onAvailableSSIDs` event.
+This  asynchronous method is to start wifi scaning for available SSIDs. This method supports scanning for specific range of frequency like 2.4GHz only or 5GHz only or 6GHz only or ALL. When no input passed about the frequency to be scanned, it scans for all. It publishes `onAvailableSSIDs` event upon completion.
 
 ### Events
 
@@ -1038,11 +1038,13 @@ Scans for available SSIDs. Available SSIDs are returned in an `onAvailableSSIDs`
 <a name="method.StopWiFiScan"></a>
 ## *StopWiFiScan [<sup>method</sup>](#head.Methods)*
 
-Stops scanning for SSIDs. Any discovered SSIDs from the call to the `startScan` method up to the point where this method is called are still returned.
+Stops scanning for SSIDs. Any discovered SSIDs from the call to the `StartWiFiScan` method up to the point where this method is called are still returned as event.
 
 ### Events
 
-No Events
+| Event | Description |
+| :-------- | :-------- |
+| [onAvailableSSIDs](#event.onAvailableSSIDs) | Triggered with list of SSIDs is available so far when the scan stopped. |
 
 ### Parameters
 
@@ -1082,7 +1084,7 @@ This method takes no parameters.
 <a name="method.GetKnownSSIDs"></a>
 ## *GetKnownSSIDs [<sup>method</sup>](#head.Methods)*
 
-Saved SSIDs list.
+When the device successfully connected to SSID, it persisted in the device memory to get the device connected across reboots. This method returns all the SSIDs that are saved as array.
 
 ### Events
 
@@ -1121,7 +1123,8 @@ This method takes no parameters.
     "id": 42,
     "result": {
         "ssids": [
-            "Comcast123"
+            "Xfinity_Guest",
+            "MyHome-2.4"
         ],
         "success": true
     }
@@ -1131,7 +1134,7 @@ This method takes no parameters.
 <a name="method.AddToKnownSSIDs"></a>
 ## *AddToKnownSSIDs [<sup>method</sup>](#head.Methods)*
 
-Saves the SSID, passphrase, and security mode for future sessions.
+This method adds given SSID, passphrase, and security mode to the Known SSIDs list and persists for future sessions. This method only adds to the persistent memory; does not disconnect from currently connected SSID.
 
 ### Events
 
@@ -1163,9 +1166,9 @@ No Events
     "id": 42,
     "method": "org.rdk.NetworkManager.AddToKnownSSIDs",
     "params": {
-        "ssid": "123412341234",
+        "ssid": "Testing-5GHz",
         "passphrase": "password",
-        "securityMode": 2
+        "securityMode": 6
     }
 }
 ```
@@ -1185,11 +1188,16 @@ No Events
 <a name="method.RemoveKnownSSID"></a>
 ## *RemoveKnownSSID [<sup>method</sup>](#head.Methods)*
 
-Remove given ssid from saved ssids.
+Removes given ssid from saved ssids list. This method just removes from the list and of the list is having only one entry thats being removed, it will initiate a disconnect.
 
 ### Events
 
-No Events
+
+| Event | Description |
+| :-------- | :-------- |
+| [onWiFiStateChanged](#event.onWiFiStateChanged) | Triggered when Wifi state changes to DISCONNECTED |
+| [onIPAddressChanged](#event.onIPAddressChanged) | Triggered when an IP Address is assigned or lost |
+| [onInternetStatusChange](#event.onInternetStatusChange) | Triggered when internet connection state changed |
 
 ### Parameters
 
@@ -1235,7 +1243,8 @@ No Events
 <a name="method.WiFiConnect"></a>
 ## *WiFiConnect [<sup>method</sup>](#head.Methods)*
 
-Attempts to connect to the specified SSID with the given passphrase. Passphrase can be `null` when the network security is `NONE`. When called with no arguments, this method attempts to connect to the saved SSID and password. See `saveSSID`.
+Attempts to connect to the specified SSID with the given passphrase. Passphrase can be `null` when the network security is `NONE`.
+When called with no arguments, this method attempts to connect to the saved SSID and password. See `AddToKnownSSIDs`.
 
 ### Events
 
@@ -1268,9 +1277,9 @@ Attempts to connect to the specified SSID with the given passphrase. Passphrase 
     "id": 42,
     "method": "org.rdk.NetworkManager.WiFiConnect",
     "params": {
-        "ssid": "123412341234",
+        "ssid": "Testing-5GHz",
         "passphrase": "password",
-        "securityMode": 2
+        "securityMode": 6
     }
 }
 ```
@@ -1290,13 +1299,16 @@ Attempts to connect to the specified SSID with the given passphrase. Passphrase 
 <a name="method.WiFiDisconnect"></a>
 ## *WiFiDisconnect [<sup>method</sup>](#head.Methods)*
 
-Disconnects from the SSID. A `result` value of `0` indicates that the SSID was disconnected. A nonzero value indicates that the SSID did not disconnect.
+This asynchronous method initiates disconnects to the currently connected SSID. A event will be posted upon completion.
 
 ### Events
 
 | Event | Description |
 | :-------- | :-------- |
 | [onWIFIStateChanged](#event.onWIFIStateChanged) | Triggered when Wifi state changes to DISCONNECTED (only if currently connected). |
+| [onIPAddressChanged](#event.onIPAddressChanged) | Triggered when an IP Address is assigned or lost |
+| [onInternetStatusChange](#event.onInternetStatusChange) | Triggered when internet connection state changed |
+
 ### Parameters
 
 This method takes no parameters.
@@ -1335,7 +1347,7 @@ This method takes no parameters.
 <a name="method.GetConnectedSSID"></a>
 ## *GetConnectedSSID [<sup>method</sup>](#head.Methods)*
 
-Returns the connected SSID information.
+This method returns information regarding currently connected SSID.
 
 ### Events
 
@@ -1402,6 +1414,8 @@ If the `method` parameter is set to `SERIALIZED_PIN`, then RDK retrieves the ser
 | Event | Description |
 | :-------- | :-------- |
 | [onWIFIStateChanged](#event.onWIFIStateChanged) | Triggered when Wifi state changes to DISCONNECTED (only if currently connected), CONNECTING, CONNECTED. |
+| [onIPAddressChanged](#event.onIPAddressChanged) | Triggered when an IP Address is assigned or lost |
+| [onInternetStatusChange](#event.onInternetStatusChange) | Triggered when internet connection state changed |
 ### Parameters
 
 | Name | Type | Description |
@@ -1620,6 +1634,63 @@ This method takes no parameters.
 }
 ```
 
+<a name="method.SetLogLevel"></a>
+## *SetLogLevel [<sup>method</sup>](#head.Methods)*
+
+Set Log level for more information. The possible set log level are as follows. 
+* `0`: FATAL  
+* `1`: ERROR  
+* `2`: WARNING  
+* `3`: INFO 
+* `4`: VERBOSE 
+* `5`: TRACE 
+.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.loglevel | integer | Set Log level to get more information |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.NetworkManager.SetLogLevel",
+    "params": {
+        "loglevel": 1
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="head.Notifications"></a>
 # Notifications
 
@@ -1828,59 +1899,3 @@ Triggered when WIFI connection Signal Strength get changed.
 }
 ```
 
-<a name="method.SetLogLevel"></a>
-## *SetLogLevel [<sup>method</sup>](#head.Methods)*
-
-Set Log level for more information. The possible set log level are as follows. 
-* `0`: FATAL  
-* `1`: ERROR  
-* `2`: WARNING  
-* `3`: INFO 
-* `4`: VERBOSE 
-* `5`: TRACE 
-.
-
-### Events
-
-No Events
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.loglevel | integer | Set Log level to get more information |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.NetworkManager.SetLogLevel",
-    "params": {
-        "loglevel": 1
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "success": true
-    }
-}
-```
