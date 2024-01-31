@@ -60,6 +60,7 @@ set_source_files_properties(MiracastPlayer.cpp PROPERTIES COMPILE_FLAGS "-fexcep
 target_include_directories(${MODULE_NAME} PRIVATE ./)
 target_include_directories(${MODULE_NAME} PRIVATE ../common)
 target_include_directories(${MODULE_NAME} PRIVATE RTSP)
+target_include_directories(${MODULE_NAME} PRIVATE HDCP)
 target_include_directories(${MODULE_NAME} PRIVATE ../../helpers)
 target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS})
 target_include_directories(${MODULE_NAME} PRIVATE ${GLIB_INCLUDE_DIRS})
@@ -78,6 +79,16 @@ target_link_libraries(${MODULE_NAME} PRIVATE -lpthread)
 
 if(WPEFRAMEWORK_SECURITYUTIL_FOUND)
 	target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}SecurityUtil)
+endif()
+
+target_sources(${MODULE_NAME} PRIVATE HDCP/MiracastHDCPState.cpp)
+if (BUILD_BROADCOM)
+        target_sources(${MODULE_NAME} PRIVATE HDCP/Broadcom/SoC_abstraction.cpp)
+elseif (BUILD_REALTEK)
+        target_sources(${MODULE_NAME} PRIVATE HDCP/Realtek/SoC_abstraction.cpp)
+elseif (BUILD_AMLOGIC)
+        target_sources(${MODULE_NAME} PRIVATE HDCP/Amlogic/SoC_abstraction.cpp)
+        target_link_libraries(${MODULE_NAME} PRIVATE -lwfd_hdcp)
 endif()
 
 install(TARGETS ${MODULE_NAME}

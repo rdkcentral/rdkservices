@@ -293,3 +293,18 @@ bool MiracastCommon::execute_PopenCommand( const char* popen_command, const char
     MIRACASTLOG_TRACE("Exiting ...");
     return returnValue;
 }
+
+void MiracastCommon::DumpBuffer(char *buffer, int length)
+{
+    // Loop through the buffer, printing each byte in hex format
+    std::string hex_string;
+    for (int i = 0; i < length; i++)
+    {
+        char hex_byte[3];
+        snprintf(hex_byte, sizeof(hex_byte), "%02X", (unsigned char)buffer[i]);
+        hex_string += "0x";
+        hex_string += hex_byte;
+        hex_string += " ";
+    }
+    MIRACASTLOG_INFO("\n######### DUMP BUFFER[%u] #########\n%s\n###############################\n", length, hex_string.c_str());
+}
