@@ -47,7 +47,7 @@ namespace Plugin {
             public:
                 IARMHandler()
                 {
-                    auto rc = IARM_Bus_Init(__FUNCTION__);
+                    auto rc = IARM_Bus_Init("Thunder_Plugins");
                     if ((rc != IARM_RESULT_SUCCESS) && (rc != IARM_RESULT_INVALID_STATE)) {
                         TRACE(Trace::Error, (_T("Sqlite IARM init error %d"), rc));
                     }

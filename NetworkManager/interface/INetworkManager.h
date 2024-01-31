@@ -237,6 +237,9 @@ namespace WPEFramework
             /* @brief Set the network manager plugin log level */
             virtual uint32_t SetLogLevel(const NMLogging& logLevel /* @in */) = 0;
 
+            /* @brief configure network manager plugin */
+            virtual uint32_t Configure(const string& configLine /* @in */, NMLogging& logLevel /* @out */) = 0;
+
             /* @event */
             struct EXTERNAL INotification : virtual public Core::IUnknown
             {

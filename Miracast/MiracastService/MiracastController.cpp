@@ -532,7 +532,7 @@ MiracastError MiracastController::connect_device(std::string device_mac , std::s
         }
         else
         {
-            MIRACASTLOG_ERROR("!!! P2P CONNECT Failure for Device[%s - %s] !!!",device_name.c_str(),device_mac.c_str());
+            MIRACASTLOG_ERROR("#### MCAST-TRIAGE-NOK P2P CONNECT FAILURE FOR DEVICE[%s - %s] ####",device_name.c_str(),device_mac.c_str());
             if ( nullptr != m_notify_handler )
             {
                 m_notify_handler->onMiracastServiceClientConnectionError( device_mac , device_name , MIRACAST_SERVICE_ERR_CODE_P2P_CONNECT_ERROR );
@@ -938,7 +938,7 @@ void MiracastController::Controller_Thread(void *args)
                                 src_dev_mac = get_WFDSourceMACAddress();;
                                 src_dev_name = get_WFDSourceName();
                                 sink_dev_ip = local_address;
-                                MIRACASTLOG_INFO("!!!! LaunchRequest src_dev_name[%s]src_dev_mac[%s]src_dev_ip[%s]sink_dev_ip[%s] !!!!",
+                                MIRACASTLOG_INFO("#### MCAST-TRIAGE-OK-LAUNCH LAUNCH REQ FOR SRC_NAME[%s] SRC_MAC[%s] SRC_IP[%s] SINK_IP[%s] ####",
                                                     src_dev_name.c_str(),
                                                     src_dev_mac.c_str(),
                                                     src_dev_ip.c_str(),
@@ -964,17 +964,17 @@ void MiracastController::Controller_Thread(void *args)
                             if ( CONTROLLER_GO_GROUP_FORMATION_FAILURE == controller_msgq_data.state )
                             {
                                 error_code = MIRACAST_SERVICE_ERR_CODE_P2P_GROUP_FORMATION_ERROR;
-                                MIRACASTLOG_ERROR("CONTROLLER_GO_GROUP_FORMATION_FAILURE Received\n");
+                                MIRACASTLOG_ERROR("#### MCAST-TRIAGE-NOK CONTROLLER_GO_GROUP_FORMATION_FAILURE ####");
                             }
                             else if ( CONTROLLER_GO_NEG_FAILURE == controller_msgq_data.state )
                             {
                                 error_code = MIRACAST_SERVICE_ERR_CODE_P2P_GROUP_NEGO_ERROR;
-                                MIRACASTLOG_ERROR("CONTROLLER_GO_NEG_FAILURE Received\n");
+                                MIRACASTLOG_ERROR("#### MCAST-TRIAGE-NOK CONTROLLER_GO_NEG_FAILURE ####");
                             }
 
                             if ( p2p_group_instance_alive )
                             {
-                                MIRACASTLOG_ERROR("!!! [GROUP_FORMATION/NEG_FAILURE - %#08X] Received after P2P GROUP START!!!\n",
+                                MIRACASTLOG_ERROR("#### MCAST-TRIAGE-NOK [GROUP_FORMATION/NEG_FAILURE - %#08X] AFTER P2P GROUP STARTED ####",
                                                     controller_msgq_data.state );
                                 p2p_group_instance_alive = false;
                             }
@@ -982,13 +982,13 @@ void MiracastController::Controller_Thread(void *args)
 
                         if ( true == session_restart_required )
                         {
-                            MIRACASTLOG_INFO("!!! Restarting Session !!!");
                             if (nullptr != m_notify_handler)
                             {
                                 std::string mac_address = get_WFDSourceMACAddress();
                                 std::string device_name = get_WFDSourceName();
                                 m_notify_handler->onMiracastServiceClientConnectionError( mac_address , device_name , error_code );
                             }
+                            MIRACASTLOG_INFO("!!! Restarting Session !!!");
                             restart_session(start_discovering_enabled);
                             session_restart_required = false;
                         }
@@ -1613,7 +1613,7 @@ void MiracastController::notify_ConnectionRequest(std::string device_name,std::s
     m_current_device_name = device_name;
     m_current_device_mac_addr = device_mac;
 
-    MIRACASTLOG_INFO("!!!! DEVICE[%s - %s] wants to connect !!!!",
+    MIRACASTLOG_INFO("#### MCAST-TRIAGE-OK-CONNECT-REQ DEVICE[%s - %s] CONNECT REQUEST RECEIVED ####",
                         m_current_device_name.c_str(), 
                         m_current_device_mac_addr.c_str());
     if (nullptr != m_notify_handler)
