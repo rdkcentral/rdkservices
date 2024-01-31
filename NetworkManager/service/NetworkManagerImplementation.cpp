@@ -126,7 +126,6 @@ namespace WPEFramework
             NMLOG_TRACE("config : endpoint 4 %s", config.connectivity.endpoint_4.Value().c_str());
             NMLOG_TRACE("config : endpoint 5 %s", config.connectivity.endpoint_5.Value().c_str());
             NMLOG_TRACE("config : interval %d", config.connectivity.ConnectivityCheckInterval.Value());
-            NMLOG_TRACE("config : autostart %s", (config.connectivity.ConnectivityCheckAutoStart.Value() == true)? "true":"false");
 
             NMLOG_TRACE("config : loglevel %d", config.loglevel.Value());
             logLevel = static_cast <NMLogging>(config.loglevel.Value());

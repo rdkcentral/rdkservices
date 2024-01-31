@@ -64,7 +64,6 @@ namespace WPEFramework
                     , endpoint_4(_T(""))
                     , endpoint_5(_T(""))
                     , ConnectivityCheckInterval(6)
-                    , ConnectivityCheckAutoStart(false)
                 {
                     Add(_T("endpoint_1"), &endpoint_1);
                     Add(_T("endpoint_2"), &endpoint_2);
@@ -72,7 +71,6 @@ namespace WPEFramework
                     Add(_T("endpoint_4"), &endpoint_4);
                     Add(_T("endpoint_5"), &endpoint_5);
                     Add(_T("interval"), &ConnectivityCheckInterval);
-                    Add(_T("automonitor"), &ConnectivityCheckAutoStart);
                 }
                 ~Connectivity() override = default;
 
@@ -84,7 +82,6 @@ namespace WPEFramework
                 Core::JSON::String endpoint_4;
                 Core::JSON::String endpoint_5;
                 Core::JSON::DecUInt32 ConnectivityCheckInterval;
-                Core::JSON::Boolean ConnectivityCheckAutoStart;
             };
 
             class Stun : public Core::JSON::Container {
