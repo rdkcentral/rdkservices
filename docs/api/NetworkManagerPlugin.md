@@ -323,7 +323,9 @@ Sets the IP settings.
 
 | Event | Description |
 | :-------- | :-------- |
+| [onIPAddressChanged](#event.onIPAddressChanged) | Triggered when the device connects to router. |
 | [onInternetStatusChanged](#event.onInternetStatusChanged) | Triggered when each IP address is lost or acquired. |
+
 ### Parameters
 
 | Name | Type | Description |
