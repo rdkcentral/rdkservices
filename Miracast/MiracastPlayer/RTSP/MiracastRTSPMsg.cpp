@@ -17,19 +17,13 @@
  * limitations under the License.
  */
 
-#include <MiracastRtspMsg.h>
+#include <MiracastRTSPMsg.h>
 #include <MiracastGstPlayer.h>
 
 MiracastRTSPMsg *MiracastRTSPMsg::m_rtsp_msg_obj{nullptr};
 static std::string empty_string = "";
 
 void RTSPMsgHandlerCallback(void *args);
-
-#ifdef ENABLE_HDCP2X_SUPPORT
-#define HDCP2X_PORT 12000
-#define HDCP2X_SOCKET_BUF_MAX 4096
-void HDCPHandlerCallback(void *args);
-#endif
 
 #ifdef ENABLE_MIRACAST_PLAYER_TEST_NOTIFIER
 void MiracastPlayerTestNotifierThreadCallback(void *args);
@@ -228,8 +222,7 @@ MiracastRTSPMsg::MiracastRTSPMsg()
     set_WFDVideoFormat(st_video_fmt);
     set_WFDAudioCodecs(st_audio_fmt);
 
-    default_configuration = RTSP_DFLT_CONTENT_PROTECTION;
-    set_WFDContentProtection(default_configuration);
+    set_WFDContentProtection(true,RTSP_DFLT_WFD_HDCP_VERSION,RTSP_DFLT_WFD_HDCP_PORT);
 
     default_configuration = RTSP_DFLT_TRANSPORT_PROFILE;
     set_WFDTransportProfile(default_configuration);
@@ -299,17 +292,6 @@ MiracastError MiracastRTSPMsg::create_RTSPThread(void)
             delete m_rtsp_msg_handler_thread;
             m_rtsp_msg_handler_thread = nullptr;
         }
-#ifdef ENABLE_HDCP2X_SUPPORT
-        else
-        {
-            m_hdcp_handler_thread = new MiracastThread( "HDCP_Thread",
-                                                        RTSP_HANDLER_THREAD_STACK,
-                                                        RTSP_HANDLER_MSG_COUNT,
-                                                        RTSP_HANDLER_MSGQ_SIZE,
-                                                        reinterpret_cast<void (*)(void *)>(&HDCPHandlerCallback),
-                                                        this);
-        }
-#endif /*ENABLE_HDCP2X_SUPPORT*/
     }
     MIRACASTLOG_TRACE("Exiting...");
     return error_code;
@@ -546,9 +528,21 @@ bool MiracastRTSPMsg::set_WFDUIBCCapability(std::string uibc_caps)
     return true;
 }
 
-bool MiracastRTSPMsg::set_WFDContentProtection(std::string content_protection)
+bool MiracastRTSPMsg::set_WFDContentProtection(bool enabled, std::string hdcpVersion , unsigned int port )
 {
-    m_wfd_content_protection = content_protection;
+    if ( enabled )
+    {
+        char data_buffer[64] = {0};
+        m_hdcp_port_number = port;
+        m_wfd_hdcp_version = hdcpVersion;
+        sprintf( data_buffer , "%s port=%u" , hdcpVersion.c_str(),port);
+        m_wfd_content_protection = data_buffer;
+    }
+    else
+    {
+        m_wfd_content_protection = "none";
+    }
+    MIRACASTLOG_INFO("Updated RTSP WFD HDCP FIELD is [%s]",m_wfd_content_protection.c_str());
     return true;
 }
 
@@ -619,7 +613,7 @@ bool MiracastRTSPMsg::set_WFDRequestResponseTimeout( unsigned int request_timeou
     {
         m_wfd_src_req_timeout = request_timeout;
         m_wfd_src_res_timeout = response_timeout;
-        MIRACASTLOG_INFO("Request[%u]Response[%u]\n",request_timeout,response_timeout);
+        MIRACASTLOG_INFO("Request[%u]Response[%u]",request_timeout,response_timeout);
     }
     MIRACASTLOG_TRACE("Exiting...");
     return true;
@@ -1415,7 +1409,9 @@ RTSP_STATUS MiracastRTSPMsg::validate_rtsp_m3_response_back(std::string rtsp_m3_
     std::string line;
     std::string actual_parser_field = "",
                 parser_field_value = "";
-    const char  *sequence_tag = get_parser_field_by_index(RTSP_SEQUENCE_FIELD);
+    const char  *sequence_tag = get_parser_field_by_index(RTSP_SEQUENCE_FIELD),
+                *hdcp_tag = get_parser_field_by_index(RTSP_WFD_HDCP_FIELD);
+    bool is_wfd_hdcp_field_received = false;
 
     while (std::getline(ss, line))
     {
@@ -1433,6 +1429,11 @@ RTSP_STATUS MiracastRTSPMsg::validate_rtsp_m3_response_back(std::string rtsp_m3_
             parser_field_value = get_parser_field_n_value_by_name(line);
             if (!parser_field_value.empty())
             {
+                if ( 0 == strncmp( hdcp_tag , line.c_str() , strlen(hdcp_tag)))
+                {
+                    is_wfd_hdcp_field_received = true;
+                    MIRACASTLOG_INFO("[%s] has requested from SrcDev",hdcp_tag);
+                }
                 content_buffer.append(line);
                 content_buffer.append(": ");
                 content_buffer.append(parser_field_value);
@@ -1451,7 +1452,20 @@ RTSP_STATUS MiracastRTSPMsg::validate_rtsp_m3_response_back(std::string rtsp_m3_
 
     if (RTSP_MSG_SUCCESS == status_code)
     {
-        MIRACASTLOG_INFO("Sending the M3 response");
+        MIRACASTLOG_INFO("M3 response sent");
+        if (( is_wfd_hdcp_field_received ) && (0 != (get_WFDContentProtection().compare("none"))))
+        {
+            MIRACASTLOG_INFO("Initiating HDCP SoC Auth by occuring MiracastHDCPState instance");
+            m_p_instance = MiracastHDCPState::getInstance(m_wfd_hdcp_version,m_hdcp_port_number);
+            if ( nullptr == m_p_instance )
+            {
+                status_code = RTSP_SOC_HDCP_AUTH_FAILURE;
+            }
+        }
+        else
+        {
+            MIRACASTLOG_INFO("HDCP SoC Auth not required");
+        }
     }
     else
     {
@@ -2099,6 +2113,12 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
             }
         }
 
+        if ( nullptr != m_p_instance )
+        {
+            MiracastHDCPState::destroyInstance();
+            m_p_instance = nullptr;
+        }
+
         start_monitor_keep_alive_msg = false;
 
         if ((RTSP_MSG_SUCCESS == status_code) || (RTSP_M1_M7_MSG_EXCHANGE_RECEIVED == status_code ))
@@ -2357,94 +2377,6 @@ void RTSPMsgHandlerCallback(void *args)
     rtsp_msg_obj->RTSPMessageHandler_Thread(nullptr);
     MIRACASTLOG_TRACE("Exiting...");
 }
-
-#ifdef ENABLE_HDCP2X_SUPPORT
-void MiracastRTSPMsg::DumpBuffer(char *buffer, int length)
-{
-    // Loop through the buffer, printing each byte in hex format
-    std::string hex_string;
-    for (int i = 0; i < length; i++)
-    {
-        char hex_byte[3];
-        snprintf(hex_byte, sizeof(hex_byte), "%02X", (unsigned char)buffer[i]);
-        hex_string += "0x";
-        hex_string += hex_byte;
-        hex_string += " ";
-    }
-    MIRACASTLOG_INFO("\n######### DUMP BUFFER[%u] #########\n%s\n###############################\n", length, hex_string.c_str());
-}
-
-void MiracastRTSPMsg::HDCPTCPServerHandlerThread(void *args)
-{
-    char buff[HDCP2X_SOCKET_BUF_MAX];
-    int sockfd, connfd;
-    struct sockaddr_in servaddr, cli;
-    unsigned int len = 0;
-
-    // socket create and verification
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd == -1)
-    {
-        MIRACASTLOG_ERROR("socket creation failed...\n");
-    }
-    else
-        MIRACASTLOG_INFO("Socket successfully created..\n");
-    bzero(&servaddr, sizeof(servaddr));
-
-    // assign IP, PORT
-    servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    servaddr.sin_port = htons(HDCP2X_PORT);
-
-    // Binding newly created socket to given IP and verification
-    if ((bind(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr))) != 0)
-    {
-        MIRACASTLOG_ERROR("socket bind failed...\n");
-    }
-    else
-        MIRACASTLOG_INFO("Socket successfully binded..\n");
-
-    // Now server is ready to listen and verification
-    if ((listen(sockfd, 5)) != 0)
-    {
-        MIRACASTLOG_ERROR("Listen failed...\n");
-    }
-    else
-        MIRACASTLOG_INFO("Server listening..\n");
-    len = sizeof(cli);
-
-    // Accept the data packet from client and verification
-    connfd = accept(sockfd, (struct sockaddr *)&cli, &len);
-    if (connfd < 0)
-    {
-        MIRACASTLOG_ERROR("server accept failed...\n");
-    }
-    else
-        MIRACASTLOG_INFO("server accept the client...\n");
-
-    while (true)
-    {
-        bzero(buff, HDCP2X_SOCKET_BUF_MAX);
-
-        // read the message from client and copy it in buffer
-        int n = read(connfd, buff, sizeof(buff));
-
-        if (0 < n)
-        {
-            DumpBuffer(buff, n);
-        }
-
-        bzero(buff, HDCP2X_SOCKET_BUF_MAX);
-    }
-}
-
-void HDCPHandlerCallback(void *args)
-{
-    MiracastRTSPMsg *miracast_ctrler_obj = (MiracastRTSPMsg *)args;
-
-    miracast_ctrler_obj->HDCPTCPServerHandlerThread(nullptr);
-}
-#endif /*ENABLE_HDCP2X_SUPPORT*/
 
 #ifdef ENABLE_MIRACAST_PLAYER_TEST_NOTIFIER
 MiracastError MiracastRTSPMsg::create_TestNotifier(void)

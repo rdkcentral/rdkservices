@@ -26,13 +26,18 @@ find_package(GLIB REQUIRED)
 
 find_library(GLIB_LIBRARY NAMES glib-2.0 )
 
-add_library(${MODULE_NAME} SHARED Module.cpp MiracastService.cpp ../common/MiracastCommon.cpp ../common/MiracastLogger.cpp MiracastController.cpp ../P2P/MiracastP2P.cpp)
+add_library(${MODULE_NAME} SHARED Module.cpp MiracastService.cpp ../common/MiracastCommon.cpp ../common/MiracastLogger.cpp MiracastController.cpp P2P/MiracastP2P.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)
 
-target_include_directories(${MODULE_NAME} PRIVATE ./ ../include ../../helpers ${IARMBUS_INCLUDE_DIRS} ${GLIB_INCLUDE_DIRS})
+target_include_directories(${MODULE_NAME} PRIVATE ./)
+target_include_directories(${MODULE_NAME} PRIVATE ./P2P)
+target_include_directories(${MODULE_NAME} PRIVATE ../common)
+target_include_directories(${MODULE_NAME} PRIVATE ../../helpers)
+target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS})
+target_include_directories(${MODULE_NAME} PRIVATE ${GLIB_INCLUDE_DIRS})
 
 #target_compile_options(${MODULE_NAME} PRIVATE -Wno-error -fpermissive -Os -pipe -g -feliminate-unused-debug-types -Wl,-O1 -Wl,--hash-style=gnu -Wl,--as-needed)
 #target_compile_options(${MODULE_NAME} PRIVATE -DENABLE_MIRACAST_SERVICE_TEST_NOTIFIER)
