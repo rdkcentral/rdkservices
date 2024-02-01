@@ -639,7 +639,7 @@ No Events
     "id": 42,
     "result": {
         "isConnectedToInternet": true,
-        "internetState": 2,
+        "internetState": 4,
         "success": true
     }
 }
@@ -1824,9 +1824,9 @@ Triggered when internet connection state changed.The possible internet connectio
     "jsonrpc": "2.0",
     "method": "client.events.onInternetStatusChange",
     "params": {
-        "PrevState": 0,
+        "PrevState": 1,
         "PrevStatus": "NO_INTERNET",
-        "state": 3,
+        "state": 4,
         "status": "FULLY_CONNECTED"
     }
 }
