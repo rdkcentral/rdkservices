@@ -166,9 +166,14 @@ namespace WPEFramework
                     result["state"] = static_cast <int> (state);
                     _parent.Notify("onWiFiStateChanged", result);
                 }
-                void onWiFiSignalStrengthChanged(const string ssid, const string signalStrength, const Exchange::INetworkManager::WiFiSignalQuality quality) override
+                void onWiFiSignalStrengthChanged(const string ssid, const string signalLevel, const Exchange::INetworkManager::WiFiSignalQuality signalStrength) override
                 {
                     NMLOG_TRACE("%s", __FUNCTION__);
+                    JsonObject result;
+                    result["ssid"] = ssid;
+                    result["signalLevel"] = signalLevel;
+                    result["signalStrength"] = static_cast <int> (signalStrength);
+                    _parent.Notify("onWiFiSignalStrengthChanged", result);
                 }
 
 
