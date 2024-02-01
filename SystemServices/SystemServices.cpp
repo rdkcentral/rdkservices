@@ -1043,6 +1043,7 @@ namespace WPEFramework {
 
             if (res.size() > 0) {
                 std::string model_number;
+		std::string device_type;
                 if (queryParams.empty()) {
                     retAPIStatus = true;
 
@@ -1070,6 +1071,9 @@ namespace WPEFramework {
                             else if (key == "model_number") {
                                 model_number = value;
                             }
+			    else if(key == "device_type") {
+				device_type = value;
+			    }
                         }
                     }
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
