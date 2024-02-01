@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.3.3] - 2024-01-22
+### Fixed
+- Increased the timeout for Connectivity Monitoring and Ensured Curl header for closing the connection
+
 ## [1.3.2] - 2024-01-03
 ### Security
 - resolved security vulnerabilities

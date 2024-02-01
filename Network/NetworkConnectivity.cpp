@@ -178,9 +178,9 @@ namespace WPEFramework {
         else
         {
             if(isConnectivityMonitorEndpointSet())
-                internetState = testConnectivity(getConnectivityMonitorEndpoints(), 2000, ipversion);
+                internetState = testConnectivity(getConnectivityMonitorEndpoints(), 5000, ipversion);
             else
-                internetState = testConnectivity(getConnectivityDefaultEndpoints(), 2000, ipversion);
+                internetState = testConnectivity(getConnectivityDefaultEndpoints(), 5000, ipversion);
         }
 
         return internetState;
@@ -273,6 +273,7 @@ namespace WPEFramework {
         std::vector<int> http_responses;
         struct curl_slist *chunk = NULL;
         chunk = curl_slist_append(chunk, "Cache-Control: no-cache, no-store");
+        chunk = curl_slist_append(chunk, "Connection: close");
         for (const auto& endpoint : endpoints)
         {
             CURL *curl_easy_handle = curl_easy_init();
@@ -500,7 +501,7 @@ namespace WPEFramework {
         nsm_internetState InternetConnectionState = nsm_internetState::UNKNOWN;
         while (!stopFlag)
         {
-            InternetConnectionState = testConnectivity(getConnectivityMonitorEndpoints(), 2000, NSM_IPRESOLVE_WHATEVER);
+            InternetConnectionState = testConnectivity(getConnectivityMonitorEndpoints(), 5000, NSM_IPRESOLVE_WHATEVER);
             if(g_internetState.load() != InternetConnectionState)
             {
                 g_internetState.store(InternetConnectionState);
