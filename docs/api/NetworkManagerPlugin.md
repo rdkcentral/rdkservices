@@ -1646,7 +1646,7 @@ Set Log level for more information. The possible set log level are as follows.
 * `3`: INFO 
 * `4`: VERBOSE 
 * `5`: TRACE 
-.
+
 
 ### Events
 
@@ -1706,9 +1706,9 @@ NetworkManager interface events:
 | :-------- | :-------- |
 | [onInterfaceStateChanged](#event.onInterfaceStateChanged) | Triggered when an interface becomes enabled or disabled |
 | [onIPAddressChanged](#event.onIPAddressChanged) | Triggered when an IP Address is assigned or lost |
-| [onActiveInterfaceChanged](#event.onActiveInterfaceChanged) | Triggered when the ac interface changes, regardless if it's from a system operation or through the `setDefaultInterface` method |
+| [onActiveInterfaceChanged](#event.onActiveInterfaceChanged) | Triggered when the primary/active interface changes, regardless if it's from a system operation or through the `SetPrimaryInterface` method |
 | [onInternetStatusChange](#event.onInternetStatusChange) | Triggered when internet connection state changed |
-| [onAvailableSSIDs](#event.onAvailableSSIDs) | Triggered when got for scan |
+| [onAvailableSSIDs](#event.onAvailableSSIDs) | Triggered when scan completes or when scan cancelled |
 | [onWiFiStateChanged](#event.onWiFiStateChanged) | Triggered when WIFI connection state get changed |
 | [onWiFiSignalStrengthChanged](#event.onWiFiSignalStrengthChanged) | Triggered when WIFI connection Signal Strength get changed |
 
@@ -1716,7 +1716,13 @@ NetworkManager interface events:
 <a name="event.onInterfaceStateChanged"></a>
 ## *onInterfaceStateChanged [<sup>event</sup>](#head.Notifications)*
 
-Triggered when an interface becomes enabled or disabled.
+Triggered when an interface state is changed. The possible states are 
+* `INTERFACE_ADDED`
+* `INTERFACE_LINK_UP`
+* `INTERFACE_LINK_DOWN`
+* `INTERFACE_ACQUIRING_IP`
+* `INTERFACE_REMOVED`
+* `INTERFACE_DISABLED`
 
 ### Parameters
 
@@ -1724,7 +1730,8 @@ Triggered when an interface becomes enabled or disabled.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface |
-| params.state | string | Whether the interface is enabled (`true`) or disabled (`false`) |
+| params.state | string | Current state of the interface |
+
 
 ### Example
 
@@ -1734,7 +1741,7 @@ Triggered when an interface becomes enabled or disabled.
     "method": "client.events.onInterfaceStateChanged",
     "params": {
         "interface": "wlan0",
-        "state": "Interface_ADDED"
+        "state": "INTERFACE_ADDED"
     }
 }
 ```
@@ -1772,7 +1779,7 @@ Triggered when an IP Address is assigned or lost.
 <a name="event.onActiveInterfaceChanged"></a>
 ## *onActiveInterfaceChanged [<sup>event</sup>](#head.Notifications)*
 
-Triggered when the ac interface changes, regardless if it's from a system operation or through the `setDefaultInterface` method.
+Triggered when the ac interface changes, regardless if it's from a system operation or through the `SetPrimaryInterface` method.
 
 ### Parameters
 
