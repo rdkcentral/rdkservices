@@ -1757,8 +1757,8 @@ Triggered when an IP Address is assigned or lost.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface |
-| params.ipv6 | string | The IPv6 address for the interface |
-| params?.ipv4 | string | <sup>*(optional)*</sup> The IPv4 address for the interface |
+| params.ipAddress | string | The IPv6 or IPv4 address for the interface |
+| params.isIPv6 | boolean | It will be true if the IP address is IPv6 |
 | params.status | string | Whether IP address was acquired or lost (must be one of the following: *`ACQUIRED`*, *`LOST`*) |
 
 ### Example
@@ -1769,8 +1769,8 @@ Triggered when an IP Address is assigned or lost.
     "method": "client.events.onIPAddressChanged",
     "params": {
         "interface": "wlan0",
-        "ipv6": "2001:0xx8:85a3:0000:0000:8x2x:0370:7334",
-        "ipv4": "192.168.1.2",
+        "isIPv6": false
+        "ipAddress": "192.168.1.100",
         "status": "ACQUIRED"
     }
 }
@@ -1779,7 +1779,7 @@ Triggered when an IP Address is assigned or lost.
 <a name="event.onActiveInterfaceChanged"></a>
 ## *onActiveInterfaceChanged [<sup>event</sup>](#head.Notifications)*
 
-Triggered when the ac interface changes, regardless if it's from a system operation or through the `SetPrimaryInterface` method.
+Triggered when the active interface changes, regardless if it's from a system operation like connect/disconnect of Ethernet Plug or through the `SetPrimaryInterface` method.
 
 ### Parameters
 
@@ -1796,8 +1796,8 @@ Triggered when the ac interface changes, regardless if it's from a system operat
     "jsonrpc": "2.0",
     "method": "client.events.onActiveInterfaceChanged",
     "params": {
-        "oldInterfaceName": "ETHERNET",
-        "newInterfaceName": "WIFI"
+        "oldInterfaceName": "wlan0",
+        "newInterfaceName": "eth0"
     }
 }
 ```
@@ -1826,8 +1826,8 @@ Triggered when internet connection state changed.The possible internet connectio
     "params": {
         "PrevState": 0,
         "PrevStatus": "NO_INTERNET",
-        "state": 0,
-        "status": "NO_INTERNET"
+        "state": 3,
+        "status": "FULLY_CONNECTED"
     }
 }
 ```
@@ -1835,7 +1835,7 @@ Triggered when internet connection state changed.The possible internet connectio
 <a name="event.onAvailableSSIDs"></a>
 ## *onAvailableSSIDs [<sup>event</sup>](#head.Notifications)*
 
-Triggered when got for scan.
+Triggered when WIFI Scanning is complete or partially cancelled.
 
 ### Parameters
 
@@ -1851,7 +1851,20 @@ Triggered when got for scan.
     "jsonrpc": "2.0",
     "method": "client.events.onAvailableSSIDs",
     "params": {
-        "ssids": "..."
+        "ssids": [
+            {
+                "ssid": "myAP-2.4",
+                "security": 6,
+                "signalStrength": "-27.000000",
+                "frequency": "2.442000"
+            },
+            {
+                "ssid": "myAP-5",
+                "security": 6,
+                "signalStrength": "-27.000000",
+                "frequency": "5.580000"
+            },
+        ]
     }
 }
 ```
@@ -1859,7 +1872,22 @@ Triggered when got for scan.
 <a name="event.onWiFiStateChanged"></a>
 ## *onWiFiStateChanged [<sup>event</sup>](#head.Notifications)*
 
-Triggered when WIFI connection state get changed.
+Triggered when WIFI connection state changed. The possible states are,
+
+* `0`  - `WIFI_STATE_UNINSTALLED`
+* `1`  - `WIFI_STATE_DISABLED`
+* `2`  - `WIFI_STATE_DISCONNECTED`
+* `3`  - `WIFI_STATE_PAIRING`
+* `4`  - `WIFI_STATE_CONNECTING`
+* `5`  - `WIFI_STATE_CONNECTED`
+* `6`  - `WIFI_STATE_SSID_NOT_FOUND`
+* `7`  - `WIFI_STATE_SSID_CHANGED`
+* `8`  - `WIFI_STATE_CONNECTION_LOST`
+* `9`  - `WIFI_STATE_CONNECTION_FAILED`
+* `10` - `WIFI_STATE_CONNECTION_INTERRUPTED`
+* `11` - `WIFI_STATE_INVALID_CREDENTIALS`
+* `12` - `WIFI_STATE_AUTHENTICATION_FAILED`
+* `13` - `WIFI_STATE_ERROR`
 
 ### Parameters
 
@@ -1875,7 +1903,7 @@ Triggered when WIFI connection state get changed.
     "jsonrpc": "2.0",
     "method": "client.events.onWiFiStateChanged",
     "params": {
-        "state": 3
+        "state": 5
     }
 }
 ```
@@ -1901,9 +1929,8 @@ Triggered when WIFI connection Signal Strength get changed.
     "jsonrpc": "2.0",
     "method": "client.events.onWiFiSignalStrengthChanged",
     "params": {
-        "ssid": "comcast123",
-        "signalStrength": "...",
-        "quality": "..."
+        "signalStrength": "-27.000000",
+        "strength": "Excellent"
     }
 }
 ```
