@@ -24,6 +24,10 @@
 #include "Module.h"
 #include "dsTypes.h"
 
+#define DEFAULT_PRIM_VOL_LEVEL 25
+#define MAX_PRIM_VOL_LEVEL 100
+#define DEFAULT_PLAYER_VOL_LEVEL 100
+
 namespace WPEFramework {
 
     namespace Plugin {
@@ -49,7 +53,8 @@ namespace WPEFramework {
 
             void InitializeIARM();
             void DeinitializeIARM();
-
+            int m_primVolume;
+            int m_thisVolume; //Player Volume
             //Begin methods
             uint32_t getHDMIInputDevicesWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t writeEDIDWrapper(const JsonObject& parameters, JsonObject& response);
@@ -60,6 +65,7 @@ namespace WPEFramework {
             uint32_t getEdidVersionWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t startHdmiInput(const JsonObject& parameters, JsonObject& response);
             uint32_t stopHdmiInput(const JsonObject& parameters, JsonObject& response);
+            uint32_t setAudioMixerLevels(const JsonObject& parameters, JsonObject& response);
 
             uint32_t setVideoRectangleWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getSupportedGameFeatures(const JsonObject& parameters, JsonObject& response);

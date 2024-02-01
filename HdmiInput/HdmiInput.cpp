@@ -40,6 +40,7 @@
 #define HDMIINPUT_METHOD_READ_HDMISPD "getHDMISPD"
 #define HDMIINPUT_METHOD_SET_EDID_VERSION "setEdidVersion"
 #define HDMIINPUT_METHOD_GET_EDID_VERSION "getEdidVersion"
+#define HDMIINPUT_METHOD_SET_AUDIO_MIXER_LEVELS "setAudioMixerLevels"
 #define HDMIINPUT_METHOD_START_HDMI_INPUT "startHdmiInput"
 #define HDMIINPUT_METHOD_STOP_HDMI_INPUT "stopHdmiInput"
 #define HDMIINPUT_METHOD_SCALE_HDMI_INPUT "setVideoRectangle"
@@ -116,6 +117,7 @@ namespace WPEFramework
             registerMethod(HDMIINPUT_METHOD_READ_HDMISPD, &HdmiInput::getHDMISPDWrapper, this);
             registerMethod(HDMIINPUT_METHOD_SET_EDID_VERSION, &HdmiInput::setEdidVersionWrapper, this);
             registerMethod(HDMIINPUT_METHOD_GET_EDID_VERSION, &HdmiInput::getEdidVersionWrapper, this);
+            registerMethod(HDMIINPUT_METHOD_SET_AUDIO_MIXER_LEVELS, &HdmiInput::setAudioMixerLevels, this);
             registerMethod(HDMIINPUT_METHOD_START_HDMI_INPUT, &HdmiInput::startHdmiInput, this);
             registerMethod(HDMIINPUT_METHOD_STOP_HDMI_INPUT, &HdmiInput::stopHdmiInput, this);
             registerMethod(HDMIINPUT_METHOD_SCALE_HDMI_INPUT, &HdmiInput::setVideoRectangleWrapper, this);
@@ -124,6 +126,9 @@ namespace WPEFramework
             registerMethod(HDMIINPUT_METHOD_GAME_FEATURE_STATUS, &HdmiInput::getHdmiGameFeatureStatusWrapper, this);
 	    registerMethod(HDMIINPUT_METHOD_GET_AV_LATENCY, &HdmiInput::getAVLatency, this);
             registerMethod(HDMIINPUT_METHOD_GET_LOW_LATENCY_MODE, &HdmiInput::getTVLowLatencyMode, this);
+
+	    m_primVolume = DEFAULT_PRIM_VOL_LEVEL;
+    	    m_thisVolume = DEFAULT_PLAYER_VOL_LEVEL;
         }
 
         HdmiInput::~HdmiInput()
@@ -1081,6 +1086,53 @@ namespace WPEFramework
             return spdbase64;
         }
 
+	uint32_t HdmiInput::setAudioMixerLevels(const JsonObject& parameters, JsonObject& response)
+        {
+              returnIfStringParamNotFound(parameters, "primaryVolume");
+              returnIfStringParamNotFound(parameters, "playerVolume");
+	
+		string sPrimVol = parameters["primaryVolume"].String();
+   		 string sThisVol = parameters["playerVolume"].String();
+   		 int primVol = 0, thisVol = 0;
+   		 try {
+        		primVol = stoi(sPrimVol);
+        		thisVol = stoi(sThisVol);
+    		} catch(...) {
+      			  LOGERR("Incompatible params passed !!!\n");
+        		  response["success"] = false;
+        		  returnResponse(false);
+    		}
+
+
+   		 LOGDBG("primary Volume=%d player Volume=%d \n", primVol , thisVol );
+    		if(m_primVolume >=0 ) {
+        		m_primVolume = primVol;
+    		}
+    		if(m_thisVolume >=0) {
+        		m_thisVolume = thisVol;
+    		}
+    		if(m_primVolume > MAX_PRIM_VOL_LEVEL) {
+        		LOGWARN("Primary Volume greater than limit. Set to MAX_PRIM_VOL_LEVEL(100) !!!\n");
+        		m_primVolume = MAX_PRIM_VOL_LEVEL;
+   		 }
+    		if(m_thisVolume > DEFAULT_PLAYER_VOL_LEVEL) {
+        		LOGWARN("Player Volume greater than limit. Set to DEFAULT_PLAYER_VOL_LEVEL(100) !!!\n");
+        		m_thisVolume = DEFAULT_PLAYER_VOL_LEVEL;
+    		}
+   		 LOGDBG("GLOBAL primary Volume=%d player Volume=%d \n",m_primVolume  , m_thisVolume );
+	
+		try{
+	
+	    		device::HdmiInput::getInstance().setAudioMixerLevels((int)MIXGAIN_PRIM,primVol);
+        		device::HdmiInput::getInstance().setAudioMixerLevels((int)MIXGAIN_SYS,thisVol);
+		}
+		catch(...){
+	    		LOGWARN("Not setting SoC volume !!!\n");
+        		returnResponse(false);
+		}
+	
+		returnResponse(true);
+        }
         uint32_t HdmiInput::setEdidVersionWrapper(const JsonObject& parameters, JsonObject& response)
         {
             int portId = 0;
