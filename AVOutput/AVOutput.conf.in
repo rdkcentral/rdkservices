@@ -1,0 +1,4 @@
+precondition = ["Platform"]
+callsign = "org.rdk.AVOutput"
+autostart = "false"
+startuporder = "@PLUGIN_AVOUTPUT_STARTUPORDER@"
