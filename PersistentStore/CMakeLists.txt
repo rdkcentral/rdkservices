@@ -15,19 +15,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+cmake_minimum_required(VERSION 3.14)
+
 project(PersistentStore)
 
-cmake_minimum_required(VERSION 3.3)
+set(CMAKE_CXX_STANDARD 11)
 
 find_package(WPEFramework)
-
-project_version(1.0.0)
-
-set(MODULE_NAME ${NAMESPACE}${PROJECT_NAME})
-
-message("Setup ${MODULE_NAME} v${PROJECT_VERSION}")
+set(MODULE_NAME "${NAMESPACE}${PROJECT_NAME}")
 
 set(PLUGIN_PERSISTENTSTORE_MODE "Off" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
+set(PLUGIN_PERSISTENTSTORE_URI "ss.eu.prod.developer.comcast.com:443" CACHE STRING "Account scope endpoint")
 set(PLUGIN_PERSISTENTSTORE_PATH "/opt/secure/persistent/rdkservicestore" CACHE STRING "Path")
 set(PLUGIN_PERSISTENTSTORE_LEGACYPATH "/opt/persistent/rdkservicestore" CACHE STRING "Previously used path")
 set(PLUGIN_PERSISTENTSTORE_KEY "" CACHE STRING "Encryption key")
@@ -36,49 +34,35 @@ set(PLUGIN_PERSISTENTSTORE_MAXVALUE "3000" CACHE STRING "For single text data, i
 set(PLUGIN_PERSISTENTSTORE_LIMIT "10000" CACHE STRING "Default for all text data in namespace, in bytes")
 set(PLUGIN_PERSISTENTSTORE_STARTUPORDER "" CACHE STRING "To configure startup order of PersistentStore plugin")
 
-find_package(${NAMESPACE}Plugins REQUIRED)
-find_package(${NAMESPACE}Definitions REQUIRED)
-
-find_package(PkgConfig REQUIRED)
-pkg_search_module(SQLITE REQUIRED sqlite3)
-
-find_library(IARMBUS_LIBRARIES NAMES IARMBus)
-
-if (IARMBUS_LIBRARIES)
-    message("Building with IARMBus")
-    add_definitions(-DWITH_CLOCK_SYNC)
-    find_path(IARMBUS_INCLUDE_DIRS NAMES libIBus.h PATH_SUFFIXES rdk/iarmbus REQUIRED)
-    find_path(IARMSYS_INCLUDE_DIRS NAMES sysMgr.h PATH_SUFFIXES rdk/iarmmgrs/sysmgr REQUIRED)
-endif ()
-
 add_library(${MODULE_NAME} SHARED
         PersistentStore.cpp
         PersistentStoreJsonRpc.cpp
-        sqlite/Handle.cpp
+        sqlite/Store2.cpp
+        sqlite/StoreCache.cpp
+        sqlite/StoreInspector.cpp
+        sqlite/StoreLimit.cpp
         Module.cpp
-        )
+)
 
-set_target_properties(${MODULE_NAME} PROPERTIES
-        CXX_STANDARD 11
-        CXX_STANDARD_REQUIRED YES
-        )
-
-add_definitions(${SQLITE_CFLAGS_OTHER})
-link_directories(${SQLITE_LIBRARY_DIRS})
-
-target_include_directories(${MODULE_NAME} PRIVATE
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-        ${SQLITE_INCLUDE_DIRS}
-        ${IARMBUS_INCLUDE_DIRS}
-        ${IARMSYS_INCLUDE_DIRS}
-        )
-
+find_package(${NAMESPACE}Plugins REQUIRED)
+find_package(${NAMESPACE}Definitions REQUIRED)
 target_link_libraries(${MODULE_NAME} PRIVATE
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
         ${NAMESPACE}Definitions::${NAMESPACE}Definitions
-        ${SQLITE_LIBRARIES}
-        ${IARMBUS_LIBRARIES}
-        )
+)
+
+find_package(PkgConfig REQUIRED)
+pkg_search_module(SQLITE REQUIRED sqlite3)
+target_link_libraries(${MODULE_NAME} PRIVATE ${SQLITE_LIBRARIES})
+
+find_library(IARMBUS_LIBRARIES NAMES IARMBus)
+if (IARMBUS_LIBRARIES)
+    find_path(IARMBUS_INCLUDE_DIRS NAMES libIBus.h PATH_SUFFIXES rdk/iarmbus REQUIRED)
+    find_path(IARMSYS_INCLUDE_DIRS NAMES sysMgr.h PATH_SUFFIXES rdk/iarmmgrs/sysmgr REQUIRED)
+    target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS} ${IARMSYS_INCLUDE_DIRS})
+    target_link_libraries(${MODULE_NAME} PRIVATE ${IARMBUS_LIBRARIES})
+    add_definitions(-DWITH_SYSMGR)
+endif ()
 
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)

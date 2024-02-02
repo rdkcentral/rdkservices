@@ -1,129 +1,96 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "../Handle.h"
-#include "../Store2Type.h"
-#include "../StoreInspectorType.h"
-
-using namespace WPEFramework;
-using namespace WPEFramework::Plugin;
+#include "../Store2.h"
+#include "../StoreInspector.h"
 
 using ::testing::Eq;
 using ::testing::IsFalse;
 using ::testing::IsTrue;
 using ::testing::NotNull;
 using ::testing::Test;
+using ::WPEFramework::Exchange::IStore2;
+using ::WPEFramework::Exchange::IStoreInspector;
+using ::WPEFramework::Plugin::Sqlite::Store2;
+using ::WPEFramework::Plugin::Sqlite::StoreInspector;
+using ::WPEFramework::RPC::IStringIterator;
 
-const std::string Path = "/tmp/sqlite/l1test/storeinspectortest";
-const uint32_t MaxSize = 100;
-const uint32_t MaxValue = 10;
-const uint32_t Limit = 50;
+const auto kPath = "/tmp/persistentstore/sqlite/l1test/storeinspectortest";
+const auto kMaxSize = 100;
+const auto kMaxValue = 10;
+const auto kLimit = 50;
+const auto kValue = "value_1";
+const auto kKey = "key_1";
+const auto kAppId = "app_id_1";
+const auto kNoTtl = 0;
+const auto kScope = IStoreInspector::ScopeType::DEVICE;
+const auto kUnknown = "unknown";
 
 class AStoreInspector : public Test {
 protected:
-    Exchange::IStoreInspector* inspector;
-    ~AStoreInspector() override = default;
-    void SetUp() override
+    IStoreInspector* inspector;
+    AStoreInspector()
+        : inspector(WPEFramework::Core::Service<StoreInspector>::Create<IStoreInspector>(kPath))
     {
-        Core::File(Path).Destroy();
-        // File is destroyed
-
-        Core::SystemInfo::SetEnvironment(_T("PERSISTENTSTORE_PATH"), Path);
-        Core::SystemInfo::SetEnvironment(_T("PERSISTENTSTORE_MAXSIZE"), std::to_string(MaxSize));
-        Core::SystemInfo::SetEnvironment(_T("PERSISTENTSTORE_MAXVALUE"), std::to_string(MaxValue));
-        Core::SystemInfo::SetEnvironment(_T("PERSISTENTSTORE_LIMIT"), std::to_string(Limit));
-        inspector = Core::Service<Sqlite::StoreInspectorType<Sqlite::Handle>>::Create<Exchange::IStoreInspector>();
     }
-    void TearDown() override
+    ~AStoreInspector() override
     {
         inspector->Release();
     }
 };
 
-TEST_F(AStoreInspector, GetsKeysForUnknownNamespaceWithoutError)
+TEST_F(AStoreInspector, GetsKeysWhenNamespaceUnknown)
 {
-    RPC::IStringIterator* it;
-    ASSERT_THAT(inspector->GetKeys(Exchange::IStore2::ScopeType::DEVICE, "x", it), Eq(Core::ERROR_NONE));
+    IStringIterator* it;
+    ASSERT_THAT(inspector->GetKeys(kScope, kUnknown, it), Eq(WPEFramework::Core::ERROR_NONE));
     ASSERT_THAT(it, NotNull());
     string element;
     EXPECT_THAT(it->Next(element), IsFalse());
     it->Release();
 }
 
-TEST_F(AStoreInspector, GetsNamespacesWhenEmptyWithoutError)
+TEST_F(AStoreInspector, GetsKeys)
 {
-    RPC::IStringIterator* it;
-    ASSERT_THAT(inspector->GetNamespaces(Exchange::IStore2::ScopeType::DEVICE, it), Eq(Core::ERROR_NONE));
-    ASSERT_THAT(it, NotNull());
-    string element;
-    ASSERT_THAT(it->Next(element), IsFalse());
-    it->Release();
-}
-
-TEST_F(AStoreInspector, GetsStorageSizesWhenEmptyWithoutError)
-{
-    Exchange::IStoreInspector::INamespaceSizeIterator* it;
-    ASSERT_THAT(inspector->GetStorageSizes(Exchange::IStore2::ScopeType::DEVICE, it), Eq(Core::ERROR_NONE));
-    ASSERT_THAT(it, NotNull());
-    Exchange::IStoreInspector::NamespaceSize element;
-    ASSERT_THAT(it->Next(element), IsFalse());
-    it->Release();
-}
-
-class AStoreInspectorWithValues : public AStoreInspector {
-protected:
-    ~AStoreInspectorWithValues() override = default;
-    void SetUp() override
-    {
-        AStoreInspector::SetUp();
-        auto store = Core::Service<Sqlite::Store2Type<Sqlite::Handle>>::Create<Exchange::IStore2>();
-        ASSERT_THAT(store->SetValue(Exchange::IStore2::ScopeType::DEVICE, "ns1", "key1", "value1", 0), Eq(Core::ERROR_NONE));
-        ASSERT_THAT(store->SetValue(Exchange::IStore2::ScopeType::DEVICE, "ns1", "key2", "value2", 0), Eq(Core::ERROR_NONE));
-        ASSERT_THAT(store->SetValue(Exchange::IStore2::ScopeType::DEVICE, "ns2", "key1", "value1", 0), Eq(Core::ERROR_NONE));
-        store->Release();
-    }
-};
-
-TEST_F(AStoreInspectorWithValues, GetsKeys)
-{
-    RPC::IStringIterator* it;
-    ASSERT_THAT(inspector->GetKeys(Exchange::IStore2::ScopeType::DEVICE, "ns1", it), Eq(Core::ERROR_NONE));
+    auto store2 = WPEFramework::Core::Service<Store2>::Create<IStore2>(kPath, kMaxSize, kMaxValue, kLimit);
+    ASSERT_THAT(store2->SetValue(kScope, kAppId, kKey, kValue, kNoTtl), Eq(WPEFramework::Core::ERROR_NONE));
+    store2->Release();
+    IStringIterator* it;
+    ASSERT_THAT(inspector->GetKeys(kScope, kAppId, it), Eq(WPEFramework::Core::ERROR_NONE));
     ASSERT_THAT(it, NotNull());
     string element;
     ASSERT_THAT(it->Next(element), IsTrue());
-    EXPECT_THAT(element, Eq("key1"));
-    ASSERT_THAT(it->Next(element), IsTrue());
-    EXPECT_THAT(element, Eq("key2"));
+    EXPECT_THAT(element, Eq(kKey));
     EXPECT_THAT(it->Next(element), IsFalse());
     it->Release();
 }
 
-TEST_F(AStoreInspectorWithValues, GetsNamespaces)
+TEST_F(AStoreInspector, GetsNamespaces)
 {
-    RPC::IStringIterator* it;
-    ASSERT_THAT(inspector->GetNamespaces(Exchange::IStore2::ScopeType::DEVICE, it), Eq(Core::ERROR_NONE));
+    auto store2 = WPEFramework::Core::Service<Store2>::Create<IStore2>(kPath, kMaxSize, kMaxValue, kLimit);
+    ASSERT_THAT(store2->SetValue(kScope, kAppId, kKey, kValue, kNoTtl), Eq(WPEFramework::Core::ERROR_NONE));
+    store2->Release();
+    IStringIterator* it;
+    ASSERT_THAT(inspector->GetNamespaces(kScope, it), Eq(WPEFramework::Core::ERROR_NONE));
     ASSERT_THAT(it, NotNull());
     string element;
     ASSERT_THAT(it->Next(element), IsTrue());
-    EXPECT_THAT(element, Eq("ns1"));
-    ASSERT_THAT(it->Next(element), IsTrue());
-    EXPECT_THAT(element, Eq("ns2"));
+    EXPECT_THAT(element, Eq(kAppId));
     EXPECT_THAT(it->Next(element), IsFalse());
     it->Release();
 }
 
-TEST_F(AStoreInspectorWithValues, GetsStorageSizes)
+TEST_F(AStoreInspector, GetsStorageSizes)
 {
-    Exchange::IStoreInspector::INamespaceSizeIterator* it;
-    ASSERT_THAT(inspector->GetStorageSizes(Exchange::IStore2::ScopeType::DEVICE, it), Eq(Core::ERROR_NONE));
+    auto store2 = WPEFramework::Core::Service<Store2>::Create<IStore2>(kPath, kMaxSize, kMaxValue, kLimit);
+    ASSERT_THAT(store2->SetValue(kScope, kAppId, kKey, kValue, kNoTtl), Eq(WPEFramework::Core::ERROR_NONE));
+    store2->Release();
+    IStoreInspector::INamespaceSizeIterator* it;
+    ASSERT_THAT(inspector->GetStorageSizes(kScope, it), Eq(WPEFramework::Core::ERROR_NONE));
     ASSERT_THAT(it, NotNull());
-    Exchange::IStoreInspector::NamespaceSize element;
+    IStoreInspector::NamespaceSize element;
     ASSERT_THAT(it->Next(element), IsTrue());
-    EXPECT_THAT(element.ns, Eq("ns1"));
-    EXPECT_THAT(element.size, Eq(20));
-    ASSERT_THAT(it->Next(element), IsTrue());
-    EXPECT_THAT(element.ns, Eq("ns2"));
-    EXPECT_THAT(element.size, Eq(10));
+    EXPECT_THAT(element.ns, Eq(kAppId));
+    EXPECT_THAT(element.size, Eq(strlen(kKey) + strlen(kValue)));
     EXPECT_THAT(it->Next(element), IsFalse());
     it->Release();
 }

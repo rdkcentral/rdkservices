@@ -1,42 +1,29 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "../Handle.h"
-#include "../StoreCacheType.h"
-
-using namespace WPEFramework;
-using namespace WPEFramework::Plugin;
+#include "../StoreCache.h"
 
 using ::testing::Eq;
 using ::testing::Test;
+using ::WPEFramework::Exchange::IStoreCache;
+using ::WPEFramework::Plugin::Sqlite::StoreCache;
 
-const std::string Path = "/tmp/sqlite/l1test/storecachetest";
-const uint32_t MaxSize = 100;
-const uint32_t MaxValue = 10;
-const uint32_t Limit = 50;
+const auto kPath = "/tmp/persistentstore/sqlite/l1test/storecachetest";
 
 class AStoreCache : public Test {
 protected:
-    Exchange::IStoreCache* cache;
-    ~AStoreCache() override = default;
-    void SetUp() override
+    IStoreCache* cache;
+    AStoreCache()
+        : cache(WPEFramework::Core::Service<StoreCache>::Create<IStoreCache>(kPath))
     {
-        Core::File(Path).Destroy();
-        // File is destroyed
-
-        Core::SystemInfo::SetEnvironment(_T("PERSISTENTSTORE_PATH"), Path);
-        Core::SystemInfo::SetEnvironment(_T("PERSISTENTSTORE_MAXSIZE"), std::to_string(MaxSize));
-        Core::SystemInfo::SetEnvironment(_T("PERSISTENTSTORE_MAXVALUE"), std::to_string(MaxValue));
-        Core::SystemInfo::SetEnvironment(_T("PERSISTENTSTORE_LIMIT"), std::to_string(Limit));
-        cache = Core::Service<Sqlite::StoreCacheType<Sqlite::Handle>>::Create<Exchange::IStoreCache>();
     }
-    void TearDown() override
+    ~AStoreCache() override
     {
         cache->Release();
     }
 };
 
-TEST_F(AStoreCache, FlushesCacheWithoutError)
+TEST_F(AStoreCache, FlushesCache)
 {
-    EXPECT_THAT(cache->FlushCache(), Eq(Core::ERROR_NONE));
+    EXPECT_THAT(cache->FlushCache(), Eq(WPEFramework::Core::ERROR_NONE));
 }
