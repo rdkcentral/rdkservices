@@ -15,7 +15,7 @@ connectivity.add("interval", "@PLUGIN_NETWORKMANAGER_CONN_MONITOR_INTERVAL@")
 
 stun = JSON()
 stun.add("endpoint", "@PLUGIN_NETWORKMANAGER_STUN_ENDPOINT@")
-stun.add("port", "19310")
+stun.add("port", "@PLUGIN_NETWORKMANAGER_STUN_PORT@")
 stun.add("interval", "30")
 
 configuration = JSON()
