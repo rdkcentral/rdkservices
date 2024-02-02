@@ -230,6 +230,10 @@ namespace WPEFramework
        {
              printHeader(header);
              LOGINFO("Command: InActiveSource %s : %s : %s  \n",GetOpName(msg.opCode()),msg.physicalAddress.name().c_str(),msg.physicalAddress.toString().c_str());
+	     if(header.from.toInt() == LogicalAddress::UNREGISTERED){
+                LOGERR("Ignoring the message coming from Unregistered Logical Address");
+                return;
+             }
 
 			 HdmiCecSink::_instance->updateInActiveSource(header.from.toInt(), msg);
 	   }
@@ -238,6 +242,10 @@ namespace WPEFramework
        {
              printHeader(header);
              LOGINFO("Command: ImageViewOn from %s\n", header.from.toString().c_str());
+	     if(header.from.toInt() == LogicalAddress::UNREGISTERED){
+                LOGERR("Ignoring the message coming from Unregistered Logical Address");
+                return;
+             }
 			 HdmiCecSink::_instance->addDevice(header.from.toInt());
 			 HdmiCecSink::_instance->updateImageViewOn(header.from.toInt());
        }
@@ -245,6 +253,10 @@ namespace WPEFramework
        {
              printHeader(header);
              LOGINFO("Command: TextViewOn\n");
+	     if(header.from.toInt() == LogicalAddress::UNREGISTERED){
+                LOGERR("Ignoring the message coming from Unregistered Logical Address");
+                return;
+             }
 			 HdmiCecSink::_instance->addDevice(header.from.toInt());
 			 HdmiCecSink::_instance->updateImageViewOn(header.from.toInt());
        }
@@ -265,6 +277,10 @@ namespace WPEFramework
        {
              printHeader(header);
              LOGINFO("Command: GetCECVersion sending CECVersion response \n");
+	     if(header.from.toInt() == LogicalAddress::UNREGISTERED){
+                LOGERR("Ignoring the message coming from Unregistered Logical Address");
+                return;
+             }
              try
              { 
                  if(cecVersion == 2.0) {
@@ -285,6 +301,10 @@ namespace WPEFramework
 	     printHeader(header);
              LOGINFO("Command: CECVersion Version : %s \n",msg.version.toString().c_str());
 
+	     if(header.from.toInt() == LogicalAddress::UNREGISTERED){
+                LOGERR("Ignoring the message coming from Unregistered Logical Address");
+                return;
+             }
 	     HdmiCecSink::_instance->addDevice(header.from.toInt());
 	     updateStatus = HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isVersionUpdated;
              LOGINFO("updateStatus %d\n",updateStatus);
@@ -301,6 +321,10 @@ namespace WPEFramework
        {
              printHeader(header);
              LOGINFO("Command: GiveOSDName sending SetOSDName : %s\n",osdName.toString().c_str());
+	     if(header.from.toInt() == LogicalAddress::UNREGISTERED){
+                LOGERR("Ignoring the message coming from Unregistered Logical Address");
+                return;
+             }
              try
              { 
                  conn.sendToAsync(header.from, MessageEncoder().encode(SetOSDName(osdName)));
@@ -351,6 +375,10 @@ namespace WPEFramework
 	     bool updateStatus ;
              LOGINFO("Command: SetOSDName OSDName : %s\n",msg.osdName.toString().c_str());
 
+	     if(header.from.toInt() == LogicalAddress::UNREGISTERED){
+                LOGERR("Ignoring the message coming from Unregistered Logical Address");
+                return;
+             }
 	     HdmiCecSink::_instance->addDevice(header.from.toInt());
 	     updateStatus = HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isOSDNameUpdated;
 	     LOGINFO("updateStatus %d\n",updateStatus);
@@ -412,6 +440,10 @@ namespace WPEFramework
 	     printHeader(header);
              LOGINFO("Command: DeviceVendorID VendorID : %s\n",msg.vendorId.toString().c_str());
 
+	     if(header.from.toInt() == LogicalAddress::UNREGISTERED){
+                LOGERR("Ignoring the message coming from Unregistered Logical Address");
+                return;
+             }
 	     HdmiCecSink::_instance->addDevice(header.from.toInt());
 	     updateStatus = HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isVendorIDUpdated;
              LOGINFO("updateStatus %d\n",updateStatus);
@@ -423,7 +455,11 @@ namespace WPEFramework
        {
              printHeader(header);
              LOGINFO("Command: GiveDevicePowerStatus sending powerState :%d \n",powerState);
-             try
+             if(header.from.toInt() == LogicalAddress::UNREGISTERED){
+                LOGERR("Ignoring the message coming from Unregistered Logical Address");
+                return;
+             }
+	     try
              { 
                  conn.sendTo(header.from, MessageEncoder().encode(ReportPowerStatus(PowerStatus(powerState))));
              } 
@@ -437,6 +473,10 @@ namespace WPEFramework
 	   uint32_t  oldPowerStatus,newPowerStatus;
 	   printHeader(header);
 	   LOGINFO("Command: ReportPowerStatus Power Status from:%s status : %s \n",header.from.toString().c_str(),msg.status.toString().c_str());
+	   if(header.from.toInt() == LogicalAddress::UNREGISTERED){
+               LOGERR("Ignoring the message coming from Unregistered Logical Address");
+               return;
+           }
            oldPowerStatus = HdmiCecSink::_instance->deviceList[header.from.toInt()].m_powerStatus.toInt();
 	   HdmiCecSink::_instance->addDevice(header.from.toInt());
 	   HdmiCecSink::_instance->deviceList[header.from.toInt()].update(msg.status);
@@ -509,6 +549,10 @@ namespace WPEFramework
        {
               printHeader(header);
              LOGINFO("Command: Abort\n");
+	     if(header.from.toInt() == LogicalAddress::UNREGISTERED){
+                LOGERR("Ignoring the message coming from Unregistered Logical Address");
+                return;
+             }
 	      if (!(header.to == LogicalAddress(LogicalAddress::BROADCAST)))
              {
                 AbortReason reason = AbortReason::UNRECOGNIZED_OPCODE;
@@ -529,6 +573,10 @@ namespace WPEFramework
        void HdmiCecSinkProcessor::process (const InitiateArc &msg, const Header &header)
        {
             printHeader(header);
+	    if(header.from.toInt() == LogicalAddress::UNREGISTERED){
+                LOGERR("Ignoring the message coming from Unregistered Logical Address");
+                return;
+             }
             PhysicalAddress physical_addr_invalid = {0x0F,0x0F,0x0F,0x0F};
             PhysicalAddress physical_addr_arc_port = {0x0F,0x0F,0x0F,0x0F};
 
@@ -553,6 +601,10 @@ namespace WPEFramework
        void HdmiCecSinkProcessor::process (const TerminateArc &msg, const Header &header)
        {
            printHeader(header);
+           if(header.from.toInt() == LogicalAddress::UNREGISTERED){
+                LOGERR("Ignoring the message coming from Unregistered Logical Address");
+                return;
+           }
            if(!HdmiCecSink::_instance)
 	     return;
            HdmiCecSink::_instance->Process_TerminateArc();
@@ -560,6 +612,10 @@ namespace WPEFramework
        void HdmiCecSinkProcessor::process (const ReportShortAudioDescriptor  &msg, const Header &header)
        {
              printHeader(header);
+	     if(header.from.toInt() == LogicalAddress::UNREGISTERED){
+                LOGERR("Ignoring the message coming from Unregistered Logical Address");
+                return;
+             }
              LOGINFO("Command: ReportShortAudioDescriptor %s : %d \n",GetOpName(msg.opCode()),numberofdescriptor);
             HdmiCecSink::_instance->Process_ShortAudioDescriptor_msg(msg);
        }
@@ -567,6 +623,10 @@ namespace WPEFramework
        void HdmiCecSinkProcessor::process (const SetSystemAudioMode &msg, const Header &header)
        {
              printHeader(header);
+	     if(header.from.toInt() == LogicalAddress::UNREGISTERED){
+                LOGERR("Ignoring the message coming from Unregistered Logical Address");
+                return;
+             }
              LOGINFO("Command: SetSystemAudioMode  %s audio status %d audio status is  %s \n",GetOpName(msg.opCode()),msg.status.toInt(),msg.status.toString().c_str());
           HdmiCecSink::_instance->Process_SetSystemAudioMode_msg(msg);
        }
@@ -574,6 +634,10 @@ namespace WPEFramework
        {
              printHeader(header);
              LOGINFO("Command: ReportAudioStatus  %s audio Mute status %d  means %s  and current Volume level is %d \n",GetOpName(msg.opCode()),msg.status.getAudioMuteStatus(),msg.status.toString().c_str(),msg.status.getAudioVolume());
+	     if(header.from.toInt() == LogicalAddress::UNREGISTERED){
+                LOGERR("Ignoring the message coming from Unregistered Logical Address");
+                return;
+             }
              HdmiCecSink::_instance->Process_ReportAudioStatus_msg(msg);
        }
       void HdmiCecSinkProcessor::process (const GiveFeatures &msg, const Header &header)
