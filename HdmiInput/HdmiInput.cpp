@@ -1104,7 +1104,7 @@ namespace WPEFramework
     		}
 
 
-   		 LOGDBG("primary Volume=%d player Volume=%d \n", primVol , thisVol );
+   		 LOGINFO("primary Volume=%d player Volume=%d \n", primVol , thisVol );
     		if(m_primVolume >=0 ) {
         		m_primVolume = primVol;
     		}
@@ -1119,7 +1119,7 @@ namespace WPEFramework
         		LOGWARN("Player Volume greater than limit. Set to DEFAULT_PLAYER_VOL_LEVEL(100) !!!\n");
         		m_thisVolume = DEFAULT_PLAYER_VOL_LEVEL;
     		}
-   		 LOGDBG("GLOBAL primary Volume=%d player Volume=%d \n",m_primVolume  , m_thisVolume );
+   		 LOGINFO("GLOBAL primary Volume=%d player Volume=%d \n",m_primVolume  , m_thisVolume );
 	
 		try{
 	
