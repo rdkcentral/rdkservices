@@ -76,11 +76,11 @@ add_library(${PLUGIN_IMPLEMENTATION} SHARED
 
 if(ENABLE_GNOME_NETWORKMANAGER)
     target_sources(${PLUGIN_IMPLEMENTATION} PRIVATE NetworkManagerGnomeProxy.cpp)
-    target_include_directories(${PLUGIN_IMPLEMENTATION} PRIVATE ${IARMBUS_INCLUDE_DIRS} ${LIBNM_INCLUDE_DIRS})
+    target_include_directories(${PLUGIN_IMPLEMENTATION} PRIVATE ${GLIB_INCLUDE_DIRS} ${LIBNM_INCLUDE_DIRS})
     target_link_libraries(${PLUGIN_IMPLEMENTATION} PRIVATE ${LIBNM_LIBRARIES})
 else()
     target_sources(${PLUGIN_IMPLEMENTATION} PRIVATE NetworkManagerRDKProxy.cpp)
-    target_include_directories(${PLUGIN_IMPLEMENTATION} PRIVATE ${GLIB_INCLUDE_DIRS} )
+    target_include_directories(${PLUGIN_IMPLEMENTATION} PRIVATE ${IARMBUS_INCLUDE_DIRS})
     target_link_libraries(${PLUGIN_IMPLEMENTATION} PRIVATE ${IARMBUS_LIBRARIES})
 endif()
 
