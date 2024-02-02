@@ -18,17 +18,6 @@
  */
 
 #include "PersistentStore.h"
-
-#include "sqlite/Handle.h"
-#include "sqlite/Store2Type.h"
-#include "sqlite/Store2WithReconnectType.h"
-#if defined(WITH_CLOCK_SYNC)
-#include "sqlite/Store2WithClockSyncType.h"
-#endif
-#include "sqlite/StoreCacheType.h"
-#include "sqlite/StoreInspectorType.h"
-#include "sqlite/StoreLimitType.h"
-
 #include <fstream>
 
 #define API_VERSION_NUMBER_MAJOR 1
@@ -52,25 +41,6 @@ namespace {
 
 namespace Plugin {
 
-#if defined(WITH_CLOCK_SYNC)
-    class SqliteStore2 : public Sqlite::Store2WithClockSyncType<Sqlite::Store2WithReconnectType<Sqlite::Store2Type<Sqlite::Handle>>> {
-    };
-#else
-    class SqliteStore2 : public Sqlite::Store2WithReconnectType<Sqlite::Store2Type<Sqlite::Handle>> {
-    };
-#endif
-    class SqliteStoreCache : public Sqlite::StoreCacheType<Sqlite::Handle> {
-    };
-    class SqliteStoreInspector : public Sqlite::StoreInspectorType<Sqlite::Handle> {
-    };
-    class SqliteStoreLimit : public Sqlite::StoreLimitType<Sqlite::Handle> {
-    };
-
-    SERVICE_REGISTRATION(SqliteStore2, 1, 0);
-    SERVICE_REGISTRATION(SqliteStoreCache, 1, 0);
-    SERVICE_REGISTRATION(SqliteStoreInspector, 1, 0);
-    SERVICE_REGISTRATION(SqliteStoreLimit, 1, 0);
-
     SERVICE_REGISTRATION(PersistentStore, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
     const string PersistentStore::Initialize(PluginHost::IShell* service)
@@ -82,16 +52,12 @@ namespace Plugin {
         auto configLine = service->ConfigLine();
         _config.FromString(configLine);
 
-        ASSERT(!_config.Path.Value().empty());
-
         {
             Core::File file(_config.Path.Value());
             Core::File oldFile(_config.LegacyPath.Value());
             if (file.Name() != oldFile.Name()) {
                 if (oldFile.Exists()) {
                     if (!file.Exists()) {
-                        // Rename will fail if the files are not on the same filesystem
-                        // Make a copy and then remove the original file
                         std::ifstream in(oldFile.Name(), std::ios::in | std::ios::binary);
                         std::ofstream out(file.Name(), std::ios::out | std::ios::binary);
                         out << in.rdbuf();
@@ -102,17 +68,30 @@ namespace Plugin {
             }
         }
 
-        Core::SystemInfo::SetEnvironment(_T("PERSISTENTSTORE_PATH"), _config.Path.Value());
-        Core::SystemInfo::SetEnvironment(_T("PERSISTENTSTORE_MAXSIZE"), std::to_string(_config.MaxSize.Value()));
-        Core::SystemInfo::SetEnvironment(_T("PERSISTENTSTORE_MAXVALUE"), std::to_string(_config.MaxValue.Value()));
-        Core::SystemInfo::SetEnvironment(_T("PERSISTENTSTORE_LIMIT"), std::to_string(_config.Limit.Value()));
+        Core::SystemInfo::SetEnvironment(URI_ENV, _config.Uri.Value());
+        Core::SystemInfo::SetEnvironment(PATH_ENV, _config.Path.Value());
+        Core::SystemInfo::SetEnvironment(MAXSIZE_ENV, std::to_string(_config.MaxSize.Value()));
+        Core::SystemInfo::SetEnvironment(MAXVALUE_ENV, std::to_string(_config.MaxValue.Value()));
+        Core::SystemInfo::SetEnvironment(LIMIT_ENV, std::to_string(_config.Limit.Value()));
 
         uint32_t connectionId;
 
-        Store2::ScopeMapType initList1 = {
-            { Exchange::IStore2::ScopeType::DEVICE, service->Root<Exchange::IStore2>(connectionId, 2000, _T("SqliteStore2")) }
-        };
+        Store2::ScopeMapType initList1;
+        auto deviceStore2 = service->Root<Exchange::IStore2>(connectionId, 2000, _T("SqliteStore2"));
+        if (deviceStore2 != nullptr) {
+            initList1.emplace(Exchange::IStore2::ScopeType::DEVICE, deviceStore2);
+        }
+        auto accountStore2 = service->Root<Exchange::IStore2>(connectionId, 2000, _T("GrpcStore2"));
+        if (accountStore2 != nullptr) {
+            initList1.emplace(Exchange::IStore2::ScopeType::ACCOUNT, accountStore2);
+        }
         _store2 = Core::Service<Store2>::Create<Exchange::IStore2>(initList1);
+        if (deviceStore2 != nullptr) {
+            deviceStore2->Release();
+        }
+        if (accountStore2 != nullptr) {
+            accountStore2->Release();
+        }
         _store2->Register(&_store2Sink);
         _store = Core::Service<Store>::Create<Exchange::IStore>(_store2);
         _storeCache = service->Root<Exchange::IStoreCache>(connectionId, 2000, _T("SqliteStoreCache"));
@@ -124,24 +103,24 @@ namespace Plugin {
 
     void PersistentStore::Deinitialize(PluginHost::IShell* /* service */)
     {
-        if (_store) {
+        if (_store != nullptr) {
             _store->Release();
             _store = nullptr;
         }
-        if (_store2) {
+        if (_store2 != nullptr) {
             _store2->Unregister(&_store2Sink);
             _store2->Release();
             _store2 = nullptr;
         }
-        if (_storeCache) {
+        if (_storeCache != nullptr) {
             _storeCache->Release();
             _storeCache = nullptr;
         }
-        if (_storeInspector) {
+        if (_storeInspector != nullptr) {
             _storeInspector->Release();
             _storeInspector = nullptr;
         }
-        if (_storeLimit) {
+        if (_storeLimit != nullptr) {
             _storeLimit->Release();
             _storeLimit = nullptr;
         }

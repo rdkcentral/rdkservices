@@ -1,6 +1,5 @@
 precondition = ["Platform"]
 callsign = "org.rdk.PersistentStore"
-autostart = "true"
 startuporder = "@PLUGIN_PERSISTENTSTORE_STARTUPORDER@"
 
 configuration = JSON()
@@ -9,6 +8,7 @@ rootobject = JSON()
 rootobject.add("mode", "@PLUGIN_PERSISTENTSTORE_MODE@")
 configuration.add("root", rootobject)
 
+configuration.add("uri", "@PLUGIN_PERSISTENTSTORE_URI@")
 configuration.add("path", "@PLUGIN_PERSISTENTSTORE_PATH@")
 configuration.add("legacypath", "@PLUGIN_PERSISTENTSTORE_LEGACYPATH@")
 configuration.add("key", "@PLUGIN_PERSISTENTSTORE_KEY@")
