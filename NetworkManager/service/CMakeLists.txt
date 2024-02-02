@@ -64,8 +64,6 @@ include_directories(${PROJECT_SOURCE_DIR}/../helpers)
 install(TARGETS ${MODULE_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/${STORAGE_DIRECTORY}/plugins)
 
 
-#add_subdirectory(${PLUGIN_SOURCE_PATH})
-
 # Build the implementation that runs out-of-process behind a COM-RPC interface
 add_library(${PLUGIN_IMPLEMENTATION} SHARED
         NetworkManagerImplementation.cpp

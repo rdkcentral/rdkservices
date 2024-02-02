@@ -178,7 +178,6 @@ namespace WPEFramework
                 result.m_ipAddrType     = ipversion.c_str();
                 if(dhcpserver)
                     result.m_dhcpServer     = dhcpserver;
-                //result.m_autoConfig     = iarmData.autoconfig;
                 result.m_v6LinkLocal    = "";
                 result.m_prefix         = 0;
                 result.m_gateway        = gateway;
