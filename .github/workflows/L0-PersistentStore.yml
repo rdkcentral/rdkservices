@@ -1,4 +1,4 @@
-name: L1-PersistentStore
+name: L0-PersistentStore
 
 on:
   push:
@@ -29,17 +29,17 @@ jobs:
       - name: Build
         working-directory: ${{github.workspace}}
         run: |
-          cmake -S ${GITHUB_REPOSITORY}/PersistentStore/l1test -B build/persistentstorel1test -DCMAKE_INSTALL_PREFIX="install/usr" -DCMAKE_CXX_FLAGS="--coverage -Wall -Werror"
-          cmake --build build/persistentstorel1test --target install
+          cmake -S ${GITHUB_REPOSITORY}/PersistentStore/l0test -B build/persistentstorel0test -DCMAKE_INSTALL_PREFIX="install/usr" -DCMAKE_CXX_FLAGS="--coverage -Wall -Werror"
+          cmake --build build/persistentstorel0test --target install
 
       - name: Run
         working-directory: ${{github.workspace}}
-        run: PATH=${PWD}/install/usr/bin:${PATH} LD_LIBRARY_PATH=${PWD}/install/usr/lib:${LD_LIBRARY_PATH} valgrind --tool=memcheck --log-file=valgrind_log --leak-check=yes --show-reachable=yes --track-fds=yes --fair-sched=try persistentstorel1test
+        run: PATH=${PWD}/install/usr/bin:${PATH} LD_LIBRARY_PATH=${PWD}/install/usr/lib:${LD_LIBRARY_PATH} valgrind --tool=memcheck --log-file=valgrind_log --leak-check=yes --show-reachable=yes --track-fds=yes --fair-sched=try persistentstorel0test
 
       - name: Generate coverage
         working-directory: ${{github.workspace}}
         run: |
-          lcov -c -o coverage.info -d build/persistentstorel1test
+          lcov -c -o coverage.info -d build/persistentstorel0test
           genhtml -o coverage coverage.info
 
       - name: Upload artifacts

@@ -17,7 +17,7 @@
 
 cmake_minimum_required(VERSION 3.14)
 
-project(sqlitel1test)
+project(persistentstorel0test)
 
 set(CMAKE_CXX_STANDARD 11)
 
@@ -28,24 +28,21 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(googletest)
 
-find_package(WPEFramework REQUIRED)
+find_package(WPEFramework)
 find_package(${NAMESPACE}Plugins REQUIRED)
+find_package(${NAMESPACE}Definitions REQUIRED)
 
 add_executable(${PROJECT_NAME}
-        ../../Module.cpp
-        Store2Test.cpp
-        StoreCacheTest.cpp
-        StoreInspectorTest.cpp
-        StoreLimitTest.cpp
+        ../Module.cpp
+        ../PersistentStore.cpp
+        ../PersistentStoreJsonRpc.cpp
+        PersistentStoreTest.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
         gmock_main
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
+        ${NAMESPACE}Definitions::${NAMESPACE}Definitions
 )
-
-find_package(PkgConfig REQUIRED)
-pkg_search_module(SQLITE REQUIRED sqlite3)
-target_link_libraries(${PROJECT_NAME} PRIVATE ${SQLITE_LIBRARIES})
 
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
