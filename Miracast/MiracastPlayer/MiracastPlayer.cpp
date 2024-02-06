@@ -48,6 +48,7 @@ const string WPEFramework::Plugin::MiracastPlayer::METHOD_MIRACAST_SET_VIDEO_FOR
 const string WPEFramework::Plugin::MiracastPlayer::METHOD_MIRACAST_SET_AUDIO_FORMATS = "setAudioFormats";
 const string WPEFramework::Plugin::MiracastPlayer::METHOD_MIRACAST_SET_RTSP_WAITTIMEOUT = "setRTSPWaitTimeOut";
 const string WPEFramework::Plugin::MiracastPlayer::METHOD_MIRACAST_PLAYER_SET_LOG_LEVEL = "setLogging";
+const string WPEFramework::Plugin::MiracastPlayer::METHOD_MIRACAST_PLAYER_SET_HDCP_STATE = "setRTSPHDCPState";
 
 #ifdef ENABLE_MIRACAST_PLAYER_TEST_NOTIFIER
 const string WPEFramework::Plugin::MiracastPlayer::METHOD_MIRACAST_TEST_NOTIFIER = "testNotifier";
@@ -93,6 +94,7 @@ namespace WPEFramework
 			Register(METHOD_MIRACAST_SET_AUDIO_FORMATS, &MiracastPlayer::setAudioFormats, this);
 			Register(METHOD_MIRACAST_SET_RTSP_WAITTIMEOUT, &MiracastPlayer::setRTSPWaitTimeout, this);
 			Register(METHOD_MIRACAST_PLAYER_SET_LOG_LEVEL, &MiracastPlayer::setLogging, this);
+			Register(METHOD_MIRACAST_PLAYER_SET_HDCP_STATE, &MiracastPlayer::setRTSPHDCPState, this);
 
 #ifdef ENABLE_MIRACAST_PLAYER_TEST_NOTIFIER
 			Register(METHOD_MIRACAST_TEST_NOTIFIER, &MiracastPlayer::testNotifier, this);
@@ -428,6 +430,51 @@ namespace WPEFramework
 			response_time = parameters["Response"].Number();
 
 			success = m_miracast_rtsp_obj->set_WFDRequestResponseTimeout( request_time , response_time );
+
+			MIRACASTLOG_INFO("Exiting..!!!");
+			returnResponse(success);
+		}
+
+		uint32_t MiracastPlayer::setRTSPHDCPState(const JsonObject &parameters, JsonObject &response)
+		{
+			bool success = true;
+			bool is_enabled = true;
+			std::string hdcpVersion = "";
+			unsigned int portNumber = 0;
+
+			MIRACASTLOG_INFO("Entering..!!!");
+
+			returnIfParamNotFound(parameters, "enabled");
+			getBoolParameter("enabled", is_enabled);
+			if ( is_enabled )
+			{
+				returnIfStringParamNotFound(parameters, "version");
+				returnIfNumberParamNotFound(parameters, "port");
+
+				getStringParameter("version", hdcpVersion);
+				getNumberParameter("port", portNumber);
+
+				if ( hdcpVersion != "HDCP2.0" && hdcpVersion != "HDCP2.1")
+				{
+					MIRACASTLOG_ERROR("Supported versions are [HDCP2.0/HDCP2.1]");
+					success = false;
+				}
+				else if (!(( 0 < portNumber ) || ( 65535 > portNumber )))
+				{
+					MIRACASTLOG_ERROR("Supported port range 1 to 65534");
+					success = false;
+				}
+				else
+				{
+					MIRACASTLOG_INFO("HDCP enabled with [%s] and port[%u]",hdcpVersion.c_str(),portNumber);
+				}
+			}
+			else
+			{
+				MIRACASTLOG_INFO("HDCP disabled");
+			}
+
+			m_miracast_rtsp_obj->set_WFDContentProtection( is_enabled , hdcpVersion , portNumber );
 
 			MIRACASTLOG_INFO("Exiting..!!!");
 			returnResponse(success);

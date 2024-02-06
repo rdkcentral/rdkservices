@@ -379,6 +379,7 @@ class MiracastCommon
 {
     public:
         static std::string parse_opt_flag( std::string file_name , bool integer_check = false );
+        static void DumpBuffer(char *buffer, int length);
 };
 
 #endif
