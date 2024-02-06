@@ -2047,12 +2047,6 @@ namespace WPEFramework
 			if(!HdmiCecSink::_instance)
 				return;
 
-			if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED ||
-					logicalAddress.toInt() == LogicalAddress::UNREGISTERED ){
-				LOGERR("Logical Address NOT Allocated");
-				return;
-			}
-
 			if (_instance->deviceList[logicalAddress.toInt()].m_isDevicePresent &&
 					logicalAddress.toInt() != _instance->m_logicalAddressAllocated)
 			{
@@ -2607,11 +2601,6 @@ namespace WPEFramework
 
 			if(!HdmiCecSink::_instance)
 				return;
-			
-			if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED || logicalAddress >= LogicalAddress::UNREGISTERED ){
-				LOGERR("Logical Address NOT Allocated Or its not valid");
-				return;
-			}
 
 			if (_instance->deviceList[logicalAddress].m_isDevicePresent)
 			{
