@@ -32,6 +32,8 @@ endif ()
 
 message("Setup ${PROJECT_NAME} v${PROJECT_VERSION}")
 
+set(PLUGIN_NETWORKMANAGER_LOGLEVEL "5" CACHE STRING "To configure default loglevel NetworkManager plugin")
+
 # Build the main plugin that runs inside the WPEFramework daemon
 add_library(${MODULE_NAME} SHARED
         NetworkManager.cpp
@@ -75,11 +77,11 @@ add_library(${PLUGIN_IMPLEMENTATION} SHARED
 )
 
 if(ENABLE_GNOME_NETWORKMANAGER)
-    target_sources(${PLUGIN_IMPLEMENTATION} PRIVATE NetworkManagerGnomeProxy.cpp)
+    target_sources(${PLUGIN_IMPLEMENTATION} PRIVATE NetworkManagerGnomeProxy.cpp WifiSignalStrengthMonitor.cpp)
     target_include_directories(${PLUGIN_IMPLEMENTATION} PRIVATE ${GLIB_INCLUDE_DIRS} ${LIBNM_INCLUDE_DIRS})
     target_link_libraries(${PLUGIN_IMPLEMENTATION} PRIVATE ${LIBNM_LIBRARIES})
 else()
-    target_sources(${PLUGIN_IMPLEMENTATION} PRIVATE NetworkManagerRDKProxy.cpp)
+    target_sources(${PLUGIN_IMPLEMENTATION} PRIVATE NetworkManagerRDKProxy.cpp WifiSignalStrengthMonitor.cpp)
     target_include_directories(${PLUGIN_IMPLEMENTATION} PRIVATE ${IARMBUS_INCLUDE_DIRS})
     target_link_libraries(${PLUGIN_IMPLEMENTATION} PRIVATE ${IARMBUS_LIBRARIES})
 endif()
