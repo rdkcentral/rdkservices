@@ -30,7 +30,7 @@ using namespace std;
 
 //#include <interfaces/INetworkManager.h>
 #include "INetworkManager.h"
-#include "logger.h"
+#include "NetworkManagerLogger.h"
 #include "StunClient.h"
 
 #define LOG_ENTRY_FUNCTION() { NMLOG_TRACE("Entering=%s", __FUNCTION__ ); }
@@ -117,12 +117,15 @@ namespace WPEFramework
             uint32_t GetPublicIP (const string &ipversion /* @in */,  string& ipAddress /* @out */) override;
 
             /* @brief Request for ping and get the response in as event. The GUID used in the request will be returned in the event. */
-            uint32_t Ping (const string ipversion /* @in */,  const string endpoint /* @in */, const uint32_t noOfRequest /* @in */, const uint16_t timeOutInSeconds /* @in */, const string guid /* @in */) override;
+            uint32_t Ping (const string ipversion /* @in */,  const string endpoint /* @in */, const uint32_t noOfRequest /* @in */, const uint16_t timeOutInSeconds /* @in */, const string guid /* @in */, string& response /* @out */) override;
 
             /* @brief Request for trace get the response in as event. The GUID used in the request will be returned in the event. */
-            uint32_t Trace (const string ipversion /* @in */,  const string endpoint /* @in */, const uint32_t noOfRequest /* @in */, const string guid /* @in */) override;
+            uint32_t Trace (const string ipversion /* @in */,  const string endpoint /* @in */, const uint32_t noOfRequest /* @in */, const string guid /* @in */, string& response /* @out */) override;
 
             uint32_t GetSupportedSecurityModes(ISecurityModeIterator*& securityModes /* @out */) const override;
+
+            /* @brief Set the network manager plugin log level */
+            uint32_t SetLogLevel(const NMLogging& logLevel /* @in */) override;
 
             /* Events */
             void ReportInterfaceStateChangedEvent(INetworkManager::INotification::InterfaceState state, string interface);
@@ -134,7 +137,7 @@ namespace WPEFramework
 
         private:
             void platform_init();
-            void Dispatch(NetworkEvents event, const string commandToExecute, const string guid);
+            void executeExternally(NetworkEvents event, const string commandToExecute, string& response);
 
         private:
             std::list<Exchange::INetworkManager::INotification *> _notificationCallbacks;
@@ -146,45 +149,6 @@ namespace WPEFramework
             uint16_t m_stunPort;
             uint16_t m_stunBindTimeout;
             uint16_t m_stunCacheTimeout;
-
-        public:
-            class EXTERNAL Job : public Core::IDispatch {
-            protected:
-                 Job(NetworkManagerImplementation *netMgr, NetworkEvents event, string &params, string &guid)
-                    : _netMgr(netMgr)
-                    , _event(event)
-                    , _params(params)
-                    , _guid(guid) {
-                    if (_netMgr != nullptr) {
-                        _netMgr->AddRef();
-                    }
-                }
-
-           public:
-                Job() = delete;
-                Job(const Job&) = delete;
-                Job& operator=(const Job&) = delete;
-                ~Job() {
-                    if (_netMgr != nullptr) {
-                        _netMgr->Release();
-                    }
-                }
-
-           public:
-                static Core::ProxyType<Core::IDispatch> Create(NetworkManagerImplementation *netMgr, NetworkEvents event, string params, string guid) {
-                    return (Core::ProxyType<Core::IDispatch>(Core::ProxyType<Job>::Create(netMgr, event, params, guid)));
-                }
-
-                virtual void Dispatch() {
-                    _netMgr->Dispatch(_event, _params, _guid);
-                }
-
-            private:
-                NetworkManagerImplementation *_netMgr;
-                const NetworkEvents _event;
-                const string _params;
-                const string _guid;
-            };
         };
     }
 }

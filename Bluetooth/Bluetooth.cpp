@@ -40,7 +40,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 7
+#define API_VERSION_NUMBER_PATCH 8
 
 const string WPEFramework::Plugin::Bluetooth::SERVICE_NAME = "org.rdk.Bluetooth";
 const string WPEFramework::Plugin::Bluetooth::METHOD_START_SCAN = "startScan";
@@ -280,14 +280,21 @@ namespace WPEFramework
                 rc = BTRMGR_GetNumberOfAdapters(&numOfAdapters);
                 if (BTRMGR_RESULT_SUCCESS != rc)
                     LOGERR("Failed to get the number of adapters..!");
-
                 if (numOfAdapters) {
-                    BTRMGR_DeviceOperationType_t lenDevOpDiscType = BTRMGR_DEVICE_OP_TYPE_AUDIO_OUTPUT;
-
-                    if (Utils::String::contains(discProfile, "LOUDSPEAKER") ||
+                    BTRMGR_DeviceOperationType_t lenDevOpDiscType = BTRMGR_DEVICE_OP_TYPE_UNKNOWN;
+                    if ((Utils::String::contains(discProfile, "LOUDSPEAKER") ||
                         Utils::String::contains(discProfile, "HEADPHONES") ||
                         Utils::String::contains(discProfile, "WEARABLE HEADSET") ||
-                        Utils::String::contains(discProfile, "HIFI AUDIO DEVICE")) {
+                        Utils::String::contains(discProfile, "HIFI AUDIO DEVICE")) &&
+                        (Utils::String::contains(discProfile, "KEYBOARD") ||
+                        Utils::String::contains(discProfile, "MOUSE") ||
+                        Utils::String::contains(discProfile, "JOYSTICK"))) {
+                            lenDevOpDiscType = BTRMGR_DEVICE_OP_TYPE_AUDIO_AND_HID;
+                        }
+                    else if (Utils::String::contains(discProfile, "LOUDSPEAKER") ||
+                            Utils::String::contains(discProfile, "HEADPHONES") ||
+                            Utils::String::contains(discProfile, "WEARABLE HEADSET") ||
+                            Utils::String::contains(discProfile, "HIFI AUDIO DEVICE")) {
                         lenDevOpDiscType = BTRMGR_DEVICE_OP_TYPE_AUDIO_OUTPUT;
                     }
                     else if (Utils::String::contains(discProfile, "SMARTPHONE") ||

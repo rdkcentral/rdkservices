@@ -24,7 +24,7 @@
 // Include the interface we created
 //#include <interfaces/INetworkManager.h>
 #include "INetworkManager.h"
-#include "logger.h"
+#include "NetworkManagerLogger.h"
 
 #include <string>
 #include <atomic>
@@ -148,30 +148,6 @@ namespace WPEFramework
                         NMLOG_INFO("Notify Thunder ISubsystem internet");
                         _parent.PublishToThunderAboutInternet();
                     }
-                }
-
-                void onPingResponse(const string guid, const string pingStatistics) override
-                {
-                    NMLOG_INFO ("%s", __FUNCTION__);
-                    JsonObject params;
-                    JsonObject result;
-
-                    params.FromString(pingStatistics);
-                    result["pingStatistics"] = params;
-                    result["guid"] = guid;
-                    _parent.Notify("onPingResponse", result);
-                }
-
-                void onTraceResponse(const string guid, const string traceResult) override
-                {
-                    NMLOG_INFO ("%s", __FUNCTION__);
-                    JsonObject params;
-                    JsonObject result;
-
-                    params.FromString(traceResult);
-                    result["traceResult"] = params;
-                    result["guid"] = guid;
-                    _parent.Notify("onTraceResponse", result);
                 }
 
                 // WiFi Notifications that other processes can subscribe to

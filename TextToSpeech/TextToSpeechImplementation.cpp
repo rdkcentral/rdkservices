@@ -217,7 +217,7 @@ namespace Plugin {
         std::vector<std::string> voice;
         auto status = TTS::TTS_FAIL;
 
-        if(InputValidation::Instance().validate("language", language)) {
+        if(InputValidation::Instance().validate("language", toLower(language))) {
             _adminLock.Lock();
             status = _ttsManager->listVoices(language, voice);
             _adminLock.Unlock();
