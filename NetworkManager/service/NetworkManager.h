@@ -57,17 +57,17 @@ namespace WPEFramework
                     switch (event)
                     {
                         case Exchange::INetworkManager::INotification::INTERFACE_ADDED:
-                            return "Interface_Added";
+                            return "INTERFACE_ADDED";
                         case Exchange::INetworkManager::INotification::INTERFACE_LINK_UP:
-                            return "Interface_Link_Up";
+                            return "INTERFACE_LINK_UP";
                         case Exchange::INetworkManager::INotification::INTERFACE_LINK_DOWN:
-                            return "Interface_Link_Down";
+                            return "INTERFACE_LINK_DOWN";
                         case Exchange::INetworkManager::INotification::INTERFACE_ACQUIRING_IP:
-                            return "Interface_Acquiring_IP";
+                            return "INTERFACE_ACQUIRING_IP";
                         case Exchange::INetworkManager::INotification::INTERFACE_REMOVED:
-                            return "Interface_Removed";
+                            return "INTERFACE_REMOVED";
                         case Exchange::INetworkManager::INotification::INTERFACE_DISABLED:
-                            return "Interface_Disabled";
+                            return "INTERFACE_DISABLED";
                     }
                     return "";
                 }
@@ -114,10 +114,8 @@ namespace WPEFramework
                     JsonObject params;
                     params["interface"] = interface;
                     params["status"] = string (isAcquired ? "ACQUIRED" : "LOST");
-                    if (isIPv6)
-                        params["ipv6"] = ipAddress;
-                    else
-                        params["ipv4"] = ipAddress;
+                    params["ipAddress"] = ipAddress;
+                    params["isIPv6"] = isIPv6;
 
                     _parent.Notify("onIPAddressChanged", params);
                 }
@@ -168,9 +166,14 @@ namespace WPEFramework
                     result["state"] = static_cast <int> (state);
                     _parent.Notify("onWiFiStateChanged", result);
                 }
-                void onWiFiSignalStrengthChanged(const string ssid, const string signalStrength, const Exchange::INetworkManager::WiFiSignalQuality quality) override
+                void onWiFiSignalStrengthChanged(const string ssid, const string signalLevel, const Exchange::INetworkManager::WiFiSignalQuality signalQuality) override
                 {
                     NMLOG_TRACE("%s", __FUNCTION__);
+                    JsonObject result;
+                    result["ssid"] = ssid;
+                    result["signalLevel"] = signalLevel;
+                    result["signalQuality"] = static_cast <int> (signalQuality);
+                    _parent.Notify("onWiFiSignalStrengthChanged", result);
                 }
 
 
