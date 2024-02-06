@@ -234,7 +234,7 @@ namespace WPEFramework
        {
              printHeader(header);
              LOGINFO("Command: InActiveSource %s : %s : %s  \n",GetOpName(msg.opCode()),msg.physicalAddress.name().c_str(),msg.physicalAddress.toString().c_str());
-	     if(header.from.toInt() >= LogicalAddress::UNREGISTERED){
+	     if(header.from.toInt() == LogicalAddress::UNREGISTERED){
                 LOGERR("Ignoring the message coming from Unregistered/Invalid Logical Address");
                 return;
              }
@@ -246,7 +246,7 @@ namespace WPEFramework
        {
              printHeader(header);
              LOGINFO("Command: ImageViewOn from %s\n", header.from.toString().c_str());
-	     if(header.from.toInt() >= LogicalAddress::UNREGISTERED){
+	     if(header.from.toInt() == LogicalAddress::UNREGISTERED){
                 LOGERR("Ignoring the message coming from Unregistered/Invalid Logical Address");
                 return;
              }
@@ -257,7 +257,7 @@ namespace WPEFramework
        {
              printHeader(header);
              LOGINFO("Command: TextViewOn\n");
-	     if(header.from.toInt() >= LogicalAddress::UNREGISTERED){
+	     if(header.from.toInt() == LogicalAddress::UNREGISTERED){
                 LOGERR("Ignoring the message coming from Unregistered/Invalid Logical Address");
                 return;
              }
@@ -285,7 +285,7 @@ namespace WPEFramework
        {
              printHeader(header);
              LOGINFO("Command: GetCECVersion sending CECVersion response \n");
-	     if(header.to.toInt() == LogicalAddress::BROADCAST || header.from.toInt() >= LogicalAddress::UNREGISTERED){
+	     if(header.to.toInt() == LogicalAddress::BROADCAST || header.from.toInt() == LogicalAddress::UNREGISTERED){
 		LOGERR("Ignoring the message coming from Unregistered/Invalid Logical Address or a Broadcast messages");
 		return;
 	     }
@@ -309,7 +309,7 @@ namespace WPEFramework
 	     printHeader(header);
              LOGINFO("Command: CECVersion Version : %s \n",msg.version.toString().c_str());
 
-	     if(header.from.toInt() >= LogicalAddress::UNREGISTERED){
+	     if(header.from.toInt() == LogicalAddress::UNREGISTERED){
                 LOGERR("Ignoring the message coming from Unregistered/Invalid Logical Address");
                 return;
              }
@@ -329,7 +329,7 @@ namespace WPEFramework
        {
              printHeader(header);
              LOGINFO("Command: GiveOSDName sending SetOSDName : %s\n",osdName.toString().c_str());
-	     if(header.from.toInt() >= LogicalAddress::UNREGISTERED){
+	     if(header.from.toInt() == LogicalAddress::UNREGISTERED){
                 LOGERR("Ignoring the message coming from Unregistered/Invalid Logical Address");
                 return;
              }
@@ -387,7 +387,7 @@ namespace WPEFramework
 	     bool updateStatus ;
              LOGINFO("Command: SetOSDName OSDName : %s\n",msg.osdName.toString().c_str());
 
-	     if(header.from.toInt() >= LogicalAddress::UNREGISTERED){
+	     if(header.from.toInt() == LogicalAddress::UNREGISTERED){
                 LOGERR("Ignoring the message coming from Unregistered/Invalid Logical Address");
                 return;
              }
@@ -456,7 +456,7 @@ namespace WPEFramework
 	     printHeader(header);
              LOGINFO("Command: DeviceVendorID VendorID : %s\n",msg.vendorId.toString().c_str());
 
-	     if(header.from.toInt() >= LogicalAddress::UNREGISTERED){
+	     if(header.from.toInt() == LogicalAddress::UNREGISTERED){
                 LOGERR("Ignoring the message coming from Unregistered/Invalid Logical Address");
                 return;
              }
@@ -471,7 +471,7 @@ namespace WPEFramework
        {
              printHeader(header);
              LOGINFO("Command: GiveDevicePowerStatus sending powerState :%d \n",powerState);
-             if(header.to.toInt() == LogicalAddress::BROADCAST || header.from.toInt() >= LogicalAddress::UNREGISTERED){
+             if(header.to.toInt() == LogicalAddress::BROADCAST || header.from.toInt() == LogicalAddress::UNREGISTERED){
 		LOGERR("Ignoring the message coming from Unregistered/Invalid Logical Address or a Broadcast messages");
 		return;
 	     }
@@ -489,7 +489,7 @@ namespace WPEFramework
 	   uint32_t  oldPowerStatus,newPowerStatus;
 	   printHeader(header);
 	   LOGINFO("Command: ReportPowerStatus Power Status from:%s status : %s \n",header.from.toString().c_str(),msg.status.toString().c_str());
-	   if(header.from.toInt() >= LogicalAddress::UNREGISTERED){
+	   if(header.from.toInt() == LogicalAddress::UNREGISTERED){
                LOGERR("Ignoring the message coming from Unregistered/Invalid Logical Address");
                return;
            }
@@ -565,7 +565,7 @@ namespace WPEFramework
        {
               printHeader(header);
              LOGINFO("Command: Abort\n");
-	     if(header.from.toInt() >= LogicalAddress::UNREGISTERED){
+	     if(header.from.toInt() == LogicalAddress::UNREGISTERED){
                 LOGERR("Ignoring the message coming from Unregistered/Invalid Logical Address");
                 return;
              }
@@ -617,7 +617,7 @@ namespace WPEFramework
        void HdmiCecSinkProcessor::process (const TerminateArc &msg, const Header &header)
        {
            printHeader(header);
-           if(header.from.toInt() >= LogicalAddress::UNREGISTERED){
+           if(header.from.toInt() == LogicalAddress::UNREGISTERED){
                 LOGERR("Ignoring the message coming from Unregistered/Invalid Logical Address");
                 return;
            }
@@ -629,7 +629,7 @@ namespace WPEFramework
        {
              printHeader(header);
 	     LOGINFO("Command: ReportShortAudioDescriptor %s : %d \n",GetOpName(msg.opCode()),numberofdescriptor);
-	     if(header.from.toInt() >= LogicalAddress::UNREGISTERED){
+	     if(header.from.toInt() == LogicalAddress::UNREGISTERED){
                 LOGERR("Ignoring the message coming from Unregistered/Invalid Logical Address");
                 return;
              }
@@ -640,7 +640,7 @@ namespace WPEFramework
        {
              printHeader(header);
 	     LOGINFO("Command: SetSystemAudioMode  %s audio status %d audio status is  %s \n",GetOpName(msg.opCode()),msg.status.toInt(),msg.status.toString().c_str());
-	     if(header.from.toInt() >= LogicalAddress::UNREGISTERED){
+	     if(header.from.toInt() == LogicalAddress::UNREGISTERED){
                 LOGERR("Ignoring the message coming from Unregistered/Invalid Logical Address");
                 return;
              }
@@ -650,7 +650,7 @@ namespace WPEFramework
        {
              printHeader(header);
              LOGINFO("Command: ReportAudioStatus  %s audio Mute status %d  means %s  and current Volume level is %d \n",GetOpName(msg.opCode()),msg.status.getAudioMuteStatus(),msg.status.toString().c_str(),msg.status.getAudioVolume());
-	     if(header.from.toInt() >= LogicalAddress::UNREGISTERED){
+	     if(header.from.toInt() == LogicalAddress::UNREGISTERED){
                 LOGERR("Ignoring the message coming from Unregistered/Invalid Logical Address");
                 return;
              }
@@ -1519,7 +1519,7 @@ namespace WPEFramework
                         LOGINFO("getDeviceListWrapper  m_numberOfDevices :%d \n", HdmiCecSink::_instance->m_numberOfDevices);
 			JsonArray deviceList;
 			
-			for (int n = 0; n < LogicalAddress::UNREGISTERED; n++)
+			for (int n = 0; n <= LogicalAddress::UNREGISTERED; n++)
 			{
 
 				if ( n != HdmiCecSink::_instance->m_logicalAddressAllocated && 
