@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.6] - 2024-03-11
+### Fixed
+- Fixed for DeviceIdentification plugin is not enabled in the device
+
 ## [1.0.5] - 2024-01-10
 ### Fixed
 - Add chipset name in DeviceIdentification plugin
