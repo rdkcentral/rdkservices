@@ -47,6 +47,9 @@ target_include_directories(${MODULE_NAME} PRIVATE ../../mocks)
  
 install(TARGETS ${MODULE_NAME}
     DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
+
+set(PLUGIN_PERSISTENTSTORE_MAXSIZE "20" CACHE STRING "For all text data, in bytes")
+set(PLUGIN_PERSISTENTSTORE_MAXVALUE "10" CACHE STRING "For single text data, in bytes")
  
 write_config(${PLUGIN_NAME})
 
