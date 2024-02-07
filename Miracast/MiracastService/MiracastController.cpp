@@ -677,6 +677,8 @@ void MiracastController::Controller_Thread(void *args)
                         device->deviceMAC = parse_p2p_event_data(event_buffer.c_str(), "p2p_dev_addr");
                         device->deviceType = parse_p2p_event_data(event_buffer.c_str(), "pri_dev_type");
                         device->modelName = parse_p2p_event_data(event_buffer.c_str(), "name");
+			/* Making pbc as default provision method */
+                        device->authType = "pbc";
                         wfdSubElements = parse_p2p_event_data(event_buffer.c_str(), "wfd_dev_info");
                         #if 0
                             device->isCPSupported = ((strtol(wfdSubElements.c_str(), nullptr, 16) >> 32) && 256);
