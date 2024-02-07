@@ -778,7 +778,7 @@ bool MiracastGstPlayer::createPipeline()
     m_rtpmp2tdepay = gst_element_factory_make("rtpmp2tdepay", "rtpmp2tdepay");
 
     m_tsparse = gst_element_factory_make("tsparse", "tsparse");
-    GstElement *m_Queue2 = gst_element_factory_make("queue2", "queue2");
+    //GstElement *m_Queue2 = gst_element_factory_make("queue2", "queue2");
     m_tsdemux = gst_element_factory_make("tsdemux", "tsdemux");
 
     m_vQueue = gst_element_factory_make("queue", "vQueue");
@@ -792,7 +792,7 @@ bool MiracastGstPlayer::createPipeline()
     m_audio_sink = gst_element_factory_make("amlhalasink", "amlhalasink");
 
     if ((!m_udpsrc) || (!m_rtpjitterbuffer) || (!m_rtpmp2tdepay)||
-        (!m_tsparse) || (!m_tsdemux) || (!m_Queue2) ||
+        (!m_tsparse) || (!m_tsdemux) ||
         (!m_vQueue) || (!m_h264parse) || (!m_video_sink) ||
         (!m_aQueue) || (!m_aacparse) || (!m_avdec_aac) || (!m_audioconvert) || (!m_audio_sink))
     {
@@ -814,7 +814,7 @@ bool MiracastGstPlayer::createPipeline()
     gst_bin_add_many(GST_BIN(m_pipeline), 
                         m_udpsrc, 
                         m_rtpjitterbuffer,m_rtpmp2tdepay,
-                        m_tsparse,m_Queue2,m_tsdemux,
+                        m_tsparse,m_tsdemux,
                         m_vQueue,m_h264parse,m_video_sink,
                         m_aQueue,m_aacparse,m_avdec_aac,m_audioconvert,m_audio_sink,
                         nullptr );
@@ -822,7 +822,7 @@ bool MiracastGstPlayer::createPipeline()
     MIRACASTLOG_TRACE("Link all the elements together. ");
 
     /* Link the elements together */
-    if (!gst_element_link_many(m_udpsrc, m_rtpjitterbuffer,m_rtpmp2tdepay,m_tsparse,m_Queue2,m_tsdemux,nullptr ))
+    if (!gst_element_link_many(m_udpsrc, m_rtpjitterbuffer,m_rtpmp2tdepay,m_tsparse,m_tsdemux,nullptr ))
     {
         MIRACASTLOG_ERROR("Elements (udpsrc->rtpjitterbuffer->rtpmp2tdepay->tsparse->tsdemux) could not be linked");
         gst_object_unref(m_pipeline);
