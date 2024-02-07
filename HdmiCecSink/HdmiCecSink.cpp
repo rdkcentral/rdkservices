@@ -173,7 +173,7 @@ static std::vector<DeviceFeatures> deviceFeatures = {DEVICE_FEATURES_TV};
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 2
-#define API_VERSION_NUMBER_PATCH 3
+#define API_VERSION_NUMBER_PATCH 4
 
 namespace WPEFramework
 {
@@ -1346,7 +1346,7 @@ namespace WPEFramework
                         LOGINFO("getDeviceListWrapper  m_numberOfDevices :%d \n", HdmiCecSink::_instance->m_numberOfDevices);
 			JsonArray deviceList;
 			
-			for (int n = 0; n < LogicalAddress::UNREGISTERED; n++)
+			for (int n = 0; n <= LogicalAddress::UNREGISTERED; n++)
 			{
 
 				if ( n != HdmiCecSink::_instance->m_logicalAddressAllocated && 
@@ -1838,8 +1838,7 @@ namespace WPEFramework
 			if(!HdmiCecSink::_instance)
 				return;
 
-			if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED ||
-					logicalAddress.toInt() == LogicalAddress::UNREGISTERED ){
+			if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED){
 				LOGERR("Logical Address NOT Allocated");
 				return;
 			}
@@ -2362,8 +2361,8 @@ namespace WPEFramework
 			if(!HdmiCecSink::_instance)
 				return;
 			
-			if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED || logicalAddress >= LogicalAddress::UNREGISTERED){
-				LOGERR("Logical Address NOT Allocated Or its not valid");
+			if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED){
+				LOGERR("Logical Address NOT Allocated");
 				return;
 			}
 			
@@ -2393,8 +2392,8 @@ namespace WPEFramework
 			if(!HdmiCecSink::_instance)
 				return;
 			
-			if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED || logicalAddress >= LogicalAddress::UNREGISTERED ){
-				LOGERR("Logical Address NOT Allocated Or its not valid");
+			if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED){
+				LOGERR("Logical Address NOT Allocated");
 				return;
 			}
 
