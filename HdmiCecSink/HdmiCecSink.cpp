@@ -2532,8 +2532,8 @@ namespace WPEFramework
 			if(!HdmiCecSink::_instance)
 				return;
 			
-			if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED || logicalAddress >= LogicalAddress::UNREGISTERED ){
-				LOGERR("Logical Address NOT Allocated Or its not valid");
+			if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED){
+				LOGERR("Logical Address NOT Allocated");
 				return;
 			}
 
