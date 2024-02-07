@@ -31,7 +31,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 5
-#define API_VERSION_NUMBER_PATCH 0
+#define API_VERSION_NUMBER_PATCH 1
 
 #define HDMI 0
 #define COMPOSITE 1
@@ -61,6 +61,8 @@
 #define AVINPUT_EVENT_ON_VIDEO_MODE_UPDATED "videoStreamInfoUpdate"
 #define AVINPUT_EVENT_ON_GAME_FEATURE_STATUS_CHANGED "gameFeatureStatusUpdate"
 #define AVINPUT_EVENT_ON_AVI_CONTENT_TYPE_CHANGED "aviContentTypeUpdate"
+
+static int planeType = 0;
 
 using namespace std;
 int getTypeOfInput(string sType)
@@ -335,7 +337,7 @@ uint32_t AVInput::startInput(const JsonObject& parameters, JsonObject& response)
     bool audioMix = parameters["requestAudioMix"].Boolean();
     int portId = 0;
     int iType = 0;
-    int planeType = 0; //planeType = 0 -  primary, 1 - secondary video plane type
+    planeType = 0; //planeType = 0 -  primary, 1 - secondary video plane type
     bool topMostPlane = parameters["topMost"].Boolean();
     LOGINFO("topMost value in thunder: %d\n",topMostPlane); 
     if (parameters.HasLabel("portId") && parameters.HasLabel("typeOfInput"))
@@ -399,7 +401,8 @@ uint32_t AVInput::stopInput(const JsonObject& parameters, JsonObject& response)
 
     try
     {
-        if (iType == HDMI) {
+        planeType = -1;
+	if (iType == HDMI) {
             device::HdmiInput::getInstance().selectPort(-1);
         }
         else if (iType == COMPOSITE) {
@@ -723,6 +726,7 @@ void AVInput::AVInputStatusChange( int port , bool isPresented, int type)
     else {
         params["status"] = "stopped";
     }
+    params["plane"] = planeType;
     sendNotify(AVINPUT_EVENT_ON_STATUS_CHANGED, params);
 }
 
