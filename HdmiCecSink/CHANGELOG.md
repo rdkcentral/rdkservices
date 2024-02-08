@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.3.3] - 2024-02-08
+### Fixed
+- standby CEC messages from Unregister device
+
 ## [1.3.2] - 2024-01-09
 ### Fixed
 - Send Physical address synchronously and retried
