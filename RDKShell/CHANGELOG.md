@@ -31,6 +31,10 @@ All notable changes to this RDK Service will be documented in this file.
 ### Added
 - onApplicationLaunched event and proper error messages are not triggering for DAC apps
 
+## [1.4.11] - 2023-11-20
+###Added
+- changes to trigger application event properly
+
 ## [1.4.10] - 2023-10-23
 ### Added
 - RDKShell changes for ignoring factoryMode
