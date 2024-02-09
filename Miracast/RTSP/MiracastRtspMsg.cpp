@@ -927,6 +927,7 @@ bool MiracastRTSPMsg::wait_data_timeout(int m_Sockfd, unsigned int ms)
 {
     struct timeval timeout = {0};
     fd_set readFDSet;
+    bool returnValue = false;
 
     MIRACASTLOG_TRACE("Entering WaitTime[%d]...",ms);
 
@@ -938,11 +939,10 @@ bool MiracastRTSPMsg::wait_data_timeout(int m_Sockfd, unsigned int ms)
 
     if (select(m_Sockfd + 1, &readFDSet, nullptr, nullptr, &timeout) > 0)
     {
-        MIRACASTLOG_TRACE("Exiting ...");
-        return FD_ISSET(m_Sockfd, &readFDSet);
+        returnValue = FD_ISSET(m_Sockfd, &readFDSet);
     }
-    MIRACASTLOG_TRACE("Exiting [TimedOut]...");
-    return false;
+    MIRACASTLOG_TRACE("Exiting ret[%d] status[%s]...",returnValue,strerror(errno));
+    return returnValue;
 }
 
 RTSP_STATUS MiracastRTSPMsg::receive_buffer_timedOut(int socket_fd, void *buffer, size_t buffer_len , unsigned int wait_time_ms )
@@ -971,11 +971,11 @@ RTSP_STATUS MiracastRTSPMsg::receive_buffer_timedOut(int socket_fd, void *buffer
         }
         else
         {
-            MIRACASTLOG_ERROR("recv failed error [%s]\n", strerror(errno));
+            MIRACASTLOG_ERROR("recv failed error [%s]", strerror(errno));
             status = RTSP_MSG_FAILURE;
         }
     }
-    MIRACASTLOG_VERBOSE("received string(%d) - %s\n", recv_return, buffer);
+    MIRACASTLOG_TRACE("received string(%d) - %s", recv_return, buffer);
     MIRACASTLOG_TRACE("Exiting [%d]...",status);
     return status;
 }
@@ -1024,6 +1024,14 @@ MiracastError MiracastRTSPMsg::initiate_TCP(std::string goIP)
             MIRACASTLOG_ERROR("TCP Socket creation error %s", strerror(errno));
             continue;
         }
+    #if 0
+        /* Bind socket */
+        if (bind(m_tcpSockfd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
+        {
+            MIRACASTLOG_ERROR("TCP Socket bind error %s", strerror(errno));
+            continue;
+        }
+    #endif
 
         /*---Add socket to epoll---*/
         m_epollfd = epoll_create(1);
@@ -1033,14 +1041,14 @@ MiracastError MiracastRTSPMsg::initiate_TCP(std::string goIP)
         epoll_ctl(m_epollfd, EPOLL_CTL_ADD, m_tcpSockfd, &event);
 
         fcntl(m_tcpSockfd, F_SETFL, O_NONBLOCK);
-        MIRACASTLOG_INFO("NON_BLOCKING Socket Enabled...\n");
+        MIRACASTLOG_INFO("NON_BLOCKING Socket Enabled...");
 
         r = connect(m_tcpSockfd, (struct sockaddr *)&in_addr, addr_size);
         if (r < 0)
         {
             if (errno != EINPROGRESS)
             {
-                MIRACASTLOG_INFO("Event %s received(%d)", strerror(errno), errno);
+                MIRACASTLOG_ERROR("Event %s received(%d)", strerror(errno), errno);
             }
             else
             {
@@ -1053,11 +1061,20 @@ MiracastError MiracastRTSPMsg::initiate_TCP(std::string goIP)
                 }
                 else
                 {
-                    // connection successful
-                    // do something with the connected socket
-                    MIRACASTLOG_INFO("Socket Connected Successfully ...\n");
-                    ret = MIRACAST_OK;
-                    is_connected = true;
+                    int error;
+                    socklen_t len = sizeof(error);
+                    if (getsockopt(m_tcpSockfd, SOL_SOCKET, SO_ERROR, &error, &len) == 0 && error == 0)
+                    {
+                        // connection successful
+                        // do something with the connected socket
+                        MIRACASTLOG_INFO("Socket Connected Successfully ...");
+                        ret = MIRACAST_OK;
+                        is_connected = true;
+                    }
+                    else
+                    {
+                        MIRACASTLOG_ERROR("Socket failed to connect %s received(%d)", strerror(errno), errno);
+                    }
                 }
             }
         }
