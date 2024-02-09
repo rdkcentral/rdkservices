@@ -2008,29 +2008,20 @@ namespace WPEFramework {
         bool SystemServices::getSerialNumberSnmp(JsonObject& response)
         {
             bool retAPIStatus = false;
-	    if (!Utils::fileExists("/lib/rdk/getStateDetails.sh")) {
-		LOGERR("/lib/rdk/getStateDetails.sh not found.");
-		populateResponseWithError(SysSrv_FileNotPresent, response);
-	    } else {
-		/* TODO: remove system() once alternate available. */
-		system("/lib/rdk/getStateDetails.sh STB_SER_NO");
-		std::vector<string> lines;
-		if (true == Utils::fileExists(TMP_SERIAL_NUMBER_FILE)) {
-		    if (getFileContent(TMP_SERIAL_NUMBER_FILE, lines)) {
-			string serialNumber = lines.front();
-			response["serialNumber"] = serialNumber;
-			retAPIStatus = true;
-		    } else {
-			LOGERR("Unexpected contents in %s file.", TMP_SERIAL_NUMBER_FILE);
-			populateResponseWithError(SysSrv_FileContentUnsupported, response);
-		    }
-		} else {
-		    LOGERR("%s file not found.", TMP_SERIAL_NUMBER_FILE);
-		    populateResponseWithError(SysSrv_FileNotPresent, response);
-		}
-	    }
-	    return retAPIStatus;
-	}
+            IARM_Bus_MFRLib_GetSerializedData_Param_t param = {};
+            param.bufLen = 0;
+            param.type = mfrSERIALIZED_TYPE_SERIALNUMBER;
+            IARM_Result_t result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
+            param.buffer[param.bufLen] = '\0';
+            if (result == IARM_RESULT_SUCCESS) {
+                response["serialNumber"] = string(param.buffer);
+                retAPIStatus = true;
+            }
+            else {
+                populateResponseWithError(SysSrv_Unexpected, response);
+            }
+	        return retAPIStatus;
+        }
 
         /***
          * @brief : To retrieve Device Serial Number
