@@ -20,6 +20,8 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 set(PLUGIN_PERSISTENTSTORE_PATH /opt/secure/persistent/rdkservicestore CACHE STRING "Path")
 set(PLUGIN_PERSISTENTSTORE_KEY "" CACHE STRING "Encryption key")
+set(PLUGIN_PERSISTENTSTORE_MAXSIZE "1000000" CACHE STRING "For all text data, in bytes")
+set(PLUGIN_PERSISTENTSTORE_MAXVALUE "1000" CACHE STRING "For single text data, in bytes")
 set(PLUGIN_PERSISTENTSTORE_STARTUPORDER "" CACHE STRING "To configure startup order of PersistentStore plugin")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
