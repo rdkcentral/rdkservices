@@ -32,6 +32,8 @@ endif ()
 
 message("Setup ${PROJECT_NAME} v${PROJECT_VERSION}")
 
+set(PLUGIN_NETWORKMANAGER_LOGLEVEL "5" CACHE STRING "To configure default loglevel NetworkManager plugin")
+
 # Build the main plugin that runs inside the WPEFramework daemon
 add_library(${MODULE_NAME} SHARED
         NetworkManager.cpp
@@ -70,6 +72,7 @@ add_library(${PLUGIN_IMPLEMENTATION} SHARED
         NetworkConnectivity.cpp
         NetworkManagerLogger.cpp
         StunClient.cpp
+        WifiSignalStrengthMonitor.cpp
         Module.cpp
         ${PUBLIC_HEADERS}
 )
