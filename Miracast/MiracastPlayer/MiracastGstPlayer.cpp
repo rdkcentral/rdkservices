@@ -778,7 +778,7 @@ bool MiracastGstPlayer::createPipeline()
     m_rtpmp2tdepay = gst_element_factory_make("rtpmp2tdepay", "rtpmp2tdepay");
 
     m_tsparse = gst_element_factory_make("tsparse", "tsparse");
-    GstElement *m_Queue2 = gst_element_factory_make("queue2", "queue2");
+    //GstElement *m_Queue2 = gst_element_factory_make("queue2", "queue2");
     m_tsdemux = gst_element_factory_make("tsdemux", "tsdemux");
 
     m_vQueue = gst_element_factory_make("queue", "vQueue");
@@ -792,7 +792,7 @@ bool MiracastGstPlayer::createPipeline()
     m_audio_sink = gst_element_factory_make("amlhalasink", "amlhalasink");
 
     if ((!m_udpsrc) || (!m_rtpjitterbuffer) || (!m_rtpmp2tdepay)||
-        (!m_tsparse) || (!m_tsdemux) || (!m_Queue2) ||
+        (!m_tsparse) || (!m_tsdemux) ||
         (!m_vQueue) || (!m_h264parse) || (!m_video_sink) ||
         (!m_aQueue) || (!m_aacparse) || (!m_avdec_aac) || (!m_audioconvert) || (!m_audio_sink))
     {
@@ -814,7 +814,7 @@ bool MiracastGstPlayer::createPipeline()
     gst_bin_add_many(GST_BIN(m_pipeline), 
                         m_udpsrc, 
                         m_rtpjitterbuffer,m_rtpmp2tdepay,
-                        m_tsparse,m_Queue2,m_tsdemux,
+                        m_tsparse,m_tsdemux,
                         m_vQueue,m_h264parse,m_video_sink,
                         m_aQueue,m_aacparse,m_avdec_aac,m_audioconvert,m_audio_sink,
                         nullptr );
@@ -822,7 +822,7 @@ bool MiracastGstPlayer::createPipeline()
     MIRACASTLOG_TRACE("Link all the elements together. ");
 
     /* Link the elements together */
-    if (!gst_element_link_many(m_udpsrc, m_rtpjitterbuffer,m_rtpmp2tdepay,m_tsparse,m_Queue2,m_tsdemux,nullptr ))
+    if (!gst_element_link_many(m_udpsrc, m_rtpjitterbuffer,m_rtpmp2tdepay,m_tsparse,m_tsdemux,nullptr ))
     {
         MIRACASTLOG_ERROR("Elements (udpsrc->rtpjitterbuffer->rtpmp2tdepay->tsparse->tsdemux) could not be linked");
         gst_object_unref(m_pipeline);
@@ -899,25 +899,7 @@ bool MiracastGstPlayer::createPipeline()
     /*{{{ westerossink related element configuration*/
     MIRACASTLOG_TRACE(">>>>>>>westerossink configuration start");
     updateVideoSinkRectangle();
-#if 0
-    std::string opt_flag_buffer = MiracastCommon::parse_opt_flag( "/opt/miracast_westerossink_immediate_output" );
-    if (!opt_flag_buffer.empty())
-    {
-        /* Set immediate-output Mode to true */
-        g_object_set(G_OBJECT(m_video_sink), "immediate-output", true, nullptr);
-        MIRACASTLOG_INFO("[TEST] Set immediate-output as true to westerossink");
-    }
 
-    guint64 field_value = 0;
-
-    opt_flag_buffer = MiracastCommon::parse_opt_flag("/opt/miracast_westerossink_avsync_mode",true);
-    if (!opt_flag_buffer.empty())
-    {
-        field_value = std::stoull(opt_flag_buffer.c_str());
-        g_object_set(G_OBJECT(m_video_sink), "avsync-mode", field_value, nullptr);
-        MIRACASTLOG_INFO("[TEST] Set avsync-mode as %llu to westerossink",field_value);
-    }
-#endif
     g_signal_connect(m_video_sink, "first-video-frame-callback",G_CALLBACK(onFirstVideoFrameCallback), (gpointer)this);
     MIRACASTLOG_TRACE("westerossink configuration end<<<<<<<<");
     /*}}}*/
@@ -938,35 +920,12 @@ bool MiracastGstPlayer::createPipeline()
     MIRACASTLOG_TRACE("Set disable-xrun as true to amlhalasink");
     g_object_set(G_OBJECT(m_audio_sink), "disable-xrun" , true, nullptr );
 
-    #if 0
-    opt_flag_buffer = MiracastCommon::parse_opt_flag("/opt/miracast_amlhalasink_avsyncmode");
-    if (!opt_flag_buffer.empty())
+    std::string opt_flag_buffer = MiracastCommon::parse_opt_flag("/opt/miracast_avoid_amlhalasink_iptv_mode");
+    if (opt_flag_buffer.empty())
     {
-        field_value = std::stoull(opt_flag_buffer.c_str());
-        g_object_set(G_OBJECT(m_audio_sink), "avsync-mode" , field_value, nullptr );
-        MIRACASTLOG_INFO("[TEST] Set avsync-mode as %llu to amlhalasink",field_value);
+        MIRACASTLOG_INFO("[DEFAULT] Set avsync-mode as 2(IPTV) to amlhalasink");
+        g_object_set(G_OBJECT(m_audio_sink), "avsync-mode" , 2, nullptr );
     }
-    else
-    {
-        opt_flag_buffer = MiracastCommon::parse_opt_flag("/opt/miracast_avoid_amlhalasink_iptv_mode");
-        if (opt_flag_buffer.empty())
-        {
-            g_object_set(G_OBJECT(m_audio_sink), "avsync-mode" , 2, nullptr );
-            MIRACASTLOG_INFO("[DEFAULT] Set avsync-mode as 2 to amlhalasink");
-        }
-    }
-
-    opt_flag_buffer = MiracastCommon::parse_opt_flag("/opt/miracast_amlhalasink_directmode");
-    if (!opt_flag_buffer.empty())
-    {
-        g_object_set(G_OBJECT(m_audio_sink), "direct-mode" , false, nullptr );
-        MIRACASTLOG_INFO("[TEST] Set direct-mode as False to amlhalasink");
-    }
-    #endif
-    
-    MIRACASTLOG_INFO("[DEFAULT] Set avsync-mode as 2(IPTV) to amlhalasink");
-    g_object_set(G_OBJECT(m_audio_sink), "avsync-mode" , 2, nullptr );
-    
     MIRACASTLOG_TRACE("amlhalasink configuration end<<<<<<<<");
     /*}}}*/
 
