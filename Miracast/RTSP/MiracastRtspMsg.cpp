@@ -1921,8 +1921,15 @@ MiracastError MiracastRTSPMsg::start_streaming( VIDEO_RECT_STRUCT video_rect )
     }
 #endif
     std::string gstreamerPipeline = "";
-    const char *mcastfile = "/opt/mcastgstpipline.txt";
+    const char *mcastfile = "/opt/miracast_gstpipline.txt";
     std::ifstream mcgstfile(mcastfile);
+    std::string opt_flag_buffer = MiracastCommon::parse_opt_flag("/opt/miracast_skip_firstframe_callback");
+
+    if (!opt_flag_buffer.empty())
+    {
+        MIRACASTLOG_INFO("#### updating state as PLAYING ####");
+        set_state(MIRACAST_PLAYER_STATE_PLAYING , true );
+    }
 
     if (mcgstfile.is_open())
     {
@@ -2124,7 +2131,6 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
             start_monitor_keep_alive_msg = true;
             start_streaming(video_rect_st);
             MIRACASTLOG_INFO("!!!! GstPlayer instance created, Waiting for first-frame !!!!");
-            //set_state(MIRACAST_PLAYER_STATE_PLAYING , true );
         }
         else
         {
@@ -2281,12 +2287,12 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
                                 if ( MIRACAST_PLAYER_APP_REQ_TO_STOP_ON_EXIT == rtsp_message_data.stop_reason_code )
                                 {
                                     reason = MIRACAST_PLAYER_REASON_CODE_APP_REQ_TO_STOP;
-                                    MIRACASTLOG_INFO("!!! APP REQUESTED TO STOP ON EXIT!!!");
+                                    MIRACASTLOG_INFO("#### MCAST-TRIAGE-OK-APP-EXIT APP REQUESTED TO STOP ON EXIT ####");
                                 }
                                 else if ( MIRACAST_PLAYER_APP_REQ_TO_STOP_ON_NEW_CONNECTION == rtsp_message_data.stop_reason_code )
                                 {
                                     reason = MIRACAST_PLAYER_REASON_CODE_NEW_SRC_DEV_CONNECT_REQ;
-                                    MIRACASTLOG_INFO("!!! APP REQUESTED TO STOP ON NEW CONNECTION !!!");
+                                    MIRACASTLOG_INFO("#### MCAST-TRIAGE-OK-APP-STOP-ON-NEW-CONNECT APP REQUESTED TO STOP ON NEW CONNECTION ####");
                                 }
                                 else
                                 {
@@ -2320,8 +2326,12 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
                     case RTSP_NOTIFY_GSTPLAYER_STATE:
                     {
                         MIRACASTLOG_INFO("!!! RTSP_NOTIFY_GSTPLAYER_STATE[%#08X] !!!",rtsp_message_data.gst_player_state);
-                        if ( MIRACAST_GSTPLAYER_STATE_FIRST_VIDEO_FRAME_RECEIVED == rtsp_message_data.gst_player_state )
+                        std::string opt_flag_buffer = MiracastCommon::parse_opt_flag("/opt/miracast_skip_firstframe_callback");
+
+                        if ((opt_flag_buffer.empty()) &&
+                            ( MIRACAST_GSTPLAYER_STATE_FIRST_VIDEO_FRAME_RECEIVED == rtsp_message_data.gst_player_state ))
                         {
+                            MIRACASTLOG_INFO("#### updating state as PLAYING ####");
                             set_state(MIRACAST_PLAYER_STATE_PLAYING , true );
                         }
                     }
