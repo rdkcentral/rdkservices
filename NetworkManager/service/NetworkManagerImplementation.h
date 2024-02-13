@@ -214,6 +214,7 @@ namespace WPEFramework
             void ReportInternetStatusChangedEvent(const InternetStatus oldState, const InternetStatus newstate);
             void ReportAvailableSSIDsEvent(const string jsonOfWiFiScanResults);
             void ReportWiFiStateChangedEvent(const INetworkManager::INotification::WiFiState state);
+            void ReportWiFiSignalStrengthChangedEvent(const string ssid , const string signalLevel , const WiFiSignalQuality signalQuality);
 
         private:
             void platform_init();

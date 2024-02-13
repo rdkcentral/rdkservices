@@ -1,5 +1,6 @@
 #include "NetworkManagerImplementation.h"
 #include <libnm/NetworkManager.h>
+#include "WifiSignalStrengthMonitor.h"
 
 static NMClient *client;
 
@@ -283,6 +284,7 @@ namespace WPEFramework
         uint32_t NetworkManagerImplementation::GetWiFiSignalStrength(string& ssid /* @out */, string& signalStrength /* @out */, WiFiSignalQuality& quality /* @out */)
         {
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
+            NMLOG_ERROR("GetWiFiSignalStrength - not implimented yet");
             return rc;
         }
 

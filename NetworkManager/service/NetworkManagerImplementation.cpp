@@ -19,6 +19,7 @@
 
 #include "NetworkManagerImplementation.h"
 #include "NetworkConnectivity.h"
+#include "WifiSignalStrengthMonitor.h"
 
 using namespace WPEFramework;
 using namespace WPEFramework::Plugin;
@@ -44,7 +45,7 @@ namespace WPEFramework
 
             /* set the callback function of connectivity monitor*/
             ConnectivityMonitor::getInstance()->registerConnectivityMonitorCallback(this);
-
+            WifiSignalStrengthMonitor::getInstance()->registerWifiSignalStrengthNotify(this);
             /* Initialize STUN Endpoints */
             m_stunEndPoint = "stun.l.google.com";
             m_stunPort = 19302;
@@ -141,7 +142,6 @@ namespace WPEFramework
 
             //set connectivity endpoint
             ConnectivityMonitor::getInstance()->setConnectivityMonitorEndpoints(endpoints);
-
             return(Core::ERROR_NONE);
         }
 
@@ -203,7 +203,6 @@ namespace WPEFramework
             LOG_ENTRY_FUNCTION();
             nsm_internetState isconnected;
             nsm_ipversion tmpVersion = NSM_IPRESOLVE_WHATEVER;
-
             if(0 == strcasecmp("IPv4", ipversion.c_str()))
                 tmpVersion = NSM_IPRESOLVE_V4;
             else if(0 == strcasecmp("IPv6", ipversion.c_str()))
@@ -530,6 +529,19 @@ namespace WPEFramework
             NMLOG_INFO("We have %d subscribed clients to trigger notifications", (int) _notificationCallbacks.size());
             for (const auto callback : _notificationCallbacks) {
                 callback->onWiFiStateChanged(state);
+            }
+            _notificationLock.Unlock();
+        }
+
+        void NetworkManagerImplementation::ReportWiFiSignalStrengthChangedEvent(const string ssid, const string signalLevel, const WiFiSignalQuality signalQuality)
+        {
+            LOG_ENTRY_FUNCTION();
+            _notificationLock.Lock();
+
+            NMLOG_INFO("We have %d subscribed clients to trigger notifications", (int) _notificationCallbacks.size());
+            for (const auto callback : _notificationCallbacks) {
+                callback->onWiFiSignalStrengthChanged(ssid, signalLevel, signalQuality);
+                NMLOG_INFO("We have %d subscribed clients to trigger notifications", (int) _notificationCallbacks.size());
             }
 
             _notificationLock.Unlock();

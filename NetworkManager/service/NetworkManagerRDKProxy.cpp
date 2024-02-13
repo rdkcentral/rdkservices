@@ -1,4 +1,5 @@
 #include "NetworkManagerImplementation.h"
+#include "WifiSignalStrengthMonitor.h"
 #include "libIBus.h"
 
 using namespace WPEFramework;
@@ -456,6 +457,7 @@ namespace WPEFramework
                             break;
                         case WIFI_CONNECTED:
                             state = Exchange::INetworkManager::INotification::WIFI_STATE_CONNECTED;
+                            WifiSignalStrengthMonitor::getInstance()->startWifiSignalStrengthMonitor(DEFAULT_WIFI_SIGNAL_TEST_INTERVAL_SEC);
                             break;
                         case WIFI_FAILED:
                             state = Exchange::INetworkManager::INotification::WIFI_STATE_CONNECTION_FAILED;
