@@ -4445,6 +4445,8 @@ namespace Plugin {
             GetCurrentVideoFormat(&currentFormat);
             if( VIDEO_FORMAT_NONE == currentFormat )
                 formatIndex = VIDEO_FORMAT_SDR;
+	    else
+                formatIndex = (int)currentFormat;
         }
         else
         {
