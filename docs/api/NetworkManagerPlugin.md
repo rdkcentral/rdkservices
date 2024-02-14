@@ -4,7 +4,7 @@
 
 **Version: [1.0.0]()**
 
-A org.rdk.NetworkManager plugin for Thunder framework.
+A NetworkManager plugin for Thunder framework.
 
 ### Table of Contents
 
@@ -23,9 +23,9 @@ A org.rdk.NetworkManager plugin for Thunder framework.
 <a name="head.Description"></a>
 # Description
 
-The `NetworkManager` plugin allows you to manage Ethernet and Wifi interfaces on the device.
+A Unified `NetworkManager` plugin that allows you to manage Ethernet and Wifi interfaces on the device.
 
-The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
+ The plugin is designed to be an out-of-process service to be handled by Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
 
 <a name="head.Configuration"></a>
 # Configuration
@@ -35,8 +35,8 @@ The table below lists configuration options of the plugin.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | callsign | string | Plugin instance name (default: *org.rdk.NetworkManager*) |
-| classname | string | Class name: *org.rdk.NetworkManager* |
-| locator | string | Library name: *libWPENetworkManager.so* |
+| classname | string | Class name: *NetworkManager* |
+| locator | string | Library name: *libWPEFrameworkNetworkManager.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
 <a name="head.Interfaces"></a>
@@ -55,98 +55,41 @@ NetworkManager interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [SetLogLevel](#method.SetLogLevel) | Set Log level for more information |
-| [GetAvailableInterfaces](#method.GetAvailableInterfaces) | Get Device supported list of available interface including their state |
-| [GetPrimaryInterface](#method.GetPrimaryInterface) | Gets the Primary/default network interface |
-| [SetPrimaryInterface](#method.SetPrimaryInterface) | Sets the Primary/default interface |
+| [GetAvailableInterfaces](#method.GetAvailableInterfaces) | Get device supported list of available interface including their state |
+| [GetPrimaryInterface](#method.GetPrimaryInterface) | Gets the primary/default network interface for the device |
+| [SetPrimaryInterface](#method.SetPrimaryInterface) | Sets the primary/default interface for the device |
 | [GetIPSettings](#method.GetIPSettings) | Gets the IP setting for the given interface |
-| [SetIPSettings](#method.SetIPSettings) | Sets the IP settings |
-| [GetStunEndpoint](#method.GetStunEndpoint) | Get the Stun Endpoint used for getPublicIP |
-| [SetStunEndPoint](#method.SetStunEndPoint) | Set the Stun Endpoint used for getPublicIP |
-| [GetConnectivityTestEndpoints](#method.GetConnectivityTestEndpoints) | Get connectivity test endpoints |
-| [SetConnectivityTestEndpoints](#method.SetConnectivityTestEndpoints) | Define up to 5 endpoints for a connectivity test |
-| [IsConnectedToInternet](#method.IsConnectedToInternet) | Whether the device has internet connectivity |
+| [SetIPSettings](#method.SetIPSettings) | Sets the IP settings for the given interface |
+| [GetStunEndpoint](#method.GetStunEndpoint) | Get the STUN Endpoint that is used to identify public IP of the device |
+| [SetStunEndpoint](#method.SetStunEndpoint) | Set the STUN Endpoint to be used to identify public IP of the device |
+| [GetConnectivityTestEndpoints](#method.GetConnectivityTestEndpoints) | Gets currently used test endpoints |
+| [SetConnectivityTestEndpoints](#method.SetConnectivityTestEndpoints) | This method used to set up to 5 endpoints for a connectivity test |
+| [IsConnectedToInternet](#method.IsConnectedToInternet) | Seeks Whether the device has internet connectivity |
 | [GetCaptivePortalURI](#method.GetCaptivePortalURI) | Gets the captive portal URI if connected to any captive portal network |
 | [StartConnectivityMonitoring](#method.StartConnectivityMonitoring) | Enable a continuous monitoring of internet connectivity with heart beat interval thats given |
 | [StopConnectivityMonitoring](#method.StopConnectivityMonitoring) | Stops the connectivity monitoring |
-| [GetPublicIP](#method.GetPublicIP) | It allows either zero parameter or with only interface and ipversion parameter to determine WAN ip address |
+| [GetPublicIP](#method.GetPublicIP) | Gets the internet/public IP Address of the device |
 | [Ping](#method.Ping) | Pings the specified endpoint with the specified number of packets |
 | [Trace](#method.Trace) | Traces the specified endpoint with the specified number of packets using `traceroute` |
-| [StartWiFiScan](#method.StartWiFiScan) | Scans for available SSIDs |
-| [StopWiFiScan](#method.StopWiFiScan) | Stops scanning for SSIDs |
-| [GetKnownSSIDs](#method.GetKnownSSIDs) | Saved SSIDs list |
-| [AddToKnownSSIDs](#method.AddToKnownSSIDs) | Saves the SSID, passphrase, and security mode for future sessions |
-| [RemoveKnownSSID](#method.RemoveKnownSSID) | Remove given ssid from saved ssids |
-| [WiFiConnect](#method.WiFiConnect) | Attempts to connect to the specified SSID with the given passphrase |
-| [WiFiDisconnect](#method.WiFiDisconnect) | Disconnects from the SSID |
+| [StartWiFiScan](#method.StartWiFiScan) | Initiates WiFi scaning |
+| [StopWiFiScan](#method.StopWiFiScan) | Stops WiFi scanning |
+| [GetKnownSSIDs](#method.GetKnownSSIDs) | Gets list of saved SSIDs |
+| [AddToKnownSSIDs](#method.AddToKnownSSIDs) | Saves the SSID, passphrase, and security mode for upcoming and future sessions |
+| [RemoveKnownSSID](#method.RemoveKnownSSID) | Remove given SSID from saved SSIDs |
+| [WiFiConnect](#method.WiFiConnect) | Initiates request to connect to the specified SSID with the given passphrase |
+| [WiFiDisconnect](#method.WiFiDisconnect) | Disconnects from the currently connected SSID |
 | [GetConnectedSSID](#method.GetConnectedSSID) | Returns the connected SSID information |
 | [StartWPS](#method.StartWPS) | Initiates a connection using Wifi Protected Setup (WPS) |
 | [StopWPS](#method.StopWPS) | Cancels the in-progress WPS pairing operation |
 | [GetWiFiSignalStrength](#method.GetWiFiSignalStrength) | Get WiFiSignalStrength of connected SSID |
 | [GetSupportedSecurityModes](#method.GetSupportedSecurityModes) | Returns the Wifi security modes that the device supports |
+| [SetLogLevel](#method.SetLogLevel) | Set Log level for more information |
 
-
-<a name="method.SetLogLevel"></a>
-## *SetLogLevel [<sup>method</sup>](#head.Methods)*
-
-Set Log level for more information. The possible set log level are as follows. 
-* `0`: FATAL  
-* `1`: ERROR  
-* `2`: WARNING  
-* `3`: INFO 
-* `4`: VERBOSE 
-* `5`: TRACE 
-.
-
-### Events
-
-No Events
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.loglevel | integer | Set Log level to get more information |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.NetworkManager.SetLogLevel",
-    "params": {
-        "loglevel": 1
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "success": true
-    }
-}
-```
 
 <a name="method.GetAvailableInterfaces"></a>
 ## *GetAvailableInterfaces [<sup>method</sup>](#head.Methods)*
 
-Get Device supported list of available interface including their state.
+Get device supported list of available interface including their state.
 
 ### Events
 
@@ -163,8 +106,8 @@ This method takes no parameters.
 | result | object |  |
 | result?.Interfaces | array | <sup>*(optional)*</sup> An interface |
 | result?.Interfaces[#] | object | <sup>*(optional)*</sup>  |
-| result?.Interfaces[#].type | string | Type |
-| result?.Interfaces[#].name | string | Name |
+| result?.Interfaces[#].type | string | Interface  Type |
+| result?.Interfaces[#].name | string | Interface Name. ex: eth0 or wlan0 |
 | result?.Interfaces[#].mac | string | Interface MAC address |
 | result?.Interfaces[#].isEnabled | boolean | Whether the interface is currently enabled |
 | result?.Interfaces[#].isConnected | boolean | Whether the interface is currently connected |
@@ -191,8 +134,8 @@ This method takes no parameters.
     "result": {
         "Interfaces": [
             {
-                "type": "...",
-                "name": "...",
+                "type": "ETHERNET",
+                "name": "eth0",
                 "mac": "AA:AA:AA:AA:AA:AA",
                 "isEnabled": true,
                 "isConnected": true
@@ -206,7 +149,7 @@ This method takes no parameters.
 <a name="method.GetPrimaryInterface"></a>
 ## *GetPrimaryInterface [<sup>method</sup>](#head.Methods)*
 
-Gets the Primary/default network interface. The active network interface is defined as the one that can make requests to the external network. Returns one of the supported interfaces as per `getInterfaces`, or an empty value which indicates that there is no default network interface.
+Gets the primary/default network interface for the device. The active network interface is defined as the one that can make requests to the external network. Returns one of the supported interfaces as per `GetAvailableInterfaces`, or an empty value which indicates that there is no default network interface.
 
 ### Events
 
@@ -221,7 +164,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface in `getInterfaces` |
+| result.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface |
 
 ### Example
 
@@ -250,7 +193,7 @@ This method takes no parameters.
 <a name="method.SetPrimaryInterface"></a>
 ## *SetPrimaryInterface [<sup>method</sup>](#head.Methods)*
 
-Sets the Primary/default interface. The call fails if the interface is not enabled.
+Sets the primary/default interface for the device. This call fails if the interface is not enabled.
 
 ### Events
 
@@ -265,8 +208,7 @@ Sets the Primary/default interface. The call fails if the interface is not enabl
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface in `getInterfaces` |
-| params.persist | boolean | Whether the default interface setting persists after reboot. When `true`, this interface is enabled as the default interface currently AND on the next reboot. When `false`, this interface is only the default during this session |
+| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface |
 
 ### Result
 
@@ -285,8 +227,7 @@ Sets the Primary/default interface. The call fails if the interface is not enabl
     "id": 42,
     "method": "org.rdk.NetworkManager.SetPrimaryInterface",
     "params": {
-        "interface": "wlan0",
-        "persist": true
+        "interface": "wlan0"
     }
 }
 ```
@@ -317,7 +258,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface in `getInterfaces` |
+| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface |
 | params?.ipversion | string | <sup>*(optional)*</sup> either IPv4 or IPv6 |
 
 ### Result
@@ -325,7 +266,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface in `getInterfaces` |
+| result.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface |
 | result.ipversion | string | either IPv4 or IPv6 |
 | result.autoconfig | boolean | `true` if DHCP is used, `false` if IP is configured manually |
 | result?.dhcpserver | string | <sup>*(optional)*</sup> The DHCP Server address |
@@ -365,7 +306,7 @@ No Events
         "autoconfig": true,
         "dhcpserver": "192.168.1.1",
         "ipaddress": "192.168.1.101",
-        "prefix": 123,
+        "prefix": 24,
         "gateway": "192.168.1.1",
         "v6LinkLocal": "192.168.1.1",
         "primarydns": "192.168.1.1",
@@ -378,19 +319,20 @@ No Events
 <a name="method.SetIPSettings"></a>
 ## *SetIPSettings [<sup>method</sup>](#head.Methods)*
 
-Sets the IP settings.
+Sets the IP settings for the given interface.
 
 ### Events
 
 | Event | Description |
 | :-------- | :-------- |
+| [onIPAddressChanged](#event.onIPAddressChanged) | Triggered when the device connects to router. |
 | [onInternetStatusChanged](#event.onInternetStatusChanged) | Triggered when each IP address is lost or acquired. |
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface in `getInterfaces` |
+| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface |
 | params.ipversion | string | either IPv4 or IPv6 |
 | params.autoconfig | boolean | `true` if DHCP is used, `false` if IP is configured manually |
 | params.ipaddress | string | The IP address |
@@ -420,7 +362,7 @@ Sets the IP settings.
         "ipversion": "IPv4",
         "autoconfig": true,
         "ipaddress": "192.168.1.101",
-        "prefix": 123,
+        "prefix": 24,
         "gateway": "192.168.1.1",
         "primarydns": "192.168.1.1",
         "secondarydns": "192.168.1.2"
@@ -443,7 +385,7 @@ Sets the IP settings.
 <a name="method.GetStunEndpoint"></a>
 ## *GetStunEndpoint [<sup>method</sup>](#head.Methods)*
 
-Get the Stun Endpoint used for getPublicIP.
+Get the STUN Endpoint that is used to identify public IP of the device.
 
 ### Events
 
@@ -492,10 +434,10 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.SetStunEndPoint"></a>
-## *SetStunEndPoint [<sup>method</sup>](#head.Methods)*
+<a name="method.SetStunEndpoint"></a>
+## *SetStunEndpoint [<sup>method</sup>](#head.Methods)*
 
-Set the Stun Endpoint used for getPublicIP.
+Set the STUN Endpoint to be used to identify public IP of the device.
 
 ### Events
 
@@ -508,8 +450,8 @@ No Events
 | params | object |  |
 | params.endPoint | string | STUN server endPoint |
 | params.port | integer | STUN server port |
-| params.bindTimeout | integer | STUN server bind timeout |
-| params.cacheTimeout | integer | STUN server cache timeout |
+| params?.bindTimeout | integer | <sup>*(optional)*</sup> STUN server bind timeout |
+| params?.cacheTimeout | integer | <sup>*(optional)*</sup> STUN server cache timeout |
 
 ### Result
 
@@ -526,7 +468,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.NetworkManager.SetStunEndPoint",
+    "method": "org.rdk.NetworkManager.SetStunEndpoint",
     "params": {
         "endPoint": "stun.l.google.com",
         "port": 3478,
@@ -551,7 +493,7 @@ No Events
 <a name="method.GetConnectivityTestEndpoints"></a>
 ## *GetConnectivityTestEndpoints [<sup>method</sup>](#head.Methods)*
 
-Get connectivity test endpoints. on success list out the connectivity test points connections.
+Gets currently used test endpoints. on success list out the connectivity test points connections.
 
 ### Events
 
@@ -600,7 +542,7 @@ This method takes no parameters.
 <a name="method.SetConnectivityTestEndpoints"></a>
 ## *SetConnectivityTestEndpoints [<sup>method</sup>](#head.Methods)*
 
-Define up to 5 endpoints for a connectivity test. Successful connections are verified with HTTP Status code 204 (No Content).
+This method used to set up to 5 endpoints for a connectivity test. Successful connections are verified with HTTP Status code 204 (No Content).
 
 ### Events
 
@@ -653,7 +595,7 @@ No Events
 <a name="method.IsConnectedToInternet"></a>
 ## *IsConnectedToInternet [<sup>method</sup>](#head.Methods)*
 
-Whether the device has internet connectivity. This API might take up to 2s to validate internet connectivity.
+Seeks Whether the device has internet connectivity. This API might take up to 3s to validate internet connectivity.
 
 ### Events
 
@@ -672,7 +614,7 @@ No Events
 | :-------- | :-------- | :-------- |
 | result | object |  |
 | result.isConnectedToInternet | boolean | `true` if internet connectivity is detected, otherwise `false` |
-| result.internetState | integer | The Wifi operational state |
+| result.internetState | integer | The internet state |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -698,7 +640,7 @@ No Events
     "id": 42,
     "result": {
         "isConnectedToInternet": true,
-        "internetState": 2,
+        "internetState": 4,
         "success": true
     }
 }
@@ -753,7 +695,7 @@ This method takes no parameters.
 <a name="method.StartConnectivityMonitoring"></a>
 ## *StartConnectivityMonitoring [<sup>method</sup>](#head.Methods)*
 
-Enable a continuous monitoring of internet connectivity with heart beat interval thats given.
+Enable a continuous monitoring of internet connectivity with heart beat interval thats given. If the monitoring is already happening, it will be restarted with new given interval.
 
 ### Events
 
@@ -848,7 +790,7 @@ This method takes no parameters.
 <a name="method.GetPublicIP"></a>
 ## *GetPublicIP [<sup>method</sup>](#head.Methods)*
 
-It allows either zero parameter or with only interface and ipversion parameter to determine WAN ip address.
+Gets the internet/public IP Address of the device.
 
 ### Events
 
@@ -904,9 +846,8 @@ Pings the specified endpoint with the specified number of packets.
 
 ### Events
 
-| Event | Description |
-| :-------- | :-------- |
-| [onPingResponse](#event.onPingResponse) | Triggered when Ping request is success. |
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
@@ -915,7 +856,7 @@ Pings the specified endpoint with the specified number of packets.
 | params.endpoint | string | The host name or IP address |
 | params.ipversion | string | either IPv4 or IPv6 |
 | params.noOfRequest | integer | The number of packets to send. Default is 15 |
-| params.timeout | integer | STUN server bind timeout |
+| params.timeout | integer | Timeout |
 | params.guid | string | The globally unique identifier |
 
 ### Result
@@ -923,6 +864,16 @@ Pings the specified endpoint with the specified number of packets.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
+| result.target | string | The target IP address |
+| result.packetsTransmitted | integer | The number of packets sent |
+| result.packetsReceived | integer | The number of packets received |
+| result.packetLoss | string | The number of packets lost |
+| result.tripMin | string | The minimum amount of time to receive the packets |
+| result.tripAvg | string | The average time to receive the packets |
+| result.tripMax | string | The maximum amount of time to receive the packets |
+| result.tripStdDev | string | The standard deviation for the trip |
+| result.error | string | An error message |
+| result.guid | string | The globally unique identifier |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -951,6 +902,16 @@ Pings the specified endpoint with the specified number of packets.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
+        "target": "45.57.221.20",
+        "packetsTransmitted": 10,
+        "packetsReceived": 10,
+        "packetLoss": "0.0",
+        "tripMin": "61.264",
+        "tripAvg": "130.397",
+        "tripMax": "230.832",
+        "tripStdDev": "80.919",
+        "error": "...",
+        "guid": "...",
         "success": true
     }
 }
@@ -980,6 +941,16 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
+| result.target | string | The target IP address |
+| result.packetsTransmitted | integer | The number of packets sent |
+| result.packetsReceived | integer | The number of packets received |
+| result.packetLoss | string | The number of packets lost |
+| result.tripMin | string | The minimum amount of time to receive the packets |
+| result.tripAvg | string | The average time to receive the packets |
+| result.tripMax | string | The maximum amount of time to receive the packets |
+| result.tripStdDev | string | The standard deviation for the trip |
+| result.error | string | An error message |
+| result.guid | string | The globally unique identifier |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -1007,6 +978,16 @@ No Events
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
+        "target": "45.57.221.20",
+        "packetsTransmitted": 10,
+        "packetsReceived": 10,
+        "packetLoss": "0.0",
+        "tripMin": "61.264",
+        "tripAvg": "130.397",
+        "tripMax": "230.832",
+        "tripStdDev": "80.919",
+        "error": "...",
+        "guid": "...",
         "success": true
     }
 }
@@ -1015,7 +996,7 @@ No Events
 <a name="method.StartWiFiScan"></a>
 ## *StartWiFiScan [<sup>method</sup>](#head.Methods)*
 
-Scans for available SSIDs. Available SSIDs are returned in an `onAvailableSSIDs` event.
+Initiates WiFi scaning. This method supports scanning for specific range of frequency like 2.4GHz only or 5GHz only or 6GHz only or ALL. When no input passed about the frequency to be scanned, it scans for all. It publishes 'onAvailableSSIDs' event upon completion.
 
 ### Events
 
@@ -1066,7 +1047,7 @@ Scans for available SSIDs. Available SSIDs are returned in an `onAvailableSSIDs`
 <a name="method.StopWiFiScan"></a>
 ## *StopWiFiScan [<sup>method</sup>](#head.Methods)*
 
-Stops scanning for SSIDs. Any discovered SSIDs from the call to the `startScan` method up to the point where this method is called are still returned.
+Stops WiFi scanning. Any discovered SSIDs from the call to the `StartWiFiScan` method up to the point where this method is called are still returned as event.
 
 ### Events
 
@@ -1110,7 +1091,7 @@ This method takes no parameters.
 <a name="method.GetKnownSSIDs"></a>
 ## *GetKnownSSIDs [<sup>method</sup>](#head.Methods)*
 
-Saved SSIDs list.
+Gets list of saved SSIDs. This method returns all the SSIDs that are saved as array.
 
 ### Events
 
@@ -1149,7 +1130,7 @@ This method takes no parameters.
     "id": 42,
     "result": {
         "ssids": [
-            "Comcast123"
+            "Xfinity_Guest"
         ],
         "success": true
     }
@@ -1159,7 +1140,7 @@ This method takes no parameters.
 <a name="method.AddToKnownSSIDs"></a>
 ## *AddToKnownSSIDs [<sup>method</sup>](#head.Methods)*
 
-Saves the SSID, passphrase, and security mode for future sessions.
+Saves the SSID, passphrase, and security mode for upcoming and future sessions. This method only adds to the persistent memory; does not disconnect from currently connected SSID.
 
 ### Events
 
@@ -1193,7 +1174,7 @@ No Events
     "params": {
         "ssid": "123412341234",
         "passphrase": "password",
-        "securityMode": 2
+        "securityMode": 6
     }
 }
 ```
@@ -1213,12 +1194,15 @@ No Events
 <a name="method.RemoveKnownSSID"></a>
 ## *RemoveKnownSSID [<sup>method</sup>](#head.Methods)*
 
-Remove given ssid from saved ssids.
+Remove given SSID from saved SSIDs. This method just removes from the list and of the list is having only one entry thats being removed, it will initiate a disconnect.
 
 ### Events
 
-No Events
-
+| Event | Description |
+| :-------- | :-------- |
+| [onWiFiStateChanged](#event.onWiFiStateChanged) | Triggered when Wifi state changes to DISCONNECTED |
+| [onIPAddressChanged](#event.onIPAddressChanged) | Triggered when an IP Address is assigned or lost |
+| [onInternetStatusChange](#event.onInternetStatusChange) | Triggered when internet connection state changed |
 ### Parameters
 
 | Name | Type | Description |
@@ -1263,7 +1247,7 @@ No Events
 <a name="method.WiFiConnect"></a>
 ## *WiFiConnect [<sup>method</sup>](#head.Methods)*
 
-Attempts to connect to the specified SSID with the given passphrase. Passphrase can be `null` when the network security is `NONE`. When called with no arguments, this method attempts to connect to the saved SSID and password. See `saveSSID`.
+Initiates request to connect to the specified SSID with the given passphrase. Passphrase can be `null` when the network security is `NONE`. When called with no arguments, this method attempts to connect to the saved SSID and password. See `AddToKnownSSIDs`.
 
 ### Events
 
@@ -1298,7 +1282,7 @@ Attempts to connect to the specified SSID with the given passphrase. Passphrase 
     "params": {
         "ssid": "123412341234",
         "passphrase": "password",
-        "securityMode": 2
+        "securityMode": 6
     }
 }
 ```
@@ -1318,13 +1302,15 @@ Attempts to connect to the specified SSID with the given passphrase. Passphrase 
 <a name="method.WiFiDisconnect"></a>
 ## *WiFiDisconnect [<sup>method</sup>](#head.Methods)*
 
-Disconnects from the SSID. A `result` value of `0` indicates that the SSID was disconnected. A nonzero value indicates that the SSID did not disconnect.
+Disconnects from the currently connected SSID. A event will be posted upon completion.
 
 ### Events
 
 | Event | Description |
 | :-------- | :-------- |
 | [onWIFIStateChanged](#event.onWIFIStateChanged) | Triggered when Wifi state changes to DISCONNECTED (only if currently connected). |
+| [onIPAddressChanged](#event.onIPAddressChanged) | Triggered when an IP Address is assigned or lost |
+| [onInternetStatusChange](#event.onInternetStatusChange) | Triggered when internet connection state changed |
 ### Parameters
 
 This method takes no parameters.
@@ -1430,12 +1416,14 @@ If the `method` parameter is set to `SERIALIZED_PIN`, then RDK retrieves the ser
 | Event | Description |
 | :-------- | :-------- |
 | [onWIFIStateChanged](#event.onWIFIStateChanged) | Triggered when Wifi state changes to DISCONNECTED (only if currently connected), CONNECTING, CONNECTED. |
+| [onIPAddressChanged](#event.onIPAddressChanged) | Triggered when an IP Address is assigned or lost |
+| [onInternetStatusChange](#event.onInternetStatusChange) | Triggered when internet connection state changed |
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.method | string | The method used to obtain the pin (must be one of the following: *PBC*, *PIN*, *SERIALIZED_PIN*) |
+| params.method | integer | The method used to obtain the pin (must be one of the following: PBC=0, PIN=1, SERIALIZED_PIN=2) |
 | params.wps_pin | string | A valid 8 digit WPS pin number. Use this parameter when the `method` parameter is set to `PIN` |
 
 ### Result
@@ -1456,7 +1444,7 @@ If the `method` parameter is set to `SERIALIZED_PIN`, then RDK retrieves the ser
     "id": 42,
     "method": "org.rdk.NetworkManager.StartWPS",
     "params": {
-        "method": "PIN",
+        "method": 1,
         "wps_pin": "88888888"
     }
 }
@@ -1648,6 +1636,63 @@ This method takes no parameters.
 }
 ```
 
+<a name="method.SetLogLevel"></a>
+## *SetLogLevel [<sup>method</sup>](#head.Methods)*
+
+Set Log level for more information. The possible set log level are as follows. 
+* `0`: FATAL  
+* `1`: ERROR  
+* `2`: WARNING  
+* `3`: INFO 
+* `4`: VERBOSE 
+* `5`: TRACE 
+.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.loglevel | integer | Set Log level to get more information |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.NetworkManager.SetLogLevel",
+    "params": {
+        "loglevel": 1
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
 <a name="head.Notifications"></a>
 # Notifications
 
@@ -1659,13 +1704,11 @@ NetworkManager interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onInterfaceStateChanged](#event.onInterfaceStateChanged) | Triggered when an interface becomes enabled or disabled |
+| [onInterfaceStateChanged](#event.onInterfaceStateChanged) | Triggered when an interface state is changed |
 | [onIPAddressChanged](#event.onIPAddressChanged) | Triggered when an IP Address is assigned or lost |
-| [onActiveInterfaceChanged](#event.onActiveInterfaceChanged) | Triggered when the ac interface changes, regardless if it's from a system operation or through the `setDefaultInterface` method |
+| [onActiveInterfaceChanged](#event.onActiveInterfaceChanged) | Triggered when the primary/active interface changes, regardless if it's from a system operation or through the `SetPrimaryInterface` method |
 | [onInternetStatusChange](#event.onInternetStatusChange) | Triggered when internet connection state changed |
-| [onPingResponse](#event.onPingResponse) | Triggered when a connection is made or lost |
-| [onTraceResponse](#event.onTraceResponse) | Triggered when a connection is made or lost |
-| [onAvailableSSIDs](#event.onAvailableSSIDs) | Triggered when got for scan |
+| [onAvailableSSIDs](#event.onAvailableSSIDs) | Triggered when scan completes or when scan cancelled |
 | [onWiFiStateChanged](#event.onWiFiStateChanged) | Triggered when WIFI connection state get changed |
 | [onWiFiSignalStrengthChanged](#event.onWiFiSignalStrengthChanged) | Triggered when WIFI connection Signal Strength get changed |
 
@@ -1673,15 +1716,22 @@ NetworkManager interface events:
 <a name="event.onInterfaceStateChanged"></a>
 ## *onInterfaceStateChanged [<sup>event</sup>](#head.Notifications)*
 
-Triggered when an interface becomes enabled or disabled.
+Triggered when an interface state is changed. The possible states are 
+* 'INTERFACE_ADDED' 
+* 'INTERFACE_LINK_UP' 
+* 'INTERFACE_LINK_DOWN' 
+* 'INTERFACE_ACQUIRING_IP' 
+* 'INTERFACE_REMOVED' 
+* 'INTERFACE_DISABLED' 
+.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface in `getInterfaces` |
-| params.state | string | Whether the interface is enabled (`true`) or disabled (`false`) |
+| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface |
+| params.state | string | Current state of the interface |
 
 ### Example
 
@@ -1691,7 +1741,7 @@ Triggered when an interface becomes enabled or disabled.
     "method": "client.events.onInterfaceStateChanged",
     "params": {
         "interface": "wlan0",
-        "state": "Interface_ADDED"
+        "state": "INTERFACE_ADDED"
     }
 }
 ```
@@ -1706,10 +1756,10 @@ Triggered when an IP Address is assigned or lost.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface in `getInterfaces` |
-| params.ipv6 | string | The IPv6 address for the interface |
-| params?.ipv4 | string | <sup>*(optional)*</sup> The IPv4 address for the interface |
-| params.status | string | Whether IP address was acquired or lost (must be one of the following: *`ACQUIRED`*, *`LOST`*) |
+| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface |
+| params.isIPv6 | boolean | It will be true if the IP address is IPv6 |
+| params.ipAddress | string | The IPv6 or IPv4 address for the interface |
+| params.status | string | Whether IP address was acquired or lost (must be one of the following: 'ACQUIRED', 'LOST') (must be one of the following: *`ACQUIRED`*, *`LOST`*) |
 
 ### Example
 
@@ -1719,8 +1769,8 @@ Triggered when an IP Address is assigned or lost.
     "method": "client.events.onIPAddressChanged",
     "params": {
         "interface": "wlan0",
-        "ipv6": "2001:0xx8:85a3:0000:0000:8x2x:0370:7334",
-        "ipv4": "192.168.1.2",
+        "isIPv6": false,
+        "ipAddress": "192.168.1.100",
         "status": "ACQUIRED"
     }
 }
@@ -1729,7 +1779,7 @@ Triggered when an IP Address is assigned or lost.
 <a name="event.onActiveInterfaceChanged"></a>
 ## *onActiveInterfaceChanged [<sup>event</sup>](#head.Notifications)*
 
-Triggered when the ac interface changes, regardless if it's from a system operation or through the `setDefaultInterface` method.
+Triggered when the primary/active interface changes, regardless if it's from a system operation or through the `SetPrimaryInterface` method.
 
 ### Parameters
 
@@ -1746,8 +1796,8 @@ Triggered when the ac interface changes, regardless if it's from a system operat
     "jsonrpc": "2.0",
     "method": "client.events.onActiveInterfaceChanged",
     "params": {
-        "oldInterfaceName": "ETHERNET",
-        "newInterfaceName": "WIFI"
+        "oldInterfaceName": "wlan0",
+        "newInterfaceName": "eth0"
     }
 }
 ```
@@ -1774,62 +1824,10 @@ Triggered when internet connection state changed.The possible internet connectio
     "jsonrpc": "2.0",
     "method": "client.events.onInternetStatusChange",
     "params": {
-        "PrevState": 0,
+        "PrevState": 1,
         "PrevStatus": "NO_INTERNET",
-        "state": 0,
-        "status": "NO_INTERNET"
-    }
-}
-```
-
-<a name="event.onPingResponse"></a>
-## *onPingResponse [<sup>event</sup>](#head.Notifications)*
-
-Triggered when a connection is made or lost.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.pingStatistics | string | Ping Statistics |
-| params.guid | string | The globally unique identifier |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.onPingResponse",
-    "params": {
-        "pingStatistics": "...",
-        "guid": "..."
-    }
-}
-```
-
-<a name="event.onTraceResponse"></a>
-## *onTraceResponse [<sup>event</sup>](#head.Notifications)*
-
-Triggered when a connection is made or lost.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.traceResult | string | Trace Result |
-| params.guid | string | The globally unique identifier |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.onTraceResponse",
-    "params": {
-        "traceResult": "...",
-        "guid": "..."
+        "state": 4,
+        "status": "FULLY_CONNECTED"
     }
 }
 ```
@@ -1837,14 +1835,19 @@ Triggered when a connection is made or lost.
 <a name="event.onAvailableSSIDs"></a>
 ## *onAvailableSSIDs [<sup>event</sup>](#head.Notifications)*
 
-Triggered when got for scan.
+Triggered when scan completes or when scan cancelled.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.ssids | string | On Available SSID's |
+| params.ssids | array | On Available SSID's |
+| params.ssids[#] | object |  |
+| params.ssids[#].ssid | string | ssid |
+| params.ssids[#].security | integer | security |
+| params.ssids[#].signalStrength | string | signalStrength |
+| params.ssids[#].frequency | string | frequency |
 
 ### Example
 
@@ -1853,7 +1856,14 @@ Triggered when got for scan.
     "jsonrpc": "2.0",
     "method": "client.events.onAvailableSSIDs",
     "params": {
-        "ssids": "..."
+        "ssids": [
+            {
+                "ssid": "myAP-2.4",
+                "security": 6,
+                "signalStrength": "-27.000000",
+                "frequency": "2.442000"
+            }
+        ]
     }
 }
 ```
@@ -1861,7 +1871,22 @@ Triggered when got for scan.
 <a name="event.onWiFiStateChanged"></a>
 ## *onWiFiStateChanged [<sup>event</sup>](#head.Notifications)*
 
-Triggered when WIFI connection state get changed.
+Triggered when WIFI connection state get changed. The possible states are, 
+ * '0' - 'WIFI_STATE_UNINSTALLED' 
+ * '1' - 'WIFI_STATE_DISABLED' 
+ * '2' - 'WIFI_STATE_DISCONNECTED' 
+ * '3' - 'WIFI_STATE_PAIRING' 
+ * '4' - 'WIFI_STATE_CONNECTING' 
+ * '5' - 'WIFI_STATE_CONNECTED' 
+ * '6' - 'WIFI_STATE_SSID_NOT_FOUND' 
+ * '7' - 'WIFI_STATE_SSID_CHANGED' 
+ * '8' - 'WIFI_STATE_CONNECTION_LOST' 
+ * '9' - 'WIFI_STATE_CONNECTION_FAILED' 
+ * '10'- 'WIFI_STATE_CONNECTION_INTERRUPTED' 
+ * '11' - 'WIFI_STATE_INVALID_CREDENTIALS' 
+ * '12' - 'WIFI_STATE_AUTHENTICATION_FAILED' 
+ * '13' - 'WIFI_STATE_ERROR' 
+.
 
 ### Parameters
 
@@ -1877,7 +1902,7 @@ Triggered when WIFI connection state get changed.
     "jsonrpc": "2.0",
     "method": "client.events.onWiFiStateChanged",
     "params": {
-        "state": 3
+        "state": 5
     }
 }
 ```
@@ -1903,9 +1928,9 @@ Triggered when WIFI connection Signal Strength get changed.
     "jsonrpc": "2.0",
     "method": "client.events.onWiFiSignalStrengthChanged",
     "params": {
-        "ssid": "comcast123",
-        "signalStrength": "...",
-        "quality": "..."
+        "ssid": "home-new_123",
+        "signalStrength": "-27.000000",
+        "quality": "Excellent"
     }
 }
 ```

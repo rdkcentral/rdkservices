@@ -23,8 +23,16 @@ find_package(${NAMESPACE}Core REQUIRED)
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
 find_package(CURL)
+if(ENABLE_GNOME_NETWORKMANAGER)
+pkg_check_modules(GLIB REQUIRED glib-2.0)
+pkg_check_modules(LIBNM REQUIRED libnm)
+else()
+find_package(IARMBus REQUIRED)
+endif ()
 
 message("Setup ${PROJECT_NAME} v${PROJECT_VERSION}")
+
+set(PLUGIN_NETWORKMANAGER_LOGLEVEL "5" CACHE STRING "To configure default loglevel NetworkManager plugin")
 
 # Build the main plugin that runs inside the WPEFramework daemon
 add_library(${MODULE_NAME} SHARED
@@ -57,15 +65,6 @@ include_directories(${PROJECT_SOURCE_DIR}/../helpers)
 
 install(TARGETS ${MODULE_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/${STORAGE_DIRECTORY}/plugins)
 
-if(ENABLE_GNOME_NETWORKMANAGER)
-    set(PLUGIN_SOURCE_PATH gnome-nm)
-elseif(ENABLE_RDK_NETWORKMANAGER)
-    set(PLUGIN_SOURCE_PATH rdk-nm)
-else()
-    set(PLUGIN_SOURCE_PATH rdk-nm)
-endif()
-
-add_subdirectory(${PLUGIN_SOURCE_PATH})
 
 # Build the implementation that runs out-of-process behind a COM-RPC interface
 add_library(${PLUGIN_IMPLEMENTATION} SHARED
@@ -73,14 +72,24 @@ add_library(${PLUGIN_IMPLEMENTATION} SHARED
         NetworkConnectivity.cpp
         NetworkManagerLogger.cpp
         StunClient.cpp
+        WifiSignalStrengthMonitor.cpp
         Module.cpp
         ${PUBLIC_HEADERS}
 )
 
+if(ENABLE_GNOME_NETWORKMANAGER)
+    target_sources(${PLUGIN_IMPLEMENTATION} PRIVATE NetworkManagerGnomeProxy.cpp)
+    target_include_directories(${PLUGIN_IMPLEMENTATION} PRIVATE ${GLIB_INCLUDE_DIRS} ${LIBNM_INCLUDE_DIRS})
+    target_link_libraries(${PLUGIN_IMPLEMENTATION} PRIVATE ${LIBNM_LIBRARIES})
+else()
+    target_sources(${PLUGIN_IMPLEMENTATION} PRIVATE NetworkManagerRDKProxy.cpp)
+    target_include_directories(${PLUGIN_IMPLEMENTATION} PRIVATE ${IARMBUS_INCLUDE_DIRS})
+    target_link_libraries(${PLUGIN_IMPLEMENTATION} PRIVATE ${IARMBUS_LIBRARIES})
+endif()
+
 target_link_libraries(${PLUGIN_IMPLEMENTATION} PRIVATE
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
-        ${NAMESPACE}Definitions::${NAMESPACE}Definitions
-        NMWrapper)
+        ${NAMESPACE}Definitions::${NAMESPACE}Definitions)
 
 set_target_properties(${PLUGIN_IMPLEMENTATION} PROPERTIES
         CXX_STANDARD 11

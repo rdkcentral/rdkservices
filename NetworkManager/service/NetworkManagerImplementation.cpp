@@ -19,6 +19,7 @@
 
 #include "NetworkManagerImplementation.h"
 #include "NetworkConnectivity.h"
+#include "WifiSignalStrengthMonitor.h"
 
 using namespace WPEFramework;
 using namespace WPEFramework::Plugin;
@@ -44,7 +45,7 @@ namespace WPEFramework
 
             /* set the callback function of connectivity monitor*/
             ConnectivityMonitor::getInstance()->registerConnectivityMonitorCallback(this);
-
+            WifiSignalStrengthMonitor::getInstance()->registerWifiSignalStrengthNotify(this);
             /* Initialize STUN Endpoints */
             m_stunEndPoint = "stun.l.google.com";
             m_stunPort = 19302;
@@ -96,6 +97,52 @@ namespace WPEFramework
             _notificationLock.Unlock();
 
             return Core::ERROR_NONE;
+        }
+
+        uint32_t NetworkManagerImplementation::Configure(const string& configLine /* @in */, NMLogging& logLevel /* @out */)
+        {
+            NMLOG_TRACE("config line : %s", configLine.c_str());
+
+            if(configLine.empty())
+            {
+                NMLOG_FATAL("config line : is empty !");
+                return(Core::ERROR_GENERAL);
+            }
+
+            Config config;
+            config.FromString(configLine);
+
+            /* stun configuration copy */
+            m_stunEndPoint = config.stun.stunEndpoint.Value();
+            m_stunPort = config.stun.port.Value();
+            m_stunBindTimeout = config.stun.interval.Value();
+
+            NMLOG_TRACE("config : stun endpoint %s", m_stunEndPoint.c_str());
+            NMLOG_TRACE("config : stun port %d", m_stunPort);
+            NMLOG_TRACE("config : stun interval %d", m_stunBindTimeout);
+
+            NMLOG_TRACE("config : endpoint 1 %s", config.connectivity.endpoint_1.Value().c_str());
+            NMLOG_TRACE("config : endpoint 2 %s", config.connectivity.endpoint_2.Value().c_str());
+            NMLOG_TRACE("config : endpoint 3 %s", config.connectivity.endpoint_3.Value().c_str());
+            NMLOG_TRACE("config : endpoint 4 %s", config.connectivity.endpoint_4.Value().c_str());
+            NMLOG_TRACE("config : endpoint 5 %s", config.connectivity.endpoint_5.Value().c_str());
+            NMLOG_TRACE("config : interval %d", config.connectivity.ConnectivityCheckInterval.Value());
+
+            NMLOG_TRACE("config : loglevel %d", config.loglevel.Value());
+            logLevel = static_cast <NMLogging>(config.loglevel.Value());
+            // configure loglevel in libWPEFrameworkNetworkManagerImplementation.so
+            NetworkManagerLogger::SetLevel(static_cast <NetworkManagerLogger::LogLevel>(logLevel));
+
+            std::vector<std::string> endpoints;
+            endpoints.push_back(config.connectivity.endpoint_1.Value().c_str());
+            endpoints.push_back(config.connectivity.endpoint_2.Value().c_str());
+            endpoints.push_back(config.connectivity.endpoint_3.Value().c_str());
+            endpoints.push_back(config.connectivity.endpoint_4.Value().c_str());
+            endpoints.push_back(config.connectivity.endpoint_5.Value().c_str());
+
+            //set connectivity endpoint
+            ConnectivityMonitor::getInstance()->setConnectivityMonitorEndpoints(endpoints);
+            return(Core::ERROR_NONE);
         }
 
         /* @brief Get STUN Endpoint to be used for identifying Public IP */
@@ -156,7 +203,6 @@ namespace WPEFramework
             LOG_ENTRY_FUNCTION();
             nsm_internetState isconnected;
             nsm_ipversion tmpVersion = NSM_IPRESOLVE_WHATEVER;
-
             if(0 == strcasecmp("IPv4", ipversion.c_str()))
                 tmpVersion = NSM_IPRESOLVE_V4;
             else if(0 == strcasecmp("IPv6", ipversion.c_str()))
@@ -483,6 +529,19 @@ namespace WPEFramework
             NMLOG_INFO("We have %d subscribed clients to trigger notifications", (int) _notificationCallbacks.size());
             for (const auto callback : _notificationCallbacks) {
                 callback->onWiFiStateChanged(state);
+            }
+            _notificationLock.Unlock();
+        }
+
+        void NetworkManagerImplementation::ReportWiFiSignalStrengthChangedEvent(const string ssid, const string signalLevel, const WiFiSignalQuality signalQuality)
+        {
+            LOG_ENTRY_FUNCTION();
+            _notificationLock.Lock();
+
+            NMLOG_INFO("We have %d subscribed clients to trigger notifications", (int) _notificationCallbacks.size());
+            for (const auto callback : _notificationCallbacks) {
+                callback->onWiFiSignalStrengthChanged(ssid, signalLevel, signalQuality);
+                NMLOG_INFO("We have %d subscribed clients to trigger notifications", (int) _notificationCallbacks.size());
             }
 
             _notificationLock.Unlock();

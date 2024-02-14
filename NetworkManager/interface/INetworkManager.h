@@ -237,6 +237,9 @@ namespace WPEFramework
             /* @brief Set the network manager plugin log level */
             virtual uint32_t SetLogLevel(const NMLogging& logLevel /* @in */) = 0;
 
+            /* @brief configure network manager plugin */
+            virtual uint32_t Configure(const string& configLine /* @in */, NMLogging& logLevel /* @out */) = 0;
+
             /* @event */
             struct EXTERNAL INotification : virtual public Core::IUnknown
             {
@@ -280,7 +283,7 @@ namespace WPEFramework
                 // WiFi Notifications that other processes can subscribe to
                 virtual void onAvailableSSIDs(const string jsonOfWiFiScanResults /* @in */) = 0;
                 virtual void onWiFiStateChanged(const WiFiState state /* @in */) = 0;
-                virtual void onWiFiSignalStrengthChanged(const string ssid /* @in */, const string signalStrength /* @in */, const WiFiSignalQuality quality /* @in */) = 0;
+                virtual void onWiFiSignalStrengthChanged(const string ssid /* @in */, const string signalLevel /* @in */, const WiFiSignalQuality signalQuality /* @in */) = 0;
             };
 
             // Allow other processes to register/unregister from our notifications

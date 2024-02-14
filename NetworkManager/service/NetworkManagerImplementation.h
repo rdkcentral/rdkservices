@@ -46,6 +46,83 @@ namespace WPEFramework
                 NETMGR_TRACE,
             };
 
+        class Config : public Core::JSON::Container {
+        private:
+            Config(const Config&);
+            Config& operator=(const Config&);
+
+        public:
+            class Connectivity : public Core::JSON::Container {
+            public:
+                Connectivity& operator=(const Connectivity&) = delete;
+
+                Connectivity()
+                    : Core::JSON::Container()
+                    , endpoint_1(_T("http://clients3.google.com/generate_204"))
+                    , endpoint_2(_T(""))
+                    , endpoint_3(_T(""))
+                    , endpoint_4(_T(""))
+                    , endpoint_5(_T(""))
+                    , ConnectivityCheckInterval(6)
+                {
+                    Add(_T("endpoint_1"), &endpoint_1);
+                    Add(_T("endpoint_2"), &endpoint_2);
+                    Add(_T("endpoint_3"), &endpoint_3);
+                    Add(_T("endpoint_4"), &endpoint_4);
+                    Add(_T("endpoint_5"), &endpoint_5);
+                    Add(_T("interval"), &ConnectivityCheckInterval);
+                }
+                ~Connectivity() override = default;
+
+            public:
+                /* connectivity configuration */
+                Core::JSON::String endpoint_1;
+                Core::JSON::String endpoint_2;
+                Core::JSON::String endpoint_3;
+                Core::JSON::String endpoint_4;
+                Core::JSON::String endpoint_5;
+                Core::JSON::DecUInt32 ConnectivityCheckInterval;
+            };
+
+            class Stun : public Core::JSON::Container {
+                public:
+                    Stun& operator=(const Stun&) = delete;
+
+                    Stun()
+                        : Core::JSON::Container()
+                        , stunEndpoint(_T(""))
+                        , port(19310)
+                        , interval(30)
+                    {
+                        Add(_T("endpoint"), &stunEndpoint);
+                        Add(_T("port"), &port);
+                        Add(_T("interval"), &interval);
+                    }
+                    ~Stun() override = default;
+
+                public:
+                    /* stun configuration */
+                    Core::JSON::String stunEndpoint;
+                    Core::JSON::DecUInt32 port;
+                    Core::JSON::DecUInt32 interval;
+            };
+
+        public:
+            Config()
+                : Core::JSON::Container()
+                {
+                    Add(_T("connectivity"), &connectivity);
+                    Add(_T("stun"), &stun);
+                    Add(_T("loglevel"), &loglevel);
+                }
+            ~Config() override = default;
+
+        public:
+            Connectivity connectivity;
+            Stun stun;
+            Core::JSON::DecUInt32 loglevel;
+        };
+
         public:
             NetworkManagerImplementation();
             ~NetworkManagerImplementation() override;
@@ -127,6 +204,9 @@ namespace WPEFramework
             /* @brief Set the network manager plugin log level */
             uint32_t SetLogLevel(const NMLogging& logLevel /* @in */) override;
 
+            /* @brief configure network manager plugin */
+            uint32_t Configure(const string& configLine /* @in */, NMLogging& logLevel /* @out */) override;
+
             /* Events */
             void ReportInterfaceStateChangedEvent(INetworkManager::INotification::InterfaceState state, string interface);
             void ReportIPAddressChangedEvent(const string& interface, bool isAcquired, bool isIPv6, const string& ipAddress);
@@ -134,6 +214,7 @@ namespace WPEFramework
             void ReportInternetStatusChangedEvent(const InternetStatus oldState, const InternetStatus newstate);
             void ReportAvailableSSIDsEvent(const string jsonOfWiFiScanResults);
             void ReportWiFiStateChangedEvent(const INetworkManager::INotification::WiFiState state);
+            void ReportWiFiSignalStrengthChangedEvent(const string ssid , const string signalLevel , const WiFiSignalQuality signalQuality);
 
         private:
             void platform_init();

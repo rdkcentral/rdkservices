@@ -53,14 +53,15 @@ void SetLevel(LogLevel level);
  * The function is defined by logging backend.
  * Currently 2 variants are supported: RDKLOGGER & stdout(default)
  */
-void logPrint(LogLevel level, const char* func, int line, const char* format, ...) __attribute__ ((format (printf, 4, 5)));
+void logPrint(LogLevel level, const char* file, const char* func, int line, const char* format, ...) __attribute__ ((format (printf, 5, 6)));
 
-#define NMLOG_TRACE(FMT, ...)   logPrint(NetworkManagerLogger::TRACE_LEVEL, __func__, __LINE__, FMT, ##__VA_ARGS__)
-#define NMLOG_VERBOSE(FMT, ...) logPrint(NetworkManagerLogger::VERBOSE_LEVEL, __func__, __LINE__, FMT, ##__VA_ARGS__)
-#define NMLOG_INFO(FMT, ...)    logPrint(NetworkManagerLogger::INFO_LEVEL, __func__, __LINE__, FMT, ##__VA_ARGS__)
-#define NMLOG_WARNING(FMT, ...) logPrint(NetworkManagerLogger::WARNING_LEVEL, __func__, __LINE__, FMT, ##__VA_ARGS__)
-#define NMLOG_ERROR(FMT, ...)   logPrint(NetworkManagerLogger::ERROR_LEVEL, __func__, __LINE__, FMT, ##__VA_ARGS__)
-#define NMLOG_FATAL(FMT, ...)   logPrint(NetworkManagerLogger::FATAL_LEVEL, __func__, __LINE__, FMT, ##__VA_ARGS__)
+
+#define NMLOG_TRACE(FMT, ...)   logPrint(NetworkManagerLogger::TRACE_LEVEL, __FILE__, __func__, __LINE__, FMT, ##__VA_ARGS__)
+#define NMLOG_VERBOSE(FMT, ...) logPrint(NetworkManagerLogger::VERBOSE_LEVEL, __FILE__, __func__, __LINE__, FMT, ##__VA_ARGS__)
+#define NMLOG_INFO(FMT, ...)    logPrint(NetworkManagerLogger::INFO_LEVEL, __FILE__, __func__, __LINE__, FMT, ##__VA_ARGS__)
+#define NMLOG_WARNING(FMT, ...) logPrint(NetworkManagerLogger::WARNING_LEVEL, __FILE__, __func__, __LINE__, FMT, ##__VA_ARGS__)
+#define NMLOG_ERROR(FMT, ...)   logPrint(NetworkManagerLogger::ERROR_LEVEL, __FILE__, __func__, __LINE__, FMT, ##__VA_ARGS__)
+#define NMLOG_FATAL(FMT, ...)   logPrint(NetworkManagerLogger::FATAL_LEVEL, __FILE__,__func__, __LINE__, FMT, ##__VA_ARGS__)
 
 } // namespace NetworkManagerLogger
 
