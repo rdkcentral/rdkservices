@@ -670,23 +670,95 @@ void MiracastController::Controller_Thread(void *args)
                 switch (controller_msgq_data.state)
                 {
                     case CONTROLLER_GO_DEVICE_FOUND:
+                    case CONTROLLER_GO_DEVICE_PROVISION:
+                    case CONTROLLER_GO_DEVICE_LOST:
                     {
-                        MIRACASTLOG_TRACE("CONTROLLER_GO_DEVICE_FOUND Received\n");
+                        string deviceMAC;
+                        string deviceType;
+                        string modelName;
                         std::string wfdSubElements;
-                        DeviceInfo *device = new DeviceInfo;
-                        device->deviceMAC = parse_p2p_event_data(event_buffer.c_str(), "p2p_dev_addr");
-                        device->deviceType = parse_p2p_event_data(event_buffer.c_str(), "pri_dev_type");
-                        device->modelName = parse_p2p_event_data(event_buffer.c_str(), "name");
-                        wfdSubElements = parse_p2p_event_data(event_buffer.c_str(), "wfd_dev_info");
-                        #if 0
-                            device->isCPSupported = ((strtol(wfdSubElements.c_str(), nullptr, 16) >> 32) && 256);
-                            device->deviceRole = (DEVICEROLE)((strtol(wfdSubElements.c_str(), nullptr, 16) >> 32) && 3);
-                        #endif
-                        MIRACASTLOG_TRACE("Device data parsed & stored successfully");
 
-                        m_deviceInfoList.push_back(device);
+                        deviceMAC = parse_p2p_event_data(event_buffer.c_str(), "p2p_dev_addr");
+
+                        if ( CONTROLLER_GO_DEVICE_LOST == controller_msgq_data.state )
+                        {
+                            size_t found;
+                            int i = 0;
+
+                            MIRACASTLOG_INFO("CONTROLLER_GO_DEVICE_LOST Received");
+                            for (auto devices : m_deviceInfoList)
+                            {
+                                found = devices->deviceMAC.find(deviceMAC);
+                                if (found != std::string::npos)
+                                {
+                                    delete devices;
+                                    m_deviceInfoList.erase(m_deviceInfoList.begin() + i);
+                                    break;
+                                }
+                                i++;
+                            }
+                        }
+                        else
+                        {
+                            std::string authType = "pbc";
+                            bool new_device_entry = false;
+                            deviceType = parse_p2p_event_data(event_buffer.c_str(), "pri_dev_type");
+                            modelName = parse_p2p_event_data(event_buffer.c_str(), "name");
+
+                            if ( CONTROLLER_GO_DEVICE_FOUND == controller_msgq_data.state )
+                            {
+                                MIRACASTLOG_INFO("CONTROLLER_GO_DEVICE_FOUND Received");
+                            }
+                            else
+                            {
+                                MIRACASTLOG_INFO("CONTROLLER_GO_DEVICE_PROVISION Received");
+                                if (std::string::npos != event_buffer.find("P2P-PROV-DISC-SHOW-PIN"))
+                                {
+                                    std::istringstream iss(event_buffer);
+                                    std::string token;
+
+                                    // Ignore the first two tokens (P2P-PROV-DISC-SHOW-PIN and the MAC address)
+                                    iss >> token;
+
+                                    iss >> token;
+
+                                    // Get the third token which is PIN
+                                    iss >> token;
+                                    MIRACASTLOG_INFO("!!!! P2P-PROV-DISC-SHOW-PIN is [%s] !!!!",token.c_str());
+                                    authType = token;
+                                }
+                            }
+
+                            DeviceInfo *cur_device_info_ptr = MiracastController::get_device_details(deviceMAC);
+
+                            if ( nullptr == cur_device_info_ptr )
+                            {
+                                cur_device_info_ptr = new DeviceInfo;
+                                new_device_entry = true;
+                            }
+
+                            if ( nullptr != cur_device_info_ptr )
+                            {
+                                cur_device_info_ptr->deviceMAC = deviceMAC;
+                                cur_device_info_ptr->authType = authType;
+                                cur_device_info_ptr->modelName = modelName;
+                                cur_device_info_ptr->deviceType = deviceType;
+                            }
+
+                            if ( new_device_entry && cur_device_info_ptr )
+                            {
+                                m_deviceInfoList.push_back(cur_device_info_ptr);
+                            }
+                            wfdSubElements = parse_p2p_event_data(event_buffer.c_str(), "wfd_dev_info");
+                            #if 0
+                                device->isCPSupported = ((strtol(wfdSubElements.c_str(), nullptr, 16) >> 32) && 256);
+                                device->deviceRole = (DEVICEROLE)((strtol(wfdSubElements.c_str(), nullptr, 16) >> 32) && 3);
+                            #endif
+                            MIRACASTLOG_TRACE("Device data parsed & stored successfully");
+                        }
                     }
                     break;
+                #if 0
                     case CONTROLLER_GO_DEVICE_LOST:
                     {
                         MIRACASTLOG_TRACE("CONTROLLER_GO_DEVICE_LOST Received\n");
@@ -736,6 +808,7 @@ void MiracastController::Controller_Thread(void *args)
                         }
                     }
                     break;
+                #endif
                     case CONTROLLER_GO_NEG_REQUEST:
                     {
                         //THUNDER_REQ_HDLR_MSGQ_STRUCT thunder_req_msgq_data = {0};
@@ -926,6 +999,11 @@ void MiracastController::Controller_Thread(void *args)
                                             MIRACASTLOG_INFO("%s is success and popen_buffer[%s]\n", command,popen_buffer.c_str());
                                             remote_address = popen_buffer;
                                             sleep(1);
+                                            memset( command , 0x00 , sizeof(command));
+                                            sprintf( command , "arping %s -I %s -c 1" , remote_address.c_str(), m_groupInfo->interface.c_str());
+                                            MIRACASTLOG_INFO("### arping is [%s] ###", command);
+                                            system(command);
+                                            MIRACASTLOG_INFO("### arping is [%s] done ###", command);
                                             break;
                                         }
                                     }
