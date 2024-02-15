@@ -103,12 +103,7 @@ namespace WPEFramework {
             Register(METHOD_ENABLE_AUDIO_CAPTURE, &DataCapture::enableAudioCaptureWrapper, this);
             Register(METHOD_GET_AUDIO_CLIP, &DataCapture::getAudioClipWrapper, this);
 
-            _audio_properties.format = acmFormate16BitStereo;
-            _audio_properties.sampling_frequency = acmFreqe16000;
-            _audio_properties.fifo_size = 0;
-            _audio_properties.threshold = 0;
-            _audio_properties.delay_compensation_ms = 0;
-
+            _audio_properties = {};
             _sock_adaptor.reset(new socket_adaptor());
         }
 

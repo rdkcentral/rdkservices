@@ -201,9 +201,7 @@ namespace WPEFramework {
 
                     if (deleteFile)
                     {
-                        if(std::remove(filepath) != 0){
-                            LOGERR("Failed to remove file: %s", filepath);
-                        }
+                        (void)std::remove(filepath);
                     }
                 }
             }

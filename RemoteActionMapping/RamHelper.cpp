@@ -1091,7 +1091,8 @@ namespace WPEFramework {
                     flags |= MSO_RIB_IRRFDB_RFRELEASED_BIT;
                     LOGWARN("Discrete Power Off RF Descriptor included, size: %zu.", rfDescLength);
                     break;
-                default:
+                case XRC_RFKEY_TV_PWR_ON:
+                case XRC_RFKEY_AVR_PWR_ON:
                     rfDesc = (unsigned char*)rfDescriptor_DiscretePwrOn;
                     rfDescLength = sizeof(rfDescriptor_DiscretePwrOn);
                     flags |= MSO_RIB_IRRFDB_RFRELEASED_BIT;

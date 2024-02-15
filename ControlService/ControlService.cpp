@@ -84,8 +84,8 @@ namespace WPEFramework {
 
         ControlService::ControlService()
             : PluginHost::JSONRPC()
-            , m_numOfBindRemotes(0)
             , m_apiVersionNumber((uint32_t)-1)   /* default max uint32_t so everything gets enabled */    //TODO(MROLLINS) Can't we access this from jsonrpc interface?
+            , m_numOfBindRemotes(0)
         {
             LOGINFO("ctor");
             ControlService::_instance = this;

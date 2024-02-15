@@ -177,6 +177,7 @@ namespace WPEFramework
         FrontPanel::FrontPanel()
         : PluginHost::JSONRPC()
         , m_updateTimer(this)
+        , m_runUpdateTimer(false)
         {
             FrontPanel::_instance = this;
             m_runUpdateTimer = false;

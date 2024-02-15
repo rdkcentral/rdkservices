@@ -123,8 +123,8 @@ public:
         ASSERT(index != _observers.end());
 
         if (index != _observers.end()) {
-            _observers.erase(index);
             (*index)->Release();
+            _observers.erase(index);
         }
 
         _adminLock.Unlock();
