@@ -396,10 +396,9 @@ namespace WPEFramework
 	     updateDeviceTypeStatus = HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isDeviceTypeUpdated;
              updatePAStatus   = HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isPAUpdated;
 	     LOGINFO("updateDeviceTypeStatus %d updatePAStatus %d \n",updateDeviceTypeStatus,updatePAStatus);
-	     if(HdmiCecSink::_instance->deviceList[header.from.toInt()].m_physicalAddr.toString() != msg.physicalAddress.toString() && updatePAStatus && updateDeviceTypeStatus){
-                updateDeviceTypeStatus = false;
+	     if(HdmiCecSink::_instance->deviceList[header.from.toInt()].m_physicalAddr.toString() != msg.physicalAddress.toString() && updatePAStatus){
                 updatePAStatus= false;
-                LOGINFO("notify since there is a change in physical address, updateDeviceTypeStatus %d updatePAStatus %d \n",updateDeviceTypeStatus,updatePAStatus);
+                LOGINFO("There is a change in physical address from current PA %s to newly reported PA %s\n", HdmiCecSink::_instance->deviceList[header.from.toInt()].m_physicalAddr.toString().c_str(),msg.physicalAddress.toString().c_str());
              }
 	     HdmiCecSink::_instance->deviceList[header.from.toInt()].update(msg.physicalAddress);
 	     HdmiCecSink::_instance->deviceList[header.from.toInt()].update(msg.deviceType);
