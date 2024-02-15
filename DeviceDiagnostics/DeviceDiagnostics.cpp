@@ -36,7 +36,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 1
-#define API_VERSION_NUMBER_PATCH 0
+#define API_VERSION_NUMBER_PATCH 2
 
 enum SysSrv_ErrorCode {
     SysSrv_FileNotPresent,
@@ -289,13 +289,20 @@ namespace WPEFramework
 
             if (curl_handle) {
 
-                curl_easy_setopt(curl_handle, CURLOPT_URL, "http://127.0.0.1:10999");
-                curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDS, postData.c_str());
-                curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE, postData.size());
-                curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1); //when redirected, follow the redirections
-                curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, writeCurlResponse);
-                curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &response);
-                curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, curlTimeoutInSeconds);
+                if(curl_easy_setopt(curl_handle, CURLOPT_URL, "http://127.0.0.1:10999") != CURLE_OK)
+                    LOGWARN("Failed to set curl option: CURLOPT_URL");
+                if(curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDS, postData.c_str()) != CURLE_OK)
+                    LOGWARN("Failed to set curl option: CURLOPT_POSTFIELDS");
+                if(curl_easy_setopt(curl_handle, CURLOPT_POSTFIELDSIZE, postData.size()) != CURLE_OK)
+                    LOGWARN("Failed to set curl option: CURLOPT_POSTFIELDSIZE");
+                if(curl_easy_setopt(curl_handle, CURLOPT_FOLLOWLOCATION, 1) != CURLE_OK) //when redirected, follow the redirections
+                    LOGWARN("Failed to set curl option: CURLOPT_FOLLOWLOCATION");
+                if(curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, writeCurlResponse) != CURLE_OK)
+                    LOGWARN("Failed to set curl option: CURLOPT_WRITEFUNCTION");
+                if(curl_easy_setopt(curl_handle, CURLOPT_WRITEDATA, &response) != CURLE_OK)
+                    LOGWARN("Failed to set curl option: CURLOPT_WRITEDATA");
+                if(curl_easy_setopt(curl_handle, CURLOPT_TIMEOUT, curlTimeoutInSeconds) != CURLE_OK)
+                    LOGWARN("Failed to set curl option: CURLOPT_TIMEOUT");
 
                 res = curl_easy_perform(curl_handle);
                 curl_easy_getinfo(curl_handle, CURLINFO_RESPONSE_CODE, &http_code);

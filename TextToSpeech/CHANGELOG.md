@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.25] - 2024-03-28
+### Security
+- Resolved security vulnerabilities
+
 ## [1.0.24] - 2024-02-28
 ### Changed
 - ES1-631: callsign based event delivery

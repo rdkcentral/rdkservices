@@ -2,7 +2,7 @@
 <a name="DataCapture_Plugin"></a>
 # DataCapture Plugin
 
-**Version: [1.0.4](https://github.com/rdkcentral/rdkservices/blob/main/DataCapture/CHANGELOG.md)**
+**Version: [1.0.5](https://github.com/rdkcentral/rdkservices/blob/main/DataCapture/CHANGELOG.md)**
 
 A org.rdk.dataCapture plugin for Thunder framework.
 

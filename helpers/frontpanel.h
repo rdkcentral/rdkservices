@@ -148,6 +148,10 @@ namespace WPEFramework
         class FrontPanelHelper
         {
             void setRemoteLedState(bool state);
+
+        public:
+            ~FrontPanelHelper();
+
         };
 
     } // namespace Plugin

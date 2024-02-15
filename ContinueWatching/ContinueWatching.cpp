@@ -54,7 +54,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 1
+#define API_VERSION_NUMBER_PATCH 4
 
 
 namespace WPEFramework {
@@ -551,7 +551,9 @@ namespace WPEFramework {
 				}
 
 				fseek(file, 0, SEEK_SET);
-				fread(jsonDoc, numbytes, 1, file);
+				if(numbytes >= 0) {
+					(void)fread(jsonDoc, numbytes, 1, file);
+				}
 				fclose(file);
 				file = NULL;
 				jsonDoc[numbytes] = 0;
@@ -646,7 +648,9 @@ namespace WPEFramework {
 			}
 
 			fseek(file, 0, SEEK_SET);
-			fread(jsonDoc, 1, numbytes, file);
+			if(numbytes >= 0) {
+				(void)fread(jsonDoc, numbytes, 1, file);
+			}
 			fclose(file);
 			jsonDoc[numbytes] = '\0';
 
@@ -705,7 +709,9 @@ namespace WPEFramework {
 				return false;
 			}
 			fseek(file, 0, SEEK_SET);
-			fread(jsonDoc, numbytes, 1, file);
+			if(numbytes >= 0) {
+				(void)fread(jsonDoc, numbytes, 1, file);
+			}
 			fclose(file);
 			file = NULL;
 			jsonDoc[numbytes] = 0;
@@ -764,7 +770,10 @@ namespace WPEFramework {
 			unsigned char hash[SHA256_DIGEST_LENGTH];
 			SHA256_CTX sha256Ctx;
 			SHA256_Init(&sha256Ctx);
-			SHA256_Update(&sha256Ctx, str.c_str(), str.size());
+			int check_update = SHA256_Update(&sha256Ctx, str.c_str(), str.size());
+			if(check_update == 0){
+				LOGWARN("Failed hash update");
+			}
 			SHA256_Final(hash, &sha256Ctx);
 			std::stringstream strStream;
 			/* Iterate through hash & convert each byte to 2-char wide hex */

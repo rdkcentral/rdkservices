@@ -1098,9 +1098,6 @@ namespace WPEFramework {
                     flags |= MSO_RIB_IRRFDB_RFRELEASED_BIT;
                     LOGWARN("Discrete Power On RF Descriptor included, size: %zu.", rfDescLength);
                     break;
-                default:
-                    LOGERR("LOGIC ERROR - Invalid separate power RF Key 0x%02X.", (unsigned)rfKeyCode);
-                    break;
             }
 
             // Set the DeviceType flags field properly
