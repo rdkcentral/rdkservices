@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.3.8] - 2024-03-28
+### Security
+- Resolved security vulnerabilities
+
 ## [1.3.7] - 2024-03-07
 ### Fixed
 - Register the Event IARM_BUS_DSMGR_EVENT_ATMOS_CAPS_CHANGED

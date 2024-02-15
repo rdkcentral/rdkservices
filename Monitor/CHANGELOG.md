@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.6] - 2024-03-28
+### Security
+- Resolved security vulnerabilities
+
 ## [1.0.5] - 2024-02-15
 ### Fixed
 - State Change Handling is fixed for Thunder R4

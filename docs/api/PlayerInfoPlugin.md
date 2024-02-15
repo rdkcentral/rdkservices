@@ -2,7 +2,7 @@
 <a name="Player_Info_Plugin"></a>
 # Player Info Plugin
 
-**Version: [1.0.6](https://github.com/rdkcentral/rdkservices/blob/main/PlayerInfo/CHANGELOG.md)**
+**Version: [1.0.8](https://github.com/rdkcentral/rdkservices/blob/main/PlayerInfo/CHANGELOG.md)**
 
 A PlayerInfo plugin for Thunder framework.
 

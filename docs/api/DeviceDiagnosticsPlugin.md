@@ -2,7 +2,7 @@
 <a name="DeviceDiagnostics_Plugin"></a>
 # DeviceDiagnostics Plugin
 
-**Version: [1.1.0](https://github.com/rdkcentral/rdkservices/blob/main/DeviceDiagnostics/CHANGELOG.md)**
+**Version: [1.1.2](https://github.com/rdkcentral/rdkservices/blob/main/DeviceDiagnostics/CHANGELOG.md)**
 
 A org.rdk.DeviceDiagnostics plugin for Thunder framework.
 

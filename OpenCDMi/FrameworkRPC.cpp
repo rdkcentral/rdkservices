@@ -454,8 +454,8 @@ namespace Plugin {
                     ASSERT(parent != nullptr);
                     ASSERT(sessionData != nullptr);
                     ASSERT(_mediaKeySession != nullptr);
-
-                    _mediaKeySession->Run(&_sink);
+                    if(_mediaKeySession != nullptr)
+                        _mediaKeySession->Run(&_sink);
                     TRACE(Trace::Information, ("Server::Session::Session(%s,%s) => %p", _keySystem.c_str(), _sessionId.c_str(), this));
                     TRACE(Trace::Information, (_T("Constructed the Session Server side: %p"), this));
                 }
@@ -484,7 +484,8 @@ namespace Plugin {
                     ASSERT(_mediaKeySessionExt != nullptr);
 
                     TRACE(Trace::Information, (_T("Constructed the Session Server side: %p"), this));
-                    _mediaKeySession->Run(&_sink);
+                    if(_mediaKeySession != nullptr)
+                        _mediaKeySession->Run(&_sink);
                     TRACE(Trace::Information, (_T("Constructed the Session Server side: %p"), this));
                 }
                 #ifdef __WINDOWS__
@@ -569,6 +570,10 @@ namespace Plugin {
                         _adminLock.Unlock();
                         bufferid = _buffer->Name();
                     }
+                    else {
+                        _adminLock.Unlock();
+                    }
+                    
                     return bufferid;
                 }
 
