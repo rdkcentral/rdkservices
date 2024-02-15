@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.3.5] - 2024-03-04
+### Fixed
+- Notify DeviceUpdatedInfo when there is a change in physical address from current PA
+
 ## [1.3.4] - 2024-02-22
 ### Fixed
 - CEC Certification, Ignore Broadcast/Direct CEC received messages
