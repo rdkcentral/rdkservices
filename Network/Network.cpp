@@ -254,7 +254,8 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             Unregister("getPublicIP");
             Unregister("setStunEndPoint");
             Unregister("configurePNI");
-
+            /* stop connectivity monitor if running */
+            connectivityMonitor.stopContinuousConnectivityMonitoring();
             Network::_instance = nullptr;
 
             m_service->Release();
