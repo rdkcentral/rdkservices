@@ -31,7 +31,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 5
-#define API_VERSION_NUMBER_PATCH 1
+#define API_VERSION_NUMBER_PATCH 2
 
 #define HDMI 0
 #define COMPOSITE 1
@@ -925,7 +925,7 @@ void AVInput::dsAVVideoModeEventHandler(const char *owner, IARM_EventId_t eventI
     if (IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE == eventId) {
         IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
         int hdmi_in_port = eventData->data.hdmi_in_video_mode.port;
-        dsVideoPortResolution_t resolution;
+        dsVideoPortResolution_t resolution = {};
         resolution.pixelResolution =  eventData->data.hdmi_in_video_mode.resolution.pixelResolution;
         resolution.interlaced =  eventData->data.hdmi_in_video_mode.resolution.interlaced;
         resolution.frameRate =  eventData->data.hdmi_in_video_mode.resolution.frameRate;
@@ -1161,7 +1161,7 @@ std::string AVInput::getSPD(int iPort)
             memcpy(&pre,spdVect.data(),sizeof(struct dsSpd_infoframe_st));
 
             char str[200] = {0};
-            sprintf(str, "Packet Type:%02X,Version:%u,Length:%u,vendor name:%s,product des:%s,source info:%02X",
+            snprintf(str, sizeof(str), "Packet Type:%02X,Version:%u,Length:%u,vendor name:%s,product des:%s,source info:%02X",
             pre.pkttype,pre.version,pre.length,pre.vendor_name,pre.product_des,pre.source_info);
             spdbase64 = str;
         }

@@ -2,7 +2,7 @@
 <a name="Monitor_Plugin"></a>
 # Monitor Plugin
 
-**Version: [1.0.5](https://github.com/rdkcentral/rdkservices/blob/main/Monitor/CHANGELOG.md)**
+**Version: [1.0.6](https://github.com/rdkcentral/rdkservices/blob/main/Monitor/CHANGELOG.md)**
 
 A Monitor plugin for Thunder framework.
 
