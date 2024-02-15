@@ -33,6 +33,10 @@ namespace WPEFramework {
             m_fdNetlink(-1),
             m_netlinkProtect()
         {
+            m_nlSockaddr.nl_family = 0;
+            m_nlSockaddr.nl_pad = 0;
+            m_nlSockaddr.nl_pid = 0; 
+            m_nlSockaddr.nl_groups = 0;
         }
 
         Netlink::~Netlink()

@@ -1091,15 +1091,11 @@ namespace WPEFramework {
                     flags |= MSO_RIB_IRRFDB_RFRELEASED_BIT;
                     LOGWARN("Discrete Power Off RF Descriptor included, size: %zu.", rfDescLength);
                     break;
-                case XRC_RFKEY_TV_PWR_ON:
-                case XRC_RFKEY_AVR_PWR_ON:
+                default:
                     rfDesc = (unsigned char*)rfDescriptor_DiscretePwrOn;
                     rfDescLength = sizeof(rfDescriptor_DiscretePwrOn);
                     flags |= MSO_RIB_IRRFDB_RFRELEASED_BIT;
                     LOGWARN("Discrete Power On RF Descriptor included, size: %zu.", rfDescLength);
-                    break;
-                default:
-                    LOGERR("LOGIC ERROR - Invalid separate power RF Key 0x%02X.", (unsigned)rfKeyCode);
                     break;
             }
 

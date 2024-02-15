@@ -325,6 +325,7 @@ namespace Plugin {
         , _remoteId()
         , _sourceNode()
         , _tryInterval(0)
+        , _retries(0)
         , _callback(callback)
         , _publicIPAddress()
         , _timeZone()

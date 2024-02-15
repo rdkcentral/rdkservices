@@ -295,6 +295,7 @@ namespace WPEFramework {
 		 * @return None.
 		 */
 		ContinueWatchingImpl::ContinueWatchingImpl()
+		: mSecObjectId(0)
 		{
 		}
 
@@ -539,6 +540,7 @@ namespace WPEFramework {
 			char *jsonOut = NULL;
 			cJSON *root = NULL;
 			bool createNewJsonDoc = true;
+			size_t check_ret = 0;
 
 			FILE *file = fopen(CW_LOCAL_FILE, "r");
 			if (file) {
@@ -551,7 +553,11 @@ namespace WPEFramework {
 				}
 
 				fseek(file, 0, SEEK_SET);
-				fread(jsonDoc, numbytes, 1, file);
+				if(numbytes >= 0) {
+					check_ret = fread(jsonDoc, numbytes, 1, file);
+					if(check_ret != 1)
+						LOGWARN("Failed to read from file: %s", file);
+				}
 				fclose(file);
 				file = NULL;
 				jsonDoc[numbytes] = 0;
@@ -633,6 +639,7 @@ namespace WPEFramework {
 			char *jsonDoc = NULL;
 			std::string retVal = "";
 			FILE *file = fopen(CW_LOCAL_FILE, "r");
+			size_t check_ret = 0;
 
 			if (!file)
 				return retVal;
@@ -646,7 +653,11 @@ namespace WPEFramework {
 			}
 
 			fseek(file, 0, SEEK_SET);
-			fread(jsonDoc, 1, numbytes, file);
+			if(numbytes >= 0) {
+				check_ret = fread(jsonDoc, numbytes, 1, file);
+				if(check_ret != 1)
+					LOGWARN("Failed to read from file: %s", file);
+			}
 			fclose(file);
 			jsonDoc[numbytes] = '\0';
 
@@ -687,6 +698,7 @@ namespace WPEFramework {
 			char *jsonOut = NULL;
 			cJSON *root = NULL;
 			bool retVal = false;
+			size_t check_ret = 0;
 
 			if(!tr181FeatureEnabled()) {
 				LOGWARN("Feature DISABLED...\n");
@@ -705,7 +717,11 @@ namespace WPEFramework {
 				return false;
 			}
 			fseek(file, 0, SEEK_SET);
-			fread(jsonDoc, numbytes, 1, file);
+			if(numbytes >= 0) {
+				check_ret = fread(jsonDoc, numbytes, 1, file);
+				if(check_ret != 1)
+					LOGWARN("Failed to read from file: %s", file);
+			}
 			fclose(file);
 			file = NULL;
 			jsonDoc[numbytes] = 0;
@@ -761,10 +777,14 @@ namespace WPEFramework {
 		 */
 		std::string ContinueWatchingImpl::sha256(const std::string str)
 		{
+			int check_update = 0;
 			unsigned char hash[SHA256_DIGEST_LENGTH];
 			SHA256_CTX sha256Ctx;
 			SHA256_Init(&sha256Ctx);
-			SHA256_Update(&sha256Ctx, str.c_str(), str.size());
+			check_update = SHA256_Update(&sha256Ctx, str.c_str(), str.size());
+			if(check_update == 0){
+				LOGWARN("Failed hash update");
+			}
 			SHA256_Final(hash, &sha256Ctx);
 			std::stringstream strStream;
 			/* Iterate through hash & convert each byte to 2-char wide hex */

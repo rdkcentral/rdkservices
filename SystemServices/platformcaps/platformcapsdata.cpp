@@ -222,7 +222,7 @@ PlatformCapsData::BrowserInfo PlatformCapsData::GetBrowser() const {
 
   string type;
 
-  Core::File file(OVERRIDE_WEBBACKEND_CONFIG_FILE);
+  Core::File file(string(OVERRIDE_WEBBACKEND_CONFIG_FILE));
   if (!file.Open(true))
     file = DEFAULT_WEBBACKEND_CONFIG_FILE;
 

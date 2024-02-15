@@ -179,6 +179,7 @@ namespace WPEFramework
         , m_updateTimer(this)
         {
             FrontPanel::_instance = this;
+            m_runUpdateTimer = false;
 
             Register(METHOD_FP_SET_BRIGHTNESS, &FrontPanel::setBrightnessWrapper, this);
             Register(METHOD_FP_GET_BRIGHTNESS, &FrontPanel::getBrightnessWrapper, this);
@@ -244,7 +245,7 @@ namespace WPEFramework
             }
         }
 
-        const void FrontPanel::InitializeIARM()
+        void FrontPanel::InitializeIARM()
         {
             if (Utils::IARM::init())
             {

@@ -359,17 +359,17 @@ namespace Plugin {
                         result = Core::ERROR_NONE;
                         TRACE(Trace::Information, (_T("[Packager]: Successfully stored %s plugin's config in peristent path"), callsign.c_str()));
                     }
+                    controller->Release();
                 }
                 else {
                     TRACE(Trace::Error, (_T("[Packager]: Failed to find Controller interface")));
                 }
-                controller->Release();
             }
+            shell->Release();
         }
         else {
             TRACE(Trace::Error, (_T("[Packager]: Failed to find Shell interface")));
         }
-        shell->Release();
         return result;
     }
 
@@ -402,8 +402,8 @@ namespace Plugin {
                     TRACE(Trace::Error, (_T("[Packager]: Failed to move %s to Deactivated state"), callsign.c_str()));
                 }
             }
+            dlPlugin->Release();
         }
-        dlPlugin->Release();
     }
 
     void PackagerImplementation::NotifyStateChange()
