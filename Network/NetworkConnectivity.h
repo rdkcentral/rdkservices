@@ -126,6 +126,7 @@ namespace WPEFramework {
                 }
 
                 ~ConnectivityMonitor() {
+                    LOGINFO("~ConnectivityMonitor");
                     stopContinuousConnectivityMonitoring();
                 }
 
