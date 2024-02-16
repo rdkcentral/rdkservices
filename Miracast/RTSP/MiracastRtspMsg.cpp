@@ -1741,7 +1741,8 @@ RTSP_STATUS MiracastRTSPMsg::validate_rtsp_receive_buffer_handling(std::string r
     MIRACASTLOG_TRACE("Entering...");
     const char  *options_tag = get_parser_field_by_index(RTSP_OPTIONS_REQ_FIELD),
                 *get_parameter_tag = get_parser_field_by_index(RTSP_GET_PARAMETER_FIELD),
-                *set_parameter_tag = get_parser_field_by_index(RTSP_SET_PARAMETER_FIELD);
+                *set_parameter_tag = get_parser_field_by_index(RTSP_SET_PARAMETER_FIELD),
+                *content_txt_tag = get_parser_field_by_index(RTSP_CONTENT_TEXT_FIELD);
     RTSP_STATUS status_code = RTSP_MSG_FAILURE;
 
     std::stringstream ss(rtsp_msg_buffer);
@@ -1750,13 +1751,58 @@ RTSP_STATUS MiracastRTSPMsg::validate_rtsp_receive_buffer_handling(std::string r
     MIRACASTLOG_TRACE("Entering...");
     if (std::getline(ss, first_line))
     {
-        if (first_line.find(options_tag) != std::string::npos)
+        if ((first_line.find(get_parameter_tag) != std::string::npos) ||
+            (!m_getparameter_request.empty()))
+        {
+            std::string common_get_parameter_buffer = "";
+            int returnvalue = 0;
+
+            if (( rtsp_msg_buffer.find(content_txt_tag) == std::string::npos ) &&
+                ( m_getparameter_request.empty() ))
+            {
+                common_get_parameter_buffer = rtsp_msg_buffer;
+            }
+            else
+            {
+                m_getparameter_request += rtsp_msg_buffer;
+                returnvalue = validateGetParameterContentLength(m_getparameter_request);
+
+                if ( 0 == returnvalue )
+                {
+                    common_get_parameter_buffer = m_getparameter_request;
+                }
+            }
+
+            if ( 0 <= returnvalue )
+            {
+                if ( 0 == returnvalue )
+                {
+                    MIRACASTLOG_INFO("#### COMPLETE GET_PARAM_REQ [%s][%s] TO BE HANDLE ####",
+                                    common_get_parameter_buffer.c_str(),
+                                    m_getparameter_request.c_str());
+                    status_code = validate_rtsp_getparameter_request(common_get_parameter_buffer);
+                    m_getparameter_request.clear();
+                }
+                else
+                {
+                    std::string received_seq_num = parse_received_parser_field_value( m_getparameter_request , RTSP_SEQUENCE_FIELD);
+                    MIRACASTLOG_ERROR("#### ActualContentLength is greater than expected[%s] ####",
+                                        m_getparameter_request.c_str());
+                    send_rtsp_reply_sink2src( RTSP_MSG_FMT_REPORT_ERROR ,
+                                            received_seq_num,
+                                            RTSP_ERRORCODE_NOT_IMPLEMENTED );
+                    status_code = RTSP_METHOD_NOT_SUPPORTED;
+                }
+            }
+            else
+            {
+                MIRACASTLOG_INFO("#### CURRENT GET_PARAM_REQ [%s], WAITING FOR COMPLETE DATA ####",
+                                    m_getparameter_request.c_str());
+            }
+        }
+        else if (first_line.find(options_tag) != std::string::npos)
         {
             status_code = validate_rtsp_options_request(rtsp_msg_buffer);
-        }
-        else if (first_line.find(get_parameter_tag) != std::string::npos)
-        {
-            status_code = validate_rtsp_getparameter_request(rtsp_msg_buffer);
         }
         else if (first_line.find(set_parameter_tag) != std::string::npos)
         {
@@ -1878,6 +1924,37 @@ std::string MiracastRTSPMsg::get_localIp()
     
     MIRACASTLOG_TRACE("Exiting...");
     return m_sink_ip;
+}
+
+int MiracastRTSPMsg::validateGetParameterContentLength(std::string input)
+{
+    size_t  contentLengthPos = input.find("Content-Length: "),
+            doubleNewlinePos = input.find("\r\n\r\n"),
+            actualContentLength = 0;
+    int     returnvalue = -1;
+
+    // Calculate the actual content length
+    if (doubleNewlinePos != std::string::npos)
+    {
+        // Calculate the length of the content after the double newline
+        actualContentLength = input.length() - (doubleNewlinePos + 4); // Adding 4 to include both newline characters
+    }
+
+    if (contentLengthPos != std::string::npos)
+    {
+        // Extract the content length value
+        size_t  valueStart = contentLengthPos + strlen("Content-Length: "),
+                valueEnd = input.find("\r\n", valueStart);
+
+        if (valueEnd != std::string::npos)
+        {
+            std::string lengthStr = input.substr(valueStart, valueEnd - valueStart);
+            size_t expectedLength = std::stoul(lengthStr);
+            returnvalue = actualContentLength - expectedLength;
+        }
+    }
+    // Content-Length not found or invalid format
+    return returnvalue;
 }
 
 MiracastError MiracastRTSPMsg::start_streaming( VIDEO_RECT_STRUCT video_rect )
