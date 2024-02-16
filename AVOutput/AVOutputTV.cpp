@@ -398,16 +398,28 @@ namespace Plugin {
         }
 
         tvVideoFormatCallbackData callbackData = {this,tvVideoFormatChangeHandler};
-        RegisterVideoFormatChangeCB(callbackData);
+        ret = RegisterVideoFormatChangeCB(&callbackData);
+        if(ret != tvERROR_NONE) {
+            LOGWARN("RegisterVideoFormatChangeCB failed");
+        }
 
         tvVideoContentCallbackData ConcallbackData = {this,tvFilmMakerModeChangeHandler};
-        RegisterVideoContentChangeCB(ConcallbackData);
+        ret = RegisterVideoContentChangeCB(&ConcallbackData);
+        if(ret != tvERROR_NONE) {
+            LOGWARN("RegisterVideoContentChangeCB failed");
+        }
 
         tvVideoResolutionCallbackData RescallbackData = {this,tvVideoResolutionChangeHandler};
-        RegisterVideoResolutionChangeCB(RescallbackData);
+        ret = RegisterVideoResolutionChangeCB(&RescallbackData);
+        if(ret != tvERROR_NONE) {
+            LOGWARN("RegisterVideoResolutionChangeCB failed");
+        }
 
         tvVideoFrameRateCallbackData FpscallbackData = {this,tvVideoFrameRateChangeHandler};
-        RegisterVideoFrameRateChangeCB(FpscallbackData);
+        ret = RegisterVideoFrameRateChangeCB(&FpscallbackData);
+        if(ret != tvERROR_NONE) {
+            LOGWARN("RegisterVideoFrameRateChangeCB failed");
+        }
 
         LocatePQSettingsFile();
 
@@ -2760,7 +2772,7 @@ namespace Plugin {
         if(ret == tvERROR_NONE) {
             for(int count = 0;count <totalAvailable;count++ )
             {
-                if(strncmp(dolbyMode, dolbyModes[count].name, strlen(dolbyMode))==0){
+                if(strncasecmp(dolbyMode, dolbyModes[count].name, strlen(dolbyMode))==0){
                     mode = dolbyModes[count].value;
                     break;
                 }
