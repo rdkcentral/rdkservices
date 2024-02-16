@@ -885,6 +885,7 @@ namespace Plugin {
 
                 _adminLock.Unlock();
             }
+#endif
             void Snapshot(Core::JSON::ArrayType<Monitor::Data>& snapshot)
             {
                 _adminLock.Lock();
