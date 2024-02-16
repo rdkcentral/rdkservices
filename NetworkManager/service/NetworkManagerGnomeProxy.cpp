@@ -9,6 +9,7 @@ using namespace WPEFramework;
 using namespace WPEFramework::Plugin;
 using namespace std;
 GMainLoop *loop;
+static std::vector<Exchange::INetworkManager::InterfaceDetails> interfaceList;
 
 #define PREFIX_TO_NETMASK(prefix_len) ({ \
     static char netmask_str[16]; \
@@ -93,42 +94,43 @@ namespace WPEFramework
         uint32_t NetworkManagerImplementation::GetAvailableInterfaces (Exchange::INetworkManager::IInterfaceDetailsIterator*& interfacesItr/* @out */)
         {
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
-            const GPtrArray *devices = nm_client_get_devices(client);
             string interfaces[2];
             GetInterfacesName(interfaces);
+            NMDeviceType type;
+            InterfaceDetails tmp;
+            NMDeviceState state;
+            NMDevice *device;
+            NMConnectivityState connectivity;
 
-            if (devices->len != 0) {
-                std::vector<InterfaceDetails> interfaceList;
-                for (guint i = 0; i < devices->len; i++) {
-                    InterfaceDetails tmp;
-                    NMDeviceState state;
-                    NMConnectivityState connectivity;
-                    NMDevice *device = (NMDevice *)g_ptr_array_index(devices, i); 
-                    const char *interfaceName = nm_device_get_iface(device);
-                   
-                    for (auto &element : interfaces) {
-                        if(strcmp(interfaceName, element.c_str()) == 0)
-                        {
-                            if (strcmp("eth0", interfaceName) == 0)
+            if(interfaceList.empty() || interfaceList.size() != 2)
+            {
+                for (auto &element : interfaces) {
+                    device = nm_client_get_device_by_iface(client, element.c_str());
+                    if (device)
+                    {
+                        type = nm_device_get_device_type(device);
+                        switch (type) {
+                            case NM_DEVICE_TYPE_ETHERNET:
                                 tmp.m_type = string("ETHERNET");
-                            else if ("wlan0" == interfaceName)
+                                break;
+                            case NM_DEVICE_TYPE_WIFI:
                                 tmp.m_type = string("WIFI");
-                            tmp.m_name = interfaceName;
-                            tmp.m_mac = nm_device_get_hw_address(device);
-                            state = nm_device_get_state(device);
-                            tmp.m_isEnabled = (state > NM_DEVICE_STATE_UNAVAILABLE) ? 1 : 0;
-                            connectivity = nm_device_get_connectivity (device, AF_INET);
-                            tmp.m_isConnected = (connectivity > NM_CONNECTIVITY_LIMITED) ? 1: 0;
-                            interfaceList.push_back(tmp);
-
-                            using Implementation = RPC::IteratorType<Exchange::INetworkManager::IInterfaceDetailsIterator>;
-                            interfacesItr = Core::Service<Implementation>::Create<Exchange::INetworkManager::IInterfaceDetailsIterator>(interfaceList);
+                                break;
                         }
-                    
+                        tmp.m_name = element.c_str();
+                        tmp.m_mac = nm_device_get_hw_address(device);
+                        state = nm_device_get_state(device);
+                        tmp.m_isEnabled = (state > NM_DEVICE_STATE_UNAVAILABLE) ? 1 : 0;
+                        connectivity = nm_device_get_connectivity (device, AF_INET);
+                        tmp.m_isConnected = (connectivity > NM_CONNECTIVITY_LIMITED) ? 1: 0;
+                        interfaceList.push_back(tmp);
                     }
-                    rc = Core::ERROR_NONE;
                 }
             }
+
+            using Implementation = RPC::IteratorType<Exchange::INetworkManager::IInterfaceDetailsIterator>;
+            interfacesItr = Core::Service<Implementation>::Create<Exchange::INetworkManager::IInterfaceDetailsIterator>(interfaceList);
+            rc = Core::ERROR_NONE;
             return rc;
         }
 
