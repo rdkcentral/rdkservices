@@ -35,7 +35,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 3
-#define API_VERSION_NUMBER_PATCH 3
+#define API_VERSION_NUMBER_PATCH 5
 
 /* Netsrvmgr Based Macros & Structures */
 #define IARM_BUS_NM_SRV_MGR_NAME "NET_SRV_MGR"
@@ -254,7 +254,8 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             Unregister("getPublicIP");
             Unregister("setStunEndPoint");
             Unregister("configurePNI");
-
+            /* stop connectivity monitor if running */
+            connectivityMonitor.stopContinuousConnectivityMonitoring();
             Network::_instance = nullptr;
 
             m_service->Release();
