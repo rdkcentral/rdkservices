@@ -542,12 +542,12 @@ namespace WPEFramework {
 
     bool ConnectivityMonitor::stopContinuousConnectivityMonitoring()
     {
+        LOGINFO("Entry");
         if (!isMonitorThreadRunning())
         {
             LOGWARN("Connectivity monitor not running");
             return false;
         }
-
         cv_.notify_all();
         stopFlag = true;
 
