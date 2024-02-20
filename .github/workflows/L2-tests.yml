@@ -137,6 +137,7 @@ jobs:
           rdk/iarmmgrs-hal/pwrMgr.h
           rdk/iarmmgrs-hal/sysMgr.h
           rfcapi.h
+          libudev.h
           systemservices/proc/readproc.h
 
 
@@ -166,6 +167,7 @@ jobs:
           -include ${{github.workspace}}/rdkservices/Tests/mocks/devicesettings.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Iarm.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Rfc.h
+          -include ${{github.workspace}}/rdkservices/Tests/mocks/Udev.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/readprocMockInterface.h
           -Wall -Werror
           -DUSE_IARMBUS
@@ -178,6 +180,7 @@ jobs:
           -DCMAKE_DISABLE_FIND_PACKAGE_RBus=ON
           -DPLUGIN_SYSTEMSERVICES=ON
           -DPLUGIN_PERSISTENTSTORE=ON
+          -DPLUGIN_USBACCESS=ON    
           -DPLUGIN_L2Tests=ON
           -DRDK_SERVICE_L2_TEST=ON
           -DDS_FOUND=ON
