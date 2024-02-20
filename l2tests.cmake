@@ -43,6 +43,7 @@ set(EMPTY_HEADERS
          ${BASEDIR}/rdk/iarmmgrs-hal/sysMgr.h
          ${BASEDIR}/rdk/ds/sleepMode.hpp
          ${BASEDIR}/rfcapi.h
+         ${BASEDIR}/libudev.h
          ${BASEDIR}/systemservices/proc/readproc.h
          ${BASEDIR}/systemservices/secure_wrapper.h
         )
@@ -97,6 +98,7 @@ set(CMAKE_DISABLE_FIND_PACKAGE_Dobby ON)
 set(CMAKE_DISABLE_FIND_PACKAGE_CEC ON)
 set(PLUGIN_SYSTEMSERVICES ON)
 set(PLUGIN_PERSISTENTSTORE ON)
+set(PLUGIN_USBACCESS ON)
 set(PLUGIN_L2Tests ON)
 set(BUILD_SHARED_LIBS ON)
 set(DS_FOUND ON)
