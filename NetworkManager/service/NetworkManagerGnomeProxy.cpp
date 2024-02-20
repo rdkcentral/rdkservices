@@ -8,19 +8,8 @@ static NMClient *client;
 using namespace WPEFramework;
 using namespace WPEFramework::Plugin;
 using namespace std;
-GMainLoop *loop;
+GMainLoop *g_loop;
 static std::vector<Exchange::INetworkManager::InterfaceDetails> interfaceList;
-
-#define PREFIX_TO_NETMASK(prefix_len) ({ \
-    static char netmask_str[16]; \
-    uint32_t netmask = 0xffffffff << (32 - (prefix_len)); \
-    snprintf(netmask_str, 16, "%u.%u.%u.%u", \
-             (netmask >> 24) & 0xff, \
-             (netmask >> 16) & 0xff, \
-             (netmask >> 8) & 0xff, \
-             netmask & 0xff); \
-    netmask_str; \
-})
 
 namespace WPEFramework
 {
@@ -39,26 +28,25 @@ namespace WPEFramework
         void NetworkManagerImplementation::platform_init()
         {
             GError *error = NULL;
+            GMainContext *context = g_main_context_new();
             // initialize the NMClient object
             client = nm_client_new(NULL, &error);
             if (client == NULL) {
-                fprintf(stderr, "Error initializing NMClient: %s\n", error->message);
+                NMLOG_TRACE("Error initializing NMClient: %s\n", error->message);
                 g_error_free(error);
                 return;
             }
-            loop = g_main_loop_new(NULL, FALSE);
+            g_loop = g_main_loop_new(context, FALSE);
             return;
         }
 
-        uint32_t GetInterfacesName(string (&interfaces)[2]) {
+        uint32_t GetInterfacesName(string &wifiInterface, string &ethernetInterface) {
             string line;
-            string wifi_interface;
-            string ethernet_interface;
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
 
             ifstream file("/etc/device.properties");
             if (!file.is_open()) {
-                std::cerr << "Error opening file" << std::endl;
+                NMLOG_TRACE("Error opening file\n");
                 return rc;
             }   
 
@@ -73,19 +61,12 @@ namespace WPEFramework
                 getline(iss, token, '=');
 
                 if (token == "WIFI_INTERFACE") {
-                    std::getline(iss, wifi_interface, '=');
+                    std::getline(iss, wifiInterface, '=');
                 } else if (token == "ETHERNET_INTERFACE") {
-                    std::getline(iss, ethernet_interface, '=');
-                }
-
-                if (!wifi_interface.empty() && !ethernet_interface.empty()) {
-                    rc = Core::ERROR_NONE;           
-                    break;
+                    std::getline(iss, ethernetInterface, '=');
                 }
             }   
 
-            interfaces[0] = wifi_interface;
-            interfaces[1] = ethernet_interface;
             file.close();
 
             return rc;
@@ -95,35 +76,35 @@ namespace WPEFramework
         {
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
             string interfaces[2];
-            GetInterfacesName(interfaces);
+            string wifiInterface;
+            string ethernetInterface;
             NMDeviceType type;
             InterfaceDetails tmp;
             NMDeviceState state;
-            NMDevice *device;
-            NMConnectivityState connectivity;
+            NMDevice *device = NULL;
 
-            if(interfaceList.empty() || interfaceList.size() != 2)
+            if(interfaceList.empty())
             {
-                for (auto &element : interfaces) {
-                    device = nm_client_get_device_by_iface(client, element.c_str());
-                    if (device)
+                GetInterfacesName(wifiInterface, ethernetInterface);
+                interfaces[0] = wifiInterface;
+                interfaces[1] = ethernetInterface;
+                for (size_t i = 0; i < 2; i++) {
+                    if(!interfaces[i].empty())
                     {
-                        type = nm_device_get_device_type(device);
-                        switch (type) {
-                            case NM_DEVICE_TYPE_ETHERNET:
-                                tmp.m_type = string("ETHERNET");
-                                break;
-                            case NM_DEVICE_TYPE_WIFI:
+                        device = nm_client_get_device_by_iface(client, interfaces[i].c_str());
+                        if (device)
+                        {
+                            if(i == 0)        
                                 tmp.m_type = string("WIFI");
-                                break;
+                            else
+                                tmp.m_type = string("ETHERNET");
+                            tmp.m_name = interfaces[i].c_str();
+                            tmp.m_mac = nm_device_get_hw_address(device);
+                            state = nm_device_get_state(device);
+                            tmp.m_isEnabled = (state > NM_DEVICE_STATE_UNAVAILABLE) ? 1 : 0;
+                            tmp.m_isConnected = (state > NM_DEVICE_STATE_DISCONNECTED) ? 1: 0;
+                            interfaceList.push_back(tmp);
                         }
-                        tmp.m_name = element.c_str();
-                        tmp.m_mac = nm_device_get_hw_address(device);
-                        state = nm_device_get_state(device);
-                        tmp.m_isEnabled = (state > NM_DEVICE_STATE_UNAVAILABLE) ? 1 : 0;
-                        connectivity = nm_device_get_connectivity (device, AF_INET);
-                        tmp.m_isConnected = (connectivity > NM_CONNECTIVITY_LIMITED) ? 1: 0;
-                        interfaceList.push_back(tmp);
                     }
                 }
             }
@@ -131,6 +112,8 @@ namespace WPEFramework
             using Implementation = RPC::IteratorType<Exchange::INetworkManager::IInterfaceDetailsIterator>;
             interfacesItr = Core::Service<Implementation>::Create<Exchange::INetworkManager::IInterfaceDetailsIterator>(interfaceList);
             rc = Core::ERROR_NONE;
+            if(device)
+                g_clear_object(&device);
             return rc;
         }
 
@@ -139,21 +122,19 @@ namespace WPEFramework
         {
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
             GError *error = NULL;
-            NMActiveConnection *active_conn = NULL;
-            NMRemoteConnection *newconn = NULL;
-            NMSettingConnection *s_con;
+            NMActiveConnection *activeConn = NULL;
+            NMRemoteConnection *remoteConn = NULL;
 
-            active_conn = nm_client_get_primary_connection(client);
-            if (active_conn == NULL) {
-                fprintf(stderr, "Error getting primary connection: %s\n", error->message);
+            activeConn = nm_client_get_primary_connection(client);
+            if (activeConn == NULL) {
+                NMLOG_TRACE("Error getting primary connection: %s\n", error->message);
                 g_error_free(error);
                 return rc;
             }   
-            newconn = nm_active_connection_get_connection(active_conn);
-            s_con = nm_connection_get_setting_connection(NM_CONNECTION(newconn));
+            remoteConn = nm_active_connection_get_connection(activeConn);
 
-            interface = nm_connection_get_interface_name(NM_CONNECTION(newconn));
-            if(interface.c_str() != NULL)
+            interface = nm_connection_get_interface_name(NM_CONNECTION(remoteConn));
+            if(!interface.empty())
                 rc = Core::ERROR_NONE;
             return rc;
         }
@@ -165,7 +146,7 @@ namespace WPEFramework
             const GPtrArray *connections = nm_client_get_connections(client);
             NMConnection *conn = NULL;
             NMSettingConnection *settings;
-            NMRemoteConnection *remote_connection;
+            NMRemoteConnection *remoteConnection;
             for (guint i = 0; i < connections->len; i++) {
                 NMConnection *connection = NM_CONNECTION(connections->pdata[i]);
                 settings = nm_connection_get_setting_connection(connection);
@@ -183,8 +164,8 @@ namespace WPEFramework
                     NM_SETTING_CONNECTION_AUTOCONNECT_PRIORITY_MAX,
                     NULL);
             const char *uuid = nm_connection_get_uuid(conn);
-            remote_connection = nm_client_get_connection_by_uuid(client, uuid);
-            nm_remote_connection_commit_changes(remote_connection, false, NULL, NULL);
+            remoteConnection = nm_client_get_connection_by_uuid(client, uuid);
+            nm_remote_connection_commit_changes(remoteConnection, false, NULL, NULL);
 
             return rc;
         }
@@ -194,7 +175,7 @@ namespace WPEFramework
             uint32_t rc = Core::ERROR_NONE;
             const GPtrArray *devices = nm_client_get_devices(client);
             NMDeviceState new_state;
-            NMDevice *device;
+            NMDevice *device = NULL;
 
             if(isEnabled)
                 new_state = NM_DEVICE_STATE_ACTIVATED;
@@ -210,14 +191,15 @@ namespace WPEFramework
                 if (g_strcmp0(name, interface.c_str()) == 0) {
                     nm_device_set_managed(device, isEnabled);
 
-                    g_print("Interface %s status set to %s\n",
+                    NMLOG_TRACE("Interface %s status set to %s\n",
                             interface.c_str(),
                             (new_state == NM_DEVICE_STATE_ACTIVATED) ? "enabled" : "disabled");
                 }
             }
-
+ 
             // Cleanup
-            g_clear_object(&device);
+            if(device)
+                g_clear_object(&device);
             return rc;
         } 
 
@@ -233,10 +215,9 @@ namespace WPEFramework
             char **dns_arr = NULL;
             NMDhcpConfig *dhcp4_config = NULL;
             NMDhcpConfig *dhcp6_config = NULL;
-            GHashTable * ght ;
             const char* dhcpserver;
             NMSettingConnection *settings;
-            NMIPAddress *a;
+            NMIPAddress *address;
 
             const GPtrArray *connections = nm_client_get_active_connections(client);
 
@@ -252,7 +233,7 @@ namespace WPEFramework
                 }
             }
             if (conn == NULL) {
-                fprintf(stderr, "Error getting primary connection: %s\n", error->message);
+                NMLOG_TRACE("Error getting primary connection: %s\n", error->message);
                 g_error_free(error);
                 return rc;
             }   
@@ -265,15 +246,13 @@ namespace WPEFramework
                     int              i;
                     p = nm_ip_config_get_addresses(ip4_config);
                     for (i = 0; i < p->len; i++) {
-                        a = static_cast<NMIPAddress*>(p->pdata[i]);
-                        g_print("\tinet4 %s/%d, %s \n", nm_ip_address_get_address(a), nm_ip_address_get_prefix(a), PREFIX_TO_NETMASK( nm_ip_address_get_prefix(a)));
+                        address = static_cast<NMIPAddress*>(p->pdata[i]);
                     }
                     gateway = nm_ip_config_get_gateway(ip4_config);
                 }   
                 dns_arr =   (char **)nm_ip_config_get_nameservers(ip4_config);
 
                 dhcp4_config = nm_active_connection_get_dhcp4_config(conn);
-                ght = nm_dhcp_config_get_options(dhcp4_config);
                 dhcpserver = nm_dhcp_config_get_one_option (dhcp4_config,
                                "dhcp_server_identifier");
 
@@ -281,8 +260,8 @@ namespace WPEFramework
                 if(dhcpserver)
                     result.m_dhcpServer     = dhcpserver;
                 result.m_v6LinkLocal    = "";
-                result.m_ipAddress      = nm_ip_address_get_address(a);
-                result.m_prefix         = nm_ip_address_get_prefix(a);
+                result.m_ipAddress      = nm_ip_address_get_address(address);
+                result.m_prefix         = nm_ip_address_get_prefix(address);
                 result.m_gateway        = gateway;
                 if((*(&dns_arr[0]))!=NULL)
                     result.m_primaryDns     = *(&dns_arr[0]);
@@ -302,14 +281,13 @@ namespace WPEFramework
                     for (i = 0; i < p->len; i++) {
                         a = static_cast<NMIPAddress*>(p->pdata[i]);
                         result.m_ipAddress      = nm_ip_address_get_address(a);
-                        g_print("\tinet6 %s/%d\n", nm_ip_address_get_address(a), nm_ip_address_get_prefix(a));
+                        NMLOG_TRACE("\tinet6 %s/%d\n", nm_ip_address_get_address(a), nm_ip_address_get_prefix(a));
                     }
                     gateway = nm_ip_config_get_gateway(ip6_config);
 
                     dns_arr =   (char **)nm_ip_config_get_nameservers(ip6_config);
 
                     dhcp6_config = nm_active_connection_get_dhcp6_config(conn);
-                    ght = nm_dhcp_config_get_options(dhcp6_config);
                     dhcpserver = nm_dhcp_config_get_one_option (dhcp6_config,
                                "dhcp_server_identifier");
                     result.m_ipAddrType     = ipversion.c_str();
@@ -328,85 +306,35 @@ namespace WPEFramework
             return rc;
         }
 
-#define CIDR_NETMASK_IP_LEN 32
-const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
-                                                     "128.0.0.0",
-                                                     "192.0.0.0",
-                                                     "224.0.0.0",
-                                                     "240.0.0.0",
-                                                     "248.0.0.0",
-                                                     "252.0.0.0",
-                                                     "254.0.0.0",
-                                                     "255.0.0.0",
-                                                     "255.128.0.0",
-                                                     "255.192.0.0",
-                                                     "255.224.0.0",
-                                                     "255.240.0.0",
-                                                     "255.248.0.0",
-                                                     "255.252.0.0",
-                                                     "255.254.0.0",
-                                                     "255.255.0.0",
-                                                     "255.255.128.0",
-                                                     "255.255.192.0",
-                                                     "255.255.224.0",
-                                                     "255.255.240.0",
-                                                     "255.255.248.0",
-                                                     "255.255.252.0",
-                                                     "255.255.254.0",
-                                                     "255.255.255.0",
-                                                     "255.255.255.128",
-                                                     "255.255.255.192",
-                                                     "255.255.255.224",
-                                                     "255.255.255.240",
-                                                     "255.255.255.248",
-                                                     "255.255.255.252",
-                                                     "255.255.255.254",
-                                                     "255.255.255.255",
-                                                   };
 
+        // Callback for nm_client_deactivate_connection_async
+        static void on_deactivate_complete(GObject *source_object, GAsyncResult *res, gpointer user_data) {
+            GError *error = NULL;
 
-            // Callback for nm_client_deactivate_connection_async
-            static void on_deactivate_complete(GObject *source_object, GAsyncResult *res, gpointer user_data) {
-                GError *error = NULL;
+            // Check if the operation was successful
+            if (!nm_client_deactivate_connection_finish(NM_CLIENT(source_object), res, &error)) {
+                NMLOG_TRACE("Deactivating connection failed: %s\n", error->message);
+                g_error_free(error);
+            } else {
+                NMLOG_TRACE("Deactivating connection successful\n");
+            }
+        }
 
-                // Check if the operation was successful
-                if (!nm_client_deactivate_connection_finish(NM_CLIENT(source_object), res, &error)) {
-                    g_print("Deactivating connection failed: %s\n", error->message);
-                    g_error_free(error);
-                } else {
-                    g_print("Deactivating connection successful\n");
-                }
+        // Callback for nm_client_activate_connection_async
+        static void on_activate_complete(GObject *source_object, GAsyncResult *res, gpointer user_data) {
+            GError *error = NULL;
+
+            // Check if the operation was successful
+            if (!nm_client_activate_connection_finish(NM_CLIENT(source_object), res, &error)) {
+                NMLOG_TRACE("Activating connection failed: %s\n", error->message);
+                g_error_free(error);
+            } else {
+                NMLOG_TRACE("Activating connection successful\n");
             }
 
-            // Callback for nm_client_activate_connection_async
-            static void on_activate_complete(GObject *source_object, GAsyncResult *res, gpointer user_data) {
-                GError *error = NULL;
+            g_main_loop_quit((GMainLoop*)user_data);
+        }
 
-                // Check if the operation was successful
-                if (!nm_client_activate_connection_finish(NM_CLIENT(source_object), res, &error)) {
-                    g_print("Activating connection failed: %s\n", error->message);
-                    g_error_free(error);
-                } else {
-                    g_print("Activating connection successful\n");
-                }
-
-                g_main_loop_quit((GMainLoop*)user_data);
-            }
-
-            static void modify_connection_cb(GObject *connection, GAsyncResult *result, gpointer user_data)
-            {
-                GError *error = NULL;
-
-                if (!nm_remote_connection_commit_changes_finish(NM_REMOTE_CONNECTION(connection),
-                            result,
-                            &error)) {
-                    g_print("nm_remote_connection_commit_changes_finish failed: %s\n", error->message);
-                } else {
-                    g_print(("Connection '%s' (%s) successfully modified.\n"),
-                            nm_connection_get_id(NM_CONNECTION(connection)),
-                            nm_connection_get_uuid(NM_CONNECTION(connection)));
-                } 
-            }
 
         /* @brief Set IP Address Of the Interface */
         uint32_t NetworkManagerImplementation::SetIPSettings(const string& interface /* @in */, const string &ipversion /* @in */, const IPAddressInfo& address /* @in */)
@@ -420,8 +348,8 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             NMRemoteConnection *remote_connection;
             NMSetting *setting;
             const char *uuid;
-            NMDevice   *device      = NULL;
-            const char  *spec_object;
+            NMDevice *device      = NULL;
+            const char *spec_object;
 
             for (guint i = 0; i < connections->len; i++) {
                 NMConnection *connection = NM_CONNECTION(connections->pdata[i]);
@@ -474,13 +402,9 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
                 }
                 else
                 {
-                    //FIXME : Add IPv6 support here
-                    printf("Setting IPv6 is not supported at this point in time. This is just a place holder\n");
-                    rc = Core::ERROR_NOT_SUPPORTED;
-
-                    /*s_ip6 = (NMSettingIP6Config *)nm_setting_ip6_config_new();
+                    s_ip6 = (NMSettingIP6Config *)nm_setting_ip6_config_new();
                     g_object_set(G_OBJECT(s_ip6), NM_SETTING_IP_CONFIG_METHOD, NM_SETTING_IP6_CONFIG_METHOD_AUTO, NULL);
-                    nm_connection_add_setting(conn, NM_SETTING(s_ip6));*/
+                    nm_connection_add_setting(conn, NM_SETTING(s_ip6));
                 }
             }
             device = nm_client_get_device_by_iface(client, interface.c_str());
@@ -503,9 +427,8 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             spec_object = nm_object_get_path(NM_OBJECT(active_connection));
             nm_remote_connection_commit_changes(remote_connection, false, NULL, NULL);
             nm_client_deactivate_connection_async(client, active_connection, NULL, on_deactivate_complete, NULL);
-            nm_client_activate_connection_async(client, conn, device, spec_object, NULL, on_activate_complete, loop);
-            g_main_loop_run(loop);
-            //g_main_loop_unref(loop);
+            nm_client_activate_connection_async(client, conn, device, spec_object, NULL, on_activate_complete, g_loop);
+            g_main_loop_run(g_loop);
             return rc;
         }
 
