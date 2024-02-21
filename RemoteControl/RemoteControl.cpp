@@ -131,9 +131,8 @@ namespace WPEFramework {
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_VALIDATION_END, remoteEventHandler) );
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_CONFIGURATION_COMPLETE, remoteEventHandler) );
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(CTRLM_MAIN_IARM_BUS_NAME, CTRLM_RCU_IARM_EVENT_RF4CE_PAIRING_WINDOW_TIMEOUT, remoteEventHandler) );
+                LOGWARN("WARNING - IARMBUSDEBUG removed IARM_Bus_Disconnect and  IARM_Bus_Term ");
 
-                IARM_CHECK( IARM_Bus_Disconnect() );
-                IARM_CHECK( IARM_Bus_Term() );
                 m_hasOwnProcess = false;
             }
         }
