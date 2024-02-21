@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.2] - 2024-02-21
+### Added
+- Added tvsettings HAL phase 2 change
+
 ## [1.0.1] - 2024-02-09
 ### Fixed
 - BlackScreen issue after PictureReset
