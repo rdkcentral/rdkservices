@@ -2303,7 +2303,7 @@ static GSourceFuncs _handlerIntervention =
             const bool isNewUrlBlankUrl = URL.find("about:blank") != string::npos;
             static const auto metroDomain = _bootUrl.substr(0, _bootUrl.find('#'));
             const bool isNewUrlMetroSubdomain = URL.find(metroDomain) != string::npos;
-            if (isNewUrlBlankUrl || isNewUrlMetroSubdomain || isNewUrlBootUrl) {
+            if (isNewUrlBlankUrl || (isNewUrlMetroSubdomain && !isNewUrlBootUrl)) {
                 /*
                  * When loading URL from the same domain only notify::uri signal is being sent.
                  * This scenario happens only for Metro domain addresses.
