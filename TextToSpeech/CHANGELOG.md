@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.24] - 2024-02-28
+### Changed
+- ES1-631: callsign based event delivery
+
 ## [1.0.23] - 2024-01-29
 ### Fixed
 - RDKTV-27784: Fixed bug in listVoices
