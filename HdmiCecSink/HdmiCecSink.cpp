@@ -173,7 +173,7 @@ static std::vector<DeviceFeatures> deviceFeatures = {DEVICE_FEATURES_TV};
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 2
-#define API_VERSION_NUMBER_PATCH 4
+#define API_VERSION_NUMBER_PATCH 5 
 
 namespace WPEFramework
 {
@@ -218,7 +218,10 @@ namespace WPEFramework
        {
              printHeader(header);
              LOGINFO("Command: ActiveSource %s : %s  : %s \n",GetOpName(msg.opCode()),msg.physicalAddress.name().c_str(),msg.physicalAddress.toString().c_str());
-
+	     if(!(header.to == LogicalAddress(LogicalAddress::BROADCAST))){
+		LOGINFO("Ignore Direct messages, accepts only broadcast messages");
+		return;
+	     }
 			 HdmiCecSink::_instance->addDevice(header.from.toInt());	
 			 HdmiCecSink::_instance->updateActiveSource(header.from.toInt(), msg);
       }
@@ -226,6 +229,10 @@ namespace WPEFramework
        {
              printHeader(header);
              LOGINFO("Command: InActiveSource %s : %s : %s  \n",GetOpName(msg.opCode()),msg.physicalAddress.name().c_str(),msg.physicalAddress.toString().c_str());
+	     if(header.to.toInt() == LogicalAddress::BROADCAST){
+		LOGINFO("Ignore Broadcast messages, accepts only direct messages");
+		return;
+	     }
 
 			 HdmiCecSink::_instance->updateInActiveSource(header.from.toInt(), msg);
 	   }
@@ -234,6 +241,10 @@ namespace WPEFramework
        {
              printHeader(header);
              LOGINFO("Command: ImageViewOn from %s\n", header.from.toString().c_str());
+	     if(header.to.toInt() == LogicalAddress::BROADCAST){
+		LOGINFO("Ignore Broadcast messages, accepts only direct messages");
+		return;
+	     }
 			 HdmiCecSink::_instance->addDevice(header.from.toInt());
 			 HdmiCecSink::_instance->updateImageViewOn(header.from.toInt());
        }
@@ -241,6 +252,10 @@ namespace WPEFramework
        {
              printHeader(header);
              LOGINFO("Command: TextViewOn\n");
+	     if(header.to.toInt() == LogicalAddress::BROADCAST){
+		LOGINFO("Ignore Broadcast messages, accepts only direct messages");
+		return;
+	     }
 			 HdmiCecSink::_instance->addDevice(header.from.toInt());
 			 HdmiCecSink::_instance->updateImageViewOn(header.from.toInt());
        }
@@ -248,6 +263,10 @@ namespace WPEFramework
        {
              printHeader(header);
              LOGINFO("Command: RequestActiveSource\n");
+	     if(!(header.to == LogicalAddress(LogicalAddress::BROADCAST))){
+		LOGINFO("Ignore Direct messages, accepts only broadcast messages");
+		return;
+	     }
 
 			 HdmiCecSink::_instance->setActiveSource(true);
        }
@@ -261,6 +280,10 @@ namespace WPEFramework
        {
              printHeader(header);
              LOGINFO("Command: GetCECVersion sending CECVersion response \n");
+	     if(header.to.toInt() == LogicalAddress::BROADCAST){
+		LOGINFO("Ignore Broadcast messages, accepts only direct messages");
+		return;
+	     }
              try
              { 
                  if(cecVersion == 2.0) {
@@ -297,6 +320,10 @@ namespace WPEFramework
        {
              printHeader(header);
              LOGINFO("Command: GiveOSDName sending SetOSDName : %s\n",osdName.toString().c_str());
+	     if(header.to.toInt() == LogicalAddress::BROADCAST){
+		LOGINFO("Ignore Broadcast messages, accepts only direct messages");
+		return;
+	     }
              try
              { 
                  conn.sendToAsync(header.from, MessageEncoder().encode(SetOSDName(osdName)));
@@ -325,6 +352,10 @@ namespace WPEFramework
        void HdmiCecSinkProcessor::process (const GiveDeviceVendorID &msg, const Header &header)
        {
              printHeader(header);
+	     if(header.to == LogicalAddress(LogicalAddress::BROADCAST)){
+		LOGINFO("Ignore Broadcast messages, accepts only direct messages");
+		return;
+	     }
              try
              {
                  LOGINFO("Command: GiveDeviceVendorID sending VendorID response :%s\n",appVendorId.toString().c_str());
@@ -346,6 +377,10 @@ namespace WPEFramework
              printHeader(header);
 	     bool updateStatus ;
              LOGINFO("Command: SetOSDName OSDName : %s\n",msg.osdName.toString().c_str());
+	     if(header.to.toInt() == LogicalAddress::BROADCAST){
+		LOGINFO("Ignore Broadcast messages, accepts only direct messages");
+		return;
+	     }
 
 	     HdmiCecSink::_instance->addDevice(header.from.toInt());
 	     updateStatus = HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isOSDNameUpdated;
@@ -377,6 +412,10 @@ namespace WPEFramework
        {
              printHeader(header);
              LOGINFO("Command: GetMenuLanguage\n");
+	     if(header.to.toInt() == LogicalAddress::BROADCAST){
+		LOGINFO("Ignore Broadcast messages, accepts only direct messages");
+		return;
+	     }
 			 HdmiCecSink::_instance->sendMenuLanguage();  
        }
        void HdmiCecSinkProcessor::process (const ReportPhysicalAddress &msg, const Header &header)
@@ -385,6 +424,10 @@ namespace WPEFramework
 	     bool updateDeviceTypeStatus;
 	     bool updatePAStatus;
              LOGINFO("Command: ReportPhysicalAddress\n");
+	     if(!(header.to == LogicalAddress(LogicalAddress::BROADCAST))){
+		LOGINFO("Ignore Direct messages, accepts only broadcast messages");
+		return;
+	     }
 
 	     if(!HdmiCecSink::_instance)
 	        return;
@@ -407,6 +450,10 @@ namespace WPEFramework
 	     bool updateStatus ;
 	     printHeader(header);
              LOGINFO("Command: DeviceVendorID VendorID : %s\n",msg.vendorId.toString().c_str());
+	     if(!(header.to == LogicalAddress(LogicalAddress::BROADCAST))){
+		LOGINFO("Ignore Direct messages, accepts only broadcast messages");
+		return;
+	     }
 
 	     HdmiCecSink::_instance->addDevice(header.from.toInt());
 	     updateStatus = HdmiCecSink::_instance->deviceList[header.from.toInt()].m_isVendorIDUpdated;
@@ -419,6 +466,10 @@ namespace WPEFramework
        {
              printHeader(header);
              LOGINFO("Command: GiveDevicePowerStatus sending powerState :%d \n",powerState);
+	     if(header.to.toInt() == LogicalAddress::BROADCAST){
+		LOGINFO("Ignore Broadcast messages, accepts only direct messages");
+		return;
+	     }
              try
              { 
                  conn.sendTo(header.from, MessageEncoder().encode(ReportPowerStatus(PowerStatus(powerState))));
@@ -433,6 +484,10 @@ namespace WPEFramework
 	   uint32_t  oldPowerStatus,newPowerStatus;
 	   printHeader(header);
 	   LOGINFO("Command: ReportPowerStatus Power Status from:%s status : %s \n",header.from.toString().c_str(),msg.status.toString().c_str());
+	   if(header.to.toInt() == LogicalAddress::BROADCAST){
+		LOGINFO("Ignore Broadcast messages, accepts only direct messages");
+		return;
+	     }
            oldPowerStatus = HdmiCecSink::_instance->deviceList[header.from.toInt()].m_powerStatus.toInt();
 	   HdmiCecSink::_instance->addDevice(header.from.toInt());
 	   HdmiCecSink::_instance->deviceList[header.from.toInt()].update(msg.status);
@@ -452,6 +507,10 @@ namespace WPEFramework
        {
              printHeader(header);
              LOGINFO("Command: FeatureAbort opcode=%s, Reason = %s\n", msg.feature.toString().c_str(), msg.reason.toString().c_str());
+	     if(header.to.toInt() == LogicalAddress::BROADCAST){
+		LOGINFO("Ignore Broadcast messages, accepts only direct messages");
+		return;
+	     }
 
 			 if(header.from.toInt() < LogicalAddress::UNREGISTERED &&    
 			 		msg.reason.toInt()   == AbortReason::UNRECOGNIZED_OPCODE)
@@ -519,6 +578,10 @@ namespace WPEFramework
        void HdmiCecSinkProcessor::process (const InitiateArc &msg, const Header &header)
        {
             printHeader(header);
+	    if((!(header.from.toInt() == 0x5)) || (header.to.toInt() == LogicalAddress::BROADCAST)){
+                LOGINFO("Ignoring the message coming from addresses other than 0X5 or a braodcast message");
+                return;
+            }
             PhysicalAddress physical_addr_invalid = {0x0F,0x0F,0x0F,0x0F};
             PhysicalAddress physical_addr_arc_port = {0x0F,0x0F,0x0F,0x0F};
 
@@ -543,6 +606,10 @@ namespace WPEFramework
        void HdmiCecSinkProcessor::process (const TerminateArc &msg, const Header &header)
        {
            printHeader(header);
+	   if((!(header.from.toInt() == 0x5)) || (header.to.toInt() == LogicalAddress::BROADCAST)){
+        	LOGINFO("Ignoring the message coming from addresses other than 0X5 or a braodcast message");
+                return;
+           }
            if(!HdmiCecSink::_instance)
 	     return;
            HdmiCecSink::_instance->Process_TerminateArc();
@@ -564,6 +631,10 @@ namespace WPEFramework
        {
              printHeader(header);
              LOGINFO("Command: ReportAudioStatus  %s audio Mute status %d  means %s  and current Volume level is %d \n",GetOpName(msg.opCode()),msg.status.getAudioMuteStatus(),msg.status.toString().c_str(),msg.status.getAudioVolume());
+	     if(header.to.toInt() == LogicalAddress::BROADCAST){
+		LOGINFO("Ignore Broadcast messages, accepts only direct messages");
+		return;
+	     }
              HdmiCecSink::_instance->Process_ReportAudioStatus_msg(msg);
        }
       void HdmiCecSinkProcessor::process (const GiveFeatures &msg, const Header &header)
