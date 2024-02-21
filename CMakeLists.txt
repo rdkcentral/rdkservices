@@ -111,6 +111,10 @@ if(PLUGIN_AVINPUT)
     add_subdirectory(AVInput)
 endif()
 
+if(PLUGIN_AVOUTPUT)
+    add_subdirectory(AVOutput)
+endif()
+
 if(PLUGIN_DATACAPTURE)
     add_subdirectory(DataCapture)
 endif()
