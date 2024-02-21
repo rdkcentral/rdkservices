@@ -1777,27 +1777,41 @@ RTSP_STATUS MiracastRTSPMsg::validate_rtsp_receive_buffer_handling(std::string r
             {
                 if ( 0 == returnvalue )
                 {
-                    MIRACASTLOG_INFO("#### COMPLETE GET_PARAM_REQ [%s][%s] TO BE HANDLE ####",
-                                    common_get_parameter_buffer.c_str(),
-                                    m_getparameter_request.c_str());
-                    status_code = validate_rtsp_getparameter_request(common_get_parameter_buffer);
-                    m_getparameter_request.clear();
+                    MIRACASTLOG_INFO("#### COMPLETE GET_PARAM_REQ [%s] TO BE HANDLE ####",common_get_parameter_buffer.c_str());
+                    if ( false == m_getparameter_response_sent )
+                    {
+                        status_code = validate_rtsp_getparameter_request(common_get_parameter_buffer);
+                    }
+                    else
+                    {
+                        MIRACASTLOG_INFO("#### SKIPPING [%s]. ALREADY RTSP MSG RESPONDED  ####",rtsp_msg_buffer.c_str());
+                        status_code = RTSP_MSG_SUCCESS;
+                    }
                 }
                 else
                 {
-                    std::string received_seq_num = parse_received_parser_field_value( m_getparameter_request , RTSP_SEQUENCE_FIELD);
-                    MIRACASTLOG_ERROR("#### ActualContentLength is greater than expected[%s] ####",
-                                        m_getparameter_request.c_str());
-                    send_rtsp_reply_sink2src( RTSP_MSG_FMT_REPORT_ERROR ,
-                                            received_seq_num,
-                                            RTSP_ERRORCODE_NOT_IMPLEMENTED );
-                    status_code = RTSP_METHOD_NOT_SUPPORTED;
+                    MIRACASTLOG_ERROR("#### ActualContentLength is greater than expected[%s] ####",m_getparameter_request.c_str());
+                    //std::string received_seq_num = parse_received_parser_field_value( m_getparameter_request , RTSP_SEQUENCE_FIELD);
+                    //send_rtsp_reply_sink2src( RTSP_MSG_FMT_REPORT_ERROR , received_seq_num, RTSP_ERRORCODE_NOT_IMPLEMENTED );
+                    //status_code = RTSP_METHOD_NOT_SUPPORTED;
                 }
+                m_getparameter_request.clear();
+                m_getparameter_response_sent = false;
             }
             else
             {
                 MIRACASTLOG_INFO("#### CURRENT GET_PARAM_REQ [%s], WAITING FOR COMPLETE DATA ####",
                                     m_getparameter_request.c_str());
+                if ( false == m_getparameter_response_sent )
+                {
+                    status_code = validate_rtsp_getparameter_request(m_getparameter_request);
+                    m_getparameter_response_sent = true;
+                }
+                else
+                {
+                    MIRACASTLOG_INFO("#### SKIPPING [%s]. ALREADY RTSP MSG RESPONDED  ####",rtsp_msg_buffer.c_str());
+                    status_code = RTSP_MSG_SUCCESS;
+                }
             }
         }
         else if (first_line.find(options_tag) != std::string::npos)
@@ -2163,6 +2177,8 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
 
         memset(&rtsp_message_socket, 0x00, sizeof(rtsp_message_socket));
 
+        m_getparameter_response_sent = false;
+
         while (( status_code = receive_buffer_timedOut( m_tcpSockfd, rtsp_message_socket, sizeof(rtsp_message_socket),get_wait_timeout())) &&
                 ( status_code == RTSP_MSG_SUCCESS ))
         {
@@ -2213,10 +2229,12 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
         {
             if (RTSP_INVALID_MSG_RECEIVED == status_code)
             {
+                reason = MIRACAST_PLAYER_REASON_CODE_RTSP_ERROR;
                 MIRACASTLOG_ERROR("#### MCAST-TRIAGE-NOK INVALID RTSP MSG RECEIVED ####");
             }
             else if (RTSP_MSG_FAILURE == status_code)
             {
+                reason = MIRACAST_PLAYER_REASON_CODE_RTSP_ERROR;
                 MIRACASTLOG_ERROR("#### MCAST-TRIAGE-NOK RTSP SENT/RECV FAILED ####");
             }
             else if ( RTSP_MSG_TEARDOWN_REQUEST == status_code )

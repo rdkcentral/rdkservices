@@ -565,6 +565,7 @@ private:
     std::string m_src_dev_ip;
     std::string m_sink_ip;
     std::string m_getparameter_request;
+    bool m_getparameter_response_sent{false};
     RTSP_WFD_VIDEO_FMT_STRUCT   m_wfd_video_formats_st;
     RTSP_WFD_AUDIO_FMT_STRUCT   m_wfd_audio_formats_st;
 
