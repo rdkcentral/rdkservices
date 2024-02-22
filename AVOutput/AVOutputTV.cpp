@@ -4097,26 +4097,6 @@ namespace Plugin {
                             case PQ_PARAM_LOWLATENCY_STATE:
                                 ret |= SaveLowLatencyState(source, mode,format,params[0]);
                                 break;
-                            case PQ_PARAM_COMPONENT_HUE:
-                            case PQ_PARAM_COMPONENT_SATURATION:
-                            case PQ_PARAM_COMPONENT_LUMA:
-                                if(reset)
-                                    ret |= UpdateAVoutputTVParamToHAL(tr181ParamName,source, mode, format,0,false);
-                                if(sync || reset)
-                                {
-                                    int value=0;
-                                    if(!getLocalparam(tr181ParamName,format,mode,source,value,pqParamIndex,sync,params[1]))
-                                        LOGINFO("Found param from tr181 CMS pqmode : %d format:%d value:%d\n",mode,format,value);
-                                    else{
-                                        if(sync) /*block default cms sync to save tvsettings init time*/
-                                            continue;
-                                    }
-                                    params[2]=value;
-                                }
-                                ret |= SaveCMS(source, mode,format,(tvComponentType_t)params[0],(tvDataComponentColor_t)params[1],params[2]);
-                                if(set)
-                                    ret |= UpdateAVoutputTVParamToHAL(tr181ParamName,source,mode, format, params[2],true);
-                                break;
                             case PQ_PARAM_DOLBY_MODE:
                                  ret |= SaveTVDolbyVisionMode(source, mode,format,(tvDolbyMode_t)params[0]);
                                  break;
@@ -4358,7 +4338,7 @@ namespace Plugin {
             {
                 return 1;
             }
-            GetDefaultParams(pqIndex,(tvVideoSrcType_t)sourceIndex,(tvVideoFormatType_t)formatIndex,pqParamIndex,&value);
+            GetDefaultPQParams(pqIndex,(tvVideoSrcType_t)sourceIndex,(tvVideoFormatType_t)formatIndex,pqParamIndex,&value);
             LOGINFO("Default value from DB : %s : %d \n",key.c_str(),value);
             return 0;
         }
@@ -4533,7 +4513,7 @@ namespace Plugin {
         tr181ErrorCode_t err = getLocalParam(rfc_caller_id, rfc_param.c_str(), &param);
         if ( tr181Success != err) 
 	{
-            tvError_t retVal = GetDefaultParams(pqmodeIndex,(tvVideoSrcType_t)sourceIndex,
+            tvError_t retVal = GetDefaultPQParams(pqmodeIndex,(tvVideoSrcType_t)sourceIndex,
 			                         (tvVideoFormatType_t)ConvertHDRFormatToContentFormatODM((tvhdr_type_t)format),
 						 PQ_PARAM_DOLBY_MODE,&dolby_mode_value);
 	    if( retVal != tvERROR_NONE )
@@ -4658,7 +4638,7 @@ namespace Plugin {
 
         if ( tr181Success != err) 
 	{
-            tvError_t retVal = GetDefaultParams(pqmodeIndex,(tvVideoSrcType_t)sourceIndex, (tvVideoFormatType_t)formatIndex,
+            tvError_t retVal = GetDefaultPQParams(pqmodeIndex,(tvVideoSrcType_t)sourceIndex, (tvVideoFormatType_t)formatIndex,
 			                        PQ_PARAM_DOLBY_MODE, &value);
             if( retVal != tvERROR_NONE )
             {
