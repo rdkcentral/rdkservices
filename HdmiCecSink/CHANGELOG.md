@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.3.4] - 2024-02-22
+### Fixed
+- CEC Certification, Ignore Broadcast/Direct CEC received messages
+
 ## [1.3.3] - 2024-02-08
 ### Fixed
 - standby CEC messages from Unregister device
