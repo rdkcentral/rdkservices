@@ -932,7 +932,7 @@
         },
         "WiFiConnect":{
             "summary": "Initiates request to connect to the specified SSID with the given passphrase. Passphrase can be `null` when the network security is `NONE`. When called with no arguments, this method attempts to connect to the saved SSID and password. See `AddToKnownSSIDs`.",
-            events":{
+            "events":{
                 "onWiFiStateChange" : "Triggered when Wifi state changes to CONNECTING, CONNECTED ."
             },
             "params": {
