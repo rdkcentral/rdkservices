@@ -104,6 +104,7 @@ namespace WPEFramework
                             tmp.m_isEnabled = (state > NM_DEVICE_STATE_UNAVAILABLE) ? 1 : 0;
                             tmp.m_isConnected = (state > NM_DEVICE_STATE_DISCONNECTED) ? 1: 0;
                             interfaceList.push_back(tmp);
+                            g_clear_object(&device);
                         }
                     }
                 }
@@ -112,8 +113,6 @@ namespace WPEFramework
             using Implementation = RPC::IteratorType<Exchange::INetworkManager::IInterfaceDetailsIterator>;
             interfacesItr = Core::Service<Implementation>::Create<Exchange::INetworkManager::IInterfaceDetailsIterator>(interfaceList);
             rc = Core::ERROR_NONE;
-            if(device)
-                g_clear_object(&device);
             return rc;
         }
 
