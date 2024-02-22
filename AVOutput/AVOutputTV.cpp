@@ -3377,6 +3377,7 @@ namespace Plugin {
         std::string source;
         std::string format;
         int lowLatencyIndex = 0;
+        int params[3]={0};
         tvError_t ret = tvERROR_NONE;
 
         value = parameters.HasLabel("LowLatencyState") ? parameters["LowLatencyState"].String() : "";
@@ -3396,35 +3397,33 @@ namespace Plugin {
         }
 
         if( !isCapablityCheckPassed(pqmode, source, format, "LowLatencyState" )) 
-	{
+	    {
             LOGERR("%s: CapablityCheck failed for LowLatencyState\n", __FUNCTION__);
             returnResponse(false);
         }
 
-        if( isSetRequired(pqmode,source,format) ) 
-	{
-             LOGINFO("Proceed with setLowLatencyState\n");
-             ret = SetLowLatencyState( lowLatencyIndex );
+        params[0]=lowLatencyIndex;
+        int retval= UpdateAVoutputTVParam("set","LowLatencyState",pqmode,source,format,PQ_PARAM_LOWLATENCY_STATE,params);
+        if(retval != 0 ) 
+        {
+            LOGERR("Failed to SaveLowLatency to ssm_data\n");
+	        returnResponse(false);
         }
-
-        if(ret != tvERROR_NONE) 
-	{
-            LOGERR("Failed to setLowLatency\n");
-            returnResponse(false);
-        }
-        else 
-	{
-            int params[3]={0};
-            params[0]=lowLatencyIndex;
-            int retval= UpdateAVoutputTVParam("set","LowLatencyState",pqmode,source,format,PQ_PARAM_LOWLATENCY_STATE,params);
-            if(retval != 0 ) 
-	    {
-                LOGERR("Failed to SaveLowLatency to ssm_data\n");
-		returnResponse(false);
+        else
+        {
+            if( isSetRequired(pqmode,source,format) ) 
+	        {
+                LOGINFO("Proceed with setLowLatencyState\n");
+                ret = SetLowLatencyState( lowLatencyIndex );
+                if(ret != tvERROR_NONE) 
+	            {
+                    LOGERR("Failed to setLowLatency\n");
+                    returnResponse(false);
+                }
             }
-            LOGINFO("Exit : setLowLatency successful to value: %d\n", lowLatencyIndex);
-            returnResponse(true);
         }
+        LOGINFO("Exit : setLowLatency successful to value: %d\n", lowLatencyIndex);
+        returnResponse(true);
     }
 	
     uint32_t AVOutputTV::getLowLatencyState(const JsonObject& parameters, JsonObject& response)
