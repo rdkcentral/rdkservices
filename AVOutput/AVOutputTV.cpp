@@ -3397,7 +3397,7 @@ namespace Plugin {
         }
 
         if( !isCapablityCheckPassed(pqmode, source, format, "LowLatencyState" )) 
-	    {
+        {
             LOGERR("%s: CapablityCheck failed for LowLatencyState\n", __FUNCTION__);
             returnResponse(false);
         }
@@ -3405,17 +3405,18 @@ namespace Plugin {
         params[0]=lowLatencyIndex;
         int retval= UpdateAVoutputTVParam("set","LowLatencyState",pqmode,source,format,PQ_PARAM_LOWLATENCY_STATE,params);
         if(retval != 0 )
-	    {
+	{
             LOGERR("Failed to SaveLowLatency to ssm_data\n");
 		    returnResponse(false);
         }
-        else {
+        else
+        {
             if( isSetRequired(pqmode,source,format) )
             {
                 LOGINFO("Proceed with setLowLatencyState\n");
                 ret = SetLowLatencyState( lowLatencyIndex );
                 if(ret != tvERROR_NONE)
-	            {
+	        {
                     LOGERR("Failed to setLowLatency\n");
                     returnResponse(false);
                 }
