@@ -379,6 +379,7 @@ endif()
 if (PLUGIN_RESOURCEMANAGER)
     add_subdirectory(ResourceManager)
 endif()
+add_subdirectory(FireboltPrivacy)
 
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)
     set(CPACK_GENERATOR "DEB")
