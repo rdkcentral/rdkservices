@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.3.3] - 2024-02-19
+### Fixed
+- Fixed Network connnectivity monitor crash during reboot
+
 ## [1.3.2] - 2024-01-05
 ### Added
 - Post Internet Status Event upon interface connect and disconnect event
