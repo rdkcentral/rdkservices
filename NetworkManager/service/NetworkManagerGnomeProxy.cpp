@@ -608,18 +608,24 @@ namespace WPEFramework
         uint32_t NetworkManagerImplementation::WiFiConnect(const WiFiConnectTo& ssid /* @in */)
         {
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
+            if(wifi->wifiConnect(ssid.m_ssid.c_str(), ssid.m_passphrase.c_str(), ssid.m_securityMode))
+                rc = Core::ERROR_NONE;
             return rc;
         }
 
         uint32_t NetworkManagerImplementation::WiFiDisconnect(void)
         {
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
+            if(wifi->wifiDisconnect())
+                rc = Core::ERROR_NONE;
             return rc;
         }
 
         uint32_t NetworkManagerImplementation::GetConnectedSSID(WiFiSSIDInfo&  ssidInfo /* @out */)
         {
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
+            if(wifi->wifiConnectedSSIDInfo(ssidInfo))
+                rc = Core::ERROR_NONE;
             return rc;
         }
 

@@ -31,6 +31,7 @@ using namespace std;
 //#include <interfaces/INetworkManager.h>
 #include "INetworkManager.h"
 #include "NetworkManagerLogger.h"
+#include "NetworkManagerGnomeWIFI.h"
 #include "StunClient.h"
 
 #define LOG_ENTRY_FUNCTION() { NMLOG_TRACE("Entering=%s", __FUNCTION__ ); }
@@ -138,6 +139,8 @@ namespace WPEFramework
             // Handle Notification registration/removal
             uint32_t Register(INetworkManager::INotification *notification) override;
             uint32_t Unregister(INetworkManager::INotification *notification) override;
+
+            wifiManager *wifi = wifiManager::getInstance();
 
         public:
             // Below Control APIs will work with RDK or GNome NW.
