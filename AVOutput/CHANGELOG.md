@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.1] - 2024-02-22
+### Added
+- Add tvsettings hal pahse 2 change
+
 ## [1.0.0] - 2024-02-07
 ### Added
 - Add CHANGELOG
