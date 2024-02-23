@@ -18,7 +18,7 @@ All notable changes to this RDK Service will be documented in this file.
 
 ## [1.0.3] - 2024-02-23
 ### Fixed
-- all set after sync as it requires pq reload
+- allm set after sync as it requires pq reload
 
 ## [1.0.2] - 2024-02-15
 ### Fixed
