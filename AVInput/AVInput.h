@@ -25,7 +25,7 @@
 
 #define DEFAULT_PRIM_VOL_LEVEL 25
 #define MAX_PRIM_VOL_LEVEL 100
-#define DEFAULT_PLAYER_VOL_LEVEL 100
+#define DEFAULT_INPUT_VOL_LEVEL 100
 
 typedef enum _mixgain{
 	MIXGAIN_PRIM,
@@ -91,7 +91,7 @@ private:
     uint32_t setVideoRectangleWrapper(const JsonObject& parameters, JsonObject& response);
     uint32_t getSupportedGameFeatures(const JsonObject& parameters, JsonObject& response);
     uint32_t getGameFeatureStatusWrapper(const JsonObject& parameters, JsonObject& response);
-    uint32_t setAudioMixerLevels(const JsonObject& parameters, JsonObject& response);
+    uint32_t setMixerLevels(const JsonObject& parameters, JsonObject& response);
     //End methods
 
     JsonArray getInputDevices(int iType);
