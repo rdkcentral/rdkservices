@@ -176,7 +176,7 @@ private:
     // GStreamer Helper functions
     bool needsPipelineUpdate();
     std::string constructURL(TTSConfiguration &config, SpeechData &d);
-    void speakText(TTSConfiguration config, SpeechData &data);
+    void speakText(TTSConfiguration &config, SpeechData &data);
     bool shouldUseLocalEndpoint();
     bool waitForStatus(GstState expected_state, uint32_t timeout_ms);
     void waitForAudioToFinishTimeout(float timeout_s);

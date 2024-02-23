@@ -639,7 +639,7 @@ namespace WPEFramework
             std::string error;
             bool ok = RunScriptIARM(script, error);
 
-            remove("/opt/secure/persistent/rdkservicestore");
+            (void)remove("/opt/secure/persistent/rdkservicestore");
 
             response[PARAM_SUCCESS] = ok;
             if (ok)
