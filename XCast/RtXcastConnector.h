@@ -35,7 +35,7 @@ using namespace std;
  */
 class RtXcastConnector {
 protected:
-    RtXcastConnector():m_runEventThread(true){
+    RtXcastConnector():m_runEventThread(true) m_IsDefaultDynamicAppListEnabled(false){
         }
 public:
     virtual ~RtXcastConnector();

@@ -78,13 +78,30 @@ namespace
         if (curl)
         {
 //            curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-            curl_easy_setopt(curl, CURLOPT_URL, C_STR(ssrUrl));
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
-            curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10L);
-            curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10L);
-            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, ssrWrite);
-            curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&write);
-
+                       if (curl_easy_setopt(curl, CURLOPT_URL, C_STR(ssrUrl)) != CURLE_OK )
+            {
+                LOGERR("CURLOPT_URL failed URL: %s", C_STR(ssrUrl));
+            }
+            if (curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str()) != CURLE_OK)
+            {
+                LOGERR("CURLOPT_POSTFIELDS failed date");
+            }
+            if (curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10L) !=CURLE_OK)
+            {
+                LOGERR("maximun time limit exceed for transfer operation");
+            }
+            if (curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10L) != CURLE_OK)
+            {
+                LOGERR("maximun time limit excedd for connection to server");
+            }
+            if (curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, ssrWrite) !=CURLE_OK)
+            {
+                LOGERR("CURLOPT_WRITEFUNCTION failed");
+            }
+            if (curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&write) !=CURLE_OK)
+            {
+                LOGERR("CURLOPT_WRITEDATA failed");
+            }
             LOGINFO("curl request to: %s with data: %s", C_STR(ssrUrl), data.c_str());
             res = curl_easy_perform(curl);
             if (res != CURLE_OK)
@@ -137,20 +154,58 @@ namespace
         long http_code = 0;
         FILE *fd;
         struct stat file_info;
-        stat(C_STR(path), &file_info);
-        fd = fopen(C_STR(path), "rb");
+        if((stat(C_STR(path), &file_info)) == 0)
+        {
+            LOGERR("unable to retrive file information");
+            fd = fopen(C_STR(path), "rb");
+            if (fd == NULL)
+            {
+                LOGERR("File Open file");
+                return UploadFail;
+            }
+        }
+
+        else
+        {
+            return UploadFail;
+        }
+
 
         curl = curl_easy_init();
         if (curl)
         {
-            curl_easy_setopt(curl, CURLOPT_READFUNCTION, uploadRead);
-            curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
-            curl_easy_setopt(curl, CURLOPT_PUT, 1L);
-            curl_easy_setopt(curl, CURLOPT_URL, C_STR(uploadUrl));
-            curl_easy_setopt(curl, CURLOPT_READDATA, fd);
-            curl_easy_setopt(curl, CURLOPT_INFILESIZE_LARGE, (curl_off_t)file_info.st_size);
-            curl_easy_setopt(curl, CURLOPT_TIMEOUT, 120L);
-            curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 60L);
+            if (curl_easy_setopt(curl, CURLOPT_READFUNCTION, uploadRead) !=CURLE_OK)
+            {
+                LOGERR("CURLOPT_READFUNCTION failed");
+            }
+            if (curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L) !=CURLE_OK)
+            {
+                LOGERR("CURLOPT_UPLOAD failed");
+            }
+            if (curl_easy_setopt(curl, CURLOPT_PUT, 1L) !=CURLE_OK)
+            {
+                LOGERR("CURLOPT_PUT failed");
+            }
+            if (curl_easy_setopt(curl, CURLOPT_URL, C_STR(uploadUrl)) !=CURLE_OK)
+            {
+                LOGERR("CURLOPT_URL failed: %s",C_STR(uploadUrl));
+            }
+            if (curl_easy_setopt(curl, CURLOPT_READDATA, fd) !=CURLE_OK)
+            {
+                LOGERR("CURLOPT_READDATA failed");
+            }
+            if (curl_easy_setopt(curl, CURLOPT_INFILESIZE_LARGE, (curl_off_t)file_info.st_size) !=CURLE_OK)
+            {
+                LOGERR("CURLOPT_INFILESIZE_LARGE failed");
+            }
+            if (curl_easy_setopt(curl, CURLOPT_TIMEOUT, 120L) !=CURLE_OK)
+            {
+                LOGERR("maximun time limit exceed for transfer operation");
+            }
+            if (curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 60L) !=CURLE_OK)
+            {
+                LOGERR("maximun time limit excedd for connection to server");
+            }
 
             LOGINFO("curl request to: %s", C_STR(uploadUrl));
             res = curl_easy_perform(curl);
