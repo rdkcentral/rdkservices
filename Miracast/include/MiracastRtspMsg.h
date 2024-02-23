@@ -564,6 +564,8 @@ private:
     std::string m_current_sequence_number;
     std::string m_src_dev_ip;
     std::string m_sink_ip;
+    std::string m_getparameter_request;
+    bool m_getparameter_response_sent{false};
     RTSP_WFD_VIDEO_FMT_STRUCT   m_wfd_video_formats_st;
     RTSP_WFD_AUDIO_FMT_STRUCT   m_wfd_audio_formats_st;
 
@@ -620,6 +622,7 @@ private:
     RTSP_STATUS send_rstp_msg(int sockfd, std::string rtsp_response_buffer);
     std::string get_localIp();
     MiracastError updateVideoRectangle( VIDEO_RECT_STRUCT videorect );
+    int validateGetParameterContentLength(std::string input);
 };
 
 #endif
