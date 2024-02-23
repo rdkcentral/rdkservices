@@ -1403,7 +1403,7 @@ namespace WPEFramework {
         bool RemoteActionMapping::setKeyActionMapping(int deviceID, int keymapType, std::map<int, keyActionMap>& localActionMaps, const KeyGroupSrcInfo& srcInfo)
         {
             keyActionMap actionMap;
-            keyActionMap altActionMap;
+            keyActionMap altActionMap = KED_UNDEFINEDKEY;
             int rfKeyCode = -1;
             bool status = false;
             bool success = true;
@@ -1964,17 +1964,9 @@ namespace WPEFramework {
             }
             else
             {
-                // Logically, if we get here, it MUST BE that there are NO TV or AVR power controls available.
-                if (notvpwr && noavrpwr)
-                {
-                    LOGWARN("NO TV or AVR power control IR codes have been supplied!");
-                }
-                else
-                {
-                    LOGERR("LOGIC ERROR - power group decision failure - TV power: %s, AVR power: %s!!!",
-                           (notvpwr ? "FALSE" : "TRUE"), (noavrpwr ? "FALSE" : "TRUE"));
-                    bOK = false;
-                }
+                LOGERR("LOGIC ERROR - power group decision failure - TV power: %s, AVR power: %s!!!",
+                       (notvpwr ? "FALSE" : "TRUE"), (noavrpwr ? "FALSE" : "TRUE"));
+                bOK = false;
             }
 
             // Check discrete power coherence

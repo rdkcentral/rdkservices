@@ -87,16 +87,44 @@ std::string  TTSURLConstructer::httppostURL(TTSConfiguration &config, std::strin
         jsonConfig.ToString(post_data);
         TTSLOG_INFO("gcd postdata :%s\n",post_data.c_str());
 
-        curl_easy_setopt(curl, CURLOPT_URL,config.secureEndPoint().c_str());
-        curl_easy_setopt(curl, CURLOPT_POST, 1L);
-        curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 2L);
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_data.c_str());
+        res = curl_easy_setopt(curl, CURLOPT_URL,config.secureEndPoint().c_str()); //cid 280424
+        if( res != CURLE_OK )
+        {
+             TTSLOG_ERROR("CURL error is:  %s\n", curl_easy_strerror(res));
+        }
+        res = curl_easy_setopt(curl, CURLOPT_POST, 1L);
+        if( res != CURLE_OK )
+        {
+            TTSLOG_ERROR("CURL error is:  %s\n", curl_easy_strerror(res));
+        }
+        res = curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 2L);
+         if( res != CURLE_OK )
+        {
+            TTSLOG_ERROR("CURL error is:  %s\n", curl_easy_strerror(res));
+        }
+        res = curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post_data.c_str());
+         if( res != CURLE_OK )
+        {
+            TTSLOG_ERROR("CURL error is:  %s\n", curl_easy_strerror(res));
+        }
         list = curl_slist_append(list, "content-type: application/json");
         list = curl_slist_append(list, (std::string("x-api-key: ") +
                                             config.apiKey()).c_str() );
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list);
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+        res = curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list);
+         if( res != CURLE_OK )
+        {
+            TTSLOG_ERROR("CURL error is:  %s\n", curl_easy_strerror(res));
+        }
+        res = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
+         if( res != CURLE_OK )
+        {
+            TTSLOG_ERROR("CURL error is:  %s\n", curl_easy_strerror(res));
+        }
+        res = curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
+         if( res != CURLE_OK )
+        {
+            TTSLOG_ERROR("CURL error is:  %s\n", curl_easy_strerror(res));
+        }
 
         res = curl_easy_perform(curl);
         if ( res != CURLE_OK ) {

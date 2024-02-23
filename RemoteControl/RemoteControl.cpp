@@ -79,6 +79,7 @@ namespace WPEFramework {
             Register("findMyRemote",           &RemoteControl::findMyRemote,          this);
             Register("factoryReset",           &RemoteControl::factoryReset,          this);
 
+            m_hasOwnProcess = false;
             setApiVersionNumber(1);
         }
 
