@@ -44,12 +44,9 @@ namespace Plugin
             }
             ~Config() override = default;
         public:
-            static std::string GetValue(const Core::JSON::String& jsonValue) { return jsonValue.IsSet() ? jsonValue.Value() : ""; }
-
-        public:
             Core::JSON::String devicemanifest;
-            // This path is specific to firebolt where it has
-            // config that are needed to be shared between Ripple and other FireboltThunderPlugins
+            // This path is specific to firebolt. It points to the path where
+            // firebolt config files are placed. These files are shared between Ripple and other FireboltThunderPlugins
             // In prod it points to /etc/
             // and in dev it points to /opt/
             Core::JSON::String fireboltconfigpath;
@@ -117,7 +114,7 @@ namespace Plugin
 	    ASSERT( service != nullptr);
             SYSLOG(Logging::Notification, (_T("service Config: %s"), service->ConfigLine().c_str()));
             _config.FromString(service->ConfigLine());
-            _deviceManifest = Config::GetValue(_config.fireboltconfigpath) + Config::GetValue(_config.devicemanifest);
+            _deviceManifest = _config.fireboltconfigpath.IsSet() ? _config.fireboltconfigpath.Value(): "/etc/" + _config.devicemanifest.IsSet() ? _config.devicemanifest.Value() : "firebolt-device-manifest.json" ;
 	    return 0;
         }
 

@@ -19,7 +19,11 @@
         "properties": {
           "devicemanifest": {
             "type": "string",
-            "description": "Path to Device manifest file (default: /etc/firebolt-device-manifest.json)"
+            "description": "Device manifest filename (default: firebolt-device-manifest.json)"
+          },
+          "fireboltconfigpath": {
+            "type": "string",
+            "description": "Path where firebolt configurations are present (default: /etc/)"
           }
         }
       }
