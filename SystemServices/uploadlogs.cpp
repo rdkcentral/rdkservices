@@ -156,11 +156,10 @@ namespace
         struct stat file_info;
         if((stat(C_STR(path), &file_info)) == 0)
         {
-            LOGERR("unable to retrive file information");
             fd = fopen(C_STR(path), "rb");
             if (fd == NULL)
             {
-                LOGERR("File Open file");
+                LOGERR("File Open failed");
                 return UploadFail;
             }
         }

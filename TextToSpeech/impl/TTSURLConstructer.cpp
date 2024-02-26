@@ -87,7 +87,7 @@ std::string  TTSURLConstructer::httppostURL(TTSConfiguration &config, std::strin
         jsonConfig.ToString(post_data);
         TTSLOG_INFO("gcd postdata :%s\n",post_data.c_str());
 
-        res = curl_easy_setopt(curl, CURLOPT_URL,config.secureEndPoint().c_str()); //cid 280424
+        res = curl_easy_setopt(curl, CURLOPT_URL,config.secureEndPoint().c_str());
         if( res != CURLE_OK )
         {
              TTSLOG_ERROR("CURL error is:  %s\n", curl_easy_strerror(res));

@@ -736,7 +736,7 @@ namespace WPEFramework {
                enableFwAutoreboot = (parameters["enable"].Boolean());
                LOGINFO("setFirmwareAutoReboot : %s\n",(enableFwAutoreboot)? "true":"false");
 
-               std::string delaySeconds = parameters["delaySeconds"].String();
+               std::string delaySeconds = parameters["enable"].String();
                const char * set_rfc_val = delaySeconds.c_str();
 
                /* set tr181Set command from here */
@@ -903,7 +903,7 @@ namespace WPEFramework {
                  } else {
                      if(std::remove(MOCA_FILE) != 0)
                      {
-                        LOGERR("File remove failed");// cid 119277
+                        LOGERR("File remove failed");
                      }
                      if (!Utils::fileExists(MOCA_FILE)) {
                          /* TODO: replace system() */
