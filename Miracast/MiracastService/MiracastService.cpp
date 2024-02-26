@@ -19,6 +19,13 @@
 
 #include <algorithm>
 #include <regex>
+#if defined(SECURITY_TOKEN_ENABLED) && ((SECURITY_TOKEN_ENABLED == 0) || (SECURITY_TOKEN_ENABLED == false))
+#define GetSecurityToken(a, b) 0
+#define GetToken(a, b, c) 0
+#else
+#include <WPEFramework/securityagent/securityagent.h>
+#include <WPEFramework/securityagent/SecurityTokenUtil.h>
+#endif
 #include "MiracastService.h"
 #include "UtilsJsonRpc.h"
 #include "UtilsIarm.h"
@@ -352,6 +359,7 @@ namespace WPEFramework
 			{
 				getBoolParameter("enabled", is_enabled);
 				m_miracast_ctrler_obj->setP2PBackendDiscovery(is_enabled);
+				success = true;
 			}
 			else
 			{
@@ -603,7 +611,7 @@ namespace WPEFramework
 				if (separate_logger.HasLabel("status"))
 				{
 					std::string status = "";
-					status = separate_logger["separate_logger"].String();
+					status = separate_logger["status"].String();
 
 					success = true;
 
@@ -663,7 +671,6 @@ namespace WPEFramework
 					set_loglevel(level);
 				}
 			}
-
 			MIRACASTLOG_INFO("Exiting..!!!");
 			returnResponse(success);
 		}
@@ -875,7 +882,6 @@ namespace WPEFramework
 				if ( is_another_connect_request )
 				{
 					MIRACASTLOG_INFO("!!! NEED TO STOP ONGOING SESSION !!!");
-
 					strncpy(commandBuffer,"curl -H \"Authorization: Bearer `WPEFrameworkSecurityUtility | cut -d '\"' -f 4`\" --header \"Content-Type: application/json\" --request POST --data '{\"jsonrpc\":\"2.0\", \"id\":3,\"method\":\"org.rdk.MiracastPlayer.1.stopRequest\", \"params\":{\"reason\": \"NEW_CONNECTION\"}}' http://127.0.0.1:9998/jsonrpc",sizeof(commandBuffer));
 					MIRACASTLOG_INFO("Stopping old Session by [%s]",commandBuffer);
 					system(commandBuffer);
@@ -887,8 +893,8 @@ namespace WPEFramework
 						"curl -H \"Authorization: Bearer `WPEFrameworkSecurityUtility | cut -d '\"' -f 4`\" --header \"Content-Type: application/json\" --request POST --data '{\"jsonrpc\":\"2.0\", \"id\":3,\"method\":\"org.rdk.MiracastService.1.acceptClientConnection\", \"params\":{\"requestStatus\": \"%s\"}}' http://127.0.0.1:9998/jsonrpc",
 						requestStatus.c_str());
 				MIRACASTLOG_INFO("AutoConnecting [%s - %s] by [%s]",client_name.c_str(),client_mac.c_str(),commandBuffer);
-				system(commandBuffer);
-            }
+				MiracastCommon::execute_SystemCommand(commandBuffer);
+			}
 			else
 			{
 				JsonObject params;
@@ -1051,7 +1057,7 @@ namespace WPEFramework
 							src_dev_name.c_str(),
 							sink_dev_ip.c_str());
 					MIRACASTLOG_INFO("System Command [%s]",commandBuffer);
-					system(commandBuffer);
+					MiracastCommon::execute_SystemCommand(commandBuffer);
 				}
 				else
 				{
