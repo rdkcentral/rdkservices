@@ -289,6 +289,7 @@ jobs:
           /run/sda1/UsbTestFWUpdate
           /run/sda1/UsbProdFWUpdate
           /run/sda2
+          /var/run/wpa_supplicant
           &&
           sudo touch
           /opt/standbyReason.txt
