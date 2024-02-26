@@ -2,7 +2,7 @@
 <a name="AVInput_Plugin"></a>
 # AVInput Plugin
 
-**Version: [1.5.0](https://github.com/rdkcentral/rdkservices/blob/main/AVInput/CHANGELOG.md)**
+**Version: [1.5.1](https://github.com/rdkcentral/rdkservices/blob/main/AVInput/CHANGELOG.md)**
 
 A org.rdk.AVInput plugin for Thunder framework.
 
@@ -1088,6 +1088,7 @@ Triggered whenever the status changes for an HDMI/Composite Input.
 | params.id | number | The port identifier for the HDMI/Composite Input |
 | params.locator | string | A URL corresponding to the HDMI/Composite Input port |
 | params.status | string | Status of the HDMI/Composite Input. Valid values are `started` or `stopped` |
+| params?.plane | integer | <sup>*(optional)*</sup> Defines whether the video plane type, 0 - Primary video plane, 1 - Secondary Video Plane, Other values - Invalid  |
 
 ### Example
 
@@ -1098,7 +1099,8 @@ Triggered whenever the status changes for an HDMI/Composite Input.
     "params": {
         "id": 0,
         "locator": "hdmiin://localhost/deviceid/0",
-        "status": "started"
+        "status": "started",
+        "plane": 0
     }
 }
 ```

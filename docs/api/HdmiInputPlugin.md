@@ -2,7 +2,7 @@
 <a name="HdmiInputPlugin"></a>
 # HdmiInputPlugin
 
-**Version: [1.2.0](https://github.com/rdkcentral/rdkservices/blob/main/HdmiInput/CHANGELOG.md)**
+**Version: [1.2.1](https://github.com/rdkcentral/rdkservices/blob/main/HdmiInput/CHANGELOG.md)**
 
 A org.rdk.HdmiInput plugin for Thunder framework.
 
@@ -784,6 +784,7 @@ Triggered whenever the status changes for an HDMI Input.
 | params.id | number | The port identifier for the HDMI Input |
 | params.locator | string | A URL corresponding to the HDMI Input port |
 | params.status | string | Status of the HDMI Input. Valid values are `started` or `stopped` |
+| params?.plane | integer | <sup>*(optional)*</sup> Defines whether the video plane type, 0 - Primary video plane, 1 - Secondary Video Plane, Other values - Invalid  |
 
 ### Example
 
@@ -794,7 +795,8 @@ Triggered whenever the status changes for an HDMI Input.
     "params": {
         "id": 0,
         "locator": "hdmiin://localhost/deviceid/0",
-        "status": "started"
+        "status": "started",
+        "plane": 0
     }
 }
 ```
