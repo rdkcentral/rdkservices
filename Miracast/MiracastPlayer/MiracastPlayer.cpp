@@ -19,7 +19,13 @@
 
 #include <algorithm>
 #include <regex>
-//#include "rdk/iarmmgrs-hal/pwrMgr.h"
+#if defined(SECURITY_TOKEN_ENABLED) && ((SECURITY_TOKEN_ENABLED == 0) || (SECURITY_TOKEN_ENABLED == false))
+#define GetSecurityToken(a, b) 0
+#define GetToken(a, b, c) 0
+#else
+#include <WPEFramework/securityagent/securityagent.h>
+#include <WPEFramework/securityagent/SecurityTokenUtil.h>
+#endif
 #include "MiracastPlayer.h"
 #include <UtilsJsonRpc.h>
 #include "UtilsIarm.h"
@@ -778,7 +784,7 @@ namespace WPEFramework
 						stateDescription(player_state).c_str(),
 						std::to_string(reason_code).c_str());
 				MIRACASTLOG_INFO("System Command [%s]",commandBuffer);
-				system(commandBuffer);
+				MiracastCommon::execute_SystemCommand( commandBuffer );
 			}
 			else
 			{
