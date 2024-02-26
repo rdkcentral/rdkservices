@@ -23,7 +23,6 @@
 #include <vector>
 
 #include "Module.h"
-#include <securityagent/SecurityTokenUtil.h>
 #include "MiracastRtspMsg.h"
 #include "MiracastGstPlayer.h"
 
