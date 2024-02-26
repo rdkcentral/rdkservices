@@ -3,4 +3,5 @@ callsign = "Privacy"
 
 configuration = JSON()
 
-configuration.add("devicemanifest", "/etc/firebolt-device-manifest.conf")
+configuration.add("devicemanifest", "firebolt-device-manifest.conf")
+configuration.add("fireboltconfigpath", "/etc/")

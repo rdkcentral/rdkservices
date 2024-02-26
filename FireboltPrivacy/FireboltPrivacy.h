@@ -31,7 +31,7 @@ namespace WPEFramework {
 namespace Plugin {
 
     class FireboltPrivacy : public PluginHost::IPlugin,
-                           public PluginHost::IWeb,
+//                           public PluginHost::IWeb,
                            public PluginHost::JSONRPC {
     private:
         class ConnectionNotification : public RPC::IRemoteConnection::INotification {
@@ -106,7 +106,7 @@ namespace Plugin {
         // Build QueryInterface implementation, specifying all possible interfaces to be returned.
         BEGIN_INTERFACE_MAP(FireboltPrivacy)
             INTERFACE_ENTRY(PluginHost::IPlugin)
-            INTERFACE_ENTRY(PluginHost::IWeb)
+            //INTERFACE_ENTRY(PluginHost::IWeb)
             INTERFACE_ENTRY(PluginHost::IDispatcher)
             INTERFACE_AGGREGATE(Exchange::IFireboltPrivacy, _fireboltPrivacy)
         END_INTERFACE_MAP
@@ -114,26 +114,12 @@ namespace Plugin {
     public:
         //   IPlugin methods
         // -------------------------------------------------------------------------------------------------------
-        virtual const string Initialize(PluginHost::IShell* service) override;
-        virtual void Deinitialize(PluginHost::IShell* service) override;
-        virtual string Information() const override;
+        const string Initialize(PluginHost::IShell* service) override;
+        void Deinitialize(PluginHost::IShell* service) override;
+        string Information() const override;
 
-        //   IWeb methods
-        // -------------------------------------------------------------------------------------------------------
-        virtual void Inbound(Web::Request& request) override;
-        virtual Core::ProxyType<Web::Response> Process(const Web::Request& request) override;
-        Core::ProxyType<Web::Response> GetMethod(Core::TextSegmentIterator& index) const;
-        Core::ProxyType<Web::Response> PutMethod(Core::TextSegmentIterator& index);
-        Core::ProxyType<Web::Response> PostMethod(Core::TextSegmentIterator& index, const Web::Request& request);
 
     private:
-        // JsonRpc
-#if 0
-        void RegisterAll();
-        void UnregisterAll();
-        uint32_t endpoint_setallowresumepoint(const WPEFramework::JsonData::FireboltPrivacy::SetAllowResumePointsParamsData& params);
-        uint32_t endpoint_allowresumepoint(Core::JSON::Boolean& response) const;
-#endif
         void Deactivated(RPC::IRemoteConnection* connection);
 
     private:

@@ -39,8 +39,6 @@ namespace Plugin
         );      
     }
 
-    static Core::ProxyPoolType<Web::Response> responseFactory(4);
-    static Core::ProxyPoolType<Web::JSONBodyType<Core::JSON::ArrayType<Core::JSON::String>>> jsonStringListFactory(1);
 
     FireboltPrivacy::FireboltPrivacy()
         : _connectionId(0)
@@ -51,7 +49,7 @@ namespace Plugin
     {
     }
 
-    /* virtual */ const string FireboltPrivacy::Initialize(PluginHost::IShell * service)
+    const string FireboltPrivacy::Initialize(PluginHost::IShell * service)
     {
         string message;
 
@@ -76,7 +74,6 @@ namespace Plugin
                 configFireboltPrivacy->Configure(service);
                 configFireboltPrivacy->Release();
             }
-            //RegisterAll();
         }
         else {
             message = _T("FireboltPrivacy could not be instantiated.");
@@ -86,7 +83,7 @@ namespace Plugin
         return (message);
     }
 
-    /* virtual */ void FireboltPrivacy::Deinitialize(PluginHost::IShell* service VARIABLE_IS_NOT_USED)
+    void FireboltPrivacy::Deinitialize(PluginHost::IShell* service VARIABLE_IS_NOT_USED)
     {
         if (_service != nullptr) {
 	    ASSERT(_service == service);
@@ -116,86 +113,12 @@ namespace Plugin
         }
     }
 
-    /* virtual */ string FireboltPrivacy::Information() const
+    string FireboltPrivacy::Information() const
     {
         // No additional info to report.
         return (string());
     }
 
-    /* virtual */ void FireboltPrivacy::Inbound(Web::Request& /*request*/)
-    {
-        SYSLOG(Logging::Notification, (_T("Inside Inbound ")));
-        #if 0
-        Core::TextSegmentIterator index(Core::TextFragment(request.Path, _skipURL,
-                                        static_cast<uint32_t>(request.Path.length() - _skipURL)),
-                                        false, '/');
-
-        // If it is a put, we expect a list of commands, receive them !!!!
-        if (request.Verb == Web::Request::HTTP_POST) {
-            index.Next();
-
-            if ((index.IsValid() == true) && (index.Next() == true)) {
-                if (index.Current().Text() == _T("DNS")) {
-                    request.Body(jsonStringListFactory.Element());
-                } else if (index.Current().Text() == _T("Network")) {
-                    request.Body(jsonNetworksFactory.Element());
-                }
-            }
-        }
-        #endif
-    }
-
-    /* virtual */ Core::ProxyType<Web::Response>
-    FireboltPrivacy::Process(const Web::Request& /* request */)
-    {
-
-        Core::ProxyType<Web::Response> result(PluginHost::IFactories::Instance().Response());
-#if 0
-        Core::TextSegmentIterator index(Core::TextFragment(request.Path, _skipURL, static_cast<uint16_t>(request.Path.length()) - _skipURL), false, '/');
-
-        // By default, we assume everything works..
-        result->ErrorCode = Web::STATUS_BAD_REQUEST;
-        result->Message = _T("Unsupported request for the [FireboltPrivacy] service.");
-
-        // By default, we skip the first slash
-        index.Next();
-
-        if (request.Verb == Web::Request::HTTP_GET) {
-            result = GetMethod(index);
-        } else if (request.Verb == Web::Request::HTTP_PUT) {
-            result = PutMethod(index);
-        } else if (request.Verb == Web::Request::HTTP_POST) {
-            result = PostMethod(index, request);
-        }
-#endif
-        return result;
-    }
-
-    Core::ProxyType<Web::Response> FireboltPrivacy::GetMethod(Core::TextSegmentIterator& /* index */) const
-    {
-        Core::ProxyType<Web::Response> result(PluginHost::IFactories::Instance().Response());
-        result->ErrorCode = Web::STATUS_BAD_REQUEST;
-        result->Message = _T("Unsupported GET request.");
-
-        return result;
-    }
-
-    Core::ProxyType<Web::Response> FireboltPrivacy::PutMethod(Core::TextSegmentIterator& /* index */)
-    {
-        Core::ProxyType<Web::Response> result(PluginHost::IFactories::Instance().Response());
-        result->ErrorCode = Web::STATUS_BAD_REQUEST;
-        result->Message = _T("Unsupported PUT request.");
-
-        return result;
-    }
-
-    Core::ProxyType<Web::Response> FireboltPrivacy::PostMethod(Core::TextSegmentIterator& /* index */, const Web::Request& /* request */)
-    {
-        Core::ProxyType<Web::Response> result(PluginHost::IFactories::Instance().Response());
-        result->ErrorCode = Web::STATUS_BAD_REQUEST;
-        result->Message = _T("Unsupported POST request.");
-        return result;
-    }
 
     void FireboltPrivacy::Deactivated(RPC::IRemoteConnection* connection)
     {

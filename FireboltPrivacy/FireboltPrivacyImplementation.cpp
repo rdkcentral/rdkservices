@@ -29,82 +29,6 @@ namespace Plugin
                                          public Exchange::IConfiguration {
 
     private:
-        class AdapterObserver : public WPEFramework::Core::AdapterObserver::INotification {
-        public:
-            AdapterObserver() = delete;
-            AdapterObserver(const AdapterObserver&) = delete;
-            AdapterObserver& operator=(const AdapterObserver&) = delete;
-
-PUSH_WARNING(DISABLE_WARNING_THIS_IN_MEMBER_INITIALIZER_LIST)
-            AdapterObserver(FireboltPrivacyImplementation& parent)
-                : _parent(parent)
-                , _adminLock()
-                , _reporting()
-                , _job(*this)
-            {
-            }
-POP_WARNING()
-            ~AdapterObserver() override = default;
-
-        public:
-            void Open()
-            {
-            }
-            void Close()
-            {
-
-                _adminLock.Lock();
-
-                _reporting.clear();
-
-                _adminLock.Unlock();
-
-                _job.Revoke();
-            }
- 
-            virtual void Event(const string& interface) override
-            {
-
-                _adminLock.Lock();
-
-                SYSLOG(Logging::Notification, (_T("Event: %s"), interface));
-#if 0
-                if (std::find(_reporting.begin(), _reporting.end(), interface) == _reporting.end()) {
-                    // We need to add this interface, it is currently not present.
-                    _reporting.push_back(interface);
-
-                    _job.Submit();
-                }
-#endif
-
-                _adminLock.Unlock();
-            }
-            void Dispatch()
-            {
-                // Yippie a yee, we have an interface notification:
-                _adminLock.Lock();
-
-#if 0
-                while (_reporting.size() != 0) {
-                    const string interfaceName(_reporting.front());
-                    _reporting.pop_front();
-                    _adminLock.Unlock();
-
-                    _parent.Activity(interfaceName);
-
-                    _adminLock.Lock();
-                }
-#endif
-                _adminLock.Unlock();
-            }
-
-        private:
-            FireboltPrivacyImplementation& _parent;
-            Core::CriticalSection _adminLock;
-            std::list<string> _reporting;
-            Core::WorkerPool::JobType<AdapterObserver&> _job;
-        };
-
         class Config : public Core::JSON::Container {
         public:
             Config(const Config&) = delete;
@@ -112,14 +36,23 @@ POP_WARNING()
 
             Config()
                 : Core::JSON::Container()
-                , DeviceManifest("/etc/firebolt-device-manifest.json")
+                , devicemanifest("")
+                , fireboltconfigpath("")
             {
-                Add(_T("devicemanifest"), &DeviceManifest);
+                Add(_T("devicemanifest"), &devicemanifest);
+                Add(_T("fireboltconfigpath"), &fireboltconfigpath);
             }
             ~Config() override = default;
+        public:
+            static std::string GetValue(const Core::JSON::String& jsonValue) { return jsonValue.IsSet() ? jsonValue.Value() : ""; }
 
         public:
-            Core::JSON::String DeviceManifest;
+            Core::JSON::String devicemanifest;
+            // This path is specific to firebolt where it has
+            // config that are needed to be shared between Ripple and other FireboltThunderPlugins
+            // In prod it points to /etc/
+            // and in dev it points to /opt/
+            Core::JSON::String fireboltconfigpath;
         };
 
 
@@ -130,13 +63,11 @@ POP_WARNING()
             : _adminLock()
             , _config()
             , _deviceManifest()
-            , _persistentStoragePath()
             , _allowResumePoints(false)
         {
         }
         ~FireboltPrivacyImplementation() override
         {
-            // Stop observing.
             _deviceManifest.clear();
             if (_service) {
                 _service->Release();
@@ -184,7 +115,9 @@ POP_WARNING()
         }
         uint32_t Configure(PluginHost::IShell* service)  override {
 	    ASSERT( service != nullptr);
-            SYSLOG(Logging::Notification, (_T("service Config: %s"), service->ConfigLine()));
+            SYSLOG(Logging::Notification, (_T("service Config: %s"), service->ConfigLine().c_str()));
+            _config.FromString(service->ConfigLine());
+            _deviceManifest = Config::GetValue(_config.fireboltconfigpath) + Config::GetValue(_config.devicemanifest);
 	    return 0;
         }
 
@@ -197,7 +130,6 @@ POP_WARNING()
         mutable Core::CriticalSection _adminLock;
         Config _config;
         string _deviceManifest;
-        string _persistentStoragePath;
         bool _allowResumePoints;
         PluginHost::IShell* _service;
         std::vector<Exchange::IFireboltPrivacy::INotification*> _notifications;
