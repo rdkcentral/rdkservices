@@ -1916,7 +1916,7 @@ MiracastError MiracastRTSPMsg::start_streaming( VIDEO_RECT_STRUCT video_rect )
                     default_error_proc_policy.c_str());
 
             MIRACASTLOG_INFO("command for applying error_proc_policy[%s]",command);
-            if (0 == system(command))
+            if (0 == MiracastCommon::execute_SystemCommand(command))
             {
                 MIRACASTLOG_INFO("error_proc_policy applied successfully");
             }
@@ -1943,7 +1943,7 @@ MiracastError MiracastRTSPMsg::start_streaming( VIDEO_RECT_STRUCT video_rect )
         std::getline(mcgstfile, gstreamerPipeline);
         MIRACASTLOG_VERBOSE("gstpipeline reading from file [%s], gstreamerPipeline as [ %s] ", mcastfile, gstreamerPipeline.c_str());
         mcgstfile.close();
-        if (0 == system(gstreamerPipeline.c_str()))
+        if (0 == MiracastCommon::execute_SystemCommand(gstreamerPipeline.c_str()))
             MIRACASTLOG_VERBOSE("Pipeline created successfully ");
         else
         {
@@ -1957,7 +1957,7 @@ MiracastError MiracastRTSPMsg::start_streaming( VIDEO_RECT_STRUCT video_rect )
         {
             gstreamerPipeline = "GST_DEBUG=3 gst-launch-1.0 -vvv playbin uri=udp://0.0.0.0:1990 video-sink=\"westerossink\"";
             MIRACASTLOG_VERBOSE("pipeline constructed is --> %s", gstreamerPipeline.c_str());
-            if (0 == system(gstreamerPipeline.c_str()))
+            if (0 == MiracastCommon::execute_SystemCommand(gstreamerPipeline.c_str()))
                 MIRACASTLOG_VERBOSE("Pipeline created successfully ");
             else
             {
@@ -2120,6 +2120,7 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
                     {
                         rtsp_msg_hldr_running_state = false;
                     }
+		    rtsp_sink2src_request_msg_handling(RTSP_TEARDOWN_FROM_SINK2SRC);
                     break;
                 }
                 else

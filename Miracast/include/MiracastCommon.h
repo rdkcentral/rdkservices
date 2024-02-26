@@ -345,6 +345,7 @@ class MiracastCommon
 {
     public:
         static std::string parse_opt_flag( std::string file_name , bool integer_check = false );
+	static int execute_SystemCommand( const char* system_command_buffer );
 };
 
 #endif
