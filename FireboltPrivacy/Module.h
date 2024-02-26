@@ -23,9 +23,7 @@
 #define MODULE_NAME Plugin_FireboltPrivacy
 #endif
 
-#include <cryptalgo/cryptalgo.h>
 #include <plugins/plugins.h>
-#include <definitions/definitions.h>
 
 #undef EXTERNAL
 #define EXTERNAL
