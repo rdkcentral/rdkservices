@@ -317,7 +317,6 @@ void RtXcastConnector::enableCastService(string friendlyname,bool enableService)
     }
     else
         LOGINFO(" xdialCastObj is NULL ");
-        delete appReqList;
     
 }
 
@@ -390,7 +389,10 @@ void RtXcastConnector::registerApplications(std::vector<DynamicAppConfig*>& appC
         LOGINFO("XcastService send onRegisterApplications ret:%d",ret);
     }
     else
+    {
         LOGINFO(" xdialCastObj is NULL ");
+        delete appReqList;
+    }
 }
 
 RtXcastConnector * RtXcastConnector::getInstance()
