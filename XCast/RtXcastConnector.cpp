@@ -262,7 +262,6 @@ bool RtXcastConnector::initialize()
         LOGINFO("Xcastservice: rtRemoteInit failed : Reason %s", rtStrError(err));
     }
     else {
-        lock_guard<mutex> lock(m_threadlock);
         m_runEventThread = true;
         m_eventMtrThread = std::thread(threadRun, this);
     }
@@ -389,10 +388,7 @@ void RtXcastConnector::registerApplications(std::vector<DynamicAppConfig*>& appC
         LOGINFO("XcastService send onRegisterApplications ret:%d",ret);
     }
     else
-    {
         LOGINFO(" xdialCastObj is NULL ");
-        delete appReqList;
-    }
 }
 
 RtXcastConnector * RtXcastConnector::getInstance()

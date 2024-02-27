@@ -53,8 +53,6 @@ namespace WPEFramework {
             Register("voiceSessionAudioStreamStart", &VoiceControl::voiceSessionAudioStreamStart, this);
 
             setApiVersionNumber(1);
-            m_hasOwnProcess = false;
-            m_maskPii = false;
         }
 
         VoiceControl::~VoiceControl()
@@ -792,7 +790,7 @@ namespace WPEFramework {
             m_apiVersionNumber = apiVersionNumber;
         }
 
-        void VoiceControl::sendNotify_(const char* eventName, JsonObject& parameters)
+        void VoiceControl::sendNotify_(const char* eventName, JsonObject parameters)
         {
             if(m_maskPii)
             {

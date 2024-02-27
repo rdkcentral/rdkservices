@@ -302,7 +302,7 @@ std::vector<std::string> searchAndGetFilesList(std::string path, std::string fil
     command = "find "+path+" -iname "+filter+" > /tmp/tempBuffer.dat";
     retStat = system(command.c_str());
     fprintf(stdout, "searchAndGetFilesList : retStat = %d\n", retStat);
-    (void) getFileContent("/tmp/tempBuffer.dat", FileList);
+    getFileContent("/tmp/tempBuffer.dat", FileList);
 
     return FileList;
 }
@@ -526,7 +526,7 @@ uint32_t enableXREConnectionRetentionHelper(bool enable)
         }
     } else {
         if (Utils::fileExists(RECEIVER_STANDBY_PREFS)) {
-            (void)remove(RECEIVER_STANDBY_PREFS);
+            remove(RECEIVER_STANDBY_PREFS);
             result = SysSrv_OK ;
         } else {
          result = SysSrv_OK;
@@ -590,7 +590,7 @@ bool parseConfigFile(const char* filename, string findkey, string &value)
 {
     vector<std::string> lines;
     bool found=false;
-    (void)getFileContent(filename,lines);
+    getFileContent(filename,lines);
     for (vector<std::string>::const_iterator i = lines.begin();
             i != lines.end(); ++i){
         string line = *i;

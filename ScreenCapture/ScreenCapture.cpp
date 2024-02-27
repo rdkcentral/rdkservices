@@ -70,8 +70,6 @@ namespace WPEFramework
         , m_RDKShellRef(nullptr)
         , m_captureRef(nullptr)
         , m_screenCaptureStore(this)
-#else
-   , screenShotDispatcher(nullptr)
 #endif
         {
             #ifdef  USE_BROADCOM_SCREENCAPTURE
@@ -562,26 +560,10 @@ namespace WPEFramework
             chunk = curl_slist_append(chunk, "Content-Type: image/png");
 
             //set url and data
-            res = curl_easy_setopt(curl, CURLOPT_URL, url);
-            if( res != CURLE_OK )
-            {
-                LOGERR("CURLOPT_URL failed URL with error code: %s\n", curl_easy_strerror(res));
-            }
-            res = curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
-            if( res != CURLE_OK )
-            {
-                LOGERR("Failed to set CURLOPT_HTTPHEADER with error code  %s\n", curl_easy_strerror(res));
-            }
-            res = curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, data.size());
-            if( res != CURLE_OK )
-            {
-                LOGERR("Failed to set CURLOPT_POSTFIELDSIZE with error code  %s\n", curl_easy_strerror(res));
-            }
-            res = curl_easy_setopt(curl, CURLOPT_POSTFIELDS, &data[0]);
-            if( res != CURLE_OK )
-            {
-                LOGERR("Failed to set CURLOPT_POSTFIELDS with code  %s\n", curl_easy_strerror(res));
-            }
+            curl_easy_setopt(curl, CURLOPT_URL, url);
+            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, data.size());
+            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, &data[0]);
 
             //perform blocking upload call
             res = curl_easy_perform(curl);

@@ -687,8 +687,7 @@ namespace WPEFramework {
                 /* we can delay with max 24 Hrs = 86400 sec */
                 if (delay_in_sec > 0 && delay_in_sec <= MAX_REBOOT_DELAY ){
 
-                    std::string delaySeconds = parameters["delaySeconds"].String();
-                    const char * set_rfc_val = delaySeconds.c_str();
+                    const char * set_rfc_val=(parameters["delaySeconds"].String()).c_str();
 
                     LOGINFO("set_rfc_value %s\n",set_rfc_val);
 
@@ -736,8 +735,7 @@ namespace WPEFramework {
                enableFwAutoreboot = (parameters["enable"].Boolean());
                LOGINFO("setFirmwareAutoReboot : %s\n",(enableFwAutoreboot)? "true":"false");
 
-               std::string enable = parameters["enable"].String();
-               const char * set_rfc_val = enable.c_str();
+               const char *set_rfc_val = (parameters["enable"].String().c_str());
 
                /* set tr181Set command from here */
                WDMP_STATUS status = setRFCParameter((char*)"thunderapi",
@@ -901,10 +899,7 @@ namespace WPEFramework {
                          populateResponseWithError(SysSrv_FileAccessFailed, response);
                      }
                  } else {
-                     if(std::remove(MOCA_FILE) != 0)
-                     {
-                        LOGERR("File remove failed");
-                     }
+                     std::remove(MOCA_FILE);
                      if (!Utils::fileExists(MOCA_FILE)) {
                          /* TODO: replace system() */
                          eRetval = system("/etc/init.d/moca_init start");
@@ -1657,6 +1652,9 @@ namespace WPEFramework {
 		IARM_Bus_PWRMgr_SetDeepSleepTimeOut_Param_t param;
 		if (parameters.HasLabel("seconds")) {
 			param.timeout = static_cast<unsigned int>(parameters["seconds"].Number());
+			if (param.timeout < 0) {
+				param.timeout = 0;
+			}
 			IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
 					IARM_BUS_PWRMGR_API_SetDeepSleepTimeOut, (void *)&param,
 					sizeof(param));
@@ -3527,12 +3525,8 @@ namespace WPEFramework {
                 methodType = parameters["param"].String();
                 if (SYSTEM_CHANNEL_MAP == methodType) {
                     LOGERR("methodType : %s\n", methodType.c_str());
-                    IARM_Result_t res = IARM_Bus_Call(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_API_GetSystemStates,
+                    IARM_Bus_Call(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_API_GetSystemStates,
                             &paramGetSysState, sizeof(paramGetSysState));
-                    if (IARM_RESULT_SUCCESS != res)
-                    {
-                        LOGERR("ARM_BUS_SYSMGR_API_GetSystemStates failed");
-                    }
                     response[SYSTEM_CHANNEL_MAP] = paramGetSysState.channel_map.state;
                     LOGWARN("SystemService querying channel_map, return\
                             channel_map state : %d\n", paramGetSysState.channel_map.state);

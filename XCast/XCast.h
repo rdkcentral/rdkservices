@@ -110,7 +110,7 @@ private:
     static bool m_enableStatus;
     //Timer related variables and functions
     TpTimer m_locateCastTimer;
-    void InitializeIARM();
+    const void InitializeIARM();
     void DeinitializeIARM();
     //Internal methods
     void onLocateCastTimer();
