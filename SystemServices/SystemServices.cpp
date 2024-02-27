@@ -736,8 +736,8 @@ namespace WPEFramework {
                enableFwAutoreboot = (parameters["enable"].Boolean());
                LOGINFO("setFirmwareAutoReboot : %s\n",(enableFwAutoreboot)? "true":"false");
 
-               std::string delaySeconds = parameters["enable"].String();
-               const char * set_rfc_val = delaySeconds.c_str();
+               std::string enable = parameters["enable"].String();
+               const char * set_rfc_val = enable.c_str();
 
                /* set tr181Set command from here */
                WDMP_STATUS status = setRFCParameter((char*)"thunderapi",

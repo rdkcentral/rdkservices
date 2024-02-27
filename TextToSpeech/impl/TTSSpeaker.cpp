@@ -397,7 +397,10 @@ TTSSpeaker::~TTSSpeaker() {
 
     if(g_main_loop_is_running(m_main_loop))
         g_main_loop_quit(m_main_loop);
-    g_thread_join(m_main_loop_thread);
+    
+    if(m_main_loop_thread)
+        g_thread_join(m_main_loop_thread);
+    m_main_loop_thread = nullptr;
 }
 
 PipelineType TTSSpeaker::getPipelineType() {

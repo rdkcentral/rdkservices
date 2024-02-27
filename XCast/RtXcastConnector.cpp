@@ -317,6 +317,7 @@ void RtXcastConnector::enableCastService(string friendlyname,bool enableService)
     }
     else
         LOGINFO(" xdialCastObj is NULL ");
+        delete appReqList;
     
 }
 

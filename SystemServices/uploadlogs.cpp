@@ -386,7 +386,7 @@ std::int32_t getUploadLogParameters(string &tftp_server, string &upload_protocol
 
     if (parseConfigFile(DEVICE_PROPERTIES,"FORCE_MTLS",force_mtls) ){
         if ( "true" == force_mtls ){
-            mTlsLogUpload = "true";
+            mTlsLogUpload = true;
         }
     }
 
