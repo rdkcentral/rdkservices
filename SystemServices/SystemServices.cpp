@@ -4709,7 +4709,7 @@ namespace WPEFramework {
           return Core::ERROR_NONE;
         }
 
-        uint32_t getThunderStartReason(const JsonObject& parameters, JsonObject& response)
+        uint32_t SystemServices::getThunderStartReason(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
 
