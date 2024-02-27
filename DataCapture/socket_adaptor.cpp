@@ -49,6 +49,7 @@ socket_adaptor::socket_adaptor() : m_listen_fd(-1), m_write_fd(-1), m_read_fd(-1
 		sigaction(SIGPIPE, &sig_settings, NULL);
 		g_one_time_init_complete = true;
 	}
+	m_callback_data = nullptr;
 	REPORT_IF_UNEQUAL(0, pipe2(m_control_pipe, O_NONBLOCK));
 }
 
@@ -118,7 +119,7 @@ int socket_adaptor::write_data(const char * buffer, const unsigned int size)
 	return ret;
 }
 
-unsigned int socket_adaptor::fetch_data()
+int socket_adaptor::fetch_data()
 {
     unsigned int size_recv , total_size = 0, n = 0;
     unsigned short int CHUNK_SIZE = 4096;

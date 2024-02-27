@@ -199,10 +199,10 @@ Sets the primary/default interface for the device. This call fails if the interf
 
 | Event | Description |
 | :-------- | :-------- |
-| [onActiveInterfaceChanged](#event.onActiveInterfaceChanged) | Triggered when device’s default interface changed. |
-| [onInterfaceStateChanged](#event.onInterfaceStateChanged) | Triggered when interface’s state changed |
-| [onIPAddressChanged](#event.onIPAddressChanged) | Triggered when the device connects to router. |
-| [onInternetStatusChanged](#event.onInternetStatusChanged) | Triggered when each IP address is lost or acquired. |
+| [onActiveInterfaceChange](#event.onActiveInterfaceChange) | Triggered when device’s default interface changed. |
+| [onInterfaceStateChange](#event.onInterfaceStateChange) | Triggered when interface’s state changed |
+| [onAddressChange](#event.onAddressChange) | Triggered when the device connects to router. |
+| [onInternetStatusChange](#event.onInternetStatusChange) | Triggered when each IP address is lost or acquired. |
 ### Parameters
 
 | Name | Type | Description |
@@ -325,8 +325,8 @@ Sets the IP settings for the given interface.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onIPAddressChanged](#event.onIPAddressChanged) | Triggered when the device connects to router. |
-| [onInternetStatusChanged](#event.onInternetStatusChanged) | Triggered when each IP address is lost or acquired. |
+| [onAddressChange](#event.onAddressChange) | Triggered when the device connects to router. |
+| [onInternetStatusChange](#event.onInternetStatusChange) | Triggered when each IP address is lost or acquired. |
 ### Parameters
 
 | Name | Type | Description |
@@ -701,7 +701,7 @@ Enable a continuous monitoring of internet connectivity with heart beat interval
 
 | Event | Description |
 | :-------- | :-------- |
-| [onInternetStatusChanged](#event.onInternetStatusChanged) | Triggered when internet connection state changed. |
+| [onInternetStatusChange](#event.onInternetStatusChange) | Triggered when internet connection state changed. |
 ### Parameters
 
 | Name | Type | Description |
@@ -1200,8 +1200,8 @@ Remove given SSID from saved SSIDs. This method just removes from the list and o
 
 | Event | Description |
 | :-------- | :-------- |
-| [onWiFiStateChanged](#event.onWiFiStateChanged) | Triggered when Wifi state changes to DISCONNECTED |
-| [onIPAddressChanged](#event.onIPAddressChanged) | Triggered when an IP Address is assigned or lost |
+| [onWiFiStateChange](#event.onWiFiStateChange) | Triggered when Wifi state changes to DISCONNECTED |
+| [onAddressChange](#event.onAddressChange) | Triggered when an IP Address is assigned or lost |
 | [onInternetStatusChange](#event.onInternetStatusChange) | Triggered when internet connection state changed |
 ### Parameters
 
@@ -1253,7 +1253,7 @@ Initiates request to connect to the specified SSID with the given passphrase. Pa
 
 | Event | Description |
 | :-------- | :-------- |
-| [onWiFiStateChanged](#event.onWiFiStateChanged) | Triggered when Wifi state changes to CONNECTING, CONNECTED . |
+| [onWiFiStateChange](#event.onWiFiStateChange) | Triggered when Wifi state changes to CONNECTING, CONNECTED . |
 ### Parameters
 
 | Name | Type | Description |
@@ -1308,8 +1308,8 @@ Disconnects from the currently connected SSID. A event will be posted upon compl
 
 | Event | Description |
 | :-------- | :-------- |
-| [onWIFIStateChanged](#event.onWIFIStateChanged) | Triggered when Wifi state changes to DISCONNECTED (only if currently connected). |
-| [onIPAddressChanged](#event.onIPAddressChanged) | Triggered when an IP Address is assigned or lost |
+| [onWIFIStateChange](#event.onWIFIStateChange) | Triggered when Wifi state changes to DISCONNECTED (only if currently connected). |
+| [onAddressChange](#event.onAddressChange) | Triggered when an IP Address is assigned or lost |
 | [onInternetStatusChange](#event.onInternetStatusChange) | Triggered when internet connection state changed |
 ### Parameters
 
@@ -1415,8 +1415,8 @@ If the `method` parameter is set to `SERIALIZED_PIN`, then RDK retrieves the ser
 
 | Event | Description |
 | :-------- | :-------- |
-| [onWIFIStateChanged](#event.onWIFIStateChanged) | Triggered when Wifi state changes to DISCONNECTED (only if currently connected), CONNECTING, CONNECTED. |
-| [onIPAddressChanged](#event.onIPAddressChanged) | Triggered when an IP Address is assigned or lost |
+| [onWIFIStateChange](#event.onWIFIStateChange) | Triggered when Wifi state changes to DISCONNECTED (only if currently connected), CONNECTING, CONNECTED. |
+| [onAddressChange](#event.onAddressChange) | Triggered when an IP Address is assigned or lost |
 | [onInternetStatusChange](#event.onInternetStatusChange) | Triggered when internet connection state changed |
 ### Parameters
 
@@ -1472,7 +1472,7 @@ Cancels the in-progress WPS pairing operation. The operation forcefully stops th
 
 | Event | Description |
 | :-------- | :-------- |
-| [onWIFIStateChanged](#event.onWIFIStateChanged) | Triggered when Wifi state changes to DISCONNECTED. |
+| [onWIFIStateChange](#event.onWIFIStateChange) | Triggered when Wifi state changes to DISCONNECTED. |
 ### Parameters
 
 This method takes no parameters.
@@ -1517,7 +1517,7 @@ Get WiFiSignalStrength of connected SSID.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onWiFiSignalStrengthChanged](#event.onWiFiSignalStrengthChanged) | Triggered when Wifi signal strength switches between Excellent, Good, Fair, Weak. |
+| [onWiFiSignalStrengthChange](#event.onWiFiSignalStrengthChange) | Triggered when Wifi signal strength switches between Excellent, Good, Fair, Weak. |
 ### Parameters
 
 This method takes no parameters.
@@ -1704,17 +1704,17 @@ NetworkManager interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onInterfaceStateChanged](#event.onInterfaceStateChanged) | Triggered when an interface state is changed |
-| [onIPAddressChanged](#event.onIPAddressChanged) | Triggered when an IP Address is assigned or lost |
-| [onActiveInterfaceChanged](#event.onActiveInterfaceChanged) | Triggered when the primary/active interface changes, regardless if it's from a system operation or through the `SetPrimaryInterface` method |
+| [onInterfaceStateChange](#event.onInterfaceStateChange) | Triggered when an interface state is changed |
+| [onAddressChange](#event.onAddressChange) | Triggered when an IP Address is assigned or lost |
+| [onActiveInterfaceChange](#event.onActiveInterfaceChange) | Triggered when the primary/active interface changes, regardless if it's from a system operation or through the `SetPrimaryInterface` method |
 | [onInternetStatusChange](#event.onInternetStatusChange) | Triggered when internet connection state changed |
 | [onAvailableSSIDs](#event.onAvailableSSIDs) | Triggered when scan completes or when scan cancelled |
-| [onWiFiStateChanged](#event.onWiFiStateChanged) | Triggered when WIFI connection state get changed |
-| [onWiFiSignalStrengthChanged](#event.onWiFiSignalStrengthChanged) | Triggered when WIFI connection Signal Strength get changed |
+| [onWiFiStateChange](#event.onWiFiStateChange) | Triggered when WIFI connection state get changed |
+| [onWiFiSignalStrengthChange](#event.onWiFiSignalStrengthChange) | Triggered when WIFI connection Signal Strength get changed |
 
 
-<a name="event.onInterfaceStateChanged"></a>
-## *onInterfaceStateChanged [<sup>event</sup>](#head.Notifications)*
+<a name="event.onInterfaceStateChange"></a>
+## *onInterfaceStateChange [<sup>event</sup>](#head.Notifications)*
 
 Triggered when an interface state is changed. The possible states are 
 * 'INTERFACE_ADDED' 
@@ -1738,7 +1738,7 @@ Triggered when an interface state is changed. The possible states are
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.onInterfaceStateChanged",
+    "method": "client.events.onInterfaceStateChange",
     "params": {
         "interface": "wlan0",
         "state": "INTERFACE_ADDED"
@@ -1746,8 +1746,8 @@ Triggered when an interface state is changed. The possible states are
 }
 ```
 
-<a name="event.onIPAddressChanged"></a>
-## *onIPAddressChanged [<sup>event</sup>](#head.Notifications)*
+<a name="event.onAddressChange"></a>
+## *onAddressChange [<sup>event</sup>](#head.Notifications)*
 
 Triggered when an IP Address is assigned or lost.
 
@@ -1766,7 +1766,7 @@ Triggered when an IP Address is assigned or lost.
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.onIPAddressChanged",
+    "method": "client.events.onAddressChange",
     "params": {
         "interface": "wlan0",
         "isIPv6": false,
@@ -1776,8 +1776,8 @@ Triggered when an IP Address is assigned or lost.
 }
 ```
 
-<a name="event.onActiveInterfaceChanged"></a>
-## *onActiveInterfaceChanged [<sup>event</sup>](#head.Notifications)*
+<a name="event.onActiveInterfaceChange"></a>
+## *onActiveInterfaceChange [<sup>event</sup>](#head.Notifications)*
 
 Triggered when the primary/active interface changes, regardless if it's from a system operation or through the `SetPrimaryInterface` method.
 
@@ -1794,7 +1794,7 @@ Triggered when the primary/active interface changes, regardless if it's from a s
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.onActiveInterfaceChanged",
+    "method": "client.events.onActiveInterfaceChange",
     "params": {
         "oldInterfaceName": "wlan0",
         "newInterfaceName": "eth0"
@@ -1868,8 +1868,8 @@ Triggered when scan completes or when scan cancelled.
 }
 ```
 
-<a name="event.onWiFiStateChanged"></a>
-## *onWiFiStateChanged [<sup>event</sup>](#head.Notifications)*
+<a name="event.onWiFiStateChange"></a>
+## *onWiFiStateChange [<sup>event</sup>](#head.Notifications)*
 
 Triggered when WIFI connection state get changed. The possible states are, 
  * '0' - 'WIFI_STATE_UNINSTALLED' 
@@ -1893,22 +1893,22 @@ Triggered when WIFI connection state get changed. The possible states are,
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.state | integer | onWiFiStateChanged |
+| params.state | integer | onWiFiStateChange |
 
 ### Example
 
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.onWiFiStateChanged",
+    "method": "client.events.onWiFiStateChange",
     "params": {
         "state": 5
     }
 }
 ```
 
-<a name="event.onWiFiSignalStrengthChanged"></a>
-## *onWiFiSignalStrengthChanged [<sup>event</sup>](#head.Notifications)*
+<a name="event.onWiFiSignalStrengthChange"></a>
+## *onWiFiSignalStrengthChange [<sup>event</sup>](#head.Notifications)*
 
 Triggered when WIFI connection Signal Strength get changed.
 
@@ -1918,19 +1918,19 @@ Triggered when WIFI connection Signal Strength get changed.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.ssid | string | Signal Strength changed SSID |
-| params.signalStrength | string | Signal Strength |
-| params.quality | string | Signal quality |
+| params.signalLevel | string | Signal Strength |
+| params.signalQuality | string | Signal quality |
 
 ### Example
 
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.onWiFiSignalStrengthChanged",
+    "method": "client.events.onWiFiSignalStrengthChange",
     "params": {
         "ssid": "home-new_123",
-        "signalStrength": "-27.000000",
-        "quality": "Excellent"
+        "signalLevel": "-27.000000",
+        "signalQuality": "Excellent"
     }
 }
 ```
