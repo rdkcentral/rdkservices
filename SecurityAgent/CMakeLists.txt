@@ -15,8 +15,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set(PLUGIN_NAME SecurityAgent)
-set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
+project(SecurityAgent)
+
+cmake_minimum_required(VERSION 3.3)
+
+find_package(WPEFramework)
+
+project_version(1.0.0)
+
+set(PLUGIN_NAME ${PROJECT_NAME})
+set(MODULE_NAME ${NAMESPACE}${PROJECT_NAME})
+
+message("Setup ${MODULE_NAME} v${PROJECT_VERSION}")
 
 set(PLUGIN_SECURITYAGENT_STARTUPORDER "" CACHE STRING "To configure startup order of SecurityAgent plugin")
 set(PLUGIN_SECURITYAGENT_ACL_FILE_NAME "acl.json" CACHE STRING "SecurityAgent ACL file name")
@@ -55,4 +65,8 @@ endif()
 install(TARGETS ${MODULE_NAME} 
     DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
 
-write_config(${PLUGIN_NAME})
+if(USE_THUNDER_R4)
+    write_config()
+else()
+    write_config(${PROJECT_NAME})
+endif(USE_THUNDER_R4)

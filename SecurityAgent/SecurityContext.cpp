@@ -67,13 +67,13 @@ namespace Plugin {
     }
 
     //! Allow a websocket upgrade to be checked if it is allowed to be opened.
-    bool SecurityContext::Allowed(const string& path) const /* override */
+    bool SecurityContext::Allowed(const string&) const /* override */
     {
         return (true);
     }
 
     //! Allow a request to be checked before it is offered for processing.
-    bool SecurityContext::Allowed(const Web::Request& request) const /* override */ 
+    bool SecurityContext::Allowed(const Web::Request& request) const /* override */
     {
         string callsign = "";
         string method = "";
@@ -98,9 +98,9 @@ namespace Plugin {
     bool SecurityContext::Allowed(const Core::JSONRPC::Message& message) const /* override */ 
     {
         bool bAllowed = ((_accessControlList != nullptr) && (_accessControlList->Allowed(_context.URL.Value(), message.Callsign(), message.Method())));
-        if(!bAllowed)
-	    SYSLOG(Logging::Notification, ("Thunder Access Blocked:%s,%s,%s", _context.URL.Value().c_str(),message.Callsign().c_str(),message.Method().c_str()));
-        
+        if (!bAllowed) {
+            TRACE(Security, ("Thunder Access Blocked:%s,%s,%s", _context.URL.Value().c_str(),message.Callsign().c_str(),message.Method().c_str()));
+        }
         return bAllowed;
     }
 

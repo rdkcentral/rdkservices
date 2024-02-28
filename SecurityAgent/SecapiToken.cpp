@@ -72,15 +72,18 @@ void JWTSecApi::SecApi::Mac(SEC_OBJECTID id,
 
 JWTSecApi::MacGenerator::MacGenerator()
   : secApi(make_shared<SecApi>(StorageDir)) {
+  ASSERT(secApi != nullptr);
   hmacKey = secApi->GenerateKey(SEC_KEYTYPE_HMAC_256, SEC_STORAGELOC_RAM);
 }
 
 
 JWTSecApi::MacGenerator::~MacGenerator() {
+  ASSERT(secApi != nullptr);
   secApi->DeleteKey(hmacKey);
 }
 
 void JWTSecApi::MacGenerator::Mac(const uint16_t sourceSize, const uint8_t *source, uint16_t &macSize, uint8_t *mac) {
+  ASSERT(secApi != nullptr);
   secApi->Mac(hmacKey, sourceSize, source, macSize, mac);
 }
 
