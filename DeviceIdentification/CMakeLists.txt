@@ -18,7 +18,10 @@
 project(DeviceIdentification)
 
 cmake_minimum_required(VERSION 3.3)
+
 find_package(WPEFramework)
+
+project_version(1.0.0)
 
 set(PLUGIN_NAME ${PROJECT_NAME})
 set(MODULE_NAME ${NAMESPACE}${PROJECT_NAME})
@@ -126,4 +129,8 @@ target_include_directories(${MODULE_NAME}
 install(TARGETS ${MODULE_NAME} 
     DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
 
-write_config(${PLUGIN_NAME})
+if(USE_THUNDER_R4)
+    write_config()
+else()
+    write_config(${PROJECT_NAME})
+endif(USE_THUNDER_R4)

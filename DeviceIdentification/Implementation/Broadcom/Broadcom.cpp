@@ -78,63 +78,39 @@ public:
 private:
     inline void UpdateDeviceInfo(string& identifier, string& chipset, string& firmwareVersion) const
     {
-        identifier.assign(extractSerialNumber());
-        chipset.assign(extractChipId());
-        firmwareVersion.assign(extractFirmwareVersion());
-    }
+        static constexpr uint8_t MaxInfoCollection = 3;
+        static constexpr const TCHAR ChipsetKey[] = _T("Chip ID");
+        static constexpr const TCHAR IdentifierKey[] = _T("CHIPID");
+        static constexpr const TCHAR FirmwareVersionKey[] = _T("Nexus Release");
 
-    inline std::string extractSerialNumber() const
-    {
-        std::string serialNumber;
-        std::ifstream serialNumberFile("/proc/device-tree/serial-number");
-
-        if (serialNumberFile.is_open())
-        {
-                getline(serialNumberFile,serialNumber);
-                serialNumberFile.close();
-        }
-
-        return serialNumber;
-    }
-
-    inline std::string extractChipId() const
-    {
-        std::string chipId;
-        std::ifstream chipIdFile("/proc/device-tree/model");
-
-        if (chipIdFile.is_open())
-        {
-                getline(chipIdFile, chipId);
-                chipIdFile.close();
-        }
-
-        return chipId;
-    }
-
-    inline std::string extractFirmwareVersion() const
-    {
-        std::string versionIdentifier("VERSION");
-        std::ifstream versionFile("/version.txt");
         std::string line;
-        std::string firmwareVersion;
+        std::ifstream file(PlatformFile);
+        uint32_t collectedInfo = 0;
 
-        if (versionFile.is_open())
-        {
-            while (getline(versionFile, line))
-            {
-                if (0 == line.find(versionIdentifier))
-                {
-                    std::size_t position = line.find(versionIdentifier) + versionIdentifier.length() + 1; // +1 is to skip '='
-                    if (position != std::string::npos)
-                    {
+        if (file.is_open()) {
+            while (getline(file, line) && (collectedInfo < MaxInfoCollection)) {
+                if ((identifier.empty() == true) && (line.find(IdentifierKey) != std::string::npos)) {
+                    std::size_t position = line.find(IdentifierKey) + sizeof(IdentifierKey);
+                    if (position != std::string::npos) {
+                        identifier.assign(line.substr(position, line.find(']')-position));
+                        collectedInfo++;
+                    }
+                } else if ((chipset.empty() == true) && (line.find(ChipsetKey) != std::string::npos)) {
+                    std::size_t position = line.find(ChipsetKey) + sizeof(ChipsetKey);
+                    if (position != std::string::npos) {
+                        chipset.assign(line.substr(position, std::string::npos));
+                        collectedInfo++;
+                    }
+                } else if ((firmwareVersion.empty() == true) &&
+                           (line.find(FirmwareVersionKey) != std::string::npos)) {
+                    std::size_t position = line.find(FirmwareVersionKey) + sizeof(FirmwareVersionKey);
+                    if (position != std::string::npos) {
                         firmwareVersion.assign(line.substr(position, std::string::npos));
+                        collectedInfo++;
                     }
                 }
             }
-            versionFile.close();
         }
-
-        return firmwareVersion;
     }
 
 private:

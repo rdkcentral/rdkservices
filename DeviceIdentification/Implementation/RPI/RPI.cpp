@@ -92,9 +92,7 @@ namespace Plugin {
         }
         inline void UpdateDeviceIdentifier(string& identifier) const
         {
-            string fileName = SerialInfoPath;
-            WPEFramework::Core::File serialFile(fileName);
-
+            WPEFramework::Core::File serialFile(SerialInfoPath);
             if (serialFile.Open(true) == true) {
                 uint8_t serialInfo[serialFile.Size()];
                 uint32_t size = serialFile.Read(serialInfo, static_cast<uint32_t>(sizeof(serialInfo)));
