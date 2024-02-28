@@ -67,7 +67,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 2
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 2
+#define API_VERSION_NUMBER_PATCH 4
 
 #define MAX_REBOOT_DELAY 86400 /* 24Hr = 86400 sec */
 #define TR181_FW_DELAY_REBOOT "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"
@@ -1043,6 +1043,7 @@ namespace WPEFramework {
 
             if (res.size() > 0) {
                 std::string model_number;
+		std::string device_type;
                 if (queryParams.empty()) {
                     retAPIStatus = true;
 
@@ -1070,6 +1071,9 @@ namespace WPEFramework {
                             else if (key == "model_number") {
                                 model_number = value;
                             }
+			    else if(key == "device_type") {
+				device_type = value;
+			    }
                         }
                     }
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
