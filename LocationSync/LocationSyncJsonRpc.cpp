@@ -32,14 +32,14 @@ namespace Plugin {
 
     void LocationSync::RegisterAll()
     {
-        Register<void,void>(_T("sync"), &LocationSync::endpoint_sync, this);
-        Property<LocationData>(_T("location"), &LocationSync::get_location, nullptr, this);
+        PluginHost::JSONRPC::Register<void,void>(_T("sync"), &LocationSync::endpoint_sync, this);
+        PluginHost::JSONRPC::Property<LocationData>(_T("location"), &LocationSync::get_location, nullptr, this);
     }
 
     void LocationSync::UnregisterAll()
     {
-        Unregister(_T("sync"));
-        Unregister(_T("location"));
+        PluginHost::JSONRPC::Unregister(_T("sync"));
+        PluginHost::JSONRPC::Unregister(_T("location"));
     }
 
     // API implementation

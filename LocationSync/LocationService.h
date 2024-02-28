@@ -28,7 +28,7 @@ namespace Plugin {
 
     struct IGeography;
 
-    class EXTERNAL LocationService
+    class LocationService
         : public PluginHost::ISubSystem::ILocation,
           public PluginHost::ISubSystem::IInternet,
           public Web::WebLinkType<Core::SocketStream, Web::Response, Web::Request, Core::ProxyPoolType<Web::Response>&> {
@@ -71,6 +71,9 @@ namespace Plugin {
         static uint32_t IsSupported(const string& remoteNode);
         uint32_t Probe(const string& remoteNode, const uint32_t retries, const uint32_t retryTimeSpan);
         void Stop();
+        bool Valid() const {
+            return _state == LOADED;
+        }
 
         /*
         * ------------------------------------------------------------------------------------------------------------
@@ -106,7 +109,16 @@ namespace Plugin {
         {
             return (_city);
         }
-
+#ifdef USE_THUNDER_R4
+        int32_t Latitude() const override
+        {
+            return (_latitude);
+        }
+        int32_t Longitude() const override
+        {
+            return (_longitude);
+        }
+#endif
     private:
         // Notification of a Partial Request received, time to attach a body..
         void LinkBody(Core::ProxyType<Web::Response>& element) override;
@@ -132,6 +144,8 @@ namespace Plugin {
         string _country;
         string _region;
         string _city;
+        int32_t _latitude;
+        int32_t _longitude;
         Core::WorkerPool::JobType<LocationService&> _activity;
         Core::ProxyType<IGeography> _infoCarrier;
         Core::ProxyType<Web::Request> _request;

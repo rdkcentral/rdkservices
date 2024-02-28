@@ -20,7 +20,6 @@
 #include "LocationService.h"
 
 namespace WPEFramework {
-
 namespace Plugin {
 
     struct IGeography {
@@ -30,8 +29,8 @@ namespace Plugin {
         virtual string City() const = 0;
         virtual string Region() const = 0;
         virtual string TimeZone() const = 0;
-        virtual string Latitude() const = 0;
-        virtual string Longitude() const = 0;
+        virtual int32_t Latitude() const = 0;
+        virtual int32_t Longitude() const = 0;
         virtual string IP() const = 0;
         virtual void FromString(const string&) = 0;
     };
@@ -44,9 +43,9 @@ namespace Plugin {
     //  "region":"GE",
     //  "regionName":"Gelderland",
     //  "city":"Wijchen",
-    //  "lat":"51.798",
-    //  "lon":"5.726",
     //  "zip":"6605",
+    //  "lat":51.798,
+    //  "lon":5.726,
     //  "timezone":"Europe/Amsterdam",
     //  "isp":"T-Mobile Thuis BV",
     //  "org":"T-Mobile Thuis BV",
@@ -66,17 +65,17 @@ namespace Plugin {
                 , City()
                 , Region()
                 , TimeZone()
-                , Latitude()
-                , Longitude()
                 , IP()
+                , Latitude(51.832547)
+                , Longitude(5.674899)
             {
                 Add(_T("country"), &Country);
                 Add(_T("city"), &City);
                 Add(_T("regionName"), &Region);
                 Add(_T("timezone"), &TimeZone);
-                Add(_T("latitude"), &Latitude);
-                Add(_T("longitude"), &Longitude);
                 Add(_T("query"), &IP);
+                Add(_T("lat"), &Latitude);
+                Add(_T("lon"), &Longitude);
             }
             ~Data() override = default;
 
@@ -85,9 +84,9 @@ namespace Plugin {
             Core::JSON::String City;
             Core::JSON::String Region;
             Core::JSON::String TimeZone;
-            Core::JSON::String Latitude;
-            Core::JSON::String Longitude;
             Core::JSON::String IP;
+            Core::JSON::Double Latitude;
+            Core::JSON::Double Longitude;
         };
 
     public:
@@ -114,13 +113,13 @@ namespace Plugin {
         {
             return (_data.TimeZone.Value());
         }
-        string Latitude() const override
+        int32_t Latitude() const override
         {
-            return (_data.Latitude.Value());
+            return (static_cast<int32_t>(_data.Latitude.Value() * 1000000));
         }
-        string Longitude() const override
+        int32_t Longitude() const override
         {
-            return (_data.Longitude.Value());
+            return (static_cast<int32_t>(_data.Longitude.Value() * 1000000));
         }
         string IP() const override
         {
@@ -167,27 +166,41 @@ namespace Plugin {
                     , City()
                     , Region()
                     , TimeZone()
-                    , Latitude()
-                    , Longitude()
                     , _LL()
                 {
                     Add(_T("country"), &Country);
                     Add(_T("city"), &City);
                     Add(_T("region"), &Region);
                     Add(_T("tz"), &TimeZone);
-                    Add(_T("lat"), &Latitude);
-                    Add(_T("lon"), &Longitude);
                     Add(_T("ll"), &_LL);
                 }
                 ~Geography() override = default;
 
           public:
+                int32_t Latitude() const {
+                    int32_t result = 51832547;
+                    Core::JSON::ArrayType<Core::JSON::Double>::ConstIterator index = _LL.Elements();
+
+                    if (index.Next() == true) {
+                        result = static_cast<int32_t>(index.Current() * 1000000);
+                    }
+
+                    return (result);
+                }
+                int32_t Longitude() const {
+                    int32_t result = 5674899;
+                    Core::JSON::ArrayType<Core::JSON::Double>::ConstIterator index = _LL.Elements();
+
+                    if ( (index.Next() == true) && (index.Next() == true) ) {
+                        result = static_cast<int32_t>(index.Current() * 1000000);
+                    }
+
+                    return (result);
+                }
                 Core::JSON::String Country;
                 Core::JSON::String City;
                 Core::JSON::String Region;
                 Core::JSON::String TimeZone;
-                Core::JSON::String Latitude;
-                Core::JSON::String Longitude;
 
             private:
                 Core::JSON::ArrayType<Core::JSON::Double> _LL;
@@ -239,13 +252,13 @@ namespace Plugin {
         {
             return (_data.Geo.TimeZone.Value());
         }
-        string Latitude() const override
+        int32_t Latitude() const override
         {
-            return (_data.Geo.Latitude.Value());
+            return (_data.Geo.Latitude());
         }
-        string Longitude() const
+        int32_t Longitude() const override
         {
-            return (_data.Geo.Longitude.Value());
+            return (_data.Geo.Longitude());
         }
         string IP() const override
         {
@@ -325,12 +338,15 @@ namespace Plugin {
         , _remoteId()
         , _sourceNode()
         , _tryInterval(0)
+        , _retries(UINT32_MAX)
         , _callback(callback)
         , _publicIPAddress()
         , _timeZone()
         , _country()
         , _region()
         , _city()
+        , _latitude()
+        , _longitude()
         , _activity(*this)
         , _infoCarrier()
         , _request(Core::ProxyType<Web::Request>::Create())
@@ -376,8 +392,14 @@ namespace Plugin {
                     _state = ACTIVE;
 
                     // it runs till zero, so subtract by definition 1 :-)
-                    _retries = (retries - 1);
+                    // If retires is UINT32_MAX it means retry unlimited
+                    if (retries != UINT32_MAX) {
+                        _retries = (retries - 1);
+                    }
+
                     _tryInterval = retryTimeSpan * 1000; // Move from seconds to mS.
+
+                    ASSERT(_request.IsValid() == true);
                     _request->Host = hostName;
                     _request->Verb = Web::Request::HTTP_GET;
                     _request->Path = _T("/");
@@ -426,7 +448,7 @@ namespace Plugin {
             _state = FAILED;
         }
 
-        if(_infoCarrier.IsValid() == true) {
+        if (_infoCarrier.IsValid() == true) {
             _infoCarrier.Release();
         }
 
@@ -436,6 +458,7 @@ namespace Plugin {
     // Methods to extract and insert data into the socket buffers
     void LocationService::LinkBody(Core::ProxyType<Web::Response>& element) /* override */
     {
+        ASSERT(element.IsValid() == true);
         if (element->ErrorCode == Web::STATUS_OK) {
 
             ASSERT(_infoCarrier.IsValid() == true);
@@ -450,6 +473,7 @@ namespace Plugin {
 
     void LocationService::Received(Core::ProxyType<Web::Response>& element) /* override */
     {
+        ASSERT(element.IsValid() == true);
         Core::ProxyType<Web::TextBody> textInfo = element->Body<Web::TextBody>();
 
         if (textInfo.IsValid() == false) {
@@ -457,6 +481,7 @@ namespace Plugin {
         }
         else {
 
+            ASSERT(_infoCarrier.IsValid() == true);
             _infoCarrier->FromString(*textInfo);
 
             _adminLock.Lock();
@@ -465,6 +490,8 @@ namespace Plugin {
             _country = _infoCarrier->Country();
             _region = _infoCarrier->Region();
             _city = _infoCarrier->City();
+            _latitude = _infoCarrier->Latitude();
+            _longitude = _infoCarrier->Longitude();
 
             if (_state == IPV6_INPROGRESS) {
 
@@ -495,8 +522,6 @@ namespace Plugin {
                 TRACE(Trace::Information, (_T("Network connectivity established. Type: %s, on %s"), (node.Type() == Core::NodeId::TYPE_IPV6 ? _T("IPv6") : _T("IPv4")), node.HostAddress().c_str()));
                 _callback->Dispatch();
             }
-
-            ASSERT(_infoCarrier.IsValid() == true);
 
             _infoCarrier.Release();
 
@@ -533,6 +558,7 @@ namespace Plugin {
     void LocationService::Dispatch()
     {
         uint32_t result = Core::infinite;
+        TRACE(Trace::Information, (_T("LocationService: job is dispatched")));
 
         if ((Close(100) != Core::ERROR_NONE) || (IsClosed() == false)) {
 
@@ -542,7 +568,12 @@ namespace Plugin {
             _adminLock.Lock();
 
             if (_state == IPV4_INPROGRESS) {
-                _state = (_retries-- == 0 ? FAILED : ACTIVE);
+                if (_retries != UINT32_MAX) {
+                    _state = (_retries-- == 0 ? FAILED : ACTIVE);
+                }
+                else {
+                    _state = ACTIVE;
+                }
             }
 
             if ((_state != LOADED) && (_state != FAILED)) {
@@ -551,10 +582,10 @@ namespace Plugin {
 
                 if (remote.IsValid() == false) {
 
-                    TRACE(Trace::Warning, (_T("DNS resolving failed. Sleep for %d mS for attempt %d"), _tryInterval, _retries));
+                    TRACE(Trace::Warning, (_T("DNS resolving failed. Sleep for %d mS for attempt %u"), _tryInterval, _retries));
 
                     // Name resolving does not even work. Retry this after a few seconds, if we still can..
-                    if (_retries-- == 0)
+                    if (_retries != UINT32_MAX && _retries-- == 0)
                         _state = FAILED;
                     else
                         result = _tryInterval;
@@ -569,12 +600,12 @@ namespace Plugin {
 
                     if ((status == Core::ERROR_NONE) || (status == Core::ERROR_INPROGRESS)) {
 
-                        TRACE(Trace::Information, (_T("Sending out a network package on %s. Attempt: %d"), (remote.Type() == Core::NodeId::TYPE_IPV6 ? _T("IPv6") : _T("IPv4")), _retries));
+                        TRACE(Trace::Information, (_T("Sending out a network package on %s. Attempt: %u"), (remote.Type() == Core::NodeId::TYPE_IPV6 ? _T("IPv6") : _T("IPv4")), _retries));
 
                         // We need to get a response in the given time..
                         result = _tryInterval;
                     } else {
-                        TRACE(Trace::Warning, (_T("Failed on network %s. Reschedule for the next attempt: %d"), (remote.Type() == Core::NodeId::TYPE_IPV6 ? _T("IPv6") : _T("IPv4")), _retries));
+                        TRACE(Trace::Warning, (_T("Failed on network %s. Reschedule for the next attempt: %u"), (remote.Type() == Core::NodeId::TYPE_IPV6 ? _T("IPv6") : _T("IPv4")), _retries));
 
                         // Seems we could not open this connection, move on to the next attempt.
                         Close(0);
