@@ -70,7 +70,6 @@ namespace Plugin {
                 , _allocated()
                 , _shared()
                 , _process()
-                , _operational(false)
             {
             }
             MetaData(const MetaData& copy)
@@ -78,7 +77,6 @@ namespace Plugin {
                 , _allocated(copy._allocated)
                 , _shared(copy._shared)
                 , _process(copy._process)
-                , _operational(copy._operational)
             {
             }
             ~MetaData()
@@ -91,22 +89,29 @@ namespace Plugin {
                 _allocated = rhs._allocated;
                 _shared = rhs._shared;
                 _process = rhs._process;
-                _operational = rhs._operational;
 
                 return (*this);
             }
 
         public:
+            bool HasMeasurements() const {
+                return ((_resident.Measurements() != 0) || (_allocated.Measurements() != 0) || (_shared.Measurements() != 0) || (_process.Measurements() != 0));
+            }
+
+            void AddMeasurements(const uint64_t resident, const uint64_t allocated, const uint64_t shared, const uint64_t process) {
+                _resident.Set(resident);
+                _allocated.Set(allocated);
+                _shared.Set(shared);
+                _process.Set(process);
+            }
+
             void Measure(Exchange::IMemory* memInterface)
             {
+                ASSERT(memInterface != nullptr);
                 _resident.Set(memInterface->Resident());
                 _allocated.Set(memInterface->Allocated());
                 _shared.Set(memInterface->Shared());
                 _process.Set(memInterface->Processes());
-            }
-            void Operational(const bool operational)
-            {
-                _operational = operational;
             }
             void Reset()
             {
@@ -133,17 +138,11 @@ namespace Plugin {
             {
                 return (_process);
             }
-            inline bool Operational() const
-            {
-                return (_operational);
-            }
-
         private:
             Core::MeasurementType<uint64_t> _resident;
             Core::MeasurementType<uint64_t> _allocated;
             Core::MeasurementType<uint64_t> _shared;
             Core::MeasurementType<uint8_t> _process;
-            bool _operational;
         };
 
         class Data : public Core::JSON::Container {
@@ -259,7 +258,7 @@ namespace Plugin {
                     Add(_T("operational"), &Operational);
                     Add(_T("count"), &Count);
                 }
-                MetaData(const Monitor::MetaData& input)
+                MetaData(const Monitor::MetaData& input, const bool operational)
                     : Core::JSON::Container()
                 {
                     Add(_T("allocated"), &Allocated);
@@ -273,7 +272,7 @@ namespace Plugin {
                     Resident = input.Resident();
                     Shared = input.Shared();
                     Process = input.Process();
-                    Operational = input.Operational();
+                    Operational = operational;
                     Count = input.Allocated().Measurements();
                 }
                 MetaData(const MetaData& copy)
@@ -307,17 +306,6 @@ namespace Plugin {
 
                     return (*this);
                 }
-                MetaData& operator=(const Monitor::MetaData& RHS)
-                {
-                    Allocated = RHS.Allocated();
-                    Resident = RHS.Resident();
-                    Shared = RHS.Shared();
-                    Process = RHS.Process();
-                    Operational = RHS.Operational();
-                    Count = RHS.Allocated().Measurements();
-
-                    return (*this);
-                }
 
             public:
                 Measurement Allocated;
@@ -344,10 +332,10 @@ namespace Plugin {
                 Add(_T("observable"), &Observable);
                 Add(_T("restart"), &Restart);
             }
-            Data(const string& name, const Monitor::MetaData& info)
+            Data(const string& name, const Monitor::MetaData& info, const bool operational)
                 : Core::JSON::Container()
                 , Name()
-                , Measurement()
+                , Measurement(info, operational)
                 , Observable()
                 , Restart()
             {
@@ -357,7 +345,6 @@ namespace Plugin {
                 Add(_T("restart"), &Restart);
 
                 Name = name;
-                Measurement = info;
             }
             Data(const Data& copy)
                 : Core::JSON::Container()
@@ -486,33 +473,14 @@ namespace Plugin {
                     , _restartCount(0)
                     , _restartLimit(restartLimit)
                     , _measurement()
+                    , _operational(false)
                     , _operationalEvaluate(actOnOperational)
                     , _source(nullptr)
+                    , _interval( ((operationalInterval != 0) || (_memoryInterval != 0)) ? gcd(_operationalInterval, _memoryInterval) : 0 )
                     , _active{ false }
+                    , _adminLock()
                 {
                     ASSERT((_operationalInterval != 0) || (_memoryInterval != 0));
-                    _interval = gcd(_operationalInterval, _memoryInterval);
-                }
-                MonitorObject(const MonitorObject& copy)
-                    : _operationalInterval(copy._operationalInterval)
-                    , _memoryInterval(copy._memoryInterval)
-                    , _memoryThreshold(copy._memoryThreshold)
-                    , _operationalSlots(copy._operationalSlots)
-                    , _memorySlots(copy._memorySlots)
-                    , _nextSlot(copy._nextSlot)
-                    , _restartWindow(copy._restartWindow)
-                    , _restartWindowStart(copy._restartWindowStart)
-                    , _restartCount(copy._restartCount)
-                    , _restartLimit(copy._restartLimit)
-                    , _measurement(copy._measurement)
-                    , _operationalEvaluate(copy._operationalEvaluate)
-                    , _source(copy._source)
-                    , _interval(copy._interval)
-                    , _active{ copy._active }
-                {
-                    if (_source != nullptr) {
-                        _source->AddRef();
-                    }
                 }
                 ~MonitorObject()
                 {
@@ -521,6 +489,11 @@ namespace Plugin {
                         _source = nullptr;
                     }
                 }
+
+                MonitorObject(MonitorObject&) = delete;
+                MonitorObject& operator=(MonitorObject&) = delete;
+                MonitorObject(MonitorObject&&) = delete;
+                MonitorObject& operator=(MonitorObject&&) = delete;
 
             public:
                 inline bool RegisterRestart(PluginHost::IShell::reason why VARIABLE_IS_NOT_USED)
@@ -543,11 +516,11 @@ namespace Plugin {
 
                     return result;
                 }
-                inline uint8_t RestartLimit()
+                inline uint8_t RestartLimit() const
                 {
                     return _restartLimit;
                 }
-                inline uint16_t RestartWindow()
+                inline uint16_t RestartWindow() const
                 {
                     return _restartWindow;
                 }
@@ -566,14 +539,14 @@ namespace Plugin {
                 {
                     return (_interval);
                 }
+                inline uint32_t Operational() const
+                {
+                    return (_operational);
+                }
                 inline const MetaData& Measurement() const
                 {
+                    Core::SafeSyncType<Core::CriticalSection> guard(_adminLock);
                     return (_measurement);
-                }
-                inline bool HasMeasurement() const
-                {
-                    return (((_measurement.Allocated().Min() == Core::NumberType<uint64_t>::Max()) && 
-                    (_measurement.Allocated().Max() == Core::NumberType<uint64_t>::Min())) ? false : true);
                 }
                 inline uint64_t TimeSlot() const
                 {
@@ -581,6 +554,7 @@ namespace Plugin {
                 }
                 inline void Reset()
                 {
+                    Core::SafeSyncType<Core::CriticalSection> guard(_adminLock);
                     _measurement.Reset();
                 }
                 inline void Retrigger(uint64_t currentSlot)
@@ -591,6 +565,7 @@ namespace Plugin {
                 }
                 inline void Set(Exchange::IMemory* memory)
                 {
+                    _adminLock.Lock();
                     if (_source != nullptr) {
                         _source->Release();
                         _source = nullptr;
@@ -600,29 +575,55 @@ namespace Plugin {
                         _source = memory;
                         _source->AddRef();
                     }
+                    _adminLock.Unlock();
 
-                    _measurement.Operational(_source != nullptr);
+                    _operational = (memory != nullptr);
                 }
+
+                Core::ProxyType<const Exchange::IMemory> Source() const
+                {
+                    Core::ProxyType<const Exchange::IMemory> source;
+                    _adminLock.Lock();
+                    if (_source != nullptr) {
+#ifdef USE_THUNDER_R4
+                        source = Core::ProxyType<const Exchange::IMemory>(*_source, *_source);
+#else
+                        source = Core::ProxyType<const Exchange::IMemory>(*_source);
+#endif
+                    }
+                    _adminLock.Unlock();
+                    return source;
+                }
+
                 inline uint32_t Evaluate()
                 {
+                    Core::ProxyType<const Exchange::IMemory> source = Source();
+
                     uint32_t status(SUCCESFULL);
-                    if (_source != nullptr) {
+                    if (source.IsValid() == true) {
                         _operationalSlots -= _interval;
                         _memorySlots -= _interval;
 
                         if ((_operationalInterval != 0) && (_operationalSlots == 0)) {
-                            bool operational = _source->IsOperational();
-                            _measurement.Operational(operational);
-                            if (operational == false) {
+                            _operational = source->IsOperational();
+                            if (_operational == false) {
                                 status |= NOT_OPERATIONAL;
                                 TRACE(Trace::Error, (_T("Status not operational. %d"), __LINE__));
                             }
                             _operationalSlots = _operationalInterval;
                         }
                         if ((_memoryInterval != 0) && (_memorySlots == 0)) {
-                            _measurement.Measure(_source);
 
-                            if ((_memoryThreshold != 0) && (_measurement.Resident().Last() > _memoryThreshold)) {
+                            uint64_t resident = source->Resident();
+                            uint64_t allocated = source->Allocated();
+                            uint64_t shared = source->Shared();
+                            uint64_t  process = source->Processes();
+
+                            _adminLock.Lock();
+                            _measurement.AddMeasurements(resident, allocated, shared, process);
+                            _adminLock.Unlock();
+
+                            if ((_memoryThreshold != 0) && (resident > _memoryThreshold)) {
                                 status |= EXCEEDED_MEMORY;
                                 TRACE(Trace::Error, (_T("Status MetaData Exceeded. %d"), __LINE__));
                             }
@@ -639,18 +640,20 @@ namespace Plugin {
                 const uint32_t _operationalInterval; //!< Interval (s) to check the monitored processes
                 const uint32_t _memoryInterval; //!<  Interval (s) for a memory measurement.
                 const uint64_t _memoryThreshold; //!< MetaData threshold in bytes for all processes.
-                uint32_t _operationalSlots;
-                uint32_t _memorySlots;
-                uint64_t _nextSlot;
-                uint16_t _restartWindow;
-                Core::Time _restartWindowStart;
-                uint32_t _restartCount;
-                uint8_t _restartLimit;
+                uint32_t _operationalSlots; // does not need protection, only touched in job evaluate
+                uint32_t _memorySlots; // does not need protection, only touched in job evaluate
+                std::atomic<uint64_t> _nextSlot; // no ordering needed, atomic should suffice
+                std::atomic<uint16_t> _restartWindow; // no ordering needed, atomic should suffice
+                Core::Time _restartWindowStart; // only used in job (indirectly), no protection needed
+                uint32_t _restartCount; // only used in job (indirectly), no protection needed
+                std::atomic<uint8_t> _restartLimit; // no ordering needed, atomic should suffice
                 MetaData _measurement;
-                bool _operationalEvaluate;
+                std::atomic<bool> _operational; // no ordering needed, atomic should suffice
+                const bool _operationalEvaluate;
                 Exchange::IMemory* _source;
-                uint32_t _interval; //!< The greatest possible interval to check both memory and processes.
-                bool _active;
+                const uint32_t _interval; //!< The greatest possible interval to check both memory and processes.
+                std::atomic<bool> _active;
+                mutable Core::CriticalSection _adminLock;
             };
 
         public:
@@ -661,8 +664,7 @@ namespace Plugin {
 #pragma warning(disable : 4355)
 #endif
             MonitorObjects(Monitor* parent)
-                : _adminLock()
-                , _monitor()
+                : _monitor()
                 , _job(*this)
                 , _service(nullptr)
                 , _parent(*parent)
@@ -671,7 +673,7 @@ namespace Plugin {
 #ifdef __WINDOWS__
 #pragma warning(default : 4355)
 #endif
-            virtual ~MonitorObjects()
+            ~MonitorObjects() override
             {
                 ASSERT(_monitor.size() == 0);
             }
@@ -686,16 +688,12 @@ namespace Plugin {
                 const uint16_t restartWindow,
                 const uint8_t restartLimit)
             {
-                _adminLock.Lock();
-
-                std::map<string, MonitorObject>::iterator index(_monitor.find(observable));
+                MonitorObjectContainer::iterator index(_monitor.find(observable));
                 if (index != _monitor.end()) {
                     index->second.UpdateRestartLimits(
                         restartWindow,
                         restartLimit);
                 }
-
-                _adminLock.Unlock();
             }
             inline void Open(PluginHost::IShell* service, Core::JSON::ArrayType<Config::Entry>::Iterator& index)
             {
@@ -705,8 +703,6 @@ namespace Plugin {
 
                 _service = service;
                 _service->AddRef();
-
-                _adminLock.Lock();
 
                 while (index.Next() == true) {
                     Config::Entry& element(index.Current());
@@ -724,19 +720,20 @@ namespace Plugin {
                     }
                     SYSLOG(Logging::Startup, (_T("Monitoring: %s (%d,%d)."), callSign.c_str(), (interval / 1000000), (memory / 1000000)));
                     if ((interval != 0) || (memory != 0)) {
-                        _monitor.insert(
-                            std::pair<string, MonitorObject>(callSign, MonitorObject(
-                                element.Operational.Value() >= 0, 
-                                interval, 
-                                memory, 
-                                memoryThreshold, 
-                                baseTime, 
-                                restartWindow, 
-                                restartLimit)));
+
+                        _monitor.emplace(std::piecewise_construct,
+                                         std::forward_as_tuple(callSign),
+                                         std::forward_as_tuple(
+                                            element.Operational.Value() >= 0,
+                                            interval,
+                                            memory,
+                                            memoryThreshold,
+                                            baseTime,
+                                            restartWindow,
+                                            restartLimit)
+                                    );
                     }
                 }
-
-                _adminLock.Unlock();
 
                 _job.Submit();
             }
@@ -746,88 +743,16 @@ namespace Plugin {
 
                 _job.Revoke();
 
-                _adminLock.Lock();
                 _monitor.clear();
-                _adminLock.Unlock();
                 _service->Release();
                 _service = nullptr;
             }
 
-#if (THUNDER_VERSION_MAJOR >= 4)
-#if (THUNDER_VERSION_MINOR == 2)
-            void Activation(const string& name, PluginHost::IShell* service) override
+#ifndef USE_THUNDER_R4
+            void StateChange(PluginHost::IShell* service) override
             {
-               //No Opp
-            }
 
-            void Deactivation(const string& name, PluginHost::IShell* service) override
-            {
-               //No Opp
-            }
-#endif
-            void Activated (const string& callsign, PluginHost::IShell* service) override
-            {
-                _adminLock.Lock();
-
-                std::map<string, MonitorObject>::iterator index(_monitor.find(callsign));
-                
-
-                if (index != _monitor.end()) {
-
-                    index->second.Active(true);
-
-                    if (_job.Submit() == true) {
-                        TRACE(Trace::Information, (_T("Starting to probe as active observee appeared.")));
-                    }
-
-                    // Get the MetaData interface
-                    Exchange::IMemory* memory = service->QueryInterface<Exchange::IMemory>();
-
-                    if (memory != nullptr) {
-                        index->second.Set(memory);
-                        memory->Release();
-                    }
-                }
-
-                _adminLock.Unlock();
-            }
-            void Deactivated (const string& callsign, PluginHost::IShell* service) override
-            {
-                _adminLock.Lock();
-
-                std::map<string, MonitorObject>::iterator index(_monitor.find(callsign));
-
-                if (index != _monitor.end()) {
-
-                    index->second.Set(nullptr);
-                    index->second.Active(false);
-                    if ((index->second.HasRestartAllowed() == true) && ((service->Reason() == PluginHost::IShell::MEMORY_EXCEEDED) || (service->Reason() == PluginHost::IShell::FAILURE))) {
-                        if (index->second.RegisterRestart(service->Reason()) == false) {
-                            TRACE(Trace::Fatal, (_T("Giving up restarting of %s: Failed more than %d times within %d seconds."), callsign.c_str(), index->second.RestartLimit(), index->second.RestartWindow()));
-                            const string message("{\"callsign\": \"" + callsign + "\", \"action\": \"Restart\", \"reason\":\"" + (std::to_string(index->second.RestartLimit())).c_str() + " Attempts Failed within the restart window\"}");
-                            _service->Notify(message);
-                            _parent.event_action(callsign, "StoppedRestaring", std::to_string(index->second.RestartLimit()) + " attempts failed within the restart window");
-                        } else {
-                            const string message("{\"callsign\": \"" + callsign + "\", \"action\": \"Activate\", \"reason\": \"Automatic\" }");
-                            _service->Notify(message);
-                            _parent.event_action(callsign, "Activate", "Automatic");
-                            TRACE(Trace::Error, (_T("Restarting %s again because we detected it misbehaved."), callsign.c_str()));
-                            Core::IWorkerPool::Instance().Schedule(Core::Time::Now(), PluginHost::IShell::Job::Create(service, PluginHost::IShell::ACTIVATED, PluginHost::IShell::AUTOMATIC));
-                        }
-                    }
-                }
-
-                _adminLock.Unlock();
-            }
-            void Unavailable(const string&, PluginHost::IShell*) override
-            {
-            }
-#else
-            virtual void StateChange(PluginHost::IShell* service)
-            {
-                _adminLock.Lock();
-
-                std::map<string, MonitorObject>::iterator index(_monitor.find(service->Callsign()));
+                MonitorObjectContainer::iterator index(_monitor.find(service->Callsign()));
 
                 if (index != _monitor.end()) {
 
@@ -837,7 +762,7 @@ namespace Plugin {
                     if (currentState == PluginHost::IShell::ACTIVATED) {
                         bool is_active = index->second.IsActive();
                         index->second.Active(true);
-                        if (is_active == false && std::count_if(_monitor.begin(), _monitor.end(), [](const std::pair<string, MonitorObject>& v) {
+                        if (is_active == false && std::count_if(_monitor.begin(), _monitor.end(), [](const std::pair<const string, MonitorObject>& v) {
                                 return v.second.IsActive();
                             }) == 1) {
 
@@ -883,101 +808,147 @@ namespace Plugin {
                         }
                     }
                 }
+            }
 
-                _adminLock.Unlock();
+#else
+            void Activated (const string& callsign, PluginHost::IShell* service) override
+            {
+                MonitorObjectContainer::iterator index(_monitor.find(callsign));
+
+                if (index != _monitor.end()) {
+
+                    index->second.Active(true);
+
+                    // Get the MetaData interface
+                    Exchange::IMemory* memory = service->QueryInterface<Exchange::IMemory>();
+
+                    if (memory != nullptr) {
+                        index->second.Set(memory);
+                        memory->Release();
+                    }
+
+                    if (_job.Submit() == true) {
+                        TRACE(Trace::Information, (_T("Starting to probe as active observee appeared.")));
+                    }
+                }
+            }
+            void Deactivated (const string& callsign, PluginHost::IShell* service) override
+            {
+                MonitorObjectContainer::iterator index(_monitor.find(callsign));
+
+                if (index != _monitor.end()) {
+
+                    index->second.Set(nullptr);
+                    index->second.Active(false);
+
+                    PluginHost::IShell::reason reason = service->Reason();
+
+                    if ((index->second.HasRestartAllowed() == true) && ((reason == PluginHost::IShell::MEMORY_EXCEEDED) || (reason == PluginHost::IShell::FAILURE))) {
+                        if (index->second.RegisterRestart(reason) == false) {
+                            uint8_t restartlimit = index->second.RestartLimit();
+                            uint16_t restartwindow = index->second.RestartWindow();
+                            TRACE(Trace::Fatal, (_T("Giving up restarting of %s: Failed more than %d times within %d seconds."), callsign.c_str(), restartlimit, restartwindow));
+                            const string message("{\"callsign\": \"" + callsign + "\", \"action\": \"Restart\", \"reason\":\"" + (std::to_string(restartlimit)).c_str() + " Attempts Failed within the restart window\"}");
+                            _service->Notify(message);
+                            _parent.event_action(callsign, "StoppedRestaring", std::to_string(index->second.RestartLimit()) + " attempts failed within the restart window");
+                        } else {
+                            const string message("{\"callsign\": \"" + callsign + "\", \"action\": \"Activate\", \"reason\": \"Automatic\" }");
+                            _service->Notify(message);
+                            _parent.event_action(callsign, "Activate", "Automatic");
+                            TRACE(Trace::Error, (_T("Restarting %s again because we detected it misbehaved."), callsign.c_str()));
+                            Core::IWorkerPool::Instance().Submit(PluginHost::IShell::Job::Create(service, PluginHost::IShell::ACTIVATED, PluginHost::IShell::AUTOMATIC));
+                        }
+                    }
+                }
+            }
+            void Unavailable(const string&, PluginHost::IShell*) override
+            {
             }
 #endif
-            void Snapshot(Core::JSON::ArrayType<Monitor::Data>& snapshot)
+            void Snapshot(Core::JSON::ArrayType<Monitor::Data>& snapshot) const
             {
-                _adminLock.Lock();
-
-                std::map<string, MonitorObject>::iterator element(_monitor.begin());
+                MonitorObjectContainer::const_iterator element(_monitor.cbegin());
 
                 // Go through the list of observations...
-                while (element != _monitor.end()) {
-                    if (element->second.HasMeasurement() == true) {
-                        snapshot.Add(Monitor::Data(element->first, element->second.Measurement()));
+                while (element != _monitor.cend()) {
+                    MetaData data = element->second.Measurement();
+                    if (data.HasMeasurements() == true) {
+                        snapshot.Add(Monitor::Data(element->first, data, element->second.Operational()));
                     }
                     element++;
                 }
 
-                _adminLock.Unlock();
             }
-            bool Snapshot(const string& name, Monitor::MetaData& result)
+            bool Snapshot(const string& name, Monitor::MetaData& result, bool& operational) const
             {
                 bool found = false;
 
-                _adminLock.Lock();
 
-                std::map<string, MonitorObject>::iterator index(_monitor.find(name));
+                MonitorObjectContainer::const_iterator index(_monitor.find(name));
 
-                if (index != _monitor.end()) {
-                    if (index->second.HasMeasurement() == true) {
-                        result = index->second.Measurement();
+                if (index != _monitor.cend()) {
+                    MetaData data = index->second.Measurement();
+                    if (data.HasMeasurements() == true) {
+                        result = data;
+                        operational = index->second.Operational();
                         found = true;
                     }
                 }
 
-                _adminLock.Unlock();
-
                 return (found);
             }
 
-            void Snapshot(const string& callsign, Core::JSON::ArrayType<JsonData::Monitor::InfoInfo>* response)
+            void AddElementToResponse( Core::JSON::ArrayType<JsonData::Monitor::InfoInfo>& response, const string& callsign, const MonitorObject& object) const {
+                const MetaData& metaData = object.Measurement();
+                JsonData::Monitor::InfoInfo info;
+                info.Observable = callsign;
+
+                if (object.HasRestartAllowed()) {
+                    info.Restart.Limit = object.RestartLimit();
+                    info.Restart.Window = object.RestartWindow();
+                }
+
+                if (metaData.HasMeasurements() == true) {
+                    translate(metaData.Allocated(), &info.Measurements.Allocated);
+                    translate(metaData.Resident(), &info.Measurements.Resident);
+                    translate(metaData.Shared(), &info.Measurements.Shared);
+                    translate(metaData.Process(), &info.Measurements.Process);
+                }
+                info.Measurements.Operational = object.Operational();
+                info.Measurements.Count = metaData.Allocated().Measurements();
+
+                response.Add(info);
+            };
+
+            void Snapshot(const string& callsign, Core::JSON::ArrayType<JsonData::Monitor::InfoInfo>* response) const
             {
-                _adminLock.Lock();
 
-                auto AddElement = [this, &response](const string& callsignE, MonitorObject& object) {
-                    const MetaData& metaData = object.Measurement();
-                    JsonData::Monitor::InfoInfo info;
-                    info.Observable = callsignE;
-
-                    if (object.HasRestartAllowed()) {
-                        info.Restart.Limit = object.RestartLimit();
-                        info.Restart.Window = object.RestartWindow();
-                    }
-
-                    if (object.HasMeasurement()) {
-                        translate(metaData.Allocated(), &info.Measurements.Allocated);
-                        translate(metaData.Resident(), &info.Measurements.Resident);
-                        translate(metaData.Shared(), &info.Measurements.Shared);
-                        translate(metaData.Process(), &info.Measurements.Process);
-                    }
-                    info.Measurements.Operational = metaData.Operational();
-                    info.Measurements.Count = metaData.Allocated().Measurements();
-
-                    response->Add(info);
-                };
+                ASSERT(response != nullptr);
 
                 if (callsign.empty() == false) {
                     auto element = _monitor.find(callsign);
                     if (element != _monitor.end()) {
-                        AddElement(element->first, element->second);
+                        AddElementToResponse(*response, element->first, element->second);
                     }
                 } else {
                     for (auto& element : _monitor) {
-                        AddElement(element.first, element.second);
+                        AddElementToResponse(*response, element.first, element.second);
                     }
                 }
-
-                _adminLock.Unlock();
             }
 
-            bool Reset(const string& name, Monitor::MetaData& result)
+            bool Reset(const string& name, Monitor::MetaData& result, bool& operational)
             {
                 bool found = false;
 
-                _adminLock.Lock();
-
-                std::map<string, MonitorObject>::iterator index(_monitor.find(name));
+                MonitorObjectContainer::iterator index(_monitor.find(name));
 
                 if (index != _monitor.end()) {
                     result = index->second.Measurement();
+                    operational = index->second.Operational();
                     index->second.Reset();
                     found = true;
                 }
-
-                _adminLock.Unlock();
 
                 return (found);
             }
@@ -986,16 +957,12 @@ namespace Plugin {
             {
                 bool found = false;
 
-                _adminLock.Lock();
-
-                std::map<string, MonitorObject>::iterator index(_monitor.find(name));
+                MonitorObjectContainer::iterator index(_monitor.find(name));
 
                 if (index != _monitor.end()) {
                     index->second.Reset();
                     found = true;
                 }
-
-                _adminLock.Unlock();
 
                 return (found);
             }
@@ -1012,10 +979,7 @@ namespace Plugin {
                 uint64_t scheduledTime(Core::Time::Now().Ticks());
                 uint64_t nextSlot(static_cast<uint64_t>(~0));
 
-                // Other methods (like StateChange()) can modify internals of MonitorObjects elements that is not thread safe
-                _adminLock.Lock();
-
-                std::map<string, MonitorObject>::iterator index(_monitor.begin());
+                MonitorObjectContainer::iterator index(_monitor.begin());
 
                 // Go through the list of pending observations...
                 while (index != _monitor.end()) {
@@ -1036,6 +1000,7 @@ namespace Plugin {
 
                                 const string message("{\"callsign\": \"" + plugin->Callsign() + "\", \"action\": \"Deactivate\", \"reason\": \"" + why.Data() + "\" }");
                                 SYSLOG(Logging::Fatal, (_T("FORCED Shutdown: %s by reason: %s."), plugin->Callsign().c_str(), why.Data()));
+
                                 _service->Notify(message);
 
                                 _parent.event_action(plugin->Callsign(), "Deactivate", why.Data());
@@ -1055,8 +1020,6 @@ namespace Plugin {
                     index++;
                 }
 
-                _adminLock.Unlock();
-
                 if (nextSlot != static_cast<uint64_t>(~0)) {
                     if (nextSlot < Core::Time::Now().Ticks()) {
                         _job.Submit();
@@ -1075,16 +1038,20 @@ namespace Plugin {
 
         private:
             template <typename T>
-            void translate(const Core::MeasurementType<T>& from, JsonData::Monitor::MeasurementInfo* to)
+            void translate(const Core::MeasurementType<T>& from, JsonData::Monitor::MeasurementInfo* to) const
             {
+                ASSERT(to != nullptr);
                 to->Min = from.Min();
                 to->Max = from.Max();
                 to->Average = from.Average();
                 to->Last = from.Last();
             }
 
-            Core::CriticalSection _adminLock;
-            std::map<string, MonitorObject> _monitor;
+        private:
+
+            using MonitorObjectContainer = std::unordered_map<string, MonitorObject>;
+
+            MonitorObjectContainer _monitor;
             Core::WorkerPool::JobType<MonitorObjects&> _job;
             PluginHost::IShell* _service;
             Monitor& _parent;
@@ -1096,18 +1063,13 @@ namespace Plugin {
 #endif
         Monitor()
             : _skipURL(0)
-            , _monitor(Core::Service<MonitorObjects>::Create<MonitorObjects>(this))
+            , _monitor(this)
         {
-            RegisterAll();
         }
 #ifdef __WINDOWS__
 #pragma warning(default : 4355)
 #endif
-        virtual ~Monitor()
-        {
-            UnregisterAll();
-            _monitor->Release();
-        }
+        ~Monitor() = default;
 
         BEGIN_INTERFACE_MAP(Monitor)
         INTERFACE_ENTRY(PluginHost::IPlugin)
@@ -1125,38 +1087,34 @@ namespace Plugin {
         // If there is an error, return a string describing the issue why the initialisation failed.
         // The Service object is *NOT* reference counted, lifetime ends if the plugin is deactivated.
         // The lifetime of the Service object is guaranteed till the deinitialize method is called.
-        virtual const string Initialize(PluginHost::IShell* service);
+        const string Initialize(PluginHost::IShell* service) override;
 
         // The plugin is unloaded from WPEFramework. This is call allows the module to notify clients
         // or to persist information if needed. After this call the plugin will unlink from the service path
         // and be deactivated. The Service object is the same as passed in during the Initialize.
         // After theis call, the lifetime of the Service object ends.
-        virtual void Deinitialize(PluginHost::IShell* service);
+        void Deinitialize(PluginHost::IShell* service) override;
 
         // Returns an interface to a JSON struct that can be used to return specific metadata information with respect
         // to this plugin. This Metadata can be used by the MetData plugin to publish this information to the ouside world.
-        virtual string Information() const;
+        string Information() const override;
 
         //  IWeb methods
         // -------------------------------------------------------------------------------------------------------
         // Whenever a request is received, it might carry some additional data in the body. This method allows
         // the plugin to attach a deserializable data object (ref counted) to be loaded with any potential found
         // in the body of the request.
-        virtual void Inbound(Web::Request& request);
+        void Inbound(Web::Request& request) override;
 
         // If everything is received correctly, the request is passed on to us, through a thread from the thread pool, to
         // do our thing and to return the result in the response object. Here the actual specific module work,
         // based on a a request is handled.
-        virtual Core::ProxyType<Web::Response> Process(const Web::Request& request);
-
-    private:
-        bool Activated(const string& className, const string& callSign, IPlugin* plugin);
-        bool Deactivated(const string& className, const string& callSign, IPlugin* plugin);
+        Core::ProxyType<Web::Response> Process(const Web::Request& request) override;
 
     private:
         uint8_t _skipURL;
         Config _config;
-        MonitorObjects* _monitor;
+        Core::Sink<MonitorObjects> _monitor;
 
     private:
         void RegisterAll();

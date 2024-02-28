@@ -53,7 +53,7 @@ namespace Plugin {
     uint32_t Monitor::endpoint_restartlimits(const RestartlimitsParamsData& params)
     {
         const string& callsign = params.Callsign.Value();
-        _monitor->Update(
+        _monitor.Update(
             callsign,
             params.Restart.Window.Value(), params.Restart.Limit.Value());
         return Core::ERROR_NONE;
@@ -67,9 +67,9 @@ namespace Plugin {
         const string& callsign = params.Callsign.Value();
 
         Core::JSON::ArrayType<InfoInfo> info;
-        _monitor->Snapshot(callsign, &info);
+        _monitor.Snapshot(callsign, &info);
         if (info.Length() == 1) {
-            _monitor->Reset(callsign);
+            _monitor.Reset(callsign);
             response = info[0];
         }
         return Core::ERROR_NONE;
@@ -81,7 +81,7 @@ namespace Plugin {
     uint32_t Monitor::get_status(const string& index, Core::JSON::ArrayType<InfoInfo>& response) const
     {
         const string& callsign = index;
-        _monitor->Snapshot(callsign, &response);
+        _monitor.Snapshot(callsign, &response);
         return Core::ERROR_NONE;
     }
 
