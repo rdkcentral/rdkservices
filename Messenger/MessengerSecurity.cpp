@@ -126,6 +126,7 @@ namespace Plugin {
 
                 if (!aclSet) {
                     TRACE(Trace::Information, (_T("Joining room '%s' w/o ACL"), room.c_str()));
+                    ASSERT(_service != nullptr);
 
                     if (!settingAcl || index.Count() == 0) {
                         TRACE(Trace::Error, (_T("ACL is empty")));
