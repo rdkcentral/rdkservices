@@ -36,7 +36,10 @@
 #if defined(PLATFORM_AMLOGIC)
 #include "audio_if.h"
 #elif defined(PLATFORM_REALTEK)
-#include "RtkHALMisc.h" 
+#include "RtkHALMisc.h"
+#elif defined(PLATFORM_BROADCOM)
+#include <nexus_config.h>
+#include <nxclient.h> 
 #endif
 // --- //
 
@@ -152,6 +155,8 @@ private:
     bool        m_pcmAudioEnabled;
 #if defined(PLATFORM_AMLOGIC)
     audio_hw_device_t *m_audio_dev;
+#elif defined(PLATFORM_BROADCOM)
+    bool m_inNexus;
 #endif
     enum MixGain {
         MIXGAIN_PRIM,
@@ -167,6 +172,8 @@ private:
 
 #if defined(PLATFORM_AMLOGIC)
     bool loadInitAudioDev();
+#elif defined(PLATFORM_BROADCOM)
+    bool loadInitNexus();
 #endif
     void setMixGain(MixGain gain, int val);
     static void GStreamerThreadFunc(void *ctx);
