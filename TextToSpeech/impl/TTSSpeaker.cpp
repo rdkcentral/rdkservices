@@ -665,6 +665,17 @@ void TTSSpeaker::setMixGain(MixGain gain, int volume)
      }
 #elif defined(PLATFORM_REALTEK)
     hal_set_audio_volume(volume);	
+#elif defined(PLATFORM_BROADCOM)
+    if (gain == MIXGAIN_PRIM) {
+    #if defined(NXCLIENT_MAIN_AUDIO_DECODER_VOLUME_SUPPORT)
+        NxClient_AudioSettings audioSettings;
+
+        TTSLOG_WARNING("BRCM setMixGain gain=%d volume=%d",gain,volume);
+        NxClient_GetAudioSettings(&audioSettings);
+        audioSettings.primaryDecoderVolume = volume;
+        NxClient_SetAudioSettings(&audioSettings);
+    #endif
+    }
 #endif
 }
 
@@ -991,7 +1002,7 @@ void TTSSpeaker::play(string url, SpeechData &data, bool authrequired, string to
 
     gst_element_set_state(m_pipeline, GST_STATE_PLAYING);
 
-    #if defined(PLATFORM_AMLOGIC) || defined(PLATFORM_REALTEK)
+    #if defined(PLATFORM_AMLOGIC) || defined(PLATFORM_REALTEK) || defined(PLATFORM_BROADCOM)
     setMixGain(MIXGAIN_PRIM,data.primVolDuck);
     #endif
     TTSLOG_VERBOSE("Speaking.... ( %d, \"%s\")", data.id, data.text.c_str());
@@ -1101,7 +1112,7 @@ void TTSSpeaker::GStreamerThreadFunc(void *ctx) {
 
 	// when not speaking, set primary mixgain back to default.
 	if(speaker->m_flushed || speaker->m_networkError || !speaker->m_pipeline || speaker->m_pipelineError) {
-           #if defined(PLATFORM_AMLOGIC) || defined(PLATFORM_REALTEK)
+           #if defined(PLATFORM_AMLOGIC) || defined(PLATFORM_REALTEK) || defined(PLATFORM_BROADCOM)
 	   speaker->setMixGain(MIXGAIN_PRIM,100);
            #endif
         }
@@ -1113,7 +1124,7 @@ void TTSSpeaker::GStreamerThreadFunc(void *ctx) {
         else if(!speaker->m_pipeline || speaker->m_pipelineError)
             data.client->playbackerror(data.id, data.callsign);
         else {
-            #if defined(PLATFORM_AMLOGIC) || defined(PLATFORM_REALTEK)
+            #if defined(PLATFORM_AMLOGIC) || defined(PLATFORM_REALTEK) || defined(PLATFORM_BROADCOM)
 	    speaker->setMixGain(MIXGAIN_PRIM,100);
             #endif
             data.client->spoke(data.id, data.callsign, data.text);
@@ -1209,7 +1220,7 @@ bool TTSSpeaker::handleMessage(GstMessage *message) {
                         if(m_isPaused) {
                             m_isPaused = false;
 			    // -12db is almost 25%
-                            #if defined(PLATFORM_AMLOGIC) || defined(PLATFORM_REALTEK)
+                            #if defined(PLATFORM_AMLOGIC) || defined(PLATFORM_REALTEK) || defined(PLATFORM_BROADCOM)
                             setMixGain(MIXGAIN_PRIM,m_currentSpeech->primVolDuck);
                             #endif
                             m_clientSpeaking->resumed(m_currentSpeech->id, m_currentSpeech->callsign);
@@ -1221,7 +1232,7 @@ bool TTSSpeaker::handleMessage(GstMessage *message) {
                 } else if (oldstate == GST_STATE_PLAYING && newstate == GST_STATE_PAUSED) {
                     std::lock_guard<std::mutex> lock(m_stateMutex);
                     if(m_clientSpeaking && m_isPaused) {
-                        #if defined(PLATFORM_AMLOGIC) || defined(PLATFORM_REALTEK)
+                        #if defined(PLATFORM_AMLOGIC) || defined(PLATFORM_REALTEK) || defined(PLATFORM_BROADCOM)
 			setMixGain(MIXGAIN_PRIM,100);
                         #endif
                         m_clientSpeaking->paused(m_currentSpeech->id, m_currentSpeech->callsign);
