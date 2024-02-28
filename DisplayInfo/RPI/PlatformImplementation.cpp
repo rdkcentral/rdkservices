@@ -47,6 +47,7 @@ public:
         , _audioPassthrough(false)
         , _EDID()
         , _value(HDCP_Unencrypted)
+        , _observers()
         , _adminLock()
         , _activity(*this) {
 
@@ -256,7 +257,7 @@ public:
         return (Core::ERROR_UNAVAILABLE);
     }
 
-    virtual uint32_t EOTF(EotfType&) const override
+    uint32_t EOTF(EotfType&) const override
     {
         return (Core::ERROR_UNAVAILABLE);
     }
