@@ -23,7 +23,7 @@ find_package(WPEFramework)
 
 project_version(1.0.0)
 
-set(PLUGIN_NAME PlayerInfo)
+set(PLUGIN_NAME ${PROJECT_NAME})
 set(MODULE_NAME ${NAMESPACE}${PROJECT_NAME})
 
 message("Setup ${MODULE_NAME} v${PROJECT_VERSION}")
@@ -81,30 +81,34 @@ if (GSTREAMER_FOUND)
         target_sources(${MODULE_NAME}
             PRIVATE
                 GStreamer/PlatformImplementation.cpp)
-
-        if (DOLBY_SUPPORT)
-            target_sources(${MODULE_NAME}
-                PRIVATE
-                    ${CMAKE_CURRENT_LIST_DIR}/Dolby/DolbyOutput.cpp)
-
-            target_include_directories(${MODULE_NAME}
-                PRIVATE
-                    ${CMAKE_CURRENT_LIST_DIR}/Dolby/include)
-
-            target_compile_definitions(${MODULE_NAME}
-                PRIVATE
-                    DOLBY_SUPPORT=1)
-
-            add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/Dolby)
-
-            target_link_libraries(${MODULE_NAME}
-                PRIVATE
-                    PlayerInfoDolby)
-        endif()
     endif ()
 endif ()
+
+if (DOLBY_SUPPORT)
+    target_sources(${MODULE_NAME}
+        PRIVATE
+            ${CMAKE_CURRENT_LIST_DIR}/Dolby/DolbyOutput.cpp)
+
+    target_include_directories(${MODULE_NAME}
+        PRIVATE
+            ${CMAKE_CURRENT_LIST_DIR}/Dolby/include)
+
+    target_compile_definitions(${MODULE_NAME}
+        PRIVATE
+            DOLBY_SUPPORT=1)
+
+    add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/Dolby)
+
+    target_link_libraries(${MODULE_NAME}
+        PRIVATE
+            PlayerInfoDolby)
+endif()
 
 install(TARGETS ${MODULE_NAME}
     DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
 
-write_config(${PROJECT_NAME})
+if(USE_THUNDER_R4)
+    write_config()
+else()
+    write_config(${PROJECT_NAME})
+endif(USE_THUNDER_R4)
