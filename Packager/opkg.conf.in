@@ -1,6 +1,6 @@
-src/gz snapshots http://yoctobuild.metrological.com/snapshots/vodafone
-src/gz local file:///hdd/cache/packages
-dest root /
-dest ram /tmp
-lists_dir ext /var/opkg-lists
-option overlay_root /overlay
+dest root /tmp
+option lists_dir /tmp/opkg/lists
+option lock_file /run/opkg/opkg.lock
+option connect_timeout_ms 30000
+option transfer_timeout_ms 600000
+option follow_location 1

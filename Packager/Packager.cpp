@@ -53,45 +53,71 @@ namespace {
         ASSERT (service != nullptr);
 
         _service = service;
+        _service->AddRef();
         _skipURL = static_cast<uint8_t>(service->WebPrefix().length());
         _service->Register(&_notification);
 
-         string result;
+        string result;
         _implementation = _service->Root<Exchange::IPackager>(_connectionId, 2000, _T("PackagerImplementation"));
         if (_implementation == nullptr) {
-            result = _T("Couldn't create package instance");
-            _service->Unregister(&_notification);
-        } else if (_implementation->Configure(_service) != Core::ERROR_NONE) {
-            result = _T("Couldn't initialize package instance");
-            _service->Unregister(&_notification);
+            result = _T("Couldn't create PACKAGER instance ");
+        } else {
+            Register<Params, void>(kInstallMethodName, [this](const Params& params) -> uint32_t {
+                return this->_implementation->Install(params.Package.Value(), params.Version.Value(),
+                                                                 params.Architecture.Value());
+            });
+            Register<void, void>(kSynchronizeMethodName, [this]() -> uint32_t {
+                return this->_implementation->SynchronizeRepository();
+            });
+
+            if (_implementation->Configure(_service) != Core::ERROR_NONE) {
+                result = _T("Couldn't initialize PACKAGER instance");
+            }
         }
+
+#ifndef USE_THUNDER_R4
+        if (result.length() != 0) {
+            Deinitialize(service);
+        }
+#endif
 
         return (result);
     }
 
     void Packager::Deinitialize(PluginHost::IShell* service)
     {
-        ASSERT(_service == service);
+        if (_service != nullptr) {
+            ASSERT(_service == service);
 
-        _service->Unregister(&_notification);
+            _service->Unregister(&_notification);
 
-        if (_implementation->Release() != Core::ERROR_DESTRUCTION_SUCCEEDED) {
+            if (_implementation != nullptr) {
+                Unregister(kInstallMethodName);
+                Unregister(kSynchronizeMethodName);
 
-            ASSERT(_connectionId != 0);
+                RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
 
-            RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
+                uint32_t result = _implementation->Release();
+                _implementation = nullptr;
+                // It should have been the last reference we are releasing,
+                // so it should end up in a DESCRUCTION_SUCCEEDED, if not we
+                // are leaking ...
+                ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
 
-            // The process can disappear in the meantime...
-            if (connection != nullptr) {
-
-                // But if it did not dissapear in the meantime, forcefully terminate it. Shoot to kill :-)
-                connection->Terminate();
-                connection->Release();
+                // If this was running in a (container) process ...
+                if (connection != nullptr) {
+                    // Lets trigger the cleanup sequence for
+                    // out-of-process code. Will will guard
+                    // that unwilling processes, get shot if
+                    // not stopped friendly :~)
+                    connection->Terminate();
+                    connection->Release();
+                }
             }
+            _service->Release();
+            _service = nullptr;
+            _connectionId = 0;
         }
-
-        _service = nullptr;
-        _implementation = nullptr;
     }
 
     string Packager::Information() const
@@ -99,7 +125,7 @@ namespace {
         return (string());
     }
 
-    void Packager::Inbound(Web::Request& request)
+    void Packager::Inbound(Web::Request&)
     {
     }
 
@@ -154,6 +180,7 @@ namespace {
 
     void Packager::Deactivated(RPC::IRemoteConnection* connection)
     {
+        ASSERT(connection != nullptr);
         if (connection->Id() == _connectionId) {
             ASSERT(_service != nullptr);
             Core::IWorkerPool::Instance().Submit(PluginHost::IShell::Job::Create(_service,

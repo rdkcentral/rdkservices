@@ -58,9 +58,10 @@ namespace Plugin {
         uint32_t result = Core::ERROR_NONE;
         Config config;
 
-        ASSERT (_servicePI == nullptr);
-        _servicePI = service;
-        _servicePI->AddRef();
+        ASSERT(_service == nullptr);
+        ASSERT(service != nullptr);
+        _service = service;
+        _service->AddRef();
 
         config.FromString(service->ConfigLine());
 
@@ -122,8 +123,9 @@ namespace Plugin {
     PackagerImplementation::~PackagerImplementation()
     {
         FreeOPKG();
-        _servicePI->Release();
-        _servicePI = nullptr;
+        ASSERT(_service != nullptr);
+        _service->Release();
+        _service = nullptr;
     }
 
     void PackagerImplementation::Register(Exchange::IPackager::INotification* notification)
@@ -202,6 +204,8 @@ namespace Plugin {
         if (command) {
             _inProgress.Install->SetState(Exchange::IPackager::INSTALLING);
             NotifyStateChange();
+
+            ASSERT(opkg_config != nullptr);
             opkg_config->pfm = command->pfm;
             std::unique_ptr<char[]> targetCopy(new char [_inProgress.Package->Name().length() + 1]);
             std::copy_n(_inProgress.Package->Name().begin(), _inProgress.Package->Name().length(), targetCopy.get());
@@ -252,6 +256,8 @@ namespace Plugin {
     /* static */ void PackagerImplementation::InstallationProgessNoLock(const opkg_progress_data_t* progress,
                                                                         void* data)
     {
+        ASSERT(data != nullptr);
+        ASSERT(progress != nullptr);
         PackagerImplementation* self = static_cast<PackagerImplementation*>(data);
         self->_inProgress.Install->SetProgress(progress->percentage);
         if (progress->action == OPKG_INSTALL &&
@@ -281,135 +287,82 @@ namespace Plugin {
             self->_inProgress.Install->SetState(Exchange::IPackager::INSTALLED);
             self->NotifyStateChange();
             self->_inProgress.Install->SetAppName(progress->pkg->local_filename);
-            string mfilename = self->GetMetadataFile(self->_inProgress.Install->AppName());
-            string callsign = self->GetCallsign(mfilename);
-            if(!callsign.empty()) {
-                self->DeactivatePlugin(callsign, self->_inProgress.Install->AppName());
+            string callsign = self->GetCallsignFromMetaDataFile(self->_inProgress.Install->AppName());
+            if (!callsign.empty()) {
+                self->DeactivatePlugin(callsign);
             }
         }
     }
 #endif
 
-    string PackagerImplementation::GetMetadataFile(const string& appName)
-    {
-        char *dnld_loc = opkg_config->cache_dir;
-        string mfilename = string(dnld_loc) + "/" + appName + "/etc/apps/" + appName + "_package.json";
-        return mfilename;
-    }
-
-    string PackagerImplementation::GetCallsign(const string& mfilename)
+    string PackagerImplementation::GetCallsignFromMetaDataFile(const string& appName)
     {
         string callsign = "";
-        TRACE(Trace::Information, (_T("[Packager]: Metadata is %s"),mfilename.c_str()));
-        Core::File file(mfilename);
-        if(file.Open()) {
-            JsonObject parameters;
-            if(parameters.IElement::FromFile(file)) {
-                if(parameters.HasLabel("type")) {
-                    string type = parameters["type"].String();
-                    if( 0 == type.compare("plugin")) {
-                        if(parameters.HasLabel("callsign")) {
-                            callsign = parameters["callsign"].String();
+
+        ASSERT(opkg_config != nullptr);
+        string metaDataFileName = (string(opkg_config->cache_dir) + "/" + appName + string(AppPath) + appName + string(PackageJSONFile));
+        TRACE(Trace::Information, (_T("[RDM]: Metadata is %s"), metaDataFileName.c_str()));
+        Core::File metaDataFile(metaDataFileName);
+        if (metaDataFile.Open()) {
+            MetaData metaData;
+            Core::OptionalType<Core::JSON::Error> error;
+            if (metaData.IElement::FromFile(metaDataFile, error)) {
+                if (error.IsSet() == true) {
+                    TRACE(Trace::Error, (_T("Parsing failed with %s"), ErrorDisplayMessage(error.Value()).c_str()));
+                } else {
+                    if ((metaData.Type.IsSet() == true) && (metaData.Type.Value() == PackagerImplementation::PackageType::PLUGIN)) {
+                        if (metaData.Callsign.IsSet() == true) {
+                            callsign = metaData.Callsign.Value();
+                        } else {
+                            TRACE(Trace::Information, (_T("[RDM]: callsign missing in metadata")));
                         }
-                        else {
-                            TRACE(Trace::Information, (_T("[Packager]: callsign missing in metadata")));
-                        }
-                    }
-                    else {
-                        TRACE(Trace::Information, (_T("[Packager]: Package does not contain thunder plugin")));
+                    } else {
+                        TRACE(Trace::Information, (_T("[RDM]: MetaData file does not contain plugin type")));
                     }
                 }
-                else {
-                    TRACE(Trace::Information, (_T("[Packager]: Metadata type not found")));
-                }
             }
-            else {
-                TRACE(Trace::Error, (_T("[Packager]: Error in reading the file")));
-            }
-        }
-        else {
-            TRACE(Trace::Error, (_T("[Packager]: Error in opening the file")));
+        } else {
+            TRACE(Trace::Error, (_T("[RDM]: Error in opening the file")));
         }
         return callsign;
     }
 
-    string PackagerImplementation::GetInstallationPath(const string& appname)
+    void PackagerImplementation::DeactivatePlugin(const string& callsign)
     {
-        char *dnld_loc = opkg_config->cache_dir;
-        string instPath = string(dnld_loc) + "/" + appname;
-        return instPath;
-    }
-
-    uint32_t PackagerImplementation::UpdateConfiguration(const string& callsign, const string& installPath)
-    {
-        uint32_t result = Core::ERROR_GENERAL;
+        ASSERT(_service != nullptr);
         ASSERT(callsign.empty() == false);
-        ASSERT(_servicePI != nullptr);
 
-        PluginConfig pluginconfig;
+        TRACE(Trace::Information, (_T("[RDM]: callsign from metadata is %s"), callsign.c_str()));
+        PluginHost::IShell* plugin = _service->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
 
-        PluginHost::IShell* shell = _servicePI->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
-        if (shell != nullptr) {
-            if (shell->SystemRootPath(installPath)  == Core::ERROR_NONE) {
-                TRACE(Trace::Information, (_T("[Packager]: SystemRootPath for %s is %s"), callsign.c_str(), shell->SystemRootPath().c_str()));
-
-                PluginHost::IController* controller = _servicePI->QueryInterfaceByCallsign<PluginHost::IController>(EMPTY_STRING);
-                if (controller != nullptr) {
-                    if (controller->Persist() == Core::ERROR_NONE) {
-                        result = Core::ERROR_NONE;
-                        TRACE(Trace::Information, (_T("[Packager]: Successfully stored %s plugin's config in peristent path"), callsign.c_str()));
-                    }
-                    controller->Release();
+        if (plugin != nullptr) {
+            PluginHost::IShell::state currentState(plugin->State());
+            if ((currentState == PluginHost::IShell::ACTIVATED) || (currentState == PluginHost::IShell::ACTIVATION) || (currentState == PluginHost::IShell::PRECONDITION)) {
+                TRACE(Trace::Information, (_T("[RDM]: Plugin %s is activated state, so deactivating"), callsign.c_str()));
+                uint32_t result = plugin->Deactivate(PluginHost::IShell::REQUESTED);
+                if (result == Core::ERROR_NONE) {
+                    TRACE(Trace::Information, (_T("[RDM]: %s moved to Deactivated state"), callsign.c_str()));
                 }
                 else {
-                    TRACE(Trace::Error, (_T("[Packager]: Failed to find Controller interface")));
+                    TRACE(Trace::Error, (_T("[RDM]: Failed to move %s to Deactivated state"), callsign.c_str()));
                 }
-            }
-            shell->Release();
-        }
-        else {
-            TRACE(Trace::Error, (_T("[Packager]: Failed to find Shell interface")));
-        }
-        return result;
-    }
-
-    void PackagerImplementation::DeactivatePlugin(const string& callsign, const string& appName)
-    {
-        ASSERT(callsign.empty() == false);
-        ASSERT(_servicePI != nullptr);
-        TRACE(Trace::Information, (_T("[Packager]: callsign from metadata is %s"), callsign.c_str()));
-        PluginHost::IShell* dlPlugin = _servicePI->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
-
-        if (dlPlugin == nullptr) {
-            TRACE(Trace::Error, (_T("[Packager]: Plugin %s is not configured in this setup"), callsign.c_str()));
-        }
-        else {
-            PluginHost::IShell::state currentState(dlPlugin->State());
-            if (currentState != PluginHost::IShell::UNAVAILABLE) {
-                TRACE(Trace::Information, (_T("[Packager]: Plugin %s is not in Unavailable state. Hence, not deactivating it"),callsign.c_str()));
+            } else if (currentState == PluginHost::IShell::UNAVAILABLE) {
+                TRACE(Trace::Information, (_T("[RDM]: Plugin %s is unavailable"), callsign.c_str()));
             }
             else {
-                TRACE(Trace::Information, (_T("[Packager]: Plugin %s is in Unavailable state"), callsign.c_str()));
-                uint32_t result = dlPlugin->Deactivate(PluginHost::IShell::REQUESTED);
-                if (result == Core::ERROR_NONE) {
-                    TRACE(Trace::Information, (_T("[Packager]: %s moved to Deactivated state"), callsign.c_str()));
-                    string appInstallPath = GetInstallationPath(appName);
-                    if (UpdateConfiguration(callsign, appInstallPath) != Core::ERROR_NONE) {
-                        TRACE(Trace::Error, (_T("[Packager]: Failed to update SystemRootPath for %s"), callsign.c_str()));
-                    }
-                }
-                else {
-                    TRACE(Trace::Error, (_T("[Packager]: Failed to move %s to Deactivated state"), callsign.c_str()));
-                }
+                TRACE(Trace::Information, (_T("[RDM]: Plugin %s is already in deactivated state"), callsign.c_str()));
             }
-            dlPlugin->Release();
+
+            plugin->Release();
+        } else {
+            TRACE(Trace::Error, (_T("[RDM]: Plugin %s is not configured in this setup"), callsign.c_str()));
         }
     }
 
     void PackagerImplementation::NotifyStateChange()
     {
         _adminLock.Lock();
-        TRACE_L1("State for %s changed to %d (%d %%, %d)", _inProgress.Package->Name().c_str(), _inProgress.Install->State(), _inProgress.Install->Progress(), _inProgress.Install->ErrorCode());
+        TRACE(Trace::Information, (_T("State for %s changed to %d (%d %%, %d)"), _inProgress.Package->Name().c_str(), _inProgress.Install->State(), _inProgress.Install->Progress(), _inProgress.Install->ErrorCode()));
         for (auto* notification : _notifications) {
             notification->StateChange(_inProgress.Package, _inProgress.Install);
         }
@@ -447,6 +400,7 @@ namespace Plugin {
 
     void PackagerImplementation::BlockingSetupLocalRepoNoLock(RepoSyncMode mode)
     {
+        ASSERT(opkg_config != nullptr);
         string dirPath = Core::ToString(opkg_config->lists_dir);
         Core::Directory dir(dirPath.c_str());
         bool containFiles = false;
@@ -470,7 +424,7 @@ namespace Plugin {
             if (opkg_update_package_lists(nullptr, nullptr) != 0)
 #endif
             {
-                TRACE_L1("Failed to set up local repo. Installing might not work");
+                TRACE(Trace::Error, (_T("Failed to set up local repo. Installing might not work")));
                 result = Core::ERROR_GENERAL;
             }
             NotifyRepoSynced(result);
@@ -478,4 +432,8 @@ namespace Plugin {
     }
 
 }  // namespace Plugin
+ENUM_CONVERSION_BEGIN(Plugin::PackagerImplementation::PackageType)
+    { Plugin::PackagerImplementation::PackageType::NONE, _TXT("none") },
+    { Plugin::PackagerImplementation::PackageType::PLUGIN, _TXT("plugin") },
+ENUM_CONVERSION_END(Plugin::PackagerImplementation::PackageType);
 }  // namespace WPEFramework
