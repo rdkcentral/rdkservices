@@ -176,7 +176,7 @@ namespace Plugin {
 
             void Deinitialize() override
             {
-                if( _observable.IsValid() == true ) {
+                if (_observable.IsValid() == true) {
                     _observable->Disable();
                     VARIABLE_IS_NOT_USED uint32_t result =_observable.Release(); 
                     ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
@@ -186,7 +186,7 @@ namespace Plugin {
 
             void Activated(PluginHost::IShell& service) override
             {
-                if( service.Callsign() == _callsign ) {
+                if (service.Callsign() == _callsign) {
                     ASSERT(_observable.IsValid() == false);
 
                     CreateObservable(service);
@@ -196,7 +196,7 @@ namespace Plugin {
             
             void Deactivated(PluginHost::IShell& service) override
             {
-                if( service.Callsign() == _callsign ) {
+                if (service.Callsign() == _callsign) {
                     ASSERT(_observable.IsValid() == true);
 
                     _observable->Deactivated(service);
@@ -247,7 +247,7 @@ namespace Plugin {
             void Deinitialize() override
             {
                 // no lock needed, no notification are possible here.
-                for( auto& observer : _observers ) {
+                for (auto& observer : _observers) {
                     observer.second.Deinitialize();
                 }
                 _observers.clear();
@@ -255,12 +255,12 @@ namespace Plugin {
 
             void Activated(PluginHost::IShell& service) override
             {
-                if( service.ClassName() == Classname() ) {
+                if (service.ClassName() == Classname()) {
                     _adminLock.Lock();
                     auto result =_observers.emplace(std::piecewise_construct,
                                        std::forward_as_tuple(service.Callsign()),
                                        std::forward_as_tuple(service.Callsign()));
-                    ASSERT( ( result.second == true ) && ( result.first != _observers.end() ) );
+                    ASSERT((result.second == true) && (result.first != _observers.end()));
                     result.first->second.Initialize();
                     result.first->second.Activated(service);
                     _adminLock.Unlock();
@@ -268,10 +268,10 @@ namespace Plugin {
             }
             void Deactivated(PluginHost::IShell& service) override
             {
-                if( service.ClassName() == Classname() ) {
+                if (service.ClassName() == Classname()) {
                     _adminLock.Lock();
                     auto it =_observers.find(service.Callsign());
-                    if( it != _observers.end() ) {
+                    if (it != _observers.end()) {
                         it->second.Deactivated(service);
                         it->second.Deinitialize();
                         _observers.erase(it);
@@ -363,7 +363,7 @@ namespace Plugin {
 
             void Deactivated(PluginHost::IShell&) override
             {
-                Logger().Deactivated( Uptime() );
+                Logger().Deactivated(Uptime());
             }
 
             uint64_t ActivateTime() const 
@@ -373,7 +373,7 @@ namespace Plugin {
 
             uint32_t Uptime() const 
             {
-                return ( Core::Time::Now().Ticks() - ActivateTime() ) / Core::Time::MicroSecondsPerSecond;
+                return (Core::Time::Now().Ticks() - ActivateTime()) / Core::Time::MicroSecondsPerSecond;
             }
 
             CallsignPerfMetricsHandler& Parent() const
@@ -410,8 +410,8 @@ namespace Plugin {
             , _statecontrol(statecontrol)
             {
                 // not very likely but it could happen that we have a Browser without StatControl
-                if(_statecontrol != nullptr) {
-                    TRACE(Trace::Information, (_T("Observable supports Statecontrol")) );
+                if (_statecontrol != nullptr) {
+                    TRACE(Trace::Information, (_T("Observable supports Statecontrol")));
                     _statecontrol->AddRef();
                 }
             }
@@ -425,7 +425,7 @@ namespace Plugin {
             {
                 Base::Enable();
 
-                if(_statecontrol != nullptr) {
+                if (_statecontrol != nullptr) {
                     
                     _statecontrol->Register(this);
                 }
@@ -439,9 +439,9 @@ namespace Plugin {
 
             void StateChange(const PluginHost::IStateControl::state state) override 
             {
-                if( state == PluginHost::IStateControl::state::RESUMED ) {
+                if (state == PluginHost::IStateControl::state::RESUMED) {
                     Logger().Resumed();
-                } else if( state == PluginHost::IStateControl::state::SUSPENDED ) {
+                } else if (state == PluginHost::IStateControl::state::SUSPENDED) {
                     Logger().Suspended();
                 }
             }
@@ -453,7 +453,7 @@ namespace Plugin {
         private:
             void Cleanup() 
             {
-                if(_statecontrol != nullptr) {
+                if (_statecontrol != nullptr) {
                     _statecontrol->Unregister(this);
                     _statecontrol->Release();
                     _statecontrol = nullptr;
@@ -520,7 +520,7 @@ namespace Plugin {
 
             void LoadFinished(const string& URL) override 
             {
-                if( URL != IBrowserMetricsLogger::startURL ) {
+                if (URL != IBrowserMetricsLogger::startURL) {
                     ++_nbrloaded;
                 }
                 Logger().LoadFinished(URL, 0, true, _nbrloaded, 0);
@@ -601,14 +601,14 @@ namespace Plugin {
 
             void LoadFinished(const string& URL, const int32_t httpstatus) override
             {
-                if( URL != IBrowserMetricsLogger::startURL ) {
+                if (URL != IBrowserMetricsLogger::startURL) {
                     ++_nbrloadedsuccess;
                 }
                 Logger().LoadFinished(URL, httpstatus, true, _nbrloadedsuccess, _nbrloadedfailed);
             }
             void LoadFailed(const string& URL) override
             {
-                if( URL != IBrowserMetricsLogger::startURL ) {
+                if (URL != IBrowserMetricsLogger::startURL) {
                     ++_nbrloadedfailed;
                 }
                 Logger().LoadFinished(URL, 0, false, _nbrloadedsuccess, _nbrloadedfailed);
