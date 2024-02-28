@@ -120,7 +120,7 @@ namespace WPEFramework {
         Exchange::JMessageControl::Register(*this, this);
 
         _service->Register(&_observer);
-        
+
         if (Callback(&_observer) != Core::ERROR_NONE) {
             message = _T("MessageControl plugin could not be _configured.");
         }
@@ -163,7 +163,7 @@ namespace WPEFramework {
     bool MessageControl::Attach(PluginHost::Channel& channel)
     {
         TRACE(Trace::Information, (Core::Format(_T("Attaching channel ID [%d]"), channel.Id()).c_str()));
-        
+
         return (_webSocketExporter.Attach(channel.Id()));
     }
 
