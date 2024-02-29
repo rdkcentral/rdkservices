@@ -42,7 +42,6 @@ find_package(CompileSettingsDebug CONFIG REQUIRED)
 add_library(${MODULE_NAME} SHARED 
     MessageControl.cpp
     MessageOutput.cpp
-    MessageControlImplementation.cpp
     Module.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES

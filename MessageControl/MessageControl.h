@@ -21,10 +21,56 @@
 
 #include "Module.h"
 #include "MessageOutput.h"
+#include <functional>
 
 namespace WPEFramework {
+
 namespace Plugin {
-    class MessageControl : public PluginHost::JSONRPC, public PluginHost::IPluginExtended, public PluginHost::IWebSocket {
+
+    class MessageControl : public PluginHost::JSONRPC, public PluginHost::IPluginExtended, public PluginHost::IWebSocket, public Exchange::IMessageControl {
+    private:
+        using Cleanups  = std::vector<uint32_t>;
+
+        class WorkerThread : public Core::Thread {
+        public:
+            WorkerThread() = delete;
+            WorkerThread(const WorkerThread&) = delete;
+            WorkerThread& operator= (const WorkerThread&) = delete;
+
+            WorkerThread(MessageControl& parent)
+                : Core::Thread()
+                , _parent(parent)
+            {
+            }
+            ~WorkerThread() override = default;
+
+        private:
+            uint32_t Worker() override
+            {
+                _parent.Dispatch();
+
+                return (Core::infinite);
+            }
+
+        private:
+            MessageControl& _parent;
+        };
+
+    private:
+        struct ICollect {
+
+            struct ICallback {
+
+                virtual void Message(const Core::Messaging::MessageInfo& metadata, const string& text) = 0;
+
+                virtual ~ICallback() = default;
+            };
+
+            virtual uint32_t Callback(ICallback* callback) = 0;
+
+            virtual ~ICollect() = default;
+        };
+
     private:
         using OutputList = std::vector<Publishers::IPublish*>;
 
@@ -78,14 +124,14 @@ namespace Plugin {
 
         class Observer
             : public RPC::IRemoteConnection::INotification
-            , public Exchange::IMessageControl::ICollect::ICallback {
+            , public Plugin::MessageControl::ICollect::ICallback {
         private:
             enum state {
                 ATTACHING,
                 DETACHING,
                 OBSERVING
             };
-            using ObservingMap = std::unordered_map<uint32_t, state>;
+            using Observers = std::unordered_map<uint32_t, state>;
 
         public:
             Observer() = delete;
@@ -96,7 +142,8 @@ namespace Plugin {
                 : _parent(parent)
                 , _adminLock()
                 , _observing()
-                , _job(*this) {
+                , _job(*this)
+            {
             }
             ~Observer() override {
                 _job.Revoke();
@@ -106,24 +153,21 @@ namespace Plugin {
             //
             // Exchange::IMessageControl::INotification
             // ----------------------------------------------------------
-            void Message(const Exchange::IMessageControl::messagetype type,
-                const string& module, const string& category, const string& fileName,
-                const uint16_t lineNumber, const string& className,
-                const uint64_t timestamp, const string& message) override {
-                _parent.Message(static_cast<Core::Messaging::Metadata::type>(type), module, category , fileName, lineNumber, className, timestamp, message);
+            void Message(const Core::Messaging::MessageInfo& metadata, const string& message) override {
+                _parent.Message(metadata, message);
             }
 
             //
             // RPC::IRemoteConnection::INotification
             // ----------------------------------------------------------
-            void Activated(RPC::IRemoteConnection* connection) override {
-
+            void Activated(RPC::IRemoteConnection* connection) override
+            {
                 uint32_t id = connection->Id();
 
                 _adminLock.Lock();
 
                 // Seems the ID is already in here, thats odd, and impossible :-)
-                ObservingMap::iterator index = _observing.find(id);
+                Observers::iterator index = _observing.find(id);
 
                 if (index == _observing.end()) {
                     _observing.emplace(std::piecewise_construct,
@@ -138,23 +182,53 @@ namespace Plugin {
 
                 _job.Submit();
             }
-            void Deactivated(RPC::IRemoteConnection* connection) override {
 
-                uint32_t id = connection->Id();
+            void Deactivated(RPC::IRemoteConnection* connection) override
+            {
+                ASSERT(connection != nullptr);
 
+                RPC::IMonitorableProcess* controlled (connection->QueryInterface<RPC::IMonitorableProcess>());
+
+                if (controlled != nullptr) {
+                    // This is a connection that is controleld by WPEFramework. For this we can wait till we
+                    // receive a terminated.
+                    controlled->Release();
+                }
+                else {
+                    // We have no clue where this is coming from, just assume that if there are message files
+                    // with this ID that it can be closed.
+                    Drop(connection->Id());
+               }
+            }
+
+            void Terminated(RPC::IRemoteConnection* connection) override
+            {
+                ASSERT(connection != nullptr);
+                Drop(connection->Id());
+            }
+
+            BEGIN_INTERFACE_MAP(Observer)
+                INTERFACE_ENTRY(RPC::IRemoteConnection::INotification)
+            END_INTERFACE_MAP
+
+        private:
+            friend class Core::ThreadPool::JobType<Observer&>;
+
+            void Drop (const uint32_t id)
+            {
                 _adminLock.Lock();
 
                 // Seems the ID is already in here, thats odd, and impossible :-)
-                ObservingMap::iterator index = _observing.find(id);
+                Observers::iterator index = _observing.find(id);
+
+                ASSERT(index != _observing.end());
 
                 if (index != _observing.end()) {
                     if (index->second == state::ATTACHING) {
                         _observing.erase(index);
                     }
                     else if (index->second == state::OBSERVING) {
-                        _observing.emplace(std::piecewise_construct,
-                            std::make_tuple(id),
-                            std::make_tuple(state::DETACHING));
+                        index->second = state::DETACHING;
                     }
                 }
 
@@ -163,32 +237,39 @@ namespace Plugin {
                 _job.Submit();
             }
 
-            BEGIN_INTERFACE_MAP(Observer)
-                INTERFACE_ENTRY(RPC::IRemoteConnection::INotification)
-                INTERFACE_ENTRY(Exchange::IMessageControl::ICollect::ICallback)
-            END_INTERFACE_MAP
-
-        private:
-            friend class Core::ThreadPool::JobType<Observer&>;
-
             void Dispatch()
             {
                 _adminLock.Lock();
 
-                ObservingMap::iterator index = _observing.begin();
+                bool done = false;
 
-                while (index != _observing.end()) {
-                    if (index->second == state::ATTACHING) {
-                        index->second = state::OBSERVING;
-                        _parent.Attach(index->first);
-                        index++;
-                    }
-                    else if (index->second == state::DETACHING) {
-                        _parent.Detach(index->first);
-                        index = _observing.erase(index);
-                    }
-                    else {
-                        index++;
+                while (done == false) {
+                    Observers::iterator index = _observing.begin();
+
+                    while (done == false) {
+                        if (index->second == state::ATTACHING) {
+                            const uint32_t id = index->first;
+                            index->second = state::OBSERVING;
+                            _adminLock.Unlock();
+                            _parent.Attach(id);
+                            _adminLock.Lock();
+                            break;
+                        }
+                        else if (index->second == state::DETACHING) {
+                            const uint32_t id = index->first;
+                            _observing.erase(index);
+                            _adminLock.Unlock();
+                            _parent.Detach(id);
+                            _adminLock.Lock();
+                            break;
+                        }
+                        else {
+                            index++;
+
+                            if (index == _observing.end()) {
+                                done = true;
+                            }
+                        }
                     }
                 }
 
@@ -198,7 +279,7 @@ namespace Plugin {
         private:
             MessageControl& _parent;
             Core::CriticalSection _adminLock;
-            ObservingMap _observing;
+            Observers _observing;
             Core::WorkerPool::JobType<Observer&> _job;
         };
 
@@ -207,13 +288,20 @@ namespace Plugin {
         MessageControl& operator=(const MessageControl&) = delete;
 
         MessageControl();
-        ~MessageControl() override = default;
+
+        ~MessageControl() override
+        {
+            _worker.Stop();
+            _worker.Wait(Core::Thread::STOPPED, Core::infinite);
+            _client.ClearInstances();
+        }
 
         BEGIN_INTERFACE_MAP(MessageControl)
             INTERFACE_ENTRY(PluginHost::IPlugin)
             INTERFACE_ENTRY(PluginHost::IDispatcher)
             INTERFACE_ENTRY(PluginHost::IPluginExtended)
             INTERFACE_ENTRY(PluginHost::IWebSocket)
+            INTERFACE_ENTRY(Exchange::IMessageControl)
         END_INTERFACE_MAP
 
     public:
@@ -227,8 +315,8 @@ namespace Plugin {
         Core::ProxyType<Core::JSON::IElement> Inbound(const uint32_t ID, const Core::ProxyType<Core::JSON::IElement>& element) override;
 
     private:
-        void Announce(Publishers::IPublish* output) {
-
+        void Announce(Publishers::IPublish* output)
+        {
             _outputLock.Lock();
 
             ASSERT(std::find(_outputDirector.begin(), _outputDirector.end(), output) == _outputDirector.end());
@@ -237,36 +325,125 @@ namespace Plugin {
 
             _outputLock.Unlock();
         }
-        void Message(const Core::Messaging::Metadata::type type,
-            const string & module, const string& category, const string & fileName,
-            const uint16_t lineNumber, const string & className,
-            const uint64_t timestamp, const string & message) {
 
+        void Message(const Core::Messaging::MessageInfo& metadata, const string& message)
+        {
             // Time to start sending it to all interested parties...
             _outputLock.Lock();
 
             for (auto& entry : _outputDirector) {
-                entry->Message(type, module, category, fileName, lineNumber, className, timestamp, message);
+                entry->Message(metadata, message);
             }
 
-            _webSocketExporter.Message(type, module, category, fileName, lineNumber, className, timestamp, message);
+            _webSocketExporter.Message(metadata, message);
 
             _outputLock.Unlock();
         }
-        void Attach(const uint32_t id) {
+
+    public:
+        uint32_t Callback(Plugin::MessageControl::ICollect::ICallback* callback)
+        {
             _adminLock.Lock();
-            _collect->Attach(id);
-            _adminLock.Unlock();
-        }
-        void Detach(const uint32_t id) {
-            _adminLock.Lock();
-            _collect->Detach(id);
+
+            ASSERT((_callback != nullptr) ^ (callback != nullptr));
+
+            if (_callback != nullptr) {
+                _worker.Block();
+                _client.SkipWaiting();
+                _adminLock.Unlock();
+                _worker.Wait(Core::Thread::BLOCKED, Core::infinite);
+                _adminLock.Lock();
+            }
+
+            _callback = callback;
+
+            if (_callback != nullptr) {
+                _worker.Run();
+            }
+
             _adminLock.Unlock();
 
-            if (id == _connectionId) {
-                ASSERT(_service != nullptr);
-                Core::IWorkerPool::Instance().Submit(PluginHost::IShell::Job::Create(_service, PluginHost::IShell::DEACTIVATED, PluginHost::IShell::FAILURE));
+            return (Core::ERROR_NONE);
+        }
+
+        void Attach(const uint32_t id)
+        {
+            _adminLock.Lock();
+
+            _client.AddInstance(id);
+            Cleanup();
+
+            _adminLock.Unlock();
+        }
+
+        void Detach(const uint32_t id)
+        {
+            _adminLock.Lock();
+
+            _client.RemoveInstance(id);
+            _cleaning.emplace_back(id);
+            Cleanup();
+
+            _adminLock.Unlock();
+        }
+
+    public:
+        void Cleanup()
+        {
+            // Also have a list through the cleanup we should do, just to make sure
+            Cleanups::iterator index = _cleaning.begin();
+
+            while (index != _cleaning.end()) {
+                bool destructed = true;
+                string filter (_dispatcherIdentifier + '.' + Core::NumberType<uint32_t>(*index).Text() + _T(".*"));
+                Core::Directory directory (_dispatcherBasePath.c_str(), filter.c_str());
+
+                while ((destructed == true) && (directory.Next() == true)) {
+                    Core::File file (directory.Current());
+                    destructed = destructed && (Core::File(directory.Current()).Destroy());
+                }
+
+                if (destructed == true) {
+                    index = _cleaning.erase(index);
+                }
+                else {
+                    index++;
+                }
             }
+        }
+
+        uint32_t Enable(const messagetype type, const string& category, const string& module, const bool enabled) override
+        {
+            _client.Enable({static_cast<Core::Messaging::Metadata::type>(type), category, module}, enabled);
+
+            return (Core::ERROR_NONE);
+        }
+
+        uint32_t Controls(Exchange::IMessageControl::IControlIterator*& controls) const override
+        {
+            std::list<Exchange::IMessageControl::Control> list;
+            Messaging::MessageUnit::Iterator index;
+            _client.Controls(index);
+
+            while (index.Next() == true) {
+                list.push_back( { static_cast<messagetype>(index.Type()), index.Category(), index.Module(), index.Enabled() } );
+            }
+
+            using Implementation = RPC::IteratorType<Exchange::IMessageControl::IControlIterator>;
+            controls = Core::Service<Implementation>::Create<Exchange::IMessageControl::IControlIterator>(list);
+
+            return (Core::ERROR_NONE);
+        }
+
+    private:
+        void Dispatch()
+        {
+            _client.WaitForUpdates(Core::infinite);
+
+            _client.PopMessagesAndCall([this](const Core::ProxyType<Core::Messaging::MessageInfo>& metadata, const Core::ProxyType<Core::Messaging::IEvent>& message) {
+                // Turn data into piecies to trasfer over the wire
+                Message(*metadata, message->Data());
+            });
         }
 
     private:
@@ -275,12 +452,18 @@ namespace Plugin {
         Config _config;
         OutputList _outputDirector;
         Publishers::WebSocketOutput _webSocketExporter;
-        Exchange::IMessageControl* _control;
-        Exchange::IMessageControl::ICollect* _collect;
+        MessageControl::ICollect::ICallback* _callback;
         Core::Sink<Observer> _observer;
-        uint32_t _connectionId;
         PluginHost::IShell* _service;
+        const string _dispatcherIdentifier;
+        const string _dispatcherBasePath;
+        Messaging::MessageClient _client;
+        WorkerThread _worker;
+        Messaging::TraceFactoryType<Core::Messaging::IStore::Tracing, Messaging::TextMessage> _tracingFactory;
+        Messaging::TraceFactoryType<Core::Messaging::IStore::Logging, Messaging::TextMessage> _loggingFactory;
+        Messaging::TraceFactoryType<Core::Messaging::IStore::WarningReporting, Messaging::TextMessage> _warningReportingFactory;
+        Cleanups _cleaning;
     };
 
 } // namespace Plugin
-} // namespace WPEFramework
+}
