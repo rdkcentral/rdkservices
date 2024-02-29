@@ -398,6 +398,7 @@ TTSSpeaker::~TTSSpeaker() {
     if(g_main_loop_is_running(m_main_loop))
         g_main_loop_quit(m_main_loop);
     g_thread_join(m_main_loop_thread);
+    m_main_loop_thread = nullptr;
 }
 
 PipelineType TTSSpeaker::getPipelineType() {
@@ -411,14 +412,14 @@ void TTSSpeaker::ensurePipeline(bool flag) {
     m_condition.notify_one();
 }
 
-int TTSSpeaker::speak(TTSSpeakerClient *client, uint32_t id, std::string text, bool secure,int8_t primVolDuck) {
+int TTSSpeaker::speak(TTSSpeakerClient *client, uint32_t id, std::string callsign, std::string text, bool secure,int8_t primVolDuck) {
     TTSLOG_TRACE("id=%d, text=\"%s\"", id, text.c_str());
 
     // If force speak is set, clear old queued data & stop speaking
     if(client->configuration()->isPreemptive())
         reset();
 
-    SpeechData data(client, id, text, secure,primVolDuck);
+    SpeechData data(client, id, callsign, text, secure,primVolDuck);
     queueData(data);
 
     return 0;
@@ -917,7 +918,10 @@ void TTSSpeaker::waitForAudioToFinishTimeout(float timeout_s) {
                     // This is a workaround for broken BRCM PCM Sink duration query - To be deleted once that is fixed
                     m_duration = 0;
                     gint64 position = 0;
-                    gst_element_query_position(m_pipeline, GST_FORMAT_TIME, &position);
+                    if (!(gst_element_query_position(m_pipeline, GST_FORMAT_TIME, &position)))
+                    {
+                        TTSLOG_ERROR("gst_element_query_position call failed");
+                    }
                     if(position > 0 && position != (gint64)GST_CLOCK_TIME_NONE && position > lastPosition) {
                         TTSLOG_VERBOSE("Reached/Invalid duration, last position=%" GST_TIME_FORMAT ", current position=%" GST_TIME_FORMAT,
                                 GST_TIME_ARGS(lastPosition), GST_TIME_ARGS(position));
@@ -1004,7 +1008,7 @@ void TTSSpeaker::play(string url, SpeechData &data, bool authrequired, string to
     m_currentSpeech = NULL;
 }
 
-void TTSSpeaker::speakText(TTSConfiguration config, SpeechData &data) {
+void TTSSpeaker::speakText(TTSConfiguration &config, SpeechData &data) {
     m_isEOS = false;
     m_duration = 0;
 
@@ -1045,7 +1049,7 @@ void TTSSpeaker::GStreamerThreadFunc(void *ctx) {
                 if(!speaker->m_pipeline && !speaker->m_queue.empty()) {
                     SpeechData data = speaker->dequeueData();
                     TTSLOG_ERROR("Pipeline creation failed, sending error for speech=%d from client %p\n", data.id, data.client);
-                    data.client->playbackerror(data.id);
+                    data.client->playbackerror(data.id,data.callsign);
                     speaker->m_pipelineConstructionFailures = 0;
                 }
             } else {
@@ -1082,7 +1086,7 @@ void TTSSpeaker::GStreamerThreadFunc(void *ctx) {
         speaker->setSpeakingState(true, data.client);
         // Inform the client before speaking
         if(!speaker->m_flushed)
-            data.client->willSpeak(data.id, data.text);
+            data.client->willSpeak(data.id, data.callsign, data.text);
 
         // Push it to gstreamer for speaking
         if(!speaker->m_flushed) {
@@ -1103,16 +1107,16 @@ void TTSSpeaker::GStreamerThreadFunc(void *ctx) {
         }
         // Inform the client after speaking
         if(speaker->m_flushed)
-            data.client->interrupted(data.id);
+            data.client->interrupted(data.id, data.callsign);
         else if(speaker->m_networkError)
-            data.client->networkerror(data.id);
+            data.client->networkerror(data.id, data.callsign);
         else if(!speaker->m_pipeline || speaker->m_pipelineError)
-            data.client->playbackerror(data.id);
+            data.client->playbackerror(data.id, data.callsign);
         else {
             #if defined(PLATFORM_AMLOGIC) || defined(PLATFORM_REALTEK)
 	    speaker->setMixGain(MIXGAIN_PRIM,100);
             #endif
-            data.client->spoke(data.id, data.text);
+            data.client->spoke(data.id, data.callsign, data.text);
 	}
         speaker->setSpeakingState(false);
 
@@ -1208,10 +1212,10 @@ bool TTSSpeaker::handleMessage(GstMessage *message) {
                             #if defined(PLATFORM_AMLOGIC) || defined(PLATFORM_REALTEK)
                             setMixGain(MIXGAIN_PRIM,m_currentSpeech->primVolDuck);
                             #endif
-                            m_clientSpeaking->resumed(m_currentSpeech->id);
+                            m_clientSpeaking->resumed(m_currentSpeech->id, m_currentSpeech->callsign);
                             m_condition.notify_one();
                         } else {
-                            m_clientSpeaking->started(m_currentSpeech->id, m_currentSpeech->text);
+                            m_clientSpeaking->started(m_currentSpeech->id, m_currentSpeech->callsign, m_currentSpeech->text);
                         }
                     }
                 } else if (oldstate == GST_STATE_PLAYING && newstate == GST_STATE_PAUSED) {
@@ -1220,7 +1224,7 @@ bool TTSSpeaker::handleMessage(GstMessage *message) {
                         #if defined(PLATFORM_AMLOGIC) || defined(PLATFORM_REALTEK)
 			setMixGain(MIXGAIN_PRIM,100);
                         #endif
-                        m_clientSpeaking->paused(m_currentSpeech->id);
+                        m_clientSpeaking->paused(m_currentSpeech->id, m_currentSpeech->callsign);
                         m_condition.notify_one();
                     }
                 } else if (oldstate == GST_STATE_PAUSED && newstate == GST_STATE_READY) {

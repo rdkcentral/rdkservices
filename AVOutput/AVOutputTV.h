@@ -25,10 +25,10 @@
 
 #include "tvTypes.h"
 #include "tvSettings.h"
+#include "tvSettingsExtODM.h"
 #include <pthread.h>
 #include "Module.h"
 #include "tvError.h"
-#include "tvTypes.h"
 #include "tr181api.h"
 #include "AVOutputBase.h"
 #include "libIARM.h"

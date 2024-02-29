@@ -752,6 +752,77 @@ namespace Plugin {
                 _service->Release();
                 _service = nullptr;
             }
+
+#if (THUNDER_VERSION_MAJOR >= 4)
+#if (THUNDER_VERSION_MINOR == 2)
+            void Activation(const string& name, PluginHost::IShell* service) override
+            {
+               //No Opp
+            }
+
+            void Deactivation(const string& name, PluginHost::IShell* service) override
+            {
+               //No Opp
+            }
+#endif
+            void Activated (const string& callsign, PluginHost::IShell* service) override
+            {
+                _adminLock.Lock();
+
+                std::map<string, MonitorObject>::iterator index(_monitor.find(callsign));
+                
+
+                if (index != _monitor.end()) {
+
+                    index->second.Active(true);
+
+                    if (_job.Submit() == true) {
+                        TRACE(Trace::Information, (_T("Starting to probe as active observee appeared.")));
+                    }
+
+                    // Get the MetaData interface
+                    Exchange::IMemory* memory = service->QueryInterface<Exchange::IMemory>();
+
+                    if (memory != nullptr) {
+                        index->second.Set(memory);
+                        memory->Release();
+                    }
+                }
+
+                _adminLock.Unlock();
+            }
+            void Deactivated (const string& callsign, PluginHost::IShell* service) override
+            {
+                _adminLock.Lock();
+
+                std::map<string, MonitorObject>::iterator index(_monitor.find(callsign));
+
+                if (index != _monitor.end()) {
+
+                    index->second.Set(nullptr);
+                    index->second.Active(false);
+                    if ((index->second.HasRestartAllowed() == true) && ((service->Reason() == PluginHost::IShell::MEMORY_EXCEEDED) || (service->Reason() == PluginHost::IShell::FAILURE))) {
+                        if (index->second.RegisterRestart(service->Reason()) == false) {
+                            TRACE(Trace::Fatal, (_T("Giving up restarting of %s: Failed more than %d times within %d seconds."), callsign.c_str(), index->second.RestartLimit(), index->second.RestartWindow()));
+                            const string message("{\"callsign\": \"" + callsign + "\", \"action\": \"Restart\", \"reason\":\"" + (std::to_string(index->second.RestartLimit())).c_str() + " Attempts Failed within the restart window\"}");
+                            _service->Notify(message);
+                            _parent.event_action(callsign, "StoppedRestaring", std::to_string(index->second.RestartLimit()) + " attempts failed within the restart window");
+                        } else {
+                            const string message("{\"callsign\": \"" + callsign + "\", \"action\": \"Activate\", \"reason\": \"Automatic\" }");
+                            _service->Notify(message);
+                            _parent.event_action(callsign, "Activate", "Automatic");
+                            TRACE(Trace::Error, (_T("Restarting %s again because we detected it misbehaved."), callsign.c_str()));
+                            Core::IWorkerPool::Instance().Schedule(Core::Time::Now(), PluginHost::IShell::Job::Create(service, PluginHost::IShell::ACTIVATED, PluginHost::IShell::AUTOMATIC));
+                        }
+                    }
+                }
+
+                _adminLock.Unlock();
+            }
+            void Unavailable(const string&, PluginHost::IShell*) override
+            {
+            }
+#else
             virtual void StateChange(PluginHost::IShell* service)
             {
                 _adminLock.Lock();
@@ -774,11 +845,7 @@ namespace Plugin {
                             // Moreover it's the only only which now becomes active. This means probing
                             // has to be activated as well since it was stopped at point the last observee
                             // turned inactive
-#ifdef USE_THUNDER_R4
-                            _job.Reschedule(Core::Time::Now());
-#else
                             _job.Schedule(Core::Time::Now());
-#endif /* USE_THUNDER_R4 */
 
                             TRACE(Trace::Information, (_T("Starting to probe as active observee appeared.")));
                         }
@@ -819,30 +886,6 @@ namespace Plugin {
 
                 _adminLock.Unlock();
             }
-#if (THUNDER_VERSION_MAJOR >= 4)
-
-#if (THUNDER_VERSION_MINOR == 2)
-            void Activation(const string& name, PluginHost::IShell* service) override
-            {
-                StateChange(service);
-            }
-
-           void Deactivation(const string& name, PluginHost::IShell* service) override
-           {
-               StateChange(service);
-           }
-#endif
-           void Activated (const string& callsign, PluginHost::IShell* service) override
-           {
-                StateChange(service);
-           }
-           void Deactivated (const string& callsign, PluginHost::IShell* service) override
-           {
-                StateChange(service);
-           }
-           void Unavailable(const string&, PluginHost::IShell*) override
-           {
-           }
 #endif
             void Snapshot(Core::JSON::ArrayType<Monitor::Data>& snapshot)
             {

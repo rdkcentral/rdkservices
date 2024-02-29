@@ -49,9 +49,10 @@ namespace Plugin {
 
         class EXTERNAL Job : public Core::IDispatch {
         protected:
-             Job(TextToSpeechImplementation *tts, Event event, JsonValue &params)
+             Job(TextToSpeechImplementation *tts, Event event,string callsign,JsonValue &params)
                 : _tts(tts)
                 , _event(event)
+                , _callsign(callsign)
                 , _params(params) {
                 if (_tts != nullptr) {
                     _tts->AddRef();
@@ -69,21 +70,22 @@ namespace Plugin {
             }
 
        public:
-            static Core::ProxyType<Core::IDispatch> Create(TextToSpeechImplementation *tts, Event event, JsonValue params) {
+            static Core::ProxyType<Core::IDispatch> Create(TextToSpeechImplementation *tts, Event event,string callsign,JsonValue params) {
 #ifndef USE_THUNDER_R4
-                return (Core::proxy_cast<Core::IDispatch>(Core::ProxyType<Job>::Create(tts, event, params)));
+                return (Core::proxy_cast<Core::IDispatch>(Core::ProxyType<Job>::Create(tts, event, callsign, params)));
 #else
-                return (Core::ProxyType<Core::IDispatch>(Core::ProxyType<Job>::Create(tts, event, params)));
+                return (Core::ProxyType<Core::IDispatch>(Core::ProxyType<Job>::Create(tts, event, callsign, params)));
 #endif
             }
 
             virtual void Dispatch() {
-                _tts->Dispatch(_event, _params);
+                _tts->Dispatch(_event, _callsign, _params);
             }
 
         private:
             TextToSpeechImplementation *_tts;
             const Event _event;
+            const string _callsign;
             const JsonValue _params;
         };
 
@@ -95,11 +97,13 @@ namespace Plugin {
         virtual uint32_t Configure(PluginHost::IShell* service) override;
         virtual void Register(Exchange::ITextToSpeech::INotification* sink) override ;
         virtual void Unregister(Exchange::ITextToSpeech::INotification* sink) override ;
+        virtual void RegisterWithCallsign(const string callsign,Exchange::ITextToSpeech::INotification* sink) override ;
 
         virtual PluginHost::IStateControl::state State() const override { return PluginHost::IStateControl::RESUMED; }
         virtual uint32_t Request(const command state) override;
         virtual void Register(IStateControl::INotification* notification) override {}
         virtual void Unregister(IStateControl::INotification* notification) override {}
+       
 
         virtual uint32_t Enable(const bool enable) override;
         virtual uint32_t Enable(bool &enable /* @out */) const override;
@@ -120,12 +124,12 @@ namespace Plugin {
         virtual void onVoiceChanged(std::string voice) override ;
         virtual void onWillSpeak(TTS::SpeechData &data) override ;
         virtual void onSpeechStart(TTS::SpeechData &data) override ;
-        virtual void onSpeechPause(uint32_t speechId) override ;
-        virtual void onSpeechResume(uint32_t speechId) override ;
-        virtual void onSpeechCancelled(std::vector<uint32_t> speechIds) override ;
-        virtual void onSpeechInterrupted(uint32_t speechId) override ;
-        virtual void onNetworkError(uint32_t speechId) override ;
-        virtual void onPlaybackError(uint32_t speechId) override ;
+        virtual void onSpeechPause(uint32_t speechId,string callsign) override ;
+        virtual void onSpeechResume(uint32_t speechId,string callsign) override ;
+        virtual void onSpeechCancelled(std::vector<uint32_t> speechIds,string callsign) override ;
+        virtual void onSpeechInterrupted(uint32_t speechId,string callsign) override ;
+        virtual void onNetworkError(uint32_t speechId,string callsign) override ;
+        virtual void onPlaybackError(uint32_t speechId,string callsign) override ;
         virtual void onSpeechComplete(TTS::SpeechData &data) override ;
 
         BEGIN_INTERFACE_MAP(TextToSpeechImplementation)
@@ -137,9 +141,11 @@ namespace Plugin {
         static TTS::TTSManager* _ttsManager;
         mutable Core::CriticalSection _adminLock;
         std::list<Exchange::ITextToSpeech::INotification*> _notificationClients;
+        std::map<string,Exchange::ITextToSpeech::INotification*> _notificationCallsignClients;
+        
+        void dispatchEvent(Event,string callsign, const JsonValue &params);
+        void Dispatch(Event event,string callsign, const JsonValue params);
 
-        void dispatchEvent(Event, const JsonValue &params);
-        void Dispatch(Event event, const JsonValue params);
 
     public:
         TextToSpeechImplementation();
