@@ -349,7 +349,16 @@
 		    "summary":"region name",
 		    "type":"string",
 		    "example":"US-NY"
-	    }
+	    },
+        "startReason": {
+            "summary": "Thunder start reason",
+            "enum": [
+                "NORMAL",
+                "RESTART"
+            ],
+            "type": "string",
+            "example": "NORMAL"
+        }
     },
     "methods": {
         "cacheContains": {
@@ -1998,6 +2007,24 @@
             },
             "result": {
                 "$ref": "#/common/result"
+            }
+        },
+        "getThunderStartReason":{
+            "summary": "Returns the Thunder start reason.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "startReason": {
+                        "$ref": "#/definitions/startReason"
+                    },
+                    "success":{
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "startReason",
+                    "success"
+                ]
             }
         }
     },

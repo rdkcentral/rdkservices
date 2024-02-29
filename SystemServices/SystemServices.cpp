@@ -66,8 +66,8 @@
 using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 7
-#define API_VERSION_NUMBER_PATCH 2
+#define API_VERSION_NUMBER_MINOR 8
+#define API_VERSION_NUMBER_PATCH 0
 
 #define MAX_REBOOT_DELAY 86400 /* 24Hr = 86400 sec */
 #define TR181_FW_DELAY_REBOOT "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"
@@ -492,6 +492,7 @@ namespace WPEFramework {
                 &SystemServices::getPlatformConfiguration, this);
 	    registerMethod("getFriendlyName", &SystemServices::getFriendlyName, this);
             registerMethod("setFriendlyName", &SystemServices::setFriendlyName, this);
+            registerMethod("getThunderStartReason", &SystemServices::getThunderStartReason, this);
 
         }
 
@@ -4701,6 +4702,14 @@ namespace WPEFramework {
           response.Load(m_shellService, query);
 
           return Core::ERROR_NONE;
+        }
+
+        uint32_t SystemServices::getThunderStartReason(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+
+            response["startReason"] = (Utils::fileExists(SYSTEM_SERVICE_THUNDER_RESTARTED_FILE))?"RESTART":"NORMAL";
+            returnResponse(true);
         }
     } /* namespace Plugin */
 } /* namespace WPEFramework */
