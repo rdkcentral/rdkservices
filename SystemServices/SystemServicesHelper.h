@@ -68,6 +68,7 @@
 #define OPT_DCM_PROPERTIES                      "/opt/dcm.properties"
 #define ETC_DCM_PROPERTIES                      "/etc/dcm.properties"
 #define TMP_DCM_SETTINGS                        "/tmp/DCMSettings.conf"
+#define SYSTEM_SERVICE_THUNDER_RESTARTED_FILE   "/tmp/thunder_restarted"
 
 
 #define MODE_TIMER_UPDATE_INTERVAL	1000

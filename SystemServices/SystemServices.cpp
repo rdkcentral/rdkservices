@@ -490,6 +490,7 @@ namespace WPEFramework {
                 &SystemServices::getPlatformConfiguration, this);
 	    registerMethod("getFriendlyName", &SystemServices::getFriendlyName, this);
             registerMethod("setFriendlyName", &SystemServices::setFriendlyName, this);
+            registerMethod("getThunderStartReason", &SystemServices::getThunderStartReason, this);
 
         }
 
@@ -4706,6 +4707,14 @@ namespace WPEFramework {
           response.Load(m_shellService, query);
 
           return Core::ERROR_NONE;
+        }
+
+        uint32_t SystemServices::getThunderStartReason(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+
+            response["startReason"] = (Utils::fileExists(SYSTEM_SERVICE_THUNDER_RESTARTED_FILE))?"RESTART":"NORMAL";
+            returnResponse(true);
         }
     } /* namespace Plugin */
 } /* namespace WPEFramework */
