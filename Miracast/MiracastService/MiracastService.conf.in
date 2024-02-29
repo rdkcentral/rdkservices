@@ -1,0 +1,4 @@
+precondition = ["Platform"]
+callsign = "org.rdk.MiracastService"
+autostart = "false"
+startuporder = "@PLUGIN_MIRACASTSERVICE_STARTUPORDER@"
