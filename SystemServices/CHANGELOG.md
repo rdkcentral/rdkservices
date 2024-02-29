@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [2.1.0] - 2024-02-29
+### Added
+- Added API to get Thunder start reason
+
 ## [2.0.4] - 2024-02-23
 ### Fixed
 - Fix for getPlatformConfiguration api returning empty deviceType
