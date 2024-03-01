@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.3.6] - 2024-02-27
+### Fixed
+- Increased timeout of connectivity monitor
+
 ## [1.3.5] - 2024-02-19
 ### Fixed
 - Fixed Network connnectivity monitor crash during reboot
