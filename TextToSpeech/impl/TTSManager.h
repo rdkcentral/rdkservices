@@ -52,12 +52,12 @@ public:
     virtual void onVoiceChanged(std::string voice) { (void)voice; }
     virtual void onWillSpeak(SpeechData &data) { (void)data; }
     virtual void onSpeechStart(SpeechData &data) { (void)data; }
-    virtual void onSpeechPause(uint32_t speechId) { (void)speechId; }
-    virtual void onSpeechResume(uint32_t speechId) { (void)speechId; }
-    virtual void onSpeechCancelled(std::vector<uint32_t> speechIds) { (void)speechIds; }
-    virtual void onSpeechInterrupted(uint32_t speechId) { (void)speechId; }
-    virtual void onNetworkError(uint32_t speechId) { (void)speechId; }
-    virtual void onPlaybackError(uint32_t speechId) { (void)speechId; }
+    virtual void onSpeechPause(uint32_t speechId,string callsign) { (void)speechId; }
+    virtual void onSpeechResume(uint32_t speechId,string callsign) { (void)speechId; }
+    virtual void onSpeechCancelled(std::vector<uint32_t> speechIds,string callsign) { (void)speechIds; }
+    virtual void onSpeechInterrupted(uint32_t speechId,string callsign) { (void)speechId; }
+    virtual void onNetworkError(uint32_t speechId, string callsign) { (void)speechId; }
+    virtual void onPlaybackError(uint32_t speechId, string callsign) { (void)speechId; }
     virtual void onSpeechComplete(SpeechData &data) { (void)data; }
 };
 
@@ -96,15 +96,15 @@ public:
     virtual TTSConfiguration *configuration() {return &m_defaultConfiguration;}
 
     //Speak Events
-    virtual void willSpeak(uint32_t speech_id, std::string text);
-    virtual void started(uint32_t speech_id, std::string text);
-    virtual void spoke(uint32_t speech_id, std::string text);
-    virtual void paused(uint32_t speech_id);
-    virtual void resumed(uint32_t speech_id);
-    virtual void cancelled(std::vector<uint32_t> &speeches);
-    virtual void interrupted(uint32_t speech_id);
-    virtual void networkerror(uint32_t speech_id);
-    virtual void playbackerror(uint32_t speech_id);
+    virtual void willSpeak(uint32_t speech_id, std::string callsign, std::string text);
+    virtual void started(uint32_t speech_id, std::string callsign, std::string text);
+    virtual void spoke(uint32_t speech_id, std::string callsign, std::string text);
+    virtual void paused(uint32_t speech_id, std::string callsign);
+    virtual void resumed(uint32_t speech_id, std::string callsign);
+    virtual void cancelled(std::vector<uint32_t> &speeches, std::string callsign);
+    virtual void interrupted(uint32_t speech_id, std::string callsign);
+    virtual void networkerror(uint32_t speech_id, std::string callsign);
+    virtual void playbackerror(uint32_t speech_id, std::string callsign);
 
 private:
     TTSConfiguration m_defaultConfiguration;
