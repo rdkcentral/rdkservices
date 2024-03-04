@@ -20,102 +20,109 @@
 #include "MessageOutput.h"
 
 namespace WPEFramework {
+
 namespace Publishers {
 
-    string Text::Convert(const Core::Messaging::Metadata::type,
-        const string& module, const string& category, const string& fileName,
-        const uint16_t lineNumber, const string& className,
-        const uint64_t timeStamp, const string& text) /* override */
+    string Text::Convert(const Core::Messaging::MessageInfo& metadata, const string& text) /* override */
     {
-        string output;
+        ASSERT(metadata.Type() != Core::Messaging::Metadata::type::INVALID);
 
-        const Core::Time now(timeStamp);
-
-        if (_abbreviated == true) {
-            const string time(now.ToTimeOnly(true));
-            output = Core::Format("[%s]:[%s]:[%s]: %s\n",
-                    time.c_str(),
-                    module.c_str(),
-                    category.c_str(),
-                    text.c_str());
-        } else {
-            const string time(now.ToRFC1123(true));
-            output = Core::Format("[%s]:[%s:%u]:[%s]:[%s]: %s\n",
-                    time.c_str(),
-                    Core::FileNameOnly(fileName.c_str()),
-                    lineNumber,
-                    className.c_str(),
-                    category.c_str(),
-                    text.c_str());
-        }
+        string output = metadata.ToString(_abbreviated).c_str() +
+                        Core::Format("%s\n", text.c_str());
 
         return (output);
     }
 
-    void ConsoleOutput::Message(const Core::Messaging::Metadata::type type,
-        const string& module, const string& category, const string& fileName,
-        const uint16_t lineNumber, const string& className,
-        const uint64_t timeStamp, const string& text) /* override */
+    void ConsoleOutput::Message(const Core::Messaging::MessageInfo& metadata, const string& text) /* override */
     {
-        std::cout << _convertor.Convert(type, category,module,fileName, lineNumber, className, timeStamp, text);
+        std::cout << _convertor.Convert(metadata, text);
     }
 
-    void SyslogOutput::Message(const Core::Messaging::Metadata::type type,
-            const string& module, const string& category, const string& fileName,
-            const uint16_t lineNumber, const string& className,
-            const uint64_t timeStamp, const string& text) /* override */
+    void SyslogOutput::Message(const Core::Messaging::MessageInfo& metadata, const string& text) /* override */
     {
 #ifndef __WINDOWS__
-        syslog(LOG_NOTICE, _T("%s"), _convertor.Convert(type, module, category, fileName, lineNumber, className, timeStamp, text).c_str());
+        syslog(LOG_NOTICE, _T("%s"), _convertor.Convert(metadata, text).c_str());
 #else
-        printf(_T("%s"), _convertor.Convert(type, module, category, fileName, lineNumber, className, timeStamp, text).c_str());
+        printf(_T("%s"), _convertor.Convert(metadata, text).c_str());
 #endif
     }
 
-    void FileOutput::Message(const Core::Messaging::Metadata::type type,
-        const string& module, const string& category, const string& fileName,
-        const uint16_t lineNumber, const string& className,
-        const uint64_t timeStamp, const string& text) /* override */
+    void FileOutput::Message(const Core::Messaging::MessageInfo& metadata, const string& text) /* override */
     {
         if (_file.IsOpen()) {
-            string line = _convertor.Convert(type, module, category, fileName, lineNumber, className, timeStamp, text);
+            const string line = _convertor.Convert(metadata, text);
             _file.Write(reinterpret_cast<const uint8_t*>(line.c_str()), static_cast<uint32_t>(line.length()));
         }
     }
 
-    void JSON::Convert(const Core::Messaging::Metadata::type,
-        const string& module, const string& category, const string& fileName,
-        const uint16_t lineNumber, const string& className,
-        const uint64_t, const string& text, Data& data)
+    void JSON::Convert(const Core::Messaging::MessageInfo& metadata, const string& text, Data& data)
     {
         ExtraOutputOptions options = _outputOptions;
 
         if ((AsNumber(options) & AsNumber(ExtraOutputOptions::PAUSED)) == 0) {
-
-            if ((AsNumber(options) & AsNumber(ExtraOutputOptions::INCLUDINGDATE)) != 0) {
-                data.Time = Core::Time::Now().ToRFC1123(true);
-            } else {
-                data.Time = Core::Time::Now().ToTimeOnly(true);
-            }
-
-            if ((AsNumber(options) & AsNumber(ExtraOutputOptions::FILENAME)) != 0) {
-                data.FileName = fileName;
-            }
-
-            if ((AsNumber(options) & AsNumber(ExtraOutputOptions::LINENUMBER)) != 0) {
-                data.LineNumber = lineNumber;
-            }
-
-            if( (AsNumber(options) & AsNumber(ExtraOutputOptions::CLASSNAME) ) != 0 ) {
-                data.ClassName = className;
+            
+            if ((AsNumber(options) & AsNumber(ExtraOutputOptions::CATEGORY)) != 0) {
+                data.Category = metadata.Category();
             }
 
             if ((AsNumber(options) & AsNumber(ExtraOutputOptions::MODULE)) != 0) {
-                data.Module = module;
+                data.Module = metadata.Module();
             }
 
-            if ((AsNumber(options) & AsNumber(ExtraOutputOptions::CATEGORY)) != 0) {
-                data.Category = category;
+            if (metadata.Type() == Core::Messaging::Metadata::type::TRACING) {
+                ASSERT(dynamic_cast<const Core::Messaging::IStore::Tracing*>(&metadata) != nullptr);
+                const Core::Messaging::IStore::Tracing& trace = static_cast<const Core::Messaging::IStore::Tracing&>(metadata);
+                const Core::Time now(trace.TimeStamp());
+
+                if ((AsNumber(options) & AsNumber(ExtraOutputOptions::INCLUDINGDATE)) != 0) {
+                    data.Time = now.ToRFC1123(true);
+                }
+                else {
+                    data.Time = now.ToTimeOnly(true);
+                }
+
+                if ((AsNumber(options) & AsNumber(ExtraOutputOptions::FILENAME)) != 0) {
+                    data.FileName = trace.FileName();
+                }
+
+                if ((AsNumber(options) & AsNumber(ExtraOutputOptions::LINENUMBER)) != 0) {
+                    data.LineNumber = trace.LineNumber();
+                }
+
+                if ((AsNumber(options) & AsNumber(ExtraOutputOptions::CLASSNAME)) != 0) {
+                    data.ClassName = trace.ClassName();
+                }
+            }
+            else if (metadata.Type() == Core::Messaging::Metadata::type::LOGGING) {
+                ASSERT(dynamic_cast<const Core::Messaging::IStore::Logging*>(&metadata) != nullptr);
+                const Core::Messaging::IStore::Logging& log = static_cast<const Core::Messaging::IStore::Logging&>(metadata);
+                const Core::Time now(log.TimeStamp());
+
+                if ((AsNumber(options) & AsNumber(ExtraOutputOptions::INCLUDINGDATE)) != 0) {
+                    data.Time = now.ToRFC1123(true);
+                }
+                else {
+                    data.Time = now.ToTimeOnly(true);
+                }
+            }
+            else if (metadata.Type() == Core::Messaging::Metadata::type::REPORTING) {
+                ASSERT(dynamic_cast<const Core::Messaging::IStore::WarningReporting*>(&metadata) != nullptr);
+                const Core::Messaging::IStore::WarningReporting& report = static_cast<const Core::Messaging::IStore::WarningReporting&>(metadata);
+                const Core::Time now(report.TimeStamp());
+
+                if ((AsNumber(options) & AsNumber(ExtraOutputOptions::INCLUDINGDATE)) != 0) {
+                    data.Time = now.ToRFC1123(true);
+                }
+                else {
+                    data.Time = now.ToTimeOnly(true);
+                }
+
+                if ((AsNumber(options) & AsNumber(ExtraOutputOptions::CALLSIGN)) != 0) {
+                    data.Callsign = report.Callsign();
+                }
+            }
+            else {
+                ASSERT(metadata.Type() != Core::Messaging::Metadata::type::INVALID);
             }
 
             data.Message = text;
@@ -128,8 +135,7 @@ namespace Publishers {
         , _loaded(0)
     {
     }
-    UDPOutput::Channel::~Channel()
-    {
+    UDPOutput::Channel::~Channel() {
         Close(Core::infinite);
     }
 
@@ -142,24 +148,27 @@ namespace Publishers {
         _loaded = 0;
 
         _adminLock.Unlock();
+
         return (actualByteCount);
     }
 
     //unused
-    uint16_t UDPOutput::Channel::ReceiveData(uint8_t*, const uint16_t)
-    {
+    uint16_t UDPOutput::Channel::ReceiveData(uint8_t*, const uint16_t) {
         return 0;
     }
+
     void UDPOutput::Channel::StateChange()
     {
     }
 
-    void UDPOutput::Channel::Output(const Core::Messaging::IStore::Information& info, const Core::Messaging::IEvent* message)
+    void UDPOutput::Channel::Output(const Core::Messaging::Metadata& metadata, const Core::Messaging::IEvent* message)
     {
         _adminLock.Lock();
 
         uint16_t length = 0;
-        length += info.Serialize(_sendBuffer + length, sizeof(_sendBuffer) - length);
+        ASSERT(metadata.Type() != Core::Messaging::Metadata::INVALID);
+
+        length += metadata.Serialize(_sendBuffer + length, sizeof(_sendBuffer) - length);
         length += message->Serialize(_sendBuffer + length, sizeof(_sendBuffer) - length);
         _loaded = length;
 
@@ -169,21 +178,16 @@ namespace Publishers {
     }
 
     UDPOutput::UDPOutput(const Core::NodeId& nodeId)
-        : _output(nodeId)
-    {
+        : _output(nodeId) {
         _output.Open(0);
     }
 
-    void UDPOutput::Message(const Core::Messaging::Metadata::type type,
-            const string& module, const string& category, const string& fileName,
-            const uint16_t lineNumber, const string& className,
-            const uint64_t timeStamp, const string& text) /* override */
+    void UDPOutput::Message(const Core::Messaging::MessageInfo& metadata, const string& text) /* override */
     {
         //yikes, recreating stuff from received pieces
         Messaging::TextMessage textMessage(text);
-        Core::Messaging::IStore::Information info(Core::Messaging::Metadata(type, category, module), fileName, lineNumber, className, timeStamp);
-
-        _output.Output(info, &textMessage);
+        _output.Output(metadata, &textMessage);
     }
-}
+
+} // namespace Publishers
 }
