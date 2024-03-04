@@ -305,6 +305,7 @@ public:
         dsATMOSCapability_t atmosCapability = dsAUDIO_ATMOS_NOTSUPPORTED;
         supported = false;
         string audioPort = "HDMI0"; //default to HDMI
+        LOGINFO(" Amit %s entry \n ",___FUNCTION__);
         try
         {
             /*  Check if the device has an HDMI_ARC out. If ARC is connected, then SPEAKERS and SPDIF are disabled.
@@ -344,6 +345,7 @@ public:
     {
         /* For implementation details, please refer to Flow diagram attached in RDKTV-10066*/
 
+        LOGINFO(" Amit SoundMode  API called entry \n ");
         string audioPort;
         if (device::Host::getInstance().isHDMIOutPortPresent())
             audioPort = "HDMI0"; //this device has an HDMI out port. This is an STB device
@@ -377,6 +379,7 @@ public:
                 }
             }
 
+            LOGINFO(" Amit SoundMode   aPort.isConnected:%d  \n ",aPort.isConnected());
             /*When we reach here, we have determined the audio output port correctly. Now, check the sound mode on that port */
             device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
             if (aPort.isConnected())
@@ -400,6 +403,7 @@ public:
         {
             TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
         }
+        LOGINFO(" Amit SoundMode   return success \n ");
 
         return (Core::ERROR_NONE);
     }
