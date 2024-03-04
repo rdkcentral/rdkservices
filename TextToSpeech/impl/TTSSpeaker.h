@@ -55,24 +55,25 @@ namespace TTS {
 class TTSSpeakerClient {
 public:
     virtual TTSConfiguration* configuration() = 0;
-    virtual void willSpeak(uint32_t speech_id, std::string text) = 0;
-    virtual void started(uint32_t speech_id, std::string text) = 0;
-    virtual void spoke(uint32_t speech_id, std::string text) = 0;
-    virtual void paused(uint32_t speech_id) = 0;
-    virtual void resumed(uint32_t speech_id) = 0;
-    virtual void cancelled(std::vector<uint32_t> &speeches) = 0;
-    virtual void interrupted(uint32_t speech_id) = 0;
-    virtual void networkerror(uint32_t speech_id) = 0;
-    virtual void playbackerror(uint32_t speech_id) = 0;
+    virtual void willSpeak(uint32_t speech_id, std::string callsign, std::string text) = 0;
+    virtual void started(uint32_t speech_id, std::string callsign, std::string text) = 0;
+    virtual void spoke(uint32_t speech_id, std::string callsign, std::string text) = 0;
+    virtual void paused(uint32_t speech_id, std::string callsign) = 0;
+    virtual void resumed(uint32_t speech_id, std::string callsign) = 0;
+    virtual void cancelled(std::vector<uint32_t> &speeches, std::string callsign) = 0;
+    virtual void interrupted(uint32_t speech_id, std::string callsign) = 0;
+    virtual void networkerror(uint32_t speech_id, std::string callsign) = 0;
+    virtual void playbackerror(uint32_t speech_id, std::string callsign) = 0;
 };
 
 struct SpeechData {
     public:
-        SpeechData() : client(NULL), secure(false), id(0), text(), primVolDuck(25) {}
-        SpeechData(TTSSpeakerClient *c, uint32_t i, std::string t, bool s=false,int8_t vol=25) : client(c), secure(s), id(i), text(t), primVolDuck(vol) {}
+        SpeechData() : client(NULL), secure(false), id(0), callsign(), text(), primVolDuck(25) {}
+        SpeechData(TTSSpeakerClient *c, uint32_t i, std::string callsign,std::string t, bool s=false,int8_t vol=25) : client(c), secure(s), id(i), callsign(callsign), text(t), primVolDuck(vol) {}
         SpeechData(const SpeechData &n) {
             client = n.client;
             id = n.id;
+            callsign =n.callsign;
             text = n.text;
             secure = n.secure;
             primVolDuck = n.primVolDuck;
@@ -82,6 +83,7 @@ struct SpeechData {
         TTSSpeakerClient *client;
         bool secure;
         uint32_t id;
+        std::string callsign;
         std::string text;
         int8_t primVolDuck;
 };
@@ -100,7 +102,7 @@ public:
     void ensurePipeline(bool flag=true);
 
     // Speak Functions
-    int speak(TTSSpeakerClient* client, uint32_t id, std::string text, bool secure,int8_t primVolDuck); // Formalize data to speak API
+    int speak(TTSSpeakerClient* client, uint32_t id, std::string callsign, std::string text, bool secure,int8_t primVolDuck); // Formalize data to speak API
     bool isSpeaking(uint32_t id);
     SpeechState getSpeechState(uint32_t id);
     bool cancelSpeech(uint32_t id=0);
@@ -176,7 +178,7 @@ private:
     // GStreamer Helper functions
     bool needsPipelineUpdate();
     std::string constructURL(TTSConfiguration &config, SpeechData &d);
-    void speakText(TTSConfiguration config, SpeechData &data);
+    void speakText(TTSConfiguration &config, SpeechData &data);
     bool shouldUseLocalEndpoint();
     bool waitForStatus(GstState expected_state, uint32_t timeout_ms);
     void waitForAudioToFinishTimeout(float timeout_s);

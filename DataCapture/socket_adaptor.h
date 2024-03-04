@@ -115,7 +115,7 @@ class socket_adaptor
      *
      *  @return Returns length of the data or -1 in case of an error
      */
-    unsigned int fetch_data();
+    int fetch_data();
 
     /**
      *  @brief This api provides the previously fetched data
