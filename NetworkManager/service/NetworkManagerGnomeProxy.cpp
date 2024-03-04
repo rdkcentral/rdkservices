@@ -446,18 +446,162 @@ namespace WPEFramework
         uint32_t NetworkManagerImplementation::GetKnownSSIDs(IStringIterator*& ssids /* @out */)
         {
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
+	    NMClient *g_cli = nm_client_new(NULL, NULL);
+            const GPtrArray *connections = nm_client_get_connections(g_cli);
+            std::list<string> ssidList;
+            for (guint i = 0; i < connections->len; i++)
+            {
+                NMConnection *connection = NM_CONNECTION(connections->pdata[i]);
+
+                if (NM_IS_SETTING_WIRELESS(nm_connection_get_setting_wireless(connection)))
+                {
+                    GBytes *ssid_bytes = nm_setting_wireless_get_ssid(nm_connection_get_setting_wireless(connection));
+                    if (ssid_bytes)
+                    {
+                        gsize ssid_size;
+                        const char *ssid = (const char*)g_bytes_get_data(ssid_bytes, &ssid_size);
+                        if (ssid)
+                        {
+                            ssidList.push_back(ssid);
+                            rc = Core::ERROR_NONE;
+                        }
+                    }
+                }
+            }
+            if (!ssidList.empty())
+            {
+                NMLOG_INFO ("GetKnownSSIDs success\n");
+                ssids = Core::Service<RPC::StringIterator>::Create<RPC::IStringIterator>(ssidList);
+            }
             return rc;
+        }
+
+	static void add_callback(GObject *s, GAsyncResult *result, gpointer user_data)
+        {
+
+            GError *error = NULL;
+            NMRemoteConnection *connection = NM_REMOTE_CONNECTION(s);
+
+            if (!nm_remote_connection_delete_finish(connection, result, &error)) {
+                NMLOG_ERROR ("AddToKnownSSIDs Failed\n");
+            }
+            else
+            {
+                NMLOG_INFO ("AddToKnownSSIDs is success\n");
+            }
+
+            g_object_unref(connection);
+            g_main_loop_quit((GMainLoop *)user_data);
+
         }
 
         uint32_t NetworkManagerImplementation::AddToKnownSSIDs(const WiFiConnectTo& ssid /* @in */)
         {
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
+	    GMainLoop *loop;
+            loop = g_main_loop_new(NULL, FALSE);
+            NMClient *g_cli = nm_client_new(NULL, NULL);
+            NMSettingWirelessSecurity *s_secure;
+            NMSettingWireless *s_wireless;
+            const char *uuid = nm_utils_uuid_generate();
+            s_secure = (NMSettingWirelessSecurity *)nm_setting_wireless_security_new();
+            NMSettingConnection *s_con =  (NMSettingConnection *)nm_setting_connection_new();
+            g_object_set(G_OBJECT(s_con),
+                 NM_SETTING_CONNECTION_UUID,
+                 uuid,
+                 NM_SETTING_CONNECTION_ID,
+                 ssid.m_ssid.c_str(),
+                 NM_SETTING_CONNECTION_TYPE,
+                 "802-11-wireless",
+                 NULL);
+            NMConnection *connection = nm_simple_connection_new();
+            nm_connection_add_setting(connection, NM_SETTING(s_con));
+            s_wireless = (NMSettingWireless *)nm_setting_wireless_new();
+            GString *ssid_str = g_string_new(ssid.m_ssid.c_str());
+            g_object_set(G_OBJECT(s_wireless),
+                 NM_SETTING_WIRELESS_SSID,
+                 ssid_str,
+                 NULL);
+            nm_connection_add_setting(connection, NM_SETTING(s_wireless));
+            s_secure = (NMSettingWirelessSecurity *)nm_setting_wireless_security_new();
+	    switch(ssid.m_securityMode)
+            {
+                case WIFI_SECURITY_WPA_PSK_AES:
+                {
+                     g_object_set(G_OBJECT(s_secure),
+                         NM_SETTING_WIRELESS_SECURITY_KEY_MGMT,
+                         "wpa-psk",
+                         NM_SETTING_WIRELESS_SECURITY_PSK,
+                         ssid.m_passphrase.c_str(),
+                         NULL);
+
+                    break;
+                }
+                case WIFI_SECURITY_WPA2_PSK_AES:
+                {
+                     g_object_set(G_OBJECT(s_secure),
+                         NM_SETTING_WIRELESS_SECURITY_KEY_MGMT,
+                         "wpa-psk",
+                         NM_SETTING_WIRELESS_SECURITY_PSK,
+                         ssid.m_passphrase.c_str(),
+                         NULL);
+                    break;
+                }
+                default:
+                {
+                    g_object_set(G_OBJECT(s_secure),
+                         NM_SETTING_WIRELESS_SECURITY_KEY_MGMT,
+                         "wpa-psk",
+                         NM_SETTING_WIRELESS_SECURITY_PSK,
+                         ssid.m_passphrase.c_str(),
+                         NULL);
+                    break;
+                }
+            }
+            nm_connection_add_setting(connection, NM_SETTING(s_secure));
+            nm_client_add_connection_async(g_cli, connection, NULL, NULL, add_callback, loop);
+            rc = Core::ERROR_NONE;
+            g_main_loop_unref(loop);
+
             return rc;
         }
 
         uint32_t NetworkManagerImplementation::RemoveKnownSSID(const string& ssid /* @in */)
         {
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
+	    NMRemoteConnection* remoteConnection;
+            NMClient *g_cli = nm_client_new(NULL, NULL);
+            const GPtrArray* connections = nm_client_get_connections(g_cli);
+            for (guint i = 0; i < connections->len; i++)
+            {
+                remoteConnection = NM_REMOTE_CONNECTION(connections->pdata[i]);
+                NMConnection *connection = NM_CONNECTION(connections->pdata[i]);
+                if (NM_IS_SETTING_WIRELESS(nm_connection_get_setting_wireless(connection)))
+                {
+                    GBytes *ssid_bytes = nm_setting_wireless_get_ssid(nm_connection_get_setting_wireless(connection));
+                    if (ssid_bytes)
+                    {
+                        gsize ssid_size;
+                        const char *ssid_str = (const char*)g_bytes_get_data(ssid_bytes, &ssid_size);
+                        if (ssid == ssid_str)
+                        {
+                            GError *error = NULL;
+                            nm_remote_connection_delete(remoteConnection, NULL, &error);
+                            if (error)
+                            {
+                                NMLOG_ERROR("RemoveKnownSSID failed\n");
+                                g_error_free(error);
+                            }
+                            else
+                            {
+                                NMLOG_INFO("RemoveKnownSSID is success\n");
+                                rc = Core::ERROR_NONE;
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
             return rc;
         }
 
@@ -482,6 +626,61 @@ namespace WPEFramework
         uint32_t NetworkManagerImplementation::GetWiFiSignalStrength(string& ssid /* @out */, string& signalStrength /* @out */, WiFiSignalQuality& quality /* @out */)
         {
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
+	    float signalStrengthOut = 0.0f;
+	    NMClient *g_cli = nm_client_new(NULL, NULL);
+
+            const GPtrArray *devices = nm_client_get_devices(g_cli);
+
+            /* Go through the device array and process Wi-Fi devices */
+            for (guint i = 0; i < devices->len; i++)
+            {
+                NMDevice *device = (NMDevice *)g_ptr_array_index(devices, i);
+                if (NM_IS_DEVICE_WIFI(device))
+                {
+                    NMAccessPoint   *active_ap = NULL;
+                    GBytes          *active_ssid;
+                    char            *active_ssid_str = NULL;
+
+                    /* Get active AP */
+                    if (nm_device_get_state(device) == NM_DEVICE_STATE_ACTIVATED)
+                    {
+                        if ((active_ap = nm_device_wifi_get_active_access_point(NM_DEVICE_WIFI(device))))
+                        {
+                            active_ssid = nm_access_point_get_ssid(active_ap);
+                            if (active_ssid)
+                            {
+                                active_ssid_str = nm_utils_ssid_to_utf8(static_cast<const guint8*>(g_bytes_get_data(active_ssid, NULL)), g_bytes_get_size(active_ssid));
+                                ssid = active_ssid_str;
+                            }
+
+                            char *strength_str;
+                            guint8      strength;
+                            strength  = nm_access_point_get_strength(active_ap);
+                            strength_str  = g_strdup_printf("%u", strength);
+                            signalStrength  = strength_str;
+                            g_free(strength_str);
+                            if(!signalStrength.empty())
+                                signalStrengthOut = std::stof(signalStrength.c_str());
+
+                            if (signalStrengthOut == 0)
+                                quality = WIFI_SIGNAL_DISCONNECTED;
+                            else if (signalStrengthOut >= signalStrengthThresholdExcellent && signalStrengthOut < 0)
+                                quality = WIFI_SIGNAL_EXCELLENT;
+                            else if (signalStrengthOut >= signalStrengthThresholdGood && signalStrengthOut < signalStrengthThresholdExcellent)
+                                quality = WIFI_SIGNAL_GOOD;
+                            else if (signalStrengthOut >= signalStrengthThresholdFair && signalStrengthOut < signalStrengthThresholdGood)
+                                quality = WIFI_SIGNAL_FAIR;
+                            else
+				quality = WIFI_SIGNAL_WEAK;
+
+                            NMLOG_INFO ("GetWiFiSignalStrength success\n");
+                            g_free(active_ssid_str);
+                            rc = Core::ERROR_NONE;
+                            break;
+                        }
+                    }
+                }
+            }
             return rc;
         }
 

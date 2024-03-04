@@ -1055,18 +1055,36 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
                 signalStrength  = ssidInfo.m_signalStrength;
 
                 if (!signalStrength.empty())
+		{
                     signalStrengthOut = std::stof(signalStrength.c_str());
+		    NMLOG_INFO ("WiFiSignalStrength in dB = %s",signalStrengthOut);
+		}
 
                 if (signalStrengthOut == 0)
+		{
                     quality = WIFI_SIGNAL_DISCONNECTED;
+		    signalStrength = "0";
+		}
                 else if (signalStrengthOut >= signalStrengthThresholdExcellent && signalStrengthOut < 0)
+		{
                     quality = WIFI_SIGNAL_EXCELLENT;
+		    signalStrength = "100";
+		}
                 else if (signalStrengthOut >= signalStrengthThresholdGood && signalStrengthOut < signalStrengthThresholdExcellent)
+		{
                     quality = WIFI_SIGNAL_GOOD;
+		    signalStrength = "75";
+		}
                 else if (signalStrengthOut >= signalStrengthThresholdFair && signalStrengthOut < signalStrengthThresholdGood)
+		{
                     quality = WIFI_SIGNAL_FAIR;
+		    signalStrength = "50";
+		}
                 else
+		{
                     quality = WIFI_SIGNAL_WEAK;
+		    signalStrength = "25";
+		}
 
                 NMLOG_INFO ("GetWiFiSignalStrength success");
                 rc = Core::ERROR_NONE;
