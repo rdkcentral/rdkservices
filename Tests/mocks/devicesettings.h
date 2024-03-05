@@ -586,6 +586,7 @@ public:
     virtual bool isPortConnected(int8_t Port) const = 0;
     virtual std::string getCurrentVideoMode() const = 0;
     virtual void selectPort(int8_t Port,bool audioMix = false, int videoPlane = 0,bool topMost = false) const = 0;
+    virtual void setAudioMixerLevels(int gain, int volume) const = 0;
     virtual void scaleVideo(int32_t x, int32_t y, int32_t width, int32_t height) const = 0;
 
     virtual void getEDIDBytesInfo(int iHdmiPort, std::vector<uint8_t>& edid) const = 0;
@@ -620,6 +621,10 @@ public:
     std::string getCurrentVideoMode() const
     {
         return impl->getCurrentVideoMode();
+    }
+    void setAudioMixerLevels(int gain, int volume) const
+    {
+	    return impl->setAudioMixerLevels(gain, volume);
     }
     void selectPort(int8_t Port,bool audioMix = false,int videoPlane = 0,bool topMost = false) const
     {
