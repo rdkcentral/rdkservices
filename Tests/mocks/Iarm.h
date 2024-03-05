@@ -28,82 +28,41 @@ public:
     virtual IARM_Result_t IARM_Bus_UnRegisterEventHandler(const char* ownerName, IARM_EventId_t eventId) = 0;
     virtual IARM_Result_t IARM_Bus_RemoveEventHandler(const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) = 0;
     virtual IARM_Result_t IARM_Bus_Call(const char* ownerName, const char* methodName, void* arg, size_t argLen) = 0;
-	virtual IARM_Result_t IARM_Bus_BroadcastEvent(const char *ownerName, IARM_EventId_t eventId, void *arg, size_t argLen) = 0;
+    virtual IARM_Result_t IARM_Bus_BroadcastEvent(const char *ownerName, IARM_EventId_t eventId, void *arg, size_t argLen) = 0;
     virtual IARM_Result_t IARM_Bus_RegisterCall(const char* methodName, IARM_BusCall_t handler) = 0;
     virtual IARM_Result_t IARM_Bus_Call_with_IPCTimeout(const char *ownerName,  const char *methodName, void *arg, size_t argLen, int timeout) = 0;
 };
 
 class IarmBus {
+protected:
+    static IarmBusImpl* impl;
 public:
-    static IarmBus& getInstance()
-    {
-        static IarmBus instance;
-        return instance;
-    }
+    IarmBus();
+    IarmBus(const IarmBus &obj) = delete; // deleted copy constructor so that copy of the instance cannot be created.
+    static void setImpl(IarmBusImpl* newImpl);
+    static IARM_Result_t IARM_Bus_Init(const char* name);
+    static IARM_Result_t IARM_Bus_Connect();
+    static IARM_Result_t IARM_Bus_IsConnected(const char* memberName, int* isRegistered);
+    static IARM_Result_t IARM_Bus_RegisterEventHandler(const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler);
+    static IARM_Result_t IARM_Bus_UnRegisterEventHandler(const char* ownerName, IARM_EventId_t eventId);
+    static IARM_Result_t IARM_Bus_RemoveEventHandler(const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler);
+    static IARM_Result_t IARM_Bus_Call(const char* ownerName, const char* methodName, void* arg, size_t argLen);
+    static IARM_Result_t IARM_Bus_BroadcastEvent(const char *ownerName, IARM_EventId_t eventId, void *arg, size_t argLen) ;
 
-    IarmBusImpl* impl;
-
-    static IARM_Result_t IARM_Bus_Init(const char* name)
-    {
-        return getInstance().impl->IARM_Bus_Init(name);
-    }
-
-    static IARM_Result_t IARM_Bus_Connect()
-    {
-        return getInstance().impl->IARM_Bus_Connect();
-    }
-
-    static IARM_Result_t IARM_Bus_IsConnected(const char* memberName, int* isRegistered)
-    {
-        return getInstance().impl->IARM_Bus_IsConnected(memberName, isRegistered);
-    }
-
-    static IARM_Result_t IARM_Bus_RegisterEventHandler(const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler)
-    {
-        return getInstance().impl->IARM_Bus_RegisterEventHandler(ownerName, eventId, handler);
-    }
-
-    static IARM_Result_t IARM_Bus_UnRegisterEventHandler(const char* ownerName, IARM_EventId_t eventId)
-    {
-        return getInstance().impl->IARM_Bus_UnRegisterEventHandler(ownerName, eventId);
-    }
-
-    static IARM_Result_t IARM_Bus_RemoveEventHandler(const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler)
-    {
-        return getInstance().impl->IARM_Bus_RemoveEventHandler(ownerName, eventId, handler);
-    }
-
-    static IARM_Result_t IARM_Bus_Call(const char* ownerName, const char* methodName, void* arg, size_t argLen)
-    {
-        return getInstance().impl->IARM_Bus_Call(ownerName, methodName, arg, argLen);
-    }
-
-    static IARM_Result_t IARM_Bus_BroadcastEvent(const char *ownerName, IARM_EventId_t eventId, void *arg, size_t argLen)
-    {
-        return getInstance().impl->IARM_Bus_BroadcastEvent(ownerName, eventId, arg, argLen);
-    }
-	
-    static IARM_Result_t IARM_Bus_RegisterCall(const char* methodName, IARM_BusCall_t handler)
-    {
-        return getInstance().impl->IARM_Bus_RegisterCall(methodName, handler);
-    }
-
-    static IARM_Result_t IARM_Bus_Call_with_IPCTimeout(const char *ownerName,  const char *methodName, void *arg, size_t argLen, int timeout)
-    {
-        return getInstance().impl->IARM_Bus_Call_with_IPCTimeout(ownerName, methodName, arg, argLen, timeout);
-    }
+    static IARM_Result_t IARM_Bus_RegisterCall(const char* methodName, IARM_BusCall_t handler);
+    static IARM_Result_t IARM_Bus_Call_with_IPCTimeout(const char *ownerName,  const char *methodName, void *arg, size_t argLen, int timeout);
 };
 
-constexpr auto IARM_Bus_Init = &IarmBus::IARM_Bus_Init;
-constexpr auto IARM_Bus_Connect = &IarmBus::IARM_Bus_Connect;
-constexpr auto IARM_Bus_IsConnected = &IarmBus::IARM_Bus_IsConnected;
-constexpr auto IARM_Bus_RegisterEventHandler = &IarmBus::IARM_Bus_RegisterEventHandler;
-constexpr auto IARM_Bus_UnRegisterEventHandler = &IarmBus::IARM_Bus_UnRegisterEventHandler;
-constexpr auto IARM_Bus_RemoveEventHandler = &IarmBus::IARM_Bus_RemoveEventHandler;
-constexpr auto IARM_Bus_Call = &IarmBus::IARM_Bus_Call;
-constexpr auto IARM_Bus_BroadcastEvent = &IarmBus::IARM_Bus_BroadcastEvent;
-constexpr auto IARM_Bus_RegisterCall = &IarmBus::IARM_Bus_RegisterCall;
-constexpr auto IARM_Bus_Call_with_IPCTimeout = &IarmBus::IARM_Bus_Call_with_IPCTimeout;
+extern IARM_Result_t (*IARM_Bus_Init)(const char*);
+extern IARM_Result_t (*IARM_Bus_Connect)();
+extern IARM_Result_t (*IARM_Bus_IsConnected)(const char*,int*);
+extern IARM_Result_t (*IARM_Bus_RegisterEventHandler)(const char*,IARM_EventId_t,IARM_EventHandler_t);
+extern IARM_Result_t (*IARM_Bus_UnRegisterEventHandler)(const char*,IARM_EventId_t);
+extern IARM_Result_t (*IARM_Bus_RemoveEventHandler)(const char*,IARM_EventId_t,IARM_EventHandler_t);
+extern IARM_Result_t (*IARM_Bus_Call)(const char*,const char*,void*,size_t);
+extern IARM_Result_t (*IARM_Bus_BroadcastEvent)(const char *,IARM_EventId_t,void *,size_t);
+extern IARM_Result_t (*IARM_Bus_RegisterCall)(const char*,IARM_BusCall_t);
+extern IARM_Result_t (*IARM_Bus_Call_with_IPCTimeout)(const char*,const char*,void*,size_t,int);
 
 #define IARM_BUS_COMMON_API_SysModeChange "SysModeChange"
 

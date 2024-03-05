@@ -31,7 +31,7 @@ set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)
 
-if (NOT RDK_SERVICES_TEST)
+if (NOT RDK_SERVICES_L1_TEST)
     target_compile_options(${MODULE_NAME} PRIVATE -Wno-error)
 endif ()
 
