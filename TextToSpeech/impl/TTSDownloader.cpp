@@ -100,10 +100,27 @@ bool TTSDownloader::downloadFile(std::string ttsRequest)
         CURL *curl = curl_easy_init();
         if(curl)
         {
-            curl_easy_setopt(curl, CURLOPT_URL, ttsRequest.c_str());
-            curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
-            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, NULL);
-            curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
+            CURLcode res;
+            res = curl_easy_setopt(curl, CURLOPT_URL, ttsRequest.c_str());
+            if( res != CURLE_OK )
+            {
+                TTSLOG_ERROR("CURL error is:  %s\n", curl_easy_strerror(res));
+            }
+            res = curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1);
+            if( res != CURLE_OK )
+            {
+                TTSLOG_ERROR("CURL error is:  %s\n", curl_easy_strerror(res));
+            }
+            res = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, NULL);
+            if( res != CURLE_OK )
+            {
+                TTSLOG_ERROR("CURL error is:  %s\n", curl_easy_strerror(res));
+            }
+            res = curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
+            if( res != CURLE_OK )
+            {
+                TTSLOG_ERROR("CURL error is:  %s\n", curl_easy_strerror(res));
+            }
             if (curl_easy_perform(curl) != CURLE_OK)
             {
                 downloadDone = false;

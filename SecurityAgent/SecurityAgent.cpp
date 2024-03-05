@@ -87,6 +87,7 @@ namespace Plugin {
         , _engine()
     {
         RegisterAll();
+        _skipURL = 0;
     }
 
     /* virtual */ SecurityAgent::~SecurityAgent()

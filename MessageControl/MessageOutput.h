@@ -27,10 +27,7 @@ namespace Publishers {
     struct IPublish {
         virtual ~IPublish() = default;
 
-        virtual void Message(const Core::Messaging::Metadata::type type,
-            const string& module, const string& category, 
-            const string& fileName, const uint16_t lineNumber, 
-            const string& className, const uint64_t timeStamp, const string& text) = 0;
+        virtual void Message(const Core::Messaging::MessageInfo& metadata, const string& text) = 0;
     };
 
     class Text {
@@ -39,19 +36,17 @@ namespace Publishers {
         Text(const Text&) = delete;
         Text& operator=(const Text&) = delete;
 
-        explicit Text(const bool abbreviated)
-            : _abbreviated(abbreviated) {
+        explicit Text(const Core::Messaging::MessageInfo::abbreviate abbreviated)
+            : _abbreviated(abbreviated)
+        {
         }
         ~Text() = default;
 
     public:
-        string Convert (const Core::Messaging::Metadata::type type,
-            const string& module, const string& category, const string& fileName,
-            const uint16_t lineNumber, const string& className,
-            const uint64_t timeStamp, const string& text);
+        string Convert (const Core::Messaging::MessageInfo& metadata, const string& text);
 
     private:
-        bool _abbreviated;
+        Core::Messaging::MessageInfo::abbreviate _abbreviated;
     };
 
     class ConsoleOutput : public IPublish {
@@ -60,16 +55,14 @@ namespace Publishers {
         ConsoleOutput(const ConsoleOutput&) = delete;
         ConsoleOutput& operator=(const ConsoleOutput&) = delete;
 
-        explicit ConsoleOutput(const bool abbreviate)
-            : _convertor(abbreviate) {
+        explicit ConsoleOutput(const Core::Messaging::MessageInfo::abbreviate abbreviate)
+            : _convertor(abbreviate)
+        {
         }
         ~ConsoleOutput() override = default;
 
     public:
-        void Message(const Core::Messaging::Metadata::type type, 
-            const string& module, const string& category, const string& fileName,
-            const uint16_t lineNumber, const string& className,
-            const uint64_t timeStamp, const string& text) override;
+        void Message(const Core::Messaging::MessageInfo& metadata, const string& text);
 
     private:
         Text _convertor;
@@ -81,16 +74,14 @@ namespace Publishers {
         SyslogOutput(const SyslogOutput&) = delete;
         SyslogOutput& operator=(const SyslogOutput&) = delete;
 
-        explicit SyslogOutput(const bool abbreviate)
-            : _convertor(abbreviate) {
+        explicit SyslogOutput(const Core::Messaging::MessageInfo::abbreviate abbreviate)
+            : _convertor(abbreviate)
+        {
         }
         ~SyslogOutput() override = default;
 
     public:
-        void Message(const Core::Messaging::Metadata::type type,
-            const string& module, const string& category, const string& fileName,
-            const uint16_t lineNumber, const string& className,
-            const uint64_t timeStamp, const string& text) override;
+        void Message(const Core::Messaging::MessageInfo& metadata, const string& text);
 
     private:
         Text _convertor;
@@ -102,26 +93,25 @@ namespace Publishers {
         FileOutput(const FileOutput&) = delete;
         FileOutput& operator=(const FileOutput&) = delete;
 
-        explicit FileOutput(const bool abbreviate, const string& filepath)
+        explicit FileOutput(const Core::Messaging::MessageInfo::abbreviate abbreviate, const string& filepath)
             : _convertor(abbreviate)
-            , _file(filepath) {
+            , _file(filepath)
+        {
             _file.Create();
 
             if (!_file.IsOpen()) {
                 TRACE(Trace::Error, (_T("Could not open file <%s>. Outputting warnings to file unavailable."), filepath));
             }
         }
-        ~FileOutput() override {
+        ~FileOutput() override
+        {
             if (_file.IsOpen()) {
                 _file.Close();
             }
         }
 
     public:
-        void Message(const Core::Messaging::Metadata::type type,
-            const string& module, const string& category, const string& fileName,
-            const uint16_t lineNumber, const string& className,
-            const uint64_t timeStamp, const string& text) override;
+        void Message(const Core::Messaging::MessageInfo& metadata, const string& text);
 
     private:
         Text _convertor;
@@ -137,9 +127,10 @@ namespace Publishers {
             CLASSNAME     = 0x04,
             MODULE        = 0x08,
             CATEGORY      = 0x10,
-            INCLUDINGDATE = 0x20,
-            ALL           = 0x3F,
-            PAUSED        = 0x40
+            CALLSIGN      = 0x20,
+            INCLUDINGDATE = 0x40,
+            ALL           = 0x7F,
+            PAUSED        = 0x80
         };
 
     public:
@@ -156,6 +147,7 @@ namespace Publishers {
                 , ClassName()
                 , Category()
                 , Module()
+                , Callsign()
                 , Message()
             {
                 Add(_T("time"), &Time);
@@ -164,6 +156,7 @@ namespace Publishers {
                 Add(_T("classname"), &ClassName);
                 Add(_T("category"), &Category);
                 Add(_T("module"), &Module);
+                Add(_T("callsign"), &Callsign);
                 Add(_T("message"), &Message);
             }
             ~Data() override = default;
@@ -175,6 +168,7 @@ namespace Publishers {
             Core::JSON::String ClassName;
             Core::JSON::String Category;
             Core::JSON::String Module;
+            Core::JSON::String Callsign;
             Core::JSON::String Message;
         };
 
@@ -183,16 +177,18 @@ namespace Publishers {
         JSON& operator=(const JSON&) = delete;
 
         JSON()
-            : _outputOptions(ExtraOutputOptions::ALL) {
+            : _outputOptions(ExtraOutputOptions::ALL)
+        {
         }
-
         ~JSON() = default;
 
     public:
         bool FileName() const {
             return ((AsNumber<ExtraOutputOptions>(_outputOptions) & AsNumber(ExtraOutputOptions::FILENAME)) != 0);
         }
-        void FileName(const bool enabled) {
+
+        void FileName(const bool enabled)
+        {
             if (enabled == true) {
                 _outputOptions = static_cast<ExtraOutputOptions>(AsNumber<ExtraOutputOptions>(_outputOptions) | AsNumber(ExtraOutputOptions::FILENAME));
             }
@@ -200,10 +196,13 @@ namespace Publishers {
                 _outputOptions = static_cast<ExtraOutputOptions>(AsNumber<ExtraOutputOptions>(_outputOptions) & ~AsNumber(ExtraOutputOptions::FILENAME));
             }
         }
+
         bool LineNumber() const {
             return ((AsNumber<ExtraOutputOptions>(_outputOptions) & AsNumber(ExtraOutputOptions::LINENUMBER)) != 0);
         }
-        void LineNumber(const bool enabled) {
+
+        void LineNumber(const bool enabled)
+        {
             if (enabled == true) {
                 _outputOptions = static_cast<ExtraOutputOptions>(AsNumber<ExtraOutputOptions>(_outputOptions) | AsNumber(ExtraOutputOptions::LINENUMBER));
             }
@@ -211,10 +210,13 @@ namespace Publishers {
                 _outputOptions = static_cast<ExtraOutputOptions>(AsNumber<ExtraOutputOptions>(_outputOptions) & ~AsNumber(ExtraOutputOptions::LINENUMBER));
             }
         }
+
         bool ClassName() const {
             return ((AsNumber<ExtraOutputOptions>(_outputOptions) & AsNumber(ExtraOutputOptions::CLASSNAME)) != 0);
         }
-        void ClassName(const bool enabled) {
+
+        void ClassName(const bool enabled)
+        {
             if (enabled == true) {
                 _outputOptions = static_cast<ExtraOutputOptions>(AsNumber<ExtraOutputOptions>(_outputOptions) | AsNumber(ExtraOutputOptions::CLASSNAME));
             }
@@ -222,10 +224,13 @@ namespace Publishers {
                 _outputOptions = static_cast<ExtraOutputOptions>(AsNumber<ExtraOutputOptions>(_outputOptions) & ~AsNumber(ExtraOutputOptions::CLASSNAME));
             }
         }
+
         bool Module() const {
             return ((AsNumber<ExtraOutputOptions>(_outputOptions) & AsNumber(ExtraOutputOptions::MODULE)) != 0);
         }
-        void Module(const bool enabled) {
+
+        void Module(const bool enabled)
+        {
             if (enabled == true) {
                 _outputOptions = static_cast<ExtraOutputOptions>(AsNumber<ExtraOutputOptions>(_outputOptions) | AsNumber(ExtraOutputOptions::MODULE));
             }
@@ -233,10 +238,13 @@ namespace Publishers {
                 _outputOptions = static_cast<ExtraOutputOptions>(AsNumber<ExtraOutputOptions>(_outputOptions) & ~AsNumber(ExtraOutputOptions::MODULE));
             }
         }
+
         bool Category() const {
             return ((AsNumber<ExtraOutputOptions>(_outputOptions) & AsNumber(ExtraOutputOptions::CATEGORY)) != 0);
         }
-        void Category(const bool enabled) {
+
+        void Category(const bool enabled)
+        {
             if (enabled == true) {
                 _outputOptions = static_cast<ExtraOutputOptions>(AsNumber<ExtraOutputOptions>(_outputOptions) | AsNumber(ExtraOutputOptions::CATEGORY));
             }
@@ -244,10 +252,27 @@ namespace Publishers {
                 _outputOptions = static_cast<ExtraOutputOptions>(AsNumber<ExtraOutputOptions>(_outputOptions) & ~AsNumber(ExtraOutputOptions::CATEGORY));
             }
         }
+
+        bool Callsign() const {
+            return ((AsNumber<ExtraOutputOptions>(_outputOptions) & AsNumber(ExtraOutputOptions::CALLSIGN)) != 0);
+        }
+
+        void Callsign(const bool enabled)
+        {
+            if (enabled == true) {
+                _outputOptions = static_cast<ExtraOutputOptions>(AsNumber<ExtraOutputOptions>(_outputOptions) | AsNumber(ExtraOutputOptions::CALLSIGN));
+            }
+            else {
+                _outputOptions = static_cast<ExtraOutputOptions>(AsNumber<ExtraOutputOptions>(_outputOptions) & ~AsNumber(ExtraOutputOptions::CALLSIGN));
+            }
+        }
+
         bool Date() const {
             return ((AsNumber<ExtraOutputOptions>(_outputOptions) & AsNumber(ExtraOutputOptions::INCLUDINGDATE)) != 0);
         }
-        void Date(const bool enabled) {
+
+        void Date(const bool enabled)
+        {
             if (enabled == true) {
                 _outputOptions = static_cast<ExtraOutputOptions>(AsNumber<ExtraOutputOptions>(_outputOptions) | AsNumber(ExtraOutputOptions::INCLUDINGDATE));
             }
@@ -255,10 +280,13 @@ namespace Publishers {
                 _outputOptions = static_cast<ExtraOutputOptions>(AsNumber<ExtraOutputOptions>(_outputOptions) & ~AsNumber(ExtraOutputOptions::INCLUDINGDATE));
             }
         }
+
         bool Paused() const {
             return ((AsNumber<ExtraOutputOptions>(_outputOptions) & AsNumber(ExtraOutputOptions::PAUSED)) != 0);
         }
-        void Paused(const bool enabled) {
+
+        void Paused(const bool enabled)
+        {
             if (enabled == true) {
                 _outputOptions = static_cast<ExtraOutputOptions>(AsNumber<ExtraOutputOptions>(_outputOptions) | AsNumber(ExtraOutputOptions::PAUSED));
             }
@@ -267,16 +295,12 @@ namespace Publishers {
             }
         }
 
-        void Convert(const Core::Messaging::Metadata::type type,
-            const string& module, const string& category, const string& fileName,
-            const uint16_t lineNumber, const string& className,
-            const uint64_t timeStamp, const string& text, Data& info);
+        void Convert(const Core::Messaging::MessageInfo& metadata, const string& text, Data& info);
 
     private:
         template <typename E>
-        static inline auto AsNumber(E t) -> typename std::underlying_type<E>::type
-        {
-            return static_cast<typename std::underlying_type<E>::type>(t);
+        static inline auto AsNumber(E t) -> typename std::underlying_type<E>::type {
+            return (static_cast<typename std::underlying_type<E>::type>(t));
         }
 
     private:
@@ -294,7 +318,7 @@ namespace Publishers {
             explicit Channel(const Core::NodeId& nodeId);
             ~Channel() override;
 
-            void Output(const Core::Messaging::IStore::Information& info, const Core::Messaging::IEvent* message);
+            void Output(const Core::Messaging::Metadata& metadata, const Core::Messaging::IEvent* message);
 
         private:
             uint16_t SendData(uint8_t* dataFrame, const uint16_t maxSendSize) override;
@@ -315,10 +339,7 @@ namespace Publishers {
         explicit UDPOutput(const Core::NodeId& nodeId);
         ~UDPOutput() = default;
 
-        void Message(const Core::Messaging::Metadata::type type,
-            const string& module, const string& category, const string& fileName,
-            const uint16_t lineNumber, const string& className,
-            const uint64_t timeStamp, const string& text) override;
+        void Message(const Core::Messaging::MessageInfo& metadata, const string& text);
 
     private:
         Channel _output;
@@ -337,6 +358,7 @@ namespace Publishers {
                 , LineNumber()
                 , Category()
                 , Module()
+                , Callsign()
                 , IncludingDate()
                 , Paused()
             {
@@ -345,10 +367,10 @@ namespace Publishers {
                 Add(_T("classname"), &ClassName);
                 Add(_T("category"), &Category);
                 Add(_T("module"), &Module);
+                Add(_T("callsign"), &Callsign);
                 Add(_T("includingdate"), &IncludingDate);
                 Add(_T("paused"), &Paused);
             }
-
             ~ExportCommand() override = default;
 
         public:
@@ -357,6 +379,7 @@ namespace Publishers {
             Core::JSON::Boolean ClassName;
             Core::JSON::Boolean Category;
             Core::JSON::Boolean Module;
+            Core::JSON::Boolean Callsign;
             Core::JSON::Boolean IncludingDate;
             Core::JSON::Boolean Paused;
         };
@@ -382,21 +405,29 @@ namespace Publishers {
         ~WebSocketOutput() override = default;
 
     public:
-        void Initialize(PluginHost::IShell* service, const uint32_t maxConnections = DefaultMaxConnections) {
+        void Initialize(PluginHost::IShell* service, const uint32_t maxConnections = DefaultMaxConnections)
+        {
             _lock.Lock();
+
             _server = service;
             _server->AddRef();
             _maxExportConnections = maxConnections;
+
             _lock.Unlock();
         }
-        void Deinitialize() {
+
+        void Deinitialize()
+        {
             _lock.Lock();
+
             _server->Release();
             _server = nullptr;
             _channels.clear();
             _maxExportConnections = 0;
+
             _lock.Unlock();
         }
+
         bool Attach(const uint32_t id)
         {
             bool accepted = false;
@@ -415,10 +446,11 @@ namespace Publishers {
 
             _lock.Unlock();
 
-            return accepted;
+            return (accepted);
         }
 
-        bool Detach(const uint32_t id) {
+        bool Detach(const uint32_t id)
+        {
             bool deactivated = false;
 
             _lock.Lock();
@@ -432,14 +464,15 @@ namespace Publishers {
 
             _lock.Unlock();
 
-            return deactivated;
+            return (deactivated);
         }
 
         uint32_t MaxConnections() const {
             return (_maxExportConnections);
         }
 
-        Core::ProxyType<Core::JSON::IElement> Received(const uint32_t id, const Core::ProxyType<Core::JSON::IElement>& element) {
+        Core::ProxyType<Core::JSON::IElement> Received(const uint32_t id, const Core::ProxyType<Core::JSON::IElement>& element)
+        {
             Core::ProxyType<ExportCommand> info = Core::ProxyType<ExportCommand>(element);
 
             if (info.IsValid() == false) {
@@ -466,6 +499,9 @@ namespace Publishers {
                     if (info->Module.IsSet() == true) {
                         index->second.Module(info->Module == true);
                     }
+                    if (info->Callsign.IsSet() == true) {
+                        index->second.Callsign(info->Callsign == true);
+                    }
                     if (info->IncludingDate.IsSet() == true) {
                         index->second.Date(info->IncludingDate == true);
                     }
@@ -479,6 +515,7 @@ namespace Publishers {
                     info->ClassName = index->second.ClassName();
                     info->Category = index->second.Category();
                     info->Module = index->second.Module();
+                    info->Callsign = index->second.Callsign();
                     info->IncludingDate = index->second.Date();
                     info->Paused = index->second.Paused();
                 }
@@ -489,26 +526,21 @@ namespace Publishers {
             return (element);
         }
 
-        void Message(const Core::Messaging::Metadata::type type,
-            const string& module, const string& category, const string& fileName,
-            const uint16_t lineNumber, const string& className,
-            const uint64_t timeStamp, const string& text) override {
-
+        void Message(const Core::Messaging::MessageInfo& metadata, const string& text) override
+        {
             std::list<std::pair<uint32_t, Core::ProxyType<Core::JSON::IElement>>> cachedList;
             PluginHost::IShell* server = nullptr;
 
             _lock.Lock();
 
             if (_server != nullptr) {
-
                 for (auto& item : _channels) {
                     if (item.second.Paused() == false) {
                         Core::ProxyType<JSON::Data> data = _jsonExportDataFactory.Element();
-                        item.second.Convert(type, category, module, fileName, lineNumber, className, timeStamp, text, *data);
+                        item.second.Convert(metadata, text, *data);
                         cachedList.emplace_back(item.first, Core::ProxyType<Core::JSON::IElement>(data));
                     }
                 }
-
                 if (cachedList.empty() == false) {
                     server = _server;
                     server->AddRef();
@@ -539,5 +571,5 @@ namespace Publishers {
         Core::ProxyPoolType<ExportCommand> _jsonExportCommandFactory;
     };
 
-}
+} // namespace Publishers
 }
