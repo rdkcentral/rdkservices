@@ -3377,6 +3377,7 @@ namespace Plugin {
         std::string source;
         std::string format;
         int lowLatencyIndex = 0;
+        int prevLowLatencyIndex = 0;
         int params[3]={0};
         tvError_t ret = tvERROR_NONE;
 
@@ -3402,6 +3403,14 @@ namespace Plugin {
             returnResponse(false);
         }
 
+/* Usually low latency is enabled with Game mode but when setLowLatency is done seperatly, it requires PQ Mode reload.
+   To allow pq reload to fetch latest low latency values, save low latency before set is done. */
+        ret = GetLowLatencyState(&prevLowLatencyIndex);
+        if(ret != tvERROR_NONE) {
+            LOGERR("Get previous low latency state failed\n");
+            returnResponse(false, getErrorString(ret).c_str());
+        }
+
         params[0]=lowLatencyIndex;
         int retval= UpdateAVoutputTVParam("set","LowLatencyState",pqmode,source,format,PQ_PARAM_LOWLATENCY_STATE,params);
         if(retval != 0 ) 
@@ -3412,12 +3421,19 @@ namespace Plugin {
         else
         {
             if( isSetRequired(pqmode,source,format) ) 
-	        {
+	    {
                 LOGINFO("Proceed with setLowLatencyState\n");
                 ret = SetLowLatencyState( lowLatencyIndex );
                 if(ret != tvERROR_NONE) 
-	            {
-                    LOGERR("Failed to setLowLatency\n");
+	        {
+                    params[0]=prevLowLatencyIndex;
+                    LOGERR("Failed to set low latency. Fallback to previous state %d\n", prevLowLatencyIndex);
+
+                    retval= UpdateAVoutputTVParam("set","LowLatencyState",pqmode,source,format,PQ_PARAM_LOWLATENCY_STATE,params);
+                    if(retval != 0 ){
+                        LOGERR("Fallback to previous low latency state %d failed.\n", prevLowLatencyIndex);
+                    }
+
                     returnResponse(false);
                 }
             }
