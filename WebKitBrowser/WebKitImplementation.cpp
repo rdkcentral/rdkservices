@@ -3461,7 +3461,10 @@ static GSourceFuncs _handlerIntervention =
 
             _configurationCompleted.SetState(true);
 
-            URL(static_cast<const string>(urlValue()));
+            // that invocation is doing initial about:blank URL setup, that randomly causes aborts
+            // like descibred here: https://jira.lgi.io/browse/ONEM-34263?focusedCommentId=5340765
+            // when overlaps with initial URL setup done via jsapp=>slauncher
+            //URL(static_cast<const string>(urlValue()));
 
             // Move into the correct state, as requested
             auto* backend = webkit_web_view_backend_get_wpe_backend(webkit_web_view_get_backend(_view));
