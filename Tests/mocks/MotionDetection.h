@@ -96,93 +96,39 @@ public:
 };
 
 class MotionDetection {
+protected:
+    static MotionDetectionImpl* impl;
 public:
-    static MotionDetection& getInstance()
-    {
-        static MotionDetection instance;
-        return instance;
-    }
-
-    MotionDetectionImpl* impl;
-
-    static MOTION_DETECTION_Result_t MOTION_DETECTION_Platform_Init()
-    {
-        return getInstance().impl->MOTION_DETECTION_Platform_Init();
-    }
-
-    static MOTION_DETECTION_Result_t MOTION_DETECTION_Platform_Term()
-    {
-            return getInstance().impl->MOTION_DETECTION_Platform_Term();
-    }
-
-    static MOTION_DETECTION_Result_t MOTION_DETECTION_RegisterEventCallback(MOTION_DETECTION_OnMotionEventCallback motionEvent)
-    {
-            return getInstance().impl->MOTION_DETECTION_RegisterEventCallback(motionEvent);
-    }
-
-    static MOTION_DETECTION_Result_t MOTION_DETECTION_GetMotionDetectors(MOTION_DETECTION_CurrentSensorSettings_t* motionDetectors)
-    {
-        return getInstance().impl->MOTION_DETECTION_GetMotionDetectors(motionDetectors);
-    }
-
-	 static MOTION_DETECTION_Result_t MOTION_DETECTION_ArmMotionDetector(MOTION_DETECTION_Mode_t mode, std::string index)
-    {
-        return getInstance().impl->MOTION_DETECTION_ArmMotionDetector(mode, index);
-    }
-
-    static MOTION_DETECTION_Result_t MOTION_DETECTION_DisarmMotionDetector(std::string index)
-    {
-            return getInstance().impl->MOTION_DETECTION_DisarmMotionDetector(index);
-    }
-
-    static MOTION_DETECTION_Result_t MOTION_DETECTION_IsMotionDetectorArmed(std::string index, bool* armState)
-    {
-            return getInstance().impl->MOTION_DETECTION_IsMotionDetectorArmed(index, armState);
-    }
-
-    static MOTION_DETECTION_Result_t MOTION_DETECTION_SetNoMotionPeriod(std::string index, int period)
-    {
-            return getInstance().impl->MOTION_DETECTION_SetNoMotionPeriod(index, period);
-    }
-
-    static MOTION_DETECTION_Result_t MOTION_DETECTION_GetNoMotionPeriod(std::string index, unsigned int* period)
-    {
-            return getInstance().impl->MOTION_DETECTION_GetNoMotionPeriod(index, period);
-    }
-
-    static MOTION_DETECTION_Result_t MOTION_DETECTION_SetSensitivity(std::string index, std::string sensitivity, int inferredMode )
-    {
-            return getInstance().impl->MOTION_DETECTION_SetSensitivity(index, sensitivity, inferredMode);
-    }
-
-	 static MOTION_DETECTION_Result_t MOTION_DETECTION_GetSensitivity(std::string index, char** sensitivity, int* currentMode)
-    {
-            return getInstance().impl->MOTION_DETECTION_GetSensitivity(index, sensitivity, currentMode);
-    }
-
-    static MOTION_DETECTION_Result_t MOTION_DETECTION_SetActivePeriod(std::string index, MOTION_DETECTION_TimeRange_t timeSet)
-    {
-            return getInstance().impl->MOTION_DETECTION_SetActivePeriod(index, timeSet);
-    }
-
-    static MOTION_DETECTION_Result_t MOTION_DETECTION_GetActivePeriod(MOTION_DETECTION_TimeRange_t* timeSet)
-    {
-            return getInstance().impl->MOTION_DETECTION_GetActivePeriod(timeSet);
-    }
+    MotionDetection();
+    MotionDetection(const MotionDetection &obj) = delete;
+    static void setImpl(MotionDetectionImpl* newImpl);
+    static MOTION_DETECTION_Result_t MOTION_DETECTION_Platform_Init();
+    static MOTION_DETECTION_Result_t MOTION_DETECTION_Platform_Term();
+    static MOTION_DETECTION_Result_t MOTION_DETECTION_RegisterEventCallback(MOTION_DETECTION_OnMotionEventCallback motionEvent);
+    static MOTION_DETECTION_Result_t MOTION_DETECTION_GetMotionDetectors(MOTION_DETECTION_CurrentSensorSettings_t* motionDetectors);
+    static MOTION_DETECTION_Result_t MOTION_DETECTION_ArmMotionDetector(MOTION_DETECTION_Mode_t mode, std::string index);
+    static MOTION_DETECTION_Result_t MOTION_DETECTION_DisarmMotionDetector(std::string index);
+    static MOTION_DETECTION_Result_t MOTION_DETECTION_IsMotionDetectorArmed(std::string index, bool* armState);
+    static MOTION_DETECTION_Result_t MOTION_DETECTION_SetNoMotionPeriod(std::string index, int period);
+    static MOTION_DETECTION_Result_t MOTION_DETECTION_GetNoMotionPeriod(std::string index, unsigned int* period);
+    static MOTION_DETECTION_Result_t MOTION_DETECTION_SetSensitivity(std::string index, std::string sensitivity, int inferredMode );
+    static MOTION_DETECTION_Result_t MOTION_DETECTION_GetSensitivity(std::string index, char** sensitivity, int* currentMode);
+    static MOTION_DETECTION_Result_t MOTION_DETECTION_SetActivePeriod(std::string index, MOTION_DETECTION_TimeRange_t timeSet);
+    static MOTION_DETECTION_Result_t MOTION_DETECTION_GetActivePeriod(MOTION_DETECTION_TimeRange_t* timeSet);
 
 };
-
-constexpr auto MOTION_DETECTION_Platform_Init = &MotionDetection::MOTION_DETECTION_Platform_Init;
-constexpr auto MOTION_DETECTION_Platform_Term = &MotionDetection::MOTION_DETECTION_Platform_Term;
-constexpr auto MOTION_DETECTION_RegisterEventCallback = &MotionDetection::MOTION_DETECTION_RegisterEventCallback;
-constexpr auto MOTION_DETECTION_GetMotionDetectors = &MotionDetection::MOTION_DETECTION_GetMotionDetectors;
-constexpr auto MOTION_DETECTION_ArmMotionDetector = &MotionDetection::MOTION_DETECTION_ArmMotionDetector;
-constexpr auto MOTION_DETECTION_DisarmMotionDetector = &MotionDetection::MOTION_DETECTION_DisarmMotionDetector;
-constexpr auto MOTION_DETECTION_IsMotionDetectorArmed = &MotionDetection::MOTION_DETECTION_IsMotionDetectorArmed;
-constexpr auto MOTION_DETECTION_SetNoMotionPeriod = &MotionDetection::MOTION_DETECTION_SetNoMotionPeriod;
-constexpr auto MOTION_DETECTION_GetNoMotionPeriod = &MotionDetection::MOTION_DETECTION_GetNoMotionPeriod;
-constexpr auto MOTION_DETECTION_SetSensitivity = &MotionDetection::MOTION_DETECTION_SetSensitivity;
-constexpr auto MOTION_DETECTION_GetSensitivity = &MotionDetection::MOTION_DETECTION_GetSensitivity;
-constexpr auto MOTION_DETECTION_SetActivePeriod = &MotionDetection::MOTION_DETECTION_SetActivePeriod;
-constexpr auto MOTION_DETECTION_GetActivePeriod = &MotionDetection::MOTION_DETECTION_GetActivePeriod;
+extern MOTION_DETECTION_Result_t(*MOTION_DETECTION_Platform_Init)();
+extern MOTION_DETECTION_Result_t(*MOTION_DETECTION_Platform_Init)();
+extern MOTION_DETECTION_Result_t(*MOTION_DETECTION_Platform_Term)();
+extern MOTION_DETECTION_Result_t(*MOTION_DETECTION_RegisterEventCallback)(MOTION_DETECTION_OnMotionEventCallback motionEvent);
+extern MOTION_DETECTION_Result_t(*MOTION_DETECTION_GetMotionDetectors)(MOTION_DETECTION_CurrentSensorSettings_t* motionDetectors);
+extern MOTION_DETECTION_Result_t(*MOTION_DETECTION_ArmMotionDetector)(MOTION_DETECTION_Mode_t mode, std::string index);
+extern MOTION_DETECTION_Result_t(*MOTION_DETECTION_DisarmMotionDetector)(std::string index);
+extern MOTION_DETECTION_Result_t(*MOTION_DETECTION_IsMotionDetectorArmed)(std::string index, bool* armState);
+extern MOTION_DETECTION_Result_t(*MOTION_DETECTION_SetNoMotionPeriod)(std::string index, int period);
+extern MOTION_DETECTION_Result_t(*MOTION_DETECTION_GetNoMotionPeriod)(std::string index, unsigned int* period);
+extern MOTION_DETECTION_Result_t(*MOTION_DETECTION_SetSensitivity)(std::string, std::string, int);
+extern MOTION_DETECTION_Result_t(*MOTION_DETECTION_GetSensitivity)(std::string, char**, int*);
+extern MOTION_DETECTION_Result_t(*MOTION_DETECTION_SetActivePeriod)(std::string, MOTION_DETECTION_TimeRange_t);
+extern MOTION_DETECTION_Result_t(*MOTION_DETECTION_GetActivePeriod)(MOTION_DETECTION_TimeRange_t*);
 

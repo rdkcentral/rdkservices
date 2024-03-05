@@ -42,7 +42,7 @@ target_include_directories(${MODULE_NAME} PRIVATE ${DS_INCLUDE_DIRS})
 
 target_link_libraries(${MODULE_NAME} PUBLIC ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${IARMBUS_LIBRARIES} ${CEC_LIBRARIES} ${DS_LIBRARIES} )
 
-if (NOT RDK_SERVICES_TEST)
+if (NOT RDK_SERVICES_L1_TEST)
     target_compile_options(${MODULE_NAME} PRIVATE -Wno-error=deprecated)
 endif ()
 
