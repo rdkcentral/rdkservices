@@ -1,4 +1,4 @@
-name: L1-Sqlite
+name: L1-PersistentStore-sqlite
 
 on:
   push:
@@ -13,9 +13,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
-          path: rdkservices
+          path: ${{github.repository}}
 
       - name: Install valgrind, coverage, cmake, sqlite
         run: |
@@ -24,15 +24,13 @@ jobs:
 
       - name: Build Thunder
         working-directory: ${{github.workspace}}
-        run: sh +x rdkservices/.github/workflows/BuildThunder.sh
-
-      - name: Configure
-        working-directory: ${{github.workspace}}
-        run: cmake -S rdkservices/PersistentStore/sqlite/l1test -B build/sqlitel1test -DCMAKE_INSTALL_PREFIX="install/usr" -DCMAKE_CXX_FLAGS="--coverage -Wall -Werror"
+        run: sh +x ${GITHUB_REPOSITORY}/.github/workflows/BuildThunder.sh
 
       - name: Build
         working-directory: ${{github.workspace}}
-        run: cmake --build build/sqlitel1test --target install
+        run: |
+          cmake -S ${GITHUB_REPOSITORY}/PersistentStore/sqlite/l1test -B build/sqlitel1test -DCMAKE_INSTALL_PREFIX="install/usr" -DCMAKE_CXX_FLAGS="--coverage -Wall -Werror"
+          cmake --build build/sqlitel1test --target install
 
       - name: Run
         working-directory: ${{github.workspace}}
@@ -46,7 +44,7 @@ jobs:
 
       - name: Upload artifacts
         if: ${{ !env.ACT }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: artifacts
           path: |

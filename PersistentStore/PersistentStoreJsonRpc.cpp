@@ -56,21 +56,14 @@ namespace Plugin {
 
     uint32_t PersistentStore::endpoint_setValue(const SetValueParamsData& params, DeleteKeyResultInfo& response)
     {
-        uint32_t result;
-
-        if (!params.Namespace.IsSet() || !params.Key.IsSet() || !params.Value.IsSet()) {
-            // Mandatory params are not set
-            result = Core::ERROR_INVALID_INPUT_LENGTH;
-        } else {
-            result = _store2->SetValue(
-                Exchange::IStore2::ScopeType(params.Scope.Value()),
-                params.Namespace.Value(),
-                params.Key.Value(),
-                params.Value.Value(),
-                params.Ttl.Value());
-            if (result == Core::ERROR_NONE) {
-                response.Success = true;
-            }
+        auto result = _store2->SetValue(
+            Exchange::IStore2::ScopeType(params.Scope.Value()),
+            params.Namespace.Value(),
+            params.Key.Value(),
+            params.Value.Value(),
+            params.Ttl.Value());
+        if (result == Core::ERROR_NONE) {
+            response.Success = true;
         }
 
         return result;
@@ -78,27 +71,20 @@ namespace Plugin {
 
     uint32_t PersistentStore::endpoint_getValue(const DeleteKeyParamsInfo& params, GetValueResultData& response)
     {
-        uint32_t result;
-
-        if (!params.Namespace.IsSet() || !params.Key.IsSet()) {
-            // Mandatory params are not set
-            result = Core::ERROR_INVALID_INPUT_LENGTH;
-        } else {
-            string value;
-            uint32_t ttl;
-            result = _store2->GetValue(
-                Exchange::IStore2::ScopeType(params.Scope.Value()),
-                params.Namespace.Value(),
-                params.Key.Value(),
-                value,
-                ttl);
-            if (result == Core::ERROR_NONE) {
-                response.Value = value;
-                if (ttl > 0) {
-                    response.Ttl = ttl;
-                }
-                response.Success = true;
+        string value;
+        uint32_t ttl;
+        auto result = _store2->GetValue(
+            Exchange::IStore2::ScopeType(params.Scope.Value()),
+            params.Namespace.Value(),
+            params.Key.Value(),
+            value,
+            ttl);
+        if (result == Core::ERROR_NONE) {
+            response.Value = value;
+            if (ttl > 0) {
+                response.Ttl = ttl;
             }
+            response.Success = true;
         }
 
         return result;
@@ -106,19 +92,12 @@ namespace Plugin {
 
     uint32_t PersistentStore::endpoint_deleteKey(const DeleteKeyParamsInfo& params, DeleteKeyResultInfo& response)
     {
-        uint32_t result;
-
-        if (!params.Namespace.IsSet() || !params.Key.IsSet()) {
-            // Mandatory params are not set
-            result = Core::ERROR_INVALID_INPUT_LENGTH;
-        } else {
-            result = _store2->DeleteKey(
-                Exchange::IStore2::ScopeType(params.Scope.Value()),
-                params.Namespace.Value(),
-                params.Key.Value());
-            if (result == Core::ERROR_NONE) {
-                response.Success = true;
-            }
+        auto result = _store2->DeleteKey(
+            Exchange::IStore2::ScopeType(params.Scope.Value()),
+            params.Namespace.Value(),
+            params.Key.Value());
+        if (result == Core::ERROR_NONE) {
+            response.Success = true;
         }
 
         return result;
@@ -126,18 +105,11 @@ namespace Plugin {
 
     uint32_t PersistentStore::endpoint_deleteNamespace(const DeleteNamespaceParamsInfo& params, DeleteKeyResultInfo& response)
     {
-        uint32_t result;
-
-        if (!params.Namespace.IsSet()) {
-            // Mandatory params are not set
-            result = Core::ERROR_INVALID_INPUT_LENGTH;
-        } else {
-            result = _store2->DeleteNamespace(
-                Exchange::IStore2::ScopeType(params.Scope.Value()),
-                params.Namespace.Value());
-            if (result == Core::ERROR_NONE) {
-                response.Success = true;
-            }
+        auto result = _store2->DeleteNamespace(
+            Exchange::IStore2::ScopeType(params.Scope.Value()),
+            params.Namespace.Value());
+        if (result == Core::ERROR_NONE) {
+            response.Success = true;
         }
 
         return result;
@@ -145,25 +117,18 @@ namespace Plugin {
 
     uint32_t PersistentStore::endpoint_getKeys(const DeleteNamespaceParamsInfo& params, GetKeysResultData& response)
     {
-        uint32_t result;
-
-        if (!params.Namespace.IsSet()) {
-            // Mandatory params are not set
-            result = Core::ERROR_INVALID_INPUT_LENGTH;
-        } else {
-            RPC::IStringIterator* it;
-            result = _storeInspector->GetKeys(
-                Exchange::IStore2::ScopeType(params.Scope.Value()),
-                params.Namespace.Value(),
-                it);
-            if (result == Core::ERROR_NONE) {
-                string element;
-                while (it->Next(element) == true) {
-                    response.Keys.Add() = element;
-                }
-                it->Release();
-                response.Success = true;
+        RPC::IStringIterator* it;
+        auto result = _storeInspector->GetKeys(
+            Exchange::IStore2::ScopeType(params.Scope.Value()),
+            params.Namespace.Value(),
+            it);
+        if (result == Core::ERROR_NONE) {
+            string element;
+            while (it->Next(element) == true) {
+                response.Keys.Add() = element;
             }
+            it->Release();
+            response.Success = true;
         }
 
         return result;
@@ -171,10 +136,8 @@ namespace Plugin {
 
     uint32_t PersistentStore::endpoint_getNamespaces(const GetNamespacesParamsInfo& params, GetNamespacesResultData& response)
     {
-        uint32_t result;
-
         RPC::IStringIterator* it;
-        result = _storeInspector->GetNamespaces(
+        auto result = _storeInspector->GetNamespaces(
             Exchange::IStore2::ScopeType(params.Scope.Value()),
             it);
         if (result == Core::ERROR_NONE) {
@@ -192,10 +155,8 @@ namespace Plugin {
     // Deprecated
     uint32_t PersistentStore::endpoint_getStorageSize(const GetNamespacesParamsInfo& params, JsonObject& response)
     {
-        uint32_t result;
-
         Exchange::IStoreInspector::INamespaceSizeIterator* it;
-        result = _storeInspector->GetStorageSizes(
+        auto result = _storeInspector->GetStorageSizes(
             Exchange::IStore2::ScopeType(params.Scope.Value()),
             it);
         if (result == Core::ERROR_NONE) {
@@ -214,10 +175,8 @@ namespace Plugin {
 
     uint32_t PersistentStore::endpoint_getStorageSizes(const GetNamespacesParamsInfo& params, GetStorageSizesResultData& response)
     {
-        uint32_t result;
-
         Exchange::IStoreInspector::INamespaceSizeIterator* it;
-        result = _storeInspector->GetStorageSizes(
+        auto result = _storeInspector->GetStorageSizes(
             Exchange::IStore2::ScopeType(params.Scope.Value()),
             it);
         if (result == Core::ERROR_NONE) {
@@ -235,9 +194,7 @@ namespace Plugin {
 
     uint32_t PersistentStore::endpoint_flushCache(DeleteKeyResultInfo& response)
     {
-        uint32_t result;
-
-        result = _storeCache->FlushCache();
+        auto result = _storeCache->FlushCache();
         if (result == Core::ERROR_NONE) {
             response.Success = true;
         }
@@ -247,20 +204,13 @@ namespace Plugin {
 
     uint32_t PersistentStore::endpoint_getNamespaceStorageLimit(const DeleteNamespaceParamsInfo& params, GetNamespaceStorageLimitResultData& response)
     {
-        uint32_t result;
-
-        if (!params.Namespace.IsSet()) {
-            // Mandatory params are not set
-            result = Core::ERROR_INVALID_INPUT_LENGTH;
-        } else {
-            uint32_t size;
-            result = _storeLimit->GetNamespaceStorageLimit(
-                Exchange::IStore2::ScopeType(params.Scope.Value()),
-                params.Namespace.Value(),
-                size);
-            if (result == Core::ERROR_NONE) {
-                response.StorageLimit = size;
-            }
+        uint32_t size;
+        auto result = _storeLimit->GetNamespaceStorageLimit(
+            Exchange::IStore2::ScopeType(params.Scope.Value()),
+            params.Namespace.Value(),
+            size);
+        if (result == Core::ERROR_NONE) {
+            response.StorageLimit = size;
         }
 
         return result;
@@ -268,19 +218,10 @@ namespace Plugin {
 
     uint32_t PersistentStore::endpoint_setNamespaceStorageLimit(const SetNamespaceStorageLimitParamsData& params)
     {
-        uint32_t result;
-
-        if (!params.Namespace.IsSet() || !params.StorageLimit.IsSet()) {
-            // Mandatory params are not set
-            result = Core::ERROR_INVALID_INPUT_LENGTH;
-        } else {
-            result = _storeLimit->SetNamespaceStorageLimit(
-                Exchange::IStore2::ScopeType(params.Scope.Value()),
-                params.Namespace.Value(),
-                params.StorageLimit.Value());
-        }
-
-        return result;
+        return _storeLimit->SetNamespaceStorageLimit(
+            Exchange::IStore2::ScopeType(params.Scope.Value()),
+            params.Namespace.Value(),
+            params.StorageLimit.Value());
     }
 
 } // namespace Plugin
