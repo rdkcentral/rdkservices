@@ -77,11 +77,11 @@ namespace WPEFramework
             // Define the RPC methods
             enum InternetStatus : uint8_t
             {
-                INTERNET_UNKNOWN,
                 INTERNET_NOT_AVAILABLE,
                 INTERNET_LIMITED,
                 INTERNET_CAPTIVE_PORTAL,
                 INTERNET_FULLY_CONNECTED,
+                INTERNET_UNKNOWN,
             };
 
             enum WiFiFrequency : uint8_t
@@ -231,6 +231,7 @@ namespace WPEFramework
 
             virtual uint32_t StartWPS(const WiFiWPS& method /* @in */, const string& wps_pin /* @in */) = 0;
             virtual uint32_t StopWPS(void) = 0;
+            virtual uint32_t GetWifiState(uint32_t &state /* @out */) = 0;
             virtual uint32_t GetWiFiSignalStrength(string& ssid /* @out */, string& signalStrength /* @out */, WiFiSignalQuality& quality /* @out */) = 0;
             virtual uint32_t GetSupportedSecurityModes(ISecurityModeIterator*& securityModes /* @out */) const = 0;
 

@@ -130,6 +130,7 @@ namespace WPEFramework
             {
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -165,7 +166,7 @@ namespace WPEFramework
                 response["interfaces"] = array;
                 response["success"] = true;
             }
-
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -184,6 +185,7 @@ namespace WPEFramework
                 response["interface"] = interface;      
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -201,6 +203,7 @@ namespace WPEFramework
             { 
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -219,6 +222,7 @@ namespace WPEFramework
             {
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -250,6 +254,7 @@ namespace WPEFramework
                 response["secondarydns"] = result.m_secondaryDns;
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -280,6 +285,7 @@ namespace WPEFramework
             {
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -305,6 +311,7 @@ namespace WPEFramework
                 response["cacheTimeout"] = cacheTimeout;
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -326,6 +333,7 @@ namespace WPEFramework
             {
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -356,6 +364,7 @@ namespace WPEFramework
                     response["success"] = true;
                 }
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -401,6 +410,7 @@ namespace WPEFramework
             if (endpointsIter)
                 endpointsIter->Release();
 
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -441,6 +451,7 @@ namespace WPEFramework
 
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -459,6 +470,7 @@ namespace WPEFramework
                 response["uri"] = endPoint;
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -478,6 +490,7 @@ namespace WPEFramework
             {
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -495,6 +508,7 @@ namespace WPEFramework
             {
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -522,6 +536,7 @@ namespace WPEFramework
                 m_publicIPAddress = ipAddress;
                 m_publicIPAddressType = ipversion;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -576,6 +591,7 @@ namespace WPEFramework
                 reply["success"] = true;
                 response = reply;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -598,6 +614,7 @@ namespace WPEFramework
             {
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -616,6 +633,7 @@ namespace WPEFramework
             {
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -633,6 +651,7 @@ namespace WPEFramework
             {
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -663,6 +682,7 @@ namespace WPEFramework
                 response["ssids"] = ssids;
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -688,6 +708,7 @@ namespace WPEFramework
             {
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -710,6 +731,7 @@ namespace WPEFramework
             {
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -735,6 +757,7 @@ namespace WPEFramework
             {
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -752,6 +775,7 @@ namespace WPEFramework
             {
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -777,6 +801,7 @@ namespace WPEFramework
                 response["noise"] = ssidInfo.m_noise;
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -806,6 +831,7 @@ namespace WPEFramework
             {
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -823,6 +849,7 @@ namespace WPEFramework
             {
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -846,6 +873,7 @@ namespace WPEFramework
                 response["quality"] = static_cast <int> (quality);
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -874,6 +902,7 @@ namespace WPEFramework
                 }
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
     }

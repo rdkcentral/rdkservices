@@ -23,11 +23,11 @@ enum nsm_ipversion {
 };
 
 enum nsm_internetState {
-    UNKNOWN  = 0,
     NO_INTERNET,
     LIMITED_INTERNET,
     CAPTIVE_PORTAL,
     FULLY_CONNECTED
+    UNKNOWN,
 };
 
 enum nsm_connectivity_httpcode {

@@ -72,6 +72,24 @@ namespace WPEFramework
                     return "";
                 }
 
+                string WiFiSignalQualityToString(Exchange::INetworkManager::WiFiSignalQuality quality)
+                {
+                    switch (quality)
+                    {
+                        case Exchange::INetworkManager::WiFiSignalQuality::WIFI_SIGNAL_DISCONNECTED:
+                            return "Disconnected";
+                        case Exchange::INetworkManager::WiFiSignalQuality::WIFI_SIGNAL_WEAK:
+                            return "Weak";
+                        case Exchange::INetworkManager::WiFiSignalQuality::WIFI_SIGNAL_FAIR:
+                            return "Fair";
+                        case Exchange::INetworkManager::WiFiSignalQuality::WIFI_SIGNAL_GOOD:
+                            return "Good";
+                        case Exchange::INetworkManager::WiFiSignalQuality::WIFI_SIGNAL_EXCELLENT:
+                            return "Excellent";
+                    }
+                    return "";
+                }
+
                 string InternetStatusToString(const Exchange::INetworkManager::InternetStatus internetStatus)
                 {
                     switch (internetStatus)
@@ -103,43 +121,102 @@ namespace WPEFramework
                 {
                     NMLOG_TRACE("%s", __FUNCTION__);
                     JsonObject params;
+                    JsonObject legacyParams;
+                    JsonObject onConnParams;
+#ifdef ENABLE_LEGACY_NSM_SUPPORT
+                    std::string json;
+                    if(interface == "wlan0")
+                        legacyParams["interface"] = "WIFI";
+                    else if(interface == "eth0")
+                        legacyParams["interface"] = "ETHERNET";
+                    if(event == INTERFACE_ADDED)
+                        legacyParams["enabled"] = true;
+                    else if(event == INTERFACE_REMOVED)
+                        legacyParams["enabled"] = false;
+                    _parent.Notify("onInterfaceStatusChanged", legacyParams);
+                    if(event == INTERFACE_LINK_UP)
+                        onConnParams["status"] = "CONNECTED";
+                    else if(event == INTERFACE_LINK_DOWN)
+                        onConnParams["status"] = "DISCONNECTED";
+                    onConnParams["interface"] = legacyParams["interface"];
+                    onConnParams.ToString(json);
+                    NMLOG_TRACE("onConnectionStatusChanged onConnParams=%s", json.c_str() );
+                    _parent.Notify("onConnectionStatusChanged", onConnParams);
+#endif
                     params["interface"] = interface;
                     params["state"] = InterfaceStateToString(event);
-                    _parent.Notify("onInterfaceStateChanged", params);
+                    _parent.Notify("onInterfaceStateChange", params);
                 }
 
                 void onIPAddressChanged(const string interface, const bool isAcquired, const bool isIPv6, const string ipAddress) override
                 {
                     NMLOG_TRACE("%s", __FUNCTION__);
                     JsonObject params;
-                    params["interface"] = interface;
+                    JsonObject legacyParams;
+#ifdef ENABLE_LEGACY_NSM_SUPPORT
+                    Exchange::INetworkManager::IPAddressInfo result{};
+                    if(isIPv6)
+                    {
+                        legacyParams["ip6Address"] = ipAddress;
+                        legacyParams["ip4Address"] = "";
+                    }
+                    else
+                    {
+                        legacyParams["ip4Address"] = ipAddress;
+                        legacyParams["ip6Address"] = "";
+                    }
+                    if(interface == "wlan0")
+                        legacyParams["interface"] = "WIFI";
+                    else if(interface == "eth0")
+                        legacyParams["interface"] = "ETHERNET";
+                    legacyParams["status"] = string (isAcquired ? "ACQUIRED" : "LOST");
+                    _parent.Notify("onIPAddressStatusChanged", legacyParams);
+#endif
                     params["status"] = string (isAcquired ? "ACQUIRED" : "LOST");
+                    params["interface"] = interface;
                     params["ipAddress"] = ipAddress;
                     params["isIPv6"] = isIPv6;
-
-                    _parent.Notify("onIPAddressChanged", params);
+                    _parent.Notify("onIPAddressChange", params);
                 }
 
                 void onActiveInterfaceChanged(const string prevActiveInterface, const string currentActiveinterface) override
                 {
                     NMLOG_TRACE("%s", __FUNCTION__);
                     JsonObject params;
+                    JsonObject legacyParams;
+#ifdef ENABLE_LEGACY_NSM_SUPPORT
+                    string oldInterface;
+                    string newInterface;
+                    if(prevActiveInterface == "wlan0")
+                        oldInterface = "WIFI";
+                    else if(prevActiveInterface == "eth0")
+                        oldInterface = "ETHERNET";
+                    if(currentActiveinterface == "wlan0")
+                        newInterface = "WIFI";
+                    else if(currentActiveinterface == "eth0")
+                        newInterface = "ETHERNET";
+                    legacyParams["oldInterfaceName"] = oldInterface;
+                    legacyParams["newInterfaceName"] = newInterface;
+                    _parent.Notify("onDefaultInterfaceChanged", legacyParams);
+#endif
                     params["oldInterfaceName"] = prevActiveInterface;
                     params["newInterfaceName"] = currentActiveinterface;
+                    _parent.Notify("onActiveInterfaceChange", params);
 
-                    _parent.Notify("onActiveInterfaceChanged", params);
                 }
 
-                void onInternetStatusChanged(const Exchange::INetworkManager::InternetStatus oldState, const Exchange::INetworkManager::InternetStatus newstate) override
+                void onInternetStatusChange(const Exchange::INetworkManager::InternetStatus oldState, const Exchange::INetworkManager::InternetStatus newstate) override
                 {
                     NMLOG_TRACE("%s", __FUNCTION__);
                     JsonObject params;
-                    params["prevState"] = static_cast <int> (oldState);
-                    params["prevStatus"] = InternetStatusToString(oldState);
+                    JsonObject legacyParams;
+
                     params["state"] = static_cast <int> (newstate);;
                     params["status"] = InternetStatusToString(newstate);
+                    params["prevState"] = static_cast <int> (oldState);
+                    params["prevStatus"] = InternetStatusToString(oldState);
 
-                    _parent.Notify("onInternetStatusChanged", params);
+                    _parent.Notify("onInternetStatusChange", params);
 
                     if (Exchange::INetworkManager::InternetStatus::INTERNET_FULLY_CONNECTED == newstate)
                     {
@@ -159,23 +236,36 @@ namespace WPEFramework
                     _parent.Notify("onAvailableSSIDs", result);
 
                 }
+
                 void onWiFiStateChanged(const Exchange::INetworkManager::INotification::WiFiState state) override
                 {
                     NMLOG_TRACE("%s", __FUNCTION__);
                     JsonObject result;
+                    JsonObject legacyResult;
+#ifdef ENABLE_LEGACY_NSM_SUPPORT
+                    legacyResult["state"] = static_cast <int> (state);
+                    legacyResult["isLNF"] = false;
+                    _parent.Notify("onWiFiStateChanged", legacyResult);
+#endif
                     result["state"] = static_cast <int> (state);
-                    _parent.Notify("onWiFiStateChanged", result);
+                    _parent.Notify("onWiFiStateChange", result);
                 }
+
                 void onWiFiSignalStrengthChanged(const string ssid, const string signalLevel, const Exchange::INetworkManager::WiFiSignalQuality signalQuality) override
                 {
                     NMLOG_TRACE("%s", __FUNCTION__);
+                    JsonObject legacyResult;
                     JsonObject result;
+#ifdef ENABLE_LEGACY_NSM_SUPPORT
+                    legacyResult["signalStrength"] = WiFiSignalQualityToString(signalQuality);
+                    legacyResult["strength"] = signalLevel;
+                    _parent.Notify("onWiFiSignalStrengthChanged", legacyResult);
+#endif
                     result["ssid"] = ssid;
+                    result["signalQuality"] = WiFiSignalQualityToString(signalQuality);
                     result["signalLevel"] = signalLevel;
-                    result["signalQuality"] = static_cast <int> (signalQuality);
-                    _parent.Notify("onWiFiSignalStrengthChanged", result);
+                    _parent.Notify("onWiFiSignalStrengthChange", result);
                 }
-
 
                 // The activated/deactived methods are part of the RPC::IRemoteConnection::INotification
                 // interface. These are triggered when Thunder detects a connection/disconnection over the
@@ -319,6 +409,7 @@ namespace WPEFramework
             uint32_t getSupportedSecurityModes(const JsonObject& parameters, JsonObject& response);
             uint32_t startScan(const JsonObject& parameters, JsonObject& response);
             uint32_t stopScan(const JsonObject& parameters, JsonObject& response);
+            uint32_t getCurrentState(const JsonObject& parameters, JsonObject& response);
 #endif
         private:
             uint32_t _connectionId;

@@ -506,7 +506,7 @@ namespace WPEFramework
 
             NMLOG_INFO("We have %d subscribed clients to trigger notifications", (int) _notificationCallbacks.size());
             for (const auto callback : _notificationCallbacks) {
-                callback->onInternetStatusChanged(oldState, newstate);
+                callback->onInternetStatusChange(oldState, newstate);
             }
 
             _notificationLock.Unlock();
