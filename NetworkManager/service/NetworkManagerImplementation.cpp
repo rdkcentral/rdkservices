@@ -467,7 +467,11 @@ namespace WPEFramework
 
             NMLOG_INFO("We have %d subscribed clients to trigger notifications", (int) _notificationCallbacks.size());
             for (const auto callback : _notificationCallbacks) {
+#ifdef ENABLE_LEGACY_NSM_SUPPORT
                 callback->onInterfaceStateChanged(state, interface);
+#else
+                callback->onInterfaceStateChange(state, interface);
+#endif
             }
 
             _notificationLock.Unlock();
@@ -480,7 +484,11 @@ namespace WPEFramework
 
             NMLOG_INFO("We have %d subscribed clients to trigger notifications", (int) _notificationCallbacks.size());
             for (const auto callback : _notificationCallbacks) {
+#ifdef ENABLE_LEGACY_NSM_SUPPORT
                 callback->onIPAddressChanged(interface, isAcquired, isIPv6, ipAddress);
+#else
+                callback->onIPAddressChange(interface, isAcquired, isIPv6, ipAddress);
+#endif
             }
 
             _notificationLock.Unlock();
@@ -493,7 +501,11 @@ namespace WPEFramework
 
             NMLOG_INFO("We have %d subscribed clients to trigger notifications", (int) _notificationCallbacks.size());
             for (const auto callback : _notificationCallbacks) {
+#ifdef ENABLE_LEGACY_NSM_SUPPORT
                 callback->onActiveInterfaceChanged(prevActiveInterface, currentActiveinterface);
+#else
+                callback->onActiveInterfaceChange(prevActiveInterface, currentActiveinterface);
+#endif
             }
 
             _notificationLock.Unlock();
@@ -506,7 +518,7 @@ namespace WPEFramework
 
             NMLOG_INFO("We have %d subscribed clients to trigger notifications", (int) _notificationCallbacks.size());
             for (const auto callback : _notificationCallbacks) {
-                callback->onInternetStatusChanged(oldState, newstate);
+                callback->onInternetStatusChange(oldState, newstate);
             }
 
             _notificationLock.Unlock();
@@ -532,7 +544,11 @@ namespace WPEFramework
 
             NMLOG_INFO("We have %d subscribed clients to trigger notifications", (int) _notificationCallbacks.size());
             for (const auto callback : _notificationCallbacks) {
+#ifdef ENABLE_LEGACY_NSM_SUPPORT
                 callback->onWiFiStateChanged(state);
+#else
+                callback->onWiFiStateChange(state);
+#endif
             }
             _notificationLock.Unlock();
         }
@@ -544,7 +560,11 @@ namespace WPEFramework
 
             NMLOG_INFO("We have %d subscribed clients to trigger notifications", (int) _notificationCallbacks.size());
             for (const auto callback : _notificationCallbacks) {
+#ifdef ENABLE_LEGACY_NSM_SUPPORT
                 callback->onWiFiSignalStrengthChanged(ssid, signalLevel, signalQuality);
+#else
+                callback->onWiFiSignalStrengthChange(ssid, signalLevel, signalQuality);
+#endif
                 NMLOG_INFO("We have %d subscribed clients to trigger notifications", (int) _notificationCallbacks.size());
             }
 

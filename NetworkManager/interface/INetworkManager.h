@@ -75,9 +75,9 @@ namespace WPEFramework
             };
 
             // Define the RPC methods
-            enum InternetStatus : uint8_t
+            enum InternetStatus : int8_t
             {
-                INTERNET_UNKNOWN,
+                INTERNET_UNKNOWN = -1,
                 INTERNET_NOT_AVAILABLE,
                 INTERNET_LIMITED,
                 INTERNET_CAPTIVE_PORTAL,
@@ -231,6 +231,7 @@ namespace WPEFramework
 
             virtual uint32_t StartWPS(const WiFiWPS& method /* @in */, const string& wps_pin /* @in */) = 0;
             virtual uint32_t StopWPS(void) = 0;
+            virtual uint32_t GetCurrentState(uint32_t &state /* @out */) = 0;
             virtual uint32_t GetWiFiSignalStrength(string& ssid /* @out */, string& signalStrength /* @out */, WiFiSignalQuality& quality /* @out */) = 0;
             virtual uint32_t GetSupportedSecurityModes(ISecurityModeIterator*& securityModes /* @out */) const = 0;
 
@@ -276,14 +277,20 @@ namespace WPEFramework
 
                 // Network Notifications that other processes can subscribe to
                 virtual void onInterfaceStateChanged(const InterfaceState event /* @in */, const string interface /* @in */) = 0;
+                virtual void onInterfaceStateChange(const InterfaceState event /* @in */, const string interface /* @in */) = 0;
                 virtual void onActiveInterfaceChanged(const string prevActiveInterface /* @in */, const string currentActiveinterface /* @in */) = 0;
+                virtual void onActiveInterfaceChange(const string prevActiveInterface /* @in */, const string currentActiveinterface /* @in */) = 0;
                 virtual void onIPAddressChanged(const string interface /* @in */, const bool isAcquired /* @in */, const bool isIPv6 /* @in */, const string ipAddress /* @in */) = 0;
+                virtual void onIPAddressChange(const string interface /* @in */, const bool isAcquired /* @in */, const bool isIPv6 /* @in */, const string ipAddress /* @in */) = 0;
                 virtual void onInternetStatusChanged(const InternetStatus oldState /* @in */, const InternetStatus newstate /* @in */) = 0;
+                virtual void onInternetStatusChange(const InternetStatus oldState /* @in */, const InternetStatus newstate /* @in */) = 0;
 
                 // WiFi Notifications that other processes can subscribe to
                 virtual void onAvailableSSIDs(const string jsonOfWiFiScanResults /* @in */) = 0;
                 virtual void onWiFiStateChanged(const WiFiState state /* @in */) = 0;
+                virtual void onWiFiStateChange(const WiFiState state /* @in */) = 0;
                 virtual void onWiFiSignalStrengthChanged(const string ssid /* @in */, const string signalLevel /* @in */, const WiFiSignalQuality signalQuality /* @in */) = 0;
+                virtual void onWiFiSignalStrengthChange(const string ssid /* @in */, const string signalLevel /* @in */, const WiFiSignalQuality signalQuality /* @in */) = 0;
             };
 
             // Allow other processes to register/unregister from our notifications
