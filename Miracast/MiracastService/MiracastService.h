@@ -88,6 +88,7 @@ namespace WPEFramework
         private:
             bool m_isServiceInitialized;
             bool m_isServiceEnabled;
+            guint m_FriendlyNameMonitorTimerID{0};
             eMIRA_SERVICE_STATES m_eService_state;
             WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> *m_SystemPluginObj = NULL;
             uint32_t setEnable(const JsonObject &parameters, JsonObject &response);
@@ -100,8 +101,9 @@ namespace WPEFramework
 
             std::string reasonDescription(eMIRACAST_SERVICE_ERR_CODE e);
             void getSystemPlugin();
-            int updateSystemFriendlyName();
+            bool updateSystemFriendlyName();
             void onFriendlyNameUpdateHandler(const JsonObject &parameters);
+            static gboolean monitor_friendly_name_timercallback(gpointer userdata);
             bool envGetValue(const char *key, std::string &value);
 
             // We do not allow this plugin to be copied !!
