@@ -940,7 +940,7 @@ namespace WPEFramework
 				{
 					std::string friendlyName = "";
 					friendlyName = Result["friendlyName"].String();
-					m_miracast_ctrler_obj->set_FriendlyName(friendlyName);
+					m_miracast_ctrler_obj->set_FriendlyName(friendlyName,m_isServiceEnabled);
 					MIRACASTLOG_INFO("Miracast FriendlyName=%s", friendlyName.c_str());
 					return_value = true;
 				}
