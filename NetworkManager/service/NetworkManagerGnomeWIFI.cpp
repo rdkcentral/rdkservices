@@ -25,15 +25,13 @@
 #include <NetworkManager.h>
 #include <libnm/NetworkManager.h>
 #include "NetworkManagerLogger.h"
-#include "NetworkManagerGnomeWIFI.h"
-#include "NetworkManagerImplementation.h"
 #include "INetworkManager.h"
+#include "NetworkManagerGnomeWIFI.h"
 
 namespace WPEFramework
 {
     namespace Plugin
     {
-
         NMDevice* wifiManager::getNmDevice()
         {
             NMDevice *wifiDevice = NULL;
@@ -101,17 +99,34 @@ namespace WPEFramework
                 flagStr = "none";
         }
 
+        bool static getConnectedSSID(NMDeviceWifi *wifiDevice, std::string& ssidin)
+        {
+            GBytes *ssid;
+            NMAccessPoint *activeAP = nm_device_wifi_get_active_access_point(wifiDevice);
+            if(activeAP == NULL) {
+                return false;
+            }
+
+            ssid = nm_access_point_get_ssid(activeAP);
+            gsize size;
+            const guint8 *ssidData = static_cast<const guint8 *>(g_bytes_get_data(ssid, &size));
+            std::string ssidTmp(reinterpret_cast<const char *>(ssidData), size);
+            ssidin = ssidTmp;
+            NMLOG_INFO("connected ssid: %s", ssidin.c_str());
+            return true;
+        }
+
         static void getApInfo(NMAccessPoint *AccessPoint, Exchange::INetworkManager::WiFiSSIDInfo &wifiInfo)
         {
-            guint32     flags, wpa_flags, rsn_flags, freq, bitrate;
+            guint32     flags, wpaFlags, rsnFlags, freq, bitrate;
             guint8      strength;
             GBytes     *ssid;
             const char *hwaddr;
             NM80211Mode mode;
             /* Get AP properties */
             flags     = nm_access_point_get_flags(AccessPoint);
-            wpa_flags = nm_access_point_get_wpa_flags(AccessPoint);
-            rsn_flags = nm_access_point_get_rsn_flags(AccessPoint);
+            wpaFlags = nm_access_point_get_wpa_flags(AccessPoint);
+            rsnFlags = nm_access_point_get_rsn_flags(AccessPoint);
             ssid      = nm_access_point_get_ssid(AccessPoint);
             hwaddr    = nm_access_point_get_bssid(AccessPoint);
             freq      = nm_access_point_get_frequency(AccessPoint);
@@ -183,35 +198,75 @@ namespace WPEFramework
             //TODO signal strenght to dBm
 
             std::string security_str = "";
-            if (!(flags & NM_802_11_AP_FLAGS_PRIVACY) && (wpa_flags != NM_802_11_AP_SEC_NONE)
-                && (rsn_flags != NM_802_11_AP_SEC_NONE))
+            if ((flags == NM_802_11_AP_FLAGS_NONE) && (wpaFlags == NM_802_11_AP_SEC_NONE) && (rsnFlags == NM_802_11_AP_SEC_NONE))
+            {
+                wifiInfo.m_securityMode = Exchange::INetworkManager::WIFISecurityMode::WIFI_SECURITY_NONE;
+            }
+            else if( (flags & NM_802_11_AP_FLAGS_PRIVACY) && ((wpaFlags & NM_802_11_AP_SEC_PAIR_WEP40) || (rsnFlags & NM_802_11_AP_SEC_PAIR_WEP40)) )
+            {
+                wifiInfo.m_securityMode = Exchange::INetworkManager::WIFISecurityMode::WIFI_SECURITY_WEP_64;
+            }
+            else if( (flags & NM_802_11_AP_FLAGS_PRIVACY) && ((wpaFlags & NM_802_11_AP_SEC_PAIR_WEP104) || (rsnFlags & NM_802_11_AP_SEC_PAIR_WEP104)) )
+            {
+                wifiInfo.m_securityMode = Exchange::INetworkManager::WIFISecurityMode::WIFI_SECURITY_WEP_128;
+            }
+            else if((wpaFlags & NM_802_11_AP_SEC_PAIR_TKIP) || (rsnFlags & NM_802_11_AP_SEC_PAIR_TKIP))
+            {
+                wifiInfo.m_securityMode = Exchange::INetworkManager::WIFISecurityMode::WIFI_SECURITY_WPA_PSK_TKIP;
+            }
+            else if((wpaFlags & NM_802_11_AP_SEC_PAIR_CCMP) || (rsnFlags & NM_802_11_AP_SEC_PAIR_CCMP))
+            {
+                wifiInfo.m_securityMode = Exchange::INetworkManager::WIFISecurityMode::WIFI_SECURITY_WPA_PSK_AES;
+            }
+            else if ((rsnFlags & NM_802_11_AP_SEC_KEY_MGMT_PSK) && (rsnFlags & NM_802_11_AP_SEC_KEY_MGMT_802_1X))
+            {
+                wifiInfo.m_securityMode = Exchange::INetworkManager::WIFISecurityMode::WIFI_SECURITY_WPA_WPA2_ENTERPRISE;
+            }
+            else if(rsnFlags & NM_802_11_AP_SEC_KEY_MGMT_PSK)
+            {
+                wifiInfo.m_securityMode = Exchange::INetworkManager::WIFISecurityMode::WIFI_SECURITY_WPA_WPA2_PSK;
+            }
+            else if((wpaFlags & NM_802_11_AP_SEC_GROUP_CCMP) || (rsnFlags & NM_802_11_AP_SEC_GROUP_CCMP))
+            {
+                wifiInfo.m_securityMode = Exchange::INetworkManager::WIFISecurityMode::WIFI_SECURITY_WPA2_PSK_AES;
+            }
+            else if((wpaFlags & NM_802_11_AP_SEC_GROUP_TKIP) || (rsnFlags & NM_802_11_AP_SEC_GROUP_TKIP))
+            {
+                wifiInfo.m_securityMode = Exchange::INetworkManager::WIFISecurityMode::WIFI_SECURITY_WPA2_PSK_TKIP;
+            }
+            else
+            {
+                NMLOG_WARNING("security mode not defined");
+            }
+
+            if (!(flags & NM_802_11_AP_FLAGS_PRIVACY) && (wpaFlags != NM_802_11_AP_SEC_NONE) && (rsnFlags != NM_802_11_AP_SEC_NONE))
                 security_str += ("Encrypted: ");
 
-            if ((flags & NM_802_11_AP_FLAGS_PRIVACY) && (wpa_flags == NM_802_11_AP_SEC_NONE)
-                && (rsn_flags == NM_802_11_AP_SEC_NONE))
+            if ((flags & NM_802_11_AP_FLAGS_PRIVACY) && (wpaFlags == NM_802_11_AP_SEC_NONE)
+                && (rsnFlags == NM_802_11_AP_SEC_NONE))
                 security_str += ("WEP ");
-            if (wpa_flags != NM_802_11_AP_SEC_NONE)
+            if (wpaFlags != NM_802_11_AP_SEC_NONE)
                 security_str += ("WPA ");
-            if ((rsn_flags & NM_802_11_AP_SEC_KEY_MGMT_PSK)
-                || (rsn_flags & NM_802_11_AP_SEC_KEY_MGMT_802_1X)) {
+            if ((rsnFlags & NM_802_11_AP_SEC_KEY_MGMT_PSK)
+                || (rsnFlags & NM_802_11_AP_SEC_KEY_MGMT_802_1X)) {
                 security_str += ("WPA2 ");
             }
-            if (rsn_flags & NM_802_11_AP_SEC_KEY_MGMT_SAE) {
+            if (rsnFlags & NM_802_11_AP_SEC_KEY_MGMT_SAE) {
                 security_str += ("WPA3 ");
             }
-            if ((rsn_flags & NM_802_11_AP_SEC_KEY_MGMT_OWE)
-                || (rsn_flags & NM_802_11_AP_SEC_KEY_MGMT_OWE_TM)) {
+            if ((rsnFlags & NM_802_11_AP_SEC_KEY_MGMT_OWE)
+                || (rsnFlags & NM_802_11_AP_SEC_KEY_MGMT_OWE_TM)) {
                 security_str += ("OWE ");
             }
-            if ((wpa_flags & NM_802_11_AP_SEC_KEY_MGMT_802_1X)
-                || (rsn_flags & NM_802_11_AP_SEC_KEY_MGMT_802_1X)) {
+            if ((wpaFlags & NM_802_11_AP_SEC_KEY_MGMT_802_1X)
+                || (rsnFlags & NM_802_11_AP_SEC_KEY_MGMT_802_1X)) {
                 security_str += ("802.1X ");
             }
 
             NMLOG_INFO("security: %s", (security_str.size() > 0)? security_str.c_str(): "none");
             std::string flagStr;
-            apFlagsToString(wpa_flags, flagStr);
-            apFlagsToString(rsn_flags, flagStr);
+            apFlagsToString(wpaFlags, flagStr);
+            apFlagsToString(rsnFlags, flagStr);
             NMLOG_INFO("WPA flags: %s", flagStr.c_str());
             NMLOG_INFO("RSN flags: %s", flagStr.c_str());
             NMLOG_TRACE("D-Bus path: %s", nm_object_get_path(NM_OBJECT(AccessPoint)));
@@ -410,7 +465,7 @@ namespace WPEFramework
             GError *error = NULL;
             wifiManager *_wifiManager = (static_cast<wifiManager*>(user_data));
 
-            if (_wifiManager->create) {
+            if (_wifiManager->createNewConnection) {
                 NMLOG_TRACE("nm_client_add_and_activate_connection_finish");
                 nm_client_add_and_activate_connection_finish(NM_CLIENT(_wifiManager->client), result, &error);
             }
@@ -420,7 +475,7 @@ namespace WPEFramework
             }
 
             if (error) {
-                if (_wifiManager->create) {
+                if (_wifiManager->createNewConnection) {
                     NMLOG_ERROR("Failed to add/activate new connection: %s", error->message);
                 } else {
                     NMLOG_ERROR("Failed to activate connection: %s", error->message);
@@ -444,15 +499,11 @@ namespace WPEFramework
                 _wifiManager->quit(NULL);
                 return;
             }
-            _wifiManager->create = false; // no need to create new connection
-            nm_client_activate_connection_async(_wifiManager->client,
-                                                NM_CONNECTION(remote_con),
-                                                _wifiManager->wifidevice,
-                                                _wifiManager->objectPath,
-                                                NULL,
-                                                wifiConnectCb,
-                                                _wifiManager);
+            _wifiManager->createNewConnection = false; // no need to create new connection
+            nm_client_activate_connection_async(
+                _wifiManager->client, NM_CONNECTION(remote_con), _wifiManager->wifidevice, _wifiManager->objectPath, NULL, wifiConnectCb, _wifiManager);
         }
+
         bool wifiManager::createClientNewConnection()
         {
             GError *error = NULL;
@@ -486,7 +537,7 @@ namespace WPEFramework
             const char  *ifname     = NULL;
             const GPtrArray  *availableConnections;
             bool SSIDmatch = false;
-            gboolean wep_passphrase = FALSE;
+            Exchange::INetworkManager::WiFiSSIDInfo apinfo;
 
             if(!createClientNewConnection())
                 return false;
@@ -502,14 +553,28 @@ namespace WPEFramework
             if(device == NULL)
                 return false;
             wifidevice = device;
-            NMLOG_TRACE("Wireless Device found ifce : %s !", ifname = nm_device_get_iface(device));
+
+            std::string activeSSID;
+            if(getConnectedSSID(NM_DEVICE_WIFI(wifidevice), activeSSID))
+            {
+                if(strcmp(ssid_in, activeSSID.c_str()) == 0)
+                {
+                    NMLOG_WARNING("ssid already connected !");
+                    return true;
+                }
+                else
+                {
+                    NMLOG_WARNING("wifi already connected with %s AP", activeSSID.c_str());
+                }
+            }
+            //NMLOG_TRACE("Wireless Device found ifce : %s !", ifname = nm_device_get_iface(device));
             AccessPoint = checkSSIDAvailable(device, allaps, ssid_in);
             // TODO Scann hidden ssid also for lnf
             if(AccessPoint == NULL) {
                 NMLOG_WARNING("No network with SSID '%s' found !", ssid_in);
                 return false;
             }
-            Exchange::INetworkManager::WiFiSSIDInfo apinfo;
+
             getApInfo(AccessPoint, apinfo);
 
             availableConnections = nm_device_get_available_connections(device);
@@ -556,7 +621,6 @@ namespace WPEFramework
                         NM_SETTING_CONNECTION_TYPE,
                         "802-11-wireless",
                         NULL);
-                    nm_connection_add_setting(connection, NM_SETTING(s_con));
                 }
 
                 s_wireless = (NMSettingWireless *)nm_setting_wireless_new();
@@ -566,7 +630,7 @@ namespace WPEFramework
                     ssid,
                     NULL);
                 //g_bytes_unref(ssid);
-                /* For lnf network need to include
+               /* For lnf network need to include
                 *
                 * 'bssid' parameter is used to restrict the connection only to the BSSID
                 *  g_object_set(s_wifi, NM_SETTING_WIRELESS_BSSID, bssid, NULL);
@@ -574,49 +638,46 @@ namespace WPEFramework
                 */
                 nm_connection_add_setting(connection, NM_SETTING(s_wireless));
             }
-            apFlags     = nm_access_point_get_flags(AccessPoint);
+
+            apFlags = nm_access_point_get_flags(AccessPoint);
             apWpaFlags = nm_access_point_get_wpa_flags(AccessPoint);
             apRsnFlags = nm_access_point_get_rsn_flags(AccessPoint);
 
             // check ap flag ty securti we supporting
-            if(apFlags != NM_802_11_AP_FLAGS_NONE && strlen(password_in) < 1 ) // should be 8 minimium password length is 8 need to confirm
+            if(apFlags != NM_802_11_AP_FLAGS_NONE && strlen(password_in) < 1 )
             {
                 NMLOG_ERROR("This ap(%s) security need password please add password!", ssid_in);
                 return false;
             }
 
-            /* Set password for WEP or WPA-PSK. */
-            if ((apFlags & NM_802_11_AP_FLAGS_PRIVACY)
-                || (apWpaFlags != NM_802_11_AP_SEC_NONE )
-                || (apRsnFlags != NM_802_11_AP_SEC_NONE )) 
-            { // not any enteprice
+            if ( (apRsnFlags & NM_802_11_AP_SEC_KEY_MGMT_OWE) || (apRsnFlags & NM_802_11_AP_SEC_KEY_MGMT_OWE_TM)
+                || (apWpaFlags & NM_802_11_AP_SEC_KEY_MGMT_802_1X)|| (apRsnFlags & NM_802_11_AP_SEC_KEY_MGMT_802_1X) ) {
 
+                NMLOG_ERROR("Ap wifi security OWE and 802 1X mode not supported");
+                return false;
+            }
+
+            if ((apFlags & NM_802_11_AP_FLAGS_PRIVACY) || (apWpaFlags != NM_802_11_AP_SEC_NONE )|| (apRsnFlags != NM_802_11_AP_SEC_NONE )) 
+            {
                 std::string flagStr;
                 apFlagsToString(apWpaFlags, flagStr);
                 apFlagsToString(apRsnFlags, flagStr);
                 NMLOG_INFO("%s ap securtity mode ( %s) supported !", ssid_in, flagStr.c_str());
-
-                if (!password_in) {
-                    NMLOG_WARNING("password is none");
-                    return false;
-                }
 
                 if (password_in) 
                 {
                     s_secure = (NMSettingWirelessSecurity *) nm_setting_wireless_security_new();
                     nm_connection_add_setting(connection, NM_SETTING(s_secure));
 
-                    if (apWpaFlags == NM_802_11_AP_SEC_NONE && apRsnFlags == NM_802_11_AP_SEC_NONE) {
+                    if (apWpaFlags == NM_802_11_AP_SEC_NONE && apRsnFlags == NM_802_11_AP_SEC_NONE)
+                    {
                         nm_setting_wireless_security_set_wep_key(s_secure, 0, password_in);
                         NMLOG_ERROR("wifi security WEP mode not supported ! need to add wep-key-type");
                         return false;
-                        g_object_set(G_OBJECT(s_secure),
-                                    NM_SETTING_WIRELESS_SECURITY_WEP_KEY_TYPE,
-                                    wep_passphrase ? NM_WEP_KEY_TYPE_PASSPHRASE : NM_WEP_KEY_TYPE_KEY,
-                                    NULL);
-                    } else if ((apWpaFlags & NM_802_11_AP_SEC_KEY_MGMT_PSK)
-                            || (apRsnFlags & NM_802_11_AP_SEC_KEY_MGMT_PSK)
-                            || (apRsnFlags & NM_802_11_AP_SEC_KEY_MGMT_SAE)) {
+                    }
+                    else if ((apWpaFlags & NM_802_11_AP_SEC_KEY_MGMT_PSK) 
+                            || (apRsnFlags & NM_802_11_AP_SEC_KEY_MGMT_PSK) || (apRsnFlags & NM_802_11_AP_SEC_KEY_MGMT_SAE)) {
+
                         g_object_set(G_OBJECT(s_secure), NM_SETTING_WIRELESS_SECURITY_KEY_MGMT,"wpa-psk", NULL);
                         g_object_set(G_OBJECT(s_secure), NM_SETTING_WIRELESS_SECURITY_PSK, password_in, NULL);
                     }
@@ -654,14 +715,8 @@ namespace WPEFramework
             }
             else
             {
-                create = true;
-                nm_client_add_and_activate_connection_async(client,
-                                                                connection,
-                                                                device,
-                                                                objectPath,
-                                                                NULL,
-                                                                wifiConnectCb,
-                                                                this);
+                createNewConnection = true;
+                nm_client_add_and_activate_connection_async(client, connection, device, objectPath, NULL, wifiConnectCb, this);
             }
 
             wait(loop);

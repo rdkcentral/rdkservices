@@ -1,4 +1,3 @@
-
 /*
  * If not stated otherwise in this file or this component's LICENSE file the
  * following copyright and licenses apply:
@@ -53,23 +52,19 @@ namespace WPEFramework
             NMDevice *getNmDevice();
 
         private:
-            // Private constructor and destructor
-            wifiManager() : client(nullptr), loop(nullptr), create(false) {
+            wifiManager() : client(nullptr), loop(nullptr), createNewConnection(false) {
                 loop = g_main_loop_new(NULL, FALSE);
             }
             ~wifiManager() {
-                // Clean up
                 NMLOG_TRACE("~wifiManager");
                 if(client != nullptr)
                     g_object_unref(client);
                 if (loop != NULL) {
                     g_main_loop_unref(loop);
-                    loop = NULL;  // Set the pointer to NULL to avoid accidental reuse
+                    loop = NULL;
                 }
             }
 
-
-            // Delete copy constructor and assignment operator
             wifiManager(wifiManager const&) = delete;
             void operator=(wifiManager const&) = delete;
 
@@ -78,7 +73,7 @@ namespace WPEFramework
         public:
             NMClient *client;
             GMainLoop *loop;
-            gboolean create;
+            gboolean createNewConnection;
             const char* objectPath;
             NMDevice *wifidevice;
             guint wifiDeviceStateGsignal = 0;
