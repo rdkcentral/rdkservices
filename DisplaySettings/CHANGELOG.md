@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.3.7] - 2024-03-07
+### Fixed
+- Register the Event IARM_BUS_DSMGR_EVENT_ATMOS_CAPS_CHANGED
+
 ## [1.3.6] - 2023-10-04
 ### Added
 - Implement Thunder Plugin Configuration for Kirkstone builds(CMake-3.20 & above)
