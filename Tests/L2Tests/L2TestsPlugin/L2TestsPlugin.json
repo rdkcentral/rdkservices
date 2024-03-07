@@ -1,0 +1,13 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/plugin.schema.json",
+    "info": {
+        "title": "L2Tests Plugin",
+        "callsign": "org.rdk.L2Tests",
+        "locator": "libWPEFrameworkL2Tests.so",
+        "status": "alpha",
+        "description": "The L2 Tests plugin"
+    },
+    "interface": {
+        "$ref": "L2Tests.json#"
+    }
+}

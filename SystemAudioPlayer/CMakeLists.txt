@@ -67,7 +67,7 @@ elseif (BUILD_BROADCOM)
         PRIVATE
             impl/broadcom/SoC_abstraction.cpp
     )
-elseif (RDK_SERVICES_TEST)
+elseif (RDK_SERVICES_L1_TEST)
     target_sources(${MODULE_NAME}
         PRIVATE
             test/SoC_abstraction.cpp
