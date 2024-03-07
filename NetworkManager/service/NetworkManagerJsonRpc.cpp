@@ -105,6 +105,7 @@ namespace WPEFramework
             Unregister("GetConnectedSSID");
             Unregister("StartWPS");
             Unregister("StopWPS");
+            Unregister("GetWifiState");
             Unregister("GetWiFiSignalStrength");
             Unregister("GetSupportedSecurityModes");
         }
@@ -865,7 +866,7 @@ namespace WPEFramework
                 rc = Core::ERROR_UNAVAILABLE;
             if (Core::ERROR_NONE == rc)
             {
-                response["state"] = static_cast <int> (state);;
+                response["state"] = static_cast <int> (state);
                 response["success"] = true;
             }
             LOGTRACEMETHODFIN();
