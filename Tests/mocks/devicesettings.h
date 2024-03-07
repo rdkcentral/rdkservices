@@ -416,15 +416,15 @@ typedef struct _DSMgr_EventData_t {
             dsHdmiInPort_t port;
             bool allm_mode;
         } hdmi_in_allm_mode; /*HDMI in ALLM Mode change*/
-	struct _HDMI_IN_CONTENT_TYPE_DATA{
+        struct _HDMI_IN_CONTENT_TYPE_DATA{
             dsHdmiInPort_t port;
             dsAviContentType_t aviContentType;
         }hdmi_in_content_type;
-	struct _HDMI_IN_AV_LATENCY{
+        struct _HDMI_IN_AV_LATENCY{
                int audio_output_delay;
                int video_latency;
         }hdmi_in_av_latency; /*HDMI in AVLatency change*/
-	struct _DISPLAY_FRAMERATE_CHANGE {
+        struct _DISPLAY_FRAMERATE_CHANGE {
             char framerate[20];
         }DisplayFrameRateChange;
     } data;
@@ -444,8 +444,8 @@ typedef uint32_t dsFPDColor_t;
 #define dsFPD_COLOR_WHITE dsFPDColor_Make(0xFF, 0xFF, 0xFF)
 
 typedef struct _dsFPDColorConfig_t{
-	int id;
-	dsFPDColor_t color;
+        int id;
+        dsFPDColor_t color;
 }dsFPDColorConfig_t;
 
 namespace device {
@@ -505,33 +505,19 @@ public:
 };
 
 class AudioOutputPort {
+protected:
+    static AudioOutputPortImpl* impl;
+
 public:
-    AudioOutputPortImpl* impl;
+    AudioOutputPort();
+    static void setImpl(AudioOutputPortImpl* newImpl);
+    static AudioOutputPort& getInstance();
 
-    const std::string& getName() const
-    {
-        return impl->getName();
-    }
-
-    std::vector<std::string> getMS12AudioProfileList() const
-    {
-        return impl->getMS12AudioProfileList();
-    }
-
-    void getAudioCapabilities(int* capabilities)
-    {
-        return impl->getAudioCapabilities(capabilities);
-    }
-
-    void getMS12Capabilities(int* capabilities)
-    {
-        return impl->getMS12Capabilities(capabilities);
-    }
-
-    bool isAudioMSDecode()
-    {
-        return impl->isAudioMSDecode();
-    }
+    const std::string& getName() const;
+    std::vector<std::string> getMS12AudioProfileList() const;
+    void getAudioCapabilities(int* capabilities);
+    void getMS12Capabilities(int* capabilities);
+    bool isAudioMSDecode();
 };
 
 }
@@ -547,31 +533,18 @@ public:
 };
 
 class CompositeInput {
+protected:
+    static CompositeInputImpl* impl;
+
 public:
-    static CompositeInput& getInstance()
-    {
-        static CompositeInput instance;
-        return instance;
-    }
+    CompositeInput();
+    static void setImpl(CompositeInputImpl* newImpl);
+    static CompositeInput& getInstance();
 
-    CompositeInputImpl* impl;
-
-    uint8_t getNumberOfInputs() const
-    {
-        return impl->getNumberOfInputs();
-    }
-    bool isPortConnected(int8_t Port) const
-    {
-        return impl->isPortConnected(Port);
-    }
-    void selectPort(int8_t Port) const
-    {
-        return impl->selectPort(Port);
-    }
-    void scaleVideo(int32_t x, int32_t y, int32_t width, int32_t height) const
-    {
-        return impl->scaleVideo(x, y, width, height);
-    }
+    uint8_t getNumberOfInputs() const;
+    bool isPortConnected(int8_t port) const;
+    void selectPort(int8_t port) const;
+    void scaleVideo(int32_t x, int32_t y, int32_t width, int32_t height) const;
 };
 
 }
@@ -600,72 +573,29 @@ public:
 };
 
 class HdmiInput {
+protected:
+    static HdmiInputImpl* impl;
+
 public:
-    static HdmiInput& getInstance()
-    {
-        static HdmiInput instance;
-        return instance;
-    }
+    HdmiInput();
+    static void setImpl(HdmiInputImpl* newImpl);
+    static HdmiInput& getInstance(); // Changed return type
 
-    HdmiInputImpl* impl;
+    uint8_t getNumberOfInputs() const;
+    bool isPortConnected(int8_t port) const;
+    std::string getCurrentVideoMode() const;
+    void selectPort(int8_t Port,bool audioMix = false, int videoPlane = 0,bool topMost = false) const;
+    void scaleVideo(int32_t x, int32_t y, int32_t width, int32_t height) const;
+    void getEDIDBytesInfo(int iHdmiPort, std::vector<uint8_t>& edid) const;
+    void getHDMISPDInfo(int iHdmiPort, std::vector<uint8_t>& data) const;
+    void setEdidVersion(int iHdmiPort, int iEdidVersion) const;
+    void getEdidVersion(int iHdmiPort, int* iEdidVersion) const;
 
-    uint8_t getNumberOfInputs() const
-    {
-        return impl->getNumberOfInputs();
-    }
-    bool isPortConnected(int8_t Port) const
-    {
-        return impl->isPortConnected(Port);
-    }
-    std::string getCurrentVideoMode() const
-    {
-        return impl->getCurrentVideoMode();
-    }
-    void selectPort(int8_t Port,bool audioMix = false,int videoPlane = 0,bool topMost = false) const
-    {
-        return impl->selectPort(Port,audioMix,videoPlane,topMost);
-    }
-    void scaleVideo(int32_t x, int32_t y, int32_t width, int32_t height) const
-    {
-        return impl->scaleVideo(x, y, width, height);
-    }
-    void getEDIDBytesInfo(int iHdmiPort, std::vector<uint8_t>& edid) const
-    {
-        return impl->getEDIDBytesInfo(iHdmiPort, edid);
-    }
-    void getHDMISPDInfo(int iHdmiPort, std::vector<uint8_t>& data) const
-    {
-        return impl->getHDMISPDInfo(iHdmiPort, data);
-    }
-    void setEdidVersion(int iHdmiPort, int iEdidVersion) const
-    {
-        return impl->setEdidVersion(iHdmiPort, iEdidVersion);
-    }
-    void getEdidVersion(int iHdmiPort, int* iEdidVersion) const
-    {
-        return impl->getEdidVersion(iHdmiPort, iEdidVersion);
-    }
-
-    void getHdmiALLMStatus(int iHdmiPort, bool* allmStatus) const
-    {
-        return impl->getHdmiALLMStatus(iHdmiPort, allmStatus);
-    }
-    void getSupportedGameFeatures(std::vector<std::string>& featureList) const
-    {
-        return impl->getSupportedGameFeatures(featureList);
-    }
-    void getAVLatency(int *audio_output_delay, int *video_latency) const
-    {
-        return impl->getAVLatency(audio_output_delay,video_latency);
-    }
-    void setEdid2AllmSupport(int iport, bool allmSupport) const
-    {
-        return impl->setEdid2AllmSupport(iport,allmSupport);
-    }
-    void getEdid2AllmSupport(int iport, bool *allmSupport) const
-    {
-        return impl->getEdid2AllmSupport(iport,allmSupport);
-    }
+    void getHdmiALLMStatus(int iHdmiPort, bool* allmStatus) const;
+    void getSupportedGameFeatures(std::vector<std::string>& featureList) const;
+    void getAVLatency(int *audio_output_delay, int *video_latency)const;
+    void setEdid2AllmSupport(int iport, bool allmSupport) const;
+    void getEdid2AllmSupport(int iport, bool *allmSupport) const;
 };
 
 }
@@ -682,34 +612,19 @@ public:
 };
 
 class SleepMode {
+protected:
+    static SleepModeImpl* impl;
+
 public:
-    SleepModeImpl* impl;
+    SleepMode();
+    static void setImpl(SleepModeImpl* newImpl);
 
-    static SleepMode& getInstance()
-    {
-        static SleepMode instance;
-        return instance;
-    }
+    static SleepMode& getInstance();
+    static SleepMode& getInstance(int id);
+    static SleepMode& getInstance(const std::string &name);
 
-    static SleepMode& getInstance(int id)
-    {
-        return getInstance().impl->getInstanceById(id);
-    }
-
-    static SleepMode& getInstance(const std::string &name)
-    {
-        return getInstance().impl->getInstanceByName(name);
-    }
-
-    List<SleepMode> getSleepModes()
-    {
-        return impl->getSleepModes();
-    }
-
-    const std::string& toString() const
-    {
-        return impl->toString();
-    }
+    List<SleepMode> getSleepModes();
+    const std::string& toString() const;
 };
 }
 
@@ -726,28 +641,19 @@ public:
 };
 
 class VideoDevice {
+protected:
+    static VideoDeviceImpl* impl;
+
 public:
-    VideoDeviceImpl* impl;
+    VideoDevice();
 
-    int getFRFMode(int* frfmode) const
-    {
-        return impl->getFRFMode(frfmode);
-    }
+    static void setImpl(VideoDeviceImpl* newImpl);
+    static VideoDevice& getInstance();
 
-    int setFRFMode(int frfmode) const
-    {
-        return impl->setFRFMode(frfmode);
-    }
-
-    int getCurrentDisframerate(char* framerate) const
-    {
-        return impl->getCurrentDisframerate(framerate);
-    }
-
-    int setDisplayframerate(const char* framerate) const
-    {
-        return impl->setDisplayframerate(framerate);
-    }
+    int getFRFMode(int* frfmode) const;
+    int setFRFMode(int frfmode) const;
+    int getCurrentDisframerate(char* framerate) const;
+    int setDisplayframerate(const char* framerate) const;
 };
 
 }
@@ -762,13 +668,12 @@ public:
 };
 
 class VideoResolution {
-public:
-    VideoResolutionImpl* impl;
+protected:
+    static VideoResolutionImpl* impl;
 
-    const std::string& getName() const
-    {
-        return impl->getName();
-    }
+public:
+   static void setImpl(VideoResolutionImpl* newImpl);
+   const std::string& getName() const;
 };
 
 }
@@ -784,44 +689,38 @@ public:
 };
 
 class VideoOutputPortType {
+protected:
+    static VideoOutputPortTypeImpl* impl;
+
 public:
-    VideoOutputPortTypeImpl* impl;
+    VideoOutputPortType();
 
-    int getId() const
-    {
-        return impl->getId();
-    }
+    static void setImpl(VideoOutputPortTypeImpl* newImpl);
 
-    const List<VideoResolution> getSupportedResolutions() const
-    {
-        return impl->getSupportedResolutions();
-    }
+    int getId() const;
+    const List<VideoResolution> getSupportedResolutions() const;
 };
 
 }
 
 namespace device{
-	class DisplayImpl{
-		public:
-		virtual ~DisplayImpl() = default;
+        class DisplayImpl{
+                public:
+                virtual ~DisplayImpl() = default;
 
-		virtual void getEDIDBytes(std::vector<uint8_t> &edid) const = 0;
-	};
-	class Display{
-		public:
-		DisplayImpl* impl;
-        static Display& getInstance()
-        {
-            static Display instance;
-            return instance;
-        }
+                virtual void getEDIDBytes(std::vector<uint8_t> &edid) const = 0;
+        };
+        class Display {
+    protected:
+       static DisplayImpl* impl;
 
-		void getEDIDBytes(std::vector<uint8_t> &edid){
-			return impl->getEDIDBytes(edid);
-		}
+    public:
+       static void setImpl(DisplayImpl* newImpl);
+       static Display& getInstance();
 
-	};
+       void getEDIDBytes(std::vector<uint8_t>& edid);
 
+};
 
 }
 
@@ -846,67 +745,27 @@ public:
 };
 
 class VideoOutputPort {
+protected:
+    static VideoOutputPortImpl* impl;
+
 public:
-    VideoOutputPortImpl* impl;
+    VideoOutputPort();
 
-    static VideoOutputPort& getInstance()
-    {
-        static VideoOutputPort instance;
-        return instance;
-    }
+    static void setImpl(VideoOutputPortImpl* newImpl);
+    static VideoOutputPort& getInstance();
 
-    const VideoOutputPortType& getType() const
-    {
-        return impl->getType();
-    }
+    const VideoOutputPortType& getType() const;
+    const std::string& getName() const;
+    const VideoResolution& getDefaultResolution() const;
+    int getHDCPProtocol();
+    int getHDCPReceiverProtocol();
+    int getHDCPCurrentProtocol();
+    int getHDCPStatus();
+    AudioOutputPort& getAudioOutputPort();
+    bool isDisplayConnected();
+    bool isContentProtected();
+    Display& getDisplay();
 
-    const std::string& getName() const
-    {
-        return impl->getName();
-    }
-
-    const VideoResolution& getDefaultResolution() const
-    {
-        return impl->getDefaultResolution();
-    }
-
-    int getHDCPProtocol()
-    {
-        return impl->getHDCPProtocol();
-    }
-
-    int getHDCPReceiverProtocol()
-    {
-        return impl->getHDCPReceiverProtocol();
-    }
-
-    int getHDCPCurrentProtocol()
-    {
-        return impl->getHDCPCurrentProtocol();
-    }
-
-    int getHDCPStatus()
-    {
-        return impl->getHDCPStatus();
-    }
-
-    AudioOutputPort& getAudioOutputPort()
-    {
-        return impl->getAudioOutputPort();
-    }
-
-    bool isDisplayConnected()
-    {
-        return impl->isDisplayConnected();
-    }
-
-    bool isContentProtected()
-    {
-        return impl->isContentProtected();
-    }
-    Display& getDisplay(){
-	    return impl->getDisplay();
-    }
 };
 
 }
@@ -922,24 +781,17 @@ public:
 };
 
 class VideoOutputPortConfig {
+protected:
+    static VideoOutputPortConfigImpl* impl;
+
 public:
-    static VideoOutputPortConfig& getInstance()
-    {
-        static VideoOutputPortConfig instance;
-        return instance;
-    }
+    VideoOutputPortConfig();
 
-    VideoOutputPortConfigImpl* impl;
+    static void setImpl(VideoOutputPortConfigImpl* newImpl);
+    static VideoOutputPortConfig& getInstance();
 
-    VideoOutputPortType& getPortType(int id)
-    {
-        return impl->getPortType(id);
-    }
-
-    VideoOutputPort& getPort(const std::string& name)
-    {
-        return impl->getPort(name);
-    }
+    VideoOutputPortType& getPortType(int id);
+    VideoOutputPort& getPort(const std::string& name);
 };
 
 }
@@ -954,24 +806,17 @@ public:
 
 namespace device {
 class Manager {
+protected:
+    static ManagerImpl* impl;
+
 public:
-    static Manager& getInstance()
-    {
-        static Manager instance;
-        return instance;
-    }
+    Manager();
 
-    ManagerImpl* impl;
+    static void setImpl(ManagerImpl* newImpl);
+    static Manager& getInstance();
 
-    static void Initialize()
-    {
-        return getInstance().impl->Initialize();
-    }
-
-    static void DeInitialize()
-    {
-        return getInstance().impl->DeInitialize();
-    }
+    static void Initialize();
+    static void DeInitialize();
 };
 }
 
@@ -994,69 +839,24 @@ public:
 };
 
 class Host {
+protected:
+    static HostImpl* impl;
+
 public:
-    static Host& getInstance()
-    {
-        static Host instance;
-        return instance;
-    }
+    static void setImpl(HostImpl* newImpl);
+    static Host& getInstance();
 
-    HostImpl* impl;
-
-    SleepMode getPreferredSleepMode()
-    {
-        return impl->getPreferredSleepMode();
-    }
-
-    int setPreferredSleepMode(const SleepMode mode)
-    {
-        return impl->setPreferredSleepMode(mode);
-    }
-
-    List<SleepMode> getAvailableSleepModes()
-    {
-        return impl->getAvailableSleepModes();
-    }
-
-    List<VideoOutputPort> getVideoOutputPorts()
-    {
-        return impl->getVideoOutputPorts();
-    }
-
-    List<AudioOutputPort> getAudioOutputPorts()
-    {
-        return impl->getAudioOutputPorts();
-    }
-
-    List<VideoDevice> getVideoDevices()
-    {
-        return impl->getVideoDevices();
-    }
-
-    VideoOutputPort& getVideoOutputPort(const std::string& name)
-    {
-        return impl->getVideoOutputPort(name);
-    }
-
-    AudioOutputPort& getAudioOutputPort(const std::string& name)
-    {
-        return impl->getAudioOutputPort(name);
-    }
-
-    void getHostEDID(std::vector<uint8_t>& edid) const
-    {
-        return impl->getHostEDID(edid);
-    }
-
-    std::string getDefaultVideoPortName()
-    {
-        return impl->getDefaultVideoPortName();
-    }
-
-    std::string getDefaultAudioPortName()
-    {
-        return impl->getDefaultAudioPortName();
-    }
+    SleepMode getPreferredSleepMode();
+    int setPreferredSleepMode(const SleepMode mode);
+    List<SleepMode> getAvailableSleepModes();
+    List<VideoOutputPort> getVideoOutputPorts();
+    List<AudioOutputPort> getAudioOutputPorts();
+    List<VideoDevice> getVideoDevices();
+    VideoOutputPort& getVideoOutputPort(const std::string& name);
+    AudioOutputPort& getAudioOutputPort(const std::string& name);
+    void getHostEDID(std::vector<uint8_t>& edid) const;
+    std::string getDefaultVideoPortName();
+    std::string getDefaultAudioPortName();
 };
 
 }
@@ -1074,30 +874,21 @@ public:
     };
 
     class Color {
-    public:
-        static Color& getInstance()
-        {
-            static Color instance;
-            return instance;
-        }
+protected:
+    static ColorImpl* impl;
 
-        ColorImpl* impl;
+public:
+    Color();
 
-        static const Color& getInstance(int id)
-        {
-            return getInstance().impl->getInstanceById(id);
-        }
-        static const Color& getInstance(const std::string& name)
-        {
-            return getInstance().impl->getInstanceByName(name);
-        }
-        static const int kWhite = dsFPD_COLOR_WHITE;
+    static void setImpl(ColorImpl* newImpl);
+    static Color& getInstance();
+    static const Color& getInstance(int id);
+    static const Color& getInstance(const std::string& name);
 
-	std::string getName() const
-	{
-	    return impl->getName();
-	}
-	virtual ~Color(){};
+    static const int kWhite;
+
+    std::string getName() const;
+    virtual ~Color();
     };
 
     static FrontPanelIndicator& getInstance()
@@ -1108,23 +899,23 @@ public:
 
     class FrontPanelIndicatorImpl {
     public:
-	virtual ~FrontPanelIndicatorImpl() = default;
+        virtual ~FrontPanelIndicatorImpl() = default;
         virtual FrontPanelIndicator& getInstanceInt(int id) = 0;
         virtual FrontPanelIndicator& getInstanceString(const std::string& name) = 0;
-	virtual void setState(const bool bState) const = 0;
+        virtual void setState(const bool bState) const = 0;
         virtual std::string getName() const = 0;
         virtual void setBrightness(const int brightness, const bool toPersist) const = 0;
-	virtual int getBrightness() const = 0;
+        virtual int getBrightness() const = 0;
         virtual void setColor(const Color &newColor, const bool toPersist) const = 0;
         virtual void setColorInt(const uint32_t color, const bool toPersist) const = 0;
         virtual void getBrightnessLevels(int &levels,int &min,int &max) const = 0;
-	virtual int getColorMode() const = 0;
-	virtual std::string getColorName() const = 0;
-	virtual List<Color> getSupportedColors() const =0;
+        virtual int getColorMode() const = 0;
+        virtual std::string getColorName() const = 0;
+        virtual List<Color> getSupportedColors() const =0;
     };
 
     FrontPanelIndicatorImpl* impl;
-	
+
     static FrontPanelIndicator& getInstance(int id)
     {
         return getInstance().impl->getInstanceInt(id);
@@ -1160,12 +951,12 @@ public:
         return impl->setColorInt(color, toPersist);
     }
     void getBrightnessLevels(int &levels,int &min,int &max) const
-    {	
-    	return impl->getBrightnessLevels( levels, min, max);
+    {
+        return impl->getBrightnessLevels( levels, min, max);
     }
     List<Color> getSupportedColors()
     {
-	return impl->getSupportedColors();
+        return impl->getSupportedColors();
     }
     int getColorMode() const
     {
@@ -1188,49 +979,26 @@ public:
 };
 
 class FrontPanelTextDisplay : public FrontPanelIndicator{
+protected:
+    static FrontPanelTextDisplayImpl* impl;
+
 public:
-    static const int kModeClock12Hr = dsFPD_TIME_12_HOUR;
-    static const int kModeClock24Hr = dsFPD_TIME_24_HOUR;
+    FrontPanelTextDisplay();
 
-    FrontPanelTextDisplayImpl* impl;
+    static void setImpl(FrontPanelTextDisplayImpl* newImpl);
 
-    int getCurrentTimeFormat() const
-    {
-        return impl->getCurrentTimeFormat();
-    }
-    void setTimeFormat(const int iTimeFormat)
-    {
-        return impl->setTimeFormat(iTimeFormat);
-    }
-    static FrontPanelTextDisplay& getInstance(const std::string& name)
-    {
-    	return getInstance().impl->getInstanceByName(name);
-    }
-    static FrontPanelTextDisplay& getInstance(int id)
-    {
-        return getInstance().impl->getInstanceById(id);
-    }
-    static FrontPanelTextDisplay& getInstance()
-    {
-        static FrontPanelTextDisplay instance;
-        return instance;
-    }
-    void setText(const std::string text)
-    {
-	return impl->setText(text);
-    }
-    void setMode(int mode)
-    {
-        return impl->setMode(mode);
-    }
-	int getTextBrightness() const
-    {
-        return impl->getTextBrightness();
-    }
-	void setTextBrightness(const int brightness) const
-    {
-        return impl->setTextBrightness(brightness);
-    }
+    int getCurrentTimeFormat() const;
+    void setTimeFormat(const int iTimeFormat);
+    static FrontPanelTextDisplay& getInstance(const std::string& name);
+    static FrontPanelTextDisplay& getInstance(int id);
+    static FrontPanelTextDisplay& getInstance();
+    static const int kModeClock12Hr;
+    static const int kModeClock24Hr;
+
+    void setText(const std::string text);
+    void setMode(int mode);
+    int getTextBrightness() const;
+    void setTextBrightness(const int brightness) const;
 };
 
 class FrontPanelConfig;
@@ -1245,34 +1013,20 @@ public:
 };
 
 class FrontPanelConfig {
-public:
-    FrontPanelConfigImpl* impl;
+protected:
+    static FrontPanelConfigImpl* impl;
 
-    static FrontPanelConfig& getInstance()
-    {
-        static FrontPanelConfig instance;
-        return instance;
-    }
-    List<FrontPanelIndicator> getIndicators()
-    {
-        return impl->getIndicators();
-    }
-    FrontPanelTextDisplay& getTextDisplay(const std::string &name)
-    {
-        return impl->getTextDisplay(name);
-    }
-    List<FrontPanelTextDisplay> getTextDisplays()
-    {
-        return impl->getTextDisplays();
-    }
-    FrontPanelTextDisplay& getTextDisplay(int id) 
-    {
-        return impl->getTextDisplay(id);
-    }
-    FrontPanelTextDisplay& getTextDisplay() const
-    {
-        return impl->getTextDisplay();
-    }
+public:
+    FrontPanelConfig();
+
+    static void setImpl(FrontPanelConfigImpl* newImpl);
+    static FrontPanelConfig& getInstance();
+
+    List<FrontPanelIndicator> getIndicators();
+    FrontPanelTextDisplay& getTextDisplay(const std::string& name);
+    List<FrontPanelTextDisplay> getTextDisplays();
+    FrontPanelTextDisplay& getTextDisplay(int id);
+    FrontPanelTextDisplay& getTextDisplay() const;
 };
 
 }
@@ -1391,32 +1145,28 @@ class rtObjectBaseImpl{
 };
 
 class rtObjectBase{
-    public:
-    rtObjectBaseImpl* impl;
-    static rtObjectBase& getInstance()
-    {
-        static rtObjectBase instance;
-        return instance;
-    }
-    rtError set(const char* name, const char* value){
-        return getInstance().impl->set(name, value);
-    }
-    rtError set(const char* name, bool value){
-        return getInstance().impl->set(name, value);
-    }
-    rtError set(const char* name, const rtValue& value){
-        return getInstance().impl->set(name, value);
-    }
-    
+protected:
+        static rtObjectBaseImpl* impl;
+public:
+
+    static rtObjectBase& getInstance();
+    static void setImpl(rtObjectBaseImpl* newImpl);
+
+    rtError set(const char* name, const char* value);
+    rtError set(const char* name, bool value);
+    rtError set(const char* name, const rtValue& value);
+
+        //To avoid linker issues with templated code, the complete definition of this
+        //templated function is included in this header file instead of separating it to .cpp
     template <typename T>
-    rtError sendReturns(const char* messageName, T& result){
-        return getInstance().impl->sendReturns(messageName, result);
+    rtError sendReturns(const char* messageName, T& result) {
+    return impl->sendReturns(messageName, result);
     }
 
     template <typename T>
     T get(const char* name) {
-        return getInstance().impl->get(name);
-    };
+        return impl->get(name);
+    }
     virtual ~rtObjectBase() = default;
 };
 
@@ -1437,35 +1187,38 @@ class rtObjectRefImpl{
 };
 
 class rtObjectRef : public rtRef<rtIObject>, public rtObjectBase{
-    public:
-        rtObjectRefImpl* impl;
-        static rtObjectRef& getInstance()
-        {
-            static rtObjectRef instance;
-            return instance;
-        }
-        rtObjectRef(){}
-        rtObjectRef(const rtObjectRef&) = default;
-        rtObjectRef(const rtMapObject* o) {delete o; o = nullptr; };
-        rtObjectRef& operator=(rtMapObject* o){delete o; o = nullptr; return *this;};
-        rtObjectRef& operator=(const rtObjectRef&){return *this;};
-        rtObjectRef& operator=(rtIObject* o){asn(o);return *this;};
-        rtObjectRef& operator=(rtObjectRef&&) = default;
+protected:
+     static rtObjectRefImpl* impl;
+public:
 
-        rtError send(const char* messageName){
-            return getInstance().impl->send(messageName);
-        }
-        rtError send(const char* messageName, const char* method, rtFunctionCallback* callback){
-            return getInstance().impl->send(messageName, method, callback);
-        }
-        rtError send(const char* messageName, const rtValue& arg1){
-            return getInstance().impl->send(messageName, arg1);
-        }
-        rtError send(const char* messageName, rtObjectRef& base){
-            return getInstance().impl->send(messageName, base);
-        }
-        virtual ~rtObjectRef(){
-        }
+
+    static rtObjectRef& getInstance();
+
+    static void setImpl(rtObjectRefImpl* newImpl);
+
+    rtObjectRef();
+
+    rtObjectRef(const rtObjectRef&);
+
+    rtObjectRef(const rtMapObject* o);
+
+    rtObjectRef& operator=(rtMapObject* o);
+
+    rtObjectRef& operator=(const rtObjectRef&);
+
+    rtObjectRef& operator=(rtIObject* o);
+
+    rtObjectRef& operator=(rtObjectRef&&);
+
+    rtError send(const char* messageName);
+
+    rtError send(const char* messageName, const char* method, rtFunctionCallback* callback);
+
+    rtError send(const char* messageName, const rtValue& arg1);
+
+    rtError send(const char* messageName, rtObjectRef& base);
+    virtual ~rtObjectRef();
+
 };
 
 class rtArrayObject;
@@ -1485,45 +1238,34 @@ class rtValueImpl{
 
 class rtValue
 {
+ protected:
+  static   rtValueImpl* impl;
  public:
   rtValue_ mValue;
-  rtValueImpl* impl;
-  static rtValue& getInstance()
-    {
-        static rtValue instance;
-        return instance;
-    }
-  rtValue(){}
-  rtValue(bool v){mValue.boolValue =v;}
-  rtValue(const char* v){mValue.stringValue = (char*)v;}
-  rtValue(const rtString& v){mValue.stringValue = v.cString();}
-  rtValue(rtIObject* v){
-    if(v){
-        delete v;
-        v = nullptr;
-    }
-  }
-  rtValue(const rtObjectRef& v){}
-  rtValue(const rtValue& v){}
-  ~rtValue(){}
-  rtValue& operator=(bool v)                { mValue.boolValue = v; return *this; }
-  rtValue& operator=(const char* v)         { mValue.stringValue = (char*)v;   return *this; }
-  rtValue& operator=(const rtString& v)     { mValue.stringValue = v.cString();  return *this; }
-  rtValue& operator=(const rtIObject* v)    { delete v; v = nullptr;   return *this; }
-  rtValue& operator=(const rtObjectRef& v)  {    return *this; }
-  rtValue& operator=(const rtValue& v)      {     return *this; }
-  
-    rtObjectRef toObject() const {
-        rtObjectRef v;
-        return v;
-    }
-    void setString (const char* v){
-        mValue.stringValue = (char*)v;
-    }
-    void setString (const rtString& v){
-        mValue.stringValue = v.cString();
-    }
-    
+
+  static rtValue& getInstance();
+  static void setImpl(rtValueImpl* newImpl);
+
+  rtValue();
+  rtValue(bool v);
+  rtValue(const char* v);
+  rtValue(const rtString& v);
+  rtValue(rtIObject* v);
+
+  rtValue(const rtObjectRef& v);
+  rtValue(const rtValue& v);
+  ~rtValue();
+  rtValue& operator=(bool v);
+  rtValue& operator=(const char* v);
+  rtValue& operator=(const rtString& v);
+  rtValue& operator=(const rtIObject* v);
+  rtValue& operator=(const rtObjectRef& v);
+  rtValue& operator=(const rtValue& v);
+
+  rtObjectRef toObject() const;
+  void setString (const char* v);
+  void setString (const rtString& v);
+
 };
 
 class rtArrayObjectImpl{
@@ -1534,19 +1276,14 @@ class rtArrayObjectImpl{
 
 
 class rtArrayObject : public rtObjectBase, public rtIObject{
-    public:
-    rtArrayObjectImpl* impl;
-    static rtArrayObject& getInstance()
-    {
-        static rtArrayObject instance;
-        return instance;
-    }
-    void pushBack(const char* v){
-        getInstance().impl->pushBack(v);
-    }
-    void pushBack(rtValue v){
-        getInstance().impl->pushBack(v);
-    }
+protected:
+    static rtArrayObjectImpl* impl;
+public:
+    static rtArrayObject& getInstance();
+    static void setImpl(rtArrayObjectImpl* newImpl);
+
+    void pushBack(const char* v);
+    void pushBack(rtValue v);
     virtual ~rtArrayObject() = default;
 
 };
@@ -1569,32 +1306,17 @@ class floatingRtFunctionsImpl{
 };
 
 class floatingRtFunctions{
-    public:
-    floatingRtFunctionsImpl* impl;
-    static floatingRtFunctions& getInstance()
-    {
-        static floatingRtFunctions instance;
-        return instance;
-    }
-
+public:
+    static  floatingRtFunctionsImpl* impl;
+    static floatingRtFunctions& getInstance();
+    static  void setImpl(floatingRtFunctionsImpl* newImpl);
 
 };
 
-inline rtError rtRemoteProcessSingleItem(){
-    return floatingRtFunctions::getInstance().impl->rtRemoteProcessSingleItem();
-}
-inline rtError rtRemoteLocateObject(rtRemoteEnvironment *env, const char* str, rtObjectRef& obj, int x, remoteDisconnectCallback back, void *cbdata=NULL){
-    return floatingRtFunctions::getInstance().impl->rtRemoteLocateObject(env, str, obj, x, back, cbdata);
-}
-inline rtRemoteEnvironment* rtEnvironmentGetGlobal(){
-    return floatingRtFunctions::getInstance().impl->rtEnvironmentGetGlobal();
-}
-inline rtError rtRemoteInit(rtRemoteEnvironment *env){
-    return floatingRtFunctions::getInstance().impl->rtRemoteInit(env);
-}
-inline rtError rtRemoteShutdown(rtRemoteEnvironment *env){
-    return floatingRtFunctions::getInstance().impl->rtRemoteShutdown(env);
-}
-inline char* rtStrError(rtError err){
-    return floatingRtFunctions::getInstance().impl->rtStrError(err);
-}
+    rtError rtRemoteProcessSingleItem();
+    rtError rtRemoteLocateObject(rtRemoteEnvironment* env, const char* str, rtObjectRef& obj, int x, remoteDisconnectCallback back, void* cbdata = nullptr);
+    rtRemoteEnvironment* rtEnvironmentGetGlobal();
+    rtError rtRemoteInit(rtRemoteEnvironment* env);
+    rtError rtRemoteShutdown(rtRemoteEnvironment* env);
+    char* rtStrError(rtError err);
+

@@ -41,9 +41,9 @@ target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS} ../hel
 target_include_directories(${MODULE_NAME} PRIVATE ${RFC_INCLUDE_DIRS} ../helpers)
 target_include_directories(${MODULE_NAME} PRIVATE $ENV{PKG_CONFIG_SYSROOT_DIR}/usr/include/pxcore)
 
-if(NOT RDK_SERVICES_TEST)
+if(NOT RDK_SERVICES_L1_TEST)
         target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins rtRemote rtCore ${RFC_LIBRARIES} ${IARMBUS_LIBRARIES})
-else(RDK_SERVICES_TEST)
+else(RDK_SERVICES_L1_TEST)
       target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${RFC_LIBRARIES} ${IARMBUS_LIBRARIES})  
 endif()
 

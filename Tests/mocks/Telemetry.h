@@ -21,25 +21,16 @@ public:
 };
 
 class TelemetryApi {
+protected:
+    static TelemetryApiImpl* impl;
 public:
-    TelemetryApiImpl* impl;
-
-    static TelemetryApi& getInstance()
-    {
-        static TelemetryApi instance;
-        return instance;
-    }
-
-    static void t2_init(char* component)
-    {
-        getInstance().impl->t2_init(component);
-    }
-
-    static T2ERROR t2_event_s(char* marker, char* value)
-    {
-        return getInstance().impl->t2_event_s(marker, value);
-    }
+    TelemetryApi();
+    TelemetryApi(const TelemetryApi &obj) = delete;
+    static void setImpl(TelemetryApiImpl* newImpl);
+    static void t2_init(char* component);
+    static T2ERROR t2_event_s(char* marker, char* value);
 };
 
-constexpr auto t2_init = &TelemetryApi::t2_init;
-constexpr auto t2_event_s = &TelemetryApi::t2_event_s;
+extern void (*t2_init)(char*);
+extern  T2ERROR (*t2_event_s)(char*,char*);
+

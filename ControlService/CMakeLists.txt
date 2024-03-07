@@ -22,7 +22,7 @@ find_package(${NAMESPACE}Plugins REQUIRED)
 
 set(PLUGIN_CONTROLSERVICE_STARTUPORDER "" CACHE STRING "To configure startup order of ControlService plugin")
 
-if (NOT RDK_SERVICES_TEST)
+if (NOT RDK_SERVICES_L1_TEST)
 #add_subdirectory(test)
 endif ()
 
