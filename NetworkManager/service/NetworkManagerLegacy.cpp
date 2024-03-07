@@ -69,7 +69,7 @@ namespace WPEFramework
             Register("isPaired",                          &NetworkManager::isPaired, this);
             Register("saveSSID",                          &NetworkManager::AddToKnownSSIDs, this);
             Register("getSupportedSecurityModes",         &NetworkManager::GetSupportedSecurityModes, this);
-            Register("getCurrentState",                   &NetworkManager::getCurrentState, this);
+            Register("getCurrentState",                   &NetworkManager::GetWifiState, this);
         }
 
         /**
@@ -500,25 +500,6 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
                 {
                     response["result"] = 0;
                 }
-                response["success"] = true;
-            }
-            LOGTRACEMETHODFIN();
-            return rc;
-        }
-
-        uint32_t NetworkManager::getCurrentState (const JsonObject& parameters, JsonObject& response)
-        {
-            uint32_t rc = Core::ERROR_GENERAL;
-            uint32_t state;
-
-            LOGINFOMETHOD();
-            if (_NetworkManager)
-                rc = _NetworkManager->GetWifiState(state);
-            else
-                rc = Core::ERROR_UNAVAILABLE;
-            if (Core::ERROR_NONE == rc)
-            {
-                response["state"] = state;
                 response["success"] = true;
             }
             LOGTRACEMETHODFIN();
