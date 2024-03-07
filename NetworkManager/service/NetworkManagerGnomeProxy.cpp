@@ -1,4 +1,5 @@
 #include "NetworkManagerImplementation.h"
+#include "NetworkManagerGnomeWIFI.h"
 #include <libnm/NetworkManager.h>
 #include <fstream>
 #include <sstream>
@@ -15,6 +16,7 @@ namespace WPEFramework
 {
     namespace Plugin
     {
+        wifiManager *wifi = nullptr;
         const float signalStrengthThresholdExcellent = -50.0f;
         const float signalStrengthThresholdGood = -60.0f;
         const float signalStrengthThresholdFair = -67.0f;
@@ -37,6 +39,7 @@ namespace WPEFramework
                 return;
             }
             g_loop = g_main_loop_new(context, FALSE);
+            wifi = wifiManager::getInstance();
             return;
         }
 
