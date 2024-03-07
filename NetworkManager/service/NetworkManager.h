@@ -117,7 +117,7 @@ namespace WPEFramework
                 }
 
             public:
-                void onInterfaceStateChanged(const Exchange::INetworkManager::INotification::InterfaceState event, const string interface) override
+                void onInterfaceStateChange(const Exchange::INetworkManager::INotification::InterfaceState event, const string interface) override
                 {
                     NMLOG_TRACE("%s", __FUNCTION__);
                     JsonObject params;
@@ -148,7 +148,7 @@ namespace WPEFramework
                     _parent.Notify("onInterfaceStateChange", params);
                 }
 
-                void onIPAddressChanged(const string interface, const bool isAcquired, const bool isIPv6, const string ipAddress) override
+                void onIPAddressChange(const string interface, const bool isAcquired, const bool isIPv6, const string ipAddress) override
                 {
                     NMLOG_TRACE("%s", __FUNCTION__);
                     JsonObject params;
@@ -179,7 +179,7 @@ namespace WPEFramework
                     _parent.Notify("onIPAddressChange", params);
                 }
 
-                void onActiveInterfaceChanged(const string prevActiveInterface, const string currentActiveinterface) override
+                void onActiveInterfaceChange(const string prevActiveInterface, const string currentActiveinterface) override
                 {
                     NMLOG_TRACE("%s", __FUNCTION__);
                     JsonObject params;
@@ -237,7 +237,7 @@ namespace WPEFramework
 
                 }
 
-                void onWiFiStateChanged(const Exchange::INetworkManager::INotification::WiFiState state) override
+                void onWiFiStateChange(const Exchange::INetworkManager::INotification::WiFiState state) override
                 {
                     NMLOG_TRACE("%s", __FUNCTION__);
                     JsonObject result;
@@ -251,7 +251,7 @@ namespace WPEFramework
                     _parent.Notify("onWiFiStateChange", result);
                 }
 
-                void onWiFiSignalStrengthChanged(const string ssid, const string signalLevel, const Exchange::INetworkManager::WiFiSignalQuality signalQuality) override
+                void onWiFiSignalStrengthChange(const string ssid, const string signalLevel, const Exchange::INetworkManager::WiFiSignalQuality signalQuality) override
                 {
                     NMLOG_TRACE("%s", __FUNCTION__);
                     JsonObject legacyResult;
