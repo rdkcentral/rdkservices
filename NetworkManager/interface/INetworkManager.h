@@ -165,6 +165,35 @@ namespace WPEFramework
                 LOG_LEVEL_TRACE
             };
 
+           // The state of the interface 
+            enum InterfaceState : uint8_t
+            {
+                INTERFACE_ADDED,
+                INTERFACE_LINK_UP,
+                INTERFACE_LINK_DOWN,
+                INTERFACE_ACQUIRING_IP,
+                INTERFACE_REMOVED,
+                INTERFACE_DISABLED
+            };
+
+            enum WiFiState : uint8_t
+            {
+                WIFI_STATE_UNINSTALLED,
+                WIFI_STATE_DISABLED,
+                WIFI_STATE_DISCONNECTED,
+                WIFI_STATE_PAIRING,
+                WIFI_STATE_CONNECTING,
+                WIFI_STATE_CONNECTED,
+                WIFI_STATE_SSID_NOT_FOUND,
+                WIFI_STATE_SSID_CHANGED,
+                WIFI_STATE_CONNECTION_LOST,
+                WIFI_STATE_CONNECTION_FAILED,
+                WIFI_STATE_CONNECTION_INTERRUPTED,
+                WIFI_STATE_INVALID_CREDENTIALS,
+                WIFI_STATE_AUTHENTICATION_FAILED,
+                WIFI_STATE_ERROR
+            };
+
             using IInterfaceDetailsIterator = RPC::IIteratorType<InterfaceDetails,     ID_NETWORKMANAGER_INTERFACE_DETAILS_ITERATOR>;
             using ISecurityModeIterator     = RPC::IIteratorType<WIFISecurityModeInfo, ID_NETWORKMANAGER_WIFI_SECURITY_MODE_ITERATOR>;
             using IStringIterator           = RPC::IIteratorType<string,               RPC::ID_STRINGITERATOR>;
@@ -245,35 +274,6 @@ namespace WPEFramework
             struct EXTERNAL INotification : virtual public Core::IUnknown
             {
                 enum { ID = ID_NETWORKMANAGER_NOTIFICATION };
-
-                // The state of the interface 
-                enum InterfaceState : uint8_t
-                {
-                    INTERFACE_ADDED,
-                    INTERFACE_LINK_UP,
-                    INTERFACE_LINK_DOWN,
-                    INTERFACE_ACQUIRING_IP,
-                    INTERFACE_REMOVED,
-                    INTERFACE_DISABLED
-                };
-
-                enum WiFiState : uint8_t
-                {
-                    WIFI_STATE_UNINSTALLED,
-                    WIFI_STATE_DISABLED,
-                    WIFI_STATE_DISCONNECTED,
-                    WIFI_STATE_PAIRING,
-                    WIFI_STATE_CONNECTING,
-                    WIFI_STATE_CONNECTED,
-                    WIFI_STATE_SSID_NOT_FOUND,
-                    WIFI_STATE_SSID_CHANGED,
-                    WIFI_STATE_CONNECTION_LOST,
-                    WIFI_STATE_CONNECTION_FAILED,
-                    WIFI_STATE_CONNECTION_INTERRUPTED,
-                    WIFI_STATE_INVALID_CREDENTIALS,
-                    WIFI_STATE_AUTHENTICATION_FAILED,
-                    WIFI_STATE_ERROR
-                };
 
                 // Network Notifications that other processes can subscribe to
                 virtual void onInterfaceStateChange(const InterfaceState event /* @in */, const string interface /* @in */) = 0;
