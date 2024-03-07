@@ -52,21 +52,21 @@ namespace WPEFramework
                 Notification() = delete;
                 Notification(const Notification &) = delete;
                 Notification &operator=(const Notification &) = delete;
-                string InterfaceStateToString(Exchange::INetworkManager::INotification::InterfaceState event)
+                string InterfaceStateToString(Exchange::INetworkManager::InterfaceState event)
                 {
                     switch (event)
                     {
-                        case Exchange::INetworkManager::INotification::INTERFACE_ADDED:
+                        case Exchange::INetworkManager::INTERFACE_ADDED:
                             return "INTERFACE_ADDED";
-                        case Exchange::INetworkManager::INotification::INTERFACE_LINK_UP:
+                        case Exchange::INetworkManager::INTERFACE_LINK_UP:
                             return "INTERFACE_LINK_UP";
-                        case Exchange::INetworkManager::INotification::INTERFACE_LINK_DOWN:
+                        case Exchange::INetworkManager::INTERFACE_LINK_DOWN:
                             return "INTERFACE_LINK_DOWN";
-                        case Exchange::INetworkManager::INotification::INTERFACE_ACQUIRING_IP:
+                        case Exchange::INetworkManager::INTERFACE_ACQUIRING_IP:
                             return "INTERFACE_ACQUIRING_IP";
-                        case Exchange::INetworkManager::INotification::INTERFACE_REMOVED:
+                        case Exchange::INetworkManager::INTERFACE_REMOVED:
                             return "INTERFACE_REMOVED";
-                        case Exchange::INetworkManager::INotification::INTERFACE_DISABLED:
+                        case Exchange::INetworkManager::INTERFACE_DISABLED:
                             return "INTERFACE_DISABLED";
                     }
                     return "";
@@ -117,7 +117,7 @@ namespace WPEFramework
                 }
 
             public:
-                void onInterfaceStateChange(const Exchange::INetworkManager::INotification::InterfaceState event, const string interface) override
+                void onInterfaceStateChange(const Exchange::INetworkManager::InterfaceState event, const string interface) override
                 {
                     NMLOG_TRACE("%s", __FUNCTION__);
                     JsonObject params;
@@ -129,14 +129,14 @@ namespace WPEFramework
                         legacyParams["interface"] = "WIFI";
                     else if(interface == "eth0")
                         legacyParams["interface"] = "ETHERNET";
-                    if(event == INTERFACE_ADDED)
+                    if(event == Exchange::INetworkManager::INTERFACE_ADDED)
                         legacyParams["enabled"] = true;
-                    else if(event == INTERFACE_REMOVED)
+                    else if(event == Exchange::INetworkManager::INTERFACE_REMOVED)
                         legacyParams["enabled"] = false;
                     _parent.Notify("onInterfaceStatusChanged", legacyParams);
-                    if(event == INTERFACE_LINK_UP)
+                    if(event == Exchange::INetworkManager::INTERFACE_LINK_UP)
                         onConnParams["status"] = "CONNECTED";
-                    else if(event == INTERFACE_LINK_DOWN)
+                    else if(event == Exchange::INetworkManager::INTERFACE_LINK_DOWN)
                         onConnParams["status"] = "DISCONNECTED";
                     onConnParams["interface"] = legacyParams["interface"];
                     onConnParams.ToString(json);
@@ -235,7 +235,7 @@ namespace WPEFramework
 
                 }
 
-                void onWiFiStateChange(const Exchange::INetworkManager::INotification::WiFiState state) override
+                void onWiFiStateChange(const Exchange::INetworkManager::WiFiState state) override
                 {
                     NMLOG_TRACE("%s", __FUNCTION__);
                     JsonObject result;
@@ -376,6 +376,7 @@ namespace WPEFramework
             uint32_t GetConnectedSSID(const JsonObject& parameters, JsonObject& response);
             uint32_t StartWPS(const JsonObject& parameters, JsonObject& response);
             uint32_t StopWPS(const JsonObject& parameters, JsonObject& response);
+            uint32_t GetWifiState(const JsonObject& parameters, JsonObject& response);
             uint32_t GetWiFiSignalStrength(const JsonObject& parameters, JsonObject& response);
             uint32_t GetSupportedSecurityModes(const JsonObject& parameters, JsonObject& response);
 #ifdef ENABLE_LEGACY_NSM_SUPPORT

@@ -857,7 +857,8 @@ namespace WPEFramework
 
         uint32_t NetworkManager::GetWifiState(const JsonObject& parameters, JsonObject& response)
         {
-           Exchange::INetworkManager::WiFiState state;
+            Exchange::INetworkManager::WiFiState state;
+            uint32_t rc = Core::ERROR_GENERAL;
 
             LOGINFOMETHOD();
             if (_NetworkManager)
