@@ -67,6 +67,7 @@ namespace WPEFramework
             Register("GetConnectedSSID",                  &NetworkManager::GetConnectedSSID, this);
             Register("StartWPS",                          &NetworkManager::StartWPS, this);
             Register("StopWPS",                           &NetworkManager::StopWPS, this);
+            Register("GetWifiState",                      &NetworkManager::GetWifiState, this);
             Register("GetWiFiSignalStrength",             &NetworkManager::GetWiFiSignalStrength, this);
             Register("GetSupportedSecurityModes",         &NetworkManager::GetSupportedSecurityModes, this);
         }
