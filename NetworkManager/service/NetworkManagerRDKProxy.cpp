@@ -362,25 +362,25 @@ namespace WPEFramework
         const float signalStrengthThresholdFair = -67.0f;
         NetworkManagerImplementation* _instance = nullptr;
 
-        Exchange::INetworkManager::INotification::WiFiState to_wifi_state(WiFiStatusCode_t code) {
+        WiFiState to_wifi_state(WiFiStatusCode_t code) {
             switch (code)
             {
                 case WIFI_DISCONNECTED:
-                    return Exchange::INetworkManager::INotification::WIFI_STATE_DISCONNECTED;
+                    return WIFI_STATE_DISCONNECTED;
                 case WIFI_PAIRING:
-                    return Exchange::INetworkManager::INotification::WIFI_STATE_PAIRING;
+                    return WIFI_STATE_PAIRING;
                 case WIFI_CONNECTING:
-                    return Exchange::INetworkManager::INotification::WIFI_STATE_CONNECTING;
+                    return WIFI_STATE_CONNECTING;
                 case WIFI_CONNECTED:
-                    return Exchange::INetworkManager::INotification::WIFI_STATE_CONNECTED;
+                    return WIFI_STATE_CONNECTED;
                 case WIFI_FAILED:
-                    return Exchange::INetworkManager::INotification::WIFI_STATE_CONNECTION_FAILED;
+                    return WIFI_STATE_CONNECTION_FAILED;
                 case WIFI_UNINSTALLED:
-                    return Exchange::INetworkManager::INotification::WIFI_STATE_UNINSTALLED;
+                    return WIFI_STATE_UNINSTALLED;
                 case WIFI_DISABLED:
-                    return Exchange::INetworkManager::INotification::WIFI_STATE_DISABLED;
+                    return WIFI_STATE_DISABLED;
             }
-            return Exchange::INetworkManager::INotification::WIFI_STATE_CONNECTION_FAILED;
+            return WIFI_STATE_CONNECTION_FAILED;
         }
 
         void NetworkManagerInternalEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
@@ -407,9 +407,9 @@ namespace WPEFramework
                         IARM_BUS_NetSrvMgr_Iface_EventInterfaceEnabledStatus_t *e = (IARM_BUS_NetSrvMgr_Iface_EventInterfaceEnabledStatus_t*) data;
                         NMLOG_INFO ("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS :: %s", e->interface);
                         if (e->status)
-                            ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INotification::INTERFACE_ADDED, string(e->interface));
+                            ::_instance->ReportInterfaceStateChangedEvent(INTERFACE_ADDED, string(e->interface));
                         else
-                            ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INotification::INTERFACE_REMOVED, string(e->interface));
+                            ::_instance->ReportInterfaceStateChangedEvent(INTERFACE_REMOVED, string(e->interface));
                         break;
                     }
                     case IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS:
@@ -417,9 +417,9 @@ namespace WPEFramework
                         IARM_BUS_NetSrvMgr_Iface_EventInterfaceConnectionStatus_t *e = (IARM_BUS_NetSrvMgr_Iface_EventInterfaceConnectionStatus_t*) data;
                         NMLOG_INFO ("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS :: %s", e->interface);
                         if (e->status)
-                            ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INotification::INTERFACE_LINK_UP, string(e->interface));
+                            ::_instance->ReportInterfaceStateChangedEvent(INTERFACE_LINK_UP, string(e->interface));
                         else
-                            ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INotification::INTERFACE_LINK_DOWN, string(e->interface));
+                            ::_instance->ReportInterfaceStateChangedEvent(INTERFACE_LINK_DOWN, string(e->interface));
                         break;
                     }
                     case IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS:
@@ -463,7 +463,7 @@ namespace WPEFramework
                     case IARM_BUS_WIFI_MGR_EVENT_onWIFIStateChanged:
                     {
                         IARM_BUS_WiFiSrvMgr_EventData_t* e = (IARM_BUS_WiFiSrvMgr_EventData_t *) data;
-                        Exchange::INetworkManager::INotification::WiFiState state = Exchange::INetworkManager::INotification::WIFI_STATE_DISCONNECTED;
+                        WiFiState state = WIFI_STATE_DISCONNECTED;
                         NMLOG_INFO("Event IARM_BUS_WIFI_MGR_EVENT_onWIFIStateChanged received; state=%d", e->data.wifiStateChange.state);
 
                         state = to_wifi_state(e->data.wifiStateChange.state);
@@ -1148,19 +1148,17 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             return rc;
         }
 
-        uint32_t NetworkManagerImplementation::GetWifiState(uint32_t &state)
+        uint32_t NetworkManagerImplementation::GetWifiState(WiFiState &state)
         {
             LOG_ENTRY_FUNCTION();
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
             IARM_Result_t retVal = IARM_RESULT_SUCCESS;
             IARM_Bus_WiFiSrvMgr_Param_t param;
-            Exchange::INetworkManager::INotification::WiFiState wifiState = Exchange::INetworkManager::INotification::WIFI_STATE_DISCONNECTED;
             memset(&param, 0, sizeof(param));
 
             if(IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_getCurrentState, (void *)&param, sizeof(param)))
             {
-                wifiState = to_wifi_state(param.data.wifiStatus);
-                state = static_cast<int>(wifiState);
+                state = to_wifi_state(param.data.wifiStatus);
                 rc = Core::ERROR_NONE;
             }
             return rc;
