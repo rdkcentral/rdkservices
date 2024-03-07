@@ -4221,3 +4221,12 @@ static GSourceFuncs _handlerIntervention =
 } // namespace Plugin
 
 } // namespace WPEFramework
+
+extern "C" __attribute__((__visibility__("default"))) void ModuleUnload()
+	
+{
+    // Before plugin library is unloaded that function would be invoked by WPEProcess before dlclose call
+    // implement here important deinitialization of the library, in our case we know about the following issues with libWPEWebkit library:
+    // * terminate the BMScavenger thread
+    // * terminate the PressureMonitor thread
+}
