@@ -460,16 +460,13 @@ namespace WPEFramework
             return Core::ERROR_NONE;
         }
 
-        void NetworkManagerImplementation::ReportInterfaceStateChangedEvent(INetworkManager::INotification::InterfaceState state, string interface)
+        void NetworkManagerImplementation::ReportInterfaceStateChangedEvent(INetworkManager::InterfaceState state, string interface)
         {
             LOG_ENTRY_FUNCTION();
             _notificationLock.Lock();
-
-            NMLOG_INFO("We have %d subscribed clients to trigger notifications", (int) _notificationCallbacks.size());
             for (const auto callback : _notificationCallbacks) {
                 callback->onInterfaceStateChange(state, interface);
             }
-
             _notificationLock.Unlock();
         }
 
@@ -477,12 +474,9 @@ namespace WPEFramework
         {
             LOG_ENTRY_FUNCTION();
             _notificationLock.Lock();
-
-            NMLOG_INFO("We have %d subscribed clients to trigger notifications", (int) _notificationCallbacks.size());
             for (const auto callback : _notificationCallbacks) {
                 callback->onIPAddressChange(interface, isAcquired, isIPv6, ipAddress);
             }
-
             _notificationLock.Unlock();
         }
 
@@ -490,12 +484,9 @@ namespace WPEFramework
         {
             LOG_ENTRY_FUNCTION();
             _notificationLock.Lock();
-
-            NMLOG_INFO("We have %d subscribed clients to trigger notifications", (int) _notificationCallbacks.size());
             for (const auto callback : _notificationCallbacks) {
                 callback->onActiveInterfaceChange(prevActiveInterface, currentActiveinterface);
             }
-
             _notificationLock.Unlock();
         }
 
@@ -503,12 +494,9 @@ namespace WPEFramework
         {
             LOG_ENTRY_FUNCTION();
             _notificationLock.Lock();
-
-            NMLOG_INFO("We have %d subscribed clients to trigger notifications", (int) _notificationCallbacks.size());
             for (const auto callback : _notificationCallbacks) {
                 callback->onInternetStatusChange(oldState, newstate);
             }
-
             _notificationLock.Unlock();
         }
 
@@ -516,21 +504,17 @@ namespace WPEFramework
         {
             LOG_ENTRY_FUNCTION();
             _notificationLock.Lock();
-
             NMLOG_INFO("scan result is, %s", jsonOfWiFiScanResults.c_str());
             for (const auto callback : _notificationCallbacks) {
                 callback->onAvailableSSIDs(jsonOfWiFiScanResults);
             }
-
             _notificationLock.Unlock();
         }
 
-        void NetworkManagerImplementation::ReportWiFiStateChangedEvent(const INetworkManager::INotification::WiFiState state)
+        void NetworkManagerImplementation::ReportWiFiStateChangedEvent(const INetworkManager::WiFiState state)
         {
             LOG_ENTRY_FUNCTION();
             _notificationLock.Lock();
-
-            NMLOG_INFO("We have %d subscribed clients to trigger notifications", (int) _notificationCallbacks.size());
             for (const auto callback : _notificationCallbacks) {
                 callback->onWiFiStateChange(state);
             }
@@ -541,13 +525,10 @@ namespace WPEFramework
         {
             LOG_ENTRY_FUNCTION();
             _notificationLock.Lock();
-
-            NMLOG_INFO("We have %d subscribed clients to trigger notifications", (int) _notificationCallbacks.size());
             for (const auto callback : _notificationCallbacks) {
                 callback->onWiFiSignalStrengthChange(ssid, signalLevel, signalQuality);
-                NMLOG_INFO("We have %d subscribed clients to trigger notifications", (int) _notificationCallbacks.size());
+                
             }
-
             _notificationLock.Unlock();
         }
     }
