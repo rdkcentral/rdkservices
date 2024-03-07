@@ -13,6 +13,10 @@ All notable changes to this RDK Service will be documented in this file.
     Changes in CHANGELOG should be updated when commits are added to the main or release branches. There should be one CHANGELOG entry per JIRA Ticket. This is not enforced on sprint branches since there could be multiple changes for the same JIRA ticket during development.
 
     For more details, refer to versioning section under Main README.
+## [1.0.4] - 2024-03-06
+### Added
+- Fix for RDKTV-29180.
+
 ## [1.0.3] - 2023-12-22
 ### Added
 - Added the opt flags to suppress P2P events and change config methods and dynamically handled the authType.

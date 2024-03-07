@@ -15,9 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-project(persistentstorel1test)
+cmake_minimum_required(VERSION 3.14)
 
-cmake_minimum_required(VERSION 3.11)
+project(persistentstorel1test)
 
 set(CMAKE_CXX_STANDARD 11)
 
@@ -32,29 +32,17 @@ find_package(WPEFramework)
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
 
-find_package(PkgConfig)
-pkg_search_module(SQLITE REQUIRED sqlite3)
-
 add_executable(${PROJECT_NAME}
         ../Module.cpp
-        ../sqlite/Handle.cpp
         ../PersistentStore.cpp
         ../PersistentStoreJsonRpc.cpp
-        JsonRpcTest.cpp
-        PluginTest.cpp
-        StoreTest.cpp
-        )
-
-add_definitions(${SQLITE_CFLAGS_OTHER})
-link_directories(${SQLITE_LIBRARY_DIRS})
-
-target_include_directories(${PROJECT_NAME} PRIVATE ../)
+        PersistentStoreTest.cpp
+)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
         gmock_main
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
         ${NAMESPACE}Definitions::${NAMESPACE}Definitions
-        ${SQLITE_LIBRARIES}
-        )
+)
 
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)

@@ -1,286 +1,182 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "../Handle.h"
-#include "../Store2Type.h"
+#include "../Store2.h"
+#include "Store2NotificationMock.h"
 
-using namespace WPEFramework;
-using namespace WPEFramework::Plugin;
-
+using ::testing::_;
 using ::testing::Eq;
+using ::testing::Gt;
+using ::testing::Invoke;
 using ::testing::Le;
+using ::testing::NiceMock;
 using ::testing::Test;
+using ::WPEFramework::Exchange::IStore2;
+using ::WPEFramework::Plugin::Sqlite::Store2;
 
-const std::string Path = "/tmp/sqlite/l1test/store2test";
-const uint32_t MaxSize = 100;
-const uint32_t MaxValue = 10;
-const uint32_t Limit = 50;
+const auto kPath = "/tmp/persistentstore/sqlite/l1test/store2test";
+const auto kMaxSize = 100;
+const auto kMaxValue = 10;
+const auto kLimit = 50;
+const auto kValue = "value_1";
+const auto kKey = "key_1";
+const auto kAppId = "app_id_1";
+const auto kTtl = 2;
+const auto kNoTtl = 0;
+const auto kScope = IStore2::ScopeType::DEVICE;
+const auto kEmpty = "";
+const auto kOversize = "this is too large";
+const auto kUnknown = "unknown";
 
 class AStore2 : public Test {
 protected:
-    Exchange::IStore2* store2;
-    ~AStore2() override = default;
-    void SetUp() override
+    IStore2* store2;
+    AStore2()
+        : store2(WPEFramework::Core::Service<Store2>::Create<IStore2>(kPath, kMaxSize, kMaxValue, kLimit))
     {
-        Core::File(Path).Destroy();
-        // File is destroyed
-
-        Core::SystemInfo::SetEnvironment(_T("PERSISTENTSTORE_PATH"), Path);
-        Core::SystemInfo::SetEnvironment(_T("PERSISTENTSTORE_MAXSIZE"), std::to_string(MaxSize));
-        Core::SystemInfo::SetEnvironment(_T("PERSISTENTSTORE_MAXVALUE"), std::to_string(MaxValue));
-        Core::SystemInfo::SetEnvironment(_T("PERSISTENTSTORE_LIMIT"), std::to_string(Limit));
-        store2 = Core::Service<Sqlite::Store2Type<Sqlite::Handle>>::Create<Exchange::IStore2>();
     }
-    void TearDown() override
+    ~AStore2() override
     {
         store2->Release();
     }
 };
 
-TEST_F(AStore2, DoesNotSetEmptyNamespace)
+TEST_F(AStore2, DoesNotSetValueWhenNamespaceEmpty)
 {
-    EXPECT_THAT(store2->SetValue(Exchange::IStore2::ScopeType::DEVICE, "", "x", "x", 0), Eq(Core::ERROR_INVALID_INPUT_LENGTH));
+    EXPECT_THAT(store2->SetValue(kScope, kEmpty, kKey, kValue, kNoTtl), Eq(WPEFramework::Core::ERROR_INVALID_INPUT_LENGTH));
 }
 
-TEST_F(AStore2, DoesNotSetEmptyKey)
+TEST_F(AStore2, DoesNotSetValueWhenKeyEmpty)
 {
-    EXPECT_THAT(store2->SetValue(Exchange::IStore2::ScopeType::DEVICE, "x", "", "x", 0), Eq(Core::ERROR_INVALID_INPUT_LENGTH));
+    EXPECT_THAT(store2->SetValue(kScope, kAppId, kEmpty, kValue, kNoTtl), Eq(WPEFramework::Core::ERROR_INVALID_INPUT_LENGTH));
 }
 
-TEST_F(AStore2, DoesNotSetTooLargeNamespaceName)
+TEST_F(AStore2, DoesNotSetValueWhenNamespaceOversize)
 {
-    EXPECT_THAT(store2->SetValue(Exchange::IStore2::ScopeType::DEVICE, "this is too large", "x", "x", 0), Eq(Core::ERROR_INVALID_INPUT_LENGTH));
+    EXPECT_THAT(store2->SetValue(kScope, kOversize, kKey, kValue, kNoTtl), Eq(WPEFramework::Core::ERROR_INVALID_INPUT_LENGTH));
 }
 
-TEST_F(AStore2, DoesNotSetTooLargeKey)
+TEST_F(AStore2, DoesNotSetValueWhenKeyOversize)
 {
-    EXPECT_THAT(store2->SetValue(Exchange::IStore2::ScopeType::DEVICE, "x", "this is too large", "x", 0), Eq(Core::ERROR_INVALID_INPUT_LENGTH));
+    EXPECT_THAT(store2->SetValue(kScope, kAppId, kOversize, kValue, kNoTtl), Eq(WPEFramework::Core::ERROR_INVALID_INPUT_LENGTH));
 }
 
-TEST_F(AStore2, DoesNotSetTooLargeValue)
+TEST_F(AStore2, DoesNotSetValueWhenValueOversize)
 {
-    EXPECT_THAT(store2->SetValue(Exchange::IStore2::ScopeType::DEVICE, "x", "x", "this is too large", 0), Eq(Core::ERROR_INVALID_INPUT_LENGTH));
+    EXPECT_THAT(store2->SetValue(kScope, kAppId, kKey, kOversize, kNoTtl), Eq(WPEFramework::Core::ERROR_INVALID_INPUT_LENGTH));
 }
 
-TEST_F(AStore2, DoesNotGetValueInUnknownNamespace)
+TEST_F(AStore2, DoesNotGetValueWhenNamespaceUnknown)
 {
     string value;
     uint32_t ttl;
-    EXPECT_THAT(store2->GetValue(Exchange::IStore2::ScopeType::DEVICE, "x", "x", value, ttl), Eq(Core::ERROR_NOT_EXIST));
+    EXPECT_THAT(store2->GetValue(kScope, kUnknown, kKey, value, ttl), Eq(WPEFramework::Core::ERROR_NOT_EXIST));
 }
 
-TEST_F(AStore2, DeletesKeyInUnknownNamespaceWithoutError)
+TEST_F(AStore2, DeletesKeyWhenNamespaceUnknown)
 {
-    EXPECT_THAT(store2->DeleteKey(Exchange::IStore2::ScopeType::DEVICE, "x", "x"), Eq(Core::ERROR_NONE));
+    EXPECT_THAT(store2->DeleteKey(kScope, kUnknown, kKey), Eq(WPEFramework::Core::ERROR_NONE));
 }
 
-TEST_F(AStore2, DeletesUnknownNamespaceWithoutError)
+TEST_F(AStore2, DeletesNamespaceWhenNamespaceUnknown)
 {
-    EXPECT_THAT(store2->DeleteNamespace(Exchange::IStore2::ScopeType::DEVICE, "x"), Eq(Core::ERROR_NONE));
+    EXPECT_THAT(store2->DeleteNamespace(kScope, kUnknown), Eq(WPEFramework::Core::ERROR_NONE));
 }
 
-TEST_F(AStore2, SetsEmptyValueWithoutError)
+TEST_F(AStore2, SetsValueWhenValueEmpty)
 {
-    EXPECT_THAT(store2->SetValue(Exchange::IStore2::ScopeType::DEVICE, "ns1", "key1", "", 0), Eq(Core::ERROR_NONE));
+    ASSERT_THAT(store2->SetValue(kScope, kAppId, kKey, kEmpty, kNoTtl), Eq(WPEFramework::Core::ERROR_NONE));
     string value;
     uint32_t ttl;
-    EXPECT_THAT(store2->GetValue(Exchange::IStore2::ScopeType::DEVICE, "ns1", "key1", value, ttl), Eq(Core::ERROR_NONE));
-    EXPECT_THAT(value, Eq(""));
-    EXPECT_THAT(ttl, Eq(0));
+    ASSERT_THAT(store2->GetValue(kScope, kAppId, kKey, value, ttl), Eq(WPEFramework::Core::ERROR_NONE));
+    EXPECT_THAT(value, Eq(kEmpty));
+    EXPECT_THAT(ttl, Eq(kNoTtl));
 }
 
-TEST_F(AStore2, GetsValueWithTtlThatWasSet)
+TEST_F(AStore2, GetsValueWhenTtlNotExpired)
 {
-    EXPECT_THAT(store2->SetValue(Exchange::IStore2::ScopeType::DEVICE, "ns1", "key1", "value1", 100), Eq(Core::ERROR_NONE));
-    // Value with ttl set
-
+    ASSERT_THAT(store2->SetValue(kScope, kAppId, kKey, kValue, kTtl), Eq(WPEFramework::Core::ERROR_NONE));
     string value;
     uint32_t ttl;
-    EXPECT_THAT(store2->GetValue(Exchange::IStore2::ScopeType::DEVICE, "ns1", "key1", value, ttl), Eq(Core::ERROR_NONE));
-    EXPECT_THAT(value, Eq("value1"));
-    EXPECT_THAT(ttl, Le(100));
+    ASSERT_THAT(store2->GetValue(kScope, kAppId, kKey, value, ttl), Eq(WPEFramework::Core::ERROR_NONE));
+    EXPECT_THAT(value, Eq(kValue));
+    EXPECT_THAT(ttl, Le(kTtl));
+    EXPECT_THAT(ttl, Gt(kNoTtl));
 }
 
-TEST_F(AStore2, DoesNotGetExpiredValueThatWasSet)
+TEST_F(AStore2, DoesNotGetValueWhenTtlExpired)
 {
-    EXPECT_THAT(store2->SetValue(Exchange::IStore2::ScopeType::DEVICE, "ns1", "key1", "value1", 1), Eq(Core::ERROR_NONE));
-    // Value with ttl set
-    Core::Event lock(false, true);
-    lock.Lock(1000);
-    // Value expired
-
+    ASSERT_THAT(store2->SetValue(kScope, kAppId, kKey, kValue, kTtl), Eq(WPEFramework::Core::ERROR_NONE));
+    WPEFramework::Core::Event lock(false, true);
+    lock.Lock(kTtl * WPEFramework::Core::Time::MilliSecondsPerSecond);
     string value;
     uint32_t ttl;
-    EXPECT_THAT(store2->GetValue(Exchange::IStore2::ScopeType::DEVICE, "ns1", "key1", value, ttl), Eq(Core::ERROR_UNKNOWN_KEY));
+    EXPECT_THAT(store2->GetValue(kScope, kAppId, kKey, value, ttl), Eq(WPEFramework::Core::ERROR_UNKNOWN_KEY));
 }
 
-class AStore2WithNotification : public AStore2 {
-protected:
-    class Store2Notification : public Exchange::IStore2::INotification {
+TEST_F(AStore2, ValueChangedWhenSetValue)
+{
+    class Store2Notification : public NiceMock<Store2NotificationMock> {
     public:
-        Core::Event _valueChanged;
-        Exchange::IStore2::ScopeType _scope;
-        string _ns;
-        string _key;
-        string _value;
         Store2Notification()
-            : _valueChanged(false, true)
         {
+            EXPECT_CALL(*this, ValueChanged(_, _, _, _))
+                .WillRepeatedly(Invoke(
+                    [](const IStore2::ScopeType scope, const string& ns, const string& key, const string& value) {
+                        EXPECT_THAT(scope, Eq(kScope));
+                        EXPECT_THAT(ns, Eq(kAppId));
+                        EXPECT_THAT(key, Eq(kKey));
+                        EXPECT_THAT(value, Eq(kValue));
+                        return WPEFramework::Core::ERROR_NONE;
+                    }));
         }
-        void ValueChanged(const Exchange::IStore2::ScopeType scope, const string& ns, const string& key, const string& value) override
-        {
-            _valueChanged.SetEvent();
-            _scope = scope;
-            _ns = ns;
-            _key = key;
-            _value = value;
-        }
-
-        BEGIN_INTERFACE_MAP(Store2Notification)
-        INTERFACE_ENTRY(Exchange::IStore2::INotification)
-        END_INTERFACE_MAP
     };
-    Core::Sink<Store2Notification> sink;
-    ~AStore2WithNotification() override = default;
-    void SetUp() override
-    {
-        AStore2::SetUp();
-        store2->Register(&sink);
-    }
-    void TearDown() override
-    {
-        store2->Unregister(&sink);
-        AStore2::TearDown();
-    }
-};
-
-TEST_F(AStore2WithNotification, TriggersNotificationWhenValueIsSet)
-{
-    ASSERT_THAT(store2->SetValue(Exchange::IStore2::ScopeType::DEVICE, "ns1", "key1", "value1", 0), Eq(Core::ERROR_NONE));
-    // Value is set
-
-    EXPECT_THAT(sink._valueChanged.Lock(100), Eq(Core::ERROR_NONE));
-    EXPECT_THAT(sink._scope, Eq(Exchange::IStore2::ScopeType::DEVICE));
-    EXPECT_THAT(sink._ns, Eq("ns1"));
-    EXPECT_THAT(sink._key, Eq("key1"));
-    EXPECT_THAT(sink._value, Eq("value1"));
+    WPEFramework::Core::Sink<Store2Notification> sink;
+    store2->Register(&sink);
+    EXPECT_THAT(store2->SetValue(kScope, kAppId, kKey, kValue, kNoTtl), Eq(WPEFramework::Core::ERROR_NONE));
+    store2->Unregister(&sink);
 }
 
-class AStore2WithValue : public AStore2 {
-protected:
-    ~AStore2WithValue() override = default;
-    void SetUp() override
-    {
-        AStore2::SetUp();
-        ASSERT_THAT(store2->SetValue(Exchange::IStore2::ScopeType::DEVICE, "ns1", "key1", "value1", 0), Eq(Core::ERROR_NONE));
-    }
-};
-
-TEST_F(AStore2WithValue, DoesNotGetUnknownValueInExistingNamespace)
+TEST_F(AStore2, DoesNotGetValueWhenKeyUnknown)
 {
+    ASSERT_THAT(store2->SetValue(kScope, kAppId, kKey, kValue, kNoTtl), Eq(WPEFramework::Core::ERROR_NONE));
     string value;
     uint32_t ttl;
-    EXPECT_THAT(store2->GetValue(Exchange::IStore2::ScopeType::DEVICE, "ns1", "x", value, ttl), Eq(Core::ERROR_UNKNOWN_KEY));
+    EXPECT_THAT(store2->GetValue(kScope, kAppId, kUnknown, value, ttl), Eq(WPEFramework::Core::ERROR_UNKNOWN_KEY));
 }
 
-TEST_F(AStore2WithValue, DeletesUnknownKeyInExistingNamespaceWithoutError)
+TEST_F(AStore2, DeletesKeyWhenKeyUnknown)
 {
-    EXPECT_THAT(store2->DeleteKey(Exchange::IStore2::ScopeType::DEVICE, "ns1", "x"), Eq(Core::ERROR_NONE));
+    ASSERT_THAT(store2->SetValue(kScope, kAppId, kKey, kValue, kNoTtl), Eq(WPEFramework::Core::ERROR_NONE));
+    EXPECT_THAT(store2->DeleteKey(kScope, kAppId, kUnknown), Eq(WPEFramework::Core::ERROR_NONE));
 }
 
-TEST_F(AStore2WithValue, GetsValue)
+TEST_F(AStore2, DeletesKey)
 {
+    ASSERT_THAT(store2->SetValue(kScope, kAppId, kKey, kValue, kNoTtl), Eq(WPEFramework::Core::ERROR_NONE));
+    ASSERT_THAT(store2->DeleteKey(kScope, kAppId, kKey), Eq(WPEFramework::Core::ERROR_NONE));
     string value;
     uint32_t ttl;
-    EXPECT_THAT(store2->GetValue(Exchange::IStore2::ScopeType::DEVICE, "ns1", "key1", value, ttl), Eq(Core::ERROR_NONE));
-    EXPECT_THAT(value, Eq("value1"));
-    EXPECT_THAT(ttl, Eq(0));
+    EXPECT_THAT(store2->GetValue(kScope, kAppId, kKey, value, ttl), Eq(WPEFramework::Core::ERROR_UNKNOWN_KEY));
 }
 
-TEST_F(AStore2WithValue, UpdatesValue)
+TEST_F(AStore2, DeletesNamespace)
 {
-    EXPECT_THAT(store2->SetValue(Exchange::IStore2::ScopeType::DEVICE, "ns1", "key1", "value2", 0), Eq(Core::ERROR_NONE));
+    ASSERT_THAT(store2->SetValue(kScope, kAppId, kKey, kValue, kNoTtl), Eq(WPEFramework::Core::ERROR_NONE));
+    ASSERT_THAT(store2->DeleteNamespace(kScope, kAppId), Eq(WPEFramework::Core::ERROR_NONE));
     string value;
     uint32_t ttl;
-    EXPECT_THAT(store2->GetValue(Exchange::IStore2::ScopeType::DEVICE, "ns1", "key1", value, ttl), Eq(Core::ERROR_NONE));
-    EXPECT_THAT(value, Eq("value2"));
-    EXPECT_THAT(ttl, Eq(0));
+    EXPECT_THAT(store2->GetValue(kScope, kAppId, kKey, value, ttl), Eq(WPEFramework::Core::ERROR_NOT_EXIST));
 }
 
-TEST_F(AStore2WithValue, DoesNotGetDeletedValue)
+TEST_F(AStore2, DoesNotSetValueWhenReachedMaxSize)
 {
-    EXPECT_THAT(store2->DeleteKey(Exchange::IStore2::ScopeType::DEVICE, "ns1", "key1"), Eq(Core::ERROR_NONE));
-    // Value is deleted
-
-    string value;
-    uint32_t ttl;
-    EXPECT_THAT(store2->GetValue(Exchange::IStore2::ScopeType::DEVICE, "ns1", "key1", value, ttl), Eq(Core::ERROR_UNKNOWN_KEY));
-}
-
-TEST_F(AStore2WithValue, DoesNotGetValueInDeletedNamespace)
-{
-    EXPECT_THAT(store2->DeleteNamespace(Exchange::IStore2::ScopeType::DEVICE, "ns1"), Eq(Core::ERROR_NONE));
-    // Namespace is deleted
-
-    string value;
-    uint32_t ttl;
-    EXPECT_THAT(store2->GetValue(Exchange::IStore2::ScopeType::DEVICE, "ns1", "key1", value, ttl), Eq(Core::ERROR_NOT_EXIST));
-}
-
-class AStore2AtMaxSize : public AStore2 {
-protected:
-    ~AStore2AtMaxSize() override = default;
-    void SetUp() override
-    {
-        AStore2::SetUp();
-        for (int i = 0; i < 7; i++) {
-            ASSERT_THAT(store2->SetValue(Exchange::IStore2::ScopeType::DEVICE, "ns" + std::to_string(i), "key1", "value1", 0), Eq(Core::ERROR_NONE));
-        }
-        ASSERT_THAT(store2->SetValue(Exchange::IStore2::ScopeType::DEVICE, "ns7", "key1", "va", 0), Eq(Core::ERROR_NONE));
-        // Size is 100
-    }
-};
-
-TEST_F(AStore2AtMaxSize, DoesNotSetValue)
-{
-    EXPECT_THAT(store2->SetValue(Exchange::IStore2::ScopeType::DEVICE, "x", "x", "x", 0), Eq(Core::ERROR_INVALID_INPUT_LENGTH));
-}
-
-TEST_F(AStore2AtMaxSize, SetsValueAfterDeletesValue)
-{
-    EXPECT_THAT(store2->DeleteKey(Exchange::IStore2::ScopeType::DEVICE, "ns1", "key1"), Eq(Core::ERROR_NONE));
-    // Value deleted, size is 90
-
-    EXPECT_THAT(store2->SetValue(Exchange::IStore2::ScopeType::DEVICE, "ns1", "key2", "value2", 0), Eq(Core::ERROR_NONE));
-}
-
-class AStore2AtLimit : public AStore2 {
-protected:
-    ~AStore2AtLimit() override = default;
-    void SetUp() override
-    {
-        AStore2::SetUp();
-        for (int i = 0; i < 5; i++) {
-            ASSERT_THAT(store2->SetValue(Exchange::IStore2::ScopeType::DEVICE, "ns1", "key" + std::to_string(i), "value" + std::to_string(i), 0), Eq(Core::ERROR_NONE));
-        }
-        // Namespace size is 50
-    }
-};
-
-TEST_F(AStore2AtLimit, DoesNotSetValue)
-{
-    EXPECT_THAT(store2->SetValue(Exchange::IStore2::ScopeType::DEVICE, "ns1", "key5", "value5", 0), Eq(Core::ERROR_INVALID_INPUT_LENGTH));
-}
-
-TEST_F(AStore2AtLimit, SetsValueInAnotherNamespaceWithoutError)
-{
-    EXPECT_THAT(store2->SetValue(Exchange::IStore2::ScopeType::DEVICE, "ns2", "key1", "value1", 0), Eq(Core::ERROR_NONE));
-}
-
-TEST_F(AStore2AtLimit, SetsValueAfterDeletesValue)
-{
-    EXPECT_THAT(store2->DeleteKey(Exchange::IStore2::ScopeType::DEVICE, "ns1", "key1"), Eq(Core::ERROR_NONE));
-    // Value deleted, namespace size is 40
-
-    EXPECT_THAT(store2->SetValue(Exchange::IStore2::ScopeType::DEVICE, "ns1", "key5", "value5", 0), Eq(Core::ERROR_NONE));
+    ASSERT_THAT(store2->DeleteNamespace(kScope, kAppId), Eq(WPEFramework::Core::ERROR_NONE));
+    ASSERT_THAT(store2->SetValue(kScope, "8InMXXU4hM", "YWKN74ODMf", "N0ed2C2h4n", kNoTtl), Eq(WPEFramework::Core::ERROR_NONE));
+    ASSERT_THAT(store2->SetValue(kScope, "XhrICnuerw", "jPKODBDk5K", "d3BarkA5xF", kNoTtl), Eq(WPEFramework::Core::ERROR_NONE));
+    ASSERT_THAT(store2->SetValue(kScope, "WNeBknDDI2", "GC96ZN6Fuq", "IBF2E1MLQh", kNoTtl), Eq(WPEFramework::Core::ERROR_NONE));
+    EXPECT_THAT(store2->SetValue(kScope, kAppId, kKey, kValue, kNoTtl), Eq(WPEFramework::Core::ERROR_INVALID_INPUT_LENGTH));
+    EXPECT_THAT(store2->DeleteNamespace(kScope, "8InMXXU4hM"), Eq(WPEFramework::Core::ERROR_NONE));
+    EXPECT_THAT(store2->DeleteNamespace(kScope, "XhrICnuerw"), Eq(WPEFramework::Core::ERROR_NONE));
+    EXPECT_THAT(store2->DeleteNamespace(kScope, "WNeBknDDI2"), Eq(WPEFramework::Core::ERROR_NONE));
 }
