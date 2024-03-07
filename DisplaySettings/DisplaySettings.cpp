@@ -84,8 +84,8 @@ using namespace std;
 #define ZOOM_SETTINGS_DIRECTORY "/opt/persistent/rdkservices"
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 3
-#define API_VERSION_NUMBER_PATCH 9
+#define API_VERSION_NUMBER_MINOR 4
+#define API_VERSION_NUMBER_PATCH 0
 
 static bool isCecEnabled = false;
 static bool isResCacheUpdated = false;
