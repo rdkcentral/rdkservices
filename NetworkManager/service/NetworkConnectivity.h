@@ -7,8 +7,8 @@
 #include <curl/curl.h>
 #include <condition_variable>
 #include <mutex>
-#include "NetworkManagerLogger.h"
 #include "Module.h"
+#include "NetworkManagerLogger.h"
 #include "NetworkManagerImplementation.h"
 
 #define CAPTIVEPORTAL_MAX_LEN 512
