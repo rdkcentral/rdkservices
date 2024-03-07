@@ -853,6 +853,24 @@ namespace WPEFramework
             return rc;
         }
 
+        uint32_t NetworkManager::GetWifiState(const JsonObject& parameters, JsonObject& response)
+        {
+           Exchange::INetworkManager::WiFiState state;
+
+            LOGINFOMETHOD();
+            if (_NetworkManager)
+                rc = _NetworkManager->GetWifiState(state);
+            else
+                rc = Core::ERROR_UNAVAILABLE;
+            if (Core::ERROR_NONE == rc)
+            {
+                response["state"] = static_cast <int> (state);;
+                response["success"] = true;
+            }
+            LOGTRACEMETHODFIN();
+            return rc;
+        }
+
         uint32_t NetworkManager::GetWiFiSignalStrength(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
