@@ -121,9 +121,9 @@ namespace WPEFramework
                 {
                     NMLOG_TRACE("%s", __FUNCTION__);
                     JsonObject params;
+#ifdef ENABLE_LEGACY_NSM_SUPPORT
                     JsonObject legacyParams;
                     JsonObject onConnParams;
-#ifdef ENABLE_LEGACY_NSM_SUPPORT
                     std::string json;
                     if(interface == "wlan0")
                         legacyParams["interface"] = "WIFI";
@@ -152,9 +152,8 @@ namespace WPEFramework
                 {
                     NMLOG_TRACE("%s", __FUNCTION__);
                     JsonObject params;
-                    JsonObject legacyParams;
 #ifdef ENABLE_LEGACY_NSM_SUPPORT
-                    Exchange::INetworkManager::IPAddressInfo result{};
+                    JsonObject legacyParams;
                     if(isIPv6)
                     {
                         legacyParams["ip6Address"] = ipAddress;
@@ -183,8 +182,8 @@ namespace WPEFramework
                 {
                     NMLOG_TRACE("%s", __FUNCTION__);
                     JsonObject params;
-                    JsonObject legacyParams;
 #ifdef ENABLE_LEGACY_NSM_SUPPORT
+                    JsonObject legacyParams;
                     string oldInterface;
                     string newInterface;
                     if(prevActiveInterface == "wlan0")
@@ -209,7 +208,6 @@ namespace WPEFramework
                 {
                     NMLOG_TRACE("%s", __FUNCTION__);
                     JsonObject params;
-                    JsonObject legacyParams;
 
                     params["state"] = static_cast <int> (newstate);;
                     params["status"] = InternetStatusToString(newstate);
@@ -241,8 +239,8 @@ namespace WPEFramework
                 {
                     NMLOG_TRACE("%s", __FUNCTION__);
                     JsonObject result;
-                    JsonObject legacyResult;
 #ifdef ENABLE_LEGACY_NSM_SUPPORT
+                    JsonObject legacyResult;
                     legacyResult["state"] = static_cast <int> (state);
                     legacyResult["isLNF"] = false;
                     _parent.Notify("onWiFiStateChanged", legacyResult);
@@ -254,9 +252,9 @@ namespace WPEFramework
                 void onWiFiSignalStrengthChange(const string ssid, const string signalLevel, const Exchange::INetworkManager::WiFiSignalQuality signalQuality) override
                 {
                     NMLOG_TRACE("%s", __FUNCTION__);
-                    JsonObject legacyResult;
                     JsonObject result;
 #ifdef ENABLE_LEGACY_NSM_SUPPORT
+                    JsonObject legacyResult;
                     legacyResult["signalStrength"] = WiFiSignalQualityToString(signalQuality);
                     legacyResult["strength"] = signalLevel;
                     _parent.Notify("onWiFiSignalStrengthChanged", legacyResult);
