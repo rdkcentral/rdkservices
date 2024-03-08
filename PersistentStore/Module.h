@@ -29,5 +29,12 @@
 #include <interfaces/definitions.h>
 #endif
 
+#define URI_ENV "PERSISTENTSTORE_URI"
+#define PATH_ENV "PERSISTENTSTORE_PATH"
+#define MAXSIZE_ENV "PERSISTENTSTORE_MAXSIZE"
+#define MAXVALUE_ENV "PERSISTENTSTORE_MAXVALUE"
+#define LIMIT_ENV "PERSISTENTSTORE_LIMIT"
+#define IARM_INIT_NAME "Thunder_Plugins"
+
 #undef EXTERNAL
 #define EXTERNAL

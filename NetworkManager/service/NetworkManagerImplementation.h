@@ -170,6 +170,7 @@ namespace WPEFramework
 
             uint32_t StartWPS(const WiFiWPS& method /* @in */, const string& wps_pin /* @in */) override;
             uint32_t StopWPS(void) override;
+            uint32_t GetWifiState(WiFiState &state) override;
             uint32_t GetWiFiSignalStrength(string& ssid /* @out */, string& signalStrength /* @out */, WiFiSignalQuality& quality /* @out */) override;
 
             uint32_t SetStunEndpoint (string const endPoint /* @in */, const uint32_t port /* @in */, const uint32_t bindTimeout /* @in */, const uint32_t cacheTimeout /* @in */) override;
@@ -208,12 +209,12 @@ namespace WPEFramework
             uint32_t Configure(const string& configLine /* @in */, NMLogging& logLevel /* @out */) override;
 
             /* Events */
-            void ReportInterfaceStateChangedEvent(INetworkManager::INotification::InterfaceState state, string interface);
+            void ReportInterfaceStateChangedEvent(INetworkManager::InterfaceState state, string interface);
             void ReportIPAddressChangedEvent(const string& interface, bool isAcquired, bool isIPv6, const string& ipAddress);
             void ReportActiveInterfaceChangedEvent(const string prevActiveInterface, const string currentActiveinterface);
             void ReportInternetStatusChangedEvent(const InternetStatus oldState, const InternetStatus newstate);
             void ReportAvailableSSIDsEvent(const string jsonOfWiFiScanResults);
-            void ReportWiFiStateChangedEvent(const INetworkManager::INotification::WiFiState state);
+            void ReportWiFiStateChangedEvent(const INetworkManager::WiFiState state);
             void ReportWiFiSignalStrengthChangedEvent(const string ssid , const string signalLevel , const WiFiSignalQuality signalQuality);
 
         private:

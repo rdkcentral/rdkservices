@@ -13,26 +13,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
-          path: rdkservices
+          path: ${{github.repository}}
 
-      - name: Install valgrind, coverage, cmake, sqlite
+      - name: Install valgrind, coverage, cmake
         run: |
           sudo apt update
-          sudo apt install -y valgrind lcov cmake libsqlite3-dev
+          sudo apt install -y valgrind lcov cmake
 
       - name: Build Thunder
         working-directory: ${{github.workspace}}
-        run: sh +x rdkservices/.github/workflows/BuildThunder.sh
-
-      - name: Configure
-        working-directory: ${{github.workspace}}
-        run: cmake -S rdkservices/PersistentStore/l1test -B build/persistentstorel1test -DCMAKE_INSTALL_PREFIX="install/usr" -DCMAKE_CXX_FLAGS="--coverage -Wall -Werror"
+        run: sh +x ${GITHUB_REPOSITORY}/.github/workflows/BuildThunder.sh
 
       - name: Build
         working-directory: ${{github.workspace}}
-        run: cmake --build build/persistentstorel1test --target install
+        run: |
+          cmake -S ${GITHUB_REPOSITORY}/PersistentStore/l1test -B build/persistentstorel1test -DCMAKE_INSTALL_PREFIX="install/usr" -DCMAKE_CXX_FLAGS="--coverage -Wall -Werror"
+          cmake --build build/persistentstorel1test --target install
 
       - name: Run
         working-directory: ${{github.workspace}}
@@ -46,7 +44,7 @@ jobs:
 
       - name: Upload artifacts
         if: ${{ !env.ACT }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: artifacts
           path: |
