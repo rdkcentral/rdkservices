@@ -1,4 +1,5 @@
 #include "NetworkManagerImplementation.h"
+#include "NetworkManagerGnomeWIFI.h"
 #include <libnm/NetworkManager.h>
 #include <fstream>
 #include <sstream>
@@ -15,6 +16,7 @@ namespace WPEFramework
 {
     namespace Plugin
     {
+        wifiManager *wifi = nullptr;
         const float signalStrengthThresholdExcellent = -50.0f;
         const float signalStrengthThresholdGood = -60.0f;
         const float signalStrengthThresholdFair = -67.0f;
@@ -37,6 +39,7 @@ namespace WPEFramework
                 return;
             }
             g_loop = g_main_loop_new(context, FALSE);
+            wifi = wifiManager::getInstance();
             return;
         }
 
@@ -608,18 +611,24 @@ namespace WPEFramework
         uint32_t NetworkManagerImplementation::WiFiConnect(const WiFiConnectTo& ssid /* @in */)
         {
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
+            if(wifi->wifiConnect(ssid.m_ssid.c_str(), ssid.m_passphrase.c_str(), ssid.m_securityMode))
+                rc = Core::ERROR_NONE;
             return rc;
         }
 
         uint32_t NetworkManagerImplementation::WiFiDisconnect(void)
         {
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
+            if(wifi->wifiDisconnect())
+                rc = Core::ERROR_NONE;
             return rc;
         }
 
         uint32_t NetworkManagerImplementation::GetConnectedSSID(WiFiSSIDInfo&  ssidInfo /* @out */)
         {
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
+            if(wifi->wifiConnectedSSIDInfo(ssidInfo))
+                rc = Core::ERROR_NONE;
             return rc;
         }
 

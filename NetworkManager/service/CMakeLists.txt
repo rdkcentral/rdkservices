@@ -78,7 +78,7 @@ add_library(${PLUGIN_IMPLEMENTATION} SHARED
 )
 
 if(ENABLE_GNOME_NETWORKMANAGER)
-    target_sources(${PLUGIN_IMPLEMENTATION} PRIVATE NetworkManagerGnomeProxy.cpp)
+    target_sources(${PLUGIN_IMPLEMENTATION} PRIVATE NetworkManagerGnomeProxy.cpp NetworkManagerGnomeWIFI.cpp)
     target_include_directories(${PLUGIN_IMPLEMENTATION} PRIVATE ${GLIB_INCLUDE_DIRS} ${LIBNM_INCLUDE_DIRS})
     target_link_libraries(${PLUGIN_IMPLEMENTATION} PRIVATE ${LIBNM_LIBRARIES})
 else()
