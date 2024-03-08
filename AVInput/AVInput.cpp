@@ -1199,7 +1199,7 @@ uint32_t AVInput::setMixerLevels(const JsonObject& parameters, JsonObject& respo
        	m_primVolume = primVol;
    	}
    	if(m_inputVolume >=0) {
-       	m_inputVolume = thisVol;
+       	m_inputVolume = inputVol;
    	}
    	if(m_primVolume > MAX_PRIM_VOL_LEVEL) {
        	LOGWARN("Primary Volume greater than limit. Set to MAX_PRIM_VOL_LEVEL(100) !!!\n");
