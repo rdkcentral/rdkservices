@@ -67,6 +67,7 @@ namespace WPEFramework
             Register("GetConnectedSSID",                  &NetworkManager::GetConnectedSSID, this);
             Register("StartWPS",                          &NetworkManager::StartWPS, this);
             Register("StopWPS",                           &NetworkManager::StopWPS, this);
+            Register("GetWifiState",                      &NetworkManager::GetWifiState, this);
             Register("GetWiFiSignalStrength",             &NetworkManager::GetWiFiSignalStrength, this);
             Register("GetSupportedSecurityModes",         &NetworkManager::GetSupportedSecurityModes, this);
         }
@@ -104,6 +105,7 @@ namespace WPEFramework
             Unregister("GetConnectedSSID");
             Unregister("StartWPS");
             Unregister("StopWPS");
+            Unregister("GetWifiState");
             Unregister("GetWiFiSignalStrength");
             Unregister("GetSupportedSecurityModes");
         }
@@ -130,6 +132,7 @@ namespace WPEFramework
             {
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -165,7 +168,7 @@ namespace WPEFramework
                 response["interfaces"] = array;
                 response["success"] = true;
             }
-
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -184,6 +187,7 @@ namespace WPEFramework
                 response["interface"] = interface;      
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -201,6 +205,7 @@ namespace WPEFramework
             { 
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -219,6 +224,7 @@ namespace WPEFramework
             {
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -250,6 +256,7 @@ namespace WPEFramework
                 response["secondarydns"] = result.m_secondaryDns;
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -280,6 +287,7 @@ namespace WPEFramework
             {
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -305,6 +313,7 @@ namespace WPEFramework
                 response["cacheTimeout"] = cacheTimeout;
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -326,6 +335,7 @@ namespace WPEFramework
             {
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -356,6 +366,7 @@ namespace WPEFramework
                     response["success"] = true;
                 }
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -401,6 +412,7 @@ namespace WPEFramework
             if (endpointsIter)
                 endpointsIter->Release();
 
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -441,6 +453,7 @@ namespace WPEFramework
 
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -459,6 +472,7 @@ namespace WPEFramework
                 response["uri"] = endPoint;
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -478,6 +492,7 @@ namespace WPEFramework
             {
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -495,6 +510,7 @@ namespace WPEFramework
             {
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -522,6 +538,7 @@ namespace WPEFramework
                 m_publicIPAddress = ipAddress;
                 m_publicIPAddressType = ipversion;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -576,6 +593,7 @@ namespace WPEFramework
                 reply["success"] = true;
                 response = reply;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -598,6 +616,7 @@ namespace WPEFramework
             {
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -616,6 +635,7 @@ namespace WPEFramework
             {
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -633,6 +653,7 @@ namespace WPEFramework
             {
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -663,6 +684,7 @@ namespace WPEFramework
                 response["ssids"] = ssids;
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -688,6 +710,7 @@ namespace WPEFramework
             {
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -710,6 +733,7 @@ namespace WPEFramework
             {
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -735,6 +759,7 @@ namespace WPEFramework
             {
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -752,6 +777,7 @@ namespace WPEFramework
             {
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -777,6 +803,7 @@ namespace WPEFramework
                 response["noise"] = ssidInfo.m_noise;
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -806,6 +833,7 @@ namespace WPEFramework
             {
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -823,6 +851,26 @@ namespace WPEFramework
             {
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
+            return rc;
+        }
+
+        uint32_t NetworkManager::GetWifiState(const JsonObject& parameters, JsonObject& response)
+        {
+            Exchange::INetworkManager::WiFiState state;
+            uint32_t rc = Core::ERROR_GENERAL;
+
+            LOGINFOMETHOD();
+            if (_NetworkManager)
+                rc = _NetworkManager->GetWifiState(state);
+            else
+                rc = Core::ERROR_UNAVAILABLE;
+            if (Core::ERROR_NONE == rc)
+            {
+                response["state"] = static_cast <int> (state);
+                response["success"] = true;
+            }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -846,6 +894,7 @@ namespace WPEFramework
                 response["quality"] = static_cast <int> (quality);
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
 
@@ -874,6 +923,7 @@ namespace WPEFramework
                 }
                 response["success"] = true;
             }
+            LOGTRACEMETHODFIN();
             return rc;
         }
     }

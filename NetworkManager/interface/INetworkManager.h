@@ -77,11 +77,11 @@ namespace WPEFramework
             // Define the RPC methods
             enum InternetStatus : uint8_t
             {
-                INTERNET_UNKNOWN,
                 INTERNET_NOT_AVAILABLE,
                 INTERNET_LIMITED,
                 INTERNET_CAPTIVE_PORTAL,
                 INTERNET_FULLY_CONNECTED,
+                INTERNET_UNKNOWN,
             };
 
             enum WiFiFrequency : uint8_t
@@ -165,6 +165,35 @@ namespace WPEFramework
                 LOG_LEVEL_TRACE
             };
 
+           // The state of the interface 
+            enum InterfaceState : uint8_t
+            {
+                INTERFACE_ADDED,
+                INTERFACE_LINK_UP,
+                INTERFACE_LINK_DOWN,
+                INTERFACE_ACQUIRING_IP,
+                INTERFACE_REMOVED,
+                INTERFACE_DISABLED
+            };
+
+            enum WiFiState : uint8_t
+            {
+                WIFI_STATE_UNINSTALLED,
+                WIFI_STATE_DISABLED,
+                WIFI_STATE_DISCONNECTED,
+                WIFI_STATE_PAIRING,
+                WIFI_STATE_CONNECTING,
+                WIFI_STATE_CONNECTED,
+                WIFI_STATE_SSID_NOT_FOUND,
+                WIFI_STATE_SSID_CHANGED,
+                WIFI_STATE_CONNECTION_LOST,
+                WIFI_STATE_CONNECTION_FAILED,
+                WIFI_STATE_CONNECTION_INTERRUPTED,
+                WIFI_STATE_INVALID_CREDENTIALS,
+                WIFI_STATE_AUTHENTICATION_FAILED,
+                WIFI_STATE_ERROR
+            };
+
             using IInterfaceDetailsIterator = RPC::IIteratorType<InterfaceDetails,     ID_NETWORKMANAGER_INTERFACE_DETAILS_ITERATOR>;
             using ISecurityModeIterator     = RPC::IIteratorType<WIFISecurityModeInfo, ID_NETWORKMANAGER_WIFI_SECURITY_MODE_ITERATOR>;
             using IStringIterator           = RPC::IIteratorType<string,               RPC::ID_STRINGITERATOR>;
@@ -231,6 +260,7 @@ namespace WPEFramework
 
             virtual uint32_t StartWPS(const WiFiWPS& method /* @in */, const string& wps_pin /* @in */) = 0;
             virtual uint32_t StopWPS(void) = 0;
+            virtual uint32_t GetWifiState(WiFiState &state /* @out */) = 0;
             virtual uint32_t GetWiFiSignalStrength(string& ssid /* @out */, string& signalStrength /* @out */, WiFiSignalQuality& quality /* @out */) = 0;
             virtual uint32_t GetSupportedSecurityModes(ISecurityModeIterator*& securityModes /* @out */) const = 0;
 
@@ -245,45 +275,16 @@ namespace WPEFramework
             {
                 enum { ID = ID_NETWORKMANAGER_NOTIFICATION };
 
-                // The state of the interface 
-                enum InterfaceState : uint8_t
-                {
-                    INTERFACE_ADDED,
-                    INTERFACE_LINK_UP,
-                    INTERFACE_LINK_DOWN,
-                    INTERFACE_ACQUIRING_IP,
-                    INTERFACE_REMOVED,
-                    INTERFACE_DISABLED
-                };
-
-                enum WiFiState : uint8_t
-                {
-                    WIFI_STATE_UNINSTALLED,
-                    WIFI_STATE_DISABLED,
-                    WIFI_STATE_DISCONNECTED,
-                    WIFI_STATE_PAIRING,
-                    WIFI_STATE_CONNECTING,
-                    WIFI_STATE_CONNECTED,
-                    WIFI_STATE_SSID_NOT_FOUND,
-                    WIFI_STATE_SSID_CHANGED,
-                    WIFI_STATE_CONNECTION_LOST,
-                    WIFI_STATE_CONNECTION_FAILED,
-                    WIFI_STATE_CONNECTION_INTERRUPTED,
-                    WIFI_STATE_INVALID_CREDENTIALS,
-                    WIFI_STATE_AUTHENTICATION_FAILED,
-                    WIFI_STATE_ERROR
-                };
-
                 // Network Notifications that other processes can subscribe to
-                virtual void onInterfaceStateChanged(const InterfaceState event /* @in */, const string interface /* @in */) = 0;
-                virtual void onActiveInterfaceChanged(const string prevActiveInterface /* @in */, const string currentActiveinterface /* @in */) = 0;
-                virtual void onIPAddressChanged(const string interface /* @in */, const bool isAcquired /* @in */, const bool isIPv6 /* @in */, const string ipAddress /* @in */) = 0;
-                virtual void onInternetStatusChanged(const InternetStatus oldState /* @in */, const InternetStatus newstate /* @in */) = 0;
+                virtual void onInterfaceStateChange(const InterfaceState event /* @in */, const string interface /* @in */) = 0;
+                virtual void onActiveInterfaceChange(const string prevActiveInterface /* @in */, const string currentActiveinterface /* @in */) = 0;
+                virtual void onIPAddressChange(const string interface /* @in */, const bool isAcquired /* @in */, const bool isIPv6 /* @in */, const string ipAddress /* @in */) = 0;
+                virtual void onInternetStatusChange(const InternetStatus oldState /* @in */, const InternetStatus newstate /* @in */) = 0;
 
                 // WiFi Notifications that other processes can subscribe to
                 virtual void onAvailableSSIDs(const string jsonOfWiFiScanResults /* @in */) = 0;
-                virtual void onWiFiStateChanged(const WiFiState state /* @in */) = 0;
-                virtual void onWiFiSignalStrengthChanged(const string ssid /* @in */, const string signalLevel /* @in */, const WiFiSignalQuality signalQuality /* @in */) = 0;
+                virtual void onWiFiStateChange(const WiFiState state /* @in */) = 0;
+                virtual void onWiFiSignalStrengthChange(const string ssid /* @in */, const string signalLevel /* @in */, const WiFiSignalQuality signalQuality /* @in */) = 0;
             };
 
             // Allow other processes to register/unregister from our notifications
