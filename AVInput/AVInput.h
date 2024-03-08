@@ -52,7 +52,7 @@ public:
     END_INTERFACE_MAP
 
     int m_primVolume;
-    int m_thisVolume; //Player Volume
+    int m_inputVolume; //Player Volume
 
 public:
     //   IPlugin methods
