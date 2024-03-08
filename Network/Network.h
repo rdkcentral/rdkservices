@@ -254,7 +254,7 @@ namespace WPEFramework {
             static Network *_instance;
             static Network *getInstance() {return _instance;}
             Config config;
-            ConnectivityMonitor& connectivityMonitor = ConnectivityMonitor::getInstance();
+            ConnectivityMonitor connectivityMonitor;
 
         private:
             PluginHost::IShell* m_service;
