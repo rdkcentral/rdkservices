@@ -60,7 +60,7 @@ namespace WPEFramework {
             void InitializeIARM();
             void DeinitializeIARM();
             int m_primVolume;
-            int m_thisVolume; //Player Volume
+            int m_inputVolume; //Player Volume
             //Begin methods
             uint32_t getHDMIInputDevicesWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t writeEDIDWrapper(const JsonObject& parameters, JsonObject& response);
