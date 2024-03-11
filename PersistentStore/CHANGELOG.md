@@ -16,6 +16,17 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.6] - 2024-03-11
+### Added
+- RPC COM interface IStore2, IStoreInspector, IStoreLimit
+- JSON RPC API getStorageSizes, getNamespaceStorageLimit, setNamespaceStorageLimit
+- "scope" parameter (defaults to "device")
+- "ttl" parameter
+- Configuration "limit" parameter
+- L0, L1 unit tests
+- Thunder master branch support
+- Out-of-process support
+
 ## [1.0.5] - 2024-01-02
 ### Security
 - resolved security vulnerabilities
