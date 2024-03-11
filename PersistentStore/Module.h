@@ -23,7 +23,18 @@
 #endif
 
 #include <plugins/plugins.h>
-#include <tracing/tracing.h>
+#if (((THUNDER_VERSION_MAJOR >= 4) && (THUNDER_VERSION_MINOR == 4)) || ((THUNDER_VERSION >= 4) && !defined(THUNDER_VERSION_MINOR)))
+#include <definitions/definitions.h>
+#else
+#include <interfaces/definitions.h>
+#endif
+
+#define URI_ENV "PERSISTENTSTORE_URI"
+#define PATH_ENV "PERSISTENTSTORE_PATH"
+#define MAXSIZE_ENV "PERSISTENTSTORE_MAXSIZE"
+#define MAXVALUE_ENV "PERSISTENTSTORE_MAXVALUE"
+#define LIMIT_ENV "PERSISTENTSTORE_LIMIT"
+#define IARM_INIT_NAME "Thunder_Plugins"
 
 #undef EXTERNAL
 #define EXTERNAL
