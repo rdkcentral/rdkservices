@@ -53,7 +53,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 4
-#define API_VERSION_NUMBER_PATCH 16
+#define API_VERSION_NUMBER_PATCH 17
 
 const string WPEFramework::Plugin::RDKShell::SERVICE_NAME = "org.rdk.RDKShell";
 //methods
@@ -4210,6 +4210,36 @@ namespace WPEFramework {
                     std::cout << "rfc is disabled and unable to check for cobalt container mode " << std::endl;
 #endif
                 }
+
+		if (!type.empty() && type == "Amazon")
+		{
+#ifdef RFC_ENABLED
+                    RFC_ParamData_t param;
+                    if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Dobby.Amazon.Enable", param))
+		    {
+			JsonObject root;
+			if (strncasecmp(param.value, "true", 4) == 0)
+	                {
+			    std::cout << "dobby rfc true - launching amazon in container mode " << std::endl;
+			    root = configSet["root"].Object();
+			    root["mode"] = JsonValue("Container");
+			}
+			else
+		        {
+		            std::cout << "dobby rfc false - launching amazon in local mode " << std::endl;
+                            root = configSet["root"].Object();
+			     root["mode"] = JsonValue("Local");
+			}
+			configSet["root"] = root;
+		     }
+		     else
+	             {
+			 std::cout << "reading amazon dobby rfc failed " << std::endl;
+	             }
+#else
+		     std::cout << "rfc is disabled and unable to check for amazon container mode " << std::endl;
+#endif
+		}
 
                 // One RFC controls all WPE-based apps
                 if (!type.empty() && (type == "HtmlApp" || type == "LightningApp"))
