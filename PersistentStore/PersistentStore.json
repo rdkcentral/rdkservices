@@ -1,251 +1,480 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
-    "jsonrpc": "2.0",
-    "info": {
-      "title": "PertsistentStore API",
-      "class": "PersistentStore",
-      "description": "The `PersistentStore` plugin allows you to persist key/value pairs by namespace"
+  "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
+  "jsonrpc": "2.0",
+  "info": {
+    "title": "PertsistentStore API",
+    "class": "PersistentStore",
+    "description": "Persistent Store JSON-RPC interface"
+  },
+  "common": {
+    "$ref": "../common/common.json"
+  },
+  "definitions": {
+    "namespace": {
+      "summary": "Namespace",
+      "type": "string",
+      "example": "ns1"
     },
-    "common": {
-        "$ref": "../common/common.json"
+    "key": {
+      "summary": "Key",
+      "type": "string",
+      "example": "key1"
     },
-    "definitions": {
-        "namespace": {
-            "summary": "A namespace in the datastore as a valid UTF-8 string",
-            "type": "string",
-            "example": "ns1"
-        },
-        "key": {
-            "summary": "The key name as a valid UTF-8 string",
-            "type": "string",
-            "example": "key1"
-        },
-        "value": {
-            "summary": "The key value. Values are capped at 1000 characters in size.",
-            "type": "string",
-            "example": "value1"
-        }
+    "value": {
+      "summary": "Value",
+      "type": "string",
+      "example": "value1"
     },
-    "methods": {
-        "deleteKey":{
-            "summary": "Deletes a key from the specified namespace.",
-            "params": {
-                "type": "object",
-                "properties": {
-                    "namespace": {
-                        "$ref": "#/definitions/namespace"
-                    },
-                    "key": {
-                        "$ref": "#/definitions/key"
-                    }
-                },
-                "required": [
-                    "namespace",
-                    "key"
-                ]
-            },
-            "result": {
-                "$ref": "#/common/result"
-            }
-        },
-        "deleteNamespace":{
-            "summary": "Deletes the specified namespace.",
-            "params": {
-                "type": "object",
-                "properties": {
-                    "namespace": {
-                        "$ref": "#/definitions/namespace"
-                    }
-                },
-                "required": [
-                    "namespace"
-                ]
-            },
-            "result": {
-                "$ref": "#/common/result"
-            }    
-        },
-        "flushCache":{
-            "summary": "Flushes the database cache by invoking `flush` in SQLite.",
-            "result": {
-                "$ref": "#/common/result"
-            }
-        },
-        "getKeys":{
-            "summary": "Returns the keys that are stored in the specified namespace.",
-            "params": {
-                "type": "object",
-                "properties": {
-                    "namespace": {
-                        "$ref": "#/definitions/namespace"
-                    }
-                },
-                "required": [
-                    "namespace"
-                ]
-            },
-            "result": {
-                "type": "object",
-                "properties": {
-                    "keys": {
-                        "summary": "A list of keys",
-                        "type": "array",
-                        "items": {
-                            "type": "string",
-                            "example": "key1"
-                        }
-                    },
-                    "success":{
-                        "$ref": "#/common/success"
-                    }
-                },
-                "required": [
-                    "keys",
-                    "success"
-                ]
-            }
-        },
-        "getNamespaces":{
-            "summary": "Returns the namespaces in the datastore.",
-            "result": {
-                "type": "object",
-                "properties": {
-                    "namespaces": {
-                        "summary": "A list of namespaces",
-                        "type": "array",
-                        "items": {
-                            "type": "string",
-                            "example": "ns1"
-                        }
-                    },
-                    "success":{
-                        "$ref": "#/common/success"
-                    }
-                },
-                "required": [
-                    "namespaces",
-                    "success"
-                ]
-            }
-        },
-        "getStorageSize":{
-            "summary": "Returns the size occupied by each namespace. This is a processing-intense operation. The total size of the datastore should not exceed more than 1MB in size. If the storage size is exceeded then, new values are not stored and the `onStorageExceeded` event is sent.",
-            "result": {
-                "type": "object",
-                "properties": {
-                    "namespaceSizes": {
-                        "summary": "The namespaces and their respective size",
-                        "type": "object",
-                        "properties": {
-                            "ns1": {
-                                "type": "integer",
-                                "example": 534
-                            },
-                            "ns2": {
-                                "type": "integer",
-                                "example": 234
-                            }
-                        },
-                        "required": []
-                    },
-                    "success":{
-                        "$ref": "#/common/success"
-                    }
-                },
-                "required": [
-                    "namespaceSizes",
-                    "success"
-                ]
-            }
-        },
-        "getValue":{
-            "summary": "Returns the value of a key from the specified namespace.",
-            "params": {
-                "type": "object",
-                "properties": {
-                    "namespace": {
-                        "$ref": "#/definitions/namespace"
-                    },
-                    "key": {
-                        "$ref": "#/definitions/key"
-                    }
-                },
-                "required": [
-                    "namespace",
-                    "key"
-                ]
-            },
-            "result": {
-                "type": "object",
-                "properties": {
-                    "value": {
-                        "$ref": "#/definitions/value"
-                    },
-                    "success":{
-                        "$ref": "#/common/success"
-                    }
-                },
-                "required": [
-                    "value",
-                    "success"
-                ]
-            }
-        },
-        "setValue": {
-            "summary": "Sets the value of a key in the the specified namespace.",
-            "events": {
-                "onStorageExceeded" : "Triggered if the storage size has surpassed 1 MB storage size",
-                "onValueChanged" : "Triggered whenever any of the values stored are changed using setValue"
-            },
-            "params": {
-                "type": "object",
-                "properties": {
-                    "namespace": {
-                        "$ref": "#/definitions/namespace"
-                    },
-                    "key": {
-                        "$ref": "#/definitions/key"
-                    },
-                    "value": {
-                        "$ref": "#/definitions/value"
-                    }
-                },
-                "required": [
-                    "namespace",
-                    "key",
-                    "value"
-                ]
-            },
-            "result": {
-                "$ref": "#/common/result"
-            }
-        }
+    "scope": {
+      "summary": "Scope",
+      "type": "string",
+      "enum": [
+        "device",
+        "account"
+      ],
+      "default": "device",
+      "example": "device"
     },
-    "events": {
-        "onStorageExceeded":{
-            "summary": "Triggered when the storage size has surpassed the storage capacity. The total size of the datastore should not exceed more than 1MB in size."
-        },
-        "onValueChanged": {
-            "summary": "Triggered whenever any of the values stored are changed using setValue.",
-            "params": {
-                "type": "object",
-                "properties": {
-                    "namespace": {
-                        "$ref": "#/definitions/namespace"
-                    },
-                    "key": {
-                        "$ref": "#/definitions/key"
-                    },
-                    "value": {
-                        "$ref": "#/definitions/value"
-                    }
-                },
-                "required": [
-                    "namespace",
-                    "key",
-                    "value"
-                ]
-            }
-        }
+    "size": {
+      "summary": "Size in bytes",
+      "type": "number",
+      "example": 100
+    },
+    "ttl": {
+      "summary": "Time in seconds",
+      "type": "number",
+      "example": 100
+    },
+    "success": {
+      "summary": "Legacy parameter (always true)",
+      "type": "boolean",
+      "default": true,
+      "example": true
     }
+  },
+  "methods": {
+    "deleteKey": {
+      "summary": "Deletes a key from the specified namespace",
+      "params": {
+        "type": "object",
+        "properties": {
+          "namespace": {
+            "$ref": "#/definitions/namespace"
+          },
+          "key": {
+            "$ref": "#/definitions/key"
+          },
+          "scope": {
+            "$ref": "#/definitions/scope"
+          }
+        },
+        "required": [
+          "namespace",
+          "key"
+        ]
+      },
+      "result": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "$ref": "#/definitions/success"
+          }
+        },
+        "required": [
+          "success"
+        ]
+      },
+      "errors": [
+        {
+          "description": "Unknown error",
+          "$ref": "#/common/errors/general"
+        }
+      ]
+    },
+    "deleteNamespace": {
+      "summary": "Deletes the specified namespace",
+      "params": {
+        "type": "object",
+        "properties": {
+          "namespace": {
+            "$ref": "#/definitions/namespace"
+          },
+          "scope": {
+            "$ref": "#/definitions/scope"
+          }
+        },
+        "required": [
+          "namespace"
+        ]
+      },
+      "result": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "$ref": "#/definitions/success"
+          }
+        },
+        "required": [
+          "success"
+        ]
+      },
+      "errors": [
+        {
+          "description": "Unknown error",
+          "$ref": "#/common/errors/general"
+        }
+      ]
+    },
+    "flushCache": {
+      "summary": "Flushes the device cache",
+      "result": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "$ref": "#/definitions/success"
+          }
+        },
+        "required": [
+          "success"
+        ]
+      },
+      "errors": [
+        {
+          "description": "Unknown error",
+          "$ref": "#/common/errors/general"
+        }
+      ]
+    },
+    "getKeys": {
+      "summary": "Returns the keys that are stored in the specified namespace",
+      "params": {
+        "type": "object",
+        "properties": {
+          "namespace": {
+            "$ref": "#/definitions/namespace"
+          },
+          "scope": {
+            "$ref": "#/definitions/scope"
+          }
+        },
+        "required": [
+          "namespace"
+        ]
+      },
+      "result": {
+        "type": "object",
+        "properties": {
+          "keys": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/key"
+            }
+          },
+          "success": {
+            "$ref": "#/definitions/success"
+          }
+        },
+        "required": [
+          "keys",
+          "success"
+        ]
+      },
+      "errors": [
+        {
+          "description": "Unknown error",
+          "$ref": "#/common/errors/general"
+        }
+      ]
+    },
+    "getNamespaces": {
+      "summary": "Returns the namespaces",
+      "params": {
+        "type": "object",
+        "properties": {
+          "scope": {
+            "$ref": "#/definitions/scope"
+          }
+        },
+        "required": []
+      },
+      "result": {
+        "type": "object",
+        "properties": {
+          "namespaces": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/namespace"
+            }
+          },
+          "success": {
+            "$ref": "#/definitions/success"
+          }
+        },
+        "required": [
+          "namespaces",
+          "success"
+        ]
+      },
+      "errors": [
+        {
+          "description": "Unknown error",
+          "$ref": "#/common/errors/general"
+        }
+      ]
+    },
+    "getStorageSizes": {
+      "summary": "Returns the size occupied by each namespace",
+      "params": {
+        "type": "object",
+        "properties": {
+          "scope": {
+            "$ref": "#/definitions/scope"
+          }
+        },
+        "required": []
+      },
+      "result": {
+        "type": "object",
+        "properties": {
+          "storageList": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "namespace": {
+                  "$ref": "#/definitions/namespace"
+                },
+                "size": {
+                  "$ref": "#/definitions/size"
+                }
+              },
+              "required": [
+                "namespace",
+                "size"
+              ]
+            }
+          }
+        },
+        "required": [
+          "storageList"
+        ]
+      },
+      "errors": [
+        {
+          "description": "Unknown error",
+          "$ref": "#/common/errors/general"
+        }
+      ]
+    },
+    "getValue": {
+      "summary": "Returns the value of a key from the specified namespace",
+      "params": {
+        "type": "object",
+        "properties": {
+          "namespace": {
+            "$ref": "#/definitions/namespace"
+          },
+          "key": {
+            "$ref": "#/definitions/key"
+          },
+          "scope": {
+            "$ref": "#/definitions/scope"
+          }
+        },
+        "required": [
+          "namespace",
+          "key"
+        ]
+      },
+      "result": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "$ref": "#/definitions/value"
+          },
+          "success": {
+            "$ref": "#/definitions/success"
+          },
+          "ttl": {
+            "$ref": "#/definitions/ttl"
+          }
+        },
+        "required": [
+          "value",
+          "success"
+        ]
+      },
+      "errors": [
+        {
+          "description": "Time is not synced",
+          "$ref": "#/common/errors/pendingconditions"
+        },
+        {
+          "description": "Unknown namespace",
+          "$ref": "#/common/errors/notexist"
+        },
+        {
+          "description": "Unknown key",
+          "$ref": "#/common/errors/unknownkey"
+        },
+        {
+          "description": "Unknown error",
+          "$ref": "#/common/errors/general"
+        }
+      ]
+    },
+    "setValue": {
+      "summary": "Sets the value of a key in the the specified namespace",
+      "params": {
+        "type": "object",
+        "properties": {
+          "namespace": {
+            "$ref": "#/definitions/namespace"
+          },
+          "key": {
+            "$ref": "#/definitions/key"
+          },
+          "value": {
+            "$ref": "#/definitions/value"
+          },
+          "scope": {
+            "$ref": "#/definitions/scope"
+          },
+          "ttl": {
+            "$ref": "#/definitions/ttl"
+          }
+        },
+        "required": [
+          "namespace",
+          "key",
+          "value"
+        ]
+      },
+      "result": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "$ref": "#/definitions/success"
+          }
+        },
+        "required": [
+          "success"
+        ]
+      },
+      "errors": [
+        {
+          "description": "Time is not synced",
+          "$ref": "#/common/errors/pendingconditions"
+        },
+        {
+          "description": "Empty/too large namespace or key, or the storage doesn't have enough space",
+          "$ref": "#/common/errors/invalidinputlength"
+        },
+        {
+          "description": "Unknown error",
+          "$ref": "#/common/errors/general"
+        }
+      ]
+    },
+    "setNamespaceStorageLimit": {
+      "summary": "Sets the storage limit for a given namespace",
+      "params": {
+        "type": "object",
+        "properties": {
+          "namespace": {
+            "$ref": "#/definitions/namespace"
+          },
+          "storageLimit": {
+            "$ref": "#/definitions/size"
+          },
+          "scope": {
+            "$ref": "#/definitions/scope"
+          }
+        },
+        "required": [
+          "namespace",
+          "storageLimit"
+        ]
+      },
+      "result": {
+        "$ref": "#/common/results/void"
+      },
+      "errors": [
+        {
+          "description": "Empty/too large namespace, or the storage doesn't have enough space",
+          "$ref": "#/common/errors/invalidinputlength"
+        },
+        {
+          "description": "Unknown error",
+          "$ref": "#/common/errors/general"
+        }
+      ]
+    },
+    "getNamespaceStorageLimit": {
+      "summary": "Returns the storage limit for a given namespace",
+      "params": {
+        "type": "object",
+        "properties": {
+          "namespace": {
+            "$ref": "#/definitions/namespace"
+          },
+          "scope": {
+            "$ref": "#/definitions/scope"
+          }
+        },
+        "required": [
+          "namespace"
+        ]
+      },
+      "result": {
+        "type": "object",
+        "properties": {
+          "storageLimit": {
+            "$ref": "#/definitions/size"
+          }
+        },
+        "required": [
+          "storageLimit"
+        ]
+      },
+      "errors": [
+        {
+          "description": "Unknown namespace",
+          "$ref": "#/common/errors/notexist"
+        },
+        {
+          "description": "Unknown error",
+          "$ref": "#/common/errors/general"
+        }
+      ]
+    }
+  },
+  "events": {
+    "onValueChanged": {
+      "summary": "Triggered whenever any of the values stored are changed using setValue",
+      "params": {
+        "type": "object",
+        "properties": {
+          "namespace": {
+            "$ref": "#/definitions/namespace"
+          },
+          "key": {
+            "$ref": "#/definitions/key"
+          },
+          "value": {
+            "$ref": "#/definitions/value"
+          },
+          "scope": {
+            "$ref": "#/definitions/scope"
+          }
+        },
+        "required": [
+          "namespace",
+          "key",
+          "value",
+          "scope"
+        ]
+      }
+    }
+  }
 }

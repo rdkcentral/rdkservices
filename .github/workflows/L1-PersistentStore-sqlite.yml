@@ -1,0 +1,53 @@
+name: L1-PersistentStore-sqlite
+
+on:
+  push:
+    paths:
+      - PersistentStore/sqlite/**
+  pull_request:
+    paths:
+      - PersistentStore/sqlite/**
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: ${{github.repository}}
+
+      - name: Install valgrind, coverage, cmake, sqlite
+        run: |
+          sudo apt update
+          sudo apt install -y valgrind lcov cmake libsqlite3-dev
+
+      - name: Build Thunder
+        working-directory: ${{github.workspace}}
+        run: sh +x ${GITHUB_REPOSITORY}/.github/workflows/BuildThunder.sh
+
+      - name: Build
+        working-directory: ${{github.workspace}}
+        run: |
+          cmake -S ${GITHUB_REPOSITORY}/PersistentStore/sqlite/l1test -B build/sqlitel1test -DCMAKE_INSTALL_PREFIX="install/usr" -DCMAKE_CXX_FLAGS="--coverage -Wall -Werror"
+          cmake --build build/sqlitel1test --target install
+
+      - name: Run
+        working-directory: ${{github.workspace}}
+        run: PATH=${PWD}/install/usr/bin:${PATH} LD_LIBRARY_PATH=${PWD}/install/usr/lib:${LD_LIBRARY_PATH} valgrind --tool=memcheck --log-file=valgrind_log --leak-check=yes --show-reachable=yes --track-fds=yes --fair-sched=try sqlitel1test
+
+      - name: Generate coverage
+        working-directory: ${{github.workspace}}
+        run: |
+          lcov -c -o coverage.info -d build/sqlitel1test
+          genhtml -o coverage coverage.info
+
+      - name: Upload artifacts
+        if: ${{ !env.ACT }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts
+          path: |
+            coverage/
+            valgrind_log
+          if-no-files-found: warn
