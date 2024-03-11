@@ -355,7 +355,6 @@ namespace WPEFramework
                 fpsCollectionFrequency = MINIMUM_FPS_COLLECTION_TIME_IN_MILLISECONDS;
             }
             m_reportFpsTimer.start(fpsCollectionFrequency);
-            enableFpsCollection();
             return true;
         }
 
@@ -381,7 +380,7 @@ namespace WPEFramework
                 int maxFps = -1;
                 if (m_numberOfFpsUpdates > 0)
                 {
-                averageFps = (m_totalFpsValues / m_numberOfFpsUpdates);
+                averageFps = (m_totalFpsValues / 2);
                 minFps = m_minFpsValue;
                 maxFps = m_maxFpsValue;
                 fpsCollectionUpdate(averageFps, minFps, maxFps);
@@ -407,7 +406,7 @@ namespace WPEFramework
             {
                 m_minFpsValue = newFpsValue;
             }
-            m_totalFpsValues += newFpsValue;
+	    m_totalFpsValues = m_maxFpsValue + m_minFpsValue;
             m_numberOfFpsUpdates++;
             m_lastFpsValue = newFpsValue;
         }
@@ -429,9 +428,17 @@ namespace WPEFramework
             int averageFps = -1;
             int minFps = -1;
             int maxFps = -1;
+
+	    if (m_numberOfFpsUpdates == 0)
+	    {
+		    minFps = DEFAULT_MIN_FPS_VALUE;
+	            maxFps = DEFAULT_MAX_FPS_VALUE;
+		    averageFps = (minFps + maxFps) / 2;
+		    fpsCollectionUpdate(averageFps, minFps, maxFps);
+	    }
             if (m_numberOfFpsUpdates > 0)
             {
-                averageFps = (m_totalFpsValues / m_numberOfFpsUpdates);
+                averageFps = (m_totalFpsValues / 2);
                 minFps = m_minFpsValue;
                 maxFps = m_maxFpsValue;
             }
@@ -439,9 +446,9 @@ namespace WPEFramework
             if (m_lastFpsValue >= 0)
             {
                 // store the last fps value just in case there are no updates
-                m_minFpsValue = m_lastFpsValue;
-                m_maxFpsValue = m_lastFpsValue;
-                m_totalFpsValues = m_lastFpsValue;
+                m_minFpsValue = minFps;
+                m_maxFpsValue = maxFps;
+                m_totalFpsValues = m_minFpsValue + m_lastFpsValue;
                 m_numberOfFpsUpdates = 1;
             }
             else
