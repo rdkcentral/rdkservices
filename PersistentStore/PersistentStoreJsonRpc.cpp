@@ -19,226 +19,210 @@
 
 #include "PersistentStore.h"
 
-#include "UtilsJsonRpc.h"
-
 namespace WPEFramework {
 namespace Plugin {
 
-void PersistentStore::RegisterAll()
-{
-    Register<JsonObject, JsonObject>(_T("setValue"), &PersistentStore::endpoint_setValue, this);
-    Register<JsonObject, JsonObject>(_T("getValue"), &PersistentStore::endpoint_getValue, this);
-    Register<JsonObject, JsonObject>(_T("deleteKey"), &PersistentStore::endpoint_deleteKey, this);
-    Register<JsonObject, JsonObject>(_T("deleteNamespace"), &PersistentStore::endpoint_deleteNamespace, this);
-    Register<JsonObject, JsonObject>(_T("getKeys"), &PersistentStore::endpoint_getKeys, this);
-    Register<JsonObject, JsonObject>(_T("getNamespaces"), &PersistentStore::endpoint_getNamespaces, this);
-    Register<JsonObject, JsonObject>(_T("getStorageSize"), &PersistentStore::endpoint_getStorageSize, this);
-    Register<JsonObject, JsonObject>(_T("flushCache"), &PersistentStore::endpoint_flushCache, this);
-}
+    using namespace JsonData::PersistentStore;
 
-void PersistentStore::UnregisterAll()
-{
-    Unregister(_T("setValue"));
-    Unregister(_T("getValue"));
-    Unregister(_T("deleteKey"));
-    Unregister(_T("deleteNamespace"));
-    Unregister(_T("getKeys"));
-    Unregister(_T("getNamespaces"));
-    Unregister(_T("getStorageSize"));
-    Unregister(_T("flushCache"));
-}
-
-uint32_t PersistentStore::endpoint_setValue(const JsonObject &parameters, JsonObject &response)
-{
-    LOGINFOMETHOD();
-
-    bool success = false;
-
-    if (!parameters.HasLabel("namespace") ||
-        !parameters.HasLabel("key") ||
-        !parameters.HasLabel("value")) {
-        response["error"] = "params missing";
+    void PersistentStore::RegisterAll()
+    {
+        Register<SetValueParamsData, DeleteKeyResultInfo>(_T("setValue"), &PersistentStore::endpoint_setValue, this);
+        Register<DeleteKeyParamsInfo, GetValueResultData>(_T("getValue"), &PersistentStore::endpoint_getValue, this);
+        Register<DeleteKeyParamsInfo, DeleteKeyResultInfo>(_T("deleteKey"), &PersistentStore::endpoint_deleteKey, this);
+        Register<DeleteNamespaceParamsInfo, DeleteKeyResultInfo>(_T("deleteNamespace"), &PersistentStore::endpoint_deleteNamespace, this);
+        Register<DeleteNamespaceParamsInfo, GetKeysResultData>(_T("getKeys"), &PersistentStore::endpoint_getKeys, this);
+        Register<GetNamespacesParamsInfo, GetNamespacesResultData>(_T("getNamespaces"), &PersistentStore::endpoint_getNamespaces, this);
+        Register<GetNamespacesParamsInfo, JsonObject>(_T("getStorageSize"), &PersistentStore::endpoint_getStorageSize, this); // Deprecated
+        Register<GetNamespacesParamsInfo, GetStorageSizesResultData>(_T("getStorageSizes"), &PersistentStore::endpoint_getStorageSizes, this);
+        Register<void, DeleteKeyResultInfo>(_T("flushCache"), &PersistentStore::endpoint_flushCache, this);
+        Register<DeleteNamespaceParamsInfo, GetNamespaceStorageLimitResultData>(_T("getNamespaceStorageLimit"), &PersistentStore::endpoint_getNamespaceStorageLimit, this);
+        Register<SetNamespaceStorageLimitParamsData, void>(_T("setNamespaceStorageLimit"), &PersistentStore::endpoint_setNamespaceStorageLimit, this);
     }
-    else {
-        string ns = parameters["namespace"].String();
-        string key = parameters["key"].String();
-        string value = parameters["value"].String();
 
-        if (ns.empty() || key.empty()) {
-            response["error"] = "params empty";
+    void PersistentStore::UnregisterAll()
+    {
+        Unregister(_T("setValue"));
+        Unregister(_T("getValue"));
+        Unregister(_T("deleteKey"));
+        Unregister(_T("deleteNamespace"));
+        Unregister(_T("getKeys"));
+        Unregister(_T("getNamespaces"));
+        Unregister(_T("getStorageSize"));
+        Unregister(_T("getStorageSizes"));
+        Unregister(_T("flushCache"));
+        Unregister(_T("getNamespaceStorageLimit"));
+        Unregister(_T("setNamespaceStorageLimit"));
+    }
+
+    uint32_t PersistentStore::endpoint_setValue(const SetValueParamsData& params, DeleteKeyResultInfo& response)
+    {
+        auto result = _store2->SetValue(
+            Exchange::IStore2::ScopeType(params.Scope.Value()),
+            params.Namespace.Value(),
+            params.Key.Value(),
+            params.Value.Value(),
+            params.Ttl.Value());
+        if (result == Core::ERROR_NONE) {
+            response.Success = true;
         }
-        else {
-            auto status = _store->SetValue(ns, key, value);
-            if (status == Core::ERROR_INVALID_INPUT_LENGTH) {
-                response["error"] = "params too long";
+
+        return result;
+    }
+
+    uint32_t PersistentStore::endpoint_getValue(const DeleteKeyParamsInfo& params, GetValueResultData& response)
+    {
+        string value;
+        uint32_t ttl;
+        auto result = _store2->GetValue(
+            Exchange::IStore2::ScopeType(params.Scope.Value()),
+            params.Namespace.Value(),
+            params.Key.Value(),
+            value,
+            ttl);
+        if (result == Core::ERROR_NONE) {
+            response.Value = value;
+            if (ttl > 0) {
+                response.Ttl = ttl;
             }
-            success = (status == Core::ERROR_NONE);
+            response.Success = true;
         }
+
+        return result;
     }
 
-    returnResponse(success);
-}
-
-uint32_t PersistentStore::endpoint_getValue(const JsonObject &parameters, JsonObject &response)
-{
-    LOGINFOMETHOD();
-
-    bool success = false;
-
-    if (!parameters.HasLabel("namespace") ||
-        !parameters.HasLabel("key")) {
-        response["error"] = "params missing";
-    }
-    else {
-        string ns = parameters["namespace"].String();
-        string key = parameters["key"].String();
-        if (ns.empty() || key.empty()) {
-            response["error"] = "params empty";
+    uint32_t PersistentStore::endpoint_deleteKey(const DeleteKeyParamsInfo& params, DeleteKeyResultInfo& response)
+    {
+        auto result = _store2->DeleteKey(
+            Exchange::IStore2::ScopeType(params.Scope.Value()),
+            params.Namespace.Value(),
+            params.Key.Value());
+        if (result == Core::ERROR_NONE) {
+            response.Success = true;
         }
-        else {
-            string value;
-            success = (_store->GetValue(ns, key, value) == Core::ERROR_NONE);
-            if (success)
-                response["value"] = value;
+
+        return result;
+    }
+
+    uint32_t PersistentStore::endpoint_deleteNamespace(const DeleteNamespaceParamsInfo& params, DeleteKeyResultInfo& response)
+    {
+        auto result = _store2->DeleteNamespace(
+            Exchange::IStore2::ScopeType(params.Scope.Value()),
+            params.Namespace.Value());
+        if (result == Core::ERROR_NONE) {
+            response.Success = true;
         }
+
+        return result;
     }
 
-    returnResponse(success);
-}
-
-uint32_t PersistentStore::endpoint_deleteKey(const JsonObject &parameters, JsonObject &response)
-{
-    LOGINFOMETHOD();
-
-    bool success = false;
-
-    if (!parameters.HasLabel("namespace") ||
-        !parameters.HasLabel("key")) {
-        response["error"] = "params missing";
-    }
-    else {
-        string ns = parameters["namespace"].String();
-        string key = parameters["key"].String();
-        if (ns.empty() || key.empty()) {
-            response["error"] = "params empty";
-        }
-        else {
-            success = (_store->DeleteKey(ns, key) == Core::ERROR_NONE);
-        }
-    }
-
-    returnResponse(success);
-}
-
-uint32_t PersistentStore::endpoint_deleteNamespace(const JsonObject &parameters, JsonObject &response)
-{
-    LOGINFOMETHOD();
-
-    bool success = false;
-
-    if (!parameters.HasLabel("namespace")) {
-        response["error"] = "params missing";
-    }
-    else {
-        string ns = parameters["namespace"].String();
-        if (ns.empty()) {
-            response["error"] = "params empty";
-        }
-        else {
-            success = (_store->DeleteNamespace(ns) == Core::ERROR_NONE);
-        }
-    }
-
-    returnResponse(success);
-}
-
-uint32_t PersistentStore::endpoint_getKeys(const JsonObject &parameters, JsonObject &response)
-{
-    LOGINFOMETHOD();
-
-    bool success = false;
-
-    if (!parameters.HasLabel("namespace")) {
-        response["error"] = "params missing";
-    }
-    else {
-        string ns = parameters["namespace"].String();
-        if (ns.empty())
-            response["error"] = "params empty";
-        else {
-            std::vector<string> keys;
-            success = (_storeListing->GetKeys(ns, keys) == Core::ERROR_NONE);
-            if (success) {
-                JsonArray jsonKeys;
-                for (auto it = keys.begin(); it != keys.end(); ++it)
-                    jsonKeys.Add(*it);
-                response["keys"] = jsonKeys;
+    uint32_t PersistentStore::endpoint_getKeys(const DeleteNamespaceParamsInfo& params, GetKeysResultData& response)
+    {
+        RPC::IStringIterator* it;
+        auto result = _storeInspector->GetKeys(
+            Exchange::IStore2::ScopeType(params.Scope.Value()),
+            params.Namespace.Value(),
+            it);
+        if (result == Core::ERROR_NONE) {
+            string element;
+            while (it->Next(element) == true) {
+                response.Keys.Add() = element;
             }
+            it->Release();
+            response.Success = true;
         }
+
+        return result;
     }
 
-    returnResponse(success);
-}
+    uint32_t PersistentStore::endpoint_getNamespaces(const GetNamespacesParamsInfo& params, GetNamespacesResultData& response)
+    {
+        RPC::IStringIterator* it;
+        auto result = _storeInspector->GetNamespaces(
+            Exchange::IStore2::ScopeType(params.Scope.Value()),
+            it);
+        if (result == Core::ERROR_NONE) {
+            string element;
+            while (it->Next(element) == true) {
+                response.Namespaces.Add() = element;
+            }
+            it->Release();
+            response.Success = true;
+        }
 
-uint32_t PersistentStore::endpoint_getNamespaces(const JsonObject &parameters, JsonObject &response)
-{
-    LOGINFOMETHOD();
-
-    bool success = false;
-
-    std::vector<string> namespaces;
-    success = (_storeListing->GetNamespaces(namespaces) == Core::ERROR_NONE);
-    if (success) {
-        JsonArray jsonNamespaces;
-        for (auto it = namespaces.begin(); it != namespaces.end(); ++it)
-            jsonNamespaces.Add(*it);
-        response["namespaces"] = jsonNamespaces;
+        return result;
     }
 
-    returnResponse(success);
-}
+    // Deprecated
+    uint32_t PersistentStore::endpoint_getStorageSize(const GetNamespacesParamsInfo& params, JsonObject& response)
+    {
+        Exchange::IStoreInspector::INamespaceSizeIterator* it;
+        auto result = _storeInspector->GetStorageSizes(
+            Exchange::IStore2::ScopeType(params.Scope.Value()),
+            it);
+        if (result == Core::ERROR_NONE) {
+            JsonObject jsonObject;
+            Exchange::IStoreInspector::NamespaceSize element;
+            while (it->Next(element) == true) {
+                jsonObject[element.ns.c_str()] = element.size;
+            }
+            it->Release();
+            response["namespaceSizes"] = jsonObject;
+            response["success"] = true;
+        }
 
-uint32_t PersistentStore::endpoint_getStorageSize(const JsonObject &parameters, JsonObject &response)
-{
-    LOGINFOMETHOD();
-
-    bool success = false;
-
-    std::map<string, uint64_t> namespaceSizes;
-    success = (_storeListing->GetStorageSize(namespaceSizes) == Core::ERROR_NONE);
-    if (success) {
-        JsonObject jsonNamespaceSizes;
-        for (auto it = namespaceSizes.begin(); it != namespaceSizes.end(); ++it)
-            jsonNamespaceSizes[it->first.c_str()] = it->second;
-        response["namespaceSizes"] = jsonNamespaceSizes;
+        return result;
     }
 
-    returnResponse(success);
-}
+    uint32_t PersistentStore::endpoint_getStorageSizes(const GetNamespacesParamsInfo& params, GetStorageSizesResultData& response)
+    {
+        Exchange::IStoreInspector::INamespaceSizeIterator* it;
+        auto result = _storeInspector->GetStorageSizes(
+            Exchange::IStore2::ScopeType(params.Scope.Value()),
+            it);
+        if (result == Core::ERROR_NONE) {
+            Exchange::IStoreInspector::NamespaceSize element;
+            while (it->Next(element) == true) {
+                auto& item = response.StorageList.Add();
+                item.Namespace = element.ns;
+                item.Size = element.size;
+            }
+            it->Release();
+        }
 
-uint32_t PersistentStore::endpoint_flushCache(const JsonObject &parameters, JsonObject &response)
-{
-    LOGINFOMETHOD();
+        return result;
+    }
 
-    bool success = (_storeCache->FlushCache() == Core::ERROR_NONE);
+    uint32_t PersistentStore::endpoint_flushCache(DeleteKeyResultInfo& response)
+    {
+        auto result = _storeCache->FlushCache();
+        if (result == Core::ERROR_NONE) {
+            response.Success = true;
+        }
 
-    returnResponse(success);
-}
+        return result;
+    }
 
-void PersistentStore::event_onValueChanged(const string &ns, const string &key, const string &value)
-{
-    JsonObject params;
-    params["namespace"] = ns;
-    params["key"] = key;
-    params["value"] = value;
+    uint32_t PersistentStore::endpoint_getNamespaceStorageLimit(const DeleteNamespaceParamsInfo& params, GetNamespaceStorageLimitResultData& response)
+    {
+        uint32_t size;
+        auto result = _storeLimit->GetNamespaceStorageLimit(
+            Exchange::IStore2::ScopeType(params.Scope.Value()),
+            params.Namespace.Value(),
+            size);
+        if (result == Core::ERROR_NONE) {
+            response.StorageLimit = size;
+        }
 
-    sendNotify(_T("onValueChanged"), params);
-}
+        return result;
+    }
 
-void PersistentStore::event_onStorageExceeded()
-{
-    sendNotify(_T("onStorageExceeded"), JsonObject());
-}
+    uint32_t PersistentStore::endpoint_setNamespaceStorageLimit(const SetNamespaceStorageLimitParamsData& params)
+    {
+        return _storeLimit->SetNamespaceStorageLimit(
+            Exchange::IStore2::ScopeType(params.Scope.Value()),
+            params.Namespace.Value(),
+            params.StorageLimit.Value());
+    }
 
 } // namespace Plugin
 } // namespace WPEFramework
