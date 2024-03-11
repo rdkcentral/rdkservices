@@ -243,7 +243,7 @@ namespace WPEFramework
                     JsonObject legacyResult;
                     legacyResult["state"] = static_cast <int> (state);
                     legacyResult["isLNF"] = false;
-                    _parent.Notify("onWiFiStateChanged", legacyResult);
+                    _parent.Notify("onWIFIStateChanged", legacyResult);
 #endif
                     result["state"] = static_cast <int> (state);
                     _parent.Notify("onWiFiStateChange", result);
@@ -257,7 +257,7 @@ namespace WPEFramework
                     JsonObject legacyResult;
                     legacyResult["signalStrength"] = WiFiSignalQualityToString(signalQuality);
                     legacyResult["strength"] = signalLevel;
-                    _parent.Notify("onWiFiSignalStrengthChanged", legacyResult);
+                    _parent.Notify("onWifiSignalThresholdChanged", legacyResult);
 #endif
                     result["ssid"] = ssid;
                     result["signalQuality"] = WiFiSignalQualityToString(signalQuality);

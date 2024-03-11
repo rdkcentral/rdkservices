@@ -65,7 +65,7 @@ namespace WPEFramework
             Register("stopScan",                          &NetworkManager::StopWiFiScan, this);
             Register("getPairedSSID",                     &NetworkManager::GetKnownSSIDs, this);
             Register("getPairedSSIDInfo",                 &NetworkManager::GetConnectedSSID, this);
-            Register("initiateWPSPairing",                &NetworkManager::StartWPS, this);
+            Register("initiateWPSPairing",                &NetworkManager::initiateWPSPairing, this);
             Register("isPaired",                          &NetworkManager::isPaired, this);
             Register("saveSSID",                          &NetworkManager::AddToKnownSSIDs, this);
             Register("getSupportedSecurityModes",         &NetworkManager::GetSupportedSecurityModes, this);
@@ -166,7 +166,7 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
                 array.Add(JsonValue(each));
             }
 
-            response["Interfaces"] = array;
+            response["interfaces"] = array;
             response["success"] = tmpResponse["success"];
             LOGTRACEMETHODFIN();
             return rc;
@@ -187,6 +187,48 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             tmpParameters["enabled"] = parameters["enabled"];
             rc = SetInterfaceEnabled(tmpParameters, response);
 
+            LOGTRACEMETHODFIN();
+            return rc;
+        }
+        uint32_t NetworkManager::initiateWPSPairing (const JsonObject& parameters, JsonObject& response)
+        {
+            uint32_t rc = Core::ERROR_GENERAL;
+            string interface;
+            JsonObject tmpParameters;
+            string method{};
+            Exchange::INetworkManager::WiFiWPS wpsmethod;
+            string wps_pin{};
+
+            LOGINFOMETHOD();
+            if (parameters.HasLabel("method"))
+            {
+                method = parameters["method"].String();
+                if (method == "PBC")
+                {
+                    wpsmethod = Exchange::INetworkManager::WIFI_WPS_PBC;
+                }
+                else if (method == "PIN")
+                {
+                    wpsmethod = Exchange::INetworkManager::WIFI_WPS_PIN;
+                    if(parameters.HasLabel("wps_pin"))
+                        wps_pin = parameters["wps_pin"].String();
+                }
+                else if (method == "SERIALIZED_PIN")
+                {
+                    wpsmethod = Exchange::INetworkManager::WIFI_WPS_SERIALIZED_PIN;
+                }
+            }
+            else
+                wpsmethod = Exchange::INetworkManager::WIFI_WPS_PBC;
+            if (_NetworkManager)
+                rc = _NetworkManager->StartWPS(wpsmethod, wps_pin);
+            else
+                rc = Core::ERROR_UNAVAILABLE;
+
+            if (Core::ERROR_NONE == rc)
+            {
+                response["success"] = true;
+            }
             LOGTRACEMETHODFIN();
             return rc;
         }
