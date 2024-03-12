@@ -1,0 +1,29 @@
+name: L2-PersistentStore-grpc
+
+on:
+  push:
+    paths:
+      - PersistentStore/grpc/**
+  pull_request:
+    paths:
+      - PersistentStore/grpc/**
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: ${{github.repository}}
+
+      - name: Install cmake, protoc, grpc_cpp_plugin, grpc
+        run: |
+          sudo apt update
+          sudo apt install -y cmake protobuf-compiler protobuf-compiler-grpc libgrpc++-dev
+
+      - name: Build
+        working-directory: ${{github.workspace}}
+        run: |
+          cmake -S ${GITHUB_REPOSITORY}/PersistentStore/grpc/l2test -B build/grpcl2test -DCMAKE_INSTALL_PREFIX="install/usr" -DCMAKE_CXX_FLAGS="-Wall -Werror"
+          cmake --build build/grpcl2test --target install
