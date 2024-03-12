@@ -97,7 +97,7 @@ if (RDK_SERVICE_L2_TEST)
     else (TESTMOCKLIB_LIBRARIES)
         message ("Require ${TESTMOCKLIB_LIBRARIES} library")
     endif (TESTMOCKLIB_LIBRARIES)
-endif (RDK_SERVICES_L2_TEST)
+endif()
 
 
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)

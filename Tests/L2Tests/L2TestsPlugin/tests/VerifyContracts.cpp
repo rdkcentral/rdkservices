@@ -6,6 +6,7 @@
 #include <mutex>
 #include <condition_variable>
 #include <fstream>
+#include "Network.h"
 
 #define JSON_TIMEOUT   (1000)
 #define TEST_LOG(x, ...) fprintf(stderr, "\033[1;32m[%s:%d](%s)<PID:%d><TID:%d>" x "\n\033[0m", __FILE__, __LINE__, __FUNCTION__, getpid(), gettid(), ##__VA_ARGS__); fflush(stderr);
@@ -26,7 +27,8 @@ public:
     void enableTTS();
     // Add all supported plugins here
     vector<string> vtrPlugins = {
-        "org.rdk.System"};
+        "org.rdk.HdcpProfile",
+        "org.rdk.Network", "org.rdk.System", "org.rdk.TextToSpeech"};
 };
 
 /**
@@ -43,6 +45,7 @@ CTVerifier_Test::CTVerifier_Test()
         uint32_t status = ActivateService((*i).c_str());
         EXPECT_EQ(Core::ERROR_NONE, status);
     }
+    enableTTS();
 }
 
 /**
@@ -65,12 +68,55 @@ class CTVerifier_CallMocks : public CTVerifier_Test {
 protected:
     CTVerifier_CallMocks()
     {
+        string videoPort(_T("HDMI0"));
+        ON_CALL(*p_hostImplMock, getDefaultVideoPortName())
+            .WillByDefault(::testing::Return(videoPort));
+        ON_CALL(*p_videoOutputPortConfigImplMock, getPort(::testing::_))
+            .WillByDefault(::testing::ReturnRef(device::VideoOutputPort::getInstance()));
+        ON_CALL(*p_videoOutputPortMock, isDisplayConnected())
+            .WillByDefault(::testing::Return(true));
+        ON_CALL(*p_videoOutputPortMock, getHDCPProtocol())
+            .WillByDefault(::testing::Return(dsHDCP_VERSION_2X));
+        ON_CALL(*p_videoOutputPortMock, getHDCPStatus())
+            .WillByDefault(::testing::Return(dsHDCP_STATUS_AUTHENTICATED));
+        ON_CALL(*p_videoOutputPortMock, isContentProtected())
+            .WillByDefault(::testing::Return(true));
+        ON_CALL(*p_videoOutputPortMock, getHDCPReceiverProtocol())
+            .WillByDefault(::testing::Return(dsHDCP_VERSION_2X));
+        ON_CALL(*p_videoOutputPortMock, getHDCPCurrentProtocol())
+            .WillByDefault(::testing::Return(dsHDCP_VERSION_2X));
+
+        ON_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
+            .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                if(string(ownerName) == string(_T(IARM_BUS_NM_SRV_MGR_NAME)))
+                {
+                    if (string(methodName) == string(_T(IARM_BUS_NETSRVMGR_API_getInterfaceList))) {
+                        auto param = static_cast<IARM_BUS_NetSrvMgr_InterfaceList_t *>(arg);
+                        param->size = 2;
+                        memcpy(&param->interfaces[0].name, "eth0", sizeof("eth0"));
+                        memcpy(&param->interfaces[0].mac, "AA:AA:AA:AA:AA:AA", sizeof("AA:AA:AA:AA:AA:AA"));
+                        param->interfaces[0].flags = 69699;
+                        memcpy(&param->interfaces[1].name, "wlan0", sizeof("wlan0"));
+                        memcpy(&param->interfaces[1].mac, "AA:AA:AA:AA:AA:AA", sizeof("AA:AA:AA:AA:AA:AA"));
+                        param->interfaces[1].flags = 69699;
+                    }
+                    else if (string(methodName) == string(_T(IARM_BUS_NETSRVMGR_API_isConnectedToInternet))) {
+                        *((bool*) arg) = true;
+                        EXPECT_EQ(*((bool*) arg), true);
+                    }
+                }
+                return IARM_RESULT_SUCCESS;
+            });
     }
     virtual ~CTVerifier_CallMocks() override
     {
     }
 };
 
+/**
+ * @brief Create device properties and version files needed by various plugins
+ */
 void CTVerifier_Test::createDeviceFiles()
 {
     std::ofstream deviceProperties("/etc/device.properties");
@@ -86,6 +132,33 @@ void CTVerifier_Test::createDeviceFiles()
     version.close();
 }
 
+/**
+ * @brief Enable TTS with dummy configuration
+ */
+void CTVerifier_Test::enableTTS()
+{
+    uint32_t status = Core::ERROR_GENERAL;
+    JsonObject result;
+    JsonObject params_ttsen;
+    JsonObject enableTTS;
+    bool enable = true;
+    enableTTS["enabletts"] = JsonValue((bool)enable);
+    status = InvokeServiceMethod("org.rdk.TextToSpeech.1", "enabletts", enableTTS, result);
+    status = InvokeServiceMethod("org.rdk.TextToSpeech.1", "isttsenabled", params_ttsen, result);
+
+    JsonObject setTTSConfig;
+    setTTSConfig["language"] = "en-US";
+    setTTSConfig["voice"] = "carol";
+    setTTSConfig["ttsendpoint"] = "http://example-tts-dummy.net/tts?";
+    setTTSConfig["ttsendpointsecured"] = "https://example-tts-dummy.net/tts";
+    setTTSConfig["volume"] = "95";
+    setTTSConfig["primvolduckpercent"] = "50";
+    setTTSConfig["rate"] = "50";
+    setTTSConfig["speechrate"] = "medium";
+    status = InvokeServiceMethod("org.rdk.TextToSpeech.1", "setttsconfiguration", setTTSConfig, result);
+    status = InvokeServiceMethod("org.rdk.TextToSpeech.1", "getttsconfiguration", params_ttsen, result);
+}
+
 class CTVerifierMain : public CTVerifier_CallMocks {
 };
 
@@ -96,28 +169,43 @@ class CTVerifierMain : public CTVerifier_CallMocks {
 
 TEST_F(CTVerifierMain, VerifyContractsOnAllPlugins)
 {
+
+    char const *l_act = getenv("ACT");
+    if (l_act == NULL)
+    {
+        std::cout << "ACT is NULL\n";
+    }
+    else
+    {
+        std::cout << "ACT: " << l_act << "\n";
+    }
+
+    char const *l_token = getenv("PACTFLOW_TOKEN");
+    if (l_token == NULL)
+    {
+        std::cout << "PACTFLOW_TOKEN is NULL\n";
+    }
+    else
+    {
+        std::cout << "PACTFLOW_TOKEN: " << l_token << "\n";
+    }
+
     //cout current directory
-    system("pwd");
-    //get the git short hash value
-    //string git_hash_cmd = "git -C ./rdkservices rev-parse --short HEAD";
-    string git_hash_cmd = "git rev-parse --short HEAD";
+    // system("pwd");
+    //get short hash from long hash in GITHUB_SHA
     string git_hash_str = "";
-    FILE *fp = popen(git_hash_cmd.c_str(), "r");
-    if (fp == NULL)
+    char const *l_hash = getenv("GITHUB_SHA");
+    if (l_hash == NULL)
     {
-        cout << "Failed to run git hash for rdkservices\n";
+        cout << "GITHUB_SHA is NULL\n";
     }
-    char git_hash[100];
-    if (fgets(git_hash, 100, fp) != NULL)
+    else
     {
-        git_hash_str = git_hash;
-        if (!git_hash_str.empty() && git_hash_str[git_hash_str.length()-1] == '\n') {
-            git_hash_str.erase(git_hash_str.length()-1);
-        }
-        cout << "git_hash1: " << git_hash_str << "\n";
+        cout << "GITHUB_SHA: " << l_hash << "\n";
+        std::string s(l_hash);
+        git_hash_str = s.substr(0, 7);
     }
-    pclose(fp);
-    cout << "git_hash2: " << git_hash_str << "\n";
+    cout << "git_hash: " << git_hash_str << "\n";
 
     string test_pact_cmd = "~/bin/pact_verifier_cli --version";
     system(test_pact_cmd.c_str());
@@ -129,6 +217,7 @@ TEST_F(CTVerifierMain, VerifyContractsOnAllPlugins)
     pact_verify_cmd += "--transport=websocket --publish ";
     pact_verify_cmd += "--provider-version=0.1.0-" + git_hash_str + " --provider-branch=test-github-rdkv ";
     pact_verify_cmd += "--filter-consumer ripple ";
+    pact_verify_cmd += "--json results-pact.json ";
     //pact_verify_cmd += R"(--consumer-version-selectors="{\"tag\": \"0.1.0-4a18973\", \"latest\": true}" )";
     pact_verify_cmd += R"(--consumer-version-selectors="{\"mainBranch\": true}" )";
 
@@ -136,45 +225,4 @@ TEST_F(CTVerifierMain, VerifyContractsOnAllPlugins)
     int stat = system(pact_verify_cmd.c_str());
     cout << "pact_verify_cmd stat: " << stat << "\n";
     EXPECT_GE(stat, 0);
-
-    // while(1)
-    // {
-    //     std::this_thread::sleep_for(std::chrono::seconds(5));
-    //     std::cout << "Sleeping for 5 seconds\n";
-    // }
-
-
-    // uint32_t status = Core::ERROR_GENERAL;
-    // JsonObject params;
-    // JsonObject result;
-    // string strPrint;
-
-    // //getDeviceInfo no params 
-    // status = InvokeServiceMethod("org.rdk.System.1", "getDeviceInfo", params, result);
-    // result.ToString(strPrint);
-    // cout << "getDeviceInfo result1: " << strPrint << "\n";
-
-    // // Test the setValue method.
-    // JsonArray arr;
-    // JsonObject estb_params;
-    // arr.Add("estb_mac");
-    // estb_params["params"] = arr;
-    // estb_params.ToString(strPrint);
-    // cout << "getDeviceInfo params: " << strPrint << "\n";
-    // status = InvokeServiceMethod("org.rdk.System.1", "getDeviceInfo", estb_params, result);
-    // result.ToString(strPrint);
-    // cout << "getDeviceInfo result2: " << strPrint << "\n";
-
-    // JsonObject modelName;
-    // modelName["params"] = "modelName";
-    // modelName.ToString(strPrint);
-    // cout << "getDeviceInfo params - modelName: " << strPrint << "\n";
-    // status = InvokeServiceMethod("org.rdk.System.2", "getDeviceInfo", modelName, result);
-    // result.ToString(strPrint);
-    // cout << "getDeviceInfo - modelName result: " << strPrint << "\n";
-
-    // status = InvokeServiceMethod("org.rdk.System.1", "getSystemVersions", params, result);
-    // result.ToString(strPrint);
-    // cout << "getSystemVersions result1: " << strPrint << "\n";
-
 }

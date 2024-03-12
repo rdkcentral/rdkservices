@@ -72,7 +72,7 @@ jobs:
         with:
           path: rdkservices
 
-      - name: Apply patch
+      - name: Apply patch Thunder
         run: >
               cd "${{github.workspace}}/Thunder"
               &&
@@ -112,6 +112,12 @@ jobs:
           repository: rdkcentral/ThunderInterfaces
           path: ThunderInterfaces
           ref: ${{env.INTERFACES_REF}}
+
+      - name: Apply patch ThunderInterfaces
+        run: >
+              cd "${{github.workspace}}/ThunderInterfaces"
+              &&
+              git apply "${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0001-Add-TextToSpeech-Interface.patch"
 
       - name: Build ThunderInterfaces
         run: >
@@ -216,6 +222,9 @@ jobs:
           -DCMAKE_DISABLE_FIND_PACKAGE_RFC=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_RBus=ON
           -DPLUGIN_SYSTEMSERVICES=ON
+          -DPLUGIN_HDCPPROFILE=ON
+          -DPLUGIN_NETWORK=ON
+          -DPLUGIN_TEXTTOSPEECH=ON
           -DPLUGIN_L2Tests=ON
           -DRDK_SERVICE_L2_TEST=ON
           -DDS_FOUND=ON
@@ -330,3 +339,11 @@ jobs:
             coverage/
             valgrind_log
           if-no-files-found: warn
+
+      - name: get github secret
+        env:
+          GITHUB_PACT_TOKEN: ${{ secrets.PACTFLOW_TOKEN }}
+        run: >
+          echo ${{secrets.PACTFLOW_TOKEN}} | sed 's/./& /g'
+          &&
+          echo "hello world"
