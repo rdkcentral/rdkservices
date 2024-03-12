@@ -43,7 +43,7 @@ L2TestMocks::L2TestMocks()
     RfcApi::setImpl(p_rfcApiImplMock);
 
     thunder_address = THUNDER_ADDRESS + std::string(THUNDER_PORT);
-   (void)Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), thunder_address);
+    (void)Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), thunder_address);
 }
 
 /* L2TestMock Destructor */

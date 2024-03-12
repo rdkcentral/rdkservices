@@ -270,6 +270,15 @@ jobs:
           /tmp/opkg.conf
           /tmp/system_service_temp.conf
 
+      - name: Download pact_verifier_cli
+        run: >
+          echo "Copying pact plugins" &&
+          sudo mkdir -p ~/.pact/plugins/websockets-0.4.1  &&
+          sudo cp "${{github.workspace}}/rdkservices/Tests/L2Tests/pact/pact-plugin-websockets" ~/.pact/plugins/websockets-0.4.1/  &&
+          sudo cp "${{github.workspace}}/rdkservices/Tests/L2Tests/pact/pact-plugin.json" ~/.pact/plugins/websockets-0.4.1/ &&
+          sudo chmod +x ~/.pact/plugins/websockets-0.4.1/pact-plugin-websockets &&
+          PATH=${{github.workspace}}/install/usr/bin:${PATH}
+          ${{github.workspace}}/rdkservices/Tests/L2Tests/pact/install-verifier-cli.sh
       - name: Run unit tests without valgrind
         run: >
           PATH=${{github.workspace}}/install/usr/bin:${PATH}
