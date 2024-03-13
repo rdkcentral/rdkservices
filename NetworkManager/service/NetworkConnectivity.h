@@ -102,15 +102,6 @@ namespace WPEFramework {
 
         class ConnectivityMonitor : public Connectivity {
             public:
-                static ConnectivityMonitor* getInstance()
-                {
-                    if (connectivityMonitor == nullptr) {
-                       static ConnectivityMonitor instance;
-                       connectivityMonitor = &instance;
-                    }
-                    return connectivityMonitor;
-                }
-
                 void registerConnectivityMonitorCallback(NetworkManagerImplementation * impl);
                 bool isConnectedToInternet(nsm_ipversion ipversion);
                 nsm_internetState getInternetConnectionState(nsm_ipversion ipversion);
@@ -126,16 +117,17 @@ namespace WPEFramework {
                 void signalConnectivityMonitor();
                 void resetConnectivityCache() { g_internetState = nsm_internetState::UNKNOWN;}
 
-            private:
                 ConnectivityMonitor() : stopFlag(false), threadRunning(false), isContinuesMonitoringNeeded(false)
                 {
                     setConnectivityMonitorEndpoints(getConnectivityDefaultEndpoints());
                 }
 
                 ~ConnectivityMonitor() {
+                    NMLOG_INFO("~ConnectivityMonitor");
                     stopContinuousConnectivityMonitoring();
                 }
 
+            private:
                 ConnectivityMonitor(const ConnectivityMonitor&) = delete;
                 ConnectivityMonitor& operator=(const ConnectivityMonitor&) = delete;
                 void connectivityMonitorFunction();
@@ -154,7 +146,6 @@ namespace WPEFramework {
                 std::mutex endpointMutex;
                 std::atomic<nsm_internetState> g_internetState = {nsm_internetState::UNKNOWN};
             public:
-                static ConnectivityMonitor *connectivityMonitor;
                 NetworkManagerImplementation *networkManagerImpl = nullptr;
         };
     } // namespace Plugin

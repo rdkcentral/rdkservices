@@ -19,8 +19,6 @@
 namespace WPEFramework {
     namespace Plugin {
 
-    ConnectivityMonitor* ConnectivityMonitor::connectivityMonitor = nullptr;
-
     bool EndpointCache::isEndpointCashFileExist()
     {
         std::ifstream fileStream(CachefilePath);

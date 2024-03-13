@@ -32,7 +32,7 @@ namespace WPEFramework
     namespace Plugin
     {
         SERVICE_REGISTRATION(NetworkManagerImplementation, NETWORKMANAGER_MAJOR_VERSION, NETWORKMANAGER_MINOR_VERSION, NETWORKMANAGER_PATCH_VERSION);
-
+        ConnectivityMonitor connectivityMonitor;
         NetworkManagerImplementation::NetworkManagerImplementation()
             : _notificationCallbacks({})
         {
@@ -44,7 +44,7 @@ namespace WPEFramework
             platform_init();
 
             /* set the callback function of connectivity monitor*/
-            ConnectivityMonitor::getInstance()->registerConnectivityMonitorCallback(this);
+            connectivityMonitor.registerConnectivityMonitorCallback(this);
             WifiSignalStrengthMonitor::getInstance()->registerWifiSignalStrengthNotify(this);
             /* Initialize STUN Endpoints */
             m_stunEndPoint = "stun.l.google.com";
@@ -57,6 +57,7 @@ namespace WPEFramework
 
         NetworkManagerImplementation::~NetworkManagerImplementation()
         {
+            connectivityMonitor.stopContinuousConnectivityMonitoring();
             LOG_ENTRY_FUNCTION();
         }
 
@@ -141,7 +142,7 @@ namespace WPEFramework
                 endpoints.push_back(config.connectivity.endpoint_5.Value().c_str());
 
                 //set connectivity endpoint
-                ConnectivityMonitor::getInstance()->setConnectivityMonitorEndpoints(endpoints);
+                connectivityMonitor.setConnectivityMonitorEndpoints(endpoints);
             }
             else
                 NMLOG_ERROR("Plugin configuration read error !");
@@ -178,7 +179,7 @@ namespace WPEFramework
         uint32_t NetworkManagerImplementation::GetConnectivityTestEndpoints(IStringIterator*& endPoints/* @out */) const
         {
             LOG_ENTRY_FUNCTION();
-            std::vector<std::string> tmpEndPoints = ConnectivityMonitor::getInstance()->getConnectivityMonitorEndpoints();
+            std::vector<std::string> tmpEndPoints = connectivityMonitor.getConnectivityMonitorEndpoints();
             endPoints = (Core::Service<RPC::StringIterator>::Create<RPC::IStringIterator>(tmpEndPoints));
 
             return Core::ERROR_NONE;
@@ -196,7 +197,7 @@ namespace WPEFramework
                 {
                     tmpEndPoints.push_back(endPoint);
                 }
-                ConnectivityMonitor::getInstance()->setConnectivityMonitorEndpoints(tmpEndPoints);
+                connectivityMonitor.setConnectivityMonitorEndpoints(tmpEndPoints);
             }
             return Core::ERROR_NONE;
         }
@@ -212,7 +213,7 @@ namespace WPEFramework
             else if(0 == strcasecmp("IPv6", ipversion.c_str()))
                 tmpVersion = NSM_IPRESOLVE_V6;
 
-            isconnected = ConnectivityMonitor::getInstance()->getInternetConnectionState(tmpVersion);
+            isconnected = connectivityMonitor.getInternetConnectionState(tmpVersion);
             if (FULLY_CONNECTED == isconnected)
                 result = INTERNET_FULLY_CONNECTED;
             else if (CAPTIVE_PORTAL == isconnected)
@@ -229,7 +230,7 @@ namespace WPEFramework
         uint32_t NetworkManagerImplementation::GetCaptivePortalURI(string &endPoints/* @out */) const
         {
             LOG_ENTRY_FUNCTION();
-            endPoints = ConnectivityMonitor::getInstance()->getCaptivePortalURI();
+            endPoints = connectivityMonitor.getCaptivePortalURI();
             return Core::ERROR_NONE;
         }
 
@@ -237,7 +238,7 @@ namespace WPEFramework
         uint32_t NetworkManagerImplementation::StartConnectivityMonitoring(const uint32_t interval/* @in */)
         {
             LOG_ENTRY_FUNCTION();
-            if (ConnectivityMonitor::getInstance()->doContinuousConnectivityMonitoring(interval))
+            if (connectivityMonitor.doContinuousConnectivityMonitoring(interval))
                 return Core::ERROR_NONE;
             else
                 return Core::ERROR_GENERAL;
@@ -247,7 +248,7 @@ namespace WPEFramework
         uint32_t NetworkManagerImplementation::StopConnectivityMonitoring(void) const
         {
             LOG_ENTRY_FUNCTION();
-            if (ConnectivityMonitor::getInstance()->stopContinuousConnectivityMonitoring())
+            if (connectivityMonitor.stopContinuousConnectivityMonitoring())
                 return Core::ERROR_NONE;
             else
                 return Core::ERROR_GENERAL;
