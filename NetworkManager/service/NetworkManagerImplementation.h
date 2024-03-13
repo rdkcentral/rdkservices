@@ -233,6 +233,7 @@ namespace WPEFramework
             uint16_t m_stunPort;
             uint16_t m_stunBindTimeout;
             uint16_t m_stunCacheTimeout;
+        public:
             WifiSignalStrengthMonitor wifiSignalStrengthMonitor;
             mutable ConnectivityMonitor connectivityMonitor;
         };
