@@ -7,8 +7,8 @@
 #include <curl/curl.h>
 #include <condition_variable>
 #include <mutex>
-#include "NetworkManagerLogger.h"
 #include "Module.h"
+#include "NetworkManagerLogger.h"
 #include "NetworkManagerImplementation.h"
 
 #define CAPTIVEPORTAL_MAX_LEN 512
@@ -23,7 +23,7 @@ enum nsm_ipversion {
 };
 
 enum nsm_internetState {
-    UNKNOWN  = 0,
+    UNKNOWN = -1,
     NO_INTERNET,
     LIMITED_INTERNET,
     CAPTIVE_PORTAL,

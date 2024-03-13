@@ -63,11 +63,21 @@ namespace WPEFramework {
         , _config()
         , _outputDirector()
         , _webSocketExporter()
-        , _control(nullptr)
-        , _collect(nullptr)
+        , _callback(nullptr)
         , _observer(*this)
-        , _connectionId(0)
-        , _service(nullptr) {
+        , _service(nullptr)
+        , _dispatcherIdentifier(Messaging::MessageUnit::Instance().Identifier())
+        , _dispatcherBasePath(Messaging::MessageUnit::Instance().BasePath())
+        , _client(_dispatcherIdentifier, _dispatcherBasePath, Messaging::MessageUnit::Instance().SocketPort())
+        , _worker(*this)
+        , _tracingFactory()
+        , _loggingFactory()
+        , _warningReportingFactory()
+    {
+        _client.AddInstance(0);
+        _client.AddFactory(Core::Messaging::Metadata::type::TRACING, &_tracingFactory);
+        _client.AddFactory(Core::Messaging::Metadata::type::LOGGING, &_loggingFactory);
+        _client.AddFactory(Core::Messaging::Metadata::type::REPORTING, &_warningReportingFactory);
     }
 
     const string MessageControl::Initialize(PluginHost::IShell* service)
@@ -79,109 +89,73 @@ namespace WPEFramework {
         _config.Clear();
         _config.FromString(service->ConfigLine());
 
+        Core::Messaging::MessageInfo::abbreviate abbreviate;
+
+        if (_config.Abbreviated.Value() == 0) {
+            abbreviate = Core::Messaging::MessageInfo::abbreviate::FULL;
+        }
+        else {
+            abbreviate = Core::Messaging::MessageInfo::abbreviate::ABBREVIATED;
+        }
+
         _service = service;
         _service->AddRef();
 
-        _control = _service->Root<Exchange::IMessageControl>(_connectionId, RPC::CommunicationTimeOut, _T("MessageControlImplementation"));
-        ASSERT(_control != nullptr);
-
-        if (_control != nullptr) {
-            // Lets see if we can create the Message catcher...
-            _collect = _control->QueryInterface<Exchange::IMessageControl::ICollect>();
-            ASSERT(_collect != nullptr);
+        if ((service->Background() == false) && (((_config.SysLog.IsSet() == false) && (_config.Console.IsSet() == false)) || (_config.Console.Value() == true))) {
+            Announce(new Publishers::ConsoleOutput(abbreviate));
+        }
+        if ((service->Background() == true) && (((_config.SysLog.IsSet() == false) && (_config.Console.IsSet() == false)) || (_config.SysLog.Value() == true))) {
+            Announce(new Publishers::SyslogOutput(abbreviate));
+        }
+        if (_config.FileName.Value().empty() == false) {
+            _config.FileName = service->VolatilePath() + _config.FileName.Value();
+            Announce(new Publishers::FileOutput(abbreviate, _config.FileName.Value()));
+        }
+        if ((_config.Remote.Binding.Value().empty() == false) && (_config.Remote.Port.Value() != 0)) {
+            Announce(new Publishers::UDPOutput(Core::NodeId(_config.Remote.NodeId())));
         }
 
-        if (_control == nullptr) {
-            message = _T("MessageControl plugin could not be instantiated.");
-        }
-        else if (_collect == nullptr) {
-            message = _T("MessageControl plugin could not be instantiated (collect).");
-        }
-        else {
-            if ((service->Background() == false) && (((_config.SysLog.IsSet() == false) && (_config.Console.IsSet() == false)) || (_config.Console.Value() == true))) {
-                Announce(new Publishers::ConsoleOutput(_config.Abbreviated.Value()));
-            }
-            if ((service->Background() == true) && (((_config.SysLog.IsSet() == false) && (_config.Console.IsSet() == false)) || (_config.SysLog.Value() == true))) {
-                Announce(new Publishers::SyslogOutput(_config.Abbreviated.Value()));
-            }
-            if (_config.FileName.Value().empty() == false) {
-                _config.FileName = service->VolatilePath() + _config.FileName.Value();
-                Announce(new Publishers::FileOutput(_config.Abbreviated.Value(), _config.FileName.Value()));
-            }
-            if ((_config.Remote.Binding.Value().empty() == false) && (_config.Remote.Port.Value() != 0)) {
-                Announce(new Publishers::UDPOutput(Core::NodeId(_config.Remote.NodeId())));
-            }
+        _webSocketExporter.Initialize(service, _config.MaxExportConnections.Value());
 
-            _webSocketExporter.Initialize(service, _config.MaxExportConnections.Value());
+        Exchange::JMessageControl::Register(*this, this);
 
-            Exchange::JMessageControl::Register(*this, _control);
-
-            _service->Register(&_observer);
-
-            if (_collect->Callback(&_observer) != Core::ERROR_NONE) {
-                message = _T("MessageControl plugin could not be _configured.");
-            }
+        _service->Register(&_observer);
+        
+        if (Callback(&_observer) != Core::ERROR_NONE) {
+            message = _T("MessageControl plugin could not be _configured.");
         }
 
-        return message;
+        return (message);
     }
 
-    void MessageControl::Deinitialize(PluginHost::IShell* service)
+    void MessageControl::Deinitialize(VARIABLE_IS_NOT_USED PluginHost::IShell* service)
     {
-        ASSERT (_service == service);
+        if (_service != nullptr) {
+            ASSERT (_service == service);
 
-        if ((_collect != nullptr) && (_control != nullptr)) {
             Exchange::JMessageControl::Unregister(*this);
 
-            _collect->Callback(nullptr);
+            Callback(nullptr);
 
-            service->Unregister(&_observer);
+            _service->Unregister(&_observer);
+
+            _outputLock.Lock();
+
+            _webSocketExporter.Deinitialize();
+
+            _outputLock.Unlock();
+
+            while (_outputDirector.empty() == false) {
+                delete _outputDirector.back();
+                _outputDirector.pop_back();
+            }
+
+            _service->Release();
+            _service = nullptr;
         }
-
-        _outputLock.Lock();
-
-        _outputDirector.clear();
-        _webSocketExporter.Deinitialize();
-
-        _outputLock.Unlock();
-
-        RPC::IRemoteConnection* connection(service->RemoteConnection(_connectionId));
-
-        if (_collect != nullptr) {
-            _collect->Release();
-            _collect = nullptr;
-        }
-
-        if (_control != nullptr) {
-            VARIABLE_IS_NOT_USED uint32_t result = _control->Release();
-            _control = nullptr;
-
-            // It should have been the last reference we are releasing,
-            // so it should endup in a DESTRUCTION_SUCCEEDED, if not we
-            // are leaking...
-            ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
-        }
-
-        // The process can disappear in the meantime...
-        if (connection != nullptr) {
-            // But if it did not dissapear in the meantime, forcefully terminate it. Shoot to kill :-)
-            connection->Terminate();
-            connection->Release();
-        }
-
-        while (_outputDirector.empty() == false) {
-            delete _outputDirector.back();
-            _outputDirector.pop_back();
-        }
-
-        _service->Release();
-        _service = nullptr;
-
-        _connectionId = 0;
     }
 
-    string MessageControl::Information() const
-    {
+    string MessageControl::Information() const {
         // No additional info to report.
         return (string());
     }
@@ -189,6 +163,7 @@ namespace WPEFramework {
     bool MessageControl::Attach(PluginHost::Channel& channel)
     {
         TRACE(Trace::Information, (Core::Format(_T("Attaching channel ID [%d]"), channel.Id()).c_str()));
+        
         return (_webSocketExporter.Attach(channel.Id()));
     }
 
@@ -198,15 +173,13 @@ namespace WPEFramework {
         _webSocketExporter.Detach(channel.Id());
     }
 
-    Core::ProxyType<Core::JSON::IElement> MessageControl::Inbound(const string&)
-    {
+    Core::ProxyType<Core::JSON::IElement> MessageControl::Inbound(const string&) {
         return (_webSocketExporter.Command());
     }
 
-    Core::ProxyType<Core::JSON::IElement> MessageControl::Inbound(const uint32_t ID, const Core::ProxyType<Core::JSON::IElement>& element)
-    {
+    Core::ProxyType<Core::JSON::IElement> MessageControl::Inbound(const uint32_t ID, const Core::ProxyType<Core::JSON::IElement>& element) {
         return (Core::ProxyType<Core::JSON::IElement>(_webSocketExporter.Received(ID, element)));
     }
 
 } // namespace Plugin
-} // namespace WPEFramework
+}

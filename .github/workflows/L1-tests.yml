@@ -1,0 +1,389 @@
+name: l1-tests
+
+on:
+  push:
+    branches: [ main, 'sprint/**', 'release/**' ]
+  pull_request:
+    branches: [ main, 'sprint/**', 'release/**' ]
+
+env:
+  BUILD_TYPE: Debug
+  THUNDER_REF: "5e7c0b1ed3c3dd0fc31c86518a364388dc24273b"
+  INTERFACES_REF: "930e01ec9aec8aa60254dec0be3beca932df63cd"
+
+jobs:
+  l1-tests:
+    name: Build and run unit tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        compiler: [ gcc, clang ]
+        coverage: [ with-coverage, without-coverage ]
+        exclude:
+          - compiler: clang
+            coverage: with-coverage
+          - compiler: clang
+            coverage: without-coverage
+          - compiler: gcc
+            coverage: without-coverage
+
+    steps:
+      - name: Set up cache
+        # Cache Thunder/ThunderInterfaces.
+        # https://github.com/actions/cache
+        # https://docs.github.com/en/rest/actions/cache
+        # Modify the key if changing the list.
+        if: ${{ !env.ACT }}
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            build/Thunder
+            build/ThunderInterfaces
+            build/ThunderTools
+            install
+            !install/etc/WPEFramework/plugins
+            !install/usr/bin/RdkServicesL1Test
+            !install/usr/include/gmock
+            !install/usr/include/gtest
+            !install/usr/lib/libgmockd.a
+            !install/usr/lib/libgmock_maind.a
+            !install/usr/lib/libgtestd.a
+            !install/usr/lib/libgtest_maind.a
+            !install/usr/lib/cmake/GTest
+            !install/usr/lib/pkgconfig/gmock.pc
+            !install/usr/lib/pkgconfig/gmock_main.pc
+            !install/usr/lib/pkgconfig/gtest.pc
+            !install/usr/lib/pkgconfig/gtest_main.pc
+            !install/usr/lib/wpeframework/plugins
+          key: ${{ runner.os }}-${{ env.THUNDER_REF }}-${{ env.INTERFACES_REF }}-3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - run: pip install jsonref
+
+      - name: Set up CMake
+        uses: jwlawson/actions-setup-cmake@v1.13
+        with:
+          cmake-version: '3.16.x'
+
+      - name: Install packages
+        run: >
+          sudo apt update
+          &&
+          sudo apt install -y libsqlite3-dev libcurl4-openssl-dev valgrind lcov clang libsystemd-dev libboost-all-dev libwebsocketpp-dev meson libcunit1 libcunit1-dev
+
+      - name: Install GStreamer
+        run: |
+           sudo apt update
+           sudo apt install -y libunwind-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
+
+      - name: Build trevor-base64
+        run: |
+            if [ ! -d "trower-base64" ]; then
+            git clone https://github.com/xmidt-org/trower-base64.git
+            fi
+            cd trower-base64
+            meson setup --warnlevel 3 --werror build
+            ninja -C build
+            sudo ninja -C build install
+
+      - name: Checkout Thunder
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/checkout@v3
+        with:
+          repository: rdkcentral/Thunder
+          path: Thunder
+          ref: ${{env.THUNDER_REF}}
+
+      - name: Build Thunder
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: >
+          cmake
+          -S "${{github.workspace}}/Thunder/Tools"
+          -B build/ThunderTools
+          -DEXCEPTIONS_ENABLE=ON
+          -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
+          -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
+          -DGENERIC_CMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
+          &&
+          cmake --build build/ThunderTools -j8
+          &&
+          cmake --install build/ThunderTools
+          &&
+          cmake
+          -S "${{github.workspace}}/Thunder"
+          -B build/Thunder
+          -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
+          -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
+          -DBUILD_TYPE=${{env.BUILD_TYPE}}
+          -DBINDING=127.0.0.1
+          -DPORT=55555
+          -DEXCEPTIONS_ENABLE=ON
+          &&
+          cmake --build build/Thunder -j8
+          &&
+          cmake --install build/Thunder
+
+      - name: Checkout ThunderInterfaces
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/checkout@v3
+        with:
+          repository: rdkcentral/ThunderInterfaces
+          path: ThunderInterfaces
+          ref: ${{env.INTERFACES_REF}}
+
+      - name: Build ThunderInterfaces
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: >
+          cmake
+          -S "${{github.workspace}}/ThunderInterfaces"
+          -B build/ThunderInterfaces
+          -DEXCEPTIONS_ENABLE=ON
+          -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
+          -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
+          &&
+          cmake --build build/ThunderInterfaces -j8
+          &&
+          cmake --install build/ThunderInterfaces
+
+      - name: Checkout rdkservices
+        uses: actions/checkout@v3
+        with:
+          path: rdkservices
+
+      - name: Generate external headers
+        # Empty headers to mute errors
+        run: >
+          cd "${{github.workspace}}/rdkservices/Tests/"
+          &&
+          mkdir -p
+          headers
+          headers/audiocapturemgr
+          headers/rdk/ds
+          headers/rdk/iarmbus
+          headers/rdk/iarmmgrs-hal
+          headers/ccec/drivers
+          headers/network
+          &&
+          cd headers
+          &&
+          touch
+          audiocapturemgr/audiocapturemgr_iarm.h
+          ccec/drivers/CecIARMBusMgr.h
+          rdk/ds/audioOutputPort.hpp
+          rdk/ds/compositeIn.hpp
+          rdk/ds/dsDisplay.h
+          rdk/ds/dsError.h
+          rdk/ds/dsMgr.h
+          rdk/ds/dsTypes.h
+          rdk/ds/dsUtl.h
+          rdk/ds/exception.hpp
+          rdk/ds/hdmiIn.hpp
+          rdk/ds/host.hpp
+          rdk/ds/list.hpp
+          rdk/ds/manager.hpp
+          rdk/ds/sleepMode.hpp
+          rdk/ds/videoDevice.hpp
+          rdk/ds/videoOutputPort.hpp
+          rdk/ds/videoOutputPortConfig.hpp
+          rdk/ds/videoOutputPortType.hpp
+          rdk/ds/videoResolution.hpp
+          rdk/iarmbus/libIARM.h
+          rdk/iarmbus/libIBus.h
+          rdk/iarmbus/libIBusDaemon.h
+          rdk/iarmmgrs-hal/deepSleepMgr.h
+          rdk/iarmmgrs-hal/mfrMgr.h
+          rdk/iarmmgrs-hal/pwrMgr.h
+          rdk/iarmmgrs-hal/sysMgr.h
+          network/wifiSrvMgrIarmIf.h
+          network/netsrvmgrIarm.h
+          libudev.h
+          rfcapi.h
+          rbus.h
+          telemetry_busmessage_sender.h
+          maintenanceMGR.h
+          pkg.h
+          secure_wrapper.h
+          &&
+          cp -r /usr/include/gstreamer-1.0/gst /usr/include/glib-2.0/* /usr/lib/x86_64-linux-gnu/glib-2.0/include/* /usr/local/include/trower-base64/base64.h .
+
+      - name: Set clang toolchain
+        if: ${{ matrix.compiler == 'clang' }}
+        run: echo "TOOLCHAIN_FILE=${{github.workspace}}/rdkservices/Tests/clang.cmake" >> $GITHUB_ENV
+
+      - name: Set gcc/with-coverage toolchain
+        if: ${{ matrix.compiler == 'gcc' && matrix.coverage == 'with-coverage' && !env.ACT }}
+        run: echo "TOOLCHAIN_FILE=${{github.workspace}}/rdkservices/Tests/gcc-with-coverage.cmake" >> $GITHUB_ENV
+
+      - name: Build rdkservices
+        run: >
+          cmake
+          -S "${{github.workspace}}/rdkservices"
+          -B build/rdkservices
+          -DCMAKE_TOOLCHAIN_FILE="${{ env.TOOLCHAIN_FILE }}"
+          -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
+          -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
+          -DCMAKE_CXX_FLAGS="
+          -DEXCEPTIONS_ENABLE=ON
+          -fprofile-arcs
+          -ftest-coverage
+          -I ${{github.workspace}}/rdkservices/Tests/headers
+          -I ${{github.workspace}}/rdkservices/Tests/headers/audiocapturemgr
+          -I ${{github.workspace}}/rdkservices/Tests/headers/rdk/ds
+          -I ${{github.workspace}}/rdkservices/Tests/headers/rdk/iarmbus
+          -I ${{github.workspace}}/rdkservices/Tests/headers/rdk/iarmmgrs-hal
+          -I ${{github.workspace}}/rdkservices/Tests/headers/ccec/drivers
+          -I ${{github.workspace}}/rdkservices/Tests/headers/network
+          -include ${{github.workspace}}/rdkservices/Tests/mocks/devicesettings.h
+          -include ${{github.workspace}}/rdkservices/Tests/mocks/maintenanceMGR.h
+          -include ${{github.workspace}}/rdkservices/Tests/mocks/pkg.h
+          -include ${{github.workspace}}/rdkservices/Tests/mocks/secure_wrappermock.h
+          -Wall -Werror -Wno-error=format=
+          -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog
+          -DENABLE_TELEMETRY_LOGGING
+          -DUSE_IARMBUS
+          -DENABLE_SYSTEM_GET_STORE_DEMO_LINK
+          -DENABLE_DEEP_SLEEP
+          -DENABLE_SET_WAKEUP_SRC_CONFIG
+          -DENABLE_THERMAL_PROTECTION
+          -DUSE_DRM_SCREENCAPTURE
+          -DHAS_API_SYSTEM
+          -DHAS_API_POWERSTATE
+          -DHAS_RBUS
+          -DENABLE_DEVICE_MANUFACTURER_INFO"
+          -DCOMCAST_CONFIG=OFF
+          -DCMAKE_DISABLE_FIND_PACKAGE_DS=ON
+          -DCMAKE_DISABLE_FIND_PACKAGE_IARMBus=ON
+          -DCMAKE_DISABLE_FIND_PACKAGE_Udev=ON
+          -DCMAKE_DISABLE_FIND_PACKAGE_RFC=ON
+          -DCMAKE_DISABLE_FIND_PACKAGE_RBus=ON
+          -DPLUGIN_DATACAPTURE=ON
+          -DPLUGIN_DEVICEDIAGNOSTICS=ON
+          -DPLUGIN_LOCATIONSYNC=ON
+          -DPLUGIN_TIMER=ON
+          -DPLUGIN_SECURITYAGENT=ON
+          -DPLUGIN_DEVICEIDENTIFICATION=ON
+          -DPLUGIN_FRAMERATE=ON
+          -DPLUGIN_AVINPUT=ON
+          -DPLUGIN_TELEMETRY=ON
+          -DPLUGIN_SCREENCAPTURE=ON
+          -DPLUGIN_USBACCESS=ON
+          -DPLUGIN_LOGGINGPREFERENCES=ON
+          -DPLUGIN_USERPREFERENCES=ON
+          -DPLUGIN_MESSENGER=ON
+          -DPLUGIN_DEVICEINFO=ON
+          -DPLUGIN_SYSTEMSERVICES=ON
+          -DRDK_SERVICES_L1_TEST=ON
+          -DPLUGIN_HDMIINPUT=ON
+          -DPLUGIN_HDCPPROFILE=ON
+          -DPLUGIN_NETWORK=ON
+          -DPLUGIN_WIFIMANAGER=ON
+          -DPLUGIN_TRACECONTROL=ON
+          -DPLUGIN_WAREHOUSE=ON
+          -DPLUGIN_ACTIVITYMONITOR=ON
+          -DDS_FOUND=ON
+          -DPLUGIN_TEXTTOSPEECH=ON
+          -DPLUGIN_SYSTEMAUDIOPLAYER=ON
+          -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+          &&
+          cmake --build build/rdkservices -j8
+          &&
+          cmake --install build/rdkservices
+
+      - name: Set up files
+        run: >
+          sudo mkdir -p -m 777
+          /opt/persistent
+          /opt/secure
+          /opt/secure/reboot
+          /opt/secure/persistent
+          /opt/secure/persistent/System
+          /opt/logs
+          /lib/rdk
+          /run/media/sda1/logs/PreviousLogs
+          /run/sda1/UsbTestFWUpdate
+          /run/sda1/UsbProdFWUpdate
+          /run/sda2
+          &&
+          sudo touch
+          /opt/standbyReason.txt
+          /opt/tmtryoptout
+          /opt/fwdnldstatus.txt
+          /opt/dcm.properties
+          /etc/device.properties
+          /etc/dcm.properties
+          /etc/authService.conf
+          /version.txt
+          /run/media/sda1/logs/PreviousLogs/logFile.txt
+          /run/sda1/HSTP11MWR_5.11p5s1_VBN_sdy.bin
+          /run/sda1/UsbTestFWUpdate/HSTP11MWR_3.11p5s1_VBN_sdy.bin
+          /run/sda1/UsbProdFWUpdate/HSTP11MWR_4.11p5s1_VBN_sdy.bin
+          /lib/rdk/getMaintenanceStartTime.sh
+          /tmp/opkg.conf
+          &&
+          sudo chmod 777
+          /opt/standbyReason.txt
+          /opt/tmtryoptout
+          /opt/fwdnldstatus.txt
+          /opt/dcm.properties
+          /etc/device.properties
+          /etc/dcm.properties          
+          /etc/authService.conf
+          /version.txt
+          /lib/rdk/getMaintenanceStartTime.sh
+          /tmp/opkg.conf
+
+      - name: Run unit tests without valgrind
+        run: >
+          PATH=${{github.workspace}}/install/usr/bin:${PATH}
+          LD_LIBRARY_PATH=${{github.workspace}}/install/usr/lib:${{github.workspace}}/install/usr/lib/wpeframework/plugins:${LD_LIBRARY_PATH}
+          RdkServicesL1Test
+
+      - name: Run unit tests with valgrind
+        if: ${{ !env.ACT }}
+        run: >
+          PATH=${{github.workspace}}/install/usr/bin:${PATH}
+          LD_LIBRARY_PATH=${{github.workspace}}/install/usr/lib:${{github.workspace}}/install/usr/lib/wpeframework/plugins:${LD_LIBRARY_PATH}
+          valgrind
+          --tool=memcheck
+          --log-file=valgrind_log
+          --leak-check=yes
+          --show-reachable=yes
+          --track-fds=yes
+          --fair-sched=try
+          RdkServicesL1Test
+
+      - name: Generate coverage
+        if: ${{ matrix.coverage == 'with-coverage' && !env.ACT }}
+        run: >
+          lcov -c
+          -o coverage.info
+          -d build/rdkservices
+          &&
+          lcov
+          -r coverage.info
+          '/usr/include/*'
+          '*/build/rdkservices/_deps/*'
+          '*/install/usr/include/*'
+          '*/Tests/headers/*'
+          '*/Tests/mocks/*'
+          '*/Tests/L1Tests/tests/*'
+          -o filtered_coverage.info
+          &&
+          genhtml
+          -o coverage
+          -t "rdkservices coverage"
+          filtered_coverage.info
+
+      - name: Upload artifacts
+        if: ${{ !env.ACT }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: artifacts
+          path: |
+            coverage/
+            valgrind_log
+          if-no-files-found: warn

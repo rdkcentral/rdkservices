@@ -542,7 +542,6 @@ namespace WPEFramework {
 
     bool ConnectivityMonitor::stopContinuousConnectivityMonitoring()
     {
-        LOGINFO("Entry");
         if (!isMonitorThreadRunning())
         {
             LOGWARN("Connectivity monitor not running");
@@ -550,6 +549,7 @@ namespace WPEFramework {
         }
         cv_.notify_all();
         stopFlag = true;
+        LOGINFO("stoping connectivityMonitor...");
 
         if (thread_.joinable())
         {

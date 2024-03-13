@@ -15,9 +15,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-project(sqlitel1test)
+cmake_minimum_required(VERSION 3.14)
 
-cmake_minimum_required(VERSION 3.11)
+project(sqlitel1test)
 
 set(CMAKE_CXX_STANDARD 11)
 
@@ -28,35 +28,24 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(googletest)
 
-find_package(WPEFramework)
+find_package(WPEFramework REQUIRED)
 find_package(${NAMESPACE}Plugins REQUIRED)
-
-find_package(PkgConfig)
-pkg_search_module(SQLITE REQUIRED sqlite3)
 
 add_executable(${PROJECT_NAME}
         ../../Module.cpp
-        ../Handle.cpp
-        HandleTest.cpp
         Store2Test.cpp
         StoreCacheTest.cpp
         StoreInspectorTest.cpp
-        Store2WithReconnectTest.cpp
-        )
+        StoreLimitTest.cpp
+)
 
-add_definitions(${SQLITE_CFLAGS_OTHER})
-
-link_directories(${SQLITE_LIBRARY_DIRS})
-
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(${PROJECT_NAME} PRIVATE
         gmock_main
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
-        ${SQLITE_LIBRARIES}
-        )
+)
 
-target_include_directories(${PROJECT_NAME}
-        PUBLIC
-        ../../
-        )
+find_package(PkgConfig REQUIRED)
+pkg_search_module(SQLITE REQUIRED sqlite3)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${SQLITE_LIBRARIES})
 
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)

@@ -39,27 +39,29 @@ namespace Plugin {
         public:
             Config()
                 : Core::JSON::Container()
-                , Path()
-                , Key()
                 , MaxSize(0)
                 , MaxValue(0)
                 , Limit(0)
             {
+                Add(_T("uri"), &Uri);
                 Add(_T("path"), &Path);
                 Add(_T("legacypath"), &LegacyPath);
                 Add(_T("key"), &Key);
                 Add(_T("maxsize"), &MaxSize);
                 Add(_T("maxvalue"), &MaxValue);
                 Add(_T("limit"), &Limit);
+                Add(_T("tokencommand"), &TokenCommand);
             }
 
         public:
+            Core::JSON::String Uri;
             Core::JSON::String Path;
             Core::JSON::String LegacyPath;
             Core::JSON::String Key;
             Core::JSON::DecUInt64 MaxSize;
             Core::JSON::DecUInt64 MaxValue;
             Core::JSON::DecUInt64 Limit;
+            Core::JSON::String TokenCommand;
         };
 
         class Store2Notification : public Exchange::IStore2::INotification {
@@ -224,6 +226,9 @@ namespace Plugin {
             Store2(const ScopeMapType& map)
                 : _scopeMap(map)
             {
+                for (auto const& x : _scopeMap) {
+                    x.second->AddRef();
+                }
             }
             ~Store2() override
             {
