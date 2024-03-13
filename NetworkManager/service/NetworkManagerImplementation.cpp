@@ -32,7 +32,6 @@ namespace WPEFramework
     namespace Plugin
     {
         SERVICE_REGISTRATION(NetworkManagerImplementation, NETWORKMANAGER_MAJOR_VERSION, NETWORKMANAGER_MINOR_VERSION, NETWORKMANAGER_PATCH_VERSION);
-        ConnectivityMonitor connectivityMonitor;
 
         NetworkManagerImplementation::NetworkManagerImplementation()
             : _notificationCallbacks({})
@@ -44,8 +43,6 @@ namespace WPEFramework
             /* Name says it all */
             platform_init();
 
-            /* set the callback function of connectivity monitor*/
-            connectivityMonitor.registerConnectivityMonitorCallback(this);
             /* Initialize STUN Endpoints */
             m_stunEndPoint = "stun.l.google.com";
             m_stunPort = 19302;

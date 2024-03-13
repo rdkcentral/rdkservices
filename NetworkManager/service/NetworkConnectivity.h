@@ -9,7 +9,6 @@
 #include <mutex>
 #include "Module.h"
 #include "NetworkManagerLogger.h"
-#include "NetworkManagerImplementation.h"
 
 #define CAPTIVEPORTAL_MAX_LEN 512
 #define DEFAULT_MONITOR_TIMEOUT 60 // in seconds
@@ -102,7 +101,6 @@ namespace WPEFramework {
 
         class ConnectivityMonitor : public Connectivity {
             public:
-                void registerConnectivityMonitorCallback(NetworkManagerImplementation * impl);
                 bool isConnectedToInternet(nsm_ipversion ipversion);
                 nsm_internetState getInternetConnectionState(nsm_ipversion ipversion);
                 std::string getCaptivePortalURI();
@@ -145,8 +143,6 @@ namespace WPEFramework {
                 std::mutex mutex_;
                 std::mutex endpointMutex;
                 std::atomic<nsm_internetState> g_internetState = {nsm_internetState::UNKNOWN};
-            public:
-                NetworkManagerImplementation *networkManagerImpl = nullptr;
         };
     } // namespace Plugin
 } // namespace WPEFramework

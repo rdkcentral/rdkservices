@@ -14,10 +14,12 @@
 #include <curl/curl.h>
 #include "Module.h"
 #include "NetworkConnectivity.h"
-
+#include "NetworkManagerImplementation.h"
 
 namespace WPEFramework {
     namespace Plugin {
+
+    extern NetworkManagerImplementation* _instance;
 
     bool EndpointCache::isEndpointCashFileExist()
     {
@@ -436,14 +438,6 @@ namespace WPEFramework {
         return InternetConnectionState;
     }
 
-    void ConnectivityMonitor::registerConnectivityMonitorCallback(NetworkManagerImplementation * impl)
-    {
-        if(impl != nullptr)
-            networkManagerImpl = impl;
-        else
-            NMLOG_ERROR("NetworkManagerImplementation pointer null");
-    }
-
     bool ConnectivityMonitor::doContinuousConnectivityMonitoring(int timeoutInSeconds)
     {
         if(!isConnectivityMonitorEndpointSet())
@@ -589,11 +583,11 @@ namespace WPEFramework {
             InternetConnectionState = testConnectivity(getConnectivityMonitorEndpoints(), TEST_CONNECTIVITY_DEFAULT_TIMEOUT_MS, NSM_IPRESOLVE_WHATEVER);
             if(g_internetState.load() != InternetConnectionState)
             {
-                if(networkManagerImpl != nullptr)
+                if(_instance != nullptr)
                 {
                     Exchange::INetworkManager::InternetStatus oldState = static_cast<Exchange::INetworkManager::InternetStatus>(g_internetState.load());
                     Exchange::INetworkManager::InternetStatus newstate = static_cast<Exchange::INetworkManager::InternetStatus>(InternetConnectionState);
-                    networkManagerImpl->ReportInternetStatusChangedEvent(oldState , newstate);
+                    _instance->ReportInternetStatusChangedEvent(oldState , newstate);
                     NMLOG_TRACE("ReportInternetStatusChangedEvent called");
                 }
                 else
