@@ -269,8 +269,6 @@ public:
             else if(amode == device::AudioStereoMode::kStereo) mode = STEREO;
             else if(amode == device::AudioStereoMode::kMono) mode = MONO;
             else if(amode == device::AudioStereoMode::kPassThru) mode = PASSTHRU;
-           else if(amode == device::AudioStereoMode::kDD) mode = DOLBYDIGITAL;
-           else if(amode == device::AudioStereoMode::kDDPlus) mode = DOLBYDIGITALPLUS;
             else mode = UNKNOWN;
             PlayerInfoImplementation::_instance->audiomodeChanged(mode, true);
         }
