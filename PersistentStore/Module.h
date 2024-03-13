@@ -36,6 +36,7 @@
 #define LIMIT_ENV "PERSISTENTSTORE_LIMIT"
 #define TOKEN_COMMAND_ENV "PERSISTENTSTORE_TOKEN_COMMAND"
 #define IARM_INIT_NAME "Thunder_Plugins"
+#define URI_RFC "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.PersistentStore.Uri"
 
 #undef EXTERNAL
 #define EXTERNAL
