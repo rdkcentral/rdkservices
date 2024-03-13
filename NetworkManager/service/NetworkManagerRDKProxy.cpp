@@ -468,7 +468,7 @@ namespace WPEFramework
 
                         state = to_wifi_state(e->data.wifiStateChange.state);
                         if(e->data.wifiStateChange.state == WIFI_CONNECTED)
-                            WifiSignalStrengthMonitor::getInstance()->startWifiSignalStrengthMonitor(DEFAULT_WIFI_SIGNAL_TEST_INTERVAL_SEC);
+                             wifiSignalStrengthMonitor.startWifiSignalStrengthMonitor(DEFAULT_WIFI_SIGNAL_TEST_INTERVAL_SEC);
                         ::_instance->ReportWiFiStateChangedEvent(state);
                         break;
                     }

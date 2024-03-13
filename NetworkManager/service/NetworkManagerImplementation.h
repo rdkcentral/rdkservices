@@ -31,6 +31,7 @@ using namespace std;
 //#include <interfaces/INetworkManager.h>
 #include "INetworkManager.h"
 #include "NetworkManagerLogger.h"
+#include "WifiSignalStrengthMonitor.h"
 #include "StunClient.h"
 
 #define LOG_ENTRY_FUNCTION() { NMLOG_TRACE("Entering=%s", __FUNCTION__ ); }
@@ -231,6 +232,7 @@ namespace WPEFramework
             uint16_t m_stunPort;
             uint16_t m_stunBindTimeout;
             uint16_t m_stunCacheTimeout;
+            WifiSignalStrengthMonitor wifiSignalStrengthMonitor;
         };
     }
 }

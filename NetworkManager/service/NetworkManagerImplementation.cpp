@@ -33,6 +33,7 @@ namespace WPEFramework
     {
         SERVICE_REGISTRATION(NetworkManagerImplementation, NETWORKMANAGER_MAJOR_VERSION, NETWORKMANAGER_MINOR_VERSION, NETWORKMANAGER_PATCH_VERSION);
         ConnectivityMonitor connectivityMonitor;
+
         NetworkManagerImplementation::NetworkManagerImplementation()
             : _notificationCallbacks({})
         {
@@ -45,7 +46,6 @@ namespace WPEFramework
 
             /* set the callback function of connectivity monitor*/
             connectivityMonitor.registerConnectivityMonitorCallback(this);
-            WifiSignalStrengthMonitor::getInstance()->registerWifiSignalStrengthNotify(this);
             /* Initialize STUN Endpoints */
             m_stunEndPoint = "stun.l.google.com";
             m_stunPort = 19302;
