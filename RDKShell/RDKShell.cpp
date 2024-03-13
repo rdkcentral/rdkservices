@@ -61,6 +61,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_MOVE_TO_FRONT = "mo
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_MOVE_TO_BACK = "moveToBack";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_MOVE_BEHIND = "moveBehind";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_FOCUS = "setFocus";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_FOCUSED = "getFocused";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_KILL = "kill";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_KEY_INTERCEPT = "addKeyIntercept";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_KEY_INTERCEPTS = "addKeyIntercepts";
@@ -156,6 +157,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_FIRST_FRAME =
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_SUSPENDED = "onApplicationSuspended";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_RESUMED = "onApplicationResumed";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_ACTIVATED = "onApplicationActivated";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_FOCUSCHANGED = "onApplicationFocusChanged";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_LAUNCHED = "onLaunched";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_SUSPENDED = "onSuspended";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_DESTROYED = "onDestroyed";
@@ -1461,6 +1463,7 @@ namespace WPEFramework {
             Register(RDKSHELL_METHOD_MOVE_TO_BACK, &RDKShell::moveToBackWrapper, this);
             Register(RDKSHELL_METHOD_MOVE_BEHIND, &RDKShell::moveBehindWrapper, this);
             Register(RDKSHELL_METHOD_SET_FOCUS, &RDKShell::setFocusWrapper, this);
+	    Register(RDKSHELL_METHOD_GET_FOCUSED, &RDKShell::getFocusedWrapper, this);
             Register(RDKSHELL_METHOD_KILL, &RDKShell::killWrapper, this);
             Register(RDKSHELL_METHOD_ADD_KEY_INTERCEPT, &RDKShell::addKeyInterceptWrapper, this);
             Register(RDKSHELL_METHOD_ADD_KEY_INTERCEPTS, &RDKShell::addKeyInterceptsWrapper, this);
@@ -2210,8 +2213,16 @@ namespace WPEFramework {
             params["client"] = client;
             mShell.notify(RDKSHELL_EVENT_ON_APP_ACTIVATED, params);
         }
+	
+	void RDKShell::RdkShellListener::onApplicationFocusChanged(const std::string& client)
+	{
+		std::cout << "RDKShell onApplicationFocused event received for " << client << std::endl;
+		JsonObject params;
+		params["client"] = client;
+		mShell.notify(RDKSHELL_EVENT_ON_APP_FOCUSCHANGED, params);
+	}
 
-        void RDKShell::RdkShellListener::onUserInactive(const double minutes)
+	void RDKShell::RdkShellListener::onUserInactive(const double minutes)
         {
           std::cout << "RDKShell onUserInactive event received ..." << minutes << std::endl;
           JsonObject params;
@@ -2587,6 +2598,21 @@ namespace WPEFramework {
             }
             returnResponse(result);
         }
+
+	uint32_t RDKShell::getFocusedWrapper(const JsonObject& parameters, JsonObject& response)
+	{
+		LOGINFOMETHOD();
+		bool result = true;
+		string client = "";
+		result = getFocused(client);
+		if (result & !client.empty()) {
+			response["message"] = "success to get focused app";
+			response["client"] = client;
+		} else {
+			response["message"] = "success to get focused app";
+		}
+		returnResponse(result);
+	}
 
         uint32_t RDKShell::killWrapper(const JsonObject& parameters, JsonObject& response)
         {
@@ -6810,6 +6836,15 @@ namespace WPEFramework {
             }
             return ret;
         }
+	
+	bool RDKShell::getFocused(string& client)
+	{
+		bool ret = false;
+		gRdkShellMutex.lock();
+		ret = CompositorController::getFocused(client);
+		gRdkShellMutex.unlock();
+		return ret;
+	}
 
         bool RDKShell::kill(const string& client)
         {
