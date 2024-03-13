@@ -388,6 +388,12 @@ uint32_t OCIContainer::startContainerFromCryptedBundle(const JsonObject &paramet
     std::string configPath = parameters["configFilePath"].String();
     std::string command = parameters["command"].String();
     std::string westerosSocket = parameters["westerosSocket"].String();
+    const JsonArray eVars = parameters.HasLabel("envVars") ? parameters["envVars"].Array() : JsonArray();
+    std::vector<std::string> envVars = std::vector<std::string>();
+    for (int k = 0; k < eVars.Length(); k++)
+    {
+        envVars.push_back(eVars[k].String());
+    }
 
     // Can be used to pass file descriptors to container construction.
     // Currently unsupported, see DobbyProxy::startContainerFromBundle().
@@ -407,26 +413,18 @@ uint32_t OCIContainer::startContainerFromCryptedBundle(const JsonObject &paramet
         returnResponse(false);
     }
 
-    LOGINFO("Mount request to omi succeeded, contenerPath: %s", containerPath.c_str());
+    LOGINFO("Mount request to omi succeeded, containerPath: %s", containerPath.c_str());
 
-    // If no additional arguments, start the container
-    if ((command == "null" || command.empty()) && (westerosSocket == "null" || westerosSocket.empty()))
+    // Dobby expects empty strings if values not set
+    if (command == "null")
     {
-        descriptor = mDobbyProxy->startContainerFromBundle(id, containerPath, emptyList);
+        command = "";
     }
-    else
+    if (westerosSocket == "null")
     {
-        // Dobby expects empty strings if values not set
-        if (command == "null" || command.empty())
-        {
-            command = "";
-        }
-        if (westerosSocket == "null" || westerosSocket.empty())
-        {
-            westerosSocket = "";
-        }
-        descriptor = mDobbyProxy->startContainerFromBundle(id, containerPath, emptyList, command, westerosSocket);
+        westerosSocket = "";
     }
+    descriptor = mDobbyProxy->startContainerFromBundle(id, containerPath, emptyList, command, westerosSocket, envVars);
 
     // startContainer returns -1 on failure
     if (descriptor <= 0)
