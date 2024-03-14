@@ -14,8 +14,8 @@ All notable changes to this RDK Service will be documented in this file.
 
     For more details, refer to versioning section under Main README.
 ## [1.0.4] - 2024-03-06
-### Added
-- Fix for RDKTV-29180.
+### Fixed
+- Added the timer to get and update the friendlyName for Miracast if it fails get it from SystemServices.
 
 ## [1.0.3] - 2023-12-22
 ### Added
