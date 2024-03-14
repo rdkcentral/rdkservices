@@ -821,7 +821,7 @@ namespace WPEFramework
             {
                 IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
                 int hdmi_in_port = eventData->data.hdmi_in_video_mode.port;
-		dsVideoPortResolution_t resolution;
+		dsVideoPortResolution_t resolution = {};
 		resolution.pixelResolution =  eventData->data.hdmi_in_video_mode.resolution.pixelResolution;
 		resolution.interlaced =  eventData->data.hdmi_in_video_mode.resolution.interlaced;
 		resolution.frameRate =  eventData->data.hdmi_in_video_mode.resolution.frameRate;

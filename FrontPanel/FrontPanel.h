@@ -135,7 +135,7 @@ namespace WPEFramework {
             INTERFACE_ENTRY(PluginHost::IDispatcher)
             END_INTERFACE_MAP
         private:
-            const void InitializeIARM();
+            void InitializeIARM();
             void DeinitializeIARM();
             static void powerModeChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
         public:

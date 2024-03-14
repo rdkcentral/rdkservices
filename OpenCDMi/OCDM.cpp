@@ -51,8 +51,8 @@ namespace OCDM {
             MemoryObserverImpl& operator=(const MemoryObserverImpl&);
 
         public:
-            MemoryObserverImpl(const RPC::IRemoteConnection* connection)
-                : _main(connection  == 0 ? Core::ProcessInfo().Id() : connection->RemoteId())
+            MemoryObserverImpl(const RPC::IRemoteConnection* connectionI)
+                : _main(connectionI  == 0 ? Core::ProcessInfo().Id() : connectionI->RemoteId())
             {
             }
             ~MemoryObserverImpl()

@@ -85,6 +85,7 @@ namespace WPEFramework {
         ControlService::ControlService()
             : PluginHost::JSONRPC()
             , m_apiVersionNumber((uint32_t)-1)   /* default max uint32_t so everything gets enabled */    //TODO(MROLLINS) Can't we access this from jsonrpc interface?
+            , m_numOfBindRemotes(0)
         {
             LOGINFO("ctor");
             ControlService::_instance = this;
@@ -228,11 +229,11 @@ namespace WPEFramework {
             }
         }
 
-        void ControlService::irmgrHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+        void ControlService::irmgrHandler(const char *owner, IARM_EventId_t eventId, void *dataP, size_t len)
         {
             if (eventId == IARM_BUS_IRMGR_EVENT_IRKEY)
             {
-                IARM_Bus_IRMgr_EventData_t *irEventData = (IARM_Bus_IRMgr_EventData_t*)data;
+                IARM_Bus_IRMgr_EventData_t *irEventData = (IARM_Bus_IRMgr_EventData_t*)dataP;
                 int keyCode  = irEventData->data.irkey.keyCode;
                 int keySrc   = irEventData->data.irkey.keySrc;
                 int keyType  = irEventData->data.irkey.keyType;
@@ -269,14 +270,14 @@ namespace WPEFramework {
             }
         }
 
-        void ControlService::ctrlmHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+        void ControlService::ctrlmHandler(const char *owner, IARM_EventId_t eventId, void *dataP, size_t len)
         {
             if (eventId == CTRLM_RCU_IARM_EVENT_KEY_GHOST)
             {
                 LOGINFO("Got a controlMgr ghost key event!");
-                if (data != NULL)
+                if (dataP != NULL)
                 {
-                    ctrlm_rcu_iarm_event_key_ghost_t *msg = (ctrlm_rcu_iarm_event_key_ghost_t*)data;
+                    ctrlm_rcu_iarm_event_key_ghost_t *msg = (ctrlm_rcu_iarm_event_key_ghost_t*)dataP;
                     int remoteId = msg->controller_id;
                     int ghostCode = msg->ghost_code;
 
@@ -332,9 +333,9 @@ namespace WPEFramework {
                            len, sizeof(ctrlm_rcu_iarm_event_battery_t));
                     return;
                 }
-                if (data != NULL)
+                if (dataP != NULL)
                 {
-                    ctrlm_rcu_iarm_event_battery_t *msg = (ctrlm_rcu_iarm_event_battery_t*)data;
+                    ctrlm_rcu_iarm_event_battery_t *msg = (ctrlm_rcu_iarm_event_battery_t*)dataP;
                     if (msg->api_revision == CTRLM_RCU_IARM_BUS_API_REVISION)
                     {
                         int remoteId = msg->controller_id;
@@ -370,9 +371,9 @@ namespace WPEFramework {
                            len, sizeof(ctrlm_rcu_iarm_event_remote_reboot_t));
                     return;
                 }
-                if (data != NULL)
+                if (dataP != NULL)
                 {
-                    ctrlm_rcu_iarm_event_remote_reboot_t *msg = (ctrlm_rcu_iarm_event_remote_reboot_t*)data;
+                    ctrlm_rcu_iarm_event_remote_reboot_t *msg = (ctrlm_rcu_iarm_event_remote_reboot_t*)dataP;
                     if (msg->api_revision == CTRLM_RCU_IARM_BUS_API_REVISION)
                     {
                         int remoteId = msg->controller_id;
@@ -413,9 +414,9 @@ namespace WPEFramework {
                            len, sizeof(ctrlm_rcu_iarm_event_reverse_cmd_t));
                     return;
                 }
-                if (data != NULL)
+                if (dataP != NULL)
                 {
-                    ctrlm_rcu_iarm_event_reverse_cmd_t *msg = (ctrlm_rcu_iarm_event_reverse_cmd_t*)data;
+                    ctrlm_rcu_iarm_event_reverse_cmd_t *msg = (ctrlm_rcu_iarm_event_reverse_cmd_t*)dataP;
                     if (msg->api_revision == CTRLM_RCU_IARM_BUS_API_REVISION)
                     {
                         ctrlm_rcu_reverse_cmd_t cmd = msg->action;
@@ -463,9 +464,9 @@ namespace WPEFramework {
             else if (eventId == CTRLM_RCU_IARM_EVENT_CONTROL)
             {
                LOGINFO("Got a controlMgr control event!");
-               if (data != NULL)
+               if (dataP != NULL)
                {
-                   ctrlm_rcu_iarm_event_control_t *msg = (ctrlm_rcu_iarm_event_control_t*)data;
+                   ctrlm_rcu_iarm_event_control_t *msg = (ctrlm_rcu_iarm_event_control_t*)dataP;
                    int remoteId     = msg->controller_id;
                    int value        = msg->event_value;
                    int spare_value  = msg->spare_value;
