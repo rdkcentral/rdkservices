@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.8.0] - 2024-02-29
+### Added
+- Added API to get Thunder start reason
+
 ## [1.7.2] - 2024-01-03
 ### Security
 - resolved security vulnerabilities

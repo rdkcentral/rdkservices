@@ -302,6 +302,7 @@ namespace WPEFramework {
                 uint32_t setWakeupSrcConfiguration(const JsonObject& parameters, JsonObject& response);
 		uint32_t getWakeupSrcConfiguration(const JsonObject& parameters, JsonObject& response);
                 uint32_t getPlatformConfiguration(const JsonObject& parameters, PlatformCaps& response);
+                uint32_t getThunderStartReason(const JsonObject& parameters, JsonObject& response);
         }; /* end of system service class */
     } /* end of plugin */
 } /* end of wpeframework */
