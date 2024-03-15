@@ -513,29 +513,31 @@ namespace WPEFramework {
 
     bool ConnectivityMonitor::stopInitialConnectivityMonitoring()
     {
-        if (isMonitorThreadRunning())
-        {
-            if(isContinuesMonitoringNeeded)
-            {
-                LOGWARN("Continuous Connectivity Monitor is running");
-                return true;
-            }
-            else
-            {
-                stopFlag = true;
-                cv_.notify_all();
 
-                if (thread_.joinable()) {
-                    thread_.join();
-                    threadRunning = false;
-                    LOGINFO("Stoping Initial Connectivity Monitor");
-                }
-                else
-                    LOGWARN("thread not joinable !");
-            }
+        if(isContinuesMonitoringNeeded)
+        {
+            LOGWARN("Continuous Connectivity Monitor is running");
+            return true;
         }
         else
-            LOGWARN("Continuous Connectivity Monitor not running");
+        {
+            if (!isMonitorThreadRunning())
+            {
+                LOGWARN("Connectivity monitor not running");
+            }
+
+            stopFlag = true;
+            cv_.notify_all();
+
+            if (thread_.joinable())
+            {
+                thread_.join();
+                threadRunning = false;
+                LOGINFO("Stoping Initial Connectivity Monitor");
+            }
+            else
+                LOGWARN("thread not joinable !");
+        }
 
         return true;
     }
@@ -545,7 +547,6 @@ namespace WPEFramework {
         if (!isMonitorThreadRunning())
         {
             LOGWARN("Connectivity monitor not running");
-            return false;
         }
         cv_.notify_all();
         stopFlag = true;
