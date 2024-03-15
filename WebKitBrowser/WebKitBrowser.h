@@ -39,37 +39,10 @@ namespace WebKitBrowser {
     Exchange::IMemory* MemoryObserver(const RPC::IRemoteConnection* connection);
 }
 
-namespace JsonData {
-namespace BrowserCookieJar {
-
-class CookieJarParamsData : public Core::JSON::Container {
-public:
-    CookieJarParamsData()
-        : Core::JSON::Container()
-    {
-        Add(_T("version"), &Version);
-        Add(_T("checksum"), &Checksum);
-        Add(_T("payload"), &Payload);
-    }
-
-    CookieJarParamsData(const CookieJarParamsData&) = delete;
-    CookieJarParamsData& operator=(const CookieJarParamsData&) = delete;
-
-public:
-    Core::JSON::DecUInt32 Version;
-    Core::JSON::DecUInt32 Checksum;
-    Core::JSON::String    Payload;
-}; // class CookieJarParamsData
-
-}}
-
 namespace Plugin {
 
     class WebKitBrowser : public PluginHost::IPlugin, public PluginHost::IWeb, public PluginHost::JSONRPC {
     private:
-        WebKitBrowser(const WebKitBrowser&) = delete;
-        WebKitBrowser& operator=(const WebKitBrowser&) = delete;
-
         class Notification : public RPC::IRemoteConnection::INotification,
                              public PluginHost::IStateControl::INotification,
                              public Exchange::IWebBrowser::INotification,
@@ -85,9 +58,7 @@ namespace Plugin {
             {
                 ASSERT(parent != nullptr);
             }
-            ~Notification() override
-            {
-            }
+            ~Notification() override = default;
 
         public:
             void LoadFinished(const string& URL, int32_t code) override
@@ -162,9 +133,7 @@ namespace Plugin {
                 Add(_T("hidden"), &Hidden);
                 Add(_T("path"), &Path);
             }
-            ~Data()
-            {
-            }
+            ~Data() = default;
 
         public:
             Core::JSON::String URL;
@@ -175,6 +144,8 @@ namespace Plugin {
         };
 
     public:
+        WebKitBrowser(const WebKitBrowser&) = delete;
+        WebKitBrowser& operator=(const WebKitBrowser&) = delete;
         WebKitBrowser()
             : _skipURL(0)
             , _connectionId(0)
@@ -189,9 +160,7 @@ namespace Plugin {
         {
         }
 
-        ~WebKitBrowser() override
-        {
-        }
+        ~WebKitBrowser() override = default;
 
         inline static bool EnvironmentOverride(const bool configFlag)
         {
@@ -268,8 +237,6 @@ namespace Plugin {
         uint32_t set_languages(const Core::JSON::ArrayType<Core::JSON::String>& param);
         uint32_t get_headers(Core::JSON::ArrayType<JsonData::WebKitBrowser::HeadersData>& response) const;
         uint32_t set_headers(const Core::JSON::ArrayType<JsonData::WebKitBrowser::HeadersData>& param);
-        uint32_t get_cookiejar(JsonData::BrowserCookieJar::CookieJarParamsData& response) const;
-        uint32_t set_cookiejar(const JsonData::BrowserCookieJar::CookieJarParamsData& param);
         void event_bridgequery(const string& message);
         void event_statechange(const bool& suspended); // StateControl
 

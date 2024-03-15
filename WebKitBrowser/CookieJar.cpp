@@ -48,8 +48,7 @@ static void deserialize(const std::string& cookies, std::vector<std::string>& re
 {
     std::string cookie;
     std::stringstream ss(cookies);
-    while(ss.good())
-    {
+    while (ss.good()) {
         getline(ss, cookie, '\n');
         if (!cookie.empty())
             result.push_back(cookie);
@@ -83,16 +82,14 @@ static std::vector<uint8_t> compress(const std::string& str)
 {
     std::vector<uint8_t> result;
     size_t nbytes = str.size();
-    if (nbytes == 0)
-    {
+    if (nbytes == 0) {
         result.resize(4, '\0');
         return result;
     }
     const int compressionLevel = 1;
     unsigned long len = nbytes + nbytes / 100 + 13;
     int status;
-    do
-    {
+    do {
         result.resize(len + 4);
         status = ::compress2((unsigned char*)result.data() + 4, &len,
             (const unsigned char*)str.c_str(), nbytes, compressionLevel);
@@ -122,10 +119,8 @@ static std::string uncompress(const std::vector<uint8_t>& in)
 {
     std::string result;
     size_t nbytes = in.size();
-    if (nbytes <= 4)
-    {
-        if (nbytes < 4 || std::any_of(in.cbegin(), in.cend(), [](int v) {return v != 0;}))
-        {
+    if (nbytes <= 4) {
+        if (nbytes < 4 || std::any_of(in.cbegin(), in.cend(), [](int v) {return v != 0;})) {
             TRACE_GLOBAL(Trace::Error,(_T("Input data is corrupted")));
         }
         return result;
@@ -136,8 +131,7 @@ static std::string uncompress(const std::vector<uint8_t>& in)
         (data[2] <<  8) | (data[3]));
     unsigned long len = std::max(expectedSize, 1ul);
     int status;
-    do
-    {
+    do {
         result.resize(len);
         status = ::uncompress((unsigned char*)result.data(), &len, data + 4, nbytes - 4);
         switch (status)
@@ -172,8 +166,7 @@ static uint32_t crc_checksum(const std::string& str)
     unsigned char c = 0;
     const unsigned char *p = (const unsigned char*) str.data();
     size_t len = str.size();
-    while (len--)
-    {
+    while (len--) {
         c = *p++;
         crc = ((crc >> 4) & 0x0fff) ^ crc_tbl[((crc ^ c) & 15)];
         c >>= 4;
@@ -199,12 +192,9 @@ struct CookieJar::CookieJarPrivate
 
         rc = _cookieJarCrypto.Encrypt(compress(serialized), version, encrypted);
 
-        if (rc != Core::ERROR_NONE)
-        {
+        if (rc != Core::ERROR_NONE) {
             TRACE_GLOBAL(Trace::Error,(_T("Encryption failed, rc = %u"), rc));
-        }
-        else
-        {
+        } else {
             payload = toBase64(encrypted);
         }
 
@@ -225,17 +215,14 @@ struct CookieJar::CookieJarPrivate
         else
         {
             std::string serialized;
-            int actualChecksum;
+            uint32_t actualChecksum;
 
             serialized = uncompress(decrypted);
             actualChecksum = crc_checksum(serialized);
-            if (actualChecksum != checksum)
-            {
+            if (actualChecksum != checksum) {
                 rc = Core::ERROR_GENERAL;
                 TRACE_GLOBAL(Trace::Error,(_T("Checksum does not match: actual=%d expected=%d"), actualChecksum, checksum));
-            }
-            else
-            {
+            } else {
                 deserialize(serialized, cookies);
             }
         }

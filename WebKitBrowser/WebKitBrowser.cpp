@@ -46,14 +46,15 @@ namespace Plugin {
     /* virtual */ const string WebKitBrowser::Initialize(PluginHost::IShell* service)
     {
         string message;
-
+        ASSERT(service != nullptr);
         ASSERT(_service == nullptr);
         ASSERT(_browser == nullptr);
         ASSERT(_memory == nullptr);
         ASSERT(_application == nullptr);
+        ASSERT(_connectionId == 0);
 
-        _connectionId = 0;
         _service = service;
+        _service->AddRef();
         _skipURL = _service->WebPrefix().length();
 
         _persistentStoragePath = _service->PersistentPath();
@@ -65,66 +66,51 @@ namespace Plugin {
         _browser = service->Root<Exchange::IWebBrowser>(_connectionId, 2000, _T("WebKitImplementation"));
 
         if (_browser != nullptr) {
+
             PluginHost::IStateControl* stateControl(_browser->QueryInterface<PluginHost::IStateControl>());
 
             // We see that sometimes the WPE implementation crashes before it reaches this point, than there is
             // no StateControl. Cope with this situation.
             if (stateControl == nullptr) {
-                _browser->Release();
-                _browser = nullptr;
-
+                message = _T("WebKitBrowser StateControl could not be Obtained.");
             } else {
                 _application = _browser->QueryInterface<Exchange::IApplication>();
                 if (_application != nullptr) {
+                    RegisterAll();
+                    Exchange::JWebBrowser::Register(*this, _browser);
+
+                    _cookieJar = _browser->QueryInterface<Exchange::IBrowserCookieJar>();
+                    if (_cookieJar != nullptr) {
+                        Exchange::JBrowserCookieJar::Register(*this, _cookieJar);
+                    }
+
+                    _browserScripting = _browser->QueryInterface<Exchange::IBrowserScripting>();
+                    if (_browserScripting) {
+                        Exchange::JBrowserScripting::Register(*this, _browserScripting);
+                    }
+
                     _browser->Register(&_notification);
 
                     const RPC::IRemoteConnection *connection = _service->RemoteConnection(_connectionId);
-                    _memory = WPEFramework::WebKitBrowser::MemoryObserver(connection);
-                    ASSERT(_memory != nullptr);
                     if (connection != nullptr) {
+                        _memory = WPEFramework::WebKitBrowser::MemoryObserver(connection);
+                        ASSERT(_memory != nullptr);
                         connection->Release();
                     }
 
                     if (stateControl->Configure(_service) != Core::ERROR_NONE) {
-                        if (_memory != nullptr) {
-                            _memory->Release();
-                            _memory = nullptr;
-                        }
-                        _application->Release();
-                        _application = nullptr;
-                        _browser->Unregister(&_notification);
-                        _browser->Release();
-                        _browser = nullptr;
+                        message = _T("WebKitBrowser Implementation could not be Configured.");
                     } else {
                         stateControl->Register(&_notification);
                     }
-                    stateControl->Release();
                 } else {
-                    stateControl->Release();
-                    _browser->Release();
-                    _browser = nullptr;
+                    message = _T("WebKitBrowser Application interface could not be obtained");
                 }
+                stateControl->Release();
             }
         }
-
-        if (_browser == nullptr) {
+        else {
             message = _T("WebKitBrowser could not be instantiated.");
-            _service->Unregister(&_notification);
-            _service = nullptr;
-        } else {
-            RegisterAll();
-            Exchange::JWebBrowser::Register(*this, _browser);
-
-            _cookieJar = _browser->QueryInterface<Exchange::IBrowserCookieJar>();
-            if (_cookieJar) {
-                _cookieJar->Register(&_notification);
-                Exchange::JBrowserCookieJar::Register(*this, _cookieJar);
-            }
-
-            _browserScripting = _browser->QueryInterface<Exchange::IBrowserScripting>();
-            if (_browserScripting) {
-                Exchange::JBrowserScripting::Register(*this, _browserScripting);
-            }
         }
 
         return message;
@@ -132,63 +118,70 @@ namespace Plugin {
 
     /* virtual */ void WebKitBrowser::Deinitialize(PluginHost::IShell* service VARIABLE_IS_NOT_USED)
     {
-        ASSERT(_service == service);
-        ASSERT(_browser != nullptr);
-        ASSERT(_application != nullptr);
-        ASSERT(_memory != nullptr);
+        if (_service != nullptr) {
+            ASSERT(_service == service);
 
-        if (_browser == nullptr)
-            return;
+            // Make sure we get no longer get any notifications, we are deactivating..
+            _service->Unregister(&_notification);
 
-        // Make sure we get no longer get any notifications, we are deactivating..
-        _service->Unregister(&_notification);
-        _browser->Unregister(&_notification);
-        _memory->Release();
-        _application->Release();
-        Exchange::JWebBrowser::Unregister(*this);
-        if (_browserScripting) {
-            Exchange::JBrowserScripting::Unregister(*this);
-            _browserScripting->Release();
+            if (_browser != nullptr) {
+
+                PluginHost::IStateControl* stateControl(_browser->QueryInterface<PluginHost::IStateControl>());
+                // In case WPE rpcprocess crashed, there is no access to the statecontrol interface, check it !!
+                if (stateControl != nullptr) {
+                    stateControl->Unregister(&_notification);
+                    stateControl->Release();
+                 }
+
+                if (_memory != nullptr) {
+                    _memory->Release();
+                    _memory = nullptr;
+                }
+                if (_application != nullptr) {
+                    if (_cookieJar != nullptr) {
+                        Exchange::JBrowserCookieJar::Unregister(*this);
+                        _cookieJar->Release();
+                        _cookieJar = nullptr;
+                    }
+
+                    if (_browserScripting != nullptr) {
+                        Exchange::JBrowserScripting::Unregister(*this);
+                        _browserScripting->Release();
+                        _browserScripting = nullptr;
+                    }
+
+                    Exchange::JWebBrowser::Unregister(*this);
+                    UnregisterAll();
+                    _browser->Unregister(&_notification);
+                    _application->Release();
+                    _application = nullptr;
+                }
+
+                RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
+
+                // Stop processing of the browser:
+                VARIABLE_IS_NOT_USED uint32_t result = _browser->Release();
+                _browser = nullptr;
+                // It should have been the last reference we are releasing,
+                // so it should end up in a DESCRUCTION_SUCCEEDED, if not we
+                // are leaking...
+                ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
+
+                // If this was running in a (container) process...
+                if (connection != nullptr) {
+                    // Lets trigger a cleanup sequence for
+                    // out-of-process code. Which will guard
+                    // that unwilling processes, get shot if
+                    // not stopped friendly :~)
+                    connection->Terminate();
+                    connection->Release();
+                }
+            }
+
+            _service->Release();
+            _service = nullptr;
+            _connectionId = 0;
         }
-        if (_cookieJar) {
-            Exchange::JBrowserCookieJar::Unregister(*this);
-            _cookieJar->Unregister(&_notification);
-            _cookieJar->Release();
-        }
-        UnregisterAll();
-
-        PluginHost::IStateControl* stateControl(_browser->QueryInterface<PluginHost::IStateControl>());
-
-        // In case WPE rpcprocess crashed, there is no access to the statecontrol interface, check it !!
-        if (stateControl != nullptr) {
-            stateControl->Unregister(&_notification);
-            stateControl->Release();
-        }
-
-        RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
-
-        // Stop processing of the browser:
-        VARIABLE_IS_NOT_USED uint32_t result = _browser->Release();
-
-        // It should have been the last reference we are releasing,
-        // so it should end up in a DESCRUCTION_SUCCEEDED, if not we
-        // are leaking...
-        ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
-
-        // If this was running in a (container) process...
-        if (connection != nullptr) {
-            // Lets trigger a cleanup sequence for
-            // out-of-process code. Which will guard
-            // that unwilling processes, get shot if
-            // not stopped friendly :~)
-            connection->Terminate();
-            connection->Release();
-        }
-
-        _service = nullptr;
-        _browser = nullptr;
-        _application = nullptr;
-        _memory = nullptr;
     }
 
     /* virtual */ string WebKitBrowser::Information() const
@@ -229,6 +222,7 @@ namespace Plugin {
                 static_cast<const WPEFramework::Exchange::IApplication*>(_application)->Visible(visible);
                 PluginHost::IStateControl::state currentState = stateControl->State();
                 Core::ProxyType<Web::JSONBodyType<WebKitBrowser::Data>> body(_jsonBodyDataFactory.Element());
+                ASSERT(body.IsValid() == true);
                 string url;
                 static_cast<const WPEFramework::Exchange::IWebBrowser*>(_browser)->URL(url);
                 body->URL = url;
@@ -279,7 +273,11 @@ namespace Plugin {
         if (path.empty() == false) {
             string fullPath = _persistentStoragePath + path;
             Core::Directory dir(fullPath.c_str());
+#ifdef USE_THUNDER_R4
+            if (!dir.Destroy()) {
+#else
             if (!dir.Destroy(true)) {
+#endif
                 TRACE(Trace::Error, (_T("Failed to delete %s\n"), fullPath.c_str()));
                 result = Core::ERROR_GENERAL;
             }
@@ -290,6 +288,7 @@ namespace Plugin {
 
     void WebKitBrowser::LoadFinished(const string& URL, int32_t code)
     {
+        ASSERT(_service != nullptr);
         string message(string("{ \"url\": \"") + URL + string("\", \"loaded\":true, \"httpstatus\":") + Core::NumberType<int32_t>(code).Text() + string(" }"));
         TRACE(Trace::Information, (_T("LoadFinished: %s"), message.c_str()));
         _service->Notify(message);
@@ -299,6 +298,7 @@ namespace Plugin {
 
     void WebKitBrowser::LoadFailed(const string& URL)
     {
+        ASSERT(_service != nullptr);
         string message(string("{ \"url\": \"") + URL + string("\" }"));
         TRACE(Trace::Information, (_T("LoadFailed: %s"), message.c_str()));
         _service->Notify(message);
@@ -307,6 +307,7 @@ namespace Plugin {
 
     void WebKitBrowser::URLChange(const string& URL, bool loaded)
     {
+        ASSERT(_service != nullptr);
         string message(string("{ \"url\": \"") + URL + string("\", \"loaded\": ") + (loaded ? string("true") : string("false")) + string(" }"));
         TRACE(Trace::Information, (_T("URLChanged: %s"), message.c_str()));
         _service->Notify(message);
@@ -315,6 +316,7 @@ namespace Plugin {
 
     void WebKitBrowser::VisibilityChange(const bool hidden)
     {
+        ASSERT(_service != nullptr);
         TRACE(Trace::Information, (_T("VisibilityChange: { \"hidden\": \"%s\"}"), (hidden ? "true" : "false")));
         string message(string("{ \"hidden\": ") + (hidden ? _T("true") : _T("false")) + string("}"));
         _service->Notify(message);
@@ -323,6 +325,7 @@ namespace Plugin {
 
     void WebKitBrowser::PageClosure()
     {
+        ASSERT(_service != nullptr);
         TRACE(Trace::Information, (_T("Closure: \"true\"")));
         _service->Notify(_T("{\"Closure\": true }"));
         Exchange::JWebBrowser::Event::PageClosure(*this);
@@ -340,6 +343,7 @@ namespace Plugin {
 
     void WebKitBrowser::StateChange(const PluginHost::IStateControl::state state)
     {
+        ASSERT(_service != nullptr);
         TRACE(Trace::Information, (_T("StateChange: { \"State\": %d }"), state));
         string message(string("{ \"suspended\": ") + (state == PluginHost::IStateControl::SUSPENDED ? _T("true") : _T("false")) + string(" }"));
         _service->Notify(message);
@@ -348,6 +352,8 @@ namespace Plugin {
 
     void WebKitBrowser::Deactivated(RPC::IRemoteConnection* connection)
     {
+        ASSERT(_service != nullptr);
+        ASSERT(connection != nullptr);
         if (connection->Id() == _connectionId) {
 
             ASSERT(_service != nullptr);
@@ -365,44 +371,103 @@ namespace WebKitBrowser {
         _T("WPEWebProcess")
     };
 
+#ifdef USE_THUNDER_R4
+    class ProcessMemoryObserverImpl : public Exchange::IProcessMemory {
+    public:
+        explicit ProcessMemoryObserverImpl(Core::process_t id)
+            : Exchange::IProcessMemory()
+            , _info(id)
+        { 
+        }
+        ~ProcessMemoryObserverImpl() override = default;
+
+        ProcessMemoryObserverImpl(const ProcessMemoryObserverImpl&) = delete;
+        ProcessMemoryObserverImpl& operator=(const ProcessMemoryObserverImpl&) = delete;
+
+        uint64_t Resident() const override {
+            return _info.Resident();
+        }
+
+        uint64_t Allocated() const override {
+            return _info.Allocated();
+        }
+
+        uint64_t Shared() const override {
+            return _info.Shared();
+        }
+
+        uint8_t Processes() const override {
+            return 0; // webkit and network process do now spawn mew children
+        } 
+
+        bool IsOperational() const override {
+            return _info.IsActive();
+        }
+
+        uint32_t Identifier() const override {
+            static_assert(sizeof(Core::process_t) <= sizeof(uint32_t), "PId type size too big to fit in IProcessMemory::ID");
+            return _info.Id();
+        }
+
+        string Name() const override {
+            return _info.Name();
+        }
+
+        BEGIN_INTERFACE_MAP(ProcessMemoryObserverImpl)
+        INTERFACE_ENTRY(Exchange::IProcessMemory)
+        END_INTERFACE_MAP
+
+    private:
+        Core::ProcessInfo _info;
+    };
+#endif
+
     static constexpr uint16_t RequiredChildren = (sizeof(mandatoryProcesses) / sizeof(mandatoryProcesses[0]));
     using SteadyClock = std::chrono::steady_clock;
     using TimePoint = std::chrono::time_point<SteadyClock>;
-
+#ifdef USE_THUNDER_R4
+    class MemoryObserverImpl : public Exchange::IMemory, public  Exchange::IMemoryExtended {
+#else
     class MemoryObserverImpl : public Exchange::IMemory {
-    private:
-        MemoryObserverImpl();
-        MemoryObserverImpl(const MemoryObserverImpl&);
-        MemoryObserverImpl& operator=(const MemoryObserverImpl&);
+#endif
 
+    private:
         enum { TYPICAL_STARTUP_TIME = 10 }; /* in Seconds */
     public:
         MemoryObserverImpl(const RPC::IRemoteConnection* connection)
             : _main(connection == nullptr ? Core::ProcessInfo().Id() : connection->RemoteId())
             , _children(_main.Id())
             , _startTime(connection == nullptr ? (TimePoint::min()) : (SteadyClock::now() + std::chrono::seconds(TYPICAL_STARTUP_TIME)))
-        { // IsOperation true till calculated time (microseconds)
-        }
-        ~MemoryObserverImpl()
+            , _adminLock()
         {
         }
+        ~MemoryObserverImpl() override = default;
 
-    public:
+        MemoryObserverImpl(const MemoryObserverImpl&) = delete;
+        MemoryObserverImpl& operator=(const MemoryObserverImpl&) = delete;
+
         uint64_t Resident() const override
         {
             uint32_t result(0);
 
             if (_startTime != TimePoint::min()) {
+
+                _adminLock.Lock();
+
                 if (_children.Count() < RequiredChildren) {
                     _children = Core::ProcessInfo::Iterator(_main.Id());
                 }
 
+                Core::ProcessInfo::Iterator children(_children);
+
+                _adminLock.Unlock();
+
                 result = _main.Resident();
 
-                _children.Reset();
+                children.Reset();
 
-                while (_children.Next() == true) {
-                    result += _children.Current().Resident();
+                while (children.Next() == true) {
+                    result += children.Current().Resident();
                 }
             }
 
@@ -413,16 +478,23 @@ namespace WebKitBrowser {
             uint32_t result(0);
 
             if (_startTime != TimePoint::min()) {
+
+                _adminLock.Lock();
+
                 if (_children.Count() < RequiredChildren) {
                     _children = Core::ProcessInfo::Iterator(_main.Id());
                 }
 
+                Core::ProcessInfo::Iterator children(_children);
+
+                _adminLock.Unlock();
+
                 result = _main.Allocated();
 
-                _children.Reset();
+                children.Reset();
 
-                while (_children.Next() == true) {
-                    result += _children.Current().Allocated();
+                while (children.Next() == true) {
+                    result += children.Current().Allocated();
                 }
             }
 
@@ -433,16 +505,21 @@ namespace WebKitBrowser {
             uint32_t result(0);
 
             if (_startTime != TimePoint::min()) {
+                _adminLock.Lock();
                 if (_children.Count() < RequiredChildren) {
                     _children = Core::ProcessInfo::Iterator(_main.Id());
                 }
 
+                Core::ProcessInfo::Iterator children(_children);
+
+                _adminLock.Unlock();
+
                 result = _main.Shared();
 
-                _children.Reset();
+                children.Reset();
 
-                while (_children.Next() == true) {
-                    result += _children.Current().Shared();
+                while (children.Next() == true) {
+                    result += children.Current().Shared();
                 }
             }
 
@@ -451,10 +528,18 @@ namespace WebKitBrowser {
         uint8_t Processes() const override
         {
             // Refresh the children list !!!
+            _adminLock.Lock();
             _children = Core::ProcessInfo::Iterator(_main.Id());
-            return ((_startTime == TimePoint::min()) || (_main.IsActive() == true) ? 1 : 0) + _children.Count();
+            uint32_t nbrchildren = _children.Count();
+            _adminLock.Unlock();
+
+            return ((_startTime == TimePoint::min()) || (_main.IsActive() == true) ? 1 : 0) + nbrchildren;
         }
+#ifdef USE_THUNDER_R4
+        bool IsOperational() const override
+#else
         const bool IsOperational() const override
+#endif
         {
             uint32_t requiredProcesses = 0;
 
@@ -464,20 +549,24 @@ namespace WebKitBrowser {
                 // In the end we check if all bits are 0, what means all mandatory processes are still running.
                 requiredProcesses = (0xFFFFFFFF >> (32 - RequiredChildren));
 
+                _adminLock.Lock();
                 if (_children.Count() < RequiredChildren) {
                     // Refresh the children list !!!
                     _children = Core::ProcessInfo::Iterator(_main.Id());
                 }
-                //!< If there are less children than in the the mandatoryProcesses struct, we are done and return false.
-                if (_children.Count() >= RequiredChildren) {
+                Core::ProcessInfo::Iterator children(_children);
+                _adminLock.Unlock();
 
-                    _children.Reset();
+                //!< If there are less children than in the the mandatoryProcesses struct, we are done and return false.
+                if (children.Count() >= RequiredChildren) {
+
+                    children.Reset();
 
                     //!< loop over all child processes as long as we are operational.
-                    while ((requiredProcesses != 0) && (true == _children.Next())) {
+                    while ((requiredProcesses != 0) && (true == children.Next())) {
 
                         uint8_t count(0);
-                        string name(_children.Current().Name());
+                        string name(children.Current().Name());
 
                         while ((count < RequiredChildren) && (name != mandatoryProcesses[count])) {
                             ++count;
@@ -485,7 +574,7 @@ namespace WebKitBrowser {
 
                         //<! this is a mandatory process and if its still active reset its bit in requiredProcesses.
                         //   If not we are not completely operational.
-                        if ((count < RequiredChildren) && (_children.Current().IsActive() == true)) {
+                        if ((count < RequiredChildren) && (children.Current().IsActive() == true)) {
                             requiredProcesses &= (~(1 << count));
                         }
                     }
@@ -495,8 +584,53 @@ namespace WebKitBrowser {
             return (((requiredProcesses == 0) || (true == IsStarting())) && (true == _main.IsActive()));
         }
 
+#ifdef USE_THUNDER_R4
+        uint32_t Processes(RPC::IStringIterator*& processnames) const override {
+            _adminLock.Lock();
+            if (_children.Count() < RequiredChildren) {
+                // Refresh the children list !!!
+                _children = Core::ProcessInfo::Iterator(_main.Id());
+            }
+            Core::ProcessInfo::Iterator children(_children);
+            _adminLock.Unlock();
+
+            std::list<string> processes;
+            children.Reset();
+            while (children.Next() == true) {
+                processes.push_back(children.Current().Name());
+            }
+
+            processnames = Core::Service<RPC::StringIterator>::Create<RPC::IStringIterator>(processes);
+
+            return Core::ERROR_NONE;
+        }
+
+        uint32_t Process(const string& processname, Exchange::IProcessMemory*& process) const override {
+            uint32_t result = Core::ERROR_UNAVAILABLE;
+            process = nullptr;
+
+            _adminLock.Lock();
+            Core::ProcessInfo::Iterator children(_children);
+            _adminLock.Unlock();
+
+            children.Reset();
+            while (children.Next() == true ) {
+                if (children.Current().Name() == processname ) {
+                    process = Core::Service<ProcessMemoryObserverImpl>::Create<Exchange::IProcessMemory>(children.Current().Id());
+                    result = Core::ERROR_NONE;
+                    break;
+                }
+            }
+
+            return result;
+        }
+#endif
+
         BEGIN_INTERFACE_MAP(MemoryObserverImpl)
         INTERFACE_ENTRY(Exchange::IMemory)
+#ifdef USE_THUNDER_R4
+        INTERFACE_ENTRY(Exchange::IMemoryExtended)
+#endif
         END_INTERFACE_MAP
 
     private:
@@ -509,6 +643,7 @@ namespace WebKitBrowser {
         Core::ProcessInfo _main;
         mutable Core::ProcessInfo::Iterator _children;
         TimePoint _startTime; // !< Reference for monitor
+        mutable Core::CriticalSection _adminLock; // note IMemory could be used from multiple threads (plugins)!!
     };
 
     Exchange::IMemory* MemoryObserver(const RPC::IRemoteConnection* connection)

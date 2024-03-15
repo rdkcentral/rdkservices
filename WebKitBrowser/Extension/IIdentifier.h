@@ -2,7 +2,7 @@
  * If not stated otherwise in this file or this component's LICENSE file the
  * following copyright and licenses apply:
  *
- * Copyright 2023 RDK Management
+ * Copyright 2020 RDK Management
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,11 @@
 #include <wpe/webkit-web-extension.h>
 
 namespace WPEFramework {
-namespace ProcessInfo {
+namespace JavaScript {
+namespace IIdentifier {
 
-void SetProcessName();
+void InjectJS(WebKitScriptWorld* world, WebKitFrame* frame, Core::ProxyType<RPC::CommunicatorClient>& _comClient);
 
-}  // namespace ProcessInfo
-}  // namespace WPEFramework
+}  // IIdentifier
+}  // JavaScript
+}  // WPEFramework

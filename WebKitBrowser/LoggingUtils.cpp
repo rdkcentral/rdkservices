@@ -55,8 +55,9 @@ bool RedirectAllLogsToService(const string& target_service)
   // Add all threads of current process to target systemd cgroup
   WPEFramework::Core::Directory taskDir("/proc/self/task");
   while (taskDir.Next() == true) {
-    if (taskDir.Name() == "." || taskDir.Name() == "..")
+    if (taskDir.Name() == "." || taskDir.Name() == "..") {
       continue;
+    }
     FILE* f = fopen(kSystemdCgroupTargetTasksFilePath.c_str(), "a");
     if (f) {
       fprintf(f, "%s", taskDir.Name().c_str());

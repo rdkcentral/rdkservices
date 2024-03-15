@@ -91,7 +91,9 @@ public:
         : _engine(Core::ProxyType<RPC::InvokeServerType<2, 0, 4>>::Create())
         , _comClient(Core::ProxyType<RPC::CommunicatorClient>::Create(GetConnectionNode(), Core::ProxyType<Core::IIPCServer>(_engine)))
     {
+#ifndef USE_THUNDER_R4
         _engine->Announcements(_comClient->Announcement());
+#endif
     }
     ~PluginHost()
     {
@@ -100,15 +102,24 @@ public:
     }
 
 public:
+#ifdef USE_THUNDER_R4
+    void Initialize(WKBundleRef)
+#else
     void Initialize(WKBundleRef bundle, const void* userData = nullptr)
+#endif
     {
+        ASSERT(_comClient.IsValid() == true);
         // We have something to report back, do so...
         uint32_t result = _comClient->Open(RPC::CommunicationTimeOut);
         if (result != Core::ERROR_NONE) {
             TRACE(Trace::Error, (_T("Could not open connection to node %s. Error: %s"), _comClient->Source().RemoteId().c_str(), Core::NumberType<uint32_t>(result).Text().c_str()));
         } else {
             // Due to the LXC container support all ID's get mapped. For the TraceBuffer, use the host given ID.
+#ifndef USE_THUNDER_R4
             Trace::TraceUnit::Instance().Open(_comClient->ConnectionId());
+#else
+            Messaging::MessageUnit::Instance().Open(_comClient->ConnectionId());
+#endif
         }
         _whiteListedOriginDomainPairs = WhiteListedOriginDomainsList::RequestFromWPEFramework();
 
@@ -122,9 +133,18 @@ public:
 #if defined(UPDATE_TZ_FROM_FILE)
         _tzSupport.Deinitialize();
 #endif
+
+#ifdef USE_THUNDER_R4
+        Messaging::MessageUnit::Instance().Close();
+#endif
+
         if (_comClient.IsValid() == true) {
             _comClient.Release();
         }
+        if (_engine.IsValid() == true) {
+            _engine.Release();
+        }
+
         Core::Singleton::Dispose();
     }
 
@@ -268,7 +288,7 @@ static WKBundlePageLoaderClientV6 s_pageLoaderClient = {
     nullptr, // didDisplayInsecureContentForFrame
     nullptr, // didRunInsecureContentForFrame
     // didClearWindowObjectForFrame
-    [](WKBundlePageRef page, WKBundleFrameRef frame, WKBundleScriptWorldRef scriptWorld, const void*) {
+    [](WKBundlePageRef /* page */, WKBundleFrameRef frame, WKBundleScriptWorldRef scriptWorld, const void*) {
         bool isMainCtx = (WKBundleFrameGetJavaScriptContext(frame) == WKBundleFrameGetJavaScriptContextForWorld(frame, scriptWorld));
         if (isMainCtx) {
             #if defined(ENABLE_AAMP_JSBINDINGS)
@@ -333,11 +353,15 @@ static WKBundlePageUIClientV4 s_pageUIClient = {
     nullptr, // unused5
     nullptr, // didClickAutoFillButton
     //willAddDetailedMessageToConsole
-    [](WKBundlePageRef page, WKConsoleMessageSource source, WKConsoleMessageLevel level, WKStringRef message, uint32_t lineNumber,
-        uint32_t columnNumber, WKStringRef url, const void* clientInfo) {
+    [](WKBundlePageRef /* page */, WKConsoleMessageSource /* source */, WKConsoleMessageLevel /* level */, WKStringRef message, uint32_t /* lineNumber */,
+        uint32_t /* columnNumber */, WKStringRef /* url */, const void* /* clientInfo */) {
         auto prepareMessage = [&]() {
             string messageString = WebKit::Utils::WKStringToString(message);
+#ifndef USE_THUNDER_R4
             const uint16_t maxStringLength = Trace::TRACINGBUFFERSIZE - 1;
+#else
+            const uint16_t maxStringLength = Messaging::MessageUnit::DataSize - 1;
+#endif
             if (messageString.length() > maxStringLength) {
                 messageString = messageString.substr(0, maxStringLength);
             }
@@ -346,7 +370,8 @@ static WKBundlePageUIClientV4 s_pageUIClient = {
 
         // TODO: use "Trace" classes for different levels.
         TRACE_GLOBAL(Trace::Information, (prepareMessage()));
-    }
+    },
+    nullptr // didResignInputElementStrongPasswordAppearance
 };
 
 static WKURLRequestRef willSendRequestForFrame(
@@ -387,7 +412,7 @@ static WKBundlePageResourceLoadClientV0 s_resourceLoadClient = {
 static WKBundleClientV1 s_bundleClient = {
     { 1, nullptr },
     // didCreatePage
-    [](WKBundleRef bundle, WKBundlePageRef page, const void* clientInfo) {
+    [](WKBundleRef bundle, WKBundlePageRef page, const void* /* clientInfo */) {
         // Register page loader client, for javascript callbacks.
         WKBundlePageSetPageLoaderClient(page, &s_pageLoaderClient.base);
 

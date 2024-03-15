@@ -37,6 +37,10 @@
 #include "SecurityAgent.h"
 #endif
 
+#if defined(ENABLE_IIDENTIFIER)
+#include "IIdentifier.h"
+#endif
+
 #if defined(ENABLE_BADGER_BRIDGE)
 #include "BridgeObject.h"
 #endif
@@ -47,10 +51,6 @@
 
 #if defined(UPDATE_TZ_FROM_FILE)
 #include "TimeZoneSupport.h"
-#endif
-
-#if defined(ENABLE_CUSTOM_PROCESS_INFO)
-#include "ProcessInfo.h"
 #endif
 
 using namespace WPEFramework;
@@ -73,8 +73,11 @@ public:
     PluginHost()
         : _engine(Core::ProxyType<RPC::InvokeServerType<2, 0, 4>>::Create())
         , _comClient(Core::ProxyType<RPC::CommunicatorClient>::Create(GetConnectionNode(), Core::ProxyType<Core::IIPCServer>(_engine)))
+        , _extension(nullptr)
     {
+#ifndef USE_THUNDER_R4
         _engine->Announcements(_comClient->Announcement());
+#endif
     }
     ~PluginHost()
     {
@@ -85,31 +88,39 @@ public:
 public:
     void Initialize(WebKitWebExtension* extension, const void* userData)
     {
+        ASSERT(_comClient.IsValid() == true);
         // We have something to report back, do so...
         uint32_t result = _comClient->Open(RPC::CommunicationTimeOut);
         if (result != Core::ERROR_NONE) {
             TRACE(Trace::Error, (_T("Could not open connection to node %s. Error: %s"), _comClient->Source().RemoteId(), Core::NumberType<uint32_t>(result).Text()));
         } else {
             // Due to the LXC container support all ID's get mapped. For the TraceBuffer, use the host given ID.
+#ifndef USE_THUNDER_R4
             Trace::TraceUnit::Instance().Open(_comClient->ConnectionId());
+#else
+            Messaging::MessageUnit::Instance().Open(_comClient->ConnectionId());
+#endif
         }
 
         _extension = WEBKIT_WEB_EXTENSION(g_object_ref(extension));
         _logToSystemConsoleEnabled = FALSE;
 
-        const char *uid;
-        const char *whitelist;
+        const char *uid = nullptr;
+        const char *whitelist = nullptr;
 
-        g_variant_get((GVariant*) userData, "(&sm&sb)", &uid, &whitelist, &_logToSystemConsoleEnabled);
+        if (userData) {
+            g_variant_get((GVariant*) userData, "(&sm&sb)", &uid, &whitelist, &_logToSystemConsoleEnabled);
+        }
 
-        if (_logToSystemConsoleEnabled && Core::SystemInfo::GetEnvironment(string(_T("CLIENT_IDENTIFIER")), _consoleLogPrefix))
+        if (_logToSystemConsoleEnabled && Core::SystemInfo::GetEnvironment(string(_T("CLIENT_IDENTIFIER")), _consoleLogPrefix)) {
           _consoleLogPrefix = _consoleLogPrefix.substr(0, _consoleLogPrefix.find(','));
+        }
 
         g_signal_connect(
           webkit_script_world_get_default(),
           "window-object-cleared",
           G_CALLBACK(windowObjectClearedCallback),
-          nullptr);
+          this);
 
         g_signal_connect(
           extension,
@@ -128,7 +139,11 @@ public:
         _tzSupport.Initialize();
 #endif
 #ifdef ENABLE_CUSTOM_PROCESS_INFO
-        ProcessInfo::SetProcessName();
+        std::string processName;
+        Core::SystemInfo::GetEnvironment(std::string(_T("PROCESS_NAME")), processName);
+        if (processName.empty() != true) {
+            Core::ProcessInfo().Name(processName);
+        }
 #endif
     }
 
@@ -149,13 +164,17 @@ public:
     }
 
 private:
-    static void windowObjectClearedCallback(WebKitScriptWorld* world, WebKitWebPage* page, WebKitFrame* frame)
+    static void windowObjectClearedCallback(WebKitScriptWorld* world, WebKitWebPage* page, WebKitFrame* frame, PluginHost* host)
     {
         JavaScript::Milestone::InjectJS(world, frame);
         JavaScript::NotifyWPEFramework::InjectJS(world, frame);
 
 #ifdef  ENABLE_SECURITY_AGENT
         JavaScript::SecurityAgent::InjectJS(world, frame);
+#endif
+
+#ifdef  ENABLE_IIDENTIFIER
+        JavaScript::IIdentifier::InjectJS(world, frame, host->_comClient);
 #endif
 
 #ifdef  ENABLE_BADGER_BRIDGE
@@ -171,6 +190,7 @@ private:
                                     WebKitWebPage* page,
                                     PluginHost* host)
     {
+        ASSERT(host != nullptr);
         if (host->_logToSystemConsoleEnabled) {
             g_signal_connect(page, "console-message-sent",
                 G_CALLBACK(consoleMessageSentCallback), host);
@@ -187,6 +207,7 @@ private:
     }
     static void consoleMessageSentCallback(VARIABLE_IS_NOT_USED WebKitWebPage* page, WebKitConsoleMessage* message, PluginHost* host)
     {
+        ASSERT(host != nullptr);
         string messageString = Core::ToString(webkit_console_message_get_text(message));
         uint64_t line = static_cast<uint64_t>(webkit_console_message_get_line(message));
 
@@ -200,7 +221,7 @@ private:
         }
 #if defined(ENABLE_BADGER_BRIDGE)
         else if ((g_strcmp0(name, Tags::BridgeObjectReply) == 0)
-              || (g_strcmp0(name, Tags::BridgeObjectEvent) == 0)) {
+                || (g_strcmp0(name, Tags::BridgeObjectEvent) == 0)) {
             JavaScript::BridgeObject::HandleMessageToPage(page, name, message);
         }
 #endif
@@ -215,8 +236,9 @@ private:
 #ifdef  ENABLE_AAMP_JSBINDINGS
     static gboolean didStartProvisionalLoadForFrame(WebKitWebPage* page, WebKitFrame* frame)
     {
-      if (webkit_frame_is_main_frame(frame))
+      if (webkit_frame_is_main_frame(frame)) {
           JavaScript::AAMP::UnloadJSBindings(webkit_script_world_get_default(), frame);
+      }
       return FALSE;
     }
 #endif

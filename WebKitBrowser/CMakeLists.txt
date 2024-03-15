@@ -20,8 +20,10 @@ project(WebKitBrowser)
 cmake_minimum_required(VERSION 3.3)
 
 find_package(WPEFramework)
+project_version(1.0.0)
 
 set(PLUGIN_NAME WebKitBrowser)
+
 set(MODULE_NAME ${NAMESPACE}${PROJECT_NAME})
 
 message("Setup ${MODULE_NAME} v${PROJECT_VERSION}")
@@ -73,8 +75,8 @@ set(PLUGIN_WEBKITBROWSER_MSEBUFFERS "audio:2m,video:15m,text:1m" CACHE STRING "M
 set(PLUGIN_WEBKITBROWSER_DISKCACHE "0" CACHE STRING "Disk Cache")
 set(PLUGIN_WEBKITBROWSER_XHRCACHE "true" CACHE STRING "XHR Cache")
 set(PLUGIN_WEBKITBROWSER_EXTENSION_DIRECTORY "Extension" CACHE STRING "Directory to store extension libraries")
-set(PLUGIN_WEBKITBROWSER_LOCALSTORAGE "" CACHE STRING "HTML5 local storage path")
-set(PLUGIN_WEBKITBROWSER_COOKIESTORAGE "" CACHE STRING "Browser cookie storage path")
+set(PLUGIN_WEBKITBROWSER_LOCALSTORAGE "%persistentpath%" CACHE STRING "HTML5 local storage path")
+set(PLUGIN_WEBKITBROWSER_COOKIESTORAGE "%persistentpath%" CACHE STRING "Browser cookie storage path")
 set(PLUGIN_WEBKITBROWSER_WINDOWCLOSE "false" CACHE STRING "Allow window close")
 set(PLUGIN_WEBKITBROWSER_WEBGL "true" CACHE STRING "Enable WebGL")
 set(PLUGIN_WEBKITBROWSER_RESOLUTION "720p" CACHE STRING "Browser resolution")
@@ -84,7 +86,7 @@ set(PLUGIN_WEBKITBROWSER_LOCALSTORAGE_ENABLE "true" CACHE STRING "Enable LocalSt
 set(PLUGIN_WEBKITBROWSER_THUNDER_DECRYPTOR_PREFERENCE "true" CACHE STRING "Enable Thunder decryptor preference in WebKit")
 set(PLUGIN_WEBKITBROWSER_PERSISTENTPATHPOSTFIX "" CACHE STRING "Specify callsign persistent path postfix")
 set(PLUGIN_WEBKITBROWSER_PTSOFFSET "0" CACHE STRING "Set ptsoffset for webkit")
-set(PLUGIN_WEBKITBROWSER_USE_EXACT_PATHS "false" CACHE STRING "Use paths specified in configuration options without further modifying them") 
+set(PLUGIN_WEBKITBROWSER_USE_EXACT_PATHS "false" CACHE STRING "Use paths specified in configuration options without further modifying them")
 
 set(PLUGIN_YOUTUBE_AUTOSTART "false" CACHE STRING "Automatically start Youtube plugin")
 set(PLUGIN_YOUTUBE_STARTUPORDER "" CACHE STRING "To configure startup order of YouTube plugin")
@@ -344,51 +346,91 @@ else()
     set(PLUGIN_YOUTUBE_WIDTH ${PLUGIN_WEBKITBROWSER_WIDTH})
 endif()
 
-write_config( ${PLUGIN_NAME} )
+if(USE_THUNDER_R4)
+    write_config( PLUGINS ${PROJECT_NAME} )
+else()
+    write_config( ${PROJECT_NAME} )
+endif(USE_THUNDER_R4)
 
 # youtube configuration
 if(PLUGIN_WEBKITBROWSER_YOUTUBE)
+if(USE_THUNDER_R4)
+    write_config( PLUGINS YouTube )
+else()
     write_config( YouTube )
+endif(USE_THUNDER_R4)
 endif()
 
 # amazon configuration
 if(PLUGIN_AMAZON_HYBRID)
+if(USE_THUNDER_R4)
+    write_config( PLUGINS Amazon )
+else()
     write_config( Amazon )
+endif(USE_THUNDER_R4)
 endif()
 
 # Applications instance configuration
 if(PLUGIN_WEBKITBROWSER_APPS)
+if(USE_THUNDER_R4)
+    write_config( PLUGINS Apps )
+else()
     write_config( Apps )
+endif(USE_THUNDER_R4)
 endif()
 
 # UX configuration
 if(PLUGIN_WEBKITBROWSER_UX)
+if(USE_THUNDER_R4)
+    write_config( PLUGINS UX )
+else()
     write_config( UX )
+endif(USE_THUNDER_R4)
 endif()
 
 # Search&Discovery configuration
 if(PLUGIN_WEBKITBROWSER_SEARCH_AND_DISCOVERY_APP)
+if(USE_THUNDER_R4)
+    write_config( PLUGINS SearchAndDiscoveryApp )
+else()
     write_config( SearchAndDiscoveryApp )
+endif(USE_THUNDER_R4)
 endif()
 
 # Html App configuration
 if(PLUGIN_WEBKITBROWSER_HTML_APP)
+if(USE_THUNDER_R4)
+    write_config( PLUGINS HtmlApp )
+else()
     write_config( HtmlApp )
+endif(USE_THUNDER_R4)
 endif()
 
 # Lightning App configuration
 if(PLUGIN_WEBKITBROWSER_LIGHTNING_APP)
+if(USE_THUNDER_R4)
+    write_config( PLUGINS LightningApp )
+else()
     write_config( LightningApp )
+endif(USE_THUNDER_R4)
 endif()
 
 # JSPP configuration
 if(PLUGIN_WEBKITBROWSER_JSPP)
+if(USE_THUNDER_R4)
+    write_config( PLUGINS JSPP )
+else()
     write_config( JSPP )
+endif(USE_THUNDER_R4)
 endif()
 
 # Resident App configuration
 if(PLUGIN_WEBKITBROWSER_RESIDENT_APP)
+if(USE_THUNDER_R4)
+    write_config( PLUGINS ResidentApp )
+else()
     write_config( ResidentApp )
+endif(USE_THUNDER_R4)
 endif()
 
 if(PLUGINS_CREATE_IPKG_TARGETS)

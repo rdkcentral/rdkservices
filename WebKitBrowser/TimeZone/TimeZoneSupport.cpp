@@ -32,8 +32,9 @@ namespace WPEFramework {
 namespace TZ {
 
     void trim(std::string &str) {
-        if (str.empty())
+        if (str.empty()) {
             return;
+        }
 
         gchar *tmp = g_strdup(str.c_str());
         str = std::string(g_strstrip(tmp));
@@ -47,14 +48,14 @@ namespace TZ {
             gsize length = 0;
 
             auto result = g_file_load_contents(file, nullptr, &content, &length, nullptr, nullptr);
-            if(result && content && length > 0) {
+            if (result && content && length > 0) {
                 std::string timeZone(content);
                 trim(timeZone);
 
                 if (timeZone != tzSupport->_previousTimeZone) {
                     tzSupport->_previousTimeZone = timeZone;
                     timeZone = ":" + timeZone;
-                    SYSLOG(Trace::Information, (_T("TimeZone is updated to \"%s\" from \"%s\" file"), timeZone.c_str(), tzSupport->_tzFile.c_str()));
+                    SYSLOG(Logging::Notification, (_T("TimeZone is updated to \"%s\" from \"%s\" file"), timeZone.c_str(), tzSupport->_tzFile.c_str()));
                     Core::SystemInfo::SetEnvironment(_T("TZ"), _T(timeZone), true);
                     tzset();
                 }
@@ -75,8 +76,8 @@ namespace TZ {
 
     void TimeZoneSupport::Initialize()
     {
-        if(_tzFile.empty()) {
-            SYSLOG(Trace::Warning, (_T("Invalid file input for TZ update")));
+        if (_tzFile.empty()) {
+            SYSLOG(Logging::Error, (_T("Invalid file input for TZ update")));
             return;
         }
 
@@ -84,12 +85,13 @@ namespace TZ {
         trim(_previousTimeZone);
 
         GFile *file = g_file_new_for_path(_tzFile.c_str());
-        if(g_file_query_exists(file, nullptr))
+        if (g_file_query_exists(file, nullptr)) {
             HandleTimeZoneFileUpdate(nullptr, file, nullptr, G_FILE_MONITOR_EVENT_CHANGES_DONE_HINT, this);
+        }
 
         _timeZoneFileMonitor = g_file_monitor_file(file, G_FILE_MONITOR_NONE, nullptr, nullptr);
         _timeZoneFileMonitorId = g_signal_connect(_timeZoneFileMonitor, "changed", reinterpret_cast<GCallback>(HandleTimeZoneFileUpdate), this);
-        SYSLOG(Trace::Information, (_T("Installed file monitor for \"%s\""), _tzFile.c_str()));
+        SYSLOG(Logging::Notification, (_T("Installed file monitor for \"%s\""), _tzFile.c_str()));
 
         g_object_unref(file);
     }
@@ -97,8 +99,9 @@ namespace TZ {
     void TimeZoneSupport::Deinitialize()
     {
         if (_timeZoneFileMonitor) {
-            if (_timeZoneFileMonitorId > 0)
+            if (_timeZoneFileMonitorId > 0) {
                 g_signal_handler_disconnect(_timeZoneFileMonitor, _timeZoneFileMonitorId);
+            }
 
             g_object_unref(_timeZoneFileMonitor);
             _timeZoneFileMonitor = nullptr;
