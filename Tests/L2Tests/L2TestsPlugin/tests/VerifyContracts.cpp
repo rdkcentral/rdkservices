@@ -169,29 +169,19 @@ class CTVerifierMain : public CTVerifier_CallMocks {
 
 TEST_F(CTVerifierMain, VerifyContractsOnAllPlugins)
 {
-
-    char const *l_act = getenv("ACT");
-    if (l_act == NULL)
-    {
-        std::cout << "ACT is NULL\n";
-    }
-    else
-    {
-        std::cout << "ACT: " << l_act << "\n";
-    }
-
-    char const *l_token = getenv("PACTFLOW_TOKEN");
-    if (l_token == NULL)
+    char const *pact_token = getenv("PACTFLOW_TOKEN");
+    string pact_token_str = "";
+    if (pact_token == NULL)
     {
         std::cout << "PACTFLOW_TOKEN is NULL\n";
     }
     else
     {
-        std::cout << "PACTFLOW_TOKEN: " << l_token << "\n";
+        std::string s(pact_token);
+        pact_token_str = s;
+        std::cout << "PACTFLOW_TOKEN: " << pact_token_str << "\n";
     }
 
-    //cout current directory
-    // system("pwd");
     //get short hash from long hash in GITHUB_SHA
     string git_hash_str = "";
     char const *l_hash = getenv("GITHUB_SHA");
@@ -212,15 +202,20 @@ TEST_F(CTVerifierMain, VerifyContractsOnAllPlugins)
 
     string pact_verify_cmd = "~/bin/pact_verifier_cli ";
     pact_verify_cmd += "--loglevel=info --provider-name=rdk_service ";
-    pact_verify_cmd += "--broker-url=https://skyai.pactflow.io --token=gT7_sLzGNs-ElhMY2pDkBQ ";
+    pact_verify_cmd += "--broker-url=https://skyai.pactflow.io --token=" + pact_token_str + " ";
     pact_verify_cmd += "--hostname=127.0.0.1 --port=9998 ";
     pact_verify_cmd += "--transport=websocket --publish ";
     pact_verify_cmd += "--provider-version=0.1.0-" + git_hash_str + " --provider-branch=test-github-rdkv ";
     pact_verify_cmd += "--filter-consumer ripple ";
-    pact_verify_cmd += "--json results-pact.json ";
+    pact_verify_cmd += "--json contract-test-results.json ";
     //pact_verify_cmd += R"(--consumer-version-selectors="{\"tag\": \"0.1.0-4a18973\", \"latest\": true}" )";
     pact_verify_cmd += R"(--consumer-version-selectors="{\"mainBranch\": true}" )";
 
+    if(pact_token_str.empty())
+    {
+        cout << "PACTFLOW_TOKEN is empty, don't run contract tests\n";
+        return;
+    }
     cout << "pact_verify_cmd: " << pact_verify_cmd << "\n";
     int stat = system(pact_verify_cmd.c_str());
     cout << "pact_verify_cmd stat: " << stat << "\n";

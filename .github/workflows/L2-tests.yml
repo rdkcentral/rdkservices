@@ -288,13 +288,19 @@ jobs:
           sudo chmod +x ~/.pact/plugins/websockets-0.4.1/pact-plugin-websockets &&
           PATH=${{github.workspace}}/install/usr/bin:${PATH}
           ${{github.workspace}}/rdkservices/Tests/L2Tests/pact/install-verifier-cli.sh
+
       - name: Run unit tests without valgrind
+        env:
+          PACTFLOW_TOKEN: ${{ secrets.PACTFLOW_TOKEN }}
+        if: ${{ env.ACT }}
         run: >
           PATH=${{github.workspace}}/install/usr/bin:${PATH}
           LD_LIBRARY_PATH=${{github.workspace}}/install/usr/lib:${{github.workspace}}/install/usr/lib/wpeframework/plugins:${LD_LIBRARY_PATH}
           RdkServicesL2Test
 
       - name: Run unit tests with valgrind
+        env:
+          PACTFLOW_TOKEN: ${{ secrets.PACTFLOW_TOKEN }}
         if: ${{ !env.ACT }}
         run: >
           PATH=${{github.workspace}}/install/usr/bin:${PATH}
@@ -340,10 +346,12 @@ jobs:
             valgrind_log
           if-no-files-found: warn
 
-      - name: get github secret
-        env:
-          GITHUB_PACT_TOKEN: ${{ secrets.PACTFLOW_TOKEN }}
-        run: >
-          echo ${{secrets.PACTFLOW_TOKEN}} | sed 's/./& /g'
-          &&
-          echo "hello world"
+      - name: Upload contract test results
+        if: ${{ !env.ACT }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: Contract test results
+          path: |
+            contract-test-results.json
+          compression-level: 0 # no compression
+          if-no-files-found: warn
