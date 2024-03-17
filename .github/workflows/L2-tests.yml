@@ -353,5 +353,4 @@ jobs:
           name: Contract test results
           path: |
             contract-test-results.json
-          compression-level: 0 # no compression
           if-no-files-found: warn
