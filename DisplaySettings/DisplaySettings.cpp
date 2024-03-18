@@ -5130,7 +5130,10 @@ void DisplaySettings::sendMsgThread()
                                 	aPort.setStereoMode(mode.toString(), true);
                             	    }
 			      } else { // SAD received before setEnableAudioPort
-			            LOGINFO("%s: Not updating SAD now since arc routing has not yet happened and SAD timer is not active -> Routing and SAD is updated when setEnableAudioPort is called \n", __FUNCTION__);
+			             // LOGINFO("%s: Not updating SAD now since arc routing has not yet happened and SAD timer is not active -> Routing and SAD is updated when setEnableAudioPort is called \n", __FUNCTION__);
+				     LOGINFO("%s: Updating SAD after the retrigger of SAD request\n", __FUNCTION__);
+				     m_AudioDeviceSADState = AUDIO_DEVICE_SAD_UPDATED;
+				     aPort.setSAD(sad_list);
 			      }
 			}else {
 				LOGINFO("%s: m_currentArcRoutingState = %d, m_arcEarcAudioEnabled = %d", __FUNCTION__, m_currentArcRoutingState, m_arcEarcAudioEnabled);
