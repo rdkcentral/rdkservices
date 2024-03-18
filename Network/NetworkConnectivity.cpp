@@ -178,9 +178,9 @@ namespace WPEFramework {
         else
         {
             if(isConnectivityMonitorEndpointSet())
-                internetState = testConnectivity(getConnectivityMonitorEndpoints(), 5000, ipversion);
+                internetState = testConnectivity(getConnectivityMonitorEndpoints(), 10000, ipversion);
             else
-                internetState = testConnectivity(getConnectivityDefaultEndpoints(), 5000, ipversion);
+                internetState = testConnectivity(getConnectivityDefaultEndpoints(), 10000, ipversion);
         }
 
         return internetState;
@@ -237,7 +237,8 @@ namespace WPEFramework {
 
     static bool curlVerboseEnabled() {
         std::ifstream fileStream("/tmp/network.plugin.debug");
-        return fileStream.is_open();
+        //return fileStream.is_open();
+        return true;
     }
 
     static long current_time ()
@@ -308,7 +309,7 @@ namespace WPEFramework {
     #if LIBCURL_VERSION_NUM < 0x074200
         int numfds, repeats = 0;
     #endif
-        char *endpoint;
+        char *endpoint = nullptr;
         while (1)
         {
             if (CURLM_OK != (mc = curl_multi_perform(curl_multi_handle, &handles)))
@@ -334,8 +335,8 @@ namespace WPEFramework {
                         }
                     }
                 }
-                //else
-                //    LOGERR("endpoint = <%s> error = %d (%s)", endpoint, msg->data.result, curl_easy_strerror(msg->data.result));
+                else
+                    LOGERR("endpoint = <%s> error = %d (%s)", endpoint, msg->data.result, curl_easy_strerror(msg->data.result));
                 http_responses.push_back(response_code);
             }
             time_earlier = time_now;
@@ -364,10 +365,12 @@ namespace WPEFramework {
             }
     #endif
         }
+
         if(curlVerboseEnabled()) {
             LOGINFO("endpoints count = %d response count %d, handles = %d, deadline = %ld, time_now = %ld, time_earlier = %ld",
                 static_cast<int>(endpoints.size()), static_cast<int>(http_responses.size()), handles, deadline, time_now, time_earlier);
         }
+
         for (const auto& curl_easy_handle : curl_easy_handles)
         {
             curl_easy_getinfo(curl_easy_handle, CURLINFO_PRIVATE, &endpoint);
@@ -501,7 +504,7 @@ namespace WPEFramework {
         nsm_internetState InternetConnectionState = nsm_internetState::UNKNOWN;
         while (!stopFlag)
         {
-            InternetConnectionState = testConnectivity(getConnectivityMonitorEndpoints(), 5000, NSM_IPRESOLVE_WHATEVER);
+            InternetConnectionState = testConnectivity(getConnectivityMonitorEndpoints(), 10000, NSM_IPRESOLVE_WHATEVER);
             if(g_internetState.load() != InternetConnectionState)
             {
                 g_internetState.store(InternetConnectionState);
