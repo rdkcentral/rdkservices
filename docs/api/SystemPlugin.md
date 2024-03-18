@@ -2,7 +2,7 @@
 <a name="System_Plugin"></a>
 # System Plugin
 
-**Version: [2.0.2](https://github.com/rdkcentral/rdkservices/blob/main/SystemServices/CHANGELOG.md)**
+**Version: [2.1.0](https://github.com/rdkcentral/rdkservices/blob/main/SystemServices/CHANGELOG.md)**
 
 A org.rdk.System plugin for Thunder framework.
 
@@ -118,6 +118,7 @@ SystemServices interface methods:
 | [uploadLogs](#uploadLogs) | Uploads logs to a URL returned by SSR |
 | [uploadLogsAsync](#uploadLogsAsync) | Starts background process to upload logs |
 | [abortLogUpload](#abortLogUpload) | Stops background process to upload logs |
+| [getThunderStartReason](#getThunderStartReason) | Returns the Thunder start reason |
 
 
 <a name="cacheContains"></a>
@@ -3746,6 +3747,52 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
+        "success": true
+    }
+}
+```
+
+<a name="getThunderStartReason"></a>
+## *getThunderStartReason*
+
+Returns the Thunder start reason.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.startReason | string | Thunder start reason (must be one of the following: *NORMAL*, *RESTART*) |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.getThunderStartReason"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "startReason": "NORMAL",
         "success": true
     }
 }
