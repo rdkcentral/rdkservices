@@ -53,7 +53,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 4
-#define API_VERSION_NUMBER_PATCH 15
+#define API_VERSION_NUMBER_PATCH 16
 
 const string WPEFramework::Plugin::RDKShell::SERVICE_NAME = "org.rdk.RDKShell";
 //methods
@@ -7098,6 +7098,11 @@ namespace WPEFramework {
                 {
                   keyClient = keyInputInfo.HasLabel("callsign")? keyInputInfo["callsign"].String(): "";
                 }
+		double duration = 0.0;
+                if (keyInputInfo.HasLabel("duration"))
+                {
+                    duration = keyInputInfo["duration"].Number();
+                }
                 lockRdkShellMutex();
 		bool targetFound = false;
                 if (keyClient != "")
@@ -7112,7 +7117,14 @@ namespace WPEFramework {
                 }
                 if (targetFound || keyClient == "")
                 {
-                  ret = CompositorController::generateKey(keyClient, keyCode, flags, virtualKey);
+		    if (duration > 0.0)
+                    {
+                        ret = CompositorController::generateKey(keyClient, keyCode, flags, virtualKey, duration);
+                    }
+                    else
+                    {
+                        ret = CompositorController::generateKey(keyClient, keyCode, flags, virtualKey);
+                    }
                 }
                 gRdkShellMutex.unlock();
             }
