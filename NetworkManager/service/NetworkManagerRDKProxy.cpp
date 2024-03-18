@@ -1,6 +1,7 @@
 #include "NetworkManagerImplementation.h"
 #include "WifiSignalStrengthMonitor.h"
 #include "libIBus.h"
+#include "UtilsJsonRpc.h"
 
 using namespace WPEFramework;
 using namespace WPEFramework::Plugin;
@@ -1159,6 +1160,40 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             if(IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_getCurrentState, (void *)&param, sizeof(param)))
             {
                 state = to_wifi_state(param.data.wifiStatus);
+                rc = Core::ERROR_NONE;
+            }
+            return rc;
+        }
+
+        uint32_t NetworkManagerImplementation::SetEnabled(const bool enable, const bool persist)
+        {
+            LOG_ENTRY_FUNCTION();
+
+            uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
+            IARM_BUS_NetSrvMgr_Iface_EventData_t param;
+            memset(&param, 0, sizeof(param));
+
+            strncpy(param.setInterface, "WIFI", INTERFACE_SIZE - 1);
+            param.isInterfaceEnabled = enable;
+            param.persist = persist;
+
+            // disables wifi interface when ethernet interface is active
+            IARM_Result_t retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled, (void *)&param, sizeof(param));
+
+#if 0
+            // Update wifi state cache if wifi interface was disabled
+            if (retVal == IARM_RESULT_SUCCESS && !param.isInterfaceEnabled) {
+                setWifiStateCache(true, WifiState::DISABLED);
+            }
+
+            // Update wifi state cache if wifi interface was enabled
+            else if (retVal == IARM_RESULT_SUCCESS && param.isInterfaceEnabled == true) {
+                setWifiStateCache(true, WifiState::DISCONNECTED);
+            }
+#endif
+
+            if(retVal == IARM_RESULT_SUCCESS)
+            {
                 rc = Core::ERROR_NONE;
             }
             return rc;
