@@ -2,7 +2,7 @@
 <a name="Telemetry_Plugin"></a>
 # Telemetry Plugin
 
-**Version: [1.2.1](https://github.com/rdkcentral/rdkservices/blob/main/Telemetry/CHANGELOG.md)**
+**Version: [1.2.2](https://github.com/rdkcentral/rdkservices/blob/main/Telemetry/CHANGELOG.md)**
 
 A org.rdk.Telemetry plugin for Thunder framework.
 

@@ -2,7 +2,7 @@
 <a name="DTV_Plugin"></a>
 # DTV Plugin
 
-**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/DTV/CHANGELOG.md)**
+**Version: [1.0.3](https://github.com/rdkcentral/rdkservices/blob/main/DTV/CHANGELOG.md)**
 
 A DTV plugin for Thunder framework.
 
