@@ -812,22 +812,24 @@ namespace WPEFramework
             LOGINFOMETHOD();
             uint32_t rc = Core::ERROR_GENERAL;
             string wps_pin{};
+            Exchange::INetworkManager::WiFiWPS method;
 
             if (parameters.HasLabel("method"))
             {
-                Exchange::INetworkManager::WiFiWPS method = static_cast <Exchange::INetworkManager::WiFiWPS> (parameters["method"].Number());
-
-                if ((Exchange::INetworkManager::WIFI_WPS_PIN == method) && parameters.HasLabel("wps_pin"))
-                {
-                    wps_pin = parameters["wps_pin"].String();
-                
-                    if (_NetworkManager)
-                        rc = _NetworkManager->StartWPS(method, wps_pin);
-                    else
-                        rc = Core::ERROR_UNAVAILABLE;
-            
-                }
+                method = static_cast <Exchange::INetworkManager::WiFiWPS> (parameters["method"].Number());
             }
+            else
+                method = Exchange::INetworkManager::WIFI_WPS_PBC;
+
+            if ((Exchange::INetworkManager::WIFI_WPS_PIN == method) && parameters.HasLabel("wps_pin"))
+            {
+                wps_pin = parameters["wps_pin"].String();
+            }
+
+            if (_NetworkManager)
+                rc = _NetworkManager->StartWPS(method, wps_pin);
+            else
+                rc = Core::ERROR_UNAVAILABLE;
 
             if (Core::ERROR_NONE == rc)
             {
