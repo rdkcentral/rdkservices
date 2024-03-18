@@ -31,4 +31,4 @@ const char* const BridgeObjectReply = "BridgeObjectReply";
 const char* const BridgeObjectEvent = "BridgeObjectEvent";
 const char* const Headers = "Headers";
 
-} } ;
+} }

@@ -1,0 +1,181 @@
+precondition = ["Internet"]
+autostart = "@PLUGIN_AMAZON_AUTOSTART@"
+startuporder = "@PLUGIN_AMAZON_STARTUPORDER@"
+
+configuration = JSON()
+
+configuration.add("url", "@PLUGIN_AMAZON_STARTURL@")
+configuration.add("useragent", "@PLUGIN_AMAZON_USERAGENT@")
+
+if not boolean("@WEBKIT_GLIB_API@"):
+    configuration.add("injectedbundle", "libWPEInjectedBundle@CMAKE_SHARED_LIBRARY_SUFFIX@")
+else:
+    configuration.add("extensiondir", "@PLUGIN_WEBKITBROWSER_EXTENSION_DIRECTORY@")
+
+configuration.add("transparent", "@PLUGIN_AMAZON_TRANSPARENT@")
+configuration.add("compositor", "noaa")
+configuration.add("inspector", "@PLUGIN_AMAZON_WEBINSPECTOR_ADDRESS@")
+configuration.add("fps", "true")
+configuration.add("cursor", "false")
+
+bundle = JSON()
+hawaii = JSON()
+
+hawaii.add("displayWidth", "1280")
+hawaii.add("displayHeight", "720")
+hawaii.add("panelWidth", "1280")
+hawaii.add("panelHeight", "720")
+hawaii.add("proxyHost", "None")
+hawaii.add("proxyPort", "0")
+hawaii.add("proxyUsername", "None")
+hawaii.add("proxyPassword", "None")
+hawaii.add("bandwidthEstimateFilePath", "/tmp/BandwidthEstimate.txt")
+
+if "@PLUGIN_AMAZON_CADIRECTORYPATH@" != "":
+    hawaii.add("CADirectoryPath", "@PLUGIN_AMAZON_CADIRECTORYPATH@")
+else:
+    hawaii.add("CADirectoryPath", "/etc/ssl/certs/")
+
+if "@PLUGIN_AMAZON_CABUNDLEFILENAME@" != "":
+    hawaii.add("CABundleFileName", "@PLUGIN_AMAZON_CABUNDLEFILENAME@")
+else:
+    hawaii.add("CABundleFileName", "ca-certificates.crt")
+
+hawaii.add("supportsSurroundSound", "true")
+hawaii.add("supportsAudioCodecSwitching", "true")
+hawaii.add("dolbyDigitalAudioPassthroughOnly", "false")
+hawaii.add("supportsHEVC", "false")
+hawaii.add("supportsHEVC10Bits", "false")
+hawaii.add("supportsCVBR", "true")
+hawaii.add("supportsIntraChunkSeeking", "false")
+hawaii.add("hasExternalOutput", "true")
+hawaii.add("hasPlatformVideoNode", "true")
+hawaii.add("supportsCompressedContentEncoding", "true")
+hawaii.add("supportsHexEncodedManifest", "true")
+hawaii.add("hdcpMajorVersion", "2")
+hawaii.add("hdcpMinorVersion", "2")
+hawaii.add("supportsUHD", "false")
+hawaii.add("supportsHDR", "false")
+hawaii.add("hdrFlags", "0")
+hawaii.add("supportsOLED", "true")
+
+if "@PLUGIN_AMAZON_MANUFACTURER@" != "":
+    hawaii.add("manufacturer", "@PLUGIN_AMAZON_MANUFACTURER@")
+else:
+    hawaii.add("manufacturer", "Broadcom")
+
+if "@PLUGIN_AMAZON_MODELNAME@" != "":
+    hawaii.add("modelName", "@PLUGIN_AMAZON_MODELNAME@")
+else:
+    hawaii.add("modelName", "2952")
+
+hawaii.add("platformPackageVersion", "None")
+hawaii.add("deviceMode", "None")
+
+if "@PLUGIN_AMAZON_DEVICELANGUAGE@" != "":
+    hawaii.add("deviceLanguage", "@PLUGIN_AMAZON_DEVICELANGUAGE@")
+else:
+    hawaii.add("deviceLanguage", "en-US")
+
+if "@PLUGIN_AMAZON_DEVICETYPEID@" != "":
+    hawaii.add("deviceTypeId", "@PLUGIN_AMAZON_DEVICETYPEID@")
+else:
+    hawaii.add("deviceTypeId", "A71I8788P1ZV8")
+
+if "@PLUGIN_AMAZON_FIRMWAREVERSION@" != "":
+    hawaii.add("firmwareVersion", "@PLUGIN_AMAZON_FIRMWAREVERSION@")
+else:
+    hawaii.add("firmwareVersion", "1.0")
+
+if "@PLUGIN_AMAZON_CHIPSETNAME@" != "":
+    hawaii.add("chipsetName", "@PLUGIN_AMAZON_CHIPSETNAME@")
+else:
+    hawaii.add("chipsetName", "BCM2837")
+
+if "@PLUGIN_AMAZON_ETHERNETDEVICE@" != "":
+    hawaii.add("ethernetDevice", "@PLUGIN_AMAZON_ETHERNETDEVICE@")
+else:
+    hawaii.add("ethernetDevice", "eth0")
+
+hawaii.add("wifiDevice", "wlan0")
+
+if "@PLUGIN_AMAZON_FRAGMENTCACHESIZE@" != "":
+    hawaii.add("fragmentCacheSizeMB", "@PLUGIN_AMAZON_FRAGMENTCACHESIZE@")
+else:
+    hawaii.add("fragmentCacheSizeMB", "100")
+
+hawaii.add("updateFrequency", "30")
+hawaii.add("fragmentCacheMountPoint", "/tmp/")
+
+overrideBySystem = JSON()
+
+if "@PLUGIN_AMAZON_FIRMWAREVERSION@" != "":
+    overrideBySystem.add("firmwareVersion", "false")
+else:
+    overrideBySystem.add("firmwareVersion", "true")
+
+if "@PLUGIN_AMAZON_CHIPSETNAME@" != "":
+    overrideBySystem.add("chipsetName", "false")
+else:
+    overrideBySystem.add("chipsetName", "true")
+
+overrideBySystem.add("displayResolution", "true")
+overrideBySystem.add("panelResolution", "true")
+overrideBySystem.add("supportsSurroundSound", "true")
+overrideBySystem.add("dolbyDigitalAudioPassthroughOnly", "true")
+overrideBySystem.add("supportsUHD", "true")
+overrideBySystem.add("supportsHDR", "true")
+overrideBySystem.add("supportsOLED", "true")
+overrideBySystem.add("supportsHEVC", "true")
+overrideBySystem.add("hdcpVersion", "true")
+
+hawaii.add("overrideBySystem", overrideBySystem)
+bundle.add("hawaii", hawaii)
+configuration.add("bundle", bundle)
+
+configuration.add("touch", "false")
+configuration.add("msebuffers", "audio:2m,video:15m,text:1m")
+configuration.add("thunderdecryptorpreference", "@PLUGIN_WEBKITBROWSER_THUNDER_DECRYPTOR_PREFERENCE@")
+configuration.add("memoryprofile", "@PLUGIN_AMAZON_MEMORYPROFILE@")
+configuration.add("mediacontenttypesrequiringhardwaresupport", "@PLUGIN_WEBKITBROWSER_MEDIA_CONTENT_TYPES_REQUIRING_HARDWARE_SUPPORT@")
+configuration.add("mediadiskcache", "@PLUGIN_WEBKITBROWSER_MEDIADISKCACHE@")
+configuration.add("diskcache", "@PLUGIN_WEBKITBROWSER_DISKCACHE@")
+configuration.add("xhrcache", "@PLUGIN_WEBKITBROWSER_XHRCACHE@")
+configuration.add("webgl", "false")
+configuration.add("windowclose", "true")
+configuration.add("threadedpainting", "@PLUGIN_WEBKITBROWSER_THREADEDPAINTING@")
+configuration.add("clientidentifier", "@PLUGIN_WEBKITBROWSER_CLIENTIDENTIFIER@")
+configuration.add("localstorageenabled", "@PLUGIN_AMAZON_LOCALSTORAGE_ENABLE@")
+configuration.add("localstorage", "@PLUGIN_WEBKITBROWSER_LOCALSTORAGE@")
+configuration.add("cookiestorage", "@PLUGIN_WEBKITBROWSER_COOKIESTORAGE@")
+configuration.add("ptsoffset", "@PLUGIN_WEBKITBROWSER_PSTOFFSET@")
+configuration.add("execpath", "@PLUGIN_WEBKITBROWSER_ALTERNATIVE_EXEC_PATH@")
+configuration.add("proxy", "@PLUGIN_WEBKITBROWSER_HTTP_PROXY@")
+configuration.add("proxyexclusion", "@PLUGIN_WEBKITBROWSER_HTTP_PROXY_EXCLUSION@")
+
+rootobject = JSON()
+rootobject.add("mode", "@PLUGIN_AMAZON_MODE@")
+rootobject.add("locator", "lib@PLUGIN_WEBKITBROWSER_IMPLEMENTATION@.so")
+rootobject.add("user", "@PLUGIN_AMAZON_USER@")
+rootobject.add("group", "@PLUGIN_AMAZON_GROUP@")
+configuration.add("root", rootobject)
+
+javascript = JSON()
+javascript.add("useJIT", "true" if boolean("@PLUGIN_WEBKITBROWSER_ENABLE_JIT@") else "false")
+javascript.add("useDFG", "true" if boolean("@PLUGIN_WEBKITBROWSER_ENABLE_DFG@") else "false")
+configuration.add("javascript", javascript)
+
+webprocesssettings = JSON()
+webprocesssettings.add("limit", "@PLUGIN_AMAZON_MEMORYPRESSURE_WEBPROCESS_SETTINGS_LIMIT@")
+webprocesssettings.add("gpulimit", "@PLUGIN_AMAZON_MEMORYPRESSURE_WEBPROCESS_SETTINGS_GPU_LIMIT@")
+webprocesssettings.add("gpufile", "@PLUGIN_AMAZON_MEMORYPRESSURE_WEBPROCESS_SETTINGS_GPU_FILE@")
+webprocesssettings.add("pollinterval", "@PLUGIN_AMAZON_MEMORYPRESSURE_WEBPROCESS_SETTINGS_POLLINTERVAL@")
+
+networkprocesssettings = JSON()
+networkprocesssettings.add("limit", "@PLUGIN_AMAZON_MEMORYPRESSURE_NETWORKPROCESS_SETTINGS_LIMIT@")
+networkprocesssettings.add("pollinterval", "@PLUGIN_AMAZON_MEMORYPRESSURE_NETWORKPROCESS_SETTINGS_POLLINTERVAL@")
+
+memory = JSON()
+memory.add("webprocesssettings", webprocesssettings)
+memory.add("networkprocesssettings", networkprocesssettings)
+configuration.add("memory", memory)

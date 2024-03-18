@@ -91,7 +91,7 @@ namespace WebKit {
     }
 
     // Gets white list from WPEFramework via synchronous message.
-    /* static */unique_ptr<WhiteListedOriginDomainsList> WhiteListedOriginDomainsList::RequestFromWPEFramework(const char* whitelist)
+    /* static */unique_ptr<WhiteListedOriginDomainsList> WhiteListedOriginDomainsList::RequestFromWPEFramework(const char* /* whitelist */)
     {
         string messageName(string(Tags::Config) + "Whitelist");
         std::string utf8MessageName = Core::ToString(messageName.c_str());
@@ -107,6 +107,7 @@ namespace WebKit {
         string jsonString = WebKit::Utils::WKStringToString(returnedString);
 
         unique_ptr<WhiteListedOriginDomainsList> whiteList(new WhiteListedOriginDomainsList());
+        ASSERT(whiteList != nullptr);
         ParseWhiteList(jsonString, whiteList->_whiteMap);
 
         WKRelease(returnData);

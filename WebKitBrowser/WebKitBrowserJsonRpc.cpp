@@ -30,7 +30,6 @@ namespace Plugin {
     using namespace JsonData::Browser;
     using namespace JsonData::WebBrowser;
     using namespace JsonData::StateControl;
-    using namespace JsonData::BrowserCookieJar;
     using namespace WPEFramework::Exchange;
 
     // Registration
@@ -41,7 +40,6 @@ namespace Plugin {
         Property<Core::JSON::EnumType<StateType>>(_T("state"), &WebKitBrowser::get_state, &WebKitBrowser::set_state, this); /* StateControl */
         Property<Core::JSON::ArrayType<Core::JSON::String>>(_T("languages"), &WebKitBrowser::get_languages, &WebKitBrowser::set_languages, this);
         Property<Core::JSON::ArrayType<JsonData::WebKitBrowser::HeadersData>>(_T("headers"), &WebKitBrowser::get_headers, &WebKitBrowser::set_headers, this);
-        Property<CookieJarParamsData>(_T("cookiejar"), &WebKitBrowser::get_cookiejar, &WebKitBrowser::set_cookiejar, this);
         Register<DeleteParamsData,void>(_T("delete"), &WebKitBrowser::endpoint_delete, this);
     }
 
@@ -50,7 +48,6 @@ namespace Plugin {
         Unregister(_T("state"));
         Unregister(_T("headers"));
         Unregister(_T("languages"));
-        Unregister(_T("cookiejar"));
         Unregister(_T("delete"));
     }
 
@@ -170,45 +167,6 @@ namespace Plugin {
         }
 
         return result;
-    }
-
-    // Property: cookiejar
-    // Return codes:
-    //  - ERROR_NONE: Success
-    uint32_t WebKitBrowser::get_cookiejar(CookieJarParamsData& response) const
-    {
-        if (_cookieJar == nullptr)
-            return Core::ERROR_UNAVAILABLE;
-
-        uint32_t version = 0;
-        uint32_t checksum = 0;
-        string payload;
-
-        uint32_t result =
-            static_cast<const IBrowserCookieJar*>(_cookieJar)->CookieJar(version, checksum, payload);
-
-        if (result == Core::ERROR_NONE) {
-            response.Version = version;
-            response.Checksum = checksum;
-            response.Payload = payload;
-        }
-
-        return result;
-    }
-
-    // Property: cookiejar
-    // Return codes:
-    //  - ERROR_NONE: Success
-    uint32_t WebKitBrowser::set_cookiejar(const CookieJarParamsData& param)
-    {
-        if (_cookieJar == nullptr)
-            return Core::ERROR_UNAVAILABLE;
-
-        uint32_t version = param.Version.Value();
-        uint32_t checksum = param.Checksum.Value();
-        const string& payload = param.Payload.Value();
-
-        return _cookieJar->CookieJar(version, checksum, payload);
     }
 
     // Event: statechange - Signals a state change of the service

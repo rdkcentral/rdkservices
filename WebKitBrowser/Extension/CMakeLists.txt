@@ -23,6 +23,7 @@ find_package(securityagent QUIET)
 find_package(WPEWebKit REQUIRED)
 
 option(PLUGIN_SECURITYAGENT "Enable the Security Agent Features interface in javascript." OFF)
+option(PLUGIN_WEBKITBROWSER_IIDENTIFIER "Enable IIDENTIFIER interface JS bindings." OFF)
 option(PLUGIN_WEBKITBROWSER_AAMP_JSBINDINGS "Enable AAMP JS bindings." OFF)
 option(PLUGIN_WEBKITBROWSER_BADGER_BRIDGE "Enable $badger support." OFF)
 option(PLUGIN_WEBKITBROWSER_UPDATE_TZ_FROM_FILE "Update TimeZone from given file" OFF)
@@ -43,6 +44,11 @@ if(securityagent_FOUND)
     target_link_libraries(${MODULE_NAME} PRIVATE securityagent::securityagent)
 endif()
 
+if(PLUGIN_WEBKITBROWSER_IIDENTIFIER)
+    target_sources(${MODULE_NAME} PRIVATE IIdentifier.cpp)
+    target_compile_definitions(${MODULE_NAME} PRIVATE ENABLE_IIDENTIFIER)
+endif()
+
 if(PLUGIN_WEBKITBROWSER_AAMP_JSBINDINGS)
     find_package(AampJSBindings REQUIRED)
     target_sources(${MODULE_NAME} PRIVATE AAMPJSBindings.cpp)
@@ -59,13 +65,13 @@ if(PLUGIN_WEBKITBROWSER_UPDATE_TZ_FROM_FILE)
     target_sources(${MODULE_NAME} PRIVATE ../TimeZone/TimeZoneSupport.cpp)
     target_compile_definitions(${MODULE_NAME} PRIVATE UPDATE_TZ_FROM_FILE)
     target_include_directories(${MODULE_NAME} PRIVATE ../TimeZone)
+    target_include_directories(${MODULE_NAME} PRIVATE ${CMAKE_CURRENT_LIST_DIR})
     if(TZ_FILE)
         add_definitions(-DTZ_FILE="${TZ_FILE}")
     endif()
 endif()
 
 if(PLUGIN_WEBKITBROWSER_CUSTOM_PROCESS_INFO)
-    target_sources(${MODULE_NAME} PRIVATE ProcessInfo.cpp)
     target_compile_definitions(${MODULE_NAME} PRIVATE ENABLE_CUSTOM_PROCESS_INFO)
 endif()
 
@@ -73,13 +79,17 @@ set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)
 
+target_compile_options (${MODULE_NAME} PRIVATE -Wno-psabi)
+
 target_link_libraries(${MODULE_NAME}
     PRIVATE
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
+        ${NAMESPACE}Core::${NAMESPACE}Core
         WPEWebKit::WPEWebKit)
 
 target_compile_definitions(${MODULE_NAME} PRIVATE WEBKIT_GLIB_API)
 
 install(TARGETS ${MODULE_NAME}
+    PERMISSIONS OWNER_READ GROUP_READ
     DESTINATION ${CMAKE_INSTALL_PREFIX}/share/${NAMESPACE}/WebKitBrowser/${PLUGIN_WEBKITBROWSER_EXTENSION_DIRECTORY}
     COMPONENT ${PROJECT_NAME})

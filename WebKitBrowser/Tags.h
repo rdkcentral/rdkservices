@@ -31,4 +31,4 @@ extern const char* const BridgeObjectReply;
 extern const char* const BridgeObjectEvent;
 extern const char* const Headers;
 
-} } ;
+} }
