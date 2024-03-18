@@ -184,7 +184,7 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
                 interface = "eth0";
             
             tmpParameters["interface"] = interface;
-            tmpParameters["enabled"] = parameters["enabled"];
+            tmpParameters["enable"] = parameters["enabled"];
             rc = SetInterfaceEnabled(tmpParameters, response);
 
             LOGTRACEMETHODFIN();
