@@ -99,7 +99,9 @@ namespace Plugin {
     {
         Config config;
         config.FromString(service->ConfigLine());
-#if ((THUNDER_VERSION_MAJOR == 2) || ((THUNDER_VERSION_MAJOR == 4) && (THUNDER_VERSION_MINOR == 2)))
+#if ((THUNDER_VERSION_MAJOR >= 4) && (THUNDER_VERSION_MINOR >= 4))
+        string version = subSystem->Version();
+#else
 	string version = service->Version();
 #endif
         string webPrefix = service->WebPrefix();
