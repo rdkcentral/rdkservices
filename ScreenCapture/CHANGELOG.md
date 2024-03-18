@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.3] - 2024-03-01
+### Fixed
+- Fixed for WPEFramework is crashing while trying to take screen
+
 ## [1.0.2] - 2023-10-04
 ### Added
 - Implement Thunder Plugin Configuration for Kirkstone builds(CMake-3.20 & above)
