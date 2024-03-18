@@ -4556,9 +4556,10 @@ namespace WPEFramework {
         		   }
                            LOGINFO("SAD is updated m_AudioDeviceSADState = %d\n", m_AudioDeviceSADState);
 			}else{
-				//Still SAD is not received, route audio with out SAD update.
-                        	LOGINFO("Not recieved SAD update after 3sec timeout, proceeding with default SAD\n");
-			}
+				LOGINFO("Not recieved SAD update after 3sec timeout, retrigger the SAD request\n");
+			        sendMsgToQueue(REQUEST_SHORT_AUDIO_DESCRIPTOR, NULL);
+                                m_AudioDeviceSADState  = AUDIO_DEVICE_SAD_REQUESTED;
+}
 			LOGINFO("%s: Enable ARC... \n",__FUNCTION__);
                         aPort.enableARC(dsAUDIOARCSUPPORT_ARC, true);
                         m_arcEarcAudioEnabled = true;
