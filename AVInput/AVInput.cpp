@@ -1213,8 +1213,8 @@ uint32_t AVInput::setMixerLevels(const JsonObject& parameters, JsonObject& respo
 
 	try{
 
-    	device::HdmiInput::getInstance().setAudioMixerLevels(MIXGAIN_PRIM,primVol);
-       	device::HdmiInput::getInstance().setAudioMixerLevels(MIXGAIN_SYS,inputVol);
+    	device::AudioOutputPort::getInstance().setAudioMixerLevels(MIXGAIN_PRIM,primVol);
+       	device::AudioOutputPort::getInstance().setAudioMixerLevels(MIXGAIN_SYS,inputVol);
 	}
 	catch(...){
     	LOGWARN("Not setting SoC volume !!!\n");
