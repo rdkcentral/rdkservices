@@ -26,7 +26,7 @@ class cTimer{
     private:
         bool clear;
         int interval;
-        void (*callBack_function)();
+        void (*callBack_function)() = NULL;
     public:
         /***
          * @brief    : Constructor.

@@ -103,6 +103,7 @@ namespace WPEFramework {
             Register(METHOD_ENABLE_AUDIO_CAPTURE, &DataCapture::enableAudioCaptureWrapper, this);
             Register(METHOD_GET_AUDIO_CLIP, &DataCapture::getAudioClipWrapper, this);
 
+            _audio_properties = {};
             _sock_adaptor.reset(new socket_adaptor());
         }
 
@@ -513,10 +514,15 @@ namespace WPEFramework {
             chunk = curl_slist_append(chunk, "Content-Type: audio/x-wav");
 
             //set url and data
-            curl_easy_setopt(curl, CURLOPT_URL, url);
-            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk);
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, data.size());
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, &data[0]);
+            if(curl_easy_setopt(curl, CURLOPT_URL, url) != CURLE_OK)
+                LOGWARN("Failed to set curl option: CURLOPT_URL");
+            if(curl_easy_setopt(curl, CURLOPT_HTTPHEADER, chunk) != CURLE_OK)
+                LOGWARN("Failed to set curl option: CURLOPT_HTTPHEADER");
+            if(curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, data.size()) != CURLE_OK)
+                LOGWARN("Failed to set curl option: CURLOPT_POSTFIELDSIZE");
+            if(curl_easy_setopt(curl, CURLOPT_POSTFIELDS, &data[0]) != CURLE_OK)
+                LOGWARN("Failed to set curl option: CURLOPT_POSTFIELDS");
+        
 
             //perform blocking upload call
             res = curl_easy_perform(curl);

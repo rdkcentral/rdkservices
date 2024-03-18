@@ -26,7 +26,6 @@
 #include <atomic>
 #include "Module.h"
 #include "NetworkManagerLogger.h"
-#include "NetworkManagerImplementation.h"
 
 #define DEFAULT_WIFI_SIGNAL_TEST_INTERVAL_SEC       60
 namespace WPEFramework
@@ -36,26 +35,15 @@ namespace WPEFramework
         class WifiSignalStrengthMonitor
         {
             public:
-                static WifiSignalStrengthMonitor *wifiSignalStrengthMonitor;
-                WifiSignalStrengthMonitor(): networkManagerImpl(nullptr), isRunning(false) {}
+                WifiSignalStrengthMonitor():isRunning(false) {}
+                ~WifiSignalStrengthMonitor(){ NMLOG_INFO("~WifiSignalStrengthMonitor"); }
                 void startWifiSignalStrengthMonitor(int interval);
                 void getSignalData(std::string &ssid, Exchange::INetworkManager::WiFiSignalQuality &quality, std::string &strengthOut);
-                void registerWifiSignalStrengthNotify(NetworkManagerImplementation* nmImpl);
-                static WifiSignalStrengthMonitor* getInstance()
-                {
-                    if (wifiSignalStrengthMonitor == nullptr) {
-                        static WifiSignalStrengthMonitor instance;
-                        wifiSignalStrengthMonitor = &instance;
-                    }
-                    return wifiSignalStrengthMonitor;
-                }
             private:
                 std::string retrieveValues(const char *command, const char* keyword, char *output_buffer, size_t output_buffer_size);
-                NetworkManagerImplementation* networkManagerImpl;
                 std::thread monitorThread;
                 std::atomic<bool> stopThread;
                 std::atomic<bool> isRunning;
-
                 void monitorThreadFunction(int interval);
         };
     }

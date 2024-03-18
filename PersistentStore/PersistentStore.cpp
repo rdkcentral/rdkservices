@@ -73,6 +73,7 @@ namespace Plugin {
         Core::SystemInfo::SetEnvironment(MAXSIZE_ENV, std::to_string(_config.MaxSize.Value()));
         Core::SystemInfo::SetEnvironment(MAXVALUE_ENV, std::to_string(_config.MaxValue.Value()));
         Core::SystemInfo::SetEnvironment(LIMIT_ENV, std::to_string(_config.Limit.Value()));
+        Core::SystemInfo::SetEnvironment(TOKEN_COMMAND_ENV, _config.TokenCommand.Value());
 
         uint32_t connectionId;
 
