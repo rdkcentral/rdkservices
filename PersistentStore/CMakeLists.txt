@@ -17,12 +17,11 @@
 
 cmake_minimum_required(VERSION 3.14)
 
-project(PersistentStore)
+set(PLUGIN_NAME PersistentStore)
+find_package(WPEFramework)
+set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 set(CMAKE_CXX_STANDARD 11)
-
-find_package(WPEFramework)
-set(MODULE_NAME "${NAMESPACE}${PROJECT_NAME}")
 
 set(PLUGIN_PERSISTENTSTORE_MODE "Off" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
 set(PLUGIN_PERSISTENTSTORE_URI "ss.eu.prod.developer.comcast.com:443" CACHE STRING "Account scope endpoint")
@@ -67,4 +66,4 @@ endif ()
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
 
-write_config()
+write_config(${PLUGIN_NAME})
