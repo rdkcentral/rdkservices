@@ -228,6 +228,7 @@ jobs:
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
           -DCMAKE_CXX_FLAGS="
           -DEXCEPTIONS_ENABLE=ON
+          -DTHUNDER_VERSION_MAJOR =2
           -fprofile-arcs
           -ftest-coverage
           -I ${{github.workspace}}/rdkservices/Tests/headers
