@@ -48,6 +48,14 @@ target_link_libraries(${MODULE_NAME} PRIVATE
         ${NAMESPACE}Definitions::${NAMESPACE}Definitions
 )
 
+find_library(RFC_LIBRARIES NAMES rfcapi)
+if (RFC_LIBRARIES)
+    find_path(RFC_INCLUDE_DIRS NAMES rfcapi.h REQUIRED)
+    target_include_directories(${MODULE_NAME} PRIVATE ${RFC_INCLUDE_DIRS})
+    target_link_libraries(${MODULE_NAME} PRIVATE ${RFC_LIBRARIES})
+    target_compile_definitions(${MODULE_NAME} PRIVATE WITH_RFC)
+endif ()
+
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
 
