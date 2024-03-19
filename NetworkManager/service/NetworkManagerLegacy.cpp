@@ -184,8 +184,10 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
                 interface = "eth0";
             
             tmpParameters["interface"] = interface;
-            tmpParameters["enabled"] = parameters["enabled"];
-            rc = SetInterfaceEnabled(tmpParameters, response);
+            if(parameters["enabled"].Boolean())
+                rc = EnableInterface(tmpParameters, response);
+            else
+                rc = DisableInterface(tmpParameters, response);
 
             LOGTRACEMETHODFIN();
             return rc;

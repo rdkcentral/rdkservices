@@ -206,9 +206,10 @@ namespace WPEFramework
             /* @brief Set the Primary Interface used for external world communication */
             virtual uint32_t SetPrimaryInterface (const string& interface/* @in */) = 0;
 
-            /* @brief Set the active Interface used for external world communication */
-            virtual uint32_t SetInterfaceEnabled (const string& interface/* @in */, const bool& isEnabled /* @in */) = 0;
-
+            /* @brief Enable the active Interface used for external world communication */
+            virtual uint32_t EnableInterface (const string& interface/* @in */) = 0;
+            /* @brief Disable the Interface passed */
+            virtual uint32_t DisableInterface (const string& interface/* @in */) = 0;
 
             /* @brief Get IP Address Of the Interface */
             virtual uint32_t GetIPSettings(const string& interface /* @in */, const string &ipversion /* @in */, IPAddressInfo& result /* @out */) = 0;

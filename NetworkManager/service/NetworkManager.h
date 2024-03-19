@@ -352,7 +352,8 @@ namespace WPEFramework
             uint32_t GetAvailableInterfaces (const JsonObject& parameters, JsonObject& response);
             uint32_t GetPrimaryInterface (const JsonObject& parameters, JsonObject& response);
             uint32_t SetPrimaryInterface (const JsonObject& parameters, JsonObject& response);
-            uint32_t SetInterfaceEnabled (const JsonObject& parameters, JsonObject& response);
+            uint32_t EnableInterface (const JsonObject& parameters, JsonObject& response);
+            uint32_t DisableInterface (const JsonObject& parameters, JsonObject& response);
             uint32_t GetIPSettings(const JsonObject& parameters, JsonObject& response);
             uint32_t SetIPSettings(const JsonObject& parameters, JsonObject& response);
             uint32_t GetStunEndpoint(const JsonObject& parameters, JsonObject& response);

@@ -621,7 +621,7 @@ namespace WPEFramework
             return rc;
         }
 
-        uint32_t NetworkManagerImplementation::SetInterfaceEnabled (const string& interface/* @in */, const bool& isEnabled /* @in */)
+        uint32_t NetworkManagerImplementation::EnableInterface (const string& interface/* @in */)
         {
             LOG_ENTRY_FUNCTION();
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
@@ -639,7 +639,39 @@ namespace WPEFramework
                 return rc;
             }
 
-            iarmData.isInterfaceEnabled = isEnabled;
+            iarmData.isInterfaceEnabled = true;
+            iarmData.persist = true;
+            if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled, (void *)&iarmData, sizeof(iarmData)))
+            {
+                NMLOG_INFO ("Call to %s for %s success", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled);
+                rc = Core::ERROR_NONE;
+            }
+            else
+            {
+                NMLOG_ERROR ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled);
+            }
+            return rc;
+        }
+
+        uint32_t NetworkManagerImplementation::DisableInterface (const string& interface/* @in */)
+        {
+            LOG_ENTRY_FUNCTION();
+            uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
+            IARM_BUS_NetSrvMgr_Iface_EventData_t iarmData = { 0 };
+
+            /* Netsrvmgr returns eth0 & wlan0 as primary interface but when we want to set., we must set ETHERNET or WIFI*/
+            //TODO: Fix netsrvmgr to accept eth0 & wlan0
+            if ("wlan0" == interface)
+                strncpy(iarmData.setInterface, "WIFI", INTERFACE_SIZE);
+            else if ("eth0" == interface)
+                strncpy(iarmData.setInterface, "ETHERNET", INTERFACE_SIZE);
+            else
+            {
+                rc = Core::ERROR_BAD_REQUEST;
+                return rc;
+            }
+
+            iarmData.isInterfaceEnabled = false;
             iarmData.persist = true;
             if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled, (void *)&iarmData, sizeof(iarmData)))
             {
