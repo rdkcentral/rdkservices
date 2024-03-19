@@ -4556,8 +4556,9 @@ namespace WPEFramework {
         		   }
                            LOGINFO("SAD is updated m_AudioDeviceSADState = %d\n", m_AudioDeviceSADState);
 			}else{
-				//Still SAD is not received, route audio with out SAD update.
-                        	LOGINFO("Not recieved SAD update after 3sec timeout, proceeding with default SAD\n");
+				LOGINFO("Not recieved SAD update after 3sec timeout, retrigger the SAD request\n");
+			        sendMsgToQueue(REQUEST_SHORT_AUDIO_DESCRIPTOR, NULL);
+                                m_AudioDeviceSADState  = AUDIO_DEVICE_SAD_REQUESTED;
 			}
 			LOGINFO("%s: Enable ARC... \n",__FUNCTION__);
                         aPort.enableARC(dsAUDIOARCSUPPORT_ARC, true);
@@ -5129,7 +5130,10 @@ void DisplaySettings::sendMsgThread()
                                 	aPort.setStereoMode(mode.toString(), true);
                             	    }
 			      } else { // SAD received before setEnableAudioPort
-			            LOGINFO("%s: Not updating SAD now since arc routing has not yet happened and SAD timer is not active -> Routing and SAD is updated when setEnableAudioPort is called \n", __FUNCTION__);
+		//	            LOGINFO("%s: Not updating SAD now since arc routing has not yet happened and SAD timer is not active -> Routing and SAD is updated when setEnableAudioPort is called \n", __FUNCTION__);
+				    LOGINFO("%s: Updating SAD after the retrigger of SAD request\n", __FUNCTION__);
+				    m_AudioDeviceSADState = AUDIO_DEVICE_SAD_UPDATED;
+				    aPort.setSAD(sad_list);
 			      }
 			}else {
 				LOGINFO("%s: m_currentArcRoutingState = %d, m_arcEarcAudioEnabled = %d", __FUNCTION__, m_currentArcRoutingState, m_arcEarcAudioEnabled);
