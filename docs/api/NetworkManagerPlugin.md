@@ -1712,7 +1712,7 @@ Enable the specified interface.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.interface | string | An interface, such as eth0 or wlan0, depending upon availability of the given interface in GetAvailableInterfaces |
+| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface in `GetAvailableInterfaces` |
 
 ### Result
 
@@ -1764,7 +1764,7 @@ Disable the specified interface.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.interface | string | An interface, such as eth0 or wlan0, depending upon availability of the given interface in GetAvailableInterfaces |
+| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface in `GetAvailableInterfaces` |
 
 ### Result
 
@@ -1804,6 +1804,7 @@ Disable the specified interface.
 ## *GetWifiState [<sup>method</sup>](#head.Methods)*
 
 Returns the current Wifi State. The possible Wifi states are as follows.
+
 **Wifi States**
 * `0`: UNINSTALLED - The device was in an installed state and was uninstalled; or, the device does not have a Wifi radio installed 
 * `1`: DISABLED - The device is installed but not yet enabled
