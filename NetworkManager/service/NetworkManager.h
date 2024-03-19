@@ -379,6 +379,7 @@ namespace WPEFramework
             uint32_t GetWifiState(const JsonObject& parameters, JsonObject& response);
             uint32_t GetWiFiSignalStrength(const JsonObject& parameters, JsonObject& response);
             uint32_t GetSupportedSecurityModes(const JsonObject& parameters, JsonObject& response);
+            uint32_t SetEnabled(const JsonObject& parameters, JsonObject& response);
 #ifdef ENABLE_LEGACY_NSM_SUPPORT
             uint32_t getInterfaces (const JsonObject& parameters, JsonObject& response);
             uint32_t isInterfaceEnabled (const JsonObject& parameters, JsonObject& response);
@@ -409,6 +410,7 @@ namespace WPEFramework
             uint32_t startScan(const JsonObject& parameters, JsonObject& response);
             uint32_t stopScan(const JsonObject& parameters, JsonObject& response);
             uint32_t getCurrentState(const JsonObject& parameters, JsonObject& response);
+            uint32_t setEnabled(const JsonObject& parameters, JsonObject& response);
 #endif
         private:
             uint32_t _connectionId;

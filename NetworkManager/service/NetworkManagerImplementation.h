@@ -173,6 +173,7 @@ namespace WPEFramework
             uint32_t StartWPS(const WiFiWPS& method /* @in */, const string& wps_pin /* @in */) override;
             uint32_t StopWPS(void) override;
             uint32_t GetWifiState(WiFiState &state) override;
+            uint32_t SetEnabled(bool enable /* @in */, bool persist /* @in */)override;
             uint32_t GetWiFiSignalStrength(string& ssid /* @out */, string& signalStrength /* @out */, WiFiSignalQuality& quality /* @out */) override;
 
             uint32_t SetStunEndpoint (string const endPoint /* @in */, const uint32_t port /* @in */, const uint32_t bindTimeout /* @in */, const uint32_t cacheTimeout /* @in */) override;
