@@ -21,7 +21,9 @@
 #include "dsMgr.h"
 #include "hdmiIn.hpp"
 #include "compositeIn.hpp"
-
+#include "audioOutputPort.hpp"
+#include "audioOutputPortType.hpp"
+#include "audioOutputPortConfig.hpp"
 #include "UtilsJsonRpc.h"
 #include "UtilsIarm.h"
 
