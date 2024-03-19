@@ -1,7 +1,6 @@
 #include "NetworkManagerImplementation.h"
 #include "WifiSignalStrengthMonitor.h"
 #include "libIBus.h"
-#include "UtilsJsonRpc.h"
 
 using namespace WPEFramework;
 using namespace WPEFramework::Plugin;
