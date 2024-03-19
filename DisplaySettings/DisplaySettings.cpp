@@ -91,6 +91,7 @@ static bool isCecEnabled = false;
 static int  hdmiArcPortId = -1;
 static int retryPowerRequestCount = 0;
 static int  hdmiArcVolumeLevel = 0;
+std::thread audioPortInitThread;
 std::vector<int> sad_list;
 #ifdef USE_IARM
 namespace
@@ -561,6 +562,9 @@ namespace WPEFramework {
 		if (m_sendMsgThread.joinable())
 			m_sendMsgThread.join();
 	   }
+       if(audioPortInitThread.joinable()){
+        audioPortInitThread.join()
+       }
 	   catch(const std::system_error& e)
            {
 		LOGERR("system_error exception in thread join %s", e.what());
@@ -4677,7 +4681,7 @@ namespace WPEFramework {
 	            try
                     {
 		        LOGWARN("creating worker thread for initAudioPortsWorker ");
-		        std::thread audioPortInitThread = std::thread(initAudioPortsWorker);
+		        audioPortInitThread = std::thread(initAudioPortsWorker);
 			audioPortInitThread.detach();
                     }
                     catch(const std::system_error& e)
