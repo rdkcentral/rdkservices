@@ -78,17 +78,25 @@ namespace Plugin {
     private:
         inline void UpdateFirmwareVersion(string& firmwareVersion) const
         {
-            Command("version", firmwareVersion);
-            if (firmwareVersion.length() > 0) {
-
-                string::size_type i = 0;
-                while (i < firmwareVersion.length()) {
-                    i = firmwareVersion.find_first_of("\n\r", i);
-                    if (i != std::string::npos) {
-                        firmwareVersion.replace(i, 1, ", ");
-                    }
-                }
-            }
+            std::string versionIdentifier("VERSION");
+            std::ifstream versionFile("/version.txt");
+            std::string line;
+            
+            if (versionFile.is_open())
+            {
+               while (getline(versionFile, line))
+               {
+                   if (0 == line.find(versionIdentifier))
+                   {
+                       std::size_t position = line.find(versionIdentifier) + versionIdentifier.length() + 1; // +1 is to skip '='
+                       if (position != std::string::npos)
+                       {
+                           firmwareVersion.assign(line.substr(position, std::string::npos));
+                        }
+                   }
+               }
+              versionFile.close();
+             }
         }
         inline void UpdateDeviceIdentifier(string& identifier) const
         {
@@ -102,31 +110,6 @@ namespace Plugin {
                 identifier.erase(0, identifier.find_first_not_of('0'));
             }
         }
-        void Command(const char request[], string& value) const
-        {
-            char buffer[512];
-
-            // Reset the string
-            buffer[0] = '\0';
-
-            int VARIABLE_IS_NOT_USED status = vc_gencmd(buffer, sizeof(buffer), &request[0]);
-            assert((status == 0) && "Error: vc_gencmd failed.\n");
-
-            // Make sure it is null-terminated
-            buffer[sizeof(buffer) - 1] = '\0';
-
-            // We do not need the stuff that is before the '=', we know what we requested :-)
-            char* equal = strchr(buffer, '=');
-            if (equal != nullptr) {
-                equal++;
-            } else {
-                equal = buffer;
-            }
-
-            // Create string from buffer.
-            Core::ToString(equal, value);
-        }
-
     private:
         string _firmwareVersion;
         string _identifier;
