@@ -151,7 +151,8 @@ namespace WPEFramework
             /* @brief Set the active Interface used for external world communication */
             uint32_t SetPrimaryInterface (const string& interface/* @in */) override;
 
-            uint32_t SetInterfaceEnabled (const string& interface/* @in */, const bool& isEnabled /* @in */) override;
+            uint32_t EnableInterface (const string& interface/* @in */) override;
+            uint32_t DisableInterface (const string& interface/* @in */) override;
             /* @brief Get IP Address Of the Interface */
             uint32_t GetIPSettings(const string& interface /* @in */, const string &ipversion /* @in */, IPAddressInfo& result /* @out */) override;
             /* @brief Set IP Address Of the Interface */
@@ -173,6 +174,7 @@ namespace WPEFramework
             uint32_t StartWPS(const WiFiWPS& method /* @in */, const string& wps_pin /* @in */) override;
             uint32_t StopWPS(void) override;
             uint32_t GetWifiState(WiFiState &state) override;
+            uint32_t SetEnabled(bool enable /* @in */, bool persist /* @in */)override;
             uint32_t GetWiFiSignalStrength(string& ssid /* @out */, string& signalStrength /* @out */, WiFiSignalQuality& quality /* @out */) override;
 
             uint32_t SetStunEndpoint (string const endPoint /* @in */, const uint32_t port /* @in */, const uint32_t bindTimeout /* @in */, const uint32_t cacheTimeout /* @in */) override;

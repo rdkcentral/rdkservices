@@ -70,6 +70,7 @@ namespace WPEFramework
             Register("saveSSID",                          &NetworkManager::AddToKnownSSIDs, this);
             Register("getSupportedSecurityModes",         &NetworkManager::GetSupportedSecurityModes, this);
             Register("getCurrentState",                   &NetworkManager::GetWifiState, this);
+            Register("setEnabled",                        &NetworkManager::SetEnabled, this);
         }
 
         /**
@@ -106,6 +107,7 @@ namespace WPEFramework
             Unregister("saveSSID");
             Unregister("getSupportedSecurityModes");
             Unregister("getCurrentState");
+            Unregister("setEnabled");
         }
 
 #define CIDR_NETMASK_IP_LEN 32
@@ -184,8 +186,10 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
                 interface = "eth0";
             
             tmpParameters["interface"] = interface;
-            tmpParameters["enable"] = parameters["enabled"];
-            rc = SetInterfaceEnabled(tmpParameters, response);
+            if(parameters["enabled"].Boolean())
+                rc = EnableInterface(tmpParameters, response);
+            else
+                rc = DisableInterface(tmpParameters, response);
 
             LOGTRACEMETHODFIN();
             return rc;

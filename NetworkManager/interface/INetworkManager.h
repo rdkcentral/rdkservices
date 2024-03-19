@@ -206,9 +206,10 @@ namespace WPEFramework
             /* @brief Set the Primary Interface used for external world communication */
             virtual uint32_t SetPrimaryInterface (const string& interface/* @in */) = 0;
 
-            /* @brief Set the active Interface used for external world communication */
-            virtual uint32_t SetInterfaceEnabled (const string& interface/* @in */, const bool& isEnabled /* @in */) = 0;
-
+            /* @brief Enable the active Interface used for external world communication */
+            virtual uint32_t EnableInterface (const string& interface/* @in */) = 0;
+            /* @brief Disable the Interface passed */
+            virtual uint32_t DisableInterface (const string& interface/* @in */) = 0;
 
             /* @brief Get IP Address Of the Interface */
             virtual uint32_t GetIPSettings(const string& interface /* @in */, const string &ipversion /* @in */, IPAddressInfo& result /* @out */) = 0;
@@ -261,6 +262,7 @@ namespace WPEFramework
             virtual uint32_t StartWPS(const WiFiWPS& method /* @in */, const string& wps_pin /* @in */) = 0;
             virtual uint32_t StopWPS(void) = 0;
             virtual uint32_t GetWifiState(WiFiState &state /* @out */) = 0;
+            virtual uint32_t SetEnabled(const bool p_enable /* @in */, const bool p_persist /* @in */) = 0;
             virtual uint32_t GetWiFiSignalStrength(string& ssid /* @out */, string& signalStrength /* @out */, WiFiSignalQuality& quality /* @out */) = 0;
             virtual uint32_t GetSupportedSecurityModes(ISecurityModeIterator*& securityModes /* @out */) const = 0;
 
