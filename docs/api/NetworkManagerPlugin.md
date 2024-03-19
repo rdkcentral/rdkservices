@@ -1804,7 +1804,6 @@ Disable the specified interface.
 ## *GetWifiState [<sup>method</sup>](#head.Methods)*
 
 Returns the current Wifi State. The possible Wifi states are as follows.
-#### Wifi States
 * `0`: UNINSTALLED - The device was in an installed state and was uninstalled; or, the device does not have a Wifi radio installed 
 * `1`: DISABLED - The device is installed but not yet enabled
 * `2`: DISCONNECTED - The device is installed and enabled, but not yet connected to a network
