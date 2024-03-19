@@ -122,6 +122,7 @@ jobs:
           -DBINDING=127.0.0.1
           -DPORT=55555
           -DEXCEPTIONS_ENABLE=ON
+          -DTHUNDER_VERSION_MAJOR=2
           &&
           cmake --build build/Thunder -j8
           &&
@@ -228,7 +229,6 @@ jobs:
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
           -DCMAKE_CXX_FLAGS="
           -DEXCEPTIONS_ENABLE=ON
-          -DTHUNDER_VERSION_MAJOR =2
           -fprofile-arcs
           -ftest-coverage
           -I ${{github.workspace}}/rdkservices/Tests/headers
@@ -288,6 +288,7 @@ jobs:
           -DDS_FOUND=ON
           -DPLUGIN_TEXTTOSPEECH=ON
           -DPLUGIN_SYSTEMAUDIOPLAYER=ON
+          -DTHUNDER_VERSION_MAJOR=2
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           &&
           cmake --build build/rdkservices -j8
