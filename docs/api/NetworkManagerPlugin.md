@@ -1705,7 +1705,7 @@ Enable the specified interface.
 
 | Event | Description |
 | :-------- | :-------- |
-| [](#event.onInterfaceStateChange) | Triggered when interface’s status changes to enabled. |
+| [onInterfaceStateChange](#event.onInterfaceStateChange) | Triggered when interface’s status changes to enabled. |
 
 ### Parameters
 
@@ -1757,7 +1757,7 @@ Disable the specified interface.
 
 | Event | Description |
 | :-------- | :-------- |
-| [](#event.onInterfaceStateChange) | Triggered when interface’s status changes to disabled. |
+| [onInterfaceStateChange](#event.onInterfaceStateChange) | Triggered when interface’s status changes to disabled. |
 
 ### Parameters
 
@@ -1800,7 +1800,7 @@ Disable the specified interface.
 }
 ```
 
-<a name="GetWifiState"></a>
+<a name="method.GetWifiState"></a>
 ## *GetWifiState [<sup>method</sup>](#head.Methods)*
 
 Returns the current Wifi State. The possible Wifi states are as follows.
