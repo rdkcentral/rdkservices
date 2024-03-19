@@ -29,6 +29,7 @@ namespace WPEFramework
 
         void NetworkManagerImplementation::platform_init()
         {
+            ::_instance = this;
             GError *error = NULL;
             GMainContext *context = g_main_context_new();
             // initialize the NMClient object
