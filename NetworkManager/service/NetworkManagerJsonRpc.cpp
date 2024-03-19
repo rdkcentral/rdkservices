@@ -895,26 +895,6 @@ namespace WPEFramework
             return rc;
         }
 
-        uint32_t NetworkManager::SetEnabled (const JsonObject& parameters, JsonObject& response)
-        {
-            uint32_t rc = Core::ERROR_GENERAL;
-            bool enable;
-            bool persist;            
-            LOGINFOMETHOD();
-
-            enable =  parameters["enable"].Boolean();
-            persist =  parameters["persist"].Boolean();
-            if (_NetworkManager)
-                rc = _NetworkManager->SetEnabled(enable, persist);
-
-            if (Core::ERROR_NONE == rc)
-            {
-                response["success"] = true;
-            }
-            LOGTRACEMETHODFIN();
-            return rc;
-        }
-
         uint32_t NetworkManager::GetWiFiSignalStrength(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
