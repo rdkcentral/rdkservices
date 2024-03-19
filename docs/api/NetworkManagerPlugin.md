@@ -84,6 +84,9 @@ NetworkManager interface methods:
 | [GetWiFiSignalStrength](#method.GetWiFiSignalStrength) | Get WiFiSignalStrength of connected SSID |
 | [GetSupportedSecurityModes](#method.GetSupportedSecurityModes) | Returns the Wifi security modes that the device supports |
 | [SetLogLevel](#method.SetLogLevel) | Set Log level for more information |
+| [EnableInterface](#method.EnableInterface) | Enable the interface |
+| [DisableInterface](#method.DisableInterface) | Disable the interface |
+| [GetWifiState](#method.GetWifiState) | Returns the current Wifi State |
 
 
 <a name="method.GetAvailableInterfaces"></a>
@@ -1688,6 +1691,164 @@ No Events
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.EnableInterface"></a>
+## *EnableInterface [<sup>method</sup>](#head.Methods)*
+
+Enable the specified interface.
+
+### Events
+
+| Event | Description |
+| :-------- | :-------- |
+| [](#event.onInterfaceStateChange) | Triggered when interface’s status changes to enabled. |
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.interface | string | An interface, such as eth0 or wlan0, depending upon availability of the given interface in GetAvailableInterfaces |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.NetworkManager.EnableInterface",
+    "params": {
+        "interface": "wlan0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.DisableInterface"></a>
+## *DisableInterface [<sup>method</sup>](#head.Methods)*
+
+Disable the specified interface.
+
+### Events
+
+| Event | Description |
+| :-------- | :-------- |
+| [](#event.onInterfaceStateChange) | Triggered when interface’s status changes to disabled. |
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.interface | string | An interface, such as eth0 or wlan0, depending upon availability of the given interface in GetAvailableInterfaces |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.NetworkManager.DisableInterface",
+    "params": {
+        "interface": "wlan0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="GetWifiState"></a>
+## *GetWifiState [<sup>method</sup>](#head.Methods)*
+
+Returns the current Wifi State. The possible Wifi states are as follows.
+**Wifi States**
+* `0`: UNINSTALLED - The device was in an installed state and was uninstalled; or, the device does not have a Wifi radio installed 
+* `1`: DISABLED - The device is installed but not yet enabled
+* `2`: DISCONNECTED - The device is installed and enabled, but not yet connected to a network
+* `3`: PAIRING - The device is in the process of pairing, but not yet connected to a network
+* `4`: CONNECTING - The device is attempting to connect to a network
+* `5`: CONNECTED - The device is successfully connected to a network
+* `6`: FAILED - The device has encountered an unrecoverable error with the Wifi adapter.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.state | integer | The Wifi operational state |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.Wifi.GetWifiState"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "state": 2,
         "success": true
     }
 }
