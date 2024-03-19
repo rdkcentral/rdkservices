@@ -70,7 +70,6 @@ namespace WPEFramework
             Register("saveSSID",                          &NetworkManager::AddToKnownSSIDs, this);
             Register("getSupportedSecurityModes",         &NetworkManager::GetSupportedSecurityModes, this);
             Register("getCurrentState",                   &NetworkManager::GetWifiState, this);
-            Register("setEnabled",                        &NetworkManager::SetEnabled, this);
         }
 
         /**
@@ -107,7 +106,6 @@ namespace WPEFramework
             Unregister("saveSSID");
             Unregister("getSupportedSecurityModes");
             Unregister("getCurrentState");
-            Unregister("setEnabled");
         }
 
 #define CIDR_NETMASK_IP_LEN 32
