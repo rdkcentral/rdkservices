@@ -1810,7 +1810,14 @@ Returns the current Wifi State. The possible Wifi states are as follows.
 * `3`: PAIRING - The device is in the process of pairing, but not yet connected to a network
 * `4`: CONNECTING - The device is attempting to connect to a network
 * `5`: CONNECTED - The device is successfully connected to a network
-* `6`: FAILED - The device has encountered an unrecoverable error with the Wifi adapter.
+* `6`: SSID_NOT_FOUND - The requested SSID to connect is not found
+* `7`: SSID_CHANGED - The device connected SSID is changed
+* `8`: CONNECTION_LOST - The device network connection is lost
+* `9`: CONNECTION_FAILED - The device network connection got failed
+* `10`: CONNECTION_INTERRUPTED - The device connection is interrupted
+* `11`: INVALID_CREDENTIALS - The credentials provided to connect is not valid
+* `12`: AUTHENTICATION_FAILED - Authentication process as a whole could not be successfully completed
+* `13`: ERROR - The device has encountered an unrecoverable error with the Wifi adapter
 
 ### Events
 
