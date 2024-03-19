@@ -414,10 +414,15 @@ namespace WPEFramework
         JsonArray Bluetooth::getPairedDevices()
         {
             JsonArray deviceArray;
-            BTRMGR_PairedDevicesList_t pairedDevices;
+            BTRMGR_PairedDevicesList_t *pairedDevices = (BTRMGR_PairedDevicesList_t*)malloc(sizeof(BTRMGR_PairedDevicesList_t));
+            if(pairedDevices == nullptr)
+            {
+                LOGERR("Failed to allocate memory");
+                return deviceArray;
+            }
 
-            memset (&pairedDevices, 0, sizeof(pairedDevices));
-            BTRMGR_Result_t rc = BTRMGR_GetPairedDevices(0, &pairedDevices);
+            memset (pairedDevices, 0, sizeof(BTRMGR_PairedDevicesList_t));
+            BTRMGR_Result_t rc = BTRMGR_GetPairedDevices(0, pairedDevices);
             if (BTRMGR_RESULT_SUCCESS != rc)
             {
                 LOGERR("Failed to get the paired devices");
@@ -426,26 +431,32 @@ namespace WPEFramework
             {
                 int i = 0;
                 JsonObject deviceDetails;
-                LOGINFO ("Success....   Paired %d Devices", pairedDevices.m_numOfDevices);
-                for (; i < pairedDevices.m_numOfDevices; i++)
+                LOGINFO ("Success....   Paired %d Devices", pairedDevices->m_numOfDevices);
+                for (; i < pairedDevices->m_numOfDevices; i++)
                 {
-                    deviceDetails["deviceID"] = std::to_string(pairedDevices.m_deviceProperty[i].m_deviceHandle);
-                    deviceDetails["name"] = string(pairedDevices.m_deviceProperty[i].m_name);
-                    deviceDetails["deviceType"] = string(BTRMGR_GetDeviceTypeAsString(pairedDevices.m_deviceProperty[i].m_deviceType));
-                    deviceDetails["connected"] = pairedDevices.m_deviceProperty[i].m_isConnected?true:false;
+                    deviceDetails["deviceID"] = std::to_string(pairedDevices->m_deviceProperty[i].m_deviceHandle);
+                    deviceDetails["name"] = string(pairedDevices->m_deviceProperty[i].m_name);
+                    deviceDetails["deviceType"] = string(BTRMGR_GetDeviceTypeAsString(pairedDevices->m_deviceProperty[i].m_deviceType));
+                    deviceDetails["connected"] = pairedDevices->m_deviceProperty[i].m_isConnected?true:false;
                     deviceArray.Add(deviceDetails);
                 }
             }
+            free(pairedDevices);
             return deviceArray;
         }
 
         JsonArray Bluetooth::getConnectedDevices()
         {
             JsonArray deviceArray;
-            BTRMGR_ConnectedDevicesList_t connectedDevices;
+            BTRMGR_ConnectedDevicesList_t *connectedDevices = (BTRMGR_ConnectedDevicesList_t*)malloc(sizeof(BTRMGR_ConnectedDevicesList_t));
+            if(connectedDevices == nullptr)
+            {
+                LOGERR("Failed to allocate memory");
+                return deviceArray;
+            }
 
-            memset (&connectedDevices, 0, sizeof(connectedDevices));
-            BTRMGR_Result_t rc = BTRMGR_GetConnectedDevices(0, &connectedDevices);
+            memset (connectedDevices, 0, sizeof(BTRMGR_ConnectedDevicesList_t));
+            BTRMGR_Result_t rc = BTRMGR_GetConnectedDevices(0, connectedDevices);
             if (BTRMGR_RESULT_SUCCESS != rc)
             {
                 LOGERR("Failed to get the connected devices");
@@ -454,16 +465,17 @@ namespace WPEFramework
             {
                 int i = 0;
                 JsonObject deviceDetails;
-                LOGINFO ("Success....   Connected %d Devices", connectedDevices.m_numOfDevices);
-                for (; i < connectedDevices.m_numOfDevices; i++)
+                LOGINFO ("Success....   Connected %d Devices", connectedDevices->m_numOfDevices);
+                for (; i < connectedDevices->m_numOfDevices; i++)
                 {
-                    deviceDetails["deviceID"] = std::to_string(connectedDevices.m_deviceProperty[i].m_deviceHandle);
-                    deviceDetails["name"] = string(connectedDevices.m_deviceProperty[i].m_name);
-                    deviceDetails["deviceType"] = string(BTRMGR_GetDeviceTypeAsString(connectedDevices.m_deviceProperty[i].m_deviceType));
-                    deviceDetails["activeState"] = std::to_string(connectedDevices.m_deviceProperty[i].m_powerStatus);
+                    deviceDetails["deviceID"] = std::to_string(connectedDevices->m_deviceProperty[i].m_deviceHandle);
+                    deviceDetails["name"] = string(connectedDevices->m_deviceProperty[i].m_name);
+                    deviceDetails["deviceType"] = string(BTRMGR_GetDeviceTypeAsString(connectedDevices->m_deviceProperty[i].m_deviceType));
+                    deviceDetails["activeState"] = std::to_string(connectedDevices->m_deviceProperty[i].m_powerStatus);
                     deviceArray.Add(deviceDetails);
                 }
             }
+            free(connectedDevices);
             return deviceArray;
         }
 
@@ -862,7 +874,7 @@ namespace WPEFramework
             return mediaTrackInfo;
         }
 
-        void Bluetooth::notifyEventWrapper (BTRMGR_EventMessage_t eventMsg)
+        void Bluetooth::notifyEventWrapper (BTRMGR_EventMessage_t &eventMsg)
         {
             JsonObject params;
             string profileInfo;

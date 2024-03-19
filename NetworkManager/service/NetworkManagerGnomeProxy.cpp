@@ -29,6 +29,7 @@ namespace WPEFramework
 
         void NetworkManagerImplementation::platform_init()
         {
+            ::_instance = this;
             GError *error = NULL;
             GMainContext *context = g_main_context_new();
             // initialize the NMClient object
@@ -702,6 +703,14 @@ namespace WPEFramework
         uint32_t NetworkManagerImplementation::StopWPS(void)
         {
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
+            return rc;
+        }
+
+        uint32_t NetworkManagerImplementation::GetWifiState(WiFiState &state)
+        {
+            uint32_t rc = Core::ERROR_NONE;
+
+            state = Exchange::INetworkManager::WIFI_STATE_CONNECTED;
             return rc;
         }
     }

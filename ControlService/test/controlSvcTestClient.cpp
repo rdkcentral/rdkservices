@@ -843,7 +843,6 @@ int main(int argc, char** argv)
                     cmd = lastCmd;
                 else if ((cmd[0] >= '0') && (cmd[0] <= '9'))
                 {
-                    choice = stoi(cmd);
                     remoteId = 255;
                     timeOutPeriod = 0;
                     pairingMode = 255;

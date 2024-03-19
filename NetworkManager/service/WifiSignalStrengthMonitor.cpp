@@ -14,12 +14,10 @@ namespace WPEFramework
 {
     namespace Plugin
     {
-
-        WifiSignalStrengthMonitor* WifiSignalStrengthMonitor::wifiSignalStrengthMonitor = nullptr;
-
         static const float signalStrengthThresholdExcellent = -50.0f;
         static const float signalStrengthThresholdGood = -60.0f;
         static const float signalStrengthThresholdFair = -67.0f;
+        extern NetworkManagerImplementation* _instance;
 
         std::string WifiSignalStrengthMonitor::retrieveValues(const char *command, const char* keyword, char *output_buffer, size_t output_buffer_size)
         {
@@ -117,7 +115,7 @@ namespace WPEFramework
                 string ssid = "";
                 string signalStrength;
                 Exchange::INetworkManager::WiFiSignalQuality newSignalQuality;
-                if (networkManagerImpl != nullptr)
+                if (_instance != nullptr)
                 {
                     NMLOG_TRACE("checking WiFi signal strength");
                     getSignalData(ssid, newSignalQuality, signalStrength);
@@ -125,7 +123,7 @@ namespace WPEFramework
                     {
                         NMLOG_INFO("Notifying WiFiSignalStrengthChangedEvent ...%s", signalStrength.c_str());
                         oldSignalQuality = newSignalQuality;
-                        networkManagerImpl->ReportWiFiSignalStrengthChangedEvent(ssid, signalStrength, newSignalQuality);
+                        _instance->ReportWiFiSignalStrengthChangedEvent(ssid, signalStrength, newSignalQuality);
                     }
 
                     if(newSignalQuality == Exchange::INetworkManager::WIFI_SIGNAL_DISCONNECTED)
@@ -141,12 +139,6 @@ namespace WPEFramework
                 std::this_thread::sleep_for(std::chrono::seconds(interval));
             }
             isRunning = false;
-        }
-
-        void WifiSignalStrengthMonitor::registerWifiSignalStrengthNotify(NetworkManagerImplementation* nmImpl)
-        {
-            NMLOG_INFO("Registered WifiSignalStrength Notification !");
-            networkManagerImpl = nmImpl;
         }
     }
 }
