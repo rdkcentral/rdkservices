@@ -27,6 +27,7 @@
 #include "dsError.h"
 #include "dsMgr.h"
 #include "audioOutputPort.hpp"
+#include "host.hpp"
 
 #include <vector>
 #include <algorithm>

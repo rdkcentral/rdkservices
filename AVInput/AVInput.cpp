@@ -25,7 +25,7 @@
 
 #include "UtilsJsonRpc.h"
 #include "UtilsIarm.h"
-
+#include "host.hpp"
 #include "exception.hpp"
 #include <vector>
 #include <algorithm>
