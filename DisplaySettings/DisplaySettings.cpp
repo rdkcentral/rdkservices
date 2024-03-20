@@ -562,7 +562,7 @@ namespace WPEFramework {
 		if (m_sendMsgThread.joinable())
 			m_sendMsgThread.join();
 		if(audioPortInitThread.joinable()){
-        		audioPortInitThread.join()
+        		audioPortInitThread.join();
            	}
 	   }
 	   catch(const std::system_error& e)
