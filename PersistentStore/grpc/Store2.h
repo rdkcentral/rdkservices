@@ -145,6 +145,9 @@ namespace Plugin {
             uint32_t SetValue(const ScopeType scope, const string& ns, const string& key, const string& value, const uint32_t ttl) override
             {
                 ASSERT(scope == ScopeType::ACCOUNT);
+                if (scope != ScopeType::ACCOUNT) {
+                    return Core::ERROR_GENERAL;
+                }
 
                 uint32_t result;
 
@@ -186,6 +189,9 @@ namespace Plugin {
             uint32_t GetValue(const ScopeType scope, const string& ns, const string& key, string& value, uint32_t& ttl) override
             {
                 ASSERT(scope == ScopeType::ACCOUNT);
+                if (scope != ScopeType::ACCOUNT) {
+                    return Core::ERROR_GENERAL;
+                }
 
                 uint32_t result;
 
@@ -239,6 +245,9 @@ namespace Plugin {
             uint32_t DeleteKey(const ScopeType scope, const string& ns, const string& key) override
             {
                 ASSERT(scope == ScopeType::ACCOUNT);
+                if (scope != ScopeType::ACCOUNT) {
+                    return Core::ERROR_GENERAL;
+                }
 
                 uint32_t result;
 
@@ -271,6 +280,9 @@ namespace Plugin {
             uint32_t DeleteNamespace(const ScopeType scope, const string& ns) override
             {
                 ASSERT(scope == ScopeType::ACCOUNT);
+                if (scope != ScopeType::ACCOUNT) {
+                    return Core::ERROR_GENERAL;
+                }
 
                 uint32_t result;
 
@@ -307,7 +319,7 @@ namespace Plugin {
                     index(_clients.begin());
 
                 while (index != _clients.end()) {
-                    (*index)->ValueChanged(ScopeType::DEVICE, ns, key, value);
+                    (*index)->ValueChanged(ScopeType::ACCOUNT, ns, key, value);
                     index++;
                 }
             }
