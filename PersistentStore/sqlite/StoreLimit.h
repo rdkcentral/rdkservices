@@ -91,6 +91,9 @@ namespace Plugin {
             uint32_t SetNamespaceStorageLimit(const ScopeType scope, const string& ns, const uint32_t size) override
             {
                 ASSERT(scope == ScopeType::DEVICE);
+                if (scope != ScopeType::DEVICE) {
+                    return Core::ERROR_GENERAL;
+                }
 
                 uint32_t result;
 
@@ -129,6 +132,9 @@ namespace Plugin {
             uint32_t GetNamespaceStorageLimit(const ScopeType scope, const string& ns, uint32_t& size) override
             {
                 ASSERT(scope == ScopeType::DEVICE);
+                if (scope != ScopeType::DEVICE) {
+                    return Core::ERROR_GENERAL;
+                }
 
                 uint32_t result;
 
