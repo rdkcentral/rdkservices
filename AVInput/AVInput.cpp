@@ -21,6 +21,7 @@
 #include "dsMgr.h"
 #include "hdmiIn.hpp"
 #include "compositeIn.hpp"
+#include "audioOutputPort.hpp"
 
 #include "UtilsJsonRpc.h"
 #include "UtilsIarm.h"
@@ -47,6 +48,7 @@
 #define AVINPUT_METHOD_GET_EDID_VERSION "getEdidVersion"
 #define AVINPUT_METHOD_SET_EDID_ALLM_SUPPORT "setEdid2AllmSupport"
 #define AVINPUT_METHOD_GET_EDID_ALLM_SUPPORT "getEdid2AllmSupport"
+#define AVINPUT_METHOD_SET_MIXER_LEVELS "setMixerLevels"
 #define AVINPUT_METHOD_START_INPUT "startInput"
 #define AVINPUT_METHOD_STOP_INPUT "stopInput"
 #define AVINPUT_METHOD_SCALE_INPUT "setVideoRectangle"
@@ -219,11 +221,14 @@ void AVInput::RegisterAll()
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_GET_EDID_VERSION), &AVInput::getEdidVersionWrapper, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_SET_EDID_ALLM_SUPPORT), &AVInput::setEdid2AllmSupportWrapper, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_GET_EDID_ALLM_SUPPORT), &AVInput::getEdid2AllmSupportWrapper, this);
+    Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_SET_MIXER_LEVELS), &AVInput::setMixerLevels, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_START_INPUT), &AVInput::startInput, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_STOP_INPUT), &AVInput::stopInput, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_SCALE_INPUT), &AVInput::setVideoRectangleWrapper, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_SUPPORTED_GAME_FEATURES), &AVInput::getSupportedGameFeatures, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_GAME_FEATURE_STATUS), &AVInput::getGameFeatureStatusWrapper, this);
+    m_primVolume = DEFAULT_PRIM_VOL_LEVEL;
+    m_inputVolume = DEFAULT_INPUT_VOL_LEVEL;
 }
 
 void AVInput::UnregisterAll()
@@ -1170,6 +1175,54 @@ std::string AVInput::getSPD(int iPort)
         LOG_DEVICE_EXCEPTION1(std::to_string(iPort));
     }
     return spdbase64;
+}
+
+uint32_t AVInput::setMixerLevels(const JsonObject& parameters, JsonObject& response)
+{
+    returnIfStringParamNotFound(parameters, "primaryVolume");
+       returnIfStringParamNotFound(parameters, "inputVolume");
+
+	string sPrimVol = parameters["primaryVolume"].String();
+   	string sInputVol = parameters["inputVolume"].String();
+   	int primVol = 0, inputVol = 0;
+   	try {
+       		primVol = stoi(sPrimVol);
+       		inputVol = stoi(sInputVol);
+   		} catch(...) {
+     			  LOGERR("Incompatible params passed !!!\n");
+       		  response["success"] = false;
+       		  returnResponse(false);
+   		}
+
+
+   	if(m_primVolume >=0 ) {
+       	m_primVolume = primVol;
+   	}
+   	if(m_inputVolume >=0) {
+       	m_inputVolume = inputVol;
+   	}
+   	if(m_primVolume > MAX_PRIM_VOL_LEVEL) {
+       	LOGWARN("Primary Volume greater than limit. Set to MAX_PRIM_VOL_LEVEL(100) !!!\n");
+       	m_primVolume = MAX_PRIM_VOL_LEVEL;
+   	}
+   	if(m_inputVolume > DEFAULT_INPUT_VOL_LEVEL) {
+       	LOGWARN("INPUT Volume greater than limit. Set to DEFAULT_INPUT_VOL_LEVEL(100) !!!\n");
+       	m_inputVolume = DEFAULT_INPUT_VOL_LEVEL;
+   	}
+
+	LOGINFO("GLOBAL primary Volume=%d input Volume=%d \n",m_primVolume  , m_inputVolume );
+
+	try{
+
+    	device::AudioOutputPort::setAudioMixerLevels(MIXGAIN_PRIM,primVol);
+       	device::AudioOutputPort::setAudioMixerLevels(MIXGAIN_SYS,inputVol);
+	}
+	catch(...){
+    	LOGWARN("Not setting SoC volume !!!\n");
+       	returnResponse(false);
+	}
+
+	returnResponse(true);
 }
 
 int setEdid2AllmSupport(int portId, bool allmSupport)

@@ -560,7 +560,7 @@ public:
     virtual std::string getCurrentVideoMode() const = 0;
     virtual void selectPort(int8_t Port,bool audioMix = false, int videoPlane = 0,bool topMost = false) const = 0;
     virtual void scaleVideo(int32_t x, int32_t y, int32_t width, int32_t height) const = 0;
-
+    virtual void setAudioMixerLevels(int gain, int volume) const = 0;
     virtual void getEDIDBytesInfo(int iHdmiPort, std::vector<uint8_t>& edid) const = 0;
     virtual void getHDMISPDInfo(int iHdmiPort, std::vector<uint8_t>& data) const = 0;
     virtual void setEdidVersion(int iHdmiPort, int iEdidVersion) const = 0;
