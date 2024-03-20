@@ -173,17 +173,12 @@ namespace WPEFramework
             return rc;
         }
 
-        uint32_t NetworkManagerImplementation::SetInterfaceEnabled (const string& interface/* @in */, const bool& isEnabled /* @in */)
+        uint32_t NetworkManagerImplementation::EnableInterface (const string& interface/* @in */)
         {
             uint32_t rc = Core::ERROR_NONE;
             const GPtrArray *devices = nm_client_get_devices(client);
-            NMDeviceState new_state;
             NMDevice *device = NULL;
 
-            if(isEnabled)
-                new_state = NM_DEVICE_STATE_ACTIVATED;
-            else
-                new_state = NM_DEVICE_STATE_DEACTIVATING;
             for (guint i = 0; i < devices->len; ++i) {
                 device = NM_DEVICE(g_ptr_array_index(devices, i));
 
@@ -192,11 +187,37 @@ namespace WPEFramework
 
                 // Check if the device name matches
                 if (g_strcmp0(name, interface.c_str()) == 0) {
-                    nm_device_set_managed(device, isEnabled);
+                    nm_device_set_managed(device, true);
 
-                    NMLOG_TRACE("Interface %s status set to %s\n",
-                            interface.c_str(),
-                            (new_state == NM_DEVICE_STATE_ACTIVATED) ? "enabled" : "disabled");
+                    NMLOG_TRACE("Interface %s status set to enabled\n",
+                            interface.c_str());
+                }
+            }
+
+            // Cleanup
+            if(device)
+                g_clear_object(&device);
+            return rc;
+        }
+
+        uint32_t NetworkManagerImplementation::DisableInterface (const string& interface/* @in */)
+        {
+            uint32_t rc = Core::ERROR_NONE;
+            const GPtrArray *devices = nm_client_get_devices(client);
+            NMDevice *device = NULL;
+
+            for (guint i = 0; i < devices->len; ++i) {
+                device = NM_DEVICE(g_ptr_array_index(devices, i));
+
+                // Get the device details
+                const char *name = nm_device_get_iface(device);
+
+                // Check if the device name matches
+                if (g_strcmp0(name, interface.c_str()) == 0) {
+                    nm_device_set_managed(device, false);
+
+                    NMLOG_TRACE("Interface %s status set to disabled\n",
+                            interface.c_str());
                 }
             }
  

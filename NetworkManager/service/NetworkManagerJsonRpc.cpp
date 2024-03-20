@@ -43,7 +43,8 @@ namespace WPEFramework
             Register("GetAvailableInterfaces",            &NetworkManager::GetAvailableInterfaces, this);
             Register("GetPrimaryInterface",               &NetworkManager::GetPrimaryInterface, this);
             Register("SetPrimaryInterface",               &NetworkManager::SetPrimaryInterface, this);
-            Register("SetInterfaceEnabled",               &NetworkManager::SetInterfaceEnabled, this);
+            Register("EnableInterface",                   &NetworkManager::EnableInterface, this);
+            Register("DisableInterface",                  &NetworkManager::DisableInterface, this);
             Register("GetIPSettings",                     &NetworkManager::GetIPSettings, this);
             Register("SetIPSettings",                     &NetworkManager::SetIPSettings, this);
             Register("GetStunEndpoint",                   &NetworkManager::GetStunEndpoint, this);
@@ -81,7 +82,8 @@ namespace WPEFramework
             Unregister("GetAvailableInterfaces");
             Unregister("GetPrimaryInterface");
             Unregister("SetPrimaryInterface");
-            Unregister("SetInterfaceEnabled");
+            Unregister("EnableInterface");
+            Unregister("DisableInterface");
             Unregister("GetIPSettings");
             Unregister("SetIPSettings");
             Unregister("GetStunEndpoint");
@@ -209,14 +211,31 @@ namespace WPEFramework
             return rc;
         }
 
-        uint32_t NetworkManager::SetInterfaceEnabled (const JsonObject& parameters, JsonObject& response)
+        uint32_t NetworkManager::EnableInterface (const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
             uint32_t rc = Core::ERROR_GENERAL;
             string interface = parameters["interface"].String();
-            bool isEnabled = parameters["enable"].Boolean();
             if (_NetworkManager)
-                rc = _NetworkManager->SetInterfaceEnabled(interface, isEnabled);
+                rc = _NetworkManager->EnableInterface(interface);
+            else
+                rc = Core::ERROR_UNAVAILABLE;
+
+            if (Core::ERROR_NONE == rc)
+            {
+                response["success"] = true;
+            }
+            LOGTRACEMETHODFIN();
+            return rc;
+        }
+
+        uint32_t NetworkManager::DisableInterface (const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            uint32_t rc = Core::ERROR_GENERAL;
+            string interface = parameters["interface"].String();
+            if (_NetworkManager)
+                rc = _NetworkManager->DisableInterface(interface);
             else
                 rc = Core::ERROR_UNAVAILABLE;
 
