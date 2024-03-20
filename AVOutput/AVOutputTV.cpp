@@ -3408,7 +3408,7 @@ namespace Plugin {
         ret = GetLowLatencyState(&prevLowLatencyIndex);
         if(ret != tvERROR_NONE) {
             LOGERR("Get previous low latency state failed\n");
-            returnResponse(false, getErrorString(ret).c_str());
+            returnResponse(false);
         }
 
         params[0]=lowLatencyIndex;
