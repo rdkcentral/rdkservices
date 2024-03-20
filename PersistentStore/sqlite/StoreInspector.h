@@ -84,6 +84,9 @@ namespace Plugin {
             uint32_t GetKeys(const ScopeType scope, const string& ns, RPC::IStringIterator*& keys) override
             {
                 ASSERT(scope == ScopeType::DEVICE);
+                if (scope != ScopeType::DEVICE) {
+                    return Core::ERROR_GENERAL;
+                }
 
                 uint32_t result;
 
@@ -114,6 +117,9 @@ namespace Plugin {
             uint32_t GetNamespaces(const ScopeType scope, RPC::IStringIterator*& namespaces) override
             {
                 ASSERT(scope == ScopeType::DEVICE);
+                if (scope != ScopeType::DEVICE) {
+                    return Core::ERROR_GENERAL;
+                }
 
                 uint32_t result;
 
@@ -139,6 +145,9 @@ namespace Plugin {
             uint32_t GetStorageSizes(const ScopeType scope, INamespaceSizeIterator*& storageList) override
             {
                 ASSERT(scope == ScopeType::DEVICE);
+                if (scope != ScopeType::DEVICE) {
+                    return Core::ERROR_GENERAL;
+                }
 
                 uint32_t result;
 
