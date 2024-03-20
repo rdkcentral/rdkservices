@@ -561,10 +561,10 @@ namespace WPEFramework {
 	   {
 		if (m_sendMsgThread.joinable())
 			m_sendMsgThread.join();
+		if(audioPortInitThread.joinable()){
+        		audioPortInitThread.join()
+           	}
 	   }
-       if(audioPortInitThread.joinable()){
-        audioPortInitThread.join()
-       }
 	   catch(const std::system_error& e)
            {
 		LOGERR("system_error exception in thread join %s", e.what());
