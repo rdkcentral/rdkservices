@@ -184,7 +184,9 @@ namespace WPEFramework
              printHeader(header);
              LOGINFO("Command: Standby from %s\n", header.from.toString().c_str());
              HdmiCec_2::_instance->SendStandbyMsgEvent(header.from.toInt());
-
+	     isDeviceActiveSource = false;
+	     LOGINFO("ActiveSource isDeviceActiveSource status :%d \n", isDeviceActiveSource);
+	     HdmiCec_2::_instance->sendActiveSourceEvent();
        }
        void HdmiCec_2Processor::process (const GetCECVersion &msg, const Header &header)
        {
