@@ -39,15 +39,12 @@ namespace Plugin {
 
         public:
             Store2()
-                : Store2(
-                      getenv(URI_ENV),
-                      getenv(TOKEN_COMMAND_ENV))
+                : Store2(getenv(URI_ENV))
             {
             }
-            Store2(const string& uri, const string& tokenCommand)
+            Store2(const string& uri)
                 : IStore2()
                 , _uri(uri)
-                , _tokenCommand(tokenCommand)
             {
                 Open();
             }
@@ -93,24 +90,34 @@ namespace Plugin {
             }
             string GetToken() const
             {
-                class Authorization : public Core::JSON::Container {
-                public:
-                    Authorization()
-                        : Core::JSON::Container()
-                        , Expires(0)
-                        , Received(0)
-                    {
-                        Add(_T("token"), &Token);
-                        Add(_T("expires"), &Expires);
-                        Add(_T("received"), &Received);
-                    }
-                    Core::JSON::String Token;
-                    Core::JSON::DecUInt64 Expires;
-                    Core::JSON::DecUInt64 Received;
-                };
-                Authorization auth;
-                auth.FromString(ExecuteCmd(_tokenCommand.c_str()));
-                return auth.Token.Value();
+                // TODO remove this
+                JsonObject jsonObject;
+                jsonObject.FromString(ExecuteCmd("curl -d '{\"jsonrpc\":\"2.0\",\"id\":0,\"method\":\"org.rdk.AuthService.getServiceAccessToken\"}' http://127.0.0.1:9998/jsonrpc"));
+                return jsonObject["result"].Object()["token"].String();
+            }
+            static string ReadFromFile(const char* filename)
+            {
+                string result;
+                Core::File file(filename);
+                if (file.Open(true)) {
+                    uint8_t buffer[1024];
+                    auto size = file.Read(buffer, 1024);
+                    result.assign(reinterpret_cast<char*>(buffer), size);
+                    result.erase(result.find_last_not_of(" \n\r\t") + 1);
+                }
+                return result;
+            }
+            string GetPartnerId() const
+            {
+                return ReadFromFile("/opt/www/authService/partnerId3.dat");
+            }
+            string GetAccountId() const
+            {
+                return ReadFromFile("/opt/www/authService/said.dat");
+            }
+            string GetDeviceId() const
+            {
+                return ReadFromFile("/opt/www/authService/xdeviceid.dat");
             }
 
         public:
@@ -145,9 +152,6 @@ namespace Plugin {
             uint32_t SetValue(const ScopeType scope, const string& ns, const string& key, const string& value, const uint32_t ttl) override
             {
                 ASSERT(scope == ScopeType::ACCOUNT);
-                if (scope != ScopeType::ACCOUNT) {
-                    return Core::ERROR_GENERAL;
-                }
 
                 uint32_t result;
 
@@ -156,6 +160,9 @@ namespace Plugin {
                     context.AddMetadata("authorization", "Bearer " + GetToken());
                 }
                 ::distp::gateway::secure_storage::v1::UpdateValueRequest request;
+                request.set_partner_id(GetPartnerId());
+                request.set_account_id(GetAccountId());
+                request.set_device_id(GetDeviceId());
                 auto v = new ::distp::gateway::secure_storage::v1::Value();
                 v->set_value(value);
                 if (ttl != 0) {
@@ -189,9 +196,6 @@ namespace Plugin {
             uint32_t GetValue(const ScopeType scope, const string& ns, const string& key, string& value, uint32_t& ttl) override
             {
                 ASSERT(scope == ScopeType::ACCOUNT);
-                if (scope != ScopeType::ACCOUNT) {
-                    return Core::ERROR_GENERAL;
-                }
 
                 uint32_t result;
 
@@ -200,6 +204,9 @@ namespace Plugin {
                     context.AddMetadata("authorization", "Bearer " + GetToken());
                 }
                 ::distp::gateway::secure_storage::v1::GetValueRequest request;
+                request.set_partner_id(GetPartnerId());
+                request.set_account_id(GetAccountId());
+                request.set_device_id(GetDeviceId());
                 auto k = new ::distp::gateway::secure_storage::v1::Key();
                 k->set_app_id(ns);
                 k->set_key(key);
@@ -245,9 +252,6 @@ namespace Plugin {
             uint32_t DeleteKey(const ScopeType scope, const string& ns, const string& key) override
             {
                 ASSERT(scope == ScopeType::ACCOUNT);
-                if (scope != ScopeType::ACCOUNT) {
-                    return Core::ERROR_GENERAL;
-                }
 
                 uint32_t result;
 
@@ -256,6 +260,9 @@ namespace Plugin {
                     context.AddMetadata("authorization", "Bearer " + GetToken());
                 }
                 ::distp::gateway::secure_storage::v1::DeleteValueRequest request;
+                request.set_partner_id(GetPartnerId());
+                request.set_account_id(GetAccountId());
+                request.set_device_id(GetDeviceId());
                 auto k = new ::distp::gateway::secure_storage::v1::Key();
                 k->set_app_id(ns);
                 k->set_key(key);
@@ -280,9 +287,6 @@ namespace Plugin {
             uint32_t DeleteNamespace(const ScopeType scope, const string& ns) override
             {
                 ASSERT(scope == ScopeType::ACCOUNT);
-                if (scope != ScopeType::ACCOUNT) {
-                    return Core::ERROR_GENERAL;
-                }
 
                 uint32_t result;
 
@@ -291,6 +295,9 @@ namespace Plugin {
                     context.AddMetadata("authorization", "Bearer " + GetToken());
                 }
                 ::distp::gateway::secure_storage::v1::DeleteAllValuesRequest request;
+                request.set_partner_id(GetPartnerId());
+                request.set_account_id(GetAccountId());
+                request.set_device_id(GetDeviceId());
                 request.set_app_id(ns);
                 request.set_scope(::distp::gateway::secure_storage::v1::Scope::SCOPE_ACCOUNT);
                 ::distp::gateway::secure_storage::v1::DeleteAllValuesResponse response;
@@ -330,7 +337,6 @@ namespace Plugin {
 
         private:
             const string _uri;
-            const string _tokenCommand;
             std::unique_ptr<::distp::gateway::secure_storage::v1::SecureStorageService::Stub> _stub;
             std::list<INotification*> _clients;
             Core::CriticalSection _clientLock;
