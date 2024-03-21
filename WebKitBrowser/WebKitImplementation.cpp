@@ -870,7 +870,6 @@ static GSourceFuncs _handlerIntervention =
             , _view(nullptr)
             , _guid(Core::Time::Now().Ticks())
             , _httpCookieAcceptPolicy(WEBKIT_COOKIE_POLICY_ACCEPT_NO_THIRD_PARTY)
-            , _webprocessPID(-1)
             , _extensionPath()
             , _ignoreLoadFinishedOnce(false)
 #else
@@ -3406,6 +3405,14 @@ static GSourceFuncs _handlerIntervention =
 #endif
         }
 
+        pid_t GetWebGetProcessIdentifier() {
+#ifdef WEBKIT_GLIB_API
+            return webkit_web_view_get_web_process_identifier(_view);
+#else
+            return WKPageGetProcessIdentifier(GetPage());
+#endif
+        }
+
         void DidReceiveWebProcessResponsivenessReply(bool isWebProcessResponsive)
         {
             if (_config.WatchDogHangThresholdInSeconds.Value() == 0 || _config.WatchDogCheckTimeoutInSeconds.Value() == 0)
@@ -3423,15 +3430,11 @@ static GSourceFuncs _handlerIntervention =
             if (isWebProcessResponsive && _unresponsiveReplyNum == 0)
                 return;
 
+            pid_t webprocessPID = GetWebGetProcessIdentifier();
 #ifdef WEBKIT_GLIB_API
             std::string activeURL(webkit_web_view_get_uri(_view));
-            if (_webprocessPID == -1) {
-              _webprocessPID = webkit_web_view_get_web_process_identifier(_view);
-            }
-            pid_t webprocessPID = _webprocessPID;
 #else
             std::string activeURL = GetPageActiveURL(GetPage());
-            pid_t webprocessPID = WKPageGetProcessIdentifier(GetPage());
 #endif
 
             if (isWebProcessResponsive) {
@@ -3519,7 +3522,6 @@ static GSourceFuncs _handlerIntervention =
         WebKitWebView* _view;
         uint64_t _guid;
         WebKitCookieAcceptPolicy _httpCookieAcceptPolicy;
-        pid_t _webprocessPID;
         string _extensionPath;
         bool _ignoreLoadFinishedOnce;
 #else
