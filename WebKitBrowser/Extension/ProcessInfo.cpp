@@ -40,9 +40,9 @@ void SetProcessName()
     #error("No implementation available to set process name on this platform")
 #endif
     if (0 != ret ) {
-        TRACE_GLOBAL(Trace::Error, (_T("Setting process name to '%s' FAILED with code %d\n"), processName.c_str(), ret));
+        SYSLOG(Logging::Error, (_T("Setting process name to '%s' FAILED with code %d\n"), processName.c_str(), ret));
     } else {
-        TRACE_GLOBAL(Trace::Error, (_T("Setting process name to '%s' SUCCESS\n"), processName.c_str()));
+        TRACE_GLOBAL(Trace::Information, (_T("Setting process name to '%s' SUCCESS\n"), processName.c_str()));
     }
 }
 
