@@ -195,6 +195,14 @@ namespace WPEFramework {
             pthread_mutex_t m_lock;
             pthread_cond_t m_condSigUpdate;
             pthread_mutex_t m_lockUpdate;
+            bool cecEnableStatus;
+            typedef struct iarmEventInfo
+            {
+               const char *owner;
+               IARM_EventId_t eventId;
+               int data;
+            }IarmEventInfo;
+            std::queue<IarmEventInfo> m_IarmEventInfoQueue;
 
             void SendStandbyMsgEvent(const int logicalAddress);
             void sendActiveSourceEvent();
@@ -238,7 +246,6 @@ namespace WPEFramework {
             std::string logicalAddressDeviceType;
             bool cecSettingEnabled;
             bool cecOTPSettingEnabled;
-            bool cecEnableStatus;
             bool IsCecMgrActivated;
             Connection *smConnection;
             int m_numberOfDevices;
@@ -287,6 +294,7 @@ namespace WPEFramework {
             static void threadRun();
             static void threadUpdateCheck();
 	        static void  threadSendKeyEvent();
+                static void threadIarmEventHandler();
         };
 	} // namespace Plugin
 } // namespace WPEFramework
