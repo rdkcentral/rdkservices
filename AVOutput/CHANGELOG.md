@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.4] - 2024-03-05
+### Fixed
+- allm set after sync as it requires pq reload
+
 ## [1.0.3] - 2024-02-26
 ### Fixed
 - Header cleanup
