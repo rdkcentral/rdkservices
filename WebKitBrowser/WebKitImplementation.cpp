@@ -2695,7 +2695,7 @@ static GSourceFuncs _handlerIntervention =
             {
                 virtual void Dispatch() { exit(1); }
             };
-            Core::IWorkerPool::Instance().Submit(Core::proxy_cast<Core::IDispatch>(Core::ProxyType<ExitJob>::Create()));
+            Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatch>(Core::ProxyType<ExitJob>::Create()));
         }
         static void closeCallback(VARIABLE_IS_NOT_USED WebKitWebView* webView, WebKitImplementation* browser)
         {
