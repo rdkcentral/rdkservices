@@ -30,7 +30,6 @@ using ::WPEFramework::Exchange::IStore2;
 using ::WPEFramework::Plugin::Grpc::Store2;
 
 const auto kUri = "0.0.0.0:50051";
-const auto kTokenCommand = "";
 const auto kValue = "value_1";
 const auto kKey = "key_1";
 const auto kAppId = "app_id_1";
@@ -44,7 +43,7 @@ protected:
     WPEFramework::Core::ProxyType<IStore2> store2;
     AStore2()
         : server(kUri, &service)
-        , store2(WPEFramework::Core::ProxyType<Store2>::Create(kUri, kTokenCommand))
+        , store2(WPEFramework::Core::ProxyType<Store2>::Create(kUri))
     {
     }
 };

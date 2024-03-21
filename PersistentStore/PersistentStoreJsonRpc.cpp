@@ -118,8 +118,8 @@ namespace Plugin {
     uint32_t PersistentStore::endpoint_getKeys(const DeleteNamespaceParamsInfo& params, GetKeysResultData& response)
     {
         RPC::IStringIterator* it;
-        auto result = _storeInspector->GetKeys(
-            Exchange::IStore2::ScopeType(params.Scope.Value()),
+        auto result = _store2->GetKeys(
+            Exchange::IStoreInspector::ScopeType(params.Scope.Value()),
             params.Namespace.Value(),
             it);
         if (result == Core::ERROR_NONE) {
@@ -137,8 +137,8 @@ namespace Plugin {
     uint32_t PersistentStore::endpoint_getNamespaces(const GetNamespacesParamsInfo& params, GetNamespacesResultData& response)
     {
         RPC::IStringIterator* it;
-        auto result = _storeInspector->GetNamespaces(
-            Exchange::IStore2::ScopeType(params.Scope.Value()),
+        auto result = _store2->GetNamespaces(
+            Exchange::IStoreInspector::ScopeType(params.Scope.Value()),
             it);
         if (result == Core::ERROR_NONE) {
             string element;
@@ -156,8 +156,8 @@ namespace Plugin {
     uint32_t PersistentStore::endpoint_getStorageSize(const GetNamespacesParamsInfo& params, JsonObject& response)
     {
         Exchange::IStoreInspector::INamespaceSizeIterator* it;
-        auto result = _storeInspector->GetStorageSizes(
-            Exchange::IStore2::ScopeType(params.Scope.Value()),
+        auto result = _store2->GetStorageSizes(
+            Exchange::IStoreInspector::ScopeType(params.Scope.Value()),
             it);
         if (result == Core::ERROR_NONE) {
             JsonObject jsonObject;
@@ -176,8 +176,8 @@ namespace Plugin {
     uint32_t PersistentStore::endpoint_getStorageSizes(const GetNamespacesParamsInfo& params, GetStorageSizesResultData& response)
     {
         Exchange::IStoreInspector::INamespaceSizeIterator* it;
-        auto result = _storeInspector->GetStorageSizes(
-            Exchange::IStore2::ScopeType(params.Scope.Value()),
+        auto result = _store2->GetStorageSizes(
+            Exchange::IStoreInspector::ScopeType(params.Scope.Value()),
             it);
         if (result == Core::ERROR_NONE) {
             Exchange::IStoreInspector::NamespaceSize element;
@@ -194,7 +194,7 @@ namespace Plugin {
 
     uint32_t PersistentStore::endpoint_flushCache(DeleteKeyResultInfo& response)
     {
-        auto result = _storeCache->FlushCache();
+        auto result = _store2->FlushCache();
         if (result == Core::ERROR_NONE) {
             response.Success = true;
         }
@@ -205,8 +205,8 @@ namespace Plugin {
     uint32_t PersistentStore::endpoint_getNamespaceStorageLimit(const DeleteNamespaceParamsInfo& params, GetNamespaceStorageLimitResultData& response)
     {
         uint32_t size;
-        auto result = _storeLimit->GetNamespaceStorageLimit(
-            Exchange::IStore2::ScopeType(params.Scope.Value()),
+        auto result = _store2->GetNamespaceStorageLimit(
+            Exchange::IStoreLimit::ScopeType(params.Scope.Value()),
             params.Namespace.Value(),
             size);
         if (result == Core::ERROR_NONE) {
@@ -218,8 +218,8 @@ namespace Plugin {
 
     uint32_t PersistentStore::endpoint_setNamespaceStorageLimit(const SetNamespaceStorageLimitParamsData& params)
     {
-        return _storeLimit->SetNamespaceStorageLimit(
-            Exchange::IStore2::ScopeType(params.Scope.Value()),
+        return _store2->SetNamespaceStorageLimit(
+            Exchange::IStoreLimit::ScopeType(params.Scope.Value()),
             params.Namespace.Value(),
             params.StorageLimit.Value());
     }
