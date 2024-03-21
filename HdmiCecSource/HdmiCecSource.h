@@ -195,6 +195,7 @@ namespace WPEFramework {
             pthread_mutex_t m_lock;
             pthread_cond_t m_condSigUpdate;
             pthread_mutex_t m_lockUpdate;
+            bool cecEnableStatus;
 
             void SendStandbyMsgEvent(const int logicalAddress);
             void sendActiveSourceEvent();
@@ -238,7 +239,6 @@ namespace WPEFramework {
             std::string logicalAddressDeviceType;
             bool cecSettingEnabled;
             bool cecOTPSettingEnabled;
-            bool cecEnableStatus;
             bool IsCecMgrActivated;
             Connection *smConnection;
             int m_numberOfDevices;
@@ -261,7 +261,7 @@ namespace WPEFramework {
             static void dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             static void pwrMgrModeChangeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
             void onCECDaemonInit();
-            void cecStatusUpdated(void *evtStatus);
+            void cecStatusUpdated(int logicalAddress);
             void onHdmiHotPlug(int connectStatus);
             bool loadSettings();
             void persistSettings(bool enableStatus);
@@ -287,6 +287,9 @@ namespace WPEFramework {
             static void threadRun();
             static void threadUpdateCheck();
 	        static void  threadSendKeyEvent();
+                static void threadHotPlugEventHandler(int data);
+                static void threadCecDaemonInitHandler();
+                static void threadCecStatusUpdateHandler(int data);
         };
 	} // namespace Plugin
 } // namespace WPEFramework
