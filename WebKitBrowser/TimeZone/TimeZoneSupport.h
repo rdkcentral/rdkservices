@@ -20,7 +20,7 @@
 #ifndef __TIMEZONESUPPORTH
 #define __TIMEZONESUPPORTH
 
-#include "Module.h"
+#include "../Extension/Module.h"
 #include <gio/gio.h>
 
 namespace WPEFramework {
