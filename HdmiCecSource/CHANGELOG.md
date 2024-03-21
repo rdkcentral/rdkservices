@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.8] - 2024-03-21
+### Changed
+- Fixed IARM event handling to process in thread
+
 ## [1.0.7] - 2024-02-02
 ### Changed
 - Fixed IARM unregister API call
