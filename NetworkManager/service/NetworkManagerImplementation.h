@@ -151,7 +151,8 @@ namespace WPEFramework
             /* @brief Set the active Interface used for external world communication */
             uint32_t SetPrimaryInterface (const string& interface/* @in */) override;
 
-            uint32_t SetInterfaceEnabled (const string& interface/* @in */, const bool& isEnabled /* @in */) override;
+            uint32_t EnableInterface (const string& interface/* @in */) override;
+            uint32_t DisableInterface (const string& interface/* @in */) override;
             /* @brief Get IP Address Of the Interface */
             uint32_t GetIPSettings(const string& interface /* @in */, const string &ipversion /* @in */, IPAddressInfo& result /* @out */) override;
             /* @brief Set IP Address Of the Interface */

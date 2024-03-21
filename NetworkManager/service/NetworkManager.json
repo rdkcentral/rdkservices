@@ -1225,8 +1225,87 @@
                     "success"
                 ]
             }
+        },
+        "EnableInterface":{
+            "summary": "Enable the specified interface",
+            "events":{
+                "onInterfaceStateChange" : "Triggered when interface’s status changes to enabled."
+            },
+            "params": {
+                "type": "object",
+                "properties": {
+                     "interface": {
+                        "summary": "Enable the specified interface",
+                        "type": "string",
+                        "example": "wlan0"
+                    }
+                },
+                "required": [
+                    "interface"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            }
+        },
+        "DisableInterface":{
+            "summary": "Disable the specified interface",
+            "events":{
+                "onInterfaceStateChange" : "Triggered when interface’s status changes to disabled."
+            },
+            "params": {
+                "type": "object",
+                "properties": {
+                     "interface": {
+                        "summary": "Disable the specified interface",
+                        "type": "string",
+                        "example": "wlan0"
+                    }
+                },
+                "required": [
+                    "interface"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "success"
+                ]
+            }
+        },
+        "GetWifiState": {
+            "summary": "Returns the current Wifi State. The possible Wifi states are as follows.  \n**Wifi States**  \n* `0`: UNINSTALLED - The device was in an installed state and was uninstalled; or, the device does not have a Wifi radio installed   \n* `1`: DISABLED - The device is installed but not yet enabled  \n* `2`: DISCONNECTED - The device is installed and enabled, but not yet connected to a network  \n* `3`: PAIRING - The device is in the process of pairing, but not yet connected to a network  \n* `4`: CONNECTING - The device is attempting to connect to a network  \n* `5`: CONNECTED - The device is successfully connected to a network  \n* `6`: SSID_NOT_FOUND - The requested SSID to connect is not found \n* `7`: SSID_CHANGED - The device connected SSID is changed \n* `8`: CONNECTION_LOST - The device network connection is lost \n* `9`: CONNECTION_FAILED - The device connection got failed \n* `10`: CONNECTION_INTERRUPTED - The device connection is interrupted \n* `11`: INVALID_CREDENTIALS - The credentials provided to connect is not valid \n* `12`: AUTHENTICATION_FAILED - Authentication process as a whole could not be successfully completed \n* `13`: ERROR - The device has encountered an unrecoverable error with the Wifi adapter.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "state": {
+                        "$ref": "#/definitions/state"
+                    },
+                    "success":{
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "state",
+                    "success"
+                ]
+            }
         }
     },
+
     "events": {
         "onInterfaceStateChange":{
             "summary": "Triggered when an interface state is changed. The possible states are \n* 'INTERFACE_ADDED' \n* 'INTERFACE_LINK_UP' \n* 'INTERFACE_LINK_DOWN' \n* 'INTERFACE_ACQUIRING_IP' \n* 'INTERFACE_REMOVED' \n* 'INTERFACE_DISABLED' \n",
