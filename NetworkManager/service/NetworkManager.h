@@ -417,6 +417,7 @@ namespace WPEFramework
             Exchange::INetworkManager *_NetworkManager;
             Core::Sink<Notification> _notification;
             string m_publicIPAddress;
+            string m_defaultInterface;
             string m_publicIPAddressType;
         };
     }
