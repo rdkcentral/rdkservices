@@ -5443,7 +5443,6 @@ namespace WPEFramework {
                     std::cout << "aging total time set status: " <<  agingTotalTimeSetStatus << std::endl;
                 }
 
-                killAllApps(true);
                 if (!parameters.HasLabel("nokillresapp"))
                 {
                     JsonObject destroyRequest, destroyResponse;
