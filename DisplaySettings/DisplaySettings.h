@@ -309,6 +309,7 @@ namespace WPEFramework {
             int m_currentArcRoutingState;
             int m_AudioDeviceSADState;
 	    bool m_requestSad;
+	    bool m_requestSadRetrigger;
             PluginHost::IShell* m_service = nullptr;
 
         public:

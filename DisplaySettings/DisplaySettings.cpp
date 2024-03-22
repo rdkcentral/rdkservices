@@ -4560,12 +4560,17 @@ namespace WPEFramework {
         		   }
                            LOGINFO("SAD is updated m_AudioDeviceSADState = %d\n", m_AudioDeviceSADState);
 			}else{
-				//Still SAD is not received, route audio with out SAD update.
-                        	LOGINFO("Not recieved SAD update after 3sec timeout, proceeding with default SAD\n");
+				LOGINFO("Not recieved SAD update after 3sec timeout, retrigger the SAD request\n");
+				m_requestSadRetrigger = true;
+				sendMsgToQueue(REQUEST_SHORT_AUDIO_DESCRIPTOR, NULL);
+				m_AudioDeviceSADState  = AUDIO_DEVICE_SAD_REQUESTED;
 			}
-			LOGINFO("%s: Enable ARC... \n",__FUNCTION__);
-                        aPort.enableARC(dsAUDIOARCSUPPORT_ARC, true);
-                        m_arcEarcAudioEnabled = true;
+			if (!m_requestSadRetrigger)
+			{
+				LOGINFO("%s: Enable ARC... \n",__FUNCTION__);
+				aPort.enableARC(dsAUDIOARCSUPPORT_ARC, true);
+				m_arcEarcAudioEnabled = true;
+			}
 		}
 
 		if (m_SADDetectionTimer.isActive()) {
@@ -5103,8 +5108,7 @@ void DisplaySettings::sendMsgThread()
 				
 				wasSADTimerActive = true;
 			    }
-
-			    if (wasSADTimerActive == true && m_arcEarcAudioEnabled == false ) { /*setEnableAudioPort is called, Timer has started, got SAD before Timer Expiry*/
+                          if ((wasSADTimerActive == true && m_arcEarcAudioEnabled == false )  || (m_requestSadRetrigger == true)) { /*setEnableAudioPort is called, Timer has started, got SAD before Timer Expiry (or) SAD request has been retriggered after the 3 sec timeout*/
 			        LOGINFO("%s: Updating SAD \n", __FUNCTION__);
                                 m_AudioDeviceSADState = AUDIO_DEVICE_SAD_UPDATED;
                                 aPort.setSAD(sad_list);
@@ -5120,6 +5124,7 @@ void DisplaySettings::sendMsgThread()
 				LOGINFO("%s: Enable ARC... \n",__FUNCTION__);
 				aPort.enableARC(dsAUDIOARCSUPPORT_ARC, true);
                         	m_arcEarcAudioEnabled = true;
+				m_requestSadRetrigger = false;
 			    } else if (m_arcEarcAudioEnabled == true) { /*setEnableAudioPort is called,Timer started and Expired, arc is routed -- or for both wasSADTimerActive == true/false*/
 				LOGINFO("%s: Updating SAD since audio is already routed and ARC is initiated\n", __FUNCTION__);
 				 m_AudioDeviceSADState = AUDIO_DEVICE_SAD_UPDATED;
