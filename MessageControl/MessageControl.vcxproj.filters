@@ -7,9 +7,6 @@
     <ClCompile Include="MessageOutput.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="MessageControlImplementation.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MessageControl.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

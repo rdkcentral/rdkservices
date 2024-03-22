@@ -176,7 +176,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="MessageControl.cpp" />
-    <ClCompile Include="MessageControlImplementation.cpp" />
     <ClCompile Include="MessageOutput.cpp" />
     <ClCompile Include="Module.cpp" />
   </ItemGroup>
