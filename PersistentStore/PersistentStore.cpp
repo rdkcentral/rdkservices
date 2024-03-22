@@ -19,10 +19,13 @@
 
 #include "PersistentStore.h"
 #include <fstream>
+#ifdef WITH_RFC
+#include "rfcapi.h"
+#endif
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 6
+#define API_VERSION_NUMBER_PATCH 7
 
 namespace WPEFramework {
 
@@ -68,11 +71,26 @@ namespace Plugin {
             }
         }
 
-        Core::SystemInfo::SetEnvironment(URI_ENV, _config.Uri.Value());
+        auto uri = _config.Uri.Value();
+
+#ifdef WITH_RFC
+        RFC_ParamData_t rfcParam;
+        auto rfcStatus = getRFCParameter(nullptr, URI_RFC, &rfcParam);
+        if (rfcStatus == WDMP_SUCCESS) {
+            if (rfcParam.value[0]) {
+                uri = rfcParam.value;
+            }
+        } else {
+            TRACE(Trace::Error, (_T("%s rfc error %d"), __FUNCTION__, rfcStatus));
+        }
+#endif
+
+        Core::SystemInfo::SetEnvironment(URI_ENV, uri);
         Core::SystemInfo::SetEnvironment(PATH_ENV, _config.Path.Value());
         Core::SystemInfo::SetEnvironment(MAXSIZE_ENV, std::to_string(_config.MaxSize.Value()));
         Core::SystemInfo::SetEnvironment(MAXVALUE_ENV, std::to_string(_config.MaxValue.Value()));
         Core::SystemInfo::SetEnvironment(LIMIT_ENV, std::to_string(_config.Limit.Value()));
+        Core::SystemInfo::SetEnvironment(TOKEN_COMMAND_ENV, _config.TokenCommand.Value());
 
         uint32_t connectionId;
 

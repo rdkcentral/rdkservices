@@ -16,6 +16,12 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.7] - 2024-03-21
+### Added
+- Account scope implementation
+- L0, L2 unit tests
+- Out-of-process
+
 ## [1.0.6] - 2024-03-11
 ### Added
 - RPC COM interface IStore2, IStoreInspector, IStoreLimit
