@@ -49,7 +49,7 @@ namespace Plugin {
                 : RPC::Communicator(source, proxyStubPath, Core::ProxyType<Core::IIPCServer>(engine))
                 , _parentInterface(parentInterface)
             {   
-                if(_parentInterface != nullptr){
+                if (_parentInterface != nullptr){
                     _parentInterface->AddRef();
                 }
                 engine->Announcements(Announcement());
@@ -57,7 +57,7 @@ namespace Plugin {
             }
             ~TokenDispatcher() override
             {
-                if(_parentInterface != nullptr){
+                if (_parentInterface != nullptr){
                     _parentInterface->Release();
                 }
 
@@ -78,7 +78,7 @@ namespace Plugin {
                     _parentInterface->AddRef();
 
 
-                    TRACE(Trace::Information, ("SecurityAgent interface(IAuthenticate) aquired => %p", this));
+                    TRACE(Security, ("SecurityAgent interface(IAuthenticate) acquired => %p", this));
                     result = _parentInterface;
                 }
                 return (result);
@@ -96,13 +96,15 @@ namespace Plugin {
         public:
             Config()
                 : Core::JSON::Container()
-                , ACL()
+                , ACL(_T("acl.json"))
                 , Connector()
                 , DAC()
+                , TestToken()
             {
                 Add(_T("acl"), &ACL);
                 Add(_T("connector"), &Connector);
                 Add(_T("dac"), &DAC);
+                Add(_T("testtoken"), &TestToken);
             }
             ~Config()
             {
@@ -112,6 +114,7 @@ namespace Plugin {
             Core::JSON::String ACL;
             Core::JSON::String Connector;
             Core::JSON::String DAC;
+            Core::JSON::String TestToken;
         };
 
     public:
@@ -210,21 +213,25 @@ namespace Plugin {
         // -------------------------------------------------------------------------------------------------------
         void RegisterAll();
         void UnregisterAll();
-        #ifdef SECURITY_TESTING_MODE
+#ifdef SECURITY_TESTING_MODE
         uint32_t endpoint_createtoken(const JsonData::SecurityAgent::CreatetokenParamsData& params, JsonData::SecurityAgent::CreatetokenResultInfo& response);
-        #endif // DEBUG
+#endif // DEBUG
         uint32_t endpoint_validate(const JsonData::SecurityAgent::CreatetokenResultInfo& params, JsonData::SecurityAgent::ValidateResultData& response);
-
 
     private:
         AccessControlList _acl;
         uint8_t _skipURL;
         std::unique_ptr<TokenDispatcher> _dispatcher; 
         Core::ProxyType<RPC::InvokeServer> _engine;
+        string _testtoken;
         string _servicePrefix;
         string _dacDir;
         AccessControlList _dac;
         Core::ProxyType<DirectoryCallback> _dacDirCallback;
+
+#ifdef SECURITY_TESTING_MODE
+        static constexpr const TCHAR* TestTokenContent = _T(R"--({ "url": "https://test.url.com", "user":"Test" })--");
+#endif // DEBUG
     };
 
 } // namespace Plugin

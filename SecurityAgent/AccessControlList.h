@@ -97,14 +97,14 @@ namespace Plugin {
     //   }
     // },
 
-    class EXTERNAL AccessControlList {
+    class AccessControlList {
     public:
         enum mode {
             BLOCKED,
             ALLOWED
         };
     private:
-        class EXTERNAL JSONACL : public Core::JSON::Container {
+        class JSONACL : public Core::JSON::Container {
         public:
             class Plugins : public Core::JSON::Container {
             public:
@@ -214,14 +214,16 @@ namespace Plugin {
             class Group : public Core::JSON::Container {
             public:
                 Group()
-                    : URL()
+                    : Core::JSON::Container()
+                    , URL()
                     , Role()
                 {
                     Add(_T("url"), &URL);
                     Add(_T("role"), &Role);
                 }
                 Group(const Group& copy)
-                    : URL()
+                    : Core::JSON::Container()
+                    , URL()
                     , Role()
                 {
                     Add(_T("url"), &URL);

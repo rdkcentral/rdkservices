@@ -85,9 +85,9 @@ namespace Plugin {
         : _acl()
         , _dispatcher(nullptr)
         , _engine()
+        , _testtoken()
     {
         RegisterAll();
-        _skipURL = 0;
     }
 
     /* virtual */ SecurityAgent::~SecurityAgent()
@@ -97,14 +97,18 @@ namespace Plugin {
 
     /* virtual */ const string SecurityAgent::Initialize(PluginHost::IShell* service)
     {
-        Config config;
-        config.FromString(service->ConfigLine());
-        string version = service->Version();
+        string message;
         string webPrefix = service->WebPrefix();
         string callsign = service->Callsign();
 
         _skipURL = static_cast<uint8_t>(webPrefix.length());
         _servicePrefix = webPrefix.substr(0, webPrefix.find(callsign));
+
+        Config config;
+        config.FromString(service->ConfigLine());
+        if (config.TestToken.IsSet()) {
+            _testtoken = config.TestToken.Value();
+        }
 #ifdef USE_THUNDER_R4
         Core::File aclFile(service->PersistentPath() + config.ACL.Value());
 #else
@@ -117,7 +121,7 @@ namespace Plugin {
             aclFile = service->DataPath() + config.ACL.Value();
         }
 
-        SYSLOG(Logging::Startup, (_T("SecurityAgent: Reading acl file %s"), aclFile.Name().c_str()));
+        TRACE(Security, (_T("SecurityAgent: Reading acl file %s"), aclFile.Name().c_str()));
 
         if ((aclFile.Exists() == true) && (aclFile.Open(true) == true)) {
 
@@ -151,7 +155,7 @@ namespace Plugin {
             connector = service->VolatilePath() + _T("token");
         }
 
-        SYSLOG(Logging::Notification,(_T("SecurityAgent TokenDispatcher connector path %s"),connector.c_str()));
+        TRACE(Security, (_T("SecurityAgent TokenDispatcher connector path %s"),connector.c_str()));
 
         _engine = Core::ProxyType<RPC::InvokeServer>::Create(&Core::IWorkerPool::Instance());
         _dispatcher.reset(new TokenDispatcher(Core::NodeId(connector.c_str()), service->ProxyStubPath(), this, _engine));
@@ -175,9 +179,18 @@ namespace Plugin {
                 }
             }
         }
+  	else {
+            message = _T("SecurityAgent failed to create TokenDispatcher");
+	}
+
+#ifndef USE_THUNDER_R4
+        if (message.length() != 0) {
+            Deinitialize(service);
+        }
+#endif
 
         // On success return empty, to indicate there is no error text.
-        return _T("");
+        return message;
     }
 
     /* virtual */ void SecurityAgent::Deinitialize(PluginHost::IShell* service)
@@ -190,11 +203,12 @@ namespace Plugin {
             subSystem->Set(PluginHost::ISubSystem::NOT_SECURITY, nullptr);
             subSystem->Release();
         }
-
-        _dispatcher.reset();
-        _engine.Release();
-
         _acl.Clear();
+        _dispatcher.reset(nullptr);
+
+        if (_engine.IsValid()) {
+            _engine.Release();
+        }
 
         if (_dacDirCallback.IsValid()) {
             Core::FileSystemMonitor::Instance().Unregister(&(*_dacDirCallback), _dacDir);
@@ -211,7 +225,7 @@ namespace Plugin {
 
     /* virtual */ uint32_t SecurityAgent::CreateToken(const uint16_t length, const uint8_t buffer[], string& token)
     {
-        SYSLOG(Logging::Notification, (_T("Creating Token for %.*s"), length, buffer));
+        TRACE(Security, (_T("Creating Token for %.*s"), length, buffer));
 
         // Generate the token from the buffer coming in...
         auto newToken = JWTFactory::Instance().Element();
@@ -223,27 +237,38 @@ namespace Plugin {
     {
         PluginHost::ISecurity* result = nullptr;
 
-        auto webToken = JWTFactory::Instance().Element();
-        uint16_t load = webToken->PayloadLength(token);
+        if (token.empty() == false) {
+            if (token != _testtoken) {
 
-        // Validate the token
-        if (load != static_cast<uint16_t>(~0)) {
-            // It is potentially a valid token, extract the payload.
-            uint8_t* payload = reinterpret_cast<uint8_t*>(ALLOCA(load));
+                auto webToken = JWTFactory::Instance().Element();
+                ASSERT(webToken != nullptr);
+                uint16_t load = webToken->PayloadLength(token);
 
-            load = webToken->Decode(token, load, payload);
+                // Validate the token
+                if (load != static_cast<uint16_t>(~0)) {
+                    // It is potentially a valid token, extract the payload.
+                    uint8_t* payload = reinterpret_cast<uint8_t*>(ALLOCA(load));
 
-            if (load != static_cast<uint16_t>(~0)) {
-                // Seems like we extracted a valid payload, time to create an security context
-                Payload payloadJson;
-                payloadJson.FromString(string(reinterpret_cast<const TCHAR*>(payload), load));
+                    load = webToken->Decode(token, load, payload);
 
-                if (payloadJson.Type.IsSet() && (payloadJson.Type == tokentype::DAC)) {
-                    result = Core::Service<SecurityContext>::Create<SecurityContext>(&_dac, load, payload, _servicePrefix);
-                } else {
-                    result = Core::Service<SecurityContext>::Create<SecurityContext>(&_acl, load, payload, _servicePrefix);
+                    if (load != static_cast<uint16_t>(~0)) {
+                        // Seems like we extracted a valid payload, time to create an security context
+                        Payload payloadJson;
+                        payloadJson.FromString(string(reinterpret_cast<const TCHAR*>(payload), load));
+
+                        if (payloadJson.Type.IsSet() && (payloadJson.Type == tokentype::DAC)) {
+                            result = Core::Service<SecurityContext>::Create<SecurityContext>(&_dac, load, payload, _servicePrefix);
+                        } else {
+                            result = Core::Service<SecurityContext>::Create<SecurityContext>(&_acl, load, payload, _servicePrefix);
+                        }
+                    }
                 }
             }
+#ifdef SECURITY_TESTING_MODE
+            else {
+                result = Core::Service<SecurityContext>::Create<SecurityContext>(&_acl, static_cast<uint16_t>(sizeof(SecurityAgent::TestTokenContent) - 1), reinterpret_cast<const uint8_t*>(SecurityAgent::TestTokenContent), _servicePrefix);
+            }
+#endif
         }
         return (result);
     }
@@ -263,9 +288,9 @@ namespace Plugin {
 
         index.Next();
 
-		if (index.Next() == true) {
+        if (index.Next() == true) {
             // We might be receiving a plugin download request.
-            #ifdef SECURITY_TESTING_MODE
+#ifdef SECURITY_TESTING_MODE
             if ((request.Verb == Web::Request::HTTP_PUT) && (request.HasBody() == true)) {
                 if (index.Current() == _T("Token")) {
                     Core::ProxyType<const Web::TextBody> data(request.Body<Web::TextBody>());
@@ -285,7 +310,7 @@ namespace Plugin {
                     }
                 }
             } else
-            #endif      
+#endif
 
             if ( (request.Verb == Web::Request::HTTP_GET) && (index.Current() == _T("Valid")) ) {
                 result->ErrorCode = Web::STATUS_FORBIDDEN;
@@ -293,6 +318,7 @@ namespace Plugin {
 
                 if (request.WebToken.IsSet()) {
                     auto webToken = JWTFactory::Instance().Element();
+                    ASSERT(webToken != nullptr);
                     const string& token = request.WebToken.Value().Token();
                     uint16_t load = webToken->PayloadLength(token);
 
@@ -309,14 +335,13 @@ namespace Plugin {
                         } else {
                             result->ErrorCode = Web::STATUS_OK;
                             result->Message = _T("Valid token");
-                            TRACE(Trace::Information, (_T("Token contents: %s"), reinterpret_cast<const TCHAR*>(payload)));
+                            TRACE(Security, (_T("Token contents: %s"), reinterpret_cast<const TCHAR*>(payload)));
                         }
                     }
-                
-				}
+                }
             }
         }
-		return (result);
+        return (result);
     }
 
 } // namespace Plugin
