@@ -30,6 +30,7 @@ namespace WPEFramework
         public:
             uint32_t Register(Exchange::Dolby::IOutput::INotification* notification) override
             {
+                ASSERT(notification != nullptr);
                 _adminLock.Lock();
 
                 // Make sure a sink is not registered multiple times.

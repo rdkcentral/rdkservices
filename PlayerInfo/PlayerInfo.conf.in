@@ -4,5 +4,9 @@ startuporder = "@PLUGIN_PLAYERINFO_STARTUPORDER@"
 configuration = JSON()
 
 rootobject = JSON()
-rootobject.add("mode", "@PLUGIN_PLAYERINFO_MODE@")
+if "@PLUGIN_IMPLEMENTATION_GSTREAMER@" == "ON":
+    rootobject.add("mode", "Local")
+else:
+    rootobject.add("mode", "@PLUGIN_PLAYERINFO_MODE@")
+
 configuration.add("root", rootobject)

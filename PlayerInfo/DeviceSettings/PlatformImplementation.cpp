@@ -84,7 +84,7 @@ private:
                         for (const GList* padTemplatesIterator = padTemplates; padTemplatesIterator; padTemplatesIterator = padTemplatesIterator->next) {
                             GstStaticPadTemplate* padTemplate = static_cast<GstStaticPadTemplate*>(padTemplatesIterator->data);
 
-                            if (padTemplate->direction == GST_PAD_SRC) {
+                            if (padTemplate && padTemplate->direction == GST_PAD_SRC) {
                                 MediaTypes mediaTypes{gst_static_pad_template_get_caps(padTemplate)};
                                 if (GstUtils::GstRegistryGetElementForMediaType(decoderFactories.get(), std::move(mediaTypes))) {
                                     codecIteratorList.push_back(index.second);
@@ -225,6 +225,7 @@ public:
 
     uint32_t Register(Exchange::Dolby::IOutput::INotification* notification) override
     {
+        ASSERT(notification != nullptr);
         _adminLock.Lock();
 
         // Make sure a sink is not registered multiple times.
@@ -259,16 +260,16 @@ public:
 
     static void AudioModeHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
     {
-        if(PlayerInfoImplementation::_instance)
+        if (PlayerInfoImplementation::_instance)
         {
             dsAudioStereoMode_t amode = dsAUDIO_STEREO_UNKNOWN;
             Exchange::Dolby::IOutput::SoundModes mode = UNKNOWN;
             IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
             amode = static_cast<dsAudioStereoMode_t>(eventData->data.Audioport.mode);
             if (amode == device::AudioStereoMode::kSurround) mode = SURROUND;
-            else if(amode == device::AudioStereoMode::kStereo) mode = STEREO;
-            else if(amode == device::AudioStereoMode::kMono) mode = MONO;
-            else if(amode == device::AudioStereoMode::kPassThru) mode = PASSTHRU;
+            else if (amode == device::AudioStereoMode::kStereo) mode = STEREO;
+            else if (amode == device::AudioStereoMode::kMono) mode = MONO;
+            else if (amode == device::AudioStereoMode::kPassThru) mode = PASSTHRU;
             else mode = UNKNOWN;
             PlayerInfoImplementation::_instance->audiomodeChanged(mode, true);
         }
@@ -280,7 +281,7 @@ public:
 
         std::list<Exchange::Dolby::IOutput::INotification*>::const_iterator index = _observers.begin();
 
-        while(index != _observers.end()) {
+        while (index != _observers.end()) {
             (*index)->AudioModeChanged(mode, enable);
             index++;
         }
@@ -299,7 +300,6 @@ public:
         return (Core::ERROR_GENERAL);
     }
 
-
     uint32_t AtmosMetadata(bool& supported /* @out */) const override
     {
         dsATMOSCapability_t atmosCapability = dsAUDIO_ATMOS_NOTSUPPORTED;
@@ -313,7 +313,7 @@ public:
             for (size_t i = 0; i < aPorts.size(); i++)
             {
                 device::AudioOutputPort &aPort = aPorts.at(i);
-                if(aPort.getName().find("HDMI_ARC") != std::string::npos)
+                if (aPort.getName().find("HDMI_ARC") != std::string::npos)
                 {
                     //the platform supports HDMI_ARC. Get the sound mode of the ARC port
                     audioPort = "HDMI_ARC0";
@@ -336,7 +336,7 @@ public:
             TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
         }
 
-        if(atmosCapability == dsAUDIO_ATMOS_ATMOSMETADATA) supported = true;
+        if (atmosCapability == dsAUDIO_ATMOS_ATMOSMETADATA) supported = true;
         return (Core::ERROR_NONE);
     }
 
@@ -368,7 +368,7 @@ public:
                     audioPort = "SPDIF0";
                 }
                 /* Does this device support HDMI_ARC output and is the port connected? If yes, then that the audio port whose sound mode we'll return */
-                if(aPort.getName().find("HDMI_ARC") != std::string::npos && device::Host::getInstance().getAudioOutputPort("HDMI_ARC0").isConnected())
+                if (aPort.getName().find("HDMI_ARC") != std::string::npos && device::Host::getInstance().getAudioOutputPort("HDMI_ARC0").isConnected())
                 {
                     //the platform supports HDMI_ARC. Get the sound mode of the ARC port
                     LOGINFO(" HDMI ARC port detected on platform");
@@ -383,13 +383,13 @@ public:
             {
                 soundmode = aPort.getStereoMode();
                 if (soundmode == device::AudioStereoMode::kSurround) mode = SURROUND;
-                else if(soundmode == device::AudioStereoMode::kStereo) mode = STEREO;
-                else if(soundmode == device::AudioStereoMode::kMono) mode = MONO;
-                else if(soundmode == device::AudioStereoMode::kPassThru) mode = PASSTHRU;
+                else if (soundmode == device::AudioStereoMode::kStereo) mode = STEREO;
+                else if (soundmode == device::AudioStereoMode::kMono) mode = MONO;
+                else if (soundmode == device::AudioStereoMode::kPassThru) mode = PASSTHRU;
                 else mode = UNKNOWN;
 
                 /* Auto mode applicable for HDMI Arc and SPDIF */
-                if((aPort.getType().getId() == device::AudioOutputPortType::kARC || aPort.getType().getId() == device::AudioOutputPortType::kSPDIF)
+                if ((aPort.getType().getId() == device::AudioOutputPortType::kARC || aPort.getType().getId() == device::AudioOutputPortType::kSPDIF)
                         && aPort.getStereoAuto())
                 {
                     mode = SOUNDMODE_AUTO;

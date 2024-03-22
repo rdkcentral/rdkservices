@@ -76,7 +76,7 @@ namespace Plugin {
                     // The relevant JSONRPC endpoints will return ERROR_UNAVAILABLE,
                     // if it hasn't been initialized.
                     _dolbyOut = _player->QueryInterface<Exchange::Dolby::IOutput>();
-                    if(_dolbyOut == nullptr){
+                    if (_dolbyOut == nullptr) {
                         SYSLOG(Logging::Startup, (_T("Dolby output switching service is unavailable.")));
                     } else {
                         _dolbyNotification.Initialize(_dolbyOut);
@@ -93,56 +93,60 @@ namespace Plugin {
             message = _T("PlayerInfo could not be instantiated.");
         }
 
-        if(message.length() != 0){
+#ifndef USE_THUNDER_R4
+        if (message.length() != 0) {
             Deinitialize(service);
         }
+#endif
+
         return message;
     }
 
     /* virtual */ void PlayerInfo::Deinitialize(PluginHost::IShell* service VARIABLE_IS_NOT_USED)
     {
-        ASSERT(service == _service);
+        if (_service != nullptr) {
+            ASSERT(service == _service);
 
-        _service->Unregister(&_notification);
+            _service->Unregister(&_notification);
 
-        if (_player != nullptr) {
-            if(_audioCodecs != nullptr && _videoCodecs != nullptr) {
-                Exchange::JPlayerProperties::Unregister(*this);
-            }
-            if (_audioCodecs != nullptr) {
-                _audioCodecs->Release();
-                _audioCodecs = nullptr;
-            }
-            if (_videoCodecs != nullptr) {
-                _videoCodecs->Release();
-                _videoCodecs = nullptr;
-            }
-            if (_dolbyOut != nullptr) {
-                _dolbyNotification.Deinitialize();
-                Exchange::Dolby::JOutput::Unregister(*this);
-                _dolbyOut->Release();
-                _dolbyOut = nullptr;
+            if (_player != nullptr) {
+                if (_audioCodecs != nullptr && _videoCodecs != nullptr) {
+                    Exchange::JPlayerProperties::Unregister(*this);
+                }
+                if (_audioCodecs != nullptr) {
+                    _audioCodecs->Release();
+                    _audioCodecs = nullptr;
+                }
+                if (_videoCodecs != nullptr) {
+                    _videoCodecs->Release();
+                    _videoCodecs = nullptr;
+                }
+                if (_dolbyOut != nullptr) {
+                    _dolbyNotification.Deinitialize();
+                    Exchange::Dolby::JOutput::Unregister(*this);
+                    _dolbyOut->Release();
+                    _dolbyOut = nullptr;
+                }
+
+                RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
+                VARIABLE_IS_NOT_USED uint32_t result = _player->Release();
+                _player = nullptr;
+                ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
+
+                // The connection can disappear in the meantime...
+                if (connection != nullptr) {
+                    // But if it did not dissapear in the meantime, forcefully terminate it. Shoot to kill :-)
+                    connection->Terminate();
+                    connection->Release();
+                }
             }
 
-            RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
-            VARIABLE_IS_NOT_USED uint32_t result = _player->Release();
+            _service->Release();
+            _service = nullptr;
             _player = nullptr;
-            ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
-
-            // The connection can disappear in the meantime...
-            if (connection != nullptr) {
-                // But if it did not dissapear in the meantime, forcefully terminate it. Shoot to kill :-)
-                connection->Terminate();
-                connection->Release();
-            }
-        }
-
-        _service->Release();
-        _service = nullptr;
-        _player = nullptr;
         
-        _connectionId = 0;
-
+            _connectionId = 0;
+        }
     }
 
     /* virtual */ string PlayerInfo::Information() const
@@ -191,14 +195,14 @@ namespace Plugin {
         Core::JSON::EnumType<JsonData::PlayerInfo::CodecsData::AudiocodecsType> audioCodec;
         _audioCodecs->Reset(0);
         Exchange::IPlayerProperties::AudioCodec audio;
-        while(_audioCodecs->Next(audio) == true) {
+        while (_audioCodecs->Next(audio) == true) {
             playerInfo.Audio.Add(audioCodec = static_cast<JsonData::PlayerInfo::CodecsData::AudiocodecsType>(audio));
         }
 
         Core::JSON::EnumType<JsonData::PlayerInfo::CodecsData::VideocodecsType> videoCodec;
         Exchange::IPlayerProperties::VideoCodec video;
         _videoCodecs->Reset(0);
-         while(_videoCodecs->Next(video) == true) {
+        while (_videoCodecs->Next(video) == true) {
             playerInfo.Video.Add(videoCodec = static_cast<JsonData::PlayerInfo::CodecsData::VideocodecsType>(video));
         }
     }

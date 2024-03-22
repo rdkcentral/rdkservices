@@ -43,13 +43,18 @@ namespace Plugin {
             ~Notification() override = default;
 
         public:
-            void Activated(RPC::IRemoteConnection*) override
+            void Activated(RPC::IRemoteConnection* /* connection */) override
             {
             }
             void Deactivated(RPC::IRemoteConnection* connection) override
             {
                 _parent.Deactivated(connection);
             }
+#ifdef USE_THUNDER_R4
+            void Terminated(RPC::IRemoteConnection* /* connection */) override
+            {
+            }
+#endif
 
             BEGIN_INTERFACE_MAP(Notification)
                 INTERFACE_ENTRY(RPC::IRemoteConnection::INotification)
@@ -88,7 +93,7 @@ namespace Plugin {
                     _client = nullptr;
                 }
             }
-            void AudioModeChanged(Exchange::Dolby::IOutput::SoundModes mode, bool enabled) override
+            void AudioModeChanged(const Exchange::Dolby::IOutput::SoundModes mode, bool enabled) override
             {
                 Exchange::Dolby::JOutput::Event::AudioModeChanged(_parent, mode, enabled);
             }

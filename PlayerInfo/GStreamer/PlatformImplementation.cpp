@@ -71,7 +71,7 @@ private:
                         for (const GList* padTemplatesIterator = padTemplates; padTemplatesIterator; padTemplatesIterator = padTemplatesIterator->next) {
                             GstStaticPadTemplate* padTemplate = static_cast<GstStaticPadTemplate*>(padTemplatesIterator->data);
 
-                            if (padTemplate->direction == GST_PAD_SRC) {
+                            if (padTemplate && padTemplate->direction == GST_PAD_SRC) {
                                 MediaTypes mediaTypes{gst_static_pad_template_get_caps(padTemplate)};
                                 if (GstUtils::GstRegistryGetElementForMediaType(decoderFactories.get(), std::move(mediaTypes))) {
                                     codecIteratorList.push_back(index.second);
