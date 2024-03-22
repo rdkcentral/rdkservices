@@ -151,7 +151,7 @@ static const char *eventString[] = {
 	"reportFeatureAbortEvent"
 };
 	
-
+//demo
 #define CEC_SETTING_ENABLED_FILE "/opt/persistent/ds/cecData_2.json"
 #define CEC_SETTING_OTP_ENABLED "cecOTPEnabled"
 #define CEC_SETTING_ENABLED "cecEnabled"
