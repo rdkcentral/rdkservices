@@ -56,6 +56,11 @@ namespace Plugin {
             {
                 _parent.Deactivated(connectionId);
             }
+#ifdef USE_THUNDER_R4
+            void Terminated(RPC::IRemoteConnection* /* connection */) override
+            {
+            }
+#endif
 
             BEGIN_INTERFACE_MAP(Notification)
             INTERFACE_ENTRY(RPC::IRemoteConnection::INotification)
