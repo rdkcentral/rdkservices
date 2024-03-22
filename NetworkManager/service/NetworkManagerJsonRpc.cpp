@@ -188,6 +188,7 @@ namespace WPEFramework
             {
                 response["interface"] = interface;      
                 response["success"] = true;
+                m_defaultInterface = interface;
             }
             LOGTRACEMETHODFIN();
             return rc;
@@ -263,7 +264,10 @@ namespace WPEFramework
             if (Core::ERROR_NONE == rc)
             {
                 response["interface"] = interface;
-                response["ipversion"] = ipversion;
+                if(result.m_ipAddrType == "IPV6")
+                    response["ipversion"] = "IPv6";
+                else if(result.m_ipAddrType == "IPV4")
+                    response["ipversion"] = "IPv4";
                 response["autoconfig"]   = result.m_autoConfig;
                 response["ipaddress"]    = result.m_ipAddress;
                 response["prefix"]       = result.m_prefix;    

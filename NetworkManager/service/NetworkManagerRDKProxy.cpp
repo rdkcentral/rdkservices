@@ -697,11 +697,6 @@ namespace WPEFramework
                 strncpy(iarmData.interface, "WIFI", INTERFACE_SIZE);
             else if ("eth0" == interface)
                 strncpy(iarmData.interface, "ETHERNET", INTERFACE_SIZE);
-            else
-            {
-                rc = Core::ERROR_BAD_REQUEST;
-                return rc;
-            }
 
             strncpy(iarmData.ipversion, ipversion.c_str(), 16);
             iarmData.isSupported = true;
