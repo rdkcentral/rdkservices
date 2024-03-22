@@ -87,13 +87,6 @@ protected:
     }
 };
 
-TEST_F(MessengerTest, registeredMethods)
-{
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("join")));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("leave")));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("send")));
-}
-
 TEST_F(MessengerInitializedEventTest, activate_join_roomupdate_leave_roomupdate_deactivate)
 {
     Core::Event created(false, true);

@@ -66,68 +66,74 @@ namespace Plugin {
         _service->Register(&_notification);
 #endif
         _roomAdmin = service->Root<Exchange::IRoomAdministrator>(_connectionId, 2000, _T("RoomMaintainer"));
-        if(_roomAdmin == nullptr) {
+        if (_roomAdmin == nullptr) {
             message = _T("RoomMaintainer couldnt be instantiated");
         }
         else {
+            RegisterAll();
             _roomAdmin->Register(this);
-            
         }
 
-        if(message.length() != 0) {
+#ifndef USE_THUNDER_R4
+        if (message.length() != 0) {
             Deinitialize(service);
         }
+#endif
+
         return message;
     }
 
     /* virtual */ void Messenger::Deinitialize(PluginHost::IShell* service)
     {
-        ASSERT(service == _service);
+        if (_service != nullptr) {
+            ASSERT(service == _service);
 
 #ifdef USE_THUNDER_R4
-        _service->Unregister(&_notification);
+            _service->Unregister(&_notification);
 #endif
 
-        if(_roomAdmin != nullptr) {
-            // Exit all the rooms (if any) that were joined by this client
-            for (auto& room : _roomIds) {
-                room.second->Release();
+            if (_roomAdmin != nullptr) {
+                // Exit all the rooms (if any) that were joined by this client
+                for (auto& room : _roomIds) {
+                    room.second->Release();
+                }
+
+                _roomIds.clear();
+                _roomAdmin->Unregister(this);
+                _rooms.clear();
+                UnregisterAll();
+
+#ifdef USE_THUNDER_R4
+                RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
+#endif
+                VARIABLE_IS_NOT_USED uint32_t result = _roomAdmin->Release();
+                _roomAdmin = nullptr;
+
+#ifdef USE_THUNDER_R4
+                // It should have been the last reference we are releasing,
+                // so it should end up in a DESCRUCTION_SUCCEEDED, if not we
+                // are leaking...
+                ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
+
+                // If this was running in a (container) proccess...
+                if (connection != nullptr) {
+
+                    // Lets trigger the cleanup sequence for
+                    // out-of-process code. Which will guard
+                    // that unwilling processes, get shot if
+                    // not stopped friendly :~)
+                    connection->Terminate();
+                    connection->Release();
+                }
+#endif
             }
-
-            _roomIds.clear();
-            _roomAdmin->Unregister(this);
-            _rooms.clear();
-
+            _service->Release();
+            _service = nullptr;
 #ifdef USE_THUNDER_R4
-            RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
+            _connectionId = 0;
 #endif
-	    VARIABLE_IS_NOT_USED uint32_t result = _roomAdmin->Release();
-            _roomAdmin = nullptr;
-
-#ifdef USE_THUNDER_R4
-	    // It should have been the last reference we are releasing,
-            // so it should end up in a DESCRUCTION_SUCCEEDED, if not we
-            // are leaking...
-            ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
-
-            // If this was running in a (container) proccess...
-               if (connection != nullptr) {
-
-                // Lets trigger the cleanup sequence for
-                // out-of-process code. Which will guard
-                // that unwilling processes, get shot if
-                // not stopped friendly :~)
-                connection->Terminate();
-                connection->Release();
-            }
-#endif
+            _roomACL.clear();
         }
-        _service->Release();
-        _service = nullptr;
-#ifdef USE_THUNDER_R4
-	_connectionId = 0;
-#endif
-        _roomACL.clear();
     }
 
     // Web request handlers
@@ -248,6 +254,7 @@ namespace Plugin {
 #ifdef USE_THUNDER_R4
     void Messenger::Deactivated(RPC::IRemoteConnection* connection)
     {
+        ASSERT(connection != nullptr);
         if (connection->Id() == _connectionId) {
 
             ASSERT(_service != nullptr);
