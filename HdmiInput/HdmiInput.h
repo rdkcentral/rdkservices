@@ -24,6 +24,17 @@
 #include "Module.h"
 #include "dsTypes.h"
 
+#define DEFAULT_PRIM_VOL_LEVEL 25
+#define MAX_PRIM_VOL_LEVEL 100
+#define DEFAULT_INPUT_VOL_LEVEL 100
+
+typedef enum _mixgain{
+	MIXGAIN_PRIM,
+	MIXGAIN_SYS,
+	MIXGAIN_TTS
+}mixgain;
+
+
 namespace WPEFramework {
 
     namespace Plugin {
@@ -47,6 +58,8 @@ namespace WPEFramework {
             HdmiInput(const HdmiInput&) = delete;
             HdmiInput& operator=(const HdmiInput&) = delete;
 
+	    int m_primVolume;
+            int m_inputVolume; //Player Volume
             void InitializeIARM();
             void DeinitializeIARM();
 
@@ -58,7 +71,8 @@ namespace WPEFramework {
             uint32_t getHDMISPDWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setEdidVersionWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getEdidVersionWrapper(const JsonObject& parameters, JsonObject& response);
-            uint32_t startHdmiInput(const JsonObject& parameters, JsonObject& response);
+            uint32_t setMixerLevels(const JsonObject& parameters, JsonObject& response);
+	    uint32_t startHdmiInput(const JsonObject& parameters, JsonObject& response);
             uint32_t stopHdmiInput(const JsonObject& parameters, JsonObject& response);
 
             uint32_t setVideoRectangleWrapper(const JsonObject& parameters, JsonObject& response);
