@@ -99,7 +99,6 @@ namespace Plugin {
     {
         Config config;
         config.FromString(service->ConfigLine());
-        string version = service->Version();
         string webPrefix = service->WebPrefix();
         string callsign = service->Callsign();
 
