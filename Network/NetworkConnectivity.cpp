@@ -333,8 +333,8 @@ namespace WPEFramework {
                         }
                     }
                 }
-                //else
-                //    LOGERR("endpoint = <%s> error = %d (%s)", endpoint, msg->data.result, curl_easy_strerror(msg->data.result));
+                else
+                    LOGERR("endpoint = <%s> curl error = %d (%s)", endpoint, msg->data.result, curl_easy_strerror(msg->data.result));
                 http_responses.push_back(response_code);
             }
             time_earlier = time_now;
@@ -429,7 +429,11 @@ namespace WPEFramework {
                 break;
                 default:
                     InternetConnectionState = NO_INTERNET;
-                    LOGINFO("Internet State: NO_INTERNET Response code: <%d> %.1f%%", static_cast<int>(http_response_code), (percentage*100));
+                    if(http_response_code == -1)
+                        LOGERR("Internet State: NO_INTERNET curl error");
+                    else
+                        LOGWARN("Internet State: NO_INTERNET Received http response code: <%d> %.1f%%", static_cast<int>(http_response_code), percentage * 100);
+                    break;
             }
         }
 
@@ -513,29 +517,31 @@ namespace WPEFramework {
 
     bool ConnectivityMonitor::stopInitialConnectivityMonitoring()
     {
-        if (isMonitorThreadRunning())
-        {
-            if(isContinuesMonitoringNeeded)
-            {
-                LOGWARN("Continuous Connectivity Monitor is running");
-                return true;
-            }
-            else
-            {
-                stopFlag = true;
-                cv_.notify_all();
 
-                if (thread_.joinable()) {
-                    thread_.join();
-                    threadRunning = false;
-                    LOGINFO("Stoping Initial Connectivity Monitor");
-                }
-                else
-                    LOGWARN("thread not joinable !");
-            }
+        if(isContinuesMonitoringNeeded)
+        {
+            LOGWARN("Continuous Connectivity Monitor is running");
+            return true;
         }
         else
-            LOGWARN("Continuous Connectivity Monitor not running");
+        {
+            if (!isMonitorThreadRunning())
+            {
+                LOGWARN("Connectivity monitor not running");
+            }
+
+            stopFlag = true;
+            cv_.notify_all();
+
+            if (thread_.joinable())
+            {
+                thread_.join();
+                threadRunning = false;
+                LOGINFO("Stoping Initial Connectivity Monitor");
+            }
+            else
+                LOGWARN("thread not joinable !");
+        }
 
         return true;
     }
@@ -545,11 +551,9 @@ namespace WPEFramework {
         if (!isMonitorThreadRunning())
         {
             LOGWARN("Connectivity monitor not running");
-            return false;
         }
         cv_.notify_all();
         stopFlag = true;
-        LOGINFO("stoping connectivityMonitor...");
 
         if (thread_.joinable())
         {
@@ -595,17 +599,12 @@ namespace WPEFramework {
 
             if(stopFlag)
             {
-                LOGWARN("stopFlag true exiting");
                 threadRunning = false;
                 break;
             }
             //wait for next timout or conditon signal
             std::unique_lock<std::mutex> lock(mutex_);
-            if (cv_.wait_for(lock, std::chrono::seconds(timeout.load())) == std::cv_status::timeout)
-            {
-                LOGINFO("Connectivity monitor thread timeout");
-            }
-            else
+            if (cv_.wait_for(lock, std::chrono::seconds(timeout.load())) != std::cv_status::timeout)
             {
                 if(!stopFlag)
                 {
