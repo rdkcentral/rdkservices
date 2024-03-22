@@ -77,7 +77,7 @@ private:
 
         URLLoadedMetrics& operator=(const URLLoadedMetrics& copy) 
         {
-            if( this != &copy ) {
+            if (this != &copy) {
                 _total = copy._total;
                 _free = copy._free;
                 _swapped = copy._swapped;
@@ -277,14 +277,14 @@ public:
         _service = &service;
         _service->AddRef();
         _memory = service.QueryInterface<Exchange::IMemory>();
-        if( _memory != nullptr ) {
+        if (_memory != nullptr) {
             Exchange::IMemoryExtended* extended = _memory->QueryInterface<Exchange::IMemoryExtended>();
-            if( extended != nullptr ) {
+            if (extended != nullptr) {
                 Exchange::IMemoryExtended::IStringIterator* iterator = nullptr;
-                if( ( extended->Processes(iterator) == Core::ERROR_NONE ) && ( iterator != nullptr ) ) {
+                if ((extended->Processes(iterator) == Core::ERROR_NONE ) && ( iterator != nullptr)) {
                     string processname;
-                    while( iterator->Next(processname) == true ) {
-                        if( processname == webProcessName ) {
+                    while (iterator->Next(processname) == true) {
+                        if (processname == webProcessName) {
                             VARIABLE_IS_NOT_USED uint32_t result =  extended->Process(webProcessName, _processmemory);
                             ASSERT( ( result == Core::ERROR_NONE ) && (_processmemory != nullptr ));
                             break;
@@ -299,15 +299,15 @@ public:
 
     void Disable() override 
     {
-        if(_service != nullptr) {
+        if (_service != nullptr) {
             _service->Release();
             _service = nullptr;
         }
-        if(_memory != nullptr) {
+        if (_memory != nullptr) {
             _memory->Release();
             _memory = nullptr;
         }
-        if(_processmemory != nullptr) {
+        if (_processmemory != nullptr) {
             _processmemory->Release();
             _processmemory = nullptr;
         }
@@ -322,8 +322,7 @@ public:
     void Deactivated(const uint32_t) override 
     {
         PluginHost::IShell::reason reason = _service->Reason();
-        if(reason == PluginHost::IShell::FAILURE || reason == PluginHost::IShell::MEMORY_EXCEEDED)
-        {
+        if (reason == PluginHost::IShell::FAILURE || reason == PluginHost::IShell::MEMORY_EXCEEDED) {
             SYSLOG(Logging::Notification, (_T("Browser::Deactivated ( \"URL\": %s , \"Reason\": %d )"), getHostName(_lastURL).c_str(), reason));
             string eventName("BrowserDeactivation_accum");
             string eventValue;
@@ -347,29 +346,33 @@ public:
 
     string getHostName(string _URL){
         std::size_t startIdx = _URL.find("://");
-        if(startIdx == std::string::npos)
+        if (startIdx == std::string::npos) {
             return _URL;
+        }
         else {
             startIdx += 3; // skip "://"
             size_t endIdx = _URL.find("/",startIdx);
-            if(endIdx == std::string::npos)
+            if (endIdx == std::string::npos) {
                 return _URL.substr(startIdx);
-            else
+            }
+            else {
                 return _URL.substr(startIdx, endIdx - startIdx);
+            }
         }
     }
 
     void LoadFinished(const string& URL, const int32_t, const bool success, const uint32_t totalsuccess, const uint32_t totalfailed) override 
     {
-        if( URL != startURL ) {
+        if (URL != startURL) {
             _adminLock.Lock();
             URLLoadedMetrics metrics(_urloadmetrics);
             _adminLock.Unlock();
                         
             uint64_t urllaunchtime_ms = ( ( Core::Time::Now().Ticks() - metrics.StartLoad() ) / Core::Time::TicksPerMillisecond);
 
-           if(strcmp(getHostName(URL).c_str(), _lastLoggedApp.c_str()))
-               _didLogLaunchMetrics = false;
+            if (strcmp(getHostName(URL).c_str(), _lastLoggedApp.c_str())) {
+                _didLogLaunchMetrics = false;
+            }
 
             OutputLoadFinishedMetrics(metrics, getHostName(URL), urllaunchtime_ms, success, totalsuccess + totalfailed);
 
@@ -379,7 +382,7 @@ public:
 
     void URLChange(const string& URL, const bool) override 
     {
-        if( URL != startURL ) {
+        if (URL != startURL) {
             URLLoadedMetrics metrics;
             Core::SystemInfo::MemorySnapshot snapshot = Core::SystemInfo::Instance().TakeMemorySnapshot();
             metrics.Total(snapshot.Total());
@@ -391,13 +394,13 @@ public:
             metrics.AverageLoad()[2] = Core::SystemInfo::Instance().GetCpuLoadAvg()[2];
 
             uint64_t resident = 0;
-            if( _processmemory != nullptr ) {
+            if (_processmemory != nullptr) {
                 resident = _processmemory->Resident();
                 uint32_t pid = _processmemory->Identifier();
-                if( pid != 0 ) {
+                if (pid != 0) {
                     metrics.StatmLine(GetProcessStatmLine(pid));
                 }
-            } else if ( _memory != nullptr ) {
+            } else if (_memory != nullptr) {
                 resident = _memory->Resident();
             }
 
@@ -407,8 +410,9 @@ public:
 
             uint64_t timeLaunched = 0;
             timeLaunched = (Core::Time::Now().Ticks() - _timePluginStart) / Core::Time::MicroSecondsPerSecond;
-            if(timeLaunched < 2)
+            if (timeLaunched < 2) {
                 metrics.SetColdLaunch(true);
+            }
 
             _adminLock.Lock();
             _urloadmetrics = std::move(metrics);
@@ -430,8 +434,9 @@ private:
                                    const bool success, 
                                    const uint32_t totalloaded) 
     {
-        if(_didLogLaunchMetrics)
+        if (_didLogLaunchMetrics) {
             return;
+        }
 
         MetricsAsJson output;
 
@@ -453,7 +458,7 @@ private:
         output.ProcessRSS = urloadedmetrics.RSSMemProcess();
 
         uint32_t pid = 0;
-        if( _processmemory != nullptr ) {
+        if (_processmemory != nullptr) {
             pid = _processmemory->Identifier();
         }
         output.ProcessPID = pid;
@@ -481,7 +486,7 @@ private:
 
         Utils::Telemetry::sendMessage((char *)eventName.c_str(), (char *)eventValue.c_str());
 
-	SYSLOG(Logging::Notification, (_T( "%s Launch Metrics: %s "), _callsign.c_str(), outputstring.c_str()));
+        SYSLOG(Logging::Notification, (_T( "%s Launch Metrics: %s "), _callsign.c_str(), outputstring.c_str()));
         _didLogLaunchMetrics = true;
         _lastLoggedApp = URL;
     }
