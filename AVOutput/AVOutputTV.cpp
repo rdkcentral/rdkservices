@@ -3377,6 +3377,8 @@ namespace Plugin {
         std::string source;
         std::string format;
         int lowLatencyIndex = 0;
+        int prevLowLatencyIndex = 0;
+        int params[3]={0};
         tvError_t ret = tvERROR_NONE;
 
         value = parameters.HasLabel("LowLatencyState") ? parameters["LowLatencyState"].String() : "";
@@ -3396,35 +3398,48 @@ namespace Plugin {
         }
 
         if( !isCapablityCheckPassed(pqmode, source, format, "LowLatencyState" )) 
-	{
+	    {
             LOGERR("%s: CapablityCheck failed for LowLatencyState\n", __FUNCTION__);
             returnResponse(false);
         }
 
-        if( isSetRequired(pqmode,source,format) ) 
-	{
-             LOGINFO("Proceed with setLowLatencyState\n");
-             ret = SetLowLatencyState( lowLatencyIndex );
-        }
-
-        if(ret != tvERROR_NONE) 
-	{
-            LOGERR("Failed to setLowLatency\n");
+/* Usually low latency is enabled with Game mode but when setLowLatency is done seperatly, it requires PQ Mode reload.
+   To allow pq reload to fetch latest low latency values, save low latency before set is done. */
+        ret = GetLowLatencyState(&prevLowLatencyIndex);
+        if(ret != tvERROR_NONE) {
+            LOGERR("Get previous low latency state failed\n");
             returnResponse(false);
         }
-        else 
-	{
-            int params[3]={0};
-            params[0]=lowLatencyIndex;
-            int retval= UpdateAVoutputTVParam("set","LowLatencyState",pqmode,source,format,PQ_PARAM_LOWLATENCY_STATE,params);
-            if(retval != 0 ) 
-	    {
-                LOGERR("Failed to SaveLowLatency to ssm_data\n");
-		returnResponse(false);
-            }
-            LOGINFO("Exit : setLowLatency successful to value: %d\n", lowLatencyIndex);
-            returnResponse(true);
+
+        params[0]=lowLatencyIndex;
+        int retval= UpdateAVoutputTVParam("set","LowLatencyState",pqmode,source,format,PQ_PARAM_LOWLATENCY_STATE,params);
+        if(retval != 0 ) 
+        {
+            LOGERR("Failed to SaveLowLatency to ssm_data\n");
+	        returnResponse(false);
         }
+        else
+        {
+            if( isSetRequired(pqmode,source,format) ) 
+	    {
+                LOGINFO("Proceed with setLowLatencyState\n");
+                ret = SetLowLatencyState( lowLatencyIndex );
+                if(ret != tvERROR_NONE) 
+	        {
+                    params[0]=prevLowLatencyIndex;
+                    LOGERR("Failed to set low latency. Fallback to previous state %d\n", prevLowLatencyIndex);
+
+                    retval= UpdateAVoutputTVParam("set","LowLatencyState",pqmode,source,format,PQ_PARAM_LOWLATENCY_STATE,params);
+                    if(retval != 0 ){
+                        LOGERR("Fallback to previous low latency state %d failed.\n", prevLowLatencyIndex);
+                    }
+
+                    returnResponse(false);
+                }
+            }
+        }
+        LOGINFO("Exit : setLowLatency successful to value: %d\n", lowLatencyIndex);
+        returnResponse(true);
     }
 	
     uint32_t AVOutputTV::getLowLatencyState(const JsonObject& parameters, JsonObject& response)
