@@ -237,7 +237,7 @@ namespace WPEFramework {
 
     static bool curlVerboseEnabled() {
         std::ifstream fileStream("/tmp/network.plugin.debug");
-        return true;
+        return fileStream.is_open();
     }
 
     static long current_time ()
