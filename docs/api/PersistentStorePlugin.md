@@ -2,7 +2,7 @@
 <a name="PersistentStore_Plugin"></a>
 # PersistentStore Plugin
 
-**Version: [1.0.5](https://github.com/rdkcentral/rdkservices/blob/main/PersistentStore/CHANGELOG.md)**
+**Version: [1.0.8](https://github.com/rdkcentral/rdkservices/blob/main/PersistentStore/CHANGELOG.md)**
 
 A org.rdk.PersistentStore plugin for Thunder framework.
 
@@ -49,12 +49,14 @@ PersistentStore interface methods:
 | :-------- | :-------- |
 | [deleteKey](#deleteKey) | Deletes a key from the specified namespace |
 | [deleteNamespace](#deleteNamespace) | Deletes the specified namespace |
-| [flushCache](#flushCache) | Flushes the database cache by invoking `flush` in SQLite |
+| [flushCache](#flushCache) | Flushes the device cache |
 | [getKeys](#getKeys) | Returns the keys that are stored in the specified namespace |
-| [getNamespaces](#getNamespaces) | Returns the namespaces in the datastore |
-| [getStorageSize](#getStorageSize) | Returns the size occupied by each namespace |
+| [getNamespaces](#getNamespaces) | Returns the namespaces |
+| [getStorageSizes](#getStorageSizes) | Returns the size occupied by each namespace |
 | [getValue](#getValue) | Returns the value of a key from the specified namespace |
 | [setValue](#setValue) | Sets the value of a key in the the specified namespace |
+| [setNamespaceStorageLimit](#setNamespaceStorageLimit) | Sets the storage limit for a given namespace |
+| [getNamespaceStorageLimit](#getNamespaceStorageLimit) | Returns the storage limit for a given namespace |
 
 
 <a name="deleteKey"></a>
@@ -71,15 +73,22 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.namespace | string | A namespace in the datastore as a valid UTF-8 string |
-| params.key | string | The key name as a valid UTF-8 string |
+| params.namespace | string | Namespace |
+| params.key | string | Key |
+| params?.scope | string | <sup>*(optional)*</sup> Scope (must be one of the following: *device*, *account*) |
 
 ### Result
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.success | boolean | Whether the request succeeded |
+| result.success | boolean | Legacy parameter (always true) |
+
+### Errors
+
+| Code | Message | Description |
+| :-------- | :-------- | :-------- |
+| 1 | ```ERROR_GENERAL``` | Unknown error |
 
 ### Example
 
@@ -92,7 +101,8 @@ No Events
     "method": "org.rdk.PersistentStore.deleteKey",
     "params": {
         "namespace": "ns1",
-        "key": "key1"
+        "key": "key1",
+        "scope": "device"
     }
 }
 ```
@@ -123,14 +133,21 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.namespace | string | A namespace in the datastore as a valid UTF-8 string |
+| params.namespace | string | Namespace |
+| params?.scope | string | <sup>*(optional)*</sup> Scope (must be one of the following: *device*, *account*) |
 
 ### Result
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.success | boolean | Whether the request succeeded |
+| result.success | boolean | Legacy parameter (always true) |
+
+### Errors
+
+| Code | Message | Description |
+| :-------- | :-------- | :-------- |
+| 1 | ```ERROR_GENERAL``` | Unknown error |
 
 ### Example
 
@@ -142,7 +159,8 @@ No Events
     "id": 42,
     "method": "org.rdk.PersistentStore.deleteNamespace",
     "params": {
-        "namespace": "ns1"
+        "namespace": "ns1",
+        "scope": "device"
     }
 }
 ```
@@ -162,7 +180,7 @@ No Events
 <a name="flushCache"></a>
 ## *flushCache*
 
-Flushes the database cache by invoking `flush` in SQLite.
+Flushes the device cache.
 
 ### Events
 
@@ -177,7 +195,13 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.success | boolean | Whether the request succeeded |
+| result.success | boolean | Legacy parameter (always true) |
+
+### Errors
+
+| Code | Message | Description |
+| :-------- | :-------- | :-------- |
+| 1 | ```ERROR_GENERAL``` | Unknown error |
 
 ### Example
 
@@ -217,16 +241,23 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.namespace | string | A namespace in the datastore as a valid UTF-8 string |
+| params.namespace | string | Namespace |
+| params?.scope | string | <sup>*(optional)*</sup> Scope (must be one of the following: *device*, *account*) |
 
 ### Result
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.keys | array | A list of keys |
-| result.keys[#] | string |  |
-| result.success | boolean | Whether the request succeeded |
+| result.keys | array |  |
+| result.keys[#] | string | Key |
+| result.success | boolean | Legacy parameter (always true) |
+
+### Errors
+
+| Code | Message | Description |
+| :-------- | :-------- | :-------- |
+| 1 | ```ERROR_GENERAL``` | Unknown error |
 
 ### Example
 
@@ -238,7 +269,8 @@ No Events
     "id": 42,
     "method": "org.rdk.PersistentStore.getKeys",
     "params": {
-        "namespace": "ns1"
+        "namespace": "ns1",
+        "scope": "device"
     }
 }
 ```
@@ -261,7 +293,7 @@ No Events
 <a name="getNamespaces"></a>
 ## *getNamespaces*
 
-Returns the namespaces in the datastore.
+Returns the namespaces.
 
 ### Events
 
@@ -269,16 +301,25 @@ No Events
 
 ### Parameters
 
-This method takes no parameters.
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.scope | string | <sup>*(optional)*</sup> Scope (must be one of the following: *device*, *account*) |
 
 ### Result
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.namespaces | array | A list of namespaces |
-| result.namespaces[#] | string |  |
-| result.success | boolean | Whether the request succeeded |
+| result.namespaces | array |  |
+| result.namespaces[#] | string | Namespace |
+| result.success | boolean | Legacy parameter (always true) |
+
+### Errors
+
+| Code | Message | Description |
+| :-------- | :-------- | :-------- |
+| 1 | ```ERROR_GENERAL``` | Unknown error |
 
 ### Example
 
@@ -288,7 +329,10 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.PersistentStore.getNamespaces"
+    "method": "org.rdk.PersistentStore.getNamespaces",
+    "params": {
+        "scope": "device"
+    }
 }
 ```
 
@@ -307,10 +351,10 @@ This method takes no parameters.
 }
 ```
 
-<a name="getStorageSize"></a>
-## *getStorageSize*
+<a name="getStorageSizes"></a>
+## *getStorageSizes*
 
-Returns the size occupied by each namespace. This is a processing-intense operation. The total size of the datastore should not exceed more than 1MB in size. If the storage size is exceeded then, new values are not stored and the `onStorageExceeded` event is sent.
+Returns the size occupied by each namespace.
 
 ### Events
 
@@ -318,17 +362,26 @@ No Events
 
 ### Parameters
 
-This method takes no parameters.
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.scope | string | <sup>*(optional)*</sup> Scope (must be one of the following: *device*, *account*) |
 
 ### Result
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.namespaceSizes | object | The namespaces and their respective size |
-| result.namespaceSizes?.ns1 | integer | <sup>*(optional)*</sup>  |
-| result.namespaceSizes?.ns2 | integer | <sup>*(optional)*</sup>  |
-| result.success | boolean | Whether the request succeeded |
+| result.storageList | array |  |
+| result.storageList[#] | object |  |
+| result.storageList[#].namespace | string | Namespace |
+| result.storageList[#].size | number | Size in bytes |
+
+### Errors
+
+| Code | Message | Description |
+| :-------- | :-------- | :-------- |
+| 1 | ```ERROR_GENERAL``` | Unknown error |
 
 ### Example
 
@@ -338,7 +391,10 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.PersistentStore.getStorageSize"
+    "method": "org.rdk.PersistentStore.getStorageSizes",
+    "params": {
+        "scope": "device"
+    }
 }
 ```
 
@@ -349,11 +405,12 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "namespaceSizes": {
-            "ns1": 534,
-            "ns2": 234
-        },
-        "success": true
+        "storageList": [
+            {
+                "namespace": "ns1",
+                "size": 100
+            }
+        ]
     }
 }
 ```
@@ -372,16 +429,27 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.namespace | string | A namespace in the datastore as a valid UTF-8 string |
-| params.key | string | The key name as a valid UTF-8 string |
+| params.namespace | string | Namespace |
+| params.key | string | Key |
+| params?.scope | string | <sup>*(optional)*</sup> Scope (must be one of the following: *device*, *account*) |
 
 ### Result
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.value | string | The key value. Values are capped at 1000 characters in size |
-| result.success | boolean | Whether the request succeeded |
+| result.value | string | Value |
+| result.success | boolean | Legacy parameter (always true) |
+| result?.ttl | number | <sup>*(optional)*</sup> Time in seconds |
+
+### Errors
+
+| Code | Message | Description |
+| :-------- | :-------- | :-------- |
+| 31 | ```ERROR_PENDING_CONDITIONS``` | Time is not synced |
+| 43 | ```ERROR_NOT_EXIST``` | Unknown namespace |
+| 22 | ```ERROR_UNKNOWN_KEY``` | Unknown key |
+| 1 | ```ERROR_GENERAL``` | Unknown error |
 
 ### Example
 
@@ -394,7 +462,8 @@ No Events
     "method": "org.rdk.PersistentStore.getValue",
     "params": {
         "namespace": "ns1",
-        "key": "key1"
+        "key": "key1",
+        "scope": "device"
     }
 }
 ```
@@ -407,7 +476,8 @@ No Events
     "id": 42,
     "result": {
         "value": "value1",
-        "success": true
+        "success": true,
+        "ttl": 100
     }
 }
 ```
@@ -419,25 +489,33 @@ Sets the value of a key in the the specified namespace.
 
 ### Events
 
-| Event | Description |
-| :-------- | :-------- |
-| [onStorageExceeded](#onStorageExceeded) | Triggered if the storage size has surpassed 1 MB storage size |
-| [onValueChanged](#onValueChanged) | Triggered whenever any of the values stored are changed using setValue |
+No Events
+
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.namespace | string | A namespace in the datastore as a valid UTF-8 string |
-| params.key | string | The key name as a valid UTF-8 string |
-| params.value | string | The key value. Values are capped at 1000 characters in size |
+| params.namespace | string | Namespace |
+| params.key | string | Key |
+| params.value | string | Value |
+| params?.scope | string | <sup>*(optional)*</sup> Scope (must be one of the following: *device*, *account*) |
+| params?.ttl | number | <sup>*(optional)*</sup> Time in seconds |
 
 ### Result
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.success | boolean | Whether the request succeeded |
+| result.success | boolean | Legacy parameter (always true) |
+
+### Errors
+
+| Code | Message | Description |
+| :-------- | :-------- | :-------- |
+| 31 | ```ERROR_PENDING_CONDITIONS``` | Time is not synced |
+| 16 | ```ERROR_INVALID_INPUT_LENGTH``` | Empty/too large namespace or key, or the storage doesn't have enough space |
+| 1 | ```ERROR_GENERAL``` | Unknown error |
 
 ### Example
 
@@ -451,7 +529,9 @@ Sets the value of a key in the the specified namespace.
     "params": {
         "namespace": "ns1",
         "key": "key1",
-        "value": "value1"
+        "value": "value1",
+        "scope": "device",
+        "ttl": 100
     }
 }
 ```
@@ -464,6 +544,123 @@ Sets the value of a key in the the specified namespace.
     "id": 42,
     "result": {
         "success": true
+    }
+}
+```
+
+<a name="setNamespaceStorageLimit"></a>
+## *setNamespaceStorageLimit*
+
+Sets the storage limit for a given namespace.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.namespace | string | Namespace |
+| params.storageLimit | number | Size in bytes |
+| params?.scope | string | <sup>*(optional)*</sup> Scope (must be one of the following: *device*, *account*) |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | null | Always null |
+
+### Errors
+
+| Code | Message | Description |
+| :-------- | :-------- | :-------- |
+| 16 | ```ERROR_INVALID_INPUT_LENGTH``` | Empty/too large namespace, or the storage doesn't have enough space |
+| 1 | ```ERROR_GENERAL``` | Unknown error |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.PersistentStore.setNamespaceStorageLimit",
+    "params": {
+        "namespace": "ns1",
+        "storageLimit": 100,
+        "scope": "device"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": null
+}
+```
+
+<a name="getNamespaceStorageLimit"></a>
+## *getNamespaceStorageLimit*
+
+Returns the storage limit for a given namespace.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.namespace | string | Namespace |
+| params?.scope | string | <sup>*(optional)*</sup> Scope (must be one of the following: *device*, *account*) |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.storageLimit | number | Size in bytes |
+
+### Errors
+
+| Code | Message | Description |
+| :-------- | :-------- | :-------- |
+| 43 | ```ERROR_NOT_EXIST``` | Unknown namespace |
+| 1 | ```ERROR_GENERAL``` | Unknown error |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.PersistentStore.getNamespaceStorageLimit",
+    "params": {
+        "namespace": "ns1",
+        "scope": "device"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "storageLimit": 100
     }
 }
 ```
@@ -479,27 +676,8 @@ PersistentStore interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onStorageExceeded](#onStorageExceeded) | Triggered when the storage size has surpassed the storage capacity |
 | [onValueChanged](#onValueChanged) | Triggered whenever any of the values stored are changed using setValue |
 
-
-<a name="onStorageExceeded"></a>
-## *onStorageExceeded*
-
-Triggered when the storage size has surpassed the storage capacity. The total size of the datastore should not exceed more than 1MB in size.
-
-### Parameters
-
-This event carries no parameters.
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.onStorageExceeded"
-}
-```
 
 <a name="onValueChanged"></a>
 ## *onValueChanged*
@@ -511,9 +689,10 @@ Triggered whenever any of the values stored are changed using setValue.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.namespace | string | A namespace in the datastore as a valid UTF-8 string |
-| params.key | string | The key name as a valid UTF-8 string |
-| params.value | string | The key value. Values are capped at 1000 characters in size |
+| params.namespace | string | Namespace |
+| params.key | string | Key |
+| params.value | string | Value |
+| params.scope | string | Scope (must be one of the following: *device*, *account*) |
 
 ### Example
 
@@ -524,7 +703,8 @@ Triggered whenever any of the values stored are changed using setValue.
     "params": {
         "namespace": "ns1",
         "key": "key1",
-        "value": "value1"
+        "value": "value1",
+        "scope": "device"
     }
 }
 ```

@@ -84,10 +84,16 @@ using namespace std;
 #define ZOOM_SETTINGS_DIRECTORY "/opt/persistent/rdkservices"
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 3
-#define API_VERSION_NUMBER_PATCH 8
+#define API_VERSION_NUMBER_MINOR 4
+#define API_VERSION_NUMBER_PATCH 0
 
 static bool isCecEnabled = false;
+static bool isResCacheUpdated = false;
+static std::string currentResolutionCache;
+static bool isDisplayConnectedCacheUpdated = false;
+static bool isHdmiDisplayConnected = false;
+int stbHDRcapabilitiesCache = 0;
+bool isStbHDRcapabilitiesCache = false;
 static int  hdmiArcPortId = -1;
 static int retryPowerRequestCount = 0;
 static int  hdmiArcVolumeLevel = 0;
@@ -353,12 +359,18 @@ namespace WPEFramework {
 	    m_hdmiInAudioDeviceType = dsAUDIOARCSUPPORT_NONE;// Maintains the Audio device type whether Arc/eArc ocnnected
 	    m_AudioDeviceSADState = AUDIO_DEVICE_SAD_UNKNOWN;// maintains the SAD state
 	    m_sendMsgThreadExit = false;
+	    isResCacheUpdated = false;
+            isDisplayConnectedCacheUpdated = false;
+            isStbHDRcapabilitiesCache = false;
 	   // m_AudioSentPoweronmsg = false;
         }
 
         DisplaySettings::~DisplaySettings()
         {
             LOGINFO ("dtor");
+	    isResCacheUpdated = false;
+	    isDisplayConnectedCacheUpdated = false;
+            isStbHDRcapabilitiesCache = false;
         }
 
         void DisplaySettings::AudioPortsReInitialize()
@@ -600,7 +612,8 @@ namespace WPEFramework {
                 IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_OUT_HOTPLUG, dsHdmiEventHandler) );
 		IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_FORMAT_UPDATE, formatUpdateEventHandler) );
 		IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_VIDEO_FORMAT_UPDATE, formatUpdateEventHandler) );
-                IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<DisplaySettings>(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, powerEventHandler) );
+                IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_ATMOS_CAPS_CHANGED, checkAtmosCapsEventHandler) );
+		IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<DisplaySettings>(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, powerEventHandler) );
                 IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_PORT_STATE, audioPortStateEventHandler) );
                 IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_ASSOCIATED_AUDIO_MIXING_CHANGED, dsSettingsChangeEventHandler) );
                 IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_FADER_CONTROL_CHANGED, dsSettingsChangeEventHandler) );
@@ -647,6 +660,7 @@ namespace WPEFramework {
                 IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_OUT_HOTPLUG, dsHdmiEventHandler) );
                 IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_FORMAT_UPDATE, formatUpdateEventHandler) );
                 IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_VIDEO_FORMAT_UPDATE, formatUpdateEventHandler) );
+                IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_ATMOS_CAPS_CHANGED, checkAtmosCapsEventHandler) );
                 IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<DisplaySettings>(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, powerEventHandler) );
                 IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_PORT_STATE, audioPortStateEventHandler) );
                 IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<DisplaySettings>(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_AUDIO_ASSOCIATED_AUDIO_MIXING_CHANGED, dsSettingsChangeEventHandler) );
@@ -675,6 +689,7 @@ namespace WPEFramework {
             {
                 DisplaySettings::_instance->resolutionPreChange();
             }
+            isResCacheUpdated = false;
         }
 
         void DisplaySettings::ResolutionPostChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
@@ -766,6 +781,9 @@ namespace WPEFramework {
             switch (eventId)
             {
             case IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG :
+                isResCacheUpdated = false;
+                isDisplayConnectedCacheUpdated = false;
+                isStbHDRcapabilitiesCache = false;
                 //TODO(MROLLINS) note that there are several services listening for the notifyHdmiHotPlugEvent ServiceManagerNotifier broadcast
                 //So if DisplaySettings becomes the owner/originator of this, then those future thunder plugins need to listen to our event
                 //But of course, nothing is stopping any thunder plugin for listening to iarm event directly -- this is getting murky
@@ -997,6 +1015,19 @@ namespace WPEFramework {
                     break;
            }
         }
+
+        bool DisplaySettings::isDisplayConnected (std::string port){
+            bool isConnected = isHdmiDisplayConnected;
+            if (!isDisplayConnectedCacheUpdated || !(Utils::String::stringContains(port, "HDMI0"))) {
+                device::VideoOutputPort vPort = device::VideoOutputPortConfig::getInstance().getPort(port.c_str());
+                isHdmiDisplayConnected = vPort.isDisplayConnected();
+                isConnected = isHdmiDisplayConnected;
+                isDisplayConnectedCacheUpdated = true;
+	    } else {
+                LOGINFO("Using isDisplayConnected cache \n");
+            }
+            return isConnected;
+	}
 
         void setResponseArray(JsonObject& response, const char* key, const vector<string>& items)
         {
@@ -1242,7 +1273,7 @@ namespace WPEFramework {
                         surroundMode = false;
                         LOG_DEVICE_EXCEPTION1(audioPort);
                     }
-                    if (vPort.isDisplayConnected() && surroundMode)
+                    if (isDisplayConnected(strVideoPort) && surroundMode)
                     {
                         if(surroundMode & dsSURROUNDMODE_DDPLUS )
                         {
@@ -1344,11 +1375,19 @@ namespace WPEFramework {
             bool success = true;
             try
             {
-                device::VideoOutputPort &vPort = device::Host::getInstance().getVideoOutputPort(videoDisplay);
 		int width = 0;
 		int height = 0;
 		bool progressive = false;
-		string res = vPort.getResolution().getName();
+                string res = currentResolutionCache;
+                if (!isResCacheUpdated) {
+                    device::VideoOutputPort &vPort = device::Host::getInstance().getVideoOutputPort(videoDisplay);
+		    res = vPort.getResolution().getName();
+                    currentResolutionCache = res;
+		    isResCacheUpdated = true;
+                } else {
+                    LOGINFO("Using currentResolutionCache cache \n");
+                }
+
 		if(res.rfind("480", 0) == 0)
                 {
                     width =  720;
@@ -1456,7 +1495,7 @@ namespace WPEFramework {
                 if (audioPort.empty())
                 {
                     std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
-                    if (device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str()).isDisplayConnected())
+                    if (isDisplayConnected(strVideoPort))
                     {
                         audioPort = "HDMI0";
                     }
@@ -1471,7 +1510,7 @@ namespace WPEFramework {
                         for (size_t i = 0; i < vPorts.size(); i++)
                         {
                             device::VideoOutputPort &vPort = vPorts.at(i);
-                            if (vPort.isDisplayConnected())
+                            if (isDisplayConnected(vPort.getName()))
                             {
                                 audioPort = "SPDIF0";
                                 break;
@@ -1793,7 +1832,7 @@ namespace WPEFramework {
                 vector<uint8_t> edidVec2;
                 std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
                 device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
-                if (vPort.isDisplayConnected())
+                if (isDisplayConnected(strVideoPort))
                 {
                     vPort.getDisplay().getEDIDBytes(edidVec2);
                     edidVec = edidVec2;//edidVec must be "unknown" unless we successfully get to this line
@@ -1859,7 +1898,7 @@ namespace WPEFramework {
             try
             {
                 device::VideoOutputPort &vPort = device::Host::getInstance().getVideoOutputPort(videoDisplay);
-                active = (vPort.isDisplayConnected() && vPort.isActive());
+                active = (isDisplayConnected(videoDisplay) && vPort.isActive());
             }
             catch(const device::Exception& err)
             {
@@ -1882,8 +1921,9 @@ namespace WPEFramework {
             {
                 std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
                 device::VideoOutputPort vPort = device::VideoOutputPortConfig::getInstance().getPort(strVideoPort.c_str());
-                if (vPort.isDisplayConnected())
+                if (isDisplayConnected(strVideoPort)) {
                     vPort.getTVHDRCapabilities(&capabilities);
+                }
             }
             catch(const device::Exception& err)
             {
@@ -1919,23 +1959,31 @@ namespace WPEFramework {
             LOGINFOMETHOD();
 
             JsonArray hdrCapabilities;
-            int capabilities = dsHDRSTANDARD_NONE;
+	    int capabilities = stbHDRcapabilitiesCache;
+            if (!isStbHDRcapabilitiesCache) {
+                capabilities = dsHDRSTANDARD_NONE;
 
-            try
-            {
-                if (device::Host::getInstance().getVideoDevices().size() < 1)
+                try
                 {
-                    LOGINFO("DSMGR_NOT_RUNNING");
-                    returnResponse(false);
-                }
+                    if (device::Host::getInstance().getVideoDevices().size() < 1)
+                    {
+                        LOGINFO("DSMGR_NOT_RUNNING");
+                        returnResponse(false);
+                    }
 
-                device::VideoDevice &device = device::Host::getInstance().getVideoDevices().at(0);
-                device.getHDRCapabilities(&capabilities);
+                    device::VideoDevice &device = device::Host::getInstance().getVideoDevices().at(0);
+                    device.getHDRCapabilities(&capabilities);
+                }
+                catch(const device::Exception& err)
+                {
+                    LOG_DEVICE_EXCEPTION0();
+                }
+		stbHDRcapabilitiesCache = capabilities;
+		isStbHDRcapabilitiesCache = true;
+            } else {
+                LOGINFO("Using getSettopHDRSupport cache \n");
             }
-            catch(const device::Exception& err)
-            {
-                LOG_DEVICE_EXCEPTION0();
-            }
+
 
             if(!capabilities)hdrCapabilities.Add("none");
             if(capabilities & dsHDRSTANDARD_HDR10)hdrCapabilities.Add("HDR10");
@@ -2139,7 +2187,7 @@ namespace WPEFramework {
             {
                 std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
                 device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
-                if (vPort.isDisplayConnected())
+                if (isDisplayConnected(strVideoPort))
                 {
                     int videoEOTF, matrixCoefficients, colorSpace, colorDepth, quantizationRange;
                     vPort.getCurrentOutputSettings(videoEOTF, matrixCoefficients, colorSpace, colorDepth, quantizationRange);
@@ -3641,7 +3689,7 @@ namespace WPEFramework {
                 if (audioPort.empty())
                 {
                     std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
-                    if (device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str()).isDisplayConnected())
+                    if (isDisplayConnected(strVideoPort))
                     {
                         audioPort = "HDMI0";
                     }
@@ -3656,7 +3704,7 @@ namespace WPEFramework {
                         for (size_t i = 0; i < vPorts.size(); i++)
                         {
                             device::VideoOutputPort &vPort = vPorts.at(i);
-                            if (vPort.isDisplayConnected())
+                            if (isDisplayConnected(vPort.getName()))
                             {
                                 audioPort = "SPDIF0";
                                 break;
@@ -3712,8 +3760,9 @@ namespace WPEFramework {
                 if (audioPort.empty())
                 {
                     std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
-                    if (device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str()).isDisplayConnected())
+                    if (isDisplayConnected(strVideoPort)) {
                         audioPort = "HDMI0";
+                    }
                     else
                     {
                         /*  * If HDMI is not connected
@@ -3725,7 +3774,7 @@ namespace WPEFramework {
                         for (size_t i = 0; i < vPorts.size(); i++)
                         {
                             device::VideoOutputPort &vPort = vPorts.at(i);
-                            if (vPort.isDisplayConnected())
+                            if (isDisplayConnected(vPort.getName()))
                             {
                                 audioPort = "SPDIF0";
                                 break;
@@ -3763,7 +3812,7 @@ namespace WPEFramework {
                 if (audioPort.empty())
                 {
                     std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
-                    if (device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str()).isDisplayConnected())
+                    if (isDisplayConnected(strVideoPort))
                     {
                         audioPort = "HDMI0";
                     }
@@ -3778,7 +3827,7 @@ namespace WPEFramework {
                         for (size_t i = 0; i < vPorts.size(); i++)
                         {
                             device::VideoOutputPort &vPort = vPorts.at(i);
-                            if (vPort.isDisplayConnected())
+                            if (isDisplayConnected(vPort.getName()))
                             {
                                 audioPort = "SPDIF0";
                                 break;
@@ -3831,7 +3880,7 @@ namespace WPEFramework {
                 if (audioPort.empty())
                 {
                     std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
-                    if (device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str()).isDisplayConnected())
+                    if (isDisplayConnected(strVideoPort))
                     {
                         audioPort = "HDMI0";
                     }
@@ -3846,7 +3895,7 @@ namespace WPEFramework {
                         for (size_t i = 0; i < vPorts.size(); i++)
                         {
                             device::VideoOutputPort &vPort = vPorts.at(i);
-                            if (vPort.isDisplayConnected())
+                            if (isDisplayConnected(vPort.getName()))
                             {
                                 audioPort = "SPDIF0";
                                 break;
@@ -3982,7 +4031,7 @@ namespace WPEFramework {
             {
 		std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
                 device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
-                if (vPort.isDisplayConnected()) {
+                if (isDisplayConnected(vPort.getName())) {
                    if(vPort.setForceHDRMode (mode) == true)
 		    {
                         success = true;
@@ -4673,6 +4722,9 @@ namespace WPEFramework {
                              eventData->data.state.curState, eventData->data.state.newState);
                 m_powerState = eventData->data.state.newState;
                 if (eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_ON) {
+                    isResCacheUpdated = false;
+                    isDisplayConnectedCacheUpdated = false;
+                    isStbHDRcapabilitiesCache = false;
 	            try
                     {
 		        LOGWARN("creating worker thread for initAudioPortsWorker ");
@@ -5583,7 +5635,7 @@ void DisplaySettings::sendMsgThread()
             {
                 std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
                 device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
-                if (vPort.isDisplayConnected()) {
+                if (isDisplayConnected(vPort.getName())) {
                     vPort.getTVHDRCapabilities(&capabilities);
                     response["capabilities"] = capabilities;
                 }
@@ -5609,7 +5661,7 @@ void DisplaySettings::sendMsgThread()
             {
                 std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
                 device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
-                if (vPort.isDisplayConnected()) {
+                if (isDisplayConnected(vPort.getName())) {
                     isConnectedDeviceRepeater = vPort.getDisplay().isConnectedDeviceRepeater();
                 }
                 else {
@@ -5634,7 +5686,7 @@ void DisplaySettings::sendMsgThread()
             {
                 std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
                 device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
-                if (vPort.isDisplayConnected()) {
+                if (isDisplayConnected(vPort.getName())) {
                     response["defaultResolution"] = vPort.getDefaultResolution().getName();
                 }
                 else {
@@ -5821,7 +5873,7 @@ void DisplaySettings::sendMsgThread()
                 for (size_t i = 0; i < vPorts.size(); i++)
                 {
                     device::VideoOutputPort &vPort = vPorts.at(i);
-                    if (vPort.isDisplayConnected())
+                    if (isDisplayConnected(vPort.getName()))
                     {
                         string displayName = vPort.getName();
                         if (strncasecmp(displayName.c_str(), "hdmi", 4)==0)
@@ -5942,7 +5994,7 @@ void DisplaySettings::sendMsgThread()
             {
                 std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
                 device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
-                if (vPort.isDisplayConnected())
+                if (isDisplayConnected(vPort.getName()))
                 {
                     int _eotf = vPort.getVideoEOTF();
                     response["currentVideoFormat"] = getVideoFormatTypeToString((dsHDRStandard_t)_eotf);

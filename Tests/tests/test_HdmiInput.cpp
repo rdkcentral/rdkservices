@@ -430,9 +430,11 @@ TEST_F(HdmiInputInitializedEventDsTest, onInputStatusChangeOn)
             [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
                 string text;
                 EXPECT_TRUE(json->ToString(text));
-                EXPECT_EQ(text, string(_T("{\"jsonrpc\":\"2.0\",\"method\":\"client.events.onInputStatusChanged.onInputStatusChanged\",\"params\":{\"id\":0,\"locator\":\"hdmiin:\\/\\/localhost\\/deviceid\\/0\",\"status\":\"started\"}}")));
+                EXPECT_EQ(text, string(_T("{\"jsonrpc\":\"2.0\",\"method\":\"client.events.onInputStatusChanged.onInputStatusChanged\",\"params\":{\"id\":0,\"locator\":\"hdmiin:\\/\\/localhost\\/deviceid\\/0\",\"status\":\"started\",\"plane\":0}}")));
                 return Core::ERROR_NONE;
             }));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startHdmiInput"), _T("{\"portId\": \"0\"}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
     IARM_Bus_DSMgr_EventData_t eventData;
     eventData.data.hdmi_in_status.port =dsHDMI_IN_PORT_0;
     eventData.data.hdmi_in_status.isPresented = true;	
@@ -449,9 +451,11 @@ TEST_F(HdmiInputInitializedEventDsTest, onInputStatusChangeOff)
             [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
                 string text;
                 EXPECT_TRUE(json->ToString(text));
-                EXPECT_EQ(text, string(_T("{\"jsonrpc\":\"2.0\",\"method\":\"client.events.onInputStatusChanged.onInputStatusChanged\",\"params\":{\"id\":0,\"locator\":\"hdmiin:\\/\\/localhost\\/deviceid\\/0\",\"status\":\"stopped\"}}")));
+                EXPECT_EQ(text, string(_T("{\"jsonrpc\":\"2.0\",\"method\":\"client.events.onInputStatusChanged.onInputStatusChanged\",\"params\":{\"id\":0,\"locator\":\"hdmiin:\\/\\/localhost\\/deviceid\\/0\",\"status\":\"stopped\",\"plane\":-1}}")));
                 return Core::ERROR_NONE;
             }));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("stopHdmiInput"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
     IARM_Bus_DSMgr_EventData_t eventData;
     eventData.data.hdmi_in_status.port =dsHDMI_IN_PORT_0;
     eventData.data.hdmi_in_status.isPresented = false;	

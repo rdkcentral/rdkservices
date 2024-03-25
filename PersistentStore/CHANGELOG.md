@@ -16,6 +16,27 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.8] - 2024-03-21
+### Added
+- Account scope implementation
+- L0, L2 unit tests
+- Out-of-process
+
+## [1.0.7] - 2024-03-18
+### Fixed
+- PersistentStore.json is not generated  in R2 build due to write_config() empty parameter & its fixed for R2 builds
+
+## [1.0.6] - 2024-03-11
+### Added
+- RPC COM interface IStore2, IStoreInspector, IStoreLimit
+- JSON RPC API getStorageSizes, getNamespaceStorageLimit, setNamespaceStorageLimit
+- "scope" parameter (defaults to "device")
+- "ttl" parameter
+- Configuration "limit" parameter
+- L0, L1 unit tests
+- Thunder master branch support
+- Out-of-process support
+
 ## [1.0.5] - 2024-01-02
 ### Security
 - resolved security vulnerabilities
