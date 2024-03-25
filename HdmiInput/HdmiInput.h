@@ -28,11 +28,6 @@
 #define MAX_PRIM_VOL_LEVEL 100
 #define DEFAULT_INPUT_VOL_LEVEL 100
 
-typedef enum _mixgain{
-	MIXGAIN_PRIM,
-	MIXGAIN_SYS,
-	MIXGAIN_TTS
-}mixgain;
 
 namespace WPEFramework {
 

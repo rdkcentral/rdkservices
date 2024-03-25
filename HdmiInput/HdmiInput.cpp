@@ -1123,8 +1123,8 @@ namespace WPEFramework
 
 		try{
 
-	    		device::Host::getInstance().setAudioMixerLevels(MIXGAIN_PRIM,primVol);
-        		device::Host::getInstance().setAudioMixerLevels(MIXGAIN_SYS,inputVol);
+	    		device::Host::getInstance().setAudioMixerLevels(dsAUDIO_INPUT_PRIMARY,primVol);
+        		device::Host::getInstance().setAudioMixerLevels(dsAUDIO_INPUT_SYSTEM,inputVol);
 		}
 		catch(...){
 	    		LOGWARN("Not setting SoC volume !!!\n");
