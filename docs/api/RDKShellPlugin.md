@@ -2,7 +2,7 @@
 <a name="RDKShell_Plugin"></a>
 # RDKShell Plugin
 
-**Version: [1.4.15](https://github.com/rdkcentral/rdkservices/blob/main/RDKShell/CHANGELOG.md)**
+**Version: [1.4.16](https://github.com/rdkcentral/rdkservices/blob/main/RDKShell/CHANGELOG.md)**
 
 A org.rdk.RDKShell plugin for Thunder framework.
 
@@ -799,6 +799,7 @@ No Events
 | params.keys[#].modifiers | array | A list of modifiers that need to be present to intercept (`ctrl`, `alt`, and `shift` are supported) |
 | params.keys[#].modifiers[#] | string |  |
 | params.keys[#].delay | number | The amount of time to wait (in seconds) before sending the key event |
+| params.keys[#]?.duration | number | <sup>*(optional)*</sup> The amount of time between key press and key release events |
 | params.keys[#]?.callsign | string | <sup>*(optional)*</sup> The application callsign |
 | params.keys[#]?.client | string | <sup>*(optional)*</sup> The client name can be used instead of callsign |
 
@@ -826,6 +827,7 @@ No Events
                     "shift"
                 ],
                 "delay": 1.0,
+                "duration": 1.0,
                 "callsign": "Cobalt",
                 "client": "Cobalt"
             }
