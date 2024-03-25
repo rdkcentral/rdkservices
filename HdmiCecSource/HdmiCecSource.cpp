@@ -61,7 +61,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 7
+#define API_VERSION_NUMBER_PATCH 8
 
 enum {
 	HDMICECSOURCE_EVENT_DEVICE_ADDED=0,
@@ -687,6 +687,37 @@ namespace WPEFramework
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED,pwrMgrModeChangeEventHandler) );
             }
        }
+        void HdmiCecSource::threadHotPlugEventHandler(int data)
+        {
+            LOGINFO("entry threadHotPlugEventHandler \r\n");
+            if(!HdmiCecSource::_instance)
+                return;
+
+            LOGINFO("Pocessing IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG  event status:%d \r\n",data);
+            HdmiCecSource::_instance->onHdmiHotPlug(data);
+            //Trigger CEC device poll here
+            pthread_cond_signal(&(_instance->m_condSig));
+
+            LOGINFO("Exit threadHotPlugEventHandler \r\n");
+        }
+        void HdmiCecSource::threadCecDaemonInitHandler()
+        {
+            if(!HdmiCecSource::_instance)
+                return;
+
+            LOGINFO("Pocessing IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED  \r\n");
+            HdmiCecSource::_instance->onCECDaemonInit();
+            LOGINFO("Exit threadCecDaemonInitHandler \r\n");
+        }
+        void HdmiCecSource::threadCecStatusUpdateHandler(int data)
+        {
+            if(!HdmiCecSource::_instance)
+                return;
+
+            LOGINFO("Pocessing IARM_BUS_CECMGR_EVENT_STATUS_UPDATED LA:%d \r\n", data);
+            HdmiCecSource::_instance->cecStatusUpdated(data);
+            LOGINFO("Exit threadCecStatusUpdateHandler \r\n");
+        }
 
        void HdmiCecSource::cecMgrEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
        {
@@ -699,7 +730,8 @@ namespace WPEFramework
                 {
                     case IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED:
                     {
-                        HdmiCecSource::_instance->onCECDaemonInit();
+                        std::thread worker(threadCecDaemonInitHandler);
+                        worker.detach();
                     }
                     break;
                     case IARM_BUS_CECMGR_EVENT_STATUS_UPDATED:
@@ -707,8 +739,8 @@ namespace WPEFramework
                         IARM_Bus_CECMgr_Status_Updated_Param_t *evtData = new IARM_Bus_CECMgr_Status_Updated_Param_t;
                         if(evtData)
                         {
-                            memcpy(evtData,data,sizeof(IARM_Bus_CECMgr_Status_Updated_Param_t));
-                            HdmiCecSource::_instance->cecStatusUpdated(evtData);
+                            std::thread worker(threadCecStatusUpdateHandler,evtData->logicalAddress);
+                            worker.detach();
                         }
                     }
                     break;
@@ -721,17 +753,22 @@ namespace WPEFramework
 
        void HdmiCecSource::dsHdmiEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
        {
-            if(!HdmiCecSource::_instance)
+            if(!HdmiCecSource::_instance  || !_instance->cecEnableStatus)
+            {
+                LOGINFO("Return from dsHdmiEventHandler due HdmiCecSource::_instance:%p cecEnableStatus:%d  \r\n", HdmiCecSource::_instance, _instance->cecEnableStatus);
                 return;
+            }
 
-            if (IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG == eventId)
+            if (owner && !strcmp(owner, IARM_BUS_DSMGR_NAME) && (IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG == eventId))
             {
                 IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
-                int hdmi_hotplug_event = eventData->data.hdmi_hpd.event;
-                LOGINFO("Received IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG  event data:%d \r\n", hdmi_hotplug_event);
-                HdmiCecSource::_instance->onHdmiHotPlug(hdmi_hotplug_event);
-                //Trigger CEC device poll here
-                pthread_cond_signal(&(_instance->m_condSig));
+                if(eventData)
+                {
+                    int hdmi_hotplug_event = eventData->data.hdmi_hpd.event;
+                    LOGINFO("Received IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG  event data:%d \r\n", hdmi_hotplug_event);
+                    std::thread worker(threadHotPlugEventHandler,hdmi_hotplug_event);
+                    worker.detach();
+                }
             }
        }
 
@@ -771,20 +808,16 @@ namespace WPEFramework
             }
        }
 
-       void HdmiCecSource::cecStatusUpdated(void *evtStatus)
+       void HdmiCecSource::cecStatusUpdated(int logicalAddr)
        {
             if (!IsCecMgrActivated) {
                 LOGWARN("CEC Mgr not activated CEC communication is not possible");
                 return;
             }
-            IARM_Bus_CECMgr_Status_Updated_Param_t *evtData = (IARM_Bus_CECMgr_Status_Updated_Param_t *)evtStatus;
-            if(evtData)
-            {
                try{
                     getPhysicalAddress();
 
-                    int logicalAddr = evtData->logicalAddress;
-                    std::string logicalAddrDeviceType = DeviceType(LogicalAddress(evtData->logicalAddress).getType()).toString().c_str();
+                    std::string logicalAddrDeviceType = DeviceType(LogicalAddress(logicalAddr).getType()).toString().c_str();
 
                     LOGINFO("cecLogicalAddressUpdated: logical address updated: %d , saved : %d ", logicalAddr, logicalAddress.toInt());
                     if (logicalAddr != logicalAddress.toInt() || logicalAddrDeviceType != logicalAddressDeviceType)
@@ -798,8 +831,6 @@ namespace WPEFramework
                     LOGWARN("CEC exception caught from cecStatusUpdated");
                 }
 
-                delete evtData;
-            }
            return;
        }
 
