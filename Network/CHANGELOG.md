@@ -16,6 +16,11 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.3.6] - 2024-03-25
+### Fixed
+- Fixed WPE_ERR_ProcessCrash with function__libc_do_syscall
+- Changed the connectivity monitor thread termination
+
 ## [1.3.5] - 2024-02-19
 ### Fixed
 - Fixed Network connnectivity monitor crash during reboot
