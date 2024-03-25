@@ -5118,8 +5118,9 @@ void DisplaySettings::sendMsgThread()
 				wasSADTimerActive = true;
 			    }
 				
-			    if (wasSADTimerActive == true && m_arcEarcAudioEnabled == false ) { /*setEnableAudioPort is called, Timer has started, got SAD before Timer Expiry*/			        LOGINFO("%s: Updating SAD \n", __FUNCTION__);
-                                m_AudioDeviceSADState = AUDIO_DEVICE_SAD_UPDATED;
+			    if (wasSADTimerActive == true && m_arcEarcAudioEnabled == false ) { /*setEnableAudioPort is called, Timer has started, got SAD before Timer Expiry*/
+			        LOGINFO("%s: Updating SAD \n", __FUNCTION__);
+				m_AudioDeviceSADState = AUDIO_DEVICE_SAD_UPDATED;
                                 aPort.setSAD(sad_list);
                                 if(aPort.getStereoAuto() == true) {
                                     aPort.setStereoAuto(true,true);
