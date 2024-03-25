@@ -74,7 +74,7 @@ using namespace std;
 #define HDMICECSINK_PLUGIN_ACTIVATION_TIME 2
 #define RECONNECTION_TIME_IN_MILLISECONDS 5500
 #define AUDIO_DEVICE_CONNECTION_CHECK_TIME_IN_MILLISECONDS 3000
-#define SAD_UPDATE_CHECK_TIME_IN_MILLISECONDS 3000
+#define SAD_UPDATE_CHECK_TIME_IN_MILLISECONDS 2000
 #define ARC_DETECTION_CHECK_TIME_IN_MILLISECONDS 1000
 #define AUDIO_DEVICE_POWER_TRANSITION_TIME_IN_MILLISECONDS 1000
 
@@ -4452,7 +4452,7 @@ namespace WPEFramework {
 							if ( !(m_SADDetectionTimer.isActive()))
 							{ 			    
 								m_SADDetectionTimer.start(SAD_UPDATE_CHECK_TIME_IN_MILLISECONDS);
-							        LOGINFO("%s: Audio device SAD is not received yet, so starting timer for %d seconds", \
+							        LOGINFO("%s: Audio device SAD is not received yet, so starting timer for %d milliseconds", \
 									__FUNCTION__, SAD_UPDATE_CHECK_TIME_IN_MILLISECONDS);
 						        }
 							LOGINFO("%s: Audio Device SAD is pending, Route audio after SAD update\n", __FUNCTION__);
@@ -4545,6 +4545,9 @@ namespace WPEFramework {
 		std::lock_guard<std::mutex> lock(m_SadMutex);
 		device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI_ARC0");
 		LOGINFO("m_AudioDeviceSADState = %d, m_arcEarcAudioEnabled = %d, m_hdmiInAudioDeviceConnected = %d\n",m_AudioDeviceSADState, m_arcEarcAudioEnabled, m_hdmiInAudioDeviceConnected);
+		if (m_SADDetectionTimer.isActive()) {
+			m_SADDetectionTimer.stop();
+		}
 		if (m_arcEarcAudioEnabled == false && m_hdmiInAudioDeviceConnected == true){
 			if (m_AudioDeviceSADState == AUDIO_DEVICE_SAD_RECEIVED)
 			{
@@ -4559,22 +4562,28 @@ namespace WPEFramework {
             			aPort.setStereoMode(mode.toString(), true);
         		   }
                            LOGINFO("SAD is updated m_AudioDeviceSADState = %d\n", m_AudioDeviceSADState);
+			   m_requestSadRetrigger = false;
 			}else{
-				LOGINFO("Not recieved SAD update after 3sec timeout, retrigger the SAD request\n");
-				m_requestSadRetrigger = true;
-				sendMsgToQueue(REQUEST_SHORT_AUDIO_DESCRIPTOR, NULL);
-				m_AudioDeviceSADState  = AUDIO_DEVICE_SAD_REQUESTED;
-			}
+                            if( m_requestSadRetrigger == false )
+                               {
+                                       LOGINFO("Not recieved SAD update after 2sec timeout, retriggering the SAD request and starting timer for 2 seconds\n");
+                                       m_requestSadRetrigger = true;
+                                       sendMsgToQueue(REQUEST_SHORT_AUDIO_DESCRIPTOR, NULL);
+                                       m_AudioDeviceSADState  = AUDIO_DEVICE_SAD_REQUESTED;
+                                       m_SADDetectionTimer.start(SAD_UPDATE_CHECK_TIME_IN_MILLISECONDS);
+                               }
+                               else
+                               {
+                                       LOGINFO("Not recieved SAD update even after retriggering the SAD request, proceeding with default SAD\n");
+                                       m_requestSadRetrigger = false;
+                               }
+     			}
 			if (!m_requestSadRetrigger)
 			{
 				LOGINFO("%s: Enable ARC... \n",__FUNCTION__);
 				aPort.enableARC(dsAUDIOARCSUPPORT_ARC, true);
 				m_arcEarcAudioEnabled = true;
 			}
-		}
-
-		if (m_SADDetectionTimer.isActive()) {
-			m_SADDetectionTimer.stop();
 		}
 	}
 
@@ -5108,7 +5117,7 @@ void DisplaySettings::sendMsgThread()
 				
 				wasSADTimerActive = true;
 			    }
-                          if ((wasSADTimerActive == true && m_arcEarcAudioEnabled == false )  || (m_requestSadRetrigger == true)) { /*setEnableAudioPort is called, Timer has started, got SAD before Timer Expiry (or) SAD request has been retriggered after the 3 sec timeout*/
+                          if (wasSADTimerActive == true && m_arcEarcAudioEnabled == false ) { /*setEnableAudioPort is called, Timer has started, got SAD before Timer Expiry*/
 			        LOGINFO("%s: Updating SAD \n", __FUNCTION__);
                                 m_AudioDeviceSADState = AUDIO_DEVICE_SAD_UPDATED;
                                 aPort.setSAD(sad_list);
@@ -5124,7 +5133,6 @@ void DisplaySettings::sendMsgThread()
 				LOGINFO("%s: Enable ARC... \n",__FUNCTION__);
 				aPort.enableARC(dsAUDIOARCSUPPORT_ARC, true);
                         	m_arcEarcAudioEnabled = true;
-				m_requestSadRetrigger = false;
 			    } else if (m_arcEarcAudioEnabled == true) { /*setEnableAudioPort is called,Timer started and Expired, arc is routed -- or for both wasSADTimerActive == true/false*/
 				LOGINFO("%s: Updating SAD since audio is already routed and ARC is initiated\n", __FUNCTION__);
 				 m_AudioDeviceSADState = AUDIO_DEVICE_SAD_UPDATED;
