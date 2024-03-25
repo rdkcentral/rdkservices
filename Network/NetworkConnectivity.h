@@ -101,11 +101,6 @@ namespace WPEFramework {
 
         class ConnectivityMonitor : public Connectivity {
             public:
-                static ConnectivityMonitor& getInstance() {
-                    static ConnectivityMonitor instance;
-                    return instance;
-                }
-
                 bool isConnectedToInternet(nsm_ipversion ipversion);
                 nsm_internetState getInternetConnectionState(nsm_ipversion ipversion);
                 std::string getCaptivePortalURI();
@@ -119,7 +114,6 @@ namespace WPEFramework {
                 void signalConnectivityMonitor();
                 void resetConnectivityCache() { g_internetState = nsm_internetState::UNKNOWN;}
 
-            private:
                 ConnectivityMonitor() : stopFlag(false), threadRunning(false), isContinuesMonitoringNeeded(false)
                 {
                     setConnectivityMonitorEndpoints(getConnectivityDefaultEndpoints());
@@ -129,6 +123,7 @@ namespace WPEFramework {
                     LOGINFO("~ConnectivityMonitor");
                     stopContinuousConnectivityMonitoring();
                 }
+            private:
 
                 std::vector<std::string> getConnectivityMonitorEndpoints();
                 ConnectivityMonitor(const ConnectivityMonitor&) = delete;
