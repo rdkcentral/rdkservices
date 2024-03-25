@@ -96,7 +96,7 @@ static void getPrimaryPlane(int drm_fd, kms_ctx *kms, drmModePlane **plane)
     kms_get_plane(drm_fd, kms);
     cout << "Primary Plane ID : "<< kms->primary_plane_id << endl;
     *plane = drmModeGetPlane(drm_fd, kms->primary_plane_id );
-    if(*plane)
+    if (*plane)
         printf("fb id : %d\n", (*plane)->fb_id);
 }
 
@@ -113,21 +113,21 @@ static void getGraphicSize(uint32_t &w, uint32_t &h)
 
         /* Setup KMS */
         kms = kms_setup(drm_fd);
-        if(!kms || !kms->crtc ) {
+        if (!kms || !kms->crtc) {
             cout << "[Amlogic] kms_setup fail" << endl;
             break;
         }
 
         /* Get primary buffer */
         getPrimaryPlane(drm_fd, kms, &plane);
-        if( !plane) {
+        if (!plane) {
             cout << "[Amlogic] fail to getPrimaryPlane" << endl;
             break;
         }
 
         /* get fb */
         drmModeFB *fb = drmModeGetFB(drm_fd, plane->fb_id);
-        while(!fb) {
+        while (!fb) {
             getPrimaryPlane(drm_fd, kms, &plane);
             fb = drmModeGetFB(drm_fd, plane->fb_id);
             if (trytimes++ > 100) {
@@ -137,7 +137,7 @@ static void getGraphicSize(uint32_t &w, uint32_t &h)
         }
 
         /* Get the width and height */
-        if(fb) {
+        if (fb) {
             w = fb->width;
             h = fb->height;
             drmModeFreeFB(fb);
@@ -146,14 +146,14 @@ static void getGraphicSize(uint32_t &w, uint32_t &h)
 
     /* release */
     /* Cleanup buffer info */
-    if(kms) {
+    if (kms) {
         kms_cleanup_context(kms);
         free(kms);
     }
 
     cout << "[getGraphicSize] width : " << w << endl;
     cout << "[getGraphicSize] height : " << h << endl;
-    if(drm_fd >= 0){
+    if (drm_fd >= 0) {
         close(drm_fd);
     }
 }

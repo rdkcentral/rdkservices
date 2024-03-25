@@ -99,7 +99,7 @@ namespace Plugin {
 
         ~UdevObserverType() override
         {
-            if(Core::SocketDatagram::IsOpen()) {
+            if (Core::SocketDatagram::IsOpen()) {
                 Core::SocketDatagram::Close(Core::infinite);
             }
         }
@@ -132,7 +132,7 @@ namespace Plugin {
         }
 
     private:
-	/**
+        /**
          * See https://github.com/systemd/systemd/blob/master/src/libsystemd/sd-device/device-monitor.c
          * for details of the udev_monitor_netlink_header structure, which is needed
          * in order to properly parse messages coming in through the socket connection
@@ -405,7 +405,7 @@ namespace Plugin {
 
             std::ifstream instream(_edidNode, std::ios::in);
             _edid.reserve(512);
-            if(instream.is_open()) {
+            if (instream.is_open()) {
                 char asciiHexByte[2];
                 while(!instream.eof()) {
                     instream.read(asciiHexByte, 2);
@@ -428,7 +428,9 @@ namespace Plugin {
         Exchange::IConnectionProperties::HDCPProtectionType _hdcpLevel;
     };
 
-    class DisplayInfoImplementation : public Exchange::IConnectionProperties, public Exchange::IConfiguration {
+    class DisplayInfoImplementation : public Exchange::IConnectionProperties,
+                                      public Exchange::IConfiguration,
+                                      public Exchange::IDisplayProperties {
 
     public:
         DisplayInfoImplementation(const DisplayInfoImplementation&) = delete;
@@ -445,7 +447,7 @@ namespace Plugin {
             : _config()
             , _udevObserver()
             , _callback([&](const std::string& devtype){
-                if(devtype == "hdcp") {
+                if (devtype == "hdcp") {
                     _eventQueue.Post(Exchange::IConnectionProperties::INotification::Source::HDCP_CHANGE);
                 } else {
                     _eventQueue.Post(Exchange::IConnectionProperties::INotification::Source::HDMI_CHANGE);
@@ -625,9 +627,40 @@ namespace Plugin {
             }
         }
 
+        uint32_t ColorSpace(ColourSpaceType&) const override
+        {
+            return (Core::ERROR_UNAVAILABLE);
+        }
+
+        uint32_t FrameRate(FrameRateType&) const override
+        {
+            return (Core::ERROR_UNAVAILABLE);
+        }
+
+        uint32_t ColourDepth(ColourDepthType&) const override
+        {
+            return (Core::ERROR_UNAVAILABLE);
+        }
+
+        uint32_t Colorimetry(IColorimetryIterator*&) const override
+        {
+            return (Core::ERROR_UNAVAILABLE);
+        }
+
+        uint32_t QuantizationRange(QuantizationRangeType&) const override
+        {
+            return (Core::ERROR_UNAVAILABLE);
+        }
+
+        uint32_t EOTF(EotfType&) const override
+        {
+            return (Core::ERROR_UNAVAILABLE);
+        }
+
         BEGIN_INTERFACE_MAP(DisplayInfoImplementation)
         INTERFACE_ENTRY(Exchange::IConnectionProperties)
         INTERFACE_ENTRY(Exchange::IConfiguration)
+        INTERFACE_ENTRY(Exchange::IDisplayProperties)
         INTERFACE_AGGREGATE(Exchange::IGraphicsProperties, _graphics)
         INTERFACE_AGGREGATE(Exchange::IHDRProperties, _hdr)
         END_INTERFACE_MAP
@@ -696,7 +729,7 @@ namespace Plugin {
 
             bool Post(IConnectionProperties::INotification::Source type)
             {
-                if(_eventQueue.Post(type)) {
+                if (_eventQueue.Post(type)) {
                     _arrived.SetEvent();
                     return true;
                 } else {

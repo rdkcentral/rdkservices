@@ -68,7 +68,7 @@ public:
             device::Manager::Initialize();
             TRACE(Trace::Information, (_T("device::Manager::Initialize success")));
         }
-        catch(...)
+        catch (...)
         {
            TRACE(Trace::Error, (_T("device::Manager::Initialize failed")));
         }
@@ -80,8 +80,8 @@ public:
     virtual ~DisplayInfoImplementation()
     {
         IARM_Result_t res;
-        IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_RES_PRECHANGE,ResolutionChange) );
-        IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_RES_POSTCHANGE,ResolutionChange) );
+        IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_RES_PRECHANGE, ResolutionChange) );
+        IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_RES_POSTCHANGE, ResolutionChange) );
         DisplayInfoImplementation::_instance = nullptr;
     }
 
@@ -146,7 +146,7 @@ public:
             }
         }
 
-        if(DisplayInfoImplementation::_instance)
+        if (DisplayInfoImplementation::_instance)
         {
            DisplayInfoImplementation::_instance->ResolutionChangeImpl(eventtype);
         }
@@ -157,7 +157,7 @@ public:
         _adminLock.Lock();
 
         std::list<IConnectionProperties::INotification*>::const_iterator index = _observers.begin();
-        while(index != _observers.end()) {
+        while (index != _observers.end()) {
             (*index)->Updated(eventtype);
             index++;
         }
@@ -245,7 +245,7 @@ public:
         int hdcpversion = 1;
         string portname;
         PortName(portname);
-        if(!portname.empty())
+        if (!portname.empty())
         {
             try
             {
@@ -258,7 +258,7 @@ public:
                     case dsHDCP_VERSION_MAX: value = IConnectionProperties::HDCPProtectionType::HDCP_AUTO; break;
                 }
             }
-            catch(const device::Exception& err)
+            catch (const device::Exception& err)
             {
                 TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
             }
@@ -275,7 +275,7 @@ public:
         dsHdcpProtocolVersion_t hdcpversion = dsHDCP_VERSION_MAX;
         string portname;
         PortName(portname);
-        if(!portname.empty())
+        if (!portname.empty())
         {
             switch(value)
             {
@@ -287,12 +287,12 @@ public:
             try
             {
                 device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(portname);
-                if(!vPort.SetHdmiPreference(hdcpversion))
+                if (!vPort.SetHdmiPreference(hdcpversion))
                 {
                     TRACE(Trace::Information, (_T("HDCPProtection: SetHdmiPreference failed")));
                 }
             }
-            catch(const device::Exception& err)
+            catch (const device::Exception& err)
             {
                 TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
             }
@@ -312,7 +312,7 @@ public:
         if (Core::ERROR_NONE == ret)
         {
             std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
-            if(edidVec.size() > EDID_MAX_VERTICAL_SIZE)
+            if (edidVec.size() > EDID_MAX_VERTICAL_SIZE)
             {
                 width = edidVec[EDID_MAX_HORIZONTAL_SIZE];
                 TRACE(Trace::Information, (_T("Width in cm = %d"), width));
@@ -338,7 +338,7 @@ public:
 
                 vPort.getDisplay().getEDIDBytes(edidVec);
 
-                if(edidVec.size() > EDID_MAX_VERTICAL_SIZE)
+                if (edidVec.size() > EDID_MAX_VERTICAL_SIZE)
                 {
                     height = edidVec[EDID_MAX_VERTICAL_SIZE];
                     TRACE(Trace::Information, (_T("Height in cm = %d"), height));
@@ -383,7 +383,7 @@ public:
         }
         //convert to base64
         uint16_t size = min(edidVec.size(), (size_t)numeric_limits<uint16_t>::max());
-        if(edidVec.size() > (size_t)numeric_limits<uint16_t>::max())
+        if (edidVec.size() > (size_t)numeric_limits<uint16_t>::max())
             LOGERR("Size too large to use ToString base64 wpe api");
         int i = 0;
         for (; i < length && i < size; i++)
@@ -412,7 +412,7 @@ public:
                 }
             }
         }
-        catch(const device::Exception& err)
+        catch (const device::Exception& err)
         {
             TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
         }
@@ -474,19 +474,19 @@ public:
             device::FrameRate fr = resolution.getFrameRate();
             if (fr == device::FrameRate::k24 ) {
                 rate = FRAMERATE_24;
-            } else if(fr == device::FrameRate::k25) {
+            } else if (fr == device::FrameRate::k25) {
                 rate = FRAMERATE_25;
-            } else if(fr == device::FrameRate::k30) {
+            } else if (fr == device::FrameRate::k30) {
                 rate = FRAMERATE_30;
-            } else if(fr == device::FrameRate::k60) {
+            } else if (fr == device::FrameRate::k60) {
                 rate = FRAMERATE_60;
-            } else if(fr == device::FrameRate::k23dot98) {
+            } else if (fr == device::FrameRate::k23dot98) {
                 rate = FRAMERATE_23_976;
-            } else if(fr == device::FrameRate::k29dot97) {
+            } else if (fr == device::FrameRate::k29dot97) {
                 rate = FRAMERATE_29_97;
-            } else if(fr == device::FrameRate::k50) {
+            } else if (fr == device::FrameRate::k50) {
                 rate = FRAMERATE_50;
-            } else if(fr == device::FrameRate::k59dot94) {
+            } else if (fr == device::FrameRate::k59dot94) {
                 rate = FRAMERATE_59_94;
             } else {
                 rate = FRAMERATE_UNKNOWN;
@@ -671,16 +671,16 @@ public:
                 TRACE(Trace::Error, (_T("getTVHDRCapabilities failure: HDMI not connected!")));
             }
         }
-        catch(const device::Exception& err)
+        catch (const device::Exception& err)
         {
             TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
         }
-        if(!capabilities) hdrCapabilities.push_back(HDR_OFF);
-        if(capabilities & dsHDRSTANDARD_HDR10) hdrCapabilities.push_back(HDR_10);
-        if(capabilities & dsHDRSTANDARD_HLG) hdrCapabilities.push_back(HDR_HLG);
-        if(capabilities & dsHDRSTANDARD_DolbyVision) hdrCapabilities.push_back(HDR_DOLBYVISION);
-        if(capabilities & dsHDRSTANDARD_TechnicolorPrime) hdrCapabilities.push_back(HDR_TECHNICOLOR);
-        if(capabilities & dsHDRSTANDARD_Invalid)hdrCapabilities.push_back(HDR_OFF);
+        if (!capabilities) hdrCapabilities.push_back(HDR_OFF);
+        if (capabilities & dsHDRSTANDARD_HDR10) hdrCapabilities.push_back(HDR_10);
+        if (capabilities & dsHDRSTANDARD_HLG) hdrCapabilities.push_back(HDR_HLG);
+        if (capabilities & dsHDRSTANDARD_DolbyVision) hdrCapabilities.push_back(HDR_DOLBYVISION);
+        if (capabilities & dsHDRSTANDARD_TechnicolorPrime) hdrCapabilities.push_back(HDR_TECHNICOLOR);
+        if (capabilities & dsHDRSTANDARD_Invalid)hdrCapabilities.push_back(HDR_OFF);
 
 
         type = Core::Service<HdrteratorImplementation>::Create<Exchange::IHDRProperties::IHDRIterator>(hdrCapabilities);
@@ -699,17 +699,16 @@ public:
             device::VideoDevice &device = device::Host::getInstance().getVideoDevices().at(0);
             device.getHDRCapabilities(&capabilities);
         }
-        catch(const device::Exception& err)
+        catch (const device::Exception& err)
         {
             TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
         }
-        if(!capabilities) hdrCapabilities.push_back(HDR_OFF);
-        if(capabilities & dsHDRSTANDARD_HDR10) hdrCapabilities.push_back(HDR_10);
-        if(capabilities & dsHDRSTANDARD_HLG) hdrCapabilities.push_back(HDR_HLG);
-        if(capabilities & dsHDRSTANDARD_DolbyVision) hdrCapabilities.push_back(HDR_DOLBYVISION);
-        if(capabilities & dsHDRSTANDARD_TechnicolorPrime) hdrCapabilities.push_back(HDR_TECHNICOLOR);
-        if(capabilities & dsHDRSTANDARD_Invalid)hdrCapabilities.push_back(HDR_OFF);
-
+        if (!capabilities) hdrCapabilities.push_back(HDR_OFF);
+        if (capabilities & dsHDRSTANDARD_HDR10) hdrCapabilities.push_back(HDR_10);
+        if (capabilities & dsHDRSTANDARD_HLG) hdrCapabilities.push_back(HDR_HLG);
+        if (capabilities & dsHDRSTANDARD_DolbyVision) hdrCapabilities.push_back(HDR_DOLBYVISION);
+        if (capabilities & dsHDRSTANDARD_TechnicolorPrime) hdrCapabilities.push_back(HDR_TECHNICOLOR);
+        if (capabilities & dsHDRSTANDARD_Invalid)hdrCapabilities.push_back(HDR_OFF);
 
         type = Core::Service<HdrteratorImplementation>::Create<Exchange::IHDRProperties::IHDRIterator>(hdrCapabilities);
         return (type != nullptr ? Core::ERROR_NONE : Core::ERROR_GENERAL);
@@ -733,7 +732,7 @@ public:
                 TRACE(Trace::Information, (_T("IsOutputHDR failure: HDMI not connected!")));
             }
         }
-        catch(const device::Exception& err)
+        catch (const device::Exception& err)
         {
             TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
         }

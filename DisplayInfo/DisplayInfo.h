@@ -37,7 +37,6 @@ namespace Plugin {
             Notification(const Notification&) = delete;
             Notification& operator=(const Notification&) = delete;
 
-        public:
             explicit Notification(DisplayInfo* parent)
                 : _parent(*parent)
                 , _client(nullptr)

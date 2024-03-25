@@ -96,14 +96,14 @@ string parse_proc_brcm_core(string columnHeader)
     {
         while (getline(procfile,line))
         {
-            if(line.find(columnHeader) != string::npos)
+            if (line.find(columnHeader) != string::npos)
             {
                 tokens.clear();
                 sanitizeLine(line);
                 tokenize(line, tokens, ' ');
                 column = find(tokens.begin(), tokens.end(), columnHeader) - tokens.begin(); //found the column where the data can be found
             }
-            if(line.find("GFX") != string::npos)
+            if (line.find("GFX") != string::npos)
             {
                 tokens.clear();
                 sanitizeLine(line);
@@ -132,7 +132,7 @@ string parse_proc_brcm_display()
     {
         while (getline(procfile,line))
         {
-            if(line.find("graphics") != string::npos)
+            if (line.find("graphics") != string::npos)
             {
                 tokens.clear();
                 sanitizeLine(line);
@@ -189,7 +189,7 @@ uint32_t SoC_GetGraphicsWidth()
     string value = parse_proc_brcm_display();
     LOGINFO("graphics plane dimensions returned from proc = %s" , value.c_str());
     tokenize(value, resolution, 'x'); // graphics resolution is in the format 1280x720
-    if(resolution.size() > WIDTH)
+    if (resolution.size() > WIDTH)
     {
         try
         {
@@ -212,7 +212,7 @@ uint32_t SoC_GetGraphicsHeight()
     string value = parse_proc_brcm_display();
     LOGINFO("graphics plane dimensions returned from proc = %s" , value.c_str());
     tokenize(value, resolution, 'x'); // graphics resolution is in the format 1280x720
-    if(resolution.size() > HEIGHT)
+    if (resolution.size() > HEIGHT)
     {
         try
         {
