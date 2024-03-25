@@ -75,6 +75,7 @@ static int video_latency = 20;
 #define TVMGR_GAME_MODE_EVENT "gameModeEvent"
 static bool lowLatencyMode = false;
 static int planeType = 0;
+static bool isAudioBalanceSet = false;
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 using namespace std;
@@ -278,6 +279,12 @@ namespace WPEFramework
             bool success = true;
             try
             {
+               // Restoring the Audio Mixer Levels when the Input is stopped.
+               if (isAudioBalanceSet){
+                   device::Host::getInstance().setAudioMixerLevels(dsAUDIO_INPUT_PRIMARY,MAX_PRIM_VOL_LEVEL);
+                   device::Host::getInstance().setAudioMixerLevels(dsAUDIO_INPUT_SYSTEM,DEFAULT_INPUT_VOL_LEVEL);
+                   isAudioBalanceSet = false;
+                }		    
 		planeType = -1;// plane index when stopping hdmi input
                 device::HdmiInput::getInstance().selectPort(-1);
             }
@@ -1089,13 +1096,13 @@ namespace WPEFramework
 
 	uint32_t HdmiInput::setMixerLevels(const JsonObject& parameters, JsonObject& response)
         {
-              returnIfStringParamNotFound(parameters, "primaryVolume");
-              returnIfStringParamNotFound(parameters, "inputVolume");
+                returnIfStringParamNotFound(parameters, "primaryVolume");
+                returnIfStringParamNotFound(parameters, "inputVolume");
 
 		string sPrimVol = parameters["primaryVolume"].String();
-   		 string sInputVol = parameters["inputVolume"].String();
-   		 int primVol = 0, inputVol = 0;
-   		 try {
+   		string sInputVol = parameters["inputVolume"].String();
+   		int primVol = 0, inputVol = 0;
+   		try {
         		primVol = stoi(sPrimVol);
         		inputVol = stoi(sInputVol);
     		} catch(...) {
@@ -1130,7 +1137,7 @@ namespace WPEFramework
 	    		LOGWARN("Not setting SoC volume !!!\n");
         		returnResponse(false);
 		}
-
+                isAudioBalanceSet = true;
 		returnResponse(true);
         }
 

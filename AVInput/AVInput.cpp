@@ -65,7 +65,7 @@
 #define AVINPUT_EVENT_ON_AVI_CONTENT_TYPE_CHANGED "aviContentTypeUpdate"
 
 static int planeType = 0;
-
+static bool isAudioBalanceSet = false;
 using namespace std;
 int getTypeOfInput(string sType)
 {
@@ -406,6 +406,12 @@ uint32_t AVInput::stopInput(const JsonObject& parameters, JsonObject& response)
 
     try
     {
+	// Restoring the Audio Mixer Levels when the Input is stopped.
+	if (isAudioBalanceSet){
+            device::Host::getInstance().setAudioMixerLevels(dsAUDIO_INPUT_PRIMARY,MAX_PRIM_VOL_LEVEL);
+            device::Host::getInstance().setAudioMixerLevels(dsAUDIO_INPUT_SYSTEM,DEFAULT_INPUT_VOL_LEVEL);
+	    isAudioBalanceSet = false;
+	}
         planeType = -1;
         if (iType == HDMI) {
             device::HdmiInput::getInstance().selectPort(-1);
@@ -1179,7 +1185,7 @@ std::string AVInput::getSPD(int iPort)
 
 uint32_t AVInput::setMixerLevels(const JsonObject& parameters, JsonObject& response)
 {
-    returnIfStringParamNotFound(parameters, "primaryVolume");
+       returnIfStringParamNotFound(parameters, "primaryVolume");
        returnIfStringParamNotFound(parameters, "inputVolume");
 
 	string sPrimVol = parameters["primaryVolume"].String();
@@ -1196,32 +1202,32 @@ uint32_t AVInput::setMixerLevels(const JsonObject& parameters, JsonObject& respo
 
 
    	if(m_primVolume >=0 ) {
-       	m_primVolume = primVol;
+             m_primVolume = primVol;
    	}
    	if(m_inputVolume >=0) {
-       	m_inputVolume = inputVol;
+       	     m_inputVolume = inputVol;
    	}
    	if(m_primVolume > MAX_PRIM_VOL_LEVEL) {
-       	LOGWARN("Primary Volume greater than limit. Set to MAX_PRIM_VOL_LEVEL(100) !!!\n");
-       	m_primVolume = MAX_PRIM_VOL_LEVEL;
+       	     LOGWARN("Primary Volume greater than limit. Set to MAX_PRIM_VOL_LEVEL(100) !!!\n");
+       	     m_primVolume = MAX_PRIM_VOL_LEVEL;
    	}
    	if(m_inputVolume > DEFAULT_INPUT_VOL_LEVEL) {
-       	LOGWARN("INPUT Volume greater than limit. Set to DEFAULT_INPUT_VOL_LEVEL(100) !!!\n");
-       	m_inputVolume = DEFAULT_INPUT_VOL_LEVEL;
+       	     LOGWARN("INPUT Volume greater than limit. Set to DEFAULT_INPUT_VOL_LEVEL(100) !!!\n");
+       	     m_inputVolume = DEFAULT_INPUT_VOL_LEVEL;
    	}
 
 	LOGINFO("GLOBAL primary Volume=%d input Volume=%d \n",m_primVolume  , m_inputVolume );
 
 	try{
 
-    	device::Host::getInstance().setAudioMixerLevels(dsAUDIO_INPUT_PRIMARY,primVol);
-       	device::Host::getInstance().setAudioMixerLevels(dsAUDIO_INPUT_SYSTEM,inputVol);
+    	     device::Host::getInstance().setAudioMixerLevels(dsAUDIO_INPUT_PRIMARY,primVol);
+       	     device::Host::getInstance().setAudioMixerLevels(dsAUDIO_INPUT_SYSTEM,inputVol);
 	}
 	catch(...){
-    	LOGWARN("Not setting SoC volume !!!\n");
-       	returnResponse(false);
+    	     LOGWARN("Not setting SoC volume !!!\n");
+       	     returnResponse(false);
 	}
-
+        isAudioBalanceSet = true;
 	returnResponse(true);
 }
 
