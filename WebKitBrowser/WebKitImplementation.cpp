@@ -85,6 +85,9 @@ WK_EXPORT void WKPreferencesSetPageCacheEnabled(WKPreferencesRef preferences, bo
 #define HAS_MEMORY_PRESSURE_SETTINGS_API WEBKIT_CHECK_VERSION(2, 38, 0)
 #endif
 
+#ifdef ENABLE_TESTING
+#include <testrunner.h>
+#endif // ENABLE_TESTING
 
 namespace WPEFramework {
 namespace Plugin {
@@ -619,6 +622,7 @@ static GSourceFuncs _handlerIntervention =
                 , ContentFilter()
                 , LoggingTarget()
                 , WebAudioEnabled(false)
+                , Testing(false)
             {
                 Add(_T("useragent"), &UserAgent);
                 Add(_T("url"), &URL);
@@ -685,6 +689,7 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("contentfilter"), &ContentFilter);
                 Add(_T("loggingtarget"), &LoggingTarget);
                 Add(_T("webaudio"), &WebAudioEnabled);
+                Add(_T("testing"), &Testing);
             }
             ~Config()
             {
@@ -756,6 +761,7 @@ static GSourceFuncs _handlerIntervention =
             Core::JSON::String ContentFilter;
             Core::JSON::String LoggingTarget;
             Core::JSON::Boolean WebAudioEnabled;
+            Core::JSON::Boolean Testing;
         };
 
         class HangDetector
@@ -2605,7 +2611,11 @@ static GSourceFuncs _handlerIntervention =
         {
             webkit_web_context_set_web_extensions_directory(context, browser->_extensionPath.c_str());
             // FIX it
-            GVariant* data = g_variant_new("(smsb)", std::to_string(browser->_guid).c_str(), !browser->_config.Whitelist.Value().empty() ? browser->_config.Whitelist.Value().c_str() : nullptr, browser->_config.LogToSystemConsoleEnabled.Value());
+            GVariant* data = g_variant_new("(smsbb)",
+                std::to_string(browser->_guid).c_str(),
+                !browser->_config.Whitelist.Value().empty() ? browser->_config.Whitelist.Value().c_str() : nullptr,
+                browser->_config.LogToSystemConsoleEnabled.Value(),
+                browser->_config.Testing.Value());
             webkit_web_context_set_web_extensions_initialization_user_data(context, data);
         }
         static void wpeNotifyWPEFrameworkMessageReceivedCallback(WebKitUserContentManager*, WebKitJavascriptResult* message, WebKitImplementation* browser)
@@ -2715,7 +2725,7 @@ static GSourceFuncs _handlerIntervention =
 
             g_signal_connect(session, "create-web-view", reinterpret_cast<GCallback>(createWebViewForAutomationCallback), browser);
         }
-        static gboolean userMessageReceivedCallback(WebKitWebView*, WebKitUserMessage* message, WebKitImplementation* browser)
+        static gboolean userMessageReceivedCallback(WebKitWebView* view, WebKitUserMessage* message, WebKitImplementation* browser)
         {
             const char* name = webkit_user_message_get_name(message);
             if (g_strcmp0(name, Tags::BridgeObjectQuery) == 0) {
@@ -2730,6 +2740,12 @@ static GSourceFuncs _handlerIntervention =
                 string payloadStr(payloadPtr);
                 browser->OnBridgeQuery(payloadStr);
             }
+#ifdef ENABLE_TESTING
+            else if (browser->_config.Testing.Value() && g_str_has_prefix(name, Testing::Tags::TestRunnerPrefix)) {
+                Testing::TestRunner::Instance()->EnsureInitialized(view, browser->_extensionPath.c_str());
+                Testing::TestRunner::Instance()->handleUserMessage(message);
+            }
+#endif // ENABLE_TESTING
             return true;
         }
 #if defined(ENABLE_CLOUD_COOKIE_JAR)
