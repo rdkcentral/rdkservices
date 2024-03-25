@@ -88,6 +88,13 @@ typedef enum _dsATMOSCapability_t {
     dsAUDIO_ATMOS_ATMOSMETADATA, /**< capable of parsing ATMOS metadata */
 } dsATMOSCapability_t;
 
+typedef enum _dsAudioInput_t
+{
+    dsAUDIO_INPUT_PRIMARY = 0,   /**< Primary Audio Input is main audio input provided to audio mixer */
+    dsAUDIO_INPUT_SYSTEM,        /**< System Audio Input to audio mixer , e.g Beep Sounds */
+    dsAUDIO_INPUT_MAX            /**< Out of range */
+} dsAudioInput_t;
+
 typedef enum _dsHdcpProtocolVersion_t {
     dsHDCP_VERSION_1X = 0, /**< HDCP Protocol version 1.x */
     dsHDCP_VERSION_2X, /**< HDCP Protocol version 2.x */
