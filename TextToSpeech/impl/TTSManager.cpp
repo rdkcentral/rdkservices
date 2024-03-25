@@ -309,7 +309,7 @@ TTS_Error TTSManager::speak(int speechId, std::string callsign, std::string text
         // TODO: Currently 'secure' is set to true. Need to decide about this variable while Resident app integration.
         if(checkAccess("speak", callsign))
         {
-            m_speaker->speak(this, speechId , text, true, m_defaultConfiguration.primVolDuck());
+            m_speaker->speak(this, speechId , callsign, text, true, m_defaultConfiguration.primVolDuck());
         }
         else
         {
@@ -362,68 +362,71 @@ TTS_Error TTSManager::getSpeechState(uint32_t id, SpeechState &state) {
     return TTS_OK;
 }
 
-void TTSManager::willSpeak(uint32_t speech_id, std::string text) {
+void TTSManager::willSpeak(uint32_t speech_id, std::string callsign, std::string text) {
     TTSLOG_TRACE(" [%d, %s]", speech_id, text.c_str());
 
     SpeechData d;
     d.id = speech_id;
+    d.callsign = callsign;
     d.text = text;
     m_callback->onWillSpeak(d);
 }
 
-void TTSManager::started(uint32_t speech_id, std::string text) {
+void TTSManager::started(uint32_t speech_id, std::string callsign, std::string text) {
     TTSLOG_TRACE(" [%d, %s]", speech_id, text.c_str());
 
     SpeechData d;
     d.id = speech_id;
+    d.callsign = callsign;
     d.text = text;
     m_callback->onSpeechStart(d);
 }
 
-void TTSManager::spoke(uint32_t speech_id, std::string text) {
+void TTSManager::spoke(uint32_t speech_id, std::string callsign, std::string text) {
     TTSLOG_TRACE(" [%d, %s]", speech_id, text.c_str());
 
     SpeechData d;
     d.id = speech_id;
+    d.callsign = callsign;
     d.text = text;
     m_callback->onSpeechComplete(d);
 }
 
-void TTSManager::paused(uint32_t speech_id) {
+void TTSManager::paused(uint32_t speech_id, std::string callsign) {
     TTSLOG_TRACE(" [id=%d]", speech_id);
 
-    m_callback->onSpeechPause(speech_id);
+    m_callback->onSpeechPause(speech_id, callsign);
 }
 
-void TTSManager::resumed(uint32_t speech_id) {
+void TTSManager::resumed(uint32_t speech_id, std::string callsign) {
     TTSLOG_WARNING(" [id=%d]", speech_id);
 
-    m_callback->onSpeechResume(speech_id);
+    m_callback->onSpeechResume(speech_id, callsign);
 }
 
-void TTSManager::cancelled(std::vector<uint32_t> &speeches) {
+void TTSManager::cancelled(std::vector<uint32_t> &speeches, std::string callsign) {
     if(speeches.size() <= 0)
         return;
 
-    m_callback->onSpeechCancelled(speeches);
+    m_callback->onSpeechCancelled(speeches, callsign);
 }
 
-void TTSManager::interrupted(uint32_t speech_id) {
+void TTSManager::interrupted(uint32_t speech_id, std::string callsign) {
     TTSLOG_WARNING(" [id=%d]", speech_id);
 
-    m_callback->onSpeechInterrupted(speech_id);
+    m_callback->onSpeechInterrupted(speech_id, callsign);
 }
 
-void TTSManager::networkerror(uint32_t speech_id){
+void TTSManager::networkerror(uint32_t speech_id, std::string callsign){
     TTSLOG_WARNING(" [id=%d]", speech_id);
 
-    m_callback->onNetworkError(speech_id);
+    m_callback->onNetworkError(speech_id, callsign);
 }
 
-void TTSManager::playbackerror(uint32_t speech_id){
+void TTSManager::playbackerror(uint32_t speech_id, std::string callsign){
     TTSLOG_WARNING(" [id=%d]", speech_id);
 
-    m_callback->onPlaybackError(speech_id);
+    m_callback->onPlaybackError(speech_id, callsign);
 }
 
 } // namespace TTS

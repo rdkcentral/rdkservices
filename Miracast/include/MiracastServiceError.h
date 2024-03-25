@@ -1,8 +1,8 @@
 /*
- * If not stated otherwise in this file or this component's LICENSE file the
+ * If not stated otherwise in this file or this component's Licenses.txt file the
  * following copyright and licenses apply:
  *
- * Copyright 2022 RDK Management
+ * Copyright 2023 RDK Management
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef _MIRACAST_ERRORS_H_
+#define _MIRACAST_ERRORS_H_
 
-#pragma once
+#ifndef RETURN_OK
+#define RETURN_OK 0
+#endif
 
-#include "Module.h"
+#ifndef RETURN_ERR
+#define RETURN_ERR -1
+#endif
 
-namespace WPEFramework {
-namespace Plugin {
+namespace MIRACAST
+{
 
-struct IStoreListing : virtual public Core::IUnknown {
-    virtual uint32_t GetKeys(const string &ns, std::vector<string> &keys /* @out */) = 0;
-    virtual uint32_t GetNamespaces(std::vector<string> &namespaces /* @out */) = 0;
-    virtual uint32_t GetStorageSize(std::map<string, uint64_t> &namespaceSizes /* @out */) = 0;
-};
-
-} // namespace Plugin
-} // namespace WPEFramework
+    enum MiracastError
+    {
+        MIRACAST_OK = 0,
+        MIRACAST_FAIL,
+        MIRACAST_NOT_ENABLED,
+        MIRACAST_INVALID_CONFIGURATION,
+        MIRACAST_INVALID_P2P_CTRL_IFACE,
+        MIRACAST_P2P_INIT_FAILED,
+        MIRACAST_CONTROLLER_INIT_FAILED,
+        MIRACAST_RTSP_INIT_FAILED
+    };
+}
+#endif

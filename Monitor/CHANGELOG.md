@@ -19,6 +19,10 @@ All notable changes to this RDK Service will be documented in this file.
 ### Changed
 - RDK-44991: Upgrade Flex-2.0 devices to use Thunder R4.4.1
 
+## [1.0.5] - 2024-02-15
+### Fixed
+- State Change Handling is fixed for Thunder R4
+
 ## [1.0.4] - 2023-09-12
 ### Added
 - Implement Thunder Plugin Configuration for Kirkstone builds(CMake-3.20 & above)

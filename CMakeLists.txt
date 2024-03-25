@@ -111,6 +111,10 @@ if(PLUGIN_AVINPUT)
     add_subdirectory(AVInput)
 endif()
 
+if(PLUGIN_AVOUTPUT)
+    add_subdirectory(AVOutput)
+endif()
+
 if(PLUGIN_DATACAPTURE)
     add_subdirectory(DataCapture)
 endif()
@@ -286,6 +290,10 @@ endif()
 
 if(PLUGIN_XCAST)
     add_subdirectory(XCast)
+endif()
+
+if(PLUGIN_MIRACAST)
+	add_subdirectory(Miracast)
 endif()
 
 if(PLUGIN_VIDEOAPPLICATIONEVENTS)

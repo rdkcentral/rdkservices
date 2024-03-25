@@ -187,6 +187,13 @@ bool DRMScreenCapture_ScreenCapture(DRMScreenCapture* handle, uint8_t* output, u
 		// copy frame
 		void *vaddr = NULL;
 		vaddr =(void*) mmap(NULL, size, PROT_READ , MAP_SHARED, context->fd, context->offset) ;
+
+        if (vaddr == MAP_FAILED) {
+        perror("mmap failed : ");
+        ret = false;
+        break;
+        }
+
 		memcpy(output,(unsigned char*)vaddr, size);
 		munmap(vaddr, size);
 

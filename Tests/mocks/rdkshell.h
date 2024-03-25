@@ -355,6 +355,7 @@ namespace RdkShell
      virtual bool createDisplay(const std::string& client, const std::string& displayName, uint32_t displayWidth=0, uint32_t displayHeight=0,
                 bool virtualDisplayEnabled=false, uint32_t virtualWidth=0, uint32_t virtualHeight=0, bool topmost = false, bool focus = false , bool autodestroy = true) = 0;
      virtual bool generateKey(const std::string& client, const uint32_t& keyCode, const uint32_t& flags, std::string virtualKey="") = 0;
+     virtual bool generateKey(const std::string& client, const uint32_t& keyCode, const uint32_t& flags, std::string virtualKey, double duration) = 0;
      virtual bool addKeyMetadataListener(const std::string& client) = 0;
      virtual bool removeNativeKeyListener(const std::string& client, const uint32_t& keyCode, const uint32_t& flags) = 0;
      virtual bool addNativeKeyListener(const std::string& client, const uint32_t& keyCode, const uint32_t& flags, std::map<std::string, RdkShellData> &listenerProperties) = 0;
@@ -445,6 +446,10 @@ namespace RdkShell
 	    {
 		    return getInstance().impl->generateKey(client, keyCode, flags, virtualKey);
 	    }
+	    static bool generateKey(const std::string& client, const uint32_t& keyCode, const uint32_t& flags, std::string virtualKey, double duration)
+            {
+                    return getInstance().impl->generateKey(client, keyCode, flags, virtualKey, duration);
+            }
             static bool getScreenResolution(uint32_t &width, uint32_t &height)
 	    {
 		    return getInstance().impl->getScreenResolution(width,height);

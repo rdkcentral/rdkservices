@@ -15,6 +15,26 @@ All notable changes to this RDK Service will be documented in this file.
 * Changes in CHANGELOG should be updated when commits are added to the main or release branches. There should be one CHANGELOG entry per JIRA Ticket. This is not enforced on sprint branches since there could be multiple changes for the same JIRA ticket during development. 
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
+## [1.4.16] - 2024-03-13
+### Addded
+- Added long key press support
+
+## [1.4.15] - 2024-03-05
+### Fixed
+- Fix RDKShell Initialize and Deinitialize
+
+## [1.4.15] - 2024-02-28
+### Fixed
+- Fix for delayed init in RDKShell
+
+## [1.4.14] - 2024-02-22
+### Fixed
+- Fix RDKShell deadlock on gSuspendedOrHibernatedApplicationMutex
+
+## [1.4.13] - 2024-02-06
+### Fixed
+- Fixed coverity reported issues
+
 ## [1.4.12] - 2023-12-11
 ### Added
 - RDKShell changes for dual ODM FTA
