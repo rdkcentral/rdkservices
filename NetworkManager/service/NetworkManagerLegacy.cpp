@@ -308,7 +308,6 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
         uint32_t NetworkManager::getIPSettings (const JsonObject& parameters, JsonObject& response)
         {
             uint32_t rc = Core::ERROR_GENERAL;
-            string interface;
             JsonObject tmpResponse;
             JsonObject tmpParameters;
             size_t index;
@@ -320,6 +319,15 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             else if("ETHERNET" == parameters["interface"].String())
                 tmpParameters["interface"] = "eth0";
 
+            if (parameters.HasLabel("interface"))
+                response["interface"] = parameters["interface"];
+            else
+            {
+                if ("wlan0" == m_defaultInterface)
+                    response["interface"] = "WIFI";
+                else if("eth0" == m_defaultInterface)
+                    response["interface"] = "ETHERNET";
+            }
             rc = GetIPSettings(tmpParameters, tmpResponse); 
 
             if (Core::ERROR_NONE == rc)
@@ -329,7 +337,6 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
                     return Core::ERROR_GENERAL;
                 else
                     response["netmask"]  = CIDR_PREFIXES[index];
-                response["interface"]    = parameters["interface"];
                 response["ipversion"]    = tmpResponse["ipversion"];
                 response["autoconfig"]   = tmpResponse["autoconfig"];
                 response["dhcpserver"]   = tmpResponse["dhcpserver"];
