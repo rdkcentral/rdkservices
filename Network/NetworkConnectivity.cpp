@@ -307,7 +307,7 @@ namespace WPEFramework {
     #if LIBCURL_VERSION_NUM < 0x074200
         int numfds, repeats = 0;
     #endif
-        char *endpoint;
+        char *endpoint = nullptr;
         while (1)
         {
             if (CURLM_OK != (mc = curl_multi_perform(curl_multi_handle, &handles)))
@@ -324,7 +324,7 @@ namespace WPEFramework {
                     curl_easy_getinfo(msg->easy_handle, CURLINFO_PRIVATE, &endpoint);
                     if (curl_easy_getinfo(msg->easy_handle, CURLINFO_RESPONSE_CODE, &response_code) == CURLE_OK)  {
                         if(curlVerboseEnabled())
-                            LOGINFO("endpoint = <%s> response code <%d>",endpoint, static_cast<int>(response_code));
+                            LOGINFO("endpoint = <%s> http response code <%d>", endpoint, static_cast<int>(response_code));
                         if (HttpStatus_302_Found == response_code) {
                             if ( (curl_easy_getinfo(msg->easy_handle, CURLINFO_REDIRECT_URL, &url) == CURLE_OK) && url != nullptr) {
                                 //LOGWARN("captive portal found !!!");

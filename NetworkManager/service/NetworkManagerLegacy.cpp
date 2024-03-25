@@ -238,7 +238,6 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
         {
             uint32_t rc = Core::ERROR_GENERAL;
             JsonObject tmpResponse;
-            string interface;
 
             LOGINFOMETHOD();
             rc = GetPrimaryInterface(parameters, tmpResponse);
@@ -246,10 +245,9 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             if (Core::ERROR_NONE == rc)
             {
                 if ("wlan0" == tmpResponse["interface"].String())
-                    interface = "WIFI";
+                    response["interface"] = "WIFI";
                 else if("eth0" == tmpResponse["interface"].String())     
-                    interface = "ETHERNET";
-                response["interface"] = interface;
+                    response["interface"] = "ETHERNET";
                 response["success"] = tmpResponse["success"];
             }
             LOGTRACEMETHODFIN();
@@ -310,30 +308,25 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
         uint32_t NetworkManager::getIPSettings (const JsonObject& parameters, JsonObject& response)
         {
             uint32_t rc = Core::ERROR_GENERAL;
-            string interface = "";
             JsonObject tmpResponse;
             JsonObject tmpParameters;
             size_t index;
 
             LOGINFOMETHOD();
-            interface = parameters["interface"].String();
             tmpParameters["ipversion"] = parameters["ipversion"];
-
-            if ("WIFI" == interface)
+            if ("WIFI" == parameters["interface"].String())
                 tmpParameters["interface"] = "wlan0";
-            else if("ETHERNET" == interface)
+            else if("ETHERNET" == parameters["interface"].String())
                 tmpParameters["interface"] = "eth0";
 
-            if (interface == "null")
+            if (parameters.HasLabel("interface"))
+                response["interface"] = parameters["interface"];
+            else
             {
                 if ("wlan0" == m_defaultInterface)
                     response["interface"] = "WIFI";
                 else if("eth0" == m_defaultInterface)
                     response["interface"] = "ETHERNET";
-            }
-            else
-            {
-                response["interface"]    = parameters["interface"];
             }
             rc = GetIPSettings(tmpParameters, tmpResponse); 
 
