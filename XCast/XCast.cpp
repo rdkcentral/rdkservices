@@ -225,10 +225,6 @@ const string XCast::Initialize(PluginHost::IShell *service)
 void XCast::Deinitialize(PluginHost::IShell* /* service */)
 {
     LOGINFO("XCast::Deinitialize  called \n ");
-    if(powerModeChangeThread.joinable())
-    {
-        powerModeChangeThread.join();
-    }
     while(powerModeChangeActive){
         sleep(100);
     }
