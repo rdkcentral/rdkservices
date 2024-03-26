@@ -74,7 +74,7 @@ using namespace std;
 #define HDMICECSINK_PLUGIN_ACTIVATION_TIME 2
 #define RECONNECTION_TIME_IN_MILLISECONDS 5500
 #define AUDIO_DEVICE_CONNECTION_CHECK_TIME_IN_MILLISECONDS 3000
-#define SAD_UPDATE_CHECK_TIME_IN_MILLISECONDS 2000
+#define SAD_UPDATE_CHECK_TIME_IN_MILLISECONDS 3000
 #define ARC_DETECTION_CHECK_TIME_IN_MILLISECONDS 1000
 #define AUDIO_DEVICE_POWER_TRANSITION_TIME_IN_MILLISECONDS 1000
 
@@ -4562,11 +4562,10 @@ namespace WPEFramework {
             			aPort.setStereoMode(mode.toString(), true);
         		   }
                            LOGINFO("SAD is updated m_AudioDeviceSADState = %d\n", m_AudioDeviceSADState);
-			   m_requestSadRetrigger = false;
 			}else{
                             if( m_requestSadRetrigger == false )
                                {
-                                       LOGINFO("Not recieved SAD update after 2sec timeout, retriggering the SAD request and starting timer for 2 seconds\n");
+                                       LOGINFO("Not recieved SAD update after 3sec timeout, retriggering the SAD request and starting the timer for 3 seconds\n");
                                        m_requestSadRetrigger = true;
                                        sendMsgToQueue(REQUEST_SHORT_AUDIO_DESCRIPTOR, NULL);
                                        m_AudioDeviceSADState  = AUDIO_DEVICE_SAD_REQUESTED;
@@ -5095,6 +5094,7 @@ void DisplaySettings::sendMsgThread()
                     {
 		        std::lock_guard<std::mutex> lock(m_SadMutex);
 			m_AudioDeviceSADState = AUDIO_DEVICE_SAD_RECEIVED;
+			m_requestSadRetrigger = false;
                         device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI_ARC0");
 			LOGINFO("Total Short Audio Descriptors received from connected ARC device: %d\n",shortAudioDescriptorList.Length());
 			if(shortAudioDescriptorList.Length() <= 0) {
