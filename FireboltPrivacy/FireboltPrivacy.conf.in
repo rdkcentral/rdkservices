@@ -1,0 +1,7 @@
+startmode = "@PLUGIN_FIREBOLTPRIVACY_AUTOSTART@"
+callsign = "Privacy"
+
+configuration = JSON()
+
+configuration.add("devicemanifest", "firebolt-device-manifest.conf")
+configuration.add("fireboltconfigpath", "/etc/")

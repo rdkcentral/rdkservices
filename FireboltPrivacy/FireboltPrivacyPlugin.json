@@ -1,0 +1,35 @@
+{
+  "$schema": "plugin.schema.json",
+  "info": {
+    "title": "Firebolt Privacy Plugin",
+    "callsign": "Privacy",
+    "locator": "libWPEFrameworkFireboltPrivacy.so",
+    "status": "production",
+    "description": [
+      "The Firebolt Privacy plugin provides functionality to store user settings either in local or in remote."
+    ],
+    "version": "1.0"
+  },
+  "configuration": {
+    "type": "object",
+    "properties": {
+      "configuration": {
+        "type": "object",
+        "required": [],
+        "properties": {
+          "devicemanifest": {
+            "type": "string",
+            "description": "Device manifest filename (default: firebolt-device-manifest.json)"
+          },
+          "fireboltconfigpath": {
+            "type": "string",
+            "description": "Path where firebolt configurations are present (default: /etc/)"
+          }
+        }
+      }
+   }
+  },
+    "interface": {
+        "$ref": "${cppinterfacedir}/IFireboltPrivacy.h"
+    }
+}
