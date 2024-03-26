@@ -36,7 +36,10 @@
 #if defined(PLATFORM_AMLOGIC)
 #include "audio_if.h"
 #elif defined(PLATFORM_REALTEK)
-#include "RtkHALMisc.h" 
+#include "RtkHALMisc.h"
+#elif defined(PLATFORM_BROADCOM)
+#include <nexus_config.h>
+#include <nxclient.h> 
 #endif
 // --- //
 

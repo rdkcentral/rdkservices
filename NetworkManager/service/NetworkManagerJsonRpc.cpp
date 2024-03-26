@@ -263,7 +263,9 @@ namespace WPEFramework
             if (Core::ERROR_NONE == rc)
             {
                 response["interface"] = interface;
-                response["ipversion"] = ipversion;
+                if(result.m_ipAddrType == "IPV6" || result.m_ipAddrType == "IPV4")
+                    result.m_ipAddrType[2] = tolower(result.m_ipAddrType[2]);
+                response["ipversion"] = result.m_ipAddrType;
                 response["autoconfig"]   = result.m_autoConfig;
                 response["ipaddress"]    = result.m_ipAddress;
                 response["prefix"]       = result.m_prefix;    
