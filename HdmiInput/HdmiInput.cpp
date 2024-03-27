@@ -298,8 +298,8 @@ namespace WPEFramework
 
 	uint32_t HdmiInput::setMixerLevels(const JsonObject& parameters, JsonObject& response)
         {
-                returnIfStringParamNotFound(parameters, "primaryVolume");
-                returnIfStringParamNotFound(parameters, "inputVolume");
+                returnIfParamNotFound(parameters, "primaryVolume");
+                returnIfParamNotFound(parameters, "inputVolume");
 
    		int primVol = 0, inputVol = 0;
    		try {
