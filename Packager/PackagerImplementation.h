@@ -33,11 +33,17 @@ namespace WPEFramework {
 namespace Plugin {
 
     class PackagerImplementation : public Exchange::IPackager {
-    public:
-        PackagerImplementation(const PackagerImplementation&) = delete;
-        PackagerImplementation& operator=(const PackagerImplementation&) = delete;
+    private:
+        static constexpr const TCHAR* AppPath = _T("/etc/apps/");
+        static constexpr const TCHAR* PackageJSONFile = _T("_package.json");
 
-        class EXTERNAL Config : public Core::JSON::Container {
+    public:
+        enum PackageType {
+            NONE,
+            PLUGIN
+        };
+
+        class Config : public Core::JSON::Container {
         public:
             Config()
                 : Core::JSON::Container()
@@ -66,6 +72,7 @@ namespace Plugin {
             Config(const Config&) = delete;
             Config& operator=(const Config&) = delete;
 
+        public:
             Core::JSON::String  ConfigFile;
             Core::JSON::String  TempDir;
             Core::JSON::String  CacheDir;
@@ -75,6 +82,35 @@ namespace Plugin {
             Core::JSON::Boolean NoSignatureCheck;
             Core::JSON::Boolean AlwaysUpdateFirst;
         };
+
+        class MetaData : public Core::JSON::Container {
+        public:
+             MetaData()
+                 : Core::JSON::Container()
+                 , Callsign()
+                 , Type(NONE)
+             {
+                 Add(_T("callsign"), &Callsign);
+                 Add(_T("type"), &Type);
+             }
+             MetaData(const MetaData& copy)
+                 : Core::JSON::Container()
+                 , Callsign(copy.Callsign)
+                 , Type(copy.Type)
+             {
+                 Add(_T("callsign"), &Callsign);
+                 Add(_T("type"), &Type);
+             }
+             ~MetaData() override = default;
+
+        public:
+             Core::JSON::String Callsign;
+             Core::JSON::EnumType<PackageType> Type;
+        };
+
+    public:
+        PackagerImplementation(const PackagerImplementation&) = delete;
+        PackagerImplementation& operator=(const PackagerImplementation&) = delete;
 
         PackagerImplementation()
             : _adminLock()
@@ -87,7 +123,7 @@ namespace Plugin {
             , _alwaysUpdateFirst(false)
             , _volatileCache(false)
             , _opkgInitialized(false)
-            , _servicePI(nullptr)
+            , _service(nullptr)
             , _worker(this)
             , _isUpgrade(false)
             , _isSyncing(false)
@@ -95,24 +131,6 @@ namespace Plugin {
         }
 
         ~PackagerImplementation() override;
-
-        class PluginConfig : public Core::JSON::Container {
-        public:
-            PluginConfig(const PluginConfig&) = delete;
-            PluginConfig& operator=(const PluginConfig&) = delete;
-
-            PluginConfig()
-                : SystemRootPath()
-            {
-                Add(_T("systemrootpath"), &SystemRootPath);
-            }
-
-            Core::JSON::String SystemRootPath;
-
-            ~PluginConfig() override
-            {
-            }
-        };
 
         BEGIN_INTERFACE_MAP(PackagerImplementation)
             INTERFACE_ENTRY(Exchange::IPackager)
@@ -213,26 +231,27 @@ namespace Plugin {
 
             void SetState(Exchange::IPackager::state state)
             {
-                TRACE_L1("Setting state to %d", state);
+                TRACE(Trace::Information, (_T("Setting state to %d"), state));
                 _state = state;
             }
 
             void SetProgress(uint8_t progress)
             {
-                TRACE_L1("Setting progress to %d", progress);
+                TRACE(Trace::Information, (_T("Setting progress to %d"), progress));
                 _progress = progress;
             }
 
             void SetAppName(const TCHAR path[])
             {
-                string _pathname = Core::File::PathName(string(path));
-                string _dirname = _pathname.substr(0,_pathname.size()-1);
-                _appname = Core::File::FileName(_dirname);
+                string pathName = Core::File::PathName(string(path));
+                if (pathName.empty() == false) {
+                    _appname = Core::File::FileName(string(pathName.c_str(), pathName.size() - 1));
+                }
             }
 
             void SetError(uint32_t err)
             {
-                TRACE_L1("Setting error to %d", err);
+                TRACE(Trace::Information, (_T("Setting error to %d"), err));
                 _error = err;
             }
 
@@ -269,6 +288,7 @@ namespace Plugin {
             InstallThread(const InstallThread&) = delete;
 
             uint32_t Worker() override {
+                ASSERT(_parent != nullptr);
                 while(IsRunning() == true) {
                     _parent->_adminLock.Lock(); // The parent may have lock when this starts so wait for it to release.
                     bool isInstall = _parent->_inProgress.Install != nullptr;
@@ -310,11 +330,8 @@ namespace Plugin {
 #if !defined (DO_NOT_USE_DEPRECATED_API)
         static void InstallationProgessNoLock(const _opkg_progress_data_t* progress, void* data);
 #endif
-        string GetMetadataFile(const string& appName);
-        string GetCallsign(const string& mfilename);
-        string GetInstallationPath(const string& appName);
-        void DeactivatePlugin(const string& callsign, const string& appName);
-        uint32_t UpdateConfiguration(const string& callsign, const string& appName);
+        string GetCallsignFromMetaDataFile(const string& appName);
+        void DeactivatePlugin(const string& callsign);
         void NotifyStateChange();
         void NotifyRepoSynced(uint32_t status);
         void BlockingInstallUntilCompletionNoLock();
@@ -332,7 +349,7 @@ namespace Plugin {
         bool _alwaysUpdateFirst;
         bool _volatileCache;
         bool _opkgInitialized;
-        PluginHost::IShell* _servicePI;
+        PluginHost::IShell* _service;
         std::vector<Exchange::IPackager::INotification*> _notifications;
         InstallationData _inProgress;
         InstallThread _worker;

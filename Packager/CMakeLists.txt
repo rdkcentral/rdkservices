@@ -15,8 +15,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set(PLUGIN_NAME Packager)
-set(MODULE_NAME WPEFramework${PLUGIN_NAME})
+project(Packager)
+
+cmake_minimum_required(VERSION 3.3)
+
+find_package(WPEFramework)
+
+project_version(1.0.0)
+
+set(PLUGIN_NAME ${PROJECT_NAME})
+set(MODULE_NAME ${NAMESPACE}${PROJECT_NAME})
+
+message("Setup ${MODULE_NAME} v${PROJECT_VERSION}")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -30,6 +40,8 @@ if(PLUGIN_PACKAGER_OUTOFPROCESS STREQUAL "false")
     unset(PLUGIN_PACKAGER_OUTOFPROCESS CACHE)
 endif()
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(libprovision QUIET)
 find_package(LibOPKG REQUIRED)
@@ -40,38 +52,32 @@ add_library(${MODULE_NAME} SHARED
     Packager.cpp
     PackagerImplementation.cpp)
 
-if (libprovision_FOUND)
-    target_link_libraries(${MODULE_NAME}
-        PRIVATE
-            CompileSettingsDebug::CompileSettingsDebug
-            ${NAMESPACE}Plugins::${NAMESPACE}Plugins
-            libprovision::libprovision
-            LibOPKG::LibOPKG
-            )
-else (libprovision_FOUND)
-     target_include_directories(${MODULE_NAME}
-        PRIVATE
-            ${LIBOPKG_INCLUDE_DIRS}
-            )
+target_include_directories(${MODULE_NAME} PRIVATE
+    $<TARGET_PROPERTY:LibOPKG::LibOPKG,INTERFACE_SYSTEM_INCLUDE_DIRECTORIES>)
 
-    target_link_libraries(${MODULE_NAME}
-        PRIVATE
-            CompileSettingsDebug::CompileSettingsDebug
-            ${NAMESPACE}Plugins::${NAMESPACE}Plugins
-            ${LIBOPKG_LIBRARIES}
-            )
+target_link_libraries(${MODULE_NAME} PRIVATE
+             CompileSettingsDebug::CompileSettingsDebug
+             ${NAMESPACE}Plugins::${NAMESPACE}Plugins
+             LibOPKG::LibOPKG)
+
+if (libprovision_FOUND)
+    target_link_libraries(${MODULE_NAME} PRIVATE libprovision::libprovision)
 endif (libprovision_FOUND)
 
 string(TOLOWER ${NAMESPACE} STORAGENAME)
-install(TARGETS ${MODULE_NAME} 
+install(TARGETS ${MODULE_NAME}
     DESTINATION lib/${STORAGENAME}/plugins)
 
 configure_file(
-        "${CMAKE_CURRENT_SOURCE_DIR}/opkg.conf.in"
+        "${CMAKE_CURRENT_LIST_DIR}/opkg.conf.in"
         "${CMAKE_CURRENT_BINARY_DIR}/opkg.conf"
         @ONLY)
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/opkg.conf
         DESTINATION "/usr/share/${NAMESPACE}/${PLUGIN_NAME}")
 
-write_config(${PLUGIN_NAME})
+if(USE_THUNDER_R4)
+    write_config()
+else()
+    write_config(${PROJECT_NAME})
+endif(USE_THUNDER_R4)

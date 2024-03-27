@@ -16,7 +16,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 #pragma once
 
 #include "Module.h"
@@ -29,7 +29,9 @@ namespace {
     constexpr auto* kSynchronizeMethodName = _T("synchronize");
 }
 
-    class Packager : public PluginHost::IPlugin, public PluginHost::IWeb, public PluginHost::JSONRPC {
+    class Packager : public PluginHost::IPlugin,
+                     public PluginHost::IWeb,
+                     public PluginHost::JSONRPC {
     public:
         struct Params : public Core::JSON::Container {
             Params& operator=(const Params& other) = delete;
@@ -51,8 +53,10 @@ namespace {
             Core::JSON::String Version;
         };
 
+        // We do not allow this plugin to be copied !!
         Packager(const Packager&) = delete;
         Packager& operator=(const Packager&) = delete;
+
         Packager()
             : _skipURL(0)
             , _connectionId(0)
@@ -60,20 +64,9 @@ namespace {
             , _implementation(nullptr)
             , _notification(this)
         {
-            Register<Params, void>(kInstallMethodName, [this](const Params& params) -> uint32_t {
-                return this->_implementation->Install(params.Package.Value(), params.Version.Value(),
-                                                                 params.Architecture.Value());
-            });
-            Register<void, void>(kSynchronizeMethodName, [this]() -> uint32_t {
-                return this->_implementation->SynchronizeRepository();
-            });
         }
 
-        ~Packager() override
-        {
-            Unregister(kInstallMethodName);
-            Unregister(kSynchronizeMethodName);
-        }
+        ~Packager() override = default;
 
         BEGIN_INTERFACE_MAP(Packager)
             INTERFACE_ENTRY(PluginHost::IPlugin)
@@ -100,10 +93,7 @@ namespace {
                 ASSERT(parent != nullptr);
             }
 
-            ~Notification() override
-            {
-            }
-
+            ~Notification() override = default;
             Notification() = delete;
             Notification(const Notification&) = delete;
             Notification& operator=(const Notification&) = delete;
