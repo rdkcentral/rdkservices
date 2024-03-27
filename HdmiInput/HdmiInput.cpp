@@ -67,7 +67,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 2
-#define API_VERSION_NUMBER_PATCH 0
+#define API_VERSION_NUMBER_PATCH 1
 
 static int audio_output_delay = 100;
 static int video_latency = 20;
@@ -301,23 +301,26 @@ namespace WPEFramework
                 returnIfParamNotFound(parameters, "primaryVolume");
                 returnIfParamNotFound(parameters, "inputVolume");
 
-   		int primVol = 0, inputVol = 0;
-   		try {
-			  primVol = parameters["primaryVolume"].Number();
-                          inputVol = parameters["inputVolume"].Number() ;
-    		} catch(...) {
-      			  LOGERR("Incompatible params passed !!!\n");
-        		  response["success"] = false;
-        		  returnResponse(false);
-    		}
+		int primVol = 0, inputVol = 0;
+		try {
+			primVol = parameters["primaryVolume"].Number();
+			inputVol = parameters["inputVolume"].Number() ;
+		} catch(...) {
+			LOGERR("Incompatible params passed !!!\n");
+			response["success"] = false;
+			returnResponse(false);
+		}
 
+		if( (primVol >=0) && (inputVol >=0) ) {
+			m_primVolume = primVol;
+			m_inputVolume = inputVol;
+		}
+		 else {
+			 LOGERR("Incompatible params passed !!!\n");
+			 response["success"] = false;
+			 returnResponse(false);
+		}
 
-    		if(m_primVolume >=0 ) {
-        		m_primVolume = primVol;
-    		}
-    		if(m_inputVolume >=0) {
-        		m_inputVolume = inputVol;
-    		}
     		if(m_primVolume > MAX_PRIM_VOL_LEVEL) {
         		LOGWARN("Primary Volume greater than limit. Set to MAX_PRIM_VOL_LEVEL(100) !!!\n");
         		m_primVolume = MAX_PRIM_VOL_LEVEL;

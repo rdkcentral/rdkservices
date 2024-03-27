@@ -32,7 +32,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 5
-#define API_VERSION_NUMBER_PATCH 0
+#define API_VERSION_NUMiBER_PATCH 1
 
 #define HDMI 0
 #define COMPOSITE 1
@@ -1193,19 +1193,21 @@ uint32_t AVInput::setMixerLevels(const JsonObject& parameters, JsonObject& respo
    	try {
        		primVol = parameters["primaryVolume"].Number();
        		inputVol = parameters["inputVolume"].Number() ;
-   		} catch(...) {
-     			  LOGERR("Incompatible params passed !!!\n");
-       		  response["success"] = false;
-       		  returnResponse(false);
-   		}
+	} catch(...) {
+		LOGERR("Incompatible params passed !!!\n");
+		response["success"] = false;
+		returnResponse(false);
+	}
 
-
-   	if(m_primVolume >=0 ) {
-             m_primVolume = primVol;
-   	}
-   	if(m_inputVolume >=0) {
-       	     m_inputVolume = inputVol;
-   	}
+	if( (primVol >=0) && (inputVol >=0) ) {
+		m_primVolume = primVol;
+		m_inputVolume = inputVol;
+	}
+         else {
+             LOGERR("Incompatible params passed !!!\n");
+	     response["success"] = false;
+	     returnResponse(false);
+	}
    	if(m_primVolume > MAX_PRIM_VOL_LEVEL) {
        	     LOGWARN("Primary Volume greater than limit. Set to MAX_PRIM_VOL_LEVEL(100) !!!\n");
        	     m_primVolume = MAX_PRIM_VOL_LEVEL;
