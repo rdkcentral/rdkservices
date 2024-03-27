@@ -363,10 +363,12 @@ namespace WPEFramework {
             }
     #endif
         }
+
         if(curlVerboseEnabled()) {
             LOGINFO("endpoints count = %d response count %d, handles = %d, deadline = %ld, time_now = %ld, time_earlier = %ld",
                 static_cast<int>(endpoints.size()), static_cast<int>(http_responses.size()), handles, deadline, time_now, time_earlier);
         }
+
         for (const auto& curl_easy_handle : curl_easy_handles)
         {
             curl_easy_getinfo(curl_easy_handle, CURLINFO_PRIVATE, &endpoint);
