@@ -78,7 +78,9 @@ public:
         : _engine(Core::ProxyType<RPC::InvokeServerType<2, 0, 4>>::Create())
         , _comClient(Core::ProxyType<RPC::CommunicatorClient>::Create(GetConnectionNode(), Core::ProxyType<Core::IIPCServer>(_engine)))
     {
+#if !defined(THUNDER_VERSION) || THUNDER_VERSION < 4 || (THUNDER_VERSION == 4 && defined(THUNDER_VERSION_MINOR) && THUNDER_VERSION_MINOR < 4)
         _engine->Announcements(_comClient->Announcement());
+#endif
     }
     ~PluginHost()
     {
