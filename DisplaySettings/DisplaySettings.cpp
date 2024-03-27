@@ -561,8 +561,10 @@ namespace WPEFramework {
 	   {
 		if (m_sendMsgThread.joinable())
 			m_sendMsgThread.join();
-		while(audioPortInitActive){
+        int count = 0;
+		while(audioPortInitActive && count < 20){
             sleep(100);
+            count++:
         }
 	   }
 	   catch(const std::system_error& e)

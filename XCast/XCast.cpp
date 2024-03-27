@@ -225,8 +225,10 @@ const string XCast::Initialize(PluginHost::IShell *service)
 void XCast::Deinitialize(PluginHost::IShell* /* service */)
 {
     LOGINFO("XCast::Deinitialize  called \n ");
-    while(powerModeChangeActive){
+    int count = 0;
+    while(powerModeChangeActive && count < 20){
         sleep(100);
+        count++;
     }
     if ( m_locateCastTimer.isActive())
     {
