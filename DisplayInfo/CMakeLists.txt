@@ -134,6 +134,13 @@ elseif (LIBDRM_FOUND)
     target_link_libraries(${MODULE_NAME}
         PRIVATE
             drm)
+elseif (WPE_PLUGIN_DISPLAYID_IMPL STREQUAL "REALTEK")
+    target_sources(${MODULE_NAME}
+        PRIVATE
+            Realtek/PlatformImplementation.cpp)
+    target_link_libraries(${MODULE_NAME}
+        PRIVATE
+          drm)
 else ()
     message(FATAL_ERROR "There is no graphic backend for display info plugin")
 endif ()
