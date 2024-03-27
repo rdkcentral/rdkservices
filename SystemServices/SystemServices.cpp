@@ -2368,6 +2368,7 @@ namespace WPEFramework {
 		if (parameters.HasLabel("timeZone")) {
 			std::string dir = dirnameOf(TZ_FILE);
 			std::string timeZone = "";
+			std::string command = "";
 			try {
 				timeZone = parameters["timeZone"].String();
 				size_t pos = timeZone.find("/");
@@ -2396,10 +2397,12 @@ namespace WPEFramework {
 					if( dirExists(path+country)  && Utils::fileExists(city.c_str()) ) 
 					{
 						if (!dirExists(dir)) {
-							std::string command = "mkdir -p " + dir + " \0";
+							command = "mkdir -p " + dir + " \0";
 							Utils::cRunScript(command.c_str());
 						} else {
 							//Do nothing//
+							command = "cat /usr/share/zoneinfo/" +timeZone +" > /usr/share/zoneinfo/Universal" +" \0";
+							Utils::cRunScript(command.c_str());
 						}
 						std::string oldTimeZoneDST = getTimeZoneDSTHelper();
 						
