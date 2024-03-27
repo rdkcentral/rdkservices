@@ -31,8 +31,8 @@
 #include <algorithm>
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 5
-#define API_VERSION_NUMiBER_PATCH 1
+#define API_VERSION_NUMBER_MINOR 6
+#define API_VERSION_NUMBER_PATCH 0
 
 #define HDMI 0
 #define COMPOSITE 1
