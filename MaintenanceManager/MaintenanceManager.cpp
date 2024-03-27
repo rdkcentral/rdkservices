@@ -79,7 +79,7 @@ using namespace std;
 
 #if defined(ENABLE_WHOAMI)
 #define TR181_PARTNER_ID "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.PartnerName"
-#define TR181_TARGET_PROPOSITION "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.TargetProposition"
+#define TR181_TARGET_OS_CLASS "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.OsClass"
 #define TR181_XCONFURL "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.XconfUrl"
 #endif
 
@@ -241,7 +241,7 @@ namespace WPEFramework {
 #if defined(ENABLE_WHOAMI)
         static const array<string, 3> kDeviceInitContextKeyVals = {
             "partnerId",
-            "targetProposition",
+            "osClass",
             "regionalConfigService"
         };
 #endif
@@ -275,7 +275,7 @@ namespace WPEFramework {
 
 #if defined(ENABLE_WHOAMI)
             MaintenanceManager::m_param_map[kDeviceInitContextKeyVals[0].c_str()] = TR181_PARTNER_ID;
-            MaintenanceManager::m_param_map[kDeviceInitContextKeyVals[1].c_str()] = TR181_TARGET_PROPOSITION;
+            MaintenanceManager::m_param_map[kDeviceInitContextKeyVals[1].c_str()] = TR181_TARGET_OS_CLASS;
             MaintenanceManager::m_param_map[kDeviceInitContextKeyVals[2].c_str()] = TR181_XCONFURL;
 
             MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[0].c_str()] = DATA_TYPE::WDMP_STRING;
