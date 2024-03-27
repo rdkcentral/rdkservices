@@ -58,8 +58,6 @@
     },
     "methods": {
         "getHDMIInputDevices": {
-            "deprecated" : true,
-            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=getinputdevices",
             "summary": "Returns an array of available HDMI Input ports.",
             "result": {
                 "type": "object",
@@ -78,8 +76,6 @@
             }
         },
         "getEdidVersion":{
-            "deprecated" : true,
-            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=getedidversion",
             "summary": "Returns the EDID version.",
             "params": {
                 "type":"object",
@@ -291,22 +287,74 @@
                 "$ref": "#/common/result"
             }
         },
+        "getEdid2AllmSupport":{
+            "summary": "Returns the EDID ALLM bit value.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "portId":{
+                        "$ref": "#/definitions/portId"
+                    }
+                },
+                "required": [
+                    "portid"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "allmSupport": {
+                        "summary": "The ALLM bit value in edid",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "allmSupport",
+                    "success"
+                ]
+            }
+        },
+        "setEdid2AllmSupport": {
+            "summary": "Sets an HDMI ALLM bit in EDID.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "portId":{
+                        "$ref": "#/definitions/portId"
+                    },
+                    "allmSupport":{
+                        "summary": "The ALLM support in EDID",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "portId",
+                    "allmSupport"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
 	"setAudioMixerLevels": {
-            "deprecated" : true,
-            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=setAudioMixerLevels",
             "summary": "Sets the audio mixer level for given audio input",
             "params": {
                 "type":"object",
                 "properties": {
                     "primaryVolume":{
                         "summary": "Primary audio input volume",
-                        "type": "string",
-                        "example": "100"
+                        "type": "integer",
+                        "example": 100
                     },
                     "inputVolume":{
                         "summary": "System audio input volume",
-                        "type": "string",
-                        "example": "75"
+                        "type": "integer",
+                        "example": 75
                     }
                 },
                 "required": [
@@ -319,8 +367,6 @@
             }
         },
         "setVideoRectangle": {
-            "deprecated" : true,
-            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=setvideorectangle",
             "summary": "Sets an HDMI Input video window.",
             "params": {
                 "type":"object",
@@ -357,8 +403,6 @@
             }
         },
         "writeEDID": {
-            "deprecated" : true,
-            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=writeedid",
             "summary": "Changes a current EDID value.",
             "params": {
                 "type":"object",
@@ -384,8 +428,6 @@
             }
         },
         "getSupportedGameFeatures":{
-            "deprecated" : true,
-            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=getsupportedgamefeatures",
             "summary": "Returns the list of supported game features.",
             "result": {
                 "type": "object",
@@ -406,8 +448,6 @@
             }
         },
        "getHdmiGameFeatureStatus":{
-            "deprecated" : true,
-            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=getgamefeaturestatus",
             "summary": "Returns the Game Feature Status. For example: ALLM",
             "params": {
                 "type":"object",
@@ -447,8 +487,6 @@
     },
     "events": {
         "onDevicesChanged": {
-            "deprecated" : true,
-            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=ondeviceschanged",
             "summary": "Triggered whenever a new HDMI device is connected to an HDMI Input",
             "params": {
                 "type":"object",
@@ -463,8 +501,6 @@
             }
         },
         "onInputStatusChanged": {
-            "deprecated" : true,
-            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=oninputstatuschanged",
             "summary": "Triggered whenever the status changes for an HDMI Input",
             "params": {
                 "type": "object",
@@ -494,8 +530,6 @@
             }
         },
         "onSignalChanged": {
-            "deprecated" : true,
-            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=onsignalchanged",
             "summary": "Triggered whenever the signal status changes for an HDMI Input",
             "params": {
                 "type": "object",
@@ -520,8 +554,6 @@
             }
         },
         "videoStreamInfoUpdate": {
-            "deprecated" : true,
-            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=videostreaminfoupdate",
             "summary": "Triggered whenever there is an update in HDMI Input video stream info",
             "params": {
                 "type": "object",
@@ -570,8 +602,6 @@
             }
         },
         "hdmiGameFeatureStatusUpdate": {
-            "deprecated" : true,
-            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=gamefeaturestatusupdate",
             "summary": "Triggered whenever game feature(ALLM) status changes for an HDMI Input",
             "params": {
                 "type": "object",
@@ -598,8 +628,6 @@
             }
         },
 	"hdmiContentTypeUpdate": {
-            "deprecated" : true,
-            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/HdmiInputPlugin?id=hdmiContentTypeUpdate",
             "summary": "Triggered whenever AV Infoframe content type changes for an HDMI Input",
             "params": {
                 "type": "object",

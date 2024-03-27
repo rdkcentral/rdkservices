@@ -26,7 +26,6 @@
 #include "dsUtl.h"
 #include "dsError.h"
 #include "dsMgr.h"
-#include "audioOutputPort.hpp"
 #include "host.hpp"
 
 #include <vector>
@@ -302,12 +301,10 @@ namespace WPEFramework
                 returnIfStringParamNotFound(parameters, "primaryVolume");
                 returnIfStringParamNotFound(parameters, "inputVolume");
 
-		string sPrimVol = parameters["primaryVolume"].String();
-   		string sInputVol = parameters["inputVolume"].String();
    		int primVol = 0, inputVol = 0;
    		try {
-        		primVol = stoi(sPrimVol);
-        		inputVol = stoi(sInputVol);
+			  primVol = parameters["primaryVolume"].Number();
+                          inputVol = parameters["inputVolume"].Number() ;
     		} catch(...) {
       			  LOGERR("Incompatible params passed !!!\n");
         		  response["success"] = false;

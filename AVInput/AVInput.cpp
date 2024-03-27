@@ -21,7 +21,6 @@
 #include "dsMgr.h"
 #include "hdmiIn.hpp"
 #include "compositeIn.hpp"
-#include "audioOutputPort.hpp"
 
 #include "UtilsJsonRpc.h"
 #include "UtilsIarm.h"
@@ -1190,12 +1189,10 @@ uint32_t AVInput::setMixerLevels(const JsonObject& parameters, JsonObject& respo
        returnIfStringParamNotFound(parameters, "primaryVolume");
        returnIfStringParamNotFound(parameters, "inputVolume");
 
-	string sPrimVol = parameters["primaryVolume"].String();
-   	string sInputVol = parameters["inputVolume"].String();
    	int primVol = 0, inputVol = 0;
    	try {
-       		primVol = stoi(sPrimVol);
-       		inputVol = stoi(sInputVol);
+       		primVol = parameters["primaryVolume"].Number();
+       		inputVol = parameters["inputVolume"].Number() ;
    		} catch(...) {
      			  LOGERR("Incompatible params passed !!!\n");
        		  response["success"] = false;
