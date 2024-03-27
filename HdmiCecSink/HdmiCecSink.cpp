@@ -3487,6 +3487,11 @@ namespace WPEFramework
                             _instance->sendKeyReleaseEvent(keyInfo.logicalAddr);
                     }
 
+		    if((_instance->m_SendKeyQueue.size()<=1 || (_instance->m_SendKeyQueue.size() % 2 == 0)) && ((keyInfo.keyCode == VOLUME_UP) || (keyInfo.keyCode == VOLUME_DOWN) || (keyInfo.keyCode == MUTE)) )
+		    {
+		        _instance->sendGiveAudioStatusMsg();
+		    }
+
             }//while(!_instance->m_sendKeyEventThreadExit)
         }//threadSendKeyEvent
 
