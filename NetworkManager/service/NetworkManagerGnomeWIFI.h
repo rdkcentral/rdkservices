@@ -45,7 +45,7 @@ namespace WPEFramework
             bool isWifiConnected();
             bool wifiDisconnect();
             bool wifiConnectedSSIDInfo(Exchange::INetworkManager::WiFiSSIDInfo &ssidinfo);
-            bool wifiConnect(const char *ssid_in, const char* password_in, Exchange::INetworkManager::WIFISecurityMode security_in);
+            bool wifiConnect(Exchange::INetworkManager::WiFiConnectTo wifiData);
             bool quit(NMDevice *wifiNMDevice);
             bool wait(GMainLoop *loop);
         private:
