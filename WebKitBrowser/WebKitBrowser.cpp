@@ -354,7 +354,7 @@ namespace Plugin {
     {
         if (connection->Id() == _connectionId) {
 
-            TRACE(Trace::Notification, (_T("WebKitBrowser::Deactivated: { \"URL\": %.*s }"), 80, _lastURL.c_str()));
+            TRACE(Trace::Information, (_T("WebKitBrowser::Deactivated: { \"URL\": %.*s }"), 80, _lastURL.c_str()));
 
             ASSERT(_service != nullptr);
 
