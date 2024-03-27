@@ -291,6 +291,33 @@
                 "$ref": "#/common/result"
             }
         },
+	"setAudioMixerLevels": {
+            "deprecated" : true,
+            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=setAudioMixerLevels",
+            "summary": "Sets the audio mixer level for given audio input",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "primaryVolume":{
+                        "summary": "Primary audio input volume",
+                        "type": "string",
+                        "example": "100"
+                    },
+                    "inputVolume":{
+                        "summary": "System audio input volume",
+                        "type": "string",
+                        "example": "75"
+                    }
+                },
+                "required": [
+                    "primaryVolume",
+                    "inputVolume"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
         "setVideoRectangle": {
             "deprecated" : true,
             "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=setvideorectangle",
