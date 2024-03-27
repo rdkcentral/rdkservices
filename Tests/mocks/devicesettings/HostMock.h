@@ -19,4 +19,5 @@ public:
     MOCK_METHOD(void, getHostEDID, (std::vector<uint8_t> & edid), (const, override));
     MOCK_METHOD(std::string, getDefaultVideoPortName, (), (override));
     MOCK_METHOD(std::string, getDefaultAudioPortName, (), (override));
+    MOCK_METHOD(void, setAudioMixerLevels, (int aInput, int volume), (override));
 };
