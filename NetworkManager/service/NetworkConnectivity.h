@@ -7,13 +7,13 @@
 #include <curl/curl.h>
 #include <condition_variable>
 #include <mutex>
-
 #include "Module.h"
+#include "NetworkManagerLogger.h"
 
 #define CAPTIVEPORTAL_MAX_LEN 512
 #define DEFAULT_MONITOR_TIMEOUT 60 // in seconds
 #define MONITOR_TIMEOUT_INTERVAL_MIN 5
-#define TEST_CONNECTIVITY_DEFAULT_TIMEOUT_MS    10000
+#define TEST_CONNECTIVITY_DEFAULT_TIMEOUT_MS    4000
 
 enum nsm_ipversion {
     NSM_IPRESOLVE_WHATEVER  = 0, /* default, resolves addresses to all IP*/
@@ -75,7 +75,7 @@ namespace WPEFramework {
                 loadConnectivityConfig(configFilePath);
                 if(m_defaultEndpoints.empty())
                 {
-                    LOGERR("NETSRVMGR CONFIGURATION ERROR: CONNECTIVITY ENDPOINT EMPTY");
+                    NMLOG_ERROR("NETSRVMGR CONFIGURATION ERROR: CONNECTIVITY ENDPOINT EMPTY");
                     m_defaultEndpoints.clear();
                     m_defaultEndpoints.push_back("http://clients3.google.com/generate_204");
                 }
@@ -105,6 +105,7 @@ namespace WPEFramework {
                 nsm_internetState getInternetConnectionState(nsm_ipversion ipversion);
                 std::string getCaptivePortalURI();
                 void setConnectivityMonitorEndpoints(const std::vector<std::string> &endpoints);
+                std::vector<std::string> getConnectivityMonitorEndpoints();
                 bool doContinuousConnectivityMonitoring(int timeoutInSeconds);
                 bool doInitialConnectivityMonitoring(int timeoutInSeconds);
                 bool stopContinuousConnectivityMonitoring();
@@ -120,12 +121,11 @@ namespace WPEFramework {
                 }
 
                 ~ConnectivityMonitor() {
-                    LOGINFO("~ConnectivityMonitor");
+                    NMLOG_INFO("~ConnectivityMonitor");
                     stopContinuousConnectivityMonitoring();
                 }
-            private:
 
-                std::vector<std::string> getConnectivityMonitorEndpoints();
+            private:
                 ConnectivityMonitor(const ConnectivityMonitor&) = delete;
                 ConnectivityMonitor& operator=(const ConnectivityMonitor&) = delete;
                 void connectivityMonitorFunction();

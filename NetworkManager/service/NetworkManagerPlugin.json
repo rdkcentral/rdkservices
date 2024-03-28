@@ -1,0 +1,15 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/plugin.schema.json",
+    "info": {
+      "title": "NetworkManager Plugin",
+      "class": "NetworkManager",
+      "callsign": "org.rdk.NetworkManager",
+      "locator": "libWPEFrameworkNetworkManager.so",
+      "status": "production",
+      "description": "A Unified `NetworkManager` plugin that allows you to manage Ethernet and Wifi interfaces on the device.",
+      "version": "0.1.0"
+    },
+    "interface": {
+      "$ref": "NetworkManager.json#"
+    }
+}
