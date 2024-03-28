@@ -187,6 +187,7 @@ namespace WPEFramework
             if (Core::ERROR_NONE == rc)
             {
                 response["interface"] = interface;      
+                m_defaultInterface = interface;
                 response["success"] = true;
             }
             LOGTRACEMETHODFIN();

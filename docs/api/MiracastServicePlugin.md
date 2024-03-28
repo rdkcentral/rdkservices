@@ -52,7 +52,7 @@ MiracastService interface methods:
 | [acceptClientConnection](#acceptClientConnection) | To accept /reject new client connection requests for the Miracast feature |
 | [updatePlayerState](#updatePlayerState) | Update the Miracast Player State to the Miracast Service Plugin |
 | [stopClientConnection](#stopClientConnection) | To abort the ongoing connection after accepted connection request |
-| [setLogging](#setLogging) | Enable/Disable/Reduce Logging level for Miracast |
+| [setLogging](#setLogging) | Enable/Disable/Reduce the Logging level for Miracast |
 
 
 <a name="setEnable"></a>
@@ -217,8 +217,8 @@ No Events
 | params | object |  |
 | params.mac | string | Mac id of the source device |
 | params.state | string | Current state of the Miracast player |
-| params.reason_code | number | player Reason codes (must be one of the following: *MIRACAST_PLAYER_REASON_CODE_SUCCESS = 200*, *MIRACAST_PLAYER_REASON_CODE_APP_REQ_TO_STOP = 201*, *MIRACAST_PLAYER_REASON_CODE_SRC_DEV_REQ_TO_STOP = 202*, *MIRACAST_PLAYER_REASON_CODE_RTSP_ERROR = 203*, *MIRACAST_PLAYER_REASON_CODE_RTSP_TIMEOUT = 204*, *MIRACAST_PLAYER_REASON_CODE_RTSP_METHOD_NOT_SUPPORTED = 205*, *MIRACAST_PLAYER_REASON_CODE_GST_ERROR = 206*, *MIRACAST_PLAYER_REASON_CODE_INT_FAILURE = 207*, *MIRACAST_PLAYER_REASON_CODE_NEW_SRC_DEV_CONNECT_REQ = 208*) |
-| params.reason | string | Description about the player's reason code |
+| params.reason_code | number | Player Reason codes (must be one of the following: *MIRACAST_PLAYER_REASON_CODE_SUCCESS = 200*, *MIRACAST_PLAYER_REASON_CODE_APP_REQ_TO_STOP = 201*, *MIRACAST_PLAYER_REASON_CODE_SRC_DEV_REQ_TO_STOP = 202*, *MIRACAST_PLAYER_REASON_CODE_RTSP_ERROR = 203*, *MIRACAST_PLAYER_REASON_CODE_RTSP_TIMEOUT = 204*, *MIRACAST_PLAYER_REASON_CODE_RTSP_METHOD_NOT_SUPPORTED = 205*, *MIRACAST_PLAYER_REASON_CODE_GST_ERROR = 206*, *MIRACAST_PLAYER_REASON_CODE_INT_FAILURE = 207*, *MIRACAST_PLAYER_REASON_CODE_NEW_SRC_DEV_CONNECT_REQ = 208*) |
+| params.reason | string | Description of the player's reason code |
 
 ### Result
 
@@ -312,7 +312,7 @@ No Events
 <a name="setLogging"></a>
 ## *setLogging*
 
-Enable/Disable/Reduce Logging level for Miracast.
+Enable/Disable/Reduce the Logging level for Miracast.
 
 ### Events
 
@@ -324,8 +324,8 @@ No Events
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.level | string | Set the log level for Miracast service plugin |
-| params?.separate_logger | object | <sup>*(optional)*</sup> Route the Miracast service to separate file if required |
-| params?.separate_logger.logfilename | string | Name of separate logging filename. Logfile will be created under /opt/logs/ |
+| params?.separate_logger | object | <sup>*(optional)*</sup> Route the Miracast service logs to a separate file if required |
+| params?.separate_logger.logfilename | string | Name of a separate logging filename. Logfile will be created under /opt/logs/ |
 | params?.separate_logger.status | string | Enable/Disable the separate logging |
 
 ### Result
@@ -378,14 +378,14 @@ MiracastService interface events:
 | Event | Description |
 | :-------- | :-------- |
 | [onClientConnectionRequest](#onClientConnectionRequest) | Triggered when the Miracast Service plugin receives a new connection request from a client |
-| [onLaunchRequest](#onLaunchRequest) | Miracast Service Plugin raises this Event to request RA to Launch the Miracast Player |
-| [onClientConnectionError](#onClientConnectionError) | It triggered when the Miracast Service plugin failed to connect with the source streaming device due to some error, like P2P related errors during activation or while streaming |
+| [onLaunchRequest](#onLaunchRequest) | Miracast Service Plugin raises this Event to request RA to launch the Miracast Player |
+| [onClientConnectionError](#onClientConnectionError) | It is triggered when the Miracast Service plugin failed to connect with the source streaming device due to some error, like P2P related errors during activation or while streaming |
 
 
 <a name="onClientConnectionRequest"></a>
 ## *onClientConnectionRequest*
 
-Triggered when the Miracast Service plugin receives a new connection request from a client. The application should respond with acceptClientConnection call to accept or reject the request.
+Triggered when the Miracast Service plugin receives a new connection request from a client. The application should respond with an acceptClientConnection call to accept or reject the request.
 
 ### Parameters
 
@@ -418,7 +418,7 @@ Triggered when the Miracast Service plugin receives a new connection request fro
 <a name="onLaunchRequest"></a>
 ## *onLaunchRequest*
 
-Miracast Service Plugin raises this Event to request RA to Launch the Miracast Player.
+Miracast Service Plugin raises this Event to request RA to launch the Miracast Player.
 
 ### Parameters
 
@@ -455,7 +455,7 @@ Miracast Service Plugin raises this Event to request RA to Launch the Miracast P
 <a name="onClientConnectionError"></a>
 ## *onClientConnectionError*
 
-It triggered when the Miracast Service plugin failed to connect with the source streaming device due to some error, like P2P related errors during activation or while streaming.
+It is triggered when the Miracast Service plugin failed to connect with the source streaming device due to some error, like P2P related errors during activation or while streaming.
 
 ### Parameters
 

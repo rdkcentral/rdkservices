@@ -62,9 +62,6 @@ install(TARGETS ${MODULE_NAME}
 set(PLUGIN_IMPLEMENTATION ${MODULE_NAME}Implementation)
 add_library(${PLUGIN_IMPLEMENTATION} SHARED
         sqlite/Store2.cpp
-        sqlite/StoreCache.cpp
-        sqlite/StoreInspector.cpp
-        sqlite/StoreLimit.cpp
         grpc/Store2.cpp
         Module.cpp
 )
