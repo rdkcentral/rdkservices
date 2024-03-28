@@ -225,7 +225,7 @@
                     "required": [ ]
                 }
             },
-            "required": [ "percentComplete", "result" ]
+            "required": [ "macAddress", "percentComplete", "result" ]
         },
         "result": {
             "type":"object",
