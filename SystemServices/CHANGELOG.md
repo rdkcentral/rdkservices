@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [2.1.1] - 2024-03-28
+### Changed
+- Changed enums to match new names.
+
 ## [2.1.0] - 2024-02-29
 ### Added
 - Added API to get Thunder start reason
