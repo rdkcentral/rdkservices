@@ -4,7 +4,7 @@
 	"info": {
 		"title": "MiracastService Plugin",
 		"class": "MiracastService",
-		"description": "The MiracastService plugin provides methods and events to handle Peer-to-Peer events from WiFi driver then launch the Miracast Player for RTSP communication and Screen Mirroring"
+		"description": "The MiracastService plugin provides methods and events to handle Peer-to-Peer events from the WiFi driver then launch the Miracast Player for RTSP communication and Screen Mirroring"
 	},
 	"common": {
 		"$ref": "../../common/common.json"
@@ -46,7 +46,7 @@
 			"example":"(INITIATED | INPROGRESS | PLAYING | STOPPED/IDLE(Default State))"
 		},
 		"player_reason_code": {
-			"summary":"player Reason codes",
+			"summary":"Player Reason codes",
 			"type":"number",
 			"enum": [
 				"MIRACAST_PLAYER_REASON_CODE_SUCCESS = 200",
@@ -129,7 +129,7 @@
 						"$ref": "#/definitions/player_reason_code"
 					},
 					"reason": {
-						"summary": "Description about the player's reason code",
+						"summary": "Description of the player's reason code",
 						"type": "string",
 						"example": "read Description"
 					}
@@ -159,7 +159,7 @@
 			}
 		},
 		"setLogging":{
-			"summary": "Enable/Disable/Reduce Logging level for Miracast",
+			"summary": "Enable/Disable/Reduce the Logging level for Miracast",
 			"params": {
 				"type":"object",
 				"properties": {
@@ -169,11 +169,11 @@
 						"example": "FATAL|ERROR|WARNING|INFO|VERBOSE|TRACE"
 					},
 					"separate_logger": {
-						"summary": "Route the Miracast service to separate file if required",
+						"summary": "Route the Miracast service logs to a separate file if required",
 						"type": "object",
 						"properties": {
 							"logfilename": {
-								"summary": "Name of separate logging filename. Logfile will be created under /opt/logs/",
+								"summary": "Name of a separate logging filename. Logfile will be created under /opt/logs/",
 								"type": "string",
 								"example": "sample.log"
 							},
@@ -195,7 +195,7 @@
 	},
 	"events": {
 		"onClientConnectionRequest":{
-			"summary": "Triggered when the Miracast Service plugin receives a new connection request from a client. The application should respond with acceptClientConnection call to accept or reject the request.",
+			"summary": "Triggered when the Miracast Service plugin receives a new connection request from a client. The application should respond with an acceptClientConnection call to accept or reject the request.",
 			"params": {
 				"type":"object",
 				"properties": {
@@ -213,7 +213,7 @@
 			}
 		},
 		"onLaunchRequest":{
-			"summary": "Miracast Service Plugin raises this Event to request RA to Launch the Miracast Player.",
+			"summary": "Miracast Service Plugin raises this Event to request RA to launch the Miracast Player.",
 			"params": {
 				"type":"object",
 				"properties": {
@@ -237,7 +237,7 @@
 			}
 		},
 		"onClientConnectionError":{
-			"summary": "It triggered when the Miracast Service plugin failed to connect with the source streaming device due to some error, like P2P related errors during activation or while streaming.",
+			"summary": "It is triggered when the Miracast Service plugin failed to connect with the source streaming device due to some error, like P2P related errors during activation or while streaming.",
 			"params": {
 				"type":"object",
 				"properties": {
