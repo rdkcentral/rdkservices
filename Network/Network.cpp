@@ -35,7 +35,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 3
-#define API_VERSION_NUMBER_PATCH 4
+#define API_VERSION_NUMBER_PATCH 5
 
 /* Netsrvmgr Based Macros & Structures */
 #define IARM_BUS_NM_SRV_MGR_NAME "NET_SRV_MGR"
@@ -576,6 +576,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
 
                     IARM_BUS_NetSrvMgr_Iface_EventData_t param = {0};
                     strncpy(param.setInterface, interface.c_str(), INTERFACE_SIZE);
+                    param.setInterface[sizeof(param.setInterface) - 1] = '\0';
 
                     if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isInterfaceEnabled, (void*)&param, sizeof(param)))
                     {
@@ -620,6 +621,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
 
                         IARM_BUS_NetSrvMgr_Iface_EventData_t iarmData = { 0 };
                     strncpy(iarmData.setInterface, interface.c_str(), INTERFACE_SIZE);
+                    iarmData.setInterface[sizeof(iarmData.setInterface) - 1] = '\0';
                     iarmData.isInterfaceEnabled = enabled;
                     iarmData.persist = persist;
 

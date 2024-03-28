@@ -201,7 +201,7 @@ namespace WPEFramework {
 
                     if (deleteFile)
                     {
-                        std::remove(filepath);
+                        (void)std::remove(filepath);
                     }
                 }
             }

@@ -2,7 +2,7 @@
 <a name="Packager_Plugin"></a>
 # Packager Plugin
 
-**Version: [1.0.2](https://github.com/rdkcentral/rdkservices/blob/main/Packager/CHANGELOG.md)**
+**Version: [1.0.4](https://github.com/rdkcentral/rdkservices/blob/main/Packager/CHANGELOG.md)**
 
 A Packager plugin for Thunder framework.
 

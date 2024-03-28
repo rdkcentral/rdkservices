@@ -41,8 +41,9 @@ namespace TTS {
         size_t colons = prettyFunction.find("::");
         size_t begin = prettyFunction.substr(0,colons).rfind(" ") + 1;
         size_t end = prettyFunction.rfind("(") - begin;
+        const char *prettyFunctionSub = prettyFunction.substr(begin,end).c_str();
 
-        return prettyFunction.substr(begin,end).c_str();
+        return prettyFunctionSub;
     }
 
 #ifdef USE_RDK_LOGGER

@@ -925,10 +925,10 @@ namespace Plugin {
             {
                 _adminLock.Lock();
 
-                auto AddElement = [this, &response](const string& callsign, MonitorObject& object) {
+                auto AddElement = [this, &response](const string& callsignE, MonitorObject& object) {
                     const MetaData& metaData = object.Measurement();
                     JsonData::Monitor::InfoInfo info;
-                    info.Observable = callsign;
+                    info.Observable = callsignE;
 
                     if (object.HasRestartAllowed()) {
                         info.Restart.Limit = object.RestartLimit();

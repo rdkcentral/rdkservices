@@ -144,7 +144,8 @@ namespace Plugin {
         #pragma warning(disable : 4355)
         #endif
         OCDM()
-            : _service(nullptr)
+            : _skipURL(0)
+            , _service(nullptr)
             , _opencdmi(nullptr)
             , _memory(nullptr)
             , _notification(this)

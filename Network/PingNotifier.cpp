@@ -192,7 +192,7 @@ namespace WPEFramework
             if(!outputFile.empty())
             {
                 // clear up
-                remove(outputFile.c_str());
+                (void)remove(outputFile.c_str());
             }
 
             pingResult["guid"] = guid;

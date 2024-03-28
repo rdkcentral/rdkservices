@@ -183,7 +183,7 @@ namespace WPEFramework {
 
         public:
             static Bluetooth* _instance;
-            void notifyEventWrapper (BTRMGR_EventMessage_t eventMsg);
+            void notifyEventWrapper (BTRMGR_EventMessage_t &eventMsg);
 
         private:
             static const string STATUS_NO_BLUETOOTH_HARDWARE;
