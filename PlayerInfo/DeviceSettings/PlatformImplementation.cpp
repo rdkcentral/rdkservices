@@ -520,7 +520,7 @@ private:
         {"2160p25", RESOLUTION_2160P25},
         {"2160p50", RESOLUTION_2160P50},
         {"2160p30", RESOLUTION_2160P30},
-        {"2160p60", RESOLUTION_2160P60},
+        {"2160p60", RESOLUTION_2160P},
         {"2160p", RESOLUTION_2160P}
     };
     std::list<Exchange::Dolby::IOutput::INotification*> _observers;
