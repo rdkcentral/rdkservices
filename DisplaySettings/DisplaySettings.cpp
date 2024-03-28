@@ -350,6 +350,7 @@ namespace WPEFramework {
 	    m_hdmiCecAudioDeviceDetected = false;// Audio device detected through cec ping
             m_hdmiInAudioDevicePowerState = AUDIO_DEVICE_POWER_STATE_UNKNOWN;// Power state of AVR
 	    m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED; // Maintains the ARC state
+	    m_requestSadRetrigger = false;
             m_isPwrMgr2RFCEnabled = false;
 	    m_hdmiInAudioDeviceType = dsAUDIOARCSUPPORT_NONE;// Maintains the Audio device type whether Arc/eArc ocnnected
 	    m_AudioDeviceSADState = AUDIO_DEVICE_SAD_UNKNOWN;// maintains the SAD state
@@ -854,6 +855,7 @@ namespace WPEFramework {
 
                                 {
                                    DisplaySettings::_instance->m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
+				   DisplaySettings::_instance->m_requestSadRetrigger = false;
                                 }
 
                             }// Release Mutex m_AudioDeviceStatesUpdateMutex
@@ -1051,6 +1053,7 @@ namespace WPEFramework {
 			m_hdmiInAudioDeviceConnected = false;
 			m_hdmiInAudioDevicePowerState = AUDIO_DEVICE_POWER_STATE_UNKNOWN;
 			m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
+			m_requestSadRetrigger = false;
 			m_hdmiInAudioDeviceType = dsAUDIOARCSUPPORT_NONE;
 			m_AudioDeviceSADState = AUDIO_DEVICE_SAD_UNKNOWN;
 			DisplaySettings::_instance->connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, false);
@@ -4731,6 +4734,7 @@ namespace WPEFramework {
                     	LOGINFO("%s: Cleanup ARC/eARC state\n",__FUNCTION__);
                     	if(DisplaySettings::_instance->m_currentArcRoutingState != ARC_STATE_ARC_TERMINATED)
                             DisplaySettings::_instance->m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
+			    DisplaySettings::_instance->m_requestSadRetrigger = false;
 		      {
                     	if(DisplaySettings::_instance->m_hdmiInAudioDeviceConnected !=  false) {
                             DisplaySettings::_instance->m_hdmiInAudioDeviceConnected =  false;
@@ -5048,6 +5052,7 @@ void DisplaySettings::sendMsgThread()
                     value = parameters["status"].String();
                     std::lock_guard<std::mutex> lock(m_AudioDeviceStatesUpdateMutex);
                     m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
+		    m_requestSadRetrigger = false;
 	            LOGINFO("Current ARC routing state after update m_currentArcRoutingState=%d\n ", m_currentArcRoutingState);
                     if(!value.compare("success")) {
 		        try 
@@ -5200,6 +5205,7 @@ void DisplaySettings::sendMsgThread()
                             {
 			      // Arc termination happens from HdmiCecSink plugin so just update the state here
                               m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
+			      m_requestSadRetrigger = false;
 			      LOGINFO("Updating ARC routing state to ARC terminated\n");
                             }
 
@@ -5251,6 +5257,7 @@ void DisplaySettings::sendMsgThread()
 				    m_hdmiInAudioDeviceConnected = false;	
 		    	    m_hdmiInAudioDevicePowerState = AUDIO_DEVICE_POWER_STATE_UNKNOWN;
                     m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
+		    m_requestSadRetrigger = false;
 				    connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, false);
 			    }
 		        if (m_AudioDeviceSADState != AUDIO_DEVICE_SAD_CLEARED && m_AudioDeviceSADState != AUDIO_DEVICE_SAD_UNKNOWN) {
