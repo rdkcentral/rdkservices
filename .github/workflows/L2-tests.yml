@@ -159,7 +159,9 @@ jobs:
           rdk/iarmmgrs-hal/pwrMgr.h
           rdk/iarmmgrs-hal/sysMgr.h
           rfcapi.h
+          libudev.h
           systemservices/proc/readproc.h
+          systemservices/secure_wrapper.h
           maintenanceMGR.h
           pkg.h
           &&
@@ -210,6 +212,8 @@ jobs:
           -include ${{github.workspace}}/rdkservices/Tests/mocks/devicesettings.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Iarm.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Rfc.h
+          -include ${{github.workspace}}/rdkservices/Tests/mocks/Udev.h
+          -include ${{github.workspace}}/rdkservices/Tests/mocks/Wraps.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/maintenanceMGR.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/pkg.h
           -Wall -Werror -Wno-error=format=
@@ -222,6 +226,7 @@ jobs:
           -DCMAKE_DISABLE_FIND_PACKAGE_RFC=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_RBus=ON
           -DPLUGIN_SYSTEMSERVICES=ON
+          -DPLUGIN_USBACCESS=ON
           -DPLUGIN_HDCPPROFILE=ON
           -DPLUGIN_NETWORK=ON
           -DPLUGIN_TEXTTOSPEECH=ON
@@ -245,6 +250,7 @@ jobs:
           /opt/logs
           /lib/rdk
           /run/media/sda1/logs/PreviousLogs
+          /run/media/sda2/logs/PreviousLogs
           /run/sda1/UsbTestFWUpdate
           /run/sda1/UsbProdFWUpdate
           /run/sda2
@@ -259,6 +265,7 @@ jobs:
           /etc/authService.conf
           /version.txt
           /run/media/sda1/logs/PreviousLogs/logFile.txt
+          /run/media/sda2/logs/PreviousLogs/logFile.txt
           /run/sda1/HSTP11MWR_5.11p5s1_VBN_sdy.bin
           /run/sda1/UsbTestFWUpdate/HSTP11MWR_3.11p5s1_VBN_sdy.bin
           /run/sda1/UsbProdFWUpdate/HSTP11MWR_4.11p5s1_VBN_sdy.bin
