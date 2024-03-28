@@ -674,7 +674,6 @@ namespace WPEFramework
                          NM_SETTING_WIRELESS_SECURITY_PSK,
                          ssid.m_passphrase.c_str(),
                          NULL);
-
                     break;
                 }
                 case WIFI_SECURITY_WPA2_PSK_AES:
@@ -729,12 +728,12 @@ namespace WPEFramework
                             nm_remote_connection_delete(remoteConnection, NULL, &error);
                             if (error)
                             {
-                                NMLOG_ERROR("RemoveKnownSSID failed\n");
+                                NMLOG_ERROR("RemoveKnownSSID failed");
                                 g_error_free(error);
                             }
                             else
                             {
-                                NMLOG_INFO("RemoveKnownSSID is success\n");
+                                NMLOG_INFO("RemoveKnownSSID is success");
                                 rc = Core::ERROR_NONE;
                             }
                             break;
@@ -748,7 +747,7 @@ namespace WPEFramework
         uint32_t NetworkManagerImplementation::WiFiConnect(const WiFiConnectTo& ssid /* @in */)
         {
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
-            if(wifi->wifiConnect(ssid.m_ssid.c_str(), ssid.m_passphrase.c_str(), ssid.m_securityMode))
+            if(wifi->wifiConnect(ssid))
                 rc = Core::ERROR_NONE;
             return rc;
         }

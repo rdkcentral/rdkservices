@@ -335,6 +335,7 @@ namespace WPEFramework
                 g_error_free(error);
                 _wifiManager->quit(device);
             }
+            //_wifiManager->quit(device);
         }
 
         void static disconnectGsignalCb(NMDevice *device, GParamSpec *pspec, wifiManager *info)
@@ -345,20 +346,24 @@ namespace WPEFramework
                 switch(state)
                 {
                     case NM_DEVICE_STATE_DEACTIVATING:
-                        NMLOG_INFO("Device '%s' successfully disconnecting", nm_device_get_iface(device));
+                        NMLOG_INFO("Device '%s' disconnecting", nm_device_get_iface(device));
                     break;
                     case NM_DEVICE_STATE_DISCONNECTED:
-                        NMLOG_INFO("Device '%s' successfully disconnected", nm_device_get_iface(device));
+                        NMLOG_INFO("Device '%s' disconnected", nm_device_get_iface(device));
                         info->quit(device);
                     break;
                     case NM_DEVICE_STATE_ACTIVATED:
-                        NMLOG_INFO("Device '%s' successfully connected", nm_device_get_iface(device));
+                        NMLOG_INFO("Device '%s' connected", nm_device_get_iface(device));
                         info->quit(device);
+                    break;
                     case NM_DEVICE_STATE_FAILED:
+                    case NM_DEVICE_STATE_UNKNOWN:
+                    case NM_DEVICE_STATE_UNAVAILABLE:
                         NMLOG_INFO("Device '%s' Failed state", nm_device_get_iface(device));
-                        break;
+                        info->quit(device);
+                    break;
                     default:
-                        NMLOG_TRACE("Device state unknown");
+                    break;
                 }
             }
         }
@@ -371,16 +376,24 @@ namespace WPEFramework
                 switch(state)
                 {
                     case NM_DEVICE_STATE_DEACTIVATING:
-                        NMLOG_INFO("Device disconnecting");
+                        NMLOG_INFO("Device '%s' disconnecting", nm_device_get_iface(device));
+                    break;
+                    case NM_DEVICE_STATE_CONFIG:
+                            NMLOG_INFO("Device '%s' configuring", nm_device_get_iface(device));
                     break;
                     case NM_DEVICE_STATE_DISCONNECTED:
-                        NMLOG_INFO("Device '%s' successfully disconnected", nm_device_get_iface(device));
+                        NMLOG_INFO("Device '%s' disconnected", nm_device_get_iface(device));
                     break;
                     case NM_DEVICE_STATE_ACTIVATED:
-                        NMLOG_INFO("Device '%s' successfully connected", nm_device_get_iface(device));
+                        NMLOG_INFO("Device '%s' connected", nm_device_get_iface(device));
                         info->quit(device);
+                    break;
                     case NM_DEVICE_STATE_FAILED:
-                        //NMLOG_INFO("Device '%s' Failed state", nm_device_get_iface(device));
+                    case NM_DEVICE_STATE_UNKNOWN:
+                    case NM_DEVICE_STATE_UNAVAILABLE:
+                        NMLOG_INFO("Device '%s' Failed state", nm_device_get_iface(device));
+                        info->quit(device);
+                    break;
                     default:
                     break;
                 }
@@ -522,15 +535,18 @@ namespace WPEFramework
             return true;
         }
 
-        bool wifiManager::wifiConnect(const char *ssid_in, const char* password_in, Exchange::INetworkManager::WIFISecurityMode security_in)
+        bool wifiManager::wifiConnect(Exchange::INetworkManager::WiFiConnectTo wifiData)
         {
+            const char *ssid_in = wifiData.m_ssid.c_str();
+            const char* password_in = wifiData.m_passphrase.c_str();
             NMAccessPoint *AccessPoint = NULL;
             GPtrArray *allaps = NULL;
             const char *conName = ssid_in;
             NMConnection *connection = NULL;
-            NMSettingConnection  *s_con;
-            NMSettingWireless *s_wireless = NULL;
-            NMSettingWirelessSecurity *s_secure = NULL;
+            NMSettingConnection  *sConnection = NULL;
+            NMSetting8021x *s8021X = NULL;
+            NMSettingWireless *sWireless = NULL;
+            NMSettingWirelessSecurity *sSecurity = NULL;
             NM80211ApFlags apFlags;
             NM80211ApSecurityFlags apWpaFlags;
             NM80211ApSecurityFlags apRsnFlags;
@@ -599,21 +615,21 @@ namespace WPEFramework
 
             if (SSIDmatch && !connection)
             {
-                NMLOG_ERROR("Connection '%s' exists but properties don't match.", conName);
+                NMLOG_ERROR("Connection '%s' exists but properties don't match", conName);
                 //TODO Remove Connection
                 return false;
             }
 
             if (!connection)
             {
-                NMLOG_TRACE("creating new connection '%s' .", conName);
+                NMLOG_TRACE("creating new connection '%s' ", conName);
                 connection = nm_simple_connection_new();
                 if (conName) {
-                    s_con = (NMSettingConnection *) nm_setting_connection_new();
-                    nm_connection_add_setting(connection, NM_SETTING(s_con));
+                    sConnection = (NMSettingConnection *) nm_setting_connection_new();
+                    nm_connection_add_setting(connection, NM_SETTING(sConnection));
                     const char *uuid = nm_utils_uuid_generate();;
 
-                    g_object_set(G_OBJECT(s_con),
+                    g_object_set(G_OBJECT(sConnection),
                         NM_SETTING_CONNECTION_UUID,
                         uuid,
                         NM_SETTING_CONNECTION_ID,
@@ -623,9 +639,9 @@ namespace WPEFramework
                         NULL);
                 }
 
-                s_wireless = (NMSettingWireless *)nm_setting_wireless_new();
+                sWireless = (NMSettingWireless *)nm_setting_wireless_new();
                 GBytes *ssid = g_bytes_new(ssid_in, strlen(ssid_in));
-                g_object_set(G_OBJECT(s_wireless),
+                g_object_set(G_OBJECT(sWireless),
                     NM_SETTING_WIRELESS_SSID,
                     ssid,
                     NULL);
@@ -636,7 +652,7 @@ namespace WPEFramework
                 *  g_object_set(s_wifi, NM_SETTING_WIRELESS_BSSID, bssid, NULL);
                 *  g_object_set(s_wifi, NM_SETTING_WIRELESS_SSID, ssid, NM_SETTING_WIRELESS_HIDDEN, hidden, NULL);
                 */
-                nm_connection_add_setting(connection, NM_SETTING(s_wireless));
+                nm_connection_add_setting(connection, NM_SETTING(sWireless));
             }
 
             apFlags = nm_access_point_get_flags(AccessPoint);
@@ -650,14 +666,67 @@ namespace WPEFramework
                 return false;
             }
 
-            if ( (apRsnFlags & NM_802_11_AP_SEC_KEY_MGMT_OWE) || (apRsnFlags & NM_802_11_AP_SEC_KEY_MGMT_OWE_TM)
-                || (apWpaFlags & NM_802_11_AP_SEC_KEY_MGMT_802_1X)|| (apRsnFlags & NM_802_11_AP_SEC_KEY_MGMT_802_1X) ) {
+            if ( (apRsnFlags & NM_802_11_AP_SEC_KEY_MGMT_OWE) || (apRsnFlags & NM_802_11_AP_SEC_KEY_MGMT_OWE_TM)) {
 
-                NMLOG_ERROR("Ap wifi security OWE and 802 1X mode not supported");
+                NMLOG_ERROR("Ap wifi security OWE");
                 return false;
             }
 
-            if ((apFlags & NM_802_11_AP_FLAGS_PRIVACY) || (apWpaFlags != NM_802_11_AP_SEC_NONE )|| (apRsnFlags != NM_802_11_AP_SEC_NONE )) 
+            if( (apWpaFlags & NM_802_11_AP_SEC_KEY_MGMT_802_1X) || (apRsnFlags & NM_802_11_AP_SEC_KEY_MGMT_802_1X) )
+            {
+                GError *error = NULL;
+                NMLOG_INFO("Ap securtity mode is 802.1X");
+
+                NMLOG_TRACE("802.1x Identity : %s", wifiData.m_identity.c_str());
+                NMLOG_TRACE("802.1x CA cert path : %s", wifiData.m_caCert.c_str());
+                NMLOG_TRACE("802.1x Client cert path : %s", wifiData.m_clientCert.c_str());
+                NMLOG_TRACE("802.1x Private key path : %s", wifiData.m_privateKey.c_str());
+                NMLOG_TRACE("802.1x Private key psswd : %s", wifiData.m_privateKeyPasswd.c_str());
+
+                s8021X = (NMSetting8021x *) nm_setting_802_1x_new();
+                nm_connection_add_setting(connection, NM_SETTING(s8021X));
+
+                g_object_set(s8021X, NM_SETTING_802_1X_IDENTITY, wifiData.m_identity.c_str(), NULL);
+                nm_setting_802_1x_add_eap_method(s8021X, "tls");
+                if(!wifiData.m_caCert.empty() && !nm_setting_802_1x_set_ca_cert(s8021X,
+                                            wifiData.m_caCert.c_str(),
+                                            NM_SETTING_802_1X_CK_SCHEME_PATH,
+                                            NULL,
+                                            &error))
+                {
+                    NMLOG_ERROR("ca certificate add failed: %s", error->message);
+                    g_error_free(error);
+                    return false;
+                }
+
+                if(!wifiData.m_clientCert.empty() && !nm_setting_802_1x_set_client_cert(s8021X,
+                                            wifiData.m_clientCert.c_str(),
+                                            NM_SETTING_802_1X_CK_SCHEME_PATH,
+                                            NULL,
+                                            &error))
+                {
+                    NMLOG_ERROR("client certificate add failed: %s", error->message);
+                    g_error_free(error);
+                    return false;
+                }
+
+                if(!wifiData.m_privateKey.empty() && !nm_setting_802_1x_set_private_key(s8021X,
+                                                wifiData.m_privateKey.c_str(),
+                                                wifiData.m_privateKeyPasswd.c_str(),
+                                                NM_SETTING_802_1X_CK_SCHEME_PATH,
+                                                NULL,
+                                                &error))
+                {
+                    NMLOG_ERROR("client private key add failed: %s", error->message);
+                    g_error_free(error);
+                    return false;
+                }
+
+                sSecurity = (NMSettingWirelessSecurity *) nm_setting_wireless_security_new();
+                nm_connection_add_setting(connection, NM_SETTING(sSecurity));
+                g_object_set(G_OBJECT(sSecurity), NM_SETTING_WIRELESS_SECURITY_KEY_MGMT,"wpa-eap", NULL);
+            }
+            else if ((apFlags & NM_802_11_AP_FLAGS_PRIVACY) || (apWpaFlags != NM_802_11_AP_SEC_NONE )|| (apRsnFlags != NM_802_11_AP_SEC_NONE )) 
             {
                 std::string flagStr;
                 apFlagsToString(apWpaFlags, flagStr);
@@ -666,20 +735,20 @@ namespace WPEFramework
 
                 if (password_in) 
                 {
-                    s_secure = (NMSettingWirelessSecurity *) nm_setting_wireless_security_new();
-                    nm_connection_add_setting(connection, NM_SETTING(s_secure));
+                    sSecurity = (NMSettingWirelessSecurity *) nm_setting_wireless_security_new();
+                    nm_connection_add_setting(connection, NM_SETTING(sSecurity));
 
                     if (apWpaFlags == NM_802_11_AP_SEC_NONE && apRsnFlags == NM_802_11_AP_SEC_NONE)
                     {
-                        nm_setting_wireless_security_set_wep_key(s_secure, 0, password_in);
+                        nm_setting_wireless_security_set_wep_key(sSecurity, 0, password_in);
                         NMLOG_ERROR("wifi security WEP mode not supported ! need to add wep-key-type");
                         return false;
                     }
                     else if ((apWpaFlags & NM_802_11_AP_SEC_KEY_MGMT_PSK) 
                             || (apRsnFlags & NM_802_11_AP_SEC_KEY_MGMT_PSK) || (apRsnFlags & NM_802_11_AP_SEC_KEY_MGMT_SAE)) {
 
-                        g_object_set(G_OBJECT(s_secure), NM_SETTING_WIRELESS_SECURITY_KEY_MGMT,"wpa-psk", NULL);
-                        g_object_set(G_OBJECT(s_secure), NM_SETTING_WIRELESS_SECURITY_PSK, password_in, NULL);
+                        g_object_set(G_OBJECT(sSecurity), NM_SETTING_WIRELESS_SECURITY_KEY_MGMT,"wpa-psk", NULL);
+                        g_object_set(G_OBJECT(sSecurity), NM_SETTING_WIRELESS_SECURITY_PSK, password_in, NULL);
                     }
                 }
                 else
@@ -720,7 +789,6 @@ namespace WPEFramework
             }
 
             wait(loop);
-            NMLOG_TRACE("Exit");
             return true;
         }
     } // namespace Plugin

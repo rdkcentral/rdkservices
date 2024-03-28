@@ -129,6 +129,11 @@ namespace WPEFramework
                     string           m_ssid;
                     string           m_passphrase;
                     WIFISecurityMode m_securityMode;
+                    string           m_identity;
+                    string           m_caCert;
+                    string           m_clientCert;
+                    string           m_privateKey;
+                    string           m_privateKeyPasswd;
             };
 
             struct EXTERNAL WiFiSSIDInfo {
