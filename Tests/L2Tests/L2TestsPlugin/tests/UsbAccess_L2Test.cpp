@@ -202,15 +202,6 @@ TEST_F(UsbAccess_L2test, FileList)
     JsonObject expected_status;
     uint32_t signalled = UsbAccess_StateInvalid;
 
-    /* Adding files with different file extensions on the specified path. This set of files is used in the Test below where only the extension supported by REGEX_FILE is returned by getFileList */
-    std::string directory = "/run/media/sda1/logs/";
-    //std::vector<std::string> fileNames = {"file1.docx", "file2.pptx", "FILE3.txt", "FILE4.png"};
-    std::vector<std::string> fileNames = {"a1.docx", "a.png", "a1.png", "a2.png"};
-    for (const auto& fileName : fileNames){
-    std::string filePath = directory + fileName;
-    std::ofstream fileStream(filePath);
-    }
-
     EXPECT_CALL(*p_udevImplMock, udev_enumerate_get_list_entry(testing::_))
         .WillRepeatedly(testing::Return(reinterpret_cast<struct udev_list_entry*>(0x3)));
 
@@ -258,7 +249,7 @@ TEST_F(UsbAccess_L2test, FileList)
     EXPECT_EQ(Core::ERROR_NONE, status);
     EXPECT_TRUE(result["success"].Boolean());
     EXPECT_STREQ("/run/media/sda1/logs", result["path"].String().c_str());
-    EXPECT_STREQ("[{\"name\":\"a.png\",\"t\":\"f\"},{\"name\":\"a1.png\",\"t\":\"f\"},{\"name\":\".\",\"t\":\"d\"},{\"name\":\"a2.png\",\"t\":\"f\"},{\"name\":\"..\",\"t\":\"d\"},{\"name\":\"PreviousLogs\",\"t\":\"d\"}]", result["contents"].String().c_str());
+    EXPECT_STREQ("[{\"name\":\".\",\"t\":\"d\"},{\"name\":\"..\",\"t\":\"d\"},{\"name\":\"PreviousLogs\",\"t\":\"d\"},{\"name\":\"test.png\",\"t\":\"f\"},{\"name\":\"test.txt\",\"t\":\"f\"}]", result["contents"].String().c_str());
 
 
     /* Subscribe to the "onUSBMountChanged" event */
@@ -278,14 +269,6 @@ TEST_F(UsbAccess_L2test, FileList)
     usbEventData.data.usbMountData.mounted= true;
     strncpy(usbEventData.data.usbMountData.dir, "/dev/sda1", sizeof(usbEventData.data.usbMountData.dir));
     iarmEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_USB_MOUNT_CHANGED, &usbEventData, 1);
-
-
-    std::string directory1 = "/run/media/sda2/logs/";
-    std::vector<std::string> fileNames1 = {"a.png", "a1.png", "a2.png"};
-    for (const auto& fileName1: fileNames1){
-    std::string filePath1 = directory1 + fileName1;
-    std::ofstream fileStream(filePath1);
-    }
 
     EXPECT_CALL(*p_udevImplMock, udev_enumerate_get_list_entry(testing::_))
         .WillRepeatedly(testing::Return(reinterpret_cast<struct udev_list_entry*>(0x3)));
@@ -328,7 +311,7 @@ TEST_F(UsbAccess_L2test, FileList)
     EXPECT_EQ(Core::ERROR_NONE, status);
     EXPECT_TRUE(result["success"].Boolean());
     EXPECT_STREQ("/run/media/sda2/logs", result["path"].String().c_str());
-    EXPECT_STREQ("[{\"name\":\"a.png\",\"t\":\"f\"},{\"name\":\"a1.png\",\"t\":\"f\"},{\"name\":\".\",\"t\":\"d\"},{\"name\":\"a2.png\",\"t\":\"f\"},{\"name\":\"..\",\"t\":\"d\"},{\"name\":\"PreviousLogs\",\"t\":\"d\"}]", result["contents"].String().c_str());
+    EXPECT_STREQ("[{\"name\":\".\",\"t\":\"d\"},{\"name\":\"..\",\"t\":\"d\"},{\"name\":\"PreviousLogs\",\"t\":\"d\"},{\"name\":\"test.png\",\"t\":\"f\"},{\"name\":\"test.txt\",\"t\":\"f\"}]", result["contents"].String().c_str());
 
     message = "{\"mounted\":true,\"device\":\"\\/dev\\/sda2\"}";
     expected_status.FromString(message);
@@ -360,14 +343,6 @@ TEST_F(UsbAccess_L2test, FirmwareUpdate)
     uint32_t status = Core::ERROR_GENERAL;
     JsonObject params;
     JsonObject result;
-
-    /* Adding different Firmware Files at the specified path */
-    std::string directory = "/run/sda1/";
-    std::vector<std::string> fileNames = {"HSTP11MWR_5.11p5s1_VBN_sdy.bin", "HSTP11MWR_3.11p5s1_VBN_sdy.bin"};
-    for (const auto& fileName : fileNames){
-    std::string filePath = directory + fileName;
-    std::ofstream fileStream(filePath);
-    }
 
     EXPECT_CALL(*p_udevImplMock, udev_enumerate_get_list_entry(testing::_))
         .WillOnce(testing::Return(reinterpret_cast<struct udev_list_entry*>(0x3)));
@@ -425,7 +400,8 @@ TEST_F(UsbAccess_L2test, FirmwareUpdate)
     status = InvokeServiceMethod("org.rdk.UsbAccess.1", "getAvailableFirmwareFiles", params, result);
     EXPECT_EQ(Core::ERROR_NONE, status);
     EXPECT_TRUE(result["success"].Boolean());
-    EXPECT_STREQ("[\"\\/run\\/sda1\\/UsbTestFWUpdate\\/HSTP11MWR_3.11p5s1_VBN_sdy.bin\",\"\\/run\\/sda1\\/UsbProdFWUpdate\\/HSTP11MWR_4.11p5s1_VBN_sdy.bin\",\"\\/run\\/sda1\\/HSTP11MWR_5.11p5s1_VBN_sdy.bin\",\"\\/run\\/sda1\\/HSTP11MWR_3.11p5s1_VBN_sdy.bin\"]", result["availableFirmwareFiles"].String().c_str());
+    EXPECT_STREQ("[\"\\/run\\/sda1\\/UsbTestFWUpdate\\/HSTP11MWR_3.11p5s1_VBN_sdy.bin\",\"\\/run\\/sda1\\/UsbProdFWUpdate\\/HSTP11MWR_4.11p5s1_VBN_sdy.bin\",\"\\/run\\/sda1\\/HSTP11MWR_5.11p5s1_VBN_sdy.bin\"]"
+, result["availableFirmwareFiles"].String().c_str());
 
     /* Updates the firmware using the specified file retrieved from the 'getAvailableFirmwareFiles' method. The firmware file path to use for the update*/
     params["fileName"] = "/tmp/reboot/HSTP11MWR.bin";

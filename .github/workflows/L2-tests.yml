@@ -265,7 +265,11 @@ jobs:
           /etc/authService.conf
           /version.txt
           /run/media/sda1/logs/PreviousLogs/logFile.txt
-          /run/media/sda2/logs/PreviousLogs/logFile.txt
+          /run/media/sda1/logs/test.txt
+          /run/media/sda1/logs/test.png
+          /run/media/sda1/logs/test.docx
+          /run/media/sda2/logs/test.txt
+          /run/media/sda2/logs/test.png  
           /run/sda1/HSTP11MWR_5.11p5s1_VBN_sdy.bin
           /run/sda1/UsbTestFWUpdate/HSTP11MWR_3.11p5s1_VBN_sdy.bin
           /run/sda1/UsbProdFWUpdate/HSTP11MWR_4.11p5s1_VBN_sdy.bin
