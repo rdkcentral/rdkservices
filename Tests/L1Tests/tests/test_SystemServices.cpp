@@ -5568,6 +5568,26 @@ TEST_F(SystemServicesTest, uploadLogFailed_whenGetFilenameFailed)
                  FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
                  return pipe;
               }));
+
+    std::ofstream deviceProperties("/etc/device.properties");
+    deviceProperties << "BUILD_TYPE=dev\n";
+    deviceProperties << "FORCE_MTLS=true\n";
+    deviceProperties.close();
+    EXPECT_TRUE(Core::File(string(_T("/etc/device.properties"))).Exists());
+
+    std::ofstream dcmPropertiesFile("/opt/dcm.properties");
+    dcmPropertiesFile << "LOG_SERVER=logs.xcal.tv\n";
+    dcmPropertiesFile.close();
+    EXPECT_TRUE(Core::File(string(_T("/opt/dcm.properties"))).Exists());
+
+    std::ofstream tmpDcmSettings("/tmp/DCMSettings.conf");
+    tmpDcmSettings << "LogUploadSettings:UploadRepository:uploadProtocol=https\n";
+    tmpDcmSettings << "LogUploadSettings:UploadRepository:URL=https://example.com/upload\n";
+    tmpDcmSettings << "LogUploadSettings:UploadOnReboot=true\n";
+    tmpDcmSettings.close();
+    EXPECT_TRUE(Core::File(string(_T("/tmp/DCMSettings.conf"))).Exists());
+
+    
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("uploadLogs"), _T("{}"), response));
 }
 
@@ -5642,7 +5662,12 @@ TEST_F(SystemServicesTest, uploadLogSuccess_withValidURL)
               }));
     EXPECT_TRUE(Core::File(string(_T(logArchievedPath))).Exists());
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("uploadLogs"), _T("{\"url\": \"https://ssr.ccp.xcal.tv/cgi-bin/rdkb_snmp.cgi\"}"), response));
+    std::ofstream tmpDcmSettings("/tmp/DCMSettings.conf");
+    tmpDcmSettings << "LogUploadSettings:UploadRepository:URL=https://ssr.ccp.xcal.tv/cgi-bin/S3.cgi\n";
+    tmpDcmSettings.close();
+    EXPECT_TRUE(Core::File(string(_T("/tmp/DCMSettings.conf"))).Exists());
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("uploadLogs"), _T("{\"upload_httplink\": \"https://example.com/upload\"}"), response));
     EXPECT_EQ(response, "{\"success\":true}");
 }
 
