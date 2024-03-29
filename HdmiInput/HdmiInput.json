@@ -291,6 +291,85 @@
                 "$ref": "#/common/result"
             }
         },
+        "getEdid2AllmSupport":{
+            "summary": "Returns the EDID ALLM bit value.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "portId":{
+                        "$ref": "#/definitions/portId"
+                    }
+                },
+                "required": [
+                    "portid"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "allmSupport": {
+                        "summary": "The ALLM bit value in edid",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "allmSupport",
+                    "success"
+                ]
+            }
+        },
+        "setEdid2AllmSupport": {
+            "summary": "Sets an HDMI ALLM bit in EDID.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "portId":{
+                        "$ref": "#/definitions/portId"
+                    },
+                    "allmSupport":{
+                        "summary": "The ALLM support in EDID",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "portId",
+                    "allmSupport"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+	"setAudioMixerLevels": {
+            "summary": "Sets the audio mixer level for given audio input",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "primaryVolume":{
+                        "summary": "Primary audio input volume",
+                        "type": "integer",
+                        "example": 100
+                    },
+                    "inputVolume":{
+                        "summary": "System audio input volume",
+                        "type": "integer",
+                        "example": 75
+                    }
+                },
+                "required": [
+                    "primaryVolume",
+                    "inputVolume"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
         "setVideoRectangle": {
             "deprecated" : true,
             "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=setvideorectangle",
