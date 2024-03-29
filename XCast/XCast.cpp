@@ -68,7 +68,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 17
+#define API_VERSION_NUMBER_PATCH 18
 
 namespace WPEFramework {
 
@@ -141,7 +141,7 @@ XCast::~XCast()
         }
         m_CurrentService = NULL;
 }
-const void XCast::InitializeIARM()
+void XCast::InitializeIARM()
 {
      if (Utils::IARM::init())
      {
@@ -460,16 +460,13 @@ bool XCast::getEntryFromAppLaunchParamList (const char* appName, DynamicAppConfi
                 isEntryFound = true;
                 strncpy (retAppConfig.appName, regAppLaunchParam->appName, sizeof(retAppConfig.appName));
                 retAppConfig.appName[sizeof(retAppConfig.appName) - 1] = '\0';
-
-                if (regAppLaunchParam->query) {
-                    strncpy (retAppConfig.query, regAppLaunchParam->query, sizeof(retAppConfig.query));
-                    retAppConfig.query[sizeof(retAppConfig.query) - 1] = '\0';
-                }
-
-                if (regAppLaunchParam->payload) {
-                    strncpy (retAppConfig.payload, regAppLaunchParam->payload, sizeof(retAppConfig.payload));
-                    retAppConfig.payload[sizeof(retAppConfig.payload) - 1] = '\0';
-                }
+                
+                strncpy (retAppConfig.query, regAppLaunchParam->query, sizeof(retAppConfig.query));
+                retAppConfig.query[sizeof(retAppConfig.query) - 1] = '\0';
+                
+                strncpy (retAppConfig.payload, regAppLaunchParam->payload, sizeof(retAppConfig.payload));
+                retAppConfig.payload[sizeof(retAppConfig.payload) - 1] = '\0';
+                
                 break;
             }
         }

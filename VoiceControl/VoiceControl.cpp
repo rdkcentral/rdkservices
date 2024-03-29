@@ -7,7 +7,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 4
-#define API_VERSION_NUMBER_PATCH 0
+#define API_VERSION_NUMBER_PATCH 1
 
 using namespace std;
 
@@ -53,6 +53,8 @@ namespace WPEFramework {
             Register("voiceSessionAudioStreamStart", &VoiceControl::voiceSessionAudioStreamStart, this);
 
             setApiVersionNumber(1);
+            m_hasOwnProcess = false;
+            m_maskPii = false;
         }
 
         VoiceControl::~VoiceControl()
@@ -790,7 +792,7 @@ namespace WPEFramework {
             m_apiVersionNumber = apiVersionNumber;
         }
 
-        void VoiceControl::sendNotify_(const char* eventName, JsonObject parameters)
+        void VoiceControl::sendNotify_(const char* eventName, JsonObject& parameters)
         {
             if(m_maskPii)
             {
