@@ -191,8 +191,6 @@
             ]
         },
         "getEdid2AllmSupport":{
-            "deprecated" : true,
-            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=getEdid2AllmSupport",
             "summary": "Returns the EDID ALLM bit value.",
             "params": {
                 "type":"object",
@@ -445,9 +443,32 @@
                 }
             ]
         },
-        "setEdid2AllmSupport": {
-            "deprecated" : true,
-            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=setedid2AllmSupport",
+	"setAudioMixerLevels": {
+            "summary": "Sets the audio mixer level for given audio input",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "primaryVolume":{
+                        "summary": "Primary audio input volume",
+                        "type": "integer",
+                        "example": 100
+                    },
+                    "inputVolume":{
+                        "summary": "System audio input volume",
+                        "type": "integer",
+                        "example": 75
+                    }
+                },
+                "required": [
+                    "primaryVolume",
+                    "inputVolume"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },        
+	"setEdid2AllmSupport": {
             "summary": "Sets an HDMI ALLM bit in EDID.",
             "params": {
                 "type":"object",
@@ -791,8 +812,6 @@
             }
         },
     	"hdmiContentTypeUpdate": {
-            "deprecated" : true,
-            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/AVInputPlugin?id=hdmiContentTypeUpdate",
             "summary": "Triggered whenever AV Infoframe content type changes for an HDMI Input",
             "params": {
                 "type": "object",
