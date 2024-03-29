@@ -86,7 +86,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 6
+#define API_VERSION_NUMBER_PATCH 7
 
 namespace Utils {
 std::string formatIARMResult(IARM_Result_t result)

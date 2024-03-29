@@ -77,7 +77,7 @@ const int supported_irrfdb_slots_size = sizeof(supported_irrfdb_slots) / sizeof(
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 2
+#define API_VERSION_NUMBER_PATCH 3
 
 using namespace std;
 
@@ -1403,8 +1403,8 @@ namespace WPEFramework {
         bool RemoteActionMapping::setKeyActionMapping(int deviceID, int keymapType, std::map<int, keyActionMap>& localActionMaps, const KeyGroupSrcInfo& srcInfo)
         {
             keyActionMap actionMap;
-            keyActionMap altActionMap = KED_UNDEFINEDKEY;
-            int rfKeyCode = -1;
+            altActionMap.keyName = KED_UNDEFINEDKEY;
+ 	    int rfKeyCode = -1;
             bool status = false;
             bool success = true;
 
