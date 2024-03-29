@@ -77,7 +77,7 @@ const int supported_irrfdb_slots_size = sizeof(supported_irrfdb_slots) / sizeof(
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 3
+#define API_VERSION_NUMBER_PATCH 8
 
 using namespace std;
 
