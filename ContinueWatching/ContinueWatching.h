@@ -124,7 +124,7 @@ namespace WPEFramework {
 
 	    		std::string mStrApplicationName;
 			#if !defined(DISABLE_SECAPI)
-    			SEC_OBJECTID mSecObjectId;
+    			SEC_OBJECTID mSecObjectId = 0;
 			#endif
 		};
 
