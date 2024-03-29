@@ -4734,7 +4734,7 @@ namespace WPEFramework {
                     	LOGINFO("%s: Cleanup ARC/eARC state\n",__FUNCTION__);
                     	if(DisplaySettings::_instance->m_currentArcRoutingState != ARC_STATE_ARC_TERMINATED)
                             DisplaySettings::_instance->m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
-			    DisplaySettings::_instance->m_requestSadRetrigger = false;
+			DisplaySettings::_instance->m_requestSadRetrigger = false;
 		      {
                     	if(DisplaySettings::_instance->m_hdmiInAudioDeviceConnected !=  false) {
                             DisplaySettings::_instance->m_hdmiInAudioDeviceConnected =  false;
