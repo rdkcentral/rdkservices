@@ -24,14 +24,15 @@
 
 #include "UtilsJsonRpc.h"
 #include "UtilsIarm.h"
+#include "host.hpp"
 
 #include "exception.hpp"
 #include <vector>
 #include <algorithm>
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 5
-#define API_VERSION_NUMBER_PATCH 1
+#define API_VERSION_NUMBER_MINOR 6
+#define API_VERSION_NUMBER_PATCH 0
 
 #define HDMI 0
 #define COMPOSITE 1
@@ -47,6 +48,7 @@
 #define AVINPUT_METHOD_GET_EDID_VERSION "getEdidVersion"
 #define AVINPUT_METHOD_SET_EDID_ALLM_SUPPORT "setEdid2AllmSupport"
 #define AVINPUT_METHOD_GET_EDID_ALLM_SUPPORT "getEdid2AllmSupport"
+#define AVINPUT_METHOD_SET_MIXER_LEVELS "setMixerLevels"
 #define AVINPUT_METHOD_START_INPUT "startInput"
 #define AVINPUT_METHOD_STOP_INPUT "stopInput"
 #define AVINPUT_METHOD_SCALE_INPUT "setVideoRectangle"
@@ -62,6 +64,7 @@
 #define AVINPUT_EVENT_ON_GAME_FEATURE_STATUS_CHANGED "gameFeatureStatusUpdate"
 #define AVINPUT_EVENT_ON_AVI_CONTENT_TYPE_CHANGED "aviContentTypeUpdate"
 
+static bool isAudioBalanceSet = false;
 static int planeType = 0;
 
 using namespace std;
@@ -217,6 +220,7 @@ void AVInput::RegisterAll()
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_READ_SPD), &AVInput::getSPDWrapper, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_SET_EDID_VERSION), &AVInput::setEdidVersionWrapper, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_GET_EDID_VERSION), &AVInput::getEdidVersionWrapper, this);
+    Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_SET_MIXER_LEVELS), &AVInput::setMixerLevels, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_SET_EDID_ALLM_SUPPORT), &AVInput::setEdid2AllmSupportWrapper, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_GET_EDID_ALLM_SUPPORT), &AVInput::getEdid2AllmSupportWrapper, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_START_INPUT), &AVInput::startInput, this);
@@ -224,6 +228,8 @@ void AVInput::RegisterAll()
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_SCALE_INPUT), &AVInput::setVideoRectangleWrapper, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_SUPPORTED_GAME_FEATURES), &AVInput::getSupportedGameFeatures, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_GAME_FEATURE_STATUS), &AVInput::getGameFeatureStatusWrapper, this);
+    m_primVolume = DEFAULT_PRIM_VOL_LEVEL;
+    m_inputVolume = DEFAULT_INPUT_VOL_LEVEL;
 }
 
 void AVInput::UnregisterAll()
@@ -402,6 +408,11 @@ uint32_t AVInput::stopInput(const JsonObject& parameters, JsonObject& response)
     try
     {
         planeType = -1;
+	if (isAudioBalanceSet){
+            device::Host::getInstance().setAudioMixerLevels(dsAUDIO_INPUT_PRIMARY,MAX_PRIM_VOL_LEVEL);
+            device::Host::getInstance().setAudioMixerLevels(dsAUDIO_INPUT_SYSTEM,DEFAULT_INPUT_VOL_LEVEL);
+	    isAudioBalanceSet = false;
+	}
 	if (iType == HDMI) {
             device::HdmiInput::getInstance().selectPort(-1);
         }
@@ -1170,6 +1181,54 @@ std::string AVInput::getSPD(int iPort)
         LOG_DEVICE_EXCEPTION1(std::to_string(iPort));
     }
     return spdbase64;
+}
+
+uint32_t AVInput::setMixerLevels(const JsonObject& parameters, JsonObject& response)
+{
+       returnIfParamNotFound(parameters, "primaryVolume");
+       returnIfParamNotFound(parameters, "inputVolume");
+
+   	int primVol = 0, inputVol = 0;
+   	try {
+       		primVol = parameters["primaryVolume"].Number();
+       		inputVol = parameters["inputVolume"].Number() ;
+	} catch(...) {
+		LOGERR("Incompatible params passed !!!\n");
+		response["success"] = false;
+		returnResponse(false);
+	}
+
+	if( (primVol >=0) && (inputVol >=0) ) {
+		m_primVolume = primVol;
+		m_inputVolume = inputVol;
+	}
+         else {
+             LOGERR("Incompatible params passed !!!\n");
+	     response["success"] = false;
+	     returnResponse(false);
+	}
+   	if(m_primVolume > MAX_PRIM_VOL_LEVEL) {
+       	     LOGWARN("Primary Volume greater than limit. Set to MAX_PRIM_VOL_LEVEL(100) !!!\n");
+       	     m_primVolume = MAX_PRIM_VOL_LEVEL;
+   	}
+   	if(m_inputVolume > DEFAULT_INPUT_VOL_LEVEL) {
+       	     LOGWARN("INPUT Volume greater than limit. Set to DEFAULT_INPUT_VOL_LEVEL(100) !!!\n");
+       	     m_inputVolume = DEFAULT_INPUT_VOL_LEVEL;
+   	}
+
+	LOGINFO("GLOBAL primary Volume=%d input Volume=%d \n",m_primVolume  , m_inputVolume );
+
+	try{
+
+    	     device::Host::getInstance().setAudioMixerLevels(dsAUDIO_INPUT_PRIMARY,primVol);
+       	     device::Host::getInstance().setAudioMixerLevels(dsAUDIO_INPUT_SYSTEM,inputVol);
+	}
+	catch(...){
+    	     LOGWARN("Not setting SoC volume !!!\n");
+       	     returnResponse(false);
+	}
+        isAudioBalanceSet = true;
+	returnResponse(true);
 }
 
 int setEdid2AllmSupport(int portId, bool allmSupport)
