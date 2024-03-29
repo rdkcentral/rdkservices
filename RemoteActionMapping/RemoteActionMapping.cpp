@@ -1403,6 +1403,7 @@ namespace WPEFramework {
         bool RemoteActionMapping::setKeyActionMapping(int deviceID, int keymapType, std::map<int, keyActionMap>& localActionMaps, const KeyGroupSrcInfo& srcInfo)
         {
             keyActionMap actionMap;
+            keyActionMap altActionMap;
             altActionMap.keyName = KED_UNDEFINEDKEY;
  	    int rfKeyCode = -1;
             bool status = false;
