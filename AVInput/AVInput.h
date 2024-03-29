@@ -23,6 +23,10 @@
 #include "libIBus.h"
 #include "dsTypes.h"
 
+#define DEFAULT_PRIM_VOL_LEVEL 25
+#define MAX_PRIM_VOL_LEVEL 100
+#define DEFAULT_INPUT_VOL_LEVEL 100
+
 namespace WPEFramework {
 namespace Plugin {
 
@@ -41,6 +45,8 @@ public:
     INTERFACE_ENTRY(PluginHost::IDispatcher)
     END_INTERFACE_MAP
 
+    int m_primVolume;
+    int m_inputVolume; //Player Volume
 public:
     //   IPlugin methods
     // -------------------------------------------------------------------------------------------------------
@@ -78,6 +84,7 @@ private:
     uint32_t setVideoRectangleWrapper(const JsonObject& parameters, JsonObject& response);
     uint32_t getSupportedGameFeatures(const JsonObject& parameters, JsonObject& response);
     uint32_t getGameFeatureStatusWrapper(const JsonObject& parameters, JsonObject& response);
+    uint32_t setMixerLevels(const JsonObject& parameters, JsonObject& response);
     //End methods
 
     JsonArray getInputDevices(int iType);
