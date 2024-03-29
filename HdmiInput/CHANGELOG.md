@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+##[1.3.1] - 2024-03-29
+### Changed
+- Added support for setting the audio mixer level for given audio input
+
 ##[1.2.1] - 2024-01-29
 ###Added
 - Added a new parameter for plane in onInputStatusChangedEvent
