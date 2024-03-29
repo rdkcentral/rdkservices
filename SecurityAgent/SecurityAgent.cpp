@@ -23,7 +23,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 1
-#define API_VERSION_NUMBER_PATCH 2
+#define API_VERSION_NUMBER_PATCH 3
 
 namespace WPEFramework {
 
@@ -87,6 +87,7 @@ namespace Plugin {
         , _engine()
     {
         RegisterAll();
+        _skipURL = 0;
     }
 
     /* virtual */ SecurityAgent::~SecurityAgent()
