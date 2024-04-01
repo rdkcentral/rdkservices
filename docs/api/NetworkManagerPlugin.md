@@ -2,7 +2,7 @@
 <a name="head.NetworkManager_Plugin"></a>
 # NetworkManager Plugin
 
-**Version: [1.0.0]()**
+**Version: [0.1.0]()**
 
 A NetworkManager plugin for Thunder framework.
 
