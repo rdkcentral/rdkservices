@@ -4,9 +4,9 @@
 
 #include "WpaCtrl.h"
 
-class WpaCtrlImplMock : public WpaCtrlImpl {
+class WpaCtrlApiImplMock : public WpaCtrlApiImpl {
 public:
-    virtual ~WpaCtrlImplMock() = default;
+    virtual ~WpaCtrlApiImplMock() = default;
 
     MOCK_METHOD(struct wpa_ctrl *, wpa_ctrl_open, (const char *ctrl_path), (override));
     MOCK_METHOD(void, wpa_ctrl_close, (struct wpa_ctrl *), (override));

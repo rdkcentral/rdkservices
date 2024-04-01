@@ -388,7 +388,7 @@ namespace WPEFramework
 				if (separate_logger.HasLabel("status"))
 				{
 					std::string status = "";
-					status = separate_logger["separate_logger"].String();
+					status = separate_logger["status"].String();
 
 					success = true;
 

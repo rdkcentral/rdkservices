@@ -153,13 +153,13 @@ MiracastError MiracastP2P::p2pInit(std::string p2p_ctrl_iface)
 
     wpa_supp_ctrl_path_name.append(p2p_ctrl_iface);
 
-#ifndef UNIT_TESTING
-    if (0 != access(wpa_supp_ctrl_path_name.c_str(), F_OK))
+    //if (0 != access(wpa_supp_ctrl_path_name.c_str(), F_OK))
+    std::ifstream ifIndexFile(wpa_supp_ctrl_path_name.c_str());
+    if (!ifIndexFile.good())
     {
         MIRACASTLOG_ERROR("Unable to find P2P ctrl iface path[%s]", wpa_supp_ctrl_path_name.c_str());
         return MIRACAST_INVALID_P2P_CTRL_IFACE;
     }
-#endif /* UNIT_TESTING */
 
     /* Starting wpa_supplicant may take some time, try 10 times before giving up */
     retry = 0;

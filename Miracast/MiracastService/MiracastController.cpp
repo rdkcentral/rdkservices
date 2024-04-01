@@ -238,12 +238,17 @@ std::string MiracastController::getifNameByIPv4(std::string ip_address)
 std::string MiracastController::start_DHCPClient(std::string interface, std::string &default_gw_ip_addr)
 {
     MIRACASTLOG_TRACE("Entering...");
+    char data[1024] = {0};
     char command[128] = {0};
     char sys_cls_file_ifidx[128] = {0};
     std::string local_addr = "",
                 gw_ip_addr = "",
                 popen_buffer = "",
                 system_cmd_buffer = "";
+    std::smatch match;
+    std::regex localipRegex(R"(lease\s+of\s+(\d+\.\d+\.\d+\.\d+)\s+obtained)");
+    std::regex goipRegex1(R"(default\s+gw\s+(\d+\.\d+\.\d+\.\d+)\s+dev)");
+    std::regex goipRegex2(R"(Adding\s+DNS\s+(\d+\.\d+\.\d+\.\d+))", std::regex_constants::icase);
     FILE *popen_file_ptr = nullptr;
     char *current_line_buffer = nullptr;
     std::size_t len = 0;
@@ -272,17 +277,14 @@ std::string MiracastController::start_DHCPClient(std::string interface, std::str
         }
         else
         {
-            std::smatch match;
-            std::regex localipRegex(R"(lease\s+of\s+(\d+\.\d+\.\d+\.\d+)\s+obtained)");
-            std::regex goipRegex1(R"(default\s+gw\s+(\d+\.\d+\.\d+\.\d+)\s+dev)");
-            std::regex goipRegex2(R"(Adding\s+DNS\s+(\d+\.\d+\.\d+\.\d+))", std::regex_constants::icase);
-
             MIRACASTLOG_VERBOSE("udhcpc output as below:\n");
 
+	    memset( data , 0x00 , sizeof(data));
             while (getline(&current_line_buffer, &len, popen_file_ptr) != -1)
             {
-                MIRACASTLOG_VERBOSE("[%s]", current_line_buffer);
-                popen_buffer = current_line_buffer;
+		sprintf(data + strlen(data), "%s" ,  current_line_buffer);
+                popen_buffer = data;
+		MIRACASTLOG_INFO("data : [%s][%s]", data,popen_buffer.c_str());
 
                 if ( local_addr.empty() && (std::regex_search(popen_buffer, match, localipRegex)))
                 {
