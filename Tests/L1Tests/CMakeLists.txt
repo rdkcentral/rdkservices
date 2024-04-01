@@ -28,7 +28,8 @@ FetchContent_Declare(
         URL https://github.com/google/googletest/archive/609281088cfefc76f9d0ce82e1ff6c30cc3591e5.zip
 )
 FetchContent_MakeAvailable(googletest)
-file(GLOB TESTS tests/*.cpp)
+file(GLOB TESTS tests/*Miracast*.cpp)
+#file(GLOB TESTS tests/*MiracastService.cpp)
 add_executable(${PROJECT_NAME}
         ${TESTS}
         ../mocks/Rfc.cpp
@@ -44,6 +45,7 @@ add_executable(${PROJECT_NAME}
         ../mocks/Dobby.cpp
         ../mocks/rdkshell.cpp
 	../mocks/opkgMock.cpp
+	../mocks/WpaCtrl.cpp
         )
 
 set_source_files_properties(

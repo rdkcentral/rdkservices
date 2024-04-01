@@ -72,7 +72,7 @@ private:
     double m_currentPosition;
     GstElement *m_video_sink{nullptr};
     GstElement *m_audio_sink{nullptr};
-    pthread_t m_playback_thread;
+    pthread_t m_playback_thread{0};
     VIDEO_RECT_STRUCT m_video_rect_st;
 
     static MiracastGstPlayer *mMiracastGstPlayer;
@@ -94,7 +94,7 @@ private:
 
     bool m_statistics_thread_loop{false};
     
-    pthread_t m_player_statistics_tid;
+    pthread_t m_player_statistics_tid{0};
     static void *monitor_player_statistics_thread(void *ctx);
     static void pad_added_handler(GstElement *gstelement, GstPad *new_pad, gpointer userdata);
 };

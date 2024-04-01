@@ -42,7 +42,7 @@ namespace MIRACAST
         return prettyFunction.substr(begin, end).c_str();
     }
 
-    static int gDefaultLogLevel = INFO_LEVEL;
+    static int gDefaultLogLevel = TRACE_LEVEL;
     static FILE *logger_file_ptr = nullptr;
     static std::string service_name = "NOT-DEFINED";
     static sem_t separate_logger_sync;
@@ -91,19 +91,19 @@ namespace MIRACAST
         sem_wait(&separate_logger_sync);
         if (nullptr != logger_file_ptr)
         {
-            std::string logger_filename = "/opt/logs/";
             fclose(logger_file_ptr);
             logger_file_ptr = nullptr;
+	}
 
-            if ( filename.empty())
-            {
-                filename = service_name;
-            }
+	if ( filename.empty())
+	{
+	    filename = service_name;
+	}
 
-            logger_filename.append(filename);
-            logger_filename.append(".log");
-            logger_file_ptr = fopen( logger_filename.c_str() , "a");
-        }
+	std::string logger_filename = "/opt/logs/";
+	logger_filename.append(filename);
+	logger_filename.append(".log");
+	logger_file_ptr = fopen( logger_filename.c_str() , "a");
         sem_post(&separate_logger_sync);
     }
 
@@ -144,6 +144,7 @@ namespace MIRACAST
         vsnprintf(formatted, kFormatMessageSize, format, argptr);
         va_end(argptr);
 
+	sem_wait(&separate_logger_sync);
         if (nullptr!=logger_file_ptr)
         {
             char timestamp[0xFF] = {0};
@@ -162,7 +163,6 @@ namespace MIRACAST
                     tm.tm_min,
                     tm.tm_sec,
                     ms);
-            sem_wait(&separate_logger_sync);
 
             if (threadID)
             {
@@ -183,7 +183,6 @@ namespace MIRACAST
             }
 
             fflush(logger_file_ptr);
-            sem_post(&separate_logger_sync);
         }
         else{
             fprintf(stderr, "[%s][%d] %s [%s:%d] %s: %s \n",
@@ -197,5 +196,6 @@ namespace MIRACAST
 
              fflush(stderr);
         }
+	sem_post(&separate_logger_sync);
     }
 } // namespace MIRACAST

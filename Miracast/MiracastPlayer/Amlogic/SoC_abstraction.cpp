@@ -27,7 +27,7 @@
 #include <sys/syscall.h>
 #include "MiracastLogger.h"
 #include "MiracastController.h"
-#include "MiracastGstPlayer.h"
+#include "SoC_abstraction.h"
 
 MiracastGstPlayer *MiracastGstPlayer::mMiracastGstPlayer{nullptr};
 
@@ -63,6 +63,42 @@ void MiracastGstPlayer::destroyInstance()
 MiracastGstPlayer::MiracastGstPlayer()
 {
     MIRACASTLOG_TRACE("Entering...");
+    {
+        char command[128] = {0};
+        std::string default_error_proc_policy = "2151665463";
+        std::ifstream decoder_error_proc_policy_file("/opt/miracast_aml_dec_error_proc_policy");
+
+        if (decoder_error_proc_policy_file.is_open())
+        {
+            std::string new_error_proc_policy = "";
+            std::getline(decoder_error_proc_policy_file, new_error_proc_policy);
+            decoder_error_proc_policy_file.close();
+
+            MIRACASTLOG_VERBOSE("decoder_error_proc_policy_file reading from file [/opt/miracast_aml_dec_error_proc_policy], new_error_proc_policy as [%s] ",
+                                new_error_proc_policy.c_str());
+            MIRACASTLOG_VERBOSE("Overwriting error_proc_policy default[%s] with new[%s]",
+                                default_error_proc_policy.c_str(),
+                                new_error_proc_policy.c_str());
+            default_error_proc_policy = new_error_proc_policy;
+        }
+
+        if ( ! default_error_proc_policy.empty())
+        {
+            sprintf(command, "echo %s > /sys/module/amvdec_mh264/parameters/error_proc_policy",
+                    default_error_proc_policy.c_str());
+
+            MIRACASTLOG_INFO("command for applying error_proc_policy[%s]",command);
+            if (0 == MiracastCommon::execute_SystemCommand(command))
+            {
+                MIRACASTLOG_INFO("error_proc_policy applied successfully");
+            }
+            else
+            {
+                MIRACASTLOG_ERROR("!!! Failed to apply error_proc_policy !!!");
+            }
+
+        }
+    }
     gst_init(nullptr, nullptr);
     m_bBuffering = false;
     m_bReady = false;

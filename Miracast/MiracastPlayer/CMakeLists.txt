@@ -26,7 +26,7 @@ find_package(GLIB REQUIRED)
 
 find_package(WPEFrameworkSecurityUtil)
 if(NOT WPEFRAMEWORK_SECURITYUTIL_FOUND)
-    add_definitions(-DSECURITY_TOKEN_ENABLED=0)
+	add_definitions(-DSECURITY_TOKEN_ENABLED=0)
 endif()
 
 find_package(PkgConfig REQUIRED)
@@ -36,11 +36,25 @@ find_package(GStreamer REQUIRED)
 
 find_library(GLIB_LIBRARY NAMES glib-2.0 )
 
-add_library(${MODULE_NAME} SHARED Module.cpp MiracastPlayer.cpp MiracastGstPlayer.cpp ../common/MiracastLogger.cpp ../common/MiracastCommon.cpp ../RTSP/MiracastRtspMsg.cpp)
+add_library(${MODULE_NAME} SHARED Module.cpp MiracastPlayer.cpp ../common/MiracastLogger.cpp ../common/MiracastCommon.cpp ../RTSP/MiracastRtspMsg.cpp)
+
+if (BUILD_AMLOGIC)
+	target_sources(${MODULE_NAME}
+		PRIVATE
+		Amlogic/SoC_abstraction.cpp
+		)
+elseif (RDK_SERVICES_L1_TEST)
+	target_sources(${MODULE_NAME}
+		PRIVATE
+		Test/SoC_abstraction.cpp
+		)
+else()
+	message(FATAL_ERROR "SoC abstraction yet to be implemented")
+endif()
 
 set_target_properties(${MODULE_NAME} PROPERTIES
-        CXX_STANDARD 11
-        CXX_STANDARD_REQUIRED YES)
+	CXX_STANDARD 11
+	CXX_STANDARD_REQUIRED YES)
 set_source_files_properties(MiracastPlayer.cpp PROPERTIES COMPILE_FLAGS "-fexceptions")
 
 target_include_directories(${MODULE_NAME} PRIVATE ./)
@@ -66,6 +80,6 @@ if(WPEFRAMEWORK_SECURITYUTIL_FOUND)
 endif()
 
 install(TARGETS ${MODULE_NAME}
-        DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
+	DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
 
 write_config(${PLUGIN_NAME})
