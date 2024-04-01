@@ -18,6 +18,21 @@ set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)
 
+if (NOT RDK_SERVICES_L1_TEST)
+    target_compile_options(${MODULE_NAME} PRIVATE -Wno-error)
+endif ()
+
+if (RDK_SERVICE_L2_TEST)
+   message ("L2 test Enabled")
+   find_library(TESTMOCKLIB_LIBRARIES NAMES TestMocklib)
+   if (TESTMOCKLIB_LIBRARIES)
+       message ("linking mock libraries ${TESTMOCKLIB_LIBRARIES} library")
+       target_link_libraries(${MODULE_NAME} PRIVATE ${TESTMOCKLIB_LIBRARIES})
+   else (TESTMOCKLIB_LIBRARIES)
+       message ("Require ${TESTMOCKLIB_LIBRARIES} library")
+   endif (TESTMOCKLIB_LIBRARIES)
+endif (RDK_SERVICES_L2_TEST)
+
 target_include_directories(${MODULE_NAME} PRIVATE
         ../helpers
         ${UDEV_INCLUDE_DIRS}
