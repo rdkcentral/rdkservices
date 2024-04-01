@@ -359,6 +359,7 @@ namespace WPEFramework
 			{
 				getBoolParameter("enabled", is_enabled);
 				m_miracast_ctrler_obj->setP2PBackendDiscovery(is_enabled);
+				success = true;
 			}
 			else
 			{
@@ -589,7 +590,7 @@ namespace WPEFramework
 				if (separate_logger.HasLabel("status"))
 				{
 					std::string status = "";
-					status = separate_logger["separate_logger"].String();
+					status = separate_logger["status"].String();
 
 					success = true;
 
@@ -649,7 +650,6 @@ namespace WPEFramework
 					set_loglevel(level);
 				}
 			}
-
 			MIRACASTLOG_INFO("Exiting..!!!");
 			returnResponse(success);
 		}

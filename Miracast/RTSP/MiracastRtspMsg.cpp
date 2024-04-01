@@ -18,7 +18,7 @@
  */
 
 #include <MiracastRtspMsg.h>
-#include <MiracastGstPlayer.h>
+#include <SoC_abstraction.h>
 
 MiracastRTSPMsg *MiracastRTSPMsg::m_rtsp_msg_obj{nullptr};
 static std::string empty_string = "";
@@ -1974,43 +1974,6 @@ int MiracastRTSPMsg::validateGetParameterContentLength(std::string input)
 MiracastError MiracastRTSPMsg::start_streaming( VIDEO_RECT_STRUCT video_rect )
 {
     MIRACASTLOG_TRACE("Entering...");
-#if defined(PLATFORM_AMLOGIC)
-    {
-        char command[128] = {0};
-        std::string default_error_proc_policy = "2151665463";
-        std::ifstream decoder_error_proc_policy_file("/opt/aml_dec_error_proc_policy");
-
-        if (decoder_error_proc_policy_file.is_open())
-        {
-            std::string new_error_proc_policy = "";
-            std::getline(decoder_error_proc_policy_file, new_error_proc_policy);
-            decoder_error_proc_policy_file.close();
-
-            MIRACASTLOG_VERBOSE("decoder_error_proc_policy_file reading from file [/opt/aml_dec_error_proc_policy], new_error_proc_policy as [%s] ",
-                                new_error_proc_policy.c_str());
-            MIRACASTLOG_VERBOSE("Overwriting error_proc_policy default[%s] with new[%s]",
-                                default_error_proc_policy.c_str(),
-                                new_error_proc_policy.c_str());
-            default_error_proc_policy = new_error_proc_policy;
-        }
-
-        if ( ! default_error_proc_policy.empty())
-        {
-            sprintf(command, "echo %s > /sys/module/amvdec_mh264/parameters/error_proc_policy",
-                    default_error_proc_policy.c_str());
-
-            MIRACASTLOG_INFO("command for applying error_proc_policy[%s]",command);
-            if (0 == MiracastCommon::execute_SystemCommand(command))
-            {
-                MIRACASTLOG_INFO("error_proc_policy applied successfully");
-            }
-            else
-            {
-                MIRACASTLOG_ERROR("!!! Failed to apply error_proc_policy !!!");
-            }
-        }
-    }
-#endif
     std::string gstreamerPipeline = "";
     const char *mcastfile = "/opt/miracast_gstpipline.txt";
     std::ifstream mcgstfile(mcastfile);

@@ -184,21 +184,6 @@ namespace WPEFramework
 				{
 					switch (ret_code)
 					{
-					case MIRACAST_INVALID_P2P_CTRL_IFACE:
-					{
-						msg = "Invalid P2P Ctrl iface configured";
-					}
-					break;
-					case MIRACAST_CONTROLLER_INIT_FAILED:
-					{
-						msg = "Controller Init Failed";
-					}
-					break;
-					case MIRACAST_P2P_INIT_FAILED:
-					{
-						msg = "P2P Init Failed";
-					}
-					break;
 					case MIRACAST_RTSP_INIT_FAILED:
 					{
 						msg = "RTSP msg handler Init Failed";
@@ -454,7 +439,7 @@ namespace WPEFramework
 				if (separate_logger.HasLabel("status"))
 				{
 					std::string status = "";
-					status = separate_logger["separate_logger"].String();
+					status = separate_logger["status"].String();
 
 					success = true;
 

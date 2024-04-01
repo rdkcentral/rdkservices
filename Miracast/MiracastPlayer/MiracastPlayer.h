@@ -24,7 +24,7 @@
 
 #include "Module.h"
 #include "MiracastRtspMsg.h"
-#include "MiracastGstPlayer.h"
+#include "SoC_abstraction.h"
 
 using std::vector;
 namespace WPEFramework

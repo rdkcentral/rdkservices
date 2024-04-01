@@ -48,7 +48,7 @@ target_link_libraries(${MODULE_NAME} PRIVATE ${IARMBUS_LIBRARIES})
 target_link_libraries(${MODULE_NAME} PRIVATE ${GLIB_LIBRARIES})
 target_link_libraries(${MODULE_NAME} PRIVATE -lpthread)
 
-if(WPEFRAMEWORK_SECURITYUTIL_FOUND)
+if(NOT RDK_SERVICES_L1_TEST)
     target_link_libraries(${MODULE_NAME} PRIVATE -lwpa_client)
 endif()
 
