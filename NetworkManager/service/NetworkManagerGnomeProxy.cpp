@@ -456,15 +456,130 @@ namespace WPEFramework
             return rc;
         }
 
+        static void on_scan_done(GObject *source_object, GAsyncResult *result, gpointer user_data)
+        {
+            GError *error = NULL;
+            GBytes *ssid = NULL;
+            NMAccessPoint *ap = NULL;
+            int strength = 0;
+            std::string freq;
+            guint security;
+            guint32 flags, wpaFlags, rsnFlags, ap_freq;
+            JsonArray ssidList = JsonArray();
+            JsonObject ssidObj;
+            gboolean success = nm_device_wifi_request_scan_finish(NM_DEVICE_WIFI(source_object), result, &error);
+            if (success)
+            {
+                NMDeviceWifi *wifi_device = NM_DEVICE_WIFI(source_object);
+                const GPtrArray *access_points = nm_device_wifi_get_access_points(wifi_device);
+                NMLOG_INFO("Number of Access Points Scanned=%d\n",access_points->len);
+                for (guint i = 0; i < access_points->len; i++)
+                {
+                    char* ssid_str = NULL;
+                    ap = (NMAccessPoint*)access_points->pdata[i];
+                    ssid = nm_access_point_get_ssid(ap);
+                    if (ssid)
+                    {
+                        ssid_str = nm_utils_ssid_to_utf8((const guint8*)g_bytes_get_data(ssid, NULL), g_bytes_get_size(ssid));
+                        strength = nm_access_point_get_strength(ap);
+                        ap_freq   = nm_access_point_get_frequency(ap);
+                        flags     = nm_access_point_get_flags(ap);
+                        wpaFlags = nm_access_point_get_wpa_flags(ap);
+                        rsnFlags = nm_access_point_get_rsn_flags(ap);
+                        if (ap_freq >= 2400 && ap_freq < 5000) {
+                            freq = "2.4";
+                        }
+                        else if (ap_freq >= 5000 && ap_freq < 6000) {
+                            freq = "5";
+                        }
+                        else if (ap_freq >= 6000) {
+                            freq = "6";
+                        }
+                        else {
+                            freq = "Not available";
+                        }
+			if ((flags == NM_802_11_AP_FLAGS_NONE) && (wpaFlags == NM_802_11_AP_SEC_NONE) && (rsnFlags == NM_802_11_AP_SEC_NONE))
+                        {
+                            security = 0;
+                        }
+                        else if( (flags & NM_802_11_AP_FLAGS_PRIVACY) && ((wpaFlags & NM_802_11_AP_SEC_PAIR_WEP40) || (rsnFlags & NM_802_11_AP_SEC_PAIR_WEP40)) )
+                        {
+                            security = 1;
+                        }
+                        else if( (flags & NM_802_11_AP_FLAGS_PRIVACY) && ((wpaFlags & NM_802_11_AP_SEC_PAIR_WEP104) || (rsnFlags & NM_802_11_AP_SEC_PAIR_WEP104)) )
+                        {
+                            security = 2;
+                        }
+                        else if((wpaFlags & NM_802_11_AP_SEC_PAIR_TKIP) || (rsnFlags & NM_802_11_AP_SEC_PAIR_TKIP))
+                        {
+                            security = 3;
+                        }
+                        else if((wpaFlags & NM_802_11_AP_SEC_PAIR_CCMP) || (rsnFlags & NM_802_11_AP_SEC_PAIR_CCMP))
+                        {
+                            security = 4;
+                        }
+                        else if ((rsnFlags & NM_802_11_AP_SEC_KEY_MGMT_PSK) && (rsnFlags & NM_802_11_AP_SEC_KEY_MGMT_802_1X))
+                        {
+                            security = 12;
+                        }
+                        else if(rsnFlags & NM_802_11_AP_SEC_KEY_MGMT_PSK)
+                        {
+                            security = 11;
+                        }
+                        else if((wpaFlags & NM_802_11_AP_SEC_GROUP_CCMP) || (rsnFlags & NM_802_11_AP_SEC_GROUP_CCMP))
+                        {
+                            security = 6;
+                        }
+                        else if((wpaFlags & NM_802_11_AP_SEC_GROUP_TKIP) || (rsnFlags & NM_802_11_AP_SEC_GROUP_TKIP))
+                        {
+                            security = 5;;
+                        }
+                        else
+                        {
+                            NMLOG_WARNING("security mode not defined");
+                        }
+		    }
+                    if(ssid_str)
+                    {
+                        string ssidString(ssid_str);
+                        ssidObj["ssid"] = ssidString;
+                        ssidObj["security"] = security;
+                        ssidObj["signalStrength"] = strength;
+                        ssidObj["frequency"] = freq;
+                        ssidList.Add(ssidObj);
+                    }
+                }
+            }
+            else
+            {
+                NMLOG_ERROR("Error requesting Wi-Fi scan: %s\n", error->message);
+            }
+            string json;
+            ssidList.ToString(json);
+            NMLOG_INFO("Scanned APIs are  = %s",json.c_str());
+            ::_instance->ReportAvailableSSIDsEvent(json);
+            g_main_loop_quit((GMainLoop *)user_data);
+        }
+
         uint32_t NetworkManagerImplementation::StartWiFiScan(const WiFiFrequency frequency /* @in */)
         {
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
+	    GMainLoop *loop;
+            loop = g_main_loop_new(NULL, FALSE);
+            NMDevice *wifi_device;
+            wifi_device = nm_client_get_device_by_iface(client, "wlan0");
+            nm_device_wifi_request_scan_options_async(NM_DEVICE_WIFI(wifi_device), NULL, NULL, on_scan_done, loop);//TODO Explore further on the API and check whether w            which all options can be passed as Argument. Example : We can pass SSID as an option and scan for that SSID alone
+            g_main_loop_run(loop);
+            rc = Core::ERROR_NONE;
             return rc;
         }
 
         uint32_t NetworkManagerImplementation::StopWiFiScan(void)
         {
-            uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
+            uint32_t rc = Core::ERROR_NONE;
+	    //TODO
+            //Explore nm_device_wifi_request_scan_finish and other API which can be used stop scan
+            NMLOG_INFO ("StopWiFiScan is success\n");
             return rc;
         }
 
@@ -559,7 +674,6 @@ namespace WPEFramework
                          NM_SETTING_WIRELESS_SECURITY_PSK,
                          ssid.m_passphrase.c_str(),
                          NULL);
-
                     break;
                 }
                 case WIFI_SECURITY_WPA2_PSK_AES:
@@ -614,12 +728,12 @@ namespace WPEFramework
                             nm_remote_connection_delete(remoteConnection, NULL, &error);
                             if (error)
                             {
-                                NMLOG_ERROR("RemoveKnownSSID failed\n");
+                                NMLOG_ERROR("RemoveKnownSSID failed");
                                 g_error_free(error);
                             }
                             else
                             {
-                                NMLOG_INFO("RemoveKnownSSID is success\n");
+                                NMLOG_INFO("RemoveKnownSSID is success");
                                 rc = Core::ERROR_NONE;
                             }
                             break;
@@ -633,7 +747,7 @@ namespace WPEFramework
         uint32_t NetworkManagerImplementation::WiFiConnect(const WiFiConnectTo& ssid /* @in */)
         {
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
-            if(wifi->wifiConnect(ssid.m_ssid.c_str(), ssid.m_passphrase.c_str(), ssid.m_securityMode))
+            if(wifi->wifiConnect(ssid))
                 rc = Core::ERROR_NONE;
             return rc;
         }

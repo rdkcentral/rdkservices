@@ -61,7 +61,7 @@
 			"example":"(INITIATED | INPROGRESS | PLAYING | STOPPED/IDLE(Default State))"
 		},
 		"player_reason_code": {
-			"summary":"player Reason codes",
+			"summary":"Player Reason codes",
 			"type":"number",
 			"enum": [
 				"MIRACAST_PLAYER_REASON_CODE_SUCCESS = 200",
@@ -114,7 +114,7 @@
 					"example": "\"0x03\""
 				},
 				"level": {
-					"summary": "The Levels bitmap indicates the maximum H.264 level supported for the corresponding H.264 profile indicated in the Profiles Bitmap. Only one bit in the Levels Bitmap used in a WFD subelement shall be set to one. This bitmap is also used in the WFD 3D Video Formats subelement. \nThis bitmap is also used by the wfd-video-formats parameter,wfd-3d-formats parameter and the wfd-preferred-display-mode parameter. In this case, the bitmap represents either:\n the maximum level supported for the H.264 profile indicated in the Profiles Bitmap supported by the WFD Device in an RTSP M3 Response message (only one bit set to one) or \n the level and the corresponding H.264 profile selected by the WFD Source in an RTSP M4 Request message (only one bit set to one).",
+					"summary": "The Levels bitmap indicates the maximum H.264 level supported for the corresponding H.264 profile indicated in the Profiles Bitmap. Only one bit in the Levels Bitmap used in a WFD subelement shall be set to one. This bitmap is also used in the WFD 3D Video Formats subelement. \nThis bitmap is also used by the wfd-video-formats parameter, the wfd-3d-formats parameter, and the wfd-preferred-display-mode parameter. In this case, the bitmap represents either:\n the maximum level supported for the H.264 profile indicated in the Profiles Bitmap supported by the WFD Device in an RTSP M3 Response message (only one bit set to one) or \n the level and the corresponding H.264 profile selected by the WFD Source in an RTSP M4 Request message (only one bit set to one).",
 					"type": "number",
 					"enum": [
 						"WFD_H264_LEVEL_3p1 = 0x01",
@@ -207,7 +207,7 @@
 					"example": "\"0x00000000\""
 				},
 				"latency": {
-					"summary": "It specifies the latency of the video decoder at the Primary Sink as an integer multiple of 5 msec. This field shall be set to all zeros when transmitted by the WFD Source in a WFD Service Discovery Response frame. This field should be set to all zeros when transmitted by the WFD Source in an RTSP M4 Request message and the WFD Sink shall ignore this field upon reception. If the Primary Sink does not support this field, it shall set this field to all zeros. Otherwise the WFD Sink shall set this field to a best-effort estimate of the worst-case time between the availability of source data at the input interface of the decoder, and the presentation of the corresponding decoded data at the input interface of the rendering device, rounded up to the next higher multiple of 5 msec",
+					"summary": "It specifies the latency of the video decoder at the Primary Sink as an integer multiple of 5 msec. This field shall be set to all zeros when transmitted by the WFD Source in a WFD Service Discovery Response frame. This field should be set to all zeros when transmitted by the WFD Source in an RTSP M4 Request message and the WFD Sink shall ignore this field upon reception. If the Primary Sink does not support this field, it shall set this field to all zeros. Otherwise, the WFD Sink shall set this field to a best-effort estimate of the worst-case time between the availability of source data at the input interface of the decoder, and the presentation of the corresponding decoded data at the input interface of the rendering device, rounded up to the next higher multiple of 5 msec",
 					"type": "number",
 					"example": "0"
 				},
@@ -217,7 +217,7 @@
 					"example": "0"
 				},
 				"slice_encode": {
-					"summary": "Bitmap for the slice encoding in which a picture is constructed by multiple slices.\nBits [9:0] named as Max Slice Num bits and used for Maximum number of slices per a picture, minus 1. \nBit [10:12] named as Max Slice Size Ratio bits and used for When this bitmap is used in a WFD subelement: Ratio of Maximum slice size to be used and Minimum slice size indicated in minimum-slice-size field in WFD Video Formats or WFD 3D Video Formats subelement. When this bitmap is used in an RTSP message: Ratio of Maximum slice size to be used and Minimum slice size indicated in minimum-slice-size field in wfd-video-formats or wfd-3d-formats. Rest of Bits are reserved",
+					"summary": "Bitmap for the slice encoding in which a picture is constructed by multiple slices.\nBits [9:0] are named as Max Slice Num bits and used for the Maximum number of slices per picture, minus 1.\nBit [10:12] named as Max Slice Size Ratio bits and used for When this bitmap is used in a WFD subelement: Ratio of Maximum slice size to be used and Minimum slice size indicated in the minimum-slice-size field in WFD Video Formats or WFD 3D Video Formats subelement. When this bitmap is used in an RTSP message: Ratio of Maximum slice size to be used and Minimum slice size indicated in the minimum-slice-size field in wfd-video-formats or wfd-3d-formats. Rest of Bits are reserved",
 					"type": "number",
 					"example": "0"
 				},
@@ -227,7 +227,7 @@
 					"example": false
 				},
 				"max_skip_intervals": {
-					"summary": "It indicate the maximum/allowable time-interval between two video frames after skipped as expressed equation as follows, except for 0b000. (value in decimal) x 0.5 second(s) \n0b000 : No limitation\n0b001~ 0b111 : parameter for indicating time-interval",
+					"summary": "It indicates the maximum/allowable time-interval between two video frames after skipped as expressed equation as follows, except for 0b000. (value in decimal) x 0.5 second(s)\n0b000 : No limitation\n0b001~ 0b111 : parameter for indicating time-interval",
 					"type": "number",
 					"example": "0"
 				},
@@ -241,7 +241,7 @@
 			"required": [ "profile", "level", "cea_mask", "vesa_mask", "hh_mask" ]
 		},
 		"audio_format_type": {
-			"summary": "It specifying the type the Audio decoder at the WFD Sink",
+			"summary": "It specifies the type of the Audio decoder at the WFD Sink",
 			"type": "number",
 			"enum": [
 				"WFD_LPCM_AUDIO_FORMAT = 0x00000001",
@@ -267,7 +267,7 @@
 			"example": "\"0x00000001\""
 		},
 		"audio_format_latency": {
-			"summary": "It specifying the latency of the Audio decoder at the WFD Sink as an integer multiple of 5 msec. This field shall be set to all zeros when transmitted by the WFD Source in a WFD Service Discovery Response frame. This field should be set to all zeros when transmitted by the WFD Source in an RTSP M4 Request message and the WFD Sink shall ignore this field upon reception. If the WFD Sink does not support this field, it shall set this field to all zeros. Otherwise the WFD Sink shall set this field to a best-effort estimate of the worst-case time between the availability of source data at the input interface of the decoder, and the presentation of the corresponding decoded data at the input interface of the rendering device, rounded up to the next higher multiple of 5 msec",
+			"summary": "It specifies the latency of the Audio decoder at the WFD Sink as an integer multiple of 5 msec. This field shall be set to all zeros when transmitted by the WFD Source in a WFD Service Discovery Response frame. This field should be set to all zeros when transmitted by the WFD Source in an RTSP M4 Request message and the WFD Sink shall ignore this field upon reception. If the WFD Sink does not support this field, it shall set this field to all zeros. Otherwise, the WFD Sink shall set this field to a best-effort estimate of the worst-case time between the availability of source data at the input interface of the decoder, and the presentation of the corresponding decoded data at the input interface of the rendering device, rounded up to the next higher multiple of 5 msec",
 			"type": "number",
 			"example": "0"
 		}
@@ -409,7 +409,7 @@
 			}
 		},
 		"setLogging":{
-			"summary": "Enable/Disable/Reduce Logging level for Miracast",
+			"summary": "Enable/Disable/Reduce the Logging level for Miracast",
 			"params": {
 				"type":"object",
 				"properties": {
@@ -419,11 +419,11 @@
 						"example": "FATAL|ERROR|WARNING|INFO|VERBOSE|TRACE"
 					},
 					"separate_logger": {
-						"summary": "Route the Miracast player to separate file if required",
+						"summary": "Route the Miracast player to a separate file if required",
 						"type": "object",
 						"properties": {
 							"logfilename": {
-								"summary": "Name of separate logging filename. Logfile will be created under /opt/logs/",
+								"summary": "Name of a separate logging filename. Logfile will be created under /opt/logs/",
 								"type": "string",
 								"example": "sample.log"
 							},
