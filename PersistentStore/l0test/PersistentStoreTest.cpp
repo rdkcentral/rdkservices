@@ -4,9 +4,6 @@
 #include "../PersistentStore.h"
 #include "ServiceMock.h"
 #include "Store2Mock.h"
-#include "StoreCacheMock.h"
-#include "StoreInspectorMock.h"
-#include "StoreLimitMock.h"
 
 using ::testing::_;
 using ::testing::Eq;
@@ -23,6 +20,7 @@ using ::WPEFramework::Exchange::IStoreInspector;
 using ::WPEFramework::JsonData::PersistentStore::DeleteKeyParamsInfo;
 using ::WPEFramework::JsonData::PersistentStore::DeleteNamespaceParamsInfo;
 using ::WPEFramework::JsonData::PersistentStore::GetKeysResultData;
+using ::WPEFramework::JsonData::PersistentStore::GetNamespacesParamsInfo;
 using ::WPEFramework::JsonData::PersistentStore::GetNamespacesResultData;
 using ::WPEFramework::JsonData::PersistentStore::GetNamespaceStorageLimitResultData;
 using ::WPEFramework::JsonData::PersistentStore::GetStorageSizesResultData;
@@ -69,8 +67,8 @@ TEST_F(APersistentStore, GetsValueInDeviceScopeViaJsonRpc)
         {
             EXPECT_CALL(*this, GetValue(_, _, _, _, _))
                 .WillRepeatedly(Invoke(
-                    [](const ScopeType scope, const string& ns, const string& key, string& value, uint32_t& ttl) {
-                        EXPECT_THAT(scope, Eq(ScopeType::DEVICE));
+                    [](const IStore2::ScopeType scope, const string& ns, const string& key, string& value, uint32_t& ttl) {
+                        EXPECT_THAT(scope, Eq(IStore2::ScopeType::DEVICE));
                         EXPECT_THAT(ns, Eq(kAppId));
                         EXPECT_THAT(key, Eq(kKey));
                         value = kValue;
@@ -106,8 +104,8 @@ TEST_F(APersistentStore, GetsValueInAccountScopeViaJsonRpc)
         {
             EXPECT_CALL(*this, GetValue(_, _, _, _, _))
                 .WillRepeatedly(Invoke(
-                    [](const ScopeType scope, const string& ns, const string& key, string& value, uint32_t& ttl) {
-                        EXPECT_THAT(scope, Eq(ScopeType::ACCOUNT));
+                    [](const IStore2::ScopeType scope, const string& ns, const string& key, string& value, uint32_t& ttl) {
+                        EXPECT_THAT(scope, Eq(IStore2::ScopeType::ACCOUNT));
                         EXPECT_THAT(ns, Eq(kAppId));
                         EXPECT_THAT(key, Eq(kKey));
                         value = kValue;
@@ -144,8 +142,8 @@ TEST_F(APersistentStore, SetsValueInDeviceScopeViaJsonRpc)
         {
             EXPECT_CALL(*this, SetValue(_, _, _, _, _))
                 .WillRepeatedly(Invoke(
-                    [](const ScopeType scope, const string& ns, const string& key, const string& value, const uint32_t ttl) {
-                        EXPECT_THAT(scope, Eq(ScopeType::DEVICE));
+                    [](const IStore2::ScopeType scope, const string& ns, const string& key, const string& value, const uint32_t ttl) {
+                        EXPECT_THAT(scope, Eq(IStore2::ScopeType::DEVICE));
                         EXPECT_THAT(ns, Eq(kAppId));
                         EXPECT_THAT(key, Eq(kKey));
                         EXPECT_THAT(value, Eq(kValue));
@@ -179,8 +177,8 @@ TEST_F(APersistentStore, SetsValueInAccountScopeViaJsonRpc)
         {
             EXPECT_CALL(*this, SetValue(_, _, _, _, _))
                 .WillRepeatedly(Invoke(
-                    [](const ScopeType scope, const string& ns, const string& key, const string& value, const uint32_t ttl) {
-                        EXPECT_THAT(scope, Eq(ScopeType::ACCOUNT));
+                    [](const IStore2::ScopeType scope, const string& ns, const string& key, const string& value, const uint32_t ttl) {
+                        EXPECT_THAT(scope, Eq(IStore2::ScopeType::ACCOUNT));
                         EXPECT_THAT(ns, Eq(kAppId));
                         EXPECT_THAT(key, Eq(kKey));
                         EXPECT_THAT(value, Eq(kValue));
@@ -215,8 +213,8 @@ TEST_F(APersistentStore, DeletesKeyInDeviceScopeViaJsonRpc)
         {
             EXPECT_CALL(*this, DeleteKey(_, _, _))
                 .WillRepeatedly(Invoke(
-                    [](const ScopeType scope, const string& ns, const string& key) {
-                        EXPECT_THAT(scope, Eq(ScopeType::DEVICE));
+                    [](const IStore2::ScopeType scope, const string& ns, const string& key) {
+                        EXPECT_THAT(scope, Eq(IStore2::ScopeType::DEVICE));
                         EXPECT_THAT(ns, Eq(kAppId));
                         EXPECT_THAT(key, Eq(kKey));
                         return WPEFramework::Core::ERROR_NONE;
@@ -246,8 +244,8 @@ TEST_F(APersistentStore, DeletesKeyInAccountScopeViaJsonRpc)
         {
             EXPECT_CALL(*this, DeleteKey(_, _, _))
                 .WillRepeatedly(Invoke(
-                    [](const ScopeType scope, const string& ns, const string& key) {
-                        EXPECT_THAT(scope, Eq(ScopeType::ACCOUNT));
+                    [](const IStore2::ScopeType scope, const string& ns, const string& key) {
+                        EXPECT_THAT(scope, Eq(IStore2::ScopeType::ACCOUNT));
                         EXPECT_THAT(ns, Eq(kAppId));
                         EXPECT_THAT(key, Eq(kKey));
                         return WPEFramework::Core::ERROR_NONE;
@@ -278,8 +276,8 @@ TEST_F(APersistentStore, DeletesNamespaceInDeviceScopeViaJsonRpc)
         {
             EXPECT_CALL(*this, DeleteNamespace(_, _))
                 .WillRepeatedly(Invoke(
-                    [](const ScopeType scope, const string& ns) {
-                        EXPECT_THAT(scope, Eq(ScopeType::DEVICE));
+                    [](const IStore2::ScopeType scope, const string& ns) {
+                        EXPECT_THAT(scope, Eq(IStore2::ScopeType::DEVICE));
                         EXPECT_THAT(ns, Eq(kAppId));
                         return WPEFramework::Core::ERROR_NONE;
                     }));
@@ -307,8 +305,8 @@ TEST_F(APersistentStore, DeletesNamespaceInAccountScopeViaJsonRpc)
         {
             EXPECT_CALL(*this, DeleteNamespace(_, _))
                 .WillRepeatedly(Invoke(
-                    [](const ScopeType scope, const string& ns) {
-                        EXPECT_THAT(scope, Eq(ScopeType::ACCOUNT));
+                    [](const IStore2::ScopeType scope, const string& ns) {
+                        EXPECT_THAT(scope, Eq(IStore2::ScopeType::ACCOUNT));
                         EXPECT_THAT(ns, Eq(kAppId));
                         return WPEFramework::Core::ERROR_NONE;
                     }));
@@ -331,15 +329,15 @@ TEST_F(APersistentStore, DeletesNamespaceInAccountScopeViaJsonRpc)
 
 TEST_F(APersistentStore, FlushesCacheViaJsonRpc)
 {
-    class SqliteStoreCache : public NiceMock<StoreCacheMock> {
+    class SqliteStore2 : public NiceMock<Store2Mock> {
     public:
-        SqliteStoreCache()
+        SqliteStore2()
         {
             EXPECT_CALL(*this, FlushCache())
                 .WillRepeatedly(Return(WPEFramework::Core::ERROR_NONE));
         }
     };
-    PublishedServiceType<SqliteStoreCache> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
+    PublishedServiceType<SqliteStore2> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
     ASSERT_THAT(plugin->Initialize(service), Eq(""));
     auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
     ASSERT_THAT(jsonRpc, NotNull());
@@ -351,21 +349,21 @@ TEST_F(APersistentStore, FlushesCacheViaJsonRpc)
 
 TEST_F(APersistentStore, GetsKeysInDeviceScopeViaJsonRpc)
 {
-    class SqliteStoreInspector : public NiceMock<StoreInspectorMock> {
+    class SqliteStore2 : public NiceMock<Store2Mock> {
     public:
-        SqliteStoreInspector()
+        SqliteStore2()
         {
             EXPECT_CALL(*this, GetKeys(_, _, _))
                 .WillRepeatedly(Invoke(
-                    [](const ScopeType scope, const string& ns, IStringIterator*& keys) {
-                        EXPECT_THAT(scope, Eq(ScopeType::DEVICE));
+                    [](const IStoreInspector::ScopeType scope, const string& ns, IStringIterator*& keys) {
+                        EXPECT_THAT(scope, Eq(IStoreInspector::ScopeType::DEVICE));
                         EXPECT_THAT(ns, Eq(kAppId));
                         keys = (WPEFramework::Core::Service<StringIterator>::Create<IStringIterator>(kKeys));
                         return WPEFramework::Core::ERROR_NONE;
                     }));
         }
     };
-    PublishedServiceType<SqliteStoreInspector> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
+    PublishedServiceType<SqliteStore2> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
     ASSERT_THAT(plugin->Initialize(service), Eq(""));
     auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
     ASSERT_THAT(jsonRpc, NotNull());
@@ -387,22 +385,38 @@ TEST_F(APersistentStore, GetsKeysInDeviceScopeViaJsonRpc)
     plugin->Deinitialize(service);
 }
 
+TEST_F(APersistentStore, DoesNotGetKeysInAccountScopeViaJsonRpc)
+{
+    ASSERT_THAT(plugin->Initialize(service), Eq(""));
+    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
+    ASSERT_THAT(jsonRpc, NotNull());
+    DeleteNamespaceParamsInfo params;
+    params.Scope = WPEFramework::JsonData::PersistentStore::ScopeType::ACCOUNT;
+    params.Namespace = kAppId;
+    string paramsJsonStr;
+    params.ToString(paramsJsonStr);
+    string resultJsonStr;
+    EXPECT_THAT(jsonRpc->Invoke(0, 0, "", "getKeys", paramsJsonStr, resultJsonStr), Eq(WPEFramework::Core::ERROR_NOT_SUPPORTED));
+    jsonRpc->Release();
+    plugin->Deinitialize(service);
+}
+
 TEST_F(APersistentStore, GetsNamespacesInDeviceScopeViaJsonRpc)
 {
-    class SqliteStoreInspector : public NiceMock<StoreInspectorMock> {
+    class SqliteStore2 : public NiceMock<Store2Mock> {
     public:
-        SqliteStoreInspector()
+        SqliteStore2()
         {
             EXPECT_CALL(*this, GetNamespaces(_, _))
                 .WillRepeatedly(Invoke(
-                    [](const ScopeType scope, IStringIterator*& namespaces) {
-                        EXPECT_THAT(scope, Eq(ScopeType::DEVICE));
+                    [](const IStoreInspector::ScopeType scope, IStringIterator*& namespaces) {
+                        EXPECT_THAT(scope, Eq(IStoreInspector::ScopeType::DEVICE));
                         namespaces = (WPEFramework::Core::Service<StringIterator>::Create<IStringIterator>(kAppIds));
                         return WPEFramework::Core::ERROR_NONE;
                     }));
         }
     };
-    PublishedServiceType<SqliteStoreInspector> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
+    PublishedServiceType<SqliteStore2> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
     ASSERT_THAT(plugin->Initialize(service), Eq(""));
     auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
     ASSERT_THAT(jsonRpc, NotNull());
@@ -420,22 +434,37 @@ TEST_F(APersistentStore, GetsNamespacesInDeviceScopeViaJsonRpc)
     plugin->Deinitialize(service);
 }
 
+TEST_F(APersistentStore, DoesNotGetNamespacesInAccountScopeViaJsonRpc)
+{
+    ASSERT_THAT(plugin->Initialize(service), Eq(""));
+    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
+    ASSERT_THAT(jsonRpc, NotNull());
+    GetNamespacesParamsInfo params;
+    params.Scope = WPEFramework::JsonData::PersistentStore::ScopeType::ACCOUNT;
+    string paramsJsonStr;
+    params.ToString(paramsJsonStr);
+    string resultJsonStr;
+    EXPECT_THAT(jsonRpc->Invoke(0, 0, "", "getNamespaces", paramsJsonStr, resultJsonStr), Eq(WPEFramework::Core::ERROR_NOT_SUPPORTED));
+    jsonRpc->Release();
+    plugin->Deinitialize(service);
+}
+
 TEST_F(APersistentStore, GetsStorageSizesInDeviceScopeViaJsonRpc)
 {
-    class SqliteStoreInspector : public NiceMock<StoreInspectorMock> {
+    class SqliteStore2 : public NiceMock<Store2Mock> {
     public:
-        SqliteStoreInspector()
+        SqliteStore2()
         {
             EXPECT_CALL(*this, GetStorageSizes(_, _))
                 .WillRepeatedly(Invoke(
-                    [](const ScopeType scope, INamespaceSizeIterator*& storageList) {
-                        EXPECT_THAT(scope, Eq(ScopeType::DEVICE));
+                    [](const IStoreInspector::ScopeType scope, INamespaceSizeIterator*& storageList) {
+                        EXPECT_THAT(scope, Eq(IStoreInspector::ScopeType::DEVICE));
                         storageList = (WPEFramework::Core::Service<IteratorType<INamespaceSizeIterator>>::Create<INamespaceSizeIterator>(kSizes));
                         return WPEFramework::Core::ERROR_NONE;
                     }));
         }
     };
-    PublishedServiceType<SqliteStoreInspector> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
+    PublishedServiceType<SqliteStore2> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
     ASSERT_THAT(plugin->Initialize(service), Eq(""));
     auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
     ASSERT_THAT(jsonRpc, NotNull());
@@ -455,23 +484,38 @@ TEST_F(APersistentStore, GetsStorageSizesInDeviceScopeViaJsonRpc)
     plugin->Deinitialize(service);
 }
 
+TEST_F(APersistentStore, DoesNotGetStorageSizesInAccountScopeViaJsonRpc)
+{
+    ASSERT_THAT(plugin->Initialize(service), Eq(""));
+    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
+    ASSERT_THAT(jsonRpc, NotNull());
+    GetNamespacesParamsInfo params;
+    params.Scope = WPEFramework::JsonData::PersistentStore::ScopeType::ACCOUNT;
+    string paramsJsonStr;
+    params.ToString(paramsJsonStr);
+    string resultJsonStr;
+    EXPECT_THAT(jsonRpc->Invoke(0, 0, "", "getStorageSizes", paramsJsonStr, resultJsonStr), Eq(WPEFramework::Core::ERROR_NOT_SUPPORTED));
+    jsonRpc->Release();
+    plugin->Deinitialize(service);
+}
+
 TEST_F(APersistentStore, GetsNamespaceStorageLimitInDeviceScopeViaJsonRpc)
 {
-    class SqliteStoreLimit : public NiceMock<StoreLimitMock> {
+    class SqliteStore2 : public NiceMock<Store2Mock> {
     public:
-        SqliteStoreLimit()
+        SqliteStore2()
         {
             EXPECT_CALL(*this, GetNamespaceStorageLimit(_, _, _))
                 .WillRepeatedly(Invoke(
-                    [](const ScopeType scope, const string& ns, uint32_t& size) {
-                        EXPECT_THAT(scope, Eq(ScopeType::DEVICE));
+                    [](const IStoreLimit::ScopeType scope, const string& ns, uint32_t& size) {
+                        EXPECT_THAT(scope, Eq(IStoreLimit::ScopeType::DEVICE));
                         EXPECT_THAT(ns, Eq(kAppId));
                         size = kSize;
                         return WPEFramework::Core::ERROR_NONE;
                     }));
         }
     };
-    PublishedServiceType<SqliteStoreLimit> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
+    PublishedServiceType<SqliteStore2> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
     ASSERT_THAT(plugin->Initialize(service), Eq(""));
     auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
     ASSERT_THAT(jsonRpc, NotNull());
@@ -488,23 +532,39 @@ TEST_F(APersistentStore, GetsNamespaceStorageLimitInDeviceScopeViaJsonRpc)
     plugin->Deinitialize(service);
 }
 
+TEST_F(APersistentStore, DoesNotGetNamespaceStorageLimitInAccountScopeViaJsonRpc)
+{
+    ASSERT_THAT(plugin->Initialize(service), Eq(""));
+    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
+    ASSERT_THAT(jsonRpc, NotNull());
+    DeleteNamespaceParamsInfo params;
+    params.Scope = WPEFramework::JsonData::PersistentStore::ScopeType::ACCOUNT;
+    params.Namespace = kAppId;
+    string paramsJsonStr;
+    params.ToString(paramsJsonStr);
+    string resultJsonStr;
+    EXPECT_THAT(jsonRpc->Invoke(0, 0, "", "getNamespaceStorageLimit", paramsJsonStr, resultJsonStr), Eq(WPEFramework::Core::ERROR_NOT_SUPPORTED));
+    jsonRpc->Release();
+    plugin->Deinitialize(service);
+}
+
 TEST_F(APersistentStore, SetsNamespaceStorageLimitInDeviceScopeViaJsonRpc)
 {
-    class SqliteStoreLimit : public NiceMock<StoreLimitMock> {
+    class SqliteStore2 : public NiceMock<Store2Mock> {
     public:
-        SqliteStoreLimit()
+        SqliteStore2()
         {
             EXPECT_CALL(*this, SetNamespaceStorageLimit(_, _, _))
                 .WillRepeatedly(Invoke(
-                    [](const ScopeType scope, const string& ns, const uint32_t size) {
-                        EXPECT_THAT(scope, Eq(ScopeType::DEVICE));
+                    [](const IStoreLimit::ScopeType scope, const string& ns, const uint32_t size) {
+                        EXPECT_THAT(scope, Eq(IStoreLimit::ScopeType::DEVICE));
                         EXPECT_THAT(ns, Eq(kAppId));
                         EXPECT_THAT(size, Eq(kSize));
                         return WPEFramework::Core::ERROR_NONE;
                     }));
         }
     };
-    PublishedServiceType<SqliteStoreLimit> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
+    PublishedServiceType<SqliteStore2> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
     ASSERT_THAT(plugin->Initialize(service), Eq(""));
     auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
     ASSERT_THAT(jsonRpc, NotNull());
@@ -519,6 +579,23 @@ TEST_F(APersistentStore, SetsNamespaceStorageLimitInDeviceScopeViaJsonRpc)
     plugin->Deinitialize(service);
 }
 
+TEST_F(APersistentStore, DoesNotSetNamespaceStorageLimitInAccountScopeViaJsonRpc)
+{
+    ASSERT_THAT(plugin->Initialize(service), Eq(""));
+    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
+    ASSERT_THAT(jsonRpc, NotNull());
+    SetNamespaceStorageLimitParamsData params;
+    params.Scope = WPEFramework::JsonData::PersistentStore::ScopeType::ACCOUNT;
+    params.Namespace = kAppId;
+    params.StorageLimit = kSize;
+    string paramsJsonStr;
+    params.ToString(paramsJsonStr);
+    string resultJsonStr;
+    EXPECT_THAT(jsonRpc->Invoke(0, 0, "", "setNamespaceStorageLimit", paramsJsonStr, resultJsonStr), Eq(WPEFramework::Core::ERROR_NOT_SUPPORTED));
+    jsonRpc->Release();
+    plugin->Deinitialize(service);
+}
+
 TEST_F(APersistentStore, GetsValueInDeviceScopeViaIStore)
 {
     class SqliteStore2 : public NiceMock<Store2Mock> {
@@ -527,8 +604,8 @@ TEST_F(APersistentStore, GetsValueInDeviceScopeViaIStore)
         {
             EXPECT_CALL(*this, GetValue(_, _, _, _, _))
                 .WillRepeatedly(Invoke(
-                    [](const ScopeType scope, const string& ns, const string& key, string& value, uint32_t& ttl) {
-                        EXPECT_THAT(scope, Eq(ScopeType::DEVICE));
+                    [](const IStore2::ScopeType scope, const string& ns, const string& key, string& value, uint32_t& ttl) {
+                        EXPECT_THAT(scope, Eq(IStore2::ScopeType::DEVICE));
                         EXPECT_THAT(ns, Eq(kAppId));
                         EXPECT_THAT(key, Eq(kKey));
                         value = kValue;
@@ -555,8 +632,8 @@ TEST_F(APersistentStore, SetsValueInDeviceScopeViaIStore)
         {
             EXPECT_CALL(*this, SetValue(_, _, _, _, _))
                 .WillRepeatedly(Invoke(
-                    [](const ScopeType scope, const string& ns, const string& key, const string& value, const uint32_t ttl) {
-                        EXPECT_THAT(scope, Eq(ScopeType::DEVICE));
+                    [](const IStore2::ScopeType scope, const string& ns, const string& key, const string& value, const uint32_t ttl) {
+                        EXPECT_THAT(scope, Eq(IStore2::ScopeType::DEVICE));
                         EXPECT_THAT(ns, Eq(kAppId));
                         EXPECT_THAT(key, Eq(kKey));
                         EXPECT_THAT(value, Eq(kValue));
@@ -582,8 +659,8 @@ TEST_F(APersistentStore, DeletesKeyInDeviceScopeViaIStore)
         {
             EXPECT_CALL(*this, DeleteKey(_, _, _))
                 .WillRepeatedly(Invoke(
-                    [](const ScopeType scope, const string& ns, const string& key) {
-                        EXPECT_THAT(scope, Eq(ScopeType::DEVICE));
+                    [](const IStore2::ScopeType scope, const string& ns, const string& key) {
+                        EXPECT_THAT(scope, Eq(IStore2::ScopeType::DEVICE));
                         EXPECT_THAT(ns, Eq(kAppId));
                         EXPECT_THAT(key, Eq(kKey));
                         return WPEFramework::Core::ERROR_NONE;
@@ -607,8 +684,8 @@ TEST_F(APersistentStore, DeletesNamespaceInDeviceScopeViaIStore)
         {
             EXPECT_CALL(*this, DeleteNamespace(_, _))
                 .WillRepeatedly(Invoke(
-                    [](const ScopeType scope, const string& ns) {
-                        EXPECT_THAT(scope, Eq(ScopeType::DEVICE));
+                    [](const IStore2::ScopeType scope, const string& ns) {
+                        EXPECT_THAT(scope, Eq(IStore2::ScopeType::DEVICE));
                         EXPECT_THAT(ns, Eq(kAppId));
                         return WPEFramework::Core::ERROR_NONE;
                     }));
