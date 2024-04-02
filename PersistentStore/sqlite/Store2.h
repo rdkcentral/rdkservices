@@ -21,6 +21,7 @@
 
 #include "../Module.h"
 #include <interfaces/IStore2.h>
+#include <interfaces/IStoreCache.h>
 #include <sqlite3.h>
 #ifdef WITH_SYSMGR
 #include <libIBus.h>
@@ -31,7 +32,10 @@ namespace WPEFramework {
 namespace Plugin {
     namespace Sqlite {
 
-        class Store2 : public Exchange::IStore2 {
+        class Store2 : public Exchange::IStore2,
+                       public Exchange::IStoreCache,
+                       public Exchange::IStoreInspector,
+                       public Exchange::IStoreLimit {
         private:
             Store2(const Store2&) = delete;
             Store2& operator=(const Store2&) = delete;
@@ -47,6 +51,9 @@ namespace Plugin {
             }
             Store2(const string& path, const uint64_t maxSize, const uint64_t maxValue, const uint64_t limit)
                 : IStore2()
+                , IStoreCache()
+                , IStoreInspector()
+                , IStoreLimit()
                 , _path(path)
                 , _maxSize(maxSize)
                 , _maxValue(maxValue)
@@ -141,10 +148,9 @@ namespace Plugin {
 
                 return Core::ERROR_NONE;
             }
-
-            uint32_t SetValue(const ScopeType scope, const string& ns, const string& key, const string& value, const uint32_t ttl) override
+            uint32_t SetValue(const IStore2::ScopeType scope, const string& ns, const string& key, const string& value, const uint32_t ttl) override
             {
-                ASSERT(scope == ScopeType::DEVICE);
+                ASSERT(scope == IStore2::ScopeType::DEVICE);
 
                 uint32_t result;
 
@@ -192,9 +198,9 @@ namespace Plugin {
 
                 return result;
             }
-            uint32_t GetValue(const ScopeType scope, const string& ns, const string& key, string& value, uint32_t& ttl) override
+            uint32_t GetValue(const IStore2::ScopeType scope, const string& ns, const string& key, string& value, uint32_t& ttl) override
             {
-                ASSERT(scope == ScopeType::DEVICE);
+                ASSERT(scope == IStore2::ScopeType::DEVICE);
 
                 uint32_t result;
 
@@ -250,9 +256,9 @@ namespace Plugin {
 
                 return result;
             }
-            uint32_t DeleteKey(const ScopeType scope, const string& ns, const string& key) override
+            uint32_t DeleteKey(const IStore2::ScopeType scope, const string& ns, const string& key) override
             {
-                ASSERT(scope == ScopeType::DEVICE);
+                ASSERT(scope == IStore2::ScopeType::DEVICE);
 
                 uint32_t result;
 
@@ -276,9 +282,9 @@ namespace Plugin {
 
                 return result;
             }
-            uint32_t DeleteNamespace(const ScopeType scope, const string& ns) override
+            uint32_t DeleteNamespace(const IStore2::ScopeType scope, const string& ns) override
             {
-                ASSERT(scope == ScopeType::DEVICE);
+                ASSERT(scope == IStore2::ScopeType::DEVICE);
 
                 uint32_t result;
 
@@ -297,9 +303,189 @@ namespace Plugin {
 
                 return result;
             }
+            uint32_t FlushCache() override
+            {
+                uint32_t result;
+
+                auto rc = sqlite3_db_cacheflush(_data);
+
+                if (rc == SQLITE_OK) {
+                    result = Core::ERROR_NONE;
+                } else {
+                    OnError(__FUNCTION__, rc);
+                    result = Core::ERROR_GENERAL;
+                }
+
+                sync();
+
+                return result;
+            }
+            uint32_t GetKeys(const IStoreInspector::ScopeType scope, const string& ns, RPC::IStringIterator*& keys) override
+            {
+                ASSERT(scope == IStoreInspector::ScopeType::DEVICE);
+
+                uint32_t result;
+
+                sqlite3_stmt* stmt;
+                sqlite3_prepare_v2(_data, "select key"
+                                          " from item"
+                                          " where ns in (select id from namespace where name = ?)"
+                                          ";",
+                    -1, &stmt, nullptr);
+                sqlite3_bind_text(stmt, 1, ns.c_str(), -1, SQLITE_TRANSIENT);
+                std::list<string> list;
+                int rc;
+                while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+                    list.emplace_back((const char*)sqlite3_column_text(stmt, 0));
+                }
+                sqlite3_finalize(stmt);
+
+                if (rc == SQLITE_DONE) {
+                    keys = (Core::Service<RPC::StringIterator>::Create<RPC::IStringIterator>(list));
+                    result = Core::ERROR_NONE;
+                } else {
+                    OnError(__FUNCTION__, rc);
+                    result = Core::ERROR_GENERAL;
+                }
+
+                return result;
+            }
+            uint32_t GetNamespaces(const IStoreInspector::ScopeType scope, RPC::IStringIterator*& namespaces) override
+            {
+                ASSERT(scope == IStoreInspector::ScopeType::DEVICE);
+
+                uint32_t result;
+
+                sqlite3_stmt* stmt;
+                sqlite3_prepare_v2(_data, "select name from namespace;", -1, &stmt, nullptr);
+                std::list<string> list;
+                int rc;
+                while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+                    list.emplace_back((const char*)sqlite3_column_text(stmt, 0));
+                }
+                sqlite3_finalize(stmt);
+
+                if (rc == SQLITE_DONE) {
+                    namespaces = (Core::Service<RPC::StringIterator>::Create<RPC::IStringIterator>(list));
+                    result = Core::ERROR_NONE;
+                } else {
+                    OnError(__FUNCTION__, rc);
+                    result = Core::ERROR_GENERAL;
+                }
+
+                return result;
+            }
+            uint32_t GetStorageSizes(const IStoreInspector::ScopeType scope, INamespaceSizeIterator*& storageList) override
+            {
+                ASSERT(scope == IStoreInspector::ScopeType::DEVICE);
+
+                uint32_t result;
+
+                sqlite3_stmt* stmt;
+                sqlite3_prepare_v2(_data, "select name, sum(length(key)+length(value))"
+                                          " from item"
+                                          " inner join namespace on namespace.id = item.ns"
+                                          " group by name"
+                                          ";",
+                    -1, &stmt, nullptr);
+                std::list<NamespaceSize> list;
+                int rc;
+                while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+                    NamespaceSize namespaceSize;
+                    namespaceSize.ns = (const char*)sqlite3_column_text(stmt, 0);
+                    namespaceSize.size = sqlite3_column_int(stmt, 1);
+                    list.emplace_back(namespaceSize);
+                }
+                sqlite3_finalize(stmt);
+
+                if (rc == SQLITE_DONE) {
+                    storageList = (Core::Service<RPC::IteratorType<INamespaceSizeIterator>>::Create<INamespaceSizeIterator>(list));
+                    result = Core::ERROR_NONE;
+                } else {
+                    OnError(__FUNCTION__, rc);
+                    result = Core::ERROR_GENERAL;
+                }
+
+                return result;
+            }
+            uint32_t SetNamespaceStorageLimit(const IStoreLimit::ScopeType scope, const string& ns, const uint32_t size) override
+            {
+                ASSERT(scope == IStoreLimit::ScopeType::DEVICE);
+
+                uint32_t result;
+
+                sqlite3_stmt* stmt;
+                sqlite3_prepare_v2(_data, "insert or ignore into namespace (name) values (?);",
+                    -1, &stmt, nullptr);
+                sqlite3_bind_text(stmt, 1, ns.c_str(), -1, SQLITE_TRANSIENT);
+                auto rc = sqlite3_step(stmt);
+                sqlite3_finalize(stmt);
+                if (rc == SQLITE_DONE) {
+                    sqlite3_prepare_v2(_data, "insert into limits (n,size)"
+                                              " select id, ?"
+                                              " from namespace"
+                                              " where name = ?"
+                                              ";",
+                        -1, &stmt, nullptr);
+                    sqlite3_bind_int(stmt, 1, size);
+                    sqlite3_bind_text(stmt, 2, ns.c_str(), -1, SQLITE_TRANSIENT);
+                    rc = sqlite3_step(stmt);
+                    sqlite3_finalize(stmt);
+                }
+
+                if (rc == SQLITE_DONE) {
+                    result = Core::ERROR_NONE;
+                } else {
+                    OnError(__FUNCTION__, rc);
+                    if (rc == SQLITE_CONSTRAINT) {
+                        result = Core::ERROR_INVALID_INPUT_LENGTH;
+                    } else {
+                        result = Core::ERROR_GENERAL;
+                    }
+                }
+
+                return result;
+            }
+            uint32_t GetNamespaceStorageLimit(const IStoreLimit::ScopeType scope, const string& ns, uint32_t& size) override
+            {
+                ASSERT(scope == IStoreLimit::ScopeType::DEVICE);
+
+                uint32_t result;
+
+                uint32_t s;
+                sqlite3_stmt* stmt;
+                sqlite3_prepare_v2(_data, "select size"
+                                          " from limits"
+                                          " inner join namespace on namespace.id = limits.n"
+                                          " where name = ?"
+                                          ";",
+                    -1, &stmt, nullptr);
+                sqlite3_bind_text(stmt, 1, ns.c_str(), -1, SQLITE_TRANSIENT);
+                auto rc = sqlite3_step(stmt);
+                if (rc == SQLITE_ROW) {
+                    s = (uint32_t)sqlite3_column_int(stmt, 0);
+                    result = Core::ERROR_NONE;
+                }
+                sqlite3_finalize(stmt);
+
+                if (rc == SQLITE_ROW) {
+                    size = s;
+                    result = Core::ERROR_NONE;
+                } else if (rc == SQLITE_DONE) {
+                    result = Core::ERROR_NOT_EXIST;
+                } else {
+                    OnError(__FUNCTION__, rc);
+                    result = Core::ERROR_GENERAL;
+                }
+
+                return result;
+            }
 
             BEGIN_INTERFACE_MAP(Store2)
             INTERFACE_ENTRY(IStore2)
+            INTERFACE_ENTRY(IStoreCache)
+            INTERFACE_ENTRY(IStoreInspector)
+            INTERFACE_ENTRY(IStoreLimit)
             END_INTERFACE_MAP
 
         private:
@@ -311,7 +497,7 @@ namespace Plugin {
                     index(_clients.begin());
 
                 while (index != _clients.end()) {
-                    (*index)->ValueChanged(ScopeType::DEVICE, ns, key, value);
+                    (*index)->ValueChanged(IStore2::ScopeType::DEVICE, ns, key, value);
                     index++;
                 }
             }

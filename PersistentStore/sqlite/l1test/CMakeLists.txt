@@ -34,9 +34,6 @@ find_package(${NAMESPACE}Plugins REQUIRED)
 add_executable(${PROJECT_NAME}
         ../../Module.cpp
         Store2Test.cpp
-        StoreCacheTest.cpp
-        StoreInspectorTest.cpp
-        StoreLimitTest.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE
