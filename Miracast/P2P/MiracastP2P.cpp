@@ -479,8 +479,14 @@ MiracastError MiracastP2P::stop_discover_devices(void)
     MIRACASTLOG_TRACE("Entering...");
 
     /*Stop Passive Scanning*/
-    command = "P2P_STOP_FIND";
+    command = "P2P_EXT_LISTEN 0 0";
+    ret = executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
+    if (ret != MIRACAST_OK)
+    {
+        MIRACASTLOG_ERROR("Failed to Stop discovering devices");
+    }
 
+    command = "P2P_STOP_FIND";
     ret = executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
     if (ret != MIRACAST_OK)
     {
