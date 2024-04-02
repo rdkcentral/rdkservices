@@ -542,6 +542,7 @@ private:
 			void sendPowerOFFCommand(const PhysicalAddress &physical_addr);
 			void sendPowerONCommand(const PhysicalAddress &physical_addr); 
 			void sendStandbyMessage();
+			void sendWakeupMessage();
 			void setCurrentLanguage(const Language &lang);
 			void sendMenuLanguage();
 			void setActiveSource(bool isResponse);
@@ -602,6 +603,7 @@ private:
 			uint32_t setMenuLanguageWrapper(const JsonObject& parameters, JsonObject& response);
                         uint32_t requestShortAudioDescriptorWrapper(const JsonObject& parameters, JsonObject& response);
                         uint32_t sendStandbyMessageWrapper(const JsonObject& parameters, JsonObject& response);
+                        uint32_t sendWakeupMessageWrapper(const JsonObject& parameters, JsonObject& response);
 			uint32_t sendAudioDevicePowerOnMsgWrapper(const JsonObject& parameters, JsonObject& response);
                         uint32_t sendRemoteKeyPressWrapper(const JsonObject& parameters, JsonObject& response);
 			uint32_t sendUserControlPressedWrapper(const JsonObject& parameters, JsonObject& response);

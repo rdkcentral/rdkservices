@@ -60,6 +60,7 @@
 #define HDMICECSINK_METHOD_SETUP_ARC              "setupARCRouting"
 #define HDMICECSINK_METHOD_REQUEST_SHORT_AUDIO_DESCRIPTOR  "requestShortAudioDescriptor"
 #define HDMICECSINK_METHOD_SEND_STANDBY_MESSAGE            "sendStandbyMessage"
+#define HDMICECSINK_METHOD_SEND_WAKEUP_MESSAGE            "sendWakeupMessage"
 #define HDMICECSINK_METHOD_SEND_AUDIO_DEVICE_POWER_ON "sendAudioDevicePowerOnMessage"
 #define HDMICECSINK_METHOD_SEND_KEY_PRESS                          "sendKeyPressEvent"
 #define HDMICECSINK_METHOD_SEND_USER_CONTROL_PRESSED          "sendUserControlPressed"
@@ -718,6 +719,7 @@ namespace WPEFramework
 		   Register(HDMICECSINK_METHOD_SET_MENU_LANGUAGE, &HdmiCecSink::setMenuLanguageWrapper, this);
                    Register(HDMICECSINK_METHOD_REQUEST_SHORT_AUDIO_DESCRIPTOR, &HdmiCecSink::requestShortAudioDescriptorWrapper, this);
                    Register(HDMICECSINK_METHOD_SEND_STANDBY_MESSAGE, &HdmiCecSink::sendStandbyMessageWrapper, this);
+                   Register(HDMICECSINK_METHOD_SEND_WAKEUP_MESSAGE, &HdmiCecSink::sendWakeupMessageWrapper, this);
 		   Register(HDMICECSINK_METHOD_SEND_AUDIO_DEVICE_POWER_ON, &HdmiCecSink::sendAudioDevicePowerOnMsgWrapper, this);
 		   Register(HDMICECSINK_METHOD_SEND_KEY_PRESS,&HdmiCecSink::sendRemoteKeyPressWrapper,this);
 		   Register(HDMICECSINK_METHOD_SEND_USER_CONTROL_PRESSED,&HdmiCecSink::sendUserControlPressedWrapper,this);
@@ -874,7 +876,7 @@ namespace WPEFramework
                 IARM_Result_t res;
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED,cecMgrEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED,cecMgrEventHandler) );
-                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG, dsHdmiEventHandler) );
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED, pwrMgrModeChangeEventHandler) );
            }
        }
@@ -886,7 +888,7 @@ namespace WPEFramework
                 IARM_Result_t res;
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED, cecMgrEventHandler) );
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED, cecMgrEventHandler) );
-                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG, dsHdmiEventHandler) );
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED, pwrMgrModeChangeEventHandler) );
             }
        }
@@ -928,12 +930,12 @@ namespace WPEFramework
             if(!HdmiCecSink::_instance)
                 return;
 
-            if (IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG == eventId)
+            if (IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG == eventId)
             {
                 IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
                 bool isHdmiConnected = eventData->data.hdmi_in_connect.isPortConnected;
                 dsHdmiInPort_t portId = eventData->data.hdmi_in_connect.port;
-                LOGINFO("Received IARM_BUS_DSMGR_EVENT_HDMI_IN_HOTPLUG event port: %d data:%d \r\n",portId,  isHdmiConnected);
+                LOGINFO("Received IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG event port: %d data:%d \r\n",portId,  isHdmiConnected);
                 HdmiCecSink::_instance->onHdmiHotPlug(portId,isHdmiConnected);
             }
        }
@@ -1000,7 +1002,21 @@ namespace WPEFramework
 			}
 
 			_instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(Standby()), 1000);
-       } 
+       }
+
+    	 void HdmiCecSink::sendWakeupMessage()
+    	 {
+        	if(!HdmiCecSink::_instance)
+            			return;
+        	if(!(HdmiCecSink::_instance->smConnection))
+            		  	return;
+        	if ( _instance->m_logicalAddressAllocated == LogicalAddress::UNREGISTERED){
+            			LOGERR("Logical Address NOT Allocated Or its not valid");
+            			return;
+        		}
+
+        	_instance->smConnection->sendTo(LogicalAddress(LogicalAddress::TV), MessageEncoder().encode(ImageViewOn()), 100);
+    	 } 
 
 	   void HdmiCecSink::wakeupFromStandby()
 	   {
@@ -1562,6 +1578,7 @@ namespace WPEFramework
                 LOGINFO("setOSDNameWrapper osdName: %s",osd.c_str());
                 osdName = osd.c_str();
                 Utils::persistJsonSettings (CEC_SETTING_ENABLED_FILE, CEC_SETTING_OSD_NAME, JsonValue(osd.c_str()));
+                _instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), MessageEncoder().encode(GiveOSDName()), 200);
             }
             else
             {
@@ -1791,6 +1808,12 @@ namespace WPEFramework
 	  returnResponse(true);
         }
 
+    	uint32_t HdmiCecSink::sendWakeupMessageWrapper(const JsonObject& parameters, JsonObject& response)
+    	{
+          sendWakeupMessage();
+          returnResponse(true);
+        }
+
         uint32_t HdmiCecSink::sendAudioDevicePowerOnMsgWrapper(const JsonObject& parameters, JsonObject& response)
         {
 	    LOGINFO("%s invoked. \n",__FUNCTION__);
@@ -1902,10 +1925,10 @@ namespace WPEFramework
                 }
                 else
                 {
-                    parameters[CEC_SETTING_OTP_ENABLED] = true;
-                    cecOTPSettingEnabled = true;
+                    parameters[CEC_SETTING_OTP_ENABLED] = false;
+                    cecOTPSettingEnabled = false;
                     isConfigAdded = true;
-                    LOGINFO("CEC_SETTING_OTP_ENABLED not present set dafult true:\n ");
+                    LOGINFO("CEC_SETTING_OTP_ENABLED not present set dafult false:\n ");
                 }
                 if( parameters.HasLabel(CEC_SETTING_OSD_NAME))
                 {
@@ -1956,11 +1979,11 @@ namespace WPEFramework
 
                 JsonObject parameters;
                 unsigned int  vendorId = (defaultVendorId.at(0) <<16) | ( defaultVendorId.at(1) << 8 ) | defaultVendorId.at(2);
-                parameters[CEC_SETTING_ENABLED] = true;
+                parameters[CEC_SETTING_ENABLED] = false;
                 parameters[CEC_SETTING_OSD_NAME] = osdName.toString();
                 parameters[CEC_SETTING_VENDOR_ID] = vendorId;
 
-                cecSettingEnabled = true;
+                cecSettingEnabled = false;
                 cecOTPSettingEnabled = true;
                 parameters.IElement::ToFile(file);
 
@@ -2134,6 +2157,9 @@ namespace WPEFramework
 				LOGERR("Logical Address NOT Allocated");
 				return;
 			}
+
+			_instance->smConnection->sendTo(LogicalAddress(LogicalAddress::TV), 
+										MessageEncoder().encode(ImageViewOn()), 1000);
 
 			_instance->smConnection->sendTo(LogicalAddress::BROADCAST, 
 										MessageEncoder().encode(RequestActiveSource()), 500);
@@ -2882,14 +2908,14 @@ namespace WPEFramework
 				case POLL_THREAD_STATE_POLL :
 				{
 					//LOGINFO("POLL_THREAD_STATE_POLL");
-					_instance->allocateLogicalAddress(DeviceType::TV);
+					_instance->allocateLogicalAddress(DeviceType::PLAYBACK_DEVICE);
 					if ( _instance->m_logicalAddressAllocated != LogicalAddress::UNREGISTERED)
 					{
 						logicalAddress = LogicalAddress(_instance->m_logicalAddressAllocated);
 						LibCCEC::getInstance().addLogicalAddress(logicalAddress);
 						_instance->smConnection->setSource(logicalAddress);
 						_instance->m_numberOfDevices = 0;
-						_instance->deviceList[_instance->m_logicalAddressAllocated].m_deviceType = DeviceType::TV;
+						_instance->deviceList[_instance->m_logicalAddressAllocated].m_deviceType = DeviceType::PLAYBACK_DEVICE;
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_isDevicePresent = true;
                         			_instance->deviceList[_instance->m_logicalAddressAllocated].update(physical_addr);
 						_instance->deviceList[_instance->m_logicalAddressAllocated].m_cecVersion = Version::V_1_4;
@@ -3079,31 +3105,15 @@ namespace WPEFramework
             if (!(_instance->smConnection))
                 return;
 
-            for (i = 0; i< HDMICECSINK_NUMBER_TV_ADDR; i++)
+            try{
+                addr = LibCCEC::getInstance().getLogicalAddress(DeviceType::PLAYBACK_DEVICE);
+                std::string logicalAddrDeviceType = DeviceType(LogicalAddress(addr).getType()).toString().c_str();
+                gotLogicalAddress = true;
+                LOGWARN("logical address obtained is %d , saved logical address is %s ", addr, logicalAddress.toString().c_str());
+            }
+            catch (const std::exception &e)
             {
-                /* poll for TV logical address - retry 5 times*/
-                for (j = 0; j < 5; j++)
-                {
-                    try {
-                        smConnection->poll(LogicalAddress(addr), Throw_e());
-                    }
-                    catch(CECNoAckException &e )
-                    {
-                        LOGWARN("Poll caught %s \r\n",e.what());
-                        gotLogicalAddress = true;
-                        break;
-                    }
-                    catch(Exception &e)
-                    {
-                        LOGWARN("Poll caught %s \r\n",e.what());
-                        usleep(250000);
-                    }
-                }
-                if (gotLogicalAddress)
-                {
-                    break;
-                }
-                addr = LogicalAddress::SPECIFIC_USE;
+                LOGWARN("CEC exception caught from getLogicalAddress ");
             }
 
             if ( gotLogicalAddress )
