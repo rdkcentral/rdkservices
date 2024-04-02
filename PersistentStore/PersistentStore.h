@@ -50,7 +50,6 @@ namespace Plugin {
                 Add(_T("maxsize"), &MaxSize);
                 Add(_T("maxvalue"), &MaxValue);
                 Add(_T("limit"), &Limit);
-                Add(_T("tokencommand"), &TokenCommand);
             }
 
         public:
@@ -61,7 +60,6 @@ namespace Plugin {
             Core::JSON::DecUInt64 MaxSize;
             Core::JSON::DecUInt64 MaxValue;
             Core::JSON::DecUInt64 Limit;
-            Core::JSON::String TokenCommand;
         };
 
         class Store2Notification : public Exchange::IStore2::INotification {
