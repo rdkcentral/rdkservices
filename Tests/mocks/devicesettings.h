@@ -88,6 +88,13 @@ typedef enum _dsATMOSCapability_t {
     dsAUDIO_ATMOS_ATMOSMETADATA, /**< capable of parsing ATMOS metadata */
 } dsATMOSCapability_t;
 
+typedef enum _dsAudioInput_t
+{
+    dsAUDIO_INPUT_PRIMARY = 0,   /**< Primary Audio Input is main audio input provided to audio mixer */
+    dsAUDIO_INPUT_SYSTEM,        /**< System Audio Input to audio mixer , e.g Beep Sounds */
+    dsAUDIO_INPUT_MAX            /**< Out of range */
+} dsAudioInput_t;
+
 typedef enum _dsHdcpProtocolVersion_t {
     dsHDCP_VERSION_1X = 0, /**< HDCP Protocol version 1.x */
     dsHDCP_VERSION_2X, /**< HDCP Protocol version 2.x */
@@ -587,7 +594,7 @@ public:
     virtual std::string getCurrentVideoMode() const = 0;
     virtual void selectPort(int8_t Port,bool audioMix = false, int videoPlane = 0,bool topMost = false) const = 0;
     virtual void scaleVideo(int32_t x, int32_t y, int32_t width, int32_t height) const = 0;
-
+    virtual void setAudioMixerLevels(dsAudioInput_t gain, int volume) const = 0;
     virtual void getEDIDBytesInfo(int iHdmiPort, std::vector<uint8_t>& edid) const = 0;
     virtual void getHDMISPDInfo(int iHdmiPort, std::vector<uint8_t>& data) const = 0;
     virtual void setEdidVersion(int iHdmiPort, int iEdidVersion) const = 0;
@@ -991,6 +998,7 @@ public:
     virtual void getHostEDID(std::vector<uint8_t>& edid) const = 0;
     virtual std::string getDefaultVideoPortName() = 0;
     virtual std::string getDefaultAudioPortName() = 0;
+    virtual void setAudioMixerLevels(dsAudioInput_t input, int volume) = 0;
 };
 
 class Host {
@@ -1056,6 +1064,10 @@ public:
     std::string getDefaultAudioPortName()
     {
         return impl->getDefaultAudioPortName();
+    }
+    void setAudioMixerLevels(dsAudioInput_t input, int volume)
+    {
+	    return impl->setAudioMixerLevels(input,volume);
     }
 };
 
