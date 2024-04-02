@@ -16,12 +16,6 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
-## [1.0.8] - 2024-03-21
-### Added
-- Account scope implementation
-- L0, L2 unit tests
-- Out-of-process
-
 ## [1.0.7] - 2024-03-18
 ### Fixed
 - PersistentStore.json is not generated  in R2 build due to write_config() empty parameter & its fixed for R2 builds
