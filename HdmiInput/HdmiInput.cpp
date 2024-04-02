@@ -26,6 +26,7 @@
 #include "dsUtl.h"
 #include "dsError.h"
 #include "dsMgr.h"
+#include "host.hpp"
 
 #include <vector>
 #include <algorithm>
@@ -40,6 +41,7 @@
 #define HDMIINPUT_METHOD_READ_HDMISPD "getHDMISPD"
 #define HDMIINPUT_METHOD_SET_EDID_VERSION "setEdidVersion"
 #define HDMIINPUT_METHOD_GET_EDID_VERSION "getEdidVersion"
+#define HDMIINPUT_METHOD_SET_MIXER_LEVELS "setMixerLevels"
 #define HDMIINPUT_METHOD_START_HDMI_INPUT "startHdmiInput"
 #define HDMIINPUT_METHOD_STOP_HDMI_INPUT "stopHdmiInput"
 #define HDMIINPUT_METHOD_SCALE_HDMI_INPUT "setVideoRectangle"
@@ -64,8 +66,8 @@
 #define registerMethod(...) for (uint8_t i = 1; GetHandler(i); i++) GetHandler(i)->Register<JsonObject, JsonObject>(__VA_ARGS__)
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 2
-#define API_VERSION_NUMBER_PATCH 2
+#define API_VERSION_NUMBER_MINOR 3
+#define API_VERSION_NUMBER_PATCH 0
 
 static int audio_output_delay = 100;
 static int video_latency = 20;
@@ -73,7 +75,7 @@ static int video_latency = 20;
 static bool lowLatencyMode = false;
 #define SERVER_DETAILS  "127.0.0.1:9998"
 static int planeType = 0;
-
+static bool isAudioBalanceSet = false;
 using namespace std;
 
 namespace WPEFramework
@@ -119,12 +121,14 @@ namespace WPEFramework
             registerMethod(HDMIINPUT_METHOD_START_HDMI_INPUT, &HdmiInput::startHdmiInput, this);
             registerMethod(HDMIINPUT_METHOD_STOP_HDMI_INPUT, &HdmiInput::stopHdmiInput, this);
             registerMethod(HDMIINPUT_METHOD_SCALE_HDMI_INPUT, &HdmiInput::setVideoRectangleWrapper, this);
-
+            registerMethod(HDMIINPUT_METHOD_SET_MIXER_LEVELS, &HdmiInput::setMixerLevels, this);
             registerMethod(HDMIINPUT_METHOD_SUPPORTED_GAME_FEATURES, &HdmiInput::getSupportedGameFeatures, this);
             registerMethod(HDMIINPUT_METHOD_GAME_FEATURE_STATUS, &HdmiInput::getHdmiGameFeatureStatusWrapper, this);
 	    registerMethod(HDMIINPUT_METHOD_GET_AV_LATENCY, &HdmiInput::getAVLatency, this);
             registerMethod(HDMIINPUT_METHOD_GET_LOW_LATENCY_MODE, &HdmiInput::getTVLowLatencyMode, this);
-        }
+            m_primVolume = DEFAULT_PRIM_VOL_LEVEL;
+    	    m_inputVolume = DEFAULT_INPUT_VOL_LEVEL;        
+	}
 
         HdmiInput::~HdmiInput()
         {
@@ -272,6 +276,12 @@ namespace WPEFramework
             bool success = true;
             try
             {
+	       // Restoring the Audio Mixer Levels when the Input is stopped.
+               if (isAudioBalanceSet){
+                   device::Host::getInstance().setAudioMixerLevels(dsAUDIO_INPUT_PRIMARY,MAX_PRIM_VOL_LEVEL);
+                   device::Host::getInstance().setAudioMixerLevels(dsAUDIO_INPUT_SYSTEM,DEFAULT_INPUT_VOL_LEVEL);
+                   isAudioBalanceSet = false;
+                }
                 planeType = -1;// plane index when stopping hdmi input
 		device::HdmiInput::getInstance().selectPort(-1);
             }
@@ -282,6 +292,53 @@ namespace WPEFramework
             }
             returnResponse(success);
 
+        }
+	uint32_t HdmiInput::setMixerLevels(const JsonObject& parameters, JsonObject& response)
+        {
+                returnIfParamNotFound(parameters, "primaryVolume");
+                returnIfParamNotFound(parameters, "inputVolume");
+
+		int primVol = 0, inputVol = 0;
+		try {
+			primVol = parameters["primaryVolume"].Number();
+			inputVol = parameters["inputVolume"].Number() ;
+		} catch(...) {
+			LOGERR("Incompatible params passed !!!\n");
+			response["success"] = false;
+			returnResponse(false);
+		}
+
+		if( (primVol >=0) && (inputVol >=0) ) {
+			m_primVolume = primVol;
+			m_inputVolume = inputVol;
+		}
+		 else {
+			 LOGERR("Incompatible params passed !!!\n");
+			 response["success"] = false;
+			 returnResponse(false);
+		}
+
+    		if(m_primVolume > MAX_PRIM_VOL_LEVEL) {
+        		LOGWARN("Primary Volume greater than limit. Set to MAX_PRIM_VOL_LEVEL(100) !!!\n");
+        		m_primVolume = MAX_PRIM_VOL_LEVEL;
+   		 }
+    		if(m_inputVolume > DEFAULT_INPUT_VOL_LEVEL) {
+        		LOGWARN("Input Volume greater than limit. Set to DEFAULT_INPUT_VOL_LEVEL(100) !!!\n");
+        		m_inputVolume = DEFAULT_INPUT_VOL_LEVEL;
+    		}
+   		 LOGINFO("GLOBAL primary Volume=%d input Volume=%d \n",m_primVolume  , m_inputVolume );
+
+		try{
+
+	    		device::Host::getInstance().setAudioMixerLevels(dsAUDIO_INPUT_PRIMARY,primVol);
+        		device::Host::getInstance().setAudioMixerLevels(dsAUDIO_INPUT_SYSTEM,inputVol);
+		}
+		catch(...){
+	    		LOGWARN("Not setting SoC volume !!!\n");
+        		returnResponse(false);
+		}
+                isAudioBalanceSet = true;
+		returnResponse(true);
         }
 
         uint32_t HdmiInput::setVideoRectangleWrapper(const JsonObject& parameters, JsonObject& response)
