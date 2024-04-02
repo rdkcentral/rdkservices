@@ -77,7 +77,7 @@ const int supported_irrfdb_slots_size = sizeof(supported_irrfdb_slots) / sizeof(
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 2
+#define API_VERSION_NUMBER_PATCH 8
 
 using namespace std;
 
@@ -1404,7 +1404,8 @@ namespace WPEFramework {
         {
             keyActionMap actionMap;
             keyActionMap altActionMap;
-            int rfKeyCode = -1;
+            altActionMap.keyName = KED_UNDEFINEDKEY;
+ 	    int rfKeyCode = -1;
             bool status = false;
             bool success = true;
 
@@ -1964,17 +1965,9 @@ namespace WPEFramework {
             }
             else
             {
-                // Logically, if we get here, it MUST BE that there are NO TV or AVR power controls available.
-                if (notvpwr && noavrpwr)
-                {
-                    LOGWARN("NO TV or AVR power control IR codes have been supplied!");
-                }
-                else
-                {
-                    LOGERR("LOGIC ERROR - power group decision failure - TV power: %s, AVR power: %s!!!",
-                           (notvpwr ? "FALSE" : "TRUE"), (noavrpwr ? "FALSE" : "TRUE"));
-                    bOK = false;
-                }
+                LOGERR("LOGIC ERROR - power group decision failure - TV power: %s, AVR power: %s!!!",
+                       (notvpwr ? "FALSE" : "TRUE"), (noavrpwr ? "FALSE" : "TRUE"));
+                bOK = false;
             }
 
             // Check discrete power coherence

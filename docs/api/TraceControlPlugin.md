@@ -2,7 +2,7 @@
 <a name="TraceControl_Plugin"></a>
 # TraceControl Plugin
 
-**Version: [1.0.1](https://github.com/rdkcentral/rdkservices/blob/main/TraceControl/CHANGELOG.md)**
+**Version: [1.0.2](https://github.com/rdkcentral/rdkservices/blob/main/TraceControl/CHANGELOG.md)**
 
 A TraceControl plugin for Thunder framework.
 

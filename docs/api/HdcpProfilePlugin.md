@@ -2,7 +2,7 @@
 <a name="HdcpProfile_Plugin"></a>
 # HdcpProfile Plugin
 
-**Version: [1.0.6](https://github.com/rdkcentral/rdkservices/blob/main/HdcpProfile/CHANGELOG.md)**
+**Version: [1.0.7](https://github.com/rdkcentral/rdkservices/blob/main/HdcpProfile/CHANGELOG.md)**
 
 A org.rdk.HdcpProfile plugin for Thunder framework.
 

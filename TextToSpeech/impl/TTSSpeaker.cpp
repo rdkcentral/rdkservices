@@ -398,6 +398,7 @@ TTSSpeaker::~TTSSpeaker() {
     if(g_main_loop_is_running(m_main_loop))
         g_main_loop_quit(m_main_loop);
     g_thread_join(m_main_loop_thread);
+    m_main_loop_thread = nullptr;
 }
 
 PipelineType TTSSpeaker::getPipelineType() {
@@ -917,7 +918,10 @@ void TTSSpeaker::waitForAudioToFinishTimeout(float timeout_s) {
                     // This is a workaround for broken BRCM PCM Sink duration query - To be deleted once that is fixed
                     m_duration = 0;
                     gint64 position = 0;
-                    gst_element_query_position(m_pipeline, GST_FORMAT_TIME, &position);
+                    if (!(gst_element_query_position(m_pipeline, GST_FORMAT_TIME, &position)))
+                    {
+                        TTSLOG_ERROR("gst_element_query_position call failed");
+                    }
                     if(position > 0 && position != (gint64)GST_CLOCK_TIME_NONE && position > lastPosition) {
                         TTSLOG_VERBOSE("Reached/Invalid duration, last position=%" GST_TIME_FORMAT ", current position=%" GST_TIME_FORMAT,
                                 GST_TIME_ARGS(lastPosition), GST_TIME_ARGS(position));
@@ -1004,7 +1008,7 @@ void TTSSpeaker::play(string url, SpeechData &data, bool authrequired, string to
     m_currentSpeech = NULL;
 }
 
-void TTSSpeaker::speakText(TTSConfiguration config, SpeechData &data) {
+void TTSSpeaker::speakText(TTSConfiguration &config, SpeechData &data) {
     m_isEOS = false;
     m_duration = 0;
 
