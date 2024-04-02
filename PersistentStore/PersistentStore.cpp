@@ -25,7 +25,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 8
+#define API_VERSION_NUMBER_PATCH 9
 
 namespace WPEFramework {
 
@@ -90,57 +90,50 @@ namespace Plugin {
         Core::SystemInfo::SetEnvironment(MAXSIZE_ENV, std::to_string(_config.MaxSize.Value()));
         Core::SystemInfo::SetEnvironment(MAXVALUE_ENV, std::to_string(_config.MaxValue.Value()));
         Core::SystemInfo::SetEnvironment(LIMIT_ENV, std::to_string(_config.Limit.Value()));
-        Core::SystemInfo::SetEnvironment(TOKEN_COMMAND_ENV, _config.TokenCommand.Value());
 
         uint32_t connectionId;
 
-        Store2::ScopeMapType initList1;
-        auto deviceStore2 = service->Root<Exchange::IStore2>(connectionId, 2000, _T("SqliteStore2"));
-        if (deviceStore2 != nullptr) {
-            initList1.emplace(Exchange::IStore2::ScopeType::DEVICE, deviceStore2);
+        _deviceStore2 = service->Root<Exchange::IStore2>(connectionId, 2000, _T("SqliteStore2"));
+        if (_deviceStore2 != nullptr) {
+            _deviceStore2->Register(&_store2Sink);
+            _deviceStore2->Register(_store);
+            _deviceStoreCache = _deviceStore2->QueryInterface<Exchange::IStoreCache>();
+            _deviceStoreInspector = _deviceStore2->QueryInterface<Exchange::IStoreInspector>();
+            _deviceStoreLimit = _deviceStore2->QueryInterface<Exchange::IStoreLimit>();
         }
-        auto accountStore2 = service->Root<Exchange::IStore2>(connectionId, 2000, _T("GrpcStore2"));
-        if (accountStore2 != nullptr) {
-            initList1.emplace(Exchange::IStore2::ScopeType::ACCOUNT, accountStore2);
+
+        _accountStore2 = service->Root<Exchange::IStore2>(connectionId, 2000, _T("GrpcStore2"));
+        if (_accountStore2 != nullptr) {
+            _accountStore2->Register(&_store2Sink);
         }
-        _store2 = Core::Service<Store2>::Create<Exchange::IStore2>(initList1);
-        if (deviceStore2 != nullptr) {
-            deviceStore2->Release();
-        }
-        if (accountStore2 != nullptr) {
-            accountStore2->Release();
-        }
-        _store2->Register(&_store2Sink);
-        _store = Core::Service<Store>::Create<Exchange::IStore>(_store2);
-        _storeCache = service->Root<Exchange::IStoreCache>(connectionId, 2000, _T("SqliteStoreCache"));
-        _storeInspector = service->Root<Exchange::IStoreInspector>(connectionId, 2000, _T("SqliteStoreInspector"));
-        _storeLimit = service->Root<Exchange::IStoreLimit>(connectionId, 2000, _T("SqliteStoreLimit"));
 
         return result;
     }
 
     void PersistentStore::Deinitialize(PluginHost::IShell* /* service */)
     {
-        if (_store != nullptr) {
-            _store->Release();
-            _store = nullptr;
+        if (_deviceStore2 != nullptr) {
+            _deviceStore2->Unregister(&_store2Sink);
+            _deviceStore2->Unregister(_store);
+            _deviceStore2->Release();
+            _deviceStore2 = nullptr;
         }
-        if (_store2 != nullptr) {
-            _store2->Unregister(&_store2Sink);
-            _store2->Release();
-            _store2 = nullptr;
+        if (_deviceStoreCache != nullptr) {
+            _deviceStoreCache->Release();
+            _deviceStoreCache = nullptr;
         }
-        if (_storeCache != nullptr) {
-            _storeCache->Release();
-            _storeCache = nullptr;
+        if (_deviceStoreInspector != nullptr) {
+            _deviceStoreInspector->Release();
+            _deviceStoreInspector = nullptr;
         }
-        if (_storeInspector != nullptr) {
-            _storeInspector->Release();
-            _storeInspector = nullptr;
+        if (_deviceStoreLimit != nullptr) {
+            _deviceStoreLimit->Release();
+            _deviceStoreLimit = nullptr;
         }
-        if (_storeLimit != nullptr) {
-            _storeLimit->Release();
-            _storeLimit = nullptr;
+        if (_accountStore2 != nullptr) {
+            _accountStore2->Unregister(&_store2Sink);
+            _accountStore2->Release();
+            _accountStore2 = nullptr;
         }
     }
 
