@@ -325,7 +325,7 @@ namespace Plugin {
                 uint16_t _category;
                 uint16_t _classname;
                 uint16_t _information;
-                uint16_t _length;
+                uint16_t _length = 0;
                 state _state;
                 uint8_t _traceBuffer[Trace::CyclicBufferSize];
                 static LocalIterator _localIterator;

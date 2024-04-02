@@ -54,7 +54,7 @@ public:
     const double &volume() { return m_volume; }
     const uint8_t &rate() { return m_rate; }
     const int8_t &primVolDuck() { return m_primVolDuck; }
-    const bool enabled() { return m_enabled; }
+    bool enabled() { return m_enabled; }
     bool isPreemptive() { return m_preemptiveSpeaking; }
     bool loadFromConfigStore();
     bool updateConfigStore();

@@ -67,7 +67,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 3
-#define API_VERSION_NUMBER_PATCH 1
+#define API_VERSION_NUMBER_PATCH 2
 
 static int audio_output_delay = 100;
 static int video_latency = 20;
@@ -878,7 +878,7 @@ namespace WPEFramework
             {
                 IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
                 int hdmi_in_port = eventData->data.hdmi_in_video_mode.port;
-		dsVideoPortResolution_t resolution;
+		dsVideoPortResolution_t resolution = {};
 		resolution.pixelResolution =  eventData->data.hdmi_in_video_mode.resolution.pixelResolution;
 		resolution.interlaced =  eventData->data.hdmi_in_video_mode.resolution.interlaced;
 		resolution.frameRate =  eventData->data.hdmi_in_video_mode.resolution.frameRate;

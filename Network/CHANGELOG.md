@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.3.9] - 2024-03-29
+### Security
+- Resolved security vulnerabilities
+
 ## [1.3.8] - 2024-03-27
 ### Fixed
 - Increased connectivity monitor timeout to 10 sec
