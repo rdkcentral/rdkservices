@@ -137,6 +137,7 @@ private:
     GroupInfo *m_groupInfo;
     bool m_connectionStatus;
     bool m_p2p_backend_discovery{false};
+    bool m_start_discovering_enabled{false};
     std::string  m_current_device_name;
     std::string  m_current_device_mac_addr;
 
