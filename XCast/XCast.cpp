@@ -230,9 +230,6 @@ void XCast::Deinitialize(PluginHost::IShell* /* service */)
         sleep(100);
         count++;
     }
-    while(powerModeChangeActive){
-        sleep(100);
-    }
     if ( m_locateCastTimer.isActive())
     {
         m_locateCastTimer.stop();
