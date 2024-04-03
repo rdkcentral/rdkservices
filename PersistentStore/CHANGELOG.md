@@ -16,11 +16,6 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
-## [1.0.9] - 2024-04-01
-### Added
-- Get token from auth service, supply ids in the cloud calls
-- Return ERROR_NOT_SUPPORTED if unsupported
-
 ## [1.0.8] - 2024-03-21
 ### Added
 - Account scope implementation

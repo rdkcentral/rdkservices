@@ -5,65 +5,44 @@ package distp.gateway.secure_storage.v1;
 import "google/protobuf/duration.proto";
 import "google/protobuf/timestamp.proto";
 
-// SecureStorageService handles the storage and deletion of data (represented
-// as string values) from applications given a particular key and scope.
+// SecureStorageService handles the storage and deletion of data (represented as string values) from applications given a particular key and scope.
 service SecureStorageService {
-  // GetValue retrieves the value string stored in SecureStorage based on the
-  // scope and key provided for the current application.
+  // GetValue retrieves the value string stored in SecureStorage based on the scope and key provided for the current application.
   rpc GetValue(GetValueRequest) returns (GetValueResponse);
-
-  // UpdateValue stores the string value provided in SecureStorage against the
-  // scope and key provided for the current application.
+  // UpdateValue stores the string value provided in SecureStorage against the scope and key provided for the current application.
   rpc UpdateValue(UpdateValueRequest) returns (UpdateValueResponse);
-
-  // DeleteValue removes the string value stored in SecureStorage, if present,
-  // defined by the scope and key provided for the current application/device.
+  // DeleteValue removes the string value stored in SecureStorage, if present, defined by the scope and key provided for the current application/device.
   rpc DeleteValue(DeleteValueRequest) returns (DeleteValueResponse);
-
-  // DeleteAllValues removes all values stored against the provided application
-  // for the given account. This includes all key/value pairs stored against
-  // the device scope for other devices within the account. Please note that
-  // this method does not take a key as input. Also, DeleteAllValues is a
-  // separate method given that access to delete all values may be controlled
-  // by explicit capabilities.
+  // DeleteAllValues removes all values stored against the provided application for the given account. This includes all key/value pairs
+  // stored against the device scope for other devices within the account. Please note that this method does not take a key as input.
+  // Also, DeleteAllValues is a separate method given that access to delete all values may be controlled by explicit capabilities.
   rpc DeleteAllValues(DeleteAllValuesRequest) returns (DeleteAllValuesResponse);
-
-  // SeedValue stores the string value provided in SecureStorage against the
-  // scope and key provided for the current application. This is a management
-  // API so the stored value will not cause the distributor's storage limits to
-  // be exceeded.
+  // SeedValue stores the string value provided in SecureStorage against the scope and key provided for the current application.
+  // This is a management API so the stored value will not cause the distributor's storage limits to be exceeded.
   rpc SeedValue(SeedValueRequest) returns (SeedValueResponse);
 }
 
-// Key is a group of fields that contribute to building the composite key that
-// will be used to store the data in SecureStorage.
+// Key is a group of fields that contribute to building the composite key that will be used to store the data in SecureStorage.
 message Key {
   // key of the key,value pair to be retrieved from SecureStorage.
   string key = 1;
-
-  // Scope describes the extent of the key,value pair. Scope is determined by
-  // the distributor.
+  // Scope describes the extent of the key,value pair. Scope is determined by the distributor.
   Scope scope = 2;
 
   // app_id is the unique identifier of an app or family of apps.
   string app_id = 3;
 }
 
-// Value contains the value of the requested data as well as some other
-// relevant fields like scope and expiry useful for the client.
+// Value contains the value of the requested data as well as some other relevant fields like scope and expiry useful for the client.
 message Value {
   // key of the key,value pair that was retrieved from SecureStorage.
   Key key = 1;
-
-  // value is the value associated with the key,value pair retrieved from
-  // SecureStorage.
+  // value is the value associated with the key,value pair retrieved from SecureStorage.
   string value = 2;
-
-  // expiration returns the expire time of the retrieved value. Conforms to
-  // AIP-214.
+  // expiration returns the expire time of the retrieved value. Conforms to AIP-214.
   oneof expiration {
-    // Timestamp in UTC of when this resource is considered expired. This is
-    // *always* provided on output, regardless of what was sent on input.
+    // Timestamp in UTC of when this resource is considered expired.
+    // This is *always* provided on output, regardless of what was sent on input.
     google.protobuf.Timestamp expire_time = 3;
 
     // Input only. The TTL for this resource.
@@ -73,104 +52,48 @@ message Value {
 
 // GetValueRequest is the request to retrieve the SecureStorage data.
 message GetValueRequest {
-  // XBO ID for the partner making the request
-  string partner_id = 3;
-
-  // XBO ID for the account making the request
-  string account_id = 4;
-
-  // XBO ID for the device making the request
-  string device_id = 2;
-
-  // key is the group of fields that contribute to building the composite key
-  // that will be used to store the data in SecureStorage.
+  // key is the group of fields that contribute to building the composite key that will be used to store the data in SecureStorage.
   Key key = 1;
 }
 
-// GetValueResponse is the response containing the value of the requested key
-// within the specified scope.
+// GetValueResponse is the response containing the value of the requested key within the specified scope.
 message GetValueResponse {
-  // value contains the data associated with the key,value pair that was stored
-  // in SecureStorage.
+  // value contains the data associated with the key,value pair that was stored in SecureStorage.
   Value value = 1;
 }
 
 // UpdateValueRequest is the request to store data in SecureStorage.
 message UpdateValueRequest {
-  // XBO ID for the partner making the request
-  string partner_id = 3;
-
-  // XBO ID for the account making the request
-  string account_id = 4;
-
-  // XBO ID for the device making the request
-  string device_id = 2;
-
-  // The key-value pair that will be upserted into the secure storage database.
+  // key is the group of fields that contribute to building the composite key that will be used to store the data in SecureStorage.
   Value value = 1;
 }
 
 // UpdateValueResponse is the response from the GetValue method.
 message UpdateValueResponse {}
 
-// DeleteValueRequest is the request to remove a stored value given the key and
-// scope.
+// DeleteValueRequest is the request to remove a stored value given the key and scope.
 message DeleteValueRequest {
-  // XBO ID for the partner making the request
-  string partner_id = 3;
-
-  // XBO ID for the account making the request
-  string account_id = 4;
-
-  // XBO ID for the device making the request
-  string device_id = 2;
-
-  // Key is the group of fields that contribute to building the composite key
-  // that will be used to store the data in SecureStorage.
+  // key is the group of fields that contribute to building the composite key that will be used to store the data in SecureStorage.
   Key key = 1;
 }
 
 // DeleteValueResponse is the response from the DeleteValue method.
 message DeleteValueResponse {}
 
-// DeleteAllValuesRequest is the request to delete all of the keys associated
-// with an app under the given account.
+// DeleteAllValuesRequest is the request to delete all of the keys associated with an app under the given account.
 message DeleteAllValuesRequest {
-  // XBO ID for the partner making the request
-  string partner_id = 3;
-
-  // XBO ID for the account making the request
-  string account_id = 4;
-
-  // XBO ID for the device making the request
-  string device_id = 5;
-
   // app_id is the unique identifier of an app or family of apps.
   string app_id = 1;
-
-  // Scope describes the extent of the key,value pair. Scope is determined by
-  // the distributor.
+  // Scope describes the extent of the key,value pair. Scope is determined by the distributor.
   Scope scope = 2;
 }
 
 // DeleteAllValuesResponse is the response from the DeleteAllValues method.
 message DeleteAllValuesResponse {}
 
-// SeedValueRequest is the request to store data in SecureStorage. Stored data
-// will not cause the distributor's storage limits to be exceeded.
+// SeedValueRequest is the request to store data in SecureStorage. Stored data will not cause the distributor's storage limits to be exceeded.
 message SeedValueRequest {
-  // ID of the partner this change applies to.  This field is optional IFF
-  // exactly one partner is provided in the request SAT.
-  string partner_id = 4;
-
-  // XBO ID for the account making the request
-  string account_id = 2;
-
-  // XBO ID for the device making the request
-  string device_id = 3;
-
-  // value contains the data associated with the key,value pair that will be
-  // stored in SecureStorage.
+  // value contains the data associated with the key,value pair that will be stored in SecureStorage.
   Value value = 1;
 }
 
@@ -181,10 +104,8 @@ message SeedValueResponse {}
 enum Scope {
   // Represents an unset or invalid scope.
   SCOPE_UNSPECIFIED = 0;
-
   // Account scope.
   SCOPE_ACCOUNT = 1;
-
   // Device scope.
   SCOPE_DEVICE = 2;
 }
