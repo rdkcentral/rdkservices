@@ -74,7 +74,7 @@ public:
   /**
    * IDispatcher::Activate
    */
-#if ((THUNDER_VERSION_MAJOR == 2) || ((THUNDER_VERSION_MAJOR == 4) && (THUNDER_VERSION_MINOR == 2)))
+#if ((THUNDER_VERSION == 2) || ((THUNDER_VERSION == 4) && (THUNDER_VERSION_MINOR == 2)))
   void Activate(PluginHost::IShell *shell) override;
   /**
    *
@@ -90,14 +90,14 @@ public:
   /**
    * IDispatcher::Close
    */
-#if ((THUNDER_VERSION_MAJOR >= 4) && (THUNDER_VERSION_MINOR == 2))
+#if ((THUNDER_VERSION >= 4) && (THUNDER_VERSION_MINOR == 2))
   void Close(const uint32_t channelId) override;
 #endif
 
   /**
    * IDispatcher::Close
    */
-#if ((THUNDER_VERSION_MAJOR >= 4 && THUNDER_VERSION_MINOR == 4))
+#if ((THUNDER_VERSION >= 4 && THUNDER_VERSION_MINOR == 4))
   Core::hresult Revoke(ICallback* callback) override;
   Core::hresult Validate(const string& token, const string& method, const string& paramaters /* @restrict:(4M-1) */) const override;
 #endif /* THUNDER_VERSION */
@@ -107,7 +107,7 @@ public:
    */
 #if JSON_RPC_CONTEXT   
 
-#if ((THUNDER_VERSION_MAJOR >= 4) && (THUNDER_VERSION_MINOR == 4))
+#if ((THUNDER_VERSION >= 4) && (THUNDER_VERSION_MINOR == 4))
   Core::hresult Invoke(ICallback* callback, const uint32_t channelId, const uint32_t id, const string& token, const string& method, const string& parameters, string& response ) override;
 #else
   Core::ProxyType<Core::JSONRPC::Message> Invoke(
@@ -126,7 +126,7 @@ public:
     const Core::ProxyType<Core::JSON::IElement> &element) override;
 
   void onRead(const Response& rsp);
-#if ((THUNDER_VERSION_MAJOR == 4) && (THUNDER_VERSION_MINOR == 4))
+#if ((THUNDER_VERSION == 4) && (THUNDER_VERSION_MINOR == 4))
 public:
    WPEFramework::PluginHost::ILocalDispatcher* Local() override {
         return nullptr; // Replace nullptr with your actual implementation.

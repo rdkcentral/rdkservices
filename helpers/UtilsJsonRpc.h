@@ -49,7 +49,7 @@
  *
  * You should be capable of just using "Notify".
  */
-#if ((THUNDER_VERSION_MAJOR >= 4) && (THUNDER_VERSION_MINOR == 4))
+#if ((THUNDER_VERSION >= 4) && (THUNDER_VERSION_MINOR == 4))
 
 #define sendNotify(event,params) { \
     std::string json; \
