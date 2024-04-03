@@ -66,7 +66,7 @@
 using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 2
-#define API_VERSION_NUMBER_MINOR 1
+#define API_VERSION_NUMBER_MINOR 2
 #define API_VERSION_NUMBER_PATCH 3
 
 #define MAX_REBOOT_DELAY 86400 /* 24Hr = 86400 sec */
@@ -4470,9 +4470,12 @@ namespace WPEFramework {
 
             bool success = false;
 
-            string url;
-            getStringParameter("url", url);
-            auto err = UploadLogs::upload(url);
+            string tftp_server;
+            string upload_protocol;
+            string upload_httplink;
+            if (E_NOK == UploadLogs::getUploadLogParameters(tftp_server, upload_protocol, upload_httplink))
+                return -1;
+            auto err = UploadLogs::upload(upload_httplink);
             if (err != UploadLogs::OK)
                 response["error"] = UploadLogs::errToText(err);
             else
