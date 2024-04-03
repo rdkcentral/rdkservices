@@ -478,17 +478,8 @@ MiracastError MiracastP2P::stop_discover_devices(void)
     std::string command, retBuffer;
     MIRACASTLOG_TRACE("Entering...");
 
-    std::string opt_flag_buffer = MiracastCommon::parse_opt_flag( "/opt/miracast_custom_stop_discovery" , true );
-
     /*Stop Passive Scanning*/
-    if (opt_flag_buffer.empty())
-    {
-        command = "P2P_STOP_FIND";
-    }
-    else
-    {
-        command = "P2P_EXT_LISTEN 0 0";
-    }
+    command = "P2P_STOP_FIND";
 
     ret = executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
     if (ret != MIRACAST_OK)
@@ -496,11 +487,6 @@ MiracastError MiracastP2P::stop_discover_devices(void)
         MIRACASTLOG_ERROR("Failed to Stop discovering devices");
     }
 
-    if (!opt_flag_buffer.empty())
-    {
-        usleep(std::stoul(opt_flag_buffer));
-        MIRACASTLOG_INFO("micro sleep[%s]",opt_flag_buffer);
-    }
     MIRACASTLOG_TRACE("Exiting...");
     return ret;
 }
