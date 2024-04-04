@@ -12,7 +12,6 @@ sudo apt install -y build-essential cmake ninja-build libusb-1.0-0-dev zlib1g-de
 
 pip install jsonref
 
-
 ############################
 # 2. Build Thunder Tools
 
