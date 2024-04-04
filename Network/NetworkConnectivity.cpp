@@ -456,11 +456,11 @@ namespace WPEFramework {
 
         timeout.store(timeoutInSeconds >= MONITOR_TIMEOUT_INTERVAL_MIN ? timeoutInSeconds:defaultTimeoutInSec);
 
-        if (isMonitorThreadRunning())
+        if (isMonitorThreadRunning() && stopFlag == false)
         {
             isContinuesMonitoringNeeded = true;
+            resetTimeout = true;
             cv_.notify_all();
-            LOGINFO("Connectivity monitor Restarted with %d", timeout.load());
         }
         else
         {
@@ -475,7 +475,6 @@ namespace WPEFramework {
             isContinuesMonitoringNeeded = true;
             stopFlag = false;
             thread_ = std::thread(&ConnectivityMonitor::connectivityMonitorFunction, this);
-            threadRunning = true;
             LOGINFO("Connectivity monitor started with %d", timeout.load());
         }
 
@@ -490,7 +489,7 @@ namespace WPEFramework {
             return false;
         }
 
-        if (isMonitorThreadRunning())
+        if (isMonitorThreadRunning() && stopFlag == false)
         {
             LOGINFO("Connectivity Monitor Thread is active so notify");
             cv_.notify_all();
@@ -508,7 +507,6 @@ namespace WPEFramework {
             stopFlag = false;
             timeout.store(timeoutInSeconds >= MONITOR_TIMEOUT_INTERVAL_MIN ? timeoutInSeconds:defaultTimeoutInSec);
             thread_ = std::thread(&ConnectivityMonitor::connectivityMonitorFunction, this);
-            threadRunning = true;
             LOGINFO("Initial Connectivity Monitoring started with %d", timeout.load());
         }
 
@@ -517,7 +515,7 @@ namespace WPEFramework {
 
     bool ConnectivityMonitor::isMonitorThreadRunning()
     {
-        return threadRunning.load();
+        return thread_.joinable();
     }
 
     bool ConnectivityMonitor::stopInitialConnectivityMonitoring()
@@ -527,16 +525,14 @@ namespace WPEFramework {
             LOGWARN("Continuous Connectivity Monitor is running");
             return true;
         }
-        else
-        {
-            stopFlag = true;
-            cv_.notify_all();
 
-            if (thread_.joinable())
-                thread_.join();
-            threadRunning = false;
-            LOGINFO("Stoping Initial Connectivity Monitor");
-        }
+        stopFlag = true;
+        cv_.notify_all();
+
+        if (thread_.joinable())
+            thread_.join();
+
+        LOGINFO("Initial Connectivity Monitor stopped");
 
         return true;
     }
@@ -550,7 +546,6 @@ namespace WPEFramework {
             thread_.join();
 
         isContinuesMonitoringNeeded = false;
-        threadRunning = false;
         LOGINFO("Continuous Connectivity monitor stopped");
         return true;
     }
@@ -559,8 +554,8 @@ namespace WPEFramework {
     {
         if (isMonitorThreadRunning())
         {
-            /* Reset the global value to UNKNOWN state*/
-            resetConnectivityCache();
+            /* Reset the global value to UNKNOWN state so the cache is reset */
+            g_internetState = nsm_internetState::UNKNOWN;
             cv_.notify_all();
         }
     }
@@ -568,6 +563,8 @@ namespace WPEFramework {
     void ConnectivityMonitor::connectivityMonitorFunction()
     {
         nsm_internetState InternetConnectionState = nsm_internetState::UNKNOWN;
+        int notifyWaitCount = DEFAULT_MONITOR_RETRY_COUNT;
+        int tempTimeout = defaultTimeoutInSec;
         do
         {
             if(g_internetState.load() == nsm_internetState::FULLY_CONNECTED)
@@ -579,34 +576,62 @@ namespace WPEFramework {
 
             if(g_internetState.load() != InternetConnectionState)
             {
-                g_internetState.store(InternetConnectionState);
-                Network::notifyInternetStatusChange(g_internetState.load());
+                LOGINFO("notification count %d ...", notifyWaitCount);
+                if(InternetConnectionState == nsm_internetState::NO_INTERNET && notifyWaitCount > 0)
+                {
+                    /* Decrease the notification count to create a delay in posting the 'no internet' state. */
+                    notifyWaitCount--;
+                    /* change the timeout value to 5 sec so that next check will happens with in 5 sec */
+                    tempTimeout = 5;
+                    LOGINFO("notification count change to %d timeout %d ...", notifyWaitCount, tempTimeout);
+                }
+                else
+                {
+                    g_internetState.store(InternetConnectionState);
+                    Network::notifyInternetStatusChange(g_internetState.load());
+                    notifyWaitCount = DEFAULT_MONITOR_RETRY_COUNT;
+                    /* change the timeout value to actual requested value */
+                    tempTimeout = timeout.load();
+                    LOGINFO("notification count change to default %d ...", notifyWaitCount);
+                }
             }
 
             if(!isContinuesMonitoringNeeded && (g_internetState.load() == FULLY_CONNECTED))
             {
                 stopFlag = true;
                 LOGINFO("Initial Connectivity Monitoring done Exiting ... FULLY_CONNECTED");
-                threadRunning = false;
                 break;
             }
 
             if(stopFlag)
-            {
-                threadRunning = false;
                 break;
-            }
-            //wait for next timout or conditon signal
+            // wait for next timout or conditon signal
             std::unique_lock<std::mutex> lock(mutex_);
-            if (cv_.wait_for(lock, std::chrono::seconds(timeout.load())) != std::cv_status::timeout)
+            if (cv_.wait_for(lock, std::chrono::seconds(tempTimeout)) != std::cv_status::timeout)
             {
                 if(!stopFlag)
                 {
-                    LOGINFO("Connectivity monitor received a trigger");
+                    /*
+                     * We don't need to notify immediately when restarting the thread.
+                     * Immediate notification should occur only when any connection change happens.
+                     * 
+                     */
+
+                    if(resetTimeout)
+                    {
+                        LOGINFO("Connectivity monitor Restarted with %d", timeout.load());
+                        resetTimeout = false;
+                    }
+                    else
+                    {
+                        notifyWaitCount = -1;
+                        LOGINFO("Connectivity monitor received trigger");
+                    }
                 }
             }
 
         } while (!stopFlag);
+
         g_internetState = nsm_internetState::UNKNOWN;
         LOGWARN("Connectivity monitor exiting");
     }

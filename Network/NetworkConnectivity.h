@@ -13,7 +13,8 @@
 #define CAPTIVEPORTAL_MAX_LEN 512
 #define DEFAULT_MONITOR_TIMEOUT 60 // in seconds
 #define MONITOR_TIMEOUT_INTERVAL_MIN 5
-#define TEST_CONNECTIVITY_DEFAULT_TIMEOUT_MS    10000
+#define TEST_CONNECTIVITY_DEFAULT_TIMEOUT_MS    5000
+#define DEFAULT_MONITOR_RETRY_COUNT 2
 
 enum nsm_ipversion {
     NSM_IPRESOLVE_WHATEVER  = 0, /* default, resolves addresses to all IP*/
@@ -112,9 +113,8 @@ namespace WPEFramework {
                 bool isConnectivityMonitorEndpointSet();
                 bool isMonitorThreadRunning();
                 void signalConnectivityMonitor();
-                void resetConnectivityCache() { g_internetState = nsm_internetState::UNKNOWN;}
 
-                ConnectivityMonitor() : stopFlag(false), threadRunning(false), isContinuesMonitoringNeeded(false)
+                ConnectivityMonitor() : stopFlag(false), resetTimeout(false), isContinuesMonitoringNeeded(false)
                 {
                     setConnectivityMonitorEndpoints(getConnectivityDefaultEndpoints());
                 }
@@ -134,7 +134,7 @@ namespace WPEFramework {
 
                 std::thread thread_;
                 std::atomic<bool> stopFlag;
-                std::atomic<bool> threadRunning;
+                std::atomic<bool> resetTimeout;
                 std::atomic<bool> isContinuesMonitoringNeeded;
                 std::condition_variable cv_;
                 std::atomic<int> timeout;
