@@ -322,6 +322,7 @@ namespace WPEFramework
             string output{};
             char buffer[1024];
             JsonObject pingResult;
+            int exitStatus;
 
             pipe = popen(commandToExecute.c_str(), "r");
             if (pipe == NULL)
@@ -425,7 +426,16 @@ namespace WPEFramework
                 list.ToString(response);
                 NMLOG_INFO("Response is, %s", response.c_str());
             }
-            fclose(pipe);
+            exitStatus = pclose(pipe);
+            // Check the exit status to determine if the command was successful
+            if (WIFEXITED(exitStatus) && WEXITSTATUS(exitStatus) == 0) {
+                pingResult["success"] = true;
+                pingResult["error"] = "";
+            } else {
+                pingResult["success"] = false;
+                pingResult["error"] = "Could not ping endpoint";
+                pingResult.ToString(response);
+            }
             return;
         }
 

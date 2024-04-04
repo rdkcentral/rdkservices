@@ -252,10 +252,12 @@ namespace WPEFramework
         {
             LOGINFOMETHOD();
             uint32_t rc = Core::ERROR_GENERAL;
-            const string interface = parameters["interface"].String();
-            const string ipversion = parameters["ipversion"].String();
+            string interface = "";
+            string ipversion = "";
             Exchange::INetworkManager::IPAddressInfo result{};
 
+            interface = parameters["interface"].String();
+            ipversion = parameters["ipversion"].String();
             if (_NetworkManager)
                 rc = _NetworkManager->GetIPSettings(interface, ipversion, result);
             else
@@ -287,9 +289,11 @@ namespace WPEFramework
             LOGINFOMETHOD();
             uint32_t rc = Core::ERROR_GENERAL;
             Exchange::INetworkManager::IPAddressInfo result{};
-            const string interface = parameters["interface"].String();
-            const string ipversion = parameters["ipversion"].String();
+            string interface = "";
+            string ipversion = "";
 
+            interface = parameters["interface"].String();
+            ipversion = parameters["ipversion"].String();
             result.m_autoConfig = parameters["autoconfig"].Boolean();
             if (!result.m_autoConfig)
             {
@@ -612,7 +616,6 @@ namespace WPEFramework
             {
                 JsonObject reply;
                 reply.FromString(result);
-                reply["success"] = true;
                 response = reply;
             }
             LOGTRACEMETHODFIN();
