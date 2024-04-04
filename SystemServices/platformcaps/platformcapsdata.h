@@ -198,11 +198,11 @@ private:
                         resp->Error.Text = output;
                 }
             }
-#elif (THUNDER_VERSION == 2)
-        auto resp = dispatcher_->Invoke("", channelId, *message);
-#else
+#elif ((THUNDER_VERSION >= 4) && (THUNDER_VERSION_MINOR == 2))
         Core::JSONRPC::Context context(channelId, message->Id.Value(), "");
         auto resp = dispatcher_->Invoke(context, *message);
+#else
+        auto resp = dispatcher_->Invoke("", channelId, *message);
 #endif
         if (resp->Error.IsSet()) {
           std::cout << "Call failed: " << message->Designator.Value() << " error: " << resp->Error.Text.Value() << "\n";
