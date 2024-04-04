@@ -50,7 +50,8 @@ static bool callEventListener(const std::string& eventName, JSCValue* event)
         g_warning("TestRunnerJS: Event listener %s not registered", eventName.c_str());
         return false;
     }
-    jsc_value_function_call(it->second, JSC_TYPE_VALUE, event, G_TYPE_NONE);
+    JSCValue* ignore = jsc_value_function_call(it->second, JSC_TYPE_VALUE, event, G_TYPE_NONE);
+    g_object_unref(ignore);
     return true;
 }
 

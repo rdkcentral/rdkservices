@@ -457,7 +457,7 @@ void MiracastP2P::reset_WFDParameters(void)
 MiracastError MiracastP2P::discover_devices(void)
 {
     MiracastError ret = MIRACAST_FAIL;
-    std::string command, retBuffer,opt_flag_buffer;
+    std::string command, retBuffer;
     MIRACASTLOG_TRACE("Entering..");
 
     /*Start Passive Scanning*/
@@ -479,12 +479,14 @@ MiracastError MiracastP2P::stop_discover_devices(void)
     MIRACASTLOG_TRACE("Entering...");
 
     /*Stop Passive Scanning*/
-    command = "P2P_EXT_LISTEN 0 0";
+    command = "P2P_STOP_FIND";
+
     ret = executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
     if (ret != MIRACAST_OK)
     {
         MIRACASTLOG_ERROR("Failed to Stop discovering devices");
     }
+
     MIRACASTLOG_TRACE("Exiting...");
     return ret;
 }
