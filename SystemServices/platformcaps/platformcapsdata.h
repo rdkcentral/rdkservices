@@ -119,7 +119,7 @@ private:
       {
         if (service)
 #if ((THUNDER_VERSION >= 4) && (THUNDER_VERSION_MINOR == 4))
-          dispatcher_ = service->QueryInterfaceByCallsign<PluginHost::IDispatcher>(mCallSign);
+          dispatcher_ = service->QueryInterfaceByCallsign<PluginHost::ILocalDispatcher>(mCallSign);
 #else
           dispatcher_ = service->QueryInterfaceByCallsign<PluginHost::IDispatcher>(mCallSign);
 #endif
