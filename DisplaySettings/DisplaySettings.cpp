@@ -97,6 +97,7 @@ bool isStbHDRcapabilitiesCache = false;
 static int  hdmiArcPortId = -1;
 static int retryPowerRequestCount = 0;
 static int  hdmiArcVolumeLevel = 0;
+bool audioPortInitActive = false;
 std::vector<int> sad_list;
 #ifdef USE_IARM
 namespace
@@ -572,6 +573,11 @@ namespace WPEFramework {
 	   {
 		if (m_sendMsgThread.joinable())
 			m_sendMsgThread.join();
+        int count = 0;
+		while(audioPortInitActive && count < 20){
+            sleep(100);
+            count++;
+        }
 	   }
 	   catch(const std::system_error& e)
            {
@@ -4706,7 +4712,9 @@ namespace WPEFramework {
 
         void DisplaySettings::initAudioPortsWorker(void)
         {
+            audioPortInitActive = true;
             DisplaySettings::_instance->InitAudioPorts();
+            audioPortInitActive = false;
         }
 
         void DisplaySettings::powerEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
