@@ -950,7 +950,7 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             param.data.connect.security_mode = (SsidSecurity) ssid.m_securityMode;
 
             IARM_Result_t retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_saveSSID, (void *)&param, sizeof(param));
-            if(retVal == IARM_RESULT_SUCCESS)
+            if((retVal == IARM_RESULT_SUCCESS) && param.status)
             {
                 NMLOG_INFO ("AddToKnownSSIDs Success");
                 rc = Core::ERROR_NONE;
@@ -975,7 +975,7 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             (void)ssid;
 
             IARM_Result_t retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_clearSSID, (void *)&param, sizeof(param));
-            if(retVal == IARM_RESULT_SUCCESS)
+            if((retVal == IARM_RESULT_SUCCESS) && param.status)
             {
                 NMLOG_INFO ("RemoveKnownSSID Success");
                 rc = Core::ERROR_NONE;
@@ -1004,7 +1004,7 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
 
             retVal = IARM_Bus_Call( IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_connect, (void *)&param, sizeof(param));
 
-            if(retVal == IARM_RESULT_SUCCESS && param.status)
+            if((retVal == IARM_RESULT_SUCCESS) && param.status)
             {
                 NMLOG_INFO ("WiFiConnect Success");
                 rc = Core::ERROR_NONE;
@@ -1019,11 +1019,13 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
         uint32_t NetworkManagerImplementation::WiFiDisconnect(void)
         {
             LOG_ENTRY_FUNCTION();
+            IARM_Result_t retVal = IARM_RESULT_SUCCESS;
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
             IARM_Bus_WiFiSrvMgr_Param_t param;
             memset(&param, 0, sizeof(param));
 
-            if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_disconnectSSID, (void *)&param, sizeof(param)))
+            retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_disconnectSSID, (void *)&param, sizeof(param));
+            if ((retVal == IARM_RESULT_SUCCESS) && param.status)
             {
                 NMLOG_INFO ("WiFiDisconnect started");
                 rc = Core::ERROR_NONE;
