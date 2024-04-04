@@ -865,6 +865,8 @@ public:
     void getHostEDID(std::vector<uint8_t>& edid) const;
     std::string getDefaultVideoPortName();
     std::string getDefaultAudioPortName();
+    void setAudioMixerLevels(dsAudioInput_t input, int volume);
+
 };
 
 }
