@@ -118,7 +118,6 @@ namespace Plugin {
             _cookieJar = _browser->QueryInterface<Exchange::IBrowserCookieJar>();
             if (_cookieJar) {
                 _cookieJar->Register(&_notification);
-                Exchange::JBrowserCookieJar::Register(*this, _cookieJar);
             }
 
             _browserScripting = _browser->QueryInterface<Exchange::IBrowserScripting>();
@@ -151,7 +150,6 @@ namespace Plugin {
             _browserScripting->Release();
         }
         if (_cookieJar) {
-            Exchange::JBrowserCookieJar::Unregister(*this);
             _cookieJar->Unregister(&_notification);
             _cookieJar->Release();
         }
@@ -279,8 +277,13 @@ namespace Plugin {
         if (path.empty() == false) {
             string fullPath = _persistentStoragePath + path;
             Core::Directory dir(fullPath.c_str());
-            if (!dir.Destroy(true)) {
-                TRACE(Trace::Error, (_T("Failed to delete %s\n"), fullPath.c_str()));
+#if defined(THUNDER_VERSION) && THUNDER_VERSION >= 4
+            bool success = dir.Destroy();
+#else
+            bool success = dir.Destroy(true);
+#endif
+            if (!success) {
+                SYSLOG(Logging::Error, (_T("Failed to delete %s\n"), fullPath.c_str()));
                 result = Core::ERROR_GENERAL;
             }
         }
@@ -309,6 +312,7 @@ namespace Plugin {
     {
         string message(string("{ \"url\": \"") + URL + string("\", \"loaded\": ") + (loaded ? string("true") : string("false")) + string(" }"));
         TRACE(Trace::Information, (_T("URLChanged: %s"), message.c_str()));
+        _lastURL.assign(URL);
         _service->Notify(message);
         Exchange::JWebBrowser::Event::URLChange(*this, URL, loaded);
     }
@@ -335,7 +339,7 @@ namespace Plugin {
 
     void WebKitBrowser::CookieJarChanged()
     {
-        Exchange::JBrowserCookieJar::Event::CookieJarChanged(*this);
+        Notify(_T("cookiejarchanged"));
     }
 
     void WebKitBrowser::StateChange(const PluginHost::IStateControl::state state)
@@ -349,6 +353,8 @@ namespace Plugin {
     void WebKitBrowser::Deactivated(RPC::IRemoteConnection* connection)
     {
         if (connection->Id() == _connectionId) {
+
+            TRACE(Trace::Information, (_T("WebKitBrowser::Deactivated: { \"URL\": %.*s }"), 80, _lastURL.c_str()));
 
             ASSERT(_service != nullptr);
 
@@ -454,7 +460,11 @@ namespace WebKitBrowser {
             _children = Core::ProcessInfo::Iterator(_main.Id());
             return ((_startTime == TimePoint::min()) || (_main.IsActive() == true) ? 1 : 0) + _children.Count();
         }
+#if defined(THUNDER_VERSION) && THUNDER_VERSION >= 4
+        bool IsOperational() const override
+#else
         const bool IsOperational() const override
+#endif
         {
             uint32_t requiredProcesses = 0;
 

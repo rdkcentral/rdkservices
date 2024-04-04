@@ -870,7 +870,6 @@ static GSourceFuncs _handlerIntervention =
             , _view(nullptr)
             , _guid(Core::Time::Now().Ticks())
             , _httpCookieAcceptPolicy(WEBKIT_COOKIE_POLICY_ACCEPT_NO_THIRD_PARTY)
-            , _webprocessPID(-1)
             , _extensionPath()
             , _ignoreLoadFinishedOnce(false)
 #else
@@ -1509,7 +1508,7 @@ static GSourceFuncs _handlerIntervention =
                 if (error) {
                     auto errorDomain = WKErrorCopyDomain(error);
                     auto errorDescription = WKErrorCopyLocalizedDescription(error);
-                    TRACE_GLOBAL(Trace::Error,
+                    SYSLOG(Logging::Error,
                                  (_T("GetCookies failed, error(code=%d, domain=%s, message=%s)"),
                                      WKErrorGetErrorCode(error),
                                      WKStringToString(errorDomain).c_str(),
@@ -1993,7 +1992,7 @@ static GSourceFuncs _handlerIntervention =
             Core::JSON::ArrayType<Core::JSON::String> array;
 
             if (!array.FromString(language, error)) {
-                TRACE(Trace::Error,
+                SYSLOG(Logging::Error,
                      (_T("Failed to parse languages array, error='%s', array='%s'\n"),
                       (error.IsSet() ? error.Value().Message().c_str() : "unknown"), language.c_str()));
                 return Core::ERROR_GENERAL;
@@ -2670,7 +2669,7 @@ static GSourceFuncs _handlerIntervention =
         static void loadFailedCallback(WebKitWebView*, WebKitLoadEvent loadEvent, const gchar* failingURI, GError* error, WebKitImplementation* browser)
         {
             string message(string("{ \"url\": \"") + failingURI + string("\", \"Error message\": \"") + error->message + string("\", \"loadEvent\":") + Core::NumberType<uint32_t>(loadEvent).Text() + string(" }"));
-            SYSLOG(Trace::Information, (_T("LoadFailed: %s"), message.c_str()));
+            SYSLOG(Logging::Notification, (_T("LoadFailed: %s"), message.c_str()));
             if (g_error_matches(error, WEBKIT_NETWORK_ERROR, WEBKIT_NETWORK_ERROR_CANCELLED)) {
                 browser->_ignoreLoadFinishedOnce = true;
                 return;
@@ -2681,13 +2680,13 @@ static GSourceFuncs _handlerIntervention =
         {
             switch (reason) {
             case WEBKIT_WEB_PROCESS_CRASHED:
-                SYSLOG(Trace::Fatal, (_T("CRASH: WebProcess crashed: exiting ...")));
+                SYSLOG(Logging::Fatal, (_T("CRASH: WebProcess crashed: exiting ...")));
                 break;
             case WEBKIT_WEB_PROCESS_EXCEEDED_MEMORY_LIMIT:
-                SYSLOG(Trace::Fatal, (_T("CRASH: WebProcess terminated due to memory limit: exiting ...")));
+                SYSLOG(Logging::Fatal, (_T("CRASH: WebProcess terminated due to memory limit: exiting ...")));
                 break;
             case WEBKIT_WEB_PROCESS_TERMINATED_BY_API:
-                SYSLOG(Trace::Fatal, (_T("CRASH: WebProcess terminated by API")));
+                SYSLOG(Logging::Fatal, (_T("CRASH: WebProcess terminated by API")));
                 break;
             }
             g_signal_handlers_block_matched(webView, G_SIGNAL_MATCH_DATA, 0, 0, nullptr, nullptr, browser);
@@ -2695,7 +2694,7 @@ static GSourceFuncs _handlerIntervention =
             {
                 virtual void Dispatch() { exit(1); }
             };
-            Core::IWorkerPool::Instance().Submit(Core::proxy_cast<Core::IDispatch>(Core::ProxyType<ExitJob>::Create()));
+            Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatch>(Core::ProxyType<ExitJob>::Create()));
         }
         static void closeCallback(VARIABLE_IS_NOT_USED WebKitWebView* webView, WebKitImplementation* browser)
         {
@@ -2895,7 +2894,11 @@ static GSourceFuncs _handlerIntervention =
             }
 
             if (!_config.CertificateCheck) {
+#if WEBKIT_CHECK_VERSION(2, 38, 0)
+                webkit_website_data_manager_set_tls_errors_policy(webkit_web_context_get_website_data_manager(wkContext), WEBKIT_TLS_ERRORS_POLICY_IGNORE);
+#else
                 webkit_web_context_set_tls_errors_policy(wkContext, WEBKIT_TLS_ERRORS_POLICY_IGNORE);
+#endif
             }
 
             auto* languages = static_cast<char**>(g_new0(char*, _config.Languages.Length() + 1));
@@ -3330,7 +3333,7 @@ static GSourceFuncs _handlerIntervention =
                     gchar* scriptContent;
                     auto success = g_file_get_contents(path.c_str(), &scriptContent, nullptr, nullptr);
                     if (!success) {
-                        SYSLOG(Trace::Error, (_T("Unable to read user script '%s'"), path.c_str()));
+                        SYSLOG(Logging::Error, (_T("Unable to read user script '%s'"), path.c_str()));
                         return;
                     }
                     AddUserScriptImpl(scriptContent, false);
@@ -3406,6 +3409,14 @@ static GSourceFuncs _handlerIntervention =
 #endif
         }
 
+        pid_t GetWebGetProcessIdentifier() {
+#ifdef WEBKIT_GLIB_API
+            return webkit_web_view_get_web_process_identifier(_view);
+#else
+            return WKPageGetProcessIdentifier(GetPage());
+#endif
+        }
+
         void DidReceiveWebProcessResponsivenessReply(bool isWebProcessResponsive)
         {
             if (_config.WatchDogHangThresholdInSeconds.Value() == 0 || _config.WatchDogCheckTimeoutInSeconds.Value() == 0)
@@ -3423,15 +3434,11 @@ static GSourceFuncs _handlerIntervention =
             if (isWebProcessResponsive && _unresponsiveReplyNum == 0)
                 return;
 
+            pid_t webprocessPID = GetWebGetProcessIdentifier();
 #ifdef WEBKIT_GLIB_API
             std::string activeURL(webkit_web_view_get_uri(_view));
-            if (_webprocessPID == -1) {
-              _webprocessPID = webkit_web_view_get_web_process_identifier(_view);
-            }
-            pid_t webprocessPID = _webprocessPID;
 #else
             std::string activeURL = GetPageActiveURL(GetPage());
-            pid_t webprocessPID = WKPageGetProcessIdentifier(GetPage());
 #endif
 
             if (isWebProcessResponsive) {
@@ -3453,7 +3460,7 @@ static GSourceFuncs _handlerIntervention =
                     _unresponsiveReplyNum = kWebProcessUnresponsiveReplyDefaultLimit;
                     Logging::DumpSystemFiles(webprocessPID);
                     if (syscall(__NR_tgkill, webprocessPID, webprocessPID, SIGFPE) == -1) {
-                        SYSLOG(Trace::Error, (_T("tgkill failed, signal=%d process=%u errno=%d (%s)"), SIGFPE, webprocessPID, errno, strerror(errno)));
+                        SYSLOG(Logging::Error, (_T("tgkill failed, signal=%d process=%u errno=%d (%s)"), SIGFPE, webprocessPID, errno, strerror(errno)));
                     }
                 } else {
                     DeactivateBrowser(PluginHost::IShell::FAILURE);
@@ -3465,7 +3472,7 @@ static GSourceFuncs _handlerIntervention =
                 Logging::DumpSystemFiles(webprocessPID);
 
                 if (syscall(__NR_tgkill, webprocessPID, webprocessPID, SIGFPE) == -1) {
-                    SYSLOG(Trace::Error, (_T("tgkill failed, signal=%d process=%u errno=%d (%s)"), SIGFPE, webprocessPID, errno, strerror(errno)));
+                    SYSLOG(Logging::Error, (_T("tgkill failed, signal=%d process=%u errno=%d (%s)"), SIGFPE, webprocessPID, errno, strerror(errno)));
                 }
             } else if (_unresponsiveReplyNum == (2 * kWebProcessUnresponsiveReplyDefaultLimit)) {
                 DeactivateBrowser(PluginHost::IShell::WATCHDOG_EXPIRED);
@@ -3519,7 +3526,6 @@ static GSourceFuncs _handlerIntervention =
         WebKitWebView* _view;
         uint64_t _guid;
         WebKitCookieAcceptPolicy _httpCookieAcceptPolicy;
-        pid_t _webprocessPID;
         string _extensionPath;
         bool _ignoreLoadFinishedOnce;
 #else
@@ -3715,7 +3721,7 @@ static GSourceFuncs _handlerIntervention =
 
         string url = GetPageActiveURL(page);
         string message(string("{ \"url\": \"") + url + string("\", \"Error code\":") + Core::NumberType<uint32_t>(errorcode).Text() + string(" }"));
-        SYSLOG(Trace::Information, (_T("LoadFailed: %s"), message.c_str()));
+        SYSLOG(Logging::Notification, (_T("LoadFailed: %s"), message.c_str()));
 
         bool isCanceled =
             errorDomain &&
@@ -3732,7 +3738,7 @@ static GSourceFuncs _handlerIntervention =
 
     /* static */ void webProcessDidCrash(WKPageRef, const void*)
     {
-        SYSLOG(Trace::Fatal, (_T("CRASH: WebProcess crashed, exiting...")));
+        SYSLOG(Logging::Fatal, (_T("CRASH: WebProcess crashed, exiting...")));
         exit(1);
     }
 
