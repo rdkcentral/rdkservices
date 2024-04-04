@@ -20,6 +20,7 @@
 #pragma once
 
 #include "Module.h"
+
 #include <interfaces/IStore.h>
 #include <interfaces/IStore2.h>
 #include <interfaces/IStoreCache.h>
@@ -49,6 +50,7 @@ namespace Plugin {
                 Add(_T("maxsize"), &MaxSize);
                 Add(_T("maxvalue"), &MaxValue);
                 Add(_T("limit"), &Limit);
+                Add(_T("tokencommand"), &TokenCommand);
             }
 
         public:
@@ -59,6 +61,7 @@ namespace Plugin {
             Core::JSON::DecUInt64 MaxSize;
             Core::JSON::DecUInt64 MaxValue;
             Core::JSON::DecUInt64 Limit;
+            Core::JSON::String TokenCommand;
         };
 
         class Store2Notification : public Exchange::IStore2::INotification {
@@ -67,13 +70,15 @@ namespace Plugin {
             Store2Notification& operator=(const Store2Notification&) = delete;
 
         public:
-            explicit Store2Notification(PersistentStore& parent)
-                : _parent(parent)
+            explicit Store2Notification(PersistentStore* parent)
+                : _parent(*parent)
             {
             }
             ~Store2Notification() override = default;
 
         public:
+            // IStore2::INotification methods
+
             void ValueChanged(const Exchange::IStore2::ScopeType scope, const string& ns, const string& key, const string& value) override
             {
                 JsonData::PersistentStore::SetValueParamsData params;
@@ -94,20 +99,66 @@ namespace Plugin {
         };
 
         // Deprecated
-        class Store : public Exchange::IStore,
-                      public Exchange::IStore2::INotification {
+        class Store : public Exchange::IStore {
         private:
             Store(const Store&) = delete;
             Store& operator=(const Store&) = delete;
 
-        public:
-            Store(PersistentStore& parent)
-                : _parent(parent)
-            {
-            }
-            ~Store() override = default;
+        private:
+            class Store2Notification : public Exchange::IStore2::INotification {
+            private:
+                Store2Notification(const Store2Notification&) = delete;
+                Store2Notification& operator=(const Store2Notification&) = delete;
+
+            public:
+                explicit Store2Notification(Store* parent)
+                    : _parent(*parent)
+                {
+                }
+                ~Store2Notification() override = default;
+
+            public:
+                // IStore2::INotification methods
+
+                void ValueChanged(const Exchange::IStore2::ScopeType, const string& ns, const string& key, const string& value) override
+                {
+                    Core::SafeSyncType<Core::CriticalSection> lock(_parent._clientLock);
+
+                    std::list<Exchange::IStore::INotification*>::iterator
+                        index(_parent._clients.begin());
+
+                    while (index != _parent._clients.end()) {
+                        (*index)->ValueChanged(ns, key, value);
+                        index++;
+                    }
+                }
+
+                BEGIN_INTERFACE_MAP(Store2Notification)
+                INTERFACE_ENTRY(Exchange::IStore2::INotification)
+                END_INTERFACE_MAP
+
+            private:
+                Store& _parent;
+            };
 
         public:
+            Store(Exchange::IStore2* store2)
+                : _store2(store2)
+                , _store2Sink(this)
+            {
+                ASSERT(_store2 != nullptr);
+                _store2->AddRef();
+                _store2->Register(&_store2Sink);
+            }
+            ~Store() override
+            {
+                _store2->Unregister(&_store2Sink);
+                _store2->Release();
+            }
+
+        public:
+            // IStore methods
+
             uint32_t Register(Exchange::IStore::INotification* notification) override
             {
                 Core::SafeSyncType<Core::CriticalSection> lock(_clientLock);
@@ -137,201 +188,95 @@ namespace Plugin {
             }
             uint32_t SetValue(const string& ns, const string& key, const string& value) override
             {
-                if (_parent._deviceStore2 != nullptr) {
-                    return _parent._deviceStore2->SetValue(Exchange::IStore2::ScopeType::DEVICE, ns, key, value, 0);
-                }
-                return Core::ERROR_NOT_SUPPORTED;
+                return _store2->SetValue(Exchange::IStore2::ScopeType::DEVICE, ns, key, value, 0);
             }
             uint32_t GetValue(const string& ns, const string& key, string& value) override
             {
-                if (_parent._deviceStore2 != nullptr) {
-                    uint32_t ttl;
-                    return _parent._deviceStore2->GetValue(Exchange::IStore2::ScopeType::DEVICE, ns, key, value, ttl);
-                }
-                return Core::ERROR_NOT_SUPPORTED;
+                uint32_t ttl;
+                return _store2->GetValue(Exchange::IStore2::ScopeType::DEVICE, ns, key, value, ttl);
             }
             uint32_t DeleteKey(const string& ns, const string& key) override
             {
-                if (_parent._deviceStore2 != nullptr) {
-                    return _parent._deviceStore2->DeleteKey(Exchange::IStore2::ScopeType::DEVICE, ns, key);
-                }
-                return Core::ERROR_NOT_SUPPORTED;
+                return _store2->DeleteKey(Exchange::IStore2::ScopeType::DEVICE, ns, key);
             }
             uint32_t DeleteNamespace(const string& ns) override
             {
-                if (_parent._deviceStore2 != nullptr) {
-                    return _parent._deviceStore2->DeleteNamespace(Exchange::IStore2::ScopeType::DEVICE, ns);
-                }
-                return Core::ERROR_NOT_SUPPORTED;
-            }
-            void ValueChanged(const Exchange::IStore2::ScopeType scope, const string& ns, const string& key, const string& value) override
-            {
-                ASSERT(scope == Exchange::IStore2::ScopeType::DEVICE);
-
-                Core::SafeSyncType<Core::CriticalSection> lock(_clientLock);
-
-                std::list<Exchange::IStore::INotification*>::iterator
-                    index(_clients.begin());
-
-                while (index != _clients.end()) {
-                    (*index)->ValueChanged(ns, key, value);
-                    index++;
-                }
+                return _store2->DeleteNamespace(Exchange::IStore2::ScopeType::DEVICE, ns);
             }
 
             BEGIN_INTERFACE_MAP(Store)
             INTERFACE_ENTRY(Exchange::IStore)
-            INTERFACE_ENTRY(Exchange::IStore2::INotification)
             END_INTERFACE_MAP
 
         private:
-            PersistentStore& _parent;
+            Exchange::IStore2* _store2;
             std::list<Exchange::IStore::INotification*> _clients;
             Core::CriticalSection _clientLock;
+            Core::Sink<Store2Notification> _store2Sink;
         };
 
-        class Store2 : public Exchange::IStore2,
-                       public Exchange::IStoreCache,
-                       public Exchange::IStoreInspector,
-                       public Exchange::IStoreLimit {
+        class Store2 : public Exchange::IStore2 {
         private:
             Store2(const Store2&) = delete;
             Store2& operator=(const Store2&) = delete;
 
         public:
-            Store2(PersistentStore& parent)
-                : _parent(parent)
+            typedef std::map<ScopeType, Exchange::IStore2*> ScopeMapType;
+
+            Store2(const ScopeMapType& map)
+                : _scopeMap(map)
             {
+                for (auto const& x : _scopeMap) {
+                    x.second->AddRef();
+                }
             }
-            ~Store2() override = default;
+            ~Store2() override
+            {
+                for (auto const& x : _scopeMap) {
+                    x.second->Release();
+                }
+            }
 
         public:
-            uint32_t Register(INotification* notification) override
+            // IStore2 methods
+
+            uint32_t Register(Exchange::IStore2::INotification* notification) override
             {
-                if (_parent._deviceStore2 != nullptr) {
-                    _parent._deviceStore2->Register(notification);
-                }
-                if (_parent._accountStore2 != nullptr) {
-                    _parent._accountStore2->Register(notification);
+                for (auto const& x : _scopeMap) {
+                    x.second->Register(notification);
                 }
                 return Core::ERROR_NONE;
             }
-            uint32_t Unregister(INotification* notification) override
+            uint32_t Unregister(Exchange::IStore2::INotification* notification) override
             {
-                if (_parent._deviceStore2 != nullptr) {
-                    _parent._deviceStore2->Unregister(notification);
-                }
-                if (_parent._accountStore2 != nullptr) {
-                    _parent._accountStore2->Unregister(notification);
+                for (auto const& x : _scopeMap) {
+                    x.second->Unregister(notification);
                 }
                 return Core::ERROR_NONE;
             }
-            uint32_t SetValue(const IStore2::ScopeType scope, const string& ns, const string& key, const string& value, const uint32_t ttl) override
+            uint32_t SetValue(const ScopeType scope, const string& ns, const string& key, const string& value, const uint32_t ttl) override
             {
-                if (scope == IStore2::ScopeType::ACCOUNT) {
-                    if (_parent._accountStore2 != nullptr) {
-                        return _parent._accountStore2->SetValue(scope, ns, key, value, ttl);
-                    }
-                } else if (_parent._deviceStore2 != nullptr) {
-                    return _parent._deviceStore2->SetValue(scope, ns, key, value, ttl);
-                }
-                return Core::ERROR_NOT_SUPPORTED;
+                return _scopeMap.at(scope)->SetValue(scope, ns, key, value, ttl);
             }
-            uint32_t GetValue(const IStore2::ScopeType scope, const string& ns, const string& key, string& value, uint32_t& ttl) override
+            uint32_t GetValue(const ScopeType scope, const string& ns, const string& key, string& value, uint32_t& ttl) override
             {
-                if (scope == IStore2::ScopeType::ACCOUNT) {
-                    if (_parent._accountStore2 != nullptr) {
-                        return _parent._accountStore2->GetValue(scope, ns, key, value, ttl);
-                    }
-                } else if (_parent._deviceStore2 != nullptr) {
-                    return _parent._deviceStore2->GetValue(scope, ns, key, value, ttl);
-                }
-                return Core::ERROR_NOT_SUPPORTED;
+                return _scopeMap.at(scope)->GetValue(scope, ns, key, value, ttl);
             }
-            uint32_t DeleteKey(const IStore2::ScopeType scope, const string& ns, const string& key) override
+            uint32_t DeleteKey(const ScopeType scope, const string& ns, const string& key) override
             {
-                if (scope == IStore2::ScopeType::ACCOUNT) {
-                    if (_parent._accountStore2 != nullptr) {
-                        return _parent._accountStore2->DeleteKey(scope, ns, key);
-                    }
-                } else if (_parent._deviceStore2 != nullptr) {
-                    return _parent._deviceStore2->DeleteKey(scope, ns, key);
-                }
-                return Core::ERROR_NOT_SUPPORTED;
+                return _scopeMap.at(scope)->DeleteKey(scope, ns, key);
             }
-            uint32_t DeleteNamespace(const IStore2::ScopeType scope, const string& ns) override
+            uint32_t DeleteNamespace(const ScopeType scope, const string& ns) override
             {
-                if (scope == IStore2::ScopeType::ACCOUNT) {
-                    if (_parent._accountStore2 != nullptr) {
-                        return _parent._accountStore2->DeleteNamespace(scope, ns);
-                    }
-                } else if (_parent._deviceStore2 != nullptr) {
-                    return _parent._deviceStore2->DeleteNamespace(scope, ns);
-                }
-                return Core::ERROR_NOT_SUPPORTED;
-            }
-            uint32_t FlushCache() override
-            {
-                if (_parent._deviceStoreCache != nullptr) {
-                    return _parent._deviceStoreCache->FlushCache();
-                }
-                return Core::ERROR_NOT_SUPPORTED;
-            }
-            uint32_t GetKeys(const IStoreInspector::ScopeType scope, const string& ns, RPC::IStringIterator*& keys) override
-            {
-                if (scope == IStoreInspector::ScopeType::DEVICE) {
-                    if (_parent._deviceStoreInspector != nullptr) {
-                        return _parent._deviceStoreInspector->GetKeys(scope, ns, keys);
-                    }
-                }
-                return Core::ERROR_NOT_SUPPORTED;
-            }
-            uint32_t GetNamespaces(const IStoreInspector::ScopeType scope, RPC::IStringIterator*& namespaces) override
-            {
-                if (scope == IStoreInspector::ScopeType::DEVICE) {
-                    if (_parent._deviceStoreInspector != nullptr) {
-                        return _parent._deviceStoreInspector->GetNamespaces(scope, namespaces);
-                    }
-                }
-                return Core::ERROR_NOT_SUPPORTED;
-            }
-            uint32_t GetStorageSizes(const IStoreInspector::ScopeType scope, INamespaceSizeIterator*& storageList) override
-            {
-                if (scope == IStoreInspector::ScopeType::DEVICE) {
-                    if (_parent._deviceStoreInspector != nullptr) {
-                        return _parent._deviceStoreInspector->GetStorageSizes(scope, storageList);
-                    }
-                }
-                return Core::ERROR_NOT_SUPPORTED;
-            }
-            uint32_t SetNamespaceStorageLimit(const IStoreLimit::ScopeType scope, const string& ns, const uint32_t size) override
-            {
-                if (scope == IStoreLimit::ScopeType::DEVICE) {
-                    if (_parent._deviceStoreLimit != nullptr) {
-                        return _parent._deviceStoreLimit->SetNamespaceStorageLimit(scope, ns, size);
-                    }
-                }
-                return Core::ERROR_NOT_SUPPORTED;
-            }
-            uint32_t GetNamespaceStorageLimit(const IStoreLimit::ScopeType scope, const string& ns, uint32_t& size) override
-            {
-                if (scope == IStoreLimit::ScopeType::DEVICE) {
-                    if (_parent._deviceStoreLimit != nullptr) {
-                        return _parent._deviceStoreLimit->GetNamespaceStorageLimit(scope, ns, size);
-                    }
-                }
-                return Core::ERROR_NOT_SUPPORTED;
+                return _scopeMap.at(scope)->DeleteNamespace(scope, ns);
             }
 
             BEGIN_INTERFACE_MAP(Store2)
-            INTERFACE_ENTRY(IStore2)
-            INTERFACE_ENTRY(IStoreCache)
-            INTERFACE_ENTRY(IStoreInspector)
-            INTERFACE_ENTRY(IStoreLimit)
+            INTERFACE_ENTRY(Exchange::IStore2)
             END_INTERFACE_MAP
 
         private:
-            PersistentStore& _parent;
+            ScopeMapType _scopeMap;
         };
 
     private:
@@ -341,47 +286,41 @@ namespace Plugin {
     public:
         PersistentStore()
             : PluginHost::JSONRPC()
-            , _deviceStore2(nullptr)
-            , _deviceStoreCache(nullptr)
-            , _deviceStoreInspector(nullptr)
-            , _deviceStoreLimit(nullptr)
-            , _accountStore2(nullptr)
-            , _store(Core::Service<Store>::Create<Store>(*this))
-            , _store2(Core::Service<Store2>::Create<Store2>(*this))
-            , _store2Sink(*this)
+            , _store(nullptr)
+            , _store2(nullptr)
+            , _storeCache(nullptr)
+            , _storeInspector(nullptr)
+            , _storeLimit(nullptr)
+            , _store2Sink(this)
         {
             RegisterAll();
         }
         ~PersistentStore() override
         {
             UnregisterAll();
-
-            if (_store != nullptr) {
-                _store->Release();
-                _store = nullptr;
-            }
-            if (_store2 != nullptr) {
-                _store2->Release();
-                _store2 = nullptr;
-            }
         }
 
+        // Build QueryInterface implementation, specifying all possible interfaces to be returned.
         BEGIN_INTERFACE_MAP(PersistentStore)
         INTERFACE_ENTRY(PluginHost::IPlugin)
         INTERFACE_ENTRY(PluginHost::IDispatcher)
         INTERFACE_AGGREGATE(Exchange::IStore, _store)
         INTERFACE_AGGREGATE(Exchange::IStore2, _store2)
-        INTERFACE_AGGREGATE(Exchange::IStoreCache, _store2)
-        INTERFACE_AGGREGATE(Exchange::IStoreInspector, _store2)
-        INTERFACE_AGGREGATE(Exchange::IStoreLimit, _store2)
+        INTERFACE_AGGREGATE(Exchange::IStoreCache, _storeCache)
+        INTERFACE_AGGREGATE(Exchange::IStoreInspector, _storeInspector)
+        INTERFACE_AGGREGATE(Exchange::IStoreLimit, _storeLimit)
         END_INTERFACE_MAP
 
     public:
+        //   IPlugin methods
+        // -------------------------------------------------------------------------------------------------------
         const string Initialize(PluginHost::IShell* service) override;
         void Deinitialize(PluginHost::IShell* service) override;
         string Information() const override;
 
     private:
+        // JSON RPC
+
         void RegisterAll();
         void UnregisterAll();
 
@@ -404,13 +343,11 @@ namespace Plugin {
 
     private:
         Config _config;
-        Exchange::IStore2* _deviceStore2;
-        Exchange::IStoreCache* _deviceStoreCache;
-        Exchange::IStoreInspector* _deviceStoreInspector;
-        Exchange::IStoreLimit* _deviceStoreLimit;
-        Exchange::IStore2* _accountStore2;
-        Store* _store; // Deprecated
-        Store2* _store2;
+        Exchange::IStore* _store; // Deprecated
+        Exchange::IStore2* _store2;
+        Exchange::IStoreCache* _storeCache;
+        Exchange::IStoreInspector* _storeInspector;
+        Exchange::IStoreLimit* _storeLimit;
         Core::Sink<Store2Notification> _store2Sink;
     };
 
