@@ -15,7 +15,7 @@ pip install jsonref
 ############################
 # 2. Build Thunder Tools
 
-git clone https://github.com/rdkcentral/ThunderTools.git
+git clone https://github.com/rdkcentral/ThunderTools.git -b R2.1.16
 
 cmake -G Ninja -S ThunderTools -B build/ThunderTools -DCMAKE_INSTALL_PREFIX="install/usr"
 
