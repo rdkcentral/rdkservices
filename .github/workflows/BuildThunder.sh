@@ -24,7 +24,7 @@ cmake --build build/ThunderTools --target install
 ############################
 # 3. Build Thunder
 
-git clone https://github.com/rdkcentral/Thunder.git
+git clone https://github.com/rdkcentral/Thunder.git -b R2.1.16
 
 cmake -G Ninja -S Thunder -B build/Thunder \
   -DBUILD_SHARED_LIBS=ON \
@@ -44,7 +44,7 @@ cmake --build build/Thunder --target install
 ############################
 # 4. Build ThunderInterfaces
 
-git clone https://github.com/rdkcentral/ThunderInterfaces.git
+git clone https://github.com/rdkcentral/ThunderInterfaces.git -b R2.1.16
 
 cmake -G Ninja -S ThunderInterfaces -B build/ThunderInterfaces \
   -DCMAKE_INSTALL_PREFIX="install/usr" \
