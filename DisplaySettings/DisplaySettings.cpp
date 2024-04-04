@@ -1700,6 +1700,7 @@ namespace WPEFramework {
 					    if (m_AudioDeviceSADState  != AUDIO_DEVICE_SAD_CLEARED) {
 						LOGINFO("%s: Clearing the SAD since audio mode is changed to PCM\n", __FUNCTION__);
 						m_AudioDeviceSADState  = AUDIO_DEVICE_SAD_CLEARED;
+						m_requestSadRetrigger = false;
 						//clear the SAD list
 						sad_list.clear();
 					    }
@@ -5039,6 +5040,7 @@ void DisplaySettings::sendMsgThread()
 
 	    if (m_AudioDeviceSADState != AUDIO_DEVICE_SAD_CLEARED) {
 		m_AudioDeviceSADState = AUDIO_DEVICE_SAD_CLEARED;
+		m_requestSadRetrigger = false;
 		LOGINFO("%s: Clearing Audio device SAD\n", __FUNCTION__);
 		//clear the SAD list
 		sad_list.clear();
@@ -5265,6 +5267,7 @@ void DisplaySettings::sendMsgThread()
 		            //clear the SAD list
 		            sad_list.clear();
 		            m_AudioDeviceSADState = AUDIO_DEVICE_SAD_CLEARED;
+			    m_requestSadRetrigger = false;
 		        } else {
 		            LOGINFO("SAD already cleared\n");
 	            }
