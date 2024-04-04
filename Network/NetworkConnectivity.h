@@ -82,7 +82,7 @@ namespace WPEFramework {
             }
             ~Connectivity(){}
 
-            nsm_internetState testConnectivity(const std::vector<std::string>& endpoints, long timeout_ms, nsm_ipversion ipversion);
+            nsm_internetState testConnectivity(const std::vector<std::string>& endpoints, long timeout_ms, nsm_ipversion ipversion, bool connectOnly);
             std::vector<std::string> getConnectivityDefaultEndpoints() { return m_defaultEndpoints; };
             std::string getCaptivePortal() { const std::lock_guard<std::mutex> lock(capitiveMutex); return g_captivePortal; }
             void setCaptivePortal(const char* captivePortal) {const std::lock_guard<std::mutex> lock(capitiveMutex); g_captivePortal = captivePortal; }
