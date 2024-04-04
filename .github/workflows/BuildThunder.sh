@@ -13,18 +13,14 @@ sudo apt install -y build-essential cmake ninja-build libusb-1.0-0-dev zlib1g-de
 pip install jsonref
 
 ############################
-# 2. Build Thunder Tools
+# 2 & 3 Build Thunder Tools & Thunder
 
-git clone https://github.com/rdkcentral/ThunderTools.git -b R2.1.16
+git clone https://github.com/rdkcentral/Thunder.git -b R2.1.16
 
 cmake -G Ninja -S ThunderTools -B build/ThunderTools -DCMAKE_INSTALL_PREFIX="install/usr"
 
 cmake --build build/ThunderTools --target install
 
-############################
-# 3. Build Thunder
-
-git clone https://github.com/rdkcentral/Thunder.git -b R2.1.16
 
 cmake -G Ninja -S Thunder -B build/Thunder \
   -DBUILD_SHARED_LIBS=ON \
