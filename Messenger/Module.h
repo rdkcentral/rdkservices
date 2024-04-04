@@ -24,7 +24,7 @@
 #endif
 
 #include <plugins/plugins.h>
-#if ((THUNDER_VERSION_MAJOR >= 4) && (THUNDER_VERSION_MINOR == 4))
+#if ((THUNDER_VERSION >= 4) && (THUNDER_VERSION_MINOR == 4))
 #include <definitions/definitions.h>
 #else
 #include <interfaces/definitions.h>
