@@ -19,6 +19,7 @@ set(PLUGIN_NAME FrontPanel)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 set(PLUGIN_FRONTPANEL_STARTUPORDER "" CACHE STRING "To configure startup order of FrontPanel plugin")
+set(PLUGIN_FRONTPANEL_AUTOSTART false CACHE STRING "To automatically start FrontPanel plugin.")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 
