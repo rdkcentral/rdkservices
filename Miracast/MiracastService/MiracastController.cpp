@@ -462,8 +462,7 @@ void MiracastController::event_handler(P2P_EVENTS eventId, void *data, size_t le
     event_buffer = (char *)data;
     free(data);
 
-    std::string opt_flag_buffer = MiracastCommon::parse_opt_flag("/opt/miracast_suppress_p2p_events");
-    if (!opt_flag_buffer.empty())
+    if ( false == m_start_discovering_enabled )
     {
         MIRACASTLOG_TRACE("Exiting...");
         return;
