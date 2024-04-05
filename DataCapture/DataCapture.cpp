@@ -37,7 +37,7 @@ pthread_mutex_t WPEFramework::Plugin::DataCapture::_mutex = PTHREAD_MUTEX_INITIA
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 6
+#define API_VERSION_NUMBER_PATCH 7
 
 using namespace std;
 using namespace audiocapturemgr;
