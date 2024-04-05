@@ -298,7 +298,11 @@ namespace WPEFramework
 				}
 				else
 				{
-					if (m_isServiceEnabled)
+					if ( MIRACAST_SERVICE_STATE_PLAYER_LAUNCHED == m_eService_state )
+					{
+						response["message"] = "Failed as MiracastPlayer already Launched";
+					}
+					else if (m_isServiceEnabled)
 					{
 						m_miracast_ctrler_obj->set_enable(is_enabled);
 						success = true;
