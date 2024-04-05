@@ -25,6 +25,10 @@ find_package(WPEFramework)
 # are located in the cmake directory. Include it in the search.
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/")
 
+if(RDK_SERVICE_L2_TEST)
+    include(l2tests.cmake)
+endif()
+
 option(COMCAST_CONFIG "Comcast services configuration" ON)
 if(COMCAST_CONFIG)
     include(services.cmake)
@@ -32,8 +36,8 @@ endif()
 
 option(PLUGIN_OCICONTAINER "Include OCIContainer plugin" OFF)
 
-if(RDK_SERVICES_TEST)
-    include(tests.cmake)
+if(RDK_SERVICES_L1_TEST)
+    include(l1tests.cmake)
 endif()
 
 # Library installation section
@@ -77,6 +81,11 @@ endif()
 
 if(PLUGIN_SYSTEMSERVICES)
     add_subdirectory(SystemServices)
+endif()
+
+if(RDK_SERVICE_L2_TEST)
+    add_subdirectory(Tests/L2Tests/L2TestsPlugin)
+    add_subdirectory(Tests/L2Tests)
 endif()
 
 if(PLUGIN_MAINTENANCEMANAGER)
@@ -352,8 +361,8 @@ if(PLUGIN_RUSTADAPTER)
     add_subdirectory(RustAdapter)
 endif()
 
-if(RDK_SERVICES_TEST)
-    add_subdirectory(Tests)
+if(RDK_SERVICES_L1_TEST)
+    add_subdirectory(Tests/L1Tests)
 endif()
 
 if(PLUGIN_PERFORMANCEMETRICS)
