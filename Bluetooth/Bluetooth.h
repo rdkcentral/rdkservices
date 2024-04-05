@@ -97,6 +97,7 @@ namespace WPEFramework {
             uint32_t getMediaTrackInfoWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getDeviceVolumeMuteInfoWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setDeviceVolumeMuteInfoWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t getBatteryLevel(const JsonObject& parameters, JsonObject& response);
             // Registered methods end
 
         private: /*internal methods*/
@@ -151,6 +152,7 @@ namespace WPEFramework {
             static const string METHOD_GET_API_VERSION_NUMBER;
             static const string METHOD_GET_DEVICE_VOLUME_MUTE_INFO;
             static const string METHOD_SET_DEVICE_VOLUME_MUTE_INFO;
+            static const string METHOD_GET_BATTERY_LEVEL;
             static const string EVT_STATUS_CHANGED;
             static const string EVT_PAIRING_REQUEST;
             static const string EVT_REQUEST_FAILED;

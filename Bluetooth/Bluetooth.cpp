@@ -66,6 +66,7 @@ const string WPEFramework::Plugin::Bluetooth::METHOD_GET_AUDIO_INFO = "getAudioI
 const string WPEFramework::Plugin::Bluetooth::METHOD_GET_API_VERSION_NUMBER = "getApiVersionNumber";
 const string WPEFramework::Plugin::Bluetooth::METHOD_GET_DEVICE_VOLUME_MUTE_INFO = "getDeviceVolumeMuteInfo";
 const string WPEFramework::Plugin::Bluetooth::METHOD_SET_DEVICE_VOLUME_MUTE_INFO = "setDeviceVolumeMuteInfo";
+const string WPEFramework::Plugin::Bluetooth::METHOD_GET_BATTERY_LEVEL = "getBatteryLevel";
 
 const string WPEFramework::Plugin::Bluetooth::EVT_STATUS_CHANGED = "onStatusChanged";
 const string WPEFramework::Plugin::Bluetooth::EVT_PAIRING_REQUEST = "onPairingRequest";
@@ -119,6 +120,8 @@ const string WPEFramework::Plugin::Bluetooth::CMD_AUDIO_CTRL_VOLUME_DOWN = "VOLU
 const string WPEFramework::Plugin::Bluetooth::CMD_AUDIO_CTRL_MUTE = "AUDIO_MUTE";
 const string WPEFramework::Plugin::Bluetooth::CMD_AUDIO_CTRL_UNMUTE = "AUDIO_UNMUTE";
 const string WPEFramework::Plugin::Bluetooth::CMD_AUDIO_CTRL_UNKNOWN = "CMD_UNKNOWN";
+
+#define BATTERY_LEVEL_UUID "00002a19-0000-1000-8000-00805f9b34fb"
 
 namespace WPEFramework
 {
@@ -184,6 +187,7 @@ namespace WPEFramework
             Register(METHOD_GET_AUDIO_INFO, &Bluetooth::getMediaTrackInfoWrapper, this);
             Register(METHOD_GET_DEVICE_VOLUME_MUTE_INFO, &Bluetooth::getDeviceVolumeMuteInfoWrapper, this);
             Register(METHOD_SET_DEVICE_VOLUME_MUTE_INFO, &Bluetooth::setDeviceVolumeMuteInfoWrapper, this);
+            Register(METHOD_GET_BATTERY_LEVEL, &Bluetooth::getBatteryLevel, this);
 
             Utils::IARM::init();
 
@@ -1660,6 +1664,40 @@ namespace WPEFramework
             }
             returnResponse(successFlag);
         }
+
+        uint32_t Bluetooth::getBatteryLevel(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            string deviceIDStr;
+            long long int deviceID = 0;
+            bool successFlag = false;
+            BTRMGR_Result_t rc = BTRMGR_RESULT_SUCCESS;
+            char aLeOpArg[BTRMGR_MAX_STR_LEN] = {'\0'};
+            char battery_level[BTRMGR_MAX_STR_LEN] = {'\0'};
+            BTRMgrDeviceHandle deviceHandle;
+
+            if (parameters.HasLabel("deviceID"))
+            {
+                getStringParameter("deviceID", deviceIDStr);
+                deviceID = stoll(deviceIDStr);
+                deviceHandle = (BTRMgrDeviceHandle) deviceID;
+                rc = BTRMGR_PerformLeOp(0,deviceHandle,BATTERY_LEVEL_UUID,BTRMGR_LE_OP_READ_VALUE,aLeOpArg,battery_level);
+                if(BTRMGR_RESULT_SUCCESS != rc)
+                {
+                    LOGERR("Failed to get Battery Level");
+                    successFlag = false;
+                }
+                else
+                {
+                    response["batteryLevel"] = strtol(battery_level, NULL, 16);
+                    successFlag = true;
+                }
+            } else {
+                LOGERR("Please specify parameters. Example: \"params\": {\"deviceID\": \"271731989589742\"}");
+                successFlag = false;
+            }
+            returnResponse(successFlag);
+       }
 
         uint32_t Bluetooth::setEventResponseWrapper(const JsonObject& parameters, JsonObject& response)
         {
