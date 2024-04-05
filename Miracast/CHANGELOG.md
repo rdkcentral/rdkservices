@@ -15,7 +15,8 @@ All notable changes to this RDK Service will be documented in this file.
     For more details, refer to versioning section under Main README.
 ## [1.0.5] - 2024-04-04
 ### Fixed
-- Added the synchronization the enable/disbable the MiracastService discovery.
+- Added the synchronization for enable/disable the MiracastService discovery.
+- Added the check to avoid the P2P events when MiracastService discovery not enabled.
 
 ## [1.0.4] - 2024-03-06
 ### Fixed
