@@ -422,7 +422,7 @@ MiracastError MiracastP2P::set_WFDParameters(void)
         {
             command = "SET config_methods pbc";
         }
-	executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
+        executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
 
         set_FriendlyName(get_FriendlyName() , true);
         /* Set Device type */
@@ -479,8 +479,14 @@ MiracastError MiracastP2P::stop_discover_devices(void)
     MIRACASTLOG_TRACE("Entering...");
 
     /*Stop Passive Scanning*/
-    command = "P2P_STOP_FIND";
+    command = "P2P_EXT_LISTEN 0 0";
+    ret = executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
+    if (ret != MIRACAST_OK)
+    {
+        MIRACASTLOG_ERROR("Failed to stop discovering devices");
+    }
 
+    command = "P2P_STOP_FIND";
     ret = executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
     if (ret != MIRACAST_OK)
     {
