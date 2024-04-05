@@ -101,6 +101,7 @@ elseif (BUILD_REALTEK)
     target_sources(${MODULE_NAME}
         PRIVATE
             Implementation/Realtek/Realtek.cpp)
+    target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 elseif(UNIX AND NOT APPLE)
     target_sources(${MODULE_NAME}
         PRIVATE
