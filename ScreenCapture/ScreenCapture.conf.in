@@ -1,4 +1,4 @@
 precondition = ["Platform"]
 callsign = "org.rdk.ScreenCapture"
-autostart = "false"
+autostart = "@PLUGIN_SCREENCAPTURE_AUTOSTART@"
 startuporder = "@PLUGIN_SCREENCAPTURE_STARTUPORDER@"

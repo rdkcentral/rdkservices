@@ -1,4 +1,4 @@
 precondition = ["Platform"]
 callsign = "org.rdk.Bluetooth"
-autostart = "false"
+autostart = "@PLUGIN_BLUETOOTH_AUTOSTART@"
 startuporder = "@PLUGIN_BLUETOOTH_STARTUPORDER@"
