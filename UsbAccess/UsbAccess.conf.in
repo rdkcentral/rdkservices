@@ -1,4 +1,4 @@
 precondition = ["Platform"]
 callsign = "org.rdk.UsbAccess"
-autostart = "false"
+autostart = "@PLUGIN_USBACCESS_AUTOSTART@"
 startuporder = "@PLUGIN_USBACCESS_STARTUPORDER@"
