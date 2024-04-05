@@ -19,6 +19,7 @@ set(PLUGIN_NAME DeviceDiagnostics)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 set(PLUGIN_DEVICEDIAGNOSTICS_STARTUPORDER "" CACHE STRING "To configure startup order of DeviceDiagnostics plugin")
+set(PLUGIN_DEVICEDIAGNOSTICS_AUTOSTART false CACHE STRING "To automatically start DeviceDiagnostics plugin.")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 

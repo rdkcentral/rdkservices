@@ -1,4 +1,4 @@
 precondition = ["Platform"]
 callsign = "org.rdk.Warehouse"
-autostart = "false"
+autostart = "@PLUGIN_WAREHOUSE_AUTOSTART@"
 startuporder = "@PLUGIN_WAREHOUSE_STARTUPORDER@"

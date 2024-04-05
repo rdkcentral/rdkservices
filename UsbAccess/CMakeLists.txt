@@ -2,6 +2,7 @@ set(PLUGIN_NAME UsbAccess)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 set(PLUGIN_USBACCESS_STARTUPORDER "" CACHE STRING "To configure startup order of UsbAccess plugin")
+set(PLUGIN_USBACCESS_AUTOSTART false CACHE STRING "To automatically start UsbAccess plugin.")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 
