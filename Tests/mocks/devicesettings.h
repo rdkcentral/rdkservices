@@ -836,7 +836,6 @@ public:
     virtual void getHostEDID(std::vector<uint8_t>& edid) const = 0;
     virtual std::string getDefaultVideoPortName() = 0;
     virtual std::string getDefaultAudioPortName() = 0;
-    virtual void setAudioMixerLevels(dsAudioInput_t input, int volume) = 0 ;
 };
 
 class Host {
@@ -858,8 +857,7 @@ public:
     void getHostEDID(std::vector<uint8_t>& edid) const;
     std::string getDefaultVideoPortName();
     std::string getDefaultAudioPortName();
-    void setAudioMixerLevels(dsAudioInput_t input, int volume);
-};
+ };
 
 }
 

@@ -499,11 +499,6 @@ std::string Host::getDefaultAudioPortName() {
     return impl->getDefaultAudioPortName();
 }
 
-void Host::setAudioMixerLevels(dsAudioInput_t input, int volume) {
-    EXPECT_NE(impl, nullptr);
-    return impl->setAudioMixerLevels(input,volume);
-}
-
 FrontPanelIndicator::ColorImpl* FrontPanelIndicator::Color::impl = nullptr;
 
 FrontPanelIndicator::Color::Color() {}
