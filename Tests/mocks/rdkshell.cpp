@@ -305,6 +305,12 @@ bool CompositorController::generateKey(const std::string& client, const uint32_t
 {
     return impl->generateKey(client, keyCode, flags, virtualKey);
 }
+
+bool CompositorController::generateKey(const std::string& client, const uint32_t& keyCode, const uint32_t& flags, std::string virtualKey, double duration)
+{
+    return impl->generateKey(client, keyCode, flags, virtualKey, duration);
+}
+
 bool CompositorController::getScreenResolution(uint32_t &width, uint32_t &height)
 {
     return impl->getScreenResolution(width,height);
