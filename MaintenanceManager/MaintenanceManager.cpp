@@ -834,6 +834,35 @@ namespace WPEFramework {
 	    return network_available;
 	}
 
+        bool MaintenanceManager::checkDeviceInitializationContextUpdate() {
+            JsonObject joGetParams;
+            JsonObject joGetResult;
+            std::string secMgr_callsign = "org.rdk.SecManager.1";
+            PluginHost::IShell::state state;
+
+            if((getServiceState(m_service, SecMgr_callsign, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
+                LOGINFO("%s is active", secMgr_callsign);
+                if (UNSOLICITED_MAINTENANCE == g_maintenance_type && !g_listen_to_deviceContextUpdate) {
+                    // subscribe to onDeviceInitializationContextUpdate event
+                    bool subscribe_status = subscribeForDeviceInitializationContextUpdate("onDeviceInitializationContextUpdate");
+                    if(subscribe_status) {
+                        LOGINFO("MaintenanceManager subscribed for onDeviceInitializationContextUpdate event");
+                        g_listen_to_deviceContextUpdate = true;
+                    }
+                    else {
+                        LOGINFO("Failed to subscribe for onDeviceInitializationContextUpdate event");
+                    }
+                }
+                else {
+                    LOGINFO("Event already Subscribed or Maintenance Type is UnSolicited Maintenance");
+                }
+            }
+            else {
+                LOGINFO("%s is not active", secMgr_callsign);
+                return false;
+            }
+        }
+
         MaintenanceManager::~MaintenanceManager()
         {
             MaintenanceManager::_instance = nullptr;
