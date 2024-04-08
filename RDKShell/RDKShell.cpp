@@ -303,7 +303,9 @@ static bool checkFactoryMode_wrapper()
 {
         Device_Mode_DeviceModes_t deviceMode;
         bool ret = false;
-        Device_Mode_Result_t result = Device_Mode_getDeviceMode(&deviceMode);
+	//Device_Mode_Result_t result = Device_Mode_getDeviceMode(&deviceMode);
+	Device_Mode_Result_t result = DEVICE_MODE_RESULT_SUCCESS;
+	deviceMode = DEVICE_MODE_USER;	
         if(result == DEVICE_MODE_RESULT_SUCCESS) {
                 if (deviceMode == DEVICE_MODE_FACTORY) {
                         std::cout << "Device in FactoryMode\n";
@@ -321,7 +323,9 @@ static bool checkAssemblyFactoryMode_wrapper()
 {
         Device_Mode_FactoryModes_t factoryMode;
         bool ret = false;
-        Device_Mode_Result_t result = Device_Mode_getFactoryMode(&factoryMode);
+        //Device_Mode_Result_t result = Device_Mode_getFactoryMode(&factoryMode);
+	Device_Mode_Result_t result = DEVICE_MODE_RESULT_SUCCESS;
+        factoryMode = DEVICE_MODE_ODM_1_FACTORY_MODE;
         if(result == DEVICE_MODE_RESULT_SUCCESS) {
 #ifdef RDKSHELL_DUAL_ODM_SUPPORT
                 if (factoryMode == DEVICE_MODE_ODM_1_FACTORY_MODE || factoryMode == DEVICE_MODE_ODM_2_FACTORY_MODE) {
@@ -1578,7 +1582,7 @@ namespace WPEFramework {
             bool factoryMacMatched = false;
 #ifdef RFC_ENABLED
             #ifdef RDKSHELL_READ_MAC_ON_STARTUP
-	    Device_Mode_Init();
+	    //Device_Mode_Init();
             factoryMacMatched = checkFactoryMode_wrapper();
 	    #ifdef RDKSHELL_DUAL_FTA_SUPPORT
 	    bool isAssemblyFactoryMode = false;
