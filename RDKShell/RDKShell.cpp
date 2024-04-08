@@ -571,7 +571,11 @@ namespace WPEFramework {
         private:
           uint32_t mId { 0 };
           std::string mCallSign { };
+#if ((THUNDER_VERSION >= 4) && (THUNDER_VERSION_MINOR == 4))
+          PluginHost::ILocalDispatcher * dispatcher_ {nullptr};
+#else
           PluginHost::IDispatcher * dispatcher_ {nullptr};
+#endif
 
           Core::ProxyType<Core::JSONRPC::Message> Message() const
           {
@@ -620,7 +624,11 @@ namespace WPEFramework {
             : mCallSign(callsign)
           {
             if (service)
+#if ((THUNDER_VERSION >= 4) && (THUNDER_VERSION_MINOR == 4))
+              dispatcher_ = service->QueryInterfaceByCallsign<PluginHost::ILocalDispatcher>(mCallSign);
+#else
               dispatcher_ = service->QueryInterfaceByCallsign<PluginHost::IDispatcher>(mCallSign);
+#endif
           }
       
           JSONRPCDirectLink(PluginHost::IShell* service)
@@ -664,12 +672,49 @@ namespace WPEFramework {
             ToMessage(parameters, message);
 
             const uint32_t channelId = ~0;
-#ifndef USE_THUNDER_R4
+#if ((THUNDER_VERSION >= 4) && (THUNDER_VERSION_MINOR == 4))
+            uint32_t result = Core::ERROR_BAD_REQUEST;
+            string output;
+            Core::ProxyType<Core::JSONRPC::Message> resp;
+
+            if (dispatcher_  != nullptr)
+            {
+                PluginHost::ILocalDispatcher* localDispatcher = dispatcher_->Local();
+
+                ASSERT(localDispatcher != nullptr);
+
+                if (localDispatcher != nullptr)
+                    result =  dispatcher_->Invoke(channelId, message->Id.Value(), sThunderSecurityToken, message->Designator.Value(), message->Parameters.Value(),output);
+                dispatcher_->Release();
+            }
+
+            if ( (result != static_cast<uint32_t>(~0)) && ( (message->Id.IsSet()) || (result != Core::ERROR_NONE) ) )
+            {
+                resp = PluginHost::IFactories::Instance().JSONRPC();
+
+                if (message->Id.IsSet())
+                    resp->Id = message->Id.Value();
+
+                if (result == Core::ERROR_NONE)
+                {
+                    if (output.empty() == true)
+                        resp->Result.Null(true);
+                    else
+                        resp->Result = output;
+                }
+                else
+                {
+                    resp->Error.SetError(result);
+                    if (output.empty() == false)
+                        resp->Error.Text = output;
+                }
+            }
+#elif (THUNDER_VERSION == 2)
             auto resp =  dispatcher_->Invoke(sThunderSecurityToken, channelId, *message);
 #else
             Core::JSONRPC::Context context(channelId, message->Id.Value(), sThunderSecurityToken) ;
             auto resp = dispatcher_->Invoke(context, *message);
-#endif /* USE_THUNDER_R4 */
+#endif
             if (resp->Error.IsSet()) {
               std::cout << "Call failed: " << message->Designator.Value() << " error: " <<  resp->Error.Text.Value() << "\n";
               return resp->Error.Code;
@@ -1063,7 +1108,7 @@ namespace WPEFramework {
                            sem_wait(&request->mSemaphore);
                        }
                        gRdkShellMutex.lock();
-                       RdkShell::CompositorController::addListener(clientidentifier, mShell.mEventListener);
+                       RdkShell::CompositorController::addListener(service->Callsign(), mShell.mEventListener);
                        gRdkShellMutex.unlock();
                        gPluginDataMutex.lock();
                        std::string className = service->ClassName();
@@ -1269,7 +1314,7 @@ namespace WPEFramework {
                            sem_wait(&request->mSemaphore);
                        }
                        gRdkShellMutex.lock();
-                       RdkShell::CompositorController::addListener(clientidentifier, mShell.mEventListener);
+                       RdkShell::CompositorController::addListener(service->Callsign(), mShell.mEventListener);
                        gRdkShellMutex.unlock();
                        gPluginDataMutex.lock();
                        std::string className = service->ClassName();
@@ -1366,7 +1411,7 @@ namespace WPEFramework {
                         gRdkShellMutex.unlock();
                         sem_wait(&request->mSemaphore);
                         gRdkShellMutex.lock();
-                        RdkShell::CompositorController::removeListener(clientidentifier, mShell.mEventListener);
+                        RdkShell::CompositorController::removeListener(service->Callsign(), mShell.mEventListener);
                         gRdkShellMutex.unlock();
                     }
                     

@@ -300,7 +300,7 @@ namespace WPEFramework {
             }
 
             /* Controlled by CFLAGS */
-#if defined(SUPPRESS_MAINTENANCE)
+#if defined(SUPPRESS_MAINTENANCE) && !defined(ENABLE_WHOAMI)
             bool activationStatus=false;
             bool skipFirmwareCheck=false;
 
@@ -319,7 +319,7 @@ namespace WPEFramework {
 #endif
 
 #if defined(ENABLE_WHOAMI)
-    string activation_status = "";
+    string activation_status = checkActivatedStatus();
     if (UNSOLICITED_MAINTENANCE == g_maintenance_type) {
         /* WhoAmI check*/
         bool whoAmIStatus = knowWhoAmI(activation_status);
@@ -480,7 +480,6 @@ namespace WPEFramework {
 
 		retryCount++;
                 if (retryCount == 4 && !success) {
-                    activation_status = checkActivatedStatus();
                     if (activation_status == "activated") {
                         LOGINFO("Device is already activated. Exiting from knowWhoAmI()");
                         success = true;

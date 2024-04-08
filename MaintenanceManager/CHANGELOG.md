@@ -20,6 +20,10 @@ All notable changes to this RDK Service will be documented in this file.
 ### Removed
 - Removed TargetProposition WhoAmI Parameter and added OsClass Parameter
 
+## [1.0.28] - 2024-03-20
+### Fixed
+- Fixed Activation Logic for Maintenance Manager WAI
+
 ## [1.0.27] - 2024-01-16
 ### Fixed
 - Fixed Network Retry logic in Maintenance Manager in isDeviceOnline()
