@@ -320,12 +320,10 @@ namespace WPEFramework {
 
 #if defined(ENABLE_WHOAMI)
     string activation_status = checkActivatedStatus();
+    bool whoAmIStatus = false;
     if (UNSOLICITED_MAINTENANCE == g_maintenance_type) {
         /* WhoAmI check*/
-        bool whoAmIStatus = knowWhoAmI(activation_status);
-        if (whoAmIStatus) {
-            LOGINFO("knowWhoAmI() returned successfully");
-        }
+        whoAmIStatus = knowWhoAmI();
     }
             if ( false == internetConnectStatus && activation_status == "activated" ) {
 #else
@@ -341,6 +339,13 @@ namespace WPEFramework {
                 }
                 return;
             }
+if defined(ENABLE_WHOAMI)
+            else if (false == whoAmIStatus && activation_status != "activated") {
+                g_listen_to_deviceContextUpdate = true;
+                task_thread.wait(lck);
+                checkDeviceInitializationContextUpdate();
+            }
+#endif
 
             LOGINFO("Reboot_Pending :%s",g_is_reboot_pending.c_str());
 
@@ -409,7 +414,7 @@ namespace WPEFramework {
         }
 
 #if defined(ENABLE_WHOAMI)
-        bool MaintenanceManager::knowWhoAmI(string &activation_status)
+        bool MaintenanceManager::knowWhoAmI()
         {
             bool success = false;
             int retryDelay = 10;
@@ -477,20 +482,6 @@ namespace WPEFramework {
                 } else {
                     LOGINFO("%s is not active", secMgr_callsign);
                 }
-
-		retryCount++;
-                if (retryCount == 4 && !success) {
-                    if (activation_status == "activated") {
-                        LOGINFO("Device is already activated. Exiting from knowWhoAmI()");
-                        success = true;
-                    }
-                }
-
-		if (!success) {
-                    LOGINFO("Retrying in %d seconds", retryDelay);
-                    sleep(retryDelay);
-                }
-
             } while (!success);
             return success;
         }
@@ -630,7 +621,7 @@ namespace WPEFramework {
 
         void MaintenanceManager::deviceInitializationContextUpdateEventHandler(const JsonObject& parameters)
         {
-            if (g_listen_to_deviceContext && UNSOLICITED_MAINTENANCE == g_maintenance_type) {
+            if (g_listen_to_deviceContextUpdate && UNSOLICITED_MAINTENANCE == g_maintenance_type) {
                 if (parameters.HasLabel("success") && joGetResult["success"].Boolean()){
                     static const char* kDeviceInitializationContext = "deviceInitializationContext";
                     if (parameters.HasLabel(kDeviceInitializationContext))

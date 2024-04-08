@@ -145,7 +145,7 @@ namespace WPEFramework {
 #if defined(ENABLE_WHOAMI)
                 std::map<string, string> m_param_map;
                 std::map<string, DATA_TYPE> m_paramType_map;
-                bool knowWhoAmI(string &activation_status);
+                bool knowWhoAmI();
 #endif
                 PluginHost::IShell* m_service;
 
