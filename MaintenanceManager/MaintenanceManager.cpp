@@ -600,7 +600,7 @@ namespace WPEFramework {
                 LOGINFO("Failed to get plugin handle");
             }
             else {
-                status = thunder_client->Subscribe<JsonObject>(5000, event, &MaintenanceManager::deviceinitializationContextUpdateEvent, this);
+                status = thunder_client->Subscribe<JsonObject>(5000, event, &MaintenanceManager::deviceInitializationContextUpdateEventHandler, this);
                 if (status == Core::ERROR_NONE) {
                     result = true;
                 }
@@ -626,6 +626,50 @@ namespace WPEFramework {
                     }
                 }
             }
+        }
+
+        void MaintenanceManager::deviceInitializationContextUpdateEventHandler(const JsonObject& parameters)
+        {
+            if (g_listen_to_deviceContext && UNSOLICITED_MAINTENANCE == g_maintenance_type) {
+                if (parameters.HasLabel("success") && joGetResult["success"].Boolean()){
+                    static const char* kDeviceInitializationContext = "deviceInitializationContext";
+                    if (parameters.HasLabel(kDeviceInitializationContext))
+                    {
+                        JsonObject getInitializationContext = joGetResult[kDeviceInitializationContext].Object();
+                        for (const string& key : kDeviceInitContextKeyVals)
+                        {
+                            string paramValue = getInitializationContext[key.c_str()].String();
+                            if (!paramValue.empty())
+                            {
+                                if (strcmp(key.c_str(), "regionalConfigService") == 0) 
+                                {
+                                    paramValue = "https://" + paramValue;
+                                }
+                                LOGINFO("[%s] %s : %s", kDeviceInitializationContext, key.c_str(), paramValue.c_str());
+
+                                // Retrieve tr181 parameter from m_param_map
+                                string rfc_parameter = m_param_map[key];
+
+                                //  Retrieve parameter data type from m_paramType_map
+                                DATA_TYPE rfc_dataType = m_paramType_map[key];
+
+                                // Set the RFC values for deviceInitializationContext parameters
+                                setRFC(rfc_parameter.c_str(), paramValue.c_str(), rfc_dataType);
+
+                                if (strcmp(key.c_str(), "partnerId") == 0) {
+                                    setPartnerId(paramValue);
+                                }
+                            }
+                            else 
+                            {
+                                LOGINFO("Not able to fetch %s value from %s", key.c_str(), kDeviceInitializationContext);
+                            }
+                        }
+                    }
+                }
+            }
+            task_thread.notify_one();
+            g_listen_to_deviceContextUpdate = false;
         }
 
         void MaintenanceManager::startCriticalTasks()
