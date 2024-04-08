@@ -587,6 +587,27 @@ namespace WPEFramework {
             return result;
         }
 
+        bool MaintenanceManager::subscribeForInternetStatusEvent(string event)
+        {
+            int32 status = Core::ERROR_NONE;
+            bool result = false;
+            LOGINFO("Attempting to subscribe for %s events", event.c_str());
+            const char* secMgr_callsign = "org.rdk.SecManager.1";
+            WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
+
+            thunder_client = getThunderPluginHandle(network_callsign);
+            if (thunder_client == nullptr) {
+                LOGINFO("Failed to get plugin handle");
+            }
+            else {
+                status = thunder_client->Subscribe<JsonObject>(5000, event, &MaintenanceManager::deviceinitializationContextUpdateEvent, this);
+                if (status == Core::ERROR_NONE) {
+                    result = true;
+                }
+            }
+            return result;
+        }
+
         void MaintenanceManager::internetStatusChangeEventHandler(const JsonObject& parameters)
         {
             string value;
