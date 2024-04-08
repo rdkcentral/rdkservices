@@ -417,72 +417,82 @@ if defined(ENABLE_WHOAMI)
         bool MaintenanceManager::knowWhoAmI()
         {
             bool success = false;
-            int retryDelay = 10;
-            int retryCount = 0;
+            int paramEmpty = false;
             const char* secMgr_callsign = "org.rdk.SecManager";
             const char* secMgr_callsign_ver = "org.rdk.SecManager.1";
             PluginHost::IShell::state state;
             WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
 
-            do {
+            
+            if ((getServiceState(m_service, secMgr_callsign, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) 
+            {
+                LOGINFO("%s is active", secMgr_callsign);
+                thunder_client=getThunderPluginHandle(secMgr_callsign_ver);
+                if (thunder_client != nullptr) 
+                {
+                    JsonObject params;
+                    JsonObject joGetResult;
 
-                if ((getServiceState(m_service, secMgr_callsign, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
-                    LOGINFO("%s is active", secMgr_callsign);
+                    thunder_client->Invoke<JsonObject, JsonObject>(5000, "getDeviceInitializationContext", params, joGetResult);
+                    if (joGetResult.HasLabel("success") && joGetResult["success"].Boolean()) 
+                    {
+                        static const char* kDeviceInitializationContext = "deviceInitializationContext";
+                        if (joGetResult.HasLabel(kDeviceInitializationContext)) 
+                        {
+                            JsonObject getInitializationContext = joGetResult[kDeviceInitializationContext].Object();
+                            for (const string& key : kDeviceInitContextKeyVals) 
+                            {
+                                // Retrieve deviceInitializationContext Value
+                                string paramValue = getInitializationContext[key.c_str()].String();
 
-                    thunder_client=getThunderPluginHandle(secMgr_callsign_ver);
-                    if (thunder_client == nullptr) {
-                        LOGINFO("Failed to get plugin handle");
-                    } else {
-                        JsonObject params;
-                        JsonObject joGetResult;
-
-                        thunder_client->Invoke<JsonObject, JsonObject>(5000, "getDeviceInitializationContext", params, joGetResult);
-                        if (joGetResult.HasLabel("success") && joGetResult["success"].Boolean()) {
-                            static const char* kDeviceInitializationContext = "deviceInitializationContext";
-                            if (joGetResult.HasLabel(kDeviceInitializationContext)) {
-                                JsonObject getInitializationContext = joGetResult[kDeviceInitializationContext].Object();
-                                for (const string& key : kDeviceInitContextKeyVals) {
-                                    // Retrieve deviceInitializationContext Value
-                                    string paramValue = getInitializationContext[key.c_str()].String();
-
-                                    if (!paramValue.empty()) {
-                                        if (strcmp(key.c_str(), "regionalConfigService") == 0) {
-                                            paramValue = "https://" + paramValue;
-                                        }
-                                        LOGINFO("[%s] %s : %s", kDeviceInitializationContext, key.c_str(), paramValue.c_str());
-
-                                        // Retrieve tr181 parameter from m_param_map
-                                        string rfc_parameter = m_param_map[key];
-
-                                        //  Retrieve parameter data type from m_paramType_map
-                                        DATA_TYPE rfc_dataType = m_paramType_map[key];
-
-                                        // Set the RFC values for deviceInitializationContext parameters
-                                        setRFC(rfc_parameter.c_str(), paramValue.c_str(), rfc_dataType);
-
-                                        if (strcmp(key.c_str(), "partnerId") == 0) {
-                                             setPartnerId(paramValue);
-                                        }
-                                    } else {
-                                        LOGINFO("Not able to fetch %s value from %s", key.c_str(), kDeviceInitializationContext);
+                                if (!paramValue.empty()) 
+                                {
+                                    if (strcmp(key.c_str(), "regionalConfigService") == 0) 
+                                    {
+                                        paramValue = "https://" + paramValue;
                                     }
+                                    LOGINFO("[%s] %s : %s", kDeviceInitializationContext, key.c_str(), paramValue.c_str());
+
+                                    // Retrieve tr181 parameter from m_param_map
+                                    string rfc_parameter = m_param_map[key];
+
+                                    //  Retrieve parameter data type from m_paramType_map
+                                    DATA_TYPE rfc_dataType = m_paramType_map[key];
+
+                                    // Set the RFC values for deviceInitializationContext parameters
+                                    setRFC(rfc_parameter.c_str(), paramValue.c_str(), rfc_dataType);
+
+                                    if (strcmp(key.c_str(), "partnerId") == 0) 
+                                    {
+                                            setPartnerId(paramValue);
+                                    }
+                                } 
+                                else 
+                                {
+                                    LOGINFO("Not able to fetch %s value from %s", key.c_str(), kDeviceInitializationContext);
+                                    paramEmpty = true;
                                 }
-                                success = true;
-                            } else {
-                                LOGINFO("deviceInitializationContext is not available in the response");
                             }
-                        } else {
-                            // Get retryDelay value and sleep for that much seconds
-                            if (joGetResult.HasLabel("retryDelay")) {
-                                retryDelay = joGetResult["retryDelay"].Number();
-                            }
-                            LOGINFO("getDeviceInitializationContext failed");
+                            success = !paramEmpty;
+                        } else 
+                        {
+                            LOGINFO("deviceInitializationContext is not available in the response");
                         }
                     }
-                } else {
-                    LOGINFO("%s is not active", secMgr_callsign);
+                    else
+                    {
+                        LOGINFO("getDeviceInitializationContext failed");
+                    }
                 }
-            } while (!success);
+                else
+                {
+                    LOGINFO("Failed to get plugin handle");
+                }
+            } 
+            else 
+            {
+                LOGINFO("%s is not active", secMgr_callsign);
+            }
             return success;
         }
 #endif
