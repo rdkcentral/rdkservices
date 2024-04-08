@@ -16,6 +16,9 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+##[1.6.0] - 2024-03-27
+###Changed
+- Added support for Setting the Audio Mixer level for the given audio input 
 
 ##[1.5.0] - 2023-12-15
 ###Changed

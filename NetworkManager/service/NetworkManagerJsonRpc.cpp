@@ -187,6 +187,7 @@ namespace WPEFramework
             if (Core::ERROR_NONE == rc)
             {
                 response["interface"] = interface;      
+                m_defaultInterface = interface;
                 response["success"] = true;
             }
             LOGTRACEMETHODFIN();
@@ -263,7 +264,9 @@ namespace WPEFramework
             if (Core::ERROR_NONE == rc)
             {
                 response["interface"] = interface;
-                response["ipversion"] = ipversion;
+                if(result.m_ipAddrType == "IPV6" || result.m_ipAddrType == "IPV4")
+                    result.m_ipAddrType[2] = tolower(result.m_ipAddrType[2]);
+                response["ipversion"] = result.m_ipAddrType;
                 response["autoconfig"]   = result.m_autoConfig;
                 response["ipaddress"]    = result.m_ipAddress;
                 response["prefix"]       = result.m_prefix;    
@@ -768,6 +771,17 @@ namespace WPEFramework
                 ssid.m_passphrase      = parameters["passphrase"].String();
             if (parameters.HasLabel("securityMode"))
                 ssid.m_securityMode    = static_cast <Exchange::INetworkManager::WIFISecurityMode> (parameters["securityMode"].Number());
+            //TODO Check Security modes
+            if (parameters.HasLabel("identity"))
+            ssid.m_identity              = parameters["identity"].String();
+            if (parameters.HasLabel("caCert"))
+            ssid.m_caCert                = parameters["caCert"].String();
+            if (parameters.HasLabel("clientCert"))
+            ssid.m_clientCert            = parameters["clientCert"].String();
+            if (parameters.HasLabel("privateKey"))
+            ssid.m_privateKey            = parameters["privateKey"].String();
+            if (parameters.HasLabel("privateKeyPasswd"))
+            ssid.m_privateKeyPasswd      = parameters["privateKeyPasswd"].String();
 
             if (_NetworkManager)
                 rc = _NetworkManager->WiFiConnect(ssid);

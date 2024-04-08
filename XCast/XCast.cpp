@@ -107,7 +107,7 @@ bool XCast::m_standbyBehavior = false;
 bool XCast::m_enableStatus = false;
 
 IARM_Bus_PWRMgr_PowerState_t XCast::m_powerState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
-std::thread powerModeChangeThread;
+bool powerModeChangeActive = false;
 
 XCast::XCast() : PluginHost::JSONRPC()
 , m_apiVersionNumber(1), m_isDynamicRegistrationsRequired(false)
@@ -184,7 +184,7 @@ void XCast::powerModeChange(const char *owner, IARM_EventId_t eventId, void *dat
                      param->data.state.curState, param->data.state.newState);
             m_powerState = param->data.state.newState;
             LOGWARN("creating worker thread for threadPowerModeChangeEvent m_powerState :%d",m_powerState);
-            powerModeChangeThread = std::thread(threadPowerModeChangeEvent);
+            std::thread powerModeChangeThread = std::thread(threadPowerModeChangeEvent);
             powerModeChangeThread.detach();
          }
     }
@@ -225,9 +225,10 @@ const string XCast::Initialize(PluginHost::IShell *service)
 void XCast::Deinitialize(PluginHost::IShell* /* service */)
 {
     LOGINFO("XCast::Deinitialize  called \n ");
-    if(powerModeChangeThread.joinable())
-    {
-        powerModeChangeThread.join();
+    int count = 0;
+    while(powerModeChangeActive && count < 20){
+        sleep(100);
+        count++;
     }
     if ( m_locateCastTimer.isActive())
     {
@@ -1145,6 +1146,7 @@ void XCast::onFriendlyNameUpdateHandler(const JsonObject& parameters) {
 
 void XCast::threadPowerModeChangeEvent(void)
 {
+    powerModeChangeActive = true;
     LOGINFO(" threadPowerModeChangeEvent m_standbyBehavior:%d , m_powerState:%d ",m_standbyBehavior,m_powerState);
     if(m_standbyBehavior == false)
     {
@@ -1153,6 +1155,7 @@ void XCast::threadPowerModeChangeEvent(void)
         else
              _rtConnector->enableCastService(m_friendlyName,false);
     }
+    powerModeChangeActive = false;
 }
 
 
