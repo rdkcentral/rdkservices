@@ -163,6 +163,7 @@ namespace WPEFramework {
                 void internetStatusChangeEventHandler(const JsonObject& parameters);
                 void startCriticalTasks();
                 bool checkNetwork();
+                bool checkDeviceInitializationContextUpdate();
                 bool getActivatedStatus(bool &skipFirmwareCheck);
                 const string checkActivatedStatus(void);
                 int abortTask(const char*, int sig = SIGABRT);
