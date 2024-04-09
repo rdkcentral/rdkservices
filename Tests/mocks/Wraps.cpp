@@ -2,6 +2,7 @@
 #include <syslog.h>
 #include "Wraps.h"
 #include <mntent.h>
+#include <gmock/gmock.h>
 
 extern "C" int __wrap_system(const char* command)
 {
@@ -64,3 +65,87 @@ extern "C" int __wrap_v_secure_system(const char *command, ...)
     va_end(args);
     return ret;
 }
+
+extern "C" ssize_t __wrap_readlink(const char *pathname, char *buf, size_t bufsiz)
+{
+    return Wraps::getInstance().readlink(pathname, buf, bufsiz);
+}
+
+WrapsImpl* Wraps::impl = nullptr;
+
+Wraps::Wraps() {}
+
+void Wraps::setImpl(WrapsImpl* newImpl)
+{
+        // Handles both resetting 'impl' to nullptr and assigning a new value to 'impl'
+    EXPECT_TRUE ((nullptr == impl) || (nullptr == newImpl));
+    impl = newImpl;
+}
+
+Wraps& Wraps::getInstance()
+{
+   static Wraps instance;
+   return instance;
+}
+
+int Wraps::system(const char* command)
+{
+    EXPECT_NE(impl, nullptr);
+    return impl->system(command);
+}
+
+FILE* Wraps::popen(const char* command, const char* type)
+{
+    EXPECT_NE(impl, nullptr);
+    return impl->popen(command, type);
+}
+
+int Wraps::pclose(FILE* pipe)
+{
+    EXPECT_NE(impl, nullptr);
+    return impl->pclose(pipe);
+}
+
+void Wraps::syslog(int pri, const char* fmt, va_list args)
+{
+    EXPECT_NE(impl, nullptr);
+    impl->syslog(pri, fmt, args);
+}
+
+FILE* Wraps::setmntent(const char* command, const char* type)
+{
+    EXPECT_NE(impl, nullptr);
+    return impl->setmntent(command,type);
+}
+
+struct mntent* Wraps::getmntent(FILE* pipe)
+{
+    EXPECT_NE(impl, nullptr);
+    return impl->getmntent(pipe);
+}
+
+FILE * Wraps::v_secure_popen(const char *direction, const char *command, va_list args)
+{
+    EXPECT_NE(impl, nullptr);
+    return impl->v_secure_popen(direction, command, args);
+}
+
+int Wraps::v_secure_pclose(FILE *file)
+{
+    EXPECT_NE(impl, nullptr);
+    return impl->v_secure_pclose(file);
+}
+
+int Wraps::v_secure_system(const char *command, va_list args)
+{
+    EXPECT_NE(impl, nullptr);
+    return impl->v_secure_system(command,args);
+}
+
+
+ssize_t Wraps::readlink(const char *pathname, char *buf, size_t bufsiz)
+{
+    EXPECT_NE(impl, nullptr);
+    return impl->readlink(pathname,buf,bufsiz);
+}
+

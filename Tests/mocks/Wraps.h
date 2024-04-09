@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 #include <mntent.h>
-#include <secure_wrappermock.h>
+#include "secure_wrappermock.h"
 
 class WrapsImpl {
 public:
@@ -17,59 +17,36 @@ public:
     virtual FILE *v_secure_popen(const char *direction, const char *command, va_list args) = 0;
     virtual int v_secure_pclose(FILE *) = 0;
     virtual int v_secure_system(const char *command, va_list args) =0;
+    virtual ssize_t readlink(const char *pathname, char *buf, size_t bufsiz) = 0;
 };
 
 class Wraps {
+protected:
+   static WrapsImpl* impl;
+
 public:
-    static Wraps& getInstance()
-    {
-        static Wraps instance;
-        return instance;
-    }
+    Wraps();
+    Wraps(const Wraps &obj) = delete;
+    static void setImpl(WrapsImpl* newImpl);
+    static Wraps& getInstance();
 
-    WrapsImpl* impl;
+    static int system(const char* command);
 
-    static int system(const char* command)
-    {
-        return getInstance().impl->system(command);
-    }
+    static FILE* popen(const char* command, const char* type);
 
-    static FILE* popen(const char* command, const char* type)
-    {
-        return getInstance().impl->popen(command, type);
-    }
+    static int pclose(FILE* pipe);
 
-    static int pclose(FILE* pipe)
-    {
-        return getInstance().impl->pclose(pipe);
-    }
-	
-    static void syslog(int pri, const char* fmt, va_list args)
-    {
-        getInstance().impl->syslog(pri, fmt, args);
-    }
+    static void syslog(int pri, const char* fmt, va_list args);
 
-	static FILE* setmntent(const char* command, const char* type)
-    {
-        return getInstance().impl->setmntent(command, type);
-    }
+    static FILE* setmntent(const char* command, const char* type);
 
-    static struct mntent* getmntent(FILE* pipe)
-    {
-        return getInstance().impl->getmntent(pipe);
-    }
+    static struct mntent* getmntent(FILE* pipe);
 
-    static FILE *v_secure_popen(const char *direction, const char *command, va_list args)
-    {
-        return getInstance().impl->v_secure_popen(direction, command, args);
-    }
+    static FILE *v_secure_popen(const char *direction, const char *command, va_list args);
 
-    static int v_secure_pclose(FILE *file)
-    {
-        return getInstance().impl->v_secure_pclose(file);
-    }
-    static int v_secure_system(const char *command, va_list args)
-    {
-    	return getInstance().impl->v_secure_system(command,args);
-    }
+    static int v_secure_pclose(FILE *file);
+
+    static int v_secure_system(const char *command, va_list args);
+
+    ssize_t readlink(const char *pathname, char *buf, size_t bufsiz);
 };

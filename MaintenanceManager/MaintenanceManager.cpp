@@ -79,7 +79,7 @@ using namespace std;
 
 #if defined(ENABLE_WHOAMI)
 #define TR181_PARTNER_ID "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.PartnerName"
-#define TR181_TARGET_PROPOSITION "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.TargetProposition"
+#define TR181_TARGET_OS_CLASS "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.OsClass"
 #define TR181_XCONFURL "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.XconfUrl"
 #endif
 
@@ -275,7 +275,7 @@ namespace WPEFramework {
 
 #if defined(ENABLE_WHOAMI)
             MaintenanceManager::m_param_map[kDeviceInitContextKeyVals[0].c_str()] = TR181_PARTNER_ID;
-            MaintenanceManager::m_param_map[kDeviceInitContextKeyVals[1].c_str()] = TR181_TARGET_PROPOSITION;
+            MaintenanceManager::m_param_map[kDeviceInitContextKeyVals[1].c_str()] = TR181_TARGET_OS_CLASS;
             MaintenanceManager::m_param_map[kDeviceInitContextKeyVals[2].c_str()] = TR181_XCONFURL;
 
             MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[0].c_str()] = DATA_TYPE::WDMP_STRING;
@@ -300,7 +300,7 @@ namespace WPEFramework {
             }
 
             /* Controlled by CFLAGS */
-#if defined(SUPPRESS_MAINTENANCE)
+#if defined(SUPPRESS_MAINTENANCE) && !defined(ENABLE_WHOAMI)
             bool activationStatus=false;
             bool skipFirmwareCheck=false;
 
@@ -319,7 +319,7 @@ namespace WPEFramework {
 #endif
 
 #if defined(ENABLE_WHOAMI)
-    string activation_status = "";
+    string activation_status = checkActivatedStatus();
     if (UNSOLICITED_MAINTENANCE == g_maintenance_type) {
         /* WhoAmI check*/
         bool whoAmIStatus = knowWhoAmI(activation_status);
@@ -480,7 +480,6 @@ namespace WPEFramework {
 
 		retryCount++;
                 if (retryCount == 4 && !success) {
-                    activation_status = checkActivatedStatus();
                     if (activation_status == "activated") {
                         LOGINFO("Device is already activated. Exiting from knowWhoAmI()");
                         success = true;
