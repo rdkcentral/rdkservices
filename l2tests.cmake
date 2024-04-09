@@ -44,6 +44,8 @@ set(EMPTY_HEADERS
          ${BASEDIR}/rdk/ds/sleepMode.hpp
          ${BASEDIR}/rfcapi.h
          ${BASEDIR}/systemservices/proc/readproc.h
+         ${BASEDIR}/systemservices/secure_wrapper.h
+         ${BASEDIR}/libudev.h
         )
 
 file(MAKE_DIRECTORY ${EMPTY_HEADERS_DIRS})
@@ -66,6 +68,8 @@ set(FAKE_HEADERS
         ${BASEDIR}/devicesettings.h
         ${BASEDIR}/Iarm.h
         ${BASEDIR}/Rfc.h
+        ${BASEDIR}/Udev.h
+        ${BASEDIR}/secure_wrappermock.h
         )
 
 foreach (file ${FAKE_HEADERS})
@@ -74,6 +78,7 @@ endforeach ()
 
 add_compile_options(-Wall -Werror)
 
+add_link_options(-Wl,-wrap,system -Wl,-wrap,setmntent -Wl,-wrap,getmntent -Wl,-wrap,v_secure_popen -Wl,-wrap,v_secure_pclose -Wl,-wrap,v_secure_system -Wl,-wrap,readlink)
 
 add_definitions(
          -DUSE_IARMBUS
@@ -95,6 +100,7 @@ set(CMAKE_DISABLE_FIND_PACKAGE_CEC ON)
 set(CMAKE_DISABLE_FIND_PACKAGE_Dobby ON)
 set(CMAKE_DISABLE_FIND_PACKAGE_CEC ON)
 set(PLUGIN_SYSTEMSERVICES ON)
+set(PLUGIN_USBACCESS ON)
 set(PLUGIN_L2Tests ON)
 set(BUILD_SHARED_LIBS ON)
 set(DS_FOUND ON)

@@ -26,7 +26,8 @@
 
 #include "IarmBusMock.h"
 #include "RfcApiMock.h"
-
+#include "UdevMock.h"
+#include "WrapsMock.h"
 using ::testing::NiceMock;
 using namespace WPEFramework;
 
@@ -35,6 +36,8 @@ protected:
         RfcApiImplMock   *p_rfcApiImplMock = nullptr ;
         RfcApi           *p_rfcApi         = nullptr ;
         IarmBusImplMock  *p_iarmBusImplMock = nullptr ;
+        WrapsImplMock    *p_wrapsImplMock = nullptr ;
+        UdevImplMock     *p_udevImplMock = nullptr ;
         std::string thunder_address;
 
         L2TestMocks();
