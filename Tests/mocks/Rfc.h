@@ -76,31 +76,20 @@ public:
 };
 
 class RfcApi {
+
+protected:
+    static RfcApiImpl* impl;
+
 public:
-    static RfcApi& getInstance()
-    {
-        static RfcApi instance;
-        return instance;
-    }
-
-    RfcApiImpl* impl;
-
-    static WDMP_STATUS getRFCParameter(char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData)
-    {
-        return getInstance().impl->getRFCParameter(pcCallerID, pcParameterName, pstParamData);
-    }
-
-    static WDMP_STATUS setRFCParameter(char* pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType)
-    {
-        return getInstance().impl->setRFCParameter(pcCallerID, pcParameterName, pcParameterValue, eDataType);
-    }
-
-    static const char* getRFCErrorString(WDMP_STATUS code)
-    {
-        return getInstance().impl->getRFCErrorString(code);
-    }
+    RfcApi();
+    RfcApi(const RfcApi &obj) = delete; // deleted copy constructor so that copy of the instance cannot be created.
+    static void setImpl(RfcApiImpl* newImpl);
+    static WDMP_STATUS getRFCParameter(char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData);
+    static WDMP_STATUS setRFCParameter(char* pcCallerID, const char* pcParameterName, const char* pcParameterValue, DATA_TYPE eDataType);
+    static const char* getRFCErrorString(WDMP_STATUS code);
 };
 
-constexpr auto getRFCParameter = &RfcApi::getRFCParameter;
-constexpr auto setRFCParameter = &RfcApi::setRFCParameter;
-constexpr auto getRFCErrorString = &RfcApi::getRFCErrorString;
+extern WDMP_STATUS (*getRFCParameter)(char*,const char*,RFC_ParamData_t*);
+extern WDMP_STATUS (*setRFCParameter)(char*,const char*,const char*,DATA_TYPE);
+extern const char* (*getRFCErrorString)(WDMP_STATUS);
+
