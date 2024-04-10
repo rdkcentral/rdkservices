@@ -47,7 +47,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 4
+#define API_VERSION_NUMBER_PATCH 5
 
 #define SERVER_DETAILS "127.0.0.1:9998"
 #define SYSTEM_CALLSIGN "org.rdk.System"
@@ -298,7 +298,11 @@ namespace WPEFramework
 				}
 				else
 				{
-					if (m_isServiceEnabled)
+					if ( MIRACAST_SERVICE_STATE_PLAYER_LAUNCHED == m_eService_state )
+					{
+						response["message"] = "Failed as MiracastPlayer already Launched";
+					}
+					else if (m_isServiceEnabled)
 					{
 						m_miracast_ctrler_obj->set_enable(is_enabled);
 						success = true;

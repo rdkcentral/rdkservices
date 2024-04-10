@@ -462,8 +462,7 @@ void MiracastController::event_handler(P2P_EVENTS eventId, void *data, size_t le
     event_buffer = (char *)data;
     free(data);
 
-    std::string opt_flag_buffer = MiracastCommon::parse_opt_flag("/opt/miracast_suppress_p2p_events");
-    if (!opt_flag_buffer.empty())
+    if ( false == m_start_discovering_enabled )
     {
         MIRACASTLOG_TRACE("Exiting...");
         return;
@@ -637,7 +636,6 @@ void MiracastController::Controller_Thread(void *args)
     CONTROLLER_MSGQ_STRUCT controller_msgq_data = {0};
     bool    new_thunder_req_client_connection_sent = false,
             another_thunder_req_client_connection_sent = false,
-            start_discovering_enabled = false,
             session_restart_required = false,
             p2p_group_instance_alive = false;
 
@@ -1067,7 +1065,7 @@ void MiracastController::Controller_Thread(void *args)
                                 m_notify_handler->onMiracastServiceClientConnectionError( mac_address , device_name , error_code );
                             }
                             MIRACASTLOG_INFO("!!! Restarting Session !!!");
-                            restart_session(start_discovering_enabled);
+                            restart_session(m_start_discovering_enabled);
                             session_restart_required = false;
                         }
                     }
@@ -1140,14 +1138,14 @@ void MiracastController::Controller_Thread(void *args)
                         MIRACASTLOG_INFO("CONTROLLER_START_DISCOVERING Received\n");
                         set_WFDParameters();
                         discover_devices();
-                        start_discovering_enabled = true;
+                        m_start_discovering_enabled = true;
                     }
                     break;
                     case CONTROLLER_STOP_DISCOVERING:
                     {
                         MIRACASTLOG_INFO("CONTROLLER_STOP_DISCOVERING Received\n");
                         stop_session(true);
-                        start_discovering_enabled = false;
+                        m_start_discovering_enabled = false;
                     }
                     break;
                     case CONTROLLER_RESTART_DISCOVERING:
@@ -1163,7 +1161,7 @@ void MiracastController::Controller_Thread(void *args)
                             reset_NewSourceName();
                             MIRACASTLOG_INFO("[%s] Cached Device info removed...",cached_mac_address.c_str());
                         }
-                        restart_session(start_discovering_enabled);
+                        restart_session(m_start_discovering_enabled);
                         new_thunder_req_client_connection_sent = false;
                         another_thunder_req_client_connection_sent = false;
                         session_restart_required = true;
@@ -1244,7 +1242,7 @@ void MiracastController::Controller_Thread(void *args)
                     {
                         MIRACASTLOG_INFO("TEARDOWN request sent to RTSP handler\n");
                         //stop_streaming(CONTROLLER_TEARDOWN_REQ_FROM_THUNDER);
-                        restart_session(start_discovering_enabled);
+                        restart_session(m_start_discovering_enabled);
                     }
                     break;
                     default:
@@ -1557,16 +1555,22 @@ void MiracastController::send_thundermsg_to_controller_thread(MIRACAST_SERVICE_S
 
 void MiracastController::set_enable(bool is_enabled)
 {
-    MIRACAST_SERVICE_STATES state = MIRACAST_SERVICE_WFD_STOP;
-
     MIRACASTLOG_TRACE("Entering...");
 
     if ( true == is_enabled)
     {
-        state = MIRACAST_SERVICE_WFD_START;
+        MIRACASTLOG_INFO("MIRACAST_SERVICE_WFD_START Received");
+        set_WFDParameters();
+        discover_devices();
+        m_start_discovering_enabled = true;
     }
-
-    send_thundermsg_to_controller_thread(state);
+    else
+    {
+        MIRACASTLOG_INFO("MIRACAST_SERVICE_WFD_STOP Received");
+        stop_session(true);
+        m_start_discovering_enabled = false;
+    }
+    //send_thundermsg_to_controller_thread(state);
     MIRACASTLOG_TRACE("Exiting...");
 }
 
