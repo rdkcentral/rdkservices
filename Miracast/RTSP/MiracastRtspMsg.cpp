@@ -1024,6 +1024,13 @@ MiracastError MiracastRTSPMsg::initiate_TCP(std::string goIP)
             MIRACASTLOG_ERROR("TCP Socket creation error %s", strerror(errno));
             continue;
         }
+        // Set SO_REUSEADDR option
+        int optval = 1;
+        if (setsockopt(m_tcpSockfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) == -1)
+        {
+            MIRACASTLOG_ERROR("Failed to set SO_REUSEADDR: %s", strerror(errno));
+            continue;
+        }
     #if 0
         /* Bind socket */
         if (bind(m_tcpSockfd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
