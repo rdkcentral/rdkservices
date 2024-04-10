@@ -8,8 +8,11 @@
 #include <mutex>
 #include <fstream>
 #include "secure_wrapper.h"
+#include <sys/vfs.h>
+#include <sys/statvfs.h>
 #include "libIBus.h"
 #include "sysMgr.h"
+#include <sstream>
 
 #include "UtilsJsonRpc.h"
 #include "UtilsIarm.h"
@@ -19,12 +22,20 @@
 #define API_VERSION_NUMBER_PATCH 4
 const string WPEFramework::Plugin::UsbAccess::SERVICE_NAME = "org.rdk.UsbAccess";
 const string WPEFramework::Plugin::UsbAccess::METHOD_GET_FILE_LIST = "getFileList";
+const string WPEFramework::Plugin::UsbAccess::METHOD_GET_FILE_INFO = "getFileInfo";
 const string WPEFramework::Plugin::UsbAccess::METHOD_CREATE_LINK = "createLink";
 const string WPEFramework::Plugin::UsbAccess::METHOD_CLEAR_LINK = "clearLink";
 const string WPEFramework::Plugin::UsbAccess::METHOD_GET_AVAILABLE_FIRMWARE_FILES = "getAvailableFirmwareFiles";
 const string WPEFramework::Plugin::UsbAccess::METHOD_GET_MOUNTED = "getMounted";
+const string WPEFramework::Plugin::UsbAccess::METHOD_GET_MOUNTED_INFO = "getMountedInfo";
+const string WPEFramework::Plugin::UsbAccess::METHOD_GET_PARTITION_INFO = "getPartitionInfo";
+const string WPEFramework::Plugin::UsbAccess::METHOD_GET_PARTITION_COUNT = "getPartitionCount";
+const string WPEFramework::Plugin::UsbAccess::METHOD_GET_DEVICE_COUNT = "getDeviceCount";
+
 const string WPEFramework::Plugin::UsbAccess::METHOD_UPDATE_FIRMWARE = "updateFirmware";
 const string WPEFramework::Plugin::UsbAccess::METHOD_ARCHIVE_LOGS = "ArchiveLogs";
+const string WPEFramework::Plugin::UsbAccess::METHOD_GET_USB_SIZE = "getUSBSize";
+const string WPEFramework::Plugin::UsbAccess::METHOD_UNMOUNT_USB = "unmountUSB";
 const string WPEFramework::Plugin::UsbAccess::LINK_URL_HTTP = "http://localhost:50050/usbdrive";
 const string WPEFramework::Plugin::UsbAccess::LINK_PATH = "/tmp/usbdrive";
 const string WPEFramework::Plugin::UsbAccess::EVT_ON_USB_MOUNT_CHANGED = "onUSBMountChanged";
@@ -219,6 +230,13 @@ namespace Plugin {
         registerMethod(_T("getMounted"), &UsbAccess::getMountedWrapper, this);
         registerMethod(_T("updateFirmware"), &UsbAccess::updateFirmware, this);
         registerMethod(_T("ArchiveLogs"), &UsbAccess::archiveLogs, this);
+        registerMethod(_T("getUSBSize"), &UsbAccess::getUSBSizeWrapper, this);
+        registerMethod(_T("unmountUSB"), &UsbAccess::unmountUSBWrapper, this);
+        registerMethod(_T("getFileInfo"), &UsbAccess::getFileInfoWrapper, this);
+        registerMethod(_T("getMountedInfo"), &UsbAccess::getMountedInfoWrapper, this);
+        registerMethod(_T("getPartitionInfo"), &UsbAccess::getPartitionInfoWrapper, this);
+        registerMethod(_T("getPartitionCount"), &UsbAccess::getPartitionCountWrapper, this);
+        registerMethod(_T("getDeviceCount"), &UsbAccess::getDeviceCountWrapper, this);
     }
 
     UsbAccess::~UsbAccess()
@@ -302,6 +320,43 @@ namespace Plugin {
 
         returnResponse(result);
     }
+
+
+    uint32_t UsbAccess::getFileInfoWrapper(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFOMETHOD();
+        bool result = false;
+
+        string pathParam;
+        if (parameters.HasLabel("path"))
+            pathParam = parameters["path"].String();
+
+        struct FileInfo fileinfo;
+        result = getFileInfo(pathParam, fileinfo);
+
+        if (!result)
+            response["error"] = "not found";
+        else
+        {
+            JsonArray arr;
+            //for_each(files.begin(), files.end(), [&arr](const FileEnt& it)
+            //{
+                JsonObject ent;
+                ent["name"] = fileinfo.fileName;
+                ent["Type"] = string(1, fileinfo.fileType);
+                ent["accessTime"] = fileinfo.accessTime;
+                ent["creatTime"] = fileinfo.creatTime;
+                ent["fileSize"] = fileinfo.fileSize;
+                ent["fileCount"] = fileinfo.fileCount;
+                ent["dirCount"] = fileinfo.dirCount;
+                //ent["totalTime"] = fileinfo.totalTime;
+                arr.Add(ent);
+            //});
+            response["contents"] = arr;
+        }
+        returnResponse(result);
+    }
+
 
     uint32_t UsbAccess::createLinkWrapper(const JsonObject &parameters, JsonObject &response)
     {
@@ -507,6 +562,172 @@ namespace Plugin {
             
         returnResponse(result);
     }
+
+    uint32_t UsbAccess::getPartitionCountWrapper(const JsonObject &parameters, JsonObject &response)
+    {
+        LOGINFOMETHOD();
+        bool result = true;
+        char buffer[32] = "";
+        string command =  "lsblk -o NAME,MOUNTPOINT | grep \"sd[a-z]\" | grep \"/\" |wc -l";
+        FILE* fp = popen(command.c_str(), "r");
+        if (fp == NULL) 
+        {
+            result = false;
+        }   
+        
+        while (fgets(buffer, 32, fp) != NULL);
+
+        string PartitionCount = buffer;
+
+        int ret = pclose(fp);
+        if (ret == -1) 
+        {
+            result = false;
+        }
+        response["PartitionCount"] = PartitionCount;
+        returnResponse(result);
+    }
+
+
+
+    uint32_t UsbAccess::getPartitionInfoWrapper(const JsonObject &parameters, JsonObject &response)
+    {
+        LOGINFOMETHOD();
+        bool result = true;
+        char buffer[32] = "";
+        unsigned long long int blocksize = 0;
+        JsonArray arr;
+        JsonObject ent;
+        string pathParam;
+        if (parameters.HasLabel("path"))
+            pathParam = parameters["path"].String();
+
+        struct statvfs fs;
+        if (statvfs(pathParam.c_str(), &fs) == -1) {
+            result = false;
+        }
+
+        string command_str1 = "df -T  ";
+        string command_str2 = " | tail -n +2 | awk '{print $2}'";
+        string command = command_str1 + pathParam + command_str2;
+        FILE* fp = popen(command.c_str(), "r");
+        if (fp == NULL) 
+        {
+            result = false;
+        }   
+        
+        while (fgets(buffer, 32, fp) != NULL);
+
+        string File_system = buffer;
+
+        int ret = pclose(fp);
+        if (ret == -1) 
+        {
+            result = false;
+        }
+
+        if (!result)
+        {
+            ent["error"] = "u disk device not found";
+            LOGINFO("u disk device not found\n");
+        }
+        else 
+        {
+            blocksize = fs.f_frsize /1024;
+            ent["path"] = pathParam;
+            ent["FileSystem"] = File_system;
+            ent["size(MB)"] = blocksize;
+            ent["TotalBlocks"] = fs.f_blocks;
+            ent["AvailableBlocks"] =  fs.f_bavail;
+            ent["TotalSpace(MB)"] = (fs.f_blocks * blocksize) / 1024;
+            ent["UsedSpace(MB)"] =  ((fs.f_blocks - fs.f_bavail) * blocksize) / 1024;
+            ent["AvailableSpace(MB)"] = (fs.f_bavail * blocksize) / 1024;
+        }
+
+        arr.Add(ent);
+        response["contents"] = arr;
+        returnResponse(result);    
+
+    }
+
+    uint32_t UsbAccess::getMountedInfoWrapper(const JsonObject &parameters, JsonObject &response)
+    {
+        LOGINFOMETHOD();
+        bool result = true;
+        char buffer[32] = "";
+        std::list<string> paths;
+        result = getMounted(paths);
+        JsonArray arr;
+        JsonObject ent;
+        LOGINFO("paths count = %d\n", paths.size());
+
+
+        if(paths.size() != 0)
+        {
+            for_each(paths.begin(), paths.end(), [&](const string& it)
+            {
+                string name = "";
+                string command = "findmnt -n -o source ";
+                command = command + it;
+                FILE* fp = popen(command.c_str(), "r");
+                if (fp == NULL) 
+                {
+                    result = false;
+                }   
+                
+                while (fgets(buffer, 32, fp) != NULL);
+
+                name = buffer;
+
+                int ret = pclose(fp);
+                if (ret == -1) 
+                {
+                    result = false;
+                }
+                ent["name"] = name;
+                ent["path"] = it;
+                arr.Add(ent);
+            });
+        }
+        else
+        {
+            result = false;
+            ent["error"] = "u disk device not found";
+            LOGINFO("u disk device not found\n");
+            arr.Add(ent);
+        }
+        
+        response["contents"] = arr;
+
+        returnResponse(result);
+    }
+
+
+    uint32_t UsbAccess::getDeviceCountWrapper(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFOMETHOD();
+        bool result = true;
+        char buffer[32] = "";
+        string command =  "lsblk -o NAME,TYPE | grep \"disk\" | grep \"sd[a-z]\" | wc -l";
+        FILE* fp = popen(command.c_str(), "r");
+        if (fp == NULL) 
+        {
+            result = false;
+        }   
+        
+        while (fgets(buffer, 32, fp) != NULL);
+
+        string DeviceCount = buffer;
+
+        int ret = pclose(fp);
+        if (ret == -1) 
+        {
+            result = false;
+        }
+        response["DeviceCount"] = DeviceCount;
+        returnResponse(result);
+    }
+
 
     uint32_t UsbAccess::getMountedWrapper(const JsonObject &parameters, JsonObject &response)
     {
@@ -716,6 +937,80 @@ namespace Plugin {
         return result;
     }
 
+    // internal methods
+    bool UsbAccess::getFileInfo(const string& path, struct FileInfo& fileinfo)
+    {
+        bool result = false;
+        if (!path.empty())
+        {
+            //memset(&fileinfo, 0, sizeof(struct FileInfo));
+	    fileinfo = FileInfo();
+            struct stat file_stat;
+            if (stat(path.c_str(), &file_stat) == -1)
+            {
+                return result;
+            }
+            else
+            {
+                if (S_ISDIR(file_stat.st_mode))
+                {
+                    fileinfo.fileType = 'd';
+                    DIR *dirp = opendir(path.c_str());
+                    long int file_count = 0;
+                    long int dir_count = 0;
+                    struct dirent *entry;
+                    while ((entry = readdir(dirp)) != NULL)
+                    {
+                        if (entry->d_type == DT_REG)
+                        {
+                            file_count++;
+                        }
+                        else if (entry->d_type == DT_DIR)
+                        {
+                            if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
+                                dir_count++;
+                            }
+                        }
+                    }
+                    closedir(dirp);
+                    fileinfo.fileCount = file_count;
+                    fileinfo.dirCount = dir_count;
+                }
+                else
+                {
+                    fileinfo.fileType = 'f';
+                    fileinfo.fileCount = 0;
+                    fileinfo.dirCount = 0;
+                }
+
+
+                //get file name
+                string filePath = path.c_str();
+                size_t pos = filePath.find_last_of("/\\");
+                if (pos != std::string::npos)
+                {
+                    LOGINFO("filePath.substr: %s\n", filePath.substr(pos + 1).c_str());
+                    fileinfo.fileName = filePath.substr(pos + 1).c_str();
+                } else
+                {
+                    LOGINFO("filePath.substr: %s\n", filePath.c_str());
+                    fileinfo.fileName = filePath.c_str();
+                }
+
+                char atime_str[20];
+                char mtime_str[20];
+                strftime(atime_str, sizeof(atime_str), "%Y-%m-%d %H:%M:%S", localtime(&file_stat.st_atime));
+                strftime(mtime_str, sizeof(mtime_str), "%Y-%m-%d %H:%M:%S", localtime(&file_stat.st_mtime));
+                fileinfo.accessTime = atime_str;
+                fileinfo.creatTime = mtime_str;
+                fileinfo.fileSize = file_stat.st_size;
+                result = true;
+            }
+        }
+        return result;
+    }
+
+
     bool UsbAccess::getMounted(std::list <std::string>& paths)
     {
         bool result = false;
@@ -769,5 +1064,71 @@ namespace Plugin {
 
         return result;
     }
+
+    uint32_t UsbAccess::getUSBSizeWrapper(const JsonObject &parameters, JsonObject &response)
+    {
+        LOGINFOMETHOD();
+
+        bool result = false;
+        char cmd[128] = {'\0'};
+        char totalsize[20] = {'\0'};
+        char usedsize[20] = {'\0'};
+        char freesize[20] = {'\0'};
+
+        string pathParam;
+        if (parameters.HasLabel("path"))
+        {
+            pathParam = parameters["path"].String();
+        }
+        else
+        {
+            response["error"] = "don't specify the mount path";
+            returnResponse(result);
+        }
+        snprintf(cmd, 127, "df -h | grep %s$ | awk \'{print $2 \" \" $3 \" \" $4}\'", pathParam.c_str());
+        FILE* fp = popen(cmd, "r");
+        if(fp)
+        {
+            if(fscanf(fp,"%s %s %s", totalsize, usedsize, freesize) == EOF)
+            {
+                returnResponse(result);
+            }
+            response["totalsize"] = string(totalsize);
+            response["usedsize"] = string(usedsize);
+            response["freesize"] = string(freesize);
+            pclose(fp);
+            result = true;
+        }
+        returnResponse(result);
+    }
+
+    uint32_t UsbAccess::unmountUSBWrapper(const JsonObject &parameters, JsonObject &response)
+    {
+        LOGINFOMETHOD();
+
+        bool result = false;
+        char cmd[128] = {'\0'};
+
+        string pathParam;
+        if (parameters.HasLabel("path"))
+        {
+            pathParam = parameters["path"].String();
+        }
+        else
+        {
+            response["error"] = "don't specify the mount path";
+            returnResponse(result);
+        }
+        snprintf(cmd, 127, "systemd-umount -u %s", pathParam.c_str());
+        FILE* fp = popen(cmd, "r");
+        if(fp)
+        {
+            pclose(fp);
+            result = true;
+        }
+        returnResponse(result);
+    }
+
+
 } // namespace Plugin
 } // namespace WPEFramework
