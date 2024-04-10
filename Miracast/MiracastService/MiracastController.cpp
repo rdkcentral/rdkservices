@@ -206,6 +206,53 @@ std::string MiracastController::parse_p2p_event_data(const char *tmpBuff, const 
         return std::string(" ");
 }
 
+std::string MiracastController::getifNameByIPv4(std::string ip_address)
+{
+    struct ifaddrs *ifaddrList = nullptr, *currentifa = nullptr;
+    int family, s;
+    char host[MAX_IFACE_NAME_LEN];
+    std::string ifaceName = "";
+
+    // Get list of all network interfaces
+    if ( -1 == getifaddrs(&ifaddrList))
+    {
+        MIRACASTLOG_ERROR("getifaddrs failed[%s]",strerror(errno));
+    }
+    else
+    {
+        // Iterate through the list of network interfaces
+        for ( currentifa = ifaddrList; nullptr != currentifa; currentifa = currentifa->ifa_next)
+        {
+            if ( nullptr == currentifa->ifa_addr )
+            {
+                continue;
+            }
+            family = currentifa->ifa_addr->sa_family;
+            // Check for IPv4 address
+            if ( AF_INET == family )
+            {
+                s = getnameinfo(currentifa->ifa_addr, sizeof(struct sockaddr_in), host, MAX_IFACE_NAME_LEN, NULL, 0, NI_NUMERICHOST);
+                if (s != 0)
+                {
+                    MIRACASTLOG_ERROR("getnameinfo failed[%s]",strerror(errno));
+                    break;
+                }
+                // Compare IP address with the given IP
+                if ( 0 == strcmp(host, ip_address.c_str()))
+                {
+                    ifaceName = currentifa->ifa_name;
+                }
+            }
+        }
+        if ( nullptr != ifaddrList )
+        {
+            freeifaddrs(ifaddrList);
+            ifaddrList = nullptr;
+        }
+    }
+    return ifaceName;
+}
+
 std::string MiracastController::start_DHCPClient(std::string interface, std::string &default_gw_ip_addr)
 {
     MIRACASTLOG_TRACE("Entering...");
@@ -484,7 +531,10 @@ MiracastError MiracastController::set_WFDParameters(void)
 {
     MIRACASTLOG_TRACE("Entering...");
     MiracastError ret = MIRACAST_FAIL;
-    if (nullptr != m_p2p_ctrl_obj){
+    if (nullptr != m_p2p_ctrl_obj)
+    {
+        std::string ifName = getifNameByIPv4("192.168.59.1");
+        m_p2p_ctrl_obj->remove_GroupInterface(ifName);
         ret = m_p2p_ctrl_obj->set_WFDParameters();
     }
     MIRACASTLOG_TRACE("Exiting...");
