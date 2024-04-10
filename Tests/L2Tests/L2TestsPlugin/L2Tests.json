@@ -1,0 +1,37 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "L2Tests API",
+        "class": "L2Tests",
+        "description": "The L2Tests plugin provides an interface to start L2 tests."
+    },
+    "common": {
+        "$ref": "../common/common.json"
+    },
+     "methods": {
+        "PerformL2Tests": {
+            "summary": "Start L2 google tests for all RDKServices",
+            "params": {
+                "type": "object",
+                "properties":{
+                    "test_suite_list": {
+                        "summary": "RDK service name",
+                        "type": "string",
+                        "example": "System"
+                            }
+                      }
+                    },
+                 "result":{
+                       "type":"object",
+                        "properties": {
+                            "Success": {
+                            "summary": "Value zero for no error",
+                            "type": "integer",
+                            "example": "0"
+                    }
+                 }
+             }
+        }
+    }   
+}
