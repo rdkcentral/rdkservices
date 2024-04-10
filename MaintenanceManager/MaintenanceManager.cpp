@@ -281,6 +281,8 @@ namespace WPEFramework {
             MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[0].c_str()] = DATA_TYPE::WDMP_STRING;
             MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[1].c_str()] = DATA_TYPE::WDMP_STRING;
             MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[2].c_str()] = DATA_TYPE::WDMP_STRING;
+
+            checkDeviceInitializationContextUpdate();
 #endif
          }
 
@@ -332,7 +334,6 @@ namespace WPEFramework {
     if (false == whoAmIStatus && activation_status != "activated") {
         g_listen_to_deviceContextUpdate = true;
         task_thread.wait(lck);
-        checkDeviceInitializationContextUpdate();
     }
     else if ( false == internetConnectStatus && activation_status == "activated" ) {
 #else
@@ -437,12 +438,12 @@ namespace WPEFramework {
                     if (joGetResult.HasLabel("success") && joGetResult["success"].Boolean()) 
                     {
                         static const char* kDeviceInitializationContext = "deviceInitializationContext";
-                        if (joGetResult.HasLabel("deviceInitializationContext")) 
+                        if (joGetResult.HasLabel("kDeviceInitializationContext")) 
                         {
                             success = setDeviceInitializationContext(joGetResult);
                         } else 
                         {
-                            LOGINFO("deviceInitializationContext is not available in the response");
+                            LOGINFO("%s is not available in the response", kDeviceInitializationContext);
                         }
                     }
                     else
@@ -554,7 +555,7 @@ namespace WPEFramework {
             return result;
         }
 
-        bool MaintenanceManager::subscribeForInternetStatusEvent(string event)
+        bool MaintenanceManager::subscribeForDeviceInitializationContextUpdate(string event)
         {
             int32 status = Core::ERROR_NONE;
             bool result = false;
@@ -562,7 +563,7 @@ namespace WPEFramework {
             const char* secMgr_callsign = "org.rdk.SecManager.1";
             WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
 
-            thunder_client = getThunderPluginHandle(network_callsign);
+            thunder_client = getThunderPluginHandle(secMgr_callsign);
             if (thunder_client == nullptr) {
                 LOGINFO("Failed to get plugin handle");
             }
@@ -597,41 +598,13 @@ namespace WPEFramework {
 
         void MaintenanceManager::deviceInitializationContextUpdateEventHandler(const JsonObject& parameters)
         {
+            bool success = false;
             if (g_listen_to_deviceContextUpdate && UNSOLICITED_MAINTENANCE == g_maintenance_type) {
                 if (parameters.HasLabel("success") && joGetResult["success"].Boolean()){
                     static const char* kDeviceInitializationContext = "deviceInitializationContext";
                     if (parameters.HasLabel(kDeviceInitializationContext))
                     {
-                        JsonObject getInitializationContext = joGetResult[kDeviceInitializationContext].Object();
-                        for (const string& key : kDeviceInitContextKeyVals)
-                        {
-                            string paramValue = getInitializationContext[key.c_str()].String();
-                            if (!paramValue.empty())
-                            {
-                                if (strcmp(key.c_str(), "regionalConfigService") == 0) 
-                                {
-                                    paramValue = "https://" + paramValue;
-                                }
-                                LOGINFO("[%s] %s : %s", kDeviceInitializationContext, key.c_str(), paramValue.c_str());
-
-                                // Retrieve tr181 parameter from m_param_map
-                                string rfc_parameter = m_param_map[key];
-
-                                //  Retrieve parameter data type from m_paramType_map
-                                DATA_TYPE rfc_dataType = m_paramType_map[key];
-
-                                // Set the RFC values for deviceInitializationContext parameters
-                                setRFC(rfc_parameter.c_str(), paramValue.c_str(), rfc_dataType);
-
-                                if (strcmp(key.c_str(), "partnerId") == 0) {
-                                    setPartnerId(paramValue);
-                                }
-                            }
-                            else 
-                            {
-                                LOGINFO("Not able to fetch %s value from %s", key.c_str(), kDeviceInitializationContext);
-                            }
-                        }
+                        success = setDeviceInitializationContext(joGetResult);
                     }
                 }
             }
