@@ -325,7 +325,13 @@ namespace WPEFramework {
         /* WhoAmI check*/
         whoAmIStatus = knowWhoAmI();
     }
-            if ( false == internetConnectStatus && activation_status == "activated" ) {
+
+    if (false == whoAmIStatus && activation_status != "activated") {
+        g_listen_to_deviceContextUpdate = true;
+        task_thread.wait(lck);
+        checkDeviceInitializationContextUpdate();
+    }
+    else if ( false == internetConnectStatus && activation_status == "activated" ) {
 #else
             if ( false == internetConnectStatus ) {
 #endif
@@ -339,14 +345,6 @@ namespace WPEFramework {
                 }
                 return;
             }
-if defined(ENABLE_WHOAMI)
-            else if (false == whoAmIStatus && activation_status != "activated") {
-                g_listen_to_deviceContextUpdate = true;
-                task_thread.wait(lck);
-                checkDeviceInitializationContextUpdate();
-            }
-#endif
-
             LOGINFO("Reboot_Pending :%s",g_is_reboot_pending.c_str());
 
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type){
