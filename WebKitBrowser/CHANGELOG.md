@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.1.21] - 2024-04-09
+### Changed
+- Update LoggingUtils to migrate processes properly in CGroup V2 scheme as well (change is compatible with CGv1)
+
 ## [1.1.20] - 2023-12-21
 ### Changed
 - Add test runner support
