@@ -36,6 +36,8 @@ AudioPlayer::AudioPlayer(AudioType audioType,SourceType sourceType,PlayMode play
     m_thresHold_dB=  -40.0000;
     m_isPaused = false;
     state = READY;
+    if(!gst_is_initialized())
+        gst_init(0, nullptr);
     SAPLOG_INFO("SAP: AudioPlayer Constructor\n");    
     if(sourceType == DATA || sourceType == WEBSOCKET)
     {
@@ -91,8 +93,6 @@ AudioPlayer::~AudioPlayer()
 void AudioPlayer::Init(SAPEventCallback *callback)
 {
     SAPLOG_INFO("SAP: AudioPlayer Init\n");
-    if(!gst_is_initialized())
-        gst_init(NULL,NULL);
 
     m_main_loop_thread = g_thread_new("BusWatch", (void* (*)(void*)) event_loop, NULL);
     waitForMainLoop();
