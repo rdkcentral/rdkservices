@@ -324,6 +324,9 @@ namespace WPEFramework {
     if (UNSOLICITED_MAINTENANCE == g_maintenance_type) {
         /* WhoAmI check*/
         whoAmIStatus = knowWhoAmI();
+        if (whoAmIStatus) {
+            LOGINFO("knowWhoAmI() returned successfully");
+        }
     }
 
     if (false == whoAmIStatus && activation_status != "activated") {
@@ -415,7 +418,6 @@ namespace WPEFramework {
         bool MaintenanceManager::knowWhoAmI()
         {
             bool success = false;
-            int paramEmpty = false;
             const char* secMgr_callsign = "org.rdk.SecManager";
             const char* secMgr_callsign_ver = "org.rdk.SecManager.1";
             PluginHost::IShell::state state;
@@ -435,43 +437,9 @@ namespace WPEFramework {
                     if (joGetResult.HasLabel("success") && joGetResult["success"].Boolean()) 
                     {
                         static const char* kDeviceInitializationContext = "deviceInitializationContext";
-                        if (joGetResult.HasLabel(kDeviceInitializationContext)) 
+                        if (joGetResult.HasLabel("deviceInitializationContext")) 
                         {
-                            JsonObject getInitializationContext = joGetResult[kDeviceInitializationContext].Object();
-                            for (const string& key : kDeviceInitContextKeyVals) 
-                            {
-                                // Retrieve deviceInitializationContext Value
-                                string paramValue = getInitializationContext[key.c_str()].String();
-
-                                if (!paramValue.empty()) 
-                                {
-                                    if (strcmp(key.c_str(), "regionalConfigService") == 0) 
-                                    {
-                                        paramValue = "https://" + paramValue;
-                                    }
-                                    LOGINFO("[%s] %s : %s", kDeviceInitializationContext, key.c_str(), paramValue.c_str());
-
-                                    // Retrieve tr181 parameter from m_param_map
-                                    string rfc_parameter = m_param_map[key];
-
-                                    //  Retrieve parameter data type from m_paramType_map
-                                    DATA_TYPE rfc_dataType = m_paramType_map[key];
-
-                                    // Set the RFC values for deviceInitializationContext parameters
-                                    setRFC(rfc_parameter.c_str(), paramValue.c_str(), rfc_dataType);
-
-                                    if (strcmp(key.c_str(), "partnerId") == 0) 
-                                    {
-                                            setPartnerId(paramValue);
-                                    }
-                                } 
-                                else 
-                                {
-                                    LOGINFO("Not able to fetch %s value from %s", key.c_str(), kDeviceInitializationContext);
-                                    paramEmpty = true;
-                                }
-                            }
-                            success = !paramEmpty;
+                            success = setDeviceInitializationContext(joGetResult);
                         } else 
                         {
                             LOGINFO("deviceInitializationContext is not available in the response");
@@ -666,6 +634,10 @@ namespace WPEFramework {
                         }
                     }
                 }
+            }
+            else
+            {
+                LOGINFO("onDeviceInitializationContextUpdate event is not being listened or Maintenance Type is not Unsolicited");
             }
             task_thread.notify_one();
             g_listen_to_deviceContextUpdate = false;
@@ -897,6 +869,45 @@ namespace WPEFramework {
 	    }
 	    return network_available;
 	}
+
+        bool MaintenanceManager::setDeviceInitializationContext(JsonObject joGetResult) {
+            bool paramEmpty = false;
+            JsonObject getInitializationContext = joGetResult["deviceInitializationContext"];
+            for (const string& key : kDeviceInitContextKeyVals)
+            {
+                // Retrieve deviceInitializationContext Value
+                string paramValue = getInitializationContext[key.c_str()].String();
+
+                if (!paramValue.empty())
+                {
+                    if (strcmp(key.c_str(), "regionalConfigService") == 0)
+                    {
+                        paramValue = "https://" + paramValue;
+                    }
+                    LOGINFO("[deviceInitializationContext] %s : %s", key.c_str(), paramValue.c_str());
+
+                    // Retrieve tr181 parameter from m_param_map
+                    string rfc_parameter = m_param_map[key];
+
+                    //  Retrieve parameter data type from m_paramType_map
+                    DATA_TYPE rfc_dataType = m_paramType_map[key];
+
+                    // Set the RFC values for deviceInitializationContext parameters
+                    setRFC(rfc_parameter.c_str(), paramValue.c_str(), rfc_dataType);
+
+                    if (strcmp(key.c_str(), "partnerId") == 0)
+                    {
+                        setPartnerId(paramValue);
+                    }
+                }
+                else
+                {
+                    LOGINFO("Not able to fetch %s value from deviceInitializationContext", key.c_str());
+                    paramEmpty = true;
+                }
+            }
+            return !paramEmpty;
+        }
 
         bool MaintenanceManager::checkDeviceInitializationContextUpdate() {
             JsonObject joGetParams;
