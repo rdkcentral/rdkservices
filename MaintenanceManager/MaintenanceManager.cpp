@@ -601,7 +601,6 @@ namespace WPEFramework {
             if (g_listen_to_deviceContextUpdate && UNSOLICITED_MAINTENANCE == g_maintenance_type) {
                 if (parameters.HasLabel("deviceInitializationContext")) {
                     g_jsonRespDeviceInitialization = parameters;
-                    success = true;
                 }
             }
             else {
