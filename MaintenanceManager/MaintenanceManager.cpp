@@ -557,7 +557,7 @@ namespace WPEFramework {
 
         bool MaintenanceManager::subscribeForDeviceInitializationContextUpdate(string event)
         {
-            int32 status = Core::ERROR_NONE;
+            int32_t status = Core::ERROR_NONE;
             bool result = false;
             LOGINFO("Attempting to subscribe for %s events", event.c_str());
             const char* secMgr_callsign = "org.rdk.SecManager.1";
@@ -842,7 +842,7 @@ namespace WPEFramework {
         bool MaintenanceManager::setDeviceInitializationContext(JsonObject joGetResult) {
             bool setDone = false;
             bool paramEmpty = false;
-            JsonObject getInitializationContext = joGetResult["deviceInitializationContext"];
+            JsonObject getInitializationContext = joGetResult["deviceInitializationContext"].Object();
             for (const string& key : kDeviceInitContextKeyVals)
             {
                 // Retrieve deviceInitializationContext Value
@@ -883,7 +883,7 @@ namespace WPEFramework {
         void MaintenanceManager::checkDeviceInitializationContextUpdate() {
             JsonObject joGetParams;
             JsonObject joGetResult;
-            std::string secMgr_callsign = "org.rdk.SecManager.1";
+            const char* secMgr_callsign = "org.rdk.SecManager.1";
             PluginHost::IShell::state state;
 
             if((getServiceState(m_service, secMgr_callsign, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
@@ -905,7 +905,6 @@ namespace WPEFramework {
             }
             else {
                 LOGINFO("%s is not active", secMgr_callsign);
-                return false;
             }
         }
 
