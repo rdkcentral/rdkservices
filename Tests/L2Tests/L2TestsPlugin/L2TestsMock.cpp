@@ -38,9 +38,13 @@ L2TestMocks::L2TestMocks()
 {
     p_rfcApiImplMock    = new NiceMock <RfcApiImplMock>;
     p_iarmBusImplMock   = new NiceMock <IarmBusImplMock>;
+    p_udevImplMock      = new NiceMock <UdevImplMock>;
+    p_wrapsImplMock     = new NiceMock <WrapsImplMock>;
 
     IarmBus::setImpl(p_iarmBusImplMock);
     RfcApi::setImpl(p_rfcApiImplMock);
+    Udev::setImpl(p_udevImplMock);
+    Wraps::setImpl(p_wrapsImplMock);
 
     thunder_address = THUNDER_ADDRESS + std::string(THUNDER_PORT);
    (void)Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), thunder_address);
@@ -60,6 +64,20 @@ L2TestMocks::~L2TestMocks()
    {
         delete p_rfcApiImplMock;
         p_rfcApiImplMock = nullptr;
+   }
+
+   Udev::setImpl(nullptr);
+   if (p_udevImplMock != nullptr)
+   {
+        delete p_udevImplMock;
+        p_udevImplMock = nullptr;
+   }
+   
+   Wraps::setImpl(nullptr);
+   if (p_wrapsImplMock != nullptr)
+   {
+        delete p_wrapsImplMock;
+        p_wrapsImplMock = nullptr;
    }
 }
 
