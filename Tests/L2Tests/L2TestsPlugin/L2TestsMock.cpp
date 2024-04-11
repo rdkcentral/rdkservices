@@ -38,16 +38,24 @@ L2TestMocks::L2TestMocks()
 {
     p_rfcApiImplMock    = new NiceMock <RfcApiImplMock>;
     p_iarmBusImplMock   = new NiceMock <IarmBusImplMock>;
+    p_hostImplMock      = new NiceMock <HostImplMock>;
+    p_videoOutputPortConfigImplMock = new NiceMock <VideoOutputPortConfigImplMock>;
+    p_managerImplMock   = new NiceMock <ManagerImplMock>;
+    p_videoOutputPortMock = new NiceMock <VideoOutputPortMock>;
     p_udevImplMock      = new NiceMock <UdevImplMock>;
     p_wrapsImplMock     = new NiceMock <WrapsImplMock>;
 
     IarmBus::setImpl(p_iarmBusImplMock);
     RfcApi::setImpl(p_rfcApiImplMock);
+    device::Host::setImpl(p_hostImplMock);
+    device::VideoOutputPortConfig::setImpl(p_videoOutputPortConfigImplMock);
+    device::Manager::setImpl(p_managerImplMock);
+    device::VideoOutputPort::setImpl(p_videoOutputPortMock);
     Udev::setImpl(p_udevImplMock);
     Wraps::setImpl(p_wrapsImplMock);
 
     thunder_address = THUNDER_ADDRESS + std::string(THUNDER_PORT);
-   (void)Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), thunder_address);
+    (void)Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), thunder_address);
 }
 
 /* L2TestMock Destructor */
@@ -64,6 +72,30 @@ L2TestMocks::~L2TestMocks()
    {
         delete p_rfcApiImplMock;
         p_rfcApiImplMock = nullptr;
+   }
+   device::Host::setImpl(nullptr);
+   if (p_hostImplMock != nullptr)
+   {
+      delete p_hostImplMock;
+      p_hostImplMock = nullptr;
+   }
+   device::VideoOutputPortConfig::setImpl(nullptr);
+   if (p_videoOutputPortConfigImplMock != nullptr)
+   {
+      delete p_videoOutputPortConfigImplMock;
+      p_videoOutputPortConfigImplMock = nullptr;
+   }
+   device::Manager::setImpl(nullptr);
+   if (p_managerImplMock != nullptr)
+   {
+      delete p_managerImplMock;
+      p_managerImplMock = nullptr;
+   }
+   device::VideoOutputPort::setImpl(nullptr);
+   if (p_videoOutputPortMock != nullptr)
+   {
+      delete p_videoOutputPortMock;
+      p_videoOutputPortMock = nullptr;
    }
 
    Udev::setImpl(nullptr);
