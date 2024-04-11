@@ -41,6 +41,7 @@ namespace WPEFramework
          */
         void NetworkManager::RegisterLegacyMethods()
         {
+            CreateHandler({2});
             Register("getInterfaces",                     &NetworkManager::getInterfaces, this);
             Register("isInterfaceEnabled",                &NetworkManager::isInterfaceEnabled, this);
             Register("getPublicIP",                       &NetworkManager::getPublicIP, this);
@@ -70,6 +71,8 @@ namespace WPEFramework
             Register("saveSSID",                          &NetworkManager::saveSSID, this);
             Register("getSupportedSecurityModes",         &NetworkManager::GetSupportedSecurityModes, this);
             Register("getCurrentState",                   &NetworkManager::GetWifiState, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>("setIPSettings", &NetworkManager::setIPSettings, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>("getIPSettings", &NetworkManager::getIPSettings, this);
         }
 
         /**

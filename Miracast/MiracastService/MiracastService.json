@@ -1,174 +1,270 @@
 {
-    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
-    "jsonrpc": "2.0",
-    "info": {
-        "title": "MiracastServicePlugin",
-        "class": "MiracastService",
-        "description": "The MiracastService plugin provides methods and events to support Screen Mirroring via WiFi-Direct."
-    },
-    "common": {
-        "$ref": "../common/common.json"
-    },
-    "definitions": {
-        "enabled": {
-            "summary":"`true` for enabled or `false` for disabled",
-            "type":"boolean",
-            "example": true
-        },
-        "requestStatus": {
-            "summary":"`Accept` for connect device request or `Reject` for denying connect device request",
-            "type":"string",
-            "example": "Accept or Reject"
-        },
-        "clientName": {
-            "summary":"WiFi-Direct Source name",
-            "type":"string",
-            "example": "Manufacturer WiFi-Direct Name"
-        },
-        "clientMac":{
-            "summary":"case-sensitive. MAC Address of WiFi-Direct Source in lower case",
-            "type":"string",
-            "example":"ab:cd:ef:12:34:56"
-        }
-    },
-    "methods": {
-        "setEnable":{
-            "summary": "Enable or disable MiracastService service.  When disabled, the WiFi-Direct Source should not be able to discover CPE as a Screen Mirroring.",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "enabled": {
-                        "$ref": "#/definitions/enabled"
-                    }
-                },
-                "required": [
-                    "enabled"
-                ]
-            },
-            "result": {
-                "$ref": "#/common/result"
-            }
-        },
-        "getEnable":{
-            "summary": "Reports whether MiracastService discovery enabled or disabled.",
-            "result": {
-                "type":"object",
-                "properties": {
-                    "enabled": {
-                        "$ref": "#/definitions/enabled"
-                    },
-                    "success": {
-                        "$ref": "#/common/success"
-                    }
-                },
-                "required": [
-                    "enabled",
-                    "success"
-		]
-            }
-        },
-        "acceptClientConnectionRequest":{
-            "summary": "When onClientConnectionRequest event received, need to respond back with acceptClientConnectionRequest whether Accept or Reject, Otherwise it get timedout",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "enabled": {
-                        "$ref": "#/definitions/requestStatus"
-                    }
-                },
-                "required": [
-                    "requestStatus"
-                ]
-            },
-            "result": {
-                "$ref": "#/common/result"
-            }
-        }
-    },
-    "events": {
-        "onClientConnectionRequest":{
-            "summary": "Triggered when the Miracast thunder plugin receives new connection request from the client.  The resident application is responsible for calling the acceptClientConnectionReject API to Accept or Reject the request.",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "clientName": {
-                        "$ref": "#/definitions/clientName"
-                    },
-                    "clientMac":{
-                        "$ref": "#/definitions/clientMac"
-                    }
-                },
-                "required": [
-                    "clientName",
-                    "clientMac"
-                ]
-            },
-            "result": {
-                "$ref": "#/common/result"
-            }
-        },
-        "onClientStopRequest":{
-            "summary": "Triggered when the Mira cast plugin receives stop connection request from client. Application exit the current session and could go to Home Screen.",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "clientName": {
-                        "$ref": "#/definitions/clientName"
-                    },
-                    "clientMac":{
-                        "$ref": "#/definitions/clientMac"
-                    }
-                },
-                "required": [
-                    "clientName",
-                    "clientMac"
-                ]
-            },
-            "result": {
-                "$ref": "#/common/result"
-            }
-        },
-        "onClientConnectionStarted":{
-            "summary": "Triggered when the Miracast plugin successfully start the playback of Miracast session.",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "clientName": {
-                        "$ref": "#/definitions/clientName"
-                    },
-                    "clientMac":{
-                        "$ref": "#/definitions/clientMac"
-                    }
-                },
-                "required": [
-                    "clientName",
-                    "clientMac"
-                ]
-            },
-            "result": {
-                "$ref": "#/common/result"
-            }
-        },
-        "onClientConnectionError":{
-            "summary": "Triggered when the Mira cast plugin failed to start the playback of Miracast session due to some error.",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "clientName": {
-                        "$ref": "#/definitions/clientName"
-                    },
-                    "clientMac":{
-                        "$ref": "#/definitions/clientMac"
-                    }
-                },
-                "required": [
-                    "clientName",
-                    "clientMac"
-                ]
-            },
-            "result": {
-                "$ref": "#/common/result"
-            }
-        }
-    }
+	"$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
+	"jsonrpc": "2.0",
+	"info": {
+		"title": "MiracastService Plugin",
+		"class": "MiracastService",
+		"description": "The MiracastService plugin provides methods and events to handle Peer-to-Peer events from the WiFi driver then launch the Miracast Player for RTSP communication and Screen Mirroring"
+	},
+	"common": {
+		"$ref": "../../common/common.json"
+	},
+	"definitions": {
+		"enabled": {
+			"summary":"`true` for enabled or `false` for disabled",
+			"type":"boolean",
+			"example": true
+		},
+		"requestStatus": {
+			"summary":"`Accept` for connect device request or `Reject` for denying connect device request",
+			"type":"string",
+			"example": "Accept or Reject"
+		},
+		"source_dev_ip": {
+			"summary":"Source Device IP address",
+			"type":"string",
+			"example": "xx.xx.xx.xx"
+		},
+		"sink_dev_ip": {
+			"summary":"IP address of the Local/Sink device",
+			"type":"string",
+			"example": "xx.xx.xx.xx"
+		},
+		"source_dev_name": {
+			"summary":"Name of the source device",
+			"type":"string",
+			"example": "Manufacturer WiFi-Direct Name"
+		},
+		"source_dev_mac":{
+			"summary":"Mac id of the source device",
+			"type":"string",
+			"example":"ab:cd:ef:12:34:56"
+		},
+		"player_state": {
+			"summary":"Current state of the Miracast player",
+			"type":"string",
+			"example":"(INITIATED | INPROGRESS | PLAYING | STOPPED/IDLE(Default State))"
+		},
+		"player_reason_code": {
+			"summary":"Player Reason codes",
+			"type":"number",
+			"enum": [
+				"MIRACAST_PLAYER_REASON_CODE_SUCCESS = 200",
+				"MIRACAST_PLAYER_REASON_CODE_APP_REQ_TO_STOP = 201",
+				"MIRACAST_PLAYER_REASON_CODE_SRC_DEV_REQ_TO_STOP = 202",
+				"MIRACAST_PLAYER_REASON_CODE_RTSP_ERROR = 203",
+				"MIRACAST_PLAYER_REASON_CODE_RTSP_TIMEOUT = 204",
+				"MIRACAST_PLAYER_REASON_CODE_RTSP_METHOD_NOT_SUPPORTED = 205",
+				"MIRACAST_PLAYER_REASON_CODE_GST_ERROR = 206",
+				"MIRACAST_PLAYER_REASON_CODE_INT_FAILURE = 207",
+				"MIRACAST_PLAYER_REASON_CODE_NEW_SRC_DEV_CONNECT_REQ = 208"
+			],
+			"example": "200"
+		},
+		"stop_reason_code": {
+			"summary":"player stop Reason codes",
+			"type":"number",
+			"enum": [ "MIRACAST_PLAYER_APP_REQ_TO_STOP_ON_EXIT = 301", "MIRACAST_PLAYER_APP_REQ_TO_STOP_ON_NEW_CONNECTION = 302" ],
+			"example": "301"
+		}
+	},
+	"methods": {
+		"setEnable":{
+			"summary": "To enable /disable the Miracast feature",
+			"params": {
+				"type":"object",
+				"properties": {
+					"enabled": {
+						"$ref": "#/definitions/enabled"
+					}
+				},
+				"required": [ "enabled" ]
+			},
+			"result": {
+				"$ref": "#/common/result"
+			}
+		},
+		"getEnable":{
+			"summary": "To get the enable status of the Miracast feature",
+			"result": {
+				"type":"object",
+				"properties": {
+					"enabled": {
+						"$ref": "#/definitions/enabled"
+					},
+					"success": {
+						"$ref": "#/common/success"
+					}
+				},
+				"required": [ "enabled", "success" ]
+			}
+		},
+		"acceptClientConnection":{
+			"summary": "To accept /reject new client connection requests for the Miracast feature",
+			"params": {
+				"type":"object",
+				"properties": {
+					"requestStatus": {
+						"$ref": "#/definitions/requestStatus"
+					}
+				},
+				"required": [ "requestStatus" ]
+			},
+			"result": {
+				"$ref": "#/common/result"
+			}
+		},
+		"updatePlayerState":{
+			"summary": "Update the Miracast Player State to the Miracast Service Plugin",
+			"params": {
+				"type":"object",
+				"properties": {
+					"mac": {
+						"$ref": "#/definitions/source_dev_mac"
+					},
+					"state": {
+						"$ref": "#/definitions/player_state"
+					},
+					"reason_code": {
+						"$ref": "#/definitions/player_reason_code"
+					},
+					"reason": {
+						"summary": "Description of the player's reason code",
+						"type": "string",
+						"example": "read Description"
+					}
+				},
+				"required": [ "mac", "state", "reason_code", "reason" ]
+			},
+			"result": {
+				"$ref": "#/common/result"
+			}
+		},
+		"stopClientConnection":{
+			"summary": "To abort the ongoing connection after accepted connection request",
+			"params": {
+				"type":"object",
+				"properties": {
+					"mac": {
+						"$ref": "#/definitions/source_dev_mac"
+					},
+					"name": {
+						"$ref": "#/definitions/source_dev_name"
+					}
+				},
+				"required": [ "mac", "name" ]
+			},
+			"result": {
+				"$ref": "#/common/result"
+			}
+		},
+		"setLogging":{
+			"summary": "Enable/Disable/Reduce the Logging level for Miracast",
+			"params": {
+				"type":"object",
+				"properties": {
+					"level": {
+						"summary": "Set the log level for Miracast service plugin",
+						"type": "string",
+						"example": "FATAL|ERROR|WARNING|INFO|VERBOSE|TRACE"
+					},
+					"separate_logger": {
+						"summary": "Route the Miracast service logs to a separate file if required",
+						"type": "object",
+						"properties": {
+							"logfilename": {
+								"summary": "Name of a separate logging filename. Logfile will be created under /opt/logs/",
+								"type": "string",
+								"example": "sample.log"
+							},
+							"status": {
+								"summary": "Enable/Disable the separate logging",
+								"type": "string",
+								"example": "ENABLE|DISABLE"
+							}
+						},
+						"required": [ "logfilename" , "status" ]
+					}
+				},
+				"required": [ "level" ]
+			},
+			"result": {
+				"$ref": "#/common/result"
+			}
+		}
+	},
+	"events": {
+		"onClientConnectionRequest":{
+			"summary": "Triggered when the Miracast Service plugin receives a new connection request from a client. The application should respond with an acceptClientConnection call to accept or reject the request.",
+			"params": {
+				"type":"object",
+				"properties": {
+					"mac": {
+						"$ref": "#/definitions/source_dev_mac"
+					},
+					"name":{
+						"$ref": "#/definitions/source_dev_name"
+					}
+				},
+				"required": [ "name", "mac" ]
+			},
+			"result": {
+				"$ref": "#/common/result"
+			}
+		},
+		"onLaunchRequest":{
+			"summary": "Miracast Service Plugin raises this Event to request RA to launch the Miracast Player.",
+			"params": {
+				"type":"object",
+				"properties": {
+					"source_dev_ip": {
+						"$ref": "#/definitions/source_dev_ip"
+					},
+					"source_dev_mac":{
+						"$ref": "#/definitions/source_dev_mac"
+					},
+					"source_dev_name": {
+						"$ref": "#/definitions/source_dev_name"
+					},
+					"sink_dev_ip":{
+						"$ref": "#/definitions/sink_dev_ip"
+					}
+				},
+				"required": [ "source_dev_ip", "source_dev_mac", "source_dev_name", "sink_dev_ip" ]
+			},
+			"result": {
+				"$ref": "#/common/result"
+			}
+		},
+		"onClientConnectionError":{
+			"summary": "It is triggered when the Miracast Service plugin failed to connect with the source streaming device due to some error, like P2P related errors during activation or while streaming.",
+			"params": {
+				"type":"object",
+				"properties": {
+					"name": {
+						"$ref": "#/definitions/source_dev_name"
+					},
+					"mac":{
+						"$ref": "#/definitions/source_dev_mac"
+					},
+					"error_code": {
+						"summary": "Miracast Service plugin error codes",
+						"type": "number",
+						"enum": [
+							"MIRACAST_SERVICE_ERR_CODE_SUCCESS = 100",
+							"MIRACAST_SERVICE_ERR_CODE_P2P_CONNECT_ERROR = 102",
+							"MIRACAST_SERVICE_ERR_CODE_P2P_GROUP_NEGO_ERROR = 103",
+							"MIRACAST_SERVICE_ERR_CODE_P2P_GROUP_FORMATION_ERROR = 104",
+							"MIRACAST_SERVICE_ERR_CODE_GENERIC_FAILURE = 105"
+						],
+						"example": 100
+					}
+				},
+				"required": [ "name", "mac", "error_code" ]
+			},
+			"result": {
+				"$ref": "#/common/result"
+			}
+		}
+	}
 }
