@@ -282,7 +282,9 @@ namespace WPEFramework {
             MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[1].c_str()] = DATA_TYPE::WDMP_STRING;
             MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[2].c_str()] = DATA_TYPE::WDMP_STRING;
 
+            JsonObject g_jsonRespDeviceInitialization;
             checkDeviceInitializationContextUpdate();
+
 #endif
          }
 
@@ -334,6 +336,7 @@ namespace WPEFramework {
     if (false == whoAmIStatus && activation_status != "activated") {
         g_listen_to_deviceContextUpdate = true;
         task_thread.wait(lck);
+        setDeviceInitializationContext(g_jsonRespDeviceInitialization);
     }
     else if ( false == internetConnectStatus && activation_status == "activated" ) {
 #else
@@ -600,16 +603,12 @@ namespace WPEFramework {
         {
             bool success = false;
             if (g_listen_to_deviceContextUpdate && UNSOLICITED_MAINTENANCE == g_maintenance_type) {
-                if (parameters.HasLabel("success") && joGetResult["success"].Boolean()){
-                    static const char* kDeviceInitializationContext = "deviceInitializationContext";
-                    if (parameters.HasLabel(kDeviceInitializationContext))
-                    {
-                        success = setDeviceInitializationContext(joGetResult);
-                    }
+                if (parameters.HasLabel("deviceInitializationContext")) {
+                    g_jsonRespDeviceInitialization = parameters;
+                    success = true;
                 }
             }
-            else
-            {
+            else {
                 LOGINFO("onDeviceInitializationContextUpdate event is not being listened or Maintenance Type is not Unsolicited");
             }
             task_thread.notify_one();
@@ -844,6 +843,7 @@ namespace WPEFramework {
 	}
 
         bool MaintenanceManager::setDeviceInitializationContext(JsonObject joGetResult) {
+            bool setDone = false;
             bool paramEmpty = false;
             JsonObject getInitializationContext = joGetResult["deviceInitializationContext"];
             for (const string& key : kDeviceInitContextKeyVals)
@@ -879,7 +879,8 @@ namespace WPEFramework {
                     paramEmpty = true;
                 }
             }
-            return !paramEmpty;
+            setDone = !paramEmpty;
+            return setDone;
         }
 
         bool MaintenanceManager::checkDeviceInitializationContextUpdate() {
