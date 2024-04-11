@@ -437,8 +437,8 @@ MiracastError MiracastP2P::set_WFDParameters(void)
         command = "SET p2p_ssid_postfix -Element-Xumo-TV";
         executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
 
-        /* Set p2p_go_intent to 15 */
-        command = "SET p2p_go_intent 15";
+        /* Set p2p_go_intent to 14 */
+        command = "SET p2p_go_intent 14";
         executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
 
         m_isWiFiDisplayParamsEnabled = true;
