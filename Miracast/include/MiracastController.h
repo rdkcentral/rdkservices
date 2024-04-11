@@ -142,6 +142,7 @@ private:
     bool m_connectionStatus;
     bool m_p2p_backend_discovery{false};
     bool m_start_discovering_enabled{false};
+    bool m_connect_req_notified{false};
     std::string  m_current_device_name;
     std::string  m_current_device_mac_addr;
 
