@@ -282,7 +282,6 @@ namespace WPEFramework {
             MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[1].c_str()] = DATA_TYPE::WDMP_STRING;
             MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[2].c_str()] = DATA_TYPE::WDMP_STRING;
 
-            JsonObject g_jsonRespDeviceInitialization;
             checkDeviceInitializationContextUpdate();
 
 #endif
@@ -292,7 +291,7 @@ namespace WPEFramework {
             uint8_t i=0;
             string cmd="";
             bool internetConnectStatus=false;
-
+            std::unique_lock<std::mutex> lck(m_callMutex);
             LOGINFO("Executing Maintenance tasks");
             m_statusMutex.lock();
             MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
@@ -397,8 +396,6 @@ namespace WPEFramework {
             tasks.push_back(task_names_foreground[2].c_str());
             tasks.push_back(task_names_foreground[3].c_str());
 #endif
-            std::unique_lock<std::mutex> lck(m_callMutex);
-
             for( i = 0; i < tasks.size() && !m_abort_flag; i++) {
                 cmd = tasks[i];
                 cmd += " &";
@@ -883,13 +880,13 @@ namespace WPEFramework {
             return setDone;
         }
 
-        bool MaintenanceManager::checkDeviceInitializationContextUpdate() {
+        void MaintenanceManager::checkDeviceInitializationContextUpdate() {
             JsonObject joGetParams;
             JsonObject joGetResult;
             std::string secMgr_callsign = "org.rdk.SecManager.1";
             PluginHost::IShell::state state;
 
-            if((getServiceState(m_service, SecMgr_callsign, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
+            if((getServiceState(m_service, secMgr_callsign, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
                 LOGINFO("%s is active", secMgr_callsign);
                 if (UNSOLICITED_MAINTENANCE == g_maintenance_type && !g_listen_to_deviceContextUpdate) {
                     // subscribe to onDeviceInitializationContextUpdate event

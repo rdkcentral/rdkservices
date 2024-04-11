@@ -146,6 +146,8 @@ namespace WPEFramework {
                 std::map<string, string> m_param_map;
                 std::map<string, DATA_TYPE> m_paramType_map;
                 bool knowWhoAmI();
+                JsonObject g_jsonRespDeviceInitialization;
+                bool g_listen_to_deviceContextUpdate = false;
 #endif
                 PluginHost::IShell* m_service;
 
@@ -160,10 +162,13 @@ namespace WPEFramework {
                 WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* getThunderPluginHandle(const char*);
                 bool stopMaintenanceTasks();
                 bool subscribeForInternetStatusEvent(string);
+                bool subscribeForDeviceInitializationContextUpdate(string);
                 void internetStatusChangeEventHandler(const JsonObject& parameters);
+                void deviceInitializationContextUpdateEventHandler(const JsonObject& parameters);
                 void startCriticalTasks();
                 bool checkNetwork();
-                bool checkDeviceInitializationContextUpdate();
+                void checkDeviceInitializationContextUpdate();
+                bool setDeviceInitializationContext(JsonObject joGetResult);
                 bool getActivatedStatus(bool &skipFirmwareCheck);
                 const string checkActivatedStatus(void);
                 int abortTask(const char*, int sig = SIGABRT);
