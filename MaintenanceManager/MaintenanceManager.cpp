@@ -598,7 +598,6 @@ namespace WPEFramework {
 
         void MaintenanceManager::deviceInitializationContextUpdateEventHandler(const JsonObject& parameters)
         {
-            bool success = false;
             if (g_listen_to_deviceContextUpdate && UNSOLICITED_MAINTENANCE == g_maintenance_type) {
                 if (parameters.HasLabel("deviceInitializationContext")) {
                     g_jsonRespDeviceInitialization = parameters;
