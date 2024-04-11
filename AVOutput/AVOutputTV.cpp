@@ -41,28 +41,36 @@ namespace Plugin {
     {
         LOGINFO("tvVideoFormatChangeHandler format:%d \n",format);
         AVOutputTV *obj = (AVOutputTV *)userData;
-        if(obj)obj->NotifyVideoFormatChange(format);
+        if(obj) {
+	    obj->NotifyVideoFormatChange(format);
+	}
     }
 
     static void tvFilmMakerModeChangeHandler(tvContentType_t mode, void *userData)
     {
         LOGINFO("tvFilmMakerModeChangeHandler content:%d \n",mode);
         AVOutputTV *obj = (AVOutputTV *)userData;
-        if(obj)obj->NotifyFilmMakerModeChange(mode);
+        if(obj) {
+	    obj->NotifyFilmMakerModeChange(mode);
+	}
     }
 
     static void tvVideoResolutionChangeHandler(tvResolutionParam_t resolution, void *userData)
     {
         LOGINFO("tvVideoResolutionChangeHandler resolution:%d\n",resolution.resolutionValue);
         AVOutputTV *obj = (AVOutputTV *)userData;
-        if(obj)obj->NotifyVideoResolutionChange(resolution);
+        if(obj) {
+	    obj->NotifyVideoResolutionChange(resolution);
+	}
     }
 
     static void tvVideoFrameRateChangeHandler(tvVideoFrameRate_t frameRate, void *userData)
     {
         LOGINFO("tvVideoFrameRateChangeHandler format:%d \n",frameRate);
         AVOutputTV *obj = (AVOutputTV *)userData;
-        if(obj)obj->NotifyVideoFrameRateChange(frameRate);
+        if(obj) {
+	    obj->NotifyVideoFrameRateChange(frameRate);
+	}
     }
 
     static bool getVideoContentTypeToString(tvContentType_t content)
@@ -114,8 +122,7 @@ namespace Plugin {
     {
         std::string strValue = "NONE";
         std::string interlaceValue = (resolution.isInterlaced) ? "i" : "p";
-        if ( resolution.resolutionValue != tvVideoResolution_NONE ) 
-	{
+        if ( resolution.resolutionValue != tvVideoResolution_NONE ) {
             strValue = std::to_string(resolution.frameWidth) + "*" + std::to_string(resolution.frameHeight) + interlaceValue;
         }
         LOGINFO("Video Resolution:[%s]\n", strValue.c_str());
@@ -175,12 +182,11 @@ namespace Plugin {
 	fmmMode = getVideoContentTypeToString(mode);
         response["filmMakerMode"] = fmmMode;
 
-        if (getCapabilitySource(rangeArray) == 0)
-        {
+        if (getCapabilitySource(rangeArray) == 0) {
             response["filmMakerModeSources"] = rangeArray;
         }
         // cache for latest fmm mode
-		filmMakerMode = fmmMode;
+	filmMakerMode = fmmMode;
         sendNotify("onVideoContentChanged", response);
     }
 
@@ -201,41 +207,39 @@ namespace Plugin {
 	//Event
     void AVOutputTV::dsHdmiStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
     {
-        if(!AVOutputTV::instance)
+        if(!AVOutputTV::instance) {
 	    return;
+	}
 
-	 if (IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS == eventId)
-	 {
-             IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
-             int hdmi_in_port = eventData->data.hdmi_in_status.port;
-             bool hdmi_in_status = eventData->data.hdmi_in_status.isPresented;
-             LOGWARN("AVOutputPlugins: Received IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS  event	port: %d, started: %d", hdmi_in_port,hdmi_in_status);
-	     if (!hdmi_in_status)
-	     {
-	         tvError_t ret = tvERROR_NONE;
-		 AVOutputTV::instance->m_isDisabledHdmiIn4KZoom = false;
-	         LOGWARN("AVOutputPlugins: Hdmi streaming stopped here reapply the global zoom settings:%d here. m_isDisabledHdmiIn4KZoom: %d", AVOutputTV::instance->m_videoZoomMode, AVOutputTV::instance->m_isDisabledHdmiIn4KZoom);
-		 ret = SetAspectRatio((tvDisplayMode_t)AVOutputTV::instance->m_videoZoomMode);
-		 if (ret != tvERROR_NONE) 
-	         {
-		     LOGWARN("SetAspectRatio set Failed");
-		 }
-	     }
-	     else 
-	     {
-	         AVOutputTV::instance->m_isDisabledHdmiIn4KZoom = true;
-                 LOGWARN("AVOutputPlugins: m_isDisabledHdmiIn4KZoom: %d", AVOutputTV::instance->m_isDisabledHdmiIn4KZoom);
-             }
-	 }
+	if (IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS == eventId) {
+            IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
+            int hdmi_in_port = eventData->data.hdmi_in_status.port;
+            bool hdmi_in_status = eventData->data.hdmi_in_status.isPresented;
+            LOGWARN("AVOutputPlugins: Received IARM_BUS_DSMGR_EVENT_HDMI_IN_STATUS  event	port: %d, started: %d", hdmi_in_port,hdmi_in_status);
+	    if (!hdmi_in_status) {
+	        tvError_t ret = tvERROR_NONE;
+		AVOutputTV::instance->m_isDisabledHdmiIn4KZoom = false;
+	        LOGWARN("AVOutputPlugins: Hdmi streaming stopped here reapply the global zoom settings:%d here. m_isDisabledHdmiIn4KZoom: %d", AVOutputTV::instance->m_videoZoomMode, AVOutputTV::instance->m_isDisabledHdmiIn4KZoom);
+		ret = SetAspectRatio((tvDisplayMode_t)AVOutputTV::instance->m_videoZoomMode);
+		if (ret != tvERROR_NONE) 
+	        {
+		    LOGWARN("SetAspectRatio set Failed");
+		}
+	    }
+	    else {
+	        AVOutputTV::instance->m_isDisabledHdmiIn4KZoom = true;
+                LOGWARN("AVOutputPlugins: m_isDisabledHdmiIn4KZoom: %d", AVOutputTV::instance->m_isDisabledHdmiIn4KZoom);
+            }
+	}
     }
 	
     void AVOutputTV::dsHdmiVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
     {
-        if(!AVOutputTV::instance)
+        if(!AVOutputTV::instance) {
 	    return;
+	}
 
-	if (IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE == eventId)
-	{
+	if (IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE == eventId) {
 	    IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
 	    int hdmi_in_port = eventData->data.hdmi_in_video_mode.port;
 	    dsVideoPortResolution_t resolution;
@@ -244,27 +248,22 @@ namespace Plugin {
 	    resolution.interlaced =  eventData->data.hdmi_in_video_mode.resolution.interlaced;
 	    resolution.frameRate =  eventData->data.hdmi_in_video_mode.resolution.frameRate;
 	    LOGWARN("AVOutputPlugins: Received IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE	event  port: %d, pixelResolution: %d, interlaced : %d, frameRate: %d \n", hdmi_in_port,resolution.pixelResolution, resolution.interlaced, resolution.frameRate);
-	    if (AVOutputTV::instance->m_isDisabledHdmiIn4KZoom) 
-	    {
+	    if (AVOutputTV::instance->m_isDisabledHdmiIn4KZoom) {
                 tvError_t ret = tvERROR_NONE;
 		if (AVOutputTV::instance->m_currentHdmiInResoluton<dsVIDEO_PIXELRES_3840x2160 ||
-				 (dsVIDEO_PIXELRES_MAX == AVOutputTV::instance->m_currentHdmiInResoluton))
-	        {
+				 (dsVIDEO_PIXELRES_MAX == AVOutputTV::instance->m_currentHdmiInResoluton)) {
 		    LOGWARN("AVOutputPlugins: Setting %d zoom mode for below 4K", AVOutputTV::instance->m_videoZoomMode);
 		    ret = SetAspectRatio((tvDisplayMode_t)AVOutputTV::instance->m_videoZoomMode);
 		}
-	        else 
-	        {
+	        else {
 		    LOGWARN("AVOutputPlugins: Setting auto zoom mode for 4K and above");
 		    ret = SetAspectRatio(tvDisplayMode_AUTO);
 	        }
-		if (ret != tvERROR_NONE) 
-	        {
+		if (ret != tvERROR_NONE) {
 		    LOGWARN("SetAspectRatio set Failed");
 		}
 	    } 
-	    else 
-	    {
+	    else {
 	        LOGWARN("AVOutputPlugins: %s: HdmiInput is not started yet. m_isDisabledHdmiIn4KZoom: %d", __FUNCTION__, AVOutputTV::instance->m_isDisabledHdmiIn4KZoom);
 	    }
         }
@@ -278,74 +277,73 @@ namespace Plugin {
         LOGINFO("CTOR\n");
         AVOutputTV::instance = this;
 
-		InitializeIARM();
+	InitializeIARM();
 
-		registerMethod("getBacklight", &AVOutputTV::getBacklight, this);
-		registerMethod("setBacklight", &AVOutputTV::setBacklight, this);
-		registerMethod("resetBacklight", &AVOutputTV::resetBacklight, this);
-		registerMethod("getBacklightCaps", &AVOutputTV::getBacklightCaps, this);
-		registerMethod("getBrightnessCaps", &AVOutputTV::getBrightnessCaps, this);
-		registerMethod("getBrightness", &AVOutputTV::getBrightness, this);
-		registerMethod("setBrightness", &AVOutputTV::setBrightness, this);
-		registerMethod("resetBrightness", &AVOutputTV::resetBrightness, this);
-		registerMethod("getContrast", &AVOutputTV::getContrast, this);
-		registerMethod("setContrast", &AVOutputTV::setContrast, this);
-		registerMethod("resetContrast", &AVOutputTV::resetContrast, this);
-		registerMethod("getContrastCaps", &AVOutputTV::getContrastCaps, this);
-		registerMethod("getSharpness", &AVOutputTV::getSharpness, this);
-		registerMethod("setSharpness", &AVOutputTV::setSharpness, this);
-		registerMethod("resetSharpness", &AVOutputTV::resetSharpness, this);
-		registerMethod("getSharpnessCaps", &AVOutputTV::getSharpnessCaps, this);
-		registerMethod("getSaturation", &AVOutputTV::getSaturation, this);
-		registerMethod("setSaturation", &AVOutputTV::setSaturation, this);
-		registerMethod("resetSaturation", &AVOutputTV::resetSaturation, this);
-		registerMethod("getSaturationCaps", &AVOutputTV::getSaturationCaps, this);
-		registerMethod("getHue", &AVOutputTV::getHue, this);
-		registerMethod("setHue", &AVOutputTV::setHue, this);
-		registerMethod("resetHue", &AVOutputTV::resetHue, this);
-		registerMethod("getHueCaps", &AVOutputTV::getHueCaps, this);
-		registerMethod("getColorTemperature", &AVOutputTV::getColorTemperature, this);
-		registerMethod("setColorTemperature", &AVOutputTV::setColorTemperature, this);
-		registerMethod("resetColorTemperature", &AVOutputTV::resetColorTemperature, this);
-		registerMethod("getColorTemperatureCaps", &AVOutputTV::getColorTemperatureCaps, this);
+	registerMethod("getBacklight", &AVOutputTV::getBacklight, this);
+	registerMethod("setBacklight", &AVOutputTV::setBacklight, this);
+	registerMethod("resetBacklight", &AVOutputTV::resetBacklight, this);
+	registerMethod("getBacklightCaps", &AVOutputTV::getBacklightCaps, this);
+	registerMethod("getBrightnessCaps", &AVOutputTV::getBrightnessCaps, this);
+	registerMethod("getBrightness", &AVOutputTV::getBrightness, this);
+	registerMethod("setBrightness", &AVOutputTV::setBrightness, this);
+	registerMethod("resetBrightness", &AVOutputTV::resetBrightness, this);
+	registerMethod("getContrast", &AVOutputTV::getContrast, this);
+	registerMethod("setContrast", &AVOutputTV::setContrast, this);
+	registerMethod("resetContrast", &AVOutputTV::resetContrast, this);
+	registerMethod("getContrastCaps", &AVOutputTV::getContrastCaps, this);
+	registerMethod("getSharpness", &AVOutputTV::getSharpness, this);
+	registerMethod("setSharpness", &AVOutputTV::setSharpness, this);
+	registerMethod("resetSharpness", &AVOutputTV::resetSharpness, this);
+	registerMethod("getSharpnessCaps", &AVOutputTV::getSharpnessCaps, this);
+	registerMethod("getSaturation", &AVOutputTV::getSaturation, this);
+	registerMethod("setSaturation", &AVOutputTV::setSaturation, this);
+	registerMethod("resetSaturation", &AVOutputTV::resetSaturation, this);
+	registerMethod("getSaturationCaps", &AVOutputTV::getSaturationCaps, this);
+	registerMethod("getHue", &AVOutputTV::getHue, this);
+	registerMethod("setHue", &AVOutputTV::setHue, this);
+	registerMethod("resetHue", &AVOutputTV::resetHue, this);
+	registerMethod("getHueCaps", &AVOutputTV::getHueCaps, this);
+	registerMethod("getColorTemperature", &AVOutputTV::getColorTemperature, this);
+	registerMethod("setColorTemperature", &AVOutputTV::setColorTemperature, this);
+	registerMethod("resetColorTemperature", &AVOutputTV::resetColorTemperature, this);
+	registerMethod("getColorTemperatureCaps", &AVOutputTV::getColorTemperatureCaps, this);
 
-		registerMethod("getBacklightDimmingMode", &AVOutputTV::getBacklightDimmingMode, this);
-		registerMethod("setBacklightDimmingMode", &AVOutputTV::setBacklightDimmingMode, this);
-		registerMethod("resetBacklightDimmingMode", &AVOutputTV::resetBacklightDimmingMode, this);
-		registerMethod("getBacklightDimmingModeCaps", &AVOutputTV::getBacklightDimmingModeCaps, this);
+	registerMethod("getBacklightDimmingMode", &AVOutputTV::getBacklightDimmingMode, this);
+	registerMethod("setBacklightDimmingMode", &AVOutputTV::setBacklightDimmingMode, this);
+	registerMethod("resetBacklightDimmingMode", &AVOutputTV::resetBacklightDimmingMode, this);
+	registerMethod("getBacklightDimmingModeCaps", &AVOutputTV::getBacklightDimmingModeCaps, this);
 
-		registerMethod("getSupportedDolbyVisionModes", &AVOutputTV::getSupportedDolbyVisionModes, this);
-		registerMethod("getDolbyVisionMode", &AVOutputTV::getDolbyVisionMode, this);
-		registerMethod("setDolbyVisionMode", &AVOutputTV::setDolbyVisionMode, this);
-		registerMethod("resetDolbyVisionMode", &AVOutputTV::resetDolbyVisionMode, this);
-		registerMethod("getDolbyVisionModeCaps", &AVOutputTV::getDolbyVisionModeCaps, this);
-		registerMethod("getVideoFormat", &AVOutputTV::getVideoFormat, this);
-		registerMethod("getVideoSource", &AVOutputTV::getVideoSource, this);
-		registerMethod("getVideoFrameRate", &AVOutputTV::getVideoFrameRate, this);
-		registerMethod("getVideoResolution", &AVOutputTV::getVideoResolution, this);
-		registerMethod("getVideoContentType", &AVOutputTV::getVideoContentType, this);
+	registerMethod("getSupportedDolbyVisionModes", &AVOutputTV::getSupportedDolbyVisionModes, this);
+	registerMethod("getDolbyVisionMode", &AVOutputTV::getDolbyVisionMode, this);
+	registerMethod("setDolbyVisionMode", &AVOutputTV::setDolbyVisionMode, this);
+	registerMethod("resetDolbyVisionMode", &AVOutputTV::resetDolbyVisionMode, this);
+	registerMethod("getDolbyVisionModeCaps", &AVOutputTV::getDolbyVisionModeCaps, this);
+	registerMethod("getVideoFormat", &AVOutputTV::getVideoFormat, this);
+	registerMethod("getVideoSource", &AVOutputTV::getVideoSource, this);
+	registerMethod("getVideoFrameRate", &AVOutputTV::getVideoFrameRate, this);
+	registerMethod("getVideoResolution", &AVOutputTV::getVideoResolution, this);
+	registerMethod("getVideoContentType", &AVOutputTV::getVideoContentType, this);
 
-		registerMethod("getZoomMode", &AVOutputTV::getZoomMode, this);
-		registerMethod("setZoomMode", &AVOutputTV::setZoomMode, this);
-		registerMethod("resetZoomMode", &AVOutputTV::resetZoomMode, this);
-		registerMethod("getZoomModeCaps", &AVOutputTV::getZoomModeCaps, this);
+	registerMethod("getZoomMode", &AVOutputTV::getZoomMode, this);
+	registerMethod("setZoomMode", &AVOutputTV::setZoomMode, this);
+	registerMethod("resetZoomMode", &AVOutputTV::resetZoomMode, this);
+	registerMethod("getZoomModeCaps", &AVOutputTV::getZoomModeCaps, this);
 
+	registerMethod("getPictureMode", &AVOutputTV::getPictureMode, this);
+	registerMethod("setPictureMode", &AVOutputTV::setPictureMode, this);
+	registerMethod("signalFilmMakerMode", &AVOutputTV::signalFilmMakerMode, this);
+	registerMethod("resetPictureMode", &AVOutputTV::resetPictureMode, this);
+	registerMethod("getPictureModeCaps", &AVOutputTV::getPictureModeCaps, this);
+	registerMethod("getSupportedPictureModes", &AVOutputTV::getSupportedPictureModes, this);
+	registerMethod("getVideoSourceCaps", &AVOutputTV::getVideoSourceCaps, this);
+	registerMethod("getVideoFormatCaps", &AVOutputTV::getVideoFormatCaps, this);
+	registerMethod("getVideoFrameRateCaps", &AVOutputTV::getVideoFrameRateCaps, this);
+	registerMethod("getVideoResolutionCaps", &AVOutputTV::getVideoResolutionCaps, this);
 
-		registerMethod("getPictureMode", &AVOutputTV::getPictureMode, this);
-		registerMethod("setPictureMode", &AVOutputTV::setPictureMode, this);
-		registerMethod("signalFilmMakerMode", &AVOutputTV::signalFilmMakerMode, this);
-		registerMethod("resetPictureMode", &AVOutputTV::resetPictureMode, this);
-		registerMethod("getPictureModeCaps", &AVOutputTV::getPictureModeCaps, this);
-		registerMethod("getSupportedPictureModes", &AVOutputTV::getSupportedPictureModes, this);
-		registerMethod("getVideoSourceCaps", &AVOutputTV::getVideoSourceCaps, this);
-		registerMethod("getVideoFormatCaps", &AVOutputTV::getVideoFormatCaps, this);
-		registerMethod("getVideoFrameRateCaps", &AVOutputTV::getVideoFrameRateCaps, this);
-		registerMethod("getVideoResolutionCaps", &AVOutputTV::getVideoResolutionCaps, this);
-
-		registerMethod("getLowLatencyState", &AVOutputTV::getLowLatencyState, this);
-		registerMethod("setLowLatencyState", &AVOutputTV::setLowLatencyState, this);
-		registerMethod("resetLowLatencyState", &AVOutputTV::resetLowLatencyState, this);
-		registerMethod("getLowLatencyStateCaps", &AVOutputTV::getLowLatencyStateCaps, this);
+	registerMethod("getLowLatencyState", &AVOutputTV::getLowLatencyState, this);
+	registerMethod("setLowLatencyState", &AVOutputTV::setLowLatencyState, this);
+	registerMethod("resetLowLatencyState", &AVOutputTV::resetLowLatencyState, this);
+	registerMethod("getLowLatencyStateCaps", &AVOutputTV::getLowLatencyStateCaps, this);
 
         LOGINFO("Exit\n");
     }
@@ -379,20 +377,16 @@ namespace Plugin {
 
         ret = TvInit();
        
-        if(ret != tvERROR_NONE) 
-	{
+        if(ret != tvERROR_NONE) {
             LOGERR("Platform Init failed, ret: %s \n", getErrorString(ret).c_str());
 	} 
-	else 
-	{
+	else {
             LOGINFO("Platform Init successful...\n");
             ret = TvSyncCalibrationInfoODM();
-            if(ret != tvERROR_NONE) 
-	    {
+            if(ret != tvERROR_NONE) {
                 LOGERR(" SD3 <->cri_data sync failed, ret: %s \n", getErrorString(ret).c_str());
             }
-            else 
-	    {
+            else {
                 LOGERR(" SD3 <->cri_data sync success, ret: %s \n", getErrorString(ret).c_str());
             }
         }
@@ -424,8 +418,7 @@ namespace Plugin {
         LocatePQSettingsFile();
 
 	// Get Index from PQ capabailites
-	if (getPqParamIndex() != 0)
-        {
+	if (getPqParamIndex() != 0) {
             LOGWARN("Failed to get the supported index from capability \n");
         }
 
@@ -438,7 +431,7 @@ namespace Plugin {
 
         // As we have source to picture mode mapping, get current source and
         // setting those picture mode
-       InitializePictureMode();
+        InitializePictureMode();
 
         LOGINFO("Exit\n" );
     }
@@ -450,12 +443,10 @@ namespace Plugin {
        tvError_t ret = tvERROR_NONE;
        ret = TvTerm();
 
-       if(ret != tvERROR_NONE) 
-       {
+       if(ret != tvERROR_NONE) {
            LOGERR("Platform De-Init failed");
        }
-       else
-       {
+       else {
            LOGINFO("Platform De-Init successful... \n");
        }
 
@@ -479,37 +470,30 @@ namespace Plugin {
 
         tvError_t ret = getParamsCaps(range,pqmode,source,format,"AspectRatio");
 
-        if(ret != tvERROR_NONE) 
-	{
+        if(ret != tvERROR_NONE) {
             returnResponse(false);
         }
-	else
-        {
-            for (index = 0; index < range.size(); index++)
+	else {
+            for (index = 0; index < range.size(); index++) {
                 rangeArray.Add(range[index]);
+	    }
 
             response["options"]=rangeArray;
 
-            if (pqmode.front().compare("none") != 0) 
-	    {
-                for (index = 0; index < pqmode.size(); index++) 
-		{
+            if (pqmode.front().compare("none") != 0) {
+                for (index = 0; index < pqmode.size(); index++) {
                     pqmodeArray.Add(pqmode[index]);
                 }
                 response["pictureModeInfo"]=pqmodeArray;
             }
-            if ((source.front()).compare("none") != 0) 
-	    {
-                for (index = 0; index < source.size(); index++) 
-		{
+            if ((source.front()).compare("none") != 0) {
+                for (index = 0; index < source.size(); index++) {
                     sourceArray.Add(source[index]);
                 }
                 response["videoSourceInfo"]=sourceArray;
             }
-            if ((format.front()).compare("none") != 0) 
-	    {
-                for (index = 0; index < format.size(); index++) 
-		{
+            if ((format.front()).compare("none") != 0) {
+                for (index = 0; index < format.size(); index++) {
                     formatArray.Add(format[index]);
                 }
                 response["videoFormatInfo"]=formatArray;
@@ -528,84 +512,68 @@ namespace Plugin {
         std::string source;
         std::string format;
 
-
         value = parameters.HasLabel("zoomMode") ? parameters["zoomMode"].String() : "";
         returnIfParamNotFound(parameters,"zoomMode");
 
-        if (validateInputParameter("AspectRatio",value) != 0) 
-	{
+        if (validateInputParameter("AspectRatio",value) != 0) {
             LOGERR("%s: Range validation failed for AspectRatio\n", __FUNCTION__);
             returnResponse(false);
         }
 
-        if (parsingSetInputArgument(parameters, "AspectRatio",source, pqmode, format) != 0)
-        {
+        if (parsingSetInputArgument(parameters, "AspectRatio",source, pqmode, format) != 0) {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
         }
 
-	if( !isCapablityCheckPassed( pqmode, source, format, "AspectRatio" )) 
-	{
+	if( !isCapablityCheckPassed( pqmode, source, format, "AspectRatio" )) {
             LOGERR("%s: CapablityCheck failed for AspectRatio\n", __FUNCTION__);
             returnResponse(false);
         }
 
-        if(!value.compare("TV 16X9 STRETCH")) 
-	{
+        if(!value.compare("TV 16X9 STRETCH")) {
             mode = tvDisplayMode_16x9;
         }
-        else if (!value.compare("TV 4X3 PILLARBOX"))
-	{
+        else if (!value.compare("TV 4X3 PILLARBOX")) {
             mode = tvDisplayMode_4x3;
         }
-        else if (!value.compare("TV NORMAL"))
-	{
+        else if (!value.compare("TV NORMAL")) {
             mode = tvDisplayMode_NORMAL;
         }
-        else if (!value.compare("TV DIRECT"))
-	{
+        else if (!value.compare("TV DIRECT")) {
             mode = tvDisplayMode_DIRECT;
         }
-        else if (!value.compare("TV AUTO"))
-	{
+        else if (!value.compare("TV AUTO")) {
             mode = tvDisplayMode_AUTO;
         }
-        else if (!value.compare("TV ZOOM"))
-	{
+        else if (!value.compare("TV ZOOM")) {
             mode = tvDisplayMode_ZOOM;
         }
-        else 
-	{
+        else {
             returnResponse(false);
         }
         m_videoZoomMode = mode;
         tvError_t ret = setAspectRatioZoomSettings (mode);
 
-        if(ret != tvERROR_NONE) 
-	{
+        if(ret != tvERROR_NONE) {
             returnResponse(false);
         }
-        else 
-	{
+        else {
             //Save DisplayMode to localstore and ssm_data
             int params[3]={0};
             params[0]=mode;
             int retval=UpdateAVoutputTVParam("set","AspectRatio",pqmode,source,format,PQ_PARAM_ASPECT_RATIO,params);;
 
-            if(retval != 0) 
-	    {
+            if(retval != 0) {
                 LOGERR("Failed to Save DisplayMode to ssm_data\n");
 		returnResponse(false);
             }
 
             tr181ErrorCode_t err = setLocalParam(rfc_caller_id, AVOUTPUT_ASPECTRATIO_RFC_PARAM, value.c_str());
-            if ( err != tr181Success ) 
-	    {
+            if ( err != tr181Success ) {
                 LOGERR("setLocalParam for %s Failed : %s\n", AVOUTPUT_ASPECTRATIO_RFC_PARAM, getTR181ErrorString(err));
 		returnResponse(false);
             }
-            else 
-	    {
+            else {
                 LOGINFO("setLocalParam for %s Successful, Value: %s\n", AVOUTPUT_ASPECTRATIO_RFC_PARAM, value.c_str());
             }
             LOGINFO("Exit : SetAspectRatio() value : %s\n",value.c_str());
@@ -621,12 +589,10 @@ namespace Plugin {
 
         tvError_t ret = getUserSelectedAspectRatio (&mode);
 
-        if(ret != tvERROR_NONE) 
-	{
+        if(ret != tvERROR_NONE) {
             returnResponse(false);
         }
-        else 
-	{
+        else {
             switch(mode) 
 	    {
                 case tvDisplayMode_16x9:
@@ -676,34 +642,28 @@ namespace Plugin {
         std::string format;
         tvError_t ret = tvERROR_NONE;
 
-        if (parsingSetInputArgument(parameters, "AspectRatio",source, pqmode, format) != 0)
-        {
+        if (parsingSetInputArgument(parameters, "AspectRatio",source, pqmode, format) != 0) {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
         }
 
-	if( !isCapablityCheckPassed( pqmode, source, format, "AspectRatio" )) 
-	{
+	if( !isCapablityCheckPassed( pqmode, source, format, "AspectRatio" )) {
             LOGERR("%s: CapablityCheck failed for AspectRatio\n", __FUNCTION__);
             returnResponse(false);
         }
 
         tr181ErrorCode_t err = clearLocalParam(rfc_caller_id,AVOUTPUT_ASPECTRATIO_RFC_PARAM);
-        if ( err != tr181Success ) 
-	{
+        if ( err != tr181Success ) {
             LOGERR("clearLocalParam for %s Failed : %s\n", AVOUTPUT_ASPECTRATIO_RFC_PARAM, getTR181ErrorString(err));
             ret  = tvERROR_GENERAL;
         }
-        else 
-	{
+        else {
             ret = setDefaultAspectRatio(pqmode,source,format);
         }
-	if(ret != tvERROR_NONE)
-        {
+	if(ret != tvERROR_NONE) {
             returnResponse(false);
         }
-        else
-        {
+        else {
             LOGINFO("Exit : resetDefaultAspectRatio()\n");
             returnResponse(true);
         }
