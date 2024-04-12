@@ -72,7 +72,7 @@ jobs:
         with:
           path: rdkservices
 
-      - name: Apply patch
+      - name: Apply patch Thunder
         run: >
               cd "${{github.workspace}}/Thunder"
               &&
@@ -112,6 +112,12 @@ jobs:
           repository: rdkcentral/ThunderInterfaces
           path: ThunderInterfaces
           ref: ${{env.INTERFACES_REF}}
+
+      - name: Apply patch ThunderInterfaces
+        run: >
+              cd "${{github.workspace}}/ThunderInterfaces"
+              &&
+              git apply "${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0001-Add-TextToSpeech-Interface.patch"
 
       - name: Build ThunderInterfaces
         run: >
@@ -220,6 +226,9 @@ jobs:
           -DCMAKE_DISABLE_FIND_PACKAGE_RFC=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_RBus=ON
           -DPLUGIN_SYSTEMSERVICES=ON
+          -DPLUGIN_HDCPPROFILE=ON
+          -DPLUGIN_NETWORK=ON
+          -DPLUGIN_TEXTTOSPEECH=ON
           -DPLUGIN_USBACCESS=ON
           -DPLUGIN_L2Tests=ON
           -DRDK_SERVICE_L2_TEST=ON
@@ -281,6 +290,16 @@ jobs:
           /tmp/opkg.conf
           /tmp/system_service_temp.conf
 
+      - name: Download pact_verifier_cli
+        run: >
+          echo "Copying pact plugins" &&
+          sudo mkdir -p ~/.pact/plugins/websockets-0.4.1  &&
+          sudo cp "${{github.workspace}}/rdkservices/Tests/L2Tests/pact/pact-plugin-websockets" ~/.pact/plugins/websockets-0.4.1/  &&
+          sudo cp "${{github.workspace}}/rdkservices/Tests/L2Tests/pact/pact-plugin.json" ~/.pact/plugins/websockets-0.4.1/ &&
+          sudo chmod +x ~/.pact/plugins/websockets-0.4.1/pact-plugin-websockets &&
+          PATH=${{github.workspace}}/install/usr/bin:${PATH}
+          ${{github.workspace}}/rdkservices/Tests/L2Tests/pact/install-verifier-cli.sh
+
       - name: Run unit tests without valgrind
         run: >
           PATH=${{github.workspace}}/install/usr/bin:${PATH}
@@ -288,7 +307,6 @@ jobs:
           RdkServicesL2Test
 
       - name: Run unit tests with valgrind
-        if: ${{ !env.ACT }}
         run: >
           PATH=${{github.workspace}}/install/usr/bin:${PATH}
           LD_LIBRARY_PATH=${{github.workspace}}/install/usr/lib:${{github.workspace}}/install/usr/lib/wpeframework/plugins:${LD_LIBRARY_PATH}
@@ -331,4 +349,23 @@ jobs:
           path: |
             coverage/
             valgrind_log
+          if-no-files-found: warn
+
+      - name: Run contract tests
+        if: ${{ !env.ACT }}
+        env:
+          PACTFLOW_TOKEN: ${{ secrets.PACTFLOW_TOKEN }}
+        run: >
+          PATH=$GITHUB_WORKSPACE/install/usr/bin:${PATH}
+          LD_LIBRARY_PATH=$GITHUB_WORKSPACE/install/usr/lib:$GITHUB_WORKSPACE/install/usr/lib/wpeframework/plugins:${LD_LIBRARY_PATH}
+          RdkServicesL2Test CTVerifierMain
+
+      - name: Upload contract test results
+        if: ${{ !env.ACT }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: Contract test results
+          path: |
+            contract-test-results.json
+            contract-test-statistics.txt
           if-no-files-found: warn
