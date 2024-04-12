@@ -18,6 +18,7 @@
  */
 
 #include "SystemAudioPlayer.h"
+#include <gst/gst.h>
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
@@ -56,6 +57,8 @@ namespace Plugin {
         _skipURL = static_cast<uint8_t>(_service->WebPrefix().length());
 
         _service->Register(&_notification);
+        if(!gst_is_initialized())
+            gst_init(0, nullptr);
 
         _sap = _service->Root<Exchange::ISystemAudioPlayer>(_connectionId, 15000, _T("SystemAudioPlayerImplementation"));
 
