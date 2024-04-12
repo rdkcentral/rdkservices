@@ -863,7 +863,7 @@ namespace WPEFramework {
             int32_t status = Core::ERROR_NONE;
             bool result = false;
             bool subscribe_status = false;
-            string event = "onDeviceInitializationContextUpdate"
+            string event = "onDeviceInitializationContextUpdate";
             const char* secMgr_callsign = "org.rdk.SecManager.1";
             PluginHost::IShell::state state;
             WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
