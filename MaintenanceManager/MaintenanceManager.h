@@ -162,12 +162,11 @@ namespace WPEFramework {
                 WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* getThunderPluginHandle(const char*);
                 bool stopMaintenanceTasks();
                 bool subscribeForInternetStatusEvent(string);
-                bool subscribeForDeviceInitializationContextUpdate(string);
                 void internetStatusChangeEventHandler(const JsonObject& parameters);
-                void deviceInitializationContextUpdateEventHandler(const JsonObject& parameters);
+                void deviceInitializationContextEventHandler(const JsonObject& parameters);
                 void startCriticalTasks();
                 bool checkNetwork();
-                void checkDeviceInitializationContextUpdate();
+                bool subscribeToDeviceInitializationEvent();
                 bool setDeviceInitializationContext(JsonObject joGetResult);
                 bool getActivatedStatus(bool &skipFirmwareCheck);
                 const string checkActivatedStatus(void);

@@ -282,7 +282,7 @@ namespace WPEFramework {
             MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[1].c_str()] = DATA_TYPE::WDMP_STRING;
             MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[2].c_str()] = DATA_TYPE::WDMP_STRING;
 
-            checkDeviceInitializationContextUpdate();
+            subscribeToDeviceInitializationEvent();
 
 #endif
          }
@@ -555,27 +555,6 @@ namespace WPEFramework {
             return result;
         }
 
-        bool MaintenanceManager::subscribeForDeviceInitializationContextUpdate(string event)
-        {
-            int32_t status = Core::ERROR_NONE;
-            bool result = false;
-            LOGINFO("Attempting to subscribe for %s events", event.c_str());
-            const char* secMgr_callsign = "org.rdk.SecManager.1";
-            WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
-
-            thunder_client = getThunderPluginHandle(secMgr_callsign);
-            if (thunder_client == nullptr) {
-                LOGINFO("Failed to get plugin handle");
-            }
-            else {
-                status = thunder_client->Subscribe<JsonObject>(5000, event, &MaintenanceManager::deviceInitializationContextUpdateEventHandler, this);
-                if (status == Core::ERROR_NONE) {
-                    result = true;
-                }
-            }
-            return result;
-        }
-
         void MaintenanceManager::internetStatusChangeEventHandler(const JsonObject& parameters)
         {
             string value;
@@ -596,18 +575,20 @@ namespace WPEFramework {
             }
         }
 
-        void MaintenanceManager::deviceInitializationContextUpdateEventHandler(const JsonObject& parameters)
+        void MaintenanceManager::deviceInitializationContextEventHandler(const JsonObject& parameters)
         {
             if (g_listen_to_deviceContextUpdate && UNSOLICITED_MAINTENANCE == g_maintenance_type) {
                 if (parameters.HasLabel("deviceInitializationContext")) {
+                    LOGINFO("Listening to deviceInitializationContextUpdate Events");
                     g_jsonRespDeviceInitialization = parameters;
+                    LOGINFO("g_jsonRespDeviceInitialization: %p | parameters: %p", &g_jsonRespDeviceInitialization, &parameters);
                 }
+                task_thread.notify_one();
+                g_listen_to_deviceContextUpdate = false;
             }
             else {
                 LOGINFO("onDeviceInitializationContextUpdate event is not being listened or Maintenance Type is not Unsolicited");
             }
-            task_thread.notify_one();
-            g_listen_to_deviceContextUpdate = false;
         }
 
         void MaintenanceManager::startCriticalTasks()
@@ -837,10 +818,10 @@ namespace WPEFramework {
 	    return network_available;
 	}
 
-        bool MaintenanceManager::setDeviceInitializationContext(JsonObject joGetResult) {
+        bool MaintenanceManager::setDeviceInitializationContext(JsonObject response_data) {
             bool setDone = false;
             bool paramEmpty = false;
-            JsonObject getInitializationContext = joGetResult["deviceInitializationContext"].Object();
+            JsonObject getInitializationContext = response_data["deviceInitializationContext"].Object();
             for (const string& key : kDeviceInitContextKeyVals)
             {
                 // Retrieve deviceInitializationContext Value
@@ -878,31 +859,43 @@ namespace WPEFramework {
             return setDone;
         }
 
-        void MaintenanceManager::checkDeviceInitializationContextUpdate() {
-            JsonObject joGetParams;
-            JsonObject joGetResult;
+        bool MaintenanceManager::subscribeToDeviceInitializationEvent() {
+            int32_t status = Core::ERROR_NONE;
+            bool result = false;
+            bool subscribe_status = false;
+            string event = "onDeviceInitializationContextUpdate"
             const char* secMgr_callsign = "org.rdk.SecManager.1";
             PluginHost::IShell::state state;
+            WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
 
             if((getServiceState(m_service, secMgr_callsign, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
                 LOGINFO("%s is active", secMgr_callsign);
-                if (UNSOLICITED_MAINTENANCE == g_maintenance_type && !g_listen_to_deviceContextUpdate) {
-                    // subscribe to onDeviceInitializationContextUpdate event
-                    bool subscribe_status = subscribeForDeviceInitializationContextUpdate("onDeviceInitializationContextUpdate");
-                    if(subscribe_status) {
-                        LOGINFO("MaintenanceManager subscribed for onDeviceInitializationContextUpdate event");
-                        g_listen_to_deviceContextUpdate = true;
-                    }
-                    else {
-                        LOGINFO("Failed to subscribe for onDeviceInitializationContextUpdate event");
-                    }
+                // subscribe to onDeviceInitializationContextUpdate event
+                LOGINFO("Attempting to subscribe for %s events", event.c_str());
+
+                thunder_client = getThunderPluginHandle(secMgr_callsign);
+                if (thunder_client == nullptr) {
+                    LOGINFO("Failed to get plugin handle");
                 }
                 else {
-                    LOGINFO("Event already Subscribed or Maintenance Type is UnSolicited Maintenance");
+                    status = thunder_client->Subscribe<JsonObject>(5000, event, &MaintenanceManager::deviceInitializationContextEventHandler, this);
+                    if (status == Core::ERROR_NONE) {
+                        result = true;
+                    }
+                }
+                subscribe_status = result;
+                if(subscribe_status) {
+                    LOGINFO("MaintenanceManager subscribed for %s event", event.c_str());
+                    return true;
+                }
+                else {
+                    LOGINFO("Failed to subscribe for %s event", event.c_str());
+                    return false;
                 }
             }
             else {
                 LOGINFO("%s is not active", secMgr_callsign);
+                return false;
             }
         }
 
