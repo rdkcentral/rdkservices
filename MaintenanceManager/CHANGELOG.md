@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.30] - 2024-04-12
+### Add
+- Add osClass to kDeviceInitContextKeyVals Array for WAI 2.0
+
 ## [1.0.29] - 2024-03-27
 ### Removed
 - Removed TargetProposition WhoAmI Parameter and added OsClass Parameter
