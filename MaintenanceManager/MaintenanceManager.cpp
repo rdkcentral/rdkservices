@@ -884,7 +884,6 @@ namespace WPEFramework {
             bool subscribe_status = false;
             string event = "onDeviceInitializationContextUpdate";
             const char* secMgr_callsign_ver = "org.rdk.SecManager.1";
-            PluginHost::IShell::state state;
             WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
 
             // subscribe to onDeviceInitializationContextUpdate event
