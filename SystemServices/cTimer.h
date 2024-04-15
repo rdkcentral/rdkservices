@@ -27,6 +27,8 @@ class cTimer{
         bool clear;
         int interval;
         void (*callBack_function)() = NULL;
+        std::thread timerThread;
+        void timerFunction();
     public:
         /***
          * @brief    : Constructor.
