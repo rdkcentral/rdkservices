@@ -281,9 +281,6 @@ namespace WPEFramework {
             MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[0].c_str()] = DATA_TYPE::WDMP_STRING;
             MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[1].c_str()] = DATA_TYPE::WDMP_STRING;
             MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[2].c_str()] = DATA_TYPE::WDMP_STRING;
-            LOGINFO("DEBUG: before subscribe call");
-            subscribeToDeviceInitializationEvent();
-            LOGINFO("DEBUG: after subscribe call");
 
 #endif
          }
@@ -891,34 +888,27 @@ namespace WPEFramework {
             PluginHost::IShell::state state;
             WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
 
-            if((getServiceState(m_service, secMgr_callsign, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
-                LOGINFO("%s is active", secMgr_callsign);
-                // subscribe to onDeviceInitializationContextUpdate event
-                LOGINFO("Attempting to subscribe for %s events", event.c_str());
+            // subscribe to onDeviceInitializationContextUpdate event
+            LOGINFO("Attempting to subscribe for %s events", event.c_str());
 
-                thunder_client = getThunderPluginHandle(secMgr_callsign_ver);
-                if (thunder_client == nullptr) {
-                    LOGINFO("Failed to get plugin handle");
-                }
-                else {
-                    status = thunder_client->Subscribe<JsonObject>(5000, event, &MaintenanceManager::deviceInitializationContextEventHandler, this);
-                    if (status == Core::ERROR_NONE) {
-                        LOGINFO("DEBUG: Subscription Success");
-                        result = true;
-                    }
-                }
-                subscribe_status = result;
-                if(subscribe_status) {
-                    LOGINFO("MaintenanceManager subscribed for %s event", event.c_str());
-                    return true;
-                }
-                else {
-                    LOGINFO("Failed to subscribe for %s event", event.c_str());
-                    return false;
-                }
+            thunder_client = getThunderPluginHandle(secMgr_callsign_ver);
+            if (thunder_client == nullptr) {
+                LOGINFO("Failed to get plugin handle");
             }
             else {
-                LOGINFO("%s is not active", secMgr_callsign);
+                status = thunder_client->Subscribe<JsonObject>(5000, event, &MaintenanceManager::deviceInitializationContextEventHandler, this);
+                if (status == Core::ERROR_NONE) {
+                    LOGINFO("DEBUG: Subscription Success");
+                    result = true;
+                }
+            }
+            subscribe_status = result;
+            if(subscribe_status) {
+                LOGINFO("MaintenanceManager subscribed for %s event", event.c_str());
+                return true;
+            }
+            else {
+                LOGINFO("Failed to subscribe for %s event", event.c_str());
                 return false;
             }
         }
@@ -936,6 +926,11 @@ namespace WPEFramework {
             m_service = service;
             m_service->AddRef();
 
+#if defined(ENABLE_WHOAMI)
+            LOGINFO("DEBUG: before subscribe call");
+            subscribeToDeviceInitializationEvent();
+            LOGINFO("DEBUG: after subscribe call");
+#endif
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             InitializeIARM();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
