@@ -886,7 +886,8 @@ namespace WPEFramework {
             bool result = false;
             bool subscribe_status = false;
             string event = "onDeviceInitializationContextUpdate";
-            const char* secMgr_callsign = "org.rdk.SecManager.1";
+            const char* secMgr_callsign = "org.rdk.SecManager";
+            const char* secMgr_callsign_ver = "org.rdk.SecManager.1";
             PluginHost::IShell::state state;
             WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
 
@@ -895,7 +896,7 @@ namespace WPEFramework {
                 // subscribe to onDeviceInitializationContextUpdate event
                 LOGINFO("Attempting to subscribe for %s events", event.c_str());
 
-                thunder_client = getThunderPluginHandle(secMgr_callsign);
+                thunder_client = getThunderPluginHandle(secMgr_callsign_ver);
                 if (thunder_client == nullptr) {
                     LOGINFO("Failed to get plugin handle");
                 }
