@@ -323,7 +323,7 @@ namespace WPEFramework {
     bool whoAmIStatus = false;
     if (UNSOLICITED_MAINTENANCE == g_maintenance_type) {
         /* WhoAmI check*/
-        bool whoAmIStatus = knowWhoAmI();
+        whoAmIStatus = knowWhoAmI();
         if (whoAmIStatus) {
             LOGINFO("knowWhoAmI() returned successfully");
         }
@@ -432,8 +432,6 @@ namespace WPEFramework {
         {
             LOGINFO("DEBUG: start knoWhoAmI");
             bool success = false;
-            int retryDelay = 10;
-            int retryCount = 0;
             const char* secMgr_callsign = "org.rdk.SecManager";
             const char* secMgr_callsign_ver = "org.rdk.SecManager.1";
             PluginHost::IShell::state state;
