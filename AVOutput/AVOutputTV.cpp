@@ -30,7 +30,6 @@ static bool filmMakerMode= false;
 static std::map<std::string, int> supportedSourcemap;
 static std::map<std::string, int> supportedPictureModemap;
 static std::map<std::string, int> supportedFormatmap;
-static bool m_isDalsEnabled = false;
 
 namespace WPEFramework {
 namespace Plugin {

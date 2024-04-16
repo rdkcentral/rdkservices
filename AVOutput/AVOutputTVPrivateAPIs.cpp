@@ -103,20 +103,6 @@ namespace Plugin {
         return index;
     }
 
-    int AVOutputTV::getFormatIndex(std::string pqparam)
-    {
-        int index = -1;
-        std::map<std::string, int> :: iterator it;
-
-        for(it =  supportedFormatmap.begin(); it !=  supportedFormatmap.end(); it++) {
-            if (it->first == pqparam) {
-                index = it->second;
-                break;
-            }
-        }
-        return index;
-    }
-
     int AVOutputTV::getPqParamIndex()
     {
         std::vector<std::string> localpq;
