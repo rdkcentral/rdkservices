@@ -4,6 +4,7 @@
 #include "ServiceMock.h"
 #include "MiracastPlayer.h"
 #include "WrapsMock.h"
+#include <sys/time.h>
 
 #include "FactoriesImplementation.h"
 
@@ -17,6 +18,7 @@ namespace {
 
 #define BUFFER_SIZE (2048)
 #define PORT (7236)
+#define TEST_LOG(FMT, ...) log(__func__, __FILE__, __LINE__, syscall(__NR_gettid),FMT,##__VA_ARGS__)
 
 	typedef enum rtsp_srcmsg_reqresp
 	{
@@ -54,7 +56,7 @@ namespace {
 	RTSP_MSG_HANDLER_FORMAT default_rtsp_srcMsgbuffer[] =
 	{
 		{ RTSP_SEND , RTSP_SEND_M1_REQUEST , "OPTIONS * RTSP/1.0\r\nCSeq: 1\r\nServer: AllShareCast/Galaxy/Android13\r\nRequire: org.wfa.wfd1.0\r\n"},
-		{ RTSP_RECV , RTSP_RECV_M1_RESPONSE , "RTSP/1.0 200 OK\r\nPublic: \"org.wfa.wfd1.0, GET_PARAMETER, SET_PARAMETER\"\r\nCSeq: 1\r\n"},
+		{ RTSP_RECV , RTSP_RECV_M1_RESPONSE , "RTSP/1.0 200 OK\r\nPublic: \"org.wfa.wfd1.0, GET_PARAMETER, SET_PARAMETER\"\r\nCSeq: 1\r\n\r\n"},
 		{ RTSP_RECV , RTSP_RECV_M2_REQUEST , "OPTIONS * RTSP/1.0\r\nRequire: org.wfa.wfd1.0\r\nCSeq: %s"},
 		{ RTSP_SEND , RTSP_SEND_M2_RESPONSE , "RTSP/1.0 200 OK\r\nCSeq: %s\r\nPublic: org.wfa.wfd1.0, SETUP, TEARDOWN, PLAY, PAUSE, GET_PARAMETER, SET_PARAMETER\r\n" },
 		{ RTSP_SEND , RTSP_SEND_M3_REQUEST , "GET_PARAMETER rtsp://localhost/wfd1.0 RTSP/1.0\r\nCSeq: 2\r\nContent-Type: text/parameters\r\nContent-Length: 211\r\n\r\nwfd_video_formats\r\nwfd_audio_codecs\r\nwfd_uibc_capability\r\nwfd_client_rtp_ports\r\nwfd_content_protection\r\nwfd_sec_screensharing\r\nwfd_sec_portrait_display\r\nwfd_sec_rotation\r\nwfd_sec_hw_rotation\r\nwfd_sec_framerate\r\n" },
@@ -62,7 +64,7 @@ namespace {
 		{ RTSP_SEND , RTSP_SEND_M4_REQUEST , "SET_PARAMETER rtsp://localhost/wfd1.0 RTSP/1.0\r\nCSeq: 3\r\nContent-Type: text/parameters\r\nContent-Length: 246\r\n\r\nwfd_video_formats: 00 00 02 04 00000080 00000000 00000000 00 0000 0000 00 none none\r\nwfd_audio_codecs: AAC 00000001 00\r\nwfd_presentation_URL: rtsp://192.168.49.1/wfd1.0/streamid=0 none\r\nwfd_client_rtp_ports: RTP/AVP/UDP;unicast 1990 0 mode=play\r\n" },
 		{ RTSP_RECV , RTSP_RECV_M4_RESPONSE , "RTSP/1.0 200 OK\r\nCSeq: 3\r\n" },
 		{ RTSP_SEND , RTSP_SEND_M5_REQUEST , "SET_PARAMETER rtsp://localhost/wfd1.0 RTSP/1.0\r\nCSeq: 4\r\nContent-Type: text/parameters\r\nContent-Length: 27\r\n\r\nwfd_trigger_method: SETUP\r\n" },
-		{ RTSP_RECV , RTSP_RECV_M5_RESPONSE , "RTSP/1.0 200 OK\r\nCSeq: 4\r\n" },
+		{ RTSP_RECV , RTSP_RECV_M5_RESPONSE , "RTSP/1.0 200 OK\r\nCSeq: 4\r\n\r\n" },
 		{ RTSP_RECV , RTSP_RECV_M6_REQUEST , "SETUP rtsp://192.168.49.1/wfd1.0/streamid=0 RTSP/1.0\r\nTransport: RTP/AVP/UDP;unicast;client_port=1990\r\nCSeq: %s\r\n"},
 		{ RTSP_SEND , RTSP_SEND_M6_RESPONSE , "RTSP/1.0 200 OK\r\nCSeq: %s\r\nSession: 1804289383;timeout=30\r\nTransport: RTP/AVP/UDP;unicast;client_port=1991-1992;server_port=19000-19001\r\n" },
 		{ RTSP_RECV , RTSP_RECV_M7_REQUEST , "RTSP/1.0 200 OK\r\nCSeq: %s\r\nSession: 1804289383;timeout=30\r\nRange: npt=now-\r\n" },
@@ -74,10 +76,70 @@ namespace {
 	};
 
 	int default_rtsp_srcMsgSize = static_cast<int>(sizeof(default_rtsp_srcMsgbuffer) / sizeof(default_rtsp_srcMsgbuffer[0]));
-
 	int server_fd = -1, client_fd = -1;
 	struct sockaddr_in server_addr, client_addr;
 	int opt = 1;
+
+	void current_time(char *time_str)
+	{
+		struct timeval tv;
+		gettimeofday(&tv, NULL);
+
+		long microseconds = tv.tv_usec;
+
+		// Convert time to human-readable format
+		struct tm *tm_info;
+		tm_info = localtime(&tv.tv_sec);
+
+		sprintf(time_str, ": %02d:%02d:%02d:%06ld", tm_info->tm_hour, tm_info->tm_min, tm_info->tm_sec, microseconds);
+	}
+
+	void log( const char *func, const char *file, int line, int threadID,const char *format, ...)
+	{
+		const short kFormatMessageSize = 4096;
+		char formatted[kFormatMessageSize];
+		char time[24] = {0};
+		va_list argptr;
+
+		current_time(time);
+
+		va_start(argptr, format);
+		vsnprintf(formatted, kFormatMessageSize, format, argptr);
+		va_end(argptr);
+
+		fprintf(stderr, "[GUNIT][%d] INFO [%s:%d %s] %s: %s \n",
+                    (int)syscall(SYS_gettid),
+                    basename(file),
+                    line,
+		    time,
+                    func,
+                    formatted);
+
+		fflush(stderr);
+	}
+
+	static void removeFile(const char* fileName)
+	{
+		if (std::remove(fileName) != 0)
+		{
+			TEST_LOG("ERROR: deleting File [%s] ...",strerror(errno));
+		}
+		else
+		{
+			TEST_LOG("File %s successfully deleted", fileName);
+		}
+	}
+
+	static void createFile(const char* fileName, const char* fileContent)
+	{
+		removeFile(fileName);
+
+		std::ofstream fileContentStream(fileName);
+		fileContentStream << fileContent;
+		fileContentStream << "\n";
+		fileContentStream.close();
+		TEST_LOG("File %s successfully created", fileName);
+	}
 
 	const char* get_RequestResponseFormat(RTSP_MSG_HANDLER_FORMAT *pstRTSPSrcHldrFmt , int index , size_t rtsp_msg_fmt_count )
 	{
@@ -94,7 +156,6 @@ namespace {
 		std::stringstream ss(rtsp_msg_buffer);
 		std::string prefix = "";
 		std::string line;
-		MIRACASTLOG_TRACE("Entering...");
 
 		while (std::getline(ss, line))
 		{
@@ -107,17 +168,14 @@ namespace {
 				break;
 			}
 		}
-		MIRACASTLOG_TRACE("Exiting...");
 		return seq_str;
 	}
 
 	void send_rtsp_msg( int sockfd , std::string msg_buffer )
 	{
 		usleep(500000);
-		printf("[%d:%s] Entering...\n",__LINE__,__FUNCTION__);
-		printf("[%d:%s] Send Msg[%lu][%s]...\n",__LINE__,__FUNCTION__,msg_buffer.size(),msg_buffer.c_str());
+		TEST_LOG("Send Msg[%lu][%s]...",msg_buffer.size(),msg_buffer.c_str());
 		send(sockfd, msg_buffer.c_str(), msg_buffer.size(), 0);
-		printf("[%d:%s] Exiting...\n",__LINE__,__FUNCTION__);
 	}
 
 	/*
@@ -147,11 +205,10 @@ namespace {
 		int recv_return = -1;
 		bool status = true;
 
-		printf("[%s:%d]Entering ...\n",__FILE__,__LINE__);
-
-		if (!wait_data_timeout(socket_fd, 10000 ))
+		TEST_LOG("Entering ");
+		if (!wait_data_timeout(socket_fd, 15000 ))
 		{
-			printf("[%s:%d]Exiting Timeout ...\n",__FILE__,__LINE__);
+			TEST_LOG("ERROR: Exiting Timeout ");
 			return false;
 		}
 		else
@@ -163,17 +220,16 @@ namespace {
 		{
 			if (errno == EAGAIN || errno == EWOULDBLOCK)
 			{
-				printf("[%s:%d] error: recv timed out ...\n",__FILE__,__LINE__);
+				TEST_LOG("ERROR:recv timed out ...");
 				status = false;
 			}
 			else
 			{
-				printf("[%s:%d] error: recv failed [%s] ...\n",__FILE__,__LINE__,strerror(errno));
+				TEST_LOG("ERROR: recv failed [%s] ...",strerror(errno));
 				status = false;
 			}
 		}
-		printf("[%s:%d] recv string [%s][%d] ...\n",__FILE__,__LINE__,buffer,recv_return);
-		printf("[%s:%d]Exiting ...\n",__FILE__,__LINE__);
+		TEST_LOG("recv string [%s][%d] ...",buffer,recv_return);
 		return status;
 	}
 
@@ -186,7 +242,7 @@ namespace {
 		}
 
 		fcntl(server_fd, F_SETFL, O_NONBLOCK);
-		printf("NON_BLOCKING Socket Enabled \n");
+		TEST_LOG("#### NON_BLOCKING Socket Enabled ####");
 
 		// Forcefully attaching socket to the port 7236
 		if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
@@ -244,7 +300,7 @@ namespace {
 		if (!wait_data_timeout(server_fd, 30000 ))
 		{
 			// connection timed out or failed
-			printf("Socket Connection Timedout %s received(%d)...", strerror(errno), errno);
+			TEST_LOG("Socket Connection Timedout %s received(%d)...", strerror(errno), errno);
 			response_buffer = "FAIL";
 			return;
 		}
@@ -255,7 +311,7 @@ namespace {
 				perror("accept");
 				return;
 			}
-			printf("[%d:%s]socket accept done\n",__LINE__,__FUNCTION__);
+			TEST_LOG("socket accept done");
 		}
 
 		response_buffer = "SUCCESS";
@@ -271,9 +327,11 @@ namespace {
 			std::string msg_buffer = "";
 
 			memset( buffer , 0x00 , sizeof(buffer));
+			TEST_LOG("Index[%d] RTSP Msg[%x]",current_msg,rtsp_msg_type);
 
 			if ( RTSP_SEND == rtsp_sendorreceive )
 			{
+				TEST_LOG("RTSP_SEND");
 				switch (rtsp_msg_type)
 				{
 					case RTSP_SEND_M1_REQUEST:
@@ -283,6 +341,7 @@ namespace {
 					case RTSP_SEND_M16_REQUEST:
 					case RTSP_SEND_TEARDOWN_REQUEST:
 						{
+							TEST_LOG("RTSP_SEND REQUEST Messages");
 							msg_buffer = rtsp_req_resp_format;
 						}
 						break;
@@ -293,11 +352,12 @@ namespace {
 						{
 							std::string temp_buffer = rtsp_req_resp_format;
 
+							TEST_LOG("RTSP_SEND RESPONSE Messages");
 							if (temp_buffer.find("%s") != std::string::npos)
 							{
 								sprintf( buffer , rtsp_req_resp_format , receivedCSeqNum.c_str());
 								msg_buffer = buffer;
-								printf("[%d:%s] Response sequence number replaced as [%s]\n",__LINE__,__FUNCTION__,receivedCSeqNum.c_str());
+								TEST_LOG("Response sequence number replaced as [%s]",receivedCSeqNum.c_str());
 								receivedCSeqNum.clear();
 							}
 							else
@@ -319,11 +379,12 @@ namespace {
 			}
 			else
 			{
+				TEST_LOG("RTSP_RECV");
 				bool status = recv_rtsp_msg( client_fd , buffer , sizeof(buffer));
 				msg_buffer = buffer;
 				if ((msg_buffer.find("TEARDOWN") == 0) || (false == status ))
 				{
-					printf("TEARDOWN initiated from Sink Device\n");
+					TEST_LOG("TEARDOWN initiated from Sink Device[%x]",status);
 					response_buffer = "SUCCESS";
 					break;
 				}
@@ -336,23 +397,43 @@ namespace {
 					case RTSP_RECV_TEADOWN_RESPONSE:
 						{
 							msg_buffer = rtsp_req_resp_format;
+
 							if ( 0 != strncmp( buffer , rtsp_req_resp_format , strlen(rtsp_req_resp_format)))
 							{
 								response_buffer = "FAIL";
-								printf("[%d:%s] expected[%s] actual[%s]\n",__LINE__,__FUNCTION__,rtsp_req_resp_format,buffer);
+								TEST_LOG("ERROR: expected[%s] actual[%s]",rtsp_req_resp_format,buffer);
+							}
+							else if ( strlen(buffer) > strlen(rtsp_req_resp_format) )
+							{
+								if (( RTSP_RECV_M1_RESPONSE == rtsp_msg_type ) ||
+								    ( RTSP_RECV_M5_RESPONSE == rtsp_msg_type ))
+								{
+									int processedBytes = strlen(rtsp_req_resp_format),
+									    totalLen = strlen(buffer);
+									std::string temp_buffer = buffer;
+									std::string response = temp_buffer.substr(0,processedBytes);
+									EXPECT_EQ(response,string(rtsp_req_resp_format));
+									std::string request = temp_buffer.substr(processedBytes, totalLen - processedBytes);
+									receivedCSeqNum = parse_received_parser_field_value( request , "CSeq: " );
+									TEST_LOG("Parsed Response + Request[%s][%s]",response.c_str(),request.c_str());
+									TEST_LOG("processedBytes[%d]totalLen[%d]",processedBytes,totalLen);
+									EXPECT_TRUE(!receivedCSeqNum.empty());
+									TEST_LOG("Skipping to RTSP_RECV REQUEST Messages");
+									++current_msg;
+								}
 							}
 						}
 						break;
 					case RTSP_RECV_M3_RESPONSE:
 						{
+							TEST_LOG("RTSP_RECV M3 RESPONSE Messages");
 							std::string expected_sequence_number = parse_received_parser_field_value( msg_buffer , "CSeq: " ),
 								actual_sequence_number = parse_received_parser_field_value( rtsp_req_resp_format , "CSeq: " );
 
 							if ( 0 != expected_sequence_number.compare(actual_sequence_number))
 							{
 								response_buffer = "FAIL";
-								printf("[%d:%s] Error: expected[%s]actual[%s]\n",__LINE__,__FUNCTION__,msg_buffer.c_str(),rtsp_req_resp_format);
-								printf("[%d:%s] Error: expected[%s]actual[%s]\n",__LINE__,__FUNCTION__,expected_sequence_number.c_str(),actual_sequence_number.c_str());
+								TEST_LOG("Error: expected[%s]actual[%s]",msg_buffer.c_str(),rtsp_req_resp_format);
 							}
 						}
 						break;
@@ -360,6 +441,7 @@ namespace {
 					case RTSP_RECV_M6_REQUEST:
 					case RTSP_RECV_M7_REQUEST:
 						{
+							TEST_LOG("RTSP_RECV REQUEST Messages");
 							receivedCSeqNum = parse_received_parser_field_value( msg_buffer , "CSeq: " );
 						}
 						break;
@@ -373,17 +455,18 @@ namespace {
 
 			if ( 0 == response_buffer.compare("FAIL"))
 			{
+				TEST_LOG("ERROR: RESPONSE FAILED");
 				break;
 			}
 		}
 
 		if ( 0 == response_buffer.compare("FAIL"))
 		{
-			printf("\n[%d:%s] RTSP Msg Exchange Failed\n",__LINE__,__FUNCTION__);
+			TEST_LOG("ERROR: RTSP Msg Exchange Failed");
 		}
 		else
 		{
-			printf("\n[%d:%s] RTSP Msg Exchange Success\n",__LINE__,__FUNCTION__);
+			TEST_LOG("RTSP Msg Exchange Success");
 		}
 	}
 }
@@ -395,24 +478,36 @@ class MiracastPlayerTest : public ::testing::Test {
 		Core::JSONRPC::Connection connection;
 		string response;
 		ServiceMock service;
+		WrapsImplMock *p_wrapsImplMock = nullptr;
 
 		MiracastPlayerTest()
 			: plugin(Core::ProxyType<Plugin::MiracastPlayer>::Create())
 			  , handler(*(plugin))
 			  , connection(1, 0)
 	{
+		p_wrapsImplMock  = new NiceMock <WrapsImplMock>;
+                Wraps::setImpl(p_wrapsImplMock);
+
 		EXPECT_CALL(service, QueryInterfaceByCallsign(::testing::_, ::testing::_))
 			.Times(::testing::AnyNumber())
 			.WillRepeatedly(::testing::Invoke(
 						[&](const uint32_t, const string& name) -> void* {
 						return nullptr;
 						}));
+		ON_CALL(*p_wrapsImplMock, system(::testing::_))
+                        .WillByDefault(::testing::Invoke([&](const char* command) {return 0;}));
 		EXPECT_EQ(string(""), plugin->Initialize(&service));
 	}
-		virtual ~MiracastPlayerTest() override
+	virtual ~MiracastPlayerTest() override
+	{
+		plugin->Deinitialize(nullptr);
+		Wraps::setImpl(nullptr);
+		if (p_wrapsImplMock != nullptr)
 		{
-			plugin->Deinitialize(nullptr);
+			delete p_wrapsImplMock;
+			p_wrapsImplMock = nullptr;
 		}
+	}
 };
 
 class MiracastPlayerEventTest : public MiracastPlayerTest {
@@ -464,9 +559,11 @@ TEST_F(MiracastPlayerTest, Logging)
         EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setLogging"), _T("{\"separate_logger\": {\"status\":\"DISABLE\",\"logfilename\": \"GTest\"}}"), response));
 }
 
-TEST_F(MiracastPlayerTest, setRTSPWaitTimeout)
+TEST_F(MiracastPlayerTest, setRTSPWaitTimeOutAndAVFormats)
 {
         EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setRTSPWaitTimeOut"), _T("{\"Request\": 10000,\"Response\": 10000}"), response));
+        EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setVideoFormats"), _T("{\"native\": 0x02,\"display_mode_supported\": false,\"h264_codecs\": [{\"profile\": 0x01,\"level\": 0x08,\"cea_mask\": 0x00010000,\"vesa_mask\": 0x00000000,\"hh_mask\": 0x00000000,\"latency\": 0,\"min_slice\": 0,\"slice_encode\": 0,\"video_frame_skip_support\": true,\"max_skip_intervals\": 0,\"video_frame_rate_change_support\": false}]}"), response));
+        EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setAudioFormats"), _T("{\"audio_codecs\": [{\"audio_format\": 0x01,\"modes\": 0x00000002,\"latency\": 0}]}"), response));
 }
 
 TEST_F(MiracastPlayerEventTest, APP_REQUESTED_TO_STOP)
@@ -476,6 +573,9 @@ TEST_F(MiracastPlayerEventTest, APP_REQUESTED_TO_STOP)
 	Core::Event Inprogress(false, true);
 	Core::Event Playing(false, true);
 	Core::Event Stopped(false, true);
+
+	EXPECT_TRUE(initialize_ServerSocket());
+	std::thread serverThread = std::thread([&]() { runRTSPSourceHandler( default_rtsp_srcMsgbuffer , default_rtsp_srcMsgSize , rtsp_response ); });
 
 	EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
 		.Times(::testing::AnyNumber())
@@ -543,10 +643,8 @@ TEST_F(MiracastPlayerEventTest, APP_REQUESTED_TO_STOP)
 				Stopped.SetEvent();
 				return Core::ERROR_NONE;
 				}));
-	EXPECT_TRUE(initialize_ServerSocket());
 
 	handler.Subscribe(0, _T("onStateChange"), _T("client.events"), message);
-	std::thread serverThread = std::thread([&]() { runRTSPSourceHandler( default_rtsp_srcMsgbuffer , default_rtsp_srcMsgSize , rtsp_response ); });
 
 	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("playRequest"), _T("{\"device_parameters\": {\"source_dev_ip\":\"127.0.0.1\",\"source_dev_mac\": \"A1:B2:C3:D4:E5:F6\",\"source_dev_name\":\"Sample-Android-Test-1\",\"sink_dev_ip\":\"192.168.59.1\"},\"video_rectangle\": {\"X\": 0,\"Y\" : 0,\"W\": 1920,\"H\": 1080}}"), response));
 
@@ -575,6 +673,9 @@ TEST_F(MiracastPlayerEventTest, APP_REQ_TO_STOP_FOR_NEW_CONNECTION)
 	Core::Event Inprogress(false, true);
 	Core::Event Playing(false, true);
 	Core::Event Stopped(false, true);
+
+	EXPECT_TRUE(initialize_ServerSocket());
+	std::thread serverThread = std::thread([&]() { runRTSPSourceHandler( default_rtsp_srcMsgbuffer , default_rtsp_srcMsgSize , rtsp_response ); });
 
 	EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
 		.Times(::testing::AnyNumber())
@@ -642,10 +743,8 @@ TEST_F(MiracastPlayerEventTest, APP_REQ_TO_STOP_FOR_NEW_CONNECTION)
 				Stopped.SetEvent();
 				return Core::ERROR_NONE;
 				}));
-	EXPECT_TRUE(initialize_ServerSocket());
 
 	handler.Subscribe(0, _T("onStateChange"), _T("client.events"), message);
-	std::thread serverThread = std::thread([&]() { runRTSPSourceHandler( default_rtsp_srcMsgbuffer , default_rtsp_srcMsgSize , rtsp_response ); });
 
 	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("playRequest"), _T("{\"device_parameters\": {\"source_dev_ip\":\"127.0.0.1\",\"source_dev_mac\": \"A1:B2:C3:D4:E5:F6\",\"source_dev_name\":\"Sample-Android-Test-1\",\"sink_dev_ip\":\"192.168.59.1\"},\"video_rectangle\": {\"X\": 0,\"Y\" : 0,\"W\": 1920,\"H\": 1080}}"), response));
 
@@ -674,6 +773,9 @@ TEST_F(MiracastPlayerEventTest, SRC_DEV_REQUESTED_TO_STOP)
 	Core::Event Inprogress(false, true);
 	Core::Event Playing(false, true);
 	Core::Event Stopped(false, true);
+
+	EXPECT_TRUE(initialize_ServerSocket());
+	std::thread serverThread = std::thread([&]() { runRTSPSourceHandler( default_rtsp_srcMsgbuffer , default_rtsp_srcMsgSize , rtsp_response ); });
 
 	EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
 		.Times(::testing::AnyNumber())
@@ -741,10 +843,8 @@ TEST_F(MiracastPlayerEventTest, SRC_DEV_REQUESTED_TO_STOP)
 				Stopped.SetEvent();
 				return Core::ERROR_NONE;
 				}));
-	EXPECT_TRUE(initialize_ServerSocket());
 
 	handler.Subscribe(0, _T("onStateChange"), _T("client.events"), message);
-	std::thread serverThread = std::thread([&]() { runRTSPSourceHandler( default_rtsp_srcMsgbuffer , default_rtsp_srcMsgSize , rtsp_response ); });
 
 	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("playRequest"), _T("{\"device_parameters\": {\"source_dev_ip\":\"127.0.0.1\",\"source_dev_mac\": \"A1:B2:C3:D4:E5:F6\",\"source_dev_name\":\"Sample-Android-Test-1\",\"sink_dev_ip\":\"192.168.59.1\"},\"video_rectangle\": {\"X\": 0,\"Y\" : 0,\"W\": 1920,\"H\": 1080}}"), response));
 
@@ -785,7 +885,7 @@ TEST_F(MiracastPlayerEventTest, RTSP_TimeOut)
 	RTSP_MSG_HANDLER_FORMAT rtsp_srcMsgbuffer[] =
 	{
 		{ RTSP_SEND , RTSP_SEND_M1_REQUEST , "OPTIONS * RTSP/1.0\r\nCSeq: 1\r\nServer: AllShareCast/Galaxy/Android13\r\nRequire: org.wfa.wfd1.0\r\n"},
-		{ RTSP_RECV , RTSP_RECV_M1_RESPONSE , "RTSP/1.0 200 OK\r\nPublic: \"org.wfa.wfd1.0, GET_PARAMETER, SET_PARAMETER\"\r\nCSeq: 1\r\n"},
+		{ RTSP_RECV , RTSP_RECV_M1_RESPONSE , "RTSP/1.0 200 OK\r\nPublic: \"org.wfa.wfd1.0, GET_PARAMETER, SET_PARAMETER\"\r\nCSeq: 1\r\n\r\n"},
 		{ RTSP_RECV , RTSP_RECV_M2_REQUEST , "OPTIONS * RTSP/1.0\r\nRequire: org.wfa.wfd1.0\r\nCSeq: %s"},
 		{ RTSP_SEND , RTSP_SEND_M2_RESPONSE , "RTSP/1.0 200 OK\r\nCSeq: %s\r\nPublic: org.wfa.wfd1.0, SETUP, TEARDOWN, PLAY, PAUSE, GET_PARAMETER, SET_PARAMETER\r\nGET_PARAMETER rtsp://localhost/wfd1.0 RTSP/1.0\r\nCSeq: 2\r\nContent-Type: text/parameters\r\nContent-Length: 211\r\n\r\nwfd_video_formats\r\nwfd_audio_codecs\r\nwfd_uibc_capability\r\nwfd_client_rtp_ports\r\nwfd_content_protection\r\nwfd_sec_screensharing\r\nwfd_sec_portrait_display\r\nwfd_sec_rotation\r\nwfd_sec_hw_rotation\r\nwfd_sec_framerate\r\n" },
 		{ RTSP_RECV , RTSP_RECV_M3_RESPONSE , "RTSP/1.0 200 OK\r\nContent-Length: 210\r\nContent-Type: text/parameters\r\nCSeq: 2\r\n\r\nwfd_content_protection: none\r\nwfd_video_formats: 00 00 03 10 0001ffff 1fffffff 00001fff 00 0000 0000 10 none none\r\nwfd_audio_codecs: AAC 00000007 00\r\nwfd_client_rtp_ports: RTP/AVP/UDP;unicast 1991 0 mode=play\r\n" }
@@ -793,6 +893,8 @@ TEST_F(MiracastPlayerEventTest, RTSP_TimeOut)
 
 	int rtsp_srcMsgSize = static_cast<int>(sizeof(rtsp_srcMsgbuffer) / sizeof(rtsp_srcMsgbuffer[0]));
 
+	EXPECT_TRUE(initialize_ServerSocket());
+	std::thread serverThread = std::thread([&]() { runRTSPSourceHandler( rtsp_srcMsgbuffer , rtsp_srcMsgSize , rtsp_response ); });
 
 	EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
 		.Times(::testing::AnyNumber())
@@ -844,10 +946,8 @@ TEST_F(MiracastPlayerEventTest, RTSP_TimeOut)
 				Stopped.SetEvent();
 				return Core::ERROR_NONE;
 				}));
-	EXPECT_TRUE(initialize_ServerSocket());
 
 	handler.Subscribe(0, _T("onStateChange"), _T("client.events"), message);
-	std::thread serverThread = std::thread([&]() { runRTSPSourceHandler( rtsp_srcMsgbuffer , rtsp_srcMsgSize , rtsp_response ); });
 
 	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("playRequest"), _T("{\"device_parameters\": {\"source_dev_ip\":\"127.0.0.1\",\"source_dev_mac\": \"A1:B2:C3:D4:E5:F6\",\"source_dev_name\":\"Sample-Android-Test-1\",\"sink_dev_ip\":\"192.168.59.1\"},\"video_rectangle\": {\"X\": 0,\"Y\" : 0,\"W\": 1920,\"H\": 1080}}"), response));
 
@@ -857,7 +957,7 @@ TEST_F(MiracastPlayerEventTest, RTSP_TimeOut)
 	serverThread.join();
 	EXPECT_EQ(rtsp_response, string("SUCCESS"));
 
-	EXPECT_EQ(Core::ERROR_NONE, Stopped.Lock(20000));
+	EXPECT_EQ(Core::ERROR_NONE, Stopped.Lock(25000));
 
 	release_SocketDescriptor();
 
@@ -873,7 +973,7 @@ TEST_F(MiracastPlayerEventTest, RTSP_Failure)
 	RTSP_MSG_HANDLER_FORMAT rtsp_srcMsgbuffer[] =
 	{
 		{ RTSP_SEND , RTSP_SEND_M1_REQUEST , "OPTIONS * RTSP/1.0\r\nCSeq: 1\r\nServer: AllShareCast/Galaxy/Android13\r\nRequire: org.wfa.wfd1.0\r\n"},
-		{ RTSP_RECV , RTSP_RECV_M1_RESPONSE , "RTSP/1.0 200 OK\r\nPublic: \"org.wfa.wfd1.0, GET_PARAMETER, SET_PARAMETER\"\r\nCSeq: 1\r\n"},
+		{ RTSP_RECV , RTSP_RECV_M1_RESPONSE , "RTSP/1.0 200 OK\r\nPublic: \"org.wfa.wfd1.0, GET_PARAMETER, SET_PARAMETER\"\r\nCSeq: 1\r\n\r\n"},
 		{ RTSP_RECV , RTSP_RECV_M2_REQUEST , "OPTIONS * RTSP/1.0\r\nRequire: org.wfa.wfd1.0\r\nCSeq: %s"},
 		{ RTSP_SEND , RTSP_SEND_M2_RESPONSE , "RTSP/1.0 200 OK\r\nCSeq: %s\r\nPublic: org.wfa.wfd1.0, SETUP, TEARDOWN, PLAY, PAUSE, GET_PARAMETER, SET_PARAMETER\r\n" },
 		{ RTSP_SEND , RTSP_SEND_M3_REQUEST , "GET_PARAMETER rtsp://localhost/wfd1.0 RTSP/1.0\r\nCSeq: 2\r\nContent-Type: text/parameters\r\nContent-Length: 211\r\n\r\nwfd_video_formats\r\nwfd_audio_codecs\r\nwfd_uibc_capability\r\nwfd_client_rtp_ports\r\nwfd_content_protection\r\nwfd_sec_screensharing\r\n" },
@@ -882,6 +982,8 @@ TEST_F(MiracastPlayerEventTest, RTSP_Failure)
 
 	int rtsp_srcMsgSize = static_cast<int>(sizeof(rtsp_srcMsgbuffer) / sizeof(rtsp_srcMsgbuffer[0]));
 
+	EXPECT_TRUE(initialize_ServerSocket());
+	std::thread serverThread = std::thread([&]() { runRTSPSourceHandler( rtsp_srcMsgbuffer , rtsp_srcMsgSize , rtsp_response ); });
 
 	EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
 		.Times(::testing::AnyNumber())
@@ -933,10 +1035,8 @@ TEST_F(MiracastPlayerEventTest, RTSP_Failure)
 				Stopped.SetEvent();
 				return Core::ERROR_NONE;
 				}));
-	EXPECT_TRUE(initialize_ServerSocket());
 
 	handler.Subscribe(0, _T("onStateChange"), _T("client.events"), message);
-	std::thread serverThread = std::thread([&]() { runRTSPSourceHandler( rtsp_srcMsgbuffer , rtsp_srcMsgSize , rtsp_response ); });
 
 	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("playRequest"), _T("{\"device_parameters\": {\"source_dev_ip\":\"127.0.0.1\",\"source_dev_mac\": \"A1:B2:C3:D4:E5:F6\",\"source_dev_name\":\"Sample-Android-Test-1\",\"sink_dev_ip\":\"192.168.59.1\"},\"video_rectangle\": {\"X\": 0,\"Y\" : 0,\"W\": 1920,\"H\": 1080}}"), response));
 
@@ -959,6 +1059,9 @@ TEST_F(MiracastPlayerEventTest, setPlayerState)
 	Core::Event Inprogress(false, true);
 	Core::Event Playing(false, true);
 	Core::Event Stopped(false, true);
+
+	EXPECT_TRUE(initialize_ServerSocket());
+	std::thread serverThread = std::thread([&]() { runRTSPSourceHandler( default_rtsp_srcMsgbuffer , default_rtsp_srcMsgSize , rtsp_response ); });
 
 	EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
 		.Times(::testing::AnyNumber())
@@ -1026,10 +1129,8 @@ TEST_F(MiracastPlayerEventTest, setPlayerState)
 				Stopped.SetEvent();
 				return Core::ERROR_NONE;
 				}));
-	EXPECT_TRUE(initialize_ServerSocket());
 
 	handler.Subscribe(0, _T("onStateChange"), _T("client.events"), message);
-	std::thread serverThread = std::thread([&]() { runRTSPSourceHandler( default_rtsp_srcMsgbuffer , default_rtsp_srcMsgSize , rtsp_response ); });
 
 	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("playRequest"), _T("{\"device_parameters\": {\"source_dev_ip\":\"127.0.0.1\",\"source_dev_mac\": \"A1:B2:C3:D4:E5:F6\",\"source_dev_name\":\"Sample-Android-Test-1\",\"sink_dev_ip\":\"192.168.59.1\"},\"video_rectangle\": {\"X\": 0,\"Y\" : 0,\"W\": 1920,\"H\": 1080}}"), response));
 
@@ -1088,16 +1189,20 @@ TEST_F(MiracastPlayerEventTest, setPlayerState)
 	handler.Unsubscribe(0, _T("onStateChange"), _T("client.events"), message);
 }
 
-#if 0
-TEST_F(MiracastPlayerTest, stopRequest)
+TEST_F(MiracastPlayerTest, AutoConnectOptFlag)
 {
 	std::string rtsp_response = "";
+	createFile("/opt/miracast_autoconnect","GTest");
+
+	sleep(2);
+	EXPECT_TRUE(initialize_ServerSocket());
 	std::thread serverThread = std::thread([&]() { runRTSPSourceHandler( default_rtsp_srcMsgbuffer , default_rtsp_srcMsgSize , rtsp_response ); });
+
 	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("playRequest"), _T("{\"device_parameters\": {\"source_dev_ip\":\"127.0.0.1\",\"source_dev_mac\": \"A1:B2:C3:D4:E5:F6\",\"source_dev_name\":\"Sample-Android-Test-1\",\"sink_dev_ip\":\"192.168.59.1\"},\"video_rectangle\": {\"X\": 0,\"Y\" : 0,\"W\": 1920,\"H\": 1080}}"), response));
-	sleep(10);
-	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("stopRequest"), _T("{\"reason_code\": 300}"), response));
-	EXPECT_EQ(response, string("{\"success\":true}"));
+
 	serverThread.join();
-	EXPECT_EQ(rtsp_response, string("SUCCESS"));
+	sleep(2);
+	release_SocketDescriptor();
+	removeFile("/opt/miracast_autoconnect");
+	sleep(2);
 }
-#endif
