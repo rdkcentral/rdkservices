@@ -241,7 +241,7 @@ namespace WPEFramework {
 #if defined(ENABLE_WHOAMI)
         static const array<string, 3> kDeviceInitContextKeyVals = {
             "partnerId",
-            "targetProposition",
+            "osClass",
             "regionalConfigService"
         };
 #endif
