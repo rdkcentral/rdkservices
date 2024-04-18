@@ -2,7 +2,7 @@
 <a name="MiracastService_Plugin"></a>
 # MiracastService Plugin
 
-**Version: [1.0.4](https://github.com/rdkcentral/rdkservices/blob/main/Miracast/CHANGELOG.md)**
+**Version: [1.0.5](https://github.com/rdkcentral/rdkservices/blob/main/Miracast/CHANGELOG.md)**
 
 A org.rdk.MiracastService plugin for Thunder framework.
 
