@@ -1888,14 +1888,15 @@ static GSourceFuncs _handlerIntervention =
                         WebKitImplementation* object = std::get<0>(data);
 
                         string url = std::get<1>(data);
-                        object->urlValue(url);
+                        // Pass new URL as an argument and don't store it here, it'll be stored in the load callback
+                        //object->urlValue(url);
 
                         object->SetResponseHTTPStatusCode(-1);
 #ifdef WEBKIT_GLIB_API
-                        webkit_web_view_load_uri(object->_view, object->urlValue().c_str());
+                        webkit_web_view_load_uri(object->_view, url.c_str());
 #else
                         object->SetNavigationRef(nullptr);
-                        auto shellURL = WKURLCreateWithUTF8CString(object->urlValue().c_str());
+                        auto shellURL = WKURLCreateWithUTF8CString(url.c_str());
                         WKPageLoadURL(object->_page, shellURL);
                         WKRelease(shellURL);
 #endif
@@ -2289,21 +2290,24 @@ static GSourceFuncs _handlerIntervention =
 
         void OnURLChanged(const string& URL)
         {
+            static const auto metroDomain = _bootUrl.substr(0, _bootUrl.find('#'));
+
             TRACE_L1("%s", URL.c_str());
 
-            bool isCurrentUrlBootUrl = urlValue() == _bootUrl;
-            bool isNewUrlBootUrl = URL == _bootUrl;
+            const bool isCurrentUrlBootUrl = urlValue() == _bootUrl;
+            const bool isCurrUrlMetroSubdomain = urlValue().find(metroDomain) != string::npos;
+            const bool isNewUrlBootUrl = URL == _bootUrl;
+            const bool isNewUrlBlankUrl = URL.find("about:blank") != string::npos;
+            const bool isNewUrlMetroSubdomain = URL.find(metroDomain) != string::npos;
+
+            urlValue(URL);
+
             if(!isCurrentUrlBootUrl && isNewUrlBootUrl && !_bootUrl.empty()) {
                 TRACE_L1("New URL: %s", URL.c_str());
                 ODH_WARNING("WPE0040", WPE_CONTEXT_WITH_URL(URL.c_str()), "New URL: %s", URL.c_str());
             }
 
-            urlValue(URL);
-
-            const bool isNewUrlBlankUrl = URL.find("about:blank") != string::npos;
-            static const auto metroDomain = _bootUrl.substr(0, _bootUrl.find('#'));
-            const bool isNewUrlMetroSubdomain = URL.find(metroDomain) != string::npos;
-            if (isNewUrlBlankUrl || (isNewUrlMetroSubdomain && !isNewUrlBootUrl)) {
+            if (isNewUrlBlankUrl || (isCurrUrlMetroSubdomain && isNewUrlMetroSubdomain)) {
                 /*
                  * When loading URL from the same domain only notify::uri signal is being sent.
                  * This scenario happens only for Metro domain addresses.
