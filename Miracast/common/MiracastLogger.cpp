@@ -200,8 +200,8 @@ namespace MIRACAST
             fflush(logger_file_ptr);
         }
         else{
-		char time[24] = {0};
 	#ifdef UNIT_TESTING
+		char time[24] = {0};
 		current_time(time);
 		fprintf(stderr, "[%s][%d] %s [%s:%d:%s] %s: %s \n",
                     service_name.c_str(),
