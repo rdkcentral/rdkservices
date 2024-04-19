@@ -309,7 +309,7 @@ namespace WPEFramework {
     #if LIBCURL_VERSION_NUM < 0x074200
         int numfds, repeats = 0;
     #endif
-        char *endpoint;
+        char *pResEndpoint = NULL;
         while (1)
         {
             if (CURLM_OK != (mc = curl_multi_perform(curl_multi_handle, &handles)))
@@ -323,10 +323,10 @@ namespace WPEFramework {
                 if (msg->msg != CURLMSG_DONE)
                     continue;
                 if (CURLE_OK == msg->data.result) {
-                    curl_easy_getinfo(msg->easy_handle, CURLINFO_PRIVATE, &endpoint);
+                    curl_easy_getinfo(msg->easy_handle, CURLINFO_PRIVATE, &pResEndpoint);
                     if (curl_easy_getinfo(msg->easy_handle, CURLINFO_RESPONSE_CODE, &response_code) == CURLE_OK)  {
                         if(curlVerboseEnabled())
-                            NMLOG_INFO("endpoint = <%s> response code <%d>",endpoint, static_cast<int>(response_code));
+                            NMLOG_INFO("Endpoint = <%s> response code <%d>", pResEndpoint, static_cast<int>(response_code));
                         if (HttpStatus_302_Found == response_code) {
                             if ( (curl_easy_getinfo(msg->easy_handle, CURLINFO_REDIRECT_URL, &url) == CURLE_OK) && url != nullptr) {
                                 //NMLOG_WARNING("captive portal found !!!");
@@ -336,7 +336,7 @@ namespace WPEFramework {
                     }
                 }
                 else
-                    NMLOG_TRACE("endpoint = <%s> error = %d (%s)", endpoint, msg->data.result, curl_easy_strerror(msg->data.result));
+                    NMLOG_TRACE("Endpoint = <%s> error = %d (%s)", pResEndpoint, msg->data.result, curl_easy_strerror(msg->data.result));
                 http_responses.push_back(response_code);
             }
             time_earlier = time_now;
@@ -371,8 +371,8 @@ namespace WPEFramework {
         }
         for (const auto& curl_easy_handle : curl_easy_handles)
         {
-            curl_easy_getinfo(curl_easy_handle, CURLINFO_PRIVATE, &endpoint);
-            //NMLOG_TRACE("endpoint = <%s> terminating attempt", endpoint);
+            curl_easy_getinfo(curl_easy_handle, CURLINFO_PRIVATE, &pResEndpoint);
+            //NMLOG_TRACE("Endpoint = <%s> terminating attempt", pResEndpoint);
             curl_multi_remove_handle(curl_multi_handle, curl_easy_handle);
             curl_easy_cleanup(curl_easy_handle);
         }
