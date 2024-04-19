@@ -86,7 +86,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 6
+#define API_VERSION_NUMBER_PATCH 8
 
 namespace Utils {
 std::string formatIARMResult(IARM_Result_t result)
@@ -760,11 +760,10 @@ namespace WPEFramework
                     for (auto i = exclusions.begin(); ++i != exclusions.end(); )
                     {
                         auto exclusion = *i;
-                        script += " ! -path \"";
+                        script += " ! -path \"*";
                         Utils::String::trim(exclusion);
-                        script += "$p/";
                         script += exclusion;
-                        script += "\"";
+                        script += "*\"";
                     }
 
                     script += " 2>/dev/null | head -n 10";
