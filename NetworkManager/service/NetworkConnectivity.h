@@ -10,10 +10,11 @@
 #include "Module.h"
 #include "NetworkManagerLogger.h"
 
-#define CAPTIVEPORTAL_MAX_LEN 512
-#define DEFAULT_MONITOR_TIMEOUT 60 // in seconds
-#define MONITOR_TIMEOUT_INTERVAL_MIN 5
-#define TEST_CONNECTIVITY_DEFAULT_TIMEOUT_MS    4000
+#define CAPTIVEPORTAL_MAX_LEN                   512
+#define DEFAULT_MONITOR_TIMEOUT                 60   // in seconds
+#define MONITOR_TIMEOUT_INTERVAL_MIN            5    // in min
+#define TEST_CONNECTIVITY_DEFAULT_TIMEOUT_MS    5000 // in ms
+#define DEFAULT_MONITOR_RETRY_COUNT             2    // 1 failed + 2 new trys
 
 enum nsm_ipversion {
     NSM_IPRESOLVE_WHATEVER  = 0, /* default, resolves addresses to all IP*/
@@ -82,7 +83,7 @@ namespace WPEFramework {
             }
             ~Connectivity(){}
 
-            nsm_internetState testConnectivity(const std::vector<std::string>& endpoints, long timeout_ms, nsm_ipversion ipversion);
+            nsm_internetState testConnectivity(const std::vector<std::string>& endpoints, long timeout_ms, nsm_ipversion ipversion, bool connectOnly);
             std::vector<std::string> getConnectivityDefaultEndpoints() { return m_defaultEndpoints; };
             std::string getCaptivePortal() { const std::lock_guard<std::mutex> lock(capitiveMutex); return g_captivePortal; }
             void setCaptivePortal(const char* captivePortal) {const std::lock_guard<std::mutex> lock(capitiveMutex); g_captivePortal = captivePortal; }
@@ -113,9 +114,8 @@ namespace WPEFramework {
                 bool isConnectivityMonitorEndpointSet();
                 bool isMonitorThreadRunning();
                 void signalConnectivityMonitor();
-                void resetConnectivityCache() { g_internetState = nsm_internetState::UNKNOWN;}
 
-                ConnectivityMonitor() : stopFlag(false), threadRunning(false), isContinuesMonitoringNeeded(false)
+                ConnectivityMonitor() : stopFlag(false), resetTimeout(false), isContinuesMonitoringNeeded(false)
                 {
                     setConnectivityMonitorEndpoints(getConnectivityDefaultEndpoints());
                 }
@@ -134,7 +134,7 @@ namespace WPEFramework {
 
                 std::thread thread_;
                 std::atomic<bool> stopFlag;
-                std::atomic<bool> threadRunning;
+                std::atomic<bool> resetTimeout;
                 std::atomic<bool> isContinuesMonitoringNeeded;
                 std::condition_variable cv_;
                 std::atomic<int> timeout;
