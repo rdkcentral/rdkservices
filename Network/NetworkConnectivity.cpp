@@ -178,9 +178,9 @@ namespace WPEFramework {
         else
         {
             if(isConnectivityMonitorEndpointSet())
-                internetState = testConnectivity(getConnectivityMonitorEndpoints(), 10000, ipversion);
+                internetState = testConnectivity(getConnectivityMonitorEndpoints(), TEST_CONNECTIVITY_DEFAULT_TIMEOUT_MS, ipversion, false);
             else
-                internetState = testConnectivity(getConnectivityDefaultEndpoints(), 10000, ipversion);
+                internetState = testConnectivity(getConnectivityDefaultEndpoints(), TEST_CONNECTIVITY_DEFAULT_TIMEOUT_MS, ipversion, false);
         }
 
         return internetState;
@@ -253,7 +253,7 @@ namespace WPEFramework {
         return size * nmemb;
     }
 
-    nsm_internetState Connectivity::testConnectivity(const std::vector<std::string>& endpoints, long timeout_ms, nsm_ipversion ipversion)
+    nsm_internetState Connectivity::testConnectivity(const std::vector<std::string>& endpoints, long timeout_ms, nsm_ipversion ipversion,  bool connectOnly)
     {
         long deadline = current_time() + timeout_ms, time_now = 0, time_earlier = 0;
         if(endpoints.size() < 1) {
@@ -288,7 +288,10 @@ namespace WPEFramework {
             curl_easy_setopt(curl_easy_handle, CURLOPT_HTTPHEADER, chunk);
             curl_easy_setopt(curl_easy_handle, CURLOPT_USERAGENT, "RDKCaptiveCheck/1.0");
             /* set CURLOPT_HTTPGET option insted of CURLOPT_CONNECT_ONLY bcause we need to get the captiveportal URI not just connection only */
-            curl_easy_setopt(curl_easy_handle, CURLOPT_HTTPGET, 1L);
+            if(connectOnly)
+                curl_easy_setopt(curl_easy_handle, CURLOPT_CONNECT_ONLY, 1L);
+            else
+                curl_easy_setopt(curl_easy_handle, CURLOPT_HTTPGET, 1L);
             curl_easy_setopt(curl_easy_handle, CURLOPT_WRITEFUNCTION, writeFunction);
             curl_easy_setopt(curl_easy_handle, CURLOPT_TIMEOUT_MS, deadline - current_time());
             if ((ipversion == CURL_IPRESOLVE_V4) || (ipversion == CURL_IPRESOLVE_V6))
@@ -323,7 +326,11 @@ namespace WPEFramework {
                     continue;
                 if (CURLE_OK == msg->data.result) {
                     curl_easy_getinfo(msg->easy_handle, CURLINFO_PRIVATE, &endpoint);
-                    if (curl_easy_getinfo(msg->easy_handle, CURLINFO_RESPONSE_CODE, &response_code) == CURLE_OK)  {
+                    if(connectOnly) {
+                        LOGINFO("curl check type CURLOPT_CONNECT_ONLY");
+                        response_code = HttpStatus_204_No_Content;
+                    }
+                    else if (curl_easy_getinfo(msg->easy_handle, CURLINFO_RESPONSE_CODE, &response_code) == CURLE_OK) {
                         if(curlVerboseEnabled())
                             LOGINFO("endpoint = <%s> response code <%d>",endpoint, static_cast<int>(response_code));
                         if (HttpStatus_302_Found == response_code) {
@@ -334,8 +341,9 @@ namespace WPEFramework {
                         }
                     }
                 }
-                else
+                else {
                     LOGERR("endpoint = <%s> error = %d (%s)", endpoint, msg->data.result, curl_easy_strerror(msg->data.result));
+                }
                 http_responses.push_back(response_code);
             }
             time_earlier = time_now;
@@ -501,20 +509,44 @@ namespace WPEFramework {
     void ConnectivityMonitor::connectivityMonitorFunction()
     {
         nsm_internetState InternetConnectionState = nsm_internetState::UNKNOWN;
+        int notifyWaitCount = DEFAULT_MONITOR_RETRY_COUNT;
+        int tempTimeout = defaultTimeoutInSec;
         while (!stopFlag)
         {
-            InternetConnectionState = testConnectivity(getConnectivityMonitorEndpoints(), 10000, NSM_IPRESOLVE_WHATEVER);
+            if(g_internetState.load() == nsm_internetState::FULLY_CONNECTED)
+                /*if previous check was fully connected then do connect only curl check*/
+                InternetConnectionState = testConnectivity(getConnectivityMonitorEndpoints(), TEST_CONNECTIVITY_DEFAULT_TIMEOUT_MS, NSM_IPRESOLVE_WHATEVER, true);
+            else
+                InternetConnectionState = testConnectivity(getConnectivityMonitorEndpoints(), TEST_CONNECTIVITY_DEFAULT_TIMEOUT_MS, NSM_IPRESOLVE_WHATEVER, false);
+
             if(g_internetState.load() != InternetConnectionState)
             {
-                g_internetState.store(InternetConnectionState);
-                Network::notifyInternetStatusChange(g_internetState.load());
+                LOGINFO("notification count %d ...", notifyWaitCount);
+                if(InternetConnectionState == nsm_internetState::NO_INTERNET && notifyWaitCount > 0)
+                {
+                    /* Decrease the notification count to create a delay in posting the 'no internet' state. */
+                    notifyWaitCount--;
+                    /* change the timeout value to 5 sec so that next check will happens with in 5 sec */
+                    tempTimeout = 5;
+                    LOGINFO("notification count change to %d timeout %d ...", notifyWaitCount, tempTimeout);
+                }
+                else
+                {
+                    g_internetState.store(InternetConnectionState);
+                    Network::notifyInternetStatusChange(g_internetState.load());
+                    notifyWaitCount = DEFAULT_MONITOR_RETRY_COUNT;
+                    tempTimeout = timeout.load();
+                    LOGINFO("notification count change to default %d ...", notifyWaitCount);
+                }
             }
 
+            if(stopFlag)
+                break;
             //wait for next timout or conditon signal
             std::unique_lock<std::mutex> lock(mutex_);
-            if (cv_.wait_for(lock, std::chrono::seconds(timeout.load())) == std::cv_status::timeout)
+            if (cv_.wait_for(lock, std::chrono::seconds(tempTimeout)) == std::cv_status::timeout)
             {
-                LOGINFO("Connectivity monitor thread timeout");
+                LOGINFO("Connectivity monitor thread timeout %d ", tempTimeout);
             }
             else
             {
