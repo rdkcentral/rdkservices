@@ -33,7 +33,6 @@ public:
     MOCK_METHOD(string, ProxyStubPath, (), (const, override));
     MOCK_METHOD(string, HashKey, (), (const, override));
     MOCK_METHOD(string, Substitute, (const string&), (const, override));
-    MOCK_METHOD(WPEFramework::PluginHost::IShell::ICOMLink*, COMLink, (), (override));
     MOCK_METHOD(uint32_t, Activate, (const reason), (override));
     MOCK_METHOD(uint32_t, Deactivate, (const reason), (override));
     MOCK_METHOD(uint32_t, Unavailable, (const reason), (override));
@@ -48,6 +47,8 @@ public:
     MOCK_METHOD(WPEFramework::Core::hresult, Resumed, (const bool value), (override));
     MOCK_METHOD(WPEFramework::Core::hresult, Metadata, (string & info /* @out */), (const, override));
     MOCK_METHOD(WPEFramework::Core::hresult, Hibernate, (const uint32_t timeout), (override));
+    MOCK_METHOD(void, Register, (WPEFramework::PluginHost::IShell::IConnectionServer::INotification * sink), (override));
+    MOCK_METHOD(void, Unregister, (const WPEFramework::PluginHost::IShell::IConnectionServer::INotification* sink), (override));
     BEGIN_INTERFACE_MAP(ServiceMock)
     INTERFACE_ENTRY(IShell)
     END_INTERFACE_MAP
