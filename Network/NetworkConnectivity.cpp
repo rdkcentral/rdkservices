@@ -621,6 +621,7 @@ namespace WPEFramework {
                     if(resetTimeout)
                     {
                         LOGINFO("Connectivity monitor Restarted with %d", timeout.load());
+                        tempTimeout = timeout.load();
                         resetTimeout = false;
                     }
                     else
