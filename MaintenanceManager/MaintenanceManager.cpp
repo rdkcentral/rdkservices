@@ -338,12 +338,6 @@ namespace WPEFramework {
         g_listen_to_deviceContextUpdate = true;
         LOGINFO("Waiting for onDeviceInitializationContextUpdate event");
         task_thread.wait(lck);
-        if (!g_listen_to_deviceContextUpdate) {
-            LOGINFO("setDeviceInitializationContext() success");
-        }
-        else {
-            LOGINFO("setDeviceInitializationContext() failed");
-        }
     }
     else if ( false == internetConnectStatus && activation_status == "activated" ) {
         LOGINFO("Device is not connected to the Internet and Device is already Activated");
@@ -589,12 +583,13 @@ namespace WPEFramework {
 
 		    contextSet = setDeviceInitializationContext(parameters);
                     if (contextSet) {
+			LOGINFO("setDeviceInitializationContext() success");
 		        g_listen_to_deviceContextUpdate = false;
                         LOGINFO("Notify maintenance execution thread");
                         task_thread.notify_one();
 		    }
 		    else {
-		        LOGINFO("setDeviceInitializationContext failed");
+		        LOGINFO("setDeviceInitializationContext() failed");
 		    }
 		}
                 else {
