@@ -146,7 +146,6 @@ namespace WPEFramework {
                 std::map<string, string> m_param_map;
                 std::map<string, DATA_TYPE> m_paramType_map;
                 bool knowWhoAmI();
-                JsonObject g_jsonRespDeviceInitialization;
                 bool g_listen_to_deviceContextUpdate = false;
 #endif
                 PluginHost::IShell* m_service;
