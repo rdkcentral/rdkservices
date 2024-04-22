@@ -333,18 +333,17 @@ namespace WPEFramework {
     }
 
     if (false == whoAmIStatus && activation_status != "activated") {
-        bool debugReturnFlag = false;
+        bool deviceContextSet = false;
         LOGINFO("knoWhoAmI() returned false and Device is not already Activated");
         g_listen_to_deviceContextUpdate = true;
-        LOGINFO("Waiting for thread.. ");
+        LOGINFO("Waiting for onDeviceInitializationContextUpdate event");
         task_thread.wait(lck);
-        LOGINFO("Resuming thread and Set Device Initialization Context Data from SecManager onDeviceInitializationContextUpdate event");
-        debugReturnFlag = setDeviceInitializationContext(g_jsonRespDeviceInitialization);
-        if (debugReturnFlag) {
-            LOGINFO("Device Initialization Context data set via Event Handler success");
+        deviceContextSet = setDeviceInitializationContext(g_jsonRespDeviceInitialization);
+        if (deviceContextSet) {
+            LOGINFO("setDeviceInitializationContext() success");
         }
         else {
-            LOGINFO("Device Initilaization Context data set via Event Handler failed");
+            LOGINFO("setDeviceInitializationContext() failed");
         }
     }
     else if ( false == internetConnectStatus && activation_status == "activated" ) {
@@ -448,7 +447,7 @@ namespace WPEFramework {
                     if (joGetResult.HasLabel("success") && joGetResult["success"].Boolean()) {
                         static const char* kDeviceInitializationContext = "deviceInitializationContext";
                         if (joGetResult.HasLabel(kDeviceInitializationContext)) {
-                            LOGINFO("Set Device Initialization Context Data from via SecManager deviceInitializationContext API)");
+                            LOGINFO("%s found in the response", kDeviceInitializationContext);
                             success = setDeviceInitializationContext(joGetResult);
                         }
                         else {
@@ -586,12 +585,11 @@ namespace WPEFramework {
             if (g_listen_to_deviceContextUpdate && UNSOLICITED_MAINTENANCE == g_maintenance_type) {
                 LOGINFO("onDeviceInitializationContextUpdate event is already subscribed and Maintenance Type is Unsolicited Maintenance");
                 if (parameters.HasLabel("deviceInitializationContext")) {
-                    LOGINFO("Listening to onDeviceInitializationContextUpdate Events");
+                    LOGINFO("deviceInitializationContext found");
                     g_jsonRespDeviceInitialization = parameters;
-                    LOGINFO("g_jsonRespDeviceInitialization: %p | parameters: %p", &g_jsonRespDeviceInitialization, &parameters);
                 }
                 g_listen_to_deviceContextUpdate = false;
-                LOGINFO("Notify waiting thread to resume..");
+                LOGINFO("Notify maintenance execution thread");
                 task_thread.notify_one();
 
             }
