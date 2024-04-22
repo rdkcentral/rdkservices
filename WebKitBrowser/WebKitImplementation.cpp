@@ -623,6 +623,7 @@ static GSourceFuncs _handlerIntervention =
                 , LoggingTarget()
                 , WebAudioEnabled(false)
                 , Testing(false)
+                , ServiceWorkerEnabled(false)
             {
                 Add(_T("useragent"), &UserAgent);
                 Add(_T("url"), &URL);
@@ -690,6 +691,7 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("loggingtarget"), &LoggingTarget);
                 Add(_T("webaudio"), &WebAudioEnabled);
                 Add(_T("testing"), &Testing);
+                Add(_T("serviceworker"), &ServiceWorkerEnabled);
             }
             ~Config()
             {
@@ -762,6 +764,7 @@ static GSourceFuncs _handlerIntervention =
             Core::JSON::String LoggingTarget;
             Core::JSON::Boolean WebAudioEnabled;
             Core::JSON::Boolean Testing;
+            Core::JSON::Boolean ServiceWorkerEnabled;
         };
 
         class HangDetector
@@ -2973,6 +2976,10 @@ static GSourceFuncs _handlerIntervention =
                      "allow-running-of-insecure-content", !enableWebSecurity,
                      "allow-display-of-insecure-content", !enableWebSecurity, nullptr);
 #endif
+            // Service Worker support
+            g_object_set(G_OBJECT(preferences),
+                     "enable-service-worker", _config.ServiceWorkerEnabled.Value(), nullptr);
+
             _view = WEBKIT_WEB_VIEW(g_object_new(WEBKIT_TYPE_WEB_VIEW,
                 "backend", webkit_web_view_backend_new(wpe_view_backend_create(), nullptr, nullptr),
                 "web-context", wkContext,

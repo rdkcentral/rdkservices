@@ -760,11 +760,10 @@ namespace WPEFramework
                     for (auto i = exclusions.begin(); ++i != exclusions.end(); )
                     {
                         auto exclusion = *i;
-                        script += " ! -path \"";
+                        script += " ! -path \"*";
                         Utils::String::trim(exclusion);
-                        script += "$p/";
                         script += exclusion;
-                        script += "\"";
+                        script += "*\"";
                     }
 
                     script += " 2>/dev/null | head -n 10";
