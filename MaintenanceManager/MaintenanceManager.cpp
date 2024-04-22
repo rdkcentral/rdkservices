@@ -238,13 +238,11 @@ namespace WPEFramework {
             "uploadSTBLogs.sh"
         };
 
-#if defined(ENABLE_WHOAMI)
         static const array<string, 3> kDeviceInitContextKeyVals = {
             "partnerId",
             "osClass",
             "regionalConfigService"
         };
-#endif /* WhoAmI */
 
         /**
          * Register MaintenanceManager module as wpeframework plugin
