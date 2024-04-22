@@ -257,9 +257,9 @@ namespace WPEFramework {
             /**
              * @brief Invoking Plugin API register to WPEFRAMEWORK.
              */
-#ifdef DEBUG
+#ifdef 
             Register("sampleMaintenanceManagerAPI", &MaintenanceManager::sampleAPI, this);
-#endif /* DEBUG */
+#endif /*  */
             Register("getMaintenanceActivityStatus", &MaintenanceManager::getMaintenanceActivityStatus,this);
             Register("getMaintenanceStartTime", &MaintenanceManager::getMaintenanceStartTime,this);
             Register("setMaintenanceMode", &MaintenanceManager::setMaintenanceMode,this);
@@ -328,27 +328,27 @@ namespace WPEFramework {
             LOGINFO("knowWhoAmI() returned successfully");
         }
         else {
-            LOGINFO("DEBUG: knowWhoAmI() returned false");
+            LOGINFO("knowWhoAmI() returned false");
         }
     }
 
     if (false == whoAmIStatus && activation_status != "activated") {
         bool debugReturnFlag = false;
-        LOGINFO("DEBUG: WhoAmI() returned false & Device is not Activated already");
+        LOGINFO("knoWhoAmI() returned false and Device is not already Activated");
         g_listen_to_deviceContextUpdate = true;
-        LOGINFO("DEBUG: Thread Wait");
+        LOGINFO("Waiting for thread.. ");
         task_thread.wait(lck);
-        LOGINFO("DEBUG: Resuming Thread & Setting Device Initialization Data (via Event)");
+        LOGINFO("Resuming thread and Set Device Initialization Context Data (via Event Handler)");
         debugReturnFlag = setDeviceInitializationContext(g_jsonRespDeviceInitialization);
         if (debugReturnFlag) {
-            LOGINFO("DEBUG: context data set success via Event");
+            LOGINFO("Device Initialization Context data set via Event Handler success");
         }
         else {
-            LOGINFO("DEBUG: context data set failure via Event");
+            LOGINFO("Device Initilaization Context data set via Event Handler failed");
         }
     }
     else if ( false == internetConnectStatus && activation_status == "activated" ) {
-        LOGINFO("DEBUG: No Internet and Device Already Activated");
+        LOGINFO("Device is not connected to the Internet and Device is already Activated");
 #else
             if ( false == internetConnectStatus ) {
 #endif
@@ -430,7 +430,6 @@ namespace WPEFramework {
 #if defined(ENABLE_WHOAMI)
         bool MaintenanceManager::knowWhoAmI()
         {
-            LOGINFO("DEBUG: start knoWhoAmI");
             bool success = false;
             const char* secMgr_callsign = "org.rdk.SecManager";
             const char* secMgr_callsign_ver = "org.rdk.SecManager.1";
@@ -449,7 +448,7 @@ namespace WPEFramework {
                     if (joGetResult.HasLabel("success") && joGetResult["success"].Boolean()) {
                         static const char* kDeviceInitializationContext = "deviceInitializationContext";
                         if (joGetResult.HasLabel(kDeviceInitializationContext)) {
-                            LOGINFO("DEBUG: Proper response, set the Data via API");
+                            LOGINFO("Set Device Initialization Context Data (via SecManager API)");
                             success = setDeviceInitializationContext(joGetResult);
                         }
                         else {
@@ -585,19 +584,19 @@ namespace WPEFramework {
         void MaintenanceManager::deviceInitializationContextEventHandler(const JsonObject& parameters)
         {
             if (g_listen_to_deviceContextUpdate && UNSOLICITED_MAINTENANCE == g_maintenance_type) {
-                LOGINFO("DEBUG: Subscribed & Maint-Type is Unsolicited");
+                LOGINFO("onDeviceInitializationContextUpdate event is already subscribed and Maintenance Type is Unsolicited Maintenance");
                 if (parameters.HasLabel("deviceInitializationContext")) {
-                    LOGINFO("Listening to deviceInitializationContextUpdate Events");
+                    LOGINFO("Listening to onDeviceInitializationContextUpdate Events");
                     g_jsonRespDeviceInitialization = parameters;
                     LOGINFO("g_jsonRespDeviceInitialization: %p | parameters: %p", &g_jsonRespDeviceInitialization, &parameters);
                 }
                 g_listen_to_deviceContextUpdate = false;
-                LOGINFO("DEBUG: Toggle Subscribe Flag to false and Notify");
+                LOGINFO("Notify waiting thread to resume..");
                 task_thread.notify_one();
 
             }
             else {
-                LOGINFO("onDeviceInitializationContextUpdate event is not being listened or Maintenance Type is not Unsolicited");
+                LOGINFO("onDeviceInitializationContextUpdate event is not listened already or Maintenance Type is not Unsolicited Maintenance");
             }
         }
 
@@ -829,7 +828,6 @@ namespace WPEFramework {
 	}
 
         bool MaintenanceManager::setDeviceInitializationContext(JsonObject response_data) {
-            LOGINFO("DEBUG: start set init data");
             bool setDone = false;
             bool paramEmpty = false;
             JsonObject getInitializationContext = response_data["deviceInitializationContext"].Object();
@@ -871,7 +869,6 @@ namespace WPEFramework {
         }
 
         bool MaintenanceManager::subscribeToDeviceInitializationEvent() {
-            LOGINFO("DEBUG: start subscribe call");
             int32_t status = Core::ERROR_NONE;
             bool result = false;
             bool subscribe_status = false;
@@ -889,7 +886,6 @@ namespace WPEFramework {
             else {
                 status = thunder_client->Subscribe<JsonObject>(5000, event, &MaintenanceManager::deviceInitializationContextEventHandler, this);
                 if (status == Core::ERROR_NONE) {
-                    LOGINFO("DEBUG: Subscription Success");
                     result = true;
                 }
             }
@@ -917,9 +913,8 @@ namespace WPEFramework {
             m_service = service;
             m_service->AddRef();
 #if defined(ENABLE_WHOAMI)
-            LOGINFO("DEBUG: before subscribe call");
+            LOGINFO("Initialize Device Context Event Subscription");
             subscribeToDeviceInitializationEvent();
-            LOGINFO("DEBUG: after subscribe call");
 #endif
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             InitializeIARM();
@@ -1261,7 +1256,7 @@ namespace WPEFramework {
             sendNotify(EVT_ONMAINTMGRSAMPLEEVENT, parameters);
             returnResponse(true);
         }
-#endif /* DEBUG */
+#endif /*  */
 
         /*
          * @brief This function returns the status of the current
