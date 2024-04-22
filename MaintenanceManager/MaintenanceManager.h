@@ -135,6 +135,7 @@ namespace WPEFramework {
                 bool g_unsolicited_complete;
                 bool g_listen_to_nwevents = false;
                 bool g_subscribed_for_nwevents = false;
+                bool g_listen_to_deviceContextUpdate = false;
 
                 std::mutex  m_callMutex;
                 std::mutex  m_statusMutex;
@@ -142,12 +143,9 @@ namespace WPEFramework {
                 std::thread m_thread;
 
                 std::map<string, bool> m_task_map;
-#if defined(ENABLE_WHOAMI)
                 std::map<string, string> m_param_map;
                 std::map<string, DATA_TYPE> m_paramType_map;
-                bool knowWhoAmI();
-                bool g_listen_to_deviceContextUpdate = false;
-#endif
+
                 PluginHost::IShell* m_service;
 
                 bool isDeviceOnline();
@@ -165,6 +163,7 @@ namespace WPEFramework {
                 void deviceInitializationContextEventHandler(const JsonObject& parameters);
                 void startCriticalTasks();
                 bool checkNetwork();
+                bool knowWhoAmI();
                 bool subscribeToDeviceInitializationEvent();
                 bool setDeviceInitializationContext(JsonObject joGetResult);
                 bool getActivatedStatus(bool &skipFirmwareCheck);
