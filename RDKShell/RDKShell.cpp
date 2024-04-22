@@ -675,10 +675,12 @@ namespace WPEFramework {
 
             const uint32_t channelId = ~0;
 #if ((THUNDER_VERSION >= 4) && (THUNDER_VERSION_MINOR == 4))
-            string output = "";
             uint32_t result = Core::ERROR_BAD_REQUEST;
+            string output;
+            Core::ProxyType<Core::JSONRPC::Message> resp;
 
-            if (dispatcher_  != nullptr) {
+            if (dispatcher_  != nullptr)
+            {
                 PluginHost::ILocalDispatcher* localDispatcher = dispatcher_->Local();
 
                 ASSERT(localDispatcher != nullptr);
@@ -688,23 +690,25 @@ namespace WPEFramework {
                 dispatcher_->Release();
             }
 
-            if (message.IsValid() == true) {
-                if (result == static_cast<uint32_t>(~0)) {
-                    message.Release();
-                }
-                else if (result == Core::ERROR_NONE)
+            if ( (result != static_cast<uint32_t>(~0)) && ( (message->Id.IsSet()) || (result != Core::ERROR_NONE) ) )
+            {
+                resp = PluginHost::IFactories::Instance().JSONRPC();
+
+                if (message->Id.IsSet())
+                    resp->Id = message->Id.Value();
+
+                if (result == Core::ERROR_NONE)
                 {
                     if (output.empty() == true)
-                        message->Result.Null(true);
+                        resp->Result.Null(true);
                     else
-                        message->Result = output;
+                        resp->Result = output;
                 }
                 else
                 {
-                    message->Error.SetError(result);
-                    if (output.empty() == false) {
-                        message->Error.Text = output;
-                    }
+                    resp->Error.SetError(result);
+                    if (output.empty() == false)
+                        resp->Error.Text = output;
                 }
             }
 #elif (THUNDER_VERSION == 2)
@@ -713,9 +717,6 @@ namespace WPEFramework {
             Core::JSONRPC::Context context(channelId, message->Id.Value(), sThunderSecurityToken) ;
             auto resp = dispatcher_->Invoke(context, *message);
 #endif
-
-#if ((THUNDER_VERSION == 2) || (THUNDER_VERSION >= 4) && (THUNDER_VERSION_MINOR == 2))
-
             if (resp->Error.IsSet()) {
               std::cout << "Call failed: " << message->Designator.Value() << " error: " <<  resp->Error.Text.Value() << "\n";
               return resp->Error.Code;
@@ -723,7 +724,7 @@ namespace WPEFramework {
 
             if (!FromMessage(response, resp, isResponseString))
               return Core::ERROR_GENERAL;
-#endif
+
             return Core::ERROR_NONE;
           }
         };
