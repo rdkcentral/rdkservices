@@ -914,7 +914,6 @@ namespace WPEFramework {
             m_service = service;
             m_service->AddRef();
 #if defined(ENABLE_WHOAMI)
-            LOGINFO("Initialize Device Context Event Subscription");
             subscribeToDeviceInitializationEvent();
 #endif /* WhoAmI */
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
