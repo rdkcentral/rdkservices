@@ -81,7 +81,7 @@ using namespace std;
 #define TR181_PARTNER_ID "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.PartnerName"
 #define TR181_TARGET_OS_CLASS "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.OsClass"
 #define TR181_XCONFURL "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.XconfUrl"
-#endif
+#endif /* WhoAmI */
 
 #define INTERNET_CONNECTED_STATE 3
 
@@ -244,7 +244,7 @@ namespace WPEFramework {
             "osClass",
             "regionalConfigService"
         };
-#endif
+#endif /* WhoAmI */
 
         /**
          * Register MaintenanceManager module as wpeframework plugin
@@ -257,9 +257,9 @@ namespace WPEFramework {
             /**
              * @brief Invoking Plugin API register to WPEFRAMEWORK.
              */
-#ifdef 
+#ifdef DEBUG
             Register("sampleMaintenanceManagerAPI", &MaintenanceManager::sampleAPI, this);
-#endif /*  */
+#endif /* DEBUG */
             Register("getMaintenanceActivityStatus", &MaintenanceManager::getMaintenanceActivityStatus,this);
             Register("getMaintenanceStartTime", &MaintenanceManager::getMaintenanceStartTime,this);
             Register("setMaintenanceMode", &MaintenanceManager::setMaintenanceMode,this);
@@ -281,7 +281,7 @@ namespace WPEFramework {
             MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[0].c_str()] = DATA_TYPE::WDMP_STRING;
             MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[1].c_str()] = DATA_TYPE::WDMP_STRING;
             MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[2].c_str()] = DATA_TYPE::WDMP_STRING;
-#endif
+#endif /* WhoAmI */
          }
 
         void MaintenanceManager::task_execution_thread(){
@@ -314,7 +314,7 @@ namespace WPEFramework {
                 /* Network check */
                 internetConnectStatus = isDeviceOnline();
             }
-#else
+#else /* WhoAmI */
             internetConnectStatus = isDeviceOnline();
 #endif
 
@@ -338,7 +338,7 @@ namespace WPEFramework {
         g_listen_to_deviceContextUpdate = true;
         LOGINFO("Waiting for thread.. ");
         task_thread.wait(lck);
-        LOGINFO("Resuming thread and Set Device Initialization Context Data (via Event Handler)");
+        LOGINFO("Resuming thread and Set Device Initialization Context Data from SecManager onDeviceInitializationContextUpdate event");
         debugReturnFlag = setDeviceInitializationContext(g_jsonRespDeviceInitialization);
         if (debugReturnFlag) {
             LOGINFO("Device Initialization Context data set via Event Handler success");
@@ -349,7 +349,7 @@ namespace WPEFramework {
     }
     else if ( false == internetConnectStatus && activation_status == "activated" ) {
         LOGINFO("Device is not connected to the Internet and Device is already Activated");
-#else
+#else /* WhoAmI */
             if ( false == internetConnectStatus ) {
 #endif
                 m_statusMutex.lock();
@@ -369,7 +369,7 @@ namespace WPEFramework {
                 LOGINFO("---------------UNSOLICITED_MAINTENANCE--------------");
 #ifndef ENABLE_WHOAMI
                 tasks.push_back(task_names_foreground[0].c_str());
-#endif
+#endif /* WhoAmI */
             }
             else if( SOLICITED_MAINTENANCE == g_maintenance_type){
                 LOGINFO("=============SOLICITED_MAINTENANCE===============");
@@ -448,7 +448,7 @@ namespace WPEFramework {
                     if (joGetResult.HasLabel("success") && joGetResult["success"].Boolean()) {
                         static const char* kDeviceInitializationContext = "deviceInitializationContext";
                         if (joGetResult.HasLabel(kDeviceInitializationContext)) {
-                            LOGINFO("Set Device Initialization Context Data (via SecManager API)");
+                            LOGINFO("Set Device Initialization Context Data from via SecManager deviceInitializationContext API)");
                             success = setDeviceInitializationContext(joGetResult);
                         }
                         else {
@@ -468,7 +468,7 @@ namespace WPEFramework {
             }
             return success;
         }
-#endif
+#endif /* WhoAmI */
 
         // Thunder plugin communication
         WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* MaintenanceManager::getThunderPluginHandle(const char* callsign)
@@ -596,7 +596,7 @@ namespace WPEFramework {
 
             }
             else {
-                LOGINFO("onDeviceInitializationContextUpdate event is not listened already or Maintenance Type is not Unsolicited Maintenance");
+                LOGINFO("onDeviceInitializationContextUpdate event is not being listened already or Maintenance Type is not Unsolicited Maintenance");
             }
         }
 
@@ -915,7 +915,7 @@ namespace WPEFramework {
 #if defined(ENABLE_WHOAMI)
             LOGINFO("Initialize Device Context Event Subscription");
             subscribeToDeviceInitializationEvent();
-#endif
+#endif /* WhoAmI */
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             InitializeIARM();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
@@ -1256,7 +1256,7 @@ namespace WPEFramework {
             sendNotify(EVT_ONMAINTMGRSAMPLEEVENT, parameters);
             returnResponse(true);
         }
-#endif /*  */
+#endif /* DEBUG */
 
         /*
          * @brief This function returns the status of the current
