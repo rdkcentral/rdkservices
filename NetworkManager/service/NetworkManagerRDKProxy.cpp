@@ -406,20 +406,26 @@ namespace WPEFramework
                     {
                         IARM_BUS_NetSrvMgr_Iface_EventInterfaceEnabledStatus_t *e = (IARM_BUS_NetSrvMgr_Iface_EventInterfaceEnabledStatus_t*) data;
                         NMLOG_INFO ("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS :: %s", e->interface);
-                        if (e->status)
-                            ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_ADDED, string(e->interface));
-                        else
-                            ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_REMOVED, string(e->interface));
+                        if(e->interface == "eth0" || e->interface == "wlan0")
+                        {
+                            if (e->status)
+                                ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_ADDED, string(e->interface));
+                            else
+                                ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_REMOVED, string(e->interface));
+                        }
                         break;
                     }
                     case IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS:
                     {
                         IARM_BUS_NetSrvMgr_Iface_EventInterfaceConnectionStatus_t *e = (IARM_BUS_NetSrvMgr_Iface_EventInterfaceConnectionStatus_t*) data;
                         NMLOG_INFO ("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS :: %s", e->interface);
-                        if (e->status)
-                            ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_LINK_UP, string(e->interface));
-                        else
-                            ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_LINK_DOWN, string(e->interface));
+                        if(e->interface == "eth0" || e->interface == "wlan0")
+                        {
+                            if (e->status)
+                                ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_LINK_UP, string(e->interface));
+                            else
+                                ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_LINK_DOWN, string(e->interface));
+                        }
                         break;
                     }
                     case IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS:
@@ -427,13 +433,18 @@ namespace WPEFramework
                         IARM_BUS_NetSrvMgr_Iface_EventInterfaceIPAddress_t *e = (IARM_BUS_NetSrvMgr_Iface_EventInterfaceIPAddress_t*) data;
                         NMLOG_INFO ("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS :: %s -- %s", e->interface, e->ip_address);
 
-                        ::_instance->ReportIPAddressChangedEvent(string(e->interface), e->acquired, e->is_ipv6, string(e->ip_address));
+                        if(e->interface == "eth0" || e->interface == "wlan0")
+                            ::_instance->ReportIPAddressChangedEvent(string(e->interface), e->acquired, e->is_ipv6, string(e->ip_address));
                         break;
                     }
                     case IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE:
                     {
                         IARM_BUS_NetSrvMgr_Iface_EventDefaultInterface_t *e = (IARM_BUS_NetSrvMgr_Iface_EventDefaultInterface_t*) data;
                         NMLOG_INFO ("IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE %s :: %s..", e->oldInterface, e->newInterface);
+                        if(e->oldInterface != "eth0" || e->oldInterface != "wlan0")
+                            e->oldInterface == ""; /* assigning "null" if the interface is not eth0 or wlan0 */
+                        if(e->newInterface != "eth0" || e->newInterface != "wlan0")
+                            e->newInterface == ""; /* assigning "null" if the interface is not eth0 or wlan0 */
 
                         ::_instance->ReportActiveInterfaceChangedEvent(e->oldInterface, e->newInterface);
                         break;
