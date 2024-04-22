@@ -333,7 +333,6 @@ namespace WPEFramework {
     }
 
     if (false == whoAmIStatus && activation_status != "activated") {
-        bool deviceContextSet = false;
         LOGINFO("knoWhoAmI() returned false and Device is not already Activated");
         g_listen_to_deviceContextUpdate = true;
         LOGINFO("Waiting for onDeviceInitializationContextUpdate event");
