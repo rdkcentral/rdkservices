@@ -338,8 +338,7 @@ namespace WPEFramework {
         g_listen_to_deviceContextUpdate = true;
         LOGINFO("Waiting for onDeviceInitializationContextUpdate event");
         task_thread.wait(lck);
-        deviceContextSet = setDeviceInitializationContext(g_jsonRespDeviceInitialization);
-        if (deviceContextSet) {
+        if (!g_listen_to_deviceContextUpdate) {
             LOGINFO("setDeviceInitializationContext() success");
         }
         else {
@@ -582,16 +581,25 @@ namespace WPEFramework {
 
         void MaintenanceManager::deviceInitializationContextEventHandler(const JsonObject& parameters)
         {
+	    bool contextSet = false;
             if (g_listen_to_deviceContextUpdate && UNSOLICITED_MAINTENANCE == g_maintenance_type) {
                 LOGINFO("onDeviceInitializationContextUpdate event is already subscribed and Maintenance Type is Unsolicited Maintenance");
                 if (parameters.HasLabel("deviceInitializationContext")) {
                     LOGINFO("deviceInitializationContext found");
-                    g_jsonRespDeviceInitialization = parameters;
-                }
-                g_listen_to_deviceContextUpdate = false;
-                LOGINFO("Notify maintenance execution thread");
-                task_thread.notify_one();
 
+		    contextSet = setDeviceInitializationContext(parameters);
+                    if (contextSet) {
+		        g_listen_to_deviceContextUpdate = false;
+                        LOGINFO("Notify maintenance execution thread");
+                        task_thread.notify_one();
+		    }
+		    else {
+		        LOGINFO("setDeviceInitializationContext failed");
+		    }
+		}
+                else {
+		    LOGINFO("deviceInitializationContext not found");
+		}
             }
             else {
                 LOGINFO("onDeviceInitializationContextUpdate event is not being listened already or Maintenance Type is not Unsolicited Maintenance");
