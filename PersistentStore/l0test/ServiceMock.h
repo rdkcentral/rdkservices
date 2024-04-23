@@ -3,7 +3,8 @@
 #include "../Module.h"
 #include <gmock/gmock.h>
 
-class ServiceMock : public WPEFramework::PluginHost::IShell {
+class ServiceMock : public WPEFramework::PluginHost::IShell,
+                    public WPEFramework::PluginHost::IShell::ICOMLink {
 public:
     ~ServiceMock() override = default;
     MOCK_METHOD(string, Versions, (), (const, override));
@@ -33,22 +34,28 @@ public:
     MOCK_METHOD(string, ProxyStubPath, (), (const, override));
     MOCK_METHOD(string, HashKey, (), (const, override));
     MOCK_METHOD(string, Substitute, (const string&), (const, override));
-    MOCK_METHOD(WPEFramework::PluginHost::IShell::ICOMLink*, COMLink, (), (override));
     MOCK_METHOD(uint32_t, Activate, (const reason), (override));
     MOCK_METHOD(uint32_t, Deactivate, (const reason), (override));
     MOCK_METHOD(uint32_t, Unavailable, (const reason), (override));
     MOCK_METHOD(reason, Reason, (), (const, override));
-    MOCK_METHOD(uint32_t, ConfigLine, (const string& config), (override));
+    MOCK_METHOD(uint32_t, ConfigLine, (const string&), (override));
     MOCK_METHOD(string, SystemRootPath, (), (const, override));
-    MOCK_METHOD(uint32_t, SystemRootPath, (const string& systemRootPath), (override));
+    MOCK_METHOD(uint32_t, SystemRootPath, (const string&), (override));
     MOCK_METHOD(string, SystemPath, (), (const, override));
     MOCK_METHOD(string, PluginPath, (), (const, override));
     MOCK_METHOD(WPEFramework::PluginHost::IShell::startmode, StartMode, (), (const, override));
-    MOCK_METHOD(WPEFramework::Core::hresult, StartMode, (const startmode value), (override));
-    MOCK_METHOD(WPEFramework::Core::hresult, Resumed, (const bool value), (override));
-    MOCK_METHOD(WPEFramework::Core::hresult, Metadata, (string & info /* @out */), (const, override));
-    MOCK_METHOD(WPEFramework::Core::hresult, Hibernate, (const uint32_t timeout), (override));
+    MOCK_METHOD(WPEFramework::Core::hresult, StartMode, (const startmode), (override));
+    MOCK_METHOD(WPEFramework::Core::hresult, Resumed, (const bool), (override));
+    MOCK_METHOD(WPEFramework::Core::hresult, Metadata, (string&), (const, override));
+    MOCK_METHOD(WPEFramework::Core::hresult, Hibernate, (const uint32_t), (override));
+    MOCK_METHOD(void, Register, (WPEFramework::RPC::IRemoteConnection::INotification*), (override));
+    MOCK_METHOD(void, Unregister, (const WPEFramework::RPC::IRemoteConnection::INotification*), (override));
+    MOCK_METHOD(void, Register, (IShell::ICOMLink::INotification*), (override));
+    MOCK_METHOD(void, Unregister, (const IShell::ICOMLink::INotification*), (override));
+    MOCK_METHOD(WPEFramework::RPC::IRemoteConnection*, RemoteConnection, (const uint32_t), (override));
+    MOCK_METHOD(void*, Instantiate, (const WPEFramework::RPC::Object&, const uint32_t, uint32_t&), (override));
     BEGIN_INTERFACE_MAP(ServiceMock)
     INTERFACE_ENTRY(IShell)
+    INTERFACE_ENTRY(IShell::ICOMLink)
     END_INTERFACE_MAP
 };
