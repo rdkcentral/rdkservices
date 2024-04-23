@@ -61,7 +61,7 @@ TEST_F(AStub, DoesNotUpdateValueWhenAppIdEmpty)
     auto status = stub->UpdateValue(&context, request, &response);
     ASSERT_THAT(status.ok(), IsFalse());
     EXPECT_THAT(status.error_code(), Eq(3));
-    EXPECT_THAT(status.error_message(), Eq("app_id is mandatory"));
+    EXPECT_THAT(status.error_message(), Eq("key's key and app_id fields are required"));
 }
 
 TEST_F(AStub, DoesNotUpdateValueWhenKeyEmpty)
@@ -98,7 +98,7 @@ TEST_F(AStub, DoesNotGetValueWhenAppIdEmpty)
     auto status = stub->GetValue(&context, request, &response);
     ASSERT_THAT(status.ok(), IsFalse());
     EXPECT_THAT(status.error_code(), Eq(3));
-    EXPECT_THAT(status.error_message(), Eq("app_id is mandatory"));
+    EXPECT_THAT(status.error_message(), Eq("key's key and app_id fields are required"));
 }
 
 TEST_F(AStub, DoesNotGetValueWhenKeyEmpty)
@@ -132,7 +132,7 @@ TEST_F(AStub, DoesNotDeleteValueWhenAppIdEmpty)
     auto status = stub->DeleteValue(&context, request, &response);
     ASSERT_THAT(status.ok(), IsFalse());
     EXPECT_THAT(status.error_code(), Eq(3));
-    EXPECT_THAT(status.error_message(), Eq("app_id is mandatory"));
+    EXPECT_THAT(status.error_message(), Eq("key's key and app_id fields are required"));
 }
 
 TEST_F(AStub, DoesNotDeleteValueWhenKeyEmpty)
@@ -197,8 +197,7 @@ TEST_F(AStub, GetsValueWhenValueEmpty)
         ASSERT_THAT(response.has_value(), IsTrue());
         EXPECT_THAT(response.value().value(), Eq(kEmpty));
         EXPECT_THAT(response.value().has_ttl(), IsFalse());
-        ASSERT_THAT(response.value().has_expire_time(), IsTrue());
-        EXPECT_THAT(response.value().expire_time().seconds(), Eq(0));
+        EXPECT_THAT(response.value().has_expire_time(), IsFalse());
     }
 }
 
@@ -378,7 +377,7 @@ TEST_F(AStub, DoesNotGetValueWhenTtlExpired)
         auto status = stub->UpdateValue(&context, request, &response);
         ASSERT_THAT(status.ok(), IsTrue());
     }
-    sleep(kTtl);
+    sleep(kTtl + 1);
     {
         grpc::ClientContext context;
         context.AddMetadata("authorization", std::string(kToken));
