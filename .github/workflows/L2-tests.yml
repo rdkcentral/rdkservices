@@ -322,6 +322,8 @@ jobs:
       - name: Generate coverage
         if: ${{ matrix.coverage == 'with-coverage' && !env.ACT }}
         run: >
+          cp ${{github.workspace}}/rdkservices/Tests/L2Tests/.lcovrc_l2 ~/.lcovrc
+          &&
           lcov -c
           -o coverage.info
           -d build/rdkservices
