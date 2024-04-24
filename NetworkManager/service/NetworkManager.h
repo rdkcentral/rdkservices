@@ -198,10 +198,14 @@ namespace WPEFramework
                         oldInterface = "WIFI";
                     else if(prevActiveInterface == "eth0")
                         oldInterface = "ETHERNET";
+                    else
+                        oldInterface = prevActiveInterface;
                     if(currentActiveinterface == "wlan0")
                         newInterface = "WIFI";
                     else if(currentActiveinterface == "eth0")
                         newInterface = "ETHERNET";
+                    else
+                        newInterface = currentActiveinterface;
                     legacyParams["oldInterfaceName"] = oldInterface;
                     legacyParams["newInterfaceName"] = newInterface;
                     _parent.Notify("onDefaultInterfaceChanged", legacyParams);
