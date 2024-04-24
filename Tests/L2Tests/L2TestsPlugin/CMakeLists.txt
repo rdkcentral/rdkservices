@@ -26,7 +26,8 @@ add_library(${MODULE_NAME} SHARED
     L2Tests.cpp
     L2TestsMock.cpp
     tests/SystemService_L2Test.cpp
-    tests/UsbAccess_L2Test.cpp)
+    tests/UsbAccess_L2Test.cpp
+    tests/VerifyContracts.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
@@ -51,7 +52,9 @@ endif (TESTMOCKLIB_LIBRARIES)
 target_include_directories(${MODULE_NAME} PRIVATE ../../../helpers)
 target_include_directories(${MODULE_NAME} PRIVATE ./)
 target_include_directories(${MODULE_NAME} PRIVATE ../../mocks)
-
+target_include_directories(${MODULE_NAME} PRIVATE ../../mocks/devicesettings)
+target_include_directories(${MODULE_NAME} PRIVATE ../../../Network)
+ 
 install(TARGETS ${MODULE_NAME}
     DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
 
