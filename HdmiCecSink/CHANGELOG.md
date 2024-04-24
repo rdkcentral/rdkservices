@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.3.6] - 2024-04-18
+### Fixed
+- Send 'Give Audio status' request to the Audio device upon the volume +/- key press.
+
 ## [1.3.5] - 2024-03-04
 ### Fixed
 - Notify DeviceUpdatedInfo when there is a change in physical address from current PA

@@ -253,7 +253,6 @@ namespace WPEFramework {
         public:
             static Network *_instance;
             static Network *getInstance() {return _instance;}
-            Config config;
             ConnectivityMonitor connectivityMonitor;
 
         private:
