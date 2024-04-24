@@ -273,7 +273,7 @@ typedef struct thunder_req_hldr_msg_st
 #define THUNDER_REQ_HANDLER_MSGQ_SIZE (sizeof(THUNDER_REQ_HDLR_MSGQ_STRUCT))
 
 #define RTSP_HANDLER_THREAD_NAME ("RTSP_MSG_HLDR")
-#define RTSP_HANDLER_THREAD_STACK (256 * 1024)
+#define RTSP_HANDLER_THREAD_STACK ( 512 * 1024)
 #define RTSP_HANDLER_MSG_COUNT (2)
 #define RTSP_HANDLER_MSGQ_SIZE (sizeof(RTSP_HLDR_MSGQ_STRUCT))
 
@@ -347,8 +347,7 @@ public:
 class MiracastPlayerNotifier
 {
 public:
-    virtual void onStateChange(string client_mac, string client_name, eMIRA_PLAYER_STATES player_state, eM_PLAYER_REASON_CODE reason_code) = 0;
-    // string reason_code /*, string reason_desc*/ ) = 0;
+    virtual void onStateChange(const std::string& client_mac, const std::string& client_name, eMIRA_PLAYER_STATES player_state, eM_PLAYER_REASON_CODE reason_code) = 0;
 };
 
 class MiracastThread
