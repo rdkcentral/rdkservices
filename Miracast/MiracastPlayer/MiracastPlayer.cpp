@@ -824,7 +824,7 @@ namespace WPEFramework
 		}
 #endif/*ENABLE_MIRACAST_PLAYER_TEST_NOTIFIER*/
 
-		void MiracastPlayer::onStateChange(string client_mac, string client_name, eMIRA_PLAYER_STATES player_state, eM_PLAYER_REASON_CODE reason_code)
+		void MiracastPlayer::onStateChange(const std::string& client_mac, const std::string& client_name, eMIRA_PLAYER_STATES player_state, eM_PLAYER_REASON_CODE reason_code)
 		{
 			MIRACASTLOG_INFO("Entering..!!!");
 
@@ -834,14 +834,13 @@ namespace WPEFramework
 			params["state"] = stateDescription(player_state);
 			params["reason_code"] = std::to_string(reason_code);
 			params["reason"] = reasonDescription(reason_code);
-
 			if (0 == access("/opt/miracast_autoconnect", F_OK))
 			{
 				std::string system_command = "";
 				system_command = "curl -H \"Authorization: Bearer `WPEFrameworkSecurityUtility | cut -d '\"' -f 4`\"";
 				system_command.append(" --header \"Content-Type: application/json\" --request POST --data '{\"jsonrpc\":\"2.0\", \"id\":3,\"method\":\"org.rdk.MiracastService.1.updatePlayerState\", \"params\":{");
 				system_command.append("\"mac\": \"");
-				system_command.append(client_mac);
+				system_command.append(client_mac.c_str());
 				system_command.append("\",");
 				system_command.append("\"state\": \"");
 				system_command.append(stateDescription(player_state));
@@ -849,7 +848,6 @@ namespace WPEFramework
 				system_command.append("\"reason_code\": ");
 				system_command.append(std::to_string(reason_code));
 				system_command.append("}}' http://127.0.0.1:9998/jsonrpc\n");
-
 				MIRACASTLOG_INFO("System Command [%s]\n",system_command.c_str());
 				system( system_command.c_str());
 			}
