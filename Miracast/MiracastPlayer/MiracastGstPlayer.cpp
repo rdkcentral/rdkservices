@@ -81,6 +81,8 @@ MiracastGstPlayer::~MiracastGstPlayer()
 
 bool MiracastGstPlayer::setUri(const std::string ipaddr, const std::string port)
 {
+    char urlBuffer[128] = {0};
+    MIRACASTLOG_TRACE("Entering...");
     if (ipaddr.empty())
     {
         MIRACASTLOG_ERROR("Empty ipaddress");
@@ -91,14 +93,17 @@ bool MiracastGstPlayer::setUri(const std::string ipaddr, const std::string port)
         MIRACASTLOG_ERROR("Empty port");
         return false;
     }
+    sprintf(urlBuffer,"udp://%s:%s",ipaddr.c_str(),port.c_str());
 
-    m_uri = "udp://" + ipaddr + ":" + port;
+    //m_uri = "udp://" + ipaddr + ":" + port;
+    m_uri = urlBuffer;
+    MIRACASTLOG_TRACE("Exiting...");
     return true;
 }
 
 std::string MiracastGstPlayer::getUri()
 {
-    return m_uri;
+    return m_uri.c_str();
 }
 
 unsigned getGstPlayFlag(const char *nick)
