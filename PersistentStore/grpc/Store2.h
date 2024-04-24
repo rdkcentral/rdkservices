@@ -85,15 +85,14 @@ namespace Plugin {
                         result += buffer;
                     }
                     pclose(pipe);
+                    result.erase(result.find_last_not_of(" \n\r\t") + 1);
                 }
                 return result;
             }
             string GetToken() const
             {
                 // TODO remove this
-                JsonObject jsonObject;
-                jsonObject.FromString(ExecuteCmd("curl -d '{\"jsonrpc\":\"2.0\",\"id\":0,\"method\":\"org.rdk.AuthService.getServiceAccessToken\"}' http://127.0.0.1:9998/jsonrpc"));
-                return jsonObject["result"].Object()["token"].String();
+                return ExecuteCmd("curl -H \"Authorization: Bearer `WPEFrameworkSecurityUtility 2>/dev/null | cut -d '\"' -f 4`\" -s -d '{\"jsonrpc\":\"2.0\",\"id\":0,\"method\":\"org.rdk.AuthService.getServiceAccessToken\"}' http://127.0.0.1:9998/jsonrpc | cut -d '\"' -f 14");
             }
             static string ReadFromFile(const char* filename)
             {
