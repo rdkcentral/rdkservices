@@ -162,9 +162,9 @@
                 "type":"object",
                 "properties": {
                     "age": {
-                        "summary": "Ignore files for the isClean checkup that were created/updated before age in seconds",
+                        "summary": "Ignore files/folders for the isClean checkup that were created/updated within the last age (in seconds) when this API is called",
                         "type": "integer",
-                        "example": "10"
+                        "example": "300"
                     }
                 },
                 "required": []
