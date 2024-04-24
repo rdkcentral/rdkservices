@@ -27,9 +27,6 @@
 #define registerMethod(...) for (uint8_t i = 1; GetHandler(i); i++) GetHandler(i)->Register<JsonObject, JsonObject>(__VA_ARGS__)
 
 static bool filmMakerMode= false;
-static std::map<std::string, int> supportedSourcemap;
-static std::map<std::string, int> supportedPictureModemap;
-static std::map<std::string, int> supportedFormatmap;
 
 namespace WPEFramework {
 namespace Plugin {
