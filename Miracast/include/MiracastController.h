@@ -32,6 +32,8 @@
 #include <arpa/inet.h>
 #include <sys/epoll.h>
 #include <fstream>
+#include <ifaddrs.h>
+#include <netdb.h>
 #include <MiracastCommon.h>
 #include "MiracastP2P.h"
 #include "MiracastLogger.h"
@@ -41,6 +43,7 @@ using namespace std;
 using namespace MIRACAST;
 
 #define THUNDER_REQ_THREAD_CLIENT_CONNECTION_WAITTIME (30)
+#define MAX_IFACE_NAME_LEN 16
 
 class MiracastController
 {
@@ -124,6 +127,7 @@ private:
     MiracastError create_ControllerFramework(std::string p2p_ctrl_iface);
     MiracastError destroy_ControllerFramework(void);
     void checkAndInitiateP2PBackendDiscovery(void);
+    std::string getifNameByIPv4(std::string ip_address);
 
     void set_localIp(std::string ipAddr);
 
@@ -138,6 +142,7 @@ private:
     bool m_connectionStatus;
     bool m_p2p_backend_discovery{false};
     bool m_start_discovering_enabled{false};
+    bool m_connect_req_notified{false};
     std::string  m_current_device_name;
     std::string  m_current_device_mac_addr;
 
