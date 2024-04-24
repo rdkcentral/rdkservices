@@ -40,7 +40,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 9
+#define API_VERSION_NUMBER_PATCH 10
 
 const string WPEFramework::Plugin::Bluetooth::SERVICE_NAME = "org.rdk.Bluetooth";
 const string WPEFramework::Plugin::Bluetooth::METHOD_START_SCAN = "startScan";
@@ -438,6 +438,9 @@ namespace WPEFramework
                     deviceDetails["name"] = string(pairedDevices->m_deviceProperty[i].m_name);
                     deviceDetails["deviceType"] = string(BTRMGR_GetDeviceTypeAsString(pairedDevices->m_deviceProperty[i].m_deviceType));
                     deviceDetails["connected"] = pairedDevices->m_deviceProperty[i].m_isConnected?true:false;
+                    deviceDetails["rawDeviceType"] = std::to_string(pairedDevices->m_deviceProperty[i].m_ui32DevClassBtSpec);
+                    deviceDetails["rawBleDeviceType"] = std::to_string(pairedDevices->m_deviceProperty[i].m_ui16DevAppearanceBleSpec);
+
                     deviceArray.Add(deviceDetails);
                 }
             }
@@ -472,6 +475,9 @@ namespace WPEFramework
                     deviceDetails["name"] = string(connectedDevices->m_deviceProperty[i].m_name);
                     deviceDetails["deviceType"] = string(BTRMGR_GetDeviceTypeAsString(connectedDevices->m_deviceProperty[i].m_deviceType));
                     deviceDetails["activeState"] = std::to_string(connectedDevices->m_deviceProperty[i].m_powerStatus);
+                    deviceDetails["rawDeviceType"] = std::to_string(connectedDevices->m_deviceProperty[i].m_ui32DevClassBtSpec);
+                    deviceDetails["rawBleDeviceType"] = std::to_string(connectedDevices->m_deviceProperty[i].m_ui16DevAppearanceBleSpec);
+
                     deviceArray.Add(deviceDetails);
                 }
             }
@@ -493,7 +499,10 @@ namespace WPEFramework
                     rc = BTRMGR_ConnectToDevice(0, deviceHandle, stream_pref);
                 }
             }
-            else if (Utils::String::equal(deviceType, "HUMAN INTERFACE DEVICE")) {
+            else if (Utils::String::equal(deviceType, "HUMAN INTERFACE DEVICE") ||
+                     Utils::String::contains(deviceType, "KEYBOARD") ||
+                     Utils::String::contains(deviceType, "MOUSE") ||
+                     Utils::String::contains(deviceType, "JOYSTICK")) {
                 if (Utils::String::equal(enable, "DISCONNECT")) {
                     rc = BTRMGR_DisconnectFromDevice(0, deviceHandle);
                 }
