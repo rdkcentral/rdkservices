@@ -26,7 +26,10 @@
 
 #include "IarmBusMock.h"
 #include "RfcApiMock.h"
-
+#include "VideoOutputPortConfigMock.h"
+#include "VideoOutputPortMock.h"
+#include "HostMock.h"
+#include "ManagerMock.h"
 using ::testing::NiceMock;
 using namespace WPEFramework;
 
@@ -35,6 +38,11 @@ protected:
         RfcApiImplMock   *p_rfcApiImplMock = nullptr ;
         RfcApi           *p_rfcApi         = nullptr ;
         IarmBusImplMock  *p_iarmBusImplMock = nullptr ;
+        HostImplMock     *p_hostImplMock = nullptr ;
+        VideoOutputPortConfigImplMock *p_videoOutputPortConfigImplMock = nullptr ;
+        ManagerImplMock  *p_managerImplMock = nullptr ;
+        VideoOutputPortMock *p_videoOutputPortMock = nullptr;
+
         std::string thunder_address;
 
         L2TestMocks();
