@@ -19,6 +19,7 @@ set(PLUGIN_NAME LoggingPreferences)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 set(PLUGIN_LOGGINGPREFERENCE_STARTUPORDER "" CACHE STRING "To configure startup order of LoggingPreferences plugin")
+set(PLUGIN_LOGGINGPREFERENCES_AUTOSTART false CACHE STRING "To automatically start LoggingPreferences plugin.")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 

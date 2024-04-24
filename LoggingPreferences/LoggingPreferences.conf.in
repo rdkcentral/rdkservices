@@ -1,4 +1,4 @@
 precondition = ["Platform"]
 callsign = "org.rdk.LoggingPreferences"
-autostart = "false"
+autostart = "@PLUGIN_LOGGINGPREFERENCES_AUTOSTART@"
 startuporder = "@PLUGIN_LOGGINGPREFERENCE_STARTUPORDER@"
