@@ -263,6 +263,8 @@ void stringToIarmMode(std::string mode, IARM_Bus_Daemon_SysMode_t& iarmMode)
 
 bool setPowerState(std::string powerState)
 {
+    LOGWARN("setPowerState to %s\n", powerState.c_str());
+	
     IARM_Bus_PWRMgr_SetPowerState_Param_t param;
     if (powerState == "STANDBY") {
         param.newState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
@@ -3646,10 +3648,18 @@ namespace WPEFramework {
                     (void*)&param, sizeof(param));
 
                 if (res == IARM_RESULT_SUCCESS) {
-                    if (param.curState == IARM_BUS_PWRMGR_POWERSTATE_ON)
+	            if (param.curState == IARM_BUS_PWRMGR_POWERSTATE_ON){
                         currentState = "ON";
-                    else if ((param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY) || (param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP) || (param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP))
+                    }
+                    else if ((param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY)) {
                         currentState = "STANDBY";
+		    }
+                    else if ((param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP)) {
+                        currentState = "LIGHT_SLEEP";
+                    }
+                    else if ((param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP)) {
+                        currentState = "DEEP_SLEEP";
+                    }
                 }
                 
                 powerState = currentState;
@@ -3699,6 +3709,8 @@ namespace WPEFramework {
 				}
 				if (convert("DEEP_SLEEP", sleepMode)) {
 					retVal = setPowerState(sleepMode);
+				} else if (convert("LIGHT_SLEEP", sleepMode)) {
+                                       retVal = setPowerState(sleepMode);
 				} else {
 					retVal = setPowerState(state);
 				}
