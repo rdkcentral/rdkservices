@@ -74,7 +74,7 @@ namespace WPEFramework
             virtual void Deinitialize(PluginHost::IShell *service) override;
             virtual string Information() const override;
 
-            void onStateChange(string client_mac, string client_name, eMIRA_PLAYER_STATES player_state, eM_PLAYER_REASON_CODE reason_code /*string reason_desc*/) override;
+            void onStateChange(const std::string& client_mac, const std::string& client_name, eMIRA_PLAYER_STATES player_state, eM_PLAYER_REASON_CODE reason_code ) override;
 
             BEGIN_INTERFACE_MAP(MiracastPlayer)
             INTERFACE_ENTRY(PluginHost::IPlugin)
