@@ -73,6 +73,7 @@ namespace WPEFramework
             Register("getCurrentState",                   &NetworkManager::GetWifiState, this);
             GetHandler(2)->Register<JsonObject, JsonObject>("setIPSettings", &NetworkManager::setIPSettings, this);
             GetHandler(2)->Register<JsonObject, JsonObject>("getIPSettings", &NetworkManager::getIPSettings, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>("initiateWPSPairing", &NetworkManager::initiateWPSPairing, this);
         }
 
         /**
