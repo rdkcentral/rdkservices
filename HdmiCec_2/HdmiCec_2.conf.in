@@ -1,4 +1,4 @@
 precondition = ["Platform"]
 callsign = "org.rdk.HdmiCec_2"
-autostart = "false"
+autostart = "@PLUGIN_HDMICEC2_AUTOSTART@"
 startuporder = "@PLUGIN_HDMICEC2_STARTUPORDER@"
