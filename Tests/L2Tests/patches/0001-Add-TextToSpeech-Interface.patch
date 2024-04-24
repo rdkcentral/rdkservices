@@ -1,0 +1,12 @@
+diff --git a/interfaces/ITextToSpeech.h b/interfaces/ITextToSpeech.h
+index d28359e..4d20ac9 100644
+--- a/interfaces/ITextToSpeech.h
++++ b/interfaces/ITextToSpeech.h
+@@ -65,6 +65,7 @@ namespace Exchange {
+ 
+         virtual void Register(ITextToSpeech::INotification* sink) = 0;
+         virtual void Unregister(ITextToSpeech::INotification* sink) = 0;
++        virtual void RegisterWithCallsign(const string callsign,ITextToSpeech::INotification* sink) = 0;
+         
+         // @property
+         // @brief Query the status/enable tts
