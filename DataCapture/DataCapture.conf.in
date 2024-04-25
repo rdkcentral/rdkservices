@@ -1,4 +1,4 @@
 precondition = ["Platform"]
 callsign = "org.rdk.dataCapture"
-autostart = "false"
+autostart = "@PLUGIN_DATACAPTURE_AUTOSTART@"
 startuporder = "@PLUGIN_DATACAPTURE_STARTUPORDER@"

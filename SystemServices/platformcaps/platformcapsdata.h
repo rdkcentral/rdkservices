@@ -172,7 +172,6 @@ private:
 
                 if (localDispatcher != nullptr)
                     result =  dispatcher_->Invoke(channelId, message->Id.Value(), "", message->Designator.Value(), message->Parameters.Value(),output);
-                dispatcher_->Release();
             }
 
             if (message.IsValid() == true) {

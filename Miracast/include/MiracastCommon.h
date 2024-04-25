@@ -160,7 +160,8 @@ typedef enum emira_service_states_e
     MIRACAST_SERVICE_STATE_CONNECTION_ACCEPTED,
     MIRACAST_SERVICE_STATE_CONNECTION_ERROR,
     MIRACAST_SERVICE_STATE_PLAYER_LAUNCHED,
-    MIRACAST_SERVICE_STATE_APP_REQ_TO_ABORT_CONNECTION
+    MIRACAST_SERVICE_STATE_APP_REQ_TO_ABORT_CONNECTION,
+    MIRACAST_SERVICE_STATE_DIRECT_LAUCH_REQUESTED
 } eMIRA_SERVICE_STATES;
 
 typedef enum miracast_player_states_e
@@ -338,7 +339,7 @@ class MiracastServiceNotifier
 public:
     virtual void onMiracastServiceClientConnectionRequest(string client_mac, string client_name) = 0;
     virtual void onMiracastServiceClientConnectionError(string client_mac, string client_name , eMIRACAST_SERVICE_ERR_CODE error_code ) = 0;
-    virtual void onMiracastServiceLaunchRequest(string src_dev_ip, string src_dev_mac, string src_dev_name, string sink_dev_ip) = 0;
+    virtual void onMiracastServiceLaunchRequest(string src_dev_ip, string src_dev_mac, string src_dev_name, string sink_dev_ip, bool is_connect_req_reported ) = 0;
 };
 
 /**

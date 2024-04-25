@@ -375,7 +375,6 @@ namespace WPEFramework {
 
                 if (localDispatcher != nullptr)
                     result =  dispatcher_->Invoke(channelId, message->Id.Value(), sThunderSecurityToken, message->Designator.Value(), message->Parameters.Value(),output);
-                dispatcher_->Release();
             }
 
             if (message.IsValid() == true) {
