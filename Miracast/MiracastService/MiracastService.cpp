@@ -412,19 +412,19 @@ namespace WPEFramework
 						if ("Accept" == requestedStatus)
 						{
 							MIRACASTLOG_INFO("#### Notifying Launch Request ####");
-							onMiracastServiceLaunchRequest(m_src_dev_ip, m_src_dev_mac, m_src_dev_name, m_sink_dev_ip , true );
-							m_src_dev_ip.clear();
-							m_src_dev_mac.clear();
-							m_src_dev_name.clear();
-							m_sink_dev_ip.clear();
+							m_miracast_ctrler_obj->switch_launch_request_context(m_src_dev_ip, m_src_dev_mac, m_src_dev_name, m_sink_dev_ip );
 						}
 						else
 						{
-							m_miracast_ctrler_obj->restart_session_discovery();
+							m_miracast_ctrler_obj->restart_session_discovery(m_src_dev_mac);
 							m_miracast_ctrler_obj->m_ePlayer_state = MIRACAST_PLAYER_STATE_IDLE;
 							m_eService_state = MIRACAST_SERVICE_STATE_DISCOVERABLE;
 							MIRACASTLOG_INFO("#### Refreshing the Session ####");
 						}
+						m_src_dev_ip.clear();
+						m_src_dev_mac.clear();
+						m_src_dev_name.clear();
+						m_sink_dev_ip.clear();
 					}
 					else
 					{
@@ -578,7 +578,7 @@ namespace WPEFramework
 			if ( m_isServiceEnabled && restart_discovery_needed )
 			{
 				// It will restart the discovering
-				m_miracast_ctrler_obj->restart_session_discovery();
+				m_miracast_ctrler_obj->restart_session_discovery(mac);
 			}
 
 			MIRACASTLOG_INFO("Player State set to [%s (%d)] for Source device [%s].", player_state.c_str(), (int)m_miracast_ctrler_obj->m_ePlayer_state, mac.c_str());
@@ -864,10 +864,11 @@ namespace WPEFramework
 			if ( MIRACAST_SERVICE_STATE_PLAYER_LAUNCHED == m_eService_state )
 			{
 				is_another_connect_request = true;
-				MIRACASTLOG_WARNING("Another Connect Request received while casting\n");
+				MIRACASTLOG_WARNING("Another Connect Request received while casting");
 			}
 			if ((MIRACAST_SERVICE_STATE_DIRECT_LAUCH_REQUESTED != m_eService_state) &&
-				(0 == access("/opt/miracast_autoconnect", F_OK)))
+				((0 == access("/opt/miracast_autoconnect", F_OK))||
+				 (0 == access("/opt/miracast_direct_request", F_OK))))
 			{
 				char commandBuffer[768] = {0};
 
