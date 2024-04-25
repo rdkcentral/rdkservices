@@ -185,6 +185,53 @@ std::string MiracastController::parse_p2p_event_data(const char *tmpBuff, const 
         return std::string(" ");
 }
 
+std::string MiracastController::getifNameByIPv4(std::string ip_address)
+{
+    struct ifaddrs *ifaddrList = nullptr, *currentifa = nullptr;
+    int family, s;
+    char host[MAX_IFACE_NAME_LEN];
+    std::string ifaceName = "";
+
+    // Get list of all network interfaces
+    if ( -1 == getifaddrs(&ifaddrList))
+    {
+        MIRACASTLOG_ERROR("getifaddrs failed[%s]",strerror(errno));
+    }
+    else
+    {
+        // Iterate through the list of network interfaces
+        for ( currentifa = ifaddrList; nullptr != currentifa; currentifa = currentifa->ifa_next)
+        {
+            if ( nullptr == currentifa->ifa_addr )
+            {
+                continue;
+            }
+            family = currentifa->ifa_addr->sa_family;
+            // Check for IPv4 address
+            if ( AF_INET == family )
+            {
+                s = getnameinfo(currentifa->ifa_addr, sizeof(struct sockaddr_in), host, MAX_IFACE_NAME_LEN, NULL, 0, NI_NUMERICHOST);
+                if (s != 0)
+                {
+                    MIRACASTLOG_ERROR("getnameinfo failed[%s]",strerror(errno));
+                    break;
+                }
+                // Compare IP address with the given IP
+                if ( 0 == strcmp(host, ip_address.c_str()))
+                {
+                    ifaceName = currentifa->ifa_name;
+                }
+            }
+        }
+        if ( nullptr != ifaddrList )
+        {
+            freeifaddrs(ifaddrList);
+            ifaddrList = nullptr;
+        }
+    }
+    return ifaceName;
+}
+
 std::string MiracastController::start_DHCPClient(std::string interface, std::string &default_gw_ip_addr)
 {
     MIRACASTLOG_TRACE("Entering...");
@@ -463,7 +510,10 @@ MiracastError MiracastController::set_WFDParameters(void)
 {
     MIRACASTLOG_TRACE("Entering...");
     MiracastError ret = MIRACAST_FAIL;
-    if (nullptr != m_p2p_ctrl_obj){
+    if (nullptr != m_p2p_ctrl_obj)
+    {
+        std::string ifName = getifNameByIPv4("192.168.59.1");
+        m_p2p_ctrl_obj->remove_GroupInterface(ifName);
         ret = m_p2p_ctrl_obj->set_WFDParameters();
     }
     MIRACASTLOG_TRACE("Exiting...");
@@ -927,21 +977,31 @@ void MiracastController::Controller_Thread(void *args)
                             if (!remote_address.empty())
                             {
                                 src_dev_ip = remote_address;
+                                sink_dev_ip = local_address;
                                 src_dev_mac = get_WFDSourceMACAddress();;
                                 src_dev_name = get_WFDSourceName();
-                                sink_dev_ip = local_address;
-                                MIRACASTLOG_INFO("#### MCAST-TRIAGE-OK-LAUNCH LAUNCH REQ FOR SRC_NAME[%s] SRC_MAC[%s] SRC_IP[%s] SINK_IP[%s] ####",
+
+                                if (!m_connect_req_notified && src_dev_mac.empty() && src_dev_name.empty())
+                                {
+                                    src_dev_mac = m_groupInfo->goDevAddr;
+                                    src_dev_name = get_device_name(src_dev_mac);
+                                    set_WFDSourceMACAddress(src_dev_mac);
+                                    set_WFDSourceName(src_dev_name);
+                                }
+                                MIRACASTLOG_INFO("#### MCAST-TRIAGE-OK-LAUNCH LAUNCH REQ FOR SRC_NAME[%s] SRC_MAC[%s] SRC_IP[%s] SINK_IP[%s] ConnectReq[%u]####",
                                                     src_dev_name.c_str(),
                                                     src_dev_mac.c_str(),
                                                     src_dev_ip.c_str(),
-                                                    sink_dev_ip.c_str());
+                                                    sink_dev_ip.c_str(),
+                                                    m_connect_req_notified);
                                 if (nullptr != m_notify_handler)
                                 {
-                                    m_notify_handler->onMiracastServiceLaunchRequest(src_dev_ip, src_dev_mac, src_dev_name, sink_dev_ip);
+                                    m_notify_handler->onMiracastServiceLaunchRequest(src_dev_ip, src_dev_mac, src_dev_name, sink_dev_ip, m_connect_req_notified );
                                 }
                                 checkAndInitiateP2PBackendDiscovery();
                                 session_restart_required = false;
                                 p2p_group_instance_alive = true;
+                                m_connect_req_notified = false;
                             }
                             else
                             {
@@ -970,6 +1030,7 @@ void MiracastController::Controller_Thread(void *args)
                                                     controller_msgq_data.state );
                                 p2p_group_instance_alive = false;
                             }
+                            m_connect_req_notified = false;
                         }
 
                         if ( true == session_restart_required )
@@ -1017,17 +1078,17 @@ void MiracastController::Controller_Thread(void *args)
                     break;
                     case CONTROLLER_GO_STOP_FIND:
                     {
-                        MIRACASTLOG_TRACE("[CONTROLLER_GO_STOP_FIND] Received\n");
+                        MIRACASTLOG_TRACE("[CONTROLLER_GO_STOP_FIND] Received");
                     }
                     break;
                     case CONTROLLER_GO_NEG_SUCCESS:
                     {
-                        MIRACASTLOG_INFO("[CONTROLLER_GO_NEG_SUCCESS] Received\n");
+                        MIRACASTLOG_INFO("[CONTROLLER_GO_NEG_SUCCESS] Received");
                     }
                     break;
                     case CONTROLLER_GO_GROUP_FORMATION_SUCCESS:
                     {
-                        MIRACASTLOG_INFO("[CONTROLLER_GO_GROUP_FORMATION_SUCCESS] Received\n");
+                        MIRACASTLOG_INFO("[CONTROLLER_GO_GROUP_FORMATION_SUCCESS] Received");
                     }
                     break;
                     case CONTROLLER_GO_EVENT_ERROR:
@@ -1085,6 +1146,7 @@ void MiracastController::Controller_Thread(void *args)
                         another_thunder_req_client_connection_sent = false;
                         session_restart_required = true;
                         p2p_group_instance_alive = false;
+                        m_connect_req_notified = false;
                     }
                     break;
                     case CONTROLLER_CONNECT_REQ_FROM_THUNDER:
@@ -1400,6 +1462,7 @@ void MiracastController::notify_ConnectionRequest(std::string device_name,std::s
     MIRACASTLOG_INFO("#### MCAST-TRIAGE-OK-CONNECT-REQ DEVICE[%s - %s] CONNECT REQUEST RECEIVED ####",
                         m_current_device_name.c_str(), 
                         m_current_device_mac_addr.c_str());
+    m_connect_req_notified = true;
     if (nullptr != m_notify_handler)
     {
         m_notify_handler->onMiracastServiceClientConnectionRequest(device_mac, device_name);

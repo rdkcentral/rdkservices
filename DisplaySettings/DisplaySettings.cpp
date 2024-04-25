@@ -1160,20 +1160,23 @@ namespace WPEFramework {
                 vPort.getSupportedTvResolutions(&tvResolutions);
                 if(!tvResolutions)supportedTvResolutions.emplace_back("none");
                 if(tvResolutions & dsTV_RESOLUTION_480i)supportedTvResolutions.emplace_back("480i");
+                if(tvResolutions & dsTV_RESOLUTION_480i)supportedTvResolutions.emplace_back("480i60");
                 if(tvResolutions & dsTV_RESOLUTION_480p)supportedTvResolutions.emplace_back("480p");
-                if(tvResolutions & dsTV_RESOLUTION_576i)supportedTvResolutions.emplace_back("576i");
-                if(tvResolutions & dsTV_RESOLUTION_576p)supportedTvResolutions.emplace_back("576p");
-		if(tvResolutions & dsTV_RESOLUTION_576p50)supportedTvResolutions.emplace_back("576p50");
-                if(tvResolutions & dsTV_RESOLUTION_720p)supportedTvResolutions.emplace_back("720p");
+                if(tvResolutions & dsTV_RESOLUTION_480p)supportedTvResolutions.emplace_back("480p60");
+                if(tvResolutions & dsTV_RESOLUTION_576i)supportedTvResolutions.emplace_back("576i50");
+                if(tvResolutions & dsTV_RESOLUTION_576p)supportedTvResolutions.emplace_back("576p50");
 		if(tvResolutions & dsTV_RESOLUTION_720p50)supportedTvResolutions.emplace_back("720p50");
-                if(tvResolutions & dsTV_RESOLUTION_1080i)supportedTvResolutions.emplace_back("1080i");
-                if(tvResolutions & dsTV_RESOLUTION_1080p)supportedTvResolutions.emplace_back("1080p");
+                if(tvResolutions & dsTV_RESOLUTION_720p)supportedTvResolutions.emplace_back("720p");
+                if(tvResolutions & dsTV_RESOLUTION_720p)supportedTvResolutions.emplace_back("720p60");
 		if(tvResolutions & dsTV_RESOLUTION_1080p24)supportedTvResolutions.emplace_back("1080p24");
 		if(tvResolutions & dsTV_RESOLUTION_1080p25)supportedTvResolutions.emplace_back("1080p25");
-		if(tvResolutions & dsTV_RESOLUTION_1080i25)supportedTvResolutions.emplace_back("1080i25");
 		if(tvResolutions & dsTV_RESOLUTION_1080p30)supportedTvResolutions.emplace_back("1080p30");
 		if(tvResolutions & dsTV_RESOLUTION_1080i50)supportedTvResolutions.emplace_back("1080i50");
 		if(tvResolutions & dsTV_RESOLUTION_1080p50)supportedTvResolutions.emplace_back("1080p50");
+                if(tvResolutions & dsTV_RESOLUTION_1080i)supportedTvResolutions.emplace_back("1080i");
+                if(tvResolutions & dsTV_RESOLUTION_1080i)supportedTvResolutions.emplace_back("1080i60");
+                if(tvResolutions & dsTV_RESOLUTION_1080p)supportedTvResolutions.emplace_back("1080p");
+                if(tvResolutions & dsTV_RESOLUTION_1080p)supportedTvResolutions.emplace_back("1080p60");
                 if(tvResolutions & dsTV_RESOLUTION_1080p60)supportedTvResolutions.emplace_back("1080p60");
 		if(tvResolutions & dsTV_RESOLUTION_2160p24)supportedTvResolutions.emplace_back("2160p24");
 		if(tvResolutions & dsTV_RESOLUTION_2160p25)supportedTvResolutions.emplace_back("2160p25");
@@ -5590,6 +5593,15 @@ void DisplaySettings::sendMsgThread()
                     m_timer.stop();
                 }
             }
+	    
+	    if(!isCecEnabled){
+		try {
+		    isCecEnabled = getHdmiCecSinkCecEnableStatus();
+		}
+		catch (const device::Exception& err){
+		    LOG_DEVICE_EXCEPTION1(string("HDMI_ARC0"));
+		}
+	    }
 
             if(m_subscribed) {
          	//Need to send power on request as this timer might have started based on standby out or boot up scenario

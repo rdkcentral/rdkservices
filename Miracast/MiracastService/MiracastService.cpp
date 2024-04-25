@@ -401,15 +401,36 @@ namespace WPEFramework
 			std::string requestedStatus = "";
 
 			MIRACASTLOG_INFO("Entering..!!!");
-
 			if (parameters.HasLabel("requestStatus"))
 			{
 				requestedStatus = parameters["requestStatus"].String();
 				if (("Accept" == requestedStatus) || ("Reject" == requestedStatus))
 				{
-					m_miracast_ctrler_obj->accept_client_connection(requestedStatus);
 					success = true;
-					m_eService_state = MIRACAST_SERVICE_STATE_CONNECTION_ACCEPTED;
+					if ( MIRACAST_SERVICE_STATE_DIRECT_LAUCH_REQUESTED == m_eService_state )
+					{
+						if ("Accept" == requestedStatus)
+						{
+							MIRACASTLOG_INFO("#### Notifying Launch Request ####");
+							onMiracastServiceLaunchRequest(m_src_dev_ip, m_src_dev_mac, m_src_dev_name, m_sink_dev_ip , true );
+							m_src_dev_ip.clear();
+							m_src_dev_mac.clear();
+							m_src_dev_name.clear();
+							m_sink_dev_ip.clear();
+						}
+						else
+						{
+							m_miracast_ctrler_obj->restart_session_discovery();
+							m_miracast_ctrler_obj->m_ePlayer_state = MIRACAST_PLAYER_STATE_IDLE;
+							m_eService_state = MIRACAST_SERVICE_STATE_DISCOVERABLE;
+							MIRACASTLOG_INFO("#### Refreshing the Session ####");
+						}
+					}
+					else
+					{
+						m_miracast_ctrler_obj->accept_client_connection(requestedStatus);
+						m_eService_state = MIRACAST_SERVICE_STATE_CONNECTION_ACCEPTED;
+					}
 				}
 				else
 				{
@@ -845,8 +866,8 @@ namespace WPEFramework
 				is_another_connect_request = true;
 				MIRACASTLOG_WARNING("Another Connect Request received while casting\n");
 			}
-
-			if (0 == access("/opt/miracast_autoconnect", F_OK))
+			if ((MIRACAST_SERVICE_STATE_DIRECT_LAUCH_REQUESTED != m_eService_state) &&
+				(0 == access("/opt/miracast_autoconnect", F_OK)))
 			{
 				char commandBuffer[768] = {0};
 
@@ -989,11 +1010,21 @@ namespace WPEFramework
 			return timer_retry_state;
 		}
 
-		void MiracastService::onMiracastServiceLaunchRequest(string src_dev_ip, string src_dev_mac, string src_dev_name, string sink_dev_ip)
+		void MiracastService::onMiracastServiceLaunchRequest(string src_dev_ip, string src_dev_mac, string src_dev_name, string sink_dev_ip, bool is_connect_req_reported )
 		{
-			MIRACASTLOG_INFO("Entering..!!!");
+			MIRACASTLOG_INFO("Entering[%u]..!!!",is_connect_req_reported);
 
-			if ( MIRACAST_SERVICE_STATE_APP_REQ_TO_ABORT_CONNECTION == m_eService_state )
+			if ( !is_connect_req_reported )
+			{
+				m_eService_state = MIRACAST_SERVICE_STATE_DIRECT_LAUCH_REQUESTED;
+				m_src_dev_ip = src_dev_ip;
+				m_src_dev_mac = src_dev_mac;
+				m_src_dev_name = src_dev_name;
+				m_sink_dev_ip = sink_dev_ip;
+				MIRACASTLOG_INFO("Direct Launch request has received. So need to notify connect Request");
+				onMiracastServiceClientConnectionRequest( src_dev_mac, src_dev_name );
+			}
+			else if ( MIRACAST_SERVICE_STATE_APP_REQ_TO_ABORT_CONNECTION == m_eService_state )
 			{
 				MIRACASTLOG_INFO("APP_REQ_TO_ABORT_CONNECTION has requested. So no need to notify Launch Request..!!!");
 				//m_miracast_ctrler_obj->restart_session_discovery();

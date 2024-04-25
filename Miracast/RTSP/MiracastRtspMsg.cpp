@@ -946,6 +946,14 @@ MiracastError MiracastRTSPMsg::initiate_TCP(std::string goIP)
             continue;
         }
 
+        // Set SO_REUSEADDR option
+        int optval = 1;
+        if (setsockopt(m_tcpSockfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) == -1)
+        {
+            MIRACASTLOG_ERROR("Failed to set SO_REUSEADDR: %s", strerror(errno));
+            continue;
+        }
+
         /*---Add socket to epoll---*/
         m_epollfd = epoll_create(1);
         struct epoll_event event;

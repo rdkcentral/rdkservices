@@ -117,6 +117,8 @@ namespace WPEFramework
                 }
 
             public:
+                /* Only for legacy, we are posting 2 events(onInterfaceStatusChanged and onConnectionStatusChanged) 
+                   in onInterfaceStateChange() function */
                 void onInterfaceStateChange(const Exchange::INetworkManager::InterfaceState event, const string interface) override
                 {
                     NMLOG_TRACE("%s", __FUNCTION__);
@@ -133,7 +135,10 @@ namespace WPEFramework
                         legacyParams["enabled"] = true;
                     else if(event == Exchange::INetworkManager::INTERFACE_REMOVED)
                         legacyParams["enabled"] = false;
-                    _parent.Notify("onInterfaceStatusChanged", legacyParams);
+                    /* Posting the "onInterfaceStatusChanged" event only when the interface state 
+                       is either INTERFACE_REMOVED or INTERFACE_ADDED */
+                    if(event == Exchange::INetworkManager::INTERFACE_REMOVED || event == Exchange::INetworkManager::INTERFACE_ADDED)
+                        _parent.Notify("onInterfaceStatusChanged", legacyParams);
                     if(event == Exchange::INetworkManager::INTERFACE_LINK_UP)
                         onConnParams["status"] = "CONNECTED";
                     else if(event == Exchange::INetworkManager::INTERFACE_LINK_DOWN)
@@ -141,7 +146,10 @@ namespace WPEFramework
                     onConnParams["interface"] = legacyParams["interface"];
                     onConnParams.ToString(json);
                     NMLOG_TRACE("onConnectionStatusChanged onConnParams=%s", json.c_str() );
-                    _parent.Notify("onConnectionStatusChanged", onConnParams);
+                    /* Posting the "onConnectionStatusChanged" event only when the interface state 
+                       is either INTERFACE_LINK_UP or INTERFACE_LINK_DOWN */
+                    if(event == Exchange::INetworkManager::INTERFACE_LINK_UP || event == Exchange::INetworkManager::INTERFACE_LINK_DOWN)
+                        _parent.Notify("onConnectionStatusChanged", onConnParams);
 #endif
                     params["interface"] = interface;
                     params["state"] = InterfaceStateToString(event);
@@ -190,10 +198,14 @@ namespace WPEFramework
                         oldInterface = "WIFI";
                     else if(prevActiveInterface == "eth0")
                         oldInterface = "ETHERNET";
+                    else
+                        oldInterface = prevActiveInterface;
                     if(currentActiveinterface == "wlan0")
                         newInterface = "WIFI";
                     else if(currentActiveinterface == "eth0")
                         newInterface = "ETHERNET";
+                    else
+                        newInterface = currentActiveinterface;
                     legacyParams["oldInterfaceName"] = oldInterface;
                     legacyParams["newInterfaceName"] = newInterface;
                     _parent.Notify("onDefaultInterfaceChanged", legacyParams);

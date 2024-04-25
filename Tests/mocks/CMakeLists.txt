@@ -30,6 +30,7 @@ add_library(${MODULE_NAME} SHARED
     Rfc.cpp
     Iarm.cpp
     Wraps.cpp
+    devicesettings.cpp
     Udev.cpp
 )
 target_link_libraries(${MODULE_NAME} PRIVATE gmock_main)
