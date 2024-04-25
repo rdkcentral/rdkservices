@@ -124,7 +124,10 @@ MiracastError MiracastController::destroy_ControllerFramework(void)
 #ifdef ENABLE_MIRACAST_SERVICE_TEST_NOTIFIER
     destroy_TestNotifier();
 #endif
-    send_thundermsg_to_controller_thread(MIRACAST_SERVICE_SHUTDOWN);
+    CONTROLLER_MSGQ_STRUCT controller_msgq_data = {0};
+    MIRACASTLOG_INFO("[MIRACAST_SERVICE_SHUTDOWN]");
+    controller_msgq_data.state = CONTROLLER_SELF_ABORT;
+    send_thundermsg_to_controller_thread(controller_msgq_data);
 
     if (nullptr != m_p2p_ctrl_obj)
     {
@@ -490,6 +493,7 @@ void MiracastController::event_handler(P2P_EVENTS eventId, void *data, size_t le
 
     if ( false == m_start_discovering_enabled )
     {
+        MIRACASTLOG_INFO("Miracast discovery not enabled. So no need to notify to MiracastController");
         MIRACASTLOG_TRACE("Exiting...");
         return;
     }
@@ -1094,7 +1098,7 @@ void MiracastController::Controller_Thread(void *args)
                     case CONTROLLER_GO_EVENT_ERROR:
                     case CONTROLLER_GO_UNKNOWN_EVENT:
                     {
-                        MIRACASTLOG_ERROR("[GO_EVENT_ERROR/GO_UNKNOWN_EVENT] Received\n");
+                        MIRACASTLOG_ERROR("[GO_EVENT_ERROR/GO_UNKNOWN_EVENT] Received");
                     }
                     break;
                     default:
@@ -1131,7 +1135,7 @@ void MiracastController::Controller_Thread(void *args)
                     case CONTROLLER_RESTART_DISCOVERING:
                     {
                         std::string cached_mac_address = get_NewSourceMACAddress(),
-                                    mac_address = controller_msgq_data.msg_buffer;
+                                    mac_address = controller_msgq_data.source_dev_mac;
                         MIRACASTLOG_INFO("CONTROLLER_RESTART_DISCOVERING Received\n");
                         m_connectionStatus = false;
 
@@ -1151,8 +1155,8 @@ void MiracastController::Controller_Thread(void *args)
                     break;
                     case CONTROLLER_CONNECT_REQ_FROM_THUNDER:
                     {
-                        MIRACASTLOG_INFO("CONTROLLER_CONNECT_REQ_FROM_THUNDER Received\n");
-                        std::string mac_address = event_buffer;
+                        MIRACASTLOG_INFO("CONTROLLER_CONNECT_REQ_FROM_THUNDER Received");
+                        std::string mac_address = controller_msgq_data.source_dev_mac;
                         std::string device_name = get_device_name(mac_address);
 
                         if ( false == p2p_group_instance_alive )
@@ -1202,15 +1206,27 @@ void MiracastController::Controller_Thread(void *args)
                         another_thunder_req_client_connection_sent = false;
                     }
                     break;
-                    case CONTROLLER_TEARDOWN_REQ_FROM_THUNDER:
+                    case CONTROLLER_SWITCH_LAUNCH_REQ_CTX:
                     {
-                        MIRACASTLOG_INFO("TEARDOWN request sent to RTSP handler\n");
-                        restart_session(m_start_discovering_enabled);
+                        MIRACASTLOG_INFO("Launch Request to be notified from here");
+                        if (nullptr != m_notify_handler)
+                        {
+                            MIRACASTLOG_INFO("#### MCAST-TRIAGE-OK-LAUNCH LAUNCH REQ FOR SRC_NAME[%s] SRC_MAC[%s] SRC_IP[%s] SINK_IP[%s] ####",
+                                                    controller_msgq_data.source_dev_name,
+                                                    controller_msgq_data.source_dev_mac,
+                                                    controller_msgq_data.source_dev_ip,
+                                                    controller_msgq_data.sink_dev_ip);
+                            m_notify_handler->onMiracastServiceLaunchRequest( controller_msgq_data.source_dev_ip,
+                                                                              controller_msgq_data.source_dev_mac,
+                                                                              controller_msgq_data.sink_dev_ip,
+                                                                              controller_msgq_data.source_dev_name,
+                                                                              true );
+                        }
                     }
                     break;
                     default:
                     {
-                        MIRACASTLOG_ERROR("!!! Invalid state Received[%#08X]Data[%s] with CONTRLR_FW_MSG !!!\n", controller_msgq_data.state, event_buffer.c_str());
+                        MIRACASTLOG_ERROR("!!! Invalid state Received[%#08X]Data[%s] with CONTRLR_FW_MSG !!!", controller_msgq_data.state, event_buffer.c_str());
                     }
                     break;
                 }
@@ -1218,7 +1234,7 @@ void MiracastController::Controller_Thread(void *args)
             break;
             default:
             {
-                MIRACASTLOG_ERROR("!!! Invalid MsgType Received[%#08X]Data[%s]  !!!\n", controller_msgq_data.msg_type, event_buffer.c_str());
+                MIRACASTLOG_ERROR("!!! Invalid MsgType Received[%#08X]Data[%s]  !!!", controller_msgq_data.msg_type, event_buffer.c_str());
             }
             break;
         }        
@@ -1226,94 +1242,14 @@ void MiracastController::Controller_Thread(void *args)
     MIRACASTLOG_TRACE("Exiting...");
 }
 
-void MiracastController::send_thundermsg_to_controller_thread(MIRACAST_SERVICE_STATES state, std::string action_buffer, std::string user_data)
+void MiracastController::send_thundermsg_to_controller_thread(CONTROLLER_MSGQ_STRUCT controller_msgq_data)
 {
-    CONTROLLER_MSGQ_STRUCT controller_msgq_data = {0};
-    bool valid_mesage = true;
     MIRACASTLOG_TRACE("Entering...");
-    switch (state)
-    {
-    // Start and Stop Discovering initiated directly from Thunder request. So this is unused and commenting out here
-    #if 0
-        case MIRACAST_SERVICE_WFD_START:
-        {
-            MIRACASTLOG_INFO("[MIRACAST_SERVICE_WFD_START]\n");
-            controller_msgq_data.state = CONTROLLER_START_DISCOVERING;
-        }
-        break;
-        case MIRACAST_SERVICE_WFD_STOP:
-        {
-            MIRACASTLOG_INFO("[MIRACAST_SERVICE_WFD_STOP]\n");
-            controller_msgq_data.state = CONTROLLER_STOP_DISCOVERING;
-        }
-        break;
-    #endif
-        case MIRACAST_SERVICE_WFD_RESTART:
-        {
-            MIRACASTLOG_INFO("[MIRACAST_SERVICE_WFD_RESTART][%s]",action_buffer.c_str());
-            if ( !action_buffer.empty())
-            {
-                strcpy(controller_msgq_data.msg_buffer, action_buffer.c_str());
-            }
-            controller_msgq_data.state = CONTROLLER_RESTART_DISCOVERING;
-        }
-        break;
-        case MIRACAST_SERVICE_FLUSH_SESSION:
-        {
-            MIRACASTLOG_INFO("[MIRACAST_SERVICE_FLUSH_SESSION]");
-            controller_msgq_data.state = CONTROLLER_FLUSH_CURRENT_SESSION;
-        }
-        break;
-        case MIRACAST_SERVICE_SHUTDOWN:
-        {
-            MIRACASTLOG_INFO("[MIRACAST_SERVICE_SHUTDOWN]");
-            controller_msgq_data.state = CONTROLLER_SELF_ABORT;
-        }
-        break;
-        case MIRACAST_SERVICE_STOP_CLIENT_CONNECTION:
-        {
-            MIRACASTLOG_INFO("[MIRACAST_SERVICE_STOP_CLIENT_CONNECTION]");
-            controller_msgq_data.state = CONTROLLER_TEARDOWN_REQ_FROM_THUNDER;
-        }
-        break;
-        case MIRACAST_SERVICE_ACCEPT_CLIENT:
-        case MIRACAST_SERVICE_REJECT_CLIENT:
-        {
-            std::string reason;
-            if ( MIRACAST_SERVICE_ACCEPT_CLIENT == state )
-            {
-                MIRACASTLOG_INFO("[MIRACAST_SERVICE_ACCEPT_CLIENT]");
-                strcpy(controller_msgq_data.msg_buffer, m_current_device_mac_addr.c_str());
-                controller_msgq_data.state = CONTROLLER_CONNECT_REQ_FROM_THUNDER;
-                reason = "Accepted";
-            }
-            else
-            {
-                MIRACASTLOG_INFO("[MIRACAST_SERVICE_REJECT_CLIENT]");
-                controller_msgq_data.state = CONTROLLER_CONNECT_REQ_REJECT;
-                reason = "Rejected";
-            }
-            MIRACASTLOG_INFO("!!!! DEVICE[%s - %s] Connection Request has '%s' !!!!",
-                                m_current_device_name.c_str(), 
-                                m_current_device_mac_addr.c_str(),
-                                reason.c_str());
-            m_current_device_name.clear();
-            m_current_device_mac_addr.clear();
-        }
-        break;
-        default:
-        {
-            MIRACASTLOG_ERROR("Unknown Action Received [%#08X]", state);
-            valid_mesage = false;
-        }
-        break;
-    }
-
-    if ((true == valid_mesage) && (nullptr != m_controller_thread))
+    if (nullptr != m_controller_thread)
     {
         MIRACASTLOG_INFO("Msg to Controller Action[%#08X]", controller_msgq_data.state);
         controller_msgq_data.msg_type = CONTRLR_FW_MSG;
-        m_controller_thread->send_message(&controller_msgq_data, sizeof(controller_msgq_data));
+        m_controller_thread->send_message(&controller_msgq_data, CONTROLLER_MSGQ_SIZE);
     }
     MIRACASTLOG_TRACE("Exiting...");
 }
@@ -1345,52 +1281,75 @@ void MiracastController::setP2PBackendDiscovery(bool is_enabled)
     MIRACASTLOG_TRACE("Exiting...");
 }
 
-void MiracastController::restart_session_discovery(std::string mac_address)
+void MiracastController::restart_session_discovery(std::string& mac_address)
 {
+    CONTROLLER_MSGQ_STRUCT controller_msgq_data = {0};
     MIRACASTLOG_TRACE("Entering...");
-    send_thundermsg_to_controller_thread(MIRACAST_SERVICE_WFD_RESTART,mac_address);
+    MIRACASTLOG_INFO("[MIRACAST_SERVICE_WFD_RESTART][%s]",mac_address.c_str());
+    if ( !mac_address.empty())
+    {
+        strncpy(controller_msgq_data.source_dev_mac, mac_address.c_str(),sizeof(controller_msgq_data.source_dev_mac));
+        controller_msgq_data.state = CONTROLLER_RESTART_DISCOVERING;
+        send_thundermsg_to_controller_thread(controller_msgq_data);
+    }
     MIRACASTLOG_TRACE("Exiting...");
 }
 
 void MiracastController::flush_current_session(void )
 {
+    CONTROLLER_MSGQ_STRUCT controller_msgq_data = {0};
     MIRACASTLOG_TRACE("Entering...");
-    send_thundermsg_to_controller_thread(MIRACAST_SERVICE_FLUSH_SESSION);
+    MIRACASTLOG_INFO("[MIRACAST_SERVICE_FLUSH_SESSION]");
+    controller_msgq_data.state = CONTROLLER_FLUSH_CURRENT_SESSION;
+    send_thundermsg_to_controller_thread(controller_msgq_data);
     MIRACASTLOG_TRACE("Exiting...");
 }
 
 void MiracastController::accept_client_connection(std::string is_accepted)
 {
-    MIRACAST_SERVICE_STATES state = MIRACAST_SERVICE_REJECT_CLIENT;
+    CONTROLLER_MSGQ_STRUCT controller_msgq_data = {0};
 
     MIRACASTLOG_TRACE("Entering...");
     if ("Accept" == is_accepted)
     {
-        MIRACASTLOG_INFO("Client Connection Request accepted\n");
-        state = MIRACAST_SERVICE_ACCEPT_CLIENT;
+        MIRACASTLOG_INFO("[MIRACAST_SERVICE_ACCEPT_CLIENT]");
+        strncpy(controller_msgq_data.source_dev_mac, m_current_device_mac_addr.c_str(),sizeof(controller_msgq_data.source_dev_mac));
+        controller_msgq_data.state = CONTROLLER_CONNECT_REQ_FROM_THUNDER;
     }
     else
     {
-        MIRACASTLOG_INFO("Client Connection Request Rejected\n");
-        state = MIRACAST_SERVICE_REJECT_CLIENT;
+        MIRACASTLOG_INFO("[MIRACAST_SERVICE_REJECT_CLIENT]");
+        controller_msgq_data.state = CONTROLLER_CONNECT_REQ_REJECT;
     }
-
-    send_thundermsg_to_controller_thread(state);
+    MIRACASTLOG_INFO("!!!! DEVICE[%s - %s] Connection Request has '%s' !!!!",
+                        m_current_device_name.c_str(),
+                        m_current_device_mac_addr.c_str(),
+                        is_accepted.c_str());
+    m_current_device_name.clear();
+    m_current_device_mac_addr.clear();
+    send_thundermsg_to_controller_thread(controller_msgq_data);
     MIRACASTLOG_TRACE("Exiting...");
 }
 
-bool MiracastController::stop_client_connection(std::string mac_address)
+void MiracastController::switch_launch_request_context(std::string& source_dev_ip,std::string& source_dev_mac,std::string& sink_dev_ip,std::string& source_dev_name)
 {
+    CONTROLLER_MSGQ_STRUCT controller_msgq_data = {0};
     MIRACASTLOG_TRACE("Entering...");
-
-    if (0 != (mac_address.compare(get_connected_device_mac())))
+    if (( !source_dev_ip.empty()) && ( !source_dev_mac.empty()) && ( !sink_dev_ip.empty()) && ( !source_dev_name.empty()))
     {
-        MIRACASTLOG_TRACE("Exiting...");
-        return false;
+        MIRACASTLOG_INFO("[MIRACAST_SERVICE_WFD_SWITCH_CTX_FOR_LAUNCH_REQ]source_dev_ip[%s]source_dev_mac[%s]sink_dev_ip[%s]source_dev_name[%s]",
+                            source_dev_ip.c_str(),
+                            source_dev_mac.c_str(),
+                            sink_dev_ip.c_str(),
+                            source_dev_name.c_str());
+        strncpy(controller_msgq_data.source_dev_ip, source_dev_ip.c_str(),sizeof(controller_msgq_data.source_dev_ip));
+        strncpy(controller_msgq_data.source_dev_mac, source_dev_mac.c_str(),sizeof(controller_msgq_data.source_dev_mac));
+        strncpy(controller_msgq_data.sink_dev_ip, sink_dev_ip.c_str(),sizeof(controller_msgq_data.sink_dev_ip));
+        strncpy(controller_msgq_data.source_dev_name, source_dev_name.c_str(),sizeof(controller_msgq_data.source_dev_name));
+        controller_msgq_data.state = CONTROLLER_SWITCH_LAUNCH_REQ_CTX;
+        send_thundermsg_to_controller_thread(controller_msgq_data);
     }
-    send_thundermsg_to_controller_thread(MIRACAST_SERVICE_STOP_CLIENT_CONNECTION, mac_address);
     MIRACASTLOG_TRACE("Exiting...");
-    return true;
 }
 
 void MiracastController::set_WFDSourceMACAddress(std::string MAC_Addr)
@@ -1463,6 +1422,11 @@ void MiracastController::notify_ConnectionRequest(std::string device_name,std::s
                         m_current_device_name.c_str(), 
                         m_current_device_mac_addr.c_str());
     m_connect_req_notified = true;
+    if (0 == access("/opt/miracast_direct_request", F_OK))
+    {
+        m_connect_req_notified = false;
+    }
+
     if (nullptr != m_notify_handler)
     {
         m_notify_handler->onMiracastServiceClientConnectionRequest(device_mac, device_name);
