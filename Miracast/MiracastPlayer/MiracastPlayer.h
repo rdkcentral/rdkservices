@@ -91,7 +91,6 @@ namespace WPEFramework
             bool m_isServiceEnabled;
             MiracastGstPlayer *m_GstPlayer;
             MiracastRTSPMsg *m_rtsp_msg;
-            WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> *m_SystemPluginObj = NULL;
 
             uint32_t playRequest(const JsonObject &parameters, JsonObject &response);
             uint32_t stopRequest(const JsonObject &parameters, JsonObject &response);
@@ -104,7 +103,6 @@ namespace WPEFramework
 
             std::string reasonDescription(eM_PLAYER_REASON_CODE);
             std::string stateDescription(eMIRA_PLAYER_STATES);
-            void getSystemPlugin();
 
             // We do not allow this plugin to be copied !!
             MiracastPlayer(const MiracastPlayer &) = delete;
