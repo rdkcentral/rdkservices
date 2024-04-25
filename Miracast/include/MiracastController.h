@@ -64,11 +64,9 @@ public:
     bool get_connection_status();
     DeviceInfo *get_device_details(std::string mac);
 
-    //void send_msg_thunder_msg_hdler_thread(MIRACAST_SERVICE_STATES state, std::string buffer = "", std::string user_data = "");
-    void send_thundermsg_to_controller_thread(MIRACAST_SERVICE_STATES state, std::string buffer = "", std::string user_data = "");
+    void send_thundermsg_to_controller_thread(CONTROLLER_MSGQ_STRUCT controller_msgq_data);
 
     void Controller_Thread(void *args);
-    //void ThunderReqHandler_Thread(void *args);
     void notify_ConnectionRequest(std::string device_name,std::string device_mac);
 
 #ifdef ENABLE_MIRACAST_SERVICE_TEST_NOTIFIER
@@ -79,12 +77,9 @@ public:
     void send_msgto_test_notifier_thread( MIRACAST_SERVICE_TEST_NOTIFIER_MSGQ_ST stMsgQ );
 #endif /* ENABLE_MIRACAST_SERVICE_TEST_NOTIFIER */
 
-    // void HDCPTCPServerHandlerThread(void *args);
-    // void DumpBuffer(char *buffer, int length);
-
     MiracastError stop_discover_devices();
     MiracastError set_WFDParameters(void);
-    void restart_session_discovery(std::string mac_address="");
+    void restart_session_discovery(std::string& mac_address);
     void flush_current_session(void);
     void remove_P2PGroupInstance(void);
     void restart_session(bool start_discovering_enabled);
@@ -94,7 +89,6 @@ public:
     std::string get_FriendlyName(void);
     void set_enable(bool is_enabled);
     void accept_client_connection(std::string is_accepted);
-    bool stop_client_connection(std::string mac_address);
     eMIRA_PLAYER_STATES m_ePlayer_state;
 
     void set_WFDSourceMACAddress(std::string MAC_Addr);
@@ -112,6 +106,7 @@ public:
     void reset_NewSourceName(void);
 
     void setP2PBackendDiscovery(bool is_enabled);
+    void switch_launch_request_context(std::string& source_dev_ip,std::string& source_dev_mac,std::string& sink_dev_ip,std::string& source_dev_name);
 
 private:
     static MiracastController *m_miracast_ctrl_obj;
