@@ -25,12 +25,6 @@ static std::string empty_string = "";
 
 void RTSPMsgHandlerCallback(void *args);
 
-#ifdef ENABLE_HDCP2X_SUPPORT
-#define HDCP2X_PORT 12000
-#define HDCP2X_SOCKET_BUF_MAX 4096
-void HDCPHandlerCallback(void *args);
-#endif
-
 #ifdef ENABLE_MIRACAST_PLAYER_TEST_NOTIFIER
 void MiracastPlayerTestNotifierThreadCallback(void *args);
 #endif
@@ -67,13 +61,13 @@ RTSP_PARSER_TEMPLATE MiracastRTSPMsg::rtsp_msg_parser_fields[] = {
     {RTSP_M2_RESPONSE_VALIDATE_MARKER_END, ""},
     
     {RTSP_M3_REQ_VALIDATE_MARKER_START, ""},
-    {RTSP_WFD_HDCP_FIELD, "wfd_content_protection" , &MiracastRTSPMsg::get_WFDContentProtection},
-    {RTSP_WFD_VIDEO_FMT_FIELD, "wfd_video_formats" , &MiracastRTSPMsg::get_WFDVideoFormat },
-    {RTSP_WFD_AUDIO_CODEC_FIELD, "wfd_audio_codecs" , &MiracastRTSPMsg::get_WFDAudioCodecs},
-    {RTSP_WFD_CLI_RTP_PORTS_FIELD, "wfd_client_rtp_ports" , &MiracastRTSPMsg::get_WFDClientRTPPorts},
-    {RTSP_WFD_DISPLAY_EDID_FIELD, "wfd_display_edid" , &MiracastRTSPMsg::get_WFDDisplayEdid},
-    {RTSP_WFD_UIBC_CAPS_FIELD, "wfd_uibc_capability" , &MiracastRTSPMsg::get_WFDUIBCCapability},
-    {RTSP_WFD_CONNECTOR_TYPE_FIELD, "wfd_connector_type" , &MiracastRTSPMsg::get_WFDConnectorType},
+    {RTSP_WFD_HDCP_FIELD, "wfd_content_protection" , &MiracastRTSPMsg::m_wfd_content_protection},
+    {RTSP_WFD_VIDEO_FMT_FIELD, "wfd_video_formats" , &MiracastRTSPMsg::m_wfd_video_formats },
+    {RTSP_WFD_AUDIO_CODEC_FIELD, "wfd_audio_codecs" , &MiracastRTSPMsg::m_wfd_audio_codecs},
+    {RTSP_WFD_CLI_RTP_PORTS_FIELD, "wfd_client_rtp_ports" , &MiracastRTSPMsg::m_wfd_client_rtp_ports},
+    {RTSP_WFD_DISPLAY_EDID_FIELD, "wfd_display_edid" , &MiracastRTSPMsg::m_wfd_display_edid},
+    {RTSP_WFD_UIBC_CAPS_FIELD, "wfd_uibc_capability" , &MiracastRTSPMsg::m_wfd_uibc_capability},
+    {RTSP_WFD_CONNECTOR_TYPE_FIELD, "wfd_connector_type" , &MiracastRTSPMsg::m_wfd_connector_type},
     {RTSP_M3_REQ_VALIDATE_MARKER_END, ""},
 
     {RTSP_WFD_STREAMING_URL_FIELD, "wfd_presentation_URL: "},
@@ -209,6 +203,33 @@ MiracastRTSPMsg::MiracastRTSPMsg()
 
     m_current_sequence_number.clear();
 
+    m_connected_mac_addr.clear();
+    m_connected_device_name.clear();
+    m_wfd_video_formats.clear();
+    m_wfd_audio_codecs.clear();
+    m_wfd_client_rtp_ports.clear();
+    m_wfd_uibc_capability.clear();
+    m_wfd_display_edid.clear();
+    m_wfd_connector_type.clear();
+    m_wfd_content_protection.clear();
+    m_wfd_sec_screensharing.clear();
+    m_wfd_sec_portrait_display.clear();
+    m_wfd_sec_rotation.clear();
+    m_wfd_sec_hw_rotation.clear();
+    m_wfd_sec_framerate.clear();
+    m_wfd_presentation_URL.clear();
+    m_wfd_transport_profile.clear();
+    m_wfd_streaming_port.clear();
+    m_wfd_session_number.clear();
+    m_current_sequence_number.clear();
+    m_src_dev_ip.clear();
+    m_sink_ip.clear();
+    m_getparameter_request.clear();
+
+    set_WFDUIBCCapability("none");
+    set_WFDDisplayEDID("none");
+    set_WFDConnectorType("7");
+
     set_WFDEnableDisableUnicast(true);
 
     st_video_fmt.preferred_display_mode_supported = RTSP_PREFERED_DISPLAY_NOT_SUPPORTED;
@@ -299,104 +320,14 @@ MiracastError MiracastRTSPMsg::create_RTSPThread(void)
             delete m_rtsp_msg_handler_thread;
             m_rtsp_msg_handler_thread = nullptr;
         }
-#ifdef ENABLE_HDCP2X_SUPPORT
-        else
-        {
-            m_hdcp_handler_thread = new MiracastThread( "HDCP_Thread",
-                                                        RTSP_HANDLER_THREAD_STACK,
-                                                        RTSP_HANDLER_MSG_COUNT,
-                                                        RTSP_HANDLER_MSGQ_SIZE,
-                                                        reinterpret_cast<void (*)(void *)>(&HDCPHandlerCallback),
-                                                        this);
-        }
-#endif /*ENABLE_HDCP2X_SUPPORT*/
     }
     MIRACASTLOG_TRACE("Exiting...");
     return error_code;
 }
 
-std::string MiracastRTSPMsg::get_WFDVideoFormat(void)
-{
-    return m_wfd_video_formats;
-}
-
-std::string MiracastRTSPMsg::get_WFDAudioCodecs(void)
-{
-    return m_wfd_audio_codecs;
-}
-
-std::string MiracastRTSPMsg::get_WFDClientRTPPorts(void)
-{
-    return m_wfd_client_rtp_ports;
-}
-
-std::string MiracastRTSPMsg::get_WFDUIBCCapability(void)
-{
-    return "none";
-}
-
-std::string MiracastRTSPMsg::get_WFDDisplayEdid(void)
-{
-    return "none";
-}
-
-std::string MiracastRTSPMsg::get_WFDConnectorType(void)
-{
-    return "7";
-}
-
-std::string MiracastRTSPMsg::get_WFDContentProtection(void)
-{
-    return m_wfd_content_protection;
-}
-
-std::string MiracastRTSPMsg::get_WFDSecScreenSharing(void)
-{
-    return m_wfd_sec_screensharing;
-}
-
-std::string MiracastRTSPMsg::get_WFDPortraitDisplay(void)
-{
-    return m_wfd_sec_portrait_display;
-}
-
-std::string MiracastRTSPMsg::get_WFDSecRotation(void)
-{
-    return m_wfd_sec_rotation;
-}
-
-std::string MiracastRTSPMsg::get_WFDSecHWRotation(void)
-{
-    return m_wfd_sec_hw_rotation;
-}
-
-std::string MiracastRTSPMsg::get_WFDSecFrameRate(void)
-{
-    return m_wfd_sec_framerate;
-}
-
-std::string MiracastRTSPMsg::get_WFDPresentationURL(void)
-{
-    return m_wfd_presentation_URL;
-}
-
-std::string MiracastRTSPMsg::get_WFDTransportProfile(void)
-{
-    return m_wfd_transport_profile;
-}
-
-std::string MiracastRTSPMsg::get_WFDStreamingPortNumber(void)
-{
-    return m_wfd_streaming_port;
-}
-
 bool MiracastRTSPMsg::IsWFDUnicastSupported(void)
 {
     return m_is_unicast;
-}
-std::string MiracastRTSPMsg::get_CurrentWFDSessionNumber(void)
-{
-    return m_wfd_session_number;
 }
 
 bool MiracastRTSPMsg::set_WFDVideoFormat(RTSP_WFD_VIDEO_FMT_STRUCT st_video_fmt)
@@ -612,6 +543,18 @@ bool MiracastRTSPMsg::set_WFDSessionNumber(std::string session)
     return true;
 }
 
+bool MiracastRTSPMsg::set_WFDDisplayEDID(std::string wfd_display_edid)
+{
+    m_wfd_display_edid = wfd_display_edid;
+    return true;
+}
+
+bool MiracastRTSPMsg::set_WFDConnectorType(std::string wfd_connector_type)
+{
+    m_wfd_connector_type = wfd_connector_type;
+    return true;
+}
+
 bool MiracastRTSPMsg::set_WFDRequestResponseTimeout( unsigned int request_timeout , unsigned int response_timeout )
 {
     MIRACASTLOG_TRACE("Entering...");
@@ -684,10 +627,10 @@ std::string MiracastRTSPMsg::get_parser_field_value(RTSP_PARSER_FIELDS parse_fie
 
     if ( RTSP_PARSER_FIELD_START < parse_field && parse_field < num_parse_fields )
     {
-        MIRACASTLOG_TRACE("parse_field[%#04X][%x]",parse_field,rtsp_msg_parser_fields[parse_field].parse_field_info_fn);
-        if ( nullptr != rtsp_msg_parser_fields[parse_field].parse_field_info_fn ){
+        MIRACASTLOG_TRACE("parse_field[%#04X][%x]",parse_field,rtsp_msg_parser_fields[parse_field].member_variable_ptr);
+        if ( nullptr != rtsp_msg_parser_fields[parse_field].member_variable_ptr ){
             MIRACASTLOG_TRACE("Exiting...");
-            return (this->*rtsp_msg_parser_fields[parse_field].parse_field_info_fn)();
+            return (this->*rtsp_msg_parser_fields[parse_field].member_variable_ptr).c_str();
         }
     }
     MIRACASTLOG_TRACE("Exiting...");
@@ -737,7 +680,7 @@ std::string MiracastRTSPMsg::parse_received_parser_field_value(std::string rtsp_
         }
     }
     MIRACASTLOG_TRACE("Exiting...");
-    return seq_str;
+    return seq_str.c_str();
 }
 
 std::string MiracastRTSPMsg::generate_request_response_msg(RTSP_MSG_FMT_SINK2SRC msg_fmt_needed, std::string received_session_no , std::string append_data1 , RTSP_ERRORCODES error_code )
@@ -749,10 +692,6 @@ std::string MiracastRTSPMsg::generate_request_response_msg(RTSP_MSG_FMT_SINK2SRC
     std::string unicast_supported = "";
     std::string content_buffer_len;
     std::string sequence_number = "";
-    std::string URL = get_WFDPresentationURL();
-    std::string TSProfile = get_WFDTransportProfile();
-    std::string StreamingPort = get_WFDStreamingPortNumber();
-    std::string WFDSessionNum = get_CurrentWFDSessionNumber();
     std::string resp_error_string = get_errorcode_string(error_code);
 
     // Determine the required buffer size using snprintf
@@ -768,12 +707,10 @@ std::string MiracastRTSPMsg::generate_request_response_msg(RTSP_MSG_FMT_SINK2SRC
         {
             content_buffer = append_data1;
             content_buffer_len = std::to_string(content_buffer.length());
-
             sprintf_args.push_back(content_buffer_len.c_str());
             sprintf_args.push_back(received_session_no.c_str());
             sprintf_args.push_back(content_buffer.c_str());
-
-            MIRACASTLOG_TRACE("content_buffer - [%s]\n", content_buffer.c_str());
+            MIRACASTLOG_TRACE("content_buffer - [%s]", content_buffer.c_str());
         }
         break;
         case RTSP_MSG_FMT_M4_RESPONSE:
@@ -794,29 +731,28 @@ std::string MiracastRTSPMsg::generate_request_response_msg(RTSP_MSG_FMT_SINK2SRC
         case RTSP_MSG_FMT_TEARDOWN_REQUEST:
         {
             sequence_number = generate_RequestSequenceNumber();
-
             if (RTSP_MSG_FMT_M2_REQUEST == msg_fmt_needed)
             {
                 sprintf_args.push_back(append_data1.c_str());
             }
             else
             {
-                sprintf_args.push_back(URL.c_str());
+                sprintf_args.push_back(m_wfd_presentation_URL.c_str());
 
                 if (RTSP_MSG_FMT_M6_REQUEST == msg_fmt_needed)
                 {
-                    sprintf_args.push_back(TSProfile.c_str());
+                    sprintf_args.push_back(m_wfd_transport_profile.c_str());
                     if (true == IsWFDUnicastSupported())
                     {
                         unicast_supported.append(RTSP_STD_UNICAST_FIELD);
                         unicast_supported.append(RTSP_SEMI_COLON_STR);
                         sprintf_args.push_back(unicast_supported.c_str());
                     }
-                    sprintf_args.push_back(StreamingPort.c_str());
+                    sprintf_args.push_back(m_wfd_streaming_port.c_str());
                 }
                 else
                 {
-                    sprintf_args.push_back(WFDSessionNum.c_str());
+                    sprintf_args.push_back(m_wfd_session_number.c_str());
                 }
             }
             sprintf_args.push_back(sequence_number.c_str());
@@ -828,64 +764,44 @@ std::string MiracastRTSPMsg::generate_request_response_msg(RTSP_MSG_FMT_SINK2SRC
         }
         break;
     }
-
     std::string result = "";
-
     if (0 != sprintf_args.size())
     {
         result = MiracastRTSPMsg::format_string(template_str, sprintf_args);
     }
     MIRACASTLOG_TRACE("!!! Formatted Buffer[%s] !!!",result.c_str());
     MIRACASTLOG_TRACE("Exiting...");
-    return result;
+    return result.c_str();
 }
 
 std::string MiracastRTSPMsg::generate_RequestSequenceNumber(void)
 {
-    int next_number = std::stoi(m_current_sequence_number.empty() ? "1" : m_current_sequence_number) + 1;
+    int next_number = std::stoi(m_current_sequence_number.empty() ? "1" : m_current_sequence_number.c_str()) + 1;
     m_current_sequence_number = std::to_string(next_number);
-    return m_current_sequence_number;
+    return m_current_sequence_number.c_str();
 }
 
-std::string MiracastRTSPMsg::get_RequestSequenceNumber(void)
+bool MiracastRTSPMsg::IsValidSequenceNumber(std::string& received_seq_num)
 {
-    return m_current_sequence_number;
-}
-
-void MiracastRTSPMsg::set_WFDSourceMACAddress(std::string MAC_Addr)
-{
-    m_connected_mac_addr = MAC_Addr;
-}
-
-void MiracastRTSPMsg::set_WFDSourceName(std::string device_name)
-{
-    m_connected_device_name = device_name;
-}
-
-std::string MiracastRTSPMsg::get_WFDSourceName(void)
-{
-    return m_connected_device_name;
-}
-
-std::string MiracastRTSPMsg::get_WFDSourceMACAddress(void)
-{
-    return m_connected_mac_addr;
-}
-
-void MiracastRTSPMsg::reset_WFDSourceMACAddress(void)
-{
-    m_connected_mac_addr.clear();
-}
-
-void MiracastRTSPMsg::reset_WFDSourceName(void)
-{
-    m_connected_device_name.clear();
+    bool ret = false;
+    MIRACASTLOG_TRACE("Entering ...");
+    if (0 == (m_current_sequence_number.compare(received_seq_num)))
+    {
+        ret = true;
+    }
+    else
+    {
+        MIRACASTLOG_ERROR("Invalid Sequence Number received [%s] Current is [%s]",
+                            received_seq_num.c_str(),
+                            m_current_sequence_number.c_str());
+    }
+    MIRACASTLOG_TRACE("Exiting ...");
+    return ret;
 }
 
 void MiracastRTSPMsg::set_state( eMIRA_PLAYER_STATES state , bool send_notification , eM_PLAYER_REASON_CODE reason_code )
 {
-    MIRACASTLOG_INFO("Entering [%d]notify[%u]reason[%u]...",
-                        state,send_notification,reason_code);
+    MIRACASTLOG_INFO("Entering [%d]notify[%u]reason[%u]...",state,send_notification,reason_code);
     m_current_state = state;
 
     if (( MIRACAST_PLAYER_STATE_STOPPED == state )||( MIRACAST_PLAYER_STATE_SELF_ABORT == state )){
@@ -894,6 +810,11 @@ void MiracastRTSPMsg::set_state( eMIRA_PLAYER_STATES state , bool send_notificat
 
     if (( true == send_notification ) && ( nullptr != m_player_notify_handler ))
     {
+        MIRACASTLOG_INFO("#### Notifying SRC[%s - %s]state[%x]reason[%u] ####",
+                        m_connected_device_name.c_str(),
+                        m_connected_mac_addr.c_str(),
+                        state,
+                        reason_code);
         m_player_notify_handler->onStateChange( m_connected_mac_addr, 
                                                 m_connected_device_name, 
                                                 state, 
@@ -1024,6 +945,7 @@ MiracastError MiracastRTSPMsg::initiate_TCP(std::string goIP)
             MIRACASTLOG_ERROR("TCP Socket creation error %s", strerror(errno));
             continue;
         }
+
         // Set SO_REUSEADDR option
         int optval = 1;
         if (setsockopt(m_tcpSockfd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) == -1)
@@ -1031,14 +953,6 @@ MiracastError MiracastRTSPMsg::initiate_TCP(std::string goIP)
             MIRACASTLOG_ERROR("Failed to set SO_REUSEADDR: %s", strerror(errno));
             continue;
         }
-    #if 0
-        /* Bind socket */
-        if (bind(m_tcpSockfd, (struct sockaddr *)&addr, sizeof(addr)) < 0)
-        {
-            MIRACASTLOG_ERROR("TCP Socket bind error %s", strerror(errno));
-            continue;
-        }
-    #endif
 
         /*---Add socket to epoll---*/
         m_epollfd = epoll_create(1);
@@ -1368,7 +1282,7 @@ RTSP_STATUS MiracastRTSPMsg::validate_rtsp_m2_request_ack(std::string rtsp_m2_re
         }
     }
 
-    if (0 == (get_RequestSequenceNumber().compare(seq_str)))
+    if ( true == IsValidSequenceNumber(seq_str))
     {
         std::vector<std::string> requiredFields;
 
@@ -1656,16 +1570,12 @@ RTSP_STATUS MiracastRTSPMsg::validate_rtsp_m6_ack_m7_send_request(std::string rt
 RTSP_STATUS MiracastRTSPMsg::validate_rtsp_trigger_request_ack(std::string rtsp_trigger_req_ack_buffer , std::string received_seq_num )
 {
     RTSP_STATUS status_code = RTSP_MSG_FAILURE;
-    std::string reported_seq_num = get_RequestSequenceNumber();
     MIRACASTLOG_TRACE("Entering...");
 
-    if (0 != (reported_seq_num.compare(received_seq_num)))
+    if ( false == IsValidSequenceNumber(received_seq_num))
     {
         send_rtsp_reply_sink2src( RTSP_MSG_FMT_REPORT_ERROR , received_seq_num, RTSP_ERRORCODE_BAD_REQUEST );
-        MIRACASTLOG_ERROR("Invalid Sequence Number received [%s] in trigger[%s]. Reported is [%s]",
-                            received_seq_num.c_str(),
-                            rtsp_trigger_req_ack_buffer.c_str(),
-                            reported_seq_num.c_str());
+        MIRACASTLOG_ERROR("Invalid Sequence Number in trigger[%s]",rtsp_trigger_req_ack_buffer.c_str());
     }
     else
     {
@@ -1939,15 +1849,7 @@ RTSP_STATUS MiracastRTSPMsg::rtsp_sink2src_request_msg_handling(eCONTROLLER_FW_S
     return status_code;
 }
 
-std::string MiracastRTSPMsg::get_localIp()
-{
-    MIRACASTLOG_TRACE("Entering...");
-    
-    MIRACASTLOG_TRACE("Exiting...");
-    return m_sink_ip;
-}
-
-int MiracastRTSPMsg::validateGetParameterContentLength(std::string input)
+int MiracastRTSPMsg::validateGetParameterContentLength(std::string& input)
 {
     size_t  contentLengthPos = input.find("Content-Length: "),
             doubleNewlinePos = input.find("\r\n\r\n"),
@@ -2059,10 +1961,8 @@ MiracastError MiracastRTSPMsg::start_streaming( VIDEO_RECT_STRUCT video_rect )
         else
         {
             MiracastGstPlayer *miracastGstPlayerObj = MiracastGstPlayer::getInstance();
-            std::string port = get_WFDStreamingPortNumber();
-            std::string local_ip = get_localIp();
             miracastGstPlayerObj->setVideoRectangle( video_rect );
-            miracastGstPlayerObj->launch(local_ip, port,this);
+            miracastGstPlayerObj->launch(m_sink_ip, m_wfd_streaming_port ,this);
         }
     }
     m_streaming_started = true;
@@ -2123,14 +2023,13 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
             rtsp_msg_hldr_running_state = true;
 
     MIRACASTLOG_TRACE("Entering...");
-
     while ((nullptr != m_rtsp_msg_handler_thread)&&(true == rtsp_msg_hldr_running_state))
     {
-        set_state(MIRACAST_PLAYER_STATE_IDLE);
+        set_state( MIRACAST_PLAYER_STATE_IDLE );
         MIRACASTLOG_TRACE("Waiting for Event .....");
         m_rtsp_msg_handler_thread->receive_message(&rtsp_message_data, sizeof(rtsp_message_data), THREAD_RECV_MSG_INDEFINITE_WAIT);
 
-        MIRACASTLOG_INFO("Received Action[%#04X]\n", rtsp_message_data.state);
+        MIRACASTLOG_INFO("Received Action[%#04X]", rtsp_message_data.state);
 
         if (RTSP_SELF_ABORT == rtsp_message_data.state)
         {
@@ -2452,19 +2351,6 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
     MIRACASTLOG_TRACE("Exiting...");
 }
 
-void MiracastRTSPMsg::send_msgto_controller_thread(eCONTROLLER_FW_STATES state)
-{
-    MIRACASTLOG_TRACE("Entering...");
-    if ( nullptr != m_controller_thread )
-    {
-        CONTROLLER_MSGQ_STRUCT controller_msgq_data = {0};
-        controller_msgq_data.state = state;
-        controller_msgq_data.msg_type = RTSP_MSG;
-        m_controller_thread->send_message(&controller_msgq_data, CONTROLLER_MSGQ_SIZE);
-    }
-    MIRACASTLOG_TRACE("Exiting...");
-}
-
 void MiracastRTSPMsg::send_msgto_rtsp_msg_hdler_thread(RTSP_HLDR_MSGQ_STRUCT rtsp_hldr_msgq_data)
 {
     MIRACASTLOG_TRACE("Entering...");
@@ -2479,97 +2365,13 @@ void RTSPMsgHandlerCallback(void *args)
 {
     MiracastRTSPMsg *rtsp_msg_obj = (MiracastRTSPMsg *)args;
     MIRACASTLOG_TRACE("Entering...");
-    rtsp_msg_obj->RTSPMessageHandler_Thread(nullptr);
+    sleep(1);
+    if ( nullptr != rtsp_msg_obj)
+    {
+        rtsp_msg_obj->RTSPMessageHandler_Thread(nullptr);
+    }
     MIRACASTLOG_TRACE("Exiting...");
 }
-
-#ifdef ENABLE_HDCP2X_SUPPORT
-void MiracastRTSPMsg::DumpBuffer(char *buffer, int length)
-{
-    // Loop through the buffer, printing each byte in hex format
-    std::string hex_string;
-    for (int i = 0; i < length; i++)
-    {
-        char hex_byte[3];
-        snprintf(hex_byte, sizeof(hex_byte), "%02X", (unsigned char)buffer[i]);
-        hex_string += "0x";
-        hex_string += hex_byte;
-        hex_string += " ";
-    }
-    MIRACASTLOG_INFO("\n######### DUMP BUFFER[%u] #########\n%s\n###############################\n", length, hex_string.c_str());
-}
-
-void MiracastRTSPMsg::HDCPTCPServerHandlerThread(void *args)
-{
-    char buff[HDCP2X_SOCKET_BUF_MAX];
-    int sockfd, connfd;
-    struct sockaddr_in servaddr, cli;
-    unsigned int len = 0;
-
-    // socket create and verification
-    sockfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (sockfd == -1)
-    {
-        MIRACASTLOG_ERROR("socket creation failed...");
-    }
-    else
-        MIRACASTLOG_INFO("Socket successfully created..");
-    bzero(&servaddr, sizeof(servaddr));
-
-    // assign IP, PORT
-    servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-    servaddr.sin_port = htons(HDCP2X_PORT);
-
-    // Binding newly created socket to given IP and verification
-    if ((bind(sockfd, (struct sockaddr *)&servaddr, sizeof(servaddr))) != 0)
-    {
-        MIRACASTLOG_ERROR("socket bind failed...");
-    }
-    else
-        MIRACASTLOG_INFO("Socket successfully binded..");
-
-    // Now server is ready to listen and verification
-    if ((listen(sockfd, 5)) != 0)
-    {
-        MIRACASTLOG_ERROR("Listen failed...");
-    }
-    else
-        MIRACASTLOG_INFO("Server listening..");
-    len = sizeof(cli);
-
-    // Accept the data packet from client and verification
-    connfd = accept(sockfd, (struct sockaddr *)&cli, &len);
-    if (connfd < 0)
-    {
-        MIRACASTLOG_ERROR("server accept failed...");
-    }
-    else
-        MIRACASTLOG_INFO("server accept the client...");
-
-    while (true)
-    {
-        bzero(buff, HDCP2X_SOCKET_BUF_MAX);
-
-        // read the message from client and copy it in buffer
-        int n = read(connfd, buff, sizeof(buff));
-
-        if (0 < n)
-        {
-            DumpBuffer(buff, n);
-        }
-
-        bzero(buff, HDCP2X_SOCKET_BUF_MAX);
-    }
-}
-
-void HDCPHandlerCallback(void *args)
-{
-    MiracastRTSPMsg *miracast_ctrler_obj = (MiracastRTSPMsg *)args;
-
-    miracast_ctrler_obj->HDCPTCPServerHandlerThread(nullptr);
-}
-#endif /*ENABLE_HDCP2X_SUPPORT*/
 
 #ifdef ENABLE_MIRACAST_PLAYER_TEST_NOTIFIER
 MiracastError MiracastRTSPMsg::create_TestNotifier(void)
