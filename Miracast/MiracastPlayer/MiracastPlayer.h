@@ -73,7 +73,7 @@ namespace WPEFramework
             virtual void Deinitialize(PluginHost::IShell *service) override;
             virtual string Information() const override;
 
-            void onStateChange(string client_mac, string client_name, eMIRA_PLAYER_STATES player_state, eM_PLAYER_REASON_CODE reason_code /*string reason_desc*/) override;
+            void onStateChange(const std::string& client_mac, const std::string& client_name, eMIRA_PLAYER_STATES player_state, eM_PLAYER_REASON_CODE reason_code ) override;
 
             BEGIN_INTERFACE_MAP(MiracastPlayer)
             INTERFACE_ENTRY(PluginHost::IPlugin)
@@ -90,7 +90,6 @@ namespace WPEFramework
             bool m_isServiceEnabled;
             MiracastGstPlayer *m_GstPlayer;
             MiracastRTSPMsg *m_rtsp_msg;
-            WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> *m_SystemPluginObj = NULL;
 
             uint32_t playRequest(const JsonObject &parameters, JsonObject &response);
             uint32_t stopRequest(const JsonObject &parameters, JsonObject &response);
@@ -103,7 +102,6 @@ namespace WPEFramework
 
             std::string reasonDescription(eM_PLAYER_REASON_CODE);
             std::string stateDescription(eMIRA_PLAYER_STATES);
-            void getSystemPlugin();
 
             // We do not allow this plugin to be copied !!
             MiracastPlayer(const MiracastPlayer &) = delete;

@@ -115,37 +115,6 @@ MiracastGstPlayer::~MiracastGstPlayer()
     MIRACASTLOG_TRACE("Exiting...");
 }
 
-bool MiracastGstPlayer::setUri(const std::string ipaddr, const std::string port)
-{
-    if (ipaddr.empty())
-    {
-        MIRACASTLOG_ERROR("Empty ipaddress");
-        return false;
-    }
-    if (port.empty())
-    {
-        MIRACASTLOG_ERROR("Empty port");
-        return false;
-    }
-
-    m_uri = "udp://" + ipaddr + ":" + port;
-    return true;
-}
-
-std::string MiracastGstPlayer::getUri()
-{
-    return m_uri;
-}
-
-unsigned getGstPlayFlag(const char *nick)
-{
-    MIRACASTLOG_TRACE("Entering..!!!");
-    static GFlagsClass *flagsClass = static_cast<GFlagsClass *>(g_type_class_ref(g_type_from_name("GstPlayFlags")));
-    GFlagsValue *flag = g_flags_get_value_by_nick(flagsClass, nick);
-    MIRACASTLOG_TRACE("Exiting..!!!");
-    return (flag ? flag->value : 0);
-}
-
 bool MiracastGstPlayer::setVideoRectangle( VIDEO_RECT_STRUCT video_rect , bool apply )
 {
     bool ret = false;
@@ -182,29 +151,31 @@ bool MiracastGstPlayer::updateVideoSinkRectangle(void)
                 m_video_rect_st.width, m_video_rect_st.height);
         g_object_set(G_OBJECT(m_video_sink), "window-set", rectString, nullptr);
     }
-
     MIRACASTLOG_TRACE("Exiting...");
-
     return ret;
 }
 
-bool MiracastGstPlayer::launch(std::string localip , std::string streaming_port, MiracastRTSPMsg *rtsp_instance)
+bool MiracastGstPlayer::launch(std::string& localip , std::string& streaming_port, MiracastRTSPMsg *rtsp_instance)
 {
+    char urlBuffer[128] = {0};
     bool ret = false;
 
-    if (setUri(localip, streaming_port))
+    MIRACASTLOG_TRACE("Entering...");
+
+    snprintf(urlBuffer,sizeof(urlBuffer),"udp://%s:%s",localip.c_str(),streaming_port.c_str());
+    m_uri = urlBuffer;
+
+    m_streaming_port = std::stoull(streaming_port.c_str());
+    if ( nullptr != rtsp_instance )
     {
-        m_streaming_port = std::stoull(streaming_port.c_str());
-        if ( nullptr != rtsp_instance )
-        {
-            m_rtsp_reference_instance = rtsp_instance;
-        }
-        ret = createPipeline();
-        if ( !ret ){
-            m_rtsp_reference_instance = nullptr;
-            MIRACASTLOG_ERROR("Failed to create the pipeline");
-        }
+        m_rtsp_reference_instance = rtsp_instance;
     }
+    ret = createPipeline();
+    if ( !ret ){
+        m_rtsp_reference_instance = nullptr;
+        MIRACASTLOG_ERROR("Failed to create the pipeline");
+    }
+    MIRACASTLOG_TRACE("Exiting...");
     return ret;
 }
 
@@ -227,29 +198,31 @@ bool MiracastGstPlayer::stop()
         MIRACASTLOG_ERROR("Pipeline is NULL");
         return false;
     }
+    m_statistics_thread_loop = false;
     if (m_player_statistics_tid){
-        pthread_cancel(m_player_statistics_tid);
+        pthread_join(m_player_statistics_tid,nullptr);
         m_player_statistics_tid = 0;
+    }
+    if (m_main_loop)
+    {
+        g_main_loop_quit(m_main_loop);
     }
     if (m_playback_thread)
     {
-        pthread_cancel(m_playback_thread);
+        pthread_join(m_playback_thread,nullptr);
     }
-
     GstStateChangeReturn ret;
     ret = gst_element_set_state(m_pipeline, GST_STATE_NULL);
     if (ret == GST_STATE_CHANGE_FAILURE)
     {
         MIRACASTLOG_ERROR("Failed to set gst_element_set_state as NULL");
     }
-
     GstBus *bus = gst_pipeline_get_bus(GST_PIPELINE(m_pipeline));
     if (bus)
     {
         gst_bus_set_sync_handler(bus, nullptr, nullptr, nullptr);
         gst_object_unref(bus);
     }
-
     if (m_audio_sink)
     {
         gst_object_unref(m_audio_sink);
@@ -290,7 +263,6 @@ bool MiracastGstPlayer::stop()
         gst_object_unref(m_vQueue);
         m_vQueue = nullptr;
     }
-
     if (m_tsdemux)
     {
         gst_object_unref(m_tsdemux);
@@ -301,7 +273,6 @@ bool MiracastGstPlayer::stop()
         gst_object_unref(m_tsparse);
         m_tsparse = nullptr;
     }
-
     if (m_rtpmp2tdepay)
     {
         gst_object_unref(m_rtpmp2tdepay);
@@ -317,7 +288,6 @@ bool MiracastGstPlayer::stop()
         gst_object_unref(m_udpsrc);
         m_udpsrc = nullptr;
     }
-
     if (m_main_loop)
     {
         g_main_loop_unref(m_main_loop);
@@ -328,7 +298,6 @@ bool MiracastGstPlayer::stop()
         g_main_context_unref(m_main_loop_context);
         m_main_loop_context = nullptr;
     }
-
     if (m_pipeline)
     {
         g_object_unref(m_pipeline);
@@ -382,10 +351,11 @@ void* MiracastGstPlayer::monitor_player_statistics_thread(void *ctx)
     MiracastGstPlayer *self = (MiracastGstPlayer *)ctx;
     
     int time_interval_sec = 60;
-    while (true)
+    self->m_statistics_thread_loop = true;
+    while (true == self->m_statistics_thread_loop)
     {
         isInteger = true;
-        time_interval_sec = 120;
+        time_interval_sec = 5;
         std::ifstream player_stats_monitor_delay("/opt/miracast_player_stats"); // Assuming the input file is named "input.txt"
 
         if (!player_stats_monitor_delay)
@@ -608,28 +578,17 @@ gboolean MiracastGstPlayer::busMessageCb(GstBus *bus, GstMessage *msg, gpointer 
 
             if (GST_MESSAGE_SRC(msg) == GST_OBJECT(self->m_pipeline))
             {
+                char fileName[128] = {0};
                 static int id = 0;
                 id++;
-                #if 0
-                gst_message_parse_state_changed(msg, &old, &now, &pending);
-                if (memcmp(GST_OBJECT_NAME(GST_MESSAGE_SRC(msg)), "miracast_player", strlen("miracast_player")) == 0)
-                {
-                    MIRACASTLOG_INFO("Element [%s], Pipeline state change from Old [%s] -> New [%s] and Pending state is [%s]",
-                                        GST_ELEMENT_NAME(GST_MESSAGE_SRC(msg)),
-                                        gst_element_state_get_name(old),
-                                        gst_element_state_get_name(now),
-                                        gst_element_state_get_name(pending));
-                }
-                #endif
-                std::string file_name = "miracast_player_";
-                file_name += (GST_OBJECT_NAME(self->m_pipeline));
-                file_name += "_" + std::to_string(id);
-                file_name += "_";
-                file_name += gst_element_state_get_name(old);
-                file_name += "_";
-                file_name += gst_element_state_get_name(now);
-
-                GST_DEBUG_BIN_TO_DOT_FILE((GstBin *)self->m_pipeline, GST_DEBUG_GRAPH_SHOW_ALL, file_name.c_str());
+                snprintf( fileName,
+                          sizeof(fileName),
+                          "MiracastPlayer_%s_%s_%s_%s_DBG",
+                          GST_OBJECT_NAME(self->m_pipeline),
+                          std::to_string(id).c_str(),
+                          gst_element_state_get_name(old),
+                          gst_element_state_get_name(now));
+                GST_DEBUG_BIN_TO_DOT_FILE((GstBin *)self->m_pipeline, GST_DEBUG_GRAPH_SHOW_ALL, fileName);
             }
             break;
         }

@@ -110,58 +110,8 @@ namespace WPEFramework
 		MiracastPlayer::~MiracastPlayer()
 		{
 			LOGINFO("Entering..!!!");
-			if (nullptr != m_SystemPluginObj)
-			{
-				delete m_SystemPluginObj;
-				m_SystemPluginObj = nullptr;
-			}
 			MIRACAST::logger_deinit();
 			LOGINFO("Exiting..!!!");
-		}
-
-		// Thunder plugins communication
-		void MiracastPlayer::getSystemPlugin()
-		{
-			MIRACASTLOG_INFO("Entering..!!!");
-
-			if (nullptr == m_SystemPluginObj)
-			{
-				string token;
-				// TODO: use interfaces and remove token
-				auto security = m_CurrentService->QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
-				if (nullptr != security)
-				{
-					string payload = "http://localhost";
-					if (security->CreateToken(static_cast<uint16_t>(payload.length()),
-											  reinterpret_cast<const uint8_t *>(payload.c_str()),
-											  token) == Core::ERROR_NONE)
-					{
-						MIRACASTLOG_INFO("got security token\n");
-					}
-					else
-					{
-						MIRACASTLOG_ERROR("failed to get security token\n");
-					}
-					security->Release();
-				}
-				else
-				{
-					MIRACASTLOG_ERROR("No security agent\n");
-				}
-
-				string query = "token=" + token;
-				Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(SERVER_DETAILS)));
-				m_SystemPluginObj = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(_T(SYSTEM_CALLSIGN_VER), (_T("MiracastPlayer")), false, query);
-				if (nullptr == m_SystemPluginObj)
-				{
-					MIRACASTLOG_ERROR("JSONRPC: %s: initialization failed", SYSTEM_CALLSIGN_VER);
-				}
-				else
-				{
-					MIRACASTLOG_INFO("JSONRPC: %s: initialization ok", SYSTEM_CALLSIGN_VER);
-				}
-			}
-			MIRACASTLOG_INFO("Exiting..!!!");
 		}
 
 		const string MiracastPlayer::Initialize(PluginHost::IShell *service)
@@ -177,23 +127,22 @@ namespace WPEFramework
 				{
 					m_CurrentService = service;
 					m_GstPlayer = MiracastGstPlayer::getInstance();
-					getSystemPlugin();
 					m_isServiceInitialized = true;
 				}
 				else
 				{
 					switch (ret_code)
 					{
-					case MIRACAST_RTSP_INIT_FAILED:
-					{
-						msg = "RTSP msg handler Init Failed";
-					}
-					break;
-					default:
-					{
-						msg = "Unknown Error:Failed to obtain MiracastRTSPMsg Object";
-					}
-					break;
+						case MIRACAST_RTSP_INIT_FAILED:
+						{
+							msg = "RTSP msg handler Init Failed";
+						}
+						break;
+						default:
+						{
+							msg = "Unknown Error:Failed to obtain MiracastRTSPMsg Object";
+						}
+						break;
 					}
 				}
 			}
@@ -815,7 +764,7 @@ namespace WPEFramework
 		}
 #endif/*ENABLE_MIRACAST_PLAYER_TEST_NOTIFIER*/
 
-		void MiracastPlayer::onStateChange(string client_mac, string client_name, eMIRA_PLAYER_STATES player_state, eM_PLAYER_REASON_CODE reason_code)
+		void MiracastPlayer::onStateChange(const std::string& client_mac, const std::string& client_name, eMIRA_PLAYER_STATES player_state, eM_PLAYER_REASON_CODE reason_code)
 		{
 			MIRACASTLOG_INFO("Entering..!!!");
 
@@ -825,24 +774,17 @@ namespace WPEFramework
 			params["state"] = stateDescription(player_state);
 			params["reason_code"] = std::to_string(reason_code);
 			params["reason"] = reasonDescription(reason_code);
-
 			if (0 == access("/opt/miracast_autoconnect", F_OK))
 			{
-				std::string system_command = "";
-				system_command = "curl -H \"Authorization: Bearer `WPEFrameworkSecurityUtility | cut -d '\"' -f 4`\"";
-				system_command.append(" --header \"Content-Type: application/json\" --request POST --data '{\"jsonrpc\":\"2.0\", \"id\":3,\"method\":\"org.rdk.MiracastService.1.updatePlayerState\", \"params\":{");
-				system_command.append("\"mac\": \"");
-				system_command.append(client_mac);
-				system_command.append("\",");
-				system_command.append("\"state\": \"");
-				system_command.append(stateDescription(player_state));
-				system_command.append(",");
-				system_command.append("\"reason_code\": ");
-				system_command.append(std::to_string(reason_code));
-				system_command.append("}}' http://127.0.0.1:9998/jsonrpc\n");
-
-				MIRACASTLOG_INFO("System Command [%s]\n",system_command.c_str());
-				MiracastCommon::execute_SystemCommand( system_command.c_str());
+				char commandBuffer[768] = {0};
+				snprintf( commandBuffer,
+						sizeof(commandBuffer),
+						"curl -H \"Authorization: Bearer `WPEFrameworkSecurityUtility | cut -d '\"' -f 4`\" --header \"Content-Type: application/json\" --request POST --data '{\"jsonrpc\":\"2.0\", \"id\":3,\"method\":\"org.rdk.MiracastService.1.updatePlayerState\", \"params\":{\"mac\": \"%s\",\"state\": \"%s\",\"reason_code\": %s}}' http://127.0.0.1:9998/jsonrpc",
+						client_mac.c_str(),
+						stateDescription(player_state).c_str(),
+						std::to_string(reason_code).c_str());
+				MIRACASTLOG_INFO("System Command [%s]",commandBuffer);
+				MiracastCommon::execute_SystemCommand(commandBuffer);
 			}
 			else
 			{
