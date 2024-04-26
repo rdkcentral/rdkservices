@@ -60,16 +60,6 @@ MiracastGstPlayer::~MiracastGstPlayer()
 {
 }
 
-bool MiracastGstPlayer::setUri(const std::string ipaddr, const std::string port)
-{
-	return true;
-}
-
-std::string MiracastGstPlayer::getUri()
-{
-	return m_uri;
-}
-
 bool MiracastGstPlayer::setVideoRectangle( VIDEO_RECT_STRUCT video_rect , bool apply )
 {
 	MIRACASTLOG_TRACE("Entering...");
@@ -79,7 +69,7 @@ bool MiracastGstPlayer::setVideoRectangle( VIDEO_RECT_STRUCT video_rect , bool a
 	return true;
 }
 
-bool MiracastGstPlayer::launch(std::string localip , std::string streaming_port, MiracastRTSPMsg *rtsp_instance)
+bool MiracastGstPlayer::launch(std::string& localip , std::string& streaming_port, MiracastRTSPMsg *rtsp_instance)
 {
 	if ( nullptr != rtsp_instance )
 	{
