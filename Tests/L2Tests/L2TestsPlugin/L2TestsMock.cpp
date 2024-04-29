@@ -38,6 +38,8 @@ L2TestMocks::L2TestMocks()
 {
     p_rfcApiImplMock    = new NiceMock <RfcApiImplMock>;
     p_iarmBusImplMock   = new NiceMock <IarmBusImplMock>;
+    p_udevImplMock      = new NiceMock <UdevImplMock>;
+    p_wrapsImplMock     = new NiceMock <WrapsImplMock>;
     p_hostImplMock      = new NiceMock <HostImplMock>;
     p_videoOutputPortConfigImplMock = new NiceMock <VideoOutputPortConfigImplMock>;
     p_managerImplMock   = new NiceMock <ManagerImplMock>;
@@ -45,6 +47,8 @@ L2TestMocks::L2TestMocks()
 
     IarmBus::setImpl(p_iarmBusImplMock);
     RfcApi::setImpl(p_rfcApiImplMock);
+    Udev::setImpl(p_udevImplMock);
+    Wraps::setImpl(p_wrapsImplMock);
     device::Host::setImpl(p_hostImplMock);
     device::VideoOutputPortConfig::setImpl(p_videoOutputPortConfigImplMock);
     device::Manager::setImpl(p_managerImplMock);
@@ -92,6 +96,20 @@ L2TestMocks::~L2TestMocks()
    {
       delete p_videoOutputPortMock;
       p_videoOutputPortMock = nullptr;
+   }
+
+   Udev::setImpl(nullptr);
+   if (p_udevImplMock != nullptr)
+   {
+        delete p_udevImplMock;
+        p_udevImplMock = nullptr;
+   }
+   
+   Wraps::setImpl(nullptr);
+   if (p_wrapsImplMock != nullptr)
+   {
+        delete p_wrapsImplMock;
+        p_wrapsImplMock = nullptr;
    }
 }
 
