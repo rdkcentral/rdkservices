@@ -26,6 +26,8 @@
 
 #include "IarmBusMock.h"
 #include "RfcApiMock.h"
+#include "UdevMock.h"
+#include "WrapsMock.h"
 #include "VideoOutputPortConfigMock.h"
 #include "VideoOutputPortMock.h"
 #include "HostMock.h"
@@ -38,6 +40,8 @@ protected:
         RfcApiImplMock   *p_rfcApiImplMock = nullptr ;
         RfcApi           *p_rfcApi         = nullptr ;
         IarmBusImplMock  *p_iarmBusImplMock = nullptr ;
+        WrapsImplMock    *p_wrapsImplMock = nullptr ;
+        UdevImplMock     *p_udevImplMock = nullptr ;
         HostImplMock     *p_hostImplMock = nullptr ;
         VideoOutputPortConfigImplMock *p_videoOutputPortConfigImplMock = nullptr ;
         ManagerImplMock  *p_managerImplMock = nullptr ;
