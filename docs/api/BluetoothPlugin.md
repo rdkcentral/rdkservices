@@ -359,6 +359,8 @@ This method takes no parameters.
 | result.connectedDevices[#].name | string | Name of the Bluetooth Device |
 | result.connectedDevices[#].deviceType | string | Device class (for example: `headset`, `speakers`, etc.) |
 | result.connectedDevices[#].activeState | string | for devices that support low power mode this parameter indicates if the device is in `STANDBY` mode (`0`), `LOW_POWER` mode (`1`), or `ACTIVE` mode (`2`) |
+| result.connectedDevices[#].rawDeviceType | string | Bluetooth device class |
+| result.connectedDevices[#].rawBleDeviceType | string | Bluetooth device appearance |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -385,7 +387,9 @@ This method takes no parameters.
                 "deviceID": "61579454946360",
                 "name": "[TV] UE32J5530",
                 "deviceType": "TV",
-                "activeState": "0"
+                "activeState": "0",
+                "rawDeviceType": "2360344",
+                "rawBleDeviceType": "180"
             }
         ],
         "success": true
@@ -493,6 +497,8 @@ This method takes no parameters.
 | result.discoveredDevices[#].deviceType | string | Device class (for example: `headset`, `speakers`, etc.) |
 | result.discoveredDevices[#].connected | boolean | Whether the device is connected |
 | result.discoveredDevices[#].paired | boolean | Whether paired or not |
+| result.discoveredDevices[#].rawDeviceType | string | Bluetooth device class |
+| result.discoveredDevices[#].rawBleDeviceType | string | Bluetooth device appearance |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -520,7 +526,9 @@ This method takes no parameters.
                 "name": "[TV] UE32J5530",
                 "deviceType": "TV",
                 "connected": true,
-                "paired": true
+                "paired": true,
+                "rawDeviceType": "2360344",
+                "rawBleDeviceType": "180"
             }
         ],
         "success": true
@@ -598,6 +606,8 @@ This method takes no parameters.
 | result.pairedDevices[#].name | string | Name of the Bluetooth Device |
 | result.pairedDevices[#].deviceType | string | Device class (for example: `headset`, `speakers`, etc.) |
 | result.pairedDevices[#].connected | boolean | Whether the device is connected |
+| result.pairedDevices[#].rawDeviceType | string | Bluetooth device class |
+| result.pairedDevices[#].rawBleDeviceType | string | Bluetooth device appearance |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -624,7 +634,9 @@ This method takes no parameters.
                 "deviceID": "61579454946360",
                 "name": "[TV] UE32J5530",
                 "deviceType": "TV",
-                "connected": true
+                "connected": true,
+                "rawDeviceType": "2360344",
+                "rawBleDeviceType": "180"
             }
         ],
         "success": true
