@@ -76,6 +76,7 @@ typedef enum{
 #define MAX_ACTIVATION_RETRIES          4
 
 #define NETWORK_RETRY_INTERVAL          30
+#define SECMANAGER_SLEEP_INTERVAL       5
 
 #define DCM_SUCCESS                     0
 #define DCM_COMPLETE                    1
@@ -136,6 +137,7 @@ namespace WPEFramework {
                 bool g_listen_to_nwevents = false;
                 bool g_subscribed_for_nwevents = false;
                 bool g_listen_to_deviceContextUpdate = false;
+                bool g_subscribed_for_deviceContextUpdate = false;
 
                 std::mutex  m_callMutex;
                 std::mutex  m_statusMutex;
