@@ -21,7 +21,6 @@
 #define _MIRACAST_P2P_H_
 
 #include <string.h>
-#include <MiracastServiceError.h>
 #include <MiracastLogger.h>
 
 using namespace std;
