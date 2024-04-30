@@ -26,41 +26,41 @@
 #include <sys/types.h>
 #include <sys/syscall.h>
 #include "MiracastLogger.h"
-#include "MiracastController.h"
-#include "SoC_abstraction.h"
+#include "MiracastRTSPMsg.h"
+#include "SoC_GstPlayer.h"
 
-MiracastGstPlayer *MiracastGstPlayer::mMiracastGstPlayer{nullptr};
+SoC_GstPlayer *SoC_GstPlayer::m_GstPlayer{nullptr};
 
-MiracastGstPlayer *MiracastGstPlayer::getInstance()
+SoC_GstPlayer *SoC_GstPlayer::getInstance()
 {
-	if (mMiracastGstPlayer == nullptr)
+	if (m_GstPlayer == nullptr)
 	{
-		mMiracastGstPlayer = new MiracastGstPlayer();
+		m_GstPlayer = new SoC_GstPlayer();
 	}
-	return mMiracastGstPlayer;
+	return m_GstPlayer;
 }
 
-void MiracastGstPlayer::destroyInstance()
+void SoC_GstPlayer::destroyInstance()
 {
 	MIRACASTLOG_TRACE("Entering...");
-	if (mMiracastGstPlayer != nullptr)
+	if (m_GstPlayer != nullptr)
 	{
 		MIRACASTLOG_INFO("Stop miracast player");
-		delete mMiracastGstPlayer;
-		mMiracastGstPlayer = nullptr;
+		delete m_GstPlayer;
+		m_GstPlayer = nullptr;
 	}
 	MIRACASTLOG_TRACE("Exiting...");
 }
 
-MiracastGstPlayer::MiracastGstPlayer()
+SoC_GstPlayer::SoC_GstPlayer()
 {
 }
 
-MiracastGstPlayer::~MiracastGstPlayer()
+SoC_GstPlayer::~SoC_GstPlayer()
 {
 }
 
-bool MiracastGstPlayer::setVideoRectangle( VIDEO_RECT_STRUCT video_rect , bool apply )
+bool SoC_GstPlayer::setVideoRectangle( VIDEO_RECT_STRUCT video_rect , bool apply )
 {
 	MIRACASTLOG_TRACE("Entering...");
 	MIRACASTLOG_TRACE("Exiting Coords[%d,%d,%d,%d]Apply[%x]...",
@@ -69,7 +69,7 @@ bool MiracastGstPlayer::setVideoRectangle( VIDEO_RECT_STRUCT video_rect , bool a
 	return true;
 }
 
-bool MiracastGstPlayer::launch(std::string& localip , std::string& streaming_port, MiracastRTSPMsg *rtsp_instance)
+bool SoC_GstPlayer::launch(std::string& localip , std::string& streaming_port, MiracastRTSPMsg *rtsp_instance)
 {
 	if ( nullptr != rtsp_instance )
 	{
@@ -79,33 +79,33 @@ bool MiracastGstPlayer::launch(std::string& localip , std::string& streaming_por
 	return true;
 }
 
-bool MiracastGstPlayer::pause()
+bool SoC_GstPlayer::pause()
 {
 	return true;
 }
 
-bool MiracastGstPlayer::resume()
+bool SoC_GstPlayer::resume()
 {
 	return true;
 }
 
-bool MiracastGstPlayer::stop()
+bool SoC_GstPlayer::stop()
 {
 	destroyInstance();
 	return true;
 }
 
-void MiracastGstPlayer::onFirstVideoFrameCallback(GstElement* object, guint arg0, gpointer arg1,gpointer userdata)
+void SoC_GstPlayer::onFirstVideoFrameCallback(GstElement* object, guint arg0, gpointer arg1,gpointer userdata)
 {
 	MIRACASTLOG_TRACE("Entering..!!!");
-	MiracastGstPlayer *self = static_cast<MiracastGstPlayer*>(userdata);
+	SoC_GstPlayer *self = static_cast<SoC_GstPlayer*>(userdata);
 	self->m_firstVideoFrameReceived = true;
 	MIRACASTLOG_INFO("!!! First Video Frame has received !!!");
 	self->notifyPlaybackState(MIRACAST_GSTPLAYER_STATE_FIRST_VIDEO_FRAME_RECEIVED);
 	MIRACASTLOG_TRACE("Exiting..!!!");
 }
 
-void MiracastGstPlayer::notifyPlaybackState(eMIRA_GSTPLAYER_STATES gst_player_state)
+void SoC_GstPlayer::notifyPlaybackState(eMIRA_GSTPLAYER_STATES gst_player_state)
 {
 	MIRACASTLOG_TRACE("Entering..!!!");
 	if ( nullptr != m_rtsp_reference_instance )
