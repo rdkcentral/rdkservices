@@ -36,17 +36,17 @@ find_package(GStreamer REQUIRED)
 
 find_library(GLIB_LIBRARY NAMES glib-2.0 )
 
-add_library(${MODULE_NAME} SHARED Module.cpp MiracastPlayer.cpp ../common/MiracastLogger.cpp ../common/MiracastCommon.cpp ../RTSP/MiracastRtspMsg.cpp)
+add_library(${MODULE_NAME} SHARED Module.cpp MiracastPlayer.cpp ../common/MiracastLogger.cpp ../common/MiracastCommon.cpp RTSP/MiracastRTSPMsg.cpp)
 
 if (BUILD_AMLOGIC)
 	target_sources(${MODULE_NAME}
 		PRIVATE
-		Amlogic/SoC_abstraction.cpp
+		Amlogic/SoC_GstPlayer.cpp
 		)
 elseif (RDK_SERVICES_L1_TEST)
 	target_sources(${MODULE_NAME}
 		PRIVATE
-		Test/SoC_abstraction.cpp
+		Test/SoC_GstPlayer.cpp
 		)
 else()
 	message(FATAL_ERROR "SoC abstraction yet to be implemented")
@@ -58,7 +58,8 @@ set_target_properties(${MODULE_NAME} PROPERTIES
 set_source_files_properties(MiracastPlayer.cpp PROPERTIES COMPILE_FLAGS "-fexceptions")
 
 target_include_directories(${MODULE_NAME} PRIVATE ./)
-target_include_directories(${MODULE_NAME} PRIVATE ../include)
+target_include_directories(${MODULE_NAME} PRIVATE ../common)
+target_include_directories(${MODULE_NAME} PRIVATE RTSP)
 target_include_directories(${MODULE_NAME} PRIVATE ../../helpers)
 target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS})
 target_include_directories(${MODULE_NAME} PRIVATE ${GLIB_INCLUDE_DIRS})

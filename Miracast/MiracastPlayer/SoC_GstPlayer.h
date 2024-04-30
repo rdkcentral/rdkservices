@@ -29,10 +29,10 @@
 #include <pthread.h>
 #include <stdint.h>
 
-class MiracastGstPlayer
+class SoC_GstPlayer
 {
 public:
-    static MiracastGstPlayer *getInstance();
+    static SoC_GstPlayer *getInstance();
     static void destroyInstance();
     bool launch(std::string& localip , std::string& streaming_port,MiracastRTSPMsg *rtsp_instance);
     bool stop();
@@ -75,11 +75,11 @@ private:
     pthread_t m_playback_thread{0};
     VIDEO_RECT_STRUCT m_video_rect_st;
 
-    static MiracastGstPlayer *mMiracastGstPlayer;
-    MiracastGstPlayer();
-    virtual ~MiracastGstPlayer();
-    MiracastGstPlayer &operator=(const MiracastGstPlayer &) = delete;
-    MiracastGstPlayer(const MiracastGstPlayer &) = delete;
+    static SoC_GstPlayer *m_GstPlayer;
+    SoC_GstPlayer();
+    virtual ~SoC_GstPlayer();
+    SoC_GstPlayer &operator=(const SoC_GstPlayer &) = delete;
+    SoC_GstPlayer(const SoC_GstPlayer &) = delete;
 
     bool createPipeline();
     bool updateVideoSinkRectangle(void);
@@ -99,4 +99,4 @@ private:
     static void pad_added_handler(GstElement *gstelement, GstPad *new_pad, gpointer userdata);
 };
 
-#endif /* MiracastGstPlayer_hpp */
+#endif /* SoC_GstPlayer_hpp */

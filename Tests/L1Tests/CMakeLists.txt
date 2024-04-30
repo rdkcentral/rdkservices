@@ -97,9 +97,11 @@ include_directories(../../LocationSync
         ../../Packager
         ../../TextToSpeech
         ../../SystemAudioPlayer
-	../../Miracast/include
-	../../Miracast/MiracastService
+        ../../Miracast/common
+        ../../Miracast/MiracastService
+        ../../Miracast/MiracastService/P2P
 	../../Miracast/MiracastPlayer
+        ../../Miracast/MiracastPlayer/RTSP
         )
 link_directories(../../LocationSync
         ../../SecurityAgent

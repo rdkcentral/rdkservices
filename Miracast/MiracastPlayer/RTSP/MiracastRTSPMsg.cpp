@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-#include <MiracastRtspMsg.h>
-#include <SoC_abstraction.h>
+#include <MiracastRTSPMsg.h>
+#include <SoC_GstPlayer.h>
 
 MiracastRTSPMsg *MiracastRTSPMsg::m_rtsp_msg_obj{nullptr};
 static std::string empty_string = "";
@@ -1838,16 +1838,16 @@ RTSP_STATUS MiracastRTSPMsg::rtsp_sink2src_request_msg_handling(eCONTROLLER_FW_S
         status_code = send_rtsp_reply_sink2src( request_mode );
 
         if ( RTSP_MSG_SUCCESS == status_code ){
-            MiracastGstPlayer *miracastGstPlayerObj = MiracastGstPlayer::getInstance();
+            SoC_GstPlayer *SoC_GstPlayerObj = SoC_GstPlayer::getInstance();
 
             if ( RTSP_MSG_FMT_PLAY_REQUEST == request_mode )
             {
-                miracastGstPlayerObj->resume();
+                SoC_GstPlayerObj->resume();
                 MIRACASTLOG_INFO("GstPlayback resumed...");
             }
             else if ( RTSP_MSG_FMT_PAUSE_REQUEST == request_mode )
             {
-                miracastGstPlayerObj->pause();
+                SoC_GstPlayerObj->pause();
                 MIRACASTLOG_INFO("GstPlayback paused...");
             }
         }
@@ -1930,9 +1930,9 @@ MiracastError MiracastRTSPMsg::start_streaming( VIDEO_RECT_STRUCT video_rect )
         }
         else
         {
-            MiracastGstPlayer *miracastGstPlayerObj = MiracastGstPlayer::getInstance();
-            miracastGstPlayerObj->setVideoRectangle( video_rect );
-            miracastGstPlayerObj->launch(m_sink_ip, m_wfd_streaming_port ,this);
+            SoC_GstPlayer *SoC_GstPlayerObj = SoC_GstPlayer::getInstance();
+            SoC_GstPlayerObj->setVideoRectangle( video_rect );
+            SoC_GstPlayerObj->launch(m_sink_ip, m_wfd_streaming_port ,this);
         }
     }
     m_streaming_started = true;
@@ -1951,14 +1951,14 @@ MiracastError MiracastRTSPMsg::stop_streaming( eMIRA_PLAYER_STATES state )
         {
             if (MIRACAST_PLAYER_STATE_SELF_ABORT == state)
             {
-                MiracastGstPlayer::destroyInstance();
-                MIRACASTLOG_INFO("MiracastGstPlayer instance destroyed...");
+                SoC_GstPlayer::destroyInstance();
+                MIRACASTLOG_INFO("SoC_GstPlayer instance destroyed...");
             }
             else
             {
-                MiracastGstPlayer *miracastGstPlayerObj = MiracastGstPlayer::getInstance();
-                miracastGstPlayerObj->stop();
-                MIRACASTLOG_INFO("MiracastGstPlayer instance stopped...");
+                SoC_GstPlayer *SoC_GstPlayerObj = SoC_GstPlayer::getInstance();
+                SoC_GstPlayerObj->stop();
+                MIRACASTLOG_INFO("SoC_GstPlayer instance stopped...");
             }
             m_streaming_started = false;
         }
@@ -1971,8 +1971,8 @@ MiracastError MiracastRTSPMsg::updateVideoRectangle( VIDEO_RECT_STRUCT videorect
 {
     MIRACASTLOG_TRACE("Entering...");
 
-    MiracastGstPlayer *miracastGstPlayerObj = MiracastGstPlayer::getInstance();
-    miracastGstPlayerObj->setVideoRectangle( videorect , true );
+    SoC_GstPlayer *SoC_GstPlayerObj = SoC_GstPlayer::getInstance();
+    SoC_GstPlayerObj->setVideoRectangle( videorect , true );
 
     MIRACASTLOG_TRACE("Exiting...");
     return MIRACAST_OK;
