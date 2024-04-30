@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.3.5] - 2024-04-19
+### Added
+- added retry logic for connectivity monitor
+
 ## [1.3.4] - 2024-03-25
 ### Fixed
 - RDKTV-29511 :network will auto disconnect then connect
