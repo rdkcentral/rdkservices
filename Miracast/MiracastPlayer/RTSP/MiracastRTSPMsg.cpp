@@ -17,8 +17,8 @@
  * limitations under the License.
  */
 
-#include <MiracastRtspMsg.h>
-#include <MiracastGstPlayer.h>
+#include <MiracastRTSPMsg.h>
+#include <SoC_GstPlayer.h>
 
 MiracastRTSPMsg *MiracastRTSPMsg::m_rtsp_msg_obj{nullptr};
 static std::string empty_string = "";
@@ -1831,16 +1831,16 @@ RTSP_STATUS MiracastRTSPMsg::rtsp_sink2src_request_msg_handling(eCONTROLLER_FW_S
         status_code = send_rtsp_reply_sink2src( request_mode );
 
         if ( RTSP_MSG_SUCCESS == status_code ){
-            MiracastGstPlayer *miracastGstPlayerObj = MiracastGstPlayer::getInstance();
+            SoC_GstPlayer *SoC_GstPlayerObj = SoC_GstPlayer::getInstance();
 
             if ( RTSP_MSG_FMT_PLAY_REQUEST == request_mode )
             {
-                miracastGstPlayerObj->resume();
+                SoC_GstPlayerObj->resume();
                 MIRACASTLOG_INFO("GstPlayback resumed...");
             }
             else if ( RTSP_MSG_FMT_PAUSE_REQUEST == request_mode )
             {
-                miracastGstPlayerObj->pause();
+                SoC_GstPlayerObj->pause();
                 MIRACASTLOG_INFO("GstPlayback paused...");
             }
         }
@@ -1883,43 +1883,6 @@ int MiracastRTSPMsg::validateGetParameterContentLength(std::string& input)
 MiracastError MiracastRTSPMsg::start_streaming( VIDEO_RECT_STRUCT video_rect )
 {
     MIRACASTLOG_TRACE("Entering...");
-#if defined(PLATFORM_AMLOGIC)
-    {
-        char command[128] = {0};
-        std::string default_error_proc_policy = "2151665463";
-        std::ifstream decoder_error_proc_policy_file("/opt/aml_dec_error_proc_policy");
-
-        if (decoder_error_proc_policy_file.is_open())
-        {
-            std::string new_error_proc_policy = "";
-            std::getline(decoder_error_proc_policy_file, new_error_proc_policy);
-            decoder_error_proc_policy_file.close();
-
-            MIRACASTLOG_VERBOSE("decoder_error_proc_policy_file reading from file [/opt/aml_dec_error_proc_policy], new_error_proc_policy as [%s] ",
-                                new_error_proc_policy.c_str());
-            MIRACASTLOG_VERBOSE("Overwriting error_proc_policy default[%s] with new[%s]",
-                                default_error_proc_policy.c_str(),
-                                new_error_proc_policy.c_str());
-            default_error_proc_policy = new_error_proc_policy;
-        }
-
-        if ( ! default_error_proc_policy.empty())
-        {
-            sprintf(command, "echo %s > /sys/module/amvdec_mh264/parameters/error_proc_policy",
-                    default_error_proc_policy.c_str());
-
-            MIRACASTLOG_INFO("command for applying error_proc_policy[%s]",command);
-            if (0 == system(command))
-            {
-                MIRACASTLOG_INFO("error_proc_policy applied successfully");
-            }
-            else
-            {
-                MIRACASTLOG_ERROR("!!! Failed to apply error_proc_policy !!!");
-            }
-        }
-    }
-#endif
     std::string gstreamerPipeline = "";
     const char *mcastfile = "/opt/miracast_gstpipline.txt";
     std::ifstream mcgstfile(mcastfile);
@@ -1936,7 +1899,7 @@ MiracastError MiracastRTSPMsg::start_streaming( VIDEO_RECT_STRUCT video_rect )
         std::getline(mcgstfile, gstreamerPipeline);
         MIRACASTLOG_VERBOSE("gstpipeline reading from file [%s], gstreamerPipeline as [ %s] ", mcastfile, gstreamerPipeline.c_str());
         mcgstfile.close();
-        if (0 == system(gstreamerPipeline.c_str()))
+        if (0 == MiracastCommon::execute_SystemCommand(gstreamerPipeline.c_str()))
             MIRACASTLOG_VERBOSE("Pipeline created successfully ");
         else
         {
@@ -1950,7 +1913,7 @@ MiracastError MiracastRTSPMsg::start_streaming( VIDEO_RECT_STRUCT video_rect )
         {
             gstreamerPipeline = "GST_DEBUG=3 gst-launch-1.0 -vvv playbin uri=udp://0.0.0.0:1990 video-sink=\"westerossink\"";
             MIRACASTLOG_VERBOSE("pipeline constructed is --> %s", gstreamerPipeline.c_str());
-            if (0 == system(gstreamerPipeline.c_str()))
+            if (0 == MiracastCommon::execute_SystemCommand(gstreamerPipeline.c_str()))
                 MIRACASTLOG_VERBOSE("Pipeline created successfully ");
             else
             {
@@ -1960,9 +1923,9 @@ MiracastError MiracastRTSPMsg::start_streaming( VIDEO_RECT_STRUCT video_rect )
         }
         else
         {
-            MiracastGstPlayer *miracastGstPlayerObj = MiracastGstPlayer::getInstance();
-            miracastGstPlayerObj->setVideoRectangle( video_rect );
-            miracastGstPlayerObj->launch(m_sink_ip, m_wfd_streaming_port ,this);
+            SoC_GstPlayer *SoC_GstPlayerObj = SoC_GstPlayer::getInstance();
+            SoC_GstPlayerObj->setVideoRectangle( video_rect );
+            SoC_GstPlayerObj->launch(m_sink_ip, m_wfd_streaming_port ,this);
         }
     }
     m_streaming_started = true;
@@ -1981,14 +1944,14 @@ MiracastError MiracastRTSPMsg::stop_streaming( eMIRA_PLAYER_STATES state )
         {
             if (MIRACAST_PLAYER_STATE_SELF_ABORT == state)
             {
-                MiracastGstPlayer::destroyInstance();
-                MIRACASTLOG_INFO("MiracastGstPlayer instance destroyed...");
+                SoC_GstPlayer::destroyInstance();
+                MIRACASTLOG_INFO("SoC_GstPlayer instance destroyed...");
             }
             else
             {
-                MiracastGstPlayer *miracastGstPlayerObj = MiracastGstPlayer::getInstance();
-                miracastGstPlayerObj->stop();
-                MIRACASTLOG_INFO("MiracastGstPlayer instance stopped...");
+                SoC_GstPlayer *SoC_GstPlayerObj = SoC_GstPlayer::getInstance();
+                SoC_GstPlayerObj->stop();
+                MIRACASTLOG_INFO("SoC_GstPlayer instance stopped...");
             }
             m_streaming_started = false;
         }
@@ -2001,8 +1964,8 @@ MiracastError MiracastRTSPMsg::updateVideoRectangle( VIDEO_RECT_STRUCT videorect
 {
     MIRACASTLOG_TRACE("Entering...");
 
-    MiracastGstPlayer *miracastGstPlayerObj = MiracastGstPlayer::getInstance();
-    miracastGstPlayerObj->setVideoRectangle( videorect , true );
+    SoC_GstPlayer *SoC_GstPlayerObj = SoC_GstPlayer::getInstance();
+    SoC_GstPlayerObj->setVideoRectangle( videorect , true );
 
     MIRACASTLOG_TRACE("Exiting...");
     return MIRACAST_OK;
@@ -2113,6 +2076,7 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
                     {
                         rtsp_msg_hldr_running_state = false;
                     }
+		    rtsp_sink2src_request_msg_handling(RTSP_TEARDOWN_FROM_SINK2SRC);
                     break;
                 }
                 else
