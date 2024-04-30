@@ -451,18 +451,24 @@ namespace WPEFramework {
                             if (!g_subscribed_for_deviceContextUpdate) {
                                 LOGINFO("onDeviceInitializationContextUpdate event not subscribed...");
                                 subscribeToDeviceInitializationEvent();
+                                g_listen_to_deviceContextUpdate = true;
                             }
                         }
                     }
                     else {
                         LOGINFO("Failed to get plugin handle");
+                        if (!g_subscribed_for_deviceContextUpdate) {
+                            LOGINFO("onDeviceInitializationContextUpdate event not subscribed...");
+                            subscribeToDeviceInitializationEvent();
+                            g_listen_to_deviceContextUpdate = true;
+                        }
                     }
                     return success;
                 }
                 else {
                     if (activation_status != "activated" && !g_subscribed_for_deviceContextUpdate) {
-                        LOGINFO("%s is not Active. Sleeping for %d seconds", secMgr_callsign, SECMANAGER_SLEEP_INTERVAL);
-                        sleep(SECMANAGER_SLEEP_INTERVAL);
+                        LOGINFO("%s is not active. Retry after %d seconds", secMgr_callsign, SECMGR_RETRY_INTERVAL);
+                        sleep(SECMGR_RETRY_INTERVAL);
                     }
                     else {
                         return success;

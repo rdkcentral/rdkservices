@@ -76,7 +76,7 @@ typedef enum{
 #define MAX_ACTIVATION_RETRIES          4
 
 #define NETWORK_RETRY_INTERVAL          30
-#define SECMANAGER_SLEEP_INTERVAL       5
+#define SECMGR_RETRY_INTERVAL       5
 
 #define DCM_SUCCESS                     0
 #define DCM_COMPLETE                    1
