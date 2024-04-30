@@ -981,11 +981,11 @@ namespace WPEFramework {
 
             // there is no /tmp/.make from /lib/rdk/getDeviceDetails.sh, but it can be taken from /etc/device.properties
             if (queryParams.empty() || queryParams == "make") {
-
+#ifdef TURNKEY_SOLUTION
                 IARM_Bus_MFRLib_GetSerializedData_Param_t param;
                 param.bufLen = 0;
                 param.type = mfrSERIALIZED_TYPE_MANUFACTURER;
- 
+
                 IARM_Result_t result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
                 param.buffer[param.bufLen] = '\0';
 
@@ -998,7 +998,47 @@ namespace WPEFramework {
                 } else {
                     populateResponseWithError(SysSrv_MissingKeyValues, response);
                 }
+#else 
+                if (!Utils::fileExists(DEVICE_PROPERTIES_FILE)) {
+                    populateResponseWithError(SysSrv_FileNotPresent, response);
+                    returnResponse(retAPIStatus);
+                }
 
+                char buf[1024];
+
+                FILE *f = fopen(DEVICE_PROPERTIES_FILE, "r");
+
+                if(!f) {
+                    LOGWARN("failed to open %s:%s", DEVICE_PROPERTIES_FILE, strerror(errno));
+                    populateResponseWithError(SysSrv_FileAccessFailed, response);
+                    returnResponse(retAPIStatus);
+                }
+
+                std::string line;
+                std::string make;
+                while(fgets(buf, sizeof(buf), f) != NULL) {
+                    line = buf;
+                    size_t eq = line.find_first_of("=");
+                    if (std::string::npos != eq) {
+                        std::string key = line.substr(0, eq);
+
+                        if (key == "MFG_NAME") {
+                            make = line.substr(eq + 1);
+                            Utils::String::trim(make);
+                            break;
+                        }
+                    }
+                }
+
+                fclose(f);
+
+                if (make.size() > 0) {
+                    response["make"] = make;
+                    retAPIStatus = true;
+                } else {
+                    populateResponseWithError(SysSrv_MissingKeyValues, response);
+                }
+#endif
                 if (!queryParams.empty()) {
                     returnResponse(retAPIStatus);
                 }
