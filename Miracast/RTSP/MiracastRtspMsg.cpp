@@ -953,6 +953,14 @@ MiracastError MiracastRTSPMsg::initiate_TCP(std::string goIP)
             MIRACASTLOG_ERROR("Failed to set SO_REUSEADDR: %s", strerror(errno));
             continue;
         }
+        // Set SO_LINGER option with a timeout of 5
+        struct linger ling;
+        ling.l_onoff = 1;  // Enable lingering
+        ling.l_linger = 5; // Timeout of 5 seconds
+        if (setsockopt(m_tcpSockfd, SOL_SOCKET, SO_LINGER, &ling, sizeof(ling)) == -1) {
+            MIRACASTLOG_ERROR("Failed to set SO_LINGER: %s", strerror(errno));
+            continue;
+        }
 
         /*---Add socket to epoll---*/
         m_epollfd = epoll_create(1);
