@@ -520,7 +520,10 @@ namespace WPEFramework {
 
                     joGetParams["partnerId"] = partnerid;
 
-                    thunder_client->Invoke<JsonObject, JsonObject>(5000, "setPartnerId", joGetParams, joGetResult);
+                    thunder_client->Invoke<JsonObject, JsonObject>(10000, "setPartnerId", joGetParams, joGetResult);
+                    string responseJson;
+                    joGetResult.ToString(responseJson);
+                    LOGINFO("AuthService Response Data: %s", responseJson.c_str());
                     if (joGetResult.HasLabel("success") && joGetResult["success"].Boolean()) {
                         LOGINFO("Successfully set the partnerId via Authservice");
                     } else {
