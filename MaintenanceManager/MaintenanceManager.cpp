@@ -451,7 +451,7 @@ namespace WPEFramework {
                             if (!g_subscribed_for_deviceContextUpdate) {
                                 LOGINFO("onDeviceInitializationContextUpdate event not subscribed...");
                                 subscribeToDeviceInitializationEvent();
-                                g_listen_to_deviceContextUpdate = true;
+                                g_subscribed_for_deviceContextUpdate = true;
                             }
                         }
                     }
@@ -460,7 +460,7 @@ namespace WPEFramework {
                         if (!g_subscribed_for_deviceContextUpdate) {
                             LOGINFO("onDeviceInitializationContextUpdate event not subscribed...");
                             subscribeToDeviceInitializationEvent();
-                            g_listen_to_deviceContextUpdate = true;
+                            g_subscribed_for_deviceContextUpdate = true;
                         }
                     }
                     return success;
