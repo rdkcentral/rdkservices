@@ -869,7 +869,7 @@ namespace WPEFramework {
         bool MaintenanceManager::subscribeToDeviceInitializationEvent() {
             int32_t status = Core::ERROR_NONE;
             bool result = false;
-            bool subscribe_status = false;
+            int retry_counter = 0;
             string event = "onDeviceInitializationContextUpdate";
             const char* secMgr_callsign_ver = "org.rdk.SecManager.1";
             WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
@@ -882,19 +882,25 @@ namespace WPEFramework {
                 LOGINFO("Failed to get plugin handle");
             }
             else {
-                status = thunder_client->Subscribe<JsonObject>(5000, event, &MaintenanceManager::deviceInitializationContextEventHandler, this);
-                if (status == Core::ERROR_NONE) {
-                    result = true;
+                while(true) {
+                    status = thunder_client->Subscribe<JsonObject>(5000, event, &MaintenanceManager::deviceInitializationContextEventHandler, this);
+                    if (status == Core::ERROR_NONE) {
+                        result = true;
+                        LOGINFO("MaintenanceManager subscribed for %s event", event.c_str());
+                        return true;
+                    }
+                    else{
+                        if (retry_counter != MAX_SM_EVENT_RETRY) {
+                            retry_counter++;
+                            LOGINFO("Failed to subscribe for %s event in Attempt [%d/%d]... Sleeping for %d seconds", event.c_str(), retry_counter, MAX_EVENT_RETRY, SM_EVENT_INTERVAL);
+                            sleep(SM_EVENT_INTERVAL);
+                        }
+                        else{
+                            LOGINFO("Event subscription for %s failed with Maximum retries...", event.c_str(), retry_counter., MAX_EVENT_RETRY);
+                            return false;
+                        }
+                    }
                 }
-            }
-            subscribe_status = result;
-            if(subscribe_status) {
-                LOGINFO("MaintenanceManager subscribed for %s event", event.c_str());
-                return true;
-            }
-            else {
-                LOGINFO("Failed to subscribe for %s event", event.c_str());
-                return false;
             }
         }
 
