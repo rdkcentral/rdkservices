@@ -453,7 +453,6 @@ namespace WPEFramework {
                                 subscribeToDeviceInitializationEvent();
                             }
                         }
-                        
                     }
                     else {
                         LOGINFO("Failed to get plugin handle");

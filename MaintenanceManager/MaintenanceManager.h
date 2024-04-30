@@ -165,7 +165,7 @@ namespace WPEFramework {
                 void deviceInitializationContextEventHandler(const JsonObject& parameters);
                 void startCriticalTasks();
                 bool checkNetwork();
-                bool knowWhoAmI();
+                bool knowWhoAmI(string &activation_status);
                 bool subscribeToDeviceInitializationEvent();
                 bool setDeviceInitializationContext(JsonObject joGetResult);
                 bool getActivatedStatus(bool &skipFirmwareCheck);
