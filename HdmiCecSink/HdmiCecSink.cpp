@@ -261,7 +261,7 @@ namespace WPEFramework
 		return;
 	     }
 			 HdmiCecSink::_instance->addDevice(header.from.toInt());
-			 HdmiCecSink::_instance->updateImageViewOn(header.from.toInt());
+			 HdmiCecSink::_instance->updateTextViewOn(header.from.toInt());
        }
        void HdmiCecSinkProcessor::process (const RequestActiveSource &msg, const Header &header)
        {
