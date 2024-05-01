@@ -32,15 +32,17 @@
 #include <arpa/inet.h>
 #include <sys/epoll.h>
 #include <fstream>
+#include <ifaddrs.h>
+#include <netdb.h>
 #include <MiracastCommon.h>
 #include "MiracastP2P.h"
 #include "MiracastLogger.h"
-#include "MiracastRtspMsg.h"
 
 using namespace std;
 using namespace MIRACAST;
 
 #define THUNDER_REQ_THREAD_CLIENT_CONNECTION_WAITTIME (30)
+#define MAX_IFACE_NAME_LEN 16
 
 class MiracastController
 {
@@ -61,11 +63,9 @@ public:
     bool get_connection_status();
     DeviceInfo *get_device_details(std::string mac);
 
-    //void send_msg_thunder_msg_hdler_thread(MIRACAST_SERVICE_STATES state, std::string buffer = "", std::string user_data = "");
-    void send_thundermsg_to_controller_thread(MIRACAST_SERVICE_STATES state, std::string buffer = "", std::string user_data = "");
+    void send_thundermsg_to_controller_thread(CONTROLLER_MSGQ_STRUCT controller_msgq_data);
 
     void Controller_Thread(void *args);
-    //void ThunderReqHandler_Thread(void *args);
     void notify_ConnectionRequest(std::string device_name,std::string device_mac);
 
 #ifdef ENABLE_MIRACAST_SERVICE_TEST_NOTIFIER
@@ -76,12 +76,9 @@ public:
     void send_msgto_test_notifier_thread( MIRACAST_SERVICE_TEST_NOTIFIER_MSGQ_ST stMsgQ );
 #endif /* ENABLE_MIRACAST_SERVICE_TEST_NOTIFIER */
 
-    // void HDCPTCPServerHandlerThread(void *args);
-    // void DumpBuffer(char *buffer, int length);
-
     MiracastError stop_discover_devices();
     MiracastError set_WFDParameters(void);
-    void restart_session_discovery(std::string mac_address="");
+    void restart_session_discovery(std::string& mac_address);
     void flush_current_session(void);
     void remove_P2PGroupInstance(void);
     void restart_session(bool start_discovering_enabled);
@@ -91,7 +88,6 @@ public:
     std::string get_FriendlyName(void);
     void set_enable(bool is_enabled);
     void accept_client_connection(std::string is_accepted);
-    bool stop_client_connection(std::string mac_address);
     eMIRA_PLAYER_STATES m_ePlayer_state;
 
     void set_WFDSourceMACAddress(std::string MAC_Addr);
@@ -109,6 +105,7 @@ public:
     void reset_NewSourceName(void);
 
     void setP2PBackendDiscovery(bool is_enabled);
+    void switch_launch_request_context(std::string& source_dev_ip,std::string& source_dev_mac,std::string& sink_dev_ip,std::string& source_dev_name);
 
 private:
     static MiracastController *m_miracast_ctrl_obj;
@@ -124,6 +121,7 @@ private:
     MiracastError create_ControllerFramework(std::string p2p_ctrl_iface);
     MiracastError destroy_ControllerFramework(void);
     void checkAndInitiateP2PBackendDiscovery(void);
+    std::string getifNameByIPv4(std::string ip_address);
 
     void set_localIp(std::string ipAddr);
 
@@ -138,14 +136,13 @@ private:
     bool m_connectionStatus;
     bool m_p2p_backend_discovery{false};
     bool m_start_discovering_enabled{false};
+    bool m_connect_req_notified{false};
     std::string  m_current_device_name;
     std::string  m_current_device_mac_addr;
 
     /*members for interacting with wpa_supplicant*/
     MiracastP2P *m_p2p_ctrl_obj;
 
-    MiracastRTSPMsg *m_rtsp_msg;
-    //MiracastThread *m_thunder_req_handler_thread;
     MiracastThread *m_controller_thread;
     int m_tcpserverSockfd;
     eCONTROLLER_FW_STATES convertP2PtoSessionActions(P2P_EVENTS eventId);

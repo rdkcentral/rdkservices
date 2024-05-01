@@ -29,25 +29,22 @@
 #include <pthread.h>
 #include <stdint.h>
 
-class MiracastGstPlayer
+class SoC_GstPlayer
 {
 public:
-    static MiracastGstPlayer *getInstance();
+    static SoC_GstPlayer *getInstance();
     static void destroyInstance();
-    bool launch(std::string localip , std::string streaming_port,MiracastRTSPMsg *rtsp_instance);
+    bool launch(std::string& localip , std::string& streaming_port,MiracastRTSPMsg *rtsp_instance);
     bool stop();
     bool pause();
     bool resume();
     bool setVideoRectangle( VIDEO_RECT_STRUCT video_rect , bool apply = false );
     int getPlayerstate();
-    bool setUri(std::string ipaddr, std::string port);
-    std::string getUri();
     double getDuration(GstElement *pipeline = nullptr);
     bool seekTo(double seconds,GstElement *pipeline = nullptr);
     double getCurrentPosition(GstElement *pipeline = nullptr);
     bool get_player_statistics();
     void print_pipeline_state(GstElement *pipeline = nullptr);
-    //static std::string parse_opt_flag( std::string file_name , bool integer_check = false );
 
 private:
     GstElement  *m_pipeline{nullptr};
@@ -75,14 +72,14 @@ private:
     double m_currentPosition;
     GstElement *m_video_sink{nullptr};
     GstElement *m_audio_sink{nullptr};
-    pthread_t m_playback_thread;
+    pthread_t m_playback_thread{0};
     VIDEO_RECT_STRUCT m_video_rect_st;
 
-    static MiracastGstPlayer *mMiracastGstPlayer;
-    MiracastGstPlayer();
-    virtual ~MiracastGstPlayer();
-    MiracastGstPlayer &operator=(const MiracastGstPlayer &) = delete;
-    MiracastGstPlayer(const MiracastGstPlayer &) = delete;
+    static SoC_GstPlayer *m_GstPlayer;
+    SoC_GstPlayer();
+    virtual ~SoC_GstPlayer();
+    SoC_GstPlayer &operator=(const SoC_GstPlayer &) = delete;
+    SoC_GstPlayer(const SoC_GstPlayer &) = delete;
 
     bool createPipeline();
     bool updateVideoSinkRectangle(void);
@@ -94,10 +91,12 @@ private:
     static void *playbackThread(void *ctx);
     GMainLoop *m_main_loop{nullptr};
     GMainContext *m_main_loop_context{nullptr};
+
+    bool m_statistics_thread_loop{false};
     
-    pthread_t m_player_statistics_tid;
+    pthread_t m_player_statistics_tid{0};
     static void *monitor_player_statistics_thread(void *ctx);
     static void pad_added_handler(GstElement *gstelement, GstPad *new_pad, gpointer userdata);
 };
 
-#endif /* MiracastGstPlayer_hpp */
+#endif /* SoC_GstPlayer_hpp */

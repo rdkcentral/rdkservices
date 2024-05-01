@@ -19,6 +19,7 @@ set(PLUGIN_NAME Bluetooth)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 set(PLUGIN_BLUETOOTH_STARTUPORDER "" CACHE STRING "To configure startup order of Bluetooth plugin")
+set(PLUGIN_BLUETOOTH_AUTOSTART false CACHE STRING "To automatically start Bluetooth plugin.")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 

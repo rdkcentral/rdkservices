@@ -5593,6 +5593,15 @@ void DisplaySettings::sendMsgThread()
                     m_timer.stop();
                 }
             }
+	    
+	    if(!isCecEnabled){
+		try {
+		    isCecEnabled = getHdmiCecSinkCecEnableStatus();
+		}
+		catch (const device::Exception& err){
+		    LOG_DEVICE_EXCEPTION1(string("HDMI_ARC0"));
+		}
+	    }
 
             if(m_subscribed) {
          	//Need to send power on request as this timer might have started based on standby out or boot up scenario
