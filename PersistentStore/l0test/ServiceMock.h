@@ -47,8 +47,6 @@ public:
     MOCK_METHOD(WPEFramework::Core::hresult, Resumed, (const bool value), (override));
     MOCK_METHOD(WPEFramework::Core::hresult, Metadata, (string & info /* @out */), (const, override));
     MOCK_METHOD(WPEFramework::Core::hresult, Hibernate, (const uint32_t timeout), (override));
-    MOCK_METHOD(void, Register, (WPEFramework::PluginHost::IShell::IConnectionServer::INotification * sink), (override));
-    MOCK_METHOD(void, Unregister, (const WPEFramework::PluginHost::IShell::IConnectionServer::INotification* sink), (override));
     BEGIN_INTERFACE_MAP(ServiceMock)
     INTERFACE_ENTRY(IShell)
     END_INTERFACE_MAP
