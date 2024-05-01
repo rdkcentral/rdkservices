@@ -156,7 +156,7 @@ class AVOutputTV : public AVOutputBase {
 		int getFormatIndex(std::string format);		
 		int getPqParamIndex();
 		int getParamIndex(string source,string pqmode,string format,int& sourceIndex,int& pqmodeIndex,int& formatIndex);
-		int GetDolbyModeIndex(const char * dolbyMode);
+		int getDolbyModeIndex(const char * dolbyMode);
 		tvDimmingMode_t getDimmingModeIndex(string mode);
 		
 		bool isIncluded(const std::set<string> set1,const std::set<string> set2);
@@ -169,13 +169,13 @@ class AVOutputTV : public AVOutputBase {
 		int parsingGetInputArgument(const JsonObject& parameters, std::string pqparam,std::string & source, std::string & pqmode, std::string & format);
 		void spliltStringsAndConvertToSet( std::string pqmodeInfo,std::string formatInfo,std::string sourceInfo,std::set<string> &pqmode, std::set<string> &format, std::set<string> &source);
 		int validateIntegerInputParameter(std::string param, int inputValue);
-		int FetchCapablities(string pqparam, string & source, string & pqmode, string & format);
+		int fetchCapablities(string pqparam, string & source, string & pqmode, string & format);
 		int validateInputParameter(std::string param, std::string inputValue);
 
                 /* AVoutput ini file default entries */
-		void LocatePQSettingsFile(void);
+		void locatePQSettingsFile(void);
 		/* Intialise the last set picture mode at bootup */
-		tvError_t InitializePictureMode();		
+		tvError_t initializePictureMode();		
 		
 
 		std::string convertToString(std::vector<std::string> vec_strings);
@@ -184,23 +184,23 @@ class AVOutputTV : public AVOutputBase {
 		string convertSourceIndexToString(int source);
 		string convertVideoFormatToString(int format);
 		string convertPictureIndexToString(int pqmode);
-		tvContentFormatType_t ConvertFormatStringToTVContentFormat(const char *format);
+		tvContentFormatType_t convertFormatStringToTVContentFormat(const char *format);
 		//std::string convertSourceIndexToString(int sourceIndex);
 		//std::string convertVideoFormatToString( int formatIndex );
 		void convertUserScaleBacklightToDriverScale(int format,int * params);
 	
 	        /* Update TR181 with new values when app calls set/reset calls */	
-		tvError_t UpdateAVoutputTVParamToHAL(std::string forParam, int source, int pqmode, int format, int value,bool setNotDelete);
+		tvError_t updateAVoutputTVParamToHAL(std::string forParam, int source, int pqmode, int format, int value,bool setNotDelete);
 		/* updatePQParamsToCache will call updatePQParamToLocalCache for writing to TR181.
 		 * it will call TVSettings HAL for setting/saving the value
 		 * Will be called whenever the application invokes set/reset call
 		 */
-		int UpdateAVoutputTVParam( std::string action, std::string tr181ParamName, std::string pqmode, std::string source, std::string format, tvPQParameterIndex_t pqParamIndex, int params[] );
+		int updateAVoutputTVParam( std::string action, std::string tr181ParamName, std::string pqmode, std::string source, std::string format, tvPQParameterIndex_t pqParamIndex, int params[] );
 
 		/* Every bootup this function is called to sync TR181 to TVSettings HAL for saving the value */
-		tvError_t SyncAvoutputTVParamsToHAL(std::string pqmode, std::string source, std::string format);
+		tvError_t syncAvoutputTVParamsToHAL(std::string pqmode, std::string source, std::string format);
 		/* Every Bootup this function is called to sync TR181 to TVSettings HAL for saving the picture mode assiocation to source */
-		int SyncAvoutputTVPQModeParamsToHAL(std::string pqmode, std::string source, std::string format);
+		int syncAvoutputTVPQModeParamsToHAL(std::string pqmode, std::string source, std::string format);
 		
 		uint32_t generateStorageIdentifier(std::string &key, std::string forParam,int contentFormat, int pqmode, int source);
 		uint32_t generateStorageIdentifierDirty(std::string &key, std::string forParam,uint32_t contentFormat, int pqmode);
@@ -230,7 +230,7 @@ class AVOutputTV : public AVOutputBase {
 		void getDynamicAutoLatencyConfig();
 		tvError_t getUserSelectedAspectRatio (tvDisplayMode_t* mode);
 
-		void BroadcastLowLatencyModeChangeEvent(bool lowLatencyMode);
+		void broadcastLowLatencyModeChangeEvent(bool lowLatencyMode);
 		tvError_t setAspectRatioZoomSettings(tvDisplayMode_t mode);
 		tvError_t setDefaultAspectRatio(std::string pqmode="all",std::string format="all",std::string source="all");
 

@@ -217,8 +217,7 @@ namespace Plugin {
 		AVOutputTV::instance->m_isDisabledHdmiIn4KZoom = false;
 	        LOGWARN("AVOutputPlugins: Hdmi streaming stopped here reapply the global zoom settings:%d here. m_isDisabledHdmiIn4KZoom: %d", AVOutputTV::instance->m_videoZoomMode, AVOutputTV::instance->m_isDisabledHdmiIn4KZoom);
 		ret = SetAspectRatio((tvDisplayMode_t)AVOutputTV::instance->m_videoZoomMode);
-		if (ret != tvERROR_NONE) 
-	        {
+		if (ret != tvERROR_NONE) {
 		    LOGWARN("SetAspectRatio set Failed");
 		}
 	    }
@@ -411,23 +410,23 @@ namespace Plugin {
             LOGWARN("RegisterVideoFrameRateChangeCB failed");
         }
 
-        LocatePQSettingsFile();
+        locatePQSettingsFile();
 
 	// Get Index from PQ capabailites
 	if (getPqParamIndex() != 0) {
             LOGWARN("Failed to get the supported index from capability \n");
         }
 
-        SyncAvoutputTVParamsToHAL("none","none","none");
+        syncAvoutputTVParamsToHAL("none","none","none");
 	
         setDefaultAspectRatio();
 
         // source format specific sync to ssm data
-        SyncAvoutputTVPQModeParamsToHAL("Current", "none", "none");
+        syncAvoutputTVPQModeParamsToHAL("Current", "none", "none");
 
         // As we have source to picture mode mapping, get current source and
         // setting those picture mode
-        InitializePictureMode();
+        initializePictureMode();
 
         LOGINFO("Exit\n" );
     }
@@ -557,7 +556,7 @@ namespace Plugin {
             //Save DisplayMode to localstore and ssm_data
             int params[3]={0};
             params[0]=mode;
-            int retval=UpdateAVoutputTVParam("set","AspectRatio",pqmode,source,format,PQ_PARAM_ASPECT_RATIO,params);;
+            int retval=updateAVoutputTVParam("set","AspectRatio",pqmode,source,format,PQ_PARAM_ASPECT_RATIO,params);;
 
             if(retval != 0) {
                 LOGERR("Failed to Save DisplayMode to ssm_data\n");
