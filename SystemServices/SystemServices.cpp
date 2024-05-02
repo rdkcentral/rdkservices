@@ -556,6 +556,7 @@ namespace WPEFramework {
 
         void SystemServices::Deinitialize(PluginHost::IShell*)
         {
+            m_operatingModeTimer.stop();
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             DeinitializeIARM();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
