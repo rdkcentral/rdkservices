@@ -196,3 +196,21 @@ std::string MiracastCommon::parse_opt_flag( std::string file_name , bool integer
     }
     return return_buffer;
 }
+
+int MiracastCommon::execute_SystemCommand( const char* system_command_buffer )
+{
+    int return_value = -1;
+    MIRACASTLOG_TRACE("Entering ...");
+
+    if (!system_command_buffer)
+    {
+        MIRACASTLOG_ERROR("NULL pointer has passed");
+    }
+    else
+    {
+	MIRACASTLOG_INFO("System command buffer[%s]",system_command_buffer);
+	return_value = system(system_command_buffer);
+    }
+    MIRACASTLOG_TRACE("Exiting ...");
+    return return_value;
+}
