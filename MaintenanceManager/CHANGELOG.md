@@ -18,11 +18,11 @@ All notable changes to this RDK Service will be documented in this file.
 
 ## [1.0.32] - 2024-05-02
 ### Fixed
-- Fixed MaintenanceManager setPartnerId by increasing waittime for AuthService response
+- Increased wait time for AuthService's setPartnerId RPC Method
 
 ## [1.0.31] - 2024-04-22
 ### Changed
-- Changed MaintenanceManager mechanism to acquire deviceInitizalizationContext
+- Maintenance manager acquires deviceInitializationContext based on eventing mechanism
 
 ## [1.0.30] - 2024-04-12
 ### Add
