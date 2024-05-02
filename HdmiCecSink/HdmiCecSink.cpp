@@ -2156,8 +2156,9 @@ namespace WPEFramework
 				return;
 			}
 		
-			_instance->smConnection->sendTo(LogicalAddress::BROADCAST, 
-										MessageEncoder().encode(ActiveSource(_instance->deviceList[_instance->m_logicalAddressAllocated].m_physicalAddr)), 500);
+		LOGINFO("AML-5853:Not Broadcasting TV as an active source\n");
+		//	_instance->smConnection->sendTo(LogicalAddress::BROADCAST, 
+		//								MessageEncoder().encode(ActiveSource(_instance->deviceList[_instance->m_logicalAddressAllocated].m_physicalAddr)), 500);
 			_instance->m_currentActiveSource = _instance->m_logicalAddressAllocated;
 		}
 
