@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.33] - 2024-05-02
+### Fixed
+- Fixed timing issues with respect to WAI Implementation
+
 ## [1.0.32] - 2024-05-02
 ### Fixed
 - Increased wait time for AuthService's setPartnerId RPC Method
