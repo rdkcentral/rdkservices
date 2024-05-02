@@ -26,27 +26,27 @@
 #include <sys/types.h>
 #include <sys/syscall.h>
 #include "MiracastLogger.h"
-#include "MiracastController.h"
-#include "MiracastGstPlayer.h"
+#include "MiracastRTSPMsg.h"
+#include "SoC_GstPlayer.h"
 
-MiracastGstPlayer *MiracastGstPlayer::mMiracastGstPlayer{nullptr};
+SoC_GstPlayer *SoC_GstPlayer::m_GstPlayer{nullptr};
 
-MiracastGstPlayer *MiracastGstPlayer::getInstance()
+SoC_GstPlayer *SoC_GstPlayer::getInstance()
 {
-    if (mMiracastGstPlayer == nullptr)
+    if (m_GstPlayer == nullptr)
     {
-        mMiracastGstPlayer = new MiracastGstPlayer();
+        m_GstPlayer = new SoC_GstPlayer();
     }
-    return mMiracastGstPlayer;
+    return m_GstPlayer;
 }
 
-void MiracastGstPlayer::destroyInstance()
+void SoC_GstPlayer::destroyInstance()
 {
     MIRACASTLOG_TRACE("Entering...");
-    if (mMiracastGstPlayer != nullptr)
+    if (m_GstPlayer != nullptr)
     {
-        mMiracastGstPlayer->stop();
-        if (mMiracastGstPlayer->stop())
+        m_GstPlayer->stop();
+        if (m_GstPlayer->stop())
         {
             MIRACASTLOG_INFO("Stop miracast player");
         }
@@ -54,15 +54,51 @@ void MiracastGstPlayer::destroyInstance()
         {
             MIRACASTLOG_ERROR("Failed to stop miracast player");
         }
-        delete mMiracastGstPlayer;
-        mMiracastGstPlayer = nullptr;
+        delete m_GstPlayer;
+        m_GstPlayer = nullptr;
     }
     MIRACASTLOG_TRACE("Exiting...");
 }
 
-MiracastGstPlayer::MiracastGstPlayer()
+SoC_GstPlayer::SoC_GstPlayer()
 {
     MIRACASTLOG_TRACE("Entering...");
+    {
+        char command[128] = {0};
+        std::string default_error_proc_policy = "2151665463";
+        std::ifstream decoder_error_proc_policy_file("/opt/miracast_aml_dec_error_proc_policy");
+
+        if (decoder_error_proc_policy_file.is_open())
+        {
+            std::string new_error_proc_policy = "";
+            std::getline(decoder_error_proc_policy_file, new_error_proc_policy);
+            decoder_error_proc_policy_file.close();
+
+            MIRACASTLOG_VERBOSE("decoder_error_proc_policy_file reading from file [/opt/miracast_aml_dec_error_proc_policy], new_error_proc_policy as [%s] ",
+                                new_error_proc_policy.c_str());
+            MIRACASTLOG_VERBOSE("Overwriting error_proc_policy default[%s] with new[%s]",
+                                default_error_proc_policy.c_str(),
+                                new_error_proc_policy.c_str());
+            default_error_proc_policy = new_error_proc_policy;
+        }
+
+        if ( ! default_error_proc_policy.empty())
+        {
+            sprintf(command, "echo %s > /sys/module/amvdec_mh264/parameters/error_proc_policy",
+                    default_error_proc_policy.c_str());
+
+            MIRACASTLOG_INFO("command for applying error_proc_policy[%s]",command);
+            if (0 == MiracastCommon::execute_SystemCommand(command))
+            {
+                MIRACASTLOG_INFO("error_proc_policy applied successfully");
+            }
+            else
+            {
+                MIRACASTLOG_ERROR("!!! Failed to apply error_proc_policy !!!");
+            }
+
+        }
+    }
     gst_init(nullptr, nullptr);
     m_bBuffering = false;
     m_bReady = false;
@@ -72,14 +108,14 @@ MiracastGstPlayer::MiracastGstPlayer()
     MIRACASTLOG_TRACE("Exiting...");
 }
 
-MiracastGstPlayer::~MiracastGstPlayer()
+SoC_GstPlayer::~SoC_GstPlayer()
 {
     MIRACASTLOG_TRACE("Entering...");
     stop();
     MIRACASTLOG_TRACE("Exiting...");
 }
 
-bool MiracastGstPlayer::setVideoRectangle( VIDEO_RECT_STRUCT video_rect , bool apply )
+bool SoC_GstPlayer::setVideoRectangle( VIDEO_RECT_STRUCT video_rect , bool apply )
 {
     bool ret = false;
 
@@ -102,7 +138,7 @@ bool MiracastGstPlayer::setVideoRectangle( VIDEO_RECT_STRUCT video_rect , bool a
     return ret;
 }
 
-bool MiracastGstPlayer::updateVideoSinkRectangle(void)
+bool SoC_GstPlayer::updateVideoSinkRectangle(void)
 {
     bool ret = false;
 
@@ -119,7 +155,7 @@ bool MiracastGstPlayer::updateVideoSinkRectangle(void)
     return ret;
 }
 
-bool MiracastGstPlayer::launch(std::string& localip , std::string& streaming_port, MiracastRTSPMsg *rtsp_instance)
+bool SoC_GstPlayer::launch(std::string& localip , std::string& streaming_port, MiracastRTSPMsg *rtsp_instance)
 {
     char urlBuffer[128] = {0};
     bool ret = false;
@@ -143,17 +179,17 @@ bool MiracastGstPlayer::launch(std::string& localip , std::string& streaming_por
     return ret;
 }
 
-bool MiracastGstPlayer::pause()
+bool SoC_GstPlayer::pause()
 {
     return changePipelineState(GST_STATE_PAUSED);
 }
 
-bool MiracastGstPlayer::resume()
+bool SoC_GstPlayer::resume()
 {
     return changePipelineState(GST_STATE_PLAYING);
 }
 
-bool MiracastGstPlayer::stop()
+bool SoC_GstPlayer::stop()
 {
     MIRACASTLOG_TRACE("Entering..");
 
@@ -271,7 +307,7 @@ bool MiracastGstPlayer::stop()
     return true;
 }
 
-bool MiracastGstPlayer::changePipelineState(GstState state) const
+bool SoC_GstPlayer::changePipelineState(GstState state) const
 {
     MIRACASTLOG_TRACE("Entering..!!!");
     GstStateChangeReturn ret;
@@ -297,10 +333,10 @@ bool MiracastGstPlayer::changePipelineState(GstState state) const
     return status;
 }
 
-void *MiracastGstPlayer::playbackThread(void *ctx)
+void *SoC_GstPlayer::playbackThread(void *ctx)
 {
     MIRACASTLOG_TRACE("Entering..!!!");
-    MiracastGstPlayer *self = (MiracastGstPlayer *)ctx;
+    SoC_GstPlayer *self = (SoC_GstPlayer *)ctx;
     g_main_context_push_thread_default(self->m_main_loop_context);
     g_main_loop_run(self->m_main_loop);
     self->m_playback_thread = 0;
@@ -308,11 +344,11 @@ void *MiracastGstPlayer::playbackThread(void *ctx)
     pthread_exit(nullptr);
 }
 
-void* MiracastGstPlayer::monitor_player_statistics_thread(void *ctx)
+void* SoC_GstPlayer::monitor_player_statistics_thread(void *ctx)
 {
     bool isInteger = true;
     MIRACASTLOG_TRACE("Entering..!!!");
-    MiracastGstPlayer *self = (MiracastGstPlayer *)ctx;
+    SoC_GstPlayer *self = (SoC_GstPlayer *)ctx;
     
     int time_interval_sec = 60;
     self->m_statistics_thread_loop = true;
@@ -361,7 +397,7 @@ void* MiracastGstPlayer::monitor_player_statistics_thread(void *ctx)
     pthread_exit(nullptr);
 }
 
-double MiracastGstPlayer::getDuration( GstElement *pipeline )
+double SoC_GstPlayer::getDuration( GstElement *pipeline )
 {
     MIRACASTLOG_TRACE("Entering..!!!");
     gint64 duration = 0;
@@ -380,7 +416,7 @@ double MiracastGstPlayer::getDuration( GstElement *pipeline )
     return ret;
 }
 
-double MiracastGstPlayer::getCurrentPosition(GstElement *pipeline)
+double SoC_GstPlayer::getCurrentPosition(GstElement *pipeline)
 {
     MIRACASTLOG_TRACE("Entering..!!!");
     gint64 position = 0;
@@ -398,7 +434,7 @@ double MiracastGstPlayer::getCurrentPosition(GstElement *pipeline)
     return position;
 }
 
-bool MiracastGstPlayer::seekTo(double seconds, GstElement *pipeline )
+bool SoC_GstPlayer::seekTo(double seconds, GstElement *pipeline )
 {
     MIRACASTLOG_TRACE("Entering..!!!");
     bool ret = false;
@@ -425,7 +461,7 @@ bool MiracastGstPlayer::seekTo(double seconds, GstElement *pipeline )
     return ret;
 }
 
-void MiracastGstPlayer::print_pipeline_state(GstElement *pipeline)
+void SoC_GstPlayer::print_pipeline_state(GstElement *pipeline)
 {
     MIRACASTLOG_TRACE("Entering..!!!");
 
@@ -449,7 +485,7 @@ void MiracastGstPlayer::print_pipeline_state(GstElement *pipeline)
     MIRACASTLOG_TRACE("Exiting..!!!");
 }
 
-bool MiracastGstPlayer::get_player_statistics()
+bool SoC_GstPlayer::get_player_statistics()
 {
     MIRACASTLOG_TRACE("Entering..!!!");	
     GstStructure *stats = nullptr;
@@ -505,9 +541,9 @@ bool MiracastGstPlayer::get_player_statistics()
     return ret;
 }
 
-gboolean MiracastGstPlayer::busMessageCb(GstBus *bus, GstMessage *msg, gpointer userdata)
+gboolean SoC_GstPlayer::busMessageCb(GstBus *bus, GstMessage *msg, gpointer userdata)
 {
-    MiracastGstPlayer *self = static_cast<MiracastGstPlayer*>(userdata);
+    SoC_GstPlayer *self = static_cast<SoC_GstPlayer*>(userdata);
 
     MIRACASTLOG_TRACE("Entering...\n");
     switch (GST_MESSAGE_TYPE(msg))
@@ -619,9 +655,9 @@ gboolean MiracastGstPlayer::busMessageCb(GstBus *bus, GstMessage *msg, gpointer 
     return TRUE;
 }
 
-void MiracastGstPlayer::pad_added_handler(GstElement *gstelement, GstPad *new_pad, gpointer userdata)
+void SoC_GstPlayer::pad_added_handler(GstElement *gstelement, GstPad *new_pad, gpointer userdata)
 {
-    MiracastGstPlayer *self = static_cast<MiracastGstPlayer*>(userdata);
+    SoC_GstPlayer *self = static_cast<SoC_GstPlayer*>(userdata);
     GstCaps *new_pad_caps = NULL;
     GstStructure *new_pad_struct = NULL;
 
@@ -681,19 +717,19 @@ void MiracastGstPlayer::pad_added_handler(GstElement *gstelement, GstPad *new_pa
  * @param[in] object pointer to element raising the callback
  * @param[in] arg0 number of arguments
  * @param[in] arg1 array of arguments
- * @param[in] _this pointer to MiracastGstPlayer instance
+ * @param[in] _this pointer to SoC_GstPlayer instance
  */
-void MiracastGstPlayer::onFirstVideoFrameCallback(GstElement* object, guint arg0, gpointer arg1,gpointer userdata)
+void SoC_GstPlayer::onFirstVideoFrameCallback(GstElement* object, guint arg0, gpointer arg1,gpointer userdata)
 {
     MIRACASTLOG_TRACE("Entering..!!!");
-    MiracastGstPlayer *self = static_cast<MiracastGstPlayer*>(userdata);
+    SoC_GstPlayer *self = static_cast<SoC_GstPlayer*>(userdata);
         self->m_firstVideoFrameReceived = true;
     MIRACASTLOG_INFO("!!! First Video Frame has received !!!");
     self->notifyPlaybackState(MIRACAST_GSTPLAYER_STATE_FIRST_VIDEO_FRAME_RECEIVED);
     MIRACASTLOG_TRACE("Exiting..!!!");
 }
 
-void MiracastGstPlayer::notifyPlaybackState(eMIRA_GSTPLAYER_STATES gst_player_state)
+void SoC_GstPlayer::notifyPlaybackState(eMIRA_GSTPLAYER_STATES gst_player_state)
 {
     MIRACASTLOG_TRACE("Entering..!!!");
     if ( nullptr != m_rtsp_reference_instance )
@@ -708,7 +744,7 @@ void MiracastGstPlayer::notifyPlaybackState(eMIRA_GSTPLAYER_STATES gst_player_st
     MIRACASTLOG_TRACE("Exiting..!!!");
 }
 
-bool MiracastGstPlayer::createPipeline()
+bool SoC_GstPlayer::createPipeline()
 {
     MIRACASTLOG_TRACE("Entering..!!!");
     GstStateChangeReturn ret;
@@ -896,8 +932,8 @@ bool MiracastGstPlayer::createPipeline()
     MIRACASTLOG_TRACE("Start Playing....");
 
     g_main_context_pop_thread_default(m_main_loop_context);
-    pthread_create(&m_playback_thread, nullptr, MiracastGstPlayer::playbackThread, this);
-    pthread_create(&m_player_statistics_tid, nullptr, MiracastGstPlayer::monitor_player_statistics_thread, this);
+    pthread_create(&m_playback_thread, nullptr, SoC_GstPlayer::playbackThread, this);
+    pthread_create(&m_player_statistics_tid, nullptr, SoC_GstPlayer::monitor_player_statistics_thread, this);
 
     ret = gst_element_set_state(m_pipeline, GST_STATE_PLAYING);
 

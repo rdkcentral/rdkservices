@@ -35,12 +35,6 @@
 namespace NetworkManagerLogger {
     static LogLevel gDefaultLogLevel = TRACE_LEVEL;
 
-    static inline void sync_stdout()
-    {
-        if (getenv("SYNC_STDOUT"))
-            setvbuf(stdout, NULL, _IOLBF, 0);
-    }
-
     const char* methodName(const std::string& prettyFunction)
     {
         size_t colons = prettyFunction.find("::");
@@ -52,7 +46,6 @@ namespace NetworkManagerLogger {
 
     void Init()
     {
-        sync_stdout();
 #ifdef USE_RDK_LOGGER
         rdk_logger_init(0 == access("/opt/debug.ini", R_OK) ? "/opt/debug.ini" : "/etc/debug.ini");
 #endif
