@@ -331,7 +331,7 @@ namespace WPEFramework {
     }
 
     if (false == whoAmIStatus && activation_status != "activated") {
-        LOGINFO("knoWhoAmI() returned false and Device is not already Activated");
+        LOGINFO("knowWhoAmI() returned false and Device is not already Activated");
         g_listen_to_deviceContextUpdate = true;
         LOGINFO("Waiting for onDeviceInitializationContextUpdate event");
         task_thread.wait(lck);
@@ -450,8 +450,7 @@ namespace WPEFramework {
                             LOGINFO("getDeviceInitializationContext failed");
                             if (!g_subscribed_for_deviceContextUpdate) {
                                 LOGINFO("onDeviceInitializationContextUpdate event not subscribed...");
-                                subscribeToDeviceInitializationEvent();
-                                g_subscribed_for_deviceContextUpdate = true;
+                                g_subscribed_for_deviceContextUpdate = subscribeToDeviceInitializationEvent();
                             }
                         }
                     }
@@ -459,8 +458,7 @@ namespace WPEFramework {
                         LOGINFO("Failed to get plugin handle");
                         if (!g_subscribed_for_deviceContextUpdate) {
                             LOGINFO("onDeviceInitializationContextUpdate event not subscribed...");
-                            subscribeToDeviceInitializationEvent();
-                            g_subscribed_for_deviceContextUpdate = true;
+                            g_subscribed_for_deviceContextUpdate = subscribeToDeviceInitializationEvent();
                         }
                     }
                     return success;
