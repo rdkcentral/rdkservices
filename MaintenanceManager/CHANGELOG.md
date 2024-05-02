@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.33] - 2024-05-02
+### Fixed
+- Fixed timing issues with respect to WAI Implementation
+
 ## [1.0.30] - 2024-04-12
 ### Add
 - Add osClass to kDeviceInitContextKeyVals Array for WAI 2.0
