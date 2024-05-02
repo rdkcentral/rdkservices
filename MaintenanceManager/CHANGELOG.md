@@ -18,7 +18,7 @@ All notable changes to this RDK Service will be documented in this file.
 
 ## [1.0.33] - 2024-05-02
 ### Fixed
-- Fixed MaintenanceManager knowWhoAmI() to cover SecManager uncertain cases
+- Fixed timing issues with respect to WAI Implementation
 
 ## [1.0.30] - 2024-04-12
 ### Add
