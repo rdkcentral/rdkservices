@@ -316,13 +316,11 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             JsonObject tmpResponse;
             JsonObject tmpParameters;
             size_t index;
-            string ipversion;
 
             LOGINFOMETHOD();
 
             if (parameters.HasLabel("ipversion"))
             {
-                ipversion = parameters["ipversion"].String();
                 tmpParameters["ipversion"] = parameters["ipversion"];
             }
             if (parameters.HasLabel("interface"))
@@ -337,6 +335,7 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
 
             if (Core::ERROR_NONE == rc)
             {
+                string ipversion = tmpResponse["ipversion"].String();
                 if (0 == strcasecmp("ipv4", ipversion.c_str()))
                 {
                     index = tmpResponse["prefix"].Number();
