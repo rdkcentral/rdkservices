@@ -23,7 +23,6 @@
 #include <vector>
 
 #include "Module.h"
-#include <securityagent/SecurityTokenUtil.h>
 #include <MiracastController.h>
 
 using std::vector;
