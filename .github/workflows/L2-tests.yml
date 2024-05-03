@@ -159,6 +159,7 @@ jobs:
           rdk/iarmmgrs-hal/pwrMgr.h
           rdk/iarmmgrs-hal/sysMgr.h
           rfcapi.h
+          rbus.h
           libudev.h
           systemservices/proc/readproc.h
           systemservices/secure_wrapper.h
@@ -212,6 +213,7 @@ jobs:
           -include ${{github.workspace}}/rdkservices/Tests/mocks/devicesettings.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Iarm.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Rfc.h
+          -include ${{github.workspace}}/rdkservices/Tests/mocks/RBus.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Udev.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Wraps.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/maintenanceMGR.h
@@ -226,6 +228,7 @@ jobs:
           -DCMAKE_DISABLE_FIND_PACKAGE_RFC=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_RBus=ON
           -DPLUGIN_SYSTEMSERVICES=ON
+          -DPLUGIN_TELEMETRY=ON
           -DPLUGIN_HDCPPROFILE=ON
           -DPLUGIN_NETWORK=ON
           -DPLUGIN_TEXTTOSPEECH=ON
