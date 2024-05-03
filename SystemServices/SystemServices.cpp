@@ -981,7 +981,7 @@ namespace WPEFramework {
 
             // there is no /tmp/.make from /lib/rdk/getDeviceDetails.sh, but it can be taken from /etc/device.properties
             if (queryParams.empty() || queryParams == "make") {
-#ifdef TURNKEY_SOLUTION
+#ifdef USE_SERIALIZED_MANUFACTURER_NAME
                 IARM_Bus_MFRLib_GetSerializedData_Param_t param;
                 param.bufLen = 0;
                 param.type = mfrSERIALIZED_TYPE_MANUFACTURER;
