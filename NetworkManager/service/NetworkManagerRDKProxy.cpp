@@ -696,6 +696,35 @@ namespace WPEFramework
             return rc;
         }
 
+        /* function to convert netmask to prefix */
+        uint32_t NetmaskToPrefix (const char* netmask_str)
+        {
+            uint32_t prefix_len = 0;
+            uint32_t netmask1 = 0;
+            uint32_t netmask2 = 0;
+            uint32_t netmask3 = 0;
+            uint32_t netmask4 = 0;
+            uint32_t netmask = 0;
+            sscanf(netmask_str, "%d.%d.%d.%d", &netmask1, &netmask2, &netmask3, &netmask4);
+            netmask = netmask1 << 24;
+            netmask |= netmask2 << 16;
+            netmask |= netmask3 << 8;
+            netmask |= netmask4;
+            while (netmask)
+            {
+                if (netmask & 0x80000000)
+                {
+                    prefix_len++;
+                    netmask <<= 1;
+                } else
+                {
+                    break;
+                }
+            }
+            return prefix_len;
+        }
+
+
         /* @brief Get IP Address Of the Interface */
         uint32_t NetworkManagerImplementation::GetIPSettings(const string& interface /* @in */, const string& ipversion /* @in */, IPAddressInfo& result /* @out */)
         {
@@ -720,7 +749,10 @@ namespace WPEFramework
                 result.m_dhcpServer     = string(iarmData.dhcpserver,MAX_IP_ADDRESS_LEN - 1);
                 result.m_v6LinkLocal    = "";
                 result.m_ipAddress      = string(iarmData.ipaddress,MAX_IP_ADDRESS_LEN - 1);
-                result.m_prefix         = 0;
+                if (0 == strcasecmp("ipv4", iarmData.ipversion))
+                    result.m_prefix         = NetmaskToPrefix(iarmData.netmask);
+                else if (0 == strcasecmp("ipv6", iarmData.ipversion))
+                    result.m_prefix         = std::stoi(iarmData.netmask);
                 result.m_gateway        = string(iarmData.gateway,MAX_IP_ADDRESS_LEN - 1);
                 result.m_primaryDns     = string(iarmData.primarydns,MAX_IP_ADDRESS_LEN - 1);
                 result.m_secondaryDns   = string(iarmData.secondarydns,MAX_IP_ADDRESS_LEN - 1);
