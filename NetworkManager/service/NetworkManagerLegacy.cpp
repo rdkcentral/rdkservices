@@ -320,7 +320,9 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             LOGINFOMETHOD();
 
             if (parameters.HasLabel("ipversion"))
+            {
                 tmpParameters["ipversion"] = parameters["ipversion"];
+            }
             if (parameters.HasLabel("interface"))
             {
                 if ("WIFI" == parameters["interface"].String())
@@ -333,11 +335,16 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
 
             if (Core::ERROR_NONE == rc)
             {
-                index = tmpResponse["prefix"].Number();
-                if(CIDR_NETMASK_IP_LEN <= index)
-                    return Core::ERROR_GENERAL;
-                else
+                string ipversion = tmpResponse["ipversion"].String();
+                if (0 == strcasecmp("ipv4", ipversion.c_str()))
+                {
+                    index = tmpResponse["prefix"].Number();
+                    if(CIDR_NETMASK_IP_LEN <= index)
+                        return Core::ERROR_GENERAL;
                     response["netmask"]  = CIDR_PREFIXES[index];
+                }
+                else if (0 == strcasecmp("ipv6", ipversion.c_str()))
+                    response["netmask"]  = tmpResponse["prefix"];
                 if (parameters.HasLabel("interface"))
                 {
                     response["interface"] = parameters["interface"];
