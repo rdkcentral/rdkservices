@@ -998,6 +998,7 @@ namespace WPEFramework {
                 } else {
                     populateResponseWithError(SysSrv_MissingKeyValues, response);
                 }
+
 #else 
                 if (!Utils::fileExists(DEVICE_PROPERTIES_FILE)) {
                     populateResponseWithError(SysSrv_FileNotPresent, response);
