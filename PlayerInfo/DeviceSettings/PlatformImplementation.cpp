@@ -123,10 +123,7 @@ public:
         Utils::IARM::init();
 	try {
             device::Manager::Initialize();
-        } catch (const device::Exception& e) {
-            TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
-        } catch (const std::exception& e) {
-            TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
+	    LOGINFO("PlayerInfo device::Manager::Initialize success");
         } catch (...) {
 	    TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
         }
