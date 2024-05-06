@@ -750,9 +750,9 @@ namespace WPEFramework
                 result.m_v6LinkLocal    = "";
                 result.m_ipAddress      = string(iarmData.ipaddress,MAX_IP_ADDRESS_LEN - 1);
                 if (0 == strcasecmp("ipv4", iarmData.ipversion))
-                    result.m_prefix         = NetmaskToPrefix(iarmData.netmask);
-                else if (0 == strcasecmp("ipv6", iarmData.ipversion))
-                    result.m_prefix         = std::stoi(iarmData.netmask);
+                    result.m_prefix = NetmaskToPrefix(iarmData.netmask);
+		else if (0 == strcasecmp("ipv6", iarmData.ipversion))
+                    result.m_prefix = std::atoi(iarmData.netmask);
                 result.m_gateway        = string(iarmData.gateway,MAX_IP_ADDRESS_LEN - 1);
                 result.m_primaryDns     = string(iarmData.primarydns,MAX_IP_ADDRESS_LEN - 1);
                 result.m_secondaryDns   = string(iarmData.secondarydns,MAX_IP_ADDRESS_LEN - 1);
