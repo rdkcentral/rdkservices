@@ -19,6 +19,7 @@
 
 #include "NetworkManager.h"
 #include "NetworkConnectivity.h"
+#include <algorithm>
 
 #define LOGINFOMETHOD() { std::string json; parameters.ToString(json); NMLOG_TRACE("Legacy params=%s", json.c_str() ); }
 #define LOGTRACEMETHODFIN() { std::string json; response.ToString(json); NMLOG_TRACE("Legacy response=%s", json.c_str() ); }
@@ -336,15 +337,8 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             if (Core::ERROR_NONE == rc)
             {
                 string ipversion = tmpResponse["ipversion"].String();
-                if (0 == strcasecmp("ipv4", ipversion.c_str()))
-                {
-                    index = tmpResponse["prefix"].Number();
-                    if(CIDR_NETMASK_IP_LEN <= index)
-                        return Core::ERROR_GENERAL;
-                    response["netmask"]  = CIDR_PREFIXES[index];
-                }
-                else if (0 == strcasecmp("ipv6", ipversion.c_str()))
-                    response["netmask"]  = tmpResponse["prefix"];
+                std::transform(ipversion.begin(), ipversion.end(), ipversion.begin(), ::toupper);
+                
                 if (parameters.HasLabel("interface"))
                 {
                     response["interface"] = parameters["interface"];
@@ -358,9 +352,22 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
                 }
                 response["ipversion"]    = tmpResponse["ipversion"];
                 response["autoconfig"]   = tmpResponse["autoconfig"];
-                response["dhcpserver"]   = tmpResponse["dhcpserver"];
                 response["ipaddr"]       = tmpResponse["ipaddress"];
+                if(tmpResponse["ipaddress"].String().empty())
+                    response["netmask"]  = "";
+                else if ("IPV4" == ipversion)
+                {
+                    index = tmpResponse["prefix"].Number();
+                    if(CIDR_NETMASK_IP_LEN <= index)
+                        return Core::ERROR_GENERAL;
+                    response["netmask"]  = CIDR_PREFIXES[index];
+                }
+                else if ("IPV6" == ipversion)
+                {
+                    response["netmask"]  = tmpResponse["prefix"];
+                }
                 response["gateway"]      = tmpResponse["gateway"];
+                response["dhcpserver"]   = tmpResponse["dhcpserver"];
                 response["primarydns"]   = tmpResponse["primarydns"];
                 response["secondarydns"] = tmpResponse["secondarydns"];
                 response["success"]      = tmpResponse["success"];
