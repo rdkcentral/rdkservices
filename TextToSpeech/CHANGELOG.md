@@ -15,6 +15,10 @@ All notable changes to this RDK Service will be documented in this file.
 * Changes in CHANGELOG should be updated when commits are added to the main or release branches. There should be one CHANGELOG entry per JIRA Ticket. This is not enforced on sprint branches since there could be multiple changes for the same JIRA ticket during development. 
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
+## [1.0.27] - 2024-05-06
+### Added
+- Added Primary volume control on broadcom platform
+
 ## [1.0.26] - 2024-03-29
 ### Security
 - Resolved security vulnerabilities
