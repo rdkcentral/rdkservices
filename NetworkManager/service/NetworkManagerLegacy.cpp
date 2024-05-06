@@ -336,15 +336,6 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             if (Core::ERROR_NONE == rc)
             {
                 string ipversion = tmpResponse["ipversion"].String();
-                if (0 == strcasecmp("ipv4", ipversion.c_str()))
-                {
-                    index = tmpResponse["prefix"].Number();
-                    if(CIDR_NETMASK_IP_LEN <= index)
-                        return Core::ERROR_GENERAL;
-                    response["netmask"]  = CIDR_PREFIXES[index];
-                }
-                else if (0 == strcasecmp("ipv6", ipversion.c_str()))
-                    response["netmask"]  = tmpResponse["prefix"];
                 if (parameters.HasLabel("interface"))
                 {
                     response["interface"] = parameters["interface"];
@@ -358,9 +349,23 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
                 }
                 response["ipversion"]    = tmpResponse["ipversion"];
                 response["autoconfig"]   = tmpResponse["autoconfig"];
-                response["dhcpserver"]   = tmpResponse["dhcpserver"];
                 response["ipaddr"]       = tmpResponse["ipaddress"];
+                if(tmpResponse["ipaddress"].String().empty())
+                    response["netmask"]  = "";
+                else
+                {
+                    if (0 == strcasecmp("ipv4", ipversion.c_str()))
+                    {
+                        index = tmpResponse["prefix"].Number();
+                        if(CIDR_NETMASK_IP_LEN <= index)
+                            return Core::ERROR_GENERAL;
+                        response["netmask"]  = CIDR_PREFIXES[index];
+                    }
+                    else if (0 == strcasecmp("ipv6", ipversion.c_str()))
+                        response["netmask"]  = tmpResponse["prefix"];
+                }
                 response["gateway"]      = tmpResponse["gateway"];
+                response["dhcpserver"]   = tmpResponse["dhcpserver"];
                 response["primarydns"]   = tmpResponse["primarydns"];
                 response["secondarydns"] = tmpResponse["secondarydns"];
                 response["success"]      = tmpResponse["success"];
