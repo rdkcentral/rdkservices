@@ -119,7 +119,7 @@ typedef struct group_info
     std::string goDevAddr;
     std::string ipAddr;
     std::string ipMask;
-    std::string goIPAddr;
+    std::string srcDevIPAddr;
     std::string localIPAddr;
 } GroupInfo;
 

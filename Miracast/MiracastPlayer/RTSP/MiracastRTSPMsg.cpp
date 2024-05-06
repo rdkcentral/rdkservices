@@ -289,6 +289,7 @@ void MiracastRTSPMsg::Release_SocketAndEpollDescriptor(void)
     MIRACASTLOG_TRACE("Entering...");
     if (-1 != m_tcpSockfd)
     {
+        shutdown(m_tcpSockfd , SHUT_RDWR);
         close(m_tcpSockfd);
         m_tcpSockfd = -1;
     }
@@ -2076,7 +2077,7 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
                     {
                         rtsp_msg_hldr_running_state = false;
                     }
-		    rtsp_sink2src_request_msg_handling(RTSP_TEARDOWN_FROM_SINK2SRC);
+                    rtsp_sink2src_request_msg_handling(RTSP_TEARDOWN_FROM_SINK2SRC);
                     break;
                 }
                 else
