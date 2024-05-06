@@ -121,7 +121,14 @@ public:
         UpdateAudioCodecInfo();
         UpdateVideoCodecInfo();
         Utils::IARM::init();
-        device::Manager::Initialize();
+	 try {
+            device::Manager::Initialize();
+        } catch (const device::Exception& e) {
+            TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
+        } catch (const std::exception& e) {
+            TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
+        } catch (...) {
+        }
         IARM_Result_t res;
         IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_MODE, AudioModeHandler) );
         PlayerInfoImplementation::_instance = this;
