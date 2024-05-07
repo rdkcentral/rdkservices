@@ -233,7 +233,7 @@ namespace Plugin {
         return 0;
     }
 
-    int AVOutputTV::getDolbyModeIndex(const char * dolbyMode)
+    int AVOutputTV::GetDolbyModeIndex(const char * dolbyMode)
     {
         int mode = 0;
         pic_modes_t *dolbyModes     ;
@@ -452,19 +452,19 @@ namespace Plugin {
         for (int i = 0; i < sourceArray.Length(); ++i) {
             source += sourceArray[i].String();
             if (i != (sourceArray.Length() - 1) ) {
-                source += ",";
-            }
+		source += ",";
+	    }
         }
 
         formatArray = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].Array() : JsonArray();
         for (int i = 0; i < formatArray.Length(); ++i) {
             format += formatArray[i].String();
             if (i != (formatArray.Length() - 1) ) {
-                format += ",";
-	    }
+		format += ",";
+            }
         }
 
-        if (source.empty()) {
+	if (source.empty()) {
 	    source = "Global";
 	}
         if (pqmode.empty()) {
@@ -555,43 +555,43 @@ namespace Plugin {
              (param == "Hue") || (param == "WhiteBalance") ||
             (param == "ComponentSaturation") || (param == "Backlight") ||
             (param == "ComponentHue") || (param == "ComponentLuma") || (param == "LowLatencyState") ) {
-                if (inputValue < stoi(range[0]) || inputValue > stoi(range[1])) {
-                    LOGERR("wrong Input value[%d]", inputValue);
-                    return -1;
-                }
+            if (inputValue < stoi(range[0]) || inputValue > stoi(range[1])) {
+                LOGERR("wrong Input value[%d]", inputValue);
+                return -1;
+            }
         }
         return 0;
     }
 
-    int AVOutputTV::fetchCapablities(string pqparam, string & source, string & pqmode, string & format) {
+    int AVOutputTV::FetchCapablities(string pqparam, string & source, string & pqmode, string & format) {
 
         std::vector<std::string> range;
         std::vector<std::string> sourceVec;
         std::vector<std::string> pqmodeVec;
         std::vector<std::string> formatVec;
 
-        tvError_t ret = tvERROR_NONE;
+       tvError_t ret = tvERROR_NONE;
 
-        ret = getParamsCaps(range, pqmodeVec, sourceVec, formatVec, pqparam);
+       ret = getParamsCaps(range, pqmodeVec, sourceVec, formatVec, pqparam);
 
-        if (ret != tvERROR_NONE) {
-            LOGINFO("%s: failed to get the capability \n", __FUNCTION__);
-            return -1;
-        }
+       if (ret != tvERROR_NONE) {
+           LOGINFO("%s: failed to get the capability \n", __FUNCTION__);
+           return -1;
+       }
 
-        if (sourceVec.size() != 0) {
+       if (sourceVec.size() != 0) {
             source = convertToString(sourceVec);
-        }
+       }
 
-        if (pqmodeVec.size() != 0) {
+       if (pqmodeVec.size() != 0) {
             pqmode = convertToString(pqmodeVec);
-        }
+       }
 
-        if (formatVec.size() != 0) {
+       if (formatVec.size() != 0) {
             format = convertToString(formatVec);
-        }
+       }
 
-        return 0;
+       return 0;
     }
 
     int AVOutputTV::validateInputParameter(std::string param, std::string inputValue)
@@ -623,7 +623,7 @@ namespace Plugin {
         return 0;
     }
 
-    void AVOutputTV::locatePQSettingsFile()
+    void AVOutputTV::LocatePQSettingsFile()
     {
         LOGINFO("Entry\n");
         char panelId[20] = {0};
@@ -658,7 +658,7 @@ namespace Plugin {
         LOGINFO("%s : Default tvsettings file : %s\n",__FUNCTION__,rfc_caller_id);
     }
 
-    tvError_t AVOutputTV::initializePictureMode()
+    tvError_t AVOutputTV::InitializePictureMode()
     {
         tvError_t ret = tvERROR_NONE;
         TR181_ParamData_t param;
@@ -716,7 +716,7 @@ namespace Plugin {
             std::string localSource;
             std::string localPqmode;
             std::string localFormat;
-            if (fetchCapablities(pqparam, localSource, localPqmode, localFormat) == 0) {
+            if (FetchCapablities(pqparam, localSource, localPqmode, localFormat) == 0) {
                 pqmode = localPqmode;
                 //if pqmode none from capabilty then lets keep pqmode as global to fail the capabilty
             }
@@ -740,7 +740,7 @@ namespace Plugin {
             std::string localSource;
             std::string localPqmode;
             std::string localFormat;
-            if (fetchCapablities(pqparam, localSource, localPqmode, localFormat) == 0) {
+            if (FetchCapablities(pqparam, localSource, localPqmode, localFormat) == 0) {
                 source = localSource;
             }
             else {
@@ -764,7 +764,7 @@ namespace Plugin {
             std::string localSource;
             std::string localPqmode;
             std::string localFormat;
-            if (fetchCapablities(pqparam, localSource, localPqmode, localFormat) == 0) {
+            if (FetchCapablities(pqparam, localSource, localPqmode, localFormat) == 0) {
                 format = localFormat;
             }
             else {
@@ -776,8 +776,8 @@ namespace Plugin {
             tvVideoFormatType_t formatIndex = VIDEO_FORMAT_NONE;
             GetCurrentVideoFormat(&formatIndex);
             if ( formatIndex  == VIDEO_FORMAT_NONE) {
-	        formatIndex  = VIDEO_FORMAT_SDR;
-            }
+                formatIndex  = VIDEO_FORMAT_SDR;
+	    }
             format = convertVideoFormatToString(formatIndex);
         }
 
@@ -824,7 +824,7 @@ namespace Plugin {
         return ret;
     }
 
-    tvContentFormatType_t AVOutputTV::convertFormatStringToTVContentFormat(const char *format)
+    tvContentFormatType_t AVOutputTV::ConvertFormatStringToTVContentFormat(const char *format)
     {
         tvContentFormatType_t ret = tvContentFormatType_SDR;
 
@@ -844,7 +844,7 @@ namespace Plugin {
         return ret;
     }
 
-    tvError_t AVOutputTV::updateAVoutputTVParamToHAL(std::string forParam, int source, int pqmode, int format, int value,bool setNotDelete)
+    tvError_t AVOutputTV::UpdateAVoutputTVParamToHAL(std::string forParam, int source, int pqmode, int format, int value,bool setNotDelete)
     {
         tvError_t ret = tvERROR_NONE;
         std::string key;
@@ -883,7 +883,7 @@ namespace Plugin {
         return ret;
     }
 
-    int AVOutputTV::updateAVoutputTVParam( std::string action, std::string tr181ParamName, std::string pqmode, std::string source, std::string format, tvPQParameterIndex_t pqParamIndex, int params[] )
+    int AVOutputTV::UpdateAVoutputTVParam( std::string action, std::string tr181ParamName, std::string pqmode, std::string source, std::string format, tvPQParameterIndex_t pqParamIndex, int params[] )
     {
         LOGINFO("Entry : %s\n",__FUNCTION__);
         std::vector<int> sources;
@@ -915,7 +915,7 @@ namespace Plugin {
                             case PQ_PARAM_LOWLATENCY_STATE:
                             case PQ_PARAM_DOLBY_MODE:
                                 if(reset) {
-                                    ret |= updateAVoutputTVParamToHAL(tr181ParamName,source, mode, format,0,false);
+                                    ret |= UpdateAVoutputTVParamToHAL(tr181ParamName,source, mode, format,0,false);
 				}
                                 if(sync || reset) {
                                     int value=0;
@@ -925,13 +925,12 @@ namespace Plugin {
                                     params[0]=value;
                                 }
                                 if(set) {
-                                    ret |= updateAVoutputTVParamToHAL(tr181ParamName,source, mode, format, params[0],true);
+                                    ret |= UpdateAVoutputTVParamToHAL(tr181ParamName,source, mode, format, params[0],true);
                                 }
                                 break;
                             default:
                                 break;
                         }
-
                         switch(pqParamIndex)
                         {
                             case PQ_PARAM_BRIGHTNESS:
@@ -985,76 +984,86 @@ namespace Plugin {
                         }
                     }
                 }
-            }
+           }
+
         }
         return ret;
     }
 
-    tvError_t AVOutputTV::syncAvoutputTVParamsToHAL(std::string pqmode,std::string source,std::string format)
+    tvError_t AVOutputTV::SyncAvoutputTVParamsToHAL(std::string pqmode,std::string source,std::string format)
     {
         int params[3]={0};
 
         LOGINFO("Entry %s : pqmode : %s source : %s format : %s\n",__FUNCTION__,pqmode.c_str(),source.c_str(),format.c_str());
 
-        if( !updateAVoutputTVParam("sync","Brightness",pqmode,source,format,PQ_PARAM_BRIGHTNESS,params)) {
+        if( !UpdateAVoutputTVParam("sync","Brightness",pqmode,source,format,PQ_PARAM_BRIGHTNESS,params)) {
             LOGINFO("Brightness Successfully sync to Drive Cache\n");
 	}
         else {
             LOGERR("Brightness Sync to cache Failed !!!\n");
 	}
-        if( !updateAVoutputTVParam("sync","Contrast",pqmode,source,format,PQ_PARAM_CONTRAST,params)) {
+
+        if( !UpdateAVoutputTVParam("sync","Contrast",pqmode,source,format,PQ_PARAM_CONTRAST,params)) {
             LOGINFO("Contrast Successfully Synced to Drive Cache\n");
 	}
         else {
             LOGERR("Contrast Sync to cache Failed !!!\n");
-        }
-        if(!updateAVoutputTVParam("sync","Sharpness",pqmode,source,format,PQ_PARAM_SHARPNESS,params)) {
+	}
+
+        if( !UpdateAVoutputTVParam("sync","Sharpness",pqmode,source,format,PQ_PARAM_SHARPNESS,params)) {
             LOGINFO("Sharpness Successfully Synced to Drive Cache\n");
 	}
         else {
             LOGERR("Sharpness Sync to cache Failed !!!\n");
-        }
-        if(!updateAVoutputTVParam("sync","Saturation",pqmode,source,format,PQ_PARAM_SATURATION,params)) {
+	}
+
+        if( !UpdateAVoutputTVParam("sync","Saturation",pqmode,source,format,PQ_PARAM_SATURATION,params)) {
             LOGINFO("Saturation Successfully Synced to Drive Cache\n");
 	}
         else {
             LOGERR("Saturation Sync to cache Failed !!!\n");
-        }
-        if(!updateAVoutputTVParam("sync","Hue",pqmode,source,format,PQ_PARAM_HUE,params)) {
+	}
+
+        if( !UpdateAVoutputTVParam("sync","Hue",pqmode,source,format,PQ_PARAM_HUE,params)) {
             LOGINFO("Hue Successfully Synced to Drive Cache\n");
 	}
         else {
             LOGERR("Hue Sync to cache Failed !!!\n");
-        }
-        if(!updateAVoutputTVParam("sync","ColorTemp",pqmode,source,format,PQ_PARAM_COLOR_TEMPERATURE,params)) {
+	}
+
+        if( !UpdateAVoutputTVParam("sync","ColorTemp",pqmode,source,format,PQ_PARAM_COLOR_TEMPERATURE,params)) {
             LOGINFO("ColorTemp Successfully Synced to Drive Cache\n");
 	}
         else {
             LOGERR("ColorTemp Sync to cache Failed !!!\n");
         }
-        if(!updateAVoutputTVParam("sync","DolbyVisionMode",pqmode,source,"DV",PQ_PARAM_DOLBY_MODE,params)) {
+
+        if( !UpdateAVoutputTVParam("sync","DolbyVisionMode",pqmode,source,"DV",PQ_PARAM_DOLBY_MODE,params)) {
             LOGINFO("dvmode Successfully Synced to Drive Cache\n");
 	}
         else {
             LOGERR("dvmode Sync to cache Failed !!!\n");
 	}
-        if(!updateAVoutputTVParam("sync","DimmingMode",pqmode,source,format,PQ_PARAM_DIMMINGMODE,params)) {
+
+        if( !UpdateAVoutputTVParam("sync","DimmingMode",pqmode,source,format,PQ_PARAM_DIMMINGMODE,params)) {
             LOGINFO("dimmingmode Successfully Synced to Drive Cache\n");
 	}
         else {
             LOGERR("dimmingmode Sync to cache Failed !!!\n");
-        }
-        if(!updateAVoutputTVParam("sync","Backlight",pqmode,source,format,PQ_PARAM_BACKLIGHT,params) ) {
+	}
+
+        if( !UpdateAVoutputTVParam("sync","Backlight",pqmode,source,format,PQ_PARAM_BACKLIGHT,params) ) {
             LOGINFO("Backlight Successfully Synced to Drive Cache\n");
 	}
         else {
             LOGERR("Backlight Sync to cache Failed !!!\n");
-        }
+	}
+
         LOGINFO("Exit %s : pqmode : %s source : %s format : %s\n",__FUNCTION__,pqmode.c_str(),source.c_str(),format.c_str());
         return tvERROR_NONE;
     }
 
-    int AVOutputTV::syncAvoutputTVPQModeParamsToHAL(std::string pqmode, std::string source, std::string format)
+    int AVOutputTV::SyncAvoutputTVPQModeParamsToHAL(std::string pqmode, std::string source, std::string format)
     {
         std::vector<int> sources;
         std::vector<int> pictureModes;
@@ -1176,26 +1185,26 @@ namespace Plugin {
             return -1;
         }
 
-       tr181ErrorCode_t err=getLocalParam(rfc_caller_id, key.c_str(), &param);
+        tr181ErrorCode_t err=getLocalParam(rfc_caller_id, key.c_str(), &param);
 
-       if ( tr181Success == err ) {//Fetch new tr181format values
-           if( forParam.compare("ColorTemp") == 0 ) {
-               if (strncmp(param.value, "Standard", strlen(param.value))==0) {
-                   value=tvColorTemp_STANDARD;
-	       }
-               else if (strncmp(param.value, "Warm", strlen(param.value))==0) {
-                   value=tvColorTemp_WARM;
-	       }
-               else if (strncmp(param.value, "Cold", strlen(param.value))==0) {
-                   value=tvColorTemp_COLD;
-	       }
-               else if (strncmp(param.value, "User Defined", strlen(param.value))==0) {
-                   value=tvColorTemp_USER;
-	       }
-               else {
-                   value=tvColorTemp_STANDARD;
-	       }
-               return 0;
+        if ( tr181Success == err ) {//Fetch new tr181format values
+            if( forParam.compare("ColorTemp") == 0 ) {
+                if (strncmp(param.value, "Standard", strlen(param.value))==0) {
+                    value=tvColorTemp_STANDARD;
+	        }
+                else if (strncmp(param.value, "Warm", strlen(param.value))==0) {
+                    value=tvColorTemp_WARM;
+		}
+                else if (strncmp(param.value, "Cold", strlen(param.value))==0) {
+                    value=tvColorTemp_COLD;
+		}
+                else if (strncmp(param.value, "User Defined", strlen(param.value))==0) {
+                    value=tvColorTemp_USER;
+		}
+                else {
+                    value=tvColorTemp_STANDARD;
+		}
+                return 0;
            }
            else if( forParam.compare("DimmingMode") == 0 ) {
                if (strncmp(param.value, "fixed", strlen(param.value))==0) {
@@ -1395,7 +1404,8 @@ namespace Plugin {
         GetCurrentVideoFormat(&current_format);
         if ( current_format  == VIDEO_FORMAT_NONE) {
 	    current_format  = VIDEO_FORMAT_SDR;
-        }
+	}
+
         tr181_param_name += std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
         tr181_param_name += "." + convertSourceIndexToString(currentSource) + "." + "Format."+convertVideoFormatToString(current_format)+"."+"PictureModeString";
 
@@ -1440,7 +1450,7 @@ namespace Plugin {
             ret = 0;
         }
         else {
-            value=getDolbyModeIndex(param.value);
+            value=GetDolbyModeIndex(param.value);
             ret = 0;
         }
 
@@ -1581,12 +1591,12 @@ namespace Plugin {
         return ret;
     }
 
-    void AVOutputTV::broadcastLowLatencyModeChangeEvent(bool lowLatencyMode)
+    void AVOutputTV::BroadcastLowLatencyModeChangeEvent(bool lowLatencyMode)
     {
-        LOGINFO("Entry:%d\n",lowLatencyMode);
-        JsonObject response;
-        response["lowLatencyMode"] = lowLatencyMode;
-        sendNotify("gameModeEvent", response);
+           LOGINFO("Entry:%d\n",lowLatencyMode);
+           JsonObject response;
+           response["lowLatencyMode"] = lowLatencyMode;
+           sendNotify("gameModeEvent", response);
     }
 
     tvError_t AVOutputTV::setAspectRatioZoomSettings(tvDisplayMode_t mode)
@@ -1668,7 +1678,7 @@ namespace Plugin {
                 //Save DisplayMode to ssm_data
                 int params[3]={0};
                 params[0]=mode;
-                int retval=updateAVoutputTVParam("set","AspectRatio",pqmode,source,format,PQ_PARAM_ASPECT_RATIO,params);
+                int retval=UpdateAVoutputTVParam("set","AspectRatio",pqmode,source,format,PQ_PARAM_ASPECT_RATIO,params);
 
                 if(retval != 0) {
                     LOGERR("Failed to Save DisplayMode to ssm_data\n");
@@ -1684,6 +1694,6 @@ namespace Plugin {
         }
         return ret;
     }
-}//namespace Plugin
-}//namespace WPEFramework
 
+} //namespace Plugin
+} //namespace WPEFramework
