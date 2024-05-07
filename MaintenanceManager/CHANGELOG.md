@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.31] - 2024-04-22
+### Changed
+- Maintenance manager acquires deviceInitializationContext based on eventing mechanism
+
 ## [1.0.30] - 2024-04-12
 ### Add
 - Add osClass to kDeviceInitContextKeyVals Array for WAI 2.0
