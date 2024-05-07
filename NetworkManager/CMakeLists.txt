@@ -20,6 +20,6 @@ include(CmakeHelperFunctions)
 string(TOLOWER ${NAMESPACE} STORAGE_DIRECTORY)
 get_directory_property(SEVICES_DEFINES COMPILE_DEFINITIONS)
 
-#add_subdirectory(interface)
+add_subdirectory(interface)
 add_subdirectory(service)
 

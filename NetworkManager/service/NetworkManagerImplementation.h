@@ -28,8 +28,8 @@
 
 using namespace std;
 
-#include <interfaces/INetworkManager.h>
-//#include "INetworkManager.h"
+//#include <interfaces/INetworkManager.h>
+#include "INetworkManager.h"
 #include "NetworkConnectivity.h"
 #include "StunClient.h"
 
