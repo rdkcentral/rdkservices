@@ -20,6 +20,10 @@ All notable changes to this RDK Service will be documented in this file.
 ### Fixed
 - Fixed timing issues with respect to WAI Implementation
 
+## [1.0.32] - 2024-05-02
+### Fixed
+- Increased wait time for AuthService's setPartnerId RPC Method
+
 ## [1.0.31] - 2024-04-22
 ### Changed
 - Maintenance manager acquires deviceInitializationContext based on eventing mechanism
