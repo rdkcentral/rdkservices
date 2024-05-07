@@ -321,7 +321,7 @@ namespace WPEFramework {
     bool whoAmIStatus = false;
     if (UNSOLICITED_MAINTENANCE == g_maintenance_type) {
         /* WhoAmI check*/
-        whoAmIStatus = knowWhoAmI();
+        whoAmIStatus = knowWhoAmI(activation_status);
         if (whoAmIStatus) {
             LOGINFO("knowWhoAmI() returned successfully");
         }
@@ -331,7 +331,7 @@ namespace WPEFramework {
     }
 
     if (false == whoAmIStatus && activation_status != "activated") {
-        LOGINFO("knoWhoAmI() returned false and Device is not already Activated");
+        LOGINFO("knowWhoAmI() returned false and Device is not already Activated");
         g_listen_to_deviceContextUpdate = true;
         LOGINFO("Waiting for onDeviceInitializationContextUpdate event");
         task_thread.wait(lck);
@@ -417,7 +417,7 @@ namespace WPEFramework {
         }
 
 #if defined(ENABLE_WHOAMI)
-        bool MaintenanceManager::knowWhoAmI()
+        bool MaintenanceManager::knowWhoAmI(string &activation_status)
         {
             bool success = false;
             const char* secMgr_callsign = "org.rdk.SecManager";
@@ -425,37 +425,50 @@ namespace WPEFramework {
             PluginHost::IShell::state state;
             WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
 
-            if ((getServiceState(m_service, secMgr_callsign, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
-                LOGINFO("%s is active", secMgr_callsign);
+            do 
+            {
+                if ((getServiceState(m_service, secMgr_callsign, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
+                    LOGINFO("%s is active", secMgr_callsign);
 
-                thunder_client=getThunderPluginHandle(secMgr_callsign_ver);
-                if (thunder_client != nullptr) {
-                    JsonObject params;
-                    JsonObject joGetResult;
+                    thunder_client=getThunderPluginHandle(secMgr_callsign_ver);
+                    if (thunder_client != nullptr) {
+                        JsonObject params;
+                        JsonObject joGetResult;
 
-                    thunder_client->Invoke<JsonObject, JsonObject>(5000, "getDeviceInitializationContext", params, joGetResult);
-                    if (joGetResult.HasLabel("success") && joGetResult["success"].Boolean()) {
-                        static const char* kDeviceInitializationContext = "deviceInitializationContext";
-                        if (joGetResult.HasLabel(kDeviceInitializationContext)) {
-                            LOGINFO("%s found in the response", kDeviceInitializationContext);
-                            success = setDeviceInitializationContext(joGetResult);
+                        thunder_client->Invoke<JsonObject, JsonObject>(5000, "getDeviceInitializationContext", params, joGetResult);
+                        if (joGetResult.HasLabel("success") && joGetResult["success"].Boolean()) {
+                            static const char* kDeviceInitializationContext = "deviceInitializationContext";
+                            if (joGetResult.HasLabel(kDeviceInitializationContext)) {
+                                LOGINFO("%s found in the response", kDeviceInitializationContext);
+                                success = setDeviceInitializationContext(joGetResult);
+                            }
+                            else {
+                                LOGINFO("%s is not available in the response", kDeviceInitializationContext);
+                            }
                         }
                         else {
-                            LOGINFO("%s is not available in the response", kDeviceInitializationContext);
+                            LOGINFO("getDeviceInitializationContext failed");
                         }
+                    } else {
+                        LOGINFO("Failed to get plugin handle");
+                    }
+                    if (!g_subscribed_for_deviceContextUpdate) {
+                        LOGINFO("onDeviceInitializationContextUpdate event not subscribed...");
+                        g_subscribed_for_deviceContextUpdate = subscribeToDeviceInitializationEvent();
+                    }
+                    return success;
+                }
+                else {
+                    g_subscribed_for_deviceContextUpdate = false;
+                    if (activation_status != "activated") {
+                        LOGINFO("%s is not active. Retry after %d seconds", secMgr_callsign, SECMGR_RETRY_INTERVAL);
+                        sleep(SECMGR_RETRY_INTERVAL);
                     }
                     else {
-                        LOGINFO("getDeviceInitializationContext failed");
+                        return success;
                     }
-
-                } else {
-                    LOGINFO("Failed to get plugin handle");
                 }
-            }
-            else {
-                LOGINFO("%s is not active", secMgr_callsign);
-            }
-            return success;
+            }while(true);
         }
 #endif /* WhoAmI */
 
@@ -869,7 +882,6 @@ namespace WPEFramework {
     bool MaintenanceManager::subscribeToDeviceInitializationEvent() {
         int32_t status = Core::ERROR_NONE;
         bool result = false;
-        bool subscribe_status = false;
         string event = "onDeviceInitializationContextUpdate";
         const char* secMgr_callsign_ver = "org.rdk.SecManager.1";
         WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
@@ -887,8 +899,8 @@ namespace WPEFramework {
                 result = true;
             }
         }
-        subscribe_status = result;
-        if(subscribe_status) {
+        g_subscribed_for_deviceContextUpdate = result;
+        if(g_subscribed_for_deviceContextUpdate) {
             LOGINFO("MaintenanceManager subscribed for %s event", event.c_str());
             return true;
         }
