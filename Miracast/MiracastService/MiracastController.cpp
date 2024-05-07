@@ -148,8 +148,8 @@ std::string MiracastController::parse_p2p_event_data(const char *tmpBuff, const 
     const char  *ret = nullptr, 
                 *ret_equal = nullptr,
                 *ret_space = nullptr,
-                *single_quote_start = nullptr,
-                *single_quote_end = nullptr;
+                *quote_start = nullptr,
+                *quote_end = nullptr;
     ret = strstr(tmpBuff, lookup_data);
 
     if (nullptr != ret)
@@ -159,15 +159,22 @@ std::string MiracastController::parse_p2p_event_data(const char *tmpBuff, const 
             ret_equal = strstr(ret, "=");
             ret_space = strstr(ret_equal, " ");
 
-            if (0 == strncmp("name", lookup_data, strlen(lookup_data))){
-                single_quote_start = strstr(ret_equal, "'");
-                single_quote_end = strstr(single_quote_start + 1, "'");
+            if (0 == strncmp("name", lookup_data, strlen(lookup_data)))
+            {
+                quote_start = strstr(ret_equal, "'");
+                quote_end = strstr(quote_start + 1, "'");
             }
 
-            if (single_quote_start && single_quote_end) {
-                unsigned int length = single_quote_end - single_quote_start;
+            if (0 == strncmp("ssid", lookup_data, strlen(lookup_data)))
+            {
+                quote_start = strstr(ret_equal, "\"");
+                quote_end = strstr(quote_start + 1, "\"");
+            }
+
+            if (quote_start && quote_end) {
+                unsigned int length = quote_end - quote_start;
                 if (length < sizeof(return_buf)) {
-                    snprintf(return_buf, length, "%s", single_quote_start + 1);
+                    snprintf(return_buf, length, "%s", quote_start + 1);
                 }
             }
             else if (ret_space)
@@ -866,7 +873,39 @@ void MiracastController::Controller_Thread(void *args)
                             size_t found = event_buffer.find("client");
                             size_t found_space = event_buffer.find(" ");
 
-                            MIRACASTLOG_TRACE("CONTROLLER_GO_GROUP_STARTED Received\n");
+                            MIRACASTLOG_TRACE("CONTROLLER_GO_GROUP_STARTED Received");
+
+                            m_groupInfo->goDevAddr = parse_p2p_event_data(event_buffer.c_str(), "go_dev_addr");
+
+                            DeviceInfo *cur_device_info_ptr = MiracastController::get_device_details(m_groupInfo->goDevAddr);
+
+                            if ( nullptr == cur_device_info_ptr )
+                            {
+                                cur_device_info_ptr = new DeviceInfo;
+                                if ( nullptr != cur_device_info_ptr )
+                                {
+                                    std::string srcDevSSID = parse_p2p_event_data(event_buffer.c_str(), "ssid");
+                                    cur_device_info_ptr->deviceMAC = m_groupInfo->goDevAddr;
+                                    cur_device_info_ptr->modelName = "Miracast-Source";
+                                    cur_device_info_ptr->authType = "pbc";
+                                    cur_device_info_ptr->deviceType = "unknown";
+                                    std::size_t firstDash = srcDevSSID.find("-");
+                                    if (firstDash != std::string::npos)
+                                    {
+                                        std::size_t secondDash = srcDevSSID.find("-", firstDash + 1);
+                                        if (secondDash != std::string::npos)
+                                        {
+                                            std::string result = srcDevSSID.substr(secondDash + 1);
+                                            if (!result.empty())
+                                            {
+                                                cur_device_info_ptr->modelName.clear();
+                                                cur_device_info_ptr->modelName = result.c_str();
+                                            }
+                                        }
+                                    }
+                                    m_deviceInfoList.push_back(cur_device_info_ptr);
+                                }
+                            }
 
                             if (found != std::string::npos)
                             {
@@ -874,7 +913,6 @@ void MiracastController::Controller_Thread(void *args)
                                 m_groupInfo->ipAddr = parse_p2p_event_data(event_buffer.c_str(), "ip_addr");
                                 m_groupInfo->ipMask = parse_p2p_event_data(event_buffer.c_str(), "ip_mask");
                                 m_groupInfo->srcDevIPAddr = parse_p2p_event_data(event_buffer.c_str(), "go_ip_addr");
-                                m_groupInfo->goDevAddr = parse_p2p_event_data(event_buffer.c_str(), "go_dev_addr");
                                 m_groupInfo->SSID = parse_p2p_event_data(event_buffer.c_str(), "ssid");
 
                                 size_t found_client = event_buffer.find("client");
@@ -916,7 +954,6 @@ void MiracastController::Controller_Thread(void *args)
                                 MIRACASTLOG_INFO("!!!! P2P GROUP STARTED IN GO MODE !!!!");
                                 size_t found_go = event_buffer.find("GO");
                                 m_groupInfo->interface = event_buffer.substr(found_space, found_go - found_space);
-                                m_groupInfo->goDevAddr = parse_p2p_event_data(event_buffer.c_str(), "go_dev_addr");
                                 REMOVE_SPACES(m_groupInfo->interface);
 
                                 if (getenv("GET_PACKET_DUMP") != nullptr)
@@ -1008,7 +1045,11 @@ void MiracastController::Controller_Thread(void *args)
                                                     m_connect_req_notified);
                                 if (nullptr != m_notify_handler)
                                 {
-                                    m_notify_handler->onMiracastServiceLaunchRequest(src_dev_ip, src_dev_mac, src_dev_name, sink_dev_ip, m_connect_req_notified );
+                                    m_notify_handler->onMiracastServiceLaunchRequest(src_dev_ip,
+                                                                                     src_dev_mac,
+                                                                                     src_dev_name,
+                                                                                     sink_dev_ip,
+										     m_connect_req_notified );
                                 }
                                 checkAndInitiateP2PBackendDiscovery();
                                 session_restart_required = false;
@@ -1226,8 +1267,8 @@ void MiracastController::Controller_Thread(void *args)
                                                     controller_msgq_data.sink_dev_ip);
                             m_notify_handler->onMiracastServiceLaunchRequest( controller_msgq_data.source_dev_ip,
                                                                               controller_msgq_data.source_dev_mac,
-                                                                              controller_msgq_data.sink_dev_ip,
                                                                               controller_msgq_data.source_dev_name,
+                                                                              controller_msgq_data.sink_dev_ip,
                                                                               true );
                         }
                     }
@@ -1339,7 +1380,7 @@ void MiracastController::accept_client_connection(std::string is_accepted)
     MIRACASTLOG_TRACE("Exiting...");
 }
 
-void MiracastController::switch_launch_request_context(std::string& source_dev_ip,std::string& source_dev_mac,std::string& sink_dev_ip,std::string& source_dev_name)
+void MiracastController::switch_launch_request_context(std::string& source_dev_ip,std::string& source_dev_mac,std::string& source_dev_name,std::string& sink_dev_ip)
 {
     CONTROLLER_MSGQ_STRUCT controller_msgq_data = {0};
     MIRACASTLOG_TRACE("Entering...");
@@ -1352,8 +1393,8 @@ void MiracastController::switch_launch_request_context(std::string& source_dev_i
                             source_dev_name.c_str());
         strncpy(controller_msgq_data.source_dev_ip, source_dev_ip.c_str(),sizeof(controller_msgq_data.source_dev_ip));
         strncpy(controller_msgq_data.source_dev_mac, source_dev_mac.c_str(),sizeof(controller_msgq_data.source_dev_mac));
-        strncpy(controller_msgq_data.sink_dev_ip, sink_dev_ip.c_str(),sizeof(controller_msgq_data.sink_dev_ip));
         strncpy(controller_msgq_data.source_dev_name, source_dev_name.c_str(),sizeof(controller_msgq_data.source_dev_name));
+        strncpy(controller_msgq_data.sink_dev_ip, sink_dev_ip.c_str(),sizeof(controller_msgq_data.sink_dev_ip));
         controller_msgq_data.state = CONTROLLER_SWITCH_LAUNCH_REQ_CTX;
         send_thundermsg_to_controller_thread(controller_msgq_data);
     }
