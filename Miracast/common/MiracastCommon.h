@@ -242,6 +242,7 @@ typedef struct rtsp_hldr_msgq_st
     VIDEO_RECT_STRUCT videorect;
     eCONTROLLER_FW_STATES state;
     eM_PLAYER_STOP_REASON_CODE stop_reason_code;
+    eM_PLAYER_REASON_CODE state_reason_code;
     eMIRA_GSTPLAYER_STATES  gst_player_state;
 } RTSP_HLDR_MSGQ_STRUCT;
 
@@ -355,8 +356,8 @@ private:
 class MiracastCommon
 {
     public:
-        static std::string parse_opt_flag( std::string file_name , bool integer_check = false );
-	static int execute_SystemCommand( const char* system_command_buffer );
+        static std::string parse_opt_flag( std::string file_name , bool integer_check = false, bool debugStats = true );
+        static int execute_SystemCommand( const char* system_command_buffer );
 };
 
 #endif

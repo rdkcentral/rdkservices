@@ -850,6 +850,7 @@ bool MiracastRTSPMsg::wait_data_timeout(int m_Sockfd, unsigned int ms)
     struct timeval timeout = {0};
     fd_set readFDSet;
     bool returnValue = false;
+    int result = 0;
 
     MIRACASTLOG_TRACE("Entering WaitTime[%d]...",ms);
 
@@ -859,10 +860,20 @@ bool MiracastRTSPMsg::wait_data_timeout(int m_Sockfd, unsigned int ms)
     timeout.tv_sec = (ms / 1000);
     timeout.tv_usec = ((ms % 1000) * 1000);
 
-    if (select(m_Sockfd + 1, &readFDSet, nullptr, nullptr, &timeout) > 0)
+    result = select(m_Sockfd + 1, &readFDSet, nullptr, nullptr, &timeout);
+    if ( -1 == result )
+    {
+        MIRACASTLOG_ERROR("select() failed: [%s]",strerror(errno));
+    }
+    else if ( 0 == result )
+    {
+        MIRACASTLOG_VERBOSE("select() timedout");
+    }
+    else
     {
         returnValue = FD_ISSET(m_Sockfd, &readFDSet);
     }
+
     MIRACASTLOG_TRACE("Exiting ret[%d] status[%s]...",returnValue,strerror(errno));
     return returnValue;
 }
@@ -980,6 +991,7 @@ MiracastError MiracastRTSPMsg::initiate_TCP(std::string goIP)
                 {
                     // connection timed out or failed
                     MIRACASTLOG_ERROR("Socket Connection Timedout %s received(%d)...", strerror(errno), errno);
+                    usleep(500000);
                 }
                 else
                 {
@@ -996,6 +1008,7 @@ MiracastError MiracastRTSPMsg::initiate_TCP(std::string goIP)
                     else
                     {
                         MIRACASTLOG_ERROR("Socket failed to connect %s received(%d)", strerror(errno), errno);
+                        usleep(500000);
                     }
                 }
             }
@@ -2291,15 +2304,40 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
                     break;
                     case RTSP_NOTIFY_GSTPLAYER_STATE:
                     {
+                        eMIRA_PLAYER_STATES state = MIRACAST_PLAYER_STATE_IDLE;
+                        eM_PLAYER_REASON_CODE reason_code = MIRACAST_PLAYER_REASON_CODE_SUCCESS;
+                        bool notifyGstPlayer = true;
                         MIRACASTLOG_INFO("!!! RTSP_NOTIFY_GSTPLAYER_STATE[%#08X] !!!",rtsp_message_data.gst_player_state);
-                        std::string opt_flag_buffer = MiracastCommon::parse_opt_flag("/opt/miracast_skip_firstframe_callback");
 
-                        if ((opt_flag_buffer.empty()) &&
-                            ( MIRACAST_GSTPLAYER_STATE_FIRST_VIDEO_FRAME_RECEIVED == rtsp_message_data.gst_player_state ))
+                        switch (rtsp_message_data.gst_player_state)
                         {
-                            MIRACASTLOG_INFO("#### updating state as PLAYING ####");
-                            set_state(MIRACAST_PLAYER_STATE_PLAYING , true );
+                            case MIRACAST_GSTPLAYER_STATE_FIRST_VIDEO_FRAME_RECEIVED:
+                            {
+                                state = MIRACAST_PLAYER_STATE_PLAYING;
+                                MIRACASTLOG_INFO("#### MCAST-TRIAGE-OK-GST-PLAYING updating state as PLAYING ####");
+                                std::string opt_flag_buffer = MiracastCommon::parse_opt_flag("/opt/miracast_skip_firstframe_callback");
+                                if (!opt_flag_buffer.empty())
+                                {
+                                    notifyGstPlayer = false;
+                                }
+                            }
+                            break;
+                            case MIRACAST_GSTPLAYER_STATE_STOPPED:
+                            {
+                                state = MIRACAST_PLAYER_STATE_STOPPED;
+                                reason_code = rtsp_message_data.state_reason_code;
+                                rtsp_sink2src_request_msg_handling(RTSP_TEARDOWN_FROM_SINK2SRC);
+                                start_monitor_keep_alive_msg = false;
+                                MIRACASTLOG_INFO("#### MCAST-TRIAGE-OK-GST-FAIL updating state as STOPPED ####");
+                            }
+                            break;
+                            default:
+                            {
+                                notifyGstPlayer = false;
+                            }
+                            break;
                         }
+                        set_state(state , notifyGstPlayer , reason_code );
                     }
                     break;
                     default:
