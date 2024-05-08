@@ -125,7 +125,7 @@ public:
             device::Manager::Initialize();
 	    LOGINFO("PlayerInfo device::Manager::Initialize success");
         } catch (...) {
-	    TRACE(Trace::Fatal, (_T("Exception caught %s"), e.what()));
+	    LOGERR("PlayerInfo device::Manager::Initialize failed");
         }
         IARM_Result_t res;
         IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_MODE, AudioModeHandler) );
