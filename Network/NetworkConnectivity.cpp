@@ -596,6 +596,12 @@ namespace WPEFramework {
                     LOGINFO("notification count change to default %d ...", notifyWaitCount);
                 }
             }
+            else
+            {
+                notifyWaitCount = DEFAULT_MONITOR_RETRY_COUNT;
+                tempTimeout = timeout.load();
+            }
+
 
             if(!isContinuesMonitoringNeeded && (g_internetState.load() == FULLY_CONNECTED))
             {
