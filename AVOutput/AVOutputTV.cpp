@@ -508,6 +508,7 @@ namespace Plugin {
         std::string source;
         std::string format;
 
+
         value = parameters.HasLabel("zoomMode") ? parameters["zoomMode"].String() : "";
         returnIfParamNotFound(parameters,"zoomMode");
 
@@ -998,6 +999,7 @@ namespace Plugin {
         }
 
     }
+
 
     uint32_t AVOutputTV::resetBrightness(const JsonObject& parameters, JsonObject& response)
     {

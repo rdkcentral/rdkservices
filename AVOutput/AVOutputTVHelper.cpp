@@ -112,7 +112,8 @@ namespace Plugin {
         std::string platformsupport;
         std::vector<std::string> index;
 
-        tvError_t ret = getParamsCaps(localrange, localpq, localformat, localsource,"VideoSource", platformsupport, index);
+        tvError_t ret = getParamsCaps(localrange, localpq, localformat, localsource,
+                                          "VideoSource", platformsupport, index);
         if (ret == tvERROR_NONE) {
             if (localrange.size() == index.size()) {
                 for (unsigned int i = 0; i< localrange.size(); i++) {
@@ -140,7 +141,8 @@ namespace Plugin {
 	    index.clear();
 	}
 
-        ret = getParamsCaps(localrange, localpq, localformat, localsource,"PictureMode", platformsupport, index);
+        ret = getParamsCaps(localrange, localpq, localformat, localsource,
+                                      "PictureMode", platformsupport, index);
         if (ret == tvERROR_NONE) {
             if (localrange.size() == index.size()) {
                 for (unsigned int i = 0; i< localrange.size(); i++) {
@@ -152,7 +154,6 @@ namespace Plugin {
             LOGERR("%s: Failed to fetch the picture index \n", __FUNCTION__);
             return -1;
         }
-
         if (!localpq.empty()) {
 	    localpq.clear();
 	}
@@ -169,7 +170,8 @@ namespace Plugin {
 	    index.clear();
 	}
 
-        ret = getParamsCaps(localrange, localpq, localformat, localsource,"VideoFormat", platformsupport, index);
+        ret = getParamsCaps(localrange, localpq, localformat, localsource,
+                                      "VideoFormat", platformsupport, index);
         if (ret == tvERROR_NONE) {
             if (localrange.size() == index.size()) {
                 for (unsigned int i = 0; i< localrange.size(); i++) {
@@ -215,7 +217,7 @@ namespace Plugin {
             tvVideoFormatType_t currentFormat = VIDEO_FORMAT_NONE;
             GetCurrentVideoFormat(&currentFormat);
             if( VIDEO_FORMAT_NONE == currentFormat ) {
-                formatIndex = VIDEO_FORMAT_SDR;
+		formatIndex = VIDEO_FORMAT_SDR;
             }
             else {
                 formatIndex = (int)currentFormat;
@@ -241,15 +243,14 @@ namespace Plugin {
 
         tvError_t ret = GetTVSupportedDolbyVisionModesODM(&dolbyModes,&totalAvailable);
         if(ret == tvERROR_NONE) {
-            for(int count = 0;count <totalAvailable;count++) {
+            for(int count = 0;count <totalAvailable;count++ ) {
                 if(strncasecmp(dolbyMode, dolbyModes[count].name, strlen(dolbyMode))==0) {
                     mode = dolbyModes[count].value;
                     break;
                 }
 
             }
-        }
-	else {
+        } else {
             mode = -1;
             printf("(%s):get supported mode is failed\n", __func__);
         }
@@ -307,11 +308,10 @@ namespace Plugin {
         //GetCurrentSource
         retVal = GetCurrentSource(&sourceIndex);
         if(retVal != tvERROR_NONE) {
-             LOGERR("%s : GetCurrentSource( ) Failed\n",__FUNCTION__);
-             return false;
+            LOGERR("%s : GetCurrentSource( ) Failed\n",__FUNCTION__);
+            return false;
         }
         currentSource = convertSourceIndexToString(sourceIndex);
-
         //GetCurrentFormat
         tvVideoFormatType_t formatIndex = VIDEO_FORMAT_NONE;
         GetCurrentVideoFormat(&formatIndex);
@@ -319,7 +319,6 @@ namespace Plugin {
 	    formatIndex = VIDEO_FORMAT_SDR;
 	}
         currentFormat = convertVideoFormatToString(formatIndex);
-
 
         if( ( (pqmode.find(currentPicMode) != std::string::npos) || (pqmode.compare("Global") == 0)  || (pqmode.compare("Current") == 0) ||
             (pqmode.compare("none") == 0) ) &&
@@ -357,7 +356,9 @@ namespace Plugin {
         return 0;
     }
 
-    void AVOutputTV::spliltCapablities( std::vector<std::string> &range,std::vector<std::string> &pqmode,std::vector<std::string> &format, std::vector<std::string> &source, std::vector<std::string> &index, std::string rangeInfo, std::string pqmodeInfo, std::string formatInfo, std::string sourceInfo, std::string indexInfo)
+    void AVOutputTV::spliltCapablities( std::vector<std::string> &range,std::vector<std::string> &pqmode,std::vector<std::string> &format,
+                                        std::vector<std::string> &source, std::vector<std::string> &index, std::string rangeInfo,
+                                        std::string pqmodeInfo, std::string formatInfo, std::string sourceInfo, std::string indexInfo)
     {
         std::string token;
         std::stringstream rangeStream(rangeInfo);
@@ -380,7 +381,6 @@ namespace Plugin {
             format.push_back( token );
             token.clear();
         }
-
         while( getline(sourceStream,token,',') ) {
             source.push_back( token );
             token.clear();
@@ -413,7 +413,6 @@ namespace Plugin {
             LOGINFO( "%s: readCapablitiesFromConf Failed !!!\n",__FUNCTION__);
             return false;
         }
-
         //Compare capablityInfo with Input params
 
         //1.convertCapablity Info to set for comparison
@@ -433,7 +432,8 @@ namespace Plugin {
         }
     }
 
-    int AVOutputTV::parsingSetInputArgument(const JsonObject& parameters, std::string pqparam, std::string & source, std::string & pqmode, std::string & format) {
+    int AVOutputTV::parsingSetInputArgument(const JsonObject& parameters, std::string pqparam, std::string & source,
+                                             std::string & pqmode, std::string & format) {
 
         JsonArray sourceArray;
         JsonArray pqmodeArray;
@@ -444,7 +444,7 @@ namespace Plugin {
         for (int i = 0; i < pqmodeArray.Length(); ++i) {
             pqmode += pqmodeArray[i].String();
             if (i != (pqmodeArray.Length() - 1) ) {
-	        pqmode += ",";
+		pqmode += ",";
             }
         }
 
@@ -482,7 +482,8 @@ namespace Plugin {
         return 0;
     }
 
-    int AVOutputTV::parsingGetInputArgument(const JsonObject& parameters, std::string pqparam, std::string & source, std::string & pqmode, std::string & format) {
+    int AVOutputTV::parsingGetInputArgument(const JsonObject& parameters, std::string pqparam,
+                                         std::string & source, std::string & pqmode, std::string & format) {
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
 
         source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
@@ -563,7 +564,7 @@ namespace Plugin {
         return 0;
     }
 
-    int AVOutputTV::FetchCapablities(string pqparam, string & source, string & pqmode, string & format) {
+    int AVOutputTV::fetchCapablities(string pqparam, string & source, string & pqmode, string & format) {
 
         std::vector<std::string> range;
         std::vector<std::string> sourceVec;
@@ -675,7 +676,6 @@ namespace Plugin {
 
         tr181_param_name += std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
         tr181_param_name += "."+convertSourceIndexToString(current_source)+"."+"Format."+convertVideoFormatToString(current_format)+"."+"PictureModeString";
-
         tr181ErrorCode_t err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
         if ( tr181Success == err ) {
             std::string local = param.value;
@@ -686,15 +686,16 @@ namespace Plugin {
                 LOGWARN("Picture Mode set failed: %s\n",getErrorString(ret).c_str());
             }
             else {
-                LOGINFO("Picture Mode initialized successfully, tr181 value [%s] value: %s\n", tr181_param_name.c_str(), param.value);
+                LOGINFO("Picture Mode initialized successfully, tr181 value [%s] value: %s\n", tr181_param_name.c_str(),
+                        param.value);
             }
-       }
-       else {
-           ret = tvERROR_GENERAL;
-           LOGWARN("getLocalParam for %s Failed : %s\n", tr181_param_name.c_str(), getTR181ErrorString(err));
-       }
+        }
+        else {
+            ret = tvERROR_GENERAL;
+            LOGWARN("getLocalParam for %s Failed : %s\n", tr181_param_name.c_str(), getTR181ErrorString(err));
+        }
 
-       return ret;
+        return ret;
     }
 
     std::string AVOutputTV::convertToString(std::vector<std::string> vec_strings)
@@ -716,7 +717,7 @@ namespace Plugin {
             std::string localSource;
             std::string localPqmode;
             std::string localFormat;
-            if (FetchCapablities(pqparam, localSource, localPqmode, localFormat) == 0) {
+            if (fetchCapablities(pqparam, localSource, localPqmode, localFormat) == 0) {
                 pqmode = localPqmode;
                 //if pqmode none from capabilty then lets keep pqmode as global to fail the capabilty
             }
@@ -740,7 +741,7 @@ namespace Plugin {
             std::string localSource;
             std::string localPqmode;
             std::string localFormat;
-            if (FetchCapablities(pqparam, localSource, localPqmode, localFormat) == 0) {
+            if (fetchCapablities(pqparam, localSource, localPqmode, localFormat) == 0) {
                 source = localSource;
             }
             else {
@@ -764,7 +765,7 @@ namespace Plugin {
             std::string localSource;
             std::string localPqmode;
             std::string localFormat;
-            if (FetchCapablities(pqparam, localSource, localPqmode, localFormat) == 0) {
+            if (fetchCapablities(pqparam, localSource, localPqmode, localFormat) == 0) {
                 format = localFormat;
             }
             else {
@@ -824,7 +825,7 @@ namespace Plugin {
         return ret;
     }
 
-    tvContentFormatType_t AVOutputTV::ConvertFormatStringToTVContentFormat(const char *format)
+    tvContentFormatType_t AVOutputTV::convertFormatStringToTVContentFormat(const char *format)
     {
         tvContentFormatType_t ret = tvContentFormatType_SDR;
 
@@ -854,7 +855,6 @@ namespace Plugin {
             LOGERR("generateStorageIdentifierDirty failed\n");
             ret = tvERROR_GENERAL;
         }
-
         else {
             tr181ErrorCode_t err  = tr181Success;
             if(setNotDelete) {
@@ -1175,7 +1175,8 @@ namespace Plugin {
         return ret;
     }
 
-    int AVOutputTV::getLocalparam( std::string forParam,int formatIndex,int pqIndex,int sourceIndex,int & value, tvPQParameterIndex_t pqParamIndex,bool sync,int color )
+    int AVOutputTV::getLocalparam( std::string forParam,int formatIndex,int pqIndex,int sourceIndex,int & value,
+                                   tvPQParameterIndex_t pqParamIndex,bool sync,int color )
     {
         string key;
         TR181_ParamData_t param={0};
@@ -1321,7 +1322,8 @@ namespace Plugin {
         return ret;
     }
 
-    tvError_t AVOutputTV::getParamsCaps(std::vector<std::string> &range, std::vector<std::string> &pqmode, std::vector<std::string> &source, std::vector<std::string> &format,std::string param )
+    tvError_t AVOutputTV::getParamsCaps(std::vector<std::string> &range
+                , std::vector<std::string> &pqmode, std::vector<std::string> &source, std::vector<std::string> &format,std::string param )
     {
         tvError_t ret = tvERROR_NONE;
 
@@ -1345,7 +1347,9 @@ namespace Plugin {
         return ret;
     }
 
-    tvError_t AVOutputTV::getParamsCaps(std::vector<std::string> &range, std::vector<std::string> &pqmode, std::vector<std::string> &source, std::vector<std::string> &format,std::string param, std::string & isPlatformSupport, std::vector<std::string> & index)
+    tvError_t AVOutputTV::getParamsCaps(std::vector<std::string> &range
+                , std::vector<std::string> &pqmode, std::vector<std::string> &source, std::vector<std::string> &format,std::string param,
+                 std::string & isPlatformSupport, std::vector<std::string> & index)
     {
         tvError_t ret = tvERROR_NONE;
 
@@ -1574,6 +1578,7 @@ namespace Plugin {
             LOGINFO("Failed to fetch RFC or DALS is disabled");
         }
     }
+
 
     tvError_t AVOutputTV::getUserSelectedAspectRatio (tvDisplayMode_t* mode)
     {
