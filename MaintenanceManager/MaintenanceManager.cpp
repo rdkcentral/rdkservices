@@ -351,7 +351,9 @@ namespace WPEFramework {
                 }
                 return;
             }
-
+            if (activation_status == "activated") {
+	        LOGINFO("Device is already activated.. Proceeding with Maintenance Tasks");
+	    }
             LOGINFO("Reboot_Pending :%s",g_is_reboot_pending.c_str());
 
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type){
@@ -453,7 +455,7 @@ namespace WPEFramework {
                     else {
                         LOGINFO("Failed to get plugin handle");
                     }
-		    if (!g_subscribed_for_deviceContextUpdate) {
+		    if (!g_subscribed_for_deviceContextUpdate && activation_status != "activated") {
                         LOGINFO("onDeviceInitializationContextUpdate event not subscribed...");
                         g_subscribed_for_deviceContextUpdate = subscribeToDeviceInitializationEvent();
                     }
