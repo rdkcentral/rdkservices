@@ -346,51 +346,32 @@ void *SoC_GstPlayer::playbackThread(void *ctx)
 
 void* SoC_GstPlayer::monitor_player_statistics_thread(void *ctx)
 {
-    bool isInteger = true;
-    MIRACASTLOG_TRACE("Entering..!!!");
     SoC_GstPlayer *self = (SoC_GstPlayer *)ctx;
-    
-    int time_interval_sec = 60;
+    int elapsed_seconds = 0,
+        stats_timeout = 0;
+    MIRACASTLOG_TRACE("Entering..!!!");
     self->m_statistics_thread_loop = true;
+    struct timespec start_time, current_time;
+    std::string opt_flag_buffer = "";
+
+    clock_gettime(CLOCK_REALTIME, &start_time);
     while (true == self->m_statistics_thread_loop)
     {
-        isInteger = true;
-        time_interval_sec = 5;
-        std::ifstream player_stats_monitor_delay("/opt/miracast_player_stats"); // Assuming the input file is named "input.txt"
+        clock_gettime(CLOCK_REALTIME, &current_time);
+        opt_flag_buffer = MiracastCommon::parse_opt_flag("/opt/miracast_player_stats",true,false);
 
-        if (!player_stats_monitor_delay)
+        if (!opt_flag_buffer.empty())
         {
-            MIRACASTLOG_TRACE("Statistics Disabled as '/opt/miracast_player_stats' file not exists");
-        }
-        else{
-            std::string word;
-            player_stats_monitor_delay >> word;
-            player_stats_monitor_delay.close();
-
-            if (word.empty())
-            {
-                isInteger = false;
-            }
-            else
-            {
-                for (char c : word) {
-                    if (!isdigit(c)) {
-                        isInteger = false;
-                        break;
-                    }
-                }
-            }
-
-            if (isInteger && (time_interval_sec = std::atoi(word.c_str())))
+            stats_timeout = std::atoi(opt_flag_buffer.c_str());
+            elapsed_seconds = current_time.tv_sec - start_time.tv_sec;
+            if (elapsed_seconds >= stats_timeout)
             {
                 self->get_player_statistics();
-            }
-            else
-            {
-                MIRACASTLOG_ERROR("The content of the file is not an integer\n");
+                // Refresh the Statistics time
+                clock_gettime(CLOCK_REALTIME, &start_time);
             }
         }
-        sleep(time_interval_sec);
+        usleep(100000);
     }
     self->m_player_statistics_tid = 0;
     MIRACASTLOG_TRACE("Exiting..!!!");
@@ -553,10 +534,11 @@ gboolean SoC_GstPlayer::busMessageCb(GstBus *bus, GstMessage *msg, gpointer user
             GError *error;
             gchar *info;
             gst_message_parse_error(msg, &error, &info);
-            MIRACASTLOG_ERROR("Error received from element [%s | %s | %s].", GST_OBJECT_NAME(msg->src), error->message, info ? info : "none");
+            MIRACASTLOG_ERROR("#### GST-FAIL Error received from element [%s | %s | %s] ####", GST_OBJECT_NAME(msg->src), error->message, info ? info : "none");
             g_error_free(error);
             g_free(info);
             GST_DEBUG_BIN_TO_DOT_FILE((GstBin *)self->m_pipeline, GST_DEBUG_GRAPH_SHOW_ALL, "miracast_player_error");
+            self->notifyPlaybackState(MIRACAST_GSTPLAYER_STATE_STOPPED,MIRACAST_PLAYER_REASON_CODE_GST_ERROR);
             break;
         }
         case GST_MESSAGE_EOS:
@@ -729,7 +711,7 @@ void SoC_GstPlayer::onFirstVideoFrameCallback(GstElement* object, guint arg0, gp
     MIRACASTLOG_TRACE("Exiting..!!!");
 }
 
-void SoC_GstPlayer::notifyPlaybackState(eMIRA_GSTPLAYER_STATES gst_player_state)
+void SoC_GstPlayer::notifyPlaybackState(eMIRA_GSTPLAYER_STATES gst_player_state, eM_PLAYER_REASON_CODE state_reason_code )
 {
     MIRACASTLOG_TRACE("Entering..!!!");
     if ( nullptr != m_rtsp_reference_instance )
@@ -738,6 +720,7 @@ void SoC_GstPlayer::notifyPlaybackState(eMIRA_GSTPLAYER_STATES gst_player_state)
 
         rtsp_hldr_msgq_data.state = RTSP_NOTIFY_GSTPLAYER_STATE;
         rtsp_hldr_msgq_data.gst_player_state = gst_player_state;
+        rtsp_hldr_msgq_data.state_reason_code = state_reason_code;
         MIRACASTLOG_INFO("!!! GstPlayer to RTSP [%#08X] !!!",gst_player_state);
         m_rtsp_reference_instance->send_msgto_rtsp_msg_hdler_thread(rtsp_hldr_msgq_data);
     }
