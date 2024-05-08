@@ -17,6 +17,7 @@
 * limitations under the License.
 **/
 
+
 #include "RDKShell.h"
 #include <string>
 #include <memory>
@@ -24,6 +25,7 @@
 #include <mutex>
 #include <thread>
 #include <fstream>
+#include <set>
 #include <sstream>
 #include <condition_variable>
 #include <unistd.h>
@@ -53,7 +55,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 4
-#define API_VERSION_NUMBER_PATCH 14
+#define API_VERSION_NUMBER_PATCH 15
 
 const string WPEFramework::Plugin::RDKShell::SERVICE_NAME = "org.rdk.RDKShell";
 //methods
@@ -209,6 +211,11 @@ map<string, bool> gSuspendedOrHibernatedApplications;
 std::mutex gHibernateBlockedMutex;
 int gHibernateBlocked;
 std::condition_variable gHibernateBlockedCondVariable;
+#endif
+
+#ifdef HIBERNATE_NATIVE_APPS_ON_SUSPENDED
+std::set<std::string> gLaunchedToSuspended;
+std::mutex gLaunchedToSuspendedMutex;
 #endif
 
 #define ANY_KEY 65536
@@ -725,7 +732,11 @@ namespace WPEFramework {
                 if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AppHibernate.Enable", param)
                     && strncasecmp(param.value, "true", 4) == 0)
                 {
-                    if ((mCallSign.find("Netflix") != std::string::npos || mCallSign.find("Cobalt") != std::string::npos))
+                    gLaunchedToSuspendedMutex.lock();
+                    bool l2s = (gLaunchedToSuspended.find(mCallSign) != gLaunchedToSuspended.end());
+                    gLaunchedToSuspendedMutex.unlock();
+
+                    if (!l2s && (mCallSign.find("Netflix") != std::string::npos || mCallSign.find("Cobalt") != std::string::npos))
                     {
                         // call RDKShell.hibernate
                         std::thread requestsThread =
@@ -3972,6 +3983,18 @@ namespace WPEFramework {
                     gSuspendedOrHibernatedApplications.erase(suspendedOrHibernatedIt);
                 }
                 gSuspendedOrHibernatedApplicationsMutex.unlock();
+#endif
+#ifdef HIBERNATE_NATIVE_APPS_ON_SUSPENDED
+                gLaunchedToSuspendedMutex.lock();
+                if (suspend)
+                {
+                    gLaunchedToSuspended.insert(appCallsign);
+                }
+                else
+                {
+                    gLaunchedToSuspended.erase(appCallsign);
+                }
+                gLaunchedToSuspendedMutex.unlock();
 #endif
 
                 //check to see if plugin already exists
