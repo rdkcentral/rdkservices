@@ -85,7 +85,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 4
-#define API_VERSION_NUMBER_PATCH 2
+#define API_VERSION_NUMBER_PATCH 3
 
 static bool isCecEnabled = false;
 static bool isResCacheUpdated = false;
@@ -5582,6 +5582,15 @@ void DisplaySettings::sendMsgThread()
                     m_timer.stop();
                 }
             }
+	    
+	    if(!isCecEnabled){
+		try {
+		    isCecEnabled = getHdmiCecSinkCecEnableStatus();
+		}
+		catch (const device::Exception& err){
+		    LOG_DEVICE_EXCEPTION1(string("HDMI_ARC0"));
+		}
+	    }
 
             if(m_subscribed) {
          	//Need to send power on request as this timer might have started based on standby out or boot up scenario
