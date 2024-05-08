@@ -411,23 +411,23 @@ namespace Plugin {
             LOGWARN("RegisterVideoFrameRateChangeCB failed");
         }
 
-        LocatePQSettingsFile();
+        locatePQSettingsFile();
 
 	// Get Index from PQ capabailites
 	if (getPqParamIndex() != 0) {
             LOGWARN("Failed to get the supported index from capability \n");
         }
 
-        SyncAvoutputTVParamsToHAL("none","none","none");
+        syncAvoutputTVParamsToHAL("none","none","none");
 	
         setDefaultAspectRatio();
 
         // source format specific sync to ssm data
-        SyncAvoutputTVPQModeParamsToHAL("Current", "none", "none");
+        syncAvoutputTVPQModeParamsToHAL("Current", "none", "none");
 
         // As we have source to picture mode mapping, get current source and
         // setting those picture mode
-        InitializePictureMode();
+        initializePictureMode();
 
         LOGINFO("Exit\n" );
     }
@@ -557,7 +557,7 @@ namespace Plugin {
             //Save DisplayMode to localstore and ssm_data
             int params[3]={0};
             params[0]=mode;
-            int retval=UpdateAVoutputTVParam("set","AspectRatio",pqmode,source,format,PQ_PARAM_ASPECT_RATIO,params);
+            int retval=updateAVoutputTVParam("set","AspectRatio",pqmode,source,format,PQ_PARAM_ASPECT_RATIO,params);
 
             if(retval != 0) {
                 LOGERR("Failed to Save DisplayMode to ssm_data\n");
@@ -796,7 +796,7 @@ namespace Plugin {
         else {
             int params[3]={0};
             params[0]=backlight;
-            int retval= UpdateAVoutputTVParam("set","Backlight",pqmode,source,format,PQ_PARAM_BACKLIGHT,params);
+            int retval= updateAVoutputTVParam("set","Backlight",pqmode,source,format,PQ_PARAM_BACKLIGHT,params);
             if(retval != 0 ) {
                 LOGERR("Failed to Save Backlight to ssm_data\n");
                 returnResponse(false);
@@ -832,7 +832,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        int retval= UpdateAVoutputTVParam("reset","Backlight",pqmode,source,format,PQ_PARAM_BACKLIGHT,params);
+        int retval= updateAVoutputTVParam("reset","Backlight",pqmode,source,format,PQ_PARAM_BACKLIGHT,params);
         if(retval != 0 ) {
             LOGERR("Failed to reset Backlight\n");
             returnResponse(false);
@@ -971,7 +971,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        if( !isCapablityCheckPassed( pqmode, source, format, "Brightness" ) {
+        if( !isCapablityCheckPassed( pqmode, source, format, "Brightness" )) {
             LOGERR("%s: CapablityCheck failed for Brightness\n", __FUNCTION__);
             returnResponse(false);
         }
@@ -988,7 +988,7 @@ namespace Plugin {
         else {
             int params[3]={0};
             params[0]=brightness;
-            int retval= UpdateAVoutputTVParam("set","Brightness",pqmode,source,format,PQ_PARAM_BRIGHTNESS,params);
+            int retval= updateAVoutputTVParam("set","Brightness",pqmode,source,format,PQ_PARAM_BRIGHTNESS,params);
             if(retval != 0 ) {
                 LOGERR("Failed to Save Brightness to ssm_data\n");
                 returnResponse(false);
@@ -1022,7 +1022,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        int retval= UpdateAVoutputTVParam("reset","Brightness",pqmode,source,format,PQ_PARAM_BRIGHTNESS,params);
+        int retval= updateAVoutputTVParam("reset","Brightness",pqmode,source,format,PQ_PARAM_BRIGHTNESS,params);
         if(retval != 0 ) {
             LOGWARN("Failed to reset Brightness\n");
             returnResponse(false);
@@ -1174,7 +1174,7 @@ namespace Plugin {
         else {
             int params[3]={0};
             params[0]=contrast;
-            int retval= UpdateAVoutputTVParam("set","Contrast",pqmode,source,format,PQ_PARAM_CONTRAST,params);
+            int retval= updateAVoutputTVParam("set","Contrast",pqmode,source,format,PQ_PARAM_CONTRAST,params);
             if(retval != 0 ) {
                 LOGERR("Failed to Save Contrast to ssm_data\n");
                 returnResponse(false);
@@ -1208,7 +1208,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        int retval= UpdateAVoutputTVParam("reset","Contrast",pqmode,source,format,PQ_PARAM_CONTRAST,params);
+        int retval= updateAVoutputTVParam("reset","Contrast",pqmode,source,format,PQ_PARAM_CONTRAST,params);
 
         if(retval != 0 ) {
             LOGWARN("Failed to reset Contrast\n");
@@ -1362,7 +1362,7 @@ namespace Plugin {
         else {
             int params[3]={0};
             params[0]=saturation;
-            int retval= UpdateAVoutputTVParam("set","Saturation",pqmode,source,format,PQ_PARAM_SATURATION,params);
+            int retval= updateAVoutputTVParam("set","Saturation",pqmode,source,format,PQ_PARAM_SATURATION,params);
             if(retval != 0 ) {
                 LOGERR("Failed to Save Saturation to ssm_data\n");
                 returnResponse(false);
@@ -1396,7 +1396,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        int retval= UpdateAVoutputTVParam("reset","Saturation",pqmode,source,format,PQ_PARAM_SATURATION,params);
+        int retval= updateAVoutputTVParam("reset","Saturation",pqmode,source,format,PQ_PARAM_SATURATION,params);
 
         if(retval != 0 ) {
             LOGERR("Failed to reset Saturation\n");
@@ -1551,7 +1551,7 @@ namespace Plugin {
         else {
             int params[3]={0};
             params[0]=sharpness;
-            int retval= UpdateAVoutputTVParam("set","Sharpness",pqmode,source,format,PQ_PARAM_SHARPNESS,params);
+            int retval= updateAVoutputTVParam("set","Sharpness",pqmode,source,format,PQ_PARAM_SHARPNESS,params);
             if(retval != 0 ) {
                 LOGERR("Failed to Save Sharpness to ssm_data\n");
                 returnResponse(false);
@@ -1585,7 +1585,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        int retval= UpdateAVoutputTVParam("reset","Sharpness",pqmode,source,format,PQ_PARAM_SHARPNESS,params);
+        int retval= updateAVoutputTVParam("reset","Sharpness",pqmode,source,format,PQ_PARAM_SHARPNESS,params);
 
         if(retval != 0 ) {
             LOGERR("Failed to reset Sharpness\n");
@@ -1739,7 +1739,7 @@ namespace Plugin {
         else {
             int params[3]={0};
             params[0]=hue;
-            int retval= UpdateAVoutputTVParam("set","Hue",pqmode,source,format,PQ_PARAM_HUE,params);
+            int retval= updateAVoutputTVParam("set","Hue",pqmode,source,format,PQ_PARAM_HUE,params);
             if(retval != 0 ) {
                 LOGERR("Failed to Save Hue to ssm_data\n");
                 returnResponse(false);
@@ -1773,7 +1773,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        int retval= UpdateAVoutputTVParam("reset","Hue",pqmode,source,format,PQ_PARAM_HUE,params);
+        int retval= updateAVoutputTVParam("reset","Hue",pqmode,source,format,PQ_PARAM_HUE,params);
 
         if(retval != 0 ) {
             LOGERR("Failed to reset Hue\n");
@@ -1962,7 +1962,7 @@ namespace Plugin {
         else {
             int params[3]={0};
             params[0]=(int)colortemp;
-            int retval= UpdateAVoutputTVParam("set","ColorTemp",pqmode,source,format,PQ_PARAM_COLOR_TEMPERATURE,params);
+            int retval= updateAVoutputTVParam("set","ColorTemp",pqmode,source,format,PQ_PARAM_COLOR_TEMPERATURE,params);
             if(retval != 0 ) {
                 LOGERR("Failed to Save ColorTemperature to ssm_data\n");
                 returnResponse(false);
@@ -1995,7 +1995,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        int retval= UpdateAVoutputTVParam("reset","ColorTemp",pqmode,source,format,PQ_PARAM_COLOR_TEMPERATURE,params);
+        int retval= updateAVoutputTVParam("reset","ColorTemp",pqmode,source,format,PQ_PARAM_COLOR_TEMPERATURE,params);
 
         if(retval != 0 ) {
             LOGERR("Failed to reset ColorTemperature\n");
@@ -2167,7 +2167,7 @@ namespace Plugin {
         else {
             int params[3]={0};
             params[0]=(int)dimmingMode;
-            int retval= UpdateAVoutputTVParam("set","DimmingMode",pqmode,source,format,PQ_PARAM_DIMMINGMODE,params);
+            int retval= updateAVoutputTVParam("set","DimmingMode",pqmode,source,format,PQ_PARAM_DIMMINGMODE,params);
             if(retval != 0 ) {
                 LOGERR("Failed to Save DimmingMode to ssm_data\n");
                 returnResponse(false);
@@ -2200,7 +2200,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        int retval= UpdateAVoutputTVParam("reset","DimmingMode",pqmode,source,format,PQ_PARAM_DIMMINGMODE,params);
+        int retval= updateAVoutputTVParam("reset","DimmingMode",pqmode,source,format,PQ_PARAM_DIMMINGMODE,params);
 
         if(retval != 0 ) {
             LOGERR("Failed to reset ldim\n");
@@ -2389,9 +2389,9 @@ namespace Plugin {
         }
         else {
             int params[3]={0};
-            params[0]=GetDolbyModeIndex(value.c_str());
+            params[0]=getDolbyModeIndex(value.c_str());
             format = "DV";
-            int retval= UpdateAVoutputTVParam("set","DolbyVisionMode",pqmode,source,format,PQ_PARAM_DOLBY_MODE,params);
+            int retval= updateAVoutputTVParam("set","DolbyVisionMode",pqmode,source,format,PQ_PARAM_DOLBY_MODE,params);
             if(retval != 0 ) {
                 LOGERR("Failed to Save Dolbyvision mode\n");
                 returnResponse(false);
@@ -2429,7 +2429,7 @@ namespace Plugin {
         }
 
         format = "DV";
-        int retval= UpdateAVoutputTVParam("reset","DolbyVisionMode",pqmode,source,format,PQ_PARAM_DOLBY_MODE,params);
+        int retval= updateAVoutputTVParam("reset","DolbyVisionMode",pqmode,source,format,PQ_PARAM_DOLBY_MODE,params);
         if(retval != 0 ) {
             LOGERR("Failed to reset DolbyVisionMode\n");
             returnResponse(false);
@@ -2771,10 +2771,10 @@ namespace Plugin {
             if(m_isDalsEnabled) {
                 //GameModebroadcast
                 if(!strncmp(value.c_str(),"game",strlen(value.c_str())) && strncmp(prevmode,"game",strlen(prevmode))) {
-                    BroadcastLowLatencyModeChangeEvent(1);
+                    broadcastLowLatencyModeChangeEvent(1);
 		}
                 else if(!strncmp(prevmode,"game",strlen(prevmode)) && strncmp(value.c_str(),"game",strlen(value.c_str()))) {
-                    BroadcastLowLatencyModeChangeEvent(0);
+                    broadcastLowLatencyModeChangeEvent(0);
 		}
             }
 
@@ -2927,7 +2927,7 @@ namespace Plugin {
         else {
             int params[3]={0};
             params[0]=lowLatencyIndex;
-            int retval= UpdateAVoutputTVParam("set","LowLatencyState",pqmode,source,format,PQ_PARAM_LOWLATENCY_STATE,params);
+            int retval= updateAVoutputTVParam("set","LowLatencyState",pqmode,source,format,PQ_PARAM_LOWLATENCY_STATE,params);
             if(retval != 0 ) {
                 LOGERR("Failed to SaveLowLatency to ssm_data\n");
                 returnResponse(false);
@@ -2990,7 +2990,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        int retval= UpdateAVoutputTVParam("reset","LowLatencyState",pqmode,source,format,PQ_PARAM_LOWLATENCY_STATE,params);
+        int retval= updateAVoutputTVParam("reset","LowLatencyState",pqmode,source,format,PQ_PARAM_LOWLATENCY_STATE,params);
         if(retval != 0 ) {
             LOGERR("Failed to clear Lowlatency from ssmdata and localstore\n");
             returnResponse(false);
