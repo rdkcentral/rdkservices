@@ -122,6 +122,7 @@ private:
     MiracastError destroy_ControllerFramework(void);
     void checkAndInitiateP2PBackendDiscovery(void);
     std::string getifNameByIPv4(std::string ip_address);
+    bool getConnectionStatusByARPING( const char* remote_address, const char* interface );
 
     void set_localIp(std::string ipAddr);
 
