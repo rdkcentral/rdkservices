@@ -391,22 +391,20 @@ char* getFactoryAppUrl()
 FactoryAppLaunchStatus sFactoryAppLaunchStatus = NOTLAUNCHED;
 
 namespace WPEFramework {
-
-    namespace {
-
-        static Plugin::Metadata<Plugin::RDKShell> metadata(
-            // Version (Major, Minor, Patch)
-            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
-            // Preconditions
-            {},
-            // Terminations
-            {},
-            // Controls
-            {}
-        );
-    }
-
     namespace Plugin {
+
+        namespace {
+            static Plugin::Metadata<Plugin::RDKShell> metadata(
+                // Version (Major, Minor, Patch)
+                API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+                // Preconditions
+                {},
+                // Terminations
+                {},
+                // Controls
+                {subsystem::GRAPHICS}
+            );
+        }
 
         namespace {
             // rdk Shell should use inter faces
