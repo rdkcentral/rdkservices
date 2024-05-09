@@ -386,6 +386,7 @@ namespace WPEFramework
         void NetworkManagerInternalEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
             LOG_ENTRY_FUNCTION();
+            string interface;
             if (_instance)
             {
  //               ::_instance->Event();
@@ -405,48 +406,55 @@ namespace WPEFramework
                     case IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS:
                     {
                         IARM_BUS_NetSrvMgr_Iface_EventInterfaceEnabledStatus_t *e = (IARM_BUS_NetSrvMgr_Iface_EventInterfaceEnabledStatus_t*) data;
-                        NMLOG_INFO ("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS :: %s", e->interface);
-                        if(e->interface == "eth0" || e->interface == "wlan0")
+                        interface = e->interface;
+                        NMLOG_INFO ("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS :: %s", interface.c_str());
+                        if(interface == "eth0" || interface == "wlan0")
                         {
                             if (e->status)
-                                ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_ADDED, string(e->interface));
+                                ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_ADDED, interface);
                             else
-                                ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_REMOVED, string(e->interface));
+                                ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_REMOVED, interface);
                         }
                         break;
                     }
                     case IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS:
                     {
                         IARM_BUS_NetSrvMgr_Iface_EventInterfaceConnectionStatus_t *e = (IARM_BUS_NetSrvMgr_Iface_EventInterfaceConnectionStatus_t*) data;
-                        NMLOG_INFO ("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS :: %s", e->interface);
-                        if(e->interface == "eth0" || e->interface == "wlan0")
+                        interface = e->interface;
+                        NMLOG_INFO ("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS :: %s", interface.c_str());
+                        if(interface == "eth0" || interface == "wlan0")
                         {
                             if (e->status)
-                                ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_LINK_UP, string(e->interface));
+                                ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_LINK_UP, interface);
                             else
-                                ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_LINK_DOWN, string(e->interface));
+                                ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_LINK_DOWN, interface);
                         }
                         break;
                     }
                     case IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS:
                     {
                         IARM_BUS_NetSrvMgr_Iface_EventInterfaceIPAddress_t *e = (IARM_BUS_NetSrvMgr_Iface_EventInterfaceIPAddress_t*) data;
-                        NMLOG_INFO ("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS :: %s -- %s", e->interface, e->ip_address);
+                        interface = e->interface;
+                        NMLOG_INFO ("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS :: %s -- %s", interface.c_str(), e->ip_address);
 
-                        if(e->interface == "eth0" || e->interface == "wlan0")
-                            ::_instance->ReportIPAddressChangedEvent(string(e->interface), e->acquired, e->is_ipv6, string(e->ip_address));
+                        if(interface == "eth0" || interface == "wlan0")
+                            ::_instance->ReportIPAddressChangedEvent(interface, e->acquired, e->is_ipv6, string(e->ip_address));
                         break;
                     }
                     case IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE:
                     {
+                        string oldInterface;
+                        string newInterface;
                         IARM_BUS_NetSrvMgr_Iface_EventDefaultInterface_t *e = (IARM_BUS_NetSrvMgr_Iface_EventDefaultInterface_t*) data;
-                        NMLOG_INFO ("IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE %s :: %s..", e->oldInterface, e->newInterface);
-                        if(e->oldInterface != "eth0" || e->oldInterface != "wlan0")
-                            e->oldInterface == ""; /* assigning "null" if the interface is not eth0 or wlan0 */
-                        if(e->newInterface != "eth0" || e->newInterface != "wlan0")
-                            e->newInterface == ""; /* assigning "null" if the interface is not eth0 or wlan0 */
+                        oldInterface = e->oldInterface;
+                        newInterface = e->newInterface;
+                        NMLOG_INFO ("IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE %s :: %s..", oldInterface.c_str(), newInterface.c_str());
+                        if(oldInterface != "eth0" || oldInterface != "wlan0")
+                            oldInterface == ""; /* assigning "null" if the interface is not eth0 or wlan0 */
+                        if(newInterface != "eth0" || newInterface != "wlan0")
+                            newInterface == ""; /* assigning "null" if the interface is not eth0 or wlan0 */
 
-                        ::_instance->ReportActiveInterfaceChangedEvent(e->oldInterface, e->newInterface);
+                        ::_instance->ReportActiveInterfaceChangedEvent(oldInterface, newInterface);
                         break;
                     }
                     case IARM_BUS_WIFI_MGR_EVENT_onAvailableSSIDs:
