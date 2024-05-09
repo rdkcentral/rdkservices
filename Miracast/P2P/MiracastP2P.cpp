@@ -437,8 +437,8 @@ MiracastError MiracastP2P::set_WFDParameters(void)
         command = "SET p2p_ssid_postfix -Element-Xumo-TV";
         executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
 
-        /* Set p2p_go_intent to 15 */
-        command = "SET p2p_go_intent 15";
+        /* Set p2p_go_intent to 14 */
+        command = "SET p2p_go_intent 14";
         executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
 
         m_isWiFiDisplayParamsEnabled = true;
@@ -506,11 +506,6 @@ MiracastError MiracastP2P::connect_device(std::string MAC,std::string authType )
     command.append(MAC);
     command.append(SPACE_CHAR);
     command.append(authType);
-#if 0
-    // configuring go_intent as 0 to make our device as p2p_client insteadof getting p2p_group_owner
-    command.append(SPACE_CHAR);
-    command.append("go_intent=0");
-#endif
     ret = (MiracastError)executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
     MIRACASTLOG_TRACE("Exiting...");
     return ret;
