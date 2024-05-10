@@ -147,25 +147,31 @@ int8_t MiracastThread::receive_message(void *message, size_t msg_size, int sem_w
     return status;
 }
 
-std::string MiracastCommon::parse_opt_flag( std::string file_name , bool integer_check )
+std::string MiracastCommon::parse_opt_flag( std::string file_name , bool integer_check , bool debugStats )
 {
     std::string return_buffer = "";
     std::ifstream parse_opt_flag_file( file_name.c_str());
 
     if (!parse_opt_flag_file)
     {
-        MIRACASTLOG_WARNING("Failed to open [%s] file\n",file_name.c_str());
+        if ( debugStats ){
+            MIRACASTLOG_WARNING("Failed to open [%s] file",file_name.c_str());
+        }
     }
     else
     {
         std::string line = "";
         if (std::getline(parse_opt_flag_file, line))
         {
-            MIRACASTLOG_INFO("Content in [%s] is [%s]",file_name.c_str(),line.c_str());
+            if ( debugStats ){
+                MIRACASTLOG_INFO("Content in [%s] is [%s]",file_name.c_str(),line.c_str());
+            }
         }
         else
         {
-            MIRACASTLOG_WARNING("No Content in [%s]",file_name.c_str());
+            if ( debugStats ){
+                MIRACASTLOG_WARNING("No Content in [%s]",file_name.c_str());
+            }
         }
         parse_opt_flag_file.close();
 
