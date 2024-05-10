@@ -37,17 +37,11 @@ namespace Plugin {
         if (logFile != nullptr) {
             printf(logFile, "UpdateConfig >->->  Debug: Logging UpdateConfig\n");
             ASSERT(!_configFile.empty() && !_tempPath.empty() && !_cachePath.empty());
-            fprintf(logFile, "UpdateConfig >->->  Debug: Assertion checked\n");
             opkg_config->conf_file = strdup(_configFile.c_str());
-            fprintf(logFile, "UpdateConfig >->->  Debug: Updated conf_file\n")
             opkg_config->tmp_dir = strdup(_tempPath.c_str());
-            fprintf(logFile, "UpdateConfig >->->  Debug: Updated tmp_dir\n");
             opkg_config->host_cache_dir = 1;
-            fprintf(logFile, "UpdateConfig >->->  Debug: Set host_cache_dir\n");
             opkg_config->cache_dir = strdup(_cachePath.c_str());
-            fprintf(logFile, "UpdateConfig >->->  Debug: Updated cache_dir\n");
             opkg_config->verbosity = _verbosity;
-            fprintf(logFile, "UpdateConfig >->->  Debug: Updated verbosity\n");
             opkg_config->nodeps = _noDeps;
             fprintf(logFile, "UpdateConfig >->->  Debug: Updated nodeps\n");
 
