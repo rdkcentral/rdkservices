@@ -27,6 +27,8 @@
 #include <syscall.h>
 #include <cstring>
 #include "RtXcastConnector.h"
+#include "UtilsSynchroIarm.hpp"
+
 using namespace std;
 
 // Events
@@ -115,17 +117,17 @@ XCast::XCast() : PluginHost::JSONRPC()
     if(XCast::isCastEnabled)
     {
         LOGINFO("XcastService::Register methods and create onLocateCastTimer ");
-        Register(METHOD_GET_API_VERSION_NUMBER, &XCast::getApiVersionNumber, this);
-        Register(METHOD_ON_APPLICATION_STATE_CHANGED , &XCast::applicationStateChanged, this);
-        Register(METHOD_SET_ENABLED, &XCast::setEnabled, this);
-        Register(METHOD_GET_ENABLED, &XCast::getEnabled, this);
-        Register(METHOD_GET_STANDBY_BEHAVIOR, &XCast::getStandbyBehavior, this);
-        Register(METHOD_SET_STANDBY_BEHAVIOR, &XCast::setStandbyBehavior, this);
-        Register(METHOD_GET_FRIENDLYNAME, &XCast::getFriendlyName, this);
-        Register(METHOD_SET_FRIENDLYNAME, &XCast::setFriendlyName, this);
-        Register(METHOD_REG_APPLICATIONS, &XCast::registerApplications, this);
-        Register(METHOD_UNREG_APPLICATIONS, &XCast::unregisterApplications, this);
-        Register(METHOD_GET_PROTOCOLVERSION, &XCast::getProtocolVersion, this);
+        Utils::Synchro::RegisterLockedApi(METHOD_GET_API_VERSION_NUMBER, &XCast::getApiVersionNumber, this);
+        Utils::Synchro::RegisterLockedApi(METHOD_ON_APPLICATION_STATE_CHANGED , &XCast::applicationStateChanged, this);
+        Utils::Synchro::RegisterLockedApi(METHOD_SET_ENABLED, &XCast::setEnabled, this);
+        Utils::Synchro::RegisterLockedApi(METHOD_GET_ENABLED, &XCast::getEnabled, this);
+        Utils::Synchro::RegisterLockedApi(METHOD_GET_STANDBY_BEHAVIOR, &XCast::getStandbyBehavior, this);
+        Utils::Synchro::RegisterLockedApi(METHOD_SET_STANDBY_BEHAVIOR, &XCast::setStandbyBehavior, this);
+        Utils::Synchro::RegisterLockedApi(METHOD_GET_FRIENDLYNAME, &XCast::getFriendlyName, this);
+        Utils::Synchro::RegisterLockedApi(METHOD_SET_FRIENDLYNAME, &XCast::setFriendlyName, this);
+        Utils::Synchro::RegisterLockedApi(METHOD_REG_APPLICATIONS, &XCast::registerApplications, this);
+        Utils::Synchro::RegisterLockedApi(METHOD_UNREG_APPLICATIONS, &XCast::unregisterApplications, this);
+        Utils::Synchro::RegisterLockedApi(METHOD_GET_PROTOCOLVERSION, &XCast::getProtocolVersion, this);
         
         m_locateCastTimer.connect( bind( &XCast::onLocateCastTimer, this ));
     }
@@ -146,7 +148,7 @@ void XCast::InitializeIARM()
      if (Utils::IARM::init())
      {
          IARM_Result_t res;
-         IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED, powerModeChange) );
+         IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<XCast>(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED, powerModeChange) );
          IARM_Bus_PWRMgr_GetPowerState_Param_t param;
          res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_GetPowerState,
                 (void *)&param, sizeof(param));
@@ -162,7 +164,7 @@ void XCast::DeinitializeIARM()
      if (Utils::IARM::isConnected())
      {
          IARM_Result_t res;
-         IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED, powerModeChange) );
+         IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<XCast>(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED, powerModeChange) );
      }
      Unregister(METHOD_GET_API_VERSION_NUMBER);
      Unregister(METHOD_ON_APPLICATION_STATE_CHANGED);
