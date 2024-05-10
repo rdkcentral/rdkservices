@@ -250,7 +250,7 @@ namespace Plugin {
             {
                 FILE* logFile = fopen("/opt/logs/rdm_status.log", "a");
                 if (logFile != nullptr) {
-                    fprintf(logFile, "SetError >->->  Debug: Setting Error to %d\n", state);
+                    fprintf(logFile, "SetError >->->  Debug: Setting Error to %d\n", err);
                     fclose(logFile);
                 }
                 TRACE_L1("Setting error to %d", err);
