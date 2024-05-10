@@ -2196,8 +2196,20 @@ namespace WPEFramework {
                     && powerState == "ON")
                 {
 		    std::cout << "received power state change to ON" << std::endl;
+                    std::cout << "Gopika inside == ON" << std::endl;
+                    std::string previousFocusedClient;
+                    lockRdkShellMutex();
+                    CompositorController::getFocused(previousFocusedClient);
+                    gRdkShellMutex.unlock();
+                    std::cout << "Gopika previous client" << previousFocusedClient << std::endl;
                     JsonObject request, response;
-                    request["callsign"] = "ResidentApp";
+                    if(previousFocusedClient == "factoryapp")
+                    {
+                            std::cout << "Gopika Launch factory app" << std::endl;
+                            request["callsign"] = "factoryapp";
+                    } else {
+                            request["callsign"] = "factoryapp";
+                    }
                     request["visible"] = true;
                     getThunderControllerClient("org.rdk.RDKShell.1")->Invoke<JsonObject, JsonObject>(0, "setVisibility", request, response);
                     gRdkShellMutex.lock();
