@@ -16,6 +16,11 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+README
+## [1.3.6] - 2024-05-10
+### Fixed
+- Fixed connectivity monitor retry logic
+
 ## [1.3.5] - 2024-04-19
 ### Added
 - added retry logic for connectivity monitor
