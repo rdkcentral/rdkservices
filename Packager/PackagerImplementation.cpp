@@ -35,7 +35,7 @@ namespace Plugin {
     void PackagerImplementation::UpdateConfig() const {
         FILE* logFile = fopen("/opt/logs/rdm_status.log", "a");
         if (logFile != nullptr) {
-        printf(logFile, "UpdateConfig >->->  Debug: Logging UpdateConfig\n");
+        fprintf(logFile, "UpdateConfig >->->  Debug: Logging UpdateConfig\n");
         ASSERT(!_configFile.empty() && !_tempPath.empty() && !_cachePath.empty());
         opkg_config->conf_file = strdup(_configFile.c_str());
         opkg_config->tmp_dir = strdup(_tempPath.c_str());
@@ -208,50 +208,52 @@ namespace Plugin {
 
     uint32_t PackagerImplementation::DoWork(const string* name, const string* version, const string* arch)
     {
+	int rdmDebugLogFlag = 0;
         FILE* logFile = fopen("/opt/logs/rdm_status.log", "a");
         if (logFile != nullptr) {
-            fprintf(logFile, "DoWork >->->  Debug: Logging DoWork\n");
+		rdmDebugLogFlag = 1;
+	}
+            fprintf(logFile, "[%d] DoWork >->->  Debug: Logging DoWork\n", rdmDebugLogFlag);
             uint32_t result = Core::ERROR_INPROGRESS;
 
             _adminLock.Lock();
-            fprintf(logFile, "DoWork >->->  Debug: Admin lock acquired\n");
+            fprintf(logFile, "[%d] DoWork >->->  Debug: Admin lock acquired\n", rdmDebugLogFlag);
             if (_inProgress.Install == nullptr && _isSyncing == false) {
                 ASSERT(_inProgress.Package == nullptr);
                 result = Core::ERROR_NONE;
-                fprintf(logFile, "DoWork >->->  Debug: No installation or synchronization in progress\n");
+                fprintf(logFile, "[%d] DoWork >->->  Debug: No installation or synchronization in progress\n", rdmDebugLogFlag);
                 // OPKG bug: it marks it checked dependency for a package as cyclic dependency handling fix
                 // but since in our case it's not an process which dies when done, this info survives and makes the
                 // deps check to be skipped on subsequent calls. This is why hash_deinit() is called below
                 // and needs to be initialized here agian.
                 if (_opkgInitialized == true) {  // it was initialized
                     FreeOPKG();
-                    fprintf(logFile, "DoWork >->->  Debug: OPKG freed\n");
+                    fprintf(logFile, "[%d] DoWork >->->  Debug: OPKG freed\n", rdmDebugLogFlag);
                 }
                 _opkgInitialized = InitOPKG();
-                fprintf(logFile, "DoWork >->->  Debug: OPKG initialized\n");
+                fprintf(logFile, "[%d] DoWork >->->  Debug: OPKG initialized\n", rdmDebugLogFlag);
 
                 if (_opkgInitialized) {
                     if (name && version && arch) {
                         _inProgress.Package = Core::Service<PackageInfo>::Create<PackageInfo>(*name, *version, *arch);
                         _inProgress.Install = Core::Service<InstallInfo>::Create<InstallInfo>();
-                        fprintf(logFile, "DoWork >->->  Debug: Package and InstallInfo created\n");
+                        fprintf(logFile, "[%d] DoWork >->->  Debug: Package and InstallInfo created\n", rdmDebugLogFlag);
                     } else {
                         _isSyncing = true;
-                        fprintf(logFile, "DoWork >->->  Debug: Synchronization started\n");
+                        fprintf(logFile, "[%d] DoWork >->->  Debug: Synchronization started\n", rdmDebugLogFlag);
                     }
                     _worker.Run();
-                    fprintf(logFile, "DoWork >->->  Debug: Worker thread started\n");
+                    fprintf(logFile, "[%d] DoWork >->->  Debug: Worker thread started\n", rdmDebugLogFlag);
                 } else {
                     result = Core::ERROR_GENERAL;
-                    fprintf(logFile, "DoWork >->->  Debug: OPKG initialization failed\n");
+                    fprintf(logFile, "[%d] DoWork >->->  Debug: OPKG initialization failed\n", rdmDebugLogFlag);
                 }
             }
             _adminLock.Unlock();
-            fprintf(logFile, "DoWork >->->  Debug: Admin lock released\n");
-             fclose(logFile);
+            fprintf(logFile, "[%d] DoWork >->->  Debug: Admin lock released\n", rdmDebugLogFlag);
+            fclose(logFile);
 
             return result;
-        }
 
     }
 
@@ -440,20 +442,25 @@ namespace Plugin {
     string PackagerImplementation::GetInstallationPath(const string& appname)
     {
         FILE* logFile = fopen("/opt/logs/rdm_status.log", "a");
+	int rdmDebugLogFlag = 0;
         if (logFile != nullptr) {
-            fprintf(logFile, "GetInstallationPath >->->  Debug: Logging GetInstallationPath\n");
+		rdmDebugLogFlag = 1;
+	}
+            fprintf(logFile, "[%d] GetInstallationPath >->->  Debug: Logging GetInstallationPath\n", rdmDebugLogFlag);
             char *dnld_loc = opkg_config->cache_dir;
             string instPath = string(dnld_loc) + "/" + appname;
             fclose(logFile);
             return instPath;
-        }
     }
 
     uint32_t PackagerImplementation::UpdateConfiguration(const string& callsign, const string& installPath)
     {
         FILE* logFile = fopen("/opt/logs/rdm_status.log", "a");
+	int rdmDebugLogFlag = 0;
         if (logFile != nullptr) {
-            fprintf(logFile, "UpdateConfiguration >->->  Debug: Logging UpdateConfiguration\n");
+		rdmDebugLogFlag = 1;
+	}
+            fprintf(logFile, "[%d] UpdateConfiguration >->->  Debug: Logging UpdateConfiguration\n", rdmDebugLogFlag);
 
             uint32_t result = Core::ERROR_GENERAL;
             ASSERT(callsign.empty() == false);
@@ -465,32 +472,31 @@ namespace Plugin {
             if (shell != nullptr) {
                 if (shell->SystemRootPath(installPath)  == Core::ERROR_NONE) {
                     TRACE(Trace::Information, (_T("[Packager]: SystemRootPath for %s is %s"), callsign.c_str(), shell->SystemRootPath().c_str()));
-                    fprintf(logFile, "UpdateConfiguration >->->  Debug: SystemRootPath for %s is %s\n", callsign.c_str(), shell->SystemRootPath().c_str());
+                    fprintf(logFile, "[%d] UpdateConfiguration >->->  Debug: SystemRootPath for %s is %s\n", rdmDebugLogFlag, callsign.c_str(), shell->SystemRootPath().c_str());
 
                     PluginHost::IController* controller = _servicePI->QueryInterfaceByCallsign<PluginHost::IController>(EMPTY_STRING);
                     if (controller != nullptr) {
                         if (controller->Persist() == Core::ERROR_NONE) {
                             result = Core::ERROR_NONE;
                             TRACE(Trace::Information, (_T("[Packager]: Successfully stored %s plugin's config in persistent path"), callsign.c_str()));
-                            fprintf(logFile, "UpdateConfiguration >->->  Debug: Successfully stored %s plugin's config in persistent path\n", callsign.c_str());
+                            fprintf(logFile, "[%d] UpdateConfiguration >->->  Debug: Successfully stored %s plugin's config in persistent path\n", rdmDebugLogFlag, callsign.c_str());
                         }
                         controller->Release();
                     }
                     else {
                         TRACE(Trace::Error, (_T("[Packager]: Failed to find Controller interface")));
-                        fprintf(logFile, "UpdateConfiguration >->->  Debug: Failed to find Controller interface\n");
+                        fprintf(logFile, "[%d] UpdateConfiguration >->->  Debug: Failed to find Controller interface\n", rdmDebugLogFlag);
                     }
                 }
                 shell->Release();
             }
             else {
                 TRACE(Trace::Error, (_T("[Packager]: Failed to find Shell interface")));
-                fprintf(logFile, "UpdateConfiguration >->->  Debug: Failed to find Shell interface\n");
+                fprintf(logFile, "[%d] UpdateConfiguration >->->  Debug: Failed to find Shell interface\n", rdmDebugLogFlag);
             }
 
             fclose(logFile);
             return result;
-        }
     }
 
     void PackagerImplementation::DeactivatePlugin(const string& callsign, const string& appName)
