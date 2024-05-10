@@ -35,15 +35,15 @@ namespace Plugin {
     void PackagerImplementation::UpdateConfig() const {
         FILE* logFile = fopen("/opt/logs/rdm_status.log", "a");
         if (logFile != nullptr) {
-            printf(logFile, "UpdateConfig >->->  Debug: Logging UpdateConfig\n");
-            ASSERT(!_configFile.empty() && !_tempPath.empty() && !_cachePath.empty());
-            opkg_config->conf_file = strdup(_configFile.c_str());
-            opkg_config->tmp_dir = strdup(_tempPath.c_str());
-            opkg_config->host_cache_dir = 1;
-            opkg_config->cache_dir = strdup(_cachePath.c_str());
-            opkg_config->verbosity = _verbosity;
-            opkg_config->nodeps = _noDeps;
-            fprintf(logFile, "UpdateConfig >->->  Debug: Updated nodeps\n");
+        printf(logFile, "UpdateConfig >->->  Debug: Logging UpdateConfig\n");
+        ASSERT(!_configFile.empty() && !_tempPath.empty() && !_cachePath.empty());
+        opkg_config->conf_file = strdup(_configFile.c_str());
+        opkg_config->tmp_dir = strdup(_tempPath.c_str());
+        opkg_config->host_cache_dir = 1;
+        opkg_config->cache_dir = strdup(_cachePath.c_str());
+        opkg_config->verbosity = _verbosity;
+        opkg_config->nodeps = _noDeps;
+        fprintf(logFile, "UpdateConfig >->->  Debug: Updated nodeps\n");
 
             if (_volatileCache == true) {
                 opkg_config->volatile_cache = 1;
