@@ -143,6 +143,7 @@ TTS_Error TTSManager::setConfiguration(Configuration &configuration) {
             m_defaultConfiguration.setLocalEndPoint("");
     }
 
+    bool languageUpdated = false;
     /* Set default voice for the language only when voice is empty*/
     if(!configuration.language.empty() && configuration.voice.empty()) {
         std::vector<std::string> voices;
@@ -153,16 +154,16 @@ TTS_Error TTSManager::setConfiguration(Configuration &configuration) {
         }
         else {
             m_needsConfigStoreUpdate |= m_defaultConfiguration.setVoice(voices.front());
-            m_needsConfigStoreUpdate |= m_defaultConfiguration.setLanguage(configuration.language);
+            languageUpdated = m_defaultConfiguration.setLanguage(configuration.language);
+            m_needsConfigStoreUpdate |= languageUpdated;
         }
     }
     else {
         m_needsConfigStoreUpdate |= m_defaultConfiguration.setVoice(configuration.voice);
-        m_needsConfigStoreUpdate |= m_defaultConfiguration.setLanguage(configuration.language);
+        languageUpdated = m_defaultConfiguration.setLanguage(configuration.language);
+        m_needsConfigStoreUpdate |= languageUpdated;
     }
 
-    bool languageUpdated = m_defaultConfiguration.setLanguage(configuration.language);
-    m_needsConfigStoreUpdate |= languageUpdated;
 
     if( m_defaultConfiguration.hasValidLocalEndpoint() && languageUpdated ) {
         std::vector<std::string> localVoices;

@@ -23,9 +23,8 @@
 #include <vector>
 
 #include "Module.h"
-#include <securityagent/SecurityTokenUtil.h>
-#include "MiracastRtspMsg.h"
-#include "MiracastGstPlayer.h"
+#include "MiracastRTSPMsg.h"
+#include "SoC_GstPlayer.h"
 
 using std::vector;
 namespace WPEFramework
@@ -89,7 +88,7 @@ namespace WPEFramework
             VIDEO_RECT_STRUCT m_video_sink_rect;
             bool m_isServiceInitialized;
             bool m_isServiceEnabled;
-            MiracastGstPlayer *m_GstPlayer;
+            SoC_GstPlayer *m_GstPlayer;
             MiracastRTSPMsg *m_rtsp_msg;
 
             uint32_t playRequest(const JsonObject &parameters, JsonObject &response);
