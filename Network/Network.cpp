@@ -1461,11 +1461,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             m_defInterfaceCache = "";
 
             sendNotify("onConnectionStatusChanged", params);
-            if(connected)
-            {
-                connectivityMonitor.doInitialConnectivityMonitoring(30);
-            }
-            else
+            if(!connected)
             {
                 if (!connectivityMonitor.isMonitorThreadRunning())
                 {
@@ -1521,6 +1517,19 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             }
             params["status"] = string (acquired ? "ACQUIRED" : "LOST");
             sendNotify("onIPAddressStatusChanged", params);
+            if(acquired)
+            {
+                connectivityMonitor.doInitialConnectivityMonitoring(30);
+            }
+            else
+            {
+                if (!connectivityMonitor.isMonitorThreadRunning())
+                {
+                    /*run the thread again to notify no_internet state*/
+                    connectivityMonitor.doInitialConnectivityMonitoring(30);
+                }
+                connectivityMonitor.stopInitialConnectivityMonitoring();
+            }
             connectivityMonitor.signalConnectivityMonitor();
         }
 
