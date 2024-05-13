@@ -465,6 +465,7 @@ namespace WPEFramework {
                         sleep(SECMGR_RETRY_INTERVAL);
                     }
                     else {
+			LOGINFO("%s is not active. Device is already Activated. Hence exiting from knoWhoAmI()", secMgr_callsign);
                         return success;
                     }
                 }
