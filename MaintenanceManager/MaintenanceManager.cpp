@@ -351,9 +351,7 @@ namespace WPEFramework {
                 }
                 return;
             }
-            if (activation_status == "activated") {
-	        LOGINFO("Device is already activated.. Proceeding with Maintenance Tasks");
-	    }
+
             LOGINFO("Reboot_Pending :%s",g_is_reboot_pending.c_str());
 
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type){
@@ -468,6 +466,7 @@ namespace WPEFramework {
                         sleep(SECMGR_RETRY_INTERVAL);
                     }
                     else {
+			LOGINFO("%s is not active. Device is already Activated", secMgr_callsign);
                         return success;
                     }
                 }
