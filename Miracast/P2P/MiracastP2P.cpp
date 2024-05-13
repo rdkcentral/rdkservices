@@ -422,7 +422,7 @@ MiracastError MiracastP2P::set_WFDParameters(void)
         {
             command = "SET config_methods pbc";
         }
-	executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
+        executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
 
         set_FriendlyName(get_FriendlyName() , true);
         /* Set Device type */
@@ -437,8 +437,8 @@ MiracastError MiracastP2P::set_WFDParameters(void)
         command = "SET p2p_ssid_postfix -Element-Xumo-TV";
         executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
 
-        /* Set p2p_go_intent to 15 */
-        command = "SET p2p_go_intent 15";
+        /* Set p2p_go_intent to 14 */
+        command = "SET p2p_go_intent 14";
         executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
 
         m_isWiFiDisplayParamsEnabled = true;
@@ -457,7 +457,7 @@ void MiracastP2P::reset_WFDParameters(void)
 MiracastError MiracastP2P::discover_devices(void)
 {
     MiracastError ret = MIRACAST_FAIL;
-    std::string command, retBuffer,opt_flag_buffer;
+    std::string command, retBuffer;
     MIRACASTLOG_TRACE("Entering..");
 
     /*Start Passive Scanning*/
@@ -483,8 +483,16 @@ MiracastError MiracastP2P::stop_discover_devices(void)
     ret = executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
     if (ret != MIRACAST_OK)
     {
+        MIRACASTLOG_ERROR("Failed to stop discovering devices");
+    }
+
+    command = "P2P_STOP_FIND";
+    ret = executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
+    if (ret != MIRACAST_OK)
+    {
         MIRACASTLOG_ERROR("Failed to Stop discovering devices");
     }
+
     MIRACASTLOG_TRACE("Exiting...");
     return ret;
 }
@@ -498,11 +506,6 @@ MiracastError MiracastP2P::connect_device(std::string MAC,std::string authType )
     command.append(MAC);
     command.append(SPACE_CHAR);
     command.append(authType);
-#if 0
-    // configuring go_intent as 0 to make our device as p2p_client insteadof getting p2p_group_owner
-    command.append(SPACE_CHAR);
-    command.append("go_intent=0");
-#endif
     ret = (MiracastError)executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
     MIRACASTLOG_TRACE("Exiting...");
     return ret;

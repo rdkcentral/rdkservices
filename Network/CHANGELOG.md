@@ -16,6 +16,18 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+README
+## [1.3.6] - 2024-05-10
+### Fixed
+- Fixed connectivity monitor retry logic
+
+## [1.3.5] - 2024-04-19
+### Added
+- added retry logic for connectivity monitor
+
+## [1.3.4] - 2024-03-25
+### Fixed
+- RDKTV-29511 :network will auto disconnect then connect
 ## [1.3.3] - 2024-01-22
 ### Fixed
 - Increased the timeout for Connectivity Monitoring and Ensured Curl header for closing the connection

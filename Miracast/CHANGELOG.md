@@ -13,6 +13,21 @@ All notable changes to this RDK Service will be documented in this file.
     Changes in CHANGELOG should be updated when commits are added to the main or release branches. There should be one CHANGELOG entry per JIRA Ticket. This is not enforced on sprint branches since there could be multiple changes for the same JIRA ticket during development.
 
     For more details, refer to versioning section under Main README.
+## [1.0.6] - 2024-05-02
+### Fixed
+- Removed the stale P2P Group interface during the plugin activation.
+- Added the MiracastService changes to handle the Direct P2P Group Started events
+- Fixed the SIGBUS/SIGSEV crash in Apache4K while do playRequest with MiracastPlayer plugin
+
+## [1.0.5] - 2024-04-04
+### Fixed
+- Added the synchronization for enable/disable the MiracastService discovery.
+- Added the check to avoid the P2P events when MiracastService discovery not enabled.
+
+## [1.0.4] - 2024-03-06
+### Fixed
+- Added the timer to get and update the friendlyName for Miracast if it fails get it from SystemServices.
+
 ## [1.0.3] - 2023-12-22
 ### Added
 - Added the opt flags to suppress P2P events and change config methods and dynamically handled the authType.

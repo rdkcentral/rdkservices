@@ -47,7 +47,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 3
+#define API_VERSION_NUMBER_PATCH 6
 
 #define SERVER_DETAILS "127.0.0.1:9998"
 #define SYSTEM_CALLSIGN "org.rdk.System"
@@ -112,6 +112,11 @@ namespace WPEFramework
 			{
 				delete m_SystemPluginObj;
 				m_SystemPluginObj = nullptr;
+			}
+			if (m_FriendlyNameMonitorTimerID)
+			{
+				g_source_remove(m_FriendlyNameMonitorTimerID);
+				m_FriendlyNameMonitorTimerID = 0;
 			}
 			Unregister(METHOD_MIRACAST_SET_ENABLE);
 			Unregister(METHOD_MIRACAST_GET_ENABLE);
@@ -190,7 +195,15 @@ namespace WPEFramework
 					getSystemPlugin();
 					// subscribe for event
 					m_SystemPluginObj->Subscribe<JsonObject>(1000, "onFriendlyNameChanged", &MiracastService::onFriendlyNameUpdateHandler, this);
-					updateSystemFriendlyName();
+					if ( false == updateSystemFriendlyName())
+					{
+						m_FriendlyNameMonitorTimerID = g_timeout_add(2000, MiracastService::monitor_friendly_name_timercallback, this);
+						MIRACASTLOG_WARNING("Unable to get friendlyName, requires polling [%u]...",m_FriendlyNameMonitorTimerID);
+					}
+					else
+					{
+						MIRACASTLOG_INFO("friendlyName updated properly...");
+					}
 					m_isServiceInitialized = true;
 					m_miracast_ctrler_obj->m_ePlayer_state = MIRACAST_PLAYER_STATE_IDLE;
 				}
@@ -226,7 +239,6 @@ namespace WPEFramework
 					}
 				}
 			}
-
 			// On success return empty, to indicate there is no error text.
 			return msg;
 		}
@@ -286,7 +298,11 @@ namespace WPEFramework
 				}
 				else
 				{
-					if (m_isServiceEnabled)
+					if ( MIRACAST_SERVICE_STATE_PLAYER_LAUNCHED == m_eService_state )
+					{
+						response["message"] = "Failed as MiracastPlayer already Launched";
+					}
+					else if (m_isServiceEnabled)
 					{
 						m_miracast_ctrler_obj->set_enable(is_enabled);
 						success = true;
@@ -385,15 +401,36 @@ namespace WPEFramework
 			std::string requestedStatus = "";
 
 			MIRACASTLOG_INFO("Entering..!!!");
-
 			if (parameters.HasLabel("requestStatus"))
 			{
 				requestedStatus = parameters["requestStatus"].String();
 				if (("Accept" == requestedStatus) || ("Reject" == requestedStatus))
 				{
-					m_miracast_ctrler_obj->accept_client_connection(requestedStatus);
 					success = true;
-					m_eService_state = MIRACAST_SERVICE_STATE_CONNECTION_ACCEPTED;
+					if ( MIRACAST_SERVICE_STATE_DIRECT_LAUCH_REQUESTED == m_eService_state )
+					{
+						if ("Accept" == requestedStatus)
+						{
+							MIRACASTLOG_INFO("#### Notifying Launch Request ####");
+							m_miracast_ctrler_obj->switch_launch_request_context(m_src_dev_ip, m_src_dev_mac, m_src_dev_name, m_sink_dev_ip );
+						}
+						else
+						{
+							m_miracast_ctrler_obj->restart_session_discovery(m_src_dev_mac);
+							m_miracast_ctrler_obj->m_ePlayer_state = MIRACAST_PLAYER_STATE_IDLE;
+							m_eService_state = MIRACAST_SERVICE_STATE_DISCOVERABLE;
+							MIRACASTLOG_INFO("#### Refreshing the Session ####");
+						}
+						m_src_dev_ip.clear();
+						m_src_dev_mac.clear();
+						m_src_dev_name.clear();
+						m_sink_dev_ip.clear();
+					}
+					else
+					{
+						m_miracast_ctrler_obj->accept_client_connection(requestedStatus);
+						m_eService_state = MIRACAST_SERVICE_STATE_CONNECTION_ACCEPTED;
+					}
 				}
 				else
 				{
@@ -541,7 +578,7 @@ namespace WPEFramework
 			if ( m_isServiceEnabled && restart_discovery_needed )
 			{
 				// It will restart the discovering
-				m_miracast_ctrler_obj->restart_session_discovery();
+				m_miracast_ctrler_obj->restart_session_discovery(mac);
 			}
 
 			MIRACASTLOG_INFO("Player State set to [%s (%d)] for Source device [%s].", player_state.c_str(), (int)m_miracast_ctrler_obj->m_ePlayer_state, mac.c_str());
@@ -827,35 +864,30 @@ namespace WPEFramework
 			if ( MIRACAST_SERVICE_STATE_PLAYER_LAUNCHED == m_eService_state )
 			{
 				is_another_connect_request = true;
-				MIRACASTLOG_WARNING("Another Connect Request received while casting\n");
+				MIRACASTLOG_WARNING("Another Connect Request received while casting");
 			}
-
-			if (0 == access("/opt/miracast_autoconnect", F_OK))
+			if ((MIRACAST_SERVICE_STATE_DIRECT_LAUCH_REQUESTED != m_eService_state) &&
+				((0 == access("/opt/miracast_autoconnect", F_OK))||
+				 (0 == access("/opt/miracast_direct_request", F_OK))))
 			{
-				std::string system_command = "";
+				char commandBuffer[768] = {0};
 
 				if ( is_another_connect_request )
 				{
-					MIRACASTLOG_INFO("!!! NEED TO STOP ONGOING SESSION !!!\n");
+					MIRACASTLOG_INFO("!!! NEED TO STOP ONGOING SESSION !!!");
 
-					system_command = "curl -H \"Authorization: Bearer `WPEFrameworkSecurityUtility | cut -d '\"' -f 4`\"";
-					system_command.append(" --header \"Content-Type: application/json\" --request POST --data '{\"jsonrpc\":\"2.0\", \"id\":3,\"method\":\"org.rdk.MiracastPlayer.1.stopRequest\", \"params\":{");
-					system_command.append("\"reason\": \"NEW_CONNECTION\"");
-					system_command.append("}}' http://127.0.0.1:9998/jsonrpc\n");
-					MIRACASTLOG_INFO("Stopping old Session by [%s]\n",system_command.c_str());
-					system( system_command.c_str());
+					strncpy(commandBuffer,"curl -H \"Authorization: Bearer `WPEFrameworkSecurityUtility | cut -d '\"' -f 4`\" --header \"Content-Type: application/json\" --request POST --data '{\"jsonrpc\":\"2.0\", \"id\":3,\"method\":\"org.rdk.MiracastPlayer.1.stopRequest\", \"params\":{\"reason\": \"NEW_CONNECTION\"}}' http://127.0.0.1:9998/jsonrpc",sizeof(commandBuffer));
+					MIRACASTLOG_INFO("Stopping old Session by [%s]",commandBuffer);
+					system(commandBuffer);
 					sleep(1);
 				}
-				system_command = "curl -H \"Authorization: Bearer `WPEFrameworkSecurityUtility | cut -d '\"' -f 4`\"";
-				system_command.append(" --header \"Content-Type: application/json\" --request POST --data '{\"jsonrpc\":\"2.0\", \"id\":3,\"method\":\"org.rdk.MiracastService.1.acceptClientConnection\", \"params\":{");
-				system_command.append("\"requestStatus\": \"");
-				system_command.append(requestStatus);
-				system_command.append("\"}}' http://127.0.0.1:9998/jsonrpc\n");
-				MIRACASTLOG_INFO("AutoConnecting [%s - %s] by [%s]\n",
-									client_name.c_str(),
-									client_mac.c_str(),
-									system_command.c_str());
-				system( system_command.c_str());
+				memset(commandBuffer,0x00,sizeof(commandBuffer));
+				snprintf( commandBuffer,
+						sizeof(commandBuffer),
+						"curl -H \"Authorization: Bearer `WPEFrameworkSecurityUtility | cut -d '\"' -f 4`\" --header \"Content-Type: application/json\" --request POST --data '{\"jsonrpc\":\"2.0\", \"id\":3,\"method\":\"org.rdk.MiracastService.1.acceptClientConnection\", \"params\":{\"requestStatus\": \"%s\"}}' http://127.0.0.1:9998/jsonrpc",
+						requestStatus.c_str());
+				MIRACASTLOG_INFO("AutoConnecting [%s - %s] by [%s]",client_name.c_str(),client_mac.c_str(),commandBuffer);
+				system(commandBuffer);
             }
 			else
 			{
@@ -906,15 +938,18 @@ namespace WPEFramework
 			}
 		}
 
-		int MiracastService::updateSystemFriendlyName()
+		bool MiracastService::updateSystemFriendlyName()
 		{
 			JsonObject params, Result;
+			bool return_value = false;
 			MIRACASTLOG_INFO("Entering..!!!");
+
+			getSystemPlugin();
 
 			if (nullptr == m_SystemPluginObj)
 			{
 				LOGERR("m_SystemPluginObj not yet instantiated");
-				return Core::ERROR_GENERAL;
+				return false;
 			}
 
 			uint32_t ret = m_SystemPluginObj->Invoke<JsonObject, JsonObject>(THUNDER_RPC_TIMEOUT, _T("getFriendlyName"), params, Result);
@@ -925,8 +960,9 @@ namespace WPEFramework
 				{
 					std::string friendlyName = "";
 					friendlyName = Result["friendlyName"].String();
-					m_miracast_ctrler_obj->set_FriendlyName(friendlyName);
+					m_miracast_ctrler_obj->set_FriendlyName(friendlyName,m_isServiceEnabled);
 					MIRACASTLOG_INFO("Miracast FriendlyName=%s", friendlyName.c_str());
+					return_value = true;
 				}
 				else
 				{
@@ -938,7 +974,7 @@ namespace WPEFramework
 			{
 				LOGERR("updateSystemFriendlyName call failed E[%u]", ret);
 			}
-			return ret;
+			return return_value;
 		}
 
 		void MiracastService::onFriendlyNameUpdateHandler(const JsonObject &parameters)
@@ -956,11 +992,40 @@ namespace WPEFramework
 			}
 		}
 
-		void MiracastService::onMiracastServiceLaunchRequest(string src_dev_ip, string src_dev_mac, string src_dev_name, string sink_dev_ip)
+		gboolean MiracastService::monitor_friendly_name_timercallback(gpointer userdata)
 		{
-			MIRACASTLOG_INFO("Entering..!!!");
+			gboolean timer_retry_state = G_SOURCE_CONTINUE;
+			MIRACASTLOG_TRACE("Entering..!!!");
+			MiracastService *self = (MiracastService *)userdata;
+			MIRACASTLOG_INFO("TimerCallback Triggered for updating friendlyName...");
+			if ( true == self->updateSystemFriendlyName() )
+			{
+				MIRACASTLOG_INFO("friendlyName updated properly, No polling required...");
+				timer_retry_state = G_SOURCE_REMOVE;
+			}
+			else
+			{
+				MIRACASTLOG_WARNING("Unable to get friendlyName, still requires polling...");
+			}
+			MIRACASTLOG_TRACE("Exiting..!!!");
+			return timer_retry_state;
+		}
 
-			if ( MIRACAST_SERVICE_STATE_APP_REQ_TO_ABORT_CONNECTION == m_eService_state )
+		void MiracastService::onMiracastServiceLaunchRequest(string src_dev_ip, string src_dev_mac, string src_dev_name, string sink_dev_ip, bool is_connect_req_reported )
+		{
+			MIRACASTLOG_INFO("Entering[%u]..!!!",is_connect_req_reported);
+
+			if ( !is_connect_req_reported )
+			{
+				m_eService_state = MIRACAST_SERVICE_STATE_DIRECT_LAUCH_REQUESTED;
+				m_src_dev_ip = src_dev_ip;
+				m_src_dev_mac = src_dev_mac;
+				m_src_dev_name = src_dev_name;
+				m_sink_dev_ip = sink_dev_ip;
+				MIRACASTLOG_INFO("Direct Launch request has received. So need to notify connect Request");
+				onMiracastServiceClientConnectionRequest( src_dev_mac, src_dev_name );
+			}
+			else if ( MIRACAST_SERVICE_STATE_APP_REQ_TO_ABORT_CONNECTION == m_eService_state )
 			{
 				MIRACASTLOG_INFO("APP_REQ_TO_ABORT_CONNECTION has requested. So no need to notify Launch Request..!!!");
 				//m_miracast_ctrler_obj->restart_session_discovery();
@@ -977,56 +1042,22 @@ namespace WPEFramework
 
 				if (0 == access("/opt/miracast_autoconnect", F_OK))
 				{
-					std::string system_command = "";
-					system_command = "curl -H \"Authorization: Bearer `WPEFrameworkSecurityUtility | cut -d '\"' -f 4`\"";
-					
-					system_command.append(" --header \"Content-Type: application/json\" --request POST --data '{\"jsonrpc\":\"2.0\", \"id\":3,\"method\":\"org.rdk.MiracastPlayer.1.playRequest\", \"params\":{");
-					
-					system_command.append("\"device_parameters\": {\n");
-
-					system_command.append("\"source_dev_ip\": \"");
-					system_command.append(src_dev_ip);
-					system_command.append("\",\n");
-
-					system_command.append("\"source_dev_mac\": \"");
-					system_command.append(src_dev_mac);
-					system_command.append("\",\n");
-
-					system_command.append("\"source_dev_name\": \"");
-					system_command.append(src_dev_name);
-					system_command.append("\",\n");
-
-					system_command.append("\"sink_dev_ip\": \"");
-					system_command.append(sink_dev_ip);
-					system_command.append("\"\n},\n");
-
-					system_command.append("\"video_rectangle\": {\n");
-
-					system_command.append("\"X\": ");
-					system_command.append("0");
-					system_command.append(",\n");
-
-					system_command.append("\"Y\": ");
-					system_command.append("0");
-					system_command.append(",\n");
-
-					system_command.append("\"W\": ");
-					system_command.append("1920");
-					system_command.append(",\n");
-
-					system_command.append("\"H\": ");
-					system_command.append("1080");
-
-					system_command.append("}}}' http://127.0.0.1:9998/jsonrpc\n");
-
-					MIRACASTLOG_INFO("System Command [%s]\n",system_command.c_str());
-					system( system_command.c_str());
+					char commandBuffer[768] = {0};
+					snprintf( commandBuffer,
+							sizeof(commandBuffer),
+							"curl -H \"Authorization: Bearer `WPEFrameworkSecurityUtility | cut -d '\"' -f 4`\" --header \"Content-Type: application/json\" --request POST --data '{\"jsonrpc\":\"2.0\", \"id\":3,\"method\":\"org.rdk.MiracastPlayer.1.playRequest\", \"params\":{\"device_parameters\": {\"source_dev_ip\": \"%s\",\"source_dev_mac\": \"%s\",\"source_dev_name\": \"%s\",\"sink_dev_ip\": \"%s\"},\"video_rectangle\": {\"X\": 0,\"Y\": 0,\"W\": 1280,\"H\": 720}}}' http://127.0.0.1:9998/jsonrpc",
+							src_dev_ip.c_str(),
+							src_dev_mac.c_str(),
+							src_dev_name.c_str(),
+							sink_dev_ip.c_str());
+					MIRACASTLOG_INFO("System Command [%s]",commandBuffer);
+					system(commandBuffer);
 				}
 				else
 				{
 					sendNotify(EVT_ON_LAUNCH_REQUEST, params);
-					m_eService_state = MIRACAST_SERVICE_STATE_PLAYER_LAUNCHED;
 				}
+				m_eService_state = MIRACAST_SERVICE_STATE_PLAYER_LAUNCHED;
 			}
 		}
 	} // namespace Plugin
