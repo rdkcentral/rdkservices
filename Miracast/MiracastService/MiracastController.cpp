@@ -464,9 +464,10 @@ void MiracastController::remove_P2PGroupInstance(void)
             MIRACASTLOG_INFO("Terminate old dnsmasq instance: [%s]",commandBuffer);
             MiracastCommon::execute_SystemCommand(commandBuffer);
             memset( commandBuffer , 0x00 , sizeof(commandBuffer));
-            snprintf(commandBuffer,sizeof(commandBuffer),"arp -d %s",m_groupInfo->srcDevIPAddr.c_str());
-            MIRACASTLOG_INFO("Remove ARP entry: [%s]",commandBuffer);
-            MiracastCommon::execute_SystemCommand(commandBuffer);
+            if (!m_groupInfo->srcDevIPAddr.empty())
+            {
+                remove_ARPEntry(m_groupInfo->srcDevIPAddr);
+            }
         }
         else
         {
@@ -617,6 +618,43 @@ bool MiracastController::get_connection_status()
     return m_connectionStatus;
 }
 
+void MiracastController::create_DeviceCacheData(std::string deviceMAC,std::string authType,std::string modelName,std::string deviceType, bool force_overwrite)
+{
+    bool new_device_entry = false;
+    MIRACASTLOG_TRACE("Entering...");
+    DeviceInfo *cur_device_info_ptr = MiracastController::get_device_details(deviceMAC);
+
+    // Allocate memory and update the device cache info
+    if ( nullptr == cur_device_info_ptr )
+    {
+        cur_device_info_ptr = new DeviceInfo;
+        new_device_entry = true;
+        force_overwrite = true;
+        MIRACASTLOG_VERBOSE("#### Creating Device Cache ####");
+    }
+
+    if (( nullptr != cur_device_info_ptr ) && (force_overwrite))
+    {
+        cur_device_info_ptr->deviceMAC = deviceMAC;
+        cur_device_info_ptr->authType = authType;
+        cur_device_info_ptr->modelName = modelName;
+        cur_device_info_ptr->deviceType = deviceType;
+        MIRACASTLOG_INFO("#### Device Cache Name[%s]Mac[%s]Authtype[%s]Type[%s] New[%u] Force[%u] ####",
+                            modelName.c_str(),
+                            deviceMAC.c_str(),
+                            authType.c_str(),
+                            deviceType.c_str(),
+                            new_device_entry,
+                            force_overwrite);
+    }
+
+    if ( new_device_entry && cur_device_info_ptr )
+    {
+        m_deviceInfoList.push_back(cur_device_info_ptr);
+    }
+    MIRACASTLOG_TRACE("Exiting...");
+}
+
 DeviceInfo *MiracastController::get_device_details(std::string MAC)
 {
     DeviceInfo *deviceInfo = nullptr;
@@ -677,54 +715,43 @@ std::string MiracastController::get_FriendlyName(void)
     return friendly_name;
 }
 
-bool MiracastController::getConnectionStatusByARPING( const char* remote_address, const char* interface )
+void MiracastController::remove_ARPEntry(std::string& ipAddress)
 {
-    char buffer[1024] = {0};
-    char command[128] = {0};
-    FILE *arping_pipe_ptr = nullptr;
-    char *current_line_buffer = nullptr;
-    std::size_t len = 0;
-    int retry_count = 15;
-    bool returnValue = false;
+    char arpEntryRemoval[128] = {0},
+         arpEntryCheck[128] = {0};
+    unsigned int retry_count = 5;
+    std::string popen_buffer = "";
 
-    while ( retry_count-- )
+    MIRACASTLOG_TRACE("Entering..");
+    snprintf(arpEntryRemoval,sizeof(arpEntryRemoval),"arp -d %s",ipAddress.c_str());
+    snprintf(arpEntryCheck,sizeof(arpEntryCheck),"awk '$1 == \"%s\" {print $1}' /proc/net/arp",ipAddress.c_str());
+    while(retry_count--)
     {
-        snprintf( command , sizeof(command),"arping %s -I %s -c 1" , remote_address, interface);
-        arping_pipe_ptr = popen(command, "r");
-        if ( nullptr == arping_pipe_ptr )
+        MIRACASTLOG_INFO("Remove ARP entry: [%s]",arpEntryRemoval);
+        MiracastCommon::execute_SystemCommand(arpEntryRemoval);
+        MIRACASTLOG_INFO("Check ARP entry: [%s]",arpEntryCheck);
+        if ( true == MiracastCommon::execute_PopenCommand( arpEntryCheck , ipAddress.c_str() , 1 , popen_buffer , 500 ))
         {
-            MIRACASTLOG_ERROR("popen() failed: [%s]",strerror(errno));
-            continue;
-        }
-
-        memset( buffer , 0x00 , sizeof(buffer));
-        while (getline(&current_line_buffer, &len, arping_pipe_ptr) != -1)
-        {
-            sprintf(buffer + strlen(buffer), "%s" ,  current_line_buffer);
-            MIRACASTLOG_INFO("#### ARPING Output[%s] ####", buffer);
-        }
-        pclose(arping_pipe_ptr);
-        arping_pipe_ptr = nullptr;
-        free(current_line_buffer);
-        current_line_buffer = nullptr;
-
-        if ( nullptr != strstr(buffer, "Received 0"))
-        {
-            MIRACASTLOG_INFO("Arping unsuccessful");
-            continue;
+            MIRACASTLOG_INFO("Still ARP entry there");
         }
         else
         {
-            MIRACASTLOG_INFO("#### Arping successful ####");
-            returnValue = true;
+            MIRACASTLOG_INFO("ARP entry removed sucessfully");
             break;
         }
     }
+    MIRACASTLOG_TRACE("Exiting..");
+}
 
-    if (!returnValue)
-    {
-        MIRACASTLOG_ERROR("Maximum retries reached N Arping unsuccessful");
-    }
+bool MiracastController::getConnectionStatusByARPING( const char* remote_address, const char* interface )
+{
+    char commandBuffer[128] = {0};
+    std::string popen_buffer = "";
+    bool returnValue = false;
+    MIRACASTLOG_TRACE("Entering...");
+    snprintf( commandBuffer , sizeof(commandBuffer),"arping -c 1 %s -I %s" , remote_address, interface);
+    returnValue = MiracastCommon::execute_PopenCommand( commandBuffer , "Unicast reply from" , 15 , popen_buffer, 50 );
+    MIRACASTLOG_TRACE("Exiting...");
     return returnValue;
 }
 
@@ -796,7 +823,6 @@ void MiracastController::Controller_Thread(void *args)
                         else
                         {
                             std::string authType = "pbc";
-                            bool new_device_entry = false;
                             deviceType = parse_p2p_event_data(event_buffer.c_str(), "pri_dev_type");
                             modelName = parse_p2p_event_data(event_buffer.c_str(), "name");
 
@@ -824,26 +850,7 @@ void MiracastController::Controller_Thread(void *args)
                                 }
                             }
 
-                            DeviceInfo *cur_device_info_ptr = MiracastController::get_device_details(deviceMAC);
-
-                            if ( nullptr == cur_device_info_ptr )
-                            {
-                                cur_device_info_ptr = new DeviceInfo;
-                                new_device_entry = true;
-                            }
-
-                            if ( nullptr != cur_device_info_ptr )
-                            {
-                                cur_device_info_ptr->deviceMAC = deviceMAC;
-                                cur_device_info_ptr->authType = authType;
-                                cur_device_info_ptr->modelName = modelName;
-                                cur_device_info_ptr->deviceType = deviceType;
-                            }
-
-                            if ( new_device_entry && cur_device_info_ptr )
-                            {
-                                m_deviceInfoList.push_back(cur_device_info_ptr);
-                            }
+                            create_DeviceCacheData(deviceMAC,authType,modelName,deviceType,true);
                             wfdSubElements = parse_p2p_event_data(event_buffer.c_str(), "wfd_dev_info");
                             #if 0
                                 device->isCPSupported = ((strtol(wfdSubElements.c_str(), nullptr, 16) >> 32) && 256);
@@ -865,27 +872,8 @@ void MiracastController::Controller_Thread(void *args)
                             REMOVE_SPACES(received_mac_address);
                         }
 
-                        std::string device_name = "Miracast-Source";
-                        DeviceInfo *cur_device_info_ptr = get_device_details(received_mac_address);
-                        if ( nullptr == cur_device_info_ptr )
-                        {
-                            cur_device_info_ptr = new DeviceInfo;
-                            if ( nullptr != cur_device_info_ptr )
-                            {
-                                cur_device_info_ptr->deviceMAC = received_mac_address;
-                                cur_device_info_ptr->modelName = device_name.c_str();
-                                cur_device_info_ptr->authType = "pbc";
-                                cur_device_info_ptr->deviceType = "unknown";
-                                m_deviceInfoList.push_back(cur_device_info_ptr);
-                            }
-                            MIRACASTLOG_INFO("#### Device Name not found. So defaulting to [%s] and P2P event is [%s] ####",
-                                                device_name.c_str(),
-                                                event_buffer.c_str());
-                        }
-                        else
-                        {
-                            device_name = cur_device_info_ptr->modelName.c_str();
-                        }
+                        create_DeviceCacheData(received_mac_address,"pbc","Miracast-Source","unknown",false);
+                        std::string device_name = get_device_name(received_mac_address);
 
                         if ( get_WFDSourceMACAddress().empty())
                         {
@@ -939,6 +927,9 @@ void MiracastController::Controller_Thread(void *args)
                                         src_dev_mac = "",
                                         src_dev_name = "",
                                         sink_dev_ip = "";
+                            std::string modelName = "Miracast-Source",
+                                        authType = "pbc",
+                                        deviceType = "unknown";
                             m_groupInfo = new GroupInfo;
                             size_t found = event_buffer.find("client");
                             size_t found_space = event_buffer.find(" ");
@@ -947,40 +938,6 @@ void MiracastController::Controller_Thread(void *args)
 
                             m_groupInfo->goDevAddr = parse_p2p_event_data(event_buffer.c_str(), "go_dev_addr");
 
-                            DeviceInfo *cur_device_info_ptr = MiracastController::get_device_details(m_groupInfo->goDevAddr);
-
-                            if ( nullptr == cur_device_info_ptr )
-                            {
-                                cur_device_info_ptr = new DeviceInfo;
-                                if ( nullptr != cur_device_info_ptr )
-                                {
-                                    std::string srcDevSSID = parse_p2p_event_data(event_buffer.c_str(), "ssid");
-                                    cur_device_info_ptr->deviceMAC = m_groupInfo->goDevAddr;
-                                    cur_device_info_ptr->modelName = "Miracast-Source";
-                                    cur_device_info_ptr->authType = "pbc";
-                                    cur_device_info_ptr->deviceType = "unknown";
-                                    std::size_t firstDash = srcDevSSID.find("-");
-                                    if (firstDash != std::string::npos)
-                                    {
-                                        std::size_t secondDash = srcDevSSID.find("-", firstDash + 1);
-                                        if (secondDash != std::string::npos)
-                                        {
-                                            std::string result = srcDevSSID.substr(secondDash + 1);
-                                            if (!result.empty())
-                                            {
-                                                cur_device_info_ptr->modelName.clear();
-                                                cur_device_info_ptr->modelName = result.c_str();
-                                            }
-                                        }
-                                    }
-                                    MIRACASTLOG_INFO("#### Parsed Device Name[%s] from ssid[%s] field of P2P GO STARTED[%s]####",
-                                                        cur_device_info_ptr->modelName.c_str(),
-                                                        srcDevSSID.c_str(),
-                                                        event_buffer.c_str());
-                                    m_deviceInfoList.push_back(cur_device_info_ptr);
-                                }
-                            }
-
                             if (found != std::string::npos)
                             {
                                 MIRACASTLOG_INFO("!!!! P2P GROUP STARTED IN CLIENT MODE !!!!");
@@ -988,6 +945,25 @@ void MiracastController::Controller_Thread(void *args)
                                 m_groupInfo->ipMask = parse_p2p_event_data(event_buffer.c_str(), "ip_mask");
                                 m_groupInfo->srcDevIPAddr = parse_p2p_event_data(event_buffer.c_str(), "go_ip_addr");
                                 m_groupInfo->SSID = parse_p2p_event_data(event_buffer.c_str(), "ssid");
+
+                                std::size_t firstDash = m_groupInfo->SSID.find("-");
+                                if (firstDash != std::string::npos)
+                                {
+                                    std::size_t secondDash = m_groupInfo->SSID.find("-", firstDash + 1);
+                                    if (secondDash != std::string::npos)
+                                    {
+                                        std::string result = m_groupInfo->SSID.substr(secondDash + 1);
+                                        if (!result.empty())
+                                        {
+                                            modelName.clear();
+                                            modelName = result.c_str();
+                                        }
+                                    }
+                                    MIRACASTLOG_INFO("#### Parsed Device Name[%s] from ssid[%s] field of P2P GO STARTED[%s]####",
+                                                        modelName.c_str(),
+                                                        m_groupInfo->SSID.c_str(),
+                                                        event_buffer.c_str());
+                                }
 
                                 size_t found_client = event_buffer.find("client");
                                 m_groupInfo->interface = event_buffer.substr(found_space, found_client - found_space);
@@ -1044,57 +1020,26 @@ void MiracastController::Controller_Thread(void *args)
                                 m_groupInfo->isGO = true;
 
                                 std::string mac_address = get_WFDSourceMACAddress();
-                                char data[1024] = {0};
+                                std::string peer_iface_mac = get_SourcePeerIface(mac_address);
                                 char command[128] = {0};
                                 std::string popen_buffer = "";
-                                FILE *popen_file_ptr = nullptr;
-                                char *current_line_buffer = nullptr;
-                                std::size_t len = 0;
-                                unsigned char retry_count = 15;
+                                sprintf( command, "awk '$4 == \"%s\" && $4 !~ /incomplete/ {print $1}' /proc/net/arp", peer_iface_mac.c_str());
 
-                                sprintf( command, "awk '$6 == \"%s\" && $4 !~ /incomplete/ {print $1}' /proc/net/arp", m_groupInfo->interface.c_str());
-                                while ( retry_count-- )
+                                MiracastCommon::execute_PopenCommand( command , nullptr , 15 , popen_buffer , 1000000 );
+                                if (!popen_buffer.empty())
                                 {
-                                    MIRACASTLOG_INFO("command is [%s]\n", command);
-                                    popen_file_ptr = popen(command, "r");
-                                    if (!popen_file_ptr)
+                                    remote_address = popen_buffer;
+                                    if ( false == getConnectionStatusByARPING(remote_address.c_str(),m_groupInfo->interface.c_str()))
                                     {
-                                        MIRACASTLOG_ERROR("Could not open pipe for output.");
+                                        remove_ARPEntry(remote_address);
+                                        remote_address.clear();
+                                        MIRACASTLOG_ERROR("#### ARPING failed so clearing remote_address to report [MIRACAST_SERVICE_ERR_CODE_GENERIC_FAILURE] ####");
                                     }
-                                    else
-                                    {
-                                        memset( data , 0x00 , sizeof(data));
-                                        while (getline(&current_line_buffer, &len, popen_file_ptr) != -1)
-                                        {
-                                            sprintf(data + strlen(data), "%s" ,  current_line_buffer);
-                                            MIRACASTLOG_INFO("data : [%s]", data);
-                                        }
-                                        pclose(popen_file_ptr);
-                                        popen_file_ptr = nullptr;
-
-                                        popen_buffer = data;
-                                        REMOVE_R(popen_buffer);
-                                        REMOVE_N(popen_buffer);
-
-                                        MIRACASTLOG_INFO("popen_buffer is [%s]\n", popen_buffer.c_str());
-
-                                        free(current_line_buffer);
-                                        current_line_buffer = nullptr;
-
-                                        if (!popen_buffer.empty()){
-                                            MIRACASTLOG_INFO("%s is success and popen_buffer[%s]\n", command,popen_buffer.c_str());
-                                            remote_address = popen_buffer;
-                                            if ( false == getConnectionStatusByARPING(remote_address.c_str(),m_groupInfo->interface.c_str()))
-                                            {
-                                                remote_address.clear();
-                                                MIRACASTLOG_ERROR("#### ARPING failed so clearing remote_address to report [MIRACAST_SERVICE_ERR_CODE_GENERIC_FAILURE] ####");
-                                            }
-                                            break;
-                                        }
-                                    }
-                                    sleep(1);
                                 }
                             }
+
+                            create_DeviceCacheData(m_groupInfo->goDevAddr,authType,modelName,deviceType,false);
+
                             if (!remote_address.empty())
                             {
                                 m_groupInfo->srcDevIPAddr = remote_address;
@@ -1209,7 +1154,10 @@ void MiracastController::Controller_Thread(void *args)
                     break;
                     case CONTROLLER_GO_NEG_SUCCESS:
                     {
+                        std::string current_device_mac = get_WFDSourceMACAddress();
+                        std::string peer_iface_mac = parse_p2p_event_data(event_buffer.c_str(), "peer_iface");
                         MIRACASTLOG_INFO("[CONTROLLER_GO_NEG_SUCCESS] Received");
+                        set_SourcePeerIface(current_device_mac,peer_iface_mac);
                     }
                     break;
                     case CONTROLLER_GO_GROUP_FORMATION_SUCCESS:
@@ -1502,6 +1450,36 @@ void MiracastController::reset_WFDSourceMACAddress(void)
 void MiracastController::reset_WFDSourceName(void)
 {
     m_connected_device_name.clear();
+}
+
+void MiracastController::set_SourcePeerIface(std::string& devMac, std::string peer_iface_mac)
+{
+    MIRACASTLOG_TRACE("Entering...");
+    DeviceInfo *device_info_ptr = MiracastController::get_device_details(devMac);
+    if ( nullptr != device_info_ptr )
+    {
+        device_info_ptr->peer_iface = peer_iface_mac.c_str();
+        MIRACASTLOG_INFO("Updating peer_iface as [%s]",peer_iface_mac.c_str());
+    }
+    MIRACASTLOG_TRACE("Exiting...");
+}
+
+std::string MiracastController::get_SourcePeerIface(std::string& devMac)
+{
+    std::string peer_iface_mac = "";
+    MIRACASTLOG_TRACE("Entering...");
+    DeviceInfo *device_info_ptr = MiracastController::get_device_details(devMac);
+    if ( nullptr != device_info_ptr )
+    {
+        peer_iface_mac = device_info_ptr->peer_iface;
+        if (peer_iface_mac.empty())
+        {
+            peer_iface_mac = devMac.c_str();
+        }
+    }
+    MIRACASTLOG_INFO("Retriving peer_iface [%s]",peer_iface_mac.c_str());
+    MIRACASTLOG_TRACE("Exiting...");
+    return peer_iface_mac;
 }
 
 void MiracastController::set_NewSourceMACAddress(std::string mac_address)
