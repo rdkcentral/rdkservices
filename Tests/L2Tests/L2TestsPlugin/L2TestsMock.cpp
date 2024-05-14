@@ -44,11 +44,15 @@ L2TestMocks::L2TestMocks()
     p_videoOutputPortConfigImplMock = new NiceMock <VideoOutputPortConfigImplMock>;
     p_managerImplMock   = new NiceMock <ManagerImplMock>;
     p_videoOutputPortMock = new NiceMock <VideoOutputPortMock>;
+    p_rBusApiImplMock   = new NiceMock <RBusApiImplMock>;
+    p_telemetryApiImplMock  = new NiceMock <TelemetryApiImplMock>;
 
     IarmBus::setImpl(p_iarmBusImplMock);
     RfcApi::setImpl(p_rfcApiImplMock);
     Udev::setImpl(p_udevImplMock);
     Wraps::setImpl(p_wrapsImplMock);
+    RBusApi::setImpl(p_rBusApiImplMock);
+    TelemetryApi::setImpl(p_telemetryApiImplMock);
     device::Host::setImpl(p_hostImplMock);
     device::VideoOutputPortConfig::setImpl(p_videoOutputPortConfigImplMock);
     device::Manager::setImpl(p_managerImplMock);
@@ -72,6 +76,19 @@ L2TestMocks::~L2TestMocks()
    {
         delete p_rfcApiImplMock;
         p_rfcApiImplMock = nullptr;
+   }
+   RBusApi::setImpl(nullptr);
+   if (p_rBusApiImplMock != nullptr)
+   {
+        delete p_rBusApiImplMock;
+        p_rBusApiImplMock = nullptr;
+   }
+
+   TelemetryApi::setImpl(nullptr);
+   if (p_telemetryApiImplMock != nullptr)
+   {
+        delete p_telemetryApiImplMock;
+        p_telemetryApiImplMock = nullptr;
    }
    device::Host::setImpl(nullptr);
    if (p_hostImplMock != nullptr)

@@ -28,10 +28,13 @@
 #include "RfcApiMock.h"
 #include "UdevMock.h"
 #include "WrapsMock.h"
+#include "RBusMock.h"
+#include "TelemetryMock.h"
 #include "VideoOutputPortConfigMock.h"
 #include "VideoOutputPortMock.h"
 #include "HostMock.h"
 #include "ManagerMock.h"
+
 using ::testing::NiceMock;
 using namespace WPEFramework;
 
@@ -46,6 +49,8 @@ protected:
         VideoOutputPortConfigImplMock *p_videoOutputPortConfigImplMock = nullptr ;
         ManagerImplMock  *p_managerImplMock = nullptr ;
         VideoOutputPortMock *p_videoOutputPortMock = nullptr;
+        RBusApiImplMock *p_rBusApiImplMock = nullptr;
+        TelemetryApiImplMock   *p_telemetryApiImplMock = nullptr ;
 
         std::string thunder_address;
 
