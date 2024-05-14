@@ -299,11 +299,22 @@ namespace WPEFramework
        {
              printHeader(header);
              LOGINFO("Command: SetStreamPath Set Stream Path to Sink : %s\n",msg.toSink.toString().c_str());
-             if(msg.toSink.toString() == physical_addr.toString())
+	     if(msg.toSink.toString() == physical_addr.toString())
                  isDeviceActiveSource = true;
              else
                  isDeviceActiveSource = false;
              LOGINFO("physical_addr : %s isDeviceActiveSource :%d \n",physical_addr.toString().c_str(),isDeviceActiveSource);
+	     if(isDeviceActiveSource){
+		 LOGINFO("sending  ActiveSource\n");
+		 try
+                 {
+                     conn.sendTo(LogicalAddress::BROADCAST, MessageEncoder().encode(ActiveSource(physical_addr)));
+                 }
+                 catch(...)
+                 {
+                     LOGWARN("Exception while sending ActiveSource");
+                 }
+	     }
              HdmiCecSource::_instance->sendActiveSourceEvent();
 
        }
