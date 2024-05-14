@@ -208,6 +208,7 @@ typedef struct d_info
     string deviceMAC;
     string deviceType;
     string modelName;
+    string peer_iface;
     string authType;
     bool isCPSupported;
     enum DEVICEROLE deviceRole;
@@ -358,6 +359,7 @@ class MiracastCommon
     public:
         static std::string parse_opt_flag( std::string file_name , bool integer_check = false, bool debugStats = true );
         static int execute_SystemCommand( const char* system_command_buffer );
+        static bool execute_PopenCommand( const char* popen_command, const char* expected_char, unsigned int retry_count, std::string& popen_buffer, unsigned int interval_micro_sec );
 };
 
 #endif
