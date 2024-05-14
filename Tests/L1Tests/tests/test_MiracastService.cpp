@@ -370,9 +370,13 @@ TEST_F(MiracastServiceEventTest, P2P_GOMode_onClientConnectionAndLaunchRequest)
 					[&](const char* command, const char* type)
 					{
 					char buffer[1024] = {0};
-					if ( 0 == strncmp(command,"awk '$6 == ",strlen("awk '$6 == ")))
+					if ( 0 == strncmp(command,"awk '$4 == ",strlen("awk '$4 == ")))
 					{
 						strncpy(buffer, "192.168.59.165",sizeof(buffer));
+					}
+					else if ( 0 == strncmp(command,"awk '$1 == ",strlen("awk '$1 == ")))
+					{
+						// Need to return as empty
 					}
 					else if ( 0 == strncmp(command,"arping",strlen("arping")))
 					{
@@ -507,8 +511,11 @@ TEST_F(MiracastServiceEventTest, P2P_GOMode_onClientConnectionAndLaunchRequest)
 	EXPECT_EQ(Core::ERROR_NONE, P2PGrpStart.Lock(10000));
 
 	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("updatePlayerState"), _T("{\"mac\": \"96:52:44:b6:7d:14\",\"state\":\"INITIATED\"}"), response));
+	sleep(1);
 	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("updatePlayerState"), _T("{\"mac\": \"96:52:44:b6:7d:14\",\"state\":\"INPROGRESS\"}"), response));
+	sleep(1);
 	EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("updatePlayerState"), _T("{\"mac\": \"96:52:44:b6:7d:14\",\"state\":\"PLAYING\"}"), response));
+	sleep(1);
 
 	/* @return      :  {"message":"Failed as MiracastPlayer already Launched.","success":false}*/
 	EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setEnable"), _T("{\"enabled\": false}"), response));
@@ -1692,9 +1699,13 @@ TEST_F(MiracastServiceEventTest, P2P_GOMode_GENERIC_FAILURE)
 					[&](const char* command, const char* type)
 					{
 					char buffer[1024] = {0};
-					if ( 0 == strncmp(command,"awk '$6 == ",strlen("awk '$6 == ")))
+					if ( 0 == strncmp(command,"awk '$4 == ",strlen("awk '$4 == ")))
 					{
 						strncpy(buffer, "192.168.59.165",sizeof(buffer));
+					}
+					else if ( 0 == strncmp(command,"awk '$1 == ",strlen("awk '$1 == ")))
+					{
+						// Need to return as empty
 					}
 					else if ( 0 == strncmp(command,"arping",strlen("arping")))
 					{
@@ -1828,9 +1839,13 @@ TEST_F(MiracastServiceEventTest, P2P_GOMode_AutoConnect)
 					[&](const char* command, const char* type)
 					{
 					char buffer[1024] = {0};
-					if ( 0 == strncmp(command,"awk '$6 == ",strlen("awk '$6 == ")))
+					if ( 0 == strncmp(command,"awk '$4 == ",strlen("awk '$4 == ")))
 					{
 						strncpy(buffer, "192.168.59.165",sizeof(buffer));
+					}
+					else if ( 0 == strncmp(command,"awk '$1 == ",strlen("awk '$1 == ")))
+					{
+						// Need to return as empty
 					}
 					else if ( 0 == strncmp(command,"arping",strlen("arping")))
 					{
