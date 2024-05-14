@@ -1857,6 +1857,22 @@ static GSourceFuncs _handlerIntervention =
             return url;
         }
 
+        string extractDomain(const string& URL)
+        {
+            size_t beginDomain = URL.find("//");
+            if (beginDomain == string::npos) {
+                return "";
+            }
+            beginDomain += 2;
+
+            size_t endDomain = URL.find("/", beginDomain);
+            if (endDomain == string::npos) {
+                return URL.substr(beginDomain);
+            }
+
+            return URL.substr(beginDomain, endDomain - beginDomain);
+        }
+
         uint32_t URL(const string& URL) override
         {
             using namespace std::chrono;
@@ -2314,7 +2330,19 @@ static GSourceFuncs _handlerIntervention =
                  * When those addresses are detected and URL() waits for the result, send notification.
                  */
                 notifyUrlLoadResult(URL, Core::ERROR_NONE);
+            } else {
+                /*
+                 * When domains of changed URL and saved URL match, store an updated URL.
+                 * URL should *NOT* be updated unconditionally as in case of load failure,
+                 * notify:uri signal is being sent for previously loaded URL.
+                 */
+                std::unique_lock<std::mutex> lock{urlData_.mutex};
+                if (extractDomain(URL) == extractDomain(urlData_.loadResult.loadUrl)) {
+                    TRACE_L1("URL updated, storing new loadResult URL: %s", URL.c_str());
+                    urlData_.loadResult.loadUrl = URL;
+                }
             }
+
             _adminLock.Lock();
 
             std::list<Exchange::IWebBrowser::INotification*>::iterator index(_notificationClients.begin());
