@@ -27,6 +27,7 @@ add_library(${MODULE_NAME} SHARED
     L2TestsMock.cpp
     tests/SystemService_L2Test.cpp
     tests/UsbAccess_L2Test.cpp
+    tests/Telemetry_L2Test.cpp
     tests/VerifyContracts.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
