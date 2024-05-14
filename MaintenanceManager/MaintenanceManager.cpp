@@ -519,7 +519,7 @@ namespace WPEFramework {
 
         void MaintenanceManager::setPartnerId(string partnerid)
         {
-            LOGINFO("Enter MM:WAI:setPartnerId...");
+            LOGINFO("Initiate setPartnerId...");
             const char* authservice_callsign = "org.rdk.AuthService.1";
             PluginHost::IShell::state state;
             WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
@@ -535,7 +535,7 @@ namespace WPEFramework {
 
                     joGetParams["partnerId"] = partnerid;
 
-                    thunder_client->Invoke<JsonObject, JsonObject>(10000, "setPartnerId", joGetParams, joGetResult);
+                    thunder_client->Invoke<JsonObject, JsonObject>(5000, "setPartnerId", joGetParams, joGetResult);
 		    string responseJson;
 		    joGetResult.ToString(responseJson);
 		    LOGINFO("AuthService Response Data: %s", responseJson.c_str());
@@ -868,8 +868,8 @@ namespace WPEFramework {
 
                     // Set the RFC values for deviceInitializationContext parameters
                     setRFC(rfc_parameter.c_str(), paramValue.c_str(), rfc_dataType);
+		    LOGINFO("deviceInitializationContext parameters set successfully via RFC");
 
-		    LOGINFO("Set RFC done");
                     if (strcmp(key.c_str(), "partnerId") == 0)
                     {
                         setPartnerId(paramValue);
