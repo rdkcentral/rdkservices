@@ -3053,6 +3053,12 @@ namespace Plugin {
                 }
                 response["pictureModeInfo"]=pqmodeArray;
             }
+            if ((source.front()).compare("none") != 0) {
+                for (index = 0; index < source.size(); index++) {
+                    sourceArray.Add(source[index]);
+                }
+                response["videoSourceInfo"]=sourceArray;
+            }
             if ((format.front()).compare("none") != 0) {
                 for (index = 0; index < format.size(); index++) {
                     formatArray.Add(format[index]);
