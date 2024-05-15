@@ -220,3 +220,76 @@ int MiracastCommon::execute_SystemCommand( const char* system_command_buffer )
     MIRACASTLOG_TRACE("Exiting ...");
     return return_value;
 }
+
+bool MiracastCommon::execute_PopenCommand( const char* popen_command, const char* expected_char, unsigned int retry_count, std::string& popen_buffer, unsigned int interval_micro_sec )
+{
+    char buffer[1024] = {0};
+    FILE *popen_pipe_ptr = nullptr;
+    char *current_line_buffer = nullptr;
+    std::size_t len = 0;
+    unsigned int retry_index = 1;
+    bool returnValue = false;
+
+    MIRACASTLOG_TRACE("Entering ...");
+    if ( nullptr == popen_command )
+    {
+        MIRACASTLOG_ERROR("#### Null Command ####");
+        MIRACASTLOG_TRACE("Exiting ...");
+        return false;
+    }
+
+    while ( retry_index <= retry_count )
+    {
+        MIRACASTLOG_INFO("#### Executing Command[%s] ####",popen_command);
+        popen_pipe_ptr = popen( popen_command , "r");
+        if ( nullptr == popen_pipe_ptr )
+        {
+            MIRACASTLOG_ERROR("popen() failed: [%s]",strerror(errno));
+            ++retry_index;
+            continue;
+        }
+
+        memset( buffer , 0x00 , sizeof(buffer));
+        while (getline(&current_line_buffer, &len, popen_pipe_ptr) != -1)
+        {
+            sprintf(buffer + strlen(buffer), "%s" ,  current_line_buffer);
+            MIRACASTLOG_INFO("#### popen Output[%s] ####", buffer);
+        }
+        pclose(popen_pipe_ptr);
+        popen_pipe_ptr = nullptr;
+        free(current_line_buffer);
+        current_line_buffer = nullptr;
+        popen_buffer = buffer;
+        REMOVE_R(popen_buffer);
+        REMOVE_N(popen_buffer);
+
+        if ( nullptr != expected_char )
+        {
+            if ( nullptr != strstr( popen_buffer.c_str(), expected_char ))
+            {
+                MIRACASTLOG_INFO("POPEN command success on '%u' trial",retry_index);
+                returnValue = true;
+                break;
+            }
+            else
+            {
+                MIRACASTLOG_INFO("POPEN command trying for expected char[%s] on '%u' trial",expected_char,retry_index);
+            }
+        }
+        else if (!popen_buffer.empty())
+        {
+            MIRACASTLOG_INFO("POPEN command success on '%u' trial",retry_index);
+            returnValue = true;
+            break;
+        }
+        usleep(interval_micro_sec);
+        ++retry_index;
+    }
+
+    if ( false == returnValue && ( 1 < retry_count ))
+    {
+        MIRACASTLOG_ERROR("Maximum retries[%u] reached and Popen couldn't success",retry_count);
+    }
+    MIRACASTLOG_TRACE("Exiting ...");
+    return returnValue;
+}
