@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.8.1] - 2024-05-15
+### Fixed
+- Fixed stuck cSettings::readFromFile() if file is a directory.
+
 ## [1.8.0] - 2024-02-29
 ### Added
 - Added API to get Thunder start reason
