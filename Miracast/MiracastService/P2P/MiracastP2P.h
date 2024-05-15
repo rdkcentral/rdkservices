@@ -21,7 +21,6 @@
 #define _MIRACAST_P2P_H_
 
 #include <string.h>
-#include <MiracastServiceError.h>
 #include <MiracastLogger.h>
 
 using namespace std;
@@ -79,8 +78,8 @@ private:
     MiracastError p2pInit(std::string p2p_ctrl_iface);
     MiracastError p2pUninit();
     MiracastError executeCommand(std::string command, int interface, std::string &retBuffer);
-    int p2pExecute(char *cmd, enum INTERFACE iface, char *status);
-    int p2pWpaCtrlSendCmd(char *cmd, struct wpa_ctrl *wpa_p2p_ctrl_iface, char *ret_buf);
+    int p2pExecute(char *cmd, enum INTERFACE iface, char *ret_buf, size_t actual_buffer_len);
+    int p2pWpaCtrlSendCmd(char *cmd, struct wpa_ctrl *wpa_p2p_ctrl_iface, char *ret_buf,size_t actual_buffer_len);
     void Release_P2PCtrlInterface(void);
 
 public:

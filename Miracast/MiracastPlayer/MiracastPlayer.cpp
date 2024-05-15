@@ -19,7 +19,6 @@
 
 #include <algorithm>
 #include <regex>
-//#include "rdk/iarmmgrs-hal/pwrMgr.h"
 #include "MiracastPlayer.h"
 #include <UtilsJsonRpc.h>
 #include "UtilsIarm.h"
@@ -120,7 +119,7 @@ namespace WPEFramework
 				if (nullptr != m_miracast_rtsp_obj)
 				{
 					m_CurrentService = service;
-					m_GstPlayer = MiracastGstPlayer::getInstance();
+					m_GstPlayer = SoC_GstPlayer::getInstance();
 					m_isServiceInitialized = true;
 				}
 				else
@@ -382,7 +381,7 @@ namespace WPEFramework
 				if (separate_logger.HasLabel("status"))
 				{
 					std::string status = "";
-					status = separate_logger["separate_logger"].String();
+					status = separate_logger["status"].String();
 
 					success = true;
 
@@ -778,7 +777,7 @@ namespace WPEFramework
 						stateDescription(player_state).c_str(),
 						std::to_string(reason_code).c_str());
 				MIRACASTLOG_INFO("System Command [%s]",commandBuffer);
-				system(commandBuffer);
+				MiracastCommon::execute_SystemCommand( commandBuffer );
 			}
 			else
 			{
