@@ -177,7 +177,7 @@ static std::vector<DeviceFeatures> deviceFeatures = {DEVICE_FEATURES_TV};
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 3
-#define API_VERSION_NUMBER_PATCH 6
+#define API_VERSION_NUMBER_PATCH 7
 
 namespace WPEFramework
 {
@@ -261,7 +261,7 @@ namespace WPEFramework
 		return;
 	     }
 			 HdmiCecSink::_instance->addDevice(header.from.toInt());
-			 HdmiCecSink::_instance->updateImageViewOn(header.from.toInt());
+			 HdmiCecSink::_instance->updateTextViewOn(header.from.toInt());
        }
        void HdmiCecSinkProcessor::process (const RequestActiveSource &msg, const Header &header)
        {
