@@ -2548,6 +2548,8 @@ namespace WPEFramework
 				newPhyAddr = _instance->deviceList[_instance->m_logicalAddressAllocated].m_physicalAddr;
 				/*set active source as TV */
 				_instance->m_currentActiveSource = _instance->m_logicalAddressAllocated;
+			        LOG_INFO("AML-5853: Set streampath to Hdmi input\n");
+				setStreamPath(oldPhyAddr);
 			}
 			else
 			{
