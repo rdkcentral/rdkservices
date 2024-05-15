@@ -105,7 +105,7 @@ void SoC_GstPlayer::onFirstVideoFrameCallback(GstElement* object, guint arg0, gp
 	MIRACASTLOG_TRACE("Exiting..!!!");
 }
 
-void SoC_GstPlayer::notifyPlaybackState(eMIRA_GSTPLAYER_STATES gst_player_state)
+void SoC_GstPlayer::notifyPlaybackState(eMIRA_GSTPLAYER_STATES gst_player_state, eM_PLAYER_REASON_CODE state_reason_code )
 {
 	MIRACASTLOG_TRACE("Entering..!!!");
 	if ( nullptr != m_rtsp_reference_instance )
@@ -114,6 +114,7 @@ void SoC_GstPlayer::notifyPlaybackState(eMIRA_GSTPLAYER_STATES gst_player_state)
 
 		rtsp_hldr_msgq_data.state = RTSP_NOTIFY_GSTPLAYER_STATE;
 		rtsp_hldr_msgq_data.gst_player_state = gst_player_state;
+		rtsp_hldr_msgq_data.state_reason_code = state_reason_code;
 		MIRACASTLOG_INFO("!!! GstPlayer to RTSP [%#08X] !!!",gst_player_state);
 		m_rtsp_reference_instance->send_msgto_rtsp_msg_hdler_thread(rtsp_hldr_msgq_data);
 	}
