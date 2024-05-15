@@ -54,7 +54,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 6
+#define API_VERSION_NUMBER_PATCH 7
 
 #define SERVER_DETAILS "127.0.0.1:9998"
 #define SYSTEM_CALLSIGN "org.rdk.System"
@@ -884,7 +884,7 @@ namespace WPEFramework
 					MIRACASTLOG_INFO("!!! NEED TO STOP ONGOING SESSION !!!");
 					strncpy(commandBuffer,"curl -H \"Authorization: Bearer `WPEFrameworkSecurityUtility | cut -d '\"' -f 4`\" --header \"Content-Type: application/json\" --request POST --data '{\"jsonrpc\":\"2.0\", \"id\":3,\"method\":\"org.rdk.MiracastPlayer.1.stopRequest\", \"params\":{\"reason\": \"NEW_CONNECTION\"}}' http://127.0.0.1:9998/jsonrpc",sizeof(commandBuffer));
 					MIRACASTLOG_INFO("Stopping old Session by [%s]",commandBuffer);
-					system(commandBuffer);
+					MiracastCommon::execute_SystemCommand(commandBuffer);
 					sleep(1);
 				}
 				memset(commandBuffer,0x00,sizeof(commandBuffer));
