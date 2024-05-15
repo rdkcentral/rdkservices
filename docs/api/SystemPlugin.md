@@ -2,7 +2,7 @@
 <a name="System_Plugin"></a>
 # System Plugin
 
-**Version: [2.1.5](https://github.com/rdkcentral/rdkservices/blob/main/SystemServices/CHANGELOG.md)**
+**Version: [2.2.0](https://github.com/rdkcentral/rdkservices/blob/main/SystemServices/CHANGELOG.md)**
 
 A org.rdk.System plugin for Thunder framework.
 
@@ -3616,6 +3616,8 @@ This method takes no parameters.
 ## *uploadLogs*
 
 Uploads logs to a URL returned by SSR.
+
+> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations.
 
 ### Events
 
