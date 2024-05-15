@@ -453,7 +453,7 @@ namespace WPEFramework {
                     else {
                         LOGINFO("Failed to get plugin handle");
                     }
-		    if (!g_subscribed_for_deviceContextUpdate) {
+		    if (!g_subscribed_for_deviceContextUpdate && activation_status != "activated") {
                         LOGINFO("onDeviceInitializationContextUpdate event not subscribed...");
                         g_subscribed_for_deviceContextUpdate = subscribeToDeviceInitializationEvent();
                     }
@@ -466,6 +466,7 @@ namespace WPEFramework {
                         sleep(SECMGR_RETRY_INTERVAL);
                     }
                     else {
+			LOGINFO("%s is not active. Device is already Activated", secMgr_callsign);
                         return success;
                     }
                 }
