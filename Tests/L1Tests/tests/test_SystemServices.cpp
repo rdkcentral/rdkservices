@@ -6086,7 +6086,7 @@ TEST_F(SystemServicesEventIarmTest, onLogUploadFailed_whenUploadLogScriptNotRunn
 }
 /*Test cases for onLogUpload ends here*/
 
-TEST_F(::testing::Test, system_service_settings_conf_as_dir)
+TEST_F(testing::Test, system_service_settings_conf_as_dir)
 {
     EXPECT_TRUE(Core::Directory("/opt/system_service_settings.conf").CreatePath());
 
@@ -6096,5 +6096,5 @@ TEST_F(::testing::Test, system_service_settings_conf_as_dir)
     Core::JSONRPC::Handler& handler(*plugin);
     Core::JSONRPC::Connection connection(1, 0);
 
-    EXPECT_TRUE(Core::Directory("/opt/system_service_settings.conf").Destroy());
+    EXPECT_TRUE(Core::Directory("/opt/system_service_settings.conf").Destroy(true));
 }
