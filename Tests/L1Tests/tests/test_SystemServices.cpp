@@ -6100,10 +6100,12 @@ class SystemServicesEmptyTest : public ::testing::Test {
 
 TEST_F(SystemServicesEmptyTest, system_service_settings_conf_as_dir)
 {
-    EXPECT_TRUE(Core::Directory("/tmp/system_service_settings.conf").CreatePath());
+    Core::File(string("/opt/system_service_settings.conf")).Destroy();
+    
+    EXPECT_TRUE(Core::Directory("/opt/system_service_settings.conf").CreatePath());
 
     Core::ProxyType<Plugin::SystemServices> plugin;
     plugin = Core::ProxyType<Plugin::SystemServices>::Create();
 
-    EXPECT_TRUE(Core::Directory("/tmp/system_service_settings.conf").Destroy(true));
+    EXPECT_TRUE(Core::Directory("/opt/system_service_settings.conf").Destroy(true));
 }
