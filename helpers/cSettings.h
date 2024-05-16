@@ -43,6 +43,7 @@ public:
         filename = file;
         if (!readFromFile()) {
             /* File not present; create a new one assuming a fresh partition. */
+            remove(filename.c_str());
             std::fstream fs;
             fs.open(filename.c_str(), std::fstream::in | std::fstream::out | std::fstream::app);
             if (!fs.is_open()) {
