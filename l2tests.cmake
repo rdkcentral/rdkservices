@@ -45,6 +45,8 @@ set(EMPTY_HEADERS
          ${BASEDIR}/rdk/iarmmgrs-hal/sysMgr.h
          ${BASEDIR}/rdk/ds/videoOutputPortConfig.hpp
          ${BASEDIR}/rdk/ds/sleepMode.hpp
+         ${BASEDIR}/rdk/ds/frontPanelConfig.hpp
+         ${BASEDIR}/rdk/ds/frontPanelTextDisplay.hpp
          ${BASEDIR}/rfcapi.h
          ${BASEDIR}/rbus.h
          ${BASEDIR}/systemservices/proc/readproc.h
@@ -107,6 +109,7 @@ set(CMAKE_DISABLE_FIND_PACKAGE_CEC ON)
 set(CMAKE_DISABLE_FIND_PACKAGE_Dobby ON)
 set(CMAKE_DISABLE_FIND_PACKAGE_CEC ON)
 set(PLUGIN_SYSTEMSERVICES ON)
+set(PLUGIN_WAREHOUSE ON)
 set(PLUGIN_TELEMETRY ON)
 set(PLUGIN_HDCPPROFILE ON)
 set(PLUGIN_NETWORK ON)
