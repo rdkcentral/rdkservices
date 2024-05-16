@@ -16,11 +16,6 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
-## [1.3.11] - 2024-05-13
-### Added
-- Added connectivity monitor in onInterfaceIPAddressChanged
-- Removed connectivity monitor from InterfaceConnectionStatusChanged
-
 ## [1.3.10] - 2024-04-17
 ### Added
 - added retry logic for connectivity monitor
