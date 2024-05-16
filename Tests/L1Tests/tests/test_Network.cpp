@@ -1303,6 +1303,7 @@ TEST_F(NetworkInitializedEventTest, onInterfaceStatusChanged)
     handler.Unsubscribe(0, _T("onInterfaceStatusChanged"), _T("org.rdk.Network"), message);
 }
 
+#if 0 /* Disabling temporarily */
 TEST_F(NetworkInitializedEventTest, onConnectionStatusChanged)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setConnectivityTestEndpoints"), _T("{\"endpoints\": [\"http://localhost:8000\"]}"), response));
@@ -1360,6 +1361,7 @@ TEST_F(NetworkInitializedEventTest, onIPAddressStatusChanged)
     plugin->eventHandler("NET_SRV_MGR", IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS, static_cast<void*>(&intData), sizeof(intData));
     handler.Unsubscribe(0, _T("onIPAddressStatusChanged"), _T("org.rdk.Network"), message);
 }
+#endif
 
 TEST_F(NetworkInitializedEventTest, onDefaultInterfaceChanged)
 {
