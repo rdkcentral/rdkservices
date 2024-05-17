@@ -29,7 +29,6 @@
 #include <fstream>
 #include <glib.h>
 #include <semaphore.h>
-#include <MiracastServiceError.h>
 #include <MiracastLogger.h>
 
 using namespace std;
@@ -48,6 +47,18 @@ using namespace MIRACAST;
 #define THREAD_RECV_MSG_WAIT_IMMEDIATE ( 0 )
 
 #define WPA_SUP_DFLT_CTRL_PATH "/var/run/wpa_supplicant/"
+
+enum MiracastError
+{
+	MIRACAST_OK = 0,
+	MIRACAST_FAIL,
+	MIRACAST_NOT_ENABLED,
+	MIRACAST_INVALID_CONFIGURATION,
+	MIRACAST_INVALID_P2P_CTRL_IFACE,
+	MIRACAST_P2P_INIT_FAILED,
+	MIRACAST_CONTROLLER_INIT_FAILED,
+	MIRACAST_RTSP_INIT_FAILED
+};
 
 typedef enum controller_framework_states_e
 {
@@ -108,7 +119,7 @@ typedef struct group_info
     std::string goDevAddr;
     std::string ipAddr;
     std::string ipMask;
-    std::string goIPAddr;
+    std::string srcDevIPAddr;
     std::string localIPAddr;
 } GroupInfo;
 
@@ -197,6 +208,7 @@ typedef struct d_info
     string deviceMAC;
     string deviceType;
     string modelName;
+    string peer_iface;
     string authType;
     bool isCPSupported;
     enum DEVICEROLE deviceRole;
@@ -231,6 +243,7 @@ typedef struct rtsp_hldr_msgq_st
     VIDEO_RECT_STRUCT videorect;
     eCONTROLLER_FW_STATES state;
     eM_PLAYER_STOP_REASON_CODE stop_reason_code;
+    eM_PLAYER_REASON_CODE state_reason_code;
     eMIRA_GSTPLAYER_STATES  gst_player_state;
 } RTSP_HLDR_MSGQ_STRUCT;
 
@@ -344,7 +357,9 @@ private:
 class MiracastCommon
 {
     public:
-        static std::string parse_opt_flag( std::string file_name , bool integer_check = false );
+        static std::string parse_opt_flag( std::string file_name , bool integer_check = false, bool debugStats = true );
+        static int execute_SystemCommand( const char* system_command_buffer );
+        static bool execute_PopenCommand( const char* popen_command, const char* expected_char, unsigned int retry_count, std::string& popen_buffer, unsigned int interval_micro_sec );
 };
 
 #endif

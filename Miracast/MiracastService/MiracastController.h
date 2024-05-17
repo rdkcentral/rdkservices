@@ -37,7 +37,6 @@
 #include <MiracastCommon.h>
 #include "MiracastP2P.h"
 #include "MiracastLogger.h"
-#include "MiracastRtspMsg.h"
 
 using namespace std;
 using namespace MIRACAST;
@@ -106,7 +105,7 @@ public:
     void reset_NewSourceName(void);
 
     void setP2PBackendDiscovery(bool is_enabled);
-    void switch_launch_request_context(std::string& source_dev_ip,std::string& source_dev_mac,std::string& sink_dev_ip,std::string& source_dev_name);
+    void switch_launch_request_context(std::string& source_dev_ip,std::string& source_dev_mac,std::string& source_dev_name,std::string& sink_dev_ip);
 
 private:
     static MiracastController *m_miracast_ctrl_obj;
@@ -123,8 +122,12 @@ private:
     MiracastError destroy_ControllerFramework(void);
     void checkAndInitiateP2PBackendDiscovery(void);
     std::string getifNameByIPv4(std::string ip_address);
-
+    bool getConnectionStatusByARPING( const char* remote_address, const char* interface );
+    void remove_ARPEntry(std::string& ipAddress);
+    void create_DeviceCacheData(std::string deviceMAC,std::string authType,std::string modelName,std::string deviceType, bool force_overwrite);
     void set_localIp(std::string ipAddr);
+    void set_SourcePeerIface(std::string& devMac, std::string peer_iface_mac);
+    std::string get_SourcePeerIface(std::string& devMac);
 
     MiracastServiceNotifier *m_notify_handler;
     std::string m_connected_mac_addr;
@@ -144,8 +147,6 @@ private:
     /*members for interacting with wpa_supplicant*/
     MiracastP2P *m_p2p_ctrl_obj;
 
-    MiracastRTSPMsg *m_rtsp_msg;
-    //MiracastThread *m_thunder_req_handler_thread;
     MiracastThread *m_controller_thread;
     int m_tcpserverSockfd;
     eCONTROLLER_FW_STATES convertP2PtoSessionActions(P2P_EVENTS eventId);
