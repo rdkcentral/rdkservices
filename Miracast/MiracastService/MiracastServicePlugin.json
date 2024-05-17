@@ -5,9 +5,9 @@
       "callsign": "org.rdk.MiracastService",
       "locator": "libWPEFrameworkMiracastService.so",
       "status": "production",
-      "description": "The `MiracastService` plugin allows you to do screen mirroring from Client Devices via WiFi-Direct."
+      "description": "The `MiracastService` plugin will manage Peer-to-Peer events from WiFi driver then It will launch Miracast player for screen mirroring"
     },
     "interface": {
-      "$ref": "MiracastService.json#"
+      "$ref": "MiracastService/MiracastService.json#"
     }
 }

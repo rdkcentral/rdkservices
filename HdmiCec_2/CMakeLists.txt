@@ -18,6 +18,7 @@ set(PLUGIN_NAME HdmiCec_2)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 set(PLUGIN_HDMICEC2_STARTUPORDER "" CACHE STRING "To configure startup order of HdmiCec_2 plugin")
+set(PLUGIN_HDMICEC2_AUTOSTART false CACHE STRING "To automatically start HdmiCec_2 plugin.")
 set_source_files_properties(HdmiCec_2.cpp PROPERTIES COMPILE_FLAGS "-fexceptions")
 
 find_package(${NAMESPACE}Plugins REQUIRED)

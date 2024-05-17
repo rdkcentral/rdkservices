@@ -732,7 +732,7 @@ TEST_F(SystemServicesTest, SystemVersions)
     file.close();
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getSystemVersions"), _T("{}"), response));
-    EXPECT_EQ(response, string("{\"stbVersion\":\"PX051AEI_VBN_2203_sprint_20220331225312sdy_NG\",\"receiverVersion\":\"000.36.0.0\",\"stbTimestamp\":\"Fri 05 Aug 2022 16:14:54 AP UTC\",\"success\":true}"));
+    EXPECT_EQ(response, string("{\"stbVersion\":\"PX051AEI_VBN_2203_sprint_20220331225312sdy_NG\",\"receiverVersion\":\"000.36.0.0\",\"stbTimestamp\":\"Fri 05 Aug 2022 16:14:54 UTC\",\"success\":true}"));
 }
 
 TEST_F(SystemServicesTest, MocaStatus)
@@ -5541,76 +5541,22 @@ TEST_F(SystemServicesTest, getPlatformConfigurationSuccess_withDispatcherInvokeE
  *
  *                @return Whether the request succeeded.
  * Use case coverage:
- *                @Success :2
- *                @Failure :3
+ *                @Success :3
+ *                @Failure :0
 *********************************************************************************************************/
 
 /**
- * @brief : uploadLogs when  GetFilename Failed
- *         Check if an error retrieving MAC address while generating Filename then uploadLogs
- *          shall be failed and returns FilenameFail error
- *
- * @param[in]   :  None
- * @return      :  Returns the error message: "can't generate logs filename" and response string as success:false.
- */
-
-TEST_F(SystemServicesTest, uploadLogFailed_whenGetFilenameFailed)
-{
-    EXPECT_CALL(*p_wrapsImplMock, popen(::testing::_, ::testing::_))
-          .Times(::testing::AnyNumber())
-          .WillRepeatedly(::testing::Invoke(
-              [&](const char* command, const char* type) {
-                      char buffer[1024];
-                      memset(buffer, 0, sizeof(buffer));
-                  if (string(command) == string(". /lib/rdk/utils.sh && getMacAddressOnly")) {
-                   // Simulate Utils::cRunScript failure by not setting the buffer value
-                  }
-                 FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
-                 return pipe;
-              }));
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("uploadLogs"), _T("{}"), response));
-}
-
-/**
- * @brief : uploadLogs when  GetFilename Failed with invalid input URL
- *         Check if the input request contains an invalid URL; then uploadLogs
- *         shall be failed and returns BadUrl error
+ * @brief : uploadLogs with invalid input URL
+ *         This API is deprecated so calls to uploadLogs use uploadLogsAsync instead.
+ *         The url passed into uploadLogs is not used.
  *
  * @param[in]   :  URL NOT starting with "https"
- * @return      :  Returns the error message: "invalid or insecure input url" and response string as success:false.
+ * @return      :  Returns response string as success:true.
  */
-TEST_F(SystemServicesTest, uploadLogFailed_withBadUrl)
+TEST_F(SystemServicesTest, uploadLogSuccess_withBadUrl)
 {
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("uploadLogs"), _T("{\"url\": \"http://ssr.ccp.xcal.tv/cgi-bin/rdkb_snmp.cgi\"}"), response));
-}
-
-/**
- * @brief : uploadLogs when  GetFilename Failed with invalid input URL
- *         Check if there is a failure in archiving the logs; then uploadLogs
- *         shall be failed and returns TarFail error
- *
- * @param[in]   :  None
- * @return      :  Returns the error message: "tar fail" and response string as success:false.
- */
-TEST_F(SystemServicesTest, uploadLogFailed_whenArchieveLogsFailed)
-{
-    const string logArchievedPath = _T("/tmp/test_mac_Logs_" + currentDateTimeUtc("%m-%d-%y-%I-%M%p") + ".tgz");
-    EXPECT_CALL(*p_wrapsImplMock, popen(::testing::_, ::testing::_))
-          .Times(::testing::AnyNumber())
-          .WillRepeatedly(::testing::Invoke(
-              [&](const char* command, const char* type) {
-                      char buffer[1024];
-                      memset(buffer, 0, sizeof(buffer));
-                  if (string(command) == string(". /lib/rdk/utils.sh && getMacAddressOnly")) {
-                      const char mac_Addr[] = "test_mac";
-                      strcpy(buffer, mac_Addr);
-                  }
-                 FILE* pipe = fmemopen(buffer, strlen(buffer), "r");
-                 return pipe;
-              }));
-    EXPECT_FALSE(Core::File(string(_T(logArchievedPath))).Exists());
-
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("uploadLogs"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("uploadLogs"), _T("{\"url\": \"http://ssr.ccp.xcal.tv/cgi-bin/rdkb_snmp.cgi\"}"), response));
+    EXPECT_EQ(response, "{\"success\":true}");
 }
 
 /**
@@ -6140,3 +6086,26 @@ TEST_F(SystemServicesEventIarmTest, onLogUploadFailed_whenUploadLogScriptNotRunn
 }
 /*Test cases for onLogUpload ends here*/
 
+class SystemServicesEmptyTest : public ::testing::Test {
+};
+
+/**
+ * @brief Test case for SystemServices constructor when /opt/system_service_settings.conf is the directory.
+ *
+ * Verifies if constructor doesn't hang if /opt/system_service_settings.conf is not a regular file.
+ *
+ * @param None.
+ * @return None.
+ */
+
+TEST_F(SystemServicesEmptyTest, system_service_settings_conf_as_dir)
+{
+    Core::File(string("/opt/system_service_settings.conf")).Destroy();
+    
+    EXPECT_TRUE(Core::Directory("/opt/system_service_settings.conf").CreatePath());
+
+    Core::ProxyType<Plugin::SystemServices> plugin;
+    plugin = Core::ProxyType<Plugin::SystemServices>::Create();
+
+    EXPECT_TRUE(Core::Directory("/opt/system_service_settings.conf").Destroy(true));
+}

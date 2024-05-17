@@ -43,7 +43,8 @@ add_executable(${PROJECT_NAME}
         ../mocks/Wraps.cpp
         ../mocks/Dobby.cpp
         ../mocks/rdkshell.cpp
-               ../mocks/opkgMock.cpp
+	../mocks/opkgMock.cpp
+	../mocks/WpaCtrl.cpp
         )
 
 set_source_files_properties(
@@ -96,6 +97,11 @@ include_directories(../../LocationSync
         ../../Packager
         ../../TextToSpeech
         ../../SystemAudioPlayer
+        ../../Miracast/common
+        ../../Miracast/MiracastService
+        ../../Miracast/MiracastService/P2P
+	../../Miracast/MiracastPlayer
+        ../../Miracast/MiracastPlayer/RTSP
         )
 link_directories(../../LocationSync
         ../../SecurityAgent
@@ -134,6 +140,7 @@ link_directories(../../LocationSync
         ../../Packager
         ../../TextToSpeech
         ../../SystemAudioPlayer
+	../../Miracast
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -176,6 +183,8 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}Packager
         ${NAMESPACE}TextToSpeech
         ${NAMESPACE}SystemAudioPlayer
+	${NAMESPACE}MiracastService
+	${NAMESPACE}MiracastPlayer
         )
 
 target_include_directories(${PROJECT_NAME}

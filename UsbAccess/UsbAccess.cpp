@@ -567,27 +567,12 @@ namespace Plugin {
     {
         LOGINFOMETHOD();
         bool result = true;
-        char buffer[32] = "";
-        string command =  "lsblk -o NAME,MOUNTPOINT | grep \"sd[a-z]\" | grep \"/\" |wc -l";
-        FILE* fp = popen(command.c_str(), "r");
-        if (fp == NULL) 
-        {
-            result = false;
-        }   
-        
-        while (fgets(buffer, 32, fp) != NULL);
-
-        string PartitionCount = buffer;
-
-        int ret = pclose(fp);
-        if (ret == -1) 
-        {
-            result = false;
-        }
+        std::list<string> paths;
+        result =  getMounted(paths);
+        int PartitionCount = paths.size();
         response["PartitionCount"] = PartitionCount;
         returnResponse(result);
     }
-
 
 
     uint32_t UsbAccess::getPartitionInfoWrapper(const JsonObject &parameters, JsonObject &response)
@@ -602,52 +587,60 @@ namespace Plugin {
         if (parameters.HasLabel("path"))
             pathParam = parameters["path"].String();
 
-        struct statvfs fs;
-        if (statvfs(pathParam.c_str(), &fs) == -1) {
-            result = false;
-        }
-
-        string command_str1 = "df -T  ";
-        string command_str2 = " | tail -n +2 | awk '{print $2}'";
-        string command = command_str1 + pathParam + command_str2;
-        FILE* fp = popen(command.c_str(), "r");
-        if (fp == NULL) 
+        std::list<std::string> mountedPaths;
+        if (!getMounted(mountedPaths) || std::find(mountedPaths.begin(), mountedPaths.end(), pathParam) == mountedPaths.end())
         {
             result = false;
-        }   
-        
-        while (fgets(buffer, 32, fp) != NULL);
-
-        string File_system = buffer;
-
-        int ret = pclose(fp);
-        if (ret == -1) 
-        {
-            result = false;
+            ent["error"] = "Invalid path";
+            LOGINFO("Invalid path\n");
         }
-
-        if (!result)
+        else
         {
-            ent["error"] = "u disk device not found";
-            LOGINFO("u disk device not found\n");
-        }
-        else 
-        {
-            blocksize = fs.f_frsize /1024;
-            ent["path"] = pathParam;
-            ent["FileSystem"] = File_system;
-            ent["size(MB)"] = blocksize;
-            ent["TotalBlocks"] = fs.f_blocks;
-            ent["AvailableBlocks"] =  fs.f_bavail;
-            ent["TotalSpace(MB)"] = (fs.f_blocks * blocksize) / 1024;
-            ent["UsedSpace(MB)"] =  ((fs.f_blocks - fs.f_bavail) * blocksize) / 1024;
-            ent["AvailableSpace(MB)"] = (fs.f_bavail * blocksize) / 1024;
-        }
+            struct statvfs fs;
+            if (statvfs(pathParam.c_str(), &fs) == -1) {
+                result = false;
+            }
 
-        arr.Add(ent);
-        response["contents"] = arr;
+            FILE* fp = v_secure_popen("r", "df -T %s | tail -n +2 | awk '{print $2}'" , pathParam.c_str());
+            if (fp == NULL)
+            {
+                LOGERR("Cannot run command");
+                result = false;
+                return result;
+            }
+
+            while (fgets(buffer, 32, fp) != NULL);
+
+            string File_system = buffer;
+
+            int ret = v_secure_pclose(fp);
+            if (ret == -1)
+            {
+                result = false;
+            }
+
+            if (!result)
+            {
+                ent["error"] = "Not found";
+                LOGINFO("Not found\n");
+            }
+            else
+            {
+                blocksize = fs.f_frsize /1024;
+                ent["path"] = pathParam;
+                ent["FileSystem"] = File_system;
+                ent["size(MB)"] = blocksize;
+                ent["TotalBlocks"] = fs.f_blocks;
+                ent["AvailableBlocks"] =  fs.f_bavail;
+                ent["TotalSpace(MB)"] = (fs.f_blocks * blocksize) / 1024;
+                ent["UsedSpace(MB)"] =  ((fs.f_blocks - fs.f_bavail) * blocksize) / 1024;
+                ent["AvailableSpace(MB)"] = (fs.f_bavail * blocksize) / 1024;
+            }     
+
+            arr.Add(ent);
+            response["contents"] = arr;	
+        }
         returnResponse(result);    
-
     }
 
     uint32_t UsbAccess::getMountedInfoWrapper(const JsonObject &parameters, JsonObject &response)
@@ -672,7 +665,9 @@ namespace Plugin {
                 FILE* fp = popen(command.c_str(), "r");
                 if (fp == NULL) 
                 {
+                    LOGERR("Cannot run command");
                     result = false;
+                    return;
                 }   
                 
                 while (fgets(buffer, 32, fp) != NULL);
@@ -692,8 +687,8 @@ namespace Plugin {
         else
         {
             result = false;
-            ent["error"] = "u disk device not found";
-            LOGINFO("u disk device not found\n");
+            ent["error"] = "Not found";
+            LOGINFO("Not found\n");
             arr.Add(ent);
         }
         
@@ -712,7 +707,9 @@ namespace Plugin {
         FILE* fp = popen(command.c_str(), "r");
         if (fp == NULL) 
         {
+            LOGERR("Cannot run command");
             result = false;
+            return result;
         }   
         
         while (fgets(buffer, 32, fp) != NULL);
@@ -1070,7 +1067,6 @@ namespace Plugin {
         LOGINFOMETHOD();
 
         bool result = false;
-        char cmd[128] = {'\0'};
         char totalsize[20] = {'\0'};
         char usedsize[20] = {'\0'};
         char freesize[20] = {'\0'};
@@ -1082,11 +1078,10 @@ namespace Plugin {
         }
         else
         {
-            response["error"] = "don't specify the mount path";
+            response["error"] = "Mount path empty";
             returnResponse(result);
         }
-        snprintf(cmd, 127, "df -h | grep %s$ | awk \'{print $2 \" \" $3 \" \" $4}\'", pathParam.c_str());
-        FILE* fp = popen(cmd, "r");
+        FILE* fp = v_secure_popen("r", "df -h | grep %s$ | awk \'{print $2 \" \" $3 \" \" $4}\'", pathParam.c_str());
         if(fp)
         {
             if(fscanf(fp,"%s %s %s", totalsize, usedsize, freesize) == EOF)
@@ -1096,7 +1091,7 @@ namespace Plugin {
             response["totalsize"] = string(totalsize);
             response["usedsize"] = string(usedsize);
             response["freesize"] = string(freesize);
-            pclose(fp);
+            v_secure_pclose(fp);            
             result = true;
         }
         returnResponse(result);
@@ -1107,7 +1102,6 @@ namespace Plugin {
         LOGINFOMETHOD();
 
         bool result = false;
-        char cmd[128] = {'\0'};
 
         string pathParam;
         if (parameters.HasLabel("path"))
@@ -1116,14 +1110,13 @@ namespace Plugin {
         }
         else
         {
-            response["error"] = "don't specify the mount path";
+            response["error"] = "Mount path empty";
             returnResponse(result);
         }
-        snprintf(cmd, 127, "systemd-umount -u %s", pathParam.c_str());
-        FILE* fp = popen(cmd, "r");
+        FILE* fp = v_secure_popen("r", "systemd-umount -u %s", pathParam.c_str());
         if(fp)
         {
-            pclose(fp);
+            v_secure_pclose(fp);           
             result = true;
         }
         returnResponse(result);

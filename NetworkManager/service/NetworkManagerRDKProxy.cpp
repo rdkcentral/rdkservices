@@ -386,6 +386,7 @@ namespace WPEFramework
         void NetworkManagerInternalEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
             LOG_ENTRY_FUNCTION();
+            string interface;
             if (_instance)
             {
  //               ::_instance->Event();
@@ -405,37 +406,55 @@ namespace WPEFramework
                     case IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS:
                     {
                         IARM_BUS_NetSrvMgr_Iface_EventInterfaceEnabledStatus_t *e = (IARM_BUS_NetSrvMgr_Iface_EventInterfaceEnabledStatus_t*) data;
-                        NMLOG_INFO ("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS :: %s", e->interface);
-                        if (e->status)
-                            ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_ADDED, string(e->interface));
-                        else
-                            ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_REMOVED, string(e->interface));
+                        interface = e->interface;
+                        NMLOG_INFO ("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS :: %s", interface.c_str());
+                        if(interface == "eth0" || interface == "wlan0")
+                        {
+                            if (e->status)
+                                ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_ADDED, interface);
+                            else
+                                ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_REMOVED, interface);
+                        }
                         break;
                     }
                     case IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS:
                     {
                         IARM_BUS_NetSrvMgr_Iface_EventInterfaceConnectionStatus_t *e = (IARM_BUS_NetSrvMgr_Iface_EventInterfaceConnectionStatus_t*) data;
-                        NMLOG_INFO ("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS :: %s", e->interface);
-                        if (e->status)
-                            ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_LINK_UP, string(e->interface));
-                        else
-                            ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_LINK_DOWN, string(e->interface));
+                        interface = e->interface;
+                        NMLOG_INFO ("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS :: %s", interface.c_str());
+                        if(interface == "eth0" || interface == "wlan0")
+                        {
+                            if (e->status)
+                                ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_LINK_UP, interface);
+                            else
+                                ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_LINK_DOWN, interface);
+                        }
                         break;
                     }
                     case IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS:
                     {
                         IARM_BUS_NetSrvMgr_Iface_EventInterfaceIPAddress_t *e = (IARM_BUS_NetSrvMgr_Iface_EventInterfaceIPAddress_t*) data;
-                        NMLOG_INFO ("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS :: %s -- %s", e->interface, e->ip_address);
+                        interface = e->interface;
+                        NMLOG_INFO ("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS :: %s -- %s", interface.c_str(), e->ip_address);
 
-                        ::_instance->ReportIPAddressChangedEvent(string(e->interface), e->acquired, e->is_ipv6, string(e->ip_address));
+                        if(interface == "eth0" || interface == "wlan0")
+                            ::_instance->ReportIPAddressChangedEvent(interface, e->acquired, e->is_ipv6, string(e->ip_address));
                         break;
                     }
                     case IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE:
                     {
+                        string oldInterface;
+                        string newInterface;
                         IARM_BUS_NetSrvMgr_Iface_EventDefaultInterface_t *e = (IARM_BUS_NetSrvMgr_Iface_EventDefaultInterface_t*) data;
-                        NMLOG_INFO ("IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE %s :: %s..", e->oldInterface, e->newInterface);
+                        oldInterface = e->oldInterface;
+                        newInterface = e->newInterface;
+                        NMLOG_INFO ("IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE %s :: %s..", oldInterface.c_str(), newInterface.c_str());
+                        if(oldInterface != "eth0" || oldInterface != "wlan0")
+                            oldInterface == ""; /* assigning "null" if the interface is not eth0 or wlan0 */
+                        if(newInterface != "eth0" || newInterface != "wlan0")
+                            newInterface == ""; /* assigning "null" if the interface is not eth0 or wlan0 */
 
-                        ::_instance->ReportActiveInterfaceChangedEvent(e->oldInterface, e->newInterface);
+                        ::_instance->ReportActiveInterfaceChangedEvent(oldInterface, newInterface);
                         break;
                     }
                     case IARM_BUS_WIFI_MGR_EVENT_onAvailableSSIDs:
@@ -685,6 +704,35 @@ namespace WPEFramework
             return rc;
         }
 
+        /* function to convert netmask to prefix */
+        uint32_t NetmaskToPrefix (const char* netmask_str)
+        {
+            uint32_t prefix_len = 0;
+            uint32_t netmask1 = 0;
+            uint32_t netmask2 = 0;
+            uint32_t netmask3 = 0;
+            uint32_t netmask4 = 0;
+            uint32_t netmask = 0;
+            sscanf(netmask_str, "%d.%d.%d.%d", &netmask1, &netmask2, &netmask3, &netmask4);
+            netmask = netmask1 << 24;
+            netmask |= netmask2 << 16;
+            netmask |= netmask3 << 8;
+            netmask |= netmask4;
+            while (netmask)
+            {
+                if (netmask & 0x80000000)
+                {
+                    prefix_len++;
+                    netmask <<= 1;
+                } else
+                {
+                    break;
+                }
+            }
+            return prefix_len;
+        }
+
+
         /* @brief Get IP Address Of the Interface */
         uint32_t NetworkManagerImplementation::GetIPSettings(const string& interface /* @in */, const string& ipversion /* @in */, IPAddressInfo& result /* @out */)
         {
@@ -709,7 +757,10 @@ namespace WPEFramework
                 result.m_dhcpServer     = string(iarmData.dhcpserver,MAX_IP_ADDRESS_LEN - 1);
                 result.m_v6LinkLocal    = "";
                 result.m_ipAddress      = string(iarmData.ipaddress,MAX_IP_ADDRESS_LEN - 1);
-                result.m_prefix         = 0;
+                if (0 == strcasecmp("ipv4", iarmData.ipversion))
+                    result.m_prefix = NetmaskToPrefix(iarmData.netmask);
+		else if (0 == strcasecmp("ipv6", iarmData.ipversion))
+                    result.m_prefix = std::atoi(iarmData.netmask);
                 result.m_gateway        = string(iarmData.gateway,MAX_IP_ADDRESS_LEN - 1);
                 result.m_primaryDns     = string(iarmData.primarydns,MAX_IP_ADDRESS_LEN - 1);
                 result.m_secondaryDns   = string(iarmData.secondarydns,MAX_IP_ADDRESS_LEN - 1);

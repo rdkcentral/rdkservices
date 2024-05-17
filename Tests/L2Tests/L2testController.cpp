@@ -19,6 +19,11 @@
 #include <cstdio>
 #include <cstdlib>
 #include <sys/shm.h>
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <dirent.h>
 #include "Module.h"
 #include <core/core.h>
 #include <plugins/Configuration.h>
@@ -45,6 +50,7 @@
 #endif
 
 using namespace WPEFramework;
+using namespace std;
 // initializing instancePtr with NULL
 L2testController* L2testController ::instancePtr = NULL;
 
@@ -133,6 +139,84 @@ uint32_t L2testController::PerformL2Tests(JsonObject &params, JsonObject &result
     return status;
 }
 
+/**
+ * @brief Find and replace a string in a file
+ *
+ * @param[in] fileName File name
+ * @return Zero (EXIT_SUCCESS) on success or another value on error
+ */
+int find_replace_string(string fileName) {
+    string filePath = "./install/etc/WPEFramework/plugins/";
+    string fileFullName = filePath + fileName;
+//    string fileFullName = "./install/etc/WPEFramework/plugins/test.json";
+    string search = "\"autostart\":true";
+    string replace = "\"autostart\":false";
+
+    std::cout << "fileFullName: " << fileFullName << std::endl;
+    // Open the file
+    ifstream inputFile(fileFullName, ifstream::binary);
+    if (!inputFile) {
+        cout << "Error: Unable to open input file." << endl;
+        return 1;
+    }
+
+    // Read the file into a string
+    string content((istreambuf_iterator<char>(inputFile)), (istreambuf_iterator<char>()));
+    inputFile.close();
+
+    // Find and replace the string
+    size_t pos = content.find(search);
+    while (pos != string::npos) {
+        content.replace(pos, search.length(), replace);
+        pos = content.find(search, pos + replace.length());
+    }
+
+    // Open the file for writing
+    ofstream outputFile(fileFullName);
+    if (!outputFile) {
+        cout << "Error: Unable to open output file." << endl;
+        return 1;
+    }
+
+    // Write the modified content back to the file
+    outputFile << content;
+    outputFile.close();
+    cout << "String replaced successfully." << endl;
+    return 0;
+}
+
+/**
+
+    * @brief Set autostart to false for all plugins
+    * Some of the plugins are autostarted by default and when IARM calls are made in Initialize()
+    * it will cause segmentation fault since the iarm mocks are not ready.
+    * This function will set autostart to false for all plugins except L2Tests.json
+    * @return Zero (EXIT_SUCCESS) on success or another value on error
+    *
+*/
+int setAutostartToFalse()
+{
+    std::string path = "./install/etc/WPEFramework/plugins/";
+    DIR *dir;
+    struct dirent *ent;
+
+    if ((dir = opendir(path.c_str())) != nullptr) {
+        while ((ent = readdir(dir)) != nullptr) {
+            if (ent->d_type == DT_REG) {
+                std::cout << ent->d_name << std::endl;
+                if (strcmp("L2Tests.json", ent->d_name) == 0)
+                    continue;
+                find_replace_string(ent->d_name);
+            }
+        }
+        closedir(dir);
+    } else {
+        std::cerr << "Error opening directory" << std::endl;
+        return EXIT_FAILURE;
+    }
+    return EXIT_SUCCESS;
+}
+
 int main(int argc, char **argv)
 {
     JsonObject params;
@@ -144,6 +228,8 @@ int main(int argc, char **argv)
     L2testController* L2testobj
       = L2testController ::getInstance();
 
+    // Set autostart to false for all plugins except L2Tests.json
+    setAutostartToFalse();
 
     L2TEST_LOG("Starting Thunder");
     if (false == L2testobj->StartThunder())

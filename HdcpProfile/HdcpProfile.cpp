@@ -82,7 +82,15 @@ namespace WPEFramework
         {
             HdcpProfile::_instance = this;
             InitializeIARM();
-            device::Manager::Initialize();
+            try
+            {
+                device::Manager::Initialize();
+                LOGINFO("HdcpProfile device::Manager::Initialize success");
+            }
+            catch(...)
+            {
+                LOGINFO("HdcpProfile device::Manager::Initialize failed");
+            }
             return (string());
         }
 

@@ -282,7 +282,10 @@ No Events
 
 ### Parameters
 
-This method takes no parameters.
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.age | integer | <sup>*(optional)*</sup> Ignore files/folders for the isClean checkup that were created/updated within the last age (in seconds) when this API is called |
 
 ### Result
 
@@ -302,7 +305,10 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Warehouse.isClean"
+    "method": "org.rdk.Warehouse.isClean",
+    "params": {
+        "age": 300
+    }
 }
 ```
 

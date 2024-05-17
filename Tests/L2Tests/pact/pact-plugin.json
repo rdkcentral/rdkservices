@@ -1,0 +1,11 @@
+{
+    "manifestVersion": 1,
+    "pluginInterfaceVersion": 1,
+    "name": "websockets",
+    "version": "0.4.1",
+    "executableType": "exec",
+    "entryPoint": "pact-plugin-websockets",
+    "pluginConfig": {
+        "hostToBindTo": "127.0.0.1"
+    }
+}

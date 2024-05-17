@@ -1954,6 +1954,7 @@
             }
         },
         "uploadLogs": {
+            "deprecated": true,
             "summary": "Uploads logs to a URL returned by SSR.",
             "params": {
                 "type": "object",

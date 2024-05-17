@@ -66,7 +66,7 @@
 using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 2
-#define API_VERSION_NUMBER_MINOR 1
+#define API_VERSION_NUMBER_MINOR 2
 #define API_VERSION_NUMBER_PATCH 3
 
 #define MAX_REBOOT_DELAY 86400 /* 24Hr = 86400 sec */
@@ -467,7 +467,7 @@ namespace WPEFramework {
             registerMethod(_T("getWakeupReason"), &SystemServices::getWakeupReason, this);
             registerMethod(_T("getLastWakeupKeyCode"), &SystemServices::getLastWakeupKeyCode, this);
 #endif
-            registerMethod("uploadLogs", &SystemServices::uploadLogs, this);
+            registerMethod("uploadLogs", &SystemServices::uploadLogsAsync, this);
 
             registerMethod("uploadLogsAsync", &SystemServices::uploadLogsAsync, this);
             registerMethod("abortLogUpload", &SystemServices::abortLogUpload, this);
@@ -556,6 +556,7 @@ namespace WPEFramework {
 
         void SystemServices::Deinitialize(PluginHost::IShell*)
         {
+            m_operatingModeTimer.stop();
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             DeinitializeIARM();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
@@ -980,7 +981,25 @@ namespace WPEFramework {
 
             // there is no /tmp/.make from /lib/rdk/getDeviceDetails.sh, but it can be taken from /etc/device.properties
             if (queryParams.empty() || queryParams == "make") {
+#ifdef USE_SERIALIZED_MANUFACTURER_NAME
+                IARM_Bus_MFRLib_GetSerializedData_Param_t param;
+                param.bufLen = 0;
+                param.type = mfrSERIALIZED_TYPE_MANUFACTURER;
 
+                IARM_Result_t result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
+                param.buffer[param.bufLen] = '\0';
+
+                LOGWARN("SystemService getDeviceInfo param type %d result %s", param.type, param.buffer);
+
+                bool status = false;
+                if (result == IARM_RESULT_SUCCESS) {
+                    response["make"] = string(param.buffer);
+                    retAPIStatus = true;
+                } else {
+                    populateResponseWithError(SysSrv_MissingKeyValues, response);
+                }
+
+#else 
                 if (!Utils::fileExists(DEVICE_PROPERTIES_FILE)) {
                     populateResponseWithError(SysSrv_FileNotPresent, response);
                     returnResponse(retAPIStatus);
@@ -1021,7 +1040,7 @@ namespace WPEFramework {
                 } else {
                     populateResponseWithError(SysSrv_MissingKeyValues, response);
                 }
-
+#endif
                 if (!queryParams.empty()) {
                     returnResponse(retAPIStatus);
                 }
@@ -4458,27 +4477,6 @@ namespace WPEFramework {
             params["rebootReason"] = reason;
             LOGINFO("Notifying onRebootRequest\n");
             sendNotify(EVT_ONREBOOTREQUEST, params);
-        }
-
-        /***
-         * @brief : upload STB logs to the specified URL.
-         * @param1[in] : url::String
-         */
-        uint32_t SystemServices::uploadLogs(const JsonObject& parameters, JsonObject& response)
-        {
-            LOGINFOMETHOD();
-
-            bool success = false;
-
-            string url;
-            getStringParameter("url", url);
-            auto err = UploadLogs::upload(url);
-            if (err != UploadLogs::OK)
-                response["error"] = UploadLogs::errToText(err);
-            else
-                success = true;
-
-            returnResponse(success);
         }
 
         uint32_t SystemServices::getLastFirmwareFailureReason(const JsonObject& parameters, JsonObject& response)

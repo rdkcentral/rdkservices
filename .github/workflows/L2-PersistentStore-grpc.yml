@@ -27,3 +27,9 @@ jobs:
         run: |
           cmake -S ${GITHUB_REPOSITORY}/PersistentStore/grpc/l2test -B build/grpcl2test -DCMAKE_INSTALL_PREFIX="install/usr" -DCMAKE_CXX_FLAGS="-Wall -Werror"
           cmake --build build/grpcl2test --target install
+
+# (Optional)
+# Rebuild with real token (here: kToken = "Bearer TOKEN"):
+# cmake --build build/grpcl2test --target install
+# Run:
+# PATH=${PWD}/install/usr/bin:${PATH} LD_LIBRARY_PATH=${PWD}/install/usr/lib:${LD_LIBRARY_PATH} valgrind --tool=memcheck --log-file=valgrind_log --leak-check=yes --show-reachable=yes --track-fds=yes --fair-sched=try grpcl2test
