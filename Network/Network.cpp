@@ -1521,7 +1521,6 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                 }
                 connectivityMonitor.stopInitialConnectivityMonitoring();
             }
-            connectivityMonitor.signalConnectivityMonitor();
         }
 
         void Network::onDefaultInterfaceChanged(string oldInterface, string newInterface)
