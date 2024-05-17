@@ -6086,3 +6086,26 @@ TEST_F(SystemServicesEventIarmTest, onLogUploadFailed_whenUploadLogScriptNotRunn
 }
 /*Test cases for onLogUpload ends here*/
 
+class SystemServicesEmptyTest : public ::testing::Test {
+};
+
+/**
+ * @brief Test case for SystemServices constructor when /opt/system_service_settings.conf is the directory.
+ *
+ * Verifies if constructor doesn't hang if /opt/system_service_settings.conf is not a regular file.
+ *
+ * @param None.
+ * @return None.
+ */
+
+TEST_F(SystemServicesEmptyTest, system_service_settings_conf_as_dir)
+{
+    Core::File(string("/opt/system_service_settings.conf")).Destroy();
+    
+    EXPECT_TRUE(Core::Directory("/opt/system_service_settings.conf").CreatePath());
+
+    Core::ProxyType<Plugin::SystemServices> plugin;
+    plugin = Core::ProxyType<Plugin::SystemServices>::Create();
+
+    EXPECT_TRUE(Core::Directory("/opt/system_service_settings.conf").Destroy(true));
+}
