@@ -15,6 +15,10 @@ All notable changes to this RDK Service will be documented in this file.
 * Changes in CHANGELOG should be updated when commits are added to the main or release branches. There should be one CHANGELOG entry per JIRA Ticket. This is not enforced on sprint branches since there could be multiple changes for the same JIRA ticket during development. 
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
+## [1.4.18] - 2024-05-13
+### Fixed
+- Disable Auto Hibernation for Launch to Suspended
+
 ## [1.4.17] - 2024-04-10
 ### Added
 - Fix for rdkshell missing events
