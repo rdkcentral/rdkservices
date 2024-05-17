@@ -25,6 +25,9 @@
 #include <stdlib.h>
 #include <string>
 
+#include <string.h>
+#include <errno.h>
+
 #include "UtilsfileExists.h"
 
 using namespace std;
@@ -43,7 +46,8 @@ public:
         filename = file;
         if (!readFromFile()) {
             /* File not present; create a new one assuming a fresh partition. */
-            remove(filename.c_str());
+            if (0 != remove(filename.c_str()))
+        	std::cout << "Error:[ctor cSettings] Failed to delete " << filename.c_str() << ":" << strerror(errno) << std::endl;;
             std::fstream fs;
             fs.open(filename.c_str(), std::fstream::in | std::fstream::out | std::fstream::app);
             if (!fs.is_open()) {
