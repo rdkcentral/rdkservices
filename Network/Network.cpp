@@ -35,7 +35,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 3
-#define API_VERSION_NUMBER_PATCH 9
+#define API_VERSION_NUMBER_PATCH 11
 
 /* Netsrvmgr Based Macros & Structures */
 #define IARM_BUS_NM_SRV_MGR_NAME "NET_SRV_MGR"
@@ -1461,19 +1461,6 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             m_defInterfaceCache = "";
 
             sendNotify("onConnectionStatusChanged", params);
-            if(connected)
-            {
-                connectivityMonitor.doInitialConnectivityMonitoring(30);
-            }
-            else
-            {
-                if (!connectivityMonitor.isMonitorThreadRunning())
-                {
-                    /*run the thread again to notify no_internet state*/
-                    connectivityMonitor.doInitialConnectivityMonitoring(30);
-                }
-                connectivityMonitor.stopInitialConnectivityMonitoring();
-            }
         }
 
         void Network::onInternetStatusChange(nsm_internetState InternetConnectionState)
@@ -1521,7 +1508,19 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             }
             params["status"] = string (acquired ? "ACQUIRED" : "LOST");
             sendNotify("onIPAddressStatusChanged", params);
-            connectivityMonitor.signalConnectivityMonitor();
+            if(acquired)
+            {
+                connectivityMonitor.doInitialConnectivityMonitoring(30);
+            }
+            else
+            {
+                if (!connectivityMonitor.isMonitorThreadRunning())
+                {
+                    /*run the thread again to notify no_internet state*/
+                    connectivityMonitor.doInitialConnectivityMonitoring(30);
+                }
+                connectivityMonitor.stopInitialConnectivityMonitoring();
+            }
         }
 
         void Network::onDefaultInterfaceChanged(string oldInterface, string newInterface)
