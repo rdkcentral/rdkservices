@@ -254,6 +254,8 @@ if(NOT WEBKIT_GLIB_API)
     target_sources(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE InjectedBundle/Utils.cpp)
 endif()
 
+target_link_options(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE "-Wl,-z,nodelete")
+
 target_link_libraries(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION}
     PRIVATE
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
