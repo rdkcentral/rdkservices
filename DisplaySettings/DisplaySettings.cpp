@@ -85,7 +85,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 4
-#define API_VERSION_NUMBER_PATCH 2
+#define API_VERSION_NUMBER_PATCH 3
 
 static bool isCecEnabled = false;
 static bool isResCacheUpdated = false;
@@ -355,6 +355,7 @@ namespace WPEFramework {
 	    m_hdmiCecAudioDeviceDetected = false;// Audio device detected through cec ping
             m_hdmiInAudioDevicePowerState = AUDIO_DEVICE_POWER_STATE_UNKNOWN;// Power state of AVR
 	    m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED; // Maintains the ARC state
+	    m_requestSadRetrigger = false;
             m_isPwrMgr2RFCEnabled = false;
 	    m_hdmiInAudioDeviceType = dsAUDIOARCSUPPORT_NONE;// Maintains the Audio device type whether Arc/eArc ocnnected
 	    m_AudioDeviceSADState = AUDIO_DEVICE_SAD_UNKNOWN;// maintains the SAD state
@@ -866,6 +867,7 @@ namespace WPEFramework {
 
                                 {
                                    DisplaySettings::_instance->m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
+				   DisplaySettings::_instance->m_requestSadRetrigger = false;
                                 }
 
                             }// Release Mutex m_AudioDeviceStatesUpdateMutex
@@ -1076,6 +1078,7 @@ namespace WPEFramework {
 			m_hdmiInAudioDeviceConnected = false;
 			m_hdmiInAudioDevicePowerState = AUDIO_DEVICE_POWER_STATE_UNKNOWN;
 			m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
+			m_requestSadRetrigger = false;
 			m_hdmiInAudioDeviceType = dsAUDIOARCSUPPORT_NONE;
 			m_AudioDeviceSADState = AUDIO_DEVICE_SAD_UNKNOWN;
 			DisplaySettings::_instance->connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, false);
@@ -1733,6 +1736,7 @@ namespace WPEFramework {
 					    if (m_AudioDeviceSADState  != AUDIO_DEVICE_SAD_CLEARED) {
 						LOGINFO("%s: Clearing the SAD since audio mode is changed to PCM\n", __FUNCTION__);
 						m_AudioDeviceSADState  = AUDIO_DEVICE_SAD_CLEARED;
+						m_requestSadRetrigger = false;
 						//clear the SAD list
 						sad_list.clear();
 					    }
@@ -4498,7 +4502,7 @@ namespace WPEFramework {
 							if ( !(m_SADDetectionTimer.isActive()))
 							{ 			    
 								m_SADDetectionTimer.start(SAD_UPDATE_CHECK_TIME_IN_MILLISECONDS);
-							        LOGINFO("%s: Audio device SAD is not received yet, so starting timer for %d seconds", \
+							        LOGINFO("%s: Audio device SAD is not received yet, so starting timer for %d milliseconds", \
 									__FUNCTION__, SAD_UPDATE_CHECK_TIME_IN_MILLISECONDS);
 						        }
 							LOGINFO("%s: Audio Device SAD is pending, Route audio after SAD update\n", __FUNCTION__);
@@ -4591,6 +4595,9 @@ namespace WPEFramework {
 		std::lock_guard<std::mutex> lock(m_SadMutex);
 		device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI_ARC0");
 		LOGINFO("m_AudioDeviceSADState = %d, m_arcEarcAudioEnabled = %d, m_hdmiInAudioDeviceConnected = %d\n",m_AudioDeviceSADState, m_arcEarcAudioEnabled, m_hdmiInAudioDeviceConnected);
+		if (m_SADDetectionTimer.isActive()) {
+			m_SADDetectionTimer.stop();
+		}
 		if (m_arcEarcAudioEnabled == false && m_hdmiInAudioDeviceConnected == true){
 			if (m_AudioDeviceSADState == AUDIO_DEVICE_SAD_RECEIVED)
 			{
@@ -4606,16 +4613,27 @@ namespace WPEFramework {
         		   }
                            LOGINFO("SAD is updated m_AudioDeviceSADState = %d\n", m_AudioDeviceSADState);
 			}else{
-				//Still SAD is not received, route audio with out SAD update.
-                        	LOGINFO("Not recieved SAD update after 3sec timeout, proceeding with default SAD\n");
+				if( m_requestSadRetrigger == false )
+                               {
+                                       LOGINFO("Not recieved SAD update after 3sec timeout, retriggering the SAD request and starting the timer for 3 seconds\n");
+                                       m_requestSadRetrigger = true;
+                                       sendMsgToQueue(REQUEST_SHORT_AUDIO_DESCRIPTOR, NULL);
+                                       m_AudioDeviceSADState  = AUDIO_DEVICE_SAD_REQUESTED;
+                                       m_SADDetectionTimer.start(SAD_UPDATE_CHECK_TIME_IN_MILLISECONDS);
+                               }
+                               else
+                               {
+                                       LOGINFO("Not recieved SAD update even after retriggering the SAD request, proceeding with default SAD\n");
+                                       m_requestSadRetrigger = false;
+                               }
 			}
-			LOGINFO("%s: Enable ARC... \n",__FUNCTION__);
-                        aPort.enableARC(dsAUDIOARCSUPPORT_ARC, true);
-                        m_arcEarcAudioEnabled = true;
-		}
+			if (!m_requestSadRetrigger)
+			{
+				LOGINFO("%s: Enable ARC... \n",__FUNCTION__);
+				aPort.enableARC(dsAUDIOARCSUPPORT_ARC, true);
+				m_arcEarcAudioEnabled = true;
 
-		if (m_SADDetectionTimer.isActive()) {
-			m_SADDetectionTimer.stop();
+			}
 		}
 	}
 
@@ -4767,6 +4785,7 @@ namespace WPEFramework {
                     	LOGINFO("%s: Cleanup ARC/eARC state\n",__FUNCTION__);
                     	if(DisplaySettings::_instance->m_currentArcRoutingState != ARC_STATE_ARC_TERMINATED)
                             DisplaySettings::_instance->m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
+			DisplaySettings::_instance->m_requestSadRetrigger = false;
 		      {
                     	if(DisplaySettings::_instance->m_hdmiInAudioDeviceConnected !=  false) {
                             DisplaySettings::_instance->m_hdmiInAudioDeviceConnected =  false;
@@ -5071,6 +5090,7 @@ void DisplaySettings::sendMsgThread()
 
 	    if (m_AudioDeviceSADState != AUDIO_DEVICE_SAD_CLEARED) {
 		m_AudioDeviceSADState = AUDIO_DEVICE_SAD_CLEARED;
+		m_requestSadRetrigger = false;
 		LOGINFO("%s: Clearing Audio device SAD\n", __FUNCTION__);
 		//clear the SAD list
 		sad_list.clear();
@@ -5084,6 +5104,7 @@ void DisplaySettings::sendMsgThread()
                     value = parameters["status"].String();
                     std::lock_guard<std::mutex> lock(m_AudioDeviceStatesUpdateMutex);
                     m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
+		    m_requestSadRetrigger = false;
 	            LOGINFO("Current ARC routing state after update m_currentArcRoutingState=%d\n ", m_currentArcRoutingState);
                     if(!value.compare("success")) {
 		        try 
@@ -5130,6 +5151,7 @@ void DisplaySettings::sendMsgThread()
                     {
 		        std::lock_guard<std::mutex> lock(m_SadMutex);
 			m_AudioDeviceSADState = AUDIO_DEVICE_SAD_RECEIVED;
+			m_requestSadRetrigger = false;
                         device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort("HDMI_ARC0");
 			LOGINFO("Total Short Audio Descriptors received from connected ARC device: %d\n",shortAudioDescriptorList.Length());
 			if(shortAudioDescriptorList.Length() <= 0) {
@@ -5235,6 +5257,7 @@ void DisplaySettings::sendMsgThread()
                             {
 			      // Arc termination happens from HdmiCecSink plugin so just update the state here
                               m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
+			      m_requestSadRetrigger = false;
 			      LOGINFO("Updating ARC routing state to ARC terminated\n");
                             }
 
@@ -5286,6 +5309,7 @@ void DisplaySettings::sendMsgThread()
 				    m_hdmiInAudioDeviceConnected = false;	
 		    	    m_hdmiInAudioDevicePowerState = AUDIO_DEVICE_POWER_STATE_UNKNOWN;
                     m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
+		    m_requestSadRetrigger = false;
 				    connectedAudioPortUpdated(dsAUDIOPORT_TYPE_HDMI_ARC, false);
 			    }
 		        if (m_AudioDeviceSADState != AUDIO_DEVICE_SAD_CLEARED && m_AudioDeviceSADState != AUDIO_DEVICE_SAD_UNKNOWN) {
@@ -5293,6 +5317,7 @@ void DisplaySettings::sendMsgThread()
 		            //clear the SAD list
 		            sad_list.clear();
 		            m_AudioDeviceSADState = AUDIO_DEVICE_SAD_CLEARED;
+			    m_requestSadRetrigger = false;
 		        } else {
 		            LOGINFO("SAD already cleared\n");
 	            }
