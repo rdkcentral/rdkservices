@@ -400,6 +400,7 @@ namespace WPEFramework {
             registerMethod("updateFirmware", &SystemServices::updateFirmware, this);
             registerMethod("setMode", &SystemServices::setMode, this);
             registerMethod("setBootLoaderPattern", &SystemServices::setBootLoaderPattern, this);
+	    registerMethod("setBootLoaderSplashScreen", &SystemServices::setBootLoaderSplashScreen, this);
             registerMethod("getFirmwareUpdateInfo",
                     &SystemServices::getFirmwareUpdateInfo, this);
             registerMethod("setDeepSleepTimer", &SystemServices::setDeepSleepTimer,
@@ -1320,6 +1321,34 @@ namespace WPEFramework {
                    if (IARM_RESULT_SUCCESS != IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_SetBootLoaderPattern, (void *)&mfrparam, sizeof(mfrparam))){
                         status = false;
                    }
+                }
+                returnResponse(status);
+        }
+
+        /***
+         * @brief : To update bootloader splash screen.
+         * @param1[in]  : {"path":"<string>"}
+         * @param2[out] : {"result":{"success":<bool>}}
+         * @return              : Core::<StatusCode>
+         */
+        uint32_t SystemServices::setBootLoaderSplashScreen(const JsonObject& parameters,
+                JsonObject& response)
+        {
+                returnIfParamNotFound(parameters, "path");
+                bool status = false;
+                string strBLSplashScreenPath = parameters["path"].String();
+                if(strBLSplashScreenPath != "")
+                {
+                        status =true;
+                        IARM_Bus_MFRLib_SetBLSplashScreen_Param_t mfrparam;
+                        std::strcpy(mfrparam.path, strBLSplashScreenPath.c_str());
+
+                        if(status == true)
+                        {
+                                if (IARM_RESULT_SUCCESS != IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_SetBlSplashScreen, (void *)&mfrparam, sizeof(mfrparam))){
+                                        status = false;
+                                }
+                        }
                 }
                 returnResponse(status);
         }
