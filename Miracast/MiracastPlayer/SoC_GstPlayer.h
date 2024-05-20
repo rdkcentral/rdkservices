@@ -84,7 +84,7 @@ private:
     bool createPipeline();
     bool updateVideoSinkRectangle(void);
     static void onFirstVideoFrameCallback(GstElement* object, guint arg0, gpointer arg1,gpointer userdata);
-    void notifyPlaybackState(eMIRA_GSTPLAYER_STATES gst_player_state);
+    void notifyPlaybackState(eMIRA_GSTPLAYER_STATES gst_player_state, eM_PLAYER_REASON_CODE state_reason_code = MIRACAST_PLAYER_REASON_CODE_SUCCESS );
     static gboolean busMessageCb(GstBus *bus, GstMessage *msg, gpointer user_data);
     bool changePipelineState(GstState state) const;
 

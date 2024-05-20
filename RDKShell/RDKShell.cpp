@@ -17,6 +17,7 @@
 * limitations under the License.
 **/
 
+
 #include "RDKShell.h"
 #include <string>
 #include <memory>
@@ -24,6 +25,7 @@
 #include <mutex>
 #include <thread>
 #include <fstream>
+#include <set>
 #include <sstream>
 #include <condition_variable>
 #include <unistd.h>
@@ -215,6 +217,11 @@ int gHibernateBlocked;
 std::condition_variable gHibernateBlockedCondVariable;
 #endif
 
+#ifdef HIBERNATE_NATIVE_APPS_ON_SUSPENDED
+std::set<std::string> gLaunchedToSuspended;
+std::mutex gLaunchedToSuspendedMutex;
+#endif
+
 #define ANY_KEY 65536
 #define RDKSHELL_THUNDER_TIMEOUT 20000
 #define RDKSHELL_POWER_TIME_WAIT 2.5
@@ -385,22 +392,20 @@ char* getFactoryAppUrl()
 FactoryAppLaunchStatus sFactoryAppLaunchStatus = NOTLAUNCHED;
 
 namespace WPEFramework {
-
-    namespace {
-
-        static Plugin::Metadata<Plugin::RDKShell> metadata(
-            // Version (Major, Minor, Patch)
-            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
-            // Preconditions
-            {},
-            // Terminations
-            {},
-            // Controls
-            {}
-        );
-    }
-
     namespace Plugin {
+
+        namespace {
+            static Plugin::Metadata<Plugin::RDKShell> metadata(
+                // Version (Major, Minor, Patch)
+                API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+                // Preconditions
+                {},
+                // Terminations
+                {},
+                // Controls
+                {subsystem::GRAPHICS}
+            );
+        }
 
         namespace {
             // rdk Shell should use inter faces
@@ -773,7 +778,11 @@ namespace WPEFramework {
                 if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AppHibernate.Enable", param)
                     && strncasecmp(param.value, "true", 4) == 0)
                 {
-                    if ((mCallSign.find("Netflix") != std::string::npos || mCallSign.find("Cobalt") != std::string::npos))
+                    gLaunchedToSuspendedMutex.lock();
+                    bool l2s = (gLaunchedToSuspended.find(mCallSign) != gLaunchedToSuspended.end());
+                    gLaunchedToSuspendedMutex.unlock();
+
+                    if (!l2s && (mCallSign.find("Netflix") != std::string::npos || mCallSign.find("Cobalt") != std::string::npos))
                     {
                         // call RDKShell.hibernate
                         std::thread requestsThread =
@@ -1728,7 +1737,24 @@ namespace WPEFramework {
             {
                 waitForPersistentStore = false;
             }
-
+	    if(!factoryMacMatched){
+                   int32_t status = 0;
+                   std::string callsign("ResidentApp");
+                   JsonObject activateParams,response;
+                   activateParams.Set("callsign",callsign.c_str());
+                   JsonObject activateResult;
+                   auto thunderController = getThunderControllerClient();
+                   status = thunderController->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, activateResult);
+                   std::cout << "Activating ResidentApp from RDKShell during bootup with Status:" << status << std::endl;
+                   if (status > 0){
+                           response["message"] = "resident app launch failed";
+                           std::cout << "resident app launch failed from rdkshell" << std::endl;
+                   }
+                  else {
+                        response["message"] = "resident app launch success";
+                        std::cout << "resident app launch success from rdkshell" << std::endl;
+                  }
+            }
             char* blockResidentApp = getenv("RDKSHELL_BLOCK_RESIDENTAPP_FACTORYMODE");
             if (NULL != blockResidentApp)
             {
@@ -4075,6 +4101,18 @@ namespace WPEFramework {
                     gSuspendedOrHibernatedApplications.erase(suspendedOrHibernatedIt);
                 }
                 gSuspendedOrHibernatedApplicationsMutex.unlock();
+#endif
+#ifdef HIBERNATE_NATIVE_APPS_ON_SUSPENDED
+                gLaunchedToSuspendedMutex.lock();
+                if (suspend)
+                {
+                    gLaunchedToSuspended.insert(appCallsign);
+                }
+                else
+                {
+                    gLaunchedToSuspended.erase(appCallsign);
+                }
+                gLaunchedToSuspendedMutex.unlock();
 #endif
 
                 //check to see if plugin already exists

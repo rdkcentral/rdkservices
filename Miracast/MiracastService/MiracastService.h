@@ -108,6 +108,8 @@ namespace WPEFramework
             void onFriendlyNameUpdateHandler(const JsonObject &parameters);
             static gboolean monitor_friendly_name_timercallback(gpointer userdata);
             bool envGetValue(const char *key, std::string &value);
+            eMIRA_SERVICE_STATES getCurrentServiceState(void);
+            void changeServiceState(eMIRA_SERVICE_STATES eService_state);
 
             // We do not allow this plugin to be copied !!
             MiracastService(const MiracastService &) = delete;
