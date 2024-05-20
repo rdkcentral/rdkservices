@@ -213,25 +213,46 @@ namespace Plugin {
 
             void SetState(Exchange::IPackager::state state)
             {
+                FILE* logFile = fopen("/opt/logs/rdm_status.log", "a");
+                if (logFile != nullptr) {
+                    fprintf(logFile, "SetState >->->  Debug: Setting state to %d\n", state);
+                    fclose(logFile);
+                }
                 TRACE_L1("Setting state to %d", state);
                 _state = state;
             }
 
             void SetProgress(uint8_t progress)
             {
+                FILE* logFile = fopen("/opt/logs/rdm_status.log", "a");
+                if (logFile != nullptr) {
+                    fprintf(logFile, "SetProgress >->->  Debug: Setting progress to %d\n", progress);
+                    fclose(logFile);
+                }
                 TRACE_L1("Setting progress to %d", progress);
                 _progress = progress;
             }
 
             void SetAppName(const TCHAR path[])
             {
-                string _pathname = Core::File::PathName(string(path));
-                string _dirname = _pathname.substr(0,_pathname.size()-1);
-                _appname = Core::File::FileName(_dirname);
+                FILE* logFile = fopen("/opt/logs/rdm_status.log", "a");
+                if (logFile != nullptr) {
+                    fprintf(logFile, "SetAppName >->->  Debug: Logging SetAppName\n");
+                    string _pathname = Core::File::PathName(string(path));
+                    string _dirname = _pathname.substr(0,_pathname.size()-1);
+                    _appname = Core::File::FileName(_dirname);
+                    fprintf(logFile, "SetAppName >->->  Debug: AppName set to %s\n", _appname.c_str());
+                    fclose(logFile);
+                }
             }
 
             void SetError(uint32_t err)
             {
+                FILE* logFile = fopen("/opt/logs/rdm_status.log", "a");
+                if (logFile != nullptr) {
+                    fprintf(logFile, "SetError >->->  Debug: Setting Error to %d\n", err);
+                    fclose(logFile);
+                }
                 TRACE_L1("Setting error to %d", err);
                 _error = err;
             }
