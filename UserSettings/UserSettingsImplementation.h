@@ -129,15 +129,15 @@ namespace Plugin {
         virtual uint32_t Unregister(Exchange::IUserSettings::INotification *notification ) override ;
         uint32_t SetAudioDescription(const bool enabled) override;
         uint32_t GetAudioDescription(bool &enabled) const override;
-        uint32_t SetPreferredAudioLanguages(const string preferredLanguages) override;
+        uint32_t SetPreferredAudioLanguages(const string& preferredLanguages) override;
         uint32_t GetPreferredAudioLanguages(string &preferredLanguages) const override;
-        uint32_t SetPresentationLanguage(const string presentationLanguages) override;
+        uint32_t SetPresentationLanguage(const string& presentationLanguages) override;
         uint32_t GetPresentationLanguage(string &presentationLanguages) const override;
         uint32_t SetCaptions(const bool enabled) override;
         uint32_t GetCaptions(bool &enabled) const override;
-        uint32_t SetPreferredCaptionsLanguages(const string preferredLanguages) override;
+        uint32_t SetPreferredCaptionsLanguages(const string& preferredLanguages) override;
         uint32_t GetPreferredCaptionsLanguages(string &preferredLanguages) const override;
-        uint32_t SetPreferredClosedCaptionService(const string service) override;
+        uint32_t SetPreferredClosedCaptionService(const string& service) override;
         uint32_t GetPreferredClosedCaptionService(string &service) const override;
 
         void registerEventHandlers();

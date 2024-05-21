@@ -336,7 +336,7 @@ uint32_t UserSettingsImplementation::GetAudioDescription(bool &enabled) const
     return status;
 }
 
-uint32_t UserSettingsImplementation::SetPreferredAudioLanguages(const string preferredLanguages)
+uint32_t UserSettingsImplementation::SetPreferredAudioLanguages(const string& preferredLanguages)
 {
     uint32_t status = Core::ERROR_GENERAL;
 
@@ -376,7 +376,7 @@ uint32_t UserSettingsImplementation::GetPreferredAudioLanguages(string &preferre
     return status;
 }
 
-uint32_t UserSettingsImplementation::SetPresentationLanguage(const string presentationLanguages)
+uint32_t UserSettingsImplementation::SetPresentationLanguage(const string& presentationLanguages)
 {
     uint32_t status = Core::ERROR_GENERAL;
 
@@ -468,7 +468,7 @@ uint32_t UserSettingsImplementation::GetCaptions(bool &enabled) const
     return status;
 }
 
-uint32_t UserSettingsImplementation::SetPreferredCaptionsLanguages(const string preferredLanguages)
+uint32_t UserSettingsImplementation::SetPreferredCaptionsLanguages(const string& preferredLanguages)
 {
     uint32_t status = Core::ERROR_GENERAL;
 
@@ -508,7 +508,7 @@ uint32_t UserSettingsImplementation::GetPreferredCaptionsLanguages(string &prefe
     return status;
 }
 
-uint32_t UserSettingsImplementation::SetPreferredClosedCaptionService(const string service)
+uint32_t UserSettingsImplementation::SetPreferredClosedCaptionService(const string& service)
 {
     uint32_t status = Core::ERROR_GENERAL;
 
