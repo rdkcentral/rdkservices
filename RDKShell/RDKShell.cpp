@@ -145,6 +145,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_AV_BLOCKED_APPS
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_KEY_REPEAT_CONFIG = "keyRepeatConfig";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_GRAPHICS_FRAME_RATE = "getGraphicsFrameRate";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_GRAPHICS_FRAME_RATE = "setGraphicsFrameRate";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_KEY_INTERCEPTS = "setKeyIntercepts";
 #ifdef HIBERNATE_SUPPORT_ENABLED
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_HIBERNATE = "hibernate";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_RESTORE = "restore";
@@ -1602,6 +1603,7 @@ namespace WPEFramework {
             Register(RDKSHELL_METHOD_SET_GRAPHICS_FRAME_RATE, &RDKShell::setGraphicsFrameRateWrapper, this);
             Register(RDKSHELL_METHOD_SET_AV_BLOCKED, &RDKShell::setAVBlockedWrapper, this);
             Register(RDKSHELL_METHOD_GET_AV_BLOCKED_APPS, &RDKShell::getBlockedAVApplicationsWrapper, this);
+            Register(RDKSHELL_METHOD_SET_KEY_INTERCEPTS, &RDKShell::setKeyInterceptsWrapper, this);
 #ifdef HIBERNATE_SUPPORT_ENABLED
             Register(RDKSHELL_METHOD_HIBERNATE, &RDKShell::hibernateWrapper, this);
             Register(RDKSHELL_METHOD_RESTORE, &RDKShell::restoreWrapper, this);
@@ -2844,6 +2846,29 @@ namespace WPEFramework {
                 if (false == result)
                 {
                     response["message"] = "failed to add some key intercepts due to missing parameters or wrong format ";
+                }
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::setKeyInterceptsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            if (!parameters.HasLabel("intercepts"))
+            {
+                result = false;
+                response["message"] = "please specify intercepts";
+            }
+            if (result)
+            {
+                //optional param?
+                const JsonArray intercepts = parameters["intercepts"].Array();
+                result = setKeyIntercepts(intercepts);
+                if (false == result)
+                {
+                    response["message"] = "failed to add some key intercepts due to missing parameters or wrong format  ";
                 }
             }
             returnResponse(result);
@@ -7030,6 +7055,69 @@ namespace WPEFramework {
             gRdkShellMutex.lock();
             ret = CompositorController::addKeyIntercept(client, keyCode, flags);
             gRdkShellMutex.unlock();
+            return ret;
+        }
+
+        bool RDKShell::setKeyIntercepts(const JsonArray& intercepts)
+        {
+            bool ret = true;
+            for (int i=0; i<intercepts.Length(); i++)
+            {
+                if (!(intercepts[i].Content() == JsonValue::type::OBJECT))
+                {
+                    std::cout << "ignoring entry " << i+1 << "due to wrong format " << std::endl;
+                    ret = false;
+                    continue;
+                }
+                const JsonObject& interceptEntry = intercepts[i].Object();
+                if (!interceptEntry.HasLabel("keys") || !interceptEntry.HasLabel("clients"))
+                {
+                    std::cout << "ignoring entry " << i+1 << "due to missing client or keys parameter " << std::endl;
+                    ret = false;
+                    continue;
+                }
+                const JsonArray& keys = interceptEntry["keys"].Array();
+                const JsonArray& clients  = interceptEntry["clients"].Array();
+
+                for (int j=0; j<clients.Length(); j++)
+                {
+                    if (!(clients[j].Content() == JsonValue::type::OBJECT))
+                    {
+                        std::cout << "ignoring client << " << j+1 << " in entry " << i+1 << "due to wrong format " << std::endl;
+                        ret = false;
+                        continue;
+                    }
+                    const JsonObject& clientEntry = clients[j].Object();
+                    if (!clientEntry.HasLabel("client"))
+                    {
+                        std::cout << "ignoring client << " << j+1 << " in entry " << i+1 << "due to missing client parameter " << std::endl;
+                        ret = false;
+                        continue;
+                    }
+                    std::string client = clientEntry["client"].String();
+                    const bool always = clientEntry.HasLabel("always") ? clientEntry["always"].Boolean(): true;
+                    for (int k=0; k<keys.Length(); k++)
+                    {
+                        if (!(keys[k].Content() == JsonValue::type::OBJECT))
+                        {
+                            std::cout << "ignoring key << " << k+1 << " in entry " << i+1 << "due to wrong format " << std::endl;
+                            ret = false;
+                            continue;
+                        }
+                        const JsonObject& keyEntry = keys[k].Object();
+                        if (!keyEntry.HasLabel("keycode"))
+                        {
+                            std::cout << "ignoring key << " << k+1 << " in entry " << i+1 << "due to missing key code parameter " << std::endl;
+                            ret = false;
+                            continue;
+                        }
+                        const JsonArray modifiers = keyEntry.HasLabel("modifiers") ? keyEntry["modifiers"].Array() : JsonArray();
+                        const uint32_t keyCode = keyEntry["keycode"].Number();
+                        std::cout << "setKeyIntercept keyCode << " << keyCode << " client " << client << " always" << always << std::endl;
+                        ret = setKeyIntercept(keyCode, modifiers, client, always);
+                    }
+                }
+            }
             return ret;
         }
 
