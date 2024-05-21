@@ -19,6 +19,7 @@
 
 #include "NetworkManager.h"
 #include "NetworkConnectivity.h"
+#include <algorithm>
 
 #define LOGINFOMETHOD() { std::string json; parameters.ToString(json); NMLOG_TRACE("Legacy params=%s", json.c_str() ); }
 #define LOGTRACEMETHODFIN() { std::string json; response.ToString(json); NMLOG_TRACE("Legacy response=%s", json.c_str() ); }
@@ -41,6 +42,7 @@ namespace WPEFramework
          */
         void NetworkManager::RegisterLegacyMethods()
         {
+            CreateHandler({2});
             Register("getInterfaces",                     &NetworkManager::getInterfaces, this);
             Register("isInterfaceEnabled",                &NetworkManager::isInterfaceEnabled, this);
             Register("getPublicIP",                       &NetworkManager::getPublicIP, this);
@@ -70,6 +72,9 @@ namespace WPEFramework
             Register("saveSSID",                          &NetworkManager::saveSSID, this);
             Register("getSupportedSecurityModes",         &NetworkManager::GetSupportedSecurityModes, this);
             Register("getCurrentState",                   &NetworkManager::GetWifiState, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>("setIPSettings", &NetworkManager::setIPSettings, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>("getIPSettings", &NetworkManager::getIPSettings, this);
+            GetHandler(2)->Register<JsonObject, JsonObject>("initiateWPSPairing", &NetworkManager::initiateWPSPairing, this);
         }
 
         /**
@@ -316,7 +321,9 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             LOGINFOMETHOD();
 
             if (parameters.HasLabel("ipversion"))
+            {
                 tmpParameters["ipversion"] = parameters["ipversion"];
+            }
             if (parameters.HasLabel("interface"))
             {
                 if ("WIFI" == parameters["interface"].String())
@@ -329,11 +336,9 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
 
             if (Core::ERROR_NONE == rc)
             {
-                index = tmpResponse["prefix"].Number();
-                if(CIDR_NETMASK_IP_LEN <= index)
-                    return Core::ERROR_GENERAL;
-                else
-                    response["netmask"]  = CIDR_PREFIXES[index];
+                string ipversion = tmpResponse["ipversion"].String();
+                std::transform(ipversion.begin(), ipversion.end(), ipversion.begin(), ::toupper);
+                
                 if (parameters.HasLabel("interface"))
                 {
                     response["interface"] = parameters["interface"];
@@ -347,9 +352,22 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
                 }
                 response["ipversion"]    = tmpResponse["ipversion"];
                 response["autoconfig"]   = tmpResponse["autoconfig"];
-                response["dhcpserver"]   = tmpResponse["dhcpserver"];
                 response["ipaddr"]       = tmpResponse["ipaddress"];
+                if(tmpResponse["ipaddress"].String().empty())
+                    response["netmask"]  = "";
+                else if ("IPV4" == ipversion)
+                {
+                    index = tmpResponse["prefix"].Number();
+                    if(CIDR_NETMASK_IP_LEN <= index)
+                        return Core::ERROR_GENERAL;
+                    response["netmask"]  = CIDR_PREFIXES[index];
+                }
+                else if ("IPV6" == ipversion)
+                {
+                    response["netmask"]  = tmpResponse["prefix"];
+                }
                 response["gateway"]      = tmpResponse["gateway"];
+                response["dhcpserver"]   = tmpResponse["dhcpserver"];
                 response["primarydns"]   = tmpResponse["primarydns"];
                 response["secondarydns"] = tmpResponse["secondarydns"];
                 response["success"]      = tmpResponse["success"];

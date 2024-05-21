@@ -60,9 +60,8 @@ install(TARGETS ${MODULE_NAME}
 
 set(PLUGIN_IMPLEMENTATION ${MODULE_NAME}Implementation)
 add_library(${PLUGIN_IMPLEMENTATION} SHARED
-        sqlite/Store2.cpp
-        grpc/Store2.cpp
         Module.cpp
+        PersistentStoreImplementation.cpp
 )
 
 target_link_libraries(${PLUGIN_IMPLEMENTATION} PRIVATE

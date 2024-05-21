@@ -17,6 +17,7 @@
 * limitations under the License.
 **/
 
+
 #include "RDKShell.h"
 #include <string>
 #include <memory>
@@ -24,6 +25,7 @@
 #include <mutex>
 #include <thread>
 #include <fstream>
+#include <set>
 #include <sstream>
 #include <condition_variable>
 #include <unistd.h>
@@ -53,7 +55,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 4
-#define API_VERSION_NUMBER_PATCH 16
+#define API_VERSION_NUMBER_PATCH 17
 
 const string WPEFramework::Plugin::RDKShell::SERVICE_NAME = "org.rdk.RDKShell";
 //methods
@@ -61,6 +63,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_MOVE_TO_FRONT = "mo
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_MOVE_TO_BACK = "moveToBack";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_MOVE_BEHIND = "moveBehind";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_FOCUS = "setFocus";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_FOCUSED = "getFocused";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_KILL = "kill";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_KEY_INTERCEPT = "addKeyIntercept";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_ADD_KEY_INTERCEPTS = "addKeyIntercepts";
@@ -156,6 +159,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_FIRST_FRAME =
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_SUSPENDED = "onApplicationSuspended";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_RESUMED = "onApplicationResumed";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_ACTIVATED = "onApplicationActivated";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_APP_FOCUSCHANGED = "onApplicationFocusChanged";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_LAUNCHED = "onLaunched";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_SUSPENDED = "onSuspended";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_EVENT_ON_DESTROYED = "onDestroyed";
@@ -210,6 +214,11 @@ map<string, bool> gSuspendedOrHibernatedApplications;
 std::mutex gHibernateBlockedMutex;
 int gHibernateBlocked;
 std::condition_variable gHibernateBlockedCondVariable;
+#endif
+
+#ifdef HIBERNATE_NATIVE_APPS_ON_SUSPENDED
+std::set<std::string> gLaunchedToSuspended;
+std::mutex gLaunchedToSuspendedMutex;
 #endif
 
 #define ANY_KEY 65536
@@ -382,22 +391,20 @@ char* getFactoryAppUrl()
 FactoryAppLaunchStatus sFactoryAppLaunchStatus = NOTLAUNCHED;
 
 namespace WPEFramework {
-
-    namespace {
-
-        static Plugin::Metadata<Plugin::RDKShell> metadata(
-            // Version (Major, Minor, Patch)
-            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
-            // Preconditions
-            {},
-            // Terminations
-            {},
-            // Controls
-            {}
-        );
-    }
-
     namespace Plugin {
+
+        namespace {
+            static Plugin::Metadata<Plugin::RDKShell> metadata(
+                // Version (Major, Minor, Patch)
+                API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+                // Preconditions
+                {},
+                // Terminations
+                {},
+                // Controls
+                {subsystem::GRAPHICS}
+            );
+        }
 
         namespace {
             // rdk Shell should use inter faces
@@ -673,40 +680,35 @@ namespace WPEFramework {
 
             const uint32_t channelId = ~0;
 #if ((THUNDER_VERSION >= 4) && (THUNDER_VERSION_MINOR == 4))
+            string output = "";
             uint32_t result = Core::ERROR_BAD_REQUEST;
-            string output;
-            Core::ProxyType<Core::JSONRPC::Message> resp;
 
-            if (dispatcher_  != nullptr)
-            {
+            if (dispatcher_  != nullptr) {
                 PluginHost::ILocalDispatcher* localDispatcher = dispatcher_->Local();
 
                 ASSERT(localDispatcher != nullptr);
 
                 if (localDispatcher != nullptr)
                     result =  dispatcher_->Invoke(channelId, message->Id.Value(), sThunderSecurityToken, message->Designator.Value(), message->Parameters.Value(),output);
-                dispatcher_->Release();
             }
 
-            if ( (result != static_cast<uint32_t>(~0)) && ( (message->Id.IsSet()) || (result != Core::ERROR_NONE) ) )
-            {
-                resp = PluginHost::IFactories::Instance().JSONRPC();
-
-                if (message->Id.IsSet())
-                    resp->Id = message->Id.Value();
-
-                if (result == Core::ERROR_NONE)
+            if (message.IsValid() == true) {
+                if (result == static_cast<uint32_t>(~0)) {
+                    message.Release();
+                }
+                else if (result == Core::ERROR_NONE)
                 {
                     if (output.empty() == true)
-                        resp->Result.Null(true);
+                        message->Result.Null(true);
                     else
-                        resp->Result = output;
+                        message->Result = output;
                 }
                 else
                 {
-                    resp->Error.SetError(result);
-                    if (output.empty() == false)
-                        resp->Error.Text = output;
+                    message->Error.SetError(result);
+                    if (output.empty() == false) {
+                        message->Error.Text = output;
+                    }
                 }
             }
 #elif (THUNDER_VERSION == 2)
@@ -715,6 +717,9 @@ namespace WPEFramework {
             Core::JSONRPC::Context context(channelId, message->Id.Value(), sThunderSecurityToken) ;
             auto resp = dispatcher_->Invoke(context, *message);
 #endif
+
+#if ((THUNDER_VERSION == 2) || (THUNDER_VERSION >= 4) && (THUNDER_VERSION_MINOR == 2))
+
             if (resp->Error.IsSet()) {
               std::cout << "Call failed: " << message->Designator.Value() << " error: " <<  resp->Error.Text.Value() << "\n";
               return resp->Error.Code;
@@ -722,7 +727,7 @@ namespace WPEFramework {
 
             if (!FromMessage(response, resp, isResponseString))
               return Core::ERROR_GENERAL;
-
+#endif
             return Core::ERROR_NONE;
           }
         };
@@ -772,7 +777,11 @@ namespace WPEFramework {
                 if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AppHibernate.Enable", param)
                     && strncasecmp(param.value, "true", 4) == 0)
                 {
-                    if ((mCallSign.find("Netflix") != std::string::npos || mCallSign.find("Cobalt") != std::string::npos))
+                    gLaunchedToSuspendedMutex.lock();
+                    bool l2s = (gLaunchedToSuspended.find(mCallSign) != gLaunchedToSuspended.end());
+                    gLaunchedToSuspendedMutex.unlock();
+
+                    if (!l2s && (mCallSign.find("Netflix") != std::string::npos || mCallSign.find("Cobalt") != std::string::npos))
                     {
                         // call RDKShell.hibernate
                         std::thread requestsThread =
@@ -1511,6 +1520,7 @@ namespace WPEFramework {
             Register(RDKSHELL_METHOD_MOVE_TO_BACK, &RDKShell::moveToBackWrapper, this);
             Register(RDKSHELL_METHOD_MOVE_BEHIND, &RDKShell::moveBehindWrapper, this);
             Register(RDKSHELL_METHOD_SET_FOCUS, &RDKShell::setFocusWrapper, this);
+	    Register(RDKSHELL_METHOD_GET_FOCUSED, &RDKShell::getFocusedWrapper, this);
             Register(RDKSHELL_METHOD_KILL, &RDKShell::killWrapper, this);
             Register(RDKSHELL_METHOD_ADD_KEY_INTERCEPT, &RDKShell::addKeyInterceptWrapper, this);
             Register(RDKSHELL_METHOD_ADD_KEY_INTERCEPTS, &RDKShell::addKeyInterceptsWrapper, this);
@@ -1725,7 +1735,24 @@ namespace WPEFramework {
             {
                 waitForPersistentStore = false;
             }
-
+	    if(!factoryMacMatched){
+                   int32_t status = 0;
+                   std::string callsign("ResidentApp");
+                   JsonObject activateParams,response;
+                   activateParams.Set("callsign",callsign.c_str());
+                   JsonObject activateResult;
+                   auto thunderController = getThunderControllerClient();
+                   status = thunderController->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, activateResult);
+                   std::cout << "Activating ResidentApp from RDKShell during bootup with Status:" << status << std::endl;
+                   if (status > 0){
+                           response["message"] = "resident app launch failed";
+                           std::cout << "resident app launch failed from rdkshell" << std::endl;
+                   }
+                  else {
+                        response["message"] = "resident app launch success";
+                        std::cout << "resident app launch success from rdkshell" << std::endl;
+                  }
+            }
             char* blockResidentApp = getenv("RDKSHELL_BLOCK_RESIDENTAPP_FACTORYMODE");
             if (NULL != blockResidentApp)
             {
@@ -2260,8 +2287,16 @@ namespace WPEFramework {
             params["client"] = client;
             mShell.notify(RDKSHELL_EVENT_ON_APP_ACTIVATED, params);
         }
+	
+	void RDKShell::RdkShellListener::onApplicationFocusChanged(const std::string& client)
+	{
+		std::cout << "RDKShell onApplicationFocused event received for " << client << std::endl;
+		JsonObject params;
+		params["client"] = client;
+		mShell.notify(RDKSHELL_EVENT_ON_APP_FOCUSCHANGED, params);
+	}
 
-        void RDKShell::RdkShellListener::onUserInactive(const double minutes)
+	void RDKShell::RdkShellListener::onUserInactive(const double minutes)
         {
           std::cout << "RDKShell onUserInactive event received ..." << minutes << std::endl;
           JsonObject params;
@@ -2637,6 +2672,21 @@ namespace WPEFramework {
             }
             returnResponse(result);
         }
+
+	uint32_t RDKShell::getFocusedWrapper(const JsonObject& parameters, JsonObject& response)
+	{
+		LOGINFOMETHOD();
+		bool result = true;
+		string client = "";
+		result = getFocused(client);
+		if (result & !client.empty()) {
+			response["message"] = "success to get focused app";
+			response["client"] = client;
+		} else {
+			response["message"] = "success to get focused app";
+		}
+		returnResponse(result);
+	}
 
         uint32_t RDKShell::killWrapper(const JsonObject& parameters, JsonObject& response)
         {
@@ -4027,6 +4077,18 @@ namespace WPEFramework {
                 }
                 gSuspendedOrHibernatedApplicationsMutex.unlock();
 #endif
+#ifdef HIBERNATE_NATIVE_APPS_ON_SUSPENDED
+                gLaunchedToSuspendedMutex.lock();
+                if (suspend)
+                {
+                    gLaunchedToSuspended.insert(appCallsign);
+                }
+                else
+                {
+                    gLaunchedToSuspended.erase(appCallsign);
+                }
+                gLaunchedToSuspendedMutex.unlock();
+#endif
 
                 //check to see if plugin already exists
                 bool newPluginFound = false;
@@ -4272,6 +4334,36 @@ namespace WPEFramework {
                     std::cout << "rfc is disabled and unable to check for " << type << " container mode " << std::endl;
 #endif
                 }
+
+		if (!type.empty() && type == "Amazon")
+		{
+#ifdef RFC_ENABLED
+			RFC_ParamData_t param;
+			if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Dobby.Amazon.Enable", param))
+			{
+				JsonObject root;
+				if (strncasecmp(param.value, "true", 4) == 0)
+				{
+					std::cout << "dobby rfc true - launching amazon in container mode " << std::endl;
+					root = configSet["root"].Object();
+					root["mode"] = JsonValue("Container");
+				}
+				else
+				{
+					std::cout << "dobby rfc false - launching amazon in local mode " << std::endl;
+					root = configSet["root"].Object();
+					root["mode"] = JsonValue("Local");
+				}
+				configSet["root"] = root;
+			}
+			else
+			{
+				std::cout << "reading amazon dobby rfc failed " << std::endl;
+			}
+#else
+			std::cout << "rfc is disabled and unable to check for amazon container mode " << std::endl;
+#endif
+		}
 
                 string configSetAsString;
                 configSet.ToString(configSetAsString);
@@ -6860,6 +6952,15 @@ namespace WPEFramework {
             }
             return ret;
         }
+	
+	bool RDKShell::getFocused(string& client)
+	{
+		bool ret = false;
+		gRdkShellMutex.lock();
+		ret = CompositorController::getFocused(client);
+		gRdkShellMutex.unlock();
+		return ret;
+	}
 
         bool RDKShell::kill(const string& client)
         {

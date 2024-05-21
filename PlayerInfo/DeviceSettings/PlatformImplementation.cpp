@@ -121,7 +121,12 @@ public:
         UpdateAudioCodecInfo();
         UpdateVideoCodecInfo();
         Utils::IARM::init();
-        device::Manager::Initialize();
+	try {
+            device::Manager::Initialize();
+	    LOGINFO("PlayerInfo device::Manager::Initialize success");
+        } catch (...) {
+	    LOGERR("PlayerInfo device::Manager::Initialize failed");
+        }
         IARM_Result_t res;
         IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_AUDIO_MODE, AudioModeHandler) );
         PlayerInfoImplementation::_instance = this;
@@ -269,6 +274,8 @@ public:
             else if(amode == device::AudioStereoMode::kStereo) mode = STEREO;
             else if(amode == device::AudioStereoMode::kMono) mode = MONO;
             else if(amode == device::AudioStereoMode::kPassThru) mode = PASSTHRU;
+           else if(amode == device::AudioStereoMode::kDD) mode = DOLBYDIGITAL;
+           else if(amode == device::AudioStereoMode::kDDPlus) mode = DOLBYDIGITALPLUS;
             else mode = UNKNOWN;
             PlayerInfoImplementation::_instance->audiomodeChanged(mode, true);
         }

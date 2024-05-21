@@ -117,7 +117,7 @@ bool PlatformCaps::DeviceInfo::Load(PluginHost::IShell* service, const string &q
   }
 
   if (query.empty() || query == _T("mimeTypeExclusions")) {
-    mimeTypeExclusions.Reset();
+    mimeTypeExclusions.Clear();
     std::map <string, std::list<string>> hash;
     data.AddDashExclusionList(hash);
     if (!hash.empty()) {
@@ -133,7 +133,7 @@ bool PlatformCaps::DeviceInfo::Load(PluginHost::IShell* service, const string &q
   }
 
   if (query.empty() || query == _T("features")) {
-    features.Reset();
+    features.Clear();
     auto hash = data.DeviceCapsFeatures();
     if (!hash.empty()) {
       for (auto &it: hash) {

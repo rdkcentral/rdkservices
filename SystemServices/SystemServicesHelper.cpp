@@ -546,7 +546,7 @@ std::string stringTodate(char *pBuffer)
     } else {
         char tempBuff[128] = {'\0'};
 
-        strftime(tempBuff, sizeof(tempBuff), "%a %d %b %Y %H:%M:%S AP UTC", &result);
+        strftime(tempBuff, sizeof(tempBuff), "%a %d %b %Y %H:%M:%S UTC", &result);
         str = tempBuff;
     }
     return str;
