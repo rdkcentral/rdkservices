@@ -7013,6 +7013,19 @@ namespace WPEFramework {
             return ret;
         }
 
+        bool RDKShell::setKeyIntercept(const uint32_t& keyCode, const JsonArray& modifiers, const string& client, const bool always)
+        {
+            uint32_t flags = 0;
+            for (int i=0; i<modifiers.Length(); i++) {
+              flags |= getKeyFlag(modifiers[i].String());
+            }
+            bool ret = false;
+            gRdkShellMutex.lock();
+            ret = CompositorController::setKeyIntercept(client, keyCode, flags, always);
+            gRdkShellMutex.unlock();
+            return ret;
+        }
+
         bool RDKShell::removeKeyIntercept(const uint32_t& keyCode, const JsonArray& modifiers, const string& client)
         {
             uint32_t flags = 0;
