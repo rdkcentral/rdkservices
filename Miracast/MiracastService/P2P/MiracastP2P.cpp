@@ -97,10 +97,10 @@ void MiracastP2P::destroyInstance()
 /* The control and monitoring interface is defined and initialized during the init phase */
 void p2p_monitor_thread(void *ptr);
 
-int MiracastP2P::p2pWpaCtrlSendCmd(char *cmd, struct wpa_ctrl *wpa_p2p_ctrl_iface, char *ret_buf)
+int MiracastP2P::p2pWpaCtrlSendCmd(char *cmd, struct wpa_ctrl *wpa_p2p_ctrl_iface, char *ret_buf,size_t actual_buf_len)
 {
     int ret;
-    size_t buf_len = sizeof(ret_buf);
+    size_t buf_len = actual_buf_len;
     MIRACASTLOG_TRACE("Entering..");
     if (NULL == wpa_p2p_ctrl_iface)
     {
@@ -346,14 +346,14 @@ void MiracastP2P::p2pCtrlMonitorThread()
     MIRACASTLOG_TRACE("Exiting ctrl monitor thread");
 }
 
-int MiracastP2P::p2pExecute(char *cmd, enum INTERFACE iface, char *ret_buf)
+int MiracastP2P::p2pExecute(char *cmd, enum INTERFACE iface, char *ret_buf, size_t actual_buffer_len)
 {
     int ret = -1;
     MIRACASTLOG_TRACE("Entering...");
     MIRACASTLOG_VERBOSE("WIFI_HAL: Command to execute - %s", cmd);
     if ( nullptr != m_wpa_p2p_cmd_ctrl_iface )
     {
-        ret = p2pWpaCtrlSendCmd(cmd, m_wpa_p2p_cmd_ctrl_iface, ret_buf);
+        ret = p2pWpaCtrlSendCmd(cmd, m_wpa_p2p_cmd_ctrl_iface, ret_buf,actual_buffer_len);
     }
     MIRACASTLOG_TRACE("Exiting...");
     return ret;
@@ -366,7 +366,7 @@ MiracastError MiracastP2P::executeCommand(std::string command, int interface, st
     MIRACASTLOG_INFO("Executing P2P command %s", command.c_str());
     {
         char ret_buffer[2048] = {0};
-        p2pExecute((char *)command.c_str(), static_cast<P2P_INTERFACE>(interface), ret_buffer);
+        p2pExecute((char *)command.c_str(), static_cast<P2P_INTERFACE>(interface), ret_buffer,sizeof(ret_buffer));
         retBuffer = ret_buffer;
         MIRACASTLOG_INFO("command return buffer is - %s", retBuffer.c_str());
     }
@@ -437,8 +437,8 @@ MiracastError MiracastP2P::set_WFDParameters(void)
         command = "SET p2p_ssid_postfix -Element-Xumo-TV";
         executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
 
-        /* Set p2p_go_intent to 15 */
-        command = "SET p2p_go_intent 15";
+        /* Set p2p_go_intent to 14 */
+        command = "SET p2p_go_intent 14";
         executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
 
         m_isWiFiDisplayParamsEnabled = true;
@@ -506,12 +506,17 @@ MiracastError MiracastP2P::connect_device(std::string MAC,std::string authType )
     command.append(MAC);
     command.append(SPACE_CHAR);
     command.append(authType);
-#if 0
-    // configuring go_intent as 0 to make our device as p2p_client insteadof getting p2p_group_owner
-    command.append(SPACE_CHAR);
-    command.append("go_intent=0");
-#endif
     ret = (MiracastError)executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
+    if (strstr(retBuffer.c_str(), "OK"))
+    {
+        ret = MIRACAST_OK;
+        MIRACASTLOG_INFO("P2P_CONNECT command success [%s]",command.c_str());
+    }
+    else
+    {
+        ret = MIRACAST_FAIL;
+        MIRACASTLOG_ERROR("P2P_CONNECT command failed [%s]",command.c_str());
+    }
     MIRACASTLOG_TRACE("Exiting...");
     return ret;
 }
