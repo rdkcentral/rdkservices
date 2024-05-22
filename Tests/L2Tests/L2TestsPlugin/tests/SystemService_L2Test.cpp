@@ -473,14 +473,14 @@ TEST_F(SystemService_L2Test,setBootLoaderSplashScreen)
 			    EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
 			    EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_SetBlSplashScreen)));
 			    auto param = static_cast<IARM_Bus_MFRLib_SetBLSplashScreen_Param_t*>(arg);
-			    EXPECT_EQ(param->path, "/tmp/osd1");
+			    std::string path = param->path;
+			    EXPECT_EQ(path, "/tmp/osd1");
 			    return IARM_RESULT_SUCCESS;
 			    });
 
     status = InvokeServiceMethod("org.rdk.System.1", "setBootLoaderSplashScreen", params, result);
     EXPECT_EQ(Core::ERROR_NONE, status);
     EXPECT_TRUE(result["success"].Boolean());
-//    EXPECT_STREQ("{\"message\":\"Update failed\",\"code\":\"-32002\"}", result["error"].String().c_str());
 
 
     EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
@@ -490,13 +490,18 @@ TEST_F(SystemService_L2Test,setBootLoaderSplashScreen)
 			    EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
 			    EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_SetBlSplashScreen)));
 			    auto param = static_cast<IARM_Bus_MFRLib_SetBLSplashScreen_Param_t*>(arg);
-			    EXPECT_EQ(param->path, "/tmp/osd1");
+			    std::string path = param->path;
+			    EXPECT_EQ(path, "/tmp/osd1");
 			    return IARM_RESULT_OOM;
 			    });
 
     status = InvokeServiceMethod("org.rdk.System.1", "setBootLoaderSplashScreen", params, result);
     EXPECT_EQ(Core::ERROR_GENERAL, status);
     EXPECT_FALSE(result["success"].Boolean());
+    if (result.HasLabel("error")) {
+	    EXPECT_STREQ("{\"message\":\"Update failed\",\"code\":\"-32002\"}", result["error"].String().c_str());
+    }
+
 
     params["path"] = "/tmp/osd2";
     EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
@@ -506,13 +511,17 @@ TEST_F(SystemService_L2Test,setBootLoaderSplashScreen)
 			    EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
 			    EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_SetBlSplashScreen)));
 			    auto param = static_cast<IARM_Bus_MFRLib_SetBLSplashScreen_Param_t*>(arg);
-			    EXPECT_EQ(param->path, "/tmp/osd2");
+			    std::string path = param->path;
+			    EXPECT_EQ(path, "/tmp/osd2");
 			    return IARM_RESULT_OOM;
 			    });
 
     status = InvokeServiceMethod("org.rdk.System.1", "setBootLoaderSplashScreen", params, result);
     EXPECT_EQ(Core::ERROR_GENERAL, status);
     EXPECT_FALSE(result["success"].Boolean());
+    if (result.HasLabel("error")) {
+	    EXPECT_STREQ("{\"message\":\"Invalid path\",\"code\":\"-32001\"}", result["error"].String().c_str());
+    }
 
 
     params["path"] = "";
@@ -523,12 +532,16 @@ TEST_F(SystemService_L2Test,setBootLoaderSplashScreen)
 			    EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
 			    EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_SetBlSplashScreen)));
 			    auto param = static_cast<IARM_Bus_MFRLib_SetBLSplashScreen_Param_t*>(arg);
-			    EXPECT_EQ(param->path, "/tmp/osd2");
+			    std::string path = param->path;
+			    EXPECT_EQ(path, "");
 			    return IARM_RESULT_OOM;
 			    });
 
     status = InvokeServiceMethod("org.rdk.System.1", "setBootLoaderSplashScreen", params, result);
     EXPECT_EQ(Core::ERROR_GENERAL, status);
     EXPECT_FALSE(result["success"].Boolean());
-   
+    if (result.HasLabel("error")) {
+	    EXPECT_STREQ("{\"message\":\"Invalid path\",\"code\":\"-32001\"}", result["error"].String().c_str());
+    }
+  
 }
