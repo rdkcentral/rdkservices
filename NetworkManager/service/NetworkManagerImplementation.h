@@ -93,7 +93,7 @@ namespace WPEFramework
                     Stun()
                         : Core::JSON::Container()
                         , stunEndpoint(_T(""))
-                        , port(19310)
+                        , port(19302)
                         , interval(30)
                     {
                         Add(_T("endpoint"), &stunEndpoint);
