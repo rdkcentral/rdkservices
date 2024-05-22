@@ -159,7 +159,7 @@ namespace Plugin {
         }
         _adminLock.Unlock();
          fprintf(logFile, "Register >->-> Debug: Admin lock released\n");
-         close(logFile);
+         fclose(logFile);
         }
     }
 
