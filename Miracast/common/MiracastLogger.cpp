@@ -24,6 +24,7 @@
 #include <ctime>
 #include <sys/stat.h>
 #include <semaphore.h>
+#include <sys/time.h>
 
 namespace MIRACAST
 {
@@ -91,19 +92,19 @@ namespace MIRACAST
         sem_wait(&separate_logger_sync);
         if (nullptr != logger_file_ptr)
         {
-            std::string logger_filename = "/opt/logs/";
             fclose(logger_file_ptr);
             logger_file_ptr = nullptr;
+	}
 
-            if ( filename.empty())
-            {
-                filename = service_name;
-            }
+	if ( filename.empty())
+	{
+	    filename = service_name;
+	}
 
-            logger_filename.append(filename);
-            logger_filename.append(".log");
-            logger_file_ptr = fopen( logger_filename.c_str() , "a");
-        }
+	std::string logger_filename = "/opt/logs/";
+	logger_filename.append(filename);
+	logger_filename.append(".log");
+	logger_file_ptr = fopen( logger_filename.c_str() , "a");
         sem_post(&separate_logger_sync);
     }
 
@@ -121,6 +122,20 @@ namespace MIRACAST
     void set_loglevel(LogLevel level)
     {
         gDefaultLogLevel = level;
+    }
+
+    void current_time(char *time_str)
+    {
+	    struct timeval tv;
+	    gettimeofday(&tv, NULL);
+
+	    long microseconds = tv.tv_usec;
+
+	    // Convert time to human-readable format
+	    struct tm *tm_info;
+	    tm_info = localtime(&tv.tv_sec);
+
+	    sprintf(time_str, "%02d:%02d:%02d:%06ld", tm_info->tm_hour, tm_info->tm_min, tm_info->tm_sec, microseconds);
     }
 
     void log(LogLevel level,
@@ -144,6 +159,7 @@ namespace MIRACAST
         vsnprintf(formatted, kFormatMessageSize, format, argptr);
         va_end(argptr);
 
+	sem_wait(&separate_logger_sync);
         if (nullptr!=logger_file_ptr)
         {
             char timestamp[0xFF] = {0};
@@ -162,7 +178,6 @@ namespace MIRACAST
                     tm.tm_min,
                     tm.tm_sec,
                     ms);
-            sem_wait(&separate_logger_sync);
 
             if (threadID)
             {
@@ -183,9 +198,21 @@ namespace MIRACAST
             }
 
             fflush(logger_file_ptr);
-            sem_post(&separate_logger_sync);
         }
         else{
+	#ifdef UNIT_TESTING
+		char time[24] = {0};
+		current_time(time);
+		fprintf(stderr, "[%s][%d] %s [%s:%d:%s] %s: %s \n",
+                    service_name.c_str(),
+                    (int)syscall(SYS_gettid),
+                    levelMap[static_cast<int>(level)],
+                    basename(file),
+                    line,
+		    time,
+                    func,
+                    formatted);
+	#else
             fprintf(stderr, "[%s][%d] %s [%s:%d] %s: %s \n",
                     service_name.c_str(),
                     (int)syscall(SYS_gettid),
@@ -194,8 +221,10 @@ namespace MIRACAST
                     line,
                     func,
                     formatted);
+	#endif
 
              fflush(stderr);
         }
+	sem_post(&separate_logger_sync);
     }
 } // namespace MIRACAST

@@ -79,9 +79,9 @@ using namespace std;
 
 #if defined(ENABLE_WHOAMI)
 #define TR181_PARTNER_ID "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.PartnerName"
-#define TR181_TARGET_PROPOSITION "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.TargetProposition"
+#define TR181_TARGET_OS_CLASS "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.OsClass"
 #define TR181_XCONFURL "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.XconfUrl"
-#endif
+#endif /* WhoAmI */
 
 #define INTERNET_CONNECTED_STATE 3
 
@@ -238,13 +238,11 @@ namespace WPEFramework {
             "uploadSTBLogs.sh"
         };
 
-#if defined(ENABLE_WHOAMI)
         static const array<string, 3> kDeviceInitContextKeyVals = {
             "partnerId",
-            "targetProposition",
+            "osClass",
             "regionalConfigService"
         };
-#endif
 
         /**
          * Register MaintenanceManager module as wpeframework plugin
@@ -275,20 +273,20 @@ namespace WPEFramework {
 
 #if defined(ENABLE_WHOAMI)
             MaintenanceManager::m_param_map[kDeviceInitContextKeyVals[0].c_str()] = TR181_PARTNER_ID;
-            MaintenanceManager::m_param_map[kDeviceInitContextKeyVals[1].c_str()] = TR181_TARGET_PROPOSITION;
+            MaintenanceManager::m_param_map[kDeviceInitContextKeyVals[1].c_str()] = TR181_TARGET_OS_CLASS;
             MaintenanceManager::m_param_map[kDeviceInitContextKeyVals[2].c_str()] = TR181_XCONFURL;
 
             MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[0].c_str()] = DATA_TYPE::WDMP_STRING;
             MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[1].c_str()] = DATA_TYPE::WDMP_STRING;
             MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[2].c_str()] = DATA_TYPE::WDMP_STRING;
-#endif
+#endif /* WhoAmI */
          }
 
         void MaintenanceManager::task_execution_thread(){
             uint8_t i=0;
             string cmd="";
             bool internetConnectStatus=false;
-
+            std::unique_lock<std::mutex> lck(m_callMutex);
             LOGINFO("Executing Maintenance tasks");
             m_statusMutex.lock();
             MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
@@ -314,21 +312,33 @@ namespace WPEFramework {
                 /* Network check */
                 internetConnectStatus = isDeviceOnline();
             }
-#else
+#else /* WhoAmI */
             internetConnectStatus = isDeviceOnline();
 #endif
 
 #if defined(ENABLE_WHOAMI)
     string activation_status = checkActivatedStatus();
+    bool whoAmIStatus = false;
     if (UNSOLICITED_MAINTENANCE == g_maintenance_type) {
         /* WhoAmI check*/
-        bool whoAmIStatus = knowWhoAmI(activation_status);
+        whoAmIStatus = knowWhoAmI(activation_status);
         if (whoAmIStatus) {
             LOGINFO("knowWhoAmI() returned successfully");
         }
+        else {
+            LOGINFO("knowWhoAmI() returned false");
+        }
     }
-            if ( false == internetConnectStatus && activation_status == "activated" ) {
-#else
+
+    if (false == whoAmIStatus && activation_status != "activated") {
+        LOGINFO("knowWhoAmI() returned false and Device is not already Activated");
+        g_listen_to_deviceContextUpdate = true;
+        LOGINFO("Waiting for onDeviceInitializationContextUpdate event");
+        task_thread.wait(lck);
+    }
+    else if ( false == internetConnectStatus && activation_status == "activated" ) {
+        LOGINFO("Device is not connected to the Internet and Device is already Activated");
+#else /* WhoAmI */
             if ( false == internetConnectStatus ) {
 #endif
                 m_statusMutex.lock();
@@ -348,7 +358,7 @@ namespace WPEFramework {
                 LOGINFO("---------------UNSOLICITED_MAINTENANCE--------------");
 #ifndef ENABLE_WHOAMI
                 tasks.push_back(task_names_foreground[0].c_str());
-#endif
+#endif /* WhoAmI */
             }
             else if( SOLICITED_MAINTENANCE == g_maintenance_type){
                 LOGINFO("=============SOLICITED_MAINTENANCE===============");
@@ -387,8 +397,6 @@ namespace WPEFramework {
             tasks.push_back(task_names_foreground[2].c_str());
             tasks.push_back(task_names_foreground[3].c_str());
 #endif
-            std::unique_lock<std::mutex> lck(m_callMutex);
-
             for( i = 0; i < tasks.size() && !m_abort_flag; i++) {
                 cmd = tasks[i];
                 cmd += " &";
@@ -412,22 +420,18 @@ namespace WPEFramework {
         bool MaintenanceManager::knowWhoAmI(string &activation_status)
         {
             bool success = false;
-            int retryDelay = 10;
-            int retryCount = 0;
             const char* secMgr_callsign = "org.rdk.SecManager";
             const char* secMgr_callsign_ver = "org.rdk.SecManager.1";
             PluginHost::IShell::state state;
             WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
 
-            do {
-
+            do 
+            {
                 if ((getServiceState(m_service, secMgr_callsign, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED)) {
                     LOGINFO("%s is active", secMgr_callsign);
 
                     thunder_client=getThunderPluginHandle(secMgr_callsign_ver);
-                    if (thunder_client == nullptr) {
-                        LOGINFO("Failed to get plugin handle");
-                    } else {
+                    if (thunder_client != nullptr) {
                         JsonObject params;
                         JsonObject joGetResult;
 
@@ -435,66 +439,39 @@ namespace WPEFramework {
                         if (joGetResult.HasLabel("success") && joGetResult["success"].Boolean()) {
                             static const char* kDeviceInitializationContext = "deviceInitializationContext";
                             if (joGetResult.HasLabel(kDeviceInitializationContext)) {
-                                JsonObject getInitializationContext = joGetResult[kDeviceInitializationContext].Object();
-                                for (const string& key : kDeviceInitContextKeyVals) {
-                                    // Retrieve deviceInitializationContext Value
-                                    string paramValue = getInitializationContext[key.c_str()].String();
-
-                                    if (!paramValue.empty()) {
-                                        if (strcmp(key.c_str(), "regionalConfigService") == 0) {
-                                            paramValue = "https://" + paramValue;
-                                        }
-                                        LOGINFO("[%s] %s : %s", kDeviceInitializationContext, key.c_str(), paramValue.c_str());
-
-                                        // Retrieve tr181 parameter from m_param_map
-                                        string rfc_parameter = m_param_map[key];
-
-                                        //  Retrieve parameter data type from m_paramType_map
-                                        DATA_TYPE rfc_dataType = m_paramType_map[key];
-
-                                        // Set the RFC values for deviceInitializationContext parameters
-                                        setRFC(rfc_parameter.c_str(), paramValue.c_str(), rfc_dataType);
-
-                                        if (strcmp(key.c_str(), "partnerId") == 0) {
-                                             setPartnerId(paramValue);
-                                        }
-                                    } else {
-                                        LOGINFO("Not able to fetch %s value from %s", key.c_str(), kDeviceInitializationContext);
-                                    }
-                                }
-                                success = true;
-                            } else {
-                                LOGINFO("deviceInitializationContext is not available in the response");
+                                LOGINFO("%s found in the response", kDeviceInitializationContext);
+                                success = setDeviceInitializationContext(joGetResult);
                             }
-                        } else {
-                            // Get retryDelay value and sleep for that much seconds
-                            if (joGetResult.HasLabel("retryDelay")) {
-                                retryDelay = joGetResult["retryDelay"].Number();
+                            else {
+                                LOGINFO("%s is not available in the response", kDeviceInitializationContext);
                             }
+                        }
+                        else {
                             LOGINFO("getDeviceInitializationContext failed");
                         }
+                    } else {
+                        LOGINFO("Failed to get plugin handle");
                     }
-                } else {
-                    LOGINFO("%s is not active", secMgr_callsign);
+                    if (!g_subscribed_for_deviceContextUpdate) {
+                        LOGINFO("onDeviceInitializationContextUpdate event not subscribed...");
+                        g_subscribed_for_deviceContextUpdate = subscribeToDeviceInitializationEvent();
+                    }
+                    return success;
                 }
-
-		retryCount++;
-                if (retryCount == 4 && !success) {
-                    if (activation_status == "activated") {
-                        LOGINFO("Device is already activated. Exiting from knowWhoAmI()");
-                        success = true;
+                else {
+                    g_subscribed_for_deviceContextUpdate = false;
+                    if (activation_status != "activated") {
+                        LOGINFO("%s is not active. Retry after %d seconds", secMgr_callsign, SECMGR_RETRY_INTERVAL);
+                        sleep(SECMGR_RETRY_INTERVAL);
+                    }
+                    else {
+			LOGINFO("%s is not active. Device is already Activated. Hence exiting from knoWhoAmI()", secMgr_callsign);
+                        return success;
                     }
                 }
-
-		if (!success) {
-                    LOGINFO("Retrying in %d seconds", retryDelay);
-                    sleep(retryDelay);
-                }
-
-            } while (!success);
-            return success;
+            }while(true);
         }
-#endif
+#endif /* WhoAmI */
 
         // Thunder plugin communication
         WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* MaintenanceManager::getThunderPluginHandle(const char* callsign)
@@ -542,6 +519,7 @@ namespace WPEFramework {
 
         void MaintenanceManager::setPartnerId(string partnerid)
         {
+	    LOGINFO("Initiate setPartnerId...");
             const char* authservice_callsign = "org.rdk.AuthService.1";
             PluginHost::IShell::state state;
             WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
@@ -558,6 +536,9 @@ namespace WPEFramework {
                     joGetParams["partnerId"] = partnerid;
 
                     thunder_client->Invoke<JsonObject, JsonObject>(5000, "setPartnerId", joGetParams, joGetResult);
+		    string responseJson;
+		    joGetResult.ToString(responseJson);
+	            LOGINFO("AuthService Response Data: %s", responseJson.c_str());
                     if (joGetResult.HasLabel("success") && joGetResult["success"].Boolean()) {
                         LOGINFO("Successfully set the partnerId via Authservice");
                     } else {
@@ -604,6 +585,34 @@ namespace WPEFramework {
                         g_listen_to_nwevents = false;
                     }
                 }
+            }
+        }
+
+        void MaintenanceManager::deviceInitializationContextEventHandler(const JsonObject& parameters)
+        {
+            bool contextSet = false;
+            if (g_listen_to_deviceContextUpdate && UNSOLICITED_MAINTENANCE == g_maintenance_type) {
+                LOGINFO("onDeviceInitializationContextUpdate event is already subscribed and Maintenance Type is Unsolicited Maintenance");
+                if (parameters.HasLabel("deviceInitializationContext")) {
+                    LOGINFO("deviceInitializationContext found");
+
+		            contextSet = setDeviceInitializationContext(parameters);
+                    if (contextSet) {
+			            LOGINFO("setDeviceInitializationContext() success");
+		                g_listen_to_deviceContextUpdate = false;
+                        LOGINFO("Notify maintenance execution thread");
+                        task_thread.notify_one();
+		            }
+		            else {
+		                LOGINFO("setDeviceInitializationContext() failed");
+		            }
+		        }
+                else {
+		            LOGINFO("deviceInitializationContext not found");
+		        }
+            }
+            else {
+                LOGINFO("onDeviceInitializationContextUpdate event is not being listened already or Maintenance Type is not Unsolicited Maintenance");
             }
         }
 
@@ -834,6 +843,79 @@ namespace WPEFramework {
 	    return network_available;
 	}
 
+    bool MaintenanceManager::setDeviceInitializationContext(JsonObject response_data) {
+        bool setDone = false;
+        bool paramEmpty = false;
+        JsonObject getInitializationContext = response_data["deviceInitializationContext"].Object();
+        for (const string& key : kDeviceInitContextKeyVals)
+        {
+            // Retrieve deviceInitializationContext Value
+            string paramValue = getInitializationContext[key.c_str()].String();
+
+            if (!paramValue.empty())
+            {
+                if (strcmp(key.c_str(), "regionalConfigService") == 0)
+                {
+                    paramValue = "https://" + paramValue;
+                }
+                LOGINFO("[deviceInitializationContext] %s : %s", key.c_str(), paramValue.c_str());
+
+                // Retrieve tr181 parameter from m_param_map
+                string rfc_parameter = m_param_map[key];
+
+                //  Retrieve parameter data type from m_paramType_map
+                DATA_TYPE rfc_dataType = m_paramType_map[key];
+
+                // Set the RFC values for deviceInitializationContext parameters
+                setRFC(rfc_parameter.c_str(), paramValue.c_str(), rfc_dataType);
+		LOGINFO("deviceInitializationContext parameters set successfully via RFC");
+
+                if (strcmp(key.c_str(), "partnerId") == 0)
+                {
+                    setPartnerId(paramValue);
+                }
+            }
+            else
+            {
+                LOGINFO("Not able to fetch %s value from deviceInitializationContext", key.c_str());
+                paramEmpty = true;
+            }
+        }
+        setDone = !paramEmpty;
+        return setDone;
+    }
+
+    bool MaintenanceManager::subscribeToDeviceInitializationEvent() {
+        int32_t status = Core::ERROR_NONE;
+        bool result = false;
+        string event = "onDeviceInitializationContextUpdate";
+        const char* secMgr_callsign_ver = "org.rdk.SecManager.1";
+        WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
+
+        // subscribe to onDeviceInitializationContextUpdate event
+        LOGINFO("Attempting to subscribe for %s events", event.c_str());
+
+        thunder_client = getThunderPluginHandle(secMgr_callsign_ver);
+        if (thunder_client == nullptr) {
+            LOGINFO("Failed to get plugin handle");
+        }
+        else {
+            status = thunder_client->Subscribe<JsonObject>(5000, event, &MaintenanceManager::deviceInitializationContextEventHandler, this);
+            if (status == Core::ERROR_NONE) {
+                result = true;
+            }
+        }
+        g_subscribed_for_deviceContextUpdate = result;
+        if(g_subscribed_for_deviceContextUpdate) {
+            LOGINFO("MaintenanceManager subscribed for %s event", event.c_str());
+            return true;
+        }
+        else {
+            LOGINFO("Failed to subscribe for %s event", event.c_str());
+            return false;
+        }
+    }
+
         MaintenanceManager::~MaintenanceManager()
         {
             MaintenanceManager::_instance = nullptr;
@@ -846,7 +928,9 @@ namespace WPEFramework {
 
             m_service = service;
             m_service->AddRef();
-
+#if defined(ENABLE_WHOAMI)
+            subscribeToDeviceInitializationEvent();
+#endif /* WhoAmI */
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             InitializeIARM();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */

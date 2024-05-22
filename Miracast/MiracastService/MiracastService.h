@@ -23,7 +23,6 @@
 #include <vector>
 
 #include "Module.h"
-#include <securityagent/SecurityTokenUtil.h>
 #include <MiracastController.h>
 
 using std::vector;
@@ -74,7 +73,7 @@ namespace WPEFramework
 
             virtual void onMiracastServiceClientConnectionRequest(string client_mac, string client_name) override;
             virtual void onMiracastServiceClientConnectionError(string client_mac, string client_name , eMIRACAST_SERVICE_ERR_CODE error_code ) override;
-            virtual void onMiracastServiceLaunchRequest(string src_dev_ip, string src_dev_mac, string src_dev_name, string sink_dev_ip) override;
+            virtual void onMiracastServiceLaunchRequest(string src_dev_ip, string src_dev_mac, string src_dev_name, string sink_dev_ip, bool is_connect_req_reported ) override;
 
             BEGIN_INTERFACE_MAP(MiracastService)
             INTERFACE_ENTRY(PluginHost::IPlugin)
@@ -90,6 +89,10 @@ namespace WPEFramework
             bool m_isServiceEnabled;
             guint m_FriendlyNameMonitorTimerID{0};
             eMIRA_SERVICE_STATES m_eService_state;
+            std::string m_src_dev_ip;
+            std::string m_src_dev_mac;
+            std::string m_src_dev_name;
+            std::string m_sink_dev_ip;
             WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> *m_SystemPluginObj = NULL;
             uint32_t setEnable(const JsonObject &parameters, JsonObject &response);
             uint32_t getEnable(const JsonObject &parameters, JsonObject &response);
@@ -105,6 +108,8 @@ namespace WPEFramework
             void onFriendlyNameUpdateHandler(const JsonObject &parameters);
             static gboolean monitor_friendly_name_timercallback(gpointer userdata);
             bool envGetValue(const char *key, std::string &value);
+            eMIRA_SERVICE_STATES getCurrentServiceState(void);
+            void changeServiceState(eMIRA_SERVICE_STATES eService_state);
 
             // We do not allow this plugin to be copied !!
             MiracastService(const MiracastService &) = delete;
