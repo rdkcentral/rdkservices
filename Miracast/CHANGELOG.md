@@ -13,6 +13,13 @@ All notable changes to this RDK Service will be documented in this file.
     Changes in CHANGELOG should be updated when commits are added to the main or release branches. There should be one CHANGELOG entry per JIRA Ticket. This is not enforced on sprint branches since there could be multiple changes for the same JIRA ticket during development.
 
     For more details, refer to versioning section under Main README.
+## [1.0.8] - 2024-05-15
+### Fixed
+- Added the changes to remove the old ip entry from ARP table
+- Added the handling to parse the device source from ssid field in P2P GROUP STARTED event and using it for connect and launch request
+- GstPlayer statistics thread will wait in 100ms sleep and poll the statistics based on /opt/miracast_player_stats flag which is in seconds
+- Notifying the GstPlayback as GSTINT error stopped state and P2P_CONNECT failure and added the delay while socket connect as addon fix to resolve ENT-32203 error
+
 ## [1.0.7] - 2024-05-10
 ### Fixed
 - Added the unit test for MiracastService and MiracastPlayer plugins.
