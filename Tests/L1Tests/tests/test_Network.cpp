@@ -1308,36 +1308,22 @@ TEST_F(NetworkInitializedEventTest, onConnectionStatusChanged)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setConnectivityTestEndpoints"), _T("{\"endpoints\": [\"http://localhost:8000\"]}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
     
-    Core::Event onInternetStatusChange(false, true);
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
-        .Times(2)
+        .Times(1)
         .WillOnce(::testing::Invoke(
             [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
                 string text;
                 EXPECT_TRUE(json->ToString(text));
                 EXPECT_EQ(text, string(_T("{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.Network.onConnectionStatusChanged\",\"params\":{\"interface\":\"ETHERNET\",\"status\":\"CONNECTED\"}}")));
                 return Core::ERROR_NONE;
-            }))
-        .WillOnce(::testing::Invoke(
-            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
-                string text;
-                EXPECT_TRUE(json->ToString(text));
-                EXPECT_EQ(text, string(_T("{\"jsonrpc\":\"2.0\",\"method\":\"org.rdk.Network.onInternetStatusChange\",\"params\":{\"state\":0,\"status\":\"NO_INTERNET\"}}")));
-                onInternetStatusChange.SetEvent();
-            return Core::ERROR_NONE;
-        }));
+            }));
 
     IARM_BUS_NetSrvMgr_Iface_EventInterfaceConnectionStatus_t intData;
     intData.status = 1;
     strcpy(intData.interface,"eth0");
     handler.Subscribe(0, _T("onConnectionStatusChanged"), _T("org.rdk.Network"), message);
-    handler.Subscribe(0, _T("onInternetStatusChange"), _T("org.rdk.Network"), message);
     plugin->eventHandler("NET_SRV_MGR", IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS, static_cast<void*>(&intData), sizeof(intData));
     handler.Unsubscribe(0, _T("onConnectionStatusChanged"), _T("org.rdk.Network"), message);
-    EXPECT_EQ(Core::ERROR_NONE, onInternetStatusChange.Lock());
-    handler.Unsubscribe(0, _T("onInternetStatusChange"), _T("org.rdk.Network"), message);
-    EXPECT_NE(Core::ERROR_GENERAL, handler.Invoke(connection, _T("stopConnectivityMonitoring"), _T("{}"), response));
-    EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
 TEST_F(NetworkInitializedEventTest, onIPAddressStatusChanged)
@@ -1359,6 +1345,8 @@ TEST_F(NetworkInitializedEventTest, onIPAddressStatusChanged)
     handler.Subscribe(0, _T("onIPAddressStatusChanged"), _T("org.rdk.Network"), message);
     plugin->eventHandler("NET_SRV_MGR", IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS, static_cast<void*>(&intData), sizeof(intData));
     handler.Unsubscribe(0, _T("onIPAddressStatusChanged"), _T("org.rdk.Network"), message);
+    EXPECT_NE(Core::ERROR_GENERAL, handler.Invoke(connection, _T("stopConnectivityMonitoring"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
 TEST_F(NetworkInitializedEventTest, onDefaultInterfaceChanged)

@@ -20,6 +20,8 @@ All notable changes to this RDK Service will be documented in this file.
 ### Added
 - Added connectivity monitor in onInterfaceIPAddressChanged
 - Removed connectivity monitor from InterfaceConnectionStatusChanged
+### Fixed
+- Fixed the L1 test case failure
 
 ## [1.3.10] - 2024-04-17
 ### Added

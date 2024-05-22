@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.10] - 2024-05-20
+### Fixed
+- Supply security token with curl json-rpc
+
 ## [1.0.9] - 2024-04-01
 ### Added
 - Get token from auth service, supply ids in the cloud calls

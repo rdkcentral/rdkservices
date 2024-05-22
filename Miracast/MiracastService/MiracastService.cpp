@@ -19,6 +19,13 @@
 
 #include <algorithm>
 #include <regex>
+#if defined(SECURITY_TOKEN_ENABLED) && ((SECURITY_TOKEN_ENABLED == 0) || (SECURITY_TOKEN_ENABLED == false))
+#define GetSecurityToken(a, b) 0
+#define GetToken(a, b, c) 0
+#else
+#include <WPEFramework/securityagent/securityagent.h>
+#include <WPEFramework/securityagent/SecurityTokenUtil.h>
+#endif
 #include "MiracastService.h"
 #include "UtilsJsonRpc.h"
 #include "UtilsIarm.h"
@@ -47,7 +54,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 6
+#define API_VERSION_NUMBER_PATCH 7
 
 #define SERVER_DETAILS "127.0.0.1:9998"
 #define SYSTEM_CALLSIGN "org.rdk.System"
@@ -289,7 +296,7 @@ namespace WPEFramework
 						success = true;
 						m_isServiceEnabled = is_enabled;
 						response["message"] = "Successfully enabled the WFD Discovery";
-						m_eService_state = MIRACAST_SERVICE_STATE_DISCOVERABLE;
+						changeServiceState(MIRACAST_SERVICE_STATE_DISCOVERABLE);
 					}
 					else
 					{
@@ -298,7 +305,7 @@ namespace WPEFramework
 				}
 				else
 				{
-					if ( MIRACAST_SERVICE_STATE_PLAYER_LAUNCHED == m_eService_state )
+					if ( MIRACAST_SERVICE_STATE_PLAYER_LAUNCHED == getCurrentServiceState() )
 					{
 						response["message"] = "Failed as MiracastPlayer already Launched";
 					}
@@ -308,7 +315,7 @@ namespace WPEFramework
 						success = true;
 						m_isServiceEnabled = is_enabled;
 						response["message"] = "Successfully disabled the WFD Discovery";
-						m_eService_state = MIRACAST_SERVICE_STATE_IDLE;
+						changeServiceState(MIRACAST_SERVICE_STATE_IDLE);
 					}
 					else
 					{
@@ -352,6 +359,7 @@ namespace WPEFramework
 			{
 				getBoolParameter("enabled", is_enabled);
 				m_miracast_ctrler_obj->setP2PBackendDiscovery(is_enabled);
+				success = true;
 			}
 			else
 			{
@@ -407,7 +415,7 @@ namespace WPEFramework
 				if (("Accept" == requestedStatus) || ("Reject" == requestedStatus))
 				{
 					success = true;
-					if ( MIRACAST_SERVICE_STATE_DIRECT_LAUCH_REQUESTED == m_eService_state )
+					if ( MIRACAST_SERVICE_STATE_DIRECT_LAUCH_REQUESTED == getCurrentServiceState() )
 					{
 						if ("Accept" == requestedStatus)
 						{
@@ -418,7 +426,7 @@ namespace WPEFramework
 						{
 							m_miracast_ctrler_obj->restart_session_discovery(m_src_dev_mac);
 							m_miracast_ctrler_obj->m_ePlayer_state = MIRACAST_PLAYER_STATE_IDLE;
-							m_eService_state = MIRACAST_SERVICE_STATE_DISCOVERABLE;
+							changeServiceState(MIRACAST_SERVICE_STATE_DISCOVERABLE);
 							MIRACASTLOG_INFO("#### Refreshing the Session ####");
 						}
 						m_src_dev_ip.clear();
@@ -429,7 +437,7 @@ namespace WPEFramework
 					else
 					{
 						m_miracast_ctrler_obj->accept_client_connection(requestedStatus);
-						m_eService_state = MIRACAST_SERVICE_STATE_CONNECTION_ACCEPTED;
+						changeServiceState(MIRACAST_SERVICE_STATE_CONNECTION_ACCEPTED);
 					}
 				}
 				else
@@ -455,7 +463,7 @@ namespace WPEFramework
 			returnIfStringParamNotFound(parameters, "name");
 			returnIfStringParamNotFound(parameters, "mac");
 
-			if ( MIRACAST_SERVICE_STATE_APP_REQ_TO_ABORT_CONNECTION == m_eService_state )
+			if ( MIRACAST_SERVICE_STATE_APP_REQ_TO_ABORT_CONNECTION == getCurrentServiceState() )
 			{
 				MIRACASTLOG_WARNING("stopClientConnection Already Received..!!!");
 				response["message"] = "stopClientConnection Already Received";
@@ -478,9 +486,9 @@ namespace WPEFramework
 						cached_mac_address = mac;
 					}
 
-					if ( MIRACAST_SERVICE_STATE_PLAYER_LAUNCHED != m_eService_state )
+					if ( MIRACAST_SERVICE_STATE_PLAYER_LAUNCHED != getCurrentServiceState() )
 					{
-						m_eService_state = MIRACAST_SERVICE_STATE_APP_REQ_TO_ABORT_CONNECTION;
+						changeServiceState(MIRACAST_SERVICE_STATE_APP_REQ_TO_ABORT_CONNECTION);
 						m_miracast_ctrler_obj->restart_session_discovery(cached_mac_address);
 						success = true;
 					}
@@ -559,7 +567,7 @@ namespace WPEFramework
 						}
 					}
 					m_miracast_ctrler_obj->m_ePlayer_state = MIRACAST_PLAYER_STATE_STOPPED;
-					m_eService_state = MIRACAST_SERVICE_STATE_DISCOVERABLE;
+					changeServiceState(MIRACAST_SERVICE_STATE_DISCOVERABLE);
 				}
 				else if (player_state == "INITIATED" || player_state == "initiated")
 				{
@@ -603,7 +611,7 @@ namespace WPEFramework
 				if (separate_logger.HasLabel("status"))
 				{
 					std::string status = "";
-					status = separate_logger["separate_logger"].String();
+					status = separate_logger["status"].String();
 
 					success = true;
 
@@ -663,7 +671,6 @@ namespace WPEFramework
 					set_loglevel(level);
 				}
 			}
-
 			MIRACASTLOG_INFO("Exiting..!!!");
 			returnResponse(success);
 		}
@@ -861,12 +868,12 @@ namespace WPEFramework
 			bool is_another_connect_request = false;
 			MIRACASTLOG_INFO("Entering..!!!");
 
-			if ( MIRACAST_SERVICE_STATE_PLAYER_LAUNCHED == m_eService_state )
+			if ( MIRACAST_SERVICE_STATE_PLAYER_LAUNCHED == getCurrentServiceState() )
 			{
 				is_another_connect_request = true;
 				MIRACASTLOG_WARNING("Another Connect Request received while casting");
 			}
-			if ((MIRACAST_SERVICE_STATE_DIRECT_LAUCH_REQUESTED != m_eService_state) &&
+			if ((MIRACAST_SERVICE_STATE_DIRECT_LAUCH_REQUESTED != getCurrentServiceState()) &&
 				((0 == access("/opt/miracast_autoconnect", F_OK))||
 				 (0 == access("/opt/miracast_direct_request", F_OK))))
 			{
@@ -875,10 +882,9 @@ namespace WPEFramework
 				if ( is_another_connect_request )
 				{
 					MIRACASTLOG_INFO("!!! NEED TO STOP ONGOING SESSION !!!");
-
 					strncpy(commandBuffer,"curl -H \"Authorization: Bearer `WPEFrameworkSecurityUtility | cut -d '\"' -f 4`\" --header \"Content-Type: application/json\" --request POST --data '{\"jsonrpc\":\"2.0\", \"id\":3,\"method\":\"org.rdk.MiracastPlayer.1.stopRequest\", \"params\":{\"reason\": \"NEW_CONNECTION\"}}' http://127.0.0.1:9998/jsonrpc",sizeof(commandBuffer));
 					MIRACASTLOG_INFO("Stopping old Session by [%s]",commandBuffer);
-					system(commandBuffer);
+					MiracastCommon::execute_SystemCommand(commandBuffer);
 					sleep(1);
 				}
 				memset(commandBuffer,0x00,sizeof(commandBuffer));
@@ -887,8 +893,8 @@ namespace WPEFramework
 						"curl -H \"Authorization: Bearer `WPEFrameworkSecurityUtility | cut -d '\"' -f 4`\" --header \"Content-Type: application/json\" --request POST --data '{\"jsonrpc\":\"2.0\", \"id\":3,\"method\":\"org.rdk.MiracastService.1.acceptClientConnection\", \"params\":{\"requestStatus\": \"%s\"}}' http://127.0.0.1:9998/jsonrpc",
 						requestStatus.c_str());
 				MIRACASTLOG_INFO("AutoConnecting [%s - %s] by [%s]",client_name.c_str(),client_mac.c_str(),commandBuffer);
-				system(commandBuffer);
-            }
+				MiracastCommon::execute_SystemCommand(commandBuffer);
+			}
 			else
 			{
 				JsonObject params;
@@ -902,7 +908,7 @@ namespace WPEFramework
 		{
 			MIRACASTLOG_INFO("Entering..!!!");
 
-			if ( MIRACAST_SERVICE_STATE_APP_REQ_TO_ABORT_CONNECTION != m_eService_state )
+			if ( MIRACAST_SERVICE_STATE_APP_REQ_TO_ABORT_CONNECTION != getCurrentServiceState() )
 			{
 				JsonObject params;
 				params["mac"] = client_mac;
@@ -910,7 +916,7 @@ namespace WPEFramework
 				params["error_code"] = std::to_string(error_code);
 				params["reason"] = reasonDescription(error_code);
 				sendNotify(EVT_ON_CLIENT_CONNECTION_ERROR, params);
-				m_eService_state = MIRACAST_SERVICE_STATE_DISCOVERABLE;
+				changeServiceState(MIRACAST_SERVICE_STATE_DISCOVERABLE);
 			}
 			else
 			{
@@ -1017,7 +1023,7 @@ namespace WPEFramework
 
 			if ( !is_connect_req_reported )
 			{
-				m_eService_state = MIRACAST_SERVICE_STATE_DIRECT_LAUCH_REQUESTED;
+				changeServiceState(MIRACAST_SERVICE_STATE_DIRECT_LAUCH_REQUESTED);
 				m_src_dev_ip = src_dev_ip;
 				m_src_dev_mac = src_dev_mac;
 				m_src_dev_name = src_dev_name;
@@ -1025,7 +1031,7 @@ namespace WPEFramework
 				MIRACASTLOG_INFO("Direct Launch request has received. So need to notify connect Request");
 				onMiracastServiceClientConnectionRequest( src_dev_mac, src_dev_name );
 			}
-			else if ( MIRACAST_SERVICE_STATE_APP_REQ_TO_ABORT_CONNECTION == m_eService_state )
+			else if ( MIRACAST_SERVICE_STATE_APP_REQ_TO_ABORT_CONNECTION == getCurrentServiceState() )
 			{
 				MIRACASTLOG_INFO("APP_REQ_TO_ABORT_CONNECTION has requested. So no need to notify Launch Request..!!!");
 				//m_miracast_ctrler_obj->restart_session_discovery();
@@ -1051,14 +1057,26 @@ namespace WPEFramework
 							src_dev_name.c_str(),
 							sink_dev_ip.c_str());
 					MIRACASTLOG_INFO("System Command [%s]",commandBuffer);
-					system(commandBuffer);
+					MiracastCommon::execute_SystemCommand(commandBuffer);
 				}
 				else
 				{
 					sendNotify(EVT_ON_LAUNCH_REQUEST, params);
 				}
-				m_eService_state = MIRACAST_SERVICE_STATE_PLAYER_LAUNCHED;
+				changeServiceState(MIRACAST_SERVICE_STATE_PLAYER_LAUNCHED);
 			}
+		}
+		eMIRA_SERVICE_STATES MiracastService::getCurrentServiceState(void)
+		{
+			MIRACASTLOG_INFO("current state [%#08X]",m_eService_state);
+			return m_eService_state;
+		}
+		void MiracastService::changeServiceState(eMIRA_SERVICE_STATES eService_state)
+		{
+			eMIRA_SERVICE_STATES old_state = m_eService_state,
+								 new_state = eService_state;
+			m_eService_state = eService_state;
+			MIRACASTLOG_INFO("changing state [%#08X] -> [%#08X]",old_state,new_state);
 		}
 	} // namespace Plugin
 } // namespace WPEFramework
