@@ -22,6 +22,8 @@ All notable changes to this RDK Service will be documented in this file.
 - Removed connectivity monitor from InterfaceConnectionStatusChanged
 ### Fixed
 - Fixed the L1 test case failure
+### Changed
+- Changed the connectivity monitor retry count from 2 to 4
 
 ## [1.3.10] - 2024-04-17
 ### Added
