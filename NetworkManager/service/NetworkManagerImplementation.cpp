@@ -18,7 +18,7 @@
 **/
 
 #include "NetworkManagerImplementation.h"
-#include "NetworkConnectivity.h"
+#include "NetworkManagerConnectivity.h"
 #include "WifiSignalStrengthMonitor.h"
 
 using namespace WPEFramework;

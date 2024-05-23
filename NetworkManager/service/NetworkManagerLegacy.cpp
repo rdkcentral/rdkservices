@@ -18,7 +18,7 @@
 **/
 
 #include "NetworkManager.h"
-#include "NetworkConnectivity.h"
+#include "NetworkManagerConnectivity.h"
 #include <algorithm>
 
 #define LOGINFOMETHOD() { std::string json; parameters.ToString(json); NMLOG_TRACE("Legacy params=%s", json.c_str() ); }
@@ -197,6 +197,7 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             LOGTRACEMETHODFIN();
             return rc;
         }
+
         uint32_t NetworkManager::initiateWPSPairing (const JsonObject& parameters, JsonObject& response)
         {
             uint32_t rc = Core::ERROR_GENERAL;

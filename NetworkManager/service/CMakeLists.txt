@@ -18,6 +18,8 @@
 set(PLUGIN_NAME NetworkManager)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 set(PLUGIN_IMPLEMENTATION ${MODULE_NAME}Implementation)
+set(PLUGIN_LEGACY_NETWORK ${NAMESPACE}Network)
+set(PLUGIN_LEGACY_WIFI    ${NAMESPACE}WiFiManager)
 
 find_package(${NAMESPACE}Core REQUIRED)
 find_package(${NAMESPACE}Plugins REQUIRED)
@@ -42,14 +44,6 @@ add_library(${MODULE_NAME} SHARED
         Module.cpp
 )
 
-if(ENABLE_LEGACY_NSM_SUPPORT)
-target_sources(${MODULE_NAME} PRIVATE NetworkManagerLegacy.cpp)
-endif ()
-
-if(ENABLE_LEGACY_NSM_SUPPORT)
-add_definitions(-DENABLE_LEGACY_NSM_SUPPORT)
-endif ()
-
 target_link_libraries(${MODULE_NAME}  PRIVATE
                                         ${NAMESPACE}Core::${NAMESPACE}Core
                                         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
@@ -69,7 +63,7 @@ install(TARGETS ${MODULE_NAME} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/${STORAGE
 # Build the implementation that runs out-of-process behind a COM-RPC interface
 add_library(${PLUGIN_IMPLEMENTATION} SHARED
         NetworkManagerImplementation.cpp
-        NetworkConnectivity.cpp
+        NetworkManagerConnectivity.cpp
         NetworkManagerLogger.cpp
         StunClient.cpp
         WifiSignalStrengthMonitor.cpp
@@ -101,10 +95,41 @@ target_include_directories(${PLUGIN_IMPLEMENTATION} PRIVATE ${CURL_INCLUDE_DIRS}
 
 install(TARGETS ${PLUGIN_IMPLEMENTATION} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/${STORAGE_DIRECTORY}/plugins)
 
-write_config()
+add_library(${PLUGIN_LEGACY_NETWORK} SHARED
+        LegacyNetwork.cpp
+        NetworkManagerLogger.cpp
+        Module.cpp
+)
 
-if(ENABLE_LEGACY_NSM_SUPPORT)
-add_definitions(-DENABLE_LEGACY_NSM_SUPPORT)
-write_config(Network)
-write_config(WiFiManager)
-endif ()
+target_link_libraries(${PLUGIN_LEGACY_NETWORK}  PRIVATE
+                                        ${NAMESPACE}Core::${NAMESPACE}Core
+                                        ${NAMESPACE}Plugins::${NAMESPACE}Plugins
+                                        ${NAMESPACE}Definitions::${NAMESPACE}Definitions)
+
+set_target_properties(${PLUGIN_LEGACY_NETWORK} PROPERTIES
+                                        CXX_STANDARD 11
+                                        CXX_STANDARD_REQUIRED YES)
+
+install(TARGETS ${PLUGIN_LEGACY_NETWORK} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/${STORAGE_DIRECTORY}/plugins)
+
+add_library(${PLUGIN_LEGACY_WIFI} SHARED
+        LegacyWiFi.cpp
+        NetworkManagerLogger.cpp
+        Module.cpp
+)
+
+target_link_libraries(${PLUGIN_LEGACY_WIFI}  PRIVATE
+                                        ${NAMESPACE}Core::${NAMESPACE}Core
+                                        ${NAMESPACE}Plugins::${NAMESPACE}Plugins
+                                        ${NAMESPACE}Definitions::${NAMESPACE}Definitions)
+
+set_target_properties(${PLUGIN_LEGACY_WIFI} PROPERTIES
+                                        CXX_STANDARD 11
+                                        CXX_STANDARD_REQUIRED YES)
+
+install(TARGETS ${PLUGIN_LEGACY_WIFI} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/${STORAGE_DIRECTORY}/plugins)
+
+write_config()
+write_config(PLUGINS Network CLASSNAME Network LOCATOR lib${PLUGIN_LEGACY_NETWORK}.so)
+write_config(PLUGINS WiFiManager CLASSNAME WiFiManager LOCATOR lib${PLUGIN_LEGACY_WIFI}.so)
+

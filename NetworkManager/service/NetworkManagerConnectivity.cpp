@@ -13,7 +13,7 @@
 #include <mutex>
 #include <curl/curl.h>
 #include "Module.h"
-#include "NetworkConnectivity.h"
+#include "NetworkManagerConnectivity.h"
 #include "NetworkManagerImplementation.h"
 
 namespace WPEFramework {
