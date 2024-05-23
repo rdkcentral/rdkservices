@@ -17,6 +17,7 @@
 * limitations under the License.
 **/
 
+
 #include "RDKShell.h"
 #include <string>
 #include <memory>
@@ -24,6 +25,7 @@
 #include <mutex>
 #include <thread>
 #include <fstream>
+#include <set>
 #include <sstream>
 #include <condition_variable>
 #include <unistd.h>
@@ -143,6 +145,7 @@ const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_AV_BLOCKED_APPS
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_KEY_REPEAT_CONFIG = "keyRepeatConfig";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_GET_GRAPHICS_FRAME_RATE = "getGraphicsFrameRate";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_GRAPHICS_FRAME_RATE = "setGraphicsFrameRate";
+const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_SET_KEY_INTERCEPTS = "setKeyIntercepts";
 #ifdef HIBERNATE_SUPPORT_ENABLED
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_HIBERNATE = "hibernate";
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_RESTORE = "restore";
@@ -212,6 +215,11 @@ map<string, bool> gSuspendedOrHibernatedApplications;
 std::mutex gHibernateBlockedMutex;
 int gHibernateBlocked;
 std::condition_variable gHibernateBlockedCondVariable;
+#endif
+
+#ifdef HIBERNATE_NATIVE_APPS_ON_SUSPENDED
+std::set<std::string> gLaunchedToSuspended;
+std::mutex gLaunchedToSuspendedMutex;
 #endif
 
 #define ANY_KEY 65536
@@ -384,22 +392,20 @@ char* getFactoryAppUrl()
 FactoryAppLaunchStatus sFactoryAppLaunchStatus = NOTLAUNCHED;
 
 namespace WPEFramework {
-
-    namespace {
-
-        static Plugin::Metadata<Plugin::RDKShell> metadata(
-            // Version (Major, Minor, Patch)
-            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
-            // Preconditions
-            {},
-            // Terminations
-            {},
-            // Controls
-            {}
-        );
-    }
-
     namespace Plugin {
+
+        namespace {
+            static Plugin::Metadata<Plugin::RDKShell> metadata(
+                // Version (Major, Minor, Patch)
+                API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+                // Preconditions
+                {},
+                // Terminations
+                {},
+                // Controls
+                {subsystem::GRAPHICS}
+            );
+        }
 
         namespace {
             // rdk Shell should use inter faces
@@ -772,7 +778,11 @@ namespace WPEFramework {
                 if (Utils::getRFCConfig("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AppHibernate.Enable", param)
                     && strncasecmp(param.value, "true", 4) == 0)
                 {
-                    if ((mCallSign.find("Netflix") != std::string::npos || mCallSign.find("Cobalt") != std::string::npos))
+                    gLaunchedToSuspendedMutex.lock();
+                    bool l2s = (gLaunchedToSuspended.find(mCallSign) != gLaunchedToSuspended.end());
+                    gLaunchedToSuspendedMutex.unlock();
+
+                    if (!l2s && (mCallSign.find("Netflix") != std::string::npos || mCallSign.find("Cobalt") != std::string::npos))
                     {
                         // call RDKShell.hibernate
                         std::thread requestsThread =
@@ -1593,6 +1603,7 @@ namespace WPEFramework {
             Register(RDKSHELL_METHOD_SET_GRAPHICS_FRAME_RATE, &RDKShell::setGraphicsFrameRateWrapper, this);
             Register(RDKSHELL_METHOD_SET_AV_BLOCKED, &RDKShell::setAVBlockedWrapper, this);
             Register(RDKSHELL_METHOD_GET_AV_BLOCKED_APPS, &RDKShell::getBlockedAVApplicationsWrapper, this);
+            Register(RDKSHELL_METHOD_SET_KEY_INTERCEPTS, &RDKShell::setKeyInterceptsWrapper, this);
 #ifdef HIBERNATE_SUPPORT_ENABLED
             Register(RDKSHELL_METHOD_HIBERNATE, &RDKShell::hibernateWrapper, this);
             Register(RDKSHELL_METHOD_RESTORE, &RDKShell::restoreWrapper, this);
@@ -1726,7 +1737,24 @@ namespace WPEFramework {
             {
                 waitForPersistentStore = false;
             }
-
+	    if(!factoryMacMatched){
+                   int32_t status = 0;
+                   std::string callsign("ResidentApp");
+                   JsonObject activateParams,response;
+                   activateParams.Set("callsign",callsign.c_str());
+                   JsonObject activateResult;
+                   auto thunderController = getThunderControllerClient();
+                   status = thunderController->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, activateResult);
+                   std::cout << "Activating ResidentApp from RDKShell during bootup with Status:" << status << std::endl;
+                   if (status > 0){
+                           response["message"] = "resident app launch failed";
+                           std::cout << "resident app launch failed from rdkshell" << std::endl;
+                   }
+                  else {
+                        response["message"] = "resident app launch success";
+                        std::cout << "resident app launch success from rdkshell" << std::endl;
+                  }
+            }
             char* blockResidentApp = getenv("RDKSHELL_BLOCK_RESIDENTAPP_FACTORYMODE");
             if (NULL != blockResidentApp)
             {
@@ -2818,6 +2846,29 @@ namespace WPEFramework {
                 if (false == result)
                 {
                     response["message"] = "failed to add some key intercepts due to missing parameters or wrong format ";
+                }
+            }
+            returnResponse(result);
+        }
+
+        uint32_t RDKShell::setKeyInterceptsWrapper(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool result = true;
+
+            if (!parameters.HasLabel("intercepts"))
+            {
+                result = false;
+                response["message"] = "please specify intercepts";
+            }
+            if (result)
+            {
+                //optional param?
+                const JsonArray intercepts = parameters["intercepts"].Array();
+                result = setKeyIntercepts(intercepts);
+                if (false == result)
+                {
+                    response["message"] = "failed to add some key intercepts due to missing parameters or wrong format  ";
                 }
             }
             returnResponse(result);
@@ -4050,6 +4101,18 @@ namespace WPEFramework {
                     gSuspendedOrHibernatedApplications.erase(suspendedOrHibernatedIt);
                 }
                 gSuspendedOrHibernatedApplicationsMutex.unlock();
+#endif
+#ifdef HIBERNATE_NATIVE_APPS_ON_SUSPENDED
+                gLaunchedToSuspendedMutex.lock();
+                if (suspend)
+                {
+                    gLaunchedToSuspended.insert(appCallsign);
+                }
+                else
+                {
+                    gLaunchedToSuspended.erase(appCallsign);
+                }
+                gLaunchedToSuspendedMutex.unlock();
 #endif
 
                 //check to see if plugin already exists
@@ -6991,6 +7054,82 @@ namespace WPEFramework {
             bool ret = false;
             gRdkShellMutex.lock();
             ret = CompositorController::addKeyIntercept(client, keyCode, flags);
+            gRdkShellMutex.unlock();
+            return ret;
+        }
+
+        bool RDKShell::setKeyIntercepts(const JsonArray& intercepts)
+        {
+            bool ret = true;
+            for (int i=0; i<intercepts.Length(); i++)
+            {
+                if (!(intercepts[i].Content() == JsonValue::type::OBJECT))
+                {
+                    std::cout << "ignoring entry " << i+1 << "due to wrong format " << std::endl;
+                    ret = false;
+                    continue;
+                }
+                const JsonObject& interceptEntry = intercepts[i].Object();
+                if (!interceptEntry.HasLabel("keys") || !interceptEntry.HasLabel("clients"))
+                {
+                    std::cout << "ignoring entry " << i+1 << "due to missing client or keys parameter " << std::endl;
+                    ret = false;
+                    continue;
+                }
+                const JsonArray& keys = interceptEntry["keys"].Array();
+                const JsonArray& clients  = interceptEntry["clients"].Array();
+
+                for (int j=0; j<clients.Length(); j++)
+                {
+                    if (!(clients[j].Content() == JsonValue::type::OBJECT))
+                    {
+                        std::cout << "ignoring client << " << j+1 << " in entry " << i+1 << "due to wrong format " << std::endl;
+                        ret = false;
+                        continue;
+                    }
+                    const JsonObject& clientEntry = clients[j].Object();
+                    if (!clientEntry.HasLabel("client"))
+                    {
+                        std::cout << "ignoring client << " << j+1 << " in entry " << i+1 << "due to missing client parameter " << std::endl;
+                        ret = false;
+                        continue;
+                    }
+                    std::string client = clientEntry["client"].String();
+                    const bool always = clientEntry.HasLabel("always") ? clientEntry["always"].Boolean(): true;
+                    for (int k=0; k<keys.Length(); k++)
+                    {
+                        if (!(keys[k].Content() == JsonValue::type::OBJECT))
+                        {
+                            std::cout << "ignoring key << " << k+1 << " in entry " << i+1 << "due to wrong format " << std::endl;
+                            ret = false;
+                            continue;
+                        }
+                        const JsonObject& keyEntry = keys[k].Object();
+                        if (!keyEntry.HasLabel("keycode"))
+                        {
+                            std::cout << "ignoring key << " << k+1 << " in entry " << i+1 << "due to missing key code parameter " << std::endl;
+                            ret = false;
+                            continue;
+                        }
+                        const JsonArray modifiers = keyEntry.HasLabel("modifiers") ? keyEntry["modifiers"].Array() : JsonArray();
+                        const uint32_t keyCode = keyEntry["keycode"].Number();
+                        std::cout << "setKeyIntercept keyCode << " << keyCode << " client " << client << " always" << always << std::endl;
+                        ret = setKeyIntercept(keyCode, modifiers, client, always);
+                    }
+                }
+            }
+            return ret;
+        }
+
+        bool RDKShell::setKeyIntercept(const uint32_t& keyCode, const JsonArray& modifiers, const string& client, const bool always)
+        {
+            uint32_t flags = 0;
+            for (int i=0; i<modifiers.Length(); i++) {
+              flags |= getKeyFlag(modifiers[i].String());
+            }
+            bool ret = false;
+            gRdkShellMutex.lock();
+            ret = CompositorController::setKeyIntercept(client, keyCode, flags, always);
             gRdkShellMutex.unlock();
             return ret;
         }

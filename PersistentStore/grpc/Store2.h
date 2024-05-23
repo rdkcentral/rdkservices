@@ -241,6 +241,8 @@ namespace Plugin {
                     OnError(__FUNCTION__, status);
                     if (status.error_code() == grpc::StatusCode::INVALID_ARGUMENT) {
                         result = Core::ERROR_INVALID_INPUT_LENGTH;
+                    } else if (status.error_code() == grpc::StatusCode::NOT_FOUND) {
+                        result = Core::ERROR_UNKNOWN_KEY;
                     } else {
                         result = Core::ERROR_GENERAL;
                     }
