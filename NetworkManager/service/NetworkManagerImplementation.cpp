@@ -111,10 +111,11 @@ namespace WPEFramework
             if(config.FromString(configLine))
             {
                 /* stun configuration copy */
-                if(!config.stun.stunEndpoint.Value().empty())
+                if(!config.stun.stunEndpoint.Value().empty() && config.stun.port.Value())
+                {
                     m_stunEndPoint = config.stun.stunEndpoint.Value();
-                if(config.stun.port.Value())
                     m_stunPort = config.stun.port.Value();
+                }
                 if(config.stun.interval.Value())
                     m_stunBindTimeout = config.stun.interval.Value();
 
