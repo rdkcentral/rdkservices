@@ -2854,6 +2854,8 @@ static GSourceFuncs _handlerIntervention =
                     "indexeddb-directory", indexedDBPath,
                     "origin-storage-ratio", originStorageRatio,
                     "total-storage-ratio", totalStorageRatio,
+                    "base-data-directory", _service->PersistentPath(),
+                    "base-cache-directory", _service->VolatilePath(),
                      nullptr);
                 g_free(indexedDBPath);
 #else
