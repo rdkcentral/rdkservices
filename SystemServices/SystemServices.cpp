@@ -1333,8 +1333,7 @@ namespace WPEFramework {
          */
         uint32_t SystemServices::setBootLoaderSplashScreen(const JsonObject& parameters,
                 JsonObject& response)
-        {
-                returnIfParamNotFound(parameters, "path");
+        {                
                 bool status = false;
                 string strBLSplashScreenPath = parameters["path"].String();
 		bool fileExists = Utils::fileExists(strBLSplashScreenPath.c_str());
