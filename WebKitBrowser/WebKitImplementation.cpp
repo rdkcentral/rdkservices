@@ -1284,7 +1284,14 @@ static GSourceFuncs _handlerIntervention =
                     WebKitImplementation* object = std::get<0>(data);
                     auto& script = std::get<1>(data);
 #ifdef WEBKIT_GLIB_API
+
+#if WEBKIT_CHECK_VERSION(2, 42, 0)
+                    // length: size of script, or -1 if script is a nul-terminated string
+                    webkit_web_view_evaluate_javascript(object->_view, script.c_str(), -1, nullptr, nullptr, nullptr, nullptr, nullptr);
+#else
                     webkit_web_view_run_javascript(object->_view, script.c_str(), nullptr, nullptr, nullptr);
+#endif
+
 #else
                     auto scriptRef = WKStringCreateWithUTF8CString(script.c_str());
                     WKPageRunJavaScriptInMainFrame(object->_page, scriptRef, nullptr, [](WKSerializedScriptValueRef, WKErrorRef, void*){});
