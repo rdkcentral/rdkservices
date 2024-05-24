@@ -50,6 +50,11 @@
             "type": "string",
             "example": "My Device"
         },
+        "path": {
+            "summary": "Path to the pre-downloaded splash screen file location. Full path with file name",
+            "type": "string",
+            "example": "/tmp/osd1"
+        },
         "modeInfo": {
             "summary": "The mode information",
             "type": "object",
@@ -1853,6 +1858,23 @@
                 },
                 "required": [
                     "friendlyName"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+        "setBootLoaderSplashScreen":{
+            "summary": "Whenever there is a splash screen update, app (EPG) connects with QMS, downloads the updated splash screen, stores it in a predefined location (/tmp), and uses setBootLoaderSplashScreen to install / update the BL splash screens",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "path": {
+                        "$ref": "#/definitions/path"
+                    }
+                },
+                "required": [
+                    "path"
                 ]
             },
             "result": {
