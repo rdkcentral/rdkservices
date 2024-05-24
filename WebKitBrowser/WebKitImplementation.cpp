@@ -931,8 +931,8 @@ static GSourceFuncs _handlerIntervention =
             , _unresponsiveReplyNum(0)
             , _frameCount(0)
             , _lastDumpTime(g_get_monotonic_time())
-            , _userScript()
-            , _userStyleSheet()
+            , _userScripts()
+            , _userStyleSheets()
         {
             // Register an @Exit, in case we are killed, with an incorrect ref count !!
             if (atexit(CloseDown) != 0) {
@@ -1330,31 +1330,39 @@ static GSourceFuncs _handlerIntervention =
             return Core::ERROR_NONE;
         }
 
-        uint32_t Headers(string& header) const override
+        uint32_t Headers(IStringIterator*& header) const override
         {
             return Core::ERROR_NONE;
         }
 
-        uint32_t Headers(const string& header) override
+        uint32_t Headers(IStringIterator* const header) override
         {
             return Core::ERROR_NONE;
         }
 
-        uint32_t UserScripts(string& uri) const override
+        uint32_t UserScripts(IStringIterator*& uris) const override
         {
             _adminLock.Lock();
-            uri = _userScript;
+            uris = Core::Service<RPC::StringIterator>::Create<RPC::IStringIterator>(_userScripts);
             _adminLock.Unlock();
             return Core::ERROR_NONE;
         }
 
-        uint32_t UserScripts(const string& uri) override
+        uint32_t UserScripts(IStringIterator* const uris) override
         {
-            const auto content = GetFileContent(uri);
-            TRACE_L1("Setting user's script (uri: %s, empty: %d)", uri.c_str(), content.empty());
-
-            using SetUserScriptsData = std::tuple<WebKitImplementation*, string, string>;
-            auto* data = new SetUserScriptsData(this, uri, content);
+            string entry;
+            std::vector<string> userScriptsContent;
+            std::list<string> userScriptsUris;
+            while (uris->Next(entry)) {
+                auto content = GetFileContent(entry);
+                if (!content.empty()) {
+                        userScriptsUris.push_back(entry);
+                        userScriptsContent.push_back(content);
+                }
+                TRACE_L1("Adding user's script (uri: %s, empty: %d)", entry.c_str(), content.empty());
+            }
+            using SetUserScriptsData = std::tuple<WebKitImplementation*, std::list<string>, std::vector<string>>;
+            auto* data = new SetUserScriptsData(this, userScriptsUris, userScriptsContent);
 
             g_main_context_invoke_full(
                 _context,
@@ -1362,27 +1370,29 @@ static GSourceFuncs _handlerIntervention =
                 [](gpointer customdata) -> gboolean {
                     auto& data = *static_cast<SetUserScriptsData*>(customdata);
                     WebKitImplementation* object = std::get<0>(data);
-                    const auto& scriptUri = std::get<1>(data);
-                    const auto& scriptContent = std::get<2>(data);
+                    std::list<string> scriptsUris = std::get<1>(data);
+                    std::vector<string> scriptsContent = std::get<2>(data);
 
                     object->_adminLock.Lock();
-                    object->_userScript = scriptUri;
+                    object->_userScripts = scriptsUris;
                     object->_adminLock.Unlock();
 
 #ifdef WEBKIT_GLIB_API
                     auto* userContentManager = webkit_web_view_get_user_content_manager(object->_view);
                     webkit_user_content_manager_remove_all_scripts(userContentManager);
 
-                    if (scriptUri != "clear" && !scriptContent.empty()) {
-                        auto* script = webkit_user_script_new(
-                            scriptContent.c_str(),
-                            WEBKIT_USER_CONTENT_INJECT_TOP_FRAME,
-                            WEBKIT_USER_SCRIPT_INJECT_AT_DOCUMENT_START,
-                            nullptr,
-                            nullptr
-                            );
-                        webkit_user_content_manager_add_script(userContentManager, script);
-                        webkit_user_script_unref(script);
+                    for (string entry : scriptsContent) {
+                        if (!entry.empty()) {
+                            auto* script = webkit_user_script_new(
+                                entry.c_str(),
+                                WEBKIT_USER_CONTENT_INJECT_TOP_FRAME,
+                                WEBKIT_USER_SCRIPT_INJECT_AT_DOCUMENT_START,
+                                nullptr,
+                                nullptr
+                                );
+                            webkit_user_content_manager_add_script(userContentManager, script);
+                            webkit_user_script_unref(script);
+                        }
                     }
 #endif
 
@@ -1396,20 +1406,29 @@ static GSourceFuncs _handlerIntervention =
             return Core::ERROR_NONE;
         }
 
-        uint32_t UserStyleSheets(string& uri) const override
+        uint32_t UserStyleSheets(IStringIterator*& uris) const override
         {
             _adminLock.Lock();
-            uri = _userStyleSheet;
+            uris = Core::Service<RPC::StringIterator>::Create<RPC::IStringIterator>(_userStyleSheets);
             _adminLock.Unlock();
             return Core::ERROR_NONE;
         }
-        uint32_t UserStyleSheets(const string& uri) override
-        {
-            const auto content = GetFileContent(uri);
-            TRACE_L1("Setting user's style sheet (uri: %s, empty: %d)", uri.c_str(), content.empty());
 
-            using SetUserStyleSheetsData = std::tuple<WebKitImplementation*, string, string>;
-            auto* data = new SetUserStyleSheetsData(this, uri, content);
+        uint32_t UserStyleSheets(IStringIterator* const uris) override
+        {
+            string entry;
+            std::vector<string> userStyleSheetsContent;
+            std::list<string> userStyleSheetsUris;
+            while (uris->Next(entry)) {
+                auto content = GetFileContent(entry);
+                if (!content.empty()) {
+                        userStyleSheetsUris.push_back(entry);
+                        userStyleSheetsContent.push_back(content);
+                }
+                TRACE_L1("Adding user's style sheet (uri: %s, empty: %d)", entry.c_str(), content.empty());
+            }
+            using SetUserStyleSheetsData = std::tuple<WebKitImplementation*, std::list<string>, std::vector<string>>;
+            auto* data = new SetUserStyleSheetsData(this, userStyleSheetsUris, userStyleSheetsContent);
 
             g_main_context_invoke_full(
                 _context,
@@ -1417,26 +1436,28 @@ static GSourceFuncs _handlerIntervention =
                 [](gpointer customdata) -> gboolean {
                     auto& data = *static_cast<SetUserStyleSheetsData*>(customdata);
                     WebKitImplementation* object = std::get<0>(data);
-                    const auto& styleSheetUri = std::get<1>(data);
-                    const auto& styleSheetContent = std::get<2>(data);
+                    std::list<string> styleSheetsUris = std::get<1>(data);
+                    std::vector<string> styleSheetsContent = std::get<2>(data);
 
                     object->_adminLock.Lock();
-                    object->_userStyleSheet = styleSheetUri;
+                    object->_userStyleSheets = styleSheetsUris;
                     object->_adminLock.Unlock();
 
 #ifdef WEBKIT_GLIB_API
                     auto* userContentManager = webkit_web_view_get_user_content_manager(object->_view);
                     webkit_user_content_manager_remove_all_style_sheets(userContentManager);
-                    if (styleSheetUri != "clear" && !styleSheetContent.empty()) {
-                        auto* stylesheet = webkit_user_style_sheet_new(
-                            styleSheetContent.c_str(),
-                            WEBKIT_USER_CONTENT_INJECT_TOP_FRAME,
-                            WEBKIT_USER_STYLE_LEVEL_USER,
-                            nullptr,
-                            nullptr
-                            );
-                        webkit_user_content_manager_add_style_sheet(userContentManager, stylesheet);
-                        webkit_user_style_sheet_unref(stylesheet);
+                    for (string entry : styleSheetsContent) {
+                        if (!entry.empty()) {
+                            auto* stylesheet = webkit_user_style_sheet_new(
+                                entry.c_str(),
+                                WEBKIT_USER_CONTENT_INJECT_TOP_FRAME,
+                                WEBKIT_USER_STYLE_LEVEL_USER,
+                                nullptr,
+                                nullptr
+                                );
+                            webkit_user_content_manager_add_style_sheet(userContentManager, stylesheet);
+                            webkit_user_style_sheet_unref(stylesheet);
+                        }
                     }
 #endif
 
@@ -4047,8 +4068,8 @@ static GSourceFuncs _handlerIntervention =
         uint32_t _unresponsiveReplyNum;
         unsigned _frameCount;
         gint64 _lastDumpTime;
-        string _userScript;
-        string _userStyleSheet;
+        std::list<string> _userScripts{};
+        std::list<string> _userStyleSheets{};
 
         void notifyUrlLoadResult(const string &URL, uint32_t result)
         {
