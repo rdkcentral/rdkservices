@@ -262,6 +262,7 @@ namespace RdkShell
      virtual bool addNativeKeyListener(const std::string& client, const uint32_t& keyCode, const uint32_t& flags, std::map<std::string, RdkShellData> &listenerProperties) = 0;
      virtual bool addKeyListener(const std::string& client, const uint32_t& keyCode, const uint32_t& flags, std::map<std::string, RdkShellData> &listenerProperties) = 0;
      virtual bool addKeyIntercept(const std::string& client, const uint32_t& keyCode, const uint32_t& flags) = 0;
+     virtual bool setKeyIntercept(const std::string& client, const uint32_t& keyCode, const uint32_t& flags, const bool always) = 0;
      virtual bool kill(const std::string& client) = 0;
      virtual void setInactivityInterval(const double minutes) = 0;
   };
@@ -284,6 +285,7 @@ namespace RdkShell
                     static bool getFocused(std::string& client);
                     static bool kill(const std::string& client);
                     static bool addKeyIntercept(const std::string& client, const uint32_t& keyCode, const uint32_t& flags);
+                    static bool setKeyIntercept(const std::string& client, const uint32_t& keyCode, const uint32_t& flags, const bool always);
                     static bool removeKeyIntercept(const std::string& client, const uint32_t& keyCode, const uint32_t& flags);
                     static bool addKeyListener(const std::string& client, const uint32_t& keyCode, const uint32_t& flags, std::map<std::string, RdkShellData> &listenerProperties);
                     static bool addNativeKeyListener(const std::string& client, const uint32_t& keyCode, const uint32_t& flags, std::map<std::string, RdkShellData> &listenerProperties);
