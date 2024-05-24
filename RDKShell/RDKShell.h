@@ -146,6 +146,7 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_KEY_REPEAT_CONFIG;
             static const string RDKSHELL_METHOD_GET_GRAPHICS_FRAME_RATE;
             static const string RDKSHELL_METHOD_SET_GRAPHICS_FRAME_RATE;
+            static const string RDKSHELL_METHOD_SET_KEY_INTERCEPTS;
 #ifdef HIBERNATE_SUPPORT_ENABLED
             static const string RDKSHELL_METHOD_HIBERNATE;
             static const string RDKSHELL_METHOD_RESTORE;
@@ -272,6 +273,7 @@ namespace WPEFramework {
             uint32_t keyRepeatConfigWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getGraphicsFrameRateWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setGraphicsFrameRateWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t setKeyInterceptsWrapper(const JsonObject& parameters, JsonObject& response);
 #ifdef HIBERNATE_SUPPORT_ENABLED
             uint32_t hibernateWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t restoreWrapper(const JsonObject& parameters, JsonObject& response);
@@ -289,6 +291,8 @@ namespace WPEFramework {
             bool kill(const string& client);
             bool addKeyIntercept(const uint32_t& keyCode, const JsonArray& modifiers, const string& client);
             bool addKeyIntercepts(const JsonArray& intercepts);
+            bool setKeyIntercepts(const JsonArray& intercepts);
+            bool setKeyIntercept(const uint32_t& keyCode, const JsonArray& modifiers, const string& client, const bool always);
             bool removeKeyIntercept(const uint32_t& keyCode, const JsonArray& modifiers, const string& client);
             bool addKeyListeners(const string& client, const JsonArray& listeners);
             bool removeKeyListeners(const string& client, const JsonArray& listeners);

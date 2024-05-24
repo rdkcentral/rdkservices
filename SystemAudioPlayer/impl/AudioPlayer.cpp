@@ -1014,7 +1014,7 @@ void AudioPlayer::setVolume( int thisVol)
         g_object_set(G_OBJECT(m_audioVolume), "stream-volume", (double)thisVol/100, NULL);
     }
 #elif defined(PLATFORM_REALTEK)
-    g_object_set(G_OBJECT(m_audioVolume), "volume", (double) 4.0 * (thisVol/100), NULL);
+    g_object_set(G_OBJECT(m_audioVolume), "volume", (double)thisVol/100, NULL);
 #elif defined(PLATFORM_BROADCOM)
     g_object_set(G_OBJECT(m_audioVolume), "volume", (double)thisVol/100, NULL);
 #endif
