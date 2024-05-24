@@ -292,7 +292,7 @@ namespace WPEFramework {
             LOGINFO("Executing Maintenance tasks");
 
 #if defined(ENABLE_WHOAMI)
-            # Purposefully delaying MAINTENANCE_STARTED status to honor POWER compliance
+            /* Purposefully delaying MAINTENANCE_STARTED status to honor POWER compliance */
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type) {
                 delayMaintenanceStarted = true;
 	    }
