@@ -288,6 +288,9 @@ namespace WPEFramework {
             bool internetConnectStatus=false;
 	    bool delayMaintenanceStarted = false;
 
+	    std::unique_lock<std::mutex> lck(m_callMutex);
+            LOGINFO("Executing Maintenance tasks");
+
 #if defined(ENABLE_WHOAMI)
 	    /* Purposefully delaying MAINTENANCE_STARTED status to honor POWER compliance */
 	    if (UNSOLICITED_MAINTENANCE == g_maintenance_type) {
@@ -301,9 +304,6 @@ namespace WPEFramework {
                 MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
                 m_statusMutex.unlock();
 	    }
-
-            std::unique_lock<std::mutex> lck(m_callMutex);
-            LOGINFO("Executing Maintenance tasks");
 
             /* cleanup if not empty */
             if(!tasks.empty()){
@@ -371,6 +371,7 @@ namespace WPEFramework {
                 MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
                 m_statusMutex.unlock();
 	    }
+
             LOGINFO("Reboot_Pending :%s",g_is_reboot_pending.c_str());
 
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type){
