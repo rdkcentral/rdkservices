@@ -1312,7 +1312,7 @@ namespace WPEFramework {
                     bool b_criticalMaintenace=false;
                     bool b_rebootPending=false;
 
-                    std::lock_guard<std::mutex> guard();
+                    std::lock_guard<std::mutex> guard(m_callMutex);
 
                     /* Check if we have a critical maintenance */
                     if (!g_is_critical_maintenance.empty()){
