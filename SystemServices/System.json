@@ -1865,7 +1865,7 @@
             }
         },
         "setBootLoaderSplashScreen":{
-            "summary": "Whenever there is a splash screen update, app (EPG) connects with QMS, downloads the updated splash screen, stores it in a predefined location (/tmp), and uses setBootLoaderSplashScreen to install / update the BL splash screens",
+            "summary": "Install or update the BootLoader Splash Screens. This is typically called by Resident Apps to configure the Splash Screen shown during device boot up.",
             "params": {
                 "type":"object",
                 "properties": {
