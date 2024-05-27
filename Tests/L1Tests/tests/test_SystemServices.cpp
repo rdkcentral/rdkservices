@@ -734,6 +734,90 @@ TEST_F(SystemServicesTest, SystemVersions)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getSystemVersions"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"stbVersion\":\"PX051AEI_VBN_2203_sprint_20220331225312sdy_NG\",\"receiverVersion\":\"000.36.0.0\",\"stbTimestamp\":\"Fri 05 Aug 2022 16:14:54 UTC\",\"success\":true}"));
 }
+/*******************************************************************************************************************
+ * Test function for :setBootLoaderSplashScreen
+ * @brief : To update bootloader splash screen.
+ * @param1[in]  : {"path":"<string>"}
+ * @param2[out] : {"result":{"success":<bool>}}
+ * @return              : Core::<StatusCode>
+ * Use case coverage:
+ *                @Success :1
+ *                @Failure :3
+ ********************************************************************************************************************/
+
+
+TEST_F(SystemServicesTest, setBootLoaderSplashScreen_IARM_fail)
+{
+    ofstream file("/tmp/osd1");
+    file << "testing setBootLoaderSplashScreen";
+    file.close();
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
+            .Times(::testing::AnyNumber())
+            .WillRepeatedly(
+                            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                            EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+                            EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_SetBlSplashScreen)));
+                            auto param = static_cast<IARM_Bus_MFRLib_SetBLSplashScreen_Param_t*>(arg);
+			    std::string path = param->path;
+                            EXPECT_EQ(path, "/tmp/osd1");
+                            return IARM_RESULT_OOM;
+                            });
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setBootLoaderSplashScreen"), _T("{\"path\": \"/tmp/osd1\"}"), response));
+    if(response != "")
+    {
+	    EXPECT_EQ(response, string("{\"error\":{\"message\":\"Update failed\",\"code\":\"-32002\"},\"success\":false}"));
+    }
+}
+
+TEST_F(SystemServicesTest, setBootLoaderSplashScreen_IARM_success)
+{
+    ofstream file("/tmp/osd1");
+    file << "testing setBootLoaderSplashScreen";
+    file.close();
+
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
+        .Times(::testing::AnyNumber())
+        .WillRepeatedly(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_SetBlSplashScreen)));
+                auto param = static_cast<IARM_Bus_MFRLib_SetBLSplashScreen_Param_t*>(arg);
+		std::string path = param->path;
+                EXPECT_EQ(path, "/tmp/osd1");
+                return IARM_RESULT_SUCCESS;
+            });
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBootLoaderSplashScreen"), _T("{\"path\": \"/tmp/osd1\"}"), response));
+    if(response != "")
+    {
+	    EXPECT_EQ(response, string("{\"success\":true}"));
+    }
+}
+
+TEST_F(SystemServicesTest, setBootLoaderSplashScreen_empty_path)
+{
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
+        .Times(0);
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setBootLoaderSplashScreen"), _T("{\"path\": \"\"}"), response));
+    if(response != "")
+    {
+	    EXPECT_EQ(response, string("{\"error\":{\"message\":\"Invalid path\",\"code\":\"-32001\"},\"success\":false}"));
+    }
+}
+
+TEST_F(SystemServicesTest, setBootLoaderSplashScreen_invalid_path)
+{
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
+        .Times(0);
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setBootLoaderSplashScreen"), _T("{\"path\": \"/tmp/osd2\"}"), response));
+    if(response != "")
+    {
+	    EXPECT_EQ(response, string("{\"error\":{\"message\":\"Invalid path\",\"code\":\"-32001\"},\"success\":false}"));
+    }
+}
+
 
 TEST_F(SystemServicesTest, MocaStatus)
 {

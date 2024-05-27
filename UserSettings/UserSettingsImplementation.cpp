@@ -56,7 +56,10 @@ UserSettingsImplementation::UserSettingsImplementation()
     }
     else
     {
+
+#if ((THUNDER_VERSION == 2) || ((THUNDER_VERSION == 4) && (THUNDER_VERSION_MINOR == 2)))
         _engine->Announcements(_communicatorClient->Announcement());
+#endif
 
         LOGINFO("Connect the COM-RPC socket\n");
         _controller = _communicatorClient->Open<PluginHost::IShell>(_T("org.rdk.PersistentStore"), ~0, 3000);
