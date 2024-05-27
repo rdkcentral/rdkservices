@@ -19,7 +19,7 @@
 
 #include "NetworkManagerImplementation.h"
 #include "NetworkManagerConnectivity.h"
-#include "WifiSignalStrengthMonitor.h"
+#include "WiFiSignalStrengthMonitor.h"
 
 using namespace WPEFramework;
 using namespace WPEFramework::Plugin;
