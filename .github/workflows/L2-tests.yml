@@ -266,6 +266,7 @@ jobs:
           /etc/device.properties
           /etc/dcm.properties
           /etc/authService.conf
+          /opt/user_preferences.conf
           /version.txt
           /run/media/sda1/logs/PreviousLogs/logFile.txt
           /run/media/sda1/logs/test.txt
@@ -277,6 +278,7 @@ jobs:
           /run/sda1/UsbTestFWUpdate/HSTP11MWR_3.11p5s1_VBN_sdy.bin
           /run/sda1/UsbProdFWUpdate/HSTP11MWR_4.11p5s1_VBN_sdy.bin
           /lib/rdk/getMaintenanceStartTime.sh
+          /lib/rdk/wh_api_5.conf
           /tmp/opkg.conf
           /tmp/system_service_temp.conf
           &&
@@ -285,11 +287,13 @@ jobs:
           /opt/tmtryoptout
           /opt/fwdnldstatus.txt
           /opt/dcm.properties
+          /opt/user_preferences.conf
           /etc/device.properties
           /etc/dcm.properties          
           /etc/authService.conf
           /version.txt
           /lib/rdk/getMaintenanceStartTime.sh
+          /lib/rdk/wh_api_5.conf
           /tmp/opkg.conf
           /tmp/system_service_temp.conf
 
@@ -323,7 +327,7 @@ jobs:
           RdkServicesL2Test
 
       - name: Generate coverage
-        if: ${{ matrix.coverage == 'with-coverage' && !env.ACT }}
+        if: ${{ matrix.coverage == 'with-coverage' && env.ACT }}
         run: >
           cp ${{github.workspace}}/rdkservices/Tests/L2Tests/.lcovrc_l2 ~/.lcovrc
           &&
