@@ -50,6 +50,11 @@
             "type": "string",
             "example": "My Device"
         },
+        "path": {
+            "summary": "Path to the pre-downloaded splash screen file location. Full path with file name",
+            "type": "string",
+            "example": "/tmp/osd1"
+        },
         "modeInfo": {
             "summary": "The mode information",
             "type": "object",
@@ -1853,6 +1858,23 @@
                 },
                 "required": [
                     "friendlyName"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+        "setBootLoaderSplashScreen":{
+            "summary": "Install or update the BootLoader Splash Screens. This is typically called by Resident Apps to configure the Splash Screen shown during device boot up.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "path": {
+                        "$ref": "#/definitions/path"
+                    }
+                },
+                "required": [
+                    "path"
                 ]
             },
             "result": {
