@@ -295,11 +295,9 @@ namespace WPEFramework {
 	    /* Purposefully delaying MAINTENANCE_STARTED status to honor POWER compliance */
 	    if (UNSOLICITED_MAINTENANCE == g_maintenance_type) {
                 delayMaintenanceStarted = true;
-		LOGINFO("delayMaintenanceStarted is true");
 	    }
 #endif
 	    if (!delayMaintenanceStarted) {
-		LOGINFO("delayMaintenanceStarted is false");
                 m_statusMutex.lock();
                 MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
                 m_statusMutex.unlock();
@@ -366,7 +364,6 @@ namespace WPEFramework {
             }
 
 	    if (delayMaintenanceStarted) {
-		LOGINFO("delayMaintenanceStarted is true");
 	        m_statusMutex.lock();
                 MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
                 m_statusMutex.unlock();
