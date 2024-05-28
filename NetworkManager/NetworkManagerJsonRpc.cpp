@@ -609,8 +609,6 @@ namespace WPEFramework
                     subSystem->Release();
                 }
             }
-
-            //TODO:: Report ISUBSYSTEM::Internet Ready. Get ISubsystem::Internet and if it is NULL, set it..
         }
 
         uint32_t NetworkManager::Ping(const JsonObject& parameters, JsonObject& response)
