@@ -1,5 +1,6 @@
 #include "NetworkManagerImplementation.h"
 #include "WiFiSignalStrengthMonitor.h"
+#include "libIBus.h"
 
 using namespace WPEFramework;
 using namespace WPEFramework::Plugin;
@@ -381,18 +382,209 @@ namespace WPEFramework
             return Exchange::INetworkManager::WIFI_STATE_CONNECTION_FAILED;
         }
 
+        void NetworkManagerInternalEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+        {
+            LOG_ENTRY_FUNCTION();
+            string interface;
+            if (_instance)
+            {
+ //               ::_instance->Event();
+                if (strcmp(owner, IARM_BUS_NM_SRV_MGR_NAME) != 0)
+                {
+                    NMLOG_ERROR("ERROR - unexpected event: owner %s, eventId: %d, data: %p, size: %d.", owner, (int)eventId, data, (int)len);
+                    return;
+                }
+                if (data == nullptr || len == 0)
+                {
+                    NMLOG_ERROR("ERROR - event with NO DATA: eventId: %d, data: %p, size: %d.", (int)eventId, data, (int)len);
+                    return;
+                }
+
+                switch (eventId)
+                {
+                    case IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS:
+                    {
+                        IARM_BUS_NetSrvMgr_Iface_EventInterfaceEnabledStatus_t *e = (IARM_BUS_NetSrvMgr_Iface_EventInterfaceEnabledStatus_t*) data;
+                        interface = e->interface;
+                        NMLOG_INFO ("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS :: %s", interface.c_str());
+                        if(interface == "eth0" || interface == "wlan0")
+                        {
+                            if (e->status)
+                                ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_ADDED, interface);
+                            else
+                                ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_REMOVED, interface);
+                        }
+                        break;
+                    }
+                    case IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS:
+                    {
+                        IARM_BUS_NetSrvMgr_Iface_EventInterfaceConnectionStatus_t *e = (IARM_BUS_NetSrvMgr_Iface_EventInterfaceConnectionStatus_t*) data;
+                        interface = e->interface;
+                        NMLOG_INFO ("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS :: %s", interface.c_str());
+                        if(interface == "eth0" || interface == "wlan0")
+                        {
+                            if (e->status)
+                                ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_LINK_UP, interface);
+                            else
+                                ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_LINK_DOWN, interface);
+                        }
+                        break;
+                    }
+                    case IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS:
+                    {
+                        IARM_BUS_NetSrvMgr_Iface_EventInterfaceIPAddress_t *e = (IARM_BUS_NetSrvMgr_Iface_EventInterfaceIPAddress_t*) data;
+                        interface = e->interface;
+                        NMLOG_INFO ("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS :: %s -- %s", interface.c_str(), e->ip_address);
+
+                        if(interface == "eth0" || interface == "wlan0")
+                            ::_instance->ReportIPAddressChangedEvent(interface, e->acquired, e->is_ipv6, string(e->ip_address));
+                        break;
+                    }
+                    case IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE:
+                    {
+                        string oldInterface;
+                        string newInterface;
+                        IARM_BUS_NetSrvMgr_Iface_EventDefaultInterface_t *e = (IARM_BUS_NetSrvMgr_Iface_EventDefaultInterface_t*) data;
+                        oldInterface = e->oldInterface;
+                        newInterface = e->newInterface;
+                        NMLOG_INFO ("IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE %s :: %s..", oldInterface.c_str(), newInterface.c_str());
+                        if(oldInterface != "eth0" || oldInterface != "wlan0")
+                            oldInterface == ""; /* assigning "null" if the interface is not eth0 or wlan0 */
+                        if(newInterface != "eth0" || newInterface != "wlan0")
+                            newInterface == ""; /* assigning "null" if the interface is not eth0 or wlan0 */
+
+                        ::_instance->ReportActiveInterfaceChangedEvent(oldInterface, newInterface);
+                        break;
+                    }
+                    case IARM_BUS_WIFI_MGR_EVENT_onAvailableSSIDs:
+                    {
+                        IARM_BUS_WiFiSrvMgr_EventData_t *e = (IARM_BUS_WiFiSrvMgr_EventData_t*) data;
+                        NMLOG_INFO ("IARM_BUS_WIFI_MGR_EVENT_onAvailableSSIDs");
+                        std::string serialized(e->data.wifiSSIDList.ssid_list);
+                        JsonObject eventDocument;
+                        WPEC::OptionalType<WPEJ::Error> error;
+                        if (!WPEJ::IElement::FromString(serialized, eventDocument, error)) {
+                            NMLOG_ERROR("Failed to parse JSON document containing SSIDs. Due to: %s", WPEJ::ErrorDisplayMessage(error).c_str());
+                            break;
+                        }
+                        if ((!eventDocument.HasLabel("getAvailableSSIDs")) || (eventDocument["getAvailableSSIDs"].Content() != WPEJ::Variant::type::ARRAY)) {
+                            NMLOG_ERROR("JSON document does not have key 'getAvailableSSIDs' as array");
+                            break;
+                        }
+
+                        JsonArray ssids = eventDocument["getAvailableSSIDs"].Array();
+                        string json;
+                        ssids.ToString(json);
+
+                        ::_instance->ReportAvailableSSIDsEvent(json);
+                    }
+                    case IARM_BUS_WIFI_MGR_EVENT_onWIFIStateChanged:
+                    {
+                        IARM_BUS_WiFiSrvMgr_EventData_t* e = (IARM_BUS_WiFiSrvMgr_EventData_t *) data;
+                        Exchange::INetworkManager::WiFiState state = Exchange::INetworkManager::WIFI_STATE_DISCONNECTED;
+                        NMLOG_INFO("Event IARM_BUS_WIFI_MGR_EVENT_onWIFIStateChanged received; state=%d", e->data.wifiStateChange.state);
+
+                        state = to_wifi_state(e->data.wifiStateChange.state);
+                        if(e->data.wifiStateChange.state == WIFI_CONNECTED)
+                             ::_instance->m_wifiSignalMonitor.startWiFiSignalStrengthMonitor(DEFAULT_WIFI_SIGNAL_TEST_INTERVAL_SEC);
+                        ::_instance->ReportWiFiStateChangedEvent(state);
+                        break;
+                    }
+                    default:
+                    {
+                        NMLOG_INFO("Event %d received; Unhandled", eventId);
+                        break;
+                    }
+                }
+            }
+            else
+                NMLOG_WARNING("WARNING - cannot handle IARM events without a Network plugin instance!");
+        }
+
         void NetworkManagerImplementation::platform_init()
         {
             LOG_ENTRY_FUNCTION();
             char c;
 
             ::_instance = this;
+
+            IARM_Result_t res = IARM_Bus_Init("netsrvmgr-thunder");
+            NMLOG_INFO("IARM_Bus_Init: %d", res);
+            if (res == IARM_RESULT_SUCCESS || res == IARM_RESULT_INVALID_STATE /* already inited or connected */) {
+                res = IARM_Bus_Connect();
+                NMLOG_INFO("IARM_Bus_Connect: %d", res);
+            } else {
+                NMLOG_ERROR("IARM_Bus_Init failure: %d", res);
+            }
+
+
+            IARM_Result_t retVal = IARM_RESULT_SUCCESS;
+
+            uint32_t retry = 0;
+            do{
+                retVal = IARM_Bus_Call_with_IPCTimeout(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isAvailable, (void *)&c, sizeof(c), (1000*10));
+                if(retVal != IARM_RESULT_SUCCESS){
+                    NMLOG_INFO("NetSrvMgr is not available. Failed to activate Network Plugin, retry = %d", retry);
+                    usleep(500*1000);
+                    retry++;
+                }
+            }while((retVal != IARM_RESULT_SUCCESS) && (retry < 50));
+
+            if(retVal != IARM_RESULT_SUCCESS)
+            {
+                string msg = "NetSrvMgr is not available";
+                NMLOG_INFO("NETWORK_NOT_READY: The NetSrvMgr Component is not available.Retrying in separate thread ::%s::", msg.c_str());
+            }
+            else {
+                IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS, NetworkManagerInternalEventHandler);
+                IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS, NetworkManagerInternalEventHandler);
+                IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS, NetworkManagerInternalEventHandler);
+                IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE, NetworkManagerInternalEventHandler);
+                IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERNET_CONNECTION_CHANGED, NetworkManagerInternalEventHandler);
+                IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_EVENT_onWIFIStateChanged, NetworkManagerInternalEventHandler);
+                IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_EVENT_onError, NetworkManagerInternalEventHandler);
+                IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_EVENT_onAvailableSSIDs, NetworkManagerInternalEventHandler);
+            }
         }
 
         uint32_t NetworkManagerImplementation::GetAvailableInterfaces (Exchange::INetworkManager::IInterfaceDetailsIterator*& interfacesItr/* @out */)
         {
             LOG_ENTRY_FUNCTION();
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
+            IARM_BUS_NetSrvMgr_InterfaceList_t list;
+            if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getInterfaceList, (void*)&list, sizeof(list)))
+            {
+                std::vector<InterfaceDetails> interfaceList;
+                for (int i = 0; i < list.size; i++)
+                {
+                    NMLOG_INFO ("Interface Name = %s", list.interfaces[i].name);
+                    string interfaceName(list.interfaces[i].name);
+                    if (("eth0" == interfaceName) || ("wlan0" == interfaceName))
+                    {
+                        InterfaceDetails tmp;
+                        /* Update the interface as per RDK NetSrvMgr */
+                        if ("eth0" == interfaceName)
+                            tmp.m_type = string("ETHERNET");
+                        else if ("wlan0" == interfaceName)
+                            tmp.m_type = string("WIFI");
+
+                        tmp.m_name         = interfaceName;
+                        tmp.m_mac          = string(list.interfaces[i].mac);
+                        tmp.m_isEnabled    = ((list.interfaces[i].flags & IFF_UP) != 0);
+                        tmp.m_isConnected  = ((list.interfaces[i].flags & IFF_RUNNING) != 0);
+                        interfaceList.push_back(tmp);
+                    }
+                }
+                using Implementation = RPC::IteratorType<Exchange::INetworkManager::IInterfaceDetailsIterator>;
+                interfacesItr = Core::Service<Implementation>::Create<Exchange::INetworkManager::IInterfaceDetailsIterator>(interfaceList);
+
+                rc = Core::ERROR_NONE;
+            }
+            else
+            {
+                NMLOG_ERROR ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, __FUNCTION__);
+            }
+
             return rc;
         }
 
@@ -401,6 +593,17 @@ namespace WPEFramework
         {
             LOG_ENTRY_FUNCTION();
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
+            IARM_BUS_NetSrvMgr_DefaultRoute_t defaultRoute = {0};
+            if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getDefaultInterface, (void*)&defaultRoute, sizeof(defaultRoute)))
+            {
+                NMLOG_INFO ("Call to %s for %s returned interface = %s, gateway = %s", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getDefaultInterface, defaultRoute.interface, defaultRoute.gateway);
+                interface = m_defaultInterface = defaultRoute.interface;
+                rc = Core::ERROR_NONE;
+            }
+            else
+            {
+                NMLOG_ERROR ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getDefaultInterface);
+            }
             return rc;
         }
 
@@ -409,6 +612,30 @@ namespace WPEFramework
         {
             LOG_ENTRY_FUNCTION();
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
+            IARM_BUS_NetSrvMgr_Iface_EventData_t iarmData = { 0 };
+            iarmData.persist = true;
+
+            /* Netsrvmgr returns eth0 & wlan0 as primary interface but when we want to set., we must set ETHERNET or WIFI*/
+            //TODO: Fix netsrvmgr to accept eth0 & wlan0
+            if ("wlan0" == interface)
+                strncpy(iarmData.setInterface, "WIFI", INTERFACE_SIZE);
+            else if ("eth0" == interface)
+                strncpy(iarmData.setInterface, "ETHERNET", INTERFACE_SIZE);
+            else
+            {
+                rc = Core::ERROR_BAD_REQUEST;
+                return rc;
+            }
+
+            if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setDefaultInterface, (void *)&iarmData, sizeof(iarmData)))
+            {
+                NMLOG_INFO ("Call to %s for %s success", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setDefaultInterface);
+                rc = Core::ERROR_NONE;
+            }
+            else
+            {
+                NMLOG_ERROR ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setDefaultInterface);
+            }
             return rc;
         }
 
@@ -416,6 +643,31 @@ namespace WPEFramework
         {
             LOG_ENTRY_FUNCTION();
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
+            IARM_BUS_NetSrvMgr_Iface_EventData_t iarmData = { 0 };
+
+            /* Netsrvmgr returns eth0 & wlan0 as primary interface but when we want to set., we must set ETHERNET or WIFI*/
+            //TODO: Fix netsrvmgr to accept eth0 & wlan0
+            if ("wlan0" == interface)
+                strncpy(iarmData.setInterface, "WIFI", INTERFACE_SIZE);
+            else if ("eth0" == interface)
+                strncpy(iarmData.setInterface, "ETHERNET", INTERFACE_SIZE);
+            else
+            {
+                rc = Core::ERROR_BAD_REQUEST;
+                return rc;
+            }
+
+            iarmData.isInterfaceEnabled = true;
+            iarmData.persist = true;
+            if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled, (void *)&iarmData, sizeof(iarmData)))
+            {
+                NMLOG_INFO ("Call to %s for %s success", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled);
+                rc = Core::ERROR_NONE;
+            }
+            else
+            {
+                NMLOG_ERROR ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled);
+            }
             return rc;
         }
 
@@ -423,22 +675,245 @@ namespace WPEFramework
         {
             LOG_ENTRY_FUNCTION();
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
+            IARM_BUS_NetSrvMgr_Iface_EventData_t iarmData = { 0 };
+
+            /* Netsrvmgr returns eth0 & wlan0 as primary interface but when we want to set., we must set ETHERNET or WIFI*/
+            //TODO: Fix netsrvmgr to accept eth0 & wlan0
+            if ("wlan0" == interface)
+                strncpy(iarmData.setInterface, "WIFI", INTERFACE_SIZE);
+            else if ("eth0" == interface)
+                strncpy(iarmData.setInterface, "ETHERNET", INTERFACE_SIZE);
+            else
+            {
+                rc = Core::ERROR_BAD_REQUEST;
+                return rc;
+            }
+
+            iarmData.isInterfaceEnabled = false;
+            iarmData.persist = true;
+            if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled, (void *)&iarmData, sizeof(iarmData)))
+            {
+                NMLOG_INFO ("Call to %s for %s success", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled);
+                rc = Core::ERROR_NONE;
+            }
+            else
+            {
+                NMLOG_ERROR ("Call to %s for %s failed", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled);
+            }
             return rc;
         }
+
+        /* function to convert netmask to prefix */
+        uint32_t NetmaskToPrefix (const char* netmask_str)
+        {
+            uint32_t prefix_len = 0;
+            uint32_t netmask1 = 0;
+            uint32_t netmask2 = 0;
+            uint32_t netmask3 = 0;
+            uint32_t netmask4 = 0;
+            uint32_t netmask = 0;
+            sscanf(netmask_str, "%d.%d.%d.%d", &netmask1, &netmask2, &netmask3, &netmask4);
+            netmask = netmask1 << 24;
+            netmask |= netmask2 << 16;
+            netmask |= netmask3 << 8;
+            netmask |= netmask4;
+            while (netmask)
+            {
+                if (netmask & 0x80000000)
+                {
+                    prefix_len++;
+                    netmask <<= 1;
+                } else
+                {
+                    break;
+                }
+            }
+            return prefix_len;
+        }
+
 
         /* @brief Get IP Address Of the Interface */
         uint32_t NetworkManagerImplementation::GetIPSettings(const string& interface /* @in */, const string& ipversion /* @in */, IPAddressInfo& result /* @out */)
         {
             LOG_ENTRY_FUNCTION();
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
+            IARM_BUS_NetSrvMgr_Iface_Settings_t iarmData = { 0 };
+            /* Netsrvmgr returns eth0 & wlan0 as primary interface but when we want to set., we must set ETHERNET or WIFI*/
+            //TODO: Fix netsrvmgr to accept eth0 & wlan0
+            if ("wlan0" == interface)
+                strncpy(iarmData.interface, "WIFI", INTERFACE_SIZE);
+            else if ("eth0" == interface)
+                strncpy(iarmData.interface, "ETHERNET", INTERFACE_SIZE);
+
+            strncpy(iarmData.ipversion, ipversion.c_str(), 16);
+            iarmData.isSupported = true;
+            NMLOG_INFO("NetworkManagerImplementation::GetIPSettings - Before Calling IARM");
+            if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getIPSettings, (void *)&iarmData, sizeof(iarmData)))
+            {
+                NMLOG_INFO("NetworkManagerImplementation::GetIPSettings - IARM Success.. Filling the data");
+                result.m_ipAddrType     = string(iarmData.ipversion);
+                result.m_autoConfig     = iarmData.autoconfig;
+                result.m_dhcpServer     = string(iarmData.dhcpserver,MAX_IP_ADDRESS_LEN - 1);
+                result.m_v6LinkLocal    = "";
+                result.m_ipAddress      = string(iarmData.ipaddress,MAX_IP_ADDRESS_LEN - 1);
+                if (0 == strcasecmp("ipv4", iarmData.ipversion))
+                    result.m_prefix = NetmaskToPrefix(iarmData.netmask);
+		else if (0 == strcasecmp("ipv6", iarmData.ipversion))
+                    result.m_prefix = std::atoi(iarmData.netmask);
+                result.m_gateway        = string(iarmData.gateway,MAX_IP_ADDRESS_LEN - 1);
+                result.m_primaryDns     = string(iarmData.primarydns,MAX_IP_ADDRESS_LEN - 1);
+                result.m_secondaryDns   = string(iarmData.secondarydns,MAX_IP_ADDRESS_LEN - 1);
+                NMLOG_INFO("NetworkManagerImplementation::GetIPSettings - IARM Success.. Filled the data");
+                rc = Core::ERROR_NONE;
+            }
+            else
+            {
+                NMLOG_ERROR("NetworkManagerImplementation::GetIPSettings - Calling IARM Failed");
+            }
+
             return rc;
         }
+
+#define CIDR_NETMASK_IP_LEN 32
+const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
+                                                     "128.0.0.0",
+                                                     "192.0.0.0",
+                                                     "224.0.0.0",
+                                                     "240.0.0.0",
+                                                     "248.0.0.0",
+                                                     "252.0.0.0",
+                                                     "254.0.0.0",
+                                                     "255.0.0.0",
+                                                     "255.128.0.0",
+                                                     "255.192.0.0",
+                                                     "255.224.0.0",
+                                                     "255.240.0.0",
+                                                     "255.248.0.0",
+                                                     "255.252.0.0",
+                                                     "255.254.0.0",
+                                                     "255.255.0.0",
+                                                     "255.255.128.0",
+                                                     "255.255.192.0",
+                                                     "255.255.224.0",
+                                                     "255.255.240.0",
+                                                     "255.255.248.0",
+                                                     "255.255.252.0",
+                                                     "255.255.254.0",
+                                                     "255.255.255.0",
+                                                     "255.255.255.128",
+                                                     "255.255.255.192",
+                                                     "255.255.255.224",
+                                                     "255.255.255.240",
+                                                     "255.255.255.248",
+                                                     "255.255.255.252",
+                                                     "255.255.255.254",
+                                                     "255.255.255.255",
+                                                   };
 
         /* @brief Set IP Address Of the Interface */
         uint32_t NetworkManagerImplementation::SetIPSettings(const string& interface /* @in */, const string &ipversion /* @in */, const IPAddressInfo& address /* @in */)
         {
-            LOG_ENTRY_FUNCTION();
             uint32_t rc = Core::ERROR_NONE;
+            if (0 == strcasecmp("ipv4", ipversion.c_str()))
+            {
+                IARM_BUS_NetSrvMgr_Iface_Settings_t iarmData = {0};
+                /* Netsrvmgr returns eth0 & wlan0 as primary interface but when we want to set., we must set ETHERNET or WIFI*/
+                //TODO: Fix netsrvmgr to accept eth0 & wlan0
+                if ("wlan0" == interface)
+                    strncpy(iarmData.interface, "WIFI", INTERFACE_SIZE);
+                else if ("eth0" == interface)
+                    strncpy(iarmData.interface, "ETHERNET", INTERFACE_SIZE);
+                else
+                {
+                    rc = Core::ERROR_BAD_REQUEST;
+                    return rc;
+                }
+                /* IP version */
+                strncpy(iarmData.ipversion, ipversion.c_str(), 16);
+
+                if (!address.m_autoConfig)
+                {
+                    //Lets validate the prefix Address
+                    if (address.m_prefix >= 32)
+                    {
+                        rc = Core::ERROR_BAD_REQUEST;
+                    }
+                    else
+                    {
+                        string netmask = CIDR_PREFIXES[address.m_prefix];
+
+                        //Lets validate the IP Address
+                        struct in_addr tmpIPAddress, tmpGWAddress, tmpNetmask;
+                        struct in_addr bcastAddr1, bcastAddr2;
+
+                        if (inet_pton(AF_INET, address.m_ipAddress.c_str(), &tmpIPAddress) == 1 &&
+                            inet_pton(AF_INET, netmask.c_str(), &tmpNetmask) == 1 &&
+                            inet_pton(AF_INET, address.m_gateway.c_str(), &tmpGWAddress) == 1)
+                        {
+                            bcastAddr1.s_addr = tmpIPAddress.s_addr | ~tmpNetmask.s_addr;
+                            bcastAddr2.s_addr = tmpGWAddress.s_addr | ~tmpNetmask.s_addr;
+
+                            if (tmpIPAddress.s_addr == tmpGWAddress.s_addr)
+                            {
+                                NMLOG_INFO("Interface and Gateway IP are same , return false");
+                                rc = Core::ERROR_BAD_REQUEST;
+                            }
+                            if (bcastAddr1.s_addr != bcastAddr2.s_addr)
+                            {
+                                NMLOG_INFO("Interface and Gateway IP is not in same broadcast domain, return false");
+                                rc = Core::ERROR_BAD_REQUEST;
+                            }
+                            if (tmpIPAddress.s_addr == bcastAddr1.s_addr)
+                            {
+                                NMLOG_INFO("Interface and Broadcast IP is same, return false");
+                                rc = Core::ERROR_BAD_REQUEST;
+                            }
+                            if (tmpGWAddress.s_addr == bcastAddr2.s_addr)
+                            {
+                                NMLOG_INFO("Gateway and Broadcast IP is same, return false");
+                                rc = Core::ERROR_BAD_REQUEST;
+                            }
+                        }
+                        else
+                        {
+                            rc = Core::ERROR_BAD_REQUEST;
+                            NMLOG_INFO ("Given Input Address are not appropriate");
+                        }
+
+                        if (Core::ERROR_NONE == rc)
+                        {
+                            strncpy(iarmData.ipaddress, address.m_ipAddress.c_str(), 16);
+                            strncpy(iarmData.netmask, netmask.c_str(), 16);
+                            strncpy(iarmData.gateway, address.m_gateway.c_str(), 16);
+                            strncpy(iarmData.primarydns, address.m_primaryDns.c_str(), 16);
+                            strncpy(iarmData.secondarydns, address.m_secondaryDns.c_str(), 16);
+                        }
+                    }
+                }
+                else
+                {
+                    iarmData.autoconfig = address.m_autoConfig;
+                }
+                if (Core::ERROR_NONE == rc)
+                {
+                    if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setIPSettings, (void *) &iarmData, sizeof(iarmData)))
+                    {
+                        NMLOG_INFO("Set IP Successfully");
+                    }
+                    else
+                    {
+                        NMLOG_ERROR("Setting IP Failed");
+                        rc = Core::ERROR_RPC_CALL_FAILED;
+                    }
+                }
+            }
+            else
+            {
+                //FIXME : Add IPv6 support here
+                NMLOG_WARNING ("Setting IPv6 is not supported at this point in time. This is just a place holder");
+                rc = Core::ERROR_NOT_SUPPORTED;
+            }
+
             return rc;
         }
 
@@ -446,6 +921,22 @@ namespace WPEFramework
         {
             LOG_ENTRY_FUNCTION();
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
+            IARM_Bus_WiFiSrvMgr_SsidList_Param_t param;
+            IARM_Result_t retVal = IARM_RESULT_SUCCESS;
+
+            memset(&param, 0, sizeof(param));
+            (void) frequency;
+
+            retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_getAvailableSSIDsAsync, (void *)&param, sizeof(IARM_Bus_WiFiSrvMgr_SsidList_Param_t));
+
+            if(retVal == IARM_RESULT_SUCCESS) {
+                NMLOG_INFO ("Scan started");
+                rc = Core::ERROR_NONE;
+            }
+            else
+            {
+                NMLOG_ERROR ("StartScan failed");
+            }
             return rc;
         }
 
@@ -453,6 +944,18 @@ namespace WPEFramework
         {
             LOG_ENTRY_FUNCTION();
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
+            IARM_Bus_WiFiSrvMgr_Param_t param;
+            memset(&param, 0, sizeof(param));
+
+            if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_stopProgressiveWifiScanning, (void*) &param, sizeof(IARM_Bus_WiFiSrvMgr_Param_t)))
+            {
+                NMLOG_INFO ("StopScan Success");
+                rc = Core::ERROR_NONE;
+            }
+            else
+            {
+                NMLOG_ERROR ("StopScan failed");
+            }
             return rc;
         }
 
@@ -460,6 +963,28 @@ namespace WPEFramework
         {
             LOG_ENTRY_FUNCTION();
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
+            IARM_Result_t retVal = IARM_RESULT_SUCCESS;
+            IARM_Bus_WiFiSrvMgr_Param_t param;
+
+            memset(&param, 0, sizeof(param));
+
+            /* Must add new method to get all the known SSIDs but for now RDK-NM supports only one active SSID. So we repurpose this method */
+            retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_getConnectedSSID, (void *)&param, sizeof(param));
+
+            if(retVal == IARM_RESULT_SUCCESS)
+            {
+                auto &connectedSsid = param.data.getConnectedSSID;
+                std::list<string> ssidList;
+                ssidList.push_back(string(connectedSsid.ssid));
+                NMLOG_INFO ("GetKnownSSIDs Success");
+
+                ssids = Core::Service<RPC::StringIterator>::Create<RPC::IStringIterator>(ssidList);
+                rc = Core::ERROR_NONE;
+            }
+            else
+            {
+                NMLOG_ERROR ("GetKnownSSIDs failed");
+            }
             return rc;
         }
 
@@ -467,6 +992,23 @@ namespace WPEFramework
         {
             LOG_ENTRY_FUNCTION();
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
+            IARM_Bus_WiFiSrvMgr_Param_t param;
+            memset(&param, 0, sizeof(param));
+
+            strncpy(param.data.connect.ssid, ssid.m_ssid.c_str(), SSID_SIZE - 1);
+            strncpy(param.data.connect.passphrase, ssid.m_passphrase.c_str(), PASSPHRASE_BUFF - 1);
+            param.data.connect.security_mode = (SsidSecurity) ssid.m_securityMode;
+
+            IARM_Result_t retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_saveSSID, (void *)&param, sizeof(param));
+            if((retVal == IARM_RESULT_SUCCESS) && param.status)
+            {
+                NMLOG_INFO ("AddToKnownSSIDs Success");
+                rc = Core::ERROR_NONE;
+            }
+            else
+            {
+                NMLOG_ERROR ("AddToKnownSSIDs failed");
+            }
             return rc;
         }
 
@@ -474,6 +1016,24 @@ namespace WPEFramework
         {
             LOG_ENTRY_FUNCTION();
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
+            IARM_Bus_WiFiSrvMgr_Param_t param;
+            memset(&param, 0, sizeof(param));
+
+            /* Currently RDK-NM supports only one saved SSID. So when you say clear, it jsut clears it. No need to pass input at this point in time.
+               Will be updated to pass specific ssid when we support more than 1 ssid.
+             */
+            (void)ssid;
+
+            IARM_Result_t retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_clearSSID, (void *)&param, sizeof(param));
+            if((retVal == IARM_RESULT_SUCCESS) && param.status)
+            {
+                NMLOG_INFO ("RemoveKnownSSID Success");
+                rc = Core::ERROR_NONE;
+            }
+            else
+            {
+                NMLOG_ERROR ("RemoveKnownSSID failed");
+            }
             return rc;
         }
 
@@ -481,13 +1041,49 @@ namespace WPEFramework
         {
             LOG_ENTRY_FUNCTION();
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
+            IARM_Result_t retVal = IARM_RESULT_SUCCESS;
+            IARM_Bus_WiFiSrvMgr_Param_t param;
+            memset(&param, 0, sizeof(param));
+
+            if(ssid.m_ssid.length() || ssid.m_passphrase.length())
+            {
+                ssid.m_ssid.copy(param.data.connect.ssid, sizeof(param.data.connect.ssid) - 1);
+                ssid.m_passphrase.copy(param.data.connect.passphrase, sizeof(param.data.connect.passphrase) - 1);
+                param.data.connect.security_mode = (SsidSecurity)ssid.m_securityMode;
+            }
+
+            retVal = IARM_Bus_Call( IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_connect, (void *)&param, sizeof(param));
+
+            if((retVal == IARM_RESULT_SUCCESS) && param.status)
+            {
+                NMLOG_INFO ("WiFiConnect Success");
+                rc = Core::ERROR_NONE;
+            }
+            else
+            {
+                NMLOG_ERROR ("WiFiConnect failed");
+            }
             return rc;
         }
 
         uint32_t NetworkManagerImplementation::WiFiDisconnect(void)
         {
             LOG_ENTRY_FUNCTION();
+            IARM_Result_t retVal = IARM_RESULT_SUCCESS;
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
+            IARM_Bus_WiFiSrvMgr_Param_t param;
+            memset(&param, 0, sizeof(param));
+
+            retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_disconnectSSID, (void *)&param, sizeof(param));
+            if ((retVal == IARM_RESULT_SUCCESS) && param.status)
+            {
+                NMLOG_INFO ("WiFiDisconnect started");
+                rc = Core::ERROR_NONE;
+            }
+            else
+            {
+                NMLOG_ERROR ("WiFiDisconnect failed");
+            }
             return rc;
         }
 
@@ -495,6 +1091,33 @@ namespace WPEFramework
         {
             LOG_ENTRY_FUNCTION();
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
+            IARM_Result_t retVal = IARM_RESULT_SUCCESS;
+            IARM_Bus_WiFiSrvMgr_Param_t param;
+
+            memset(&param, 0, sizeof(param));
+
+            /* Must add new method to get all the known SSIDs but for now RDK-NM supports only one active SSID. So we repurpose this method */
+            retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_getConnectedSSID, (void *)&param, sizeof(param));
+
+            if(retVal == IARM_RESULT_SUCCESS)
+            {
+                auto &connectedSsid = param.data.getConnectedSSID;
+
+                ssidInfo.m_ssid             = string(connectedSsid.ssid);
+                ssidInfo.m_bssid            = string(connectedSsid.bssid);
+                ssidInfo.m_securityMode     = (WIFISecurityMode) connectedSsid.securityMode;
+                ssidInfo.m_signalStrength   = to_string(connectedSsid.signalStrength);
+                ssidInfo.m_frequency        = ((((float)connectedSsid.frequency)/1000) < 3.0) ? WIFI_FREQUENCY_2_4_GHZ : WIFI_FREQUENCY_5_GHZ;
+                ssidInfo.m_rate             = to_string(connectedSsid.rate);
+                ssidInfo.m_noise            = to_string(connectedSsid.noise);
+
+                NMLOG_INFO ("GetConnectedSSID Success");
+                rc = Core::ERROR_NONE;
+            }
+            else
+            {
+                NMLOG_ERROR ("GetConnectedSSID failed");
+            }
             return rc;
         }
 
@@ -502,6 +1125,53 @@ namespace WPEFramework
         {
             LOG_ENTRY_FUNCTION();
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
+            WiFiSSIDInfo  ssidInfo{};
+            float signalStrengthOut = 0.0f;
+
+            if (Core::ERROR_NONE == GetConnectedSSID(ssidInfo))
+            {
+                ssid            = ssidInfo.m_ssid;
+                signalStrength  = ssidInfo.m_signalStrength;
+
+                if (!signalStrength.empty())
+		{
+                    signalStrengthOut = std::stof(signalStrength.c_str());
+		    NMLOG_INFO ("WiFiSignalStrength in dB = %s",signalStrengthOut);
+		}
+
+                if (signalStrengthOut == 0)
+		{
+                    quality = WIFI_SIGNAL_DISCONNECTED;
+		    signalStrength = "0";
+		}
+                else if (signalStrengthOut >= signalStrengthThresholdExcellent && signalStrengthOut < 0)
+		{
+                    quality = WIFI_SIGNAL_EXCELLENT;
+		    signalStrength = "100";
+		}
+                else if (signalStrengthOut >= signalStrengthThresholdGood && signalStrengthOut < signalStrengthThresholdExcellent)
+		{
+                    quality = WIFI_SIGNAL_GOOD;
+		    signalStrength = "75";
+		}
+                else if (signalStrengthOut >= signalStrengthThresholdFair && signalStrengthOut < signalStrengthThresholdGood)
+		{
+                    quality = WIFI_SIGNAL_FAIR;
+		    signalStrength = "50";
+		}
+                else
+		{
+                    quality = WIFI_SIGNAL_WEAK;
+		    signalStrength = "25";
+		}
+
+                NMLOG_INFO ("GetWiFiSignalStrength success");
+                rc = Core::ERROR_NONE;
+            }
+            else
+            {
+                NMLOG_ERROR ("GetWiFiSignalStrength failed");
+            }
             return rc;
         }
 
@@ -509,12 +1179,51 @@ namespace WPEFramework
         {
             LOG_ENTRY_FUNCTION();
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
+            IARM_Bus_WiFiSrvMgr_WPS_Parameters_t wps_parameters;
+            if (method == WIFI_WPS_PBC)
+            {
+                wps_parameters.pbc = true;
+            }
+            else if (method == WIFI_WPS_PIN)
+            {
+                snprintf(wps_parameters.pin, sizeof(wps_parameters.pin), "%s", wps_pin.c_str());
+                wps_parameters.pbc = false;
+            }
+            else if (method == WIFI_WPS_SERIALIZED_PIN)
+            {
+                snprintf(wps_parameters.pin, sizeof(wps_parameters.pin), "xxxxxxxx");
+                wps_parameters.pbc = false;
+            }
+
+            if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_initiateWPSPairing2, (void *)&wps_parameters, sizeof(wps_parameters)))
+            {
+                NMLOG_INFO ("StartWPS is success");
+                rc = Core::ERROR_NONE;
+            }
+            else
+            {
+                NMLOG_ERROR ("StartWPS: Failed");                
+            }
+
             return rc;
         }
 
         uint32_t NetworkManagerImplementation::StopWPS(void)
         {
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
+            IARM_Bus_WiFiSrvMgr_Param_t param;
+            memset(&param, 0, sizeof(param));
+
+            if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_cancelWPSPairing, (void *)&param, sizeof(param)))
+            {
+                NMLOG_INFO ("StopWPS is success");
+                rc = Core::ERROR_NONE;
+            }
+            else
+            {
+                NMLOG_ERROR ("StopWPS: Failed");                
+            }
+
             return rc;
         }
 
@@ -522,6 +1231,15 @@ namespace WPEFramework
         {
             LOG_ENTRY_FUNCTION();
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
+            IARM_Result_t retVal = IARM_RESULT_SUCCESS;
+            IARM_Bus_WiFiSrvMgr_Param_t param;
+            memset(&param, 0, sizeof(param));
+
+            if(IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_getCurrentState, (void *)&param, sizeof(param)))
+            {
+                state = to_wifi_state(param.data.wifiStatus);
+                rc = Core::ERROR_NONE;
+            }
             return rc;
         }
     }

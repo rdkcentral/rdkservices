@@ -202,7 +202,7 @@ namespace WPEFramework
         uint32_t NetworkManagerImplementation::GetInterfaceState(const string& interface/* @in */, bool& isEnabled /* @out */)
         {
             uint32_t rc = Core::ERROR_NONE;
-#if 0
+#if 0 //FIXME
             const GPtrArray *devices = nm_client_get_devices(client);
             NMDevice *device = NULL;
 

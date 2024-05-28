@@ -6,7 +6,7 @@ find_package(WPEFramework)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 set(VERSION_MAJOR 0)
 set(VERSION_MINOR 2)
-set(VERSION_PATCH 1)
+set(VERSION_PATCH 0)
 
 add_compile_definitions(NETWORKMANAGER_MAJOR_VERSION=${VERSION_MAJOR})
 add_compile_definitions(NETWORKMANAGER_MINOR_VERSION=${VERSION_MINOR})
@@ -22,18 +22,17 @@ get_directory_property(SEVICES_DEFINES COMPILE_DEFINITIONS)
 
 set(PLUGIN_NAME NetworkManager)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
-set(PLUGIN_DEPRECATED_NETWORK ${NAMESPACE}Network)
-set(PLUGIN_DEPRECATED_WIFI    ${NAMESPACE}WiFiManager)
+set(PLUGIN_LEGACY_DEPRECATED_NETWORK ${NAMESPACE}Network)
+set(PLUGIN_LEGACY_DEPRECATED_WIFI    ${NAMESPACE}WiFiManager)
 
 find_package(${NAMESPACE}Core REQUIRED)
 find_package(${NAMESPACE}Plugins REQUIRED)
-#find_package(${NAMESPACE}Definitions REQUIRED)
 find_package(CURL)
 if(ENABLE_GNOME_NETWORKMANAGER)
 pkg_check_modules(GLIB REQUIRED glib-2.0)
 pkg_check_modules(LIBNM REQUIRED libnm)
 else()
-#find_package(IARMBus REQUIRED)
+find_package(IARMBus REQUIRED)
 endif ()
 
 
@@ -104,41 +103,41 @@ target_link_libraries(${MODULE_NAME} PRIVATE ${CURL_LIBRARIES})
 target_include_directories(${MODULE_NAME} PRIVATE ${CURL_INCLUDE_DIRS})
 
 
-add_library(${PLUGIN_DEPRECATED_NETWORK} SHARED
-        NetworkManagerDeprecatedAPIs.cpp
+add_library(${PLUGIN_LEGACY_DEPRECATED_NETWORK} SHARED
+        LegacyPlugin_NetworkAPIs.cpp
         NetworkManagerLogger.cpp
         Module.cpp
 )
 
-target_link_libraries(${PLUGIN_DEPRECATED_NETWORK}  PRIVATE
+target_link_libraries(${PLUGIN_LEGACY_DEPRECATED_NETWORK}  PRIVATE
                                         ${NAMESPACE}Core::${NAMESPACE}Core
                                         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
                                         )
 
-set_target_properties(${PLUGIN_DEPRECATED_NETWORK} PROPERTIES
+set_target_properties(${PLUGIN_LEGACY_DEPRECATED_NETWORK} PROPERTIES
                                         CXX_STANDARD 11
                                         CXX_STANDARD_REQUIRED YES)
 
-install(TARGETS ${PLUGIN_DEPRECATED_NETWORK} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/${STORAGE_DIRECTORY}/plugins)
+install(TARGETS ${PLUGIN_LEGACY_DEPRECATED_NETWORK} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/${STORAGE_DIRECTORY}/plugins)
 
-add_library(${PLUGIN_DEPRECATED_WIFI} SHARED
-        WiFiManagerDeprecatedAPIs.cpp
+add_library(${PLUGIN_LEGACY_DEPRECATED_WIFI} SHARED
+        LegacyPlugin_WiFiManagerAPIs.cpp
         NetworkManagerLogger.cpp
         Module.cpp
 )
 
-target_link_libraries(${PLUGIN_DEPRECATED_WIFI}  PRIVATE
+target_link_libraries(${PLUGIN_LEGACY_DEPRECATED_WIFI}  PRIVATE
                                         ${NAMESPACE}Core::${NAMESPACE}Core
                                         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
                                     )
 
-set_target_properties(${PLUGIN_DEPRECATED_WIFI} PROPERTIES
+set_target_properties(${PLUGIN_LEGACY_DEPRECATED_WIFI} PROPERTIES
                                         CXX_STANDARD 11
                                         CXX_STANDARD_REQUIRED YES)
 
-install(TARGETS ${PLUGIN_DEPRECATED_WIFI} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/${STORAGE_DIRECTORY}/plugins)
+install(TARGETS ${PLUGIN_LEGACY_DEPRECATED_WIFI} DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/${STORAGE_DIRECTORY}/plugins)
 
 write_config()
-write_config(PLUGINS NetworkManagerDeprecatedAPIs CLASSNAME Network LOCATOR lib${PLUGIN_DEPRECATED_NETWORK}.so)
-write_config(PLUGINS WiFiManagerDeprecatedAPIs CLASSNAME WiFiManager LOCATOR lib${PLUGIN_DEPRECATED_WIFI}.so)
+write_config(PLUGINS LegacyPlugin_NetworkAPIs CLASSNAME Network LOCATOR lib${PLUGIN_LEGACY_DEPRECATED_NETWORK}.so)
+write_config(PLUGINS LegacyPlugin_WiFiManagerAPIs CLASSNAME WiFiManager LOCATOR lib${PLUGIN_LEGACY_DEPRECATED_WIFI}.so)
 
