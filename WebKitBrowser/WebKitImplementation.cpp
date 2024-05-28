@@ -99,6 +99,90 @@ WK_EXPORT void WKPreferencesSetPageCacheEnabled(WKPreferencesRef preferences, bo
 
 #define URL_LOAD_RESULT_TIMEOUT_MS                                   (15 * 1000)
 
+namespace
+{
+    static constexpr char ENV_WPE_CLIENT_CERTIFICATES_URLS[] = "WPE_CLIENT_CERTIFICATES_URLS";
+    static constexpr char ENV_URL_LIST_DELIMITER[] = "|"; // not allowed in URI
+    static constexpr char MSG_CLIENT_CERT_DELIMITER[] = "\r\n";
+
+    bool isASCIISpace(char c)
+    {
+        return c == ' ' || c == '\t';
+    }
+
+    void trimLeadingAndTrailingWs(std::string *s)
+    {
+        while (!s->empty() && isASCIISpace(s->front()))
+        {
+            s->erase(0, 1);
+        }
+
+        while (!s->empty() && isASCIISpace(s->back()))
+        {
+            s->pop_back();
+        }
+    }
+
+    std::vector<std::string> tokenize(const std::string &s, const char *delimiters)
+    {
+        auto lastPos = std::string::npos;
+        std::vector<std::string> result;
+        auto pos = std::string::npos;
+        lastPos = 0;
+        do
+        {
+            pos = s.find_first_of(delimiters, lastPos);
+            if (pos != std::string::npos)
+            {
+                auto toAdd = s.substr(lastPos, pos - lastPos);
+                trimLeadingAndTrailingWs(&toAdd);
+                result.push_back(std::move(toAdd));
+                // Skip more delimiters.
+                lastPos = s.find_first_not_of(delimiters, pos + 1);
+            }
+            else
+            {
+                auto toAdd = s.substr(lastPos);
+                trimLeadingAndTrailingWs(&toAdd);
+                // No more delimiters in the front so push the last bit.
+                result.push_back(std::move(toAdd));
+            }
+        } while (pos != std::string::npos && lastPos != std::string::npos);
+
+        return result;
+    }
+
+    void inline replaceString(string &subject, const string &search, const string &replace)
+    {
+        size_t pos = 0;
+        while ((pos = subject.find(search, pos)) != string::npos)
+        {
+            subject.replace(pos, search.length(), replace);
+            pos += replace.length();
+        }
+    }
+
+    void inline decodeUrlCertPath(string &url_path)
+    {
+        replaceString(url_path, "%2f", "/");
+        replaceString(url_path, "%2F", "/");
+    }
+
+    // based on
+    //   Messenger/MessengerSecurity.cpp: string GetUrlOrigin(const string& input)
+    string getUrlOrigin(const string &input)
+    {
+        // see https://tools.ietf.org/html/rfc3986
+        auto path = input.find('/', input.find("//") + 2);
+        auto fragment = input.rfind('#', path);
+        auto end = fragment == string::npos ? path : fragment;
+        auto query = input.rfind('?', end);
+        if (query != string::npos)
+            end = query;
+        return input.substr(0, end).append("/");
+    }
+
+}
 
 namespace WPEFramework {
 namespace Plugin {
@@ -704,6 +788,7 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("tcpkeepalive"), &TCPKeepAlive);
                 Add(_T("clientcert"), &ClientCert);
                 Add(_T("clientcertkey"), &ClientCertKey);
+                Add(_T("clientcertsinitialconf"), &ClientCertsInitialConf);
                 Add(_T("logtosystemconsoleenabled"), &LogToSystemConsoleEnabled);
                 Add(_T("watchdogchecktimeoutinseconds"), &WatchDogCheckTimeoutInSeconds);
                 Add(_T("watchdoghangthresholdtinseconds"), &WatchDogHangThresholdInSeconds);
@@ -781,6 +866,7 @@ static GSourceFuncs _handlerIntervention =
             Core::JSON::Boolean TCPKeepAlive;
             Core::JSON::String ClientCert;
             Core::JSON::String ClientCertKey;
+            Core::JSON::String ClientCertsInitialConf;
             Core::JSON::Boolean LogToSystemConsoleEnabled;
             Core::JSON::DecUInt16 WatchDogCheckTimeoutInSeconds;   // How often to check main event loop for responsiveness
             Core::JSON::DecUInt16 WatchDogHangThresholdInSeconds;  // The amount of time to give a process to recover before declaring a hang state
@@ -1894,16 +1980,150 @@ static GSourceFuncs _handlerIntervention =
             return URL.substr(beginDomain, endDomain - beginDomain);
         }
 
-        uint32_t URL(const string& URL) override
+        void AppendClientCertificate(const std::string& newWpeHost, const std::string& newWpeClientCert, const std::string& newWpeClientCertKey, std::string& newCertContents)
+        {
+            if (newWpeHost.empty() || newWpeClientCert.empty() || newWpeClientCertKey.empty()) {
+                newCertContents.clear();
+                TRACE(Trace::Error, (_T("Invalid arguments (%d,%d,%d)\n"), newWpeHost.empty(), newWpeClientCert.empty(), newWpeClientCertKey.empty()));
+                return;
+            }
+
+            OpenSSL_add_all_algorithms();
+
+            auto *certsUrls = getenv(ENV_WPE_CLIENT_CERTIFICATES_URLS);
+            if (certsUrls && *certsUrls)
+            {
+                constexpr auto kUrlsSep = ENV_URL_LIST_DELIMITER; // not allowed in URI
+                std::string current_certsUrls(certsUrls);
+                auto urlsList = tokenize(current_certsUrls, kUrlsSep);
+                auto append_newHost = true;
+                auto isValid_certContents = false;
+                for (const auto &url : urlsList)
+                {
+                    if (url == newWpeHost)
+                    {
+                        TRACE(Trace::Information, (_T("Already found on the list %s\n "), newWpeHost.c_str()));
+                        append_newHost = false;
+                        break;
+                    }
+                }
+
+                if (append_newHost)
+                {
+                    if (!current_certsUrls.empty())
+                    {
+                        current_certsUrls += kUrlsSep;
+                    }
+                    current_certsUrls += newWpeHost;
+                }
+
+                std::string certContents = GetFileContent(newWpeClientCert);
+
+                if (certContents.empty())
+                {
+                    TRACE(Trace::Error, (_T("Empty certificate for %s %s"), newWpeClientCert.c_str(), newWpeHost.c_str()));
+                }
+                else
+                {
+                    std::string keyContents = GetFileContent(newWpeClientCertKey);
+                    if (keyContents.empty())
+                    {
+                        TRACE(Trace::Error, (_T("Empty private key for %s %s"), newWpeClientCertKey.c_str(), newWpeHost.c_str()));
+                    }
+                    else if (DecryptWithOpenSSL(&keyContents))
+                    {
+                        certContents += "\n" + keyContents;
+                        isValid_certContents = true;
+                    }
+                    else
+                    {
+                        TRACE(Trace::Error, (_T("Failed decrypting private key for %s %s"), newWpeClientCertKey.c_str(), newWpeHost.c_str()));
+                    }
+                }
+
+                if (isValid_certContents) {
+                    Core::SystemInfo::SetEnvironment(_T(ENV_WPE_CLIENT_CERTIFICATES_URLS), current_certsUrls.c_str());
+                    Core::SystemInfo::SetEnvironment(_T(newWpeHost.c_str()), certContents.c_str());
+                    newCertContents = std::string(ENV_WPE_CLIENT_CERTIFICATES_URLS);
+                    newCertContents.append(MSG_CLIENT_CERT_DELIMITER);
+                    newCertContents.append(current_certsUrls);
+                    newCertContents.append(MSG_CLIENT_CERT_DELIMITER);
+                    newCertContents.append(newWpeHost);
+                    newCertContents.append(MSG_CLIENT_CERT_DELIMITER);
+                    newCertContents.append(certContents);
+                    TRACE(Trace::Information, (_T("Update environment (data size %d/%d)"), newCertContents.length(), certContents.length()));
+                }
+            } else {
+                TRACE(Trace::Error, (_T("Failed to update environment, host %s:\n"), newWpeHost.c_str()));
+            }
+        }
+
+        std::string getClientCertFromUrl(const std::string& url, std::string& newCertContents)
+        {
+            std::vector<std::string> urlparm_str;
+            string new_url;
+            urlparm_str = tokenize(url, "&?");
+            if(urlparm_str.size() > 0) {
+                static constexpr char payload_cert[] = "clientcert=";
+                static constexpr char payload_certkey[] = "clientcertkey=";
+                static constexpr int  payload_cert_len = sizeof(payload_cert) - 1;
+                static constexpr int  payload_certkey_len = sizeof(payload_certkey) - 1;
+
+                string new_host;
+                string new_payload_cert;
+                string new_payload_certkey;
+                bool useAmpersand = false;
+                for (auto const &urlKeyStr : urlparm_str) {
+                    if (urlKeyStr.compare(0, payload_cert_len, payload_cert) == 0) {
+                        if(new_payload_cert.size() == 0) {
+                            new_payload_cert = urlKeyStr.substr(payload_cert_len);
+                            decodeUrlCertPath(new_payload_cert);
+                            TRACE(Trace::Information, (_T("found parameter clientcert: %s\n"), new_payload_cert.c_str()));
+                        }
+                    } else if ((urlKeyStr.compare(0, payload_certkey_len, payload_certkey)) == 0) {
+                        if(new_payload_certkey.size() == 0) {
+                            new_payload_certkey = urlKeyStr.substr(payload_certkey_len);
+                            decodeUrlCertPath(new_payload_certkey);
+                            TRACE(Trace::Information, (_T("found parameter clientcertkey: %s\n"), new_payload_certkey.c_str()));
+                        }
+                    } else {
+                        if (new_host.size() == 0 ) {
+                            new_host=getUrlOrigin(urlKeyStr);
+                        } else {
+                            if (useAmpersand) {
+                                new_url.append("&");
+                            } else {
+                                useAmpersand = true;
+                                new_url.append("?");
+                            }
+                        }
+                        new_url.append(urlKeyStr);
+                    }
+                }
+                if(new_host.size() && new_payload_cert.size() && new_payload_certkey.size() ) {
+                    AppendClientCertificate(new_host, new_payload_cert, new_payload_certkey, newCertContents);
+                }
+                TRACE_L1("New URL: %s (Base URL: %s)", new_url.c_str(), url.c_str());
+
+            } else {
+                new_url = string(url);
+            }
+            return string(new_url);
+        }
+
+        uint32_t URL(const string& URLwithParams) override
         {
             using namespace std::chrono;
+            std::string newCertContents;
+            std::string certsUrls;
+            const string URL = getClientCertFromUrl(URLwithParams, newCertContents);
 
             TRACE_L1("New URL: %s", URL.c_str());
             ODH_WARNING("WPE0020", WPE_CONTEXT_WITH_URL(URL.c_str()), "New URL: %s", URL.c_str());
 
             if (_context != nullptr) {
-                using SetURLData = std::tuple<WebKitImplementation*, string>;
-                auto *data = new SetURLData(this, URL);
+                using SetURLData = std::tuple<WebKitImplementation*, string, string>;
+                auto *data = new SetURLData(this, URL, newCertContents);
 
                 {
                     std::unique_lock<std::mutex> lock{urlData_.mutex};
@@ -1927,10 +2147,18 @@ static GSourceFuncs _handlerIntervention =
                         string url = std::get<1>(data);
                         // Pass new URL as an argument and don't store it here, it'll be stored in the load callback
                         //object->urlValue(url);
+                        std::string certificatedata= std::get<2>(data);;
 
                         object->SetResponseHTTPStatusCode(-1);
 #ifdef WEBKIT_GLIB_API
-                        webkit_web_view_load_uri(object->_view, url.c_str());
+                        if (certificatedata.empty())
+                        {
+                            webkit_web_view_load_uri(object->_view, url.c_str());
+                        }
+                        else
+                        {
+                            webkit_web_view_load_uri_and_cert(object->_view, url.c_str(), certificatedata.c_str());
+                        }
 #else
                         object->SetNavigationRef(nullptr);
                         auto shellURL = WKURLCreateWithUTF8CString(url.c_str());
@@ -2532,45 +2760,7 @@ static GSourceFuncs _handlerIntervention =
 #error "Client certificates private key password not provided"
 #endif
 
-        bool isASCIISpace(char c)
-        {
-            return c == ' ' || c == '\t';
-        }
 
-        void trimLeadingAndTrailingWs(std::string* s)
-        {
-            while (!s->empty() && isASCIISpace(s->front())) {
-                s->erase(0, 1);
-            }
-
-            while(!s->empty() && isASCIISpace(s->back())) {
-                s->pop_back();
-            }
-        }
-
-        std::vector<std::string> tokenize(const std::string& s, const char* delimiters)
-        {
-            auto lastPos = 0u;
-            std::vector<std::string> result;
-            auto pos = 0u;
-            do {
-                pos = s.find_first_of(delimiters, lastPos);
-                if (pos != std::string::npos) {
-                    auto toAdd = s.substr(lastPos, pos - lastPos);
-                    trimLeadingAndTrailingWs(&toAdd);
-                    result.push_back(std::move(toAdd));
-                    // Skip more delimiters.
-                    lastPos = s.find_first_not_of(delimiters, pos + 1);
-                } else {
-                    auto toAdd = s.substr(lastPos);
-                    trimLeadingAndTrailingWs(&toAdd);
-                    // No more delimiters in the front so push the last bit.
-                    result.push_back(std::move(toAdd));
-                }
-            } while (pos != std::string::npos && lastPos != std::string::npos);
-
-            return result;
-        }
 
         static int passCb(char* buf, int size, int rwflag, void* u) {
             if (rwflag)
@@ -2618,18 +2808,12 @@ static GSourceFuncs _handlerIntervention =
 
         void SetupClientCertificates() {
             OpenSSL_add_all_algorithms();
-
-            /* TODO: This configuration is temporary. It'll be moved to plugin config file when architecture will be defined. */
-            std::string wpeClientCertsConf {
-                "https://ipsecure.int.bbc.co.uk/=/etc/ssl/private/bbc-iplayer-cert.pem,/etc/ssl/private/bbc-iplayer-key.pem\r\n"
-                "https://ipsecure.test.bbc.co.uk/=/etc/ssl/private/bbc-iplayer-cert.pem,/etc/ssl/private/bbc-iplayer-key.pem\r\n"
-                "https://ipsecure.stage.bbc.co.uk/=/etc/ssl/private/bbc-iplayer-cert.pem,/etc/ssl/private/bbc-iplayer-key.pem\r\n"
-                "https://securegate.iplayer.bbc.co.uk/=/etc/ssl/private/bbc-iplayer-cert.pem,/etc/ssl/private/bbc-iplayer-key.pem\r\n"
-                "https://pac.networking.certification.bbctvapps.co.uk/=/etc/ssl/private/bbc-iplayer-cert.pem,/etc/ssl/private/bbc-iplayer-key.pem\r\n"};
+            const std::string wpeClientCertsConf = _config.ClientCertsInitialConf;
+            TRACE(Trace::Information, (_T("Client Certs = '%s'"), wpeClientCertsConf.c_str()));
 
             std::string urls;
-            constexpr auto kUrlsSep = "|";  // not allowed in URI
-            auto lines = tokenize(wpeClientCertsConf, "\r\n");
+            constexpr auto kUrlsSep = ENV_URL_LIST_DELIMITER;
+            auto lines = tokenize(wpeClientCertsConf, kUrlsSep);
             for (const auto& line : lines) {
                 auto urlToFiles = tokenize(line, "=");
                 if (urlToFiles.size() == 2) {
@@ -2661,7 +2845,8 @@ static GSourceFuncs _handlerIntervention =
             }
 
             if (!urls.empty()) {
-                Core::SystemInfo::SetEnvironment(_T("WPE_CLIENT_CERTIFICATES_URLS"), urls.c_str());
+                Core::SystemInfo::SetEnvironment(_T(ENV_WPE_CLIENT_CERTIFICATES_URLS), urls.c_str());
+                TRACE(Trace::Information, (_T("%s:%d %s[%d]"), __func__, __LINE__, ENV_WPE_CLIENT_CERTIFICATES_URLS, urls.size()));
             }
         }
 
@@ -4279,7 +4464,7 @@ static GSourceFuncs _handlerIntervention =
 } // namespace WPEFramework
 
 extern "C" __attribute__((__visibility__("default"))) void ModuleUnload()
-	
+
 {
     // Before plugin library is unloaded that function would be invoked by WPEProcess before dlclose call
     // implement here important deinitialization of the library, in our case we know about the following issues with libWPEWebkit library:
