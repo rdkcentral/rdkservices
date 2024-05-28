@@ -18,7 +18,7 @@ All notable changes to this RDK Service will be documented in this file.
 
 ## [1.0.6] - 2024-05-28
 ### Fixed
-- Added methods for retrieving Serial number, Chip Id and Firmware version
+- Added methods for retrieving Serial number, Chip Id and Firmware version for Broadcom Devices.
 
 ## [1.0.5] - 2024-01-10
 ### Fixed
