@@ -57,6 +57,7 @@
 #define API_VERSION_NUMBER_MINOR 5
 #define API_VERSION_NUMBER_PATCH 0
 
+
 const string WPEFramework::Plugin::RDKShell::SERVICE_NAME = "org.rdk.RDKShell";
 //methods
 const string WPEFramework::Plugin::RDKShell::RDKSHELL_METHOD_MOVE_TO_FRONT = "moveToFront";
@@ -1691,7 +1692,24 @@ namespace WPEFramework {
             {
                 waitForPersistentStore = false;
             }
-
+	    if(!factoryMacMatched){
+                   int32_t status = 0;
+                   std::string callsign("ResidentApp");
+                   JsonObject activateParams,response;
+                   activateParams.Set("callsign",callsign.c_str());
+                   JsonObject activateResult;
+                   auto thunderController = getThunderControllerClient();
+                   status = thunderController->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, activateResult);
+                   std::cout << "Activating ResidentApp from RDKShell during bootup with Status:" << status << std::endl;
+                   if (status > 0){
+                           response["message"] = "resident app launch failed";
+                           std::cout << "resident app launch failed from rdkshell" << std::endl;
+                   }
+                  else {
+                        response["message"] = "resident app launch success";
+                        std::cout << "resident app launch success from rdkshell" << std::endl;
+                  }
+            }
             char* blockResidentApp = getenv("RDKSHELL_BLOCK_RESIDENTAPP_FACTORYMODE");
             if (NULL != blockResidentApp)
             {
