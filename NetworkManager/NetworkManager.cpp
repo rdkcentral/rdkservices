@@ -43,6 +43,7 @@ namespace WPEFramework
               _notification(this)
         {
             // Don't do any work in the constructor - all set up should be done in Initialize
+            m_defaultInterface = "wlan0";
         }
 
         NetworkManager::~NetworkManager()
@@ -90,14 +91,10 @@ namespace WPEFramework
                 _NetworkManager->Configure(_service->ConfigLine(), _loglevel);
                 // configure loglevel in libWPEFrameworkNetworkManager.so
                 NetworkManagerLogger::SetLevel(static_cast <NetworkManagerLogger::LogLevel>(_loglevel));
-                //Exchange::JNetworkManager::Register(*this, _NetworkManager);
                 _NetworkManager->Register(&_notification);
 
                 // Register all custom JSON-RPC methods
                 RegisterAllMethods();
-#ifdef ENABLE_LEGACY_NSM_SUPPORT
-                RegisterLegacyMethods();
-#endif
             }
             else
             {
@@ -133,12 +130,8 @@ namespace WPEFramework
                 _service->Unregister(&_notification);
                 _NetworkManager->Unregister(&_notification);
 
-                //Exchange::JNetworkManager::Unregister(*this);
                 // Unregister all our JSON-RPC methods
                 UnregisterAllMethods();
-#ifdef ENABLE_LEGACY_NSM_SUPPORT
-                UnregisterLegacyMethods();
-#endif
                 _NetworkManager->Release();
             }
 
