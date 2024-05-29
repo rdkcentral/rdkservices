@@ -1,0 +1,98 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+CHECK_TTS_MANAGER_RETURN_ON_FAIL	./TTSCommon.h	61;"	d
+CHECK_TTS_PARAMETER_RETURN_ON_FAIL	./TTSCommon.h	68;"	d
+Delay	./TTSTest.cpp	/^void Delay(uint32_t delay_us) {$/;"	f
+ERROR_LEVEL	./logger.h	/^enum LogLevel {FATAL_LEVEL = 0, ERROR_LEVEL, WARNING_LEVEL, INFO_LEVEL, VERBOSE_LEVEL, TRACE_LEVEL};$/;"	e	enum:TTS::LogLevel
+EXT_EVENT_ALL	./TTSCommon.h	/^        EXT_EVENT_ALL               = 0xFFFF$/;"	e	enum:TTS::ExtendedEvents
+EXT_EVENT_CANCELLED	./TTSCommon.h	/^        EXT_EVENT_CANCELLED         = 1 << 3,$/;"	e	enum:TTS::ExtendedEvents
+EXT_EVENT_INTERRUPTED	./TTSCommon.h	/^        EXT_EVENT_INTERRUPTED       = 1 << 4,$/;"	e	enum:TTS::ExtendedEvents
+EXT_EVENT_NETWORK_ERROR	./TTSCommon.h	/^        EXT_EVENT_NETWORK_ERROR     = 1 << 5,$/;"	e	enum:TTS::ExtendedEvents
+EXT_EVENT_PAUSED	./TTSCommon.h	/^        EXT_EVENT_PAUSED            = 1 << 1,$/;"	e	enum:TTS::ExtendedEvents
+EXT_EVENT_PLAYBACK_ERROR	./TTSCommon.h	/^        EXT_EVENT_PLAYBACK_ERROR    = 1 << 6,$/;"	e	enum:TTS::ExtendedEvents
+EXT_EVENT_RESUMED	./TTSCommon.h	/^        EXT_EVENT_RESUMED           = 1 << 2,$/;"	e	enum:TTS::ExtendedEvents
+EXT_EVENT_WILL_SPEAK	./TTSCommon.h	/^        EXT_EVENT_WILL_SPEAK        = 1 << 0,$/;"	e	enum:TTS::ExtendedEvents
+ExtendedEvents	./TTSCommon.h	/^    enum ExtendedEvents {$/;"	g	namespace:TTS
+FATAL_LEVEL	./logger.h	/^enum LogLevel {FATAL_LEVEL = 0, ERROR_LEVEL, WARNING_LEVEL, INFO_LEVEL, VERBOSE_LEVEL, TRACE_LEVEL};$/;"	e	enum:TTS::LogLevel
+Handlers	./TTSTest.cpp	/^namespace Handlers {$/;"	n	file:
+INFO_LEVEL	./logger.h	/^enum LogLevel {FATAL_LEVEL = 0, ERROR_LEVEL, WARNING_LEVEL, INFO_LEVEL, VERBOSE_LEVEL, TRACE_LEVEL};$/;"	e	enum:TTS::LogLevel
+LogLevel	./logger.h	/^enum LogLevel {FATAL_LEVEL = 0, ERROR_LEVEL, WARNING_LEVEL, INFO_LEVEL, VERBOSE_LEVEL, TRACE_LEVEL};$/;"	g	namespace:TTS
+MAX_LENGTH	./TTSTest.cpp	29;"	d	file:
+MAX_STRING_LENGTH	./TTSTest.cpp	33;"	d	file:
+MyStream	./TTSTest.h	/^    MyStream() : myfile(NULL), in(&cin) {$/;"	f	struct:MyStream
+MyStream	./TTSTest.h	/^    MyStream(string fname) : myfile(new ifstream(fname)) {$/;"	f	struct:MyStream
+MyStream	./TTSTest.h	/^struct MyStream {$/;"	s
+OPT_BLOCK_TILL_INPUT	./TTSTest.cpp	61;"	d	file:
+OPT_CANCEL	./TTSTest.cpp	51;"	d	file:
+OPT_ENABLE_TTS	./TTSTest.cpp	45;"	d	file:
+OPT_EXIT	./TTSTest.cpp	54;"	d	file:
+OPT_GET_CONFIG	./TTSTest.cpp	49;"	d	file:
+OPT_IS_SPEAKING	./TTSTest.cpp	59;"	d	file:
+OPT_PAUSE	./TTSTest.cpp	52;"	d	file:
+OPT_RESUME	./TTSTest.cpp	53;"	d	file:
+OPT_SET_CONFIG	./TTSTest.cpp	57;"	d	file:
+OPT_SLEEP	./TTSTest.cpp	62;"	d	file:
+OPT_SPEAK	./TTSTest.cpp	50;"	d	file:
+OPT_SPEECH_STATE	./TTSTest.cpp	60;"	d	file:
+OPT_TTS_ENABLED	./TTSTest.cpp	58;"	d	file:
+OPT_TTS_LANGUAGE	./TTSTest.cpp	47;"	d	file:
+OPT_TTS_RATE	./TTSTest.cpp	46;"	d	file:
+OPT_TTS_VOICE	./TTSTest.cpp	48;"	d	file:
+OPT_VOICE_LIST	./TTSTest.cpp	56;"	d	file:
+Plugin	./TTSCommon.h	/^namespace Plugin {$/;"	n	namespace:WPEFramework
+SERVER_DETAILS	./TTSTest.cpp	32;"	d	file:
+SPEECH_IN_PROGRESS	./TTSCommon.h	/^        SPEECH_IN_PROGRESS,$/;"	e	enum:TTS::SpeechState
+SPEECH_NOT_FOUND	./TTSCommon.h	/^        SPEECH_NOT_FOUND$/;"	e	enum:TTS::SpeechState
+SPEECH_PAUSED	./TTSCommon.h	/^        SPEECH_PAUSED,$/;"	e	enum:TTS::SpeechState
+SPEECH_PENDING	./TTSCommon.h	/^        SPEECH_PENDING = 0,$/;"	e	enum:TTS::SpeechState
+SpeechState	./TTSCommon.h	/^    enum SpeechState {$/;"	g	namespace:TTS
+TRACE_LEVEL	./logger.h	/^enum LogLevel {FATAL_LEVEL = 0, ERROR_LEVEL, WARNING_LEVEL, INFO_LEVEL, VERBOSE_LEVEL, TRACE_LEVEL};$/;"	e	enum:TTS::LogLevel
+TTS	./TTSCommon.h	/^namespace TTS {$/;"	n
+TTS	./logger.h	/^namespace TTS {$/;"	n
+TTSLOG_ERROR	./logger.h	87;"	d
+TTSLOG_FATAL	./logger.h	88;"	d
+TTSLOG_INFO	./logger.h	85;"	d
+TTSLOG_TRACE	./logger.h	83;"	d
+TTSLOG_VERBOSE	./logger.h	84;"	d
+TTSLOG_WARNING	./logger.h	86;"	d
+TTSSRV_CALLSIGN	./TTSTest.cpp	31;"	d	file:
+TTS_Error	./TTSCommon.h	/^    enum TTS_Error {$/;"	g	namespace:TTS
+TTS_FAIL	./TTSCommon.h	/^        TTS_FAIL,$/;"	e	enum:TTS::TTS_Error
+TTS_INVALID_CONFIGURATION	./TTSCommon.h	/^        TTS_INVALID_CONFIGURATION,$/;"	e	enum:TTS::TTS_Error
+TTS_LOGGER_H	./logger.h	21;"	d
+TTS_NOT_ENABLED	./TTSCommon.h	/^        TTS_NOT_ENABLED,$/;"	e	enum:TTS::TTS_Error
+TTS_NO_ACCESS	./TTSCommon.h	/^        TTS_NO_ACCESS$/;"	e	enum:TTS::TTS_Error
+TTS_OK	./TTSCommon.h	/^        TTS_OK = 0,$/;"	e	enum:TTS::TTS_Error
+TTS_assert	./logger.h	49;"	d
+VERBOSE_LEVEL	./logger.h	/^enum LogLevel {FATAL_LEVEL = 0, ERROR_LEVEL, WARNING_LEVEL, INFO_LEVEL, VERBOSE_LEVEL, TRACE_LEVEL};$/;"	e	enum:TTS::LogLevel
+WARNING_LEVEL	./logger.h	/^enum LogLevel {FATAL_LEVEL = 0, ERROR_LEVEL, WARNING_LEVEL, INFO_LEVEL, VERBOSE_LEVEL, TRACE_LEVEL};$/;"	e	enum:TTS::LogLevel
+WPEFramework	./TTSCommon.h	/^namespace WPEFramework {$/;"	n
+_LOG	./logger.h	70;"	d
+_LOG	./logger.h	76;"	d
+_TTS_ERRORS_H_	./TTSCommon.h	21;"	d
+_TTS_TEST_H_	./TTSTest.h	21;"	d
+__METHOD_NAME__	./logger.h	33;"	d
+currentSpeechId	./TTSTest.cpp	/^static int currentSpeechId = 0;$/;"	v	file:
+g_connectedToTTS	./TTSTest.cpp	/^volatile bool g_connectedToTTS = false;$/;"	v
+g_connectedToTTSEventCount	./TTSTest.cpp	/^volatile unsigned short g_connectedToTTSEventCount = 0;$/;"	v
+getInput	./TTSTest.h	/^    bool getInput(T &var, const char *prompt = NULL, bool console = false) {$/;"	f	struct:MyStream
+in	./TTSTest.h	/^    istream *in;$/;"	m	struct:MyStream
+manualExecution	./TTSTest.h	/^    bool manualExecution;$/;"	m	struct:MyStream
+myfile	./TTSTest.h	/^    ifstream *myfile;$/;"	m	struct:MyStream
+onNetworkErrorHandler	./TTSTest.cpp	/^    static void onNetworkErrorHandler(const JsonObject& params) {$/;"	f	namespace:Handlers
+onPlaybackErrorHandler	./TTSTest.cpp	/^    static void onPlaybackErrorHandler(const JsonObject& params) {$/;"	f	namespace:Handlers
+onSpeechCompleteHandler	./TTSTest.cpp	/^    static void onSpeechCompleteHandler(const JsonObject& params) {$/;"	f	namespace:Handlers
+onSpeechInterruptedHandler	./TTSTest.cpp	/^    static void onSpeechInterruptedHandler(const JsonObject& params) {$/;"	f	namespace:Handlers
+onSpeechPauseHandler	./TTSTest.cpp	/^    static void onSpeechPauseHandler(const JsonObject& params) {$/;"	f	namespace:Handlers
+onSpeechResumeHandler	./TTSTest.cpp	/^    static void onSpeechResumeHandler(const JsonObject& params) {$/;"	f	namespace:Handlers
+onSpeechStartHandler	./TTSTest.cpp	/^    static void onSpeechStartHandler(const JsonObject& params) {$/;"	f	namespace:Handlers
+onTTSStateChangedHandler	./TTSTest.cpp	/^    static void onTTSStateChangedHandler(const JsonObject& params) {$/;"	f	namespace:Handlers
+onVoiceChangedHandler	./TTSTest.cpp	/^    static void onVoiceChangedHandler(const JsonObject& params) {$/;"	f	namespace:Handlers
+onWillSpeakHandler	./TTSTest.cpp	/^    static void onWillSpeakHandler(const JsonObject& params) {$/;"	f	namespace:Handlers
+showMenu	./TTSTest.cpp	/^void showMenu()$/;"	f
+showSpeakMenu	./TTSTest.cpp	/^void showSpeakMenu()$/;"	f
+ttsL3ThreadFunc	./TTSTest.cpp	/^int ttsL3ThreadFunc(MyStream *stream) {$/;"	f
