@@ -211,10 +211,10 @@ namespace WPEFramework
             /* @brief Set the Primary Interface used for external world communication */
             virtual uint32_t SetPrimaryInterface (const string& interface/* @in */) = 0;
 
-            /* @brief Enable the active Interface used for external world communication */
-            virtual uint32_t EnableInterface (const string& interface/* @in */) = 0;
-            /* @brief Disable the Interface passed */
-            virtual uint32_t DisableInterface (const string& interface/* @in */) = 0;
+            /* @brief Enable/Disable the given interface */
+            virtual uint32_t SetInterfaceState (const string& interface /* @in */, const bool& enabled /* @in */) = 0;
+            /* @brief Get the state of given interface */
+            virtual uint32_t GetInterfaceState (const string& interface /* @in */, bool& isEnabled /* @out */) = 0;
 
             /* @brief Get IP Address Of the Interface */
             virtual uint32_t GetIPSettings(const string& interface /* @in */, const string &ipversion /* @in */, IPAddressInfo& result /* @out */) = 0;
