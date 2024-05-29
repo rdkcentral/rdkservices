@@ -543,9 +543,11 @@ static GSourceFuncs _handlerIntervention =
                     : Core::JSON::Container()
                     , WebProcessSettings()
                     , NetworkProcessSettings()
+                    , ServiceWorkerProcessSettings()
                 {
                     Add(_T("webprocesssettings"), &WebProcessSettings);
                     Add(_T("networkprocesssettings"), &NetworkProcessSettings);
+                    Add(_T("serviceworkerprocesssettings"), &ServiceWorkerProcessSettings);
                 }
                 ~MemorySettings()
                 {
@@ -554,6 +556,7 @@ static GSourceFuncs _handlerIntervention =
             public:
                 WebProcess WebProcessSettings;
                 Settings NetworkProcessSettings;
+                WebProcess ServiceWorkerProcessSettings;
             };
 
         public:
@@ -2855,8 +2858,30 @@ static GSourceFuncs _handlerIntervention =
                         webkit_memory_pressure_settings_set_poll_interval(memoryPressureSettings, _config.Memory.WebProcessSettings.PollInterval.Value());
                     }
 
-                    // Pass web process memory pressure settings to WebKitWebContext constructor
-                    wkContext = WEBKIT_WEB_CONTEXT(g_object_new(WEBKIT_TYPE_WEB_CONTEXT, "website-data-manager", websiteDataManager, "memory-pressure-settings", memoryPressureSettings, nullptr));
+                    if (_config.Memory.ServiceWorkerProcessSettings.IsSet() == true) {
+                        WebKitMemoryPressureSettings* serviceWorkerMemoryPressureSettings = webkit_memory_pressure_settings_new();
+
+                        if (_config.Memory.ServiceWorkerProcessSettings.Limit.IsSet() == true) {
+                            webkit_memory_pressure_settings_set_memory_limit(serviceWorkerMemoryPressureSettings, _config.Memory.ServiceWorkerProcessSettings.Limit.Value());
+                        }
+                        if (_config.Memory.ServiceWorkerProcessSettings.PollInterval.IsSet() == true) {
+                            webkit_memory_pressure_settings_set_poll_interval(serviceWorkerMemoryPressureSettings, _config.Memory.ServiceWorkerProcessSettings.PollInterval.Value());
+                        }
+
+                        // Pass web and service worker process memory pressure settings to WebKitWebContext constructor
+                        wkContext = WEBKIT_WEB_CONTEXT(g_object_new(WEBKIT_TYPE_WEB_CONTEXT,
+                            "website-data-manager", websiteDataManager,
+                            "memory-pressure-settings", memoryPressureSettings,
+                            "service-worker-memory-pressure-settings", serviceWorkerMemoryPressureSettings,
+                            nullptr));
+                        webkit_memory_pressure_settings_free(serviceWorkerMemoryPressureSettings);
+                    } else {
+                        // Pass web process memory pressure settings to WebKitWebContext constructor
+                        wkContext = WEBKIT_WEB_CONTEXT(g_object_new(WEBKIT_TYPE_WEB_CONTEXT,
+                            "website-data-manager", websiteDataManager,
+                            "memory-pressure-settings", memoryPressureSettings,
+                            nullptr));
+                    }
                     webkit_memory_pressure_settings_free(memoryPressureSettings);
                 } else
 #endif

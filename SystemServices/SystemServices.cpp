@@ -402,6 +402,7 @@ namespace WPEFramework {
             registerMethod("updateFirmware", &SystemServices::updateFirmware, this);
             registerMethod("setMode", &SystemServices::setMode, this);
             registerMethod("setBootLoaderPattern", &SystemServices::setBootLoaderPattern, this);
+	    registerMethod("setBootLoaderSplashScreen", &SystemServices::setBootLoaderSplashScreen, this);
             registerMethod("getFirmwareUpdateInfo",
                     &SystemServices::getFirmwareUpdateInfo, this);
             registerMethod("setDeepSleepTimer", &SystemServices::setDeepSleepTimer,
@@ -1323,6 +1324,49 @@ namespace WPEFramework {
                         status = false;
                    }
                 }
+                returnResponse(status);
+        }
+
+        /***
+         * @brief : To update bootloader splash screen.
+         * @param1[in]  : {"path":"<string>"}
+         * @param2[out] : {"result":{"success":<bool>}}
+         * @return              : Core::<StatusCode>
+         */
+        uint32_t SystemServices::setBootLoaderSplashScreen(const JsonObject& parameters,
+                JsonObject& response)
+        {                
+                bool status = false;
+                string strBLSplashScreenPath = parameters["path"].String();
+		bool fileExists = Utils::fileExists(strBLSplashScreenPath.c_str());
+                if((strBLSplashScreenPath != "") && fileExists)
+		{
+			IARM_Bus_MFRLib_SetBLSplashScreen_Param_t mfrparam;
+			std::strcpy(mfrparam.path, strBLSplashScreenPath.c_str());
+			IARM_Result_t result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_SetBlSplashScreen, (void *)&mfrparam, sizeof(mfrparam));
+			if (result != IARM_RESULT_SUCCESS){
+				LOGERR("Update failed. path: %s, fileExists %s, IARM result %d ",strBLSplashScreenPath.c_str(),fileExists ? "true" : "false",result);
+				JsonObject error;
+				error["message"] = "Update failed";
+				error["code"] = "-32002";
+				response["error"] = error;
+				status = false;
+			}
+			else 
+			{
+				LOGINFO("BootLoaderSplashScreen updated successfully");
+				status =true;
+			}
+		}
+		else
+		{
+			LOGERR("Invalid path. path: %s, fileExists %s ",strBLSplashScreenPath.c_str(),fileExists ? "true" : "false");
+			JsonObject error;
+			error["message"] = "Invalid path";
+			error["code"] = "-32001";
+			response["error"] = error;
+			status = false;
+		}
                 returnResponse(status);
         }
 
