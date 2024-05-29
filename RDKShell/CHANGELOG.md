@@ -17,6 +17,10 @@ All notable changes to this RDK Service will be documented in this file.
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
 ## [1.4.19] - 2024-05-22
+### Fixed
+- Activation of RA in RDKShell and setting the autostart to false
+
+## [1.4.19] - 2024-05-22
 ### Added
 - RDKShell must claim its ownership of Graphics subsystem to Thunder
 
