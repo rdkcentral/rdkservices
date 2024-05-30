@@ -1,0 +1,13 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/plugin.schema.json",
+    "info": {
+      "title": "MiracastService Plugin",
+      "callsign": "org.rdk.MiracastService",
+      "locator": "libWPEFrameworkMiracastService.so",
+      "status": "production",
+      "description": "The `MiracastService` plugin will manage Peer-to-Peer events from WiFi driver then It will launch Miracast player for screen mirroring"
+    },
+    "interface": {
+      "$ref": "MiracastService/MiracastService.json#"
+    }
+}

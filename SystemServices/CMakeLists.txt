@@ -18,6 +18,7 @@
 set(PLUGIN_NAME SystemServices)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_SYSTEM_AUTOSTART false CACHE STRING "To automatically start System plugin.")
 set(PLUGIN_SYSTEMSERVICE_STARTUPORDER "" CACHE STRING "To configure startup order of SystemServices plugin")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
@@ -89,15 +90,15 @@ else (RFC_FOUND)
 endif (RFC_FOUND)
 
 if (RDK_SERVICE_L2_TEST)
-   message ("L2 test Enabled")
-   find_library(TESTMOCKLIB_LIBRARIES NAMES TestMocklib)
-   if (TESTMOCKLIB_LIBRARIES)
-       message ("linking mock libraries ${TESTMOCKLIB_LIBRARIES} library")
-       target_link_libraries(${MODULE_NAME} PRIVATE ${TESTMOCKLIB_LIBRARIES})
-   else (TESTMOCKLIB_LIBRARIES)
-       message ("Require ${TESTMOCKLIB_LIBRARIES} library")
-   endif (TESTMOCKLIB_LIBRARIES)
-endif (RDK_SERVICES_L2_TEST)
+    message ("L2 test Enabled")
+    find_library(TESTMOCKLIB_LIBRARIES NAMES TestMocklib)
+    if (TESTMOCKLIB_LIBRARIES)
+        message ("linking mock libraries ${TESTMOCKLIB_LIBRARIES} library")
+        target_link_libraries(${MODULE_NAME} PRIVATE ${TESTMOCKLIB_LIBRARIES})
+    else (TESTMOCKLIB_LIBRARIES)
+        message ("Require ${TESTMOCKLIB_LIBRARIES} library")
+    endif (TESTMOCKLIB_LIBRARIES)
+endif()
 
 
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)

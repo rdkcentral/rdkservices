@@ -2,7 +2,7 @@
 <a name="RDKShell_Plugin"></a>
 # RDKShell Plugin
 
-**Version: [1.4.16](https://github.com/rdkcentral/rdkservices/blob/main/RDKShell/CHANGELOG.md)**
+**Version: [1.4.18](https://github.com/rdkcentral/rdkservices/blob/main/RDKShell/CHANGELOG.md)**
 
 A org.rdk.RDKShell plugin for Thunder framework.
 
