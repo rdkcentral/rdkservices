@@ -25,7 +25,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 9
+#define API_VERSION_NUMBER_PATCH 12
 
 namespace WPEFramework {
 
@@ -93,7 +93,7 @@ namespace Plugin {
 
         uint32_t connectionId;
 
-        _deviceStore2 = service->Root<Exchange::IStore2>(connectionId, 2000, _T("SqliteStore2"));
+        _deviceStore2 = service->Root<Exchange::IStore2>(connectionId, RPC::CommunicationTimeOut, _T("SqliteStore2"));
         if (_deviceStore2 != nullptr) {
             _deviceStore2->Register(&_store2Sink);
             _deviceStore2->Register(_store);
@@ -102,7 +102,7 @@ namespace Plugin {
             _deviceStoreLimit = _deviceStore2->QueryInterface<Exchange::IStoreLimit>();
         }
 
-        _accountStore2 = service->Root<Exchange::IStore2>(connectionId, 2000, _T("GrpcStore2"));
+        _accountStore2 = service->Root<Exchange::IStore2>(connectionId, RPC::CommunicationTimeOut, _T("GrpcStore2"));
         if (_accountStore2 != nullptr) {
             _accountStore2->Register(&_store2Sink);
         }

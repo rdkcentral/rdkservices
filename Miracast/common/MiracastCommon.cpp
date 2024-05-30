@@ -147,25 +147,31 @@ int8_t MiracastThread::receive_message(void *message, size_t msg_size, int sem_w
     return status;
 }
 
-std::string MiracastCommon::parse_opt_flag( std::string file_name , bool integer_check )
+std::string MiracastCommon::parse_opt_flag( std::string file_name , bool integer_check , bool debugStats )
 {
     std::string return_buffer = "";
     std::ifstream parse_opt_flag_file( file_name.c_str());
 
     if (!parse_opt_flag_file)
     {
-        MIRACASTLOG_WARNING("Failed to open [%s] file\n",file_name.c_str());
+        if ( debugStats ){
+            MIRACASTLOG_WARNING("Failed to open [%s] file",file_name.c_str());
+        }
     }
     else
     {
         std::string line = "";
         if (std::getline(parse_opt_flag_file, line))
         {
-            MIRACASTLOG_INFO("Content in [%s] is [%s]",file_name.c_str(),line.c_str());
+            if ( debugStats ){
+                MIRACASTLOG_INFO("Content in [%s] is [%s]",file_name.c_str(),line.c_str());
+            }
         }
         else
         {
-            MIRACASTLOG_WARNING("No Content in [%s]",file_name.c_str());
+            if ( debugStats ){
+                MIRACASTLOG_WARNING("No Content in [%s]",file_name.c_str());
+            }
         }
         parse_opt_flag_file.close();
 
@@ -195,4 +201,95 @@ std::string MiracastCommon::parse_opt_flag( std::string file_name , bool integer
         }
     }
     return return_buffer;
+}
+
+int MiracastCommon::execute_SystemCommand( const char* system_command_buffer )
+{
+    int return_value = -1;
+    MIRACASTLOG_TRACE("Entering ...");
+
+    if (!system_command_buffer)
+    {
+        MIRACASTLOG_ERROR("NULL pointer has passed");
+    }
+    else
+    {
+	MIRACASTLOG_INFO("System command buffer[%s]",system_command_buffer);
+	return_value = system(system_command_buffer);
+    }
+    MIRACASTLOG_TRACE("Exiting ...");
+    return return_value;
+}
+
+bool MiracastCommon::execute_PopenCommand( const char* popen_command, const char* expected_char, unsigned int retry_count, std::string& popen_buffer, unsigned int interval_micro_sec )
+{
+    char buffer[1024] = {0};
+    FILE *popen_pipe_ptr = nullptr;
+    char *current_line_buffer = nullptr;
+    std::size_t len = 0;
+    unsigned int retry_index = 1;
+    bool returnValue = false;
+
+    MIRACASTLOG_TRACE("Entering ...");
+    if ( nullptr == popen_command )
+    {
+        MIRACASTLOG_ERROR("#### Null Command ####");
+        MIRACASTLOG_TRACE("Exiting ...");
+        return false;
+    }
+
+    while ( retry_index <= retry_count )
+    {
+        MIRACASTLOG_INFO("#### Executing Command[%s] ####",popen_command);
+        popen_pipe_ptr = popen( popen_command , "r");
+        if ( nullptr == popen_pipe_ptr )
+        {
+            MIRACASTLOG_ERROR("popen() failed: [%s]",strerror(errno));
+            ++retry_index;
+            continue;
+        }
+
+        memset( buffer , 0x00 , sizeof(buffer));
+        while (getline(&current_line_buffer, &len, popen_pipe_ptr) != -1)
+        {
+            sprintf(buffer + strlen(buffer), "%s" ,  current_line_buffer);
+            MIRACASTLOG_INFO("#### popen Output[%s] ####", buffer);
+        }
+        pclose(popen_pipe_ptr);
+        popen_pipe_ptr = nullptr;
+        free(current_line_buffer);
+        current_line_buffer = nullptr;
+        popen_buffer = buffer;
+        REMOVE_R(popen_buffer);
+        REMOVE_N(popen_buffer);
+
+        if ( nullptr != expected_char )
+        {
+            if ( nullptr != strstr( popen_buffer.c_str(), expected_char ))
+            {
+                MIRACASTLOG_INFO("POPEN command success on '%u' trial",retry_index);
+                returnValue = true;
+                break;
+            }
+            else
+            {
+                MIRACASTLOG_INFO("POPEN command trying for expected char[%s] on '%u' trial",expected_char,retry_index);
+            }
+        }
+        else if (!popen_buffer.empty())
+        {
+            MIRACASTLOG_INFO("POPEN command success on '%u' trial",retry_index);
+            returnValue = true;
+            break;
+        }
+        usleep(interval_micro_sec);
+        ++retry_index;
+    }
+
+    if ( false == returnValue && ( 1 < retry_count ))
+    {
+        MIRACASTLOG_ERROR("Maximum retries[%u] reached and Popen couldn't success",retry_count);
+    }
+    MIRACASTLOG_TRACE("Exiting ...");
+    return returnValue;
 }

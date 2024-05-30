@@ -177,7 +177,7 @@ static std::vector<DeviceFeatures> deviceFeatures = {DEVICE_FEATURES_TV};
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 3
-#define API_VERSION_NUMBER_PATCH 5
+#define API_VERSION_NUMBER_PATCH 7
 
 namespace WPEFramework
 {
@@ -261,7 +261,7 @@ namespace WPEFramework
 		return;
 	     }
 			 HdmiCecSink::_instance->addDevice(header.from.toInt());
-			 HdmiCecSink::_instance->updateImageViewOn(header.from.toInt());
+			 HdmiCecSink::_instance->updateTextViewOn(header.from.toInt());
        }
        void HdmiCecSinkProcessor::process (const RequestActiveSource &msg, const Header &header)
        {
@@ -3486,6 +3486,11 @@ namespace WPEFramework
                             _instance->sendKeyPressEvent(keyInfo.logicalAddr,keyInfo.keyCode);
                             _instance->sendKeyReleaseEvent(keyInfo.logicalAddr);
                     }
+
+		    if((_instance->m_SendKeyQueue.size()<=1 || (_instance->m_SendKeyQueue.size() % 2 == 0)) && ((keyInfo.keyCode == VOLUME_UP) || (keyInfo.keyCode == VOLUME_DOWN) || (keyInfo.keyCode == MUTE)) )
+		    {
+		        _instance->sendGiveAudioStatusMsg();
+		    }
 
             }//while(!_instance->m_sendKeyEventThreadExit)
         }//threadSendKeyEvent
