@@ -874,6 +874,11 @@ namespace WPEFramework {
                                 {
                                    DisplaySettings::_instance->m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
 				   DisplaySettings::_instance->m_requestSadRetrigger = false;
+				   if (m_AudioDeviceSADState != AUDIO_DEVICE_SAD_CLEARED && m_AudioDeviceSADState != AUDIO_DEVICE_SAD_UNKNOWN) {
+					   m_AudioDeviceSADState = AUDIO_DEVICE_SAD_CLEARED;
+		                           LOGINFO("%s: Clearing Audio device SAD\n", __FUNCTION__);
+		                           sad_list.clear();
+				   }
                                 }
 
                             }// Release Mutex m_AudioDeviceStatesUpdateMutex
