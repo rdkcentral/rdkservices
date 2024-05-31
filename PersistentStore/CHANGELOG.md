@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.13] - 2024-05-31
+### Fixed
+- Add support for error 5 (NOT_FOUND) returned from SecureStore endpoint
+
 ## [1.0.12] - 2024-05-29
 ### Fixed
 - Switch for account scope feature
