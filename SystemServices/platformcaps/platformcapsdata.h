@@ -68,7 +68,11 @@ private:
      private:
       uint32_t mId{ 0 };
       std::string mCallSign{};
+#if ((THUNDER_VERSION >= 4) && (THUNDER_VERSION_MINOR == 4))
+      PluginHost::ILocalDispatcher * dispatcher_ {nullptr};
+#else
       PluginHost::IDispatcher* dispatcher_{ nullptr };
+#endif
 
       Core::ProxyType<Core::JSONRPC::Message> Message() const
       {
@@ -114,7 +118,11 @@ private:
           : mCallSign(callsign)
       {
         if (service)
+#if ((THUNDER_VERSION >= 4) && (THUNDER_VERSION_MINOR == 4))
+          dispatcher_ = service->QueryInterfaceByCallsign<PluginHost::ILocalDispatcher>(mCallSign);
+#else
           dispatcher_ = service->QueryInterfaceByCallsign<PluginHost::IDispatcher>(mCallSign);
+#endif
       }
       ~JSONRPCDirectLink()
       {
@@ -153,12 +161,47 @@ private:
         ToMessage(parameters, message);
 
         const uint32_t channelId = ~0;
-#ifndef USE_THUNDER_R4
-        auto resp = dispatcher_->Invoke("", channelId, *message);
-#else
+#if ((THUNDER_VERSION >= 4) && (THUNDER_VERSION_MINOR == 4))
+            string output = "";
+            uint32_t result = Core::ERROR_BAD_REQUEST;
+
+	    if (dispatcher_  != nullptr) {
+                PluginHost::ILocalDispatcher* localDispatcher = dispatcher_->Local();
+
+                ASSERT(localDispatcher != nullptr);
+
+                if (localDispatcher != nullptr)
+                    result =  dispatcher_->Invoke(channelId, message->Id.Value(), "", message->Designator.Value(), message->Parameters.Value(),output);
+            }
+
+            if (message.IsValid() == true) {
+                if (result == static_cast<uint32_t>(~0)) {
+                    message.Release();
+                }
+                else if (result == Core::ERROR_NONE)
+                {
+                    if (output.empty() == true)
+                        message->Result.Null(true);
+                    else
+                        message->Result = output;
+                }
+                else
+                {
+                    message->Error.SetError(result);
+                    if (output.empty() == false) {
+                        message->Error.Text = output;
+                    }
+                }
+            }
+#elif ((THUNDER_VERSION >= 4) && (THUNDER_VERSION_MINOR == 2))
         Core::JSONRPC::Context context(channelId, message->Id.Value(), "");
         auto resp = dispatcher_->Invoke(context, *message);
-#endif /* USE_THUNDER_R4 */
+#else
+        auto resp = dispatcher_->Invoke("", channelId, *message);
+#endif
+
+#if ((THUNDER_VERSION == 2) || (THUNDER_VERSION >= 4) && (THUNDER_VERSION_MINOR == 2))
+
         if (resp->Error.IsSet()) {
           std::cout << "Call failed: " << message->Designator.Value() << " error: " << resp->Error.Text.Value() << "\n";
           return resp->Error.Code;
@@ -166,7 +209,7 @@ private:
 
         if (!FromMessage(response, resp, isResponseString))
           return Core::ERROR_GENERAL;
-
+#endif
         return Core::ERROR_NONE;
       }
     };
