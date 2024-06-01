@@ -58,7 +58,7 @@ namespace WPEFramework {
 
             public:
                 NetworkManagerTimer()
-                    : baseTimer(64 * 1024, "ThunderPluginBaseTimer")
+                    : baseTimer(64 * 1024, "TimerUtility")
                       , m_timerJob(this)
                       , m_isActive(false)
                       , m_isSingleShot(false)
