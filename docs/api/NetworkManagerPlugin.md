@@ -247,6 +247,112 @@ Sets the primary/default interface for the device. This call fails if the interf
 }
 ```
 
+<a name="method.SetInterfaceState"></a>
+## *SetInterfaceState [<sup>method</sup>](#head.Methods)*
+
+Enable or Disable the specified interface.
+
+### Events
+
+| Event | Description |
+| :-------- | :-------- |
+| [onInterfaceStateChange](#event.onInterfaceStateChange) | Triggered when interface’s status changes to enabled or disabled. |
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface in `GetAvailableInterfaces` |
+| params.enabled | boolean | Set the state of the interface to be Enabled or Disabled |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.NetworkManager.SetInterfaceState",
+    "params": {
+        "interface": "wlan0",
+        "enabled": true
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.GetInterfaceState"></a>
+## *GetInterfaceState [<sup>method</sup>](#head.Methods)*
+
+Disable the specified interface.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface in `GetAvailableInterfaces` |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.isEnabled | boolean | Whether the Interface is enabled or disabled |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.NetworkManager.GetInterfaceState",
+    "params": {
+        "interface": "wlan0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "isEnabled": true,
+        "success": true
+    }
+}
+```
+
 <a name="method.GetIPSettings"></a>
 ## *GetIPSettings [<sup>method</sup>](#head.Methods)*
 
@@ -1691,112 +1797,6 @@ No Events
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "success": true
-    }
-}
-```
-
-<a name="method.SetInterfaceState"></a>
-## *SetInterfaceState [<sup>method</sup>](#head.Methods)*
-
-Enable or Disable the specified interface.
-
-### Events
-
-| Event | Description |
-| :-------- | :-------- |
-| [onInterfaceStateChange](#event.onInterfaceStateChange) | Triggered when interface’s status changes to enabled. |
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface in `GetAvailableInterfaces` |
-| params.enabled | boolean | Set the state of the interface to be Enabled or Disabled |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.NetworkManager.SetInterfaceState",
-    "params": {
-        "interface": "wlan0",
-        "enabled": true
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="method.GetInterfaceState"></a>
-## *GetInterfaceState [<sup>method</sup>](#head.Methods)*
-
-Disable the specified interface.
-
-### Events
-
-No Events
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface in `GetAvailableInterfaces` |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.isEnabled | boolean | Whether the Interface is enabled or disabled |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.NetworkManager.GetInterfaceState",
-    "params": {
-        "interface": "wlan0"
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "isEnabled": true,
         "success": true
     }
 }
