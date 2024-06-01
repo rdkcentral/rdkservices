@@ -20,6 +20,7 @@
 #pragma once
 
 #include "Module.h"
+#include "NetworkManagerTimer.h"
 
 namespace WPEFramework {
 
@@ -84,13 +85,14 @@ namespace WPEFramework {
         private:
             void RegisterLegacyMethods();
             void UnregisterLegacyMethods();
-            uint32_t subscribeToEvents(void);
+            void subscribeToEvents(void);
             static std::string getInterfaceMapping(const std::string &interface);
             void activatePrimaryPlugin();
 
         private:
             PluginHost::IShell* m_service;
             std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> m_networkmanager;
+            NetworkManagerTimer m_timer;
         };
     } // namespace Plugin
 } // namespace WPEFramework

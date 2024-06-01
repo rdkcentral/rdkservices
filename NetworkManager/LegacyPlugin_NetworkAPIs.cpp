@@ -68,6 +68,7 @@ namespace WPEFramework
        {
            _gNWInstance = this;
            m_defaultInterface = "wlan0";
+           m_timer.connect(std::bind(&Network::subscribeToEvents, this));
            RegisterLegacyMethods();
        }
 
@@ -105,6 +106,28 @@ namespace WPEFramework
 
             string callsign(NETWORK_MANAGER_CALLSIGN);
 
+            string token = "";
+
+            // TODO: use interfaces and remove token
+            auto security = m_service->QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
+            if (security != nullptr) {
+                string payload = "http://localhost";
+                if (security->CreateToken(
+                            static_cast<uint16_t>(payload.length()),
+                            reinterpret_cast<const uint8_t*>(payload.c_str()),
+                            token)
+                        == Core::ERROR_NONE) {
+                    std::cout << "DisplaySettings got security token" << std::endl;
+                } else {
+                    std::cout << "DisplaySettings failed to get security token" << std::endl;
+                }
+                security->Release();
+            } else {
+                std::cout << "No security agent" << std::endl;
+            }
+
+            string query = "token=" + token;
+
             auto interface = m_service->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
             if (interface != nullptr)
             {
@@ -123,16 +146,10 @@ namespace WPEFramework
             }
         
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
-            string query="token=";
-            m_networkmanager = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >("org.rdk.NetworkManager", "");
+            m_networkmanager = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(_T(NETWORK_MANAGER_CALLSIGN), _T(NETWORK_MANAGER_CALLSIGN), false, query);
 
-            /* Wait for Proxy stuff to be established */
-            sleep(3);
-    
-            if (Core::ERROR_NONE != subscribeToEvents())
-                return string("Failed to Subscribe");
-            else
-                return string();
+            m_timer.start(5000);
+            return string();
         }
 
         void Network::Deinitialize(PluginHost::IShell* /* service */)
@@ -754,7 +771,7 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
         }
 
         /** Private */
-        uint32_t Network::subscribeToEvents(void)
+        void Network::subscribeToEvents(void)
         {
             uint32_t errCode = Core::ERROR_GENERAL;
             if (m_networkmanager)
@@ -781,7 +798,8 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
                     NMLOG_ERROR("Subscribe to onInternetStatusChange failed, errCode: %u", errCode);
                 }
             }
-            return errCode;
+            if (errCode == Core::ERROR_NONE)
+                m_timer.stop();
         }
 
         string Network::getInterfaceMapping(const string & interface)
