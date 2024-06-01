@@ -105,7 +105,7 @@ namespace WPEFramework
             m_service->AddRef();
 
             string callsign(NETWORK_MANAGER_CALLSIGN);
-            string token;
+            string token = "";
 
             // TODO: use interfaces and remove token
             auto security = m_service->QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
