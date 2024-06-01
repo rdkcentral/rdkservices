@@ -58,6 +58,8 @@ NetworkManager interface methods:
 | [GetAvailableInterfaces](#method.GetAvailableInterfaces) | Get device supported list of available interface including their state |
 | [GetPrimaryInterface](#method.GetPrimaryInterface) | Gets the primary/default network interface for the device |
 | [SetPrimaryInterface](#method.SetPrimaryInterface) | Sets the primary/default interface for the device |
+| [SetInterfaceState](#method.SetInterfaceState) | Enable the interface |
+| [GetInterfaceState](#method.GetInterfaceState) | Disable the interface |
 | [GetIPSettings](#method.GetIPSettings) | Gets the IP setting for the given interface |
 | [SetIPSettings](#method.SetIPSettings) | Sets the IP settings for the given interface |
 | [GetStunEndpoint](#method.GetStunEndpoint) | Get the STUN Endpoint that is used to identify public IP of the device |
@@ -84,8 +86,6 @@ NetworkManager interface methods:
 | [GetWiFiSignalStrength](#method.GetWiFiSignalStrength) | Get WiFiSignalStrength of connected SSID |
 | [GetSupportedSecurityModes](#method.GetSupportedSecurityModes) | Returns the Wifi security modes that the device supports |
 | [SetLogLevel](#method.SetLogLevel) | Set Log level for more information |
-| [EnableInterface](#method.EnableInterface) | Enable the interface |
-| [DisableInterface](#method.DisableInterface) | Disable the interface |
 | [GetWifiState](#method.GetWifiState) | Returns the current Wifi State |
 
 
@@ -1696,10 +1696,10 @@ No Events
 }
 ```
 
-<a name="method.EnableInterface"></a>
-## *EnableInterface [<sup>method</sup>](#head.Methods)*
+<a name="method.SetInterfaceState"></a>
+## *SetInterfaceState [<sup>method</sup>](#head.Methods)*
 
-Enable the specified interface.
+Enable or Disable the specified interface.
 
 ### Events
 
@@ -1713,6 +1713,7 @@ Enable the specified interface.
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface in `GetAvailableInterfaces` |
+| params.enabled | boolean | Set the state of the interface to be Enabled or Disabled |
 
 ### Result
 
@@ -1729,9 +1730,10 @@ Enable the specified interface.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.NetworkManager.EnableInterface",
+    "method": "org.rdk.NetworkManager.SetInterfaceState",
     "params": {
-        "interface": "wlan0"
+        "interface": "wlan0",
+        "enabled": true
     }
 }
 ```
@@ -1748,16 +1750,14 @@ Enable the specified interface.
 }
 ```
 
-<a name="method.DisableInterface"></a>
-## *DisableInterface [<sup>method</sup>](#head.Methods)*
+<a name="method.GetInterfaceState"></a>
+## *GetInterfaceState [<sup>method</sup>](#head.Methods)*
 
 Disable the specified interface.
 
 ### Events
 
-| Event | Description |
-| :-------- | :-------- |
-| [onInterfaceStateChange](#event.onInterfaceStateChange) | Triggered when interface’s status changes to disabled. |
+No Events
 
 ### Parameters
 
@@ -1771,6 +1771,7 @@ Disable the specified interface.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
+| result.isEnabled | boolean | Whether the Interface is enabled or disabled |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -1781,7 +1782,7 @@ Disable the specified interface.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.NetworkManager.DisableInterface",
+    "method": "org.rdk.NetworkManager.GetInterfaceState",
     "params": {
         "interface": "wlan0"
     }
@@ -1795,6 +1796,7 @@ Disable the specified interface.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
+        "isEnabled": true,
         "success": true
     }
 }
