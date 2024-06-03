@@ -751,7 +751,7 @@ TEST_F(Warehouse_L2Test,Warehouse_PwrMgr2_ResetDevice)
     EXPECT_TRUE(result["success"].Boolean());
 
     EXPECT_CALL(*p_wrapsImplMock, system(::testing::_))
-        .Times(4)
+        .Times(3)
         .WillOnce(::testing::Invoke(
             [](const char* command) {
                 EXPECT_EQ(string(command), string("sh /lib/rdk/deviceReset.sh factory"));
