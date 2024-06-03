@@ -73,7 +73,6 @@ namespace WPEFramework {
         public:
             Connectivity(const std::string& configFilePath = "/etc/netsrvmgr.conf")
             {
-                loadConnectivityConfig(configFilePath);
                 if(m_defaultEndpoints.empty())
                 {
                     NMLOG_ERROR("NETSRVMGR CONFIGURATION ERROR: CONNECTIVITY ENDPOINT EMPTY");
@@ -89,7 +88,6 @@ namespace WPEFramework {
             void setCaptivePortal(const char* captivePortal) {const std::lock_guard<std::mutex> lock(capitiveMutex); g_captivePortal = captivePortal; }
 
         private:
-            void loadConnectivityConfig(const std::string& configFilePath);
             nsm_internetState checkInternetStateFromResponseCode(const std::vector<int>& responses);
 
             std::vector<std::string> m_defaultEndpoints;

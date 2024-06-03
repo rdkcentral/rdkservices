@@ -1,5 +1,5 @@
 #include "NetworkManagerImplementation.h"
-#include "WifiSignalStrengthMonitor.h"
+#include "WiFiSignalStrengthMonitor.h"
 #include "libIBus.h"
 
 using namespace WPEFramework;
@@ -36,7 +36,6 @@ namespace WPEJ = WPEFramework::Core::JSON;
 #define PASSPHRASE_BUFF            385
 #define MAX_SSIDLIST_BUF     (48*1024)
 #define MAX_FILE_PATH_LEN         4096
-
 
 typedef enum _NetworkManager_EventId_t {
     IARM_BUS_NETWORK_MANAGER_EVENT_SET_INTERFACE_ENABLED=50,
@@ -487,7 +486,7 @@ namespace WPEFramework
 
                         state = to_wifi_state(e->data.wifiStateChange.state);
                         if(e->data.wifiStateChange.state == WIFI_CONNECTED)
-                             ::_instance->wifiSignalStrengthMonitor.startWifiSignalStrengthMonitor(DEFAULT_WIFI_SIGNAL_TEST_INTERVAL_SEC);
+                             ::_instance->m_wifiSignalMonitor.startWiFiSignalStrengthMonitor(DEFAULT_WIFI_SIGNAL_TEST_INTERVAL_SEC);
                         ::_instance->ReportWiFiStateChangedEvent(state);
                         break;
                     }
@@ -640,7 +639,7 @@ namespace WPEFramework
             return rc;
         }
 
-        uint32_t NetworkManagerImplementation::EnableInterface (const string& interface/* @in */)
+        uint32_t NetworkManagerImplementation::SetInterfaceState(const string& interface/* @in */, const bool& enable /* @in */)
         {
             LOG_ENTRY_FUNCTION();
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
@@ -658,7 +657,7 @@ namespace WPEFramework
                 return rc;
             }
 
-            iarmData.isInterfaceEnabled = true;
+            iarmData.isInterfaceEnabled = enable;
             iarmData.persist = true;
             if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled, (void *)&iarmData, sizeof(iarmData)))
             {
@@ -672,7 +671,7 @@ namespace WPEFramework
             return rc;
         }
 
-        uint32_t NetworkManagerImplementation::DisableInterface (const string& interface/* @in */)
+        uint32_t NetworkManagerImplementation::GetInterfaceState(const string& interface/* @in */, bool &isEnabled /* @out */)
         {
             LOG_ENTRY_FUNCTION();
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
@@ -690,11 +689,10 @@ namespace WPEFramework
                 return rc;
             }
 
-            iarmData.isInterfaceEnabled = false;
-            iarmData.persist = true;
-            if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled, (void *)&iarmData, sizeof(iarmData)))
+            if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isInterfaceEnabled, (void *)&iarmData, sizeof(iarmData)))
             {
-                NMLOG_INFO ("Call to %s for %s success", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled);
+                NMLOG_TRACE("Call to %s for %s success", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isInterfaceEnabled);
+                isEnabled = iarmData.isInterfaceEnabled;
                 rc = Core::ERROR_NONE;
             }
             else

@@ -1,9 +1,8 @@
 autostart = "true"
-callsign= "org.rdk.Wifi"
+callsign= "org.rdk.NetworkManager"
 
-test = JSON()
-test.add("locator", "lib@PLUGIN_IMPLEMENTATION@.so")
-test.add("outofprocess", "true")
+process= JSON()
+process.add("outofprocess", "true")
 
 connectivity = JSON()
 connectivity.add("endpoint_1", "@PLUGIN_NETWORKMANAGER_CONN_ENDPOINT_1@")
@@ -19,7 +18,8 @@ stun.add("port", "@PLUGIN_NETWORKMANAGER_STUN_PORT@")
 stun.add("interval", "30")
 
 configuration = JSON()
-configuration.add("root", test)
+configuration.add("root", process)
 configuration.add("connectivity", connectivity)
 configuration.add("stun", stun)
 configuration.add("loglevel", "@PLUGIN_NETWORKMANAGER_LOGLEVEL@")
+
