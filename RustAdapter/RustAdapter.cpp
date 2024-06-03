@@ -101,7 +101,7 @@ WPEFramework::Plugin::RustAdapter::Release() const
 
 #if JSON_RPC_CONTEXT
 
-#if ((THUNDER_VERSION_MAJOR == 4) && (THUNDER_VERSION_MINOR == 4))
+#if ((THUNDER_VERSION == 4) && (THUNDER_VERSION_MINOR == 4))
 WPEFramework::Core::hresult
 WPEFramework::Plugin::RustAdapter::Invoke(ICallback* callback, const uint32_t channelId, const uint32_t id, const string& token, const string& method, const string& parameters, string& response )
 {
@@ -126,7 +126,7 @@ WPEFramework::Core::ProxyType<WPEFramework::Core::JSONRPC::Message>
 }
 #endif
 
-#if ((THUNDER_VERSION_MAJOR == 2) || ((THUNDER_VERSION_MAJOR == 4)  && (THUNDER_VERSION_MINOR == 2)))
+#if ((THUNDER_VERSION == 2) || ((THUNDER_VERSION == 4)  && (THUNDER_VERSION_MINOR == 2)))
 void
 WPEFramework::Plugin::RustAdapter::Activate(
   WPEFramework::PluginHost::IShell *shell)
@@ -153,7 +153,7 @@ WPEFramework::Plugin::RustAdapter::Detach(PluginHost::Channel &channel)
   m_impl->Detach(channel);
 }
 
-#if ((THUNDER_VERSION_MAJOR == 4) && (THUNDER_VERSION_MINOR == 2))
+#if ((THUNDER_VERSION == 4) && (THUNDER_VERSION_MINOR == 2))
 void
 WPEFramework::Plugin::RustAdapter::Close(const uint32_t channelId)
 {
@@ -161,7 +161,7 @@ WPEFramework::Plugin::RustAdapter::Close(const uint32_t channelId)
 }
 #endif /* THUNDER_VERSION */
 
-#if ((THUNDER_VERSION_MAJOR == 4) && (THUNDER_VERSION_MINOR == 4))
+#if ((THUNDER_VERSION == 4) && (THUNDER_VERSION_MINOR == 4))
 WPEFramework::Core::hresult WPEFramework::Plugin::RustAdapter::Revoke(ICallback* callback)
 {
      return {};
