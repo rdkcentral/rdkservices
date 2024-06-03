@@ -736,6 +736,9 @@ TEST_F(Warehouse_L2Test,Warehouse_PwrMgr2_ResetDevice)
     status = ActivateService("org.rdk.Warehouse");
     EXPECT_EQ(Core::ERROR_NONE, status);
 
+    IARM_BUS_PWRMgr_WareHouseOpn_EventData_t eventData = {IARM_BUS_PWRMGR_WAREHOUSE_RESET, IARM_BUS_PWRMGR_WAREHOUSE_COMPLETED};
+    whMgrStatusChangeEventsHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_WAREHOUSEOPS_STATUSCHANGED, &eventData, 0);
+    
     EXPECT_CALL(*p_wrapsImplMock, system(::testing::_))
         .Times(4)
         .WillOnce(::testing::Invoke(
