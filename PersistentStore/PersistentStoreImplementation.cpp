@@ -18,7 +18,9 @@
  */
 
 #include "PersistentStoreImplementation.h"
+#ifdef WITH_ACCOUNT_SCOPE
 #include "grpc/Store2.h"
+#endif
 #include "sqlite/Store2.h"
 
 namespace WPEFramework {
@@ -31,7 +33,7 @@ namespace Plugin {
         , _deviceStoreCache(nullptr)
         , _deviceStoreInspector(nullptr)
         , _deviceStoreLimit(nullptr)
-        , _accountStore2(Core::Service<Grpc::Store2>::Create<Exchange::IStore2>())
+        , _accountStore2(nullptr)
         , _store2Sink(*this)
     {
         if (_deviceStore2 != nullptr) {
@@ -45,7 +47,10 @@ namespace Plugin {
         ASSERT(_deviceStoreCache != nullptr);
         ASSERT(_deviceStoreInspector != nullptr);
         ASSERT(_deviceStoreLimit != nullptr);
+#ifdef WITH_ACCOUNT_SCOPE
+        _accountStore2 = Core::Service<Grpc::Store2>::Create<Exchange::IStore2>();
         ASSERT(_accountStore2 != nullptr);
+#endif
     }
 
     PersistentStoreImplementation::~PersistentStoreImplementation()

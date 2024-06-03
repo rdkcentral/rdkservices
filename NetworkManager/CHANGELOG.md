@@ -16,6 +16,13 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [0.2.0] - 2024-05-27
+### Added
+- Restructured the NetworkManager folder organization
+- Refactored Legacy Network & WiFiManager Plugin as JSONRPC
+- Built COMRPC Proxy Implementation as part of NetworkManager Plugin itself
+- Built out-of-process class as part of main library itself.
+
 ## [0.1.0] - 2024-03-28
 ### Added
 - Added NetworkManager plugin. A Unified `NetworkManager` plugin that allows you to manage Ethernet and Wifi interfaces on the device.
