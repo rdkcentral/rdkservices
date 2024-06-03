@@ -981,7 +981,25 @@ namespace WPEFramework {
 
             // there is no /tmp/.make from /lib/rdk/getDeviceDetails.sh, but it can be taken from /etc/device.properties
             if (queryParams.empty() || queryParams == "make") {
+#ifdef USE_SERIALIZED_MANUFACTURER_NAME
+                IARM_Bus_MFRLib_GetSerializedData_Param_t param;
+                param.bufLen = 0;
+                param.type = mfrSERIALIZED_TYPE_MANUFACTURER;
 
+                IARM_Result_t result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
+                param.buffer[param.bufLen] = '\0';
+
+                LOGWARN("SystemService getDeviceInfo param type %d result %s", param.type, param.buffer);
+
+                bool status = false;
+                if (result == IARM_RESULT_SUCCESS) {
+                    response["make"] = string(param.buffer);
+                    retAPIStatus = true;
+                } else {
+                    populateResponseWithError(SysSrv_MissingKeyValues, response);
+                }
+
+#else
                 if (!Utils::fileExists(DEVICE_PROPERTIES_FILE)) {
                     populateResponseWithError(SysSrv_FileNotPresent, response);
                     returnResponse(retAPIStatus);
@@ -1022,7 +1040,7 @@ namespace WPEFramework {
                 } else {
                     populateResponseWithError(SysSrv_MissingKeyValues, response);
                 }
-
+#endif
                 if (!queryParams.empty()) {
                     returnResponse(retAPIStatus);
                 }
