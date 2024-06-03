@@ -657,7 +657,7 @@ namespace WPEFramework
                 return rc;
             }
 
-            iarmData.isInterfaceEnabled = true;
+            iarmData.isInterfaceEnabled = enable;
             iarmData.persist = true;
             if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled, (void *)&iarmData, sizeof(iarmData)))
             {
@@ -671,7 +671,7 @@ namespace WPEFramework
             return rc;
         }
 
-        uint32_t NetworkManagerImplementation::GetInterfaceState(const string& interface/* @in */, bool& isEnabled /* @out */)
+        uint32_t NetworkManagerImplementation::GetInterfaceState(const string& interface/* @in */, bool &isEnabled /* @out */)
         {
             LOG_ENTRY_FUNCTION();
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
@@ -689,11 +689,10 @@ namespace WPEFramework
                 return rc;
             }
 
-            iarmData.isInterfaceEnabled = false;
-            iarmData.persist = true;
-            if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled, (void *)&iarmData, sizeof(iarmData)))
+            if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isInterfaceEnabled, (void *)&iarmData, sizeof(iarmData)))
             {
-                NMLOG_INFO ("Call to %s for %s success", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_setInterfaceEnabled);
+                NMLOG_TRACE("Call to %s for %s success", IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isInterfaceEnabled);
+                isEnabled = iarmData.isInterfaceEnabled;
                 rc = Core::ERROR_NONE;
             }
             else
