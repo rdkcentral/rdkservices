@@ -321,7 +321,6 @@ TEST_F(Warehouse_L2Test,Warehouse_ResetDone)
     message = "{\"success\":false,\"error\":\"Reset failed\"}";
     expected_status.FromString(message);
     EXPECT_CALL(async_handler, resetDone(MatchRequestStatus(expected_status)))
-        // .WillOnce(Invoke(this, &Warehouse_L2Test::resetDone))
         .WillOnce(Invoke(this, &Warehouse_L2Test::resetDone));
 
     /*  suppressReboot = "true" & resetType = "USERFACTORY" 
@@ -752,7 +751,7 @@ TEST_F(Warehouse_L2Test,Warehouse_PwrMgr2_ResetDevice)
     EXPECT_TRUE(result["success"].Boolean());
 
     EXPECT_CALL(*p_wrapsImplMock, system(::testing::_))
-        .Times(3)
+        .Times(4)
         .WillOnce(::testing::Invoke(
             [](const char* command) {
                 EXPECT_EQ(string(command), string("sh /lib/rdk/deviceReset.sh factory"));
