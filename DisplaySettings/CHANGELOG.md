@@ -18,14 +18,10 @@ All notable changes to this RDK Service will be documented in this file.
 ## [1.4.5] - 2024-05-24
 ### Added
 - update common resolution list for getSupportedResolutions.
+
 ## [1.4.4] - 2024-05-23
 ### Added
 - Fixed thread timing issues.
-=======
-
-## [1.4.5] - 2024-05-24
-### Added
-- update common resolution list for getSupportedResolutions.
 
 ## [1.4.4] - 2024-05-23
 ### Added
