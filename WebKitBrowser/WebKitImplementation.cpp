@@ -2677,6 +2677,15 @@ static GSourceFuncs _handlerIntervention =
             }
             browser->OnLoadFailed(failingURI);
         }
+        static void postExitJob()
+        {
+            struct ExitJob : public Core::IDispatch
+            {
+                virtual void Dispatch() { exit(1); }
+            };
+
+            Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatch>(Core::ProxyType<ExitJob>::Create()));
+        }
         static void webProcessTerminatedCallback(VARIABLE_IS_NOT_USED WebKitWebView* webView, WebKitWebProcessTerminationReason reason, WebKitImplementation* browser)
         {
             switch (reason) {
@@ -2691,11 +2700,7 @@ static GSourceFuncs _handlerIntervention =
                 break;
             }
             g_signal_handlers_block_matched(webView, G_SIGNAL_MATCH_DATA, 0, 0, nullptr, nullptr, browser);
-            struct ExitJob : public Core::IDispatch
-            {
-                virtual void Dispatch() { exit(1); }
-            };
-            Core::IWorkerPool::Instance().Submit(Core::proxy_cast<Core::IDispatch>(Core::ProxyType<ExitJob>::Create()));
+            postExitJob();
         }
         static void closeCallback(VARIABLE_IS_NOT_USED WebKitWebView* webView, WebKitImplementation* browser)
         {
@@ -3503,7 +3508,9 @@ static GSourceFuncs _handlerIntervention =
 
         void DeactivateBrowser(PluginHost::IShell::reason reason) {
             ASSERT(_service != nullptr);
-            Core::IWorkerPool::Instance().Submit(PluginHost::IShell::Job::Create(_service, PluginHost::IShell::DEACTIVATED, reason));
+            const char *reasonStr = Core::EnumerateType<PluginHost::IShell::reason>(reason).Data();
+            SYSLOG(Logging::Fatal, (_T("Posting a job to exit, reason - %s"), (reasonStr ? reasonStr : "")));
+            postExitJob();
         }
 
     private:
