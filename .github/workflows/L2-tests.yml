@@ -278,6 +278,7 @@ jobs:
           /run/sda1/UsbTestFWUpdate/HSTP11MWR_3.11p5s1_VBN_sdy.bin
           /run/sda1/UsbProdFWUpdate/HSTP11MWR_4.11p5s1_VBN_sdy.bin
           /lib/rdk/getMaintenanceStartTime.sh
+          /lib/rdk/deviceReset.sh
           /tmp/opkg.conf
           /tmp/system_service_temp.conf
           &&
@@ -291,6 +292,7 @@ jobs:
           /etc/authService.conf
           /version.txt
           /lib/rdk/getMaintenanceStartTime.sh
+          /lib/rdk/deviceReset.sh
           /tmp/opkg.conf
           /tmp/system_service_temp.conf
 
