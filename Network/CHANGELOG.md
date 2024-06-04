@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.3.12] - 2024-06-19
+### Fixed
+- onInternetStatus event not posting error fix
+
 ## [1.3.11] - 2024-05-13
 ### Added
 - Added connectivity monitor in onInterfaceIPAddressChanged
