@@ -720,7 +720,6 @@ TEST_F(Warehouse_L2Test,Warehouse_PwrMgr2_ResetDevice)
     status = DeactivateService("org.rdk.Warehouse");
     EXPECT_EQ(Core::ERROR_NONE, status);
 
-
     ON_CALL(*p_rfcApiImplMock, getRFCParameter(::testing::_, ::testing::_, ::testing::_))
         .WillByDefault(::testing::Invoke(
             [](char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData) {
@@ -731,39 +730,10 @@ TEST_F(Warehouse_L2Test,Warehouse_PwrMgr2_ResetDevice)
                 EXPECT_EQ(string(pstParamData->value), _T("true"));
                 return WDMP_SUCCESS;
             }));
+
     /* Activate plugin in TEST_F*/
     status = ActivateService("org.rdk.Warehouse");
     EXPECT_EQ(Core::ERROR_NONE, status);
-    
-    EXPECT_CALL(*p_wrapsImplMock, system(::testing::_))
-        .Times(4)
-        .WillOnce(::testing::Invoke(
-            [](const char* command) {
-                EXPECT_EQ(string(command), string("sh /lib/rdk/deviceReset.sh coldfactory"));
-                return Core::ERROR_NONE;
-            }))
-        .WillRepeatedly(::testing::Return(Core::ERROR_NONE));
-
-    params["suppressReboot"] = "true";
-    params["resetType"] = "COLD";
-    status = InvokeServiceMethod("org.rdk.Warehouse.1", "resetDevice", params, result);
-    EXPECT_EQ(Core::ERROR_NONE, status);
-    EXPECT_TRUE(result["success"].Boolean());
-
-    EXPECT_CALL(*p_wrapsImplMock, system(::testing::_))
-        .Times(3)
-        .WillOnce(::testing::Invoke(
-            [](const char* command) {
-                EXPECT_EQ(string(command), string("sh /lib/rdk/deviceReset.sh factory"));
-                return Core::ERROR_NONE;
-            }))
-        .WillRepeatedly(::testing::Return(Core::ERROR_NONE));
-
-    params["suppressReboot"] = "true";
-    params["resetType"] = "FACTORY";
-    status = InvokeServiceMethod("org.rdk.Warehouse.1", "resetDevice", params, result);
-    EXPECT_EQ(Core::ERROR_NONE, status);
-    EXPECT_TRUE(result["success"].Boolean());
 
     EXPECT_CALL(*p_wrapsImplMock, system(::testing::_))
         .Times(3)
@@ -839,6 +809,72 @@ TEST_F(Warehouse_L2Test,Warehouse_PwrMgr2_ResetDevice)
     params["suppressReboot"] = "false";
     params["resetType"] = "";
     status = InvokeServiceMethod("org.rdk.Warehouse.1", "resetDevice", params, result);
+    EXPECT_TRUE(result["success"].Boolean());
+}
+
+/********************************************************
+************Test case Details **************************
+** 1. Another TEST_F to achieve max. Lcov
+** 2. Used p_rfcApiImplMock To enable RFC_PWRMGR2
+** 3. Triggered resetDevice Method 
+** 4. Verify the response of resetDevice Method for different "resetType"
+*******************************************************/
+TEST_F(Warehouse_L2Test,Warehouse_Factory_PwrMgr2_ResetDevice)
+{
+    JSONRPC::LinkType<Core::JSON::IElement> jsonrpc(WAREHOUSE_CALLSIGN,WAREHOUSEL2TEST_CALLSIGN );
+    StrictMock<AsyncHandlerMock_Warehouse > async_handler;
+    uint32_t status = Core::ERROR_GENERAL;
+    JsonObject params;
+    JsonObject result;
+    std::string message;
+    JsonObject expected_status;
+
+
+    /* Deactivate plugin in TEST_F*/
+    status = DeactivateService("org.rdk.Warehouse");
+    EXPECT_EQ(Core::ERROR_NONE, status);
+
+    ON_CALL(*p_rfcApiImplMock, getRFCParameter(::testing::_, ::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+            [](char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData) {
+                pstParamData->type = WDMP_BOOLEAN;
+                strncpy(pstParamData->value, "true", sizeof((pstParamData->value)));
+                //strncpy(pstParamData->value, "true", 4);
+                EXPECT_EQ(string(pstParamData->value), _T("true"));
+                return WDMP_SUCCESS;
+            }));
+    /* Activate plugin in TEST_F*/
+    status = ActivateService("org.rdk.Warehouse");
+    EXPECT_EQ(Core::ERROR_NONE, status);
+
+    EXPECT_CALL(*p_wrapsImplMock, system(::testing::_))
+        .Times(4)
+        .WillOnce(::testing::Invoke(
+            [](const char* command) {
+                EXPECT_EQ(string(command), string("sh /lib/rdk/deviceReset.sh coldfactory"));
+                return Core::ERROR_NONE;
+            }))
+        .WillRepeatedly(::testing::Return(Core::ERROR_NONE));
+
+    params["suppressReboot"] = "true";
+    params["resetType"] = "COLD";
+    status = InvokeServiceMethod("org.rdk.Warehouse.1", "resetDevice", params, result);
+    EXPECT_EQ(Core::ERROR_NONE, status);
+    EXPECT_TRUE(result["success"].Boolean());
+
+    EXPECT_CALL(*p_wrapsImplMock, system(::testing::_))
+        .Times(3)
+        .WillOnce(::testing::Invoke(
+            [](const char* command) {
+                EXPECT_EQ(string(command), string("sh /lib/rdk/deviceReset.sh factory"));
+                return Core::ERROR_NONE;
+            }))
+        .WillRepeatedly(::testing::Return(Core::ERROR_NONE));
+
+    params["suppressReboot"] = "true";
+    params["resetType"] = "FACTORY";
+    status = InvokeServiceMethod("org.rdk.Warehouse.1", "resetDevice", params, result);
+    EXPECT_EQ(Core::ERROR_NONE, status);
     EXPECT_TRUE(result["success"].Boolean());
 
 }
