@@ -16,6 +16,11 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+
+## [1.1.0] - 2024-06-04
+### Fixed
+- Added support for PlayerInfo dolby audio mode
+
 ## [1.0.9] - 2024-05-30
 ### Fixed
 - Added exception handling for device::manager
