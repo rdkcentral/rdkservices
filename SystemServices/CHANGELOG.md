@@ -19,6 +19,10 @@ All notable changes to this RDK Service will be documented in this file.
 ### Added
 - Addded setBootLoaderSplashScreen API.
 
+## [2.2.2] - 2024-05-31
+### Changed
+- RDK-45345: Upgrade Sky Glass devices to use Thunder R4.4.1
+
 ## [2.2.1] - 2024-05-22
 ### Fixed
 - Fixed stuck cSettings::readFromFile() if file is a directory.
