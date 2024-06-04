@@ -83,7 +83,7 @@ namespace NetworkManagerLogger {
         gettimeofday(&tv, NULL);
         lt = localtime(&tv.tv_sec);
 
-        printf("%.2d:%.2d:%.2d.%.6lld %-10s %s:%d : %s\n", lt->tm_hour, lt->tm_min, lt->tm_sec, (long long int)tv.tv_usec, levelMap[level], func, line, formattedLog);
+        printf("%.2d:%.2d:%.2d.%.6lld %-10s %s:%d : %s\n", lt->tm_hour, lt->tm_min, lt->tm_sec, (long long int)tv.tv_usec, levelMap[level], basename(file), line, formattedLog);
         fflush(stdout);
 #endif
     }
