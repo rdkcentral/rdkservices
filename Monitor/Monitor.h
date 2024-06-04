@@ -753,7 +753,7 @@ namespace Plugin {
                 _service = nullptr;
             }
 
-#if (THUNDER_VERSION_MAJOR >= 4)
+#if (THUNDER_VERSION >= 4)
 #if (THUNDER_VERSION_MINOR == 2)
             void Activation(const string& name, PluginHost::IShell* service) override
             {

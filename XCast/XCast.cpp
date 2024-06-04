@@ -68,7 +68,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 18
+#define API_VERSION_NUMBER_PATCH 19
 
 namespace WPEFramework {
 
@@ -107,6 +107,7 @@ bool XCast::m_standbyBehavior = false;
 bool XCast::m_enableStatus = false;
 
 IARM_Bus_PWRMgr_PowerState_t XCast::m_powerState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
+bool powerModeChangeActive = false;
 
 XCast::XCast() : PluginHost::JSONRPC()
 , m_apiVersionNumber(1), m_isDynamicRegistrationsRequired(false)
@@ -224,6 +225,11 @@ const string XCast::Initialize(PluginHost::IShell *service)
 void XCast::Deinitialize(PluginHost::IShell* /* service */)
 {
     LOGINFO("XCast::Deinitialize  called \n ");
+    int count = 0;
+    while(powerModeChangeActive && count < 20){
+        sleep(100);
+        count++;
+    }
     if ( m_locateCastTimer.isActive())
     {
         m_locateCastTimer.stop();
@@ -1140,6 +1146,7 @@ void XCast::onFriendlyNameUpdateHandler(const JsonObject& parameters) {
 
 void XCast::threadPowerModeChangeEvent(void)
 {
+    powerModeChangeActive = true;
     LOGINFO(" threadPowerModeChangeEvent m_standbyBehavior:%d , m_powerState:%d ",m_standbyBehavior,m_powerState);
     if(m_standbyBehavior == false)
     {
@@ -1148,6 +1155,7 @@ void XCast::threadPowerModeChangeEvent(void)
         else
              _rtConnector->enableCastService(m_friendlyName,false);
     }
+    powerModeChangeActive = false;
 }
 
 
