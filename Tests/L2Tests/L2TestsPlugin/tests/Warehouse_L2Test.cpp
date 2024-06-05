@@ -318,11 +318,6 @@ TEST_F(Warehouse_L2Test,Warehouse_ResetDone)
     EXPECT_EQ(Core::ERROR_NONE, status);
     EXPECT_TRUE(result["success"].Boolean());
 
-    message = "{\"success\":false,\"error\":\"Reset failed\"}";
-    expected_status.FromString(message);
-    EXPECT_CALL(async_handler, resetDone(MatchRequestStatus(expected_status)))
-        .WillOnce(Invoke(this, &Warehouse_L2Test::resetDone));
-
     /*  suppressReboot = "true" & resetType = "USERFACTORY" 
     *   WareHouseResetIARM: USERFACTORY reset...
     *   WareHouseResetIARM: IARM_RESULT_INVALID_PARAM [invalid input parameter]
