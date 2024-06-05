@@ -1469,9 +1469,13 @@ static GSourceFuncs _handlerIntervention =
             #ifdef WEBKIT_GLIB_API
             WebKitWebContext* context = webkit_web_view_get_context(_view);
             WebKitCookieManager* manager = webkit_web_context_get_cookie_manager(context);
+#if WEBKIT_CHECK_VERSION(2, 42, 0)
+            webkit_cookie_manager_get_all_cookies(manager, NULL, [](GObject* object, GAsyncResult* result, gpointer user_data) {
+                GList* cookies_list = webkit_cookie_manager_get_all_cookies_finish(WEBKIT_COOKIE_MANAGER(object), result, nullptr);
+#else
             webkit_cookie_manager_get_cookie_jar(manager, NULL, [](GObject* object, GAsyncResult* result, gpointer user_data) {
                 GList* cookies_list = webkit_cookie_manager_get_cookie_jar_finish(WEBKIT_COOKIE_MANAGER(object), result, nullptr);
-
+#endif
                 std::vector<std::string> cookieVector;
                 cookieVector.reserve(g_list_length(cookies_list));
                 for (GList* it = cookies_list; it != NULL; it = g_list_next(it)) {
@@ -1587,8 +1591,11 @@ static GSourceFuncs _handlerIntervention =
 
             WebKitWebContext* context = webkit_web_view_get_context(_view);
             WebKitCookieManager* manager = webkit_web_context_get_cookie_manager(context);
+#if WEBKIT_CHECK_VERSION(2, 42, 0)
+            webkit_cookie_manager_replace_cookies(manager, g_list_reverse(cookies_list), nullptr, nullptr, nullptr);
+#else
             webkit_cookie_manager_set_cookie_jar(manager, g_list_reverse(cookies_list), nullptr, nullptr, nullptr);
-
+#endif
             g_list_free_full(cookies_list, reinterpret_cast<GDestroyNotify>(soup_cookie_free));
             #else
             auto toWKCookie = [](SoupCookie* cookie) -> WKCookieRef
