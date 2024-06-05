@@ -19,6 +19,10 @@ All notable changes to this RDK Service will be documented in this file.
 ### Added
 - Addded setBootLoaderSplashScreen API.
 
+## [2.2.3] - 2024-06-03
+### Changed
+- RDK-49322: use manufacturer name from serialized location instead of hardcoded
+
 ## [2.2.2] - 2024-05-31
 ### Changed
 - RDK-45345: Upgrade Sky Glass devices to use Thunder R4.4.1
