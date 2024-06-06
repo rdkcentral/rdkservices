@@ -73,8 +73,7 @@ namespace Plugin {
     static bool getVideoContentTypeToString(tvContentType_t content)
     {
         bool fmmMode = false;
-        switch(content) 
-	{
+        switch(content) {
             case tvContentType_FMM:
                 LOGINFO("Content Type: FMM\n");
                 fmmMode = true;
@@ -90,8 +89,7 @@ namespace Plugin {
     static const char *getVideoFormatTypeToString(tvVideoFormatType_t format)
     {
         const char *strValue = "NONE";
-        switch(format) 
-	{
+        switch(format) {
             case VIDEO_FORMAT_SDR:
                 strValue = "SDR";
                 break;
@@ -129,8 +127,7 @@ namespace Plugin {
     static const char *getVideoFrameRateTypeToString(tvVideoFrameRate_t frameRate)
     {
        const char *strValue = "NONE";
-       switch(frameRate) 
-       {
+       switch(frameRate) {
             case tvVideoFrameRate_24:
                 strValue = "24";
                 break;
@@ -590,8 +587,7 @@ namespace Plugin {
             returnResponse(false);
         }
         else {
-            switch(mode) 
-	    {
+            switch(mode) {
                 case tvDisplayMode_16x9:
                     LOGINFO("Aspect Ratio: TV 16X9 STRETCH\n");
                     response["zoomMode"] = "TV 16X9 STRETCH";
@@ -1878,8 +1874,7 @@ namespace Plugin {
 
         int err = getLocalparam("ColorTemp",formatIndex,pqIndex,sourceIndex,colortemp,PQ_PARAM_COLOR_TEMPERATURE);
         if( err == 0 ) {
-            switch(colortemp)
-            {
+            switch(colortemp) {
                 case tvColorTemp_STANDARD:
                     LOGINFO("Color Temp Value: Standard\n");
                     response["colorTemperature"] = "Standard";
@@ -2101,8 +2096,7 @@ namespace Plugin {
 
         int err = getLocalparam("DimmingMode",formatIndex,pqIndex,sourceIndex,dimmingMode, PQ_PARAM_DIMMINGMODE);
         if( err == 0 ) {
-            switch(dimmingMode)
-            {
+            switch(dimmingMode) {
                 case tvDimmingMode_Fixed:
                     LOGINFO("DimmingMode Value: Fixed\n");
                     response["DimmingMode"] = "fixed";

@@ -34,8 +34,7 @@ namespace Plugin {
     {
         /* default to SDR always*/
         tvContentFormatType_t ret = tvContentFormatType_NONE;
-        switch(formatToConvert)
-        {
+        switch(formatToConvert) {
             case tvVideoHDRFormat_HLG:
                 ret = tvContentFormatType_HLG;
                 break;
@@ -902,8 +901,7 @@ namespace Plugin {
                 for(int mode : pictureModes) {
                     for(int formatType : formats) {
                         tvVideoFormatType_t format = (tvVideoFormatType_t)formatType;
-                        switch(pqParamIndex)
-                        {
+                        switch(pqParamIndex) {
                             case PQ_PARAM_BRIGHTNESS:
                             case PQ_PARAM_CONTRAST:
                             case PQ_PARAM_BACKLIGHT:
@@ -931,8 +929,7 @@ namespace Plugin {
                             default:
                                 break;
                         }
-                        switch(pqParamIndex)
-                        {
+                        switch(pqParamIndex) {
                             case PQ_PARAM_BRIGHTNESS:
                                 ret |= SaveBrightness(source, mode,format,params[0]);
                                 break;
@@ -1123,8 +1120,7 @@ namespace Plugin {
 
     std::string AVOutputTV::getErrorString (tvError_t eReturn)
     {
-        switch (eReturn)
-        {
+        switch (eReturn) {
             case tvERROR_NONE:
                 return "API SUCCESS";
             case tvERROR_GENERAL:
@@ -1467,8 +1463,7 @@ namespace Plugin {
 
     {
             std::string value;
-            switch(mode)
-            {
+            switch(mode) {
                 case tvDolbyMode_Dark:
                 case tvHDR10Mode_Dark:
                 case tvHLGMode_Dark:
