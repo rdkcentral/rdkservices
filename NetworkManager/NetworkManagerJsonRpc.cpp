@@ -671,7 +671,10 @@ namespace WPEFramework
 
             if (Core::ERROR_NONE == rc)
             {
-                response["success"] = true;
+                JsonObject reply;
+                reply.FromString(result);
+                reply["success"] = true;
+                response = reply;
             }
             LOGTRACEMETHODFIN();
             return rc;
