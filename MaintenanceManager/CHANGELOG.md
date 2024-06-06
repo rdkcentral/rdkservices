@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.34] - 2024-06-06
+### Fixed
+- Added change for file system corruption hang
+
 ## [1.0.33] - 2024-05-31
 ### Fixed
 - Delay Unsolicited Maintenance start event in WAI-enabled case
