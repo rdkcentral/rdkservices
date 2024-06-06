@@ -750,8 +750,16 @@ namespace WPEFramework
                         powerState = 0; 
                     }
                     else
+		    {
                         powerState = 1;
-
+		    }
+		    if(param->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY)
+                    {
+                        // Handled standby event logic here
+                        isDeviceActiveSource = false;
+                        LOGINFO("ActiveSource isDeviceActiveSource status: %d \n", isDeviceActiveSource);
+                        HdmiCec_2::_instance->sendActiveSourceEvent();
+                    }
                 }
            }
        }
