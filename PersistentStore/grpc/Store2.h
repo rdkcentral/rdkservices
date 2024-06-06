@@ -34,6 +34,22 @@ namespace Plugin {
 
         class Store2 : public Exchange::IStore2 {
         private:
+            class Job : public Core::IDispatch {
+            public:
+                Job(std::function<void()> work)
+                    : _work(work)
+                {
+                }
+                void Dispatch() override
+                {
+                    _work();
+                }
+
+            private:
+                std::function<void()> _work;
+            };
+
+        private:
             Store2(const Store2&) = delete;
             Store2& operator=(const Store2&) = delete;
 
@@ -179,7 +195,10 @@ namespace Plugin {
                 auto status = _stub->UpdateValue(&context, request, &response);
 
                 if (status.ok()) {
-                    OnValueChanged(ns, key, value);
+                    Core::IWorkerPool::Instance().Submit(
+                        Core::ProxyType<Core::IDispatch>(Core::ProxyType<Job>::Create([&]() {
+                            OnValueChanged(ns, key, value);
+                        })));
                     result = Core::ERROR_NONE;
                 } else {
                     OnError(__FUNCTION__, status);

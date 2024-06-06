@@ -4,6 +4,8 @@
 #include "../Store2.h"
 #include "SecureStorageServiceMock.h"
 #include "Server.h"
+#include "WorkerPoolImplementation.h"
+#include "WorkerPoolTest.h"
 
 using ::distp::gateway::secure_storage::v1::DeleteAllValuesRequest;
 using ::distp::gateway::secure_storage::v1::DeleteAllValuesResponse;
@@ -25,7 +27,6 @@ using ::testing::IsTrue;
 using ::testing::Le;
 using ::testing::NiceMock;
 using ::testing::Return;
-using ::testing::Test;
 using ::WPEFramework::Core::Time;
 using ::WPEFramework::Exchange::IStore2;
 using ::WPEFramework::Plugin::Grpc::Store2;
@@ -37,7 +38,7 @@ const auto kAppId = "app_id_1";
 const auto kTtl = 100;
 const auto kScope = Scope::SCOPE_ACCOUNT;
 
-class AStore2 : public Test {
+class AStore2 : public WorkerPoolTest {
 protected:
     NiceMock<SecureStorageServiceMock> service;
     Server server;

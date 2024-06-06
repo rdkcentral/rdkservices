@@ -3,6 +3,8 @@
 
 #include "../Store2.h"
 #include "Store2NotificationMock.h"
+#include "WorkerPoolImplementation.h"
+#include "WorkerPoolTest.h"
 
 using ::testing::_;
 using ::testing::Eq;
@@ -13,7 +15,6 @@ using ::testing::IsTrue;
 using ::testing::Le;
 using ::testing::NiceMock;
 using ::testing::NotNull;
-using ::testing::Test;
 using ::WPEFramework::Exchange::IStore2;
 using ::WPEFramework::Exchange::IStoreCache;
 using ::WPEFramework::Exchange::IStoreInspector;
@@ -37,7 +38,7 @@ const auto kLimit20 = 20;
 const auto kLimit30 = 30;
 const auto kLimit40 = 40;
 
-class AStore2 : public Test {
+class AStore2 : public WorkerPoolTest {
 protected:
     WPEFramework::Core::ProxyType<Store2> store2;
     AStore2()
