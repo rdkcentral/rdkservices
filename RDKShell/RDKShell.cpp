@@ -1880,7 +1880,7 @@ namespace WPEFramework {
                   }
                   while (gCreateDisplayRequests.size() > 0)
                   {
-                      std::cout << "Size of gCreateDisplayRequests: " << gCreateDisplayRequests.size() << std::endl
+                      std::cout << "Size of gCreateDisplayRequests: " << gCreateDisplayRequests.size() << std::endl;
                       std::shared_ptr<CreateDisplayRequest> request = gCreateDisplayRequests.front();
                       if (!request)
                       {
@@ -1893,7 +1893,7 @@ namespace WPEFramework {
                   }
                   while (gKillClientRequests.size() > 0)
                   {
-                      std::cout << "Size of gKillDisplayRequests: " << gKillDisplayRequests.size() << std::endl
+                      std::cout << "Size of gKillClientRequests: " << gKillClientRequests.size() << std::endl;
                       std::shared_ptr<KillClientRequest> request = gKillClientRequests.front();
                       if (!request)
                       {
