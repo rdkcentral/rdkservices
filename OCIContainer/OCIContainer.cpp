@@ -49,6 +49,10 @@ OCIContainer::OCIContainer()
     Register("pauseContainer", &OCIContainer::pauseContainer, this);
     Register("resumeContainer", &OCIContainer::resumeContainer, this);
     Register("executeCommand", &OCIContainer::executeCommand, this);
+    #ifdef HIBERNATE_SUPPORT_ENABLED
+    Register("hibernateContainer", &OCIContainer::hibernateContainer, this);
+    Register("wakeupContainer", &OCIContainer::wakeupContainer, this);
+    #endif
 }
 
 OCIContainer::~OCIContainer()
@@ -96,7 +100,10 @@ void OCIContainer::Deinitialize(PluginHost::IShell *service)
     Unregister("stopContainer");
     Unregister("pauseContainer");
     Unregister("resumeContainer");
-    Unregister("executeCommand");
+    #ifdef HIBERNATE_SUPPORT_ENABLED
+    Unregister("hibernateContainer");
+    Unregister("wakeupContainer");
+    #endif
 }
 
 string OCIContainer::Information() const
