@@ -450,7 +450,6 @@ namespace WPEFramework {
                   virtual void Deactivation(const string& name, PluginHost::IShell* plugin);
                   virtual void  Activated(const string& callSign,  PluginHost::IShell* plugin);
                   virtual void  Deactivated(const string& callSign,  PluginHost::IShell* plugin);
-		  virtual void Deinitialized(VARIABLE_IS_NOT_USED const string& callsign, VARIABLE_IS_NOT_USED PluginHost::IShell* plugin);
                   virtual void  Unavailable(const string& callSign,  PluginHost::IShell* plugin);
 #endif /* USE_THUNDER_R4 */
               private:
