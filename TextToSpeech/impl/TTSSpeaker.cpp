@@ -801,7 +801,12 @@ void TTSSpeaker::createPipeline(PipelineType type) {
 #if defined(PLATFORM_AMLOGIC)
         g_object_set(G_OBJECT(m_audioSink), "tts-mode", TRUE, NULL);
 #endif
-
+        if(m_defaultConfig.hasValidLocalEndpoint() && type == MP3 )
+        {
+            //timeout
+            TTSLOG_WARNING("Adding timeout 1 sec");
+            g_object_set(G_OBJECT(m_source), "timeout", 1, NULL);
+        }
         g_object_set(G_OBJECT(m_source), "location", tts_url.c_str(), NULL);
     }
 
