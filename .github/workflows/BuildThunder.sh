@@ -15,7 +15,7 @@ pip install jsonref
 ############################
 # 2. Build Thunder Tools
 
-git clone https://github.com/rdkcentral/ThunderTools.git
+git clone --depth 1 --branch R4.4.2 https://github.com/rdkcentral/ThunderTools.git
 
 cmake -G Ninja -S ThunderTools -B build/ThunderTools -DCMAKE_INSTALL_PREFIX="install/usr"
 
@@ -24,7 +24,7 @@ cmake --build build/ThunderTools --target install
 ############################
 # 3. Build Thunder
 
-git clone https://github.com/rdkcentral/Thunder.git
+git clone --depth 1 --branch R4.4.2 https://github.com/rdkcentral/Thunder.git
 
 cmake -G Ninja -S Thunder -B build/Thunder \
   -DBUILD_SHARED_LIBS=ON \
@@ -44,7 +44,7 @@ cmake --build build/Thunder --target install
 ############################
 # 4. Build ThunderInterfaces
 
-git clone https://github.com/rdkcentral/ThunderInterfaces.git
+git clone --depth 1 --branch R4.4.2 https://github.com/rdkcentral/ThunderInterfaces.git
 
 cmake -G Ninja -S ThunderInterfaces -B build/ThunderInterfaces \
   -DCMAKE_INSTALL_PREFIX="install/usr" \
