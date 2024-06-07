@@ -1454,8 +1454,13 @@ namespace WPEFramework {
             }
         }
 
-#ifdef USE_THUNDER_R4
+#if (THUNDER_VERSION >= 4)
+
+#if(THUNDER_VERSION_MINOR >= 4)
+	void RDKShell::MonitorClients::Initialize(const string& callsign, PluginHost::IShell* service)
+#else
 	void RDKShell::MonitorClients::Initialize(VARIABLE_IS_NOT_USED const string& callsign, VARIABLE_IS_NOT_USED PluginHost::IShell* service)
+#endif
        {
              handleInitialize(service);
        }
@@ -1472,7 +1477,11 @@ namespace WPEFramework {
             //StateChange(service);
             handleDeactivated(service);
        }
-        void RDKShell::MonitorClients::Deinitialized(VARIABLE_IS_NOT_USED const string& callsign, VARIABLE_IS_NOT_USED PluginHost::IShell* service)
+#if(THUNDER_VERSION_MINOR >= 4)
+       void RDKShell::MonitorClients::Deinitialized(const string& callsign, PluginHost::IShell* service)
+#else
+       void RDKShell::MonitorClients::Deinitialized(VARIABLE_IS_NOT_USED const string& callsign, VARIABLE_IS_NOT_USED PluginHost::IShell* service)
+#endif
         {
             handleDeinitialized(service);
         }
@@ -1618,16 +1627,16 @@ namespace WPEFramework {
 
         const string RDKShell::Initialize(PluginHost::IShell* service )
         {
-            std::cout << "initializing\n";
+            std::cout << "thamim: initializing\n";
             char* waylandDisplay = getenv("WAYLAND_DISPLAY");
             if (NULL != waylandDisplay)
             {
-                std::cout << "RDKShell WAYLAND_DISPLAY is set to: " << waylandDisplay <<" unsetting WAYLAND_DISPLAY\n";
+                std::cout << "thamim: RDKShell WAYLAND_DISPLAY is set to: " << waylandDisplay <<" unsetting WAYLAND_DISPLAY\n";
                 unsetenv("WAYLAND_DISPLAY");
             }
             else
             {
-                std::cout << "RDKShell WAYLAND_DISPLAY is not set\n";
+                std::cout << "thamim: RDKShell WAYLAND_DISPLAY is not set\n";
             }
 
             mCurrentService = service;
@@ -1642,9 +1651,9 @@ namespace WPEFramework {
 	    #endif
 	    #ifdef RDKSHELL_IGNORE_PS_FLAG_ON_MBFTA
             if(factoryMacMatched == false) {
-                    std::cout << "Modifying persistent store entry to false\n";
+                    std::cout << "thamim: Modifying persistent store entry to false\n";
                     uint32_t setStatus = setValue(mCurrentService, "FactoryTest", "FactoryMode", "false");
-                    std::cout << "set status: " << setStatus << std::endl;
+                    std::cout << "thamim: set status: " << setStatus << std::endl;
             } else {
             #endif
             #ifdef RDKSHELL_DUAL_FTA_SUPPORT
@@ -1660,21 +1669,21 @@ namespace WPEFramework {
             {
                 if (strncasecmp(macparam.value,"00:00:00:00:00:00",17) == 0)
                 {
-                    std::cout << "launching factory app as mac is matching " << std::endl;
+                    std::cout << "thamim: launching factory app as mac is matching " << std::endl;
                     factoryMacMatched = true;
                 }
                 else
                 {
-                    std::cout << "mac match failed. mac from rfc - " << macparam.value << std::endl;
+                    std::cout << "thamim: mac match failed. mac from rfc - " << macparam.value << std::endl;
                 }
             }
             else
             {
-                std::cout << "reading stb mac rfc failed " << std::endl;
+                std::cout << "thamim: reading stb mac rfc failed " << std::endl;
             }
             #endif //RDKSHELL_READ_MAC_ON_STARTUP
 #else
-            std::cout << "rfc is disabled and unable to check for stb mac " << std::endl;
+            std::cout << "thamim: rfc is disabled and unable to check for stb mac " << std::endl;
 #endif
 #ifdef RFC_ENABLED
             RFC_ParamData_t param;
@@ -1692,7 +1701,7 @@ namespace WPEFramework {
                 }
                 catch (...)
                 { 
-                  std::cout << "RDKShell unable to set inactivity interval  " << std::endl;
+                  std::cout << "thamim: RDKShell unable to set inactivity interval  " << std::endl;
                 }
               }
             }
@@ -1712,13 +1721,13 @@ namespace WPEFramework {
                         token)
                     == Core::ERROR_NONE) {
                     sThunderSecurityToken = token;
-                    std::cout << "RDKShell got security token" << std::endl;
+                    std::cout << "thamim: RDKShell got security token" << std::endl;
                 } else {
-                    std::cout << "RDKShell failed to get security token" << std::endl;
+                    std::cout << "thamim: RDKShell failed to get security token" << std::endl;
                 }
                 security->Release();
             } else {
-                std::cout << "No security agent" << std::endl;
+                std::cout << "thamim: No security agent" << std::endl;
             }
 
             service->Register(mClientsMonitor);
@@ -1730,7 +1739,7 @@ namespace WPEFramework {
             char* waitValue = getenv("RDKSHELL_WAIT_FOR_PERSISTENT_STORE");
             if (NULL != waitValue)
             {
-                std::cout << "waiting for persistent store\n";
+                std::cout << "thamim: waiting for persistent store\n";
                 waitForPersistentStore = true;
             }
             if (factoryMacMatched)
@@ -1745,20 +1754,20 @@ namespace WPEFramework {
                    JsonObject activateResult;
                    auto thunderController = getThunderControllerClient();
                    status = thunderController->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, activateResult);
-                   std::cout << "Activating ResidentApp from RDKShell during bootup with Status:" << status << std::endl;
+                   std::cout << "thamim: Activating ResidentApp from RDKShell during bootup with Status:" << status << std::endl;
                    if (status > 0){
                            response["message"] = "resident app launch failed";
-                           std::cout << "resident app launch failed from rdkshell" << std::endl;
+                           std::cout << "thamim: resident app launch failed from rdkshell" << std::endl;
                    }
                   else {
                         response["message"] = "resident app launch success";
-                        std::cout << "resident app launch success from rdkshell" << std::endl;
+                        std::cout << "thamim: resident app launch success from rdkshell" << std::endl;
                   }
             }
             char* blockResidentApp = getenv("RDKSHELL_BLOCK_RESIDENTAPP_FACTORYMODE");
             if (NULL != blockResidentApp)
             {
-                std::cout << "block resident app on factory mode\n";
+                std::cout << "thamim: block resident app on factory mode\n";
                 sFactoryModeBlockResidentApp = true;
             }
 
@@ -1773,7 +1782,7 @@ namespace WPEFramework {
                     PluginHost::ISubSystem* subSystems(pluginService->SubSystems());
                     if (subSystems != nullptr)
                     {
-                        std::cout << "setting platform and graphics\n";
+                        std::cout << "thamim: setting platform and graphics\n";
                         fflush(stdout);
                         RDKShell* rdkshellPlugin = RDKShell::_instance;
                         if (factoryMacMatched || ((nullptr != rdkshellPlugin) && (rdkshellPlugin->checkForBootupFactoryAppLaunch())))
@@ -1786,7 +1795,7 @@ namespace WPEFramework {
                         if (sFactoryModeStart) 
                         {
                             JsonObject request, response;
-                            std::cout << "about to launch factory app on start without persistent store wait\n";
+                            std::cout << "thamim: about to launch factory app on start without persistent store wait\n";
                             gRdkShellMutex.unlock();
                             if (sFactoryModeBlockResidentApp)
                             {
@@ -1804,7 +1813,7 @@ namespace WPEFramework {
                         }
                         else
                         {
-                          std::cout << "not launching factory app as conditions not matched\n";
+                          std::cout << "thamim: not launching factory app as conditions not matched\n";
                         }
                     }
                 }
@@ -1839,7 +1848,7 @@ namespace WPEFramework {
                         {
                             sFactoryModeStart = true;
                         }
-                        std::cout << "setting platform and graphics after wait\n";
+                        std::cout << "thamim: setting platform and graphics after wait\n";
                         subSystems->Set(PluginHost::ISubSystem::PLATFORM, nullptr);
                         subSystems->Set(PluginHost::ISubSystem::GRAPHICS, nullptr);
                         subSystems->Release();
@@ -1848,7 +1857,7 @@ namespace WPEFramework {
                     if (sFactoryModeStart)
                     {
                         JsonObject request, response;
-                        std::cout << "About to launch factory app after persistent store wait\n";
+                        std::cout << "thamim: About to launch factory app after persistent store wait\n";
                         gRdkShellMutex.unlock();
                         if (sFactoryModeBlockResidentApp)
                         {
@@ -1866,12 +1875,13 @@ namespace WPEFramework {
                     }
                     else
                     {
-                        std::cout << "Not launching factory app as conditions not matched\n";
+                        std::cout << "thamim: Not launching factory app as conditions not matched\n";
                     }
                   }
                   while (gCreateDisplayRequests.size() > 0)
                   {
-		      std::shared_ptr<CreateDisplayRequest> request = gCreateDisplayRequests.front();
+                      std::cout << "Size of gCreateDisplayRequests: " << gCreateDisplayRequests.size() << std::endl;
+                      std::shared_ptr<CreateDisplayRequest> request = gCreateDisplayRequests.front();
                       if (!request)
                       {
                           gCreateDisplayRequests.erase(gCreateDisplayRequests.begin());
@@ -1883,7 +1893,8 @@ namespace WPEFramework {
                   }
                   while (gKillClientRequests.size() > 0)
                   {
-	              std::shared_ptr<KillClientRequest> request = gKillClientRequests.front();
+                      std::cout << "Size of gKillClientRequests: " << gKillClientRequests.size() << std::endl;
+                      std::shared_ptr<KillClientRequest> request = gKillClientRequests.front();
                       if (!request)
                       {
                           gKillClientRequests.erase(gKillClientRequests.begin());
@@ -1966,7 +1977,7 @@ namespace WPEFramework {
 
             m_timer.setInterval(RECONNECTION_TIME_IN_MILLISECONDS);
             m_timer.start();
-            std::cout << "Started SystemServices connection timer" << std::endl;
+            std::cout << "thamim: Started SystemServices connection timer" << std::endl;
             char* rdkshelltype = getenv("RDKSHELL_COMPOSITOR_TYPE");
             if((rdkshelltype != NULL) && (strcmp(rdkshelltype , "surface") == 0))
             {
@@ -1978,6 +1989,7 @@ namespace WPEFramework {
         rialtoConnector = std::shared_ptr<RialtoConnector>(rialtoBridge);
 #endif //  ENABLE_RIALTO_FEATURE
             sem_wait(&gInitializeSemaphore);
+	    std::cout << "thamim: end of Intializing" << std::endl;
             return "";
         }
 
@@ -4190,7 +4202,8 @@ namespace WPEFramework {
                         request->mAutoDestroy = autoDestroy;
                         lockRdkShellMutex();
                         gPluginDisplayNameMap[callsign] = displayName;
-                        std::cout << "Added displayname : "<<displayName<< std::endl;
+                        std::cout << "thamim: Added displayname : "<<displayName<< std::endl;
+			std::cout << "thamim: Added callsign : "<<callsign<< std::endl;
                         gCreateDisplayRequests.push_back(request);
                         gRdkShellMutex.unlock();
                         sem_wait(&request->mSemaphore);
@@ -7436,7 +7449,7 @@ namespace WPEFramework {
             }
             else
             {
-                std::cout << "Client " << client  << "already exist " << std::endl;
+                std::cout << "thamim: Client " << client  << "already exist " << std::endl;
             }
             lockRdkShellMutex();
             RdkShell::CompositorController::addListener(client, mEventListener);
