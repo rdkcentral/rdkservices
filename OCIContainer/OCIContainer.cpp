@@ -100,6 +100,7 @@ void OCIContainer::Deinitialize(PluginHost::IShell *service)
     Unregister("stopContainer");
     Unregister("pauseContainer");
     Unregister("resumeContainer");
+    Unregister("executeCommand");
     #ifdef HIBERNATE_SUPPORT_ENABLED
     Unregister("hibernateContainer");
     Unregister("wakeupContainer");
