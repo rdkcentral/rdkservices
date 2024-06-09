@@ -412,6 +412,11 @@ namespace Plugin {
 
     uint32_t PackagerImplementation::UpdateConfiguration(const string& callsign, const string& installPath)
     {
+     FILE* logFile = fopen("/opt/logs/rdm_status.log", "a");
+        if (logFile != nullptr) {
+            fprintf(logFile, "UpdateConfiguration >->->  Debug: Logging UpdateConfiguration\n");
+        }
+     
         uint32_t result = Core::ERROR_GENERAL;
         ASSERT(callsign.empty() == false);
         ASSERT(_servicePI != nullptr);
@@ -422,68 +427,98 @@ namespace Plugin {
         if (shell != nullptr) {
             if (shell->SystemRootPath(installPath)  == Core::ERROR_NONE) {
                 TRACE(Trace::Information, (_T("[Packager]: SystemRootPath for %s is %s"), callsign.c_str(), shell->SystemRootPath().c_str()));
+             fprintf(logFile, "UpdateConfiguration >->->  Debug: SystemRootPath for %s is %s\n", callsign.c_str(), shell->SystemRootPath().c_str());
 
                 PluginHost::IController* controller = _servicePI->QueryInterfaceByCallsign<PluginHost::IController>(EMPTY_STRING);
                 if (controller != nullptr) {
                     if (controller->Persist() == Core::ERROR_NONE) {
                         result = Core::ERROR_NONE;
                         TRACE(Trace::Information, (_T("[Packager]: Successfully stored %s plugin's config in peristent path"), callsign.c_str()));
+                      fprintf(logFile, "UpdateConfiguration >->->  Debug: Successfully stored %s plugin's config in peristent path\n", callsign.c_str());
                     }
                     controller->Release();
                 }
                 else {
                     TRACE(Trace::Error, (_T("[Packager]: Failed to find Controller interface")));
+                 fprintf(logFile, "UpdateConfiguration >->->  Debug: Failed to find Controller interface\n");
                 }
             }
             shell->Release();
         }
         else {
             TRACE(Trace::Error, (_T("[Packager]: Failed to find Shell interface")));
+         fprintf(logFile, "UpdateConfiguration >->->  Debug: Failed to find Shell interface\n");
+        }
+        if (logFile != nullptr) {
+           fclose(logFile);
         }
         return result;
     }
 
     void PackagerImplementation::DeactivatePlugin(const string& callsign, const string& appName)
     {
+      FILE* logFile = fopen("/opt/logs/rdm_status.log", "a");
+        if (logFile != nullptr) {
+            fprintf(logFile, "DeactivatePlugin >->->  Debug: Logging DeactivatePlugin\n");
         ASSERT(callsign.empty() == false);
         ASSERT(_servicePI != nullptr);
         TRACE(Trace::Information, (_T("[Packager]: callsign from metadata is %s"), callsign.c_str()));
+          fprintf(logFile, "DeactivatePlugin >->->  Debug: Callsign from metadata is %s\n", callsign.c_str());
         PluginHost::IShell* dlPlugin = _servicePI->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
 
         if (dlPlugin == nullptr) {
             TRACE(Trace::Error, (_T("[Packager]: Plugin %s is not configured in this setup"), callsign.c_str()));
+          fprintf(logFile, "DeactivatePlugin >->->  Debug: Plugin %s is not configured in this setup\n", callsign.c_str());
         }
         else {
             PluginHost::IShell::state currentState(dlPlugin->State());
             if (currentState != PluginHost::IShell::UNAVAILABLE) {
                 TRACE(Trace::Information, (_T("[Packager]: Plugin %s is not in Unavailable state. Hence, not deactivating it"),callsign.c_str()));
+              fprintf(logFile, "DeactivatePlugin >->->  Debug: Plugin %s is not in Unavailable state. Hence, not deactivating it\n", callsign.c_str());
             }
             else {
                 TRACE(Trace::Information, (_T("[Packager]: Plugin %s is in Unavailable state"), callsign.c_str()));
+              fprintf(logFile, "DeactivatePlugin >->->  Debug: Plugin %s is in Unavailable state\n", callsign.c_str());
                 uint32_t result = dlPlugin->Deactivate(PluginHost::IShell::REQUESTED);
                 if (result == Core::ERROR_NONE) {
                     TRACE(Trace::Information, (_T("[Packager]: %s moved to Deactivated state"), callsign.c_str()));
+                  fprintf(logFile, "DeactivatePlugin >->->  Debug: %s moved to Deactivated state\n", callsign.c_str());
                     string appInstallPath = GetInstallationPath(appName);
                     if (UpdateConfiguration(callsign, appInstallPath) != Core::ERROR_NONE) {
                         TRACE(Trace::Error, (_T("[Packager]: Failed to update SystemRootPath for %s"), callsign.c_str()));
+                     fprintf(logFile, "DeactivatePlugin >->->  Debug: Failed to update SystemRootPath for %s\n", callsign.c_str());
                     }
                 }
                 else {
                     TRACE(Trace::Error, (_T("[Packager]: Failed to move %s to Deactivated state"), callsign.c_str()));
+                 fprintf(logFile, "DeactivatePlugin >->->  Debug: Failed to move %s to Deactivated state\n", callsign.c_str());
                 }
             }
+        }
             dlPlugin->Release();
+         if (logFile != nullptr) {
+           fclose(logFile);
+         }
         }
     }
 
     void PackagerImplementation::NotifyStateChange()
     {
+     FILE* logFile = fopen("/opt/logs/rdm_status.log", "a");
+        if (logFile != nullptr) {
+            fprintf(logFile, "NotifyStateChange >->->  Debug: Logging NotifyStateChange\n");
         _adminLock.Lock();
+         fprintf(logFile, "NotifyStateChange >->->  Debug: State for %s changed to %d (%d %%, %d)\n", _inProgress.Package->Name().c_str(), _inProgress.Install->State(), _inProgress.Install->Progress(), _inProgress.Install->ErrorCode());
         TRACE_L1("State for %s changed to %d (%d %%, %d)", _inProgress.Package->Name().c_str(), _inProgress.Install->State(), _inProgress.Install->Progress(), _inProgress.Install->ErrorCode());
         for (auto* notification : _notifications) {
             notification->StateChange(_inProgress.Package, _inProgress.Install);
         }
+         fprintf(logFile, "NotifyStateChange >->->  Debug: NotifyStateChange completed\n");
         _adminLock.Unlock();
+         if (logFile != nullptr) {
+           fclose(logFile);
+        }
+        }
     }
 
     void PackagerImplementation::NotifyRepoSynced(uint32_t status)
