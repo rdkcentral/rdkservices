@@ -16,6 +16,9 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.5.3] - 2024-06-10
+### Changed
+- ResidentApp plugin unable to activate due to unable to get the Initialize/activating Notification from Thunder(R4.4.1)
 
 ## [1.5.2] - 2024-06-04
 ### Changed
