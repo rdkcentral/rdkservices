@@ -2869,11 +2869,28 @@ static GSourceFuncs _handlerIntervention =
                      nullptr);
                 g_free(indexedDBPath);
 #else
+#if WEBKIT_CHECK_VERSION(2, 38, 0)
+                uint64_t indexedDBSizeBytes = 0;    // No limit by default, use WebKit defaults (1G at the moment of writing)
+                if (_config.OriginStorageRatio.IsSet() && _config.OriginStorageRatio.Value() != 0) {
+                    Core::File persistentPath(_service->PersistentPath());
+                    indexedDBSizeBytes = ((persistentPath.Core::File::Size() * _config.OriginStorageRatio.Value()) / 100);
+                }
+
+                auto* websiteDataManager = webkit_website_data_manager_new(
+                    "local-storage-directory", wpeStoragePath,
+                    "disk-cache-directory", wpeDiskCachePath,
+                    "local-storage-quota", localStorageDatabaseQuotaInBytes,
+                    "indexeddb-directory", indexedDBPath,
+                    "per-origin-storage-quota", indexedDBSizeBytes,
+                     nullptr);
+                g_free(indexedDBPath);
+#else
                 auto* websiteDataManager = webkit_website_data_manager_new(
                     "local-storage-directory", wpeStoragePath,
                     "disk-cache-directory", wpeDiskCachePath,
                     "local-storage-quota", localStorageDatabaseQuotaInBytes,
                      nullptr);
+#endif
 #endif
                 g_free(wpeStoragePath);
                 g_free(wpeDiskCachePath);
