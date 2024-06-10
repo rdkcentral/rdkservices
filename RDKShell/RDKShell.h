@@ -396,13 +396,12 @@ namespace WPEFramework {
                   RDKShell& mShell;
             };
 
-#if ((THUNDER_VERSION >= 4) && (THUNDER_VERSION_MINOR >= 4))
             class MonitorClients
             : public PluginHost::IPlugin::INotification
-            ,  public PluginHost::IPlugin::ILifeTime {
-#else
-	    class MonitorClients : public PluginHost::IPlugin::INotification {
+#if ((THUNDER_VERSION >= 4) && (THUNDER_VERSION_MINOR >= 4))
+            ,  public PluginHost::IPlugin::ILifeTime 
 #endif
+	   {
               private:
                   MonitorClients() = delete;
                   MonitorClients(const MonitorClients&) = delete;
