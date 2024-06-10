@@ -2,7 +2,7 @@
 <a name="OpenCDMi_Plugin"></a>
 # OpenCDMi Plugin
 
-**Version: [1.0.5](https://github.com/rdkcentral/rdkservices/blob/main/OpenCDMi/CHANGELOG.md)**
+**Version: [1.0.6](https://github.com/rdkcentral/rdkservices/blob/main/OpenCDMi/CHANGELOG.md)**
 
 A OCDM plugin for Thunder framework.
 
