@@ -432,20 +432,13 @@ namespace WPEFramework {
                   void handleDeactivated(PluginHost::IShell* shell);
                   void handleDeinitialized(PluginHost::IShell* shell);
 
-#if (THUNDER_VERSION >= 4)
-
-#if(THUNDER_VERSION_MINOR >= 4)
+#ifdef USE_THUNDER_R4
                   virtual void Initialize(const string& callsign, PluginHost::IShell* plugin);
-                  virtual void Deinitialized(const string& callsign, PluginHost::IShell* plugin);
-#else
-                  virtual void Initialize(VARIABLE_IS_NOT_USED const string& callsign, VARIABLE_IS_NOT_USED PluginHost::IShell* plugin);
-                  virtual void Deinitialized(VARIABLE_IS_NOT_USED const string& callsign, VARIABLE_IS_NOT_USED PluginHost::IShell* plugin);
-#endif
                   virtual void Activation(const string& name, PluginHost::IShell* plugin);
                   virtual void Deactivation(const string& name, PluginHost::IShell* plugin);
                   virtual void  Activated(const string& callSign,  PluginHost::IShell* plugin);
                   virtual void  Deactivated(const string& callSign,  PluginHost::IShell* plugin);
-		  virtual void Deinitialized(VARIABLE_IS_NOT_USED const string& callsign, VARIABLE_IS_NOT_USED PluginHost::IShell* plugin);
+                  virtual void Deinitialized(const string& callsign, PluginHost::IShell* plugin);
                   virtual void  Unavailable(const string& callSign,  PluginHost::IShell* plugin);
 #endif /* USE_THUNDER_R4 */
               private:

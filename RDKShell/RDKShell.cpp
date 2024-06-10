@@ -1452,13 +1452,8 @@ namespace WPEFramework {
             }
         }
 
-#if (THUNDER_VERSION >= 4)
-
-#if(THUNDER_VERSION_MINOR >= 4)
+#ifdef USE_THUNDER_R4
        void RDKShell::MonitorClients::Initialize(const string& callsign, PluginHost::IShell* service)
-#else
-       void RDKShell::MonitorClients::Initialize(VARIABLE_IS_NOT_USED const string& callsign, VARIABLE_IS_NOT_USED PluginHost::IShell* service)
-#endif
        {
              handleInitialize(service);
        }
@@ -1475,17 +1470,13 @@ namespace WPEFramework {
             //StateChange(service);
             handleDeactivated(service);
        }
-#if(THUNDER_VERSION_MINOR >= 4)
        void RDKShell::MonitorClients::Deinitialized(const string& callsign, PluginHost::IShell* service)
-#else
-       void RDKShell::MonitorClients::Deinitialized(VARIABLE_IS_NOT_USED const string& callsign, VARIABLE_IS_NOT_USED PluginHost::IShell* service)
-#endif
        {
             handleDeinitialized(service);
        }
        void RDKShell::MonitorClients::Unavailable(const string& callsign, PluginHost::IShell* service)
        {}
-#endif
+#endif /* USE_THUNDER_R4 */
 
         bool RDKShell::ScreenCapture::Capture(ICapture::IStore& storer)
         {
