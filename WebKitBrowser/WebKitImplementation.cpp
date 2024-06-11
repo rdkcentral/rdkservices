@@ -101,6 +101,7 @@ WK_EXPORT void WKPreferencesSetPageCacheEnabled(WKPreferencesRef preferences, bo
 
 namespace
 {
+    static constexpr char ENV_WPE_CLIENT_CERTIFICATES_PATH[] = "/etc/ssl/private/";
     static constexpr char ENV_WPE_CLIENT_CERTIFICATES_URLS[] = "WPE_CLIENT_CERTIFICATES_URLS";
     static constexpr char ENV_URL_LIST_DELIMITER[] = "|"; // not allowed in URI
     static constexpr char MSG_CLIENT_CERT_DELIMITER[] = "\r\n";
@@ -2017,7 +2018,8 @@ static GSourceFuncs _handlerIntervention =
                     current_certsUrls += newWpeHost;
                 }
 
-                std::string certContents = GetFileContent(newWpeClientCert);
+                const std::string filepath_WpeClientCert = std::string(ENV_WPE_CLIENT_CERTIFICATES_PATH).append(newWpeClientCert);
+                std::string certContents = GetFileContent(filepath_WpeClientCert);
 
                 if (certContents.empty())
                 {
@@ -2025,7 +2027,8 @@ static GSourceFuncs _handlerIntervention =
                 }
                 else
                 {
-                    std::string keyContents = GetFileContent(newWpeClientCertKey);
+                    const std::string filepath_WpeClientCertKey = std::string(ENV_WPE_CLIENT_CERTIFICATES_PATH).append(newWpeClientCertKey);
+                    std::string keyContents = GetFileContent(filepath_WpeClientCertKey);
                     if (keyContents.empty())
                     {
                         TRACE(Trace::Error, (_T("Empty private key for %s %s"), newWpeClientCertKey.c_str(), newWpeHost.c_str()));
