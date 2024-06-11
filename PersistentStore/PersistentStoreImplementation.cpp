@@ -21,7 +21,7 @@
 #include "grpc/Store2.h"
 #include "sqlite/Store2.h"
 
-namespace Thunder {
+namespace WPEFramework {
 namespace Plugin {
 
     SERVICE_REGISTRATION(PersistentStoreImplementation, 1, 0);
@@ -74,4 +74,4 @@ namespace Plugin {
     }
 
 } // namespace Plugin
-} // namespace Thunder
+} // namespace WPEFramework
