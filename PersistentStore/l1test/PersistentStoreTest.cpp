@@ -10,8 +10,8 @@ using ::testing::IsTrue;
 using ::testing::NiceMock;
 using ::testing::Return;
 using ::testing::Test;
-using ::WPEFramework::Plugin::PersistentStore;
-using ::WPEFramework::PluginHost::IPlugin;
+using ::Thunder::Plugin::PersistentStore;
+using ::Thunder::PluginHost::IPlugin;
 
 const auto kFile1 = "/tmp/persistentstore/l0test/persistentstoretest1";
 const auto kFile2 = "/tmp/persistentstore/l0test/persistentstoretest2";
@@ -23,8 +23,8 @@ protected:
     NiceMock<ServiceMock>* service;
     IPlugin* plugin;
     APersistentStore()
-        : service(WPEFramework::Core::Service<NiceMock<ServiceMock>>::Create<NiceMock<ServiceMock>>())
-        , plugin(WPEFramework::Core::Service<PersistentStore>::Create<IPlugin>())
+        : service(Thunder::Core::Service<NiceMock<ServiceMock>>::Create<NiceMock<ServiceMock>>())
+        , plugin(Thunder::Core::Service<PersistentStore>::Create<IPlugin>())
     {
     }
     ~APersistentStore() override
@@ -36,11 +36,11 @@ protected:
 
 TEST_F(APersistentStore, MovesFileWhenInitializedWithNewAndPreviousPath)
 {
-    WPEFramework::Core::File file1(kFile1);
-    WPEFramework::Core::File file2(kFile2);
+    Thunder::Core::File file1(kFile1);
+    Thunder::Core::File file2(kFile2);
     file1.Destroy();
     file2.Destroy();
-    WPEFramework::Core::Directory(file1.PathName().c_str()).CreatePath();
+    Thunder::Core::Directory(file1.PathName().c_str()).CreatePath();
     ASSERT_THAT(file1.Create(), IsTrue());
     file1.Write(kFileContent, kFileContentSize);
     JsonObject config;
@@ -52,7 +52,7 @@ TEST_F(APersistentStore, MovesFileWhenInitializedWithNewAndPreviousPath)
         .WillByDefault(Return(configJsonStr));
     plugin->Initialize(service);
     plugin->Deinitialize(service);
-    ASSERT_THAT(WPEFramework::Core::File(kFile1).Exists(), IsFalse());
+    ASSERT_THAT(Thunder::Core::File(kFile1).Exists(), IsFalse());
     ASSERT_THAT(file2.Open(true), IsTrue());
     uint8_t buffer[1024];
     ASSERT_THAT(kFileContentSize, file2.Read(buffer, 1024));

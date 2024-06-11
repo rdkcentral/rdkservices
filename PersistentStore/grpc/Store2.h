@@ -28,7 +28,7 @@
 #include <sysMgr.h>
 #endif
 
-namespace WPEFramework {
+namespace Thunder {
 namespace Plugin {
     namespace Grpc {
 
@@ -345,4 +345,4 @@ namespace Plugin {
 
     } // namespace Grpc
 } // namespace Plugin
-} // namespace WPEFramework
+} // namespace Thunder

@@ -28,7 +28,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(googletest)
 
-find_package(WPEFramework REQUIRED)
+find_package(Thunder REQUIRED)
 find_package(${NAMESPACE}Plugins REQUIRED)
 
 add_executable(${PROJECT_NAME}

@@ -19,7 +19,7 @@
 
 #include "PersistentStore.h"
 
-namespace WPEFramework {
+namespace Thunder {
 namespace Plugin {
 
     using namespace JsonData::PersistentStore;
@@ -225,4 +225,4 @@ namespace Plugin {
     }
 
 } // namespace Plugin
-} // namespace WPEFramework
+} // namespace Thunder
