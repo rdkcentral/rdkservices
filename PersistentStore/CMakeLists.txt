@@ -84,7 +84,6 @@ if (IARMBUS_LIBRARIES)
 endif ()
 
 if (PLUGIN_PERSISTENTSTORE_WITH_ACCOUNT_SCOPE)
-    target_sources(${PLUGIN_IMPLEMENTATION} PRIVATE grpc/Store2.cpp)
     find_package(Protobuf REQUIRED)
     target_link_libraries(${PLUGIN_IMPLEMENTATION} PRIVATE ${Protobuf_LIBRARIES})
 
