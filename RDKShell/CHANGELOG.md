@@ -16,7 +16,7 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
-## [1.5.4] - 2024-06-11
+## [1.6.0] - 2024-06-12
 ### Added
 - Added Upstream onApplicationFocusChanged event change handling
 
