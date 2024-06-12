@@ -286,22 +286,11 @@ namespace WPEFramework {
             uint8_t i=0;
             string cmd="";
             bool internetConnectStatus=false;
-	    bool delayMaintenanceStarted = false;
-
-	    std::unique_lock<std::mutex> lck(m_callMutex);
+            std::unique_lock<std::mutex> lck(m_callMutex);
             LOGINFO("Executing Maintenance tasks");
-
-#if defined(ENABLE_WHOAMI)
-	    /* Purposefully delaying MAINTENANCE_STARTED status to honor POWER compliance */
-	    if (UNSOLICITED_MAINTENANCE == g_maintenance_type) {
-                delayMaintenanceStarted = true;
-	    }
-#endif
-	    if (!delayMaintenanceStarted) {
-                m_statusMutex.lock();
-                MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
-                m_statusMutex.unlock();
-	    }
+            m_statusMutex.lock();
+            MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
+            m_statusMutex.unlock();
 
             /* cleanup if not empty */
             if(!tasks.empty()){
@@ -362,12 +351,6 @@ namespace WPEFramework {
                 }
                 return;
             }
-
-	    if (delayMaintenanceStarted) {
-	        m_statusMutex.lock();
-                MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
-                m_statusMutex.unlock();
-	    }
 
             LOGINFO("Reboot_Pending :%s",g_is_reboot_pending.c_str());
 

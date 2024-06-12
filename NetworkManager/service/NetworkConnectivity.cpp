@@ -13,7 +13,7 @@
 #include <mutex>
 #include <curl/curl.h>
 #include "Module.h"
-#include "NetworkManagerConnectivity.h"
+#include "NetworkConnectivity.h"
 #include "NetworkManagerImplementation.h"
 
 namespace WPEFramework {
@@ -63,6 +63,74 @@ namespace WPEFramework {
             NMLOG_ERROR("Failed to open connectivity endpoint cache file");
         }
         return readStrings;
+    }
+
+    void Connectivity::loadConnectivityConfig(const std::string& configFilePath)
+    {
+        std::ifstream configFile(configFilePath);
+        if (!configFile.is_open()) 
+        {
+            NMLOG_ERROR("Unable to open the configuration file: %s", configFilePath.c_str());
+            return;
+        }
+
+        bool ConnectivityConfigFound = false;
+
+        // load connectivity endpoint configuration
+        std::string line;
+        while (std::getline(configFile, line))
+        {
+            if (line == "[Connectivity_Config]")
+            {
+                ConnectivityConfigFound = true;
+                continue;
+            }
+
+            if (ConnectivityConfigFound)
+            {
+                size_t equalsPos = line.find('=');
+                if (equalsPos != std::string::npos)
+                {
+                    std::string key = line.substr(0, equalsPos);
+                    std::string value = line.substr(equalsPos + 1);
+                    configMap[key] = value;
+                }
+            }
+        }
+
+        configFile.close();
+
+        /* Parse the connectivity monitor interval and enable values */
+        configMonitorConnectivityEnabled = ((configMap["CONNECTIVITY_MONITOR_ENABLE"] == "1")? true:false);
+        std::string monitorIntervalStr = configMap["CONNECTIVITY_MONITOR_INTERVAL"];
+        if (!monitorIntervalStr.empty())
+        {
+            configMonitorInterval = std::stoi(monitorIntervalStr);
+        }
+
+        m_defaultEndpoints.clear();
+        for (int i = 1; i <= 5; ++i)
+        {
+            std::string endpointName = "CONNECTIVITY_ENDPOINT_" + std::to_string(i);
+            auto endpoint = configMap.find(endpointName);
+            if (endpoint != configMap.end() && endpoint->second.length() > 3)
+            {
+                m_defaultEndpoints.push_back(endpoint->second);
+            }
+        }
+
+        if(m_defaultEndpoints.empty())
+        {
+            NMLOG_ERROR("Default endpoints are empty !!");
+        }
+        else
+        {
+            std::string endpoints_str;
+            for (const auto& endpoint : m_defaultEndpoints)
+                endpoints_str.append(endpoint).append(" ");
+            NMLOG_INFO("default endpoints count %d and endpoints:- %s", static_cast<int>(m_defaultEndpoints.size()), endpoints_str.c_str());
+            NMLOG_INFO("default monitor connectivity interval: %d and monitor connectivity auto start : %s", configMonitorInterval, configMonitorConnectivityEnabled?"true":"false");
+        }
     }
 
     bool ConnectivityMonitor::isConnectivityMonitorEndpointSet()

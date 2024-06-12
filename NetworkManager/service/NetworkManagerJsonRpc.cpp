@@ -43,8 +43,8 @@ namespace WPEFramework
             Register("GetAvailableInterfaces",            &NetworkManager::GetAvailableInterfaces, this);
             Register("GetPrimaryInterface",               &NetworkManager::GetPrimaryInterface, this);
             Register("SetPrimaryInterface",               &NetworkManager::SetPrimaryInterface, this);
-            Register("SetInterfaceState",                 &NetworkManager::SetInterfaceState, this);
-            Register("GetInterfaceState",                 &NetworkManager::GetInterfaceState, this);
+            Register("EnableInterface",                   &NetworkManager::EnableInterface, this);
+            Register("DisableInterface",                  &NetworkManager::DisableInterface, this);
             Register("GetIPSettings",                     &NetworkManager::GetIPSettings, this);
             Register("SetIPSettings",                     &NetworkManager::SetIPSettings, this);
             Register("GetStunEndpoint",                   &NetworkManager::GetStunEndpoint, this);
@@ -82,8 +82,8 @@ namespace WPEFramework
             Unregister("GetAvailableInterfaces");
             Unregister("GetPrimaryInterface");
             Unregister("SetPrimaryInterface");
-            Unregister("SetInterfaceState");
-            Unregister("GetInterfaceState");
+            Unregister("EnableInterface");
+            Unregister("DisableInterface");
             Unregister("GetIPSettings");
             Unregister("SetIPSettings");
             Unregister("GetStunEndpoint");
@@ -212,14 +212,13 @@ namespace WPEFramework
             return rc;
         }
 
-        uint32_t NetworkManager::SetInterfaceState(const JsonObject& parameters, JsonObject& response)
+        uint32_t NetworkManager::EnableInterface (const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
             uint32_t rc = Core::ERROR_GENERAL;
             string interface = parameters["interface"].String();
-            bool enabled = parameters["enable"].Boolean();
             if (_NetworkManager)
-                rc = _NetworkManager->SetInterfaceState(interface, enabled);
+                rc = _NetworkManager->EnableInterface(interface);
             else
                 rc = Core::ERROR_UNAVAILABLE;
 
@@ -231,21 +230,18 @@ namespace WPEFramework
             return rc;
         }
 
-        uint32_t NetworkManager::GetInterfaceState(const JsonObject& parameters, JsonObject& response)
+        uint32_t NetworkManager::DisableInterface (const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
             uint32_t rc = Core::ERROR_GENERAL;
-            bool isEnabled = false;
             string interface = parameters["interface"].String();
-
             if (_NetworkManager)
-                rc = _NetworkManager->GetInterfaceState(interface, isEnabled);
+                rc = _NetworkManager->DisableInterface(interface);
             else
                 rc = Core::ERROR_UNAVAILABLE;
 
             if (Core::ERROR_NONE == rc)
             {
-                response["enabled"] = isEnabled;
                 response["success"] = true;
             }
             LOGTRACEMETHODFIN();
@@ -557,18 +553,10 @@ namespace WPEFramework
             if (parameters.HasLabel("ipversion"))
                 ipversion = parameters["ipversion"].String();
 
-            if ((!m_publicIPAddress.empty()) && (m_publicIPAddressType == ipversion))
-            {
-                rc = Core::ERROR_NONE;
-                ipAddress = m_publicIPAddress;
-            }
+            if (_NetworkManager)
+                rc = _NetworkManager->GetPublicIP(ipversion, ipAddress);
             else
-            {
-                if (_NetworkManager)
-                    rc = _NetworkManager->GetPublicIP(ipversion, ipAddress);
-                else
-                    rc = Core::ERROR_UNAVAILABLE;
-            }
+                rc = Core::ERROR_UNAVAILABLE;
 
             if (Core::ERROR_NONE == rc)
             {
@@ -592,23 +580,7 @@ namespace WPEFramework
                 JsonObject input, output;
                 GetPublicIP(input, output);
             }
-
-            if (!m_publicIPAddress.empty())
-            {
-                PluginHost::ISubSystem* subSystem = _service->SubSystems();
-
-                if (subSystem != nullptr)
-                {
-                    const PluginHost::ISubSystem::IInternet* internet(subSystem->Get<PluginHost::ISubSystem::IInternet>());
-                    if (nullptr == internet)
-                    {
-                        subSystem->Set(PluginHost::ISubSystem::INTERNET, this);
-                        NMLOG_INFO("Set INTERNET ISubSystem");
-                    }
-
-                    subSystem->Release();
-                }
-            }
+            //TODO:: Report ISUBSYSTEM::Internet Ready. Get ISubsystem::Internet and if it is NULL, set it..
         }
 
         uint32_t NetworkManager::Ping(const JsonObject& parameters, JsonObject& response)

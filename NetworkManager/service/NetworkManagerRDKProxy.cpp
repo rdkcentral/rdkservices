@@ -1,5 +1,5 @@
 #include "NetworkManagerImplementation.h"
-#include "WiFiSignalStrengthMonitor.h"
+#include "WifiSignalStrengthMonitor.h"
 #include "libIBus.h"
 
 using namespace WPEFramework;
@@ -36,6 +36,7 @@ namespace WPEJ = WPEFramework::Core::JSON;
 #define PASSPHRASE_BUFF            385
 #define MAX_SSIDLIST_BUF     (48*1024)
 #define MAX_FILE_PATH_LEN         4096
+
 
 typedef enum _NetworkManager_EventId_t {
     IARM_BUS_NETWORK_MANAGER_EVENT_SET_INTERFACE_ENABLED=50,
@@ -486,7 +487,7 @@ namespace WPEFramework
 
                         state = to_wifi_state(e->data.wifiStateChange.state);
                         if(e->data.wifiStateChange.state == WIFI_CONNECTED)
-                             ::_instance->m_wifiSignalMonitor.startWiFiSignalStrengthMonitor(DEFAULT_WIFI_SIGNAL_TEST_INTERVAL_SEC);
+                             ::_instance->wifiSignalStrengthMonitor.startWifiSignalStrengthMonitor(DEFAULT_WIFI_SIGNAL_TEST_INTERVAL_SEC);
                         ::_instance->ReportWiFiStateChangedEvent(state);
                         break;
                     }
@@ -639,7 +640,7 @@ namespace WPEFramework
             return rc;
         }
 
-        uint32_t NetworkManagerImplementation::SetInterfaceState(const string& interface/* @in */, const bool& enable /* @in */)
+        uint32_t NetworkManagerImplementation::EnableInterface (const string& interface/* @in */)
         {
             LOG_ENTRY_FUNCTION();
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
@@ -671,7 +672,7 @@ namespace WPEFramework
             return rc;
         }
 
-        uint32_t NetworkManagerImplementation::GetInterfaceState(const string& interface/* @in */, bool& isEnabled /* @out */)
+        uint32_t NetworkManagerImplementation::DisableInterface (const string& interface/* @in */)
         {
             LOG_ENTRY_FUNCTION();
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
