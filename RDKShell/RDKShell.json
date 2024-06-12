@@ -1253,6 +1253,28 @@
                 ]
             }
         },
+	"getFocus": {
+            "summary": "Gets focus to the specified client.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "client": {
+                        "$ref": "#/definitions/client"
+                    },
+                    "callsign": {
+                        "summary": "The application callsign",
+                        "type": "string",
+                        "example": "org.rdk.Netflix"
+                    }
+                },
+                "required": [
+                    "client"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
         "hideAllClients": {
             "summary": "Hides/Unhides all the clients.",
             "params": {
@@ -1829,28 +1851,6 @@
         },
         "setFocus": {
             "summary": "Sets focus to the specified client.",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "client": {
-                        "$ref": "#/definitions/client"
-                    },
-                    "callsign": {
-                        "summary": "The application callsign",
-                        "type": "string",
-                        "example": "org.rdk.Netflix"
-                    }
-                },
-                "required": [
-                    "client"
-                ]
-            },
-            "result": {
-                "$ref": "#/common/result"
-            }
-        },
-        "getFocus": {
-            "summary": "Gets focus to the specified client.",
             "params": {
                 "type":"object",
                 "properties": {
