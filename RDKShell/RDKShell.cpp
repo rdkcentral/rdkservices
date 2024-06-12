@@ -1455,7 +1455,7 @@ namespace WPEFramework {
         }
 
 #ifdef USE_THUNDER_R4
-       void RDKShell::MonitorClients::Initialize(const string& callsign, PluginHost::IShell* service)
+	void RDKShell::MonitorClients::Initialize(VARIABLE_IS_NOT_USED const string& callsign, VARIABLE_IS_NOT_USED PluginHost::IShell* service)
        {
              handleInitialize(service);
        }
@@ -1472,10 +1472,10 @@ namespace WPEFramework {
             //StateChange(service);
             handleDeactivated(service);
        }
-       void RDKShell::MonitorClients::Deinitialized(const string& callsign, PluginHost::IShell* service)
-       {
+        void RDKShell::MonitorClients::Deinitialized(VARIABLE_IS_NOT_USED const string& callsign, VARIABLE_IS_NOT_USED PluginHost::IShell* service)
+        {
             handleDeinitialized(service);
-       }
+        }
        void RDKShell::MonitorClients::Unavailable(const string& callsign, PluginHost::IShell* service)
        {}
 #endif /* USE_THUNDER_R4 */

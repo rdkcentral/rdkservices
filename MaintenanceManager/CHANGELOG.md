@@ -16,10 +16,6 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
-## [1.0.36] - 2024-06-06
-### Fixed
-- Potential initialization assert due to uninitialized variable
-
 ## [1.0.35] - 2024-05-27
 ### Fixed
 - Delay Unsolicited Maintenance start event in WAI-enabled case

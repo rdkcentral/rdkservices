@@ -401,11 +401,7 @@ namespace WPEFramework {
                   RDKShell& mShell;
             };
 
-            class MonitorClients : public PluginHost::IPlugin::INotification
-#if ((THUNDER_VERSION >= 4) && (THUNDER_VERSION_MINOR >= 4))
-            ,  public PluginHost::IPlugin::ILifeTime 
-#endif
-	   {
+            class MonitorClients : public PluginHost::IPlugin::INotification {
               private:
                   MonitorClients() = delete;
                   MonitorClients(const MonitorClients&) = delete;
@@ -423,9 +419,6 @@ namespace WPEFramework {
               public:
                   BEGIN_INTERFACE_MAP(MonitorClients)
                   INTERFACE_ENTRY(PluginHost::IPlugin::INotification)
-#if ((THUNDER_VERSION >= 4) && (THUNDER_VERSION_MINOR >= 4))
-		  INTERFACE_ENTRY(PluginHost::IPlugin::ILifeTime)
-#endif
                   END_INTERFACE_MAP
 
               private:
@@ -434,14 +427,13 @@ namespace WPEFramework {
                   void handleActivated(PluginHost::IShell* shell);
                   void handleDeactivated(PluginHost::IShell* shell);
                   void handleDeinitialized(PluginHost::IShell* shell);
-
 #ifdef USE_THUNDER_R4
-                  virtual void Initialize(const string& callsign, PluginHost::IShell* plugin);
+		  virtual void Initialize(VARIABLE_IS_NOT_USED const string& callsign, VARIABLE_IS_NOT_USED PluginHost::IShell* plugin);
                   virtual void Activation(const string& name, PluginHost::IShell* plugin);
                   virtual void Deactivation(const string& name, PluginHost::IShell* plugin);
                   virtual void  Activated(const string& callSign,  PluginHost::IShell* plugin);
                   virtual void  Deactivated(const string& callSign,  PluginHost::IShell* plugin);
-		  virtual void Deinitialized(const string& callsign, PluginHost::IShell* plugin);
+		  virtual void Deinitialized(VARIABLE_IS_NOT_USED const string& callsign, VARIABLE_IS_NOT_USED PluginHost::IShell* plugin);
                   virtual void  Unavailable(const string& callSign,  PluginHost::IShell* plugin);
 #endif /* USE_THUNDER_R4 */
               private:

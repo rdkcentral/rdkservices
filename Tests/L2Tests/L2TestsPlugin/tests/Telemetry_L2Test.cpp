@@ -285,6 +285,7 @@ JSONRPC::LinkType<Core::JSON::IElement> jsonrpc(TELEMETRY_CALLSIGN, TELEMETRYL2T
     JsonObject result;
     std::string message;
     JsonObject expected_status;
+    uint32_t signalled = TELEMETRYL2TEST_STATE_INVALID;
 
     /* Without params and with Params as "No status" expecting Fail case*/
     status = InvokeServiceMethod("org.rdk.Telemetry.1", "setReportProfileStatus", params, result);
@@ -342,6 +343,7 @@ TEST_F(Telemetry_L2test, TelemetrylogApplicationEvent){
     JsonObject result;
     std::string message;
     JsonObject expected_status;
+    uint32_t signalled = TELEMETRYL2TEST_STATE_INVALID;
 
     /* Without params expecting Fail case*/
     status = InvokeServiceMethod("org.rdk.Telemetry.1", "logApplicationEvent", params, result);
@@ -382,6 +384,7 @@ TEST_F(Telemetry_L2test, TelemetryAbortReport){
     JsonObject result;
     std::string message;
     JsonObject expected_status;
+    uint32_t signalled = TELEMETRYL2TEST_STATE_INVALID;
     struct _rbusObject rbObject;
 
     status = InvokeServiceMethod("org.rdk.Telemetry.1", "abortReport", params, result);
@@ -448,6 +451,8 @@ TEST_F(Telemetry_L2test, TelemetryImplementationMock){
     JsonObject result;
     std::string message;
     JsonObject expected_status;
+    uint32_t signalled = TELEMETRYL2TEST_STATE_INVALID;
+    struct _rbusObject rbObject;
 
 
     EXPECT_CALL(*p_telemetryApiImplMock, t2_init(::testing::_))
@@ -515,6 +520,8 @@ TEST_F(Telemetry_L2test, TelemetryRbusOpeningErrorCheck){
     JsonObject result;
     std::string message;
     JsonObject expected_status;
+    uint32_t signalled = TELEMETRYL2TEST_STATE_INVALID;
+    struct _rbusObject rbObject;
 
     EXPECT_CALL(*p_rBusApiImplMock, rbus_open(::testing::_, ::testing::_))
         .Times(2)
@@ -556,7 +563,9 @@ TEST_F(Telemetry_L2test, TelemetryReportUploadErrorCheck){
     JsonObject result;
     std::string message;
     JsonObject expected_status;
+    uint32_t signalled = TELEMETRYL2TEST_STATE_INVALID;
     struct _rbusObject rbObject;
+    struct _rbusValue rbValue;
 
     ON_CALL(*p_rBusApiImplMock, rbus_open(::testing::_, ::testing::_))
         .WillByDefault(
