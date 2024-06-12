@@ -25,7 +25,7 @@
 #include <interfaces/IStoreCache.h>
 #include <interfaces/json/JsonData_PersistentStore.h>
 
-namespace Thunder {
+namespace WPEFramework {
 namespace Plugin {
 
     class PersistentStore : public PluginHost::IPlugin, public PluginHost::JSONRPC {
@@ -202,4 +202,4 @@ namespace Plugin {
     };
 
 } // namespace Plugin
-} // namespace Thunder
+} // namespace WPEFramework
