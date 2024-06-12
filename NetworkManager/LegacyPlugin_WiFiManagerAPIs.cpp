@@ -519,12 +519,24 @@ namespace WPEFramework
         {
             LOGINFOMETHOD();
             JsonObject legacyResult;
-            legacyResult["state"] = parameters["state"];
+            string state = parameters["state"].String();
+
+            legacyResult["state"] = state;
             legacyResult["isLNF"] = false;
 
+	    NMLOG_INFO("onWifiChanges Event , state: %d", state);
+	    /* State check */
             if(_gWiFiInstance)
-                _gWiFiInstance->Notify("onWIFIStateChanged", legacyResult);
-
+	    {
+                if((state == "WIFI_STATE_SSID_NOT_FOUND") || (state == "WIFI_STATE_SSID_CHANGED") || (state == "WIFI_STATE_CONNECTION_LOST") || (state == "WIFI_STATE_CONNECTION_FAILED") || (state == "WIFI_STATE_CONNECTION_INTERRUPTED") || (state == "WIFI_STATE_INVALID_CREDENTIALS") || (state == "WIFI_STATE_AUTHENTICATION_FAILED") || (state == "WIFI_STATE_AUTHENTICATION_FAILED") || (state == "WIFI_STATE_ERROR") ) 
+		{
+                    _gWiFiInstance->Notify("OnError", legacyResult);
+		}
+                else
+	        {
+                    _gWiFiInstance->Notify("onWIFIStateChanged", legacyResult);
+	        }
+            }
             return;
         }
 
@@ -550,5 +562,6 @@ namespace WPEFramework
 
             return;
         }
+
     }
 }
