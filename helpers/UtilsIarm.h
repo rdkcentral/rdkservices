@@ -3,7 +3,6 @@
 #include "UtilsLogging.h"
 
 #include "libIBus.h"
-#include <unistd.h>
 
 #define IARM_CHECK(FUNC) { \
     if ((res = FUNC) != IARM_RESULT_SUCCESS) { \
@@ -30,27 +29,19 @@ struct IARM {
             LOGINFO("IARM already connected");
             result = true;
         } else {
-            unsigned int retryCount = 0;
-            do
-            {
-                res = IARM_Bus_Init(NAME);
-                LOGINFO("IARM_Bus_Init: %d", res);
-                if (res == IARM_RESULT_SUCCESS || res == IARM_RESULT_INVALID_STATE /* already inited or connected */) {
-                    res = IARM_Bus_Connect();
-                    LOGINFO("IARM_Bus_Connect: %d", res);
-                    if (res == IARM_RESULT_SUCCESS || res == IARM_RESULT_INVALID_STATE /* already connected or not inited */) {
-                        result = isConnected();
-                        LOGERR("ARM_Bus_Connect result: %d res: %d retryCount :%d ",result, res, retryCount);
-                    } else {
-                        LOGERR("IARM_Bus_Connect failure:result :%d res: %d retryCount :%d ",result, res, retryCount);
-                    }
+            res = IARM_Bus_Init(NAME);
+            LOGINFO("IARM_Bus_Init: %d", res);
+            if (res == IARM_RESULT_SUCCESS || res == IARM_RESULT_INVALID_STATE /* already inited or connected */) {
+                res = IARM_Bus_Connect();
+                LOGINFO("IARM_Bus_Connect: %d", res);
+                if (res == IARM_RESULT_SUCCESS || res == IARM_RESULT_INVALID_STATE /* already connected or not inited */) {
+                    result = isConnected();
                 } else {
-                    LOGERR("IARM_Bus_Init failure: result :%d res: %d retryCount :%d",result, res,retryCount);
+                    LOGERR("IARM_Bus_Connect failure: %d", res);
                 }
-
-                if(result == false) usleep(100000);
-
-            }while((result == false) && (retryCount++ < 20));
+            } else {
+                LOGERR("IARM_Bus_Init failure: %d", res);
+            }
         }
 
         return result;
@@ -61,7 +52,7 @@ struct IARM {
         IARM_Result_t res;
         int isRegistered = 0;
         res = IARM_Bus_IsConnected(NAME, &isRegistered);
-        LOGINFO("IARM_Bus_IsConnected: res:%d  isRegistered (%d)", res, isRegistered);
+        LOGINFO("IARM_Bus_IsConnected: %d (%d)", res, isRegistered);
 
         return (isRegistered == 1);
     }

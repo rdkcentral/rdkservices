@@ -577,8 +577,7 @@ namespace WPEFramework {
             if(g_internetState.load() != InternetConnectionState)
             {
                 LOGINFO("notification count %d ...", notifyWaitCount);
-                /* Retry logic only need when continuous monitor is running, otherwise post notification immediately */
-                if(InternetConnectionState == nsm_internetState::NO_INTERNET && isContinuesMonitoringNeeded && notifyWaitCount > 0)
+                if(InternetConnectionState == nsm_internetState::NO_INTERNET && notifyWaitCount > 0)
                 {
                     /* Decrease the notification count to create a delay in posting the 'no internet' state. */
                     notifyWaitCount--;

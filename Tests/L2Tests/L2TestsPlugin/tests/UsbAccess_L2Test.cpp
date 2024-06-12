@@ -577,7 +577,7 @@ TEST_F(UsbAccess_L2test,UsbAccessArchiveLogs)
         static struct mntent entry1;
 
         entry1.mnt_fsname = const_cast<char*>("/dev/sda1");
-        entry1.mnt_dir = const_cast<char*>("/run/media/sda1/Logs");
+        entry1.mnt_dir = const_cast<char*>("/run/media/sda1");
 
         static int callCount = 0;
         if (callCount == 0) {
@@ -596,9 +596,9 @@ TEST_F(UsbAccess_L2test,UsbAccessArchiveLogs)
             va_copy(args2, args);
             char strFmt[256];
             vsnprintf(strFmt, sizeof(strFmt), command, args2);
-            va_end(args2);
-            if (strcmp(strFmt, "/lib/rdk/usbLogUpload.sh /run/media/sda1/Logs") == 0) {
-                valueToReturn = "/run/media/sda1/Logs/5C3400F15492_Logs_12-05-22-10-41PM.tgz";
+            va_end(args2);     
+            if (strcmp(strFmt, "/lib/rdk/usbLogUpload.sh /run/media/sda1") == 0) {
+                valueToReturn = "/run/media/sda1/5C3400F15492_Logs_12-05-22-10-41PM.tgz";
             }
             if (valueToReturn != NULL) {
                   char buffer[1024];
@@ -626,7 +626,7 @@ TEST_F(UsbAccess_L2test,UsbAccessArchiveLogs)
 
     
     /* Compresses and uploads device logs into attached USB drive */
-    params["path"] = "/run/media/sda1/Logs";
+    params["path"] = "/run/media/sda1";
     params["error"] = "none";
     params["success"] = "true";
     status = InvokeServiceMethod("org.rdk.UsbAccess.1", "ArchiveLogs", params, result);
@@ -635,7 +635,7 @@ TEST_F(UsbAccess_L2test,UsbAccessArchiveLogs)
 
     /* Request status for onArchive. */
 
-    message =  "{\"error\":\"none\",\"success\":true,\"path\":\"\\/run\\/media\\/sda1\\/Logs\\/5C3400F15492_Logs_12-05-22-10-41PM.tgz\"}";
+    message = "{\"error\":\"none\",\"success\":true,\"path\":\"\\/run\\/media\\/sda1\\/5C3400F15492_Logs_12-05-22-10-41PM.tgz\"}";
     expected_status.FromString(message);
     EXPECT_CALL(async_handler, onArchiveLogs(MatchRequestStatus(expected_status)))
         .WillOnce(Invoke(this, &UsbAccess_L2test::onArchiveLogs));

@@ -7,14 +7,6 @@ static size_t WriteCallback(void *contents, size_t size, size_t nmemb, void *use
     return size * nmemb;
 }
 
-static const std::map<std::string, int> speechRateMap = {
-    {"slow", 25},
-    {"medium", 50},
-    {"fast", 75},
-    {"faster", 90},
-    {"fastest", 100}
-};
-
 namespace TTS
 {
 
@@ -53,16 +45,9 @@ std::string TTSURLConstructer::httpgetURL(TTSConfiguration &config, std::string 
         ttsRequest.append(config.language());
     }
 
-    if(((config.endPointType().compare("TTS2")) == 0)) {
-        if(!isLocal) {
-            ttsRequest.append("&speaking_rate=");
-            ttsRequest.append(config.speechRate());
-        } else {
-            //rate mapping for offline VG
-            ttsRequest.append("&rate=");
-            auto it = speechRateMap.find(config.speechRate());
-            ttsRequest.append(std::to_string((speechRateMap.end() != it ) ? it->second : 50));
-        }
+    if(!isLocal && ((config.endPointType().compare("TTS2")) == 0)) {
+        ttsRequest.append("&speaking_rate=");
+        ttsRequest.append(config.speechRate());
     } else {
         // Rate / speed
         ttsRequest.append("&rate=");

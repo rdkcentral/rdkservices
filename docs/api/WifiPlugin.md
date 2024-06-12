@@ -1,5 +1,5 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="Wifi_Plugin"></a>(Deprecated)
+<a name="Wifi_Plugin"></a>
 # Wifi Plugin
 
 **Version: [1.0.9](https://github.com/rdkcentral/rdkservices/blob/main/WifiManager/CHANGELOG.md)**
