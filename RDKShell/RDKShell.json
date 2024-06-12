@@ -1253,6 +1253,28 @@
                 ]
             }
         },
+	"getFocus": {
+            "summary": "Gets focus to the specified client.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "client": {
+                        "$ref": "#/definitions/client"
+                    },
+                    "callsign": {
+                        "summary": "The application callsign",
+                        "type": "string",
+                        "example": "org.rdk.Netflix"
+                    }
+                },
+                "required": [
+                    "client"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
         "hideAllClients": {
             "summary": "Hides/Unhides all the clients.",
             "params": {
@@ -2358,6 +2380,20 @@
     "events": {
         "onApplicationActivated":{
             "summary": "Triggered when an application is activated",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "client":{
+                        "$ref": "#/definitions/client" 
+                    }
+                },
+                "required": [
+                    "client"
+                ]
+            }
+        },
+        "onApplicationFocusChanged":{
+            "summary": "Triggered when an application focus is changed",
             "params": {
                 "type": "object",
                 "properties": {
