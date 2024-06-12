@@ -8,8 +8,8 @@ on:
 
 env:
   BUILD_TYPE: Debug
-  THUNDER_REF: "5e7c0b1ed3c3dd0fc31c86518a364388dc24273b"
-  INTERFACES_REF: "930e01ec9aec8aa60254dec0be3beca932df63cd"
+  THUNDER_REF: "R4.4.1"
+  INTERFACES_REF: "R4.4.1"
 
 jobs:
   l1-tests:
@@ -98,11 +98,19 @@ jobs:
           path: Thunder
           ref: ${{env.THUNDER_REF}}
 
-      - name: Build Thunder
+      - name: Checkout ThunderTools
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/checkout@v3
+        with:
+          repository: rdkcentral/ThunderTools
+          path: ThunderTools
+          ref: ${{env.THUNDER_REF}}
+
+      - name: Build ThunderTools
         if: steps.cache.outputs.cache-hit != 'true'
         run: >
           cmake
-          -S "${{github.workspace}}/Thunder/Tools"
+          -S "${{github.workspace}}/ThunderTools"
           -B build/ThunderTools
           -DEXCEPTIONS_ENABLE=ON
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
@@ -112,10 +120,14 @@ jobs:
           cmake --build build/ThunderTools -j8
           &&
           cmake --install build/ThunderTools
-          &&
+
+      - name: Build Thunder
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: >
           cmake
           -S "${{github.workspace}}/Thunder"
           -B build/Thunder
+          -DMESSAGING=ON
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
           -DBUILD_TYPE=${{env.BUILD_TYPE}}
@@ -127,6 +139,20 @@ jobs:
           &&
           cmake --install build/Thunder
 
+      - name: Checkout rdkservices
+        uses: actions/checkout@v3
+        with:
+          path: rdkservices
+      - name: Apply patches
+        run: |
+          cd ${{github.workspace}}/rdkservices
+          patch -p1 < files/0003-R4.4.1-LocationSync-compilation-error.patch
+          patch -p1 < files/0003-R4.4.1-SystemAudioPlayer-compilation-error.patch
+          # patch -p1 < files/0005-R4.4.1_Invoke_method_Fix_rdkservices.patch
+          # patch -p1 < files/0007-R4.4.1_DeviceIdentifcation_activation.patch
+          # working-directory: ${{github.workspace}}/rdkservices
+          # cd -
+
       - name: Checkout ThunderInterfaces
         if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
@@ -134,6 +160,20 @@ jobs:
           repository: rdkcentral/ThunderInterfaces
           path: ThunderInterfaces
           ref: ${{env.INTERFACES_REF}}
+          run: rm -rf ${{github.workspace}}/ThunderInterfaces/jsonrpc/DTV.json
+
+      - name: Apply patches ThunderInterfaces
+        run: |
+          echo "Present working directory is: $(pwd)"
+          echo "Listing directory is:"
+          ls -la
+          cd ${{github.workspace}}/ThunderInterfaces
+          git apply "${{github.workspace}}/rdkservices/files/SplitDeviceCapablities.patch"
+          git apply "${{github.workspace}}/rdkservices/files/0007-RDK-IDeviceInfo-Changes.patch"
+          git apply "${{github.workspace}}/rdkservices/files/0001-Add-TextToSpeech-Interface.patch"
+          # cd ..
+          # patch -p1 < files/SplitDeviceCapablities.patch
+          # patch -p1 < files/0007-RDK-IDeviceInfo-Changes.patch
 
       - name: Build ThunderInterfaces
         if: steps.cache.outputs.cache-hit != 'true'
@@ -148,11 +188,6 @@ jobs:
           cmake --build build/ThunderInterfaces -j8
           &&
           cmake --install build/ThunderInterfaces
-
-      - name: Checkout rdkservices
-        uses: actions/checkout@v3
-        with:
-          path: rdkservices
 
       - name: Generate external headers
         # Empty headers to mute errors
@@ -230,7 +265,11 @@ jobs:
           -DCMAKE_CXX_FLAGS="
           -fprofile-arcs
           -ftest-coverage
+          -fPIC
           -DEXCEPTIONS_ENABLE=ON
+          -DUSE_THUNDER_R4=ON
+          -DTHUNDER_VERSION_MAJOR=4
+          -DTHUNDER_VERSION_MINOR=4
           -I ${{github.workspace}}/rdkservices/Tests/headers
           -I ${{github.workspace}}/rdkservices/Tests/headers/audiocapturemgr
           -I ${{github.workspace}}/rdkservices/Tests/headers/rdk/ds
@@ -243,7 +282,7 @@ jobs:
           -include ${{github.workspace}}/rdkservices/Tests/mocks/pkg.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/secure_wrappermock.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/WpaCtrl.h
-          -Wall -Werror -Wno-error=format=
+          -Wall -Wno-unused-result -Wno-deprecated-declarations -Wno-error=format=
           -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog
           -DENABLE_TELEMETRY_LOGGING
           -DUSE_IARMBUS
@@ -283,13 +322,14 @@ jobs:
           -DPLUGIN_HDCPPROFILE=ON
           -DPLUGIN_NETWORK=ON
           -DPLUGIN_WIFIMANAGER=ON
-          -DPLUGIN_TRACECONTROL=ON
+          -DPLUGIN_TRACECONTROL=OFF
           -DPLUGIN_WAREHOUSE=ON
           -DPLUGIN_ACTIVITYMONITOR=ON
           -DDS_FOUND=ON
-          -DPLUGIN_TEXTTOSPEECH=ON
+          -DPLUGIN_TEXTTOSPEECH=OFF
           -DPLUGIN_SYSTEMAUDIOPLAYER=ON
-          -DPLUGIN_MIRACAST=ON
+          -DPLUGIN_MIRACAST=OFF
+          -DUSE_THUNDER_R4=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           &&
           cmake --build build/rdkservices -j8

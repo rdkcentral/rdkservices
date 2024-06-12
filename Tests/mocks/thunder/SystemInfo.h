@@ -52,6 +52,7 @@ public:
     MOCK_METHOD(void, Set, (const subsystem type, WPEFramework::Core::IUnknown* information), (override));
     MOCK_METHOD(const WPEFramework::Core::IUnknown*, Get, (const subsystem type), (const, override));
     MOCK_METHOD(bool, IsActive, (const subsystem type), (const, override));
+    MOCK_METHOD(string, Version, (), (const, override)); //KKK1
 
     BEGIN_INTERFACE_MAP(SystemInfo)
     INTERFACE_ENTRY(WPEFramework::PluginHost::ISubSystem)

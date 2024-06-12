@@ -1,0 +1,53 @@
+diff --git a/DeviceIdentification/DeviceIdentification.conf.in b/DeviceIdentification/DeviceIdentification.conf.in
+index c84fda59..28068f79 100644
+--- a/DeviceIdentification/DeviceIdentification.conf.in
++++ b/DeviceIdentification/DeviceIdentification.conf.in
+@@ -6,7 +6,7 @@ configuration = JSON()
+ 
+ if boolean("@GENERIC_DEVICEIDENTIFIATION@"):
+     if boolean("@PLUGIN_DEVICEIDENTIFICATION_INTERFACE_NAME@"):
+-        configuration.add("interface", PLUGIN_DEVICEIDENTIFICATION_INTERFACE_NAME)
++        configuration.add("interface", @PLUGIN_DEVICEIDENTIFICATION_INTERFACE_NAME@)
+ 
+ rootobject = JSON()
+ rootobject.add("mode", "@PLUGIN_DEVICEIDENTIFICATION_MODE@")
+diff --git a/DeviceIdentification/DeviceIdentification.cpp b/DeviceIdentification/DeviceIdentification.cpp
+index c220e345..95effab1 100644
+--- a/DeviceIdentification/DeviceIdentification.cpp
++++ b/DeviceIdentification/DeviceIdentification.cpp
+@@ -94,10 +94,6 @@ namespace Plugin {
+             message = _T("DeviceIdentification plugin could not be instantiated.");
+         }
+ 
+-        if (message.length() != 0) {
+-            Deinitialize(service);
+-        }
+-
+         return message;
+     }
+ 
+diff --git a/DeviceIdentification/DeviceIdentification.h b/DeviceIdentification/DeviceIdentification.h
+index 12eb325e..77db1c1d 100644
+--- a/DeviceIdentification/DeviceIdentification.h
++++ b/DeviceIdentification/DeviceIdentification.h
+@@ -20,9 +20,6 @@
+ #pragma once
+ 
+ #include "Module.h"
+-#ifndef USE_THUNDER_R4
+-#include <interfaces/IDeviceIdentification.h>
+-#endif /* USE_THUNDER_R4 */
+ #include <interfaces/json/JsonData_DeviceIdentification.h>
+ 
+ namespace WPEFramework {
+@@ -56,7 +53,9 @@ namespace Plugin {
+             {
+                 _parent.Deactivated(connectionId);
+             }
+-
++            void Terminated(RPC::IRemoteConnection* /* connection */) override
++            {
++            }
+             BEGIN_INTERFACE_MAP(Notification)
+             INTERFACE_ENTRY(RPC::IRemoteConnection::INotification)
+             END_INTERFACE_MAP

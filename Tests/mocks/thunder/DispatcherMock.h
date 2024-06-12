@@ -30,8 +30,11 @@
          MOCK_METHOD(void, AddRef, (), (const, override));
          MOCK_METHOD(uint32_t, Release, (), (const, override));
          MOCK_METHOD(void*, QueryInterface, (const uint32_t interfaceNummer), (override));
-         MOCK_METHOD(void, Activate, (WPEFramework::PluginHost::IShell* service));
-         MOCK_METHOD(void, Deactivate, ());
-         MOCK_METHOD(WPEFramework::Core::ProxyType<WPEFramework::Core::JSONRPC::Message>, Invoke, (const string&, uint32_t, const WPEFramework::Core::JSONRPC::Message&), (override));
+         //MOCK_METHOD(void, Activate, (WPEFramework::PluginHost::IShell* service));
+         //MOCK_METHOD(void, Deactivate, ());
+         MOCK_METHOD(WPEFramework::Core::hresult, Invoke, (WPEFramework::PluginHost::IDispatcher::ICallback* callback, const uint32_t channelId, const uint32_t id, const string& token, const string& method, const string& parameters /* @restrict:(4M-1) */, string& response /* @restrict:(4M-1) @out */), (override));
+         MOCK_METHOD(WPEFramework::Core::hresult, Revoke, (WPEFramework::PluginHost::IDispatcher::ICallback* callback), (override));
+         MOCK_METHOD(WPEFramework::Core::hresult, Validate, (const string& token, const string& method, const string& paramaters /* @restrict:(4M-1) */), (const, override));
+         MOCK_METHOD(WPEFramework::PluginHost::ILocalDispatcher*, Local, (), (override));
 };
 #endif //DISPATCHERMOCK_H

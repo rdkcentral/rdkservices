@@ -40,7 +40,7 @@ public:
     MOCK_METHOD(string, VolatilePath, (), (const, override));
     MOCK_METHOD(string, DataPath, (), (const, override));
     MOCK_METHOD(state, State, (), (const, override));
-    MOCK_METHOD(bool, AutoStart, (), (const, override));
+    //MOCK_METHOD(bool, AutoStart, (), (const, override)); //KKK1
     MOCK_METHOD(bool, Resumed, (), (const, override));
     MOCK_METHOD(bool, IsSupported, (const uint8_t), (const, override));
     MOCK_METHOD(void, EnableWebServer, (const string&, const string&), (override));
@@ -52,7 +52,7 @@ public:
     MOCK_METHOD(void*, QueryInterfaceByCallsign, (const uint32_t, const string&), (override));
     MOCK_METHOD(void, Register, (WPEFramework::PluginHost::IPlugin::INotification*), (override));
     MOCK_METHOD(void, Unregister, (WPEFramework::PluginHost::IPlugin::INotification*), (override));
-    MOCK_METHOD(string, Version, (), (const, override));
+    //MOCK_METHOD(string, Version, (), (const, override)); //KKK1
     MOCK_METHOD(string, Model, (), (const, override));
     MOCK_METHOD(bool, Background, (), (const, override));
     MOCK_METHOD(string, Accessor, (), (const, override));
@@ -60,18 +60,25 @@ public:
     MOCK_METHOD(string, HashKey, (), (const, override));
     MOCK_METHOD(string, Substitute, (const string&), (const, override));
     MOCK_METHOD(WPEFramework::PluginHost::IShell::ICOMLink*, COMLink, (), (override));
-    MOCK_METHOD(uint32_t, Activate, (const reason), (override));
-    MOCK_METHOD(uint32_t, Deactivate, (const reason), (override));
-    MOCK_METHOD(uint32_t, Unavailable, (const reason), (override));
+    MOCK_METHOD(WPEFramework::Core::hresult, Activate, (const reason), (override));
+    MOCK_METHOD(WPEFramework::Core::hresult, Deactivate, (const reason), (override));
+    MOCK_METHOD(WPEFramework::Core::hresult, Unavailable, (const reason), (override));
     MOCK_METHOD(reason, Reason, (), (const, override));
-    MOCK_METHOD(uint8_t, Major, (), (const, override));
-    MOCK_METHOD(uint8_t, Minor, (), (const, override));
-    MOCK_METHOD(uint8_t, Patch, (), (const, override));
-    MOCK_METHOD(uint32_t, ConfigLine, (const string& config), (override));
+    //MOCK_METHOD(uint8_t, Major, (), (const, override)); //KKK1
+    //MOCK_METHOD(uint8_t, Minor, (), (const, override)); //KKK1
+    //MOCK_METHOD(uint8_t, Patch, (), (const, override)); //KKK1
+    MOCK_METHOD(WPEFramework::Core::hresult, ConfigLine, (const string& config), (override));
     MOCK_METHOD(string, SystemRootPath, (), (const, override));
-    MOCK_METHOD(uint32_t, SystemRootPath, (const string& systemRootPath), (override));
-    MOCK_METHOD(uint32_t, Hibernate, (const string &processSequence, const uint32_t timeout), (override));
-    MOCK_METHOD(uint32_t, Wakeup, (const string &processSequence, const uint32_t timeout), (override));
+    MOCK_METHOD(WPEFramework::Core::hresult, SystemRootPath, (const string& systemRootPath), (override));
+    MOCK_METHOD(WPEFramework::Core::hresult, Hibernate, (const uint32_t timeout), (override));
+    //MOCK_METHOD(uint32_t, Wakeup, (const string &processSequence, const uint32_t timeout), (override)); //KKK1
+    MOCK_METHOD(string, SystemPath, (), (const, override));
+    MOCK_METHOD(string, PluginPath, (), (const, override));
+    MOCK_METHOD(WPEFramework::PluginHost::IShell::startup, Startup, (), (const, override));
+    MOCK_METHOD(WPEFramework::Core::hresult, Startup, (const startup value), (override));
+    MOCK_METHOD(WPEFramework::Core::hresult, Resumed, (const bool value), (override));
+    MOCK_METHOD(WPEFramework::Core::hresult, Metadata, (string& info), (const, override));
+
 };
 
 #endif //SERVICEMOCK_H

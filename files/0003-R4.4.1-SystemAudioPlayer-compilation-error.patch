@@ -1,0 +1,1336 @@
+diff --git a/SystemAudioPlayer/test/CMakeLists.txt b/SystemAudioPlayer/test/CMakeLists.txt
+index ddff4dbd..93529bd3 100644
+--- a/SystemAudioPlayer/test/CMakeLists.txt
++++ b/SystemAudioPlayer/test/CMakeLists.txt
+@@ -17,6 +17,7 @@
+
+ set(PLUGIN_NAME SystemAudioPlayerAPITest)
+ if (USE_THUNDER_R4)
++    find_package(${NAMESPACE}Core REQUIRED)
+     find_package(${NAMESPACE}COM REQUIRED)
+ else ()
+     find_package(${NAMESPACE}Protocols REQUIRED)
+@@ -36,7 +37,7 @@ set(LIBRARIES WPEFrameworkSecurityUtil)
+ target_include_directories(${PLUGIN_NAME} PRIVATE ../../helpers ../impl)
+
+ if (USE_THUNDER_R4)
+-target_link_libraries(${PLUGIN_NAME} PUBLIC ${LIBRARIES} PRIVATE ${NAMESPACE}COM::${NAMESPACE}COM ${NAMESPACE}WebSocket::${NAMESPACE}WebSocket)
++target_link_libraries(${PLUGIN_NAME} PUBLIC ${LIBRARIES} PRIVATE ${NAMESPACE}Core::${NAMESPACE}Core  ${NAMESPACE}COM::${NAMESPACE}COM ${NAMESPACE}WebSocket::${NAMESPACE}WebSocket)
+ else ()
+ target_link_libraries(${PLUGIN_NAME} PUBLIC ${LIBRARIES}
+     PRIVATE
+diff --git a/SystemAudioPlayer/ProxyStubs_SystemAudioPlayer.cpp b/SystemAudioPlayer/ProxyStubs_SystemAudioPlayer.cpp
+index fd3730f2..1c125e2c 100644
+--- a/SystemAudioPlayer/ProxyStubs_SystemAudioPlayer.cpp
++++ b/SystemAudioPlayer/ProxyStubs_SystemAudioPlayer.cpp
+@@ -1,800 +1,708 @@
+ //
+-// 
++// generated automatically from "ISystemAudioPlayer.h"
+ //
+-// implements RPC proxy stubs for:
+-//   - class ISystemAudioPlayer
+-//   - class ISystemAudioPlayer::INotification
++// implements COM-RPC proxy stubs for:
++//   - class Exchange::ISystemAudioPlayer
++//   - class Exchange::ISystemAudioPlayer::INotification
+ //
+ 
+-#include "ISystemAudioPlayer.h"
+ #include "Module.h"
++#include "ISystemAudioPlayer.h"
++
++#include <com/com.h>
+ 
+ namespace WPEFramework {
+ 
+ namespace ProxyStubs {
+ 
+-    using namespace Exchange;
++    PUSH_WARNING(DISABLE_WARNING_DEPRECATED_USE)
++    PUSH_WARNING(DISABLE_WARNING_TYPE_LIMITS)
+ 
+     // -----------------------------------------------------------------
+-    // STUB
++    // STUBS
+     // -----------------------------------------------------------------
+ 
+     //
+-    // ISystemAudioPlayer interface stub definitions
++    // Exchange::ISystemAudioPlayer interface stub definitions
+     //
+     // Methods:
+     //  (0) virtual uint32_t Configure(PluginHost::IShell*) = 0
+-    //  (1) virtual void Register(ISystemAudioPlayer::INotification*) = 0
+-    //  (2) virtual void Unregister(ISystemAudioPlayer::INotification*) = 0
+-    //  (3) virtual uint32_t Open(const string &input, string &output /* @out */) = 0;
+-    //  (4) virtual uint32_t Play(const string &input, string &output /* @out */) = 0;
+-    //  (5) virtual uint32_t PlayBuffer(const string &input, string &output /* @out */) = 0;
+-    //  (6) virtual uint32_t Pause(const string &input, string &output /* @out */) = 0;
+-    //  (7) virtual uint32_t Resume(const string &input, string &output /* @out */) = 0;
+-    //  (8) virtual uint32_t Stop(const string &input, string &output /* @out */) = 0;
+-    //  (9) virtual uint32_t Close(const string &input, string &output /* @out */) = 0;
+-    //  (10) virtual uint32_t SetMixerLevels(const string &input, string &output /* @out */) = 0;
+-    //  (11) virtual uint32_t SetSmartVolControl(const string &input, string &output /* @out */) = 0;
+-    //  (12) virtual uint32_t IsPlaying(const string &input, string &output /* @out */) = 0;  
++    //  (1) virtual void Register(Exchange::ISystemAudioPlayer::INotification*) = 0
++    //  (2) virtual void Unregister(Exchange::ISystemAudioPlayer::INotification*) = 0
++    //  (3) virtual uint32_t Open(const string&, string&) = 0
++    //  (4) virtual uint32_t Play(const string&, string&) = 0
++    //  (5) virtual uint32_t PlayBuffer(const string&, string&) = 0
++    //  (6) virtual uint32_t Pause(const string&, string&) = 0
++    //  (7) virtual uint32_t Resume(const string&, string&) = 0
++    //  (8) virtual uint32_t Stop(const string&, string&) = 0
++    //  (9) virtual uint32_t Close(const string&, string&) = 0
++    //  (10) virtual uint32_t SetMixerLevels(const string&, string&) = 0
++    //  (11) virtual uint32_t SetSmartVolControl(const string&, string&) = 0
++    //  (12) virtual uint32_t IsPlaying(const string&, string&) = 0
++    //  (13) virtual uint32_t Config(const string&, string&) = 0
++    //  (14) virtual uint32_t GetPlayerSessionId(const string&, string&) = 0
+     //
+ 
+-    ProxyStub::MethodHandler SystemAudioPlayerStubMethods[] = {
+-        // virtual uint32_t Configure(PluginHost::IShell*) = 0
++    ProxyStub::MethodHandler ExchangeSystemAudioPlayerStubMethods[] = {
++        // (0) virtual uint32_t Configure(PluginHost::IShell*) = 0
+         //
+         [](Core::ProxyType<Core::IPCChannel>& channel, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
+-
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-#ifndef USE_THUNDER_R4
+-            RPC::instance_id param0 = reader.Number<RPC::instance_id>();
+-#else
+-            Core::instance_id param0 = reader.Number<Core::instance_id>();
+-#endif /* USE_THUNDER_R4 */
+-            PluginHost::IShell* param0_proxy = nullptr;
+-            ProxyStub::UnknownProxy* param0_proxy_inst = nullptr;
+-            if (param0 != 0) {
+-                param0_proxy_inst = RPC::Administrator::Instance().ProxyInstance(channel, param0, false, param0_proxy);
+-                ASSERT((param0_proxy_inst != nullptr) && (param0_proxy != nullptr) && "Failed to get instance of PluginHost::IShell proxy");
+-
+-                if ((param0_proxy_inst == nullptr) || (param0_proxy == nullptr)) {
+-                    TRACE_L1("Failed to get instance of PluginHost::IShell proxy");
+-                }
++            Exchange::ISystemAudioPlayer* implementation = reinterpret_cast<Exchange::ISystemAudioPlayer*>(message->Parameters().Implementation());
++            ASSERT(implementation != nullptr);
++
++            RPC::Data::Frame::Reader reader(message->Parameters().Reader());
++            const Core::instance_id serviceImplementation = reader.Number<Core::instance_id>();
++
++            PluginHost::IShell* _service = nullptr;
++            ProxyStub::UnknownProxy* serviceProxy = nullptr;
++            if (serviceImplementation != 0) {
++                serviceProxy = RPC::Administrator::Instance().ProxyInstance(channel, serviceImplementation, false, _service);
++
++                ASSERT((_service != nullptr) && (serviceProxy != nullptr));
+             }
+ 
+-            // write return value
+-            RPC::Data::Frame::Writer writer(message->Response().Writer());
++            uint32_t result = implementation->Configure(_service);
+ 
+-            // call implementation
+-            ISystemAudioPlayer* implementation = reinterpret_cast<ISystemAudioPlayer*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ISystemAudioPlayer implementation pointer");
+-            const uint32_t output = implementation->Configure(param0_proxy);
+-            writer.Number<const uint32_t>(output);
++            RPC::Data::Frame::Writer writer(message->Response().Writer());
++            writer.Number<uint32_t>(result);
+ 
+-            if (param0_proxy_inst != nullptr) {
+-                RPC::Administrator::Instance().Release(param0_proxy_inst, message->Response());
++            if (serviceProxy != nullptr) {
++                RPC::Administrator::Instance().Release(serviceProxy, message->Response());
+             }
+         },
+ 
+-        // virtual void Register(ISystemAudioPlayer::INotification*) = 0
++        // (1) virtual void Register(Exchange::ISystemAudioPlayer::INotification*) = 0
+         //
+         [](Core::ProxyType<Core::IPCChannel>& channel, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
+-
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-#ifndef USE_THUNDER_R4
+-            RPC::instance_id param0 = reader.Number<RPC::instance_id>();
+-#else
+-            Core::instance_id param0 = reader.Number<Core::instance_id>();
+-#endif /* USE_THUNDER_R4 */
+-            ISystemAudioPlayer::INotification* param0_proxy = nullptr;
+-            ProxyStub::UnknownProxy* param0_proxy_inst = nullptr;
+-            if (param0 != 0) {
+-                param0_proxy_inst = RPC::Administrator::Instance().ProxyInstance(channel, param0, false, param0_proxy);
+-                ASSERT((param0_proxy_inst != nullptr) && (param0_proxy != nullptr) && "Failed to get instance of ISystemAudiPlayer::INotification proxy");
+-
+-                if ((param0_proxy_inst == nullptr) || (param0_proxy == nullptr)) {
+-                    TRACE_L1("Failed to get instance of ISystemAudioPlayer::INotification proxy");
+-                }
++            Exchange::ISystemAudioPlayer* implementation = reinterpret_cast<Exchange::ISystemAudioPlayer*>(message->Parameters().Implementation());
++            ASSERT(implementation != nullptr);
++
++            RPC::Data::Frame::Reader reader(message->Parameters().Reader());
++            const Core::instance_id sinkImplementation = reader.Number<Core::instance_id>();
++
++            Exchange::ISystemAudioPlayer::INotification* _sink = nullptr;
++            ProxyStub::UnknownProxy* sinkProxy = nullptr;
++            if (sinkImplementation != 0) {
++                sinkProxy = RPC::Administrator::Instance().ProxyInstance(channel, sinkImplementation, false, _sink);
++
++                ASSERT((_sink != nullptr) && (sinkProxy != nullptr));
+             }
+ 
+-            // call implementation
+-            ISystemAudioPlayer* implementation = reinterpret_cast<ISystemAudioPlayer*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ISystemAudioPlayer implementation pointer");
+-            implementation->Register(param0_proxy);
++            implementation->Register(_sink);
+ 
+-            if (param0_proxy_inst != nullptr) {
+-                RPC::Administrator::Instance().Release(param0_proxy_inst, message->Response());
++            if (sinkProxy != nullptr) {
++                RPC::Administrator::Instance().Release(sinkProxy, message->Response());
+             }
+         },
+ 
+-        // virtual void Unregister(ISystemAudioPlayer::INotification*) = 0
++        // (2) virtual void Unregister(Exchange::ISystemAudioPlayer::INotification*) = 0
+         //
+         [](Core::ProxyType<Core::IPCChannel>& channel, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
+-
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-#ifndef USE_THUNDER_R4
+-            RPC::instance_id param0 = reader.Number<RPC::instance_id>();
+-#else
+-            Core::instance_id param0 = reader.Number<Core::instance_id>();
+-#endif /* USE_THUNDER_R4 */
+-            ISystemAudioPlayer::INotification* param0_proxy = nullptr;
+-            ProxyStub::UnknownProxy* param0_proxy_inst = nullptr;
+-            if (param0 != 0) {
+-                param0_proxy_inst = RPC::Administrator::Instance().ProxyInstance(channel, param0, false, param0_proxy);
+-                ASSERT((param0_proxy_inst != nullptr) && (param0_proxy != nullptr) && "Failed to get instance of ISystemAudioPlayer::INotification proxy");
+-
+-                if ((param0_proxy_inst == nullptr) || (param0_proxy == nullptr)) {
+-                    TRACE_L1("Failed to get instance of ISystemAudioPlayer::INotification proxy");
+-                }
++            Exchange::ISystemAudioPlayer* implementation = reinterpret_cast<Exchange::ISystemAudioPlayer*>(message->Parameters().Implementation());
++            ASSERT(implementation != nullptr);
++
++            RPC::Data::Frame::Reader reader(message->Parameters().Reader());
++            const Core::instance_id sinkImplementation = reader.Number<Core::instance_id>();
++
++            Exchange::ISystemAudioPlayer::INotification* _sink = nullptr;
++            ProxyStub::UnknownProxy* sinkProxy = nullptr;
++            if (sinkImplementation != 0) {
++                sinkProxy = RPC::Administrator::Instance().ProxyInstance(channel, sinkImplementation, false, _sink);
++
++                ASSERT((_sink != nullptr) && (sinkProxy != nullptr));
+             }
+ 
+-            // call implementation
+-            ISystemAudioPlayer* implementation = reinterpret_cast<ISystemAudioPlayer*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ISystemAudioPlayer implementation pointer");
+-            implementation->Unregister(param0_proxy);
++            implementation->Unregister(_sink);
+ 
+-            if (param0_proxy_inst != nullptr) {
+-                RPC::Administrator::Instance().Release(param0_proxy_inst, message->Response());
++            if (sinkProxy != nullptr) {
++                RPC::Administrator::Instance().Release(sinkProxy, message->Response());
+             }
+         },
+ 
+-        // virtual uint32_t Open(const string &input, string &output /* @out */)
+-        [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
++        // (3) virtual uint32_t Open(const string&, string&) = 0
++        //
++        [](Core::ProxyType<Core::IPCChannel>& /* channel */, Core::ProxyType<RPC::InvokeMessage>& message) {
++            Exchange::ISystemAudioPlayer* implementation = reinterpret_cast<Exchange::ISystemAudioPlayer*>(message->Parameters().Implementation());
++            ASSERT(implementation != nullptr);
+ 
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            const string param0 = reader.Text();
+-            string param1{}; // storage
++            RPC::Data::Frame::Reader reader(message->Parameters().Reader());
++            const string _input = reader.Text();
+ 
+-            // call implementation
+-            ISystemAudioPlayer* implementation = reinterpret_cast<ISystemAudioPlayer*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ISystemAudioPlayer implementation pointer");
+-            const uint32_t output = implementation->Open(param0, param1);
++            string _output{};
++
++            uint32_t result = implementation->Open(static_cast<const string&>(_input), _output);
+ 
+-            // write return values
+             RPC::Data::Frame::Writer writer(message->Response().Writer());
+-            writer.Number<const uint32_t>(output);
+-            writer.Text(param1);
++            writer.Number<uint32_t>(result);
++            writer.Text(_output);
+         },
+ 
+-        // virtual uint32_t Play(const string&, string&) = 0
++        // (4) virtual uint32_t Play(const string&, string&) = 0
+         //
+-        [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
++        [](Core::ProxyType<Core::IPCChannel>& /* channel */, Core::ProxyType<RPC::InvokeMessage>& message) {
++            Exchange::ISystemAudioPlayer* implementation = reinterpret_cast<Exchange::ISystemAudioPlayer*>(message->Parameters().Implementation());
++            ASSERT(implementation != nullptr);
++
++            RPC::Data::Frame::Reader reader(message->Parameters().Reader());
++            const string _input = reader.Text();
+ 
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            const string param0 = reader.Text();
+-            string param1{}; // storage
++            string _output{};
+ 
+-            // call implementation
+-            ISystemAudioPlayer* implementation = reinterpret_cast<ISystemAudioPlayer*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ISystemAudioPlayer implementation pointer");
+-            const uint32_t output = implementation->Play(param0, param1);
++            uint32_t result = implementation->Play(static_cast<const string&>(_input), _output);
+ 
+-            // write return values
+             RPC::Data::Frame::Writer writer(message->Response().Writer());
+-            writer.Number<const uint32_t>(output);
+-            writer.Text(param1);
++            writer.Number<uint32_t>(result);
++            writer.Text(_output);
+         },
+ 
+-        // virtual uint32_t PlayBuffer(const string&, string&) = 0
++        // (5) virtual uint32_t PlayBuffer(const string&, string&) = 0
+         //
+-        [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
++        [](Core::ProxyType<Core::IPCChannel>& /* channel */, Core::ProxyType<RPC::InvokeMessage>& message) {
++            Exchange::ISystemAudioPlayer* implementation = reinterpret_cast<Exchange::ISystemAudioPlayer*>(message->Parameters().Implementation());
++            ASSERT(implementation != nullptr);
+ 
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            const string param0 = reader.Text();
+-            string param1{}; // storage
++            RPC::Data::Frame::Reader reader(message->Parameters().Reader());
++            const string _input = reader.Text();
+ 
+-            // call implementation
+-            ISystemAudioPlayer* implementation = reinterpret_cast<ISystemAudioPlayer*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ISystemAudioPlayer implementation pointer");
+-            const uint32_t output = implementation->PlayBuffer(param0, param1);
++            string _output{};
++
++            uint32_t result = implementation->PlayBuffer(static_cast<const string&>(_input), _output);
+ 
+-            // write return values
+             RPC::Data::Frame::Writer writer(message->Response().Writer());
+-            writer.Number<const uint32_t>(output);
+-            writer.Text(param1);
++            writer.Number<uint32_t>(result);
++            writer.Text(_output);
+         },
+ 
+-        // virtual uint32_t Pause(const string&, string&) = 0
++        // (6) virtual uint32_t Pause(const string&, string&) = 0
+         //
+-        [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
++        [](Core::ProxyType<Core::IPCChannel>& /* channel */, Core::ProxyType<RPC::InvokeMessage>& message) {
++            Exchange::ISystemAudioPlayer* implementation = reinterpret_cast<Exchange::ISystemAudioPlayer*>(message->Parameters().Implementation());
++            ASSERT(implementation != nullptr);
++
++            RPC::Data::Frame::Reader reader(message->Parameters().Reader());
++            const string _input = reader.Text();
+ 
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            const string param0 = reader.Text();
+-            string param1{}; // storage
++            string _output{};
+ 
+-            // call implementation
+-            ISystemAudioPlayer* implementation = reinterpret_cast<ISystemAudioPlayer*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ISystemAudioPlayer implementation pointer");
+-            const uint32_t output = implementation->Pause(param0, param1);
++            uint32_t result = implementation->Pause(static_cast<const string&>(_input), _output);
+ 
+-            // write return values
+             RPC::Data::Frame::Writer writer(message->Response().Writer());
+-            writer.Number<const uint32_t>(output);
+-            writer.Text(param1);
++            writer.Number<uint32_t>(result);
++            writer.Text(_output);
+         },
+ 
+-        // virtual uint32_t Resume(const string&, string&) = 0
++        // (7) virtual uint32_t Resume(const string&, string&) = 0
+         //
+-        [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
++        [](Core::ProxyType<Core::IPCChannel>& /* channel */, Core::ProxyType<RPC::InvokeMessage>& message) {
++            Exchange::ISystemAudioPlayer* implementation = reinterpret_cast<Exchange::ISystemAudioPlayer*>(message->Parameters().Implementation());
++            ASSERT(implementation != nullptr);
+ 
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            const string param0 = reader.Text();
+-            string param1{}; // storage
++            RPC::Data::Frame::Reader reader(message->Parameters().Reader());
++            const string _input = reader.Text();
+ 
+-            // call implementation
+-            ISystemAudioPlayer* implementation = reinterpret_cast<ISystemAudioPlayer*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ISystemAudioPlayer implementation pointer");
+-            const uint32_t output = implementation->Resume(param0, param1);
++            string _output{};
++
++            uint32_t result = implementation->Resume(static_cast<const string&>(_input), _output);
+ 
+-            // write return values
+             RPC::Data::Frame::Writer writer(message->Response().Writer());
+-            writer.Number<const uint32_t>(output);
+-            writer.Text(param1);
++            writer.Number<uint32_t>(result);
++            writer.Text(_output);
+         },
+ 
+-        // virtual uint32_t Stop(const string&, string&) = 0
++        // (8) virtual uint32_t Stop(const string&, string&) = 0
+         //
+-        [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
++        [](Core::ProxyType<Core::IPCChannel>& /* channel */, Core::ProxyType<RPC::InvokeMessage>& message) {
++            Exchange::ISystemAudioPlayer* implementation = reinterpret_cast<Exchange::ISystemAudioPlayer*>(message->Parameters().Implementation());
++            ASSERT(implementation != nullptr);
++
++            RPC::Data::Frame::Reader reader(message->Parameters().Reader());
++            const string _input = reader.Text();
+ 
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            const string param0 = reader.Text();
+-            string param1{}; // storage
++            string _output{};
+ 
+-            // call implementation
+-            ISystemAudioPlayer* implementation = reinterpret_cast<ISystemAudioPlayer*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ISystemAudioPlayer implementation pointer");
+-            const uint32_t output = implementation->Stop(param0, param1);
++            uint32_t result = implementation->Stop(static_cast<const string&>(_input), _output);
+ 
+-            // write return values
+             RPC::Data::Frame::Writer writer(message->Response().Writer());
+-            writer.Number<const uint32_t>(output);
+-            writer.Text(param1);
++            writer.Number<uint32_t>(result);
++            writer.Text(_output);
+         },
+ 
+-        // virtual uint32_t Close(const string&, string&) = 0
++        // (9) virtual uint32_t Close(const string&, string&) = 0
+         //
+-        [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
++        [](Core::ProxyType<Core::IPCChannel>& /* channel */, Core::ProxyType<RPC::InvokeMessage>& message) {
++            Exchange::ISystemAudioPlayer* implementation = reinterpret_cast<Exchange::ISystemAudioPlayer*>(message->Parameters().Implementation());
++            ASSERT(implementation != nullptr);
++
++            RPC::Data::Frame::Reader reader(message->Parameters().Reader());
++            const string _input = reader.Text();
+ 
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            const string param0 = reader.Text();
+-            string param1{}; // storage
++            string _output{};
+ 
+-            // call implementation
+-            ISystemAudioPlayer* implementation = reinterpret_cast<ISystemAudioPlayer*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ISystemAudioPlayer implementation pointer");
+-            const uint32_t output = implementation->Close(param0, param1);
++            uint32_t result = implementation->Close(static_cast<const string&>(_input), _output);
+ 
+-            // write return values
+             RPC::Data::Frame::Writer writer(message->Response().Writer());
+-            writer.Number<const uint32_t>(output);
+-            writer.Text(param1);
++            writer.Number<uint32_t>(result);
++            writer.Text(_output);
+         },
+ 
+-        // virtual uint32_t SetMixerLevels(const string&, string&) = 0
++        // (10) virtual uint32_t SetMixerLevels(const string&, string&) = 0
+         //
+-        [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
++        [](Core::ProxyType<Core::IPCChannel>& /* channel */, Core::ProxyType<RPC::InvokeMessage>& message) {
++            Exchange::ISystemAudioPlayer* implementation = reinterpret_cast<Exchange::ISystemAudioPlayer*>(message->Parameters().Implementation());
++            ASSERT(implementation != nullptr);
+ 
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            const string param0 = reader.Text();
+-            string param1{}; // storage
++            RPC::Data::Frame::Reader reader(message->Parameters().Reader());
++            const string _input = reader.Text();
+ 
+-            // call implementation
+-            ISystemAudioPlayer* implementation = reinterpret_cast<ISystemAudioPlayer*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ISystemAudioPlayer implementation pointer");
+-            const uint32_t output = implementation->SetMixerLevels(param0, param1);
++            string _output{};
++
++            uint32_t result = implementation->SetMixerLevels(static_cast<const string&>(_input), _output);
+ 
+-            // write return values
+             RPC::Data::Frame::Writer writer(message->Response().Writer());
+-            writer.Number<const uint32_t>(output);
+-            writer.Text(param1);
++            writer.Number<uint32_t>(result);
++            writer.Text(_output);
+         },
+ 
+-        // virtual uint32_t SetSmartVolControl(const string&, string&) = 0
++        // (11) virtual uint32_t SetSmartVolControl(const string&, string&) = 0
+         //
+-        [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
++        [](Core::ProxyType<Core::IPCChannel>& /* channel */, Core::ProxyType<RPC::InvokeMessage>& message) {
++            Exchange::ISystemAudioPlayer* implementation = reinterpret_cast<Exchange::ISystemAudioPlayer*>(message->Parameters().Implementation());
++            ASSERT(implementation != nullptr);
++
++            RPC::Data::Frame::Reader reader(message->Parameters().Reader());
++            const string _input = reader.Text();
+ 
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            const string param0 = reader.Text();
+-            string param1{}; // storage
++            string _output{};
+ 
+-            // call implementation
+-            ISystemAudioPlayer* implementation = reinterpret_cast<ISystemAudioPlayer*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ISystemAudioPlayer implementation pointer");
+-            const uint32_t output = implementation->SetSmartVolControl(param0, param1);
++            uint32_t result = implementation->SetSmartVolControl(static_cast<const string&>(_input), _output);
+ 
+-            // write return values
+             RPC::Data::Frame::Writer writer(message->Response().Writer());
+-            writer.Number<const uint32_t>(output);
+-            writer.Text(param1);
++            writer.Number<uint32_t>(result);
++            writer.Text(_output);
+         },
+ 
+-        // virtual uint32_t IsPlaying(const string&, string&) = 0
++        // (12) virtual uint32_t IsPlaying(const string&, string&) = 0
+         //
+-        [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
++        [](Core::ProxyType<Core::IPCChannel>& /* channel */, Core::ProxyType<RPC::InvokeMessage>& message) {
++            Exchange::ISystemAudioPlayer* implementation = reinterpret_cast<Exchange::ISystemAudioPlayer*>(message->Parameters().Implementation());
++            ASSERT(implementation != nullptr);
+ 
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            const string param0 = reader.Text();
+-            string param1{}; // storage
++            RPC::Data::Frame::Reader reader(message->Parameters().Reader());
++            const string _input = reader.Text();
+ 
+-            // call implementation
+-            ISystemAudioPlayer* implementation = reinterpret_cast<ISystemAudioPlayer*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ISystemAudioPlayer implementation pointer");
+-            const uint32_t output = implementation->IsPlaying(param0, param1);
++            string _output{};
++
++            uint32_t result = implementation->IsPlaying(static_cast<const string&>(_input), _output);
+ 
+-            // write return values
+             RPC::Data::Frame::Writer writer(message->Response().Writer());
+-            writer.Number<const uint32_t>(output);
+-            writer.Text(param1);
++            writer.Number<uint32_t>(result);
++            writer.Text(_output);
+         },
+ 
+-         // virtual uint32_t Config(const string &input, string &output /* @out */)
+-        [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
++        // (13) virtual uint32_t Config(const string&, string&) = 0
++        //
++        [](Core::ProxyType<Core::IPCChannel>& /* channel */, Core::ProxyType<RPC::InvokeMessage>& message) {
++            Exchange::ISystemAudioPlayer* implementation = reinterpret_cast<Exchange::ISystemAudioPlayer*>(message->Parameters().Implementation());
++            ASSERT(implementation != nullptr);
+ 
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            const string param0 = reader.Text();
+-            string param1{}; // storage
++            RPC::Data::Frame::Reader reader(message->Parameters().Reader());
++            const string _input = reader.Text();
+ 
+-            // call implementation
+-            ISystemAudioPlayer* implementation = reinterpret_cast<ISystemAudioPlayer*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ISystemAudioPlayer implementation pointer");
+-            const uint32_t output = implementation->Config(param0, param1);
++            string _output{};
++
++            uint32_t result = implementation->Config(static_cast<const string&>(_input), _output);
+ 
+-            // write return values
+             RPC::Data::Frame::Writer writer(message->Response().Writer());
+-            writer.Number<const uint32_t>(output);
+-            writer.Text(param1);
++            writer.Number<uint32_t>(result);
++            writer.Text(_output);
+         },
+ 
+-        // virtual uint32_t GetPlayerSessionId(const string &input, string &output /* @out */)
+-        [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
++        // (14) virtual uint32_t GetPlayerSessionId(const string&, string&) = 0
++        //
++        [](Core::ProxyType<Core::IPCChannel>& /* channel */, Core::ProxyType<RPC::InvokeMessage>& message) {
++            Exchange::ISystemAudioPlayer* implementation = reinterpret_cast<Exchange::ISystemAudioPlayer*>(message->Parameters().Implementation());
++            ASSERT(implementation != nullptr);
+ 
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            const string param0 = reader.Text();
+-            string param1{}; // storage
++            RPC::Data::Frame::Reader reader(message->Parameters().Reader());
++            const string _input = reader.Text();
+ 
+-            // call implementation
+-            ISystemAudioPlayer* implementation = reinterpret_cast<ISystemAudioPlayer*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ISystemAudioPlayer implementation pointer");
+-            const uint32_t output = implementation->GetPlayerSessionId(param0, param1);
++            string _output{};
+ 
+-            // write return values
+-            RPC::Data::Frame::Writer writer(message->Response().Writer());
+-            writer.Number<const uint32_t>(output);
+-            writer.Text(param1);
+-        },
++            uint32_t result = implementation->GetPlayerSessionId(static_cast<const string&>(_input), _output);
+ 
+-        nullptr
+-    }; // SystemAudioPlayerStubMethods[]
++            RPC::Data::Frame::Writer writer(message->Response().Writer());
++            writer.Number<uint32_t>(result);
++            writer.Text(_output);
++        }
++    }; // ExchangeSystemAudioPlayerStubMethods
+ 
+     //
+-    // ISystemAudioPlayer::INotification interface stub definitions
++    // Exchange::ISystemAudioPlayer::INotification interface stub definitions
+     //
+     // Methods:
+-    // virtual void OnSAPEvents(const string &data) = 0;       
++    //  (0) virtual void OnSAPEvents(const string&) = 0
+     //
+ 
+-    ProxyStub::MethodHandler SystemAudioPlayerNotificationStubMethods[] = {
+-        // virtual void OnSAPEvents(const string&) = 0
++    ProxyStub::MethodHandler ExchangeSystemAudioPlayerNotificationStubMethods[] = {
++        // (0) virtual void OnSAPEvents(const string&) = 0
+         //
+-        [](Core::ProxyType<Core::IPCChannel>& channel VARIABLE_IS_NOT_USED, Core::ProxyType<RPC::InvokeMessage>& message) {
+-            RPC::Data::Input& input(message->Parameters());
++        [](Core::ProxyType<Core::IPCChannel>& /* channel */, Core::ProxyType<RPC::InvokeMessage>& message) {
++            Exchange::ISystemAudioPlayer::INotification* implementation = reinterpret_cast<Exchange::ISystemAudioPlayer::INotification*>(message->Parameters().Implementation());
++            ASSERT(implementation != nullptr);
+ 
+-            // read parameters
+-            RPC::Data::Frame::Reader reader(input.Reader());
+-            const string param0 = reader.Text();
++            RPC::Data::Frame::Reader reader(message->Parameters().Reader());
++            const string _data = reader.Text();
+ 
+-            // call implementation
+-            ISystemAudioPlayer::INotification* implementation = reinterpret_cast<ISystemAudioPlayer::INotification*>(input.Implementation());
+-            ASSERT((implementation != nullptr) && "Null ISystemAudioPlayer::INotification implementation pointer");
+-            implementation->OnSAPEvents(param0);
+-        },
+-        
+-        nullptr
+-    }; // SystemAudioPlayerNotificationStubMethods[]
++            implementation->OnSAPEvents(static_cast<const string&>(_data));
++        }
++    }; // ExchangeSystemAudioPlayerNotificationStubMethods
+ 
+     // -----------------------------------------------------------------
+-    // PROXY
++    // PROXIES
+     // -----------------------------------------------------------------
+ 
+     //
+-    // ISystemAudioPlayer interface proxy definitions
++    // Exchange::ISystemAudioPlayer interface proxy definitions
+     //
+     // Methods:
+     //  (0) virtual uint32_t Configure(PluginHost::IShell*) = 0
+-    //  (1) virtual void Register(ITextToSpeech::INotification*) = 0
+-    //  (2) virtual void Unregister(ITextToSpeech::INotification*) = 0
+-    //  (3) virtual uint32_t Enable(const string&, string&) = 0
+-    //  (4) virtual uint32_t ListVoices(const string&, string&) = 0
+-    //  (5) virtual uint32_t SetConfiguration(const string&, string&) = 0
+-    //  (6) virtual uint32_t GetConfiguration(const string&, string&) = 0
+-    //  (7) virtual uint32_t IsEnabled(const string&, string&) = 0
+-    //  (8) virtual uint32_t Speak(const string&, string&) = 0
+-    //  (9) virtual uint32_t Cancel(const string&, string&) = 0
+-    //  (10) virtual uint32_t Pause(const string&, string&) = 0
+-    //  (11) virtual uint32_t Resume(const string&, string&) = 0
+-    //  (12) virtual uint32_t IsSpeaking(const string&, string&) = 0
+-    //  (13) virtual uint32_t GetSpeechState(const string&, string&) = 0
++    //  (1) virtual void Register(Exchange::ISystemAudioPlayer::INotification*) = 0
++    //  (2) virtual void Unregister(Exchange::ISystemAudioPlayer::INotification*) = 0
++    //  (3) virtual uint32_t Open(const string&, string&) = 0
++    //  (4) virtual uint32_t Play(const string&, string&) = 0
++    //  (5) virtual uint32_t PlayBuffer(const string&, string&) = 0
++    //  (6) virtual uint32_t Pause(const string&, string&) = 0
++    //  (7) virtual uint32_t Resume(const string&, string&) = 0
++    //  (8) virtual uint32_t Stop(const string&, string&) = 0
++    //  (9) virtual uint32_t Close(const string&, string&) = 0
++    //  (10) virtual uint32_t SetMixerLevels(const string&, string&) = 0
++    //  (11) virtual uint32_t SetSmartVolControl(const string&, string&) = 0
++    //  (12) virtual uint32_t IsPlaying(const string&, string&) = 0
++    //  (13) virtual uint32_t Config(const string&, string&) = 0
++    //  (14) virtual uint32_t GetPlayerSessionId(const string&, string&) = 0
+     //
+ 
+-    class SystemAudioPlayerProxy final : public ProxyStub::UnknownProxyType<ISystemAudioPlayer> {
++    class ExchangeSystemAudioPlayerProxy final : public ProxyStub::UnknownProxyType<Exchange::ISystemAudioPlayer> {
+     public:
+-#ifndef USE_THUNDER_R4
+-        SystemAudioPlayerProxy(const Core::ProxyType<Core::IPCChannel>& channel, RPC::instance_id implementation, const bool otherSideInformed)
+-#else
+-        SystemAudioPlayerProxy(const Core::ProxyType<Core::IPCChannel>& channel, Core::instance_id implementation, const bool otherSideInformed)
+-#endif /* USE_THUNDER_R4 */
++        ExchangeSystemAudioPlayerProxy(const Core::ProxyType<Core::IPCChannel>& channel, const Core::instance_id implementation, const bool otherSideInformed)
+             : BaseClass(channel, implementation, otherSideInformed)
+         {
+         }
+ 
+-        uint32_t Configure(PluginHost::IShell* param0) override
++        uint32_t Complete(RPC::Data::Frame::Reader& reader)
+         {
+-            IPCMessage newMessage(BaseClass::Message(0));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-#ifndef USE_THUNDER_R4
+-            writer.Number<RPC::instance_id>(RPC::instance_cast<PluginHost::IShell*>(param0));
+-#else
+-            writer.Number<Core::instance_id>(RPC::instance_cast<PluginHost::IShell*>(param0));
+-#endif /* USE_THUNDER_R4 */
+-
+-            // invoke the method handler
+-            uint32_t output{};
+-            if ((output = Invoke(newMessage)) == Core::ERROR_NONE) {
+-                // read return value
+-                RPC::Data::Frame::Reader reader(newMessage->Response().Reader());
+-                output = reader.Number<uint32_t>();
+-
+-                Complete(reader);
++            uint32_t result = Core::ERROR_NONE;
++
++            while (reader.HasData() == true) {
++                const Core::instance_id implementation = reader.Number<Core::instance_id>();
++                ASSERT(implementation != 0);
++
++                const uint32_t id = reader.Number<uint32_t>();
++                const RPC::Data::Output::mode how = reader.Number<RPC::Data::Output::mode>();
++
++                result = UnknownProxyType::Complete(implementation, id, how);
++                if (result != Core::ERROR_NONE) { return (COM_ERROR | result); }
+             }
+ 
+-            return output;
++            return (result);
+         }
+ 
+-        void Register(ISystemAudioPlayer::INotification* param0) override
++        uint32_t Configure(PluginHost::IShell* _service) override
+         {
+-            IPCMessage newMessage(BaseClass::Message(1));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-#ifndef USE_THUNDER_R4
+-            writer.Number<RPC::instance_id>(RPC::instance_cast<ISystemAudioPlayer::INotification*>(param0));
+-#else
+-            writer.Number<Core::instance_id>(RPC::instance_cast<ISystemAudioPlayer::INotification*>(param0));
+-#endif /* USE_THUNDER_R4 */
+-
+-            // invoke the method handler
+-            if (Invoke(newMessage) == Core::ERROR_NONE) {
+-                // read return value
+-                RPC::Data::Frame::Reader reader(newMessage->Response().Reader());
+-                Complete(reader);
+-            }
++            IPCMessage message(BaseClass::Message(0));
++
++            RPC::Data::Frame::Writer writer(message->Parameters().Writer());
++            writer.Number<Core::instance_id>(RPC::instance_cast(_service));
++
++            uint32_t result{};
++
++            UnknownProxyType::Invoke(message);
++            RPC::Data::Frame::Reader reader(message->Response().Reader());
++            result = reader.Number<uint32_t>();
++
++            Complete(reader);
++
++            return (result);
+         }
+ 
+-        void Unregister(ISystemAudioPlayer::INotification* param0) override
++        void Register(Exchange::ISystemAudioPlayer::INotification* _sink) override
+         {
+-            IPCMessage newMessage(BaseClass::Message(2));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-#ifndef USE_THUNDER_R4
+-            writer.Number<RPC::instance_id>(RPC::instance_cast<ISystemAudioPlayer::INotification*>(param0));
+-#else
+-            writer.Number<Core::instance_id>(RPC::instance_cast<ISystemAudioPlayer::INotification*>(param0));
+-#endif /* USE_THUNDER_R4 */
+-
+-            // invoke the method handler
+-            if (Invoke(newMessage) == Core::ERROR_NONE) {
+-                // read return value
+-                RPC::Data::Frame::Reader reader(newMessage->Response().Reader());
+-                Complete(reader);
+-            }
++            IPCMessage message(BaseClass::Message(1));
++
++            RPC::Data::Frame::Writer writer(message->Parameters().Writer());
++            writer.Number<Core::instance_id>(RPC::instance_cast(_sink));
++
++            UnknownProxyType::Invoke(message);
++            RPC::Data::Frame::Reader reader(message->Response().Reader());
++
++            Complete(reader);
+         }
+-        
+-         uint32_t Open(const string& param0, string& /* out */ param1) override
++
++        void Unregister(Exchange::ISystemAudioPlayer::INotification* _sink) override
+         {
+-            IPCMessage newMessage(BaseClass::Message(3));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Text(param0);
+-
+-            // invoke the method handler
+-            uint32_t output{};
+-            if ((output = Invoke(newMessage)) == Core::ERROR_NONE) {
+-                // read return values
+-                RPC::Data::Frame::Reader reader(newMessage->Response().Reader());
+-                output = reader.Number<uint32_t>();
+-                param1 = reader.Text();
+-            }
++            IPCMessage message(BaseClass::Message(2));
+ 
+-            return output;
++            RPC::Data::Frame::Writer writer(message->Parameters().Writer());
++            writer.Number<Core::instance_id>(RPC::instance_cast(_sink));
++
++            UnknownProxyType::Invoke(message);
++            RPC::Data::Frame::Reader reader(message->Response().Reader());
++
++            Complete(reader);
+         }
+ 
+-        uint32_t Play(const string& param0, string& /* out */ param1) override
++        uint32_t Open(const string& _input, string& _output) override
+         {
+-            IPCMessage newMessage(BaseClass::Message(4));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Text(param0);
+-
+-            // invoke the method handler
+-            uint32_t output{};
+-            if ((output = Invoke(newMessage)) == Core::ERROR_NONE) {
+-                // read return values
+-                RPC::Data::Frame::Reader reader(newMessage->Response().Reader());
+-                output = reader.Number<uint32_t>();
+-                param1 = reader.Text();
+-            }
++            IPCMessage message(BaseClass::Message(3));
++
++            RPC::Data::Frame::Writer writer(message->Parameters().Writer());
++            writer.Text(static_cast<const string&>(_input));
+ 
+-            return output;
++            uint32_t result{};
++
++            UnknownProxyType::Invoke(message);
++            RPC::Data::Frame::Reader reader(message->Response().Reader());
++            result = reader.Number<uint32_t>();
++            _output = reader.Text();
++
++            return (result);
+         }
+ 
+-        uint32_t PlayBuffer(const string& param0, string& /* out */ param1) override
++        uint32_t Play(const string& _input, string& _output) override
+         {
+-            IPCMessage newMessage(BaseClass::Message(5));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Text(param0);
+-
+-            // invoke the method handler
+-            uint32_t output{};
+-            if ((output = Invoke(newMessage)) == Core::ERROR_NONE) {
+-                // read return values
+-                RPC::Data::Frame::Reader reader(newMessage->Response().Reader());
+-                output = reader.Number<uint32_t>();
+-                param1 = reader.Text();
+-            }
++            IPCMessage message(BaseClass::Message(4));
+ 
+-            return output;
++            RPC::Data::Frame::Writer writer(message->Parameters().Writer());
++            writer.Text(static_cast<const string&>(_input));
++
++            uint32_t result{};
++
++            UnknownProxyType::Invoke(message);
++            RPC::Data::Frame::Reader reader(message->Response().Reader());
++            result = reader.Number<uint32_t>();
++            _output = reader.Text();
++
++            return (result);
+         }
+ 
+-        uint32_t Pause(const string& param0, string& /* out */ param1) override
++        uint32_t PlayBuffer(const string& _input, string& _output) override
+         {
+-            IPCMessage newMessage(BaseClass::Message(6));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Text(param0);
+-
+-            // invoke the method handler
+-            uint32_t output{};
+-            if ((output = Invoke(newMessage)) == Core::ERROR_NONE) {
+-                // read return values
+-                RPC::Data::Frame::Reader reader(newMessage->Response().Reader());
+-                output = reader.Number<uint32_t>();
+-                param1 = reader.Text();
+-            }
++            IPCMessage message(BaseClass::Message(5));
++
++            RPC::Data::Frame::Writer writer(message->Parameters().Writer());
++            writer.Text(static_cast<const string&>(_input));
++
++            uint32_t result{};
++
++            UnknownProxyType::Invoke(message);
++            RPC::Data::Frame::Reader reader(message->Response().Reader());
++            result = reader.Number<uint32_t>();
++            _output = reader.Text();
+ 
+-            return output;
++            return (result);
+         }
+ 
+-        uint32_t Resume(const string& param0, string& /* out */ param1) override
++        uint32_t Pause(const string& _input, string& _output) override
+         {
+-            IPCMessage newMessage(BaseClass::Message(7));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Text(param0);
+-
+-            // invoke the method handler
+-            uint32_t output{};
+-            if ((output = Invoke(newMessage)) == Core::ERROR_NONE) {
+-                // read return values
+-                RPC::Data::Frame::Reader reader(newMessage->Response().Reader());
+-                output = reader.Number<uint32_t>();
+-                param1 = reader.Text();
+-            }
++            IPCMessage message(BaseClass::Message(6));
++
++            RPC::Data::Frame::Writer writer(message->Parameters().Writer());
++            writer.Text(static_cast<const string&>(_input));
++
++            uint32_t result{};
++
++            UnknownProxyType::Invoke(message);
++            RPC::Data::Frame::Reader reader(message->Response().Reader());
++            result = reader.Number<uint32_t>();
++            _output = reader.Text();
+ 
+-            return output;
++            return (result);
+         }
+ 
+-        uint32_t Stop(const string& param0, string& /* out */ param1) override
++        uint32_t Resume(const string& _input, string& _output) override
+         {
+-            IPCMessage newMessage(BaseClass::Message(8));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Text(param0);
+-
+-            // invoke the method handler
+-            uint32_t output{};
+-            if ((output = Invoke(newMessage)) == Core::ERROR_NONE) {
+-                // read return values
+-                RPC::Data::Frame::Reader reader(newMessage->Response().Reader());
+-                output = reader.Number<uint32_t>();
+-                param1 = reader.Text();
+-            }
++            IPCMessage message(BaseClass::Message(7));
++
++            RPC::Data::Frame::Writer writer(message->Parameters().Writer());
++            writer.Text(static_cast<const string&>(_input));
++
++            uint32_t result{};
+ 
+-            return output;
++            UnknownProxyType::Invoke(message);
++            RPC::Data::Frame::Reader reader(message->Response().Reader());
++            result = reader.Number<uint32_t>();
++            _output = reader.Text();
++
++            return (result);
+         }
+ 
+-        uint32_t Close(const string& param0, string& /* out */ param1) override
++        uint32_t Stop(const string& _input, string& _output) override
+         {
+-            IPCMessage newMessage(BaseClass::Message(9));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Text(param0);
+-
+-            // invoke the method handler
+-            uint32_t output{};
+-            if ((output = Invoke(newMessage)) == Core::ERROR_NONE) {
+-                // read return values
+-                RPC::Data::Frame::Reader reader(newMessage->Response().Reader());
+-                output = reader.Number<uint32_t>();
+-                param1 = reader.Text();
+-            }
++            IPCMessage message(BaseClass::Message(8));
++
++            RPC::Data::Frame::Writer writer(message->Parameters().Writer());
++            writer.Text(static_cast<const string&>(_input));
++
++            uint32_t result{};
+ 
+-            return output;
++            UnknownProxyType::Invoke(message);
++            RPC::Data::Frame::Reader reader(message->Response().Reader());
++            result = reader.Number<uint32_t>();
++            _output = reader.Text();
++
++            return (result);
+         }
+ 
+-        uint32_t SetMixerLevels(const string& param0, string& /* out */ param1) override
++        uint32_t Close(const string& _input, string& _output) override
+         {
+-            IPCMessage newMessage(BaseClass::Message(10));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Text(param0);
+-
+-            // invoke the method handler
+-            uint32_t output{};
+-            if ((output = Invoke(newMessage)) == Core::ERROR_NONE) {
+-                // read return values
+-                RPC::Data::Frame::Reader reader(newMessage->Response().Reader());
+-                output = reader.Number<uint32_t>();
+-                param1 = reader.Text();
+-            }
++            IPCMessage message(BaseClass::Message(9));
++
++            RPC::Data::Frame::Writer writer(message->Parameters().Writer());
++            writer.Text(static_cast<const string&>(_input));
+ 
+-            return output;
++            uint32_t result{};
++
++            UnknownProxyType::Invoke(message);
++            RPC::Data::Frame::Reader reader(message->Response().Reader());
++            result = reader.Number<uint32_t>();
++            _output = reader.Text();
++
++            return (result);
+         }
+ 
+-        uint32_t SetSmartVolControl(const string& param0, string& /* out */ param1) override
++        uint32_t SetMixerLevels(const string& _input, string& _output) override
+         {
+-            IPCMessage newMessage(BaseClass::Message(11));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Text(param0);
+-
+-            // invoke the method handler
+-            uint32_t output{};
+-            if ((output = Invoke(newMessage)) == Core::ERROR_NONE) {
+-                // read return values
+-                RPC::Data::Frame::Reader reader(newMessage->Response().Reader());
+-                output = reader.Number<uint32_t>();
+-                param1 = reader.Text();
+-            }
++            IPCMessage message(BaseClass::Message(10));
++
++            RPC::Data::Frame::Writer writer(message->Parameters().Writer());
++            writer.Text(static_cast<const string&>(_input));
+ 
+-            return output;
++            uint32_t result{};
++
++            UnknownProxyType::Invoke(message);
++            RPC::Data::Frame::Reader reader(message->Response().Reader());
++            result = reader.Number<uint32_t>();
++            _output = reader.Text();
++
++            return (result);
+         }
+ 
+-       
+-        uint32_t IsPlaying(const string& param0, string& /* out */ param1) override
++        uint32_t SetSmartVolControl(const string& _input, string& _output) override
+         {
+-            IPCMessage newMessage(BaseClass::Message(12));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Text(param0);
+-
+-            // invoke the method handler
+-            uint32_t output{};
+-            if ((output = Invoke(newMessage)) == Core::ERROR_NONE) {
+-                // read return values
+-                RPC::Data::Frame::Reader reader(newMessage->Response().Reader());
+-                output = reader.Number<uint32_t>();
+-                param1 = reader.Text();
+-            }
++            IPCMessage message(BaseClass::Message(11));
+ 
+-            return output;
++            RPC::Data::Frame::Writer writer(message->Parameters().Writer());
++            writer.Text(static_cast<const string&>(_input));
++
++            uint32_t result{};
++
++            UnknownProxyType::Invoke(message);
++            RPC::Data::Frame::Reader reader(message->Response().Reader());
++            result = reader.Number<uint32_t>();
++            _output = reader.Text();
++
++            return (result);
+         }
+ 
+-         uint32_t Config(const string& param0, string& /* out */ param1) override
++        uint32_t IsPlaying(const string& _input, string& _output) override
+         {
+-            IPCMessage newMessage(BaseClass::Message(13));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Text(param0);
+-
+-            // invoke the method handler
+-            uint32_t output{};
+-            if ((output = Invoke(newMessage)) == Core::ERROR_NONE) {
+-                // read return values
+-                RPC::Data::Frame::Reader reader(newMessage->Response().Reader());
+-                output = reader.Number<uint32_t>();
+-                param1 = reader.Text();
+-            }
++            IPCMessage message(BaseClass::Message(12));
++
++            RPC::Data::Frame::Writer writer(message->Parameters().Writer());
++            writer.Text(static_cast<const string&>(_input));
++
++            uint32_t result{};
++
++            UnknownProxyType::Invoke(message);
++            RPC::Data::Frame::Reader reader(message->Response().Reader());
++            result = reader.Number<uint32_t>();
++            _output = reader.Text();
+ 
+-            return output;
++            return (result);
+         }
+-    
+-        uint32_t GetPlayerSessionId(const string& param0, string& /* out */ param1) override
++
++        uint32_t Config(const string& _input, string& _output) override
+         {
+-            IPCMessage newMessage(BaseClass::Message(14));
+-
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Text(param0);
+-
+-            // invoke the method handler
+-            uint32_t output{};
+-            if ((output = Invoke(newMessage)) == Core::ERROR_NONE) {
+-                // read return values
+-                RPC::Data::Frame::Reader reader(newMessage->Response().Reader());
+-                output = reader.Number<uint32_t>();
+-                param1 = reader.Text();
+-            }
++            IPCMessage message(BaseClass::Message(13));
++
++            RPC::Data::Frame::Writer writer(message->Parameters().Writer());
++            writer.Text(static_cast<const string&>(_input));
++
++            uint32_t result{};
+ 
+-            return output;
++            UnknownProxyType::Invoke(message);
++            RPC::Data::Frame::Reader reader(message->Response().Reader());
++            result = reader.Number<uint32_t>();
++            _output = reader.Text();
++
++            return (result);
+         }
+ 
++        uint32_t GetPlayerSessionId(const string& _input, string& _output) override
++        {
++            IPCMessage message(BaseClass::Message(14));
++
++            RPC::Data::Frame::Writer writer(message->Parameters().Writer());
++            writer.Text(static_cast<const string&>(_input));
+ 
+-    }; // class SystemAudioPlayerProxy
++            uint32_t result{};
++
++            UnknownProxyType::Invoke(message);
++            RPC::Data::Frame::Reader reader(message->Response().Reader());
++            result = reader.Number<uint32_t>();
++            _output = reader.Text();
++
++            return (result);
++        }
++
++    }; // class ExchangeSystemAudioPlayerProxy
+ 
+     //
+-    // ISystemAudioPlayer::INotification interface proxy definitions
++    // Exchange::ISystemAudioPlayer::INotification interface proxy definitions
+     //
+     // Methods:
+     //  (0) virtual void OnSAPEvents(const string&) = 0
+     //
+ 
+-    class SystemAudioPlayerNotificationProxy final : public ProxyStub::UnknownProxyType<ISystemAudioPlayer::INotification> {
++    class ExchangeSystemAudioPlayerNotificationProxy final : public ProxyStub::UnknownProxyType<Exchange::ISystemAudioPlayer::INotification> {
+     public:
+-#ifndef USE_THUNDER_R4
+-        SystemAudioPlayerNotificationProxy(const Core::ProxyType<Core::IPCChannel>& channel, RPC::instance_id implementation, const bool otherSideInformed)
+-#else
+-        SystemAudioPlayerNotificationProxy(const Core::ProxyType<Core::IPCChannel>& channel, Core::instance_id implementation, const bool otherSideInformed)
+-#endif /* USE_THUNDER_R4 */
++        ExchangeSystemAudioPlayerNotificationProxy(const Core::ProxyType<Core::IPCChannel>& channel, const Core::instance_id implementation, const bool otherSideInformed)
+             : BaseClass(channel, implementation, otherSideInformed)
+         {
+         }
+ 
+-        void OnSAPEvents(const string& param0) override
++        uint32_t Complete(RPC::Data::Frame::Reader& reader)
++        {
++            uint32_t result = Core::ERROR_NONE;
++
++            while (reader.HasData() == true) {
++                const Core::instance_id implementation = reader.Number<Core::instance_id>();
++                ASSERT(implementation != 0);
++
++                const uint32_t id = reader.Number<uint32_t>();
++                const RPC::Data::Output::mode how = reader.Number<RPC::Data::Output::mode>();
++
++                result = UnknownProxyType::Complete(implementation, id, how);
++                if (result != Core::ERROR_NONE) { return (COM_ERROR | result); }
++            }
++
++            return (result);
++        }
++
++        void OnSAPEvents(const string& _data) override
+         {
+-            IPCMessage newMessage(BaseClass::Message(0));
++            IPCMessage message(BaseClass::Message(0));
+ 
+-            // write parameters
+-            RPC::Data::Frame::Writer writer(newMessage->Parameters().Writer());
+-            writer.Text(param0);
++            RPC::Data::Frame::Writer writer(message->Parameters().Writer());
++            writer.Text(static_cast<const string&>(_data));
+ 
+-            // invoke the method handler
+-            Invoke(newMessage);
++            UnknownProxyType::Invoke(message);
+         }
+-        
+-    }; // class SystemAudioPlayerNotificationProxy
++
++    }; // class ExchangeSystemAudioPlayerNotificationProxy
++
++    POP_WARNING()
++    POP_WARNING()
+ 
+     // -----------------------------------------------------------------
+     // REGISTRATION
+@@ -802,20 +710,20 @@ namespace ProxyStubs {
+ 
+     namespace {
+ 
+-        typedef ProxyStub::UnknownStubType<ISystemAudioPlayer, SystemAudioPlayerStubMethods> SystemAudioPlayerStub;
+-        typedef ProxyStub::UnknownStubType<ISystemAudioPlayer::INotification, SystemAudioPlayerNotificationStubMethods> SystemAudioPlayerNotificationStub;
++        typedef ProxyStub::UnknownStubType<Exchange::ISystemAudioPlayer, ExchangeSystemAudioPlayerStubMethods> ExchangeSystemAudioPlayerStub;
++        typedef ProxyStub::UnknownStubType<Exchange::ISystemAudioPlayer::INotification, ExchangeSystemAudioPlayerNotificationStubMethods> ExchangeSystemAudioPlayerNotificationStub;
+ 
+         static class Instantiation {
+         public:
+             Instantiation()
+             {
+-                RPC::Administrator::Instance().Announce<ISystemAudioPlayer, SystemAudioPlayerProxy, SystemAudioPlayerStub>();
+-                RPC::Administrator::Instance().Announce<ISystemAudioPlayer::INotification, SystemAudioPlayerNotificationProxy, SystemAudioPlayerNotificationStub>();
++                RPC::Administrator::Instance().Announce<Exchange::ISystemAudioPlayer, ExchangeSystemAudioPlayerProxy, ExchangeSystemAudioPlayerStub>();
++                RPC::Administrator::Instance().Announce<Exchange::ISystemAudioPlayer::INotification, ExchangeSystemAudioPlayerNotificationProxy, ExchangeSystemAudioPlayerNotificationStub>();
+             }
+             ~Instantiation()
+             {
+-                RPC::Administrator::Instance().Recall<ISystemAudioPlayer>();
+-                RPC::Administrator::Instance().Recall<ISystemAudioPlayer::INotification>();
++                RPC::Administrator::Instance().Recall<Exchange::ISystemAudioPlayer>();
++                RPC::Administrator::Instance().Recall<Exchange::ISystemAudioPlayer::INotification>();
+             }
+         } ProxyStubRegistration;
+ 
