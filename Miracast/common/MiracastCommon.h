@@ -126,7 +126,6 @@ typedef struct group_info
 typedef enum msg_type_e
 {
     P2P_MSG = 0x01,
-    RTSP_MSG,
     CONTRLR_FW_MSG
 } eMSG_TYPE;
 
@@ -142,11 +141,15 @@ typedef enum emira_service_states_e
 {
     MIRACAST_SERVICE_STATE_IDLE,
     MIRACAST_SERVICE_STATE_DISCOVERABLE,
+    MIRACAST_SERVICE_STATE_RESTARTING_SESSION,
+    MIRACAST_SERVICE_STATE_CONNECTING,
     MIRACAST_SERVICE_STATE_CONNECTION_ACCEPTED,
+    MIRACAST_SERVICE_STATE_CONNECTION_REJECTED,
     MIRACAST_SERVICE_STATE_CONNECTION_ERROR,
     MIRACAST_SERVICE_STATE_PLAYER_LAUNCHED,
     MIRACAST_SERVICE_STATE_APP_REQ_TO_ABORT_CONNECTION,
-    MIRACAST_SERVICE_STATE_DIRECT_LAUCH_REQUESTED
+    MIRACAST_SERVICE_STATE_DIRECT_LAUCH_REQUESTED,
+    MIRACAST_SERVICE_STATE_DIRECT_LAUCH_WITH_CONNECTING
 } eMIRA_SERVICE_STATES;
 
 typedef enum miracast_player_states_e
@@ -319,6 +322,7 @@ public:
     virtual void onMiracastServiceClientConnectionRequest(string client_mac, string client_name) = 0;
     virtual void onMiracastServiceClientConnectionError(string client_mac, string client_name , eMIRACAST_SERVICE_ERR_CODE error_code ) = 0;
     virtual void onMiracastServiceLaunchRequest(string src_dev_ip, string src_dev_mac, string src_dev_name, string sink_dev_ip, bool is_connect_req_reported ) = 0;
+    virtual void onStateChange(eMIRA_SERVICE_STATES state ) = 0;
 };
 
 /**
