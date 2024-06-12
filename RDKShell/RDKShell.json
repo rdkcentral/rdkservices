@@ -290,69 +290,6 @@
                 "$ref": "#/common/result"
             }
         },
-        "setKeyIntercepts": {
-            "summary": "Adds the list of key intercepts.",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "intercepts": {
-                        "summary": "A list of intercepts",
-                        "type": "array",
-                        "items": {
-                            "type": "object",
-                            "properties": {
-                                "clients": {
-                                    "summary": "A list of clients",
-                                    "type": "array",
-                                    "items": {
-                                        "type": "object",
-                                        "properties": {
-                                            "client":{
-                                                "summary": "The client name",
-                                                "type": "string",
-                                                "example": "searchanddiscovery"
-                                            },
-                                            "always":{
-                                                "summary": "If set to true then the key will always be intercepted for this client",
-                                                "type": "boolean",
-                                                "example": true
-                                            }
-                                        }
-                                    }
-                                },
-                                "keys":{
-                                    "summary": "A list of keys to intercept",
-                                    "type": "array",
-                                    "items":{
-                                        "type": "object",
-                                        "properties": {
-                                            "keycode": {
-                                                "$ref": "#/definitions/keyCode"
-                                            },
-                                            "modifiers": {
-                                                "$ref": "#/definitions/modifiers"
-                                            }
-                                        },
-                                        "required": [
-                                            "keycode",
-                                            "modifiers",
-                                            "keys"
-                                        ]
-                                    }
-                                }
-                            },
-                            "required": [
-                                "client",
-                                "keys"
-                            ]
-                        }
-                    }
-                }
-            },
-            "result": {
-                "$ref": "#/common/result"
-            }
-        },
         "addKeyListener":{
             "summary": "Adds a key listener to an application. The keys are bubbled up based on their z-order.",
             "params": {

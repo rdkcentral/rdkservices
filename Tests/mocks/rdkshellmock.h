@@ -157,7 +157,6 @@ public:
     MOCK_METHOD(bool, addNativeKeyListener, (const std::string& client, const uint32_t& keyCode, const uint32_t& flags, (std::map<std::string, RdkShell::RdkShellData> &listenerProperties)), (override));
     MOCK_METHOD(bool, addKeyListener, (const std::string& client, const uint32_t& keyCode, const uint32_t& flags, (std::map<std::string, RdkShell::RdkShellData> &listenerProperties)), (override));
     MOCK_METHOD(bool, addKeyIntercept, (const std::string& client, const uint32_t& keyCode, const uint32_t& flags), (override));
-    MOCK_METHOD(bool, setKeyIntercept, (const std::string& client, const uint32_t& keyCode, const uint32_t& flags, const bool always), (override));
     MOCK_METHOD(bool, kill, (const std::string& client), (override));
     MOCK_METHOD(void, setInactivityInterval, (const double minutes), (override));
 };
