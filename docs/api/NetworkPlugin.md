@@ -1,5 +1,5 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="NetworkPlugin"></a>(Deprecated)
+<a name="NetworkPlugin"></a>
 # NetworkPlugin
 
 **Version: [1.3.9](https://github.com/rdkcentral/rdkservices/blob/main/Network/CHANGELOG.md)**

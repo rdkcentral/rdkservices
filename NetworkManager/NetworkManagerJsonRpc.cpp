@@ -217,7 +217,7 @@ namespace WPEFramework
             LOGINFOMETHOD();
             uint32_t rc = Core::ERROR_GENERAL;
             string interface = parameters["interface"].String();
-            bool enabled = parameters["enabled"].Boolean();
+            bool enabled = parameters["enable"].Boolean();
             if (_NetworkManager)
                 rc = _NetworkManager->SetInterfaceState(interface, enabled);
             else

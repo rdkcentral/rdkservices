@@ -33,7 +33,6 @@ set(PLUGIN_PERSISTENTSTORE_MAXVALUE "3000" CACHE STRING "For single text data, i
 set(PLUGIN_PERSISTENTSTORE_LIMIT "10000" CACHE STRING "Default for all text data in namespace, in bytes")
 set(PLUGIN_PERSISTENTSTORE_TOKEN_COMMAND "" CACHE STRING "Shell command to get the service access token")
 set(PLUGIN_PERSISTENTSTORE_STARTUPORDER "" CACHE STRING "To configure startup order of PersistentStore plugin")
-set(PLUGIN_PERSISTENTSTORE_WITH_ACCOUNT_SCOPE true CACHE BOOL "Enable account scope")
 
 add_library(${MODULE_NAME} SHARED
         PersistentStore.cpp
@@ -83,29 +82,26 @@ if (IARMBUS_LIBRARIES)
     target_compile_definitions(${PLUGIN_IMPLEMENTATION} PRIVATE WITH_SYSMGR)
 endif ()
 
-if (PLUGIN_PERSISTENTSTORE_WITH_ACCOUNT_SCOPE)
-    find_package(Protobuf REQUIRED)
-    target_link_libraries(${PLUGIN_IMPLEMENTATION} PRIVATE ${Protobuf_LIBRARIES})
+find_package(Protobuf REQUIRED)
+target_link_libraries(${PLUGIN_IMPLEMENTATION} PRIVATE ${Protobuf_LIBRARIES})
 
-    add_custom_target(protoc
-            ${Protobuf_PROTOC_EXECUTABLE} --cpp_out ${CMAKE_CURRENT_BINARY_DIR} -I ${CMAKE_CURRENT_SOURCE_DIR}/grpc/secure_storage ${CMAKE_CURRENT_SOURCE_DIR}/grpc/secure_storage/secure_storage.proto
-    )
-    add_dependencies(${PLUGIN_IMPLEMENTATION} protoc)
+add_custom_target(protoc
+        ${Protobuf_PROTOC_EXECUTABLE} --cpp_out ${CMAKE_CURRENT_BINARY_DIR} -I ${CMAKE_CURRENT_SOURCE_DIR}/grpc/secure_storage ${CMAKE_CURRENT_SOURCE_DIR}/grpc/secure_storage/secure_storage.proto
+)
+add_dependencies(${PLUGIN_IMPLEMENTATION} protoc)
 
-    target_link_libraries(${PLUGIN_IMPLEMENTATION} PRIVATE grpc++)
-    find_program(GRPC_CPP_PLUGIN grpc_cpp_plugin REQUIRED)
+target_link_libraries(${PLUGIN_IMPLEMENTATION} PRIVATE grpc++)
+find_program(GRPC_CPP_PLUGIN grpc_cpp_plugin REQUIRED)
 
-    add_custom_target(protoc-gen-grpc
-            ${Protobuf_PROTOC_EXECUTABLE} --grpc_out ${CMAKE_CURRENT_BINARY_DIR} --plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN} -I ${CMAKE_CURRENT_SOURCE_DIR}/grpc/secure_storage ${CMAKE_CURRENT_SOURCE_DIR}/grpc/secure_storage/secure_storage.proto
-    )
-    add_dependencies(${PLUGIN_IMPLEMENTATION} protoc-gen-grpc)
+add_custom_target(protoc-gen-grpc
+        ${Protobuf_PROTOC_EXECUTABLE} --grpc_out ${CMAKE_CURRENT_BINARY_DIR} --plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN} -I ${CMAKE_CURRENT_SOURCE_DIR}/grpc/secure_storage ${CMAKE_CURRENT_SOURCE_DIR}/grpc/secure_storage/secure_storage.proto
+)
+add_dependencies(${PLUGIN_IMPLEMENTATION} protoc-gen-grpc)
 
-    set(PROTO_SRCS secure_storage.pb.cc secure_storage.grpc.pb.cc)
-    target_sources(${PLUGIN_IMPLEMENTATION} PRIVATE ${PROTO_SRCS})
-    set_property(SOURCE ${PROTO_SRCS} PROPERTY GENERATED 1)
-    target_include_directories(${PLUGIN_IMPLEMENTATION} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
-    target_compile_definitions(${PLUGIN_IMPLEMENTATION} PRIVATE WITH_ACCOUNT_SCOPE)
-endif ()
+set(PROTO_SRCS secure_storage.pb.cc secure_storage.grpc.pb.cc)
+target_sources(${PLUGIN_IMPLEMENTATION} PRIVATE ${PROTO_SRCS})
+set_property(SOURCE ${PROTO_SRCS} PROPERTY GENERATED 1)
+target_include_directories(${PLUGIN_IMPLEMENTATION} PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 
 install(TARGETS ${PLUGIN_IMPLEMENTATION}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)

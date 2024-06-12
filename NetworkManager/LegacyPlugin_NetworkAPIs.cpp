@@ -26,7 +26,6 @@ using namespace WPEFramework::Plugin;
 #define API_VERSION_NUMBER_MINOR 0
 #define API_VERSION_NUMBER_PATCH 0
 #define NETWORK_MANAGER_CALLSIGN    "org.rdk.NetworkManager.1"
-#define SUBSCRIPTION_TIMEOUT_IN_MILLISECONDS 5000
 
 #define LOGINFOMETHOD() { string json; parameters.ToString(json); NMLOG_TRACE("Legacy params=%s", json.c_str() ); }
 #define LOGTRACEMETHODFIN() { string json; response.ToString(json); NMLOG_TRACE("Legacy response=%s", json.c_str() ); }
@@ -69,7 +68,6 @@ namespace WPEFramework
        {
            _gNWInstance = this;
            m_defaultInterface = "wlan0";
-           m_timer.connect(std::bind(&Network::subscribeToEvents, this));
            RegisterLegacyMethods();
        }
 
@@ -107,28 +105,6 @@ namespace WPEFramework
 
             string callsign(NETWORK_MANAGER_CALLSIGN);
 
-            string token = "";
-
-            // TODO: use interfaces and remove token
-            auto security = m_service->QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
-            if (security != nullptr) {
-                string payload = "http://localhost";
-                if (security->CreateToken(
-                            static_cast<uint16_t>(payload.length()),
-                            reinterpret_cast<const uint8_t*>(payload.c_str()),
-                            token)
-                        == Core::ERROR_NONE) {
-                    NMLOG_TRACE("Network plugin got security token");
-                } else {
-                    NMLOG_WARNING("Network plugin failed to get security token");
-                }
-                security->Release();
-            } else {
-                NMLOG_INFO("Network plugin: No security agent");
-            }
-
-            string query = "token=" + token;
-
             auto interface = m_service->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
             if (interface != nullptr)
             {
@@ -147,10 +123,16 @@ namespace WPEFramework
             }
         
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
-            m_networkmanager = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(_T(NETWORK_MANAGER_CALLSIGN), _T(NETWORK_MANAGER_CALLSIGN), false, query);
+            string query="token=";
+            m_networkmanager = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >("org.rdk.NetworkManager", "");
 
-            m_timer.start(SUBSCRIPTION_TIMEOUT_IN_MILLISECONDS);
-            return string();
+            /* Wait for Proxy stuff to be established */
+            sleep(3);
+    
+            if (Core::ERROR_NONE != subscribeToEvents())
+                return string("Failed to Subscribe");
+            else
+                return string();
         }
 
         void Network::Deinitialize(PluginHost::IShell* /* service */)
@@ -772,12 +754,11 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
         }
 
         /** Private */
-        void Network::subscribeToEvents(void)
+        uint32_t Network::subscribeToEvents(void)
         {
             uint32_t errCode = Core::ERROR_GENERAL;
             if (m_networkmanager)
             {
-                /** ToDo: Don't subscribe for other events when one of the event subscription fails **/
                 errCode = m_networkmanager->Subscribe<JsonObject>(1000, _T("onInterfaceStateChange"), &Network::onInterfaceStateChange);
                 if (errCode != Core::ERROR_NONE)
                 {
@@ -800,8 +781,7 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
                     NMLOG_ERROR("Subscribe to onInternetStatusChange failed, errCode: %u", errCode);
                 }
             }
-            if (errCode == Core::ERROR_NONE)
-                m_timer.stop();
+            return errCode;
         }
 
         string Network::getInterfaceMapping(const string & interface)

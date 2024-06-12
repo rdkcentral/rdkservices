@@ -26,7 +26,6 @@ using namespace WPEFramework::Plugin;
 #define API_VERSION_NUMBER_MINOR 0
 #define API_VERSION_NUMBER_PATCH 0
 #define NETWORK_MANAGER_CALLSIGN    "org.rdk.NetworkManager.1"
-#define SUBSCRIPTION_TIMEOUT_IN_MILLISECONDS 5000
 
 #define LOGINFOMETHOD() { string json; parameters.ToString(json); NMLOG_TRACE("Legacy params=%s", json.c_str() ); }
 #define LOGTRACEMETHODFIN() { string json; response.ToString(json); NMLOG_TRACE("Legacy response=%s", json.c_str() ); }
@@ -69,7 +68,6 @@ namespace WPEFramework
         , m_service(nullptr)
        {
            _gWiFiInstance = this;
-           m_timer.connect(std::bind(&WiFiManager::subscribeToEvents, this));
            RegisterLegacyMethods();
        }
 
@@ -106,27 +104,7 @@ namespace WPEFramework
             m_service->AddRef();
 
             string callsign(NETWORK_MANAGER_CALLSIGN);
-            string token = "";
 
-            // TODO: use interfaces and remove token
-            auto security = m_service->QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
-            if (security != nullptr) {
-                string payload = "http://localhost";
-                if (security->CreateToken(
-                            static_cast<uint16_t>(payload.length()),
-                            reinterpret_cast<const uint8_t*>(payload.c_str()),
-                            token)
-                        == Core::ERROR_NONE) {
-                    NMLOG_TRACE("WiFi manager plugin got security token");
-                } else {
-                    NMLOG_WARNING("WiFi manager plugin failed to get security token");
-                }
-                security->Release();
-            } else {
-                NMLOG_INFO("WiFi manager plugin: No security agent");
-            }
-
-            string query = "token=" + token;
             auto interface = m_service->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
             if (interface != nullptr)
             {
@@ -145,10 +123,16 @@ namespace WPEFramework
             }
         
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
-            m_networkmanager = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(_T(NETWORK_MANAGER_CALLSIGN), _T(NETWORK_MANAGER_CALLSIGN), false, query);
+            string query="token=";
+            m_networkmanager = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >("org.rdk.NetworkManager", "");
 
-            m_timer.start(SUBSCRIPTION_TIMEOUT_IN_MILLISECONDS);
-            return string();
+            /* Wait for Proxy stuff to be established */
+            sleep(3);
+    
+            if (Core::ERROR_NONE != subscribeToEvents())
+                return string("Failed to Subscribe");
+            else
+                return string();
         }
 
         void WiFiManager::Deinitialize(PluginHost::IShell* /* service */)
@@ -488,10 +472,9 @@ namespace WPEFramework
         }
 
         /** Private */
-        void WiFiManager::subscribeToEvents(void)
+        uint32_t WiFiManager::subscribeToEvents(void)
         {
             uint32_t errCode = Core::ERROR_GENERAL;
-            /** ToDo: Don't subscribe for other events when one of the event subscription fails **/
             if (m_networkmanager)
             {
                 errCode = m_networkmanager->Subscribe<JsonObject>(1000, _T("onWiFiStateChange"), &WiFiManager::onWiFiStateChange);
@@ -510,8 +493,7 @@ namespace WPEFramework
                     NMLOG_ERROR("Subscribe to onActiveInterfaceChange failed, errCode: %u", errCode);
                 }
             }
-            if (errCode == Core::ERROR_NONE)
-                m_timer.stop();
+            return errCode;
         }
 
         /** Event Handling and Publishing */

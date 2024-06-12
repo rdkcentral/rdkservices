@@ -5,10 +5,10 @@
 
 #include "Module.h"
 #include "core/Link.h"
-#include "NetworkManagerTimer.h"
 
 namespace WPEFramework {
     namespace Plugin {
+
         // This is a server for a JSONRPC communication channel.
         // For a plugin to be capable to handle JSONRPC, inherit from PluginHost::JSONRPC.
         // By inheriting from this class, the plugin realizes the interface PluginHost::IDispatcher.
@@ -30,7 +30,7 @@ namespace WPEFramework {
 
             void RegisterLegacyMethods();
             void UnregisterLegacyMethods();
-            void subscribeToEvents(void);
+            uint32_t subscribeToEvents(void);
             static std::string getInterfaceMapping(const std::string &interface);
             void activatePrimaryPlugin();
 
@@ -84,7 +84,6 @@ namespace WPEFramework {
             PluginHost::IShell* m_service;
             std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> m_networkmanager;
             string m_defaultInterface;
-            NetworkManagerTimer m_timer;
         };
     } // namespace Plugin
 } // namespace WPEFramework
