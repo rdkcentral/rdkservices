@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.6.0] - 2024-06-12
+### Added
+- Added Upstream onApplicationFocusChanged event change handling
+
 ## [1.5.3] - 2024-06-10
 ### Changed
 - ResidentApp plugin unable to activate due to unable to get the Initialize/activating Notification from Thunder(R4.4.1)
