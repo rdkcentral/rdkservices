@@ -2,7 +2,7 @@
 <a name="System_Plugin"></a>
 # System Plugin
 
-**Version: [2.2.0](https://github.com/rdkcentral/rdkservices/blob/main/SystemServices/CHANGELOG.md)**
+**Version: [2.3.1](https://github.com/rdkcentral/rdkservices/blob/main/SystemServices/CHANGELOG.md)**
 
 A org.rdk.System plugin for Thunder framework.
 
@@ -110,6 +110,7 @@ SystemServices interface methods:
 | [setPreferredStandbyMode](#setPreferredStandbyMode) | Sets and persists the preferred standby mode |
 | [setTemperatureThresholds](#setTemperatureThresholds) | Sets the temperature threshold values |
 | [setFriendlyName](#setFriendlyName) | Sets the friendly name of device |
+| [setBootLoaderSplashScreen](#setBootLoaderSplashScreen) | Install or update the BootLoader Splash Screens |
 | [setTerritory](#setTerritory) | Sets the system territory and region |
 | [setTimeZoneDST](#setTimeZoneDST) | Sets the system time zone |
 | [setWakeupSrcConfiguration](#setWakeupSrcConfiguration) | Sets the wakeup source configuration for the input powerState |
@@ -3302,6 +3303,56 @@ No Events
     "method": "org.rdk.System.setFriendlyName",
     "params": {
         "friendlyName": "My Device"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="setBootLoaderSplashScreen"></a>
+## *setBootLoaderSplashScreen*
+
+Install or update the BootLoader Splash Screens. This is typically called by Resident Apps to configure the Splash Screen shown during device boot up.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.path | string | Path to the pre-downloaded splash screen file location. Full path with file name |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.setBootLoaderSplashScreen",
+    "params": {
+        "path": "/tmp/osd1"
     }
 }
 ```

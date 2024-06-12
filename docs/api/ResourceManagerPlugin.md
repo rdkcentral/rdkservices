@@ -2,7 +2,7 @@
 <a name="ResourceManager_Plugin"></a>
 # ResourceManager Plugin
 
-**Version: [1.0.1](https://github.com/rdkcentral/rdkservices/blob/main/ResourceManager/CHANGELOG.md)**
+**Version: [1.0.2](https://github.com/rdkcentral/rdkservices/blob/main/ResourceManager/CHANGELOG.md)**
 
 A org.rdk.ResourceManager plugin for Thunder framework.
 
