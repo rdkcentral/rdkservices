@@ -2,7 +2,7 @@
 <a name="NetworkManager_Plugin"></a>
 # NetworkManager Plugin
 
-**Version: [0.2.0]()**
+**Version: [0.2.3]()**
 
 A NetworkManager plugin for Thunder framework.
 
@@ -1037,13 +1037,13 @@ No Events
 
 ### Parameters
 
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
+| Name            | Type    | Description |
+| :--------       | :-------- | :-------- |
 | params | object |  |
-| params.endpoint | string | The host name or IP address |
-| params.ipversion | string | either IPv4 or IPv6 |
-| params.noOfRequest | integer | The number of packets to send. Default is 15 |
-| params.guid | string | The globally unique identifier |
+| params.ipversion| string  | <sup>*(optional)*</sup> The host name or IP address |
+| params.endpoint | string  | The host name or IP address |
+| params.packets  | integer | <sup>*(optional)*</sup> The number of packets to send. Default is 10 |
+| params.guid     | string  | <sup>*(optional)*</sup> The globally unique identifier |
 
 ### Result
 
@@ -1051,15 +1051,7 @@ No Events
 | :-------- | :-------- | :-------- |
 | result | object |  |
 | result.target | string | The target IP address |
-| result.packetsTransmitted | integer | The number of packets sent |
-| result.packetsReceived | integer | The number of packets received |
-| result.packetLoss | string | The number of packets lost |
-| result.tripMin | string | The minimum amount of time to receive the packets |
-| result.tripAvg | string | The average time to receive the packets |
-| result.tripMax | string | The maximum amount of time to receive the packets |
-| result.tripStdDev | string | The standard deviation for the trip |
-| result.error | string | An error message |
-| result.guid | string | The globally unique identifier |
+| result.results | string | The results from `traceroute` |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -1073,9 +1065,7 @@ No Events
     "method": "org.rdk.NetworkManager.Trace",
     "params": {
         "endpoint": "45.57.221.20",
-        "ipversion": "IPv4",
-        "noOfRequest": 10,
-        "guid": "..."
+        "packets": 10
     }
 }
 ```
@@ -1088,16 +1078,8 @@ No Events
     "id": 42,
     "result": {
         "target": "45.57.221.20",
-        "packetsTransmitted": 10,
-        "packetsReceived": 10,
-        "packetLoss": "0.0",
-        "tripMin": "61.264",
-        "tripAvg": "130.397",
-        "tripMax": "230.832",
-        "tripStdDev": "80.919",
-        "error": "...",
-        "guid": "...",
-        "success": true
+        "success": true,
+        "results": "<<<traceroute command results>>>"
     }
 }
 ```
