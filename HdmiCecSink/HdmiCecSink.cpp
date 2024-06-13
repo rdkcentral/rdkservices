@@ -3099,7 +3099,6 @@ namespace WPEFramework
         {
             bool gotLogicalAddress = false;
             int addr = LogicalAddress::TV;
-            int i, j;
             if (!(_instance->smConnection))
                 return;
 
