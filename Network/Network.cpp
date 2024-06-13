@@ -1467,12 +1467,9 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             }
             else
             {
-                if (!connectivityMonitor.isMonitorThreadRunning())
-                {
-                    /*run the thread again to notify no_internet state*/
-                    connectivityMonitor.doInitialConnectivityMonitoring(30);
-                }
-                connectivityMonitor.stopInitialConnectivityMonitoring();
+               /*run the thread again to notify no_internet state*/
+               connectivityMonitor.doInitialConnectivityMonitoring(30);
+               connectivityMonitor.stopInitialConnectivityMonitoring();
             }
         }
 
