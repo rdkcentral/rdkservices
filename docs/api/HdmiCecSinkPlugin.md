@@ -2,7 +2,7 @@
 <a name="HdmiCecSinkPlugin"></a>
 # HdmiCecSinkPlugin
 
-**Version: [1.3.7](https://github.com/rdkcentral/rdkservices/blob/main/HdmiCecSink/CHANGELOG.md)**
+**Version: [1.3.8](https://github.com/rdkcentral/rdkservices/blob/main/HdmiCecSink/CHANGELOG.md)**
 
 A org.rdk.HdmiCecSink plugin for Thunder framework.
 
