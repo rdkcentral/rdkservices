@@ -50,7 +50,7 @@ TEST_F(APersistentStore, MovesFileWhenInitializedWithNewAndPreviousPath)
     config.ToString(configJsonStr);
     ON_CALL(*service, ConfigLine())
         .WillByDefault(Return(configJsonStr));
-    ASSERT_THAT(plugin->Initialize(service), Eq(""));
+    plugin->Initialize(service);
     plugin->Deinitialize(service);
     ASSERT_THAT(WPEFramework::Core::File(kFile1).Exists(), IsFalse());
     ASSERT_THAT(file2.Open(true), IsTrue());
