@@ -300,6 +300,7 @@ namespace WPEFramework
         uint32_t NetworkManagerImplementation::Trace (const string ipversion /* @in */,  const string endpoint /* @in */, const uint32_t noOfRequest /* @in */, const string guid /* @in */, string& response /* @out */)
         {
             char cmd[256] = "";
+            string tempResult = "";
             if(0 == strcasecmp("IPv6", ipversion.c_str()))
             {
                 snprintf(cmd, 256, "traceroute6 -w 3 -m 6 -q %d %s 64 2>&1", noOfRequest, endpoint.c_str());
@@ -311,7 +312,12 @@ namespace WPEFramework
 
             NMLOG_INFO ("The Command is %s", cmd);
             string commandToExecute(cmd);
-            executeExternally(NETMGR_TRACE, commandToExecute, response);
+            executeExternally(NETMGR_TRACE, commandToExecute, tempResult);
+
+            JsonObject temp;
+            temp["target"] = endpoint;
+            temp["results"] = tempResult;
+            temp.ToString(response);
 
             return Core::ERROR_NONE;
         }
@@ -427,7 +433,7 @@ namespace WPEFramework
                 while (!feof(pipe) && fgets(buffer, 1024, pipe) != NULL)
                 {
                     // remove newline from buffer
-                    buffer[strcspn(buffer, "\n")] = '\0';
+                    buffer[strcspn(buffer, "\n")] = ' ';
                     string line(buffer);
                     list.Add(line);
                 }

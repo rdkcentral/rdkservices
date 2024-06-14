@@ -579,7 +579,7 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             tmpParameters["guid"] = parameters["guid"];
             
             if (m_networkmanager)
-                rc = m_networkmanager->Invoke<JsonObject, JsonObject>(5000, _T("Ping"), tmpParameters, response);
+                rc = m_networkmanager->Invoke<JsonObject, JsonObject>(15000, _T("Ping"), tmpParameters, response);
             else
                 rc = Core::ERROR_UNAVAILABLE;
 
@@ -597,12 +597,12 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             LOGINFOMETHOD();
             uint32_t rc = Core::ERROR_GENERAL;
             JsonObject tmpParameters;
-            tmpParameters["endpoint"]      = parameters["endpoint"].String();
-            tmpParameters["noOfRequest"]   = parameters["packets"].Number();
-            tmpParameters["guid"]          = "";
+            tmpParameters["endpoint"]  = parameters["endpoint"].String();
+            tmpParameters["packets"]   = parameters["packets"].Number();
+            tmpParameters["guid"]      = "";
 
             if(m_networkmanager)
-                rc = m_networkmanager->Invoke<JsonObject, JsonObject>(5000, _T("Trace"), tmpParameters, response);
+                rc = m_networkmanager->Invoke<JsonObject, JsonObject>(20000, _T("Trace"), tmpParameters, response);
             else
                 rc = Core::ERROR_UNAVAILABLE;
 
