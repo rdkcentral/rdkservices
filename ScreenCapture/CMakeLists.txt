@@ -19,6 +19,7 @@ set(PLUGIN_NAME ScreenCapture)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 set(PLUGIN_SCREENCAPTURE_STARTUPORDER "" CACHE STRING "To configure startup order of ScreenCapture plugin")
+set(PLUGIN_SCREENCAPTURE_AUTOSTART false CACHE STRING "To automatically start ScreenCapture plugin.")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
