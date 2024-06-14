@@ -492,6 +492,7 @@ namespace WPEFramework {
         if (isMonitorThreadRunning() && stopFlag == false)
         {
             LOGINFO("Connectivity Monitor Thread is active so notify");
+            g_internetState = nsm_internetState::UNKNOWN;
             cv_.notify_all();
         }
         else
