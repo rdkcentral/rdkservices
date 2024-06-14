@@ -576,9 +576,9 @@ namespace WPEFramework
                 response["ipversion"] = ipversion;
                 response["success"] = true;
 
-                /* TODO :: Cache this public IP Address */
                 m_publicIPAddress = ipAddress;
                 m_publicIPAddressType = ipversion;
+                PublishToThunderAboutInternet();
             }
             LOGTRACEMETHODFIN();
             return rc;
@@ -661,8 +661,8 @@ namespace WPEFramework
             string result{};
             const string ipversion      = parameters["ipversion"].String();
             const string endpoint       = parameters["endpoint"].String();
-            const uint32_t noOfRequest  = parameters["noOfRequest"].Number();
-            const string guid               = parameters["guid"].String();
+            const uint32_t noOfRequest  = parameters["packets"].Number();
+            const string guid           = parameters["guid"].String();
 
             if (_NetworkManager)
                 rc = _NetworkManager->Trace(ipversion, endpoint, noOfRequest, guid, result);
