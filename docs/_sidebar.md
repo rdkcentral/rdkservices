@@ -60,3 +60,4 @@
   - [WebKitBrowser](api/WebKitBrowserPlugin.md)
   - [Wifi](api/WifiPlugin.md)
   - [XCast](api/XCastPlugin.md)
+  - [UserSettings](api/UserSettingsPlugin.md)
