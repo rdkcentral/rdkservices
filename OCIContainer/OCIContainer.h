@@ -45,12 +45,20 @@ public:
     uint32_t pauseContainer(const JsonObject &parameters, JsonObject &response);
     uint32_t resumeContainer(const JsonObject &parameters, JsonObject &response);
     uint32_t executeCommand(const JsonObject &parameters, JsonObject &response);
+    #ifdef HIBERNATE_SUPPORT_ENABLED    
+    uint32_t hibernateContainer(const JsonObject &parameters, JsonObject &response);
+    uint32_t wakeupContainer(const JsonObject &parameters, JsonObject &response);
+    #endif
     //End methods
 
     //Begin events
     void onContainerStarted(int32_t descriptor, const std::string& name);
     void onContainerStopped(int32_t descriptor, const std::string& name);
     void onVerityFailed(const std::string& name);
+    #ifdef HIBERNATE_SUPPORT_ENABLED
+    void onContainerHibernated(int32_t descriptor, const std::string& name);
+    void onContainerAwoken(int32_t descriptor, const std::string& name);
+    #endif
     //End events
 
     //Build QueryInterface implementation, specifying all possible interfaces to be returned.
