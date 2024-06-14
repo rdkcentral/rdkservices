@@ -425,8 +425,12 @@ namespace WPEFramework
                         {
                             if (e->status)
                                 ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_LINK_UP, interface);
-                            else
-                                ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_LINK_DOWN, interface);
+                            else {
+                               ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_LINK_DOWN, interface);
+                               /* when ever interface down we start connectivity monitor to post noInternet event */
+                               ::_instance->connectivityMonitor.doInitialConnectivityMonitoring(5);
+                               ::_instance->connectivityMonitor.stopInitialConnectivityMonitoring();
+                            }
                         }
                         break;
                     }
@@ -436,8 +440,14 @@ namespace WPEFramework
                         interface = e->interface;
                         NMLOG_INFO ("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS :: %s -- %s", interface.c_str(), e->ip_address);
 
-                        if(interface == "eth0" || interface == "wlan0")
+                        if(interface == "eth0" || interface == "wlan0") {
                             ::_instance->ReportIPAddressChangedEvent(interface, e->acquired, e->is_ipv6, string(e->ip_address));
+                            if(e->acquired)
+                            {
+                                /* if ip address acquired we start connectivity monitor */
+                                ::_instance->connectivityMonitor.doInitialConnectivityMonitoring(5);
+                            }
+                        }
                         break;
                     }
                     case IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE:
