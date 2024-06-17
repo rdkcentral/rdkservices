@@ -46,7 +46,8 @@ include_directories(${STAGING_INCDIR}/rdk/ds)
 if (AVOUTPUT_TV)
 add_library(${MODULE_NAME} SHARED
 	AVOutputBase.cpp
-	AVOutputTV.cpp 
+	AVOutputTV.cpp
+        AVOutputTVHelper.cpp	
         AVOutput.cpp
         Module.cpp)
 target_link_libraries(${MODULE_NAME} "-lglib-2.0 -lpthread -lIARMBus -ltvsettings-hal -ltr181api -lds")
