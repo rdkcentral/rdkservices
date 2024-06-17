@@ -67,6 +67,9 @@ namespace WPEFramework
         WiFiManager::WiFiManager()
         : PluginHost::JSONRPC()
         , m_service(nullptr)
+        , m_subsWiFiStateChange(false)
+        , m_subsAvailableSSIDs(false)
+        , m_subsWiFiStrengthChange(false)
        {
            _gWiFiInstance = this;
            m_timer.connect(std::bind(&WiFiManager::subscribeToEvents, this));
@@ -491,26 +494,37 @@ namespace WPEFramework
         void WiFiManager::subscribeToEvents(void)
         {
             uint32_t errCode = Core::ERROR_GENERAL;
-            /** ToDo: Don't subscribe for other events when one of the event subscription fails **/
             if (m_networkmanager)
             {
-                errCode = m_networkmanager->Subscribe<JsonObject>(1000, _T("onWiFiStateChange"), &WiFiManager::onWiFiStateChange);
-                if (errCode != Core::ERROR_NONE)
+                if (!m_subsWiFiStateChange)
                 {
-                    NMLOG_ERROR ("Subscribe to onInterfaceStateChange failed, errCode: %u", errCode);
+                    errCode = m_networkmanager->Subscribe<JsonObject>(5000, _T("onWiFiStateChange"), &WiFiManager::onWiFiStateChange);
+                    if (Core::ERROR_NONE == errCode)
+                        m_subsWiFiStateChange = true;
+                    else
+                        NMLOG_ERROR ("Subscribe to onInterfaceStateChange failed, errCode: %u", errCode);
                 }
-                errCode = m_networkmanager->Subscribe<JsonObject>(1000, _T("onAvailableSSIDs"), &WiFiManager::onAvailableSSIDs);
-                if (errCode != Core::ERROR_NONE)
+
+                if (!m_subsAvailableSSIDs)
                 {
-                    NMLOG_ERROR("Subscribe to onIPAddressChange failed, errCode: %u", errCode);
+                    errCode = m_networkmanager->Subscribe<JsonObject>(5000, _T("onAvailableSSIDs"), &WiFiManager::onAvailableSSIDs);
+                    if (Core::ERROR_NONE == errCode)
+                        m_subsAvailableSSIDs = true;
+                    else
+                        NMLOG_ERROR("Subscribe to onIPAddressChange failed, errCode: %u", errCode);
                 }
-                errCode = m_networkmanager->Subscribe<JsonObject>(1000, _T("onWiFiSignalStrengthChange"), &WiFiManager::onWiFiSignalStrengthChange);
-                if (errCode != Core::ERROR_NONE)
+
+                if (!m_subsWiFiStrengthChange)
                 {
-                    NMLOG_ERROR("Subscribe to onActiveInterfaceChange failed, errCode: %u", errCode);
+                    errCode = m_networkmanager->Subscribe<JsonObject>(5000, _T("onWiFiSignalStrengthChange"), &WiFiManager::onWiFiSignalStrengthChange);
+                    if (Core::ERROR_NONE == errCode)
+                        m_subsWiFiStrengthChange = true;
+                    else
+                        NMLOG_ERROR("Subscribe to onActiveInterfaceChange failed, errCode: %u", errCode);
                 }
             }
-            if (errCode == Core::ERROR_NONE)
+
+            if (m_subsWiFiStateChange && m_subsAvailableSSIDs && m_subsWiFiStrengthChange)
                 m_timer.stop();
         }
 

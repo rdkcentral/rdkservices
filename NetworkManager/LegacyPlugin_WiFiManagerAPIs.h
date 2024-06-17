@@ -93,6 +93,9 @@ namespace WPEFramework {
             PluginHost::IShell* m_service;
             std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> m_networkmanager;
             NetworkManagerTimer m_timer;
+            bool m_subsWiFiStateChange;
+            bool m_subsAvailableSSIDs;
+            bool m_subsWiFiStrengthChange;
         };
     } // namespace Plugin
 } // namespace WPEFramework
