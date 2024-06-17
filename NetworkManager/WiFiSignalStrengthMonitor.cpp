@@ -4,7 +4,7 @@
 #include <atomic>
 #include "NetworkManagerLogger.h"
 #include "NetworkManagerImplementation.h"
-#include "WifiSignalStrengthMonitor.h"
+#include "WiFiSignalStrengthMonitor.h"
 
 #define BUFFER_SIZE 512
 #define rssid_command "wpa_cli signal_poll"
@@ -19,7 +19,7 @@ namespace WPEFramework
         static const float signalStrengthThresholdFair = -67.0f;
         extern NetworkManagerImplementation* _instance;
 
-        std::string WifiSignalStrengthMonitor::retrieveValues(const char *command, const char* keyword, char *output_buffer, size_t output_buffer_size)
+        std::string WiFiSignalStrengthMonitor::retrieveValues(const char *command, const char* keyword, char *output_buffer, size_t output_buffer_size)
         {
             std::string key, value;
             std::string keystr = "";
@@ -45,7 +45,7 @@ namespace WPEFramework
             return keystr;
         }
 
-        void WifiSignalStrengthMonitor::getSignalData(std::string &ssid, Exchange::INetworkManager::WiFiSignalQuality &quality, std::string &strengthOut)
+        void WiFiSignalStrengthMonitor::getSignalData(std::string &ssid, Exchange::INetworkManager::WiFiSignalQuality &quality, std::string &strengthOut)
         {
             float signalStrengthOut = 0.0f;
             char buff[BUFFER_SIZE] = {'\0'};
@@ -92,24 +92,24 @@ namespace WPEFramework
             };
         }
 
-        void WifiSignalStrengthMonitor::startWifiSignalStrengthMonitor(int interval)
+        void WiFiSignalStrengthMonitor::startWiFiSignalStrengthMonitor(int interval)
         {
             stopThread = false;
             if (isRunning) {
-                NMLOG_INFO("WifiSignalStrengthMonitor Thread is already running.");
+                NMLOG_INFO("WiFiSignalStrengthMonitor Thread is already running.");
                 return;
             }
             isRunning = true;
-            monitorThread = std::thread(&WifiSignalStrengthMonitor::monitorThreadFunction, this, interval);
+            monitorThread = std::thread(&WiFiSignalStrengthMonitor::monitorThreadFunction, this, interval);
             monitorThread.detach();
             std::thread::id threadId = monitorThread.get_id();
             NMLOG_INFO("Thread started with interval: %d seconds. Thread ID: %lu", interval);
         }
 
-        void WifiSignalStrengthMonitor::monitorThreadFunction(int interval)
+        void WiFiSignalStrengthMonitor::monitorThreadFunction(int interval)
         {
             static Exchange::INetworkManager::WiFiSignalQuality oldSignalQuality = Exchange::INetworkManager::WIFI_SIGNAL_DISCONNECTED;
-            NMLOG_INFO("WifiSignalStrengthMonitor thread started !");
+            NMLOG_INFO("WiFiSignalStrengthMonitor thread started !");
             while (!stopThread)
             {
                 string ssid = "";
@@ -128,7 +128,7 @@ namespace WPEFramework
 
                     if(newSignalQuality == Exchange::INetworkManager::WIFI_SIGNAL_DISCONNECTED)
                     {
-                        NMLOG_WARNING("WiFiSignalStrengthChanged to disconnect - WifiSignalStrengthMonitor exiting");
+                        NMLOG_WARNING("WiFiSignalStrengthChanged to disconnect - WiFiSignalStrengthMonitor exiting");
                         stopThread= false;
                         break; // Let the thread exit naturally
                     }

@@ -173,7 +173,7 @@ namespace WPEFramework
             return rc;
         }
 
-        uint32_t NetworkManagerImplementation::EnableInterface (const string& interface/* @in */)
+        uint32_t NetworkManagerImplementation::SetInterfaceState(const string& interface/* @in */, const bool& enabled /* @in */)
         {
             uint32_t rc = Core::ERROR_NONE;
             const GPtrArray *devices = nm_client_get_devices(client);
@@ -187,10 +187,9 @@ namespace WPEFramework
 
                 // Check if the device name matches
                 if (g_strcmp0(name, interface.c_str()) == 0) {
-                    nm_device_set_managed(device, true);
+                    nm_device_set_managed(device, enabled);
 
-                    NMLOG_TRACE("Interface %s status set to enabled\n",
-                            interface.c_str());
+                    NMLOG_TRACE("Interface %s status set to %s\n", interface.c_str(), enabled ? "Enabled" : "Disabled");
                 }
             }
 
@@ -200,9 +199,10 @@ namespace WPEFramework
             return rc;
         }
 
-        uint32_t NetworkManagerImplementation::DisableInterface (const string& interface/* @in */)
+        uint32_t NetworkManagerImplementation::GetInterfaceState(const string& interface/* @in */, bool& isEnabled /* @out */)
         {
             uint32_t rc = Core::ERROR_NONE;
+#if 0 //FIXME
             const GPtrArray *devices = nm_client_get_devices(client);
             NMDevice *device = NULL;
 
@@ -224,6 +224,7 @@ namespace WPEFramework
             // Cleanup
             if(device)
                 g_clear_object(&device);
+#endif
             return rc;
         } 
 

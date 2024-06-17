@@ -2,7 +2,7 @@
 <a name="head.NetworkManager_Plugin"></a>
 # NetworkManager Plugin
 
-**Version: [0.1.0]()**
+**Version: [0.2.3]()**
 
 A NetworkManager plugin for Thunder framework.
 
@@ -58,6 +58,8 @@ NetworkManager interface methods:
 | [GetAvailableInterfaces](#method.GetAvailableInterfaces) | Get device supported list of available interface including their state |
 | [GetPrimaryInterface](#method.GetPrimaryInterface) | Gets the primary/default network interface for the device |
 | [SetPrimaryInterface](#method.SetPrimaryInterface) | Sets the primary/default interface for the device |
+| [SetInterfaceState](#method.SetInterfaceState) | Enable the interface |
+| [GetInterfaceState](#method.GetInterfaceState) | Disable the interface |
 | [GetIPSettings](#method.GetIPSettings) | Gets the IP setting for the given interface |
 | [SetIPSettings](#method.SetIPSettings) | Sets the IP settings for the given interface |
 | [GetStunEndpoint](#method.GetStunEndpoint) | Get the STUN Endpoint that is used to identify public IP of the device |
@@ -84,8 +86,6 @@ NetworkManager interface methods:
 | [GetWiFiSignalStrength](#method.GetWiFiSignalStrength) | Get WiFiSignalStrength of connected SSID |
 | [GetSupportedSecurityModes](#method.GetSupportedSecurityModes) | Returns the Wifi security modes that the device supports |
 | [SetLogLevel](#method.SetLogLevel) | Set Log level for more information |
-| [EnableInterface](#method.EnableInterface) | Enable the interface |
-| [DisableInterface](#method.DisableInterface) | Disable the interface |
 | [GetWifiState](#method.GetWifiState) | Returns the current Wifi State |
 
 
@@ -242,6 +242,112 @@ Sets the primary/default interface for the device. This call fails if the interf
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.SetInterfaceState"></a>
+## *SetInterfaceState [<sup>method</sup>](#head.Methods)*
+
+Enable or Disable the specified interface.
+
+### Events
+
+| Event | Description |
+| :-------- | :-------- |
+| [onInterfaceStateChange](#event.onInterfaceStateChange) | Triggered when interface’s status changes to enabled or disabled. |
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface in `GetAvailableInterfaces` |
+| params.enabled | boolean | Set the state of the interface to be Enabled or Disabled |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.NetworkManager.SetInterfaceState",
+    "params": {
+        "interface": "wlan0",
+        "enabled": true
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.GetInterfaceState"></a>
+## *GetInterfaceState [<sup>method</sup>](#head.Methods)*
+
+Disable the specified interface.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface in `GetAvailableInterfaces` |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.isEnabled | boolean | Whether the Interface is enabled or disabled |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.NetworkManager.GetInterfaceState",
+    "params": {
+        "interface": "wlan0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "isEnabled": true,
         "success": true
     }
 }
@@ -931,13 +1037,13 @@ No Events
 
 ### Parameters
 
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
+| Name            | Type    | Description |
+| :--------       | :-------- | :-------- |
 | params | object |  |
-| params.endpoint | string | The host name or IP address |
-| params.ipversion | string | either IPv4 or IPv6 |
-| params.noOfRequest | integer | The number of packets to send. Default is 15 |
-| params.guid | string | The globally unique identifier |
+| params.ipversion| string  | <sup>*(optional)*</sup> The host name or IP address |
+| params.endpoint | string  | The host name or IP address |
+| params.packets  | integer | <sup>*(optional)*</sup> The number of packets to send. Default is 10 |
+| params.guid     | string  | <sup>*(optional)*</sup> The globally unique identifier |
 
 ### Result
 
@@ -945,15 +1051,7 @@ No Events
 | :-------- | :-------- | :-------- |
 | result | object |  |
 | result.target | string | The target IP address |
-| result.packetsTransmitted | integer | The number of packets sent |
-| result.packetsReceived | integer | The number of packets received |
-| result.packetLoss | string | The number of packets lost |
-| result.tripMin | string | The minimum amount of time to receive the packets |
-| result.tripAvg | string | The average time to receive the packets |
-| result.tripMax | string | The maximum amount of time to receive the packets |
-| result.tripStdDev | string | The standard deviation for the trip |
-| result.error | string | An error message |
-| result.guid | string | The globally unique identifier |
+| result.results | string | The results from `traceroute` |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -967,9 +1065,7 @@ No Events
     "method": "org.rdk.NetworkManager.Trace",
     "params": {
         "endpoint": "45.57.221.20",
-        "ipversion": "IPv4",
-        "noOfRequest": 10,
-        "guid": "..."
+        "packets": 10
     }
 }
 ```
@@ -982,16 +1078,8 @@ No Events
     "id": 42,
     "result": {
         "target": "45.57.221.20",
-        "packetsTransmitted": 10,
-        "packetsReceived": 10,
-        "packetLoss": "0.0",
-        "tripMin": "61.264",
-        "tripAvg": "130.397",
-        "tripMax": "230.832",
-        "tripStdDev": "80.919",
-        "error": "...",
-        "guid": "...",
-        "success": true
+        "success": true,
+        "results": "<<<traceroute command results>>>"
     }
 }
 ```
@@ -1680,110 +1768,6 @@ No Events
     "method": "org.rdk.NetworkManager.SetLogLevel",
     "params": {
         "loglevel": 1
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="method.EnableInterface"></a>
-## *EnableInterface [<sup>method</sup>](#head.Methods)*
-
-Enable the specified interface.
-
-### Events
-
-| Event | Description |
-| :-------- | :-------- |
-| [onInterfaceStateChange](#event.onInterfaceStateChange) | Triggered when interface’s status changes to enabled. |
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface in `GetAvailableInterfaces` |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.NetworkManager.EnableInterface",
-    "params": {
-        "interface": "wlan0"
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="method.DisableInterface"></a>
-## *DisableInterface [<sup>method</sup>](#head.Methods)*
-
-Disable the specified interface.
-
-### Events
-
-| Event | Description |
-| :-------- | :-------- |
-| [onInterfaceStateChange](#event.onInterfaceStateChange) | Triggered when interface’s status changes to disabled. |
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface in `GetAvailableInterfaces` |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.NetworkManager.DisableInterface",
-    "params": {
-        "interface": "wlan0"
     }
 }
 ```

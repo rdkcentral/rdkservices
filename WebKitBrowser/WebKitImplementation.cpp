@@ -543,9 +543,11 @@ static GSourceFuncs _handlerIntervention =
                     : Core::JSON::Container()
                     , WebProcessSettings()
                     , NetworkProcessSettings()
+                    , ServiceWorkerProcessSettings()
                 {
                     Add(_T("webprocesssettings"), &WebProcessSettings);
                     Add(_T("networkprocesssettings"), &NetworkProcessSettings);
+                    Add(_T("serviceworkerprocesssettings"), &ServiceWorkerProcessSettings);
                 }
                 ~MemorySettings()
                 {
@@ -554,6 +556,7 @@ static GSourceFuncs _handlerIntervention =
             public:
                 WebProcess WebProcessSettings;
                 Settings NetworkProcessSettings;
+                WebProcess ServiceWorkerProcessSettings;
             };
 
         public:
@@ -1463,9 +1466,13 @@ static GSourceFuncs _handlerIntervention =
             #ifdef WEBKIT_GLIB_API
             WebKitWebContext* context = webkit_web_view_get_context(_view);
             WebKitCookieManager* manager = webkit_web_context_get_cookie_manager(context);
+#if WEBKIT_CHECK_VERSION(2, 42, 0)
+            webkit_cookie_manager_get_all_cookies(manager, NULL, [](GObject* object, GAsyncResult* result, gpointer user_data) {
+                GList* cookies_list = webkit_cookie_manager_get_all_cookies_finish(WEBKIT_COOKIE_MANAGER(object), result, nullptr);
+#else
             webkit_cookie_manager_get_cookie_jar(manager, NULL, [](GObject* object, GAsyncResult* result, gpointer user_data) {
                 GList* cookies_list = webkit_cookie_manager_get_cookie_jar_finish(WEBKIT_COOKIE_MANAGER(object), result, nullptr);
-
+#endif
                 std::vector<std::string> cookieVector;
                 cookieVector.reserve(g_list_length(cookies_list));
                 for (GList* it = cookies_list; it != NULL; it = g_list_next(it)) {
@@ -1581,8 +1588,11 @@ static GSourceFuncs _handlerIntervention =
 
             WebKitWebContext* context = webkit_web_view_get_context(_view);
             WebKitCookieManager* manager = webkit_web_context_get_cookie_manager(context);
+#if WEBKIT_CHECK_VERSION(2, 42, 0)
+            webkit_cookie_manager_replace_cookies(manager, g_list_reverse(cookies_list), nullptr, nullptr, nullptr);
+#else
             webkit_cookie_manager_set_cookie_jar(manager, g_list_reverse(cookies_list), nullptr, nullptr, nullptr);
-
+#endif
             g_list_free_full(cookies_list, reinterpret_cast<GDestroyNotify>(soup_cookie_free));
             #else
             auto toWKCookie = [](SoupCookie* cookie) -> WKCookieRef
@@ -2855,8 +2865,30 @@ static GSourceFuncs _handlerIntervention =
                         webkit_memory_pressure_settings_set_poll_interval(memoryPressureSettings, _config.Memory.WebProcessSettings.PollInterval.Value());
                     }
 
-                    // Pass web process memory pressure settings to WebKitWebContext constructor
-                    wkContext = WEBKIT_WEB_CONTEXT(g_object_new(WEBKIT_TYPE_WEB_CONTEXT, "website-data-manager", websiteDataManager, "memory-pressure-settings", memoryPressureSettings, nullptr));
+                    if (_config.Memory.ServiceWorkerProcessSettings.IsSet() == true) {
+                        WebKitMemoryPressureSettings* serviceWorkerMemoryPressureSettings = webkit_memory_pressure_settings_new();
+
+                        if (_config.Memory.ServiceWorkerProcessSettings.Limit.IsSet() == true) {
+                            webkit_memory_pressure_settings_set_memory_limit(serviceWorkerMemoryPressureSettings, _config.Memory.ServiceWorkerProcessSettings.Limit.Value());
+                        }
+                        if (_config.Memory.ServiceWorkerProcessSettings.PollInterval.IsSet() == true) {
+                            webkit_memory_pressure_settings_set_poll_interval(serviceWorkerMemoryPressureSettings, _config.Memory.ServiceWorkerProcessSettings.PollInterval.Value());
+                        }
+
+                        // Pass web and service worker process memory pressure settings to WebKitWebContext constructor
+                        wkContext = WEBKIT_WEB_CONTEXT(g_object_new(WEBKIT_TYPE_WEB_CONTEXT,
+                            "website-data-manager", websiteDataManager,
+                            "memory-pressure-settings", memoryPressureSettings,
+                            "service-worker-memory-pressure-settings", serviceWorkerMemoryPressureSettings,
+                            nullptr));
+                        webkit_memory_pressure_settings_free(serviceWorkerMemoryPressureSettings);
+                    } else {
+                        // Pass web process memory pressure settings to WebKitWebContext constructor
+                        wkContext = WEBKIT_WEB_CONTEXT(g_object_new(WEBKIT_TYPE_WEB_CONTEXT,
+                            "website-data-manager", websiteDataManager,
+                            "memory-pressure-settings", memoryPressureSettings,
+                            nullptr));
+                    }
                     webkit_memory_pressure_settings_free(memoryPressureSettings);
                 } else
 #endif
