@@ -2,7 +2,7 @@
 <a name="head.NetworkManager_Plugin"></a>
 # NetworkManager Plugin
 
-**Version: [0.2.3]()**
+**Version: [0.2.4]()**
 
 A NetworkManager plugin for Thunder framework.
 
@@ -1748,7 +1748,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.loglevel | integer | Set Log level to get more information |
+| params.logLevel | integer | Set Log level to get more information |
 
 ### Result
 
@@ -1767,7 +1767,7 @@ No Events
     "id": 42,
     "method": "org.rdk.NetworkManager.SetLogLevel",
     "params": {
-        "loglevel": 1
+        "logLevel": 1
     }
 }
 ```
@@ -1827,7 +1827,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Wifi.GetWifiState"
+    "method": "org.rdk.NetworkManager.GetWifiState"
 }
 ```
 
