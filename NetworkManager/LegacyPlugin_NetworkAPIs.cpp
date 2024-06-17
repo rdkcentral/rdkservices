@@ -304,7 +304,7 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             LOGINFOMETHOD();
             uint32_t rc = Core::ERROR_GENERAL;
             JsonObject tmpParameters;
-            tmpParameters["endPoint"] = parameters["sever"];
+            tmpParameters["endPoint"] = parameters["server"];
             tmpParameters["port"] = parameters["port"];
             tmpParameters["bindTimeout"] = parameters["timeout"];
             tmpParameters["cacheTimeout"] = parameters["cache_timeout"];
