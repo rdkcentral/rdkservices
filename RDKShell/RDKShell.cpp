@@ -6537,7 +6537,7 @@ namespace WPEFramework {
         uint32_t RDKShell::hibernateWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
-            bool status = false, containerstatus = false;
+            bool status = false;
             if (parameters.HasLabel("callsign"))
             {
                 std::string callsign = parameters["callsign"].String();
@@ -6578,7 +6578,7 @@ namespace WPEFramework {
                         returnResponse(status);
                     }
                 }
-
+		// Container mode hibernate functionality handling
 		auto ociContainerPlugin = getOCIContainerPlugin();
                 if (!ociContainerPlugin)
                 {
@@ -6617,66 +6617,64 @@ namespace WPEFramework {
                     {
                         status = false;
                         response["message"] = "Failed to hibernate container";
+			param["success"] = false;
+			param["message"] = hibernateContainerResult;
                     }
-                    else
-                    {
-                        containerstatus = true;
-                    }
-                }
-
-                std::thread requestsThread =
-                std::thread([=]()
-                {
-                    if (!waitForHibernateUnblocked(RDKSHELL_THUNDER_TIMEOUT))
-                    {
-                        std::cout << "Hibernation of " << callsign << " ignored!" << std::endl;
-                        JsonObject eventMsg;
-                        eventMsg["success"] = false;
-                        eventMsg["message"] = "hibernation blocked";
-                        notify(RDKShell::RDKSHELL_EVENT_ON_HIBERNATED, eventMsg);
-                        return;
-                    }
-		    
-                    JsonObject eventMsg;
-		    if (!containerstatus0)
-		    {
-                    	auto thunderController = RDKShell::getThunderControllerClient();
-                    	JsonObject request, result, eventMsg;
-                    	request["callsign"] = callsign;
-                    	request["timeout"] = RDKSHELL_THUNDER_TIMEOUT;
-                    	if(parameters.HasLabel("timeout"))
-                    	{
-                        	request["timeout"] = parameters["timeout"];
-                    	}
-                    	if(parameters.HasLabel("procsequence"))
-                    	{
-                        	request["procsequence"] = parameters["procsequence"];
-                    	}
-                    	uint32_t errCode = thunderController->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "hibernate", request, result);
-                    	if(errCode > 0)
-                    	{
-                        	eventMsg["success"] = false;
-                        	eventMsg["message"] = result;
-                    	}
-                    	else
-                    	{
-                        	eventMsg["success"] = true;
-                        	gSuspendedOrHibernatedApplicationsMutex.lock();
-                        	gSuspendedOrHibernatedApplications[callsign] = true;
-                        	gSuspendedOrHibernatedApplicationsMutex.unlock();
-                    	}
-		    }
 		    else
 		    {
-			    eventMsg["success"] = true;
-                	    gSuspendedOrHibernatedApplicationsMutex.lock();
-                            gSuspendedOrHibernatedApplications[callsign] = true;
-                            gSuspendedOrHibernatedApplicationsMutex.unlock();
+			param["success"] = true;
+			gSuspendedOrHibernatedApplicationsMutex.lock();
+			gSuspendedOrHibernatedApplications[callsign] = true;
+			gSuspendedOrHibernatedApplicationsMutex.unlock();
 		    }
-                    notify(RDKShell::RDKSHELL_EVENT_ON_HIBERNATED, eventMsg);
-                });
-                requestsThread.detach();
-                status = true;
+		    status = true;
+		    notify(RDKShell::RDKSHELL_EVENT_ON_HIBERNATED, param);
+                }
+		// Non-Container mode hibernate functionality handling
+                else
+		{
+                	std::thread requestsThread =
+                	std::thread([=]()
+                	{
+                    		if (!waitForHibernateUnblocked(RDKSHELL_THUNDER_TIMEOUT))
+                    		{
+                        		std::cout << "Hibernation of " << callsign << " ignored!" << std::endl;
+                        		JsonObject eventMsg;
+                        		eventMsg["success"] = false;
+                        		eventMsg["message"] = "hibernation blocked";
+                        		notify(RDKShell::RDKSHELL_EVENT_ON_HIBERNATED, eventMsg);
+                        		return;
+                    		}
+		              	auto thunderController = RDKShell::getThunderControllerClient();
+                    		JsonObject request, result, eventMsg;
+                    		request["callsign"] = callsign;
+                    		request["timeout"] = RDKSHELL_THUNDER_TIMEOUT;
+                    		if(parameters.HasLabel("timeout"))
+                    		{
+                        		request["timeout"] = parameters["timeout"];
+                    		}
+                    		if(parameters.HasLabel("procsequence"))
+                    		{
+                        		request["procsequence"] = parameters["procsequence"];
+                    		}
+                    		uint32_t errCode = thunderController->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "hibernate", request, result);
+                    		if(errCode > 0)
+                    		{
+                        		eventMsg["success"] = false;
+                        		eventMsg["message"] = result;
+                    		}
+                    		else
+                    		{
+                        		eventMsg["success"] = true;
+                        		gSuspendedOrHibernatedApplicationsMutex.lock();
+                        		gSuspendedOrHibernatedApplications[callsign] = true;
+                        		gSuspendedOrHibernatedApplicationsMutex.unlock();
+                    		}
+                     		notify(RDKShell::RDKSHELL_EVENT_ON_HIBERNATED, eventMsg);
+                	});
+                	requestsThread.detach();
+                	status = true;
+		}
             }
 
             returnResponse(status);
@@ -6689,6 +6687,7 @@ namespace WPEFramework {
             if (parameters.HasLabel("callsign"))
             {
                 std::string callsign = parameters["callsign"].String();
+		// Container mode restore functionality handling
 		auto ociContainerPlugin = getOCIContainerPlugin();
 		if (!ociContainerPlugin)
 		{
@@ -6708,43 +6707,51 @@ namespace WPEFramework {
 		{
 			auto containerInfo = containerInfoResult["info"].Object();
 			// Dobby knows about that container - what's it doing?
-			if (containerInfo["state"] == "hibernated")
-			{
-				ociContainerPlugin->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "wakeupContainer", param, wakeupContainerResult);
-			}
-			else
+			if (containerInfo["state"] != "hibernated")
 			{
 				response["message"] = "Container is not in a hibernate state that can`t be wakeup";
 				returnResponse(false);
 			}
+			ociContainerPlugin->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "wakeupContainer", param, wakeupContainerResult);
 			if (!wakeupContainerResult["success"].Boolean())
 			{
 				status = false;
 				response["message"] = "Failed to restore/wakeup container";
+			        param["message"] = wakeupContainerResult;
+			        param["success"] = false;
 			}
+			else
+			{
+				status = true;
+				param["success"] = true;
+			}
+			notify(RDKShell::RDKSHELL_EVENT_ON_RESTORED, param);
 		}
+		// Non-Container Mode restore functionality handling
+		else
+		{
+	                std::thread requestsThread =
+        	        std::thread([=]()
+                	{
+                    		auto thunderController = RDKShell::getThunderControllerClient();
+                    		JsonObject request, result, eventMsg;
+                    		request["callsign"] = callsign;
 
-                std::thread requestsThread =
-                std::thread([=]()
-                {
-                    auto thunderController = RDKShell::getThunderControllerClient();
-                    JsonObject request, result, eventMsg;
-                    request["callsign"] = callsign;
-
-                    uint32_t errCode = thunderController->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "activate", request, result);
-                    if(errCode > 0)
-                    {
-                        eventMsg["success"] = false;
-                        eventMsg["message"] = result;
-                    }
-                    else
-                    {
-                        eventMsg["success"] = true;
-                    }
-                    notify(RDKShell::RDKSHELL_EVENT_ON_RESTORED, eventMsg);
-                });
-                requestsThread.detach();
-                status = true;
+                    		uint32_t errCode = thunderController->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "activate", request, result);
+                    		if(errCode > 0)
+                    		{
+                        		eventMsg["success"] = false;
+                        		eventMsg["message"] = result;
+                    		}
+                    		else
+                    		{
+                        		eventMsg["success"] = true;
+                    		}
+                    		notify(RDKShell::RDKSHELL_EVENT_ON_RESTORED, eventMsg);
+                	});
+                	requestsThread.detach();
+                	status = true;
+		}
             }
 
             returnResponse(status);
