@@ -85,6 +85,11 @@ namespace WPEFramework {
             std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> m_networkmanager;
             string m_defaultInterface;
             NetworkManagerTimer m_timer;
+
+            bool m_subsIfaceStateChange;
+            bool m_subsActIfaceChange;
+            bool m_subsIPAddrChange;
+            bool m_subsInternetChange;
         };
     } // namespace Plugin
 } // namespace WPEFramework
