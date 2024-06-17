@@ -31,7 +31,11 @@ namespace WPEFramework {
 
 namespace {
 
+#ifdef WITH_THUNDER_NAMESPACE
+    static Thunder::Plugin::Metadata<Plugin::PersistentStore> metadata(
+#else
     static Plugin::Metadata<Plugin::PersistentStore> metadata(
+#endif
         // Version (Major, Minor, Patch)
         API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
         // Preconditions
@@ -108,9 +112,6 @@ namespace Plugin {
         _store = _service->Root<Exchange::IStore>(_connectionId, RPC::CommunicationTimeOut, _T("PersistentStoreImplementation"));
         if (_store != nullptr) {
             _store2 = _store->QueryInterface<Exchange::IStore2>();
-            if (_store2 != nullptr) {
-                _store2->Register(&_store2Sink);
-            }
             _storeCache = _store->QueryInterface<Exchange::IStoreCache>();
             _storeInspector = _store->QueryInterface<Exchange::IStoreInspector>();
             _storeLimit = _store->QueryInterface<Exchange::IStoreLimit>();
@@ -136,7 +137,6 @@ namespace Plugin {
 
         if (_store != nullptr) {
             if (_store2 != nullptr) {
-                _store2->Unregister(&_store2Sink);
                 _store2->Release();
                 _store2 = nullptr;
             }
