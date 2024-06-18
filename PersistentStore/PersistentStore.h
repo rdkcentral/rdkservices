@@ -61,38 +61,6 @@ namespace Plugin {
             Core::JSON::DecUInt64 Limit;
         };
 
-        class Store2Notification : public Exchange::IStore2::INotification {
-        private:
-            Store2Notification(const Store2Notification&) = delete;
-            Store2Notification& operator=(const Store2Notification&) = delete;
-
-        public:
-            explicit Store2Notification(PersistentStore& parent)
-                : _parent(parent)
-            {
-            }
-            ~Store2Notification() override = default;
-
-        public:
-            void ValueChanged(const Exchange::IStore2::ScopeType scope, const string& ns, const string& key, const string& value) override
-            {
-                JsonData::PersistentStore::SetValueParamsData params;
-                params.Scope = JsonData::PersistentStore::ScopeType(scope);
-                params.Namespace = ns;
-                params.Key = key;
-                params.Value = value;
-
-                _parent.event_onValueChanged(params);
-            }
-
-            BEGIN_INTERFACE_MAP(Store2Notification)
-            INTERFACE_ENTRY(Exchange::IStore2::INotification)
-            END_INTERFACE_MAP
-
-        private:
-            PersistentStore& _parent;
-        };
-
         class RemoteConnectionNotification : public RPC::IRemoteConnection::INotification {
         private:
             RemoteConnectionNotification() = delete;
@@ -142,7 +110,6 @@ namespace Plugin {
             , _storeCache(nullptr)
             , _storeInspector(nullptr)
             , _storeLimit(nullptr)
-            , _store2Sink(*this)
             , _notification(*this)
         {
             RegisterAll();
@@ -197,7 +164,6 @@ namespace Plugin {
         Exchange::IStoreCache* _storeCache;
         Exchange::IStoreInspector* _storeInspector;
         Exchange::IStoreLimit* _storeLimit;
-        Core::Sink<Store2Notification> _store2Sink;
         Core::Sink<RemoteConnectionNotification> _notification;
     };
 

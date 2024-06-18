@@ -64,6 +64,8 @@ namespace Plugin {
             params.Ttl.Value());
         if (result == Core::ERROR_NONE) {
             response.Success = true;
+
+            event_onValueChanged(params);
         }
 
         return result;
