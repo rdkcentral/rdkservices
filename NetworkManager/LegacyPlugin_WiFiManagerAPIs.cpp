@@ -241,6 +241,7 @@ namespace WPEFramework
         {
             uint32_t rc = Core::ERROR_GENERAL;
             JsonObject tmpParameters;
+            tmpParameters["ssid"] = "ssid";
 
             LOGINFOMETHOD();
 
