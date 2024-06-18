@@ -88,6 +88,26 @@ UserSettingsImplementation::UserSettingsImplementation()
         }
 
         registerEventHandlers();
+
+#ifdef HAS_RBUS
+        _rbusHandleStatus = rbus_open(&_rbusHandle, RBUS_COMPONENT_NAME);
+
+        if (RBUS_ERROR_SUCCESS == _rbusHandleStatus)
+        {
+            rbusDataElement_t dataElements[1] = {
+                {(char *)RBUS_PRIVACY_MODE_EVENT_NAME, RBUS_ELEMENT_TYPE_EVENT, {NULL, NULL, NULL, NULL, NULL, NULL}},
+            };
+
+            int rc = rbus_regDataElements(_rbusHandle, 1, dataElements);
+            if (rc != RBUS_ERROR_SUCCESS)
+            {
+                LOGERR("rbus_regDataElements failed: %d", rc);
+
+                rbus_close(_rbusHandle);
+                _rbusHandleStatus = RBUS_ERROR_NOT_INITIALIZED;
+            }
+        }
+#endif
     }
 }
 
@@ -609,24 +629,6 @@ uint32_t UserSettingsImplementation::SetPrivacyMode(const string& privacyMode)
 #ifdef HAS_RBUS
             if (Core::ERROR_NONE == status)
             {
-                if (RBUS_ERROR_SUCCESS != _rbusHandleStatus)
-                {
-                    _rbusHandleStatus = rbus_open(&_rbusHandle, RBUS_COMPONENT_NAME);
-
-                    rbusDataElement_t dataElements[1] = {
-                        {(char *)RBUS_PRIVACY_MODE_EVENT_NAME, RBUS_ELEMENT_TYPE_EVENT, {NULL, NULL, NULL, NULL, NULL, NULL}},
-                    };
-
-                    int rc = rbus_regDataElements(_rbusHandle, 1, dataElements);
-                    if (rc != RBUS_ERROR_SUCCESS)
-                    {
-                        LOGERR("rbus_regDataElements failed: %d", rc);
-
-                        rbus_close(_rbusHandle);
-                        _rbusHandleStatus = RBUS_ERROR_NOT_INITIALIZED;
-                    }
-                }
-
                 if (RBUS_ERROR_SUCCESS == _rbusHandleStatus)
                 {
                     rbusEvent_t event = {0};
