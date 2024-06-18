@@ -18,7 +18,7 @@
 **/
 #include "LegacyPlugin_WiFiManagerAPIs.h"
 #include "NetworkManagerLogger.h"
-
+#include "INetworkManager.h"
 
 using namespace std;
 using namespace WPEFramework::Plugin;
@@ -529,27 +529,52 @@ namespace WPEFramework
         }
 
         /** Event Handling and Publishing */
+        string WiFiManager::getErrorCodeMapping(const string & errorcode)
+        {
+           if( errorcode == "Exchange::INetworkManager::WIFI_STATE_SSID_CHANGED")
+                return string("WIFI_SSID_CHANGED");
+            else if(errorcode == "Exchange::INetworkManager::WIFI_STATE_CONNECTION_LOST")
+                return string("WIFI_CONNECTION_LOST");
+            else if( errorcode == "Exchange::INetworkManager::WIFI_STATE_CONNECTION_FAILED")
+                return string("WIFI_CONNECTION_FAILED");
+            else if(errorcode == "Exchange::INetworkManager::WIFI_STATE_CONNECTION_INTERRUPTED")
+                return string("WIFI_CONNECTION_INTERRUPTED");
+            else if( errorcode == "Exchange::INetworkManager::WIFI_STATE_INVALID_CREDENTIALS")
+                return string("WIFI_INVALID_CREDENTIALS");
+            else if(errorcode == "Exchange::INetworkManager::WIFI_STATE_SSID_NOT_FOUND")
+                return string("WIFI_NO_SSID");
+            else if( errorcode == "Exchange::INetworkManager::WIFI_STATE_ERROR")
+                return string("WIFI_UNKNOWN");
+            else if(errorcode == "Exchange::INetworkManager::WIFI_STATE_AUTHENTICATION_FAILED")
+                return string("WIFI_AUTH_FAILED");
+
+            return string(" ");
+        }
+
         void WiFiManager::onWiFiStateChange(const JsonObject& parameters)
         {
             LOGINFOMETHOD();
             JsonObject legacyResult;
+            JsonObject legacyErrorResult;
+            string errorcodecheck = "";
             string state = parameters["state"].String();
 
-            legacyResult["state"] = state;
+            legacyErrorResult["state"] = getErrorCodeMapping(state);
+            legacyResult["state"] = parameters["state"];
             legacyResult["isLNF"] = false;
+            errorcodecheck = legacyErrorResult["state"];
 
-	    NMLOG_INFO("onWifiChanges Event , state: %d", state);
-	    /* State check */
+            NMLOG_INFO("onError code results: %s", legacyErrorResult["state"]);
             if(_gWiFiInstance)
-	    {
-                if((state == "WIFI_STATE_SSID_NOT_FOUND") || (state == "WIFI_STATE_SSID_CHANGED") || (state == "WIFI_STATE_CONNECTION_LOST") || (state == "WIFI_STATE_CONNECTION_FAILED") || (state == "WIFI_STATE_CONNECTION_INTERRUPTED") || (state == "WIFI_STATE_INVALID_CREDENTIALS") || (state == "WIFI_STATE_AUTHENTICATION_FAILED") || (state == "WIFI_STATE_AUTHENTICATION_FAILED") || (state == "WIFI_STATE_ERROR") ) 
-		{
-                    _gWiFiInstance->Notify("OnError", legacyResult);
-		}
+            {
+                if((errorcodecheck == "WIFI_SSID_CHANGED") || (errorcodecheck == "WIFI_CONNECTION_LOST") || (errorcodecheck == "WIFI_CONNECTION_FAILED") || (errorcodecheck == "WIFI_CONNECTION_INTERRUPTED") || (errorcodecheck == "WIFI_INVALID_CREDENTIALS") || (errorcodecheck == "WIFI_NO_SSID") || (errorcodecheck == "WIFI_AUTH_FAILED") || (errorcodecheck == "WIFI_UNKNOWN") )
+                {
+                    _gWiFiInstance->Notify("OnError", legacyErrorResult);
+                }
                 else
-	        {
+                {
                     _gWiFiInstance->Notify("onWIFIStateChanged", legacyResult);
-	        }
+                }
             }
             return;
         }

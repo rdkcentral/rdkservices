@@ -382,15 +382,13 @@ namespace WPEFramework
             return Exchange::INetworkManager::WIFI_STATE_CONNECTION_FAILED;
         }
 
-	Exchange::INetworkManager::WiFiErrorCode to_wifi_state(WiFiErrorCode_t code) {
+	Exchange::INetworkManager::WiFiState errorcode_to_wifi_state(WiFiErrorCode_t code) {
             switch (code)
             {
                 case WIFI_SSID_CHANGED:
                     return Exchange::INetworkManager::WIFI_STATE_SSID_CHANGED;
                 case WIFI_CONNECTION_LOST:
                     return Exchange::INetworkManager::WIFI_STATE_CONNECTION_LOST;
-                case WIFI_CONNECTION_FAILED:
-                    return Exchange::INetworkManager::WIFI_CONNECTION_FAILED;
                 case WIFI_CONNECTION_INTERRUPTED:
                     return Exchange::INetworkManager::WIFI_STATE_CONNECTION_INTERRUPTED;
                 case WIFI_INVALID_CREDENTIALS:
@@ -526,8 +524,8 @@ namespace WPEFramework
                     case IARM_BUS_WIFI_MGR_EVENT_onError:
                     {
                         IARM_BUS_WiFiSrvMgr_EventData_t* e = (IARM_BUS_WiFiSrvMgr_EventData_t *) data;
-                        Exchange::INetworkManager::WiFiState state = to_wifi_state(e->data.wifiError.state);
-                        NMLOGINFO("Event IARM_BUS_WIFI_MGR_EVENT_onError received; code=%d", e->data.wifiError.code);
+                        Exchange::INetworkManager::WiFiState state = errorcode_to_wifi_state(e->data.wifiError.code);
+                        NMLOG_INFO("Event IARM_BUS_WIFI_MGR_EVENT_onError received; code=%d", e->data.wifiError.code);
 			::_instance->ReportWiFiStateChangedEvent(state);
                         break;
                     }
