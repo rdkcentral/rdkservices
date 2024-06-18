@@ -587,6 +587,12 @@ uint32_t UserSettingsImplementation::SetPrivacyMode(const string& privacyMode)
 
     LOGINFO("privacyMode: %s", privacyMode.c_str());
 
+    if (privacyMode != "SHARE" && privacyMode != "DO_NOT_SHARE")
+    {
+        LOGERR("Wrong privacyMode value: '%s', returning default", privacyMode.c_str());
+        return status;
+    }
+
     _adminLock.Lock();
 
     ASSERT (nullptr != _remotStoreObject);
@@ -596,62 +602,74 @@ uint32_t UserSettingsImplementation::SetPrivacyMode(const string& privacyMode)
         uint32_t ttl = 0;
         string oldPrivacyMode;
         status = _remotStoreObject->GetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, USERSETTINGS_PRIVACY_MODE_KEY, oldPrivacyMode, ttl);
+        LOGINFO("oldPrivacyMode: %s", oldPrivacyMode.c_str());
 
-#ifdef HAS_RBUS
-        if (Core::ERROR_NONE == status)
+        if (privacyMode != oldPrivacyMode)
         {
-            if (RBUS_ERROR_SUCCESS != _rbusHandleStatus)
+#ifdef HAS_RBUS
+            if (Core::ERROR_NONE == status)
             {
-                _rbusHandleStatus = rbus_open(&_rbusHandle, RBUS_COMPONENT_NAME);
-            }
-
-            if (RBUS_ERROR_SUCCESS == _rbusHandleStatus)
-            {
-
-                rbusEvent_t event = {0};
-                rbusObject_t data;
-                rbusValue_t value;
-                rbusValue_t value2;
-
-                rbusValue_Init(&value);
-                rbusValue_SetString(value, oldPrivacyMode.c_str());
-
-                rbusValue_Init(&value2);
-                rbusValue_SetString(value2, privacyMode.c_str());
-
-
-                rbusObject_Init(&data, NULL);
-                rbusObject_SetValue(data, "oldPrivacyMode", value);
-                rbusObject_SetValue(data, "privacyMode", value2);
-
-                event.name = RBUS_PRIVACY_MODE_EVENT_NAME;
-                event.data = data;
-                event.type = RBUS_EVENT_GENERAL;
-
-                int rc = rbusEvent_Publish(_rbusHandle, &event);
-                if (RBUS_ERROR_SUCCESS != rc)
+                if (RBUS_ERROR_SUCCESS != _rbusHandleStatus)
                 {
-                    std::stringstream str;
-                    str << "Failed to publish " << RBUS_PRIVACY_MODE_EVENT_NAME << ": " << rc;
-                    LOGERR("%s", str.str().c_str());
+                    _rbusHandleStatus = rbus_open(&_rbusHandle, RBUS_COMPONENT_NAME);
+
+                    rbusDataElement_t dataElements[1] = {
+                        {(char *)RBUS_PRIVACY_MODE_EVENT_NAME, RBUS_ELEMENT_TYPE_EVENT, {NULL, NULL, NULL, NULL, NULL, NULL}},
+                    };
+
+                    int rc = rbus_regDataElements(_rbusHandle, 1, dataElements);
+                    if (rc != RBUS_ERROR_SUCCESS)
+                    {
+                        LOGERR("rbus_regDataElements failed: %d", rc);
+
+                        rbus_close(_rbusHandle);
+                        _rbusHandleStatus = RBUS_ERROR_NOT_INITIALIZED;
+                    }
                 }
 
-                rbusValue_Release(value);
-                rbusValue_Release(value2);
-                rbusObject_Release(data);
+                if (RBUS_ERROR_SUCCESS == _rbusHandleStatus)
+                {
+                    rbusEvent_t event = {0};
+                    rbusObject_t data;
+                    rbusValue_t value;
+                    rbusValue_t value2;
 
+                    rbusValue_Init(&value);
+                    rbusValue_SetString(value, oldPrivacyMode.c_str());
+
+                    rbusValue_Init(&value2);
+                    rbusValue_SetString(value2, privacyMode.c_str());
+
+                    rbusObject_Init(&data, NULL);
+                    rbusObject_SetValue(data, "oldPrivacyMode", value);
+                    rbusObject_SetValue(data, "privacyMode", value2);
+
+                    event.name = RBUS_PRIVACY_MODE_EVENT_NAME;
+                    event.data = data;
+                    event.type = RBUS_EVENT_GENERAL;
+
+                    int rc = rbusEvent_Publish(_rbusHandle, &event);
+                    if (RBUS_ERROR_SUCCESS != rc)
+                    {
+                        std::stringstream str;
+                        str << "Failed to publish " << RBUS_PRIVACY_MODE_EVENT_NAME << ": " << rc;
+                        LOGERR("%s", str.str().c_str());
+                    }
+
+                    rbusValue_Release(value);
+                    rbusValue_Release(value2);
+                    rbusObject_Release(data);
+                }
+                else
+                {
+                    std::stringstream str;
+                    str << "rbus_open failed with error code " << _rbusHandleStatus;
+                    LOGERR("%s", str.str().c_str());
+                }
             }
-            else
-            {
-                std::stringstream str;
-                str << "rbus_open failed with error code " << _rbusHandleStatus;
-                LOGERR("%s", str.str().c_str());
-                return Core::ERROR_OPENING_FAILED;
-            }
-        }
 #endif
-        
-        status = _remotStoreObject->SetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, USERSETTINGS_PRIVACY_MODE_KEY, privacyMode, 0);
+            status = _remotStoreObject->SetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, USERSETTINGS_PRIVACY_MODE_KEY, privacyMode, 0);
+        }
     }
 
     _adminLock.Unlock();
@@ -672,6 +690,11 @@ uint32_t UserSettingsImplementation::GetPrivacyMode(string &privacyMode) const
     if (nullptr != _remotStoreObject)
     {
         status = _remotStoreObject->GetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, USERSETTINGS_PRIVACY_MODE_KEY, privacyMode, ttl);
+        if (privacyMode != "SHARE" && privacyMode != "DO_NOT_SHARE") 
+        {
+            LOGWARN("Wrong privacyMode value: '%s', returning default", privacyMode.c_str());
+            privacyMode = "SHARE";
+        }
     }
 
     _adminLock.Unlock();
