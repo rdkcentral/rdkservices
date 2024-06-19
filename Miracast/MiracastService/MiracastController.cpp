@@ -1184,8 +1184,6 @@ void MiracastController::Controller_Thread(void *args)
                 MIRACASTLOG_TRACE("CONTRLR_FW_MSG type received");
                 switch (controller_msgq_data.state)
                 {
-                // Start and Stop Discovering initiated directly from Thunder request. So this is unused and commenting out here
-                #if 0
                     case CONTROLLER_START_DISCOVERING:
                     {
                         MIRACASTLOG_INFO("CONTROLLER_START_DISCOVERING Received\n");
@@ -1199,9 +1197,9 @@ void MiracastController::Controller_Thread(void *args)
                         MIRACASTLOG_INFO("CONTROLLER_STOP_DISCOVERING Received\n");
                         stop_session(true);
                         m_start_discovering_enabled = false;
+                        sleep(2);
                     }
                     break;
-                #endif
                     case CONTROLLER_RESTART_DISCOVERING:
                     {
                         std::string cached_mac_address = get_NewSourceMACAddress(),
@@ -1419,6 +1417,18 @@ void MiracastController::switch_launch_request_context(std::string& source_dev_i
         controller_msgq_data.state = CONTROLLER_SWITCH_LAUNCH_REQ_CTX;
         send_thundermsg_to_controller_thread(controller_msgq_data);
     }
+    MIRACASTLOG_TRACE("Exiting...");
+}
+
+void MiracastController::enable_discovery_via_pwrmgr(void)
+{
+    CONTROLLER_MSGQ_STRUCT controller_msgq_data = {0};
+    MIRACASTLOG_TRACE("Entering...");
+    MIRACASTLOG_INFO("MIRACAST_SERVICE_WFD_RESTART");
+    controller_msgq_data.state = CONTROLLER_STOP_DISCOVERING;
+    send_thundermsg_to_controller_thread(controller_msgq_data);
+    controller_msgq_data.state = CONTROLLER_START_DISCOVERING;
+    send_thundermsg_to_controller_thread(controller_msgq_data);
     MIRACASTLOG_TRACE("Exiting...");
 }
 

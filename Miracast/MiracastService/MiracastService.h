@@ -24,6 +24,7 @@
 
 #include "Module.h"
 #include <MiracastController.h>
+#include "libIARM.h"
 
 using std::vector;
 namespace WPEFramework
@@ -87,14 +88,17 @@ namespace WPEFramework
         private:
             bool m_isServiceInitialized;
             bool m_isServiceEnabled;
+            std::mutex m_DiscoveryStateMutex;
             guint m_FriendlyNameMonitorTimerID{0};
+            guint m_WiFiConnectedStateMonitorTimerID{0};
             eMIRA_SERVICE_STATES m_eService_state;
             std::string m_src_dev_ip;
             std::string m_src_dev_mac;
             std::string m_src_dev_name;
             std::string m_sink_dev_ip;
             WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> *m_SystemPluginObj = NULL;
-            uint32_t setEnable(const JsonObject &parameters, JsonObject &response);
+            WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> *m_WiFiPluginObj = NULL;
+            uint32_t setEnableWrapper(const JsonObject &parameters, JsonObject &response);
             uint32_t getEnable(const JsonObject &parameters, JsonObject &response);
             uint32_t setP2PBackendDiscovery(const JsonObject &parameters, JsonObject &response);
             uint32_t acceptClientConnection(const JsonObject &parameters, JsonObject &response);
@@ -103,13 +107,22 @@ namespace WPEFramework
             uint32_t setLogging(const JsonObject &parameters, JsonObject &response);
 
             std::string reasonDescription(eMIRACAST_SERVICE_ERR_CODE e);
-            void getSystemPlugin();
+            void getThunderPlugins();
             bool updateSystemFriendlyName();
             void onFriendlyNameUpdateHandler(const JsonObject &parameters);
             static gboolean monitor_friendly_name_timercallback(gpointer userdata);
+            void onWIFIStateChangedHandler(const JsonObject &parameters);
+            static gboolean monitor_wifi_connection_state_timercallback(gpointer userdata);
             bool envGetValue(const char *key, std::string &value);
             eMIRA_SERVICE_STATES getCurrentServiceState(void);
             void changeServiceState(eMIRA_SERVICE_STATES eService_state);
+            int32_t getCurrentPowerState(void);
+            void setPowerState(int32_t pwrState);
+            void setEnable(bool isEnabled);
+
+            const void InitializeIARM();
+            void DeinitializeIARM();
+            static void pwrMgrModeChangeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
             // We do not allow this plugin to be copied !!
             MiracastService(const MiracastService &) = delete;

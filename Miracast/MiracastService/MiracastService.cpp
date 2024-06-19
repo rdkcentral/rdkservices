@@ -30,6 +30,7 @@
 #include "UtilsJsonRpc.h"
 #include "UtilsIarm.h"
 #include <fstream>
+#include "pwrMgr.h"
 
 #define MIRACAST_DEVICE_PROPERTIES_FILE          "/etc/device.properties"
 
@@ -59,12 +60,33 @@ using namespace std;
 #define SERVER_DETAILS "127.0.0.1:9998"
 #define SYSTEM_CALLSIGN "org.rdk.System"
 #define SYSTEM_CALLSIGN_VER SYSTEM_CALLSIGN ".1"
+#define WIFI_CALLSIGN "org.rdk.Wifi"
+#define WIFI_CALLSIGN_VER WIFI_CALLSIGN ".1"
 #define SECURITY_TOKEN_LEN_MAX 1024
 #define THUNDER_RPC_TIMEOUT 2000
 
 #define EVT_ON_CLIENT_CONNECTION_REQUEST       "onClientConnectionRequest"
 #define EVT_ON_CLIENT_CONNECTION_ERROR         "onClientConnectionError"
 #define EVT_ON_LAUNCH_REQUEST                  "onLaunchRequest"
+
+enum DevicePowerStates{
+	DEVICE_POWER_STATE_OFF = 0,
+	DEVICE_POWER_STATE_ON = 1
+};
+
+enum DeviceWiFiStates{
+	DEVICE_WIFI_STATE_UNINSTALLED = 0,
+	DEVICE_WIFI_STATE_DISABLED = 1,
+	DEVICE_WIFI_STATE_DISCONNECTED = 2,
+	DEVICE_WIFI_STATE_PAIRING = 3,
+	DEVICE_WIFI_STATE_CONNECTING = 4,
+	DEVICE_WIFI_STATE_CONNECTED = 5,
+	DEVICE_WIFI_STATE_FAILED = 6
+};
+
+static int32_t m_powerState = DEVICE_POWER_STATE_OFF;
+static bool m_IsWakeupFromDeepSleep = false;
+static bool m_IsWiFiConnetingState = false;
 
 namespace WPEFramework
 {
@@ -97,7 +119,7 @@ namespace WPEFramework
 			MiracastService::_instance = this;
 			MIRACAST::logger_init("MiracastService");
 
-			Register(METHOD_MIRACAST_SET_ENABLE, &MiracastService::setEnable, this);
+			Register(METHOD_MIRACAST_SET_ENABLE, &MiracastService::setEnableWrapper, this);
 			Register(METHOD_MIRACAST_GET_ENABLE, &MiracastService::getEnable, this);
 			Register(METHOD_MIRACAST_SET_P2P_BACKEND_DISCOVERY, &MiracastService::setP2PBackendDiscovery, this);
 			Register(METHOD_MIRACAST_CLIENT_CONNECT, &MiracastService::acceptClientConnection, this);
@@ -120,10 +142,20 @@ namespace WPEFramework
 				delete m_SystemPluginObj;
 				m_SystemPluginObj = nullptr;
 			}
+			if (nullptr != m_WiFiPluginObj)
+			{
+				delete m_WiFiPluginObj;
+				m_WiFiPluginObj = nullptr;
+			}
 			if (m_FriendlyNameMonitorTimerID)
 			{
 				g_source_remove(m_FriendlyNameMonitorTimerID);
 				m_FriendlyNameMonitorTimerID = 0;
+			}
+			if (m_WiFiConnectedStateMonitorTimerID)
+			{
+				g_source_remove(m_WiFiConnectedStateMonitorTimerID);
+				m_WiFiConnectedStateMonitorTimerID = 0;
 			}
 			Unregister(METHOD_MIRACAST_SET_ENABLE);
 			Unregister(METHOD_MIRACAST_GET_ENABLE);
@@ -135,8 +167,88 @@ namespace WPEFramework
 			LOGINFO("Exiting..!!!");
 		}
 
+		const void MiracastService::InitializeIARM()
+		{
+			if (Utils::IARM::init())
+			{
+				IARM_Result_t res;
+				IARM_Bus_PWRMgr_GetPowerState_Param_t param;
+
+				IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED, pwrMgrModeChangeEventHandler) );
+				// get power state:
+				res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
+									IARM_BUS_PWRMGR_API_GetPowerState,
+									(void *)&param,
+									sizeof(param));
+				if(IARM_RESULT_SUCCESS == res )
+				{
+					int32_t powerState = (param.curState == IARM_BUS_PWRMGR_POWERSTATE_ON) ? DEVICE_POWER_STATE_ON : DEVICE_POWER_STATE_OFF ;
+					LOGINFO("MiracastService::Current state is IARM: (%d) powerState :%d \n",param.curState,powerState);
+					setPowerState(powerState);
+				}
+			}
+		}
+
+		void MiracastService::DeinitializeIARM()
+		{
+			if (Utils::IARM::isConnected())
+			{
+				IARM_Result_t res;
+				IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED, pwrMgrModeChangeEventHandler) );
+			}
+		}
+
+		void MiracastService::pwrMgrModeChangeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+		{
+			if (nullptr == _instance)
+			{
+				LOGERR("#### MCAST-TRIAGE-NOK-PWR Miracast Discovery not enabled yet ####");
+				return;
+			}
+
+			if (0 == strcmp(owner, IARM_BUS_PWRMGR_NAME))
+			{
+				if (IARM_BUS_PWRMGR_EVENT_MODECHANGED == eventId )
+				{
+					IARM_Bus_PWRMgr_EventData_t *param = (IARM_Bus_PWRMgr_EventData_t *)data;
+
+					LOGINFO("#### MCAST-TRIAGE-OK-PWR Event IARM_BUS_PWRMGR_EVENT_MODECHANGED: State Changed %d -- > %d\r",
+							param->data.state.curState, param->data.state.newState);
+					lock_guard<mutex> lck(_instance->m_DiscoveryStateMutex);
+					if(IARM_BUS_PWRMGR_POWERSTATE_ON == param->data.state.newState)
+					{
+						_instance->setPowerState(DEVICE_POWER_STATE_ON);
+						if ((m_IsWakeupFromDeepSleep) && (_instance->m_isServiceEnabled))
+						{
+							LOGINFO("#### MCAST-TRIAGE-OK-PWR Enable Miracast discovery from PwrMgr [%d]",_instance->m_isServiceEnabled);
+							_instance->m_miracast_ctrler_obj->enable_discovery_via_pwrmgr();
+						}
+						else
+						{
+							LOGINFO("#### MCAST-TRIAGE-OK-PWR Miracast discovery already Disabled [%d]. No need to enable it",_instance->m_isServiceEnabled);
+						}
+						m_IsWakeupFromDeepSleep = false;
+					}
+					else
+					{
+						_instance->setPowerState(DEVICE_POWER_STATE_OFF);
+						if(_instance->m_isServiceEnabled )
+						{
+							LOGINFO("#### MCAST-TRIAGE-OK-PWR Miracast Discovery Disabled ####");
+							_instance->setEnable(false);
+						}
+						else
+						{
+							LOGINFO("#### MCAST-TRIAGE-OK-PWR Miracast discovery already Disabled [%d]. No need to disable it",_instance->m_isServiceEnabled);
+						}
+						m_IsWakeupFromDeepSleep = true;
+					}
+				}
+			}
+		}
+
 		// Thunder plugins communication
-		void MiracastService::getSystemPlugin()
+		void MiracastService::getThunderPlugins()
 		{
 			MIRACASTLOG_INFO("Entering..!!!");
 
@@ -176,6 +288,16 @@ namespace WPEFramework
 				{
 					MIRACASTLOG_INFO("JSONRPC: %s: initialization ok", SYSTEM_CALLSIGN_VER);
 				}
+
+				m_WiFiPluginObj = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(_T(WIFI_CALLSIGN_VER), (_T("MiracastService")), false, query);
+				if (nullptr == m_WiFiPluginObj)
+				{
+					LOGERR("JSONRPC: %s: initialization failed", WIFI_CALLSIGN_VER);
+				}
+				else
+				{
+					MIRACASTLOG_INFO("JSONRPC: %s: initialization ok", WIFI_CALLSIGN_VER);
+				}
 			}
 			MIRACASTLOG_INFO("Exiting..!!!");
 		}
@@ -194,14 +316,24 @@ namespace WPEFramework
 			if (!m_isServiceInitialized)
 			{
 				MiracastError ret_code = MIRACAST_OK;
+
+				InitializeIARM();
 		
 				m_miracast_ctrler_obj = MiracastController::getInstance(ret_code, this,p2p_ctrl_iface);
 				if (nullptr != m_miracast_ctrler_obj)
 				{
 					m_CurrentService = service;
-					getSystemPlugin();
+					getThunderPlugins();
 					// subscribe for event
-					m_SystemPluginObj->Subscribe<JsonObject>(1000, "onFriendlyNameChanged", &MiracastService::onFriendlyNameUpdateHandler, this);
+					if (nullptr != m_SystemPluginObj)
+					{
+						m_SystemPluginObj->Subscribe<JsonObject>(1000, "onFriendlyNameChanged", &MiracastService::onFriendlyNameUpdateHandler, this);
+					}
+					if (nullptr != m_WiFiPluginObj)
+					{
+						m_WiFiPluginObj->Subscribe<JsonObject>(1000, "onWIFIStateChanged", &MiracastService::onWIFIStateChangedHandler, this);
+					}
+
 					if ( false == updateSystemFriendlyName())
 					{
 						m_FriendlyNameMonitorTimerID = g_timeout_add(2000, MiracastService::monitor_friendly_name_timercallback, this);
@@ -258,6 +390,7 @@ namespace WPEFramework
 			if (m_isServiceInitialized)
 			{
 				MiracastController::destroyInstance();
+				DeinitializeIARM();
 				m_CurrentService = nullptr;
 				m_miracast_ctrler_obj = nullptr;
 				m_isServiceInitialized = false;
@@ -278,7 +411,7 @@ namespace WPEFramework
 		 * @param: None.
 		 * @return Returns the success code of underlying method.
 		 */
-		uint32_t MiracastService::setEnable(const JsonObject &parameters, JsonObject &response)
+		uint32_t MiracastService::setEnableWrapper(const JsonObject &parameters, JsonObject &response)
 		{
 			bool success = false;
 			bool is_enabled = true;
@@ -288,15 +421,16 @@ namespace WPEFramework
 			{
 				getBoolParameter("enabled", is_enabled);
 
+				lock_guard<mutex> lck(m_DiscoveryStateMutex);
 				if (true == is_enabled)
 				{
 					if (!m_isServiceEnabled)
 					{
-						m_miracast_ctrler_obj->set_enable(is_enabled);
-						success = true;
+						setEnable(true);
 						m_isServiceEnabled = is_enabled;
 						response["message"] = "Successfully enabled the WFD Discovery";
 						changeServiceState(MIRACAST_SERVICE_STATE_DISCOVERABLE);
+						success = true;
 					}
 					else
 					{
@@ -311,11 +445,11 @@ namespace WPEFramework
 					}
 					else if (m_isServiceEnabled)
 					{
-						m_miracast_ctrler_obj->set_enable(is_enabled);
-						success = true;
+						setEnable(false);
 						m_isServiceEnabled = is_enabled;
 						response["message"] = "Successfully disabled the WFD Discovery";
 						changeServiceState(MIRACAST_SERVICE_STATE_IDLE);
+						success = true;
 					}
 					else
 					{
@@ -327,6 +461,7 @@ namespace WPEFramework
 			{
 				response["message"] = "Invalid parameter passed";
 			}
+
 			returnResponse(success);
 		}
 
@@ -341,6 +476,22 @@ namespace WPEFramework
 			MIRACASTLOG_INFO("Entering..!!!");
 			response["enabled"] = m_isServiceEnabled;
 			returnResponse(true);
+		}
+
+		/**
+		 * @brief This method used to Enable/Disable the Miracast/WFD Discovery.
+		 *
+		 * @param: None.
+		 * @return Returns the success code of underlying method.
+		 */
+		void MiracastService::setEnable(bool isEnabled)
+		{
+			MIRACASTLOG_INFO("Entering..!!!");
+			if ( nullptr != m_miracast_ctrler_obj )
+			{
+				m_miracast_ctrler_obj->set_enable(isEnabled);
+			}
+			MIRACASTLOG_INFO("Exiting..!!!");
 		}
 
 		/**
@@ -951,7 +1102,7 @@ namespace WPEFramework
 			bool return_value = false;
 			MIRACASTLOG_INFO("Entering..!!!");
 
-			getSystemPlugin();
+			getThunderPlugins();
 
 			if (nullptr == m_SystemPluginObj)
 			{
@@ -1018,6 +1169,82 @@ namespace WPEFramework
 			return timer_retry_state;
 		}
 
+		void MiracastService::onWIFIStateChangedHandler(const JsonObject &parameters)
+		{
+			string message;
+			uint32_t value;
+			parameters.ToString(message);
+			MIRACASTLOG_INFO("[WiFi State Changed Event], [%s]", message.c_str());
+
+			if (parameters.HasLabel("state"))
+			{
+				value = parameters["state"].Number();
+				MIRACASTLOG_INFO("Miracast WiFi State=%u", value);
+
+				lock_guard<mutex> lck(m_DiscoveryStateMutex);
+				if (m_isServiceEnabled)
+				{
+					switch(value)
+					{
+						case DEVICE_WIFI_STATE_CONNECTING:
+						{
+							MIRACASTLOG_INFO("DEVICE_WIFI_STATE [CONNECTING]");
+							setEnable(false);
+							if (m_WiFiConnectedStateMonitorTimerID)
+							{
+								g_source_remove(m_WiFiConnectedStateMonitorTimerID);
+								m_WiFiConnectedStateMonitorTimerID = 0;
+								MIRACASTLOG_INFO("Removing WiFi Connection Status Monitor Timer[%u]",m_WiFiConnectedStateMonitorTimerID);
+							}
+							m_IsWiFiConnetingState = true;
+							m_WiFiConnectedStateMonitorTimerID = g_timeout_add(30000, MiracastService::monitor_wifi_connection_state_timercallback, this);
+							MIRACASTLOG_INFO("Timer created to Monitor WiFi Connection Status [%u]",m_WiFiConnectedStateMonitorTimerID);
+						}
+						break;
+						case DEVICE_WIFI_STATE_CONNECTED:
+						case DEVICE_WIFI_STATE_FAILED:
+						{
+							MIRACASTLOG_INFO("DEVICE_WIFI_STATE [%s]",( DEVICE_WIFI_STATE_CONNECTED == value ) ? "CONNECTED" : "FAILED");
+							if (m_IsWiFiConnetingState)
+							{
+								setEnable(true);
+								m_IsWiFiConnetingState = false;
+							}
+
+							if (m_WiFiConnectedStateMonitorTimerID)
+							{
+								g_source_remove(m_WiFiConnectedStateMonitorTimerID);
+								m_WiFiConnectedStateMonitorTimerID = 0;
+								MIRACASTLOG_INFO("Removing WiFi Connection Status Monitor Timer[%u]",m_WiFiConnectedStateMonitorTimerID);
+							}
+						}
+						break;
+						default:
+						{
+							/* NOP */
+						}
+						break;
+					}
+				}
+			}
+		}
+
+		gboolean MiracastService::monitor_wifi_connection_state_timercallback(gpointer userdata)
+		{
+			MIRACASTLOG_TRACE("Entering..!!!");
+			MiracastService *self = (MiracastService *)userdata;
+			MIRACASTLOG_INFO("TimerCallback Triggered for Monitor WiFi Connection Status...");
+			{lock_guard<mutex> lck(self->m_DiscoveryStateMutex);
+				if (m_IsWiFiConnetingState)
+				{
+					self->setEnable(true);
+					m_IsWiFiConnetingState = false;
+				}
+			}
+			MIRACASTLOG_TRACE("Exiting..!!!");
+			return G_SOURCE_REMOVE;
+		}
+
 		void MiracastService::onMiracastServiceLaunchRequest(string src_dev_ip, string src_dev_mac, string src_dev_name, string sink_dev_ip, bool is_connect_req_reported )
 		{
 			MIRACASTLOG_INFO("Entering[%u]..!!!",is_connect_req_reported);
@@ -1067,17 +1294,33 @@ namespace WPEFramework
 				changeServiceState(MIRACAST_SERVICE_STATE_PLAYER_LAUNCHED);
 			}
 		}
+
 		eMIRA_SERVICE_STATES MiracastService::getCurrentServiceState(void)
 		{
 			MIRACASTLOG_INFO("current state [%#08X]",m_eService_state);
 			return m_eService_state;
 		}
+
 		void MiracastService::changeServiceState(eMIRA_SERVICE_STATES eService_state)
 		{
 			eMIRA_SERVICE_STATES old_state = m_eService_state,
 								 new_state = eService_state;
 			m_eService_state = eService_state;
 			MIRACASTLOG_INFO("changing state [%#08X] -> [%#08X]",old_state,new_state);
+		}
+
+		int32_t MiracastService::getCurrentPowerState(void)
+		{
+			MIRACASTLOG_INFO("current power state [%#08X]",m_powerState);
+			return m_powerState;
+		}
+
+		void MiracastService::setPowerState(int32_t pwrState)
+		{
+			int32_t old_pwr_state = m_powerState,
+					new_pwr_state = pwrState;
+			m_powerState = pwrState;
+			MIRACASTLOG_INFO("changing power state [%#08X] -> [%#08X]",old_pwr_state,new_pwr_state);
 		}
 	} // namespace Plugin
 } // namespace WPEFramework

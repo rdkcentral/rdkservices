@@ -458,10 +458,13 @@ MiracastError MiracastP2P::discover_devices(void)
 {
     MiracastError ret = MIRACAST_FAIL;
     std::string command, retBuffer;
+    std::string opt_flag_buffer = MiracastCommon::parse_opt_flag("/opt/miracast_custom_p2p_scan");
     MIRACASTLOG_TRACE("Entering..");
 
     /*Start Passive Scanning*/
-    std::string opt_flag_buffer = MiracastCommon::parse_opt_flag("/opt/miracast_custom_p2p_scan");
+    command = "P2P_EXT_LISTEN 0 0";
+    ret = executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);
+
     if (!opt_flag_buffer.empty())
     {
 	    command = "P2P_EXT_LISTEN " + opt_flag_buffer;
