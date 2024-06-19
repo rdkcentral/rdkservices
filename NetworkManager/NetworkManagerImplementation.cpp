@@ -54,7 +54,6 @@ namespace WPEFramework
 
         NetworkManagerImplementation::~NetworkManagerImplementation()
         {
-            connectivityMonitor.stopContinuousConnectivityMonitoring();
             LOG_ENTRY_FUNCTION();
         }
 
@@ -210,7 +209,7 @@ namespace WPEFramework
             else if(0 == strcasecmp("IPv6", ipversion.c_str()))
                 tmpVersion = NSM_IPRESOLVE_V6;
 
-            isconnected = connectivityMonitor.getInternetConnectionState(tmpVersion);
+            isconnected = connectivityMonitor.getInternetState(tmpVersion);
             if (FULLY_CONNECTED == isconnected)
                 result = INTERNET_FULLY_CONNECTED;
             else if (CAPTIVE_PORTAL == isconnected)
@@ -235,7 +234,7 @@ namespace WPEFramework
         uint32_t NetworkManagerImplementation::StartConnectivityMonitoring(const uint32_t interval/* @in */)
         {
             LOG_ENTRY_FUNCTION();
-            if (connectivityMonitor.doContinuousConnectivityMonitoring(interval))
+            if (connectivityMonitor.startContinuousConnectivityMonitor(interval))
                 return Core::ERROR_NONE;
             else
                 return Core::ERROR_GENERAL;
@@ -245,7 +244,7 @@ namespace WPEFramework
         uint32_t NetworkManagerImplementation::StopConnectivityMonitoring(void) const
         {
             LOG_ENTRY_FUNCTION();
-            if (connectivityMonitor.stopContinuousConnectivityMonitoring())
+            if (connectivityMonitor.stopContinuousConnectivityMonitor())
                 return Core::ERROR_NONE;
             else
                 return Core::ERROR_GENERAL;
