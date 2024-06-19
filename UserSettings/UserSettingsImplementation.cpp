@@ -88,26 +88,6 @@ UserSettingsImplementation::UserSettingsImplementation()
         }
 
         registerEventHandlers();
-
-#ifdef HAS_RBUS
-        _rbusHandleStatus = rbus_open(&_rbusHandle, RBUS_COMPONENT_NAME);
-
-        if (RBUS_ERROR_SUCCESS == _rbusHandleStatus)
-        {
-            rbusDataElement_t dataElements[1] = {
-                {(char *)RBUS_PRIVACY_MODE_EVENT_NAME, RBUS_ELEMENT_TYPE_EVENT, {NULL, NULL, NULL, NULL, NULL, NULL}},
-            };
-
-            int rc = rbus_regDataElements(_rbusHandle, 1, dataElements);
-            if (rc != RBUS_ERROR_SUCCESS)
-            {
-                LOGERR("rbus_regDataElements failed: %d", rc);
-
-                rbus_close(_rbusHandle);
-                _rbusHandleStatus = RBUS_ERROR_NOT_INITIALIZED;
-            }
-        }
-#endif
     }
 }
 
@@ -629,38 +609,26 @@ uint32_t UserSettingsImplementation::SetPrivacyMode(const string& privacyMode)
 #ifdef HAS_RBUS
             if (Core::ERROR_NONE == status)
             {
+                if (RBUS_ERROR_SUCCESS != _rbusHandleStatus)
+                {
+                    _rbusHandleStatus = rbus_open(&_rbusHandle, RBUS_COMPONENT_NAME);
+                }
+
                 if (RBUS_ERROR_SUCCESS == _rbusHandleStatus)
                 {
-                    rbusEvent_t event = {0};
-                    rbusObject_t data;
                     rbusValue_t value;
-                    rbusValue_t value2;
+                    rbusSetOptions_t opts = {true, 0};
 
                     rbusValue_Init(&value);
-                    rbusValue_SetString(value, oldPrivacyMode.c_str());
-
-                    rbusValue_Init(&value2);
-                    rbusValue_SetString(value2, privacyMode.c_str());
-
-                    rbusObject_Init(&data, NULL);
-                    rbusObject_SetValue(data, "oldPrivacyMode", value);
-                    rbusObject_SetValue(data, "privacyMode", value2);
-
-                    event.name = RBUS_PRIVACY_MODE_EVENT_NAME;
-                    event.data = data;
-                    event.type = RBUS_EVENT_GENERAL;
-
-                    int rc = rbusEvent_Publish(_rbusHandle, &event);
-                    if (RBUS_ERROR_SUCCESS != rc)
+                    rbusValue_SetString(value, privacyMode.c_str());
+                    int rc = rbus_set(_rbusHandle, RBUS_PRIVACY_MODE_EVENT_NAME, value, &opts);
+                    if (rc != RBUS_ERROR_SUCCESS)
                     {
                         std::stringstream str;
-                        str << "Failed to publish " << RBUS_PRIVACY_MODE_EVENT_NAME << ": " << rc;
+                        str << "Failed to set property " << RBUS_PRIVACY_MODE_EVENT_NAME << ": " << rc;
                         LOGERR("%s", str.str().c_str());
                     }
-
                     rbusValue_Release(value);
-                    rbusValue_Release(value2);
-                    rbusObject_Release(data);
                 }
                 else
                 {
