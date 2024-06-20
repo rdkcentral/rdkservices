@@ -149,11 +149,8 @@ namespace WPEFramework
             /* set our custom set of headers */
             curl_easy_setopt(curl_easy_handle, CURLOPT_HTTPHEADER, chunk);
             curl_easy_setopt(curl_easy_handle, CURLOPT_USERAGENT, "RDKCaptiveCheck/1.0");
-            // curl_easy_setopt(curl_easy_handle, CURLOPT_CONNECT_ONLY, 1L);
-            if(headReq) {
-                NMLOG_TRACE("curlopt head request");
-            }
-            else {
+            curl_easy_setopt(curl_easy_handle, CURLOPT_CONNECT_ONLY, 1L);
+            if(!headReq) {
                // NMLOG_TRACE("curlopt get request");
                 /* HTTPGET request added insted of HTTPHEAD request fix for DELIA-61526 */
                 curl_easy_setopt(curl_easy_handle, CURLOPT_HTTPGET, 1L);
@@ -162,8 +159,12 @@ namespace WPEFramework
             curl_easy_setopt(curl_easy_handle, CURLOPT_TIMEOUT_MS, deadline - current_time());
             if ((ipversion == CURL_IPRESOLVE_V4) || (ipversion == CURL_IPRESOLVE_V6))
             {
-                NMLOG_INFO("curlopt ipversion = %s", ipversion == CURL_IPRESOLVE_V4?"ipv4 only":"ipv6 only");
+                NMLOG_INFO("curlopt ipversion = %s reqtyp = %s", ipversion == CURL_IPRESOLVE_V4?"ipv4 only":"ipv6 only", headReq? "HEAD":"GET");
                 curl_easy_setopt(curl_easy_handle, CURLOPT_IPRESOLVE, ipversion);
+            }
+            else
+            {
+                NMLOG_INFO("curlopt ipversion = whatever reqtyp = %s", headReq? "HEAD":"GET");
             }
             if(curlVerboseEnabled())
                 curl_easy_setopt(curl_easy_handle, CURLOPT_VERBOSE, 1L);
@@ -516,7 +517,7 @@ namespace WPEFramework
         int TempInterval = continuousMonitorTimeout.load();
         std::mutex connMutex;
         nsm_ipversion ipResolveTyp = NSM_IPRESOLVE_WHATEVER;
-        int notifyPreRetry = 0;
+        int notifyPreRetry = 1;
         nsm_internetState currentInternetState = nsm_internetState::UNKNOWN;
 
         do
@@ -528,6 +529,7 @@ namespace WPEFramework
                 gIpv6InternetState = UNKNOWN;
                 std::unique_lock<std::mutex> lock(connMutex);
                 cvContinuousMonitor.wait_for(lock, std::chrono::seconds(continuousMonitorTimeout.load()));
+                ipResolveTyp = NSM_IPRESOLVE_WHATEVER; /* some interface change happense*/
                 continue;
             }
             else if (ipResolveTyp == NSM_IPRESOLVE_WHATEVER)
@@ -588,12 +590,12 @@ namespace WPEFramework
                 }
                 else
                 {
-                    notifyPreRetry = 0;
+                    notifyPreRetry = 1;
                     TempInterval = continuousMonitorTimeout.load();
                 }
             }
             else {
-                notifyPreRetry = 0;
+                notifyPreRetry = 1;
                 TempInterval = continuousMonitorTimeout.load();
             }
 
@@ -604,7 +606,7 @@ namespace WPEFramework
                 notifyInternetStatusChangedEvent(currentInternetState);
             }
 
-            NMLOG_INFO("icm %d, ccm %d", doConnectivityMonitor.load(), doContinuousMonitor.load());
+            //NMLOG_INFO("icm %d, ccm %d", doConnectivityMonitor.load(), doContinuousMonitor.load());
             if(!doContinuousMonitor)
                 break;
 
@@ -612,8 +614,6 @@ namespace WPEFramework
             std::unique_lock<std::mutex> lock(connMutex);
             if (cvContinuousMonitor.wait_for(lock, std::chrono::seconds(TempInterval)) != std::cv_status::timeout)
                 NMLOG_INFO("continous connectivity monitor recieved signal. skping %d sec interval", TempInterval);
-            else
-                NMLOG_INFO("continous connectivity monitor %d sec interval expired", TempInterval);
 
         } while(doContinuousMonitor);
 
@@ -627,7 +627,7 @@ namespace WPEFramework
         int TempInterval = NMCONNECTIVITY_MONITOR_MIN_INTERVAL;
         std::mutex connMutex;
         bool notifyNow = true;
-        int notifyPreRetry = 0;
+        int notifyPreRetry = 1;
         nsm_internetState currentInternetState = nsm_internetState::UNKNOWN;
         nsm_internetState tempInternetState = nsm_internetState::UNKNOWN;
 
@@ -676,26 +676,31 @@ namespace WPEFramework
                 {
                     if(currentInternetState == FULLY_CONNECTED)
                     {
-                        doConnectivityMonitor = 0;  // self exit
+                        doConnectivityMonitor = false;  // self exit
                         notifyNow = true; // post current state when retry complete
                     }
                     else if(ginterfaceStatus) // interface is active and still no internet, continue check every 30 sec
                     {
                         TempInterval = NMCONNECTIVITY_CONN_MONITOR_RETRY_INTERVAL;
+                        /* notify if retry completed and state stil no internet state */
+                        if(notifyPreRetry == NMCONNECTIVITY_CONN_MONITOR_RETRY_COUNT)
+                        {
+                            notifyPreRetry++;
+                            notifyNow = true;
+                        }
                     }
                     else // no interface connected
                     {
-                        doConnectivityMonitor = 0;
+                        doConnectivityMonitor = false;
                         notifyNow = true;
                     }
                 }
             }
 
-            NMLOG_INFO("icm %d, ccm %d", doConnectivityMonitor.load(), doContinuousMonitor.load());
             if(gInternetState != currentInternetState || notifyNow)
             {
                 notifyNow = false;
-                NMLOG_INFO("Internet state %s", getInternetStateString(currentInternetState));
+                NMLOG_INFO("notify internet state %s", getInternetStateString(currentInternetState));
                 notifyInternetStatusChangedEvent(currentInternetState);
             }
 
@@ -705,11 +710,9 @@ namespace WPEFramework
             std::unique_lock<std::mutex> lock(connMutex);
             if (cvConnectivityMonitor.wait_for(lock, std::chrono::seconds(TempInterval)) != std::cv_status::timeout) {
                 NMLOG_INFO("connectivity monitor recieved signal. skping %d sec interval", TempInterval);
-                notifyPreRetry = 0;
+                notifyPreRetry = 1;
                 notifyNow = true;  // new signal came should notify in next check
             }
-            else
-                NMLOG_INFO("connectivity monitor %d sec interval expired", TempInterval);
             
         } while(doConnectivityMonitor);
 
