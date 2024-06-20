@@ -112,6 +112,8 @@ set(PLUGIN_SYSTEMSERVICES ON)
 set(PLUGIN_WAREHOUSE ON)
 set(PLUGIN_TELEMETRY ON)
 
+# We are not compiling TEXTTOSPEECH, NETWORK, HDCPPROFILE plugins for Thunder R4 as
+# this work is not in this scope. In future we will enable these plugins for Thunder R4.
 if (USE_THUNDER_R4)
 set(PLUGIN_HDCPPROFILE OFF)
 set(PLUGIN_NETWORK OFF)

@@ -29,6 +29,8 @@ add_library(${MODULE_NAME} SHARED
     tests/UsbAccess_L2Test.cpp
     tests/Telemetry_L2Test.cpp)
 
+# We are not running VerifyContracts,Warehouse_L2Test tests for Thunder R4 as
+# this work is not in this scope. In future we will enable these tests for Thunder R4.
 if(NOT USE_THUNDER_R4)
     add_library(${MODULE_NAME} SHARED tests/VerifyContracts.cpp)
     add_library(${MODULE_NAME} SHARED tests/Warehouse_L2Test.cpp)
