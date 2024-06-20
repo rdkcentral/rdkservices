@@ -27,9 +27,12 @@ add_library(${MODULE_NAME} SHARED
     L2TestsMock.cpp
     tests/SystemService_L2Test.cpp
     tests/UsbAccess_L2Test.cpp
-    tests/Telemetry_L2Test.cpp
-    tests/Warehouse_L2Test.cpp
-    tests/VerifyContracts.cpp)
+    tests/Telemetry_L2Test.cpp)
+
+if(NOT USE_THUNDER_R4)
+    add_library(${MODULE_NAME} SHARED tests/VerifyContracts.cpp)
+    add_library(${MODULE_NAME} SHARED tests/Warehouse_L2Test.cpp)
+endif(USE_THUNDER_R4)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
