@@ -13,7 +13,7 @@ env:
 
 jobs:
   L2-tests-R4-4-1:
-    name: Build and run L2 tests
+    name: Run L2 with Thunder R4.4.1 
     runs-on: ubuntu-latest
     strategy:
       matrix:
