@@ -4,9 +4,11 @@ on:
   push:
     paths:
       - PersistentStore/**
+      - .github/workflows/*PersistentStore*.yml
   pull_request:
     paths:
       - PersistentStore/**
+      - .github/workflows/*PersistentStore*.yml
 
 jobs:
   build:

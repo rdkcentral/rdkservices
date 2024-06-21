@@ -3,10 +3,12 @@ name: L2-PersistentStore-grpc
 on:
   push:
     paths:
-      - PersistentStore/grpc/**
+      - PersistentStore/**
+      - .github/workflows/*PersistentStore*.yml
   pull_request:
     paths:
-      - PersistentStore/grpc/**
+      - PersistentStore/**
+      - .github/workflows/*PersistentStore*.yml
 
 jobs:
   build:
