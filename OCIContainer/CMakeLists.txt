@@ -2,6 +2,7 @@ set(PLUGIN_NAME OCIContainer)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 set(PLUGIN_OCICONTAINER_STARTUPORDER "" CACHE STRING "To configure startup order of OCIContainer plugin")
+option(PLUGIN_HIBERNATESUPPORT "Include hibernate support in the build." OFF)
 
 find_package(PkgConfig)
 find_package(${NAMESPACE}Plugins REQUIRED)
@@ -45,6 +46,9 @@ find_package_handle_standard_args(
     SYSTEMD_LIBRARIES SYSTEMD_INCLUDE_DIRS
 )
 
+if(PLUGIN_HIBERNATESUPPORT)
+        target_compile_definitions(${MODULE_NAME} PRIVATE HIBERNATE_SUPPORT_ENABLED=1)
+endif()
 
 target_include_directories(${MODULE_NAME}
         PRIVATE
