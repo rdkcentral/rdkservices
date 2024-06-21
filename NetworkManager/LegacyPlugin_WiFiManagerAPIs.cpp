@@ -18,7 +18,7 @@
 **/
 #include "LegacyPlugin_WiFiManagerAPIs.h"
 #include "NetworkManagerLogger.h"
-
+#include "NetworkManager.h"
 
 using namespace std;
 using namespace WPEFramework::Plugin;
@@ -529,17 +529,59 @@ namespace WPEFramework
                 m_timer.stop();
         }
 
+         uint32_t WiFiManager::getErrorCodeMapping(const uint32_t value)
+         {
+             switch (value)
+             {
+                 case Exchange::INetworkManager::WIFI_STATE_SSID_CHANGED:
+                     return WIFI_SSID_CHANGED;
+                 case Exchange::INetworkManager::WIFI_STATE_CONNECTION_LOST:
+                     return WIFI_CONNECTION_LOST;
+                 case Exchange::INetworkManager::WIFI_STATE_CONNECTION_FAILED:
+                     return WIFI_CONNECTION_FAILED;
+                 case Exchange::INetworkManager::WIFI_STATE_CONNECTION_INTERRUPTED:
+                     return WIFI_CONNECTION_INTERRUPTED;
+                 case Exchange::INetworkManager::WIFI_STATE_INVALID_CREDENTIALS:
+                     return WIFI_INVALID_CREDENTIALS;
+                 case Exchange::INetworkManager::WIFI_STATE_SSID_NOT_FOUND:
+                     return WIFI_NO_SSID;
+                 case Exchange::INetworkManager::WIFI_STATE_ERROR:
+                     return WIFI_UNKNOWN;
+                 case Exchange::INetworkManager::WIFI_STATE_AUTHENTICATION_FAILED:
+                     return WIFI_AUTH_FAILED;
+             }
+             return WIFI_CONNECTION_FAILED;
+        }
+
         /** Event Handling and Publishing */
         void WiFiManager::onWiFiStateChange(const JsonObject& parameters)
         {
             LOGINFOMETHOD();
             JsonObject legacyResult;
+            JsonObject legacyErrorResult;
+            uint32_t state = parameters["state"].Number();
+
             legacyResult["state"] = parameters["state"];
             legacyResult["isLNF"] = false;
 
-            if(_gWiFiInstance)
-                _gWiFiInstance->Notify("onWIFIStateChanged", legacyResult);
+            NMLOG_INFO("onWiFiStateChange state value: %d", state);
 
+            if(_gWiFiInstance)
+            {
+                if((state== Exchange::INetworkManager::WIFI_STATE_SSID_CHANGED) || (state == Exchange::INetworkManager::WIFI_STATE_CONNECTION_LOST) || (state == Exchange::INetworkManager::WIFI_STATE_CONNECTION_FAILED) || (state == Exchange::INetworkManager::WIFI_STATE_CONNECTION_INTERRUPTED) || (state == Exchange::INetworkManager::WIFI_STATE_INVALID_CREDENTIALS) || (state == Exchange::INetworkManager::WIFI_STATE_SSID_NOT_FOUND) || (state == Exchange::INetworkManager::WIFI_STATE_ERROR) || (state == Exchange::INetworkManager::WIFI_STATE_AUTHENTICATION_FAILED))
+                {
+                    uint32_t errorCode = getErrorCodeMapping(state);
+                    legacyErrorResult["code"] = errorCode;
+                    NMLOG_INFO("Mapped error code: %d", errorCode);
+                    NMLOG_INFO("state value before OnError event: %d",  legacyErrorResult["code"].Number());
+
+                    _gWiFiInstance->Notify("onError", legacyErrorResult);
+                }
+                else
+                {
+                    _gWiFiInstance->Notify("onWIFIStateChanged", legacyResult);
+                }
+            }
             return;
         }
 
