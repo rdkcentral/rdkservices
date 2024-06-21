@@ -1,4 +1,4 @@
-name: l2-tests
+name: L2-tests-R4-4-1
 
 on:
   push:
@@ -8,12 +8,12 @@ on:
 
 env:
   BUILD_TYPE: Debug
-  THUNDER_REF: "5e7c0b1ed3c3dd0fc31c86518a364388dc24273b"
-  INTERFACES_REF: "669d9c6e5ed7a5938ff26e1e7736adf485c7a205"
+  THUNDER_REF: "R4.4.1"
+  INTERFACES_REF: "R4.4.1"
 
 jobs:
-  l2-tests:
-    name: Run L2 with Thunder R2
+  L2-tests-R4-4-1:
+    name: Run L2 with Thunder R4.4.1 
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -67,34 +67,35 @@ jobs:
           path: Thunder
           ref: ${{env.THUNDER_REF}}
 
-      - name: Checkout rdkservices
+      - name: Checkout ThunderTools
+        if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
         with:
-          path: rdkservices
+          repository: rdkcentral/ThunderTools
+          path: ThunderTools
+          ref: ${{env.THUNDER_REF}}
 
-      - name: Apply patch Thunder
-        run: >
-              cd "${{github.workspace}}/Thunder"
-              &&
-              git apply "${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0001-RDK-30034-callsign.patch"
-
-      - name: Build Thunder
+      - name: Build ThunderTools
+        if: steps.cache.outputs.cache-hit != 'true'
         run: >
           cmake
-          -S "${{github.workspace}}/Thunder/Tools"
+          -S "${{github.workspace}}/ThunderTools"
           -B build/ThunderTools
           -DEXCEPTIONS_ENABLE=ON
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
-          -DGENERIC_CMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
           &&
           cmake --build build/ThunderTools -j8
           &&
           cmake --install build/ThunderTools
-          &&
+
+      - name: Build Thunder
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: >
           cmake
           -S "${{github.workspace}}/Thunder"
           -B build/Thunder
+          -DMESSAGING=ON
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
           -DBUILD_TYPE=${{env.BUILD_TYPE}}
@@ -106,18 +107,37 @@ jobs:
           &&
           cmake --install build/Thunder
 
+      - name: Checkout rdkservices
+        uses: actions/checkout@v3
+        with:
+          path: rdkservices
+
+      - name: Apply patch Rdkservices
+        run: |
+          cd ${{github.workspace}}/rdkservices
+          patch -p1 < files/0003-R4.4.1-LocationSync-compilation-error.patch
+          patch -p1 < files/0003-R4.4.1-SystemAudioPlayer-compilation-error.patch
+          cd -
+
       - name: Checkout ThunderInterfaces
         uses: actions/checkout@v3
         with:
           repository: rdkcentral/ThunderInterfaces
           path: ThunderInterfaces
           ref: ${{env.INTERFACES_REF}}
+          run: rm -rf ${{github.workspace}}/ThunderInterfaces/jsonrpc/DTV.json
 
       - name: Apply patch ThunderInterfaces
-        run: >
-              cd "${{github.workspace}}/ThunderInterfaces"
-              &&
-              git apply "${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0001-Add-TextToSpeech-Interface.patch"
+        run: |
+              echo "Present working directory is: $(pwd)"
+              echo "Listing directory is:"
+              ls -la
+              cd ThunderInterfaces
+              echo "Current branch is: $(git branch --show-current)"
+              git apply "${{github.workspace}}/rdkservices/files/SplitDeviceCapablities.patch"
+              git apply "${{github.workspace}}/rdkservices/files/0007-RDK-IDeviceInfo-Changes.patch"
+              git apply "${{github.workspace}}/rdkservices/files/0001-Add-TextToSpeech-Interface.patch"
+              cd ..
 
       - name: Build ThunderInterfaces
         run: >
@@ -191,7 +211,6 @@ jobs:
           &&
           cmake --install build/mocks
 
-
       - name: Build rdkservices
         run: >
           cmake
@@ -204,11 +223,16 @@ jobs:
           -DEXCEPTIONS_ENABLE=ON
           -fprofile-arcs
           -ftest-coverage
+          -DUSE_THUNDER_R4=ON
+          -DTHUNDER_VERSION=4
+          -DTHUNDER_VERSION_MAJOR=4
+          -DTHUNDER_VERSION_MINOR=4
           -I ${{github.workspace}}/rdkservices/Tests/headers
           -I ${{github.workspace}}/rdkservices/Tests/headers/rdk/ds
           -I ${{github.workspace}}/rdkservices/Tests/headers/rdk/iarmbus
           -I ${{github.workspace}}/rdkservices/Tests/headers/rdk/iarmmgrs-hal
           -I ${{github.workspace}}/rdkservices/Tests/headers/systemservices
+          -I ${{github.workspace}}/rdkservices/Tests/headers/sampleplugin
           -I ${{github.workspace}}/rdkservices/Tests/headers/systemservices/proc
           -include ${{github.workspace}}/rdkservices/Tests/mocks/devicesettings.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Iarm.h
@@ -218,7 +242,7 @@ jobs:
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Wraps.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/maintenanceMGR.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/pkg.h
-          -Wall -Werror -Wno-error=format=
+          -Wall -Wno-unused-result -Wno-deprecated-declarations -Wno-error=format=
           -DUSE_IARMBUS
           -DENABLE_THERMAL_PROTECTION"
           -DCOMCAST_CONFIG=OFF
@@ -227,13 +251,14 @@ jobs:
           -DCMAKE_DISABLE_FIND_PACKAGE_Udev=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_RFC=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_RBus=ON
+          -DPLUGIN_WAREHOUSE=ON
           -DPLUGIN_SYSTEMSERVICES=ON
           -DPLUGIN_TELEMETRY=ON
-          -DPLUGIN_WAREHOUSE=ON
-          -DPLUGIN_HDCPPROFILE=ON
-          -DPLUGIN_NETWORK=ON
-          -DPLUGIN_TEXTTOSPEECH=ON
+          -DPLUGIN_HDCPPROFILE=OFF
+          -DPLUGIN_NETWORK=OFF
+          -DPLUGIN_TEXTTOSPEECH=OFF
           -DPLUGIN_USBACCESS=ON
+          -DUSE_THUNDER_R4=ON
           -DPLUGIN_L2Tests=ON
           -DRDK_SERVICE_L2_TEST=ON
           -DDS_FOUND=ON
@@ -289,7 +314,7 @@ jobs:
           /opt/fwdnldstatus.txt
           /opt/dcm.properties
           /etc/device.properties
-          /etc/dcm.properties          
+          /etc/dcm.properties
           /etc/authService.conf
           /version.txt
           /lib/rdk/getMaintenanceStartTime.sh

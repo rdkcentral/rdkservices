@@ -26,6 +26,7 @@ using namespace WPEFramework::Plugin;
 #define API_VERSION_NUMBER_MINOR 0
 #define API_VERSION_NUMBER_PATCH 0
 #define NETWORK_MANAGER_CALLSIGN    "org.rdk.NetworkManager.1"
+#define SUBSCRIPTION_TIMEOUT_IN_MILLISECONDS 5000
 
 #define LOGINFOMETHOD() { string json; parameters.ToString(json); NMLOG_TRACE("Legacy params=%s", json.c_str() ); }
 #define LOGTRACEMETHODFIN() { string json; response.ToString(json); NMLOG_TRACE("Legacy response=%s", json.c_str() ); }
@@ -65,6 +66,10 @@ namespace WPEFramework
         Network::Network()
         : PluginHost::JSONRPC()
         , m_service(nullptr)
+        , m_subsIfaceStateChange(false)
+        , m_subsActIfaceChange(false)
+        , m_subsIPAddrChange(false)
+        , m_subsInternetChange(false)
        {
            _gNWInstance = this;
            m_defaultInterface = "wlan0";
@@ -117,13 +122,13 @@ namespace WPEFramework
                             reinterpret_cast<const uint8_t*>(payload.c_str()),
                             token)
                         == Core::ERROR_NONE) {
-                    std::cout << "DisplaySettings got security token" << std::endl;
+                    NMLOG_TRACE("Network plugin got security token");
                 } else {
-                    std::cout << "DisplaySettings failed to get security token" << std::endl;
+                    NMLOG_WARNING("Network plugin failed to get security token");
                 }
                 security->Release();
             } else {
-                std::cout << "No security agent" << std::endl;
+                NMLOG_INFO("Network plugin: No security agent");
             }
 
             string query = "token=" + token;
@@ -148,7 +153,7 @@ namespace WPEFramework
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
             m_networkmanager = make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> >(_T(NETWORK_MANAGER_CALLSIGN), _T(NETWORK_MANAGER_CALLSIGN), false, query);
 
-            m_timer.start(5000);
+            m_timer.start(SUBSCRIPTION_TIMEOUT_IN_MILLISECONDS);
             return string();
         }
 
@@ -298,13 +303,14 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
         {
             LOGINFOMETHOD();
             uint32_t rc = Core::ERROR_GENERAL;
-            string endPoint = parameters["endPoint"].String();
-            uint32_t port = parameters["port"].Number();
-            uint32_t bindTimeout = parameters["bindTimeout"].Number();
-            uint32_t cacheTimeout = parameters["cacheTimeout"].Number();
+            JsonObject tmpParameters;
+            tmpParameters["endPoint"] = parameters["server"];
+            tmpParameters["port"] = parameters["port"];
+            tmpParameters["bindTimeout"] = parameters["timeout"];
+            tmpParameters["cacheTimeout"] = parameters["cache_timeout"];
 
             if (m_networkmanager)
-                rc =  m_networkmanager->Invoke<JsonObject, JsonObject>(5000, _T("SetStunEndpoint"), parameters, response);
+                rc =  m_networkmanager->Invoke<JsonObject, JsonObject>(5000, _T("SetStunEndpoint"), tmpParameters, response);
             else
                 rc = Core::ERROR_UNAVAILABLE;
 
@@ -578,7 +584,7 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             tmpParameters["guid"] = parameters["guid"];
             
             if (m_networkmanager)
-                rc = m_networkmanager->Invoke<JsonObject, JsonObject>(5000, _T("Ping"), tmpParameters, response);
+                rc = m_networkmanager->Invoke<JsonObject, JsonObject>(15000, _T("Ping"), tmpParameters, response);
             else
                 rc = Core::ERROR_UNAVAILABLE;
 
@@ -596,12 +602,12 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             LOGINFOMETHOD();
             uint32_t rc = Core::ERROR_GENERAL;
             JsonObject tmpParameters;
-            tmpParameters["endpoint"]      = parameters["endpoint"].String();
-            tmpParameters["noOfRequest"]   = parameters["packets"].Number();
-            tmpParameters["guid"]          = "";
+            tmpParameters["endpoint"]  = parameters["endpoint"].String();
+            tmpParameters["packets"]   = parameters["packets"].Number();
+            tmpParameters["guid"]      = "";
 
             if(m_networkmanager)
-                rc = m_networkmanager->Invoke<JsonObject, JsonObject>(5000, _T("Trace"), tmpParameters, response);
+                rc = m_networkmanager->Invoke<JsonObject, JsonObject>(20000, _T("Trace"), tmpParameters, response);
             else
                 rc = Core::ERROR_UNAVAILABLE;
 
@@ -776,29 +782,50 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             uint32_t errCode = Core::ERROR_GENERAL;
             if (m_networkmanager)
             {
-                errCode = m_networkmanager->Subscribe<JsonObject>(1000, _T("onInterfaceStateChange"), &Network::onInterfaceStateChange);
-                if (errCode != Core::ERROR_NONE)
+                if (!m_subsIfaceStateChange)
                 {
-                    NMLOG_ERROR ("Subscribe to onInterfaceStateChange failed, errCode: %u", errCode);
-                }
-                errCode = m_networkmanager->Subscribe<JsonObject>(1000, _T("onActiveInterfaceChange"), &Network::onActiveInterfaceChange);
-                if (errCode != Core::ERROR_NONE)
-                {
-                    NMLOG_ERROR("Subscribe to onActiveInterfaceChange failed, errCode: %u", errCode);
-                }
-                errCode = m_networkmanager->Subscribe<JsonObject>(1000, _T("onIPAddressChange"), &Network::onIPAddressChange);
-                if (errCode != Core::ERROR_NONE)
-                {
-                    NMLOG_ERROR("Subscribe to onIPAddressChange failed, errCode: %u", errCode);
+                    errCode = m_networkmanager->Subscribe<JsonObject>(5000, _T("onInterfaceStateChange"), &Network::onInterfaceStateChange);
+                    if (Core::ERROR_NONE == errCode)
+                        m_subsIfaceStateChange = true;
+                    else
+                        NMLOG_ERROR ("Subscribe to onInterfaceStateChange failed, errCode: %u", errCode);
                 }
 
-                errCode = m_networkmanager->Subscribe<JsonObject>(1000, _T("onInternetStatusChange"), &Network::onInternetStatusChange);
-                if (errCode != Core::ERROR_NONE)
+                if (!m_subsActIfaceChange)
                 {
-                    NMLOG_ERROR("Subscribe to onInternetStatusChange failed, errCode: %u", errCode);
+                    errCode = m_networkmanager->Subscribe<JsonObject>(5000, _T("onActiveInterfaceChange"), &Network::onActiveInterfaceChange);
+                    if (Core::ERROR_NONE == errCode)
+                        m_subsActIfaceChange = true;
+                    else
+                    {
+                        NMLOG_ERROR("Subscribe to onActiveInterfaceChange failed, errCode: %u", errCode);
+                    }
+                }
+
+                if (!m_subsIPAddrChange)
+                {
+                    errCode = m_networkmanager->Subscribe<JsonObject>(5000, _T("onIPAddressChange"), &Network::onIPAddressChange);
+                    if (Core::ERROR_NONE == errCode)
+                        m_subsIPAddrChange = true;
+                    else
+                    {
+                        NMLOG_ERROR("Subscribe to onIPAddressChange failed, errCode: %u", errCode);
+                    }
+                }
+
+                if (!m_subsInternetChange)
+                {
+                    errCode = m_networkmanager->Subscribe<JsonObject>(5000, _T("onInternetStatusChange"), &Network::onInternetStatusChange);
+                    if (Core::ERROR_NONE == errCode)
+                        m_subsInternetChange = true;
+                    else
+                    {
+                        NMLOG_ERROR("Subscribe to onInternetStatusChange failed, errCode: %u", errCode);
+                    }
                 }
             }
-            if (errCode == Core::ERROR_NONE)
+
+            if (m_subsIfaceStateChange && m_subsActIfaceChange && m_subsIPAddrChange && m_subsInternetChange)
                 m_timer.stop();
         }
 
@@ -875,8 +902,7 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
 
             legacyParams["status"] = parameters["status"];
 
-            if (_gNWInstance)
-                _gNWInstance->Notify("onIPAddressStatusChanged", legacyParams);
+            Notify("onIPAddressStatusChanged", legacyParams);
 
             if ("ACQUIRED" == parameters["status"].String())
                 m_defaultInterface = parameters["interface"].String();
@@ -886,7 +912,6 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
 
         void Network::ReportonInternetStatusChange(const JsonObject& parameters)
         {
-            LOGINFOMETHOD();
             Notify("onInternetStatusChange", parameters);
             return;
         }

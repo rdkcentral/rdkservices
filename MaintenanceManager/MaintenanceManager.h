@@ -148,7 +148,7 @@ namespace WPEFramework {
                 std::map<string, string> m_param_map;
                 std::map<string, DATA_TYPE> m_paramType_map;
 
-                PluginHost::IShell* m_service;
+                PluginHost::IShell* m_service = nullptr;
 
                 bool isDeviceOnline();
                 void task_execution_thread();
