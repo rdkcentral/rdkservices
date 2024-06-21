@@ -87,6 +87,7 @@ namespace WPEFramework {
             void UnregisterLegacyMethods();
             void subscribeToEvents(void);
             static std::string getInterfaceMapping(const std::string &interface);
+            static std::string getErrorCodeMapping(const string & errorcode);
             void activatePrimaryPlugin();
 
         private:
