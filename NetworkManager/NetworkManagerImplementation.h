@@ -54,11 +54,11 @@ namespace WPEFramework
             Config& operator=(const Config&);
 
         public:
-            class Connectivity : public Core::JSON::Container {
+            class ConnectivityConf : public Core::JSON::Container {
             public:
-                Connectivity& operator=(const Connectivity&) = delete;
+                ConnectivityConf& operator=(const ConnectivityConf&) = delete;
 
-                Connectivity()
+                ConnectivityConf()
                     : Core::JSON::Container()
                     , endpoint_1(_T("http://clients3.google.com/generate_204"))
                     , endpoint_2(_T(""))
@@ -74,7 +74,7 @@ namespace WPEFramework
                     Add(_T("endpoint_5"), &endpoint_5);
                     Add(_T("interval"), &ConnectivityCheckInterval);
                 }
-                ~Connectivity() override = default;
+                ~ConnectivityConf() override = default;
 
             public:
                 /* connectivity configuration */
@@ -113,14 +113,14 @@ namespace WPEFramework
             Config()
                 : Core::JSON::Container()
                 {
-                    Add(_T("connectivity"), &connectivity);
+                    Add(_T("connectivity"), &connectivityConf);
                     Add(_T("stun"), &stun);
                     Add(_T("loglevel"), &loglevel);
                 }
             ~Config() override = default;
 
         public:
-            Connectivity connectivity;
+            ConnectivityConf connectivityConf;
             Stun stun;
             Core::JSON::DecUInt32 loglevel;
         };
