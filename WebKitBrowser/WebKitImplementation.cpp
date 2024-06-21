@@ -2814,7 +2814,7 @@ static GSourceFuncs _handlerIntervention =
                     wpeDiskCachePath = g_build_filename(g_get_user_cache_dir(), "wpe", "disk-cache", nullptr);
                 }
                 g_mkdir_with_parents(wpeDiskCachePath, 0700);
-#if WEBKIT_CHECK_VERSION(2, 42, 0)
+#if WEBKIT_CHECK_VERSION(2, 38, 0)
                 gchar* indexedDBPath = nullptr;
                 if (_config.IndexedDBPath.IsSet() && !_config.IndexedDBPath.Value().empty()) {
                     _config.IndexedDBPath = _service->Substitute(_config.IndexedDBPath.Value());
