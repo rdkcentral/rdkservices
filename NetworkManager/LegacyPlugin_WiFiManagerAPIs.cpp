@@ -241,6 +241,7 @@ namespace WPEFramework
         {
             uint32_t rc = Core::ERROR_GENERAL;
             JsonObject tmpParameters;
+            tmpParameters["ssid"] = "ssid"; // The input ssid name does not matter at this point in time as there is only one ssid persisted at any given point in time.
 
             LOGINFOMETHOD();
 
