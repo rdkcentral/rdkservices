@@ -532,21 +532,21 @@ namespace WPEFramework
         /** Event Handling and Publishing */
         string WiFiManager::getErrorCodeMapping(const string & errorcode)
         {
-           if( errorcode == "Exchange::INetworkManager::WIFI_STATE_SSID_CHANGED")
+           if( errorcode == "WIFI_STATE_SSID_CHANGED")
                 return string("WIFI_SSID_CHANGED");
-            else if(errorcode == "Exchange::INetworkManager::WIFI_STATE_CONNECTION_LOST")
+            else if(errorcode == "WIFI_STATE_CONNECTION_LOST")
                 return string("WIFI_CONNECTION_LOST");
-            else if( errorcode == "Exchange::INetworkManager::WIFI_STATE_CONNECTION_FAILED")
+            else if( errorcode == "WIFI_STATE_CONNECTION_FAILED")
                 return string("WIFI_CONNECTION_FAILED");
-            else if(errorcode == "Exchange::INetworkManager::WIFI_STATE_CONNECTION_INTERRUPTED")
+            else if(errorcode == "WIFI_STATE_CONNECTION_INTERRUPTED")
                 return string("WIFI_CONNECTION_INTERRUPTED");
-            else if( errorcode == "Exchange::INetworkManager::WIFI_STATE_INVALID_CREDENTIALS")
+            else if( errorcode == "WIFI_STATE_INVALID_CREDENTIALS")
                 return string("WIFI_INVALID_CREDENTIALS");
-            else if(errorcode == "Exchange::INetworkManager::WIFI_STATE_SSID_NOT_FOUND")
+            else if(errorcode == "WIFI_STATE_SSID_NOT_FOUND")
                 return string("WIFI_NO_SSID");
-            else if( errorcode == "Exchange::INetworkManager::WIFI_STATE_ERROR")
+            else if( errorcode == "WIFI_STATE_ERROR")
                 return string("WIFI_UNKNOWN");
-            else if(errorcode == "Exchange::INetworkManager::WIFI_STATE_AUTHENTICATION_FAILED")
+            else if(errorcode == "WIFI_STATE_AUTHENTICATION_FAILED")
                 return string("WIFI_AUTH_FAILED");
 
             return string(" ");
