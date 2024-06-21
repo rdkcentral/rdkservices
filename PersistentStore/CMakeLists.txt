@@ -19,6 +19,12 @@ cmake_minimum_required(VERSION 3.14)
 
 set(PLUGIN_NAME PersistentStore)
 find_package(WPEFramework)
+if (NOT WPEFramework_FOUND)
+    find_package(Thunder)
+    if (Thunder_FOUND)
+        add_compile_definitions(WITH_THUNDER_NAMESPACE)
+    endif ()
+endif ()
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 set(CMAKE_CXX_STANDARD 11)
