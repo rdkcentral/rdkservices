@@ -30,6 +30,10 @@
 #include <core/core.h>
 #include <plugins/plugins.h>
 
+#ifdef HAS_RBUS
+#include "rbus.h"
+#endif
+
 namespace WPEFramework {
 namespace Plugin {
     class UserSettingsImplementation : public Exchange::IUserSettings{
@@ -82,7 +86,8 @@ namespace Plugin {
                 PRESENTATION_LANGUAGE_CHANGED,
                 CAPTIONS_CHANGED,
                 PREFERRED_CAPTIONS_LANGUAGE_CHANGED,
-                PREFERRED_CLOSED_CAPTIONS_SERVICE_CHANGED
+                PREFERRED_CLOSED_CAPTIONS_SERVICE_CHANGED,
+                PRIVACY_MODE_CHANGED
             };
 
         class EXTERNAL Job : public Core::IDispatch {
@@ -139,6 +144,8 @@ namespace Plugin {
         uint32_t GetPreferredCaptionsLanguages(string &preferredLanguages) const override;
         uint32_t SetPreferredClosedCaptionService(const string& service) override;
         uint32_t GetPreferredClosedCaptionService(string &service) const override;
+        uint32_t SetPrivacyMode(const string& privacyMode) override;
+        uint32_t GetPrivacyMode(string &privacyMode) const override;
 
         void registerEventHandlers();
         void ValueChanged(const Exchange::IStore2::ScopeType scope, const string& ns, const string& key, const string& value);
@@ -153,6 +160,10 @@ namespace Plugin {
         Core::Sink<Store2Notification> _storeNotification;
         bool _registeredEventHandlers;
 
+#ifdef HAS_RBUS
+        rbusError_t _rbusHandleStatus;
+        rbusHandle_t _rbusHandle;
+#endif
         void dispatchEvent(Event, const JsonValue &params);
         void Dispatch(Event event, const JsonValue params);
 
