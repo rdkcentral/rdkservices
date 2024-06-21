@@ -31,6 +31,8 @@
   - [MaintenanceManager](api/MaintenanceManagerPlugin.md)
   - [MediaEngineRMF](api/MediaEngineRMFPlugin.md)
   - [Messenger](api/MessengerPlugin.md)
+  - [MiracastService](api/MiracastServicePlugin.md)
+  - [MiracastPlayer](api/MiracastPlayerPlugin.md)
   - [Monitor](api/MonitorPlugin.md)
   - [MotionDetection](api/MotionDetectionPlugin.md)
   - [Network](api/NetworkPlugin.md)

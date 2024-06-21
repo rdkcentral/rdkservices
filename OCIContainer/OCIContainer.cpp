@@ -49,6 +49,10 @@ OCIContainer::OCIContainer()
     Register("pauseContainer", &OCIContainer::pauseContainer, this);
     Register("resumeContainer", &OCIContainer::resumeContainer, this);
     Register("executeCommand", &OCIContainer::executeCommand, this);
+    #ifdef HIBERNATE_SUPPORT_ENABLED
+    Register("hibernateContainer", &OCIContainer::hibernateContainer, this);
+    Register("wakeupContainer", &OCIContainer::wakeupContainer, this);
+    #endif
 }
 
 OCIContainer::~OCIContainer()
@@ -97,6 +101,10 @@ void OCIContainer::Deinitialize(PluginHost::IShell *service)
     Unregister("pauseContainer");
     Unregister("resumeContainer");
     Unregister("executeCommand");
+    #ifdef HIBERNATE_SUPPORT_ENABLED
+    Unregister("hibernateContainer");
+    Unregister("wakeupContainer");
+    #endif
 }
 
 string OCIContainer::Information() const
@@ -187,6 +195,17 @@ uint32_t OCIContainer::getContainerState(const JsonObject &parameters, JsonObjec
     case IDobbyProxyEvents::ContainerState::Stopped:
         containerState = "Stopped";
         break;
+    #ifdef HIBERNATE_SUPPORT_ENABLED 
+    case IDobbyProxyEvents::ContainerState::Hibernating:
+        containerState = "Hibernating";
+        break;
+    case IDobbyProxyEvents::ContainerState::Hibernated:
+        containerState = "Hibernated";
+        break;
+    case IDobbyProxyEvents::ContainerState::Awakening:
+        containerState = "Awakening";
+        break;
+    #endif
     default:
         containerState = "Unknown";
         break;
@@ -529,6 +548,76 @@ uint32_t OCIContainer::resumeContainer(const JsonObject &parameters, JsonObject 
     returnResponse(true);
 }
 
+#ifdef HIBERNATE_SUPPORT_ENABLED
+/**
+ * @brief Hibernate a container
+ *
+ * @param[in]  parameters   Must include 'containerId' of container to resume.
+ * @param[out] response     Success.
+ *
+ * @return                  A code indicating success.
+ */
+uint32_t OCIContainer::hibernateContainer(const JsonObject &parameters, JsonObject &response)
+{
+    LOGINFO("Hibernate container");
+
+    // Need to have an ID to hibernate
+    returnIfStringParamNotFound(parameters, "containerId");
+    std::string id = parameters["containerId"].String();
+    std::string options;
+
+    int cd = GetContainerDescriptorFromId(id);
+    if (cd < 0)
+    {
+        returnResponse(false);
+    }
+
+    bool offloadSuccessfully = mDobbyProxy->hibernateContainer(cd,options);
+
+    if (!offloadSuccessfully)
+    {
+        LOGERR("Failed to Hibernate container - internal Dobby error.");
+        returnResponse(false);
+    }
+
+    returnResponse(true);
+
+}
+/**
+ * @brief Wakeup a container
+ *
+ * @param[in]  parameters   Must include 'containerId' of container to resume.
+ * @param[out] response     Success.
+ *
+ * @return                  A code indicating success.
+ */
+uint32_t OCIContainer::wakeupContainer(const JsonObject &parameters, JsonObject &response)
+{
+    LOGINFO("Wakeup Container");
+
+    // Need to have an ID to wakeup
+    returnIfStringParamNotFound(parameters, "containerId");
+    std::string id = parameters["containerId"].String();
+
+    int cd = GetContainerDescriptorFromId(id);
+    if (cd < 0)
+    {
+        returnResponse(false);
+    }
+
+    bool wokeSuccessfully = mDobbyProxy->wakeupContainer(cd);
+
+    if (!wokeSuccessfully)
+    {
+        LOGERR("Failed to Wake up container - internal Dobby error.");
+        returnResponse(false);
+    }
+
+    returnResponse(true);
+
+}
+#endif
+
 /**
  * @brief Execute a command in a container.
  *
@@ -567,6 +656,36 @@ uint32_t OCIContainer::executeCommand(const JsonObject &parameters, JsonObject &
 
     returnResponse(true);
 }
+
+#ifdef HIBERNATE_SUPPORT_ENABLED
+/**
+ * @brief Send an event notifying that a container has hibernated.
+ *
+ * @param descriptor    Container descriptor.
+ * @param name          Container name.
+ */
+void OCIContainer::onContainerHibernated(int32_t descriptor, const std::string& name)
+{
+    JsonObject params;
+    params["descriptor"] = std::to_string(descriptor);
+    params["name"] = name;
+    sendNotify("onContainerHibernated", params);
+}
+
+/**
+ * @brief Send an event notifying that a container has Awoken.
+ *
+ * @param descriptor    Container descriptor.
+ * @param name          Container name.
+ */
+void OCIContainer::onContainerAwoken(int32_t descriptor, const std::string& name)
+{
+    JsonObject params;
+    params["descriptor"] = std::to_string(descriptor);
+    params["name"] = name;
+    sendNotify("onContainerAwoken", params);
+}
+#endif
 
 
 /**
@@ -666,6 +785,16 @@ const void OCIContainer::stateListener(int32_t descriptor, const std::string& na
     {
         __this->onContainerStopped(descriptor, name);
     }
+    #ifdef HIBERNATE_SUPPORT_ENABLED
+    else if (state == IDobbyProxyEvents::ContainerState::Hibernated)
+    {
+         __this->onContainerHibernated(descriptor, name);
+    }
+    else if (state == IDobbyProxyEvents::ContainerState::Awakening)
+    {
+         __this->onContainerAwoken(descriptor, name);
+    }
+    #endif
     else
     {
         LOGINFO("Received an unknown state event for container '%s'.", name.c_str());

@@ -1,0 +1,3 @@
+precondition = ["Platform"]
+callsign = "org.rdk.Network"
+autostart = "true"

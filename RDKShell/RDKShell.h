@@ -146,6 +146,7 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_KEY_REPEAT_CONFIG;
             static const string RDKSHELL_METHOD_GET_GRAPHICS_FRAME_RATE;
             static const string RDKSHELL_METHOD_SET_GRAPHICS_FRAME_RATE;
+            static const string RDKSHELL_METHOD_SET_KEY_INTERCEPTS;
 #ifdef HIBERNATE_SUPPORT_ENABLED
             static const string RDKSHELL_METHOD_HIBERNATE;
             static const string RDKSHELL_METHOD_RESTORE;
@@ -272,6 +273,7 @@ namespace WPEFramework {
             uint32_t keyRepeatConfigWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getGraphicsFrameRateWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setGraphicsFrameRateWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t setKeyInterceptsWrapper(const JsonObject& parameters, JsonObject& response);
 #ifdef HIBERNATE_SUPPORT_ENABLED
             uint32_t hibernateWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t restoreWrapper(const JsonObject& parameters, JsonObject& response);
@@ -289,6 +291,8 @@ namespace WPEFramework {
             bool kill(const string& client);
             bool addKeyIntercept(const uint32_t& keyCode, const JsonArray& modifiers, const string& client);
             bool addKeyIntercepts(const JsonArray& intercepts);
+            bool setKeyIntercepts(const JsonArray& intercepts);
+            bool setKeyIntercept(const uint32_t& keyCode, const JsonArray& modifiers, const string& client, const bool always);
             bool removeKeyIntercept(const uint32_t& keyCode, const JsonArray& modifiers, const string& client);
             bool addKeyListeners(const string& client, const JsonArray& listeners);
             bool removeKeyListeners(const string& client, const JsonArray& listeners);
@@ -397,7 +401,11 @@ namespace WPEFramework {
                   RDKShell& mShell;
             };
 
-            class MonitorClients : public PluginHost::IPlugin::INotification {
+            class MonitorClients : public PluginHost::IPlugin::INotification
+#if ((THUNDER_VERSION >= 4) && (THUNDER_VERSION_MINOR >= 4))
+            ,  public PluginHost::IPlugin::ILifeTime 
+#endif
+	   {
               private:
                   MonitorClients() = delete;
                   MonitorClients(const MonitorClients&) = delete;
@@ -415,6 +423,9 @@ namespace WPEFramework {
               public:
                   BEGIN_INTERFACE_MAP(MonitorClients)
                   INTERFACE_ENTRY(PluginHost::IPlugin::INotification)
+#if ((THUNDER_VERSION >= 4) && (THUNDER_VERSION_MINOR >= 4))
+		  INTERFACE_ENTRY(PluginHost::IPlugin::ILifeTime)
+#endif
                   END_INTERFACE_MAP
 
               private:
@@ -423,13 +434,14 @@ namespace WPEFramework {
                   void handleActivated(PluginHost::IShell* shell);
                   void handleDeactivated(PluginHost::IShell* shell);
                   void handleDeinitialized(PluginHost::IShell* shell);
+
 #ifdef USE_THUNDER_R4
-		  virtual void Initialize(VARIABLE_IS_NOT_USED const string& callsign, VARIABLE_IS_NOT_USED PluginHost::IShell* plugin);
+                  virtual void Initialize(const string& callsign, PluginHost::IShell* plugin);
                   virtual void Activation(const string& name, PluginHost::IShell* plugin);
                   virtual void Deactivation(const string& name, PluginHost::IShell* plugin);
                   virtual void  Activated(const string& callSign,  PluginHost::IShell* plugin);
                   virtual void  Deactivated(const string& callSign,  PluginHost::IShell* plugin);
-		  virtual void Deinitialized(VARIABLE_IS_NOT_USED const string& callsign, VARIABLE_IS_NOT_USED PluginHost::IShell* plugin);
+		  virtual void Deinitialized(const string& callsign, PluginHost::IShell* plugin);
                   virtual void  Unavailable(const string& callSign,  PluginHost::IShell* plugin);
 #endif /* USE_THUNDER_R4 */
               private:

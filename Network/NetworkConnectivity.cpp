@@ -492,6 +492,7 @@ namespace WPEFramework {
         if (isMonitorThreadRunning() && stopFlag == false)
         {
             LOGINFO("Connectivity Monitor Thread is active so notify");
+            g_internetState = nsm_internetState::UNKNOWN;
             cv_.notify_all();
         }
         else
@@ -577,7 +578,8 @@ namespace WPEFramework {
             if(g_internetState.load() != InternetConnectionState)
             {
                 LOGINFO("notification count %d ...", notifyWaitCount);
-                if(InternetConnectionState == nsm_internetState::NO_INTERNET && notifyWaitCount > 0)
+                /* Retry logic only need when continuous monitor is running, otherwise post notification immediately */
+                if(InternetConnectionState == nsm_internetState::NO_INTERNET && isContinuesMonitoringNeeded && notifyWaitCount > 0)
                 {
                     /* Decrease the notification count to create a delay in posting the 'no internet' state. */
                     notifyWaitCount--;
@@ -595,6 +597,12 @@ namespace WPEFramework {
                     LOGINFO("notification count change to default %d ...", notifyWaitCount);
                 }
             }
+            else
+            {
+                notifyWaitCount = DEFAULT_MONITOR_RETRY_COUNT;
+                tempTimeout = timeout.load();
+            }
+
 
             if(!isContinuesMonitoringNeeded && (g_internetState.load() == FULLY_CONNECTED))
             {

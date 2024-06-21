@@ -71,6 +71,10 @@ if(PLUGIN_CONTROLSERVICE)
     add_subdirectory(ControlService)
 endif()
 
+if(PLUGIN_USERSETTINGS)
+    add_subdirectory(UserSettings)
+endif()
+
 if(PLUGIN_VOICECONTROL)
     add_subdirectory(VoiceControl)
 endif()

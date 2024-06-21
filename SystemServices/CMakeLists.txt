@@ -18,6 +18,7 @@
 set(PLUGIN_NAME SystemServices)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_SYSTEM_AUTOSTART false CACHE STRING "To automatically start System plugin.")
 set(PLUGIN_SYSTEMSERVICE_STARTUPORDER "" CACHE STRING "To configure startup order of SystemServices plugin")
 
 find_package(${NAMESPACE}Plugins REQUIRED)

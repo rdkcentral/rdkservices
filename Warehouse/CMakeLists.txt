@@ -19,6 +19,7 @@ set(PLUGIN_NAME Warehouse)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 set(PLUGIN_WAREHOUSE_STARTUPORDER "" CACHE STRING "To configure startup order of Warehouse plugin")
+set(PLUGIN_WAREHOUSE_AUTOSTART false CACHE STRING "To automatically start Warehouse plugin.")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
 
@@ -31,6 +32,16 @@ add_library(${MODULE_NAME} SHARED
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)
+
+if (RDK_SERVICE_L2_TEST)
+   find_library(TESTMOCKLIB_LIBRARIES NAMES TestMocklib)
+   if (TESTMOCKLIB_LIBRARIES)
+       message ("linking mock libraries ${TESTMOCKLIB_LIBRARIES} library")
+       target_link_libraries(${MODULE_NAME} PRIVATE ${TESTMOCKLIB_LIBRARIES})
+   else (TESTMOCKLIB_LIBRARIES)
+       message ("Require ${TESTMOCKLIB_LIBRARIES} library")
+   endif (TESTMOCKLIB_LIBRARIES)
+endif (RDK_SERVICES_L2_TEST)
 
 target_compile_definitions(${MODULE_NAME} PRIVATE MODULE_NAME=Plugin_${PLUGIN_NAME})
 set_source_files_properties(Warehouse.cpp ../helpers/frontpanel.cpp PROPERTIES COMPILE_FLAGS "-fexceptions")
