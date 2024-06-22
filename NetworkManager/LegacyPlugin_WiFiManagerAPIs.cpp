@@ -18,7 +18,7 @@
 **/
 #include "LegacyPlugin_WiFiManagerAPIs.h"
 #include "NetworkManagerLogger.h"
-#include "NetworkManager.h"
+#include "INetworkManager.h"
 
 using namespace std;
 using namespace WPEFramework::Plugin;
