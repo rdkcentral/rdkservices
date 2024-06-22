@@ -1,4 +1,5 @@
 #include "NetworkManagerImplementation.h"
+#include "NetworkManagerConnectivity.h"
 #include "WiFiSignalStrengthMonitor.h"
 #include "libIBus.h"
 
@@ -449,8 +450,7 @@ namespace WPEFramework
                             else {
                                ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_LINK_DOWN, interface);
                                /* when ever interface down we start connectivity monitor to post noInternet event */
-                               ::_instance->connectivityMonitor.doInitialConnectivityMonitoring(5);
-                               ::_instance->connectivityMonitor.stopInitialConnectivityMonitoring();
+                               ::_instance->connectivityMonitor.startConnectivityMonitor(false); // false = interface is down, auto exit after retry
                             }
                         }
                         break;
@@ -466,7 +466,7 @@ namespace WPEFramework
                             if(e->acquired)
                             {
                                 /* if ip address acquired we start connectivity monitor */
-                                ::_instance->connectivityMonitor.doInitialConnectivityMonitoring(5);
+                                ::_instance->connectivityMonitor.startConnectivityMonitor(true); // true = interface is up
                             }
                         }
                         break;
