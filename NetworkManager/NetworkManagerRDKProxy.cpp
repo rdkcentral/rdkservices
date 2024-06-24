@@ -445,8 +445,13 @@ namespace WPEFramework
                         NMLOG_INFO ("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS :: %s", interface.c_str());
                         if(interface == "eth0" || interface == "wlan0")
                         {
-                            if (e->status)
+                            if (e->status) {
+                                if (interface == "wlan0") {
+                                    // ip address change event not coming when wifi reconnected
+                                    ::_instance->connectivityMonitor.startConnectivityMonitor(true);
+                                }
                                 ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_LINK_UP, interface);
+                            }
                             else {
                                ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_LINK_DOWN, interface);
                                /* when ever interface down we start connectivity monitor to post noInternet event */
