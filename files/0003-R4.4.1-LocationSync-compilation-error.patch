@@ -1,0 +1,1037 @@
+diff --git a/LocationSync/CMakeLists.txt b/LocationSync/CMakeLists.txt
+index 7a5418b3..87941026 100644
+--- a/LocationSync/CMakeLists.txt
++++ b/LocationSync/CMakeLists.txt
+@@ -21,15 +21,19 @@ cmake_minimum_required(VERSION 3.3)
+ 
+ find_package(WPEFramework)
+ 
+-set(PLUGIN_NAME LocationSync)
++project_version(1.0.0)
++
+ set(MODULE_NAME ${NAMESPACE}${PROJECT_NAME})
+ 
++message("Setup ${MODULE_NAME} v${PROJECT_VERSION}")
++
+ set(PLUGIN_LOCATIONSYNC_AUTOSTART "true" CACHE STRING "Automatically start LocationSync plugin")
+ set(PLUGIN_LOCATIONSYNC_URI "location.webplatformforembedded.org" CACHE STRING "URI to request the location information")
+-set(PLUGIN_LOCATIONSYNC_STARTUPORDER "" CACHE STRING "To configure startup order of LocationSync plugin")
++set(PLUGIN_LOCATIONSYNC_OVERRIDE_TIMEZONE CACHE STRING "Override Timezone value")
+ 
+ find_package(${NAMESPACE}Plugins REQUIRED)
+ find_package(CompileSettingsDebug CONFIG REQUIRED)
++find_package(${NAMESPACE}Definitions REQUIRED)
+ 
+ add_library(${MODULE_NAME} SHARED 
+     Module.cpp
+@@ -42,12 +46,15 @@ set_target_properties(${MODULE_NAME} PROPERTIES
+         CXX_STANDARD 11
+         CXX_STANDARD_REQUIRED YES)
+ 
++target_compile_options (${MODULE_NAME} PRIVATE -Wno-psabi)
++
+ target_link_libraries(${MODULE_NAME} 
+     PRIVATE
+         CompileSettingsDebug::CompileSettingsDebug
+-        ${NAMESPACE}Plugins::${NAMESPACE}Plugins)
++        ${NAMESPACE}Plugins::${NAMESPACE}Plugins
++        ${NAMESPACE}Definitions::${NAMESPACE}Definitions)
+ 
+ install(TARGETS ${MODULE_NAME} 
+     DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
+ 
+-write_config(${PLUGIN_NAME})
++write_config()
+diff --git a/LocationSync/LocationService.cpp b/LocationSync/LocationService.cpp
+index 075ffe7a..6c9e6b0e 100644
+--- a/LocationSync/LocationService.cpp
++++ b/LocationSync/LocationService.cpp
+@@ -20,7 +20,6 @@
+ #include "LocationService.h"
+ 
+ namespace WPEFramework {
+-
+ namespace Plugin {
+ 
+     struct IGeography {
+@@ -30,8 +29,8 @@ namespace Plugin {
+         virtual string City() const = 0;
+         virtual string Region() const = 0;
+         virtual string TimeZone() const = 0;
+-        virtual string Latitude() const = 0;
+-        virtual string Longitude() const = 0;
++        virtual int32_t Latitude() const = 0;
++        virtual int32_t Longitude() const = 0;
+         virtual string IP() const = 0;
+         virtual void FromString(const string&) = 0;
+     };
+@@ -44,9 +43,9 @@ namespace Plugin {
+     //  "region":"GE",
+     //  "regionName":"Gelderland",
+     //  "city":"Wijchen",
+-    //  "lat":"51.798",
+-    //  "lon":"5.726",
+     //  "zip":"6605",
++    //  "lat":51.798,
++    //  "lon":5.726,
+     //  "timezone":"Europe/Amsterdam",
+     //  "isp":"T-Mobile Thuis BV",
+     //  "org":"T-Mobile Thuis BV",
+@@ -66,17 +65,17 @@ namespace Plugin {
+                 , City()
+                 , Region()
+                 , TimeZone()
+-                , Latitude()
+-                , Longitude()
+                 , IP()
++                , Latitude(51.832547)
++                , Longitude(5.674899)
+             {
+                 Add(_T("country"), &Country);
+                 Add(_T("city"), &City);
+                 Add(_T("regionName"), &Region);
+                 Add(_T("timezone"), &TimeZone);
+-                Add(_T("latitude"), &Latitude);
+-                Add(_T("longitude"), &Longitude);
+                 Add(_T("query"), &IP);
++                Add(_T("lat"), &Latitude);
++                Add(_T("lon"), &Longitude);
+             }
+             ~Data() override = default;
+ 
+@@ -85,9 +84,9 @@ namespace Plugin {
+             Core::JSON::String City;
+             Core::JSON::String Region;
+             Core::JSON::String TimeZone;
+-            Core::JSON::String Latitude;
+-            Core::JSON::String Longitude;
+             Core::JSON::String IP;
++            Core::JSON::Double Latitude;
++            Core::JSON::Double Longitude;
+         };
+ 
+     public:
+@@ -114,13 +113,13 @@ namespace Plugin {
+         {
+             return (_data.TimeZone.Value());
+         }
+-        string Latitude() const override
++        int32_t Latitude() const override
+         {
+-            return (_data.Latitude.Value());
++            return (static_cast<int32_t>(_data.Latitude.Value() * 1000000));
+         }
+-        string Longitude() const override
++        int32_t Longitude() const override
+         {
+-            return (_data.Longitude.Value());
++            return (static_cast<int32_t>(_data.Longitude.Value() * 1000000));
+         }
+         string IP() const override
+         {
+@@ -167,27 +166,41 @@ namespace Plugin {
+                     , City()
+                     , Region()
+                     , TimeZone()
+-                    , Latitude()
+-                    , Longitude()
+                     , _LL()
+                 {
+                     Add(_T("country"), &Country);
+                     Add(_T("city"), &City);
+                     Add(_T("region"), &Region);
+                     Add(_T("tz"), &TimeZone);
+-                    Add(_T("lat"), &Latitude);
+-                    Add(_T("lon"), &Longitude);
+                     Add(_T("ll"), &_LL);
+                 }
+                 ~Geography() override = default;
+ 
+           public:
++                int32_t Latitude() const {
++                    int32_t result = 51832547;
++                    Core::JSON::ArrayType<Core::JSON::Double>::ConstIterator index = _LL.Elements();
++
++                    if (index.Next() == true) {
++                        result = static_cast<int32_t>(index.Current() * 1000000);
++                    }
++
++                    return (result);
++                }
++                int32_t Longitude() const {
++                    int32_t result = 5674899;
++                    Core::JSON::ArrayType<Core::JSON::Double>::ConstIterator index = _LL.Elements();
++
++                    if ( (index.Next() == true) && (index.Next() == true) ) {
++                        result = static_cast<int32_t>(index.Current() * 1000000);
++                    }
++
++                    return (result);
++                }
+                 Core::JSON::String Country;
+                 Core::JSON::String City;
+                 Core::JSON::String Region;
+                 Core::JSON::String TimeZone;
+-                Core::JSON::String Latitude;
+-                Core::JSON::String Longitude;
+ 
+             private:
+                 Core::JSON::ArrayType<Core::JSON::Double> _LL;
+@@ -239,13 +252,13 @@ namespace Plugin {
+         {
+             return (_data.Geo.TimeZone.Value());
+         }
+-        string Latitude() const override
++        int32_t Latitude() const override
+         {
+-            return (_data.Geo.Latitude.Value());
++            return (_data.Geo.Latitude());
+         }
+-        string Longitude() const
++        int32_t Longitude() const override
+         {
+-            return (_data.Geo.Longitude.Value());
++            return (_data.Geo.Longitude());
+         }
+         string IP() const override
+         {
+@@ -254,10 +267,10 @@ namespace Plugin {
+         void FromString(const string& data) override {
+             TRACE(Trace::Information, (_T("Metrological: Received a response: [%s]!"), data.c_str()));
+ 
+-            _data.IElement::FromString(data);
++                _data.IElement::FromString(data);
+ 
+-            string parsed;
+-            _data.IElement::ToString(parsed);
++ string parsed;
++		_data.IElement::ToString(parsed);
+             TRACE(Trace::Information, (_T("Metrological: reverted response: [%s]!"), parsed.c_str()));
+         }
+ 
+@@ -311,34 +324,29 @@ namespace Plugin {
+         return (index < (sizeof(g_domainFactory) / sizeof(DomainConstructor)) ? &(g_domainFactory[index]) : nullptr);
+     }
+ 
+-#ifdef __WINDOWS__
+-#pragma warning(disable : 4355)
+-#endif
+-#ifndef USE_THUNDER_R4
+-    LocationService::LocationService(Core::IDispatchType<void>* callback)
+-#else
++PUSH_WARNING(DISABLE_WARNING_THIS_IN_MEMBER_INITIALIZER_LIST)
+     LocationService::LocationService(Core::IDispatch* callback)
+-#endif /* USE_THUNDER_R4 */
+-        : BaseClass(1, g_Factory, false, Core::NodeId(), Core::NodeId(), 256, 1024)
++        : BaseClass(1, g_Factory, false, Core::NodeId(), Core::NodeId(), 256, (1024 * 2))
+         , _adminLock()
+         , _state(IDLE)
+         , _remoteId()
+         , _sourceNode()
+         , _tryInterval(0)
++        , _retries(UINT32_MAX)
+         , _callback(callback)
+         , _publicIPAddress()
+         , _timeZone()
+         , _country()
+         , _region()
+         , _city()
++        , _latitude()
++        , _longitude()
+         , _activity(*this)
+         , _infoCarrier()
+         , _request(Core::ProxyType<Web::Request>::Create())
+     {
+     }
+-#ifdef __WINDOWS__
+-#pragma warning(default : 4355)
+-#endif
++POP_WARNING()
+ 
+     LocationService::~LocationService() /* override */
+     {
+@@ -376,7 +384,11 @@ namespace Plugin {
+                     _state = ACTIVE;
+ 
+                     // it runs till zero, so subtract by definition 1 :-)
+-                    _retries = (retries - 1);
++                    // If retires is UINT32_MAX it means retry unlimited
++                    if (retries != UINT32_MAX) {
++                        _retries = (retries - 1);
++                    }
++
+                     _tryInterval = retryTimeSpan * 1000; // Move from seconds to mS.
+                     _request->Host = hostName;
+                     _request->Verb = Web::Request::HTTP_GET;
+@@ -440,11 +452,7 @@ namespace Plugin {
+ 
+             ASSERT(_infoCarrier.IsValid() == true);
+ 
+-#ifndef USE_THUNDER_R4
+-            element->Body<Web::IBody>(Core::proxy_cast<Web::IBody>(Core::ProxyType<Web::TextBody>::Create()));
+-#else
+             element->Body<Web::IBody>(Core::ProxyType<Web::IBody>(Core::ProxyType<Web::TextBody>::Create()));
+-#endif
+         }
+     }
+ 
+@@ -465,6 +473,8 @@ namespace Plugin {
+             _country = _infoCarrier->Country();
+             _region = _infoCarrier->Region();
+             _city = _infoCarrier->City();
++            _latitude = _infoCarrier->Latitude();
++            _longitude = _infoCarrier->Longitude();
+ 
+             if (_state == IPV6_INPROGRESS) {
+ 
+@@ -533,6 +543,7 @@ namespace Plugin {
+     void LocationService::Dispatch()
+     {
+         uint32_t result = Core::infinite;
++        TRACE(Trace::Information, (_T("LocationService: job is dispatched")));
+ 
+         if ((Close(100) != Core::ERROR_NONE) || (IsClosed() == false)) {
+ 
+@@ -542,7 +553,12 @@ namespace Plugin {
+             _adminLock.Lock();
+ 
+             if (_state == IPV4_INPROGRESS) {
+-                _state = (_retries-- == 0 ? FAILED : ACTIVE);
++                if(_retries != UINT32_MAX) {
++                    _state = (_retries-- == 0 ? FAILED : ACTIVE);
++                }
++                else {
++                    _state = ACTIVE;
++                }
+             }
+ 
+             if ((_state != LOADED) && (_state != FAILED)) {
+@@ -551,10 +567,10 @@ namespace Plugin {
+ 
+                 if (remote.IsValid() == false) {
+ 
+-                    TRACE(Trace::Warning, (_T("DNS resolving failed. Sleep for %d mS for attempt %d"), _tryInterval, _retries));
++                    TRACE(Trace::Warning, (_T("DNS resolving failed. Sleep for %d mS for attempt %u"), _tryInterval, _retries));
+ 
+                     // Name resolving does not even work. Retry this after a few seconds, if we still can..
+-                    if (_retries-- == 0)
++                    if (_retries != UINT32_MAX && _retries-- == 0)
+                         _state = FAILED;
+                     else
+                         result = _tryInterval;
+@@ -569,12 +585,12 @@ namespace Plugin {
+ 
+                     if ((status == Core::ERROR_NONE) || (status == Core::ERROR_INPROGRESS)) {
+ 
+-                        TRACE(Trace::Information, (_T("Sending out a network package on %s. Attempt: %d"), (remote.Type() == Core::NodeId::TYPE_IPV6 ? _T("IPv6") : _T("IPv4")), _retries));
++                        TRACE(Trace::Information, (_T("Sending out a network package on %s. Attempt: %u"), (remote.Type() == Core::NodeId::TYPE_IPV6 ? _T("IPv6") : _T("IPv4")), _retries));
+ 
+                         // We need to get a response in the given time..
+                         result = _tryInterval;
+                     } else {
+-                        TRACE(Trace::Warning, (_T("Failed on network %s. Reschedule for the next attempt: %d"), (remote.Type() == Core::NodeId::TYPE_IPV6 ? _T("IPv6") : _T("IPv4")), _retries));
++                        TRACE(Trace::Warning, (_T("Failed on network %s. Reschedule for the next attempt: %u"), (remote.Type() == Core::NodeId::TYPE_IPV6 ? _T("IPv6") : _T("IPv4")), _retries));
+ 
+                         // Seems we could not open this connection, move on to the next attempt.
+                         Close(0);
+@@ -599,11 +615,7 @@ namespace Plugin {
+ 
+         // See if we need rescheduling
+         if (result != Core::infinite) {
+-#ifndef USE_THUNDER_R4
+-            _activity.Schedule(Core::Time::Now().Add(result));
+-#else
+             _activity.Reschedule(Core::Time::Now().Add(result));
+-#endif /* USE_THUNDER_R4 */
+         }
+     }
+ 
+diff --git a/LocationSync/LocationService.h b/LocationSync/LocationService.h
+index 0381af73..d11ea71b 100644
+--- a/LocationSync/LocationService.h
++++ b/LocationSync/LocationService.h
+@@ -28,7 +28,7 @@ namespace Plugin {
+ 
+     struct IGeography;
+ 
+-    class EXTERNAL LocationService
++    class LocationService
+         : public PluginHost::ISubSystem::ILocation,
+           public PluginHost::ISubSystem::IInternet,
+           public Web::WebLinkType<Core::SocketStream, Web::Response, Web::Request, Core::ProxyPoolType<Web::Response>&> {
+@@ -53,11 +53,7 @@ namespace Plugin {
+         typedef Web::WebLinkType<Core::SocketStream, Web::Response, Web::Request, Core::ProxyPoolType<Web::Response>&> BaseClass;
+ 
+     public:
+-#ifndef USE_THUNDER_R4
+-        LocationService(Core::IDispatchType<void>* update);
+-#else
+         LocationService(Core::IDispatch* update);
+-#endif /* USE_THUNDER_R4 */
+         ~LocationService() override;
+ 
+     public:
+@@ -71,6 +67,9 @@ namespace Plugin {
+         static uint32_t IsSupported(const string& remoteNode);
+         uint32_t Probe(const string& remoteNode, const uint32_t retries, const uint32_t retryTimeSpan);
+         void Stop();
++        bool Valid() const {
++            return _state == LOADED;
++        }
+ 
+         /*
+         * ------------------------------------------------------------------------------------------------------------
+@@ -106,6 +105,14 @@ namespace Plugin {
+         {
+             return (_city);
+         }
++        int32_t Latitude() const override
++        {
++            return (_latitude);
++        }
++        int32_t Longitude() const override
++        {
++            return (_longitude);
++        }
+ 
+     private:
+         // Notification of a Partial Request received, time to attach a body..
+@@ -132,6 +139,8 @@ namespace Plugin {
+         string _country;
+         string _region;
+         string _city;
++        int32_t _latitude;
++        int32_t _longitude;
+         Core::WorkerPool::JobType<LocationService&> _activity;
+         Core::ProxyType<IGeography> _infoCarrier;
+         Core::ProxyType<Web::Request> _request;
+diff --git a/LocationSync/LocationSync.conf.in b/LocationSync/LocationSync.conf.in
+index ab5aa27e..04b90673 100644
+--- a/LocationSync/LocationSync.conf.in
++++ b/LocationSync/LocationSync.conf.in
+@@ -1,9 +1,10 @@
+-precondition = ["Network"]
+ autostart = "@PLUGIN_LOCATIONSYNC_AUTOSTART@"
+-startuporder = "@PLUGIN_LOCATIONSYNC_STARTUPORDER@"
+ 
+ configuration = JSON()
+ 
+ configuration.add("interval", 10)
+-configuration.add("retries", 60)
++configuration.add("retries", 20)
+ configuration.add("source", "@PLUGIN_LOCATIONSYNC_URI@")
++configuration.add("timezone", "@PLUGIN_LOCATIONSYNC_OVERRIDE_TIMEZONE@")
++
++
+diff --git a/LocationSync/LocationSync.cpp b/LocationSync/LocationSync.cpp
+index 6e3ed999..3b464093 100644
+--- a/LocationSync/LocationSync.cpp
++++ b/LocationSync/LocationSync.cpp
+@@ -19,51 +19,76 @@
+  
+ #include "LocationSync.h"
+ 
+-#define API_VERSION_NUMBER_MAJOR 1
+-#define API_VERSION_NUMBER_MINOR 0
+-#define API_VERSION_NUMBER_PATCH 0
++#include <interfaces/json/JTimeZone.h>
+ 
+ namespace WPEFramework {
+ namespace Plugin {
+ 
+-    SERVICE_REGISTRATION(LocationSync, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
++    namespace {
++
++        static Metadata<LocationSync> metadata(
++            // Version
++            1, 0, 0,
++            // Preconditions
++            {  subsystem::NETWORK },
++            // Terminations
++            {},
++            // Controls
++            { subsystem::INTERNET, subsystem::LOCATION }
++        );
++    }
+ 
+     static Core::ProxyPoolType<Web::Response> responseFactory(4);
+     static Core::ProxyPoolType<Web::JSONBodyType<LocationSync::Data>> jsonResponseFactory(4);
+ 
+-#ifdef __WINDOWS__
+-#pragma warning(disable : 4355)
+-#endif
++namespace {
++    constexpr TCHAR FactorySetTimeZone[] = _T("Factory");
++}
++
++PUSH_WARNING(DISABLE_WARNING_THIS_IN_MEMBER_INITIALIZER_LIST)
+     LocationSync::LocationSync()
+         : _skipURL(0)
+         , _source()
+         , _sink(this)
+         , _service(nullptr)
++        , _timezoneoverriden(false)
++        , _locationinfo()
++        , _adminLock()
++        , _timezoneoberservers()
++        , _activateOnFailure(true)
+     {
+-        RegisterAll();
+-    }
+-#ifdef __WINDOWS__
+-#pragma warning(default : 4355)
+-#endif
+-
+-    LocationSync::~LocationSync() /* override */
+-    {
+-        UnregisterAll();
+     }
++POP_WARNING()
+ 
+     const string LocationSync::Initialize(PluginHost::IShell* service) /* override */
+     {
+         string result;
+         Config config;
+         config.FromString(service->ConfigLine());
+-        string version = service->Version();
+ 
+         if (LocationService::IsSupported(config.Source.Value()) == Core::ERROR_NONE) {
++            if( ( config.TimeZone.IsSet() == true ) && ( config.TimeZone.Value().empty() == false ) ) {
++                _locationinfo.TimeZone(config.TimeZone.Value());
++                _timezoneoverriden = true;
++                UpdateSystemTimeZone(config.TimeZone.Value());
++            }
++
++            if( ( config.Latitude.IsSet() == true ) && ( config.Longitude.IsSet() == true ) ) {
++                _locationinfo.Latitude(config.Latitude.Value());
++                _locationinfo.Longitude(config.Longitude.Value());
++            }
++
+             _skipURL = static_cast<uint16_t>(service->WebPrefix().length());
+             _source = config.Source.Value();
++            _activateOnFailure = config.ActivateOnFailure.Value();
+             _service = service;
+-
++            _service->AddRef();
++            
+             _sink.Initialize(config.Source.Value(), config.Interval.Value(), config.Retries.Value());
++
++            RegisterAll();
++            Exchange::JTimeZone::Register(*this, this);
++
+         } else {
+             result = _T("URL for retrieving location is incorrect !!!");
+         }
+@@ -74,9 +99,33 @@ namespace Plugin {
+ 
+     void LocationSync::Deinitialize(PluginHost::IShell* service VARIABLE_IS_NOT_USED) /* override */
+     {
+-        ASSERT(_service == service);
++        if (_service != nullptr) {
++            ASSERT(_service == service);
++
++            UnregisterAll();
++            Exchange::JTimeZone::Unregister(*this);
++
++            _sink.Deinitialize();
++
++            Config config;
++            config.FromString(_service->ConfigLine());
++
++            Exchange::Controller::IConfiguration* controller = nullptr;
++            if ( (_timezoneoverriden == true) &&
++               ( _locationinfo.TimeZone() != config.TimeZone.Value() ) &&
++               ( ( controller = _service->QueryInterfaceByCallsign<Exchange::Controller::IConfiguration>(_T("")) ) != nullptr )
++            ) {
++                config.TimeZone = _locationinfo.TimeZone();
++                string newconfig;
++                config.ToString(newconfig);
++                _service->ConfigLine(newconfig);
++                controller->Persist();
++                controller->Release();
++            }
+ 
+-        _sink.Deinitialize();
++            _service->Release();
++            _service = nullptr;
++        }
+     }
+ 
+     string LocationSync::Information() const /* override */
+@@ -120,11 +169,7 @@ namespace Plugin {
+                 response->City = location->City();
+ 
+                 result->ContentType = Web::MIMETypes::MIME_JSON;
+-#ifndef USE_THUNDER_R4
+-                result->Body(Core::proxy_cast<Web::IBody>(response));
+-#else
+                 result->Body(Core::ProxyType<Web::IBody>(response));
+-#endif /* USE_THUNDER_R4 */
+             } else {
+                 result->ErrorCode = Web::STATUS_SERVICE_UNAVAILABLE;
+                 result->Message = _T("Internet and Location Service not yet available");
+@@ -149,24 +194,148 @@ namespace Plugin {
+         return result;
+     }
+ 
++    uint32_t LocationSync::Register(Exchange::ITimeZone::INotification* sink) {
++        _adminLock.Lock();
++        TimeZoneObservers::iterator index = std::find(_timezoneoberservers.begin(), _timezoneoberservers.end(), sink);
++        ASSERT (index == _timezoneoberservers.end());
++        if (index == _timezoneoberservers.end()) {
++            sink->AddRef();
++            _timezoneoberservers.emplace_back(sink);
++        }
++        _adminLock.Unlock();
++        return Core::ERROR_NONE;
++    }
++
++    uint32_t LocationSync::Unregister(Exchange::ITimeZone::INotification* sink) {
++        _adminLock.Lock();
++        TimeZoneObservers::iterator index = std::find(_timezoneoberservers.begin(), _timezoneoberservers.end(), sink);
++        ASSERT (index != _timezoneoberservers.end());
++        if (index != _timezoneoberservers.end()) {
++            sink->Release();
++            _timezoneoberservers.erase(index);
++        }
++        _adminLock.Unlock();
++        return Core::ERROR_NONE;
++    }
++
++    uint32_t LocationSync::TimeZone(string& timeZone /* @out */) const {
++        timeZone = CurrentTimeZone();
++        return Core::ERROR_NONE;
++    }
++
++    uint32_t LocationSync::TimeZone(const string& timeZone) {
++
++        _adminLock.Lock();
++
++        _timezoneoverriden = true;
++
++        if(_locationinfo.TimeZone() != timeZone) {
++
++            _locationinfo.TimeZone(timeZone);
++
++            _adminLock.Unlock();
++
++            UpdateSystemTimeZone(timeZone);
++
++            // let's check if we need to update the subsystem. As there is no support in this plugin for unsetting the Location subsystem that is not taken into account
++            PluginHost::ISubSystem* subSystem = _service->SubSystems();
++            ASSERT(subSystem != nullptr);
++            if(subSystem != nullptr) {
++                SetLocationSubsystem(*subSystem, true);
++                subSystem->Release();
++            }
++
++            NotifyTimeZoneChanged(timeZone);
++
++        } else {
++            _adminLock.Unlock();
++        }
++
++        return Core::ERROR_NONE;
++    }
++
++    string LocationSync::CurrentTimeZone() const {
++        Core::SafeSyncType<Core::CriticalSection> guard(_adminLock);
++        return _locationinfo.TimeZone();
++    }
++
++    void LocationSync::NotifyTimeZoneChanged(const string& timezone) const {
++        _adminLock.Lock();
++        for (auto observer : _timezoneoberservers) {
++            observer->TimeZoneChanged(timezone);
++        }
++        _adminLock.Unlock();
++
++        Exchange::JTimeZone::Event::TimeZoneChanged(const_cast<PluginHost::JSONRPC&>(static_cast<const PluginHost::JSONRPC&>(*this)), timezone);
++        SYSLOG(Logging::Startup, (_T("TimeZone change to \"%s\", local date time is now %s."), timezone.c_str(), Core::Time::Now().ToRFC1123(true).c_str()));
++    }
++
++    void LocationSync::SetLocationSubsystem(PluginHost::ISubSystem& subsystem, bool update) /* cannot be const due to subsystem Set*/ {
++        if(update == false) {
++            _adminLock.Lock();
++            subsystem.Set(PluginHost::ISubSystem::LOCATION, &_locationinfo);
++            _adminLock.Unlock();
++        } else {
++            _adminLock.Lock();
++            if(subsystem.IsActive(PluginHost::ISubSystem::LOCATION) == true) {
++                subsystem.Set(PluginHost::ISubSystem::LOCATION, &_locationinfo);
++            }
++            _adminLock.Unlock();
++        }
++    }
++
+     void LocationSync::SyncedLocation()
+     {
+-        PluginHost::ISubSystem* subSystem = _service->SubSystems();
+-
+-        ASSERT(subSystem != nullptr);
++        if ((_sink.Location() != nullptr) && (_sink.Valid() == true)) {  // _sink.Location() != nullptr basically is always true
++            string newtimezone;
++            _adminLock.Lock();
++            if( (_locationinfo.Latitude() == std::numeric_limits<int32_t>::min()) || (_locationinfo.Longitude() == std::numeric_limits<int32_t>::min()) ) {
++                _locationinfo.Latitude(_sink.Location()->Latitude());
++                _locationinfo.Longitude(_sink.Location()->Longitude());
++            } 
++            _locationinfo.Country(_sink.Location()->Country());
++            _locationinfo.Region(_sink.Location()->Region());
++            _locationinfo.City(_sink.Location()->City());
++            if( (_sink.Location()->TimeZone().empty() == false) && (_timezoneoverriden == false) ) {
++                newtimezone = _sink.Location()->TimeZone();
++                _locationinfo.TimeZone(newtimezone);
++            }
++            _adminLock.Unlock();
+ 
+-        if (subSystem != nullptr) {
++            if(newtimezone.empty() == false) {
++                UpdateSystemTimeZone(newtimezone);
++                NotifyTimeZoneChanged(newtimezone);
++            }
++        } else {
++            _adminLock.Lock();
++            // if they are not overriden in the config and we cannot get them from the lookup, set them to default
++            if( (_locationinfo.Latitude() == std::numeric_limits<int32_t>::min()) || (_locationinfo.Longitude() == std::numeric_limits<int32_t>::min()) ) {
++                _locationinfo.Latitude(51977956);
++                _locationinfo.Longitude(5726384);
++            } 
++            _adminLock.Unlock();
++        }
+ 
+-            subSystem->Set(PluginHost::ISubSystem::INTERNET, _sink.Network());
+-            subSystem->Set(PluginHost::ISubSystem::LOCATION, _sink.Location());
+-            subSystem->Release();
++        PluginHost::ISubSystem* subSystem = _service->SubSystems();
++        ASSERT(subSystem != nullptr);
+ 
+-            if ((_sink.Location() != nullptr) && (_sink.Location()->TimeZone().empty() == false)) {
+-#ifndef DISABLE_GEOGRAPHY_TIMEZONE
+-                Core::SystemInfo::SetEnvironment(_T("TZ"), _sink.Location()->TimeZone());
+-#endif
++        if (subSystem != nullptr) { 
++            if( (_activateOnFailure == true) || (_sink.Location() == nullptr) || ( _sink.Valid() == true ) ) { // again _sink.Location() == nullptr should not happen but added to make it backards compatibe
++                subSystem->Set(PluginHost::ISubSystem::INTERNET, _sink.Network());
++                SetLocationSubsystem(*subSystem, false);
++                event_locationchange();
++            } else if(_timezoneoverriden == true) { // if the probing failed but the timezone was explicitely set we only set the location subsystem to pass on the timezone info
++                SetLocationSubsystem(*subSystem, false);
+                 event_locationchange();
+             }
++            subSystem->Release();
++        }
++    }
++
++    void LocationSync::UpdateSystemTimeZone(const string& newtimezone) 
++    {
++        if( newtimezone != FactorySetTimeZone ) {
++            Core::SystemInfo::Instance().SetTimeZone(newtimezone, false);
+         }
+     }
+ 
+diff --git a/LocationSync/LocationSync.h b/LocationSync/LocationSync.h
+index 4bfcf64f..de3b7faf 100644
+--- a/LocationSync/LocationSync.h
++++ b/LocationSync/LocationSync.h
+@@ -20,14 +20,17 @@
+ #ifndef LOCATIONSYNC_LOCATIONSYNC_H
+ #define LOCATIONSYNC_LOCATIONSYNC_H
+ 
++#include "Module.h"
+ #include "LocationService.h"
+ #include <interfaces/json/JsonData_LocationSync.h>
+-#include "Module.h"
++#include <interfaces/ITimeZone.h>
++
++#include <limits>
+ 
+ namespace WPEFramework {
+ namespace Plugin {
+ 
+-    class LocationSync : public PluginHost::IPlugin, public PluginHost::IWeb, public PluginHost::JSONRPC {
++    class LocationSync : public PluginHost::IPlugin, public Exchange::ITimeZone, public PluginHost::IWeb, public PluginHost::JSONRPC {
+     public:
+         class Data : public Core::JSON::Container {
+         public:
+@@ -69,9 +72,7 @@ namespace Plugin {
+             Notification& operator=(const Notification&) = delete;
+ 
+         public:
+-#ifdef __WINDOWS__
+-#pragma warning(disable : 4355)
+-#endif
++PUSH_WARNING(DISABLE_WARNING_THIS_IN_MEMBER_INITIALIZER_LIST)
+             explicit Notification(LocationSync* parent)
+                 : _parent(*parent)
+                 , _source()
+@@ -81,9 +82,7 @@ namespace Plugin {
+             {
+                 ASSERT(parent != nullptr);
+             }
+-#ifdef __WINDOWS__
+-#pragma warning(default : 4355)
+-#endif
++POP_WARNING()
+             ~Notification()
+             {
+                 _locator->Release();
+@@ -118,6 +117,11 @@ namespace Plugin {
+             {
+                 return (_locator);
+             }
++            bool Valid() const {
++                ASSERT(_locator != nullptr);
++                return _locator->Valid();
++            }
++
+ 
+         private:
+             inline uint32_t Probe()
+@@ -125,7 +129,7 @@ namespace Plugin {
+ 
+                 ASSERT(_locator != nullptr);
+ 
+-                return (_locator != nullptr ? _locator->Probe(_source, _retries, _interval) : static_cast<uint32_t>(Core::ERROR_UNAVAILABLE));
++                return (_locator != nullptr ? _locator->Probe(_source, (_retries == 0 ? UINT32_MAX : _retries), _interval) : static_cast<uint32_t>(Core::ERROR_UNAVAILABLE));
+             }
+ 
+             void Dispatch() override
+@@ -150,11 +154,19 @@ namespace Plugin {
+             Config()
+                 : Interval(30)
+                 , Retries(8)
++                , ActivateOnFailure(true) // as in some cases startup of the system depends on the Internet and Locatioin subsystems to be flagged this enables the activation of these subsystems even though probing was unsuccesfull  (and for backward compatibility it is even the default)
+                 , Source()
++                , TimeZone()
++                , Latitude(51977956) // Divider 1.000.000
++                , Longitude(5726384) // Divider 1.000.000
+             {
+                 Add(_T("interval"), &Interval);
+                 Add(_T("retries"), &Retries);
++                Add(_T("activateonfailure"), &ActivateOnFailure);
+                 Add(_T("source"), &Source);
++                Add(_T("timezone"), &TimeZone);
++                Add(_T("latitude"), &Latitude);
++                Add(_T("longitude"), &Longitude);
+             }
+             ~Config()
+             {
+@@ -163,22 +175,81 @@ namespace Plugin {
+         public:
+             Core::JSON::DecUInt16 Interval;
+             Core::JSON::DecUInt8 Retries;
++            Core::JSON::Boolean ActivateOnFailure; // as in some cases startup of the system depends on the Internet and Locatioin subsystems to be flagged this enables the activation of these subsystems even though probing was unsuccesfull  (and for backward compatibility it is even the default)
+             Core::JSON::String Source;
++            Core::JSON::String TimeZone;
++            Core::JSON::DecSInt32 Latitude;
++            Core::JSON::DecSInt32 Longitude;
+         };
+ 
+-    private:
++        class LocationInfo :  public PluginHost::ISubSystem::ILocation {
++        public:
++            LocationInfo(const LocationInfo&) = default;
++            LocationInfo(LocationInfo&&) = default;
++            LocationInfo& operator=(const LocationInfo&) = default;
++            LocationInfo& operator=(LocationInfo&&) = default;
++
++            LocationInfo()
++                : _timeZone()
++                , _country()
++                , _region()
++                , _city()
++                , _latitude(std::numeric_limits<int32_t>::min())
++                , _longitude(std::numeric_limits<int32_t>::min())
++            {
++            }
++            LocationInfo(int32_t latitude, int32_t longitude)
++                : _timeZone()
++                , _country()
++                , _region()
++                , _city()
++                , _latitude(latitude)
++                , _longitude(longitude)
++            {
++            }
++            ~LocationInfo() override = default;
++
++        public:
++            BEGIN_INTERFACE_MAP(Location)
++            INTERFACE_ENTRY(PluginHost::ISubSystem::ILocation)
++            END_INTERFACE_MAP
++
++        public:
++            string TimeZone() const override { return _timeZone; }
++            void TimeZone(const string& timezone) { _timeZone = timezone; }
++            string Country() const override { return _country; }
++            void Country(const string& country) { _country = country; }
++            string Region() const override { return _region; }
++            void Region(const string& region) { _region = region; }
++            string City() const override { return _city; }
++            void City(const string& city) { _city = city; }
++            int32_t Latitude() const override { return _latitude; }
++            void Latitude(const int32_t latitude) { _latitude = latitude; }
++            int32_t Longitude() const override { return _longitude; }
++            void Longitude(const int32_t longitude) { _longitude = longitude; }
++
++        private:
++            string _timeZone;
++            string _country;
++            string _region;
++            string _city;
++            int32_t _latitude; 
++            int32_t _longitude;
++        };
++
++    public:
+         LocationSync(const LocationSync&) = delete;
+         LocationSync& operator=(const LocationSync&) = delete;
+ 
+-    public:
+         LocationSync();
+-        ~LocationSync() override;
++        ~LocationSync() override = default;
+ 
+         // Build QueryInterface implementation, specifying all possible interfaces to be returned.
+         BEGIN_INTERFACE_MAP(LocationSync)
+-        INTERFACE_ENTRY(PluginHost::IPlugin)
+-        INTERFACE_ENTRY(PluginHost::IWeb)
+-        INTERFACE_ENTRY(PluginHost::IDispatcher)
++            INTERFACE_ENTRY(PluginHost::IPlugin)
++            INTERFACE_ENTRY(PluginHost::IWeb)
++            INTERFACE_ENTRY(PluginHost::IDispatcher)
++            INTERFACE_ENTRY(Exchange::ITimeZone)
+         END_INTERFACE_MAP
+ 
+     public:
+@@ -193,7 +264,17 @@ namespace Plugin {
+         void Inbound(Web::Request& request) override;
+         Core::ProxyType<Web::Response> Process(const Web::Request& request) override;
+ 
++        //   ITimeZone methods
++        // -------------------------------------------------------------------------------------------------------
++        uint32_t Register(ITimeZone::INotification* sink) override ;
++        uint32_t Unregister(ITimeZone::INotification* sink) override;
++        uint32_t TimeZone(string& timeZone ) const override;
++        uint32_t TimeZone(const string& timeZone) override;
++
+     private:
++        string CurrentTimeZone() const;
++        void NotifyTimeZoneChanged(const string& timezone) const;
++        void SetLocationSubsystem(PluginHost::ISubSystem& subsystem, bool update);
+         void RegisterAll();
+         void UnregisterAll();
+         uint32_t endpoint_sync();
+@@ -201,12 +282,20 @@ namespace Plugin {
+         void event_locationchange();
+ 
+         void SyncedLocation();
++        void UpdateSystemTimeZone(const string& timezone);
+ 
+     private:
++        using TimeZoneObservers = std::list<Exchange::ITimeZone::INotification*>;        
++
+         uint16_t _skipURL;
+         string _source;
+         Core::Sink<Notification> _sink;
+-        PluginHost::IShell* _service;
++        PluginHost::IShell* _service; 
++        bool _timezoneoverriden; 
++        Core::Sink<LocationInfo> _locationinfo;
++        mutable Core::CriticalSection _adminLock;
++        TimeZoneObservers _timezoneoberservers;
++        bool _activateOnFailure;
+     };
+ 
+ } // namespace Plugin
+diff --git a/LocationSync/LocationSync.vcxproj b/LocationSync/LocationSync.vcxproj
+index 4e236405..da21b2b0 100644
+--- a/LocationSync/LocationSync.vcxproj
++++ b/LocationSync/LocationSync.vcxproj
+@@ -29,26 +29,26 @@
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+     <ConfigurationType>DynamicLibrary</ConfigurationType>
+     <UseDebugLibraries>true</UseDebugLibraries>
+-    <PlatformToolset>v142</PlatformToolset>
++    <PlatformToolset>v143</PlatformToolset>
+     <CharacterSet>MultiByte</CharacterSet>
+   </PropertyGroup>
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+     <ConfigurationType>DynamicLibrary</ConfigurationType>
+     <UseDebugLibraries>false</UseDebugLibraries>
+-    <PlatformToolset>v142</PlatformToolset>
++    <PlatformToolset>v143</PlatformToolset>
+     <WholeProgramOptimization>true</WholeProgramOptimization>
+     <CharacterSet>MultiByte</CharacterSet>
+   </PropertyGroup>
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+     <ConfigurationType>DynamicLibrary</ConfigurationType>
+     <UseDebugLibraries>true</UseDebugLibraries>
+-    <PlatformToolset>v142</PlatformToolset>
++    <PlatformToolset>v143</PlatformToolset>
+     <CharacterSet>MultiByte</CharacterSet>
+   </PropertyGroup>
+   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+     <ConfigurationType>DynamicLibrary</ConfigurationType>
+     <UseDebugLibraries>false</UseDebugLibraries>
+-    <PlatformToolset>v142</PlatformToolset>
++    <PlatformToolset>v143</PlatformToolset>
+     <WholeProgramOptimization>true</WholeProgramOptimization>
+     <CharacterSet>MultiByte</CharacterSet>
+   </PropertyGroup>
+@@ -107,6 +107,7 @@
+       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_DEBUG;WEBSERVER_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+       <ConformanceMode>true</ConformanceMode>
+       <AdditionalIncludeDirectories>$(FrameworkPath);$(ContractsPath);$(WindowsPath);$(WindowsPath)zlib</AdditionalIncludeDirectories>
++      <UseStandardPreprocessor>true</UseStandardPreprocessor>
+     </ClCompile>
+     <Link>
+       <SubSystem>Windows</SubSystem>
+@@ -123,6 +124,7 @@
+       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;_DEBUG;WEBSERVER_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+       <ConformanceMode>true</ConformanceMode>
+       <AdditionalIncludeDirectories>$(FrameworkPath);$(ContractsPath);$(WindowsPath);$(WindowsPath)zlib</AdditionalIncludeDirectories>
++      <UseStandardPreprocessor>true</UseStandardPreprocessor>
+     </ClCompile>
+     <Link>
+       <SubSystem>Windows</SubSystem>
+@@ -141,6 +143,7 @@
+       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;WEBSERVER_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+       <ConformanceMode>true</ConformanceMode>
+       <AdditionalIncludeDirectories>$(FrameworkPath);$(ContractsPath);$(WindowsPath);$(WindowsPath)zlib</AdditionalIncludeDirectories>
++      <UseStandardPreprocessor>true</UseStandardPreprocessor>
+     </ClCompile>
+     <Link>
+       <SubSystem>Windows</SubSystem>
+@@ -161,6 +164,7 @@
+       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;NDEBUG;WEBSERVER_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+       <ConformanceMode>true</ConformanceMode>
+       <AdditionalIncludeDirectories>$(FrameworkPath);$(ContractsPath);$(WindowsPath);$(WindowsPath)zlib</AdditionalIncludeDirectories>
++      <UseStandardPreprocessor>true</UseStandardPreprocessor>
+     </ClCompile>
+     <Link>
+       <SubSystem>Windows</SubSystem>
+diff --git a/LocationSync/LocationSyncJsonRpc.cpp b/LocationSync/LocationSyncJsonRpc.cpp
+index 070eff0a..abcfb82c 100644
+--- a/LocationSync/LocationSyncJsonRpc.cpp
++++ b/LocationSync/LocationSyncJsonRpc.cpp
+@@ -32,14 +32,14 @@ namespace Plugin {
+ 
+     void LocationSync::RegisterAll()
+     {
+-        Register<void,void>(_T("sync"), &LocationSync::endpoint_sync, this);
+-        Property<LocationData>(_T("location"), &LocationSync::get_location, nullptr, this);
++        PluginHost::JSONRPC::Register<void,void>(_T("sync"), &LocationSync::endpoint_sync, this);
++        PluginHost::JSONRPC::Property<LocationData>(_T("location"), &LocationSync::get_location, nullptr, this);
+     }
+ 
+     void LocationSync::UnregisterAll()
+     {
+-        Unregister(_T("sync"));
+-        Unregister(_T("location"));
++        PluginHost::JSONRPC::Unregister(_T("sync"));
++        PluginHost::JSONRPC::Unregister(_T("location"));
+     }
+ 
+     // API implementation
