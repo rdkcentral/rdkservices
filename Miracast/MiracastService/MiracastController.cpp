@@ -544,6 +544,10 @@ MiracastError MiracastController::discover_devices(void)
     MiracastError ret = MIRACAST_FAIL;
     if (nullptr != m_p2p_ctrl_obj){
         ret = m_p2p_ctrl_obj->discover_devices();
+        if (nullptr != m_notify_handler)
+        {
+            m_notify_handler->onStateChange(MIRACAST_SERVICE_STATE_DISCOVERABLE);
+        }
     }
     MIRACASTLOG_TRACE("Exiting...");
     return ret;
@@ -555,6 +559,10 @@ MiracastError MiracastController::stop_discover_devices(void)
     MiracastError ret = MIRACAST_FAIL;
     if (nullptr != m_p2p_ctrl_obj){
         ret = m_p2p_ctrl_obj->stop_discover_devices();
+        if (nullptr != m_notify_handler)
+        {
+            m_notify_handler->onStateChange(MIRACAST_SERVICE_STATE_IDLE);
+        }
     }
     MIRACASTLOG_TRACE("Exiting...");
     return ret;
@@ -929,7 +937,8 @@ void MiracastController::Controller_Thread(void *args)
                                         sink_dev_ip = "";
                             std::string modelName = "Miracast-Source",
                                         authType = "pbc",
-                                        deviceType = "unknown";
+                                        deviceType = "unknown",
+                                        result     = "";
                             m_groupInfo = new GroupInfo;
                             size_t found = event_buffer.find("client");
                             size_t found_space = event_buffer.find(" ");
@@ -952,7 +961,7 @@ void MiracastController::Controller_Thread(void *args)
                                     std::size_t secondDash = m_groupInfo->SSID.find("-", firstDash + 1);
                                     if (secondDash != std::string::npos)
                                     {
-                                        std::string result = m_groupInfo->SSID.substr(secondDash + 1);
+                                        result = m_groupInfo->SSID.substr(secondDash + 1);
                                         if (!result.empty())
                                         {
                                             modelName.clear();
@@ -1185,35 +1194,38 @@ void MiracastController::Controller_Thread(void *args)
                 switch (controller_msgq_data.state)
                 {
                     case CONTROLLER_START_DISCOVERING:
-                    {
-                        MIRACASTLOG_INFO("CONTROLLER_START_DISCOVERING Received\n");
-                        set_WFDParameters();
-                        discover_devices();
-                        m_start_discovering_enabled = true;
-                    }
-                    break;
                     case CONTROLLER_STOP_DISCOVERING:
-                    {
-                        MIRACASTLOG_INFO("CONTROLLER_STOP_DISCOVERING Received\n");
-                        stop_session(true);
-                        m_start_discovering_enabled = false;
-                        sleep(2);
-                    }
-                    break;
                     case CONTROLLER_RESTART_DISCOVERING:
                     {
-                        std::string cached_mac_address = get_NewSourceMACAddress(),
-                                    mac_address = controller_msgq_data.source_dev_mac;
-                        MIRACASTLOG_INFO("CONTROLLER_RESTART_DISCOVERING Received\n");
-                        m_connectionStatus = false;
-
-                        if ((!cached_mac_address.empty()) && ( 0 == mac_address.compare(cached_mac_address)))
+                        if (CONTROLLER_START_DISCOVERING == controller_msgq_data.state)
                         {
-                            reset_NewSourceMACAddress();
-                            reset_NewSourceName();
-                            MIRACASTLOG_INFO("[%s] Cached Device info removed...",cached_mac_address.c_str());
+                            MIRACASTLOG_INFO("CONTROLLER_START_DISCOVERING Received\n");
+                            set_WFDParameters();
+                            discover_devices();
+                            m_start_discovering_enabled = true;
                         }
-                        restart_session(m_start_discovering_enabled);
+                        else if (CONTROLLER_STOP_DISCOVERING == controller_msgq_data.state)
+                        {
+                            MIRACASTLOG_INFO("CONTROLLER_STOP_DISCOVERING Received\n");
+                            stop_session(true);
+                            m_start_discovering_enabled = false;
+                            sleep(2);
+                        }
+                        else
+                        {
+                            std::string cached_mac_address = get_NewSourceMACAddress(),
+                            mac_address = controller_msgq_data.source_dev_mac;
+                            MIRACASTLOG_INFO("CONTROLLER_RESTART_DISCOVERING Received\n");
+                            m_connectionStatus = false;
+
+                            if ((!cached_mac_address.empty()) && ( 0 == mac_address.compare(cached_mac_address)))
+                            {
+                                reset_NewSourceMACAddress();
+                                reset_NewSourceName();
+                                MIRACASTLOG_INFO("[%s] Cached Device info removed...",cached_mac_address.c_str());
+                            }
+                            restart_session(m_start_discovering_enabled);
+                        }
                         new_thunder_req_client_connection_sent = false;
                         another_thunder_req_client_connection_sent = false;
                         session_restart_required = true;

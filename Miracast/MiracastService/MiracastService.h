@@ -75,6 +75,7 @@ namespace WPEFramework
             virtual void onMiracastServiceClientConnectionRequest(string client_mac, string client_name) override;
             virtual void onMiracastServiceClientConnectionError(string client_mac, string client_name , eMIRACAST_SERVICE_ERR_CODE error_code ) override;
             virtual void onMiracastServiceLaunchRequest(string src_dev_ip, string src_dev_mac, string src_dev_name, string sink_dev_ip, bool is_connect_req_reported ) override;
+            virtual void onStateChange(eMIRA_SERVICE_STATES state ) override;
 
             BEGIN_INTERFACE_MAP(MiracastService)
             INTERFACE_ENTRY(PluginHost::IPlugin)
@@ -89,8 +90,10 @@ namespace WPEFramework
             bool m_isServiceInitialized;
             bool m_isServiceEnabled;
             std::mutex m_DiscoveryStateMutex;
+            std::recursive_mutex m_EventMutex;
             guint m_FriendlyNameMonitorTimerID{0};
             guint m_WiFiConnectedStateMonitorTimerID{0};
+            guint m_MiracastConnectionMonitorTimerID{0};
             eMIRA_SERVICE_STATES m_eService_state;
             std::string m_src_dev_ip;
             std::string m_src_dev_mac;
@@ -113,6 +116,7 @@ namespace WPEFramework
             static gboolean monitor_friendly_name_timercallback(gpointer userdata);
             void onWIFIStateChangedHandler(const JsonObject &parameters);
             static gboolean monitor_wifi_connection_state_timercallback(gpointer userdata);
+            static gboolean monitor_miracast_connection_timercallback(gpointer userdata);
             bool envGetValue(const char *key, std::string &value);
             eMIRA_SERVICE_STATES getCurrentServiceState(void);
             void changeServiceState(eMIRA_SERVICE_STATES eService_state);

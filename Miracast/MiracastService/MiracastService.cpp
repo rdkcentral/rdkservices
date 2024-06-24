@@ -113,7 +113,8 @@ namespace WPEFramework
 		MiracastService::MiracastService()
 			: PluginHost::JSONRPC(),
 			  m_isServiceInitialized(false),
-			  m_isServiceEnabled(false)
+			  m_isServiceEnabled(false),
+			  m_eService_state(MIRACAST_SERVICE_STATE_IDLE)
 		{
 			LOGINFO("Entering..!!!");
 			MiracastService::_instance = this;
@@ -156,6 +157,11 @@ namespace WPEFramework
 			{
 				g_source_remove(m_WiFiConnectedStateMonitorTimerID);
 				m_WiFiConnectedStateMonitorTimerID = 0;
+			}
+			if (m_MiracastConnectionMonitorTimerID)
+			{
+				g_source_remove(m_MiracastConnectionMonitorTimerID);
+				m_MiracastConnectionMonitorTimerID = 0;
 			}
 			Unregister(METHOD_MIRACAST_SET_ENABLE);
 			Unregister(METHOD_MIRACAST_GET_ENABLE);
@@ -220,8 +226,10 @@ namespace WPEFramework
 						_instance->setPowerState(DEVICE_POWER_STATE_ON);
 						if ((m_IsWakeupFromDeepSleep) && (_instance->m_isServiceEnabled))
 						{
-							LOGINFO("#### MCAST-TRIAGE-OK-PWR Enable Miracast discovery from PwrMgr [%d]",_instance->m_isServiceEnabled);
-							_instance->m_miracast_ctrler_obj->enable_discovery_via_pwrmgr();
+							{lock_guard<recursive_mutex> lock(_instance->m_EventMutex);
+								LOGINFO("#### MCAST-TRIAGE-OK-PWR Enable Miracast discovery from PwrMgr [%d]",_instance->m_isServiceEnabled);
+								_instance->m_miracast_ctrler_obj->enable_discovery_via_pwrmgr();
+							}
 						}
 						else
 						{
@@ -234,8 +242,10 @@ namespace WPEFramework
 						_instance->setPowerState(DEVICE_POWER_STATE_OFF);
 						if(_instance->m_isServiceEnabled )
 						{
-							LOGINFO("#### MCAST-TRIAGE-OK-PWR Miracast Discovery Disabled ####");
-							_instance->setEnable(false);
+							{lock_guard<recursive_mutex> lock(_instance->m_EventMutex);
+								LOGINFO("#### MCAST-TRIAGE-OK-PWR Miracast Discovery Disabled ####");
+								_instance->setEnable(false);
+							}
 						}
 						else
 						{
@@ -426,10 +436,11 @@ namespace WPEFramework
 				{
 					if (!m_isServiceEnabled)
 					{
-						setEnable(true);
-						m_isServiceEnabled = is_enabled;
-						response["message"] = "Successfully enabled the WFD Discovery";
-						changeServiceState(MIRACAST_SERVICE_STATE_DISCOVERABLE);
+						{lock_guard<recursive_mutex> lock(m_EventMutex);
+							setEnable(true);
+							m_isServiceEnabled = is_enabled;
+							response["message"] = "Successfully enabled the WFD Discovery";
+						}
 						success = true;
 					}
 					else
@@ -445,10 +456,11 @@ namespace WPEFramework
 					}
 					else if (m_isServiceEnabled)
 					{
-						setEnable(false);
-						m_isServiceEnabled = is_enabled;
-						response["message"] = "Successfully disabled the WFD Discovery";
-						changeServiceState(MIRACAST_SERVICE_STATE_IDLE);
+						{lock_guard<recursive_mutex> lock(m_EventMutex);
+							setEnable(false);
+							m_isServiceEnabled = is_enabled;
+							response["message"] = "Successfully disabled the WFD Discovery";
+						}
 						success = true;
 					}
 					else
@@ -565,8 +577,18 @@ namespace WPEFramework
 				requestedStatus = parameters["requestStatus"].String();
 				if (("Accept" == requestedStatus) || ("Reject" == requestedStatus))
 				{
+					lock_guard<recursive_mutex> lock(m_EventMutex);
+					eMIRA_SERVICE_STATES current_state = getCurrentServiceState();
 					success = true;
-					if ( MIRACAST_SERVICE_STATE_DIRECT_LAUCH_REQUESTED == getCurrentServiceState() )
+
+					if (m_MiracastConnectionMonitorTimerID)
+					{
+						g_source_remove(m_MiracastConnectionMonitorTimerID);
+						m_MiracastConnectionMonitorTimerID = 0;
+						MIRACASTLOG_INFO("#### Removing Miracast Connection Monitor Timer ####");
+					}
+
+					if ( MIRACAST_SERVICE_STATE_DIRECT_LAUCH_REQUESTED == current_state)
 					{
 						if ("Accept" == requestedStatus)
 						{
@@ -575,9 +597,10 @@ namespace WPEFramework
 						}
 						else
 						{
+							changeServiceState(MIRACAST_SERVICE_STATE_CONNECTION_REJECTED);
 							m_miracast_ctrler_obj->restart_session_discovery(m_src_dev_mac);
 							m_miracast_ctrler_obj->m_ePlayer_state = MIRACAST_PLAYER_STATE_IDLE;
-							changeServiceState(MIRACAST_SERVICE_STATE_DISCOVERABLE);
+							changeServiceState(MIRACAST_SERVICE_STATE_RESTARTING_SESSION);
 							MIRACASTLOG_INFO("#### Refreshing the Session ####");
 						}
 						m_src_dev_ip.clear();
@@ -587,14 +610,28 @@ namespace WPEFramework
 					}
 					else
 					{
-						m_miracast_ctrler_obj->accept_client_connection(requestedStatus);
-						changeServiceState(MIRACAST_SERVICE_STATE_CONNECTION_ACCEPTED);
+						if ( MIRACAST_SERVICE_STATE_CONNECTING == current_state )
+						{
+							m_miracast_ctrler_obj->accept_client_connection(requestedStatus);
+							if ("Accept" == requestedStatus)
+							{
+								changeServiceState(MIRACAST_SERVICE_STATE_CONNECTION_ACCEPTED);
+							}
+							else
+							{
+								changeServiceState(MIRACAST_SERVICE_STATE_CONNECTION_REJECTED);
+							}
+						}
+						else
+						{
+							MIRACASTLOG_INFO("Ignoring '%s' as Session already Refreshed and Current State[%#08X]",requestedStatus.c_str(),current_state);
+						}
 					}
 				}
 				else
 				{
 					response["message"] = "Supported 'requestStatus' parameter values are Accept or Reject";
-					LOGERR("Unsupported param passed [%s].\n", requestedStatus.c_str());
+					LOGERR("Unsupported param passed [%s]", requestedStatus.c_str());
 				}
 			}
 			else
@@ -614,7 +651,10 @@ namespace WPEFramework
 			returnIfStringParamNotFound(parameters, "name");
 			returnIfStringParamNotFound(parameters, "mac");
 
-			if ( MIRACAST_SERVICE_STATE_APP_REQ_TO_ABORT_CONNECTION == getCurrentServiceState() )
+			lock_guard<recursive_mutex> lock(m_EventMutex);
+			eMIRA_SERVICE_STATES current_state = getCurrentServiceState();
+
+			if ( MIRACAST_SERVICE_STATE_CONNECTION_ACCEPTED != current_state )
 			{
 				MIRACASTLOG_WARNING("stopClientConnection Already Received..!!!");
 				response["message"] = "stopClientConnection Already Received";
@@ -641,6 +681,7 @@ namespace WPEFramework
 					{
 						changeServiceState(MIRACAST_SERVICE_STATE_APP_REQ_TO_ABORT_CONNECTION);
 						m_miracast_ctrler_obj->restart_session_discovery(cached_mac_address);
+						changeServiceState(MIRACAST_SERVICE_STATE_RESTARTING_SESSION);
 						success = true;
 					}
 					else
@@ -676,6 +717,7 @@ namespace WPEFramework
 
 			returnIfStringParamNotFound(parameters, "mac");
 			returnIfStringParamNotFound(parameters, "state");
+			lock_guard<recursive_mutex> lock(m_EventMutex);
 			if (parameters.HasLabel("mac"))
 			{
 				getStringParameter("mac", mac);
@@ -718,7 +760,6 @@ namespace WPEFramework
 						}
 					}
 					m_miracast_ctrler_obj->m_ePlayer_state = MIRACAST_PLAYER_STATE_STOPPED;
-					changeServiceState(MIRACAST_SERVICE_STATE_DISCOVERABLE);
 				}
 				else if (player_state == "INITIATED" || player_state == "initiated")
 				{
@@ -738,6 +779,7 @@ namespace WPEFramework
 			{
 				// It will restart the discovering
 				m_miracast_ctrler_obj->restart_session_discovery(mac);
+				changeServiceState(MIRACAST_SERVICE_STATE_RESTARTING_SESSION);
 			}
 
 			MIRACASTLOG_INFO("Player State set to [%s (%d)] for Source device [%s].", player_state.c_str(), (int)m_miracast_ctrler_obj->m_ePlayer_state, mac.c_str());
@@ -1019,6 +1061,7 @@ namespace WPEFramework
 			bool is_another_connect_request = false;
 			MIRACASTLOG_INFO("Entering..!!!");
 
+			lock_guard<recursive_mutex> lock(m_EventMutex);
 			if ( MIRACAST_SERVICE_STATE_PLAYER_LAUNCHED == getCurrentServiceState() )
 			{
 				is_another_connect_request = true;
@@ -1039,6 +1082,7 @@ namespace WPEFramework
 					MiracastCommon::execute_SystemCommand(commandBuffer);
 					sleep(1);
 				}
+				changeServiceState(MIRACAST_SERVICE_STATE_CONNECTING);
 				memset(commandBuffer,0x00,sizeof(commandBuffer));
 				snprintf( commandBuffer,
 						sizeof(commandBuffer),
@@ -1046,6 +1090,7 @@ namespace WPEFramework
 						requestStatus.c_str());
 				MIRACASTLOG_INFO("AutoConnecting [%s - %s] by [%s]",client_name.c_str(),client_mac.c_str(),commandBuffer);
 				MiracastCommon::execute_SystemCommand(commandBuffer);
+				changeServiceState(MIRACAST_SERVICE_STATE_CONNECTION_ACCEPTED);
 			}
 			else
 			{
@@ -1053,6 +1098,10 @@ namespace WPEFramework
 				params["mac"] = client_mac;
 				params["name"] = client_name;
 				sendNotify(EVT_ON_CLIENT_CONNECTION_REQUEST, params);
+				m_src_dev_mac = client_mac;
+				changeServiceState(MIRACAST_SERVICE_STATE_CONNECTING);
+				m_MiracastConnectionMonitorTimerID = g_timeout_add(40000, MiracastService::monitor_miracast_connection_timercallback, this);
+				MIRACASTLOG_INFO("Timer created to Monitor Miracast Connection Status [%u]",m_MiracastConnectionMonitorTimerID);
 			}
 		}
 
@@ -1060,7 +1109,9 @@ namespace WPEFramework
 		{
 			MIRACASTLOG_INFO("Entering..!!!");
 
-			if ( MIRACAST_SERVICE_STATE_APP_REQ_TO_ABORT_CONNECTION != getCurrentServiceState() )
+			lock_guard<recursive_mutex> lock(m_EventMutex);
+
+			if ( MIRACAST_SERVICE_STATE_CONNECTION_ACCEPTED != getCurrentServiceState() )
 			{
 				JsonObject params;
 				params["mac"] = client_mac;
@@ -1068,7 +1119,6 @@ namespace WPEFramework
 				params["error_code"] = std::to_string(error_code);
 				params["reason"] = reasonDescription(error_code);
 				sendNotify(EVT_ON_CLIENT_CONNECTION_ERROR, params);
-				changeServiceState(MIRACAST_SERVICE_STATE_DISCOVERABLE);
 			}
 			else
 			{
@@ -1189,7 +1239,9 @@ namespace WPEFramework
 						case DEVICE_WIFI_STATE_CONNECTING:
 						{
 							MIRACASTLOG_INFO("DEVICE_WIFI_STATE [CONNECTING]");
-							setEnable(false);
+							{lock_guard<recursive_mutex> lock(m_EventMutex);
+								setEnable(false);
+							}
 							if (m_WiFiConnectedStateMonitorTimerID)
 							{
 								g_source_remove(m_WiFiConnectedStateMonitorTimerID);
@@ -1207,7 +1259,9 @@ namespace WPEFramework
 							MIRACASTLOG_INFO("DEVICE_WIFI_STATE [%s]",( DEVICE_WIFI_STATE_CONNECTED == value ) ? "CONNECTED" : "FAILED");
 							if (m_IsWiFiConnetingState)
 							{
-								setEnable(true);
+								{lock_guard<recursive_mutex> lock(m_EventMutex);
+									setEnable(true);
+								}
 								m_IsWiFiConnetingState = false;
 							}
 
@@ -1237,7 +1291,9 @@ namespace WPEFramework
 			{lock_guard<mutex> lck(self->m_DiscoveryStateMutex);
 				if (m_IsWiFiConnetingState)
 				{
-					self->setEnable(true);
+					{lock_guard<recursive_mutex> lock(self->m_EventMutex);
+						self->setEnable(true);
+					}
 					m_IsWiFiConnetingState = false;
 				}
 			}
@@ -1245,8 +1301,23 @@ namespace WPEFramework
 			return G_SOURCE_REMOVE;
 		}
 
+		gboolean MiracastService::monitor_miracast_connection_timercallback(gpointer userdata)
+		{
+			MiracastService *self = (MiracastService *)userdata;
+			MIRACASTLOG_TRACE("Entering..!!!");
+			lock_guard<recursive_mutex> lock(self->m_EventMutex);
+			MIRACASTLOG_INFO("TimerCallback Triggered for Monitor Miracast Connection Expired and Restarting Session...");
+			self->m_miracast_ctrler_obj->restart_session_discovery(self->m_src_dev_mac);
+			self->m_src_dev_mac.clear();
+			self->changeServiceState(MIRACAST_SERVICE_STATE_RESTARTING_SESSION);
+			MIRACASTLOG_TRACE("Exiting..!!!");
+			return G_SOURCE_REMOVE;
+		}
+
 		void MiracastService::onMiracastServiceLaunchRequest(string src_dev_ip, string src_dev_mac, string src_dev_name, string sink_dev_ip, bool is_connect_req_reported )
 		{
+			lock_guard<recursive_mutex> lock(m_EventMutex);
+			eMIRA_SERVICE_STATES current_state = getCurrentServiceState();
 			MIRACASTLOG_INFO("Entering[%u]..!!!",is_connect_req_reported);
 
 			if ( !is_connect_req_reported )
@@ -1259,9 +1330,9 @@ namespace WPEFramework
 				MIRACASTLOG_INFO("Direct Launch request has received. So need to notify connect Request");
 				onMiracastServiceClientConnectionRequest( src_dev_mac, src_dev_name );
 			}
-			else if ( MIRACAST_SERVICE_STATE_APP_REQ_TO_ABORT_CONNECTION == getCurrentServiceState() )
+			else if ( MIRACAST_SERVICE_STATE_CONNECTION_ACCEPTED != current_state )
 			{
-				MIRACASTLOG_INFO("APP_REQ_TO_ABORT_CONNECTION has requested. So no need to notify Launch Request..!!!");
+				MIRACASTLOG_INFO("Session already refreshed, So no need to notify Launch Request. Current state [%#08X]",current_state);
 				//m_miracast_ctrler_obj->restart_session_discovery();
 			}
 			else
@@ -1293,6 +1364,27 @@ namespace WPEFramework
 				}
 				changeServiceState(MIRACAST_SERVICE_STATE_PLAYER_LAUNCHED);
 			}
+		}
+
+		void MiracastService::onStateChange(eMIRA_SERVICE_STATES state)
+		{
+			MIRACASTLOG_INFO("Entering state [%#08X]",state);
+			lock_guard<recursive_mutex> lock(m_EventMutex);
+			switch (state)
+			{
+				case MIRACAST_SERVICE_STATE_IDLE:
+				case MIRACAST_SERVICE_STATE_DISCOVERABLE:
+				{
+					changeServiceState(state);
+				}
+				break;
+				default:
+				{
+
+				}
+				break;
+			}
+			MIRACASTLOG_INFO("Exiting...");
 		}
 
 		eMIRA_SERVICE_STATES MiracastService::getCurrentServiceState(void)
