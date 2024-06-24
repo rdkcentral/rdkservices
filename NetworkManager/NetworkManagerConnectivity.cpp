@@ -149,8 +149,8 @@ namespace WPEFramework
             /* set our custom set of headers */
             curl_easy_setopt(curl_easy_handle, CURLOPT_HTTPHEADER, chunk);
             curl_easy_setopt(curl_easy_handle, CURLOPT_USERAGENT, "RDKCaptiveCheck/1.0");
-            curl_easy_setopt(curl_easy_handle, CURLOPT_CONNECT_ONLY, 1L);
-            if(!headReq) {
+            if(!headReq)
+            {
                // NMLOG_TRACE("curlopt get request");
                 /* HTTPGET request added insted of HTTPHEAD request fix for DELIA-61526 */
                 curl_easy_setopt(curl_easy_handle, CURLOPT_HTTPGET, 1L);
@@ -393,13 +393,13 @@ namespace WPEFramework
         nsm_internetState internetState = nsm_internetState::UNKNOWN;
         // If monitor connectivity is running take the cache value
 
-        if ( doContinuousMonitor && nsm_ipversion::NSM_IPRESOLVE_V4 == ipversion
+        if ( doContinuousMonitor && (nsm_ipversion::NSM_IPRESOLVE_V4 == ipversion || nsm_ipversion::NSM_IPRESOLVE_WHATEVER == ipversion)
                                            && gIpv4InternetState != nsm_internetState::UNKNOWN ) {
             NMLOG_WARNING("Reading Ipv4 internet state cached value %s", getInternetStateString(gIpv4InternetState));
             internetState = gIpv4InternetState;
         }
-        else if ( doContinuousMonitor && nsm_ipversion::NSM_IPRESOLVE_V6 == ipversion
-                                                && gIpv6InternetState != nsm_internetState::UNKNOWN ) {
+        else if ( doContinuousMonitor && (nsm_ipversion::NSM_IPRESOLVE_V6 == ipversion || nsm_ipversion::NSM_IPRESOLVE_WHATEVER == ipversion)
+                                           && gIpv6InternetState != nsm_internetState::UNKNOWN ) {
             NMLOG_WARNING("Reading Ipv6 internet state cached value %s", getInternetStateString(gIpv6InternetState));
             internetState = gIpv6InternetState;
         }
