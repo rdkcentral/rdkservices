@@ -529,28 +529,41 @@ namespace WPEFramework
                 m_timer.stop();
         }
 
-         uint32_t WiFiManager::getErrorCodeMapping(const uint32_t value)
+         bool WiFiManager::ErrorCodeMapping(const uint32_t ipvalue, uint32_t &opvalue)
          {
-             switch (value)
+             bool ret = true;
+
+             switch (ipvalue)
              {
                  case Exchange::INetworkManager::WIFI_STATE_SSID_CHANGED:
-                     return WIFI_SSID_CHANGED;
+                     opvalue = WIFI_SSID_CHANGED;
+		     break;
                  case Exchange::INetworkManager::WIFI_STATE_CONNECTION_LOST:
-                     return WIFI_CONNECTION_LOST;
+		     opvalue = WIFI_CONNECTION_LOST;
+		     break;
                  case Exchange::INetworkManager::WIFI_STATE_CONNECTION_FAILED:
-                     return WIFI_CONNECTION_FAILED;
+                     opvalue = WIFI_CONNECTION_FAILED;
+		     break;
                  case Exchange::INetworkManager::WIFI_STATE_CONNECTION_INTERRUPTED:
-                     return WIFI_CONNECTION_INTERRUPTED;
+                     opvalue = WIFI_CONNECTION_INTERRUPTED;
+		     break;
                  case Exchange::INetworkManager::WIFI_STATE_INVALID_CREDENTIALS:
-                     return WIFI_INVALID_CREDENTIALS;
+                     opvalue = WIFI_INVALID_CREDENTIALS;
+		     break;
                  case Exchange::INetworkManager::WIFI_STATE_SSID_NOT_FOUND:
-                     return WIFI_NO_SSID;
+                     opvalue = WIFI_NO_SSID;
+		     break;
                  case Exchange::INetworkManager::WIFI_STATE_ERROR:
-                     return WIFI_UNKNOWN;
+                     opvalue = WIFI_UNKNOWN;
+		     break;
                  case Exchange::INetworkManager::WIFI_STATE_AUTHENTICATION_FAILED:
-                     return WIFI_AUTH_FAILED;
+                     opvalue = WIFI_AUTH_FAILED;
+                     break;
+                 default:
+                     ret = false;
+                     break;
              }
-             return WIFI_CONNECTION_FAILED;
+             return ret;
         }
 
         /** Event Handling and Publishing */
@@ -559,6 +572,7 @@ namespace WPEFramework
             LOGINFOMETHOD();
             JsonObject legacyResult;
             JsonObject legacyErrorResult;
+            uint32_t errorCode;
             uint32_t state = parameters["state"].Number();
 
             legacyResult["state"] = parameters["state"];
@@ -568,9 +582,8 @@ namespace WPEFramework
 
             if(_gWiFiInstance)
             {
-                if((state== Exchange::INetworkManager::WIFI_STATE_SSID_CHANGED) || (state == Exchange::INetworkManager::WIFI_STATE_CONNECTION_LOST) || (state == Exchange::INetworkManager::WIFI_STATE_CONNECTION_FAILED) || (state == Exchange::INetworkManager::WIFI_STATE_CONNECTION_INTERRUPTED) || (state == Exchange::INetworkManager::WIFI_STATE_INVALID_CREDENTIALS) || (state == Exchange::INetworkManager::WIFI_STATE_SSID_NOT_FOUND) || (state == Exchange::INetworkManager::WIFI_STATE_ERROR) || (state == Exchange::INetworkManager::WIFI_STATE_AUTHENTICATION_FAILED))
+                if(ErrorCodeMapping(state,errorCode))
                 {
-                    uint32_t errorCode = getErrorCodeMapping(state);
                     legacyErrorResult["code"] = errorCode;
                     NMLOG_INFO("Mapped error code: %d", errorCode);
                     NMLOG_INFO("state value before OnError event: %d",  legacyErrorResult["code"].Number());

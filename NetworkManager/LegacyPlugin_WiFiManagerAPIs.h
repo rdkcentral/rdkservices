@@ -100,7 +100,7 @@ namespace WPEFramework {
             void UnregisterLegacyMethods();
             void subscribeToEvents(void);
             static std::string getInterfaceMapping(const std::string &interface);
-            static uint32_t getErrorCodeMapping(const uint32_t value);
+            static bool ErrorCodeMapping(const uint32_t ipvalue , uint32_t &opvalue);
             void activatePrimaryPlugin();
 
         private:
