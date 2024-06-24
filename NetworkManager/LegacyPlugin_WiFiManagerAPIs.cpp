@@ -578,20 +578,17 @@ namespace WPEFramework
             legacyResult["state"] = parameters["state"];
             legacyResult["isLNF"] = false;
 
-            NMLOG_INFO("onWiFiStateChange state value: %d", state);
-
             if(_gWiFiInstance)
             {
-                if(ErrorCodeMapping(state,errorCode))
+                if(ErrorCodeMapping(state, errorCode))
                 {
                     legacyErrorResult["code"] = errorCode;
-                    NMLOG_INFO("Mapped error code: %d", errorCode);
-                    NMLOG_INFO("state value before OnError event: %d",  legacyErrorResult["code"].Number());
-
+                    NMLOG_INFO("onError with errorcode as, %u",  errorCode);
                     _gWiFiInstance->Notify("onError", legacyErrorResult);
                 }
                 else
                 {
+                    NMLOG_INFO("onWiFiStateChange with state as: %u", state);
                     _gWiFiInstance->Notify("onWIFIStateChanged", legacyResult);
                 }
             }
