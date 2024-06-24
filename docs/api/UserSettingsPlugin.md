@@ -53,12 +53,14 @@ UserSettings interface methods:
 | [setcaptionsenabled](#method.setcaptionsenabled) | Setting Captions |
 | [setpreferredcaptionlanguages](#method.setpreferredcaptionlanguages) | Setting PreferredCaption Languages |
 | [setpreferredclosedcaptionservice](#method.setpreferredclosedcaptionservice) | Setting Preferred Closed Caption Service |
+| [setprivacymode](#method.setprivacymode) | Setting PrivacyMode |
 | [getaudiodescription](#method.getaudiodescription) | Returns Audio Description |
 | [getpreferredaudiolanguages](#method.getpreferredaudiolanguages) | Returns Audio Description |
 | [getpresentationlanguages](#method.getpresentationlanguages) | Getting Presentation Languages |
 | [getcaptionsenabled](#method.getcaptionsenabled) | Getting Captions Enabled |
 | [GetPreferredCaptionLanguages](#method.GetPreferredCaptionLanguages) | Getting Preferred Caption Languages |
 | [GetPreferredClosedCaptionService](#method.GetPreferredClosedCaptionService) | Getting Preferred ClosedCaption Service |
+| [getprivacymode](#method.getprivacymode) | Getting PrivacyMode |
 
 
 <a name="method.setaudiodescription"></a>
@@ -312,6 +314,50 @@ No Events
     "id": 42,
     "method": "org.rdk.UserSettings.setpreferredclosedcaptionservice",
     "params": "CC3"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": "null"
+}
+```
+
+<a name="method.setprivacymode"></a>
+## *setprivacymode [<sup>method</sup>](#head.Methods)*
+
+Setting PrivacyMode
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | string | PrivacyMode: DO_NOT_SHARE |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | string | Null string will display |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.UserSettings.setprivacymode",
+    "params": "DO_NOT_SHARE"
 }
 ```
 
@@ -589,6 +635,50 @@ This method takes no parameters.
 }
 ```
 
+<a name="method.getprivacymode"></a>
+## *getprivacymode [<sup>method</sup>](#head.Methods)*
+
+Getting PrivacyMode
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.privacymode | string | A string for the privacy mode. Valid values are SHARE(Default), DO_NOT_SHARE. |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.UserSettings.getprivacymode"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "privacymode": "SHARE"
+    }
+}
+```
+
 <a name="head.Notifications"></a>
 # Notifications
 
@@ -606,6 +696,7 @@ UserSettings interface events:
 | [OnCaptionsChanged](#event.OnCaptionsChanged) | Triggered after the captions changes (see `setcaptionsenabled`) |
 | [OnPreferredCaptionsLanguagesChanged](#event.OnPreferredCaptionsLanguagesChanged) | Triggered after the PreferredCaption Languages changes (see `setpreferredcaptionlanguages`) |
 | [OnPreferredClosedCaptionServiceChanged](#event.OnPreferredClosedCaptionServiceChanged) | Triggered after the Preferred Closed Caption changes (see `setpreferredclosedcaptionservice`) |
+| [OnPrivacyModeChanged](#event.OnPrivacyModeChanged) | Triggered after the Privacy Mode changes (see `setprivacymode`) |
 
 
 <a name="event.OnAudioDescriptionChanged"></a>
@@ -752,3 +843,26 @@ Triggered after the Preferred Closed Caption changes (see `setpreferredclosedcap
 }
 ```
 
+<a name="event.OnPrivacyModeChanged"></a>
+## *OnPrivacyModeChanged [<sup>event</sup>](#head.Notifications)*
+
+Triggered after the Privacy Mode changes (see `setprivacymode`).
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.PrivacyModeChanged | string | Receive Privacy Mode changes |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.OnPrivacyModeChanged",
+    "params": {
+        "PrivacyModeChanged": "DO_NOT_SHARE"
+    }
+}
+```
