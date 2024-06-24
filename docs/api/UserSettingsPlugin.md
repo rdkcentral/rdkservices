@@ -50,15 +50,15 @@ UserSettings interface methods:
 | [setaudiodescription](#method.setaudiodescription) | Setting Audio Description |
 | [setpreferredaudiolanguages](#method.setpreferredaudiolanguages) | Setting Preferred Audio Languages |
 | [setpresentationlanguages](#method.setpresentationlanguages) | Setting Presentation Languages |
-| [setcaptionsenabled](#method.setcaptionsenabled) | Setting Captions |
+| [setcaptions](#method.setcaptions) | Setting Captions |
 | [setpreferredcaptionlanguages](#method.setpreferredcaptionlanguages) | Setting PreferredCaption Languages |
 | [setpreferredclosedcaptionservice](#method.setpreferredclosedcaptionservice) | Setting Preferred Closed Caption Service |
 | [getaudiodescription](#method.getaudiodescription) | Returns Audio Description |
 | [getpreferredaudiolanguages](#method.getpreferredaudiolanguages) | Returns Audio Description |
 | [getpresentationlanguages](#method.getpresentationlanguages) | Getting Presentation Languages |
-| [getcaptionsenabled](#method.getcaptionsenabled) | Getting Captions Enabled |
-| [GetPreferredCaptionLanguages](#method.GetPreferredCaptionLanguages) | Getting Preferred Caption Languages |
-| [GetPreferredClosedCaptionService](#method.GetPreferredClosedCaptionService) | Getting Preferred ClosedCaption Service |
+| [getcaptions](#method.getcaptions) | Getting Captions Enabled |
+| [getpreferredcaptionslanguages](#method.getpreferredcaptionslanguages) | Getting Preferred Caption Languages |
+| [getpreferredclosedcaptionservice](#method.getpreferredclosedcaptionservice) | Getting Preferred ClosedCaption Service |
 
 
 <a name="method.setaudiodescription"></a>
@@ -193,8 +193,8 @@ No Events
 }
 ```
 
-<a name="method.setcaptionsenabled"></a>
-## *setcaptionsenabled [<sup>method</sup>](#head.Methods)*
+<a name="method.setcaptions"></a>
+## *setcaptions [<sup>method</sup>](#head.Methods)*
 
 Setting Captions.
 
@@ -222,7 +222,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UserSettings.setcaptionsenabled",
+    "method": "org.rdk.UserSettings.setcaptions",
     "params": true
 }
 ```
@@ -457,8 +457,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getcaptionsenabled"></a>
-## *getcaptionsenabled [<sup>method</sup>](#head.Methods)*
+<a name="method.getcaptions"></a>
+## *getcaptions [<sup>method</sup>](#head.Methods)*
 
 Getting Captions Enabled.
 
@@ -485,7 +485,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UserSettings.getcaptionsenabled"
+    "method": "org.rdk.UserSettings.getcaptions"
 }
 ```
 
@@ -501,8 +501,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.GetPreferredCaptionLanguages"></a>
-## *GetPreferredCaptionLanguages [<sup>method</sup>](#head.Methods)*
+<a name="method.getpreferredcaptionslanguages"></a>
+## *getpreferredcaptionslanguages [<sup>method</sup>](#head.Methods)*
 
 Getting Preferred Caption Languages.
 
@@ -529,7 +529,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UserSettings.GetPreferredCaptionLanguages"
+    "method": "org.rdk.UserSettings.getpreferredcaptionslanguages"
 }
 ```
 
@@ -545,8 +545,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.GetPreferredClosedCaptionService"></a>
-## *GetPreferredClosedCaptionService [<sup>method</sup>](#head.Methods)*
+<a name="method.getpreferredclosedcaptionservice"></a>
+## *getpreferredclosedcaptionservice [<sup>method</sup>](#head.Methods)*
 
 Getting Preferred ClosedCaption Service.
 
@@ -563,7 +563,7 @@ This method takes no parameters.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | result | object |  |
-| result.preferredClosedCaptionService | string | A string for the preferred closed captions service.  Valid values are AUTO, CC[1-4], TEXT[1-4], SERVICE[1-64] where CC and TEXT is CTA-608 and SERVICE is CTA-708.  AUTO indicates that the choice is left to the player |
+| result?.service | string | <sup>*(optional)*</sup> A string for the preferred closed captions service.  Valid values are AUTO, CC[1-4], TEXT[1-4], SERVICE[1-64] where CC and TEXT is CTA-608 and SERVICE is CTA-708.  AUTO indicates that the choice is left to the player |
 
 ### Example
 
@@ -573,7 +573,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UserSettings.GetPreferredClosedCaptionService"
+    "method": "org.rdk.UserSettings.getpreferredclosedcaptionservice"
 }
 ```
 
@@ -584,7 +584,7 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
-        "preferredClosedCaptionService": "CC3"
+        "service": "CC3"
     }
 }
 ```
@@ -600,16 +600,16 @@ UserSettings interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [OnAudioDescriptionChanged](#event.OnAudioDescriptionChanged) | Triggered after the audio description changes (see `setaudiodescription`) |
-| [OnPreferredAudioLanguagesChanged](#event.OnPreferredAudioLanguagesChanged) | Triggered after the audio preferred Audio languages changes (see `setpreferredaudiolanguages`) |
-| [OnPresentationLanguageChanged](#event.OnPresentationLanguageChanged) | Triggered after the Presentation Language changes (see `setpresentationlanguages`) |
-| [OnCaptionsChanged](#event.OnCaptionsChanged) | Triggered after the captions changes (see `setcaptionsenabled`) |
-| [OnPreferredCaptionsLanguagesChanged](#event.OnPreferredCaptionsLanguagesChanged) | Triggered after the PreferredCaption Languages changes (see `setpreferredcaptionlanguages`) |
-| [OnPreferredClosedCaptionServiceChanged](#event.OnPreferredClosedCaptionServiceChanged) | Triggered after the Preferred Closed Caption changes (see `setpreferredclosedcaptionservice`) |
+| [onaudiodescriptionchanged](#event.onaudiodescriptionchanged) | Triggered after the audio description changes (see `setaudiodescription`) |
+| [onpreferredaudiolanguageschanged](#event.onpreferredaudiolanguageschanged) | Triggered after the audio preferred Audio languages changes (see `setpreferredaudiolanguages`) |
+| [onpresentationlanguagechanged](#event.onpresentationlanguagechanged) | Triggered after the Presentation Language changes (see `setpresentationlanguages`) |
+| [oncaptionschanged](#event.oncaptionschanged) | Triggered after the captions changes (see `setcaptionsenabled`) |
+| [onpreferredcaptionslanguageschanged](#event.onpreferredcaptionslanguageschanged) | Triggered after the PreferredCaption Languages changes (see `setpreferredcaptionlanguages`) |
+| [onpreferredclosedcaptionservicechanged](#event.onpreferredclosedcaptionservicechanged) | Triggered after the Preferred Closed Caption changes (see `setpreferredclosedcaptionservice`) |
 
 
-<a name="event.OnAudioDescriptionChanged"></a>
-## *OnAudioDescriptionChanged [<sup>event</sup>](#head.Notifications)*
+<a name="event.onaudiodescriptionchanged"></a>
+## *onaudiodescriptionchanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the audio description changes (see `setaudiodescription`).
 
@@ -625,15 +625,15 @@ Triggered after the audio description changes (see `setaudiodescription`).
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.OnAudioDescriptionChanged",
+    "method": "client.events.onaudiodescriptionchanged",
     "params": {
         "enabled": true
     }
 }
 ```
 
-<a name="event.OnPreferredAudioLanguagesChanged"></a>
-## *OnPreferredAudioLanguagesChanged [<sup>event</sup>](#head.Notifications)*
+<a name="event.onpreferredaudiolanguageschanged"></a>
+## *onpreferredaudiolanguageschanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the audio preferred Audio languages changes (see `setpreferredaudiolanguages`).
 
@@ -649,15 +649,15 @@ Triggered after the audio preferred Audio languages changes (see `setpreferredau
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.OnPreferredAudioLanguagesChanged",
+    "method": "client.events.onpreferredaudiolanguageschanged",
     "params": {
         "PreferredAudioLanguagesChanged": "eng"
     }
 }
 ```
 
-<a name="event.OnPresentationLanguageChanged"></a>
-## *OnPresentationLanguageChanged [<sup>event</sup>](#head.Notifications)*
+<a name="event.onpresentationlanguagechanged"></a>
+## *onpresentationlanguagechanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the Presentation Language changes (see `setpresentationlanguages`).
 
@@ -673,15 +673,15 @@ Triggered after the Presentation Language changes (see `setpresentationlanguages
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.OnPresentationLanguageChanged",
+    "method": "client.events.onpresentationlanguagechanged",
     "params": {
         "PresentationLanguageChanged": "en-US"
     }
 }
 ```
 
-<a name="event.OnCaptionsChanged"></a>
-## *OnCaptionsChanged [<sup>event</sup>](#head.Notifications)*
+<a name="event.oncaptionschanged"></a>
+## *oncaptionschanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the captions changes (see `setcaptionsenabled`).
 
@@ -697,15 +697,15 @@ Triggered after the captions changes (see `setcaptionsenabled`).
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.OnCaptionsChanged",
+    "method": "client.events.oncaptionschanged",
     "params": {
         "enabled": true
     }
 }
 ```
 
-<a name="event.OnPreferredCaptionsLanguagesChanged"></a>
-## *OnPreferredCaptionsLanguagesChanged [<sup>event</sup>](#head.Notifications)*
+<a name="event.onpreferredcaptionslanguageschanged"></a>
+## *onpreferredcaptionslanguageschanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the PreferredCaption Languages changes (see `setpreferredcaptionlanguages`).
 
@@ -721,15 +721,15 @@ Triggered after the PreferredCaption Languages changes (see `setpreferredcaption
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.OnPreferredCaptionsLanguagesChanged",
+    "method": "client.events.onpreferredcaptionslanguageschanged",
     "params": {
         "PreferredCaptionsLanguagesChanged": "eng"
     }
 }
 ```
 
-<a name="event.OnPreferredClosedCaptionServiceChanged"></a>
-## *OnPreferredClosedCaptionServiceChanged [<sup>event</sup>](#head.Notifications)*
+<a name="event.onpreferredclosedcaptionservicechanged"></a>
+## *onpreferredclosedcaptionservicechanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the Preferred Closed Caption changes (see `setpreferredclosedcaptionservice`).
 
@@ -745,7 +745,7 @@ Triggered after the Preferred Closed Caption changes (see `setpreferredclosedcap
 ```json
 {
     "jsonrpc": "2.0",
-    "method": "client.events.OnPreferredClosedCaptionServiceChanged",
+    "method": "client.events.onpreferredclosedcaptionservicechanged",
     "params": {
         "PreferredClosedCaptionServiceChanged": "eng"
     }

@@ -76,7 +76,7 @@
                 "example": "null"
             }
         },
-        "setcaptionsenabled": {
+        "setcaptions": {
             "summary": "Setting Captions.",
             "params": {
                 "summary": "Captions Enabled: true/false",
@@ -157,7 +157,7 @@
                 ]
             }
         },
-        "getcaptionsenabled":{
+        "getcaptions":{
             "summary": "Getting Captions Enabled.",
             "result": {
                 "type": "object",
@@ -171,7 +171,7 @@
                 ]
             }
         },
-        "GetPreferredCaptionLanguages":{
+        "getpreferredcaptionslanguages":{
             "summary": "Getting Preferred Caption Languages.",
             "result": {
                 "type": "object",
@@ -185,12 +185,12 @@
                 ]
             }
         },
-        "GetPreferredClosedCaptionService":{
+        "getpreferredclosedcaptionservice":{
             "summary": "Getting Preferred ClosedCaption Service.",
             "result": {
                 "type": "object",
                 "properties": {
-                    "preferredClosedCaptionService": {
+                    "service": {
                         "$ref": "#/definitions/preferredClosedCaptionService"
                     }
                 },
@@ -201,7 +201,7 @@
         }
     },
     "events": {
-        "OnAudioDescriptionChanged": {
+        "onaudiodescriptionchanged": {
             "summary": "Triggered after the audio description changes (see `setaudiodescription`)",
             "params": {
                 "type": "object",
@@ -217,7 +217,7 @@
                 ]
             }
         },
-        "OnPreferredAudioLanguagesChanged": {
+        "onpreferredaudiolanguageschanged": {
             "summary": "Triggered after the audio preferred Audio languages changes (see `setpreferredaudiolanguages`)",
             "params": {
                 "type": "object",
@@ -233,7 +233,7 @@
                 ]
             }
         },
-        "OnPresentationLanguageChanged": {
+        "onpresentationlanguagechanged": {
             "summary": "Triggered after the Presentation Language changes (see `setpresentationlanguages`)",
             "params": {
                 "type": "object",
@@ -249,7 +249,7 @@
                 ]
             }
         },
-        "OnCaptionsChanged": {
+        "oncaptionschanged": {
             "summary": "Triggered after the captions changes (see `setcaptionsenabled`)",
             "params": {
                 "type": "object",
@@ -265,7 +265,7 @@
                 ]
             }
         },
-        "OnPreferredCaptionsLanguagesChanged": {
+        "onpreferredcaptionslanguageschanged": {
             "summary": "Triggered after the PreferredCaption Languages changes (see `setpreferredcaptionlanguages`)",
             "params": {
                 "type": "object",
@@ -281,7 +281,7 @@
                 ]
             }
         },
-        "OnPreferredClosedCaptionServiceChanged": {
+        "onpreferredclosedcaptionservicechanged": {
             "summary": "Triggered after the Preferred Closed Caption changes (see `setpreferredclosedcaptionservice`)",
             "params": {
                 "type": "object",
