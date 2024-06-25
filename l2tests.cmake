@@ -87,6 +87,17 @@ add_compile_options(-Wall -Werror)
 
 add_link_options(-Wl,-wrap,system -Wl,-wrap,setmntent -Wl,-wrap,getmntent -Wl,-wrap,v_secure_popen -Wl,-wrap,v_secure_pclose -Wl,-wrap,v_secure_system -Wl,-wrap,readlink)
 
+if (USE_THUNDER_R4)
+add_definitions(
+         -DUSE_IARMBUS
+         -DRFC_ENABLED
+         -DUSE_DS
+         -DENABLE_THERMAL_PROTECTION
+         -DHAS_API_SYSTEM
+         -DHAS_API_POWERSTATE
+         -DUNIT_TESTING
+)
+else ()
 add_definitions(
          -DUSE_IARMBUS
          -DRFC_ENABLED
@@ -97,7 +108,7 @@ add_definitions(
          -DHAS_RBUS
          -DUNIT_TESTING
 )
-
+endif (USE_THUNDER_R4)
 
 message("Setting build options")
 set(CMAKE_DISABLE_FIND_PACKAGE_DS ON)
@@ -110,21 +121,25 @@ set(CMAKE_DISABLE_FIND_PACKAGE_Dobby ON)
 set(CMAKE_DISABLE_FIND_PACKAGE_CEC ON)
 set(PLUGIN_SYSTEMSERVICES ON)
 set(PLUGIN_WAREHOUSE ON)
-set(PLUGIN_TELEMETRY ON)
 
 # We are not compiling TEXTTOSPEECH, NETWORK, HDCPPROFILE plugins for Thunder R4 as
 # this work is not in this scope. In future we will enable these plugins for Thunder R4.
 if (USE_THUNDER_R4)
+set(PLUGIN_PERSISTENTSTORE ON)
+set(PLUGIN_USERSETTINGS ON)
 set(PLUGIN_HDCPPROFILE OFF)
 set(PLUGIN_NETWORK OFF)
 set(PLUGIN_TEXTTOSPEECH OFF)
+set(PLUGIN_TELEMETRY OFF)
+set(PLUGIN_USBACCESS OFF)
 else ()
 set(PLUGIN_HDCPPROFILE ON)
 set(PLUGIN_NETWORK ON)
 set(PLUGIN_TEXTTOSPEECH ON)
+set(PLUGIN_TELEMETRY ON)
+set(PLUGIN_USBACCESS ON)
 endif (USE_THUNDER_R4)
 
-set(PLUGIN_USBACCESS ON)
 set(PLUGIN_L2Tests ON)
 set(BUILD_SHARED_LIBS ON)
 set(DS_FOUND ON)

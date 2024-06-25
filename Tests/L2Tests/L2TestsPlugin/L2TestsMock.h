@@ -19,7 +19,6 @@
 #pragma once
 
 #include <websocket/JSONRPCLink.h>
-
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include "UtilsJsonRpc.h"
@@ -51,7 +50,6 @@ protected:
         VideoOutputPortMock *p_videoOutputPortMock = nullptr;
         RBusApiImplMock *p_rBusApiImplMock = nullptr;
         TelemetryApiImplMock   *p_telemetryApiImplMock = nullptr ;
-
         std::string thunder_address;
 
         L2TestMocks();

@@ -1,0 +1,602 @@
+commit dbfa64739f8f6ac9be268af6811823da7f3aa666
+Author: Siva Thandayuthapani <sithanda@synamedia.com>
+Date:   Tue Jun 18 11:45:39 2024 +0530
+
+    R4.4.1 L2 test 0001-RDK-45037-Secure-Storage-Thunder-Plugin.patch
+
+diff --git a/interfaces/IStore2.h b/interfaces/IStore2.h
+new file mode 100644
+index 0000000..6f4810e
+--- /dev/null
++++ b/interfaces/IStore2.h
+@@ -0,0 +1,87 @@
++/*
++ * If not stated otherwise in this file or this component's LICENSE file the
++ * following copyright and licenses apply:
++ *
++ * Copyright 2022 Metrological
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#pragma once
++
++#include "Module.h"
++
++// @stubgen:include <com/IIteratorType.h>
++
++namespace WPEFramework {
++namespace Exchange {
++
++    struct EXTERNAL IStore2 : virtual public Core::IUnknown {
++        enum { ID = ID_STORE2 };
++
++        ~IStore2() override = default;
++
++        enum ScopeType : uint8_t {
++            DEVICE,
++            ACCOUNT
++        };
++
++        struct EXTERNAL INotification : virtual public Core::IUnknown {
++            enum { ID = ID_STORE2_NOTIFICATION };
++
++            ~INotification() override = default;
++
++            virtual void ValueChanged(const ScopeType scope, const string& ns, const string& key, const string& value) = 0;
++        };
++
++        virtual uint32_t Register(Exchange::IStore2::INotification* notification) = 0;
++        virtual uint32_t Unregister(Exchange::IStore2::INotification* notification) = 0;
++
++        virtual uint32_t SetValue(const ScopeType scope, const string& ns, const string& key, const string& value, const uint32_t ttl) = 0;
++        virtual uint32_t GetValue(const ScopeType scope, const string& ns, const string& key, string& value /* @out */, uint32_t& ttl /* @out */) = 0;
++        virtual uint32_t DeleteKey(const ScopeType scope, const string& ns, const string& key) = 0;
++        virtual uint32_t DeleteNamespace(const ScopeType scope, const string& ns) = 0;
++    };
++
++    struct EXTERNAL IStoreInspector : virtual public Core::IUnknown {
++        enum { ID = ID_STORE_INSPECTOR };
++
++        ~IStoreInspector() override = default;
++
++        struct NamespaceSize {
++            string ns;
++            uint32_t size;
++        };
++
++        using ScopeType = IStore2::ScopeType;
++        using IStringIterator = RPC::IIteratorType<string, RPC::ID_STRINGITERATOR>;
++        using INamespaceSizeIterator = RPC::IIteratorType<NamespaceSize, ID_STORE_INSPECTOR_NAMESPACE_SIZE_ITERATOR>;
++
++        virtual uint32_t GetKeys(const ScopeType scope, const string& ns, IStringIterator*& keys /* @out */) = 0;
++        virtual uint32_t GetNamespaces(const ScopeType scope, IStringIterator*& namespaces /* @out */) = 0;
++        virtual uint32_t GetStorageSizes(const ScopeType scope, INamespaceSizeIterator*& storageList /* @out */) = 0;
++    };
++
++    struct EXTERNAL IStoreLimit : virtual public Core::IUnknown {
++        enum { ID = ID_STORE_LIMIT };
++
++        ~IStoreLimit() override = default;
++
++        using ScopeType = IStore2::ScopeType;
++
++        virtual uint32_t SetNamespaceStorageLimit(const ScopeType scope, const string& ns, const uint32_t size) = 0;
++        virtual uint32_t GetNamespaceStorageLimit(const ScopeType scope, const string& ns, uint32_t& size /* @out */) = 0;
++    };
++
++} // namespace Exchange
++} // namespace WPEFramework
+diff --git a/interfaces/Ids.h b/interfaces/Ids.h
+index 2932adf..64151cf 100644
+--- a/interfaces/Ids.h
++++ b/interfaces/Ids.h
+@@ -313,6 +313,11 @@ namespace Exchange {
+         ID_STORE                                     = RPC::IDS::ID_EXTERNAL_INTERFACE_OFFSET + 0x440,
+         ID_STORE_NOTIFICATION                        = ID_STORE + 1,
+         ID_STORE_CACHE                               = ID_STORE + 2,
++        ID_STORE2                                    = ID_STORE + 3,
++        ID_STORE2_NOTIFICATION                       = ID_STORE + 4,
++        ID_STORE_INSPECTOR                           = ID_STORE + 5,
++        ID_STORE_INSPECTOR_NAMESPACE_SIZE_ITERATOR   = ID_STORE + 6,
++        ID_STORE_LIMIT                               = ID_STORE + 7,
+ 
+         ID_LISA                                      = RPC::IDS::ID_EXTERNAL_INTERFACE_OFFSET + 0x450,
+         ID_LISA_NOTIFICATION                         = ID_LISA + 1,
+diff --git a/jsonrpc/PersistentStore.json b/jsonrpc/PersistentStore.json
+new file mode 100644
+index 0000000..0eab341
+--- /dev/null
++++ b/jsonrpc/PersistentStore.json
+@@ -0,0 +1,480 @@
++{
++  "$schema": "interface.schema.json",
++  "jsonrpc": "2.0",
++  "info": {
++    "title": "PertsistentStore API",
++    "class": "PersistentStore",
++    "description": "Persistent Store JSON-RPC interface"
++  },
++  "common": {
++    "$ref": "common.json"
++  },
++  "definitions": {
++    "namespace": {
++      "summary": "Namespace",
++      "type": "string",
++      "example": "ns1"
++    },
++    "key": {
++      "summary": "Key",
++      "type": "string",
++      "example": "key1"
++    },
++    "value": {
++      "summary": "Value",
++      "type": "string",
++      "example": "value1"
++    },
++    "scope": {
++      "summary": "Scope",
++      "type": "string",
++      "enum": [
++        "device",
++        "account"
++      ],
++      "default": "device",
++      "example": "device"
++    },
++    "size": {
++      "summary": "Size in bytes",
++      "type": "number",
++      "example": 100
++    },
++    "ttl": {
++      "summary": "Time in seconds",
++      "type": "number",
++      "example": 100
++    },
++    "success": {
++      "summary": "Legacy parameter (always true)",
++      "type": "boolean",
++      "default": true,
++      "example": true
++    }
++  },
++  "methods": {
++    "deleteKey": {
++      "summary": "Deletes a key from the specified namespace",
++      "params": {
++        "type": "object",
++        "properties": {
++          "namespace": {
++            "$ref": "#/definitions/namespace"
++          },
++          "key": {
++            "$ref": "#/definitions/key"
++          },
++          "scope": {
++            "$ref": "#/definitions/scope"
++          }
++        },
++        "required": [
++          "namespace",
++          "key"
++        ]
++      },
++      "result": {
++        "type": "object",
++        "properties": {
++          "success": {
++            "$ref": "#/definitions/success"
++          }
++        },
++        "required": [
++          "success"
++        ]
++      },
++      "errors": [
++        {
++          "description": "Unknown error",
++          "$ref": "#/common/errors/general"
++        }
++      ]
++    },
++    "deleteNamespace": {
++      "summary": "Deletes the specified namespace",
++      "params": {
++        "type": "object",
++        "properties": {
++          "namespace": {
++            "$ref": "#/definitions/namespace"
++          },
++          "scope": {
++            "$ref": "#/definitions/scope"
++          }
++        },
++        "required": [
++          "namespace"
++        ]
++      },
++      "result": {
++        "type": "object",
++        "properties": {
++          "success": {
++            "$ref": "#/definitions/success"
++          }
++        },
++        "required": [
++          "success"
++        ]
++      },
++      "errors": [
++        {
++          "description": "Unknown error",
++          "$ref": "#/common/errors/general"
++        }
++      ]
++    },
++    "flushCache": {
++      "summary": "Flushes the device cache",
++      "result": {
++        "type": "object",
++        "properties": {
++          "success": {
++            "$ref": "#/definitions/success"
++          }
++        },
++        "required": [
++          "success"
++        ]
++      },
++      "errors": [
++        {
++          "description": "Unknown error",
++          "$ref": "#/common/errors/general"
++        }
++      ]
++    },
++    "getKeys": {
++      "summary": "Returns the keys that are stored in the specified namespace",
++      "params": {
++        "type": "object",
++        "properties": {
++          "namespace": {
++            "$ref": "#/definitions/namespace"
++          },
++          "scope": {
++            "$ref": "#/definitions/scope"
++          }
++        },
++        "required": [
++          "namespace"
++        ]
++      },
++      "result": {
++        "type": "object",
++        "properties": {
++          "keys": {
++            "type": "array",
++            "items": {
++              "$ref": "#/definitions/key"
++            }
++          },
++          "success": {
++            "$ref": "#/definitions/success"
++          }
++        },
++        "required": [
++          "keys",
++          "success"
++        ]
++      },
++      "errors": [
++        {
++          "description": "Unknown error",
++          "$ref": "#/common/errors/general"
++        }
++      ]
++    },
++    "getNamespaces": {
++      "summary": "Returns the namespaces",
++      "params": {
++        "type": "object",
++        "properties": {
++          "scope": {
++            "$ref": "#/definitions/scope"
++          }
++        },
++        "required": []
++      },
++      "result": {
++        "type": "object",
++        "properties": {
++          "namespaces": {
++            "type": "array",
++            "items": {
++              "$ref": "#/definitions/namespace"
++            }
++          },
++          "success": {
++            "$ref": "#/definitions/success"
++          }
++        },
++        "required": [
++          "namespaces",
++          "success"
++        ]
++      },
++      "errors": [
++        {
++          "description": "Unknown error",
++          "$ref": "#/common/errors/general"
++        }
++      ]
++    },
++    "getStorageSizes": {
++      "summary": "Returns the size occupied by each namespace",
++      "params": {
++        "type": "object",
++        "properties": {
++          "scope": {
++            "$ref": "#/definitions/scope"
++          }
++        },
++        "required": []
++      },
++      "result": {
++        "type": "object",
++        "properties": {
++          "storageList": {
++            "type": "array",
++            "items": {
++              "type": "object",
++              "properties": {
++                "namespace": {
++                  "$ref": "#/definitions/namespace"
++                },
++                "size": {
++                  "$ref": "#/definitions/size"
++                }
++              },
++              "required": [
++                "namespace",
++                "size"
++              ]
++            }
++          }
++        },
++        "required": [
++          "storageList"
++        ]
++      },
++      "errors": [
++        {
++          "description": "Unknown error",
++          "$ref": "#/common/errors/general"
++        }
++      ]
++    },
++    "getValue": {
++      "summary": "Returns the value of a key from the specified namespace",
++      "params": {
++        "type": "object",
++        "properties": {
++          "namespace": {
++            "$ref": "#/definitions/namespace"
++          },
++          "key": {
++            "$ref": "#/definitions/key"
++          },
++          "scope": {
++            "$ref": "#/definitions/scope"
++          }
++        },
++        "required": [
++          "namespace",
++          "key"
++        ]
++      },
++      "result": {
++        "type": "object",
++        "properties": {
++          "value": {
++            "$ref": "#/definitions/value"
++          },
++          "success": {
++            "$ref": "#/definitions/success"
++          },
++          "ttl": {
++            "$ref": "#/definitions/ttl"
++          }
++        },
++        "required": [
++          "value",
++          "success"
++        ]
++      },
++      "errors": [
++        {
++          "description": "Time is not synced",
++          "$ref": "#/common/errors/pendingconditions"
++        },
++        {
++          "description": "Unknown namespace",
++          "$ref": "#/common/errors/notexist"
++        },
++        {
++          "description": "Unknown key",
++          "$ref": "#/common/errors/unknownkey"
++        },
++        {
++          "description": "Unknown error",
++          "$ref": "#/common/errors/general"
++        }
++      ]
++    },
++    "setValue": {
++      "summary": "Sets the value of a key in the the specified namespace",
++      "params": {
++        "type": "object",
++        "properties": {
++          "namespace": {
++            "$ref": "#/definitions/namespace"
++          },
++          "key": {
++            "$ref": "#/definitions/key"
++          },
++          "value": {
++            "$ref": "#/definitions/value"
++          },
++          "scope": {
++            "$ref": "#/definitions/scope"
++          },
++          "ttl": {
++            "$ref": "#/definitions/ttl"
++          }
++        },
++        "required": [
++          "namespace",
++          "key",
++          "value"
++        ]
++      },
++      "result": {
++        "type": "object",
++        "properties": {
++          "success": {
++            "$ref": "#/definitions/success"
++          }
++        },
++        "required": [
++          "success"
++        ]
++      },
++      "errors": [
++        {
++          "description": "Time is not synced",
++          "$ref": "#/common/errors/pendingconditions"
++        },
++        {
++          "description": "Empty/too large namespace or key, or the storage doesn't have enough space",
++          "$ref": "#/common/errors/invalidinputlength"
++        },
++        {
++          "description": "Unknown error",
++          "$ref": "#/common/errors/general"
++        }
++      ]
++    },
++    "setNamespaceStorageLimit": {
++      "summary": "Sets the storage limit for a given namespace",
++      "params": {
++        "type": "object",
++        "properties": {
++          "namespace": {
++            "$ref": "#/definitions/namespace"
++          },
++          "storageLimit": {
++            "$ref": "#/definitions/size"
++          },
++          "scope": {
++            "$ref": "#/definitions/scope"
++          }
++        },
++        "required": [
++          "namespace",
++          "storageLimit"
++        ]
++      },
++      "result": {
++        "$ref": "#/common/results/void"
++      },
++      "errors": [
++        {
++          "description": "Empty/too large namespace, or the storage doesn't have enough space",
++          "$ref": "#/common/errors/invalidinputlength"
++        },
++        {
++          "description": "Unknown error",
++          "$ref": "#/common/errors/general"
++        }
++      ]
++    },
++    "getNamespaceStorageLimit": {
++      "summary": "Returns the storage limit for a given namespace",
++      "params": {
++        "type": "object",
++        "properties": {
++          "namespace": {
++            "$ref": "#/definitions/namespace"
++          },
++          "scope": {
++            "$ref": "#/definitions/scope"
++          }
++        },
++        "required": [
++          "namespace"
++        ]
++      },
++      "result": {
++        "type": "object",
++        "properties": {
++          "storageLimit": {
++            "$ref": "#/definitions/size"
++          }
++        },
++        "required": [
++          "storageLimit"
++        ]
++      },
++      "errors": [
++        {
++          "description": "Unknown namespace",
++          "$ref": "#/common/errors/notexist"
++        },
++        {
++          "description": "Unknown error",
++          "$ref": "#/common/errors/general"
++        }
++      ]
++    }
++  },
++  "events": {
++    "onValueChanged": {
++      "summary": "Triggered whenever any of the values stored are changed using setValue",
++      "params": {
++        "type": "object",
++        "properties": {
++          "namespace": {
++            "$ref": "#/definitions/namespace"
++          },
++          "key": {
++            "$ref": "#/definitions/key"
++          },
++          "value": {
++            "$ref": "#/definitions/value"
++          },
++          "scope": {
++            "$ref": "#/definitions/scope"
++          }
++        },
++        "required": [
++          "namespace",
++          "key",
++          "value",
++          "scope"
++        ]
++      }
++    }
++  }
++}
+\ No newline at end of file
