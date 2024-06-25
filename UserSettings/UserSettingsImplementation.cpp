@@ -649,9 +649,10 @@ uint32_t UserSettingsImplementation::SetPrivacyMode(const string& privacyMode)
 
 uint32_t UserSettingsImplementation::GetPrivacyMode(string &privacyMode) const
 {
-    uint32_t status = Core::ERROR_GENERAL;
+    uint32_t status = Core::ERROR_NONE;
     std::string value = "";
     uint32_t ttl = 0;
+    privacyMode = "";
 
     _adminLock.Lock();
 
@@ -659,15 +660,16 @@ uint32_t UserSettingsImplementation::GetPrivacyMode(string &privacyMode) const
 
     if (nullptr != _remotStoreObject)
     {
-        status = _remotStoreObject->GetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, USERSETTINGS_PRIVACY_MODE_KEY, privacyMode, ttl);
-        if (privacyMode != "SHARE" && privacyMode != "DO_NOT_SHARE") 
-        {
-            LOGWARN("Wrong privacyMode value: '%s', returning default", privacyMode.c_str());
-            privacyMode = "SHARE";
-        }
+        _remotStoreObject->GetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, USERSETTINGS_PRIVACY_MODE_KEY, privacyMode, ttl);
     }
 
     _adminLock.Unlock();
+    
+    if (privacyMode != "SHARE" && privacyMode != "DO_NOT_SHARE") 
+    {
+        LOGWARN("Wrong privacyMode value: '%s', returning default", privacyMode.c_str());
+        privacyMode = "SHARE";
+    }
 
     return status;
 }
