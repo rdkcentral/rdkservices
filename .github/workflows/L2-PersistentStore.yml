@@ -4,9 +4,11 @@ on:
   push:
     paths:
       - PersistentStore/**
+      - .github/workflows/*PersistentStore*.yml
   pull_request:
     paths:
       - PersistentStore/**
+      - .github/workflows/*PersistentStore*.yml
 
 jobs:
   build:
@@ -29,17 +31,10 @@ jobs:
       - name: Build
         working-directory: ${{github.workspace}}
         run: |
-          cmake -S ${GITHUB_REPOSITORY}/PersistentStore -B build/PersistentStore -DCMAKE_INSTALL_PREFIX="install/usr" -DCMAKE_CXX_FLAGS="-Wall -Werror" -DPLUGIN_PERSISTENTSTORE_PATH="/tmp/persistentstore/l2test/test"
+          cmake -S ${GITHUB_REPOSITORY}/PersistentStore -B build/PersistentStore -DCMAKE_INSTALL_PREFIX="install" -DCMAKE_CXX_FLAGS="-Wall -Werror" -DPLUGIN_PERSISTENTSTORE_PATH="/tmp/persistentstore/l2test/test"
           cmake --build build/PersistentStore --target install
 
-# (Optional)
-# Thunder startup:
-# PATH=${PWD}/install/usr/bin:${PATH} LD_LIBRARY_PATH=${PWD}/install/usr/lib:${LD_LIBRARY_PATH} valgrind --tool=memcheck --log-file=valgrind_log --leak-check=yes --show-reachable=yes --track-fds=yes --fair-sched=try WPEFramework -f -c ${PWD}/install/etc/WPEFramework/config.json
+# Usage:
+# PATH=${PWD}/install/bin:${PATH} LD_LIBRARY_PATH=${PWD}/install/lib:${LD_LIBRARY_PATH} valgrind --tool=memcheck --log-file=valgrind_log --leak-check=yes --show-reachable=yes --track-fds=yes --fair-sched=try Thunder -f -c ${PWD}/install/etc/Thunder/config.json
 # (to stop press q & enter)
-# API test:
 # curl -d '{"jsonrpc":"2.0","id":0,"method":"org.rdk.PersistentStore.setValue","params":{"namespace":"test","key":"key1","value":"1","ttl":100}}' http://localhost:55555/jsonrpc
-# curl -d '{"jsonrpc":"2.0","id":0,"method":"org.rdk.PersistentStore.getValue","params":{"namespace":"test","key":"key1"}}' http://localhost:55555/jsonrpc
-# Crash test:
-# kill -SIGFPE $(pidof WPEProcess)
-# Deactivate test:
-# curl -d '{"jsonrpc":"2.0","id":0,"method":"Controller.1.deactivate", "params":{"callsign":"org.rdk.PersistentStore"}}' http://localhost:55555/jsonrpc
