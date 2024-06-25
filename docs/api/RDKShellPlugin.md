@@ -4373,8 +4373,7 @@ Hibernate an application.
 | params | object |  |
 | params.callsign | string | The application callsign |
 | params?.timeout | number | <sup>*(optional)*</sup> Timeout in ms for hibernate procedure |
-| params?.procsequence | array | <sup>*(optional)*</sup> Hibernate sequence of application processes |
-| params?.procsequence[#] | string | <sup>*(optional)*</sup>  |
+| params?.delay | number | <sup>*(optional)*</sup> Hibernate execution delay in ms |
 
 ### Result
 
@@ -4395,9 +4394,7 @@ Hibernate an application.
     "params": {
         "callsign": "Cobalt",
         "timeout": 10000,
-        "procsequence": [
-            "LightningApp-0"
-        ]
+        "delay": 5000
     }
 }
 ```
