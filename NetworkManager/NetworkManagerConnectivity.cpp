@@ -476,8 +476,8 @@ namespace WPEFramework
     {
         ginterfaceStatus = interfaceStatus; /* this will give interface status connected/ disconnected */
         gInternetState = UNKNOWN;
-        gIpv4InternetState = nsm_internetState::UNKNOWN;
-        gIpv6InternetState = nsm_internetState::UNKNOWN;
+        gIpv4InternetState = UNKNOWN;
+        gIpv6InternetState = UNKNOWN;
         if (doConnectivityMonitor)
         {
             cvConnectivityMonitor.notify_one();

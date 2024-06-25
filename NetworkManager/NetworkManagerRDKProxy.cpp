@@ -443,20 +443,11 @@ namespace WPEFramework
                         IARM_BUS_NetSrvMgr_Iface_EventInterfaceConnectionStatus_t *e = (IARM_BUS_NetSrvMgr_Iface_EventInterfaceConnectionStatus_t*) data;
                         interface = e->interface;
                         NMLOG_INFO ("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS :: %s", interface.c_str());
-                        if(interface == "eth0" || interface == "wlan0")
-                        {
-                            if (e->status) {
-                                if (interface == "wlan0") {
-                                    // ip address change event not coming when wifi reconnected
-                                    ::_instance->connectivityMonitor.startConnectivityMonitor(true);
-                                }
+                        if(interface == "eth0" || interface == "wlan0") {
+                            if (e->status)
                                 ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_LINK_UP, interface);
-                            }
-                            else {
+                            else
                                ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_LINK_DOWN, interface);
-                               /* when ever interface down we start connectivity monitor to post noInternet event */
-                               ::_instance->connectivityMonitor.startConnectivityMonitor(false); // false = interface is down, auto exit after retry
-                            }
                         }
                         break;
                     }
@@ -468,11 +459,6 @@ namespace WPEFramework
 
                         if(interface == "eth0" || interface == "wlan0") {
                             ::_instance->ReportIPAddressChangedEvent(interface, e->acquired, e->is_ipv6, string(e->ip_address));
-                            if(e->acquired)
-                            {
-                                /* if ip address acquired we start connectivity monitor */
-                                ::_instance->connectivityMonitor.startConnectivityMonitor(true); // true = interface is up
-                            }
                         }
                         break;
                     }
