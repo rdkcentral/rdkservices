@@ -471,7 +471,7 @@ MiracastError MiracastP2P::discover_devices(void)
     }
     else
     {
-	    command = "P2P_EXT_LISTEN 200 5000";
+	    command = "P2P_EXT_LISTEN 200 1000";
     }
 
     ret = executeCommand(command, NON_GLOBAL_INTERFACE, retBuffer);

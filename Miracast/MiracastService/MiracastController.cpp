@@ -487,12 +487,12 @@ void MiracastController::checkAndInitiateP2PBackendDiscovery(void)
     {
         MIRACASTLOG_INFO("!!! BACKEND P2P DISCOVERY HAS BEEN STARTED !!!");
         /* Enabled the Device Discovery to allow other device to cast */
-        discover_devices();
+        discover_devices(false);
     }
     else
     {
         MIRACASTLOG_INFO("!!! BACKEND P2P DISCOVERY HAS DISABLED !!!");
-        stop_discover_devices();
+        stop_discover_devices(false);
     }
 }
 
@@ -538,13 +538,13 @@ MiracastError MiracastController::set_WFDParameters(void)
     return ret;
 }
 
-MiracastError MiracastController::discover_devices(void)
+MiracastError MiracastController::discover_devices(bool isNotificationRequired)
 {
     MIRACASTLOG_TRACE("Entering...");
     MiracastError ret = MIRACAST_FAIL;
     if (nullptr != m_p2p_ctrl_obj){
         ret = m_p2p_ctrl_obj->discover_devices();
-        if (nullptr != m_notify_handler)
+        if ((nullptr != m_notify_handler) && (isNotificationRequired))
         {
             m_notify_handler->onStateChange(MIRACAST_SERVICE_STATE_DISCOVERABLE);
         }
@@ -553,13 +553,13 @@ MiracastError MiracastController::discover_devices(void)
     return ret;
 }
 
-MiracastError MiracastController::stop_discover_devices(void)
+MiracastError MiracastController::stop_discover_devices(bool isNotificationRequired)
 {
     MIRACASTLOG_TRACE("Entering...");
     MiracastError ret = MIRACAST_FAIL;
     if (nullptr != m_p2p_ctrl_obj){
         ret = m_p2p_ctrl_obj->stop_discover_devices();
-        if (nullptr != m_notify_handler)
+        if ((nullptr != m_notify_handler) && (isNotificationRequired))
         {
             m_notify_handler->onStateChange(MIRACAST_SERVICE_STATE_IDLE);
         }
@@ -1432,7 +1432,27 @@ void MiracastController::switch_launch_request_context(std::string& source_dev_i
     MIRACASTLOG_TRACE("Exiting...");
 }
 
-void MiracastController::enable_discovery_via_pwrmgr(void)
+void MiracastController::start_discoveryAsync(void)
+{
+    CONTROLLER_MSGQ_STRUCT controller_msgq_data = {0};
+    MIRACASTLOG_TRACE("Entering...");
+    MIRACASTLOG_INFO("MIRACAST_SERVICE_WFD_START");
+    controller_msgq_data.state = CONTROLLER_START_DISCOVERING;
+    send_thundermsg_to_controller_thread(controller_msgq_data);
+    MIRACASTLOG_TRACE("Exiting...");
+}
+
+void MiracastController::stop_discoveryAsync(void)
+{
+    CONTROLLER_MSGQ_STRUCT controller_msgq_data = {0};
+    MIRACASTLOG_TRACE("Entering...");
+    MIRACASTLOG_INFO("MIRACAST_SERVICE_WFD_STOP");
+    controller_msgq_data.state = CONTROLLER_STOP_DISCOVERING;
+    send_thundermsg_to_controller_thread(controller_msgq_data);
+    MIRACASTLOG_TRACE("Exiting...");
+}
+
+void MiracastController::restart_discoveryAsync(void)
 {
     CONTROLLER_MSGQ_STRUCT controller_msgq_data = {0};
     MIRACASTLOG_TRACE("Entering...");
