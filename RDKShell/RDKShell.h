@@ -20,6 +20,8 @@
 #pragma once
 
 #include <mutex>
+#include <condition_variable>
+#include <set>
 #include "Module.h"
 #include <rdkshell/rdkshellevents.h>
 #include <rdkshell/rdkshell.h>
@@ -469,6 +471,36 @@ namespace WPEFramework {
                 RDKShell* mShell;
                 std::vector<ICapture::IStore *>mCaptureStorers;
             };
+#ifdef HIBERNATE_SUPPORT_ENABLED
+            class HibernateExecutor {
+                public:
+                HibernateExecutor(RDKShell& shell);
+                HibernateExecutor(const HibernateExecutor&) = delete;
+                HibernateExecutor& operator=(const HibernateExecutor&) = delete;
+                ~HibernateExecutor();
+
+                void schedule(std::string callsign, uint32_t timeoutMs, uint32_t delayMs = 0);
+                void abort(std::string callsign);
+
+                private:
+
+                struct Params {
+                    std::chrono::steady_clock::time_point timePoint;
+                    uint32_t timeoutMs;
+                };
+
+                void run();
+                void hibernateInternal(std::string callsign, uint32_t timeoutMs);
+
+                RDKShell &mShell;
+                std::thread mThread;
+                std::mutex mMutex;
+                std::condition_variable mCondition;
+                std::unordered_map<std::string, Params> mCallsignsExecTimeMap;
+                std::set<std::string> mCallsignsHibernating;
+                bool mRunning;
+            };
+#endif
 
         private/*members*/:
             bool mRemoteShell;
@@ -487,6 +519,9 @@ namespace WPEFramework {
 #ifdef ENABLE_RIALTO_FEATURE
         std::shared_ptr<RialtoConnector>  rialtoConnector;
 #endif //ENABLE_RIALTO_FEATURE
+#ifdef HIBERNATE_SUPPORT_ENABLED
+            HibernateExecutor mHibernateExecutor;
+#endif
         };
 
         struct PluginData

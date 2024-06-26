@@ -64,13 +64,12 @@ enum nsm_connectivity_httpcode {
 
 #define NMCONNECTIVITY_CURL_HEAD_REQUEST          true
 #define NMCONNECTIVITY_CURL_GET_REQUEST           false
-#define NMCONNECTIVITY_DNS_RESOLVE_FILE           "/etc/resolv.dnsmasq"
 
 #define NMCONNECTIVITY_MONITOR_DEFAULT_INTERVAL   60     // sec
 #define NMCONNECTIVITY_MONITOR_MIN_INTERVAL       5      // sec
 #define NMCONNECTIVITY_CURL_REQUEST_TIMEOUT_MS    5000   // ms
 #define NMCONNECTIVITY_NO_INTERNET_RETRY_COUNT    4      // 4 retry
-#define NMCONNECTIVITY_CONN_MONITOR_RETRY_COUNT   4      // 4 retry
+#define NMCONNECTIVITY_CONN_MONITOR_RETRY_COUNT   3      // 3 retry
 #define NMCONNECTIVITY_CAPTIVE_MONITOR_INTERVAL   30     //  sec
 #define NMCONNECTIVITY_CONN_MONITOR_RETRY_INTERVAL   30     //  sec
 
