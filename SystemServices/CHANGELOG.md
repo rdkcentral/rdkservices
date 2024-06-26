@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [2.3.2] - 2024-06-26
+### Fixed
+- Remove the R4 WPEFramework-Interfaces patches and added corresponding code fix
+
 ## [2.3.1] - 2024-06-06
 ### Fixed
 - Added change for file system corruption hang
