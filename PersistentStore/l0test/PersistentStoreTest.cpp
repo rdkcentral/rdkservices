@@ -28,7 +28,7 @@ using ::WPEFramework::JsonData::PersistentStore::GetValueResultData;
 using ::WPEFramework::JsonData::PersistentStore::SetNamespaceStorageLimitParamsData;
 using ::WPEFramework::JsonData::PersistentStore::SetValueParamsData;
 using ::WPEFramework::Plugin::PersistentStore;
-using ::WPEFramework::PluginHost::ILocalDispatcher;
+using ::WPEFramework::PluginHost::IDispatcher;
 using ::WPEFramework::PluginHost::IPlugin;
 using ::WPEFramework::RPC::IStringIterator;
 using ::WPEFramework::RPC::IteratorType;
@@ -79,7 +79,7 @@ TEST_F(APersistentStore, GetsValueInDeviceScopeViaJsonRpc)
     };
     PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
     ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
+    auto jsonRpc = plugin->QueryInterface<IDispatcher>();
     ASSERT_THAT(jsonRpc, NotNull());
     DeleteKeyParamsInfo params;
     params.Namespace = kAppId;
@@ -116,7 +116,7 @@ TEST_F(APersistentStore, GetsValueInAccountScopeViaJsonRpc)
     };
     PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
     ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
+    auto jsonRpc = plugin->QueryInterface<IDispatcher>();
     ASSERT_THAT(jsonRpc, NotNull());
     DeleteKeyParamsInfo params;
     params.Scope = WPEFramework::JsonData::PersistentStore::ScopeType::ACCOUNT;
@@ -154,7 +154,7 @@ TEST_F(APersistentStore, SetsValueInDeviceScopeViaJsonRpc)
     };
     PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
     ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
+    auto jsonRpc = plugin->QueryInterface<IDispatcher>();
     ASSERT_THAT(jsonRpc, NotNull());
     SetValueParamsData params;
     params.Namespace = kAppId;
@@ -189,7 +189,7 @@ TEST_F(APersistentStore, SetsValueInAccountScopeViaJsonRpc)
     };
     PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
     ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
+    auto jsonRpc = plugin->QueryInterface<IDispatcher>();
     ASSERT_THAT(jsonRpc, NotNull());
     SetValueParamsData params;
     params.Scope = WPEFramework::JsonData::PersistentStore::ScopeType::ACCOUNT;
@@ -223,7 +223,7 @@ TEST_F(APersistentStore, DeletesKeyInDeviceScopeViaJsonRpc)
     };
     PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
     ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
+    auto jsonRpc = plugin->QueryInterface<IDispatcher>();
     ASSERT_THAT(jsonRpc, NotNull());
     DeleteKeyParamsInfo params;
     params.Namespace = kAppId;
@@ -254,7 +254,7 @@ TEST_F(APersistentStore, DeletesKeyInAccountScopeViaJsonRpc)
     };
     PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
     ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
+    auto jsonRpc = plugin->QueryInterface<IDispatcher>();
     ASSERT_THAT(jsonRpc, NotNull());
     DeleteKeyParamsInfo params;
     params.Scope = WPEFramework::JsonData::PersistentStore::ScopeType::ACCOUNT;
@@ -285,7 +285,7 @@ TEST_F(APersistentStore, DeletesNamespaceInDeviceScopeViaJsonRpc)
     };
     PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
     ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
+    auto jsonRpc = plugin->QueryInterface<IDispatcher>();
     ASSERT_THAT(jsonRpc, NotNull());
     DeleteNamespaceParamsInfo params;
     params.Namespace = kAppId;
@@ -314,7 +314,7 @@ TEST_F(APersistentStore, DeletesNamespaceInAccountScopeViaJsonRpc)
     };
     PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
     ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
+    auto jsonRpc = plugin->QueryInterface<IDispatcher>();
     ASSERT_THAT(jsonRpc, NotNull());
     DeleteNamespaceParamsInfo params;
     params.Scope = WPEFramework::JsonData::PersistentStore::ScopeType::ACCOUNT;
@@ -339,7 +339,7 @@ TEST_F(APersistentStore, FlushesCacheViaJsonRpc)
     };
     PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
     ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
+    auto jsonRpc = plugin->QueryInterface<IDispatcher>();
     ASSERT_THAT(jsonRpc, NotNull());
     string resultJsonStr;
     EXPECT_THAT(jsonRpc->Invoke(0, 0, "", "flushCache", "", resultJsonStr), Eq(WPEFramework::Core::ERROR_NONE));
@@ -365,7 +365,7 @@ TEST_F(APersistentStore, GetsKeysInDeviceScopeViaJsonRpc)
     };
     PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
     ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
+    auto jsonRpc = plugin->QueryInterface<IDispatcher>();
     ASSERT_THAT(jsonRpc, NotNull());
     DeleteNamespaceParamsInfo params;
     params.Namespace = kAppId;
@@ -402,7 +402,7 @@ TEST_F(APersistentStore, GetsNamespacesInDeviceScopeViaJsonRpc)
     };
     PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
     ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
+    auto jsonRpc = plugin->QueryInterface<IDispatcher>();
     ASSERT_THAT(jsonRpc, NotNull());
     string resultJsonStr;
     ASSERT_THAT(jsonRpc->Invoke(0, 0, "", "getNamespaces", "", resultJsonStr), Eq(WPEFramework::Core::ERROR_NONE));
@@ -435,7 +435,7 @@ TEST_F(APersistentStore, GetsStorageSizesInDeviceScopeViaJsonRpc)
     };
     PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
     ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
+    auto jsonRpc = plugin->QueryInterface<IDispatcher>();
     ASSERT_THAT(jsonRpc, NotNull());
     string resultJsonStr;
     ASSERT_THAT(jsonRpc->Invoke(0, 0, "", "getStorageSizes", "", resultJsonStr), Eq(WPEFramework::Core::ERROR_NONE));
@@ -471,7 +471,7 @@ TEST_F(APersistentStore, GetsNamespaceStorageLimitInDeviceScopeViaJsonRpc)
     };
     PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
     ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
+    auto jsonRpc = plugin->QueryInterface<IDispatcher>();
     ASSERT_THAT(jsonRpc, NotNull());
     DeleteNamespaceParamsInfo params;
     params.Namespace = kAppId;
@@ -504,7 +504,7 @@ TEST_F(APersistentStore, SetsNamespaceStorageLimitInDeviceScopeViaJsonRpc)
     };
     PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
     ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
+    auto jsonRpc = plugin->QueryInterface<IDispatcher>();
     ASSERT_THAT(jsonRpc, NotNull());
     SetNamespaceStorageLimitParamsData params;
     params.Namespace = kAppId;
