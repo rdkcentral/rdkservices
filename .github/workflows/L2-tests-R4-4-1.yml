@@ -109,7 +109,6 @@ jobs:
           -S "${{github.workspace}}/Thunder"
           -B build/Thunder
           -DMESSAGING=ON
-          -DENABLED_TRACING_LEVEL=2
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
           -DBUILD_TYPE=${{env.BUILD_TYPE}}
