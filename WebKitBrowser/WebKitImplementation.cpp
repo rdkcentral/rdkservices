@@ -99,6 +99,9 @@ WK_EXPORT void WKPreferencesSetPageCacheEnabled(WKPreferencesRef preferences, bo
 
 #define URL_LOAD_RESULT_TIMEOUT_MS                                   (15 * 1000)
 
+#define GCCLEANER_PERIOD_SEC 4
+#define GCCLEANER_CLEANUP_TIMES 4
+
 namespace
 {
     static constexpr char ENV_WPE_CLIENT_CERTIFICATES_PATH[] = "/etc/ssl/private/";
@@ -968,6 +971,78 @@ static GSourceFuncs _handlerIntervention =
 
             HangDetector(const HangDetector&) = delete;
             HangDetector& operator=(const HangDetector&) = delete;
+        };
+
+        class GCCleaner
+        {
+            WebKitImplementation& _browser;
+            GSource* _timerSource { nullptr };
+
+            std::atomic_int gc_executed_since_last_start;
+            public:
+
+            void start() {
+                if (_timerSource) {
+                    TRACE(Trace::Information, (_T("GCCleaner already running; stop it first")));
+                    stop();
+                }
+
+                _timerSource = g_timeout_source_new_seconds ( GCCLEANER_PERIOD_SEC );
+
+                g_source_set_callback (
+                    _timerSource,
+                    [](gpointer data) -> gboolean
+                    {
+                        if (static_cast<GCCleaner*>(data)->timerCallback()) {
+                            return G_SOURCE_CONTINUE;
+                        } else {
+                            return G_SOURCE_REMOVE;
+                        }
+                    },
+                    this,
+                    nullptr
+                    );
+                g_source_attach ( _timerSource, _browser._context );
+            }
+
+            void stop() {
+                if (_timerSource) {
+                    g_source_destroy(_timerSource);
+                    g_source_unref(_timerSource);
+                    _timerSource = nullptr;
+                    if (gc_executed_since_last_start.load() == 0) {
+                        // we want to run at least once
+                        TRACE(Trace::Information, (_T("GCCleaner: stopping without at least one invocation; execute GC now")));
+                        webkit_web_context_garbage_collect_javascript_objects(webkit_web_view_get_context(_browser._view));
+                    }
+                    gc_executed_since_last_start.store(0);
+                }
+            }
+
+            bool timerCallback()
+            {
+                TRACE(Trace::Information, (_T("GCCleaner: running GC now")));
+                webkit_web_context_garbage_collect_javascript_objects(webkit_web_view_get_context(_browser._view));
+                ++gc_executed_since_last_start;
+                return gc_executed_since_last_start.load() < GCCLEANER_CLEANUP_TIMES;
+            }
+
+            ~GCCleaner()
+            {
+                if (_timerSource) {
+                    g_source_destroy(_timerSource);
+                    g_source_unref(_timerSource);
+                    _timerSource = nullptr;
+                }
+            }
+
+            GCCleaner(WebKitImplementation& browser)
+                : _browser(browser), gc_executed_since_last_start(0)
+            {
+            }
+
+            GCCleaner(const HangDetector&) = delete;
+            GCCleaner& operator=(const HangDetector&) = delete;
         };
 
     private:
@@ -2573,6 +2648,11 @@ static GSourceFuncs _handlerIntervention =
             if(!isCurrentUrlBootUrl && isNewUrlBootUrl && !_bootUrl.empty()) {
                 TRACE_L1("New URL: %s", URL.c_str());
                 ODH_WARNING("WPE0040", WPE_CONTEXT_WITH_URL(URL.c_str()), "New URL: %s", URL.c_str());
+                TRACE_L1("Starting GCCleaner");
+                gcCleaner->start();
+            } else {
+                TRACE_L1("Stopping GCCleaner");
+                gcCleaner->stop();
             }
 
             if (isNewUrlBlankUrl || (isCurrUrlMetroSubdomain && isNewUrlMetroSubdomain)) {
@@ -3454,6 +3534,7 @@ static GSourceFuncs _handlerIntervention =
 #endif
         }
 #endif
+        std::unique_ptr<GCCleaner> gcCleaner;
         uint32_t Worker() override
         {
             _context = g_main_context_new();
@@ -3461,6 +3542,8 @@ static GSourceFuncs _handlerIntervention =
             g_main_context_push_thread_default(_context);
 
             HangDetector hangdetector(*this);
+
+            gcCleaner.reset(new GCCleaner{*this});
 
             bool automationEnabled = _config.Automation.Value();
 
@@ -3721,6 +3804,8 @@ static GSourceFuncs _handlerIntervention =
             _adminLock.Unlock();
 
             g_main_loop_run(_loop);
+
+            gcCleaner.reset(nullptr);
 
             if (frameDisplayedCallbackID)
                 webkit_web_view_remove_frame_displayed_callback(_view, frameDisplayedCallbackID);
