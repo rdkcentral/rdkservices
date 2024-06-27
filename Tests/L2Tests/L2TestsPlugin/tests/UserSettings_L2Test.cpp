@@ -217,6 +217,10 @@ UserSettingTest::~UserSettingTest()
 {
     uint32_t status = Core::ERROR_GENERAL;
 
+    ON_CALL(*p_rBusApiImplMock, rbus_close(::testing::_ ))
+        .WillByDefault(
+           ::testing::Return(RBUS_ERROR_SUCCESS));
+
     status = DeactivateService("org.rdk.UserSettings");
     EXPECT_EQ(Core::ERROR_NONE, status);
 }
