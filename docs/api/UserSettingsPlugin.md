@@ -340,7 +340,9 @@ No Events
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| params | string | PrivacyMode: DO_NOT_SHARE |
+| params | object |  |
+| params.privacyMode | string | PrivacyMode: SHARE or DO_NOT_SHARE |
+
 
 ### Result
 
@@ -357,7 +359,9 @@ No Events
     "jsonrpc": "2.0",
     "id": 42,
     "method": "org.rdk.UserSettings.SetPrivacyMode",
-    "params": "DO_NOT_SHARE"
+    "params": {
+        {"privacyMode":"DO_NOT_SHARE"}
+    }
 }
 ```
 
