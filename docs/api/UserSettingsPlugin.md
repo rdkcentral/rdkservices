@@ -47,24 +47,24 @@ UserSettings interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [setaudiodescription](#setaudiodescription) | Setting Audio Description |
-| [setpreferredaudiolanguages](#setpreferredaudiolanguages) | Setting Preferred Audio Languages |
-| [setpresentationlanguages](#setpresentationlanguages) | Setting Presentation Languages |
-| [setcaptionsenabled](#setcaptionsenabled) | Setting Captions |
-| [setpreferredcaptionlanguages](#setpreferredcaptionlanguages) | Setting PreferredCaption Languages |
-| [setpreferredclosedcaptionservice](#setpreferredclosedcaptionservice) | Setting Preferred Closed Caption Service |
-| [setprivacymode](#setprivacymode) | Setting PrivacyMode |
-| [getaudiodescription](#getaudiodescription) | Returns Audio Description |
-| [getpreferredaudiolanguages](#getpreferredaudiolanguages) | Returns Audio Description |
-| [getpresentationlanguages](#getpresentationlanguages) | Getting Presentation Languages |
-| [getcaptionsenabled](#getcaptionsenabled) | Getting Captions Enabled |
-| [GetPreferredCaptionLanguages](#GetPreferredCaptionLanguages) | Getting Preferred Caption Languages |
+| [SetAudioDescription](#SetAudioDescription) | Setting Audio Description |
+| [SetPreferredAudioLanguages](#SetPreferredAudioLanguages) | Setting Preferred Audio Languages |
+| [SetPresentationLanguage](#SetPresentationLanguage) | Setting Presentation Languages |
+| [SetCaptions](#SetCaptions) | Setting Captions |
+| [SetPreferredCaptionsLanguages](#SetPreferredCaptionsLanguages) | Setting PreferredCaption Languages |
+| [SetPreferredClosedCaptionService](#SetPreferredClosedCaptionService) | Setting Preferred Closed Caption Service |
+| [SetPrivacyMode](#SetPrivacyMode) | Setting PrivacyMode |
+| [GetAudioDescription](#GetAudioDescription) | Returns Audio Description |
+| [GetPreferredAudioLanguages](#GetPreferredAudioLanguages) | Returns Audio Description |
+| [GetPresentationLanguage](#GetPresentationLanguage) | Getting Presentation Languages |
+| [GetCaptions](#GetCaptions) | Getting Captions Enabled |
+| [GetPreferredCaptionsLanguages](#GetPreferredCaptionsLanguages) | Getting Preferred Caption Languages |
 | [GetPreferredClosedCaptionService](#GetPreferredClosedCaptionService) | Getting Preferred ClosedCaption Service |
-| [getprivacymode](#getprivacymode) | Getting PrivacyMode |
+| [GetPrivacyMode](#GetPrivacyMode) | Getting PrivacyMode |
 
 
-<a name="setaudiodescription"></a>
-## *setaudiodescription*
+<a name="SetAudioDescription"></a>
+## *SetAudioDescription*
 
 Setting Audio Description.
 
@@ -92,7 +92,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UserSettings.setaudiodescription",
+    "method": "org.rdk.UserSettings.SetAudioDescription",
     "params": true
 }
 ```
@@ -107,8 +107,8 @@ No Events
 }
 ```
 
-<a name="setpreferredaudiolanguages"></a>
-## *setpreferredaudiolanguages*
+<a name="SetPreferredAudioLanguages"></a>
+## *SetPreferredAudioLanguages*
 
 Setting Preferred Audio Languages.
 
@@ -136,7 +136,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UserSettings.setpreferredaudiolanguages",
+    "method": "org.rdk.UserSettings.SetPreferredAudioLanguages",
     "params": "eng"
 }
 ```
@@ -151,8 +151,8 @@ No Events
 }
 ```
 
-<a name="setpresentationlanguages"></a>
-## *setpresentationlanguages*
+<a name="SetPresentationLanguage"></a>
+## *SetPresentationLanguage*
 
 Setting Presentation Languages.
 
@@ -180,7 +180,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UserSettings.setpresentationlanguages",
+    "method": "org.rdk.UserSettings.SetPresentationLanguage",
     "params": "en-US"
 }
 ```
@@ -195,8 +195,8 @@ No Events
 }
 ```
 
-<a name="setcaptionsenabled"></a>
-## *setcaptionsenabled*
+<a name="SetCaptions"></a>
+## *SetCaptions*
 
 Setting Captions.
 
@@ -224,7 +224,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UserSettings.setcaptionsenabled",
+    "method": "org.rdk.UserSettings.SetCaptions",
     "params": true
 }
 ```
@@ -239,8 +239,8 @@ No Events
 }
 ```
 
-<a name="setpreferredcaptionlanguages"></a>
-## *setpreferredcaptionlanguages*
+<a name="SetPreferredCaptionsLanguages"></a>
+## *SetPreferredCaptionsLanguages*
 
 Setting PreferredCaption Languages.
 
@@ -268,7 +268,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UserSettings.setpreferredcaptionlanguages",
+    "method": "org.rdk.UserSettings.SetPreferredCaptionsLanguages",
     "params": "eng"
 }
 ```
@@ -283,8 +283,8 @@ No Events
 }
 ```
 
-<a name="setpreferredclosedcaptionservice"></a>
-## *setpreferredclosedcaptionservice*
+<a name="SetPreferredClosedCaptionService"></a>
+## *SetPreferredClosedCaptionService*
 
 Setting Preferred Closed Caption Service.
 
@@ -312,7 +312,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UserSettings.setpreferredclosedcaptionservice",
+    "method": "org.rdk.UserSettings.SetPreferredClosedCaptionService",
     "params": "CC3"
 }
 ```
@@ -327,8 +327,8 @@ No Events
 }
 ```
 
-<a name="setprivacymode"></a>
-## *setprivacymode*
+<a name="SetPrivacyMode"></a>
+## *SetPrivacyMode*
 
 Setting PrivacyMode
 
@@ -356,7 +356,7 @@ No Events
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UserSettings.setprivacymode",
+    "method": "org.rdk.UserSettings.SetPrivacyMode",
     "params": "DO_NOT_SHARE"
 }
 ```
@@ -371,8 +371,8 @@ No Events
 }
 ```
 
-<a name="getaudiodescription"></a>
-## *getaudiodescription*
+<a name="GetAudioDescription"></a>
+## *GetAudioDescription*
 
 Returns Audio Description.
 
@@ -399,7 +399,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UserSettings.getaudiodescription"
+    "method": "org.rdk.UserSettings.GetAudioDescription"
 }
 ```
 
@@ -415,8 +415,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getpreferredaudiolanguages"></a>
-## *getpreferredaudiolanguages*
+<a name="GetPreferredAudioLanguages"></a>
+## *GetPreferredAudioLanguages*
 
 Returns Audio Description.
 
@@ -443,7 +443,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UserSettings.getpreferredaudiolanguages"
+    "method": "org.rdk.UserSettings.GetPreferredAudioLanguages"
 }
 ```
 
@@ -459,8 +459,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getpresentationlanguages"></a>
-## *getpresentationlanguages*
+<a name="GetPresentationLanguage"></a>
+## *GetPresentationLanguage*
 
 Getting Presentation Languages.
 
@@ -487,7 +487,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UserSettings.getpresentationlanguages"
+    "method": "org.rdk.UserSettings.GetPresentationLanguage"
 }
 ```
 
@@ -503,8 +503,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="getcaptionsenabled"></a>
-## *getcaptionsenabled*
+<a name="GetCaptions"></a>
+## *GetCaptions*
 
 Getting Captions Enabled.
 
@@ -531,7 +531,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UserSettings.getcaptionsenabled"
+    "method": "org.rdk.UserSettings.GetCaptions"
 }
 ```
 
@@ -547,8 +547,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="GetPreferredCaptionLanguages"></a>
-## *GetPreferredCaptionLanguages*
+<a name="GetPreferredCaptionsLanguages"></a>
+## *GetPreferredCaptionsLanguages*
 
 Getting Preferred Caption Languages.
 
@@ -575,7 +575,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UserSettings.GetPreferredCaptionLanguages"
+    "method": "org.rdk.UserSettings.GetPreferredCaptionsLanguages"
 }
 ```
 
@@ -635,8 +635,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getprivacymode"></a>
-## *getprivacymode*
+<a name="GetPrivacyMode"></a>
+## *GetPrivacyMode*
 
 Getting PrivacyMode
 
@@ -663,7 +663,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.UserSettings.getprivacymode"
+    "method": "org.rdk.UserSettings.GetPrivacyMode"
 }
 ```
 
@@ -690,19 +690,19 @@ UserSettings interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [OnAudioDescriptionChanged](#OnAudioDescriptionChanged) | Triggered after the audio description changes (see `setaudiodescription`) |
-| [OnPreferredAudioLanguagesChanged](#OnPreferredAudioLanguagesChanged) | Triggered after the audio preferred Audio languages changes (see `setpreferredaudiolanguages`) |
-| [OnPresentationLanguageChanged](#OnPresentationLanguageChanged) | Triggered after the Presentation Language changes (see `setpresentationlanguages`) |
-| [OnCaptionsChanged](#OnCaptionsChanged) | Triggered after the captions changes (see `setcaptionsenabled`) |
-| [OnPreferredCaptionsLanguagesChanged](#OnPreferredCaptionsLanguagesChanged) | Triggered after the PreferredCaption Languages changes (see `setpreferredcaptionlanguages`) |
-| [OnPreferredClosedCaptionServiceChanged](#OnPreferredClosedCaptionServiceChanged) | Triggered after the Preferred Closed Caption changes (see `setpreferredclosedcaptionservice`) |
-| [OnPrivacyModeChanged](#OnPrivacyModeChanged) | Triggered after the Privacy Mode changes (see `setprivacymode`) |
+| [OnAudioDescriptionChanged](#OnAudioDescriptionChanged) | Triggered after the audio description changes (see `SetAudioDescription`) |
+| [OnPreferredAudioLanguagesChanged](#OnPreferredAudioLanguagesChanged) | Triggered after the audio preferred Audio languages changes (see `SetPreferredAudioLanguages`) |
+| [OnPresentationLanguageChanged](#OnPresentationLanguageChanged) | Triggered after the Presentation Language changes (see `SetPresentationLanguage`) |
+| [OnCaptionsChanged](#OnCaptionsChanged) | Triggered after the captions changes (see `SetCaptions`) |
+| [OnPreferredCaptionsLanguagesChanged](#OnPreferredCaptionsLanguagesChanged) | Triggered after the PreferredCaption Languages changes (see `SetPreferredCaptionsLanguages`) |
+| [OnPreferredClosedCaptionServiceChanged](#OnPreferredClosedCaptionServiceChanged) | Triggered after the Preferred Closed Caption changes (see `SetPreferredClosedCaptionService`) |
+| [OnPrivacyModeChanged](#OnPrivacyModeChanged) | Triggered after the Privacy Mode changes (see `SetPrivacyMode`) |
 
 
 <a name="OnAudioDescriptionChanged"></a>
 ## *OnAudioDescriptionChanged*
 
-Triggered after the audio description changes (see `setaudiodescription`).
+Triggered after the audio description changes (see `SetAudioDescription`).
 
 ### Parameters
 
@@ -726,14 +726,14 @@ Triggered after the audio description changes (see `setaudiodescription`).
 <a name="OnPreferredAudioLanguagesChanged"></a>
 ## *OnPreferredAudioLanguagesChanged*
 
-Triggered after the audio preferred Audio languages changes (see `setpreferredaudiolanguages`).
+Triggered after the audio preferred Audio languages changes (see `SetPreferredAudioLanguages`).
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.PreferredAudioLanguagesChanged | string | Receive preferred Audio languages changes |
+| params.preferredLanguages | string | Receive preferred Audio languages changes |
 
 ### Example
 
@@ -742,7 +742,7 @@ Triggered after the audio preferred Audio languages changes (see `setpreferredau
     "jsonrpc": "2.0",
     "method": "client.events.OnPreferredAudioLanguagesChanged",
     "params": {
-        "PreferredAudioLanguagesChanged": "eng"
+        "preferredLanguages": "eng"
     }
 }
 ```
@@ -750,14 +750,14 @@ Triggered after the audio preferred Audio languages changes (see `setpreferredau
 <a name="OnPresentationLanguageChanged"></a>
 ## *OnPresentationLanguageChanged*
 
-Triggered after the Presentation Language changes (see `setpresentationlanguages`).
+Triggered after the Presentation Language changes (see `SetPresentationLanguage`).
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.PresentationLanguageChanged | string | Receive Presentation Language changes |
+| params.presentationLanguages | string | Receive Presentation Language changes |
 
 ### Example
 
@@ -766,7 +766,7 @@ Triggered after the Presentation Language changes (see `setpresentationlanguages
     "jsonrpc": "2.0",
     "method": "client.events.OnPresentationLanguageChanged",
     "params": {
-        "PresentationLanguageChanged": "en-US"
+        "presentationLanguages": "en-US"
     }
 }
 ```
@@ -774,7 +774,7 @@ Triggered after the Presentation Language changes (see `setpresentationlanguages
 <a name="OnCaptionsChanged"></a>
 ## *OnCaptionsChanged*
 
-Triggered after the captions changes (see `setcaptionsenabled`).
+Triggered after the captions changes (see `SetCaptions`).
 
 ### Parameters
 
@@ -798,14 +798,14 @@ Triggered after the captions changes (see `setcaptionsenabled`).
 <a name="OnPreferredCaptionsLanguagesChanged"></a>
 ## *OnPreferredCaptionsLanguagesChanged*
 
-Triggered after the PreferredCaption Languages changes (see `setpreferredcaptionlanguages`).
+Triggered after the PreferredCaption Languages changes (see `SetPreferredCaptionsLanguages`).
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.PreferredCaptionsLanguagesChanged | string | Receive PreferredCaption Languages changes |
+| params.preferredLanguages | string | Receive PreferredCaption Languages changes |
 
 ### Example
 
@@ -814,7 +814,7 @@ Triggered after the PreferredCaption Languages changes (see `setpreferredcaption
     "jsonrpc": "2.0",
     "method": "client.events.OnPreferredCaptionsLanguagesChanged",
     "params": {
-        "PreferredCaptionsLanguagesChanged": "eng"
+        "preferredLanguages": "eng"
     }
 }
 ```
@@ -822,14 +822,14 @@ Triggered after the PreferredCaption Languages changes (see `setpreferredcaption
 <a name="OnPreferredClosedCaptionServiceChanged"></a>
 ## *OnPreferredClosedCaptionServiceChanged*
 
-Triggered after the Preferred Closed Caption changes (see `setpreferredclosedcaptionservice`).
+Triggered after the Preferred Closed Caption changes (see `SetPreferredClosedCaptionService`).
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.PreferredClosedCaptionServiceChanged | string | Receive Preferred Closed Caption changes |
+| params.service | string | Receive Preferred Closed Caption changes |
 
 ### Example
 
@@ -838,7 +838,7 @@ Triggered after the Preferred Closed Caption changes (see `setpreferredclosedcap
     "jsonrpc": "2.0",
     "method": "client.events.OnPreferredClosedCaptionServiceChanged",
     "params": {
-        "PreferredClosedCaptionServiceChanged": "eng"
+        "service": "CC3"
     }
 }
 ```
@@ -846,14 +846,14 @@ Triggered after the Preferred Closed Caption changes (see `setpreferredclosedcap
 <a name="OnPrivacyModeChanged"></a>
 ## *OnPrivacyModeChanged [<sup>event</sup>](#head.Notifications)*
 
-Triggered after the Privacy Mode changes (see `setprivacymode`).
+Triggered after the Privacy Mode changes (see `SetPrivacyMode`).
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.PrivacyModeChanged | string | Receive Privacy Mode changes |
+| params.privacyMode | string | Receive Privacy Mode changes |
 
 ### Example
 
@@ -862,7 +862,7 @@ Triggered after the Privacy Mode changes (see `setprivacymode`).
     "jsonrpc": "2.0",
     "method": "client.events.OnPrivacyModeChanged",
     "params": {
-        "PrivacyModeChanged": "DO_NOT_SHARE"
+        "privacyMode": "DO_NOT_SHARE"
     }
 }
 ```
