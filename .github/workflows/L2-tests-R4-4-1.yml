@@ -43,7 +43,7 @@ jobs:
         run: >
           sudo apt update
           &&
-          sudo apt install -y libsqlite3-dev libcurl4-openssl-dev valgrind lcov clang libsystemd-dev libboost-all-dev libwebsocketpp-dev meson libcunit1 libcunit1-dev
+          sudo apt install -y libsqlite3-dev libcurl4-openssl-dev valgrind lcov clang libsystemd-dev libboost-all-dev libwebsocketpp-dev meson libcunit1 libcunit1-dev protobuf-compiler protobuf-compiler-grpc libgrpc-dev libgrpc++-dev
 
       - name: Install GStreamer
         run: |
@@ -59,7 +59,6 @@ jobs:
             meson setup --warnlevel 3 --werror build
             ninja -C build
             sudo ninja -C build install
-
 
       - name: Checkout Thunder
         uses: actions/checkout@v3
@@ -85,10 +84,23 @@ jobs:
           -DEXCEPTIONS_ENABLE=ON
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
+          -DGENERIC_CMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
           &&
           cmake --build build/ThunderTools -j8
           &&
           cmake --install build/ThunderTools
+
+      - name: Checkout rdkservices
+        uses: actions/checkout@v3
+        with:
+          path: rdkservices
+
+      - name: Checkout rdkservices
+        run: |
+          cd ${{github.workspace}}/rdkservices
+          patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0003-R4.4.1-LocationSync-compilation-error.patch
+          patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0003-R4.4.1-SystemAudioPlayer-compilation-error.patch
+          cd -
 
       - name: Build Thunder
         if: steps.cache.outputs.cache-hit != 'true'
@@ -108,18 +120,6 @@ jobs:
           &&
           cmake --install build/Thunder
 
-      - name: Checkout rdkservices
-        uses: actions/checkout@v3
-        with:
-          path: rdkservices
-
-      - name: Apply patch Rdkservices
-        run: |
-          cd ${{github.workspace}}/rdkservices
-          patch -p1 < files/0003-R4.4.1-SystemAudioPlayer-compilation-error.patch
-          patch -p1 < files/0003-R4.4.1-LocationSync-compilation-error.patch
-          cd -
-
       - name: Checkout ThunderInterfaces
         uses: actions/checkout@v3
         with:
@@ -130,14 +130,13 @@ jobs:
 
       - name: Apply patch ThunderInterfaces
         run: |
-              echo "Present working directory is: $(pwd)"
-              echo "Listing directory is:"
-              ls -la
               cd ThunderInterfaces
               echo "Current branch is: $(git branch --show-current)"
-              git apply "${{github.workspace}}/rdkservices/files/SplitDeviceCapablities.patch"
-              git apply "${{github.workspace}}/rdkservices/files/0007-RDK-IDeviceInfo-Changes.patch"
-              git apply "${{github.workspace}}/rdkservices/files/0001-Add-TextToSpeech-Interface.patch"
+              patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/R.4.4.1-0001-Add-TextToSpeech-Interface.patch
+              patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/SplitDeviceCapablities.patch
+              patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0007-RDK-IDeviceInfo-Changes.patch
+              patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0001-RDK-45037-Secure-Storage-Thunder-Plugin.patch
+              patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/RDKV-48604-User-Settings-Thunder-Plugin.patch
               cd ..
 
       - name: Build ThunderInterfaces
@@ -229,6 +228,8 @@ jobs:
           -DTHUNDER_VERSION=4
           -DTHUNDER_VERSION_MAJOR=4
           -DTHUNDER_VERSION_MINOR=4
+          -DPLUGIN_PERSISTENTSTORE_PATH="/tmp/secure/persistent/rdkservicestore"
+          -DPLUGIN_PERSISTENTSTORE_LEGACYPATH="/tmp/persistent/rdkservicestore"
           -I ${{github.workspace}}/rdkservices/Tests/headers
           -I ${{github.workspace}}/rdkservices/Tests/headers/rdk/ds
           -I ${{github.workspace}}/rdkservices/Tests/headers/rdk/iarmbus
@@ -243,9 +244,11 @@ jobs:
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Wraps.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/maintenanceMGR.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/pkg.h
-          -Wall -Wno-unused-result -Wno-deprecated-declarations -Wno-error=format=
+          -Werror -Wall -Wno-unused-result -Wno-deprecated-declarations -Wno-error=format=
           -DUSE_IARMBUS
           -DENABLE_THERMAL_PROTECTION"
+          -DPLUGIN_PERSISTENTSTORE_PATH="/tmp/secure/persistent/rdkservicestore"
+          -DPLUGIN_PERSISTENTSTORE_LEGACYPATH="/tmp/persistent/rdkservicestore"
           -DCOMCAST_CONFIG=OFF
           -DCMAKE_DISABLE_FIND_PACKAGE_DS=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_IARMBus=ON
@@ -257,7 +260,9 @@ jobs:
           -DPLUGIN_HDCPPROFILE=OFF
           -DPLUGIN_NETWORK=OFF
           -DPLUGIN_TEXTTOSPEECH=OFF
-          -DPLUGIN_USBACCESS=ON
+          -DPLUGIN_USBACCESS=OFF
+          -DPLUGIN_USERSETTINGS=ON
+          -DPLUGIN_PERSISTENTSTORE=ON
           -DUSE_THUNDER_R4=ON
           -DPLUGIN_L2Tests=ON
           -DRDK_SERVICE_L2_TEST=ON
@@ -276,6 +281,9 @@ jobs:
           /opt/secure/reboot
           /opt/secure/persistent
           /opt/secure/persistent/System
+          /tmp/secure/persistent
+          /tmp/persistent
+          /tmp/persistent/rdkservicestore
           /opt/logs
           /lib/rdk
           /run/media/sda1/logs/PreviousLogs
@@ -305,8 +313,9 @@ jobs:
           /lib/rdk/getMaintenanceStartTime.sh
           /tmp/opkg.conf
           /tmp/system_service_temp.conf
+          /tmp/secure/persistent/rdkservicestore
           &&
-          sudo chmod 777
+          sudo chmod -R 777
           /opt/standbyReason.txt
           /opt/tmtryoptout
           /opt/fwdnldstatus.txt
@@ -318,6 +327,8 @@ jobs:
           /lib/rdk/getMaintenanceStartTime.sh
           /tmp/opkg.conf
           /tmp/system_service_temp.conf
+          /tmp/persistent/rdkservicestore
+          /tmp/secure/persistent/rdkservicestore
 
       - name: Download pact_verifier_cli
         run: >
