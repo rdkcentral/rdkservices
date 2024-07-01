@@ -21,26 +21,33 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 set(THUNDER_PORT 9998)
 find_package(${NAMESPACE}Plugins REQUIRED)
 
-# We are not running VerifyContracts,Warehouse_L2Test tests for Thunder R4 as
-# this work is not in this scope. In future we will enable these tests for Thunder R4.
-if(NOT USE_THUNDER_R4)
-add_library(${MODULE_NAME} SHARED
-    Module.cpp
-    L2Tests.cpp
-    L2TestsMock.cpp
-    tests/SystemService_L2Test.cpp
-    tests/UsbAccess_L2Test.cpp
-    tests/Telemetry_L2Test.cpp
-    tests/VerifyContracts.cpp)
-else()
-add_library(${MODULE_NAME} SHARED
-    Module.cpp
-    L2Tests.cpp
-    L2TestsMock.cpp
-    tests/SystemService_L2Test.cpp
-    tests/UsbAccess_L2Test.cpp
-    tests/Telemetry_L2Test.cpp)
-endif(NOT USE_THUNDER_R4)
+set(SRC_FILES Module.cpp L2Tests.cpp L2TestsMock.cpp)
+
+if(PLUGIN_SYSTEMSERVICES)
+    set(SRC_FILES ${SRC_FILES} tests/SystemService_L2Test.cpp)
+endif()
+
+if(PLUGIN_USBACCESS)
+    set(SRC_FILES ${SRC_FILES} tests/UsbAccess_L2Test.cpp)
+endif()
+
+if(PLUGIN_TELEMETRY)
+    set(SRC_FILES ${SRC_FILES} tests/Telemetry_L2Test.cpp)
+endif()
+
+if(PLUGIN_WAREHOUSE)
+    set(SRC_FILES ${SRC_FILES} tests/Warehouse_L2Test.cpp)
+endif()
+
+if(PLUGIN_HDCPPROFILE)
+    set(SRC_FILES ${SRC_FILES} tests/VerifyContracts.cpp)
+endif()
+
+if(PLUGIN_USERSETTINGS)
+    set(SRC_FILES ${SRC_FILES} tests/UserSettings_L2Test.cpp)
+endif()
+
+add_library(${MODULE_NAME} SHARED ${SRC_FILES})
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
