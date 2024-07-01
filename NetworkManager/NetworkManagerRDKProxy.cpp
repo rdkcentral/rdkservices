@@ -1093,6 +1093,14 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
                 ssid.m_ssid.copy(param.data.connect.ssid, sizeof(param.data.connect.ssid) - 1);
                 ssid.m_passphrase.copy(param.data.connect.passphrase, sizeof(param.data.connect.passphrase) - 1);
                 param.data.connect.security_mode = (SsidSecurity)ssid.m_securityMode;
+                if(!ssid.m_identity.empty())
+                    ssid.m_identity.copy(param.data.connect.eapIdentity, sizeof(param.data.connect.eapIdentity) - 1);
+                if(!ssid.m_caCert.empty())
+                    ssid.m_caCert.copy(param.data.connect.carootcert, sizeof(param.data.connect.carootcert) - 1);
+                if(!ssid.m_clientCert.empty())
+                    ssid.m_clientCert.copy(param.data.connect.clientcert, sizeof(param.data.connect.clientcert) - 1);
+                if(!ssid.m_privateKey.empty())
+                    ssid.m_privateKey.copy(param.data.connect.privatekey, sizeof(param.data.connect.privatekey) - 1);
             }
 
             retVal = IARM_Bus_Call( IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_connect, (void *)&param, sizeof(param));
