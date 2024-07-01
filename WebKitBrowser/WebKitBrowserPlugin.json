@@ -17,6 +17,10 @@
                         "description": "The UserAgent used during communication with the web server",
                         "type": "string"
                     },
+                    "environment": {
+                        "description": "Semi-colon seperated list of arbitrary environment variables settings, e.g. 'ENV_VAR1=value1;ENV_VAR2=value2'",
+                        "type": "string"
+                    },
                     "url": {
                         "description": "The URL that is loaded upon starting the browser",
                         "type": "string"
