@@ -1,3 +1,9 @@
+commit 579dd70842b9758783f510d00a9c8dcb23ffa07e
+Author: Siva Thandayuthapani <sithanda@synamedia.com>
+Date:   Tue Jun 18 11:28:49 2024 +0530
+
+    R4.4.1 L2 test 0007-RDK-IDeviceInfo-Changes
+
 diff --git a/interfaces/IDeviceInfo.h b/interfaces/IDeviceInfo.h
 index b674799..2a3b48c 100644
 --- a/interfaces/IDeviceInfo.h

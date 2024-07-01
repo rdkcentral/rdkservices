@@ -60,8 +60,36 @@ rbusError_t RBusApi::rbus_close(rbusHandle_t handle)
     EXPECT_NE(impl, nullptr);
     return impl->rbus_close(handle);
 }
+
+rbusValue_t RBusApi::rbusValue_Init(rbusValue_t* pvalue)
+{
+    EXPECT_NE(impl, nullptr);
+    return impl->rbusValue_Init(pvalue);
+}
+
+void RBusApi::rbusValue_SetString(rbusValue_t value, char const* s)
+{
+    EXPECT_NE(impl, nullptr);
+    impl->rbusValue_SetString(value,s);
+}
+
+rbusError_t RBusApi::rbus_set( rbusHandle_t handle, char const* name, rbusValue_t value, rbusSetOptions_t* opts)
+{
+    EXPECT_NE(impl, nullptr);
+    return impl->rbus_set( handle, name, value, opts);
+}
+
+void RBusApi::rbusValue_Release(rbusValue_t value)
+{
+    EXPECT_NE(impl, nullptr);
+    impl->rbusValue_Release(value);
+}
 rbusError_t (*rbus_open)(rbusHandle_t*,char const* ) = &RBusApi::rbus_open;
 rbusError_t (*rbusMethod_InvokeAsync)(rbusHandle_t,char const*, rbusObject_t,rbusMethodAsyncRespHandler_t,int)= &RBusApi::rbusMethod_InvokeAsync;
 rbusValue_t (*rbusObject_GetValue)(rbusObject_t,char const*) = &RBusApi::rbusObject_GetValue;
 char const* (*rbusValue_GetString)(rbusValue_t,int*) = &RBusApi::rbusValue_GetString;
 rbusError_t (*rbus_close)(rbusHandle_t) = &RBusApi::rbus_close;
+rbusValue_t (*rbusValue_Init)(rbusValue_t*) = &RBusApi::rbusValue_Init;
+void (*rbusValue_SetString)(rbusValue_t, char const*) = &RBusApi::rbusValue_SetString;
+rbusError_t (*rbus_set)( rbusHandle_t , char const* , rbusValue_t , rbusSetOptions_t*) = &RBusApi::rbus_set;
+void (*rbusValue_Release)(rbusValue_t) = &RBusApi::rbusValue_Release;
