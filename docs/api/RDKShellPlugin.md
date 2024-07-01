@@ -2,7 +2,7 @@
 <a name="RDKShell_Plugin"></a>
 # RDKShell Plugin
 
-**Version: [1.5.3](https://github.com/rdkcentral/rdkservices/blob/main/RDKShell/CHANGELOG.md)**
+**Version: [1.6.0](https://github.com/rdkcentral/rdkservices/blob/main/RDKShell/CHANGELOG.md)**
 
 A org.rdk.RDKShell plugin for Thunder framework.
 
@@ -81,6 +81,7 @@ RDKShell interface methods:
 | [getVisibility](#getVisibility) | Gets the visibility of the specified client |
 | [getZOrder](#getZOrder) | Returns an array of clients in Z order, starting with the top most application client first |
 | [getGraphicsFrameRate](#getGraphicsFrameRate) | Returns the current Graphics Frame Rate |
+| [getFocus](#getFocus) | Gets focus to the specified client |
 | [hideAllClients](#hideAllClients) | Hides/Unhides all the clients |
 | [hideCursor](#hideCursor) | Hides the cursor from showing on the display |
 | [hideFullScreenImage](#hideFullScreenImage) | Hides the Full Screen Image |
@@ -1995,6 +1996,58 @@ This method takes no parameters.
     "id": 42,
     "result": {
         "frameRate": 40,
+        "success": true
+    }
+}
+```
+
+<a name="getFocus"></a>
+## *getFocus*
+
+Gets focus to the specified client.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.client | string | The client name |
+| params?.callsign | string | <sup>*(optional)*</sup> The application callsign |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.getFocus",
+    "params": {
+        "client": "org.rdk.Netflix",
+        "callsign": "org.rdk.Netflix"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
         "success": true
     }
 }
@@ -4477,6 +4530,7 @@ RDKShell interface events:
 | Event | Description |
 | :-------- | :-------- |
 | [onApplicationActivated](#onApplicationActivated) | Triggered when an application is activated |
+| [onApplicationFocusChanged](#onApplicationFocusChanged) | Triggered when an application focus is changed |
 | [onApplicationConnected](#onApplicationConnected) | Triggered when a connection to an application succeeds |
 | [onApplicationDisconnected](#onApplicationDisconnected) | Triggered when an attempt to disconnect from an application succeeds |
 | [onApplicationFirstFrame](#onApplicationFirstFrame) | Triggered when the first frame of an application is loaded |
@@ -4519,6 +4573,30 @@ Triggered when an application is activated.
 {
     "jsonrpc": "2.0",
     "method": "client.events.onApplicationActivated",
+    "params": {
+        "client": "org.rdk.Netflix"
+    }
+}
+```
+
+<a name="onApplicationFocusChanged"></a>
+## *onApplicationFocusChanged*
+
+Triggered when an application focus is changed.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.client | string | The client name |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onApplicationFocusChanged",
     "params": {
         "client": "org.rdk.Netflix"
     }
