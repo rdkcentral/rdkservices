@@ -442,7 +442,7 @@ TEST_F(AStub, DoesNotGetValueWhenTtlExpired)
         auto status = stub->UpdateValue(&context, request, &response);
         ASSERT_THAT(status.ok(), IsTrue());
     }
-    sleep(kTtl + kTtlFault);
+    sleep(kTtl + 1);
     {
         grpc::ClientContext context;
         context.AddMetadata("authorization", std::string(kToken));
