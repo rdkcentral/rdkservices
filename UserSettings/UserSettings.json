@@ -34,10 +34,15 @@
             "summary": "The preferred presentationLanguages in a full BCP 47 value, including script, * region, variant The language set and used by Immerse UI",
             "type": "string",
             "example": "en-US"
+        },
+        "privacyMode": {
+            "summary": "The Privacy Mode. Valid values are SHARE, DO_NOT_SHARE",
+            "type": "string",
+            "example": "SHARE"
         }
     },
     "methods": {
-        "setaudiodescription": {
+        "SetAudioDescription": {
             "summary": "Setting Audio Description.",
             "params": {
                 "summary": "Audio Description Enabled: true/false",
@@ -50,7 +55,7 @@
                 "example": "null"
             }
         },
-        "setpreferredaudiolanguages": {
+        "SetPreferredAudioLanguages": {
             "summary": "Setting Preferred Audio Languages.",
             "params": {
                 "summary": "Preferred Audio Languages: eng, wel",
@@ -63,7 +68,7 @@
                 "example": "null"
             }
         },
-        "setpresentationlanguages": {
+        "SetPresentationLanguage": {
             "summary": "Setting Presentation Languages.",
             "params": {
                 "summary": "Presentation Languages: en-US, es-US",
@@ -76,7 +81,7 @@
                 "example": "null"
             }
         },
-        "setcaptionsenabled": {
+        "SetCaptions": {
             "summary": "Setting Captions.",
             "params": {
                 "summary": "Captions Enabled: true/false",
@@ -89,7 +94,7 @@
                 "example": "null"
             }
         },
-        "setpreferredcaptionlanguages": {
+        "SetPreferredCaptionsLanguages": {
             "summary": "Setting PreferredCaption Languages.",
             "params": {
                 "summary": "PreferredCaption Languages: eng, fra",
@@ -102,7 +107,7 @@
                 "example": "null"
             }
         },
-        "setpreferredclosedcaptionservice": {
+        "SetPreferredClosedCaptionService": {
             "summary": "Setting Preferred Closed Caption Service.",
             "params": {
                 "summary": "Preferred Closed Caption Service: CC3",
@@ -115,7 +120,25 @@
                 "example": "null"
             }
         },
-        "getaudiodescription":{
+        "SetPrivacyMode": {
+            "summary": "Setting Privacy Mode.",          
+            "params": {
+                "type": "object",
+                "properties": {
+                    "privacyMode": {
+                        "summary": "New Privacy Mode",
+                        "type": "string",
+                        "example": "DO_NOT_SHARE"
+                    }
+                }
+            },
+            "result": {
+                "summary": "Null string will display",
+                "type": "string",
+                "example": "null"
+            }
+        },
+        "GetAudioDescription":{
             "summary": "Returns Audio Description.",
             "result": {
                 "type": "object",
@@ -129,7 +152,7 @@
                     ]
             }
         },
-        "getpreferredaudiolanguages":{
+        "GetPreferredAudioLanguages":{
             "summary": "Returns Audio Description.",
             "result": {
                 "type": "object",
@@ -143,7 +166,7 @@
                 ]
             }
         },
-        "getpresentationlanguages":{
+        "GetPresentationLanguage":{
             "summary": "Getting Presentation Languages.",
             "result": {
                 "type": "object",
@@ -157,7 +180,7 @@
                 ]
             }
         },
-        "getcaptionsenabled":{
+        "GetCaptions":{
             "summary": "Getting Captions Enabled.",
             "result": {
                 "type": "object",
@@ -171,7 +194,7 @@
                 ]
             }
         },
-        "GetPreferredCaptionLanguages":{
+        "GetPreferredCaptionsLanguages":{
             "summary": "Getting Preferred Caption Languages.",
             "result": {
                 "type": "object",
@@ -198,6 +221,20 @@
                     "preferredClosedCaptionService"
                 ]
             }
+        },
+        "GetPrivacyMode":{
+            "summary": "Getting Privacy Mode",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "privacymode": {
+                        "$ref": "#/definitions/privacyMode"
+                    }
+                },
+                "required": [
+                    "privacyMode"
+                ]
+            }
         }
     },
     "events": {
@@ -222,14 +259,14 @@
             "params": {
                 "type": "object",
                 "properties": {
-                    "PreferredAudioLanguagesChanged":{
+                    "preferredLanguages":{
                         "summary": "Receive preferred Audio languages changes",
                         "type": "string",
                         "example": "eng"
                     }
                 },
                 "required": [
-                    "PreferredAudioLanguagesChanged"
+                    "preferredLanguages"
                 ]
             }
         },
@@ -238,14 +275,14 @@
             "params": {
                 "type": "object",
                 "properties": {
-                    "PresentationLanguageChanged":{
+                    "presentationLanguages":{
                         "summary": "Receive Presentation Language changes",
                         "type": "string",
                         "example": "en-US"
                     }
                 },
                 "required": [
-                    "PresentationLanguageChanged"
+                    "presentationLanguages"
                 ]
             }
         },
@@ -270,14 +307,14 @@
             "params": {
                 "type": "object",
                 "properties": {
-                    "PreferredCaptionsLanguagesChanged":{
+                    "preferredLanguages":{
                         "summary": "Receive PreferredCaption Languages changes",
                         "type": "string",
                         "example": "eng"
                     }
                 },
                 "required": [
-                    "PreferredCaptionsLanguagesChanged"
+                    "preferredLanguages"
                 ]
             }
         },
@@ -286,14 +323,30 @@
             "params": {
                 "type": "object",
                 "properties": {
-                    "PreferredClosedCaptionServiceChanged":{
+                    "service":{
                         "summary": "Receive Preferred Closed Caption changes",
                         "type": "string",
-                        "example": "eng"
+                        "example": "CC3"
                     }
                 },
                 "required": [
-                    "PreferredClosedCaptionServiceChanged"
+                    "service"
+                ]
+            }
+        },
+        "OnPrivacyModeChanged": {
+            "summary": "Triggered after the Privacy Mode changes (see `SetPrivacyMode`)",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "privacyMode":{
+                        "summary": "Receive Privacy Mode changes",
+                        "type": "string",
+                        "example": "DO_NOT_SHARE"
+                    }
+                },
+                "required": [
+                    "privacyMode"
                 ]
             }
         }
