@@ -118,7 +118,6 @@ namespace Plugin {
             _storeCache = _store->QueryInterface<Exchange::IStoreCache>();
             _storeInspector = _store->QueryInterface<Exchange::IStoreInspector>();
             _storeLimit = _store->QueryInterface<Exchange::IStoreLimit>();
-
             ASSERT(_store2 != nullptr);
             ASSERT(_storeCache != nullptr);
             ASSERT(_storeInspector != nullptr);
