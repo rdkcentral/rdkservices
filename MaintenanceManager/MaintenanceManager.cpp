@@ -652,6 +652,9 @@ namespace WPEFramework {
             LOGINFO("Starting Script /lib/rdk/StartDCM_maintaince.sh");
             system("/lib/rdk/StartDCM_maintaince.sh &");
 
+	    LOGINFO("Starting Script /lib/rdk/RFCbase.sh");
+	    system("/lib/rdk/RFCbase.sh &");
+
             LOGINFO("Starting Script /lib/rdk/xconfImageCheck.sh");
             system("/lib/rdk/xconfImageCheck.sh >> /opt/logs/swupdate.log 2>&1 &");
         }
