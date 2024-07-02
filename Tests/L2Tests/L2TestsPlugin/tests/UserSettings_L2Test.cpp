@@ -144,7 +144,7 @@ class NotificationHandler : public Exchange::IUserSettings::INotification {
             TEST_LOG("OnPrivacyModeChanged event triggered ***\n");
             std::unique_lock<std::mutex> lock(m_mutex);
 
-            TEST_LOG("OnPrivacyModeChanged received: %s\n", service.c_str());
+            TEST_LOG("OnPrivacyModeChanged received: %s\n", privacyMode.c_str());
             /* Notify the requester thread. */
             m_event_signalled |= UserSettings_OnPrivacyModeChanged;
             m_condition_variable.notify_one();
