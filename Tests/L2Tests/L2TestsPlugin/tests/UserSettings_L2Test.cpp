@@ -403,7 +403,7 @@ TEST_F(UserSettingTest,PreferredAudioLanguagesSuccess)
     status = jsonrpc.Subscribe<JsonObject>(JSON_TIMEOUT,
                                            _T("onpreferredaudiolanguageschanged"),
                                            [&async_handler](const JsonObject& parameters) {
-                                           std::string preferredLanguages = parameters["preferredlanguages"].String();
+                                           std::string preferredLanguages = parameters["preferredLanguages"].String();
                                            async_handler.OnPreferredAudioLanguagesChanged(preferredLanguages);
                                        });
 
@@ -448,7 +448,7 @@ TEST_F(UserSettingTest,PresentationLanguageSuccess)
     status = jsonrpc.Subscribe<JsonObject>(JSON_TIMEOUT,
                                            _T("onpresentationlanguagechanged"),
                                            [&async_handler](const JsonObject& parameters) {
-                                           std::string presentationLanguage = parameters["presentationlanguages"].String();
+                                           std::string presentationLanguage = parameters["presentationLanguages"].String();
                                            async_handler.OnPresentationLanguageChanged(presentationLanguage);
                                        });
 
@@ -539,7 +539,7 @@ TEST_F(UserSettingTest,SetPreferredCaptionsLanguagesSuccess)
     status = jsonrpc.Subscribe<JsonObject>(JSON_TIMEOUT,
                                            _T("onpreferredcaptionslanguageschanged"),
                                            [&async_handler](const JsonObject& parameters) {
-                                           std::string preferredLanguages = parameters["preferredlanguages"].String();
+                                           std::string preferredLanguages = parameters["preferredLanguages"].String();
                                            async_handler.OnPreferredCaptionsLanguagesChanged(preferredLanguages);
                                        });
 
