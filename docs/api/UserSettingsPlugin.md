@@ -413,9 +413,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": {
-        "enabled": false
-    }
+    "result":false
 }
 ```
 
@@ -457,9 +455,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": {
-        "preferredLanguages": "eng"
-    }
+    "result":"eng"
 }
 ```
 
@@ -501,9 +497,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": {
-        "presentationlanguages": "en-US"
-    }
+    "result":"en-US"
 }
 ```
 
@@ -545,9 +539,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": {
-        "enabled": false
-    }
+    "result":false
 }
 ```
 
@@ -589,9 +581,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": {
-        "preferredLanguages": "eng"
-    }
+    "result":"eng"
 }
 ```
 
@@ -633,9 +623,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": {
-        "preferredClosedCaptionService": "CC3"
-    }
+    "result":"CC3"
 }
 ```
 
@@ -677,9 +665,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": {
-        "privacymode": "SHARE"
-    }
+    "result":"SHARE"
 }
 ```
 
