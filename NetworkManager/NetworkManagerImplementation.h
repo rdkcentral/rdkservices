@@ -31,9 +31,9 @@ using namespace std;
 //#include <interfaces/INetworkManager.h>
 #include "INetworkManager.h"
 #include "NetworkManagerLogger.h"
-#include "WifiSignalStrengthMonitor.h"
-#include "NetworkConnectivity.h"
-#include "StunClient.h"
+#include "WiFiSignalStrengthMonitor.h"
+#include "NetworkManagerConnectivity.h"
+#include "NetworkManagerStunClient.h"
 
 #define LOG_ENTRY_FUNCTION() { NMLOG_TRACE("Entering=%s", __FUNCTION__ ); }
 
@@ -54,11 +54,11 @@ namespace WPEFramework
             Config& operator=(const Config&);
 
         public:
-            class Connectivity : public Core::JSON::Container {
+            class ConnectivityConf : public Core::JSON::Container {
             public:
-                Connectivity& operator=(const Connectivity&) = delete;
+                ConnectivityConf& operator=(const ConnectivityConf&) = delete;
 
-                Connectivity()
+                ConnectivityConf()
                     : Core::JSON::Container()
                     , endpoint_1(_T("http://clients3.google.com/generate_204"))
                     , endpoint_2(_T(""))
@@ -74,7 +74,7 @@ namespace WPEFramework
                     Add(_T("endpoint_5"), &endpoint_5);
                     Add(_T("interval"), &ConnectivityCheckInterval);
                 }
-                ~Connectivity() override = default;
+                ~ConnectivityConf() override = default;
 
             public:
                 /* connectivity configuration */
@@ -92,8 +92,8 @@ namespace WPEFramework
 
                     Stun()
                         : Core::JSON::Container()
-                        , stunEndpoint(_T(""))
-                        , port(19310)
+                        , stunEndpoint(_T("stun.l.google.com"))
+                        , port(19302)
                         , interval(30)
                     {
                         Add(_T("endpoint"), &stunEndpoint);
@@ -113,14 +113,14 @@ namespace WPEFramework
             Config()
                 : Core::JSON::Container()
                 {
-                    Add(_T("connectivity"), &connectivity);
+                    Add(_T("connectivity"), &connectivityConf);
                     Add(_T("stun"), &stun);
                     Add(_T("loglevel"), &loglevel);
                 }
             ~Config() override = default;
 
         public:
-            Connectivity connectivity;
+            ConnectivityConf connectivityConf;
             Stun stun;
             Core::JSON::DecUInt32 loglevel;
         };
@@ -151,8 +151,11 @@ namespace WPEFramework
             /* @brief Set the active Interface used for external world communication */
             uint32_t SetPrimaryInterface (const string& interface/* @in */) override;
 
-            uint32_t EnableInterface (const string& interface/* @in */) override;
-            uint32_t DisableInterface (const string& interface/* @in */) override;
+            /* @brief Enable/Disable the given interface */
+            uint32_t SetInterfaceState(const string& interface/* @in */, const bool& isEnabled/* @in */) override;
+            /* @brief Get the state of given interface */
+            uint32_t GetInterfaceState(const string& interface/* @in */, bool& isEnabled/* @out */) override;
+
             /* @brief Get IP Address Of the Interface */
             uint32_t GetIPSettings(const string& interface /* @in */, const string &ipversion /* @in */, IPAddressInfo& result /* @out */) override;
             /* @brief Set IP Address Of the Interface */
@@ -235,7 +238,7 @@ namespace WPEFramework
             uint16_t m_stunBindTimeout;
             uint16_t m_stunCacheTimeout;
         public:
-            WifiSignalStrengthMonitor wifiSignalStrengthMonitor;
+            WiFiSignalStrengthMonitor m_wifiSignalMonitor;
             mutable ConnectivityMonitor connectivityMonitor;
         };
     }

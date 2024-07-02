@@ -18,8 +18,8 @@
 **/
 
 #include "NetworkManagerImplementation.h"
-#include "NetworkConnectivity.h"
-#include "WifiSignalStrengthMonitor.h"
+#include "NetworkManagerConnectivity.h"
+#include "WiFiSignalStrengthMonitor.h"
 
 using namespace WPEFramework;
 using namespace WPEFramework::Plugin;
@@ -54,7 +54,6 @@ namespace WPEFramework
 
         NetworkManagerImplementation::~NetworkManagerImplementation()
         {
-            connectivityMonitor.stopContinuousConnectivityMonitoring();
             LOG_ENTRY_FUNCTION();
         }
 
@@ -119,27 +118,35 @@ namespace WPEFramework
                 NMLOG_TRACE("config : stun port %d", m_stunPort);
                 NMLOG_TRACE("config : stun interval %d", m_stunBindTimeout);
 
-                NMLOG_TRACE("config : endpoint 1 %s", config.connectivity.endpoint_1.Value().c_str());
-                NMLOG_TRACE("config : endpoint 2 %s", config.connectivity.endpoint_2.Value().c_str());
-                NMLOG_TRACE("config : endpoint 3 %s", config.connectivity.endpoint_3.Value().c_str());
-                NMLOG_TRACE("config : endpoint 4 %s", config.connectivity.endpoint_4.Value().c_str());
-                NMLOG_TRACE("config : endpoint 5 %s", config.connectivity.endpoint_5.Value().c_str());
-                NMLOG_TRACE("config : interval %d", config.connectivity.ConnectivityCheckInterval.Value());
-
                 NMLOG_TRACE("config : loglevel %d", config.loglevel.Value());
                 logLevel = static_cast <NMLogging>(config.loglevel.Value());
                 // configure loglevel in libWPEFrameworkNetworkManagerImplementation.so
                 NetworkManagerLogger::SetLevel(static_cast <NetworkManagerLogger::LogLevel>(logLevel));
 
-                std::vector<std::string> endpoints;
-                endpoints.push_back(config.connectivity.endpoint_1.Value().c_str());
-                endpoints.push_back(config.connectivity.endpoint_2.Value().c_str());
-                endpoints.push_back(config.connectivity.endpoint_3.Value().c_str());
-                endpoints.push_back(config.connectivity.endpoint_4.Value().c_str());
-                endpoints.push_back(config.connectivity.endpoint_5.Value().c_str());
+                /* load connectivity monitor endpoints */
+                std::vector<std::string> connectEndpts;
+                if(!config.connectivityConf.endpoint_1.Value().empty()) {
+                    NMLOG_TRACE("config : connectivity enpt 1 %s", config.connectivityConf.endpoint_1.Value().c_str());
+                    connectEndpts.push_back(config.connectivityConf.endpoint_1.Value().c_str());
+                }
+                if(!config.connectivityConf.endpoint_2.Value().empty()) {
+                    NMLOG_TRACE("config : connectivity enpt 2 %s", config.connectivityConf.endpoint_2.Value().c_str());
+                    connectEndpts.push_back(config.connectivityConf.endpoint_2.Value().c_str());
+                }
+                if(!config.connectivityConf.endpoint_3.Value().empty()) {
+                    NMLOG_TRACE("config : connectivity enpt 3 %s", config.connectivityConf.endpoint_3.Value().c_str());
+                    connectEndpts.push_back(config.connectivityConf.endpoint_3.Value().c_str());
+                }
+                if(!config.connectivityConf.endpoint_4.Value().empty()) {
+                    NMLOG_TRACE("config : connectivity enpt 4 %s", config.connectivityConf.endpoint_4.Value().c_str());
+                    connectEndpts.push_back(config.connectivityConf.endpoint_4.Value().c_str());
+                }
+                if(!config.connectivityConf.endpoint_5.Value().empty()) {
+                    NMLOG_TRACE("config : connectivity enpt 5 %s", config.connectivityConf.endpoint_5.Value().c_str());
+                    connectEndpts.push_back(config.connectivityConf.endpoint_5.Value().c_str());
+                }
 
-                //set connectivity endpoint
-                connectivityMonitor.setConnectivityMonitorEndpoints(endpoints);
+                connectivityMonitor.setConnectivityMonitorEndpoints(connectEndpts);
             }
             else
                 NMLOG_ERROR("Plugin configuration read error !");
@@ -210,7 +217,7 @@ namespace WPEFramework
             else if(0 == strcasecmp("IPv6", ipversion.c_str()))
                 tmpVersion = NSM_IPRESOLVE_V6;
 
-            isconnected = connectivityMonitor.getInternetConnectionState(tmpVersion);
+            isconnected = connectivityMonitor.getInternetState(tmpVersion);
             if (FULLY_CONNECTED == isconnected)
                 result = INTERNET_FULLY_CONNECTED;
             else if (CAPTIVE_PORTAL == isconnected)
@@ -235,7 +242,7 @@ namespace WPEFramework
         uint32_t NetworkManagerImplementation::StartConnectivityMonitoring(const uint32_t interval/* @in */)
         {
             LOG_ENTRY_FUNCTION();
-            if (connectivityMonitor.doContinuousConnectivityMonitoring(interval))
+            if (connectivityMonitor.startContinuousConnectivityMonitor(interval))
                 return Core::ERROR_NONE;
             else
                 return Core::ERROR_GENERAL;
@@ -245,7 +252,7 @@ namespace WPEFramework
         uint32_t NetworkManagerImplementation::StopConnectivityMonitoring(void) const
         {
             LOG_ENTRY_FUNCTION();
-            if (connectivityMonitor.stopContinuousConnectivityMonitoring())
+            if (connectivityMonitor.stopContinuousConnectivityMonitor())
                 return Core::ERROR_NONE;
             else
                 return Core::ERROR_GENERAL;
@@ -300,6 +307,7 @@ namespace WPEFramework
         uint32_t NetworkManagerImplementation::Trace (const string ipversion /* @in */,  const string endpoint /* @in */, const uint32_t noOfRequest /* @in */, const string guid /* @in */, string& response /* @out */)
         {
             char cmd[256] = "";
+            string tempResult = "";
             if(0 == strcasecmp("IPv6", ipversion.c_str()))
             {
                 snprintf(cmd, 256, "traceroute6 -w 3 -m 6 -q %d %s 64 2>&1", noOfRequest, endpoint.c_str());
@@ -311,7 +319,12 @@ namespace WPEFramework
 
             NMLOG_INFO ("The Command is %s", cmd);
             string commandToExecute(cmd);
-            executeExternally(NETMGR_TRACE, commandToExecute, response);
+            executeExternally(NETMGR_TRACE, commandToExecute, tempResult);
+
+            JsonObject temp;
+            temp["target"] = endpoint;
+            temp["results"] = tempResult;
+            temp.ToString(response);
 
             return Core::ERROR_NONE;
         }
@@ -322,6 +335,7 @@ namespace WPEFramework
             string output{};
             char buffer[1024];
             JsonObject pingResult;
+            int exitStatus;
 
             pipe = popen(commandToExecute.c_str(), "r");
             if (pipe == NULL)
@@ -404,6 +418,15 @@ namespace WPEFramework
                         pingResult["error"] = "Bad Address";
                     }
                 }
+                exitStatus = pclose(pipe);
+                // Check the exit status to determine if the command was successful
+                if (WIFEXITED(exitStatus) && WEXITSTATUS(exitStatus) == 0) {
+                    pingResult["success"] = true;
+                    pingResult["error"] = "";
+                } else {
+                    pingResult["success"] = false;
+                    pingResult["error"] = "Could not ping endpoint";
+                }
 
                 pingResult.ToString(response);
                 NMLOG_INFO("Response is, %s", response.c_str());
@@ -417,15 +440,15 @@ namespace WPEFramework
                 while (!feof(pipe) && fgets(buffer, 1024, pipe) != NULL)
                 {
                     // remove newline from buffer
-                    buffer[strcspn(buffer, "\n")] = '\0';
+                    buffer[strcspn(buffer, "\n")] = ' ';
                     string line(buffer);
                     list.Add(line);
                 }
 
+                pclose(pipe);
                 list.ToString(response);
                 NMLOG_INFO("Response is, %s", response.c_str());
             }
-            fclose(pipe);
             return;
         }
 
