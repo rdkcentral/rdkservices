@@ -1,0 +1,199 @@
+diff --git a/RDKShell/RDKShell.cpp b/RDKShell/RDKShell.cpp
+index 805759e2..cbedbf2c 100755
+--- a/RDKShell/RDKShell.cpp
++++ b/RDKShell/RDKShell.cpp
+@@ -471,7 +471,7 @@ namespace WPEFramework {
+         private:
+           uint32_t mId { 0 };
+           std::string mCallSign { };
+-          PluginHost::IDispatcher * dispatcher_ {nullptr};
++          PluginHost::ILocalDispatcher * dispatcher_ {nullptr};
+ 
+           Core::ProxyType<Core::JSONRPC::Message> Message() const
+           {
+@@ -520,7 +520,7 @@ namespace WPEFramework {
+             : mCallSign(callsign)
+           {
+             if (service)
+-              dispatcher_ = service->QueryInterfaceByCallsign<PluginHost::IDispatcher>(mCallSign);
++              dispatcher_ = service->QueryInterfaceByCallsign<PluginHost::ILocalDispatcher>(mCallSign);
+           }
+       
+           JSONRPCDirectLink(PluginHost::IShell* service)
+@@ -566,10 +566,7 @@ namespace WPEFramework {
+             const uint32_t channelId = ~0;
+ #ifndef USE_THUNDER_R4
+             auto resp =  dispatcher_->Invoke(sThunderSecurityToken, channelId, *message);
+-#else
+-            Core::JSONRPC::Context context(channelId, message->Id.Value(), sThunderSecurityToken) ;
+-            auto resp = dispatcher_->Invoke(context, *message);
+-#endif /* USE_THUNDER_R4 */
++
+             if (resp->Error.IsSet()) {
+               std::cout << "Call failed: " << message->Designator.Value() << " error: " <<  resp->Error.Text.Value() << "\n";
+               return resp->Error.Code;
+@@ -577,7 +574,29 @@ namespace WPEFramework {
+ 
+             if (!FromMessage(response, resp, isResponseString))
+               return Core::ERROR_GENERAL;
++#else
++              string result = "";
++	      uint32_t resp =  dispatcher_->Invoke(channelId, message->Id.Value(), sThunderSecurityToken, message->Designator.Value() , message->Parameters.Value(), result);
+ 
++              if (message.IsValid() == true) {
++                  if (resp == static_cast<uint32_t>(~0)) {
++                      message.Release();
++                   }
++		   else if (resp == Core::ERROR_NONE)
++		   {
++                       if (result.empty() == true)
++                           message->Result.Null(true);
++		       else
++                           message->Result = result;
++                   }
++		   else
++		   {
++                       message->Error.Code = resp;
++                       message->Error.Text = Core::ErrorToString(resp);
++		       std::cout << "Call failed: " << message->Designator.Value() << " error: " <<  message->Error.Text.Value() << "\n";
++                   }
++              }
++#endif /* USE_THUNDER_R4 */
+             return Core::ERROR_NONE;
+           }
+         };
+diff --git a/SystemServices/platformcaps/platformcapsdata.h b/SystemServices/platformcaps/platformcapsdata.h
+index 1ae9490b..745ce054 100644
+--- a/SystemServices/platformcaps/platformcapsdata.h
++++ b/SystemServices/platformcaps/platformcapsdata.h
+@@ -68,7 +68,7 @@ private:
+      private:
+       uint32_t mId{ 0 };
+       std::string mCallSign{};
+-      PluginHost::IDispatcher* dispatcher_{ nullptr };
++      PluginHost::ILocalDispatcher* dispatcher_{ nullptr };
+
+       Core::ProxyType<Core::JSONRPC::Message> Message() const
+       {
+@@ -114,7 +114,7 @@ private:
+           : mCallSign(callsign)
+       {
+         if (service)
+-          dispatcher_ = service->QueryInterfaceByCallsign<PluginHost::IDispatcher>(mCallSign);
++          dispatcher_ = service->QueryInterfaceByCallsign<PluginHost::ILocalDispatcher>(mCallSign);
+       }
+       ~JSONRPCDirectLink()
+       {
+@@ -155,11 +155,8 @@ private:
+         const uint32_t channelId = ~0;
+ #ifndef USE_THUNDER_R4
+         auto resp = dispatcher_->Invoke("", channelId, *message);
+-#else
+-        Core::JSONRPC::Context context(channelId, message->Id.Value(), "");
+-        auto resp = dispatcher_->Invoke(context, *message);
+-#endif /* USE_THUNDER_R4 */
+-        if (resp->Error.IsSet()) {
++
++       if (resp->Error.IsSet()) {
+           std::cout << "Call failed: " << message->Designator.Value() << " error: " << resp->Error.Text.Value() << "\n";
+           return resp->Error.Code;
+         }
+@@ -167,6 +164,30 @@ private:
+         if (!FromMessage(response, resp, isResponseString))
+           return Core::ERROR_GENERAL;
+
++#else
++              string result = "";
++              uint32_t resp =  dispatcher_->Invoke(channelId, message->Id.Value(), "", message->Designator.Value() , message->Parameters.Value(), result);
++
++              if (message.IsValid() == true) {
++                  if (resp == static_cast<uint32_t>(~0)) {
++                      message.Release();
++                  }
++                  else if (resp == Core::ERROR_NONE)
++                  {
++                       if (result.empty() == true)
++                           message->Result.Null(true);
++                      else
++                           message->Result = result;
++                  }
++                  else
++                  {
++                       message->Error.Code = resp;
++                       message->Error.Text = Core::ErrorToString(resp);
++                      std::cout << "Call failed: " << message->Designator.Value() << " error: " <<  message->Error.Text.Value() << "\n";
++                  }
++              }
++#endif /* USE_THUNDER_R4 */
++
+         return Core::ERROR_NONE;
+       }
+     };
+diff --git a/ResourceManager/ResourceManager.cpp b/ResourceManager/ResourceManager.cpp
+index f80fe3f5..296cf632 100644
+--- a/ResourceManager/ResourceManager.cpp
++++ b/ResourceManager/ResourceManager.cpp
+@@ -255,7 +255,7 @@ namespace WPEFramework {
+         private:
+           uint32_t mId { 0 };
+           std::string mCallSign { };
+-          PluginHost::IDispatcher * dispatcher_ {nullptr};
++          PluginHost::ILocalDispatcher * dispatcher_ {nullptr};
+
+           Core::ProxyType<Core::JSONRPC::Message> Message() const
+           {
+@@ -304,7 +304,7 @@ namespace WPEFramework {
+             : mCallSign(callsign)
+           {
+             if (service)
+-              dispatcher_ = service->QueryInterfaceByCallsign<PluginHost::IDispatcher>(mCallSign);
++              dispatcher_ = service->QueryInterfaceByCallsign<PluginHost::ILocalDispatcher>(mCallSign);
+           }
+
+           JSONRPCDirectLink(PluginHost::IShell* service)
+@@ -348,12 +348,10 @@ namespace WPEFramework {
+             ToMessage(parameters, message);
+
+             const uint32_t channelId = ~0;
++
+ #ifndef USE_THUNDER_R4
+             auto resp =  dispatcher_->Invoke(sThunderSecurityToken, channelId, *message);
+-#else
+-            Core::JSONRPC::Context context(channelId, message->Id.Value(), sThunderSecurityToken) ;
+-            auto resp = dispatcher_->Invoke(context, *message);
+-#endif /* USE_THUNDER_R4 */
++
+             if (resp->Error.IsSet()) {
+               std::cout << "Call failed: " << message->Designator.Value() << " error: " <<  resp->Error.Text.Value() << "\n";
+               return resp->Error.Code;
+@@ -361,6 +359,29 @@ namespace WPEFramework {
+
+             if (!FromMessage(response, resp, isResponseString))
+               return Core::ERROR_GENERAL;
++#else
++             string result = "";
++             uint32_t resp =  dispatcher_->Invoke(channelId, message->Id.Value(), sThunderSecurityToken, message->Designator.Value() , message->Parameters.Value(), result);
++              if (message.IsValid() == true) {
++                  if (resp == static_cast<uint32_t>(~0)) {
++                      message.Release();
++                   }
++                  else if (resp == Core::ERROR_NONE)
++                  {
++                       if (result.empty() == true)
++                           message->Result.Null(true);
++                      else
++                           message->Result = result;
++                   }
++                  else
++                  {
++                       message->Error.Code = resp;
++                       message->Error.Text = Core::ErrorToString(resp);
++                      std::cout << "Call failed: " << message->Designator.Value() << " error: " <<  message->Error.Text.Value() << "\n";
++                  }
++              }
++
++#endif /* USE_THUNDER_R4 */
+
+             return Core::ERROR_NONE;
+           }
+

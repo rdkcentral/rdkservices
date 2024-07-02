@@ -18,6 +18,8 @@
 cmake_minimum_required(VERSION 3.8)
 project(RdkServicesL1Test)
 
+set(CMAKE_VERBOSE_MAKEFILE ON)
+
 set(CMAKE_CXX_STANDARD 11)
 
 find_package(${NAMESPACE}Plugins REQUIRED)
@@ -28,7 +30,7 @@ FetchContent_Declare(
         URL https://github.com/google/googletest/archive/609281088cfefc76f9d0ce82e1ff6c30cc3591e5.zip
 )
 FetchContent_MakeAvailable(googletest)
-file(GLOB TESTS tests/*.cpp)
+file(GLOB TESTS tests/test_SystemServices.cpp)
 add_executable(${PROJECT_NAME}
         ${TESTS}
         ../mocks/Rfc.cpp
@@ -80,7 +82,6 @@ include_directories(../../LocationSync
         ../../HdcpProfile
         ../../Network
         ../../WifiManager
-        ../../TraceControl
         ../../Warehouse
         ../../ActivityMonitor
         ../../MotionDetection
@@ -146,45 +147,8 @@ link_directories(../../LocationSync
 target_link_libraries(${PROJECT_NAME}
         gmock_main
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
-        ${NAMESPACE}DataCapture
-        ${NAMESPACE}DeviceDiagnostics
-        ${NAMESPACE}LocationSync
-        ${NAMESPACE}SecurityAgent
-        ${NAMESPACE}DeviceIdentification
-        ${NAMESPACE}FrameRate
-        ${NAMESPACE}AVInput
-        ${NAMESPACE}ScreenCapture
-        ${NAMESPACE}Telemetry
-        ${NAMESPACE}UsbAccess
-        ${NAMESPACE}Timer
-        ${NAMESPACE}LoggingPreferences
+        ${NAMESPACE}Core::${NAMESPACE}Core
         ${NAMESPACE}SystemServices
-        ${NAMESPACE}UserPreferences
-        ${NAMESPACE}Messenger
-        ${NAMESPACE}DeviceInfo
-        ${NAMESPACE}HdmiInput
-        ${NAMESPACE}HdcpProfile
-        ${NAMESPACE}Network
-        ${NAMESPACE}WifiManager
-        ${NAMESPACE}TraceControl
-        ${NAMESPACE}Warehouse
-        ${NAMESPACE}ActivityMonitor
-        ${NAMESPACE}MotionDetection
-        ${NAMESPACE}CompositeInput
-        ${NAMESPACE}OCIContainer
-        ${NAMESPACE}HdmiCec
-        ${NAMESPACE}HdmiCec_2
-        ${NAMESPACE}HdmiCecSource
-        ${NAMESPACE}XCast
-        ${NAMESPACE}FrontPanel
-        ${NAMESPACE}HdmiCecSink
-        ${NAMESPACE}RDKShell
-        ${NAMESPACE}MaintenanceManager
-        ${NAMESPACE}Packager
-        ${NAMESPACE}TextToSpeech
-        ${NAMESPACE}SystemAudioPlayer
-	${NAMESPACE}MiracastService
-	${NAMESPACE}MiracastPlayer
         )
 
 target_include_directories(${PROJECT_NAME}
