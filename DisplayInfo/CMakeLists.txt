@@ -93,6 +93,11 @@ if (USE_DEVICESETTINGS)
             PRIVATE
             DeviceSettings/Amlogic/SoC_abstraction.cpp
             DeviceSettings/Amlogic/kms.c)
+    elseif (BUILD_RASPBERRYPI)
+        target_sources(${MODULE_NAME}
+            PRIVATE
+                DeviceSettings/RPI/SoC_abstraction.cpp
+                DeviceSettings/RPI/kms.c)
     endif()
 
 elseif (NXCLIENT_FOUND AND NEXUS_FOUND)
