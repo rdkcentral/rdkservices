@@ -81,7 +81,7 @@ namespace WPEFramework
             //
             // Ideally for large, complex plugins we would actually split the plugin into two libraries - a thin library that just calls
             // _service->Root to launch WPEProcess, and a larger library that is only ever run inside WPEProcess only (we do this for Cobalt and WebKitBrowser)
-            _NetworkManager = service->Root<Exchange::INetworkManager>(_connectionId, 5000, _T("NetworkManagerImplementation"));
+            _NetworkManager = service->Root<Exchange::INetworkManager>(_connectionId, 25000, _T("NetworkManagerImplementation"));
 
             // Still running inside the main WPEFramework process - the child process will have now been spawned and registered if necessary
             if (_NetworkManager != nullptr)
