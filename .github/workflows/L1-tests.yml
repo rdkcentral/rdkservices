@@ -265,7 +265,6 @@ jobs:
           -DCMAKE_CXX_FLAGS="
           -fprofile-arcs
           -ftest-coverage
-          -fPIC
           -DEXCEPTIONS_ENABLE=ON
           -DUSE_THUNDER_R4=ON
           -DTHUNDER_VERSION_MAJOR=4
@@ -330,6 +329,7 @@ jobs:
           -DPLUGIN_SYSTEMAUDIOPLAYER=ON
           -DPLUGIN_MIRACAST=OFF
           -DUSE_THUNDER_R4=ON
+          -DHIDE_NON_EXTERNAL_SYMBOLS=OFF
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           &&
           cmake --build build/rdkservices -j8
