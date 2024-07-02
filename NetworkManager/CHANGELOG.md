@@ -16,6 +16,11 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [0.2.9] - 2024-07-04
+### Fixed 
+- Fixed all the regressions that are unearthed during migration to this plugin
+- Fixed the core NetworkManager Plugin issues
+
 ## [0.2.0] - 2024-05-27
 ### Added
 - Restructured the NetworkManager folder organization
