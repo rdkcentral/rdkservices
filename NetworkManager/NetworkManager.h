@@ -121,28 +121,6 @@ namespace WPEFramework
                 {
                     NMLOG_TRACE("%s", __FUNCTION__);
                     JsonObject params;
-#ifdef ENABLE_LEGACY_NSM_SUPPORT
-                    JsonObject legacyParams;
-                    JsonObject onConnParams;
-                    std::string json;
-                    if(interface == "wlan0")
-                        legacyParams["interface"] = "WIFI";
-                    else if(interface == "eth0")
-                        legacyParams["interface"] = "ETHERNET";
-                    if(event == Exchange::INetworkManager::INTERFACE_ADDED)
-                        legacyParams["enabled"] = true;
-                    else if(event == Exchange::INetworkManager::INTERFACE_REMOVED)
-                        legacyParams["enabled"] = false;
-                    _parent.Notify("onInterfaceStatusChanged", legacyParams);
-                    if(event == Exchange::INetworkManager::INTERFACE_LINK_UP)
-                        onConnParams["status"] = "CONNECTED";
-                    else if(event == Exchange::INetworkManager::INTERFACE_LINK_DOWN)
-                        onConnParams["status"] = "DISCONNECTED";
-                    onConnParams["interface"] = legacyParams["interface"];
-                    onConnParams.ToString(json);
-                    NMLOG_TRACE("onConnectionStatusChanged onConnParams=%s", json.c_str() );
-                    _parent.Notify("onConnectionStatusChanged", onConnParams);
-#endif
                     params["interface"] = interface;
                     params["state"] = InterfaceStateToString(event);
                     _parent.Notify("onInterfaceStateChange", params);
@@ -152,25 +130,6 @@ namespace WPEFramework
                 {
                     NMLOG_TRACE("%s", __FUNCTION__);
                     JsonObject params;
-#ifdef ENABLE_LEGACY_NSM_SUPPORT
-                    JsonObject legacyParams;
-                    if(isIPv6)
-                    {
-                        legacyParams["ip6Address"] = ipAddress;
-                        legacyParams["ip4Address"] = "";
-                    }
-                    else
-                    {
-                        legacyParams["ip4Address"] = ipAddress;
-                        legacyParams["ip6Address"] = "";
-                    }
-                    if(interface == "wlan0")
-                        legacyParams["interface"] = "WIFI";
-                    else if(interface == "eth0")
-                        legacyParams["interface"] = "ETHERNET";
-                    legacyParams["status"] = string (isAcquired ? "ACQUIRED" : "LOST");
-                    _parent.Notify("onIPAddressStatusChanged", legacyParams);
-#endif
                     params["status"] = string (isAcquired ? "ACQUIRED" : "LOST");
                     params["interface"] = interface;
                     params["ipAddress"] = ipAddress;
@@ -182,22 +141,6 @@ namespace WPEFramework
                 {
                     NMLOG_TRACE("%s", __FUNCTION__);
                     JsonObject params;
-#ifdef ENABLE_LEGACY_NSM_SUPPORT
-                    JsonObject legacyParams;
-                    string oldInterface;
-                    string newInterface;
-                    if(prevActiveInterface == "wlan0")
-                        oldInterface = "WIFI";
-                    else if(prevActiveInterface == "eth0")
-                        oldInterface = "ETHERNET";
-                    if(currentActiveinterface == "wlan0")
-                        newInterface = "WIFI";
-                    else if(currentActiveinterface == "eth0")
-                        newInterface = "ETHERNET";
-                    legacyParams["oldInterfaceName"] = oldInterface;
-                    legacyParams["newInterfaceName"] = newInterface;
-                    _parent.Notify("onDefaultInterfaceChanged", legacyParams);
-#endif
                     params["oldInterfaceName"] = prevActiveInterface;
                     params["newInterfaceName"] = currentActiveinterface;
                     _parent.Notify("onActiveInterfaceChange", params);
@@ -239,12 +182,6 @@ namespace WPEFramework
                 {
                     NMLOG_TRACE("%s", __FUNCTION__);
                     JsonObject result;
-#ifdef ENABLE_LEGACY_NSM_SUPPORT
-                    JsonObject legacyResult;
-                    legacyResult["state"] = static_cast <int> (state);
-                    legacyResult["isLNF"] = false;
-                    _parent.Notify("onWIFIStateChanged", legacyResult);
-#endif
                     result["state"] = static_cast <int> (state);
                     _parent.Notify("onWiFiStateChange", result);
                 }
@@ -253,12 +190,6 @@ namespace WPEFramework
                 {
                     NMLOG_TRACE("%s", __FUNCTION__);
                     JsonObject result;
-#ifdef ENABLE_LEGACY_NSM_SUPPORT
-                    JsonObject legacyResult;
-                    legacyResult["signalStrength"] = WiFiSignalQualityToString(signalQuality);
-                    legacyResult["strength"] = signalLevel;
-                    _parent.Notify("onWifiSignalThresholdChanged", legacyResult);
-#endif
                     result["ssid"] = ssid;
                     result["signalQuality"] = WiFiSignalQualityToString(signalQuality);
                     result["signalLevel"] = signalLevel;
@@ -342,18 +273,14 @@ namespace WPEFramework
             // JSON-RPC setup
             void RegisterAllMethods();
             void UnregisterAllMethods();
-#ifdef ENABLE_LEGACY_NSM_SUPPORT
-            void RegisterLegacyMethods();
-            void UnregisterLegacyMethods();
-#endif
 
             // JSON-RPC methods (take JSON in, spit JSON back out)
             uint32_t SetLogLevel (const JsonObject& parameters, JsonObject& response);
             uint32_t GetAvailableInterfaces (const JsonObject& parameters, JsonObject& response);
             uint32_t GetPrimaryInterface (const JsonObject& parameters, JsonObject& response);
             uint32_t SetPrimaryInterface (const JsonObject& parameters, JsonObject& response);
-            uint32_t EnableInterface (const JsonObject& parameters, JsonObject& response);
-            uint32_t DisableInterface (const JsonObject& parameters, JsonObject& response);
+            uint32_t GetInterfaceState(const JsonObject& parameters, JsonObject& response);
+            uint32_t SetInterfaceState(const JsonObject& parameters, JsonObject& response);
             uint32_t GetIPSettings(const JsonObject& parameters, JsonObject& response);
             uint32_t SetIPSettings(const JsonObject& parameters, JsonObject& response);
             uint32_t GetStunEndpoint(const JsonObject& parameters, JsonObject& response);
@@ -380,37 +307,7 @@ namespace WPEFramework
             uint32_t GetWifiState(const JsonObject& parameters, JsonObject& response);
             uint32_t GetWiFiSignalStrength(const JsonObject& parameters, JsonObject& response);
             uint32_t GetSupportedSecurityModes(const JsonObject& parameters, JsonObject& response);
-#ifdef ENABLE_LEGACY_NSM_SUPPORT
-            uint32_t getInterfaces (const JsonObject& parameters, JsonObject& response);
-            uint32_t isInterfaceEnabled (const JsonObject& parameters, JsonObject& response);
-            uint32_t setInterfaceEnabled (const JsonObject& parameters, JsonObject& response);
-            uint32_t getPublicIP (const JsonObject& parameters, JsonObject& response);
-            uint32_t getDefaultInterface(const JsonObject& parameters, JsonObject& response);
-            uint32_t setDefaultInterface(const JsonObject& parameters, JsonObject& response);
-            uint32_t setIPSettings(const JsonObject& parameters, JsonObject& response);
-            uint32_t getIPSettings(const JsonObject& parameters, JsonObject& response);
-            uint32_t getInternetConnectionState(const JsonObject& parameters, JsonObject& response);
-            uint32_t ping(const JsonObject& parameters, JsonObject& response);
-            uint32_t isConnectedToInternet(const JsonObject& parameters, JsonObject& response);
-            uint32_t setConnectivityTestEndpoints(const JsonObject& parameters, JsonObject& response);
-            uint32_t startConnectivityMonitoring(const JsonObject& parameters, JsonObject& response);
-            uint32_t getCaptivePortalURI(const JsonObject& parameters, JsonObject& response);
-            uint32_t stopConnectivityMonitoring(const JsonObject& parameters, JsonObject& response);
-            uint32_t getPairedSSID(const JsonObject& parameters, JsonObject& response);
-            uint32_t getPairedSSIDInfo(const JsonObject& parameters, JsonObject& response);
-            uint32_t initiateWPSPairing(const JsonObject& parameters, JsonObject& response);
-            uint32_t isPaired(const JsonObject& parameters, JsonObject& response);
-            uint32_t saveSSID(const JsonObject& parameters, JsonObject& response);
-            uint32_t cancelWPSPairing(const JsonObject& parameters, JsonObject& response);
-            uint32_t clearSSID(const JsonObject& parameters, JsonObject& response);
-            uint32_t connect(const JsonObject& parameters, JsonObject& response);
-            uint32_t disconnect(const JsonObject& parameters, JsonObject& response);
-            uint32_t getConnectedSSID(const JsonObject& parameters, JsonObject& response);
-            uint32_t getSupportedSecurityModes(const JsonObject& parameters, JsonObject& response);
-            uint32_t startScan(const JsonObject& parameters, JsonObject& response);
-            uint32_t stopScan(const JsonObject& parameters, JsonObject& response);
-            uint32_t getCurrentState(const JsonObject& parameters, JsonObject& response);
-#endif
+
         private:
             uint32_t _connectionId;
             PluginHost::IShell *_service;

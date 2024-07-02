@@ -35,12 +35,6 @@
 namespace NetworkManagerLogger {
     static LogLevel gDefaultLogLevel = TRACE_LEVEL;
 
-    static inline void sync_stdout()
-    {
-        if (getenv("SYNC_STDOUT"))
-            setvbuf(stdout, NULL, _IOLBF, 0);
-    }
-
     const char* methodName(const std::string& prettyFunction)
     {
         size_t colons = prettyFunction.find("::");
@@ -52,7 +46,6 @@ namespace NetworkManagerLogger {
 
     void Init()
     {
-        sync_stdout();
 #ifdef USE_RDK_LOGGER
         rdk_logger_init(0 == access("/opt/debug.ini", R_OK) ? "/opt/debug.ini" : "/etc/debug.ini");
 #endif
@@ -90,7 +83,7 @@ namespace NetworkManagerLogger {
         gettimeofday(&tv, NULL);
         lt = localtime(&tv.tv_sec);
 
-        printf("%.2d:%.2d:%.2d.%.6lld %-10s %s %s:%d : %s\n", lt->tm_hour, lt->tm_min, lt->tm_sec, (long long int)tv.tv_usec, levelMap[level], basename(file), func, line, formattedLog);
+        printf("%.2d:%.2d:%.2d.%.6lld %-10s %s:%d : %s\n", lt->tm_hour, lt->tm_min, lt->tm_sec, (long long int)tv.tv_usec, levelMap[level], basename(file), line, formattedLog);
         fflush(stdout);
 #endif
     }
