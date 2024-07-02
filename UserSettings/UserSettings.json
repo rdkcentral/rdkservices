@@ -9,38 +9,6 @@
     "common": {
         "$ref": "../common/common.json"
     },
-    "definitions": {
-        "enabled": {
-            "summary": "Enabled (`true`) or disabled (`false`)",
-            "type": "boolean",
-            "example": false
-        },
-        "preferredLanguages": {
-            "summary": "A prioritized list of ISO 639-2/B codes for the preferred audio languages",
-            "type": "string",
-            "example": "eng"
-        },
-        "preferredCaptionsLanguages": {
-            "summary": "A prioritized list of ISO 639-2/B codes for the preferred captions languages",
-            "type": "string",
-            "example": "eng"
-        },
-        "preferredClosedCaptionService": {
-            "summary": "A string for the preferred closed captions service.  Valid values are AUTO, CC[1-4], TEXT[1-4], SERVICE[1-64] where CC and TEXT is CTA-608 and SERVICE is CTA-708.  AUTO indicates that the choice is left to the player",
-            "type": "string",
-            "example": "CC3"
-        },
-        "presentationLanguage": {
-            "summary": "The preferred presentationLanguages in a full BCP 47 value, including script, * region, variant The language set and used by Immerse UI",
-            "type": "string",
-            "example": "en-US"
-        },
-        "privacyMode": {
-            "summary": "The Privacy Mode. Valid values are SHARE, DO_NOT_SHARE",
-            "type": "string",
-            "example": "SHARE"
-        }
-    },
     "methods": {
         "SetAudioDescription": {
             "summary": "Setting Audio Description.",
@@ -141,99 +109,43 @@
         "GetAudioDescription":{
             "summary": "Returns Audio Description.",
             "result": {
-                "type": "object",
-                "properties": {
-                    "enabled": {
-                        "$ref": "#/definitions/enabled"
-                    }
-                },
-                "required": [
-                    "enabled"
-                    ]
+                "type": "boolean"
             }
         },
         "GetPreferredAudioLanguages":{
             "summary": "Returns Audio Description.",
             "result": {
-                "type": "object",
-                "properties": {
-                    "preferredLanguages": {
-                        "$ref": "#/definitions/preferredLanguages"
-                    }
-                },
-                "required": [
-                    "preferredLanguages"
-                ]
+                "type": "string"
             }
         },
         "GetPresentationLanguage":{
             "summary": "Getting Presentation Languages.",
             "result": {
-                "type": "object",
-                "properties": {
-                    "presentationlanguages": {
-                        "$ref": "#/definitions/presentationLanguage"
-                    }
-                },
-                "required": [
-                    "presentationlanguages"
-                ]
+                "type": "string"
             }
         },
         "GetCaptions":{
             "summary": "Getting Captions Enabled.",
             "result": {
-                "type": "object",
-                "properties": {
-                    "enabled": {
-                        "$ref": "#/definitions/enabled"
-                    }
-                },
-                "required": [
-                    "enabled"
-                ]
+                "type": "boolean"
             }
         },
         "GetPreferredCaptionsLanguages":{
             "summary": "Getting Preferred Caption Languages.",
             "result": {
-                "type": "object",
-                "properties": {
-                    "preferredLanguages": {
-                        "$ref": "#/definitions/preferredCaptionsLanguages"
-                    }
-                },
-                "required": [
-                    "preferredLanguages"
-                ]
+                "type": "string"
             }
         },
         "GetPreferredClosedCaptionService":{
             "summary": "Getting Preferred ClosedCaption Service.",
             "result": {
-                "type": "object",
-                "properties": {
-                    "preferredClosedCaptionService": {
-                        "$ref": "#/definitions/preferredClosedCaptionService"
-                    }
-                },
-                "required": [
-                    "preferredClosedCaptionService"
-                ]
+                "type": "string"
             }
         },
         "GetPrivacyMode":{
             "summary": "Getting Privacy Mode",
             "result": {
-                "type": "object",
-                "properties": {
-                    "privacymode": {
-                        "$ref": "#/definitions/privacyMode"
-                    }
-                },
-                "required": [
-                    "privacyMode"
-                ]
+                "type": "string"
             }
         }
     },
