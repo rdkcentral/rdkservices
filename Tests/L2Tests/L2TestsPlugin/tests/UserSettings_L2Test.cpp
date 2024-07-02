@@ -43,6 +43,7 @@ class AsyncHandlerMock_UserSetting
         MOCK_METHOD(void, OnCaptionsChanged, (bool enabled));
         MOCK_METHOD(void, OnPreferredCaptionsLanguagesChanged, (const string preferredLanguages));
         MOCK_METHOD(void, OnPreferredClosedCaptionServiceChanged, (const string service));
+        MOCK_METHOD(void, OnPrivacyModeChanged, (const string privacyMode));
 
 };
 
@@ -134,6 +135,18 @@ class NotificationHandler : public Exchange::IUserSettings::INotification {
             TEST_LOG("OnPreferredClosedCaptionServiceChanged received: %s\n", service.c_str());
             /* Notify the requester thread. */
             m_event_signalled |= UserSettings_OnPreferredClosedCaptionServiceChanged;
+            m_condition_variable.notify_one();
+
+        }
+
+        void OnPrivacyModeChanged(const string& privacyMode) override
+        {
+            TEST_LOG("OnPrivacyModeChanged event triggered ***\n");
+            std::unique_lock<std::mutex> lock(m_mutex);
+
+            TEST_LOG("OnPrivacyModeChanged received: %s\n", service.c_str());
+            /* Notify the requester thread. */
+            m_event_signalled |= UserSettings_OnPrivacyModeChanged;
             m_condition_variable.notify_one();
 
         }
