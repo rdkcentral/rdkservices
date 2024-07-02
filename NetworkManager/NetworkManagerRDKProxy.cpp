@@ -1,4 +1,5 @@
 #include "NetworkManagerImplementation.h"
+#include "NetworkManagerConnectivity.h"
 #include "WiFiSignalStrengthMonitor.h"
 #include "libIBus.h"
 
@@ -382,6 +383,27 @@ namespace WPEFramework
             return Exchange::INetworkManager::WIFI_STATE_CONNECTION_FAILED;
         }
 
+        Exchange::INetworkManager::WiFiState errorcode_to_wifi_state(WiFiErrorCode_t code) {
+            switch (code)
+            {
+                case WIFI_SSID_CHANGED:
+                    return Exchange::INetworkManager::WIFI_STATE_SSID_CHANGED;
+                case WIFI_CONNECTION_LOST:
+                    return Exchange::INetworkManager::WIFI_STATE_CONNECTION_LOST;
+                case WIFI_CONNECTION_INTERRUPTED:
+                    return Exchange::INetworkManager::WIFI_STATE_CONNECTION_INTERRUPTED;
+                case WIFI_INVALID_CREDENTIALS:
+                    return Exchange::INetworkManager::WIFI_STATE_INVALID_CREDENTIALS;
+                case WIFI_AUTH_FAILED:
+                    return Exchange::INetworkManager::WIFI_STATE_AUTHENTICATION_FAILED;
+		case WIFI_NO_SSID:
+		    return Exchange::INetworkManager::WIFI_STATE_SSID_NOT_FOUND;
+                case WIFI_UNKNOWN:
+                    return Exchange::INetworkManager::WIFI_STATE_ERROR;
+            }
+            return Exchange::INetworkManager::WIFI_STATE_CONNECTION_FAILED;
+        }
+
         void NetworkManagerInternalEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
             LOG_ENTRY_FUNCTION();
@@ -423,13 +445,17 @@ namespace WPEFramework
                         NMLOG_INFO ("IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS :: %s", interface.c_str());
                         if(interface == "eth0" || interface == "wlan0")
                         {
-                            if (e->status)
+                            if (e->status) {
+                                if (interface == "wlan0") {
+                                    // ip address change event not coming when wifi reconnected
+                                    ::_instance->connectivityMonitor.startConnectivityMonitor(true);
+                                }
                                 ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_LINK_UP, interface);
+                            }
                             else {
                                ::_instance->ReportInterfaceStateChangedEvent(Exchange::INetworkManager::INTERFACE_LINK_DOWN, interface);
                                /* when ever interface down we start connectivity monitor to post noInternet event */
-                               ::_instance->connectivityMonitor.doInitialConnectivityMonitoring(5);
-                               ::_instance->connectivityMonitor.stopInitialConnectivityMonitoring();
+                               ::_instance->connectivityMonitor.startConnectivityMonitor(false); // false = interface is down, auto exit after retry
                             }
                         }
                         break;
@@ -445,7 +471,7 @@ namespace WPEFramework
                             if(e->acquired)
                             {
                                 /* if ip address acquired we start connectivity monitor */
-                                ::_instance->connectivityMonitor.doInitialConnectivityMonitoring(5);
+                                ::_instance->connectivityMonitor.startConnectivityMonitor(true); // true = interface is up
                             }
                         }
                         break;
@@ -498,6 +524,14 @@ namespace WPEFramework
                         if(e->data.wifiStateChange.state == WIFI_CONNECTED)
                              ::_instance->m_wifiSignalMonitor.startWiFiSignalStrengthMonitor(DEFAULT_WIFI_SIGNAL_TEST_INTERVAL_SEC);
                         ::_instance->ReportWiFiStateChangedEvent(state);
+                        break;
+                    }
+                    case IARM_BUS_WIFI_MGR_EVENT_onError:
+                    {
+                        IARM_BUS_WiFiSrvMgr_EventData_t* e = (IARM_BUS_WiFiSrvMgr_EventData_t *) data;
+                        Exchange::INetworkManager::WiFiState state = errorcode_to_wifi_state(e->data.wifiError.code);
+                        NMLOG_INFO("Event IARM_BUS_WIFI_MGR_EVENT_onError received; code=%d", e->data.wifiError.code);
+			::_instance->ReportWiFiStateChangedEvent(state);
                         break;
                     }
                     default:
@@ -1059,6 +1093,14 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
                 ssid.m_ssid.copy(param.data.connect.ssid, sizeof(param.data.connect.ssid) - 1);
                 ssid.m_passphrase.copy(param.data.connect.passphrase, sizeof(param.data.connect.passphrase) - 1);
                 param.data.connect.security_mode = (SsidSecurity)ssid.m_securityMode;
+                if(!ssid.m_identity.empty())
+                    ssid.m_identity.copy(param.data.connect.eapIdentity, sizeof(param.data.connect.eapIdentity) - 1);
+                if(!ssid.m_caCert.empty())
+                    ssid.m_caCert.copy(param.data.connect.carootcert, sizeof(param.data.connect.carootcert) - 1);
+                if(!ssid.m_clientCert.empty())
+                    ssid.m_clientCert.copy(param.data.connect.clientcert, sizeof(param.data.connect.clientcert) - 1);
+                if(!ssid.m_privateKey.empty())
+                    ssid.m_privateKey.copy(param.data.connect.privatekey, sizeof(param.data.connect.privatekey) - 1);
             }
 
             retVal = IARM_Bus_Call( IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_connect, (void *)&param, sizeof(param));

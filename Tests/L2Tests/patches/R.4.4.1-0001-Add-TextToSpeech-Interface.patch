@@ -1,0 +1,38 @@
+commit 1f4d2f2fc0a27fe911252ce6c4324aa8b2d23eff
+Author: Siva Thandayuthapani <sithanda@synamedia.com>
+Date:   Tue Jun 18 11:04:05 2024 +0530
+
+    R4.4.1 L2 test TextToSpeech
+
+diff --git a/interfaces/ITextToSpeech.h b/interfaces/ITextToSpeech.h
+index 3c74dc0..6262f00 100644
+--- a/interfaces/ITextToSpeech.h
++++ b/interfaces/ITextToSpeech.h
+@@ -65,7 +65,8 @@ namespace Exchange {
+ 
+         virtual void Register(ITextToSpeech::INotification* sink) = 0;
+         virtual void Unregister(ITextToSpeech::INotification* sink) = 0;
+-        
++
++        virtual void RegisterWithCallsign(const string callsign,ITextToSpeech::INotification* sink) = 0;        
+         // @property
+         // @brief Query the status/enable tts
+         // @param enable status/enable
+@@ -80,6 +81,7 @@ namespace Exchange {
+         virtual uint32_t SetFallbackText(const string scenario,const string value) = 0;
+         virtual uint32_t SetAPIKey(const string apikey) = 0;
+         virtual uint32_t SetPrimaryVolDuck(const uint8_t prim) = 0;
++        virtual uint32_t SetACL(const string method,const string apps) = 0;
+ 
+         // @brief Retrieve tts configuration attributes 
+         // @param config tts configuration
+@@ -94,8 +96,7 @@ namespace Exchange {
+         // @param text for conversion
+         // @param speechid returns id for the text 
+         // @param status return status
+-        virtual uint32_t Speak(const string text,uint32_t &speechid/* @out */,TTSErrorDetail &status/* @out */) = 0;
+-        
++        virtual uint32_t Speak(const string callsign,const string text,uint32_t &speechid/* @out */,TTSErrorDetail &status/* @out */) = 0;        
+         // @brief Cancel the speech
+         // @param speechid id of text to be cancelled
+         virtual uint32_t Cancel(const uint32_t speechid) = 0;

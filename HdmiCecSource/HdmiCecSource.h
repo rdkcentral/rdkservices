@@ -77,6 +77,8 @@ namespace WPEFramework {
             void process (const DeviceVendorID &msg, const Header &header);
 	        void process (const GiveDevicePowerStatus &msg, const Header &header);
 	        void process (const ReportPowerStatus &msg, const Header &header);
+	        void process (const UserControlPressed &msg, const Header &header);
+	        void process (const UserControlReleased &msg, const Header &header);
 	        void process (const FeatureAbort &msg, const Header &header);
 	        void process (const Abort &msg, const Header &header);
 	        void process (const Polling &msg, const Header &header);
@@ -197,6 +199,8 @@ namespace WPEFramework {
             pthread_mutex_t m_lockUpdate;
             bool cecEnableStatus;
 
+            void SendKeyPressMsgEvent(const int logicalAddress,const int keyCode);
+            void SendKeyReleaseMsgEvent(const int logicalAddress);
             void SendStandbyMsgEvent(const int logicalAddress);
             void sendActiveSourceEvent();
             void addDevice(const int logicalAddress);
