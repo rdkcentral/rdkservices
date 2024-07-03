@@ -53,9 +53,9 @@ bool ParseHeaders(const string& json, Headers& out)
         }
         return true;
     } else {
-        TRACE_GLOBAL(Trace::Error,
-                     (_T("Failed to parse headers array, error='%s', json='%s'\n"),
-                      (error.IsSet() ? error.Value().Message().c_str() : "unknown"), json.c_str()));
+        SYSLOG(Logging::Error,
+               (_T("Failed to parse headers array, error='%s', json='%s'\n"),
+                (error.IsSet() ? error.Value().Message().c_str() : "unknown"), json.c_str()));
     }
 
     return false;
