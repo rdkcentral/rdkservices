@@ -66,8 +66,8 @@
 using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 2
-#define API_VERSION_NUMBER_MINOR 1
-#define API_VERSION_NUMBER_PATCH 5
+#define API_VERSION_NUMBER_MINOR 3
+#define API_VERSION_NUMBER_PATCH 2
 
 #define MAX_REBOOT_DELAY 86400 /* 24Hr = 86400 sec */
 #define TR181_FW_DELAY_REBOOT "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"
@@ -349,6 +349,20 @@ namespace WPEFramework {
               , m_cacheService(SYSTEM_SERVICE_SETTINGS_FILE)
         {
             SystemServices::_instance = this;
+            if (Utils::directoryExists(SYSTEM_SERVICE_SETTINGS_FILE))
+            {
+                std::cout << "File " << SYSTEM_SERVICE_SETTINGS_FILE << " detected as folder, deleting.." << std::endl;
+                if (rmdir(SYSTEM_SERVICE_SETTINGS_FILE) == 0)
+                {
+                    cSettings stemp(SYSTEM_SERVICE_SETTINGS_FILE);
+                    SystemServices::m_cacheService = stemp;
+                }
+                else
+                {
+                     std::cout << "Unable to delete folder: " << SYSTEM_SERVICE_SETTINGS_FILE << std::endl;
+                }
+            }
+
 	    //Updating the standard territory
             m_strStandardTerritoryList =   "ABW AFG AGO AIA ALA ALB AND ARE ARG ARM ASM ATA ATF ATG AUS AUT AZE BDI BEL BEN BES BFA BGD BGR BHR BHS BIH BLM BLR BLZ BMU BOL                BRA BRB BRN BTN BVT BWA CAF CAN CCK CHE CHL CHN CIV CMR COD COG COK COL COM CPV CRI CUB Cuba CUW CXR CYM CYP CZE DEU DJI DMA DNK DOM DZA ECU EGY ERI ESH ESP                EST ETH FIN FJI FLK FRA FRO FSM GAB GBR GEO GGY GHA GIB GIN GLP GMB GNB GNQ GRC GRD GRL GTM GUF GUM GUY HKG HMD HND HRV HTI HUN IDN IMN IND IOT IRL IRN IRQ                 ISL ISR ITA JAM JEY JOR JPN KAZ KEN KGZ KHM KIR KNA KOR KWT LAO LBN LBR LBY LCA LIE LKA LSO LTU LUX LVA MAC MAF MAR MCO MDA MDG MDV MEX MHL MKD MLI MLT MMR                 MNE MNG MNP MOZ MRT MSR MTQ MUS MWI MYS MYT NAM NCL NER NFK NGA NIC NIU NLD NOR NPL NRU NZL OMN PAK PAN PCN PER PHL PLW PNG POL PRI PRK PRT PRY PSE PYF QAT                 REU ROU RUS RWA SAU SDN SEN SGP SGS SHN SJM SLB SLE SLV SMR SOM SPM SRB SSD STP SUR SVK SVN SWE SWZ SXM SYC SYR TCA TCD TGO THA TJK TKL TKM TLS TON TTO TUN                 TUR TUV TWN TZA UGA UKR UMI URY USA UZB VAT VCT VEN VGB VIR VNM VUT WLF WSM YEM ZAF ZMB ZWE";
 
@@ -400,6 +414,7 @@ namespace WPEFramework {
             registerMethod("updateFirmware", &SystemServices::updateFirmware, this);
             registerMethod("setMode", &SystemServices::setMode, this);
             registerMethod("setBootLoaderPattern", &SystemServices::setBootLoaderPattern, this);
+	    registerMethod("setBootLoaderSplashScreen", &SystemServices::setBootLoaderSplashScreen, this);	    
             registerMethod("getFirmwareUpdateInfo",
                     &SystemServices::getFirmwareUpdateInfo, this);
             registerMethod("setDeepSleepTimer", &SystemServices::setDeepSleepTimer,
@@ -467,7 +482,7 @@ namespace WPEFramework {
             registerMethod(_T("getWakeupReason"), &SystemServices::getWakeupReason, this);
             registerMethod(_T("getLastWakeupKeyCode"), &SystemServices::getLastWakeupKeyCode, this);
 #endif
-            registerMethod("uploadLogs", &SystemServices::uploadLogs, this);
+            registerMethod("uploadLogs", &SystemServices::uploadLogsAsync, this);
 
             registerMethod("uploadLogsAsync", &SystemServices::uploadLogsAsync, this);
             registerMethod("abortLogUpload", &SystemServices::abortLogUpload, this);
@@ -981,7 +996,25 @@ namespace WPEFramework {
 
             // there is no /tmp/.make from /lib/rdk/getDeviceDetails.sh, but it can be taken from /etc/device.properties
             if (queryParams.empty() || queryParams == "make") {
+#ifdef USE_SERIALIZED_MANUFACTURER_NAME
+                IARM_Bus_MFRLib_GetSerializedData_Param_t param;
+                param.bufLen = 0;
+                param.type = mfrSERIALIZED_TYPE_MANUFACTURER;
 
+                IARM_Result_t result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_GetSerializedData, &param, sizeof(param));
+                param.buffer[param.bufLen] = '\0';
+
+                LOGWARN("SystemService getDeviceInfo param type %d result %s", param.type, param.buffer);
+
+                bool status = false;
+                if (result == IARM_RESULT_SUCCESS) {
+                    response["make"] = string(param.buffer);
+                    retAPIStatus = true;
+                } else {
+                    populateResponseWithError(SysSrv_MissingKeyValues, response);
+                }
+
+#else
                 if (!Utils::fileExists(DEVICE_PROPERTIES_FILE)) {
                     populateResponseWithError(SysSrv_FileNotPresent, response);
                     returnResponse(retAPIStatus);
@@ -1022,7 +1055,7 @@ namespace WPEFramework {
                 } else {
                     populateResponseWithError(SysSrv_MissingKeyValues, response);
                 }
-
+#endif
                 if (!queryParams.empty()) {
                     returnResponse(retAPIStatus);
                 }
@@ -1303,6 +1336,48 @@ namespace WPEFramework {
                         status = false;
                    }
                 }
+                returnResponse(status);
+        }
+        /***
+         * @brief : To update bootloader splash screen.
+         * @param1[in]  : {"path":"<string>"}
+         * @param2[out] : {"result":{"success":<bool>}}
+         * @return              : Core::<StatusCode>
+         */
+        uint32_t SystemServices::setBootLoaderSplashScreen(const JsonObject& parameters,
+                JsonObject& response)
+        {                
+                bool status = false;
+                string strBLSplashScreenPath = parameters["path"].String();
+		bool fileExists = Utils::fileExists(strBLSplashScreenPath.c_str());
+                if((strBLSplashScreenPath != "") && fileExists)
+		{
+			IARM_Bus_MFRLib_SetBLSplashScreen_Param_t mfrparam;
+			std::strcpy(mfrparam.path, strBLSplashScreenPath.c_str());
+			IARM_Result_t result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_SetBlSplashScreen, (void *)&mfrparam, sizeof(mfrparam));
+			if (result != IARM_RESULT_SUCCESS){
+				LOGERR("Update failed. path: %s, fileExists %s, IARM result %d ",strBLSplashScreenPath.c_str(),fileExists ? "true" : "false",result);
+				JsonObject error;
+				error["message"] = "Update failed";
+				error["code"] = "-32002";
+				response["error"] = error;
+				status = false;
+			}
+			else 
+			{
+				LOGINFO("BootLoaderSplashScreen updated successfully");
+				status =true;
+			}
+		}
+		else
+		{
+			LOGERR("Invalid path. path: %s, fileExists %s ",strBLSplashScreenPath.c_str(),fileExists ? "true" : "false");
+			JsonObject error;
+			error["message"] = "Invalid path";
+			error["code"] = "-32001";
+			response["error"] = error;
+			status = false;
+		}
                 returnResponse(status);
         }
 
@@ -2242,7 +2317,7 @@ namespace WPEFramework {
                     newState == IARM_BUS_SYSMGR_LOG_UPLOAD_ABORTED ? LOG_UPLOAD_STATUS_ABORTED : LOG_UPLOAD_STATUS_FAILURE;
 
                 sendNotify(EVT_ONLOGUPLOAD, params);
-#if ((THUNDER_VERSION_MAJOR == 2) || ((THUNDER_VERSION_MAJOR == 4) && (THUNDER_VERSION_MINOR == 2)))
+#if ((THUNDER_VERSION == 2) || ((THUNDER_VERSION == 4) && (THUNDER_VERSION_MINOR == 2)))
                 GetHandler(2)->Notify(EVT_ONLOGUPLOAD, params);
 #endif
                 pid_t wp;
@@ -4459,27 +4534,6 @@ namespace WPEFramework {
             params["rebootReason"] = reason;
             LOGINFO("Notifying onRebootRequest\n");
             sendNotify(EVT_ONREBOOTREQUEST, params);
-        }
-
-        /***
-         * @brief : upload STB logs to the specified URL.
-         * @param1[in] : url::String
-         */
-        uint32_t SystemServices::uploadLogs(const JsonObject& parameters, JsonObject& response)
-        {
-            LOGINFOMETHOD();
-
-            bool success = false;
-
-            string url;
-            getStringParameter("url", url);
-            auto err = UploadLogs::upload(url);
-            if (err != UploadLogs::OK)
-                response["error"] = UploadLogs::errToText(err);
-            else
-                success = true;
-
-            returnResponse(success);
         }
 
         uint32_t SystemServices::getLastFirmwareFailureReason(const JsonObject& parameters, JsonObject& response)

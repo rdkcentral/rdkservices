@@ -95,7 +95,7 @@ RemotePlugin::SendTo(uint32_t channel_id, const char *json)
 }
 #if JSON_RPC_CONTEXT
 
-#if ((THUNDER_VERSION_MAJOR >= 4) && (THUNDER_VERSION_MINOR == 4))
+#if ((THUNDER_VERSION >= 4) && (THUNDER_VERSION_MINOR == 4))
 WPEFramework::Core::hresult RemotePlugin::Invoke(ICallback* callback, const uint32_t channelId, const uint32_t id, const string& token, const string& method, const string& parameters, string& response)
 {
   m_stream.SendInvoke(channelId, token, response);
@@ -127,7 +127,7 @@ RemotePlugin::Invoke(
 }
 #endif
 
-#if ((THUNDER_VERSION_MAJOR == 2) || ((THUNDER_VERSION_MAJOR == 4) && (THUNDER_VERSION_MINOR == 2)))
+#if ((THUNDER_VERSION == 2) || ((THUNDER_VERSION == 4) && (THUNDER_VERSION_MINOR == 2)))
 void
 RemotePlugin::Activate(
   WPEFramework::PluginHost::IShell *shell)
@@ -189,7 +189,7 @@ RemotePlugin::Information() const
   return { };
 }
 
-#if (THUNDER_VERSION_MAJOR >= 4)
+#if (THUNDER_VERSION >= 4)
 #if (THUNDER_VERSION_MINOR == 2)
 void RemotePlugin::Close(const uint32_t channelId) /* override */
 {

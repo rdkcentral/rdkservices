@@ -82,7 +82,7 @@ bool NetworkStatusObserver::isConnected() {
         }
 
         JsonObject joGetParams, joGetResult;
-        auto status = m_networkService->Invoke<JsonObject, JsonObject>(1000, "isConnectedToInternet", joGetParams, joGetResult);
+        auto status = m_networkService->Invoke<JsonObject, JsonObject>(3000, "isConnectedToInternet", joGetParams, joGetResult);
         if (status == Core::ERROR_NONE && joGetResult.HasLabel("connectedToInternet")) {
             m_isConnected = joGetResult["connectedToInternet"].Boolean();
         } else {
@@ -92,7 +92,7 @@ bool NetworkStatusObserver::isConnected() {
     }
 
     if (!m_eventRegistered) {
-        if (m_networkService->Subscribe<JsonObject>(1000, "onInternetStatusChange",
+        if (m_networkService->Subscribe<JsonObject>(3000, "onInternetStatusChange",
                     &NetworkStatusObserver::onConnectionStatusChangedEventHandler, this) == Core::ERROR_NONE) {
             m_eventRegistered = true;
             TTSLOG_INFO("Subscribed to notification handler : onInternetStatusChange");

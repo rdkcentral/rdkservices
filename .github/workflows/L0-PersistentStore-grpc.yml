@@ -3,10 +3,12 @@ name: L0-PersistentStore-grpc
 on:
   push:
     paths:
-      - PersistentStore/grpc/**
+      - PersistentStore/**
+      - .github/workflows/*PersistentStore*.yml
   pull_request:
     paths:
-      - PersistentStore/grpc/**
+      - PersistentStore/**
+      - .github/workflows/*PersistentStore*.yml
 
 jobs:
   build:
@@ -29,12 +31,12 @@ jobs:
       - name: Build
         working-directory: ${{github.workspace}}
         run: |
-          cmake -S ${GITHUB_REPOSITORY}/PersistentStore/grpc/l0test -B build/grpcl0test -DCMAKE_INSTALL_PREFIX="install/usr" -DCMAKE_CXX_FLAGS="--coverage -Wall -Werror"
+          cmake -S ${GITHUB_REPOSITORY}/PersistentStore/grpc/l0test -B build/grpcl0test -DCMAKE_INSTALL_PREFIX="install" -DCMAKE_CXX_FLAGS="--coverage -Wall -Werror"
           cmake --build build/grpcl0test --target install
 
       - name: Run
         working-directory: ${{github.workspace}}
-        run: PATH=${PWD}/install/usr/bin:${PATH} LD_LIBRARY_PATH=${PWD}/install/usr/lib:${LD_LIBRARY_PATH} valgrind --tool=memcheck --log-file=valgrind_log --leak-check=yes --show-reachable=yes --track-fds=yes --fair-sched=try grpcl0test
+        run: PATH=${PWD}/install/bin:${PATH} LD_LIBRARY_PATH=${PWD}/install/lib:${LD_LIBRARY_PATH} valgrind --tool=memcheck --log-file=valgrind_log --leak-check=yes --show-reachable=yes --track-fds=yes --fair-sched=try grpcl0test
 
       - name: Generate coverage
         working-directory: ${{github.workspace}}

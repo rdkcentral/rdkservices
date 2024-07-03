@@ -2,7 +2,7 @@
 <a name="RDKShell_Plugin"></a>
 # RDKShell Plugin
 
-**Version: [1.4.17](https://github.com/rdkcentral/rdkservices/blob/main/RDKShell/CHANGELOG.md)**
+**Version: [1.6.0](https://github.com/rdkcentral/rdkservices/blob/main/RDKShell/CHANGELOG.md)**
 
 A org.rdk.RDKShell plugin for Thunder framework.
 
@@ -50,6 +50,7 @@ RDKShell interface methods:
 | [addAnimation](#addAnimation) | Performs the set of animations |
 | [addKeyIntercept](#addKeyIntercept) | Adds a key intercept to the client application specified |
 | [addKeyIntercepts](#addKeyIntercepts) | Adds the list of key intercepts |
+| [setKeyIntercepts](#setKeyIntercepts) | Adds the list of key intercepts |
 | [addKeyListener](#addKeyListener) | Adds a key listener to an application |
 | [addKeyMetadataListener](#addKeyMetadataListener) | Adds the key metadata listeners |
 | [createDisplay](#createDisplay) |  Creates a display for the specified client using the configuration parameters |
@@ -80,6 +81,7 @@ RDKShell interface methods:
 | [getVisibility](#getVisibility) | Gets the visibility of the specified client |
 | [getZOrder](#getZOrder) | Returns an array of clients in Z order, starting with the top most application client first |
 | [getGraphicsFrameRate](#getGraphicsFrameRate) | Returns the current Graphics Frame Rate |
+| [getFocus](#getFocus) | Gets focus to the specified client |
 | [hideAllClients](#hideAllClients) | Hides/Unhides all the clients |
 | [hideCursor](#hideCursor) | Hides the cursor from showing on the display |
 | [hideFullScreenImage](#hideFullScreenImage) | Hides the Full Screen Image |
@@ -307,6 +309,83 @@ No Events
         "intercepts": [
             {
                 "client": "searchanddiscovery",
+                "keys": [
+                    {
+                        "keycode": 10,
+                        "modifiers": [
+                            "shift"
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="setKeyIntercepts"></a>
+## *setKeyIntercepts*
+
+Adds the list of key intercepts.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.intercepts | array | A list of intercepts |
+| params.intercepts[#] | object |  |
+| params.intercepts[#]?.clients | array | <sup>*(optional)*</sup> A list of clients |
+| params.intercepts[#]?.clients[#] | object | <sup>*(optional)*</sup>  |
+| params.intercepts[#]?.clients[#]?.client | string | <sup>*(optional)*</sup> The client name |
+| params.intercepts[#]?.clients[#]?.always | boolean | <sup>*(optional)*</sup> If set to true then the key will always be intercepted for this client |
+| params.intercepts[#].keys | array | A list of keys to intercept |
+| params.intercepts[#].keys[#] | object |  |
+| params.intercepts[#].keys[#].keycode | number | The key code of the key to intercept (only symbol * (string data type) is acceptable) |
+| params.intercepts[#].keys[#].modifiers | array | A list of modifiers that need to be present to intercept (`ctrl`, `alt`, and `shift` are supported) |
+| params.intercepts[#].keys[#].modifiers[#] | string |  |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.setKeyIntercepts",
+    "params": {
+        "intercepts": [
+            {
+                "clients": [
+                    {
+                        "client": "searchanddiscovery",
+                        "always": true
+                    }
+                ],
                 "keys": [
                     {
                         "keycode": 10,
@@ -1917,6 +1996,58 @@ This method takes no parameters.
     "id": 42,
     "result": {
         "frameRate": 40,
+        "success": true
+    }
+}
+```
+
+<a name="getFocus"></a>
+## *getFocus*
+
+Gets focus to the specified client.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.client | string | The client name |
+| params?.callsign | string | <sup>*(optional)*</sup> The application callsign |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.RDKShell.getFocus",
+    "params": {
+        "client": "org.rdk.Netflix",
+        "callsign": "org.rdk.Netflix"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
         "success": true
     }
 }
@@ -4399,6 +4530,7 @@ RDKShell interface events:
 | Event | Description |
 | :-------- | :-------- |
 | [onApplicationActivated](#onApplicationActivated) | Triggered when an application is activated |
+| [onApplicationFocusChanged](#onApplicationFocusChanged) | Triggered when an application focus is changed |
 | [onApplicationConnected](#onApplicationConnected) | Triggered when a connection to an application succeeds |
 | [onApplicationDisconnected](#onApplicationDisconnected) | Triggered when an attempt to disconnect from an application succeeds |
 | [onApplicationFirstFrame](#onApplicationFirstFrame) | Triggered when the first frame of an application is loaded |
@@ -4441,6 +4573,30 @@ Triggered when an application is activated.
 {
     "jsonrpc": "2.0",
     "method": "client.events.onApplicationActivated",
+    "params": {
+        "client": "org.rdk.Netflix"
+    }
+}
+```
+
+<a name="onApplicationFocusChanged"></a>
+## *onApplicationFocusChanged*
+
+Triggered when an application focus is changed.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.client | string | The client name |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onApplicationFocusChanged",
     "params": {
         "client": "org.rdk.Netflix"
     }

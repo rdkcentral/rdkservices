@@ -177,7 +177,7 @@ static std::vector<DeviceFeatures> deviceFeatures = {DEVICE_FEATURES_TV};
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 3
-#define API_VERSION_NUMBER_PATCH 7
+#define API_VERSION_NUMBER_PATCH 8
 
 namespace WPEFramework
 {
@@ -728,16 +728,6 @@ namespace WPEFramework
 		   Register(HDMICECSINK_METHOD_SET_LATENCY_INFO, &HdmiCecSink::setLatencyInfoWrapper, this);
            logicalAddressDeviceType = "None";
            logicalAddress = 0xFF;
-           m_sendKeyEventThreadExit = false;
-           m_sendKeyEventThread = std::thread(threadSendKeyEvent);
-           
-           m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
-           m_semSignaltoArcRoutingThread.acquire();
-           m_arcRoutingThread = std::thread(threadArcRouting);
-
-
-           m_arcStartStopTimer.connect( std::bind( &HdmiCecSink::arcStartStopTimerFunction, this ) );
-           m_arcStartStopTimer.setSingleShot(true);
            // load persistence setting
            loadSettings();
        }
@@ -751,6 +741,15 @@ namespace WPEFramework
            int err;
            dsHdmiInGetNumberOfInputsParam_t hdmiInput;
            InitializeIARM();
+           m_sendKeyEventThreadExit = false;
+           m_sendKeyEventThread = std::thread(threadSendKeyEvent);
+
+           m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
+           m_semSignaltoArcRoutingThread.acquire();
+           m_arcRoutingThread = std::thread(threadArcRouting);
+
+           m_arcStartStopTimer.connect( std::bind( &HdmiCecSink::arcStartStopTimerFunction, this ) );
+           m_arcStartStopTimer.setSingleShot(true);
             // get power state:
             IARM_Bus_PWRMgr_GetPowerState_Param_t param;
             err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
@@ -815,7 +814,7 @@ namespace WPEFramework
                }
             }
             getCecVersion();
-	    getHdmiArcPortID();
+	   LOGINFO(" HdmiCecSink plugin Initialize completed \n");
            return (std::string());
 
        }
@@ -3505,7 +3504,7 @@ namespace WPEFramework
                 return;
 
 		LOGINFO("Running threadArcRouting");
-
+	        _instance->getHdmiArcPortID();
 
         	while(1)
         	{

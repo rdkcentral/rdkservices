@@ -50,6 +50,11 @@
             "type": "string",
             "example": "My Device"
         },
+        "path": {
+            "summary": "Path to the pre-downloaded splash screen file location. Full path with file name",
+            "type": "string",
+            "example": "/tmp/osd1"
+        },
         "modeInfo": {
             "summary": "The mode information",
             "type": "object",
@@ -1859,6 +1864,23 @@
                 "$ref": "#/common/result"
             }
         },
+        "setBootLoaderSplashScreen":{
+            "summary": "Install or update the BootLoader Splash Screens. This is typically called by Resident Apps to configure the Splash Screen shown during device boot up.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "path": {
+                        "$ref": "#/definitions/path"
+                    }
+                },
+                "required": [
+                    "path"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
         "setTerritory":{
             "summary": "Sets the system territory and region.Territory is a ISO-3166-1 alpha-3 standard (see https://en.wikipedia.org/wiki/ISO_3166-1). Region is a ISO-3166-2 alpha-2 standard (see https://en.wikipedia.org/wiki/ISO_3166-2).",
 			"events":{
@@ -1954,6 +1976,7 @@
             }
         },
         "uploadLogs": {
+            "deprecated": true,
             "summary": "Uploads logs to a URL returned by SSR.",
             "params": {
                 "type": "object",
