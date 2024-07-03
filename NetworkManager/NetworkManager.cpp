@@ -43,6 +43,7 @@ namespace WPEFramework
               _notification(this)
         {
             // Don't do any work in the constructor - all set up should be done in Initialize
+            m_defaultInterface = "wlan0";
         }
 
         NetworkManager::~NetworkManager()
@@ -80,7 +81,7 @@ namespace WPEFramework
             //
             // Ideally for large, complex plugins we would actually split the plugin into two libraries - a thin library that just calls
             // _service->Root to launch WPEProcess, and a larger library that is only ever run inside WPEProcess only (we do this for Cobalt and WebKitBrowser)
-            _NetworkManager = service->Root<Exchange::INetworkManager>(_connectionId, 5000, _T("NetworkManagerImplementation"));
+            _NetworkManager = service->Root<Exchange::INetworkManager>(_connectionId, 25000, _T("NetworkManagerImplementation"));
 
             // Still running inside the main WPEFramework process - the child process will have now been spawned and registered if necessary
             if (_NetworkManager != nullptr)
@@ -90,14 +91,10 @@ namespace WPEFramework
                 _NetworkManager->Configure(_service->ConfigLine(), _loglevel);
                 // configure loglevel in libWPEFrameworkNetworkManager.so
                 NetworkManagerLogger::SetLevel(static_cast <NetworkManagerLogger::LogLevel>(_loglevel));
-                //Exchange::JNetworkManager::Register(*this, _NetworkManager);
                 _NetworkManager->Register(&_notification);
 
                 // Register all custom JSON-RPC methods
                 RegisterAllMethods();
-#ifdef ENABLE_LEGACY_NSM_SUPPORT
-                RegisterLegacyMethods();
-#endif
             }
             else
             {
@@ -133,12 +130,8 @@ namespace WPEFramework
                 _service->Unregister(&_notification);
                 _NetworkManager->Unregister(&_notification);
 
-                //Exchange::JNetworkManager::Unregister(*this);
                 // Unregister all our JSON-RPC methods
                 UnregisterAllMethods();
-#ifdef ENABLE_LEGACY_NSM_SUPPORT
-                UnregisterLegacyMethods();
-#endif
                 _NetworkManager->Release();
             }
 
