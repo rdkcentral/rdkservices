@@ -35,10 +35,6 @@ if(PLUGIN_TELEMETRY)
     set(SRC_FILES ${SRC_FILES} tests/Telemetry_L2Test.cpp)
 endif()
 
-if(PLUGIN_WAREHOUSE)
-    set(SRC_FILES ${SRC_FILES} tests/Warehouse_L2Test.cpp)
-endif()
-
 if(PLUGIN_HDCPPROFILE)
     set(SRC_FILES ${SRC_FILES} tests/VerifyContracts.cpp)
 endif()
