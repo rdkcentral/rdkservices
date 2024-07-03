@@ -341,7 +341,14 @@ namespace WPEFramework {
             internetConnectStatus = isDeviceOnline();
 #endif
 
-#if defined(ENABLE_WHOAMI)
+#if !defined(ENABLE_WHOAMI)
+    if ( false == internetConnectStatus ) {
+        LOGINFO("isDeviceOnline() returned false");
+        g_listen_to_nwevents = true;
+        LOGINFO("Waiting for onInternetStatusChange event");
+        task_thread.wait(lck);
+    }
+#else
     string activation_status = checkActivatedStatus();
     bool whoAmIStatus = false;
     if (UNSOLICITED_MAINTENANCE == g_maintenance_type) {
@@ -362,25 +369,23 @@ namespace WPEFramework {
         task_thread.wait(lck);
     }
     else if ( false == internetConnectStatus && activation_status == "activated" ) {
-        LOGINFO("Device is not connected to the Internet and Device is already Activated");
-#else /* WhoAmI */
-            if ( false == internetConnectStatus ) {
+        LOGINFO("Device is not connected to the Internet and Device is already Activated");        
+        m_statusMutex.lock();
+        MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
+        m_statusMutex.unlock();
+        LOGINFO("Maintenance is exiting as device is not connected to internet.");
+        if (UNSOLICITED_MAINTENANCE == g_maintenance_type && !g_unsolicited_complete){
+            g_unsolicited_complete = true;
+            g_listen_to_nwevents = true;
+        }
+        return;
+    }
 #endif
-                m_statusMutex.lock();
-                MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
-                m_statusMutex.unlock();
-                LOGINFO("Maintenance is exiting as device is not connected to internet.");
-                if (UNSOLICITED_MAINTENANCE == g_maintenance_type && !g_unsolicited_complete){
-                    g_unsolicited_complete = true;
-                    g_listen_to_nwevents = true;
-                }
-                return;
-            }
 
 	    if (delayMaintenanceStarted) {
-		m_statusMutex.lock();
-                MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
-                m_statusMutex.unlock();
+		    m_statusMutex.lock();
+            MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
+            m_statusMutex.unlock();
 	    }
 
             LOGINFO("Reboot_Pending :%s",g_is_reboot_pending.c_str());
@@ -610,10 +615,11 @@ namespace WPEFramework {
 
                 LOGINFO("Received onInternetStatusChange event: [%s:%d]", value.c_str(), state);
                 if (g_listen_to_nwevents) {
-
                     if (state == INTERNET_CONNECTED_STATE) {
-                        startCriticalTasks();
+                        //startCriticalTasks();
                         g_listen_to_nwevents = false;
+                        LOGINFO("Notify maintenance execution thread");
+                        task_thread.notify_one();
                     }
                 }
             }
@@ -646,7 +652,7 @@ namespace WPEFramework {
                 LOGINFO("onDeviceInitializationContextUpdate event is not being listened already or Maintenance Type is not Unsolicited Maintenance");
             }
         }
-
+/* - Not Required - as a new requirement is to trigger entire maintenance tasks when device gets internet back
         void MaintenanceManager::startCriticalTasks()
         {
             LOGINFO("Starting Script /lib/rdk/StartDCM_maintaince.sh");
@@ -655,7 +661,7 @@ namespace WPEFramework {
             LOGINFO("Starting Script /lib/rdk/xconfImageCheck.sh");
             system("/lib/rdk/xconfImageCheck.sh >> /opt/logs/swupdate.log 2>&1 &");
         }
-
+*/
         const string MaintenanceManager::checkActivatedStatus()
         {
             JsonObject joGetParams;
