@@ -19,7 +19,6 @@
 #pragma once
 
 #include <websocket/JSONRPCLink.h>
-
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include "UtilsJsonRpc.h"
@@ -51,7 +50,6 @@ protected:
         VideoOutputPortMock *p_videoOutputPortMock = nullptr;
         RBusApiImplMock *p_rBusApiImplMock = nullptr;
         TelemetryApiImplMock   *p_telemetryApiImplMock = nullptr ;
-
         std::string thunder_address;
 
         L2TestMocks();
@@ -67,6 +65,27 @@ protected:
          * @return Zero (Core::ERROR_NONE) on succes or another value on error
          */
         uint32_t InvokeServiceMethod(const char *callsign, const char *method, JsonObject &params, JsonObject &results);
+
+       /**
+         * @brief Invoke a service method
+         *
+         * @param[in] callsign Service callsign
+         * @param[in] method Method name
+         * @param[out] results Method results
+         * @return Zero (Core::ERROR_NONE) on succes or another value on error
+         */
+        uint32_t InvokeServiceMethod(const char *callsign, const char *method, Core::JSON::Boolean &results);
+
+       /**
+         * @brief Invoke a service method
+         *
+         * @param[in] callsign Service callsign
+         * @param[in] method Method name
+         * @param[out] results Method results
+         * @return Zero (Core::ERROR_NONE) on succes or another value on error
+         */
+        uint32_t InvokeServiceMethod(const char *callsign, const char *method, Core::JSON::String &results);
+
 
         /**
          * @brief Activate a service plugin
