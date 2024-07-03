@@ -14,7 +14,7 @@
 #define DEFAULT_MONITOR_TIMEOUT 60 // in seconds
 #define MONITOR_TIMEOUT_INTERVAL_MIN 5
 #define TEST_CONNECTIVITY_DEFAULT_TIMEOUT_MS    10000
-#define DEFAULT_MONITOR_RETRY_COUNT 2
+#define DEFAULT_MONITOR_RETRY_COUNT 4
 
 enum nsm_ipversion {
     NSM_IPRESOLVE_WHATEVER  = 0, /* default, resolves addresses to all IP*/

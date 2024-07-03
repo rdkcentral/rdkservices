@@ -23,6 +23,7 @@ public:
     MOCK_METHOD(WPEFramework::PluginHost::ISubSystem*, SubSystems, (), (override));
     MOCK_METHOD(uint32_t, Submit, (const uint32_t, const WPEFramework::Core::ProxyType<WPEFramework::Core::JSON::IElement>&), (override));
     MOCK_METHOD(void, Notify, (const string&), (override));
+    MOCK_METHOD(void, Notify, (const string&, const string&), (override));
     MOCK_METHOD(void*, QueryInterfaceByCallsign, (const uint32_t, const string&), (override));
     MOCK_METHOD(void, Register, (WPEFramework::PluginHost::IPlugin::INotification*), (override));
     MOCK_METHOD(void, Unregister, (WPEFramework::PluginHost::IPlugin::INotification*), (override));
@@ -32,7 +33,6 @@ public:
     MOCK_METHOD(string, ProxyStubPath, (), (const, override));
     MOCK_METHOD(string, HashKey, (), (const, override));
     MOCK_METHOD(string, Substitute, (const string&), (const, override));
-    MOCK_METHOD(WPEFramework::PluginHost::IShell::ICOMLink*, COMLink, (), (override));
     MOCK_METHOD(uint32_t, Activate, (const reason), (override));
     MOCK_METHOD(uint32_t, Deactivate, (const reason), (override));
     MOCK_METHOD(uint32_t, Unavailable, (const reason), (override));

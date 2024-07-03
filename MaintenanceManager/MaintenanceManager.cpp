@@ -37,6 +37,7 @@
 #include <bits/stdc++.h>
 #include <algorithm>
 #include <array>
+#include <unistd.h>
 
 #include "MaintenanceManager.h"
 
@@ -67,7 +68,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 27
+#define API_VERSION_NUMBER_PATCH 28
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 
@@ -253,6 +254,19 @@ namespace WPEFramework {
             :PluginHost::JSONRPC()
         {
             MaintenanceManager::_instance = this;
+	    if (Utils::directoryExists(MAINTENANCE_MGR_RECORD_FILE))
+            {
+                std::cout << "File " << MAINTENANCE_MGR_RECORD_FILE << " detected as folder, deleting.." << std::endl;
+                if (rmdir(MAINTENANCE_MGR_RECORD_FILE) == 0)
+                {
+		    cSettings mtemp(MAINTENANCE_MGR_RECORD_FILE);
+		    MaintenanceManager::m_setting = mtemp;
+                }
+                else
+                {
+                     std::cout << "Unable to delete folder: " << MAINTENANCE_MGR_RECORD_FILE << std::endl;
+                }
+            }
 
             /**
              * @brief Invoking Plugin API register to WPEFRAMEWORK.
