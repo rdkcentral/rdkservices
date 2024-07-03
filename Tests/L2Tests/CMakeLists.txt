@@ -49,10 +49,10 @@ target_link_libraries(${PROJECT_NAME}
         )
 
 if (USE_THUNDER_R4) 
-	target_link_libraries(${PROJECT_NAME} ${CMAKE_INSTALL_PREFIX}/lib/libWPEFrameworkWebSocket.so)
+    target_link_libraries(${PROJECT_NAME} ${CMAKE_INSTALL_PREFIX}/lib/libWPEFrameworkWebSocket.so)
 else ()
-       	target_link_libraries(${PROJECT_NAME} ${CMAKE_INSTALL_PREFIX}/lib/libWPEFrameworkProtocols.so)
-       	target_link_libraries(${PROJECT_NAME} ${CMAKE_INSTALL_PREFIX}/lib/libWPEFrameworkTracing.so)
+    target_link_libraries(${PROJECT_NAME} ${CMAKE_INSTALL_PREFIX}/lib/libWPEFrameworkProtocols.so)
+    target_link_libraries(${PROJECT_NAME} ${CMAKE_INSTALL_PREFIX}/lib/libWPEFrameworkTracing.so)
 endif (USE_THUNDER_R4)
 
 target_compile_definitions(${PROJECT_NAME}
