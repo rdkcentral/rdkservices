@@ -484,11 +484,7 @@ namespace WPEFramework
         void NetworkManagerImplementation::ReportInterfaceStateChangedEvent(INetworkManager::InterfaceState state, string interface)
         {
             LOG_ENTRY_FUNCTION();
-            if (Exchange::INetworkManager::INTERFACE_LINK_UP == state && interface == "wlan0") {
-                // TODO: Revert this change after addressing the WiFi IP change event issue.
-                connectivityMonitor.startConnectivityMonitor(true);
-            }
-            else if(Exchange::INetworkManager::INTERFACE_LINK_DOWN == state) {
+            if(Exchange::INetworkManager::INTERFACE_LINK_DOWN == state) {
                 // Start the connectivity monitor with 'false' to indicate the interface is down.
                 // The monitor will automatically exit after the retry attempts are completed, posting a 'noInternet' event.
                 connectivityMonitor.startConnectivityMonitor(false);
