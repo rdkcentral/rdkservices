@@ -40,7 +40,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 10
+#define API_VERSION_NUMBER_PATCH 11
 
 const string WPEFramework::Plugin::Bluetooth::SERVICE_NAME = "org.rdk.Bluetooth";
 const string WPEFramework::Plugin::Bluetooth::METHOD_START_SCAN = "startScan";

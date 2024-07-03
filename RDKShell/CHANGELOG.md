@@ -15,6 +15,35 @@ All notable changes to this RDK Service will be documented in this file.
 * Changes in CHANGELOG should be updated when commits are added to the main or release branches. There should be one CHANGELOG entry per JIRA Ticket. This is not enforced on sprint branches since there could be multiple changes for the same JIRA ticket during development. 
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
+
+## [1.6.0] - 2024-06-12
+### Added
+- Added Upstream onApplicationFocusChanged event change handling
+
+## [1.5.3] - 2024-06-10
+### Changed
+- ResidentApp plugin unable to activate due to unable to get the Initialize/activating Notification from Thunder(R4.4.1)
+
+## [1.5.2] - 2024-06-04
+### Changed
+- Added support for dobby amazon container
+
+## [1.5.1] - 2024-05-31
+### Changed
+- RDK-45345: Upgrade Sky Glass devices to use Thunder R4.4.1
+
+## [1.5.0] - 2024-05-29
+### Added
+- Added support for setKeyIntercepts
+
+## [1.4.20] - 2024-05-29
+### Fixed
+- Activation of RA in RDKShell and setting the autostart to false
+
+## [1.4.19] - 2024-05-22
+### Added
+- RDKShell must claim its ownership of Graphics subsystem to Thunder
+
 ## [1.4.18] - 2024-05-13
 ### Fixed
 - Disable Auto Hibernation for Launch to Suspended

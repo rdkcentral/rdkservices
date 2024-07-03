@@ -569,7 +569,8 @@ private:
             void sendKeyReleaseEvent(const int logicalAddress);
 	    void sendUserControlPressed(const int logicalAddress, int keyCode);
             void sendUserControlReleased(const int logicalAddress);
-			void sendGiveAudioStatusMsg();
+            void sendGiveAudioStatusMsg();
+            void getHdmiArcPortID();
 			int m_numberOfDevices; /* Number of connected devices othethan own device */
 			bool m_audioDevicePowerStatusRequested;
 
@@ -697,7 +698,6 @@ private:
             void Send_Request_Arc_Termination_Message();
             void Send_Report_Arc_Terminated_Message();
             void arcStartStopTimerFunction();
-            void getHdmiArcPortID();
 	    void getCecVersion();
         };
 	} // namespace Plugin

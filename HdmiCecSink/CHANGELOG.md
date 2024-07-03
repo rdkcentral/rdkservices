@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.3.8] - 2024-06-02
+### Fixed
+- Fixed getHdmiArcPortID away from Initialize API.
+
 ## [1.3.7] - 2024-05-13
 ### Fixed
 - Notify updateTextViewOn on receiving TextViewOn cec message.

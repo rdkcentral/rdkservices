@@ -61,6 +61,7 @@ TEST_F(RDKShellTest, RegisteredMethods){
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("addAnimation")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("addKeyIntercept")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("addKeyIntercepts")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setKeyIntercepts")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("addKeyListener")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("addKeyMetadataListener")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("exitAgingMode")));

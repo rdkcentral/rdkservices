@@ -269,6 +269,10 @@ bool CompositorController::addKeyIntercept(const std::string& client, const uint
 {
     return impl->addKeyIntercept(client, keyCode, flags);
 }
+bool CompositorController::setKeyIntercept(const std::string& client, const uint32_t& keyCode, const uint32_t& flags, const bool always)
+{
+    return impl->setKeyIntercept(client, keyCode, flags, always);
+}
 bool CompositorController::removeKeyIntercept(const std::string& client, const uint32_t& keyCode, const uint32_t& flags)
 {
      return impl->removeKeyIntercept(client, keyCode, flags);
