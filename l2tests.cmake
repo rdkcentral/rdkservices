@@ -45,6 +45,8 @@ set(EMPTY_HEADERS
          ${BASEDIR}/rdk/iarmmgrs-hal/sysMgr.h
          ${BASEDIR}/rdk/ds/videoOutputPortConfig.hpp
          ${BASEDIR}/rdk/ds/sleepMode.hpp
+         ${BASEDIR}/rdk/ds/frontPanelConfig.hpp
+         ${BASEDIR}/rdk/ds/frontPanelTextDisplay.hpp
          ${BASEDIR}/rfcapi.h
          ${BASEDIR}/rbus.h
          ${BASEDIR}/systemservices/proc/readproc.h
@@ -83,7 +85,7 @@ endforeach ()
 
 add_compile_options(-Wall -Werror)
 
-add_link_options(-Wl,-wrap,setmntent -Wl,-wrap,getmntent -Wl,-wrap,v_secure_popen -Wl,-wrap,v_secure_pclose -Wl,-wrap,v_secure_system -Wl,-wrap,readlink)
+add_link_options(-Wl,-wrap,system -Wl,-wrap,setmntent -Wl,-wrap,getmntent -Wl,-wrap,v_secure_popen -Wl,-wrap,v_secure_pclose -Wl,-wrap,v_secure_system -Wl,-wrap,readlink)
 
 add_definitions(
          -DUSE_IARMBUS
@@ -96,7 +98,6 @@ add_definitions(
          -DUNIT_TESTING
 )
 
-
 message("Setting build options")
 set(CMAKE_DISABLE_FIND_PACKAGE_DS ON)
 set(CMAKE_DISABLE_FIND_PACKAGE_IARMBus ON)
@@ -107,11 +108,25 @@ set(CMAKE_DISABLE_FIND_PACKAGE_CEC ON)
 set(CMAKE_DISABLE_FIND_PACKAGE_Dobby ON)
 set(CMAKE_DISABLE_FIND_PACKAGE_CEC ON)
 set(PLUGIN_SYSTEMSERVICES ON)
+
+# We are not compiling TEXTTOSPEECH, NETWORK, HDCPPROFILE plugins for Thunder R4 as
+# this work is not in this scope. In future we will enable these plugins for Thunder R4.
+if (USE_THUNDER_R4)
+set(PLUGIN_PERSISTENTSTORE ON)
+set(PLUGIN_USERSETTINGS ON)
+set(PLUGIN_HDCPPROFILE OFF)
+set(PLUGIN_NETWORK OFF)
+set(PLUGIN_TEXTTOSPEECH OFF)
 set(PLUGIN_TELEMETRY ON)
+set(PLUGIN_USBACCESS OFF)
+else ()
 set(PLUGIN_HDCPPROFILE ON)
 set(PLUGIN_NETWORK ON)
 set(PLUGIN_TEXTTOSPEECH ON)
+set(PLUGIN_TELEMETRY ON)
 set(PLUGIN_USBACCESS ON)
+endif (USE_THUNDER_R4)
+
 set(PLUGIN_L2Tests ON)
 set(BUILD_SHARED_LIBS ON)
 set(DS_FOUND ON)

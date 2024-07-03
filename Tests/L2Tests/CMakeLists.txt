@@ -45,10 +45,15 @@ set_source_files_properties(
 target_link_libraries(${PROJECT_NAME}
         gmock_main
         ${CMAKE_INSTALL_PREFIX}/lib/libWPEFrameworkCore.so
-        ${CMAKE_INSTALL_PREFIX}/lib/libWPEFrameworkProtocols.so
-        ${CMAKE_INSTALL_PREFIX}/lib/libWPEFrameworkTracing.so
         ${CMAKE_INSTALL_PREFIX}/lib/libTestMocklib.so
         )
+
+if (USE_THUNDER_R4) 
+	target_link_libraries(${PROJECT_NAME} ${CMAKE_INSTALL_PREFIX}/lib/libWPEFrameworkWebSocket.so)
+else ()
+       	target_link_libraries(${PROJECT_NAME} ${CMAKE_INSTALL_PREFIX}/lib/libWPEFrameworkProtocols.so)
+       	target_link_libraries(${PROJECT_NAME} ${CMAKE_INSTALL_PREFIX}/lib/libWPEFrameworkTracing.so)
+endif (USE_THUNDER_R4)
 
 target_compile_definitions(${PROJECT_NAME}
                              PRIVATE

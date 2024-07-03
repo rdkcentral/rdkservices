@@ -79,7 +79,12 @@ bool L2testController::StartThunder()
     char address[THUNDER_ADDRESS_LENGTH];
 
     /* Spawn the Thunder process. */
+#ifdef USE_THUNDER_R4
+    snprintf(command, sizeof(command), "WPEFramework -c %s/../etc/WPEFramework/config.json -f", CMAKE_INSTALL_PREFIX);
+#else
     snprintf(command, sizeof(command), "WPEFramework -c %s/../etc/WPEFramework/config.json", CMAKE_INSTALL_PREFIX);
+#endif
+
     m_fp = popen(command, "w");
     if (nullptr == m_fp)
     {
