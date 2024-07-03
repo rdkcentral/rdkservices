@@ -226,10 +226,6 @@ namespace WPEFramework {
                    and getProperty functionalities are XRE/RTRemote dependent. */
                 bool setProperties(const JsonObject& propertyNames);
                 bool getProperties(const JsonObject& params, JsonObject& returnProperties);
-                uint32_t getCachedValue(const JsonObject& parameters, JsonObject& response);
-                uint32_t setCachedValue(const JsonObject& parameters, JsonObject& response);
-                uint32_t cacheContains(const JsonObject& parameters, JsonObject& response);
-                uint32_t removeCacheKey(const JsonObject& parameters, JsonObject& response);
                 uint32_t getMode(const JsonObject& parameters, JsonObject& response);
                 uint32_t updateFirmware(const JsonObject& parameters, JsonObject& response);
                 uint32_t setMode(const JsonObject& parameters, JsonObject& response);
