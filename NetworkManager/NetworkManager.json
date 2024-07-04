@@ -8,7 +8,7 @@
         "locator": "libWPEFrameworkNetworkManager.so",
         "status": "production",
         "description": "A Unified `NetworkManager` plugin that allows you to manage Ethernet and Wifi interfaces on the device.",
-        "version": "0.2.7"
+        "version": "0.2.10"
     },
     "common": {
         "$ref": "../../common/common.json"
