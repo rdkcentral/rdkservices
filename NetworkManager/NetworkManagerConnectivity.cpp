@@ -194,8 +194,8 @@ namespace WPEFramework
                 long response_code = -1;
                 if (msg->msg != CURLMSG_DONE)
                     continue;
+                curl_easy_getinfo(msg->easy_handle, CURLINFO_PRIVATE, &endpoint);
                 if (CURLE_OK == msg->data.result) {
-                    curl_easy_getinfo(msg->easy_handle, CURLINFO_PRIVATE, &endpoint);
                     if (curl_easy_getinfo(msg->easy_handle, CURLINFO_RESPONSE_CODE, &response_code) == CURLE_OK)
                     {
                         //NMLOG_TRACE("endpoint = <%s> http response code <%d>", endpoint, static_cast<int>(response_code));
