@@ -47,7 +47,6 @@ if (AVOUTPUT_TV)
 add_library(${MODULE_NAME} SHARED
 	AVOutputBase.cpp
 	AVOutputTV.cpp
-        AVOutputTVHelper.cpp
 	AVOutput.cpp
 	AutomationTestScript/AVOutputTestScript.sh
         Module.cpp)
