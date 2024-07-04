@@ -367,6 +367,21 @@ static GSourceFuncs _handlerIntervention =
         }
     }
 
+    static void TokenizeString(const std::string& buffer, char delimiter, std::vector<std::string>& tokens)
+    {
+        tokens.clear();
+
+        if (!buffer.empty()) {
+            std::istringstream iss(buffer);
+            std::string token;
+
+            while (iss.good()) {
+                getline(iss, token, delimiter);
+                tokens.push_back(token);
+            }
+        }
+    }
+
     class WebKitImplementation : public Core::Thread,
                                  public Exchange::IBrowser,
                                  public Exchange::IWebBrowser,
@@ -563,6 +578,7 @@ static GSourceFuncs _handlerIntervention =
             Config()
                 : Core::JSON::Container()
                 , UserAgent()
+                , Environment()
                 , URL(_T("http://www.google.com"))
                 , Whitelist()
                 , PageGroup(_T("WPEPageGroup"))
@@ -629,6 +645,7 @@ static GSourceFuncs _handlerIntervention =
                 , ServiceWorkerEnabled(false)
             {
                 Add(_T("useragent"), &UserAgent);
+                Add(_T("environment"), &Environment);
                 Add(_T("url"), &URL);
                 Add(_T("whitelist"), &Whitelist);
                 Add(_T("pagegroup"), &PageGroup);
@@ -702,6 +719,7 @@ static GSourceFuncs _handlerIntervention =
 
         public:
             Core::JSON::String UserAgent;
+            Core::JSON::String Environment;
             Core::JSON::String URL;
             Core::JSON::String Whitelist;
             Core::JSON::String PageGroup;
@@ -2206,6 +2224,34 @@ static GSourceFuncs _handlerIntervention =
             _httpStatusCode = code;
         }
 
+        void SetConfigEnvironment(bool environmentOverride)
+        {
+            if (!_config.Environment.IsSet() || _config.Environment.Value().empty()) {
+                TRACE(Trace::Information, (_T("SetConfigEnvironment: Environment not set or empty")));
+                return;
+            }
+
+            std::vector<std::string> envVarSettingsList;
+
+            TokenizeString(_config.Environment.Value(), ';', envVarSettingsList);
+
+            for (auto envVarSetting : envVarSettingsList) {
+                auto pos = envVarSetting.find("=");
+                if (pos != std::string::npos) {
+                    auto envVarName = envVarSetting.substr(0, pos);
+                    auto envVarValue = envVarSetting.substr(pos + 1);
+                    if (!envVarName.empty()) {
+                        Core::SystemInfo::SetEnvironment(envVarName, envVarValue, !environmentOverride);
+                        TRACE(Trace::Information, (_T("SetConfigEnvironment: Set '%s'='%s' (forced is %s)"), envVarName.c_str(), envVarValue.c_str(), !environmentOverride ? "true" : "false"));
+                    } else {
+                        TRACE(Trace::Error, (_T("SetConfigEnvironment: Invalid environment setting '%s' (empty env var name)"), envVarSetting.c_str()));
+                    }
+                } else {
+                    TRACE(Trace::Error, (_T("SetConfigEnvironment: Invalid environment setting '%s' (no '=' separator found)"), envVarSetting.c_str()));
+                }
+            }
+        }
+
         uint32_t Configure(PluginHost::IShell* service) override
         {
             #ifndef WEBKIT_GLIB_API
@@ -2427,6 +2473,9 @@ static GSourceFuncs _handlerIntervention =
                 const auto& environmentVariable = _config.EnvironmentVariables[environmentVariableIndex];
                 Core::SystemInfo::SetEnvironment(environmentVariable.Name.Value(), environmentVariable.Value.Value());
             }
+
+            // Set remaining environment settings from the config.
+            SetConfigEnvironment(environmentOverride);
 
             // Oke, so we are good to go.. Release....
             Core::Thread::Run();
