@@ -484,6 +484,12 @@ namespace WPEFramework
         void NetworkManagerImplementation::ReportInterfaceStateChangedEvent(INetworkManager::InterfaceState state, string interface)
         {
             LOG_ENTRY_FUNCTION();
+            if(Exchange::INetworkManager::INTERFACE_LINK_DOWN == state) {
+                // Start the connectivity monitor with 'false' to indicate the interface is down.
+                // The monitor will automatically exit after the retry attempts are completed, posting a 'noInternet' event.
+                connectivityMonitor.startConnectivityMonitor(false);
+            }
+
             _notificationLock.Lock();
             for (const auto callback : _notificationCallbacks) {
                 callback->onInterfaceStateChange(state, interface);
@@ -494,6 +500,12 @@ namespace WPEFramework
         void NetworkManagerImplementation::ReportIPAddressChangedEvent(const string& interface, bool isAcquired, bool isIPv6, const string& ipAddress)
         {
             LOG_ENTRY_FUNCTION();
+            if (isAcquired) {
+                // Start the connectivity monitor with 'true' to indicate the interface is up.
+                // The monitor will conntinoue even after no internet retry completed, Exit when fully connectd.
+                connectivityMonitor.startConnectivityMonitor(true);
+            }
+
             _notificationLock.Lock();
             for (const auto callback : _notificationCallbacks) {
                 callback->onIPAddressChange(interface, isAcquired, isIPv6, ipAddress);
