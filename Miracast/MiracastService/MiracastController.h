@@ -52,7 +52,7 @@ public:
 
     void event_handler(P2P_EVENTS eventId, void *data, size_t len );
 
-    MiracastError discover_devices();
+    MiracastError discover_devices(bool isNotificationRequired = true);
     MiracastError connect_device(std::string device_mac , std::string device_name );
 
     std::string get_localIp();
@@ -76,7 +76,7 @@ public:
     void send_msgto_test_notifier_thread( MIRACAST_SERVICE_TEST_NOTIFIER_MSGQ_ST stMsgQ );
 #endif /* ENABLE_MIRACAST_SERVICE_TEST_NOTIFIER */
 
-    MiracastError stop_discover_devices();
+    MiracastError stop_discover_devices(bool isNotificationRequired = true);
     MiracastError set_WFDParameters(void);
     void restart_session_discovery(std::string& mac_address);
     void flush_current_session(void);
@@ -106,6 +106,9 @@ public:
 
     void setP2PBackendDiscovery(bool is_enabled);
     void switch_launch_request_context(std::string& source_dev_ip,std::string& source_dev_mac,std::string& source_dev_name,std::string& sink_dev_ip);
+    void start_discoveryAsync(void);
+    void stop_discoveryAsync(void);
+    void restart_discoveryAsync(void);
 
 private:
     static MiracastController *m_miracast_ctrl_obj;
