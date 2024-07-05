@@ -351,16 +351,19 @@ namespace WPEFramework {
             SystemServices::_instance = this;
             if (Utils::directoryExists(SYSTEM_SERVICE_SETTINGS_FILE))
             {
-                std::cout << "File " << SYSTEM_SERVICE_SETTINGS_FILE << " detected as folder, deleting.." << std::endl;
                 if (rmdir(SYSTEM_SERVICE_SETTINGS_FILE) == 0)
                 {
-                    cSettings stemp(SYSTEM_SERVICE_SETTINGS_FILE);
-                    SystemServices::m_cacheService = stemp;
+                    std::cout << "File " << SYSTEM_SERVICE_SETTINGS_FILE << " detected as folder, deleting.." << std::endl;
                 }
                 else
                 {
                      std::cout << "Unable to delete folder: " << SYSTEM_SERVICE_SETTINGS_FILE << std::endl;
                 }
+            }
+	    else if (Utils::fileExists(SYSTEM_SERVICE_SETTINGS_FILE))
+	    {
+                if (std::remove(SYSTEM_SERVICE_SETTINGS_FILE) != 0)
+			std::cout << SYSTEM_SERVICE_SETTINGS_FILE << "file remove failed" << std::endl;
             }
 
 	    //Updating the standard territory
@@ -439,10 +442,6 @@ namespace WPEFramework {
             registerMethod("getTimeZoneDST", &SystemServices::getTimeZoneDST, this);
             registerMethod("getCoreTemperature", &SystemServices::getCoreTemperature,
                     this);
-            registerMethod("getCachedValue", &SystemServices::getCachedValue, this);
-            registerMethod("setCachedValue", &SystemServices::setCachedValue, this);
-            registerMethod("cacheContains", &SystemServices::cacheContains, this);
-            registerMethod("removeCacheKey", &SystemServices::removeCacheKey, this);
             registerMethod("getPreviousRebootInfo",
                     &SystemServices::getPreviousRebootInfo, this);
             registerMethod("getLastDeepSleepReason",
@@ -3027,127 +3026,6 @@ namespace WPEFramework {
 #endif
             response["temperature"] = to_string(temperature);
             returnResponse(resp);
-        }
-
-        /***
-         * @brief : To get cashed value .
-         * @param1[in]  : {"params":{"key":"<string>"}}
-         * @param2[out] : {"result":{"<cachekey>":"<string>","success":<bool>}}
-         * @return      : Core::<StatusCode>
-         */
-        uint32_t SystemServices::getCachedValue(const JsonObject& parameters,
-			JsonObject& response)
-	{
-		bool retStat = false;
-		bool deprecated = true;
-		if (parameters.HasLabel("key")) {
-			std::string key = parameters["key"].String();
-			LOGWARN("key: '%s'\n", key.c_str());
-			if (key.length()) {
-				response[(key.c_str())] = (m_cacheService.getValue(key).String().empty()?
-						"" : m_cacheService.getValue(key).String());
-				retStat = true;
-			} else {
-				populateResponseWithError(SysSrv_UnSupportedFormat, response);
-			}
-		} else {
-			populateResponseWithError(SysSrv_MissingKeyValues, response);
-		}
-		response["deprecated"] = deprecated;
-		returnResponse(retStat);
-	}
-
-        /***
-         * @brief : To set cache value.
-         * @param1[in]  : {"params":{"key":"<string>","value":<double>}}
-         * @param2[out] : {"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
-         * @return      : Core::<StatusCode>
-         */
-        uint32_t SystemServices::setCachedValue(const JsonObject& parameters,
-                JsonObject& response)
-        {
-            bool retStat = false;
-	    bool deprecated = true;
-
-	    if (parameters.HasLabel("key") && parameters.HasLabel("value")) {
-		    std::string key = parameters["key"].String();
-		    std::string value = parameters["value"].String();
-		    LOGWARN("key: '%s' value: '%s'\n", key.c_str(), value.c_str());
-		    if (key.length() && value.length()) {
-			    if (m_cacheService.setValue(key, value)) {
-				    retStat = true;
-			    } else {
-				    LOGERR("Accessing m_cacheService.setValue failed\n.");
-				    populateResponseWithError(SysSrv_Unexpected, response);
-			    }
-		    } else {
-			    populateResponseWithError(SysSrv_UnSupportedFormat, response);
-		    }
-	    } else {
-		    populateResponseWithError(SysSrv_MissingKeyValues, response);
-	    }
-	    response["deprecated"] = deprecated;
-	    returnResponse(retStat);
-        }
-
-        /***
-         * @brief : To check if key value present in cache.
-         * @param1[in]  : {"params":{"key":"<string>"}}
-         * @param2[out] : {"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
-         * @return      : Core::<StatusCode>
-         */
-        uint32_t SystemServices::cacheContains(const JsonObject& parameters,
-                JsonObject& response)
-        {
-		bool retStat = false;
-		bool deprecated = true;
-		if (parameters.HasLabel("key")) {
-			std::string key = parameters["key"].String();
-			if (key.length()) {
-				if (m_cacheService.contains(key)) {
-					retStat = true;
-				} else {
-					LOGERR("Accessing m_cacheService.contains; no matching key '%s'\n.", key.c_str());
-					populateResponseWithError(SysSrv_KeyNotFound, response);
-				}
-			} else {
-				populateResponseWithError(SysSrv_UnSupportedFormat, response);
-			}
-		} else {
-			populateResponseWithError(SysSrv_MissingKeyValues, response);
-		}
-		response["deprecated"] = deprecated;
-		returnResponse(retStat);
-        }
-
-        /***
-         * @brief : To delete the key value present in cache.
-         * @param1[in]  : {"params":{"key":"<string>"}}
-         * @param2[out] : {"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
-         * @return      : Core::<StatusCode>
-         */
-        uint32_t SystemServices::removeCacheKey(const JsonObject& parameters,
-                JsonObject& response)
-        {
-		bool retStat = false;
-		bool deprecated = true;
-		if (parameters.HasLabel("key")) {
-			std::string key = parameters["key"].String();
-			if (key.length()) {
-				if (m_cacheService.remove(key)) {
-					retStat = true;
-				} else {
-					LOGERR("Accessing m_cacheService.remove failed\n.");
-					populateResponseWithError(SysSrv_Unexpected, response);
-				}
-			} else {
-				populateResponseWithError(SysSrv_UnSupportedFormat, response);
-			}
-		} else {
-			populateResponseWithError(SysSrv_MissingKeyValues, response);
-		}
-		response["deprecated"] = deprecated;
-		returnResponse(retStat);
         }
 
         /***
