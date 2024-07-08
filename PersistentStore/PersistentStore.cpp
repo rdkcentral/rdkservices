@@ -31,11 +31,7 @@ namespace WPEFramework {
 
 namespace {
 
-#ifdef WITH_THUNDER_NAMESPACE
-    static Thunder::Plugin::Metadata<Plugin::PersistentStore> metadata(
-#else
     static Plugin::Metadata<Plugin::PersistentStore> metadata(
-#endif
         // Version (Major, Minor, Patch)
         API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
         // Preconditions
