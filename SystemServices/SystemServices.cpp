@@ -557,6 +557,7 @@ namespace WPEFramework {
         void SystemServices::Deinitialize(PluginHost::IShell*)
         {
             m_operatingModeTimer.stop();
+           m_operatingModeTimer.join();
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             DeinitializeIARM();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
@@ -1432,6 +1433,7 @@ namespace WPEFramework {
                 m_remainingDuration--;
             } else {
                 m_operatingModeTimer.stop();
+               m_operatingModeTimer.detach();
                 JsonObject parameters, param, response;
                 param["mode"] = "NORMAL";
                 param["duration"] = 0;
