@@ -25,9 +25,7 @@
 #include <mutex>
 #include <thread>
 #include <fstream>
-#include <set>
 #include <sstream>
-#include <condition_variable>
 #include <unistd.h>
 #include <rdkshell/compositorcontroller.h>
 #include <rdkshell/application.h>
@@ -220,6 +218,8 @@ std::condition_variable gHibernateBlockedCondVariable;
 #ifdef HIBERNATE_NATIVE_APPS_ON_SUSPENDED
 std::set<std::string> gLaunchedToSuspended;
 std::mutex gLaunchedToSuspendedMutex;
+#define HIBERNATION_DELAY_FOR_LAUNCHED_TO_SUSPENDED_MS  15000
+#define HIBERNATION_DELAY_FOR_RESUMED_TO_SUSPENDED_MS   5000
 #endif
 
 #define ANY_KEY 65536
@@ -781,8 +781,13 @@ namespace WPEFramework {
                     gLaunchedToSuspendedMutex.lock();
                     bool l2s = (gLaunchedToSuspended.find(mCallSign) != gLaunchedToSuspended.end());
                     gLaunchedToSuspendedMutex.unlock();
+                    uint32_t delay = HIBERNATION_DELAY_FOR_RESUMED_TO_SUSPENDED_MS;
+                    if (l2s)
+                    {
+                        delay = HIBERNATION_DELAY_FOR_LAUNCHED_TO_SUSPENDED_MS;
+                    }
 
-                    if (!l2s && (mCallSign.find("Netflix") != std::string::npos || mCallSign.find("Cobalt") != std::string::npos))
+                    if (mCallSign.find("Netflix") != std::string::npos || mCallSign.find("Cobalt") != std::string::npos)
                     {
                         // call RDKShell.hibernate
                         std::thread requestsThread =
@@ -791,6 +796,7 @@ namespace WPEFramework {
                         JsonObject hibernateParams;
                         JsonObject hibernatetResponse;
                         hibernateParams["callsign"] = mCallSign;
+                        hibernateParams["delay"] = delay;
                         mRDKShell.getThunderControllerClient("org.rdk.RDKShell.1")->Invoke<JsonObject, JsonObject>(0, "hibernate", hibernateParams, hibernatetResponse); });
 
                         requestsThread.detach();
@@ -1501,6 +1507,185 @@ namespace WPEFramework {
             }
         }
 
+#ifdef HIBERNATE_SUPPORT_ENABLED
+        RDKShell::HibernateExecutor::HibernateExecutor(RDKShell& shell):
+            mShell(shell),
+            mRunning(true)
+        {
+            mThread = std::thread(&RDKShell::HibernateExecutor::run, this);
+        }
+
+        RDKShell::HibernateExecutor::~HibernateExecutor()
+        {
+            mRunning = false;
+            mCondition.notify_one();
+            mThread.join();
+        }
+
+        void RDKShell::HibernateExecutor::schedule(std::string callsign, uint32_t timeout, uint32_t delayMs)
+        {
+            std::unique_lock<std::mutex> lock(mMutex);
+            std::chrono::steady_clock::time_point executionTime = std::chrono::steady_clock::now()
+                + std::chrono::milliseconds(delayMs);
+            mCallsignsExecTimeMap[callsign] = RDKShell::HibernateExecutor::Params{executionTime, timeout};
+            lock.unlock();
+            mCondition.notify_one();
+        }
+
+        void RDKShell::HibernateExecutor::abort(std::string callsign)
+        {
+            std::unique_lock<std::mutex> lock(mMutex);
+            // Remove pending hibernation
+            mCallsignsExecTimeMap.erase(callsign);
+            // If hibernation ongoing, abort it by call to activate
+            while (mCallsignsHibernating.find(callsign) != mCallsignsHibernating.end())
+            {
+                lock.unlock();
+                auto thunderController = RDKShell::getThunderControllerClient();
+                JsonObject request, result, eventMsg;
+                request["callsign"] = callsign;
+
+                uint32_t error = thunderController->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "activate", request, result);
+                lock.lock();
+                if (error == Core::ERROR_NONE)
+                {
+                    mCallsignsHibernating.erase(callsign);
+                }
+            }
+        }
+
+        void RDKShell::HibernateExecutor::run()
+        {
+            while (mRunning)
+            {
+                std::unique_lock<std::mutex> lock(mMutex);
+                std::chrono::milliseconds nextWakeUp(std::chrono::milliseconds::max());
+
+                // Get the item to execute or calculate the next sleep time
+                std::string callsign;
+                uint32_t timeoutMs = 0;
+
+                for (auto it = mCallsignsExecTimeMap.begin(); it != mCallsignsExecTimeMap.end();)
+                {
+                    // Check if the execution time has passed or not
+                    const auto execDelay = std::chrono::duration_cast<std::chrono::milliseconds>(it->second.timePoint - std::chrono::steady_clock::now());
+                    if (execDelay <= std::chrono::milliseconds(0))
+                    {
+                        callsign = it->first;
+                        timeoutMs = it->second.timeoutMs;
+                        mCallsignsExecTimeMap.erase(it);
+                        mCallsignsHibernating.insert(callsign);
+                        // Break to execute
+                        break;
+                    }
+                    else
+                    {
+                        // Calculate the next sleep time
+                        nextWakeUp = std::min(nextWakeUp, execDelay);
+                        it++;
+                    }
+                }
+
+                if (!callsign.empty())
+                {
+                    // Execute the pending hibernate outside lock and iterate again
+                    lock.unlock();
+                    LOGINFO("Executing hibernate for callsign: %s", callsign.c_str());
+                    hibernateInternal(callsign, timeoutMs);
+                    lock.lock();
+                    // Hibernate done, remove from progress list
+                    mCallsignsHibernating.erase(callsign);
+                }
+                else
+                {
+                    if (nextWakeUp != std::chrono::milliseconds::max())
+                    {
+                        mCondition.wait_for(lock, nextWakeUp);
+                    }
+                    else
+                    {
+                        mCondition.wait(lock, [this]
+                                        { return !mCallsignsExecTimeMap.empty(); });
+                    }
+                }
+            }
+        }
+        void RDKShell::HibernateExecutor::hibernateInternal(std::string callsign, uint32_t timeoutMs)
+        {
+            if (!waitForHibernateUnblocked(RDKSHELL_THUNDER_TIMEOUT))
+            {
+                std::cout << "Hibernation of " << callsign << " ignored!" << std::endl;
+                JsonObject eventMsg;
+                eventMsg["success"] = false;
+                eventMsg["message"] = "hibernation blocked";
+                mShell.notify(RDKShell::RDKSHELL_EVENT_ON_HIBERNATED, eventMsg);
+                return;
+            }
+
+            bool isApplicationBeingDestroyed = false;
+            gLaunchDestroyMutex.lock();
+            if (gDestroyApplications.find(callsign) != gDestroyApplications.end())
+            {
+                isApplicationBeingDestroyed = true;
+            }
+            if (gExternalDestroyApplications.find(callsign) != gExternalDestroyApplications.end())
+            {
+                isApplicationBeingDestroyed = true;
+            }
+            gLaunchDestroyMutex.unlock();
+
+            if (isApplicationBeingDestroyed)
+            {
+                JsonObject eventMsg;
+                LOGINFO("Ignoring hibernate for %s as it is being destroyed", callsign.c_str());
+                eventMsg["success"] = false;
+                eventMsg["message"] = "failed to hibernate application, is being destroyed";
+                mShell.notify(RDKShell::RDKSHELL_EVENT_ON_HIBERNATED, eventMsg);
+                return;
+            }
+
+            if (callsign.find("Netflix") != string::npos || callsign.find("Cobalt") != string::npos)
+            {
+                // Check if native app is suspended
+                bool suspendedOrHibernated = false;
+                gSuspendedOrHibernatedApplicationsMutex.lock();
+                if (gSuspendedOrHibernatedApplications.find(callsign) != gSuspendedOrHibernatedApplications.end())
+                {
+                    suspendedOrHibernated = gSuspendedOrHibernatedApplications[callsign];
+                }
+                gSuspendedOrHibernatedApplicationsMutex.unlock();
+                if (!suspendedOrHibernated)
+                {
+                    JsonObject eventMsg;
+                    LOGINFO("Ignoring hibernate for %s as it is not suspended", callsign.c_str());
+                    eventMsg["success"] = false;
+                    eventMsg["message"] = "failed to hibernate native application, not suspended";
+                    mShell.notify(RDKShell::RDKSHELL_EVENT_ON_HIBERNATED, eventMsg);
+                    return;
+                }
+            }
+
+            auto thunderController = RDKShell::getThunderControllerClient();
+            JsonObject request, result, eventMsg;
+            request["callsign"] = callsign;
+            request["timeout"] = timeoutMs;
+            uint32_t errCode = thunderController->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "hibernate", request, result);
+            if (errCode > 0)
+            {
+                eventMsg["success"] = false;
+                eventMsg["message"] = result;
+            }
+            else
+            {
+                eventMsg["success"] = true;
+                gSuspendedOrHibernatedApplicationsMutex.lock();
+                gSuspendedOrHibernatedApplications[callsign] = true;
+                gSuspendedOrHibernatedApplicationsMutex.unlock();
+            }
+            mShell.notify(RDKShell::RDKSHELL_EVENT_ON_HIBERNATED, eventMsg);
+        }
+#endif
+
         RDKShell::RDKShell()
                 : PluginHost::JSONRPC(),
                 mEnableUserInactivityNotification(true),
@@ -1511,6 +1696,9 @@ namespace WPEFramework {
                 mEnableEasterEggs(true),
                 mScreenCapture(this),
                 mErmEnabled(false)
+#ifdef HIBERNATE_SUPPORT_ENABLED
+                , mHibernateExecutor(*this)
+#endif
         {
             LOGINFO("ctor");
             RDKShell::_instance = this;
@@ -4094,14 +4282,20 @@ namespace WPEFramework {
                 }
 #ifdef HIBERNATE_SUPPORT_ENABLED
                 //Reset app suspended/hibernated for launch
+                bool suspendedOrHibernated = false;
                 gSuspendedOrHibernatedApplicationsMutex.lock();
                 auto suspendedOrHibernatedIt = gSuspendedOrHibernatedApplications.find(appCallsign);
                 if (suspendedOrHibernatedIt != gSuspendedOrHibernatedApplications.end())
                 {
                     gSuspendedOrHibernatedApplications.erase(suspendedOrHibernatedIt);
+                    suspendedOrHibernated = true;
                 }
                 gSuspendedOrHibernatedApplicationsMutex.unlock();
-#endif
+                // Make sure app is not hibernating
+                if (suspendedOrHibernated)
+                {
+                    mHibernateExecutor.abort(appCallsign);
+                }
 #ifdef HIBERNATE_NATIVE_APPS_ON_SUSPENDED
                 gLaunchedToSuspendedMutex.lock();
                 if (suspend)
@@ -4113,6 +4307,7 @@ namespace WPEFramework {
                     gLaunchedToSuspended.erase(appCallsign);
                 }
                 gLaunchedToSuspendedMutex.unlock();
+#endif
 #endif
 
                 //check to see if plugin already exists
@@ -6565,61 +6760,33 @@ namespace WPEFramework {
                 if( callsign.find("Netflix") != string::npos || callsign.find("Cobalt") != string::npos )
                 {
                     //Check if native app is suspended
-                    WPEFramework::Core::JSON::String stateString;
-                    const string callsignWithVersion = callsign + ".1";
-                    auto thunderPlugin = getThunderControllerClient(callsignWithVersion);
-                    uint32_t stateStatus = 0;
-                    stateStatus = thunderPlugin->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
-                    if(stateStatus || stateString != "suspended")
+                    bool suspendedOrHibernated = false;
+                    gSuspendedOrHibernatedApplicationsMutex.lock();
+                    if (gSuspendedOrHibernatedApplications.find(callsign) != gSuspendedOrHibernatedApplications.end())
                     {
-                        std::cout << "ignoring hibenrate for " << callsign << " as it is not suspended " << std::endl;
+                       suspendedOrHibernated = gSuspendedOrHibernatedApplications[callsign];
+                    }
+                    gSuspendedOrHibernatedApplicationsMutex.unlock();
+                    if (!suspendedOrHibernated)
+                    {
+                        std::cout << "ignoring hibernate for " << callsign << " as it is not suspended " << std::endl;
                         status = false;
                         response["message"] = "failed to hibernate native application, not suspended";
                         returnResponse(status);
                     }
                 }
-
-                std::thread requestsThread =
-                std::thread([=]()
+                uint32_t timeout = RDKSHELL_THUNDER_TIMEOUT;
+                uint32_t delay = 0; //execute instantly
+                if(parameters.HasLabel("timeout"))
                 {
-                    if (!waitForHibernateUnblocked(RDKSHELL_THUNDER_TIMEOUT))
-                    {
-                        std::cout << "Hibernation of " << callsign << " ignored!" << std::endl;
-                        JsonObject eventMsg;
-                        eventMsg["success"] = false;
-                        eventMsg["message"] = "hibernation blocked";
-                        notify(RDKShell::RDKSHELL_EVENT_ON_HIBERNATED, eventMsg);
-                        return;
-                    }
+                    timeout = parameters["timeout"].Number();
+                }
+                if(parameters.HasLabel("delay"))
+                {
+                    delay = parameters["delay"].Number();
+                }
 
-                    auto thunderController = RDKShell::getThunderControllerClient();
-                    JsonObject request, result, eventMsg;
-                    request["callsign"] = callsign;
-                    request["timeout"] = RDKSHELL_THUNDER_TIMEOUT;
-                    if(parameters.HasLabel("timeout"))
-                    {
-                        request["timeout"] = parameters["timeout"];
-                    }
-                    if(parameters.HasLabel("procsequence"))
-                    {
-                        request["procsequence"] = parameters["procsequence"];
-                    }
-                    uint32_t errCode = thunderController->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "hibernate", request, result);
-                    if(errCode > 0)
-                    {
-                        eventMsg["success"] = false;
-                        eventMsg["message"] = result;
-                    }
-                    else
-                    {
-                        eventMsg["success"] = true;
-                        gSuspendedOrHibernatedApplicationsMutex.lock();
-                        gSuspendedOrHibernatedApplications[callsign] = true;
-                        gSuspendedOrHibernatedApplicationsMutex.unlock();
-                    }
-                    notify(RDKShell::RDKSHELL_EVENT_ON_HIBERNATED, eventMsg);
-                });
-                requestsThread.detach();
+                mHibernateExecutor.schedule(callsign, timeout, delay);
                 status = true;
             }
 
