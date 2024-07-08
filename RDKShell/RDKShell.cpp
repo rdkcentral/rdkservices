@@ -787,7 +787,7 @@ namespace WPEFramework {
                         delay = HIBERNATION_DELAY_FOR_LAUNCHED_TO_SUSPENDED_MS;
                     }
 
-                    if (mCallSign.find("Netflix") != std::string::npos || mCallSign.find("Cobalt") != std::string::npos)
+                    if (mCallSign.find("Netflix") != std::string::npos || mCallSign.find("Cobalt") != std::string::npos || mCallSign.find("Amazon") != std::string::npos || mCallSign.find("YouTube") != std::string::npos)
                     {
                         // call RDKShell.hibernate
                         std::thread requestsThread =
@@ -6757,7 +6757,7 @@ namespace WPEFramework {
                     returnResponse(status);
                 }
 
-                if( callsign.find("Netflix") != string::npos || callsign.find("Cobalt") != string::npos )
+                if( callsign.find("Netflix") != string::npos || callsign.find("Cobalt") != string::npos || callsign.find("Amazon") != string::npos || callsign.find("YouTube") != string::npos )
                 {
                     //Check if native app is suspended
                     bool suspendedOrHibernated = false;

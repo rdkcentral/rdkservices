@@ -31,7 +31,7 @@ jobs:
       - name: Build
         working-directory: ${{github.workspace}}
         run: |
-          cmake -S ${GITHUB_REPOSITORY}/PersistentStore -B build/PersistentStore -DCMAKE_INSTALL_PREFIX="install" -DCMAKE_CXX_FLAGS="-Wall -Werror" -DPLUGIN_PERSISTENTSTORE_PATH="/tmp/persistentstore/l2test/test"
+          cmake -S ${GITHUB_REPOSITORY}/PersistentStore -B build/PersistentStore -DCMAKE_INSTALL_PREFIX="install" -DCMAKE_CXX_FLAGS="-Wall -Werror" -DPLUGIN_PERSISTENTSTORE_PATH="/tmp/persistentstore/l2test/test" -DPLUGIN_PERSISTENTSTORE_WITH_ACCOUNT_SCOPE=true -DPLUGIN_PERSISTENTSTORE_MODE=Local -DPLUGIN_PERSISTENTSTORE_URI=ss.eu.prod.developer.comcast.com:443
           cmake --build build/PersistentStore --target install
 
 # Usage:
