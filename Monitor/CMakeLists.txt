@@ -34,6 +34,8 @@ set(PLUGIN_MONITOR_WEBKITBROWSER_RESIDENT_APP "${PLUGIN_WEBKITBROWSER_RESIDENT_A
 set(PLUGIN_MONITOR_WEBKITBROWSER_UX "${PLUGIN_WEBKITBROWSER_UX}" CACHE BOOL "Enable monitor for the WebKitBrowser UX plugin")
 set(PLUGIN_MONITOR_WEBKITBROWSER_YOUTUBE "${PLUGIN_WEBKITBROWSER_YOUTUBE}" CACHE BOOL "Enable monitor for the WebKitBrowser Youtube plugin")
 set(PLUGIN_MONITOR_SYSTEMAUDIOPLAYER "${PLUGIN_SYSTEMAUDIOPLAYER}" CACHE BOOL "Enable monitor for the SystemAudioPlayer plugin")
+# By Default NetworkManager plugin Monitor is in ON state
+set(PLUGIN_MONITOR_NETWORKMANAGER ON)
 
 # Plugins built from outside of this repository have to be enabled manually
 set(PLUGIN_MONITOR_AMAZON OFF CACHE BOOL "Enable monitor for the Amazon plugin")
@@ -51,6 +53,7 @@ set(PLUGIN_MONITOR_WEBKITBROWSER_APPS_MEMORYLIMIT "614400" CACHE STRING "monitor
 set(PLUGIN_MONITOR_WEBKITBROWSER_RESIDENT_APP_MEMORYLIMIT "614400" CACHE STRING "monitor resident app memory limit")
 set(PLUGIN_MONITOR_WEBKITBROWSER_UX_MEMORYLIMIT "614400" CACHE STRING "monitor ux memory limit")
 set(PLUGIN_MONITOR_WEBKITBROWSER_YOUTUBE_MEMORYLIMIT "614400" CACHE STRING "monitor youtube memory limit")
+set(PLUGIN_MONITOR_NETWORKMANAGER_MEMORYLIMIT "614400" CACHE STRING "monitor networkmanager memory limit")
 
 # deprecated/legacy flags support
 if(PLUGIN_MONITOR_APPS_MEMORYLIMIT)
