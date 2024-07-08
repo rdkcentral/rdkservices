@@ -74,10 +74,19 @@ bool cTimer::start()
  */
 void cTimer::stop()
 {
-    this->clear = true;
-    if (timerThread.joinable()) {
-        timerThread.join();
-    }
+       this->clear = true;
+}
+
+void cTimer::detach()
+{
+        timerThread.detach();
+}
+
+void cTimer::join()
+{
+       if (timerThread.joinable()) {
+               timerThread.join();
+        }
 }
 
 /***
