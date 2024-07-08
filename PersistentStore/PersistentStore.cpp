@@ -29,20 +29,20 @@
 
 namespace WPEFramework {
 
-namespace {
-
-    static Plugin::Metadata<Plugin::PersistentStore> metadata(
-        // Version (Major, Minor, Patch)
-        API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
-        // Preconditions
-        {},
-        // Terminations
-        {},
-        // Controls
-        {});
-}
-
 namespace Plugin {
+
+    namespace {
+
+        static Metadata<PersistentStore> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {});
+    }
 
     SERVICE_REGISTRATION(PersistentStore, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
