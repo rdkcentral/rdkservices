@@ -2,7 +2,7 @@
 <a name="NetworkManager_Plugin"></a>
 # NetworkManager Plugin
 
-**Version: [0.1.0]()**
+**Version: [0.2.10]()**
 
 A NetworkManager plugin for Thunder framework.
 
@@ -55,38 +55,38 @@ NetworkManager interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [GetAvailableInterfaces](#GetAvailableInterfaces) | Get device supported list of available interface including their state |
-| [GetPrimaryInterface](#GetPrimaryInterface) | Gets the primary/default network interface for the device |
-| [SetPrimaryInterface](#SetPrimaryInterface) | Sets the primary/default interface for the device |
-| [GetIPSettings](#GetIPSettings) | Gets the IP setting for the given interface |
-| [SetIPSettings](#SetIPSettings) | Sets the IP settings for the given interface |
-| [GetStunEndpoint](#GetStunEndpoint) | Get the STUN Endpoint that is used to identify public IP of the device |
-| [SetStunEndpoint](#SetStunEndpoint) | Set the STUN Endpoint to be used to identify public IP of the device |
-| [GetConnectivityTestEndpoints](#GetConnectivityTestEndpoints) | Gets currently used test endpoints |
-| [SetConnectivityTestEndpoints](#SetConnectivityTestEndpoints) | This method used to set up to 5 endpoints for a connectivity test |
-| [IsConnectedToInternet](#IsConnectedToInternet) | Seeks Whether the device has internet connectivity |
-| [GetCaptivePortalURI](#GetCaptivePortalURI) | Gets the captive portal URI if connected to any captive portal network |
-| [StartConnectivityMonitoring](#StartConnectivityMonitoring) | Enable a continuous monitoring of internet connectivity with heart beat interval thats given |
-| [StopConnectivityMonitoring](#StopConnectivityMonitoring) | Stops the connectivity monitoring |
-| [GetPublicIP](#GetPublicIP) | Gets the internet/public IP Address of the device |
-| [Ping](#Ping) | Pings the specified endpoint with the specified number of packets |
-| [Trace](#Trace) | Traces the specified endpoint with the specified number of packets using `traceroute` |
-| [StartWiFiScan](#StartWiFiScan) | Initiates WiFi scaning |
-| [StopWiFiScan](#StopWiFiScan) | Stops WiFi scanning |
-| [GetKnownSSIDs](#GetKnownSSIDs) | Gets list of saved SSIDs |
-| [AddToKnownSSIDs](#AddToKnownSSIDs) | Saves the SSID, passphrase, and security mode for upcoming and future sessions |
-| [RemoveKnownSSID](#RemoveKnownSSID) | Remove given SSID from saved SSIDs |
-| [WiFiConnect](#WiFiConnect) | Initiates request to connect to the specified SSID with the given passphrase |
-| [WiFiDisconnect](#WiFiDisconnect) | Disconnects from the currently connected SSID |
-| [GetConnectedSSID](#GetConnectedSSID) | Returns the connected SSID information |
-| [StartWPS](#StartWPS) | Initiates a connection using Wifi Protected Setup (WPS) |
-| [StopWPS](#StopWPS) | Cancels the in-progress WPS pairing operation |
-| [GetWiFiSignalStrength](#GetWiFiSignalStrength) | Get WiFiSignalStrength of connected SSID |
-| [GetSupportedSecurityModes](#GetSupportedSecurityModes) | Returns the Wifi security modes that the device supports |
-| [SetLogLevel](#SetLogLevel) | Set Log level for more information |
-| [EnableInterface](#EnableInterface) | Enable the interface |
-| [DisableInterface](#DisableInterface) | Disable the interface |
-| [GetWifiState](#GetWifiState) | Returns the current Wifi State |
+| [GetAvailableInterfaces](#method.GetAvailableInterfaces) | Get device supported list of available interface including their state |
+| [GetPrimaryInterface](#method.GetPrimaryInterface) | Gets the primary/default network interface for the device |
+| [SetPrimaryInterface](#method.SetPrimaryInterface) | Sets the primary/default interface for the device |
+| [SetInterfaceState](#method.SetInterfaceState) | Enable the interface |
+| [GetInterfaceState](#method.GetInterfaceState) | Disable the interface |
+| [GetIPSettings](#method.GetIPSettings) | Gets the IP setting for the given interface |
+| [SetIPSettings](#method.SetIPSettings) | Sets the IP settings for the given interface |
+| [GetStunEndpoint](#method.GetStunEndpoint) | Get the STUN Endpoint that is used to identify public IP of the device |
+| [SetStunEndpoint](#method.SetStunEndpoint) | Set the STUN Endpoint to be used to identify public IP of the device |
+| [GetConnectivityTestEndpoints](#method.GetConnectivityTestEndpoints) | Gets currently used test endpoints |
+| [SetConnectivityTestEndpoints](#method.SetConnectivityTestEndpoints) | This method used to set up to 5 endpoints for a connectivity test |
+| [IsConnectedToInternet](#method.IsConnectedToInternet) | Seeks Whether the device has internet connectivity |
+| [GetCaptivePortalURI](#method.GetCaptivePortalURI) | Gets the captive portal URI if connected to any captive portal network |
+| [StartConnectivityMonitoring](#method.StartConnectivityMonitoring) | Enable a continuous monitoring of internet connectivity with heart beat interval thats given |
+| [StopConnectivityMonitoring](#method.StopConnectivityMonitoring) | Stops the connectivity monitoring |
+| [GetPublicIP](#method.GetPublicIP) | Gets the internet/public IP Address of the device |
+| [Ping](#method.Ping) | Pings the specified endpoint with the specified number of packets |
+| [Trace](#method.Trace) | Traces the specified endpoint with the specified number of packets using `traceroute` |
+| [StartWiFiScan](#method.StartWiFiScan) | Initiates WiFi scaning |
+| [StopWiFiScan](#method.StopWiFiScan) | Stops WiFi scanning |
+| [GetKnownSSIDs](#method.GetKnownSSIDs) | Gets list of saved SSIDs |
+| [AddToKnownSSIDs](#method.AddToKnownSSIDs) | Saves the SSID, passphrase, and security mode for upcoming and future sessions |
+| [RemoveKnownSSID](#method.RemoveKnownSSID) | Remove given SSID from saved SSIDs |
+| [WiFiConnect](#method.WiFiConnect) | Initiates request to connect to the specified SSID with the given passphrase |
+| [WiFiDisconnect](#method.WiFiDisconnect) | Disconnects from the currently connected SSID |
+| [GetConnectedSSID](#method.GetConnectedSSID) | Returns the connected SSID information |
+| [StartWPS](#method.StartWPS) | Initiates a connection using Wifi Protected Setup (WPS) |
+| [StopWPS](#method.StopWPS) | Cancels the in-progress WPS pairing operation |
+| [GetWiFiSignalStrength](#method.GetWiFiSignalStrength) | Get WiFiSignalStrength of connected SSID |
+| [GetSupportedSecurityModes](#method.GetSupportedSecurityModes) | Returns the Wifi security modes that the device supports |
+| [SetLogLevel](#method.SetLogLevel) | Set Log level for more information |
+| [GetWifiState](#method.GetWifiState) | Returns the current Wifi State |
 
 
 <a name="GetAvailableInterfaces"></a>
@@ -247,8 +247,114 @@ Sets the primary/default interface for the device. This call fails if the interf
 }
 ```
 
-<a name="GetIPSettings"></a>
-## *GetIPSettings*
+<a name="method.SetInterfaceState"></a>
+## *SetInterfaceState [<sup>method</sup>](#head.Methods)*
+
+Enable or Disable the specified interface.
+
+### Events
+
+| Event | Description |
+| :-------- | :-------- |
+| [onInterfaceStateChange](#event.onInterfaceStateChange) | Triggered when interface’s status changes to enabled or disabled. |
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface in `GetAvailableInterfaces` |
+| params.enabled | boolean | Set the state of the interface to be Enabled or Disabled |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.NetworkManager.SetInterfaceState",
+    "params": {
+        "interface": "wlan0",
+        "enabled": true
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="method.GetInterfaceState"></a>
+## *GetInterfaceState [<sup>method</sup>](#head.Methods)*
+
+Disable the specified interface.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface in `GetAvailableInterfaces` |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.isEnabled | boolean | Whether the Interface is enabled or disabled |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.NetworkManager.GetInterfaceState",
+    "params": {
+        "interface": "wlan0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "isEnabled": true,
+        "success": true
+    }
+}
+```
+
+<a name="method.GetIPSettings"></a>
+## *GetIPSettings [<sup>method</sup>](#head.Methods)*
 
 Gets the IP setting for the given interface.
 
@@ -931,13 +1037,13 @@ No Events
 
 ### Parameters
 
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
+| Name            | Type    | Description |
+| :--------       | :-------- | :-------- |
 | params | object |  |
-| params.endpoint | string | The host name or IP address |
-| params.ipversion | string | either IPv4 or IPv6 |
-| params.noOfRequest | integer | The number of packets to send. Default is 15 |
-| params.guid | string | The globally unique identifier |
+| params.ipversion| string  | <sup>*(optional)*</sup> The host name or IP address |
+| params.endpoint | string  | The host name or IP address |
+| params.packets  | integer | <sup>*(optional)*</sup> The number of packets to send. Default is 10 |
+| params.guid     | string  | <sup>*(optional)*</sup> The globally unique identifier |
 
 ### Result
 
@@ -945,15 +1051,7 @@ No Events
 | :-------- | :-------- | :-------- |
 | result | object |  |
 | result.target | string | The target IP address |
-| result.packetsTransmitted | integer | The number of packets sent |
-| result.packetsReceived | integer | The number of packets received |
-| result.packetLoss | string | The number of packets lost |
-| result.tripMin | string | The minimum amount of time to receive the packets |
-| result.tripAvg | string | The average time to receive the packets |
-| result.tripMax | string | The maximum amount of time to receive the packets |
-| result.tripStdDev | string | The standard deviation for the trip |
-| result.error | string | An error message |
-| result.guid | string | The globally unique identifier |
+| result.results | string | The results from `traceroute` |
 | result.success | boolean | Whether the request succeeded |
 
 ### Example
@@ -967,9 +1065,7 @@ No Events
     "method": "org.rdk.NetworkManager.Trace",
     "params": {
         "endpoint": "45.57.221.20",
-        "ipversion": "IPv4",
-        "noOfRequest": 10,
-        "guid": "..."
+        "packets": 10
     }
 }
 ```
@@ -982,16 +1078,8 @@ No Events
     "id": 42,
     "result": {
         "target": "45.57.221.20",
-        "packetsTransmitted": 10,
-        "packetsReceived": 10,
-        "packetLoss": "0.0",
-        "tripMin": "61.264",
-        "tripAvg": "130.397",
-        "tripMax": "230.832",
-        "tripStdDev": "80.919",
-        "error": "...",
-        "guid": "...",
-        "success": true
+        "success": true,
+        "results": "<<<traceroute command results>>>"
     }
 }
 ```
@@ -1660,7 +1748,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.loglevel | integer | Set Log level to get more information |
+| params.logLevel | integer | Set Log level to get more information |
 
 ### Result
 
@@ -1679,7 +1767,7 @@ No Events
     "id": 42,
     "method": "org.rdk.NetworkManager.SetLogLevel",
     "params": {
-        "loglevel": 1
+        "logLevel": 1
     }
 }
 ```
@@ -1696,112 +1784,8 @@ No Events
 }
 ```
 
-<a name="EnableInterface"></a>
-## *EnableInterface*
-
-Enable the specified interface.
-
-### Events
-
-| Event | Description |
-| :-------- | :-------- |
-| [onInterfaceStateChange](#onInterfaceStateChange) | Triggered when interface’s status changes to enabled. |
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface in `GetAvailableInterfaces` |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.NetworkManager.EnableInterface",
-    "params": {
-        "interface": "wlan0"
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="DisableInterface"></a>
-## *DisableInterface*
-
-Disable the specified interface.
-
-### Events
-
-| Event | Description |
-| :-------- | :-------- |
-| [onInterfaceStateChange](#onInterfaceStateChange) | Triggered when interface’s status changes to disabled. |
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.interface | string | An interface, such as `eth0` or `wlan0`, depending upon availability of the given interface in `GetAvailableInterfaces` |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.NetworkManager.DisableInterface",
-    "params": {
-        "interface": "wlan0"
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="GetWifiState"></a>
-## *GetWifiState*
+<a name="method.GetWifiState"></a>
+## *GetWifiState [<sup>method</sup>](#head.Methods)*
 
 Returns the current Wifi State. The possible Wifi states are as follows.
 * `0`: UNINSTALLED - The device was in an installed state and was uninstalled; or, the device does not have a Wifi radio installed 
@@ -1843,7 +1827,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.Wifi.GetWifiState"
+    "method": "org.rdk.NetworkManager.GetWifiState"
 }
 ```
 
