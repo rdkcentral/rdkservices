@@ -18,19 +18,13 @@
 cmake_minimum_required(VERSION 3.14)
 
 set(PLUGIN_NAME PersistentStore)
-find_package(WPEFramework)
-if (NOT WPEFramework_FOUND)
-    find_package(Thunder)
-    if (Thunder_FOUND)
-        add_compile_definitions(WITH_THUNDER_NAMESPACE)
-    endif ()
-endif ()
+find_package(WPEFramework NAMES WPEFramework Thunder)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 set(CMAKE_CXX_STANDARD 11)
 
-set(PLUGIN_PERSISTENTSTORE_MODE "Local" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
-set(PLUGIN_PERSISTENTSTORE_URI "ss.eu.prod.developer.comcast.com:443" CACHE STRING "Account scope endpoint")
+set(PLUGIN_PERSISTENTSTORE_MODE "Off" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
+set(PLUGIN_PERSISTENTSTORE_URI "" CACHE STRING "Account scope endpoint")
 set(PLUGIN_PERSISTENTSTORE_PATH "/opt/secure/persistent/rdkservicestore" CACHE STRING "Path")
 set(PLUGIN_PERSISTENTSTORE_LEGACYPATH "/opt/persistent/rdkservicestore" CACHE STRING "Previously used path")
 set(PLUGIN_PERSISTENTSTORE_KEY "" CACHE STRING "Encryption key")
@@ -39,7 +33,7 @@ set(PLUGIN_PERSISTENTSTORE_MAXVALUE "3000" CACHE STRING "For single text data, i
 set(PLUGIN_PERSISTENTSTORE_LIMIT "10000" CACHE STRING "Default for all text data in namespace, in bytes")
 set(PLUGIN_PERSISTENTSTORE_TOKEN_COMMAND "" CACHE STRING "Shell command to get the service access token")
 set(PLUGIN_PERSISTENTSTORE_STARTUPORDER "" CACHE STRING "To configure startup order of PersistentStore plugin")
-set(PLUGIN_PERSISTENTSTORE_WITH_ACCOUNT_SCOPE true CACHE BOOL "Enable account scope")
+set(PLUGIN_PERSISTENTSTORE_WITH_ACCOUNT_SCOPE false CACHE BOOL "Enable account scope")
 
 add_library(${MODULE_NAME} SHARED
         PersistentStore.cpp

@@ -155,6 +155,18 @@ if boolean("@PLUGIN_MONITOR_WEBKITBROWSER_RESIDENT_APP@"):
     observable_config.add("restart", restart_config)
     observable_list.append(observable_config)
 
+if boolean("@PLUGIN_MONITOR_NETWORKMANAGER@"):
+    observable_config = JSON()
+    observable_config.add("callsign", "org.rdk.NetworkManager")
+    observable_config.add("memory", "5")
+    observable_config.add("memorylimit", "@PLUGIN_MONITOR_NETWORKMANAGER_MEMORYLIMIT@")
+    observable_config.add("operational", "1")
+    restart_config = JSON()
+    restart_config.add("window", "60")
+    restart_config.add("limit", "3")
+    observable_config.add("restart", restart_config)
+    observable_list.append(observable_config)
+
 if boolean("@PLUGIN_MONITOR_CLONED_APPS@"):
     observable_config = JSON()
     observable_config.add("callsign", "SearchAndDiscovery")
