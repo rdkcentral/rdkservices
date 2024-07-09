@@ -103,7 +103,6 @@ namespace WPEFramework {
                 typedef Core::JSON::ArrayType<JString> JStringArray;
                 typedef Core::JSON::Boolean JBool;
                 string m_stbVersionString;
-                cSettings m_cacheService;
                 static cSettings m_temp_settings;
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
                 static IARM_Bus_SYSMgr_GetSystemStates_Param_t paramGetSysState;
