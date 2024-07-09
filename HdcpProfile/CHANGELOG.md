@@ -20,7 +20,6 @@ All notable changes to this RDK Service will be documented in this file.
 ### Added
 - Updated the API lock implementation
 
-
 ## [1.0.8] - 2024-05-06
 ### Fixed
 - Fixed Handled Exception for DeviceSettings init
