@@ -118,6 +118,13 @@ enum FirmwareUpdateState {
     FirmwareUpdateStateNoUpgradeNeeded
 };
 
+enum RedRecoveryState {
+    RedRecoveryStateCompleted = 0,
+    RedRecoveryStateStarted,
+    RedRecoveryStateDownloaded,
+    RedRecoveryStateProgrammed
+};
+
 const string GZ_STATUS = "/opt/gzenabled";
 
 /* Used as CURL Data buffer */

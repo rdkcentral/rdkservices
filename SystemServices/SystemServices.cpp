@@ -2303,7 +2303,9 @@ namespace WPEFramework {
         void SystemServices::onRedRecoveryStateChange(int newState)
         {
                 JsonObject params;
-                LOGINFO("redRecoveryState = %d\n", (int)newState);
+                const RedRecoveryState redRecoveryState = (RedRecoveryState)newState;
+                params["redRecoveryStateChange"] = (int)redRecoveryState;
+                LOGINFO("redRecoveryState = %d\n", (int)redRecoveryState);
                 sendNotify(EVT_ONREDRECOVERYSTATECHANGED, params);
         }
 

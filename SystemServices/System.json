@@ -216,6 +216,17 @@
             "type": "integer",
             "example": 5
         },
+	"redRecoveryState": {
+            "summary": "The state",
+            "enum": [
+                "Recovery Completed",
+                "Recovery Started",
+                "Recovery Downloaded",
+                "Revovery Programmed"
+            ],
+            "type": "integer",
+            "example": 3
+        },
         "source": {
             "summary": "The source of the reboot",
             "type": "string",
@@ -2116,6 +2127,20 @@
                 },
                 "required": [
                     "firmwareUpdateStateChange"
+                ]
+            }
+        },
+	"onRedRecoveryStateChange":{
+            "summary": "Triggered when the red recovery transistion  \nState details are:  \n* `0`: Recovery completed  \n* `1`: Fatal error detected  \n* `2`: Firmware Info requested  \n* `3`: Recovery firmware programmed",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "redRecoveryStateChange": {
+                        "$ref": "#/definitions/redRecoveryState"
+                    }
+                },
+                "required": [
+                    "redrecoveryStateChange"
                 ]
             }
         },
