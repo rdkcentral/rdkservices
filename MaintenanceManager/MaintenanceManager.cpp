@@ -370,7 +370,6 @@ namespace WPEFramework {
     }
     else if ( false == internetConnectStatus && activation_status == "activated" ) {
         LOGINFO("Device is not connected to the Internet and Device is already Activated");
-#endif
         m_statusMutex.lock();
         MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
         m_statusMutex.unlock();
@@ -615,7 +614,6 @@ namespace WPEFramework {
 
                 LOGINFO("Received onInternetStatusChange event: [%s:%d]", value.c_str(), state);
                 if (g_listen_to_nwevents) {
-
                     if (state == INTERNET_CONNECTED_STATE) {
                         g_listen_to_nwevents = false;
 			LOGINFO("Notify maintenance execution thread");
