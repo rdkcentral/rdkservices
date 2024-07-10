@@ -307,7 +307,7 @@ TEST_F(FrontPanelInitializedEventDsTest, getBrightnessWIndex)
                 EXPECT_EQ("Power", name);
                 return device::FrontPanelIndicator::getInstance();
             }));
-    ON_CALL(frontPanelIndicatorMock, getBrightness())
+    ON_CALL(frontPanelIndicatorMock, getBrightness(::testing::_))
         .WillByDefault(::testing::Return(50));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getBrightness"), _T("{\"index\": \"power_led\"}"), response));
     EXPECT_EQ(response, string("{\"brightness\":50,\"success\":true}"));
@@ -322,7 +322,7 @@ TEST_F(FrontPanelInitializedEventDsTest, getBrightnessOtherName)
                 EXPECT_EQ("other", name);
                 return device::FrontPanelIndicator::getInstance();
             }));
-    ON_CALL(frontPanelIndicatorMock, getBrightness())
+    ON_CALL(frontPanelIndicatorMock, getBrightness(::testing::_))
         .WillByDefault(::testing::Return(50));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getBrightness"), _T("{\"index\": \"other\"}"), response));
     EXPECT_EQ(response, string("{\"brightness\":50,\"success\":true}"));
@@ -356,7 +356,7 @@ TEST_F(FrontPanelInitializedEventDsTest, getBrightness)
                 EXPECT_EQ("Power", name);
                 return device::FrontPanelIndicator::getInstance();
             }));
-    ON_CALL(frontPanelIndicatorMock, getBrightness())
+    ON_CALL(frontPanelIndicatorMock, getBrightness(::testing::_))
         .WillByDefault(::testing::Return(50));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getBrightness"), _T(""), response));
     EXPECT_EQ(response, string("{\"brightness\":50,\"success\":true}"));
@@ -602,7 +602,7 @@ TEST_F(FrontPanelInitializedEventDsTest, setBlink)
                 return device::FrontPanelIndicator::getInstance();
             }));
 
-    ON_CALL(frontPanelIndicatorMock, getBrightness())
+    ON_CALL(frontPanelIndicatorMock, getBrightness(::testing::_))
         .WillByDefault(::testing::Return(50));
     ON_CALL(*p_frontPanelTextDisplayMock, getTextBrightness())
         .WillByDefault(::testing::Return(50));
