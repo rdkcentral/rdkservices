@@ -49,6 +49,7 @@ add_library(${MODULE_NAME} SHARED
 	AVOutputTV.cpp
         AVOutputTVHelper.cpp	
         AVOutput.cpp
+	AutomationTestScript/AVOutputTestScript.sh
         Module.cpp)
 target_link_libraries(${MODULE_NAME} "-lglib-2.0 -lpthread -lIARMBus -ltvsettings-hal -ltr181api -lds")
 else()
@@ -56,6 +57,7 @@ add_library(${MODULE_NAME} SHARED
 	AVOutputBase.cpp
 	AVOutputSTB.cpp
         AVOutput.cpp
+	AutomationTestScript/AVOutputTestScript.sh
         Module.cpp)
 target_link_libraries(${MODULE_NAME} "-lglib-2.0 -lpthread -lIARMBus -lds")
 endif()
