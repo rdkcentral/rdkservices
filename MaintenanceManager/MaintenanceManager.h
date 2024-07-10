@@ -163,7 +163,7 @@ namespace WPEFramework {
                 bool subscribeForInternetStatusEvent(string);
                 void internetStatusChangeEventHandler(const JsonObject& parameters);
                 void deviceInitializationContextEventHandler(const JsonObject& parameters);
-                void startCriticalTasks();
+                //void startCriticalTasks();
                 bool checkNetwork();
                 bool knowWhoAmI(string &activation_status);
                 bool subscribeToDeviceInitializationEvent();
