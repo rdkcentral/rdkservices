@@ -45,6 +45,8 @@ set(EMPTY_HEADERS
          ${BASEDIR}/rdk/iarmmgrs-hal/sysMgr.h
          ${BASEDIR}/rdk/ds/videoOutputPortConfig.hpp
          ${BASEDIR}/rdk/ds/sleepMode.hpp
+         ${BASEDIR}/rdk/ds/frontPanelConfig.hpp
+         ${BASEDIR}/rdk/ds/frontPanelTextDisplay.hpp
          ${BASEDIR}/rfcapi.h
          ${BASEDIR}/rbus.h
          ${BASEDIR}/systemservices/proc/readproc.h
