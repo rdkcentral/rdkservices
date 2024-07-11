@@ -106,7 +106,7 @@ static std::vector<uint8_t> compress(const std::string& str)
             result[3] = (nbytes & 0x000000ff);
             break;
         case Z_MEM_ERROR:
-            TRACE_GLOBAL(Trace::Error,(_T("Z_MEM_ERROR: Not enough memory")));
+            SYSLOG(Logging::Error,(_T("Z_MEM_ERROR: Not enough memory")));
             result.resize(0);
             break;
         case Z_BUF_ERROR:
@@ -126,7 +126,7 @@ static std::string uncompress(const std::vector<uint8_t>& in)
     {
         if (nbytes < 4 || std::any_of(in.cbegin(), in.cend(), [](int v) {return v != 0;}))
         {
-            TRACE_GLOBAL(Trace::Error,(_T("Input data is corrupted")));
+            SYSLOG(Logging::Error,(_T("Input data is corrupted")));
         }
         return result;
     }
@@ -146,11 +146,11 @@ static std::string uncompress(const std::vector<uint8_t>& in)
             len *= 2;
             break;
         case Z_MEM_ERROR:
-            TRACE_GLOBAL(Trace::Error,(_T("Z_MEM_ERROR: Not enough memory")));
+            SYSLOG(Logging::Error,(_T("Z_MEM_ERROR: Not enough memory")));
             result.resize(0);
             break;
         case Z_DATA_ERROR:
-            TRACE_GLOBAL(Trace::Error,(_T("Z_DATA_ERROR: Input data is corrupted")));
+            SYSLOG(Logging::Error,(_T("Z_DATA_ERROR: Input data is corrupted")));
             result.resize(0);
             break;
         }
@@ -201,7 +201,7 @@ struct CookieJar::CookieJarPrivate
 
         if (rc != Core::ERROR_NONE)
         {
-            TRACE_GLOBAL(Trace::Error,(_T("Encryption failed, rc = %u"), rc));
+            SYSLOG(Logging::Error,(_T("Encryption failed, rc = %u"), rc));
         }
         else
         {
@@ -220,7 +220,7 @@ struct CookieJar::CookieJarPrivate
 
         if (rc != Core::ERROR_NONE)
         {
-            TRACE_GLOBAL(Trace::Error,(_T("Decryption failed, rc = %u"), rc));
+            SYSLOG(Logging::Error,(_T("Decryption failed, rc = %u"), rc));
         }
         else
         {
@@ -232,7 +232,7 @@ struct CookieJar::CookieJarPrivate
             if (actualChecksum != checksum)
             {
                 rc = Core::ERROR_GENERAL;
-                TRACE_GLOBAL(Trace::Error,(_T("Checksum does not match: actual=%d expected=%d"), actualChecksum, checksum));
+                SYSLOG(Logging::Error,(_T("Checksum does not match: actual=%d expected=%d"), actualChecksum, checksum));
             }
             else
             {

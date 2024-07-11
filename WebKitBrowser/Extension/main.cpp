@@ -78,7 +78,9 @@ public:
         : _engine(Core::ProxyType<RPC::InvokeServerType<2, 0, 4>>::Create())
         , _comClient(Core::ProxyType<RPC::CommunicatorClient>::Create(GetConnectionNode(), Core::ProxyType<Core::IIPCServer>(_engine)))
     {
+#if !defined(THUNDER_VERSION) || THUNDER_VERSION < 4 || (THUNDER_VERSION == 4 && defined(THUNDER_VERSION_MINOR) && THUNDER_VERSION_MINOR < 4)
         _engine->Announcements(_comClient->Announcement());
+#endif
     }
     ~PluginHost()
     {
@@ -92,10 +94,14 @@ public:
         // We have something to report back, do so...
         uint32_t result = _comClient->Open(RPC::CommunicationTimeOut);
         if (result != Core::ERROR_NONE) {
-            TRACE(Trace::Error, (_T("Could not open connection to node %s. Error: %s"), _comClient->Source().RemoteId(), Core::NumberType<uint32_t>(result).Text()));
+            SYSLOG(Logging::Error, (_T("Could not open connection to node %s. Error: %s"), _comClient->Source().RemoteId(), Core::NumberType<uint32_t>(result).Text()));
         } else {
             // Due to the LXC container support all ID's get mapped. For the TraceBuffer, use the host given ID.
+#ifdef __CORE_MESSAGING__
+            Messaging::MessageUnit::Instance().Open(_comClient->ConnectionId());
+#else
             Trace::TraceUnit::Instance().Open(_comClient->ConnectionId());
+#endif  /* __CORE_MESSAGING__ */
         }
 
         _extension = WEBKIT_WEB_EXTENSION(g_object_ref(extension));
