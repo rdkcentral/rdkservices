@@ -342,7 +342,7 @@ namespace WPEFramework {
 #endif
 
 #if !defined(ENABLE_WHOAMI)
-    if (false == internetConnectionStatus){
+    if (false == internetConnectStatus){
         LOGINFO("isDeviceOnline() returned false");
         g_listen_to_nwevents = true;
         LOGINFO("Waiting for onInternetStatusChange event");
