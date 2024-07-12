@@ -3727,7 +3727,7 @@ namespace WPEFramework {
                     if (param.curState == IARM_BUS_PWRMGR_POWERSTATE_ON){
                         currentState = "ON";
                     }
-                    else if ((param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY)) {
+                    else if ((param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY) || (param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP)) {
 			currentState = "STANDBY";
 		    }
                     else if ((param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP)) {
