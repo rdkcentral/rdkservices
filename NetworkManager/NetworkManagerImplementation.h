@@ -225,6 +225,8 @@ namespace WPEFramework
 
         private:
             void platform_init();
+            void retryIarmEventRegistration();
+            void threadEventRegistration();
             void executeExternally(NetworkEvents event, const string commandToExecute, string& response);
 
         private:
@@ -237,6 +239,7 @@ namespace WPEFramework
             uint16_t m_stunPort;
             uint16_t m_stunBindTimeout;
             uint16_t m_stunCacheTimeout;
+            std::thread m_registrationThread;
         public:
             WiFiSignalStrengthMonitor m_wifiSignalMonitor;
             mutable ConnectivityMonitor connectivityMonitor;
