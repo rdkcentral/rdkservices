@@ -28,13 +28,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(googletest)
 
-find_package(WPEFramework)
-if (NOT WPEFramework_FOUND)
-    find_package(Thunder)
-    if (Thunder_FOUND)
-        add_compile_definitions(WITH_THUNDER_NAMESPACE)
-    endif ()
-endif ()
+find_package(WPEFramework NAMES WPEFramework Thunder)
 find_package(${NAMESPACE}Plugins REQUIRED)
 
 add_executable(${PROJECT_NAME}
