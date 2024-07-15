@@ -122,7 +122,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.preferredLanguages | string | Preferred Audio Languages: eng, wel |
+| params.preferredLanguages | string | A prioritized list of ISO 639-2/B codes for the preferred audio languages |
 
 ### Result
 
@@ -169,7 +169,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.presentationLanguages | string | Presentation Languages: en-US, es-US |
+| params.presentationLanguages | string | The preferred presentationLanguages in a full BCP 47 value, including script, * region, variant The language set and used by Immerse UI |
 
 ### Result
 
@@ -263,7 +263,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.preferredLanguages | string | PreferredCaption Languages: eng, fra |
+| params.preferredLanguages | string | A prioritized list of ISO 639-2/B codes for the preferred captions languages |
 
 ### Result
 
@@ -310,7 +310,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.service | string | Preferred Closed Caption Service: CC3 |
+| params.service | string | A string for the preferred closed captions service.  Valid values are AUTO, CC[1-4], TEXT[1-4], SERVICE[1-64] where CC and TEXT is CTA-608 and SERVICE is CTA-708.  AUTO indicates that the choice is left to the player |
 
 ### Result
 

@@ -9,6 +9,28 @@
     "common": {
         "$ref": "../common/common.json"
     },
+    "definitions": {
+        "preferredLanguages": {
+            "summary": "A prioritized list of ISO 639-2/B codes for the preferred audio languages",
+            "type": "string",
+            "example": "eng"
+        },
+        "preferredCaptionsLanguages": {
+            "summary": "A prioritized list of ISO 639-2/B codes for the preferred captions languages",
+            "type": "string",
+            "example": "eng"
+        },
+        "preferredClosedCaptionService": {
+            "summary": "A string for the preferred closed captions service.  Valid values are AUTO, CC[1-4], TEXT[1-4], SERVICE[1-64] where CC and TEXT is CTA-608 and SERVICE is CTA-708.  AUTO indicates that the choice is left to the player",
+            "type": "string",
+            "example": "CC3"
+        },
+        "presentationLanguage": {
+            "summary": "The preferred presentationLanguages in a full BCP 47 value, including script, * region, variant The language set and used by Immerse UI",
+            "type": "string",
+            "example": "en-US"
+        }
+    },
     "methods": {
         "SetAudioDescription": {
             "summary": "Setting Audio Description.",
@@ -34,9 +56,7 @@
                 "type": "object",
                 "properties": {
                     "preferredLanguages": {
-                        "summary": "Preferred Audio Languages: eng, wel",
-                        "type": "string",
-                        "example": "eng"
+                        "$ref": "#/definitions/preferredLanguages"
                     }
                 }
             },
@@ -52,9 +72,7 @@
                 "type": "object",
                 "properties": {
                     "presentationLanguages": {
-                        "summary": "Presentation Languages: en-US, es-US",
-                        "type": "string",
-                        "example": "en-US"
+                        "$ref": "#/definitions/presentationLanguage"
                     }
                 }
             },
@@ -88,9 +106,7 @@
                 "type": "object",
                 "properties": {
                     "preferredLanguages": {
-                        "summary": "PreferredCaption Languages: eng, fra",
-                        "type": "string",
-                        "example": "eng"
+                        "$ref": "#/definitions/preferredCaptionsLanguages"
                     }
                 }
             },
@@ -106,9 +122,7 @@
                 "type": "object",
                 "properties": {
                     "service": {
-                        "summary": "Preferred Closed Caption Service: CC3",
-                        "type": "string",
-                        "example": "CC3"
+                        "$ref": "#/definitions/preferredClosedCaptionService"
                     }
                 }
             },
