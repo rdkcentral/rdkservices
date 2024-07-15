@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.15] - 2024-07-15
+### Fixed
+- Update secure store endpoints, no default.
+
 ## [1.0.14] - 2024-06-14
 ### Fixed
 - Spawn 1 process instead of 2
