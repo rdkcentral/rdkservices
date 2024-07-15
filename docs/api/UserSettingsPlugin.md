@@ -53,7 +53,7 @@ org.rdk.UserSettings interface methods:
 | [SetPreferredClosedCaptionService](#method.SetPreferredClosedCaptionService) | Setting Preferred Closed Caption Service |
 | [SetPrivacyMode](#method.SetPrivacyMode) | Setting Privacy Mode |
 | [GetAudioDescription](#method.GetAudioDescription) | Returns Audio Description |
-| [GetPreferredAudioLanguages](#method.GetPreferredAudioLanguages) | Returns Audio Description |
+| [GetPreferredAudioLanguages](#method.GetPreferredAudioLanguages) | Returns Preferred Audio Languages |
 | [GetPresentationLanguage](#method.GetPresentationLanguage) | Getting Presentation Languages |
 | [GetCaptions](#method.GetCaptions) | Getting Captions Enabled |
 | [GetPreferredCaptionsLanguages](#method.GetPreferredCaptionsLanguages) | Getting Preferred Caption Languages |
@@ -407,7 +407,7 @@ This method takes no parameters.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | boolean |  |
+| result | boolean | Audio Description Enabled: true/false |
 
 ### Example
 
@@ -434,7 +434,7 @@ This method takes no parameters.
 <a name="method.GetPreferredAudioLanguages"></a>
 ## *GetPreferredAudioLanguages [<sup>method</sup>](#head.Methods)*
 
-Returns Audio Description.
+Returns Preferred Audio Languages.
 
 ### Events
 
@@ -448,7 +448,7 @@ This method takes no parameters.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | string |  |
+| result | string | A prioritized list of ISO 639-2/B codes for the preferred audio languages |
 
 ### Example
 
@@ -489,7 +489,7 @@ This method takes no parameters.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | string |  |
+| result | string | The preferred presentationLanguages in a full BCP 47 value, including script, * region, variant The language set and used by Immerse UI |
 
 ### Example
 
@@ -530,7 +530,7 @@ This method takes no parameters.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | boolean |  |
+| result | boolean | Captions Enabled: true/false |
 
 ### Example
 
@@ -571,7 +571,7 @@ This method takes no parameters.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | string |  |
+| result | string | A prioritized list of ISO 639-2/B codes for the preferred captions languages |
 
 ### Example
 
@@ -612,7 +612,7 @@ This method takes no parameters.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | string |  |
+| result | string | A string for the preferred closed captions service.  Valid values are AUTO, CC[1-4], TEXT[1-4], SERVICE[1-64] where CC and TEXT is CTA-608 and SERVICE is CTA-708.  AUTO indicates that the choice is left to the player |
 
 ### Example
 
@@ -653,7 +653,7 @@ This method takes no parameters.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | string |  |
+| result | string | Current Privacy Mode |
 
 ### Example
 
@@ -827,7 +827,7 @@ Triggered after the Preferred Closed Caption changes (see `SetPreferredClosedCap
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.service | string | Receive Preferred Closed Caption changes |
+| params.service | string | Receive Preferred Closed Caption Service changes |
 
 ### Example
 

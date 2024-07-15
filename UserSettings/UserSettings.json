@@ -153,27 +153,27 @@
         "GetAudioDescription":{
             "summary": "Returns Audio Description.",
             "result": {
+                "summary": "Audio Description Enabled: true/false",
                 "type": "boolean",
                 "example": true
             }
         },
         "GetPreferredAudioLanguages":{
-            "summary": "Returns Audio Description.",
+            "summary": "Returns Preferred Audio Languages.",
             "result": {
-                "type": "string",
-                "example": "eng"
+                "$ref": "#/definitions/preferredLanguages"
             }
         },
         "GetPresentationLanguage":{
             "summary": "Getting Presentation Languages.",
             "result": {
-                "type": "string",
-                "example": "en-US"
+                "$ref": "#/definitions/presentationLanguage"
             }
         },
         "GetCaptions":{
             "summary": "Getting Captions Enabled.",
             "result": {
+                "summary": "Captions Enabled: true/false",
                 "type": "boolean",
                 "example": true
             }
@@ -181,20 +181,19 @@
         "GetPreferredCaptionsLanguages":{
             "summary": "Getting Preferred Caption Languages.",
             "result": {
-                "type": "string",
-                "example": "eng"
+                "$ref": "#/definitions/preferredCaptionsLanguages"
             }
         },
         "GetPreferredClosedCaptionService":{
             "summary": "Getting Preferred ClosedCaption Service.",
             "result": {
-                "type": "string",
-                "example": "CC3"
+                "$ref": "#/definitions/preferredClosedCaptionService"
             }
         },
         "GetPrivacyMode":{
             "summary": "Getting Privacy Mode",
             "result": {
+                "summary": "Current Privacy Mode",
                 "type": "string",
                 "example": "DO_NOT_SHARE"
             }
@@ -287,7 +286,7 @@
                 "type": "object",
                 "properties": {
                     "service":{
-                        "summary": "Receive Preferred Closed Caption changes",
+                        "summary": "Receive Preferred Closed Caption Service changes",
                         "type": "string",
                         "example": "CC3"
                     }
