@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.35] - 2024-07-12
+### Added
+- Added RFC Task in Critical Tasks to be executed on successful Network Connection
+
 ## [1.0.34] - 2024-06-06
 ### Fixed
 - Added change for file system corruption hang
