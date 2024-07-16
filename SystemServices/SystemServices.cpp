@@ -1035,7 +1035,6 @@ namespace WPEFramework {
                 while(fgets(buf, sizeof(buf), f) != NULL) {
                     line = buf;
                     size_t eq = line.find_first_of("=");
-
                     if (std::string::npos != eq) {
                         std::string key = line.substr(0, eq);
 
