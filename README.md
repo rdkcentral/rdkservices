@@ -284,7 +284,7 @@ Use the existing services as a guide when learning the structure of both the plu
 
 * Deprecation
     * Breaking changes to the API that requires a major version update should first go through Deprecation by doing a minor version update. We recommend atleast 2 RDK releases with the deprecated API/s and minor version update to give time for clients and apps to make changes to remove the deprecated API. Following needs to be done for deprecation.
-        * The API/s getting deprecated should be marked with a ["deprecated"](https://github.com/rdkcentral/rdkservices/blob/main/SystemServices/System.json#L356) label in the json schema. This will ensure that it's updated in the API [documentation.](https://rdkcentral.github.io/rdkservices/#/api/SystemPlugin?id=cachecontains)
+        * The API/s getting deprecated should be marked with a ["deprecated"](https://github.com/rdkcentral/rdkservices/blob/main/SystemServices/System.json#L740) label in the json schema. This will ensure that it's updated in the API [documentation.](https://rdkcentral.github.io/rdkservices/#/api/SystemPlugin?id=getmilestones)
         * Add a changelog entry with minor version update and include **Deprecated** label to call out the API/s getting deprecated. 
         * If this API/s is getting replaced by a newer API then it can come in the same minor version update with changelog entry with **Added** label.
     <br><br>

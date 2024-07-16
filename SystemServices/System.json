@@ -366,25 +366,6 @@
         }
     },
     "methods": {
-        "cacheContains": {
-            "deprecated" : true,
-            "referenceUrl" : " https://rdkcentral.github.io/rdkservices/#/api/PersistentStorePlugin?id=getvalue",
-            "summary": "Checks if a key is present in the cache.",
-            "params": {
-                "type": "object",
-                "properties": {
-                    "key": {
-                        "$ref": "#/definitions/key"
-                    }
-                },
-                "required": [
-                    "key"
-                ]
-            },
-            "result": {
-                "$ref": "#/common/result"
-            }
-        },
         "clearLastDeepSleepReason":{
             "summary": "Clears the last deep sleep reason.",
             "result": {
@@ -481,39 +462,6 @@
                 },
                 "required": [
                     "supportedStandbyModes",
-                    "success"
-                ]
-            }
-        },
-        "getCachedValue":{
-            "deprecated" : true,
-            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/PersistentStorePlugin?id=getvalue",
-            "summary": "Gets the value of a key in the cache.",
-            "params": {
-                "type": "object",
-                "properties": {
-                    "key": {
-                        "$ref": "#/definitions/key"
-                    }
-                },
-                "required": [
-                    "key"
-                ]
-            },
-            "result": {
-                "type": "object",
-                "properties": {
-                    "sampleKey": {
-                        "summary": "Value for the specified key name",
-                        "type": "string",
-                        "example": "4343.3434"
-                    },
-                    "success":{
-                        "$ref": "#/common/success"
-                    }
-                },
-                "required": [
-                    "sampleKey",
                     "success"
                 ]
             }
@@ -1550,25 +1498,6 @@
                 ]
             }
         },
-        "removeCacheKey":{
-            "deprecated" : true,
-            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/PersistentStorePlugin?id=deletekey",
-            "summary": "Removes the cache key.",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "key": {
-                        "$ref": "#/definitions/key"
-                    }
-                },
-                "required": [
-                    "key"
-                ]
-            },
-            "result": {
-                "$ref": "#/common/result"
-            }
-        },
         "requestSystemUptime":{
             "summary": "Returns the device uptime.",
             "result": {
@@ -1600,31 +1529,6 @@
                 },
                 "required": [
                     "pattern"
-                ]
-            },
-            "result": {
-                "$ref": "#/common/result"
-            }
-        },
-        "setCachedValue": {
-            "deprecated" : true,
-            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/PersistentStorePlugin?id=setvalue",
-            "summary": "Sets the value for a key in the cache.",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "key": {
-                        "$ref": "#/definitions/key"
-                    },
-                    "value":{
-                        "summary": "The value to set",
-                        "type": "number",
-                        "example": "4343.3434"
-                    }
-                },
-                "required": [
-                    "key",
-                    "value"
                 ]
             },
             "result": {
