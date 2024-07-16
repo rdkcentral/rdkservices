@@ -201,14 +201,14 @@
                 "properties": {
                     "speechstate": {
                         "summary": "The speech state",
-                        "type": "string",
+                        "type": "number",
                         "enum": [
                             "SPEECH_PENDING(0)",
                             "SPEECH_IN_PROGRESS(1)",
                             "SPEECH_PAUSED(2)",
                             "SPEECH_NOT_FOUND(3)"
                         ],
-                        "example":"SPEECH_IN_PROGRESS"
+                        "example":"SPEECH_IN_PROGRESS(0)"
                     },
                     "TTS_Status": {
                         "$ref": "#/definitions/TTS_Status"
@@ -346,8 +346,11 @@
                 "properties": {
                     "voices": {
                         "summary": "Array of available voice",
-                        "type": "string",
-                        "example": "carol"
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "example": "carol"
+                        }
                     },
                     "TTS_Status": {
                         "$ref": "#/definitions/TTS_Status"
