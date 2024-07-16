@@ -71,6 +71,10 @@ using std::ofstream;
 #define TERRITORYFILE                     "/opt/secure/persistent/System/Territory.txt"
 
 
+#ifdef ENABLE_SYSTIMEMGR_SUPPORT
+#define EVT_ONTIMESTATUSCHANGED           "onTimeStatusChanged"
+#endif// ENABLE_SYSTIMEMGR_SUPPORT
+
 namespace WPEFramework {
     namespace Plugin {
 
@@ -98,56 +102,56 @@ namespace WPEFramework {
         };
 
         class SystemServices : public PluginHost::IPlugin, public PluginHost::JSONRPC {
-            private:
-                typedef Core::JSON::String JString;
-                typedef Core::JSON::ArrayType<JString> JStringArray;
-                typedef Core::JSON::Boolean JBool;
-                string m_stbVersionString;
-                cSettings m_cacheService;
-                static cSettings m_temp_settings;
+        private:
+            typedef Core::JSON::String JString;
+            typedef Core::JSON::ArrayType<JString> JStringArray;
+            typedef Core::JSON::Boolean JBool;
+            string m_stbVersionString;
+            cSettings m_cacheService;
+            static cSettings m_temp_settings;
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
-                static IARM_Bus_SYSMgr_GetSystemStates_Param_t paramGetSysState;
+            static IARM_Bus_SYSMgr_GetSystemStates_Param_t paramGetSysState;
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
-                Utils::ThreadRAII thread_getMacAddresses;
-                SystemServices* m_systemService;
-                /* TODO: Need to decide whether needed or not since setProperty
-                   and getProperty functionalities are XRE/RTRemote dependent. */
-                static JsonObject _systemParams;
-                static const string MODEL_NAME;
-                static const string HARDWARE_ID;
-		static const string FRIENDLY_ID;
+            Utils::ThreadRAII thread_getMacAddresses;
+            SystemServices* m_systemService;
+            /* TODO: Need to decide whether needed or not since setProperty
+               and getProperty functionalities are XRE/RTRemote dependent. */
+            static JsonObject _systemParams;
+            static const string MODEL_NAME;
+            static const string HARDWARE_ID;
+            static const string FRIENDLY_ID;
 
-                enum class FWUpdateAvailableEnum { FW_UPDATE_AVAILABLE, FW_MATCH_CURRENT_VER, NO_FW_VERSION, EMPTY_SW_UPDATE_CONF };
-                // We do not allow this plugin to be copied !!
-                SystemServices(const SystemServices&) = delete;
-                SystemServices& operator=(const SystemServices&) = delete;
-                static void getMacAddressesAsync(SystemServices *p);
-                static std::string m_currentMode;
-                std::string m_current_state;
-                static cTimer m_operatingModeTimer;
-                static int m_remainingDuration;
-                Utils::ThreadRAII m_getFirmwareInfoThread;
-                PluginHost::IShell* m_shellService { nullptr };
-                regex_t m_regexUnallowedChars;
+            enum class FWUpdateAvailableEnum { FW_UPDATE_AVAILABLE, FW_MATCH_CURRENT_VER, NO_FW_VERSION, EMPTY_SW_UPDATE_CONF };
+            // We do not allow this plugin to be copied !!
+            SystemServices(const SystemServices&) = delete;
+            SystemServices& operator=(const SystemServices&) = delete;
+            static void getMacAddressesAsync(SystemServices *p);
+            static std::string m_currentMode;
+            std::string m_current_state;
+            static cTimer m_operatingModeTimer;
+            static int m_remainingDuration;
+            Utils::ThreadRAII m_getFirmwareInfoThread;
+            PluginHost::IShell* m_shellService { nullptr };
+            regex_t m_regexUnallowedChars;
 
-                int m_FwUpdateState_LatestEvent;
+            int m_FwUpdateState_LatestEvent;
 
-                bool m_networkStandbyMode;
-                bool m_networkStandbyModeValid;
+            bool m_networkStandbyMode;
+            bool m_networkStandbyModeValid;
 
-                std::string m_friendlyName;
-		std::string m_powerStateBeforeReboot;
-                bool m_powerStateBeforeRebootValid;
-                bool m_isPwrMgr2RFCEnabled;
-		std::string m_strTerritory;
-                std::string m_strRegion;
+            std::string m_friendlyName;
+            std::string m_powerStateBeforeReboot;
+            bool m_powerStateBeforeRebootValid;
+            bool m_isPwrMgr2RFCEnabled;
+            std::string m_strTerritory;
+            std::string m_strRegion;
 
-                static void startModeTimer(int duration);
-                static void stopModeTimer();
-                static void updateDuration();
-				std::string  m_strStandardTerritoryList;
+            static void startModeTimer(int duration);
+            static void stopModeTimer();
+            static void updateDuration();
+            std::string  m_strStandardTerritoryList;
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
-                bool getManufacturerData(const string& parameter, JsonObject& response);
+            bool getManufacturerData(const string& parameter, JsonObject& response);
                 uint32_t getMfgSerialNumber(const JsonObject& parameters, JsonObject& response);
                 bool getModelName(const string& parameter, JsonObject& response);
 		std::string m_ManufacturerDataHardwareID;
@@ -157,150 +161,156 @@ namespace WPEFramework {
                 std::string m_MfgSerialNumber;
                 bool m_MfgSerialNumberValid;
 #endif
-                pid_t m_uploadLogsPid;
-                std::mutex m_uploadLogsMutex;
+            pid_t m_uploadLogsPid;
+            std::mutex m_uploadLogsMutex;
 
-            public:
-                SystemServices();
-                virtual ~SystemServices();
+        public:
+            SystemServices();
+            virtual ~SystemServices();
 
-                static SystemServices* _instance;
-                virtual const string Initialize(PluginHost::IShell* service) override;
-                virtual void Deinitialize(PluginHost::IShell* service) override;
-                virtual string Information() const override { return {}; }
+            static SystemServices* _instance;
+            virtual const string Initialize(PluginHost::IShell* service) override;
+            virtual void Deinitialize(PluginHost::IShell* service) override;
+            virtual string Information() const override { return {}; }
 
-                BEGIN_INTERFACE_MAP(SystemServices)
-                INTERFACE_ENTRY(PluginHost::IPlugin)
-                INTERFACE_ENTRY(PluginHost::IDispatcher)
-                END_INTERFACE_MAP
+            BEGIN_INTERFACE_MAP(SystemServices)
+            INTERFACE_ENTRY(PluginHost::IPlugin)
+            INTERFACE_ENTRY(PluginHost::IDispatcher)
+            END_INTERFACE_MAP
 
-                static int runScript(const std::string& script,
-                        const std::string& args, string *output = NULL,
-                        string *error = NULL, int timeout = 30000);
-                std::string getStbVersionString();
-                std::string getClientVersionString();
-                std::string getStbTimestampString();
-		std::string getStbBranchString();
+            static int runScript(const std::string& script,
+                                 const std::string& args, string *output = NULL,
+                                 string *error = NULL, int timeout = 30000);
+            std::string getStbVersionString();
+            std::string getClientVersionString();
+            std::string getStbTimestampString();
+            std::string getStbBranchString();
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
-                void InitializeIARM();
+            void InitializeIARM();
                 void DeinitializeIARM();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
-                /* Events : Begin */
-                void onFirmwareUpdateInfoRecieved(string CallGUID);
-                void onSystemPowerStateChanged(string currentPowerState, string powerState);
-                void onPwrMgrReboot(string requestedApp, string rebootReason);
-                void onNetorkModeChanged(bool betworkStandbyMode);
-                void onSystemModeChanged(string mode);
-                void onFirmwareUpdateStateChange(int state);
-                void onClockSet();
-                void onLogUpload(int newState);
-                void onTemperatureThresholdChanged(string thresholdType,
-                        bool exceed, float temperature);
-                void onRebootRequest(string reason);
-                void onFirmwarePendingReboot(int seconds); /* Event handler for Pending Reboot */
-		void onTerritoryChanged(string oldTerritory, string newTerritory, string oldRegion="", string newRegion="");
-		void onTimeZoneDSTChanged(string oldTimeZone, string newTimeZone, string oldAccuracy, string newAccuracy);
-                /* Events : End */
+            /* Events : Begin */
+            void onFirmwareUpdateInfoRecieved(string CallGUID);
+            void onSystemPowerStateChanged(string currentPowerState, string powerState);
+            void onPwrMgrReboot(string requestedApp, string rebootReason);
+            void onNetorkModeChanged(bool betworkStandbyMode);
+            void onSystemModeChanged(string mode);
+            void onFirmwareUpdateStateChange(int state);
+            void onClockSet();
+            void onLogUpload(int newState);
+            void onTemperatureThresholdChanged(string thresholdType,
+                                               bool exceed, float temperature);
+#ifdef ENABLE_SYSTIMEMGR_SUPPORT
+            void onTimeStatusChanged(string timequality,string timesource, string utctime);
+#endif// ENABLE_SYSTIMEMGR_SUPPORT
+            void onRebootRequest(string reason);
+            void onFirmwarePendingReboot(int seconds); /* Event handler for Pending Reboot */
+            void onTerritoryChanged(string oldTerritory, string newTerritory, string oldRegion="", string newRegion="");
+            void onTimeZoneDSTChanged(string oldTimeZone, string newTimeZone, string oldAccuracy, string newAccuracy);
+            /* Events : End */
 
-                /* Methods : Begin */
+            /* Methods : Begin */
 #ifdef DEBUG
-                uint32_t sampleAPI(const JsonObject& parameters, JsonObject& response);
+            uint32_t sampleAPI(const JsonObject& parameters, JsonObject& response);
 #endif /* DEBUG */
-                uint32_t requestSystemReboot(const JsonObject& parameters, JsonObject& response);
-                uint32_t requestSystemUptime(const JsonObject& parameters, JsonObject& response);
-                uint32_t requestEnableMoca(const JsonObject& parameters, JsonObject& response);
-                uint32_t getDeviceInfo(const JsonObject& parameters, JsonObject& response);
-                uint32_t queryMocaStatus(const JsonObject& parameters, JsonObject& response);
-                uint32_t getStateInfo(const JsonObject& parameter, JsonObject& resposne);
+            uint32_t requestSystemReboot(const JsonObject& parameters, JsonObject& response);
+            uint32_t requestSystemUptime(const JsonObject& parameters, JsonObject& response);
+            uint32_t requestEnableMoca(const JsonObject& parameters, JsonObject& response);
+            uint32_t getDeviceInfo(const JsonObject& parameters, JsonObject& response);
+            uint32_t queryMocaStatus(const JsonObject& parameters, JsonObject& response);
+            uint32_t getStateInfo(const JsonObject& parameter, JsonObject& resposne);
 #if defined(HAS_API_SYSTEM) && defined(HAS_API_POWERSTATE)
-                uint32_t getDevicePowerState(const JsonObject& parameters,JsonObject& response);
+            uint32_t getDevicePowerState(const JsonObject& parameters,JsonObject& response);
                 uint32_t setDevicePowerState(const JsonObject& parameters,JsonObject& response);
 #endif /* HAS_API_SYSTEM && HAS_API_POWERSTATE */
-                uint32_t setGZEnabled(const JsonObject& parameters,JsonObject& response);
-                uint32_t isGZEnabled(const JsonObject& parameters,JsonObject& response);
-                uint32_t getSystemVersions(const JsonObject& parameters, JsonObject& response);
+#ifdef ENABLE_SYSTIMEMGR_SUPPORT
+            uint32_t getSystemTimeStatus(const JsonObject& parameters,JsonObject& response);
+#endif// ENABLE_SYSTIMEMGR_SUPPORT
+            uint32_t setGZEnabled(const JsonObject& parameters,JsonObject& response);
+            uint32_t isGZEnabled(const JsonObject& parameters,JsonObject& response);
+            uint32_t getSystemVersions(const JsonObject& parameters, JsonObject& response);
 
-                /* TODO: Stub implementation; Decide whether needed or not since setProperty
-                   and getProperty functionalities are XRE/RTRemote dependent. */
-                bool setProperties(const JsonObject& propertyNames);
-                bool getProperties(const JsonObject& params, JsonObject& returnProperties);
-                uint32_t getCachedValue(const JsonObject& parameters, JsonObject& response);
-                uint32_t setCachedValue(const JsonObject& parameters, JsonObject& response);
-                uint32_t cacheContains(const JsonObject& parameters, JsonObject& response);
-                uint32_t removeCacheKey(const JsonObject& parameters, JsonObject& response);
-                uint32_t getMode(const JsonObject& parameters, JsonObject& response);
-                uint32_t updateFirmware(const JsonObject& parameters, JsonObject& response);
-                uint32_t setMode(const JsonObject& parameters, JsonObject& response);
-                uint32_t setBootLoaderPattern(const JsonObject& parameters, JsonObject& response);
-                static void firmwareUpdateInfoReceived(void);
-                uint32_t getFirmwareUpdateInfo(const JsonObject& parameters, JsonObject& response);
-                void reportFirmwareUpdateInfoReceived(string firmwareUpdateVersion,
-                        int httpStatus, bool success, string firmwareVersion, string responseString);
-                uint32_t setDeepSleepTimer(const JsonObject& parameters, JsonObject& response);
-                uint32_t setPreferredStandbyMode(const JsonObject& parameters, JsonObject& response);
-                uint32_t getPreferredStandbyMode(const JsonObject& parameters, JsonObject& response);
-                uint32_t getAvailableStandbyModes(const JsonObject& parameters, JsonObject& response);
+            /* TODO: Stub implementation; Decide whether needed or not since setProperty
+               and getProperty functionalities are XRE/RTRemote dependent. */
+            bool setProperties(const JsonObject& propertyNames);
+            bool getProperties(const JsonObject& params, JsonObject& returnProperties);
+            uint32_t getCachedValue(const JsonObject& parameters, JsonObject& response);
+            uint32_t setCachedValue(const JsonObject& parameters, JsonObject& response);
+            uint32_t cacheContains(const JsonObject& parameters, JsonObject& response);
+            uint32_t removeCacheKey(const JsonObject& parameters, JsonObject& response);
+            uint32_t getMode(const JsonObject& parameters, JsonObject& response);
+            uint32_t updateFirmware(const JsonObject& parameters, JsonObject& response);
+            uint32_t setMode(const JsonObject& parameters, JsonObject& response);
+            uint32_t setBootLoaderPattern(const JsonObject& parameters, JsonObject& response);
+            static void firmwareUpdateInfoReceived(void);
+            uint32_t getFirmwareUpdateInfo(const JsonObject& parameters, JsonObject& response);
+            void reportFirmwareUpdateInfoReceived(string firmwareUpdateVersion,
+                                                  int httpStatus, bool success, string firmwareVersion, string responseString);
+            uint32_t setDeepSleepTimer(const JsonObject& parameters, JsonObject& response);
+            uint32_t setPreferredStandbyMode(const JsonObject& parameters, JsonObject& response);
+            uint32_t getPreferredStandbyMode(const JsonObject& parameters, JsonObject& response);
+            uint32_t getAvailableStandbyModes(const JsonObject& parameters, JsonObject& response);
 #ifdef ENABLE_DEEP_SLEEP
-		uint32_t getWakeupReason(const JsonObject& parameters, JsonObject& response);
+            uint32_t getWakeupReason(const JsonObject& parameters, JsonObject& response);
                 uint32_t getLastWakeupKeyCode(const JsonObject& parameters, JsonObject& response);
 #endif
-                uint32_t getFriendlyName(const JsonObject& parameters, JsonObject& response);
-                uint32_t setFriendlyName(const JsonObject& parameters, JsonObject& response);
-                uint32_t setTerritory(const JsonObject& parameters, JsonObject& response);
-		uint32_t getTerritory(const JsonObject& parameters, JsonObject& response);
-		bool readTerritoryFromFile();
-		bool isStrAlphaUpper(string strVal);
-		bool isRegionValid(string regionStr);
-		uint32_t writeTerritory(string territory, string region);
-        uint32_t uploadLogsAsync(const JsonObject& parameters, JsonObject& response);
-        uint32_t abortLogUpload(const JsonObject& parameters, JsonObject& response);
-                uint32_t getXconfParams(const JsonObject& parameters, JsonObject& response);
-                uint32_t getSerialNumber(const JsonObject& parameters, JsonObject& response);
-                bool getSerialNumberTR069(JsonObject& response);
-                bool getSerialNumberSnmp(JsonObject& response);
-                uint32_t getFirmwareDownloadPercent(const JsonObject& parameters,JsonObject& response);
-                uint32_t getFirmwareUpdateState(const JsonObject& parameters, JsonObject& response);
-                uint32_t getDownloadedFirmwareInfo(const JsonObject& parameters, JsonObject& response);
-                uint32_t getMacAddresses(const JsonObject& parameters, JsonObject& response);
-                uint32_t setTimeZoneDST(const JsonObject& parameters, JsonObject& response);
-                uint32_t getTimeZoneDST(const JsonObject& parameters, JsonObject& response);
-                bool processTimeZones(std::string dir, JsonObject& out);
-                uint32_t getTimeZones(const JsonObject& parameters, JsonObject& response);
+            uint32_t getFriendlyName(const JsonObject& parameters, JsonObject& response);
+            uint32_t setFriendlyName(const JsonObject& parameters, JsonObject& response);
+            uint32_t setTerritory(const JsonObject& parameters, JsonObject& response);
+            uint32_t getTerritory(const JsonObject& parameters, JsonObject& response);
+            bool readTerritoryFromFile();
+            bool isStrAlphaUpper(string strVal);
+            bool isRegionValid(string regionStr);
+            uint32_t writeTerritory(string territory, string region);
+            uint32_t uploadLogsAsync(const JsonObject& parameters, JsonObject& response);
+            uint32_t abortLogUpload(const JsonObject& parameters, JsonObject& response);
+            uint32_t getXconfParams(const JsonObject& parameters, JsonObject& response);
+            uint32_t getSerialNumber(const JsonObject& parameters, JsonObject& response);
+            bool getSerialNumberTR069(JsonObject& response);
+            bool getSerialNumberSnmp(JsonObject& response);
+            uint32_t getFirmwareDownloadPercent(const JsonObject& parameters,JsonObject& response);
+            uint32_t getFirmwareUpdateState(const JsonObject& parameters, JsonObject& response);
+            uint32_t getDownloadedFirmwareInfo(const JsonObject& parameters, JsonObject& response);
+            uint32_t getMacAddresses(const JsonObject& parameters, JsonObject& response);
+            uint32_t setTimeZoneDST(const JsonObject& parameters, JsonObject& response);
+            uint32_t getTimeZoneDST(const JsonObject& parameters, JsonObject& response);
+            bool processTimeZones(std::string dir, JsonObject& out);
+            uint32_t getTimeZones(const JsonObject& parameters, JsonObject& response);
 
-                uint32_t getCoreTemperature(const JsonObject& parameters, JsonObject& response);
-                uint32_t getPreviousRebootInfo(const JsonObject& parameters, JsonObject& response);
-                uint32_t getLastDeepSleepReason(const JsonObject& parameters, JsonObject& response);
-                uint32_t clearLastDeepSleepReason(const JsonObject& parameters, JsonObject& response);
+            uint32_t getCoreTemperature(const JsonObject& parameters, JsonObject& response);
+            uint32_t getPreviousRebootInfo(const JsonObject& parameters, JsonObject& response);
+            uint32_t getLastDeepSleepReason(const JsonObject& parameters, JsonObject& response);
+            uint32_t clearLastDeepSleepReason(const JsonObject& parameters, JsonObject& response);
 #ifdef ENABLE_THERMAL_PROTECTION
-                uint32_t getTemperatureThresholds(const JsonObject& parameters, JsonObject& response);
+            uint32_t getTemperatureThresholds(const JsonObject& parameters, JsonObject& response);
                 uint32_t setTemperatureThresholds(const JsonObject& parameters, JsonObject& response);
 		uint32_t getOvertempGraceInterval(const JsonObject& parameters, JsonObject& response);
                 uint32_t setOvertempGraceInterval(const JsonObject& parameters, JsonObject& response);
 #endif /* ENABLE_THERMAL_PROTECTION */
-                uint32_t getPreviousRebootInfo2(const JsonObject& parameters, JsonObject& response);
-                uint32_t getPreviousRebootReason(const JsonObject& parameters, JsonObject& response);
-                uint32_t getRFCConfig(const JsonObject& parameters, JsonObject& response);
-                uint32_t getMilestones(const JsonObject& parameters, JsonObject& response);
-                uint32_t enableXREConnectionRetention(const JsonObject& parameters, JsonObject& response);
-                uint32_t setNetworkStandbyMode (const JsonObject& parameters, JsonObject& response);
-                uint32_t getNetworkStandbyMode (const JsonObject& parameters, JsonObject& response);
-                uint32_t getPowerStateIsManagedByDevice(const JsonObject& parameters, JsonObject& response);
-                uint32_t uploadLogs(const JsonObject& parameters, JsonObject& response);
-                uint32_t getPowerStateBeforeReboot (const JsonObject& parameters,JsonObject& response);
-                uint32_t getLastFirmwareFailureReason(const JsonObject& parameters, JsonObject& response);
-                uint32_t setOptOutTelemetry(const JsonObject& parameters,JsonObject& response);
-                uint32_t isOptOutTelemetry(const JsonObject& parameters,JsonObject& response);
-                uint32_t fireFirmwarePendingReboot(const JsonObject& parameters, JsonObject& response);
-                uint32_t setFirmwareRebootDelay(const JsonObject& parameters, JsonObject& response);
-                uint32_t setFirmwareAutoReboot(const JsonObject& parameters, JsonObject& response);
-                uint32_t getStoreDemoLink(const JsonObject& parameters, JsonObject& response);
-                uint32_t deletePersistentPath(const JsonObject& parameters, JsonObject& response);
-                uint32_t setWakeupSrcConfiguration(const JsonObject& parameters, JsonObject& response);
-		uint32_t getWakeupSrcConfiguration(const JsonObject& parameters, JsonObject& response);
-                uint32_t getPlatformConfiguration(const JsonObject& parameters, PlatformCaps& response);
-                uint32_t getThunderStartReason(const JsonObject& parameters, JsonObject& response);
+            uint32_t getPreviousRebootInfo2(const JsonObject& parameters, JsonObject& response);
+            uint32_t getPreviousRebootReason(const JsonObject& parameters, JsonObject& response);
+            uint32_t getRFCConfig(const JsonObject& parameters, JsonObject& response);
+            uint32_t getMilestones(const JsonObject& parameters, JsonObject& response);
+            uint32_t enableXREConnectionRetention(const JsonObject& parameters, JsonObject& response);
+            uint32_t setNetworkStandbyMode (const JsonObject& parameters, JsonObject& response);
+            uint32_t getNetworkStandbyMode (const JsonObject& parameters, JsonObject& response);
+            uint32_t getPowerStateIsManagedByDevice(const JsonObject& parameters, JsonObject& response);
+            uint32_t uploadLogs(const JsonObject& parameters, JsonObject& response);
+            uint32_t getPowerStateBeforeReboot (const JsonObject& parameters,JsonObject& response);
+            uint32_t getLastFirmwareFailureReason(const JsonObject& parameters, JsonObject& response);
+            uint32_t setOptOutTelemetry(const JsonObject& parameters,JsonObject& response);
+            uint32_t isOptOutTelemetry(const JsonObject& parameters,JsonObject& response);
+            uint32_t fireFirmwarePendingReboot(const JsonObject& parameters, JsonObject& response);
+            uint32_t setFirmwareRebootDelay(const JsonObject& parameters, JsonObject& response);
+            uint32_t setFirmwareAutoReboot(const JsonObject& parameters, JsonObject& response);
+            uint32_t getStoreDemoLink(const JsonObject& parameters, JsonObject& response);
+            uint32_t deletePersistentPath(const JsonObject& parameters, JsonObject& response);
+            uint32_t setWakeupSrcConfiguration(const JsonObject& parameters, JsonObject& response);
+            uint32_t getWakeupSrcConfiguration(const JsonObject& parameters, JsonObject& response);
+            uint32_t getPlatformConfiguration(const JsonObject& parameters, PlatformCaps& response);
+            uint32_t getThunderStartReason(const JsonObject& parameters, JsonObject& response);
         }; /* end of system service class */
     } /* end of plugin */
 } /* end of wpeframework */
