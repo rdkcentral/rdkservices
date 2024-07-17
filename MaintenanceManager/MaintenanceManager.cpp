@@ -615,6 +615,7 @@ namespace WPEFramework {
                 LOGINFO("Received onInternetStatusChange event: [%s:%d]", value.c_str(), state);
                 if (g_listen_to_nwevents) {
                     if (state == INTERNET_CONNECTED_STATE) {
+			g_listen_to_nwevents = false;
                         LOGINFO("Notify maintenance execution thread");
                         task_thread.notify_one();
                     }
