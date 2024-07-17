@@ -55,7 +55,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 5
-#define API_VERSION_NUMBER_PATCH 0
+#define API_VERSION_NUMBER_PATCH 1
 
 const string WPEFramework::Plugin::RDKShell::SERVICE_NAME = "org.rdk.RDKShell";
 //methods
@@ -238,6 +238,7 @@ static uint32_t gWillDestroyEventWaitTime = RDKSHELL_WILLDESTROY_EVENT_WAITTIME;
 
 #define REMOTECONTROL_CALLSIGN "org.rdk.RemoteControl.1"
 #define KEYCODE_INVALID -1
+#define KEYCODE_UNKNOWN 255
 #define RETRY_INTERVAL_250MS 250000
 
 #define RDKSHELL_SURFACECLIENT_DISPLAYNAME "rdkshell_display"
@@ -6080,7 +6081,7 @@ namespace WPEFramework {
 	                auto remoteControlConnection = RDKShell::getThunderControllerClient(remoteControlCallsign);
 			int16_t keyCode = KEYCODE_INVALID, retry = 12;
 
-			while( keyCode == KEYCODE_INVALID )
+			while( keyCode == KEYCODE_INVALID || keyCode == KEYCODE_UNKNOWN)
 			{
 				JsonObject req, res, stat;
 				req.Set("netType",1);
@@ -6112,7 +6113,7 @@ namespace WPEFramework {
 					std::cout << "getNetStatus failed\n" << std::endl;
 
 				retry--;
-				if ( (retry == 0) || (keyCode != KEYCODE_INVALID) )
+				if ( (retry == 0) || (keyCode != KEYCODE_INVALID && keyCode != KEYCODE_UNKNOWN) )
 				break;
 				usleep(RETRY_INTERVAL_250MS);
 			   }
