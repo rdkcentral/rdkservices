@@ -30,7 +30,7 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 set(CMAKE_CXX_STANDARD 11)
 
 set(PLUGIN_PERSISTENTSTORE_MODE "Local" CACHE STRING "Controls if the plugin should run in its own process, in process or remote")
-set(PLUGIN_PERSISTENTSTORE_URI "ss.prod.developer.comcast.com:443" CACHE STRING "Account scope endpoint")
+set(PLUGIN_PERSISTENTSTORE_URI "ss.eu.prod.developer.comcast.com:443" CACHE STRING "Account scope endpoint")
 set(PLUGIN_PERSISTENTSTORE_PATH "/opt/secure/persistent/rdkservicestore" CACHE STRING "Path")
 set(PLUGIN_PERSISTENTSTORE_LEGACYPATH "/opt/persistent/rdkservicestore" CACHE STRING "Previously used path")
 set(PLUGIN_PERSISTENTSTORE_KEY "" CACHE STRING "Encryption key")
