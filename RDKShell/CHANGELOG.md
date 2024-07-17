@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.6.1] - 2024-07-17
+### Fixed
+- Fix for Retry to get wake up keycode when Unknown
+
 ## [1.6.0] - 2024-06-12
 ### Added
 - Added Upstream onApplicationFocusChanged event change handling
