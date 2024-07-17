@@ -3730,6 +3730,9 @@ namespace WPEFramework {
                     else if ((param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY)) {
 			currentState = "STANDBY";
 		    }
+                    else if ((param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP)) {
+                        currentState = "LIGHT_SLEEP";
+                    }
                     else if ((param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP)) {
                         currentState = "DEEP_SLEEP";
                    }
