@@ -15,6 +15,11 @@ All notable changes to this RDK Service will be documented in this file.
 * Changes in CHANGELOG should be updated when commits are added to the main or release branches. There should be one CHANGELOG entry per JIRA Ticket. This is not enforced on sprint branches since there could be multiple changes for the same JIRA ticket during development. 
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
+
+## [1.4.6] - 2024-07-31
+### Added
+- Update getSupportedAudioModes to return based on audioports not video ports
+
 ## [1.4.5] - 2024-06-03
 ### Added
 - update common resolution list for getSupportedResolutions.
