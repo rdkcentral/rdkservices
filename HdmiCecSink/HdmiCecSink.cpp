@@ -3070,7 +3070,7 @@ namespace WPEFramework
 			}
         }
 
-        void HdmiCecSink::allocateLAforTV()
+	void HdmiCecSink::allocateLAforTV()
         {
             bool gotLogicalAddress = false;
             int addr = LogicalAddress::TV;
@@ -3078,44 +3078,53 @@ namespace WPEFramework
             if (!(_instance->smConnection))
                 return;
 
+		 LOGINFO("Logical Address *addr = %x *, *m_logicalAddressAllocated = %x *\n",addr,m_logicalAddressAllocated); 
             for (i = 0; i< HDMICECSINK_NUMBER_TV_ADDR; i++)
             {
+		LOGINFO("For loop-1, *i value = %d *, *addr =  %x  *, *m_logicalAddressAllocated = %x  *\n",i,addr,m_logicalAddressAllocated);
                 /* poll for TV logical address - retry 5 times*/
                 for (j = 0; j < 5; j++)
                 {
+			LOGINFO("For loop-2, *j value = %d *,*addr = %x  *, *m_logicalAddressAllocated = %x  *\n",j,addr,m_logicalAddressAllocated);
                     try {
                         smConnection->poll(LogicalAddress(addr), Throw_e());
+			LOGINFO("Poll send\n");					
                     }
                     catch(CECNoAckException &e )
                     {
-                        LOGWARN("Poll caught %s \r\n",e.what());
+                        LOGWARN("Poll caught CECNoAckException %s \r\n",e.what());
                         gotLogicalAddress = true;
                         break;
                     }
                     catch(Exception &e)
                     {
-                        LOGWARN("Poll caught %s \r\n",e.what());
+                        LOGWARN("Poll caught Exception %s \r\n",e.what());
                         usleep(250000);
                     }
                 }
                 if (gotLogicalAddress)
                 {
+			LOGINFO("gotLogicalAddress *break*\n");
                     break;
                 }
                 addr = LogicalAddress::SPECIFIC_USE;
+		LOGINFO("LA allocation  --> *addr = %x *, *m_logicalAddressAllocated = %x *\n",addr,m_logicalAddressAllocated); 
             }
 
             if ( gotLogicalAddress )
             {
                 m_logicalAddressAllocated = addr;
+		LOGINFO("gotLogicalAddress *addr = %x *, *m_logicalAddressAllocated = %x *\n",addr,m_logicalAddressAllocated);				
             }
             else
             {
                 m_logicalAddressAllocated = LogicalAddress::UNREGISTERED;
+		LOGINFO("Else *addr = %x *, *m_logicalAddressAllocated = %x *\n",addr,m_logicalAddressAllocated);
             }
 
             LOGWARN("Logical Address for TV 0x%x \r\n",m_logicalAddressAllocated);
         }
+
 
         void HdmiCecSink::allocateLogicalAddress(int deviceType)
         {
