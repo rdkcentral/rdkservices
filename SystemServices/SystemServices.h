@@ -33,6 +33,7 @@ using std::ofstream;
 #include <sys/stat.h>
 #include <unistd.h>
 #include <mutex>
+#include <condition_variable>
 
 #include "Module.h"
 #include "tracing/Logging.h"
@@ -102,6 +103,15 @@ namespace WPEFramework {
         };
 
         class SystemServices : public PluginHost::IPlugin, public PluginHost::JSONRPC {
+#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+        public:
+            struct EventWrapper {
+                IARM_EventId_t eventId;
+                IARM_Bus_PWRMgr_EventData_t data;
+            };
+            void handleEvent(IARM_EventId_t eventId, void* data, size_t len);
+#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
+
         private:
             typedef Core::JSON::String JString;
             typedef Core::JSON::ArrayType<JString> JStringArray;
@@ -132,6 +142,23 @@ namespace WPEFramework {
             static int m_remainingDuration;
             Utils::ThreadRAII m_getFirmwareInfoThread;
             PluginHost::IShell* m_shellService { nullptr };
+
+#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+            // Worker function for the event handling
+            void eventWorker();
+            void initializeWorker();
+            void cleanupWorker();
+            void pushEvent(const EventWrapper& event);
+
+            // Member variables for the event handling
+            std::queue<EventWrapper> m_eventQueue;
+            std::mutex m_eventMutex;
+            std::condition_variable m_eventCV;
+            std::atomic<bool> m_terminateEventWorker;
+            std::thread m_eventWorkerThread;
+
+#endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
+
             regex_t m_regexUnallowedChars;
 
             int m_FwUpdateState_LatestEvent;

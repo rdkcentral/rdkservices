@@ -283,6 +283,7 @@ bool setPowerState(std::string powerState)
         return false;
 }
 
+//static void _powerEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
 // TODO: remove this
@@ -348,7 +349,11 @@ namespace WPEFramework {
          * Register SystemService module as wpeframework plugin
          */
         SystemServices::SystemServices()
-                : PluginHost::JSONRPC(), m_cacheService(SYSTEM_SERVICE_SETTINGS_FILE) {
+                : PluginHost::JSONRPC(), m_cacheService(SYSTEM_SERVICE_SETTINGS_FILE)
+#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+                , m_terminateEventWorker(false)
+#endif
+        {
             SystemServices::_instance = this;
             if (Utils::directoryExists(SYSTEM_SERVICE_SETTINGS_FILE)) {
                 std::cout << "File " << SYSTEM_SERVICE_SETTINGS_FILE << " detected as folder, deleting.." << std::endl;
@@ -515,6 +520,7 @@ namespace WPEFramework {
         const string SystemServices::Initialize(PluginHost::IShell *service) {
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             InitializeIARM();
+            initializeWorker();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
             m_shellService = service;
             m_shellService->AddRef();
@@ -567,6 +573,7 @@ namespace WPEFramework {
 
         void SystemServices::Deinitialize(PluginHost::IShell *) {
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+            cleanupWorker();
             DeinitializeIARM();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
             SystemServices::_instance = nullptr;
@@ -616,6 +623,112 @@ namespace WPEFramework {
 #ifdef ENABLE_THERMAL_PROTECTION
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_THERMAL_MODECHANGED, _thermMgrEventsHandler));
 #endif //ENABLE_THERMAL_PROTECTION
+            }
+        }
+
+        void SystemServices::initializeWorker()
+        {
+            m_eventWorkerThread = std::thread(&SystemServices::eventWorker, this);
+        }
+
+        void SystemServices::cleanupWorker()
+        {
+            {
+                std::lock_guard<std::mutex> lock(m_eventMutex);
+                m_terminateEventWorker = true;
+            }
+            m_eventCV.notify_one();
+            if (m_eventWorkerThread.joinable()) {
+                m_eventWorkerThread.join();
+            }
+        }
+
+        void SystemServices::pushEvent(const EventWrapper& event)
+        {
+            {
+                std::lock_guard<std::mutex> lock(m_eventMutex);
+                m_eventQueue.push(event);
+            }
+            m_eventCV.notify_one();
+        }
+
+        // _powerEventHandler's callback processing on a separate thread
+        void SystemServices::eventWorker()
+        {
+            while (!m_terminateEventWorker) {
+                EventWrapper event;
+                {
+                    std::unique_lock<std::mutex> lock(m_eventMutex);
+                    m_eventCV.wait(lock, [this] { return !m_eventQueue.empty() || m_terminateEventWorker; });
+
+                    if (m_terminateEventWorker && m_eventQueue.empty()) {
+                        break;
+                    }
+
+                    event = m_eventQueue.front();
+                    m_eventQueue.pop();
+                }
+
+                switch (event.eventId) {
+                    case IARM_BUS_PWRMGR_EVENT_MODECHANGED: {
+                        IARM_Bus_PWRMgr_EventData_t *eventData = &(event.data);
+                        std::string curState, newState = "";
+
+                        if (eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_ON) {
+                            curState = "ON";
+                        } else if (eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_OFF) {
+                            curState = "OFF";
+                        } else if ((eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY) ||
+                                   (eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP)) {
+                            curState = "LIGHT_SLEEP";
+                        } else if (eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP) {
+                            curState = "DEEP_SLEEP";
+                        }
+
+                        if (eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_ON) {
+                            newState = "ON";
+                        } else if (eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_OFF) {
+                            newState = "OFF";
+                        } else if ((eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY) ||
+                                   (eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP)) {
+                            newState = "LIGHT_SLEEP";
+                        } else if (eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP) {
+                            newState = "DEEP_SLEEP";
+                        }
+                        LOGWARN("IARM Event triggered for PowerStateChange. Old State %s, New State: %s\n",
+                                curState.c_str(), newState.c_str());
+                        if (SystemServices::_instance) {
+                            SystemServices::_instance->onSystemPowerStateChanged(curState, newState);
+                        } else {
+                            LOGERR("SystemServices::_instance is NULL.\n");
+                        }
+                        break;
+                    }
+
+                    case IARM_BUS_PWRMGR_EVENT_REBOOTING: {
+                        IARM_Bus_PWRMgr_RebootParam_t *eventData = (IARM_Bus_PWRMgr_RebootParam_t *)&(event.data);
+                        if (SystemServices::_instance) {
+                            SystemServices::_instance->onPwrMgrReboot(eventData->requestor, eventData->reboot_reason_other);
+                        } else {
+                            LOGERR("SystemServices::_instance is NULL.\n");
+                        }
+                        break;
+                    }
+
+                    case IARM_BUS_PWRMGR_EVENT_NETWORK_STANDBYMODECHANGED: {
+                        IARM_Bus_PWRMgr_EventData_t *eventData = &(event.data);
+                        if (SystemServices::_instance) {
+                            SystemServices::_instance->onNetorkModeChanged(eventData->data.bNetworkStandbyMode);
+                        } else {
+                            LOGERR("SystemServices::_instance is NULL.\n");
+                        }
+                        break;
+                    }
+
+                    default:
+                        LOGWARN("Unhandled IARM_Bus_PWRMgr event: %d\n", event.eventId);
+                        break;
+                }
             }
         }
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
@@ -4062,6 +4175,17 @@ namespace WPEFramework {
             returnResponse(status);
         }
 
+#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
+        void SystemServices::handleEvent(IARM_EventId_t eventId, void* data, size_t len) {
+            EventWrapper event;
+            event.eventId = eventId;
+            if (data && len <= sizeof(IARM_Bus_PWRMgr_EventData_t)) {
+                memcpy(&event.data, data, len);
+            } else {
+                LOGWARN("Invalid data received in handleEvent\n");
+            }
+            pushEvent(event);
+        }
 
         /***
          * @brief : To handle the event of Power State change.
@@ -4075,74 +4199,15 @@ namespace WPEFramework {
          * @param2[out] : connect call to onSystemPowerStateChanged
          * @return      : <void>
          */
-        void _powerEventHandler(const char *owner, IARM_EventId_t eventId,
-                                void *data, size_t len) {
-            switch (eventId) {
-                case IARM_BUS_PWRMGR_EVENT_MODECHANGED: {
-                    IARM_Bus_PWRMgr_EventData_t *eventData = (IARM_Bus_PWRMgr_EventData_t *) data;
-                    std::string curState, newState = "";
-
-                    if (eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_ON) {
-                        curState = "ON";
-                    } else if (eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_OFF) {
-                        curState = "OFF";
-                    } else if ((eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY) ||
-                               (eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP)) {
-                        curState = "LIGHT_SLEEP";
-                    } else if (eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP) {
-                        curState = "DEEP_SLEEP";
-                    } else if (eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_OFF) {
-                        curState = "OFF";
-                    }
-
-                    if (eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_ON) {
-                        newState = "ON";
-                    } else if (eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_OFF) {
-                        newState = "OFF";
-                    } else if ((eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY) ||
-                               (eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP)) {
-                        newState = "LIGHT_SLEEP";
-                    } else if (eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP) {
-                        newState = "DEEP_SLEEP";
-                    }
-                    LOGWARN("IARM Event triggered for PowerStateChange.\
-                                Old State %s, New State: %s\n",
-                            curState.c_str(), newState.c_str());
-                    if (SystemServices::_instance) {
-                        SystemServices::_instance->onSystemPowerStateChanged(curState, newState);
-                    } else {
-                        LOGERR("SystemServices::_instance is NULL.\n");
-                    }
-                }
-
-                    break;
-                case IARM_BUS_PWRMGR_EVENT_REBOOTING: {
-                    IARM_Bus_PWRMgr_RebootParam_t *eventData = (IARM_Bus_PWRMgr_RebootParam_t *) data;
-
-                    if (SystemServices::_instance) {
-                        SystemServices::_instance->onPwrMgrReboot(eventData->requestor, eventData->reboot_reason_other);
-                    } else {
-                        LOGERR("SystemServices::_instance is NULL.\n");
-                    }
-                }
-
-                    break;
-
-                case IARM_BUS_PWRMGR_EVENT_NETWORK_STANDBYMODECHANGED: {
-                    IARM_Bus_PWRMgr_EventData_t *eventData = (IARM_Bus_PWRMgr_EventData_t *) data;
-
-                    if (SystemServices::_instance) {
-                        SystemServices::_instance->onNetorkModeChanged(eventData->data.bNetworkStandbyMode);
-                    } else {
-                        LOGERR("SystemServices::_instance is NULL.\n");
-                    }
-                }
-
-                    break;
+        static void _powerEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+        {
+            if (SystemServices::_instance) {
+                SystemServices::_instance->handleEvent(eventId, data, len);
+            } else {
+                LOGERR("SystemServices::_instance is NULL.\n");
             }
         }
 
-#if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
         /***
          * @brief : To receive System Mode Changed Event from IARM
          * @param1[in] : pointer to received data buffer.
