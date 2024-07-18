@@ -54,6 +54,13 @@ class cTimer{
          */
         void stop();
 
+	/***
+         * @brief   : join timer thread.
+         * @return   : nil
+         */
+        void join();
+
+
         /***
          * @brief        : Set interval in which the given function should be invoked.
          * @param1[in]   : function which has to be invoked on timed intervals
