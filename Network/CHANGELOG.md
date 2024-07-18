@@ -16,6 +16,11 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.3.13] - 2024-07-19
+### Fixed
+- Fix for TV is not going to deep sleep
+- Remove initialConnectivityMonitor Start and stop added signaling
+  
 ## [1.3.12] - 2024-06-19
 ### Fixed
 - onInternetStatus event not posting error fix

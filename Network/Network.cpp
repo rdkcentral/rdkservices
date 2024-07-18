@@ -35,7 +35,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 3
-#define API_VERSION_NUMBER_PATCH 12
+#define API_VERSION_NUMBER_PATCH 13
 
 /* Netsrvmgr Based Macros & Structures */
 #define IARM_BUS_NM_SRV_MGR_NAME "NET_SRV_MGR"
@@ -1460,6 +1460,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             m_defIpversionCache = "";
             m_defInterfaceCache = "";
 
+            connectivityMonitor.signalConnectivityMonitor();
             sendNotify("onConnectionStatusChanged", params);
         }
 
@@ -1508,10 +1509,7 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             }
             params["status"] = string (acquired ? "ACQUIRED" : "LOST");
             sendNotify("onIPAddressStatusChanged", params);
-
-            connectivityMonitor.doInitialConnectivityMonitoring(30);
-            if(!acquired) // lost the ip
-                connectivityMonitor.stopInitialConnectivityMonitoring();
+            connectivityMonitor.signalConnectivityMonitor();
         }
 
         void Network::onDefaultInterfaceChanged(string oldInterface, string newInterface)
