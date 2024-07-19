@@ -180,6 +180,7 @@ namespace String {
     std::string replaceString(std::string sentence, const std::string& oldString, const std::string& newString) {
 
 	    if (oldString.empty()) {
+		    std::cout << "Error: The string to be replaced is empty." << std::endl;
 		    return sentence;
 	    }
 
