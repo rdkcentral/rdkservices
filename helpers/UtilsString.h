@@ -175,5 +175,22 @@ namespace String {
         }
 
     }
+
+    // Function to replace all occurrences of a substring with another substring
+    std::string replaceString(std::string sentence, const std::string& oldString, const std::string& newString) {
+
+	    if (oldString.empty()) {
+		    std::cout << "Error: The string to be replaced is empty." << std::endl;
+		    return sentence;
+	    }
+
+	    size_t pos = 0;
+	    while ((pos = sentence.find(oldString, pos)) != std::string::npos) {
+		    sentence.replace(pos, oldString.length(), newString);
+		    pos += newString.length();
+	    }
+	    return sentence;
+    }
+
 }
 }
