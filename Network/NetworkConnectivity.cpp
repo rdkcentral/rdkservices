@@ -554,12 +554,9 @@ namespace WPEFramework {
 
     void ConnectivityMonitor::signalConnectivityMonitor()
     {
-        if (isMonitorThreadRunning())
-        {
-            /* Reset the global value to UNKNOWN state so the cache is reset */
-            g_internetState = nsm_internetState::UNKNOWN;
-            cv_.notify_all();
-        }
+        /* Reset the global value to UNKNOWN state so the cache is reset */
+        g_internetState = nsm_internetState::UNKNOWN;
+        cv_.notify_all();
     }
 
     void ConnectivityMonitor::connectivityMonitorFunction()
