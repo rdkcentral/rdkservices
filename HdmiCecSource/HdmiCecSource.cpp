@@ -795,7 +795,7 @@ namespace WPEFramework
 		    
 		    // Handled standby event logic here
                     LOGINFO("ActiveSource isDeviceActiveSource status: %d \n", isDeviceActiveSource);
-                    HdmiCec_2::_instance->sendActiveSourceEvent();	
+                    HdmiCecSource::_instance->sendActiveSourceEvent();	
 
                 }
            }
