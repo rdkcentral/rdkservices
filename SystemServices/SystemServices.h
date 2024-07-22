@@ -58,7 +58,7 @@ using std::ofstream;
 #define EVT_ONNETWORKSTANDBYMODECHANGED   "onNetworkStandbyModeChanged"
 #define EVT_ONFIRMWAREUPDATEINFORECEIVED  "onFirmwareUpdateInfoReceived"
 #define EVT_ONFIRMWAREUPDATESTATECHANGED  "onFirmwareUpdateStateChange"
-#define EVT_ONREDRECOVERYSTATECHANGED     "onRedRecoveryStateChange"
+#define EVT_ONRECOVERYSTATECHANGED        "onRecoveryStateChange"
 #define EVT_ONTEMPERATURETHRESHOLDCHANGED "onTemperatureThresholdChanged"
 #define EVT_ONMACADDRESSRETRIEVED         "onMacAddressesRetreived"
 #define EVT_ONREBOOTREQUEST               "onRebootRequest"
@@ -194,7 +194,7 @@ namespace WPEFramework {
                 void onNetorkModeChanged(bool betworkStandbyMode);
                 void onSystemModeChanged(string mode);
                 void onFirmwareUpdateStateChange(int state);
-		void onRedRecoveryStateChange(int state);
+		void onRecoveryStateChange(int state);
                 void onClockSet();
                 void onLogUpload(int newState);
                 void onTemperatureThresholdChanged(string thresholdType,

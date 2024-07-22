@@ -216,13 +216,13 @@
             "type": "integer",
             "example": 5
         },
-	"redRecoveryState": {
+	"recoveryState": {
             "summary": "The state",
             "enum": [
                 "Recovery Completed",
                 "Recovery Started",
                 "Recovery Downloaded",
-                "Revovery Programmed"
+                "Recovery Programmed"
             ],
             "type": "integer",
             "example": 3
@@ -2034,17 +2034,17 @@
                 ]
             }
         },
-	"onRedRecoveryStateChange":{
-            "summary": "Triggered when the red recovery transistion  \nState details are:  \n* `0`: Recovery completed  \n* `1`: Fatal error detected  \n* `2`: Firmware Info requested  \n* `3`: Recovery firmware programmed",
+	"onRecoveryStateChange":{
+            "summary": "Triggered when the state of red recovery transistion  \nState details are:  \n* `0`: Recovery completed  \n* `1`: Recovery Started - Fatal error detected  \n* `2`: Recovery FW Downloaded \n* `3`: Recovery FW programmed",
             "params": {
                 "type" :"object",
                 "properties": {
-                    "redRecoveryStateChange": {
-                        "$ref": "#/definitions/redRecoveryState"
+                    "recoveryStateChange": {
+                        "$ref": "#/definitions/recoveryState"
                     }
                 },
                 "required": [
-                    "redrecoveryStateChange"
+                    "recoveryStateChange"
                 ]
             }
         },
