@@ -778,7 +778,7 @@ namespace WPEFramework
 				char commandBuffer[768] = {0};
 				snprintf( commandBuffer,
 						sizeof(commandBuffer),
-						"curl -H \"Authorization: Bearer `WPEFrameworkSecurityUtility | cut -d '\"' -f 4`\" --header \"Content-Type: application/json\" --request POST --data '{\"jsonrpc\":\"2.0\", \"id\":3,\"method\":\"org.rdk.MiracastService.1.updatePlayerState\", \"params\":{\"mac\": \"%s\",\"state\": \"%s\",\"reason_code\": %s}}' http://127.0.0.1:9998/jsonrpc",
+						"curl -H \"Authorization: Bearer `WPEFrameworkSecurityUtility | cut -d '\"' -f 4`\" --header \"Content-Type: application/json\" --request POST --data '{\"jsonrpc\":\"2.0\", \"id\":3,\"method\":\"org.rdk.MiracastService.1.updatePlayerState\", \"params\":{\"mac\": \"%s\",\"state\": \"%s\",\"reason_code\": %s}}' http://127.0.0.1:9998/jsonrpc &",
 						client_mac.c_str(),
 						stateDescription(player_state).c_str(),
 						std::to_string(reason_code).c_str());
