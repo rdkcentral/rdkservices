@@ -784,10 +784,18 @@ namespace WPEFramework
                             param->data.state.curState, param->data.state.newState);
                     if(param->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_ON)
                     {
-                        powerState = 0; 
+                        powerState = 0;
+                        isDeviceActiveSource = true;
                     }
                     else
+		    {
                         powerState = 1;
+                        isDeviceActiveSource = false;
+		    }
+		    
+		    // Handled standby event logic here
+                    LOGINFO("ActiveSource isDeviceActiveSource status: %d \n", isDeviceActiveSource);
+                    HdmiCec_2::_instance->sendActiveSourceEvent();	
 
                 }
            }
