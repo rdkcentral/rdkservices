@@ -197,7 +197,7 @@ namespace Plugin {
 		    }
 		    else
 		    {			    
-			    TRACE(Trace::Fatal, (_T("Unknown value %s value_underscore %s"), make.c_str() , make_underscore.c_str()));
+			    TRACE(Trace::Fatal, (_T(" Unknown value %s value_underscore %s "), make.c_str() , make_underscore.c_str()));
 			    result = Core::ERROR_GENERAL;
 		    }
 	    }
