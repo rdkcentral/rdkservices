@@ -2,7 +2,7 @@
 <a name="UserSettings_Plugin"></a>
 # UserSettings Plugin
 
-**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/UserSettings/CHANGELOG.md)**
+**Version: [1.1.0](https://github.com/rdkcentral/rdkservices/blob/main/UserSettings/CHANGELOG.md)**
 
 A org.rdk.UserSettings plugin for Thunder framework.
 
@@ -53,14 +53,14 @@ UserSettings interface methods:
 | [SetCaptions](#SetCaptions) | Setting Captions |
 | [SetPreferredCaptionsLanguages](#SetPreferredCaptionsLanguages) | Setting PreferredCaption Languages |
 | [SetPreferredClosedCaptionService](#SetPreferredClosedCaptionService) | Setting Preferred Closed Caption Service |
-| [SetPrivacyMode](#SetPrivacyMode) | Setting PrivacyMode |
+| [SetPrivacyMode](#SetPrivacyMode) | Setting Privacy Mode |
 | [GetAudioDescription](#GetAudioDescription) | Returns Audio Description |
 | [GetPreferredAudioLanguages](#GetPreferredAudioLanguages) | Returns Audio Description |
 | [GetPresentationLanguage](#GetPresentationLanguage) | Getting Presentation Languages |
 | [GetCaptions](#GetCaptions) | Getting Captions Enabled |
 | [GetPreferredCaptionsLanguages](#GetPreferredCaptionsLanguages) | Getting Preferred Caption Languages |
 | [GetPreferredClosedCaptionService](#GetPreferredClosedCaptionService) | Getting Preferred ClosedCaption Service |
-| [GetPrivacyMode](#GetPrivacyMode) | Getting PrivacyMode |
+| [GetPrivacyMode](#GetPrivacyMode) | Getting Privacy Mode |
 
 
 <a name="SetAudioDescription"></a>
@@ -330,7 +330,7 @@ No Events
 <a name="SetPrivacyMode"></a>
 ## *SetPrivacyMode*
 
-Setting PrivacyMode
+Setting Privacy Mode.
 
 ### Events
 
@@ -341,8 +341,7 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.privacyMode | string | PrivacyMode: SHARE or DO_NOT_SHARE |
-
+| params.privacyMode | string | New Privacy Mode |
 
 ### Result
 
@@ -360,7 +359,7 @@ No Events
     "id": 42,
     "method": "org.rdk.UserSettings.SetPrivacyMode",
     "params": {
-        {"privacyMode":"DO_NOT_SHARE"}
+        "privacyMode": "DO_NOT_SHARE"
     }
 }
 ```
@@ -392,8 +391,7 @@ This method takes no parameters.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | object |  |
-| result.enabled | boolean | Enabled (`true`) or disabled (`false`) |
+| result | boolean |  |
 
 ### Example
 
@@ -413,7 +411,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result":false
+    "result": false
 }
 ```
 
@@ -434,8 +432,7 @@ This method takes no parameters.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | object |  |
-| result.preferredLanguages | string | A prioritized list of ISO 639-2/B codes for the preferred audio languages |
+| result | string |  |
 
 ### Example
 
@@ -455,7 +452,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result":"eng"
+    "result": "..."
 }
 ```
 
@@ -476,8 +473,7 @@ This method takes no parameters.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | object |  |
-| result.presentationlanguages | string | The preferred presentationLanguages in a full BCP 47 value, including script, * region, variant The language set and used by Immerse UI |
+| result | string |  |
 
 ### Example
 
@@ -497,7 +493,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result":"en-US"
+    "result": "..."
 }
 ```
 
@@ -518,8 +514,7 @@ This method takes no parameters.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | object |  |
-| result.enabled | boolean | Enabled (`true`) or disabled (`false`) |
+| result | boolean |  |
 
 ### Example
 
@@ -539,7 +534,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result":false
+    "result": false
 }
 ```
 
@@ -560,8 +555,7 @@ This method takes no parameters.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | object |  |
-| result.preferredLanguages | string | A prioritized list of ISO 639-2/B codes for the preferred captions languages |
+| result | string |  |
 
 ### Example
 
@@ -581,7 +575,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result":"eng"
+    "result": "..."
 }
 ```
 
@@ -602,8 +596,7 @@ This method takes no parameters.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | object |  |
-| result.preferredClosedCaptionService | string | A string for the preferred closed captions service.  Valid values are AUTO, CC[1-4], TEXT[1-4], SERVICE[1-64] where CC and TEXT is CTA-608 and SERVICE is CTA-708.  AUTO indicates that the choice is left to the player |
+| result | string |  |
 
 ### Example
 
@@ -623,14 +616,14 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result":"CC3"
+    "result": "..."
 }
 ```
 
 <a name="GetPrivacyMode"></a>
 ## *GetPrivacyMode*
 
-Getting PrivacyMode
+Getting Privacy Mode.
 
 ### Events
 
@@ -644,8 +637,7 @@ This method takes no parameters.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | object |  |
-| result.privacymode | string | A string for the privacy mode. Valid values are SHARE(Default), DO_NOT_SHARE. |
+| result | string |  |
 
 ### Example
 
@@ -665,7 +657,7 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result":"SHARE"
+    "result": "..."
 }
 ```
 
@@ -680,19 +672,19 @@ UserSettings interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [OnAudioDescriptionChanged](#OnAudioDescriptionChanged) | Triggered after the audio description changes (see `SetAudioDescription`) |
-| [OnPreferredAudioLanguagesChanged](#OnPreferredAudioLanguagesChanged) | Triggered after the audio preferred Audio languages changes (see `SetPreferredAudioLanguages`) |
-| [OnPresentationLanguageChanged](#OnPresentationLanguageChanged) | Triggered after the Presentation Language changes (see `SetPresentationLanguage`) |
-| [OnCaptionsChanged](#OnCaptionsChanged) | Triggered after the captions changes (see `SetCaptions`) |
-| [OnPreferredCaptionsLanguagesChanged](#OnPreferredCaptionsLanguagesChanged) | Triggered after the PreferredCaption Languages changes (see `SetPreferredCaptionsLanguages`) |
-| [OnPreferredClosedCaptionServiceChanged](#OnPreferredClosedCaptionServiceChanged) | Triggered after the Preferred Closed Caption changes (see `SetPreferredClosedCaptionService`) |
+| [OnAudioDescriptionChanged](#OnAudioDescriptionChanged) | Triggered after the audio description changes (see `setaudiodescription`) |
+| [OnPreferredAudioLanguagesChanged](#OnPreferredAudioLanguagesChanged) | Triggered after the audio preferred Audio languages changes (see `setpreferredaudiolanguages`) |
+| [OnPresentationLanguageChanged](#OnPresentationLanguageChanged) | Triggered after the Presentation Language changes (see `setpresentationlanguages`) |
+| [OnCaptionsChanged](#OnCaptionsChanged) | Triggered after the captions changes (see `setcaptionsenabled`) |
+| [OnPreferredCaptionsLanguagesChanged](#OnPreferredCaptionsLanguagesChanged) | Triggered after the PreferredCaption Languages changes (see `setpreferredcaptionlanguages`) |
+| [OnPreferredClosedCaptionServiceChanged](#OnPreferredClosedCaptionServiceChanged) | Triggered after the Preferred Closed Caption changes (see `setpreferredclosedcaptionservice`) |
 | [OnPrivacyModeChanged](#OnPrivacyModeChanged) | Triggered after the Privacy Mode changes (see `SetPrivacyMode`) |
 
 
 <a name="OnAudioDescriptionChanged"></a>
 ## *OnAudioDescriptionChanged*
 
-Triggered after the audio description changes (see `SetAudioDescription`).
+Triggered after the audio description changes (see `setaudiodescription`).
 
 ### Parameters
 
@@ -716,7 +708,7 @@ Triggered after the audio description changes (see `SetAudioDescription`).
 <a name="OnPreferredAudioLanguagesChanged"></a>
 ## *OnPreferredAudioLanguagesChanged*
 
-Triggered after the audio preferred Audio languages changes (see `SetPreferredAudioLanguages`).
+Triggered after the audio preferred Audio languages changes (see `setpreferredaudiolanguages`).
 
 ### Parameters
 
@@ -740,7 +732,7 @@ Triggered after the audio preferred Audio languages changes (see `SetPreferredAu
 <a name="OnPresentationLanguageChanged"></a>
 ## *OnPresentationLanguageChanged*
 
-Triggered after the Presentation Language changes (see `SetPresentationLanguage`).
+Triggered after the Presentation Language changes (see `setpresentationlanguages`).
 
 ### Parameters
 
@@ -764,7 +756,7 @@ Triggered after the Presentation Language changes (see `SetPresentationLanguage`
 <a name="OnCaptionsChanged"></a>
 ## *OnCaptionsChanged*
 
-Triggered after the captions changes (see `SetCaptions`).
+Triggered after the captions changes (see `setcaptionsenabled`).
 
 ### Parameters
 
@@ -788,7 +780,7 @@ Triggered after the captions changes (see `SetCaptions`).
 <a name="OnPreferredCaptionsLanguagesChanged"></a>
 ## *OnPreferredCaptionsLanguagesChanged*
 
-Triggered after the PreferredCaption Languages changes (see `SetPreferredCaptionsLanguages`).
+Triggered after the PreferredCaption Languages changes (see `setpreferredcaptionlanguages`).
 
 ### Parameters
 
@@ -812,7 +804,7 @@ Triggered after the PreferredCaption Languages changes (see `SetPreferredCaption
 <a name="OnPreferredClosedCaptionServiceChanged"></a>
 ## *OnPreferredClosedCaptionServiceChanged*
 
-Triggered after the Preferred Closed Caption changes (see `SetPreferredClosedCaptionService`).
+Triggered after the Preferred Closed Caption changes (see `setpreferredclosedcaptionservice`).
 
 ### Parameters
 
@@ -834,7 +826,7 @@ Triggered after the Preferred Closed Caption changes (see `SetPreferredClosedCap
 ```
 
 <a name="OnPrivacyModeChanged"></a>
-## *OnPrivacyModeChanged [<sup>event</sup>](#head.Notifications)*
+## *OnPrivacyModeChanged*
 
 Triggered after the Privacy Mode changes (see `SetPrivacyMode`).
 
@@ -856,3 +848,4 @@ Triggered after the Privacy Mode changes (see `SetPrivacyMode`).
     }
 }
 ```
+
