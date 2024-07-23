@@ -193,7 +193,7 @@ namespace Plugin {
 		    string make_underscore =Utils::String::replaceString(make ," " , "_" );
 		    Core::EnumerateType<JsonData::DeviceInfo::MakeData::MakeType> value_underscore(make_underscore.c_str(), false);
 		    if (value_underscore.IsSet()) {
-			    response.Make = value.Value();
+			    response.Make = value_underscore.Value();
 		    }
 		    else
 		    {			    
