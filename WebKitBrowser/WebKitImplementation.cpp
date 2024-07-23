@@ -3379,7 +3379,6 @@ static GSourceFuncs _handlerIntervention =
             SYSLOG_GLOBAL(Logging::Notification, (_T("LoadFailed: %s"), message.c_str()));
             if (g_error_matches(error, WEBKIT_NETWORK_ERROR, WEBKIT_NETWORK_ERROR_CANCELLED)) {
                 browser->_ignoreLoadFinishedOnce = true;
-                return;
             }
             browser->OnLoadFailed(failingURI);
         }
