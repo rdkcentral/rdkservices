@@ -109,6 +109,7 @@ jobs:
           -S "${{github.workspace}}/Thunder"
           -B build/Thunder
           -DMESSAGING=ON
+          -DHIDE_NON_EXTERNAL_SYMBOLS=OFF
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
           -DBUILD_TYPE=${{env.BUILD_TYPE}}
@@ -205,6 +206,7 @@ jobs:
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
+          -DBUILD_SHARED_LIBS=ON
           -DCMAKE_CXX_FLAGS="-fPIC"
           &&
           cmake --build build/mocks -j8
@@ -219,6 +221,7 @@ jobs:
           -DCMAKE_TOOLCHAIN_FILE="${{ env.TOOLCHAIN_FILE }}"
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
+          -DHIDE_NON_EXTERNAL_SYMBOLS=OFF
           -DCMAKE_CXX_FLAGS="
           -DEXCEPTIONS_ENABLE=ON
           -fprofile-arcs
@@ -256,9 +259,9 @@ jobs:
           -DCMAKE_DISABLE_FIND_PACKAGE_RBus=ON
           -DPLUGIN_SYSTEMSERVICES=ON
           -DPLUGIN_TELEMETRY=ON
-          -DPLUGIN_HDCPPROFILE=OFF
-          -DPLUGIN_NETWORK=OFF
-          -DPLUGIN_TEXTTOSPEECH=OFF
+          -DPLUGIN_HDCPPROFILE=ON
+          -DPLUGIN_NETWORK=ON
+          -DPLUGIN_TEXTTOSPEECH=ON
           -DPLUGIN_USBACCESS=OFF
           -DPLUGIN_USERSETTINGS=ON
           -DPLUGIN_PERSISTENTSTORE=ON
