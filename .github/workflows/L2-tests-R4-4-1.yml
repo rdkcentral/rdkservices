@@ -202,12 +202,11 @@ jobs:
           cmake
           -S "${{github.workspace}}/rdkservices/Tests/mocks"
           -B build/mocks
+          -DBUILD_SHARED_LIBS=ON
           -DCMAKE_TOOLCHAIN_FILE="${{ env.TOOLCHAIN_FILE }}"
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-          -DBUILD_SHARED_LIBS=ON
-          -DCMAKE_CXX_FLAGS="-fPIC"
           &&
           cmake --build build/mocks -j8
           &&
@@ -348,7 +347,9 @@ jobs:
         run: >
           PATH=${{github.workspace}}/install/usr/bin:${PATH}
           LD_LIBRARY_PATH=${{github.workspace}}/install/usr/lib:${{github.workspace}}/install/usr/lib/wpeframework/plugins:${LD_LIBRARY_PATH}
-          RdkServicesL2Test
+          RdkServicesL2Test &&
+          cp -rf $(pwd)/rdkL2TestResults.json ${{github.workspace}}/rdkL2TestResultsWithoutValgrind.json &&
+          rm -rf $(pwd)/rdkL2TestResults.json
 
       - name: Run unit tests with valgrind
         run: >
@@ -361,7 +362,9 @@ jobs:
           --show-reachable=yes
           --track-fds=yes
           --fair-sched=try
-          RdkServicesL2Test
+          RdkServicesL2Test &&
+          cp -rf $(pwd)/rdkL2TestResults.json ${{github.workspace}}/rdkL2TestResultsWithValgrind.json &&
+          rm -rf $(pwd)/rdkL2TestResults.json
 
       - name: Generate coverage
         if: ${{ matrix.coverage == 'with-coverage' && !env.ACT }}
@@ -395,6 +398,8 @@ jobs:
           path: |
             coverage/
             valgrind_log
+            rdkL2TestResultsWithoutValgrind.json
+            rdkL2TestResultsWithValgrind.json
           if-no-files-found: warn
 
       - name: Run contract tests
