@@ -2274,6 +2274,23 @@ namespace WPEFramework {
             }
         }
 
+	/***
+         * @brief : sends notification when red recovery state has changed.
+         *
+         * @param1[in]  : newstate
+         * @param2[out] : {"jsonrpc": "2.0","method":
+         *                     "org.rdk.SystemServices.events.1.onRedRecoveryStateChange",
+         *                     "param":{"redRecoveryState":<enum:0-3>}}
+         */
+        void SystemServices::onRedRecoveryStateChange(int newState)
+        {
+                JsonObject params;
+                const RedRecoveryState redRecoveryState = (RedRecoveryState)newState;
+                params["redRecoveryStateChange"] = (int)redRecoveryState;
+                LOGINFO("redRecoveryState = %d\n", (int)redRecoveryState);
+                sendNotify(EVT_ONREDRECOVERYSTATECHANGED, params);
+        }
+
         /***
          * @brief : sends notification when time source state has changed.
          *
@@ -4247,7 +4264,16 @@ namespace WPEFramework {
                             LOGERR("SystemServices::_instance is NULL.\n");
                         }
                     } break;
-
+		case IARM_BUS_SYSMGR_SYSSTATE_RED_RECOV_UPDATE_STATE:
+                    {
+                        LOGWARN("IARMEvt: IARM_BUS_SYSMGR_SYSSTATE_RED_RECOV_UPDATE_STATE = '%d'\n", state);
+                        if (SystemServices::_instance)
+                        {
+                            SystemServices::_instance->onRedRecoveryStateChange(state);
+                        } else {
+                           LOGERR("SystemServices::_instance is NULL.\n");
+                        }
+                    } break;
                 case IARM_BUS_SYSMGR_SYSSTATE_TIME_SOURCE:
                     {
                         if (sysEventData->data.systemStates.state)
