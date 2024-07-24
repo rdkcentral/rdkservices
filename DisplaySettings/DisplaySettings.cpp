@@ -1252,21 +1252,19 @@ namespace WPEFramework {
             {
                 bool HAL_hasSurround = false;
 
-                device::List<device::VideoOutputPort> vPorts = device::Host::getInstance().getVideoOutputPorts();
-                for (size_t i = 0; i < vPorts.size(); i++) {
-                    device::AudioOutputPort &aPort = vPorts.at(i).getAudioOutputPort();
-                    for (size_t j = 0; j < aPort.getSupportedStereoModes().size(); j++) {
-                        if (audioPort.empty() || Utils::String::stringContains(aPort.getName(), audioPort))
+                device::List<device::AudioOutputPort> aPorts = device::Host::getInstance().getAudioOutputPorts();
+                for (size_t i = 0; i < aPorts.size(); i++) {
+                    if (audioPort.empty() || Utils::String::stringContains(aPorts.at(i).getName(), audioPort))
+                    {
+                        for (size_t j = 0; j < aPorts.at(i).getSupportedStereoModes().size(); j++)
                         {
-                            string audioMode = aPort.getSupportedStereoModes().at(j).getName();
-
+                            string audioMode = aPorts.at(i).getSupportedStereoModes().at(j).getName();
                             // Starging Version 5, "Surround" mode is replaced by "Auto Mode"
                             if (strcasecmp(audioMode.c_str(),"SURROUND") == 0)
                             {
                                 HAL_hasSurround = true;
                                 continue;
                             }
-
                             vectorSet(supportedAudioModes,audioMode);
                         }
                     }
@@ -1303,7 +1301,7 @@ namespace WPEFramework {
                         supportedAudioModes.emplace_back("AUTO (Stereo)");
                     }
                 }
-		else if (audioPort.empty() || Utils::String::stringContains(audioPort, "SPDIF0") || Utils::String::stringContains(audioPort, "HDMI_ARC0"))
+		else if (audioPort.empty() || Utils::String::stringContains(audioPort, "SPDIF0") || Utils::String::stringContains(audioPort, "HDMI_ARC0") || Utils::String::stringContains(audioPort, "HEADPHONE0"))
                 {
                     if (HAL_hasSurround) {
                         supportedAudioModes.emplace_back("SURROUND");
