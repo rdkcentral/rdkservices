@@ -83,7 +83,7 @@ foreach (file ${FAKE_HEADERS})
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -include ${file}")
 endforeach ()
 
-add_compile_options(-Wall -Werror -fPIC)
+add_compile_options(-Wall -Werror)
 
 add_link_options(-Wl,-wrap,system -Wl,-wrap,setmntent -Wl,-wrap,getmntent -Wl,-wrap,v_secure_popen -Wl,-wrap,v_secure_pclose -Wl,-wrap,v_secure_system -Wl,-wrap,readlink)
 
