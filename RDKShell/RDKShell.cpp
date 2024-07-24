@@ -6849,8 +6849,8 @@ namespace WPEFramework {
         {
             std::cout << "inside of checkForBootupFactoryAppLaunch\n";
 #ifdef RFC_ENABLED
-	    #ifdef FTA_USER_MODE_MONOLITH
             #ifdef RDKSHELL_READ_MAC_ON_STARTUP
+	    #ifdef FTA_USER_MODE_MONOLITH
             if (checkFactoryMode_wrapper()) 
       	    {
                     std::cout << "Device in FactoryMode\n";
@@ -6884,12 +6884,16 @@ namespace WPEFramework {
             {
                 std::cout << "reading stb mac rfc failed " << std::endl;
             }
-            #endif //RDKSHELL_READ_MAC_ON_STARTUP
-	    #elif ifndef FTA_PCI
-            std::cout<< "switching to Usermode\n" ;
+            #elif ifdef FTA_PCI
+            std::cout<< "Device in FactoryMode \n" ;
+            return true ;
+            #else
+            std::cout<< "Device in Usermode\n" ;
+            std::cout<<"Modifying persistent Flags \n" ;
             uint32_t setStatus = setValue(mCurrentService, "FactoryTest", "FactoryMode", "false");
             std::cout << "set status: " << setStatus << std::endl;
-            #endif // FTA_USER_MODE_MONOLITH
+            #endif //FTA_USER_MODE_MONOLITH
+            #endif //RDKSHELL_READ_MAC_ON_STARTUP
 #else
             std::cout << "rfc is disabled and unable to check for stb mac " << std::endl;
 #endif
