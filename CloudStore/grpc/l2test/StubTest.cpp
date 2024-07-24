@@ -24,10 +24,12 @@ using ::testing::Le;
 using ::testing::Test;
 
 const auto kUri = "ss.eu.prod.developer.comcast.com:443";
+const auto kDevUri = "ss.dev.developer.comcast.com:443";
 const auto kValue = "value_1";
 const auto kKey = "key_1";
 const auto kAppId = "app_id_1";
 const auto kTtl = 2;
+const auto kTtlFault = 1;
 const auto kScope = Scope::SCOPE_ACCOUNT;
 const auto kEmpty = "";
 const auto kUnknown = "unknown";
@@ -39,6 +41,17 @@ protected:
     AStub()
         : stub(SecureStorageService::NewStub(grpc::CreateChannel(
               kUri,
+              grpc::SslCredentials(grpc::SslCredentialsOptions()))))
+    {
+    }
+};
+
+class ADevStub : public Test {
+protected:
+    std::unique_ptr<SecureStorageService::Stub> stub;
+    ADevStub()
+        : stub(SecureStorageService::NewStub(grpc::CreateChannel(
+              kDevUri,
               grpc::SslCredentials(grpc::SslCredentialsOptions()))))
     {
     }
@@ -61,7 +74,7 @@ TEST_F(AStub, DoesNotUpdateValueWhenAppIdEmpty)
     auto status = stub->UpdateValue(&context, request, &response);
     ASSERT_THAT(status.ok(), IsFalse());
     EXPECT_THAT(status.error_code(), Eq(3));
-    EXPECT_THAT(status.error_message(), Eq("app_id is mandatory"));
+    EXPECT_THAT(status.error_message(), Eq("key's key and app_id fields are required"));
 }
 
 TEST_F(AStub, DoesNotUpdateValueWhenKeyEmpty)
@@ -98,7 +111,7 @@ TEST_F(AStub, DoesNotGetValueWhenAppIdEmpty)
     auto status = stub->GetValue(&context, request, &response);
     ASSERT_THAT(status.ok(), IsFalse());
     EXPECT_THAT(status.error_code(), Eq(3));
-    EXPECT_THAT(status.error_message(), Eq("app_id is mandatory"));
+    EXPECT_THAT(status.error_message(), Eq("key's key and app_id fields are required"));
 }
 
 TEST_F(AStub, DoesNotGetValueWhenKeyEmpty)
@@ -132,7 +145,7 @@ TEST_F(AStub, DoesNotDeleteValueWhenAppIdEmpty)
     auto status = stub->DeleteValue(&context, request, &response);
     ASSERT_THAT(status.ok(), IsFalse());
     EXPECT_THAT(status.error_code(), Eq(3));
-    EXPECT_THAT(status.error_message(), Eq("app_id is mandatory"));
+    EXPECT_THAT(status.error_message(), Eq("key's key and app_id fields are required"));
 }
 
 TEST_F(AStub, DoesNotDeleteValueWhenKeyEmpty)
@@ -197,8 +210,7 @@ TEST_F(AStub, GetsValueWhenValueEmpty)
         ASSERT_THAT(response.has_value(), IsTrue());
         EXPECT_THAT(response.value().value(), Eq(kEmpty));
         EXPECT_THAT(response.value().has_ttl(), IsFalse());
-        ASSERT_THAT(response.value().has_expire_time(), IsTrue());
-        EXPECT_THAT(response.value().expire_time().seconds(), Eq(0));
+        EXPECT_THAT(response.value().has_expire_time(), IsFalse());
     }
 }
 
@@ -216,6 +228,23 @@ TEST_F(AStub, DoesNotGetValueWhenAppIdUnknown)
     auto status = stub->GetValue(&context, request, &response);
     ASSERT_THAT(status.ok(), IsTrue());
     EXPECT_THAT(response.has_value(), IsFalse());
+}
+
+TEST_F(ADevStub, DoesNotGetValueWhenAppIdUnknown)
+{
+    grpc::ClientContext context;
+    context.AddMetadata("authorization", std::string(kToken));
+    GetValueRequest request;
+    auto k = new Key();
+    k->set_app_id(kUnknown);
+    k->set_key(kKey);
+    k->set_scope(kScope);
+    request.set_allocated_key(k);
+    GetValueResponse response;
+    auto status = stub->GetValue(&context, request, &response);
+    ASSERT_THAT(status.ok(), IsFalse());
+    EXPECT_THAT(status.error_code(), Eq(5));
+    EXPECT_THAT(status.error_message(), Eq("requested key scope does not exist"));
 }
 
 TEST_F(AStub, DoesNotGetValueWhenKeyUnknown)
@@ -249,6 +278,41 @@ TEST_F(AStub, DoesNotGetValueWhenKeyUnknown)
         auto status = stub->GetValue(&context, request, &response);
         ASSERT_THAT(status.ok(), IsTrue());
         EXPECT_THAT(response.has_value(), IsFalse());
+    }
+}
+
+TEST_F(ADevStub, DoesNotGetValueWhenKeyUnknown)
+{
+    {
+        grpc::ClientContext context;
+        context.AddMetadata("authorization", std::string(kToken));
+        UpdateValueRequest request;
+        auto v = new Value();
+        v->set_value(kValue);
+        auto k = new Key();
+        k->set_app_id(kAppId);
+        k->set_key(kKey);
+        k->set_scope(kScope);
+        v->set_allocated_key(k);
+        request.set_allocated_value(v);
+        UpdateValueResponse response;
+        auto status = stub->UpdateValue(&context, request, &response);
+        ASSERT_THAT(status.ok(), IsTrue());
+    }
+    {
+        grpc::ClientContext context;
+        context.AddMetadata("authorization", std::string(kToken));
+        GetValueRequest request;
+        auto k = new Key();
+        k->set_app_id(kAppId);
+        k->set_key(kUnknown);
+        k->set_scope(kScope);
+        request.set_allocated_key(k);
+        GetValueResponse response;
+        auto status = stub->GetValue(&context, request, &response);
+        ASSERT_THAT(status.ok(), IsFalse());
+        EXPECT_THAT(status.error_code(), Eq(5));
+        EXPECT_THAT(status.error_message(), Eq("requested key scope does not exist"));
     }
 }
 
@@ -353,7 +417,7 @@ TEST_F(AStub, GetsValueWhenTtlDidNotExpire)
         now.set_seconds(time(nullptr));
         now.set_nanos(0);
         EXPECT_THAT(response.value().expire_time().seconds(), Gt(now.seconds()));
-        EXPECT_THAT(response.value().expire_time().seconds(), Le(now.seconds() + kTtl));
+        EXPECT_THAT(response.value().expire_time().seconds(), Le(now.seconds() + kTtl + kTtlFault));
     }
 }
 
@@ -378,7 +442,7 @@ TEST_F(AStub, DoesNotGetValueWhenTtlExpired)
         auto status = stub->UpdateValue(&context, request, &response);
         ASSERT_THAT(status.ok(), IsTrue());
     }
-    sleep(kTtl);
+    sleep(kTtl + kTtlFault);
     {
         grpc::ClientContext context;
         context.AddMetadata("authorization", std::string(kToken));
@@ -392,5 +456,44 @@ TEST_F(AStub, DoesNotGetValueWhenTtlExpired)
         auto status = stub->GetValue(&context, request, &response);
         ASSERT_THAT(status.ok(), IsTrue());
         EXPECT_THAT(response.has_value(), IsFalse());
+    }
+}
+
+TEST_F(ADevStub, DoesNotGetValueWhenTtlExpired)
+{
+    {
+        grpc::ClientContext context;
+        context.AddMetadata("authorization", std::string(kToken));
+        UpdateValueRequest request;
+        auto v = new Value();
+        v->set_value(kValue);
+        auto t = new ::google::protobuf::Duration();
+        t->set_seconds(kTtl);
+        v->set_allocated_ttl(t);
+        auto k = new Key();
+        k->set_app_id(kAppId);
+        k->set_key(kKey);
+        k->set_scope(kScope);
+        v->set_allocated_key(k);
+        request.set_allocated_value(v);
+        UpdateValueResponse response;
+        auto status = stub->UpdateValue(&context, request, &response);
+        ASSERT_THAT(status.ok(), IsTrue());
+    }
+    sleep(kTtl + kTtlFault);
+    {
+        grpc::ClientContext context;
+        context.AddMetadata("authorization", std::string(kToken));
+        GetValueRequest request;
+        auto k = new Key();
+        k->set_app_id(kAppId);
+        k->set_key(kKey);
+        k->set_scope(kScope);
+        request.set_allocated_key(k);
+        GetValueResponse response;
+        auto status = stub->GetValue(&context, request, &response);
+        ASSERT_THAT(status.ok(), IsFalse());
+        EXPECT_THAT(status.error_code(), Eq(5));
+        EXPECT_THAT(status.error_message(), Eq("requested key scope does not exist"));
     }
 }

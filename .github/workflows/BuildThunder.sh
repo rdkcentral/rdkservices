@@ -17,7 +17,7 @@ pip install jsonref
 
 git clone https://github.com/rdkcentral/ThunderTools.git
 
-cmake -G Ninja -S ThunderTools -B build/ThunderTools -DCMAKE_INSTALL_PREFIX="install/usr"
+cmake -G Ninja -S ThunderTools -B build/ThunderTools -DCMAKE_INSTALL_PREFIX="install"
 
 cmake --build build/ThunderTools --target install
 
@@ -27,27 +27,21 @@ cmake --build build/ThunderTools --target install
 git clone https://github.com/rdkcentral/Thunder.git
 
 cmake -G Ninja -S Thunder -B build/Thunder \
-  -DBUILD_SHARED_LIBS=ON \
   -DBINDING="127.0.0.1" \
   -DCMAKE_BUILD_TYPE="Debug" \
-  -DCMAKE_INSTALL_PREFIX="install/usr" \
-  -DCMAKE_MODULE_PATH="${PWD}/install/usr/include/WPEFramework/Modules" \
-  -DDATA_PATH="${PWD}/install/usr/share/WPEFramework" \
-  -DPERSISTENT_PATH="${PWD}/install/var/wpeframework" \
+  -DCMAKE_INSTALL_PREFIX="install" \
   -DPORT="55555" \
-  -DPROXYSTUB_PATH="${PWD}/install/usr/lib/wpeframework/proxystubs" \
-  -DSYSTEM_PATH="${PWD}/install/usr/lib/wpeframework/plugins" \
-  -DVOLATILE_PATH="tmp"
+  -DTOOLS_SYSROOT="${PWD}" \
+  -DINITV_SCRIPT=OFF
 
 cmake --build build/Thunder --target install
 
 ############################
 # 4. Build ThunderInterfaces
 
-git clone https://github.com/rdkcentral/ThunderInterfaces.git
+git clone -b RDKTV-31830 https://github.com/npoltorapavlo/ThunderInterfaces.git
 
 cmake -G Ninja -S ThunderInterfaces -B build/ThunderInterfaces \
-  -DCMAKE_INSTALL_PREFIX="install/usr" \
-  -DCMAKE_MODULE_PATH="${PWD}/install/usr/include/WPEFramework/Modules"
+  -DCMAKE_INSTALL_PREFIX="install"
 
 cmake --build build/ThunderInterfaces --target install

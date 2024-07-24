@@ -1,0 +1,40 @@
+name: L2-CloudStore
+
+on:
+  push:
+    paths:
+      - CloudStore/**
+      - .github/workflows/*CloudStore*.yml
+  pull_request:
+    paths:
+      - CloudStore/**
+      - .github/workflows/*CloudStore*.yml
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: ${{github.repository}}
+
+      - name: Install cmake, protoc, grpc_cpp_plugin, grpc
+        run: |
+          sudo apt update
+          sudo apt install -y cmake protobuf-compiler protobuf-compiler-grpc libgrpc++-dev
+
+      - name: Build Thunder
+        working-directory: ${{github.workspace}}
+        run: sh +x ${GITHUB_REPOSITORY}/.github/workflows/BuildThunder.sh
+
+      - name: Build
+        working-directory: ${{github.workspace}}
+        run: |
+          cmake -S ${GITHUB_REPOSITORY}/CloudStore -B build/CloudStore -DCMAKE_INSTALL_PREFIX="install" -DCMAKE_CXX_FLAGS="-Wall -Werror" -DPLUGIN_CLOUDSTORE_MODE=Local -DPLUGIN_CLOUDSTORE_URI=ss.eu.prod.developer.comcast.com:443
+          cmake --build build/CloudStore --target install
+
+# Usage:
+# PATH=${PWD}/install/bin:${PATH} LD_LIBRARY_PATH=${PWD}/install/lib:${LD_LIBRARY_PATH} valgrind --tool=memcheck --log-file=valgrind_log --leak-check=yes --show-reachable=yes --track-fds=yes --fair-sched=try Thunder -f -c ${PWD}/install/etc/Thunder/config.json
+# (to stop press q & enter)
+# curl -d '{"jsonrpc":"2.0","id":0,"method":"org.rdk.CloudStore.setValue","params":{"namespace":"test","key":"key1","value":"1","ttl":100}}' http://localhost:55555/jsonrpc

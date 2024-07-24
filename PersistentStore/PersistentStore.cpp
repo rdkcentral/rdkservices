@@ -19,30 +19,27 @@
 
 #include "PersistentStore.h"
 #include <fstream>
-#ifdef WITH_RFC
-#include "rfcapi.h"
-#endif
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 11
+#define API_VERSION_NUMBER_PATCH 15
 
 namespace WPEFramework {
 
-namespace {
-
-    static Plugin::Metadata<Plugin::PersistentStore> metadata(
-        // Version (Major, Minor, Patch)
-        API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
-        // Preconditions
-        {},
-        // Terminations
-        {},
-        // Controls
-        {});
-}
-
 namespace Plugin {
+
+    namespace {
+
+        static Metadata<PersistentStore> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {});
+    }
 
     SERVICE_REGISTRATION(PersistentStore, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
@@ -51,8 +48,20 @@ namespace Plugin {
         string result;
 
         ASSERT(service != nullptr);
+        ASSERT(_store == nullptr);
+        ASSERT(_store2 == nullptr);
+        ASSERT(_storeCache == nullptr);
+        ASSERT(_storeInspector == nullptr);
+        ASSERT(_storeLimit == nullptr);
+        ASSERT(_service == nullptr);
+        ASSERT(_connectionId == 0);
 
-        auto configLine = service->ConfigLine();
+        SYSLOG(Logging::Startup, (_T("PersistentStore::Initialize: PID=%u"), getpid()));
+
+        _service = service;
+        _service->AddRef();
+
+        auto configLine = _service->ConfigLine();
         _config.FromString(configLine);
 
         {
@@ -71,70 +80,75 @@ namespace Plugin {
             }
         }
 
-        auto uri = _config.Uri.Value();
-
-#ifdef WITH_RFC
-        RFC_ParamData_t rfcParam;
-        auto rfcStatus = getRFCParameter(nullptr, URI_RFC, &rfcParam);
-        if (rfcStatus == WDMP_SUCCESS) {
-            if (rfcParam.value[0]) {
-                uri = rfcParam.value;
-            }
-        } else {
-            TRACE(Trace::Error, (_T("%s rfc error %d"), __FUNCTION__, rfcStatus));
-        }
-#endif
-
-        Core::SystemInfo::SetEnvironment(URI_ENV, uri);
         Core::SystemInfo::SetEnvironment(PATH_ENV, _config.Path.Value());
         Core::SystemInfo::SetEnvironment(MAXSIZE_ENV, std::to_string(_config.MaxSize.Value()));
         Core::SystemInfo::SetEnvironment(MAXVALUE_ENV, std::to_string(_config.MaxValue.Value()));
         Core::SystemInfo::SetEnvironment(LIMIT_ENV, std::to_string(_config.Limit.Value()));
 
-        uint32_t connectionId;
+        _service->Register(&_notification);
 
-        _deviceStore2 = service->Root<Exchange::IStore2>(connectionId, 2000, _T("SqliteStore2"));
-        if (_deviceStore2 != nullptr) {
-            _deviceStore2->Register(&_store2Sink);
-            _deviceStore2->Register(_store);
-            _deviceStoreCache = _deviceStore2->QueryInterface<Exchange::IStoreCache>();
-            _deviceStoreInspector = _deviceStore2->QueryInterface<Exchange::IStoreInspector>();
-            _deviceStoreLimit = _deviceStore2->QueryInterface<Exchange::IStoreLimit>();
-        }
+        _store = _service->Root<Exchange::IStore>(_connectionId, RPC::CommunicationTimeOut, _T("PersistentStoreImplementation"));
+        if (_store != nullptr) {
+            _store2 = _store->QueryInterface<Exchange::IStore2>();
+            if (_store2 != nullptr) {
+                _store2->Register(&_store2Sink);
+            }
+            _storeCache = _store->QueryInterface<Exchange::IStoreCache>();
+            _storeInspector = _store->QueryInterface<Exchange::IStoreInspector>();
+            _storeLimit = _store->QueryInterface<Exchange::IStoreLimit>();
 
-        _accountStore2 = service->Root<Exchange::IStore2>(connectionId, 2000, _T("GrpcStore2"));
-        if (_accountStore2 != nullptr) {
-            _accountStore2->Register(&_store2Sink);
+            ASSERT(_store2 != nullptr);
+            ASSERT(_storeCache != nullptr);
+            ASSERT(_storeInspector != nullptr);
+            ASSERT(_storeLimit != nullptr);
+        } else {
+            result = _T("Couldn't create implementation instance");
         }
 
         return result;
     }
 
-    void PersistentStore::Deinitialize(PluginHost::IShell* /* service */)
+    void PersistentStore::Deinitialize(PluginHost::IShell* service)
     {
-        if (_deviceStore2 != nullptr) {
-            _deviceStore2->Unregister(&_store2Sink);
-            _deviceStore2->Unregister(_store);
-            _deviceStore2->Release();
-            _deviceStore2 = nullptr;
+        ASSERT(_service == service);
+
+        SYSLOG(Logging::Shutdown, (string(_T("PersistentStore::Deinitialize"))));
+
+        _service->Unregister(&_notification);
+
+        if (_store != nullptr) {
+            if (_store2 != nullptr) {
+                _store2->Unregister(&_store2Sink);
+                _store2->Release();
+                _store2 = nullptr;
+            }
+            if (_storeCache != nullptr) {
+                _storeCache->Release();
+                _storeCache = nullptr;
+            }
+            if (_storeInspector != nullptr) {
+                _storeInspector->Release();
+                _storeInspector = nullptr;
+            }
+            if (_storeLimit != nullptr) {
+                _storeLimit->Release();
+                _storeLimit = nullptr;
+            }
+
+            auto connection = _service->RemoteConnection(_connectionId);
+            VARIABLE_IS_NOT_USED auto result = _store->Release();
+            _store = nullptr;
+            ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
+            if (connection != nullptr) {
+                connection->Terminate();
+                connection->Release();
+            }
         }
-        if (_deviceStoreCache != nullptr) {
-            _deviceStoreCache->Release();
-            _deviceStoreCache = nullptr;
-        }
-        if (_deviceStoreInspector != nullptr) {
-            _deviceStoreInspector->Release();
-            _deviceStoreInspector = nullptr;
-        }
-        if (_deviceStoreLimit != nullptr) {
-            _deviceStoreLimit->Release();
-            _deviceStoreLimit = nullptr;
-        }
-        if (_accountStore2 != nullptr) {
-            _accountStore2->Unregister(&_store2Sink);
-            _accountStore2->Release();
-            _accountStore2 = nullptr;
-        }
+
+        _connectionId = 0;
+        _service->Release();
+        _service = nullptr;
+        SYSLOG(Logging::Shutdown, (string(_T("PersistentStore de-initialised"))));
     }
 
     string PersistentStore::Information() const
