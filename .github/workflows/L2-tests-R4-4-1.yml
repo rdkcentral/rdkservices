@@ -202,11 +202,11 @@ jobs:
           cmake
           -S "${{github.workspace}}/rdkservices/Tests/mocks"
           -B build/mocks
+          -DBUILD_SHARED_LIBS=ON
           -DCMAKE_TOOLCHAIN_FILE="${{ env.TOOLCHAIN_FILE }}"
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-          -DBUILD_SHARED_LIBS=ON
           &&
           cmake --build build/mocks -j8
           &&
@@ -261,7 +261,7 @@ jobs:
           -DPLUGIN_HDCPPROFILE=ON
           -DPLUGIN_NETWORK=ON
           -DPLUGIN_TEXTTOSPEECH=ON
-          -DPLUGIN_USBACCESS=OFF
+          -DPLUGIN_USBACCESS=ON
           -DPLUGIN_USERSETTINGS=ON
           -DPLUGIN_PERSISTENTSTORE=ON
           -DUSE_THUNDER_R4=ON
