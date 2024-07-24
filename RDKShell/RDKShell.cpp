@@ -1825,6 +1825,7 @@ namespace WPEFramework {
 #ifdef RFC_ENABLED
             #ifdef RDKSHELL_READ_MAC_ON_STARTUP
 	    Device_Mode_Init();
+	#ifdef FTA_USER_MODE_MONOLITH
             factoryMacMatched = checkFactoryMode_wrapper();
 	    #ifdef RDKSHELL_DUAL_FTA_SUPPORT
 	    bool isAssemblyFactoryMode = false;
@@ -1842,6 +1843,13 @@ namespace WPEFramework {
             #ifdef RDKSHELL_IGNORE_PS_FLAG_ON_MBFTA
             }
             #endif
+	#elif FTA_PCI
+            bool isAssemblyFactoryMode = checkAssemblyFactoryMode_wrapper();
+        #else
+            std::cout<< "switching to Usermode\n" ;
+            uint32_t setStatus = setValue(mCurrentService, "FactoryTest", "FactoryMode", "false");
+            std::cout << "set status: " << setStatus << std::endl;
+        #endif
             #else
             RFC_ParamData_t macparam;
             bool macret = Utils::getRFCConfig("Device.DeviceInfo.X_COMCAST-COM_STB_MAC", macparam);
@@ -6841,6 +6849,7 @@ namespace WPEFramework {
         {
             std::cout << "inside of checkForBootupFactoryAppLaunch\n";
 #ifdef RFC_ENABLED
+	    #ifdef FTA_USER_MODE_MONOLITH
             #ifdef RDKSHELL_READ_MAC_ON_STARTUP
             if (checkFactoryMode_wrapper()) 
       	    {
@@ -6876,6 +6885,11 @@ namespace WPEFramework {
                 std::cout << "reading stb mac rfc failed " << std::endl;
             }
             #endif //RDKSHELL_READ_MAC_ON_STARTUP
+	    #elif ifndef FTA_PCI
+            std::cout<< "switching to Usermode\n" ;
+            uint32_t setStatus = setValue(mCurrentService, "FactoryTest", "FactoryMode", "false");
+            std::cout << "set status: " << setStatus << std::endl;
+            #endif // FTA_USER_MODE_MONOLITH
 #else
             std::cout << "rfc is disabled and unable to check for stb mac " << std::endl;
 #endif
