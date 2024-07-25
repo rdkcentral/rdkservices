@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.9] - 2024-07-25
+### Changed
+- Added the NetworkManager Plugin into MOnitor config list
+
 ## [1.0.8] - 2024-07-01
 ### Changed
 - Added Delay in Thread Restart Logic
