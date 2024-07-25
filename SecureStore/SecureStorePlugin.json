@@ -1,0 +1,13 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/plugin.schema.json",
+    "info": {
+      "title": "SecureStore Plugin",
+      "callsign": "org.rdk.SecureStore",
+      "locator": "libWPEFrameworkSecureStore.so",
+      "status": "production",
+      "description": "The `SecureStore` plugin allows you to persist key/value pairs by namespace"
+    },
+    "interface": {
+      "$ref": "SecureStore.json#"
+    }
+  }
