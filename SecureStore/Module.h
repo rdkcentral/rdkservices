@@ -35,7 +35,7 @@
 #define MAXVALUE_ENV "SECURESTORE_MAXVALUE"
 #define LIMIT_ENV "SECURESTORE_LIMIT"
 #define IARM_INIT_NAME "Thunder_Plugins"
-#define URI_RFC "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.PersistentStore.Uri"
+#define URI_RFC "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.CloudStore.Uri"
 
 #undef EXTERNAL
 #define EXTERNAL
