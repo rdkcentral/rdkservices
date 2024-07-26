@@ -570,7 +570,7 @@ typedef enum _SYSMgr_RecoveryState_t {
        IARM_BUS_SYSMGR_RECOVERY_STATE_STARTED = 1,
        IARM_BUS_SYSMGR_RECOVERY_STATE_DOWNLOADED = 2,
        IARM_BUS_SYSMGR_RECOVERY_STATE_PROGRAMMED = 3,
-} IARM_Bus_SYSMGR_RecoveryState_t
+} IARM_Bus_SYSMGR_RecoveryState_t;
 
 typedef enum _SYSMgr_LogUpload_t
 {
