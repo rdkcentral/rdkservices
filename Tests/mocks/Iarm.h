@@ -549,6 +549,7 @@ typedef enum _SYSMgr_SystemState_t {
     IARM_BUS_SYSMGR_SYSSTATE_FIRMWARE_UPDATE_STATE, //43, Added as part of RDK-19978, As the IARM
     IARM_BUS_SYSMGR_SYSSTATE_USB_DETECTED, //44
     IARM_BUS_SYSMGR_SYSSTATE_LOG_UPLOAD, //45
+    IARM_BUS_SYSMGR_SYSSTATE_RED_RECOV_UPDATE_STATE, //46
 } IARM_Bus_SYSMgr_SystemState_t;
 
 typedef enum _SYSMgr_FirmwareUpdateState_t {
@@ -563,6 +564,13 @@ typedef enum _SYSMgr_FirmwareUpdateState_t {
     IARM_BUS_SYSMGR_FIRMWARE_UPDATE_STATE_CRITICAL_REBOOT = 8,
     IARM_BUS_SYSMGR_FIRMWARE_UPDATE_STATE_NO_UPGRADE_REQUIRED = 9
 } IARM_Bus_SYSMGR_FirmwareUpdateState_t;
+
+typedef enum _SYSMgr_RecoveryState_t {
+       IARM_BUS_SYSMGR_RECOVERY_STATE_COMPLETED = 0,
+       IARM_BUS_SYSMGR_RECOVERY_STATE_STARTED = 1,
+       IARM_BUS_SYSMGR_RECOVERY_STATE_DOWNLOADED = 2,
+       IARM_BUS_SYSMGR_RECOVERY_STATE_PROGRAMMED = 3,
+} IARM_Bus_SYSMGR_RecoveryState_t
 
 typedef enum _SYSMgr_LogUpload_t
 {
@@ -658,6 +666,7 @@ typedef struct _IARM_Bus_SYSMgr_GetSystemStates_Param_t {
     state_property ip_mode;
     state_property qam_ready_status;
     state_property firmware_update_state;
+    state_property red_recov_state;
 } IARM_Bus_SYSMgr_GetSystemStates_Param_t;
 
 #define IARM_BUS_DSMGR_NAME "DSMgr"

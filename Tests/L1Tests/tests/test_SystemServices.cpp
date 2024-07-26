@@ -1517,6 +1517,42 @@ TEST_F(SystemServicesEventIarmTest, onFirmwareUpdateStateChange)
     handler.Unsubscribe(0, _T("onFirmwareUpdateStateChange"), _T("org.rdk.System"), message);
 }
 
+TEST_F(SystemServicesEventIarmTest, onRecoveryStateChange)
+{
+    Core::Event onRecoveryStateChange(false, true);
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_THAT(text, ::testing::MatchesRegex(_T("\\{"
+                                                             "\"jsonrpc\":\"2.0\","
+                                                             "\"method\":\"org.rdk.System.onRecoveryStateChange\","
+                                                             "\"params\":"
+                                                             "\\{"
+                                                             "\"recoveryStateChange\":3"
+                                                             "\\}"
+                                                             "\\}")));
+
+                onRecoveryStateChange.SetEvent();
+
+                return Core::ERROR_NONE;
+            }));
+
+    handler.Subscribe(0, _T("onRecoveryStateChange"), _T("org.rdk.System"), message);
+
+    IARM_Bus_SYSMgr_EventData_t sysEventData;
+    sysEventData.data.systemStates.stateId = IARM_BUS_SYSMGR_SYSSTATE_FIRMWARE_UPDATE_STATE;
+    sysEventData.data.systemStates.state = IARM_BUS_SYSMGR_FIRMWARE_UPDATE_STATE_DOWNLOAD_COMPLETE;
+    systemStateChanged(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE, &sysEventData, 0);
+
+    EXPECT_EQ(Core::ERROR_NONE, onRecoveryStateChange.Lock());
+
+    handler.Unsubscribe(0, _T("onRecoveryStateChange"), _T("org.rdk.System"), message);
+}
+
 TEST_F(SystemServicesEventIarmTest, onSystemClockSet)
 {
     Core::Event onSystemClockSet(false, true);
