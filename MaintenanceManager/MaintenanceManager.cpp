@@ -302,7 +302,6 @@ namespace WPEFramework {
             bool internetConnectStatus=false;
 	    bool delayMaintenanceStarted = false;
 
-            std::unique_lock<std::mutex> lck(m_callMutex);
             LOGINFO("Executing Maintenance tasks");
 
 #if defined(ENABLE_WHOAMI)
@@ -428,6 +427,7 @@ namespace WPEFramework {
             tasks.push_back(task_names_foreground[2].c_str());
             tasks.push_back(task_names_foreground[3].c_str());
 #endif
+	    std::unique_lock<std::mutex> lck(m_callMutex);
             for( i = 0; i < tasks.size() && !m_abort_flag; i++) {
                 cmd = tasks[i];
                 cmd += " &";
