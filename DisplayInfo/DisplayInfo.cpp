@@ -21,7 +21,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 6
+#define API_VERSION_NUMBER_PATCH 7
 
 namespace WPEFramework {
 namespace {
@@ -239,6 +239,43 @@ namespace Plugin {
         if (_hdrProperties->HDRSetting(hdrType) == Core::ERROR_NONE) {
             displayInfo.Hdrtype = static_cast<JsonData::DisplayInfo::DisplayinfoData::HdrtypeType>(hdrType);
         }
+
+        status = false;
+        if (_connectionProperties->IsHDCPCompliant(status) == Core::ERROR_NONE) {
+            displayInfo.Ishdcpcompliant = status;
+        }
+
+        status = false;
+        if (_connectionProperties->IsHDCPEnabled(status) == Core::ERROR_NONE) {
+            displayInfo.Ishdcpenabled = status;
+        }
+
+        status = false;
+        if (_connectionProperties->IsHDCPSupported(status) == Core::ERROR_NONE) {
+            displayInfo.Ishdcpsupported = status;
+        }
+
+        value = 0;
+        if (_connectionProperties->HdcpReason(value) == Core::ERROR_NONE) {
+            displayInfo.Hdcpreason = value;
+        }
+
+        Exchange::IConnectionProperties::HDCPProtectionType supportedHDCPVersion(Exchange::IConnectionProperties::HDCPProtectionType::HDCP_Unencrypted);
+        if ((const_cast<const Exchange::IConnectionProperties*>(_connectionProperties))->SupportedHDCPVersion(hdcpProtection) == Core::ERROR_NONE) {
+            displayInfo.Supportedhdcpversion = static_cast<JsonData::DisplayInfo::DisplayinfoData::HdcpprotectionType>(supportedHDCPVersion);
+        }
+
+        Exchange::IConnectionProperties::HDCPProtectionType displayHDCPVersion(Exchange::IConnectionProperties::HDCPProtectionType::HDCP_Unencrypted);
+        if ((const_cast<const Exchange::IConnectionProperties*>(_connectionProperties))->DisplayHDCPVersion(hdcpProtection) == Core::ERROR_NONE) {
+            displayInfo.Displayhdcpversion = static_cast<JsonData::DisplayInfo::DisplayinfoData::HdcpprotectionType>(displayHDCPVersion);
+        }
+
+        Exchange::IConnectionProperties::HDCPProtectionType currentHDCPVersion(Exchange::IConnectionProperties::HDCPProtectionType::HDCP_Unencrypted);
+        if ((const_cast<const Exchange::IConnectionProperties*>(_connectionProperties))->CurrentHDCPVersion(hdcpProtection) == Core::ERROR_NONE) {
+            displayInfo.Currenthdcpversion = static_cast<JsonData::DisplayInfo::DisplayinfoData::HdcpprotectionType>(currentHDCPVersion);
+        }
+
+
     }
 
     void DisplayInfo::Deactivated(RPC::IRemoteConnection* connection)
