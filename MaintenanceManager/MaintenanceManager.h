@@ -140,6 +140,7 @@ namespace WPEFramework {
                 bool g_subscribed_for_deviceContextUpdate = false;
 
                 std::mutex  m_callMutex;
+                std::mutex m_waiMutex;
                 std::mutex  m_statusMutex;
                 std::condition_variable task_thread;
                 std::thread m_thread;
