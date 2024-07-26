@@ -1000,6 +1000,7 @@ int main(int argc, char** argv)
 		SystemEventNames.push_back("onSystemModeChanged");
 		SystemEventNames.push_back("onFirmwareUpdateInfoReceived");
 		SystemEventNames.push_back("onFirmwareUpdateStateChange");
+		SystemEventNames.push_back("onRecoveryStateChange");
 		SystemEventNames.push_back("onTemperatureThresholdChanged");
 		SystemEventNames.push_back("onMacAddressesRetreived");
 		SystemEventNames.push_back("onRebootRequest");
