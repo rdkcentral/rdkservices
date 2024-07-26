@@ -202,8 +202,10 @@ static bool sRunning = true;
 bool needsScreenshot = false;
 sem_t gInitializeSemaphore;
 
+#ifdef RDKSHELL_READ_MAC_ON_STARTUP
 #ifdef RDKSHELL_DUAL_ODM_SUPPORT
 static Device_Mode_FactoryModes_t sFactoryMode = DEVICE_MODE_CVTE_B1_AGING;
+#endif
 #endif
 
 #ifdef HIBERNATE_SUPPORT_ENABLED
@@ -326,7 +328,7 @@ static bool checkFactoryMode_wrapper()
         }
         return ret;
 }
-#endif
+
 #ifdef RDKSHELL_DUAL_FTA_SUPPORT
 static bool checkAssemblyFactoryMode_wrapper()
 {
@@ -389,6 +391,7 @@ char* getFactoryAppUrl()
 #endif
 	return factoryAppUrl;
 }
+#endif
 #endif
 FactoryAppLaunchStatus sFactoryAppLaunchStatus = NOTLAUNCHED;
 
@@ -1825,7 +1828,13 @@ namespace WPEFramework {
 #ifdef RFC_ENABLED
             #ifdef RDKSHELL_READ_MAC_ON_STARTUP
 	    Device_Mode_Init();
+            #ifdef FTA_PCI
+            factoryMacMatched = true ;
+            #elif FTA_USER_MODE_MONOLITH
             factoryMacMatched = checkFactoryMode_wrapper();
+            #else
+            factoryMacMatched = false ;
+            #endif
 	    #ifdef RDKSHELL_DUAL_FTA_SUPPORT
 	    bool isAssemblyFactoryMode = false;
 	    #endif
@@ -1982,9 +1991,11 @@ namespace WPEFramework {
                                 request["nokillresapp"] = "true";
                             }
                             request["resetagingtime"] = "true";
+			    #ifdef RDKSHELL_READ_MAC_ON_STARTUP
                             #ifdef RDKSHELL_DUAL_FTA_SUPPORT
                             request["factoryappstage"] = isAssemblyFactoryMode ? "assembly" : "mainboard" ;
                             #endif
+			    #endif
 		   	    RDKShellApiRequest apiRequest;
                             apiRequest.mName = "launchFactoryApp";
                             apiRequest.mRequest = request;
@@ -2044,8 +2055,10 @@ namespace WPEFramework {
                             request["nokillresapp"] = "true";
                         }
                         request["resetagingtime"] = "true";
+			#ifdef RDKSHELL_READ_MAC_ON_STARTUP
 			#ifdef RDKSHELL_DUAL_FTA_SUPPORT
 			request["factoryappstage"] = isAssemblyFactoryMode ? "assembly" : "mainboard" ;
+			#endif
 			#endif
 			RDKShellApiRequest apiRequest;
                         apiRequest.mName = "launchFactoryApp";
@@ -5791,6 +5804,7 @@ namespace WPEFramework {
                     }
                 }
             }
+	    #ifdef RDKSHELL_READ_MAC_ON_STARTUP
 	    #ifdef RDKSHELL_DUAL_FTA_SUPPORT
             char* factoryAppUrl = NULL;
             if (parameters.HasLabel("factoryappstage"))
@@ -5809,6 +5823,9 @@ namespace WPEFramework {
             #else
              char* factoryAppUrl = getenv("RDKSHELL_FACTORY_APP_URL");
             #endif
+	    #else
+             char* factoryAppUrl = getenv("RDKSHELL_FACTORY_APP_URL");
+	    #endif
             if (NULL != factoryAppUrl)
             {
                 if (parameters.HasLabel("resetagingtime"))
@@ -6842,11 +6859,15 @@ namespace WPEFramework {
             std::cout << "inside of checkForBootupFactoryAppLaunch\n";
 #ifdef RFC_ENABLED
             #ifdef RDKSHELL_READ_MAC_ON_STARTUP
+            #ifdef FTA_PCI
+            return true ;
+            #elif FTA_USER_MODE_MONOLITH
             if (checkFactoryMode_wrapper()) 
       	    {
                     std::cout << "Device in FactoryMode\n";
 		    return true;
             }
+	    #endif
 	    #ifdef RDKSHELL_IGNORE_PS_FLAG_ON_MBFTA
             else
             {
