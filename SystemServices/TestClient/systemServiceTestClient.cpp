@@ -68,11 +68,9 @@ typedef enum SME_t {
 #ifdef DEBUG
 	SME_sampleSystemServiceAPI,
 #endif /* DEBUG */
-	SME_cacheContains = 1,
-	SME_clearLastDeepSleepReason,
+	SME_clearLastDeepSleepReason=1,
 	SME_enableMoca,
 	SME_getAvailableStandbyModes,
-	SME_getCachedValue,
 	SME_getCoreTemperature,
 	SME_getDeviceInfo,
 	SME_getDownloadedFirmwareInfo,
@@ -98,9 +96,7 @@ typedef enum SME_t {
 	SME_isGzEnabled,
 	SME_queryMocaStatus,
 	SME_reboot,
-	SME_removeCacheKey,
 	SME_requestSystemUptime,
-	SME_setCachedValue,
 	SME_setDeepSleepTimer,
 	SME_setGzEnabled,
 	SME_setMode,
@@ -121,11 +117,9 @@ std::map<SME_t, std::string> SMName = {
 #ifdef DEBUG
 	{SME_sampleSystemServiceAPI, "sampleSystemServiceAPI"},
 #endif /* DEBUG */
-	{SME_cacheContains, "cacheContains"},
 	{SME_clearLastDeepSleepReason, "clearLastDeepSleepReason"},
 	{SME_enableMoca, "enableMoca"},
 	{SME_getAvailableStandbyModes, "getAvailableStandbyModes"},
-	{SME_getCachedValue, "getCachedValue"},
 	{SME_getCoreTemperature, "getCoreTemperature"},
 	{SME_getDeviceInfo, "getDeviceInfo"},
 	{SME_getDownloadedFirmwareInfo, "getDownloadedFirmwareInfo"},
@@ -151,9 +145,7 @@ std::map<SME_t, std::string> SMName = {
 	{SME_isGzEnabled, "isGzEnabled"},
 	{SME_queryMocaStatus, "queryMocaStatus"},
 	{SME_reboot, "reboot"},
-	{SME_removeCacheKey, "removeCacheKey"},
 	{SME_requestSystemUptime, "requestSystemUptime"},
-	{SME_setCachedValue, "setCachedValue"},
 	{SME_setDeepSleepTimer, "setDeepSleepTimer"},
 	{SME_setGzEnabled, "setGzEnabled"},
 	{SME_setMode, "setMode"},
@@ -205,23 +197,6 @@ void sampleSystemServiceAPI(std::string methodName, JSONRPC::LinkType<Core::JSON
 }
 #endif /* DEBUG */
 
-void cacheContains(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
-{
-	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
-	JsonObject parameters, response;
-	std::string result;
-	std::string key;
-
-	printf("\nKey name to check :");
-	std::cin >> key;
-	parameters["key"] = key;
-
-	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
-		response.ToString(result);
-		printf("\nResponse: '%s'\n", result.c_str());
-	}
-}
-
 void clearLastDeepSleepReason(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
 	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
@@ -256,24 +231,6 @@ void getAvailableStandbyModes(std::string methodName, JSONRPC::LinkType<Core::JS
 
 	JsonObject parameters, response;
 	std::string result;
-
-	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
-		response.ToString(result);
-		printf("\nResponse: '%s'\n", result.c_str());
-	}
-}
-
-void getCachedValue(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
-{
-	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
-
-	JsonObject parameters, response;
-	std::string result;
-	std::string key;
-
-	printf("\nKey name to check :");
-	std::cin >> key;
-	parameters["key"] = key;
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
@@ -653,48 +610,12 @@ void reboot(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *rem
 	}
 }
 
-void removeCacheKey(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
-{
-	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
-
-	JsonObject parameters, response;
-	std::string result, key;
-
-	printf("\nInput 'key' to be removed :");
-	std::cin >> key;
-
-	parameters["key"] = key;
-	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
-		response.ToString(result);
-		printf("\nResponse: '%s'\n", result.c_str());
-	}
-}
-
 void requestSystemUptime(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
 {
 	printf("[%llu] Inside (%s)\n", TimeStamp(), __FUNCTION__);
 
 	JsonObject parameters, response;
 	std::string result;
-
-	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
-		response.ToString(result);
-		printf("\nResponse: '%s'\n", result.c_str());
-	}
-}
-
-void setCachedValue(std::string methodName, JSONRPC::LinkType<Core::JSON::IElement> *remoteObject)
-{
-	JsonObject parameters, response;
-	std::string result, key, value;
-
-	printf("\nInput cache 'key' :");
-	std::cin >> key;
-	printf("\nInput cache 'value' :");
-	std::cin >> value;
-
-	parameters["key"] = key;
-	parameters["value"] = value;
 
 	if (invokeJSONRPC(remoteObject, methodName, parameters, response)) {
 		response.ToString(result);
@@ -988,11 +909,9 @@ int EvaluateMethods(JSONRPC::LinkType<Core::JSON::IElement>* remoteObject)
 
 	do {
 		switch((retStatus = getChoice())) {
-			case SME_cacheContains: cacheContains(getMethodName((SME_t)retStatus), remoteObject); break;
 			case SME_clearLastDeepSleepReason: clearLastDeepSleepReason(getMethodName((SME_t)retStatus), remoteObject); break;
 			case SME_enableMoca: enableMoca(getMethodName((SME_t)retStatus), remoteObject); break;
 			case SME_getAvailableStandbyModes: getAvailableStandbyModes(getMethodName((SME_t)retStatus), remoteObject); break;
-			case SME_getCachedValue: getCachedValue(getMethodName((SME_t)retStatus), remoteObject); break;
 			case SME_getCoreTemperature: getCoreTemperature(getMethodName((SME_t)retStatus), remoteObject); break;
 			case SME_getDeviceInfo: getDeviceInfo(getMethodName((SME_t)retStatus), remoteObject); break;
 			case SME_getDownloadedFirmwareInfo: getDownloadedFirmwareInfo(getMethodName((SME_t)retStatus), remoteObject); break;
@@ -1018,9 +937,7 @@ int EvaluateMethods(JSONRPC::LinkType<Core::JSON::IElement>* remoteObject)
 			case SME_isGzEnabled: isGzEnabled(getMethodName((SME_t)retStatus), remoteObject); break;
 			case SME_queryMocaStatus: queryMocaStatus(getMethodName((SME_t)retStatus), remoteObject); break;
 			case SME_reboot: reboot(getMethodName((SME_t)retStatus), remoteObject); break;
-			case SME_removeCacheKey: removeCacheKey(getMethodName((SME_t)retStatus), remoteObject); break;
 			case SME_requestSystemUptime: requestSystemUptime(getMethodName((SME_t)retStatus), remoteObject); break;
-			case SME_setCachedValue: setCachedValue(getMethodName((SME_t)retStatus), remoteObject); break;
 			case SME_setDeepSleepTimer: setDeepSleepTimer(getMethodName((SME_t)retStatus), remoteObject); break;
 			case SME_setGzEnabled: setGzEnabled(getMethodName((SME_t)retStatus), remoteObject); break;
 			case SME_setMode: setMode(getMethodName((SME_t)retStatus), remoteObject); break;

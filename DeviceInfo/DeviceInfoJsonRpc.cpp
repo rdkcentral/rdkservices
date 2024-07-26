@@ -18,6 +18,7 @@
  */
 
 #include "DeviceInfo.h"
+#include "UtilsString.h"
 
 namespace WPEFramework {
 
@@ -182,21 +183,28 @@ namespace Plugin {
     uint32_t DeviceInfo::get_make(MakeData& response) const
     {
         string make;
-
         auto result = _deviceInfo->Make(make);
         if (result == Core::ERROR_NONE) {
             Core::EnumerateType<JsonData::DeviceInfo::MakeData::MakeType> value(make.c_str(), false);
             if (value.IsSet()) {
                 response.Make = value.Value();
-            } else {
-                TRACE(Trace::Fatal, (_T("Unknown value %s"), make.c_str()));
-                result = Core::ERROR_GENERAL;
-            }
+	    } else {
+
+		    string make_underscore =Utils::String::replaceString(make ," " , "_" );
+		    Core::EnumerateType<JsonData::DeviceInfo::MakeData::MakeType> value_underscore(make_underscore.c_str(), false);
+		    if (value_underscore.IsSet()) {
+			    response.Make = value_underscore.Value();
+		    }
+		    else
+		    {			    
+			    TRACE(Trace::Fatal, (_T(" Unknown value %s value_underscore %s "), make.c_str() , make_underscore.c_str()));
+			    result = Core::ERROR_GENERAL;
+		    }
+	    }
         }
 
         return result;
     }
-
     // Property: modelname - Friendly device model name
     // Return codes:
     //  - ERROR_NONE: Success

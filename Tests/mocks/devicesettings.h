@@ -915,7 +915,7 @@ public:
         virtual void setState(const bool bState) const = 0;
         virtual std::string getName() const = 0;
         virtual void setBrightness(const int brightness, const bool toPersist) const = 0;
-        virtual int getBrightness() const = 0;
+        virtual int getBrightness(const bool persist=false) const = 0;
         virtual void setColor(const Color &newColor, const bool toPersist) const = 0;
         virtual void setColorInt(const uint32_t color, const bool toPersist) const = 0;
         virtual void getBrightnessLevels(int &levels,int &min,int &max) const = 0;
@@ -948,7 +948,7 @@ public:
     {
         return impl->setBrightness(brightness, toPersist);
     }
-    int getBrightness()
+    int getBrightness(const bool persist=false)
     {
         return impl->getBrightness();
     }

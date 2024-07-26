@@ -3,19 +3,46 @@
     "jsonrpc": "2.0",
     "info": {
         "title": "UserSettings API",
-        "class": "UserSettings",
+        "class": "org.rdk.UserSettings",
         "description": "The `UserSettings`, that is responsible for persisting and notifying listeners of any change of these settings.."
     },
     "common": {
         "$ref": "../common/common.json"
     },
+    "definitions": {
+        "preferredLanguages": {
+            "summary": "A prioritized list of ISO 639-2/B codes for the preferred audio languages",
+            "type": "string",
+            "example": "eng"
+        },
+        "preferredCaptionsLanguages": {
+            "summary": "A prioritized list of ISO 639-2/B codes for the preferred captions languages",
+            "type": "string",
+            "example": "eng"
+        },
+        "preferredClosedCaptionService": {
+            "summary": "A string for the preferred closed captions service.  Valid values are AUTO, CC[1-4], TEXT[1-4], SERVICE[1-64] where CC and TEXT is CTA-608 and SERVICE is CTA-708.  AUTO indicates that the choice is left to the player",
+            "type": "string",
+            "example": "CC3"
+        },
+        "presentationLanguage": {
+            "summary": "The preferred presentationLanguages in a full BCP 47 value, including script, * region, variant The language set and used by Immerse UI",
+            "type": "string",
+            "example": "en-US"
+        }
+    },
     "methods": {
         "SetAudioDescription": {
             "summary": "Setting Audio Description.",
             "params": {
-                "summary": "Audio Description Enabled: true/false",
-                "type": "boolean",
-                "example": true
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "summary": "Audio Description Enabled: true/false",
+                        "type": "boolean",
+                        "example":true
+                    }
+                }
             },
             "result": {
                 "summary": "Null string will display",
@@ -26,9 +53,12 @@
         "SetPreferredAudioLanguages": {
             "summary": "Setting Preferred Audio Languages.",
             "params": {
-                "summary": "Preferred Audio Languages: eng, wel",
-                "type": "string",
-                "example": "eng"
+                "type": "object",
+                "properties": {
+                    "preferredLanguages": {
+                        "$ref": "#/definitions/preferredLanguages"
+                    }
+                }
             },
             "result": {
                 "summary": "Null string will display",
@@ -39,9 +69,12 @@
         "SetPresentationLanguage": {
             "summary": "Setting Presentation Languages.",
             "params": {
-                "summary": "Presentation Languages: en-US, es-US",
-                "type": "string",
-                "example": "en-US"
+                "type": "object",
+                "properties": {
+                    "presentationLanguages": {
+                        "$ref": "#/definitions/presentationLanguage"
+                    }
+                }
             },
             "result": {
                 "summary": "Null string will display",
@@ -52,9 +85,14 @@
         "SetCaptions": {
             "summary": "Setting Captions.",
             "params": {
-                "summary": "Captions Enabled: true/false",
-                "type": "boolean",
-                "example": true
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "summary": "Captions Enabled: true/false",
+                        "type": "boolean",
+                        "example": true
+                    }
+                }
             },
             "result": {
                 "summary": "Null string will display ",
@@ -65,9 +103,12 @@
         "SetPreferredCaptionsLanguages": {
             "summary": "Setting PreferredCaption Languages.",
             "params": {
-                "summary": "PreferredCaption Languages: eng, fra",
-                "type": "string",
-                "example": "eng"
+                "type": "object",
+                "properties": {
+                    "preferredLanguages": {
+                        "$ref": "#/definitions/preferredCaptionsLanguages"
+                    }
+                }
             },
             "result": {
                 "summary": "Null string will display",
@@ -78,9 +119,12 @@
         "SetPreferredClosedCaptionService": {
             "summary": "Setting Preferred Closed Caption Service.",
             "params": {
-                "summary": "Preferred Closed Caption Service: CC3",
-                "type": "string",
-                "example": "CC3"
+                "type": "object",
+                "properties": {
+                    "service": {
+                        "$ref": "#/definitions/preferredClosedCaptionService"
+                    }
+                }
             },
             "result": {
                 "summary": "Null string will display",
@@ -109,49 +153,55 @@
         "GetAudioDescription":{
             "summary": "Returns Audio Description.",
             "result": {
-                "type": "boolean"
+                "summary": "Audio Description Enabled: true/false",
+                "type": "boolean",
+                "example": true
             }
         },
         "GetPreferredAudioLanguages":{
-            "summary": "Returns Audio Description.",
+            "summary": "Returns Preferred Audio Languages.",
             "result": {
-                "type": "string"
+                "$ref": "#/definitions/preferredLanguages"
             }
         },
         "GetPresentationLanguage":{
             "summary": "Getting Presentation Languages.",
             "result": {
-                "type": "string"
+                "$ref": "#/definitions/presentationLanguage"
             }
         },
         "GetCaptions":{
             "summary": "Getting Captions Enabled.",
             "result": {
-                "type": "boolean"
+                "summary": "Captions Enabled: true/false",
+                "type": "boolean",
+                "example": true
             }
         },
         "GetPreferredCaptionsLanguages":{
             "summary": "Getting Preferred Caption Languages.",
             "result": {
-                "type": "string"
+                "$ref": "#/definitions/preferredCaptionsLanguages"
             }
         },
         "GetPreferredClosedCaptionService":{
             "summary": "Getting Preferred ClosedCaption Service.",
             "result": {
-                "type": "string"
+                "$ref": "#/definitions/preferredClosedCaptionService"
             }
         },
         "GetPrivacyMode":{
             "summary": "Getting Privacy Mode",
             "result": {
-                "type": "string"
+                "summary": "Current Privacy Mode",
+                "type": "string",
+                "example": "DO_NOT_SHARE"
             }
         }
     },
     "events": {
         "OnAudioDescriptionChanged": {
-            "summary": "Triggered after the audio description changes (see `setaudiodescription`)",
+            "summary": "Triggered after the audio description changes (see `SetAudioDescription`)",
             "params": {
                 "type": "object",
                 "properties": {
@@ -167,7 +217,7 @@
             }
         },
         "OnPreferredAudioLanguagesChanged": {
-            "summary": "Triggered after the audio preferred Audio languages changes (see `setpreferredaudiolanguages`)",
+            "summary": "Triggered after the audio preferred Audio languages changes (see `SetPreferredAudioLanguages`)",
             "params": {
                 "type": "object",
                 "properties": {
@@ -183,7 +233,7 @@
             }
         },
         "OnPresentationLanguageChanged": {
-            "summary": "Triggered after the Presentation Language changes (see `setpresentationlanguages`)",
+            "summary": "Triggered after the Presentation Language changes (see `SetPresentationLanguage`)",
             "params": {
                 "type": "object",
                 "properties": {
@@ -199,7 +249,7 @@
             }
         },
         "OnCaptionsChanged": {
-            "summary": "Triggered after the captions changes (see `setcaptionsenabled`)",
+            "summary": "Triggered after the captions changes (see `SetCaptions`)",
             "params": {
                 "type": "object",
                 "properties": {
@@ -215,7 +265,7 @@
             }
         },
         "OnPreferredCaptionsLanguagesChanged": {
-            "summary": "Triggered after the PreferredCaption Languages changes (see `setpreferredcaptionlanguages`)",
+            "summary": "Triggered after the PreferredCaption Languages changes (see `SetPreferredCaptionsLanguages`)",
             "params": {
                 "type": "object",
                 "properties": {
@@ -231,12 +281,12 @@
             }
         },
         "OnPreferredClosedCaptionServiceChanged": {
-            "summary": "Triggered after the Preferred Closed Caption changes (see `setpreferredclosedcaptionservice`)",
+            "summary": "Triggered after the Preferred Closed Caption changes (see `SetPreferredClosedCaptionService`)",
             "params": {
                 "type": "object",
                 "properties": {
                     "service":{
-                        "summary": "Receive Preferred Closed Caption changes",
+                        "summary": "Receive Preferred Closed Caption Service changes",
                         "type": "string",
                         "example": "CC3"
                     }
