@@ -302,7 +302,7 @@ namespace WPEFramework {
             bool internetConnectStatus=false;
 	    bool delayMaintenanceStarted = false;
 
-            std::unique_lock<std::mutex> lck(m_callMutex);
+            std::unique_lock<std::mutex> wailck(m_waiMutex);
             LOGINFO("Executing Maintenance tasks");
 
 #if defined(ENABLE_WHOAMI)
@@ -359,7 +359,7 @@ namespace WPEFramework {
         LOGINFO("knowWhoAmI() returned false and Device is not already Activated");
         g_listen_to_deviceContextUpdate = true;
         LOGINFO("Waiting for onDeviceInitializationContextUpdate event");
-        task_thread.wait(lck);
+        task_thread.wait(wailck);
     }
     else if ( false == internetConnectStatus && activation_status == "activated" ) {
         LOGINFO("Device is not connected to the Internet and Device is already Activated");
@@ -428,6 +428,7 @@ namespace WPEFramework {
             tasks.push_back(task_names_foreground[2].c_str());
             tasks.push_back(task_names_foreground[3].c_str());
 #endif
+            std::unique_lock<std::mutex> lck(m_callMutex);
             for( i = 0; i < tasks.size() && !m_abort_flag; i++) {
                 cmd = tasks[i];
                 cmd += " &";
