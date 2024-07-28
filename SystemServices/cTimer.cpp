@@ -75,11 +75,14 @@ bool cTimer::start()
 void cTimer::stop()
 {
     this->clear = true;
-    if (timerThread.joinable()) {
-        timerThread.join();
-    }
 }
 
+void cTimer::join()
+{
+	if (timerThread.joinable()) {
+		timerThread.join();
+	}
+}
 /***
  * @brief     : Set interval in which the given function should be invoked.
  * @param1[in]   : function which has to be invoked on timed intervals
