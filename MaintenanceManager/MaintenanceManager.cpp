@@ -302,7 +302,7 @@ namespace WPEFramework {
             bool internetConnectStatus=false;
 	    bool delayMaintenanceStarted = false;
 
-            std::unique_lock<std::mutex> lck(m_callMutex);
+            std::unique_lock<std::mutex> wailck(m_waiMutex);
             LOGINFO("Executing Maintenance tasks");
 
 #if defined(ENABLE_WHOAMI)
@@ -359,7 +359,7 @@ namespace WPEFramework {
         LOGINFO("knowWhoAmI() returned false and Device is not already Activated");
         g_listen_to_deviceContextUpdate = true;
         LOGINFO("Waiting for onDeviceInitializationContextUpdate event");
-        task_thread.wait(lck);
+        task_thread.wait(wailck);
     }
     else if ( false == internetConnectStatus && activation_status == "activated" ) {
         LOGINFO("Device is not connected to the Internet and Device is already Activated");
@@ -428,6 +428,7 @@ namespace WPEFramework {
             tasks.push_back(task_names_foreground[2].c_str());
             tasks.push_back(task_names_foreground[3].c_str());
 #endif
+            std::unique_lock<std::mutex> lck(m_callMutex);
             for( i = 0; i < tasks.size() && !m_abort_flag; i++) {
                 cmd = tasks[i];
                 cmd += " &";
@@ -1320,6 +1321,7 @@ namespace WPEFramework {
         uint32_t MaintenanceManager::getMaintenanceActivityStatus(const JsonObject& parameters,
                 JsonObject& response)
                 {
+		    LOGINFO("Request for getMaintenanceActivityStatus()");
                     bool result = false;
                     string isCriticalMaintenance = "false";
                     string isRebootPending = "false";
@@ -1505,6 +1507,7 @@ namespace WPEFramework {
         uint32_t MaintenanceManager::setMaintenanceMode(const JsonObject& parameters,
                 JsonObject& response)
         {
+            LOGINFO("Request for setMaintenanceMode()");
             bool result = false;
             string new_mode = "";
             string old_mode = g_currentMode;
@@ -1616,6 +1619,7 @@ namespace WPEFramework {
         uint32_t MaintenanceManager::startMaintenance(const JsonObject& parameters,
                 JsonObject& response)
                 {
+		    LOGINFO("Request for startMaintenance()");
                     bool result = false;
                     /* check what mode we currently have */
                     string current_mode="";
@@ -1684,6 +1688,7 @@ namespace WPEFramework {
         }
 
         bool MaintenanceManager::stopMaintenanceTasks(){
+		LOGINFO("Request for stopMaintenance()");
 	        string codeDLtask;
             int k_ret=EINVAL;
             int i=0;
@@ -1742,7 +1747,7 @@ namespace WPEFramework {
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type && !g_unsolicited_complete){
                 g_unsolicited_complete = true;
 	    }
-
+            
             LOGINFO("Maintenance has been stopped. Hence setting maintenance status to MAINTENANCE_ERROR\n");
             MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
             m_statusMutex.unlock();
