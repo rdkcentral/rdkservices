@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.36] - 2024-07-26
+### Fixed
+- Fixed Mutex wait for getMaintenanceActivityStatus() jsonRPC when there is no Internet 
+
 ## [1.0.35] - 2024-07-02
 ### Added
 - Added RFC Task in Critical Tasks to be executed on successful Network Connection
