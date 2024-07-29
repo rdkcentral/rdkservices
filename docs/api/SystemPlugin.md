@@ -47,14 +47,12 @@ SystemServices interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [cacheContains](#cacheContains) | Checks if a key is present in the cache |
 | [clearLastDeepSleepReason](#clearLastDeepSleepReason) | Clears the last deep sleep reason |
 | [deletePersistentPath](#deletePersistentPath) | Deletes persistent path associated with a callsign |
 | [enableMoca](#enableMoca) | Enables (or disables) Moca support for the platform |
 | [enableXREConnectionRetention](#enableXREConnectionRetention) | Enables (or disables) XRE Connection Retention option |
 | [fireFirmwarePendingReboot](#fireFirmwarePendingReboot) | Notifies the device about a pending reboot |
 | [getAvailableStandbyModes](#getAvailableStandbyModes) | Queries the available standby modes |
-| [getCachedValue](#getCachedValue) | Gets the value of a key in the cache |
 | [getCoreTemperature](#getCoreTemperature) | Returns the core temperature of the device |
 | [getDeviceInfo](#getDeviceInfo) | Collects device details |
 | [getDownloadedFirmwareInfo](#getDownloadedFirmwareInfo) | Returns information about firmware downloads |
@@ -94,10 +92,8 @@ SystemServices interface methods:
 | [isOptOutTelemetry](#isOptOutTelemetry) | Checks the telemetry opt-out status |
 | [queryMocaStatus](#queryMocaStatus) | Checks whether MOCA is enabled |
 | [reboot](#reboot) | Requests that the system performs a reboot of the set-top box |
-| [removeCacheKey](#removeCacheKey) | Removes the cache key |
 | [requestSystemUptime](#requestSystemUptime) | Returns the device uptime |
 | [setBootLoaderPattern](#setBootLoaderPattern) | Sets the boot loader pattern mode in MFR |
-| [setCachedValue](#setCachedValue) | Sets the value for a key in the cache |
 | [setDeepSleepTimer](#setDeepSleepTimer) | Sets the deep sleep timeout period |
 | [setFirmwareAutoReboot](#setFirmwareAutoReboot) | Enables or disables the AutoReboot Feature |
 | [setFirmwareRebootDelay](#setFirmwareRebootDelay) | Delays the firmware reboot |
@@ -121,58 +117,6 @@ SystemServices interface methods:
 | [abortLogUpload](#abortLogUpload) | Stops background process to upload logs |
 | [getThunderStartReason](#getThunderStartReason) | Returns the Thunder start reason |
 
-
-<a name="cacheContains"></a>
-## *cacheContains*
-
-Checks if a key is present in the cache.
-
-> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api]( https://rdkcentral.github.io/rdkservices/#/api/PersistentStorePlugin?id=getvalue)
-
-### Events
-
-No Events
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.key | string | The cache key |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.System.cacheContains",
-    "params": {
-        "key": "sampleKey"
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "success": true
-    }
-}
-```
 
 <a name="clearLastDeepSleepReason"></a>
 ## *clearLastDeepSleepReason*
@@ -459,60 +403,6 @@ This method takes no parameters.
         "supportedStandbyModes": [
             "LIGHT_SLEEP"
         ],
-        "success": true
-    }
-}
-```
-
-<a name="getCachedValue"></a>
-## *getCachedValue*
-
-Gets the value of a key in the cache.
-
-> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/PersistentStorePlugin?id=getvalue)
-
-### Events
-
-No Events
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.key | string | The cache key |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.sampleKey | string | Value for the specified key name |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.System.getCachedValue",
-    "params": {
-        "key": "sampleKey"
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "sampleKey": "4343.3434",
         "success": true
     }
 }
@@ -2498,58 +2388,6 @@ Requests that the system performs a reboot of the set-top box.
 }
 ```
 
-<a name="removeCacheKey"></a>
-## *removeCacheKey*
-
-Removes the cache key.
-
-> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/PersistentStorePlugin?id=deletekey)
-
-### Events
-
-No Events
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.key | string | The cache key |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.System.removeCacheKey",
-    "params": {
-        "key": "sampleKey"
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "success": true
-    }
-}
-```
-
 <a name="requestSystemUptime"></a>
 ## *requestSystemUptime*
 
@@ -2630,60 +2468,6 @@ No Events
     "method": "org.rdk.System.setBootLoaderPattern",
     "params": {
         "pattern": "NORMAL"
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="setCachedValue"></a>
-## *setCachedValue*
-
-Sets the value for a key in the cache.
-
-> This API is **deprecated** and may be removed in the future. It is no longer recommended for use in new implementations. [Refer this link for the new api](https://rdkcentral.github.io/rdkservices/#/api/PersistentStorePlugin?id=setvalue)
-
-### Events
-
-No Events
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.key | string | The cache key |
-| params.value | number | The value to set |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.System.setCachedValue",
-    "params": {
-        "key": "sampleKey",
-        "value": 4343.3434
     }
 }
 ```

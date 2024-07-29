@@ -103,7 +103,6 @@ namespace WPEFramework {
                 typedef Core::JSON::ArrayType<JString> JStringArray;
                 typedef Core::JSON::Boolean JBool;
                 string m_stbVersionString;
-                cSettings m_cacheService;
                 static cSettings m_temp_settings;
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
                 static IARM_Bus_SYSMgr_GetSystemStates_Param_t paramGetSysState;
@@ -226,10 +225,6 @@ namespace WPEFramework {
                    and getProperty functionalities are XRE/RTRemote dependent. */
                 bool setProperties(const JsonObject& propertyNames);
                 bool getProperties(const JsonObject& params, JsonObject& returnProperties);
-                uint32_t getCachedValue(const JsonObject& parameters, JsonObject& response);
-                uint32_t setCachedValue(const JsonObject& parameters, JsonObject& response);
-                uint32_t cacheContains(const JsonObject& parameters, JsonObject& response);
-                uint32_t removeCacheKey(const JsonObject& parameters, JsonObject& response);
                 uint32_t getMode(const JsonObject& parameters, JsonObject& response);
                 uint32_t updateFirmware(const JsonObject& parameters, JsonObject& response);
                 uint32_t setMode(const JsonObject& parameters, JsonObject& response);
