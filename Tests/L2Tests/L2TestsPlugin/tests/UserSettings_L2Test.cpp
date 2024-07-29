@@ -185,6 +185,7 @@ protected:
       void OnPreferredClosedCaptionServiceChanged(const string service);
 
       uint32_t WaitForRequestStatus(uint32_t timeout_ms,UserSettingsL2test_async_events_t expected_status);
+      uint32_t CreateUserSettingInterfaceObjectUsingComRPCConnection();
 
     private:
         /** @brief Mutex */
@@ -195,6 +196,13 @@ protected:
 
         /** @brief Event signalled flag */
         uint32_t m_event_signalled;
+
+    protected:
+        /** @brief Pointer to the IShell interface */
+        PluginHost::IShell *m_controller_usersettings;
+
+        /** @brief Pointer to the IUserSettings interface */
+        Exchange::IUserSettings *m_usersettingsplugin;
 };
 
 UserSettingTest:: UserSettingTest():L2TestMocks()
@@ -243,6 +251,35 @@ uint32_t UserSettingTest::WaitForRequestStatus(uint32_t timeout_ms, UserSettings
 
     signalled = m_event_signalled;
     return signalled;
+}
+uint32_t UserSettingTest::CreateUserSettingInterfaceObjectUsingComRPCConnection()
+{
+    uint32_t return_value =  Core::ERROR_GENERAL;
+    Core::ProxyType<RPC::InvokeServerType<1, 0, 4>> Engine_UserSettings;
+    Core::ProxyType<RPC::CommunicatorClient> Client_UserSettings;
+
+    TEST_LOG("Creating Engine_UserSettings");
+    Engine_UserSettings = Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create();
+    Client_UserSettings = Core::ProxyType<RPC::CommunicatorClient>::Create(Core::NodeId("/tmp/communicator"), Core::ProxyType<Core::IIPCServer>(Engine_UserSettings));
+
+    TEST_LOG("Creating Engine_UserSettings Announcements");
+#if ((THUNDER_VERSION == 2) || ((THUNDER_VERSION == 4) && (THUNDER_VERSION_MINOR == 2)))
+    Engine_UserSettings->Announcements(mClient_UserSettings->Announcement());
+#endif
+    if (!Client_UserSettings.IsValid())
+    {
+        TEST_LOG("Invalid Client_UserSettings");
+    }
+    else
+    {
+        m_controller_usersettings = Client_UserSettings->Open<PluginHost::IShell>(_T("org.rdk.UserSettings"), ~0, 3000);
+        if (m_controller_usersettings)
+        {
+        m_usersettingsplugin = m_controller_usersettings->QueryInterface<Exchange::IUserSettings>();
+        return_value = Core::ERROR_NONE;
+        }
+    }
+    return return_value;
 }
 
 void UserSettingTest::OnAudioDescriptionChanged(const bool enabled)
@@ -612,39 +649,24 @@ TEST_F(UserSettingTest,SetPreferredClosedCaptionServiceSuccess)
 
 TEST_F(UserSettingTest,AudioDescriptionSuccessUsingComRpcConnection)
 {
-    Core::ProxyType<RPC::InvokeServerType<1, 0, 4>> mEngine_UserSettings;
-    Core::ProxyType<RPC::CommunicatorClient> mClient_UserSettings;
-    PluginHost::IShell *mController_UserSettings;
     uint32_t status = Core::ERROR_GENERAL;
-    Core::Sink<NotificationHandler> mNotification;
-
-    TEST_LOG("Creating mEngine_UserSettings");
-    mEngine_UserSettings = Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create();
-    mClient_UserSettings = Core::ProxyType<RPC::CommunicatorClient>::Create(Core::NodeId("/tmp/communicator"), Core::ProxyType<Core::IIPCServer>(mEngine_UserSettings));
-
-    TEST_LOG("Creating mEngine_UserSettings Announcements");
-#if ((THUNDER_VERSION == 2) || ((THUNDER_VERSION == 4) && (THUNDER_VERSION_MINOR == 2)))
-    mEngine_UserSettings->Announcements(mClient_UserSettings->Announcement());
-#endif
-
-    if (!mClient_UserSettings.IsValid())
+    Core::Sink<NotificationHandler> notification;
+    if (CreateUserSettingInterfaceObjectUsingComRPCConnection() != Core::ERROR_NONE)
     {
-        TEST_LOG("Invalid mClient_UserSettings");
+        TEST_LOG("Invalid Client_UserSettings");
     }
     else
     {
-        mController_UserSettings = mClient_UserSettings->Open<PluginHost::IShell>(_T("org.rdk.UserSettings"), ~0, 3000);
-        if (mController_UserSettings)
+        ASSERT_TRUE(m_controller_usersettings!= nullptr);
+        if (m_controller_usersettings)
         {
-            auto UserSettingsPlugin = mController_UserSettings->QueryInterface<Exchange::IUserSettings>();
             uint32_t signalled = UserSettings_StateInvalid;
-
-            UserSettingsPlugin->AddRef();
-            UserSettingsPlugin->Register(&mNotification);
-
-            if (UserSettingsPlugin)
+            ASSERT_TRUE(m_usersettingsplugin!= nullptr);
+            if (m_usersettingsplugin)
             {
-                status = UserSettingsPlugin->SetAudioDescription(true);
+                m_usersettingsplugin->AddRef();
+                m_usersettingsplugin->Register(&notification);
+                status = m_usersettingsplugin->SetAudioDescription(true);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
                 {
@@ -652,11 +674,11 @@ TEST_F(UserSettingTest,AudioDescriptionSuccessUsingComRpcConnection)
                     TEST_LOG("Err: %s", errorMsg.c_str());
                 }
 
-                signalled = mNotification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_OnAudioDescriptionChanged);
+                signalled = notification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_OnAudioDescriptionChanged);
                 EXPECT_TRUE(signalled & UserSettings_OnAudioDescriptionChanged);
 
                 bool Enable = false;
-                status = UserSettingsPlugin->GetAudioDescription(Enable);
+                status = m_usersettingsplugin->GetAudioDescription(Enable);
                 EXPECT_EQ(Enable, true);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -664,58 +686,43 @@ TEST_F(UserSettingTest,AudioDescriptionSuccessUsingComRpcConnection)
                     std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
                     TEST_LOG("Err: %s", errorMsg.c_str());
                 }
-                UserSettingsPlugin->Unregister(&mNotification);
-                UserSettingsPlugin->Release();
+                m_usersettingsplugin->Unregister(&notification);
+                m_usersettingsplugin->Release();
             }
             else
             {
-                TEST_LOG("UserSettingsPlugin is NULL");
+                TEST_LOG("m_usersettingsplugin is NULL");
             }
-            mController_UserSettings->Release();
+            m_controller_usersettings->Release();
         }
         else
         {
-            TEST_LOG("mController_UserSettings is NULL");
+            TEST_LOG("m_controller_usersettings is NULL");
         }
     }
 }
 
 TEST_F(UserSettingTest,PreferredAudioLanguagesSuccessUsingComRpcConnection)
 {
-    Core::ProxyType<RPC::InvokeServerType<1, 0, 4>> mEngine_UserSettings;
-    Core::ProxyType<RPC::CommunicatorClient> mClient_UserSettings;
-    PluginHost::IShell *mController_UserSettings;
-    Core::Sink<NotificationHandler> mNotification;
     uint32_t status = Core::ERROR_GENERAL;
-
-    TEST_LOG("Creating mEngine_UserSettings");
-    mEngine_UserSettings = Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create();
-    mClient_UserSettings = Core::ProxyType<RPC::CommunicatorClient>::Create(Core::NodeId("/tmp/communicator"), Core::ProxyType<Core::IIPCServer>(mEngine_UserSettings));
-
-    TEST_LOG("Creating mEngine_UserSettings Announcements");
-#if ((THUNDER_VERSION == 2) || ((THUNDER_VERSION == 4) && (THUNDER_VERSION_MINOR == 2)))
-    mEngine_UserSettings->Announcements(mClient_UserSettings->Announcement());
-#endif
-
-    if (!mClient_UserSettings.IsValid())
+    Core::Sink<NotificationHandler> notification;
+    if (CreateUserSettingInterfaceObjectUsingComRPCConnection() != Core::ERROR_NONE)
     {
-        TEST_LOG("Invalid mClient_UserSettings");
+        TEST_LOG("Invalid Client_UserSettings");
     }
     else
     {
-        mController_UserSettings = mClient_UserSettings->Open<PluginHost::IShell>(_T("org.rdk.UserSettings"), ~0, 3000);
-        if (mController_UserSettings)
+        ASSERT_TRUE(m_controller_usersettings!= nullptr);
+        if (m_controller_usersettings)
         {
-            auto UserSettingsPlugin = mController_UserSettings->QueryInterface<Exchange::IUserSettings>();
             uint32_t signalled = UserSettings_StateInvalid;
-
-            UserSettingsPlugin->AddRef();
-            UserSettingsPlugin->Register(&mNotification);
-
-            if (UserSettingsPlugin)
+            ASSERT_TRUE(m_usersettingsplugin!= nullptr);
+            if (m_usersettingsplugin)
             {
+                m_usersettingsplugin->AddRef();
+                m_usersettingsplugin->Register(&notification);
                 const string preferredLanguages = "eng";
-                status = UserSettingsPlugin->SetPreferredAudioLanguages(preferredLanguages);
+                status = m_usersettingsplugin->SetPreferredAudioLanguages(preferredLanguages);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
                 {
@@ -723,11 +730,11 @@ TEST_F(UserSettingTest,PreferredAudioLanguagesSuccessUsingComRpcConnection)
                     TEST_LOG("Err: %s", errorMsg.c_str());
                 }
 
-                signalled = mNotification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_OnPreferredAudioLanguagesChanged);
+                signalled = notification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_OnPreferredAudioLanguagesChanged);
                 EXPECT_TRUE(signalled & UserSettings_OnPreferredAudioLanguagesChanged);
 
                 string preferredLanguages1 = "";
-                status = UserSettingsPlugin->GetPreferredAudioLanguages(preferredLanguages1);
+                status = m_usersettingsplugin->GetPreferredAudioLanguages(preferredLanguages1);
                 EXPECT_EQ(preferredLanguages1, preferredLanguages);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -735,59 +742,44 @@ TEST_F(UserSettingTest,PreferredAudioLanguagesSuccessUsingComRpcConnection)
                     std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
                     TEST_LOG("Err: %s", errorMsg.c_str());
                 }
-                UserSettingsPlugin->Unregister(&mNotification);
-                UserSettingsPlugin->Release();
+                m_usersettingsplugin->Unregister(&notification);
+                m_usersettingsplugin->Release();
             }
             else
             {
-                TEST_LOG("UserSettingsPlugin is NULL");
+                TEST_LOG("m_usersettingsplugin is NULL");
             }
-            mController_UserSettings->Release();
+            m_controller_usersettings->Release();
         }
         else
         {
-            TEST_LOG("mController_UserSettings is NULL");
+            TEST_LOG("m_controller_usersettings is NULL");
         }
     }
 }
 
 TEST_F(UserSettingTest,PresentationLanguageSuccessUsingComRpcConnection)
 {
-    Core::ProxyType<RPC::InvokeServerType<1, 0, 4>> mEngine_UserSettings;
-    Core::ProxyType<RPC::CommunicatorClient> mClient_UserSettings;
-    PluginHost::IShell *mController_UserSettings;
     uint32_t status = Core::ERROR_GENERAL;
-    Core::Sink<NotificationHandler> mNotification;
+    Core::Sink<NotificationHandler> notification;
 
-
-    TEST_LOG("Creating mEngine_UserSettings");
-    mEngine_UserSettings = Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create();
-    mClient_UserSettings = Core::ProxyType<RPC::CommunicatorClient>::Create(Core::NodeId("/tmp/communicator"), Core::ProxyType<Core::IIPCServer>(mEngine_UserSettings));
-
-    TEST_LOG("Creating mEngine_UserSettings Announcements");
-#if ((THUNDER_VERSION == 2) || ((THUNDER_VERSION == 4) && (THUNDER_VERSION_MINOR == 2)))
-    mEngine_UserSettings->Announcements(mClient_UserSettings->Announcement());
-#endif
-
-    if (!mClient_UserSettings.IsValid())
+    if (CreateUserSettingInterfaceObjectUsingComRPCConnection() != Core::ERROR_NONE)
     {
         TEST_LOG("Invalid mClient_UserSettings");
     }
     else
     {
-        mController_UserSettings = mClient_UserSettings->Open<PluginHost::IShell>(_T("org.rdk.UserSettings"), ~0, 3000);
-        if (mController_UserSettings)
+        ASSERT_TRUE(m_controller_usersettings!= nullptr);
+        if (m_controller_usersettings)
         {
-            auto UserSettingsPlugin = mController_UserSettings->QueryInterface<Exchange::IUserSettings>();
             uint32_t signalled = UserSettings_StateInvalid;
-
-            UserSettingsPlugin->AddRef();
-            UserSettingsPlugin->Register(&mNotification);
-
-            if (UserSettingsPlugin)
+            ASSERT_TRUE(m_usersettingsplugin!= nullptr);
+            if (m_usersettingsplugin)
             {
+                m_usersettingsplugin->AddRef();
+                m_usersettingsplugin->Register(&notification);
                 const string presentationLanguage = "fra";
-                status = UserSettingsPlugin->SetPresentationLanguage(presentationLanguage);
+                status = m_usersettingsplugin->SetPresentationLanguage(presentationLanguage);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
                 {
@@ -795,11 +787,11 @@ TEST_F(UserSettingTest,PresentationLanguageSuccessUsingComRpcConnection)
                     TEST_LOG("Err: %s", errorMsg.c_str());
                 }
 
-                signalled = mNotification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_OnPresentationLanguageChanged);
+                signalled = notification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_OnPresentationLanguageChanged);
                 EXPECT_TRUE(signalled & UserSettings_OnPresentationLanguageChanged);
 
                 string presentationLanguage1 = "";
-                status = UserSettingsPlugin->GetPresentationLanguage(presentationLanguage1);
+                status = m_usersettingsplugin->GetPresentationLanguage(presentationLanguage1);
                 EXPECT_EQ(presentationLanguage1, presentationLanguage);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -807,57 +799,43 @@ TEST_F(UserSettingTest,PresentationLanguageSuccessUsingComRpcConnection)
                     std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
                     TEST_LOG("Err: %s", errorMsg.c_str());
                 }
-                UserSettingsPlugin->Unregister(&mNotification);
-                UserSettingsPlugin->Release();
+                m_usersettingsplugin->Unregister(&notification);
+                m_usersettingsplugin->Release();
             }
             else
             {
-                TEST_LOG("UserSettingsPlugin is NULL");
+                TEST_LOG("m_usersettingsplugin is NULL");
             }
-            mController_UserSettings->Release();
+            m_controller_usersettings->Release();
         }
         else
         {
-            TEST_LOG("mController_UserSettings is NULL");
+            TEST_LOG("m_controller_usersettings is NULL");
         }
     }
 }
 
 TEST_F(UserSettingTest,CaptionsSuccessUsingComRpcConnection)
 {
-    Core::ProxyType<RPC::InvokeServerType<1, 0, 4>> mEngine_UserSettings;
-    Core::ProxyType<RPC::CommunicatorClient> mClient_UserSettings;
-    PluginHost::IShell *mController_UserSettings;
     uint32_t status = Core::ERROR_GENERAL;
-    Core::Sink<NotificationHandler> mNotification;
+    Core::Sink<NotificationHandler> notification;
 
-    TEST_LOG("Creating mEngine_UserSettings");
-    mEngine_UserSettings = Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create();
-    mClient_UserSettings = Core::ProxyType<RPC::CommunicatorClient>::Create(Core::NodeId("/tmp/communicator"), Core::ProxyType<Core::IIPCServer>(mEngine_UserSettings));
-
-    TEST_LOG("Creating mEngine_UserSettings Announcements");
-#if ((THUNDER_VERSION == 2) || ((THUNDER_VERSION == 4) && (THUNDER_VERSION_MINOR == 2)))
-    mEngine_UserSettings->Announcements(mClient_UserSettings->Announcement());
-#endif
-
-    if (!mClient_UserSettings.IsValid())
+    if (CreateUserSettingInterfaceObjectUsingComRPCConnection() != Core::ERROR_NONE)
     {
-        TEST_LOG("Invalid mClient_UserSettings");
+        TEST_LOG("Invalid Client_UserSettings");
     }
     else
     {
-        mController_UserSettings = mClient_UserSettings->Open<PluginHost::IShell>(_T("org.rdk.UserSettings"), ~0, 3000);
-        if (mController_UserSettings)
+        ASSERT_TRUE(m_controller_usersettings!= nullptr);
+        if (m_controller_usersettings)
         {
-            auto UserSettingsPlugin = mController_UserSettings->QueryInterface<Exchange::IUserSettings>();
             uint32_t signalled = UserSettings_StateInvalid;
-
-            UserSettingsPlugin->AddRef();
-            UserSettingsPlugin->Register(&mNotification);
-
-            if (UserSettingsPlugin)
+            ASSERT_TRUE(m_usersettingsplugin!= nullptr);
+            if (m_usersettingsplugin)
             {
-                status = UserSettingsPlugin->SetCaptions(true);
+                m_usersettingsplugin->AddRef();
+                m_usersettingsplugin->Register(&notification);
+                status = m_usersettingsplugin->SetCaptions(true);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
                 {
@@ -865,11 +843,11 @@ TEST_F(UserSettingTest,CaptionsSuccessUsingComRpcConnection)
                     TEST_LOG("Err: %s", errorMsg.c_str());
                 }
 
-                signalled = mNotification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_OnCaptionsChanged);
+                signalled = notification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_OnCaptionsChanged);
                 EXPECT_TRUE(signalled & UserSettings_OnCaptionsChanged);
 
                 bool Enable = false;
-                status = UserSettingsPlugin->GetCaptions(Enable);
+                status = m_usersettingsplugin->GetCaptions(Enable);
                 EXPECT_EQ(Enable, true);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -877,58 +855,44 @@ TEST_F(UserSettingTest,CaptionsSuccessUsingComRpcConnection)
                     std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
                     TEST_LOG("Err: %s", errorMsg.c_str());
                 }
-                UserSettingsPlugin->Unregister(&mNotification);
-                UserSettingsPlugin->Release();
+                m_usersettingsplugin->Unregister(&notification);
+                m_usersettingsplugin->Release();
             }
             else
             {
-                TEST_LOG("UserSettingsPlugin is NULL");
+                TEST_LOG("m_usersettingsplugin is NULL");
             }
-            mController_UserSettings->Release();
+            m_controller_usersettings->Release();
         }
         else
         {
-            TEST_LOG("mController_UserSettings is NULL");
+            TEST_LOG("m_controller_usersettings is NULL");
         }
     }
 }
 
 TEST_F(UserSettingTest,PreferredCaptionsLanguagesSuccessUsingComRpcConnection)
 {
-    Core::ProxyType<RPC::InvokeServerType<1, 0, 4>> mEngine_UserSettings;
-    Core::ProxyType<RPC::CommunicatorClient> mClient_UserSettings;
-    PluginHost::IShell *mController_UserSettings;
     uint32_t status = Core::ERROR_GENERAL;
-    Core::Sink<NotificationHandler> mNotification;
+    Core::Sink<NotificationHandler> notification;
 
-    TEST_LOG("Creating mEngine_UserSettings");
-    mEngine_UserSettings = Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create();
-    mClient_UserSettings = Core::ProxyType<RPC::CommunicatorClient>::Create(Core::NodeId("/tmp/communicator"), Core::ProxyType<Core::IIPCServer>(mEngine_UserSettings));
-
-    TEST_LOG("Creating mEngine_UserSettings Announcements");
-#if ((THUNDER_VERSION == 2) || ((THUNDER_VERSION == 4) && (THUNDER_VERSION_MINOR == 2)))
-    mEngine_UserSettings->Announcements(mClient_UserSettings->Announcement());
-#endif
-
-    if (!mClient_UserSettings.IsValid())
+    if (CreateUserSettingInterfaceObjectUsingComRPCConnection() != Core::ERROR_NONE)
     {
         TEST_LOG("Invalid mClient_UserSettings");
     }
     else
     {
-        mController_UserSettings = mClient_UserSettings->Open<PluginHost::IShell>(_T("org.rdk.UserSettings"), ~0, 3000);
-        if (mController_UserSettings)
+        ASSERT_TRUE(m_controller_usersettings!= nullptr);
+        if (m_controller_usersettings)
         {
             const string preferredCaptionsLanguages = "eng";
-            auto UserSettingsPlugin = mController_UserSettings->QueryInterface<Exchange::IUserSettings>();
             uint32_t signalled = UserSettings_StateInvalid;
-
-            UserSettingsPlugin->AddRef();
-            UserSettingsPlugin->Register(&mNotification);
-
-            if (UserSettingsPlugin)
+            ASSERT_TRUE(m_usersettingsplugin!= nullptr);
+            if (m_usersettingsplugin)
             {
-                status = UserSettingsPlugin->SetPreferredCaptionsLanguages(preferredCaptionsLanguages);
+                m_usersettingsplugin->AddRef();
+                m_usersettingsplugin->Register(&notification);
+                status = m_usersettingsplugin->SetPreferredCaptionsLanguages(preferredCaptionsLanguages);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
                 {
@@ -936,11 +900,11 @@ TEST_F(UserSettingTest,PreferredCaptionsLanguagesSuccessUsingComRpcConnection)
                     TEST_LOG("Err: %s", errorMsg.c_str());
                 }
 
-                signalled = mNotification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_OnPreferredCaptionsLanguagesChanged);
+                signalled = notification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_OnPreferredCaptionsLanguagesChanged);
                 EXPECT_TRUE(signalled & UserSettings_OnPreferredCaptionsLanguagesChanged);
 
                 string preferredCaptionsLanguages1 = "";
-                status = UserSettingsPlugin->GetPreferredCaptionsLanguages(preferredCaptionsLanguages1);
+                status = m_usersettingsplugin->GetPreferredCaptionsLanguages(preferredCaptionsLanguages1);
                 EXPECT_EQ(preferredCaptionsLanguages1, preferredCaptionsLanguages);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -948,58 +912,44 @@ TEST_F(UserSettingTest,PreferredCaptionsLanguagesSuccessUsingComRpcConnection)
                     std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
                     TEST_LOG("Err: %s", errorMsg.c_str());
                 }
-                UserSettingsPlugin->Unregister(&mNotification);
-                UserSettingsPlugin->Release();
+                m_usersettingsplugin->Unregister(&notification);
+                m_usersettingsplugin->Release();
             }
             else
             {
-                TEST_LOG("UserSettingsPlugin is NULL");
+                TEST_LOG("m_usersettingsplugin is NULL");
             }
-            mController_UserSettings->Release();
+            m_controller_usersettings->Release();
         }
         else
         {
-            TEST_LOG("mController_UserSettings is NULL");
+            TEST_LOG("m_controller_usersettings is NULL");
         }
     }
 }
 
 TEST_F(UserSettingTest,PreferredClosedCaptionServiceSuccessUsingComRpcConnection)
 {
-    Core::ProxyType<RPC::InvokeServerType<1, 0, 4>> mEngine_UserSettings;
-    Core::ProxyType<RPC::CommunicatorClient> mClient_UserSettings;
-    PluginHost::IShell *mController_UserSettings;
     uint32_t status = Core::ERROR_GENERAL;
-    Core::Sink<NotificationHandler> mNotification;
+    Core::Sink<NotificationHandler> notification;
 
-    TEST_LOG("Creating mEngine_UserSettings");
-    mEngine_UserSettings = Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create();
-    mClient_UserSettings = Core::ProxyType<RPC::CommunicatorClient>::Create(Core::NodeId("/tmp/communicator"), Core::ProxyType<Core::IIPCServer>(mEngine_UserSettings));
-
-    TEST_LOG("Creating mEngine_UserSettings Announcements");
-#if ((THUNDER_VERSION == 2) || ((THUNDER_VERSION == 4) && (THUNDER_VERSION_MINOR == 2)))
-    mEngine_UserSettings->Announcements(mClient_UserSettings->Announcement());
-#endif
-
-    if (!mClient_UserSettings.IsValid())
+    if (CreateUserSettingInterfaceObjectUsingComRPCConnection() != Core::ERROR_NONE)
     {
-        TEST_LOG("Invalid mClient_UserSettings");
+        TEST_LOG("Invalid Client_UserSettings");
     }
     else
     {
-        mController_UserSettings = mClient_UserSettings->Open<PluginHost::IShell>(_T("org.rdk.UserSettings"), ~0, 3000);
-        if (mController_UserSettings)
+        ASSERT_TRUE(m_controller_usersettings!= nullptr);
+        if (m_controller_usersettings)
         {
-            auto UserSettingsPlugin = mController_UserSettings->QueryInterface<Exchange::IUserSettings>();
             uint32_t signalled = UserSettings_StateInvalid;
-
-            UserSettingsPlugin->AddRef();
-            UserSettingsPlugin->Register(&mNotification);
-
-            if (UserSettingsPlugin)
+            ASSERT_TRUE(m_usersettingsplugin!= nullptr);
+            if (m_usersettingsplugin)
             {
+                m_usersettingsplugin->AddRef();
+                m_usersettingsplugin->Register(&notification);
                 const string preferredClosedCaptionService = "CC3";
-                status = UserSettingsPlugin->SetPreferredClosedCaptionService(preferredClosedCaptionService);
+                status = m_usersettingsplugin->SetPreferredClosedCaptionService(preferredClosedCaptionService);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
                 {
@@ -1007,11 +957,11 @@ TEST_F(UserSettingTest,PreferredClosedCaptionServiceSuccessUsingComRpcConnection
                     TEST_LOG("Err: %s", errorMsg.c_str());
                 }
 
-                signalled = mNotification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_OnPreferredClosedCaptionServiceChanged);
+                signalled = notification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_OnPreferredClosedCaptionServiceChanged);
                 EXPECT_TRUE(signalled & UserSettings_OnPreferredClosedCaptionServiceChanged);
 
                 string preferredClosedCaptionService1 = "";
-                status = UserSettingsPlugin->GetPreferredClosedCaptionService(preferredClosedCaptionService1);
+                status = m_usersettingsplugin->GetPreferredClosedCaptionService(preferredClosedCaptionService1);
                 EXPECT_EQ(preferredClosedCaptionService1, preferredClosedCaptionService);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -1019,20 +969,18 @@ TEST_F(UserSettingTest,PreferredClosedCaptionServiceSuccessUsingComRpcConnection
                     std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
                     TEST_LOG("Err: %s", errorMsg.c_str());
                 }
-                UserSettingsPlugin->Unregister(&mNotification);
-                UserSettingsPlugin->Release();
+                m_usersettingsplugin->Unregister(&notification);
+                m_usersettingsplugin->Release();
             }
             else
             {
                 TEST_LOG("UserSettingsPlugin is NULL");
             }
-            mController_UserSettings->Release();
+            m_controller_usersettings->Release();
         }
         else
         {
-            TEST_LOG("mController_UserSettings is NULL");
+            TEST_LOG("m_controller_usersettings is NULL");
         }
     }
 }
-
-
