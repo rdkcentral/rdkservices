@@ -572,7 +572,6 @@ TEST_F(UserSettingTest, SetAndGetMethodsUsingJsonRpcConnectionSuccessCase)
     uint32_t status = Core::ERROR_GENERAL;
     uint32_t signalled = UserSettings_StateInvalid;
 
-    JsonObject params;
     bool enabled = true;
     string preferredLanguages = "en";
     string presentationLanguages = "fra";
@@ -584,7 +583,7 @@ TEST_F(UserSettingTest, SetAndGetMethodsUsingJsonRpcConnectionSuccessCase)
 
     TEST_LOG("Testing AudioDescriptionSuccess");
     status = jsonrpc.Subscribe<JsonObject>(JSON_TIMEOUT,
-                                       _T("onaudiodescriptionchanged"),
+                                       _T("OnAudioDescriptionChanged"),
                                        [this, &async_handler](const JsonObject& parameters) {
                                            bool enabled = parameters["enabled"].Boolean();
                                            async_handler.OnAudioDescriptionChanged(enabled);
@@ -594,26 +593,27 @@ TEST_F(UserSettingTest, SetAndGetMethodsUsingJsonRpcConnectionSuccessCase)
     EXPECT_CALL(async_handler, OnAudioDescriptionChanged(MatchRequestStatusBool(enabled)))
     .WillOnce(Invoke(this, &UserSettingTest::OnAudioDescriptionChanged));
 
-    params["value"] = true;
-    status = InvokeServiceMethod("org.rdk.UserSettings", "setaudiodescription", params, result_json);
+    JsonObject paramsAudioDes;
+    paramsAudioDes["enabled"] = true;
+    status = InvokeServiceMethod("org.rdk.UserSettings", "SetAudioDescription", paramsAudioDes, result_json);
     EXPECT_EQ(status,Core::ERROR_NONE);
 
     signalled = WaitForRequestStatus(JSON_TIMEOUT,UserSettings_OnAudioDescriptionChanged);
     EXPECT_TRUE(signalled & UserSettings_OnAudioDescriptionChanged);
 
     /* Unregister for events. */
-    jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("onaudiodescriptionchanged"));
+    jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("OnAudioDescriptionChanged"));
     EXPECT_EQ(status,Core::ERROR_NONE);
 
-    status = InvokeServiceMethod("org.rdk.UserSettings", "getaudiodescription", result_bool);
+    status = InvokeServiceMethod("org.rdk.UserSettings", "GetAudioDescription", result_bool);
     EXPECT_EQ(status, Core::ERROR_NONE);
     EXPECT_TRUE(result_bool.Value());
 
     TEST_LOG("Testing PreferredAudioLanguagesSuccess");
     status = jsonrpc.Subscribe<JsonObject>(JSON_TIMEOUT,
-                                           _T("onpreferredaudiolanguageschanged"),
+                                           _T("OnPreferredAudioLanguagesChanged"),
                                            [&async_handler](const JsonObject& parameters) {
-                                           string preferredLanguages = parameters["preferredlanguages"].String();
+                                           string preferredLanguages = parameters["preferredLanguages"].String();
                                            async_handler.OnPreferredAudioLanguagesChanged(preferredLanguages);
                                        });
     EXPECT_EQ(Core::ERROR_NONE, status);
@@ -621,23 +621,24 @@ TEST_F(UserSettingTest, SetAndGetMethodsUsingJsonRpcConnectionSuccessCase)
     EXPECT_CALL(async_handler, OnPreferredAudioLanguagesChanged(MatchRequestStatusString(preferredLanguages)))
     .WillOnce(Invoke(this, &UserSettingTest::OnPreferredAudioLanguagesChanged));
 
-    params["value"] = preferredLanguages;
-    status = InvokeServiceMethod("org.rdk.UserSettings", "setpreferredaudiolanguages", params, result_json);
+    JsonObject paramsAudioLanguage;
+    paramsAudioLanguage["preferredLanguages"] = preferredLanguages;
+    status = InvokeServiceMethod("org.rdk.UserSettings", "SetPreferredAudioLanguages", paramsAudioLanguage, result_json);
     EXPECT_EQ(status,Core::ERROR_NONE);
 
     signalled = WaitForRequestStatus(JSON_TIMEOUT,UserSettings_OnPreferredAudioLanguagesChanged);
     EXPECT_TRUE(signalled & UserSettings_OnPreferredAudioLanguagesChanged);
-    jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("onpreferredaudiolanguageschanged"));
+    jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("OnPreferredAudioLanguagesChanged"));
 
-    status = InvokeServiceMethod("org.rdk.UserSettings", "getpreferredaudiolanguages", result_string);
+    status = InvokeServiceMethod("org.rdk.UserSettings", "GetPreferredAudioLanguages", result_string);
     EXPECT_EQ(status,Core::ERROR_NONE);
     EXPECT_EQ(result_string.Value(), preferredLanguages);
 
     TEST_LOG("Testing PresentationLanguageSuccess");
     status = jsonrpc.Subscribe<JsonObject>(JSON_TIMEOUT,
-                                           _T("onpresentationlanguagechanged"),
+                                           _T("OnPresentationLanguageChanged"),
                                            [&async_handler](const JsonObject& parameters) {
-                                           string presentationLanguages = parameters["presentationlanguages"].String();
+                                           string presentationLanguages = parameters["presentationLanguages"].String();
                                            async_handler.OnPresentationLanguageChanged(presentationLanguages);
                                        });
     EXPECT_EQ(Core::ERROR_NONE, status);
@@ -645,21 +646,22 @@ TEST_F(UserSettingTest, SetAndGetMethodsUsingJsonRpcConnectionSuccessCase)
     EXPECT_CALL(async_handler, OnPresentationLanguageChanged(MatchRequestStatusString(presentationLanguages)))
     .WillOnce(Invoke(this, &UserSettingTest::OnPresentationLanguageChanged));
 
-    params["value"] = presentationLanguages;
-    status = InvokeServiceMethod("org.rdk.UserSettings", "setpresentationlanguage", params, result_json);
+    JsonObject paramsPresLanguage;
+    paramsPresLanguage["presentationLanguages"] = presentationLanguages;
+    status = InvokeServiceMethod("org.rdk.UserSettings", "SetPresentationLanguage", paramsPresLanguage, result_json);
     EXPECT_EQ(status,Core::ERROR_NONE);
 
     signalled = WaitForRequestStatus(JSON_TIMEOUT, UserSettings_OnPresentationLanguageChanged);
     EXPECT_TRUE(signalled & UserSettings_OnPresentationLanguageChanged);
-    jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("onpresentationlanguagechanged"));
+    jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("OnPresentationLanguageChanged"));
 
-    status = InvokeServiceMethod("org.rdk.UserSettings", "getpresentationlanguage", result_string);
+    status = InvokeServiceMethod("org.rdk.UserSettings", "GetPresentationLanguage", result_string);
     EXPECT_EQ(status,Core::ERROR_NONE);
     EXPECT_EQ(result_string.Value(), presentationLanguages);
 
     TEST_LOG("Testing SetCaptionsSuccess");
     status = jsonrpc.Subscribe<JsonObject>(JSON_TIMEOUT,
-                                       _T("oncaptionschanged"),
+                                       _T("OnCaptionsChanged"),
                                        [this, &async_handler](const JsonObject& parameters) {
                                            bool enabled = parameters["enabled"].Boolean();
                                            async_handler.OnCaptionsChanged(enabled);
@@ -669,23 +671,24 @@ TEST_F(UserSettingTest, SetAndGetMethodsUsingJsonRpcConnectionSuccessCase)
     EXPECT_CALL(async_handler, OnCaptionsChanged(MatchRequestStatusBool(enabled)))
     .WillOnce(Invoke(this, &UserSettingTest::OnCaptionsChanged));
 
-    params["value"] = true;
-    status = InvokeServiceMethod("org.rdk.UserSettings", "setcaptions", params, result_json);
+    JsonObject paramsCaptions;
+    paramsCaptions["enabled"] = true;
+    status = InvokeServiceMethod("org.rdk.UserSettings", "SetCaptions", paramsCaptions, result_json);
     EXPECT_EQ(status,Core::ERROR_NONE);
 
     signalled = WaitForRequestStatus(JSON_TIMEOUT,UserSettings_OnCaptionsChanged);
     EXPECT_TRUE(signalled & UserSettings_OnCaptionsChanged);
-    jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("oncaptionschanged"));
+    jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("OnCaptionsChanged"));
 
-    status = InvokeServiceMethod("org.rdk.UserSettings", "getcaptions", result_bool);
+    status = InvokeServiceMethod("org.rdk.UserSettings", "GetCaptions", result_bool);
     EXPECT_EQ(status,Core::ERROR_NONE);
     EXPECT_TRUE(result_bool.Value());
 
     TEST_LOG("Testing SetPreferredCaptionsLanguagesSuccess");
     status = jsonrpc.Subscribe<JsonObject>(JSON_TIMEOUT,
-                                           _T("onpreferredcaptionslanguageschanged"),
+                                           _T("OnPreferredCaptionsLanguagesChanged"),
                                            [&async_handler](const JsonObject& parameters) {
-                                           string preferredCaptionsLanguages = parameters["preferredlanguages"].String();
+                                           string preferredCaptionsLanguages = parameters["preferredLanguages"].String();
                                            async_handler.OnPreferredCaptionsLanguagesChanged(preferredCaptionsLanguages);
                                        });
     EXPECT_EQ(Core::ERROR_NONE, status);
@@ -693,21 +696,22 @@ TEST_F(UserSettingTest, SetAndGetMethodsUsingJsonRpcConnectionSuccessCase)
     EXPECT_CALL(async_handler, OnPreferredCaptionsLanguagesChanged(MatchRequestStatusString(preferredCaptionsLanguages)))
     .WillOnce(Invoke(this, &UserSettingTest::OnPreferredCaptionsLanguagesChanged));
 
-    params["value"] = preferredCaptionsLanguages;
-    status = InvokeServiceMethod("org.rdk.UserSettings", "setpreferredcaptionslanguages", params, result_json);
+    JsonObject paramsPrefLang;
+    paramsPrefLang["preferredLanguages"] = preferredCaptionsLanguages;
+    status = InvokeServiceMethod("org.rdk.UserSettings", "SetPreferredCaptionsLanguages", paramsPrefLang, result_json);
     EXPECT_EQ(status,Core::ERROR_NONE);
 
     signalled = WaitForRequestStatus(JSON_TIMEOUT,UserSettings_OnPreferredCaptionsLanguagesChanged);
     EXPECT_TRUE(signalled & UserSettings_OnPreferredCaptionsLanguagesChanged);
-    jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("onpreferredcaptionslanguageschanged"));
+    jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("OnPreferredCaptionsLanguagesChanged"));
 
-    status = InvokeServiceMethod("org.rdk.UserSettings", "getpreferredcaptionslanguages", result_string);
+    status = InvokeServiceMethod("org.rdk.UserSettings", "GetPreferredCaptionsLanguages", result_string);
     EXPECT_EQ(status,Core::ERROR_NONE);
     EXPECT_EQ(result_string.Value(), preferredCaptionsLanguages);
 
     TEST_LOG("Testing SetPreferredClosedCaptionServiceSuccess");
     status = jsonrpc.Subscribe<JsonObject>(JSON_TIMEOUT,
-                                           _T("onpreferredclosedcaptionservicechanged"),
+                                           _T("OnPreferredClosedCaptionServiceChanged"),
                                            [&async_handler](const JsonObject& parameters) {
                                            string preferredService = parameters["service"].String();
                                            async_handler.OnPreferredClosedCaptionServiceChanged(preferredService);
@@ -717,15 +721,16 @@ TEST_F(UserSettingTest, SetAndGetMethodsUsingJsonRpcConnectionSuccessCase)
     EXPECT_CALL(async_handler, OnPreferredClosedCaptionServiceChanged(MatchRequestStatusString(preferredService)))
     .WillOnce(Invoke(this, &UserSettingTest::OnPreferredClosedCaptionServiceChanged));
 
-    params["value"] = preferredService;
-    status = InvokeServiceMethod("org.rdk.UserSettings", "setpreferredclosedcaptionservice", params, result_json);
+    JsonObject paramspreferredService;
+    paramspreferredService["service"] = preferredService;
+    status = InvokeServiceMethod("org.rdk.UserSettings", "SetPreferredClosedCaptionService", paramspreferredService, result_json);
     EXPECT_EQ(status,Core::ERROR_NONE);
 
     signalled = WaitForRequestStatus(JSON_TIMEOUT,UserSettings_OnPreferredClosedCaptionServiceChanged);
     EXPECT_TRUE(signalled & UserSettings_OnPreferredClosedCaptionServiceChanged);
-    jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("onpreferredclosedcaptionservicechanged"));
+    jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("OnPreferredClosedCaptionServiceChanged"));
 
-    status = InvokeServiceMethod("org.rdk.UserSettings", "getpreferredclosedcaptionservice", result_string);
+    status = InvokeServiceMethod("org.rdk.UserSettings", "GetPreferredClosedCaptionService", result_string);
     EXPECT_EQ(status,Core::ERROR_NONE);
     EXPECT_EQ(result_string.Value(), preferredService);
 }
