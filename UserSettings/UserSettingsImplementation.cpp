@@ -317,6 +317,55 @@ void UserSettingsImplementation::ValueChanged(const Exchange::IStore2::ScopeType
     }
 }
 
+uint32_t UserSettingsImplementation::SetUserSettingsValue(const string& key, const string& value)
+{
+    uint32_t status = Core::ERROR_GENERAL;
+
+    ASSERT (nullptr != _remotStoreObject);
+    if (nullptr != _remotStoreObject)
+    {
+        status = _remotStoreObject->SetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, key, value, 0);
+    }
+
+    return status;
+}
+
+uint32_t UserSettingsImplementation::GetUserSettingsValue(const string& key, string &value) const
+{
+
+    uint32_t status = Core::ERROR_GENERAL;
+    uint32_t ttl = 0;
+
+    // Create a map of default values
+    std::map<string, string> usersettings_default_map = {{USERSETTINGS_AUDIO_DESCRIPTION_KEY, "false"},
+                                                         {USERSETTINGS_PREFERRED_AUDIO_LANGUAGES_KEY, ""},
+                                                         {USERSETTINGS_PRESENTATION_LANGUAGE_KEY, ""},
+                                                         {USERSETTINGS_CAPTIONS_KEY, "false"},
+                                                         {USERSETTINGS_PREFERRED_CAPTIONS_LANGUAGES_KEY, ""},
+                                                         {USERSETTINGS_PREFERRED_CLOSED_CAPTIONS_SERVICE_KEY, "AUTO"}};
+
+    ASSERT (nullptr != _remotStoreObject);
+    if (nullptr != _remotStoreObject)
+    {
+        status = _remotStoreObject->GetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, key, value, ttl);
+
+        LOGINFO("Key[%s] value[%s] status[%d]", key.c_str(), value.c_str(), status);
+        if(Core::ERROR_UNKNOWN_KEY == status || Core::ERROR_NOT_EXIST == status)
+        {
+            if(usersettings_default_map.find(key)!=usersettings_default_map.end())
+            {
+                value = usersettings_default_map[key];
+                status = Core::ERROR_NONE;
+            }
+            else
+            {
+                LOGERR("Default value is not found in usersettings_default_map for '%s' Key", key.c_str());
+            }
+        }
+    }
+    return status;
+}
+
 uint32_t UserSettingsImplementation::SetAudioDescription(const bool enabled)
 {
     uint32_t status = Core::ERROR_GENERAL;
@@ -325,12 +374,7 @@ uint32_t UserSettingsImplementation::SetAudioDescription(const bool enabled)
 
     _adminLock.Lock();
 
-    ASSERT (nullptr != _remotStoreObject);
-
-    if (nullptr != _remotStoreObject)
-    {
-        status = _remotStoreObject->SetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, USERSETTINGS_AUDIO_DESCRIPTION_KEY, (enabled)?"true":"false", 0);
-    }
+    status = SetUserSettingsValue(USERSETTINGS_AUDIO_DESCRIPTION_KEY, (enabled)?"true":"false");
 
     _adminLock.Unlock();
 
@@ -341,26 +385,20 @@ uint32_t UserSettingsImplementation::GetAudioDescription(bool &enabled) const
 {
     uint32_t status = Core::ERROR_GENERAL;
     std::string value = "";
-    uint32_t ttl = 0;
 
     _adminLock.Lock();
 
-    ASSERT (nullptr != _remotStoreObject);
+    status = GetUserSettingsValue(USERSETTINGS_AUDIO_DESCRIPTION_KEY, value);
 
-    if (nullptr != _remotStoreObject)
+    if(Core::ERROR_NONE == status)
     {
-        status = _remotStoreObject->GetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, USERSETTINGS_AUDIO_DESCRIPTION_KEY, value, ttl);
-
-        if(Core::ERROR_NONE == status)
+        if (0 == value.compare("true"))
         {
-            if (0 == value.compare("true"))
-            {
-                enabled = true;
-            }
-            else
-            {
-                enabled = false;
-            }
+            enabled = true;
+        }
+        else
+        {
+            enabled = false;
         }
     }
 
@@ -377,12 +415,7 @@ uint32_t UserSettingsImplementation::SetPreferredAudioLanguages(const string& pr
 
     _adminLock.Lock();
 
-    ASSERT (nullptr != _remotStoreObject);
-
-    if (nullptr != _remotStoreObject)
-    {
-        status = _remotStoreObject->SetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, USERSETTINGS_PREFERRED_AUDIO_LANGUAGES_KEY, preferredLanguages, 0);
-    }
+    status = SetUserSettingsValue(USERSETTINGS_PREFERRED_AUDIO_LANGUAGES_KEY, preferredLanguages);
 
     _adminLock.Unlock();
 
@@ -393,16 +426,10 @@ uint32_t UserSettingsImplementation::GetPreferredAudioLanguages(string &preferre
 {
     uint32_t status = Core::ERROR_GENERAL;
     std::string value = "";
-    uint32_t ttl = 0;
 
     _adminLock.Lock();
 
-    ASSERT (nullptr != _remotStoreObject);
-
-    if (nullptr != _remotStoreObject)
-    {
-        status = _remotStoreObject->GetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, USERSETTINGS_PREFERRED_AUDIO_LANGUAGES_KEY, preferredLanguages, ttl);
-    }
+    status = GetUserSettingsValue(USERSETTINGS_PREFERRED_AUDIO_LANGUAGES_KEY, preferredLanguages);
 
     _adminLock.Unlock();
 
@@ -417,12 +444,7 @@ uint32_t UserSettingsImplementation::SetPresentationLanguage(const string& prese
 
     _adminLock.Lock();
 
-    ASSERT (nullptr != _remotStoreObject);
-
-    if (nullptr != _remotStoreObject)
-    {
-        status = _remotStoreObject->SetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, USERSETTINGS_PRESENTATION_LANGUAGE_KEY, presentationLanguages, 0);
-    }
+    status = SetUserSettingsValue(USERSETTINGS_PRESENTATION_LANGUAGE_KEY, presentationLanguages);
 
     _adminLock.Unlock();
 
@@ -433,16 +455,10 @@ uint32_t UserSettingsImplementation::GetPresentationLanguage(string &presentatio
 {
     uint32_t status = Core::ERROR_GENERAL;
     std::string value = "";
-    uint32_t ttl = 0;
 
     _adminLock.Lock();
 
-    ASSERT (nullptr != _remotStoreObject);
-
-    if (nullptr != _remotStoreObject)
-    {
-        status = _remotStoreObject->GetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, USERSETTINGS_PRESENTATION_LANGUAGE_KEY, presentationLanguages, ttl);
-    }
+    status = GetUserSettingsValue(USERSETTINGS_PRESENTATION_LANGUAGE_KEY, presentationLanguages);
 
     _adminLock.Unlock();
 
@@ -457,12 +473,7 @@ uint32_t UserSettingsImplementation::SetCaptions(const bool enabled)
 
     _adminLock.Lock();
 
-    ASSERT (nullptr != _remotStoreObject);
-
-    if (nullptr != _remotStoreObject)
-    {
-        status = _remotStoreObject->SetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, USERSETTINGS_CAPTIONS_KEY, (enabled)?"true":"false", 0);
-    }
+    status = SetUserSettingsValue(USERSETTINGS_CAPTIONS_KEY, (enabled)?"true":"false");
 
     _adminLock.Unlock();
 
@@ -473,26 +484,20 @@ uint32_t UserSettingsImplementation::GetCaptions(bool &enabled) const
 {
     uint32_t status = Core::ERROR_GENERAL;
     std::string value = "";
-    uint32_t ttl = 0;
 
     _adminLock.Lock();
 
-    ASSERT (nullptr != _remotStoreObject);
+    status = GetUserSettingsValue(USERSETTINGS_CAPTIONS_KEY, value);
 
-    if (nullptr != _remotStoreObject)
+    if(Core::ERROR_NONE == status)
     {
-        status = _remotStoreObject->GetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, USERSETTINGS_CAPTIONS_KEY, value, ttl);
-
-        if(Core::ERROR_NONE == status)
+        if (0 == value.compare("true"))
         {
-            if (0 == value.compare("true"))
-            {
-                enabled = true;
-            }
-            else
-            {
-                enabled = false;
-            }
+            enabled = true;
+        }
+        else
+        {
+            enabled = false;
         }
     }
 
@@ -509,12 +514,7 @@ uint32_t UserSettingsImplementation::SetPreferredCaptionsLanguages(const string&
 
     _adminLock.Lock();
 
-    ASSERT (nullptr != _remotStoreObject);
-
-    if (nullptr != _remotStoreObject)
-    {
-        status = _remotStoreObject->SetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, USERSETTINGS_PREFERRED_CAPTIONS_LANGUAGES_KEY, preferredLanguages, 0);
-    }
+    status = SetUserSettingsValue(USERSETTINGS_PREFERRED_CAPTIONS_LANGUAGES_KEY, preferredLanguages);
 
     _adminLock.Unlock();
 
@@ -525,16 +525,10 @@ uint32_t UserSettingsImplementation::GetPreferredCaptionsLanguages(string &prefe
 {
     uint32_t status = Core::ERROR_GENERAL;
     std::string value = "";
-    uint32_t ttl = 0;
 
     _adminLock.Lock();
 
-    ASSERT (nullptr != _remotStoreObject);
-
-    if (nullptr != _remotStoreObject)
-    {
-        status = _remotStoreObject->GetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, USERSETTINGS_PREFERRED_CAPTIONS_LANGUAGES_KEY, preferredLanguages, ttl);
-    }
+    status = GetUserSettingsValue(USERSETTINGS_PREFERRED_CAPTIONS_LANGUAGES_KEY, preferredLanguages);
 
     _adminLock.Unlock();
 
@@ -549,12 +543,7 @@ uint32_t UserSettingsImplementation::SetPreferredClosedCaptionService(const stri
 
     _adminLock.Lock();
 
-    ASSERT (nullptr != _remotStoreObject);
-
-    if (nullptr != _remotStoreObject)
-    {
-        status = _remotStoreObject->SetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, USERSETTINGS_PREFERRED_CLOSED_CAPTIONS_SERVICE_KEY, service, 0);
-    }
+    status = SetUserSettingsValue(USERSETTINGS_PREFERRED_CLOSED_CAPTIONS_SERVICE_KEY, service);
 
     _adminLock.Unlock();
 
@@ -565,16 +554,10 @@ uint32_t UserSettingsImplementation::GetPreferredClosedCaptionService(string &se
 {
     uint32_t status = Core::ERROR_GENERAL;
     std::string value = "";
-    uint32_t ttl = 0;
 
     _adminLock.Lock();
 
-    ASSERT (nullptr != _remotStoreObject);
-
-    if (nullptr != _remotStoreObject)
-    {
-        status = _remotStoreObject->GetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, USERSETTINGS_PREFERRED_CLOSED_CAPTIONS_SERVICE_KEY, service, ttl);
-    }
+    status = GetUserSettingsValue(USERSETTINGS_PREFERRED_CLOSED_CAPTIONS_SERVICE_KEY, service);
 
     _adminLock.Unlock();
 
