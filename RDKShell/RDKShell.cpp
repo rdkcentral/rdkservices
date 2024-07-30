@@ -6867,7 +6867,6 @@ namespace WPEFramework {
                     std::cout << "Device in FactoryMode\n";
 		    return true;
             }
-	    #endif
 	    #ifdef RDKSHELL_IGNORE_PS_FLAG_ON_MBFTA
             else
             {
@@ -6876,6 +6875,7 @@ namespace WPEFramework {
                     uint32_t setStatus = setValue(mCurrentService, "FactoryTest", "FactoryMode", "false");
                     std::cout << "set status: " << setStatus << std::endl;
             }
+	    #endif
             #endif
             #else
             RFC_ParamData_t param;
