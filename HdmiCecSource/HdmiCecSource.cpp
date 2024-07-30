@@ -1605,7 +1605,15 @@ namespace WPEFramework
 			CECFrame frame = CECFrame((const uint8_t *)buf.data(), size);
 			//      SVCLOG_WARN("Frame to be sent from servicemanager in %s \n",__FUNCTION__);
 			//      frame.hexDump();
-			smConnection->sendAsync(frame);
+            try{
+                smConnection->sendAsync(frame);
+            }
+            catch(InvalidStateException &e){
+                LOGERR("InvalidStateException caught in sendUnencryptMsg %s", e.what());
+            }
+            catch(...){
+                LOGERR("Exception caught in sendUnencryptMsg");
+            }
 		}
 		else
 			LOGWARN("cecEnableStatus=false");
