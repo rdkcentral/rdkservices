@@ -8,7 +8,6 @@ find_package(${NAMESPACE}Plugins REQUIRED)
 
 find_package(PkgConfig)
 find_package(Udev)
-find_package(IARMBus)
 
 add_library(${MODULE_NAME} SHARED
         UsbAccess.cpp
@@ -20,26 +19,31 @@ set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD_REQUIRED YES)
 
 if (RDK_SERVICE_L2_TEST)
-   find_library(TESTMOCKLIB_LIBRARIES NAMES TestMocklib)
-   if (TESTMOCKLIB_LIBRARIES)
-       message ("linking mock libraries ${TESTMOCKLIB_LIBRARIES} library")
-       target_link_libraries(${MODULE_NAME} PRIVATE ${TESTMOCKLIB_LIBRARIES})
-   else (TESTMOCKLIB_LIBRARIES)
-       message ("Require ${TESTMOCKLIB_LIBRARIES} library")
-   endif (TESTMOCKLIB_LIBRARIES)
+    target_compile_definitions(${MODULE_NAME} PRIVATE MODULE_NAME=Plugin_${PLUGIN_NAME})
+    target_compile_options(${MODULE_NAME} PRIVATE -Wno-error)
+
+    find_library(TESTMOCKLIB_LIBRARIES NAMES TestMocklib)
+    if (TESTMOCKLIB_LIBRARIES)
+        message ("linking mock libraries ${TESTMOCKLIB_LIBRARIES} library")
+        target_link_libraries(${MODULE_NAME} PRIVATE ${TESTMOCKLIB_LIBRARIES})
+    else (TESTMOCKLIB_LIBRARIES)
+        message ("Require ${TESTMOCKLIB_LIBRARIES} library")
+    endif (TESTMOCKLIB_LIBRARIES)
+else (RDK_SERVICES_L2_TEST)
+    find_package(IARMBus)
+    target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS})
+    target_link_libraries(${MODULE_NAME} PRIVATE ${IARMBUS_LIBRARIES})
 endif (RDK_SERVICES_L2_TEST)
 
 target_include_directories(${MODULE_NAME} PRIVATE
         ../helpers
-        ${UDEV_INCLUDE_DIRS}
-        ${IARMBUS_INCLUDE_DIRS})
+        ${UDEV_INCLUDE_DIRS})
 
 link_directories(${UDEV_LIBRARY_DIRS})
 
 target_link_libraries(${MODULE_NAME} PRIVATE
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
-        ${UDEV_LIBRARIES}
-        ${IARMBUS_LIBRARIES})
+        ${UDEV_LIBRARIES})
 
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
