@@ -26,7 +26,7 @@ find_package(${NAMESPACE}Plugins REQUIRED)
 include(FetchContent)
 FetchContent_Declare(
         googletest
-        URL https://github.com/google/googletest/archive/609281088cfefc76f9d0ce82e1ff6c30cc3591e5.zip
+        URL https://github.com/google/googletest/archive/e39786088138f2749d64e9e90e0f9902daa77c40.zip
 )
 FetchContent_MakeAvailable(googletest)
 
