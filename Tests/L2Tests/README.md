@@ -25,6 +25,10 @@ Invoke the workflow:
 
 ```shell script
 act -W .github/workflows/L2-tests.yml -s GITHUB_TOKEN=[token]
+
+The tests will run without valgrid by default. If you want to run tests with valgrind also then you need to remove below condition at "Run unit tests with valgrind" step from the yml file.
+
+    if: ${{ !env.ACT }}
 ```
 
 `-r, --reuse` to reuse the container.
