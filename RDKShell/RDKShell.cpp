@@ -312,6 +312,7 @@ static bool waitForHibernateUnblocked(int timeoutMs)
 #endif
 
 #ifdef RDKSHELL_READ_MAC_ON_STARTUP
+#ifdef FTA_USER_MODE_MONOLITH 
 static bool checkFactoryMode_wrapper()
 {
         Device_Mode_DeviceModes_t deviceMode;
@@ -328,6 +329,7 @@ static bool checkFactoryMode_wrapper()
         }
         return ret;
 }
+#endif
 
 #ifdef RDKSHELL_DUAL_FTA_SUPPORT
 static bool checkAssemblyFactoryMode_wrapper()
