@@ -53,6 +53,8 @@ class cTimer{
          * @return   : nil
          */
         void stop();
+       void detach();
+       void join();
 
         /***
          * @brief        : Set interval in which the given function should be invoked.
