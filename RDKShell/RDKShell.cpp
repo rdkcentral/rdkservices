@@ -4098,6 +4098,7 @@ namespace WPEFramework {
         uint32_t RDKShell::launchWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
+	    std::cout << "launchwrapper APi disabling eastereggs\n" ;
 	    mEnableEasterEggs = false ;
             double launchStartTime = RdkShell::seconds();
             bool result = true;
@@ -4159,6 +4160,7 @@ namespace WPEFramework {
                     gLaunchCount = 0;
                     gLaunchMutex.unlock();
                     response["message"] = "failed to launch application due to active destroy request";
+		    std::cout << "Enabling EasterEggs\n" ;
 		    mEnableEasterEggs = true ;
                     returnResponse(false);
                 }
@@ -5914,6 +5916,7 @@ namespace WPEFramework {
         uint32_t RDKShell::launchResidentAppWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
+	    std::cout << "Launching resident APP Wrapper and disabling easter eggs\n" ;
 	    mEnableEasterEggs = false ;
             std::string factoryAppCallsign("factoryapp");
             bool isFactoryAppRunning = false;
@@ -6074,6 +6077,7 @@ namespace WPEFramework {
             uint32_t setStatus = setValue(mCurrentService, "FactoryTest", "FactoryMode", "false");
             std::cout << "set status: " << setStatus << std::endl;
             sForceResidentAppLaunch = false;
+	    std::cout<< " Enabling Easter Egg\n" ;
 	    mEnableEasterEggs = true ;
             returnResponse(ret);
         }
@@ -6082,6 +6086,7 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
             bool ret = true;
+	    std::cout << "Toggle UI and Disabling easter eggs\n" ;
 	    mEnableEasterEggs = false;
             std::string callsign("factoryapp");
             bool isFactoryAppRunning = false;
@@ -6094,14 +6099,19 @@ namespace WPEFramework {
             if (isFactoryAppRunning)
             {
                 sForceResidentAppLaunch = true;
+		std::cout << "factoryapp running launching resident\n" ;
+		mEnableEasterEggs = true ;
                 launchResidentAppWrapper(parameters, response);
                 sForceResidentAppLaunch = false;
             }
             else
             {
+		std::cout << "launching factoryapp and enabling easter eggs \n" ;
+		mEnableEasterEggs = true ;
                 launchFactoryAppWrapper(parameters, response);
             }
             ret = response.HasLabel("success")?response["success"].Boolean():false;
+	    std::cout<<"sending Back response and enabling eastereggs" << std::endl;
 	    mEnableEasterEggs = true ;
             returnResponse(ret);
         }
