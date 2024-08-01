@@ -1694,7 +1694,7 @@ namespace WPEFramework {
                 mCurrentService(nullptr), mLastWakeupKeyCode(0),
                 mLastWakeupKeyModifiers(0),
                 mLastWakeupKeyTimestamp(0),
-                mEnableEasterEggs(true),
+                mEnableEasterEggs(false),
                 mScreenCapture(this),
                 mErmEnabled(false)
 #ifdef HIBERNATE_SUPPORT_ENABLED
@@ -1808,6 +1808,7 @@ namespace WPEFramework {
         const string RDKShell::Initialize(PluginHost::IShell* service )
         {
             std::cout << "initializing\n";
+	    mEnableEasterEggs = false ;
             char* waylandDisplay = getenv("WAYLAND_DISPLAY");
             if (NULL != waylandDisplay)
             {
@@ -2167,6 +2168,7 @@ namespace WPEFramework {
         rialtoConnector = std::shared_ptr<RialtoConnector>(rialtoBridge);
 #endif //  ENABLE_RIALTO_FEATURE
             sem_wait(&gInitializeSemaphore);
+	    mEnableEasterEggs = true ;
             return "";
         }
 
@@ -2538,16 +2540,18 @@ namespace WPEFramework {
         void RDKShell::RdkShellListener::onEasterEgg(const std::string& name, const std::string& actionJson)
         {
           std::cout << "RDKShell onEasterEgg event received ..." << name << std::endl;
-          if (false == mShell.mEnableEasterEggs)
+         /* if (false == mShell.mEnableEasterEggs)
           {
               std::cout << "easter eggs disabled and not processing event" << std::endl;
               return;
-          }
+          }*/
+	  mShell.mEnableEasterEggs = false ;
           
           if (actionJson.length() == 0)
           {
             JsonObject params;
             params["name"] = name;
+	    //mShell.mEnableEasterEggs = true ;
             mShell.notify(RDKSHELL_EVENT_ON_EASTER_EGG, params);
           }
           else
@@ -2679,6 +2683,7 @@ namespace WPEFramework {
               std::cout << "error in parsing action for easter egg " << std::endl;
             }
           }
+	  mShell.mEnableEasterEggs = true ;
         }
 
         void RDKShell::RdkShellListener::onPowerKey()
