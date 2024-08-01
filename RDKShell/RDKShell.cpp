@@ -1694,7 +1694,7 @@ namespace WPEFramework {
                 mCurrentService(nullptr), mLastWakeupKeyCode(0),
                 mLastWakeupKeyModifiers(0),
                 mLastWakeupKeyTimestamp(0),
-                mEnableEasterEggs(false),
+                mEnableEasterEggs(true),
                 mScreenCapture(this),
                 mErmEnabled(false)
 #ifdef HIBERNATE_SUPPORT_ENABLED
@@ -1809,6 +1809,7 @@ namespace WPEFramework {
         {
             std::cout << "initializing\n";
 	    mEnableEasterEggs = false ;
+	    std::cout << "disabled Easter eggs " << std::endl ;
             char* waylandDisplay = getenv("WAYLAND_DISPLAY");
             if (NULL != waylandDisplay)
             {
@@ -2168,6 +2169,7 @@ namespace WPEFramework {
         rialtoConnector = std::shared_ptr<RialtoConnector>(rialtoBridge);
 #endif //  ENABLE_RIALTO_FEATURE
             sem_wait(&gInitializeSemaphore);
+	    std::cout << "Enabling back easter eggs \n" ;
 	    mEnableEasterEggs = true ;
             return "";
         }
@@ -2545,6 +2547,7 @@ namespace WPEFramework {
               std::cout << "easter eggs disabled and not processing event" << std::endl;
               return;
           }*/
+          std::cout << "Disabled easter eggs upon entry to event handler \n " ;
 	  mShell.mEnableEasterEggs = false ;
           
           if (actionJson.length() == 0)
@@ -2683,6 +2686,7 @@ namespace WPEFramework {
               std::cout << "error in parsing action for easter egg " << std::endl;
             }
           }
+	  std::cout << "Leaving event handler and enabling back Easter Eggs \n" ;
 	  mShell.mEnableEasterEggs = true ;
         }
 
