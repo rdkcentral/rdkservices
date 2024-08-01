@@ -1,18 +1,3 @@
 precondition = ["Platform"]
 callsign = "org.rdk.SecureStore"
 startuporder = "@PLUGIN_SECURESTORE_STARTUPORDER@"
-
-configuration = JSON()
-
-rootobject = JSON()
-rootobject.add("mode", "@PLUGIN_SECURESTORE_MODE@")
-rootobject.add("locator", "lib@PLUGIN_IMPLEMENTATION@.so")
-configuration.add("root", rootobject)
-
-configuration.add("uri", "@PLUGIN_SECURESTORE_URI@")
-configuration.add("path", "@PLUGIN_SECURESTORE_PATH@")
-configuration.add("legacypath", "@PLUGIN_SECURESTORE_LEGACYPATH@")
-configuration.add("key", "@PLUGIN_SECURESTORE_KEY@")
-configuration.add("maxsize", "@PLUGIN_SECURESTORE_MAXSIZE@")
-configuration.add("maxvalue", "@PLUGIN_SECURESTORE_MAXVALUE@")
-configuration.add("limit", "@PLUGIN_SECURESTORE_LIMIT@")

@@ -22,7 +22,7 @@
 namespace WPEFramework {
 namespace Plugin {
 
-    using namespace JsonData::SecureStore;
+    using namespace JsonData::PersistentStore;
 
     void SecureStore::RegisterAll()
     {
@@ -56,172 +56,323 @@ namespace Plugin {
 
     uint32_t SecureStore::endpoint_setValue(const SetValueParamsData& params, DeleteKeyResultInfo& response)
     {
-        auto result = _store2->SetValue(
-            Exchange::IStore2::ScopeType(params.Scope.Value()),
-            params.Namespace.Value(),
-            params.Key.Value(),
-            params.Value.Value(),
-            params.Ttl.Value());
-        if (result == Core::ERROR_NONE) {
-            response.Success = true;
-        }
+        LOGINFO("Scope: %d, ns: %s, key: %s, Val: %s", static_cast<int>(params.Scope.Value()), params.Namespace.Value().c_str(), params.Key.Value().c_str(), params.Value.Value().c_str());
+        uint32_t status = Core::ERROR_NOT_SUPPORTED;
 
-        return result;
+        Exchange::IStore2* _storeObject = getRemoteStoreObject(params.Scope.Value());
+        ASSERT (nullptr != _storeObject);
+        _adminLock.Lock();
+        if (nullptr != _storeObject)
+        {
+            LOGINFO("inside _storeObject");
+            status = _storeObject->SetValue(
+                        Exchange::IStore2::ScopeType(params.Scope.Value()),
+                        params.Namespace.Value(),
+                        params.Key.Value(),
+                        params.Value.Value(),
+                        params.Ttl.Value() );
+            if (status == Core::ERROR_NONE) {
+                LOGINFO("status success");
+                response.Success = true;
+            }
+        }
+        _adminLock.Unlock();
+        LOGINFO("status: %d", status);
+        return status;
+
+        // auto result = _store2->SetValue(
+        //     Exchange::IStore2::ScopeType(params.Scope.Value()),
+        //     params.Namespace.Value(),
+        //     params.Key.Value(),
+        //     params.Value.Value(),
+        //     params.Ttl.Value());
+        // if (result == Core::ERROR_NONE) {
+        //     response.Success = true;
+        // }
+
+        // return result;
     }
 
     uint32_t SecureStore::endpoint_getValue(const DeleteKeyParamsInfo& params, GetValueResultData& response)
     {
+        uint32_t status = Core::ERROR_NOT_SUPPORTED;
         string value;
-        uint32_t ttl;
-        auto result = _store2->GetValue(
-            Exchange::IStore2::ScopeType(params.Scope.Value()),
-            params.Namespace.Value(),
-            params.Key.Value(),
-            value,
-            ttl);
-        if (result == Core::ERROR_NONE) {
-            response.Value = value;
-            if (ttl > 0) {
-                response.Ttl = ttl;
-            }
-            response.Success = true;
-        }
+        uint32_t ttl = 0;
 
-        return result;
+        Exchange::IStore2* _storeObject = getRemoteStoreObject(params.Scope.Value());
+        ASSERT (nullptr != _storeObject);
+        _adminLock.Lock();
+        if (nullptr != _storeObject)
+        {
+            LOGINFO("inside _storeObject");
+            status = _storeObject->GetValue(
+                        Exchange::IStore2::ScopeType(params.Scope.Value()),
+                        params.Namespace.Value(),
+                        params.Key.Value(),
+                        value,
+                        ttl );
+            if (status == Core::ERROR_NONE) {
+                LOGINFO("status success");
+                response.Value = value;
+                if (ttl > 0) {
+                    response.Ttl = ttl;
+                }
+                response.Success = true;
+            }
+        }
+        _adminLock.Unlock();
+        LOGINFO("status: %d", status);
+        return status;
     }
 
     uint32_t SecureStore::endpoint_deleteKey(const DeleteKeyParamsInfo& params, DeleteKeyResultInfo& response)
     {
-        auto result = _store2->DeleteKey(
-            Exchange::IStore2::ScopeType(params.Scope.Value()),
-            params.Namespace.Value(),
-            params.Key.Value());
-        if (result == Core::ERROR_NONE) {
-            response.Success = true;
+        uint32_t status = Core::ERROR_NOT_SUPPORTED;
+        Exchange::IStore2* _storeObject = getRemoteStoreObject(params.Scope.Value());
+        ASSERT (nullptr != _storeObject);
+        _adminLock.Lock();
+        if (nullptr != _storeObject)
+        {
+            LOGINFO("inside _storeObject");
+            status = _storeObject->DeleteKey(
+                        Exchange::IStore2::ScopeType(params.Scope.Value()),
+                        params.Namespace.Value(),
+                        params.Key.Value() );
+            if (status == Core::ERROR_NONE) {
+                LOGINFO("status success");
+                response.Success = true;
+            }
         }
-
-        return result;
+        _adminLock.Unlock();
+        LOGINFO("status: %d", status);
+        return status;
     }
 
     uint32_t SecureStore::endpoint_deleteNamespace(const DeleteNamespaceParamsInfo& params, DeleteKeyResultInfo& response)
     {
-        auto result = _store2->DeleteNamespace(
-            Exchange::IStore2::ScopeType(params.Scope.Value()),
-            params.Namespace.Value());
-        if (result == Core::ERROR_NONE) {
-            response.Success = true;
+        uint32_t status = Core::ERROR_NOT_SUPPORTED;
+        Exchange::IStore2* _storeObject = getRemoteStoreObject(params.Scope.Value());
+        ASSERT (nullptr != _storeObject);
+        _adminLock.Lock();
+        if (nullptr != _storeObject)
+        {
+            LOGINFO("inside _storeObject");
+            status = _storeObject->DeleteNamespace(
+                        Exchange::IStore2::ScopeType(params.Scope.Value()),
+                        params.Namespace.Value() );
+            if (status == Core::ERROR_NONE) {
+                LOGINFO("status success");
+                response.Success = true;
+            }
         }
-
-        return result;
+        _adminLock.Unlock();
+        LOGINFO("status: %d", status);
+        return status;
     }
 
     uint32_t SecureStore::endpoint_getKeys(const DeleteNamespaceParamsInfo& params, GetKeysResultData& response)
     {
-        RPC::IStringIterator* it;
-        auto result = _store2->GetKeys(
-            Exchange::IStoreInspector::ScopeType(params.Scope.Value()),
-            params.Namespace.Value(),
-            it);
-        if (result == Core::ERROR_NONE) {
-            string element;
-            while (it->Next(element) == true) {
-                response.Keys.Add() = element;
-            }
-            it->Release();
-            response.Success = true;
+        uint32_t status = Core::ERROR_NOT_SUPPORTED;
+        if(params.Scope.Value() == ScopeType::ACCOUNT)
+        {
+            return status;
         }
-
-        return result;
+        Exchange::IStoreInspector* _storeInspectorObject = getRemoteStoreInspectorObject(params.Scope.Value());
+        ASSERT (nullptr != _storeInspectorObject);
+        _adminLock.Lock();
+        if (nullptr != _storeInspectorObject)
+        {
+            LOGINFO("inside _storeInspectorObject");
+            RPC::IStringIterator* it;
+            status = _storeInspectorObject->GetKeys(
+                        Exchange::IStoreInspector::ScopeType(params.Scope.Value()),
+                        params.Namespace.Value(),
+                        it);
+            if (status == Core::ERROR_NONE) {
+                LOGINFO("status success");
+                string element;
+                while (it->Next(element) == true) {
+                    response.Keys.Add() = element;
+                }
+                it->Release();
+                response.Success = true;
+            }
+        }
+        _adminLock.Unlock();
+        LOGINFO("status: %d", status);
+        return status;
     }
 
     uint32_t SecureStore::endpoint_getNamespaces(const GetNamespacesParamsInfo& params, GetNamespacesResultData& response)
     {
-        RPC::IStringIterator* it;
-        auto result = _store2->GetNamespaces(
-            Exchange::IStoreInspector::ScopeType(params.Scope.Value()),
-            it);
-        if (result == Core::ERROR_NONE) {
-            string element;
-            while (it->Next(element) == true) {
-                response.Namespaces.Add() = element;
-            }
-            it->Release();
-            response.Success = true;
+        uint32_t status = Core::ERROR_NOT_SUPPORTED;
+        if(params.Scope.Value() == ScopeType::ACCOUNT)
+        {
+            return status;
         }
-
-        return result;
+        Exchange::IStoreInspector* _storeInspectorObject = getRemoteStoreInspectorObject(params.Scope.Value());
+        ASSERT (nullptr != _storeInspectorObject);
+        _adminLock.Lock();
+        if (nullptr != _storeInspectorObject)
+        {
+            LOGINFO("inside _storeInspectorObject");
+            RPC::IStringIterator* it;
+            status = _storeInspectorObject->GetNamespaces(
+                        Exchange::IStoreInspector::ScopeType(params.Scope.Value()),
+                        it);
+            if (status == Core::ERROR_NONE) {
+                LOGINFO("status success");
+                string element;
+                while (it->Next(element) == true) {
+                    response.Namespaces.Add() = element;
+                }
+                it->Release();
+                response.Success = true;
+            }
+        }
+        _adminLock.Unlock();
+        LOGINFO("status: %d", status);
+        return status;
     }
 
     // Deprecated
     uint32_t SecureStore::endpoint_getStorageSize(const GetNamespacesParamsInfo& params, JsonObject& response)
     {
-        Exchange::IStoreInspector::INamespaceSizeIterator* it;
-        auto result = _store2->GetStorageSizes(
-            Exchange::IStoreInspector::ScopeType(params.Scope.Value()),
-            it);
-        if (result == Core::ERROR_NONE) {
-            JsonObject jsonObject;
-            Exchange::IStoreInspector::NamespaceSize element;
-            while (it->Next(element) == true) {
-                jsonObject[element.ns.c_str()] = element.size;
-            }
-            it->Release();
-            response["namespaceSizes"] = jsonObject;
-            response["success"] = true;
+        uint32_t status = Core::ERROR_NOT_SUPPORTED;
+        if(params.Scope.Value() == ScopeType::ACCOUNT)
+        {
+            return status;
         }
-
-        return result;
+        Exchange::IStoreInspector* _storeInspectorObject = getRemoteStoreInspectorObject(params.Scope.Value());
+        ASSERT (nullptr != _storeInspectorObject);
+        _adminLock.Lock();
+        if (nullptr != _storeInspectorObject)
+        {
+            LOGINFO("inside _storeInspectorObject");
+            Exchange::IStoreInspector::INamespaceSizeIterator* it;
+            status = _storeInspectorObject->GetStorageSizes(
+                        Exchange::IStoreInspector::ScopeType(params.Scope.Value()),
+                        it);
+            if (status == Core::ERROR_NONE) {
+                LOGINFO("status success");
+                JsonObject jsonObject;
+                Exchange::IStoreInspector::NamespaceSize element;
+                while (it->Next(element) == true) {
+                    jsonObject[element.ns.c_str()] = element.size;
+                }
+                it->Release();
+                response["namespaceSizes"] = jsonObject;
+                response["success"] = true;
+            }
+        }
+        _adminLock.Unlock();
+        LOGINFO("status: %d", status);
+        return status;
     }
 
     uint32_t SecureStore::endpoint_getStorageSizes(const GetNamespacesParamsInfo& params, GetStorageSizesResultData& response)
     {
-        Exchange::IStoreInspector::INamespaceSizeIterator* it;
-        auto result = _store2->GetStorageSizes(
-            Exchange::IStoreInspector::ScopeType(params.Scope.Value()),
-            it);
-        if (result == Core::ERROR_NONE) {
-            Exchange::IStoreInspector::NamespaceSize element;
-            while (it->Next(element) == true) {
-                auto& item = response.StorageList.Add();
-                item.Namespace = element.ns;
-                item.Size = element.size;
-            }
-            it->Release();
+        uint32_t status = Core::ERROR_NOT_SUPPORTED;
+        if(params.Scope.Value() == ScopeType::ACCOUNT)
+        {
+            return status;
         }
-
-        return result;
+        Exchange::IStoreInspector* _storeInspectorObject = getRemoteStoreInspectorObject(params.Scope.Value());
+        ASSERT (nullptr != _storeInspectorObject);
+        _adminLock.Lock();
+        if (nullptr != _storeInspectorObject)
+        {
+            LOGINFO("inside _storeInspectorObject");
+            Exchange::IStoreInspector::INamespaceSizeIterator* it;
+            status = _storeInspectorObject->GetStorageSizes(
+                        Exchange::IStoreInspector::ScopeType(params.Scope.Value()),
+                        it);
+            if (status == Core::ERROR_NONE) {
+                LOGINFO("status success");
+                JsonObject jsonObject;
+                Exchange::IStoreInspector::NamespaceSize element;
+                while (it->Next(element) == true) {
+                    auto& item = response.StorageList.Add();
+                    item.Namespace = element.ns;
+                    item.Size = element.size;
+                }
+                it->Release();
+            }
+        }
+        _adminLock.Unlock();
+        LOGINFO("status: %d", status);
+        return status;
     }
 
     uint32_t SecureStore::endpoint_flushCache(DeleteKeyResultInfo& response)
     {
-        auto result = _store2->FlushCache();
-        if (result == Core::ERROR_NONE) {
-            response.Success = true;
+        uint32_t status = Core::ERROR_NOT_SUPPORTED;
+        Exchange::IStoreCache* _storeCacheObject = getRemoteStoreCacheObject();
+        ASSERT (nullptr != _storeCacheObject);
+        _adminLock.Lock();
+        if (nullptr != _storeCacheObject)
+        {
+            LOGINFO("inside _storeCacheObject");
+            status = _storeCacheObject->FlushCache();
+            if (status == Core::ERROR_NONE) {
+                LOGINFO("status success");
+                response.Success = true;
+            }
         }
-
-        return result;
+        _adminLock.Unlock();
+        LOGINFO("status: %d", status);
+        return status;
     }
 
     uint32_t SecureStore::endpoint_getNamespaceStorageLimit(const DeleteNamespaceParamsInfo& params, GetNamespaceStorageLimitResultData& response)
     {
-        uint32_t size;
-        auto result = _store2->GetNamespaceStorageLimit(
-            Exchange::IStoreLimit::ScopeType(params.Scope.Value()),
-            params.Namespace.Value(),
-            size);
-        if (result == Core::ERROR_NONE) {
-            response.StorageLimit = size;
+        uint32_t status = Core::ERROR_NOT_SUPPORTED;
+        if(params.Scope.Value() == ScopeType::ACCOUNT)
+        {
+            return status;
         }
-
-        return result;
+        Exchange::IStoreLimit* _storeLimitObject = getRemoteStoreLimitObject(params.Scope.Value());
+        ASSERT (nullptr != _storeLimitObject);
+        _adminLock.Lock();
+        if (nullptr != _storeLimitObject)
+        {
+            LOGINFO("inside _storeLimitObject");
+            uint32_t size;
+            status = _storeLimitObject->GetNamespaceStorageLimit(
+                        Exchange::IStoreInspector::ScopeType(params.Scope.Value()),
+                        params.Namespace.Value(),
+                        size);
+            if (status == Core::ERROR_NONE) {
+                LOGINFO("status success");
+                response.StorageLimit = size;
+            }
+        }
+        _adminLock.Unlock();
+        LOGINFO("status: %d", status);
+        return status;
     }
 
     uint32_t SecureStore::endpoint_setNamespaceStorageLimit(const SetNamespaceStorageLimitParamsData& params)
     {
-        return _store2->SetNamespaceStorageLimit(
-            Exchange::IStoreLimit::ScopeType(params.Scope.Value()),
-            params.Namespace.Value(),
-            params.StorageLimit.Value());
+        uint32_t status = Core::ERROR_NOT_SUPPORTED;
+        if(params.Scope.Value() == ScopeType::ACCOUNT)
+        {
+            return status;
+        }
+        Exchange::IStoreLimit* _storeLimitObject = getRemoteStoreLimitObject(params.Scope.Value());
+        ASSERT (nullptr != _storeLimitObject);
+        _adminLock.Lock();
+        if (nullptr != _storeLimitObject)
+        {
+            LOGINFO("inside _storeLimitObject");
+            status = _storeLimitObject->SetNamespaceStorageLimit(
+                        Exchange::IStoreInspector::ScopeType(params.Scope.Value()),
+                        params.Namespace.Value(),
+                        params.StorageLimit.Value());
+        }
+        _adminLock.Unlock();
+        LOGINFO("status: %d", status);
+        return status;
     }
 
 } // namespace Plugin
