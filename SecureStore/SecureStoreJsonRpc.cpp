@@ -161,7 +161,7 @@ namespace Plugin {
     uint32_t SecureStore::endpoint_getKeys(const DeleteNamespaceParamsInfo& params, GetKeysResultData& response)
     {
         uint32_t status = Core::ERROR_NOT_SUPPORTED;
-        if(params.Scope.Value() == ScopeType::ACCOUNT)
+        if(params.Scope.Value() != ScopeType::DEVICE)
         {
             return status;
         }
@@ -193,7 +193,7 @@ namespace Plugin {
     uint32_t SecureStore::endpoint_getNamespaces(const GetNamespacesParamsInfo& params, GetNamespacesResultData& response)
     {
         uint32_t status = Core::ERROR_NOT_SUPPORTED;
-        if(params.Scope.Value() == ScopeType::ACCOUNT)
+        if(params.Scope.Value() != ScopeType::DEVICE)
         {
             return status;
         }
@@ -225,7 +225,7 @@ namespace Plugin {
     uint32_t SecureStore::endpoint_getStorageSize(const GetNamespacesParamsInfo& params, JsonObject& response)
     {
         uint32_t status = Core::ERROR_NOT_SUPPORTED;
-        if(params.Scope.Value() == ScopeType::ACCOUNT)
+        if(params.Scope.Value() != ScopeType::DEVICE)
         {
             return status;
         }
@@ -258,7 +258,7 @@ namespace Plugin {
     uint32_t SecureStore::endpoint_getStorageSizes(const GetNamespacesParamsInfo& params, GetStorageSizesResultData& response)
     {
         uint32_t status = Core::ERROR_NOT_SUPPORTED;
-        if(params.Scope.Value() == ScopeType::ACCOUNT)
+        if(params.Scope.Value() != ScopeType::DEVICE)
         {
             return status;
         }
@@ -310,7 +310,7 @@ namespace Plugin {
     uint32_t SecureStore::endpoint_getNamespaceStorageLimit(const DeleteNamespaceParamsInfo& params, GetNamespaceStorageLimitResultData& response)
     {
         uint32_t status = Core::ERROR_NOT_SUPPORTED;
-        if(params.Scope.Value() == ScopeType::ACCOUNT)
+        if(params.Scope.Value() != ScopeType::DEVICE)
         {
             return status;
         }
@@ -337,7 +337,7 @@ namespace Plugin {
     uint32_t SecureStore::endpoint_setNamespaceStorageLimit(const SetNamespaceStorageLimitParamsData& params)
     {
         uint32_t status = Core::ERROR_NOT_SUPPORTED;
-        if(params.Scope.Value() == ScopeType::ACCOUNT)
+        if(params.Scope.Value() != ScopeType::DEVICE)
         {
             return status;
         }

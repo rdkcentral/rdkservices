@@ -46,8 +46,10 @@ namespace Plugin {
     SecureStore::SecureStore()
         : PluginHost::JSONRPC()
         , _service(nullptr)
-        , _engine(Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create())
-        , _communicatorClient(Core::ProxyType<RPC::CommunicatorClient>::Create(Core::NodeId("/tmp/communicator"), Core::ProxyType<Core::IIPCServer>(_engine)))
+        , _psEngine(Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create())
+        , _psCommunicatorClient(Core::ProxyType<RPC::CommunicatorClient>::Create(Core::NodeId("/tmp/communicator"), Core::ProxyType<Core::IIPCServer>(_psEngine)))
+        , _csEngine(Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create())
+        , _csCommunicatorClient(Core::ProxyType<RPC::CommunicatorClient>::Create(Core::NodeId("/tmp/communicator"), Core::ProxyType<Core::IIPCServer>(_csEngine)))
         , _psController(nullptr)
         , _csController(nullptr)
         , _psObject(nullptr)
@@ -95,16 +97,16 @@ namespace Plugin {
         _service = service;
         _service->AddRef();
 
-        if (!_communicatorClient.IsValid())
+        if (!_psCommunicatorClient.IsValid())
         {
-            LOGWARN("Invalid _communicatorClient\n");
+            LOGWARN("Invalid _psCommunicatorClient\n");
         }
         else
         {
             #if ((THUNDER_VERSION == 2) || ((THUNDER_VERSION == 4) && (THUNDER_VERSION_MINOR == 2)))
-                _engine->Announcements(_communicatorClient->Announcement());
+                _engine->Announcements(_psCommunicatorClient->Announcement());
             #endif
-            _psController = _communicatorClient->Open<PluginHost::IShell>("org.rdk.PersistentStore", ~0, 3000);
+            _psController = _psCommunicatorClient->Open<PluginHost::IShell>("org.rdk.PersistentStore", ~0, 3000);
             if (_psController)
             {
                 // Get interface for IStore2
@@ -156,8 +158,19 @@ namespace Plugin {
                     LOGERR("Connect fail to _psCache\n");
                 }
             }
+        }
 
-            _csController = _communicatorClient->Open<PluginHost::IShell>("org.rdk.CloudStore", ~0, 3000);
+        // Establish communication with CloudStore
+        if (!_csCommunicatorClient.IsValid())
+        {
+            LOGWARN("Invalid _csCommunicatorClient\n");
+        }
+        else
+        {
+            #if ((THUNDER_VERSION == 2) || ((THUNDER_VERSION == 4) && (THUNDER_VERSION_MINOR == 2)))
+                _csEngine->Announcements(_csCommunicatorClient->Announcement());
+            #endif
+            _csController = _csCommunicatorClient->Open<PluginHost::IShell>("org.rdk.CloudStore", ~0, 3000);
             if (_csController)
             {
                 _csObject = _csController->QueryInterface<Exchange::IStore2>();
@@ -196,10 +209,10 @@ namespace Plugin {
             _csController->Release();
             _csController = nullptr;
         }
-        _communicatorClient->Close(RPC::CommunicationTimeOut);
-        if (_communicatorClient.IsValid())
+        _psCommunicatorClient->Close(RPC::CommunicationTimeOut);
+        if (_psCommunicatorClient.IsValid())
         {
-            _communicatorClient.Release();
+            _psCommunicatorClient.Release();
         }
         if(_engine.IsValid())
         {
@@ -217,6 +230,15 @@ namespace Plugin {
         if(_psLimit)
         {
             _psLimit->Release();
+        }
+        _csCommunicatorClient->Close(RPC::CommunicationTimeOut);
+        if (_csCommunicatorClient.IsValid())
+        {
+            _csCommunicatorClient.Release();
+        }
+        if(_csEngine.IsValid())
+        {
+            _csEngine.Release();
         }
         if(_psCache)
         {

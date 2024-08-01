@@ -136,8 +136,10 @@ namespace Plugin {
 
     private:
         PluginHost::IShell* _service{};
-        Core::ProxyType<RPC::InvokeServerType<1, 0, 4>> _engine;
-        Core::ProxyType<RPC::CommunicatorClient> _communicatorClient;
+        Core::ProxyType<RPC::InvokeServerType<1, 0, 4>> _psEngine;
+        Core::ProxyType<RPC::CommunicatorClient> _psCommunicatorClient;
+        Core::ProxyType<RPC::InvokeServerType<1, 0, 4>> _csEngine;
+        Core::ProxyType<RPC::CommunicatorClient> _csCommunicatorClient;
         PluginHost::IShell *_psController;
         PluginHost::IShell *_csController;
         Exchange::IStore2* _psObject;
