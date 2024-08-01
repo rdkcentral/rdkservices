@@ -2884,7 +2884,7 @@ namespace WPEFramework
 					_instance->allocateLogicalAddress(DeviceType::TV);
 					if ( _instance->m_logicalAddressAllocated != LogicalAddress::UNREGISTERED)
 					{
-                        try(){
+                        try{
                             
 						    logicalAddress = LogicalAddress(_instance->m_logicalAddressAllocated);
 						    LibCCEC::getInstance().addLogicalAddress(logicalAddress);
