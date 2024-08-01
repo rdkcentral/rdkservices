@@ -45,9 +45,11 @@ namespace Plugin {
 
     SecureStore::SecureStore()
         : PluginHost::JSONRPC()
+        , _service(nullptr)
         , _engine(Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create())
         , _communicatorClient(Core::ProxyType<RPC::CommunicatorClient>::Create(Core::NodeId("/tmp/communicator"), Core::ProxyType<Core::IIPCServer>(_engine)))
-        , _controller(nullptr)
+        , _psController(nullptr)
+        , _csController(nullptr)
         , _psObject(nullptr)
         , _psCache(nullptr)
         , _psInspector(nullptr)
@@ -55,13 +57,8 @@ namespace Plugin {
         , _csObject(nullptr)
         , _storeNotification(*this)
         , _notification(*this)
-        , _psRegisteredEventHandlers(false)
-        , _csRegisteredEventHandlers(false)
         , _adminLock()
     {
-        // _engine = Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create();
-        // _communicatorClient = Core::ProxyType<RPC::CommunicatorClient>::Create(Core::NodeId("/tmp/communicator"), Core::ProxyType<Core::IIPCServer>(_engine));
-
         RegisterAll();
         LOGINFO("SecureStore constructor success\n");
     }
@@ -69,31 +66,6 @@ namespace Plugin {
     {
         UnregisterAll();
         LOGINFO("Disconnect from the COM-RPC socket\n");
-        // Disconnect from the COM-RPC socket
-        if (_controller)
-        {
-            _controller->Release();
-            _controller = nullptr;
-        }
-        _communicatorClient->Close(RPC::CommunicationTimeOut);
-        if (_communicatorClient.IsValid())
-        {
-            _communicatorClient.Release();
-        }
-        if(_engine.IsValid())
-        {
-            _engine.Release();
-        }
-        if(_psObject)
-        {
-            _psObject->Release();
-        }
-        if(_csObject)
-        {
-            _csObject->Release();
-        }
-        _psRegisteredEventHandlers = false;
-        _csRegisteredEventHandlers = false;
     }
 
     Exchange::IStore2* SecureStore::getRemoteStoreObject(ScopeType eScope)
@@ -106,186 +78,10 @@ namespace Plugin {
         {
             return _csObject;
         }
-        else if( (eScope != ScopeType::DEVICE) && (eScope != ScopeType::ACCOUNT) )
-        {
-            return nullptr;
-        }
-
-        LOGINFO("Connect the store COM-RPC socket\n");
-        const std::lock_guard<std::mutex> lock(storeObjMutex);
-        Exchange::IStore2** _storeObject = nullptr;
-        std::string storeCallSign;
-        if(eScope == ScopeType::DEVICE)
-        {
-            storeCallSign = "org.rdk.PersistentStore";
-            _storeObject = &_psObject;
-        }
-        else if(eScope == ScopeType::ACCOUNT)
-        {
-            storeCallSign = "org.rdk.CloudStore";
-            _storeObject = &_csObject;
-        }
-
-        if(!*_storeObject)
-        {
-            _controller = _communicatorClient->Open<PluginHost::IShell>(storeCallSign, ~0, 5000);
-            if (_controller)
-            {
-                // if(eScope == ScopeType::DEVICE)
-                // {
-                //     _psObject = _controller->QueryInterface<Exchange::IStore2>();
-                //     if(_psObject)
-                //     {
-                //         LOGINFO("Connect success to _psObject\n");
-                //         _psObject->AddRef();
-                //         registerEventHandlers();
-                //     }
-                //     else
-                //     {
-                //         LOGINFO("Connect fail to _psObject\n");
-                //     }
-                // }
-                // else if(eScope == ScopeType::ACCOUNT)
-                // {
-                //     _csObject = _controller->QueryInterface<Exchange::IStore2>();
-                //     if(_csObject)
-                //     {
-                //         LOGINFO("Connect success to _csObject\n");
-                //         _csObject->AddRef();
-                //     }
-                //     else
-                //     {
-                //         LOGINFO("Connect fail to _csObject\n");
-                //     }
-                // }
-
-                *_storeObject = _controller->QueryInterface<Exchange::IStore2>();
-                if(*_storeObject)
-                {
-                    LOGINFO("Connect success to _storeObject\n");
-                    (*_storeObject)->AddRef();
-                    registerEventHandlers(eScope);
-                }
-                else
-                {
-                    LOGERR("Connect fail to _storeObject\n");
-                }
-            }
-            else
-            {
-                LOGERR("Failed to create Store Controller\n");
-            }
-        }
-        LOGINFO("_storeObject: %p, _psObject: %p, _csObject: %p", (void *)_storeObject, (void*)_psObject, (void*)_csObject);
-        return *_storeObject;
-    }
-
-    Exchange::IStoreInspector* SecureStore::getRemoteStoreInspectorObject(ScopeType eScope)
-    {
-        if( (eScope == ScopeType::DEVICE))
-        {
-            if(_psInspector)
-                return _psInspector;
-        }
         else
         {
             return nullptr;
         }
-
-        LOGINFO("Connect the store inspector COM-RPC socket\n");
-        const std::lock_guard<std::mutex> lock(storeObjMutex);
-
-        if(!_psInspector)
-        {
-            _controller = _communicatorClient->Open<PluginHost::IShell>(_T("org.rdk.PersistentStore"), ~0, 5000);
-            if (_controller)
-            {
-                _psInspector = _controller->QueryInterface<Exchange::IStoreInspector>();
-                if(_psInspector)
-                {
-                    LOGINFO("Connect success to _psInspector\n");
-                    _psInspector->AddRef();
-                }
-                else
-                {
-                    LOGERR("Connect fail to _psInspector\n");
-                }
-            }
-            else
-            {
-                LOGERR("Failed to create Store Controller\n");
-            }
-        }
-        return _psInspector;
-    }
-
-    Exchange::IStoreLimit* SecureStore::getRemoteStoreLimitObject(ScopeType eScope)
-    {
-        if(eScope == ScopeType::DEVICE)
-        {
-            if(_psLimit)
-                return _psLimit;
-        }
-        else
-        {
-            return nullptr;
-        }
-
-        LOGINFO("Connect the store limit COM-RPC socket\n");
-        const std::lock_guard<std::mutex> lock(storeObjMutex);
-
-        if(!_psLimit)
-        {
-            _controller = _communicatorClient->Open<PluginHost::IShell>(_T("org.rdk.PersistentStore"), ~0, 5000);
-            if (_controller)
-            {
-                _psLimit = _controller->QueryInterface<Exchange::IStoreLimit>();
-                if(_psLimit)
-                {
-                    LOGINFO("Connect success to _psLimit\n");
-                    _psLimit->AddRef();
-                }
-                else
-                {
-                    LOGERR("Connect fail to _psLimit\n");
-                }
-            }
-            else
-            {
-                LOGERR("Failed to create Store Controller\n");
-            }
-        }
-        return _psLimit;
-    }
-
-    Exchange::IStoreCache* SecureStore::getRemoteStoreCacheObject()
-    {
-        if(_psCache)
-        {
-            return _psCache;
-        }
-
-        LOGINFO("Connect the store cache COM-RPC socket\n");
-        const std::lock_guard<std::mutex> lock(storeObjMutex);
-        _controller = _communicatorClient->Open<PluginHost::IShell>("org.rdk.PersistentStore", ~0, 5000);
-        if (_controller)
-        {
-            _psCache = _controller->QueryInterface<Exchange::IStoreCache>();
-            if(_psCache)
-            {
-                LOGINFO("Connect success to _psCache\n");
-                (_psCache)->AddRef();
-            }
-            else
-            {
-                LOGERR("Connect fail to _psCache\n");
-            }
-        }
-        else
-        {
-            LOGERR("Failed to create Store Controller\n");
-        }
-        return _psCache;
     }
 
     const string SecureStore::Initialize(PluginHost::IShell* service)
@@ -294,6 +90,10 @@ namespace Plugin {
         string result;
 
         ASSERT(service != nullptr);
+        ASSERT(nullptr == _service);
+
+        _service = service;
+        _service->AddRef();
 
         if (!_communicatorClient.IsValid())
         {
@@ -304,22 +104,77 @@ namespace Plugin {
             #if ((THUNDER_VERSION == 2) || ((THUNDER_VERSION == 4) && (THUNDER_VERSION_MINOR == 2)))
                 _engine->Announcements(_communicatorClient->Announcement());
             #endif
-            // LOGINFO("Connect the persistent store COM-RPC socket\n");
-            // _psObject = getRemoteStoreObject(ScopeType::DEVICE);
-            // if(!_psObject)
-            // {
-            //     LOGERR("Failed to create PersistentStore Controller\n");
-            // }
+            _psController = _communicatorClient->Open<PluginHost::IShell>("org.rdk.PersistentStore", ~0, 3000);
+            if (_psController)
+            {
+                // Get interface for IStore2
+                _psObject = _psController->QueryInterface<Exchange::IStore2>();
+                if(_psObject)
+                {
+                    LOGINFO("Connect success to _psObject\n");
+                    _psObject->AddRef();
+                    _psObject->Register(&_storeNotification);
+                }
+                else
+                {
+                    LOGERR("Connect fail to _psObject\n");
+                }
 
-            // LOGINFO("Connect the cloud store COM-RPC socket\n");
-            // _csObject = getRemoteStoreObject(ScopeType::ACCOUNT);
-            // if(!_csObject)
-            // {
-            //     LOGERR("Failed to create CloudStore Controller\n");
-            // }
+                // Get interface for IStoreInspector
+                _psInspector = _psController->QueryInterface<Exchange::IStoreInspector>();
+                if(_psInspector)
+                {
+                    LOGINFO("Connect success to _psInspector\n");
+                    _psInspector->AddRef();
+                }
+                else
+                {
+                    LOGERR("Connect fail to _psInspector\n");
+                }
+
+                // Get interface for IStoreLimit
+                _psLimit = _psController->QueryInterface<Exchange::IStoreLimit>();
+                if(_psLimit)
+                {
+                    LOGINFO("Connect success to _psLimit\n");
+                    _psLimit->AddRef();
+                }
+                else
+                {
+                    LOGERR("Connect fail to _psLimit\n");
+                }
+
+                // Get interface for IStoreCache
+                _psCache = _psController->QueryInterface<Exchange::IStoreCache>();
+                if(_psCache)
+                {
+                    LOGINFO("Connect success to _psCache\n");
+                    _psCache->AddRef();
+                }
+                else
+                {
+                    LOGERR("Connect fail to _psCache\n");
+                }
+            }
+
+            _csController = _communicatorClient->Open<PluginHost::IShell>("org.rdk.CloudStore", ~0, 3000);
+            if (_csController)
+            {
+                _csObject = _csController->QueryInterface<Exchange::IStore2>();
+                if(_csObject)
+                {
+                    LOGINFO("Connect success to _csObject\n");
+                    _csObject->AddRef();
+                    _csObject->Register(&_storeNotification);
+                }
+                else
+                {
+                    LOGERR("Connect fail to _csObject\n");
+                }
+            }
         }
 
-        //service->Register(&_notification);
+        //_service->Register(&_notification);
 
         LOGINFO("SecureStore Initialize complete\n");
         return result;
@@ -327,38 +182,62 @@ namespace Plugin {
 
     void SecureStore::Deinitialize(PluginHost::IShell* service)
     {
-        ASSERT(service == service);
-        service->Unregister(&_notification);
+        ASSERT(_service == service);
+        SYSLOG(Logging::Shutdown, (string(_T("SecureStore::Deinitialize"))));
+
+        // Disconnect from the COM-RPC socket
+        if (_psController)
+        {
+            _psController->Release();
+            _psController = nullptr;
+        }
+        if (_csController)
+        {
+            _csController->Release();
+            _csController = nullptr;
+        }
+        _communicatorClient->Close(RPC::CommunicationTimeOut);
+        if (_communicatorClient.IsValid())
+        {
+            _communicatorClient.Release();
+        }
+        if(_engine.IsValid())
+        {
+            _engine.Release();
+        }
+        if(_psObject)
+        {
+            _psObject->Unregister(&_storeNotification);
+            _psObject->Release();
+        }
+        if(_psInspector)
+        {
+            _psInspector->Release();
+        }
+        if(_psLimit)
+        {
+            _psLimit->Release();
+        }
+        if(_psCache)
+        {
+            _psCache->Release();
+        }
+        if(_csObject)
+        {
+            _csObject->Unregister(&_storeNotification);
+            _csObject->Release();
+        }
+
+        //_service->Unregister(&_notification);
+
+        _service->Release();
+        _service = nullptr;
+        SYSLOG(Logging::Shutdown, (string(_T("SecureStore de-initialised"))));
     }
 
     string SecureStore::Information() const
     {
         return (string());
     }
-
-    void SecureStore::registerEventHandlers(ScopeType eScope)
-    {
-        if(eScope == ScopeType::DEVICE)
-        {
-            ASSERT (nullptr != _psObject);
-
-            if(!_psRegisteredEventHandlers && _psObject) {
-                _psRegisteredEventHandlers = true;
-                _psObject->Register(&_storeNotification);
-                LOGINFO("_psObject registerEventHandlers complete");
-            }
-        }
-        else if(eScope == ScopeType::ACCOUNT)
-        {
-            ASSERT (nullptr != _csObject);
-
-            if(!_csRegisteredEventHandlers && _csObject) {
-                _csRegisteredEventHandlers = true;
-                _csObject->Register(&_storeNotification);
-                LOGINFO("_csObject registerEventHandlers complete");
-            }
-        }
-    }
-
 } // namespace Plugin
 } // namespace WPEFramework

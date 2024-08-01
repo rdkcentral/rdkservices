@@ -132,16 +132,14 @@ namespace Plugin {
         {
             Notify(_T("onValueChanged"), params);
         }
-        void registerEventHandlers(JsonData::PersistentStore::ScopeType eScope);
         Exchange::IStore2* getRemoteStoreObject(JsonData::PersistentStore::ScopeType eScope);
-        Exchange::IStoreInspector* getRemoteStoreInspectorObject(JsonData::PersistentStore::ScopeType eScope);
-        Exchange::IStoreLimit* getRemoteStoreLimitObject(JsonData::PersistentStore::ScopeType eScope);
-        Exchange::IStoreCache* getRemoteStoreCacheObject();
 
     private:
+        PluginHost::IShell* _service{};
         Core::ProxyType<RPC::InvokeServerType<1, 0, 4>> _engine;
         Core::ProxyType<RPC::CommunicatorClient> _communicatorClient;
-        PluginHost::IShell *_controller;
+        PluginHost::IShell *_psController;
+        PluginHost::IShell *_csController;
         Exchange::IStore2* _psObject;
         Exchange::IStoreCache* _psCache;
         Exchange::IStoreInspector* _psInspector;
@@ -149,8 +147,6 @@ namespace Plugin {
         Exchange::IStore2* _csObject;
         Core::Sink<Store2Notification> _storeNotification;
         Core::Sink<RemoteConnectionNotification> _notification;
-        bool _psRegisteredEventHandlers;
-        bool _csRegisteredEventHandlers;
         mutable Core::CriticalSection _adminLock;
         std::mutex storeObjMutex;
     };

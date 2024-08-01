@@ -1,3 +1,4 @@
+autostart = "@PLUGIN_SECURESTORE_AUTOSTART@"
 precondition = ["Platform"]
 callsign = "org.rdk.SecureStore"
 startuporder = "@PLUGIN_SECURESTORE_STARTUPORDER@"

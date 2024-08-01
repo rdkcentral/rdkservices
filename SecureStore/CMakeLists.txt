@@ -21,6 +21,9 @@ set(PLUGIN_NAME SecureStore)
 find_package(WPEFramework)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
+set(PLUGIN_SECURESTORE_AUTOSTART "true" CACHE STRING "Automatically start SecureStore plugin")
+set(PLUGIN_SECURESTORE_STARTUPORDER "52" CACHE STRING "To configure startup order of SecureStore plugin")
+
 set(CMAKE_CXX_STANDARD 11)
 
 add_library(${MODULE_NAME} SHARED

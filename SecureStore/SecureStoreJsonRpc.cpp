@@ -79,18 +79,6 @@ namespace Plugin {
         _adminLock.Unlock();
         LOGINFO("status: %d", status);
         return status;
-
-        // auto result = _store2->SetValue(
-        //     Exchange::IStore2::ScopeType(params.Scope.Value()),
-        //     params.Namespace.Value(),
-        //     params.Key.Value(),
-        //     params.Value.Value(),
-        //     params.Ttl.Value());
-        // if (result == Core::ERROR_NONE) {
-        //     response.Success = true;
-        // }
-
-        // return result;
     }
 
     uint32_t SecureStore::endpoint_getValue(const DeleteKeyParamsInfo& params, GetValueResultData& response)
@@ -177,14 +165,13 @@ namespace Plugin {
         {
             return status;
         }
-        Exchange::IStoreInspector* _storeInspectorObject = getRemoteStoreInspectorObject(params.Scope.Value());
-        ASSERT (nullptr != _storeInspectorObject);
+        ASSERT (nullptr != _psInspector);
         _adminLock.Lock();
-        if (nullptr != _storeInspectorObject)
+        if (nullptr != _psInspector)
         {
-            LOGINFO("inside _storeInspectorObject");
+            LOGINFO("inside _psInspector");
             RPC::IStringIterator* it;
-            status = _storeInspectorObject->GetKeys(
+            status = _psInspector->GetKeys(
                         Exchange::IStoreInspector::ScopeType(params.Scope.Value()),
                         params.Namespace.Value(),
                         it);
@@ -210,14 +197,13 @@ namespace Plugin {
         {
             return status;
         }
-        Exchange::IStoreInspector* _storeInspectorObject = getRemoteStoreInspectorObject(params.Scope.Value());
-        ASSERT (nullptr != _storeInspectorObject);
+        ASSERT (nullptr != _psInspector);
         _adminLock.Lock();
-        if (nullptr != _storeInspectorObject)
+        if (nullptr != _psInspector)
         {
-            LOGINFO("inside _storeInspectorObject");
+            LOGINFO("inside _psInspector");
             RPC::IStringIterator* it;
-            status = _storeInspectorObject->GetNamespaces(
+            status = _psInspector->GetNamespaces(
                         Exchange::IStoreInspector::ScopeType(params.Scope.Value()),
                         it);
             if (status == Core::ERROR_NONE) {
@@ -243,14 +229,13 @@ namespace Plugin {
         {
             return status;
         }
-        Exchange::IStoreInspector* _storeInspectorObject = getRemoteStoreInspectorObject(params.Scope.Value());
-        ASSERT (nullptr != _storeInspectorObject);
+        ASSERT (nullptr != _psInspector);
         _adminLock.Lock();
-        if (nullptr != _storeInspectorObject)
+        if (nullptr != _psInspector)
         {
-            LOGINFO("inside _storeInspectorObject");
+            LOGINFO("inside _psInspector");
             Exchange::IStoreInspector::INamespaceSizeIterator* it;
-            status = _storeInspectorObject->GetStorageSizes(
+            status = _psInspector->GetStorageSizes(
                         Exchange::IStoreInspector::ScopeType(params.Scope.Value()),
                         it);
             if (status == Core::ERROR_NONE) {
@@ -277,14 +262,13 @@ namespace Plugin {
         {
             return status;
         }
-        Exchange::IStoreInspector* _storeInspectorObject = getRemoteStoreInspectorObject(params.Scope.Value());
-        ASSERT (nullptr != _storeInspectorObject);
+        ASSERT (nullptr != _psInspector);
         _adminLock.Lock();
-        if (nullptr != _storeInspectorObject)
+        if (nullptr != _psInspector)
         {
-            LOGINFO("inside _storeInspectorObject");
+            LOGINFO("inside _psInspector");
             Exchange::IStoreInspector::INamespaceSizeIterator* it;
-            status = _storeInspectorObject->GetStorageSizes(
+            status = _psInspector->GetStorageSizes(
                         Exchange::IStoreInspector::ScopeType(params.Scope.Value()),
                         it);
             if (status == Core::ERROR_NONE) {
@@ -307,13 +291,12 @@ namespace Plugin {
     uint32_t SecureStore::endpoint_flushCache(DeleteKeyResultInfo& response)
     {
         uint32_t status = Core::ERROR_NOT_SUPPORTED;
-        Exchange::IStoreCache* _storeCacheObject = getRemoteStoreCacheObject();
-        ASSERT (nullptr != _storeCacheObject);
+        ASSERT (nullptr != _psCache);
         _adminLock.Lock();
-        if (nullptr != _storeCacheObject)
+        if (nullptr != _psCache)
         {
-            LOGINFO("inside _storeCacheObject");
-            status = _storeCacheObject->FlushCache();
+            LOGINFO("inside _psCache");
+            status = _psCache->FlushCache();
             if (status == Core::ERROR_NONE) {
                 LOGINFO("status success");
                 response.Success = true;
@@ -331,14 +314,13 @@ namespace Plugin {
         {
             return status;
         }
-        Exchange::IStoreLimit* _storeLimitObject = getRemoteStoreLimitObject(params.Scope.Value());
-        ASSERT (nullptr != _storeLimitObject);
+        ASSERT (nullptr != _psLimit);
         _adminLock.Lock();
-        if (nullptr != _storeLimitObject)
+        if (nullptr != _psLimit)
         {
-            LOGINFO("inside _storeLimitObject");
+            LOGINFO("inside _psLimit");
             uint32_t size;
-            status = _storeLimitObject->GetNamespaceStorageLimit(
+            status = _psLimit->GetNamespaceStorageLimit(
                         Exchange::IStoreInspector::ScopeType(params.Scope.Value()),
                         params.Namespace.Value(),
                         size);
@@ -359,13 +341,12 @@ namespace Plugin {
         {
             return status;
         }
-        Exchange::IStoreLimit* _storeLimitObject = getRemoteStoreLimitObject(params.Scope.Value());
-        ASSERT (nullptr != _storeLimitObject);
+        ASSERT (nullptr != _psLimit);
         _adminLock.Lock();
-        if (nullptr != _storeLimitObject)
+        if (nullptr != _psLimit)
         {
-            LOGINFO("inside _storeLimitObject");
-            status = _storeLimitObject->SetNamespaceStorageLimit(
+            LOGINFO("inside _psLimit");
+            status = _psLimit->SetNamespaceStorageLimit(
                         Exchange::IStoreInspector::ScopeType(params.Scope.Value()),
                         params.Namespace.Value(),
                         params.StorageLimit.Value());
