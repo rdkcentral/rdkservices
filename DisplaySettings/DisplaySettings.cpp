@@ -3022,7 +3022,16 @@ namespace WPEFramework {
                 {
                         device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
 			current_volumelevel = (int)aPort.getLevel();
+			//unmute the device if it is currently muted and the volume is being changed
++                       if (aPort.isMuted() && level != current_volumelevel){
++                               aPort.setMuted(false);
++                               JsonObject params;
++                               params["muted"] = false;
++                               sendNotify("muteStatusChanged",params);
++                       }
++                       //Set the new volume level
                         aPort.setLevel(level);
+                        //Notify if the levelhas change
                         if(current_volumelevel != (int)level)
                         {
                             JsonObject params;
