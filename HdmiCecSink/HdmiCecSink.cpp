@@ -2911,18 +2911,15 @@ namespace WPEFramework
 						    _instance->m_pollThreadState = POLL_THREAD_STATE_PING;
                         }
                         catch(InvalidStateException &e){
-                            LOGWARN("InvalidStateException caught in LibCCEC::getInstance().addLogicalAddress() %s", e.what());
-                            LOGINFO("Not able allocate Logical Address for TV");	
+                            LOGWARN("InvalidStateException caught while allocated logical address. %s", e.what());
 						    _instance->m_pollThreadState = POLL_THREAD_STATE_EXIT;
                         }
                         catch(IOException &e){
-                            LOGWARN("IOException caught in LibCCEC::getInstance().addLogicalAddress() %s", e.what());
-                            LOGINFO("Not able allocate Logical Address for TV");	
+                            LOGWARN("IOException caught while allocated logical address. %s", e.what());
 						    _instance->m_pollThreadState = POLL_THREAD_STATE_EXIT;
                         }
                         catch(...){
-                            LOGWARN("Exception caught in LibCCEC::getInstance().addLogicalAddress()");
-                            LOGINFO("Not able allocate Logical Address for TV");	
+                            LOGWARN("Exception caught while allocated logical address.");
 						    _instance->m_pollThreadState = POLL_THREAD_STATE_EXIT;
                         }
 					}
