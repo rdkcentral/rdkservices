@@ -961,3 +961,14 @@ class IOException : public Exception
                         return "IO Exception..";
                 }
 };
+
+
+class InvalidStateException : public Exception
+{
+        public:
+                virtual const char* what() const throw()
+                {
+                        return "Invalid State Exception..";
+                }
+};
+
