@@ -1180,9 +1180,14 @@ namespace WPEFramework
                 {
                     LibCCEC::getInstance().init();
                 }
-                catch (const std::exception& e)
-                {
-                    LOGWARN("CEC exception caught from LibCCEC::getInstance().init()");
+                catch(InvalidStateException &e){
+                    LOGWARN("InvalidStateException caught in LibCCEC::init %s", e.what());
+                }
+                catch(IOException &e){
+                    LOGWARN("IOException caught in LibCCEC::init %s", e.what());
+                }
+                catch(...){
+                    LOGWARN("Exception caught in LibCCEC::init");
                 }
             }
             libcecInitStatus++;
@@ -1333,9 +1338,14 @@ namespace WPEFramework
                 {
                    LibCCEC::getInstance().term();
                 }
-                catch (const std::exception& e)
-                {
-                    LOGWARN("CEC exception caught from LibCCEC::getInstance().term() ");
+                catch(InvalidStateException &e){
+                    LOGWARN("InvalidStateException caught in LibCCEC::getInstance().term() %s", e.what());
+                }
+                catch(IOException &e){
+                    LOGWARN("IOException caught in LibCCEC::getInstance().term()%s", e.what());
+                }
+                catch(...){
+                    LOGWARN("Exception caught in LibCCEC::getInstance().term()");
                 }
             }
 
@@ -1605,7 +1615,15 @@ namespace WPEFramework
 			CECFrame frame = CECFrame((const uint8_t *)buf.data(), size);
 			//      SVCLOG_WARN("Frame to be sent from servicemanager in %s \n",__FUNCTION__);
 			//      frame.hexDump();
-			smConnection->sendAsync(frame);
+            try{
+                smConnection->sendAsync(frame);
+            }
+            catch(InvalidStateException &e){
+                LOGERR("InvalidStateException caught in sendUnencryptMsg %s", e.what());
+            }
+            catch(...){
+                LOGERR("Exception caught in sendUnencryptMsg");
+            }
 		}
 		else
 			LOGWARN("cecEnableStatus=false");
