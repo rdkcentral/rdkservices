@@ -1,5 +1,7 @@
 #include "NetworkManagerImplementation.h"
 #include "NetworkManagerGnomeWIFI.h"
+#include "NetworkManagerGnomeEvents.h"
+#include "NetworkManagerGnomeUtils.h"
 #include <libnm/NetworkManager.h>
 #include <fstream>
 #include <sstream>
@@ -17,6 +19,7 @@ namespace WPEFramework
     namespace Plugin
     {
         wifiManager *wifi = nullptr;
+        GnomeNetworkManagerEvents nmEvent;
         const float signalStrengthThresholdExcellent = -50.0f;
         const float signalStrengthThresholdGood = -60.0f;
         const float signalStrengthThresholdFair = -67.0f;
@@ -41,40 +44,11 @@ namespace WPEFramework
             }
             g_loop = g_main_loop_new(context, FALSE);
             wifi = wifiManager::getInstance();
+            nmEvent.startNetworkMangerEventMonitor();
             return;
         }
 
-        uint32_t GetInterfacesName(string &wifiInterface, string &ethernetInterface) {
-            string line;
-            uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
 
-            ifstream file("/etc/device.properties");
-            if (!file.is_open()) {
-                NMLOG_TRACE("Error opening file\n");
-                return rc;
-            }   
-
-            while (std::getline(file, line)) {
-                // Remove newline character if present
-                if (!line.empty() && line.back() == '\n') {
-                    line.pop_back();
-                }
-
-                istringstream iss(line);
-                string token;
-                getline(iss, token, '=');
-
-                if (token == "WIFI_INTERFACE") {
-                    std::getline(iss, wifiInterface, '=');
-                } else if (token == "ETHERNET_INTERFACE") {
-                    std::getline(iss, ethernetInterface, '=');
-                }
-            }   
-
-            file.close();
-
-            return rc;
-        }
 
         uint32_t NetworkManagerImplementation::GetAvailableInterfaces (Exchange::INetworkManager::IInterfaceDetailsIterator*& interfacesItr/* @out */)
         {
@@ -89,7 +63,7 @@ namespace WPEFramework
 
             if(interfaceList.empty())
             {
-                GetInterfacesName(wifiInterface, ethernetInterface);
+                nmUtils::GetInterfacesName(wifiInterface, ethernetInterface);
                 interfaces[0] = wifiInterface;
                 interfaces[1] = ethernetInterface;
                 for (size_t i = 0; i < 2; i++) {
@@ -460,101 +434,29 @@ namespace WPEFramework
         static void on_scan_done(GObject *source_object, GAsyncResult *result, gpointer user_data)
         {
             GError *error = NULL;
-            GBytes *ssid = NULL;
             NMAccessPoint *ap = NULL;
-            int strength = 0;
-            double freq;
-            guint security;
-            guint32 flags, wpaFlags, rsnFlags, ap_freq;
-            JsonArray ssidList = JsonArray();
             JsonObject ssidObj;
+            JsonArray ssidList = JsonArray();
             gboolean success = nm_device_wifi_request_scan_finish(NM_DEVICE_WIFI(source_object), result, &error);
             if (success)
             {
-                NMDeviceWifi *wifi_device = NM_DEVICE_WIFI(source_object);
-                const GPtrArray *access_points = nm_device_wifi_get_access_points(wifi_device);
-                NMLOG_INFO("Number of Access Points Scanned=%d\n",access_points->len);
-                for (guint i = 0; i < access_points->len; i++)
-                {
-                    char* ssid_str = NULL;
-                    ap = (NMAccessPoint*)access_points->pdata[i];
-                    ssid = nm_access_point_get_ssid(ap);
-                    if (ssid)
-                    {
-                        ssid_str = nm_utils_ssid_to_utf8((const guint8*)g_bytes_get_data(ssid, NULL), g_bytes_get_size(ssid));
-                        strength = nm_access_point_get_strength(ap);
-                        ap_freq   = nm_access_point_get_frequency(ap);
-                        flags     = nm_access_point_get_flags(ap);
-                        wpaFlags = nm_access_point_get_wpa_flags(ap);
-                        rsnFlags = nm_access_point_get_rsn_flags(ap);
-                        freq = static_cast<double>(ap_freq)/1000.0;
-			if ((flags == NM_802_11_AP_FLAGS_NONE) && (wpaFlags == NM_802_11_AP_SEC_NONE) && (rsnFlags == NM_802_11_AP_SEC_NONE))
-                        {
-                            security = 0;
-                        }
-                        else if( (flags & NM_802_11_AP_FLAGS_PRIVACY) && ((wpaFlags & NM_802_11_AP_SEC_PAIR_WEP40) || (rsnFlags & NM_802_11_AP_SEC_PAIR_WEP40)) )
-                        {
-                            security = 1;
-                        }
-                        else if( (flags & NM_802_11_AP_FLAGS_PRIVACY) && ((wpaFlags & NM_802_11_AP_SEC_PAIR_WEP104) || (rsnFlags & NM_802_11_AP_SEC_PAIR_WEP104)) )
-                        {
-                            security = 2;
-                        }
-                        else if((wpaFlags & NM_802_11_AP_SEC_PAIR_TKIP) || (rsnFlags & NM_802_11_AP_SEC_PAIR_TKIP))
-                        {
-                            security = 3;
-                        }
-                        else if((wpaFlags & NM_802_11_AP_SEC_PAIR_CCMP) || (rsnFlags & NM_802_11_AP_SEC_PAIR_CCMP))
-                        {
-                            security = 4;
-                        }
-                        else if ((rsnFlags & NM_802_11_AP_SEC_KEY_MGMT_PSK) && (rsnFlags & NM_802_11_AP_SEC_KEY_MGMT_802_1X))
-                        {
-                            security = 12;
-                        }
-                        else if(rsnFlags & NM_802_11_AP_SEC_KEY_MGMT_PSK)
-                        {
-                            security = 11;
-                        }
-                        else if((wpaFlags & NM_802_11_AP_SEC_GROUP_CCMP) || (rsnFlags & NM_802_11_AP_SEC_GROUP_CCMP))
-                        {
-                            security = 6;
-                        }
-                        else if((wpaFlags & NM_802_11_AP_SEC_GROUP_TKIP) || (rsnFlags & NM_802_11_AP_SEC_GROUP_TKIP))
-                        {
-                            security = 5;;
-                        }
-                        else
-                        {
-                            NMLOG_WARNING("security mode not defined");
-                        }
-		    }
-                    if(ssid_str)
-                    {
-                        string ssidString(ssid_str);
-                        ssidObj["ssid"] = ssidString;
-                        ssidObj["security"] = security;
-                        ssidObj["signalStrength"] = strength;
-                        ssidObj["frequency"] = freq;
-                        ssidList.Add(ssidObj);
-                    }
-                }
+                NMLOG_INFO("Wi-Fi scan request success");
             }
             else
             {
-                NMLOG_ERROR("Error requesting Wi-Fi scan: %s\n", error->message);
+                NMLOG_ERROR("Error requesting Wi-Fi scan: %s", error->message);
             }
-            string json;
-            ssidList.ToString(json);
-            NMLOG_INFO("Scanned APIs are  = %s",json.c_str());
-            ::_instance->ReportAvailableSSIDsEvent(json);
+            // string json;
+            // ssidList.ToString(json);
+            // NMLOG_INFO("Scanned APIs are  = %s",json.c_str());
+            // ::_instance->ReportAvailableSSIDsEvent(json);
             g_main_loop_quit((GMainLoop *)user_data);
         }
 
         uint32_t NetworkManagerImplementation::StartWiFiScan(const WiFiFrequency frequency /* @in */)
         {
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
-	    GMainLoop *loop;
+            GMainLoop *loop;
             loop = g_main_loop_new(NULL, FALSE);
             NMDevice *wifi_device;
             wifi_device = nm_client_get_device_by_iface(client, "wlan0");
@@ -569,7 +471,7 @@ namespace WPEFramework
             uint32_t rc = Core::ERROR_NONE;
 	    //TODO
             //Explore nm_device_wifi_request_scan_finish and other API which can be used stop scan
-            NMLOG_INFO ("StopWiFiScan is success\n");
+            NMLOG_INFO ("StopWiFiScan is success");
             return rc;
         }
 

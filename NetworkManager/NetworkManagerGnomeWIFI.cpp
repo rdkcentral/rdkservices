@@ -27,11 +27,29 @@
 #include "NetworkManagerLogger.h"
 #include "INetworkManager.h"
 #include "NetworkManagerGnomeWIFI.h"
+#include "NetworkManagerGnomeUtils.h"
 
 namespace WPEFramework
 {
     namespace Plugin
     {
+
+        wifiManager* wifiManager::getInstance()
+        {
+            static wifiManager instance;
+            return &instance;
+        }
+
+        wifiManager::~wifiManager() {
+            NMLOG_TRACE("~wifiManager");
+            g_main_loop_unref(loop);
+            g_object_unref(client);
+        }
+
+        wifiManager::wifiManager() : client(nullptr), loop(nullptr), createNewConnection(false) {
+            loop = g_main_loop_new(NULL, FALSE);
+        }
+
         NMDevice* wifiManager::getNmDevice()
         {
             NMDevice *wifiDevice = NULL;
@@ -165,64 +183,38 @@ namespace WPEFramework
             }
             else
             {
-            wifiInfo.m_ssid = "-----";
-            NMLOG_TRACE("ssid: %s", wifiInfo.m_ssid.c_str());
+                wifiInfo.m_ssid = "-----";
+                NMLOG_TRACE("ssid: %s", wifiInfo.m_ssid.c_str());
             }
 
             wifiInfo.m_bssid = (hwaddr != nullptr) ? hwaddr : "-----";
             NMLOG_INFO("bssid: %s", wifiInfo.m_bssid.c_str());
 
-            wifiInfo.m_frequency = static_cast<double>(freq)/1000.0;
-            NMLOG_INFO("frequency: %f", wifiInfo.m_frequency);
+            if (freq >= 2400 && freq < 5000) {
+                wifiInfo.m_frequency = Exchange::INetworkManager::WiFiFrequency::WIFI_FREQUENCY_2_4_GHZ;
+                NMLOG_INFO("freq: WIFI_FREQUENCY_2_4_GHZ");
+            }
+            else if (freq >= 5000 && freq < 6000) {
+                wifiInfo.m_frequency =  Exchange::INetworkManager::WiFiFrequency::WIFI_FREQUENCY_5_GHZ;
+                NMLOG_INFO("freq: WIFI_FREQUENCY_5_GHZ");
+            }
+            else if (freq >= 6000) {
+                wifiInfo.m_frequency = Exchange::INetworkManager::WiFiFrequency::WIFI_FREQUENCY_6_GHZ;
+                NMLOG_INFO("freq: WIFI_FREQUENCY_6_GHZ");
+            }
+            else {
+                wifiInfo.m_frequency = Exchange::INetworkManager::WiFiFrequency::WIFI_FREQUENCY_WHATEVER;
+                NMLOG_INFO("freq: No available !");
+            }
 
             wifiInfo.m_rate = std::to_string(bitrate);
             NMLOG_INFO("bitrate : %s kbit/s", wifiInfo.m_rate.c_str());
 
+            //TODO signal strenght to dBm
             wifiInfo.m_signalStrength = std::to_string(static_cast<u_int8_t>(strength));
             NMLOG_INFO("sterngth: %s %%", wifiInfo.m_signalStrength.c_str());
-            //TODO signal strenght to dBm
-
+            wifiInfo.m_securityMode = static_cast<Exchange::INetworkManager::WIFISecurityMode>(nmUtils::wifiSecurityModeFromAp(flags, wpaFlags, rsnFlags));
             std::string security_str = "";
-            if ((flags == NM_802_11_AP_FLAGS_NONE) && (wpaFlags == NM_802_11_AP_SEC_NONE) && (rsnFlags == NM_802_11_AP_SEC_NONE))
-            {
-                wifiInfo.m_securityMode = Exchange::INetworkManager::WIFISecurityMode::WIFI_SECURITY_NONE;
-            }
-            else if( (flags & NM_802_11_AP_FLAGS_PRIVACY) && ((wpaFlags & NM_802_11_AP_SEC_PAIR_WEP40) || (rsnFlags & NM_802_11_AP_SEC_PAIR_WEP40)) )
-            {
-                wifiInfo.m_securityMode = Exchange::INetworkManager::WIFISecurityMode::WIFI_SECURITY_WEP_64;
-            }
-            else if( (flags & NM_802_11_AP_FLAGS_PRIVACY) && ((wpaFlags & NM_802_11_AP_SEC_PAIR_WEP104) || (rsnFlags & NM_802_11_AP_SEC_PAIR_WEP104)) )
-            {
-                wifiInfo.m_securityMode = Exchange::INetworkManager::WIFISecurityMode::WIFI_SECURITY_WEP_128;
-            }
-            else if((wpaFlags & NM_802_11_AP_SEC_PAIR_TKIP) || (rsnFlags & NM_802_11_AP_SEC_PAIR_TKIP))
-            {
-                wifiInfo.m_securityMode = Exchange::INetworkManager::WIFISecurityMode::WIFI_SECURITY_WPA_PSK_TKIP;
-            }
-            else if((wpaFlags & NM_802_11_AP_SEC_PAIR_CCMP) || (rsnFlags & NM_802_11_AP_SEC_PAIR_CCMP))
-            {
-                wifiInfo.m_securityMode = Exchange::INetworkManager::WIFISecurityMode::WIFI_SECURITY_WPA_PSK_AES;
-            }
-            else if ((rsnFlags & NM_802_11_AP_SEC_KEY_MGMT_PSK) && (rsnFlags & NM_802_11_AP_SEC_KEY_MGMT_802_1X))
-            {
-                wifiInfo.m_securityMode = Exchange::INetworkManager::WIFISecurityMode::WIFI_SECURITY_WPA_WPA2_ENTERPRISE;
-            }
-            else if(rsnFlags & NM_802_11_AP_SEC_KEY_MGMT_PSK)
-            {
-                wifiInfo.m_securityMode = Exchange::INetworkManager::WIFISecurityMode::WIFI_SECURITY_WPA_WPA2_PSK;
-            }
-            else if((wpaFlags & NM_802_11_AP_SEC_GROUP_CCMP) || (rsnFlags & NM_802_11_AP_SEC_GROUP_CCMP))
-            {
-                wifiInfo.m_securityMode = Exchange::INetworkManager::WIFISecurityMode::WIFI_SECURITY_WPA2_PSK_AES;
-            }
-            else if((wpaFlags & NM_802_11_AP_SEC_GROUP_TKIP) || (rsnFlags & NM_802_11_AP_SEC_GROUP_TKIP))
-            {
-                wifiInfo.m_securityMode = Exchange::INetworkManager::WIFISecurityMode::WIFI_SECURITY_WPA2_PSK_TKIP;
-            }
-            else
-            {
-                NMLOG_WARNING("security mode not defined");
-            }
 
             if (!(flags & NM_802_11_AP_FLAGS_PRIVACY) && (wpaFlags != NM_802_11_AP_SEC_NONE) && (rsnFlags != NM_802_11_AP_SEC_NONE))
                 security_str += ("Encrypted: ");
@@ -320,69 +312,7 @@ namespace WPEFramework
                 g_error_free(error);
                 _wifiManager->quit(device);
             }
-            //_wifiManager->quit(device);
-        }
-
-        void static disconnectGsignalCb(NMDevice *device, GParamSpec *pspec, wifiManager *info)
-        {
-            if(NM_IS_DEVICE_WIFI(device))
-            {
-                NMDeviceState state = nm_device_get_state(device);
-                switch(state)
-                {
-                    case NM_DEVICE_STATE_DEACTIVATING:
-                        NMLOG_INFO("Device '%s' disconnecting", nm_device_get_iface(device));
-                    break;
-                    case NM_DEVICE_STATE_DISCONNECTED:
-                        NMLOG_INFO("Device '%s' disconnected", nm_device_get_iface(device));
-                        info->quit(device);
-                    break;
-                    case NM_DEVICE_STATE_ACTIVATED:
-                        NMLOG_INFO("Device '%s' connected", nm_device_get_iface(device));
-                        info->quit(device);
-                    break;
-                    case NM_DEVICE_STATE_FAILED:
-                    case NM_DEVICE_STATE_UNKNOWN:
-                    case NM_DEVICE_STATE_UNAVAILABLE:
-                        NMLOG_INFO("Device '%s' Failed state", nm_device_get_iface(device));
-                        info->quit(device);
-                    break;
-                    default:
-                    break;
-                }
-            }
-        }
-
-        static void connectGsignalCb(NMDevice *device, GParamSpec *pspec, wifiManager *info)
-        {
-            if(NM_IS_DEVICE_WIFI(device))
-            {
-                NMDeviceState state = nm_device_get_state(device);
-                switch(state)
-                {
-                    case NM_DEVICE_STATE_DEACTIVATING:
-                        NMLOG_INFO("Device '%s' disconnecting", nm_device_get_iface(device));
-                    break;
-                    case NM_DEVICE_STATE_CONFIG:
-                            NMLOG_INFO("Device '%s' configuring", nm_device_get_iface(device));
-                    break;
-                    case NM_DEVICE_STATE_DISCONNECTED:
-                        NMLOG_INFO("Device '%s' disconnected", nm_device_get_iface(device));
-                    break;
-                    case NM_DEVICE_STATE_ACTIVATED:
-                        NMLOG_INFO("Device '%s' connected", nm_device_get_iface(device));
-                        info->quit(device);
-                    break;
-                    case NM_DEVICE_STATE_FAILED:
-                    case NM_DEVICE_STATE_UNKNOWN:
-                    case NM_DEVICE_STATE_UNAVAILABLE:
-                        NMLOG_INFO("Device '%s' Failed state", nm_device_get_iface(device));
-                        info->quit(device);
-                    break;
-                    default:
-                    break;
-                }
-            }
+            _wifiManager->quit(device);
         }
 
         bool wifiManager::wifiDisconnect()
@@ -396,7 +326,6 @@ namespace WPEFramework
                 return false;
             }
 
-            wifiDeviceStateGsignal = g_signal_connect(wifiNMDevice, "notify::" NM_DEVICE_STATE, G_CALLBACK(disconnectGsignalCb), this);
             nm_device_disconnect_async(wifiNMDevice, NULL, wifiDisconnectCb, this);
             wait(loop);
             NMLOG_TRACE("Exit");
@@ -446,7 +375,7 @@ namespace WPEFramework
                     const guint8 *ssidData = static_cast<const guint8 *>(g_bytes_get_data(ssidGBytes, &size));
                     std::string ssidstr(reinterpret_cast<const char *>(ssidData), size);
                     //g_bytes_unref(ssidGBytes);
-                    NMLOG_TRACE("ssid <  %s  >", ssidstr.c_str());
+                   // NMLOG_TRACE("ssid <  %s  >", ssidstr.c_str());
                     if (strcmp(ssid, ssidstr.c_str()) == 0)
                     {
                         AccessPoint = candidate_ap;
@@ -478,8 +407,9 @@ namespace WPEFramework
                 } else {
                     NMLOG_ERROR("Failed to activate connection: %s", error->message);
                 }
-                g_main_loop_quit(_wifiManager->loop);
             }
+
+            g_main_loop_quit(_wifiManager->loop);
         }
 
         static void wifiConnectionUpdate(GObject *source_object, GAsyncResult *res, gpointer user_data)
@@ -755,7 +685,6 @@ namespace WPEFramework
             }
 
             objectPath = nm_object_get_path(NM_OBJECT(AccessPoint));
-            wifiDeviceStateGsignal = g_signal_connect(device, "notify::" NM_DEVICE_STATE, G_CALLBACK(connectGsignalCb), this);
             GVariant *nmDbusConnection = nm_connection_to_dbus(connection, NM_CONNECTION_SERIALIZE_ALL);
             if (NM_IS_REMOTE_CONNECTION(connection))
             {

@@ -36,12 +36,7 @@ namespace WPEFramework
         class wifiManager
         {
         public:
-            static wifiManager* getInstance()
-            {
-                static wifiManager instance;
-                return &instance;
-            }
-
+            static wifiManager* getInstance();
             bool isWifiConnected();
             bool wifiDisconnect();
             bool wifiConnectedSSIDInfo(Exchange::INetworkManager::WiFiSSIDInfo &ssidinfo);
@@ -52,18 +47,8 @@ namespace WPEFramework
             NMDevice *getNmDevice();
 
         private:
-            wifiManager() : client(nullptr), loop(nullptr), createNewConnection(false) {
-                loop = g_main_loop_new(NULL, FALSE);
-            }
-            ~wifiManager() {
-                NMLOG_TRACE("~wifiManager");
-                if(client != nullptr)
-                    g_object_unref(client);
-                if (loop != NULL) {
-                    g_main_loop_unref(loop);
-                    loop = NULL;
-                }
-            }
+            wifiManager();
+            ~wifiManager();
 
             wifiManager(wifiManager const&) = delete;
             void operator=(wifiManager const&) = delete;
