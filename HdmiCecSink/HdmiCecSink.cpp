@@ -2920,12 +2920,6 @@ namespace WPEFramework
                             LOGINFO("Not able allocate Logical Address for TV");	
 						    _instance->m_pollThreadState = POLL_THREAD_STATE_EXIT;
                         }
-                        catch (const std::exception& e)
-                        {
-                            LOGWARN("CEC exception caught from LibCCEC::getInstance().addLogicalAddress() ");
-                            LOGINFO("Not able allocate Logical Address for TV");	
-						    _instance->m_pollThreadState = POLL_THREAD_STATE_EXIT;
-                        }
                         catch(...){
                             LOGWARN("Exception caught in LibCCEC::getInstance().addLogicalAddress()");
                             LOGINFO("Not able allocate Logical Address for TV");	
@@ -3172,10 +3166,6 @@ namespace WPEFramework
                 catch(IOException &e){
                     LOGWARN("IOException caught in LibCCEC::init %s", e.what());
                 }
-                catch (const std::exception& e)
-                {
-                    LOGWARN("CEC exception caught from CECEnable");
-                }
                 catch(...){
                     LOGWARN("Exception caught in LibCCEC::init");
                 }
@@ -3291,10 +3281,6 @@ namespace WPEFramework
                 }
                 catch(IOException &e){
                     LOGWARN("IOException caught in LibCCEC::term %s", e.what());
-                }
-                catch (const std::exception& e)
-                {
-                    LOGWARN("CEC exception caught from CECEnable");
                 }
                 catch(...){
                     LOGWARN("Exception caught in LibCCEC::term");
