@@ -1474,6 +1474,11 @@ namespace Plugin {
                 case tvHLGMode_Bright:
                         value = "Bright";
                         break;
+                case tvDolbyMode_Game:
+                case tvHDR10Mode_Game:
+                case tvHLGMode_Game:
+                    value = "Game";
+                    break;
                 default:
                         break;
             }
