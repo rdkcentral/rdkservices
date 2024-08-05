@@ -785,7 +785,7 @@ namespace WPEFramework
                     if(param->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_ON)
                     {
                         powerState = 0; 
-		        getLogicalAddress(); //	get the updated LA after wakeup
+		        HdmiCecSource::_instance->getLogicalAddress(); //	get the updated LA after wakeup
                     }
                     else
                         powerState = 1;
