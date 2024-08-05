@@ -333,8 +333,8 @@ if(PLUGIN_PERSISTENTSTORE)
     add_subdirectory(PersistentStore)
 endif()
 
-if(PLUGIN_SECURESTORE)
-    add_subdirectory(SecureStore)
+if(PLUGIN_SHAREDSTORE)
+    add_subdirectory(SharedStore)
 endif()
 
 if(PLUGIN_OCICONTAINER)
