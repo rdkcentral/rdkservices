@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-#include "SecureStore.h"
+#include "SharedStore.h"
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
@@ -27,7 +27,7 @@ namespace WPEFramework {
 
 namespace {
 
-    static Plugin::Metadata<Plugin::SecureStore> metadata(
+    static Plugin::Metadata<Plugin::SharedStore> metadata(
         // Version (Major, Minor, Patch)
         API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
         // Preconditions
@@ -41,9 +41,9 @@ namespace {
 namespace Plugin {
     using namespace JsonData::PersistentStore;
 
-    SERVICE_REGISTRATION(SecureStore, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
+    SERVICE_REGISTRATION(SharedStore, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
-    SecureStore::SecureStore()
+    SharedStore::SharedStore()
         : PluginHost::JSONRPC()
         , _service(nullptr)
         , _psEngine(Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create())
@@ -62,15 +62,15 @@ namespace Plugin {
         , _adminLock()
     {
         RegisterAll();
-        LOGINFO("SecureStore constructor success\n");
+        LOGINFO("SharedStore constructor success\n");
     }
-    SecureStore::~SecureStore()
+    SharedStore::~SharedStore()
     {
         UnregisterAll();
         LOGINFO("Disconnect from the COM-RPC socket\n");
     }
 
-    Exchange::IStore2* SecureStore::getRemoteStoreObject(ScopeType eScope)
+    Exchange::IStore2* SharedStore::getRemoteStoreObject(ScopeType eScope)
     {
         if( (eScope == ScopeType::DEVICE) && _psObject)
         {
@@ -86,9 +86,9 @@ namespace Plugin {
         }
     }
 
-    const string SecureStore::Initialize(PluginHost::IShell* service)
+    const string SharedStore::Initialize(PluginHost::IShell* service)
     {
-        LOGINFO("SecureStore Initialize\n");
+        LOGINFO("SharedStore Initialize\n");
         string result;
 
         ASSERT(service != nullptr);
@@ -104,7 +104,7 @@ namespace Plugin {
         else
         {
             #if ((THUNDER_VERSION == 2) || ((THUNDER_VERSION == 4) && (THUNDER_VERSION_MINOR == 2)))
-                _engine->Announcements(_psCommunicatorClient->Announcement());
+                _psEngine->Announcements(_psCommunicatorClient->Announcement());
             #endif
             _psController = _psCommunicatorClient->Open<PluginHost::IShell>("org.rdk.PersistentStore", ~0, 3000);
             if (_psController)
@@ -187,16 +187,16 @@ namespace Plugin {
             }
         }
 
-        //_service->Register(&_notification);
+        _service->Register(&_notification);
 
-        LOGINFO("SecureStore Initialize complete\n");
+        LOGINFO("SharedStore Initialize complete\n");
         return result;
     }
 
-    void SecureStore::Deinitialize(PluginHost::IShell* service)
+    void SharedStore::Deinitialize(PluginHost::IShell* service)
     {
         ASSERT(_service == service);
-        SYSLOG(Logging::Shutdown, (string(_T("SecureStore::Deinitialize"))));
+        SYSLOG(Logging::Shutdown, (string(_T("SharedStore::Deinitialize"))));
 
         // Disconnect from the COM-RPC socket
         if (_psController)
@@ -214,9 +214,9 @@ namespace Plugin {
         {
             _psCommunicatorClient.Release();
         }
-        if(_engine.IsValid())
+        if(_psEngine.IsValid())
         {
-            _engine.Release();
+            _psEngine.Release();
         }
         if(_psObject)
         {
@@ -250,14 +250,14 @@ namespace Plugin {
             _csObject->Release();
         }
 
-        //_service->Unregister(&_notification);
+        _service->Unregister(&_notification);
 
         _service->Release();
         _service = nullptr;
-        SYSLOG(Logging::Shutdown, (string(_T("SecureStore de-initialised"))));
+        SYSLOG(Logging::Shutdown, (string(_T("SharedStore de-initialised"))));
     }
 
-    string SecureStore::Information() const
+    string SharedStore::Information() const
     {
         return (string());
     }

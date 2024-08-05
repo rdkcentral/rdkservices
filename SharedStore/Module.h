@@ -19,7 +19,7 @@
 
 #pragma once
 #ifndef MODULE_NAME
-#define MODULE_NAME Plugin_SecureStore
+#define MODULE_NAME Plugin_SharedStore
 #endif
 
 #include <plugins/plugins.h>

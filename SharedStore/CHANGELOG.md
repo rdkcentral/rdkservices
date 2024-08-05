@@ -18,7 +18,7 @@ All notable changes to this RDK Service will be documented in this file.
 
 ## [1.0.1] - 2024-07-31
 ### Changed
-- Added SecureStore plugin as proxy for PersistentStore & CloudStore.
+- Added SharedStore plugin as proxy for PersistentStore & CloudStore.
 
 ## [1.0.0] - 2024-07-25
 ### Added
