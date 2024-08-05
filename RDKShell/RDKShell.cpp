@@ -1694,7 +1694,7 @@ namespace WPEFramework {
                 mCurrentService(nullptr), mLastWakeupKeyCode(0),
                 mLastWakeupKeyModifiers(0),
                 mLastWakeupKeyTimestamp(0),
-                mEnableEasterEggs(false),
+                mEnableEasterEggs(true),
                 mScreenCapture(this),
                 mErmEnabled(false)
 #ifdef HIBERNATE_SUPPORT_ENABLED
