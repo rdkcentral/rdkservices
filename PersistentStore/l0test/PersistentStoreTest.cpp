@@ -20,7 +20,6 @@ using ::WPEFramework::Exchange::IStoreInspector;
 using ::WPEFramework::JsonData::PersistentStore::DeleteKeyParamsInfo;
 using ::WPEFramework::JsonData::PersistentStore::DeleteNamespaceParamsInfo;
 using ::WPEFramework::JsonData::PersistentStore::GetKeysResultData;
-using ::WPEFramework::JsonData::PersistentStore::GetNamespacesParamsInfo;
 using ::WPEFramework::JsonData::PersistentStore::GetNamespacesResultData;
 using ::WPEFramework::JsonData::PersistentStore::GetNamespaceStorageLimitResultData;
 using ::WPEFramework::JsonData::PersistentStore::GetStorageSizesResultData;
@@ -96,44 +95,6 @@ TEST_F(APersistentStore, GetsValueInDeviceScopeViaJsonRpc)
     plugin->Deinitialize(service);
 }
 
-TEST_F(APersistentStore, GetsValueInAccountScopeViaJsonRpc)
-{
-    class PersistentStoreImplementation : public NiceMock<PersistentStoreImplementationMock> {
-    public:
-        PersistentStoreImplementation()
-        {
-            EXPECT_CALL(*this, GetValue(_, _, _, _, _))
-                .WillRepeatedly(Invoke(
-                    [](const IStore2::ScopeType scope, const string& ns, const string& key, string& value, uint32_t& ttl) {
-                        EXPECT_THAT(scope, Eq(IStore2::ScopeType::ACCOUNT));
-                        EXPECT_THAT(ns, Eq(kAppId));
-                        EXPECT_THAT(key, Eq(kKey));
-                        value = kValue;
-                        ttl = kTtl;
-                        return WPEFramework::Core::ERROR_NONE;
-                    }));
-        }
-    };
-    PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
-    ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<IDispatcher>();
-    ASSERT_THAT(jsonRpc, NotNull());
-    DeleteKeyParamsInfo params;
-    params.Scope = WPEFramework::JsonData::PersistentStore::ScopeType::ACCOUNT;
-    params.Namespace = kAppId;
-    params.Key = kKey;
-    string paramsJsonStr;
-    params.ToString(paramsJsonStr);
-    string resultJsonStr;
-    ASSERT_THAT(jsonRpc->Invoke(0, 0, "", "getValue", paramsJsonStr, resultJsonStr), Eq(WPEFramework::Core::ERROR_NONE));
-    GetValueResultData result;
-    result.FromString(resultJsonStr);
-    EXPECT_THAT(result.Value.Value(), Eq(kValue));
-    EXPECT_THAT(result.Ttl.Value(), Eq(kTtl));
-    jsonRpc->Release();
-    plugin->Deinitialize(service);
-}
-
 TEST_F(APersistentStore, SetsValueInDeviceScopeViaJsonRpc)
 {
     class PersistentStoreImplementation : public NiceMock<PersistentStoreImplementationMock> {
@@ -157,42 +118,6 @@ TEST_F(APersistentStore, SetsValueInDeviceScopeViaJsonRpc)
     auto jsonRpc = plugin->QueryInterface<IDispatcher>();
     ASSERT_THAT(jsonRpc, NotNull());
     SetValueParamsData params;
-    params.Namespace = kAppId;
-    params.Key = kKey;
-    params.Value = kValue;
-    params.Ttl = kTtl;
-    string paramsJsonStr;
-    params.ToString(paramsJsonStr);
-    string resultJsonStr;
-    EXPECT_THAT(jsonRpc->Invoke(0, 0, "", "setValue", paramsJsonStr, resultJsonStr), Eq(WPEFramework::Core::ERROR_NONE));
-    jsonRpc->Release();
-    plugin->Deinitialize(service);
-}
-
-TEST_F(APersistentStore, SetsValueInAccountScopeViaJsonRpc)
-{
-    class PersistentStoreImplementation : public NiceMock<PersistentStoreImplementationMock> {
-    public:
-        PersistentStoreImplementation()
-        {
-            EXPECT_CALL(*this, SetValue(_, _, _, _, _))
-                .WillRepeatedly(Invoke(
-                    [](const IStore2::ScopeType scope, const string& ns, const string& key, const string& value, const uint32_t ttl) {
-                        EXPECT_THAT(scope, Eq(IStore2::ScopeType::ACCOUNT));
-                        EXPECT_THAT(ns, Eq(kAppId));
-                        EXPECT_THAT(key, Eq(kKey));
-                        EXPECT_THAT(value, Eq(kValue));
-                        EXPECT_THAT(ttl, Eq(kTtl));
-                        return WPEFramework::Core::ERROR_NONE;
-                    }));
-        }
-    };
-    PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
-    ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<IDispatcher>();
-    ASSERT_THAT(jsonRpc, NotNull());
-    SetValueParamsData params;
-    params.Scope = WPEFramework::JsonData::PersistentStore::ScopeType::ACCOUNT;
     params.Namespace = kAppId;
     params.Key = kKey;
     params.Value = kValue;
@@ -236,38 +161,6 @@ TEST_F(APersistentStore, DeletesKeyInDeviceScopeViaJsonRpc)
     plugin->Deinitialize(service);
 }
 
-TEST_F(APersistentStore, DeletesKeyInAccountScopeViaJsonRpc)
-{
-    class PersistentStoreImplementation : public NiceMock<PersistentStoreImplementationMock> {
-    public:
-        PersistentStoreImplementation()
-        {
-            EXPECT_CALL(*this, DeleteKey(_, _, _))
-                .WillRepeatedly(Invoke(
-                    [](const IStore2::ScopeType scope, const string& ns, const string& key) {
-                        EXPECT_THAT(scope, Eq(IStore2::ScopeType::ACCOUNT));
-                        EXPECT_THAT(ns, Eq(kAppId));
-                        EXPECT_THAT(key, Eq(kKey));
-                        return WPEFramework::Core::ERROR_NONE;
-                    }));
-        }
-    };
-    PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
-    ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<IDispatcher>();
-    ASSERT_THAT(jsonRpc, NotNull());
-    DeleteKeyParamsInfo params;
-    params.Scope = WPEFramework::JsonData::PersistentStore::ScopeType::ACCOUNT;
-    params.Namespace = kAppId;
-    params.Key = kKey;
-    string paramsJsonStr;
-    params.ToString(paramsJsonStr);
-    string resultJsonStr;
-    EXPECT_THAT(jsonRpc->Invoke(0, 0, "", "deleteKey", paramsJsonStr, resultJsonStr), Eq(WPEFramework::Core::ERROR_NONE));
-    jsonRpc->Release();
-    plugin->Deinitialize(service);
-}
-
 TEST_F(APersistentStore, DeletesNamespaceInDeviceScopeViaJsonRpc)
 {
     class PersistentStoreImplementation : public NiceMock<PersistentStoreImplementationMock> {
@@ -288,36 +181,6 @@ TEST_F(APersistentStore, DeletesNamespaceInDeviceScopeViaJsonRpc)
     auto jsonRpc = plugin->QueryInterface<IDispatcher>();
     ASSERT_THAT(jsonRpc, NotNull());
     DeleteNamespaceParamsInfo params;
-    params.Namespace = kAppId;
-    string paramsJsonStr;
-    params.ToString(paramsJsonStr);
-    string resultJsonStr;
-    EXPECT_THAT(jsonRpc->Invoke(0, 0, "", "deleteNamespace", paramsJsonStr, resultJsonStr), Eq(WPEFramework::Core::ERROR_NONE));
-    jsonRpc->Release();
-    plugin->Deinitialize(service);
-}
-
-TEST_F(APersistentStore, DeletesNamespaceInAccountScopeViaJsonRpc)
-{
-    class PersistentStoreImplementation : public NiceMock<PersistentStoreImplementationMock> {
-    public:
-        PersistentStoreImplementation()
-        {
-            EXPECT_CALL(*this, DeleteNamespace(_, _))
-                .WillRepeatedly(Invoke(
-                    [](const IStore2::ScopeType scope, const string& ns) {
-                        EXPECT_THAT(scope, Eq(IStore2::ScopeType::ACCOUNT));
-                        EXPECT_THAT(ns, Eq(kAppId));
-                        return WPEFramework::Core::ERROR_NONE;
-                    }));
-        }
-    };
-    PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
-    ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<IDispatcher>();
-    ASSERT_THAT(jsonRpc, NotNull());
-    DeleteNamespaceParamsInfo params;
-    params.Scope = WPEFramework::JsonData::PersistentStore::ScopeType::ACCOUNT;
     params.Namespace = kAppId;
     string paramsJsonStr;
     params.ToString(paramsJsonStr);
