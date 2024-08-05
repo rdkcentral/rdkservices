@@ -17,29 +17,29 @@
  * limitations under the License.
  */
 
-#include "SharedStore.h"
+#include "SharedStorage.h"
 
 namespace WPEFramework {
 namespace Plugin {
 
     using namespace JsonData::PersistentStore;
 
-    void SharedStore::RegisterAll()
+    void SharedStorage::RegisterAll()
     {
-        Register<SetValueParamsData, DeleteKeyResultInfo>(_T("setValue"), &SharedStore::endpoint_setValue, this);
-        Register<DeleteKeyParamsInfo, GetValueResultData>(_T("getValue"), &SharedStore::endpoint_getValue, this);
-        Register<DeleteKeyParamsInfo, DeleteKeyResultInfo>(_T("deleteKey"), &SharedStore::endpoint_deleteKey, this);
-        Register<DeleteNamespaceParamsInfo, DeleteKeyResultInfo>(_T("deleteNamespace"), &SharedStore::endpoint_deleteNamespace, this);
-        Register<DeleteNamespaceParamsInfo, GetKeysResultData>(_T("getKeys"), &SharedStore::endpoint_getKeys, this);
-        Register<GetNamespacesParamsInfo, GetNamespacesResultData>(_T("getNamespaces"), &SharedStore::endpoint_getNamespaces, this);
-        Register<GetNamespacesParamsInfo, JsonObject>(_T("getStorageSize"), &SharedStore::endpoint_getStorageSize, this); // Deprecated
-        Register<GetNamespacesParamsInfo, GetStorageSizesResultData>(_T("getStorageSizes"), &SharedStore::endpoint_getStorageSizes, this);
-        Register<void, DeleteKeyResultInfo>(_T("flushCache"), &SharedStore::endpoint_flushCache, this);
-        Register<DeleteNamespaceParamsInfo, GetNamespaceStorageLimitResultData>(_T("getNamespaceStorageLimit"), &SharedStore::endpoint_getNamespaceStorageLimit, this);
-        Register<SetNamespaceStorageLimitParamsData, void>(_T("setNamespaceStorageLimit"), &SharedStore::endpoint_setNamespaceStorageLimit, this);
+        Register<SetValueParamsData, DeleteKeyResultInfo>(_T("setValue"), &SharedStorage::endpoint_setValue, this);
+        Register<DeleteKeyParamsInfo, GetValueResultData>(_T("getValue"), &SharedStorage::endpoint_getValue, this);
+        Register<DeleteKeyParamsInfo, DeleteKeyResultInfo>(_T("deleteKey"), &SharedStorage::endpoint_deleteKey, this);
+        Register<DeleteNamespaceParamsInfo, DeleteKeyResultInfo>(_T("deleteNamespace"), &SharedStorage::endpoint_deleteNamespace, this);
+        Register<DeleteNamespaceParamsInfo, GetKeysResultData>(_T("getKeys"), &SharedStorage::endpoint_getKeys, this);
+        Register<GetNamespacesParamsInfo, GetNamespacesResultData>(_T("getNamespaces"), &SharedStorage::endpoint_getNamespaces, this);
+        Register<GetNamespacesParamsInfo, JsonObject>(_T("getStorageSize"), &SharedStorage::endpoint_getStorageSize, this); // Deprecated
+        Register<GetNamespacesParamsInfo, GetStorageSizesResultData>(_T("getStorageSizes"), &SharedStorage::endpoint_getStorageSizes, this);
+        Register<void, DeleteKeyResultInfo>(_T("flushCache"), &SharedStorage::endpoint_flushCache, this);
+        Register<DeleteNamespaceParamsInfo, GetNamespaceStorageLimitResultData>(_T("getNamespaceStorageLimit"), &SharedStorage::endpoint_getNamespaceStorageLimit, this);
+        Register<SetNamespaceStorageLimitParamsData, void>(_T("setNamespaceStorageLimit"), &SharedStorage::endpoint_setNamespaceStorageLimit, this);
     }
 
-    void SharedStore::UnregisterAll()
+    void SharedStorage::UnregisterAll()
     {
         Unregister(_T("setValue"));
         Unregister(_T("getValue"));
@@ -54,7 +54,7 @@ namespace Plugin {
         Unregister(_T("setNamespaceStorageLimit"));
     }
 
-    uint32_t SharedStore::endpoint_setValue(const SetValueParamsData& params, DeleteKeyResultInfo& response)
+    uint32_t SharedStorage::endpoint_setValue(const SetValueParamsData& params, DeleteKeyResultInfo& response)
     {
         LOGINFO("Scope: %d, ns: %s, key: %s, Val: %s", static_cast<int>(params.Scope.Value()), params.Namespace.Value().c_str(), params.Key.Value().c_str(), params.Value.Value().c_str());
         uint32_t status = Core::ERROR_NOT_SUPPORTED;
@@ -81,7 +81,7 @@ namespace Plugin {
         return status;
     }
 
-    uint32_t SharedStore::endpoint_getValue(const DeleteKeyParamsInfo& params, GetValueResultData& response)
+    uint32_t SharedStorage::endpoint_getValue(const DeleteKeyParamsInfo& params, GetValueResultData& response)
     {
         uint32_t status = Core::ERROR_NOT_SUPPORTED;
         string value;
@@ -113,7 +113,7 @@ namespace Plugin {
         return status;
     }
 
-    uint32_t SharedStore::endpoint_deleteKey(const DeleteKeyParamsInfo& params, DeleteKeyResultInfo& response)
+    uint32_t SharedStorage::endpoint_deleteKey(const DeleteKeyParamsInfo& params, DeleteKeyResultInfo& response)
     {
         uint32_t status = Core::ERROR_NOT_SUPPORTED;
         Exchange::IStore2* _storeObject = getRemoteStoreObject(params.Scope.Value());
@@ -136,7 +136,7 @@ namespace Plugin {
         return status;
     }
 
-    uint32_t SharedStore::endpoint_deleteNamespace(const DeleteNamespaceParamsInfo& params, DeleteKeyResultInfo& response)
+    uint32_t SharedStorage::endpoint_deleteNamespace(const DeleteNamespaceParamsInfo& params, DeleteKeyResultInfo& response)
     {
         uint32_t status = Core::ERROR_NOT_SUPPORTED;
         Exchange::IStore2* _storeObject = getRemoteStoreObject(params.Scope.Value());
@@ -158,7 +158,7 @@ namespace Plugin {
         return status;
     }
 
-    uint32_t SharedStore::endpoint_getKeys(const DeleteNamespaceParamsInfo& params, GetKeysResultData& response)
+    uint32_t SharedStorage::endpoint_getKeys(const DeleteNamespaceParamsInfo& params, GetKeysResultData& response)
     {
         uint32_t status = Core::ERROR_NOT_SUPPORTED;
         if(params.Scope.Value() != ScopeType::DEVICE)
@@ -190,7 +190,7 @@ namespace Plugin {
         return status;
     }
 
-    uint32_t SharedStore::endpoint_getNamespaces(const GetNamespacesParamsInfo& params, GetNamespacesResultData& response)
+    uint32_t SharedStorage::endpoint_getNamespaces(const GetNamespacesParamsInfo& params, GetNamespacesResultData& response)
     {
         uint32_t status = Core::ERROR_NOT_SUPPORTED;
         if(params.Scope.Value() != ScopeType::DEVICE)
@@ -222,7 +222,7 @@ namespace Plugin {
     }
 
     // Deprecated
-    uint32_t SharedStore::endpoint_getStorageSize(const GetNamespacesParamsInfo& params, JsonObject& response)
+    uint32_t SharedStorage::endpoint_getStorageSize(const GetNamespacesParamsInfo& params, JsonObject& response)
     {
         uint32_t status = Core::ERROR_NOT_SUPPORTED;
         if(params.Scope.Value() != ScopeType::DEVICE)
@@ -255,7 +255,7 @@ namespace Plugin {
         return status;
     }
 
-    uint32_t SharedStore::endpoint_getStorageSizes(const GetNamespacesParamsInfo& params, GetStorageSizesResultData& response)
+    uint32_t SharedStorage::endpoint_getStorageSizes(const GetNamespacesParamsInfo& params, GetStorageSizesResultData& response)
     {
         uint32_t status = Core::ERROR_NOT_SUPPORTED;
         if(params.Scope.Value() != ScopeType::DEVICE)
@@ -288,7 +288,7 @@ namespace Plugin {
         return status;
     }
 
-    uint32_t SharedStore::endpoint_flushCache(DeleteKeyResultInfo& response)
+    uint32_t SharedStorage::endpoint_flushCache(DeleteKeyResultInfo& response)
     {
         uint32_t status = Core::ERROR_NOT_SUPPORTED;
         ASSERT (nullptr != _psCache);
@@ -307,7 +307,7 @@ namespace Plugin {
         return status;
     }
 
-    uint32_t SharedStore::endpoint_getNamespaceStorageLimit(const DeleteNamespaceParamsInfo& params, GetNamespaceStorageLimitResultData& response)
+    uint32_t SharedStorage::endpoint_getNamespaceStorageLimit(const DeleteNamespaceParamsInfo& params, GetNamespaceStorageLimitResultData& response)
     {
         uint32_t status = Core::ERROR_NOT_SUPPORTED;
         if(params.Scope.Value() != ScopeType::DEVICE)
@@ -334,7 +334,7 @@ namespace Plugin {
         return status;
     }
 
-    uint32_t SharedStore::endpoint_setNamespaceStorageLimit(const SetNamespaceStorageLimitParamsData& params)
+    uint32_t SharedStorage::endpoint_setNamespaceStorageLimit(const SetNamespaceStorageLimitParamsData& params)
     {
         uint32_t status = Core::ERROR_NOT_SUPPORTED;
         if(params.Scope.Value() != ScopeType::DEVICE)

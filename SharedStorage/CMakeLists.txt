@@ -17,18 +17,18 @@
 
 cmake_minimum_required(VERSION 3.14)
 
-set(PLUGIN_NAME SharedStore)
+set(PLUGIN_NAME SharedStorage)
 find_package(WPEFramework)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
-set(PLUGIN_SHAREDSTORE_AUTOSTART "true" CACHE STRING "Automatically start SharedStore plugin")
-set(PLUGIN_SHAREDSTORE_STARTUPORDER "52" CACHE STRING "To configure startup order of SharedStore plugin")
+set(PLUGIN_SHAREDSTORAGE_AUTOSTART "true" CACHE STRING "Automatically start SharedStorage plugin")
+set(PLUGIN_SHAREDSTORAGE_STARTUPORDER "52" CACHE STRING "To configure startup order of SharedStorage plugin")
 
 set(CMAKE_CXX_STANDARD 11)
 
 add_library(${MODULE_NAME} SHARED
-        SharedStore.cpp
-        SharedStoreJsonRpc.cpp
+        SharedStorage.cpp
+        SharedStorageJsonRpc.cpp
         Module.cpp
 )
 

@@ -17,7 +17,7 @@
  * limitations under the License.
  */
 
-#include "SharedStore.h"
+#include "SharedStorage.h"
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
@@ -27,7 +27,7 @@ namespace WPEFramework {
 
 namespace {
 
-    static Plugin::Metadata<Plugin::SharedStore> metadata(
+    static Plugin::Metadata<Plugin::SharedStorage> metadata(
         // Version (Major, Minor, Patch)
         API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
         // Preconditions
@@ -41,9 +41,9 @@ namespace {
 namespace Plugin {
     using namespace JsonData::PersistentStore;
 
-    SERVICE_REGISTRATION(SharedStore, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
+    SERVICE_REGISTRATION(SharedStorage, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
-    SharedStore::SharedStore()
+    SharedStorage::SharedStorage()
         : PluginHost::JSONRPC()
         , _service(nullptr)
         , _psEngine(Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create())
@@ -62,15 +62,15 @@ namespace Plugin {
         , _adminLock()
     {
         RegisterAll();
-        LOGINFO("SharedStore constructor success\n");
+        LOGINFO("SharedStorage constructor success\n");
     }
-    SharedStore::~SharedStore()
+    SharedStorage::~SharedStorage()
     {
         UnregisterAll();
         LOGINFO("Disconnect from the COM-RPC socket\n");
     }
 
-    Exchange::IStore2* SharedStore::getRemoteStoreObject(ScopeType eScope)
+    Exchange::IStore2* SharedStorage::getRemoteStoreObject(ScopeType eScope)
     {
         if( (eScope == ScopeType::DEVICE) && _psObject)
         {
@@ -86,9 +86,9 @@ namespace Plugin {
         }
     }
 
-    const string SharedStore::Initialize(PluginHost::IShell* service)
+    const string SharedStorage::Initialize(PluginHost::IShell* service)
     {
-        LOGINFO("SharedStore Initialize\n");
+        LOGINFO("SharedStorage Initialize\n");
         string result;
 
         ASSERT(service != nullptr);
@@ -189,14 +189,14 @@ namespace Plugin {
 
         _service->Register(&_notification);
 
-        LOGINFO("SharedStore Initialize complete\n");
+        LOGINFO("SharedStorage Initialize complete\n");
         return result;
     }
 
-    void SharedStore::Deinitialize(PluginHost::IShell* service)
+    void SharedStorage::Deinitialize(PluginHost::IShell* service)
     {
         ASSERT(_service == service);
-        SYSLOG(Logging::Shutdown, (string(_T("SharedStore::Deinitialize"))));
+        SYSLOG(Logging::Shutdown, (string(_T("SharedStorage::Deinitialize"))));
 
         // Disconnect from the COM-RPC socket
         if (_psController)
@@ -254,10 +254,10 @@ namespace Plugin {
 
         _service->Release();
         _service = nullptr;
-        SYSLOG(Logging::Shutdown, (string(_T("SharedStore de-initialised"))));
+        SYSLOG(Logging::Shutdown, (string(_T("SharedStorage de-initialised"))));
     }
 
-    string SharedStore::Information() const
+    string SharedStorage::Information() const
     {
         return (string());
     }

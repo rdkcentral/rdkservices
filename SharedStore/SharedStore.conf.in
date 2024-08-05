@@ -1,4 +1,0 @@
-autostart = "@PLUGIN_SHAREDSTORE_AUTOSTART@"
-precondition = ["Platform"]
-callsign = "org.rdk.SharedStore"
-startuporder = "@PLUGIN_SHAREDSTORE_STARTUPORDER@"

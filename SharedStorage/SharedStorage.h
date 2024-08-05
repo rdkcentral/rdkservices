@@ -29,7 +29,7 @@
 namespace WPEFramework {
 namespace Plugin {
 
-    class SharedStore : public PluginHost::IPlugin, public PluginHost::JSONRPC {
+    class SharedStorage : public PluginHost::IPlugin, public PluginHost::JSONRPC {
     private:
         class Store2Notification : public Exchange::IStore2::INotification {
         private:
@@ -37,7 +37,7 @@ namespace Plugin {
             Store2Notification& operator=(const Store2Notification&) = delete;
 
         public:
-            explicit Store2Notification(SharedStore& parent)
+            explicit Store2Notification(SharedStorage& parent)
                 : _parent(parent)
             {
             }
@@ -61,7 +61,7 @@ namespace Plugin {
             END_INTERFACE_MAP
 
         private:
-            SharedStore& _parent;
+            SharedStorage& _parent;
         };
 
         class RemoteConnectionNotification : public RPC::IRemoteConnection::INotification {
@@ -71,7 +71,7 @@ namespace Plugin {
             RemoteConnectionNotification& operator=(const RemoteConnectionNotification&) = delete;
 
         public:
-            explicit RemoteConnectionNotification(SharedStore& parent)
+            explicit RemoteConnectionNotification(SharedStorage& parent)
                 : _parent(parent)
             {
             }
@@ -83,26 +83,26 @@ namespace Plugin {
 
             void Activated(RPC::IRemoteConnection*) override
             {
-                LOGINFO("SharedStore Notification Activated");
+                LOGINFO("SharedStorage Notification Activated");
             }
             void Deactivated(RPC::IRemoteConnection* connection) override
             {
-                LOGINFO("SharedStore Notification Deactivated");
+                LOGINFO("SharedStorage Notification Deactivated");
             }
 
         private:
-            SharedStore& _parent;
+            SharedStorage& _parent;
         };
 
     private:
-        SharedStore(const SharedStore&) = delete;
-        SharedStore& operator=(const SharedStore&) = delete;
+        SharedStorage(const SharedStorage&) = delete;
+        SharedStorage& operator=(const SharedStorage&) = delete;
 
     public:
-        SharedStore();
-        ~SharedStore() override;
+        SharedStorage();
+        ~SharedStorage() override;
 
-        BEGIN_INTERFACE_MAP(SharedStore)
+        BEGIN_INTERFACE_MAP(SharedStorage)
         INTERFACE_ENTRY(PluginHost::IPlugin)
         INTERFACE_ENTRY(PluginHost::IDispatcher)
         END_INTERFACE_MAP
