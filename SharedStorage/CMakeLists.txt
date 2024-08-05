@@ -22,7 +22,7 @@ find_package(WPEFramework)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 set(PLUGIN_SHAREDSTORAGE_AUTOSTART "true" CACHE STRING "Automatically start SharedStorage plugin")
-set(PLUGIN_SHAREDSTORAGE_STARTUPORDER "52" CACHE STRING "To configure startup order of SharedStorage plugin")
+set(PLUGIN_SHAREDSTORAGE_STARTUPORDER "51" CACHE STRING "To configure startup order of SharedStorage plugin")
 
 set(CMAKE_CXX_STANDARD 11)
 
