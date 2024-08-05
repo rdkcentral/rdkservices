@@ -531,6 +531,47 @@ namespace WPEFramework
                 NMLOG_WARNING("WARNING - cannot handle IARM events without a Network plugin instance!");
         }
 
+        void  NetworkManagerImplementation::retryIarmEventRegistration()
+        {
+            m_registrationThread = thread(&NetworkManagerImplementation::threadEventRegistration, this);
+
+        }
+        void  NetworkManagerImplementation::threadEventRegistration()
+        {
+            IARM_Result_t res = IARM_RESULT_SUCCESS;
+            IARM_Result_t retVal = IARM_RESULT_SUCCESS;
+            do
+            {
+                char c;
+                uint32_t retry = 0;
+                retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isAvailable, (void *)&c, sizeof(c));
+                if(retVal != IARM_RESULT_SUCCESS){
+                    NMLOG_ERROR("threadEventRegistration: NetSrvMgr is not available. Failed to activate NetworkManager Plugin, retrying count = %d", retry);
+                    usleep(500*1000);
+                    retry++;
+                }
+            }while(retVal != IARM_RESULT_SUCCESS);
+
+            if(retVal != IARM_RESULT_SUCCESS)
+            {
+                NMLOG_ERROR("threadEventRegistration NetSrvMgr is not available. Failed to activate NetworkManager Plugin, retrying new cycle");
+            }
+            else
+            {
+                IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS, NetworkManagerInternalEventHandler);
+                IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_CONNECTION_STATUS, NetworkManagerInternalEventHandler);
+                IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_IPADDRESS, NetworkManagerInternalEventHandler);
+                IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_DEFAULT_INTERFACE, NetworkManagerInternalEventHandler);
+                IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERNET_CONNECTION_CHANGED, NetworkManagerInternalEventHandler);
+                IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_EVENT_onWIFIStateChanged, NetworkManagerInternalEventHandler);
+                IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_EVENT_onError, NetworkManagerInternalEventHandler);
+                IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_EVENT_onAvailableSSIDs, NetworkManagerInternalEventHandler);
+
+                NMLOG_INFO("threadEventRegistration successfully subscribed to IARM event for NetworkManager Plugin");
+            }
+
+        }
+
         void NetworkManagerImplementation::platform_init()
         {
             LOG_ENTRY_FUNCTION();
@@ -554,16 +595,17 @@ namespace WPEFramework
             do{
                 retVal = IARM_Bus_Call_with_IPCTimeout(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_isAvailable, (void *)&c, sizeof(c), (1000*10));
                 if(retVal != IARM_RESULT_SUCCESS){
-                    NMLOG_INFO("NetSrvMgr is not available. Failed to activate Network Plugin, retry = %d", retry);
+                    NMLOG_INFO("NetSrvMgr is not available. Failed to activate NetworkManager Plugin, retry = %d", retry);
                     usleep(500*1000);
                     retry++;
                 }
-            }while((retVal != IARM_RESULT_SUCCESS) && (retry < 50));
+            }while((retVal != IARM_RESULT_SUCCESS) && (retry < 10));
 
             if(retVal != IARM_RESULT_SUCCESS)
             {
                 string msg = "NetSrvMgr is not available";
                 NMLOG_INFO("NETWORK_NOT_READY: The NetSrvMgr Component is not available.Retrying in separate thread ::%s::", msg.c_str());
+                retryIarmEventRegistration();
             }
             else {
                 IARM_Bus_RegisterEventHandler(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETWORK_MANAGER_EVENT_INTERFACE_ENABLED_STATUS, NetworkManagerInternalEventHandler);

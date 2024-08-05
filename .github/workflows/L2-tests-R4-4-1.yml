@@ -109,6 +109,7 @@ jobs:
           -S "${{github.workspace}}/Thunder"
           -B build/Thunder
           -DMESSAGING=ON
+          -DHIDE_NON_EXTERNAL_SYMBOLS=OFF
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
           -DBUILD_TYPE=${{env.BUILD_TYPE}}
@@ -201,11 +202,11 @@ jobs:
           cmake
           -S "${{github.workspace}}/rdkservices/Tests/mocks"
           -B build/mocks
+          -DBUILD_SHARED_LIBS=ON
           -DCMAKE_TOOLCHAIN_FILE="${{ env.TOOLCHAIN_FILE }}"
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
-          -DCMAKE_CXX_FLAGS="-fPIC"
           &&
           cmake --build build/mocks -j8
           &&
@@ -219,6 +220,7 @@ jobs:
           -DCMAKE_TOOLCHAIN_FILE="${{ env.TOOLCHAIN_FILE }}"
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
+          -DHIDE_NON_EXTERNAL_SYMBOLS=OFF
           -DCMAKE_CXX_FLAGS="
           -DEXCEPTIONS_ENABLE=ON
           -fprofile-arcs
@@ -256,10 +258,10 @@ jobs:
           -DCMAKE_DISABLE_FIND_PACKAGE_RBus=ON
           -DPLUGIN_SYSTEMSERVICES=ON
           -DPLUGIN_TELEMETRY=ON
-          -DPLUGIN_HDCPPROFILE=OFF
-          -DPLUGIN_NETWORK=OFF
-          -DPLUGIN_TEXTTOSPEECH=OFF
-          -DPLUGIN_USBACCESS=OFF
+          -DPLUGIN_HDCPPROFILE=ON
+          -DPLUGIN_NETWORK=ON
+          -DPLUGIN_TEXTTOSPEECH=ON
+          -DPLUGIN_USBACCESS=ON
           -DPLUGIN_USERSETTINGS=ON
           -DPLUGIN_PERSISTENTSTORE=ON
           -DUSE_THUNDER_R4=ON
@@ -345,9 +347,12 @@ jobs:
         run: >
           PATH=${{github.workspace}}/install/usr/bin:${PATH}
           LD_LIBRARY_PATH=${{github.workspace}}/install/usr/lib:${{github.workspace}}/install/usr/lib/wpeframework/plugins:${LD_LIBRARY_PATH}
-          RdkServicesL2Test
+          RdkServicesL2Test &&
+          cp -rf $(pwd)/rdkL2TestResults.json ${{github.workspace}}/rdkL2TestResultsWithoutValgrind.json &&
+          rm -rf $(pwd)/rdkL2TestResults.json
 
       - name: Run unit tests with valgrind
+        if: ${{ !env.ACT }}
         run: >
           PATH=${{github.workspace}}/install/usr/bin:${PATH}
           LD_LIBRARY_PATH=${{github.workspace}}/install/usr/lib:${{github.workspace}}/install/usr/lib/wpeframework/plugins:${LD_LIBRARY_PATH}
@@ -358,7 +363,9 @@ jobs:
           --show-reachable=yes
           --track-fds=yes
           --fair-sched=try
-          RdkServicesL2Test
+          RdkServicesL2Test &&
+          cp -rf $(pwd)/rdkL2TestResults.json ${{github.workspace}}/rdkL2TestResultsWithValgrind.json &&
+          rm -rf $(pwd)/rdkL2TestResults.json
 
       - name: Generate coverage
         if: ${{ matrix.coverage == 'with-coverage' && !env.ACT }}
@@ -392,6 +399,8 @@ jobs:
           path: |
             coverage/
             valgrind_log
+            rdkL2TestResultsWithoutValgrind.json
+            rdkL2TestResultsWithValgrind.json
           if-no-files-found: warn
 
       - name: Run contract tests

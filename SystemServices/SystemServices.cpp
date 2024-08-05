@@ -346,22 +346,8 @@ namespace WPEFramework {
          */
         SystemServices::SystemServices()
             : PluginHost::JSONRPC()
-              , m_cacheService(SYSTEM_SERVICE_SETTINGS_FILE)
         {
             SystemServices::_instance = this;
-            if (Utils::directoryExists(SYSTEM_SERVICE_SETTINGS_FILE))
-            {
-                std::cout << "File " << SYSTEM_SERVICE_SETTINGS_FILE << " detected as folder, deleting.." << std::endl;
-                if (rmdir(SYSTEM_SERVICE_SETTINGS_FILE) == 0)
-                {
-                    cSettings stemp(SYSTEM_SERVICE_SETTINGS_FILE);
-                    SystemServices::m_cacheService = stemp;
-                }
-                else
-                {
-                     std::cout << "Unable to delete folder: " << SYSTEM_SERVICE_SETTINGS_FILE << std::endl;
-                }
-            }
 
 	    //Updating the standard territory
             m_strStandardTerritoryList =   "ABW AFG AGO AIA ALA ALB AND ARE ARG ARM ASM ATA ATF ATG AUS AUT AZE BDI BEL BEN BES BFA BGD BGR BHR BHS BIH BLM BLR BLZ BMU BOL                BRA BRB BRN BTN BVT BWA CAF CAN CCK CHE CHL CHN CIV CMR COD COG COK COL COM CPV CRI CUB Cuba CUW CXR CYM CYP CZE DEU DJI DMA DNK DOM DZA ECU EGY ERI ESH ESP                EST ETH FIN FJI FLK FRA FRO FSM GAB GBR GEO GGY GHA GIB GIN GLP GMB GNB GNQ GRC GRD GRL GTM GUF GUM GUY HKG HMD HND HRV HTI HUN IDN IMN IND IOT IRL IRN IRQ                 ISL ISR ITA JAM JEY JOR JPN KAZ KEN KGZ KHM KIR KNA KOR KWT LAO LBN LBR LBY LCA LIE LKA LSO LTU LUX LVA MAC MAF MAR MCO MDA MDG MDV MEX MHL MKD MLI MLT MMR                 MNE MNG MNP MOZ MRT MSR MTQ MUS MWI MYS MYT NAM NCL NER NFK NGA NIC NIU NLD NOR NPL NRU NZL OMN PAK PAN PCN PER PHL PLW PNG POL PRI PRK PRT PRY PSE PYF QAT                 REU ROU RUS RWA SAU SDN SEN SGP SGS SHN SJM SLB SLE SLV SMR SOM SPM SRB SSD STP SUR SVK SVN SWE SWZ SXM SYC SYR TCA TCD TGO THA TJK TKL TKM TLS TON TTO TUN                 TUR TUV TWN TZA UGA UKR UMI URY USA UZB VAT VCT VEN VGB VIR VNM VUT WLF WSM YEM ZAF ZMB ZWE";
@@ -439,10 +425,6 @@ namespace WPEFramework {
             registerMethod("getTimeZoneDST", &SystemServices::getTimeZoneDST, this);
             registerMethod("getCoreTemperature", &SystemServices::getCoreTemperature,
                     this);
-            registerMethod("getCachedValue", &SystemServices::getCachedValue, this);
-            registerMethod("setCachedValue", &SystemServices::setCachedValue, this);
-            registerMethod("cacheContains", &SystemServices::cacheContains, this);
-            registerMethod("removeCacheKey", &SystemServices::removeCacheKey, this);
             registerMethod("getPreviousRebootInfo",
                     &SystemServices::getPreviousRebootInfo, this);
             registerMethod("getLastDeepSleepReason",
@@ -572,6 +554,7 @@ namespace WPEFramework {
         void SystemServices::Deinitialize(PluginHost::IShell*)
         {
             m_operatingModeTimer.stop();
+           m_operatingModeTimer.join();
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             DeinitializeIARM();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
@@ -1507,6 +1490,7 @@ namespace WPEFramework {
                 m_remainingDuration--;
             } else {
                 m_operatingModeTimer.stop();
+               m_operatingModeTimer.detach();
                 JsonObject parameters, param, response;
                 param["mode"] = "NORMAL";
                 param["duration"] = 0;
@@ -2292,6 +2276,23 @@ namespace WPEFramework {
             }
         }
 
+	/***
+         * @brief : sends notification when red recovery state has changed.
+         *
+         * @param1[in]  : newstate
+         * @param2[out] : {"jsonrpc": "2.0","method":
+         *                     "org.rdk.SystemServices.events.1.onRecoveryStateChange",
+         *                     "param":{"RecoveryState":<enum:0-3>}}
+         */
+        void SystemServices::onRecoveryStateChange(int newState)
+        {
+                JsonObject params;
+                const RecoveryState recoveryState = (RecoveryState)newState;
+                params["recoveryStateChange"] = (int)recoveryState;
+                LOGINFO("recoveryState = %d\n", (int)recoveryState);
+                sendNotify(EVT_ONRECOVERYSTATECHANGED, params);
+        }
+
         /***
          * @brief : sends notification when time source state has changed.
          *
@@ -3027,127 +3028,6 @@ namespace WPEFramework {
 #endif
             response["temperature"] = to_string(temperature);
             returnResponse(resp);
-        }
-
-        /***
-         * @brief : To get cashed value .
-         * @param1[in]  : {"params":{"key":"<string>"}}
-         * @param2[out] : {"result":{"<cachekey>":"<string>","success":<bool>}}
-         * @return      : Core::<StatusCode>
-         */
-        uint32_t SystemServices::getCachedValue(const JsonObject& parameters,
-			JsonObject& response)
-	{
-		bool retStat = false;
-		bool deprecated = true;
-		if (parameters.HasLabel("key")) {
-			std::string key = parameters["key"].String();
-			LOGWARN("key: '%s'\n", key.c_str());
-			if (key.length()) {
-				response[(key.c_str())] = (m_cacheService.getValue(key).String().empty()?
-						"" : m_cacheService.getValue(key).String());
-				retStat = true;
-			} else {
-				populateResponseWithError(SysSrv_UnSupportedFormat, response);
-			}
-		} else {
-			populateResponseWithError(SysSrv_MissingKeyValues, response);
-		}
-		response["deprecated"] = deprecated;
-		returnResponse(retStat);
-	}
-
-        /***
-         * @brief : To set cache value.
-         * @param1[in]  : {"params":{"key":"<string>","value":<double>}}
-         * @param2[out] : {"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
-         * @return      : Core::<StatusCode>
-         */
-        uint32_t SystemServices::setCachedValue(const JsonObject& parameters,
-                JsonObject& response)
-        {
-            bool retStat = false;
-	    bool deprecated = true;
-
-	    if (parameters.HasLabel("key") && parameters.HasLabel("value")) {
-		    std::string key = parameters["key"].String();
-		    std::string value = parameters["value"].String();
-		    LOGWARN("key: '%s' value: '%s'\n", key.c_str(), value.c_str());
-		    if (key.length() && value.length()) {
-			    if (m_cacheService.setValue(key, value)) {
-				    retStat = true;
-			    } else {
-				    LOGERR("Accessing m_cacheService.setValue failed\n.");
-				    populateResponseWithError(SysSrv_Unexpected, response);
-			    }
-		    } else {
-			    populateResponseWithError(SysSrv_UnSupportedFormat, response);
-		    }
-	    } else {
-		    populateResponseWithError(SysSrv_MissingKeyValues, response);
-	    }
-	    response["deprecated"] = deprecated;
-	    returnResponse(retStat);
-        }
-
-        /***
-         * @brief : To check if key value present in cache.
-         * @param1[in]  : {"params":{"key":"<string>"}}
-         * @param2[out] : {"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
-         * @return      : Core::<StatusCode>
-         */
-        uint32_t SystemServices::cacheContains(const JsonObject& parameters,
-                JsonObject& response)
-        {
-		bool retStat = false;
-		bool deprecated = true;
-		if (parameters.HasLabel("key")) {
-			std::string key = parameters["key"].String();
-			if (key.length()) {
-				if (m_cacheService.contains(key)) {
-					retStat = true;
-				} else {
-					LOGERR("Accessing m_cacheService.contains; no matching key '%s'\n.", key.c_str());
-					populateResponseWithError(SysSrv_KeyNotFound, response);
-				}
-			} else {
-				populateResponseWithError(SysSrv_UnSupportedFormat, response);
-			}
-		} else {
-			populateResponseWithError(SysSrv_MissingKeyValues, response);
-		}
-		response["deprecated"] = deprecated;
-		returnResponse(retStat);
-        }
-
-        /***
-         * @brief : To delete the key value present in cache.
-         * @param1[in]  : {"params":{"key":"<string>"}}
-         * @param2[out] : {"jsonrpc":"2.0","id":3,"result":{"success":<bool>}}
-         * @return      : Core::<StatusCode>
-         */
-        uint32_t SystemServices::removeCacheKey(const JsonObject& parameters,
-                JsonObject& response)
-        {
-		bool retStat = false;
-		bool deprecated = true;
-		if (parameters.HasLabel("key")) {
-			std::string key = parameters["key"].String();
-			if (key.length()) {
-				if (m_cacheService.remove(key)) {
-					retStat = true;
-				} else {
-					LOGERR("Accessing m_cacheService.remove failed\n.");
-					populateResponseWithError(SysSrv_Unexpected, response);
-				}
-			} else {
-				populateResponseWithError(SysSrv_UnSupportedFormat, response);
-			}
-		} else {
-			populateResponseWithError(SysSrv_MissingKeyValues, response);
-		}
-		response["deprecated"] = deprecated;
-		returnResponse(retStat);
         }
 
         /***
@@ -4386,7 +4266,16 @@ namespace WPEFramework {
                             LOGERR("SystemServices::_instance is NULL.\n");
                         }
                     } break;
-
+		case IARM_BUS_SYSMGR_SYSSTATE_RED_RECOV_UPDATE_STATE:
+                    {
+                        LOGWARN("IARMEvt: IARM_BUS_SYSMGR_SYSSTATE_RED_RECOV_UPDATE_STATE = '%d'\n", state);
+                        if (SystemServices::_instance)
+                        {
+                            SystemServices::_instance->onRecoveryStateChange(state);
+                        } else {
+                           LOGERR("SystemServices::_instance is NULL.\n");
+                        }
+                    } break;
                 case IARM_BUS_SYSMGR_SYSSTATE_TIME_SOURCE:
                     {
                         if (sysEventData->data.systemStates.state)

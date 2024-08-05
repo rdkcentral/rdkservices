@@ -185,6 +185,7 @@ protected:
       void OnPreferredClosedCaptionServiceChanged(const string service);
 
       uint32_t WaitForRequestStatus(uint32_t timeout_ms,UserSettingsL2test_async_events_t expected_status);
+      uint32_t CreateUserSettingInterfaceObjectUsingComRPCConnection();
 
     private:
         /** @brief Mutex */
@@ -195,6 +196,13 @@ protected:
 
         /** @brief Event signalled flag */
         uint32_t m_event_signalled;
+
+    protected:
+        /** @brief Pointer to the IShell interface */
+        PluginHost::IShell *m_controller_usersettings;
+
+        /** @brief Pointer to the IUserSettings interface */
+        Exchange::IUserSettings *m_usersettingsplugin;
 };
 
 UserSettingTest:: UserSettingTest():L2TestMocks()
@@ -223,6 +231,20 @@ UserSettingTest::~UserSettingTest()
 
     status = DeactivateService("org.rdk.UserSettings");
     EXPECT_EQ(Core::ERROR_NONE, status);
+
+    status = DeactivateService("org.rdk.PersistentStore");
+    EXPECT_EQ(Core::ERROR_NONE, status);
+
+    int file_status = remove("/tmp/secure/persistent/rdkservicestore");
+    // Check if the file has been successfully removed
+    if (file_status != 0)
+    {
+        TEST_LOG("Error deleting file[/tmp/secure/persistent/rdkservicestore]");
+    }
+    else
+    {
+        TEST_LOG("File[/tmp/secure/persistent/rdkservicestore] successfully deleted");
+    }
 }
 
 uint32_t UserSettingTest::WaitForRequestStatus(uint32_t timeout_ms, UserSettingsL2test_async_events_t expected_status)
@@ -243,6 +265,35 @@ uint32_t UserSettingTest::WaitForRequestStatus(uint32_t timeout_ms, UserSettings
 
     signalled = m_event_signalled;
     return signalled;
+}
+uint32_t UserSettingTest::CreateUserSettingInterfaceObjectUsingComRPCConnection()
+{
+    uint32_t return_value =  Core::ERROR_GENERAL;
+    Core::ProxyType<RPC::InvokeServerType<1, 0, 4>> Engine_UserSettings;
+    Core::ProxyType<RPC::CommunicatorClient> Client_UserSettings;
+
+    TEST_LOG("Creating Engine_UserSettings");
+    Engine_UserSettings = Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create();
+    Client_UserSettings = Core::ProxyType<RPC::CommunicatorClient>::Create(Core::NodeId("/tmp/communicator"), Core::ProxyType<Core::IIPCServer>(Engine_UserSettings));
+
+    TEST_LOG("Creating Engine_UserSettings Announcements");
+#if ((THUNDER_VERSION == 2) || ((THUNDER_VERSION == 4) && (THUNDER_VERSION_MINOR == 2)))
+    Engine_UserSettings->Announcements(mClient_UserSettings->Announcement());
+#endif
+    if (!Client_UserSettings.IsValid())
+    {
+        TEST_LOG("Invalid Client_UserSettings");
+    }
+    else
+    {
+        m_controller_usersettings = Client_UserSettings->Open<PluginHost::IShell>(_T("org.rdk.UserSettings"), ~0, 3000);
+        if (m_controller_usersettings)
+        {
+        m_usersettingsplugin = m_controller_usersettings->QueryInterface<Exchange::IUserSettings>();
+        return_value = Core::ERROR_NONE;
+        }
+    }
+    return return_value;
 }
 
 void UserSettingTest::OnAudioDescriptionChanged(const bool enabled)
@@ -338,384 +389,388 @@ MATCHER_P(MatchRequestStatusBool, expected, "")
     return expected == actual;
 }
 
-TEST_F(UserSettingTest,AudioDescriptionSuccess)
+/* Activating UserSettings and Persistent store plugins and UserSettings namespace has no entries in db.
+   So that we can verify whether UserSettings plugin is receiving default values from PersistentStore or not*/
+TEST_F(UserSettingTest, VerifyDefaultValues)
+{
+    uint32_t status = Core::ERROR_GENERAL;
+    uint32_t signalled = UserSettings_StateInvalid;
+    Core::Sink<NotificationHandler> notification;
+    bool defaultBooleanValue = true;
+    string defaultStrValue = "eng";
+
+    if (CreateUserSettingInterfaceObjectUsingComRPCConnection() != Core::ERROR_NONE)
+    {
+        TEST_LOG("Invalid Client_UserSettings");
+    }
+    else
+    {
+        ASSERT_TRUE(m_controller_usersettings!= nullptr);
+        if (m_controller_usersettings)
+        {
+            ASSERT_TRUE(m_usersettingsplugin!= nullptr);
+            if (m_usersettingsplugin)
+            {
+                m_usersettingsplugin->AddRef();
+                m_usersettingsplugin->Register(&notification);
+
+                /* defaultBooleanValue should get false and the return status is Core::ERROR_NONE */
+                status = m_usersettingsplugin->GetAudioDescription(defaultBooleanValue);
+                EXPECT_EQ(defaultBooleanValue, false);
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+
+                /* defaultStrValue should get empty string and the return status is Core::ERROR_NONE */
+                status = m_usersettingsplugin->GetPreferredAudioLanguages(defaultStrValue);
+                EXPECT_EQ(defaultStrValue, "");
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+
+                /* defaultStrValue should get empty string and the return status is Core::ERROR_NONE */
+                status = m_usersettingsplugin->GetPresentationLanguage(defaultStrValue);
+                EXPECT_EQ(defaultStrValue, "");
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+
+                /* defaultBooleanValue should get false and the return status is Core::ERROR_NONE */
+                status = m_usersettingsplugin->GetCaptions(defaultBooleanValue);
+                EXPECT_EQ(defaultBooleanValue, false);
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+
+                /* defaultStrValue should get empty string and the return status is Core::ERROR_NONE */
+                status = m_usersettingsplugin->GetPreferredCaptionsLanguages(defaultStrValue);
+                EXPECT_EQ(defaultStrValue, "");
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+
+                /* defaultStrValue should get "AUTO" and the return status is Core::ERROR_NONE */
+                status = m_usersettingsplugin->GetPreferredClosedCaptionService(defaultStrValue);
+                EXPECT_EQ(defaultStrValue, "AUTO");
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+
+                 /* Setting Audio Description value as true.So UserSettings namespace has one entry in db.
+                 But we are trying to get PreferredAudioLanguages, which has no entry in db.
+                 So GetPreferredAudioLanguages should return the empty string and the return status
+                 from Persistant store is  Core::ERROR_UNKNOWN_KEY and return status from usersettings is Core::ERROR_NONE */
+                 status = m_usersettingsplugin->SetAudioDescription(defaultBooleanValue);
+                 EXPECT_EQ(status,Core::ERROR_NONE);
+                 if (status != Core::ERROR_NONE)
+                 {
+                     std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                     TEST_LOG("Err: %s", errorMsg.c_str());
+                 }
+
+                 signalled = notification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_OnAudioDescriptionChanged);
+                 EXPECT_TRUE(signalled & UserSettings_OnAudioDescriptionChanged);
+
+                 /* We are trying to get PreferredAudioLanguages, which has no entry in db.
+                 Persistant store returns status as Core::ERROR_UNKNOWN_KEY to UserSettings 
+                 GetPreferredAudioLanguages should get the empty string.*/
+                status = m_usersettingsplugin->GetPreferredAudioLanguages(defaultStrValue);
+                EXPECT_EQ(defaultStrValue, "");
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+
+                /* We are trying to get PresentationLanguage, which has no entry in db.
+                Persistant store returns status as Core::ERROR_UNKNOWN_KEY to UserSettings 
+                GetPreferredAudioLanguages should get the empty string.*/
+                status = m_usersettingsplugin->GetPresentationLanguage(defaultStrValue);
+                EXPECT_EQ(defaultStrValue, "");
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+
+                /* We are trying to get Captions, which has no entry in db.
+                Persistant store returns status as Core::ERROR_UNKNOWN_KEY to UserSettings 
+                GetPreferredAudioLanguages should get the empty string.*/
+                status = m_usersettingsplugin->GetCaptions(defaultBooleanValue);
+                EXPECT_EQ(defaultBooleanValue, false);
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+
+                /* We are trying to get PreferredCaptionsLanguages, which has no entry in db.
+                Persistant store returns status as Core::ERROR_UNKNOWN_KEY to UserSettings 
+                GetPreferredAudioLanguages should get the empty string.*/
+                status = m_usersettingsplugin->GetPreferredCaptionsLanguages(defaultStrValue);
+                EXPECT_EQ(defaultStrValue, "");
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+
+                /* We are trying to get PreferredClosedCaptionService, which has no entry in db.
+                Persistant store returns status as Core::ERROR_UNKNOWN_KEY to UserSettings 
+                GetPreferredAudioLanguages should get the empty string.*/
+                status = m_usersettingsplugin->GetPreferredClosedCaptionService(defaultStrValue);
+                EXPECT_EQ(defaultStrValue, "AUTO");
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+
+                m_usersettingsplugin->Unregister(&notification);
+                m_usersettingsplugin->Release();
+            }
+            else
+            {
+                TEST_LOG("m_usersettingsplugin is NULL");
+            }
+            m_controller_usersettings->Release();
+        }
+        else
+        {
+            TEST_LOG("m_controller_usersettings is NULL");
+        }
+    }
+}
+
+TEST_F(UserSettingTest, SetAndGetMethodsUsingJsonRpcConnectionSuccessCase)
 {
     JSONRPC::LinkType<Core::JSON::IElement> jsonrpc(USERSETTING_CALLSIGN, USERSETTINGL2TEST_CALLSIGN);
     StrictMock<AsyncHandlerMock_UserSetting> async_handler;
     uint32_t status = Core::ERROR_GENERAL;
-    JsonObject params;
-    JsonObject result_json;
-    Core::JSON::Boolean result_bool;
-    bool expected_enabled = true;
     uint32_t signalled = UserSettings_StateInvalid;
 
-    TEST_LOG("Testing AudioDescriptionSuccess");
+    bool enabled = true;
+    string preferredLanguages = "en";
+    string presentationLanguages = "fra";
+    string preferredCaptionsLanguages = "en,es";
+    string preferredService = "CC3";
+    Core::JSON::String result_string;
+    Core::JSON::Boolean result_bool;
+    JsonObject result_json;
 
+    TEST_LOG("Testing AudioDescriptionSuccess");
     status = jsonrpc.Subscribe<JsonObject>(JSON_TIMEOUT,
-                                       _T("onaudiodescriptionchanged"),
+                                       _T("OnAudioDescriptionChanged"),
                                        [this, &async_handler](const JsonObject& parameters) {
                                            bool enabled = parameters["enabled"].Boolean();
                                            async_handler.OnAudioDescriptionChanged(enabled);
                                        });
-
     EXPECT_EQ(Core::ERROR_NONE, status);
 
-    EXPECT_CALL(async_handler, OnAudioDescriptionChanged(MatchRequestStatusBool(expected_enabled)))
-        .WillOnce(Invoke(this, &UserSettingTest::OnAudioDescriptionChanged));
+    EXPECT_CALL(async_handler, OnAudioDescriptionChanged(MatchRequestStatusBool(enabled)))
+    .WillOnce(Invoke(this, &UserSettingTest::OnAudioDescriptionChanged));
 
-    params["value"] = true;
-    status = InvokeServiceMethod("org.rdk.UserSettings", "setaudiodescription", params, result_json);
+    JsonObject paramsAudioDes;
+    paramsAudioDes["enabled"] = true;
+    status = InvokeServiceMethod("org.rdk.UserSettings", "SetAudioDescription", paramsAudioDes, result_json);
     EXPECT_EQ(status,Core::ERROR_NONE);
 
     signalled = WaitForRequestStatus(JSON_TIMEOUT,UserSettings_OnAudioDescriptionChanged);
     EXPECT_TRUE(signalled & UserSettings_OnAudioDescriptionChanged);
 
     /* Unregister for events. */
-    jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("onaudiodescriptionchanged"));
-
+    jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("OnAudioDescriptionChanged"));
     EXPECT_EQ(status,Core::ERROR_NONE);
-    if (status != Core::ERROR_NONE) {
-        TEST_LOG("Expected Core::ERROR_NONE (0) but got: %u", status);
-    }
 
-    status = InvokeServiceMethod("org.rdk.UserSettings", "getaudiodescription", result_bool);
+    status = InvokeServiceMethod("org.rdk.UserSettings", "GetAudioDescription", result_bool);
     EXPECT_EQ(status, Core::ERROR_NONE);
-
-    TEST_LOG("result_bool: %d", result_bool.Value());
     EXPECT_TRUE(result_bool.Value());
-}
-
-TEST_F(UserSettingTest,PreferredAudioLanguagesSuccess)
-{
-    JSONRPC::LinkType<Core::JSON::IElement> jsonrpc(USERSETTING_CALLSIGN, USERSETTINGL2TEST_CALLSIGN);
-    StrictMock<AsyncHandlerMock_UserSetting> async_handler;
-    uint32_t status = Core::ERROR_GENERAL;
-    JsonObject params;
-    JsonObject result_json;
-    Core::JSON::String result_string;
-    std::string preferredLanguages = "en,fr,es";
-    uint32_t signalled = UserSettings_StateInvalid;
 
     TEST_LOG("Testing PreferredAudioLanguagesSuccess");
-
     status = jsonrpc.Subscribe<JsonObject>(JSON_TIMEOUT,
-                                           _T("onpreferredaudiolanguageschanged"),
+                                           _T("OnPreferredAudioLanguagesChanged"),
                                            [&async_handler](const JsonObject& parameters) {
-                                           std::string preferredLanguages = parameters["preferredlanguages"].String();
+                                           string preferredLanguages = parameters["preferredLanguages"].String();
                                            async_handler.OnPreferredAudioLanguagesChanged(preferredLanguages);
                                        });
-
     EXPECT_EQ(Core::ERROR_NONE, status);
 
     EXPECT_CALL(async_handler, OnPreferredAudioLanguagesChanged(MatchRequestStatusString(preferredLanguages)))
-        .WillOnce(Invoke(this, &UserSettingTest::OnPreferredAudioLanguagesChanged));
+    .WillOnce(Invoke(this, &UserSettingTest::OnPreferredAudioLanguagesChanged));
 
-    params["value"] = preferredLanguages;
-    status = InvokeServiceMethod("org.rdk.UserSettings", "setpreferredaudiolanguages", params, result_json);
+    JsonObject paramsAudioLanguage;
+    paramsAudioLanguage["preferredLanguages"] = preferredLanguages;
+    status = InvokeServiceMethod("org.rdk.UserSettings", "SetPreferredAudioLanguages", paramsAudioLanguage, result_json);
     EXPECT_EQ(status,Core::ERROR_NONE);
 
     signalled = WaitForRequestStatus(JSON_TIMEOUT,UserSettings_OnPreferredAudioLanguagesChanged);
     EXPECT_TRUE(signalled & UserSettings_OnPreferredAudioLanguagesChanged);
+    jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("OnPreferredAudioLanguagesChanged"));
 
-    jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("onpreferredaudiolanguageschanged"));
-
+    status = InvokeServiceMethod("org.rdk.UserSettings", "GetPreferredAudioLanguages", result_string);
     EXPECT_EQ(status,Core::ERROR_NONE);
-    if (status != Core::ERROR_NONE) {
-        TEST_LOG("Expected Core::ERROR_NONE (0) but got: %u", status);
-    }
-
-    status = InvokeServiceMethod("org.rdk.UserSettings", "getpreferredaudiolanguages", result_string);
-    EXPECT_EQ(status,Core::ERROR_NONE);
-
     EXPECT_EQ(result_string.Value(), preferredLanguages);
-}
-
-TEST_F(UserSettingTest,PresentationLanguageSuccess)
-{
-    JSONRPC::LinkType<Core::JSON::IElement> jsonrpc(USERSETTING_CALLSIGN, USERSETTINGL2TEST_CALLSIGN);
-    StrictMock<AsyncHandlerMock_UserSetting> async_handler;
-    uint32_t status = Core::ERROR_GENERAL;
-    JsonObject params;
-    JsonObject result_json;
-    Core::JSON::String result_string;
-    std::string presentationLanguage = "en";
-    uint32_t signalled = UserSettings_StateInvalid;
 
     TEST_LOG("Testing PresentationLanguageSuccess");
-
     status = jsonrpc.Subscribe<JsonObject>(JSON_TIMEOUT,
-                                           _T("onpresentationlanguagechanged"),
+                                           _T("OnPresentationLanguageChanged"),
                                            [&async_handler](const JsonObject& parameters) {
-                                           std::string presentationLanguage = parameters["presentationlanguages"].String();
-                                           async_handler.OnPresentationLanguageChanged(presentationLanguage);
+                                           string presentationLanguages = parameters["presentationLanguages"].String();
+                                           async_handler.OnPresentationLanguageChanged(presentationLanguages);
                                        });
-
     EXPECT_EQ(Core::ERROR_NONE, status);
 
-    EXPECT_CALL(async_handler, OnPresentationLanguageChanged(MatchRequestStatusString(presentationLanguage)))
-        .WillOnce(Invoke(this, &UserSettingTest::OnPresentationLanguageChanged));
+    EXPECT_CALL(async_handler, OnPresentationLanguageChanged(MatchRequestStatusString(presentationLanguages)))
+    .WillOnce(Invoke(this, &UserSettingTest::OnPresentationLanguageChanged));
 
-    params["value"] = "en";
-    status = InvokeServiceMethod("org.rdk.UserSettings", "setpresentationlanguage", params, result_json);
+    JsonObject paramsPresLanguage;
+    paramsPresLanguage["presentationLanguages"] = presentationLanguages;
+    status = InvokeServiceMethod("org.rdk.UserSettings", "SetPresentationLanguage", paramsPresLanguage, result_json);
     EXPECT_EQ(status,Core::ERROR_NONE);
 
-    signalled = WaitForRequestStatus(JSON_TIMEOUT,UserSettings_OnPresentationLanguageChanged);
+    signalled = WaitForRequestStatus(JSON_TIMEOUT, UserSettings_OnPresentationLanguageChanged);
     EXPECT_TRUE(signalled & UserSettings_OnPresentationLanguageChanged);
+    jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("OnPresentationLanguageChanged"));
 
-    jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("onpresentationlanguagechanged"));
-
+    status = InvokeServiceMethod("org.rdk.UserSettings", "GetPresentationLanguage", result_string);
     EXPECT_EQ(status,Core::ERROR_NONE);
-    if (status != Core::ERROR_NONE) {
-        TEST_LOG("Expected Core::ERROR_NONE (0) but got: %u", status);
-    }
-
-    status = InvokeServiceMethod("org.rdk.UserSettings", "getpresentationlanguage", result_string);
-    EXPECT_EQ(status,Core::ERROR_NONE);
-
-    EXPECT_EQ(result_string.Value(), presentationLanguage);
-}
-
-TEST_F(UserSettingTest,SetCaptionsSuccess)
-{
-    JSONRPC::LinkType<Core::JSON::IElement> jsonrpc(USERSETTING_CALLSIGN, USERSETTINGL2TEST_CALLSIGN);
-    StrictMock<AsyncHandlerMock_UserSetting> async_handler;
-    uint32_t status = Core::ERROR_GENERAL;
-    JsonObject params;
-    JsonObject result_json;
-    Core::JSON::Boolean result_bool;
-    bool expected_enabled = true;
-    uint32_t signalled = UserSettings_StateInvalid;
+    EXPECT_EQ(result_string.Value(), presentationLanguages);
 
     TEST_LOG("Testing SetCaptionsSuccess");
-
     status = jsonrpc.Subscribe<JsonObject>(JSON_TIMEOUT,
-                                       _T("oncaptionschanged"),
+                                       _T("OnCaptionsChanged"),
                                        [this, &async_handler](const JsonObject& parameters) {
                                            bool enabled = parameters["enabled"].Boolean();
                                            async_handler.OnCaptionsChanged(enabled);
                                        });
-
     EXPECT_EQ(Core::ERROR_NONE, status);
 
-    EXPECT_CALL(async_handler, OnCaptionsChanged(MatchRequestStatusBool(expected_enabled)))
-        .WillOnce(Invoke(this, &UserSettingTest::OnCaptionsChanged));
+    EXPECT_CALL(async_handler, OnCaptionsChanged(MatchRequestStatusBool(enabled)))
+    .WillOnce(Invoke(this, &UserSettingTest::OnCaptionsChanged));
 
-    params["value"] = true;
-    status = InvokeServiceMethod("org.rdk.UserSettings", "setcaptions", params, result_json);
+    JsonObject paramsCaptions;
+    paramsCaptions["enabled"] = true;
+    status = InvokeServiceMethod("org.rdk.UserSettings", "SetCaptions", paramsCaptions, result_json);
     EXPECT_EQ(status,Core::ERROR_NONE);
 
     signalled = WaitForRequestStatus(JSON_TIMEOUT,UserSettings_OnCaptionsChanged);
     EXPECT_TRUE(signalled & UserSettings_OnCaptionsChanged);
+    jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("OnCaptionsChanged"));
 
-    jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("oncaptionschanged"));
-
+    status = InvokeServiceMethod("org.rdk.UserSettings", "GetCaptions", result_bool);
     EXPECT_EQ(status,Core::ERROR_NONE);
-    if (status != Core::ERROR_NONE) {
-        TEST_LOG("Expected Core::ERROR_NONE (0) but got: %u", status);
-    }
-
-    status = InvokeServiceMethod("org.rdk.UserSettings", "getcaptions", result_bool);
-    EXPECT_EQ(status,Core::ERROR_NONE);
-
-    TEST_LOG("result_bool: %d", result_bool.Value());
     EXPECT_TRUE(result_bool.Value());
-}
-
-TEST_F(UserSettingTest,SetPreferredCaptionsLanguagesSuccess)
-{
-    JSONRPC::LinkType<Core::JSON::IElement> jsonrpc(USERSETTING_CALLSIGN, USERSETTINGL2TEST_CALLSIGN);
-    StrictMock<AsyncHandlerMock_UserSetting> async_handler;
-    uint32_t status = Core::ERROR_GENERAL;
-    JsonObject params;
-    JsonObject result_json;
-    Core::JSON::String result_string;
-    string preferredLanguages = "en,es";
-    uint32_t signalled = UserSettings_StateInvalid;
 
     TEST_LOG("Testing SetPreferredCaptionsLanguagesSuccess");
-
     status = jsonrpc.Subscribe<JsonObject>(JSON_TIMEOUT,
-                                           _T("onpreferredcaptionslanguageschanged"),
+                                           _T("OnPreferredCaptionsLanguagesChanged"),
                                            [&async_handler](const JsonObject& parameters) {
-                                           std::string preferredLanguages = parameters["preferredlanguages"].String();
-                                           async_handler.OnPreferredCaptionsLanguagesChanged(preferredLanguages);
+                                           string preferredCaptionsLanguages = parameters["preferredLanguages"].String();
+                                           async_handler.OnPreferredCaptionsLanguagesChanged(preferredCaptionsLanguages);
                                        });
-
     EXPECT_EQ(Core::ERROR_NONE, status);
 
-    EXPECT_CALL(async_handler, OnPreferredCaptionsLanguagesChanged(MatchRequestStatusString(preferredLanguages)))
-        .WillOnce(Invoke(this, &UserSettingTest::OnPreferredCaptionsLanguagesChanged));
+    EXPECT_CALL(async_handler, OnPreferredCaptionsLanguagesChanged(MatchRequestStatusString(preferredCaptionsLanguages)))
+    .WillOnce(Invoke(this, &UserSettingTest::OnPreferredCaptionsLanguagesChanged));
 
-    params["value"] = "en,es";
-    status = InvokeServiceMethod("org.rdk.UserSettings", "setpreferredcaptionslanguages", params, result_json);
+    JsonObject paramsPrefLang;
+    paramsPrefLang["preferredLanguages"] = preferredCaptionsLanguages;
+    status = InvokeServiceMethod("org.rdk.UserSettings", "SetPreferredCaptionsLanguages", paramsPrefLang, result_json);
     EXPECT_EQ(status,Core::ERROR_NONE);
 
     signalled = WaitForRequestStatus(JSON_TIMEOUT,UserSettings_OnPreferredCaptionsLanguagesChanged);
     EXPECT_TRUE(signalled & UserSettings_OnPreferredCaptionsLanguagesChanged);
+    jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("OnPreferredCaptionsLanguagesChanged"));
 
-    jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("onpreferredcaptionslanguageschanged"));
-
+    status = InvokeServiceMethod("org.rdk.UserSettings", "GetPreferredCaptionsLanguages", result_string);
     EXPECT_EQ(status,Core::ERROR_NONE);
-    if (status != Core::ERROR_NONE) {
-        TEST_LOG("Expected Core::ERROR_NONE (0) but got: %u", status);
-    }
-
-    status = InvokeServiceMethod("org.rdk.UserSettings", "getpreferredcaptionslanguages", result_string);
-    EXPECT_EQ(status,Core::ERROR_NONE);
-
-    EXPECT_EQ(result_string.Value(), preferredLanguages);
-}
-
-TEST_F(UserSettingTest,SetPreferredClosedCaptionServiceSuccess)
-{
-    JSONRPC::LinkType<Core::JSON::IElement> jsonrpc(USERSETTING_CALLSIGN, USERSETTINGL2TEST_CALLSIGN);
-    StrictMock<AsyncHandlerMock_UserSetting> async_handler;
-    uint32_t status = Core::ERROR_GENERAL;
-    JsonObject params;
-    JsonObject result_json;
-    Core::JSON::String result_string;
-    string expected_service = "CC3";
-    uint32_t signalled = UserSettings_StateInvalid;
+    EXPECT_EQ(result_string.Value(), preferredCaptionsLanguages);
 
     TEST_LOG("Testing SetPreferredClosedCaptionServiceSuccess");
-
     status = jsonrpc.Subscribe<JsonObject>(JSON_TIMEOUT,
-                                           _T("onpreferredclosedcaptionservicechanged"),
+                                           _T("OnPreferredClosedCaptionServiceChanged"),
                                            [&async_handler](const JsonObject& parameters) {
-                                               std::string preferredService = parameters["service"].String();
+                                           string preferredService = parameters["service"].String();
                                            async_handler.OnPreferredClosedCaptionServiceChanged(preferredService);
                                        });
     EXPECT_EQ(Core::ERROR_NONE, status);
 
-    EXPECT_CALL(async_handler, OnPreferredClosedCaptionServiceChanged(MatchRequestStatusString(expected_service)))
-        .WillOnce(Invoke(this, &UserSettingTest::OnPreferredClosedCaptionServiceChanged));
+    EXPECT_CALL(async_handler, OnPreferredClosedCaptionServiceChanged(MatchRequestStatusString(preferredService)))
+    .WillOnce(Invoke(this, &UserSettingTest::OnPreferredClosedCaptionServiceChanged));
 
-    params["value"] = "CC3";
-    status = InvokeServiceMethod("org.rdk.UserSettings", "setpreferredclosedcaptionservice", params, result_json);
+    JsonObject paramspreferredService;
+    paramspreferredService["service"] = preferredService;
+    status = InvokeServiceMethod("org.rdk.UserSettings", "SetPreferredClosedCaptionService", paramspreferredService, result_json);
     EXPECT_EQ(status,Core::ERROR_NONE);
 
     signalled = WaitForRequestStatus(JSON_TIMEOUT,UserSettings_OnPreferredClosedCaptionServiceChanged);
     EXPECT_TRUE(signalled & UserSettings_OnPreferredClosedCaptionServiceChanged);
+    jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("OnPreferredClosedCaptionServiceChanged"));
 
-    jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("onpreferredclosedcaptionservicechanged"));
-
+    status = InvokeServiceMethod("org.rdk.UserSettings", "GetPreferredClosedCaptionService", result_string);
     EXPECT_EQ(status,Core::ERROR_NONE);
-    if (status != Core::ERROR_NONE) {
-        TEST_LOG("Expected Core::ERROR_NONE (0) but got: %u", status);
-    }
-
-    status = InvokeServiceMethod("org.rdk.UserSettings", "getpreferredclosedcaptionservice", result_string);
-    EXPECT_EQ(status,Core::ERROR_NONE);
-
-    EXPECT_EQ(result_string.Value(), expected_service);
+    EXPECT_EQ(result_string.Value(), preferredService);
 }
 
-TEST_F(UserSettingTest,AudioDescriptionSuccessUsingComRpcConnection)
+TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
 {
-    Core::ProxyType<RPC::InvokeServerType<1, 0, 4>> mEngine_UserSettings;
-    Core::ProxyType<RPC::CommunicatorClient> mClient_UserSettings;
-    PluginHost::IShell *mController_UserSettings;
     uint32_t status = Core::ERROR_GENERAL;
-    Core::Sink<NotificationHandler> mNotification;
+    bool getBoolValue = false;
+    string getStringValue = "";
+    Core::Sink<NotificationHandler> notification;
+    uint32_t signalled = UserSettings_StateInvalid;
 
-    TEST_LOG("Creating mEngine_UserSettings");
-    mEngine_UserSettings = Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create();
-    mClient_UserSettings = Core::ProxyType<RPC::CommunicatorClient>::Create(Core::NodeId("/tmp/communicator"), Core::ProxyType<Core::IIPCServer>(mEngine_UserSettings));
-
-    TEST_LOG("Creating mEngine_UserSettings Announcements");
-#if ((THUNDER_VERSION == 2) || ((THUNDER_VERSION == 4) && (THUNDER_VERSION_MINOR == 2)))
-    mEngine_UserSettings->Announcements(mClient_UserSettings->Announcement());
-#endif
-
-    if (!mClient_UserSettings.IsValid())
+    if (CreateUserSettingInterfaceObjectUsingComRPCConnection() != Core::ERROR_NONE)
     {
-        TEST_LOG("Invalid mClient_UserSettings");
+        TEST_LOG("Invalid Client_UserSettings");
     }
     else
     {
-        mController_UserSettings = mClient_UserSettings->Open<PluginHost::IShell>(_T("org.rdk.UserSettings"), ~0, 3000);
-        if (mController_UserSettings)
+        ASSERT_TRUE(m_controller_usersettings!= nullptr);
+        if (m_controller_usersettings)
         {
-            auto UserSettingsPlugin = mController_UserSettings->QueryInterface<Exchange::IUserSettings>();
-            uint32_t signalled = UserSettings_StateInvalid;
-
-            UserSettingsPlugin->AddRef();
-            UserSettingsPlugin->Register(&mNotification);
-
-            if (UserSettingsPlugin)
+            ASSERT_TRUE(m_usersettingsplugin!= nullptr);
+            if (m_usersettingsplugin)
             {
-                status = UserSettingsPlugin->SetAudioDescription(true);
+                m_usersettingsplugin->AddRef();
+                m_usersettingsplugin->Register(&notification);
+
+                TEST_LOG("Setting and Getting AudioDescription Values");
+                status = m_usersettingsplugin->SetAudioDescription(true);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
                 {
                     std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
                     TEST_LOG("Err: %s", errorMsg.c_str());
                 }
-
-                signalled = mNotification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_OnAudioDescriptionChanged);
+                signalled = notification.WaitForRequestStatus(JSON_TIMEOUT, UserSettings_OnAudioDescriptionChanged);
                 EXPECT_TRUE(signalled & UserSettings_OnAudioDescriptionChanged);
 
-                bool Enable = false;
-                status = UserSettingsPlugin->GetAudioDescription(Enable);
-                EXPECT_EQ(Enable, true);
-                EXPECT_EQ(status,Core::ERROR_NONE);
-                if (status != Core::ERROR_NONE)
-                {
-                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
-                    TEST_LOG("Err: %s", errorMsg.c_str());
-                }
-                UserSettingsPlugin->Unregister(&mNotification);
-                UserSettingsPlugin->Release();
-            }
-            else
-            {
-                TEST_LOG("UserSettingsPlugin is NULL");
-            }
-            mController_UserSettings->Release();
-        }
-        else
-        {
-            TEST_LOG("mController_UserSettings is NULL");
-        }
-    }
-}
-
-TEST_F(UserSettingTest,PreferredAudioLanguagesSuccessUsingComRpcConnection)
-{
-    Core::ProxyType<RPC::InvokeServerType<1, 0, 4>> mEngine_UserSettings;
-    Core::ProxyType<RPC::CommunicatorClient> mClient_UserSettings;
-    PluginHost::IShell *mController_UserSettings;
-    Core::Sink<NotificationHandler> mNotification;
-    uint32_t status = Core::ERROR_GENERAL;
-
-    TEST_LOG("Creating mEngine_UserSettings");
-    mEngine_UserSettings = Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create();
-    mClient_UserSettings = Core::ProxyType<RPC::CommunicatorClient>::Create(Core::NodeId("/tmp/communicator"), Core::ProxyType<Core::IIPCServer>(mEngine_UserSettings));
-
-    TEST_LOG("Creating mEngine_UserSettings Announcements");
-#if ((THUNDER_VERSION == 2) || ((THUNDER_VERSION == 4) && (THUNDER_VERSION_MINOR == 2)))
-    mEngine_UserSettings->Announcements(mClient_UserSettings->Announcement());
-#endif
-
-    if (!mClient_UserSettings.IsValid())
-    {
-        TEST_LOG("Invalid mClient_UserSettings");
-    }
-    else
-    {
-        mController_UserSettings = mClient_UserSettings->Open<PluginHost::IShell>(_T("org.rdk.UserSettings"), ~0, 3000);
-        if (mController_UserSettings)
-        {
-            auto UserSettingsPlugin = mController_UserSettings->QueryInterface<Exchange::IUserSettings>();
-            uint32_t signalled = UserSettings_StateInvalid;
-
-            UserSettingsPlugin->AddRef();
-            UserSettingsPlugin->Register(&mNotification);
-
-            if (UserSettingsPlugin)
-            {
-                const string preferredLanguages = "eng";
-                status = UserSettingsPlugin->SetPreferredAudioLanguages(preferredLanguages);
+                status = m_usersettingsplugin->GetAudioDescription(getBoolValue);
+                EXPECT_EQ(getBoolValue, true);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
                 {
@@ -723,71 +778,19 @@ TEST_F(UserSettingTest,PreferredAudioLanguagesSuccessUsingComRpcConnection)
                     TEST_LOG("Err: %s", errorMsg.c_str());
                 }
 
-                signalled = mNotification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_OnPreferredAudioLanguagesChanged);
+                TEST_LOG("Setting and Getting PreferredAudioLanguages Values");
+                status = m_usersettingsplugin->SetPreferredAudioLanguages("eng");
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+                signalled = notification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_OnPreferredAudioLanguagesChanged);
                 EXPECT_TRUE(signalled & UserSettings_OnPreferredAudioLanguagesChanged);
 
-                string preferredLanguages1 = "";
-                status = UserSettingsPlugin->GetPreferredAudioLanguages(preferredLanguages1);
-                EXPECT_EQ(preferredLanguages1, preferredLanguages);
-                EXPECT_EQ(status,Core::ERROR_NONE);
-                if (status != Core::ERROR_NONE)
-                {
-                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
-                    TEST_LOG("Err: %s", errorMsg.c_str());
-                }
-                UserSettingsPlugin->Unregister(&mNotification);
-                UserSettingsPlugin->Release();
-            }
-            else
-            {
-                TEST_LOG("UserSettingsPlugin is NULL");
-            }
-            mController_UserSettings->Release();
-        }
-        else
-        {
-            TEST_LOG("mController_UserSettings is NULL");
-        }
-    }
-}
-
-TEST_F(UserSettingTest,PresentationLanguageSuccessUsingComRpcConnection)
-{
-    Core::ProxyType<RPC::InvokeServerType<1, 0, 4>> mEngine_UserSettings;
-    Core::ProxyType<RPC::CommunicatorClient> mClient_UserSettings;
-    PluginHost::IShell *mController_UserSettings;
-    uint32_t status = Core::ERROR_GENERAL;
-    Core::Sink<NotificationHandler> mNotification;
-
-
-    TEST_LOG("Creating mEngine_UserSettings");
-    mEngine_UserSettings = Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create();
-    mClient_UserSettings = Core::ProxyType<RPC::CommunicatorClient>::Create(Core::NodeId("/tmp/communicator"), Core::ProxyType<Core::IIPCServer>(mEngine_UserSettings));
-
-    TEST_LOG("Creating mEngine_UserSettings Announcements");
-#if ((THUNDER_VERSION == 2) || ((THUNDER_VERSION == 4) && (THUNDER_VERSION_MINOR == 2)))
-    mEngine_UserSettings->Announcements(mClient_UserSettings->Announcement());
-#endif
-
-    if (!mClient_UserSettings.IsValid())
-    {
-        TEST_LOG("Invalid mClient_UserSettings");
-    }
-    else
-    {
-        mController_UserSettings = mClient_UserSettings->Open<PluginHost::IShell>(_T("org.rdk.UserSettings"), ~0, 3000);
-        if (mController_UserSettings)
-        {
-            auto UserSettingsPlugin = mController_UserSettings->QueryInterface<Exchange::IUserSettings>();
-            uint32_t signalled = UserSettings_StateInvalid;
-
-            UserSettingsPlugin->AddRef();
-            UserSettingsPlugin->Register(&mNotification);
-
-            if (UserSettingsPlugin)
-            {
-                const string presentationLanguage = "fra";
-                status = UserSettingsPlugin->SetPresentationLanguage(presentationLanguage);
+                status = m_usersettingsplugin->GetPreferredAudioLanguages(getStringValue);
+                EXPECT_EQ(getStringValue, "eng");
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
                 {
@@ -795,69 +798,19 @@ TEST_F(UserSettingTest,PresentationLanguageSuccessUsingComRpcConnection)
                     TEST_LOG("Err: %s", errorMsg.c_str());
                 }
 
-                signalled = mNotification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_OnPresentationLanguageChanged);
+                TEST_LOG("Setting and Getting PresentationLanguage Values");
+                status = m_usersettingsplugin->SetPresentationLanguage("fra");
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+                signalled = notification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_OnPresentationLanguageChanged);
                 EXPECT_TRUE(signalled & UserSettings_OnPresentationLanguageChanged);
 
-                string presentationLanguage1 = "";
-                status = UserSettingsPlugin->GetPresentationLanguage(presentationLanguage1);
-                EXPECT_EQ(presentationLanguage1, presentationLanguage);
-                EXPECT_EQ(status,Core::ERROR_NONE);
-                if (status != Core::ERROR_NONE)
-                {
-                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
-                    TEST_LOG("Err: %s", errorMsg.c_str());
-                }
-                UserSettingsPlugin->Unregister(&mNotification);
-                UserSettingsPlugin->Release();
-            }
-            else
-            {
-                TEST_LOG("UserSettingsPlugin is NULL");
-            }
-            mController_UserSettings->Release();
-        }
-        else
-        {
-            TEST_LOG("mController_UserSettings is NULL");
-        }
-    }
-}
-
-TEST_F(UserSettingTest,CaptionsSuccessUsingComRpcConnection)
-{
-    Core::ProxyType<RPC::InvokeServerType<1, 0, 4>> mEngine_UserSettings;
-    Core::ProxyType<RPC::CommunicatorClient> mClient_UserSettings;
-    PluginHost::IShell *mController_UserSettings;
-    uint32_t status = Core::ERROR_GENERAL;
-    Core::Sink<NotificationHandler> mNotification;
-
-    TEST_LOG("Creating mEngine_UserSettings");
-    mEngine_UserSettings = Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create();
-    mClient_UserSettings = Core::ProxyType<RPC::CommunicatorClient>::Create(Core::NodeId("/tmp/communicator"), Core::ProxyType<Core::IIPCServer>(mEngine_UserSettings));
-
-    TEST_LOG("Creating mEngine_UserSettings Announcements");
-#if ((THUNDER_VERSION == 2) || ((THUNDER_VERSION == 4) && (THUNDER_VERSION_MINOR == 2)))
-    mEngine_UserSettings->Announcements(mClient_UserSettings->Announcement());
-#endif
-
-    if (!mClient_UserSettings.IsValid())
-    {
-        TEST_LOG("Invalid mClient_UserSettings");
-    }
-    else
-    {
-        mController_UserSettings = mClient_UserSettings->Open<PluginHost::IShell>(_T("org.rdk.UserSettings"), ~0, 3000);
-        if (mController_UserSettings)
-        {
-            auto UserSettingsPlugin = mController_UserSettings->QueryInterface<Exchange::IUserSettings>();
-            uint32_t signalled = UserSettings_StateInvalid;
-
-            UserSettingsPlugin->AddRef();
-            UserSettingsPlugin->Register(&mNotification);
-
-            if (UserSettingsPlugin)
-            {
-                status = UserSettingsPlugin->SetCaptions(true);
+                status = m_usersettingsplugin->GetPresentationLanguage(getStringValue);
+                EXPECT_EQ(getStringValue, "fra");
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
                 {
@@ -865,70 +818,20 @@ TEST_F(UserSettingTest,CaptionsSuccessUsingComRpcConnection)
                     TEST_LOG("Err: %s", errorMsg.c_str());
                 }
 
-                signalled = mNotification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_OnCaptionsChanged);
+                TEST_LOG("Setting and Getting Captions Values");
+                getBoolValue = false;
+                status = m_usersettingsplugin->SetCaptions(true);
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+                signalled = notification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_OnCaptionsChanged);
                 EXPECT_TRUE(signalled & UserSettings_OnCaptionsChanged);
 
-                bool Enable = false;
-                status = UserSettingsPlugin->GetCaptions(Enable);
-                EXPECT_EQ(Enable, true);
-                EXPECT_EQ(status,Core::ERROR_NONE);
-                if (status != Core::ERROR_NONE)
-                {
-                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
-                    TEST_LOG("Err: %s", errorMsg.c_str());
-                }
-                UserSettingsPlugin->Unregister(&mNotification);
-                UserSettingsPlugin->Release();
-            }
-            else
-            {
-                TEST_LOG("UserSettingsPlugin is NULL");
-            }
-            mController_UserSettings->Release();
-        }
-        else
-        {
-            TEST_LOG("mController_UserSettings is NULL");
-        }
-    }
-}
-
-TEST_F(UserSettingTest,PreferredCaptionsLanguagesSuccessUsingComRpcConnection)
-{
-    Core::ProxyType<RPC::InvokeServerType<1, 0, 4>> mEngine_UserSettings;
-    Core::ProxyType<RPC::CommunicatorClient> mClient_UserSettings;
-    PluginHost::IShell *mController_UserSettings;
-    uint32_t status = Core::ERROR_GENERAL;
-    Core::Sink<NotificationHandler> mNotification;
-
-    TEST_LOG("Creating mEngine_UserSettings");
-    mEngine_UserSettings = Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create();
-    mClient_UserSettings = Core::ProxyType<RPC::CommunicatorClient>::Create(Core::NodeId("/tmp/communicator"), Core::ProxyType<Core::IIPCServer>(mEngine_UserSettings));
-
-    TEST_LOG("Creating mEngine_UserSettings Announcements");
-#if ((THUNDER_VERSION == 2) || ((THUNDER_VERSION == 4) && (THUNDER_VERSION_MINOR == 2)))
-    mEngine_UserSettings->Announcements(mClient_UserSettings->Announcement());
-#endif
-
-    if (!mClient_UserSettings.IsValid())
-    {
-        TEST_LOG("Invalid mClient_UserSettings");
-    }
-    else
-    {
-        mController_UserSettings = mClient_UserSettings->Open<PluginHost::IShell>(_T("org.rdk.UserSettings"), ~0, 3000);
-        if (mController_UserSettings)
-        {
-            const string preferredCaptionsLanguages = "eng";
-            auto UserSettingsPlugin = mController_UserSettings->QueryInterface<Exchange::IUserSettings>();
-            uint32_t signalled = UserSettings_StateInvalid;
-
-            UserSettingsPlugin->AddRef();
-            UserSettingsPlugin->Register(&mNotification);
-
-            if (UserSettingsPlugin)
-            {
-                status = UserSettingsPlugin->SetPreferredCaptionsLanguages(preferredCaptionsLanguages);
+                status = m_usersettingsplugin->GetCaptions(getBoolValue);
+                EXPECT_EQ(getBoolValue, true);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
                 {
@@ -936,70 +839,19 @@ TEST_F(UserSettingTest,PreferredCaptionsLanguagesSuccessUsingComRpcConnection)
                     TEST_LOG("Err: %s", errorMsg.c_str());
                 }
 
-                signalled = mNotification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_OnPreferredCaptionsLanguagesChanged);
+                TEST_LOG("Setting and Getting Captions Values");
+                status = m_usersettingsplugin->SetPreferredCaptionsLanguages("en,es");
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+                signalled = notification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_OnPreferredCaptionsLanguagesChanged);
                 EXPECT_TRUE(signalled & UserSettings_OnPreferredCaptionsLanguagesChanged);
 
-                string preferredCaptionsLanguages1 = "";
-                status = UserSettingsPlugin->GetPreferredCaptionsLanguages(preferredCaptionsLanguages1);
-                EXPECT_EQ(preferredCaptionsLanguages1, preferredCaptionsLanguages);
-                EXPECT_EQ(status,Core::ERROR_NONE);
-                if (status != Core::ERROR_NONE)
-                {
-                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
-                    TEST_LOG("Err: %s", errorMsg.c_str());
-                }
-                UserSettingsPlugin->Unregister(&mNotification);
-                UserSettingsPlugin->Release();
-            }
-            else
-            {
-                TEST_LOG("UserSettingsPlugin is NULL");
-            }
-            mController_UserSettings->Release();
-        }
-        else
-        {
-            TEST_LOG("mController_UserSettings is NULL");
-        }
-    }
-}
-
-TEST_F(UserSettingTest,PreferredClosedCaptionServiceSuccessUsingComRpcConnection)
-{
-    Core::ProxyType<RPC::InvokeServerType<1, 0, 4>> mEngine_UserSettings;
-    Core::ProxyType<RPC::CommunicatorClient> mClient_UserSettings;
-    PluginHost::IShell *mController_UserSettings;
-    uint32_t status = Core::ERROR_GENERAL;
-    Core::Sink<NotificationHandler> mNotification;
-
-    TEST_LOG("Creating mEngine_UserSettings");
-    mEngine_UserSettings = Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create();
-    mClient_UserSettings = Core::ProxyType<RPC::CommunicatorClient>::Create(Core::NodeId("/tmp/communicator"), Core::ProxyType<Core::IIPCServer>(mEngine_UserSettings));
-
-    TEST_LOG("Creating mEngine_UserSettings Announcements");
-#if ((THUNDER_VERSION == 2) || ((THUNDER_VERSION == 4) && (THUNDER_VERSION_MINOR == 2)))
-    mEngine_UserSettings->Announcements(mClient_UserSettings->Announcement());
-#endif
-
-    if (!mClient_UserSettings.IsValid())
-    {
-        TEST_LOG("Invalid mClient_UserSettings");
-    }
-    else
-    {
-        mController_UserSettings = mClient_UserSettings->Open<PluginHost::IShell>(_T("org.rdk.UserSettings"), ~0, 3000);
-        if (mController_UserSettings)
-        {
-            auto UserSettingsPlugin = mController_UserSettings->QueryInterface<Exchange::IUserSettings>();
-            uint32_t signalled = UserSettings_StateInvalid;
-
-            UserSettingsPlugin->AddRef();
-            UserSettingsPlugin->Register(&mNotification);
-
-            if (UserSettingsPlugin)
-            {
-                const string preferredClosedCaptionService = "CC3";
-                status = UserSettingsPlugin->SetPreferredClosedCaptionService(preferredClosedCaptionService);
+                status = m_usersettingsplugin->GetPreferredCaptionsLanguages(getStringValue);
+                EXPECT_EQ(getStringValue, "en,es");
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
                 {
@@ -1007,32 +859,39 @@ TEST_F(UserSettingTest,PreferredClosedCaptionServiceSuccessUsingComRpcConnection
                     TEST_LOG("Err: %s", errorMsg.c_str());
                 }
 
-                signalled = mNotification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_OnPreferredClosedCaptionServiceChanged);
+                TEST_LOG("Setting and Getting PreferredClosedCaptionService Values");
+                status = m_usersettingsplugin->SetPreferredClosedCaptionService("CC3");
+                EXPECT_EQ(status,Core::ERROR_NONE);
+                if (status != Core::ERROR_NONE)
+                {
+                    std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                    TEST_LOG("Err: %s", errorMsg.c_str());
+                }
+                signalled = notification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_OnPreferredClosedCaptionServiceChanged);
                 EXPECT_TRUE(signalled & UserSettings_OnPreferredClosedCaptionServiceChanged);
 
-                string preferredClosedCaptionService1 = "";
-                status = UserSettingsPlugin->GetPreferredClosedCaptionService(preferredClosedCaptionService1);
-                EXPECT_EQ(preferredClosedCaptionService1, preferredClosedCaptionService);
+                status = m_usersettingsplugin->GetPreferredClosedCaptionService(getStringValue);
+                EXPECT_EQ(getStringValue, "CC3");
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
                 {
                     std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
                     TEST_LOG("Err: %s", errorMsg.c_str());
                 }
-                UserSettingsPlugin->Unregister(&mNotification);
-                UserSettingsPlugin->Release();
+
+                m_usersettingsplugin->Unregister(&notification);
+                m_usersettingsplugin->Release();
             }
             else
             {
-                TEST_LOG("UserSettingsPlugin is NULL");
+                TEST_LOG("m_usersettingsplugin is NULL");
             }
-            mController_UserSettings->Release();
+            m_controller_usersettings->Release();
         }
         else
         {
-            TEST_LOG("mController_UserSettings is NULL");
+            TEST_LOG("m_controller_usersettings is NULL");
         }
     }
 }
-
 

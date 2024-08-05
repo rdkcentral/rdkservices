@@ -49,10 +49,14 @@ class cTimer{
         bool start();
 
         /***
-         * @brief   : stop timer thread.
+         * @brief   : stop timer thread.After calling stop() either join() or detach() need to be called.
+	 if child thread (timerThread) done it's work call cTimer::detach() after cTimer::stop(). 
+	 if SystemServices plugin going to Deinitialize call cTimer::join() after cTimer::stop().
          * @return   : nil
          */
         void stop();
+       void detach();
+       void join();
 
         /***
          * @brief        : Set interval in which the given function should be invoked.
