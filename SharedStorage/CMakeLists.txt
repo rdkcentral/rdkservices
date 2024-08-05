@@ -22,7 +22,7 @@ find_package(WPEFramework)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 set(PLUGIN_SHAREDSTORAGE_AUTOSTART "true" CACHE STRING "Automatically start SharedStorage plugin")
-set(PLUGIN_SHAREDSTORAGE_STARTUPORDER "52" CACHE STRING "To configure startup order of SharedStorage plugin")
+set(PLUGIN_SHAREDSTORAGE_STARTUPORDER "51" CACHE STRING "To configure startup order of SharedStorage plugin")
 
 set(CMAKE_CXX_STANDARD 11)
 
@@ -32,11 +32,9 @@ add_library(${MODULE_NAME} SHARED
         Module.cpp
 )
 
-find_package(IARMBus)
-
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
-target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS} ../helpers)
+target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 target_link_libraries(${MODULE_NAME} PRIVATE
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
         ${NAMESPACE}Definitions::${NAMESPACE}Definitions
