@@ -876,6 +876,14 @@ namespace WPEFramework {
 				   DisplaySettings::_instance->m_requestSadRetrigger = false;
                                 }
 
+				if (DisplaySettings::_instance->m_AudioDeviceSADState != AUDIO_DEVICE_SAD_CLEARED) {
+					DisplaySettings::_instance->m_AudioDeviceSADState = AUDIO_DEVICE_SAD_CLEARED;
+					LOGINFO("%s: Clearing Audio device SAD\n", __FUNCTION__);
+					sad_list.clear();
+				} else {
+				LOGINFO("SAD already cleared\n");
+	    			}
+
                             }// Release Mutex m_AudioDeviceStatesUpdateMutex
 			}
                         catch (const device::Exception& err)
