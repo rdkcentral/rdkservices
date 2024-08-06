@@ -1399,7 +1399,7 @@ namespace WPEFramework
                     logicalAddress = addr;
                     logicalAddressDeviceType = logicalAddrDeviceType;
 		    if(smConnection)
-			    smConnection->setSource(&addr);
+			    smConnection->setSource(LogicalAddress(addr.toInt()));
                 }
             }
             catch (const std::exception& e)
