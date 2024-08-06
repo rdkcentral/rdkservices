@@ -1381,7 +1381,6 @@ namespace WPEFramework
         void HdmiCecSource::getLogicalAddress()
         {
             LOGINFO("Entered getLogicalAddress ");
-	    int logical_addr;
 
             if (!IsCecMgrActivated) {
                 LOGWARN("CEC Mgr not activated CEC communication is not possible");
@@ -1389,7 +1388,6 @@ namespace WPEFramework
             }
             try{
                 LogicalAddress addr = LibCCEC::getInstance().getLogicalAddress(DEV_TYPE_TUNER);
-		logical_addr = addr.toInt();
 
                 std::string logicalAddrDeviceType = DeviceType(LogicalAddress(addr).getType()).toString().c_str();
 
@@ -1401,7 +1399,7 @@ namespace WPEFramework
                     logicalAddress = addr;
                     logicalAddressDeviceType = logicalAddrDeviceType;
 		    if(smConnection)
-			    smConnection->setSource(LogicalAddress(logical_addr));
+			    smConnection->setSource(LogicalAddress(logicalAddress));
                 }
             }
             catch (const std::exception& e)
