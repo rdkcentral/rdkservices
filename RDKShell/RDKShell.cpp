@@ -2548,8 +2548,8 @@ namespace WPEFramework {
               return;
           }*/
           std::cout << "Disabled easter eggs upon entry to event handler \n " ;
-	  mShell.mEnableEasterEggs = false ;
-          
+	  //mShell.mEnableEasterEggs = false ;
+          mEnableEasterEggs = false ;
           if (actionJson.length() == 0)
           {
             JsonObject params;
@@ -2687,7 +2687,8 @@ namespace WPEFramework {
             }
           }
 	  std::cout << "Leaving event handler and enabling back Easter Eggs \n" ;
-	  mShell.mEnableEasterEggs = true ;
+	 // mShell.mEnableEasterEggs = true ;
+	mEnableEasterEggs = true ;
         }
 
         void RDKShell::RdkShellListener::onPowerKey()
