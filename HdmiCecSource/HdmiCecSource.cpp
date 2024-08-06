@@ -1398,6 +1398,8 @@ namespace WPEFramework
                 {
                     logicalAddress = addr;
                     logicalAddressDeviceType = logicalAddrDeviceType;
+		    if(smConnection)
+			    smConnection->setSource(LogicalAddress(logicalAddress));
                 }
             }
             catch (const std::exception& e)
