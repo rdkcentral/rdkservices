@@ -380,7 +380,7 @@ namespace WPEFramework
                 case WIFI_DISABLED:
                     return Exchange::INetworkManager::WIFI_STATE_DISABLED;
             }
-            return Exchange::INetworkManager::WIFI_STATE_CONNECTION_FAILED;
+            return Exchange::INetworkManager::WIFI_STATE_INVALID;
         }
 
         Exchange::INetworkManager::WiFiState errorcode_to_wifi_state(WiFiErrorCode_t code) {
@@ -390,6 +390,8 @@ namespace WPEFramework
                     return Exchange::INetworkManager::WIFI_STATE_SSID_CHANGED;
                 case WIFI_CONNECTION_LOST:
                     return Exchange::INetworkManager::WIFI_STATE_CONNECTION_LOST;
+                case WIFI_CONNECTION_FAILED:
+                    return Exchange::INetworkManager::WIFI_STATE_CONNECTION_FAILED;
                 case WIFI_CONNECTION_INTERRUPTED:
                     return Exchange::INetworkManager::WIFI_STATE_CONNECTION_INTERRUPTED;
                 case WIFI_INVALID_CREDENTIALS:
@@ -401,7 +403,7 @@ namespace WPEFramework
                 case WIFI_UNKNOWN:
                     return Exchange::INetworkManager::WIFI_STATE_ERROR;
             }
-            return Exchange::INetworkManager::WIFI_STATE_CONNECTION_FAILED;
+            return Exchange::INetworkManager::WIFI_STATE_INVALID;
         }
 
         void NetworkManagerInternalEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
