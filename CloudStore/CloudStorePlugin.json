@@ -1,0 +1,10 @@
+{
+  "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/plugin.schema.json",
+  "info": {
+    "title": "CloudStore Plugin",
+    "callsign": "org.rdk.CloudStore",
+    "locator": "libWPEFrameworkCloudStore.so",
+    "status": "production",
+    "description": "The `CloudStore` plugin allows you to persist key/value pairs by namespace"
+  }
+}

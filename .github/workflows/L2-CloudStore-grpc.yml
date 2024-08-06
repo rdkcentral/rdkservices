@@ -1,14 +1,14 @@
-name: L2-PersistentStore-grpc
+name: L2-CloudStore-grpc
 
 on:
   push:
     paths:
-      - PersistentStore/**
-      - .github/workflows/*PersistentStore*.yml
+      - CloudStore/**
+      - .github/workflows/*CloudStore*.yml
   pull_request:
     paths:
-      - PersistentStore/**
-      - .github/workflows/*PersistentStore*.yml
+      - CloudStore/**
+      - .github/workflows/*CloudStore*.yml
 
 jobs:
   build:
@@ -27,7 +27,7 @@ jobs:
       - name: Build
         working-directory: ${{github.workspace}}
         run: |
-          cmake -S ${GITHUB_REPOSITORY}/PersistentStore/grpc/l2test -B build/grpcl2test -DCMAKE_INSTALL_PREFIX="install" -DCMAKE_CXX_FLAGS="-Wall -Werror"
+          cmake -S ${GITHUB_REPOSITORY}/CloudStore/grpc/l2test -B build/grpcl2test -DCMAKE_INSTALL_PREFIX="install" -DCMAKE_CXX_FLAGS="-Wall -Werror"
           cmake --build build/grpcl2test --target install
 
 # Usage:

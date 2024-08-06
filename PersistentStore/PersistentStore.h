@@ -42,7 +42,6 @@ namespace Plugin {
                 , MaxValue(0)
                 , Limit(0)
             {
-                Add(_T("uri"), &Uri);
                 Add(_T("path"), &Path);
                 Add(_T("legacypath"), &LegacyPath);
                 Add(_T("key"), &Key);
@@ -52,7 +51,6 @@ namespace Plugin {
             }
 
         public:
-            Core::JSON::String Uri;
             Core::JSON::String Path;
             Core::JSON::String LegacyPath;
             Core::JSON::String Key;

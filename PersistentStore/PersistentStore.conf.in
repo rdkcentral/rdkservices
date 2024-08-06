@@ -9,7 +9,6 @@ rootobject.add("mode", "@PLUGIN_PERSISTENTSTORE_MODE@")
 rootobject.add("locator", "lib@PLUGIN_IMPLEMENTATION@.so")
 configuration.add("root", rootobject)
 
-configuration.add("uri", "@PLUGIN_PERSISTENTSTORE_URI@")
 configuration.add("path", "@PLUGIN_PERSISTENTSTORE_PATH@")
 configuration.add("legacypath", "@PLUGIN_PERSISTENTSTORE_LEGACYPATH@")
 configuration.add("key", "@PLUGIN_PERSISTENTSTORE_KEY@")
