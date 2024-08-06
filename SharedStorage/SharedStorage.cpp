@@ -58,16 +58,12 @@ namespace Plugin {
         , _psLimit(nullptr)
         , _csObject(nullptr)
         , _storeNotification(*this)
-        , _notification(*this)
-        , _adminLock()
     {
         RegisterAll();
-        LOGINFO("SharedStorage constructor success\n");
     }
     SharedStorage::~SharedStorage()
     {
         UnregisterAll();
-        LOGINFO("Disconnect from the COM-RPC socket\n");
     }
 
     Exchange::IStore2* SharedStorage::getRemoteStoreObject(ScopeType eScope)
@@ -88,8 +84,8 @@ namespace Plugin {
 
     const string SharedStorage::Initialize(PluginHost::IShell* service)
     {
-        LOGINFO("SharedStorage Initialize\n");
-        string result;
+        SYSLOG(Logging::Startup, (_T("SharedStorage::Initialize: PID=%u"), getpid()));
+        string message;
 
         ASSERT(service != nullptr);
         ASSERT(nullptr == _service);
@@ -99,7 +95,8 @@ namespace Plugin {
 
         if (!_psCommunicatorClient.IsValid())
         {
-            LOGWARN("Invalid _psCommunicatorClient\n");
+            TRACE(Trace::Error, (_T("%s Invalid _psCommunicatorClient"), __FUNCTION__));
+            message = _T("SharedStorage plugin could not be initialized.");
         }
         else
         {
@@ -113,49 +110,36 @@ namespace Plugin {
                 _psObject = _psController->QueryInterface<Exchange::IStore2>();
                 if(_psObject)
                 {
-                    LOGINFO("Connect success to _psObject\n");
-                    _psObject->AddRef();
                     _psObject->Register(&_storeNotification);
                 }
                 else
                 {
-                    LOGERR("Connect fail to _psObject\n");
+                    TRACE(Trace::Error, (_T("%s Connect fail to _psObject"), __FUNCTION__));
+                    message = _T("SharedStorage plugin could not be initialized.");
                 }
 
                 // Get interface for IStoreInspector
                 _psInspector = _psController->QueryInterface<Exchange::IStoreInspector>();
-                if(_psInspector)
+                if(!_psInspector)
                 {
-                    LOGINFO("Connect success to _psInspector\n");
-                    _psInspector->AddRef();
-                }
-                else
-                {
-                    LOGERR("Connect fail to _psInspector\n");
+                    TRACE(Trace::Error, (_T("%s Connect fail to _psInspector"), __FUNCTION__));
+                    message = _T("SharedStorage plugin could not be initialized.");
                 }
 
                 // Get interface for IStoreLimit
                 _psLimit = _psController->QueryInterface<Exchange::IStoreLimit>();
-                if(_psLimit)
+                if(!_psLimit)
                 {
-                    LOGINFO("Connect success to _psLimit\n");
-                    _psLimit->AddRef();
-                }
-                else
-                {
-                    LOGERR("Connect fail to _psLimit\n");
+                    TRACE(Trace::Error, (_T("%s Connect fail to _psLimit"), __FUNCTION__));
+                    message = _T("SharedStorage plugin could not be initialized.");
                 }
 
                 // Get interface for IStoreCache
                 _psCache = _psController->QueryInterface<Exchange::IStoreCache>();
-                if(_psCache)
+                if(!_psCache)
                 {
-                    LOGINFO("Connect success to _psCache\n");
-                    _psCache->AddRef();
-                }
-                else
-                {
-                    LOGERR("Connect fail to _psCache\n");
+                    TRACE(Trace::Error, (_T("%s Connect fail to _psCache"), __FUNCTION__));
+                    message = _T("SharedStorage plugin could not be initialized.");
                 }
             }
         }
@@ -163,7 +147,8 @@ namespace Plugin {
         // Establish communication with CloudStore
         if (!_csCommunicatorClient.IsValid())
         {
-            LOGWARN("Invalid _csCommunicatorClient\n");
+            TRACE(Trace::Error, (_T("%s Invalid _csCommunicatorClient"), __FUNCTION__));
+            message = _T("SharedStorage plugin could not be initialized.");
         }
         else
         {
@@ -176,21 +161,21 @@ namespace Plugin {
                 _csObject = _csController->QueryInterface<Exchange::IStore2>();
                 if(_csObject)
                 {
-                    LOGINFO("Connect success to _csObject\n");
-                    _csObject->AddRef();
                     _csObject->Register(&_storeNotification);
                 }
                 else
                 {
-                    LOGERR("Connect fail to _csObject\n");
+                    TRACE(Trace::Error, (_T("%s Connect fail to _csObject"), __FUNCTION__));
+                    message = _T("SharedStorage plugin could not be initialized.");
                 }
             }
         }
 
-        _service->Register(&_notification);
-
-        LOGINFO("SharedStorage Initialize complete\n");
-        return result;
+        if (message.length() != 0) {
+            Deinitialize(service);
+        }
+        SYSLOG(Logging::Shutdown, (string(_T("SharedStorage Initialize complete"))));
+        return message;
     }
 
     void SharedStorage::Deinitialize(PluginHost::IShell* service)
@@ -250,11 +235,9 @@ namespace Plugin {
             _csObject->Release();
         }
 
-        _service->Unregister(&_notification);
-
         _service->Release();
         _service = nullptr;
-        SYSLOG(Logging::Shutdown, (string(_T("SharedStorage de-initialised"))));
+        SYSLOG(Logging::Shutdown, (string(_T("SharedStorage Deinitialize complete"))));
     }
 
     string SharedStorage::Information() const

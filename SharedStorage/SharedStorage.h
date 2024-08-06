@@ -21,7 +21,6 @@
 
 #include "Module.h"
 #include "UtilsLogging.h"
-#include <mutex>
 #include <interfaces/IStore2.h>
 #include <interfaces/IStoreCache.h>
 #include <interfaces/json/JsonData_PersistentStore.h>
@@ -46,7 +45,7 @@ namespace Plugin {
         public:
             void ValueChanged(const Exchange::IStore2::ScopeType scope, const string& ns, const string& key, const string& value) override
             {
-                LOGINFO("Scope: %d, ns: %s, key: %s, Val: %s", static_cast<int>(scope), ns.c_str(), key.c_str(), value.c_str());
+                TRACE(Trace::Information, (_T("ValueChanged event")));
                 JsonData::PersistentStore::SetValueParamsData params;
                 params.Scope = JsonData::PersistentStore::ScopeType(scope);
                 params.Namespace = ns;
@@ -59,36 +58,6 @@ namespace Plugin {
             BEGIN_INTERFACE_MAP(Store2Notification)
             INTERFACE_ENTRY(Exchange::IStore2::INotification)
             END_INTERFACE_MAP
-
-        private:
-            SharedStorage& _parent;
-        };
-
-        class RemoteConnectionNotification : public RPC::IRemoteConnection::INotification {
-        private:
-            RemoteConnectionNotification() = delete;
-            RemoteConnectionNotification(const RemoteConnectionNotification&) = delete;
-            RemoteConnectionNotification& operator=(const RemoteConnectionNotification&) = delete;
-
-        public:
-            explicit RemoteConnectionNotification(SharedStorage& parent)
-                : _parent(parent)
-            {
-            }
-            ~RemoteConnectionNotification() override = default;
-
-            BEGIN_INTERFACE_MAP(RemoteConnectionNotification)
-            INTERFACE_ENTRY(RPC::IRemoteConnection::INotification)
-            END_INTERFACE_MAP
-
-            void Activated(RPC::IRemoteConnection*) override
-            {
-                LOGINFO("SharedStorage Notification Activated");
-            }
-            void Deactivated(RPC::IRemoteConnection* connection) override
-            {
-                LOGINFO("SharedStorage Notification Deactivated");
-            }
 
         private:
             SharedStorage& _parent;
@@ -148,8 +117,6 @@ namespace Plugin {
         Exchange::IStoreLimit* _psLimit;
         Exchange::IStore2* _csObject;
         Core::Sink<Store2Notification> _storeNotification;
-        Core::Sink<RemoteConnectionNotification> _notification;
-        mutable Core::CriticalSection _adminLock;
         std::mutex storeObjMutex;
     };
 
