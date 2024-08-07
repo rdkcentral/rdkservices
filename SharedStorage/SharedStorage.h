@@ -45,8 +45,7 @@ namespace Plugin {
         public:
             void ValueChanged(const Exchange::IStore2::ScopeType scope, const string& ns, const string& key, const string& value) override
             {
-				LOGINFO("ValueChanged");
-                TRACE(Trace::Information, (_T("ValueChanged event")));
+                //TRACE(Trace::Information, (_T("ValueChanged event")));
                 JsonData::PersistentStore::SetValueParamsData params;
                 params.Scope = JsonData::PersistentStore::ScopeType(scope);
                 params.Namespace = ns;

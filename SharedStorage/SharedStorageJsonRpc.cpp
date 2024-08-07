@@ -56,7 +56,6 @@ namespace Plugin {
 
     uint32_t SharedStorage::endpoint_setValue(const SetValueParamsData& params, DeleteKeyResultInfo& response)
     {
-        LOGINFO("Scope: %d", static_cast<int>(params.Scope.Value()));
         uint32_t status = Core::ERROR_NOT_SUPPORTED;
 
         Exchange::IStore2* _storeObject = getRemoteStoreObject(params.Scope.Value());
@@ -72,13 +71,15 @@ namespace Plugin {
             if (status == Core::ERROR_NONE) {
                 response.Success = true;
             }
+            else {
+                TRACE(Trace::Error, (_T("%s: Status: %d"), __FUNCTION__, status));
+            }
         }
         return status;
     }
 
     uint32_t SharedStorage::endpoint_getValue(const DeleteKeyParamsInfo& params, GetValueResultData& response)
     {
-        LOGINFO("Scope: %d", static_cast<int>(params.Scope.Value()));
         uint32_t status = Core::ERROR_NOT_SUPPORTED;
         string value;
         uint32_t ttl = 0;
@@ -100,13 +101,15 @@ namespace Plugin {
                 }
                 response.Success = true;
             }
+            else {
+                TRACE(Trace::Error, (_T("%s: Status: %d"), __FUNCTION__, status));
+            }
         }
         return status;
     }
 
     uint32_t SharedStorage::endpoint_deleteKey(const DeleteKeyParamsInfo& params, DeleteKeyResultInfo& response)
     {
-        LOGINFO("Scope: %d", static_cast<int>(params.Scope.Value()));
         uint32_t status = Core::ERROR_NOT_SUPPORTED;
         Exchange::IStore2* _storeObject = getRemoteStoreObject(params.Scope.Value());
         ASSERT (nullptr != _storeObject);
@@ -119,13 +122,15 @@ namespace Plugin {
             if (status == Core::ERROR_NONE) {
                 response.Success = true;
             }
+            else {
+                TRACE(Trace::Error, (_T("%s: Status: %d"), __FUNCTION__, status));
+            }
         }
         return status;
     }
 
     uint32_t SharedStorage::endpoint_deleteNamespace(const DeleteNamespaceParamsInfo& params, DeleteKeyResultInfo& response)
     {
-        LOGINFO("Scope: %d", static_cast<int>(params.Scope.Value()));
         uint32_t status = Core::ERROR_NOT_SUPPORTED;
         Exchange::IStore2* _storeObject = getRemoteStoreObject(params.Scope.Value());
         ASSERT (nullptr != _storeObject);
@@ -137,13 +142,15 @@ namespace Plugin {
             if (status == Core::ERROR_NONE) {
                 response.Success = true;
             }
+            else {
+                TRACE(Trace::Error, (_T("%s: Status: %d"), __FUNCTION__, status));
+            }
         }
         return status;
     }
 
     uint32_t SharedStorage::endpoint_getKeys(const DeleteNamespaceParamsInfo& params, GetKeysResultData& response)
     {
-        LOGINFO("Scope: %d", static_cast<int>(params.Scope.Value()));
         uint32_t status = Core::ERROR_NOT_SUPPORTED;
         if(params.Scope.Value() != ScopeType::DEVICE)
         {
@@ -165,13 +172,15 @@ namespace Plugin {
                 it->Release();
                 response.Success = true;
             }
+            else {
+                TRACE(Trace::Error, (_T("%s: Status: %d"), __FUNCTION__, status));
+            }
         }
         return status;
     }
 
     uint32_t SharedStorage::endpoint_getNamespaces(const GetNamespacesParamsInfo& params, GetNamespacesResultData& response)
     {
-        LOGINFO("Scope: %d", static_cast<int>(params.Scope.Value()));
         uint32_t status = Core::ERROR_NOT_SUPPORTED;
         if(params.Scope.Value() != ScopeType::DEVICE)
         {
@@ -192,6 +201,9 @@ namespace Plugin {
                 it->Release();
                 response.Success = true;
             }
+            else {
+                TRACE(Trace::Error, (_T("%s: Status: %d"), __FUNCTION__, status));
+            }
         }
         return status;
     }
@@ -199,7 +211,6 @@ namespace Plugin {
     // Deprecated
     uint32_t SharedStorage::endpoint_getStorageSize(const GetNamespacesParamsInfo& params, JsonObject& response)
     {
-        LOGINFO("Scope: %d", static_cast<int>(params.Scope.Value()));
         uint32_t status = Core::ERROR_NOT_SUPPORTED;
         if(params.Scope.Value() != ScopeType::DEVICE)
         {
@@ -222,13 +233,15 @@ namespace Plugin {
                 response["namespaceSizes"] = jsonObject;
                 response["success"] = true;
             }
+            else {
+                TRACE(Trace::Error, (_T("%s: Status: %d"), __FUNCTION__, status));
+            }
         }
         return status;
     }
 
     uint32_t SharedStorage::endpoint_getStorageSizes(const GetNamespacesParamsInfo& params, GetStorageSizesResultData& response)
     {
-        LOGINFO("Scope: %d", static_cast<int>(params.Scope.Value()));
         uint32_t status = Core::ERROR_NOT_SUPPORTED;
         if(params.Scope.Value() != ScopeType::DEVICE)
         {
@@ -242,7 +255,6 @@ namespace Plugin {
                         Exchange::IStoreInspector::ScopeType(params.Scope.Value()),
                         it);
             if (status == Core::ERROR_NONE) {
-                JsonObject jsonObject;
                 Exchange::IStoreInspector::NamespaceSize element;
                 while (it->Next(element) == true) {
                     auto& item = response.StorageList.Add();
@@ -251,13 +263,15 @@ namespace Plugin {
                 }
                 it->Release();
             }
+            else {
+                TRACE(Trace::Error, (_T("%s: Status: %d"), __FUNCTION__, status));
+            }
         }
         return status;
     }
 
     uint32_t SharedStorage::endpoint_flushCache(DeleteKeyResultInfo& response)
     {
-        LOGINFO("Entry");
         uint32_t status = Core::ERROR_NOT_SUPPORTED;
         ASSERT (nullptr != _psCache);
         if (nullptr != _psCache)
@@ -266,13 +280,15 @@ namespace Plugin {
             if (status == Core::ERROR_NONE) {
                 response.Success = true;
             }
+            else {
+                TRACE(Trace::Error, (_T("%s: Status: %d"), __FUNCTION__, status));
+            }
         }
         return status;
     }
 
     uint32_t SharedStorage::endpoint_getNamespaceStorageLimit(const DeleteNamespaceParamsInfo& params, GetNamespaceStorageLimitResultData& response)
     {
-        LOGINFO("Scope: %d", static_cast<int>(params.Scope.Value()));
         uint32_t status = Core::ERROR_NOT_SUPPORTED;
         if(params.Scope.Value() != ScopeType::DEVICE)
         {
@@ -289,13 +305,15 @@ namespace Plugin {
             if (status == Core::ERROR_NONE) {
                 response.StorageLimit = size;
             }
+            else {
+                TRACE(Trace::Error, (_T("%s: Status: %d"), __FUNCTION__, status));
+            }
         }
         return status;
     }
 
     uint32_t SharedStorage::endpoint_setNamespaceStorageLimit(const SetNamespaceStorageLimitParamsData& params)
     {
-        LOGINFO("Scope: %d", static_cast<int>(params.Scope.Value()));
         uint32_t status = Core::ERROR_NOT_SUPPORTED;
         if(params.Scope.Value() != ScopeType::DEVICE)
         {
@@ -308,6 +326,9 @@ namespace Plugin {
                         Exchange::IStoreInspector::ScopeType(params.Scope.Value()),
                         params.Namespace.Value(),
                         params.StorageLimit.Value());
+        }
+        if(status != Core::ERROR_NONE) {
+            TRACE(Trace::Error, (_T("%s: Status: %d"), __FUNCTION__, status));
         }
         return status;
     }

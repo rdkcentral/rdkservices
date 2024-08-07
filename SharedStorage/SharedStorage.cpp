@@ -74,6 +74,7 @@ namespace Plugin {
         }
         else
         {
+            TRACE(Trace::Error, (_T("%s: Unknown scope: %d"), __FUNCTION__, static_cast<int>(eScope)));
             return nullptr;
         }
     }
