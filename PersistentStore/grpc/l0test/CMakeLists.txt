@@ -34,13 +34,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 target_link_libraries(${PROJECT_NAME} PRIVATE gmock_main)
 
-find_package(WPEFramework)
-if (NOT WPEFramework_FOUND)
-    find_package(Thunder)
-    if (Thunder_FOUND)
-        add_compile_definitions(WITH_THUNDER_NAMESPACE)
-    endif ()
-endif ()
+find_package(WPEFramework NAMES WPEFramework Thunder)
 find_package(${NAMESPACE}Plugins REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins)
 

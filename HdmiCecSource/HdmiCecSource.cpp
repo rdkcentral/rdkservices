@@ -55,13 +55,16 @@
 #define HDMICEC_EVENT_ON_DEVICES_CHANGED "onDevicesChanged"
 #define HDMICEC_EVENT_ON_HDMI_HOT_PLUG "onHdmiHotPlug"
 #define HDMICEC_EVENT_ON_STANDBY_MSG_RECEIVED "standbyMessageReceived"
+#define HDMICEC_EVENT_ON_KEYPRESS_MSG_RECEIVED "onKeyPressEvent"
+#define HDMICEC_EVENT_ON_KEYRELEASE_MSG_RECEIVED "onKeyReleaseEvent"
+
 #define DEV_TYPE_TUNER 1
 #define HDMI_HOT_PLUG_EVENT_CONNECTED 0
 #define ABORT_REASON_ID 4
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 8
+#define API_VERSION_NUMBER_MINOR 1
+#define API_VERSION_NUMBER_PATCH 0
 
 enum {
 	HDMICECSOURCE_EVENT_DEVICE_ADDED=0,
@@ -353,6 +356,21 @@ namespace WPEFramework
              LOGINFO("Command: ReportPowerStatus TV Power Status from:%s status : %s \n",header.from.toString().c_str(),msg.status.toString().c_str());
              HdmiCecSource::_instance->addDevice(header.from.toInt());
        }
+
+       void HdmiCecSourceProcessor::process (const UserControlPressed &msg, const Header &header)
+       {
+             printHeader(header);
+             LOGINFO("Command: UserControlPressed message received from:%s command : %d \n",header.from.toString().c_str(),msg.uiCommand.toInt());
+             HdmiCecSource::_instance->SendKeyPressMsgEvent(header.from.toInt(),msg.uiCommand.toInt());
+       }
+
+       void HdmiCecSourceProcessor::process (const UserControlReleased &msg, const Header &header)
+       {
+             printHeader(header);
+             LOGINFO("Command: UserControlReleased message received from:%s \n",header.from.toString().c_str());
+             HdmiCecSource::_instance->SendKeyReleaseMsgEvent(header.from.toInt());
+       }
+
        void HdmiCecSourceProcessor::process (const FeatureAbort &msg, const Header &header)
        {
              printHeader(header);
@@ -602,6 +620,21 @@ namespace WPEFramework
 		 _instance->smConnection->sendTo(LogicalAddress(logicalAddress), MessageEncoder().encode(UserControlReleased()), 100);
 
 		 }
+
+       void HdmiCecSource::SendKeyPressMsgEvent(const int logicalAddress,const int keyCode)
+       {
+           JsonObject params;
+           params["logicalAddress"] = JsonValue(logicalAddress);
+           params["keyCode"] = JsonValue(keyCode);
+           sendNotify(HDMICEC_EVENT_ON_KEYPRESS_MSG_RECEIVED, params);
+       }
+       void HdmiCecSource::SendKeyReleaseMsgEvent(const int logicalAddress)
+       {
+           JsonObject params;
+           params["logicalAddress"] = JsonValue(logicalAddress);
+           sendNotify(HDMICEC_EVENT_ON_KEYRELEASE_MSG_RECEIVED, params);
+       }
+
        void HdmiCecSource::SendStandbyMsgEvent(const int logicalAddress)
        {
            JsonObject params;

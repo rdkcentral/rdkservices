@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.14] - 2024-08-02
+### Changed
+- RDKTV-31447: Sky CP added in manufacturer list
+
 ## [1.0.13] - 2024-05-31
 ### Changed
 - RDK-45345: Upgrade Sky Glass devices to use Thunder R4.4.1
