@@ -1808,6 +1808,7 @@ namespace WPEFramework {
         const string RDKShell::Initialize(PluginHost::IShell* service )
         {
             std::cout << "initializing\n";
+	    mEnableEasterEggs =  false ;
             char* waylandDisplay = getenv("WAYLAND_DISPLAY");
             if (NULL != waylandDisplay)
             {
