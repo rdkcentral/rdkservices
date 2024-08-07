@@ -1,0 +1,55 @@
+name: L0-CloudStore
+
+on:
+  push:
+    paths:
+      - CloudStore/**
+      - .github/workflows/*CloudStore*.yml
+  pull_request:
+    paths:
+      - CloudStore/**
+      - .github/workflows/*CloudStore*.yml
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: ${{github.repository}}
+
+      - name: Install valgrind, coverage, cmake
+        run: |
+          sudo apt update
+          sudo apt install -y valgrind lcov cmake
+
+      - name: Build Thunder
+        working-directory: ${{github.workspace}}
+        run: sh +x ${GITHUB_REPOSITORY}/.github/workflows/BuildThunder.sh
+
+      - name: Build
+        working-directory: ${{github.workspace}}
+        run: |
+          cmake -S ${GITHUB_REPOSITORY}/CloudStore/l0test -B build/cloudstorel0test -DCMAKE_INSTALL_PREFIX="install" -DCMAKE_CXX_FLAGS="--coverage -Wall -Werror"
+          cmake --build build/cloudstorel0test --target install
+
+      - name: Run
+        working-directory: ${{github.workspace}}
+        run: PATH=${PWD}/install/bin:${PATH} LD_LIBRARY_PATH=${PWD}/install/lib:${LD_LIBRARY_PATH} valgrind --tool=memcheck --log-file=valgrind_log --leak-check=yes --show-reachable=yes --track-fds=yes --fair-sched=try cloudstorel0test
+
+      - name: Generate coverage
+        working-directory: ${{github.workspace}}
+        run: |
+          lcov -c -o coverage.info -d build/cloudstorel0test
+          genhtml -o coverage coverage.info
+
+      - name: Upload artifacts
+        if: ${{ !env.ACT }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts
+          path: |
+            coverage/
+            valgrind_log
+          if-no-files-found: warn
