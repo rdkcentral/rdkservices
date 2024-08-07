@@ -41,6 +41,8 @@
 
 #define EDID_MAX_HORIZONTAL_SIZE 21
 #define EDID_MAX_VERTICAL_SIZE   22
+#define HDMI_HOT_PLUG_EVENT_CONNECTED 0
+#define HDMI_HOT_PLUG_EVENT_DISCONNECTED 1
 
 namespace WPEFramework {
 namespace Plugin {
@@ -64,6 +66,8 @@ public:
             IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_RES_PRECHANGE,ResolutionChange) );
             IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_RES_POSTCHANGE, ResolutionChange) );
 
+            IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_RES_PRECHANGE, dsHdmiOutEventHandler) );
+            IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_RES_POSTCHANGE, dsHdmiOutEventHandler) );
             //TODO: this is probably per process so we either need to be running in our own process or be carefull no other plugin is calling it
             device::Manager::Initialize();
             TRACE(Trace::Information, (_T("device::Manager::Initialize success")));
@@ -82,6 +86,9 @@ public:
         IARM_Result_t res;
         IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_RES_PRECHANGE,ResolutionChange) );
         IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_RES_POSTCHANGE,ResolutionChange) );
+
+        IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_RES_PRECHANGE, dsHdmiOutEventHandler) );
+        IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_RES_POSTCHANGE, dsHdmiOutEventHandler) );
         DisplayInfoImplementation::_instance = nullptr;
     }
 
@@ -148,11 +155,11 @@ public:
 
         if(DisplayInfoImplementation::_instance)
         {
-           DisplayInfoImplementation::_instance->ResolutionChangeImpl(eventtype);
+           DisplayInfoImplementation::_instance->sendEventNotifyImpl(eventtype);
         }
     }
 
-    void ResolutionChangeImpl(IConnectionProperties::INotification::Source eventtype)
+    void sendEventNotifyImpl(IConnectionProperties::INotification::Source eventtype)
     {
         _adminLock.Lock();
 
@@ -191,6 +198,7 @@ public:
             std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
             device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
             connected = vPort.isDisplayConnected();
+            TRACE(Trace::Information, (_T("HDCPStatus Property: %s value = %d"), __func__, connected));
         }
         catch (const device::Exception& err)
         {
@@ -743,6 +751,198 @@ public:
         return (Core::ERROR_NONE);
     }
 
+    uint32_t IsHDCPCompliant(bool& isHDCPCompliant) const override
+    {
+        try
+        {
+            std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
+            bool isConnected = vPort.isDisplayConnected();
+            int eHDCPEnabledStatus = vPort.getHDCPStatus();
+            if (isConnected) {
+                isHDCPCompliant    = (eHDCPEnabledStatus == dsHDCP_STATUS_AUTHENTICATED);
+            } else {
+                isHDCPCompliant = false;
+            }
+            TRACE(Trace::Information, (_T("HDCPStatus Property: %s value = %d"), __func__, isHDCPCompliant));
+        }
+        catch (const device::Exception& err)
+        {
+           TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
+           return Core::ERROR_GENERAL;
+        }
+        return (Core::ERROR_NONE);
+    }
+
+    uint32_t IsHDCPEnabled(bool& isHDCPEnabled) const override
+    {
+        try
+        {
+            std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
+            bool isConnected = vPort.isDisplayConnected();
+            if (isConnected) {
+                isHDCPEnabled      = vPort.isContentProtected();
+            } else {
+                isHDCPEnabled = false;
+            }
+            TRACE(Trace::Information, (_T("HDCPStatus Property: %s value = %d"), __func__, isHDCPEnabled));
+       }
+        catch (const device::Exception& err)
+        {
+           TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
+           return Core::ERROR_GENERAL;
+        }
+        return (Core::ERROR_NONE);
+    }
+
+    uint32_t IsHDCPSupported(bool& isHDCPSupported) const override
+    {
+        isHDCPSupported = true;
+        TRACE(Trace::Information, (_T("HDCPStatus Property: %s value = %d"), __func__, isHDCPSupported));
+        return (Core::ERROR_NONE);
+    }
+
+    uint32_t HdcpReason (uint32_t& value) const override
+    {
+        try
+        {
+            std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
+            value = vPort.getHDCPStatus();
+            TRACE(Trace::Information, (_T("HDCPStatus Property: %s value = %d"), __func__, value));
+        }
+        catch (const device::Exception& err)
+        {
+           TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
+           return Core::ERROR_GENERAL;
+        }
+        return (Core::ERROR_NONE);
+    }
+
+
+    uint32_t SupportedHDCPVersion(HDCPProtectionType& value) const override //get
+    {
+
+        dsHdcpProtocolVersion_t hdcpProtocol = dsHDCP_VERSION_MAX;
+        try
+        {
+            std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
+            hdcpProtocol       = (dsHdcpProtocolVersion_t)vPort.getHDCPProtocol();
+            switch(static_cast<dsHdcpProtocolVersion_t>(hdcpProtocol))
+            {
+                case dsHDCP_VERSION_1X: value = IConnectionProperties::HDCPProtectionType::HDCP_1X; break;
+                case dsHDCP_VERSION_2X: value = IConnectionProperties::HDCPProtectionType::HDCP_2X; break;
+                case dsHDCP_VERSION_MAX: value = IConnectionProperties::HDCPProtectionType::HDCP_AUTO; break;
+            }
+            TRACE(Trace::Information, (_T("HDCPStatus Property: %s value = %d"), __func__, value));
+       }
+        catch (const device::Exception& err)
+        {
+           TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
+           return Core::ERROR_GENERAL;
+        }
+        return (Core::ERROR_NONE);
+    }
+
+    uint32_t DisplayHDCPVersion (HDCPProtectionType& value) const override //get
+    {
+        dsHdcpProtocolVersion_t hdcpDisplayProtocol = dsHDCP_VERSION_MAX;
+        try
+        {
+            std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
+            hdcpDisplayProtocol = (dsHdcpProtocolVersion_t)vPort.getHDCPReceiverProtocol();
+            dsHdcpStatus_t status = (dsHdcpStatus_t)vPort.getHDCPStatus();
+            bool isConnected = vPort.isDisplayConnected();
+            value = IConnectionProperties::HDCPProtectionType::HDCP_Unencrypted;
+            if (isConnected && (dsHDCP_STATUS_AUTHENTICATED == status)) {
+                switch(static_cast<dsHdcpProtocolVersion_t>(hdcpDisplayProtocol))
+                {
+                    case dsHDCP_VERSION_1X: value = IConnectionProperties::HDCPProtectionType::HDCP_1X; break;
+                    case dsHDCP_VERSION_2X: value = IConnectionProperties::HDCPProtectionType::HDCP_2X; break;
+                    case dsHDCP_VERSION_MAX: value = IConnectionProperties::HDCPProtectionType::HDCP_AUTO; break;
+                }
+           }
+           TRACE(Trace::Information, (_T("HDCPStatus Property: %s value = %d DisplayHDCPVersion. dsHdcpStatus_t = %d isConnected = %d"), __func__, value, status, isConnected));
+       }
+        catch (const device::Exception& err)
+        {
+           TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
+           return Core::ERROR_GENERAL;
+        }
+        return (Core::ERROR_NONE);
+    }
+
+    uint32_t CurrentHDCPVersion(HDCPProtectionType& value) const override //get
+    {
+        dsHdcpProtocolVersion_t hdcpCurrentProtocol = dsHDCP_VERSION_MAX;
+        try
+        {
+            std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+            device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
+            hdcpCurrentProtocol  = (dsHdcpProtocolVersion_t)vPort.getHDCPCurrentProtocol();
+            dsHdcpStatus_t status = (dsHdcpStatus_t)vPort.getHDCPStatus();
+            bool isConnected = vPort.isDisplayConnected();
+            value = IConnectionProperties::HDCPProtectionType::HDCP_Unencrypted;
+            if (isConnected && (dsHDCP_STATUS_AUTHENTICATED == status)) {
+                switch(static_cast<dsHdcpProtocolVersion_t>(hdcpCurrentProtocol))
+                {
+                    case dsHDCP_VERSION_1X: value = IConnectionProperties::HDCPProtectionType::HDCP_1X; break;
+                    case dsHDCP_VERSION_2X: value = IConnectionProperties::HDCPProtectionType::HDCP_2X; break;
+                    case dsHDCP_VERSION_MAX: value = IConnectionProperties::HDCPProtectionType::HDCP_AUTO; break;
+                }
+           }
+           TRACE(Trace::Information, (_T("HDCPStatus Property: %s value = %d CurrentHDCPVersion. dsHdcpStatus_t = %d isConnected = %d"), __func__, value, status, isConnected));
+       }
+        catch (const device::Exception& err)
+        {
+           TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
+           return Core::ERROR_GENERAL;
+        }
+        return (Core::ERROR_NONE);
+    }
+
+    void onHdmiOutputHDCPStatusEvent(int hdcpStatus)
+    {
+        TRACE(Trace::Information, (_T("HDCPStatus Received IARM_BUS_DSMGR_EVENT_HDCP_STATUS  event data:%d\r\n"), hdcpStatus));
+        sendEventNotifyImpl (IConnectionProperties::INotification::Source::HDCP_CHANGE);
+
+        return;
+    }
+
+    void onHdmiOutputHotPlug(int connectStatus)
+    {
+        TRACE(Trace::Information, (_T("HDCPStatus Received IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG  event data:%d \r\n"), connectStatus));
+        if (HDMI_HOT_PLUG_EVENT_CONNECTED == connectStatus)
+            TRACE(Trace::Error, (_T(" %s   Status : %d \n"),__FUNCTION__, connectStatus));
+
+        sendEventNotifyImpl (IConnectionProperties::INotification::Source::HDMI_CHANGE);
+   
+        return;
+    }
+
+    static void dsHdmiOutEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+    {
+        if(!DisplayInfoImplementation::_instance)
+            return;
+
+        if (IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG == eventId)
+        {
+            IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
+            int hdmi_hotplug_event = eventData->data.hdmi_hpd.event;
+
+            DisplayInfoImplementation::_instance->onHdmiOutputHotPlug(hdmi_hotplug_event);
+        }
+        else if (IARM_BUS_DSMGR_EVENT_HDCP_STATUS == eventId)
+        {
+            IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
+            int hdcpStatus = eventData->data.hdmi_hdcp.hdcpStatus;
+            DisplayInfoImplementation::_instance->onHdmiOutputHDCPStatusEvent(hdcpStatus);
+
+        }
+    }
 
     BEGIN_INTERFACE_MAP(DisplayInfoImplementation)
         INTERFACE_ENTRY(Exchange::IGraphicsProperties)
