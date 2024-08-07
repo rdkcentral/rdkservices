@@ -1853,6 +1853,11 @@ namespace WPEFramework {
             #ifdef RDKSHELL_IGNORE_PS_FLAG_ON_MBFTA
             }
             #endif
+            #elif USER_MODE_LAUNCH
+            std::cout << "Device in User mode\n";
+            std::cout << "Modifying persistent store entry to false\n";
+            uint32_t setStatus = setValue(mCurrentService, "FactoryTest", "FactoryMode", "false");
+            std::cout << "set status: " << setStatus << std::endl;
             #else
             RFC_ParamData_t macparam;
             bool macret = Utils::getRFCConfig("Device.DeviceInfo.X_COMCAST-COM_STB_MAC", macparam);
@@ -6879,6 +6884,11 @@ namespace WPEFramework {
             }
 	    #endif
             #endif
+            #elif USER_MODE_LAUNCH
+            std::cout << "Device in User mode\n";
+            std::cout << "Modifying persistent store entry to false\n";
+            uint32_t setStatus = setValue(mCurrentService, "FactoryTest", "FactoryMode", "false");
+            std::cout << "set status: " << setStatus << std::endl;
             #else
             RFC_ParamData_t param;
             bool ret = Utils::getRFCConfig("Device.DeviceInfo.X_COMCAST-COM_STB_MAC", param);
