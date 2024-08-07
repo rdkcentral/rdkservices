@@ -46,10 +46,6 @@ namespace Plugin {
     SharedStorage::SharedStorage()
         : PluginHost::JSONRPC()
         , _service(nullptr)
-        , _csEngine(Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create())
-        , _csCommunicatorClient(Core::ProxyType<RPC::CommunicatorClient>::Create(Core::NodeId("/tmp/communicator"), Core::ProxyType<Core::IIPCServer>(_csEngine)))
-        , _psController(nullptr)
-        , _csController(nullptr)
         , _psObject(nullptr)
         , _psCache(nullptr)
         , _psInspector(nullptr)
@@ -57,6 +53,7 @@ namespace Plugin {
         , _csObject(nullptr)
         , _storeNotification(*this)
         , m_PersistentStoreRef(nullptr)
+        , m_CloudStoreRef(nullptr)
     {
         RegisterAll();
     }
@@ -122,36 +119,33 @@ namespace Plugin {
         }
 
         // Establish communication with CloudStore
-        if (!_csCommunicatorClient.IsValid())
+        m_CloudStoreRef = service->QueryInterfaceByCallsign<PluginHost::IPlugin>("org.rdk.CloudStore");
+        if(nullptr != m_CloudStoreRef)
         {
-            TRACE(Trace::Error, (_T("%s Invalid _csCommunicatorClient"), __FUNCTION__));
-            message = _T("SharedStorage plugin could not be initialized.");
+            // Get interface for IStore2
+            _csObject = m_CloudStoreRef->QueryInterface<Exchange::IStore2>();
+            if (nullptr == _csObject)
+            {
+                message = _T("SharedStorage plugin could not be initialized.");
+                TRACE(Trace::Error, (_T("%s: Can't get CloudStore interface"), __FUNCTION__));
+                m_CloudStoreRef->Release();
+                m_CloudStoreRef = nullptr;
+            }
+            else
+            {
+                _csObject->Register(&_storeNotification);
+            }
         }
         else
         {
-            #if ((THUNDER_VERSION == 2) || ((THUNDER_VERSION == 4) && (THUNDER_VERSION_MINOR == 2)))
-                _csEngine->Announcements(_csCommunicatorClient->Announcement());
-            #endif
-            _csController = _csCommunicatorClient->Open<PluginHost::IShell>("org.rdk.CloudStore", ~0, 3000);
-            if (_csController)
-            {
-                _csObject = _csController->QueryInterface<Exchange::IStore2>();
-                if(_csObject)
-                {
-                    _csObject->Register(&_storeNotification);
-                }
-                else
-                {
-                    TRACE(Trace::Error, (_T("%s Connect fail to _csObject"), __FUNCTION__));
-                    message = _T("SharedStorage plugin could not be initialized.");
-                }
-            }
+            message = _T("SharedStorage plugin could not be initialized.");
+            TRACE(Trace::Error, (_T("%s: Can't get CloudStore interface"), __FUNCTION__));
         }
 
         if (message.length() != 0) {
             Deinitialize(service);
         }
-        SYSLOG(Logging::Shutdown, (string(_T("SharedStorage Initialize complete"))));
+        SYSLOG(Logging::Startup, (string(_T("SharedStorage Initialize complete"))));
         return message;
     }
 
@@ -166,16 +160,6 @@ namespace Plugin {
             m_PersistentStoreRef = nullptr;
         }
         // Disconnect from the interface
-        if (_psController)
-        {
-            _psController->Release();
-            _psController = nullptr;
-        }
-        if (_csController)
-        {
-            _csController->Release();
-            _csController = nullptr;
-        }
         if(_psObject)
         {
             _psObject->Unregister(&_storeNotification);
@@ -193,13 +177,10 @@ namespace Plugin {
             _psLimit = nullptr;
         }
         // Disconnect from the COM-RPC socket
-        if (_csCommunicatorClient.IsValid())
+        if (nullptr != m_CloudStoreRef)
         {
-            _csCommunicatorClient.Release();
-        }
-        if(_csEngine.IsValid())
-        {
-            _csEngine.Release();
+            m_CloudStoreRef->Release();
+            m_CloudStoreRef = nullptr;
         }
         if(_psCache)
         {

@@ -106,10 +106,6 @@ namespace Plugin {
 
     private:
         PluginHost::IShell* _service{};
-        Core::ProxyType<RPC::InvokeServerType<1, 0, 4>> _csEngine;
-        Core::ProxyType<RPC::CommunicatorClient> _csCommunicatorClient;
-        PluginHost::IShell *_psController;
-        PluginHost::IShell *_csController;
         Exchange::IStore2* _psObject;
         Exchange::IStoreCache* _psCache;
         Exchange::IStoreInspector* _psInspector;
@@ -117,6 +113,7 @@ namespace Plugin {
         Exchange::IStore2* _csObject;
         Core::Sink<Store2Notification> _storeNotification;
         PluginHost::IPlugin *m_PersistentStoreRef;
+        PluginHost::IPlugin *m_CloudStoreRef;
     };
 
 } // namespace Plugin
