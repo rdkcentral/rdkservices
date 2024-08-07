@@ -19,7 +19,7 @@
 
 #pragma once
 #ifndef MODULE_NAME
-#define MODULE_NAME Plugin_SecureStore
+#define MODULE_NAME Plugin_SharedStorage
 #endif
 
 #include <plugins/plugins.h>
@@ -28,14 +28,6 @@
 #else
 #include <interfaces/definitions.h>
 #endif
-
-#define URI_ENV "SECURESTORE_URI"
-#define PATH_ENV "SECURESTORE_PATH"
-#define MAXSIZE_ENV "SECURESTORE_MAXSIZE"
-#define MAXVALUE_ENV "SECURESTORE_MAXVALUE"
-#define LIMIT_ENV "SECURESTORE_LIMIT"
-#define IARM_INIT_NAME "Thunder_Plugins"
-#define URI_RFC "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.CloudStore.Uri"
 
 #undef EXTERNAL
 #define EXTERNAL

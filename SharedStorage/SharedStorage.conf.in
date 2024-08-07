@@ -1,0 +1,4 @@
+autostart = "@PLUGIN_SHAREDSTORAGE_AUTOSTART@"
+precondition = ["Platform"]
+callsign = "org.rdk.SharedStorage"
+startuporder = "@PLUGIN_SHAREDSTORAGE_STARTUPORDER@"
