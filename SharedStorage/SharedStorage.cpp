@@ -46,8 +46,6 @@ namespace Plugin {
     SharedStorage::SharedStorage()
         : PluginHost::JSONRPC()
         , _service(nullptr)
-        , _psEngine(Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create())
-        , _psCommunicatorClient(Core::ProxyType<RPC::CommunicatorClient>::Create(Core::NodeId("/tmp/communicator"), Core::ProxyType<Core::IIPCServer>(_psEngine)))
         , _csEngine(Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create())
         , _csCommunicatorClient(Core::ProxyType<RPC::CommunicatorClient>::Create(Core::NodeId("/tmp/communicator"), Core::ProxyType<Core::IIPCServer>(_csEngine)))
         , _psController(nullptr)
@@ -58,6 +56,7 @@ namespace Plugin {
         , _psLimit(nullptr)
         , _csObject(nullptr)
         , _storeNotification(*this)
+        , m_PersistentStoreRef(nullptr)
     {
         RegisterAll();
     }
@@ -93,55 +92,33 @@ namespace Plugin {
         _service = service;
         _service->AddRef();
 
-        if (!_psCommunicatorClient.IsValid())
+        m_PersistentStoreRef = service->QueryInterfaceByCallsign<PluginHost::IPlugin>("org.rdk.PersistentStore");
+        if(nullptr != m_PersistentStoreRef)
         {
-            TRACE(Trace::Error, (_T("%s Invalid _psCommunicatorClient"), __FUNCTION__));
-            message = _T("SharedStorage plugin could not be initialized.");
+            // Get interface for IStore2
+            _psObject = m_PersistentStoreRef->QueryInterface<Exchange::IStore2>();
+            // Get interface for IStoreInspector
+            _psInspector = m_PersistentStoreRef->QueryInterface<Exchange::IStoreInspector>();
+            // Get interface for IStoreLimit
+            _psLimit = m_PersistentStoreRef->QueryInterface<Exchange::IStoreLimit>();
+            // Get interface for IStoreCache
+            _psCache = m_PersistentStoreRef->QueryInterface<Exchange::IStoreCache>();
+            if ( (nullptr == _psObject) || (nullptr == _psInspector) || (nullptr == _psLimit) || (nullptr == _psCache) )
+            {
+                message = _T("SharedStorage plugin could not be initialized.");
+                TRACE(Trace::Error, (_T("%s: Can't get PersistentStore interface"), __FUNCTION__));
+                m_PersistentStoreRef->Release();
+                m_PersistentStoreRef = nullptr;
+            }
+            else
+            {
+                _psObject->Register(&_storeNotification);
+            }
         }
         else
         {
-            #if ((THUNDER_VERSION == 2) || ((THUNDER_VERSION == 4) && (THUNDER_VERSION_MINOR == 2)))
-                _psEngine->Announcements(_psCommunicatorClient->Announcement());
-            #endif
-            _psController = _psCommunicatorClient->Open<PluginHost::IShell>("org.rdk.PersistentStore", ~0, 3000);
-            if (_psController)
-            {
-                // Get interface for IStore2
-                _psObject = _psController->QueryInterface<Exchange::IStore2>();
-                if(_psObject)
-                {
-                    _psObject->Register(&_storeNotification);
-                }
-                else
-                {
-                    TRACE(Trace::Error, (_T("%s Connect fail to _psObject"), __FUNCTION__));
-                    message = _T("SharedStorage plugin could not be initialized.");
-                }
-
-                // Get interface for IStoreInspector
-                _psInspector = _psController->QueryInterface<Exchange::IStoreInspector>();
-                if(!_psInspector)
-                {
-                    TRACE(Trace::Error, (_T("%s Connect fail to _psInspector"), __FUNCTION__));
-                    message = _T("SharedStorage plugin could not be initialized.");
-                }
-
-                // Get interface for IStoreLimit
-                _psLimit = _psController->QueryInterface<Exchange::IStoreLimit>();
-                if(!_psLimit)
-                {
-                    TRACE(Trace::Error, (_T("%s Connect fail to _psLimit"), __FUNCTION__));
-                    message = _T("SharedStorage plugin could not be initialized.");
-                }
-
-                // Get interface for IStoreCache
-                _psCache = _psController->QueryInterface<Exchange::IStoreCache>();
-                if(!_psCache)
-                {
-                    TRACE(Trace::Error, (_T("%s Connect fail to _psCache"), __FUNCTION__));
-                    message = _T("SharedStorage plugin could not be initialized.");
-                }
-            }
+            message = _T("SharedStorage plugin could not be initialized.");
+            TRACE(Trace::Error, (_T("%s: Can't get PersistentStore interface"), __FUNCTION__));
         }
 
         // Establish communication with CloudStore
@@ -183,7 +160,12 @@ namespace Plugin {
         ASSERT(_service == service);
         SYSLOG(Logging::Shutdown, (string(_T("SharedStorage::Deinitialize"))));
 
-        // Disconnect from the COM-RPC socket
+        if (nullptr != m_PersistentStoreRef)
+        {
+            m_PersistentStoreRef->Release();
+            m_PersistentStoreRef = nullptr;
+        }
+        // Disconnect from the interface
         if (_psController)
         {
             _psController->Release();
@@ -194,29 +176,23 @@ namespace Plugin {
             _csController->Release();
             _csController = nullptr;
         }
-        _psCommunicatorClient->Close(RPC::CommunicationTimeOut);
-        if (_psCommunicatorClient.IsValid())
-        {
-            _psCommunicatorClient.Release();
-        }
-        if(_psEngine.IsValid())
-        {
-            _psEngine.Release();
-        }
         if(_psObject)
         {
             _psObject->Unregister(&_storeNotification);
             _psObject->Release();
+            _psObject = nullptr;
         }
         if(_psInspector)
         {
             _psInspector->Release();
+            _psInspector = nullptr;
         }
         if(_psLimit)
         {
             _psLimit->Release();
+            _psLimit = nullptr;
         }
-        _csCommunicatorClient->Close(RPC::CommunicationTimeOut);
+        // Disconnect from the COM-RPC socket
         if (_csCommunicatorClient.IsValid())
         {
             _csCommunicatorClient.Release();
@@ -228,11 +204,13 @@ namespace Plugin {
         if(_psCache)
         {
             _psCache->Release();
+            _psCache = nullptr;
         }
         if(_csObject)
         {
             _csObject->Unregister(&_storeNotification);
             _csObject->Release();
+            _csObject = nullptr;
         }
 
         _service->Release();

@@ -45,6 +45,7 @@ namespace Plugin {
         public:
             void ValueChanged(const Exchange::IStore2::ScopeType scope, const string& ns, const string& key, const string& value) override
             {
+                LOGINFO("ValueChanged");
                 TRACE(Trace::Information, (_T("ValueChanged event")));
                 JsonData::PersistentStore::SetValueParamsData params;
                 params.Scope = JsonData::PersistentStore::ScopeType(scope);
@@ -105,8 +106,6 @@ namespace Plugin {
 
     private:
         PluginHost::IShell* _service{};
-        Core::ProxyType<RPC::InvokeServerType<1, 0, 4>> _psEngine;
-        Core::ProxyType<RPC::CommunicatorClient> _psCommunicatorClient;
         Core::ProxyType<RPC::InvokeServerType<1, 0, 4>> _csEngine;
         Core::ProxyType<RPC::CommunicatorClient> _csCommunicatorClient;
         PluginHost::IShell *_psController;
@@ -117,7 +116,7 @@ namespace Plugin {
         Exchange::IStoreLimit* _psLimit;
         Exchange::IStore2* _csObject;
         Core::Sink<Store2Notification> _storeNotification;
-        std::mutex storeObjMutex;
+        PluginHost::IPlugin *m_PersistentStoreRef;
     };
 
 } // namespace Plugin
