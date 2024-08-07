@@ -2167,6 +2167,7 @@ namespace WPEFramework {
         rialtoConnector = std::shared_ptr<RialtoConnector>(rialtoBridge);
 #endif //  ENABLE_RIALTO_FEATURE
             sem_wait(&gInitializeSemaphore);
+	    std::cout << " leaving initialize\n" ;
             return "";
         }
 
@@ -4098,7 +4099,8 @@ namespace WPEFramework {
         uint32_t RDKShell::launchWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
-
+	    std::cout << "launchwrapper APi disabling eastereggs\n" ;
+	    mEnableEasterEggs = false ;
             double launchStartTime = RdkShell::seconds();
             bool result = true;
 	    bool autoDestroy = true;
@@ -4131,6 +4133,7 @@ namespace WPEFramework {
                     const string appCallsign = parameters["callsign"].String();
                     std::cout << "launch is in progress.  not able to launch another app: " << appCallsign << std::endl;
                     response["message"] = "failed to launch application.  another launch is in progress";
+		    mEnableEasterEggs = true ;
                     returnResponse(false);
                 }
             }*/
@@ -4139,6 +4142,7 @@ namespace WPEFramework {
                 appCallsign = parameters["callsign"].String();
                 if (appCallsign.compare("SearchAndDiscovery") == 0)
                 {
+		    std::cout << "plui launch is starting \n" ;
                     LOG_MILESTONE("PLUI_LAUNCH_START");
                 }
                 bool isApplicationBeingDestroyed = false;
@@ -4158,6 +4162,8 @@ namespace WPEFramework {
                     gLaunchCount = 0;
                     gLaunchMutex.unlock();
                     response["message"] = "failed to launch application due to active destroy request";
+		    std::cout << "Enabling EasterEggs\n" ;
+		    mEnableEasterEggs = true ;
                     returnResponse(false);
                 }
                 RDKShellLaunchType launchType = RDKShellLaunchType::UNKNOWN;
@@ -4346,6 +4352,7 @@ namespace WPEFramework {
                     gLaunchApplications.erase(appCallsign);
 		    gLaunchDestroyMutex.unlock();
                     std::cout << "new launch count loc1: 0\n";
+		    mEnableEasterEggs = true ;
                     returnResponse(false);
                 }
                 else if (!newPluginFound)
@@ -4901,7 +4908,7 @@ namespace WPEFramework {
             gLaunchApplications.erase(appCallsign);
 	    gLaunchDestroyMutex.unlock();
             std::cout << "new launch count at loc2 is 0\n";
-
+	    mEnableEasterEggs = true ;
             returnResponse(result);
         }
 
@@ -5911,6 +5918,8 @@ namespace WPEFramework {
         uint32_t RDKShell::launchResidentAppWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
+	    std::cout << "Launching resident APP Wrapper and disabling easter eggs\n" ;
+	    mEnableEasterEggs = false ;
             std::string factoryAppCallsign("factoryapp");
             bool isFactoryAppRunning = false;
             gPluginDataMutex.lock();
@@ -5924,6 +5933,7 @@ namespace WPEFramework {
             if (!isFactoryAppRunning)
             {
                 std::cout << "nothing to do since factory app is not running\n";
+		mEnableEasterEggs = true ;
                 returnResponse(true);
             }
             else
@@ -5941,6 +5951,7 @@ namespace WPEFramework {
                     {
                         std::cout << "do not exit the factory app\n";
                         response["message"] = " aging is true, do not exit the factory app";
+			mEnableEasterEggs = true ;
                         returnResponse(false);
                     }
                 }
@@ -5960,6 +5971,7 @@ namespace WPEFramework {
                     {
                         std::cout << "factory exit flag is false.  not allowing the exit of the factory app\n";
                         response["message"] = "factory exit flag is false";
+			mEnableEasterEggs = true ;
                         returnResponse(false);
                     }
                     else
@@ -5971,6 +5983,7 @@ namespace WPEFramework {
                 {
                     std::cout << "factory exit flag not found.  not allowing the exit of the factory app\n";
                     response["message"] = "factory exit flag not found";
+		    mEnableEasterEggs = true;
                     returnResponse(false);
                 }
             }
@@ -6066,6 +6079,8 @@ namespace WPEFramework {
             uint32_t setStatus = setValue(mCurrentService, "FactoryTest", "FactoryMode", "false");
             std::cout << "set status: " << setStatus << std::endl;
             sForceResidentAppLaunch = false;
+	    std::cout<< " Enabling Easter Egg and leaving residentapplauncher\n" ;
+	    mEnableEasterEggs = true ;
             returnResponse(ret);
         }
 
@@ -6073,6 +6088,8 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
             bool ret = true;
+	    std::cout << "Toggle UI and Disabling easter eggs\n" ;
+	    mEnableEasterEggs = false;
             std::string callsign("factoryapp");
             bool isFactoryAppRunning = false;
             std::map<std::string, PluginData>::iterator pluginsEntry = gActivePluginsData.find(callsign);
@@ -6084,14 +6101,20 @@ namespace WPEFramework {
             if (isFactoryAppRunning)
             {
                 sForceResidentAppLaunch = true;
+		std::cout << "factoryapp running launching resident\n" ;
+		//mEnableEasterEggs = true ;
                 launchResidentAppWrapper(parameters, response);
                 sForceResidentAppLaunch = false;
             }
             else
             {
+		std::cout << "launching factoryapp and enabling easter eggs \n" ;
+		//mEnableEasterEggs = true ;
                 launchFactoryAppWrapper(parameters, response);
             }
             ret = response.HasLabel("success")?response["success"].Boolean():false;
+	    std::cout<<"sending Back response and enabling eastereggs" << std::endl;
+	    mEnableEasterEggs = true ;
             returnResponse(ret);
         }
 
