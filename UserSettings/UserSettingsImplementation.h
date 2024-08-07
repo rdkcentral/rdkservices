@@ -149,6 +149,8 @@ namespace Plugin {
 
         void registerEventHandlers();
         void ValueChanged(const Exchange::IStore2::ScopeType scope, const string& ns, const string& key, const string& value);
+        uint32_t SetUserSettingsValue(const string& key, const string& value);
+        uint32_t GetUserSettingsValue(const string& key, string &value) const;
 
     private:
         mutable Core::CriticalSection _adminLock;
