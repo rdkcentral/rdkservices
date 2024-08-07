@@ -1809,6 +1809,7 @@ namespace WPEFramework {
         {
             std::cout << "initializing\n";
 	    mEnableEasterEggs =  false ;
+	    std::cout << "disbaled eastereggs at initialize \n " ;
             char* waylandDisplay = getenv("WAYLAND_DISPLAY");
             if (NULL != waylandDisplay)
             {
@@ -2168,6 +2169,8 @@ namespace WPEFramework {
         rialtoConnector = std::shared_ptr<RialtoConnector>(rialtoBridge);
 #endif //  ENABLE_RIALTO_FEATURE
             sem_wait(&gInitializeSemaphore);
+	    std::cout << " leaving initialize and enabling back easter eggs \n" ;
+	    mEnableEasterEggs = true ;
             return "";
         }
 
@@ -4142,6 +4145,7 @@ namespace WPEFramework {
                 appCallsign = parameters["callsign"].String();
                 if (appCallsign.compare("SearchAndDiscovery") == 0)
                 {
+		    std::cout << "plui launch is starting \n" ;
                     LOG_MILESTONE("PLUI_LAUNCH_START");
                 }
                 bool isApplicationBeingDestroyed = false;
@@ -6078,7 +6082,7 @@ namespace WPEFramework {
             uint32_t setStatus = setValue(mCurrentService, "FactoryTest", "FactoryMode", "false");
             std::cout << "set status: " << setStatus << std::endl;
             sForceResidentAppLaunch = false;
-	    std::cout<< " Enabling Easter Egg\n" ;
+	    std::cout<< " Enabling Easter Egg and leaving residentapplauncher\n" ;
 	    mEnableEasterEggs = true ;
             returnResponse(ret);
         }
@@ -6101,14 +6105,14 @@ namespace WPEFramework {
             {
                 sForceResidentAppLaunch = true;
 		std::cout << "factoryapp running launching resident\n" ;
-		mEnableEasterEggs = true ;
+		//mEnableEasterEggs = true ;
                 launchResidentAppWrapper(parameters, response);
                 sForceResidentAppLaunch = false;
             }
             else
             {
 		std::cout << "launching factoryapp and enabling easter eggs \n" ;
-		mEnableEasterEggs = true ;
+		//mEnableEasterEggs = true ;
                 launchFactoryAppWrapper(parameters, response);
             }
             ret = response.HasLabel("success")?response["success"].Boolean():false;
