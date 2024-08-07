@@ -1808,8 +1808,6 @@ namespace WPEFramework {
         const string RDKShell::Initialize(PluginHost::IShell* service )
         {
             std::cout << "initializing\n";
-	    mEnableEasterEggs =  false ;
-	    std::cout << "disbaled eastereggs at initialize \n " ;
             char* waylandDisplay = getenv("WAYLAND_DISPLAY");
             if (NULL != waylandDisplay)
             {
@@ -2169,8 +2167,7 @@ namespace WPEFramework {
         rialtoConnector = std::shared_ptr<RialtoConnector>(rialtoBridge);
 #endif //  ENABLE_RIALTO_FEATURE
             sem_wait(&gInitializeSemaphore);
-	    std::cout << " leaving initialize and enabling back easter eggs \n" ;
-	    mEnableEasterEggs = true ;
+	    std::cout << " leaving initialize\n" ;
             return "";
         }
 
