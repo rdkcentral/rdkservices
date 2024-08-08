@@ -334,6 +334,9 @@ namespace WPEFramework {
         static IARM_Result_t _SysModeChange(void *arg);
         static void _systemStateChanged(const char *owner,
                 IARM_EventId_t eventId, void *data, size_t len);
+        static void _deviceMgtUpdateReceived(const char *owner,
+                IARM_EventId_t eventId, void *data, size_t len);
+        static void  postdeviceMgtUpdatetoApp(std::string source,std::string type,bool success);
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
         SERVICE_REGISTRATION(SystemServices, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
@@ -571,6 +574,7 @@ namespace WPEFramework {
                 IARM_Result_t res;
                 IARM_CHECK( IARM_Bus_RegisterCall(IARM_BUS_COMMON_API_SysModeChange, _SysModeChange));
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE, _systemStateChanged));
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_DEVICE_UPDATE_RECEIVED, _deviceMgtUpdateReceived));
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, _powerEventHandler));
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_REBOOTING, _powerEventHandler));
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_NETWORK_STANDBYMODECHANGED, _powerEventHandler));
@@ -595,6 +599,7 @@ namespace WPEFramework {
             {
                 IARM_Result_t res;
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE, _systemStateChanged));
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_DEVICE_UPDATE_RECEIVED, _deviceMgtUpdateReceived));
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, _powerEventHandler));
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_REBOOTING, _powerEventHandler));
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_NETWORK_STANDBYMODECHANGED,_powerEventHandler ));
@@ -4231,6 +4236,28 @@ namespace WPEFramework {
         }
 
         /***
+         * @brief : To receive RFC device updates event from IARM.
+         * @param1[in]  : owner of the event
+         * @param2[in]  : eventID of the event
+         * @param3[in]  : data passed from the IARMBUS event
+         * @param4[in]  : len
+         */
+        void _deviceMgtUpdateReceived(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+        {
+            bool issuccess = true;
+            std::string sourcename = "rfc";
+            std::string typevalue = "initial";
+
+            if (!strcmp(IARM_BUS_SYSMGR_NAME, owner)) {
+                if (IARM_BUS_SYSMGR_EVENT_DEVICE_UPDATE_RECEIVED  == eventId) {
+                    LOGWARN("IARM_BUS_SYSMGR_EVENT_DEVICE_UPDATE_RECEIVED event received\n");
+                    LOGWARN("_deviceMgtUpdateReceived: postdeviceMgtUpdatetoApp with sourcename:%s, typevalue:%s, issuccess:%d\n", sourcename.c_str(),typevalue.c_str(),issuccess);
+                    postdeviceMgtUpdatetoApp(sourcename,typevalue,issuccess);
+                }
+            }
+        }
+	
+        /***
          * @brief : To receive Firmware Update State Change events from IARM.
          * @param1[in]  : owner of the event
          * @param2[in]  : eventID of the event
@@ -4329,7 +4356,6 @@ namespace WPEFramework {
                 }
             }
         }
-
         /***
          * @brief : To validate the parameters in event data send from the IARMBUS, so as
          *		   to initiate  onTemperatureThresholdChanged event.
@@ -4425,6 +4451,25 @@ namespace WPEFramework {
             sendNotify(EVT_ONREBOOTREQUEST, params);
         }
 
+       /***
+         * @brief : called when RFC settings update is received
+         * @param1[in]  : string source
+         * @param1[in]  : string type
+         * @param1[in]  : bool success
+         * @param2[out] : {param:{"source":<string>, "type":<string>, "success":<bool>}}
+         */
+        void SystemServices::postdeviceMgtUpdatetoApp(string source,
+                string type, bool success)
+        {
+            JsonObject params;
+            params["source"] = source;
+            params["type"] = type;
+            params["success"] = success;
+            LOGWARN("postdeviceMgtUpdatetoApp: source = %s type = %d success = %d\n",
+                    source.c_str(), type.c_str(), success);
+            sendNotify(EVT_ONDEVICEMGTUPDATERECEIVED, params);
+        }
+	
         uint32_t SystemServices::getLastFirmwareFailureReason(const JsonObject& parameters, JsonObject& response)
         {
             bool retStatus = true;
