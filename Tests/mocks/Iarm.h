@@ -492,6 +492,7 @@ typedef enum _SYSMgr_EventId_t {
     IARM_BUS_SYSMGR_EVENT_KEYCODE_LOGGING_CHANGED, /*!< Key Code logging status update */
     IARM_BUS_SYSMGR_EVENT_USB_MOUNT_CHANGED, /*!< Fires when USB mounts change */
     IARM_BUS_SYSMGR_EVENT_APP_RELEASE_FOCUS, /*!< Application fires event to release focus*/
+    IARM_BUS_SYSMGR_EVENT_DEVICE_UPDATE_RECEIVED, /*!< Received RFC Device update*/
     IARM_BUS_SYSMGR_EVENT_MAX /*!< Max Event Id */
 } IARM_Bus_SYSMgr_EventId_t;
 
