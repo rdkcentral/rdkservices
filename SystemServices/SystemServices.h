@@ -69,6 +69,7 @@ using std::ofstream;
 #define EVT_ONTIMEZONEDSTCHANGED          "onTimeZoneDSTChanged"
 #define EVT_FRIENDLYNAMECHANGED           "onFriendlyNameChanged"
 #define EVT_ONLOGUPLOAD                   "onLogUpload"
+#define EVT_ONDEVICEMGTUPDATERECEIVED     "onDeviceMgtUpdateReceived"
 #define TERRITORYFILE                     "/opt/secure/persistent/System/Territory.txt"
 
 
@@ -203,6 +204,7 @@ namespace WPEFramework {
                 void onFirmwarePendingReboot(int seconds); /* Event handler for Pending Reboot */
 		void onTerritoryChanged(string oldTerritory, string newTerritory, string oldRegion="", string newRegion="");
 		void onTimeZoneDSTChanged(string oldTimeZone, string newTimeZone, string oldAccuracy, string newAccuracy);
+		void onDeviceMgtUpdateReceived(std::string source,std::string type,bool success);
                 /* Events : End */
 
                 /* Methods : Begin */
