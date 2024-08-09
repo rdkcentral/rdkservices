@@ -85,6 +85,7 @@ private:
     uint32_t getSupportedGameFeatures(const JsonObject& parameters, JsonObject& response);
     uint32_t getGameFeatureStatusWrapper(const JsonObject& parameters, JsonObject& response);
     uint32_t setMixerLevels(const JsonObject& parameters, JsonObject& response);
+    uint32_t getHdmiVersionWrapper(const JsonObject& parameters, JsonObject& response);
     //End methods
 
     JsonArray getInputDevices(int iType);
