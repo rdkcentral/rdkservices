@@ -4457,12 +4457,12 @@ namespace WPEFramework {
        */
        void SystemServices::onDeviceMgtUpdateReceived(IARM_BUS_SYSMGR_DeviceMgtUpdateInfo_Param_t *config)
        {
-           JsonObject params;
-           params["source"] = config->source;
-           params["type"] = config->type;
-           params["success"] = config->rfcComplete;
-           LOGWARN("onDeviceMgtUpdateReceived: source = %s type = %s success = %d\n", config->source.c_str(), config->type.c_str(), config->rfcComplete);
-           sendNotify(EVT_ONDEVICEMGTUPDATERECEIVED, params);
+               JsonObject params;
+               params["source"] = std::string(config->source);
+               params["type"] = std::string(config->type);
+               params["success"] = config->rfcComplete;
+               LOGWARN("onDeviceMgtUpdateReceived: source = %s type = %s success = %d\n", config->source, config->type, config->rfcComplete);
+               sendNotify(EVT_ONDEVICEMGTUPDATERECEIVED, params);
        }
 
         uint32_t SystemServices::getLastFirmwareFailureReason(const JsonObject& parameters, JsonObject& response)
