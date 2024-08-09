@@ -26,7 +26,6 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/syscall.h>
-#include "Module.h"
 
 namespace NetworkManagerLogger {
 /**
