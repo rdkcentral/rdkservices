@@ -7,7 +7,7 @@
 #include <NetworkManager.h>
 #include <libnm/NetworkManager.h>
 #include "Module.h"
-#include "NetworkManagerGnomeEvents.h"
+
 #include "NetworkManagerLogger.h"
 #include "NetworkManagerGnomeUtils.h"
 #include "NetworkManagerImplementation.h"
@@ -65,43 +65,101 @@ namespace WPEFramework
             return security;
        }
 
-        /* Convert flags to string */
-        void nmUtils::apFlagsToString(guint32 flags, std::string &flagStr)
+        std::string nmUtils::getSecurityModeString(guint32 flags, guint32 wpaFlags, guint32 rsnFlags)
         {
+            switch(flags)
+            {
+                case NM_802_11_AP_FLAGS_NONE:
+                    NMLOG_TRACE("ap type : point has no special capabilities");
+                    break;
+                case NM_802_11_AP_FLAGS_PRIVACY:
+                    NMLOG_TRACE("ap type : access point requires authentication and encryption");
+                    break;
+                case NM_802_11_AP_FLAGS_WPS:
+                    NMLOG_TRACE("ap type : access point supports some WPS method");
+                    break;
+                case NM_802_11_AP_FLAGS_WPS_PBC:
+                    NMLOG_TRACE("ap type : access point supports push-button WPS");
+                    break;
+                case NM_802_11_AP_FLAGS_WPS_PIN:
+                    NMLOG_TRACE("ap type : access point supports PIN-based WPS");
+                    break;
+                default:
+                    NMLOG_ERROR("ap type : 802.11 flags unknown!");
+            }
 
-            flagStr = "";
+            std::string securityStr;
 
-            if (flags & NM_802_11_AP_SEC_PAIR_WEP40)
-                flagStr += "pair_wpe40 ";
-            if (flags & NM_802_11_AP_SEC_PAIR_WEP104)
-                flagStr += "pair_wpe104 ";
-            if (flags & NM_802_11_AP_SEC_PAIR_TKIP)
-                flagStr += "pair_tkip ";
-            if (flags & NM_802_11_AP_SEC_PAIR_CCMP)
-                flagStr += "pair_ccmp ";
-            if (flags & NM_802_11_AP_SEC_GROUP_WEP40)
-                flagStr += "group_wpe40 ";
-            if (flags & NM_802_11_AP_SEC_GROUP_WEP104)
-                flagStr += "group_wpe104 ";
-            if (flags & NM_802_11_AP_SEC_GROUP_TKIP)
-                flagStr += "group_tkip ";
-            if (flags & NM_802_11_AP_SEC_GROUP_CCMP)
-                flagStr += "group_ccmp ";
-            if (flags & NM_802_11_AP_SEC_KEY_MGMT_PSK)
-                flagStr += "psk ";
-            if (flags & NM_802_11_AP_SEC_KEY_MGMT_802_1X)
-            flagStr += "802.1X ";
-            if (flags & NM_802_11_AP_SEC_KEY_MGMT_SAE)
-            flagStr += "sae ";
-            if (flags & NM_802_11_AP_SEC_KEY_MGMT_OWE)
-                flagStr += "owe " ;
-            if (flags & NM_802_11_AP_SEC_KEY_MGMT_OWE_TM)
-                flagStr += "owe_transition_mode ";
-            if (flags & NM_802_11_AP_SEC_KEY_MGMT_EAP_SUITE_B_192)
-                flagStr += "wpa-eap-suite-b-192 ";
+            if (!(flags & NM_802_11_AP_FLAGS_PRIVACY) && (wpaFlags != NM_802_11_AP_SEC_NONE) && (rsnFlags != NM_802_11_AP_SEC_NONE))
+                securityStr += ("Encrypted: ");
 
-            if (flagStr.size() <= 0)
-                flagStr = "none";
+            if ((flags & NM_802_11_AP_FLAGS_PRIVACY) && (wpaFlags == NM_802_11_AP_SEC_NONE)
+                && (rsnFlags == NM_802_11_AP_SEC_NONE))
+                securityStr += ("WEP ");
+            if (wpaFlags != NM_802_11_AP_SEC_NONE)
+                securityStr += ("WPA ");
+            if ((rsnFlags & NM_802_11_AP_SEC_KEY_MGMT_PSK)
+                || (rsnFlags & NM_802_11_AP_SEC_KEY_MGMT_802_1X)) {
+                securityStr += ("WPA2 ");
+            }
+            if (rsnFlags & NM_802_11_AP_SEC_KEY_MGMT_SAE) {
+                securityStr += ("WPA3 ");
+            }
+            if ((rsnFlags & NM_802_11_AP_SEC_KEY_MGMT_OWE)
+                || (rsnFlags & NM_802_11_AP_SEC_KEY_MGMT_OWE_TM)) {
+                securityStr += ("OWE ");
+            }
+            if ((wpaFlags & NM_802_11_AP_SEC_KEY_MGMT_802_1X)
+                || (rsnFlags & NM_802_11_AP_SEC_KEY_MGMT_802_1X)) {
+                securityStr += ("802.1X ");
+            }
+
+            if (securityStr.empty())
+            {
+                securityStr = "None";
+                return securityStr;
+            }
+
+            uint32_t flags[2] = { wpaFlags, rsnFlags };
+            securityStr += "[ WPA Flags: ";
+            
+            for (int i = 0; i < 2; ++i)
+            {
+                if (flags[i] & NM_802_11_AP_SEC_PAIR_WEP40)
+                    securityStr += "pair_wep40 ";
+                if (flags[i] & NM_802_11_AP_SEC_PAIR_WEP104)
+                    securityStr += "pair_wep104 ";
+                if (flags[i] & NM_802_11_AP_SEC_PAIR_TKIP)
+                    securityStr += "pair_tkip ";
+                if (flags[i] & NM_802_11_AP_SEC_PAIR_CCMP)
+                    securityStr += "pair_ccmp ";
+                if (flags[i] & NM_802_11_AP_SEC_GROUP_WEP40)
+                    securityStr += "group_wep40 ";
+                if (flags[i] & NM_802_11_AP_SEC_GROUP_WEP104)
+                    securityStr += "group_wep104 ";
+                if (flags[i] & NM_802_11_AP_SEC_GROUP_TKIP)
+                    securityStr += "group_tkip ";
+                if (flags[i] & NM_802_11_AP_SEC_GROUP_CCMP)
+                    securityStr += "group_ccmp ";
+                if (flags[i] & NM_802_11_AP_SEC_KEY_MGMT_PSK)
+                    securityStr += "psk ";
+                if (flags[i] & NM_802_11_AP_SEC_KEY_MGMT_802_1X)
+                    securityStr += "802.1X ";
+                if (flags[i] & NM_802_11_AP_SEC_KEY_MGMT_SAE)
+                    securityStr += "sae ";
+                if (flags[i] & NM_802_11_AP_SEC_KEY_MGMT_OWE)
+                    securityStr += "owe ";
+                if (flags[i] & NM_802_11_AP_SEC_KEY_MGMT_OWE_TM)
+                    securityStr += "owe_transition_mode ";
+                if (flags[i] & NM_802_11_AP_SEC_KEY_MGMT_EAP_SUITE_B_192)
+                    securityStr += "wpa-eap-suite-b-192 ";
+                
+                if (i == 0) {
+                    securityStr += "] [ RSN Flags: ";
+                }
+            }
+            securityStr +="]";
+            return securityStr;
         }
 
        std::string nmUtils::wifiFrequencyFromAp(guint32 apFreq)
@@ -154,50 +212,6 @@ namespace WPEFramework
 
             return ssidObj;
        }
-
-        static void wifiScanCb(GObject *object, GAsyncResult *result, gpointer user_data)
-        {
-            GError *error = NULL;
-            if(nm_device_wifi_request_scan_finish(NM_DEVICE_WIFI(object), result, &error)) {
-                //nmUtils::printActiveSSIDsOnly(NM_DEVICE_WIFI(object));
-            }
-            else
-            {
-                NMLOG_ERROR("Scanning Failed");
-            }
-            if (error) {
-                NMLOG_ERROR("Scanning Failed Error: %s.", error->message);
-                g_error_free(error);
-            }
-        }
-
-        void nmUtils::startWifiScanning(NMDevice *wifiDevice, std::string ssidReq)
-        {
-            if(!NM_IS_DEVICE_WIFI(wifiDevice))
-            {
-                NMLOG_ERROR("Not a wifi object ");
-                return;
-            }
-            NMLOG_INFO("staring wifi scanning .. %s", ssidReq.c_str());
-            if(!ssidReq.empty())
-            {
-                GVariantBuilder builder, array_builder;
-                GVariant *options;
-                g_variant_builder_init(&builder, G_VARIANT_TYPE_VARDICT);
-                g_variant_builder_init(&array_builder, G_VARIANT_TYPE("aay"));
-                g_variant_builder_add(&array_builder, "@ay",
-                                    g_variant_new_fixed_array(G_VARIANT_TYPE_BYTE, (const guint8 *) ssidReq.c_str(), ssidReq.length(), 1)
-                                    );
-                g_variant_builder_add(&builder, "{sv}", "ssids", g_variant_builder_end(&array_builder));
-                g_variant_builder_add(&builder, "{sv}", "hidden", g_variant_new_boolean(TRUE));
-                options = g_variant_builder_end(&builder);
-                nm_device_wifi_request_scan_options_async(NM_DEVICE_WIFI(wifiDevice), options, NULL, wifiScanCb, NULL);
-            }
-            else {
-                NMLOG_INFO("staring normal wifi scanning");
-                nm_device_wifi_request_scan_async(NM_DEVICE_WIFI(wifiDevice), NULL, wifiScanCb, NULL);
-            }
-        }
 
         void nmUtils::printActiveSSIDsOnly(NMDeviceWifi *wifiDevice)
         {

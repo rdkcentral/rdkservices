@@ -103,7 +103,7 @@ namespace WPEFramework
             monitorThread = std::thread(&WiFiSignalStrengthMonitor::monitorThreadFunction, this, interval);
             monitorThread.detach();
             std::thread::id threadId = monitorThread.get_id();
-            NMLOG_INFO("Thread started with interval: %d seconds. Thread ID: %lu", interval);
+            NMLOG_INFO("Thread started with interval: %d seconds", interval);
         }
 
         void WiFiSignalStrengthMonitor::monitorThreadFunction(int interval)

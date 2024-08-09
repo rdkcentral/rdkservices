@@ -55,13 +55,14 @@ namespace WPEFramework
         static void* networkMangerEventMonitor(void *arg);
         bool startNetworkMangerEventMonitor();
         void stopNetworkMangerEventMonitor();
-        void setwifiScanOptions(bool print);
+        void setwifiScanOptions(bool doScan, bool enableLogs = false);
 
     private:
-        std::atomic<bool> isEventThrdActive{false};
+        std::atomic<bool>isEventThrdActive = {false};
+        std::atomic<bool>stopWifiScan = {false}; // set to default print for debug
+        std::atomic<bool>debugLogs = {true};
         NMEvents nmEvents;
         GThread *eventThrdID;
-        std::atomic<bool>printSSIDList = {true}; // set to default print for debug
     };
 
     }   // Plugin

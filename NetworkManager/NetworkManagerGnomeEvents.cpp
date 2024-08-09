@@ -569,7 +569,7 @@ namespace WPEFramework
 
     void GnomeNetworkManagerEvents::onAvailableSSIDsCb(NMDeviceWifi *wifiDevice, GParamSpec *pspec, gpointer userData)
     {
-        NMLOG_INFO("wifi scanning completed ...");
+        NMLOG_TRACE("wifi scanning completed ...");
         if(!NM_IS_DEVICE_WIFI(wifiDevice))
         {
             NMLOG_ERROR("Not a wifi object ");
@@ -588,17 +588,25 @@ namespace WPEFramework
         }
 
         ssidList.ToString(ssidListJson);
-        if(_nmEventInstance->printSSIDList) {
-            _nmEventInstance->printSSIDList = false;
+        if(_nmEventInstance->debugLogs) {
+            _nmEventInstance->debugLogs = false;
             NMLOG_INFO("Number of Access Points Available = %d", static_cast<int>(accessPoints->len));
             NMLOG_TRACE("Scanned APIs are  = %s",ssidListJson.c_str());
         }
-        _instance->ReportAvailableSSIDsEvent(ssidListJson);
+
+        if(!_nmEventInstance->stopWifiScan) {
+            _instance->ReportAvailableSSIDsEvent(ssidListJson);
+        }
     }
 
-    void GnomeNetworkManagerEvents::setwifiScanOptions(bool print)
+    void GnomeNetworkManagerEvents::setwifiScanOptions(bool doScan, bool enableLogs)
     {
-        printSSIDList.store(print);
+        stopWifiScan.store(doScan);
+        if(stopWifiScan)
+        {
+            NMLOG_WARNING("stop periodic wifi scan result");
+        }
+        debugLogs = enableLogs;
     }
 
     }   // Plugin

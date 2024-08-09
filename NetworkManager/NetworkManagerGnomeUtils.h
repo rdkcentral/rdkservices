@@ -33,20 +33,14 @@ namespace WPEFramework
         {
 
             public:
+               static uint32_t GetInterfacesName(string &wifiInterface, string &ethernetInterface);
                static uint8_t wifiSecurityModeFromAp(guint32 flags, guint32 wpaFlags, guint32 rsnFlags);
                static std::string wifiFrequencyFromAp(guint32 apFreq);
+               static std::string getSecurityModeString(guint32 flags, guint32 wpaFlags, guint32 rsnFlags);
                static JsonObject apToJsonObject(NMAccessPoint *ap);
-               static void startWifiScanning(NMDevice *wifiDevice, std::string ssidReq = "");
                static void printActiveSSIDsOnly(NMDeviceWifi *wifiDevice);
-               static uint32_t GetInterfacesName(string &wifiInterface, string &ethernetInterface);
-               static void apFlagsToString(guint32 flags, std::string &flagStr);
         };
 
-        class nmClient
-        {
-            static NMClient *getNmClient();
-
-        };
     }
 }
 

@@ -41,8 +41,12 @@ namespace WPEFramework
             bool wifiDisconnect();
             bool wifiConnectedSSIDInfo(Exchange::INetworkManager::WiFiSSIDInfo &ssidinfo);
             bool wifiConnect(Exchange::INetworkManager::WiFiConnectTo wifiData);
+            bool wifiScanRequest(const Exchange::INetworkManager::WiFiFrequency frequency, std::string ssidReq = "");
+            bool getKnownSSIDs(std::list<string>& ssids);
+            bool addToKnownSSIDs(const Exchange::INetworkManager::WiFiConnectTo ssidinfo);
+            bool removeKnownSSID(const string& ssid);
             bool quit(NMDevice *wifiNMDevice);
-            bool wait(GMainLoop *loop);
+            bool wait(GMainLoop *loop, int timeOutMs = 10000); // default maximium set as 10 sec
         private:
             NMDevice *getNmDevice();
 
@@ -59,9 +63,12 @@ namespace WPEFramework
             NMClient *client;
             GMainLoop *loop;
             gboolean createNewConnection;
+            GMainContext *nmContext = nullptr;
             const char* objectPath;
             NMDevice *wifidevice;
+            GSource *source;
             guint wifiDeviceStateGsignal = 0;
+            bool isSuccess = false;
         };
     }
 }
