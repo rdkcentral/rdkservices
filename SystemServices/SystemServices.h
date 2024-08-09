@@ -69,6 +69,7 @@ using std::ofstream;
 #define EVT_ONTIMEZONEDSTCHANGED          "onTimeZoneDSTChanged"
 #define EVT_FRIENDLYNAMECHANGED           "onFriendlyNameChanged"
 #define EVT_ONLOGUPLOAD                   "onLogUpload"
+#define EVT_ONDEVICEMGTUPDATERECEIVED     "onDeviceMgtUpdateReceived"
 #define TERRITORYFILE                     "/opt/secure/persistent/System/Territory.txt"
 
 
