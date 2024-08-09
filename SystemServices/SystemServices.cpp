@@ -4235,30 +4235,26 @@ namespace WPEFramework {
         }
 
         /***
-         * @brief : To receive RFC device updates event from IARM.
-         * @param1[in]  : owner of the event
-         * @param2[in]  : eventID of the event
-         * @param3[in]  : data passed from the IARMBUS event
-         * @param4[in]  : len
-         */
-        void _deviceMgtUpdateReceived(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
-        {
-            bool issuccess = true;
-            std::string sourcename = "rfc";
-            std::string typevalue = "initial";
-
-            if (!strcmp(IARM_BUS_SYSMGR_NAME, owner)) {
-                if (IARM_BUS_SYSMGR_EVENT_DEVICE_UPDATE_RECEIVED  == eventId) {
-                    LOGWARN("IARM_BUS_SYSMGR_EVENT_DEVICE_UPDATE_RECEIVED event received\n");
-                    LOGWARN("_deviceMgtUpdateReceived: onDeviceMgtUpdateReceived with sourcename:%s, typevalue:%s, issuccess:%d\n", sourcename.c_str(),typevalue.c_str(),issuccess);
-                    if (SystemServices::_instance) {
-                        SystemServices::_instance->onDeviceMgtUpdateReceived(sourcename,typevalue,issuccess);
-                    } else {
-                        LOGERR("SystemServices::_instance is NULL.\n");
-                    }
-                }
-            }
-        }
+       * @brief : To receive RFC device updates event from IARM.
+       * @param1[in]  : owner of the event
+       * @param2[in]  : eventID of the event
+       * @param3[in]  : data passed from the IARMBUS event
+       * @param4[in]  : len
+       */
+       void _deviceMgtUpdateReceived(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+       {
+           if (!strcmp(IARM_BUS_SYSMGR_NAME, owner)) {
+               if (IARM_BUS_SYSMGR_EVENT_DEVICE_UPDATE_RECEIVED  == eventId) {
+                   LOGWARN("%s:%d IARM_BUS_SYSMGR_EVENT_DEVICE_UPDATE_RECEIVED event received\n",__FUNCTION__, __LINE__);
+                   if (SystemServices::_instance) {
+                       LOGWARN("%s:%d Invoke onDeviceMgtUpdateReceived to notify\n", __FUNCTION__, __LINE__);
+                       SystemServices::_instance->onDeviceMgtUpdateReceived((IARM_BUS_SYSMGR_DeviceMgtUpdateInfo_Param_t *)data);
+                   } else {
+                       LOGERR("%s:%d SystemServices::_instance is NULL.\n", __FUNCTION__, __LINE__);
+                   }
+               }
+           }
+       }
 	
         /***
          * @brief : To receive Firmware Update State Change events from IARM.
@@ -4455,22 +4451,19 @@ namespace WPEFramework {
         }
 
        /***
-         * @brief : called when RFC settings update is received
-         * @param1[in]  : string source
-         * @param1[in]  : string type
-         * @param1[in]  : bool success
-         * @param2[out] : {param:{"source":<string>, "type":<string>, "success":<bool>}}
-         */
-        void SystemServices::onDeviceMgtUpdateReceived(string source,
-                string type, bool success)
-        {
-                JsonObject params;
-                params["source"] = source;
-                params["type"] = type;
-                params["success"] = success;
-                LOGWARN("onDeviceMgtUpdateReceived: source = %s type = %d success = %d\n", source.c_str(), type.c_str(), success);
-                sendNotify(EVT_ONDEVICEMGTUPDATERECEIVED, params);
-        }
+       * @brief : called when RFC settings update is received
+       * @param1[in]  : data passed from the IARMBUS event
+       * @param2[out] : {param:{"source":<string>, "type":<string>, "success":<bool>}}
+       */
+       void SystemServices::onDeviceMgtUpdateReceived(IARM_BUS_SYSMGR_DeviceMgtUpdateInfo_Param_t *config)
+       {
+           JsonObject params;
+           params["source"] = config->source;
+           params["type"] = config->type;
+           params["success"] = config->rfcComplete;
+           LOGWARN("onDeviceMgtUpdateReceived: source = %s type = %s success = %d\n", config->source.c_str(), config->type.c_str(), config->rfcComplete);
+           sendNotify(EVT_ONDEVICEMGTUPDATERECEIVED, params);
+       }
 
         uint32_t SystemServices::getLastFirmwareFailureReason(const JsonObject& parameters, JsonObject& response)
         {
