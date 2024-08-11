@@ -1270,7 +1270,7 @@ namespace Plugin {
             char *colorToken = NULL;
             while ((colorToken = strtok_r(colorString,",",&colorString))) {
                 std::string local = colorToken;
-                tvDataComponentColor_t level;
+                tvDataComponentColor_t level = tvDataColor_NONE;
                 if ( getCMSColorEnumFromString(local,level ) == -1 ) {
                     LOGERR("%s : GetColorEnumFromString Failed!!! ",__FUNCTION__);
                     return -1;
@@ -1299,7 +1299,7 @@ namespace Plugin {
             char *colorToken = NULL;
             while ((colorToken = strtok_r(colorString,",",&colorString))) {
                 std::string local = colorToken;
-                tvWBColor_t level;
+                tvWBColor_t level=tvWB_COLOR_RED;
                 if ( getWBColorEnumFromString(local,level ) == -1 ) {
                     LOGERR("%s : GetWBColorEnumFromString Failed!!! ",__FUNCTION__);
                     return -1;
@@ -1312,7 +1312,7 @@ namespace Plugin {
             char *componentToken = NULL;
             while ((componentToken = strtok_r(componentString,",",&componentString))) {
                 std::string local = componentToken;
-                tvWBControl_t level;
+                tvWBControl_t level=tvWB_CONTROL_GAIN;;
                 if ( getWBControlEnumFromString(local,level ) == -1 ) {
                     LOGERR("%s : GetWBControlEnumFromString Failed!!! ",__FUNCTION__);
                     return -1;
@@ -1404,7 +1404,7 @@ namespace Plugin {
             if( sync ) {
                 return 1;
             }
-            GetDefaultPQParams(indexInfo.pqmodeIndex,(tvVideoSrcType_t)indexInfo.sourceIndex,(tvVideoFormatType_t)indexInfo.formatIndex,pqParamIndex,&value);
+            GetDefaultPQParams(indexInfo.pqmodeIndex,(tvVideoSrcType_t)indexInfo.sourceIndex,(tvVideoFormatType_t)indexInfo.formatIndex,(tvColorTemp_t)indexInfo.colorTempIndex,pqParamIndex,&value);
             LOGINFO("Default value from DB : %s : %d \n",key.c_str(),value);
             return 0;
         }
@@ -1438,14 +1438,14 @@ namespace Plugin {
         return CompColorEnum;
     }
 
-    int AVOutputTV::getDolbyParams(tvContentFormatType_t format, std::string &s, std::string source)
+    /*int AVOutputTV::getDolbyParams(tvContentFormatType_t format, std::string &s, std::string source)
     {
         int ret = -1;
         TR181_ParamData_t param;
         std::string rfc_param = AVOUTPUT_HDR10MODE_RFC_PARAM;
         int dolby_mode_value = 0;
         tvVideoSrcType_t sourceIndex = VIDEO_SOURCE_IP;
-        /*Since dolby vision is source specific, we should for check for specific source*/
+        //Since dolby vision is source specific, we should for check for specific source
         if (!source.empty()) {
             sourceIndex = (tvVideoSrcType_t)getSourceIndex(source);
         }
@@ -1487,7 +1487,7 @@ namespace Plugin {
             ret = 0;
         }
         return ret;
-    }
+    }*/
 
     tvError_t AVOutputTV::getParamsCaps(std::string param, capVectors_t &vecInfo)
     {
@@ -1566,7 +1566,7 @@ namespace Plugin {
         }
     }
 
-    int AVOutputTV::getDolbyParamToSync(int sourceIndex, int formatIndex, int& value)
+    /*int AVOutputTV::getDolbyParamToSync(int sourceIndex, int formatIndex, int& value)
     {
         int ret=0;
         TR181_ParamData_t param;
@@ -1598,7 +1598,7 @@ namespace Plugin {
         }
 
         return ret;
-    }
+    }*/
 
     std::string AVOutputTV::getDolbyModeStringFromEnum( tvDolbyMode_t mode)
 

@@ -3031,7 +3031,7 @@ namespace Plugin {
         int level = 0,retVal = 0;
         tvPQParameterIndex_t tvPQEnum;
         tvComponentType_t compEnum;
-        tvDataComponentColor_t colorEnum;
+        tvDataComponentColor_t colorEnum=tvDataColor_NONE;
         std::string color,component;
         tvError_t ret = tvERROR_NONE;
         std::string value;
@@ -3127,7 +3127,7 @@ namespace Plugin {
         capDetails_t inputInfo;
         tvPQParameterIndex_t tvPQEnum;
         tvComponentType_t compEnum;
-        tvDataComponentColor_t colorEnum;
+        tvDataComponentColor_t colorEnum=tvDataColor_NONE;
         int retVal = 0,level=0;
         std::string color,component;
         tvError_t ret = tvERROR_NONE;
