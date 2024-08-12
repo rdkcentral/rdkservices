@@ -105,7 +105,6 @@ endif()
 target_link_libraries(${MODULE_NAME} PRIVATE ${CURL_LIBRARIES})
 target_include_directories(${MODULE_NAME} PRIVATE ${CURL_INCLUDE_DIRS})
 
-
 add_library(${PLUGIN_LEGACY_DEPRECATED_NETWORK} SHARED
         LegacyPlugin_NetworkAPIs.cpp
         NetworkManagerLogger.cpp
