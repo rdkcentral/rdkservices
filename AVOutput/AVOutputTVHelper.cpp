@@ -123,6 +123,8 @@ namespace Plugin {
         info.pqmodeVector.clear();
         info.sourceVector.clear();
         info.formatVector.clear();
+	info.indexVector.clear();
+	info.rangeVector.clear();
 
         ret = getParamsCaps("PictureMode", info);
         if (ret == tvERROR_NONE) {
@@ -140,6 +142,8 @@ namespace Plugin {
         info.pqmodeVector.clear();
         info.sourceVector.clear();
         info.formatVector.clear();
+	info.indexVector.clear();
+        info.rangeVector.clear();
 
         ret = getParamsCaps( "VideoFormat", info);
         if (ret == tvERROR_NONE) {
@@ -1561,7 +1565,7 @@ namespace Plugin {
             return 1;
         }
         else {
-            LOGERR("getLocalParam failed");
+            LOGERR("getLocalParam failed %s\n",tr181_param_name.c_str());
             return 0;
         }
     }
