@@ -19,7 +19,7 @@
 
 #pragma once
 #ifndef MODULE_NAME
-#define MODULE_NAME Plugin_PersistentStore
+#define MODULE_NAME Plugin_SharedStorage
 #endif
 
 #include <plugins/plugins.h>
@@ -28,12 +28,6 @@
 #else
 #include <interfaces/definitions.h>
 #endif
-
-#define PATH_ENV "PERSISTENTSTORE_PATH"
-#define MAXSIZE_ENV "PERSISTENTSTORE_MAXSIZE"
-#define MAXVALUE_ENV "PERSISTENTSTORE_MAXVALUE"
-#define LIMIT_ENV "PERSISTENTSTORE_LIMIT"
-#define IARM_INIT_NAME "Thunder_Plugins"
 
 #undef EXTERNAL
 #define EXTERNAL

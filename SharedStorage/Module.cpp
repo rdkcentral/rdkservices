@@ -17,23 +17,6 @@
 * limitations under the License.
 **/
 
-#pragma once
-#ifndef MODULE_NAME
-#define MODULE_NAME Plugin_PersistentStore
-#endif
+#include "Module.h"
 
-#include <plugins/plugins.h>
-#if (((THUNDER_VERSION_MAJOR >= 4) && (THUNDER_VERSION_MINOR == 4)) || ((THUNDER_VERSION >= 4) && !defined(THUNDER_VERSION_MINOR)))
-#include <definitions/definitions.h>
-#else
-#include <interfaces/definitions.h>
-#endif
-
-#define PATH_ENV "PERSISTENTSTORE_PATH"
-#define MAXSIZE_ENV "PERSISTENTSTORE_MAXSIZE"
-#define MAXVALUE_ENV "PERSISTENTSTORE_MAXVALUE"
-#define LIMIT_ENV "PERSISTENTSTORE_LIMIT"
-#define IARM_INIT_NAME "Thunder_Plugins"
-
-#undef EXTERNAL
-#define EXTERNAL
+MODULE_NAME_DECLARATION(BUILD_REFERENCE)
