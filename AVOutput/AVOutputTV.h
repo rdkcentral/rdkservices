@@ -244,6 +244,8 @@ class AVOutputTV : public AVOutputBase {
 		int validateIntegerInputParameter(std::string param, int inputValue);
 		int fetchCapablities(string pqparam, capDetails_t& info);
 		int validateInputParameter(std::string param, std::string inputValue);
+		int validateWBParameter(std::string param,std::string control,int inputValue);
+		int validateCMSParameter(std::string param,std::string component,int inputValue);
 
                 /* AVoutput ini file default entries */
 		void locatePQSettingsFile(void);

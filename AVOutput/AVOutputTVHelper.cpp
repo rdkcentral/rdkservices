@@ -523,8 +523,8 @@ namespace Plugin {
         if ( (param == "Brightness") || (param == "Contrast") ||
              (param == "Sharpness") || (param == "Saturation") ||
              (param == "Hue") || (param == "WhiteBalance") ||
-            (param == "ComponentSaturation") || (param == "Backlight") ||
-            (param == "ComponentHue") || (param == "ComponentLuma") || (param == "LowLatencyState") ) {
+            (param == "CMS") || (param == "Backlight") ||
+            (param == "WhiteBalance") || (param == "LowLatencyState") ) {
             if (inputValue < stoi(info.rangeVector[0]) || inputValue > std::stoi(info.rangeVector[1])) {
                 LOGERR("wrong Input value[%d]", inputValue);
                 return -1;
@@ -2098,6 +2098,59 @@ namespace Plugin {
 		    case tvColorTemp_USER : return "User";
             default : return "Max";
         }
+    }
+
+    int AVOutputTV:: validateCMSParameter(std::string param,std::string component,int inputValue)
+    {
+        capVectors_t info;
+        tvError_t ret = getParamsCaps(param, info);
+
+        if (ret != tvERROR_NONE) {
+            LOGERR("Failed to fetch the range capability[%s] \n", param.c_str());
+            return -1;
+        }
+	
+	    if( param == "Saturation" ) {
+	        if (inputValue < stoi(info.rangeVector[0]) || inputValue > std::stoi(info.rangeVector[1])) {
+                LOGERR("wrong Input value[%d] for %s\n", inputValue,component.c_str());
+                return -1;
+		    }
+	    } else if ( param == "Hue" ) {
+	        if (inputValue < stoi(info.rangeVector[2]) || inputValue > std::stoi(info.rangeVector[3])) {
+                LOGERR("wrong Input value[%d] for %s\n", inputValue,component.c_str());
+                return -1;
+		    }
+    	} else if ( param == "Luma" ) {
+	        if (inputValue < stoi(info.rangeVector[4]) || inputValue > std::stoi(info.rangeVector[5])) {
+                LOGERR("wrong Input value[%d] for %s\n", inputValue,component.c_str());
+                return -1;
+		    }
+	    }
+        return 0;
+    }
+
+    int AVOutputTV:: validateWBParameter(std::string param,std::string control,int inputValue)
+    {
+        capVectors_t info;
+        tvError_t ret = getParamsCaps(param, info);
+
+        if (ret != tvERROR_NONE) {
+            LOGERR("Failed to fetch the range capability[%s] \n", param.c_str());
+            return -1;
+        }
+	
+	    if( param == "Gain" ) {
+	        if (inputValue < stoi(info.rangeVector[0]) || inputValue > std::stoi(info.rangeVector[1])) {
+                LOGERR("wrong Input value[%d] for %s\n", inputValue,control.c_str());
+                return -1;
+		    }
+	    } else if ( param == "Offset" ) {
+	        if (inputValue < stoi(info.rangeVector[2]) || inputValue > std::stoi(info.rangeVector[3])) {
+                LOGERR("wrong Input value[%d] for %s\n", inputValue,control.c_str());
+                return -1;
+		    }
+        }
+        return 0;
     }
 
 } //namespace Plugin

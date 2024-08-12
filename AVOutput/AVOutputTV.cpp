@@ -3048,7 +3048,7 @@ namespace Plugin {
         returnIfParamNotFound(parameters,"level");
         level = std::stoi(value);
 
-        if (validateIntegerInputParameter("CMS",level) != 0) {
+        if (validateCMSParameter("CMS",inputInfo.component,level) != 0) {
             LOGERR("%s: CMS Failed in range validation", __FUNCTION__);
             returnResponse(false);
         }
@@ -3110,7 +3110,7 @@ namespace Plugin {
 
             cmsParam = inputInfo.color+"."+inputInfo.component;
             
-            retVal= updateAVoutputTVParam("set",cmsParam,inputInfo,tvPQEnum,params);
+            retVal= updateAVoutputTVParam("set","cms",inputInfo,tvPQEnum,params);
             if(retVal != 0 ) {
                 LOGERR("%s : Failed to Save CMS %s/%s(%s) to ssm_data\n",__FUNCTION__,inputInfo.component.c_str(),inputInfo.color.c_str(),cmsParam.c_str());
 		        returnResponse(false);
@@ -3189,7 +3189,7 @@ namespace Plugin {
 
             cmsParam = inputInfo.color+"."+inputInfo.component;
             
-            retVal= updateAVoutputTVParam("reset",cmsParam,inputInfo,tvPQEnum,params);
+            retVal= updateAVoutputTVParam("reset","CMS",inputInfo,tvPQEnum,params);
             if(retVal != 0 ) {
                 LOGERR("%s : Failed to Save CMS %s/%s(%s) to ssm_data\n",__FUNCTION__,inputInfo.component.c_str(),inputInfo.color.c_str(),cmsParam.c_str());
 		        returnResponse(false);
@@ -3211,7 +3211,9 @@ namespace Plugin {
         JsonArray colorArray;
         JsonArray componentArray;
 
-        JsonObject rangeObj;
+        JsonObject componentSaturationRangeInfo;
+        JsonObject componentHueRangeInfo;
+        JsonObject componentLumaRangeInfo;
         unsigned int index = 0;
 
         tvError_t ret = getParamsCaps("CMS",info);
@@ -3220,9 +3222,21 @@ namespace Plugin {
             returnResponse(false);
         }
         else {
-            rangeObj["from"] = stoi(info.rangeVector[0]);
-            rangeObj["to"] = stoi(info.rangeVector[1]);
-            response["rangeInfo"]=rangeObj; 
+
+            response["platformSupport"] = (info.isPlatformSupportVector[0].compare("true") == 0)  ? true : false;
+
+            componentSaturationRangeInfo["from"] = stoi(info.rangeVector[0]);
+            componentSaturationRangeInfo["to"]   = stoi(info.rangeVector[1]);
+            response["componentSaturationRangeInfo"]=componentSaturationRangeInfo;
+            
+            componentHueRangeInfo["from"] = stoi(info.rangeVector[2]);
+            componentHueRangeInfo["to"]   = stoi(info.rangeVector[3]);
+            response["componentHueRangeInfo"]=componentHueRangeInfo;
+
+            componentLumaRangeInfo["from"] = stoi(info.rangeVector[4]);
+            componentLumaRangeInfo["to"]   = stoi(info.rangeVector[5]);
+            response["componentLumaRangeInfo"]=componentLumaRangeInfo;
+
 
             if ((info.pqmodeVector.front()).compare("none") != 0) {
                 for (index = 0; index < info.pqmodeVector.size(); index++) {
@@ -3522,8 +3536,8 @@ namespace Plugin {
         returnIfParamNotFound(parameters,"level");
         level = std::stoi(value);
 
-        if (validateIntegerInputParameter("WhiteBalance",level) != 0) {
-            LOGERR("%s: WB Failed in range validation", __FUNCTION__);
+        if (validateWBParameter("WhiteBalance",inputInfo.control,level) != 0) {
+            LOGERR("%s: CMS Failed in range validation", __FUNCTION__);
             returnResponse(false);
         }
 
@@ -3674,7 +3688,9 @@ namespace Plugin {
         JsonArray colorArray;
         JsonArray componentArray;
 
-        JsonObject rangeObj;
+        JsonObject gainInfo;
+        JsonObject offsetInfo;
+
         unsigned int index = 0;
 
         tvError_t ret = getParamsCaps("CMS",info);
@@ -3683,9 +3699,17 @@ namespace Plugin {
             returnResponse(false);
         }
         else {
-            rangeObj["from"] = stoi(info.rangeVector[0]);
-            rangeObj["to"] = stoi(info.rangeVector[1]);
-            response["rangeInfo"]=rangeObj; 
+            response["platformSupport"] = (info.isPlatformSupportVector[0].compare("true") == 0)  ? true : false;
+
+            gainInfo["from"] = stoi(info.rangeVector[0]);
+            gainInfo["to"]   = stoi(info.rangeVector[1]);
+            response["gainInfo"]=gainInfo;
+
+            offsetInfo["from"] = stoi(info.rangeVector[0]);
+            offsetInfo["to"]   = stoi(info.rangeVector[1]);
+            response["offsetInfo"]=offsetInfo;
+            
+            
 
             if ((info.pqmodeVector.front()).compare("none") != 0) {
                 for (index = 0; index < info.pqmodeVector.size(); index++) {
