@@ -3030,7 +3030,16 @@ namespace WPEFramework {
                                 sendNotify("muteStatusChanged",params);
                         }
                         //Set the new volume level
-                        aPort.setLevel(level);
+                        aPort.setLevel(level); 
+
+                        // Check if the volume is set to 0 and mute the device
+                        if (level == 0) {
+                            aPort.setMuted(true);
+                            JsonObject params;
+                            params["muted"] = true;
+                            sendNotify("muteStatusChanged", params);
+                        }
+			
                         //Notify if the levelhas change
                         if(current_volumelevel != (int)level)
                         {
