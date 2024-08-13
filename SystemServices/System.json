@@ -2258,6 +2258,34 @@
                 ]
             }
         },
+                "onDeviceMgtUpdateReceived":{
+            "summary": "Triggered when the device management update complete",
+            "params": {
+                "type" :"object",
+                "properties": {
+                "source": {
+                        "summary": "Source information",
+                        "type": "string",
+                        "example":"rfc"
+                },
+                "type":{
+                    "summary": " Type of Update",
+                    "type": "string",
+                    "example": "initial"
+                },
+                "success":{
+                    "summary": "RFC updated succeeded",
+                    "type":"bool",
+                    "example": "true"
+                }
+                                },
+                "required":[
+                    "source",
+                    "type",
+                    "success"
+                ]
+            }
+         },
 		"onTimeZoneDSTChanged":{
             "summary": "Triggered when device time zone changed",
             "params": {
