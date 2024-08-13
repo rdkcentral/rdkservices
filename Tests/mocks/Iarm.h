@@ -946,7 +946,7 @@ typedef struct _IARM_Bus_MFRLib_SetBLSplashScreen_Param{
 	char path[255];
 } IARM_Bus_MFRLib_SetBLSplashScreen_Param_t;
 
-typedef bool IARM_Bus_MFRLib_FsrFlag_Param; // true or false
+typedef bool IARM_Bus_MFRLib_FsrFlag_Param_t; // true or false
 
 #define IARM_BUS_CECMGR_API_isAvailable "isAvailable"
 #define IARM_BUS_DSMGR_API_dsHdmiInGetNumberOfInputs    "dsHdmiInGetNumberOfInputs"
