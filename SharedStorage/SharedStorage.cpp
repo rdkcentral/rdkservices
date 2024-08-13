@@ -143,9 +143,6 @@ namespace Plugin {
             TRACE(Trace::Error, (_T("%s: Can't get CloudStore interface"), __FUNCTION__));
         }
 
-        if (message.length() != 0) {
-            Deinitialize(service);
-        }
         SYSLOG(Logging::Startup, (string(_T("SharedStorage Initialize complete"))));
         return message;
     }
