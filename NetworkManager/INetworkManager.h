@@ -141,7 +141,7 @@ namespace WPEFramework
                     string             m_bssid;
                     WIFISecurityMode   m_securityMode;
                     string             m_signalStrength;
-                    WiFiFrequency      m_frequency;
+                    uint32_t           m_frequency;
                     string             m_rate;
                     string             m_noise;
             };

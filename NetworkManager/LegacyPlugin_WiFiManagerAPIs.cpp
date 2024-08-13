@@ -297,7 +297,7 @@ namespace WPEFramework
                 response["noise"] = tmpResponse["noise"];
                 response["security"] = tmpResponse["securityMode"];
                 response["signalStrength"] = tmpResponse["signalStrength"];
-                response["frequency"] = tmpResponse["frequency"];
+                response["frequency"] = (tmpResponse["frequency"].Number())/1000;
                 response["success"] = tmpResponse["success"];
             }
             LOGTRACEMETHODFIN();
