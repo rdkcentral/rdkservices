@@ -270,88 +270,93 @@ namespace Plugin {
         LOGINFO("CTOR\n");
         AVOutputTV::instance = this;
 
-	InitializeIARM();
+	    InitializeIARM();
 
-	registerMethod("getBacklight", &AVOutputTV::getBacklight, this);
-	registerMethod("setBacklight", &AVOutputTV::setBacklight, this);
-	registerMethod("resetBacklight", &AVOutputTV::resetBacklight, this);
-	registerMethod("getBacklightCaps", &AVOutputTV::getBacklightCaps, this);
-	registerMethod("getBrightnessCaps", &AVOutputTV::getBrightnessCaps, this);
-	registerMethod("getBrightness", &AVOutputTV::getBrightness, this);
-	registerMethod("setBrightness", &AVOutputTV::setBrightness, this);
-	registerMethod("resetBrightness", &AVOutputTV::resetBrightness, this);
-	registerMethod("getContrast", &AVOutputTV::getContrast, this);
-	registerMethod("setContrast", &AVOutputTV::setContrast, this);
-	registerMethod("resetContrast", &AVOutputTV::resetContrast, this);
-	registerMethod("getContrastCaps", &AVOutputTV::getContrastCaps, this);
-	registerMethod("getSharpness", &AVOutputTV::getSharpness, this);
-	registerMethod("setSharpness", &AVOutputTV::setSharpness, this);
-	registerMethod("resetSharpness", &AVOutputTV::resetSharpness, this);
-	registerMethod("getSharpnessCaps", &AVOutputTV::getSharpnessCaps, this);
-	registerMethod("getSaturation", &AVOutputTV::getSaturation, this);
-	registerMethod("setSaturation", &AVOutputTV::setSaturation, this);
-	registerMethod("resetSaturation", &AVOutputTV::resetSaturation, this);
-	registerMethod("getSaturationCaps", &AVOutputTV::getSaturationCaps, this);
-	registerMethod("getHue", &AVOutputTV::getHue, this);
-	registerMethod("setHue", &AVOutputTV::setHue, this);
-	registerMethod("resetHue", &AVOutputTV::resetHue, this);
-	registerMethod("getHueCaps", &AVOutputTV::getHueCaps, this);
-	registerMethod("getColorTemperature", &AVOutputTV::getColorTemperature, this);
-	registerMethod("setColorTemperature", &AVOutputTV::setColorTemperature, this);
-	registerMethod("resetColorTemperature", &AVOutputTV::resetColorTemperature, this);
-	registerMethod("getColorTemperatureCaps", &AVOutputTV::getColorTemperatureCaps, this);
+	    registerMethod("getBacklight", &AVOutputTV::getBacklight, this);
+	    registerMethod("setBacklight", &AVOutputTV::setBacklight, this);
+	    registerMethod("resetBacklight", &AVOutputTV::resetBacklight, this);
+	    registerMethod("getBacklightCaps", &AVOutputTV::getBacklightCaps, this);
+	    registerMethod("getBrightnessCaps", &AVOutputTV::getBrightnessCaps, this);
+	    registerMethod("getBrightness", &AVOutputTV::getBrightness, this);
+	    registerMethod("setBrightness", &AVOutputTV::setBrightness, this);
+	    registerMethod("resetBrightness", &AVOutputTV::resetBrightness, this);
+	    registerMethod("getContrast", &AVOutputTV::getContrast, this);
+	    registerMethod("setContrast", &AVOutputTV::setContrast, this);
+	    registerMethod("resetContrast", &AVOutputTV::resetContrast, this);
+	    registerMethod("getContrastCaps", &AVOutputTV::getContrastCaps, this);
+	    registerMethod("getSharpness", &AVOutputTV::getSharpness, this);
+	    registerMethod("setSharpness", &AVOutputTV::setSharpness, this);
+	    registerMethod("resetSharpness", &AVOutputTV::resetSharpness, this);
+	    registerMethod("getSharpnessCaps", &AVOutputTV::getSharpnessCaps, this);
+	    registerMethod("getSaturation", &AVOutputTV::getSaturation, this);
+	    registerMethod("setSaturation", &AVOutputTV::setSaturation, this);
+	    registerMethod("resetSaturation", &AVOutputTV::resetSaturation, this);
+	    registerMethod("getSaturationCaps", &AVOutputTV::getSaturationCaps, this);
+	    registerMethod("getHue", &AVOutputTV::getHue, this);
+    	registerMethod("setHue", &AVOutputTV::setHue, this);
+	    registerMethod("resetHue", &AVOutputTV::resetHue, this);
+	    registerMethod("getHueCaps", &AVOutputTV::getHueCaps, this);
+	    registerMethod("getColorTemperature", &AVOutputTV::getColorTemperature, this);
+	    registerMethod("setColorTemperature", &AVOutputTV::setColorTemperature, this);
+	    registerMethod("resetColorTemperature", &AVOutputTV::resetColorTemperature, this);
+	    registerMethod("getColorTemperatureCaps", &AVOutputTV::getColorTemperatureCaps, this);
 
-	registerMethod("getBacklightDimmingMode", &AVOutputTV::getBacklightDimmingMode, this);
-	registerMethod("setBacklightDimmingMode", &AVOutputTV::setBacklightDimmingMode, this);
-	registerMethod("resetBacklightDimmingMode", &AVOutputTV::resetBacklightDimmingMode, this);
-	registerMethod("getBacklightDimmingModeCaps", &AVOutputTV::getBacklightDimmingModeCaps, this);
+	    registerMethod("getBacklightDimmingMode", &AVOutputTV::getBacklightDimmingMode, this);
+	    registerMethod("setBacklightDimmingMode", &AVOutputTV::setBacklightDimmingMode, this);
+	    registerMethod("resetBacklightDimmingMode", &AVOutputTV::resetBacklightDimmingMode, this);
+	    registerMethod("getBacklightDimmingModeCaps", &AVOutputTV::getBacklightDimmingModeCaps, this);
 
-	registerMethod("getSupportedDolbyVisionModes", &AVOutputTV::getSupportedDolbyVisionModes, this);
-	registerMethod("getDolbyVisionMode", &AVOutputTV::getDolbyVisionMode, this);
-	registerMethod("setDolbyVisionMode", &AVOutputTV::setDolbyVisionMode, this);
-	registerMethod("resetDolbyVisionMode", &AVOutputTV::resetDolbyVisionMode, this);
-	registerMethod("getDolbyVisionModeCaps", &AVOutputTV::getDolbyVisionModeCaps, this);
-	registerMethod("getVideoFormat", &AVOutputTV::getVideoFormat, this);
-	registerMethod("getVideoSource", &AVOutputTV::getVideoSource, this);
-	registerMethod("getVideoFrameRate", &AVOutputTV::getVideoFrameRate, this);
-	registerMethod("getVideoResolution", &AVOutputTV::getVideoResolution, this);
-	registerMethod("getVideoContentType", &AVOutputTV::getVideoContentType, this);
+	    registerMethod("getSupportedDolbyVisionModes", &AVOutputTV::getSupportedDolbyVisionModes, this);
+	    registerMethod("getDolbyVisionMode", &AVOutputTV::getDolbyVisionMode, this);
+	    registerMethod("setDolbyVisionMode", &AVOutputTV::setDolbyVisionMode, this);
+	    registerMethod("resetDolbyVisionMode", &AVOutputTV::resetDolbyVisionMode, this);
+	    registerMethod("getDolbyVisionModeCaps", &AVOutputTV::getDolbyVisionModeCaps, this);
+	    registerMethod("getVideoFormat", &AVOutputTV::getVideoFormat, this);
+	    registerMethod("getVideoSource", &AVOutputTV::getVideoSource, this);
+	    registerMethod("getVideoFrameRate", &AVOutputTV::getVideoFrameRate, this);
+	    registerMethod("getVideoResolution", &AVOutputTV::getVideoResolution, this);
+	    registerMethod("getVideoContentType", &AVOutputTV::getVideoContentType, this);
 
-	registerMethod("getZoomMode", &AVOutputTV::getZoomMode, this);
-	registerMethod("setZoomMode", &AVOutputTV::setZoomMode, this);
-	registerMethod("resetZoomMode", &AVOutputTV::resetZoomMode, this);
-	registerMethod("getZoomModeCaps", &AVOutputTV::getZoomModeCaps, this);
+	    registerMethod("getZoomMode", &AVOutputTV::getZoomMode, this);
+	    registerMethod("setZoomMode", &AVOutputTV::setZoomMode, this);
+	    registerMethod("resetZoomMode", &AVOutputTV::resetZoomMode, this);
+	    registerMethod("getZoomModeCaps", &AVOutputTV::getZoomModeCaps, this);
 
-	registerMethod("getPictureMode", &AVOutputTV::getPictureMode, this);
-	registerMethod("setPictureMode", &AVOutputTV::setPictureMode, this);
-	registerMethod("signalFilmMakerMode", &AVOutputTV::signalFilmMakerMode, this);
-	registerMethod("resetPictureMode", &AVOutputTV::resetPictureMode, this);
-	registerMethod("getPictureModeCaps", &AVOutputTV::getPictureModeCaps, this);
-	registerMethod("getSupportedPictureModes", &AVOutputTV::getSupportedPictureModes, this);
-	registerMethod("getVideoSourceCaps", &AVOutputTV::getVideoSourceCaps, this);
-	registerMethod("getVideoFormatCaps", &AVOutputTV::getVideoFormatCaps, this);
-	registerMethod("getVideoFrameRateCaps", &AVOutputTV::getVideoFrameRateCaps, this);
-	registerMethod("getVideoResolutionCaps", &AVOutputTV::getVideoResolutionCaps, this);
+	    registerMethod("getPictureMode", &AVOutputTV::getPictureMode, this);
+	    registerMethod("setPictureMode", &AVOutputTV::setPictureMode, this);
+	    registerMethod("signalFilmMakerMode", &AVOutputTV::signalFilmMakerMode, this);
+	    registerMethod("resetPictureMode", &AVOutputTV::resetPictureMode, this);
+	    registerMethod("getPictureModeCaps", &AVOutputTV::getPictureModeCaps, this);
+	    registerMethod("getSupportedPictureModes", &AVOutputTV::getSupportedPictureModes, this);
+	    registerMethod("getVideoSourceCaps", &AVOutputTV::getVideoSourceCaps, this);
+	    registerMethod("getVideoFormatCaps", &AVOutputTV::getVideoFormatCaps, this);
+	    registerMethod("getVideoFrameRateCaps", &AVOutputTV::getVideoFrameRateCaps, this);
+	    registerMethod("getVideoResolutionCaps", &AVOutputTV::getVideoResolutionCaps, this);
 
-	registerMethod("getLowLatencyState", &AVOutputTV::getLowLatencyState, this);
-	registerMethod("setLowLatencyState", &AVOutputTV::setLowLatencyState, this);
-	registerMethod("resetLowLatencyState", &AVOutputTV::resetLowLatencyState, this);
-	registerMethod("getLowLatencyStateCaps", &AVOutputTV::getLowLatencyStateCaps, this);
+    	registerMethod("getLowLatencyState", &AVOutputTV::getLowLatencyState, this);
+	    registerMethod("setLowLatencyState", &AVOutputTV::setLowLatencyState, this);
+	    registerMethod("resetLowLatencyState", &AVOutputTV::resetLowLatencyState, this);
+	    registerMethod("getLowLatencyStateCaps", &AVOutputTV::getLowLatencyStateCaps, this);
 
-    registerMethod("getCMS", &AVOutputTV::getCMS, this);
-    registerMethod("setCMS", &AVOutputTV::setCMS, this);
-    registerMethod("resetCMS", &AVOutputTV::resetCMS, this);
-    registerMethod("getCMSCaps", &AVOutputTV::getCMSCaps, this);
+        registerMethod("getCMS", &AVOutputTV::getCMS, this);
+        registerMethod("setCMS", &AVOutputTV::setCMS, this);
+        registerMethod("resetCMS", &AVOutputTV::resetCMS, this);
+        registerMethod("getCMSCaps", &AVOutputTV::getCMSCaps, this);
 
-    registerMethod("get2PointWB", &AVOutputTV::get2PointWB, this);
-    registerMethod("set2PointWB", &AVOutputTV::set2PointWB, this);
-    registerMethod("reset2PointWB", &AVOutputTV::reset2PointWB, this);
-    registerMethod("get2PointWBCaps", &AVOutputTV::get2PointWBCaps, this);
+        registerMethod("get2PointWB", &AVOutputTV::get2PointWB, this);
+        registerMethod("set2PointWB", &AVOutputTV::set2PointWB, this);
+        registerMethod("reset2PointWB", &AVOutputTV::reset2PointWB, this);
+        registerMethod("get2PointWBCaps", &AVOutputTV::get2PointWBCaps, this);
 
-    registerMethod("getHDRMode", &AVOutputTV::getHDRMode, this);
-    registerMethod("setHDRMode", &AVOutputTV::setHDRMode, this);
-    registerMethod("resetHDRMode", &AVOutputTV::resetHDRMode, this);
-    registerMethod("getHDRModeCaps", &AVOutputTV::getHDRModeCaps, this);
+        registerMethod("getHDRMode", &AVOutputTV::getHDRMode, this);
+        registerMethod("setHDRMode", &AVOutputTV::setHDRMode, this);
+        registerMethod("resetHDRMode", &AVOutputTV::resetHDRMode, this);
+        registerMethod("getHDRModeCaps", &AVOutputTV::getHDRModeCaps, this);
+
+        registerMethod("getAutoBacklightMode", &AVOutputTV::getAutoBacklightMode, this);
+        registerMethod("setAutoBacklightMode", &AVOutputTV::setAutoBacklightMode, this);
+        registerMethod("resetAutoBacklightMode", &AVOutputTV::resetAutoBacklightMode, this);
+        registerMethod("getAutoBacklightModeCaps", &AVOutputTV::getAutoBacklightModeCaps, this);
 
         LOGINFO("Exit\n");
     }
@@ -736,7 +741,7 @@ namespace Plugin {
 	        returnResponse(false);
         }
 
-        if (getParamIndex(inputInfo,indexInfo) == -1) {
+        if (getParamIndex("Backlight", inputInfo,indexInfo) == -1) {
             LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
             returnResponse(false);
         }
@@ -840,7 +845,7 @@ namespace Plugin {
                 inputInfo.pqmode = "Current";
                 inputInfo.source = "Current";
                 inputInfo.format = "Current";
-                getParamIndex(inputInfo,indexInfo);
+                getParamIndex("Backlight", inputInfo,indexInfo);
                 int err = getLocalparam("Backlight",indexInfo,backlight, PQ_PARAM_BACKLIGHT);
                 if( err == 0 ) {
                     LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex,backlight);
@@ -921,7 +926,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        if (getParamIndex(inputInfo,indexInfo) == -1) {
+        if (getParamIndex("Brightness", inputInfo,indexInfo) == -1) {
             LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
             returnResponse(false);
         }
@@ -1021,7 +1026,7 @@ namespace Plugin {
                 inputInfo.pqmode = "Current";
                 inputInfo.source = "Current";
                 inputInfo.format = "Current";
-                getParamIndex(inputInfo,indexInfo);
+                getParamIndex("Brightness", inputInfo,indexInfo);
                 int err = getLocalparam("Brightness",indexInfo,brightness, PQ_PARAM_BRIGHTNESS);
                 if( err == 0 ) {
                     LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex,brightness);
@@ -1102,7 +1107,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        if (getParamIndex(inputInfo,indexInfo) == -1) {
+        if (getParamIndex("Contrast",inputInfo,indexInfo) == -1) {
             LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
             returnResponse(false);
         }
@@ -1201,7 +1206,7 @@ namespace Plugin {
                 inputInfo.pqmode = "Current";
                 inputInfo.source = "Current";
                 inputInfo.format = "Current";
-                getParamIndex(inputInfo,indexInfo);
+                getParamIndex("Contrast", inputInfo,indexInfo);
                 int err = getLocalparam("Contrast",indexInfo,contrast, PQ_PARAM_CONTRAST);
                 if( err == 0 ) {
                     LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex,contrast);
@@ -1283,7 +1288,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        if (getParamIndex(inputInfo,indexInfo) == -1) {
+        if (getParamIndex("Saturation", inputInfo,indexInfo) == -1) {
             LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
             returnResponse(false);
         }
@@ -1382,7 +1387,7 @@ namespace Plugin {
                 inputInfo.pqmode = "Current";
                 inputInfo.source = "Current";
                 inputInfo.format = "Current";
-                getParamIndex(inputInfo,indexInfo);
+                getParamIndex("Saturation",inputInfo,indexInfo);
                 int err = getLocalparam("Saturation",indexInfo, saturation, PQ_PARAM_SATURATION);
                 if( err == 0 ) {
                     LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex,saturation);
@@ -1465,7 +1470,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        if (getParamIndex(inputInfo,indexInfo) == -1) {
+        if (getParamIndex("Sharpness",inputInfo,indexInfo) == -1) {
             LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
             returnResponse(false);
         }
@@ -1564,7 +1569,7 @@ namespace Plugin {
                 inputInfo.pqmode = "Current";
                 inputInfo.source = "Current";
                 inputInfo.format = "Current";
-                getParamIndex(inputInfo,indexInfo);
+                getParamIndex("Sharpness",inputInfo,indexInfo);
                 int err = getLocalparam("Sharpness",indexInfo, sharpness, PQ_PARAM_SHARPNESS);
                 if( err == 0 ) {
                     LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex,sharpness);
@@ -1646,7 +1651,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        if (getParamIndex(inputInfo,indexInfo) == -1) {
+        if (getParamIndex("Hue",inputInfo,indexInfo) == -1) {
             LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
             returnResponse(false);
         }
@@ -1745,7 +1750,7 @@ namespace Plugin {
                 inputInfo.pqmode = "Current";
                 inputInfo.source = "Current";
                 inputInfo.format = "Current";
-                getParamIndex(inputInfo,indexInfo);
+                getParamIndex("Hue",inputInfo,indexInfo);
                 int err = getLocalparam("Hue",indexInfo, hue, PQ_PARAM_HUE);
                 if( err == 0 ) {
                     LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex,hue);
@@ -1827,7 +1832,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        if (getParamIndex(inputInfo,indexInfo) == -1) {
+        if (getParamIndex("ColorTemperature",inputInfo,indexInfo) == -1) {
             LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
             returnResponse(false);
         }
@@ -1888,7 +1893,7 @@ namespace Plugin {
         else if (!value.compare("Cold")) {
             colortemp = tvColorTemp_COLD;
         }
-        else if (!value.compare("User Defined")) {
+        else if (!value.compare("UserDefined")) {
             colortemp = tvColorTemp_USER;
         }
         else {
@@ -1959,7 +1964,7 @@ namespace Plugin {
                 inputInfo.pqmode = "Current";
                 inputInfo.source = "Current";
                 inputInfo.format = "Current";
-                getParamIndex(inputInfo,indexInfo);
+                getParamIndex("ColorTemperature",inputInfo,indexInfo);
                 int err = getLocalparam("ColorTemp",indexInfo, colortemp, PQ_PARAM_COLOR_TEMPERATURE);
                 if( err == 0 ) {
                     LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex, colortemp);
@@ -2041,7 +2046,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        if (getParamIndex(inputInfo,indexInfo) == -1) {
+        if (getParamIndex("DimmingMode",inputInfo,indexInfo) == -1) {
             LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
             returnResponse(false);
         }
@@ -2158,7 +2163,7 @@ namespace Plugin {
                 inputInfo.pqmode = "Current";
                 inputInfo.source = "Current";
                 inputInfo.format = "Current";
-                getParamIndex(inputInfo,indexInfo);
+                getParamIndex("DimmingMode",inputInfo,indexInfo);
                 int err = getLocalparam("DimmingMode",indexInfo, dMode, PQ_PARAM_DIMMINGMODE);
                 if( err == 0 ) {
                     LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex, dMode);
@@ -2270,7 +2275,7 @@ namespace Plugin {
 	}
 
 
-        if (getParamIndex(inputInfo,indexInfo) == -1) {
+        if (getParamIndex("DolbyVisionMode",inputInfo,indexInfo) == -1) {
             LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
             returnResponse(false);
         }
@@ -2375,7 +2380,7 @@ namespace Plugin {
                 inputInfo.source = "Current";
                 inputInfo.pqmode = "Current";
                 inputInfo.format = "DV";
-                getParamIndex(inputInfo,indexInfo);
+                getParamIndex("DolbyVisionMode",inputInfo,indexInfo);
                 int err = getLocalparam("DolbyVisionMode",indexInfo, dolbyMode, PQ_PARAM_DOLBY_MODE);
                 if( err == 0 ) {
                     std::string dolbyModeValue = getDolbyModeStringFromEnum((tvDolbyMode_t)dolbyMode);
@@ -2593,7 +2598,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        if (getParamIndex(inputInfo,indexInfo) == -1) {
+        if (getParamIndex("PictureMode",inputInfo,indexInfo) == -1) {
             LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
             returnResponse(false);
         }
@@ -2863,7 +2868,7 @@ namespace Plugin {
             LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
             returnResponse(false);
         }
-        if (getParamIndex(inputInfo,indexInfo) == -1) {
+        if (getParamIndex("LowLatencyState",inputInfo,indexInfo) == -1) {
             LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
             returnResponse(false);
         }
@@ -2909,7 +2914,7 @@ namespace Plugin {
                 inputInfo.pqmode = "Current";
                 inputInfo.source = "Current";
                 inputInfo.format = "Current";
-                getParamIndex(inputInfo, indexInfo);
+                getParamIndex("LowLatencyState",inputInfo, indexInfo);
                 int err = getLocalparam("LowLatencyState",indexInfo, lowlatencystate, PQ_PARAM_LOWLATENCY_STATE);
                 if( err == 0 ) {
                     LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex, lowlatencystate);
@@ -2985,7 +2990,6 @@ namespace Plugin {
         paramIndex_t indexInfo;
         int level = 0;
         tvPQParameterIndex_t tvPQEnum;
-        std::string params;
 
         inputInfo.color = parameters.HasLabel("color") ? parameters["color"].String() : "";
 	    inputInfo.component = parameters.HasLabel("component") ? parameters["component"].String() : "";
@@ -2995,24 +2999,23 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        params = inputInfo.component+"."+inputInfo.color;
 
-        if (parsingGetInputArgument(parameters, params, inputInfo) != 0) {
+        if (parsingGetInputArgument(parameters, "CMS", inputInfo) != 0) {
             LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
             returnResponse(false);
         }
 
-        if (getParamIndex(inputInfo,indexInfo) == -1) {
+        if (getParamIndex("CMS",inputInfo,indexInfo) == -1) {
             LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
             returnResponse(false);
         }
 
-        if ( convertCMSParamToEnum(inputInfo.component,inputInfo.color,tvPQEnum) != 0 ) {
+        if ( convertCMSParamToPQEnum(inputInfo.component,inputInfo.color,tvPQEnum) != 0 ) {
             LOGINFO("%s: Component/Color Param Not Found \n",__FUNCTION__);
             returnResponse(false);
         }
 
-        int err = getLocalparam(params,indexInfo,level,tvPQEnum);
+        int err = getLocalparam("CMS",indexInfo,level,tvPQEnum);
         if( err == 0 ) {
             response["level"] = level;
             LOGINFO("Exit : params Value: %d \n", level);
@@ -3048,7 +3051,7 @@ namespace Plugin {
         returnIfParamNotFound(parameters,"level");
         level = std::stoi(value);
 
-        if (validateCMSParameter("CMS",inputInfo.component,level) != 0) {
+        if (validateCMSParameter(inputInfo.component,level) != 0) {
             LOGERR("%s: CMS Failed in range validation", __FUNCTION__);
             returnResponse(false);
         }
@@ -3063,7 +3066,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        if ( convertCMSParamToEnum(inputInfo.component,inputInfo.color,tvPQEnum) != 0 ) {
+        if ( convertCMSParamToPQEnum(inputInfo.component,inputInfo.color,tvPQEnum) != 0 ) {
             LOGERR("%s: %s/%s Param Not Found \n",__FUNCTION__,inputInfo.component.c_str(),inputInfo.color.c_str());
             returnResponse(false);
         }    
@@ -3088,11 +3091,11 @@ namespace Plugin {
                 returnResponse(false);
             }
             
-            if(component.compare("Saturation") == 0)
+            if(inputInfo.component.compare("Saturation") == 0)
                 ret = SetCurrentComponentSaturation(colorEnum, level);
-            else if(component.compare("Hue") == 0 )
+            else if(inputInfo.component.compare("Hue") == 0 )
                 ret = SetCurrentComponentHue(colorEnum,level);
-            else if( component.compare("Luma") == 0 )
+            else if( inputInfo.component.compare("Luma") == 0 )
                 ret = SetCurrentComponentLuma(colorEnum,level);
         
         }      
@@ -3110,7 +3113,7 @@ namespace Plugin {
 
             cmsParam = inputInfo.color+"."+inputInfo.component;
             
-            retVal= updateAVoutputTVParam("set","cms",inputInfo,tvPQEnum,params);
+            retVal= updateAVoutputTVParam("set","CMS",inputInfo,tvPQEnum,params);
             if(retVal != 0 ) {
                 LOGERR("%s : Failed to Save CMS %s/%s(%s) to ssm_data\n",__FUNCTION__,inputInfo.component.c_str(),inputInfo.color.c_str(),cmsParam.c_str());
 		        returnResponse(false);
@@ -3125,20 +3128,12 @@ namespace Plugin {
         LOGINFO("Entry\n");
 
         capDetails_t inputInfo;
-        tvPQParameterIndex_t tvPQEnum;
-        tvComponentType_t compEnum;
-        tvDataComponentColor_t colorEnum=tvDataColor_NONE;
-        int retVal = 0,level=0;
+        int retVal = 0;
         std::string color,component;
         tvError_t ret = tvERROR_NONE;
 
         inputInfo.color = parameters.HasLabel("color") ? parameters["color"].String() : "";
 	    inputInfo.component = parameters.HasLabel("component") ? parameters["component"].String() : "";
-
-        if( inputInfo.color.empty() || inputInfo.component.empty() ) {
-	        LOGERR("%s : Color/Component param not found!!!\n",__FUNCTION__);
-            returnResponse(false);
-        }
 
         if (parsingSetInputArgument(parameters,"CMS",inputInfo) != 0) {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
@@ -3149,7 +3144,7 @@ namespace Plugin {
             LOGERR("%s: CapablityCheck failed for CMS\n", __FUNCTION__);
             returnResponse(false);
         }
-
+/*
         if ( convertCMSParamToEnum(inputInfo.component,inputInfo.color,tvPQEnum) != 0 ) {
             LOGERR("%s: %s/%s Param Not Found \n",__FUNCTION__,inputInfo.component.c_str(),inputInfo.color.c_str());
             returnResponse(false);
@@ -3165,7 +3160,7 @@ namespace Plugin {
         if( ret == -1) {
             LOGERR("%s: Invalid Color : %s\n",__FUNCTION__,inputInfo.color.c_str());
             returnResponse(false);
-        }
+        } */
 
         if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
             LOGINFO("Proceed with %s\n",__FUNCTION__);
@@ -3182,19 +3177,15 @@ namespace Plugin {
         }
         else  {
             int params[3]={0};   
-            std::string cmsParam;                   
-            params[0]=level;
-            params[1]=colorEnum;
-            params[2]=compEnum;
+            std::string cmsParam;                
 
             cmsParam = inputInfo.color+"."+inputInfo.component;
             
-            retVal= updateAVoutputTVParam("reset","CMS",inputInfo,tvPQEnum,params);
+            retVal= updateAVoutputTVParam("reset","CMS",inputInfo,PQ_PARAM_CMS_SATURATION_RED,params);
             if(retVal != 0 ) {
                 LOGERR("%s : Failed to Save CMS %s/%s(%s) to ssm_data\n",__FUNCTION__,inputInfo.component.c_str(),inputInfo.color.c_str(),cmsParam.c_str());
 		        returnResponse(false);
             }
-            LOGINFO("Exit : setCMS %s/%s successful to value: %d\n", inputInfo.component.c_str(),inputInfo.color.c_str(),level);
             returnResponse(true);
         }
     }
@@ -3293,7 +3284,7 @@ namespace Plugin {
 	        returnResponse(false);
         }
 
-        if (getParamIndex(inputInfo,indexInfo) == -1) {
+        if (getParamIndex("HDRMode",inputInfo,indexInfo) == -1) {
             LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
             returnResponse(false);
         }
@@ -3394,7 +3385,7 @@ namespace Plugin {
         }
         else {
             if (isSetRequired( inputInfo.pqmode,inputInfo.source,inputInfo.format)) {
-                getParamIndex( inputInfo,indexInfo);
+                getParamIndex( "HDRMode", inputInfo,indexInfo);
                 int err = getLocalparam("HDRMode", indexInfo, dolbyMode, PQ_PARAM_DOLBY_MODE);
                 if( err == 0 ) {
                     std::string dolbyModeValue = getDolbyModeStringFromEnum((tvDolbyMode_t)dolbyMode);
@@ -3489,12 +3480,12 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        if (getParamIndex(inputInfo,indexInfo) == -1) {
+        if (getParamIndex("WhiteBalance", inputInfo,indexInfo) == -1) {
             LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
             returnResponse(false);
         }
 
-        if ( convertWBParamToEnum(inputInfo.control,inputInfo.color,tvPQEnum) != 0 ) {
+        if ( convertWBParamToPQEnum(inputInfo.control,inputInfo.color,tvPQEnum) != 0 ) {
             LOGINFO("%s: Control/Color Param Not Found \n",__FUNCTION__);
             returnResponse(false);
         }
@@ -3551,7 +3542,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        if ( convertWBParamToEnum(inputInfo.control,inputInfo.color,tvPQEnum) != 0 ) {
+        if ( convertWBParamToPQEnum(inputInfo.control,inputInfo.color,tvPQEnum) != 0 ) {
             LOGERR("%s: %s/%s Param Not Found \n",__FUNCTION__,inputInfo.component.c_str(),inputInfo.color.c_str());
             returnResponse(false);
         }    
@@ -3571,6 +3562,7 @@ namespace Plugin {
                 returnResponse(false);
             }
             
+            LOGINFO("colorTempEnum : %d level : %d,colorTempSourceEnum:%d\n ",colorTempEnum,level,colorTempSourceEnum);
             switch(tvPQEnum)
             {
                 case PQ_PARAM_WB_RED_GAIN:
@@ -3650,7 +3642,7 @@ namespace Plugin {
                     inputInfo.color   = getWBColorStringFromEnum((tvWBColor_t)colorIndex);
                     inputInfo.colorTemperature = getColorTemperatureStringFromEnum((tvColorTemp_t)colorTempIndex);
 
-                    if ( convertWBParamToEnum(inputInfo.control,inputInfo.color,tvPQEnum) != 0 ) {
+                    if ( convertWBParamToPQEnum(inputInfo.control,inputInfo.color,tvPQEnum) != 0 ) {
                         LOGERR("%s: %s/%s Param Not Found \n",__FUNCTION__,inputInfo.control.c_str(),inputInfo.color.c_str());
                         returnResponse(false);
                     }    
@@ -3747,7 +3739,192 @@ namespace Plugin {
             LOGINFO("Exit\n");
             returnResponse(true);
         }
-    }     
+    }
+
+    uint32_t AVOutputTV::getAutoBacklightModeCaps(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry");
+        capVectors_t info;
+
+        JsonArray rangeArray;
+        JsonArray pqmodeArray;
+        JsonArray formatArray;
+        JsonArray sourceArray;
+
+        unsigned int index = 0;
+
+        tvError_t ret = getParamsCaps("AutoBacklightMode",info);
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false);
+        }
+	    else {
+
+            response["platformSupport"] = (info.isPlatformSupportVector[0].compare("true") == 0 ) ? true : false;
+
+            for (index = 0; index < info.rangeVector.size(); index++) {
+                rangeArray.Add(info.rangeVector[index]);
+	        }
+
+            response["options"]=rangeArray;
+
+            if (info.pqmodeVector.front().compare("none") != 0) {
+                for (index = 0; index < info.pqmodeVector.size(); index++) {
+                    pqmodeArray.Add(info.pqmodeVector[index]);
+                }
+                response["pictureModeInfo"]=pqmodeArray;
+            }
+            if ((info.sourceVector.front()).compare("none") != 0) {
+                for (index = 0; index < info.sourceVector.size(); index++) {
+                    sourceArray.Add(info.sourceVector[index]);
+                }
+                response["videoSourceInfo"]=sourceArray;
+            }
+            if ((info.formatVector.front()).compare("none") != 0) {
+                for (index = 0; index < info.formatVector.size(); index++) {
+                    formatArray.Add(info.formatVector[index]);
+                }
+                response["videoFormatInfo"]=formatArray;
+            }
+            LOGINFO("Exit\n");
+            returnResponse(true);
+        }
+    }
+
+    uint32_t AVOutputTV::setAutoBacklightMode(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+        std::string value;
+        tvBacklightMode_t mode = tvBacklightMode_AMBIENT;
+        capDetails_t inputInfo;
+
+
+        value = parameters.HasLabel("mode") ? parameters["mode"].String() : "";
+        returnIfParamNotFound(parameters,"mode");
+
+        if (validateInputParameter("AutoBacklightMode",value) != 0) {
+            LOGERR("%s: Range validation failed for AspectRatio\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        if (parsingSetInputArgument(parameters,"AutoBacklightMode",inputInfo) != 0) {
+            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+	    if( !isCapablityCheckPassed( "AutoBacklightMode",inputInfo )) {
+            LOGERR("%s: CapablityCheck failed for AspectRatio\n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        if(!value.compare("Manual")) {
+            mode = tvBacklightMode_MANUAL;
+        }
+        else if (!value.compare("Ambient")) {
+            mode = tvBacklightMode_AMBIENT;
+        }
+        else {
+            returnResponse(false);
+        }
+        
+        tvError_t ret = SetCurrentBacklightMode (mode);
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false);
+        }
+        else {
+            //Save AutoBacklightMode to localstore
+
+            tr181ErrorCode_t err = setLocalParam(rfc_caller_id, AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM, value.c_str());
+            if ( err != tr181Success ) {
+                LOGERR("setLocalParam for %s Failed : %s\n", AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM, getTR181ErrorString(err));
+                returnResponse(false);
+            }
+            else {
+                LOGINFO("setLocalParam for %s Successful, Value: %s\n", AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM, value.c_str());
+            }
+            LOGINFO("Exit : SetAutoBacklightMode() value : %s\n",value.c_str());
+            returnResponse(true);
+        }
+    }
+
+    uint32_t AVOutputTV::getAutoBacklightMode(const JsonObject& parameters, JsonObject& response)
+    {
+
+        TR181_ParamData_t param;
+
+        tr181ErrorCode_t err = getLocalParam(rfc_caller_id, AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM, &param);
+        if (err!= tr181Success) {
+            returnResponse(false);
+        }
+        else {
+            std::string s;
+            s+=param.value;
+            response["mode"] = s;
+            LOGINFO("Exit getAutoBacklightMode(): %s\n",s.c_str());
+            returnResponse(true);
+        }
+    
+    }
+
+    uint32_t AVOutputTV::resetAutoBacklightMode(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFO("Entry\n");
+
+        tvError_t ret = tvERROR_NONE;
+
+        tr181ErrorCode_t err = clearLocalParam(rfc_caller_id,AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM);
+        if ( err != tr181Success ) {
+            LOGWARN("clearLocalParam for %s Failed : %s\n", AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM, getTR181ErrorString(err));
+            ret  = tvERROR_GENERAL;
+        }
+        else {
+            LOGINFO("clearLocalParam for %s Successful\n", AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM);
+
+            TR181_ParamData_t param;
+            memset(&param, 0, sizeof(param));
+
+            tr181ErrorCode_t err = getLocalParam(rfc_caller_id, AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM,&param);
+            if ( err != tr181Success ) {
+                LOGWARN("getLocalParam for %s Failed : %s\n", AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM, getTR181ErrorString(err));
+                ret  = tvERROR_GENERAL;
+            }
+            else {
+                tvBacklightMode_t blMode = tvBacklightMode_NONE;
+
+                if(!std::string(param.value).compare("none")) {
+                    blMode = tvBacklightMode_NONE;
+                }
+                else if (!std::string(param.value).compare("manual")){
+                    blMode = tvBacklightMode_MANUAL;
+                }
+                else if (!std::string(param.value).compare("ambient")){
+                    blMode = tvBacklightMode_AMBIENT;
+                }
+                else if (!std::string(param.value).compare("eco")){
+                    blMode = tvBacklightMode_ECO;
+                }
+                else {
+                    blMode = tvBacklightMode_NONE;
+                }
+                ret = SetCurrentBacklightMode(blMode);
+                if(ret != tvERROR_NONE) {
+                    LOGWARN("Autobacklight Mode set failed: %s\n",getErrorString(ret).c_str());
+                }
+                else {
+                    LOGINFO("Exit : Autobacklight Mode set successfully, value: %s\n", param.value);
+                }
+            } 
+        }
+        if(ret != tvERROR_NONE)
+        {
+            returnResponse(false);
+        }
+        else
+        {
+            returnResponse(true);
+        }
+    }    
 
     uint32_t AVOutputTV::getVideoSource(const JsonObject& parameters,JsonObject& response)
     {

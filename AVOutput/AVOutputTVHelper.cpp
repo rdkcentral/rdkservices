@@ -161,9 +161,9 @@ namespace Plugin {
         return 0;
     }
 
-    int AVOutputTV::getParamIndex(capDetails_t& paramInfo, paramIndex_t& indexInfo)
+    int AVOutputTV::getParamIndex(std::string param, capDetails_t& paramInfo, paramIndex_t& indexInfo)
     {
-        LOGINFO("Entry : %s pqmode : %s source :%s format :%s\n",__FUNCTION__,paramInfo.pqmode.c_str(),paramInfo.source.c_str(),paramInfo.format.c_str());
+        LOGINFO("Entry : %s  param : %s pqmode : %s source :%s format :%s\n",__FUNCTION__,param.c_str(),paramInfo.pqmode.c_str(),paramInfo.source.c_str(),paramInfo.format.c_str());
 
         if( paramInfo.source.compare("none") == 0 || paramInfo.source.compare("Current") == 0 ) {
             tvVideoSrcType_t currentSource = VIDEO_SOURCE_IP;
@@ -201,9 +201,60 @@ namespace Plugin {
             indexInfo.formatIndex = getFormatIndex(paramInfo.format);
         }
 
+        if(param == "CMS")
+        {
+            tvDataComponentColor_t level = tvDataColor_NONE;
+            if ( getCMSColorEnumFromString(paramInfo.color,level ) == -1 ) {
+                LOGERR("%s : GetColorEnumFromString Failed!!! ",__FUNCTION__);
+                return -1;
+            }
+
+            indexInfo.colorIndex = level;
+
+            tvComponentType_t componentLevel;
+            if ( getCMSComponentEnumFromString(paramInfo.component,componentLevel ) == -1 ) {
+                LOGERR("%s : GetComponentEnumFromString Failed!!! ",__FUNCTION__);
+                return -1;
+            }
+
+            indexInfo.componentIndex = componentLevel;
+
+            LOGINFO("%s colorIndex : %d , componentIndex : %d\n",__FUNCTION__,indexInfo.colorIndex, indexInfo.componentIndex);
+        }
+
+        if(param == "WhiteBalance")
+        {
+            tvWBColor_t level;
+            if ( getWBColorEnumFromString(paramInfo.color,level ) == -1 ) {
+                LOGERR("%s : GetColorEnumFromString Failed!!! ",__FUNCTION__);
+                return -1;
+            }
+
+            indexInfo.colorIndex = level;
+
+            tvWBControl_t controlLevel;
+            if ( getWBControlEnumFromString(paramInfo.control,controlLevel ) == -1 ) {
+                LOGERR("%s : GetComponentEnumFromString Failed!!! ",__FUNCTION__);
+                return -1;
+            }
+
+            indexInfo.controlIndex = controlLevel;
+
+            tvColorTemp_t colorTemp;
+            if ( getColorTempEnumFromString(paramInfo.colorTemperature,colorTemp ) == -1 ) {
+                LOGERR("%s : GetComponentEnumFromString Failed!!! ",__FUNCTION__);
+                return -1;
+            }
+
+            indexInfo.colorTempIndex = colorTemp;
+
+            LOGINFO("%s colorIndex : %d , controlIndex : %d colorTempIndex: %d\n",__FUNCTION__,indexInfo.colorIndex, indexInfo.controlIndex,indexInfo.colorTempIndex);
+
+        }
+
         if (indexInfo.sourceIndex == -1 || indexInfo.pqmodeIndex == -1 || indexInfo.formatIndex == -1) {
-	    return -1;
-	}
+	        return -1;
+    	}
         LOGINFO("%s: Exit sourceIndex = %d pqmodeIndex = %d formatIndex = %d\n",__FUNCTION__,indexInfo.sourceIndex,indexInfo.pqmodeIndex,indexInfo.formatIndex);
 
         return 0;
@@ -445,7 +496,7 @@ namespace Plugin {
               paramInfo.color = "Global";
 
             if ( paramInfo.component.empty() )
-              paramInfo.color = "Global";
+              paramInfo.component = "Global";
         }
 
         if (convertToValidInputParameter(pqparam, paramInfo) != 0) {
@@ -558,6 +609,22 @@ namespace Plugin {
             info.format = convertToString(vectorInfo.formatVector);
        }
 
+       if (vectorInfo.colorVector.size() != 0) {
+            info.color = convertToString(vectorInfo.colorVector);
+       }
+
+       if (vectorInfo.componentVector.size() != 0) {
+            info.component = convertToString(vectorInfo.componentVector);
+       }
+
+       if (vectorInfo.controlVector.size() != 0) {
+            info.control = convertToString(vectorInfo.controlVector);
+       }
+
+       if (vectorInfo.colorTempVector.size() != 0) {
+            info.colorTemperature = convertToString(vectorInfo.colorTempVector);
+       }
+
        return 0;
     }
 
@@ -574,9 +641,9 @@ namespace Plugin {
         }
 
         if ( (param == "ColorTemperature") ||
-             (param == "DimmingMode") || (param == "AutoBacklightControl") ||
+             (param == "DimmingMode") || (param == "AutoBacklightMode") ||
              (param == "DolbyVisionMode") || (param == "HDR10Mode") ||
-            (param == "HLGMode") || (param == "AspectRatio") || (param == "PictureMode") ) {
+            (param == "HLGMode") || (param == "AspectRatio") || (param == "PictureMode")  ) {
             auto iter = find(info.rangeVector.begin(), info.rangeVector.end(), inputValue);
 
             if (iter == info.rangeVector.end()) {
@@ -830,7 +897,7 @@ namespace Plugin {
 
         if( forParam.compare("CMS") == 0 )
             generateStorageIdentifierCMS(key,forParam,indexInfo);
-        else if( forParam.compare("WB") == 0 ) 
+        else if( forParam.compare("WhiteBalance") == 0 ) 
             generateStorageIdentifierWB(key,forParam,indexInfo);
         else 
             generateStorageIdentifier(key,forParam,indexInfo);
@@ -981,7 +1048,13 @@ namespace Plugin {
 		                		        }
                                         if(sync || reset) {
                                             int value=0;
-                                            if(getLocalparam(tr181ParamName,paramIndex,value,pqParamIndex,sync)) {
+                                            tvPQParameterIndex_t pqIndex;
+                                            if ( convertCMSParamToPQEnum(getCMSComponentStringFromEnum((tvComponentType_t)paramIndex.componentIndex),getCMSColorStringFromEnum((tvDataComponentColor_t)paramIndex.colorIndex),pqIndex) != 0 )
+                                            {
+                                                LOGERR("%s:convertCMSParamToPQEnum failed color : %d component : %d \n",__FUNCTION__,paramIndex.colorIndex,paramIndex.componentIndex);
+                                                return -1;
+                                            }
+                                            if(getLocalparam(tr181ParamName,paramIndex,value,pqIndex,sync)) {
 					                            continue;
 			                                }
                                             params[0]=value;
@@ -1019,7 +1092,12 @@ namespace Plugin {
 			                                    }
                                                 params[0]=value;
                                             }
-
+                                         /* tvRGBType_t rgbIndex;
+                                            if ( convertWBParamToRGBEnum(getWBColorStringFromEnum((tvWBColor_t)(paramIndex.colorIndex)),getWBControlStringFromEnum((tvWBControl_t)(paramIndex.controlIndex)),rgbIndex) != 0 )
+                                            {
+                                                LOGERR("%s:convertWBParamToRGBEnum failed Color : %d Control : %d  \n",__FUNCTION__,paramIndex.colorIndex,paramIndex.controlIndex);
+                                                return -1;  
+                                            }*/
                                             ret |= SaveWhiteBalance((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,(tvColorTemp_t)paramIndex.colorTempIndex,(tvWBColor_t)paramIndex.colorIndex,(tvWBControl_t)paramIndex.controlIndex,params[0]);
 
                                             if(set) {
@@ -1196,14 +1274,14 @@ namespace Plugin {
     uint32_t AVOutputTV::generateStorageIdentifierCMS(std::string &key, std::string forParam, paramIndex_t info)
     {
         key+=std::string(AVOUTPUT_GENERIC_STRING_RFC_PARAM);
-        key+=STRING_SOURCE+convertSourceIndexToString(info.sourceIndex)+std::string(".")+STRING_PICMODE+convertPictureIndexToString(info.pqmodeIndex)+std::string(".")+std::string(STRING_FORMAT)+convertVideoFormatToString(info.formatIndex)+std::string(".")+STRING_COMPONENT+getCMSComponentStringFromEnum((tvComponentType_t)info.componentIndex)+STRING_COLOR+getCMSColorStringFromEnum((tvDataComponentColor_t)info.colorIndex)+forParam;
+        key+=STRING_SOURCE+convertSourceIndexToString(info.sourceIndex)+std::string(".")+STRING_PICMODE+convertPictureIndexToString(info.pqmodeIndex)+std::string(".")+std::string(STRING_FORMAT)+convertVideoFormatToString(info.formatIndex)+std::string(".")+STRING_COLOR+getCMSColorStringFromEnum((tvDataComponentColor_t)info.colorIndex)+std::string(".")+STRING_COMPONENT+getCMSComponentStringFromEnum((tvComponentType_t)info.componentIndex)+std::string(".")+forParam;
         return tvERROR_NONE;
     }
 
     uint32_t AVOutputTV::generateStorageIdentifierWB(std::string &key, std::string forParam, paramIndex_t info)
     {
         key+=std::string(AVOUTPUT_GENERIC_STRING_RFC_PARAM);
-        key+=STRING_SOURCE+convertSourceIndexToString(info.sourceIndex)+std::string(".")+STRING_PICMODE+convertPictureIndexToString(info.pqmodeIndex)+std::string(".")+std::string(STRING_FORMAT)+convertVideoFormatToString(info.formatIndex)+std::string(".")+STRING_COLORTEMPERATURE+getColorTemperatureStringFromEnum((tvColorTemp_t)info.colorTempIndex)+STRING_COLOR+getWBColorStringFromEnum((tvWBColor_t)info.colorIndex)+STRING_CONTROL+getWBControlStringFromEnum((tvWBControl_t)info.controlIndex)+forParam;
+        key+=STRING_SOURCE+convertSourceIndexToString(info.sourceIndex)+std::string(".")+STRING_PICMODE+convertPictureIndexToString(info.pqmodeIndex)+std::string(".")+std::string(STRING_FORMAT)+convertVideoFormatToString(info.formatIndex)+std::string(".")+STRING_COLORTEMPERATURE+getColorTemperatureStringFromEnum((tvColorTemp_t)info.colorTempIndex)+std::string(".")+STRING_COLOR+getWBColorStringFromEnum((tvWBColor_t)info.colorIndex)+std::string(".")+STRING_CONTROL+getWBControlStringFromEnum((tvWBControl_t)info.controlIndex)+std::string(".")+forParam;
         return tvERROR_NONE;
     }
 
@@ -1237,7 +1315,7 @@ namespace Plugin {
 
     int AVOutputTV::getSaveConfig(std::string param, capDetails_t capInfo, valueVectors_t &values)
     {
-        LOGINFO("Entry : %s pqmode : %s source :%s format :%s\n",__FUNCTION__,capInfo.pqmode.c_str(),capInfo.source.c_str(),capInfo.format.c_str());
+        LOGINFO("Entry : %s pqmode : %s source :%s format :%s component : %s color : %s colorTemp:%s\n",__FUNCTION__,capInfo.pqmode.c_str(),capInfo.source.c_str(),capInfo.format.c_str(),capInfo.component.c_str(),capInfo.color.c_str(),capInfo.colorTemperature.c_str());
 
         int ret = 0;
 
@@ -1312,22 +1390,23 @@ namespace Plugin {
             }
 
             //Check Control
-            char *componentString = strdup(capInfo.component.c_str());
-            char *componentToken = NULL;
-            while ((componentToken = strtok_r(componentString,",",&componentString))) {
-                std::string local = componentToken;
+            char *controlString = strdup(capInfo.control.c_str());
+            char *controlToken = NULL;
+            while ((controlToken = strtok_r(controlString,",",&controlString))) {
+                std::string local = controlToken;
                 tvWBControl_t level=tvWB_CONTROL_GAIN;;
                 if ( getWBControlEnumFromString(local,level ) == -1 ) {
                     LOGERR("%s : GetWBControlEnumFromString Failed!!! ",__FUNCTION__);
                     return -1;
                 }
+                LOGINFO("Tamil : Control : %d\n",level);
                 values.controlValues.push_back(level);
             }
 
             //Check Color Temp
             char *colorTempString = strdup(capInfo.colorTemperature.c_str());
             char *colorTempToken = NULL;
-            while ((colorTempToken = strtok_r(colorTempString,",",&colorTempToken))) {
+            while ((colorTempToken = strtok_r(colorTempString,",",&colorTempString))) {
                 std::string local = colorTempToken;
                 tvColorTemp_t level;
                 if ( getColorTempEnumFromString(local,level ) == -1 ) {
@@ -1348,7 +1427,7 @@ namespace Plugin {
         TR181_ParamData_t param={0};
         if( forParam.compare("CMS") == 0 )
             generateStorageIdentifierCMS(key,forParam,indexInfo);
-        else if( forParam.compare("WB") == 0 ) 
+        else if( forParam.compare("WhiteBalance") == 0 ) 
             generateStorageIdentifierWB(key,forParam,indexInfo);
         else 
             generateStorageIdentifier(key,forParam,indexInfo);
@@ -1370,7 +1449,7 @@ namespace Plugin {
                 else if (strncmp(param.value, "Cold", strlen(param.value))==0) {
                     value=tvColorTemp_COLD;
 		        }
-                else if (strncmp(param.value, "User Defined", strlen(param.value))==0) {
+                else if (strncmp(param.value, "UserDefined", strlen(param.value))==0) {
                     value=tvColorTemp_USER;
 		        }
                 else {
@@ -1528,7 +1607,7 @@ namespace Plugin {
                     [tvColorTemp_STANDARD] = "Standard",
                     [tvColorTemp_WARM] = "Warm",
                     [tvColorTemp_COLD] = "Cold",
-                    [tvColorTemp_USER] = "User Defined"
+                    [tvColorTemp_USER] = "UserDefined"
                 };
         toStore.clear();
         toStore+=color_temp_string[value];
@@ -1860,7 +1939,7 @@ namespace Plugin {
 	    return ret;
     }
 
-    int AVOutputTV::getCMSColorEnumFromString(std::string color,tvDataComponentColor_t value)
+    int AVOutputTV::getCMSColorEnumFromString(std::string color,tvDataComponentColor_t& value)
     {
         int ret = 0;
 	
@@ -1892,7 +1971,7 @@ namespace Plugin {
 	        value =  tvColorTemp_WARM;
         else if( color.compare("Cold") == 0 )
 	        value = tvColorTemp_COLD;
-        else if( color.compare("User Defined") == 0 )
+        else if( color.compare("UserDefined") == 0 )
             value =tvColorTemp_USER;
         else
 	        ret = -1;
@@ -1941,7 +2020,7 @@ namespace Plugin {
 			    std::string colorString = getCMSColorStringFromEnum((tvDataComponentColor_t)color);
 			    cmsParam = componentString+"."+colorString;
 			
-			    if ( convertCMSParamToEnum(componentString,colorString,tvPQEnum) != 0 ) {
+			    if ( convertCMSParamToPQEnum(componentString,colorString,tvPQEnum) != 0 ) {
                     LOGINFO("%s: %s/%s Param Not Found \n",__FUNCTION__,componentString.c_str(),componentString.c_str());
                     continue;
                 }
@@ -1954,7 +2033,7 @@ namespace Plugin {
 	    }
     }
 
-    int AVOutputTV:: convertCMSParamToEnum(const std::string& component, const std::string& color,tvPQParameterIndex_t& value) {
+    int AVOutputTV:: convertCMSParamToPQEnum(const std::string component, const std::string color,tvPQParameterIndex_t& value) {
     // Create a map to associate color-component pairs with enum values
 	    int ret = 0;
         static const std::unordered_map<std::string, tvPQParameterIndex_t> colorComponentMap = {
@@ -1993,8 +2072,35 @@ namespace Plugin {
 	    return ret;
     }
 
+    int AVOutputTV:: convertWBParamToRGBEnum(const std::string color,std::string control,tvRGBType_t &value)
+    {
+        // Create a map to associate color-ntrol pairs with enum values
+	    int ret = 0;
+        static const std::unordered_map<std::string, tvRGBType_t> colorControlMap = {
+            {"RedGain", R_GAIN},
+            {"GreenGain", G_GAIN},
+            {"BlueGain", B_GAIN},
+            {"RedOffset", R_POST_OFFSET},
+            {"GreenOffset", R_POST_OFFSET},
+            {"BlueOffset", R_POST_OFFSET}
+        };
 
-    int AVOutputTV:: convertWBParamToEnum(const std::string& control, const std::string& color,tvPQParameterIndex_t& value) {
+        // Create the key by concatenating the color and control
+        std::string key = color + control;
+
+        // Look up the key in the map
+        auto it = colorControlMap.find(key);
+        if (it != colorControlMap.end()) {
+            value = it->second;
+		    ret = 0;
+        } else {
+	        LOGERR("%s : Invalid color/control\n",__FUNCTION__);
+            ret = -1;
+        }
+	    return ret; 
+    }
+
+    int AVOutputTV:: convertWBParamToPQEnum(const std::string control, const std::string color,tvPQParameterIndex_t& value) {
     // Create a map to associate color-component pairs with enum values
 	    int ret = 0;
         static const std::unordered_map<std::string, tvPQParameterIndex_t> colorControlMap = {
@@ -2062,7 +2168,7 @@ namespace Plugin {
         }
     }
 
-    int AVOutputTV::getWBColorEnumFromString(std::string color,tvWBColor_t value) {
+    int AVOutputTV::getWBColorEnumFromString(std::string color,tvWBColor_t& value) {
         int ret = 0;
 	
         if( color.compare("Red") == 0 )
@@ -2077,12 +2183,12 @@ namespace Plugin {
 	    return ret;
     }
 
-    int AVOutputTV::getWBControlEnumFromString(std::string color,tvWBControl_t value) {
+    int AVOutputTV::getWBControlEnumFromString(std::string color,tvWBControl_t& value) {
         int ret = 0;
 	
         if( color.compare("Gain") == 0 )
 	        value = tvWB_CONTROL_GAIN;
-	    else if( color.compare("Green") == 0 )
+	    else if( color.compare("Offset") == 0 )
 	        value = tvWB_CONTROL_OFFSET;
         else
 	        ret = -1;
@@ -2095,32 +2201,34 @@ namespace Plugin {
             case tvColorTemp_STANDARD: return "Standard";
             case tvColorTemp_WARM: return "Warm";
             case tvColorTemp_COLD: return "Cold";
-		    case tvColorTemp_USER : return "User";
+		    case tvColorTemp_USER : return "UserDefined";
             default : return "Max";
         }
     }
 
-    int AVOutputTV:: validateCMSParameter(std::string param,std::string component,int inputValue)
+    int AVOutputTV:: validateCMSParameter(std::string component,int inputValue)
     {
         capVectors_t info;
-        tvError_t ret = getParamsCaps(param, info);
+        tvError_t ret = getParamsCaps("CMS", info);
+
+        LOGINFO("%s : component : %s inputValue : %d\n",__FUNCTION__,component.c_str(),inputValue);
 
         if (ret != tvERROR_NONE) {
-            LOGERR("Failed to fetch the range capability[%s] \n", param.c_str());
+            LOGERR("Failed to fetch the range capability \n");
             return -1;
         }
 	
-	    if( param == "Saturation" ) {
+	    if( component == "Saturation" ) {
 	        if (inputValue < stoi(info.rangeVector[0]) || inputValue > std::stoi(info.rangeVector[1])) {
                 LOGERR("wrong Input value[%d] for %s\n", inputValue,component.c_str());
                 return -1;
 		    }
-	    } else if ( param == "Hue" ) {
+	    } else if ( component == "Hue" ) {
 	        if (inputValue < stoi(info.rangeVector[2]) || inputValue > std::stoi(info.rangeVector[3])) {
                 LOGERR("wrong Input value[%d] for %s\n", inputValue,component.c_str());
                 return -1;
 		    }
-    	} else if ( param == "Luma" ) {
+    	} else if ( component == "Luma" ) {
 	        if (inputValue < stoi(info.rangeVector[4]) || inputValue > std::stoi(info.rangeVector[5])) {
                 LOGERR("wrong Input value[%d] for %s\n", inputValue,component.c_str());
                 return -1;

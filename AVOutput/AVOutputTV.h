@@ -115,22 +115,6 @@ typedef struct
 	uint8_t controlIndex;
 }paramIndex_t;
 
-/*
-typedef struct
-{
-    std::string range;                            
-    std::string pqmode;
-    std::string format;
-    std::string source;
-    std::string isPlatformSupport;
-    std::string index;
-    std::string color;
-    std::string component;
-    std::string colorTemperature;  
-	std::string control;                         
-}capDetails_t;
-
-*/
 //class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
 class AVOutputTV : public AVOutputBase {
     private:
@@ -160,6 +144,7 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(getCMS)
 		DECLARE_JSON_RPC_METHOD(getHDRMode)
 		DECLARE_JSON_RPC_METHOD(get2PointWB)
+		DECLARE_JSON_RPC_METHOD(getAutoBacklightMode)
 
 
 		/*Get Capability API's*/
@@ -182,6 +167,7 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(getCMSCaps)
 		DECLARE_JSON_RPC_METHOD(get2PointWBCaps)
 		DECLARE_JSON_RPC_METHOD(getHDRModeCaps)
+		DECLARE_JSON_RPC_METHOD(getAutoBacklightModeCaps)
 
 		/*Set API's*/
 		DECLARE_JSON_RPC_METHOD(setBacklight)
@@ -201,6 +187,7 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(setCMS )
 		DECLARE_JSON_RPC_METHOD(set2PointWB )
  		DECLARE_JSON_RPC_METHOD(signalFilmMakerMode)
+		DECLARE_JSON_RPC_METHOD(setAutoBacklightMode)
 
 		/*Reset API's*/
 		DECLARE_JSON_RPC_METHOD(resetBacklight)
@@ -218,6 +205,7 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(resetHDRMode)
 		DECLARE_JSON_RPC_METHOD(resetCMS)
 		DECLARE_JSON_RPC_METHOD(reset2PointWB)
+		DECLARE_JSON_RPC_METHOD(resetAutoBacklightMode)
 
     private:
 
@@ -227,7 +215,7 @@ class AVOutputTV : public AVOutputBase {
 		int getSourceIndex(std::string source);
 		int getFormatIndex(std::string format);		
 		int getPqParamIndex();
-		int getParamIndex(capDetails_t& paramInfo, paramIndex_t& indexInfo);
+		int getParamIndex(std::string param, capDetails_t& paramInfo, paramIndex_t& indexInfo);
 		int getDolbyModeIndex(const char * dolbyMode);
 		tvDimmingMode_t getDimmingModeIndex(string mode);
 		
@@ -245,7 +233,7 @@ class AVOutputTV : public AVOutputBase {
 		int fetchCapablities(string pqparam, capDetails_t& info);
 		int validateInputParameter(std::string param, std::string inputValue);
 		int validateWBParameter(std::string param,std::string control,int inputValue);
-		int validateCMSParameter(std::string param,std::string component,int inputValue);
+		int validateCMSParameter(std::string component,int inputValue);
 
                 /* AVoutput ini file default entries */
 		void locatePQSettingsFile(void);
@@ -309,16 +297,17 @@ class AVOutputTV : public AVOutputBase {
 		std::string getCMSColorStringFromEnum(tvDataComponentColor_t value);
 		std::string getCMSComponentStringFromEnum(tvComponentType_t value);
 		std::string getWBControlStringFromEnum(tvWBControl_t value);
-		int getCMSColorEnumFromString(std::string color,tvDataComponentColor_t value);
+		int getCMSColorEnumFromString(std::string color,tvDataComponentColor_t &value);
 		int getCMSComponentEnumFromString(std::string component, tvComponentType_t& value);
 		std::string getWBColorStringFromEnum(tvWBColor_t value);
-		int getWBColorEnumFromString(std::string color,tvWBColor_t value);
-		int getWBControlEnumFromString(std::string color,tvWBControl_t value);
+		int getWBColorEnumFromString(std::string color,tvWBColor_t& value);
+		int getWBControlEnumFromString(std::string color,tvWBControl_t& value);
 		int getColorTempEnumFromString(std::string color, tvColorTemp_t& value);
 
 		int convertToSourceOffsetEnum(std::string source, tvColorTempSourceOffset_t& value);
-		int convertCMSParamToEnum(const std::string& component, const std::string& color,tvPQParameterIndex_t& value);
-		int convertWBParamToEnum(const std::string& control, const std::string& color,tvPQParameterIndex_t& value);
+		int convertCMSParamToPQEnum(const std::string component, const std::string color,tvPQParameterIndex_t& value);
+		int convertWBParamToPQEnum(const std::string control, const std::string color,tvPQParameterIndex_t& value);
+        int convertWBParamToRGBEnum(const std::string color,const std::string control,tvRGBType_t &value);
 
 		void broadcastLowLatencyModeChangeEvent(bool lowLatencyMode);
 		tvError_t setAspectRatioZoomSettings(tvDisplayMode_t mode);
