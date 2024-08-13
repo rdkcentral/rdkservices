@@ -3033,7 +3033,7 @@ namespace WPEFramework {
                         aPort.setLevel(level); 
 
                         // Check if the volume is set to 0 and mute the device
-                        if (level == 0) {
+                        if (level == 0.0) {
                             aPort.setMuted(true);
                             JsonObject params;
                             params["muted"] = true;
