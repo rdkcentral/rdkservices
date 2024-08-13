@@ -1,4 +1,4 @@
-name: l2-tests
+name: L2-tests-R4-4-1
 
 on:
   push:
@@ -8,12 +8,12 @@ on:
 
 env:
   BUILD_TYPE: Debug
-  THUNDER_REF: "5e7c0b1ed3c3dd0fc31c86518a364388dc24273b"
-  INTERFACES_REF: "669d9c6e5ed7a5938ff26e1e7736adf485c7a205"
+  THUNDER_REF: "R4.4.1"
+  INTERFACES_REF: "R4.4.1"
 
 jobs:
-  l2-tests:
-    name: Build and run L2 tests
+  L2-tests-R4-4-1:
+    name: Run L2 with Thunder R4.4.1 
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -43,7 +43,7 @@ jobs:
         run: >
           sudo apt update
           &&
-          sudo apt install -y libsqlite3-dev libcurl4-openssl-dev valgrind lcov clang libsystemd-dev libboost-all-dev libwebsocketpp-dev meson libcunit1 libcunit1-dev
+          sudo apt install -y libsqlite3-dev libcurl4-openssl-dev valgrind lcov clang libsystemd-dev libboost-all-dev libwebsocketpp-dev meson libcunit1 libcunit1-dev protobuf-compiler protobuf-compiler-grpc libgrpc-dev libgrpc++-dev
 
       - name: Install GStreamer
         run: |
@@ -67,21 +67,19 @@ jobs:
           path: Thunder
           ref: ${{env.THUNDER_REF}}
 
-      - name: Checkout rdkservices
+      - name: Checkout ThunderTools
+        if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
         with:
-          path: rdkservices
+          repository: rdkcentral/ThunderTools
+          path: ThunderTools
+          ref: ${{env.THUNDER_REF}}
 
-      - name: Apply patch Thunder
-        run: >
-              cd "${{github.workspace}}/Thunder"
-              &&
-              git apply "${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0001-RDK-30034-callsign.patch"
-
-      - name: Build Thunder
+      - name: Build ThunderTools
+        if: steps.cache.outputs.cache-hit != 'true'
         run: >
           cmake
-          -S "${{github.workspace}}/Thunder/Tools"
+          -S "${{github.workspace}}/ThunderTools"
           -B build/ThunderTools
           -DEXCEPTIONS_ENABLE=ON
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
@@ -91,10 +89,27 @@ jobs:
           cmake --build build/ThunderTools -j8
           &&
           cmake --install build/ThunderTools
-          &&
+
+      - name: Checkout rdkservices
+        uses: actions/checkout@v3
+        with:
+          path: rdkservices
+
+      - name: Checkout rdkservices
+        run: |
+          cd ${{github.workspace}}/rdkservices
+          patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0003-R4.4.1-LocationSync-compilation-error.patch
+          patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0003-R4.4.1-SystemAudioPlayer-compilation-error.patch
+          cd -
+
+      - name: Build Thunder
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: >
           cmake
           -S "${{github.workspace}}/Thunder"
           -B build/Thunder
+          -DMESSAGING=ON
+          -DHIDE_NON_EXTERNAL_SYMBOLS=OFF
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
           -DBUILD_TYPE=${{env.BUILD_TYPE}}
@@ -112,12 +127,18 @@ jobs:
           repository: rdkcentral/ThunderInterfaces
           path: ThunderInterfaces
           ref: ${{env.INTERFACES_REF}}
+          run: rm -rf ${{github.workspace}}/ThunderInterfaces/jsonrpc/DTV.json
 
       - name: Apply patch ThunderInterfaces
-        run: >
-              cd "${{github.workspace}}/ThunderInterfaces"
-              &&
-              git apply "${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0001-Add-TextToSpeech-Interface.patch"
+        run: |
+              cd ThunderInterfaces
+              echo "Current branch is: $(git branch --show-current)"
+              patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/R.4.4.1-0001-Add-TextToSpeech-Interface.patch
+              patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/SplitDeviceCapablities.patch
+              patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0007-RDK-IDeviceInfo-Changes.patch
+              patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0001-RDK-45037-Secure-Storage-Thunder-Plugin.patch
+              patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/RDKV-48604-User-Settings-Thunder-Plugin.patch
+              cd ..
 
       - name: Build ThunderInterfaces
         run: >
@@ -191,7 +212,6 @@ jobs:
           &&
           cmake --install build/mocks
 
-
       - name: Build rdkservices
         run: >
           cmake
@@ -200,10 +220,17 @@ jobs:
           -DCMAKE_TOOLCHAIN_FILE="${{ env.TOOLCHAIN_FILE }}"
           -DCMAKE_INSTALL_PREFIX="${{github.workspace}}/install/usr"
           -DCMAKE_MODULE_PATH="${{github.workspace}}/install/tools/cmake"
+          -DHIDE_NON_EXTERNAL_SYMBOLS=OFF
           -DCMAKE_CXX_FLAGS="
           -DEXCEPTIONS_ENABLE=ON
           -fprofile-arcs
           -ftest-coverage
+          -DUSE_THUNDER_R4=ON
+          -DTHUNDER_VERSION=4
+          -DTHUNDER_VERSION_MAJOR=4
+          -DTHUNDER_VERSION_MINOR=4
+          -DPLUGIN_PERSISTENTSTORE_PATH="/tmp/secure/persistent/rdkservicestore"
+          -DPLUGIN_PERSISTENTSTORE_LEGACYPATH="/tmp/persistent/rdkservicestore"
           -I ${{github.workspace}}/rdkservices/Tests/headers
           -I ${{github.workspace}}/rdkservices/Tests/headers/rdk/ds
           -I ${{github.workspace}}/rdkservices/Tests/headers/rdk/iarmbus
@@ -218,9 +245,11 @@ jobs:
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Wraps.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/maintenanceMGR.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/pkg.h
-          -Wall -Werror -Wno-error=format=
+          -Werror -Wall -Wunused-variable -Wno-deprecated-declarations -Wno-error=format=
           -DUSE_IARMBUS
           -DENABLE_THERMAL_PROTECTION"
+          -DPLUGIN_PERSISTENTSTORE_PATH="/tmp/secure/persistent/rdkservicestore"
+          -DPLUGIN_PERSISTENTSTORE_LEGACYPATH="/tmp/persistent/rdkservicestore"
           -DCOMCAST_CONFIG=OFF
           -DCMAKE_DISABLE_FIND_PACKAGE_DS=ON
           -DCMAKE_DISABLE_FIND_PACKAGE_IARMBus=ON
@@ -229,11 +258,13 @@ jobs:
           -DCMAKE_DISABLE_FIND_PACKAGE_RBus=ON
           -DPLUGIN_SYSTEMSERVICES=ON
           -DPLUGIN_TELEMETRY=ON
-          -DPLUGIN_WAREHOUSE=ON
           -DPLUGIN_HDCPPROFILE=ON
           -DPLUGIN_NETWORK=ON
           -DPLUGIN_TEXTTOSPEECH=ON
           -DPLUGIN_USBACCESS=ON
+          -DPLUGIN_USERSETTINGS=ON
+          -DPLUGIN_PERSISTENTSTORE=ON
+          -DUSE_THUNDER_R4=ON
           -DPLUGIN_L2Tests=ON
           -DRDK_SERVICE_L2_TEST=ON
           -DDS_FOUND=ON
@@ -251,12 +282,16 @@ jobs:
           /opt/secure/reboot
           /opt/secure/persistent
           /opt/secure/persistent/System
+          /tmp/secure/persistent
+          /tmp/persistent
+          /tmp/persistent/rdkservicestore
           /opt/logs
           /lib/rdk
           /run/media/sda1/logs/PreviousLogs
           /run/media/sda2/logs/PreviousLogs
           /run/sda1/UsbTestFWUpdate
           /run/sda1/UsbProdFWUpdate
+          /run/media/sda1/Logs
           /run/sda2
           &&
           sudo touch
@@ -273,26 +308,30 @@ jobs:
           /run/media/sda1/logs/test.png
           /run/media/sda1/logs/test.docx
           /run/media/sda2/logs/test.txt
-          /run/media/sda2/logs/test.png  
+          /run/media/sda2/logs/test.png
+          /run/media/sda1/Logs/5C3400F15492_Logs_12-05-22-10-41PM.tgz
           /run/sda1/HSTP11MWR_5.11p5s1_VBN_sdy.bin
           /run/sda1/UsbTestFWUpdate/HSTP11MWR_3.11p5s1_VBN_sdy.bin
           /run/sda1/UsbProdFWUpdate/HSTP11MWR_4.11p5s1_VBN_sdy.bin
           /lib/rdk/getMaintenanceStartTime.sh
           /tmp/opkg.conf
           /tmp/system_service_temp.conf
+          /tmp/secure/persistent/rdkservicestore
           &&
-          sudo chmod 777
+          sudo chmod -R 777
           /opt/standbyReason.txt
           /opt/tmtryoptout
           /opt/fwdnldstatus.txt
           /opt/dcm.properties
           /etc/device.properties
-          /etc/dcm.properties          
+          /etc/dcm.properties
           /etc/authService.conf
           /version.txt
           /lib/rdk/getMaintenanceStartTime.sh
           /tmp/opkg.conf
           /tmp/system_service_temp.conf
+          /tmp/persistent/rdkservicestore
+          /tmp/secure/persistent/rdkservicestore
 
       - name: Download pact_verifier_cli
         run: >
