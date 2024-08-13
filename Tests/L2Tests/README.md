@@ -4,6 +4,8 @@
 
 Install [act](https://github.com/nektos/act) and docker:
 
+  Note: Note: The L2-tests.yml is configured to run with the latest Thunder version, R4.4.1.
+
 ##### Ubuntu #####
 
 ```shell script
@@ -39,7 +41,6 @@ Get a bash shell in the container, if needed:
 docker ps
 docker exec -it <container name> /bin/bash
 ```
-
 ## FAQ ##
 
 1. The commands to build and run tests are in [L2-tests.yml](../../.github/workflows/L2-tests.yml).
