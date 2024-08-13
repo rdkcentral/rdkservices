@@ -4099,7 +4099,7 @@ namespace WPEFramework {
         uint32_t RDKShell::launchWrapper(const JsonObject& parameters, JsonObject& response)
         {
             LOGINFOMETHOD();
-	    std::cout << "launchwrapper APi disabling eastereggs\n" ;
+	    std::cout << "launchwrapper APi and disable eastereggs\n" ;
 	    mEnableEasterEggs = false ;
             double launchStartTime = RdkShell::seconds();
             bool result = true;
@@ -4162,6 +4162,7 @@ namespace WPEFramework {
                     gLaunchCount = 0;
                     gLaunchMutex.unlock();
                     response["message"] = "failed to launch application due to active destroy request";
+		    std::cout << "failed to launch application due to active destroy request";
 		    std::cout << "Enabling EasterEggs\n" ;
 		    mEnableEasterEggs = true ;
                     returnResponse(false);
@@ -4353,6 +4354,7 @@ namespace WPEFramework {
 		    gLaunchDestroyMutex.unlock();
                     std::cout << "new launch count loc1: 0\n";
 		    mEnableEasterEggs = true ;
+		    std::cout << "Enabled easter eggs\n" ;
                     returnResponse(false);
                 }
                 else if (!newPluginFound)
@@ -4808,6 +4810,7 @@ namespace WPEFramework {
                         }
                         else
                         {
+			     std::cout << "RDKShellLaunchType::UNKNOWN \n" ;
                             if (launchType == RDKShellLaunchType::UNKNOWN)
                             {
                                 gPluginDataMutex.lock();
@@ -4909,6 +4912,7 @@ namespace WPEFramework {
 	    gLaunchDestroyMutex.unlock();
             std::cout << "new launch count at loc2 is 0\n";
 	    mEnableEasterEggs = true ;
+	    std::cout << "Exiting from launchwrapper API " << std::endl ;
             returnResponse(result);
         }
 
@@ -5828,6 +5832,7 @@ namespace WPEFramework {
                 killAllApps(true);
                 if (!parameters.HasLabel("nokillresapp"))
                 {
+		    std::cout << "Destroying Resident APP \n" ;
                     JsonObject destroyRequest, destroyResponse;
                     destroyRequest["callsign"] = "ResidentApp";
                     destroyWrapper(destroyRequest, destroyResponse);
@@ -5840,6 +5845,7 @@ namespace WPEFramework {
                 launchRequest["focused"] = true;
                 launchRequest["configuration"] = configuration;
                 std::cout << "launching " << launchRequest["callsign"].String().c_str() << std::endl;
+		std::cout << "URL : " << launchRequest["uri"].String().c_str() << std::endl;
                 launchWrapper(launchRequest, response);
                 bool launchFactoryResult = response.HasLabel("success")?response["success"].Boolean():false;
                 if (true == launchFactoryResult)
@@ -6102,18 +6108,16 @@ namespace WPEFramework {
             {
                 sForceResidentAppLaunch = true;
 		std::cout << "factoryapp running launching resident\n" ;
-		//mEnableEasterEggs = true ;
                 launchResidentAppWrapper(parameters, response);
                 sForceResidentAppLaunch = false;
             }
             else
             {
 		std::cout << "launching factoryapp and enabling easter eggs \n" ;
-		//mEnableEasterEggs = true ;
                 launchFactoryAppWrapper(parameters, response);
             }
             ret = response.HasLabel("success")?response["success"].Boolean():false;
-	    std::cout<<"sending Back response and enabling eastereggs" << std::endl;
+	    std::cout<<"sending Back response from togglefactoryapp wrapper and enabling eastereggs" << std::endl;
 	    mEnableEasterEggs = true ;
             returnResponse(ret);
         }
