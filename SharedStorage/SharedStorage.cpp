@@ -127,7 +127,7 @@ namespace Plugin {
             _csObject = m_CloudStoreRef->QueryInterface<Exchange::IStore2>();
             if (nullptr == _csObject)
             {
-                message = _T("SharedStorage plugin could not be initialized.");
+                //message = _T("SharedStorage plugin could not be initialized.");
                 TRACE(Trace::Error, (_T("%s: Can't get CloudStore interface"), __FUNCTION__));
                 m_CloudStoreRef->Release();
                 m_CloudStoreRef = nullptr;
@@ -139,7 +139,7 @@ namespace Plugin {
         }
         else
         {
-            message = _T("SharedStorage plugin could not be initialized.");
+            //message = _T("SharedStorage plugin could not be initialized.");
             TRACE(Trace::Error, (_T("%s: Can't get CloudStore interface"), __FUNCTION__));
         }
 
