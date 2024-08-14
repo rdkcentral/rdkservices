@@ -1188,7 +1188,7 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
                 ssidInfo.m_bssid            = string(connectedSsid.bssid);
                 ssidInfo.m_securityMode     = (WIFISecurityMode) connectedSsid.securityMode;
                 ssidInfo.m_signalStrength   = to_string(connectedSsid.signalStrength);
-                ssidInfo.m_frequency        = connectedSsid.frequency/1000.0
+                ssidInfo.m_frequency        = connectedSsid.frequency/1000.0;
                 ssidInfo.m_rate             = to_string(connectedSsid.rate);
                 ssidInfo.m_noise            = to_string(connectedSsid.noise);
 
