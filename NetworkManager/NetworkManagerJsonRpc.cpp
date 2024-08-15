@@ -820,7 +820,10 @@ namespace WPEFramework
             ssid.m_privateKey            = parameters["privateKey"].String();
             if (parameters.HasLabel("privateKeyPasswd"))
             ssid.m_privateKeyPasswd      = parameters["privateKeyPasswd"].String();
-
+            if (parameters.HasLabel("saveSSIDDisabled"))
+                ssid.m_saveSSIDDisabled  = parameters["saveSSIDDisabled"].Boolean();
+            else
+                ssid.m_saveSSIDDisabled    = _NetworkManager->m_defaultsaveSSIDDisabled;
             if (_NetworkManager)
                 rc = _NetworkManager->WiFiConnect(ssid);
             else
