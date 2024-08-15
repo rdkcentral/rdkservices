@@ -134,6 +134,7 @@ namespace WPEFramework
                     string           m_clientCert;
                     string           m_privateKey;
                     string           m_privateKeyPasswd;
+                    bool             m_persistSSIDInfo;
             };
 
             struct EXTERNAL WiFiSSIDInfo {
@@ -297,6 +298,7 @@ namespace WPEFramework
             // Allow other processes to register/unregister from our notifications
             virtual uint32_t Register(INetworkManager::INotification* notification) = 0;
             virtual uint32_t Unregister(INetworkManager::INotification* notification) = 0;
+            bool m_defaultPersistSSIDInfo = true;
         };
     }
 }

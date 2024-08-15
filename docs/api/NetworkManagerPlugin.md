@@ -1353,6 +1353,7 @@ Initiates request to connect to the specified SSID with the given passphrase. Pa
 | params.ssid | string | The paired SSID |
 | params.passphrase | string | The access point password |
 | params.securityMode | integer | The security mode. See `getSupportedSecurityModes` |
+| params.persistSSIDInfo | boolean | <sup>*(optional)*</sup> Option to save the SSID Information (default: true) |
 
 ### Result
 
@@ -1373,7 +1374,8 @@ Initiates request to connect to the specified SSID with the given passphrase. Pa
     "params": {
         "ssid": "123412341234",
         "passphrase": "password",
-        "securityMode": 6
+        "securityMode": 6,
+        "persistSSIDInfo": true
     }
 }
 ```
