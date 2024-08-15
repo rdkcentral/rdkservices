@@ -134,6 +134,7 @@ namespace WPEFramework
                     string           m_clientCert;
                     string           m_privateKey;
                     string           m_privateKeyPasswd;
+                    bool             m_persistSSIDInfo;
             };
 
             struct EXTERNAL WiFiSSIDInfo {
