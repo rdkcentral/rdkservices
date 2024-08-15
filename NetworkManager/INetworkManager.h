@@ -122,7 +122,7 @@ namespace WPEFramework
                     string           m_ssid;
                     WIFISecurityMode m_securityMode;
                     string           m_signalStrength;
-                    WiFiFrequency    m_frequency;
+                    double           m_frequency;
             };
 
             struct EXTERNAL WiFiConnectTo {
@@ -141,7 +141,7 @@ namespace WPEFramework
                     string             m_bssid;
                     WIFISecurityMode   m_securityMode;
                     string             m_signalStrength;
-                    WiFiFrequency      m_frequency;
+                    double             m_frequency;
                     string             m_rate;
                     string             m_noise;
             };
