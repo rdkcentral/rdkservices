@@ -821,9 +821,9 @@ namespace WPEFramework
             if (parameters.HasLabel("privateKeyPasswd"))
             ssid.m_privateKeyPasswd      = parameters["privateKeyPasswd"].String();
             if (parameters.HasLabel("persistSSIDInfo"))
-                ssid.m_persistSSIDInfo  = parameters["persistSSIDInfo"].Boolean();
+                ssid.m_persistSSIDInfo   = parameters["persistSSIDInfo"].Boolean();
             else
-                ssid.m_persistSSIDInfo    = _NetworkManager->m_defaultPersistSSIDInfo;
+                ssid.m_persistSSIDInfo   = true;
             if (_NetworkManager)
                 rc = _NetworkManager->WiFiConnect(ssid);
             else
