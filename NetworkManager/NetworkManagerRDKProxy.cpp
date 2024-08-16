@@ -236,6 +236,7 @@ typedef struct _WiFiConnection
     char carootcert[MAX_FILE_PATH_LEN];
     char clientcert[MAX_FILE_PATH_LEN];
     char privatekey[MAX_FILE_PATH_LEN];
+    bool persistSSIDInfo;
 } WiFiConnection;
 
 typedef struct _WiFiConnectedSSIDInfo
@@ -1131,6 +1132,7 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
                     ssid.m_clientCert.copy(param.data.connect.clientcert, sizeof(param.data.connect.clientcert) - 1);
                 if(!ssid.m_privateKey.empty())
                     ssid.m_privateKey.copy(param.data.connect.privatekey, sizeof(param.data.connect.privatekey) - 1);
+                param.data.connect.persistSSIDInfo = ssid.m_persistSSIDInfo;
             }
 
             retVal = IARM_Bus_Call( IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_connect, (void *)&param, sizeof(param));
@@ -1188,7 +1190,7 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
                 ssidInfo.m_bssid            = string(connectedSsid.bssid);
                 ssidInfo.m_securityMode     = (WIFISecurityMode) connectedSsid.securityMode;
                 ssidInfo.m_signalStrength   = to_string(connectedSsid.signalStrength);
-                ssidInfo.m_frequency        = ((((float)connectedSsid.frequency)/1000) < 3.0) ? WIFI_FREQUENCY_2_4_GHZ : WIFI_FREQUENCY_5_GHZ;
+                ssidInfo.m_frequency        = static_cast<double>(connectedSsid.frequency)/1000.0;
                 ssidInfo.m_rate             = to_string(connectedSsid.rate);
                 ssidInfo.m_noise            = to_string(connectedSsid.noise);
 

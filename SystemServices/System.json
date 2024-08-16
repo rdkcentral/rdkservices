@@ -2259,22 +2259,22 @@
             }
         },
                 "onDeviceMgtUpdateReceived":{
-            "summary": "Triggered when the device management update complete",
+            "summary": "Triggered when the device management update completes",
             "params": {
                 "type" :"object",
                 "properties": {
                 "source": {
-                        "summary": "Source information",
+                        "summary": "Source information from where the event on update is posted",
                         "type": "string",
                         "example":"rfc"
                 },
                 "type":{
-                    "summary": " Type of Update",
+                    "summary": " Type of Update received currently it will be used as initial",
                     "type": "string",
                     "example": "initial"
                 },
                 "success":{
-                    "summary": "RFC updated succeeded",
+                    "summary": "Status information of update whether success or failure",
                     "type":"bool",
                     "example": "true"
                 }

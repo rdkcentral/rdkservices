@@ -4237,7 +4237,7 @@ namespace WPEFramework {
         }
 
         /***
-       * @brief : To receive RFC device updates event from IARM.
+       * @brief : To receive device updates event from IARM.
        * @param1[in]  : owner of the event
        * @param2[in]  : eventID of the event
        * @param3[in]  : data passed from the IARMBUS event
@@ -4453,7 +4453,7 @@ namespace WPEFramework {
         }
 
        /***
-       * @brief : called when RFC settings update is received
+       * @brief : called when Device Mgt settings update is received
        * @param1[in]  : data passed from the IARMBUS event
        * @param2[out] : {param:{"source":<string>, "type":<string>, "success":<bool>}}
        */
@@ -4462,8 +4462,8 @@ namespace WPEFramework {
                JsonObject params;
                params["source"] = std::string(config->source);
                params["type"] = std::string(config->type);
-               params["success"] = config->rfcComplete;
-               LOGWARN("onDeviceMgtUpdateReceived: source = %s type = %s success = %d\n", config->source, config->type, config->rfcComplete);
+               params["success"] = config->status;
+               LOGWARN("onDeviceMgtUpdateReceived: source = %s type = %s success = %d\n", config->source, config->type, config->status);
                sendNotify(EVT_ONDEVICEMGTUPDATERECEIVED, params);
        }
 
