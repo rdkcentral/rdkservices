@@ -59,8 +59,8 @@ namespace WPEFramework
 
     private:
         std::atomic<bool>isEventThrdActive = {false};
-        std::atomic<bool>stopWifiScan = {false}; // set to default print for debug
-        std::atomic<bool>debugLogs = {true};
+        std::atomic<bool>stopWifiScan = {false};
+        std::atomic<bool>debugLogs = {false};
         NMEvents nmEvents;
         GThread *eventThrdID;
     };

@@ -160,7 +160,7 @@ namespace WPEFramework
                     }
                 }
             }
-            NMLOG_INFO("wifi state: %s", wifiState.c_str());
+            NMLOG_TRACE("wifi state: %s", wifiState.c_str());
         }
         else if(ifname == nmEvents->ifnameEth0)
         {
@@ -188,7 +188,7 @@ namespace WPEFramework
             }
         }
 
-        NMLOG_INFO("%s state: (%d)", ifname.c_str(), deviceState);
+        NMLOG_TRACE("%s state: (%d)", ifname.c_str(), deviceState);
 
     }
 
@@ -340,7 +340,7 @@ namespace WPEFramework
             NMLOG_WARNING("internet connection down");
             break;
         case NM_STATE_CONNECTED_GLOBAL:
-            NMLOG_INFO("global internet connection success");
+            NMLOG_TRACE("global internet connection success");
             break;
         default:
             break;
@@ -407,19 +407,19 @@ namespace WPEFramework
             }
         }
 
+        NMLOG_INFO("Register all dbus events");
         g_main_loop_run(nmEvents->loop);
         //g_main_loop_unref(nmEvents->loop);
-        NMLOG_INFO("Register all dbus events");
         return nullptr;
     }
 
     bool GnomeNetworkManagerEvents::startNetworkMangerEventMonitor()
     {
+        NMLOG_TRACE("starting gnome event monitor");
         if (NULL == nmEvents.client) {
             NMLOG_ERROR("Client Connection NULL DBUS event Failed!");
             return false;
         }
-
         if(!isEventThrdActive) {
             isEventThrdActive = true;
             // Create event monitor thread
@@ -430,14 +430,16 @@ namespace WPEFramework
 
     void GnomeNetworkManagerEvents::stopNetworkMangerEventMonitor()
     {
-    // g_signal_handlers_disconnect_by_func(client, G_CALLBACK(primaryConnectionCb), NULL);
-        g_main_loop_quit(nmEvents.loop);
+        // g_signal_handlers_disconnect_by_func(client, G_CALLBACK(primaryConnectionCb), NULL);
+        if (nmEvents.loop != NULL) {
+            g_main_loop_quit(nmEvents.loop);
+        }
         if (eventThrdID) {
             g_thread_join(eventThrdID);  // Wait for the thread to finish
             eventThrdID = NULL;  // Reset the thread ID
+            NMLOG_WARNING("gnome event monitor stoped");
         }
         isEventThrdActive = false;
-        NMLOG_INFO("stoping event handlers");
     }
 
     GnomeNetworkManagerEvents::~GnomeNetworkManagerEvents()
@@ -454,9 +456,9 @@ namespace WPEFramework
 
     GnomeNetworkManagerEvents::GnomeNetworkManagerEvents()
     {
+        NMLOG_TRACE("GnomeNetworkManagerEvents");
         GError *error = NULL;
         nmEvents.client = nm_client_new(NULL, &error);
-
         if(!nmEvents.client || error )
         {
             if (error) {
@@ -468,7 +470,6 @@ namespace WPEFramework
         }
 
         NMLOG_INFO("networkmanger client connection success version: %s", nm_client_get_version(nmEvents.client));
-
         nmEvents.loop = g_main_loop_new(NULL, FALSE);
         if(nmEvents.loop == NULL) {
             NMLOG_FATAL("GMain loop failed Fatal Error: Event will not work");
@@ -569,7 +570,7 @@ namespace WPEFramework
 
     void GnomeNetworkManagerEvents::onAvailableSSIDsCb(NMDeviceWifi *wifiDevice, GParamSpec *pspec, gpointer userData)
     {
-        NMLOG_TRACE("wifi scanning completed ...");
+        NMLOG_INFO("wifi scanning completed ...");
         if(!NM_IS_DEVICE_WIFI(wifiDevice))
         {
             NMLOG_ERROR("Not a wifi object ");
@@ -590,7 +591,7 @@ namespace WPEFramework
         ssidList.ToString(ssidListJson);
         if(_nmEventInstance->debugLogs) {
             _nmEventInstance->debugLogs = false;
-            NMLOG_INFO("Number of Access Points Available = %d", static_cast<int>(accessPoints->len));
+            NMLOG_TRACE("Number of Access Points Available = %d", static_cast<int>(accessPoints->len));
             NMLOG_TRACE("Scanned APIs are  = %s",ssidListJson.c_str());
         }
 
