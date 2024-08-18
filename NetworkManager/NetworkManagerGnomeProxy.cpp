@@ -19,7 +19,7 @@ namespace WPEFramework
     namespace Plugin
     {
         wifiManager *wifi = nullptr;
-        GnomeNetworkManagerEvents nmEvent;
+        GnomeNetworkManagerEvents *nmEvent = nullptr;
         const float signalStrengthThresholdExcellent = -50.0f;
         const float signalStrengthThresholdGood = -60.0f;
         const float signalStrengthThresholdFair = -67.0f;
@@ -42,8 +42,9 @@ namespace WPEFramework
                 return;
             }
 
+            nmEvent = GnomeNetworkManagerEvents::getInstance();
+            nmEvent->startNetworkMangerEventMonitor();
             wifi = wifiManager::getInstance();
-            nmEvent.startNetworkMangerEventMonitor();
             return;
         }
 
@@ -433,7 +434,7 @@ namespace WPEFramework
         uint32_t NetworkManagerImplementation::StartWiFiScan(const WiFiFrequency frequency /* @in */)
         {
             uint32_t rc = Core::ERROR_RPC_CALL_FAILED;
-            nmEvent.setwifiScanOptions(false, true);
+            nmEvent->setwifiScanOptions(false, true);
             if(wifi->wifiScanRequest(frequency))
                 rc = Core::ERROR_NONE;
             return rc;
@@ -443,7 +444,7 @@ namespace WPEFramework
         {
             uint32_t rc = Core::ERROR_NONE;
             // TODO explore wpa_supplicant stop
-            nmEvent.setwifiScanOptions(true); // This will stop periodic posting of onAvailableSSID event
+            nmEvent->setwifiScanOptions(true); // This will stop periodic posting of onAvailableSSID event
             NMLOG_INFO ("StopWiFiScan is success");
             return rc;
         }

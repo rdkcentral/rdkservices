@@ -41,10 +41,12 @@ namespace WPEFramework
         }
 
         wifiManager::~wifiManager() {
-            NMLOG_TRACE("~wifiManager");
+            NMLOG_INFO("~wifiManager");
             g_main_context_pop_thread_default(nmContext);
-            g_main_loop_unref(loop);
-            g_object_unref(client);
+            if(loop != NULL)
+                g_main_loop_unref(loop);
+            if(client != NULL)
+                g_object_unref(client);
         }
 
         wifiManager::wifiManager() : client(nullptr), loop(nullptr), createNewConnection(false) {

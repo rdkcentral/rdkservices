@@ -407,7 +407,7 @@ namespace WPEFramework
             }
         }
 
-        NMLOG_INFO("Register all dbus events");
+        NMLOG_INFO("registered all networkmnager dbus events");
         g_main_loop_run(nmEvents->loop);
         //g_main_loop_unref(nmEvents->loop);
         return nullptr;
@@ -444,7 +444,7 @@ namespace WPEFramework
 
     GnomeNetworkManagerEvents::~GnomeNetworkManagerEvents()
     {
-        NMLOG_TRACE("~GnomeNetworkManagerEvents");
+        NMLOG_INFO("~GnomeNetworkManagerEvents");
         stopNetworkMangerEventMonitor();
         if(nmEvents.client != nullptr)
             g_object_unref(nmEvents.client);
@@ -452,6 +452,12 @@ namespace WPEFramework
             g_main_loop_unref(nmEvents.loop);
             nmEvents.loop = NULL;
         }
+    }
+
+    GnomeNetworkManagerEvents* GnomeNetworkManagerEvents::getInstance()
+    {
+        static GnomeNetworkManagerEvents instance;
+        return &instance;
     }
 
     GnomeNetworkManagerEvents::GnomeNetworkManagerEvents()
@@ -469,7 +475,7 @@ namespace WPEFramework
             return;
         }
 
-        NMLOG_INFO("networkmanger client connection success version: %s", nm_client_get_version(nmEvents.client));
+        NMLOG_INFO("libnm client connection success version: %s", nm_client_get_version(nmEvents.client));
         nmEvents.loop = g_main_loop_new(NULL, FALSE);
         if(nmEvents.loop == NULL) {
             NMLOG_FATAL("GMain loop failed Fatal Error: Event will not work");

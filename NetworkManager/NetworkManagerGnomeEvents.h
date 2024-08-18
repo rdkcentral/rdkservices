@@ -50,14 +50,15 @@ namespace WPEFramework
         static void onWIFIStateChanged(uint8_t state); // ReportWiFiStateChangedEvent
 
     public:
-        GnomeNetworkManagerEvents();
-        ~GnomeNetworkManagerEvents();
-        static void* networkMangerEventMonitor(void *arg);
+        static GnomeNetworkManagerEvents* getInstance();
         bool startNetworkMangerEventMonitor();
         void stopNetworkMangerEventMonitor();
         void setwifiScanOptions(bool doScan, bool enableLogs = false);
 
     private:
+        static void* networkMangerEventMonitor(void *arg);
+        GnomeNetworkManagerEvents();
+        ~GnomeNetworkManagerEvents();
         std::atomic<bool>isEventThrdActive = {false};
         std::atomic<bool>stopWifiScan = {false};
         std::atomic<bool>debugLogs = {false};
