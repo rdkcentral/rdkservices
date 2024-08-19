@@ -2893,7 +2893,7 @@ namespace Plugin {
         int lowLatencyIndex = 0,prevLowLatencyIndex = 0;
         tvError_t ret = tvERROR_NONE;
 
-        tvError_t ret = GetLowLatencyState(&prevLowLatencyIndex);
+        ret = GetLowLatencyState(&prevLowLatencyIndex);
         if(ret != tvERROR_NONE) {
             LOGERR("Get previous low latency state failed\n");
             returnResponse(false);
