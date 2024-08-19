@@ -430,8 +430,8 @@ namespace Plugin {
 
         locatePQSettingsFile();
 
-	// Get Index from PQ capabailites
-	if (getPqParamIndex() != 0) {
+        // Get Index from PQ capabailites
+        if (getPqParamIndex() != 0) {
             LOGWARN("Failed to get the supported index from capability \n");
         }
 
@@ -3632,7 +3632,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        for( int colorTempIndex = tvColorTemp_STANDARD;colorTempIndex < tvColorTemp_MAX; colorTempIndex++)
+        for( int colorTempIndex = tvColorTemp_STANDARD;colorTempIndex <= tvColorTemp_USER; colorTempIndex++)
         {
             for( int colorIndex= tvWB_COLOR_RED; colorIndex < tvWB_COLOR_MAX; colorIndex++)
             {

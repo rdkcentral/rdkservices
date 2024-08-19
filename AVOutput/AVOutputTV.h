@@ -264,7 +264,8 @@ class AVOutputTV : public AVOutputBase {
 		tvError_t syncAvoutputTVParamsToHAL(std::string pqmode, std::string source, std::string format);
 		/* Every Bootup this function is called to sync TR181 to TVSettings HAL for saving the picture mode assiocation to source */
 		int syncAvoutputTVPQModeParamsToHAL(std::string pqmode, std::string source, std::string format);
-		void SyncCMSParams( );
+		void syncCMSParams( );
+		void syncWBParams( );
 		
 		uint32_t generateStorageIdentifier(std::string &key, std::string forParam,paramIndex_t info);
 		uint32_t generateStorageIdentifierCMS(std::string &key, std::string forParam, paramIndex_t info);

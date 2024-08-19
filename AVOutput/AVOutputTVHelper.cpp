@@ -916,7 +916,7 @@ namespace Plugin {
                 else if(forParam.compare("DimmingMode") == 0 ) {
                     getDimmingModeStringFromEnum(value, toStore);
                 }
-                else if (forParam.compare("DolbyVisionMode") == 0 ) {
+                else if (forParam.compare("DolbyVisionMode") == 0 || forParam.compare("HDRMode") == 0 ) {
                     toStore = getDolbyModeStringFromEnum((tvDolbyMode_t)value);
                 }
                 err = setLocalParam(rfc_caller_id, key.c_str(),toStore.c_str());
@@ -967,6 +967,7 @@ namespace Plugin {
                             case PQ_PARAM_DIMMINGMODE:
                             case PQ_PARAM_LOWLATENCY_STATE:
                             case PQ_PARAM_DOLBY_MODE:
+                            case PQ_PARAM_HDRMODE:
                                 if(reset) {
                                     ret |= updateAVoutputTVParamToHAL(tr181ParamName,paramIndex,0,false);
 		                		}
@@ -1013,6 +1014,7 @@ namespace Plugin {
                                 ret |= SaveLowLatencyState((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,params[0]);
                                 break;
                             case PQ_PARAM_DOLBY_MODE:
+                            case PQ_PARAM_HDRMODE:
                                  ret |= SaveTVDolbyVisionMode((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,(tvDolbyMode_t)params[0]);
                                  break;
 
@@ -1204,7 +1206,9 @@ namespace Plugin {
             LOGERR("Backlight Sync to cache Failed !!!\n");
         }
 
-        SyncCMSParams(); //sync CMS Params
+        syncCMSParams(); //sync CMS 
+        
+        syncWBParams();
 
         info.format = "DV";
 
@@ -1213,6 +1217,13 @@ namespace Plugin {
         }
         else {
             LOGERR("dvmode Sync to cache Failed !!!\n");
+        }
+
+        if( !updateAVoutputTVParam("sync","HDRMode",info,PQ_PARAM_HDRMODE,params) ) {
+            LOGINFO("HDRMode Successfully Synced to Drive Cache\n");
+        }
+        else {
+            LOGERR("HDRMode Sync to cache Failed !!!\n");
         }
         
         LOGINFO("Exit %s : pqmode : %s source : %s format : %s\n",__FUNCTION__,pqmode.c_str(),source.c_str(),format.c_str());
@@ -1995,8 +2006,7 @@ namespace Plugin {
 	    return ret;
     }
 
-
-    void AVOutputTV::SyncCMSParams( )
+    void AVOutputTV::syncCMSParams( )
     {
         int params[3]={0};
         std::string cmsParam;
@@ -2031,6 +2041,42 @@ namespace Plugin {
                    LOGERR("CMS Sync to cache Failed !!!\n");
 		    }
 	    }
+    }
+
+    void AVOutputTV::syncWBParams( )
+    {
+        int params[3]={0};
+        tvColorTemp_t colorTempEnum;
+        tvPQParameterIndex_t tvPQEnum;
+        capDetails_t inputInfo;
+        int retVal = 0;
+	
+        inputInfo.pqmode = "none";
+        inputInfo.source = "none";
+        inputInfo.format = "none";
+	
+        for( int colorTempIndex = tvColorTemp_STANDARD;colorTempIndex <= tvColorTemp_USER; colorTempIndex++)
+        {
+            for( int colorIndex= tvWB_COLOR_RED; colorIndex < tvWB_COLOR_MAX; colorIndex++)
+            {
+                for(int controlIndex = tvWB_CONTROL_GAIN;controlIndex < tvWB_CONTROL_MAX;controlIndex++)
+                {
+                    inputInfo.control = getWBControlStringFromEnum((tvWBControl_t)controlIndex);
+                    inputInfo.color   = getWBColorStringFromEnum((tvWBColor_t)colorIndex);
+                    inputInfo.colorTemperature = getColorTemperatureStringFromEnum((tvColorTemp_t)colorTempIndex);
+
+                    if ( convertWBParamToPQEnum(inputInfo.control,inputInfo.color,tvPQEnum) != 0 ) {
+                        LOGERR("%s: %s/%s Param Not Found \n",__FUNCTION__,inputInfo.control.c_str(),inputInfo.color.c_str());
+                    }    
+                    retVal |= getColorTempEnumFromString(inputInfo.colorTemperature,colorTempEnum);
+                    if( retVal == -1) {
+                        LOGERR("%s: Invalid ColorTemp : %s\n",__FUNCTION__,inputInfo.colorTemperature.c_str());
+                    }
+
+                    updateAVoutputTVParam("sync","WhiteBalance",inputInfo,tvPQEnum,params);
+                }
+            }
+	}
     }
 
     int AVOutputTV:: convertCMSParamToPQEnum(const std::string component, const std::string color,tvPQParameterIndex_t& value) {
