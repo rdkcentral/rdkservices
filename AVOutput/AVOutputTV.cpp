@@ -2896,7 +2896,7 @@ namespace Plugin {
         tvError_t ret = GetLowLatencyState(&prevLowLatencyIndex);
         if(ret != tvERROR_NONE) {
             LOGERR("Get previous low latency state failed\n");
-            returnResponse(false, getErrorString(ret).c_str());
+            returnResponse(false);
         }
 
         value = parameters.HasLabel("LowLatencyState") ? parameters["LowLatencyState"].String() : "";
