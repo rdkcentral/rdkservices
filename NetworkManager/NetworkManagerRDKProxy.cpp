@@ -508,10 +508,7 @@ namespace WPEFramework
                         IARM_BUS_WiFiSrvMgr_EventData_t* e = (IARM_BUS_WiFiSrvMgr_EventData_t *) data;
                         Exchange::INetworkManager::WiFiState state = Exchange::INetworkManager::WIFI_STATE_DISCONNECTED;
                         NMLOG_INFO("Event IARM_BUS_WIFI_MGR_EVENT_onWIFIStateChanged received; state=%d", e->data.wifiStateChange.state);
-
                         state = to_wifi_state(e->data.wifiStateChange.state);
-                        if(e->data.wifiStateChange.state == WIFI_CONNECTED)
-                             ::_instance->m_wifiSignalMonitor.startWiFiSignalStrengthMonitor(DEFAULT_WIFI_SIGNAL_TEST_INTERVAL_SEC);
                         ::_instance->ReportWiFiStateChangedEvent(state);
                         break;
                     }
@@ -520,7 +517,7 @@ namespace WPEFramework
                         IARM_BUS_WiFiSrvMgr_EventData_t* e = (IARM_BUS_WiFiSrvMgr_EventData_t *) data;
                         Exchange::INetworkManager::WiFiState state = errorcode_to_wifi_state(e->data.wifiError.code);
                         NMLOG_INFO("Event IARM_BUS_WIFI_MGR_EVENT_onError received; code=%d", e->data.wifiError.code);
-			::_instance->ReportWiFiStateChangedEvent(state);
+                        ::_instance->ReportWiFiStateChangedEvent(state);
                         break;
                     }
                     default:
