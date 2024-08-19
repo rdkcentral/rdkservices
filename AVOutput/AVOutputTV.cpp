@@ -3289,7 +3289,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        err = getLocalparam("HDRMode", indexInfo,dolbyMode, PQ_PARAM_DOLBY_MODE);
+        err = getLocalparam("HDRMode", indexInfo,dolbyMode, PQ_PARAM_HDR_MODE);
         if( err == 0 ) {
             response["hdrMode"] = getDolbyModeStringFromEnum((tvDolbyMode_t)dolbyMode);
             LOGINFO("Exit : hdrMode Value: %d \n", dolbyMode);
@@ -3343,7 +3343,7 @@ namespace Plugin {
         else {
             int params[3]={0};
             params[0]=getDolbyModeIndex(value.c_str());
-            int retval= updateAVoutputTVParam("set","HDRMode",inputInfo,PQ_PARAM_DOLBY_MODE,params);
+            int retval= updateAVoutputTVParam("set","HDRMode",inputInfo,PQ_PARAM_HDR_MODE,params);
             if(retval != 0 ) {
                 LOGERR("Failed to Save hdrMode mode\n");
                 returnResponse(false);
@@ -3378,7 +3378,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        int retval= updateAVoutputTVParam("reset","HDRMode",inputInfo,PQ_PARAM_DOLBY_MODE,params);
+        int retval= updateAVoutputTVParam("reset","HDRMode",inputInfo,PQ_PARAM_HDR_MODE,params);
         if(retval != 0 ) {
             LOGERR("Failed to reset HDRMode\n");
             returnResponse(false);
@@ -3386,7 +3386,7 @@ namespace Plugin {
         else {
             if (isSetRequired( inputInfo.pqmode,inputInfo.source,inputInfo.format)) {
                 getParamIndex( "HDRMode", inputInfo,indexInfo);
-                int err = getLocalparam("HDRMode", indexInfo, dolbyMode, PQ_PARAM_DOLBY_MODE);
+                int err = getLocalparam("HDRMode", indexInfo, dolbyMode, PQ_PARAM_HDR_MODE);
                 if( err == 0 ) {
                     std::string dolbyModeValue = getDolbyModeStringFromEnum((tvDolbyMode_t)dolbyMode);
                     LOGINFO("%s : getLocalparam success format :%d source : %d format : %d dolbyvalue : %s\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex, dolbyModeValue.c_str());
