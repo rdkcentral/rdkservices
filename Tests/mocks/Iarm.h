@@ -479,6 +479,16 @@ typedef struct _IARM_BUS_PWRMgr_WareHouseOpn_EventData_t {
 #define IARM_BUS_SYSMGR_NAME "SYSMgr"
 #define IARM_BUS_SYSMGR_API_GetSystemStates "GetSystemStates"
 
+/**
+ *  @brief Structure which holds RFC device management update information.
+ */
+typedef struct _IARM_BUS_SYSMGR_DeviceMgtUpdateInfo_Param_t
+{
+      char source[10];                                    /*!< Device Management Update source. Ex: rfc */
+      char type[10];                                      /*!< Device Management Update type. Ex: initial */
+      bool status;                                        /*!< Device Management Update status. true/false */
+} IARM_BUS_SYSMGR_DeviceMgtUpdateInfo_Param_t;
+
 typedef enum _SYSMgr_EventId_t {
     IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE,
     IARM_BUS_SYSMGR_EVENT_XUPNP_DATA_REQUEST, /*!< Xupnp data  request frm Receiver to UPNP*/
@@ -492,6 +502,7 @@ typedef enum _SYSMgr_EventId_t {
     IARM_BUS_SYSMGR_EVENT_KEYCODE_LOGGING_CHANGED, /*!< Key Code logging status update */
     IARM_BUS_SYSMGR_EVENT_USB_MOUNT_CHANGED, /*!< Fires when USB mounts change */
     IARM_BUS_SYSMGR_EVENT_APP_RELEASE_FOCUS, /*!< Application fires event to release focus*/
+    IARM_BUS_SYSMGR_EVENT_DEVICE_UPDATE_RECEIVED,  /*!< Received Device Management update information */
     IARM_BUS_SYSMGR_EVENT_MAX /*!< Max Event Id */
 } IARM_Bus_SYSMgr_EventId_t;
 
