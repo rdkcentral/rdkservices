@@ -60,6 +60,10 @@ All notable changes to this RDK Service will be documented in this file.
 ### Added
 - Add CHANGELOG
 
+## [1.2.6] - 2024-08-20
+### Fixed
+- Fixed archive logs failure
+
 ### Change
 - Reset API version to 1.0.0
 - Change README to inform how to update changelog and API version
