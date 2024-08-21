@@ -74,10 +74,12 @@ namespace WPEFramework {
 
 #ifdef HAS_RBUS
             void onReportUploadStatus(const char* status);
+            void notifyT2PrivacyMode(std::string privacyMode);
 #endif
         public:
             static Telemetry* _instance;
         private:
+            std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> m_systemServiceConnection;
         };
     } // namespace Plugin
 } // namespace WPEFramework
