@@ -70,6 +70,7 @@ using std::ofstream;
 #define EVT_FRIENDLYNAMECHANGED           "onFriendlyNameChanged"
 #define EVT_ONLOGUPLOAD                   "onLogUpload"
 #define EVT_ONDEVICEMGTUPDATERECEIVED     "onDeviceMgtUpdateReceived"
+#define EVT_ONPRIVACYMODECHANGED          "onPrivacyModeChanged"
 #define TERRITORYFILE                     "/opt/secure/persistent/System/Territory.txt"
 
 
@@ -302,6 +303,8 @@ namespace WPEFramework {
 		uint32_t getWakeupSrcConfiguration(const JsonObject& parameters, JsonObject& response);
                 uint32_t getPlatformConfiguration(const JsonObject& parameters, PlatformCaps& response);
                 uint32_t getThunderStartReason(const JsonObject& parameters, JsonObject& response);
+                uint32_t setPrivacyMode(const JsonObject& parameters, JsonObject& response);
+                uint32_t getPrivacyMode(const JsonObject& parameters, JsonObject& response);
         }; /* end of system service class */
     } /* end of plugin */
 } /* end of wpeframework */
