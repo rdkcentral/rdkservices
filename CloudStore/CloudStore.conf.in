@@ -1,0 +1,12 @@
+precondition = ["Platform"]
+callsign = "org.rdk.CloudStore"
+startuporder = "@PLUGIN_CLOUDSTORE_STARTUPORDER@"
+
+configuration = JSON()
+
+rootobject = JSON()
+rootobject.add("mode", "@PLUGIN_CLOUDSTORE_MODE@")
+rootobject.add("locator", "lib@PLUGIN_IMPLEMENTATION@.so")
+configuration.add("root", rootobject)
+
+configuration.add("uri", "@PLUGIN_CLOUDSTORE_URI@")

@@ -135,9 +135,6 @@ namespace Plugin {
             if (_deviceStore2 != nullptr) {
                 _deviceStore2->Register(notification);
             }
-            if (_accountStore2 != nullptr) {
-                _accountStore2->Register(notification);
-            }
             return Core::ERROR_NONE;
         }
         uint32_t Unregister(IStore2::INotification* notification) override
@@ -145,52 +142,33 @@ namespace Plugin {
             if (_deviceStore2 != nullptr) {
                 _deviceStore2->Unregister(notification);
             }
-            if (_accountStore2 != nullptr) {
-                _accountStore2->Unregister(notification);
-            }
             return Core::ERROR_NONE;
         }
-        uint32_t SetValue(const IStore2::ScopeType scope, const string& ns, const string& key, const string& value, const uint32_t ttl) override
+        uint32_t SetValue(const IStore2::ScopeType, const string& ns, const string& key, const string& value, const uint32_t ttl) override
         {
-            if (scope == IStore2::ScopeType::ACCOUNT) {
-                if (_accountStore2 != nullptr) {
-                    return _accountStore2->SetValue(scope, ns, key, value, ttl);
-                }
-            } else if (_deviceStore2 != nullptr) {
-                return _deviceStore2->SetValue(scope, ns, key, value, ttl);
+            if (_deviceStore2 != nullptr) {
+                return _deviceStore2->SetValue(IStore2::ScopeType::DEVICE, ns, key, value, ttl);
             }
             return Core::ERROR_NOT_SUPPORTED;
         }
-        uint32_t GetValue(const IStore2::ScopeType scope, const string& ns, const string& key, string& value, uint32_t& ttl) override
+        uint32_t GetValue(const IStore2::ScopeType, const string& ns, const string& key, string& value, uint32_t& ttl) override
         {
-            if (scope == IStore2::ScopeType::ACCOUNT) {
-                if (_accountStore2 != nullptr) {
-                    return _accountStore2->GetValue(scope, ns, key, value, ttl);
-                }
-            } else if (_deviceStore2 != nullptr) {
-                return _deviceStore2->GetValue(scope, ns, key, value, ttl);
+            if (_deviceStore2 != nullptr) {
+                return _deviceStore2->GetValue(IStore2::ScopeType::DEVICE, ns, key, value, ttl);
             }
             return Core::ERROR_NOT_SUPPORTED;
         }
-        uint32_t DeleteKey(const IStore2::ScopeType scope, const string& ns, const string& key) override
+        uint32_t DeleteKey(const IStore2::ScopeType, const string& ns, const string& key) override
         {
-            if (scope == IStore2::ScopeType::ACCOUNT) {
-                if (_accountStore2 != nullptr) {
-                    return _accountStore2->DeleteKey(scope, ns, key);
-                }
-            } else if (_deviceStore2 != nullptr) {
-                return _deviceStore2->DeleteKey(scope, ns, key);
+            if (_deviceStore2 != nullptr) {
+                return _deviceStore2->DeleteKey(IStore2::ScopeType::DEVICE, ns, key);
             }
             return Core::ERROR_NOT_SUPPORTED;
         }
-        uint32_t DeleteNamespace(const IStore2::ScopeType scope, const string& ns) override
+        uint32_t DeleteNamespace(const IStore2::ScopeType, const string& ns) override
         {
-            if (scope == IStore2::ScopeType::ACCOUNT) {
-                if (_accountStore2 != nullptr) {
-                    return _accountStore2->DeleteNamespace(scope, ns);
-                }
-            } else if (_deviceStore2 != nullptr) {
-                return _deviceStore2->DeleteNamespace(scope, ns);
+            if (_deviceStore2 != nullptr) {
+                return _deviceStore2->DeleteNamespace(IStore2::ScopeType::DEVICE, ns);
             }
             return Core::ERROR_NOT_SUPPORTED;
         }
@@ -201,48 +179,38 @@ namespace Plugin {
             }
             return Core::ERROR_NOT_SUPPORTED;
         }
-        uint32_t GetKeys(const IStoreInspector::ScopeType scope, const string& ns, RPC::IStringIterator*& keys) override
+        uint32_t GetKeys(const IStoreInspector::ScopeType, const string& ns, RPC::IStringIterator*& keys) override
         {
-            if (scope == IStoreInspector::ScopeType::DEVICE) {
-                if (_deviceStoreInspector != nullptr) {
-                    return _deviceStoreInspector->GetKeys(scope, ns, keys);
-                }
+            if (_deviceStoreInspector != nullptr) {
+                return _deviceStoreInspector->GetKeys(IStore2::ScopeType::DEVICE, ns, keys);
             }
             return Core::ERROR_NOT_SUPPORTED;
         }
-        uint32_t GetNamespaces(const IStoreInspector::ScopeType scope, RPC::IStringIterator*& namespaces) override
+        uint32_t GetNamespaces(const IStoreInspector::ScopeType, RPC::IStringIterator*& namespaces) override
         {
-            if (scope == IStoreInspector::ScopeType::DEVICE) {
-                if (_deviceStoreInspector != nullptr) {
-                    return _deviceStoreInspector->GetNamespaces(scope, namespaces);
-                }
+            if (_deviceStoreInspector != nullptr) {
+                return _deviceStoreInspector->GetNamespaces(IStore2::ScopeType::DEVICE, namespaces);
             }
             return Core::ERROR_NOT_SUPPORTED;
         }
-        uint32_t GetStorageSizes(const IStoreInspector::ScopeType scope, INamespaceSizeIterator*& storageList) override
+        uint32_t GetStorageSizes(const IStoreInspector::ScopeType, INamespaceSizeIterator*& storageList) override
         {
-            if (scope == IStoreInspector::ScopeType::DEVICE) {
-                if (_deviceStoreInspector != nullptr) {
-                    return _deviceStoreInspector->GetStorageSizes(scope, storageList);
-                }
+            if (_deviceStoreInspector != nullptr) {
+                return _deviceStoreInspector->GetStorageSizes(IStore2::ScopeType::DEVICE, storageList);
             }
             return Core::ERROR_NOT_SUPPORTED;
         }
-        uint32_t SetNamespaceStorageLimit(const IStoreLimit::ScopeType scope, const string& ns, const uint32_t size) override
+        uint32_t SetNamespaceStorageLimit(const IStoreLimit::ScopeType, const string& ns, const uint32_t size) override
         {
-            if (scope == IStoreLimit::ScopeType::DEVICE) {
-                if (_deviceStoreLimit != nullptr) {
-                    return _deviceStoreLimit->SetNamespaceStorageLimit(scope, ns, size);
-                }
+            if (_deviceStoreLimit != nullptr) {
+                return _deviceStoreLimit->SetNamespaceStorageLimit(IStore2::ScopeType::DEVICE, ns, size);
             }
             return Core::ERROR_NOT_SUPPORTED;
         }
-        uint32_t GetNamespaceStorageLimit(const IStoreLimit::ScopeType scope, const string& ns, uint32_t& size) override
+        uint32_t GetNamespaceStorageLimit(const IStoreLimit::ScopeType, const string& ns, uint32_t& size) override
         {
-            if (scope == IStoreLimit::ScopeType::DEVICE) {
-                if (_deviceStoreLimit != nullptr) {
-                    return _deviceStoreLimit->GetNamespaceStorageLimit(scope, ns, size);
-                }
+            if (_deviceStoreLimit != nullptr) {
+                return _deviceStoreLimit->GetNamespaceStorageLimit(IStore2::ScopeType::DEVICE, ns, size);
             }
             return Core::ERROR_NOT_SUPPORTED;
         }
@@ -252,7 +220,6 @@ namespace Plugin {
         IStoreCache* _deviceStoreCache;
         IStoreInspector* _deviceStoreInspector;
         IStoreLimit* _deviceStoreLimit;
-        IStore2* _accountStore2;
         Core::Sink<Store2Notification> _store2Sink;
         std::list<IStore::INotification*> _clients;
         Core::CriticalSection _clientLock;
