@@ -4726,7 +4726,7 @@ namespace WPEFramework {
                 fsrFlag = parameters["fsrFlag"].Boolean();
                 IARM_Bus_MFRLib_FsrFlag_Param_t param;
                 param = fsrFlag;
-                IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
+                IARM_Result_t res = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME,
                                        IARM_BUS_MFRLIB_API_SetFsrFlag, (void *)&param,
                                        sizeof(param));
                 if (IARM_RESULT_SUCCESS == res) {
@@ -4736,7 +4736,7 @@ namespace WPEFramework {
                 }
             }
 
-            return status;
+            returnResponse(status);
         }
 
         /***
@@ -4751,7 +4751,7 @@ namespace WPEFramework {
             bool fsrFlag = 0;
             bool status = false;
             IARM_Bus_MFRLib_FsrFlag_Param_t param;
-            IARM_Result_t res = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
+            IARM_Result_t res = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME,
                                   IARM_BUS_MFRLIB_API_GetFsrFlag, (void *)&param,
                                   sizeof(param));
             if (IARM_RESULT_SUCCESS == res) {
@@ -4761,7 +4761,7 @@ namespace WPEFramework {
                 status = false;
             }
             response["fsrFlag"] = fsrFlag;
-            return status;
+            returnResponse(status);
         }
 
 
