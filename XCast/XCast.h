@@ -1,6 +1,6 @@
-/**
- * If not stated otherwise in this file or this component's LICENSE
- * file the following copyright and licenses apply:
+/*
+ * If not stated otherwise in this file or this component's LICENSE file the
+ * following copyright and licenses apply:
  *
  * Copyright 2020 RDK Management
  *
@@ -15,121 +15,158 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- **/
+ */
+
+/**
+ * @file XCast.h
+ * @brief Thunder Plugin based Implementation for TTS service API's (RDK-27957).
+ */
+
+/**
+  @mainpage XCast
+
+  <b>XCast</b> XCast Thunder Service provides APIs for the arbitrators
+  * (ex: Native application such as Cobalt) to use TTS resource.
+  */
 
 #pragma once
 
-#include <iostream>
-#include <mutex>
-
-#include "tptimer.h"
 #include "Module.h"
+#include <interfaces/IXCast.h>
+#include "tracing/Logging.h"
+#include "tptimer.h"
 #include "RtNotifier.h"
 #include "libIBus.h"
 #include "libIBusDaemon.h"
 #include "pwrMgr.h"
 #include "XCastCommon.h"
-
-using namespace std;
+#include <mutex>
+#include <map>
+#include "UtilsLogging.h"
 
 namespace WPEFramework {
-
 namespace Plugin {
-// This is a server for a JSONRPC communication channel.
-// For a plugin to be capable to handle JSONRPC, inherit from PluginHost::JSONRPC.
-// By inheriting from this class, the plugin realizes the interface PluginHost::IDispatcher.
-// This realization of this interface implements, by default, the following methods on this plugin
-// - exists
-// - register
-// - unregister
-// Any other methood to be handled by this plugin  can be added can be added by using the
-// templated methods Register on the PluginHost::JSONRPC class.
-// As the registration/unregistration of notifications is realized by the class PluginHost::JSONRPC,
-// this class exposes a public method called, Notify(), using this methods, all subscribed clients
-// will receive a JSONRPC message as a notification, in case this method is called.
-class XCast : public PluginHost::IPlugin, public PluginHost::JSONRPC, public RtNotifier {
-private:
-    
-    // We do not allow this plugin to be copied !!
-    XCast(const XCast&) = delete;
-    XCast& operator=(const XCast&) = delete;
-    
-    //Begin methods
-    uint32_t getApiVersionNumber(const JsonObject& parameters, JsonObject& response);
-    uint32_t applicationStateChanged(const JsonObject& parameters, JsonObject& response);
-    uint32_t setEnabled(const JsonObject& parameters, JsonObject& response);
-    uint32_t getEnabled(const JsonObject& parameters, JsonObject& response);
-    uint32_t setStandbyBehavior(const JsonObject& parameters, JsonObject& response);
-    uint32_t getStandbyBehavior(const JsonObject& parameters, JsonObject& response);
-    uint32_t setFriendlyName(const JsonObject& parameters, JsonObject& response);
-    uint32_t getFriendlyName(const JsonObject& parameters, JsonObject& response);
-    uint32_t registerApplications(const JsonObject& parameters, JsonObject& response);
-    uint32_t unregisterApplications(const JsonObject& parameters, JsonObject& response);
-    uint32_t getProtocolVersion(const JsonObject& parameters, JsonObject& response);
-    //End methods
-    
-    //Begin events
-    
-    //End events
-public:
-    XCast();
-    virtual ~XCast();
-    //Build QueryInterface implementation, specifying all possible interfaces to be returned.
-    BEGIN_INTERFACE_MAP(XCast)
-    INTERFACE_ENTRY(PluginHost::IPlugin)
-    INTERFACE_ENTRY(PluginHost::IDispatcher)
-    END_INTERFACE_MAP
-    //IPlugin methods
-    virtual const string Initialize(PluginHost::IShell* service) override;
-    virtual void Deinitialize(PluginHost::IShell* service) override;
-    virtual string Information() const override;
-    
-    virtual void onRtServiceDisconnected(void) override;
-    virtual void onXcastApplicationLaunchRequest(string appName, string parameter) override;
-    virtual void onXcastApplicationLaunchRequestWithLaunchParam (string appName,
-                    string strPayLoad, string strQuery, string strAddDataUrl) override;
-    virtual void onXcastApplicationStopRequest(string appName, string appID) override;
-    virtual void onXcastApplicationHideRequest(string appName, string appID) override;
-    virtual void onXcastApplicationResumeRequest(string appName, string appID) override;
-    virtual void onXcastApplicationStateRequest(string appName, string appID) override;
-private:
-    /**
-     * Whether Cast service is enabled by RFC
-     */
-    static bool isCastEnabled;
-    static bool m_xcastEnable;
-    static IARM_Bus_PWRMgr_PowerState_t m_powerState;
-    uint32_t m_apiVersionNumber;
-    bool m_isDynamicRegistrationsRequired;
-    mutex m_appConfigMutex;
-    WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> * m_SystemPluginObj = NULL;
-    PluginHost::IShell *m_CurrentService;
-    std::vector<DynamicAppConfig*> m_appConfigCache;
-    static string m_friendlyName;
-    static bool m_standbyBehavior;
-    static bool m_enableStatus;
-    //Timer related variables and functions
-    TpTimer m_locateCastTimer;
-    void InitializeIARM();
-    void DeinitializeIARM();
-    //Internal methods
-    void onLocateCastTimer();
-    void getUrlFromAppLaunchParams (const char *app_name, const char *payload, const char *query_string, const char *additional_data_url, char *url);
-    bool getEntryFromAppLaunchParamList (const char* appName, DynamicAppConfig& retAppConfig);
-    void dumpDynamicAppConfigCache(string strListName, std::vector<DynamicAppConfig*> appConfigList);
-    bool deleteFromDynamicAppCache(JsonArray applications);
-    bool deleteFromDynamicAppCache(vector<string>& appsToDelete);
-    void updateDynamicAppCache(JsonArray applications);
-    void getSystemPlugin();
-    int updateSystemFriendlyName();
-    void onFriendlyNameUpdateHandler(const JsonObject& parameters);
+    class XCast: public PluginHost::IPlugin, public PluginHost::JSONRPC {
+    public:
+        class Notification : public RPC::IRemoteConnection::INotification,
+                             public Exchange::IXCast::INotification {
+            private:
+                Notification() = delete;
+                Notification(const Notification&) = delete;
+                Notification& operator=(const Notification&) = delete;
 
-    /**
-     * Check whether the xdial service is allowed in this device.
-     */
-    static bool checkRFCServiceStatus();
-    static void powerModeChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
-    static void threadPowerModeChangeEvent(void);
-};
+            public:
+                explicit Notification(XCast* parent)
+                    : _parent(*parent) {
+                    ASSERT(parent != nullptr);
+                }
+
+                virtual ~Notification() {
+                }
+
+            public:
+                virtual void onApplicationLaunchRequestWithLaunchParam(const string& appName, const string& strPayLoad, const string& strQuery, const string& strAddDataUrl) override;
+                virtual void onApplicationLaunchRequest(const string& appName, const string& parameter) override;
+				virtual void onApplicationStopRequest(const string& appName, const string& appID) override;
+				virtual void onApplicationHideRequest(const string& appName, const string& appID) override;
+				virtual void onApplicationStateRequest(const string& appName, const string& appID) override;
+				virtual void onApplicationResumeRequest(const string& appName, const string& appID) override;
+                virtual void Activated(RPC::IRemoteConnection* /* connection */) final
+                {
+                    LOGINFO("XCast::Notification::Activated - %p", this);
+                }
+
+                virtual void Deactivated(RPC::IRemoteConnection* connection) final
+                {
+                    LOGINFO("XCast::Notification::Deactivated - %p", this);
+                    _parent.Deactivated(connection);
+                }
+
+                BEGIN_INTERFACE_MAP(Notification)
+                INTERFACE_ENTRY(Exchange::IXCast::INotification)
+                INTERFACE_ENTRY(RPC::IRemoteConnection::INotification)
+                END_INTERFACE_MAP
+
+            private:
+                XCast& _parent;
+        };
+
+        BEGIN_INTERFACE_MAP(XCast)
+        INTERFACE_ENTRY(PluginHost::IPlugin)
+        INTERFACE_ENTRY(PluginHost::IDispatcher)
+        INTERFACE_AGGREGATE(Exchange::IXCast, _xcast)
+        END_INTERFACE_MAP
+
+    public:
+        XCast();
+        virtual ~XCast();
+        virtual const string Initialize(PluginHost::IShell* service) override;
+        virtual void Deinitialize(PluginHost::IShell* service) override;
+        virtual string Information() const override { return {}; }
+
+    private:
+        // We do not allow this plugin to be copied !!
+        XCast(const XCast&) = delete;
+        XCast& operator=(const XCast&) = delete;
+
+        void RegisterAll();
+
+        void Deactivated(RPC::IRemoteConnection* connection);
+        //Begin methods
+        uint32_t getApiVersionNumber(const JsonObject& parameters, JsonObject& response);
+        uint32_t applicationStateChanged(const JsonObject& parameters, JsonObject& response);
+        uint32_t setEnabled(const JsonObject& parameters, JsonObject& response);
+        uint32_t getEnabled(const JsonObject& parameters, JsonObject& response);
+        uint32_t setStandbyBehavior(const JsonObject& parameters, JsonObject& response);
+        uint32_t getStandbyBehavior(const JsonObject& parameters, JsonObject& response);
+        uint32_t setFriendlyName(const JsonObject& parameters, JsonObject& response);
+        uint32_t getFriendlyName(const JsonObject& parameters, JsonObject& response);
+        uint32_t registerApplications(const JsonObject& parameters, JsonObject& response);
+        uint32_t unregisterApplications(const JsonObject& parameters, JsonObject& response);
+        uint32_t getProtocolVersion(const JsonObject& parameters, JsonObject& response);
+        uint32_t registerApplicationsInternal(std::vector<DynamicAppConfig*> appConfigEntries);
+        //End methods
+        /**
+         * Whether Cast service is enabled by RFC
+         */
+        static bool m_xcastEnable;
+        static IARM_Bus_PWRMgr_PowerState_t m_powerState;
+        bool m_isDynamicRegistrationsRequired;
+        mutex m_appConfigMutex;
+        WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> * m_SystemPluginObj = NULL;
+        std::vector<DynamicAppConfig*> m_appConfigCache;
+        static string m_friendlyName;
+        static bool m_standbyBehavior;
+        //Timer related variables and functions
+        TpTimer m_locateCastTimer;
+        void InitializeIARM();
+        void DeinitializeIARM();
+        //Internal methods
+        void onLocateCastTimer();
+        void getUrlFromAppLaunchParams (const char *app_name, const char *payload, const char *query_string, const char *additional_data_url, char *url);
+        bool getEntryFromAppLaunchParamList (const char* appName, DynamicAppConfig& retAppConfig);
+        void dumpDynamicAppConfigCache(string strListName, std::vector<DynamicAppConfig*> appConfigList);
+        bool deleteFromDynamicAppCache(JsonArray applications);
+        bool deleteFromDynamicAppCache(vector<string>& appsToDelete);
+        void updateDynamicAppCache(JsonArray applications);
+        void getSystemPlugin();
+        int updateSystemFriendlyName();
+        void onFriendlyNameUpdateHandler(const JsonObject& parameters);
+
+        /**
+         * Check whether the xdial service is allowed in this device.
+         */
+        static void powerModeChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+        static void threadPowerModeChangeEvent(void);
+    private:
+        uint8_t _skipURL{};
+        uint32_t _connectionId{};
+        PluginHost::IShell* _service{};
+        Exchange::IXCast* _xcast{};
+        Core::Sink<Notification> _notification;
+        uint32_t m_apiVersionNumber;
+        friend class Notification;
+    };
+
 } // namespace Plugin
 } // namespace WPEFramework

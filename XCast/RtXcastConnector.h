@@ -22,21 +22,21 @@
 #include <iostream>
 #include <list>
 
-#include <rtRemote.h>
-#include <rtObject.h>
-#include <rtError.h>
 #include "RtNotifier.h"
 #include "XCastCommon.h"
+#include <xdial/gdialservicecommon.h>
+#include <xdial/gdialservice.h>
 using namespace std;
 
 
 /**
  * This is the connector class for interacting with xdial client using rtRemote.
  */
-class RtXcastConnector {
+class RtXcastConnector : public GDialNotifier
+{
 protected:
-    RtXcastConnector():m_runEventThread(true) ,m_IsDefaultDynamicAppListEnabled(false){
-        }
+    //RtXcastConnector():m_runEventThread(true){}
+    RtXcastConnector(){}
 public:
     virtual ~RtXcastConnector();
     /**
@@ -72,11 +72,18 @@ public:
      *Request the single instance of this class
      */
     static  RtXcastConnector * getInstance();
+
+    virtual void onApplicationLaunchRequest(string appName, string parameter) override;
+    virtual void onApplicationLaunchRequestWithLaunchParam (string appName,string strPayLoad, string strQuery, string strAddDataUrl) override;
+    virtual void onApplicationStopRequest(string appName, string appID) override;
+    virtual void onApplicationHideRequest(string appName, string appID) override;
+    virtual void onApplicationResumeRequest(string appName, string appID) override;
+    virtual void onApplicationStateRequest(string appName, string appID) override;
+
     /**
      *Call back function for rtConnection
      */
-    int connectToRemoteService();
-    bool IsDynamicAppListEnabled();
+    //int connectToRemoteService();
     
     void setService(RtNotifier * service){
         m_observer = service;
@@ -86,27 +93,18 @@ private:
     //RT Connector class
     RtNotifier * m_observer;
     //Event Monitoring thread
-    thread m_eventMtrThread;
+    //thread m_eventMtrThread;
     // Atomic lock
-    mutex m_threadlock;
+    //mutex m_threadlock;
     // Boolean event thread exit condition
-    bool m_runEventThread;
-    bool m_IsDefaultDynamicAppListEnabled;
+    //bool m_runEventThread;
     // Member function to handle RT messages.
-    void processRtMessages();
+    //void processRtMessages();
     bool IsAppEnabled(char* strAppName);
 
     // Class level contracts
     // Singleton instance
     static RtXcastConnector * _instance;
     // Thread main function
-    static void threadRun(RtXcastConnector *rtCtx);
-
-    static rtError onApplicationLaunchRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context);
-    static rtError onApplicationHideRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context);
-    static rtError onApplicationResumeRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context);
-    static rtError onApplicationStateRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context);
-    static rtError onApplicationStopRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context);
-    static rtError onRtServiceByeCallback(int numArgs, const rtValue* args, rtValue* result, void* context);
-    static void remoteDisconnectCallback(void * context);
+    //static void threadRun(RtXcastConnector *rtCtx);
 };
