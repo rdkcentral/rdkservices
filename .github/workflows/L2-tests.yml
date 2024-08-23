@@ -223,6 +223,7 @@ jobs:
           -include ${{github.workspace}}/rdkservices/Tests/mocks/SecurityTokenUtil.h
           -Wall -Werror -Wno-error=format=
           -DUSE_IARMBUS
+          -DDISABLE__SECURITY_TOKEN
           -DENABLE_THERMAL_PROTECTION"
           -DCOMCAST_CONFIG=OFF
           -DCMAKE_DISABLE_FIND_PACKAGE_DS=ON
