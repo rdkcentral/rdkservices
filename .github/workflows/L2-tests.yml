@@ -144,6 +144,7 @@ jobs:
           headers/rdk/iarmmgrs-hal
           headers/systemservices
           headers/systemservices/proc
+          headers/securityagent
           &&
           cd headers
           &&
@@ -165,6 +166,7 @@ jobs:
           systemservices/secure_wrapper.h
           maintenanceMGR.h
           pkg.h
+          securityagent/SecurityTokenUtil.h
           &&
           cp -r /usr/include/gstreamer-1.0/gst /usr/include/glib-2.0/* /usr/lib/x86_64-linux-gnu/glib-2.0/include/* /usr/local/include/trower-base64/base64.h .
 
@@ -218,6 +220,7 @@ jobs:
           -include ${{github.workspace}}/rdkservices/Tests/mocks/Wraps.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/maintenanceMGR.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/pkg.h
+          -include ${{github.workspace}}/rdkservices/Tests/mocks/SecurityTokenUtil.h
           -Wall -Werror -Wno-error=format=
           -DUSE_IARMBUS
           -DENABLE_THERMAL_PROTECTION"
