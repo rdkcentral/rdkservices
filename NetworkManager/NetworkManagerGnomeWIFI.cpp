@@ -172,23 +172,8 @@ namespace WPEFramework
             wifiInfo.m_bssid = (hwaddr != nullptr) ? hwaddr : "-----";
             NMLOG_INFO("bssid: %s", wifiInfo.m_bssid.c_str());
 
-
-            if (freq >= 2400 && freq < 5000) {
-                wifiInfo.m_frequency = Exchange::INetworkManager::WiFiFrequency::WIFI_FREQUENCY_2_4_GHZ;
-                NMLOG_INFO("freq: WIFI_FREQUENCY_2_4_GHZ");
-            }
-            else if (freq >= 5000 && freq < 6000) {
-                wifiInfo.m_frequency =  Exchange::INetworkManager::WiFiFrequency::WIFI_FREQUENCY_5_GHZ;
-                NMLOG_INFO("freq: WIFI_FREQUENCY_5_GHZ");
-            }
-            else if (freq >= 6000) {
-                wifiInfo.m_frequency = Exchange::INetworkManager::WiFiFrequency::WIFI_FREQUENCY_6_GHZ;
-                NMLOG_INFO("freq: WIFI_FREQUENCY_6_GHZ");
-            }
-            else {
-                wifiInfo.m_frequency = Exchange::INetworkManager::WiFiFrequency::WIFI_FREQUENCY_WHATEVER;
-                NMLOG_INFO("freq: No available !");
-            }
+            wifiInfo.m_frequency = static_cast<double>(freq)/1000.0;
+            NMLOG_INFO("frequency: %f", wifiInfo.m_frequency);
 
             wifiInfo.m_rate = std::to_string(bitrate);
             NMLOG_INFO("bitrate : %s kbit/s", wifiInfo.m_rate.c_str());
