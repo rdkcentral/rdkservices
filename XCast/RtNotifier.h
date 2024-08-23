@@ -27,7 +27,7 @@ class RtNotifier
 {
 public:
     
-            virtual void onRtServiceDisconnected(void)=0;
+            //virtual void onRtServiceDisconnected(void)=0;
             virtual void onXcastApplicationLaunchRequest(string appName, string parameter)=0;
             virtual void onXcastApplicationLaunchRequestWithLaunchParam (string appName,
                                         string strPayLoad, string strQuery, string strAddDataUrl)=0;
