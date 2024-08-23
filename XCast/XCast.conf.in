@@ -2,3 +2,19 @@ precondition = ["Platform"]
 callsign = "org.rdk.Xcast"
 autostart = "@PLUGIN_XCAST_AUTOSTART@"
 startuporder = "@PLUGIN_XCAST_STARTUPORDER@"
+
+configuration = JSON()
+
+configuration.add("endpoint", "@PLUGIN_TEXTTOSPEECH_ENDPOINT@")
+configuration.add("secureendpoint", "@PLUGIN_TEXTTOSPEECH_SECURE_ENDPOINT@")
+configuration.add("endpoint_type", "@PLUGIN_TEXTTOSPEECH_ENDPOINT_TYPE@")
+configuration.add("localendpoint", "@PLUGIN_TEXTTOSPEECH_LOCAL_ENDPOINT@")
+configuration.add("speechrate", "@PLUGIN_TEXTTOSPEECH_SPEECHRATE@")
+configuration.add("satplugincallsign", "@PLUGIN_TEXTTOSPEECH_SATPLUGINCALLSIGN@")
+configuration.add("language", "@PLUGIN_TEXTTOSPEECH_LANGUAGE@")
+configuration.add("volume", "@PLUGIN_TEXTTOSPEECH_VOLUME@")
+configuration.add("rate", "@PLUGIN_TEXTTOSPEECH_RATE@")
+
+rootobject = JSON()
+rootobject.add("mode", "@PLUGIN_TEXTTOSPEECH_MODE@")
+configuration.add("root", rootobject)

@@ -31,221 +31,80 @@ using namespace WPEFramework;
 #define EVENT_LOOP_ITERATION_IN_100MS     100000
 
 
-static rtObjectRef xdialCastObj = NULL;
+static gdialService* gdialCastObj = NULL;
 RtXcastConnector * RtXcastConnector::_instance = nullptr;
 
-void RtXcastConnector::remoteDisconnectCallback( void* context) {
-    RtNotifier * observer = static_cast<RtNotifier *> (context);
-    LOGINFO ( "remoteDisconnectCallback: Remote  disconnected... ");
-    observer->onRtServiceDisconnected();
-}
-
-void RtXcastConnector::processRtMessages(){
-    LOGINFO("Entering Event Loop");
-    while(true)
-    {
-        rtError err = rtRemoteProcessSingleItem();
-        if (err != RT_OK && err != RT_ERROR_QUEUE_EMPTY) {
-            LOGERR("Failed to gete item from Rt queue");
-        }
-        {
-            //Queue needs to be deactivated ?
-            lock_guard<mutex> lock(m_threadlock);
-            if (!m_runEventThread ) break;
-        }
-        /*
-         Ideally this should be part of wpe process main message loop,
-         will reconsider once we decide on connectivity with dial server
-        */
-        usleep(EVENT_LOOP_ITERATION_IN_100MS);
-    }
-    LOGINFO("Exiting Event Loop");
-}
-void RtXcastConnector::threadRun(RtXcastConnector *rtCtx){
-        RtXcastConnector * observer = static_cast<RtXcastConnector *> (rtCtx);
-        observer->processRtMessages();
-}
 //XDIALCAST EVENT CALLBACK
 /**
  * Callback function for application launch request from an app
  */
-rtError RtXcastConnector::onApplicationLaunchRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context)
+void RtXcastConnector::onApplicationLaunchRequestWithLaunchParam(string appName,string strPayLoad, string strQuery, string strAddDataUrl)
 {
-    if (numArgs == 1)
+    if ( nullptr != m_observer )
     {
-        RtNotifier * observer = static_cast<RtNotifier *> (context);
-        rtObjectRef appObject = args[0].toObject();
-        rtString appName = appObject.get<rtString>("applicationName");
-        rtString rtparamIsUrl = appObject.get<rtString>("isUrl");
-        if (0 == strcmp(rtparamIsUrl.cString(), "false")) {
+        m_observer->onXcastApplicationLaunchRequestWithLaunchParam(appName,strPayLoad,strQuery,strAddDataUrl);
+    }
+}
 
-            rtString rtPayload = appObject.get<rtString>("payload");
-            rtString rtQuery = appObject.get<rtString>("query");
-            rtString rtAddDataUrl = appObject.get<rtString>("addDataUrl");
-            observer->onXcastApplicationLaunchRequestWithLaunchParam(
-                                         appName.cString(),
-                                         rtPayload.cString(),
-                                         rtQuery.cString(),
-                                         rtAddDataUrl.cString());
+void RtXcastConnector::onApplicationLaunchRequest(string appName, string parameter)
+{
+    if ( nullptr != m_observer )
+    {
+        if (!strcmp(appName.c_str(),"Netflix"))
+        {
+            appName = "NetflixApp";
         }
-        else {
-            if (!strcmp(appName.cString(),"Netflix"))
-                appName = "NetflixApp";
-            rtString rtparams = appObject.get<rtString>("parameters");
-            observer->onXcastApplicationLaunchRequest(appName.cString() , rtparams.cString());
+        m_observer->onXcastApplicationLaunchRequest(appName,parameter);
+    }
+}
+
+void RtXcastConnector::onApplicationStopRequest(string appName, string appID)
+{
+    if ( nullptr != m_observer )
+    {
+        if (!strcmp(appName.c_str(),"Netflix"))
+        {
+            appName = "NetflixApp";
         }
+        m_observer->onXcastApplicationStopRequest(appName,appID);
     }
-    else
-        LOGERR(" *** Error: received unknown event");
-    if (result)
-        *result = rtValue(true);
-    return RT_OK;
-}
-/**
- * Callback function for application stop request from an app
- */
-rtError RtXcastConnector::onApplicationStopRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context)
-{
-    if (numArgs == 1)
-    {
-        RtNotifier * observer = static_cast<RtNotifier *> (context);
-        rtObjectRef appObject = args[0].toObject();
-        rtString appName = appObject.get<rtString>("applicationName");
-        if (!strcmp(appName.cString(),"Netflix"))
-            appName = "NetflixApp";
-        rtString appID = appObject.get<rtString>("applicationId");
-        observer->onXcastApplicationStopRequest(appName.cString(),appID.cString());
-    }
-    else
-        LOGERR(" *** Error: received unknown event" );
-    if (result)
-        *result = rtValue(true);
-    return RT_OK;
-}
-/**
- * Callback function for application hide request from an app
- */
-rtError RtXcastConnector::onApplicationHideRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context)
-{
-    if (numArgs == 1)
-    {
-        RtNotifier * observer = static_cast<RtNotifier *> (context);
-        rtObjectRef appObject = args[0].toObject();
-        rtString appName = appObject.get<rtString>("applicationName");
-        if (!strcmp(appName.cString(),"Netflix"))
-            appName = "NetflixApp";
-        rtString appID = appObject.get<rtString>("applicationId");
-        observer->onXcastApplicationHideRequest(appName.cString(), appID.cString());
-    }
-    else
-        LOGERR(" *** Error: received unknown event");
-    
-    if (result)
-        *result = rtValue(true);
-    
-    return RT_OK;
-    
-}
-/**
- * Callback function for application state request from an app
- */
-rtError RtXcastConnector::onApplicationStateRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context)
-{
-    if (numArgs == 1)
-    {
-        RtNotifier * observer = static_cast<RtNotifier *> (context);
-        rtObjectRef appObject = args[0].toObject();
-        rtString appName = appObject.get<rtString>("applicationName");
-        if (!strcmp(appName.cString(),"Netflix"))
-            appName = "NetflixApp";
-        
-        rtString appID = appObject.get<rtString>("applicationId");
-        observer->onXcastApplicationStateRequest(appName.cString(),appID.cString());
-    }
-    else
-        LOGERR(" *** Error: received unknown event");
-    
-    if (result)
-        *result = rtValue(true);
-    
-    return RT_OK;
-}
-/**
- * Callback function for application resume request from an app
- */
-rtError RtXcastConnector::onApplicationResumeRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context)
-{
-    if (numArgs == 1)
-    {
-        RtNotifier * observer = static_cast<RtNotifier *> (context);
-        rtObjectRef appObject = args[0].toObject();
-        rtString appName = appObject.get<rtString>("applicationName");
-        if (!strcmp(appName.cString(),"Netflix"))
-            appName = "NetflixApp";
-        
-        rtString appID = appObject.get<rtString>("applicationId");
-        observer->onXcastApplicationResumeRequest(appName.cString(),appID.cString());
-        
-    }
-    else
-        LOGERR(" *** Error: received unknown event");
-    
-    if (result)
-        *result = rtValue(true);
-    
-    return RT_OK;
-}
-/**
- * Callback function when remote service exits
- */
-rtError RtXcastConnector::onRtServiceByeCallback(int numArgs, const rtValue* args, rtValue* result, void* context)
-{
-    if (numArgs == 1)
-    {
-        rtObjectRef appObject = args[0].toObject();
-        rtString serviceName = appObject.get<rtString>("serviceName");
-        LOGINFO("Received RtService Bye Event! Service: %s", serviceName.cString());
-    }
-    else
-        LOGERR(" *** Error: received unknown event");
-    
-    if (result)
-        *result = rtValue(true);
-    
-    return RT_OK;
-    
 }
 
-//Timer Functions
-//Timer Fired when rt remote connectivity is broken.
-int RtXcastConnector::connectToRemoteService()
+void RtXcastConnector::onApplicationHideRequest(string appName, string appID)
 {
-    rtError err = RT_ERROR;
-    
-    const char * serviceName = "com.comcast.xdialcast";
-    
-    LOGINFO("connectToRemoteService entry " );
-    err = rtRemoteLocateObject(rtEnvironmentGetGlobal(), serviceName, xdialCastObj, 0, &RtXcastConnector::remoteDisconnectCallback, m_observer);
-    if(err == RT_OK && xdialCastObj != NULL)
+    if ( nullptr != m_observer )
     {
-        rtError e = xdialCastObj.send("on", "onApplicationLaunchRequest" , new rtFunctionCallback(RtXcastConnector::onApplicationLaunchRequestCallback, m_observer));
-        LOGINFO("Registered onApplicationLaunchRequest ; response %d" ,e );
-        e = xdialCastObj.send("on", "onApplicationStopRequest" , new rtFunctionCallback(RtXcastConnector::onApplicationStopRequestCallback, m_observer));
-        LOGINFO("Registered onApplicationStopRequest %d", e );
-        e = xdialCastObj.send("on", "onApplicationHideRequest" , new rtFunctionCallback( RtXcastConnector::onApplicationHideRequestCallback, m_observer));
-        LOGINFO("Registered onApplicationHideRequest %d", e );
-        e = xdialCastObj.send("on", "onApplicationResumeRequest" , new rtFunctionCallback( RtXcastConnector::onApplicationResumeRequestCallback, m_observer));
-        LOGINFO("Registered onApplicationResumeRequest %d", e );
-        e = xdialCastObj.send("on", "onApplicationStateRequest" , new rtFunctionCallback( RtXcastConnector::onApplicationStateRequestCallback, m_observer));
-        LOGINFO("Registed onApplicationStateRequest %d", e );
-        e = xdialCastObj.send("on", "bye" , new rtFunctionCallback(RtXcastConnector::onRtServiceByeCallback, m_observer));
-        LOGINFO("Registed rtService bye event %d", e );
+        if (!strcmp(appName.c_str(),"Netflix"))
+        {
+            appName = "NetflixApp";
+        }
+        m_observer->onXcastApplicationHideRequest(appName,appID);
     }
-    else
-        LOGINFO("response of rtRemoteLocateObject %d ",   err);
-    return (err == RT_OK) ? 0 : 1;
 }
 
+void RtXcastConnector::onApplicationResumeRequest(string appName, string appID)
+{
+    if ( nullptr != m_observer )
+    {
+        if (!strcmp(appName.c_str(),"Netflix"))
+        {
+            appName = "NetflixApp";
+        }
+        m_observer->onXcastApplicationResumeRequest(appName,appID);
+    }
+}
+
+void RtXcastConnector::onApplicationStateRequest(string appName, string appID)
+{
+    if ( nullptr != m_observer )
+    {
+        if (!strcmp(appName.c_str(),"Netflix"))
+        {
+            appName = "NetflixApp";
+        }
+        m_observer->onXcastApplicationStateRequest(appName,appID);
+    }
+}
 
 RtXcastConnector::~RtXcastConnector()
 {
@@ -255,30 +114,16 @@ RtXcastConnector::~RtXcastConnector()
 
 bool RtXcastConnector::initialize()
 {
-    rtError err;
-    rtRemoteEnvironment* env = rtEnvironmentGetGlobal();
-    err = rtRemoteInit(env);
-    if(err != RT_OK){
-        LOGINFO("Xcastservice: rtRemoteInit failed : Reason %s", rtStrError(err));
-    }
-    else {
-        lock_guard<mutex> lock(m_threadlock);
-        m_runEventThread = true;
-        m_eventMtrThread = std::thread(threadRun, this);
-    }
-    return (err == RT_OK) ? true:false;
+    // @@@ TODO for GDial command line arguments @@@
+    std::vector<std::string> gdial_args;
+    gdialCastObj = gdialService::getInstance(this,gdial_args);
+    return (nullptr != gdialCastObj) ? true:false;
 }
 void RtXcastConnector::shutdown()
 {
     LOGINFO("Shutting down rtRemote connectivity");
-    {
-        lock_guard<mutex> lock(m_threadlock);
-        m_runEventThread = false;
-    }
-    if (m_eventMtrThread.joinable())
-        m_eventMtrThread.join();    
-
-    rtRemoteShutdown(rtEnvironmentGetGlobal());
+    gdialService::destroyInstance();
+    gdialCastObj = nullptr;
     if(RtXcastConnector::_instance != nullptr)
     {
         delete RtXcastConnector::_instance;
@@ -290,108 +135,84 @@ int RtXcastConnector::applicationStateChanged( string app, string state, string 
 {
     int status = 0;
     LOGINFO("XcastService::ApplicationStateChanged  ARGS = %s : %s : %s : %s ", app.c_str(), id.c_str() , state.c_str() , error.c_str());
-    if(xdialCastObj != NULL)
+    if(gdialCastObj != NULL)
     {
-        rtObjectRef e = new rtMapObject;
-        e.set("applicationName", app.c_str());
-        e.set("applicationId", id.c_str());
-        e.set("state",state.c_str());
-        e.set("error",error.c_str());
-        xdialCastObj.send("onApplicationStateChanged", e);
+        gdialCastObj->ApplicationStateChanged( app, state, id, error);
         status = 1;
     }
     else
-        LOGINFO(" xdialCastObj is NULL ");
+        LOGINFO(" gdialCastObj is NULL ");
     return status;
 }//app && state not empty
+
 void RtXcastConnector::enableCastService(string friendlyname,bool enableService)
 {
     LOGINFO("XcastService::enableCastService ARGS = %s : %d ", friendlyname.c_str(), enableService);
-    if(xdialCastObj != NULL)
+    if(gdialCastObj != NULL)
     {
-        rtObjectRef e = new rtMapObject;
-        e.set("activation",(enableService ? "true": "false"));
-        e.set("friendlyname",friendlyname.c_str());
-        int ret = xdialCastObj.send("onActivationChanged", e);
-        LOGINFO("XcastService send onActivationChanged:%d",ret);
+        std::string activation = enableService ? "true": "false";
+        gdialCastObj->ActivationChanged( activation, friendlyname);
+        LOGINFO("XcastService send onActivationChanged");
     }
     else
-        LOGINFO(" xdialCastObj is NULL ");
-    
+        LOGINFO(" gdialCastObj is NULL ");    
 }
 
 void RtXcastConnector::updateFriendlyName(string friendlyname)
 {
     LOGINFO("XcastService::updateFriendlyName ARGS = %s ", friendlyname.c_str());
-    if(xdialCastObj != NULL)
+    if(gdialCastObj != NULL)
     {
-        rtObjectRef rtObj = new rtMapObject;
-        rtObj.set("friendlyname",friendlyname.c_str());
-        int ret = xdialCastObj.send("onFriendlyNameChanged", rtObj);
-        LOGINFO("XcastService send onFriendlyNameChanged ret:%d",ret);
+        gdialCastObj->FriendlyNameChanged( friendlyname);
+        LOGINFO("XcastService send onFriendlyNameChanged");
     }
     else
-        LOGINFO(" xdialCastObj is NULL ");
+        LOGINFO(" gdialCastObj is NULL ");
 }
 
 string RtXcastConnector::getProtocolVersion(void)
 {
     LOGINFO("XcastService::getProtocolVersion ");
-    rtString strVersion ;
-    int ret = 0;
-    if(xdialCastObj != NULL && (xdialCastObj.sendReturns("getProtocolVersion", strVersion) == RT_OK))
+    std::string strVersion;
+    if(gdialCastObj != NULL)
     {
-            LOGINFO("XcastService getProtocolVersion ret:%d version:%s ",ret,strVersion.cString());
+        strVersion = gdialCastObj->getProtocolVersion();
+        LOGINFO("XcastService getProtocolVersion version:%s ",strVersion.c_str());
     }
     else
     {
-        LOGINFO(" XcastService getProtocolVersion  xdialCastObj is NULL sendReturns ret :%d not RT_OK so returns 2.1",ret);
-	strVersion = "2.1";
+        LOGINFO(" XcastService getProtocolVersion gdialCastObj is NULL so returns 2.1");
+	    strVersion = "2.1";
     }
-    return strVersion.cString();
+    return strVersion;
 }
 
 void RtXcastConnector::registerApplications(std::vector<DynamicAppConfig*>& appConfigList)
 {
-    LOGINFO("XcastService::registerApplications");
+    LOGINFO("XcastService::RegisterAppEntryList");
 
-    rtArrayObject *appReqList = new rtArrayObject;
-    for (DynamicAppConfig* pDynamicAppConfig : appConfigList) {
-        //populate the rtParam here
-        rtObjectRef appReq = new rtMapObject;
+    RegisterAppEntryList *appReqList = new RegisterAppEntryList;
 
-        rtArrayObject *appNameList = new rtArrayObject;
-        appNameList->pushBack (pDynamicAppConfig->appName);
-        appReq.set ("Names", rtValue(appNameList));
+    for (DynamicAppConfig* pDynamicAppConfig : appConfigList)
+    {
+        RegisterAppEntry* appReq = new RegisterAppEntry;
+        
+        appReq->Names = pDynamicAppConfig->appName;
+        appReq->prefixes = pDynamicAppConfig->prefixes;
+        appReq->cors = pDynamicAppConfig->cors;
+        appReq->allowStop = pDynamicAppConfig->allowStop;
 
-        if ('\0' != pDynamicAppConfig->prefixes[0]) {
-            rtArrayObject *appPrefixes = new rtArrayObject;
-            appPrefixes->pushBack (pDynamicAppConfig->prefixes);
-            appReq.set ("prefixes", rtValue(appPrefixes));
-        }
-
-        if ('\0' != pDynamicAppConfig->cors[0]) {
-            rtArrayObject *appCors = new rtArrayObject;
-            appCors->pushBack (pDynamicAppConfig->cors);
-            appReq.set ("cors", rtValue(appCors));
-        }
-
-        rtObjectRef appProp = new rtMapObject;
-        appProp.set("allowStop",pDynamicAppConfig->allowStop);
-        appReq.set ("properties", rtValue(appProp));
-
-        appReqList->pushBack(rtValue(appReq));
+        appReqList->pushBack(appReq);
     }
 
-    if(xdialCastObj != NULL)
+    if(gdialCastObj != NULL)
     {
-        int ret = xdialCastObj.send("onRegisterApplications", appReqList);
-        LOGINFO("XcastService send onRegisterApplications ret:%d",ret);
+        gdialCastObj->RegisterApplications(appReqList);
+        LOGINFO("XcastService send onRegisterAppEntryList");
     }
     else
     {
-        LOGINFO(" xdialCastObj is NULL ");
-        delete appReqList;
+        LOGINFO(" gdialCastObj is NULL ");
     }
 }
 
@@ -402,29 +223,6 @@ RtXcastConnector * RtXcastConnector::getInstance()
         RtXcastConnector::_instance = new RtXcastConnector();
     }
     return RtXcastConnector::_instance;
-}
-
-bool RtXcastConnector::IsDynamicAppListEnabled()
-{
-    bool ret = false;
-#ifdef RFC_ENABLED
-    RFC_ParamData_t param;
-    WDMP_STATUS wdmpStatus = getRFCParameter(const_cast<char *>("Xcast"), "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.XDial.DynamicAppList", &param);
-    if (wdmpStatus == WDMP_SUCCESS || wdmpStatus == WDMP_ERR_DEFAULT_VALUE)
-    {
-        if( param.type == WDMP_BOOLEAN )
-        {
-            if(strncasecmp(param.value,"true",4) == 0 )
-                ret = true;
-        }
-    }
-
-    LOGINFO(" IsDynamicAppListEnabled enabled ? %d , call value %d ", ret, wdmpStatus);
-#else
-    ret = true;
-#endif //RFC_ENABLED
-
-    return ret;
 }
 
 bool RtXcastConnector::IsAppEnabled(char* strAppName)
