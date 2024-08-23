@@ -73,7 +73,6 @@ target_include_directories(${MODULE_NAME} PRIVATE ../../../helpers)
 target_include_directories(${MODULE_NAME} PRIVATE ./)
 target_include_directories(${MODULE_NAME} PRIVATE ../../mocks)
 target_include_directories(${MODULE_NAME} PRIVATE ../../mocks/devicesettings)
-target_include_directories(${MODULE_NAME} PRIVATE ../../mocks/securityagent)
 target_include_directories(${MODULE_NAME} PRIVATE ../../../Network)
  
 install(TARGETS ${MODULE_NAME}
