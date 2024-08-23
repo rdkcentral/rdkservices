@@ -869,7 +869,7 @@ namespace WPEFramework
                 response["bssid"] = ssidInfo.m_bssid;
                 response["securityMode"] = static_cast <int> (ssidInfo.m_securityMode);
                 response["signalStrength"] = ssidInfo.m_signalStrength;
-                response["frequency"] = static_cast <int> (ssidInfo.m_frequency);
+                response["frequency"] = ssidInfo.m_frequency;
                 response["rate"] = ssidInfo.m_rate;
                 response["noise"] = ssidInfo.m_noise;
                 response["success"] = true;
