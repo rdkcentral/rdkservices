@@ -55,6 +55,10 @@ namespace WPEFramework
         NetworkManagerImplementation::~NetworkManagerImplementation()
         {
             LOG_ENTRY_FUNCTION();
+            if(m_registrationThread.joinable())
+            {
+                m_registrationThread.join();
+            }
         }
 
         /**
