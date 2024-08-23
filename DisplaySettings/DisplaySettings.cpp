@@ -3031,7 +3031,6 @@ namespace WPEFramework {
                         }
                         //Set the new volume level
                         aPort.setLevel(level); 
-
                         if(current_volumelevel != (int)level)
                         {
                             JsonObject params;
