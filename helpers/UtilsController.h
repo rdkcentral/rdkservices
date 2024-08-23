@@ -3,7 +3,9 @@
 #include <mutex>
 #include <curl/curl.h>
 
+#ifndef DISABLE__SECURITY_TOKEN
 #include <securityagent/SecurityTokenUtil.h>
+#endif
 
 // std
 #include <string>
@@ -34,13 +36,17 @@ namespace Utils
             }
 
             sThunderSecurityChecked = true;
+
+#ifdef DISABLE__SECURITY_TOKEN
+            token = sToken;
+#else
             if (!isThunderSecurityConfigured())
             {
                 LOGINFO("Thunder Security is not enabled. Not getting token");
                 token = sToken;
                 return;
             }
-            
+
             unsigned char buffer[MAX_STRING_LENGTH] = {0};
             int ret = GetSecurityToken(MAX_STRING_LENGTH, buffer);
             if (ret < 0)
@@ -53,8 +59,10 @@ namespace Utils
                 token = (char *)buffer;
                 sToken = token;
             }
+#endif
         }
 
+#ifndef DISABLE__SECURITY_TOKEN
         static size_t writeCurlResponse(void *ptr, size_t size, size_t nmemb, string stream)
         {
             size_t realsize = size * nmemb;
@@ -113,6 +121,8 @@ namespace Utils
             }
             return configured;
         }
+#endif
+  
     };
 
     // Thunder Plugin Communication
