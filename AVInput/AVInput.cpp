@@ -1378,7 +1378,7 @@ uint32_t AVInput::getHdmiVersionWrapper(const JsonObject& parameters, JsonObject
                 returnResponse(false);
         }
 
-        dsHdmiCapabilityVersion_t hdmiCapVersion = HDMI_CAPABILITY_VERSION_MAX;
+        dsHdmiMaxCapabilityVersion_t hdmiCapVersion = HDMI_COMPATIBILITY_VERSION_MAX;
 
         try {
                 device::HdmiInput::getInstance().getHdmiVersion(portId, &(hdmiCapVersion));
@@ -1391,13 +1391,13 @@ uint32_t AVInput::getHdmiVersionWrapper(const JsonObject& parameters, JsonObject
 
 
         switch ((int)hdmiCapVersion){
-        case HDMI_CAPABILITY_VERSION_14:
+        case HDMI_COMPATIBILITY_VERSION_14:
                 response["HdmiCapabilityVersion"] = "1.4";
                 break;
-        case HDMI_CAPABILITY_VERSION_20:
+        case HDMI_COMPATIBILITY_VERSION_20:
                 response["HdmiCapabilityVersion"] = "2.0";
                 break;
-        case HDMI_CAPABILITY_VERSION_21:
+        case HDMI_COMPATIBILITY_VERSION_21:
                 response["HdmiCapabilityVersion"] = "2.1";
                 break;
         }
