@@ -45,6 +45,7 @@ add_executable(${PROJECT_NAME}
         ../mocks/rdkshell.cpp
 	../mocks/opkgMock.cpp
 	../mocks/WpaCtrl.cpp
+        ../mocks/SecurityTokenUtil.cpp
         )
 
 set_source_files_properties(
