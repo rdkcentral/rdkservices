@@ -167,6 +167,7 @@ jobs:
           headers/rdk/iarmmgrs-hal
           headers/ccec/drivers
           headers/network
+          headers/securityagent
           &&
           cd headers
           &&
@@ -208,6 +209,7 @@ jobs:
           pkg.h
           secure_wrapper.h
           wpa_ctrl.h
+          securityagent/SecurityTokenUtil.h
           &&
           cp -r /usr/include/gstreamer-1.0/gst /usr/include/glib-2.0/* /usr/lib/x86_64-linux-gnu/glib-2.0/include/* /usr/local/include/trower-base64/base64.h .
 
@@ -243,6 +245,7 @@ jobs:
           -include ${{github.workspace}}/rdkservices/Tests/mocks/pkg.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/secure_wrappermock.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/WpaCtrl.h
+          -include ${{github.workspace}}/rdkservices/Tests/mocks/SecurityTokenUtil.h
           -Wall -Werror -Wno-error=format=
           -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog
           -DENABLE_TELEMETRY_LOGGING
