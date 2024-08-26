@@ -1,0 +1,23 @@
+precondition = ["Platform"]
+callsign = "org.rdk.Analytics"
+autostart = "@PLUGIN_ANALYTICS_AUTOSTART@"
+startuporder = "@PLUGIN_ANALYTICS_STARTUPORDER@"
+
+configuration = JSON()
+
+configuration.add("deviceosname", "@PLUGIN_ANALYTICS_DEVICE_OS_NAME@")
+
+if boolean("@PLUGIN_ANALYTICS_SIFT_BACKEND_ENABLED@"):
+    sift = JSON()
+    sift.add("commonschema", "@PLUGIN_ANALYTICS_SIFT_COMMON_SCHEMA@")
+    sift.add("env", "@PLUGIN_ANALYTICS_SIFT_ENV@")
+    sift.add("productname", "@PLUGIN_ANALYTICS_SIFT_PRODUCT_NAME@")
+    sift.add("loggername", "@PLUGIN_ANALYTICS_SIFT_LOGGER_NAME@")
+    sift.add("loggerversion", "@PLUGIN_ANALYTICS_SIFT_LOGGER_VERSION@")
+    sift.add("maxrandomisationwindowtime", "@PLUGIN_ANALYTICS_SIFT_MAX_RANDOMISATION_WINDOW_TIME@")
+    sift.add("maxeventsinpost", "@PLUGIN_ANALYTICS_SIFT_MAX_EVENTS_IN_POST@")
+    sift.add("maxretries", "@PLUGIN_ANALYTICS_SIFT_MAX_RETRIES@")
+    sift.add("minretryperiod", "@PLUGIN_ANALYTICS_SIFT_MIN_RETRY_PERIOD@")
+    sift.add("maxretryperiod", "@PLUGIN_ANALYTICS_SIFT_MAX_RETRY_PERIOD@")
+    sift.add("exponentialperiodicfactor", "@PLUGIN_ANALYTICS_SIFT_EXPONENTIAL_PERIODIC_FACTOR@")
+    configuration.add("sift", sift)
