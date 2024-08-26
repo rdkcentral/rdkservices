@@ -17,6 +17,10 @@ All notable changes to this RDK Service will be documented in this file.
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
 
+## [1.0.3] - 2024-08-26
+### Fixed
+- Updated api documentation according to interface.
+
 ## [1.0.2] - 2024-07-08
 ### Fixed
 - UserSettings Plugin missing default values updated.
