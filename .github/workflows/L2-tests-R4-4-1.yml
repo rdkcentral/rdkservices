@@ -250,7 +250,7 @@ jobs:
           -include ${{github.workspace}}/rdkservices/Tests/mocks/SecurityTokenUtil.h
           -Werror -Wall -Wunused-variable -Wno-deprecated-declarations -Wno-error=format=
           -DUSE_IARMBUS
-          -DDISABLE__SECURITY_TOKEN
+          -DDISABLE_SECURITY_TOKEN
           -DENABLE_THERMAL_PROTECTION"
           -DPLUGIN_PERSISTENTSTORE_PATH="/tmp/secure/persistent/rdkservicestore"
           -DPLUGIN_PERSISTENTSTORE_LEGACYPATH="/tmp/persistent/rdkservicestore"
