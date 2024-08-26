@@ -589,6 +589,7 @@ namespace WPEFramework
                 else
                 {
                     NMLOG_INFO("onWiFiStateChange with state as: %u", state);
+                    NMLOG_INFO("Posting onWIFIStateChanged");
                     _gWiFiInstance->Notify("onWIFIStateChanged", legacyResult);
                 }
             }
@@ -611,7 +612,7 @@ namespace WPEFramework
             JsonObject legacyParams;
             legacyParams["signalStrength"] = parameters["signalQuality"];
             legacyParams["strength"] = parameters["signalLevel"];
-
+            NMLOG_INFO("Posting onWifiSignalThresholdChanged");
             if (_gWiFiInstance)
                 _gWiFiInstance->Notify("onWifiSignalThresholdChanged", legacyParams);
 
