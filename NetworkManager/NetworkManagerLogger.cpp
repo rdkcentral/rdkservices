@@ -77,7 +77,7 @@ namespace NetworkManagerLogger {
         struct timeval tv;
         struct tm* lt;
 
-        if (gDefaultLogLevel < level)
+        if (level < gDefaultLogLevel)
             return;
 
         gettimeofday(&tv, NULL);
