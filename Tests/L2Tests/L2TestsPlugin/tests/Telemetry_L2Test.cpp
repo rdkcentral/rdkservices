@@ -516,7 +516,7 @@ TEST_F(Telemetry_L2test, TelemetryRbusOpeningErrorCheck){
     JsonObject expected_status;
 
     EXPECT_CALL(*p_rBusApiImplMock, rbus_open(::testing::_, ::testing::_))
-        .Times(2)
+        .Times(3)
         .WillOnce(::testing::Invoke(
             [&](rbusHandle_t* handle, char const* componentName) {
                 EXPECT_TRUE(nullptr != handle);
