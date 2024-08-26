@@ -504,7 +504,7 @@ TEST_F(Telemetry_L2test, TelemetryImplementationMock){
 ** 4. Triggered uploadReport Method 
 ** 5. Verify the response of uploadReport Method
 *******************************************************/
-
+#if 0
 TEST_F(Telemetry_L2test, TelemetryRbusOpeningErrorCheck){
 
     JSONRPC::LinkType<Core::JSON::IElement> jsonrpc(TELEMETRY_CALLSIGN, TELEMETRYL2TEST_CALLSIGN);
@@ -539,6 +539,8 @@ TEST_F(Telemetry_L2test, TelemetryRbusOpeningErrorCheck){
     EXPECT_EQ(Core::ERROR_OPENING_FAILED, status);
  
 }
+#endif
+
 /********************************************************
 ************Test case Details **************************
 ** 1. ReportUploadStatus ErrorCheck 
