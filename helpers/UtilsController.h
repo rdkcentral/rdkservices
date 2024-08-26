@@ -3,7 +3,7 @@
 #include <mutex>
 #include <curl/curl.h>
 
-#ifndef DISABLE__SECURITY_TOKEN
+#ifndef DISABLE_SECURITY_TOKEN
 #include <securityagent/SecurityTokenUtil.h>
 #endif
 
@@ -37,7 +37,7 @@ namespace Utils
 
             sThunderSecurityChecked = true;
 
-#ifdef DISABLE__SECURITY_TOKEN
+#ifdef DISABLE_SECURITY_TOKEN
             token = sToken;
 #else
             if (!isThunderSecurityConfigured())
@@ -62,7 +62,7 @@ namespace Utils
 #endif
         }
 
-#ifndef DISABLE__SECURITY_TOKEN
+#ifndef DISABLE_SECURITY_TOKEN
         static size_t writeCurlResponse(void *ptr, size_t size, size_t nmemb, string stream)
         {
             size_t realsize = size * nmemb;
