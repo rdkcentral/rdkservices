@@ -1,0 +1,104 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "Analytics API",
+        "class": "Analytics",
+        "description": "The `Analytics` plugin allows sending analytics events to dedicated backends."
+    },
+    "common": {
+        "$ref": "../common/common.json"
+    },
+    "definitions": {
+        "eventName":{
+            "summary": "Name of the event",
+            "type": "string",
+            "example": "app_summary"
+        },
+        "eventVersion":{
+            "summary": "Version number of event schema",
+            "type": "string",
+            "example": "1.0.0"
+        },
+        "eventSource": {
+            "summary": "Name of the component that originates the event (Durable App ID if an App)",
+            "type": "string",
+            "example": "epg"
+        },
+        "eventSourceVersion": {
+            "summary": "Version number for the component that originates the event",
+            "type": "string",
+            "example": "1.0.0"
+        },
+        "cetList": {
+            "summary": "An array of Capability Exclusion Tags to be included on the report. Each CET will exclude the event from being processed for the specified process, any may result in the event being dropped. May be an array of length zero",
+            "type": "array",
+            "items": {
+                "type": "string",
+                "example": "cet1"
+            }
+        },
+        "epochTimestamp":{
+            "summary": "Timestamp for the START of this event, epoch time, in ms UTC",
+            "type": "integer",
+            "example": 1721906631000
+        },
+        "uptimeTimestamp":{
+            "summary": "Timestamp for the START of this event, uptime of the device, in ms. ONLY to be used when Time quality is not good.",
+            "type": "integer",
+            "example": 35000
+        },
+        "eventPayload":{
+            "summary": "The payload of the event",
+            "type": "object",
+            "example": {
+                "key1": "value1",
+                "key2": "value2"
+            }
+        }
+    },
+    "methods": {
+        "sendEvent":{
+            "summary": "Send event",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "eventName":{
+                        "$ref": "#/definitions/eventName"
+                    },
+                    "eventVersion":{
+                        "$ref": "#/definitions/eventVersion"
+                    },
+                    "eventSource":{
+                        "$ref": "#/definitions/eventSource"
+                    },
+                    "eventSourceVersion":{
+                        "$ref": "#/definitions/eventSourceVersion"
+                    },
+                    "cetList":{
+                        "$ref": "#/definitions/cetList"
+                    },
+                    "epochTimestamp":{
+                        "$ref": "#/definitions/epochTimestamp"
+                    },
+                    "uptimeTimestamp":{
+                        "$ref": "#/definitions/uptimeTimestamp"
+                    },
+                    "eventPayload":{
+                        "$ref": "#/definitions/eventPayload"
+                    }
+                },
+                "required": [
+                    "eventName",
+                    "eventSource",
+                    "eventSourceVersion",
+                    "cetList",
+                    "eventPayload"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        }
+    }
+}
