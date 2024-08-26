@@ -34,7 +34,6 @@ add_library(${MODULE_NAME} SHARED
     Telemetry.cpp
     devicesettings.cpp
     Udev.cpp
-    SecurityTokenUtil.cpp
 )
 target_link_libraries(${MODULE_NAME} PRIVATE gmock_main)
 
