@@ -528,6 +528,12 @@ TEST_F(Telemetry_L2test, TelemetryRbusOpeningErrorCheck){
                 EXPECT_TRUE(nullptr != handle);
                 EXPECT_EQ(string(componentName), _T("TelemetryThunderPlugin"));
                 return RBUS_ERROR_BUS_ERROR;
+            }))
+        .WillOnce(::testing::Invoke(
+            [&](rbusHandle_t* handle, char const* componentName) {
+                EXPECT_TRUE(nullptr != handle);
+                EXPECT_EQ(string(componentName), _T("TelemetryThunderPlugin"));
+                return RBUS_ERROR_BUS_ERROR;
             }));
 
     /* "ERROR_OPENING_FAILED" -- ErrorCheck */
