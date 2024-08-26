@@ -1,6 +1,6 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="UserSettings_Plugin"></a>
-# UserSettings Plugin
+<a name="head.UserSettings_API"></a>
+# UserSettings API
 
 **Version: [1.0.2](https://github.com/rdkcentral/rdkservices/blob/main/UserSettings/CHANGELOG.md)**
 
@@ -8,63 +8,61 @@ A org.rdk.UserSettings plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Abbreviation, Acronyms and Terms](#Abbreviation,_Acronyms_and_Terms)
-- [Description](#Description)
-- [Configuration](#Configuration)
-- [Methods](#Methods)
-- [Notifications](#Notifications)
+- [Abbreviation, Acronyms and Terms](#head.Abbreviation,_Acronyms_and_Terms)
+- [Description](#head.Description)
+- [Configuration](#head.Configuration)
+- [Methods](#head.Methods)
+- [Notifications](#head.Notifications)
 
-<a name="Abbreviation,_Acronyms_and_Terms"></a>
+<a name="head.Abbreviation,_Acronyms_and_Terms"></a>
 # Abbreviation, Acronyms and Terms
 
 [[Refer to this link](userguide/aat.md)]
 
-<a name="Description"></a>
+<a name="head.Description"></a>
 # Description
 
-The `UserSettings` that is responsible for persisting and notifying listeners of any change of these settings.
+The `UserSettings`, that is responsible for persisting and notifying listeners of any change of these settings..
 
-The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
+The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
 
-<a name="Configuration"></a>
+<a name="head.Configuration"></a>
 # Configuration
 
 The table below lists configuration options of the plugin.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| callsign | string | Plugin instance name (default: *org.rdk.UserSettings*) |
 | classname | string | Class name: *org.rdk.UserSettings* |
-| locator | string | Library name: *libWPEFrameworkUserSettings.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
-<a name="Methods"></a>
+<a name="head.Methods"></a>
 # Methods
 
 The following methods are provided by the org.rdk.UserSettings plugin:
 
-UserSettings interface methods:
+org.rdk.UserSettings interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [SetAudioDescription](#SetAudioDescription) | Setting Audio Description |
-| [SetPreferredAudioLanguages](#SetPreferredAudioLanguages) | Setting Preferred Audio Languages |
-| [SetPresentationLanguage](#SetPresentationLanguage) | Setting Presentation Languages |
-| [SetCaptions](#SetCaptions) | Setting Captions |
-| [SetPreferredCaptionsLanguages](#SetPreferredCaptionsLanguages) | Setting PreferredCaption Languages |
-| [SetPreferredClosedCaptionService](#SetPreferredClosedCaptionService) | Setting Preferred Closed Caption Service |
-| [SetPrivacyMode](#SetPrivacyMode) | Setting Privacy Mode |
-| [GetAudioDescription](#GetAudioDescription) | Returns Audio Description |
-| [GetPreferredAudioLanguages](#GetPreferredAudioLanguages) | Returns Audio Description |
-| [GetPresentationLanguage](#GetPresentationLanguage) | Getting Presentation Languages |
-| [GetCaptions](#GetCaptions) | Getting Captions Enabled |
-| [GetPreferredCaptionsLanguages](#GetPreferredCaptionsLanguages) | Getting Preferred Caption Languages |
-| [GetPreferredClosedCaptionService](#GetPreferredClosedCaptionService) | Getting Preferred ClosedCaption Service |
-| [GetPrivacyMode](#GetPrivacyMode) | Getting Privacy Mode |
+| [SetAudioDescription](#method.SetAudioDescription) | Setting Audio Description |
+| [SetPreferredAudioLanguages](#method.SetPreferredAudioLanguages) | Setting Preferred Audio Languages |
+| [SetPresentationLanguage](#method.SetPresentationLanguage) | Setting Presentation Languages |
+| [SetCaptions](#method.SetCaptions) | Setting Captions |
+| [SetPreferredCaptionsLanguages](#method.SetPreferredCaptionsLanguages) | Setting PreferredCaption Languages |
+| [SetPreferredClosedCaptionService](#method.SetPreferredClosedCaptionService) | Setting Preferred Closed Caption Service |
+| [SetPrivacyMode](#method.SetPrivacyMode) | Setting Privacy Mode |
+| [GetAudioDescription](#method.GetAudioDescription) | Returns Audio Description |
+| [GetPreferredAudioLanguages](#method.GetPreferredAudioLanguages) | Returns Preferred Audio Languages |
+| [GetPresentationLanguage](#method.GetPresentationLanguage) | Getting Presentation Languages |
+| [GetCaptions](#method.GetCaptions) | Getting Captions Enabled |
+| [GetPreferredCaptionsLanguages](#method.GetPreferredCaptionsLanguages) | Getting Preferred Caption Languages |
+| [GetPreferredClosedCaptionService](#method.GetPreferredClosedCaptionService) | Getting Preferred ClosedCaption Service |
+| [GetPrivacyMode](#method.GetPrivacyMode) | Getting Privacy Mode |
 
 
-<a name="SetAudioDescription"></a>
-## *SetAudioDescription*
+<a name="method.SetAudioDescription"></a>
+## *SetAudioDescription [<sup>method</sup>](#head.Methods)*
 
 Setting Audio Description.
 
@@ -76,7 +74,8 @@ No Events
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| params | boolean | Audio Description Enabled: true/false |
+| params | object |  |
+| params.enabled | boolean | Audio Description Enabled: true/false |
 
 ### Result
 
@@ -93,7 +92,9 @@ No Events
     "jsonrpc": "2.0",
     "id": 42,
     "method": "org.rdk.UserSettings.SetAudioDescription",
-    "params": true
+    "params": {
+        "enabled": true
+    }
 }
 ```
 
@@ -107,8 +108,8 @@ No Events
 }
 ```
 
-<a name="SetPreferredAudioLanguages"></a>
-## *SetPreferredAudioLanguages*
+<a name="method.SetPreferredAudioLanguages"></a>
+## *SetPreferredAudioLanguages [<sup>method</sup>](#head.Methods)*
 
 Setting Preferred Audio Languages.
 
@@ -120,7 +121,8 @@ No Events
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| params | string | Preferred Audio Languages: eng, wel |
+| params | object |  |
+| params.preferredLanguages | string | A prioritized list of ISO 639-2/B codes for the preferred audio languages |
 
 ### Result
 
@@ -137,7 +139,9 @@ No Events
     "jsonrpc": "2.0",
     "id": 42,
     "method": "org.rdk.UserSettings.SetPreferredAudioLanguages",
-    "params": "eng"
+    "params": {
+        "preferredLanguages": "eng"
+    }
 }
 ```
 
@@ -151,8 +155,8 @@ No Events
 }
 ```
 
-<a name="SetPresentationLanguage"></a>
-## *SetPresentationLanguage*
+<a name="method.SetPresentationLanguage"></a>
+## *SetPresentationLanguage [<sup>method</sup>](#head.Methods)*
 
 Setting Presentation Languages.
 
@@ -164,7 +168,8 @@ No Events
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| params | string | Presentation Languages: en-US, es-US |
+| params | object |  |
+| params.presentationLanguages | string | The preferred presentationLanguages in a full BCP 47 value, including script, * region, variant The language set and used by Immerse UI |
 
 ### Result
 
@@ -181,7 +186,9 @@ No Events
     "jsonrpc": "2.0",
     "id": 42,
     "method": "org.rdk.UserSettings.SetPresentationLanguage",
-    "params": "en-US"
+    "params": {
+        "presentationLanguages": "en-US"
+    }
 }
 ```
 
@@ -195,8 +202,8 @@ No Events
 }
 ```
 
-<a name="SetCaptions"></a>
-## *SetCaptions*
+<a name="method.SetCaptions"></a>
+## *SetCaptions [<sup>method</sup>](#head.Methods)*
 
 Setting Captions.
 
@@ -208,7 +215,8 @@ No Events
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| params | boolean | Captions Enabled: true/false |
+| params | object |  |
+| params.enabled | boolean | Captions Enabled: true/false |
 
 ### Result
 
@@ -225,7 +233,9 @@ No Events
     "jsonrpc": "2.0",
     "id": 42,
     "method": "org.rdk.UserSettings.SetCaptions",
-    "params": true
+    "params": {
+        "enabled": true
+    }
 }
 ```
 
@@ -239,8 +249,8 @@ No Events
 }
 ```
 
-<a name="SetPreferredCaptionsLanguages"></a>
-## *SetPreferredCaptionsLanguages*
+<a name="method.SetPreferredCaptionsLanguages"></a>
+## *SetPreferredCaptionsLanguages [<sup>method</sup>](#head.Methods)*
 
 Setting PreferredCaption Languages.
 
@@ -252,7 +262,8 @@ No Events
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| params | string | PreferredCaption Languages: eng, fra |
+| params | object |  |
+| params.preferredLanguages | string | A prioritized list of ISO 639-2/B codes for the preferred captions languages |
 
 ### Result
 
@@ -269,7 +280,9 @@ No Events
     "jsonrpc": "2.0",
     "id": 42,
     "method": "org.rdk.UserSettings.SetPreferredCaptionsLanguages",
-    "params": "eng"
+    "params": {
+        "preferredLanguages": "eng"
+    }
 }
 ```
 
@@ -283,8 +296,8 @@ No Events
 }
 ```
 
-<a name="SetPreferredClosedCaptionService"></a>
-## *SetPreferredClosedCaptionService*
+<a name="method.SetPreferredClosedCaptionService"></a>
+## *SetPreferredClosedCaptionService [<sup>method</sup>](#head.Methods)*
 
 Setting Preferred Closed Caption Service.
 
@@ -296,7 +309,8 @@ No Events
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| params | string | Preferred Closed Caption Service: CC3 |
+| params | object |  |
+| params.service | string | A string for the preferred closed captions service.  Valid values are AUTO, CC[1-4], TEXT[1-4], SERVICE[1-64] where CC and TEXT is CTA-608 and SERVICE is CTA-708.  AUTO indicates that the choice is left to the player |
 
 ### Result
 
@@ -313,7 +327,9 @@ No Events
     "jsonrpc": "2.0",
     "id": 42,
     "method": "org.rdk.UserSettings.SetPreferredClosedCaptionService",
-    "params": "CC3"
+    "params": {
+        "service": "CC3"
+    }
 }
 ```
 
@@ -327,8 +343,8 @@ No Events
 }
 ```
 
-<a name="SetPrivacyMode"></a>
-## *SetPrivacyMode*
+<a name="method.SetPrivacyMode"></a>
+## *SetPrivacyMode [<sup>method</sup>](#head.Methods)*
 
 Setting Privacy Mode.
 
@@ -374,8 +390,8 @@ No Events
 }
 ```
 
-<a name="GetAudioDescription"></a>
-## *GetAudioDescription*
+<a name="method.GetAudioDescription"></a>
+## *GetAudioDescription [<sup>method</sup>](#head.Methods)*
 
 Returns Audio Description.
 
@@ -391,7 +407,7 @@ This method takes no parameters.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | boolean |  |
+| result | boolean | Audio Description Enabled: true/false |
 
 ### Example
 
@@ -411,14 +427,14 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": false
+    "result": true
 }
 ```
 
-<a name="GetPreferredAudioLanguages"></a>
-## *GetPreferredAudioLanguages*
+<a name="method.GetPreferredAudioLanguages"></a>
+## *GetPreferredAudioLanguages [<sup>method</sup>](#head.Methods)*
 
-Returns Audio Description.
+Returns Preferred Audio Languages.
 
 ### Events
 
@@ -432,7 +448,7 @@ This method takes no parameters.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | string |  |
+| result | string | A prioritized list of ISO 639-2/B codes for the preferred audio languages |
 
 ### Example
 
@@ -452,12 +468,12 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": "..."
+    "result": "eng"
 }
 ```
 
-<a name="GetPresentationLanguage"></a>
-## *GetPresentationLanguage*
+<a name="method.GetPresentationLanguage"></a>
+## *GetPresentationLanguage [<sup>method</sup>](#head.Methods)*
 
 Getting Presentation Languages.
 
@@ -473,7 +489,7 @@ This method takes no parameters.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | string |  |
+| result | string | The preferred presentationLanguages in a full BCP 47 value, including script, * region, variant The language set and used by Immerse UI |
 
 ### Example
 
@@ -493,12 +509,12 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": "..."
+    "result": "en-US"
 }
 ```
 
-<a name="GetCaptions"></a>
-## *GetCaptions*
+<a name="method.GetCaptions"></a>
+## *GetCaptions [<sup>method</sup>](#head.Methods)*
 
 Getting Captions Enabled.
 
@@ -514,7 +530,7 @@ This method takes no parameters.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | boolean |  |
+| result | boolean | Captions Enabled: true/false |
 
 ### Example
 
@@ -534,12 +550,12 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": false
+    "result": true
 }
 ```
 
-<a name="GetPreferredCaptionsLanguages"></a>
-## *GetPreferredCaptionsLanguages*
+<a name="method.GetPreferredCaptionsLanguages"></a>
+## *GetPreferredCaptionsLanguages [<sup>method</sup>](#head.Methods)*
 
 Getting Preferred Caption Languages.
 
@@ -555,7 +571,7 @@ This method takes no parameters.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | string |  |
+| result | string | A prioritized list of ISO 639-2/B codes for the preferred captions languages |
 
 ### Example
 
@@ -575,12 +591,12 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": "..."
+    "result": "eng"
 }
 ```
 
-<a name="GetPreferredClosedCaptionService"></a>
-## *GetPreferredClosedCaptionService*
+<a name="method.GetPreferredClosedCaptionService"></a>
+## *GetPreferredClosedCaptionService [<sup>method</sup>](#head.Methods)*
 
 Getting Preferred ClosedCaption Service.
 
@@ -596,7 +612,7 @@ This method takes no parameters.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | string |  |
+| result | string | A string for the preferred closed captions service.  Valid values are AUTO, CC[1-4], TEXT[1-4], SERVICE[1-64] where CC and TEXT is CTA-608 and SERVICE is CTA-708.  AUTO indicates that the choice is left to the player |
 
 ### Example
 
@@ -616,12 +632,12 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": "..."
+    "result": "CC3"
 }
 ```
 
-<a name="GetPrivacyMode"></a>
-## *GetPrivacyMode*
+<a name="method.GetPrivacyMode"></a>
+## *GetPrivacyMode [<sup>method</sup>](#head.Methods)*
 
 Getting Privacy Mode.
 
@@ -637,7 +653,7 @@ This method takes no parameters.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | string |  |
+| result | string | Current Privacy Mode |
 
 ### Example
 
@@ -657,32 +673,32 @@ This method takes no parameters.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "result": "..."
+    "result": "DO_NOT_SHARE"
 }
 ```
 
-<a name="Notifications"></a>
+<a name="head.Notifications"></a>
 # Notifications
 
-Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#Thunder)] for information on how to register for a notification.
+Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
 
 The following events are provided by the org.rdk.UserSettings plugin:
 
-UserSettings interface events:
+org.rdk.UserSettings interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [OnAudioDescriptionChanged](#OnAudioDescriptionChanged) | Triggered after the audio description changes (see `setaudiodescription`) |
-| [OnPreferredAudioLanguagesChanged](#OnPreferredAudioLanguagesChanged) | Triggered after the audio preferred Audio languages changes (see `setpreferredaudiolanguages`) |
-| [OnPresentationLanguageChanged](#OnPresentationLanguageChanged) | Triggered after the Presentation Language changes (see `setpresentationlanguages`) |
-| [OnCaptionsChanged](#OnCaptionsChanged) | Triggered after the captions changes (see `setcaptionsenabled`) |
-| [OnPreferredCaptionsLanguagesChanged](#OnPreferredCaptionsLanguagesChanged) | Triggered after the PreferredCaption Languages changes (see `setpreferredcaptionlanguages`) |
-| [OnPreferredClosedCaptionServiceChanged](#OnPreferredClosedCaptionServiceChanged) | Triggered after the Preferred Closed Caption changes (see `setpreferredclosedcaptionservice`) |
-| [OnPrivacyModeChanged](#OnPrivacyModeChanged) | Triggered after the Privacy Mode changes (see `SetPrivacyMode`) |
+| [OnAudioDescriptionChanged](#event.OnAudioDescriptionChanged) | Triggered after the audio description changes (see `SetAudioDescription`) |
+| [OnPreferredAudioLanguagesChanged](#event.OnPreferredAudioLanguagesChanged) | Triggered after the audio preferred Audio languages changes (see `SetPreferredAudioLanguages`) |
+| [OnPresentationLanguageChanged](#event.OnPresentationLanguageChanged) | Triggered after the Presentation Language changes (see `SetPresentationLanguage`) |
+| [OnCaptionsChanged](#event.OnCaptionsChanged) | Triggered after the captions changes (see `SetCaptions`) |
+| [OnPreferredCaptionsLanguagesChanged](#event.OnPreferredCaptionsLanguagesChanged) | Triggered after the PreferredCaption Languages changes (see `SetPreferredCaptionsLanguages`) |
+| [OnPreferredClosedCaptionServiceChanged](#event.OnPreferredClosedCaptionServiceChanged) | Triggered after the Preferred Closed Caption changes (see `SetPreferredClosedCaptionService`) |
+| [OnPrivacyModeChanged](#event.OnPrivacyModeChanged) | Triggered after the Privacy Mode changes (see `SetPrivacyMode`) |
 
 
-<a name="OnAudioDescriptionChanged"></a>
-## *OnAudioDescriptionChanged*
+<a name="event.OnAudioDescriptionChanged"></a>
+## *OnAudioDescriptionChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the audio description changes (see `setaudiodescription`).
 
@@ -705,8 +721,8 @@ Triggered after the audio description changes (see `setaudiodescription`).
 }
 ```
 
-<a name="OnPreferredAudioLanguagesChanged"></a>
-## *OnPreferredAudioLanguagesChanged*
+<a name="event.OnPreferredAudioLanguagesChanged"></a>
+## *OnPreferredAudioLanguagesChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the audio preferred Audio languages changes (see `setpreferredaudiolanguages`).
 
@@ -729,8 +745,8 @@ Triggered after the audio preferred Audio languages changes (see `setpreferredau
 }
 ```
 
-<a name="OnPresentationLanguageChanged"></a>
-## *OnPresentationLanguageChanged*
+<a name="event.OnPresentationLanguageChanged"></a>
+## *OnPresentationLanguageChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the Presentation Language changes (see `setpresentationlanguages`).
 
@@ -753,8 +769,8 @@ Triggered after the Presentation Language changes (see `setpresentationlanguages
 }
 ```
 
-<a name="OnCaptionsChanged"></a>
-## *OnCaptionsChanged*
+<a name="event.OnCaptionsChanged"></a>
+## *OnCaptionsChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the captions changes (see `setcaptionsenabled`).
 
@@ -777,8 +793,8 @@ Triggered after the captions changes (see `setcaptionsenabled`).
 }
 ```
 
-<a name="OnPreferredCaptionsLanguagesChanged"></a>
-## *OnPreferredCaptionsLanguagesChanged*
+<a name="event.OnPreferredCaptionsLanguagesChanged"></a>
+## *OnPreferredCaptionsLanguagesChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the PreferredCaption Languages changes (see `setpreferredcaptionlanguages`).
 
@@ -801,8 +817,8 @@ Triggered after the PreferredCaption Languages changes (see `setpreferredcaption
 }
 ```
 
-<a name="OnPreferredClosedCaptionServiceChanged"></a>
-## *OnPreferredClosedCaptionServiceChanged*
+<a name="event.OnPreferredClosedCaptionServiceChanged"></a>
+## *OnPreferredClosedCaptionServiceChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the Preferred Closed Caption changes (see `setpreferredclosedcaptionservice`).
 
@@ -811,7 +827,7 @@ Triggered after the Preferred Closed Caption changes (see `setpreferredclosedcap
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.service | string | Receive Preferred Closed Caption changes |
+| params.service | string | Receive Preferred Closed Caption Service changes |
 
 ### Example
 
@@ -825,8 +841,8 @@ Triggered after the Preferred Closed Caption changes (see `setpreferredclosedcap
 }
 ```
 
-<a name="OnPrivacyModeChanged"></a>
-## *OnPrivacyModeChanged*
+<a name="event.OnPrivacyModeChanged"></a>
+## *OnPrivacyModeChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the Privacy Mode changes (see `SetPrivacyMode`).
 
