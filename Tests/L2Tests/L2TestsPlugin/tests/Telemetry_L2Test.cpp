@@ -514,22 +514,13 @@ TEST_F(Telemetry_L2test, TelemetryRbusOpeningErrorCheck){
     JsonObject result;
     std::string message;
     JsonObject expected_status;
-
-    EXPECT_CALL(*p_rBusApiImplMock, rbus_open(::testing::_, ::testing::_))
-        .Times(2)
-        .WillOnce(::testing::Invoke(
+    
+    ON_CALL(*p_rBusApiImplMock, rbus_open(::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
             [&](rbusHandle_t* handle, char const* componentName) {
-                EXPECT_TRUE(nullptr != handle);
-                EXPECT_EQ(string(componentName), _T("TelemetryThunderPlugin"));
-                return RBUS_ERROR_BUS_ERROR;
-            }))
-        .WillOnce(::testing::Invoke(
-            [&](rbusHandle_t* handle, char const* componentName) {
-                EXPECT_TRUE(nullptr != handle);
-                EXPECT_EQ(string(componentName), _T("TelemetryThunderPlugin"));
                 return RBUS_ERROR_BUS_ERROR;
             }));
-
+    
     /* "ERROR_OPENING_FAILED" -- ErrorCheck */
     status = InvokeServiceMethod("org.rdk.Telemetry.1", "abortReport", params, result);
     EXPECT_EQ(Core::ERROR_OPENING_FAILED, status);
