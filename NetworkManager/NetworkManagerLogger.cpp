@@ -27,6 +27,7 @@
 #include <string>
 #include <algorithm>
 #include <cctype>
+#include <sys/time.h>
 
 #ifdef USE_RDK_LOGGER
 #include "rdk_debug.h"
