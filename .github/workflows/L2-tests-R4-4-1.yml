@@ -172,7 +172,6 @@ jobs:
           headers/rdk/iarmmgrs-hal
           headers/systemservices
           headers/systemservices/proc
-          headers/securityagent
           &&
           cd headers
           &&
