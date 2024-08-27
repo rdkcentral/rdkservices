@@ -172,7 +172,6 @@ jobs:
           headers/rdk/iarmmgrs-hal
           headers/ccec/drivers
           headers/network
-          headers/securityagent
           &&
           cd headers
           &&
