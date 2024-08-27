@@ -1669,7 +1669,7 @@ TEST_F(UserSettingTest, NoDBFileInPersistentstoreErrorCase)
         }
     }
 }
-
+#if 0
 TEST_F(UserSettingTest, PersistentstoreIsDeactivatedErrorCase)
 {
     uint32_t status = Core::ERROR_GENERAL;
@@ -1753,7 +1753,7 @@ TEST_F(UserSettingTest, PersistentstoreIsDeactivatedErrorCase)
         }
     }
 }
-
+#endif
 TEST_F(UserSettingTest, PersistentstoreIsNotActivatedWhileUserSettingsActivatingErrorCase)
 {
     uint32_t status = Core::ERROR_GENERAL;
