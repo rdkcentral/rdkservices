@@ -36,9 +36,10 @@ set(PLUGIN_ANALYTICS_AUTOSTART "false" CACHE STRING "Automatically start Analyti
 set(PLUGIN_ANALYTICS_DEVICE_OS_NAME "rdk" CACHE STRING "Device OS name")
 
 set(PLUGIN_ANALYTICS_SIFT_BACKEND_ENABLED ${PLUGIN_ANALYTICS_SIFT_BACKEND} CACHE BOOL "Enable Sift backend configuration")
+set(PLUGIN_ANALYTICS_SIFT_2_0_ENABLED "false" CACHE STRING "Enable Sift 2.0 schema")
 set(PLUGIN_ANALYTICS_SIFT_COMMON_SCHEMA "entos/common/v1" CACHE STRING "Sift common schema")
 set(PLUGIN_ANALYTICS_SIFT_ENV "prod" CACHE STRING "Sift environment")
-set(PLUGIN_ANALYTICS_SIFT_PRODUCT_NAME "entos-immerse" CACHE STRING "Sift product name")
+set(PLUGIN_ANALYTICS_SIFT_PRODUCT_NAME "entos" CACHE STRING "Sift product name") #entos-immerse in Sift2.0
 set(PLUGIN_ANALYTICS_SIFT_LOGGER_NAME "Analytics" CACHE STRING "Sift logger name")
 set(PLUGIN_ANALYTICS_SIFT_LOGGER_VERSION "${MODULE_VERSION}" CACHE STRING "Sift logger version")
 set(PLUGIN_ANALYTICS_SIFT_MAX_RANDOMISATION_WINDOW_TIME 300 CACHE STRING "Sift max randomisation window time of posting queued events")
