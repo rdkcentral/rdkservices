@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [0.2.11] - 2024-08-28
+### Fixed
+- onError event is posted for WiFi scan even when scan is successful
+
 ## [0.2.10] - 2024-08-23
 ### Fixed
 - Wi-Fi Connection in Network page is showing 2.4Ghz when connected to 5Ghz network
