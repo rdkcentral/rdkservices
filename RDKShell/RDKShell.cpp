@@ -1650,7 +1650,7 @@ namespace WPEFramework {
                 return;
             }
 
-            if (callsign.find("Netflix") != string::npos || callsign.find("Cobalt") != string::npos)
+            if (callsign.find("Netflix") != string::npos || callsign.find("Cobalt") != string::npos || callsign.find("Amazon") != string::npos || callsign.find("YouTube") != string::npos)
             {
                 // Check if native app is suspended
                 bool suspendedOrHibernated = false;

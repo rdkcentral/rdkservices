@@ -59,35 +59,32 @@ namespace WPEFramework
             }
 
             string signalStrength = retrieveValues(rssid_command, "RSSI", buff, sizeof (buff));
-            if (!signalStrength.empty())
+            if (!signalStrength.empty()) {
                 signalStrengthOut = std::stof(signalStrength.c_str());
+                strengthOut = signalStrength;
+            }
             else
                 NMLOG_ERROR("signalStrength is empty");
 
             NMLOG_TRACE("SSID = %s Signal Strength %f db", ssid.c_str(), signalStrengthOut);
             if (signalStrengthOut == 0.0f)
             {
-                strengthOut = "Disconnected";
                 quality = Exchange::INetworkManager::WIFI_SIGNAL_DISCONNECTED;
             }
             else if (signalStrengthOut >= signalStrengthThresholdExcellent && signalStrengthOut < 0)
             {
-                strengthOut = "Excellent";
                 quality = Exchange::INetworkManager::WIFI_SIGNAL_EXCELLENT;
             }
             else if (signalStrengthOut >= signalStrengthThresholdGood && signalStrengthOut < signalStrengthThresholdExcellent)
             {
-                strengthOut = "Good";
                 quality = Exchange::INetworkManager::WIFI_SIGNAL_GOOD;
             }
             else if (signalStrengthOut >= signalStrengthThresholdFair && signalStrengthOut < signalStrengthThresholdGood)
             {
-                strengthOut = "Fair";
                 quality = Exchange::INetworkManager::WIFI_SIGNAL_FAIR;
             }
             else
             {
-                strengthOut = "Weak";
                 quality = Exchange::INetworkManager::WIFI_SIGNAL_WEAK;
             };
         }
@@ -103,7 +100,7 @@ namespace WPEFramework
             monitorThread = std::thread(&WiFiSignalStrengthMonitor::monitorThreadFunction, this, interval);
             monitorThread.detach();
             std::thread::id threadId = monitorThread.get_id();
-            NMLOG_INFO("Thread started with interval: %d seconds. Thread ID: %lu", interval);
+            NMLOG_INFO("Thread started with interval: %d seconds", interval);
         }
 
         void WiFiSignalStrengthMonitor::monitorThreadFunction(int interval)
@@ -121,7 +118,7 @@ namespace WPEFramework
                     getSignalData(ssid, newSignalQuality, signalStrength);
                     if(oldSignalQuality != newSignalQuality)
                     {
-                        NMLOG_INFO("Notifying WiFiSignalStrengthChangedEvent ...%s", signalStrength.c_str());
+                        NMLOG_INFO("Notifying WiFiSignalStrengthChangedEvent %s", signalStrength.c_str());
                         oldSignalQuality = newSignalQuality;
                         _instance->ReportWiFiSignalStrengthChangedEvent(ssid, signalStrength, newSignalQuality);
                     }

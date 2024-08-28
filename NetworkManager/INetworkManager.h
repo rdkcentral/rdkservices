@@ -122,7 +122,7 @@ namespace WPEFramework
                     string           m_ssid;
                     WIFISecurityMode m_securityMode;
                     string           m_signalStrength;
-                    WiFiFrequency    m_frequency;
+                    double           m_frequency;
             };
 
             struct EXTERNAL WiFiConnectTo {
@@ -134,6 +134,7 @@ namespace WPEFramework
                     string           m_clientCert;
                     string           m_privateKey;
                     string           m_privateKeyPasswd;
+                    bool             m_persistSSIDInfo;
             };
 
             struct EXTERNAL WiFiSSIDInfo {
@@ -141,7 +142,7 @@ namespace WPEFramework
                     string             m_bssid;
                     WIFISecurityMode   m_securityMode;
                     string             m_signalStrength;
-                    WiFiFrequency      m_frequency;
+                    double             m_frequency;
                     string             m_rate;
                     string             m_noise;
             };
@@ -196,7 +197,8 @@ namespace WPEFramework
                 WIFI_STATE_CONNECTION_INTERRUPTED,
                 WIFI_STATE_INVALID_CREDENTIALS,
                 WIFI_STATE_AUTHENTICATION_FAILED,
-                WIFI_STATE_ERROR
+                WIFI_STATE_ERROR,
+                WIFI_STATE_INVALID
             };
 
             using IInterfaceDetailsIterator = RPC::IIteratorType<InterfaceDetails,     ID_NETWORKMANAGER_INTERFACE_DETAILS_ITERATOR>;
