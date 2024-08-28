@@ -188,7 +188,7 @@ Setting Presentation Languages.
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.presentationLanguages | string | The preferred presentationLanguages in a full BCP 47 value, including script, * region, variant The language set and used by Immerse UI |
+| params.presentationLanguage | string | The preferred presentationLanguage in a full BCP 47 value, including script, * region, variant The language set and used by Immerse UI |
 
 ### Result
 
@@ -206,7 +206,7 @@ Setting Presentation Languages.
     "id": 42,
     "method": "org.rdk.UserSettings.setPresentationLanguage",
     "params": {
-        "presentationLanguages": "en-US"
+        "presentationLanguage": "en-US"
     }
 }
 ```
@@ -848,7 +848,7 @@ This method takes no parameters.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | string | The preferred presentationLanguages in a full BCP 47 value, including script, * region, variant The language set and used by Immerse UI |
+| result | string | The preferred presentationLanguage in a full BCP 47 value, including script, * region, variant The language set and used by Immerse UI |
 
 ### Example
 
@@ -1408,7 +1408,7 @@ Triggered after the Presentation Language changes (see `SetPresentationLanguage`
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.presentationLanguages | string | Receive Presentation Language changes |
+| params.presentationLanguage | string | Receive Presentation Language changes |
 
 ### Example
 
@@ -1417,7 +1417,7 @@ Triggered after the Presentation Language changes (see `SetPresentationLanguage`
     "jsonrpc": "2.0",
     "method": "client.events.onPresentationLanguageChanged",
     "params": {
-        "presentationLanguages": "en-US"
+        "presentationLanguage": "en-US"
     }
 }
 ```

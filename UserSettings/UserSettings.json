@@ -25,8 +25,8 @@
             "type": "string",
             "example": "CC3"
         },
-        "presentationLanguages": {
-            "summary": "The preferred presentationLanguages in a full BCP 47 value, including script, * region, variant The language set and used by Immerse UI",
+        "presentationLanguage": {
+            "summary": "The preferred presentationLanguage in a full BCP 47 value, including script, * region, variant The language set and used by Immerse UI",
             "type": "string",
             "example": "en-US"
         },
@@ -90,8 +90,8 @@
             "params": {
                 "type": "object",
                 "properties": {
-                    "presentationLanguages": {
-                        "$ref": "#/definitions/presentationLanguages"
+                    "presentationLanguage": {
+                        "$ref": "#/definitions/presentationLanguage"
                     }
                 }
             },
@@ -341,7 +341,7 @@
         "getPresentationLanguage":{
             "summary": "Getting Presentation Languages.",
             "result": {
-                "$ref": "#/definitions/presentationLanguages"
+                "$ref": "#/definitions/presentationLanguage"
             }
         },
         "getCaptions":{
@@ -463,14 +463,14 @@
             "params": {
                 "type": "object",
                 "properties": {
-                    "presentationLanguages":{
+                    "presentationLanguage":{
                         "summary": "Receive Presentation Language changes",
                         "type": "string",
                         "example": "en-US"
                     }
                 },
                 "required": [
-                    "presentationLanguages"
+                    "presentationLanguage"
                 ]
             }
         },
