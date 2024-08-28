@@ -9,6 +9,7 @@ configuration.add("deviceosname", "@PLUGIN_ANALYTICS_DEVICE_OS_NAME@")
 
 if boolean("@PLUGIN_ANALYTICS_SIFT_BACKEND_ENABLED@"):
     sift = JSON()
+    sift.add("schema2", "@PLUGIN_ANALYTICS_SIFT_2_0_ENABLED@")
     sift.add("commonschema", "@PLUGIN_ANALYTICS_SIFT_COMMON_SCHEMA@")
     sift.add("env", "@PLUGIN_ANALYTICS_SIFT_ENV@")
     sift.add("productname", "@PLUGIN_ANALYTICS_SIFT_PRODUCT_NAME@")
