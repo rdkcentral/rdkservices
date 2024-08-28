@@ -196,7 +196,8 @@ namespace WPEFramework
                 WIFI_STATE_CONNECTION_INTERRUPTED,
                 WIFI_STATE_INVALID_CREDENTIALS,
                 WIFI_STATE_AUTHENTICATION_FAILED,
-                WIFI_STATE_ERROR
+                WIFI_STATE_ERROR,
+                WIFI_STATE_INVALID
             };
 
             using IInterfaceDetailsIterator = RPC::IIteratorType<InterfaceDetails,     ID_NETWORKMANAGER_INTERFACE_DETAILS_ITERATOR>;
