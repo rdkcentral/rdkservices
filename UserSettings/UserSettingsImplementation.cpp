@@ -498,21 +498,21 @@ uint32_t UserSettingsImplementation::getPreferredAudioLanguages(string &preferre
     return status;
 }
 
-uint32_t UserSettingsImplementation::setPresentationLanguage(const string& presentationLanguages)
+uint32_t UserSettingsImplementation::setPresentationLanguage(const string& presentationLanguage)
 {
     uint32_t status = Core::ERROR_GENERAL;
 
-    LOGINFO("presentationLanguages: %s", presentationLanguages.c_str());
-    status = SetUserSettingsValue(USERSETTINGS_PRESENTATION_LANGUAGE_KEY, presentationLanguages);
+    LOGINFO("presentationLanguage: %s", presentationLanguage.c_str());
+    status = SetUserSettingsValue(USERSETTINGS_PRESENTATION_LANGUAGE_KEY, presentationLanguage);
     return status;
 }
 
-uint32_t UserSettingsImplementation::getPresentationLanguage(string &presentationLanguages) const
+uint32_t UserSettingsImplementation::getPresentationLanguage(string &presentationLanguage) const
 {
     uint32_t status = Core::ERROR_GENERAL;
     std::string value = "";
 
-    status = GetUserSettingsValue(USERSETTINGS_PRESENTATION_LANGUAGE_KEY, presentationLanguages);
+    status = GetUserSettingsValue(USERSETTINGS_PRESENTATION_LANGUAGE_KEY, presentationLanguage);
     return status;
 }
 

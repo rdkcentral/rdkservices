@@ -80,10 +80,10 @@ namespace Plugin {
                     Exchange::JUserSettings::Event::OnPreferredAudioLanguagesChanged(_parent, preferredLanguages);
                 }
 
-                void onPresentationLanguageChanged(const string& presentationLanguages) override
+                void onPresentationLanguageChanged(const string& presentationLanguage) override
                 {
-                    LOGINFO("PresentationLanguageChanged: %s\n", presentationLanguages.c_str());
-                    Exchange::JUserSettings::Event::OnPresentationLanguageChanged(_parent, presentationLanguages);
+                    LOGINFO("PresentationLanguageChanged: %s\n", presentationLanguage.c_str());
+                    Exchange::JUserSettings::Event::OnPresentationLanguageChanged(_parent, presentationLanguage);
                 }
 
                 void onCaptionsChanged(bool enabled) override

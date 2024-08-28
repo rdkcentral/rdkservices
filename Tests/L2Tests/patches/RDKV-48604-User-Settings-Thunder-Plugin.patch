@@ -1,15 +1,15 @@
-commit 5c67f4d68e5f0b4b34a3f84a54076e03e4459a3b
+commit e60f095f4fdcbd083ad3f6295beca33b6dcd0877
 Author: Nagalakshmi Dosakayala <nadosakayala@synamedia.com>
-Date:   Fri Aug 16 10:09:08 2024 +0530
+Date:   Wed Aug 28 12:16:07 2024 +0530
 
-    usersettings patch
+    RDK-48604: New UserSettings Thunder Plugin
 
 diff --git a/interfaces/IUserSettings.h b/interfaces/IUserSettings.h
 new file mode 100755
-index 0000000..7c63d45
+index 0000000..460d793
 --- /dev/null
 +++ b/interfaces/IUserSettings.h
-@@ -0,0 +1,350 @@
+@@ -0,0 +1,351 @@
 +/*
 + * If not stated otherwise in this file or this component's LICENSE file the
 + * following copyright and licenses apply:
@@ -55,8 +55,8 @@ index 0000000..7c63d45
 +
 +    // @alt onPresentationLanguageChanged
 +    // @brief The PresentationLanguages setting has changed.
-+    // @param presentationLanguages: PresentationLanguages.
-+    virtual void onPresentationLanguageChanged(const string& presentationLanguages /* @text presentationLanguages */) = 0;
++    // @param presentationLanguage: PresentationLanguage.
++    virtual void onPresentationLanguageChanged(const string& presentationLanguage /* @text presentationLanguage */) = 0;
 +
 +    // @alt onCaptionsChanged
 +    // @brief The Captions setting has changed.
@@ -143,14 +143,14 @@ index 0000000..7c63d45
 +  virtual uint32_t getPreferredAudioLanguages(string &preferredLanguages /* @out @text preferredLanguages */) const = 0;
 +
 +  // @alt setPresentationLanguage
-+  // @brief Sets the presentationLanguages in a full BCP 47 value, including script, region, variant
-+  // @param presentationLanguages: "en-US", "es-US", "en-CA", "fr-CA"
-+  virtual uint32_t setPresentationLanguage(const string& presentationLanguages /* @in @text presentationLanguages */) = 0;
++  // @brief Sets the presentationLanguage in a full BCP 47 value, including script, region, variant
++  // @param presentationLanguage: "en-US", "es-US", "en-CA", "fr-CA"
++  virtual uint32_t setPresentationLanguage(const string& presentationLanguage /* @in @text presentationLanguage */) = 0;
 +
 +  // @alt getPresentationLanguage
-+  // @brief Gets the presentationLanguages
-+  // @param presentationLanguages: "en-US", "es-US", "en-CA", "fr-CA"
-+  virtual uint32_t getPresentationLanguage(string &presentationLanguages /* @out @text presentationLanguages */) const = 0;
++  // @brief Gets the presentationLanguage
++  // @param presentationLanguage: "en-US", "es-US", "en-CA", "fr-CA"
++  virtual uint32_t getPresentationLanguage(string &presentationLanguage /* @out @text presentationLanguage */) const = 0;
 +
 +  // @alt setCaptions
 +  // @brief brief Sets Captions ON/OFF.
@@ -291,7 +291,8 @@ index 0000000..7c63d45
 +} // namespace Exchange
 +} // namespace WPEFramework
 +
-+#ifdef ENABLE_UPPERCASE_JSON_API_NAMES
++
++#ifndef SUPPORT_CAMEL_CASE_JSON_APIS
 +
 +/* JUserSettings.h will be generated with auto generated tool and it is calling _impl_(object of IUserSettings.h) methods
 +   starting with Capital letters,which will cause compilation error as IUserSettings interface method names are starting with
@@ -361,9 +362,7 @@ index 0000000..7c63d45
 +#endif
 +
 diff --git a/interfaces/Ids.h b/interfaces/Ids.h
-old mode 100644
-new mode 100755
-index a37db24..a9f4556
+index a37db24..293dd73 100644
 --- a/interfaces/Ids.h
 +++ b/interfaces/Ids.h
 @@ -354,7 +354,10 @@ namespace Exchange {
@@ -373,7 +372,7 @@ index a37db24..a9f4556
 -        ID_TEXT_TO_SPEECH_NOTIFICATION               = ID_TEXT_TO_SPEECH + 1
 +        ID_TEXT_TO_SPEECH_NOTIFICATION               = ID_TEXT_TO_SPEECH + 1,
 +
-+        ID_USER_SETTINGS                             = RPC::IDS::ID_EXTERNAL_INTERFACE_OFFSET + 0x4D0,
++	ID_USER_SETTINGS                             = RPC::IDS::ID_EXTERNAL_INTERFACE_OFFSET + 0x4D0,
 +        ID_USER_SETTINGS_NOTIFICATION                = ID_USER_SETTINGS + 1
      };
  }

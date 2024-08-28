@@ -46,7 +46,7 @@ class AsyncHandlerMock_UserSetting
         }
         MOCK_METHOD(void, onAudioDescriptionChanged, (const bool enabled));
         MOCK_METHOD(void, onPreferredAudioLanguagesChanged, (const string preferredLanguages));
-        MOCK_METHOD(void, onPresentationLanguageChanged, (const string presentationLanguages));
+        MOCK_METHOD(void, onPresentationLanguageChanged, (const string presentationLanguage));
         MOCK_METHOD(void, onCaptionsChanged, (const bool enabled));
         MOCK_METHOD(void, onPreferredCaptionsLanguagesChanged, (const string preferredLanguages));
         MOCK_METHOD(void, onPreferredClosedCaptionServiceChanged, (const string service));
@@ -104,12 +104,12 @@ class NotificationHandler : public Exchange::IUserSettings::INotification {
 
         }
 
-        void onPresentationLanguageChanged(const string& presentationLanguages) override
+        void onPresentationLanguageChanged(const string& presentationLanguage) override
         {
             TEST_LOG("OnPresentationLanguageChanged event triggered ***\n");
             std::unique_lock<std::mutex> lock(m_mutex);
 
-            TEST_LOG("OnPresentationLanguageChanged received: %s\n", presentationLanguages.c_str());
+            TEST_LOG("OnPresentationLanguageChanged received: %s\n", presentationLanguage.c_str());
             /* Notify the requester thread. */
             m_event_signalled |= UserSettings_onPresentationLanguageChanged;
             m_condition_variable.notify_one();
@@ -277,7 +277,7 @@ protected:
 
       void onAudioDescriptionChanged(const bool enabled);
       void onPreferredAudioLanguagesChanged(const string preferredLanguages);
-      void onPresentationLanguageChanged(const string presentationLanguages);
+      void onPresentationLanguageChanged(const string presentationLanguage);
       void onCaptionsChanged(bool enabled);
       void onPreferredCaptionsLanguagesChanged(const string preferredLanguages);
       void onPreferredClosedCaptionServiceChanged(const string service);
@@ -428,12 +428,12 @@ void UserSettingTest::onPreferredAudioLanguagesChanged(const string preferredLan
     m_condition_variable.notify_one();
 }
 
-void UserSettingTest::onPresentationLanguageChanged(const string presentationLanguages)
+void UserSettingTest::onPresentationLanguageChanged(const string presentationLanguage)
 {
     TEST_LOG("OnPresentationLanguageChanged event triggered ***\n");
     std::unique_lock<std::mutex> lock(m_mutex);
 
-    TEST_LOG("OnPresentationLanguageChanged received: %s\n", presentationLanguages.c_str());
+    TEST_LOG("OnPresentationLanguageChanged received: %s\n", presentationLanguage.c_str());
 
     /* Notify the requester thread. */
     m_event_signalled |= UserSettings_onPresentationLanguageChanged;
@@ -908,7 +908,7 @@ TEST_F(UserSettingTest, SetAndGetMethodsUsingJsonRpcConnectionSuccessCase)
 
     bool enabled = true;
     string preferredLanguages = "en";
-    string presentationLanguages = "fra";
+    string presentationLanguage = "fra";
     string preferredCaptionsLanguages = "en,es";
     string preferredService = "CC3";
     string viewingRestrictions = "ALWAYS";
@@ -973,16 +973,16 @@ TEST_F(UserSettingTest, SetAndGetMethodsUsingJsonRpcConnectionSuccessCase)
     status = jsonrpc.Subscribe<JsonObject>(JSON_TIMEOUT,
                                            _T("onPresentationLanguageChanged"),
                                            [&async_handler](const JsonObject& parameters) {
-                                           string presentationLanguages = parameters["presentationLanguages"].String();
-                                           async_handler.onPresentationLanguageChanged(presentationLanguages);
+                                           string presentationLanguage = parameters["presentationLanguage"].String();
+                                           async_handler.onPresentationLanguageChanged(presentationLanguage);
                                        });
     EXPECT_EQ(Core::ERROR_NONE, status);
 
-    EXPECT_CALL(async_handler, onPresentationLanguageChanged(MatchRequestStatusString(presentationLanguages)))
+    EXPECT_CALL(async_handler, onPresentationLanguageChanged(MatchRequestStatusString(presentationLanguage)))
     .WillOnce(Invoke(this, &UserSettingTest::onPresentationLanguageChanged));
 
     JsonObject paramsPresLanguage;
-    paramsPresLanguage["presentationLanguages"] = presentationLanguages;
+    paramsPresLanguage["presentationLanguage"] = presentationLanguage;
     status = InvokeServiceMethod("org.rdk.UserSettings", "setPresentationLanguage", paramsPresLanguage, result_json);
     EXPECT_EQ(status,Core::ERROR_NONE);
 
@@ -992,7 +992,7 @@ TEST_F(UserSettingTest, SetAndGetMethodsUsingJsonRpcConnectionSuccessCase)
 
     status = InvokeServiceMethod("org.rdk.UserSettings", "getPresentationLanguage", result_string);
     EXPECT_EQ(status,Core::ERROR_NONE);
-    EXPECT_EQ(result_string.Value(), presentationLanguages);
+    EXPECT_EQ(result_string.Value(), presentationLanguage);
 
     TEST_LOG("Testing SetCaptionsSuccess");
     status = jsonrpc.Subscribe<JsonObject>(JSON_TIMEOUT,

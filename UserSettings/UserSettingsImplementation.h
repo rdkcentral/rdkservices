@@ -164,8 +164,8 @@ namespace Plugin {
         uint32_t getAudioDescription(bool &enabled) const override;
         uint32_t setPreferredAudioLanguages(const string& preferredLanguages) override;
         uint32_t getPreferredAudioLanguages(string &preferredLanguages) const override;
-        uint32_t setPresentationLanguage(const string& presentationLanguages) override;
-        uint32_t getPresentationLanguage(string &presentationLanguages) const override;
+        uint32_t setPresentationLanguage(const string& presentationLanguage) override;
+        uint32_t getPresentationLanguage(string &presentationLanguage) const override;
         uint32_t setCaptions(const bool enabled) override;
         uint32_t getCaptions(bool &enabled) const override;
         uint32_t setPreferredCaptionsLanguages(const string& preferredLanguages) override;
