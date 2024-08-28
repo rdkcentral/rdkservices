@@ -1,3 +1,21 @@
+/*
+ * If not stated otherwise in this file or this component's LICENSE file the
+ * following copyright and licenses apply:
+ *
+ * Copyright 2020 RDK Management
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #include "SiftConfig.h"
 #include "UtilsLogging.h"
 
@@ -32,12 +50,14 @@ namespace WPEFramework
 
                 SiftConfig()
                     : Core::JSON::Container()
+                    , Schema2(false)
                     , CommonSchema()
                     , Env()
                     , ProductName()
                     , LoggerName()
                     , LoggerVersion()
                 {
+                    Add(_T("schema2"), &Schema2);
                     Add(_T("commonschema"), &CommonSchema);
                     Add(_T("env"), &Env);
                     Add(_T("productname"), &ProductName);
@@ -47,6 +67,7 @@ namespace WPEFramework
                 ~SiftConfig() = default;
 
             public:
+                Core::JSON::Boolean Schema2;
                 Core::JSON::String CommonSchema;
                 Core::JSON::String Env;
                 Core::JSON::String ProductName;
@@ -299,78 +320,114 @@ namespace WPEFramework
 
             mMutex.lock();
 
-            bool activatedValid = mConfig.activated? 
-                (!mConfig.xboDeviceId.empty() && !mConfig.xboAccountId.empty()) : true; 
+            bool valid = false;
 
-            //Sift 2.0 required fields
-            bool valid = ( !mConfig.commonSchema.empty()
-                && !mConfig.productName.empty()
-                && !mConfig.productVersion.empty()
-                && !mConfig.loggerName.empty()
-                && !mConfig.loggerVersion.empty()
-                && !mConfig.partnerId.empty()
-                && activatedValid
-                && !mConfig.deviceModel.empty()
-                && !mConfig.deviceType.empty()
-                && !mConfig.deviceTimeZone.empty()
-                && !mConfig.deviceOsName.empty()
-                && !mConfig.deviceOsVersion.empty()
-                && !mConfig.platform.empty()
-                && !mConfig.deviceManufacturer.empty()
-                && !mConfig.sessionId.empty()
-                && !mConfig.proposition.empty()
-                && !mConfig.deviceSerialNumber.empty()
-                && !mConfig.deviceMacAddress.empty() );
+            if (mConfig.schema2Enabled)
+            {
+                //Sift 2.0 requires attributes
+                bool activatedValid = mConfig.activated ? (!mConfig.xboDeviceId.empty()
+                    && !mConfig.xboAccountId.empty()) : true;
 
-            LOGINFO( " commonSchema: %s,"
-            " productName: %s,"
-            " productVersion: %s,"
-            " loggerName: %s,"
-            " loggerVersion: %s,"
-            " partnerId: %s,"
-            " activatedValid %d,"
-            " deviceModel: %s,"
-            " deviceType: %s,"
-            " deviceTimeZone: %s,"
-            " deviceOsName: %s,"
-            " deviceOsVersion: %s,"
-            " platform: %s,"
-            " deviceManufacturer: %s,"
-            " sessionId: %s,"
-            " proposition: %s,"
-            " deviceSerialNumber: %s,"
-            " deviceMacAddress: %s,", 
-             mConfig.commonSchema.c_str(),
-             mConfig.productName.c_str(),
-             mConfig.productVersion.c_str(),
-             mConfig.loggerName.c_str(),
-             mConfig.loggerVersion.c_str(),
-             mConfig.partnerId.c_str(),
-             activatedValid,
-             mConfig.deviceModel.c_str(),
-             mConfig.deviceType.c_str(),
-             mConfig.deviceTimeZone.c_str(),
-             mConfig.deviceOsName.c_str(),
-             mConfig.deviceOsVersion.c_str(),
-             mConfig.platform.c_str(),
-             mConfig.deviceManufacturer.c_str(),
-             mConfig.sessionId.c_str(),
-             mConfig.proposition.c_str(),
-             mConfig.deviceSerialNumber.c_str(),
-             mConfig.deviceMacAddress.c_str());
+                valid = ( !mConfig.url.empty()
+                    && !mConfig.apiKey.empty()
+                    && !mConfig.sessionId.empty()
+                    && !mConfig.commonSchema.empty()
+                    && !mConfig.productName.empty()
+                    && !mConfig.productVersion.empty()
+                    && !mConfig.loggerName.empty()
+                    && !mConfig.loggerVersion.empty()
+                    && !mConfig.partnerId.empty()
+                    && activatedValid
+                    && !mConfig.deviceModel.empty()
+                    && !mConfig.deviceType.empty()
+                    && !mConfig.deviceTimeZone.empty()
+                    && !mConfig.deviceOsName.empty()
+                    && !mConfig.deviceOsVersion.empty()
+                    && !mConfig.platform.empty()
+                    && !mConfig.deviceManufacturer.empty()
+                    && !mConfig.sessionId.empty()
+                    && !mConfig.proposition.empty()
+                    && !mConfig.deviceSerialNumber.empty()
+                    && !mConfig.deviceMacAddress.empty());
+
+                LOGINFO(" commonSchema: %s,"
+                        " productName: %s,"
+                        " productVersion: %s,"
+                        " loggerName: %s,"
+                        " loggerVersion: %s,"
+                        " partnerId: %s,"
+                        " activatedValid %d,"
+                        " deviceModel: %s,"
+                        " deviceType: %s,"
+                        " deviceTimeZone: %s,"
+                        " deviceOsName: %s,"
+                        " deviceOsVersion: %s,"
+                        " platform: %s,"
+                        " deviceManufacturer: %s,"
+                        " sessionId: %s,"
+                        " proposition: %s,"
+                        " deviceSerialNumber: %s,"
+                        " deviceMacAddress: %s,",
+                        mConfig.commonSchema.c_str(),
+                        mConfig.productName.c_str(),
+                        mConfig.productVersion.c_str(),
+                        mConfig.loggerName.c_str(),
+                        mConfig.loggerVersion.c_str(),
+                        mConfig.partnerId.c_str(),
+                        activatedValid,
+                        mConfig.deviceModel.c_str(),
+                        mConfig.deviceType.c_str(),
+                        mConfig.deviceTimeZone.c_str(),
+                        mConfig.deviceOsName.c_str(),
+                        mConfig.deviceOsVersion.c_str(),
+                        mConfig.platform.c_str(),
+                        mConfig.deviceManufacturer.c_str(),
+                        mConfig.sessionId.c_str(),
+                        mConfig.proposition.c_str(),
+                        mConfig.deviceSerialNumber.c_str(),
+                        mConfig.deviceMacAddress.c_str());
+
+                if (valid)
+                {
+                    if (mConfig.deviceType == "TV")
+                    {
+                        mConfig.deviceType = "IPTV";
+                    }
+                    else if (mConfig.deviceType == "IPSETTOPBOX")
+                    {
+                        mConfig.deviceType = "IPSTB";
+                    }
+                }
+            }
+            else //Sift 1.0 required attributes
+            {
+                valid = (!mConfig.url.empty()
+                    && !mConfig.apiKey.empty()
+                    && !mConfig.sessionId.empty()
+                    && !mConfig.productName.empty()
+                    && !mConfig.deviceAppName.empty()
+                    && !mConfig.deviceAppVersion.empty()
+                    && !mConfig.deviceModel.empty()
+                    && !mConfig.deviceTimeZone.empty()
+                    && !mConfig.platform.empty()
+                    && !mConfig.deviceSoftwareVersion.empty()
+                    && !mConfig.deviceType.empty());
+
+                LOGINFO("%s, %s, %s, %s, %s, %s, %s",
+                    mConfig.productName.c_str(),
+                    mConfig.deviceAppName.c_str(),
+                    mConfig.deviceAppVersion.c_str(),
+                    mConfig.deviceModel.c_str(),
+                    mConfig.platform.c_str(),
+                    mConfig.deviceSoftwareVersion.c_str(),
+                    mConfig.deviceType.c_str());
+            }
 
             if (valid)
             {
-                if (mConfig.deviceType == "TV")
-                {
-                    mConfig.deviceType = "IPTV";
-                }
-                else if (mConfig.deviceType == "IPSETTOPBOX")
-                {
-                    mConfig.deviceType = "IPSTB";
-                }
                 config = mConfig;
             }
+
             mMutex.unlock();
             return valid;
         }
@@ -383,11 +440,10 @@ namespace WPEFramework
 
         void SiftConfig::InitializeKeysMap()
         {
-            //Based on SIFT 2.0 properties
-            //Device info based on SIFT 2.0 properties
+            //SIFT 2.0 attributes from persistent storage
             mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["deviceHardwareModel"] = &mConfig.deviceModel;
             mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["deviceType"] = &mConfig.deviceType;
-            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["devicePlatform"] = &mConfig.platform;//TODO: in ripple equal to 'proposition'
+            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["devicePlatform"] = &mConfig.platform;
             mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["modelNumber"] = &mConfig.deviceOsVersion;
             mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["manufacturer"] = &mConfig.deviceManufacturer;
             mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["serialNumber"] = &mConfig.deviceSerialNumber;
@@ -406,7 +462,13 @@ namespace WPEFramework
             //TODO: Values provided by AS but should be provided by RDK
             mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["deviceTimeZone"] = &mConfig.deviceTimeZone;
 
-
+            //SIFT 1.0 attributes from persistent storage
+            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["deviceSoftwareVersion"] = &mConfig.deviceSoftwareVersion;
+            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["deviceAppName"] = &mConfig.deviceAppName;
+            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["deviceAppVersion"] = &mConfig.deviceAppVersion;
+            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["accountId"] = &mConfig.accountId;
+            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["deviceId"] = &mConfig.deviceId;
+            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["partnerId"] = &mConfig.partnerId;
 
             //TODO: Sift cloud configuration - move to plugin config? (at least url)
             mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["sift_url"] = &mConfig.url;
@@ -429,12 +491,13 @@ namespace WPEFramework
             }
             else
             {
+                mConfig.schema2Enabled = config.Sift.Schema2.Value();
                 mConfig.commonSchema = config.Sift.CommonSchema.Value();
                 mConfig.env = config.Sift.Env.Value();
-                mConfig.productName = "entos-immerse";//config.Sift.ProductName.Value();
+                mConfig.productName = config.Sift.ProductName.Value();
                 mConfig.loggerName = config.Sift.LoggerName.Value();
                 mConfig.loggerVersion = config.Sift.LoggerVersion.Value();
-                mConfig.deviceOsName = "rdk";//config.DeviceOsName.Value();
+                mConfig.deviceOsName = config.DeviceOsName.Value();
                 SYSLOG(Logging::Startup, (_T("Parsed config: '%s', '%s', '%s', '%s', '%s', '%s'."),
                                           mConfig.commonSchema.c_str(),
                                           mConfig.env.c_str(),

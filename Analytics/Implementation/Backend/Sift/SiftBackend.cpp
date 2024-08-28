@@ -1,3 +1,21 @@
+/*
+ * If not stated otherwise in this file or this component's LICENSE file the
+ * following copyright and licenses apply:
+ *
+ * Copyright 2020 RDK Management
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #include "SiftBackend.h"
 #include "UtilsLogging.h"
 
@@ -147,92 +165,125 @@ namespace WPEFramework
 
         bool SiftBackend::SendEventInternal(const Event &event, const SiftConfig::Config &config)
         {
-            // Sift 2.0 schema
             JsonObject eventJson = JsonObject();
-            //TODO: Sift does not accept: eventJson["common_schema"] = config.commonSchema;
-            if (!config.env.empty())
+            if (config.schema2Enabled)
             {
-                eventJson["env"] = config.env;
-            }
-            eventJson["product_name"] = config.productName;
-            eventJson["product_version"] = config.productVersion;
-            eventJson["event_schema"] = config.productName + "/" + event.eventName + "/" + event.eventVersion;
-            eventJson["event_name"] = event.eventName;
-            eventJson["timestamp"] = event.epochTimestamp;
-            eventJson["event_id"] = GenerateRandomUUID();
-            eventJson["event_source"] = event.eventSource;
-            eventJson["event_source_version"] = event.eventSourceVersion;
-            if (!event.cetList.empty())
-            {
-                JsonArray cetList = JsonArray();
-                for (const std::string &cet : event.cetList)
+                // Sift 2.0 schema
+                eventJson["common_schema"] = config.commonSchema;
+                if (!config.env.empty())
                 {
-                    cetList.Add(cet);
+                    eventJson["env"] = config.env;
                 }
-               eventJson["cet_list"] = cetList;
-            }
-            eventJson["logger_name"] = config.loggerName;
-            eventJson["logger_version"] = config.loggerVersion;
-            eventJson["partner_id"] = config.partnerId;
-            if (config.activated)
-            {
-                eventJson["xbo_account_id"] = config.xboAccountId;
-                eventJson["xbo_device_id"] = config.xboDeviceId;
-                eventJson["activated"] = config.activated;
-            }
-            eventJson["device_model"] = config.deviceModel;
-            eventJson["device_type"] = config.deviceType;
-            eventJson["device_timezone"] = std::stoi(config.deviceTimeZone);
-            eventJson["device_os_name"] = config.deviceOsName;
-            eventJson["device_os_version"] = config.deviceOsVersion;
-            eventJson["platform"] = config.platform;
-            eventJson["device_manufacturer"] = config.deviceManufacturer;
-            eventJson["authenticated"] = config.authenticated;
-            eventJson["session_id"] = config.sessionId;
-            eventJson["proposition"] = config.proposition;
-            if (!config.retailer.empty())
-            {
-                eventJson["retailer"] = config.retailer;
-            }
-            if (!config.jvAgent.empty())
-            {
-                eventJson["jv_agent"] = config.jvAgent;
-            }
-            if (!config.coam.empty())
-            {
-                eventJson["coam"] = JsonValue(config.coam == "true");
-            }
-            eventJson["device_serial_number"] = config.deviceSerialNumber;
-            if (!config.deviceFriendlyName.empty())
-            {
-                eventJson["device_friendly_name"] = config.deviceFriendlyName;
-            }
-            if (!config.deviceMacAddress.empty())
-            {
-                eventJson["device_mac_address"] = config.deviceMacAddress;
-            }
-            if (!config.country.empty())
-            {
-                eventJson["country"] = config.country;
-            }
-            if (!config.region.empty())
-            {
-                eventJson["region"] = config.region;
-            }
-            if (!config.accountType.empty())
-            {
-                eventJson["account_type"] = config.accountType;
-            }
-            if (!config.accountOperator.empty())
-            {
-                eventJson["operator"] = config.accountOperator;
-            }
-            if (!config.accountDetailType.empty())
-            {
-                eventJson["account_detail_type"] = config.accountDetailType;
-            }
+                eventJson["product_name"] = config.productName;
+                eventJson["product_version"] = config.productVersion;
+                eventJson["event_schema"] = config.productName + "/" + event.eventName + "/" + event.eventVersion;
+                eventJson["event_name"] = event.eventName;
+                eventJson["timestamp"] = event.epochTimestamp;
+                eventJson["event_id"] = GenerateRandomUUID();
+                eventJson["event_source"] = event.eventSource;
+                eventJson["event_source_version"] = event.eventSourceVersion;
+                if (!event.cetList.empty())
+                {
+                    JsonArray cetList = JsonArray();
+                    for (const std::string &cet : event.cetList)
+                    {
+                        cetList.Add(cet);
+                    }
+                    eventJson["cet_list"] = cetList;
+                }
+                eventJson["logger_name"] = config.loggerName;
+                eventJson["logger_version"] = config.loggerVersion;
+                eventJson["partner_id"] = config.partnerId;
+                if (config.activated)
+                {
+                    eventJson["xbo_account_id"] = config.xboAccountId;
+                    eventJson["xbo_device_id"] = config.xboDeviceId;
+                    eventJson["activated"] = config.activated;
+                }
+                eventJson["device_model"] = config.deviceModel;
+                eventJson["device_type"] = config.deviceType;
+                eventJson["device_timezone"] = std::stoi(config.deviceTimeZone);
+                eventJson["device_os_name"] = config.deviceOsName;
+                eventJson["device_os_version"] = config.deviceOsVersion;
+                eventJson["platform"] = config.platform;
+                eventJson["device_manufacturer"] = config.deviceManufacturer;
+                eventJson["authenticated"] = config.authenticated;
+                eventJson["session_id"] = config.sessionId;
+                eventJson["proposition"] = config.proposition;
+                if (!config.retailer.empty())
+                {
+                    eventJson["retailer"] = config.retailer;
+                }
+                if (!config.jvAgent.empty())
+                {
+                    eventJson["jv_agent"] = config.jvAgent;
+                }
+                if (!config.coam.empty())
+                {
+                    eventJson["coam"] = JsonValue(config.coam == "true");
+                }
+                eventJson["device_serial_number"] = config.deviceSerialNumber;
+                if (!config.deviceFriendlyName.empty())
+                {
+                    eventJson["device_friendly_name"] = config.deviceFriendlyName;
+                }
+                if (!config.deviceMacAddress.empty())
+                {
+                    eventJson["device_mac_address"] = config.deviceMacAddress;
+                }
+                if (!config.country.empty())
+                {
+                    eventJson["country"] = config.country;
+                }
+                if (!config.region.empty())
+                {
+                    eventJson["region"] = config.region;
+                }
+                if (!config.accountType.empty())
+                {
+                    eventJson["account_type"] = config.accountType;
+                }
+                if (!config.accountOperator.empty())
+                {
+                    eventJson["operator"] = config.accountOperator;
+                }
+                if (!config.accountDetailType.empty())
+                {
+                    eventJson["account_detail_type"] = config.accountDetailType;
+                }
 
-            eventJson["event_payload"] = JsonObject(event.eventPayload);
+                eventJson["event_payload"] = JsonObject(event.eventPayload);
+            }
+            else
+            {
+                //Sift 1.0
+                eventJson["event_name"] = event.eventName;
+                eventJson["event_schema"] = config.productName + "/" + event.eventName + "/" + event.eventVersion;
+                eventJson["event_payload"] = JsonObject(event.eventPayload);
+                eventJson["session_id"] = config.sessionId;
+                eventJson["event_id"] = GenerateRandomUUID();
+
+                if (!config.accountId.empty() && !config.deviceId.empty() && !config.partnerId.empty())
+                {
+                    eventJson["account_id"] = config.accountId;
+                    eventJson["device_id"] = config.deviceId;
+                    eventJson["partner_id"] = config.partnerId;
+                }
+                else
+                {
+                    std::cout << "Sift: Account ID, Device ID, or Partner ID is empty for: " << event.eventName << std::endl;
+                }
+
+                eventJson["app_name"] = config.deviceAppName;
+                eventJson["app_ver"] = config.deviceAppVersion;
+                eventJson["device_model"] = config.deviceModel;
+                eventJson["device_timezone"] = std::stoi(config.deviceTimeZone);
+                eventJson["platform"] = config.platform;
+                eventJson["os_ver"] = config.deviceSoftwareVersion;
+                eventJson["device_language"] = ""; // Empty for now
+                eventJson["timestamp"] = event.epochTimestamp;
+                eventJson["device_type"] = config.deviceType;
+            }
 
             // TODO: push to persistent queue instead of sending array
             JsonArray eventArray = JsonArray();
