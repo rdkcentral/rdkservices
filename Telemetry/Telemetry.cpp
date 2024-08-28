@@ -61,7 +61,7 @@
 #define API_VERSION_NUMBER_PATCH 2
 
 #ifdef HAS_RBUS
-#define RBUS_PRIVACY_MODE_EVENT_NAME "Device.X_RDKCENTRAL-COM_UserSettings.PrivacyModeChanged"
+#define RBUS_PRIVACY_MODE_EVENT_NAME "Device.X_RDKCENTRAL-COM_Privacy.PrivacyMode"
 
 static rbusError_t rbusHandleStatus = RBUS_ERROR_NOT_INITIALIZED;
 static rbusHandle_t rbusHandle;
