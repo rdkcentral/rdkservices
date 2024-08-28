@@ -1980,6 +1980,7 @@ namespace WPEFramework {
                           std::cout << "Launch RA not waiting for persistent store\n";
 			  int32_t status = 0;
 			  std::string callsign("ResidentApp");
+                          JsonObject activateParams;
 			  activateParams.Set("callsign",callsign.c_str());
 			  JsonObject activateResult;
 			  auto thunderController = getThunderControllerClient();
@@ -2050,6 +2051,7 @@ namespace WPEFramework {
 			std::cout << "Launch RA after waiting for persistent store\n";
                         int32_t status = 0;
 			std::string callsign("ResidentApp");
+                        JsonObject activateParams;
 			activateParams.Set("callsign",callsign.c_str());
 			JsonObject activateResult;
 			auto thunderController = getThunderControllerClient();
