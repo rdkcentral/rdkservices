@@ -1,3 +1,21 @@
+/*
+ * If not stated otherwise in this file or this component's LICENSE file the
+ * following copyright and licenses apply:
+ *
+ * Copyright 2020 RDK Management
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 #pragma once
 
 #include "../../../Module.h"
@@ -15,17 +33,18 @@ namespace WPEFramework
         public:
             struct Config
             {
+                bool schema2Enabled;
                 // Sift 2.0 decoration
                 std::string commonSchema;
                 std::string env;
                 std::string productName;
-                std::string productVersion; //TODO: in persistent or /system/information/entertainmentOSVersion
+                std::string productVersion;
                 std::string loggerName;
                 std::string loggerVersion;
-                std::string partnerId; // from authservice
-                std::string xboAccountId; // from authservice ServiceAccountId
-                std::string xboDeviceId; // from authservice XDeviceId
-                bool activated; // from authservice IF (authservice getActivationStatus returns activation-state = activated) then TRUE
+                std::string partnerId;
+                std::string xboAccountId;
+                std::string xboDeviceId;
+                bool activated;
                 std::string deviceModel;
                 std::string deviceType;
                 std::string deviceTimeZone;
@@ -33,15 +52,15 @@ namespace WPEFramework
                 std::string deviceOsVersion;
                 std::string platform;
                 std::string deviceManufacturer;
-                bool authenticated; // set to true if the event is to be SAT authenticated
-                std::string sessionId; // TODO: should be auto generated, but for now we will use sessionId from file
+                bool authenticated;
+                std::string sessionId;
                 std::string proposition;
                 std::string retailer;
                 std::string jvAgent;
                 std::string coam;
-                std::string deviceSerialNumber; // /system/information serialNumber
+                std::string deviceSerialNumber;
                 std::string deviceFriendlyName;
-                std::string deviceMacAddress; // /system/information MACAddress
+                std::string deviceMacAddress;
                 std::string country;
                 std::string region;
                 std::string accountType;
@@ -51,6 +70,13 @@ namespace WPEFramework
                 // TODO: read in SiftUploader
                 std::string url;
                 std::string apiKey;
+
+                // Sift 1.0 atributes that left
+                std::string deviceSoftwareVersion;
+                std::string deviceAppName;
+                std::string deviceAppVersion;
+                std::string accountId;
+                std::string deviceId;
             };
 
             SiftConfig(const SiftConfig &) = delete;
