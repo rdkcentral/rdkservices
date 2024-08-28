@@ -2340,6 +2340,46 @@
                     "logUploadStatus"
                 ]
             }
+        },
+        "setFSRFlag":{
+            "summary": "Set the FSR flag into the emmc raw area.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "fsrFlag": {
+                        "summary": "FSR flag",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "success":{
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "fsrFlag",
+                    "success"
+                ]
+            }
+        },
+        "getFSRFlag":{
+            "summary": "Get the FSR flag from the emmc raw area.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "fsrFlag": {
+                        "summary": "FSR flag.",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "success":{
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "fsrFlag",
+                    "success"
+                ]
+            }
         }
     }
 }

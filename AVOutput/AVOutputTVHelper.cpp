@@ -1219,6 +1219,9 @@ namespace Plugin {
                if (strncmp(param.value, "Dark", strlen(param.value)) == 0) {
                    value = tvDolbyMode_Dark;
                }
+               else if(strncmp(param.value, "Game", strlen(param.value)) == 0) {
+                   value = tvDolbyMode_Game;
+               }
                else {
                    value = tvDolbyMode_Bright;
                }
@@ -1474,6 +1477,11 @@ namespace Plugin {
                 case tvHLGMode_Bright:
                         value = "Bright";
                         break;
+                case tvDolbyMode_Game:
+                case tvHDR10Mode_Game:
+                case tvHLGMode_Game:
+                    value = "Game";
+                    break;
                 default:
                         break;
             }
