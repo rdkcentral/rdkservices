@@ -127,13 +127,13 @@ jobs:
           &&
           cmake --install build/Thunder
 
-      - name: Checkout ThunderInterfaces
+      - name: Checkout ThunderInterfaces from SystemMode branch
         if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
         with:
-          repository: rdkcentral/ThunderInterfaces
+          repository: ramkumarpraba/ThunderInterfaces
           path: ThunderInterfaces
-          ref: ${{env.INTERFACES_REF}}
+          ref: SystemMode
 
       - name: Build ThunderInterfaces
         if: steps.cache.outputs.cache-hit != 'true'
