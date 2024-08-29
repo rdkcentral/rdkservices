@@ -208,7 +208,7 @@
                             "SPEECH_PAUSED(2)",
                             "SPEECH_NOT_FOUND(3)"
                         ],
-                        "example":"SPEECH_IN_PROGRESS(0)"
+                        "example":"0"
                     },
                     "TTS_Status": {
                         "$ref": "#/definitions/TTS_Status"
