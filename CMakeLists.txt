@@ -329,6 +329,8 @@ if(PLUGIN_TEXTTOSPEECH)
     add_subdirectory(TextToSpeech)
 endif()
 
+add_subdirectory(SystemMode)
+
 if(PLUGIN_SYSTEMAUDIOPLAYER)
     add_subdirectory(SystemAudioPlayer)
 endif()
