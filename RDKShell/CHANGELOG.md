@@ -16,10 +16,6 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
-## [1.5.2] - 2024-08-28
-### Fixed
-- Fix to activate RA after the Graphics subsystem
-
 ## [1.5.1] - 2024-07-17
 ### Fixed
 - Fix for Retry to get wake up keycode when Unknown
