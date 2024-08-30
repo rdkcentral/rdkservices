@@ -23,10 +23,7 @@ typedef enum : uint32_t {
 
 }UsbAccessL2test_async_events_t;
 
-/* Needs usbaccess middleware fix (DELIA-65868) to run this test. for now commented the test UsbAccessArchiveLogs for Thunder R4*/
-#ifndef USE_THUNDER_R4
 char buffer[1024];
-#endif /* !USE_THUNDER_R4 */
 
 /**
  * @brief Compare two request status objects
@@ -539,8 +536,6 @@ TEST_F(UsbAccess_L2test, SymLinkoperations)
 
 }
 
-/* Needs usbaccess middleware fix (DELIA-65868) to run this test. for now commented the test UsbAccessArchiveLogs for Thunder R4*/
-#ifndef USE_THUNDER_R4
 /********************************************************
 ************Test case Details **************************
 ** 1. Subscribe for onArchiveLogs Events
@@ -653,5 +648,4 @@ TEST_F(UsbAccess_L2test,UsbAccessArchiveLogs)
     /* Unregister for events. */
     jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("onArchiveLogs"));
 }
-#endif /* !USE_THUNDER_R4 */
 
