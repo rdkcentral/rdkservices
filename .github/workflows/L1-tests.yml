@@ -9,7 +9,7 @@ on:
 env:
   BUILD_TYPE: Debug
   THUNDER_REF: "5e7c0b1ed3c3dd0fc31c86518a364388dc24273b"
-  INTERFACES_REF: "aff8e24dd159151feaf9766b646d92e0dc49636e"
+  INTERFACES_REF: "98988412fe2518f28b492eb54282ca727e1c8c58"
 
 jobs:
   l1-tests:
@@ -127,13 +127,13 @@ jobs:
           &&
           cmake --install build/Thunder
 
-      - name: Checkout ThunderInterfaces from SystemMode branch
+      - name: Checkout ThunderInterfaces from SystemModeV1 branch
         if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
         with:
           repository: ramkumarpraba/ThunderInterfaces
           path: ThunderInterfaces
-          ref: SystemMode
+          ref: SystemModeV1
 
       - name: Build ThunderInterfaces
         if: steps.cache.outputs.cache-hit != 'true'
