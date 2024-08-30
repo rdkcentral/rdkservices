@@ -864,6 +864,7 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             }
             else if((state == "INTERFACE_LINK_UP") || (state == "INTERFACE_LINK_DOWN"))
             {
+                NMLOG_INFO("Posting onConnectionStatusChanged");
                 Notify("onConnectionStatusChanged", legacyParams);
             }
 
@@ -879,6 +880,7 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             legacyParams["newInterfaceName"] = getInterfaceMapping(parameters["newInterfaceName"].String());
 
             m_defaultInterface = parameters["newInterfaceName"].String();
+            NMLOG_INFO("Posting onDefaultInterfaceChanged");
             Notify("onDefaultInterfaceChanged", legacyParams);
             return;
         }
@@ -901,7 +903,7 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             }
 
             legacyParams["status"] = parameters["status"];
-
+            NMLOG_INFO("Posting onIPAddressStatusChanged");
             Notify("onIPAddressStatusChanged", legacyParams);
 
             if ("ACQUIRED" == parameters["status"].String())
@@ -912,6 +914,7 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
 
         void Network::ReportonInternetStatusChange(const JsonObject& parameters)
         {
+            NMLOG_INFO("Posting onInternetStatusChange");
             Notify("onInternetStatusChange", parameters);
             return;
         }
