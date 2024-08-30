@@ -9,7 +9,7 @@ on:
 env:
   BUILD_TYPE: Debug
   THUNDER_REF: "5e7c0b1ed3c3dd0fc31c86518a364388dc24273b"
-  INTERFACES_REF: "930e01ec9aec8aa60254dec0be3beca932df63cd"
+  INTERFACES_REF: "aff8e24dd159151feaf9766b646d92e0dc49636e"
 
 jobs:
   l1-tests:
