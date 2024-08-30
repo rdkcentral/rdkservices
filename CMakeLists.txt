@@ -393,6 +393,14 @@ if (PLUGIN_RESOURCEMANAGER)
     add_subdirectory(ResourceManager)
 endif()
 
+if(PLUGIN_CLOUDSTORE)
+    add_subdirectory(CloudStore)
+endif()
+
+if(PLUGIN_SHAREDSTORAGE)
+    add_subdirectory(SharedStorage)
+endif()
+
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)
     set(CPACK_GENERATOR "DEB")
     set(CPACK_DEB_COMPONENT_INSTALL ON)
