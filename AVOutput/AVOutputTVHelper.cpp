@@ -21,7 +21,9 @@
 #include "AVOutputTV.h"
 #include "UtilsIarm.h"
 #include "rfcapi.h"
+#include "iniParser.h"
 
+#define CAPABLITY_FILE_NAME    "/etc/pq_capablities.ini" 
 static std::map<std::string, int> supportedSourcemap;
 static std::map<std::string, int> supportedPictureModemap;
 static std::map<std::string, int> supportedFormatmap;
@@ -417,6 +419,17 @@ namespace Plugin {
         if( ReadCapablitiesFromConfODM( param, paramInfo ) != 0 ) {
             LOGINFO( "%s: readCapablitiesFromConf Failed !!!\n",__FUNCTION__);
             return false;
+        }
+
+        if( param == "CMS")
+        {
+            if ( ( inputInfo.color.find(paramInfo.color) == std::string::npos ) || ( inputInfo.component.find(paramInfo.component) == std::string::npos) )
+                return false;
+        }
+        else if( param == "WhiteBalance")
+        {
+            if ( ( inputInfo.color.find(paramInfo.color) == std::string::npos ) || ( inputInfo.control.find(paramInfo.control) == std::string::npos) )
+                return false;
         }
         //Compare capablityInfo with Input params
 
@@ -1078,36 +1091,33 @@ namespace Plugin {
                             case PQ_PARAM_WB_GREEN_OFFSET:
                             case PQ_PARAM_WB_BLUE_OFFSET:
                             {
-                                for(int colorTempType : values.colorTempValues ) {
-                                    paramIndex.colorTempIndex = colorTempType;
-                                    for( int colorType : values.colorValues ) {
-                                        paramIndex.colorIndex = colorType;
-                                        for( int controlType : values.controlValues ) {
-                                            paramIndex.controlIndex = controlType;
-                                            if(reset) {
-                                                ret |= updateAVoutputTVParamToHAL(tr181ParamName,paramIndex,0,false);
-		                		            }
-                                            if(sync || reset) {
-                                                int value=0;
-                                                if(getLocalparam(tr181ParamName,paramIndex,value,pqParamIndex,sync)) {
-					                                continue;
-			                                    }
-                                                params[0]=value;
-                                            }
+                               for( int colorType : values.colorValues ) {
+                                   paramIndex.colorIndex = colorType;
+                                   for( int controlType : values.controlValues ) {
+                                        paramIndex.controlIndex = controlType;
+                                        if(reset) {
+                                            ret |= updateAVoutputTVParamToHAL(tr181ParamName,paramIndex,0,false);
+		                	            }
+                                        if(sync || reset) {
+                                            int value=0;
+                                            if(getLocalparam(tr181ParamName,paramIndex,value,pqParamIndex,sync)) {
+					                            continue;
+			                                }
+                                            params[0]=value;
+                                        }
                                          /* tvRGBType_t rgbIndex;
                                             if ( convertWBParamToRGBEnum(getWBColorStringFromEnum((tvWBColor_t)(paramIndex.colorIndex)),getWBControlStringFromEnum((tvWBControl_t)(paramIndex.controlIndex)),rgbIndex) != 0 )
                                             {
                                                 LOGERR("%s:convertWBParamToRGBEnum failed Color : %d Control : %d  \n",__FUNCTION__,paramIndex.colorIndex,paramIndex.controlIndex);
                                                 return -1;  
                                             }*/
-                                            ret |= SaveWhiteBalance((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,(tvColorTemp_t)paramIndex.colorTempIndex,(tvWBColor_t)paramIndex.colorIndex,(tvWBControl_t)paramIndex.controlIndex,params[0]);
+                                        ret |= SaveWhiteBalance((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,(tvWBColor_t)paramIndex.colorIndex,(tvWBControl_t)paramIndex.controlIndex,params[0]);
 
-                                            if(set) {
-                                                ret |= updateAVoutputTVParamToHAL(tr181ParamName,paramIndex,params[0],true);
-                                            }   
-                                        }
-                                    }
+                                        if(set) {
+                                            ret |= updateAVoutputTVParamToHAL(tr181ParamName,paramIndex,params[0],true);
+                                        }   
                                 }
+                            }
                                 break;
                             }
                             case PQ_PARAM_LOCALDIMMING_LEVEL:
@@ -1498,7 +1508,7 @@ namespace Plugin {
             if( sync ) {
                 return 1;
             }
-            GetDefaultPQParams(indexInfo.pqmodeIndex,(tvVideoSrcType_t)indexInfo.sourceIndex,(tvVideoFormatType_t)indexInfo.formatIndex,(tvColorTemp_t)indexInfo.colorTempIndex,pqParamIndex,&value);
+            GetDefaultPQParams(indexInfo.pqmodeIndex,(tvVideoSrcType_t)indexInfo.sourceIndex,(tvVideoFormatType_t)indexInfo.formatIndex,pqParamIndex,&value);
             LOGINFO("Default value from DB : %s : %d \n",key.c_str(),value);
             return 0;
         }
@@ -2306,6 +2316,106 @@ namespace Plugin {
         }
         return 0;
     }
+
+    int AVOutputTV::ReadCapablitiesFromConfODM(std::string param, capDetails_t& info)
+    {
+        int ret = 0;
+
+        try {
+            CIniFile inFile(CAPABLITY_FILE_NAME);
+            std::string configString;
+
+            if(param == "CMS")
+            {
+                configString = param + ".color";
+                info.color = inFile.Get<std::string>(configString);
+
+                configString = param + ".component";
+                info.component = inFile.Get<std::string>(configString);
+            }
+
+            if(param == "Whitebalance")
+            {
+                configString = param + ".color";
+                info.color = inFile.Get<std::string>(configString);
+
+                configString = param + ".control";
+                info.component = inFile.Get<std::string>(configString);
+
+                configString = param + ".colorTemperature";
+                info.colorTemperature =  inFile.Get<std::string>(configString);
+            }
+
+            if ((param == "DolbyVisionMode") || (param == "Backlight") || (param == "CMS") || (param == "WhiteBalance") ) {
+                configString = param + ".platformsupport";
+                info.isPlatformSupport = inFile.Get<std::string>(configString);
+                printf(" platformsupport : %s\n",info.isPlatformSupport.c_str() );
+            }
+
+            if ( (param == "ColorTemperature") || (param == "DimmingMode") ||
+                 ( param == "AutoBacklightControl") || (param == "DolbyVisionMode") ||
+                 (param == "HDR10Mode") || (param == "HLGMode") || (param == "AspectRatio") ||
+                 (param == "PictureMode") || (param == "VideoSource") || (param == "VideoFormat") ||
+                 (param == "VideoFrameRate") || (param == "HDRMode") ) {
+                configString =  param + ".range";
+                info.range = inFile.Get<std::string>(configString);
+                printf(" String Range info : %s\n",info.range.c_str() );
+            } else if ( (param == "CMS" ))  {
+                configString.clear();
+                configString = param + ".range_Saturation_from";
+                info.range = inFile.Get<std::string>(configString);
+                configString = param + ".range_Saturation_to";
+                info.range += ","+inFile.Get<std::string>(configString);
+
+                configString = param + ".range_Hue_from";
+                info.range += ","+inFile.Get<std::string>(configString);
+                configString = param + ".range_Hue_to";
+                info.range += ","+inFile.Get<std::string>(configString);
+
+                configString = param + ".range_Luma_from";
+                info.range += ","+inFile.Get<std::string>(configString);
+                configString = param + ".range_Luma_to";
+                info.range += ","+inFile.Get<std::string>(configString);
+            } else if ( (param == "WhiteBalance")) {
+                configString = param + ".range_Gain_from";
+                info.range = inFile.Get<std::string>(configString);
+                configString = param + ".range_Gain_to";
+                info.range += ","+inFile.Get<std::string>(configString);
+
+                configString = param + ".range_Offset_from";
+                info.range += ","+inFile.Get<std::string>(configString);
+                configString = param + ".range_Offset_to";
+                info.range += ","+inFile.Get<std::string>(configString);
+            } else {
+                configString = param + ".range_from";
+                info.range = inFile.Get<std::string>(configString);
+                configString = param + ".range_to";
+                info.range += ","+inFile.Get<std::string>(configString);
+                printf(" Integer Range Info : %s\n",info.range.c_str() );
+            }
+
+            if ((param == "VideoSource") || (param == "PictureMode") || (param == "VideoFormat") ) {
+                configString.clear();
+                configString = param + ".index";
+                info.index = inFile.Get<std::string>(configString);
+                printf("Index value %s\n", info.index.c_str());
+            }
+
+            configString.clear();
+            configString = param + ".pqmode";
+            info.pqmode = inFile.Get<std::string>(configString);
+            configString = param + ".format";
+            info.format = inFile.Get<std::string>(configString);
+            configString = param + ".source";
+            info.source = inFile.Get<std::string>(configString);
+            ret = 0;
+        }
+        catch(const boost::property_tree::ptree_error &e) {
+            printf("%s: error %s::config table entry not found in ini file\n",__FUNCTION__,e.what());
+            ret = -1;
+        }
+        return ret;
+   }
 
 } //namespace Plugin
 } //namespace WPEFramework
