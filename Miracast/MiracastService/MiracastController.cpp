@@ -1352,12 +1352,10 @@ void MiracastController::set_enable(bool is_enabled)
                 isMiracastRFCEnabled = true;
         }
     }
-
-    MIRACASTLOG_INFO(" Is Miracast RFC enabled ? %d , call value %d ", isMiracastRFCEnabled, wdmpStatus);
+    MIRACASTLOG_INFO(" Is Miracast RFC enabled ? %d , call value %d , type value %d", isMiracastRFCEnabled, wdmpStatus, param.type);
 #else
     isMiracastRFCEnabled = true;
 #endif //RFC_ENABLED
-
 
     if(!isMiracastRFCEnabled)
     {
