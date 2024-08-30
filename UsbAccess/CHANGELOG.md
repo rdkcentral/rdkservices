@@ -19,7 +19,7 @@ All notable changes to this RDK Service will be documented in this file.
 ## [1.2.6] - 2024-08-20
 ### Fixed
 - Fixed archive logs failure
-- 
+  
 ## [1.2.5] - 2024-05-25
 ### Added
 - Make plugin autostart configurable from recipe
