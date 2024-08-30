@@ -98,7 +98,7 @@ TEST_F(SystemModeInitializedTest,RegisteredMethods) {
  * @return      :  success = true
  */
 
-TEST_F(SystemModeInitializedTest,RequestStateDeviceOptimizeGameMode) {
+TEST_F(SystemModeInitializedTest1,RequestStateDeviceOptimizeGameMode) {
 /*    EXPECT_EQ(string(""), plugin->Initialize(&service));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("RequestState"), _T("{\"systemMode\": \"device_optimize\",\"state\": \"game\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));*/
@@ -114,7 +114,7 @@ TEST_F(SystemModeInitializedTest,RequestStateDeviceOptimizeGameMode) {
  * @return      :  success = true
  */
 
-TEST_F(SystemModeInitializedTest,RequestStateDeviceOptimizeGameMode) {
+TEST_F(SystemModeInitializedTest2,RequestStateDeviceOptimizeGameMode) {
 /*    EXPECT_EQ(string(""), plugin->Initialize(&service));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("RequestState"), _T("{\"systemMode\": \"device_optimize\",\"state\": \"video\"}"), response));
     EXPECT_EQ(response, _T("{\"success\":true}"));
@@ -132,7 +132,7 @@ TEST_F(SystemModeInitializedTest,RequestStateDeviceOptimizeGameMode) {
  * @return      :  success = true
  */
 
-TEST_F(SystemModeInitializedTest,RequestStateDeviceOptimizeGameMode) {
+TEST_F(SystemModeInitializedTest3,RequestStateDeviceOptimizeGameMode) {
 	/*
     EXPECT_EQ(string(""), plugin->Initialize(&service));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("GetState"), _T("{\"systemMode\": \"device_optimize\"}"), response));
@@ -150,7 +150,7 @@ TEST_F(SystemModeInitializedTest,RequestStateDeviceOptimizeGameMode) {
  * @return      :  success = true
  */
 
-TEST_F(SystemModeInitializedTest,RequestStateDeviceOptimizeGameMode) {
+TEST_F(SystemModeInitializedTest4,RequestStateDeviceOptimizeGameMode) {
 	/*
     EXPECT_EQ(string(""), plugin->Initialize(&service));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("GetState"), _T("{\"systemMode\": \"device_optimize\"}"), response));
