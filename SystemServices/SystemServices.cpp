@@ -1388,13 +1388,22 @@ namespace WPEFramework {
             JsonObject param;
             std::string oldMode = m_currentMode;
             bool result = true;
-
+            if(m_remainingDuration>0)
+            {
+                populateResponseWithError(SysSrv_ModeChangeInProgress, response);
+                LOGERR("Mode change is already in progress.current mode is %s and it will be in progress for next %d seconds. Please try again later.\n",m_currentMode.c_str(),m_remainingDuration);
+                returnResponse(false);
+            }
             if (parameters.HasLabel("modeInfo")) {
                 param.FromString(parameters["modeInfo"].String());
                 if (param.HasLabel("duration") && param.HasLabel("mode")) {
                     int duration = param["duration"].Number();
                     std::string newMode = param["mode"].String();
-
+                    if(duration>86400)
+                    {
+                        LOGWARN("Duration is more than 24 hours. Setting duration to 24 hours,which is maximum allowed duration to set\n");
+                        duration = 86400;
+                    }
                     LOGWARN("request to switch to mode '%s' from mode '%s' \
                             with duration %d\n", newMode.c_str(),
                             oldMode.c_str(), duration);
