@@ -40,7 +40,7 @@ SystemModeImplementation::SystemModeImplementation()
 , _controller(nullptr)
 ,stateRequested(false)	
 {
-	std::cout<<"RamTesting SystemModeImplementation constru "<<std::endl;
+	std::cout<<"RamTesting 30 Aug SystemModeImplementation constru "<<std::endl;
     LOGINFO("Create SystemModeImplementation Instance");
 
     SystemModeImplementation::instance(this);
@@ -107,7 +107,7 @@ SystemModeImplementation* SystemModeImplementation::instance(SystemModeImplement
 {
    static SystemModeImplementation *SystemModeImpl_instance = nullptr;
 
-   ASSERT (nullptr == SystemModeImpl);
+   ASSERT (nullptr != SystemModeImpl);
 
    if (SystemModeImpl != nullptr)
    {
@@ -197,15 +197,18 @@ uint32_t SystemModeImplementation::Unregister(Exchange::ISystemMode::INotificati
     return status;
 }
 */
-Core::hresult SystemModeImplementation::RequestState(const SystemMode p_systemMode, const State p_state) 
-//Core::hresult SystemModeImplementation::RequestState(const string psystemMode, const string pstate) 
+//Core::hresult SystemModeImplementation::RequestState(const SystemMode p_systemMode, const State p_state) 
+Core::hresult SystemModeImplementation::RequestState(const string& p__systemMode, const string& p__state) 
 {
-	std::cout<<"RamTesting SystemModeImplementation::RequestState p_systemMode " << DEVICE_OPTIMIZE << " p_state : " << VIDEO <<std::endl;
-	std::cout<<"RamTesting SystemModeImplementation::RequestState p_systemMode original" <<p_systemMode << " p_state : " << p_state<<std::endl;
-	std::cout<<"RamTesting SystemModeImplementation::RequestState p_systemMode " << DEVICE_OPTIMIZE << " p_state : " << VIDEO <<std::endl;
-	std::cout<<"RamTesting SystemModeImplementation::RequestState p_systemMode original" <<p_systemMode << " p_state : " << p_state<<std::endl;
+
+	std::cout<<"RamTesting SystemModeImplementation::RequestState p_systemMode original" <<p__systemMode << " p_state : " << p__state<<std::endl;
+	
+	
 	SystemMode systemMode = DEVICE_OPTIMIZE;
 	State state 	   = GAME;
+
+//	SystemMode systemMode = p_systemMode;
+//	State state 	   = p_state;
 
 	auto SystemModeMapIterator = SystemModeMap.find(systemMode);
 	Core::hresult result = Core::ERROR_NONE;
@@ -213,6 +216,7 @@ Core::hresult SystemModeImplementation::RequestState(const SystemMode p_systemMo
 	if(SystemModeMapIterator != SystemModeMap.end())	
 	{
 		std::string systemMode_str = SystemModeMapIterator->second;
+		std::cout<<"RamTesting__ SystemModeImplementation::RequestState p_systemMode " << systemMode_str << " p_state : " << VIDEO <<std::endl;
 		switch (systemMode) {
 			case DEVICE_OPTIMIZE:{
 
@@ -257,10 +261,11 @@ Core::hresult SystemModeImplementation::RequestState(const SystemMode p_systemMo
 	}
 	return result;
 }
-Core::hresult SystemModeImplementation::GetState(const SystemMode psystemMode, State &state )const 
+//Core::hresult SystemModeImplementation::GetState(const SystemMode psystemMode, State &state )const 
+Core::hresult SystemModeImplementation::GetState(const string& p__systemMode, string &state /* @out */) const 
 {
 	const SystemMode systemMode = DEVICE_OPTIMIZE;
-	std::cout<<"RamTesting SystemModeImplementation::getState psystemMode :"<< psystemMode <<std::endl;
+	std::cout<<"RamTesting SystemModeImplementation::getState psystemMode :"<< p__systemMode <<std::endl;
 
 	Core::hresult result = Core::ERROR_NONE;
 	auto SystemModeMapIterator = SystemModeMap.find(systemMode);
@@ -312,14 +317,17 @@ uint32_t SystemModeImplementation::ClientActivated(const string& callsign , cons
 
 		if (_controller)
 		{
+			std::cout<<"RamTesting SystemModeImplementation::ClientActivated callsign :"<<callsign <<std::endl;
 			switch (pSystemMode) {
 				case DEVICE_OPTIMIZE:{
 
+							     std::cout<<"RamTesting SystemModeImplementation::ClientActivated callsign switch DEVICE_OPTIMIZE :"<<callsign <<std::endl;
 							     Exchange::IDeviceOptimizeStateActivator  *deviceOptimizeStateActivator (_controller->QueryInterface<Exchange::IDeviceOptimizeStateActivator>());
 
 							     if (deviceOptimizeStateActivator != nullptr) {
 								     _adminLock.Lock();
 
+								     std::cout<<"RamTesting SystemModeImplementation::ClientActivated callsign : deviceOptimizeStateActivator != nullptr "<<callsign <<std::endl;
 								     std::map<const string, Exchange::IDeviceOptimizeStateActivator*>::iterator index(_clients.find(callsign));
 
 								     if (index == _clients.end()) {
@@ -327,12 +335,15 @@ uint32_t SystemModeImplementation::ClientActivated(const string& callsign , cons
 									     updateSystemModeFile( SystemModeMap[pSystemMode], "callsign", callsign,"add") ;
 									     TRACE(Trace::Information, (_T("%s plugin is add to deviceOptimizeStateActivator map"), callsign.c_str()));
 
+									     std::cout<<"RamTesting SystemModeImplementation::ClientActivated callsign : index == _clients.end "<<callsign <<std::endl;
 									     //If For Ex The plugins P1,P2,P3 who implement IDeviceOptimizeStateActivator . P1 ,P2 only activated . P3 is not in activated state .If org.rdk.SystemMode.RequestState (DeviceOptimize,GAME) is called then SystemMode trigger  P1.Request() and P2.Request() . After 5 min if P3 come to activate state , then SystemMode need to trigger P3. Request()i
 									     if(stateRequested) 
 									     {
+										     std::cout<<"RamTesting SystemModeImplementation::ClientActivated callsign : stateRequested"<<callsign <<std::endl;
 										     State state ;
-										     if(GetState(pSystemMode, state ) == Core::ERROR_NONE)
+										    // if(GetState(pSystemMode, state ) == Core::ERROR_NONE)
 										     {
+											     std::cout<<"RamTesting SystemModeImplementation::ClientActivated callsign : GetState "<<callsign <<std::endl;
 											     std::string state_str = deviceOptimizeStateMap[state];
 											     deviceOptimizeStateActivator->Request(state_str) ;
 										     }

@@ -34,51 +34,6 @@ namespace Plugin {
     class SystemMode: public PluginHost::IPlugin, public PluginHost::JSONRPC
     {
 
-/*	    
-	    private:
-        class Notification : public RPC::IRemoteConnection::INotification,
-                             public Exchange::ISystemMode::INotification
-        {
-            private:
-                Notification() = delete;
-                Notification(const Notification&) = delete;
-                Notification& operator=(const Notification&) = delete;
-
-            public:
-            explicit Notification(SystemMode* parent)
-                : _parent(*parent)
-                {
-                    ASSERT(parent != nullptr);
-                }
-
-                virtual ~Notification()
-                {
-                }
-
-                BEGIN_INTERFACE_MAP(Notification)
-                INTERFACE_ENTRY(Exchange::ISystemMode::INotification)
-                INTERFACE_ENTRY(RPC::IRemoteConnection::INotification)
-                END_INTERFACE_MAP
-
-                void Activated(RPC::IRemoteConnection*) override
-                {
-                    LOGINFO("SystemMode Notification Activated");
-                }
-
-                void Deactivated(RPC::IRemoteConnection *connection) override
-                {
-                   LOGINFO("SystemMode Notification Deactivated");
-                   _parent.Deactivated(connection);
-                }
-
-                void OnDeviceOptimizeChanged(const string& state) override
-                {
-                    LOGINFO("OnDeviceOptimizeChanged: \n");
-                }
-            private:
-                SystemMode& _parent;
-        };
-*/
         public:
             // We do not allow this plugin to be copied !!
             SystemMode(const SystemMode&) = delete;

@@ -122,6 +122,7 @@ namespace WPEFramework
             // It should have been the last reference we are releasing,
             // so it should endup in a DESTRUCTION_SUCCEEDED, if not we
             // are leaking...
+	    std::cout<<"RamTesting SystemMode  Deinitialize result == Core::ERROR_DESTRUCTION_SUCCEEDED result :" << result << "Core::ERROR_DESTRUCTION_SUCCEEDED" << Core::ERROR_DESTRUCTION_SUCCEEDED <<std::endl;
             ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
 
             // If this was running in a (container) process...
