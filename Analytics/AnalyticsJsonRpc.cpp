@@ -21,6 +21,9 @@
 #include "UtilsJsonRpc.h"
 
 const string WPEFramework::Plugin::Analytics::ANALYTICS_METHOD_SEND_EVENT = "sendEvent";
+// TODO: To be removed once the Analytics is capable of handling it internally
+const string WPEFramework::Plugin::Analytics::ANALYTICS_METHOD_SET_SESSION_ID = "setSessionId";
+const string WPEFramework::Plugin::Analytics::ANALYTICS_METHOD_SET_TIME_READY = "setTimeReady";
 
 namespace WPEFramework {
 
@@ -31,11 +34,15 @@ namespace Plugin {
     void Analytics::RegisterAll()
     {
         Register(_T(ANALYTICS_METHOD_SEND_EVENT), &Analytics::SendEventWrapper, this);
+        Register(_T(ANALYTICS_METHOD_SET_SESSION_ID), &Analytics::SetSessionIdWrapper, this);
+        Register(_T(ANALYTICS_METHOD_SET_TIME_READY), &Analytics::SetTimeReadyWrapper, this);
     }
 
     void Analytics::UnregisterAll()
     {
         Unregister(_T(ANALYTICS_METHOD_SEND_EVENT));
+        Unregister(_T(ANALYTICS_METHOD_SET_SESSION_ID));
+        Unregister(_T(ANALYTICS_METHOD_SET_TIME_READY));
     }
 
     // API implementation
@@ -80,6 +87,40 @@ namespace Plugin {
                                         uptimeTimestamp,
                                         eventPayload);
         cetListIterator->Release();
+        returnResponse(result);
+    }
+
+    // Method: setSessionId - Set the session ID
+    // Return codes:
+    //  - ERROR_NONE: Success
+    //  - ERROR_GENERAL: Failed to set the session ID
+    uint32_t Analytics::SetSessionIdWrapper(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFOMETHOD();
+
+        uint32_t result = Core::ERROR_NONE;
+
+        returnIfStringParamNotFound(parameters, "sessionId");
+
+        string sessionId = parameters["sessionId"].String();
+
+        result = mAnalytics->SetSessionId(sessionId);
+
+        returnResponse(result);
+    }
+
+    // Method: setTimeReady - Set the time ready
+    // Return codes:
+    //  - ERROR_NONE: Success
+    //  - ERROR_GENERAL: Failed to set the time ready
+    uint32_t Analytics::SetTimeReadyWrapper(const JsonObject& parameters, JsonObject& response)
+    {
+        LOGINFOMETHOD();
+
+        uint32_t result = Core::ERROR_NONE;
+
+        result = mAnalytics->SetTimeReady();
+
         returnResponse(result);
     }
 
