@@ -6237,7 +6237,7 @@ TEST_F(SystemServicesTest, setFSRSuccess){
         .Times(::testing::AnyNumber())
         .WillRepeatedly(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
-                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
                 EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_SetFsrFlag)));
                 auto param = static_cast<IARM_Bus_MFRLib_FsrFlag_Param_t>(arg);
                 EXPECT_EQ(param, (1));
@@ -6253,15 +6253,14 @@ TEST_F(SystemServicesTest, setFSRFailure){
         .Times(::testing::AnyNumber())
         .WillRepeatedly(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
-                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
                 EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_SetFsrFlag)));
                 auto param = static_cast<IARM_Bus_MFRLib_FsrFlag_Param_t>(arg);
                 EXPECT_EQ(param, (1));
                 return IARM_RESULT_INVALID_STATE;
             });
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setFSRFlag"), _T("{\"fsrFlag\":1}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setFSRFlag"), _T("{\"fsrFlag\":1}"), response));
 }
 
 TEST_F(SystemServicesTest, getFSRSuccess){
@@ -6269,7 +6268,7 @@ TEST_F(SystemServicesTest, getFSRSuccess){
         .Times(::testing::AnyNumber())
         .WillRepeatedly(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
-                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
                 EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_GetFsrFlag)));
                 auto param = static_cast<IARM_Bus_MFRLib_FsrFlag_Param_t>(arg);
                 EXPECT_EQ(param, (1));
@@ -6277,7 +6276,7 @@ TEST_F(SystemServicesTest, getFSRSuccess){
             });
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFSRFlag"), _T("{}"), response));
-    EXPECT_EQ(response, string("{\"success\":true}"));
+    EXPECT_EQ(response, string("{\"fsrFlag\":true,\"success\":true}"));
 }
 
 TEST_F(SystemServicesTest, getFSRFailure){
@@ -6285,13 +6284,12 @@ TEST_F(SystemServicesTest, getFSRFailure){
         .Times(::testing::AnyNumber())
         .WillRepeatedly(
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
-                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
                 EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_GetFsrFlag)));
                 auto param = static_cast<IARM_Bus_MFRLib_FsrFlag_Param_t>(arg);
                 EXPECT_EQ(param, (1));
                 return IARM_RESULT_INVALID_STATE;
             });
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFSRFlag"), _T("{}"), response));
-    EXPECT_EQ(response, string("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getFSRFlag"), _T("{}"), response));
 }
