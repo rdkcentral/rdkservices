@@ -21,6 +21,7 @@
 
 #include <algorithm>
 #include <cctype> 
+#include <fstream>
 
 #define AUTHSERVICE_CALLSIGN "org.rdk.AuthService"
 #define SYSTEM_CALLSIGN "org.rdk.System"
@@ -28,8 +29,6 @@
 #define PERSISTENT_STORE_ANALYTICS_NAMESPACE "Analytics"
 #define PERSISTENT_STORE_ACCOUNT_PROFILE_NAMESPACE "accountProfile"
 #define JSONRPC_THUNDER_TIMEOUT 20000
-
-#include <fstream>
 
 namespace WPEFramework
 {
@@ -53,9 +52,19 @@ namespace WPEFramework
                     , Schema2(false)
                     , CommonSchema()
                     , Env()
-                    , ProductName()
+                    , ProductName("rdk")
                     , LoggerName()
                     , LoggerVersion()
+                    , MaxRandomisationWindowTime(300)
+                    , MaxEventsInPost(10)
+                    , MaxRetries(10)
+                    , MinRetryPeriod(1)
+                    , MaxRetryPeriod(30)
+                    , ExponentialPeriodicFactor(2)
+                    , StorePath("/opt/persistent/sky/AnalyticsSiftStore")
+                    , EventsLimit(1000)
+                    , Url()
+
                 {
                     Add(_T("schema2"), &Schema2);
                     Add(_T("commonschema"), &CommonSchema);
@@ -63,6 +72,15 @@ namespace WPEFramework
                     Add(_T("productname"), &ProductName);
                     Add(_T("loggername"), &LoggerName);
                     Add(_T("loggerversion"), &LoggerVersion);
+                    Add(_T("maxrandomisationwindowtime"), &MaxRandomisationWindowTime);
+                    Add(_T("maxeventsinpost"), &MaxEventsInPost);
+                    Add(_T("maxretries"), &MaxRetries);
+                    Add(_T("minretryperiod"), &MinRetryPeriod);
+                    Add(_T("maxretryperiod"), &MaxRetryPeriod);
+                    Add(_T("exponentialperiodicfactor"), &ExponentialPeriodicFactor);
+                    Add(_T("storepath"), &StorePath);
+                    Add(_T("eventslimit"), &EventsLimit);
+                    Add(_T("url"), &Url);
                 }
                 ~SiftConfig() = default;
 
@@ -73,6 +91,15 @@ namespace WPEFramework
                 Core::JSON::String ProductName;
                 Core::JSON::String LoggerName;
                 Core::JSON::String LoggerVersion;
+                Core::JSON::DecUInt32 MaxRandomisationWindowTime;
+                Core::JSON::DecUInt32 MaxEventsInPost;
+                Core::JSON::DecUInt32 MaxRetries;
+                Core::JSON::DecUInt32 MinRetryPeriod;
+                Core::JSON::DecUInt32 MaxRetryPeriod;
+                Core::JSON::DecUInt32 ExponentialPeriodicFactor;
+                Core::JSON::String StorePath;
+                Core::JSON::DecUInt32 EventsLimit;
+                Core::JSON::String Url;
             };
 
            
@@ -279,12 +306,14 @@ namespace WPEFramework
         SiftConfig::SiftConfig(PluginHost::IShell *shell) : mInitializationThread(),
                                                             mMonitorKeys(),
                                                             mMutex(),
-                                                            mConfig(),
+                                                            mAttributes(),
+                                                            mStoreConfig(),
+                                                            mUploaderConfig(),
                                                             mShell(shell)
         {
             ASSERT(shell != nullptr);
-            InitializeKeysMap();
             ParsePluginConfig();
+            InitializeKeysMap();
             TriggerInitialization();
         }
 
@@ -305,16 +334,8 @@ namespace WPEFramework
             }
         }
 
-        bool SiftConfig::Get(SiftConfig::Config &config)
+        bool SiftConfig::GetAttributes(SiftConfig::Attributes &attributes)
         {
-            //Read /tmp/sift_session evrytime to get the latest session id
-            std::ifstream sessionFile("/tmp/sift_session");
-            if (sessionFile.is_open())
-            {
-                std::getline(sessionFile, mConfig.sessionId);
-                sessionFile.close();
-            }
-
             // Get latest values from AuthService
             GetAuthServiceValues();
 
@@ -322,33 +343,31 @@ namespace WPEFramework
 
             bool valid = false;
 
-            if (mConfig.schema2Enabled)
+            if (mAttributes.schema2Enabled)
             {
                 //Sift 2.0 requires attributes
-                bool activatedValid = mConfig.activated ? (!mConfig.xboDeviceId.empty()
-                    && !mConfig.xboAccountId.empty()) : true;
+                bool activatedValid = mAttributes.activated ? (!mAttributes.xboDeviceId.empty()
+                    && !mAttributes.xboAccountId.empty()) : true;
 
-                valid = ( !mConfig.url.empty()
-                    && !mConfig.apiKey.empty()
-                    && !mConfig.sessionId.empty()
-                    && !mConfig.commonSchema.empty()
-                    && !mConfig.productName.empty()
-                    && !mConfig.productVersion.empty()
-                    && !mConfig.loggerName.empty()
-                    && !mConfig.loggerVersion.empty()
-                    && !mConfig.partnerId.empty()
+                valid = (!mAttributes.sessionId.empty()
+                    && !mAttributes.commonSchema.empty()
+                    && !mAttributes.productName.empty()
+                    && !mAttributes.productVersion.empty()
+                    && !mAttributes.loggerName.empty()
+                    && !mAttributes.loggerVersion.empty()
+                    && !mAttributes.partnerId.empty()
                     && activatedValid
-                    && !mConfig.deviceModel.empty()
-                    && !mConfig.deviceType.empty()
-                    && !mConfig.deviceTimeZone.empty()
-                    && !mConfig.deviceOsName.empty()
-                    && !mConfig.deviceOsVersion.empty()
-                    && !mConfig.platform.empty()
-                    && !mConfig.deviceManufacturer.empty()
-                    && !mConfig.sessionId.empty()
-                    && !mConfig.proposition.empty()
-                    && !mConfig.deviceSerialNumber.empty()
-                    && !mConfig.deviceMacAddress.empty());
+                    && !mAttributes.deviceModel.empty()
+                    && !mAttributes.deviceType.empty()
+                    && !mAttributes.deviceTimeZone.empty()
+                    && !mAttributes.deviceOsName.empty()
+                    && !mAttributes.deviceOsVersion.empty()
+                    && !mAttributes.platform.empty()
+                    && !mAttributes.deviceManufacturer.empty()
+                    && !mAttributes.sessionId.empty()
+                    && !mAttributes.proposition.empty()
+                    && !mAttributes.deviceSerialNumber.empty()
+                    && !mAttributes.deviceMacAddress.empty());
 
                 LOGINFO(" commonSchema: %s,"
                         " productName: %s,"
@@ -368,68 +387,98 @@ namespace WPEFramework
                         " proposition: %s,"
                         " deviceSerialNumber: %s,"
                         " deviceMacAddress: %s,",
-                        mConfig.commonSchema.c_str(),
-                        mConfig.productName.c_str(),
-                        mConfig.productVersion.c_str(),
-                        mConfig.loggerName.c_str(),
-                        mConfig.loggerVersion.c_str(),
-                        mConfig.partnerId.c_str(),
+                        mAttributes.commonSchema.c_str(),
+                        mAttributes.productName.c_str(),
+                        mAttributes.productVersion.c_str(),
+                        mAttributes.loggerName.c_str(),
+                        mAttributes.loggerVersion.c_str(),
+                        mAttributes.partnerId.c_str(),
                         activatedValid,
-                        mConfig.deviceModel.c_str(),
-                        mConfig.deviceType.c_str(),
-                        mConfig.deviceTimeZone.c_str(),
-                        mConfig.deviceOsName.c_str(),
-                        mConfig.deviceOsVersion.c_str(),
-                        mConfig.platform.c_str(),
-                        mConfig.deviceManufacturer.c_str(),
-                        mConfig.sessionId.c_str(),
-                        mConfig.proposition.c_str(),
-                        mConfig.deviceSerialNumber.c_str(),
-                        mConfig.deviceMacAddress.c_str());
+                        mAttributes.deviceModel.c_str(),
+                        mAttributes.deviceType.c_str(),
+                        mAttributes.deviceTimeZone.c_str(),
+                        mAttributes.deviceOsName.c_str(),
+                        mAttributes.deviceOsVersion.c_str(),
+                        mAttributes.platform.c_str(),
+                        mAttributes.deviceManufacturer.c_str(),
+                        mAttributes.sessionId.c_str(),
+                        mAttributes.proposition.c_str(),
+                        mAttributes.deviceSerialNumber.c_str(),
+                        mAttributes.deviceMacAddress.c_str());
 
                 if (valid)
                 {
-                    if (mConfig.deviceType == "TV")
+                    if (mAttributes.deviceType == "TV")
                     {
-                        mConfig.deviceType = "IPTV";
+                        mAttributes.deviceType = "IPTV";
                     }
-                    else if (mConfig.deviceType == "IPSETTOPBOX")
+                    else if (mAttributes.deviceType == "IPSETTOPBOX")
                     {
-                        mConfig.deviceType = "IPSTB";
+                        mAttributes.deviceType = "IPSTB";
                     }
                 }
             }
             else //Sift 1.0 required attributes
             {
-                valid = (!mConfig.url.empty()
-                    && !mConfig.apiKey.empty()
-                    && !mConfig.sessionId.empty()
-                    && !mConfig.productName.empty()
-                    && !mConfig.deviceAppName.empty()
-                    && !mConfig.deviceAppVersion.empty()
-                    && !mConfig.deviceModel.empty()
-                    && !mConfig.deviceTimeZone.empty()
-                    && !mConfig.platform.empty()
-                    && !mConfig.deviceSoftwareVersion.empty()
-                    && !mConfig.deviceType.empty());
+                valid = (!mAttributes.sessionId.empty()
+                    && !mAttributes.productName.empty()
+                    && !mAttributes.deviceAppName.empty()
+                    && !mAttributes.deviceAppVersion.empty()
+                    && !mAttributes.deviceModel.empty()
+                    && !mAttributes.deviceTimeZone.empty()
+                    && !mAttributes.platform.empty()
+                    && !mAttributes.deviceSoftwareVersion.empty()
+                    && !mAttributes.deviceType.empty());
 
                 LOGINFO("%s, %s, %s, %s, %s, %s, %s",
-                    mConfig.productName.c_str(),
-                    mConfig.deviceAppName.c_str(),
-                    mConfig.deviceAppVersion.c_str(),
-                    mConfig.deviceModel.c_str(),
-                    mConfig.platform.c_str(),
-                    mConfig.deviceSoftwareVersion.c_str(),
-                    mConfig.deviceType.c_str());
+                    mAttributes.productName.c_str(),
+                    mAttributes.deviceAppName.c_str(),
+                    mAttributes.deviceAppVersion.c_str(),
+                    mAttributes.deviceModel.c_str(),
+                    mAttributes.platform.c_str(),
+                    mAttributes.deviceSoftwareVersion.c_str(),
+                    mAttributes.deviceType.c_str());
             }
 
             if (valid)
             {
-                config = mConfig;
+                attributes = mAttributes;
             }
 
             mMutex.unlock();
             return valid;
+        }
+
+        bool SiftConfig::GetStoreConfig(StoreConfig &config)
+        {
+            mMutex.lock();
+            bool valid = !mStoreConfig.path.empty();
+            if (valid)
+            {
+                config = mStoreConfig;
+            }
+            mMutex.unlock();
+            return valid;
+        }
+
+        bool SiftConfig::GetUploaderConfig(UploaderConfig &config)
+        {
+            mMutex.lock();
+            bool valid = !mUploaderConfig.url.empty()
+                    && !mUploaderConfig.apiKey.empty();
+            if (valid)
+            {
+                config = mUploaderConfig;
+            }
+            mMutex.unlock();
+            return valid;
+        }
+
+        void SiftConfig::SetSessionId(const std::string &sessionId)
+        {
+            mMutex.lock();
+            mAttributes.sessionId = sessionId;
+            mMutex.unlock();
         }
 
         void SiftConfig::TriggerInitialization()
@@ -441,38 +490,38 @@ namespace WPEFramework
         void SiftConfig::InitializeKeysMap()
         {
             //SIFT 2.0 attributes from persistent storage
-            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["deviceHardwareModel"] = &mConfig.deviceModel;
-            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["deviceType"] = &mConfig.deviceType;
-            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["devicePlatform"] = &mConfig.platform;
-            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["modelNumber"] = &mConfig.deviceOsVersion;
-            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["manufacturer"] = &mConfig.deviceManufacturer;
-            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["serialNumber"] = &mConfig.deviceSerialNumber;
-            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["macAddress"] = &mConfig.deviceMacAddress;
-            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["entertainmentOSVersion"] = &mConfig.productVersion;
-            mKeysMap[PERSISTENT_STORE_ACCOUNT_PROFILE_NAMESPACE]["proposition"] = &mConfig.proposition;
-            mKeysMap[PERSISTENT_STORE_ACCOUNT_PROFILE_NAMESPACE]["retailer"] = &mConfig.retailer;
-            mKeysMap[PERSISTENT_STORE_ACCOUNT_PROFILE_NAMESPACE]["jvagent"] = &mConfig.jvAgent;
-            mKeysMap[PERSISTENT_STORE_ACCOUNT_PROFILE_NAMESPACE]["coam"] = &mConfig.coam;
-            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["country"] = &mConfig.country;//TODO
-            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["region"] = &mConfig.region;//TODO
-            mKeysMap[PERSISTENT_STORE_ACCOUNT_PROFILE_NAMESPACE]["accountType"] = &mConfig.accountType;
-            mKeysMap[PERSISTENT_STORE_ACCOUNT_PROFILE_NAMESPACE]["operator"] = &mConfig.accountOperator;
-            mKeysMap[PERSISTENT_STORE_ACCOUNT_PROFILE_NAMESPACE]["detailType"] = &mConfig.accountDetailType;
+            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["deviceHardwareModel"] = &mAttributes.deviceModel;
+            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["deviceType"] = &mAttributes.deviceType;
+            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["devicePlatform"] = &mAttributes.platform;
+            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["modelNumber"] = &mAttributes.deviceOsVersion;
+            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["manufacturer"] = &mAttributes.deviceManufacturer;
+            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["serialNumber"] = &mAttributes.deviceSerialNumber;
+            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["macAddress"] = &mAttributes.deviceMacAddress;
+            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["entertainmentOSVersion"] = &mAttributes.productVersion;
+            mKeysMap[PERSISTENT_STORE_ACCOUNT_PROFILE_NAMESPACE]["proposition"] = &mAttributes.proposition;
+            mKeysMap[PERSISTENT_STORE_ACCOUNT_PROFILE_NAMESPACE]["retailer"] = &mAttributes.retailer;
+            mKeysMap[PERSISTENT_STORE_ACCOUNT_PROFILE_NAMESPACE]["jvagent"] = &mAttributes.jvAgent;
+            mKeysMap[PERSISTENT_STORE_ACCOUNT_PROFILE_NAMESPACE]["coam"] = &mAttributes.coam;
+            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["country"] = &mAttributes.country;//TODO
+            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["region"] = &mAttributes.region;//TODO
+            mKeysMap[PERSISTENT_STORE_ACCOUNT_PROFILE_NAMESPACE]["accountType"] = &mAttributes.accountType;
+            mKeysMap[PERSISTENT_STORE_ACCOUNT_PROFILE_NAMESPACE]["operator"] = &mAttributes.accountOperator;
+            mKeysMap[PERSISTENT_STORE_ACCOUNT_PROFILE_NAMESPACE]["detailType"] = &mAttributes.accountDetailType;
 
             //TODO: Values provided by AS but should be provided by RDK
-            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["deviceTimeZone"] = &mConfig.deviceTimeZone;
+            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["deviceTimeZone"] = &mAttributes.deviceTimeZone;
 
             //SIFT 1.0 attributes from persistent storage
-            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["deviceSoftwareVersion"] = &mConfig.deviceSoftwareVersion;
-            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["deviceAppName"] = &mConfig.deviceAppName;
-            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["deviceAppVersion"] = &mConfig.deviceAppVersion;
-            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["accountId"] = &mConfig.accountId;
-            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["deviceId"] = &mConfig.deviceId;
-            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["partnerId"] = &mConfig.partnerId;
+            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["deviceSoftwareVersion"] = &mAttributes.deviceSoftwareVersion;
+            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["deviceAppName"] = &mAttributes.deviceAppName;
+            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["deviceAppVersion"] = &mAttributes.deviceAppVersion;
+            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["accountId"] = &mAttributes.accountId;
+            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["deviceId"] = &mAttributes.deviceId;
+            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["partnerId"] = &mAttributes.partnerId;
 
-            //TODO: Sift cloud configuration - move to plugin config? (at least url)
-            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["sift_url"] = &mConfig.url;
-            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["sift_xapikey"] = &mConfig.apiKey; 
+            // If Sift url empty, try to get from persistent store
+            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["sift_url"] = &mUploaderConfig.url;
+            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["sift_xapikey"] = &mUploaderConfig.apiKey; 
         }
 
         void SiftConfig::ParsePluginConfig()
@@ -491,20 +540,32 @@ namespace WPEFramework
             }
             else
             {
-                mConfig.schema2Enabled = config.Sift.Schema2.Value();
-                mConfig.commonSchema = config.Sift.CommonSchema.Value();
-                mConfig.env = config.Sift.Env.Value();
-                mConfig.productName = config.Sift.ProductName.Value();
-                mConfig.loggerName = config.Sift.LoggerName.Value();
-                mConfig.loggerVersion = config.Sift.LoggerVersion.Value();
-                mConfig.deviceOsName = config.DeviceOsName.Value();
-                SYSLOG(Logging::Startup, (_T("Parsed config: '%s', '%s', '%s', '%s', '%s', '%s'."),
-                                          mConfig.commonSchema.c_str(),
-                                          mConfig.env.c_str(),
-                                          mConfig.productName.c_str(),
-                                          mConfig.loggerName.c_str(),
-                                          mConfig.loggerVersion.c_str(),
-                                          mConfig.deviceOsName.c_str()
+                mAttributes.schema2Enabled = config.Sift.Schema2.Value();
+                mAttributes.commonSchema = config.Sift.CommonSchema.Value();
+                mAttributes.env = config.Sift.Env.Value();
+                mAttributes.productName = config.Sift.ProductName.Value();
+                mAttributes.loggerName = config.Sift.LoggerName.Value();
+                mAttributes.loggerVersion = config.Sift.LoggerVersion.Value();
+                mAttributes.deviceOsName = config.DeviceOsName.Value();
+                
+                mStoreConfig.path = config.Sift.StorePath.Value();
+                mStoreConfig.eventsLimit = config.Sift.EventsLimit.Value();
+
+                mUploaderConfig.url = config.Sift.Url.Value();
+                mUploaderConfig.maxRandomisationWindowTime = config.Sift.MaxRandomisationWindowTime.Value();
+                mUploaderConfig.maxEventsInPost = config.Sift.MaxEventsInPost.Value();
+                mUploaderConfig.maxRetries = config.Sift.MaxRetries.Value();
+                mUploaderConfig.minRetryPeriod = config.Sift.MinRetryPeriod.Value();
+                mUploaderConfig.maxRetryPeriod = config.Sift.MaxRetryPeriod.Value();
+                mUploaderConfig.exponentialPeriodicFactor = config.Sift.ExponentialPeriodicFactor.Value();
+                
+                SYSLOG(Logging::Startup, (_T("Parsed Analytics config: '%s', '%s', '%s', '%s', '%s', '%s'."),
+                                          mAttributes.commonSchema.c_str(),
+                                          mAttributes.env.c_str(),
+                                          mAttributes.productName.c_str(),
+                                          mAttributes.loggerName.c_str(),
+                                          mAttributes.loggerVersion.c_str(),
+                                          mAttributes.deviceOsName.c_str()
                     ));
             }
         }
@@ -539,7 +600,7 @@ namespace WPEFramework
 
             // Set to true if the event is to be SAT authenticated
             mMutex.lock();
-            mConfig.authenticated = false;
+            mAttributes.authenticated = false;
             mMutex.unlock();
 
             //Activate AuthService plugin if needed
@@ -568,8 +629,8 @@ namespace WPEFramework
                 if (result == Core::ERROR_NONE && response.HasLabel("build_type"))
                 {
                     mMutex.lock();
-                    mConfig.env = response["build_type"].String();
-                    std::transform(mConfig.env.begin(), mConfig.env.end(), mConfig.env.begin(),
+                    mAttributes.env = response["build_type"].String();
+                    std::transform(mAttributes.env.begin(), mAttributes.env.end(), mAttributes.env.begin(),
                             [](unsigned char c){ return std::tolower(c); });
                     mMutex.unlock();
                 }
@@ -658,8 +719,8 @@ namespace WPEFramework
             if (result == Core::ERROR_NONE && response.HasLabel("partnerId"))
             {
                 mMutex.lock();
-                mConfig.partnerId = response["partnerId"].String();
-                LOGINFO("Got partnerId %s", mConfig.partnerId.c_str());
+                mAttributes.partnerId = response["partnerId"].String();
+                LOGINFO("Got partnerId %s", mAttributes.partnerId.c_str());
                 mMutex.unlock();
             }
 
@@ -673,9 +734,9 @@ namespace WPEFramework
                 if (result == Core::ERROR_NONE && response.HasLabel("serviceAccountId"))
                 {
                     mMutex.lock();
-                    mConfig.xboAccountId = response["serviceAccountId"].String();
+                    mAttributes.xboAccountId = response["serviceAccountId"].String();
                     mMutex.unlock();
-                    LOGINFO("Got xboAccountId %s", mConfig.xboAccountId.c_str());
+                    LOGINFO("Got xboAccountId %s", mAttributes.xboAccountId.c_str());
                 }
 
                 // get xboDeviceId from AuthService.getXDeviceId
@@ -683,19 +744,19 @@ namespace WPEFramework
                 if (result == Core::ERROR_NONE && response.HasLabel("xDeviceId"))
                 {
                     mMutex.lock();
-                    mConfig.xboDeviceId = response["xDeviceId"].String();
+                    mAttributes.xboDeviceId = response["xDeviceId"].String();
                     mMutex.unlock();
-                    LOGINFO("Got xboDeviceId %s", mConfig.xboDeviceId.c_str());
+                    LOGINFO("Got xboDeviceId %s", mAttributes.xboDeviceId.c_str());
                 }
 
                 mMutex.lock();
-                mConfig.activated = true;
+                mAttributes.activated = true;
                 mMutex.unlock();
             }
             else
             {
                 mMutex.lock();
-                mConfig.activated = false;
+                mAttributes.activated = false;
                 mMutex.unlock();
             }
         }
