@@ -25,8 +25,6 @@
 #include <sstream>
 #include <memory>
 
-#include <curl/curl.h>
-
 namespace WPEFramework
 {
     namespace Plugin
@@ -40,7 +38,8 @@ namespace WPEFramework
             , mActionQueue()
             , mShell(nullptr)
             , mConfigPtr(nullptr)
-
+            , mStorePtr(nullptr)
+            , mUploaderPtr(nullptr)
         {
             mThread = std::thread(&SiftBackend::ActionLoop, this);
             mThread.detach();
@@ -77,14 +76,29 @@ namespace WPEFramework
             return Core::ERROR_NONE;
         }
 
+        /* virtual */ uint32_t SiftBackend::SetSessionId(const std::string &sessionId)
+        {
+            std::unique_lock<std::mutex> lock(mQueueMutex);
+            if (mConfigPtr != nullptr)
+            {
+                mConfigPtr->SetSessionId(sessionId);
+                return Core::ERROR_NONE;
+            }
+            return Core::ERROR_GENERAL;
+        }
+
         void SiftBackend::ActionLoop()
         {
             std::unique_lock<std::mutex> lock(mQueueMutex);
             bool configValid = false;
+
+            SiftConfig::StoreConfig storeConfig;
+            SiftConfig::UploaderConfig uploaderConfig;
+
             while (true)
             {
                 std::chrono::milliseconds queueTimeout(std::chrono::milliseconds::max());
-                SiftConfig::Config config;
+                SiftConfig::Attributes attributes;
 
                 if (!configValid) 
                 {
@@ -112,10 +126,54 @@ namespace WPEFramework
                     mActionQueue.pop();
                 }
 
-                //Always get the most recent config
-                if (mConfigPtr != nullptr && mConfigPtr->Get(config))
+                //Always get the most recent attributes
+                bool attributesValid = false;
+                bool storeConfigValid = (mStorePtr != nullptr);
+                bool uploaderConfigValid = (mUploaderPtr != nullptr);
+                if (mConfigPtr != nullptr && mConfigPtr->GetAttributes(attributes))
+                {
+                    attributesValid = true;
+                }
+
+                if (mConfigPtr != nullptr)
+                {
+                    if (mStorePtr == nullptr && mConfigPtr->GetStoreConfig(storeConfig))
+                    {
+                        mStorePtr = std::make_shared<SiftStore>(storeConfig.path,
+                            storeConfig.eventsLimit);
+                        if (mStorePtr != nullptr)
+                        {
+                            storeConfigValid = true;
+                        }
+                    }
+
+                    if (mUploaderPtr == nullptr && mStorePtr != nullptr && mConfigPtr->GetUploaderConfig(uploaderConfig))
+                    {
+                        mUploaderPtr = std::unique_ptr<SiftUploader>(new SiftUploader(mStorePtr,
+                            uploaderConfig.url,
+                            uploaderConfig.apiKey,
+                            uploaderConfig.maxRandomisationWindowTime,
+                            uploaderConfig.maxEventsInPost,
+                            uploaderConfig.maxRetries,
+                            uploaderConfig.minRetryPeriod,
+                            uploaderConfig.maxRetryPeriod,
+                            uploaderConfig.exponentialPeriodicFactor));
+                        if (mUploaderPtr != nullptr)
+                        {
+                            uploaderConfigValid = true;
+                        }
+                    }
+                }
+
+                if (attributesValid && storeConfigValid && uploaderConfigValid)
                 {
                     configValid = true;
+                    // For Sift 1.0 update uploader with auth values if avaliable
+                    // So they will be added to the events if missing
+                    if (!attributes.schema2Enabled && !attributes.accountId.empty() && !attributes.deviceId.empty() && !attributes.partnerId.empty())
+                    {
+                        mUploaderPtr->setDeviceInfoRequiredFields(attributes.accountId, attributes.deviceId, attributes.partnerId);
+                    }
                 }
                 else
                 {
@@ -131,7 +189,7 @@ namespace WPEFramework
                     if (configValid)
                     {
                         // Try to send the events from the queue
-                        while (!mEventQueue.empty() && SendEventInternal(mEventQueue.front(), config))
+                        while (!mEventQueue.empty() && SendEventInternal(mEventQueue.front(), attributes))
                         {
                             mEventQueue.pop();
                         }
@@ -146,7 +204,7 @@ namespace WPEFramework
                 case ACTION_TYPE_SEND_EVENT:
                     if (configValid)
                     {
-                        SendEventInternal(*action.payload, config);
+                        SendEventInternal(*action.payload, attributes);
                     }
                     else
                     {
@@ -163,20 +221,20 @@ namespace WPEFramework
             }
         }
 
-        bool SiftBackend::SendEventInternal(const Event &event, const SiftConfig::Config &config)
+        bool SiftBackend::SendEventInternal(const Event &event, const SiftConfig::Attributes &attributes)
         {
             JsonObject eventJson = JsonObject();
-            if (config.schema2Enabled)
+            if (attributes.schema2Enabled)
             {
                 // Sift 2.0 schema
-                eventJson["common_schema"] = config.commonSchema;
-                if (!config.env.empty())
+                eventJson["common_schema"] = attributes.commonSchema;
+                if (!attributes.env.empty())
                 {
-                    eventJson["env"] = config.env;
+                    eventJson["env"] = attributes.env;
                 }
-                eventJson["product_name"] = config.productName;
-                eventJson["product_version"] = config.productVersion;
-                eventJson["event_schema"] = config.productName + "/" + event.eventName + "/" + event.eventVersion;
+                eventJson["product_name"] = attributes.productName;
+                eventJson["product_version"] = attributes.productVersion;
+                eventJson["event_schema"] = attributes.productName + "/" + event.eventName + "/" + event.eventVersion;
                 eventJson["event_name"] = event.eventName;
                 eventJson["timestamp"] = event.epochTimestamp;
                 eventJson["event_id"] = GenerateRandomUUID();
@@ -191,65 +249,65 @@ namespace WPEFramework
                     }
                     eventJson["cet_list"] = cetList;
                 }
-                eventJson["logger_name"] = config.loggerName;
-                eventJson["logger_version"] = config.loggerVersion;
-                eventJson["partner_id"] = config.partnerId;
-                if (config.activated)
+                eventJson["logger_name"] = attributes.loggerName;
+                eventJson["logger_version"] = attributes.loggerVersion;
+                eventJson["partner_id"] = attributes.partnerId;
+                if (attributes.activated)
                 {
-                    eventJson["xbo_account_id"] = config.xboAccountId;
-                    eventJson["xbo_device_id"] = config.xboDeviceId;
-                    eventJson["activated"] = config.activated;
+                    eventJson["xbo_account_id"] = attributes.xboAccountId;
+                    eventJson["xbo_device_id"] = attributes.xboDeviceId;
+                    eventJson["activated"] = attributes.activated;
                 }
-                eventJson["device_model"] = config.deviceModel;
-                eventJson["device_type"] = config.deviceType;
-                eventJson["device_timezone"] = std::stoi(config.deviceTimeZone);
-                eventJson["device_os_name"] = config.deviceOsName;
-                eventJson["device_os_version"] = config.deviceOsVersion;
-                eventJson["platform"] = config.platform;
-                eventJson["device_manufacturer"] = config.deviceManufacturer;
-                eventJson["authenticated"] = config.authenticated;
-                eventJson["session_id"] = config.sessionId;
-                eventJson["proposition"] = config.proposition;
-                if (!config.retailer.empty())
+                eventJson["device_model"] = attributes.deviceModel;
+                eventJson["device_type"] = attributes.deviceType;
+                eventJson["device_timezone"] = std::stoi(attributes.deviceTimeZone);
+                eventJson["device_os_name"] = attributes.deviceOsName;
+                eventJson["device_os_version"] = attributes.deviceOsVersion;
+                eventJson["platform"] = attributes.platform;
+                eventJson["device_manufacturer"] = attributes.deviceManufacturer;
+                eventJson["authenticated"] = attributes.authenticated;
+                eventJson["session_id"] = attributes.sessionId;
+                eventJson["proposition"] = attributes.proposition;
+                if (!attributes.retailer.empty())
                 {
-                    eventJson["retailer"] = config.retailer;
+                    eventJson["retailer"] = attributes.retailer;
                 }
-                if (!config.jvAgent.empty())
+                if (!attributes.jvAgent.empty())
                 {
-                    eventJson["jv_agent"] = config.jvAgent;
+                    eventJson["jv_agent"] = attributes.jvAgent;
                 }
-                if (!config.coam.empty())
+                if (!attributes.coam.empty())
                 {
-                    eventJson["coam"] = JsonValue(config.coam == "true");
+                    eventJson["coam"] = JsonValue(attributes.coam == "true");
                 }
-                eventJson["device_serial_number"] = config.deviceSerialNumber;
-                if (!config.deviceFriendlyName.empty())
+                eventJson["device_serial_number"] = attributes.deviceSerialNumber;
+                if (!attributes.deviceFriendlyName.empty())
                 {
-                    eventJson["device_friendly_name"] = config.deviceFriendlyName;
+                    eventJson["device_friendly_name"] = attributes.deviceFriendlyName;
                 }
-                if (!config.deviceMacAddress.empty())
+                if (!attributes.deviceMacAddress.empty())
                 {
-                    eventJson["device_mac_address"] = config.deviceMacAddress;
+                    eventJson["device_mac_address"] = attributes.deviceMacAddress;
                 }
-                if (!config.country.empty())
+                if (!attributes.country.empty())
                 {
-                    eventJson["country"] = config.country;
+                    eventJson["country"] = attributes.country;
                 }
-                if (!config.region.empty())
+                if (!attributes.region.empty())
                 {
-                    eventJson["region"] = config.region;
+                    eventJson["region"] = attributes.region;
                 }
-                if (!config.accountType.empty())
+                if (!attributes.accountType.empty())
                 {
-                    eventJson["account_type"] = config.accountType;
+                    eventJson["account_type"] = attributes.accountType;
                 }
-                if (!config.accountOperator.empty())
+                if (!attributes.accountOperator.empty())
                 {
-                    eventJson["operator"] = config.accountOperator;
+                    eventJson["operator"] = attributes.accountOperator;
                 }
-                if (!config.accountDetailType.empty())
+                if (!attributes.accountDetailType.empty())
                 {
-                    eventJson["account_detail_type"] = config.accountDetailType;
+                    eventJson["account_detail_type"] = attributes.accountDetailType;
                 }
 
                 eventJson["event_payload"] = JsonObject(event.eventPayload);
@@ -258,54 +316,45 @@ namespace WPEFramework
             {
                 //Sift 1.0
                 eventJson["event_name"] = event.eventName;
-                eventJson["event_schema"] = config.productName + "/" + event.eventName + "/" + event.eventVersion;
+                eventJson["event_schema"] = attributes.productName + "/" + event.eventName + "/" + event.eventVersion;
                 eventJson["event_payload"] = JsonObject(event.eventPayload);
-                eventJson["session_id"] = config.sessionId;
+                eventJson["session_id"] = attributes.sessionId;
                 eventJson["event_id"] = GenerateRandomUUID();
 
-                if (!config.accountId.empty() && !config.deviceId.empty() && !config.partnerId.empty())
+                if (!attributes.accountId.empty() && !attributes.deviceId.empty() && !attributes.partnerId.empty())
                 {
-                    eventJson["account_id"] = config.accountId;
-                    eventJson["device_id"] = config.deviceId;
-                    eventJson["partner_id"] = config.partnerId;
+                    eventJson["account_id"] = attributes.accountId;
+                    eventJson["device_id"] = attributes.deviceId;
+                    eventJson["partner_id"] = attributes.partnerId;
                 }
                 else
                 {
                     std::cout << "Sift: Account ID, Device ID, or Partner ID is empty for: " << event.eventName << std::endl;
                 }
 
-                eventJson["app_name"] = config.deviceAppName;
-                eventJson["app_ver"] = config.deviceAppVersion;
-                eventJson["device_model"] = config.deviceModel;
-                eventJson["device_timezone"] = std::stoi(config.deviceTimeZone);
-                eventJson["platform"] = config.platform;
-                eventJson["os_ver"] = config.deviceSoftwareVersion;
+                eventJson["app_name"] = attributes.deviceAppName;
+                eventJson["app_ver"] = attributes.deviceAppVersion;
+                eventJson["device_model"] = attributes.deviceModel;
+                eventJson["device_timezone"] = std::stoi(attributes.deviceTimeZone);
+                eventJson["platform"] = attributes.platform;
+                eventJson["os_ver"] = attributes.deviceSoftwareVersion;
                 eventJson["device_language"] = ""; // Empty for now
                 eventJson["timestamp"] = event.epochTimestamp;
-                eventJson["device_type"] = config.deviceType;
+                eventJson["device_type"] = attributes.deviceType;
             }
-
-            // TODO: push to persistent queue instead of sending array
-            JsonArray eventArray = JsonArray();
-            eventArray.Add(eventJson);
 
             std::string json;
-            eventArray.ToString(json);
-            LOGINFO("Sending event: %s", json.c_str());
+            eventJson.ToString(json);
 
-            // Upload the event to Sift
-            uint32_t httpCode = PostJson(config.url, config.apiKey, json);
-            if (httpCode == 400)
+            if (mStorePtr != nullptr
+                && mStorePtr->PostEvent(json))
             {
-                LOGINFO("Backend refused data, skipping: %s, HTTP Code: %d", event.eventName.c_str(), httpCode);
+                LOGINFO("Event %s sent to store", event.eventName.c_str());
                 return true;
             }
-            if (httpCode == 200)
-            {
-                LOGINFO("Backend accepted data: %s, HTTP Code: %d", event.eventName.c_str(), httpCode);
-                return true;
-            }
-            LOGERR("Backend failed to accept data: %s, HTTP COde: %d", event.eventName.c_str(), httpCode);
+
+            LOGERR("Failed to send event %s to store", event.eventName.c_str());
+
             return false;
         }
 
@@ -346,67 +395,5 @@ namespace WPEFramework
             return randomUUIDStream.str();
         }
 
-        static size_t CurlWriteCallback(void* contents, size_t size, size_t nmemb, void* userp) {
-            ((std::string*)userp)->append((char*)contents, size * nmemb);
-            return size * nmemb;
-        }
-
-        uint32_t SiftBackend::PostJson(const std::string &url, const std::string &apiKey, const std::string &json)
-        {
-            CURL *curl;
-            CURLcode res;
-            uint32_t retHttpCode = 0;
-            std::string response;
-
-            if (url.empty() || apiKey.empty() || json.empty())
-            {
-                LOGERR("Invalid parameters for postJson");
-                return retHttpCode;
-            }
-
-            curl = curl_easy_init();
-            if (!curl)
-            {
-                LOGERR("Failed to initialize curl");
-                return retHttpCode;
-            }
-
-            curl_easy_setopt(curl, CURLOPT_POST, 1L);
-            curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-            curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json.data());
-
-            // Create a linked list of custom headers
-            struct curl_slist *headers = NULL;
-            std::string keyHeader("X-Api-Key: " + apiKey);
-            headers = curl_slist_append(headers, "Content-Type: application/json");
-            headers = curl_slist_append(headers, keyHeader.data());
-
-            curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-            
-            curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, CurlWriteCallback);
-            curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response);
-
-            // Perform the request, res will get the return code
-            res = curl_easy_perform(curl);
-
-            // Check for errors
-            if (res != CURLE_OK)
-            {
-                LOGERR("curl_easy_perform() failed: %s", curl_easy_strerror(res));
-            }
-            else
-            {
-                LOGINFO("Response: %s", response.c_str());
-                curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &retHttpCode);
-            }
-
-            // Clean up the header list
-            curl_slist_free_all(headers);
-
-            // Clean up curl session
-            curl_easy_cleanup(curl);
-
-            return retHttpCode;
-        }
     }
 }
