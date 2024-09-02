@@ -68,7 +68,6 @@ namespace Plugin {
             : _skipURL(0)
             , _service(nullptr)
             , _subSystem(nullptr)
-            , _systemId()
             , _connectionId(0)
             , _deviceInfo(nullptr)
             , _deviceAudioCapabilities(nullptr)
@@ -138,7 +137,6 @@ namespace Plugin {
         uint8_t _skipURL;
         PluginHost::IShell* _service;
         PluginHost::ISubSystem* _subSystem;
-        string _systemId;
         uint32_t _connectionId;
         Exchange::IDeviceInfo* _deviceInfo;
         Exchange::IDeviceAudioCapabilities* _deviceAudioCapabilities;

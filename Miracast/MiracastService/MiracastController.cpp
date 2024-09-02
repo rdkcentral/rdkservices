@@ -18,6 +18,9 @@
  */
 
 #include "MiracastController.h"
+#ifdef RFC_ENABLED
+#include "rfcapi.h"
+#endif //RFC_ENABLED
 
 void ControllerThreadCallback(void *args);
 #ifdef ENABLE_MIRACAST_SERVICE_TEST_NOTIFIER
@@ -1337,6 +1340,28 @@ void MiracastController::send_thundermsg_to_controller_thread(CONTROLLER_MSGQ_ST
 void MiracastController::set_enable(bool is_enabled)
 {
     MIRACASTLOG_TRACE("Entering...");
+    bool isMiracastRFCEnabled = false;
+#ifdef RFC_ENABLED
+    RFC_ParamData_t param;
+    WDMP_STATUS wdmpStatus = getRFCParameter(const_cast<char *>("MiracastPlugin"), "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Miracast.Enable", &param);
+    if (wdmpStatus == WDMP_SUCCESS || wdmpStatus == WDMP_ERR_DEFAULT_VALUE)
+    {
+        if( param.type == WDMP_BOOLEAN )
+        {
+            if(strncasecmp(param.value,"true",4) == 0 )
+                isMiracastRFCEnabled = true;
+        }
+    }
+    MIRACASTLOG_INFO(" Is Miracast RFC enabled ? %d , call value %d , type value %d", isMiracastRFCEnabled, wdmpStatus, param.type);
+#else
+    isMiracastRFCEnabled = true;
+#endif //RFC_ENABLED
+
+    if(!isMiracastRFCEnabled)
+    {
+        MIRACASTLOG_INFO("----------MIRACAST RFC Disabled---------- ");
+        return;
+    }
 
     if ( true == is_enabled)
     {

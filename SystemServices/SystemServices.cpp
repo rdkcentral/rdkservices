@@ -334,6 +334,8 @@ namespace WPEFramework {
         static IARM_Result_t _SysModeChange(void *arg);
         static void _systemStateChanged(const char *owner,
                 IARM_EventId_t eventId, void *data, size_t len);
+        static void _deviceMgtUpdateReceived(const char *owner,
+                IARM_EventId_t eventId, void *data, size_t len);
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
         SERVICE_REGISTRATION(SystemServices, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
@@ -488,6 +490,8 @@ namespace WPEFramework {
 	    registerMethod("getFriendlyName", &SystemServices::getFriendlyName, this);
             registerMethod("setFriendlyName", &SystemServices::setFriendlyName, this);
             registerMethod("getThunderStartReason", &SystemServices::getThunderStartReason, this);
+            registerMethod("setFSRFlag", &SystemServices::setFSRFlag, this);
+            registerMethod("getFSRFlag", &SystemServices::getFSRFlag, this);
 
         }
 
@@ -571,6 +575,7 @@ namespace WPEFramework {
                 IARM_Result_t res;
                 IARM_CHECK( IARM_Bus_RegisterCall(IARM_BUS_COMMON_API_SysModeChange, _SysModeChange));
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE, _systemStateChanged));
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_DEVICE_UPDATE_RECEIVED, _deviceMgtUpdateReceived));
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, _powerEventHandler));
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_REBOOTING, _powerEventHandler));
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_NETWORK_STANDBYMODECHANGED, _powerEventHandler));
@@ -595,6 +600,7 @@ namespace WPEFramework {
             {
                 IARM_Result_t res;
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE, _systemStateChanged));
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_DEVICE_UPDATE_RECEIVED, _deviceMgtUpdateReceived));
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, _powerEventHandler));
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_REBOOTING, _powerEventHandler));
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_NETWORK_STANDBYMODECHANGED,_powerEventHandler ));
@@ -1384,13 +1390,22 @@ namespace WPEFramework {
             JsonObject param;
             std::string oldMode = m_currentMode;
             bool result = true;
-
+            if(m_remainingDuration>0)
+            {
+                populateResponseWithError(SysSrv_ModeChangeInProgress, response);
+                LOGERR("Mode change is already in progress.current mode is %s and it will be in progress for next %d seconds. Please try again later.\n",m_currentMode.c_str(),m_remainingDuration);
+                returnResponse(false);
+            }
             if (parameters.HasLabel("modeInfo")) {
                 param.FromString(parameters["modeInfo"].String());
                 if (param.HasLabel("duration") && param.HasLabel("mode")) {
                     int duration = param["duration"].Number();
                     std::string newMode = param["mode"].String();
-
+                    if(duration>86400)
+                    {
+                        LOGWARN("Duration is more than 24 hours. Setting duration to 24 hours,which is maximum allowed duration to set\n");
+                        duration = 86400;
+                    }
                     LOGWARN("request to switch to mode '%s' from mode '%s' \
                             with duration %d\n", newMode.c_str(),
                             oldMode.c_str(), duration);
@@ -2445,6 +2460,7 @@ namespace WPEFramework {
 		if (parameters.HasLabel("timeZone")) {
 			std::string dir = dirnameOf(TZ_FILE);
 			std::string timeZone = "";
+			std::string command = "";
 			try {
 				timeZone = parameters["timeZone"].String();
 				size_t pos = timeZone.find("/");
@@ -2473,10 +2489,12 @@ namespace WPEFramework {
 					if( dirExists(path+country)  && Utils::fileExists(city.c_str()) ) 
 					{
 						if (!dirExists(dir)) {
-							std::string command = "mkdir -p " + dir + " \0";
+							command = "mkdir -p " + dir + " \0";
 							Utils::cRunScript(command.c_str());
 						} else {
 							//Do nothing//
+							command = "ln -sf /usr/share/zoneinfo/" +timeZone +"  /etc/localtime" +" \0";
+							Utils::cRunScript(command.c_str());
 						}
 						std::string oldTimeZoneDST = getTimeZoneDSTHelper();
 						
@@ -4231,6 +4249,28 @@ namespace WPEFramework {
         }
 
         /***
+       * @brief : To receive device updates event from IARM.
+       * @param1[in]  : owner of the event
+       * @param2[in]  : eventID of the event
+       * @param3[in]  : data passed from the IARMBUS event
+       * @param4[in]  : len
+       */
+       void _deviceMgtUpdateReceived(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+       {
+           if (!strcmp(IARM_BUS_SYSMGR_NAME, owner)) {
+               if (IARM_BUS_SYSMGR_EVENT_DEVICE_UPDATE_RECEIVED  == eventId) {
+                   LOGWARN("%s:%d IARM_BUS_SYSMGR_EVENT_DEVICE_UPDATE_RECEIVED event received\n",__FUNCTION__, __LINE__);
+                   if (SystemServices::_instance) {
+                       LOGWARN("%s:%d Invoke onDeviceMgtUpdateReceived to notify\n", __FUNCTION__, __LINE__);
+                       SystemServices::_instance->onDeviceMgtUpdateReceived((IARM_BUS_SYSMGR_DeviceMgtUpdateInfo_Param_t *)data);
+                   } else {
+                       LOGERR("%s:%d SystemServices::_instance is NULL.\n", __FUNCTION__, __LINE__);
+                   }
+               }
+           }
+       }
+
+        /***
          * @brief : To receive Firmware Update State Change events from IARM.
          * @param1[in]  : owner of the event
          * @param2[in]  : eventID of the event
@@ -4329,7 +4369,6 @@ namespace WPEFramework {
                 }
             }
         }
-
         /***
          * @brief : To validate the parameters in event data send from the IARMBUS, so as
          *		   to initiate  onTemperatureThresholdChanged event.
@@ -4424,6 +4463,21 @@ namespace WPEFramework {
             LOGINFO("Notifying onRebootRequest\n");
             sendNotify(EVT_ONREBOOTREQUEST, params);
         }
+
+       /***
+       * @brief : called when Device Mgt settings update is received
+       * @param1[in]  : data passed from the IARMBUS event
+       * @param2[out] : {param:{"source":<string>, "type":<string>, "success":<bool>}}
+       */
+       void SystemServices::onDeviceMgtUpdateReceived(IARM_BUS_SYSMGR_DeviceMgtUpdateInfo_Param_t *config)
+       {
+               JsonObject params;
+               params["source"] = std::string(config->source);
+               params["type"] = std::string(config->type);
+               params["success"] = config->status;
+               LOGWARN("onDeviceMgtUpdateReceived: source = %s type = %s success = %d\n", config->source, config->type, config->status);
+               sendNotify(EVT_ONDEVICEMGTUPDATERECEIVED, params);
+       }
 
         uint32_t SystemServices::getLastFirmwareFailureReason(const JsonObject& parameters, JsonObject& response)
         {
@@ -4666,6 +4720,63 @@ namespace WPEFramework {
             response["startReason"] = (Utils::fileExists(SYSTEM_SERVICE_THUNDER_RESTARTED_FILE))?"RESTART":"NORMAL";
             returnResponse(true);
         }
+
+        
+        /***
+         * @brief : To set the fsr flag into the emmc raw area.
+         * @param1[in] : {"params":{"fsrFlag":<bool>}
+         * @param2[out] : {"result":{"success":<bool>}}
+         * @return     : Core::<StatusCode>
+         */
+        uint32_t SystemServices::setFSRFlag(const JsonObject& parameters,
+                JsonObject& response)
+        {
+            unsigned short fsrFlag = 0;
+            bool status = false;
+            if(parameters.HasLabel("fsrFlag"))
+            {
+                fsrFlag = parameters["fsrFlag"].Boolean();
+                IARM_Bus_MFRLib_FsrFlag_Param_t param;
+                param = fsrFlag;
+                IARM_Result_t res = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME,
+                                       IARM_BUS_MFRLIB_API_SetFsrFlag, (void *)&param,
+                                       sizeof(param));
+                if (IARM_RESULT_SUCCESS == res) {
+                    status = true;
+                } else {
+                    status = false;
+                }
+            }
+
+            returnResponse(status);
+        }
+
+        /***
+         * @brief : To get the fsr flag from emmc
+         * @param1[out] : {"params":{"params":{"fsrFlag":<bool>}
+         * @param2[out] : {"result":{"success":<bool>}}
+         * @return     : Core::<StatusCode>
+         */
+        uint32_t SystemServices::getFSRFlag(const JsonObject& parameters,
+                JsonObject& response)
+        {
+            bool fsrFlag = 0;
+            bool status = false;
+            IARM_Bus_MFRLib_FsrFlag_Param_t param;
+            IARM_Result_t res = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME,
+                                  IARM_BUS_MFRLIB_API_GetFsrFlag, (void *)&param,
+                                  sizeof(param));
+            if (IARM_RESULT_SUCCESS == res) {
+                fsrFlag = param;
+                status = true;
+            } else {
+                status = false;
+            }
+            response["fsrFlag"] = fsrFlag;
+            returnResponse(status);
+        }
+
+
     } /* namespace Plugin */
 } /* namespace WPEFramework */
 

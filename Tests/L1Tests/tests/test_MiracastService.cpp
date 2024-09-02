@@ -5,6 +5,7 @@
 #include "WrapsMock.h"
 #include "WpaCtrlMock.h"
 #include "IarmBusMock.h"
+#include "RfcApiMock.h"
 
 using ::testing::NiceMock;
 using namespace WPEFramework;
@@ -77,6 +78,7 @@ class MiracastServiceTest : public ::testing::Test {
 		WrapsImplMock *p_wrapsImplMock   = nullptr;
 		WpaCtrlApiImplMock *p_wpaCtrlImplMock = nullptr;
 		IarmBusImplMock   *p_iarmBusImplMock = nullptr;
+		RfcApiImplMock   *p_rfcApiImplMock = nullptr;
 		IARM_EventHandler_t pwrMgrEventHandler;
 
 		MiracastServiceTest()
@@ -92,6 +94,9 @@ class MiracastServiceTest : public ::testing::Test {
 
 		p_iarmBusImplMock  = new testing::NiceMock <IarmBusImplMock>;
 		IarmBus::setImpl(p_iarmBusImplMock);
+
+		p_rfcApiImplMock  = new testing::NiceMock <RfcApiImplMock>;
+		RfcApi::setImpl(p_rfcApiImplMock);
 
 		EXPECT_CALL(service, QueryInterfaceByCallsign(::testing::_, ::testing::_))
 			.Times(::testing::AnyNumber())
@@ -121,6 +126,14 @@ class MiracastServiceTest : public ::testing::Test {
 				}
 				return IARM_RESULT_SUCCESS;
 			});
+		ON_CALL(*p_rfcApiImplMock, getRFCParameter)
+			.WillByDefault([](char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData){
+					EXPECT_EQ(string(pcCallerID), string("MiracastPlugin"));
+					EXPECT_EQ(string(pcParameterName), string("Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.Miracast.Enable"));
+					strncpy(pstParamData->value, "true", sizeof(pstParamData->value));
+					pstParamData->type = WDMP_BOOLEAN;
+				return WDMP_SUCCESS;
+			});
 	}
 	virtual ~MiracastServiceTest() override
 	{
@@ -143,6 +156,13 @@ class MiracastServiceTest : public ::testing::Test {
 		{
 			delete p_iarmBusImplMock;
 			p_iarmBusImplMock = nullptr;
+		}
+
+		RfcApi::setImpl(nullptr);
+		if (p_rfcApiImplMock != nullptr)
+		{
+			delete p_rfcApiImplMock;
+			p_rfcApiImplMock = nullptr;
 		}
 	}
 };
