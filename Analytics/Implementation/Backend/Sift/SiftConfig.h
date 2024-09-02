@@ -31,7 +31,7 @@ namespace WPEFramework
         class SiftConfig
         {
         public:
-            struct Config
+            struct Attributes
             {
                 bool schema2Enabled;
                 // Sift 2.0 decoration
@@ -67,10 +67,6 @@ namespace WPEFramework
                 std::string accountOperator;
                 std::string accountDetailType;
 
-                // TODO: read in SiftUploader
-                std::string url;
-                std::string apiKey;
-
                 // Sift 1.0 atributes that left
                 std::string deviceSoftwareVersion;
                 std::string deviceAppName;
@@ -79,13 +75,34 @@ namespace WPEFramework
                 std::string deviceId;
             };
 
+            struct StoreConfig
+            {
+                std::string path;
+                uint32_t eventsLimit;
+            };
+
+            struct UploaderConfig
+            {
+                std::string url;
+                std::string apiKey;
+                uint32_t maxRandomisationWindowTime;
+                uint32_t maxEventsInPost;
+                uint32_t maxRetries;
+                uint32_t minRetryPeriod;
+                uint32_t maxRetryPeriod;
+                uint32_t exponentialPeriodicFactor;
+            };
+
             SiftConfig(const SiftConfig &) = delete;
             SiftConfig &operator=(const SiftConfig &) = delete;
 
             SiftConfig(PluginHost::IShell *shell);
             ~SiftConfig();
 
-            bool Get(Config& config);
+            bool GetAttributes(Attributes &attributes);
+            bool GetStoreConfig(StoreConfig &config);
+            bool GetUploaderConfig(UploaderConfig &config);
+            void SetSessionId(const std::string &sessionId);
 
         private:
             class MonitorKeys : public Exchange::IStore::INotification {
@@ -125,7 +142,9 @@ namespace WPEFramework
             std::thread mInitializationThread;
             Core::Sink<MonitorKeys> mMonitorKeys;
             std::mutex mMutex;
-            Config mConfig;  
+            Attributes mAttributes;
+            StoreConfig mStoreConfig;
+            UploaderConfig mUploaderConfig;
             PluginHost::IShell *mShell;
             std::map<std::string, std::map<std::string, std::string*>> mKeysMap;
         };

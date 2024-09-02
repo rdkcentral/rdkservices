@@ -21,4 +21,7 @@ if boolean("@PLUGIN_ANALYTICS_SIFT_BACKEND_ENABLED@"):
     sift.add("minretryperiod", "@PLUGIN_ANALYTICS_SIFT_MIN_RETRY_PERIOD@")
     sift.add("maxretryperiod", "@PLUGIN_ANALYTICS_SIFT_MAX_RETRY_PERIOD@")
     sift.add("exponentialperiodicfactor", "@PLUGIN_ANALYTICS_SIFT_EXPONENTIAL_PERIODIC_FACTOR@")
+    sift.add("storepath", "@PLUGIN_ANALYTICS_SIFT_STORE_PATH@")
+    sift.add("eventslimit", "@PLUGIN_ANALYTICS_SIFT_STORE_EVENTS_LIMIT@")
+    sift.add("url", "@PLUGIN_ANALYTICS_SIFT_URL@")
     configuration.add("sift", sift)
