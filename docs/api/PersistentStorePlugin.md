@@ -2,7 +2,7 @@
 <a name="PersistentStore_Plugin"></a>
 # PersistentStore Plugin
 
-**Version: [1.0.15](https://github.com/rdkcentral/rdkservices/blob/main/PersistentStore/CHANGELOG.md)**
+**Version: [2.0.0](https://github.com/rdkcentral/rdkservices/blob/main/PersistentStore/CHANGELOG.md)**
 
 A org.rdk.PersistentStore plugin for Thunder framework.
 
