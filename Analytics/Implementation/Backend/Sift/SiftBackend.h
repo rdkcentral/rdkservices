@@ -20,6 +20,8 @@
 
 #include "../AnalyticsBackend.h"
 #include "SiftConfig.h"
+#include "SiftStore.h"
+#include "SiftUploader.h"
 
 #include <thread>
 #include <mutex>
@@ -39,6 +41,7 @@ namespace Plugin {
         ~SiftBackend();
         uint32_t SendEvent(const Event& event) override;
         uint32_t Configure(PluginHost::IShell* shell) override;
+        uint32_t SetSessionId(const std::string& sessionId) override;
 
     private:
 
@@ -64,12 +67,11 @@ namespace Plugin {
         };
 
         void ActionLoop();
-        bool SendEventInternal(const Event& event, const SiftConfig::Config &config);
+        bool SendEventInternal(const Event& event, const SiftConfig::Attributes &attributes);
 
         static uint8_t GenerateRandomCharacter();
         static std::string GenerateRandomOctetString( uint32_t numOctets );
         static std::string GenerateRandomUUID();
-        static uint32_t PostJson(const std::string& url, const std::string& apiKey, const std::string& json);
 
         std::mutex mQueueMutex;
         std::condition_variable mQueueCondition;
@@ -79,6 +81,8 @@ namespace Plugin {
 
         PluginHost::IShell* mShell;
         SiftConfigPtr mConfigPtr;
+        SiftStorePtr mStorePtr;
+        SiftUploaderPtr mUploaderPtr;
     };
 
 }

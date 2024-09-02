@@ -44,6 +44,7 @@ namespace Plugin {
 
         virtual uint32_t Configure(PluginHost::IShell* shell) = 0;
         virtual uint32_t SendEvent(const Event& event) = 0;
+        virtual uint32_t SetSessionId(const std::string& sessionId) = 0;
     };
 
     typedef std::map<std::string, IAnalyticsBackend&> IAnalyticsBackends;

@@ -49,9 +49,10 @@ namespace Plugin {
         enum ActionType
         {
             ACTION_TYPE_UNDEF,
-            ACTION_POPULATE_DEVICE_INFO,
+            ACTION_POPULATE_TIME_INFO,
             ACTION_TYPE_SEND_EVENT,
-            ACTION_TYPE_SHUTDOWN
+            ACTION_TYPE_SHUTDOWN,
+            ACTION_TYPE_SET_TIME_READY
         };
 
         struct Event
@@ -70,6 +71,7 @@ namespace Plugin {
         {
             ActionType type;
             std::shared_ptr<Event> payload;
+            std::string id;
         };
 
 
@@ -82,6 +84,9 @@ namespace Plugin {
                                    const uint64_t& epochTimestamp,
                                    const uint64_t& uptimeTimestamp,
                                    const string& eventPayload) override;
+        uint32_t SetSessionId(const string& id) override;
+        uint32_t SetTimeReady() override;
+
 
         // IConfiguration interface
         uint32_t Configure(PluginHost::IShell* shell);
@@ -99,7 +104,7 @@ namespace Plugin {
         std::thread mThread;
         std::queue<Action> mActionQueue;
         std::queue<Event> mEventQueue;
-        IAnalyticsBackends mBackends;
+        const IAnalyticsBackends mBackends;
         bool mSysTimeValid;
         PluginHost::IShell* mShell;
     };

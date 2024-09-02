@@ -95,6 +95,28 @@ namespace Plugin {
         return Core::ERROR_NONE;
     }
 
+    uint32_t AnalyticsImplementation::SetSessionId(const string& id)
+    {
+        uint32_t ret = Core::ERROR_GENERAL;
+        // set session id in sift backend
+        if (mBackends.find(IAnalyticsBackend::SIFT) != mBackends.end())
+        {
+            ret = mBackends.at(IAnalyticsBackend::SIFT).SetSessionId(id);
+        }
+
+        return ret;
+    }
+
+    uint32_t AnalyticsImplementation::SetTimeReady()
+    {
+        // set time ready action
+        std::unique_lock<std::mutex> lock(mQueueMutex);
+        mActionQueue.push({ACTION_TYPE_SET_TIME_READY, nullptr});
+        lock.unlock();
+        mQueueCondition.notify_one();
+        return Core::ERROR_NONE;
+    }
+
     uint32_t AnalyticsImplementation::Configure(PluginHost::IShell* shell)
     {
         LOGINFO("Configuring Analytics");
@@ -137,7 +159,7 @@ namespace Plugin {
 
             if (mActionQueue.empty() && !mSysTimeValid)
             {
-                action = {ACTION_POPULATE_DEVICE_INFO, nullptr};
+                action = {ACTION_POPULATE_TIME_INFO, nullptr};
             }
             else
             {
@@ -148,9 +170,9 @@ namespace Plugin {
             lock.unlock();
 
             switch (action.type) {
-                case ACTION_POPULATE_DEVICE_INFO:
+                case ACTION_POPULATE_TIME_INFO:
 
-                mSysTimeValid = IsSysTimeValid();
+                //mSysTimeValid = IsSysTimeValid();
 
                 if ( mSysTimeValid )
                 {
@@ -161,7 +183,7 @@ namespace Plugin {
                         mEventQueue.pop();
                     }
                 }
-                    break;
+                break;
                 case ACTION_TYPE_SEND_EVENT:
 
                     if (mSysTimeValid)
@@ -191,6 +213,10 @@ namespace Plugin {
                     break;
                 case ACTION_TYPE_SHUTDOWN:
                     return;
+                case ACTION_TYPE_SET_TIME_READY:
+                {
+                    mSysTimeValid = true;
+                }break;
                 default:
                     break;
             }
@@ -202,14 +228,7 @@ namespace Plugin {
     bool AnalyticsImplementation::IsSysTimeValid()
     {
         bool ret = false;
-        //TODO: Check here if time is OK
-        // for now check if /tmp/as_timezone_ready exists
-        std::ifstream timezoneFile("/tmp/as_timezone_ready");
-        if (timezoneFile.is_open())
-        {
-            timezoneFile.close();
-            ret = true;
-        }
+        //TODO: Add system time validation
 
         return ret;
     }
