@@ -23,7 +23,8 @@
 #include "rfcapi.h"
 #include "iniParser.h"
 
-#define CAPABLITY_FILE_NAME    "/etc/pq_capablities.ini" 
+#define CAPABLITY_FILE_NAME    "pq_capablities.ini"
+
 static std::map<std::string, int> supportedSourcemap;
 static std::map<std::string, int> supportedPictureModemap;
 static std::map<std::string, int> supportedFormatmap;
@@ -947,7 +948,7 @@ namespace Plugin {
         return ret;
     }
 
-    int AVOutputTV::updateAVoutputTVParam( std::string action, std::string tr181ParamName, capDetails_t info, tvPQParameterIndex_t pqParamIndex, int params[] )
+    int AVOutputTV::updateAVoutputTVParam( std::string action, std::string tr181ParamName, capDetails_t info, tvPQParameterIndex_t pqParamIndex, int level )
     {
         LOGINFO("Entry : %s\n",__FUNCTION__);
         valueVectors_t values;
@@ -989,10 +990,10 @@ namespace Plugin {
                                     if(getLocalparam(tr181ParamName,paramIndex,value,pqParamIndex,sync)) {
 					                    continue;
 			                        }
-                                    params[0]=value;
+                                    level=value;
                                 }
                                 if(set) {
-                                    ret |= updateAVoutputTVParamToHAL(tr181ParamName,paramIndex,params[0],true);
+                                    ret |= updateAVoutputTVParamToHAL(tr181ParamName,paramIndex,level,true);
                                 }
                                 break;
                             default:
@@ -1000,39 +1001,39 @@ namespace Plugin {
                         }
                         switch(pqParamIndex) {
                             case PQ_PARAM_BRIGHTNESS:
-                                ret |= SaveBrightness((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,params[0]);
+                                ret |= SaveBrightness((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,level);
                                 break;
                             case PQ_PARAM_CONTRAST:
-                                ret |= SaveContrast((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,params[0]);
+                                ret |= SaveContrast((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,level);
                                 break;
                             case PQ_PARAM_SHARPNESS:
-                                ret |= SaveSharpness((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,params[0]);
+                                ret |= SaveSharpness((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,level);
                                 break;
                             case PQ_PARAM_HUE:
-                                ret |= SaveHue((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,params[0]);
+                                ret |= SaveHue((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,level);
                                 break;
                             case PQ_PARAM_SATURATION:
-                                ret |= SaveSaturation((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,params[0]);
+                                ret |= SaveSaturation((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,level);
                                 break;
                             case PQ_PARAM_COLOR_TEMPERATURE:
-                                ret |= SaveColorTemperature((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,(tvColorTemp_t)params[0]);
+                                ret |= SaveColorTemperature((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,(tvColorTemp_t)level);
                                 break;
                             case PQ_PARAM_BACKLIGHT:
-                                ret |= SaveBacklight((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,params[0]);
+                                ret |= SaveBacklight((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,level);
                                 break;
                             case PQ_PARAM_DIMMINGMODE:
-                                ret |= SaveTVDimmingMode((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,(tvDimmingMode_t)params[0]);
+                                ret |= SaveTVDimmingMode((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,(tvDimmingMode_t)level);
                                 break;
                             case PQ_PARAM_LOWLATENCY_STATE:
-                                ret |= SaveLowLatencyState((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,params[0]);
+                                ret |= SaveLowLatencyState((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,level);
                                 break;
                             case PQ_PARAM_DOLBY_MODE:
                             case PQ_PARAM_HDR_MODE:
-                                 ret |= SaveTVDolbyVisionMode((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,(tvDolbyMode_t)params[0]);
+                                 ret |= SaveTVDolbyVisionMode((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,(tvDolbyMode_t)level);
                                  break;
 
                             case PQ_PARAM_ASPECT_RATIO:
-                                 ret |= SaveAspectRatio((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,(tvDisplayMode_t)params[0]);
+                                 ret |= SaveAspectRatio((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,(tvDisplayMode_t)level);
                                  break;
                              
                             case PQ_PARAM_CMS_SATURATION_RED:                
@@ -1072,13 +1073,13 @@ namespace Plugin {
                                             if(getLocalparam(tr181ParamName,paramIndex,value,pqIndex,sync)) {
 					                            continue;
 			                                }
-                                            params[0]=value;
+                                            level=value;
                                         }
 
-                                        ret |= SaveCMS((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,(tvComponentType_t)paramIndex.componentIndex,(tvDataComponentColor_t)paramIndex.colorIndex,params[0]);
+                                        ret |= SaveCMS((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,(tvComponentType_t)paramIndex.componentIndex,(tvDataComponentColor_t)paramIndex.colorIndex,level);
 
                                         if(set) {
-                                            ret |= updateAVoutputTVParamToHAL(tr181ParamName,paramIndex,params[0],true);
+                                            ret |= updateAVoutputTVParamToHAL(tr181ParamName,paramIndex,level,true);
                                         }
                                     }
                                 }
@@ -1103,7 +1104,7 @@ namespace Plugin {
                                             if(getLocalparam(tr181ParamName,paramIndex,value,pqParamIndex,sync)) {
 					                            continue;
 			                                }
-                                            params[0]=value;
+                                            level=value;
                                         }
                                          /* tvRGBType_t rgbIndex;
                                             if ( convertWBParamToRGBEnum(getWBColorStringFromEnum((tvWBColor_t)(paramIndex.colorIndex)),getWBControlStringFromEnum((tvWBControl_t)(paramIndex.controlIndex)),rgbIndex) != 0 )
@@ -1111,10 +1112,10 @@ namespace Plugin {
                                                 LOGERR("%s:convertWBParamToRGBEnum failed Color : %d Control : %d  \n",__FUNCTION__,paramIndex.colorIndex,paramIndex.controlIndex);
                                                 return -1;  
                                             }*/
-                                        ret |= SaveWhiteBalance((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,(tvWBColor_t)paramIndex.colorIndex,(tvWBControl_t)paramIndex.controlIndex,params[0]);
+                                        ret |= SaveWhiteBalance((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,(tvWBColor_t)paramIndex.colorIndex,(tvWBControl_t)paramIndex.controlIndex,level);
 
                                         if(set) {
-                                            ret |= updateAVoutputTVParamToHAL(tr181ParamName,paramIndex,params[0],true);
+                                            ret |= updateAVoutputTVParamToHAL(tr181ParamName,paramIndex,level,true);
                                         }   
                                 }
                             }
@@ -1125,9 +1126,9 @@ namespace Plugin {
                                 if(sync) {
                                     int value=0;
                                     getLocalparam(tr181ParamName,paramIndex,value,pqParamIndex,sync);
-                                    params[0]=value;
+                                    level=value;
                                 }
-                                ret |= SaveTVDimmingMode((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,(tvDimmingMode_t)params[0]);
+                                ret |= SaveTVDimmingMode((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,(tvDimmingMode_t)level);
                                 break;
                             }
                             case PQ_PARAM_CMS:
@@ -1145,7 +1146,7 @@ namespace Plugin {
 
     tvError_t AVOutputTV::syncAvoutputTVParamsToHAL(std::string pqmode,std::string source,std::string format)
     {
-        int params[3]={0};
+        int level={0};
         capDetails_t info;
         info.pqmode = pqmode;
         info.source = source;
@@ -1153,63 +1154,63 @@ namespace Plugin {
 
         LOGINFO("Entry %s : pqmode : %s source : %s format : %s\n",__FUNCTION__,pqmode.c_str(),source.c_str(),format.c_str());
 
-        if( !updateAVoutputTVParam("sync","Brightness",info,PQ_PARAM_BRIGHTNESS,params)) {
+        if( !updateAVoutputTVParam("sync","Brightness",info,PQ_PARAM_BRIGHTNESS,level)) {
             LOGINFO("Brightness Successfully sync to Drive Cache\n");
 	    }
         else {
             LOGERR("Brightness Sync to cache Failed !!!\n");
 	    }
 
-        if( !updateAVoutputTVParam("sync","Contrast",info,PQ_PARAM_CONTRAST,params)) {
+        if( !updateAVoutputTVParam("sync","Contrast",info,PQ_PARAM_CONTRAST,level)) {
             LOGINFO("Contrast Successfully Synced to Drive Cache\n");
 	    }
         else {
             LOGERR("Contrast Sync to cache Failed !!!\n");
         }
 
-        if( !updateAVoutputTVParam("sync","Sharpness",info,PQ_PARAM_SHARPNESS,params)) {
+        if( !updateAVoutputTVParam("sync","Sharpness",info,PQ_PARAM_SHARPNESS,level)) {
             LOGINFO("Sharpness Successfully Synced to Drive Cache\n");
         }
         else {
             LOGERR("Sharpness Sync to cache Failed !!!\n");
         }
 
-        if( !updateAVoutputTVParam("sync","Saturation",info,PQ_PARAM_SATURATION,params)) {
+        if( !updateAVoutputTVParam("sync","Saturation",info,PQ_PARAM_SATURATION,level)) {
             LOGINFO("Saturation Successfully Synced to Drive Cache\n");
         }
         else {
             LOGERR("Saturation Sync to cache Failed !!!\n");
         }
 
-        if( !updateAVoutputTVParam("sync","Hue",info,PQ_PARAM_HUE,params)) {
+        if( !updateAVoutputTVParam("sync","Hue",info,PQ_PARAM_HUE,level)) {
             LOGINFO("Hue Successfully Synced to Drive Cache\n");
         }
         else {
             LOGERR("Hue Sync to cache Failed !!!\n");
         }
 
-        if( !updateAVoutputTVParam("sync","ColorTemp",info,PQ_PARAM_COLOR_TEMPERATURE,params)) {
+        if( !updateAVoutputTVParam("sync","ColorTemp",info,PQ_PARAM_COLOR_TEMPERATURE,level)) {
             LOGINFO("ColorTemp Successfully Synced to Drive Cache\n");
         }
         else {
             LOGERR("ColorTemp Sync to cache Failed !!!\n");
         }
         
-        if( !updateAVoutputTVParam("sync","HDRMode",info,PQ_PARAM_DOLBY_MODE,params)) {
+        if( !updateAVoutputTVParam("sync","HDRMode",info,PQ_PARAM_DOLBY_MODE,level)) {
             LOGINFO("dvmode Successfully Synced to Drive Cache\n");
         }
         else {
             LOGERR("dvmode Sync to cache Failed !!!\n");
         }
 
-        if( !updateAVoutputTVParam("sync","DimmingMode",info,PQ_PARAM_DIMMINGMODE,params)) {
+        if( !updateAVoutputTVParam("sync","DimmingMode",info,PQ_PARAM_DIMMINGMODE,level)) {
             LOGINFO("dimmingmode Successfully Synced to Drive Cache\n");
         }
         else {
             LOGERR("dimmingmode Sync to cache Failed !!!\n");
         }
 
-        if( !updateAVoutputTVParam("sync","Backlight",info,PQ_PARAM_BACKLIGHT,params) ) {
+        if( !updateAVoutputTVParam("sync","Backlight",info,PQ_PARAM_BACKLIGHT,level) ) {
             LOGINFO("Backlight Successfully Synced to Drive Cache\n");
         }
         else {
@@ -1222,14 +1223,14 @@ namespace Plugin {
 
         info.format = "DV";
 
-        if( !updateAVoutputTVParam("sync","DolbyVisionMode",info,PQ_PARAM_DOLBY_MODE,params)) {
+        if( !updateAVoutputTVParam("sync","DolbyVisionMode",info,PQ_PARAM_DOLBY_MODE,level)) {
             LOGINFO("dvmode Successfully Synced to Drive Cache\n");
         }
         else {
             LOGERR("dvmode Sync to cache Failed !!!\n");
         }
 
-        if( !updateAVoutputTVParam("sync","HDRMode",info,PQ_PARAM_HDR_MODE,params) ) {
+        if( !updateAVoutputTVParam("sync","HDRMode",info,PQ_PARAM_HDR_MODE,level) ) {
             LOGINFO("HDRMode Successfully Synced to Drive Cache\n");
         }
         else {
@@ -1933,9 +1934,7 @@ namespace Plugin {
             }
             else {
                 //Save DisplayMode to ssm_data
-                int params[3]={0};
-                params[0]=mode;
-                int retval=updateAVoutputTVParam("set","ZoomMode",inputInfo,PQ_PARAM_ASPECT_RATIO,params);
+                int retval=updateAVoutputTVParam("set","ZoomMode",inputInfo,PQ_PARAM_ASPECT_RATIO,mode);
 
                 if(retval != 0) {
                     LOGERR("Failed to Save DisplayMode to ssm_data\n");
@@ -2026,7 +2025,7 @@ namespace Plugin {
 
     void AVOutputTV::syncCMSParams( )
     {
-        int params[3]={0};
+        int level = 0;
         std::string cmsParam;
 	    tvPQParameterIndex_t tvPQEnum;
         capDetails_t inputInfo;
@@ -2040,9 +2039,6 @@ namespace Plugin {
         {
             for(int count = 0;count < (int)(sizeof(colors)/sizeof(colors[0])); ++count) {
 		        tvDataComponentColor_t color = colors[count];
-			    params[0] = component;
-			    params[1] = color;
-			    params[2] = 0;
 			
 			    std::string componentString = getCMSComponentStringFromEnum((tvComponentType_t)component);
 			    std::string colorString = getCMSColorStringFromEnum((tvDataComponentColor_t)color);
@@ -2053,7 +2049,7 @@ namespace Plugin {
                     continue;
                 }
 			
-			    if( !updateAVoutputTVParam("sync",cmsParam, inputInfo,tvPQEnum,params))
+			    if( !updateAVoutputTVParam("sync",cmsParam, inputInfo,tvPQEnum,level))
                    LOGINFO("CMS Successfully Synced to Drive Cache\n");
                 else
                    LOGERR("CMS Sync to cache Failed !!!\n");
@@ -2063,7 +2059,7 @@ namespace Plugin {
 
     void AVOutputTV::syncWBParams( )
     {
-        int params[3]={0};
+        int level = 0;
         tvColorTemp_t colorTempEnum;
         tvPQParameterIndex_t tvPQEnum;
         capDetails_t inputInfo;
@@ -2091,7 +2087,7 @@ namespace Plugin {
                         LOGERR("%s: Invalid ColorTemp : %s\n",__FUNCTION__,inputInfo.colorTemperature.c_str());
                     }
 
-                    updateAVoutputTVParam("sync","WhiteBalance",inputInfo,tvPQEnum,params);
+                    updateAVoutputTVParam("sync","WhiteBalance",inputInfo,tvPQEnum,level);
                 }
             }
 	}
