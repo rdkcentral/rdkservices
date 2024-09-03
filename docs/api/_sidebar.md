@@ -53,6 +53,7 @@
   - [TraceControl](api/TraceControlPlugin.md)
   - [UsbAccess](api/UsbAccessPlugin.md)
   - [UserPreferences](api/UserPreferencesPlugin.md)
+  - [UserSettings](api/UserSettingsPlugin.md)
   - [VoiceControl](api/VoiceControlPlugin.md)
   - [Warehouse](api/WarehousePlugin.md)
   - [WebKitBrowser](api/WebKitBrowserPlugin.md)
