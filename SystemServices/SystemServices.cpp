@@ -334,6 +334,8 @@ namespace WPEFramework {
         static IARM_Result_t _SysModeChange(void *arg);
         static void _systemStateChanged(const char *owner,
                 IARM_EventId_t eventId, void *data, size_t len);
+        static void _deviceMgtUpdateReceived(const char *owner,
+                IARM_EventId_t eventId, void *data, size_t len);
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
 
         SERVICE_REGISTRATION(SystemServices, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
@@ -571,6 +573,7 @@ namespace WPEFramework {
                 IARM_Result_t res;
                 IARM_CHECK( IARM_Bus_RegisterCall(IARM_BUS_COMMON_API_SysModeChange, _SysModeChange));
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE, _systemStateChanged));
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_DEVICE_UPDATE_RECEIVED, _deviceMgtUpdateReceived));
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, _powerEventHandler));
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_REBOOTING, _powerEventHandler));
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_NETWORK_STANDBYMODECHANGED, _powerEventHandler));
@@ -595,6 +598,7 @@ namespace WPEFramework {
             {
                 IARM_Result_t res;
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE, _systemStateChanged));
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_EVENT_DEVICE_UPDATE_RECEIVED, _deviceMgtUpdateReceived));
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_MODECHANGED, _powerEventHandler));
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_REBOOTING, _powerEventHandler));
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_EVENT_NETWORK_STANDBYMODECHANGED,_powerEventHandler ));
@@ -4214,6 +4218,28 @@ namespace WPEFramework {
         }
 
         /***
+       * @brief : To receive device updates event from IARM.
+       * @param1[in]  : owner of the event
+       * @param2[in]  : eventID of the event
+       * @param3[in]  : data passed from the IARMBUS event
+       * @param4[in]  : len
+       */
+       void _deviceMgtUpdateReceived(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+       {
+           if (!strcmp(IARM_BUS_SYSMGR_NAME, owner)) {
+               if (IARM_BUS_SYSMGR_EVENT_DEVICE_UPDATE_RECEIVED  == eventId) {
+                   LOGWARN("%s:%d IARM_BUS_SYSMGR_EVENT_DEVICE_UPDATE_RECEIVED event received\n",__FUNCTION__, __LINE__);
+                   if (SystemServices::_instance) {
+                       LOGWARN("%s:%d Invoke onDeviceMgtUpdateReceived to notify\n", __FUNCTION__, __LINE__);
+                       SystemServices::_instance->onDeviceMgtUpdateReceived((IARM_BUS_SYSMGR_DeviceMgtUpdateInfo_Param_t *)data);
+                   } else {
+                       LOGERR("%s:%d SystemServices::_instance is NULL.\n", __FUNCTION__, __LINE__);
+                   }
+               }
+           }
+       }
+
+        /***
          * @brief : To receive Firmware Update State Change events from IARM.
          * @param1[in]  : owner of the event
          * @param2[in]  : eventID of the event
@@ -4303,7 +4329,6 @@ namespace WPEFramework {
                 }
             }
         }
-
         /***
          * @brief : To validate the parameters in event data send from the IARMBUS, so as
          *		   to initiate  onTemperatureThresholdChanged event.
@@ -4398,6 +4423,21 @@ namespace WPEFramework {
             LOGINFO("Notifying onRebootRequest\n");
             sendNotify(EVT_ONREBOOTREQUEST, params);
         }
+
+       /***
+       * @brief : called when Device Mgt settings update is received
+       * @param1[in]  : data passed from the IARMBUS event
+       * @param2[out] : {param:{"source":<string>, "type":<string>, "success":<bool>}}
+       */
+       void SystemServices::onDeviceMgtUpdateReceived(IARM_BUS_SYSMGR_DeviceMgtUpdateInfo_Param_t *config)
+       {
+               JsonObject params;
+               params["source"] = std::string(config->source);
+               params["type"] = std::string(config->type);
+               params["success"] = config->status;
+               LOGWARN("onDeviceMgtUpdateReceived: source = %s type = %s success = %d\n", config->source, config->type, config->status);
+               sendNotify(EVT_ONDEVICEMGTUPDATERECEIVED, params);
+       }
 
         uint32_t SystemServices::getLastFirmwareFailureReason(const JsonObject& parameters, JsonObject& response)
         {
