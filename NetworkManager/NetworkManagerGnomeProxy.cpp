@@ -463,7 +463,7 @@ namespace WPEFramework
             GBytes *ssid = NULL;
             NMAccessPoint *ap = NULL;
             int strength = 0;
-            std::string freq;
+            double freq;
             guint security;
             guint32 flags, wpaFlags, rsnFlags, ap_freq;
             JsonArray ssidList = JsonArray();
@@ -487,18 +487,7 @@ namespace WPEFramework
                         flags     = nm_access_point_get_flags(ap);
                         wpaFlags = nm_access_point_get_wpa_flags(ap);
                         rsnFlags = nm_access_point_get_rsn_flags(ap);
-                        if (ap_freq >= 2400 && ap_freq < 5000) {
-                            freq = "2.4";
-                        }
-                        else if (ap_freq >= 5000 && ap_freq < 6000) {
-                            freq = "5";
-                        }
-                        else if (ap_freq >= 6000) {
-                            freq = "6";
-                        }
-                        else {
-                            freq = "Not available";
-                        }
+                        freq = static_cast<double>(ap_freq)/1000.0;
 			if ((flags == NM_802_11_AP_FLAGS_NONE) && (wpaFlags == NM_802_11_AP_SEC_NONE) && (rsnFlags == NM_802_11_AP_SEC_NONE))
                         {
                             security = 0;

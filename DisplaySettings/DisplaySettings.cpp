@@ -85,7 +85,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 4
-#define API_VERSION_NUMBER_PATCH 6
+#define API_VERSION_NUMBER_PATCH 7
 
 static bool isCecEnabled = false;
 static bool isResCacheUpdated = false;
@@ -875,6 +875,14 @@ namespace WPEFramework {
                                    DisplaySettings::_instance->m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
 				   DisplaySettings::_instance->m_requestSadRetrigger = false;
                                 }
+
+				if (DisplaySettings::_instance->m_AudioDeviceSADState != AUDIO_DEVICE_SAD_CLEARED) {
+					DisplaySettings::_instance->m_AudioDeviceSADState = AUDIO_DEVICE_SAD_CLEARED;
+					LOGINFO("%s: Clearing Audio device SAD\n", __FUNCTION__);
+					sad_list.clear();
+				} else {
+				LOGINFO("SAD already cleared\n");
+				}
 
                             }// Release Mutex m_AudioDeviceStatesUpdateMutex
 			}

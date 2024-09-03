@@ -55,6 +55,10 @@ namespace WPEFramework
         NetworkManagerImplementation::~NetworkManagerImplementation()
         {
             LOG_ENTRY_FUNCTION();
+            if(m_registrationThread.joinable())
+            {
+                m_registrationThread.join();
+            }
         }
 
         /**
@@ -484,6 +488,7 @@ namespace WPEFramework
         void NetworkManagerImplementation::ReportInterfaceStateChangedEvent(INetworkManager::InterfaceState state, string interface)
         {
             LOG_ENTRY_FUNCTION();
+            NMLOG_INFO("Posting onInterfaceStateChange %s", interface.c_str());
             _notificationLock.Lock();
             for (const auto callback : _notificationCallbacks) {
                 callback->onInterfaceStateChange(state, interface);
@@ -494,6 +499,7 @@ namespace WPEFramework
         void NetworkManagerImplementation::ReportIPAddressChangedEvent(const string& interface, bool isAcquired, bool isIPv6, const string& ipAddress)
         {
             LOG_ENTRY_FUNCTION();
+            NMLOG_INFO("Posting onIPAddressChange %s", ipAddress.c_str());
             _notificationLock.Lock();
             for (const auto callback : _notificationCallbacks) {
                 callback->onIPAddressChange(interface, isAcquired, isIPv6, ipAddress);
@@ -504,6 +510,7 @@ namespace WPEFramework
         void NetworkManagerImplementation::ReportActiveInterfaceChangedEvent(const string prevActiveInterface, const string currentActiveinterface)
         {
             LOG_ENTRY_FUNCTION();
+            NMLOG_INFO("Posting onActiveInterfaceChange %s", currentActiveinterface.c_str());
             _notificationLock.Lock();
             for (const auto callback : _notificationCallbacks) {
                 callback->onActiveInterfaceChange(prevActiveInterface, currentActiveinterface);
@@ -514,6 +521,7 @@ namespace WPEFramework
         void NetworkManagerImplementation::ReportInternetStatusChangedEvent(const InternetStatus oldState, const InternetStatus newstate)
         {
             LOG_ENTRY_FUNCTION();
+            NMLOG_INFO("Posting onInternetStatusChange");
             _notificationLock.Lock();
             for (const auto callback : _notificationCallbacks) {
                 callback->onInternetStatusChange(oldState, newstate);
@@ -525,7 +533,7 @@ namespace WPEFramework
         {
             LOG_ENTRY_FUNCTION();
             _notificationLock.Lock();
-            NMLOG_INFO("scan result is, %s", jsonOfWiFiScanResults.c_str());
+            NMLOG_INFO("Posting onAvailableSSIDs result is, %s", jsonOfWiFiScanResults.c_str());
             for (const auto callback : _notificationCallbacks) {
                 callback->onAvailableSSIDs(jsonOfWiFiScanResults);
             }
@@ -535,6 +543,7 @@ namespace WPEFramework
         void NetworkManagerImplementation::ReportWiFiStateChangedEvent(const INetworkManager::WiFiState state)
         {
             LOG_ENTRY_FUNCTION();
+            NMLOG_INFO("Posting onWiFiStateChange");
             _notificationLock.Lock();
             for (const auto callback : _notificationCallbacks) {
                 callback->onWiFiStateChange(state);
@@ -545,6 +554,7 @@ namespace WPEFramework
         void NetworkManagerImplementation::ReportWiFiSignalStrengthChangedEvent(const string ssid, const string signalLevel, const WiFiSignalQuality signalQuality)
         {
             LOG_ENTRY_FUNCTION();
+            NMLOG_INFO("Posting onWiFiSignalStrengthChange");
             _notificationLock.Lock();
             for (const auto callback : _notificationCallbacks) {
                 callback->onWiFiSignalStrengthChange(ssid, signalLevel, signalQuality);

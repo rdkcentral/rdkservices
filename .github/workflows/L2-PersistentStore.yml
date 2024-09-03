@@ -19,10 +19,10 @@ jobs:
         with:
           path: ${{github.repository}}
 
-      - name: Install cmake, sqlite, protoc, grpc_cpp_plugin, grpc
+      - name: Install cmake, sqlite
         run: |
           sudo apt update
-          sudo apt install -y cmake libsqlite3-dev protobuf-compiler protobuf-compiler-grpc libgrpc++-dev
+          sudo apt install -y cmake libsqlite3-dev
 
       - name: Build Thunder
         working-directory: ${{github.workspace}}
@@ -31,7 +31,7 @@ jobs:
       - name: Build
         working-directory: ${{github.workspace}}
         run: |
-          cmake -S ${GITHUB_REPOSITORY}/PersistentStore -B build/PersistentStore -DCMAKE_INSTALL_PREFIX="install" -DCMAKE_CXX_FLAGS="-Wall -Werror" -DPLUGIN_PERSISTENTSTORE_PATH="/tmp/persistentstore/l2test/test" -DPLUGIN_PERSISTENTSTORE_WITH_ACCOUNT_SCOPE=true -DPLUGIN_PERSISTENTSTORE_MODE=Local -DPLUGIN_PERSISTENTSTORE_URI=ss.eu.prod.developer.comcast.com:443
+          cmake -S ${GITHUB_REPOSITORY}/PersistentStore -B build/PersistentStore -DCMAKE_INSTALL_PREFIX="install" -DCMAKE_CXX_FLAGS="-Wall -Werror" -DPLUGIN_PERSISTENTSTORE_PATH="/tmp/persistentstore/l2test/test" -DPLUGIN_PERSISTENTSTORE_MODE=Local
           cmake --build build/PersistentStore --target install
 
 # Usage:

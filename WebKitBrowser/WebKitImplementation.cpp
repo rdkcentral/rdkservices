@@ -794,7 +794,20 @@ static GSourceFuncs _handlerIntervention =
                 ++_expiryCount;
 
                 if ( _expiryCount > (_watchDogTresholdInSeconds /  _watchDogTimeoutInSeconds) ) {
-                    _browser.DeactivateBrowser(PluginHost::IShell::WATCHDOG_EXPIRED);
+                    pid_t pid = getpid();
+                    SYSLOG(Logging::Error, (_T("Hang detected in browser thread in process %u. Sending SIGFPE."), pid));
+                    if (syscall( __NR_tgkill, pid, pid, SIGFPE ) == -1) {
+                        SYSLOG(Logging::Error, (_T("tgkill failed, signal=%d process=%u errno=%d (%s)"), SIGFPE, pid, errno, strerror(errno)));
+                    }
+                    else {
+                        g_usleep( _watchDogTresholdInSeconds * G_USEC_PER_SEC );
+                    }
+                    SYSLOG(Logging::Error, (_T("Process %u is still running! sending SIGKILL\n"), pid));
+                    if (syscall( __NR_tgkill, pid, pid, SIGKILL ) == -1) {
+                        SYSLOG(Logging::Error, (_T("tgkill failed, signal=%d process=%u errno=%d (%s)"), SIGKILL, pid, errno, strerror(errno)));
+                    }
+                    ASSERT(!"This should not be reached");
+                    return;
                 }
 
                 _worker.Reschedule(Core::Time::Now().Add(_watchDogTimeoutInSeconds * 1000));
