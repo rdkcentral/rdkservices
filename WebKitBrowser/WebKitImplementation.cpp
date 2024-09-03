@@ -364,6 +364,13 @@ static GSourceFuncs _handlerIntervention =
         if (implementation != nullptr) {
             delete implementation;
             implementation = nullptr;
+#ifdef __CORE_MESSAGING__
+            // Messaging has to be destroyed before Singletons are disposed.
+            // WPEProcess will usually take care of this at the end of its main() func,
+            // but beeing here suggests that something went wrong and possibly
+            // we are closing with exit() func (from postExitJob())
+            Messaging::MessageUnit::Instance().Close();
+#endif
         }
     }
 
