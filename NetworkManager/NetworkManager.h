@@ -119,7 +119,7 @@ namespace WPEFramework
             public:
                 void onInterfaceStateChange(const Exchange::INetworkManager::InterfaceState event, const string interface) override
                 {
-                    NMLOG_TRACE("%s", __FUNCTION__);
+                    NMLOG_INFO("%s", __FUNCTION__);
                     JsonObject params;
                     params["interface"] = interface;
                     params["state"] = InterfaceStateToString(event);
@@ -128,7 +128,7 @@ namespace WPEFramework
 
                 void onIPAddressChange(const string interface, const bool isAcquired, const bool isIPv6, const string ipAddress) override
                 {
-                    NMLOG_TRACE("%s", __FUNCTION__);
+                    NMLOG_INFO("%s", __FUNCTION__);
                     JsonObject params;
                     params["status"] = string (isAcquired ? "ACQUIRED" : "LOST");
                     params["interface"] = interface;
@@ -139,7 +139,7 @@ namespace WPEFramework
 
                 void onActiveInterfaceChange(const string prevActiveInterface, const string currentActiveinterface) override
                 {
-                    NMLOG_TRACE("%s", __FUNCTION__);
+                    NMLOG_INFO("%s", __FUNCTION__);
                     JsonObject params;
                     params["oldInterfaceName"] = prevActiveInterface;
                     params["newInterfaceName"] = currentActiveinterface;
@@ -149,7 +149,7 @@ namespace WPEFramework
 
                 void onInternetStatusChange(const Exchange::INetworkManager::InternetStatus oldState, const Exchange::INetworkManager::InternetStatus newstate) override
                 {
-                    NMLOG_TRACE("%s", __FUNCTION__);
+                    NMLOG_INFO("%s", __FUNCTION__);
                     JsonObject params;
 
                     params["state"] = static_cast <int> (newstate);;
@@ -169,7 +169,7 @@ namespace WPEFramework
                 // WiFi Notifications that other processes can subscribe to
                 void onAvailableSSIDs(const string jsonOfWiFiScanResults) override
                 {
-                    NMLOG_TRACE("%s", __FUNCTION__);
+                    NMLOG_INFO("%s", __FUNCTION__);
                     JsonArray scanResults;
                     JsonObject result;
                     scanResults.FromString(jsonOfWiFiScanResults);
@@ -180,7 +180,7 @@ namespace WPEFramework
 
                 void onWiFiStateChange(const Exchange::INetworkManager::WiFiState state) override
                 {
-                    NMLOG_TRACE("%s", __FUNCTION__);
+                    NMLOG_INFO("%s", __FUNCTION__);
                     JsonObject result;
                     result["state"] = static_cast <int> (state);
                     _parent.Notify("onWiFiStateChange", result);
@@ -188,7 +188,7 @@ namespace WPEFramework
 
                 void onWiFiSignalStrengthChange(const string ssid, const string signalLevel, const Exchange::INetworkManager::WiFiSignalQuality signalQuality) override
                 {
-                    NMLOG_TRACE("%s", __FUNCTION__);
+                    NMLOG_INFO("%s", __FUNCTION__);
                     JsonObject result;
                     result["ssid"] = ssid;
                     result["signalQuality"] = WiFiSignalQualityToString(signalQuality);

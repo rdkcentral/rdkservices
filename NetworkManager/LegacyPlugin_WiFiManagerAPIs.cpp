@@ -26,7 +26,7 @@ using namespace WPEFramework::Plugin;
 #define API_VERSION_NUMBER_MINOR 0
 #define API_VERSION_NUMBER_PATCH 0
 #define NETWORK_MANAGER_CALLSIGN    "org.rdk.NetworkManager.1"
-#define SUBSCRIPTION_TIMEOUT_IN_MILLISECONDS 5000
+#define SUBSCRIPTION_TIMEOUT_IN_MILLISECONDS 500
 
 #define LOGINFOMETHOD() { string json; parameters.ToString(json); NMLOG_TRACE("Legacy params=%s", json.c_str() ); }
 #define LOGTRACEMETHODFIN() { string json; response.ToString(json); NMLOG_TRACE("Legacy response=%s", json.c_str() ); }
@@ -494,6 +494,7 @@ namespace WPEFramework
         /** Private */
         void WiFiManager::subscribeToEvents(void)
         {
+	    NMLOG_INFO("Entry %s", __FUNCTION__);
             uint32_t errCode = Core::ERROR_GENERAL;
             if (m_networkmanager)
             {
@@ -503,7 +504,7 @@ namespace WPEFramework
                     if (Core::ERROR_NONE == errCode)
                         m_subsWiFiStateChange = true;
                     else
-                        NMLOG_ERROR ("Subscribe to onInterfaceStateChange failed, errCode: %u", errCode);
+                        NMLOG_ERROR ("Subscribe to onWiFiStateChange failed, errCode: %u", errCode);
                 }
 
                 if (!m_subsAvailableSSIDs)
@@ -512,7 +513,7 @@ namespace WPEFramework
                     if (Core::ERROR_NONE == errCode)
                         m_subsAvailableSSIDs = true;
                     else
-                        NMLOG_ERROR("Subscribe to onIPAddressChange failed, errCode: %u", errCode);
+                        NMLOG_ERROR("Subscribe to onAvailableSSIDs failed, errCode: %u", errCode);
                 }
 
                 if (!m_subsWiFiStrengthChange)
@@ -521,12 +522,19 @@ namespace WPEFramework
                     if (Core::ERROR_NONE == errCode)
                         m_subsWiFiStrengthChange = true;
                     else
-                        NMLOG_ERROR("Subscribe to onActiveInterfaceChange failed, errCode: %u", errCode);
+                        NMLOG_ERROR("Subscribe to onWiFiSignalStrengthChange failed, errCode: %u", errCode);
                 }
             }
+            else
+                NMLOG_ERROR("m_subsWiFiStateChange is null");
 
             if (m_subsWiFiStateChange && m_subsAvailableSSIDs && m_subsWiFiStrengthChange)
+            {
                 m_timer.stop();
+                NMLOG_INFO("subscriber timer stoped");
+            }
+
+	    NMLOG_INFO("Exit %s", __FUNCTION__);
         }
 
          bool WiFiManager::ErrorCodeMapping(const uint32_t ipvalue, uint32_t &opvalue)
@@ -589,6 +597,7 @@ namespace WPEFramework
                 else
                 {
                     NMLOG_INFO("onWiFiStateChange with state as: %u", state);
+                    NMLOG_INFO("Posting onWIFIStateChanged");
                     _gWiFiInstance->Notify("onWIFIStateChanged", legacyResult);
                 }
             }
@@ -611,7 +620,7 @@ namespace WPEFramework
             JsonObject legacyParams;
             legacyParams["signalStrength"] = parameters["signalQuality"];
             legacyParams["strength"] = parameters["signalLevel"];
-
+            NMLOG_INFO("Posting onWifiSignalThresholdChanged");
             if (_gWiFiInstance)
                 _gWiFiInstance->Notify("onWifiSignalThresholdChanged", legacyParams);
 
