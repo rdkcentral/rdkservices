@@ -16,6 +16,9 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [3.1.0] - 2024-09-03
+### Update
+- RDK-52297: Core system supports dynamic partner configuration
 
 ## [3.0.2] - 2024-08-12
 ### Update
