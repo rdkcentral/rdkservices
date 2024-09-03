@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.3.9] - 2024-09-03
+### Fixed
+- Updated to handle unhandled exceptions
+
 ## [1.3.8] - 2024-06-02
 ### Fixed
 - Fixed getHdmiArcPortID away from Initialize API.
