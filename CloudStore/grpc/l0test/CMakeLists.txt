@@ -17,12 +17,13 @@
 
 cmake_minimum_required(VERSION 3.14)
 
-project(grpcl2test)
+project(grpcl0test)
 
 set(CMAKE_CXX_STANDARD 11)
 
 add_executable(${PROJECT_NAME}
-        StubTest.cpp
+        ../../Module.cpp
+        Store2Test.cpp
 )
 
 include(FetchContent)
@@ -33,6 +34,10 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 target_link_libraries(${PROJECT_NAME} PRIVATE gmock_main)
 
+find_package(WPEFramework NAMES WPEFramework Thunder)
+find_package(${NAMESPACE}Plugins REQUIRED)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins)
+
 find_package(Protobuf REQUIRED)
 target_link_libraries(${PROJECT_NAME} PRIVATE ${Protobuf_LIBRARIES})
 
@@ -41,15 +46,8 @@ add_custom_target(protoc
 )
 add_dependencies(${PROJECT_NAME} protoc)
 
-find_package(gRPC CONFIG)
-if (gRPC_FOUND)
-    set(GRPC_LIBS gRPC::grpc++)
-    set(GRPC_CPP_PLUGIN $<TARGET_FILE:gRPC::grpc_cpp_plugin>)
-else ()
-    set(GRPC_LIBS grpc++)
-    find_program(GRPC_CPP_PLUGIN grpc_cpp_plugin REQUIRED)
-endif ()
-target_link_libraries(${PROJECT_NAME} PRIVATE ${GRPC_LIBS})
+target_link_libraries(${PROJECT_NAME} PRIVATE grpc++)
+find_program(GRPC_CPP_PLUGIN grpc_cpp_plugin REQUIRED)
 
 add_custom_target(protoc-gen-grpc
         ${Protobuf_PROTOC_EXECUTABLE} --grpc_out ${CMAKE_CURRENT_BINARY_DIR} --plugin=protoc-gen-grpc=${GRPC_CPP_PLUGIN} -I ${CMAKE_CURRENT_SOURCE_DIR}/../secure_storage ${CMAKE_CURRENT_SOURCE_DIR}/../secure_storage/secure_storage.proto

@@ -16,6 +16,15 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+
+## [3.0.2] - 2024-08-12
+### Update
+- RDKDEV-1071: brief comment updated 
+
+## [3.0.1] - 2024-08-12
+### Fixed
+- RDKDEV-1071: Wpeframework crash & restarting observed on setMode as Warehouse 
+
 ## [3.0.0] - 2024-07-29
 ### Removed
 - Removed the deprecated cache APIs 

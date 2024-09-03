@@ -1,18 +1,15 @@
-From 6382e8759eb966a7b4d2a1f1d0988edb35194aa3 Mon Sep 17 00:00:00 2001
-From: kprathyusha <kprathyusha@synamedia.com>
-Date: Wed, 26 Jun 2024 15:42:01 +0530
-Subject: [PATCH] Add ITextToSpeech.h
+commit fa2d0c0221c33e4437a158e58a7a75de3f5c5a05
+Author: Siva Thandayuthapani <sithanda@synamedia.com>
+Date:   Wed Jul 31 17:36:53 2024 +0530
 
----
- interfaces/IUserSettings.h | 146 +++++++++++++++++++++++++++++++++++++++++++++
- interfaces/Ids.h           |   5 +-
- 2 files changed, 150 insertions(+), 1 deletion(-)
- create mode 100755 interfaces/IUserSettings.h
+    patches
 
-diff -uprN a/interfaces/IUserSettings.h b/interfaces/IUserSettings.h
---- a/interfaces/IUserSettings.h	1970-01-01 03:00:00.000000000 +0300
-+++ b/interfaces/IUserSettings.h	2024-06-27 18:41:13.733055666 +0300
-@@ -0,0 +1,178 @@
+diff --git a/interfaces/IUserSettings.h b/interfaces/IUserSettings.h
+new file mode 100755
+index 0000000..95f21c1
+--- /dev/null
++++ b/interfaces/IUserSettings.h
+@@ -0,0 +1,166 @@
 +/*
 + * If not stated otherwise in this file or this component's LICENSE file the
 + * following copyright and licenses apply:
@@ -85,19 +82,16 @@ diff -uprN a/interfaces/IUserSettings.h b/interfaces/IUserSettings.h
 +  virtual uint32_t Register(Exchange::IUserSettings::INotification* notification /* @in */) = 0;
 +  virtual uint32_t Unregister(Exchange::IUserSettings::INotification* notification /* @in */) = 0;
 +
-+  // @property
 +  // @alt SetAudioDescription
 +  // @brief Sets AudioDescription ON/OFF. Players should preferred Audio Descriptive tracks over normal audio track when enabled
 +  // @param enabled: Enabled/Disabled
 +  virtual uint32_t SetAudioDescription(const bool enabled /* @in */) = 0;
 +
-+  // @property
 +  // @alt GetAudioDescription
 +  // @brief Gets the current AudioDescription setting
 +  // @param enabled: Enabled/Disabled
 +  virtual uint32_t GetAudioDescription(bool &enabled /* @out */) const = 0;
 +
-+  // @property
 +  // @alt SetPreferredAudioLanguages
 +  // @brief A prioritized list of ISO 639-2/B codes for the preferred audio languages,
 +  // expressed as a comma separated lists of languages of zero of more elements.
@@ -107,25 +101,21 @@ diff -uprN a/interfaces/IUserSettings.h b/interfaces/IUserSettings.h
 +  // @param preferredLanguages: PreferredLanguages
 +  virtual uint32_t SetPreferredAudioLanguages(const string& preferredLanguages  /* @in @text preferredLanguages */) = 0;
 +
-+  // @property
 +  // @alt GetPreferredAudioLanguages
 +  // @brief Gets the current PreferredAudioLanguages setting
 +  // @param preferredLanguages: PreferredLanguages
 +  virtual uint32_t GetPreferredAudioLanguages(string &preferredLanguages /* @out @text preferredLanguages */) const = 0;
 +
-+  // @property
 +  // @alt SetPresentationLanguage
 +  // @brief Sets the presentationLanguages in a full BCP 47 value, including script, region, variant
 +  // @param presentationLanguages: "en-US", "es-US", "en-CA", "fr-CA"
 +  virtual uint32_t SetPresentationLanguage(const string& presentationLanguages /* @in @text presentationLanguages */) = 0;
 +
-+  // @property
 +  // @alt GetPresentationLanguage
 +  // @brief Gets the presentationLanguages
 +  // @param presentationLanguages: "en-US", "es-US", "en-CA", "fr-CA"
 +  virtual uint32_t GetPresentationLanguage(string &presentationLanguages /* @out @text presentationLanguages */) const = 0;
 +
-+  // @property
 +  // @alt SetCaptions
 +  // @brief brief Sets Captions ON/OFF.
 +  // @details A setting of ON indicates that Players should select a subtitle track for presentation
@@ -140,13 +130,11 @@ diff -uprN a/interfaces/IUserSettings.h b/interfaces/IUserSettings.h
 +  // @param enabled Sets the state
 +  virtual uint32_t SetCaptions(const bool enabled  /* @in */) = 0;
 +
-+  // @property
 +  // @alt GetCaptions
 +  // @brief Gets the Captions setting.
 +  // @param enabled Receives the state
 +  virtual uint32_t GetCaptions(bool &enabled /* @out */) const = 0;
 +
-+  // @property
 +  // @alt SetPreferredCaptionsLanguages
 +  // @brief Set preferred languages for captions.
 +  // @details A prioritized list of ISO 639-2/B codes for the preferred Captions languages,
@@ -157,13 +145,11 @@ diff -uprN a/interfaces/IUserSettings.h b/interfaces/IUserSettings.h
 +  // @param preferredLanguages Is the list to set (e.g. "eng,fra")
 +  virtual uint32_t SetPreferredCaptionsLanguages(const string& preferredLanguages  /* @in @text preferredLanguages */) = 0;
 +
-+  // @property
 +  // @alt GetPreferredCaptionsLanguages
 +  // @brief Gets the current PreferredCaptionsLanguages setting.
 +  // @param preferredLanguages (e.g. "eng,fra")
 +  virtual uint32_t GetPreferredCaptionsLanguages(string &preferredLanguages /* @out @text preferredLanguages */) const = 0;
 +
-+  // @property
 +  // @alt SetPreferredClosedCaptionService
 +  // @brief Sets the PreferredClosedCaptionService.
 +  // @details The setting should be honored by the player. The behaviour of AUTO may be player specific.
@@ -171,7 +157,6 @@ diff -uprN a/interfaces/IUserSettings.h b/interfaces/IUserSettings.h
 +  // @param service Identifies the service to display e.g. "CC3".
 +  virtual uint32_t SetPreferredClosedCaptionService(const string& service  /* @in */) = 0;
 +
-+  // @property
 +  // @alt GetPreferredClosedCaptionService
 +  // @brief Gets the current PreferredClosedCaptionService setting.
 +  // @param service Identifies the service to display e.g. "CC3".
@@ -191,11 +176,12 @@ diff -uprN a/interfaces/IUserSettings.h b/interfaces/IUserSettings.h
 +};
 +} // namespace Exchange
 +} // namespace WPEFramework
+\ No newline at end of file
 diff --git a/interfaces/Ids.h b/interfaces/Ids.h
-index a37db24..a9f4556 100644
+index 64151cf..7aac530 100644
 --- a/interfaces/Ids.h
 +++ b/interfaces/Ids.h
-@@ -354,7 +354,10 @@ namespace Exchange {
+@@ -360,7 +360,10 @@ namespace Exchange {
          ID_SCRIPT_ENGINE_NOTIFICATION                = ID_SCRIPT_ENGINE + 1,
  
          ID_TEXT_TO_SPEECH                            = RPC::IDS::ID_EXTERNAL_INTERFACE_OFFSET + 0x4C0,
@@ -207,6 +193,3 @@ index a37db24..a9f4556 100644
      };
  }
  }
--- 
-2.11.0
-

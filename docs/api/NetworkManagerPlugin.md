@@ -2,7 +2,7 @@
 <a name="NetworkManager_Plugin"></a>
 # NetworkManager Plugin
 
-**Version: [0.2.9](https://github.com/rdkcentral/rdkservices/blob/main/NetworkManager/CHANGELOG.md)**
+**Version: [0.2.11](https://github.com/rdkcentral/rdkservices/blob/main/NetworkManager/CHANGELOG.md)**
 
 A org.rdk.NetworkManager plugin for Thunder framework.
 
