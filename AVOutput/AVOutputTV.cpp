@@ -830,7 +830,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        int retval= updateAVoutputTVParam("reset","Backlight",inputInfo,PQ_PARAM_BACKLIGHT,params);
+        int retval= updateAVoutputTVParam("reset","Backlight",inputInfo,PQ_PARAM_BACKLIGHT,backlight);
         if(retval != 0 ) {
             LOGERR("Failed to reset Backlight\n");
             returnResponse(false);
@@ -3011,7 +3011,6 @@ namespace Plugin {
         capDetails_t inputInfo;
         int level = 0,retVal = 0;
         tvPQParameterIndex_t tvPQEnum;
-        tvComponentType_t compEnum;
         tvDataComponentColor_t colorEnum=tvDataColor_NONE;
         std::string color,component;
         tvError_t ret = tvERROR_NONE;
