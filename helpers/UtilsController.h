@@ -128,6 +128,7 @@ namespace Utils
     // Thunder Plugin Communication
     std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> getThunderControllerClient(std::string callsign="")
     {
+
         string token;
         Utils::SecurityToken::getSecurityToken(token);
         string query = "token=" + token;
@@ -138,53 +139,70 @@ namespace Utils
         return thunderClient;
     }
 
-    bool isPluginActivated(const char* callSign)
+#ifndef USE_THUNDER_R4
+    class Job : public Core::IDispatchType<void>
+#else
+    class Job : public Core::IDispatch
+#endif /* USE_THUNDER_R4 */
     {
-        string method = "status@" + string(callSign);
-        Core::JSON::ArrayType<PluginHost::MetaData::Service> joResult;
-        uint32_t status = getThunderControllerClient()->Get<Core::JSON::ArrayType<PluginHost::MetaData::Service>>(2000, method.c_str(), joResult);
-        bool pluginActivated = false;
-        if (status == Core::ERROR_NONE)
+    public:
+        Job(std::function<void()> work)
+            : _work(work)
         {
-            LOGINFO("Getting status for callSign %s, result: %s", callSign, joResult[0].JSONState.Data().c_str());
-            pluginActivated = joResult[0].JSONState == PluginHost::IShell::ACTIVATED;
+        }
+        void Dispatch() override
+        {
+            _work();
+        }
+
+    private:
+        std::function<void()> _work;
+    };
+
+    uint32_t getServiceState(PluginHost::IShell *shell, const string &callsign, PluginHost::IShell::state &state)
+    {
+        uint32_t result;
+        auto interface = shell->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
+        if (interface == nullptr)
+        {
+            result = Core::ERROR_UNAVAILABLE;
+            std::cout << "no IShell for " << callsign << std::endl;
         }
         else
         {
-            LOGWARN("Getting status for callSign %s, status: %d", callSign, status);
+            result = Core::ERROR_NONE;
+            state = interface->State();
+            std::cout << "IShell state " << state << " for " << callsign << std::endl;
+            interface->Release();
         }
-
-        if (!pluginActivated)
-        {
-            LOGWARN("Plugin %s is not active", callSign);
-        }
-        else
-        {
-            LOGINFO("Plugin %s is active ", callSign);
-        }
-        return pluginActivated;
+        return result;
     }
 
-    void activatePlugin(const char* callSign)
+    uint32_t activatePlugin(PluginHost::IShell *shell, const string &callsign)
     {
-        JsonObject joParams;
-        joParams.Set("callsign", callSign);
-        JsonObject joResult;
+        uint32_t result = Core::ERROR_ASYNC_FAILED;
+        Core::Event event(false, true);
 
-        if (!isPluginActivated(callSign))
-        {
-            LOGINFO("Activating %s", callSign);
-            uint32_t status = getThunderControllerClient()->Invoke<JsonObject, JsonObject>(2000, "activate", joParams, joResult);
-            string strParams;
-            string strResult;
-            joParams.ToString(strParams);
-            joResult.ToString(strResult);
-            LOGINFO("Called method %s, with params %s, status: %d, result: %s", "activate", strParams.c_str(), status, strResult.c_str());
-            if (status == Core::ERROR_NONE)
-            {
-                LOGINFO("%s Plugin activation status ret: %d ", callSign, status);
-            }
-        }
+#ifndef USE_THUNDER_R4
+        Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatchType<void>>(Core::ProxyType<Job>::Create([&]()
+                                                                                                                     {
+#else
+        Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatch>(Core::ProxyType<Job>::Create([&]()
+                                                                                                           {
+#endif /* USE_THUNDER_R4 */
+                    auto interface = shell->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
+                    if (interface == nullptr) {
+                        result = Core::ERROR_UNAVAILABLE;
+                        std::cout << "no IShell for " << callsign << std::endl;
+                    } else {
+                        result = interface->Activate(PluginHost::IShell::reason::REQUESTED);
+                        std::cout << "IShell activate status " << result << " for " << callsign << std::endl;
+                        interface->Release();
+                    }
+                    event.SetEvent(); })));
+
+        event.Lock();
+        return result;
     }
-    
+
 }
