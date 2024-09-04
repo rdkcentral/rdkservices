@@ -26,7 +26,7 @@ using namespace WPEFramework::Plugin;
 #define API_VERSION_NUMBER_MINOR 0
 #define API_VERSION_NUMBER_PATCH 0
 #define NETWORK_MANAGER_CALLSIGN    "org.rdk.NetworkManager.1"
-#define SUBSCRIPTION_TIMEOUT_IN_MILLISECONDS 5000
+#define SUBSCRIPTION_TIMEOUT_IN_MILLISECONDS 500
 
 #define LOGINFOMETHOD() { string json; parameters.ToString(json); NMLOG_TRACE("Legacy params=%s", json.c_str() ); }
 #define LOGTRACEMETHODFIN() { string json; response.ToString(json); NMLOG_TRACE("Legacy response=%s", json.c_str() ); }
@@ -779,6 +779,7 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
         /** Private */
         void Network::subscribeToEvents(void)
         {
+            NMLOG_INFO("Entry %s", __FUNCTION__);
             uint32_t errCode = Core::ERROR_GENERAL;
             if (m_networkmanager)
             {
@@ -824,9 +825,14 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
                     }
                 }
             }
+            else
+                NMLOG_ERROR("m_networkmanager is null");
 
             if (m_subsIfaceStateChange && m_subsActIfaceChange && m_subsIPAddrChange && m_subsInternetChange)
+            {
                 m_timer.stop();
+                NMLOG_INFO("subscriber timer stoped");
+            }
         }
 
         string Network::getInterfaceMapping(const string & interface)
