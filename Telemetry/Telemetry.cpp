@@ -116,10 +116,11 @@ namespace WPEFramework
         {
 
 #ifdef HAS_RBUS
-            if (!Utils::isPluginActivated(SYSTEMSERVICES_CALLSIGN))
-                Utils::activatePlugin(SYSTEMSERVICES_CALLSIGN);
-
-            if (Utils::isPluginActivated(SYSTEMSERVICES_CALLSIGN))
+            PluginHost::IShell::state state;
+            if ((Utils::getServiceState(service, SYSTEMSERVICES_CALLSIGN, state) != Core::ERROR_NONE) || (state != PluginHost::IShell::state::ACTIVATED))
+                Utils::activatePlugin(service, SYSTEMSERVICES_CALLSIGN);
+            
+            if ((Utils::getServiceState(service, SYSTEMSERVICES_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED))
             {
                 m_systemServiceConnection = Utils::getThunderControllerClient(SYSTEMSERVICES_CALLSIGN);
 
