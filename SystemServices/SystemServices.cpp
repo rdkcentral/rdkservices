@@ -490,6 +490,8 @@ namespace WPEFramework {
 	    registerMethod("getFriendlyName", &SystemServices::getFriendlyName, this);
             registerMethod("setFriendlyName", &SystemServices::setFriendlyName, this);
             registerMethod("getThunderStartReason", &SystemServices::getThunderStartReason, this);
+            registerMethod("setFSRFlag", &SystemServices::setFSRFlag, this);
+            registerMethod("getFSRFlag", &SystemServices::getFSRFlag, this);
 
         }
 
@@ -2459,6 +2461,7 @@ namespace WPEFramework {
 		if (parameters.HasLabel("timeZone")) {
 			std::string dir = dirnameOf(TZ_FILE);
 			std::string timeZone = "";
+			std::string command = "";
 			try {
 				timeZone = parameters["timeZone"].String();
 				size_t pos = timeZone.find("/");
@@ -2487,10 +2490,12 @@ namespace WPEFramework {
 					if( dirExists(path+country)  && Utils::fileExists(city.c_str()) ) 
 					{
 						if (!dirExists(dir)) {
-							std::string command = "mkdir -p " + dir + " \0";
+							command = "mkdir -p " + dir + " \0";
 							Utils::cRunScript(command.c_str());
 						} else {
 							//Do nothing//
+							command = "ln -sf /usr/share/zoneinfo/" +timeZone +"  /etc/localtime" +" \0";
+							Utils::cRunScript(command.c_str());
 						}
 						std::string oldTimeZoneDST = getTimeZoneDSTHelper();
 						
@@ -4716,6 +4721,63 @@ namespace WPEFramework {
             response["startReason"] = (Utils::fileExists(SYSTEM_SERVICE_THUNDER_RESTARTED_FILE))?"RESTART":"NORMAL";
             returnResponse(true);
         }
+
+        
+        /***
+         * @brief : To set the fsr flag into the emmc raw area.
+         * @param1[in] : {"params":{"fsrFlag":<bool>}
+         * @param2[out] : {"result":{"success":<bool>}}
+         * @return     : Core::<StatusCode>
+         */
+        uint32_t SystemServices::setFSRFlag(const JsonObject& parameters,
+                JsonObject& response)
+        {
+            unsigned short fsrFlag = 0;
+            bool status = false;
+            if(parameters.HasLabel("fsrFlag"))
+            {
+                fsrFlag = parameters["fsrFlag"].Boolean();
+                IARM_Bus_MFRLib_FsrFlag_Param_t param;
+                param = fsrFlag;
+                IARM_Result_t res = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME,
+                                       IARM_BUS_MFRLIB_API_SetFsrFlag, (void *)&param,
+                                       sizeof(param));
+                if (IARM_RESULT_SUCCESS == res) {
+                    status = true;
+                } else {
+                    status = false;
+                }
+            }
+
+            returnResponse(status);
+        }
+
+        /***
+         * @brief : To get the fsr flag from emmc
+         * @param1[out] : {"params":{"params":{"fsrFlag":<bool>}
+         * @param2[out] : {"result":{"success":<bool>}}
+         * @return     : Core::<StatusCode>
+         */
+        uint32_t SystemServices::getFSRFlag(const JsonObject& parameters,
+                JsonObject& response)
+        {
+            bool fsrFlag = 0;
+            bool status = false;
+            IARM_Bus_MFRLib_FsrFlag_Param_t param;
+            IARM_Result_t res = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME,
+                                  IARM_BUS_MFRLIB_API_GetFsrFlag, (void *)&param,
+                                  sizeof(param));
+            if (IARM_RESULT_SUCCESS == res) {
+                fsrFlag = param;
+                status = true;
+            } else {
+                status = false;
+            }
+            response["fsrFlag"] = fsrFlag;
+            returnResponse(status);
+        }
+
+
     } /* namespace Plugin */
 } /* namespace WPEFramework */
 
