@@ -299,6 +299,13 @@ typedef enum _dsCompositeInPort_t {
     dsCOMPOSITE_IN_PORT_MAX
 } dsCompositeInPort_t;
 
+typedef enum dsHdmiMaxCapabilityVersion{
+    HDMI_COMPATIBILITY_VERSION_14 = 0, /*!< Hdmi Compatibility Version 1.4 */
+    HDMI_COMPATIBILITY_VERSION_20,     /*!< Hdmi Compatibility Version 2.0 */
+    HDMI_COMPATIBILITY_VERSION_21,     /*!< Hdmi Compatibility Version 2.1 */
+    HDMI_COMPATIBILITY_VERSION_MAX     /*!< Out of bounds */
+}dsHdmiMaxCapabilityVersion_t;
+
 /*! DS Manager  Event Data */
 typedef struct _DSMgr_EventData_t {
     union {
