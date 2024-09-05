@@ -1983,13 +1983,15 @@ namespace WPEFramework {
                         {
                           std::cout << "not launching factory app as conditions not matched\n";
                           std::cout << "Launch RA not waiting for persistent store\n";
-			  int32_t status = 0;
-			  std::string callsign("ResidentApp");
+                          gRdkShellMutex.unlock();
+                          int32_t status = 0;
+                          std::string callsign("ResidentApp");
                           JsonObject activateParams;
-			  activateParams.Set("callsign",callsign.c_str());
-			  JsonObject activateResult;
-			  auto thunderController = getThunderControllerClient();
-			  status = thunderController->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, activateResult);
+                          activateParams.Set("callsign",callsign.c_str());
+                          JsonObject activateResult;
+                          auto thunderController = getThunderControllerClient();
+                          status = thunderController->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, activateResult);
+                          gRdkShellMutex.lock();
                           std::cout << "Bootup Activating ResidentApp from RDKShell without Persistentstore wait with Status:" << status << std::endl;
                         }
                     }
@@ -2053,14 +2055,15 @@ namespace WPEFramework {
                     else
                     {
                         std::cout << "Not launching factory app as conditions not matched\n";
-			std::cout << "Launch RA after waiting for persistent store\n";
+                        std::cout << "Launch RA after waiting for persistent store\n";
                         int32_t status = 0;
-			std::string callsign("ResidentApp");
+                        std::string callsign("ResidentApp");
                         JsonObject activateParams;
-			activateParams.Set("callsign",callsign.c_str());
-			JsonObject activateResult;
-			auto thunderController = getThunderControllerClient();
-			status = thunderController->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, activateResult);
+                        activateParams.Set("callsign",callsign.c_str());
+                        JsonObject activateResult;
+                        auto thunderController = getThunderControllerClient();
+                        status = thunderController->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, activateResult);
+                        gRdkShellMutex.lock();
                         std::cout << "Bootup Activating ResidentApp from RDKShell after Persistentstore wait with Status:" << status << std::endl;
                     }
                   }
