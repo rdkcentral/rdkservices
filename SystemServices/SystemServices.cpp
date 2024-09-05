@@ -1384,6 +1384,7 @@ namespace WPEFramework {
         uint32_t SystemServices::setMode(const JsonObject& parameters,
                 JsonObject& response)
         {
+	    LOGINFO("SetMode Entry);
             bool changeMode  = true;
             JsonObject param;
             std::string oldMode = m_currentMode;
