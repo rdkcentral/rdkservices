@@ -1402,11 +1402,8 @@ uint32_t AVInput::getHdmiVersionWrapper(const JsonObject& parameters, JsonObject
                 break;
         }
 
-<<<<<<< HEAD
-        if(hdmiCapVersion > 2)
-=======
+
         if(hdmiCapVersion == HDMI_COMPATIBILITY_VERSION_MAX)
->>>>>>> 5163c25f (RDK-52048: RDKServices changes - getHdmiVersion)
         {
                 returnResponse(false);
         }else{
