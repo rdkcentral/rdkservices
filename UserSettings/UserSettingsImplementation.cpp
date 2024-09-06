@@ -223,7 +223,7 @@ void UserSettingsImplementation::Dispatch(Event event, const JsonValue params)
          case AUDIO_DESCRIPTION_CHANGED:
              while (index != _userSettingNotification.end())
              {
-                 (*index)->onAudioDescriptionChanged(params.Boolean());
+                 (*index)->OnAudioDescriptionChanged(params.Boolean());
                  ++index;
              }
          break;
@@ -231,7 +231,7 @@ void UserSettingsImplementation::Dispatch(Event event, const JsonValue params)
          case PREFERRED_AUDIO_CHANGED:
              while (index != _userSettingNotification.end())
              {
-                 (*index)->onPreferredAudioLanguagesChanged(params.String());
+                 (*index)->OnPreferredAudioLanguagesChanged(params.String());
                  ++index;
              }
          break;
@@ -239,7 +239,7 @@ void UserSettingsImplementation::Dispatch(Event event, const JsonValue params)
          case PRESENTATION_LANGUAGE_CHANGED:
              while (index != _userSettingNotification.end())
              {
-                 (*index)->onPresentationLanguageChanged(params.String());
+                 (*index)->OnPresentationLanguageChanged(params.String());
                  ++index;
              }
          break;
@@ -247,7 +247,7 @@ void UserSettingsImplementation::Dispatch(Event event, const JsonValue params)
          case CAPTIONS_CHANGED:
              while (index != _userSettingNotification.end())
              {
-                 (*index)->onCaptionsChanged(params.Boolean());
+                 (*index)->OnCaptionsChanged(params.Boolean());
                  ++index;
              }
          break;
@@ -255,7 +255,7 @@ void UserSettingsImplementation::Dispatch(Event event, const JsonValue params)
          case PREFERRED_CAPTIONS_LANGUAGE_CHANGED:
              while (index != _userSettingNotification.end())
              {
-                 (*index)->onPreferredCaptionsLanguagesChanged(params.String());
+                 (*index)->OnPreferredCaptionsLanguagesChanged(params.String());
                  ++index;
              }
          break;
@@ -263,7 +263,7 @@ void UserSettingsImplementation::Dispatch(Event event, const JsonValue params)
          case PREFERRED_CLOSED_CAPTIONS_SERVICE_CHANGED:
              while (index != _userSettingNotification.end())
              {
-                 (*index)->onPreferredClosedCaptionServiceChanged(params.String());
+                 (*index)->OnPreferredClosedCaptionServiceChanged(params.String());
                  ++index;
              }
          break;
@@ -271,7 +271,7 @@ void UserSettingsImplementation::Dispatch(Event event, const JsonValue params)
          case PRIVACY_MODE_CHANGED:
              while (index != _userSettingNotification.end())
              {
-                 (*index)->onPrivacyModeChanged(params.String());
+                 (*index)->OnPrivacyModeChanged(params.String());
                  ++index;
              }
          break;
@@ -279,7 +279,7 @@ void UserSettingsImplementation::Dispatch(Event event, const JsonValue params)
          case PIN_CONTROL_CHANGED:
               while (index != _userSettingNotification.end())
               {
-                  (*index)->onPinControlChanged(params.Boolean());
+                  (*index)->OnPinControlChanged(params.Boolean());
                   ++index;
               }
          break;
@@ -287,7 +287,7 @@ void UserSettingsImplementation::Dispatch(Event event, const JsonValue params)
          case VIEWING_RESTRICTIONS_CHANGED:
               while (index != _userSettingNotification.end())
               {
-                  (*index)->onViewingRestrictionsChanged(params.String());
+                  (*index)->OnViewingRestrictionsChanged(params.String());
                   ++index;
               }
          break;
@@ -295,7 +295,7 @@ void UserSettingsImplementation::Dispatch(Event event, const JsonValue params)
          case VIEWING_RESTRICTIONS_WINDOW_CHANGED:
               while (index != _userSettingNotification.end())
               {
-                  (*index)->onViewingRestrictionsWindowChanged(params.String());
+                  (*index)->OnViewingRestrictionsWindowChanged(params.String());
                   ++index;
               }
          break;
@@ -303,7 +303,7 @@ void UserSettingsImplementation::Dispatch(Event event, const JsonValue params)
          case LIVE_WATERSHED_CHANGED:
               while (index != _userSettingNotification.end())
               {
-                  (*index)->onLiveWatershedChanged(params.Boolean());
+                  (*index)->OnLiveWatershedChanged(params.Boolean());
                   ++index;
               }
          break;
@@ -311,7 +311,7 @@ void UserSettingsImplementation::Dispatch(Event event, const JsonValue params)
          case PLAYBACK_WATERSHED_CHANGED:
               while (index != _userSettingNotification.end())
               {
-                  (*index)->onPlaybackWatershedChanged(params.Boolean());
+                  (*index)->OnPlaybackWatershedChanged(params.Boolean());
                   ++index;
               }
          break;
@@ -319,7 +319,7 @@ void UserSettingsImplementation::Dispatch(Event event, const JsonValue params)
          case BLOCK_NOT_RATED_CONTENT_CHANGED:
               while (index != _userSettingNotification.end())
               {
-                  (*index)->onBlockNotRatedContentChanged(params.Boolean());
+                  (*index)->OnBlockNotRatedContentChanged(params.Boolean());
                   ++index;
               }
          break;
@@ -327,7 +327,7 @@ void UserSettingsImplementation::Dispatch(Event event, const JsonValue params)
          case PIN_ON_PURCHASE_CHANGED:
               while (index != _userSettingNotification.end())
               {
-                  (*index)->onPinOnPurchaseChanged(params.Boolean());
+                  (*index)->OnPinOnPurchaseChanged(params.Boolean());
                   ++index;
               }
          break;
@@ -450,7 +450,7 @@ uint32_t UserSettingsImplementation::GetUserSettingsValue(const string& key, str
     return status;
 }
 
-uint32_t UserSettingsImplementation::setAudioDescription(const bool enabled)
+uint32_t UserSettingsImplementation::SetAudioDescription(const bool enabled)
 {
     uint32_t status = Core::ERROR_GENERAL;
 
@@ -459,7 +459,7 @@ uint32_t UserSettingsImplementation::setAudioDescription(const bool enabled)
     return status;
 }
 
-uint32_t UserSettingsImplementation::getAudioDescription(bool &enabled) const
+uint32_t UserSettingsImplementation::GetAudioDescription(bool &enabled) const
 {
     uint32_t status = Core::ERROR_GENERAL;
     std::string value = "";
@@ -480,7 +480,7 @@ uint32_t UserSettingsImplementation::getAudioDescription(bool &enabled) const
     return status;
 }
 
-uint32_t UserSettingsImplementation::setPreferredAudioLanguages(const string& preferredLanguages)
+uint32_t UserSettingsImplementation::SetPreferredAudioLanguages(const string& preferredLanguages)
 {
     uint32_t status = Core::ERROR_GENERAL;
 
@@ -489,7 +489,7 @@ uint32_t UserSettingsImplementation::setPreferredAudioLanguages(const string& pr
     return status;
 }
 
-uint32_t UserSettingsImplementation::getPreferredAudioLanguages(string &preferredLanguages) const
+uint32_t UserSettingsImplementation::GetPreferredAudioLanguages(string &preferredLanguages) const
 {
     uint32_t status = Core::ERROR_GENERAL;
     std::string value = "";
@@ -498,7 +498,7 @@ uint32_t UserSettingsImplementation::getPreferredAudioLanguages(string &preferre
     return status;
 }
 
-uint32_t UserSettingsImplementation::setPresentationLanguage(const string& presentationLanguage)
+uint32_t UserSettingsImplementation::SetPresentationLanguage(const string& presentationLanguage)
 {
     uint32_t status = Core::ERROR_GENERAL;
 
@@ -507,7 +507,7 @@ uint32_t UserSettingsImplementation::setPresentationLanguage(const string& prese
     return status;
 }
 
-uint32_t UserSettingsImplementation::getPresentationLanguage(string &presentationLanguage) const
+uint32_t UserSettingsImplementation::GetPresentationLanguage(string &presentationLanguage) const
 {
     uint32_t status = Core::ERROR_GENERAL;
     std::string value = "";
@@ -516,7 +516,7 @@ uint32_t UserSettingsImplementation::getPresentationLanguage(string &presentatio
     return status;
 }
 
-uint32_t UserSettingsImplementation::setCaptions(const bool enabled)
+uint32_t UserSettingsImplementation::SetCaptions(const bool enabled)
 {
     uint32_t status = Core::ERROR_GENERAL;
 
@@ -525,7 +525,7 @@ uint32_t UserSettingsImplementation::setCaptions(const bool enabled)
     return status;
 }
 
-uint32_t UserSettingsImplementation::getCaptions(bool &enabled) const
+uint32_t UserSettingsImplementation::GetCaptions(bool &enabled) const
 {
     uint32_t status = Core::ERROR_GENERAL;
     std::string value = "";
@@ -546,7 +546,7 @@ uint32_t UserSettingsImplementation::getCaptions(bool &enabled) const
     return status;
 }
 
-uint32_t UserSettingsImplementation::setPreferredCaptionsLanguages(const string& preferredLanguages)
+uint32_t UserSettingsImplementation::SetPreferredCaptionsLanguages(const string& preferredLanguages)
 {
     uint32_t status = Core::ERROR_GENERAL;
 
@@ -555,7 +555,7 @@ uint32_t UserSettingsImplementation::setPreferredCaptionsLanguages(const string&
     return status;
 }
 
-uint32_t UserSettingsImplementation::getPreferredCaptionsLanguages(string &preferredLanguages) const
+uint32_t UserSettingsImplementation::GetPreferredCaptionsLanguages(string &preferredLanguages) const
 {
     uint32_t status = Core::ERROR_GENERAL;
     std::string value = "";
@@ -564,7 +564,7 @@ uint32_t UserSettingsImplementation::getPreferredCaptionsLanguages(string &prefe
     return status;
 }
 
-uint32_t UserSettingsImplementation::setPreferredClosedCaptionService(const string& service)
+uint32_t UserSettingsImplementation::SetPreferredClosedCaptionService(const string& service)
 {
     uint32_t status = Core::ERROR_GENERAL;
 
@@ -573,7 +573,7 @@ uint32_t UserSettingsImplementation::setPreferredClosedCaptionService(const stri
     return status;
 }
 
-uint32_t UserSettingsImplementation::getPreferredClosedCaptionService(string &service) const
+uint32_t UserSettingsImplementation::GetPreferredClosedCaptionService(string &service) const
 {
     uint32_t status = Core::ERROR_GENERAL;
     std::string value = "";
@@ -582,7 +582,7 @@ uint32_t UserSettingsImplementation::getPreferredClosedCaptionService(string &se
     return status;
 }
 
-uint32_t UserSettingsImplementation::setPrivacyMode(const string& privacyMode)
+uint32_t UserSettingsImplementation::SetPrivacyMode(const string& privacyMode)
 {
     uint32_t status = Core::ERROR_GENERAL;
 
@@ -648,7 +648,7 @@ uint32_t UserSettingsImplementation::setPrivacyMode(const string& privacyMode)
     return status;
 }
 
-uint32_t UserSettingsImplementation::getPrivacyMode(string &privacyMode) const
+uint32_t UserSettingsImplementation::GetPrivacyMode(string &privacyMode) const
 {
     uint32_t status = Core::ERROR_NONE;
     std::string value = "";
@@ -675,7 +675,7 @@ uint32_t UserSettingsImplementation::getPrivacyMode(string &privacyMode) const
     return status;
 }
 
-uint32_t UserSettingsImplementation::setPinControl(const bool enabled)
+uint32_t UserSettingsImplementation::SetPinControl(const bool enabled)
 {
     uint32_t status = Core::ERROR_GENERAL;
 
@@ -684,7 +684,7 @@ uint32_t UserSettingsImplementation::setPinControl(const bool enabled)
     return status;
 }
 
-uint32_t UserSettingsImplementation::getPinControl(bool &enabled) const
+uint32_t UserSettingsImplementation::GetPinControl(bool &enabled) const
 {
     uint32_t status = Core::ERROR_GENERAL;
     std::string value = "";
@@ -706,7 +706,7 @@ uint32_t UserSettingsImplementation::getPinControl(bool &enabled) const
 
 }
 
-uint32_t UserSettingsImplementation::setViewingRestrictions(const string& viewingRestrictions)
+uint32_t UserSettingsImplementation::SetViewingRestrictions(const string& viewingRestrictions)
 {
     uint32_t status = Core::ERROR_GENERAL;
 
@@ -716,7 +716,7 @@ uint32_t UserSettingsImplementation::setViewingRestrictions(const string& viewin
 
 }
 
-uint32_t UserSettingsImplementation::getViewingRestrictions(string &viewingRestrictions) const
+uint32_t UserSettingsImplementation::GetViewingRestrictions(string &viewingRestrictions) const
 {
     uint32_t status = Core::ERROR_GENERAL;
 
@@ -725,7 +725,7 @@ uint32_t UserSettingsImplementation::getViewingRestrictions(string &viewingRestr
 
 }
 
-uint32_t UserSettingsImplementation::setViewingRestrictionsWindow(const string& viewingRestrictionsWindow)
+uint32_t UserSettingsImplementation::SetViewingRestrictionsWindow(const string& viewingRestrictionsWindow)
 {
     uint32_t status = Core::ERROR_GENERAL;
 
@@ -735,7 +735,7 @@ uint32_t UserSettingsImplementation::setViewingRestrictionsWindow(const string& 
 
 }
 
-uint32_t UserSettingsImplementation::getViewingRestrictionsWindow(string &viewingRestrictionsWindow) const
+uint32_t UserSettingsImplementation::GetViewingRestrictionsWindow(string &viewingRestrictionsWindow) const
 {
     uint32_t status = Core::ERROR_GENERAL;
 
@@ -743,7 +743,7 @@ uint32_t UserSettingsImplementation::getViewingRestrictionsWindow(string &viewin
     return status;
 }
 
-uint32_t UserSettingsImplementation::setLiveWatershed(const bool enabled)
+uint32_t UserSettingsImplementation::SetLiveWatershed(const bool enabled)
 {
     uint32_t status = Core::ERROR_GENERAL;
 
@@ -753,7 +753,7 @@ uint32_t UserSettingsImplementation::setLiveWatershed(const bool enabled)
 
 }
 
-uint32_t UserSettingsImplementation::getLiveWatershed(bool &enabled) const
+uint32_t UserSettingsImplementation::GetLiveWatershed(bool &enabled) const
 {
     uint32_t status = Core::ERROR_GENERAL;
     std::string value = "";
@@ -774,7 +774,7 @@ uint32_t UserSettingsImplementation::getLiveWatershed(bool &enabled) const
     return status;
 }
 
-uint32_t UserSettingsImplementation::setPlaybackWatershed(const bool enabled)
+uint32_t UserSettingsImplementation::SetPlaybackWatershed(const bool enabled)
 {
     uint32_t status = Core::ERROR_GENERAL;
 
@@ -783,7 +783,7 @@ uint32_t UserSettingsImplementation::setPlaybackWatershed(const bool enabled)
     return status;
 }
 
-uint32_t UserSettingsImplementation::getPlaybackWatershed(bool &enabled) const
+uint32_t UserSettingsImplementation::GetPlaybackWatershed(bool &enabled) const
 {
     uint32_t status = Core::ERROR_GENERAL;
     std::string value = "";
@@ -804,7 +804,7 @@ uint32_t UserSettingsImplementation::getPlaybackWatershed(bool &enabled) const
     return status;
 }
 
-uint32_t UserSettingsImplementation::setBlockNotRatedContent(const bool enabled)
+uint32_t UserSettingsImplementation::SetBlockNotRatedContent(const bool enabled)
 {
     uint32_t status = Core::ERROR_GENERAL;
 
@@ -813,7 +813,7 @@ uint32_t UserSettingsImplementation::setBlockNotRatedContent(const bool enabled)
     return status;
 }
 
-uint32_t UserSettingsImplementation::getBlockNotRatedContent(bool &enabled) const
+uint32_t UserSettingsImplementation::GetBlockNotRatedContent(bool &enabled) const
 {
     uint32_t status = Core::ERROR_GENERAL;
     std::string value = "";
@@ -834,7 +834,7 @@ uint32_t UserSettingsImplementation::getBlockNotRatedContent(bool &enabled) cons
     return status;
 }
 
-uint32_t UserSettingsImplementation::setPinOnPurchase(const bool enabled)
+uint32_t UserSettingsImplementation::SetPinOnPurchase(const bool enabled)
 {
     uint32_t status = Core::ERROR_GENERAL;
 
@@ -843,7 +843,7 @@ uint32_t UserSettingsImplementation::setPinOnPurchase(const bool enabled)
     return status;
 }
 
-uint32_t UserSettingsImplementation::getPinOnPurchase(bool &enabled) const
+uint32_t UserSettingsImplementation::GetPinOnPurchase(bool &enabled) const
 {
     uint32_t status = Core::ERROR_GENERAL;
     std::string value = "";
