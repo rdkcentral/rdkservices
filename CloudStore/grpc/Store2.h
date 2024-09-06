@@ -21,6 +21,7 @@
 
 #include "../Module.h"
 #include "secure_storage.grpc.pb.h"
+#include <fstream>
 #include <grpcpp/create_channel.h>
 #include <interfaces/IStore2.h>
 #ifdef WITH_SYSMGR
@@ -34,6 +35,35 @@ namespace Plugin {
 
         class Store2 : public Exchange::IStore2 {
         private:
+            class Job : public Core::IDispatch {
+            public:
+                Job(Store2* parent, const ScopeType scope, const string& ns, const string& key, const string& value)
+                    : _parent(parent)
+                    , _scope(scope)
+                    , _ns(ns)
+                    , _key(key)
+                    , _value(value)
+                {
+                    _parent->AddRef();
+                }
+                ~Job() override
+                {
+                    _parent->Release();
+                }
+                void Dispatch() override
+                {
+                    _parent->OnValueChanged(_scope, _ns, _key, _value);
+                }
+
+            private:
+                Store2* _parent;
+                const ScopeType _scope;
+                const string _ns;
+                const string _key;
+                const string _value;
+            };
+
+        private:
             Store2(const Store2&) = delete;
             Store2& operator=(const Store2&) = delete;
 
@@ -45,6 +75,7 @@ namespace Plugin {
             Store2(const string& uri)
                 : IStore2()
                 , _uri(uri)
+                , _authorization((_uri.find("localhost") == string::npos) && (_uri.find("0.0.0.0") == string::npos))
             {
                 Open();
             }
@@ -54,7 +85,7 @@ namespace Plugin {
             void Open()
             {
                 std::shared_ptr<grpc::ChannelCredentials> creds;
-                if ((_uri.find("localhost") == string::npos) && (_uri.find("0.0.0.0") == string::npos)) {
+                if (_authorization) {
                     creds = grpc::SslCredentials(grpc::SslCredentialsOptions());
                 } else {
                     creds = grpc::InsecureChannelCredentials();
@@ -62,61 +93,107 @@ namespace Plugin {
                 _stub = ::distp::gateway::secure_storage::v1::SecureStorageService::NewStub(
                     grpc::CreateChannel(_uri, creds));
             }
-            static bool IsTimeSynced()
+
+        private:
+            bool IsTimeSynced() const
             {
 #ifdef WITH_SYSMGR
+                // Get actual state, as it may change at any time...
                 IARM_Bus_Init(IARM_INIT_NAME);
                 IARM_Bus_Connect();
                 IARM_Bus_SYSMgr_GetSystemStates_Param_t param;
-                if ((IARM_Bus_Call(IARM_BUS_SYSMGR_NAME, IARM_BUS_SYSMGR_API_GetSystemStates, &param, sizeof(param)) != IARM_RESULT_SUCCESS)
+                if ((IARM_Bus_Call_with_IPCTimeout(
+                         IARM_BUS_SYSMGR_NAME,
+                         IARM_BUS_SYSMGR_API_GetSystemStates,
+                         &param,
+                         sizeof(param),
+                         IARM_TIMEOUT) // Timeout
+                        != IARM_RESULT_SUCCESS)
                     || !param.time_source.state) {
                     return false;
                 }
 #endif
                 return true;
             }
-            static string ExecuteCmd(const char* cmd)
+            string GetSecurityToken() const
             {
+                // Get actual token, as it may change at any time...
                 string result;
-                auto pipe = popen(cmd, "r");
-                if (pipe != nullptr) {
-                    char buffer[128];
-                    while (fgets(buffer, sizeof buffer, pipe) != nullptr) {
-                        result += buffer;
-                    }
-                    pclose(pipe);
-                    result.erase(result.find_last_not_of(" \n\r\t") + 1);
+
+                const char* endpoint = ::getenv(_T("SECURITYAGENT_PATH"));
+                if (endpoint == nullptr) {
+                    endpoint = SECURITY_AGENT_FILENAME;
                 }
+                auto engine = Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create();
+                auto client = Core::ProxyType<RPC::CommunicatorClient>::Create(
+                    Core::NodeId(endpoint),
+                    Core::ProxyType<Core::IIPCServer>(engine));
+
+                auto interface = client->Open<PluginHost::IAuthenticate>(
+                    _T("SecurityAgent"),
+                    static_cast<uint32_t>(~0),
+                    COM_RPC_TIMEOUT); // Timeout
+                if (interface != nullptr) {
+                    string payload = _T("http://localhost");
+                    // If main process is out of threads, this can time out, and IPC will mess up...
+                    auto error = interface->CreateToken(
+                        static_cast<uint16_t>(payload.length()),
+                        reinterpret_cast<const uint8_t*>(payload.c_str()),
+                        result);
+                    if (error != Core::ERROR_NONE) {
+                        TRACE(Trace::Error, (_T("security token error %d"), error));
+                    }
+                    interface->Release();
+                }
+
                 return result;
             }
             string GetToken() const
             {
-                // TODO remove this
-                return ExecuteCmd("curl -H \"Authorization: Bearer `WPEFrameworkSecurityUtility 2>/dev/null | cut -d '\"' -f 4`\" -s -d '{\"jsonrpc\":\"2.0\",\"id\":0,\"method\":\"org.rdk.AuthService.getServiceAccessToken\"}' http://127.0.0.1:9998/jsonrpc | cut -d '\"' -f 14");
-            }
-            static string ReadFromFile(const char* filename)
-            {
+                // Get actual token, as it may change at any time...
                 string result;
-                Core::File file(filename);
-                if (file.Open(true)) {
-                    uint8_t buffer[1024];
-                    auto size = file.Read(buffer, 1024);
-                    result.assign(reinterpret_cast<char*>(buffer), size);
-                    result.erase(result.find_last_not_of(" \n\r\t") + 1);
+
+                Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T("127.0.0.1:9998")));
+                auto link = Core::ProxyType<JSONRPC::LinkType<Core::JSON::IElement>>::Create(
+                    _T("org.rdk.AuthService"), _T(""), false, "token=" + GetSecurityToken());
+
+                JsonObject json;
+                auto status = link->Invoke<JsonObject, JsonObject>(
+                    JSON_RPC_TIMEOUT, // Timeout
+                    _T("getServiceAccessToken"),
+                    JsonObject(),
+                    json);
+                if (status == Core::ERROR_NONE) {
+                    result = json[_T("token")].String();
+                } else {
+                    TRACE(Trace::Error, (_T("sat status %d"), status));
                 }
+
                 return result;
             }
             string GetPartnerId() const
             {
-                return ReadFromFile("/opt/www/authService/partnerId3.dat");
+                // Get actual id, as it may change at any time...
+                std::ifstream input(PARTNER_ID_FILENAME);
+                string line;
+                getline(input, line);
+                return line;
             }
             string GetAccountId() const
             {
-                return ReadFromFile("/opt/www/authService/said.dat");
+                // Get actual id, as it may change at any time...
+                std::ifstream input(ACCOUNT_ID_FILENAME);
+                string line;
+                getline(input, line);
+                return line;
             }
             string GetDeviceId() const
             {
-                return ReadFromFile("/opt/www/authService/xdeviceid.dat");
+                // Get actual id, as it may change at any time...
+                std::ifstream input(DEVICE_ID_FILENAME);
+                string line;
+                getline(input, line);
+                return line;
             }
 
         public:
@@ -150,14 +227,13 @@ namespace Plugin {
 
             uint32_t SetValue(const ScopeType scope, const string& ns, const string& key, const string& value, const uint32_t ttl) override
             {
-                ASSERT(scope == ScopeType::ACCOUNT);
-
                 uint32_t result;
 
                 grpc::ClientContext context;
-                if ((_uri.find("localhost") == string::npos) && (_uri.find("0.0.0.0") == string::npos)) {
+                if (_authorization) {
                     context.AddMetadata("authorization", "Bearer " + GetToken());
                 }
+                context.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(GRPC_TIMEOUT)); // Timeout
                 ::distp::gateway::secure_storage::v1::UpdateValueRequest request;
                 request.set_partner_id(GetPartnerId());
                 request.set_account_id(GetAccountId());
@@ -172,14 +248,20 @@ namespace Plugin {
                 auto k = new ::distp::gateway::secure_storage::v1::Key();
                 k->set_app_id(ns);
                 k->set_key(key);
-                k->set_scope(::distp::gateway::secure_storage::v1::Scope::SCOPE_ACCOUNT);
+                k->set_scope(scope == ScopeType::ACCOUNT
+                        ? ::distp::gateway::secure_storage::v1::Scope::SCOPE_ACCOUNT
+                        : (scope == ScopeType::DEVICE
+                                  ? ::distp::gateway::secure_storage::v1::Scope::SCOPE_DEVICE
+                                  : ::distp::gateway::secure_storage::v1::Scope::SCOPE_UNSPECIFIED));
                 v->set_allocated_key(k);
                 request.set_allocated_value(v);
                 ::distp::gateway::secure_storage::v1::UpdateValueResponse response;
                 auto status = _stub->UpdateValue(&context, request, &response);
 
                 if (status.ok()) {
-                    OnValueChanged(ns, key, value);
+                    Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatch>(
+                        Core::ProxyType<Job>::Create(this, scope, ns, key, value))); // Decouple notification
+
                     result = Core::ERROR_NONE;
                 } else {
                     OnError(__FUNCTION__, status);
@@ -194,14 +276,13 @@ namespace Plugin {
             }
             uint32_t GetValue(const ScopeType scope, const string& ns, const string& key, string& value, uint32_t& ttl) override
             {
-                ASSERT(scope == ScopeType::ACCOUNT);
-
                 uint32_t result;
 
                 grpc::ClientContext context;
-                if ((_uri.find("localhost") == string::npos) && (_uri.find("0.0.0.0") == string::npos)) {
+                if (_authorization) {
                     context.AddMetadata("authorization", "Bearer " + GetToken());
                 }
+                context.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(GRPC_TIMEOUT)); // Timeout
                 ::distp::gateway::secure_storage::v1::GetValueRequest request;
                 request.set_partner_id(GetPartnerId());
                 request.set_account_id(GetAccountId());
@@ -209,7 +290,11 @@ namespace Plugin {
                 auto k = new ::distp::gateway::secure_storage::v1::Key();
                 k->set_app_id(ns);
                 k->set_key(key);
-                k->set_scope(::distp::gateway::secure_storage::v1::Scope::SCOPE_ACCOUNT);
+                k->set_scope(scope == ScopeType::ACCOUNT
+                        ? ::distp::gateway::secure_storage::v1::Scope::SCOPE_ACCOUNT
+                        : (scope == ScopeType::DEVICE
+                                  ? ::distp::gateway::secure_storage::v1::Scope::SCOPE_DEVICE
+                                  : ::distp::gateway::secure_storage::v1::Scope::SCOPE_UNSPECIFIED));
                 request.set_allocated_key(k);
                 ::distp::gateway::secure_storage::v1::GetValueResponse response;
                 auto status = _stub->GetValue(&context, request, &response);
@@ -252,14 +337,13 @@ namespace Plugin {
             }
             uint32_t DeleteKey(const ScopeType scope, const string& ns, const string& key) override
             {
-                ASSERT(scope == ScopeType::ACCOUNT);
-
                 uint32_t result;
 
                 grpc::ClientContext context;
-                if ((_uri.find("localhost") == string::npos) && (_uri.find("0.0.0.0") == string::npos)) {
+                if (_authorization) {
                     context.AddMetadata("authorization", "Bearer " + GetToken());
                 }
+                context.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(GRPC_TIMEOUT)); // Timeout
                 ::distp::gateway::secure_storage::v1::DeleteValueRequest request;
                 request.set_partner_id(GetPartnerId());
                 request.set_account_id(GetAccountId());
@@ -267,7 +351,11 @@ namespace Plugin {
                 auto k = new ::distp::gateway::secure_storage::v1::Key();
                 k->set_app_id(ns);
                 k->set_key(key);
-                k->set_scope(::distp::gateway::secure_storage::v1::Scope::SCOPE_ACCOUNT);
+                k->set_scope(scope == ScopeType::ACCOUNT
+                        ? ::distp::gateway::secure_storage::v1::Scope::SCOPE_ACCOUNT
+                        : (scope == ScopeType::DEVICE
+                                  ? ::distp::gateway::secure_storage::v1::Scope::SCOPE_DEVICE
+                                  : ::distp::gateway::secure_storage::v1::Scope::SCOPE_UNSPECIFIED));
                 request.set_allocated_key(k);
                 ::distp::gateway::secure_storage::v1::DeleteValueResponse response;
                 auto status = _stub->DeleteValue(&context, request, &response);
@@ -287,20 +375,23 @@ namespace Plugin {
             }
             uint32_t DeleteNamespace(const ScopeType scope, const string& ns) override
             {
-                ASSERT(scope == ScopeType::ACCOUNT);
-
                 uint32_t result;
 
                 grpc::ClientContext context;
-                if ((_uri.find("localhost") == string::npos) && (_uri.find("0.0.0.0") == string::npos)) {
+                if (_authorization) {
                     context.AddMetadata("authorization", "Bearer " + GetToken());
                 }
+                context.set_deadline(std::chrono::system_clock::now() + std::chrono::milliseconds(GRPC_TIMEOUT)); // Timeout
                 ::distp::gateway::secure_storage::v1::DeleteAllValuesRequest request;
                 request.set_partner_id(GetPartnerId());
                 request.set_account_id(GetAccountId());
                 request.set_device_id(GetDeviceId());
                 request.set_app_id(ns);
-                request.set_scope(::distp::gateway::secure_storage::v1::Scope::SCOPE_ACCOUNT);
+                request.set_scope(scope == ScopeType::ACCOUNT
+                        ? ::distp::gateway::secure_storage::v1::Scope::SCOPE_ACCOUNT
+                        : (scope == ScopeType::DEVICE
+                                  ? ::distp::gateway::secure_storage::v1::Scope::SCOPE_DEVICE
+                                  : ::distp::gateway::secure_storage::v1::Scope::SCOPE_UNSPECIFIED));
                 ::distp::gateway::secure_storage::v1::DeleteAllValuesResponse response;
                 auto status = _stub->DeleteAllValues(&context, request, &response);
 
@@ -319,7 +410,7 @@ namespace Plugin {
             END_INTERFACE_MAP
 
         private:
-            void OnValueChanged(const string& ns, const string& key, const string& value)
+            void OnValueChanged(const ScopeType scope, const string& ns, const string& key, const string& value)
             {
                 Core::SafeSyncType<Core::CriticalSection> lock(_clientLock);
 
@@ -327,7 +418,8 @@ namespace Plugin {
                     index(_clients.begin());
 
                 while (index != _clients.end()) {
-                    (*index)->ValueChanged(ScopeType::ACCOUNT, ns, key, value);
+                    // If main process is out of threads, this can time out, and IPC will mess up...
+                    (*index)->ValueChanged(scope, ns, key, value);
                     index++;
                 }
             }
@@ -338,6 +430,7 @@ namespace Plugin {
 
         private:
             const string _uri;
+            const bool _authorization;
             std::unique_ptr<::distp::gateway::secure_storage::v1::SecureStorageService::Stub> _stub;
             std::list<INotification*> _clients;
             Core::CriticalSection _clientLock;
