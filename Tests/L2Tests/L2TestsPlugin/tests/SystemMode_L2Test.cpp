@@ -110,7 +110,7 @@ TEST_F(SystemModeTest,GetStatedefault)
     EXPECT_EQ(Core::ERROR_NONE, status);
     results.ToString(reply);
     TEST_LOG("Status %u, results %s", status, reply.c_str()); 	
-    std::cout<<"Ram Test reply :"<<reply<<std::endl;
+    std::cout<<"Ram Test reply :"<<reply<<std::endl ;
     /*
     EXPECT_TRUE(result["success"].Boolean());
     if (result.HasLabel("state")) {

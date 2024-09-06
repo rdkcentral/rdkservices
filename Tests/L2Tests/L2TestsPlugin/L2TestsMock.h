@@ -85,7 +85,7 @@ protected:
          * @return Zero (Core::ERROR_NONE) on succes or another value on error
          */
         uint32_t InvokeServiceMethod(const char *callsign, const char *method, Core::JSON::String &results);
-
+	uint32_t InvokeServiceMethod(const char *callsign, const char *method, JsonObject &params, Core::JSON::String &results)
 
         /**
          * @brief Activate a service plugin
