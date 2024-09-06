@@ -3433,10 +3433,9 @@ namespace Plugin {
 
         inputInfo.color = parameters.HasLabel("color") ? parameters["color"].String() : "";
 	    inputInfo.control = parameters.HasLabel("control") ? parameters["control"].String() : "";
-        inputInfo.colorTemperature = parameters.HasLabel("colorTemperature") ? parameters["colorTemperature"].String() : "";
 
-        if( inputInfo.color.empty() || inputInfo.control.empty() || inputInfo.colorTemperature.empty() ) {
-	        LOGERR("%s : Color/Control/ColorTemp param not found!!!\n",__FUNCTION__);
+        if( inputInfo.color.empty() || inputInfo.control.empty() ) {
+	        LOGERR("%s : Color/Control param not found!!!\n",__FUNCTION__);
             returnResponse(false);
         }
 
@@ -3474,14 +3473,12 @@ namespace Plugin {
         int level = 0;
         tvPQParameterIndex_t tvPQEnum;
         tvColorTempSourceOffset_t colorTempSourceEnum;
-        tvColorTemp_t colorTempEnum;
         int retVal = 0;
         std::string color,control,value;
         tvError_t ret = tvERROR_NONE;
 
         inputInfo.color = parameters.HasLabel("color") ? parameters["color"].String() : "";
 	    inputInfo.control = parameters.HasLabel("control") ? parameters["control"].String() : "";
-        inputInfo.colorTemperature = parameters.HasLabel("colorTemperature") ? parameters["colorTemperature"].String() : "";
 
         if( inputInfo.color.empty() || inputInfo.control.empty() || inputInfo.colorTemperature.empty() ) {
 	        LOGERR("%s : Color/Control/ColorTemp param not found!!!\n",__FUNCTION__);
@@ -3512,11 +3509,11 @@ namespace Plugin {
             returnResponse(false);
         }    
 
-        retVal = getColorTempEnumFromString(inputInfo.colorTemperature,colorTempEnum);
+    /*    retVal = getColorTempEnumFromString(inputInfo.colorTemperature,colorTempEnum);
         if( ret == -1) {
             LOGERR("%s: Invalid ColorTemp : %s\n",__FUNCTION__,inputInfo.colorTemperature.c_str());
             returnResponse(false);
-        }
+        }*/
 
         if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
             LOGINFO("Proceed with %s\n",__FUNCTION__);
@@ -3527,26 +3524,26 @@ namespace Plugin {
                 returnResponse(false);
             }
             
-            LOGINFO("colorTempEnum : %d level : %d,colorTempSourceEnum:%d\n ",colorTempEnum,level,colorTempSourceEnum);
+            LOGINFO("level : %d,colorTempSourceEnum:%d\n ",level,colorTempSourceEnum);
             switch(tvPQEnum)
             {
                 case PQ_PARAM_WB_RED_GAIN:
-                    ret = SetColorTemp_Rgain_onSource(colorTempEnum,level,colorTempSourceEnum,0);
+                    ret = SetColorTemp_Rgain_onSource(tvColorTemp_USER,level,colorTempSourceEnum,0);
                     break;
                 case PQ_PARAM_WB_BLUE_GAIN:
-                    ret = SetColorTemp_Bgain_onSource(colorTempEnum,level,colorTempSourceEnum,0);
+                    ret = SetColorTemp_Bgain_onSource(tvColorTemp_USER,level,colorTempSourceEnum,0);
                     break;
                 case PQ_PARAM_WB_GREEN_GAIN:
-                    ret = SetColorTemp_Ggain_onSource(colorTempEnum,level,colorTempSourceEnum,0);
+                    ret = SetColorTemp_Ggain_onSource(tvColorTemp_USER,level,colorTempSourceEnum,0);
                     break;
                 case PQ_PARAM_WB_RED_OFFSET:
-                    ret = SetColorTemp_Rgain_onSource(colorTempEnum,level,colorTempSourceEnum,0);
+                    ret = SetColorTemp_Rgain_onSource(tvColorTemp_USER,level,colorTempSourceEnum,0);
                     break;
                 case PQ_PARAM_WB_BLUE_OFFSET:
-                    ret = SetColorTemp_Bgain_onSource(colorTempEnum,level,colorTempSourceEnum,0);
+                    ret = SetColorTemp_Bgain_onSource(tvColorTemp_USER,level,colorTempSourceEnum,0);
                     break;
                 case PQ_PARAM_WB_GREEN_OFFSET:
-                    ret = SetColorTemp_Bgain_onSource(colorTempEnum,level,colorTempSourceEnum,0);
+                    ret = SetColorTemp_Bgain_onSource(tvColorTemp_USER,level,colorTempSourceEnum,0);
                     break;
                 default:
                     LOGERR("%s : wrong color/control values\n",__FUNCTION__);
@@ -3576,14 +3573,11 @@ namespace Plugin {
 
         capDetails_t inputInfo;
         tvPQParameterIndex_t tvPQEnum;
-        tvColorTemp_t colorTempEnum;
         int retVal = 0;
         int level = 0;
         std::string color,control;
         inputInfo.color = parameters.HasLabel("color") ? parameters["color"].String() : "";
 	    inputInfo.control = parameters.HasLabel("control") ? parameters["control"].String() : "";
-        inputInfo.colorTemperature = parameters.HasLabel("colorTemperature") ? parameters["colorTemperature"].String() : "";
-
 
         if (parsingSetInputArgument(parameters,"WhiteBalance",inputInfo) != 0) {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
@@ -3595,31 +3589,18 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        for( int colorTempIndex = tvColorTemp_STANDARD;colorTempIndex <= tvColorTemp_USER; colorTempIndex++)
-        {
-            for( int colorIndex= tvWB_COLOR_RED; colorIndex < tvWB_COLOR_MAX; colorIndex++)
-            {
-                for(int controlIndex = tvWB_CONTROL_GAIN;controlIndex < tvWB_CONTROL_MAX;controlIndex++)
-                {
-                    inputInfo.control = getWBControlStringFromEnum((tvWBControl_t)controlIndex);
-                    inputInfo.color   = getWBColorStringFromEnum((tvWBColor_t)colorIndex);
-                    inputInfo.colorTemperature = getColorTemperatureStringFromEnum((tvColorTemp_t)colorTempIndex);
+        for( int colorIndex= tvWB_COLOR_RED; colorIndex < tvWB_COLOR_MAX; colorIndex++)  {
+            for(int controlIndex = tvWB_CONTROL_GAIN;controlIndex < tvWB_CONTROL_MAX;controlIndex++) {
+                inputInfo.control = getWBControlStringFromEnum((tvWBControl_t)controlIndex);
+                inputInfo.color   = getWBColorStringFromEnum((tvWBColor_t)colorIndex);
+                if ( convertWBParamToPQEnum(inputInfo.control,inputInfo.color,tvPQEnum) != 0 ) {
+                    LOGERR("%s: %s/%s Param Not Found \n",__FUNCTION__,inputInfo.control.c_str(),inputInfo.color.c_str());
+                    returnResponse(false);
+                }    
 
-                    if ( convertWBParamToPQEnum(inputInfo.control,inputInfo.color,tvPQEnum) != 0 ) {
-                        LOGERR("%s: %s/%s Param Not Found \n",__FUNCTION__,inputInfo.control.c_str(),inputInfo.color.c_str());
-                        returnResponse(false);
-                    }    
-
-                    retVal |= getColorTempEnumFromString(inputInfo.colorTemperature,colorTempEnum);
-                    if( retVal == -1) {
-                        LOGERR("%s: Invalid ColorTemp : %s\n",__FUNCTION__,inputInfo.colorTemperature.c_str());
-                        returnResponse(false);
-                    }
-
-                    retVal |= updateAVoutputTVParam("reset","WhiteBalance",inputInfo,tvPQEnum,level);
-                }
+                retVal |= updateAVoutputTVParam("reset","WhiteBalance",inputInfo,tvPQEnum,level);
             }
-        } 
+        }
 
         if( retVal != 0 ) {
             LOGWARN("Failed to reset WhiteBalance\n");

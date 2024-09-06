@@ -243,15 +243,15 @@ namespace Plugin {
 
             indexInfo.controlIndex = controlLevel;
 
-            tvColorTemp_t colorTemp;
+            /*tvColorTemp_t colorTemp;
             if ( getColorTempEnumFromString(paramInfo.colorTemperature,colorTemp ) == -1 ) {
                 LOGERR("%s : GetComponentEnumFromString Failed!!! ",__FUNCTION__);
                 return -1;
             }
 
-            indexInfo.colorTempIndex = colorTemp;
+            indexInfo.colorTempIndex = colorTemp; */
 
-            LOGINFO("%s colorIndex : %d , controlIndex : %d colorTempIndex: %d\n",__FUNCTION__,indexInfo.colorIndex, indexInfo.controlIndex,indexInfo.colorTempIndex);
+            LOGINFO("%s colorIndex : %d , controlIndex : %d \n",__FUNCTION__,indexInfo.colorIndex, indexInfo.controlIndex);
 
         }
 
@@ -424,12 +424,17 @@ namespace Plugin {
 
         if( param == "CMS")
         {
-            if ( ( inputInfo.color.find(paramInfo.color) == std::string::npos ) || ( inputInfo.component.find(paramInfo.component) == std::string::npos) )
+            LOGINFO("Tamil paramInfo : %s inputInfo:%s\n",paramInfo.color.c_str(),inputInfo.color.c_str());
+            LOGINFO("Tamil paramInfo : %s inputInfo:%s\n",paramInfo.component.c_str(),inputInfo.component.c_str());
+
+            if ( ( paramInfo.color.find(inputInfo.color) == std::string::npos ) || ( paramInfo.component.find(inputInfo.component) == std::string::npos) )
                 return false;
         }
         else if( param == "WhiteBalance")
         {
-            if ( ( inputInfo.color.find(paramInfo.color) == std::string::npos ) || ( inputInfo.control.find(paramInfo.control) == std::string::npos) )
+            LOGINFO("Tamil WB paramInfo : %s inputInfo:%s\n",paramInfo.color.c_str(),inputInfo.color.c_str());
+            LOGINFO("Tamil WB paramInfo : %s inputInfo:%s\n",paramInfo.control.c_str(),inputInfo.control.c_str());
+            if ( ( paramInfo.color.find(inputInfo.color) == std::string::npos ) || ( paramInfo.control.find(inputInfo.control) == std::string::npos) )
                 return false;
         }
         //Compare capablityInfo with Input params
@@ -1058,7 +1063,7 @@ namespace Plugin {
                                 for( int componentType : values.componentValues ) {
                                     paramIndex.componentIndex = componentType;
                                     for( int colorType : values.colorValues ) {
-                                        paramIndex.colorIndex = colorType;                      
+                                        paramIndex.colorIndex = colorType;                     
                                         if(reset) {
                                             ret |= updateAVoutputTVParamToHAL(tr181ParamName,paramIndex,0,false);
 		                		        }
@@ -1337,7 +1342,7 @@ namespace Plugin {
 
     int AVOutputTV::getSaveConfig(std::string param, capDetails_t capInfo, valueVectors_t &values)
     {
-        LOGINFO("Entry : %s pqmode : %s source :%s format :%s component : %s color : %s colorTemp:%s\n",__FUNCTION__,capInfo.pqmode.c_str(),capInfo.source.c_str(),capInfo.format.c_str(),capInfo.component.c_str(),capInfo.color.c_str(),capInfo.colorTemperature.c_str());
+        LOGINFO("Entry : %s pqmode : %s source :%s format :%s component : %s color : %s control:%s\n",__FUNCTION__,capInfo.pqmode.c_str(),capInfo.source.c_str(),capInfo.format.c_str(),capInfo.component.c_str(),capInfo.color.c_str(),capInfo.control.c_str());
 
         int ret = 0;
 
@@ -1357,6 +1362,7 @@ namespace Plugin {
         char *sourceToken = NULL;
         while ((sourceToken = strtok_r(sourceString,",",&sourceString))) {
             std::string local = sourceToken;
+            if( local == "All") continue;
             values.sourceValues.push_back(getSourceIndex(local));
         }
         //3)check format
@@ -1379,6 +1385,7 @@ namespace Plugin {
                     LOGERR("%s : GetColorEnumFromString Failed!!! ",__FUNCTION__);
                     return -1;
                 }
+                LOGINFO("Tamil : Color : %d\n",level);
                 values.colorValues.push_back(level);
             }
 
@@ -1392,6 +1399,7 @@ namespace Plugin {
                     LOGERR("%s : GetComponentEnumFromString Failed!!! ",__FUNCTION__);
                     return -1;
                 }
+                LOGINFO("Tamil : Control : %d\n",level);
                 values.componentValues.push_back(level);
             }
         }
@@ -1408,6 +1416,7 @@ namespace Plugin {
                     LOGERR("%s : GetWBColorEnumFromString Failed!!! ",__FUNCTION__);
                     return -1;
                 }
+                LOGINFO("Tamil : Color : %d\n",level);
                 values.colorValues.push_back(level);
             }
 
@@ -1424,7 +1433,8 @@ namespace Plugin {
                 LOGINFO("Tamil : Control : %d\n",level);
                 values.controlValues.push_back(level);
             }
-
+            
+            /*
             //Check Color Temp
             char *colorTempString = strdup(capInfo.colorTemperature.c_str());
             char *colorTempToken = NULL;
@@ -1436,7 +1446,7 @@ namespace Plugin {
                     return -1;
                 }
                 values.colorTempValues.push_back(level);
-            }
+            }*/
         }
 
         LOGINFO("Exit : %s pqmode : %s source :%s format :%s ret:%d\n",__FUNCTION__,capInfo.pqmode.c_str(),capInfo.source.c_str(),capInfo.format.c_str(), ret);
@@ -1448,7 +1458,11 @@ namespace Plugin {
         string key;
         TR181_ParamData_t param={0};
         if( forParam.compare("CMS") == 0 )
+        {
+            
             generateStorageIdentifierCMS(key,forParam,indexInfo);
+            LOGINFO("Tamil : forParam : %s  key : %s\n",forParam.c_str(),key.c_str());
+        }
         else if( forParam.compare("WhiteBalance") == 0 ) 
             generateStorageIdentifierWB(key,forParam,indexInfo);
         else 
@@ -1505,7 +1519,7 @@ namespace Plugin {
            }
            else {
                value=std::stoi(param.value);
-               return 0;
+               return 0;    
            }
         }
         else {// default value from DB
@@ -2035,21 +2049,25 @@ namespace Plugin {
         inputInfo.source = "none";
         inputInfo.format = "none";
 
-        for ( int component = COMP_HUE; component < COMP_MAX;component++)
-        {
+        for ( int component = COMP_HUE; component < COMP_MAX;component++) {
             for(int count = 0;count < (int)(sizeof(colors)/sizeof(colors[0])); ++count) {
+
+                LOGINFO("Tamil : Component : %d color : %d\n",component,count);
 		        tvDataComponentColor_t color = colors[count];
 			
 			    std::string componentString = getCMSComponentStringFromEnum((tvComponentType_t)component);
 			    std::string colorString = getCMSColorStringFromEnum((tvDataComponentColor_t)color);
 			    cmsParam = componentString+"."+colorString;
+                LOGINFO("Tamil : cmsparam : %s\n",cmsParam.c_str());
 			
 			    if ( convertCMSParamToPQEnum(componentString,colorString,tvPQEnum) != 0 ) {
                     LOGINFO("%s: %s/%s Param Not Found \n",__FUNCTION__,componentString.c_str(),componentString.c_str());
                     continue;
                 }
-			
-			    if( !updateAVoutputTVParam("sync",cmsParam, inputInfo,tvPQEnum,level))
+			    LOGINFO("Tamil : Enum : %d\n",tvPQEnum);
+                inputInfo.color = colorString;
+                inputInfo.component = componentString;
+			    if( !updateAVoutputTVParam("sync","CMS", inputInfo,tvPQEnum,level))
                    LOGINFO("CMS Successfully Synced to Drive Cache\n");
                 else
                    LOGERR("CMS Sync to cache Failed !!!\n");
@@ -2060,38 +2078,27 @@ namespace Plugin {
     void AVOutputTV::syncWBParams( )
     {
         int level = 0;
-        tvColorTemp_t colorTempEnum;
         tvPQParameterIndex_t tvPQEnum;
         capDetails_t inputInfo;
-        int retVal = 0;
 	
         inputInfo.pqmode = "none";
         inputInfo.source = "none";
         inputInfo.format = "none";
 	
-        for( int colorTempIndex = tvColorTemp_STANDARD;colorTempIndex <= tvColorTemp_USER; colorTempIndex++)
-        {
-            for( int colorIndex= tvWB_COLOR_RED; colorIndex < tvWB_COLOR_MAX; colorIndex++)
-            {
-                for(int controlIndex = tvWB_CONTROL_GAIN;controlIndex < tvWB_CONTROL_MAX;controlIndex++)
-                {
-                    inputInfo.control = getWBControlStringFromEnum((tvWBControl_t)controlIndex);
-                    inputInfo.color   = getWBColorStringFromEnum((tvWBColor_t)colorIndex);
-                    inputInfo.colorTemperature = getColorTemperatureStringFromEnum((tvColorTemp_t)colorTempIndex);
+        for( int colorIndex= tvWB_COLOR_RED; colorIndex < tvWB_COLOR_MAX; colorIndex++) {
+           for(int controlIndex = tvWB_CONTROL_GAIN;controlIndex < tvWB_CONTROL_MAX;controlIndex++) {
+                inputInfo.control = getWBControlStringFromEnum((tvWBControl_t)controlIndex);
+                inputInfo.color   = getWBColorStringFromEnum((tvWBColor_t)colorIndex);
 
-                    if ( convertWBParamToPQEnum(inputInfo.control,inputInfo.color,tvPQEnum) != 0 ) {
-                        LOGERR("%s: %s/%s Param Not Found \n",__FUNCTION__,inputInfo.control.c_str(),inputInfo.color.c_str());
-                    }    
-                    retVal |= getColorTempEnumFromString(inputInfo.colorTemperature,colorTempEnum);
-                    if( retVal == -1) {
-                        LOGERR("%s: Invalid ColorTemp : %s\n",__FUNCTION__,inputInfo.colorTemperature.c_str());
-                    }
-
-                    updateAVoutputTVParam("sync","WhiteBalance",inputInfo,tvPQEnum,level);
-                }
+                if ( convertWBParamToPQEnum(inputInfo.control,inputInfo.color,tvPQEnum) != 0 ) {
+                    LOGERR("%s: %s/%s Param Not Found \n",__FUNCTION__,inputInfo.control.c_str(),inputInfo.color.c_str());
+                }    
+                LOGINFO("Tamil inputInfo.control : %s  inputInfo.color : %s\n",inputInfo.control.c_str(),inputInfo.color.c_str() );
+                updateAVoutputTVParam("sync","WhiteBalance",inputInfo,tvPQEnum,level);
             }
+        }
 	}
-    }
+    
 
     int AVOutputTV:: convertCMSParamToPQEnum(const std::string component, const std::string color,tvPQParameterIndex_t& value) {
     // Create a map to associate color-component pairs with enum values
