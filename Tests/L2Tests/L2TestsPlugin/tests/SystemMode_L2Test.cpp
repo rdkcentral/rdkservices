@@ -39,7 +39,7 @@ protected:
         PluginHost::IShell *m_controller_usersettings;
 
         /** @brief Pointer to the IUserSettings interface */
-        Exchange::IUserSettings *m_usersettingsplugin;
+        //Exchange::IUserSettings *m_usersettingsplugin;
 };
 
 SystemModeTest:: SystemModeTest():L2TestMocks()
