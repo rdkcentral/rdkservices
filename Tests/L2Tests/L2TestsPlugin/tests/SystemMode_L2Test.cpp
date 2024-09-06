@@ -117,6 +117,15 @@ TEST_F(SystemModeTest,GetStatedefault)
 	    EXPECT_STREQ("Video", result["state"].String().c_str());
     }
    */
+    params["state"]  = "Game";
+    status = InvokeServiceMethod("org.rdk.SystemMode", "RequestState", params, result);
+    EXPECT_EQ(Core::ERROR_NONE, status);
+    EXPECT_TRUE(result["success"].Boolean());
+
+
+    status = InvokeServiceMethod("org.rdk.SystemMode", "GetState", params, result);
+    EXPECT_EQ(Core::ERROR_NONE, status);
+ 
 }
 
 
