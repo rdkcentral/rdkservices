@@ -285,6 +285,7 @@ Core::hresult SystemModeImplementation::GetState(const SystemMode pSystemMode, S
 						     for (const auto& pair : deviceOptimizeStateMap) {
 							     if (pair.second == value) {
 								     pState = pair.first;
+								     std::cout<<"RamTesting SystemModeImplementation::getState pState inside :"<< pState <<std::endl;
 								     break;
 							     }
 						     }
@@ -304,8 +305,8 @@ Core::hresult SystemModeImplementation::GetState(const SystemMode pSystemMode, S
 		LOGERR("Invalid systemMode %d",static_cast<uint32_t>(pSystemMode));
 		return Core::ERROR_GENERAL;
 	}
+	std::cout<<"RamTesting SystemModeImplementation::getState pState :"<< pState <<std::endl;
 	return result;
-
 }
 
 uint32_t SystemModeImplementation::ClientActivated(const string& callsign , const string& __SystemMode)
