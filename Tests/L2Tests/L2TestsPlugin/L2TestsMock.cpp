@@ -170,7 +170,6 @@ uint32_t L2TestMocks::InvokeServiceMethod(const char *callsign, const char *meth
    params.ToString(message);
    TEST_LOG("Invoking %s.%s, parameters %s\n", callsign, method, message.c_str());
 
-   results = JsonObject();
    status = jsonrpc.Invoke<void, Core::JSON::String>(INVOKE_TIMEOUT, std::string(method), params, results);
 
    results.ToString(reply);
