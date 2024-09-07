@@ -943,19 +943,21 @@ void XCast::getUrlFromAppLaunchParams (const char *app_name, const char *payload
             int has_query = query_string && strlen(query_string);
             int has_payload = 0;
             if (has_query) {
-                strcat(url, query_string);
+                snprintf(url + strlen(url), url_len, "%s", query_string);
                 url_len -= strlen(query_string);
             }
             if(payload && strlen(payload)) {
-                if (has_query) url_len -=1;  //for &
                 const char payload_key[] = "dialpayload=";
-                url_len -= sizeof(payload_key) - 1;
-                url_len -= strlen(payload);
                 if(url_len >= 0){
-                    if (has_query) strcat(url, "&");
-                    strcat(url, payload_key);
-                    strcat(url, payload);
-                    has_payload = 1;
+                    if (has_query) {
+                        snprintf(url + strlen(url), url_len, "&");
+                        url_len -= 1;
+                    }
+                    if(url_len >= 0) {
+                        snprintf(url + strlen(url), url_len, "%s%s", payload_key, payload);
+                        url_len -= strlen(payload_key) + strlen(payload);
+                        has_payload = 1;
+                    }
                 }
                 else {
                     LOGINFO("there is no enough room for payload\r\n");
@@ -963,9 +965,14 @@ void XCast::getUrlFromAppLaunchParams (const char *app_name, const char *payload
             }
 
         if(additional_data_url != NULL){
-                if (has_query || has_payload) strcat(url, "&");
-                strcat(url, "additionalDataUrl=");
-            strcat(url, additional_data_url);
+                if ((has_query || has_payload) && url_len >= 0) {
+                    snprintf(url + strlen(url), url_len, "&");
+                    url_len -= 1;
+                }
+                if (url_len >= 0) {
+                    snprintf(url + strlen(url), url_len, "additionalDataUrl=%s", additional_data_url);
+                    url_len -= strlen(additional_data_url) + 18;
+                }
             }
             LOGINFO(" url is [%s]\r\n", url);
     }
