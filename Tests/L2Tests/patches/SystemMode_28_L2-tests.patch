@@ -1,0 +1,135 @@
+diff --git a/interfaces/IDeviceOptimizeStateActivator.h b/interfaces/IDeviceOptimizeStateActivator.h
+new file mode 100644
+index 0000000..168c0e0
+--- /dev/null
++++ b/interfaces/IDeviceOptimizeStateActivator.h
+@@ -0,0 +1,36 @@
++/*
++ * If not stated otherwise in this file or this component's LICENSE file the
++ * following copyright and licenses apply:
++ *
++ * Copyright 2024 RDK Management
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++
++#pragma once
++
++#include "Module.h"
++
++namespace WPEFramework {
++namespace Exchange {
++
++    /// Interface implemented by each Thunder component that needs to react to DEVICE_OPTIMIZE system mode state activation requests.
++    struct EXTERNAL IDeviceOptimizeStateActivator : virtual public Core::IUnknown {
++        enum { ID = ID_DEVICE_OPTIMIZE_STATE_ACTIVATOR };
++
++        /// Requests the component to asynchronously transition to the new state.
++        /// @param[in] newState     The new target state to transition to.
++        virtual void Request(const string&  newState  /* @in @text newState*/) = 0;
++    };
++}
++}
+diff --git a/interfaces/ISystemMode.h b/interfaces/ISystemMode.h
+new file mode 100644
+index 0000000..dea68e6
+--- /dev/null
++++ b/interfaces/ISystemMode.h
+@@ -0,0 +1,72 @@
++/*
++ * If not stated otherwise in this file or this component's LICENSE file the
++ * following copyright and licenses apply:
++ *
++ * Copyright 2024 RDK Management
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
++#pragma once
++
++#include "Module.h"
++
++namespace WPEFramework {
++namespace Exchange {
++ // @json
++struct EXTERNAL ISystemMode : virtual public Core::IUnknown {
++  enum { ID = ID_SYSTEM_MODE };
++
++  /// Enumeration of system modes.
++  enum SystemMode : uint8_t {
++	  DEVICE_OPTIMIZE = 1
++  };
++
++  /// Enumeration of states for all system modes.
++  enum State : uint32_t {
++	  // DEVICE_OPTIMIZE states
++	  VIDEO = (DEVICE_OPTIMIZE << 24) | 1 ,
++	  GAME  = (DEVICE_OPTIMIZE << 24) | 2 ,
++
++	  // next system mode states...
++  };
++
++  // @alt RequestState
++  // @brief Requests a new system mode state in the device.  Thunder components asynchronously reconfigure themselves so the caller cannot be guaranteed a full state transition upon return.
++  // @param[in] systemMode       The system mode.
++  // @param[in] state            The requested state.
++  // @returns Core::hresult
++  virtual Core::hresult RequestState(const SystemMode systemMode /* @in @text systemMode */ , const State state /* @in @text state */) = 0;
++
++  // @alt GetState
++  // @brief Gets the current state for a given system property
++  // @param[in] systemMode       The system mode to get the state of.
++  // @param[out] state           Receives the state of the system mode.
++  // @returns Core::hresult
++  virtual Core::hresult GetState(const SystemMode systemMode /* @in @text systemMode */ , State &state /* @out @text state */) const = 0;
++
++  // @alt ClientActivated
++  // @brief To put client plugin entry in map.
++  // @param[in] callsign       callsign of client.
++  // @param[in] systemMode       The system mode.
++  // @returns uint32_t
++  virtual uint32_t ClientActivated(const string& callsign /* @in @text callsign*/ ,const string& systemMode) = 0;
++
++  // @alt ClientDeactivated
++  // @brief To put client plugin entry in map.
++  // @param[in] callsign       callsign of client.
++  // @param[in] systemMode       The system mode.
++  // @returns uint32_t
++  virtual uint32_t ClientDeactivated(const string& callsign /* @in @text callsign*/, const string& systemMode) = 0;
++};
++} // namespace Exchange
++} // namespace WPEFramework
+
+diff --git a/interfaces/Ids.h b/interfaces/Ids.h
+index 001606d..aee5fc3 100644
+--- a/interfaces/Ids.h
++++ b/interfaces/Ids.h
+@@ -288,6 +288,9 @@ namespace Exchange {
+         ID_DTV_TRANSPORT,
+         ID_TEXT_TO_SPEECH,
+         ID_TEXT_TO_SPEECH_NOTIFICATION,
++	ID_DEVICE_OPTIMIZE_STATE_ACTIVATOR,
++	ID_SYSTEM_MODE,
++	ID_SYSTEM_MODE_NOTIFICATION,
+     };
+ }
+ }

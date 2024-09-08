@@ -55,7 +55,6 @@ namespace Plugin {
 
     public:
 	Core::hresult RequestState(const SystemMode systemMode, const State state) override;
-//	Core::hresult RequestState(const string systemMode, const string state) override;
 	Core::hresult GetState(const SystemMode systemMode, State &state )const override;
 	
 	virtual uint32_t ClientActivated(const string& callsign ,const string& systemMode) override ;
@@ -71,7 +70,6 @@ namespace Plugin {
 	Core::ProxyType<RPC::InvokeServerType<1, 0, 4>> _engine;
         Core::ProxyType<RPC::CommunicatorClient> _communicatorClient;
         PluginHost::IShell *_controller;
- //       std::list<Exchange::ISystemMode::INotification*> _systemModeNotification;
 	std::map<Exchange::ISystemMode::SystemMode, std::string > SystemModeMap;
 	std::map<Exchange::ISystemMode::State, std::string > deviceOptimizeStateMap;
 	std::map<Exchange::ISystemMode::SystemMode, uint32_t> SystemModesCurrentStateMap;

@@ -50,19 +50,16 @@ namespace WPEFramework
 
     SystemMode::SystemMode() : _service(nullptr), _connectionId(0), _systemMode(nullptr)
     {
-	std::cout<<"RamTesting SystemMode cons "<<std::endl;
         SYSLOG(Logging::Startup, (_T("SystemMode Constructor")));
     }
 
     SystemMode::~SystemMode()
     {
-	std::cout<<"RamTesting SystemMode distr "<<std::endl;
         SYSLOG(Logging::Shutdown, (string(_T("SystemMode Destructor"))));
     }
 
     const string SystemMode::Initialize(PluginHost::IShell* service)
     {
-	std::cout<<"RamTesting SystemMode Initialize "<<std::endl;
         string message="";
 
         ASSERT(nullptr != service);
@@ -74,14 +71,10 @@ namespace WPEFramework
 
         _service = service;
         _service->AddRef();
-        //_service->Register(&_systemModeNotification);
         _systemMode = _service->Root<Exchange::ISystemMode>(_connectionId, 5000, _T("SystemModeImplementation"));
 
         if(nullptr != _systemMode)
         {
-            // Register for notifications
-          //  _systemMode->Register(&_systemModeNotification);
-            // Invoking Plugin API register to wpeframework
             Exchange::JSystemMode::Register(*this, _systemMode);
         }
         else
@@ -100,17 +93,12 @@ namespace WPEFramework
 
     void SystemMode::Deinitialize(PluginHost::IShell* service)
     {
-	std::cout<<"RamTesting SystemMode  Deinitialize"<<std::endl;
         ASSERT(_service == service);
 
         SYSLOG(Logging::Shutdown, (string(_T("SystemMode::Deinitialize"))));
 
-        // Make sure the Activated and Deactivated are no longer called before we start cleaning up..
-//        _service->Unregister(&_systemModeNotification);
-
         if (nullptr != _systemMode)
         {
-//            _systemMode->Unregister(&_systemModeNotification);
             Exchange::JSystemMode::Unregister(*this);
 
             // Stop processing:
@@ -122,7 +110,6 @@ namespace WPEFramework
             // It should have been the last reference we are releasing,
             // so it should endup in a DESTRUCTION_SUCCEEDED, if not we
             // are leaking...
-	    std::cout<<"RamTesting SystemMode  Deinitialize result == Core::ERROR_DESTRUCTION_SUCCEEDED result :" << result << "Core::ERROR_DESTRUCTION_SUCCEEDED" << Core::ERROR_DESTRUCTION_SUCCEEDED <<std::endl;
             ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
 
             // If this was running in a (container) process...
@@ -151,7 +138,6 @@ namespace WPEFramework
 
     void SystemMode::Deactivated(RPC::IRemoteConnection* connection)
     {
-	std::cout<<"RamTesting SystemMode  SystemMode::Deactivated"<<std::endl;
         if (connection->Id() == _connectionId) {
             ASSERT(nullptr != _service);
             Core::IWorkerPool::Instance().Submit(PluginHost::IShell::Job::Create(_service, PluginHost::IShell::DEACTIVATED, PluginHost::IShell::FAILURE));
