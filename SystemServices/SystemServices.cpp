@@ -1393,10 +1393,12 @@ namespace WPEFramework {
         {
             lock_guard<recursive_mutex> lock(_instance->m_ModeSync);
             bool changeMode  = true;
+            bool isTimerContext = false;
+            getBoolParameter("timercontext", isTimerContext);
             JsonObject param;
             std::string oldMode = m_currentMode;
             bool result = true;
-	        if(isTimerActive() || m_remainingDuration>0)
+	        if((!isTimerContext) && (isTimerActive() || m_remainingDuration>0))
             {
                 populateResponseWithError(SysSrv_ModeChangeInProgress, response);
                 LOGERR("Mode change is already in progress.current mode is %s and it will be in progress for next %d seconds. Please try again later.\n",m_currentMode.c_str(),m_remainingDuration);
@@ -1520,6 +1522,7 @@ namespace WPEFramework {
                 JsonObject parameters, param, response;
                 param["mode"] = "NORMAL";
                 param["duration"] = 0;
+                param["timercontext"] = true;
                 parameters["modeInfo"] = param;
                 if (_instance) {
                     _instance->setMode(parameters,response);
