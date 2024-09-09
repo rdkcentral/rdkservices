@@ -128,6 +128,7 @@ namespace WPEFramework {
                 std::string m_current_state;
                 static cTimer m_operatingModeTimer;
                 static int m_remainingDuration;
+                std::recursive_mutex m_ModeSync;
                 Utils::ThreadRAII m_getFirmwareInfoThread;
                 PluginHost::IShell* m_shellService { nullptr };
                 regex_t m_regexUnallowedChars;
@@ -145,7 +146,8 @@ namespace WPEFramework {
                 std::string m_strRegion;
 
                 static void startModeTimer(int duration);
-                static void stopModeTimer();
+                static void stopModeTimer(bool isDetachRequired = false);
+                static bool isTimerActive();
                 static void updateDuration();
 				std::string  m_strStandardTerritoryList;
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO

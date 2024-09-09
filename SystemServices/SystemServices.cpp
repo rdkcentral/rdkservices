@@ -1391,12 +1391,12 @@ namespace WPEFramework {
         uint32_t SystemServices::setMode(const JsonObject& parameters,
                 JsonObject& response)
         {
-	    LOGINFO("SetMode Entry");
+            lock_guard<recursive_mutex> lock(_instance->m_ModeSync);
             bool changeMode  = true;
             JsonObject param;
             std::string oldMode = m_currentMode;
             bool result = true;
-            if(m_remainingDuration>0)
+	        if(isTimerActive() || m_remainingDuration>0)
             {
                 populateResponseWithError(SysSrv_ModeChangeInProgress, response);
                 LOGERR("Mode change is already in progress.current mode is %s and it will be in progress for next %d seconds. Please try again later.\n",m_currentMode.c_str(),m_remainingDuration);
@@ -1407,7 +1407,7 @@ namespace WPEFramework {
                 if (param.HasLabel("duration") && param.HasLabel("mode")) {
                     int duration = param["duration"].Number();
                     std::string newMode = param["mode"].String();
-                    if(duration>86400)
+             	    if(duration>86400)
                     {
                         LOGWARN("Duration is more than 24 hours. Setting duration to 24 hours,which is maximum allowed duration to set\n");
                         duration = 86400;
@@ -1415,7 +1415,12 @@ namespace WPEFramework {
                     LOGWARN("request to switch to mode '%s' from mode '%s' \
                             with duration %d\n", newMode.c_str(),
                             oldMode.c_str(), duration);
-
+                    if(MODE_WAREHOUSE == newMode && MODE_WAREHOUSE == m_currentMode)
+                    {
+                        populateResponseWithError(SysSrv_ModeAlreadySet, response);
+                        LOGERR("Warehouse mode is already set, therefore current mode '%s' not changed.\n", oldMode.c_str());
+                        returnResponse(false);
+                    }
                     if (MODE_NORMAL != newMode && MODE_WAREHOUSE != newMode &&
                             MODE_EAS != newMode) {
                         LOGERR("value of new mode is incorrect, therefore \
@@ -1432,16 +1437,13 @@ namespace WPEFramework {
                         m_currentMode = MODE_NORMAL;
                         stopModeTimer();
                     }
-
                     if (changeMode) {
                         IARM_Bus_CommonAPI_SysModeChange_Param_t modeParam;
                         stringToIarmMode(oldMode, modeParam.oldMode);
                         stringToIarmMode(m_currentMode, modeParam.newMode);
-
                         if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_DAEMON_NAME,
                                     "DaemonSysModeChange", &modeParam, sizeof(modeParam))) {
                             LOGWARN("switched to mode '%s'\n", m_currentMode.c_str());
-
                             if (MODE_NORMAL != m_currentMode && duration < 0) {
                                 LOGWARN("duration is negative, therefore \
                                         mode timer stopped and Receiver will keep \
@@ -1463,6 +1465,7 @@ namespace WPEFramework {
                             command = "rm -f ";
                         }
                         command += WAREHOUSE_MODE_FILE;
+
                         /* TODO: replace with system alternate. */
                         int sysStat = system(command.c_str());
                         LOGINFO("system returned %d\n", sysStat);
@@ -1492,14 +1495,21 @@ namespace WPEFramework {
             m_temp_settings.setValue("mode_duration", m_remainingDuration);
         }
 
-        void SystemServices::stopModeTimer()
+        void SystemServices::stopModeTimer(bool isDetachRequired)
         {
             m_remainingDuration = 0;
             m_operatingModeTimer.stop();
-
+            if(isDetachRequired)
+            {
+                m_operatingModeTimer.detach();
+            }
             //set values in temp file so they can be restored in receiver restarts / crashes
             // TODO: query & confirm time duration range.
             m_temp_settings.setValue("mode_duration", m_remainingDuration);
+        }
+        bool SystemServices::isTimerActive()
+        {
+            return m_operatingModeTimer.isActive();
         }
 
         /**
@@ -1509,9 +1519,10 @@ namespace WPEFramework {
         {
             if (m_remainingDuration > 0) {
                 m_remainingDuration--;
+                m_temp_settings.setValue("mode_duration", m_remainingDuration);
             } else {
-                m_operatingModeTimer.stop();
-               m_operatingModeTimer.detach();
+                lock_guard<recursive_mutex> lock(_instance->m_ModeSync);
+                stopModeTimer(true);
                 JsonObject parameters, param, response;
                 param["mode"] = "NORMAL";
                 param["duration"] = 0;
@@ -1522,9 +1533,6 @@ namespace WPEFramework {
                     LOGERR("_instance is NULL.\n");
                 }
             }
-
-            //set values in temp file so they can be restored in receiver restarts / crashes
-            m_temp_settings.setValue("mode_duration", m_remainingDuration);
         }
 
         /***
