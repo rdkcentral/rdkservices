@@ -2448,6 +2448,8 @@ static GSourceFuncs _handlerIntervention =
                 Core::SystemInfo::SetEnvironment(environmentVariable.Name.Value(), environmentVariable.Value.Value());
             }
 
+            ClearCacheIfNeeded();
+
             // Oke, so we are good to go.. Release....
             Core::Thread::Run();
 
@@ -3578,6 +3580,108 @@ static GSourceFuncs _handlerIntervention =
             SYSLOG(Logging::Fatal, (_T("Posting a job to exit, reason - %s"), (reasonStr ? reasonStr : "")));
             postExitJob();
         }
+
+        void ClearCacheIfNeeded() {
+#ifndef BUILD_TIMESTAMP
+            SYSLOG(Logging::Notification, (_T("BUILD_TIMESTAMP is not defied. Browser cache won't be removed on SW upadte")));
+            return;
+#endif
+            static const string buildTimestampStr = BUILD_TIMESTAMP;
+            if (buildTimestampStr.empty()) {
+                SYSLOG(Logging::Notification, (_T("BUILD_TIMESTAMP is empty. Browser cache won't be removed on SW upadte")));
+                return;
+            }
+
+            string cachePath = g_get_user_cache_dir();
+            if (_config.DiskCacheDir.IsSet() && _config.DiskCacheDir.Value().empty() == false) {
+                cachePath = _config.DiskCacheDir.Value().c_str();
+            }
+
+            // TODO: Do we need this or just delete current cache directory?
+            {
+                // For some Callsings cache directory is ../.cache/<Callsign> while other just use ../.cache
+                // We always want to clear the top directory cache
+                // First, delete -NN (number) from the end of Callsign string
+                string baseCallsign = _service->Callsign().substr(0, _service->Callsign().find_last_of('-'));
+                string topCacheDir = string(".cache/") + baseCallsign;
+                if (cachePath.size() > topCacheDir.size() && cachePath.compare(cachePath.size() - topCacheDir.size(), topCacheDir.size(), topCacheDir) == 0) {
+                    // remove /<Callsing> from the end
+                    cachePath = cachePath.substr(0, cachePath.size() - baseCallsign.size() - 1);
+                }
+            }
+
+            Core::Directory cacheDir(cachePath.c_str());
+            if (!cacheDir.Exists()) {
+                return;
+            }
+
+            // create lock file to prevent multiple cache clearings at the same time
+            static const gchar* cacheLockFileName = ".cache-lock";
+            unsigned long maxWaitTime = 1000000; // 1sec
+            unsigned waitTime = 1000; // 1ms
+            Core::File lockFile(cachePath + "/" + cacheLockFileName);
+            auto createLockFileFunc = [&lockFile]() {
+                return lockFile.Create(DEFFILEMODE, true);
+            };
+            while (!createLockFileFunc()) {
+                if (maxWaitTime <= 0) {
+                    SYSLOG(Logging::Notification, (_T("Failed to create lock file, force remove it")));
+                    lockFile.Destroy();
+                    if (!createLockFileFunc()) {
+                        SYSLOG(Logging::Notification, (_T("Failed to create lock file, give up, %s"), lockFile.Name().c_str()));
+                        return;
+                    }
+                    break;
+                }
+                usleep(waitTime);
+                maxWaitTime -= waitTime;
+            }
+
+            struct LockFileDestroyer {
+                LockFileDestroyer(Core::File& lockFile) : _lockFile(lockFile) {}
+                ~LockFileDestroyer() {
+                    _lockFile.Destroy();
+                }
+                Core::File& _lockFile;
+            } lockFileDestroyer(lockFile);
+
+            Core::File cacheVersionFile(cachePath + "/.build-version");
+            if (cacheVersionFile.Exists()) {
+                gchar version[32];
+                cacheVersionFile.Open(true);
+                auto rSize = cacheVersionFile.Read((uint8_t*)&version[0], 31);
+                cacheVersionFile.Close();
+                version[rSize] = '\0';
+                if (buildTimestampStr == version) {
+                    // Version is the same, no need to clear cache
+                    return;
+                }
+            }
+
+            SYSLOG(Logging::Notification, (_T("New build detected, clear cache: %s"), cachePath.c_str()));
+
+            while (cacheDir.Next()) {
+                Core::File file(cacheDir.Current());
+                if (file.IsDirectory()) {
+                    if (file.FileName() == "." || file.FileName() == "..") {
+                        continue;
+                    }
+                    Core::Directory cacheSubDir(cacheDir.Current().c_str());
+                    cacheSubDir.Destroy();
+                } else {
+                    if (file.FileName() == cacheLockFileName) {
+                        // skip lock file we created
+                        continue;
+                    }
+                }
+                file.Destroy();
+            }
+            cacheVersionFile.Create(DEFFILEMODE, false);
+            cacheVersionFile.Write((uint8_t*)buildTimestampStr.c_str(), buildTimestampStr.size());
+            cacheVersionFile.Close();
+            SYSLOG(Logging::Notification, (_T("Cache cleared, new build version: %s"), buildTimestampStr.c_str()));
+        }
+
 
     private:
         Config _config;
