@@ -80,7 +80,7 @@ class NotificationHandler : public Exchange::IUserSettings::INotification {
         NotificationHandler(){}
         ~NotificationHandler(){}
 
-        void onAudioDescriptionChanged(const bool enabled) override
+        void OnAudioDescriptionChanged(const bool enabled) override
         {
             TEST_LOG("OnAudioDescriptionChanged event triggered ***\n");
             std::unique_lock<std::mutex> lock(m_mutex);
@@ -92,7 +92,7 @@ class NotificationHandler : public Exchange::IUserSettings::INotification {
             m_condition_variable.notify_one();
         }
 
-        void onPreferredAudioLanguagesChanged(const string& preferredLanguages) override
+        void OnPreferredAudioLanguagesChanged(const string& preferredLanguages) override
         {
             TEST_LOG("OnPreferredAudioLanguagesChanged event triggered ***\n");
             std::unique_lock<std::mutex> lock(m_mutex);
@@ -104,7 +104,7 @@ class NotificationHandler : public Exchange::IUserSettings::INotification {
 
         }
 
-        void onPresentationLanguageChanged(const string& presentationLanguage) override
+        void OnPresentationLanguageChanged(const string& presentationLanguage) override
         {
             TEST_LOG("OnPresentationLanguageChanged event triggered ***\n");
             std::unique_lock<std::mutex> lock(m_mutex);
@@ -116,7 +116,7 @@ class NotificationHandler : public Exchange::IUserSettings::INotification {
 
         }
 
-        void onCaptionsChanged(bool enabled) override
+        void OnCaptionsChanged(bool enabled) override
         {
             TEST_LOG("OnCaptionsChanged event triggered ***\n");
             std::unique_lock<std::mutex> lock(m_mutex);
@@ -129,7 +129,7 @@ class NotificationHandler : public Exchange::IUserSettings::INotification {
 
         }
 
-        void onPreferredCaptionsLanguagesChanged(const string& preferredLanguages) override
+        void OnPreferredCaptionsLanguagesChanged(const string& preferredLanguages) override
         {
             TEST_LOG("OnPreferredCaptionsLanguagesChanged event triggered ***\n");
             std::unique_lock<std::mutex> lock(m_mutex);
@@ -141,7 +141,7 @@ class NotificationHandler : public Exchange::IUserSettings::INotification {
 
         }
 
-        void onPreferredClosedCaptionServiceChanged(const string& service) override
+        void OnPreferredClosedCaptionServiceChanged(const string& service) override
         {
             TEST_LOG("OnPreferredClosedCaptionServiceChanged event triggered ***\n");
             std::unique_lock<std::mutex> lock(m_mutex);
@@ -152,7 +152,7 @@ class NotificationHandler : public Exchange::IUserSettings::INotification {
             m_condition_variable.notify_one();
         }
 
-        void onPrivacyModeChanged(const string& privacyMode) override
+        void OnPrivacyModeChanged(const string& privacyMode) override
         {
             TEST_LOG("OnPrivacyModeChanged event triggered ***\n");
             std::unique_lock<std::mutex> lock(m_mutex);
@@ -163,7 +163,7 @@ class NotificationHandler : public Exchange::IUserSettings::INotification {
             m_condition_variable.notify_one();
         }
 
-        void onPinControlChanged(const bool enabled) override
+        void OnPinControlChanged(const bool enabled) override
         {
             TEST_LOG("OnPinControlChanged event triggered ***\n");
             std::unique_lock<std::mutex> lock(m_mutex);
@@ -175,7 +175,7 @@ class NotificationHandler : public Exchange::IUserSettings::INotification {
             m_condition_variable.notify_one();
         }
 
-        void onViewingRestrictionsChanged(const string& viewingRestrictions) override
+        void OnViewingRestrictionsChanged(const string& viewingRestrictions) override
         {
             TEST_LOG("OnViewingRestrictionsChanged event triggered ***\n");
             std::unique_lock<std::mutex> lock(m_mutex);
@@ -187,7 +187,7 @@ class NotificationHandler : public Exchange::IUserSettings::INotification {
 
         }
 
-        void onViewingRestrictionsWindowChanged(const string& viewingRestrictionsWindow) override
+        void OnViewingRestrictionsWindowChanged(const string& viewingRestrictionsWindow) override
         {
             TEST_LOG("OnViewingRestrictionsWindowChanged event triggered ***\n");
             std::unique_lock<std::mutex> lock(m_mutex);
@@ -199,7 +199,7 @@ class NotificationHandler : public Exchange::IUserSettings::INotification {
 
         }
 
-        void onLiveWatershedChanged(const bool enabled) override
+        void OnLiveWatershedChanged(const bool enabled) override
         {
             TEST_LOG("OnLiveWatershedChanged event triggered ***\n");
             std::unique_lock<std::mutex> lock(m_mutex);
@@ -211,7 +211,7 @@ class NotificationHandler : public Exchange::IUserSettings::INotification {
             m_condition_variable.notify_one();
         }
 
-        void onPlaybackWatershedChanged(const bool enabled) override
+        void OnPlaybackWatershedChanged(const bool enabled) override
         {
             TEST_LOG("OnPlaybackWatershedChanged event triggered ***\n");
             std::unique_lock<std::mutex> lock(m_mutex);
@@ -223,7 +223,7 @@ class NotificationHandler : public Exchange::IUserSettings::INotification {
             m_condition_variable.notify_one();
         }
 
-        void onBlockNotRatedContentChanged(const bool enabled) override
+        void OnBlockNotRatedContentChanged(const bool enabled) override
         {
             TEST_LOG("OnBlockNotRatedContentChanged event triggered ***\n");
             std::unique_lock<std::mutex> lock(m_mutex);
@@ -235,7 +235,7 @@ class NotificationHandler : public Exchange::IUserSettings::INotification {
             m_condition_variable.notify_one();
         }
 
-        void onPinOnPurchaseChanged(const bool enabled) override
+        void OnPinOnPurchaseChanged(const bool enabled) override
         {
             TEST_LOG("OnPinOnPurchaseChanged event triggered ***\n");
             std::unique_lock<std::mutex> lock(m_mutex);
@@ -606,7 +606,7 @@ TEST_F(UserSettingTest, VerifyDefaultValues)
                 m_usersettingsplugin->Register(&notification);
 
                 /* defaultBooleanValue should get false and the return status is Core::ERROR_NONE */
-                status = m_usersettingsplugin->getAudioDescription(defaultBooleanValue);
+                status = m_usersettingsplugin->GetAudioDescription(defaultBooleanValue);
                 EXPECT_EQ(defaultBooleanValue, false);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -616,7 +616,7 @@ TEST_F(UserSettingTest, VerifyDefaultValues)
                 }
 
                 /* defaultStrValue should get empty string and the return status is Core::ERROR_NONE */
-                status = m_usersettingsplugin->getPreferredAudioLanguages(defaultStrValue);
+                status = m_usersettingsplugin->GetPreferredAudioLanguages(defaultStrValue);
                 EXPECT_EQ(defaultStrValue, "");
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -626,7 +626,7 @@ TEST_F(UserSettingTest, VerifyDefaultValues)
                 }
 
                 /* defaultStrValue should get empty string and the return status is Core::ERROR_NONE */
-                status = m_usersettingsplugin->getPresentationLanguage(defaultStrValue);
+                status = m_usersettingsplugin->GetPresentationLanguage(defaultStrValue);
                 EXPECT_EQ(defaultStrValue, "");
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -636,7 +636,7 @@ TEST_F(UserSettingTest, VerifyDefaultValues)
                 }
 
                 /* defaultBooleanValue should get false and the return status is Core::ERROR_NONE */
-                status = m_usersettingsplugin->getCaptions(defaultBooleanValue);
+                status = m_usersettingsplugin->GetCaptions(defaultBooleanValue);
                 EXPECT_EQ(defaultBooleanValue, false);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -646,7 +646,7 @@ TEST_F(UserSettingTest, VerifyDefaultValues)
                 }
 
                 /* defaultStrValue should get empty string and the return status is Core::ERROR_NONE */
-                status = m_usersettingsplugin->getPreferredCaptionsLanguages(defaultStrValue);
+                status = m_usersettingsplugin->GetPreferredCaptionsLanguages(defaultStrValue);
                 EXPECT_EQ(defaultStrValue, "");
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -656,7 +656,7 @@ TEST_F(UserSettingTest, VerifyDefaultValues)
                 }
 
                 /* defaultStrValue should get "AUTO" and the return status is Core::ERROR_NONE */
-                status = m_usersettingsplugin->getPreferredClosedCaptionService(defaultStrValue);
+                status = m_usersettingsplugin->GetPreferredClosedCaptionService(defaultStrValue);
                 EXPECT_EQ(defaultStrValue, "AUTO");
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -666,7 +666,7 @@ TEST_F(UserSettingTest, VerifyDefaultValues)
                 }
 
                  /* defaultBooleanValue should get false and the return status is Core::ERROR_NONE */
-                 status = m_usersettingsplugin->getPinControl(defaultBooleanValue);
+                 status = m_usersettingsplugin->GetPinControl(defaultBooleanValue);
                  EXPECT_EQ(defaultBooleanValue, false);
                  EXPECT_EQ(status,Core::ERROR_NONE);
                  if (status != Core::ERROR_NONE)
@@ -677,7 +677,7 @@ TEST_F(UserSettingTest, VerifyDefaultValues)
 
 
                  /* defaultStrValue should get "" and the return status is Core::ERROR_NONE */
-                 status = m_usersettingsplugin->getViewingRestrictions(defaultStrValue);
+                 status = m_usersettingsplugin->GetViewingRestrictions(defaultStrValue);
                  EXPECT_EQ(defaultStrValue, "");
                  EXPECT_EQ(status,Core::ERROR_NONE);
                  if (status != Core::ERROR_NONE)
@@ -687,7 +687,7 @@ TEST_F(UserSettingTest, VerifyDefaultValues)
                  }
 
                  /* defaultStrValue should get "" and the return status is Core::ERROR_NONE */
-                 status = m_usersettingsplugin->getViewingRestrictionsWindow(defaultStrValue);
+                 status = m_usersettingsplugin->GetViewingRestrictionsWindow(defaultStrValue);
                  EXPECT_EQ(defaultStrValue, "");
                  EXPECT_EQ(status,Core::ERROR_NONE);
                  if (status != Core::ERROR_NONE)
@@ -697,7 +697,7 @@ TEST_F(UserSettingTest, VerifyDefaultValues)
                  }
 
                  /* defaultBooleanValue should get false and the return status is Core::ERROR_NONE */
-                 status = m_usersettingsplugin->getLiveWatershed(defaultBooleanValue);
+                 status = m_usersettingsplugin->GetLiveWatershed(defaultBooleanValue);
                  EXPECT_EQ(defaultBooleanValue, false);
                  EXPECT_EQ(status,Core::ERROR_NONE);
                  if (status != Core::ERROR_NONE)
@@ -707,18 +707,7 @@ TEST_F(UserSettingTest, VerifyDefaultValues)
                  }
 
                  /* defaultBooleanValue should get false and the return status is Core::ERROR_NONE */
-                 status = m_usersettingsplugin->getPlaybackWatershed(defaultBooleanValue);
-                 EXPECT_EQ(defaultBooleanValue, false);
-                 EXPECT_EQ(status,Core::ERROR_NONE);
-                 if (status != Core::ERROR_NONE)
-                 {
-                     std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
-                     TEST_LOG("Err: %s", errorMsg.c_str());
-                 }
-
-
-                 /* defaultBooleanValue should get false and the return status is Core::ERROR_NONE */
-                 status = m_usersettingsplugin->getBlockNotRatedContent(defaultBooleanValue);
+                 status = m_usersettingsplugin->GetPlaybackWatershed(defaultBooleanValue);
                  EXPECT_EQ(defaultBooleanValue, false);
                  EXPECT_EQ(status,Core::ERROR_NONE);
                  if (status != Core::ERROR_NONE)
@@ -729,7 +718,18 @@ TEST_F(UserSettingTest, VerifyDefaultValues)
 
 
                  /* defaultBooleanValue should get false and the return status is Core::ERROR_NONE */
-                 status = m_usersettingsplugin->getPinOnPurchase(defaultBooleanValue);
+                 status = m_usersettingsplugin->GetBlockNotRatedContent(defaultBooleanValue);
+                 EXPECT_EQ(defaultBooleanValue, false);
+                 EXPECT_EQ(status,Core::ERROR_NONE);
+                 if (status != Core::ERROR_NONE)
+                 {
+                     std::string errorMsg = "COM-RPC returned error " + std::to_string(status) + " (" + std::string(Core::ErrorToString(status)) + ")";
+                     TEST_LOG("Err: %s", errorMsg.c_str());
+                 }
+
+
+                 /* defaultBooleanValue should get false and the return status is Core::ERROR_NONE */
+                 status = m_usersettingsplugin->GetPinOnPurchase(defaultBooleanValue);
                  EXPECT_EQ(defaultBooleanValue, false);
                  EXPECT_EQ(status,Core::ERROR_NONE);
                  if (status != Core::ERROR_NONE)
@@ -742,7 +742,7 @@ TEST_F(UserSettingTest, VerifyDefaultValues)
                  But we are trying to get PreferredAudioLanguages, which has no entry in db.
                  So GetPreferredAudioLanguages should return the empty string and the return status
                  from Persistant store is  Core::ERROR_UNKNOWN_KEY and return status from usersettings is Core::ERROR_NONE */
-                 status = m_usersettingsplugin->setAudioDescription(defaultBooleanValue);
+                 status = m_usersettingsplugin->SetAudioDescription(defaultBooleanValue);
                  EXPECT_EQ(status,Core::ERROR_NONE);
                  if (status != Core::ERROR_NONE)
                  {
@@ -756,7 +756,7 @@ TEST_F(UserSettingTest, VerifyDefaultValues)
                  /* We are trying to get PreferredAudioLanguages, which has no entry in db.
                  Persistant store returns status as Core::ERROR_UNKNOWN_KEY to UserSettings 
                  GetPreferredAudioLanguages should get the empty string.*/
-                status = m_usersettingsplugin->getPreferredAudioLanguages(defaultStrValue);
+                status = m_usersettingsplugin->GetPreferredAudioLanguages(defaultStrValue);
                 EXPECT_EQ(defaultStrValue, "");
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -768,7 +768,7 @@ TEST_F(UserSettingTest, VerifyDefaultValues)
                 /* We are trying to get PresentationLanguage, which has no entry in db.
                 Persistant store returns status as Core::ERROR_UNKNOWN_KEY to UserSettings 
                 GetPreferredAudioLanguages should get the empty string.*/
-                status = m_usersettingsplugin->getPresentationLanguage(defaultStrValue);
+                status = m_usersettingsplugin->GetPresentationLanguage(defaultStrValue);
                 EXPECT_EQ(defaultStrValue, "");
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -780,7 +780,7 @@ TEST_F(UserSettingTest, VerifyDefaultValues)
                 /* We are trying to get Captions, which has no entry in db.
                 Persistant store returns status as Core::ERROR_UNKNOWN_KEY to UserSettings 
                 GetPreferredAudioLanguages should get the empty string.*/
-                status = m_usersettingsplugin->getCaptions(defaultBooleanValue);
+                status = m_usersettingsplugin->GetCaptions(defaultBooleanValue);
                 EXPECT_EQ(defaultBooleanValue, false);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -792,7 +792,7 @@ TEST_F(UserSettingTest, VerifyDefaultValues)
                 /* We are trying to get PreferredCaptionsLanguages, which has no entry in db.
                 Persistant store returns status as Core::ERROR_UNKNOWN_KEY to UserSettings 
                 GetPreferredAudioLanguages should get the empty string.*/
-                status = m_usersettingsplugin->getPreferredCaptionsLanguages(defaultStrValue);
+                status = m_usersettingsplugin->GetPreferredCaptionsLanguages(defaultStrValue);
                 EXPECT_EQ(defaultStrValue, "");
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -804,7 +804,7 @@ TEST_F(UserSettingTest, VerifyDefaultValues)
                 /* We are trying to get PreferredClosedCaptionService, which has no entry in db.
                 Persistant store returns status as Core::ERROR_UNKNOWN_KEY to UserSettings 
                 GetPreferredAudioLanguages should get the empty string.*/
-                status = m_usersettingsplugin->getPreferredClosedCaptionService(defaultStrValue);
+                status = m_usersettingsplugin->GetPreferredClosedCaptionService(defaultStrValue);
                 EXPECT_EQ(defaultStrValue, "AUTO");
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -814,7 +814,7 @@ TEST_F(UserSettingTest, VerifyDefaultValues)
                 }
 
                 /* defaultBooleanValue should get false and the return status is Core::ERROR_NONE */
-                status = m_usersettingsplugin->getPinControl(defaultBooleanValue);
+                status = m_usersettingsplugin->GetPinControl(defaultBooleanValue);
                 EXPECT_EQ(defaultBooleanValue, false);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -824,7 +824,7 @@ TEST_F(UserSettingTest, VerifyDefaultValues)
                 }
 
                 /* defaultStrValue should get "" and the return status is Core::ERROR_NONE */
-                status = m_usersettingsplugin->getViewingRestrictions(defaultStrValue);
+                status = m_usersettingsplugin->GetViewingRestrictions(defaultStrValue);
                 EXPECT_EQ(defaultStrValue, "");
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -834,7 +834,7 @@ TEST_F(UserSettingTest, VerifyDefaultValues)
                 }
 
                 /* defaultStrValue should get "" and the return status is Core::ERROR_NONE */
-                status = m_usersettingsplugin->getViewingRestrictionsWindow(defaultStrValue);
+                status = m_usersettingsplugin->GetViewingRestrictionsWindow(defaultStrValue);
                 EXPECT_EQ(defaultStrValue, "");
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -844,7 +844,7 @@ TEST_F(UserSettingTest, VerifyDefaultValues)
                 }
 
                 /* defaultBooleanValue should get false and the return status is Core::ERROR_NONE */
-                status = m_usersettingsplugin->getLiveWatershed(defaultBooleanValue);
+                status = m_usersettingsplugin->GetLiveWatershed(defaultBooleanValue);
                 EXPECT_EQ(defaultBooleanValue, false);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -854,7 +854,7 @@ TEST_F(UserSettingTest, VerifyDefaultValues)
                 }
 
                 /* defaultBooleanValue should get false and the return status is Core::ERROR_NONE */
-                status = m_usersettingsplugin->getPlaybackWatershed(defaultBooleanValue);
+                status = m_usersettingsplugin->GetPlaybackWatershed(defaultBooleanValue);
                 EXPECT_EQ(defaultBooleanValue, false);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -864,7 +864,7 @@ TEST_F(UserSettingTest, VerifyDefaultValues)
                 }
 
                 /* defaultBooleanValue should get false and the return status is Core::ERROR_NONE */
-                status = m_usersettingsplugin->getBlockNotRatedContent(defaultBooleanValue);
+                status = m_usersettingsplugin->GetBlockNotRatedContent(defaultBooleanValue);
                 EXPECT_EQ(defaultBooleanValue, false);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -874,7 +874,7 @@ TEST_F(UserSettingTest, VerifyDefaultValues)
                 }
 
                 /* defaultBooleanValue should get false and the return status is Core::ERROR_NONE */
-                status = m_usersettingsplugin->getPinOnPurchase(defaultBooleanValue);
+                status = m_usersettingsplugin->GetPinOnPurchase(defaultBooleanValue);
                 EXPECT_EQ(defaultBooleanValue, false);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -1287,7 +1287,7 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
                 m_usersettingsplugin->Register(&notification);
 
                 TEST_LOG("Setting and Getting AudioDescription Values");
-                status = m_usersettingsplugin->setAudioDescription(true);
+                status = m_usersettingsplugin->SetAudioDescription(true);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
                 {
@@ -1297,7 +1297,7 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
                 signalled = notification.WaitForRequestStatus(JSON_TIMEOUT, UserSettings_onAudioDescriptionChanged);
                 EXPECT_TRUE(signalled & UserSettings_onAudioDescriptionChanged);
 
-                status = m_usersettingsplugin->getAudioDescription(getBoolValue);
+                status = m_usersettingsplugin->GetAudioDescription(getBoolValue);
                 EXPECT_EQ(getBoolValue, true);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -1307,7 +1307,7 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
                 }
 
                 TEST_LOG("Setting and Getting PreferredAudioLanguages Values");
-                status = m_usersettingsplugin->setPreferredAudioLanguages("eng");
+                status = m_usersettingsplugin->SetPreferredAudioLanguages("eng");
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
                 {
@@ -1317,7 +1317,7 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
                 signalled = notification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_onPreferredAudioLanguagesChanged);
                 EXPECT_TRUE(signalled & UserSettings_onPreferredAudioLanguagesChanged);
 
-                status = m_usersettingsplugin->getPreferredAudioLanguages(getStringValue);
+                status = m_usersettingsplugin->GetPreferredAudioLanguages(getStringValue);
                 EXPECT_EQ(getStringValue, "eng");
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -1327,7 +1327,7 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
                 }
 
                 TEST_LOG("Setting and Getting PresentationLanguage Values");
-                status = m_usersettingsplugin->setPresentationLanguage("fra");
+                status = m_usersettingsplugin->SetPresentationLanguage("fra");
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
                 {
@@ -1337,7 +1337,7 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
                 signalled = notification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_onPresentationLanguageChanged);
                 EXPECT_TRUE(signalled & UserSettings_onPresentationLanguageChanged);
 
-                status = m_usersettingsplugin->getPresentationLanguage(getStringValue);
+                status = m_usersettingsplugin->GetPresentationLanguage(getStringValue);
                 EXPECT_EQ(getStringValue, "fra");
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -1348,7 +1348,7 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
 
                 TEST_LOG("Setting and Getting Captions Values");
                 getBoolValue = false;
-                status = m_usersettingsplugin->setCaptions(true);
+                status = m_usersettingsplugin->SetCaptions(true);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
                 {
@@ -1358,7 +1358,7 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
                 signalled = notification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_onCaptionsChanged);
                 EXPECT_TRUE(signalled & UserSettings_onCaptionsChanged);
 
-                status = m_usersettingsplugin->getCaptions(getBoolValue);
+                status = m_usersettingsplugin->GetCaptions(getBoolValue);
                 EXPECT_EQ(getBoolValue, true);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -1368,7 +1368,7 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
                 }
 
                 TEST_LOG("Setting and Getting Captions Values");
-                status = m_usersettingsplugin->setPreferredCaptionsLanguages("en,es");
+                status = m_usersettingsplugin->SetPreferredCaptionsLanguages("en,es");
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
                 {
@@ -1378,7 +1378,7 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
                 signalled = notification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_onPreferredCaptionsLanguagesChanged);
                 EXPECT_TRUE(signalled & UserSettings_onPreferredCaptionsLanguagesChanged);
 
-                status = m_usersettingsplugin->getPreferredCaptionsLanguages(getStringValue);
+                status = m_usersettingsplugin->GetPreferredCaptionsLanguages(getStringValue);
                 EXPECT_EQ(getStringValue, "en,es");
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -1388,7 +1388,7 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
                 }
 
                 TEST_LOG("Setting and Getting PreferredClosedCaptionService Values");
-                status = m_usersettingsplugin->setPreferredClosedCaptionService("CC3");
+                status = m_usersettingsplugin->SetPreferredClosedCaptionService("CC3");
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
                 {
@@ -1398,7 +1398,7 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
                 signalled = notification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_onPreferredClosedCaptionServiceChanged);
                 EXPECT_TRUE(signalled & UserSettings_onPreferredClosedCaptionServiceChanged);
 
-                status = m_usersettingsplugin->getPreferredClosedCaptionService(getStringValue);
+                status = m_usersettingsplugin->GetPreferredClosedCaptionService(getStringValue);
                 EXPECT_EQ(getStringValue, "CC3");
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -1408,7 +1408,7 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
                 }
 
                 TEST_LOG("Setting and Getting PinControl Values");
-                status = m_usersettingsplugin->setPinControl(true);
+                status = m_usersettingsplugin->SetPinControl(true);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
                 {
@@ -1418,7 +1418,7 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
                 signalled = notification.WaitForRequestStatus(JSON_TIMEOUT, UserSettings_onPinControlChanged);
                 EXPECT_TRUE(signalled & UserSettings_onPinControlChanged);
 
-                status = m_usersettingsplugin->getPinControl(getBoolValue);
+                status = m_usersettingsplugin->GetPinControl(getBoolValue);
                 EXPECT_EQ(getBoolValue, true);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -1428,7 +1428,7 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
                 }
                 string viewRes = "{\"restrictions\": [{\"scheme\": \"US_TV\", \"restrict\": [\"TV-Y7/FV\"]}, {\"scheme\": \"MPAA\", \"restrict\": []}]}";
                 TEST_LOG("Setting and Getting ViewingRestrictions Values");
-                status = m_usersettingsplugin->setViewingRestrictions(viewRes);
+                status = m_usersettingsplugin->SetViewingRestrictions(viewRes);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
                 {
@@ -1438,7 +1438,7 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
                 signalled = notification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_onViewingRestrictionsChanged);
                 EXPECT_TRUE(signalled & UserSettings_onViewingRestrictionsChanged);
 
-                status = m_usersettingsplugin->getViewingRestrictions(getStringValue);
+                status = m_usersettingsplugin->GetViewingRestrictions(getStringValue);
                 EXPECT_EQ(getStringValue, viewRes);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -1448,7 +1448,7 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
                 }
 
                 TEST_LOG("Setting and Getting ViewingRestrictionsWindow Values");
-                status = m_usersettingsplugin->setViewingRestrictionsWindow("ALWAYS");
+                status = m_usersettingsplugin->SetViewingRestrictionsWindow("ALWAYS");
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
                 {
@@ -1458,7 +1458,7 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
                 signalled = notification.WaitForRequestStatus(JSON_TIMEOUT,UserSettings_onViewingRestrictionsWindowChanged);
                 EXPECT_TRUE(signalled & UserSettings_onViewingRestrictionsWindowChanged);
 
-                status = m_usersettingsplugin->getViewingRestrictionsWindow(getStringValue);
+                status = m_usersettingsplugin->GetViewingRestrictionsWindow(getStringValue);
                 EXPECT_EQ(getStringValue, "ALWAYS");
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -1468,7 +1468,7 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
                 }
 
                 TEST_LOG("Setting and Getting LiveWatershed Values");
-                status = m_usersettingsplugin->setLiveWatershed(true);
+                status = m_usersettingsplugin->SetLiveWatershed(true);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
                 {
@@ -1478,7 +1478,7 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
                 signalled = notification.WaitForRequestStatus(JSON_TIMEOUT, UserSettings_onLiveWatershedChanged);
                 EXPECT_TRUE(signalled & UserSettings_onLiveWatershedChanged);
 
-                status = m_usersettingsplugin->getLiveWatershed(getBoolValue);
+                status = m_usersettingsplugin->GetLiveWatershed(getBoolValue);
                 EXPECT_EQ(getBoolValue, true);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -1488,7 +1488,7 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
                 }
 
                 TEST_LOG("Setting and Getting PlaybackWatershed Values");
-                status = m_usersettingsplugin->setPlaybackWatershed(true);
+                status = m_usersettingsplugin->SetPlaybackWatershed(true);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
                 {
@@ -1498,7 +1498,7 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
                 signalled = notification.WaitForRequestStatus(JSON_TIMEOUT, UserSettings_onPlaybackWatershedChanged);
                 EXPECT_TRUE(signalled & UserSettings_onPlaybackWatershedChanged);
 
-                status = m_usersettingsplugin->getPlaybackWatershed(getBoolValue);
+                status = m_usersettingsplugin->GetPlaybackWatershed(getBoolValue);
                 EXPECT_EQ(getBoolValue, true);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -1508,7 +1508,7 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
                 }
 
                 TEST_LOG("Setting and Getting BlockNotRatedContent Values");
-                status = m_usersettingsplugin->setBlockNotRatedContent(true);
+                status = m_usersettingsplugin->SetBlockNotRatedContent(true);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
                 {
@@ -1518,7 +1518,7 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
                 signalled = notification.WaitForRequestStatus(JSON_TIMEOUT, UserSettings_onBlockNotRatedContentChanged);
                 EXPECT_TRUE(signalled & UserSettings_onBlockNotRatedContentChanged);
 
-                status = m_usersettingsplugin->getBlockNotRatedContent(getBoolValue);
+                status = m_usersettingsplugin->GetBlockNotRatedContent(getBoolValue);
                 EXPECT_EQ(getBoolValue, true);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -1528,7 +1528,7 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
                 }
 
                 TEST_LOG("Setting and Getting PinOnPurchase Values");
-                status = m_usersettingsplugin->setPinOnPurchase(true);
+                status = m_usersettingsplugin->SetPinOnPurchase(true);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
                 {
@@ -1538,7 +1538,7 @@ TEST_F(UserSettingTest,SetAndGetMethodsUsingComRpcConnectionSuccessCase)
                 signalled = notification.WaitForRequestStatus(JSON_TIMEOUT, UserSettings_onPinOnPurchaseChanged);
                 EXPECT_TRUE(signalled & UserSettings_onPinOnPurchaseChanged);
 
-                status = m_usersettingsplugin->getPinOnPurchase(getBoolValue);
+                status = m_usersettingsplugin->GetPinOnPurchase(getBoolValue);
                 EXPECT_EQ(getBoolValue, true);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
@@ -1587,7 +1587,7 @@ TEST_F(UserSettingTest, NoDBFileInPersistentstoreErrorCase)
                 m_usersettingsplugin->Register(&notification);
 
                 TEST_LOG("Setting and Getting AudioDescription Values");
-                status = m_usersettingsplugin->setAudioDescription(true);
+                status = m_usersettingsplugin->SetAudioDescription(true);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
                 {
@@ -1597,12 +1597,12 @@ TEST_F(UserSettingTest, NoDBFileInPersistentstoreErrorCase)
                 signalled = notification.WaitForRequestStatus(JSON_TIMEOUT, UserSettings_onAudioDescriptionChanged);
                 EXPECT_TRUE(signalled & UserSettings_onAudioDescriptionChanged);
 
-                status = m_usersettingsplugin->getAudioDescription(getBoolValue);
+                status = m_usersettingsplugin->GetAudioDescription(getBoolValue);
                 EXPECT_EQ(getBoolValue, true);
                 EXPECT_EQ(status, Core::ERROR_NONE);
 
                 TEST_LOG("Setting and Getting PinControl Values");
-                status = m_usersettingsplugin->setPinControl(true);
+                status = m_usersettingsplugin->SetPinControl(true);
                 EXPECT_EQ(status,Core::ERROR_NONE);
                 if (status != Core::ERROR_NONE)
                 {
@@ -1612,7 +1612,7 @@ TEST_F(UserSettingTest, NoDBFileInPersistentstoreErrorCase)
                 signalled = notification.WaitForRequestStatus(JSON_TIMEOUT, UserSettings_onPinControlChanged);
                 EXPECT_TRUE(signalled & UserSettings_onPinControlChanged);
 
-                status = m_usersettingsplugin->getPinControl(getBoolValue);
+                status = m_usersettingsplugin->GetPinControl(getBoolValue);
                 EXPECT_EQ(getBoolValue, true);
                 EXPECT_EQ(status, Core::ERROR_NONE);
 
@@ -1633,24 +1633,24 @@ TEST_F(UserSettingTest, NoDBFileInPersistentstoreErrorCase)
                 }
 
                 TEST_LOG("Setting and Getting AudioDescription Values after DB file deletion");
-                status = m_usersettingsplugin->setAudioDescription(false);
+                status = m_usersettingsplugin->SetAudioDescription(false);
                 EXPECT_EQ(status, Core::ERROR_GENERAL);
 
                 signalled = notification.WaitForRequestStatus(JSON_TIMEOUT, UserSettings_onAudioDescriptionChanged);
                 EXPECT_TRUE(signalled & UserSettings_onAudioDescriptionChanged);
 
-                status = m_usersettingsplugin->getAudioDescription(getBoolValue);
+                status = m_usersettingsplugin->GetAudioDescription(getBoolValue);
                 EXPECT_EQ(getBoolValue, true);
                 EXPECT_EQ(status, Core::ERROR_NONE);
 
                 TEST_LOG("Setting and Getting setPinControl Values after DB file deletion");
-                status = m_usersettingsplugin->setPinControl(false);
+                status = m_usersettingsplugin->SetPinControl(false);
                 EXPECT_EQ(status, Core::ERROR_GENERAL);
 
                 signalled = notification.WaitForRequestStatus(JSON_TIMEOUT, UserSettings_onPinControlChanged);
                 EXPECT_TRUE(signalled & UserSettings_onPinControlChanged);
 
-                status = m_usersettingsplugin->getPinControl(getBoolValue);
+                status = m_usersettingsplugin->GetPinControl(getBoolValue);
                 EXPECT_EQ(getBoolValue, true);
                 EXPECT_EQ(status, Core::ERROR_NONE);
 
@@ -1798,24 +1798,24 @@ TEST_F(UserSettingTest, PersistentstoreIsNotActivatedWhileUserSettingsActivating
                 m_usersettingsplugin->Register(&notification);
 
                 TEST_LOG("Setting and Getting AudioDescription Values");
-                status = m_usersettingsplugin->setAudioDescription(true);
+                status = m_usersettingsplugin->SetAudioDescription(true);
                 EXPECT_EQ(status,Core::ERROR_GENERAL);
 
                 signalled = notification.WaitForRequestStatus(JSON_TIMEOUT, UserSettings_onAudioDescriptionChanged);
                 EXPECT_FALSE(signalled & UserSettings_onAudioDescriptionChanged);
 
-                status = m_usersettingsplugin->getAudioDescription(getBoolValue);
+                status = m_usersettingsplugin->GetAudioDescription(getBoolValue);
                 EXPECT_EQ(getBoolValue, false);
                 EXPECT_EQ(status, Core::ERROR_GENERAL);
 
                 TEST_LOG("Setting and Getting PinControl Values");
-                status = m_usersettingsplugin->setPinControl(true);
+                status = m_usersettingsplugin->SetPinControl(true);
                 EXPECT_EQ(status,Core::ERROR_GENERAL);
 
                 signalled = notification.WaitForRequestStatus(JSON_TIMEOUT, UserSettings_onPinControlChanged);
                 EXPECT_FALSE(signalled & UserSettings_onPinControlChanged);
 
-                status = m_usersettingsplugin->getPinControl(getBoolValue);
+                status = m_usersettingsplugin->GetPinControl(getBoolValue);
                 EXPECT_EQ(getBoolValue, false);
                 EXPECT_EQ(status, Core::ERROR_GENERAL);
 
