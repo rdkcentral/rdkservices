@@ -47,8 +47,9 @@ if(PLUGIN_USERSETTINGS)
     set(SRC_FILES ${SRC_FILES} tests/UserSettings_L2Test.cpp)
 endif()
 
-set(SRC_FILES ${SRC_FILES} tests/SystemMode_L2Test.cpp)
-
+if(PLUGIN_SYSTEMMODE)
+    set(SRC_FILES ${SRC_FILES} tests/SystemMode_L2Test.cpp)
+endif()
 add_library(${MODULE_NAME} SHARED ${SRC_FILES})
 
 set_target_properties(${MODULE_NAME} PROPERTIES
