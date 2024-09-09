@@ -25,7 +25,7 @@ using namespace std;
 class cTimer{
     private:
         bool clear;
-        bool isActive;
+        bool active;
         int interval;
         void (*callBack_function)() = NULL;
         std::thread timerThread;

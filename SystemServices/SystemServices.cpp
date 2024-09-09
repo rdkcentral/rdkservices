@@ -1415,12 +1415,6 @@ namespace WPEFramework {
                     LOGWARN("request to switch to mode '%s' from mode '%s' \
                             with duration %d\n", newMode.c_str(),
                             oldMode.c_str(), duration);
-                    if(MODE_WAREHOUSE == newMode && MODE_WAREHOUSE == m_currentMode)
-                    {
-                        populateResponseWithError(SysSrv_ModeAlreadySet, response);
-                        LOGERR("Warehouse mode is already set, therefore current mode '%s' not changed.\n", oldMode.c_str());
-                        returnResponse(false);
-                    }
                     if (MODE_NORMAL != newMode && MODE_WAREHOUSE != newMode &&
                             MODE_EAS != newMode) {
                         LOGERR("value of new mode is incorrect, therefore \

@@ -26,7 +26,7 @@
 cTimer::cTimer()
 {
     clear = false;
-    isActive = false;
+    active = false;
     interval = 0;
 }
 
@@ -43,15 +43,15 @@ cTimer::~cTimer()
 Running this timer function as thread function
 */
 void cTimer::timerFunction() {
-    this->isActive = true;
+    this->active = true;
     while (true) {
         if (this->clear) {
-            this->isActive = false;
+            this->active = false;
             return;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(interval));
         if (this->clear) {
-            this->isActive = false;
+            this->active = false;
             return;
         }
         this->callBack_function();
@@ -82,7 +82,7 @@ void cTimer::stop()
 
 bool cTimer::isActive()
 {
-    return this->isActive;
+    return this->active;
 }
 
 void cTimer::detach()
