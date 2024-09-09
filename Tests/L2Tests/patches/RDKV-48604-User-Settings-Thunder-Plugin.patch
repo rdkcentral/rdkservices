@@ -4,12 +4,10 @@ Date:   Fri Sep 6 12:49:05 2024 +0530
 
     RDK-48604: New UserSettings Thunder Plugin
 
-diff --git a/interfaces/IUserSettings.h b/interfaces/IUserSettings.h
-new file mode 100755
-index 0000000..9353f6d
---- /dev/null
-+++ b/interfaces/IUserSettings.h
-@@ -0,0 +1,281 @@
+diff -uprN a/interfaces/IUserSettings.h b/interfaces/IUserSettings.h
+--- a/interfaces/IUserSettings.h	1970-01-01 03:00:00.000000000 +0300
++++ b/interfaces/IUserSettings.h	2024-09-10 00:29:26.214410833 +0300
+@@ -0,0 +1,330 @@
 +/*
 + * If not stated otherwise in this file or this component's LICENSE file the
 + * following copyright and licenses apply:
@@ -73,12 +71,7 @@ index 0000000..9353f6d
 +    // @param service: "CC[1-4]", "TEXT[1-4]", "SERVICE[1-64]".
 +    virtual void OnPreferredClosedCaptionServiceChanged(const string& service) = 0;
 +
-+    // @text onPrivacyModeChanged
-+    // @brief The PrivacyMode setting has changed.
-+    // @param privacyMode: "SHARE", "DO_NOT_SHARE".
-+    virtual void OnPrivacyModeChanged(const string& privacyMode /* @text privacyMode */) = 0;
-+
-+    // @text onPinControlChanged
++    // @alt onPinControlChanged
 +    // @brief The PinControl setting has changed.
 +    // @param enabled: Enabled/Disabled.
 +    virtual void OnPinControlChanged(const bool enabled) = 0;
@@ -198,19 +191,7 @@ index 0000000..9353f6d
 +  // @param service: Identifies the service to display e.g. "CC3".
 +  virtual uint32_t GetPreferredClosedCaptionService(string &service /* @out */) const = 0;
 +
-+  // @text setPrivacyMode
-+  // @brief Sets the PrivacyMode.
-+  // @details The setting should be honored by the Telemetry.
-+  // If privacyMode is "DO_NOT_SHARE", logs and crash report should not be uploaded.
-+  // @param privacyMode: "SHARE", "DO_NOT_SHARE"
-+  virtual uint32_t SetPrivacyMode(const string& privacyMode /* @in @text privacyMode*/) = 0;
-+
-+  // @text getPrivacyMode
-+  // @brief Gets the current PrivacyMode setting.
-+  // @param privacyMode: "SHARE"
-+  virtual uint32_t GetPrivacyMode(string &privacyMode /* @out @text privacyMode */) const = 0;
-+
-+  // @text setPinControl
++  // @alt setPinControl
 +  // @brief Sets PinControl ON/OFF. Parental Control as a whole is enabled or disabled.
 +  // @param enabled: Enabled/Disabled
 +  virtual uint32_t SetPinControl(const bool enabled /* @in */) = 0;
@@ -290,6 +271,72 @@ index 0000000..9353f6d
 +};
 +} // namespace Exchange
 +} // namespace WPEFramework
++
++
++#ifndef SUPPORT_CAMEL_CASE_JSON_APIS
++
++/* JUserSettings.h will be generated with auto generated tool and it is calling _impl_(object of IUserSettings.h) methods
++   starting with Capital letters,which will cause compilation error as IUserSettings interface method names are starting with
++   small letters.
++   To avoid the compilation error we have added below macros, which will replace method names as below in JUserSettings.h
++   Eg: Setxxxx replaced with setxxxx */
++
++/* Set and Get methods macros */
++#define SetAudioDescription setAudioDescription
++#define GetAudioDescription getAudioDescription
++
++#define SetPreferredAudioLanguages setPreferredAudioLanguages
++#define GetPreferredAudioLanguages getPreferredAudioLanguages
++
++#define SetPresentationLanguage setPresentationLanguage
++#define GetPresentationLanguage getPresentationLanguage
++
++#define SetCaptions setCaptions
++#define GetCaptions getCaptions
++
++#define SetPreferredCaptionsLanguages setPreferredCaptionsLanguages
++#define GetPreferredCaptionsLanguages getPreferredCaptionsLanguages
++
++#define SetPreferredClosedCaptionService setPreferredClosedCaptionService
++#define GetPreferredClosedCaptionService getPreferredClosedCaptionService
++
++#define SetPinControl setPinControl
++#define GetPinControl getPinControl
++
++#define SetViewingRestrictions setViewingRestrictions
++#define GetViewingRestrictions getViewingRestrictions
++
++#define SetViewingRestrictionsWindow setViewingRestrictionsWindow
++#define GetViewingRestrictionsWindow getViewingRestrictionsWindow
++
++#define SetLiveWatershed setLiveWatershed
++#define GetLiveWatershed getLiveWatershed
++
++#define SetPlaybackWatershed setPlaybackWatershed
++#define GetPlaybackWatershed getPlaybackWatershed
++
++#define SetBlockNotRatedContent setBlockNotRatedContent
++#define GetBlockNotRatedContent getBlockNotRatedContent
++
++#define SetPinOnPurchase setPinOnPurchase
++#define GetPinOnPurchase getPinOnPurchase
++
++/* Event names macros*/
++#define OnAudioDescriptionChanged onAudioDescriptionChanged
++#define OnPreferredAudioLanguagesChanged onPreferredAudioLanguagesChanged
++#define OnPresentationLanguageChanged onPresentationLanguageChanged
++#define OnCaptionsChanged onCaptionsChanged
++#define OnPreferredCaptionsLanguagesChanged onPreferredCaptionsLanguagesChanged
++#define OnPreferredClosedCaptionServiceChanged onPreferredClosedCaptionServiceChanged
++#define OnPinControlChanged onPinControlChanged
++#define OnViewingRestrictionsChanged onViewingRestrictionsChanged
++#define OnViewingRestrictionsWindowChanged onViewingRestrictionsWindowChanged
++#define OnLiveWatershedChanged onLiveWatershedChanged
++#define OnPlaybackWatershedChanged onPlaybackWatershedChanged
++#define OnBlockNotRatedContentChanged onBlockNotRatedContentChanged
++#define OnPinOnPurchaseChanged onPinOnPurchaseChanged
++
++#endif
 +
 diff --git a/interfaces/Ids.h b/interfaces/Ids.h
 index a37db24..293dd73 100644
