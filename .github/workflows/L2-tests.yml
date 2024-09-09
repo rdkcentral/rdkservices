@@ -117,7 +117,8 @@ jobs:
         run: >
               cd "${{github.workspace}}/ThunderInterfaces"
               &&
-              git apply "/home/runner/work/rdkservices/rdkservices/rdkservices/Tests/L2Tests/patches/0001-Add-TextToSpeech-Interface.patch" && \
+              git apply "/home/runner/work/rdkservices/rdkservices/rdkservices/Tests/L2Tests/patches/0001-Add-TextToSpeech-Interface.patch"
+              &&
               git apply "/home/runner/work/rdkservices/rdkservices/rdkservices/Tests/L2Tests/patches/SystemMode_28_L2-tests.patch"
               
 
