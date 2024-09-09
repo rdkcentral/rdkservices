@@ -3,7 +3,7 @@
     "jsonrpc": "2.0",
     "info": {
         "title": "System API", 
-        "class": "SystemServices",
+        "class": "org.rdk.System",
         "description": "The `System` plugin is used to manage various system-level features such as power settings and firmware updates."
     },
     "common": {
@@ -1944,6 +1944,35 @@
                     "success"
                 ]
             }
+        },
+        "SetPrivacyMode": {
+            "summary": "Setting Privacy Mode.",          
+            "events": {
+                "onPrivacyModeChanged" : "Triggered when the Privacy Mode changes."
+            },
+            "params": {
+                "type": "object",
+                "properties": {
+                    "privacyMode": {
+                        "summary": "New Privacy Mode",
+                        "type": "string",
+                        "example": "DO_NOT_SHARE"
+                    }
+                }
+            },
+            "result": {
+                "summary": "On success null will be returned",
+                "type": "string",
+                "example": "null"
+            }
+        },
+        "getPrivacyMode":{
+            "summary": "Getting Privacy Mode",
+            "result": {
+                "summary": "Current Privacy Mode",
+                "type": "string",
+                "example": "DO_NOT_SHARE"
+            }
         }
     },
     "events": {
@@ -2275,7 +2304,7 @@
                 },
                 "success":{
                     "summary": "Status information of update whether success or failure",
-                    "type":"bool",
+                    "type":"boolean",
                     "example": "true"
                 }
                                 },
@@ -2338,6 +2367,22 @@
                 },
                 "required":[
                     "logUploadStatus"
+                ]
+            }
+        },
+        "onPrivacyModeChanged": {
+            "summary": "Triggered after the Privacy Mode changes (see `SetPrivacyMode`)",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "privacyMode":{
+                        "summary": "Receive Privacy Mode changes",
+                        "type": "string",
+                        "example": "DO_NOT_SHARE"
+                    }
+                },
+                "required": [
+                    "privacyMode"
                 ]
             }
         }
