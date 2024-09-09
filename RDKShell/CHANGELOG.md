@@ -16,6 +16,11 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+
+## [1.6.5] - 2024-09-09
+### Added
+- Added for response is getting empty on launching DAC application
+
 ## [1.6.4] - 2024-09-05
 ### Added
 - Fix to activate RA after the Graphics subsystem, handle mutex
