@@ -30,10 +30,6 @@
 #include <core/core.h>
 #include <plugins/plugins.h>
 
-#ifdef HAS_RBUS
-#include "rbus.h"
-#endif
-
 #define USERSETTINGS_NAMESPACE "UserSettings"
 
 #define USERSETTINGS_AUDIO_DESCRIPTION_KEY                    "audioDescription"
@@ -42,7 +38,6 @@
 #define USERSETTINGS_CAPTIONS_KEY                             "captions"
 #define USERSETTINGS_PREFERRED_CAPTIONS_LANGUAGES_KEY         "preferredCaptionsLanguages"
 #define USERSETTINGS_PREFERRED_CLOSED_CAPTIONS_SERVICE_KEY    "preferredClosedCaptionsService"
-#define USERSETTINGS_PRIVACY_MODE_KEY                         "privacyMode"
 #define USERSETTINGS_PIN_CONTROL_KEY                          "pinControl"
 #define USERSETTINGS_VIEWING_RESTRICTIONS_KEY                 "viewingRestrictions"
 #define USERSETTINGS_VIEWING_RESTRICTIONS_WINDOW_KEY          "viewingRestrictionsWindow"
@@ -108,7 +103,6 @@ namespace Plugin {
                 CAPTIONS_CHANGED,
                 PREFERRED_CAPTIONS_LANGUAGE_CHANGED,
                 PREFERRED_CLOSED_CAPTIONS_SERVICE_CHANGED,
-                PRIVACY_MODE_CHANGED,
                 PIN_CONTROL_CHANGED,
                 VIEWING_RESTRICTIONS_CHANGED,
                 VIEWING_RESTRICTIONS_WINDOW_CHANGED,
@@ -172,8 +166,6 @@ namespace Plugin {
         uint32_t getPreferredCaptionsLanguages(string &preferredLanguages) const override;
         uint32_t setPreferredClosedCaptionService(const string& service) override;
         uint32_t getPreferredClosedCaptionService(string &service) const override;
-        uint32_t setPrivacyMode(const string& privacyMode) override;
-        uint32_t getPrivacyMode(string &privacyMode) const override;
         uint32_t setPinControl(const bool enabled) override;
         uint32_t getPinControl(bool &enabled) const override;
         uint32_t setViewingRestrictions(const string& viewingRestrictions) override;
@@ -206,10 +198,6 @@ namespace Plugin {
         Core::Sink<Store2Notification> _storeNotification;
         bool _registeredEventHandlers;
 
-#ifdef HAS_RBUS
-        rbusError_t _rbusHandleStatus;
-        rbusHandle_t _rbusHandle;
-#endif
         void dispatchEvent(Event, const JsonValue &params);
         void Dispatch(Event event, const JsonValue params);
 
