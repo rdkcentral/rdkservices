@@ -966,7 +966,7 @@ namespace Plugin {
         bool reset = !(action.compare("reset"));
         bool set = !(action.compare("set"));
 
-        LOGINFO("%s: Entry param : %s Action : %s pqmode : %s source :%s format :%s\n",__FUNCTION__,tr181ParamName.c_str(),action.c_str(),info.pqmode.c_str(),info.source.c_str(),info.format.c_str() );
+        LOGINFO("%s: Entry param : %s Action : %s pqmode : %s source :%s format :%s color:%s component:%s control:%s\n",__FUNCTION__,tr181ParamName.c_str(),action.c_str(),info.pqmode.c_str(),info.source.c_str(),info.format.c_str(),info.color.c_str(),info.component.c_str(),info.control.c_str() );
         ret = getSaveConfig(tr181ParamName,info, values);
         if( 0 == ret ) {
             for( int sourceType: values.sourceValues ) {
@@ -1080,7 +1080,6 @@ namespace Plugin {
 			                                }
                                             level=value;
                                         }
-
                                         ret |= SaveCMS((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,(tvComponentType_t)paramIndex.componentIndex,(tvDataComponentColor_t)paramIndex.colorIndex,level);
 
                                         if(set) {
@@ -2052,19 +2051,17 @@ namespace Plugin {
         for ( int component = COMP_HUE; component < COMP_MAX;component++) {
             for(int count = 0;count < (int)(sizeof(colors)/sizeof(colors[0])); ++count) {
 
-                LOGINFO("Tamil : Component : %d color : %d\n",component,count);
 		        tvDataComponentColor_t color = colors[count];
 			
 			    std::string componentString = getCMSComponentStringFromEnum((tvComponentType_t)component);
 			    std::string colorString = getCMSColorStringFromEnum((tvDataComponentColor_t)color);
 			    cmsParam = componentString+"."+colorString;
-                LOGINFO("Tamil : cmsparam : %s\n",cmsParam.c_str());
 			
 			    if ( convertCMSParamToPQEnum(componentString,colorString,tvPQEnum) != 0 ) {
                     LOGINFO("%s: %s/%s Param Not Found \n",__FUNCTION__,componentString.c_str(),componentString.c_str());
                     continue;
                 }
-			    LOGINFO("Tamil : Enum : %d\n",tvPQEnum);
+
                 inputInfo.color = colorString;
                 inputInfo.component = componentString;
 			    if( !updateAVoutputTVParam("sync","CMS", inputInfo,tvPQEnum,level))
