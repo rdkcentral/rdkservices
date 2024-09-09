@@ -71,7 +71,9 @@ if(PLUGIN_CONTROLSERVICE)
     add_subdirectory(ControlService)
 endif()
 
-add_subdirectory(SystemMode)
+if(PLUGIN_SYSTEMMODE)
+    add_subdirectory(SystemMode)
+endif()
 
 if(PLUGIN_USERSETTINGS)
     add_subdirectory(UserSettings)
