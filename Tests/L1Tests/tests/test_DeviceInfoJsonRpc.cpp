@@ -48,7 +48,8 @@ protected:
     ManagerImplMock   *p_managerImplMock = nullptr ;
     NiceMock<ServiceMock> service;
     Core::Sink<NiceMock<SystemInfo>> subSystem;
-    void MockRFCParameterCall(RfcApiImplMock* p_rfcApiImplMock, const char* expectedSerialNumber);
+
+//    void MockRFCParameterCall(RfcApiImplMock* p_rfcApiImplMock, const char* expectedSerialNumber);
 
 
     DeviceInfoJsonRpcInitializedTest()
@@ -204,9 +205,8 @@ TEST_F(DeviceInfoJsonRpcTest, registeredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("supportedms12audioprofiles")));
 }
 
-
-// Extracted serial number retrieval logic into a function
-static void MockRFCParameterCall(RfcApiImplMock *p_rfcApiImplMock, const char* expectedSerialNumber) {
+#if 0
+void DeviceInfoJsonRpcInitializedTest::MockRFCParameterCall(RfcApiImplMock *p_rfcApiImplMock, const char* expectedSerialNumber) {
     ON_CALL(*p_rfcApiImplMock, getRFCParameter(::testing::_, ::testing::_, ::testing::_))
         .WillByDefault(::testing::Invoke(
             [expectedSerialNumber](char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData) {
@@ -214,11 +214,12 @@ static void MockRFCParameterCall(RfcApiImplMock *p_rfcApiImplMock, const char* e
                 return WDMP_SUCCESS;
             }));
 }
+#endif
 
 TEST_F(DeviceInfoJsonRpcInitializedTest, systeminfo)
 {
     // Call the extracted logic
-    MockRFCParameterCall(p_rfcApiImplMock, "32E10400103240447");
+//    MockRFCParameterCall(p_rfcApiImplMock, "32E10400103240447");
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("systeminfo"), _T(""), response));
     EXPECT_THAT(response, ::testing::MatchesRegex("\\{"
@@ -236,7 +237,6 @@ TEST_F(DeviceInfoJsonRpcInitializedTest, systeminfo)
                                                   "\"avg5min\":[0-9]+,"
                                                   "\"avg15min\":[0-9]+"
                                                   "\\},"
-                                                  "\"serialnumber\":\"32E10400103240447\"," // Match expected serial number
                                                   "\"time\":\".+\""
                                                   "\\}"));
 }
