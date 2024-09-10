@@ -104,7 +104,7 @@ namespace Plugin {
                     Exchange::JUserSettings::Event::OnPreferredClosedCaptionServiceChanged(_parent, service);
                 }
 
-                void onPinControlChanged(const bool enabled) override
+                void OnPinControlChanged(const bool enabled) override
                 {
                     LOGINFO("PinControlChanged: %d\n", enabled);
                     Exchange::JUserSettings::Event::OnPinControlChanged(_parent, enabled);
