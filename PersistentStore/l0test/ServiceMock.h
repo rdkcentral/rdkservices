@@ -53,6 +53,7 @@ public:
     MOCK_METHOD(void, Unregister, (const IShell::ICOMLink::INotification*), (override));
     MOCK_METHOD(WPEFramework::RPC::IRemoteConnection*, RemoteConnection, (const uint32_t), (override));
     MOCK_METHOD(void*, Instantiate, (const WPEFramework::RPC::Object&, const uint32_t, uint32_t&), (override));
+    MOCK_METHOD(WPEFramework::RPC::IStringIterator*, GetLibrarySearchPaths, (const string&), (const, override));
     BEGIN_INTERFACE_MAP(ServiceMock)
     INTERFACE_ENTRY(IShell)
     INTERFACE_ENTRY(IShell::ICOMLink)
