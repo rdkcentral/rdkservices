@@ -179,7 +179,7 @@ namespace Plugin {
         uint32_t SetBlockNotRatedContent(const bool enabled) override;
         uint32_t GetBlockNotRatedContent(bool &enabled) const override;
         uint32_t SetPinOnPurchase(const bool enabled) override;
-        uint32_t GetPinOnPurchase(bool &enabled) const override;        
+        uint32_t GetPinOnPurchase(bool &enabled) const override;
 
         void registerEventHandlers();
         void ValueChanged(const Exchange::IStore2::ScopeType scope, const string& ns, const string& key, const string& value);
