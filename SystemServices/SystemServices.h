@@ -128,7 +128,6 @@ namespace WPEFramework {
                 std::string m_current_state;
                 static cTimer m_operatingModeTimer;
                 static int m_remainingDuration;
-                std::recursive_mutex m_ModeSync;
                 Utils::ThreadRAII m_getFirmwareInfoThread;
                 PluginHost::IShell* m_shellService { nullptr };
                 regex_t m_regexUnallowedChars;
