@@ -554,7 +554,7 @@ uint32_t UserSettingsImplementation::GetPreferredClosedCaptionService(string &se
     return status;
 }
 
-uint32_t UserSettingsImplementation::setPinControl(const bool enabled)
+uint32_t UserSettingsImplementation::SetPinControl(const bool enabled)
 {
     uint32_t status = Core::ERROR_GENERAL;
 
