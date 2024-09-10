@@ -1307,7 +1307,7 @@ namespace Plugin {
     uint32_t AVOutputTV::generateStorageIdentifierWB(std::string &key, std::string forParam, paramIndex_t info)
     {
         key+=std::string(AVOUTPUT_GENERIC_STRING_RFC_PARAM);
-        key+=STRING_SOURCE+convertSourceIndexToString(info.sourceIndex)+std::string(".")+STRING_PICMODE+convertPictureIndexToString(info.pqmodeIndex)+std::string(".")+std::string(STRING_FORMAT)+convertVideoFormatToString(info.formatIndex)+std::string(".")+STRING_COLORTEMPERATURE+getColorTemperatureStringFromEnum((tvColorTemp_t)info.colorTempIndex)+std::string(".")+STRING_COLOR+getWBColorStringFromEnum((tvWBColor_t)info.colorIndex)+std::string(".")+STRING_CONTROL+getWBControlStringFromEnum((tvWBControl_t)info.controlIndex)+std::string(".")+forParam;
+        key+=STRING_SOURCE+convertSourceIndexToString(info.sourceIndex)+std::string(".")+STRING_PICMODE+convertPictureIndexToString(info.pqmodeIndex)+std::string(".")+std::string(STRING_FORMAT)+convertVideoFormatToString(info.formatIndex)+std::string(".")+std::string(".")+STRING_COLOR+getWBColorStringFromEnum((tvWBColor_t)info.colorIndex)+std::string(".")+STRING_CONTROL+getWBControlStringFromEnum((tvWBControl_t)info.controlIndex)+std::string(".")+forParam;
         return tvERROR_NONE;
     }
 
@@ -2342,16 +2342,14 @@ namespace Plugin {
                 info.component = inFile.Get<std::string>(configString);
             }
 
-            if(param == "Whitebalance")
+            if(param == "WhiteBalance")
             {
                 configString = param + ".color";
                 info.color = inFile.Get<std::string>(configString);
 
                 configString = param + ".control";
-                info.component = inFile.Get<std::string>(configString);
+                info.control = inFile.Get<std::string>(configString);
 
-                configString = param + ".colorTemperature";
-                info.colorTemperature =  inFile.Get<std::string>(configString);
             }
 
             if ((param == "DolbyVisionMode") || (param == "Backlight") || (param == "CMS") || (param == "WhiteBalance") ) {

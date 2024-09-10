@@ -3472,7 +3472,6 @@ namespace Plugin {
         capDetails_t inputInfo;
         int level = 0;
         tvPQParameterIndex_t tvPQEnum;
-        tvColorTempSourceOffset_t colorTempSourceEnum;
         int retVal = 0;
         std::string color,control,value;
         tvError_t ret = tvERROR_NONE;
@@ -3480,8 +3479,8 @@ namespace Plugin {
         inputInfo.color = parameters.HasLabel("color") ? parameters["color"].String() : "";
 	    inputInfo.control = parameters.HasLabel("control") ? parameters["control"].String() : "";
 
-        if( inputInfo.color.empty() || inputInfo.control.empty() || inputInfo.colorTemperature.empty() ) {
-	        LOGERR("%s : Color/Control/ColorTemp param not found!!!\n",__FUNCTION__);
+        if( inputInfo.color.empty() || inputInfo.control.empty()  ) {
+	        LOGERR("%s : Color/Control param not found!!!\n",__FUNCTION__);
             returnResponse(false);
         }
 
@@ -3509,48 +3508,31 @@ namespace Plugin {
             returnResponse(false);
         }    
 
-    /*    retVal = getColorTempEnumFromString(inputInfo.colorTemperature,colorTempEnum);
-        if( ret == -1) {
-            LOGERR("%s: Invalid ColorTemp : %s\n",__FUNCTION__,inputInfo.colorTemperature.c_str());
-            returnResponse(false);
-        }*/
-
         if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
             LOGINFO("Proceed with %s\n",__FUNCTION__);
 
-            if ( -1 == convertToSourceOffsetEnum(inputInfo.source, colorTempSourceEnum) )
-            {
-                LOGERR("%s: Invalid SourceOffset : %s\n",__FUNCTION__,inputInfo.source.c_str());
-                returnResponse(false);
+            tvVideoSrcType_t currentSource = VIDEO_SOURCE_IP;
+            tvError_t ret = GetCurrentSource(&currentSource);
+
+            if(ret != tvERROR_NONE) {
+                LOGWARN("%s: GetCurrentSource( ) Failed \n",__FUNCTION__);
+                return -1;
             }
-            
-            LOGINFO("level : %d,colorTempSourceEnum:%d\n ",level,colorTempSourceEnum);
-            switch(tvPQEnum)
-            {
-                case PQ_PARAM_WB_RED_GAIN:
-                    ret = SetColorTemp_Rgain_onSource(tvColorTemp_USER,level,colorTempSourceEnum,0);
-                    break;
-                case PQ_PARAM_WB_BLUE_GAIN:
-                    ret = SetColorTemp_Bgain_onSource(tvColorTemp_USER,level,colorTempSourceEnum,0);
-                    break;
-                case PQ_PARAM_WB_GREEN_GAIN:
-                    ret = SetColorTemp_Ggain_onSource(tvColorTemp_USER,level,colorTempSourceEnum,0);
-                    break;
-                case PQ_PARAM_WB_RED_OFFSET:
-                    ret = SetColorTemp_Rgain_onSource(tvColorTemp_USER,level,colorTempSourceEnum,0);
-                    break;
-                case PQ_PARAM_WB_BLUE_OFFSET:
-                    ret = SetColorTemp_Bgain_onSource(tvColorTemp_USER,level,colorTempSourceEnum,0);
-                    break;
-                case PQ_PARAM_WB_GREEN_OFFSET:
-                    ret = SetColorTemp_Bgain_onSource(tvColorTemp_USER,level,colorTempSourceEnum,0);
-                    break;
-                default:
-                    LOGERR("%s : wrong color/control values\n",__FUNCTION__);
-                    returnResponse(false);
-                    break;
+    
+            tvWBColor_t colorLevel;
+            if ( getWBColorEnumFromString(inputInfo.color,colorLevel ) == -1 ) {
+                LOGERR("%s : GetColorEnumFromString Failed!!! ",__FUNCTION__);
+                return -1;
             }
-        }      
+	
+	        tvWBControl_t controlLevel;
+            if ( getWBControlEnumFromString(inputInfo.control,controlLevel ) == -1 ) {
+                LOGERR("%s : GetComponentEnumFromString Failed!!! ",__FUNCTION__);
+                return -1;
+            }
+             
+            ret = SetCustom2PointWhiteBalance(currentSource,colorLevel,controlLevel,level);
+        }       
 
         if(ret != tvERROR_NONE) {
             LOGERR("%s: Failed to set WhiteBalance\n",__FUNCTION__);
