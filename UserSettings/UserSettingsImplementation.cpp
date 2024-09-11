@@ -23,23 +23,23 @@
 #include <mutex>
 #include "tracing/Logging.h"
 
-#define USERSETTINGS_NAMESPACE "UserSettings"
-
-#define USERSETTINGS_AUDIO_DESCRIPTION_KEY                    "audioDescription"
-#define USERSETTINGS_PREFERRED_AUDIO_LANGUAGES_KEY            "preferredAudioLanguages"
-#define USERSETTINGS_PRESENTATION_LANGUAGE_KEY                "presentationLanguage"
-#define USERSETTINGS_CAPTIONS_KEY                             "captions"
-#define USERSETTINGS_PREFERRED_CAPTIONS_LANGUAGES_KEY         "preferredCaptionsLanguages"
-#define USERSETTINGS_PREFERRED_CLOSED_CAPTIONS_SERVICE_KEY    "preferredClosedCaptionsService"
-#define USERSETTINGS_PRIVACY_MODE_KEY                         "privacyMode"
-
-#ifdef HAS_RBUS
-#define RBUS_COMPONENT_NAME "UserSettingsThunderPlugin"
-#define RBUS_PRIVACY_MODE_EVENT_NAME "Device.X_RDKCENTRAL-COM_UserSettings.PrivacyModeChanged"
-#endif
 
 namespace WPEFramework {
 namespace Plugin {
+
+const std::map<string, string> UserSettingsImplementation::usersettingsDefaultMap = {{USERSETTINGS_AUDIO_DESCRIPTION_KEY, "false"},
+                                                                 {USERSETTINGS_PREFERRED_AUDIO_LANGUAGES_KEY, ""},
+                                                                 {USERSETTINGS_PRESENTATION_LANGUAGE_KEY, ""},
+                                                                 {USERSETTINGS_CAPTIONS_KEY, "false"},
+                                                                 {USERSETTINGS_PREFERRED_CAPTIONS_LANGUAGES_KEY, ""},
+                                                                 {USERSETTINGS_PREFERRED_CLOSED_CAPTIONS_SERVICE_KEY, "AUTO"},
+                                                                 {USERSETTINGS_PIN_CONTROL_KEY, "false"},
+                                                                 {USERSETTINGS_VIEWING_RESTRICTIONS_KEY, ""},
+                                                                 {USERSETTINGS_VIEWING_RESTRICTIONS_WINDOW_KEY, ""},
+                                                                 {USERSETTINGS_LIVE_WATERSHED_KEY, "false"},
+                                                                 {USERSETTINGS_PLAYBACK_WATERSHED_KEY, "false"},
+                                                                 {USERSETTINGS_BLOCK_NOT_RATED_CONTENT_KEY, "false"},
+                                                                 {USERSETTINGS_PIN_ON_PURCHASE_KEY, "false"}};
 
 SERVICE_REGISTRATION(UserSettingsImplementation, 1, 0);
 
@@ -51,9 +51,6 @@ UserSettingsImplementation::UserSettingsImplementation()
 , _remotStoreObject(nullptr)
 , _storeNotification(*this)
 , _registeredEventHandlers(false)
-#ifdef HAS_RBUS
-, _rbusHandleStatus(RBUS_ERROR_NOT_INITIALIZED)
-#endif
 {
     LOGINFO("Create UserSettingsImplementation Instance");
 
@@ -110,7 +107,7 @@ UserSettingsImplementation::~UserSettingsImplementation()
     if (_controller)
     {
         _controller->Release();
-	 _controller = nullptr;
+        _controller = nullptr;
     }
 
     LOGINFO("Disconnect from the COM-RPC socket\n");
@@ -131,15 +128,6 @@ UserSettingsImplementation::~UserSettingsImplementation()
         _remotStoreObject->Release();
     }
     _registeredEventHandlers = false;
-    
-#ifdef HAS_RBUS
-    if (RBUS_ERROR_SUCCESS == _rbusHandleStatus)
-    {
-        rbus_close(_rbusHandle);
-        _rbusHandleStatus = RBUS_ERROR_NOT_INITIALIZED;
-    }
-
-#endif
 }
 
 void UserSettingsImplementation::registerEventHandlers()
@@ -222,7 +210,7 @@ void UserSettingsImplementation::Dispatch(Event event, const JsonValue params)
                  (*index)->OnAudioDescriptionChanged(params.Boolean());
                  ++index;
              }
-		break;
+         break;
 
          case PREFERRED_AUDIO_CHANGED:
              while (index != _userSettingNotification.end())
@@ -230,7 +218,7 @@ void UserSettingsImplementation::Dispatch(Event event, const JsonValue params)
                  (*index)->OnPreferredAudioLanguagesChanged(params.String());
                  ++index;
              }
-		break;
+         break;
 
          case PRESENTATION_LANGUAGE_CHANGED:
              while (index != _userSettingNotification.end())
@@ -238,7 +226,7 @@ void UserSettingsImplementation::Dispatch(Event event, const JsonValue params)
                  (*index)->OnPresentationLanguageChanged(params.String());
                  ++index;
              }
-		break;
+         break;
 
          case CAPTIONS_CHANGED:
              while (index != _userSettingNotification.end())
@@ -246,7 +234,7 @@ void UserSettingsImplementation::Dispatch(Event event, const JsonValue params)
                  (*index)->OnCaptionsChanged(params.Boolean());
                  ++index;
              }
-		break;
+         break;
 
          case PREFERRED_CAPTIONS_LANGUAGE_CHANGED:
              while (index != _userSettingNotification.end())
@@ -254,7 +242,7 @@ void UserSettingsImplementation::Dispatch(Event event, const JsonValue params)
                  (*index)->OnPreferredCaptionsLanguagesChanged(params.String());
                  ++index;
              }
-		break;
+         break;
 
          case PREFERRED_CLOSED_CAPTIONS_SERVICE_CHANGED:
              while (index != _userSettingNotification.end())
@@ -262,15 +250,63 @@ void UserSettingsImplementation::Dispatch(Event event, const JsonValue params)
                  (*index)->OnPreferredClosedCaptionServiceChanged(params.String());
                  ++index;
              }
-		break;
+         break;
 
-         case PRIVACY_MODE_CHANGED:
-             while (index != _userSettingNotification.end())
-             {
-                 (*index)->OnPrivacyModeChanged(params.String());
-                 ++index;
-             }
-		break;
+         case PIN_CONTROL_CHANGED:
+              while (index != _userSettingNotification.end())
+              {
+                  (*index)->OnPinControlChanged(params.Boolean());
+                  ++index;
+              }
+         break;
+
+         case VIEWING_RESTRICTIONS_CHANGED:
+              while (index != _userSettingNotification.end())
+              {
+                  (*index)->OnViewingRestrictionsChanged(params.String());
+                  ++index;
+              }
+         break;
+
+         case VIEWING_RESTRICTIONS_WINDOW_CHANGED:
+              while (index != _userSettingNotification.end())
+              {
+                  (*index)->OnViewingRestrictionsWindowChanged(params.String());
+                  ++index;
+              }
+         break;
+
+         case LIVE_WATERSHED_CHANGED:
+              while (index != _userSettingNotification.end())
+              {
+                  (*index)->OnLiveWatershedChanged(params.Boolean());
+                  ++index;
+              }
+         break;
+
+         case PLAYBACK_WATERSHED_CHANGED:
+              while (index != _userSettingNotification.end())
+              {
+                  (*index)->OnPlaybackWatershedChanged(params.Boolean());
+                  ++index;
+              }
+         break;
+
+         case BLOCK_NOT_RATED_CONTENT_CHANGED:
+              while (index != _userSettingNotification.end())
+              {
+                  (*index)->OnBlockNotRatedContentChanged(params.Boolean());
+                  ++index;
+              }
+         break;
+
+         case PIN_ON_PURCHASE_CHANGED:
+              while (index != _userSettingNotification.end())
+              {
+                  (*index)->OnPinOnPurchaseChanged(params.Boolean());
+                  ++index;
+              }
+         break;
 
          default:
              break;
@@ -307,9 +343,33 @@ void UserSettingsImplementation::ValueChanged(const Exchange::IStore2::ScopeType
     {
         dispatchEvent(PREFERRED_CLOSED_CAPTIONS_SERVICE_CHANGED, JsonValue((string)value));
     }
-    else if((ns.compare(USERSETTINGS_NAMESPACE) == 0) && (key.compare(USERSETTINGS_PRIVACY_MODE_KEY) == 0))
+    else if((ns.compare(USERSETTINGS_NAMESPACE) == 0) && (key.compare(USERSETTINGS_PIN_CONTROL_KEY) == 0))
     {
-        dispatchEvent(PRIVACY_MODE_CHANGED, JsonValue((string)value));
+        dispatchEvent(PIN_CONTROL_CHANGED, JsonValue((bool)(value.compare("true")==0)?true:false));
+    }
+    else if((ns.compare(USERSETTINGS_NAMESPACE) == 0) && (key.compare(USERSETTINGS_VIEWING_RESTRICTIONS_KEY) == 0))
+    {
+        dispatchEvent(VIEWING_RESTRICTIONS_CHANGED, JsonValue((string)value));
+    }
+    else if((ns.compare(USERSETTINGS_NAMESPACE) == 0) && (key.compare(USERSETTINGS_VIEWING_RESTRICTIONS_WINDOW_KEY) == 0))
+    {
+        dispatchEvent(VIEWING_RESTRICTIONS_WINDOW_CHANGED, JsonValue((string)value));
+    }
+    else if((ns.compare(USERSETTINGS_NAMESPACE) == 0) && (key.compare(USERSETTINGS_LIVE_WATERSHED_KEY) == 0))
+    {
+        dispatchEvent(LIVE_WATERSHED_CHANGED, JsonValue((bool)(value.compare("true")==0)?true:false));
+    }
+    else if((ns.compare(USERSETTINGS_NAMESPACE) == 0) && (key.compare(USERSETTINGS_PLAYBACK_WATERSHED_KEY) == 0))
+    {
+        dispatchEvent(PLAYBACK_WATERSHED_CHANGED, JsonValue((bool)(value.compare("true")==0)?true:false));
+    }
+    else if((ns.compare(USERSETTINGS_NAMESPACE) == 0) && (key.compare(USERSETTINGS_BLOCK_NOT_RATED_CONTENT_KEY) == 0))
+    {
+        dispatchEvent(BLOCK_NOT_RATED_CONTENT_CHANGED, JsonValue((bool)(value.compare("true")==0)?true:false));
+    }
+    else if((ns.compare(USERSETTINGS_NAMESPACE) == 0) && (key.compare(USERSETTINGS_PIN_ON_PURCHASE_KEY) == 0))
+    {
+        dispatchEvent(PIN_ON_PURCHASE_CHANGED, JsonValue((bool)(value.compare("true")==0)?true:false));
     }
     else
     {
@@ -320,6 +380,7 @@ void UserSettingsImplementation::ValueChanged(const Exchange::IStore2::ScopeType
 uint32_t UserSettingsImplementation::SetUserSettingsValue(const string& key, const string& value)
 {
     uint32_t status = Core::ERROR_GENERAL;
+    _adminLock.Lock();
 
     ASSERT (nullptr != _remotStoreObject);
     if (nullptr != _remotStoreObject)
@@ -327,22 +388,15 @@ uint32_t UserSettingsImplementation::SetUserSettingsValue(const string& key, con
         status = _remotStoreObject->SetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, key, value, 0);
     }
 
+    _adminLock.Unlock();
     return status;
 }
 
 uint32_t UserSettingsImplementation::GetUserSettingsValue(const string& key, string &value) const
 {
-
     uint32_t status = Core::ERROR_GENERAL;
     uint32_t ttl = 0;
-
-    // Create a map of default values
-    std::map<string, string> usersettings_default_map = {{USERSETTINGS_AUDIO_DESCRIPTION_KEY, "false"},
-                                                         {USERSETTINGS_PREFERRED_AUDIO_LANGUAGES_KEY, ""},
-                                                         {USERSETTINGS_PRESENTATION_LANGUAGE_KEY, ""},
-                                                         {USERSETTINGS_CAPTIONS_KEY, "false"},
-                                                         {USERSETTINGS_PREFERRED_CAPTIONS_LANGUAGES_KEY, ""},
-                                                         {USERSETTINGS_PREFERRED_CLOSED_CAPTIONS_SERVICE_KEY, "AUTO"}};
+    _adminLock.Lock();
 
     ASSERT (nullptr != _remotStoreObject);
     if (nullptr != _remotStoreObject)
@@ -352,17 +406,19 @@ uint32_t UserSettingsImplementation::GetUserSettingsValue(const string& key, str
         LOGINFO("Key[%s] value[%s] status[%d]", key.c_str(), value.c_str(), status);
         if(Core::ERROR_UNKNOWN_KEY == status || Core::ERROR_NOT_EXIST == status)
         {
-            if(usersettings_default_map.find(key)!=usersettings_default_map.end())
+            if(usersettingsDefaultMap.find(key)!=usersettingsDefaultMap.end())
             {
-                value = usersettings_default_map[key];
+                value = usersettingsDefaultMap.find(key)->second;
                 status = Core::ERROR_NONE;
             }
             else
             {
-                LOGERR("Default value is not found in usersettings_default_map for '%s' Key", key.c_str());
+                LOGERR("Default value is not found in usersettingsDefaultMap for '%s' Key", key.c_str());
             }
         }
     }
+    _adminLock.Unlock();
+
     return status;
 }
 
@@ -371,13 +427,7 @@ uint32_t UserSettingsImplementation::SetAudioDescription(const bool enabled)
     uint32_t status = Core::ERROR_GENERAL;
 
     LOGINFO("enabled: %d", enabled);
-
-    _adminLock.Lock();
-
     status = SetUserSettingsValue(USERSETTINGS_AUDIO_DESCRIPTION_KEY, (enabled)?"true":"false");
-
-    _adminLock.Unlock();
-
     return status;
 }
 
@@ -386,10 +436,7 @@ uint32_t UserSettingsImplementation::GetAudioDescription(bool &enabled) const
     uint32_t status = Core::ERROR_GENERAL;
     std::string value = "";
 
-    _adminLock.Lock();
-
     status = GetUserSettingsValue(USERSETTINGS_AUDIO_DESCRIPTION_KEY, value);
-
     if(Core::ERROR_NONE == status)
     {
         if (0 == value.compare("true"))
@@ -402,8 +449,6 @@ uint32_t UserSettingsImplementation::GetAudioDescription(bool &enabled) const
         }
     }
 
-    _adminLock.Unlock();
-
     return status;
 }
 
@@ -412,13 +457,7 @@ uint32_t UserSettingsImplementation::SetPreferredAudioLanguages(const string& pr
     uint32_t status = Core::ERROR_GENERAL;
 
     LOGINFO("preferredLanguages: %s", preferredLanguages.c_str());
-
-    _adminLock.Lock();
-
     status = SetUserSettingsValue(USERSETTINGS_PREFERRED_AUDIO_LANGUAGES_KEY, preferredLanguages);
-
-    _adminLock.Unlock();
-
     return status;
 }
 
@@ -427,41 +466,25 @@ uint32_t UserSettingsImplementation::GetPreferredAudioLanguages(string &preferre
     uint32_t status = Core::ERROR_GENERAL;
     std::string value = "";
 
-    _adminLock.Lock();
-
     status = GetUserSettingsValue(USERSETTINGS_PREFERRED_AUDIO_LANGUAGES_KEY, preferredLanguages);
-
-    _adminLock.Unlock();
-
     return status;
 }
 
-uint32_t UserSettingsImplementation::SetPresentationLanguage(const string& presentationLanguages)
+uint32_t UserSettingsImplementation::SetPresentationLanguage(const string& presentationLanguage)
 {
     uint32_t status = Core::ERROR_GENERAL;
 
-    LOGINFO("presentationLanguages: %s", presentationLanguages.c_str());
-
-    _adminLock.Lock();
-
-    status = SetUserSettingsValue(USERSETTINGS_PRESENTATION_LANGUAGE_KEY, presentationLanguages);
-
-    _adminLock.Unlock();
-
+    LOGINFO("presentationLanguage: %s", presentationLanguage.c_str());
+    status = SetUserSettingsValue(USERSETTINGS_PRESENTATION_LANGUAGE_KEY, presentationLanguage);
     return status;
 }
 
-uint32_t UserSettingsImplementation::GetPresentationLanguage(string &presentationLanguages) const
+uint32_t UserSettingsImplementation::GetPresentationLanguage(string &presentationLanguage) const
 {
     uint32_t status = Core::ERROR_GENERAL;
     std::string value = "";
 
-    _adminLock.Lock();
-
-    status = GetUserSettingsValue(USERSETTINGS_PRESENTATION_LANGUAGE_KEY, presentationLanguages);
-
-    _adminLock.Unlock();
-
+    status = GetUserSettingsValue(USERSETTINGS_PRESENTATION_LANGUAGE_KEY, presentationLanguage);
     return status;
 }
 
@@ -470,13 +493,7 @@ uint32_t UserSettingsImplementation::SetCaptions(const bool enabled)
     uint32_t status = Core::ERROR_GENERAL;
 
     LOGINFO("enabled: %d", enabled);
-
-    _adminLock.Lock();
-
     status = SetUserSettingsValue(USERSETTINGS_CAPTIONS_KEY, (enabled)?"true":"false");
-
-    _adminLock.Unlock();
-
     return status;
 }
 
@@ -484,8 +501,6 @@ uint32_t UserSettingsImplementation::GetCaptions(bool &enabled) const
 {
     uint32_t status = Core::ERROR_GENERAL;
     std::string value = "";
-
-    _adminLock.Lock();
 
     status = GetUserSettingsValue(USERSETTINGS_CAPTIONS_KEY, value);
 
@@ -500,9 +515,6 @@ uint32_t UserSettingsImplementation::GetCaptions(bool &enabled) const
             enabled = false;
         }
     }
-
-    _adminLock.Unlock();
-
     return status;
 }
 
@@ -511,13 +523,7 @@ uint32_t UserSettingsImplementation::SetPreferredCaptionsLanguages(const string&
     uint32_t status = Core::ERROR_GENERAL;
 
     LOGINFO("preferredLanguages: %s", preferredLanguages.c_str());
-
-    _adminLock.Lock();
-
     status = SetUserSettingsValue(USERSETTINGS_PREFERRED_CAPTIONS_LANGUAGES_KEY, preferredLanguages);
-
-    _adminLock.Unlock();
-
     return status;
 }
 
@@ -526,12 +532,7 @@ uint32_t UserSettingsImplementation::GetPreferredCaptionsLanguages(string &prefe
     uint32_t status = Core::ERROR_GENERAL;
     std::string value = "";
 
-    _adminLock.Lock();
-
     status = GetUserSettingsValue(USERSETTINGS_PREFERRED_CAPTIONS_LANGUAGES_KEY, preferredLanguages);
-
-    _adminLock.Unlock();
-
     return status;
 }
 
@@ -540,13 +541,7 @@ uint32_t UserSettingsImplementation::SetPreferredClosedCaptionService(const stri
     uint32_t status = Core::ERROR_GENERAL;
 
     LOGINFO("service: %s", service.c_str());
-
-    _adminLock.Lock();
-
     status = SetUserSettingsValue(USERSETTINGS_PREFERRED_CLOSED_CAPTIONS_SERVICE_KEY, service);
-
-    _adminLock.Unlock();
-
     return status;
 }
 
@@ -555,105 +550,198 @@ uint32_t UserSettingsImplementation::GetPreferredClosedCaptionService(string &se
     uint32_t status = Core::ERROR_GENERAL;
     std::string value = "";
 
-    _adminLock.Lock();
-
     status = GetUserSettingsValue(USERSETTINGS_PREFERRED_CLOSED_CAPTIONS_SERVICE_KEY, service);
-
-    _adminLock.Unlock();
-
     return status;
 }
 
-uint32_t UserSettingsImplementation::SetPrivacyMode(const string& privacyMode)
+uint32_t UserSettingsImplementation::SetPinControl(const bool enabled)
 {
     uint32_t status = Core::ERROR_GENERAL;
 
-    LOGINFO("privacyMode: %s", privacyMode.c_str());
-
-    if (privacyMode != "SHARE" && privacyMode != "DO_NOT_SHARE")
-    {
-        LOGERR("Wrong privacyMode value: '%s', returning default", privacyMode.c_str());
-        return status;
-    }
-
-    _adminLock.Lock();
-
-    ASSERT (nullptr != _remotStoreObject);
-
-    if (nullptr != _remotStoreObject)
-    {
-        uint32_t ttl = 0;
-        string oldPrivacyMode;
-        status = _remotStoreObject->GetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, USERSETTINGS_PRIVACY_MODE_KEY, oldPrivacyMode, ttl);
-        LOGINFO("oldPrivacyMode: %s", oldPrivacyMode.c_str());
-
-        if (privacyMode != oldPrivacyMode)
-        {
-#ifdef HAS_RBUS
-            if (Core::ERROR_NONE == status)
-            {
-                if (RBUS_ERROR_SUCCESS != _rbusHandleStatus)
-                {
-                    _rbusHandleStatus = rbus_open(&_rbusHandle, RBUS_COMPONENT_NAME);
-                }
-
-                if (RBUS_ERROR_SUCCESS == _rbusHandleStatus)
-                {
-                    rbusValue_t value;
-                    rbusSetOptions_t opts = {true, 0};
-
-                    rbusValue_Init(&value);
-                    rbusValue_SetString(value, privacyMode.c_str());
-                    int rc = rbus_set(_rbusHandle, RBUS_PRIVACY_MODE_EVENT_NAME, value, &opts);
-                    if (rc != RBUS_ERROR_SUCCESS)
-                    {
-                        std::stringstream str;
-                        str << "Failed to set property " << RBUS_PRIVACY_MODE_EVENT_NAME << ": " << rc;
-                        LOGERR("%s", str.str().c_str());
-                    }
-                    rbusValue_Release(value);
-                }
-                else
-                {
-                    std::stringstream str;
-                    str << "rbus_open failed with error code " << _rbusHandleStatus;
-                    LOGERR("%s", str.str().c_str());
-                }
-            }
-#endif
-            status = _remotStoreObject->SetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, USERSETTINGS_PRIVACY_MODE_KEY, privacyMode, 0);
-        }
-    }
-
-    _adminLock.Unlock();
-
+    LOGINFO("enabled: %d", enabled);
+    status = SetUserSettingsValue(USERSETTINGS_PIN_CONTROL_KEY, (enabled)?"true":"false");
     return status;
 }
 
-uint32_t UserSettingsImplementation::GetPrivacyMode(string &privacyMode) const
+uint32_t UserSettingsImplementation::GetPinControl(bool &enabled) const
 {
-    uint32_t status = Core::ERROR_NONE;
+    uint32_t status = Core::ERROR_GENERAL;
     std::string value = "";
-    uint32_t ttl = 0;
-    privacyMode = "";
 
-    _adminLock.Lock();
+    status = GetUserSettingsValue(USERSETTINGS_PIN_CONTROL_KEY, value);
 
-    ASSERT (nullptr != _remotStoreObject);
-
-    if (nullptr != _remotStoreObject)
+    if(Core::ERROR_NONE == status)
     {
-        _remotStoreObject->GetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, USERSETTINGS_PRIVACY_MODE_KEY, privacyMode, ttl);
+        if (0 == value.compare("true"))
+        {
+            enabled = true;
+        }
+        else
+        {
+            enabled = false;
+        }
     }
+    return status;
 
-    _adminLock.Unlock();
-    
-    if (privacyMode != "SHARE" && privacyMode != "DO_NOT_SHARE") 
+}
+
+uint32_t UserSettingsImplementation::SetViewingRestrictions(const string& viewingRestrictions)
+{
+    uint32_t status = Core::ERROR_GENERAL;
+
+    LOGINFO("viewingRestrictions: %s", viewingRestrictions.c_str());
+    status = SetUserSettingsValue(USERSETTINGS_VIEWING_RESTRICTIONS_KEY, viewingRestrictions);
+    return status;
+
+}
+
+uint32_t UserSettingsImplementation::GetViewingRestrictions(string &viewingRestrictions) const
+{
+    uint32_t status = Core::ERROR_GENERAL;
+
+    status = GetUserSettingsValue(USERSETTINGS_VIEWING_RESTRICTIONS_KEY, viewingRestrictions);
+    return status;
+
+}
+
+uint32_t UserSettingsImplementation::SetViewingRestrictionsWindow(const string& viewingRestrictionsWindow)
+{
+    uint32_t status = Core::ERROR_GENERAL;
+
+    LOGINFO("viewingRestrictionsWindow: %s", viewingRestrictionsWindow.c_str());
+    status = SetUserSettingsValue(USERSETTINGS_VIEWING_RESTRICTIONS_WINDOW_KEY, viewingRestrictionsWindow);
+    return status;
+
+}
+
+uint32_t UserSettingsImplementation::GetViewingRestrictionsWindow(string &viewingRestrictionsWindow) const
+{
+    uint32_t status = Core::ERROR_GENERAL;
+
+    status = GetUserSettingsValue(USERSETTINGS_VIEWING_RESTRICTIONS_WINDOW_KEY, viewingRestrictionsWindow);
+    return status;
+}
+
+uint32_t UserSettingsImplementation::SetLiveWatershed(const bool enabled)
+{
+    uint32_t status = Core::ERROR_GENERAL;
+
+    LOGINFO("enabled: %d", enabled);
+    status = SetUserSettingsValue(USERSETTINGS_LIVE_WATERSHED_KEY, (enabled)?"true":"false");
+    return status;
+
+}
+
+uint32_t UserSettingsImplementation::GetLiveWatershed(bool &enabled) const
+{
+    uint32_t status = Core::ERROR_GENERAL;
+    std::string value = "";
+
+    status = GetUserSettingsValue(USERSETTINGS_LIVE_WATERSHED_KEY, value);
+
+    if(Core::ERROR_NONE == status)
     {
-        LOGWARN("Wrong privacyMode value: '%s', returning default", privacyMode.c_str());
-        privacyMode = "SHARE";
+        if (0 == value.compare("true"))
+        {
+            enabled = true;
+        }
+        else
+        {
+            enabled = false;
+        }
     }
+    return status;
+}
 
+uint32_t UserSettingsImplementation::SetPlaybackWatershed(const bool enabled)
+{
+    uint32_t status = Core::ERROR_GENERAL;
+
+    LOGINFO("enabled: %d", enabled);
+    status = SetUserSettingsValue(USERSETTINGS_PLAYBACK_WATERSHED_KEY, (enabled)?"true":"false");
+    return status;
+}
+
+uint32_t UserSettingsImplementation::GetPlaybackWatershed(bool &enabled) const
+{
+    uint32_t status = Core::ERROR_GENERAL;
+    std::string value = "";
+
+    status = GetUserSettingsValue(USERSETTINGS_PLAYBACK_WATERSHED_KEY, value);
+
+    if(Core::ERROR_NONE == status)
+    {
+        if (0 == value.compare("true"))
+        {
+            enabled = true;
+        }
+        else
+        {
+            enabled = false;
+        }
+    }
+    return status;
+}
+
+uint32_t UserSettingsImplementation::SetBlockNotRatedContent(const bool enabled)
+{
+    uint32_t status = Core::ERROR_GENERAL;
+
+    LOGINFO("enabled: %d", enabled);
+    status = SetUserSettingsValue(USERSETTINGS_BLOCK_NOT_RATED_CONTENT_KEY, (enabled)?"true":"false");
+    return status;
+}
+
+uint32_t UserSettingsImplementation::GetBlockNotRatedContent(bool &enabled) const
+{
+    uint32_t status = Core::ERROR_GENERAL;
+    std::string value = "";
+
+    status = GetUserSettingsValue(USERSETTINGS_BLOCK_NOT_RATED_CONTENT_KEY, value);
+
+    if(Core::ERROR_NONE == status)
+    {
+        if (0 == value.compare("true"))
+        {
+            enabled = true;
+        }
+        else
+        {
+            enabled = false;
+        }
+    }
+    return status;
+}
+
+uint32_t UserSettingsImplementation::SetPinOnPurchase(const bool enabled)
+{
+    uint32_t status = Core::ERROR_GENERAL;
+
+    LOGINFO("enabled: %d", enabled);
+    status = SetUserSettingsValue(USERSETTINGS_PIN_ON_PURCHASE_KEY, (enabled)?"true":"false");
+    return status;
+}
+
+uint32_t UserSettingsImplementation::GetPinOnPurchase(bool &enabled) const
+{
+    uint32_t status = Core::ERROR_GENERAL;
+    std::string value = "";
+
+    status = GetUserSettingsValue(USERSETTINGS_PIN_ON_PURCHASE_KEY, value);
+
+    if(Core::ERROR_NONE == status)
+    {
+        LOGINFO("getPinOnPurchase: %d", enabled);
+
+        if (0 == value.compare("true"))
+        {
+            enabled = true;
+        }
+        else
+        {
+            enabled = false;
+        }
+    }
     return status;
 }
 
