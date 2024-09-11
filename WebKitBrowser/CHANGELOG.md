@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.1.17] - 2024-09-11
+### Added
+- Config entry to enable/disable WebRTC ICE candidate filtering
+
 ## [1.1.16] - 2023-07-25
 ### Added
 - Initial support for WPEWebKit 2.38

@@ -732,6 +732,7 @@ static GSourceFuncs _handlerIntervention =
                 , ContentFilter()
                 , LoggingTarget()
                 , WebAudioEnabled(false)
+                , ICECandidateFilteringEnabled()
             {
                 Add(_T("webkitdebug"), &WebkitDebug);
                 Add(_T("gstdebug"), &GstDebug);
@@ -805,6 +806,7 @@ static GSourceFuncs _handlerIntervention =
                 Add(_T("contentfilter"), &ContentFilter);
                 Add(_T("loggingtarget"), &LoggingTarget);
                 Add(_T("webaudio"), &WebAudioEnabled);
+                Add(_T("icecandidatefiltering"), &ICECandidateFilteringEnabled);
             }
             ~Config()
             {
@@ -883,6 +885,7 @@ static GSourceFuncs _handlerIntervention =
             Core::JSON::String ContentFilter;
             Core::JSON::String LoggingTarget;
             Core::JSON::Boolean WebAudioEnabled;
+            Core::JSON::Boolean ICECandidateFilteringEnabled;
         };
 
         class HangDetector
@@ -3747,6 +3750,13 @@ static GSourceFuncs _handlerIntervention =
                      "allow-running-of-insecure-content", allowMixedContent,
                      "allow-display-of-insecure-content", allowMixedContent, nullptr);
 #endif
+
+            // ICE candidate filtering
+            if (_config.ICECandidateFilteringEnabled.IsSet()) {
+                g_object_set(G_OBJECT(preferences),
+                     "enable-ice-candidate-filtering",  _config.ICECandidateFilteringEnabled.Value(), nullptr);
+            }
+
             _view = WEBKIT_WEB_VIEW(g_object_new(WEBKIT_TYPE_WEB_VIEW,
                 "backend", webkit_web_view_backend_new(wpe_view_backend_create(), nullptr, nullptr),
                 "web-context", wkContext,
