@@ -160,27 +160,6 @@
                 "example": "null"
             }
         },
-        "SetPrivacyMode": {
-            "summary": "Setting Privacy Mode.",          
-			"events": {
-                "onPrivacyModeChanged" : "Triggered when the Privacy Mode changes."
-            },
-            "params": {
-                "type": "object",
-                "properties": {
-                    "privacyMode": {
-                        "summary": "New Privacy Mode",
-                        "type": "string",
-                        "example": "DO_NOT_SHARE"
-                    }
-                }
-            },
-            "result": {
-                "summary": "On success null will be returned",
-                "type": "string",
-                "example": "null"
-            }
-        },
 	"setPinControl": {
             "summary": "Setting PinControl.",
 			"events": {
@@ -364,14 +343,6 @@
                 "$ref": "#/definitions/preferredClosedCaptionService"
             }
         },
-        "getPrivacyMode":{
-            "summary": "Getting Privacy Mode",
-            "result": {
-                "summary": "Current Privacy Mode",
-                "type": "string",
-                "example": "DO_NOT_SHARE"
-            }
-	},
 	"getPinControl":{
             "summary": "Returns Pin Control.",
             "result": {
@@ -519,22 +490,6 @@
                 },
                 "required": [
                     "service"
-                ]
-            }
-        },
-        "onPrivacyModeChanged": {
-            "summary": "Triggered after the Privacy Mode changes (see `SetPrivacyMode`)",
-            "params": {
-                "type": "object",
-                "properties": {
-                    "privacyMode":{
-                        "summary": "Receive Privacy Mode changes",
-                        "type": "string",
-                        "example": "DO_NOT_SHARE"
-                    }
-                },
-                "required": [
-                    "privacyMode"
                 ]
             }
         },
