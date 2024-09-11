@@ -2,7 +2,7 @@
 <a name="head.System_API"></a>
 # System API
 
-**Version: [2.3.2](https://github.com/rdkcentral/rdkservices/blob/main/SystemServices/CHANGELOG.md)**
+**Version: [1.0.0]()**
 
 A org.rdk.System plugin for Thunder framework.
 
@@ -114,6 +114,8 @@ org.rdk.System interface methods:
 | [uploadLogsAsync](#method.uploadLogsAsync) | Starts background process to upload logs |
 | [abortLogUpload](#method.abortLogUpload) | Stops background process to upload logs |
 | [getThunderStartReason](#method.getThunderStartReason) | Returns the Thunder start reason |
+| [SetPrivacyMode](#method.SetPrivacyMode) | Setting Privacy Mode |
+| [getPrivacyMode](#method.getPrivacyMode) | Getting Privacy Mode |
 
 
 <a name="method.clearLastDeepSleepReason"></a>
@@ -3633,6 +3635,95 @@ This method takes no parameters.
 }
 ```
 
+<a name="method.SetPrivacyMode"></a>
+## *SetPrivacyMode [<sup>method</sup>](#head.Methods)*
+
+Setting Privacy Mode.
+
+### Events
+
+| Event | Description |
+| :-------- | :-------- |
+| [onPrivacyModeChanged](#event.onPrivacyModeChanged) | Triggered when the Privacy Mode changes. |
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.privacyMode | string | New Privacy Mode |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | string | On success null will be returned |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.SetPrivacyMode",
+    "params": {
+        "privacyMode": "DO_NOT_SHARE"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": "null"
+}
+```
+
+<a name="method.getPrivacyMode"></a>
+## *getPrivacyMode [<sup>method</sup>](#head.Methods)*
+
+Getting Privacy Mode.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | string | Current Privacy Mode |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.getPrivacyMode"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": "DO_NOT_SHARE"
+}
+```
+
 <a name="head.Notifications"></a>
 # Notifications
 
@@ -3662,8 +3753,12 @@ State details are:
 | [onFriendlyNameChanged](#event.onFriendlyNameChanged) | Triggered when the device friendly name change |
 | [onTemperatureThresholdChanged](#event.onTemperatureThresholdChanged) | Triggered when the device temperature changes beyond the `WARN` or `MAX` limits (see `setTemperatureThresholds`) |
 | [onTerritoryChanged](#event.onTerritoryChanged) | Triggered when the device territory changed |
+| [onDeviceMgtUpdateReceived](#event.onDeviceMgtUpdateReceived) | Triggered when the device management update completes |
 | [onTimeZoneDSTChanged](#event.onTimeZoneDSTChanged) | Triggered when device time zone changed |
 | [onLogUpload](#event.onLogUpload) | Triggered when logs upload process is done or stopped |
+| [onPrivacyModeChanged](#event.onPrivacyModeChanged) | Triggered after the Privacy Mode changes (see `SetPrivacyMode`) |
+| [setFSRFlag](#event.setFSRFlag) | Set the FSR flag into the emmc raw area |
+| [getFSRFlag](#event.getFSRFlag) | Get the FSR flag from the emmc raw area |
 
 
 <a name="event.onFirmwarePendingReboot"></a>
@@ -4034,6 +4129,34 @@ Triggered when the device territory changed.
 }
 ```
 
+<a name="event.onDeviceMgtUpdateReceived"></a>
+## *onDeviceMgtUpdateReceived [<sup>event</sup>](#head.Notifications)*
+
+Triggered when the device management update completes.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.source | string | Source information from where the event on update is posted |
+| params.type | string |  Type of Update received currently it will be used as initial |
+| params.success | boolean | Status information of update whether success or failure |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onDeviceMgtUpdateReceived",
+    "params": {
+        "source": "rfc",
+        "type": "initial",
+        "success": true
+    }
+}
+```
+
 <a name="event.onTimeZoneDSTChanged"></a>
 ## *onTimeZoneDSTChanged [<sup>event</sup>](#head.Notifications)*
 
@@ -4085,6 +4208,82 @@ Triggered when logs upload process is done or stopped.
     "params": {
         "logUploadStatus": "UPLOAD_SUCCESS"
     }
+}
+```
+
+<a name="event.onPrivacyModeChanged"></a>
+## *onPrivacyModeChanged [<sup>event</sup>](#head.Notifications)*
+
+Triggered after the Privacy Mode changes (see `SetPrivacyMode`).
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.privacyMode | string | Receive Privacy Mode changes |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onPrivacyModeChanged",
+    "params": {
+        "privacyMode": "DO_NOT_SHARE"
+    }
+}
+```
+
+<a name="event.setFSRFlag"></a>
+## *setFSRFlag [<sup>event</sup>](#head.Notifications)*
+
+Set the FSR flag into the emmc raw area.
+
+### Parameters
+
+This event carries no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.fsrFlag | boolean | FSR flag |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.setFSRFlag"
+}
+```
+
+<a name="event.getFSRFlag"></a>
+## *getFSRFlag [<sup>event</sup>](#head.Notifications)*
+
+Get the FSR flag from the emmc raw area.
+
+### Parameters
+
+This event carries no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.fsrFlag | boolean | FSR flag |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.getFSRFlag"
 }
 ```
 
