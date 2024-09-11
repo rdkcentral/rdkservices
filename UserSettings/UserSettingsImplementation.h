@@ -30,10 +30,6 @@
 #include <core/core.h>
 #include <plugins/plugins.h>
 
-#ifdef HAS_RBUS
-#include "rbus.h"
-#endif
-
 #define USERSETTINGS_NAMESPACE "UserSettings"
 
 #define USERSETTINGS_AUDIO_DESCRIPTION_KEY                    "audioDescription"
@@ -42,7 +38,6 @@
 #define USERSETTINGS_CAPTIONS_KEY                             "captions"
 #define USERSETTINGS_PREFERRED_CAPTIONS_LANGUAGES_KEY         "preferredCaptionsLanguages"
 #define USERSETTINGS_PREFERRED_CLOSED_CAPTIONS_SERVICE_KEY    "preferredClosedCaptionsService"
-#define USERSETTINGS_PRIVACY_MODE_KEY                         "privacyMode"
 #define USERSETTINGS_PIN_CONTROL_KEY                          "pinControl"
 #define USERSETTINGS_VIEWING_RESTRICTIONS_KEY                 "viewingRestrictions"
 #define USERSETTINGS_VIEWING_RESTRICTIONS_WINDOW_KEY          "viewingRestrictionsWindow"
@@ -108,7 +103,6 @@ namespace Plugin {
                 CAPTIONS_CHANGED,
                 PREFERRED_CAPTIONS_LANGUAGE_CHANGED,
                 PREFERRED_CLOSED_CAPTIONS_SERVICE_CHANGED,
-                PRIVACY_MODE_CHANGED,
                 PIN_CONTROL_CHANGED,
                 VIEWING_RESTRICTIONS_CHANGED,
                 VIEWING_RESTRICTIONS_WINDOW_CHANGED,
@@ -160,34 +154,32 @@ namespace Plugin {
     public:
         virtual uint32_t Register(Exchange::IUserSettings::INotification *notification ) override ;
         virtual uint32_t Unregister(Exchange::IUserSettings::INotification *notification ) override ;
-        uint32_t setAudioDescription(const bool enabled) override;
-        uint32_t getAudioDescription(bool &enabled) const override;
-        uint32_t setPreferredAudioLanguages(const string& preferredLanguages) override;
-        uint32_t getPreferredAudioLanguages(string &preferredLanguages) const override;
-        uint32_t setPresentationLanguage(const string& presentationLanguage) override;
-        uint32_t getPresentationLanguage(string &presentationLanguage) const override;
-        uint32_t setCaptions(const bool enabled) override;
-        uint32_t getCaptions(bool &enabled) const override;
-        uint32_t setPreferredCaptionsLanguages(const string& preferredLanguages) override;
-        uint32_t getPreferredCaptionsLanguages(string &preferredLanguages) const override;
-        uint32_t setPreferredClosedCaptionService(const string& service) override;
-        uint32_t getPreferredClosedCaptionService(string &service) const override;
-        uint32_t setPrivacyMode(const string& privacyMode) override;
-        uint32_t getPrivacyMode(string &privacyMode) const override;
-        uint32_t setPinControl(const bool enabled) override;
-        uint32_t getPinControl(bool &enabled) const override;
-        uint32_t setViewingRestrictions(const string& viewingRestrictions) override;
-        uint32_t getViewingRestrictions(string &viewingRestrictions) const override;
-        uint32_t setViewingRestrictionsWindow(const string& viewingRestrictionsWindow) override;
-        uint32_t getViewingRestrictionsWindow(string &viewingRestrictionsWindow) const override;
-        uint32_t setLiveWatershed(const bool enabled) override;
-        uint32_t getLiveWatershed(bool &enabled) const override;
-        uint32_t setPlaybackWatershed(const bool enabled) override;
-        uint32_t getPlaybackWatershed(bool &enabled) const override;
-        uint32_t setBlockNotRatedContent(const bool enabled) override;
-        uint32_t getBlockNotRatedContent(bool &enabled) const override;
-        uint32_t setPinOnPurchase(const bool enabled) override;
-        uint32_t getPinOnPurchase(bool &enabled) const override;
+        uint32_t SetAudioDescription(const bool enabled) override;
+        uint32_t GetAudioDescription(bool &enabled) const override;
+        uint32_t SetPreferredAudioLanguages(const string& preferredLanguages) override;
+        uint32_t GetPreferredAudioLanguages(string &preferredLanguages) const override;
+        uint32_t SetPresentationLanguage(const string& presentationLanguage) override;
+        uint32_t GetPresentationLanguage(string &presentationLanguage) const override;
+        uint32_t SetCaptions(const bool enabled) override;
+        uint32_t GetCaptions(bool &enabled) const override;
+        uint32_t SetPreferredCaptionsLanguages(const string& preferredLanguages) override;
+        uint32_t GetPreferredCaptionsLanguages(string &preferredLanguages) const override;
+        uint32_t SetPreferredClosedCaptionService(const string& service) override;
+        uint32_t GetPreferredClosedCaptionService(string &service) const override;
+        uint32_t SetPinControl(const bool enabled) override;
+        uint32_t GetPinControl(bool &enabled) const override;
+        uint32_t SetViewingRestrictions(const string& viewingRestrictions) override;
+        uint32_t GetViewingRestrictions(string &viewingRestrictions) const override;
+        uint32_t SetViewingRestrictionsWindow(const string& viewingRestrictionsWindow) override;
+        uint32_t GetViewingRestrictionsWindow(string &viewingRestrictionsWindow) const override;
+        uint32_t SetLiveWatershed(const bool enabled) override;
+        uint32_t GetLiveWatershed(bool &enabled) const override;
+        uint32_t SetPlaybackWatershed(const bool enabled) override;
+        uint32_t GetPlaybackWatershed(bool &enabled) const override;
+        uint32_t SetBlockNotRatedContent(const bool enabled) override;
+        uint32_t GetBlockNotRatedContent(bool &enabled) const override;
+        uint32_t SetPinOnPurchase(const bool enabled) override;
+        uint32_t GetPinOnPurchase(bool &enabled) const override;
 
         void registerEventHandlers();
         void ValueChanged(const Exchange::IStore2::ScopeType scope, const string& ns, const string& key, const string& value);
@@ -206,10 +198,6 @@ namespace Plugin {
         Core::Sink<Store2Notification> _storeNotification;
         bool _registeredEventHandlers;
 
-#ifdef HAS_RBUS
-        rbusError_t _rbusHandleStatus;
-        rbusHandle_t _rbusHandle;
-#endif
         void dispatchEvent(Event, const JsonValue &params);
         void Dispatch(Event event, const JsonValue params);
 

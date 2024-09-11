@@ -1,15 +1,13 @@
-commit e60f095f4fdcbd083ad3f6295beca33b6dcd0877
+commit 8afc4a92b878252780fae90496b9782600a41bd0
 Author: Nagalakshmi Dosakayala <nadosakayala@synamedia.com>
-Date:   Wed Aug 28 12:16:07 2024 +0530
+Date:   Fri Sep 6 12:49:05 2024 +0530
 
     RDK-48604: New UserSettings Thunder Plugin
 
-diff --git a/interfaces/IUserSettings.h b/interfaces/IUserSettings.h
-new file mode 100755
-index 0000000..460d793
---- /dev/null
-+++ b/interfaces/IUserSettings.h
-@@ -0,0 +1,351 @@
+diff -uprN a/interfaces/IUserSettings.h b/interfaces/IUserSettings.h
+--- a/interfaces/IUserSettings.h	1970-01-01 03:00:00.000000000 +0300
++++ b/interfaces/IUserSettings.h	2024-09-10 00:56:19.923464729 +0300
+@@ -0,0 +1,264 @@
 +/*
 + * If not stated otherwise in this file or this component's LICENSE file the
 + * following copyright and licenses apply:
@@ -35,7 +33,7 @@ index 0000000..460d793
 +
 +namespace WPEFramework {
 +namespace Exchange {
-+  // @json
++  // @json @text:keep
 +  struct EXTERNAL IUserSettings : virtual public Core::IUnknown {
 +  enum { ID = ID_USER_SETTINGS };
 +
@@ -43,116 +41,111 @@ index 0000000..460d793
 +  struct EXTERNAL INotification : virtual public Core::IUnknown {
 +    enum { ID = ID_USER_SETTINGS_NOTIFICATION };
 +
-+    // @alt onAudioDescriptionChanged
++    // @text onAudioDescriptionChanged
 +    // @brief The AudioDescription setting has changed.
 +    // @param enabled: Enabled/Disabled.
-+    virtual void onAudioDescriptionChanged(const bool enabled) = 0;
++    virtual void OnAudioDescriptionChanged(const bool enabled) = 0;
 +
-+    // @alt onPreferredAudioLanguagesChanged
++    // @text onPreferredAudioLanguagesChanged
 +    // @brief The preferredLanguages setting has changed.
 +    // @param preferredLanguages: PreferredLanguages.
-+    virtual void onPreferredAudioLanguagesChanged(const string& preferredLanguages /* @text preferredLanguages */) = 0;
++    virtual void OnPreferredAudioLanguagesChanged(const string& preferredLanguages /* @text preferredLanguages */) = 0;
 +
-+    // @alt onPresentationLanguageChanged
++    // @text onPresentationLanguageChanged
 +    // @brief The PresentationLanguages setting has changed.
 +    // @param presentationLanguage: PresentationLanguage.
-+    virtual void onPresentationLanguageChanged(const string& presentationLanguage /* @text presentationLanguage */) = 0;
++    virtual void OnPresentationLanguageChanged(const string& presentationLanguage /* @text presentationLanguage */) = 0;
 +
-+    // @alt onCaptionsChanged
++    // @text onCaptionsChanged
 +    // @brief The Captions setting has changed.
 +    // @param enabled: Enabled/Disabled.
-+    virtual void onCaptionsChanged(const bool enabled) = 0;
++    virtual void OnCaptionsChanged(const bool enabled) = 0;
 +
-+    // @alt onPreferredCaptionsLanguagesChanged
++    // @text onPreferredCaptionsLanguagesChanged
 +    // @brief The PreferredCaptionsLanguages setting has changed.
 +    // @param preferredLanguages: PreferredLanguages.
-+    virtual void onPreferredCaptionsLanguagesChanged(const string& preferredLanguages /* @text preferredLanguages */) = 0;
++    virtual void OnPreferredCaptionsLanguagesChanged(const string& preferredLanguages /* @text preferredLanguages */) = 0;
 +
-+    // @alt onPreferredClosedCaptionServiceChanged
++    // @text onPreferredClosedCaptionServiceChanged
 +    // @brief The PreferredClosedCaptionService setting has changed.
 +    // @param service: "CC[1-4]", "TEXT[1-4]", "SERVICE[1-64]".
-+    virtual void onPreferredClosedCaptionServiceChanged(const string& service) = 0;
++    virtual void OnPreferredClosedCaptionServiceChanged(const string& service) = 0;
 +
-+    // @alt onPrivacyModeChanged
-+    // @brief The PrivacyMode setting has changed.
-+    // @param privacyMode: "SHARE", "DO_NOT_SHARE".
-+    virtual void onPrivacyModeChanged(const string& privacyMode /* @text privacyMode */) = 0;
-+
-+    // @alt onPinControlChanged
++    // @text onPinControlChanged
 +    // @brief The PinControl setting has changed.
 +    // @param enabled: Enabled/Disabled.
-+    virtual void onPinControlChanged(const bool enabled) = 0;
++    virtual void OnPinControlChanged(const bool enabled) = 0;
 +
-+    // @alt onViewingRestrictionsChanged
++    // @text onViewingRestrictionsChanged
 +    // @brief The ViewingRestrictions setting has changed.
 +    // @param viewingRestrictions:  Empty string
-+    virtual void onViewingRestrictionsChanged(const string& viewingRestrictions /* @text viewingRestrictions */) = 0;
++    virtual void OnViewingRestrictionsChanged(const string& viewingRestrictions /* @text viewingRestrictions */) = 0;
 +
-+    // @alt onViewingRestrictionsWindowChanged
++    // @text onViewingRestrictionsWindowChanged
 +    // @brief The ViewingRestrictionsWindow setting has changed.
 +    // @param viewingRestrictionsWindow: "ALWAYS"
-+    virtual void onViewingRestrictionsWindowChanged(const string& viewingRestrictionsWindow /* @text viewingRestrictionsWindow */) = 0;
++    virtual void OnViewingRestrictionsWindowChanged(const string& viewingRestrictionsWindow /* @text viewingRestrictionsWindow */) = 0;
 +
-+    // @alt onLiveWatershedChanged
++    // @text onLiveWatershedChanged
 +    // @brief The LiveWatershed setting has changed.
 +    // @param enabled: Enabled/Disabled.
-+    virtual void onLiveWatershedChanged(const bool enabled) = 0;
++    virtual void OnLiveWatershedChanged(const bool enabled) = 0;
 +
-+    // @alt onPlaybackWatershedChanged
++    // @text onPlaybackWatershedChanged
 +    // @brief The PlaybackWatershed setting has changed.
 +    // @param enabled: Enabled/Disabled.
-+    virtual void onPlaybackWatershedChanged(const bool enabled) = 0;
++    virtual void OnPlaybackWatershedChanged(const bool enabled) = 0;
 +
-+    // @alt onBlockNotRatedContentChanged
++    // @text onBlockNotRatedContentChanged
 +    // @brief The BlockNotRatedContent setting has changed.
 +    // @param enabled: Enabled/Disabled.
-+    virtual void onBlockNotRatedContentChanged(const bool enabled) = 0;
++    virtual void OnBlockNotRatedContentChanged(const bool enabled) = 0;
 +
-+    // @alt onPinOnPurchaseChanged
++    // @text onPinOnPurchaseChanged
 +    // @brief The PinOnPurchase setting has changed.
 +    // @param enabled: Enabled/Disabled.
-+    virtual void onPinOnPurchaseChanged(const bool enabled) = 0;
++    virtual void OnPinOnPurchaseChanged(const bool enabled) = 0;
 +
 +  };
 +
 +  virtual uint32_t Register(Exchange::IUserSettings::INotification* notification /* @in */) = 0;
 +  virtual uint32_t Unregister(Exchange::IUserSettings::INotification* notification /* @in */) = 0;
 +
-+  // @alt setAudioDescription
++  // @text setAudioDescription
 +  // @brief Sets AudioDescription ON/OFF. Players should preferred Audio Descriptive tracks over normal audio track when enabled
 +  // @param enabled: Enabled/Disabled
-+  virtual uint32_t setAudioDescription(const bool enabled /* @in */) = 0;
++  virtual uint32_t SetAudioDescription(const bool enabled /* @in */) = 0;
 +
-+  // @alt getAudioDescription
++  // @text getAudioDescription
 +  // @brief Gets the current AudioDescription setting
 +  // @param enabled: Enabled/Disabled
-+  virtual uint32_t getAudioDescription(bool &enabled /* @out */) const = 0;
++  virtual uint32_t GetAudioDescription(bool &enabled /* @out */) const = 0;
 +
-+  // @alt setPreferredAudioLanguages
++  // @text setPreferredAudioLanguages
 +  // @brief A prioritized list of ISO 639-2/B codes for the preferred audio languages,
 +  // expressed as a comma separated lists of languages of zero of more elements.
 +  // The players will pick the audio track that has the best match compared with
 +  // this list. In the absence of a matching track, the player should by best
 +  // effort select the preferred audio track.*/
 +  // @param preferredLanguages: PreferredLanguages
-+  virtual uint32_t setPreferredAudioLanguages(const string& preferredLanguages  /* @in @text preferredLanguages */) = 0;
++  virtual uint32_t SetPreferredAudioLanguages(const string& preferredLanguages  /* @in @text preferredLanguages */) = 0;
 +
-+  // @alt getPreferredAudioLanguages
++  // @text getPreferredAudioLanguages
 +  // @brief Gets the current PreferredAudioLanguages setting
 +  // @param preferredLanguages: PreferredLanguages
-+  virtual uint32_t getPreferredAudioLanguages(string &preferredLanguages /* @out @text preferredLanguages */) const = 0;
++  virtual uint32_t GetPreferredAudioLanguages(string &preferredLanguages /* @out @text preferredLanguages */) const = 0;
 +
-+  // @alt setPresentationLanguage
++  // @text setPresentationLanguage
 +  // @brief Sets the presentationLanguage in a full BCP 47 value, including script, region, variant
 +  // @param presentationLanguage: "en-US", "es-US", "en-CA", "fr-CA"
-+  virtual uint32_t setPresentationLanguage(const string& presentationLanguage /* @in @text presentationLanguage */) = 0;
++  virtual uint32_t SetPresentationLanguage(const string& presentationLanguage /* @in @text presentationLanguage */) = 0;
 +
-+  // @alt getPresentationLanguage
++  // @text getPresentationLanguage
 +  // @brief Gets the presentationLanguage
 +  // @param presentationLanguage: "en-US", "es-US", "en-CA", "fr-CA"
-+  virtual uint32_t getPresentationLanguage(string &presentationLanguage /* @out @text presentationLanguage */) const = 0;
++  virtual uint32_t GetPresentationLanguage(string &presentationLanguage /* @out @text presentationLanguage */) const = 0;
 +
-+  // @alt setCaptions
++  // @text setCaptions
 +  // @brief brief Sets Captions ON/OFF.
 +  // @details A setting of ON indicates that Players should select a subtitle track for presentation
 +  // The Setting does not influence any running sessions. It is up to the player to enforce the setting.
@@ -164,14 +157,14 @@ index 0000000..460d793
 +  // This holds true for media players that utilize TextTrack render sessions for text track decode-display and also for media
 +  // players or apps that decode-display internally 
 +  // @param enabled: Sets the state
-+  virtual uint32_t setCaptions(const bool enabled  /* @in */) = 0;
++  virtual uint32_t SetCaptions(const bool enabled  /* @in */) = 0;
 +
-+  // @alt getCaptions
++  // @text getCaptions
 +  // @brief Gets the Captions setting.
 +  // @param enabled: Receives the state
-+  virtual uint32_t getCaptions(bool &enabled /* @out */) const = 0;
++  virtual uint32_t GetCaptions(bool &enabled /* @out */) const = 0;
 +
-+  // @alt setPreferredCaptionsLanguages
++  // @text setPreferredCaptionsLanguages
 +  // @brief Set preferred languages for captions.
 +  // @details A prioritized list of ISO 639-2/B codes for the preferred Captions languages,
 +  // expressed as a comma separated lists of languages of zero of more elements.
@@ -179,187 +172,105 @@ index 0000000..460d793
 +  // this list. In the absence of a matching track, the player should by best
 +  // effort select the preferred subtitle track. 
 +  // @param preferredLanguages: Is the list to set (e.g. "eng,fra")
-+  virtual uint32_t setPreferredCaptionsLanguages(const string& preferredLanguages  /* @in @text preferredLanguages */) = 0;
++  virtual uint32_t SetPreferredCaptionsLanguages(const string& preferredLanguages  /* @in @text preferredLanguages */) = 0;
 +
-+  // @alt getPreferredCaptionsLanguages
++  // @text getPreferredCaptionsLanguages
 +  // @brief Gets the current PreferredCaptionsLanguages setting.
 +  // @param preferredLanguages: "eng,fra"
-+  virtual uint32_t getPreferredCaptionsLanguages(string &preferredLanguages /* @out @text preferredLanguages */) const = 0;
++  virtual uint32_t GetPreferredCaptionsLanguages(string &preferredLanguages /* @out @text preferredLanguages */) const = 0;
 +
-+  // @alt setPreferredClosedCaptionService
++  // @text setPreferredClosedCaptionService
 +  // @brief Sets the PreferredClosedCaptionService.
 +  // @details The setting should be honored by the player. The behaviour of AUTO may be player specific.
 +  // Valid input for service is "CC[1-4]", "TEXT[1-4]", "SERVICE[1-64]" 
 +  // @param service: Identifies the service to display e.g. "CC3".
-+  virtual uint32_t setPreferredClosedCaptionService(const string& service  /* @in */) = 0;
++  virtual uint32_t SetPreferredClosedCaptionService(const string& service  /* @in */) = 0;
 +
-+  // @alt getPreferredClosedCaptionService
++  // @text getPreferredClosedCaptionService
 +  // @brief Gets the current PreferredClosedCaptionService setting.
 +  // @param service: Identifies the service to display e.g. "CC3".
-+  virtual uint32_t getPreferredClosedCaptionService(string &service /* @out */) const = 0;
++  virtual uint32_t GetPreferredClosedCaptionService(string &service /* @out */) const = 0;
 +
-+  // @alt setPrivacyMode
-+  // @brief Sets the PrivacyMode.
-+  // @details The setting should be honored by the Telemetry.
-+  // If privacyMode is "DO_NOT_SHARE", logs and crash report should not be uploaded.
-+  // @param privacyMode: "SHARE", "DO_NOT_SHARE"
-+  virtual uint32_t setPrivacyMode(const string& privacyMode /* @in @text privacyMode*/) = 0;
-+
-+  // @alt getPrivacyMode
-+  // @brief Gets the current PrivacyMode setting.
-+  // @param privacyMode: "SHARE"
-+  virtual uint32_t getPrivacyMode(string &privacyMode /* @out @text privacyMode */) const = 0;
-+
-+  // @alt setPinControl
++  // @text setPinControl
 +  // @brief Sets PinControl ON/OFF. Parental Control as a whole is enabled or disabled.
 +  // @param enabled: Enabled/Disabled
-+  virtual uint32_t setPinControl(const bool enabled /* @in */) = 0;
++  virtual uint32_t SetPinControl(const bool enabled /* @in */) = 0;
 +
-+  // @alt getPinControl
++  // @text getPinControl
 +  // @brief Gets the PinControl setting
 +  // @param enabled: Enabled/Disabled
-+  virtual uint32_t getPinControl(bool &enabled /* @out */) const = 0;
++  virtual uint32_t GetPinControl(bool &enabled /* @out */) const = 0;
 +
-+  // @alt setViewingRestrictions
++  // @text setViewingRestrictions
 +  // @brief Sets the ViewingRestrictions.
 +  // @details A JSON document that escribes the rating scheme(s) and ratings that are blocked.
 +  // @param viewingRestrictions: A JSON document that describes the rating scheme(s) and ratings that are blocked.
-+  virtual uint32_t setViewingRestrictions(const string& viewingRestrictions /* @in @text viewingRestrictions */) = 0;
++  virtual uint32_t SetViewingRestrictions(const string& viewingRestrictions /* @in @text viewingRestrictions */) = 0;
 +
-+  // @alt getViewingRestrictions
++  // @text getViewingRestrictions
 +  // @brief Gets the current ViewingRestrictions.
 +  // @param viewingRestrictions: A JSON document that escribes the rating scheme(s) and ratings that are blocked.
-+  virtual uint32_t getViewingRestrictions(string &viewingRestrictions /* @out @text viewingRestrictions */) const = 0;
++  virtual uint32_t GetViewingRestrictions(string &viewingRestrictions /* @out @text viewingRestrictions */) const = 0;
 +
-+  // @alt setViewingRestrictionsWindow
++  // @text setViewingRestrictionsWindow
 +  // @brief Sets the ViewingRestrictionsWindow.
 +  // @details A project-specific representation of the time interval when viewing
 +  // restrictions are to be applied, if applicable for the project
 +  // @param viewingRestrictionsWindow: A project-specific representation of the time interval.Eg: "ALWAYS"
-+  virtual uint32_t setViewingRestrictionsWindow(const string &viewingRestrictionsWindow /* @in @text viewingRestrictionsWindow */) = 0;
++  virtual uint32_t SetViewingRestrictionsWindow(const string &viewingRestrictionsWindow /* @in @text viewingRestrictionsWindow */) = 0;
 +  
-+  // @alt getViewingRestrictionsWindow
++  // @text getViewingRestrictionsWindow
 +  // @brief Gets the current ViewingRestrictionsWindow.
 +  // @param viewingRestrictionsWindow: A project-specific representation of the time interval.Eg: "ALWAYS"
-+  virtual uint32_t getViewingRestrictionsWindow(string &viewingRestrictionsWindow /* @out @text viewingRestrictionsWindow */) const = 0;
++  virtual uint32_t GetViewingRestrictionsWindow(string &viewingRestrictionsWindow /* @out @text viewingRestrictionsWindow */) const = 0;
 +
-+  // @alt setLiveWatershed
++  // @text setLiveWatershed
 +  // @brief Sets LiveWatershed ON/OFF.Whether project-specific watershed rules
 +  // should be applied for live content, if applicable for the project.
 +  // @param enabled: Enabled/Disabled
-+  virtual uint32_t setLiveWatershed(const bool enabled /* @in */) = 0;
++  virtual uint32_t SetLiveWatershed(const bool enabled /* @in */) = 0;
 +
-+  // @alt getLiveWatershed
++  // @text getLiveWatershed
 +  // @brief Gets the LiveWatershed setting
 +  // @param enabled: Enabled/Disabled
-+  virtual uint32_t getLiveWatershed(bool &enabled /* @out */) const = 0;
++  virtual uint32_t GetLiveWatershed(bool &enabled /* @out */) const = 0;
 +
-+  // @alt setPlaybackWatershed
++  // @text setPlaybackWatershed
 +  // @brief Sets PlaybackWatershed ON/OFF. Whether project-specific watershed rules
 +  // should be applied for non-live content, if applicable for the project.
 +  // @param enabled: Enabled/Disabled
-+  virtual uint32_t setPlaybackWatershed(const bool enabled /* @in */) = 0;
++  virtual uint32_t SetPlaybackWatershed(const bool enabled /* @in */) = 0;
 +
-+  // @alt getPlaybackWatershed
++  // @text getPlaybackWatershed
 +  // @brief Gets the PlaybackWatershed setting
 +  // @param enabled: Enabled/Disabled
-+  virtual uint32_t getPlaybackWatershed(bool &enabled /* @out */) const = 0;
++  virtual uint32_t GetPlaybackWatershed(bool &enabled /* @out */) const = 0;
 +
-+  // @alt setBlockNotRatedContent
++  // @text setBlockNotRatedContent
 +  // @brief Sets BlockNotRatedContent ON/OFF. Whether content that is not rated should be
 +  // blocked, if applicable for the project.
 +  // @param enabled: Enabled/Disabled
-+  virtual uint32_t setBlockNotRatedContent(const bool enabled /* @in */) = 0;
++  virtual uint32_t SetBlockNotRatedContent(const bool enabled /* @in */) = 0;
 +
-+  // @alt getBlockNotRatedContent
++  // @text getBlockNotRatedContent
 +  // @brief Gets the BlockNotRatedContent setting
 +  // @param enabled: Enabled/Disabled
-+  virtual uint32_t getBlockNotRatedContent(bool &enabled /* @out */) const = 0;
++  virtual uint32_t GetBlockNotRatedContent(bool &enabled /* @out */) const = 0;
 +
-+  // @alt setPinOnPurchase
++  // @text setPinOnPurchase
 +  // @brief Sets PinOnPurchase ON/OFF.Whether a PIN challenge should be made
 +  // when a purchase is attempted.
 +  // @param enabled: Enabled/Disabled
-+  virtual uint32_t setPinOnPurchase(const bool enabled /* @in */) = 0;
++  virtual uint32_t SetPinOnPurchase(const bool enabled /* @in */) = 0;
 +
-+  // @alt getPinOnPurchase
++  // @text getPinOnPurchase
 +  // @brief Gets the PinOnPurchase setting
 +  // @param enabled: Enabled/Disabled
-+  virtual uint32_t getPinOnPurchase(bool &enabled /* @out */) const = 0;
++  virtual uint32_t GetPinOnPurchase(bool &enabled /* @out */) const = 0;
 +
 +};
 +} // namespace Exchange
 +} // namespace WPEFramework
-+
-+
-+#ifndef SUPPORT_CAMEL_CASE_JSON_APIS
-+
-+/* JUserSettings.h will be generated with auto generated tool and it is calling _impl_(object of IUserSettings.h) methods
-+   starting with Capital letters,which will cause compilation error as IUserSettings interface method names are starting with
-+   small letters.
-+   To avoid the compilation error we have added below macros, which will replace method names as below in JUserSettings.h
-+   Eg: Setxxxx replaced with setxxxx */
-+
-+/* Set and Get methods macros */
-+#define SetAudioDescription setAudioDescription
-+#define GetAudioDescription getAudioDescription
-+
-+#define SetPreferredAudioLanguages setPreferredAudioLanguages
-+#define GetPreferredAudioLanguages getPreferredAudioLanguages
-+
-+#define SetPresentationLanguage setPresentationLanguage
-+#define GetPresentationLanguage getPresentationLanguage
-+
-+#define SetCaptions setCaptions
-+#define GetCaptions getCaptions
-+
-+#define SetPreferredCaptionsLanguages setPreferredCaptionsLanguages
-+#define GetPreferredCaptionsLanguages getPreferredCaptionsLanguages
-+
-+#define SetPreferredClosedCaptionService setPreferredClosedCaptionService
-+#define GetPreferredClosedCaptionService getPreferredClosedCaptionService
-+
-+#define SetPrivacyMode setPrivacyMode
-+#define GetPrivacyMode getPrivacyMode
-+
-+#define SetPinControl setPinControl
-+#define GetPinControl getPinControl
-+
-+#define SetViewingRestrictions setViewingRestrictions
-+#define GetViewingRestrictions getViewingRestrictions
-+
-+#define SetViewingRestrictionsWindow setViewingRestrictionsWindow
-+#define GetViewingRestrictionsWindow getViewingRestrictionsWindow
-+
-+#define SetLiveWatershed setLiveWatershed
-+#define GetLiveWatershed getLiveWatershed
-+
-+#define SetPlaybackWatershed setPlaybackWatershed
-+#define GetPlaybackWatershed getPlaybackWatershed
-+
-+#define SetBlockNotRatedContent setBlockNotRatedContent
-+#define GetBlockNotRatedContent getBlockNotRatedContent
-+
-+#define SetPinOnPurchase setPinOnPurchase
-+#define GetPinOnPurchase getPinOnPurchase
-+
-+/* Event names macros*/
-+#define OnAudioDescriptionChanged onAudioDescriptionChanged
-+#define OnPreferredAudioLanguagesChanged onPreferredAudioLanguagesChanged
-+#define OnPresentationLanguageChanged onPresentationLanguageChanged
-+#define OnCaptionsChanged onCaptionsChanged
-+#define OnPreferredCaptionsLanguagesChanged onPreferredCaptionsLanguagesChanged
-+#define OnPreferredClosedCaptionServiceChanged onPreferredClosedCaptionServiceChanged
-+#define OnPrivacyModeChanged onPrivacyModeChanged
-+#define OnPinControlChanged onPinControlChanged
-+#define OnViewingRestrictionsChanged onViewingRestrictionsChanged
-+#define OnViewingRestrictionsWindowChanged onViewingRestrictionsWindowChanged
-+#define OnLiveWatershedChanged onLiveWatershedChanged
-+#define OnPlaybackWatershedChanged onPlaybackWatershedChanged
-+#define OnBlockNotRatedContentChanged onBlockNotRatedContentChanged
-+#define OnPinOnPurchaseChanged onPinOnPurchaseChanged
-+
-+#endif
 +
 diff --git a/interfaces/Ids.h b/interfaces/Ids.h
 index a37db24..293dd73 100644

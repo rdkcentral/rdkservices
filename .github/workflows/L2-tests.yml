@@ -220,6 +220,7 @@ jobs:
           -include ${{github.workspace}}/rdkservices/Tests/mocks/pkg.h
           -Wall -Werror -Wno-error=format=
           -DUSE_IARMBUS
+          -DDISABLE_SECURITY_TOKEN
           -DENABLE_THERMAL_PROTECTION"
           -DCOMCAST_CONFIG=OFF
           -DCMAKE_DISABLE_FIND_PACKAGE_DS=ON

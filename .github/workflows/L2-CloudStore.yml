@@ -37,4 +37,4 @@ jobs:
 # Usage:
 # PATH=${PWD}/install/bin:${PATH} LD_LIBRARY_PATH=${PWD}/install/lib:${LD_LIBRARY_PATH} valgrind --tool=memcheck --log-file=valgrind_log --leak-check=yes --show-reachable=yes --track-fds=yes --fair-sched=try Thunder -f -c ${PWD}/install/etc/Thunder/config.json
 # (to stop press q & enter)
-# curl -d '{"jsonrpc":"2.0","id":0,"method":"org.rdk.CloudStore.setValue","params":{"namespace":"test","key":"key1","value":"1","ttl":100}}' http://localhost:55555/jsonrpc
+# curl -d '{"jsonrpc":"2.0","id":0,"method":"org.rdk.CloudStore.setValue","params":{"scope":"account","namespace":"test","key":"key1","value":"1","ttl":100}}' http://localhost:55555/jsonrpc
