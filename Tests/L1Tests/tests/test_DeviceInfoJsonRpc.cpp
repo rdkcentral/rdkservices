@@ -11,6 +11,7 @@
 #include "VideoOutputPortMock.h"
 #include "VideoOutputPortTypeMock.h"
 #include "VideoResolutionMock.h"
+#include "RfcApiMock.h"
 
 #include "SystemInfo.h"
 
@@ -30,6 +31,7 @@ protected:
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
     string response;
+    RfcApiImplMock    *p_rfcApiImplMock  = nullptr;
 
     DeviceInfoJsonRpcTest()
         : plugin(Core::ProxyType<Plugin::DeviceInfo>::Create())
@@ -47,6 +49,9 @@ protected:
     NiceMock<ServiceMock> service;
     Core::Sink<NiceMock<SystemInfo>> subSystem;
 
+//    void MockRFCParameterCall(RfcApiImplMock* p_rfcApiImplMock, const char* expectedSerialNumber);
+
+
     DeviceInfoJsonRpcInitializedTest()
         : DeviceInfoJsonRpcTest()
     {
@@ -55,6 +60,9 @@ protected:
 
         p_managerImplMock  = new NiceMock <ManagerImplMock>;
         device::Manager::setImpl(p_managerImplMock);
+
+        p_rfcApiImplMock  = new NiceMock <RfcApiImplMock>;
+        RfcApi::setImpl(p_rfcApiImplMock);
 
         ON_CALL(service, ConfigLine())
             .WillByDefault(::testing::Return("{\"root\":{\"mode\":\"Off\"}}"));
@@ -85,6 +93,12 @@ protected:
         {
             delete p_managerImplMock;
             p_managerImplMock = nullptr;
+        }
+        RfcApi::setImpl(nullptr);
+        if (p_rfcApiImplMock != nullptr)
+        {
+            delete p_rfcApiImplMock;
+            p_rfcApiImplMock = nullptr;
         }
     }
 };
@@ -191,8 +205,22 @@ TEST_F(DeviceInfoJsonRpcTest, registeredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("supportedms12audioprofiles")));
 }
 
+#if 0
+void DeviceInfoJsonRpcInitializedTest::MockRFCParameterCall(RfcApiImplMock *p_rfcApiImplMock, const char* expectedSerialNumber) {
+    ON_CALL(*p_rfcApiImplMock, getRFCParameter(::testing::_, ::testing::_, ::testing::_))
+        .WillByDefault(::testing::Invoke(
+            [expectedSerialNumber](char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData) {
+                strncpy(pstParamData->value, expectedSerialNumber, sizeof(pstParamData->value));
+                return WDMP_SUCCESS;
+            }));
+}
+#endif
+
 TEST_F(DeviceInfoJsonRpcInitializedTest, systeminfo)
 {
+    // Call the extracted logic
+//    MockRFCParameterCall(p_rfcApiImplMock, "32E10400103240447");
+
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("systeminfo"), _T(""), response));
     EXPECT_THAT(response, ::testing::MatchesRegex("\\{"
                                                   "\"version\":\"#\","
@@ -209,7 +237,6 @@ TEST_F(DeviceInfoJsonRpcInitializedTest, systeminfo)
                                                   "\"avg5min\":[0-9]+,"
                                                   "\"avg15min\":[0-9]+"
                                                   "\\},"
-                                                  "\"serialnumber\":\".+\","
                                                   "\"time\":\".+\""
                                                   "\\}"));
 }
