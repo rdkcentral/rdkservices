@@ -1400,14 +1400,8 @@ namespace WPEFramework {
 	    if((!isTimerContext) && isTimerActive())
             {
                 populateResponseWithError(SysSrv_ModeChangeInProgress, response);
-		if(m_remainingDuration==0 && isTimerActive())
-                {
-                    LOGERR("Mode change is already in progress.current mode is %s and it will be in progress for next %d seconds. Please try again later.\n",m_currentMode.c_str(),m_remainingDuration+1);
-                }
-                else
-                {
-                    LOGERR("Mode change is already in progress.current mode is %s and it will be in progress for next %d seconds. Please try again later.\n",m_currentMode.c_str(),m_remainingDuration);
-                }
+		int actualDurationLeft = m_remainingDuration ? m_remainingDuration : 1;
+		LOGERR("Mode change is already in progress.current mode is %s and it will be in progress for next %d seconds. Please try again later.\n",m_currentMode.c_str(),actualDurationLeft);
                 returnResponse(false);
             }
             if (parameters.HasLabel("modeInfo")) {
