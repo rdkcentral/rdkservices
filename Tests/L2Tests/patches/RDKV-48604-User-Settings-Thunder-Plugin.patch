@@ -4,12 +4,10 @@ Date:   Fri Sep 6 12:49:05 2024 +0530
 
     RDK-48604: New UserSettings Thunder Plugin
 
-diff --git a/interfaces/IUserSettings.h b/interfaces/IUserSettings.h
-new file mode 100755
-index 0000000..9353f6d
---- /dev/null
-+++ b/interfaces/IUserSettings.h
-@@ -0,0 +1,281 @@
+diff -uprN a/interfaces/IUserSettings.h b/interfaces/IUserSettings.h
+--- a/interfaces/IUserSettings.h	1970-01-01 03:00:00.000000000 +0300
++++ b/interfaces/IUserSettings.h	2024-09-10 00:56:19.923464729 +0300
+@@ -0,0 +1,264 @@
 +/*
 + * If not stated otherwise in this file or this component's LICENSE file the
 + * following copyright and licenses apply:
@@ -72,11 +70,6 @@ index 0000000..9353f6d
 +    // @brief The PreferredClosedCaptionService setting has changed.
 +    // @param service: "CC[1-4]", "TEXT[1-4]", "SERVICE[1-64]".
 +    virtual void OnPreferredClosedCaptionServiceChanged(const string& service) = 0;
-+
-+    // @text onPrivacyModeChanged
-+    // @brief The PrivacyMode setting has changed.
-+    // @param privacyMode: "SHARE", "DO_NOT_SHARE".
-+    virtual void OnPrivacyModeChanged(const string& privacyMode /* @text privacyMode */) = 0;
 +
 +    // @text onPinControlChanged
 +    // @brief The PinControl setting has changed.
@@ -197,18 +190,6 @@ index 0000000..9353f6d
 +  // @brief Gets the current PreferredClosedCaptionService setting.
 +  // @param service: Identifies the service to display e.g. "CC3".
 +  virtual uint32_t GetPreferredClosedCaptionService(string &service /* @out */) const = 0;
-+
-+  // @text setPrivacyMode
-+  // @brief Sets the PrivacyMode.
-+  // @details The setting should be honored by the Telemetry.
-+  // If privacyMode is "DO_NOT_SHARE", logs and crash report should not be uploaded.
-+  // @param privacyMode: "SHARE", "DO_NOT_SHARE"
-+  virtual uint32_t SetPrivacyMode(const string& privacyMode /* @in @text privacyMode*/) = 0;
-+
-+  // @text getPrivacyMode
-+  // @brief Gets the current PrivacyMode setting.
-+  // @param privacyMode: "SHARE"
-+  virtual uint32_t GetPrivacyMode(string &privacyMode /* @out @text privacyMode */) const = 0;
 +
 +  // @text setPinControl
 +  // @brief Sets PinControl ON/OFF. Parental Control as a whole is enabled or disabled.
