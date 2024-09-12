@@ -1506,6 +1506,30 @@ namespace Plugin {
                }
                return 0;
            }
+	   else if ( forParam.compare("HDRMode") == 0) {
+               if (strncmp(param.value, "Dark", strlen(param.value)) == 0 && key.find("DV") != std::string::npos ) {
+                   value = tvDolbyMode_Dark;
+               }
+               else if(strncmp(param.value, "Bright", strlen(param.value)) == 0 && key.find("DV") != std::string::npos ) {
+                   value = tvDolbyMode_Game;
+               }
+	       else if(strncmp(param.value, "Dark", strlen(param.value)) == 0 && key.find("HDR10") != std::string::npos ) {
+                   value = tvHDR10Mode_Dark;
+               }
+	       else if(strncmp(param.value, "Bright", strlen(param.value)) == 0 && key.find("HDR10") != std::string::npos ) {
+                   value = tvHDR10Mode_Bright;
+               }
+	       else if(strncmp(param.value, "Dark", strlen(param.value)) == 0 && key.find("HLG") != std::string::npos ) {
+                   value = tvHLGMode_Dark;
+               }
+               else if(strncmp(param.value, "Bright", strlen(param.value)) == 0 && key.find("HLG") != std::string::npos ) {
+                   value = tvHLGMode_Bright;
+               }
+               else {
+                   value = tvDolbyMode_Game;
+               }
+               return 0;
+           }
            else {
                value=std::stoi(param.value);
                return 0;    
