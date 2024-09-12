@@ -145,7 +145,8 @@ namespace WPEFramework {
                 std::string m_strRegion;
 
                 static void startModeTimer(int duration);
-                static void stopModeTimer();
+                static void stopModeTimer(bool isDetachRequired = false);
+                static bool isTimerActive();
                 static void updateDuration();
 				std::string  m_strStandardTerritoryList;
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
