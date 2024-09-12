@@ -1399,8 +1399,8 @@ namespace WPEFramework {
             bool result = true;
 	    if((!isTimerContext) && isTimerActive())
             {
-                populateResponseWithError(SysSrv_ModeChangeInProgress, response);
 		int actualDurationLeft = m_remainingDuration ? m_remainingDuration : 1;
+                populateResponseWithError(SysSrv_ModeChangeInProgress, response);
 		LOGERR("Mode change is already in progress.current mode is %s and it will be in progress for next %d seconds. Please try again later.\n",m_currentMode.c_str(),actualDurationLeft);
                 returnResponse(false);
             }
@@ -1521,7 +1521,7 @@ namespace WPEFramework {
                 JsonObject parameters, param, response;
                 param["mode"] = "NORMAL";
                 param["duration"] = 0;
-                param["timercontext"] = true;
+                parameters["timercontext"] = true;
                 parameters["modeInfo"] = param;
                 if (_instance) {
                     _instance->setMode(parameters,response);
