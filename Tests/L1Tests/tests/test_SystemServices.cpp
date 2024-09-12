@@ -874,7 +874,7 @@ TEST_F(SystemServicesTest, Mode)
                 EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_DAEMON_NAME)));
                 EXPECT_EQ(string(methodName), string(_T("DaemonSysModeChange")));
 		unlock(10);
-                return IARM_RESULT_SUCCESS;
+		return IARM_RESULT_SUCCESS;
             });
 
     ON_CALL(*p_wrapsImplMock, system(::testing::_))
