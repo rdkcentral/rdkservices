@@ -189,6 +189,11 @@ void HdmiInput::getSupportedGameFeatures(std::vector<std::string>& featureList) 
     impl->getEdid2AllmSupport(iport,allmSupport);
 }
 
+    void HdmiInput::getHdmiVersion(int iport, dsHdmiMaxCapabilityVersion_t *capVersion) const {
+    EXPECT_NE(impl, nullptr);
+    impl->getHdmiVersion(iport,capVersion);
+}
+
 SleepModeImpl* SleepMode::impl = nullptr;
 
 SleepMode::SleepMode() {}
