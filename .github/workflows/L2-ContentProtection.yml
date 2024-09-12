@@ -1,0 +1,35 @@
+name: L2-ContentProtection
+
+on:
+  push:
+    paths:
+      - ContentProtection/**
+      - .github/workflows/*ContentProtection*.yml
+  pull_request:
+    paths:
+      - ContentProtection/**
+      - .github/workflows/*ContentProtection*.yml
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: ${{github.repository}}
+
+      - name: Install cmake
+        run: |
+          sudo apt update
+          sudo apt install -y cmake
+
+      - name: Build Thunder
+        working-directory: ${{github.workspace}}
+        run: sh +x ${GITHUB_REPOSITORY}/.github/workflows/BuildThunder.sh
+
+      - name: Build
+        working-directory: ${{github.workspace}}
+        run: |
+          cmake -S ${GITHUB_REPOSITORY}/ContentProtection -B build/ContentProtection -DCMAKE_INSTALL_PREFIX="install" -DCMAKE_CXX_FLAGS="-Wall -Werror"
+          cmake --build build/ContentProtection --target install

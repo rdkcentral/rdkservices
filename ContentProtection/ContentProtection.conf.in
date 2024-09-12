@@ -1,0 +1,4 @@
+precondition = ["Platform"]
+callsign = "org.rdk.ContentProtection"
+autostart = "@PLUGIN_CONTENTPROTECTION_AUTOSTART@"
+startuporder = "@PLUGIN_CONTENTPROTECTION_STARTUPORDER@"
