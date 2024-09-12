@@ -1393,10 +1393,10 @@ namespace WPEFramework {
         {
             bool changeMode  = true;
             bool isTimerContext = false;
-            getBoolParameter("timercontext", isTimerContext);
             JsonObject param;
             std::string oldMode = m_currentMode;
             bool result = true;
+	    getBoolParameter("timercontext", isTimerContext);
 	    if((!isTimerContext) && isTimerActive())
             {
 		int actualDurationLeft = m_remainingDuration ? m_remainingDuration : 1;
