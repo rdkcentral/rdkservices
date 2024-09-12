@@ -424,16 +424,11 @@ namespace Plugin {
 
         if( param == "CMS")
         {
-            LOGINFO("Tamil paramInfo : %s inputInfo:%s\n",paramInfo.color.c_str(),inputInfo.color.c_str());
-            LOGINFO("Tamil paramInfo : %s inputInfo:%s\n",paramInfo.component.c_str(),inputInfo.component.c_str());
-
             if ( ( paramInfo.color.find(inputInfo.color) == std::string::npos ) || ( paramInfo.component.find(inputInfo.component) == std::string::npos) )
                 return false;
         }
         else if( param == "WhiteBalance")
         {
-            LOGINFO("Tamil WB paramInfo : %s inputInfo:%s\n",paramInfo.color.c_str(),inputInfo.color.c_str());
-            LOGINFO("Tamil WB paramInfo : %s inputInfo:%s\n",paramInfo.control.c_str(),inputInfo.control.c_str());
             if ( ( paramInfo.color.find(inputInfo.color) == std::string::npos ) || ( paramInfo.control.find(inputInfo.control) == std::string::npos) )
                 return false;
         }
@@ -1384,7 +1379,6 @@ namespace Plugin {
                     LOGERR("%s : GetColorEnumFromString Failed!!! ",__FUNCTION__);
                     return -1;
                 }
-                LOGINFO("Tamil : Color : %d\n",level);
                 values.colorValues.push_back(level);
             }
 
@@ -1398,7 +1392,6 @@ namespace Plugin {
                     LOGERR("%s : GetComponentEnumFromString Failed!!! ",__FUNCTION__);
                     return -1;
                 }
-                LOGINFO("Tamil : Control : %d\n",level);
                 values.componentValues.push_back(level);
             }
         }
@@ -1415,7 +1408,6 @@ namespace Plugin {
                     LOGERR("%s : GetWBColorEnumFromString Failed!!! ",__FUNCTION__);
                     return -1;
                 }
-                LOGINFO("Tamil : Color : %d\n",level);
                 values.colorValues.push_back(level);
             }
 
@@ -1429,7 +1421,6 @@ namespace Plugin {
                     LOGERR("%s : GetWBControlEnumFromString Failed!!! ",__FUNCTION__);
                     return -1;
                 }
-                LOGINFO("Tamil : Control : %d\n",level);
                 values.controlValues.push_back(level);
             }
             
@@ -1456,16 +1447,15 @@ namespace Plugin {
     {
         string key;
         TR181_ParamData_t param={0};
-        if( forParam.compare("CMS") == 0 )
-        {
-            
+        
+	if( forParam.compare("CMS") == 0 ) {
             generateStorageIdentifierCMS(key,forParam,indexInfo);
-            LOGINFO("Tamil : forParam : %s  key : %s\n",forParam.c_str(),key.c_str());
-        }
-        else if( forParam.compare("WhiteBalance") == 0 ) 
+        } else if( forParam.compare("WhiteBalance") == 0 ) {
             generateStorageIdentifierWB(key,forParam,indexInfo);
-        else 
+        } else {
             generateStorageIdentifier(key,forParam,indexInfo);
+        }
+
         if(key.empty()) {
             LOGERR("generateStorageIdentifier failed\n");
             return -1;
@@ -2090,7 +2080,6 @@ namespace Plugin {
                 if ( convertWBParamToPQEnum(inputInfo.control,inputInfo.color,tvPQEnum) != 0 ) {
                     LOGERR("%s: %s/%s Param Not Found \n",__FUNCTION__,inputInfo.control.c_str(),inputInfo.color.c_str());
                 }    
-                LOGINFO("Tamil inputInfo.control : %s  inputInfo.color : %s\n",inputInfo.control.c_str(),inputInfo.color.c_str() );
                 updateAVoutputTVParam("sync","WhiteBalance",inputInfo,tvPQEnum,level);
             }
         }

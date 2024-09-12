@@ -1837,7 +1837,7 @@ namespace Plugin {
 
                 case tvColorTemp_USER:
                     LOGINFO("Color Temp Value: User Defined\n");
-                    response["colorTemperature"] = "User Defined";
+                    response["colorTemperature"] = "UserDefined";
                     break;
 
                 default:
