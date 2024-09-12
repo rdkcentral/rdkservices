@@ -27,13 +27,14 @@ typedef enum : uint32_t {
     UserSettings_onCaptionsChanged = 0x00000004,
     UserSettings_onPreferredCaptionsLanguagesChanged = 0x00000005,
     UserSettings_onPreferredClosedCaptionServiceChanged = 0x00000006,
-    UserSettings_onPinControlChanged = 0x00000007,
-    UserSettings_onViewingRestrictionsChanged = 0x00000008,
-    UserSettings_onViewingRestrictionsWindowChanged = 0x00000009,
-    UserSettings_onLiveWatershedChanged = 0x0000000a,
-    UserSettings_onPlaybackWatershedChanged = 0x0000000b,
-    UserSettings_onBlockNotRatedContentChanged = 0x0000000c,
-    UserSettings_onPinOnPurchaseChanged = 0x0000000d,
+    UserSettings_onPrivacyModeChanged = 0x00000007,
+    UserSettings_onPinControlChanged = 0x00000008,
+    UserSettings_onViewingRestrictionsChanged = 0x00000009,
+    UserSettings_onViewingRestrictionsWindowChanged = 0x0000000a,
+    UserSettings_onLiveWatershedChanged = 0x0000000b,
+    UserSettings_onPlaybackWatershedChanged = 0x0000000c,
+    UserSettings_onBlockNotRatedContentChanged = 0x0000000d,
+    UserSettings_onPinOnPurchaseChanged = 0x0000000e,
     UserSettings_StateInvalid = 0x00000000
 }UserSettingsL2test_async_events_t;
 
@@ -49,6 +50,7 @@ class AsyncHandlerMock_UserSetting
         MOCK_METHOD(void, onCaptionsChanged, (const bool enabled));
         MOCK_METHOD(void, onPreferredCaptionsLanguagesChanged, (const string preferredLanguages));
         MOCK_METHOD(void, onPreferredClosedCaptionServiceChanged, (const string service));
+        MOCK_METHOD(void, onPrivacyModeChanged, (const string privacyMode));
         MOCK_METHOD(void, onPinControlChanged, (const bool enabled));
         MOCK_METHOD(void, onViewingRestrictionsChanged, (const string viewingRestrictions));
         MOCK_METHOD(void, onViewingRestrictionsWindowChanged, (const string viewingRestrictionsWindow));
@@ -147,6 +149,17 @@ class NotificationHandler : public Exchange::IUserSettings::INotification {
             TEST_LOG("OnPreferredClosedCaptionServiceChanged received: %s\n", service.c_str());
             /* Notify the requester thread. */
             m_event_signalled |= UserSettings_onPreferredClosedCaptionServiceChanged;
+            m_condition_variable.notify_one();
+        }
+
+        void OnPrivacyModeChanged(const string& privacyMode) override
+        {
+            TEST_LOG("OnPrivacyModeChanged event triggered ***\n");
+            std::unique_lock<std::mutex> lock(m_mutex);
+
+            TEST_LOG("OnPrivacyModeChanged received: %s\n", privacyMode.c_str());
+            /* Notify the requester thread. */
+            m_event_signalled |= UserSettings_onPrivacyModeChanged;
             m_condition_variable.notify_one();
         }
 
