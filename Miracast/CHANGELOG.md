@@ -16,6 +16,7 @@ All notable changes to this RDK Service will be documented in this file.
 ## [1.0.9] - 2024-08-27
 ### Fixed
 - Increase scan interval to 5 sec and added RFC support.
+- Fixed the MiracastService unit test failure
 
 ## [1.0.8] - 2024-07-03
 ### Fixed
