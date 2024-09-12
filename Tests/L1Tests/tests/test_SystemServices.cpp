@@ -873,7 +873,6 @@ TEST_F(SystemServicesTest, Mode)
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_DAEMON_NAME)));
                 EXPECT_EQ(string(methodName), string(_T("DaemonSysModeChange")));
-		unlock(10);
 		return IARM_RESULT_SUCCESS;
             });
 
@@ -897,7 +896,6 @@ TEST_F(SystemServicesTest, Mode)
     EXPECT_EQ(response, string("{\"modeInfo\":{\"mode\":\"EAS\",\"duration\":(10|[1-9])\\},\"success\":true}"));
 
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"WAREHOUSE\",\"duration\":5}}"), response));
-    lock(11);
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"WAREHOUSE\",\"duration\":5}}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
