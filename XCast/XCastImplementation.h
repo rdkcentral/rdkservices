@@ -32,13 +32,20 @@ namespace Plugin {
 
     class XCastImplementation : public Exchange::IXCast, public PluginHost::IStateControl, public RtNotifier {
     public:
+        enum PluginState
+        {
+            PLUGIN_DEACTIVATED,
+            PLUGIN_ACTIVATED
+        };
+
         enum Event {
                 LAUNCH_REQUEST_WITH_PARAMS,
                 LAUNCH_REQUEST,
                 STOP_REQUEST,
                 HIDE_REQUEST,
                 STATE_REQUEST,
-                RESUME_REQUEST
+                RESUME_REQUEST,
+                UPDATE_POWERSTATE
             };
 
         class EXTERNAL Job : public Core::IDispatch {
@@ -92,15 +99,19 @@ namespace Plugin {
         virtual void Unregister(Exchange::IXCast::INotification* sink) override ;
 
         virtual PluginHost::IStateControl::state State() const override { return PluginHost::IStateControl::RESUMED; }
-        virtual uint32_t Request(const command state) override;
+        virtual uint32_t Request(const command state) override { return Core::ERROR_GENERAL; }
         virtual void Register(IStateControl::INotification* notification) override {}
         virtual void Unregister(IStateControl::INotification* notification) override {}
-        virtual uint32_t Configure(PluginHost::IShell* service) override;
+        virtual uint32_t Configure(PluginHost::IShell* service) override { return Core::ERROR_NONE; }
+
+        virtual uint32_t Initialize(bool networkStandbyMode) override;
+        virtual void Deinitialize(void) override;
 
         virtual uint32_t applicationStateChanged(const string& appName, const string& appstate, const string& appId, const string& error) const override;
         virtual uint32_t enableCastService(string friendlyname,bool enableService) const override;
         virtual uint32_t getProtocolVersion(string &protocolVersion) const override;
         virtual uint32_t registerApplications(Exchange::IXCast::IApplicationInfoIterator* const appLists) override;
+        virtual uint32_t setNetworkStandbyMode(bool nwStandbymode) override;
 
         virtual void onXcastApplicationLaunchRequestWithLaunchParam (string appName, string strPayLoad, string strQuery, string strAddDataUrl) override ;
         virtual void onXcastApplicationLaunchRequest(string appName, string parameter) override ;
@@ -108,19 +119,45 @@ namespace Plugin {
         virtual void onXcastApplicationHideRequest(string appName, string appId) override ;
         virtual void onXcastApplicationResumeRequest(string appName, string appId) override ;
         virtual void onXcastApplicationStateRequest(string appName, string appId) override ;
+        virtual void onXcastUpdatePowerStateRequest(string powerState) override;
+        virtual void onGDialServiceDisconnected(void) override;
 
         BEGIN_INTERFACE_MAP(XCastImplementation)
-        INTERFACE_ENTRY(Exchange::IXCast)
-        INTERFACE_ENTRY(PluginHost::IStateControl)
+            INTERFACE_ENTRY(Exchange::IXCast)
+            INTERFACE_ENTRY(PluginHost::IStateControl)
         END_INTERFACE_MAP
 
     private:
         static RtXcastConnector* _rtConnector;
         mutable Core::CriticalSection _adminLock;
+        TpTimer m_locateCastTimer;
+        WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> *m_ControllerObj = nullptr;
+        WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> *m_NetworkPluginObj = nullptr;
+        PluginState _networkPluginState;
         std::list<Exchange::IXCast::INotification*> _notificationClients;
+        static XCastImplementation* _instance;
+        bool m_networkStandbyMode{false};
         
         void dispatchEvent(Event,string callsign, const JsonObject &params);
         void Dispatch(Event event,string callsign, const JsonObject params);
+
+        void onLocateCastTimer();
+        void startTimer(int interval);
+        void stopTimer();
+        bool isTimerActive();
+
+        std::string getSecurityToken();
+        void getThunderPlugins();
+        int activatePlugin(string callsign);
+        int deactivatePlugin(string callsign);
+        bool isPluginActivated(string callsign);
+        void eventHandler_onDefaultInterfaceChanged(const JsonObject& parameters);
+        void eventHandler_ipAddressChanged(const JsonObject& parameters);
+        void eventHandler_pluginState(const JsonObject& parameters);
+
+        bool connectToGDialService(void);
+        bool getDefaultNameAndIPAddress(std::string& interface, std::string& ipaddress);
+        void updateNWConnectivityStatus(std::string nwInterface, bool nwConnected, std::string ipaddress = "");
 
     public:
         XCastImplementation();
