@@ -604,6 +604,23 @@
                 }
             ]
         },
+	"getHdmiVersion": {
+            "summary": "Gets the maximum hdmi compatibility version supported for the given port",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "portId":{
+                        "$ref": "#/definitions/portId"
+                    },
+                },
+                "required": [
+                    "portId",
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
        "getSupportedGameFeatures":{
             "summary": "Returns the list of supported game features.",
             "result": {
