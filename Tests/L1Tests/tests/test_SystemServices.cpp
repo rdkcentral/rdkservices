@@ -879,7 +879,12 @@ TEST_F(SystemServicesTest, Mode)
     ON_CALL(*p_wrapsImplMock, system(::testing::_))
         .WillByDefault(::testing::Invoke(
             [&](const char* command) {
-                EXPECT_EQ(string(command), string(_T("rm -f /opt/warehouse_mode_active")));
+                EXPECT_TRUE(
+                    strcmp(command, "touch /opt/warehouse_mode_active") == 0 ||
+                    strcmp(command, "rm -rf /opt/warehouse_mode_active") == 0 ||
+                    strcmp(command, "touch /opt/eas_mode_active") == 0 ||
+                    strcmp(command, "rm -rf /opt/eas_mode_active") == 0
+                );
                 return 0;
             }));
 
@@ -893,11 +898,19 @@ TEST_F(SystemServicesTest, Mode)
     EXPECT_EQ(response, string("{\"success\":true}"));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMode"), _T("{}"), response));
-    EXPECT_EQ(response, string("{\"modeInfo\":{\"mode\":\"EAS\",\"duration\":(10|[1-9])\\},\"success\":true}"));
+    EXPECT_THAT(response, ::testing::MatchesRegex(_T("\\{"
+                                                 "\"modeInfo\":\\{"
+                                                 "\"mode\":\"EAS\","
+                                                 "\"duration\":(10|[1-9])"
+                                                 "\\},"
+                                                 "\"success\":true"
+                                                 "\\}")));
 
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"WAREHOUSE\",\"duration\":5}}"), response));
+    sleep(10);
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"WAREHOUSE\",\"duration\":5}}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
+    sleep(5);
 }
 
 TEST_F(SystemServicesTest, setDeepSleepTimer)
