@@ -21,7 +21,9 @@
 #include <mutex>
 #include <iostream>
 #include <list>
-
+#include <fstream>
+#include "Module.h"
+#include "tptimer.h"
 #include "RtNotifier.h"
 #include "XCastCommon.h"
 #include <xdial/gdialservicecommon.h>
@@ -42,7 +44,8 @@ public:
     /**
      * Initialize rtRemote communication with rtDial server
      */
-    bool initialize();
+    bool initialize(const std::string& gdial_interface_name, bool networkStandbyMode );
+    void deinitialize();
     
     /** Shutdown rtRemote connectivity */
     void shutdown();
@@ -68,6 +71,7 @@ public:
     void updateFriendlyName(string friendlyname);
     void registerApplications (std::vector<DynamicAppConfig*>& appConfigList);
     string  getProtocolVersion(void);
+    void setNetworkStandbyMode(bool nwStandbymode);
     /**
      *Request the single instance of this class
      */
@@ -79,11 +83,13 @@ public:
     virtual void onApplicationHideRequest(string appName, string appID) override;
     virtual void onApplicationResumeRequest(string appName, string appID) override;
     virtual void onApplicationStateRequest(string appName, string appID) override;
+    virtual void onDisconnect(void) override;
+    virtual void updatePowerState(string powerState) override;
 
     /**
      *Call back function for rtConnection
      */
-    //int connectToRemoteService();
+    int isGDialStarted();
     
     void setService(RtNotifier * service){
         m_observer = service;
@@ -101,10 +107,15 @@ private:
     // Member function to handle RT messages.
     //void processRtMessages();
     bool IsAppEnabled(char* strAppName);
+    void getWiFiInterface(std::string& WiFiInterfaceName);
+    void getGDialInterfaceName(std::string& interfaceName);
+    std::string getReceiverID(void);
+    bool envGetValue(const char *key, std::string &value);
 
     // Class level contracts
     // Singleton instance
     static RtXcastConnector * _instance;
+    std::recursive_mutex m_mutexSync;
     // Thread main function
     //static void threadRun(RtXcastConnector *rtCtx);
 };
