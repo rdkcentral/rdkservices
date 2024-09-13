@@ -3294,7 +3294,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        if( !isCapablityCheckPassed( "hdrMode", inputInfo )) {
+        if( !isCapablityCheckPassed( "HDRMode", inputInfo )) {
             LOGERR("%s: CapablityCheck failed for hdrMode\n", __FUNCTION__);
             returnResponse(false);
         }
