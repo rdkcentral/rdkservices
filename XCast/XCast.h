@@ -35,7 +35,6 @@
 #include <interfaces/IXCast.h>
 #include "tracing/Logging.h"
 #include "tptimer.h"
-#include "RtNotifier.h"
 #include "libIBus.h"
 #include "libIBusDaemon.h"
 #include "pwrMgr.h"
@@ -47,6 +46,26 @@
 namespace WPEFramework {
 namespace Plugin {
     class XCast: public PluginHost::IPlugin, public PluginHost::JSONRPC {
+    public:        
+        BEGIN_INTERFACE_MAP(XCast)
+            INTERFACE_ENTRY(PluginHost::IPlugin)
+            INTERFACE_ENTRY(PluginHost::IDispatcher)
+            INTERFACE_AGGREGATE(Exchange::IXCast, _xcast)
+        END_INTERFACE_MAP
+
+        XCast();
+        virtual ~XCast();
+        virtual const string Initialize(PluginHost::IShell* service) override;
+        virtual void Deinitialize(PluginHost::IShell* service) override;
+        virtual string Information() const override { return {}; }
+
+        void event_onApplicationLaunchRequestWithLaunchParam(string appName,string strPayLoad, string strQuery, string strAddDataUrl);
+        void event_onApplicationLaunchRequest(string appName, string parameter);
+        void event_onApplicationStopRequest(string appName, string appID);
+        void event_onApplicationHideRequest(string appName, string appID);
+        void event_onApplicationStateRequest(string appName, string appID);
+        void event_onApplicationResumeRequest(string appName, string appID);
+        void event_onUpdatePowerStateRequest(string powerState);
     public:
         class Notification : public RPC::IRemoteConnection::INotification,
                              public Exchange::IXCast::INotification {
@@ -65,12 +84,35 @@ namespace Plugin {
                 }
 
             public:
-                virtual void onApplicationLaunchRequestWithLaunchParam(const string& appName, const string& strPayLoad, const string& strQuery, const string& strAddDataUrl) override;
-                virtual void onApplicationLaunchRequest(const string& appName, const string& parameter) override;
-				virtual void onApplicationStopRequest(const string& appName, const string& appID) override;
-				virtual void onApplicationHideRequest(const string& appName, const string& appID) override;
-				virtual void onApplicationStateRequest(const string& appName, const string& appID) override;
-				virtual void onApplicationResumeRequest(const string& appName, const string& appID) override;
+                virtual void onApplicationLaunchRequestWithLaunchParam(const string& appName, const string& strPayLoad, const string& strQuery, const string& strAddDataUrl) override
+                {
+                    _parent.event_onApplicationLaunchRequestWithLaunchParam(appName, strPayLoad, strQuery, strAddDataUrl);
+                }
+                virtual void onApplicationLaunchRequest(const string& appName, const string& parameter) override
+                {
+                    _parent.event_onApplicationLaunchRequest(appName, parameter);
+                }
+				virtual void onApplicationStopRequest(const string& appName, const string& appID) override
+                {
+                    _parent.event_onApplicationStopRequest(appName, appID);
+                }
+				virtual void onApplicationHideRequest(const string& appName, const string& appID) override
+                {
+                    _parent.event_onApplicationHideRequest(appName, appID);
+                }
+				virtual void onApplicationStateRequest(const string& appName, const string& appID) override
+                {
+                    _parent.event_onApplicationStateRequest(appName, appID);
+                }
+				virtual void onApplicationResumeRequest(const string& appName, const string& appID) override
+                {
+                    _parent.event_onApplicationResumeRequest(appName, appID);
+                }
+                virtual void onUpdatePowerStateRequest(const string& powerState) override
+                {
+                    _parent.event_onUpdatePowerStateRequest(powerState);
+                }
+
                 virtual void Activated(RPC::IRemoteConnection* /* connection */) final
                 {
                     LOGINFO("XCast::Notification::Activated - %p", this);
@@ -90,19 +132,6 @@ namespace Plugin {
             private:
                 XCast& _parent;
         };
-
-        BEGIN_INTERFACE_MAP(XCast)
-        INTERFACE_ENTRY(PluginHost::IPlugin)
-        INTERFACE_ENTRY(PluginHost::IDispatcher)
-        INTERFACE_AGGREGATE(Exchange::IXCast, _xcast)
-        END_INTERFACE_MAP
-
-    public:
-        XCast();
-        virtual ~XCast();
-        virtual const string Initialize(PluginHost::IShell* service) override;
-        virtual void Deinitialize(PluginHost::IShell* service) override;
-        virtual string Information() const override { return {}; }
 
     private:
         // We do not allow this plugin to be copied !!
@@ -131,8 +160,9 @@ namespace Plugin {
          */
         static bool m_xcastEnable;
         static IARM_Bus_PWRMgr_PowerState_t m_powerState;
+        static bool m_networkStandbyMode;
         bool m_isDynamicRegistrationsRequired;
-        mutex m_appConfigMutex;
+        std::mutex m_appConfigMutex;
         WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> * m_SystemPluginObj = NULL;
         std::vector<DynamicAppConfig*> m_appConfigCache;
         static string m_friendlyName;
@@ -147,18 +177,22 @@ namespace Plugin {
         bool getEntryFromAppLaunchParamList (const char* appName, DynamicAppConfig& retAppConfig);
         void dumpDynamicAppConfigCache(string strListName, std::vector<DynamicAppConfig*> appConfigList);
         bool deleteFromDynamicAppCache(JsonArray applications);
-        bool deleteFromDynamicAppCache(vector<string>& appsToDelete);
+        bool deleteFromDynamicAppCache(std::vector<string>& appsToDelete);
         void updateDynamicAppCache(JsonArray applications);
         void getSystemPlugin();
         int updateSystemFriendlyName();
         void onFriendlyNameUpdateHandler(const JsonObject& parameters);
+        bool setPowerState(std::string powerState);
 
         /**
          * Check whether the xdial service is allowed in this device.
          */
         static void powerModeChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
         static void threadPowerModeChangeEvent(void);
+        static void networkStandbyModeChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
+        static void networkStandbyModeChangeEvent(void);
     private:
+        static XCast *m_instance;
         uint8_t _skipURL{};
         uint32_t _connectionId{};
         PluginHost::IShell* _service{};
@@ -167,6 +201,5 @@ namespace Plugin {
         uint32_t m_apiVersionNumber;
         friend class Notification;
     };
-
 } // namespace Plugin
 } // namespace WPEFramework
