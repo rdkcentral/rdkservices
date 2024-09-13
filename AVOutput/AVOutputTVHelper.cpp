@@ -2365,7 +2365,7 @@ namespace Plugin {
 
             }
 
-            if ((param == "DolbyVisionMode") || (param == "Backlight") || (param == "CMS") || (param == "WhiteBalance") ) {
+            if ((param == "DolbyVisionMode") || (param == "Backlight") || (param == "CMS") || (param == "WhiteBalance") || (param == "HDRMode") ) {
                 configString = param + ".platformsupport";
                 info.isPlatformSupport = inFile.Get<std::string>(configString);
                 printf(" platformsupport : %s\n",info.isPlatformSupport.c_str() );
