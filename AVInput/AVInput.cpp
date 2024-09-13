@@ -1378,7 +1378,7 @@ uint32_t AVInput::getHdmiVersionWrapper(const JsonObject& parameters, JsonObject
                 returnResponse(false);
         }
 
-        dsHdmiMaxCapabilityVersion_t hdmiCapVersion = HDMI_COMPATIBILITY_VERSION_MAX;
+        dsHdmiMaxCapabilityVersion_t hdmiCapVersion = HDMI_COMPATIBILITY_VERSION_14;
 
         try {
                 device::HdmiInput::getInstance().getHdmiVersion(portId, &(hdmiCapVersion));
