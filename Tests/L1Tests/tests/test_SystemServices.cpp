@@ -881,9 +881,9 @@ TEST_F(SystemServicesTest, Mode)
             [&](const char* command) {
                 EXPECT_TRUE(
                     strcmp(command, "touch /opt/warehouse_mode_active") == 0 ||
-                    strcmp(command, "rm -rf /opt/warehouse_mode_active") == 0 ||
+                    strcmp(command, "rm -f /opt/warehouse_mode_active") == 0 ||
                     strcmp(command, "touch /opt/eas_mode_active") == 0 ||
-                    strcmp(command, "rm -rf /opt/eas_mode_active") == 0
+                    strcmp(command, "rm -f /opt/eas_mode_active") == 0
                 );
                 return 0;
             }));
@@ -907,10 +907,9 @@ TEST_F(SystemServicesTest, Mode)
                                                  "\\}")));
 
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"WAREHOUSE\",\"duration\":5}}"), response));
-    sleep(10);
+    std::this_thread::sleep_for(std::chrono::seconds(11)); 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"WAREHOUSE\",\"duration\":5}}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
-    sleep(5);
 }
 
 TEST_F(SystemServicesTest, setDeepSleepTimer)
