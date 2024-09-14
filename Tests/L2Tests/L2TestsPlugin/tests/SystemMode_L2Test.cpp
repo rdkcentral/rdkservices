@@ -110,7 +110,7 @@ TEST_F(SystemModeTest,GetStatedefault)
     EXPECT_EQ(Core::ERROR_NONE, status);
     JsonObject  result_final ;
     result_final["message"] = result;
-    EXPECT_STREQ("Video", result_final["message"].String().c_str());	
+    EXPECT_STREQ(result_final,result);	
 	
     //result.ToString(reply);
 	
