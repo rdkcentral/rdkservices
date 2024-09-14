@@ -108,7 +108,12 @@ TEST_F(SystemModeTest,GetStatedefault)
     params["systemMode"] = "DeviceOptimize";
     status = InvokeServiceMethod("org.rdk.SystemMode", "GetState", params, result);
     EXPECT_EQ(Core::ERROR_NONE, status);
-    result.ToString(reply);
+    JsonObject  result_final ;
+    result_final["message"] = result;
+    EXPECT_STREQ("Video", result_final["message"].String().c_str());	
+	
+    //result.ToString(reply);
+	
     TEST_LOG("RamTest Status %u, results %s", status, reply.c_str()); 	
     std::cout<<"Ram Test reply :"<<reply<<std::endl ;
     /*
