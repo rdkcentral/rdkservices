@@ -906,7 +906,8 @@ TEST_F(SystemServicesTest, Mode)
                                                  "\"success\":true"
                                                  "\\}")));
 
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"WAREHOUSE\",\"duration\":5}}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"WAREHOUSE\",\"duration\":5}}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
     std::this_thread::sleep_for(std::chrono::seconds(11)); 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"WAREHOUSE\",\"duration\":5}}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
