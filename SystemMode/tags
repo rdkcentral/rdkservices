@@ -1,0 +1,65 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+API_VERSION_NUMBER_MAJOR	SystemMode.cpp	22;"	d	file:
+API_VERSION_NUMBER_MINOR	SystemMode.cpp	23;"	d	file:
+API_VERSION_NUMBER_PATCH	SystemMode.cpp	24;"	d	file:
+Create	SystemModeImplementation.h	/^            static Core::ProxyType<Core::IDispatch> Create(SystemModeImplementation *systemModeImplementation, Event event, JsonValue params) {$/;"	f	class:WPEFramework::Plugin::SystemModeImplementation::Job
+DEVICEOPTIMIZE_CHANGED	SystemModeImplementation.h	/^                DEVICEOPTIMIZE_CHANGED$/;"	e	enum:WPEFramework::Plugin::SystemModeImplementation::Event
+Deactivated	SystemMode.cpp	/^    void SystemMode::Deactivated(RPC::IRemoteConnection* connection)$/;"	f	class:WPEFramework::Plugin::SystemMode
+Deinitialize	SystemMode.cpp	/^    void SystemMode::Deinitialize(PluginHost::IShell* service)$/;"	f	class:WPEFramework::Plugin::SystemMode
+Dispatch	SystemModeImplementation.cpp	/^void SystemModeImplementation::Dispatch(Event event, const JsonValue params)$/;"	f	class:WPEFramework::Plugin::SystemModeImplementation
+Dispatch	SystemModeImplementation.h	/^            virtual void Dispatch() {$/;"	f	class:WPEFramework::Plugin::SystemModeImplementation::Job
+EXTERNAL	Module.h	28;"	d
+EXTERNAL	Module.h	29;"	d
+Event	SystemModeImplementation.h	/^        enum Event {$/;"	g	class:WPEFramework::Plugin::SystemModeImplementation
+Information	SystemMode.cpp	/^    string SystemMode::Information() const$/;"	f	class:WPEFramework::Plugin::SystemMode
+Initialize	SystemMode.cpp	/^    const string SystemMode::Initialize(PluginHost::IShell* service)$/;"	f	class:WPEFramework::Plugin::SystemMode
+Job	SystemModeImplementation.h	/^             Job(SystemModeImplementation *systemModeImplementation, Event event, JsonValue &params)$/;"	f	class:WPEFramework::Plugin::SystemModeImplementation::Job
+Job	SystemModeImplementation.h	/^        class EXTERNAL Job : public Core::IDispatch {$/;"	c	class:WPEFramework::Plugin::SystemModeImplementation
+MODULE_NAME	Module.h	22;"	d
+Notification	SystemMode.h	/^            explicit Notification(SystemMode* parent)$/;"	f	class:WPEFramework::Plugin::SystemMode::Notification
+Notification	SystemMode.h	/^        class Notification : public RPC::IRemoteConnection::INotification,$/;"	c	class:WPEFramework::Plugin::SystemMode
+Plugin	SystemMode.cpp	/^    namespace Plugin$/;"	n	namespace:WPEFramework	file:
+Plugin	SystemMode.h	/^namespace Plugin {$/;"	n	namespace:WPEFramework
+Plugin	SystemModeImplementation.cpp	/^namespace Plugin {$/;"	n	namespace:WPEFramework	file:
+Plugin	SystemModeImplementation.h	/^namespace Plugin {$/;"	n	namespace:WPEFramework
+Register	SystemModeImplementation.cpp	/^uint32_t SystemModeImplementation::Register(Exchange::ISystemMode::INotification *notification)$/;"	f	class:WPEFramework::Plugin::SystemModeImplementation
+SYSTEMMODE_NAMESPACE	SystemModeImplementation.cpp	26;"	d	file:
+SystemMode	SystemMode.cpp	/^    SystemMode::SystemMode() : _service(nullptr), _connectionId(0), _systemMode(nullptr), _systemModeNotification(this)$/;"	f	class:WPEFramework::Plugin::SystemMode
+SystemMode	SystemMode.h	/^    class SystemMode: public PluginHost::IPlugin, public PluginHost::JSONRPC$/;"	c	namespace:WPEFramework::Plugin
+SystemModeImplementation	SystemModeImplementation.cpp	/^SystemModeImplementation::SystemModeImplementation()$/;"	f	class:WPEFramework::Plugin::SystemModeImplementation
+SystemModeImplementation	SystemModeImplementation.h	/^    class SystemModeImplementation : public Exchange::ISystemMode{$/;"	c	namespace:WPEFramework::Plugin
+Unregister	SystemModeImplementation.cpp	/^uint32_t SystemModeImplementation::Unregister(Exchange::ISystemMode::INotification *notification )$/;"	f	class:WPEFramework::Plugin::SystemModeImplementation
+WPEFramework	SystemMode.cpp	/^namespace WPEFramework$/;"	n	file:
+WPEFramework	SystemMode.h	/^namespace WPEFramework {$/;"	n
+WPEFramework	SystemModeImplementation.cpp	/^namespace WPEFramework {$/;"	n	file:
+WPEFramework	SystemModeImplementation.h	/^namespace WPEFramework {$/;"	n
+_adminLock	SystemModeImplementation.h	/^        mutable Core::CriticalSection _adminLock;$/;"	m	class:WPEFramework::Plugin::SystemModeImplementation
+_communicatorClient	SystemModeImplementation.h	/^        Core::ProxyType<RPC::CommunicatorClient> _communicatorClient;$/;"	m	class:WPEFramework::Plugin::SystemModeImplementation
+_controller	SystemModeImplementation.h	/^        PluginHost::IShell *_controller;$/;"	m	class:WPEFramework::Plugin::SystemModeImplementation
+_engine	SystemModeImplementation.h	/^        Core::ProxyType<RPC::InvokeServerType<1, 0, 4>> _engine;$/;"	m	class:WPEFramework::Plugin::SystemModeImplementation
+_event	SystemModeImplementation.h	/^            const Event _event;$/;"	m	class:WPEFramework::Plugin::SystemModeImplementation::Job
+_params	SystemModeImplementation.h	/^            const JsonValue _params;$/;"	m	class:WPEFramework::Plugin::SystemModeImplementation::Job
+_parent	SystemMode.h	/^                SystemMode& _parent;$/;"	m	class:WPEFramework::Plugin::SystemMode::Notification
+_rbusHandle	SystemModeImplementation.h	/^        rbusHandle_t _rbusHandle;$/;"	m	class:WPEFramework::Plugin::SystemModeImplementation
+_rbusHandleStatus	SystemModeImplementation.h	/^        rbusError_t _rbusHandleStatus;$/;"	m	class:WPEFramework::Plugin::SystemModeImplementation
+_registeredEventHandlers	SystemModeImplementation.h	/^        bool _registeredEventHandlers;$/;"	m	class:WPEFramework::Plugin::SystemModeImplementation
+_systemModeImplementation	SystemModeImplementation.h	/^            SystemModeImplementation *_systemModeImplementation;$/;"	m	class:WPEFramework::Plugin::SystemModeImplementation::Job
+_systemModeNotification	SystemMode.h	/^            Core::Sink<Notification> _systemModeNotification;$/;"	m	class:WPEFramework::Plugin::SystemMode
+_userSettingNotification	SystemModeImplementation.h	/^        std::list<Exchange::ISystemMode::INotification*> _userSettingNotification;$/;"	m	class:WPEFramework::Plugin::SystemModeImplementation
+dispatchEvent	SystemModeImplementation.cpp	/^void SystemModeImplementation::dispatchEvent(Event event, const JsonValue &params)$/;"	f	class:WPEFramework::Plugin::SystemModeImplementation
+instance	SystemModeImplementation.cpp	/^SystemModeImplementation* SystemModeImplementation::instance(SystemModeImplementation *SystemModeImpl)$/;"	f	class:WPEFramework::Plugin::SystemModeImplementation
+override	SystemMode.h	/^            const string Initialize(PluginHost::IShell* service) override;$/;"	m	class:WPEFramework::Plugin::SystemMode
+override	SystemMode.h	/^            string Information() const override;$/;"	m	class:WPEFramework::Plugin::SystemMode
+override	SystemMode.h	/^            void Deinitialize(PluginHost::IShell* service) override;$/;"	m	class:WPEFramework::Plugin::SystemMode
+override	SystemModeImplementation.h	/^        virtual uint32_t Register(Exchange::ISystemMode::INotification *notification ) override ;$/;"	m	class:WPEFramework::Plugin::SystemModeImplementation
+override	SystemModeImplementation.h	/^        virtual uint32_t Unregister(Exchange::ISystemMode::INotification *notification ) override ;$/;"	m	class:WPEFramework::Plugin::SystemModeImplementation
+override	SystemModeImplementation.h	/^        ~SystemModeImplementation() override;$/;"	m	class:WPEFramework::Plugin::SystemModeImplementation
+~Job	SystemModeImplementation.h	/^            ~Job() {$/;"	f	class:WPEFramework::Plugin::SystemModeImplementation::Job
+~Notification	SystemMode.h	/^                virtual ~Notification()$/;"	f	class:WPEFramework::Plugin::SystemMode::Notification
+~SystemMode	SystemMode.cpp	/^    SystemMode::~SystemMode()$/;"	f	class:WPEFramework::Plugin::SystemMode
+~SystemModeImplementation	SystemModeImplementation.cpp	/^SystemModeImplementation::~SystemModeImplementation()$/;"	f	class:WPEFramework::Plugin::SystemModeImplementation
