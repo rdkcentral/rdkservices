@@ -1270,57 +1270,6 @@ namespace Plugin {
         return CompColorEnum;
     }
 
-    int AVOutputTV::getDolbyParams(tvContentFormatType_t format, std::string &s, std::string source)
-    {
-        int ret = -1;
-        TR181_ParamData_t param;
-        std::string rfc_param = AVOUTPUT_HDR10MODE_RFC_PARAM;
-        int dolby_mode_value = 0;
-        tvVideoSrcType_t sourceIndex = VIDEO_SOURCE_IP;
-        /*Since dolby vision is source specific, we should for check for specific source*/
-        if (!source.empty()) {
-            sourceIndex = (tvVideoSrcType_t)getSourceIndex(source);
-        }
-        else {
-            GetCurrentSource(&sourceIndex);
-        }
-
-        char picMode[PIC_MODE_NAME_MAX]={0};
-        int pqmodeIndex = 0;
-        if(!getCurrentPictureMode(picMode)) {
-            LOGERR("Failed to get the Current picture mode\n");
-        }
-        else {
-            std::string local = picMode;
-            pqmodeIndex = getPictureModeIndex(local);
-        }
-        memset(&param, 0, sizeof(param));
-        if (format == tvContentFormatType_HLG ) {
-            rfc_param = AVOUTPUT_HLGMODE_RFC_PARAM;
-        }
-        else if (format == tvContentFormatType_DOVI) {
-            rfc_param = AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM + std::to_string(sourceIndex) + "."+"DolbyVisionMode";
-        }
-
-        tr181ErrorCode_t err = getLocalParam(rfc_caller_id, rfc_param.c_str(), &param);
-        if ( tr181Success != err) {
-            tvError_t retVal = GetDefaultPQParams(pqmodeIndex,(tvVideoSrcType_t)sourceIndex,
-                                                 (tvVideoFormatType_t)ConvertHDRFormatToContentFormatODM((tvhdr_type_t)format),
-                                                 PQ_PARAM_DOLBY_MODE,&dolby_mode_value);
-            if( retVal != tvERROR_NONE ) {
-                LOGERR("%s : failed\n",__FUNCTION__);
-                return ret;
-            }
-            s = getDolbyModeStringFromEnum((tvDolbyMode_t)dolby_mode_value);
-            ret = 0;
-        }
-        else {
-            s += param.value;
-            ret = 0;
-        }
-        return ret;
-    }
-
     tvError_t AVOutputTV::getParamsCaps(std::vector<std::string> &range
                 , std::vector<std::string> &pqmode, std::vector<std::string> &source, std::vector<std::string> &format,std::string param )
     {
