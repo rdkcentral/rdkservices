@@ -1073,6 +1073,12 @@ namespace Plugin {
                                             if(getLocalparam(tr181ParamName,paramIndex,value,pqIndex,sync)) {
 					                            continue;
 			                                }
+                                            else {
+                                                if(sync)
+                                                    ret |= SaveCMS((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,COMP_NONE,tvDataColor_NONE,COMPONENT_ENABLE);
+                                                else
+                                                    ret |= SaveCMS((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,COMP_NONE,tvDataColor_NONE,COMPONENT_DISABLE);
+                                            }
                                             level=value;
                                         }
                                         ret |= SaveCMS((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,(tvComponentType_t)paramIndex.componentIndex,(tvDataComponentColor_t)paramIndex.colorIndex,level);
@@ -1448,7 +1454,7 @@ namespace Plugin {
         string key;
         TR181_ParamData_t param={0};
         
-	if( forParam.compare("CMS") == 0 ) {
+	    if( forParam.compare("CMS") == 0 ) {
             generateStorageIdentifierCMS(key,forParam,indexInfo);
         } else if( forParam.compare("WhiteBalance") == 0 ) {
             generateStorageIdentifierWB(key,forParam,indexInfo);
@@ -1506,20 +1512,20 @@ namespace Plugin {
                }
                return 0;
            }
-	   else if ( forParam.compare("HDRMode") == 0) {
+	       else if ( forParam.compare("HDRMode") == 0) {
                if (strncmp(param.value, "Dark", strlen(param.value)) == 0 && key.find("DV") != std::string::npos ) {
                    value = tvDolbyMode_Dark;
                }
                else if(strncmp(param.value, "Bright", strlen(param.value)) == 0 && key.find("DV") != std::string::npos ) {
                    value = tvDolbyMode_Game;
                }
-	       else if(strncmp(param.value, "Dark", strlen(param.value)) == 0 && key.find("HDR10") != std::string::npos ) {
+	           else if(strncmp(param.value, "Dark", strlen(param.value)) == 0 && key.find("HDR10") != std::string::npos ) {
                    value = tvHDR10Mode_Dark;
                }
-	       else if(strncmp(param.value, "Bright", strlen(param.value)) == 0 && key.find("HDR10") != std::string::npos ) {
+	           else if(strncmp(param.value, "Bright", strlen(param.value)) == 0 && key.find("HDR10") != std::string::npos ) {
                    value = tvHDR10Mode_Bright;
                }
-	       else if(strncmp(param.value, "Dark", strlen(param.value)) == 0 && key.find("HLG") != std::string::npos ) {
+	           else if(strncmp(param.value, "Dark", strlen(param.value)) == 0 && key.find("HLG") != std::string::npos ) {
                    value = tvHLGMode_Dark;
                }
                else if(strncmp(param.value, "Bright", strlen(param.value)) == 0 && key.find("HLG") != std::string::npos ) {
