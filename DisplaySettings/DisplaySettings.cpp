@@ -244,12 +244,48 @@ namespace WPEFramework {
 
         DisplaySettings::DisplaySettings()
             : PluginHost::JSONRPC()
+	, _engine(Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create())
+	, _communicatorClient(Core::ProxyType<RPC::CommunicatorClient>::Create(Core::NodeId("/tmp/communicator"), Core::ProxyType<Core::IIPCServer>(_engine)))
+	, _controller(nullptr)
+	, _remotStoreObject(nullptr)	
         {
             LOGINFO("ctor");
             DisplaySettings::_instance = this;
             m_client = nullptr;
 
             CreateHandler({ 2 });
+
+	    if (!_communicatorClient.IsValid())
+	    {
+		    LOGWARN("Invalid _communicatorClient \n");
+	    }
+	    else
+	    {
+
+#if ((THUNDER_VERSION == 2) || ((THUNDER_VERSION == 4) && (THUNDER_VERSION_MINOR == 2)))
+		    _engine->Announcements(_communicatorClient->Announcement());
+#endif
+
+		    LOGINFO("Connect the COM-RPC socket\n");
+		    _controller = _communicatorClient->Open<PluginHost::IShell>(_T("org.rdk.SystemMode"), ~0, 3000);
+
+		    if (_controller)
+		    {
+			    _remotStoreObject = _controller->QueryInterface<Exchange::ISystemMode>();
+
+			    if(_remotStoreObject)
+			    {
+				    _remotStoreObject->AddRef();
+			    }
+		    }
+		    else
+		    {
+			    LOGERR("Failed to create SystemMode Controller\n");
+		    }
+
+		    ASSERT (nullptr != _remotStoreObject);
+
+	    }
 
             registerMethodLockedApi("getConnectedVideoDisplays", &DisplaySettings::getConnectedVideoDisplays, this);
             registerMethodLockedApi("getConnectedAudioPorts", &DisplaySettings::getConnectedAudioPorts, this);
@@ -368,12 +404,36 @@ namespace WPEFramework {
         }
 
         DisplaySettings::~DisplaySettings()
-        {
-            LOGINFO ("dtor");
-	    isResCacheUpdated = false;
-	    isDisplayConnectedCacheUpdated = false;
-            isStbHDRcapabilitiesCache = false;
-        }
+	{
+		if (_controller)
+		{
+			_controller->Release();
+			_controller = nullptr;
+		}
+
+		LOGINFO("Disconnect from the COM-RPC socket\n");
+		// Disconnect from the COM-RPC socket
+		_communicatorClient->Close(RPC::CommunicationTimeOut);
+		if (_communicatorClient.IsValid())
+		{
+			_communicatorClient.Release();
+		}
+
+		if(_engine.IsValid())
+		{
+			_engine.Release();
+		}
+
+		if(_remotStoreObject)
+		{
+			_remotStoreObject->Release();
+		}
+
+		LOGINFO ("dtor");
+		isResCacheUpdated = false;
+		isDisplayConnectedCacheUpdated = false;
+		isStbHDRcapabilitiesCache = false;
+	}
 
         void DisplaySettings::AudioPortsReInitialize()
         {
@@ -557,12 +617,27 @@ namespace WPEFramework {
                 LOGWARN("Current power state %d", m_powerState);
             }
             LOGWARN ("DisplaySettings::Initialize completes line:%d", __LINE__);
+
+
+	    if(_remotStoreObject)
+	    {
+		    const string& callsign = "org.rdk.DisplaySettings";
+		    const string& systemMode = "DEVICE_OPTIMIZE";
+	            _remotStoreObject->ClientActivated(callsign,systemMode);		
+	    }
+
             // On success return empty, to indicate there is no error text.
             return (string());
         }
 
         void DisplaySettings::Deinitialize(PluginHost::IShell* service)
         {
+	   if(_remotStoreObject)
+	   {
+		    const string& callsign = "org.rdk.DisplaySettings";
+		    const string& systemMode = "DEVICE_OPTIMIZE";
+	            _remotStoreObject->ClientDeactivated(callsign,systemMode);		
+	   }
 	   LOGINFO("Enetering DisplaySettings::Deinitialize");
 	   {
 		std::unique_lock<std::mutex> lock(DisplaySettings::_instance->m_sendMsgMutex);
@@ -5880,6 +5955,14 @@ void DisplaySettings::sendMsgThread()
                 sendNotify("connectedVideoDisplaysUpdated", params);
             }
             previousStatus = hdmiHotPlugEvent;
+
+	    //If HDMI hotplug event occurs, DisplaySettings  re-evaluate whether it should be signalling ALLM output of the HDMI port
+	    std::string currentAllmState = "";
+	    currentAllmState = getcurrentAllmStateHelper("DEVICE_OPTIMIZE_currentstate=");
+	    if(currentAllmState == "VIDEO" || currentAllmState == "GAME")
+	    {
+		    Request(currentAllmState);
+	    }
         }
 
         void DisplaySettings::connectedAudioPortUpdated (int iAudioPortType, bool isPortConnected)
@@ -6164,5 +6247,61 @@ void DisplaySettings::sendMsgThread()
 
 	    return mode;
         }
+
+	void DisplaySettings::Request(const string& newState)
+	{
+		vector<string> connectedDisplays;
+		getConnectedVideoDisplaysHelper(connectedDisplays);
+		for (int i = 0; i < (int)connectedDisplays.size(); i++)
+		{
+			try
+			{
+				std::string strVideoPort = connectedDisplays.at(i);;
+				device::VideoOutputPort vPort = device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
+				if (isDisplayConnected(strVideoPort))
+				{
+					bool enable = (newState == "GAME") ? true : false;
+					vPort.setAllmEnabled(enable);
+				}
+				else
+				{
+					LOGWARN("failure: HDMI0 not connected!");
+				}
+			}
+			catch (const device::Exception& err)
+			{
+				LOG_DEVICE_EXCEPTION0();
+			}
+		}
+	}
+	std::string DisplaySettings::getcurrentAllmStateHelper(string targetKey)
+	{
+		std::ifstream file("/tmp/SystemMode.txt"); // Open the file
+		std::string line;
+		std::string currentState = "";
+
+		if (file.is_open()) {
+			// Read the file line by line
+			while (std::getline(file, line)) {
+				// Check if the line contains the target key
+				size_t pos = line.find(targetKey);
+				if (pos != std::string::npos) {
+					// Extract the value after the key
+					currentState = line.substr(pos + targetKey.length());
+					break; // Stop after finding the key
+				}
+			}
+			file.close(); // Close the file
+
+			if (!currentState.empty()) {
+				LOGINFO("DEVICE_OPTIMIZE_currentstate: %s \n", currentState.c_str());
+			} else {
+				LOGINFO("DEVICE_OPTIMIZE_currentstate not found.\n");
+			}
+		} else {
+			LOGINFO("Unable to open file /tmp/SystemMode.txt.\n");		}
+
+		return currentState;
+	}
     } // namespace Plugin
 } // namespace WPEFramework
