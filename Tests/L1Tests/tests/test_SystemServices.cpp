@@ -46,6 +46,7 @@ protected:
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
     string response;
+    cTimerMock* timerMock = nullptr;
     RfcApiImplMock    *p_rfcApiImplMock  = nullptr;
     IarmBusImplMock   *p_iarmBusImplMock = nullptr;
     WrapsImplMock     *p_wrapsImplMock   = nullptr;
@@ -57,6 +58,7 @@ protected:
         , handler(*plugin)
         , connection(1, 0)
     {
+        timerMock = new NiceMock<cTimerMock>;
         p_rfcApiImplMock  = new NiceMock <RfcApiImplMock>;
         RfcApi::setImpl(p_rfcApiImplMock);
 
@@ -76,6 +78,7 @@ protected:
 
     virtual ~SystemServicesTest() override
     {
+        delete timerMock;
         RfcApi::setImpl(nullptr);
         if (p_rfcApiImplMock != nullptr)
         {
@@ -859,10 +862,18 @@ TEST_F(SystemServicesTest, updateFirmware)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("updateFirmware"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
-
+class cTimerMock : public cTimer {
+public:
+    MOCK_METHOD(void, setInterval, (void (*function)(), int val), (override));
+    MOCK_METHOD(bool, start, (), (override));
+    MOCK_METHOD(void, stop, (), (override));
+    MOCK_METHOD(void, detach, (), (override));
+    MOCK_METHOD(void, join, (), (override));
+    MOCK_METHOD(bool, isActive, (), (override));
+};
 TEST_F(SystemServicesTest, Mode)
 {
-    Timer::setImpl(new cTimer());
+    
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMode"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"modeInfo\":{\"mode\":\"\",\"duration\":0},\"success\":true}"));
 
@@ -889,7 +900,8 @@ TEST_F(SystemServicesTest, Mode)
                 );
                 return 0;
             }));
-
+    EXPECT_CALL(*timerMock, setInterval(::testing::_, ::testing::_)).Times(1);
+    EXPECT_CALL(*timerMock, start()).Times(1);
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"NORMAL\",\"duration\":-1}}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 
