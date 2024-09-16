@@ -907,14 +907,13 @@ TEST_F(SystemServicesTest, Mode)
                                                  "\\},"
                                                  "\"success\":true"
                                                  "\\}")));
-    LOGINFO("Response after getting mode: %s", response.c_str());
-    LOGINFO("Waiting for 3 seconds before attempting mode switch");
-    std::this_thread::sleep_for(std::chrono::seconds(3)); 
-    LOGINFO("Response after getting mode: %s", response.c_str());
+
+    sleep(5);
+
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"WAREHOUSE\",\"duration\":5}}"), response));
     EXPECT_EQ(response, string("{\"success\":false}"));
-    LOGINFO("Response after getting mode: %s", response.c_str());
-    std::this_thread::sleep_for(std::chrono::seconds(11)); 
+
+    sleep(11);
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"WAREHOUSE\",\"duration\":5}}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
