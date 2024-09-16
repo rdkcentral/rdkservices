@@ -29,6 +29,7 @@
 #include "DispatcherMock.h"
 #include "SleepModeMock.h"
 #include "WrapsMock.h"
+#include "Timer.h"
 
 #include "deepSleepMgr.h"
 #include "exception.hpp"
