@@ -58,7 +58,8 @@ protected:
         , handler(*plugin)
         , connection(1, 0)
     {
-        timerMock = new NiceMock<cTimerMock>;
+        timerMock = new ::testing::NiceMock<cTimerMock>();
+        Timer::setImpl(timerMock);
         p_rfcApiImplMock  = new NiceMock <RfcApiImplMock>;
         RfcApi::setImpl(p_rfcApiImplMock);
 
@@ -864,12 +865,12 @@ TEST_F(SystemServicesTest, updateFirmware)
 }
 class cTimerMock : public cTimer {
 public:
-    MOCK_METHOD(void, setInterval, (void (*function)(), int val), (override));
+    MOCK_METHOD(void, setInterval, (void (*function)(), int), (override));
     MOCK_METHOD(bool, start, (), (override));
     MOCK_METHOD(void, stop, (), (override));
     MOCK_METHOD(void, detach, (), (override));
     MOCK_METHOD(void, join, (), (override));
-    MOCK_METHOD(bool, isActive, (), (override));
+    MOCK_METHOD(bool, isActive, (), (override))
 };
 TEST_F(SystemServicesTest, Mode)
 {
