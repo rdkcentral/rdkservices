@@ -3453,6 +3453,13 @@ static GSourceFuncs _handlerIntervention =
                 browser->OnLoadRedirected(uri);
             }
         }
+
+        static void documentLoadedCallback(WebKitWebView *webView, WebKitImplementation* browser)
+        {
+            const std::string uri = webkit_web_view_get_uri(webView);
+            browser->OnLoadFinished(Core::ToString(uri.c_str()));
+        }
+
         static void loadFailedCallback(WebKitWebView*, WebKitLoadEvent loadEvent, const gchar* failingURI, GError* error, WebKitImplementation* browser)
         {
             string message(string("{ \"url\": \"") + failingURI + string("\", \"Error message\": \"") + error->message + string("\", \"loadEvent\":") + Core::NumberType<uint32_t>(loadEvent).Text() + string(" }"));
@@ -3781,6 +3788,7 @@ static GSourceFuncs _handlerIntervention =
             g_signal_connect(_view, "user-message-received", reinterpret_cast<GCallback>(userMessageReceivedCallback), this);
             g_signal_connect(_view, "notify::is-web-process-responsive", reinterpret_cast<GCallback>(isWebProcessResponsiveCallback), this);
             g_signal_connect(_view, "load-failed", reinterpret_cast<GCallback>(loadFailedCallback), this);
+            g_signal_connect(_view, "document-loaded", reinterpret_cast<GCallback>(documentLoadedCallback), this);
 
             _configurationCompleted.SetState(true);
 
