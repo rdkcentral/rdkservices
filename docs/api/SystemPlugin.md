@@ -2,7 +2,7 @@
 <a name="System_Plugin"></a>
 # System Plugin
 
-**Version: [3.0.2](https://github.com/rdkcentral/rdkservices/blob/main/SystemServices/CHANGELOG.md)**
+**Version: [3.1.1](https://github.com/rdkcentral/rdkservices/blob/main/SystemServices/CHANGELOG.md)**
 
 A org.rdk.System plugin for Thunder framework.
 
@@ -3658,6 +3658,7 @@ SystemServices interface events:
 | [onFriendlyNameChanged](#onFriendlyNameChanged) | Triggered when the device friendly name change |
 | [onTemperatureThresholdChanged](#onTemperatureThresholdChanged) | Triggered when the device temperature changes beyond the `WARN` or `MAX` limits (see `setTemperatureThresholds`) |
 | [onTerritoryChanged](#onTerritoryChanged) | Triggered when the device territory changed |
+| [onDeviceMgtUpdateReceived](#onDeviceMgtUpdateReceived) | Triggered when the device management update completes |
 | [onTimeZoneDSTChanged](#onTimeZoneDSTChanged) | Triggered when device time zone changed |
 | [onLogUpload](#onLogUpload) | Triggered when logs upload process is done or stopped |
 
@@ -4001,57 +4002,19 @@ Triggered when the device territory changed.
 }
 ```
 
-<a name="onTimeZoneDSTChanged"></a>
-## *onTimeZoneDSTChanged*
+<a name="onDeviceMgtUpdateReceived"></a>
+## *onDeviceMgtUpdateReceived*
 
-Triggered when device time zone changed.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.oldTimeZone | string | old time zone |
-| params.newTimeZone | string | new time zone |
-| params.oldAccuracy | string | old time zone accuracy |
-| params.newAccuracy | string | new time zone accuracy |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.onTimeZoneDSTChanged",
-    "params": {
-        "oldTimeZone": "America/New_York",
-        "newTimeZone": "Europe/London",
-        "oldAccuracy": "INITIAL",
-        "newAccuracy": "FINAL"
-    }
-}
-```
-
-<a name="onLogUpload"></a>
-## *onLogUpload*
-
-Triggered when logs upload process is done or stopped.
+Triggered when the device management update completes.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.logUploadStatus | string | Upload status (must be one of the following: *UPLOAD_SUCCESS*, *UPLOAD_FAILURE*, *UPLOAD_ABORTED*) |
+| params.source | string | Source information from where the event on update is posted |
+| params.type | string |  Type of Update received currently it will be used as initial |
+| params.success | bool | Status information of update whether success or failure |
 
 ### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.onLogUpload",
-    "params": {
-        "logUploadStatus": "UPLOAD_SUCCESS"
-    }
-}
-```
 
