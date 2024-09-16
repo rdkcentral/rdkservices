@@ -861,6 +861,7 @@ TEST_F(SystemServicesTest, updateFirmware)
 
 TEST_F(SystemServicesTest, Mode)
 {
+    Timer::setImpl(new cTimer());
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMode"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"modeInfo\":{\"mode\":\"\",\"duration\":0},\"success\":true}"));
 
