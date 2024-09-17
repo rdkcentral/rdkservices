@@ -29,7 +29,6 @@
 #include "DispatcherMock.h"
 #include "SleepModeMock.h"
 #include "WrapsMock.h"
-#include "Timer.h"
 
 #include "deepSleepMgr.h"
 #include "exception.hpp"
@@ -39,15 +38,6 @@
 using namespace WPEFramework;
 
 using ::testing::NiceMock;
-class MockcTimer : public cTimer {
-public:
-    MOCK_METHOD0(start, bool());
-    MOCK_METHOD0(stop, void());
-    MOCK_METHOD0(detach, void());
-    MOCK_METHOD0(join, void());
-    MOCK_METHOD0(isActive, bool());
-    MOCK_METHOD2(setInterval, void(void(*)(), int));
-};
 class SystemServicesTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::SystemServices> plugin;
@@ -66,8 +56,7 @@ protected:
         , handler(*plugin)
         , connection(1, 0)
     {
-        // timerMock = new ::testing::NiceMock<cTimerMock>();
-        // Timer::setImpl(timerMock);
+
         p_rfcApiImplMock  = new NiceMock <RfcApiImplMock>;
         RfcApi::setImpl(p_rfcApiImplMock);
 
@@ -87,7 +76,6 @@ protected:
 
     virtual ~SystemServicesTest() override
     {
-        // delete timerMock;
         RfcApi::setImpl(nullptr);
         if (p_rfcApiImplMock != nullptr)
         {
@@ -875,18 +863,9 @@ TEST_F(SystemServicesTest, Mode)
 {
     NiceMock<ServiceMock> service;
     EXPECT_EQ(string(""), plugin->Initialize(&service));
-    // MockcTimer mockTimer;
-
-    // // Set up expectations for the mock timer
-    // EXPECT_CALL(mockTimer, start())
-    //     .WillOnce(::testing::Return(true));
-    
-    // EXPECT_CALL(mockTimer, setInterval(::testing::_, ::testing::_))
-    //     .Times(::testing::AtLeast(1));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMode"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"modeInfo\":{\"mode\":\"NORMAL\",\"duration\":0},\"success\":true}"));
-    
 
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setMode"), _T("{}"), response));
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{}}"), response));
@@ -911,21 +890,16 @@ TEST_F(SystemServicesTest, Mode)
                 );
                 return 0;
             }));
+            
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"NORMAL\",\"duration\":-1}}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMode"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"modeInfo\":{\"mode\":\"NORMAL\",\"duration\":0},\"success\":true}"));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"NORMAL\",\"duration\":-1}}"), response));
-    EXPECT_EQ(response, string("{\"success\":true}"));
-
-
-    LOGINFO("Setting mode to EAS with 10-second duration");
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"EAS\",\"duration\":10}}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
-    
-    LOGINFO("Getting current mode");
+
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMode"), _T("{}"), response));
     EXPECT_THAT(response, ::testing::MatchesRegex(_T("\\{"
                                                  "\"modeInfo\":\\{"
@@ -935,34 +909,13 @@ TEST_F(SystemServicesTest, Mode)
                                                  "\"success\":true"
                                                  "\\}")));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMode"), _T("{}"), response));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMode"), _T("{}"), response));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMode"), _T("{}"), response));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMode"), _T("{}"), response));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMode"), _T("{}"), response));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMode"), _T("{}"), response));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMode"), _T("{}"), response));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMode"), _T("{}"), response));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMode"), _T("{}"), response));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMode"), _T("{}"), response));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMode"), _T("{}"), response));
-
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMode"), _T("{}"), response));
-
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"WAREHOUSE\",\"duration\":5}}"), response));
-
+    EXPECT_EQ(response, string("{\"SysSrv_Status\":13,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
     sleep(12);
+    
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"WAREHOUSE\",\"duration\":5}}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+
 }
 
 TEST_F(SystemServicesTest, setDeepSleepTimer)
