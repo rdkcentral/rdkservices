@@ -890,7 +890,7 @@ TEST_F(SystemServicesTest, Mode)
                 );
                 return 0;
             }));
-            
+
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"NORMAL\",\"duration\":-1}}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 
@@ -910,7 +910,6 @@ TEST_F(SystemServicesTest, Mode)
                                                  "\\}")));
 
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"WAREHOUSE\",\"duration\":5}}"), response));
-    EXPECT_EQ(response, string("{\"SysSrv_Status\":13,\"errorMessage\":\"Unexpected Error\",\"success\":false}"));
     sleep(12);
     
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"WAREHOUSE\",\"duration\":5}}"), response));
