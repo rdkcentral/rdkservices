@@ -19,6 +19,11 @@ All notable changes to this RDK Service will be documented in this file.
 ### Fixed
 - Fixed retruing DEEPSLEEP state for getPowerState.
 
+
+## [3.1.1] - 2024-09-04
+### Fixed
+- RDKCOM-4843: keep the system time consistent with the serial port
+
 ## [3.1.0] - 2024-09-03
 ### Update
 - RDK-52297: Core system supports dynamic partner configuration
