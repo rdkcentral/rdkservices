@@ -19,8 +19,12 @@
 
 #include <thread>
 #include <chrono>
+#include "UtilsCStr.h"
+#include "UtilsIarm.h"
 #include "UtilsJsonRpc.h"
 #include "UtilsString.h"
+#include "UtilscRunScript.h"
+#include "UtilsfileExists.h"
 
 using namespace std;
 
