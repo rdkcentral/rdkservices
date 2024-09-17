@@ -873,6 +873,8 @@ TEST_F(SystemServicesTest, updateFirmware)
 }
 TEST_F(SystemServicesTest, Mode)
 {
+    NiceMock<ServiceMock> service;
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
     MockcTimer mockTimer;
 
     // Set up expectations for the mock timer

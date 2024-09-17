@@ -43,20 +43,20 @@ cTimer::~cTimer()
 Running this timer function as thread function
 */
 void cTimer::timerFunction() {
-    LOGINFO("Timer function started");
+    printf("Timer function started");
     this->active = true;
     while (true) {
         if (this->clear) {
             this->active = false;
             return;
         }
-        LOGINFO("Timer function invoked");
+        printf("Timer function invoked");
         std::this_thread::sleep_for(std::chrono::milliseconds(interval));
         if (this->clear) {
             this->active = false;
             return;
         }
-        LOGINFO("Timer function callback invoked");
+        printf("Timer function callback invoked");
         this->callBack_function();
     }
 }
@@ -66,14 +66,14 @@ void cTimer::timerFunction() {
  */
 bool cTimer::start()
 {
-    LOGINFO("Timer started");
+    printf("Timer started");
     if (interval <= 0 && callBack_function == NULL) {
-        LOGINFO("Interval or callback function not set");
+        printf("Interval or callback function not set");
         return false;
     }
     this->clear = false;
     timerThread = std::thread(&cTimer::timerFunction, this);
-    LOGINFO("Timer thread started");
+    printf("Timer thread started");
     return true;
 }
 
@@ -83,19 +83,19 @@ bool cTimer::start()
  */
 void cTimer::stop()
 {
-    LOGINFO("Timer stopped");
+    printf("Timer stopped");
     this->clear = true;
 }
 
 bool cTimer::isActive()
 {
-    LOGINFO("Timer active status: %d", this->active);
+    printf("Timer active status: %d", this->active);
     return this->active;
 }
 
 void cTimer::detach()
 {
-    LOGINFO("Timer detached");
+    printf("Timer detached");
     timerThread.detach();
 }
 
@@ -114,7 +114,7 @@ void cTimer::join()
  */
 void cTimer::setInterval(void (*function)(), int val)
 {
-    LOGINFO("setInterval");
+    printf("setInterval");
     this->callBack_function = function;
     this->interval = val;
 }
