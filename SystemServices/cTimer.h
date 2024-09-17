@@ -19,6 +19,8 @@
 
 #include <thread>
 #include <chrono>
+#include "UtilsJsonRpc.h"
+#include "UtilsString.h"
 
 using namespace std;
 
