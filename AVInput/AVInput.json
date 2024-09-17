@@ -618,7 +618,17 @@
                 ]
             },
             "result": {
-                "$ref": "#/common/result"
+                "type": "object",
+                "properties": {
+                    "HdmiCapabilityVersion": {
+                        "summary": "The Maximum Hdmi compatibility version supported by the given port",
+                        "type": "string",
+                        "example": "2.0"
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                }
             }
         },
        "getSupportedGameFeatures":{
