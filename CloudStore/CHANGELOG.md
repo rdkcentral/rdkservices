@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.1] - 2024-09-17
+### Fixed
+- Decouple notification, add timeouts
+
 ## [1.0.0] - 2024-07-15
 ### Added
 - Add CHANGELOG
