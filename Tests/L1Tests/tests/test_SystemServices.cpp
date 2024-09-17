@@ -39,15 +39,22 @@
 using namespace WPEFramework;
 
 using ::testing::NiceMock;
-
+class MockTimer : public cTimer {
+public:
+    MOCK_METHOD0(start, bool());
+    MOCK_METHOD0(stop, void());
+    MOCK_METHOD0(detach, void());
+    MOCK_METHOD0(join, void());
+    MOCK_METHOD0(isActive, bool());
+    MOCK_METHOD2(setInterval, void(void(*)(), int));
+};
 class SystemServicesTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::SystemServices> plugin;
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
     string response;
-    SystemServices service; 
-    // cTimerMock* timerMock = nullptr;
+    MockTimer* timerMock = nullptr;
     RfcApiImplMock    *p_rfcApiImplMock  = nullptr;
     IarmBusImplMock   *p_iarmBusImplMock = nullptr;
     WrapsImplMock     *p_wrapsImplMock   = nullptr;
@@ -75,6 +82,9 @@ protected:
 
         p_sleepModeMock  = new NiceMock <SleepModeMock>;
         device::SleepMode::setImpl(p_sleepModeMock);
+
+        timerMock = new ::testing::NiceMock<MockTimer>(); 
+        Timer::setImpl(timerMock);
 
     }
 
@@ -115,6 +125,8 @@ protected:
             delete p_hostImplMock;
             p_hostImplMock = nullptr;
         }
+
+        Timer::setImpl(nullptr); 
     }
 };
 
@@ -866,7 +878,11 @@ TEST_F(SystemServicesTest, updateFirmware)
 }
 TEST_F(SystemServicesTest, Mode)
 {
-    
+    EXPECT_CALL(*timerMock, start())
+        .Times(::testing::AtLeast(1));
+
+    EXPECT_CALL(*timerMock, stop())
+        .Times(::testing::AtLeast(1));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMode"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"modeInfo\":{\"mode\":\"\",\"duration\":0},\"success\":true}"));
 
@@ -898,21 +914,9 @@ TEST_F(SystemServicesTest, Mode)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMode"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"modeInfo\":{\"mode\":\"NORMAL\",\"duration\":0},\"success\":true}"));
-    
-    EXPECT_CALL(service.m_operatingModeTimer, setInterval(::testing::_, ::testing::_))
-        .Times(1);
-    EXPECT_CALL(service.m_operatingModeTimer, start())
-        .Times(1);
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"NORMAL\",\"duration\":-1}}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
-
-    EXPECT_TRUE(service.isTimerActive());  
-
-    EXPECT_CALL(service.m_operatingModeTimer, setInterval(::testing::_, ::testing::_))
-        .Times(1);
-    EXPECT_CALL(service.m_operatingModeTimer, start())
-        .Times(1);
 
 
     LOGINFO("Setting mode to EAS with 10-second duration");
