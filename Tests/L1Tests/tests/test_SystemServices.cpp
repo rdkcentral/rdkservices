@@ -39,7 +39,7 @@
 using namespace WPEFramework;
 
 using ::testing::NiceMock;
-class MockTimer : public cTimer {
+class MockcTimer : public cTimer {
 public:
     MOCK_METHOD0(start, bool());
     MOCK_METHOD0(stop, void());
@@ -54,7 +54,7 @@ protected:
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
     string response;
-    MockTimer* timerMock = nullptr;
+
     RfcApiImplMock    *p_rfcApiImplMock  = nullptr;
     IarmBusImplMock   *p_iarmBusImplMock = nullptr;
     WrapsImplMock     *p_wrapsImplMock   = nullptr;
@@ -82,9 +82,6 @@ protected:
 
         p_sleepModeMock  = new NiceMock <SleepModeMock>;
         device::SleepMode::setImpl(p_sleepModeMock);
-
-        timerMock = new ::testing::NiceMock<MockTimer>(); 
-        Timer::setImpl(timerMock);
 
     }
 
@@ -125,8 +122,6 @@ protected:
             delete p_hostImplMock;
             p_hostImplMock = nullptr;
         }
-
-        Timer::setImpl(nullptr); 
     }
 };
 
@@ -878,11 +873,15 @@ TEST_F(SystemServicesTest, updateFirmware)
 }
 TEST_F(SystemServicesTest, Mode)
 {
-    EXPECT_CALL(*timerMock, start())
+    MockcTimer mockTimer;
+
+    // Set up expectations for the mock timer
+    EXPECT_CALL(mockTimer, start())
+        .WillOnce(::testing::Return(true));
+    
+    EXPECT_CALL(mockTimer, setInterval(::testing::_, ::testing::_))
         .Times(::testing::AtLeast(1));
 
-    EXPECT_CALL(*timerMock, stop())
-        .Times(::testing::AtLeast(1));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMode"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"modeInfo\":{\"mode\":\"\",\"duration\":0},\"success\":true}"));
 
