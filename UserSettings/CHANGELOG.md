@@ -18,8 +18,6 @@ All notable changes to this RDK Service will be documented in this file.
 
 ## [1.2.0] - 2024-09-17
 ### Added
-- Add CHANGELOG
-### Change
 - Added ParentalControl new properties in Usersetttings.
 
 ## [1.1.2] - 2024-08-26
