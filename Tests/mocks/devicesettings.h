@@ -577,6 +577,7 @@ public:
     virtual void getAVLatency(int *audio_output_delay, int *video_latency) const = 0;
     virtual void setEdid2AllmSupport(int iHdmiPort, bool allmsupport) const = 0;
     virtual void getEdid2AllmSupport(int iHdmiPort, bool *allmsupport) const = 0;
+    virtual void getHdmiVersion (int iHdmiPort, dsHdmiMaxCapabilityVersion_t *capversion) const = 0;
 };
 
 class HdmiInput {
@@ -603,6 +604,7 @@ public:
     void getAVLatency(int *audio_output_delay, int *video_latency)const;
     void setEdid2AllmSupport(int iport, bool allmSupport) const;
     void getEdid2AllmSupport(int iport, bool *allmSupport) const;
+    void getHdmiVersion (int iHdmiPort, dsHdmiMaxCapabilityVersion_t *capversion) const;
 };
 
 }
