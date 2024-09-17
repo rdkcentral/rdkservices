@@ -961,7 +961,7 @@ TEST_F(SystemServicesTest, Mode)
 
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"WAREHOUSE\",\"duration\":5}}"), response));
 
-    sleep(11);
+    sleep(12);
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"WAREHOUSE\",\"duration\":5}}"), response));
 }
 
