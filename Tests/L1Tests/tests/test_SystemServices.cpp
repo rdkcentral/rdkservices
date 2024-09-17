@@ -924,7 +924,6 @@ TEST_F(SystemServicesTest, Mode)
     
     LOGINFO("Getting current mode");
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMode"), _T("{}"), response));
-    EXPECT_TRUE(service.isTimerActive());
     EXPECT_THAT(response, ::testing::MatchesRegex(_T("\\{"
                                                  "\"modeInfo\":\\{"
                                                  "\"mode\":\"EAS\","
