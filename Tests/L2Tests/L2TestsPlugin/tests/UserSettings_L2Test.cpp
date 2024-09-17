@@ -58,7 +58,6 @@ class AsyncHandlerMock_UserSetting
         MOCK_METHOD(void, onPlaybackWatershedChanged, (const bool enabled));
         MOCK_METHOD(void, onBlockNotRatedContentChanged, (const bool enabled));
         MOCK_METHOD(void, onPinOnPurchaseChanged, (const bool enabled));
-
 };
 
 class NotificationHandler : public Exchange::IUserSettings::INotification {
