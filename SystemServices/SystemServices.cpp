@@ -1498,7 +1498,11 @@ namespace WPEFramework {
             LOGINFO("StartModeTime()-duration: %d", duration);
             m_remainingDuration = duration;
             LOGINFO("StartModeTime()-m_remainingduration: %d",m_remainingDuration);
-            m_operatingModeTimer.start();
+             if (m_operatingModeTimer.start()) {
+                LOGINFO("StartModeTime()-m_operatingModeTimer.start() called successfully");
+            } else {
+                LOGINFO("StartModeTime()-m_operatingModeTimer.start() failed");
+            }
             LOGINFO("StartModeTime()-m_operatingModeTimer.start()");
             //set values in temp file so they can be restored in receiver restarts / crashes
             m_temp_settings.setValue("mode_duration", m_remainingDuration);
