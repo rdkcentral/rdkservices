@@ -857,6 +857,7 @@ TEST_F(SystemServicesTest, updateFirmware)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("updateFirmware"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
+
 TEST_F(SystemServicesTest, Mode)
 {
     NiceMock<ServiceMock> service;
