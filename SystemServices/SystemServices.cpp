@@ -1486,7 +1486,7 @@ namespace WPEFramework {
         void SystemServices::startModeTimer(int duration)
         {
             m_remainingDuration = duration;
-            m_operatingModeTimer.start()
+            m_operatingModeTimer.start();
             //set values in temp file so they can be restored in receiver restarts / crashes
             m_temp_settings.setValue("mode_duration", m_remainingDuration);
         }
