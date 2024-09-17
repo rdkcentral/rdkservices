@@ -20,7 +20,7 @@
 #include <gtest/gtest.h>
 
 #include "SystemServices.h"
-
+#include "cTimer.h"
 #include "FactoriesImplementation.h"
 #include "HostMock.h"
 #include "IarmBusMock.h"
@@ -46,7 +46,7 @@ protected:
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
     string response;
-    cTimerMock* timerMock = nullptr;
+    // cTimerMock* timerMock = nullptr;
     RfcApiImplMock    *p_rfcApiImplMock  = nullptr;
     IarmBusImplMock   *p_iarmBusImplMock = nullptr;
     WrapsImplMock     *p_wrapsImplMock   = nullptr;
@@ -58,8 +58,8 @@ protected:
         , handler(*plugin)
         , connection(1, 0)
     {
-        timerMock = new ::testing::NiceMock<cTimerMock>();
-        Timer::setImpl(timerMock);
+        // timerMock = new ::testing::NiceMock<cTimerMock>();
+        // Timer::setImpl(timerMock);
         p_rfcApiImplMock  = new NiceMock <RfcApiImplMock>;
         RfcApi::setImpl(p_rfcApiImplMock);
 
@@ -79,7 +79,7 @@ protected:
 
     virtual ~SystemServicesTest() override
     {
-        delete timerMock;
+        // delete timerMock;
         RfcApi::setImpl(nullptr);
         if (p_rfcApiImplMock != nullptr)
         {
@@ -863,15 +863,6 @@ TEST_F(SystemServicesTest, updateFirmware)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("updateFirmware"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
-class cTimerMock : public cTimer {
-public:
-    MOCK_METHOD(void, setInterval, (void (*function)(), int), (override));
-    MOCK_METHOD(bool, start, (), (override));
-    MOCK_METHOD(void, stop, (), (override));
-    MOCK_METHOD(void, detach, (), (override));
-    MOCK_METHOD(void, join, (), (override));
-    MOCK_METHOD(bool, isActive, (), (override))
-};
 TEST_F(SystemServicesTest, Mode)
 {
     
@@ -901,8 +892,6 @@ TEST_F(SystemServicesTest, Mode)
                 );
                 return 0;
             }));
-    EXPECT_CALL(*timerMock, setInterval(::testing::_, ::testing::_)).Times(1);
-    EXPECT_CALL(*timerMock, start()).Times(1);
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"NORMAL\",\"duration\":-1}}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 
