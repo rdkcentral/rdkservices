@@ -625,6 +625,10 @@ namespace WPEFramework {
 		    const string& systemMode = "DEVICE_OPTIMIZE";
 	            _remotStoreObject->ClientActivated(callsign,systemMode);		
 	    }
+            else
+            {
+                    Utils::String::updateSystemModeFile( "DEVICE_OPTIMIZE", "callsign", "org.rdk.DisplaySettings","add") ;
+            }
 
             // On success return empty, to indicate there is no error text.
             return (string());
@@ -638,6 +642,11 @@ namespace WPEFramework {
 		    const string& systemMode = "DEVICE_OPTIMIZE";
 	            _remotStoreObject->ClientDeactivated(callsign,systemMode);		
 	   }
+	   else
+           {
+                   Utils::String::updateSystemModeFile( "DEVICE_OPTIMIZE", "callsign", "org.rdk.DisplaySettings","delete") ;
+           }
+
 	   LOGINFO("Enetering DisplaySettings::Deinitialize");
 	   {
 		std::unique_lock<std::mutex> lock(DisplaySettings::_instance->m_sendMsgMutex);
@@ -5958,11 +5967,11 @@ void DisplaySettings::sendMsgThread()
 
 	    //If HDMI hotplug event occurs, DisplaySettings  re-evaluate whether it should be signalling ALLM output of the HDMI port
 	    std::string currentAllmState = "";
-	    currentAllmState = getcurrentAllmStateHelper("DEVICE_OPTIMIZE_currentstate=");
-	    if(currentAllmState == "VIDEO" || currentAllmState == "GAME")
-	    {
-		    Request(currentAllmState);
-	    }
+            Utils::String::getSystemModePropertyValue("DEVICE_OPTIMIZE" ,"currentstate" , currentAllmState);
+            if(currentAllmState == "VIDEO" || currentAllmState == "GAME")
+            {
+                    Request(currentAllmState);
+            }
         }
 
         void DisplaySettings::connectedAudioPortUpdated (int iAudioPortType, bool isPortConnected)
@@ -6265,7 +6274,7 @@ void DisplaySettings::sendMsgThread()
 				}
 				else
 				{
-					LOGWARN("failure: HDMI0 not connected!");
+					LOGWARN("failure: %s is not connected!",strVideoPort.c_str());
 				}
 			}
 			catch (const device::Exception& err)
@@ -6273,35 +6282,10 @@ void DisplaySettings::sendMsgThread()
 				LOG_DEVICE_EXCEPTION0();
 			}
 		}
-	}
-	std::string DisplaySettings::getcurrentAllmStateHelper(string targetKey)
-	{
-		std::ifstream file("/tmp/SystemMode.txt"); // Open the file
-		std::string line;
-		std::string currentState = "";
-
-		if (file.is_open()) {
-			// Read the file line by line
-			while (std::getline(file, line)) {
-				// Check if the line contains the target key
-				size_t pos = line.find(targetKey);
-				if (pos != std::string::npos) {
-					// Extract the value after the key
-					currentState = line.substr(pos + targetKey.length());
-					break; // Stop after finding the key
-				}
-			}
-			file.close(); // Close the file
-
-			if (!currentState.empty()) {
-				LOGINFO("DEVICE_OPTIMIZE_currentstate: %s \n", currentState.c_str());
-			} else {
-				LOGINFO("DEVICE_OPTIMIZE_currentstate not found.\n");
-			}
-		} else {
-			LOGINFO("Unable to open file /tmp/SystemMode.txt.\n");		}
-
-		return currentState;
+		if( 0 == (int)connectedDisplays.size())
+		{
+			LOGWARN("No display connected to device (or)device's powerstate is not ON");
+		}
 	}
     } // namespace Plugin
 } // namespace WPEFramework

@@ -60,10 +60,6 @@ namespace Plugin {
 	virtual uint32_t ClientActivated(const string& callsign ,const string& systemMode) override ;
 	virtual uint32_t ClientDeactivated(const string& callsign, const string& systemMode) override ;
 
-//helper functions
-	void updateSystemModeFile(const std::string& systemMode, const std::string& property, const std::string& value, const std::string& action) ;
-	bool getSystemModePropertyValue(const std::string& systemMode, const std::string& property, std::string& value) const;
-
     private:
         mutable Core::CriticalSection _adminLock;
 	std::map<const string, Exchange::IDeviceOptimizeStateActivator*> _clients;

@@ -6,6 +6,7 @@
 #include <condition_variable>
 #include <fstream>
 #include <interfaces/ISystemMode.h>
+#include "HdmiCec.h"
 
 #define TEST_LOG(x, ...) fprintf(stderr, "\033[1;32m[%s:%d](%s)<PID:%d><TID:%d>" x "\n\033[0m", __FILE__, __LINE__, __FUNCTION__, getpid(), gettid(), ##__VA_ARGS__); fflush(stderr);
 
@@ -90,6 +91,17 @@ TEST_F(SystemModeTest,RequestStateGame)
 
     params["systemMode"] = "DeviceOptimize";
     params["state"]  = "Game";
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
+	    .Times(::testing::AnyNumber())
+	    .WillRepeatedly(
+			    [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+			    EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+			    EXPECT_EQ(string(methodName), string(_T(IARM_BUS_DSMGR_API_dsSetAllmEnabled)));
+			    auto param = static_cast<dsSetAllmEnabledParam_t*>(arg);
+			    param->result =dsERR_NONE;
+			    return IARM_RESULT_SUCCESS;
+			    });
+
     status = InvokeServiceMethod("org.rdk.SystemMode", "RequestState", params, result);
     EXPECT_EQ(Core::ERROR_NONE, status);
 
@@ -109,6 +121,17 @@ TEST_F(SystemModeTest,RequestStateVideo)
 
     params["systemMode"] = "DeviceOptimize";
     params["state"]  = "Video";
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
+	    .Times(::testing::AnyNumber())
+	    .WillRepeatedly(
+			    [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+			    EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+			    EXPECT_EQ(string(methodName), string(_T(IARM_BUS_DSMGR_API_dsSetAllmEnabled)));
+			    auto param = static_cast<dsSetAllmEnabledParam_t*>(arg);
+			    param->result =dsERR_NONE;
+			    return IARM_RESULT_SUCCESS;
+			    });
+
     status = InvokeServiceMethod("org.rdk.SystemMode", "RequestState", params, result);
     EXPECT_EQ(Core::ERROR_NONE, status);
 

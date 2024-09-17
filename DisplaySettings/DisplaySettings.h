@@ -200,7 +200,6 @@ namespace WPEFramework {
             END_INTERFACE_MAP
 
 	    void Request(const string& newState);
-	    std::string getcurrentAllmStateHelper(string targetKey);
 
         private:
             void InitializeIARM();
