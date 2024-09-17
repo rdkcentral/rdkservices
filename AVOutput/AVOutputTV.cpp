@@ -2280,26 +2280,68 @@ namespace Plugin {
 
     uint32_t AVOutputTV::getSupportedDolbyVisionModes(const JsonObject& parameters, JsonObject& response)
     {
-
         LOGINFO("Entry\n");
-        pic_modes_t *dvModes;
+
+        tvDolbyMode_t *dvModes;  
         unsigned short totalAvailable = 0;
-        tvError_t ret = GetTVSupportedDolbyVisionModesODM(&dvModes,&totalAvailable);
+
+        tvError_t ret = GetTVSupportedDolbyVisionModes(&dvModes, &totalAvailable);
+        
         if(ret != tvERROR_NONE) {
             returnResponse(false);
         }
         else {
             JsonArray SupportedDVModes;
 
-            for(int count = 0;count <totalAvailable;count++ ) {
-                SupportedDVModes.Add(dvModes[count].name);
+            // Loop through tvDolbyMode_t instead of pic_modes_t
+            for(int count = 0; count < totalAvailable; count++) {
+                // Map the tvDolbyMode_t enum values to strings
+                switch(dvModes[count]) {
+                    case tvDolbyMode_Invalid:
+                        SupportedDVModes.Add("invalid");
+                        break;
+                    case tvDolbyMode_Dark:
+                        SupportedDVModes.Add("Dolby Dark");
+                        break;
+                    case tvDolbyMode_Bright:
+                        SupportedDVModes.Add("Dolby Bright");
+                        break;
+                    case tvDolbyMode_Game:
+                        SupportedDVModes.Add("Dolby Game");
+                        break;
+                    case tvHDR10Mode_Dark:
+                        SupportedDVModes.Add("HDR10 Dark");
+                        break;
+                    case tvHDR10Mode_Bright:
+                        SupportedDVModes.Add("HDR10 Bright");
+                        break;
+                    case tvHDR10Mode_Game:
+                        SupportedDVModes.Add("HDR10 Game");
+                        break;
+                    case tvHLGMode_Dark:
+                        SupportedDVModes.Add("HLG Dark");
+                        break;
+                    case tvHLGMode_Bright:
+                        SupportedDVModes.Add("HLG Bright");
+                        break;
+                    case tvHLGMode_Game:
+                        SupportedDVModes.Add("HLG Game");
+                        break;
+                    default:
+                        SupportedDVModes.Add("invalid");
+                        break;
+                }
             }
 
             response["supportedDVModes"] = SupportedDVModes;
             LOGINFO("Exit\n");
+            // Adding debug print to verify the response
+            LOGINFO("Supported Dolby Vision Modes:");
+            for (size_t i = 0; i < SupportedDVModes.Length(); i++) {
+                LOGINFO("Mode[%zu]: %s", i, SupportedDVModes[i].String().c_str());
+            }
             returnResponse(true);
         }
-
     }
 
     uint32_t AVOutputTV::getDolbyVisionMode(const JsonObject& parameters, JsonObject& response)
@@ -2376,7 +2418,11 @@ namespace Plugin {
 
         if( isSetRequired("Current",source,"DV") ) {
             LOGINFO("Proceed with setDolbyVisionMode\n\n");
-            ret = SetTVDolbyVisionModeODM(value.c_str());
+            // Get the Dolby mode index as an integer (enum value)
+            int dolbyMode = getDolbyModeIndex(value.c_str());
+
+            // Call the non-ODM API with the Dolby mode enum value
+            ret = SetTVDolbyVisionMode((tvDolbyMode_t)dolbyMode);
         }
 
         if(ret != tvERROR_NONE) {
@@ -2435,9 +2481,8 @@ namespace Plugin {
                 getParamIndex("Current","Current", format,sourceIndex,pqIndex,formatIndex);
                 int err = getLocalparam("DolbyVisionMode",formatIndex,pqIndex,sourceIndex, dolbyMode, PQ_PARAM_DOLBY_MODE);
                 if( err == 0 ) {
-                    std::string dolbyModeValue = getDolbyModeStringFromEnum((tvDolbyMode_t)dolbyMode);
                     LOGINFO("%s : getLocalparam success format :%d source : %d format : %d dolbyvalue : %s\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex, dolbyModeValue.c_str());
-                    ret = SetTVDolbyVisionModeODM(dolbyModeValue.c_str());
+                    ret = SetTVDolbyVisionMode((tvDolbyMode_t)dolbyMode);
                 }
                 else {
                     LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);

@@ -212,7 +212,6 @@ class AVOutputTV : public AVOutputBase {
 		int getLocalparam(std::string forParam,int formatIndex,int pqIndex,int sourceIndex,int &value,
 		  tvPQParameterIndex_t pqParamIndex ,bool cms=false,int tunnel_type=0);
 		tvDataComponentColor_t getComponentColorEnum(std::string colorName);
-		int getDolbyParams(tvContentFormatType_t format, std::string &s, std::string source = "");
 		tvError_t getParamsCaps(std::vector<std::string> &range, std::vector<std::string> &pqmode, std::vector<std::string> &source, std::vector<std::string> &format,std::string param );
 		tvError_t getParamsCaps(std::vector<std::string> &range, std::vector<std::string> &pqmode, std::vector<std::string> &source,
 		                        std::vector<std::string> &format,std::string param , std::string & isPlatformSupport,

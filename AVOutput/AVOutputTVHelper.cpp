@@ -236,22 +236,62 @@ namespace Plugin {
 
     int AVOutputTV::getDolbyModeIndex(const char * dolbyMode)
     {
-        int mode = 0;
-        pic_modes_t *dolbyModes     ;
+        int mode = 0;  
+        tvDolbyMode_t *dolbyModes;  
         unsigned short totalAvailable = 0;
 
-        tvError_t ret = GetTVSupportedDolbyVisionModesODM(&dolbyModes,&totalAvailable);
+
+        tvError_t ret = GetTVSupportedDolbyVisionModes(&dolbyModes,&totalAvailable);
+
         if(ret == tvERROR_NONE) {
-            for(int count = 0;count <totalAvailable;count++ ) {
-                if(strncasecmp(dolbyMode, dolbyModes[count].name, strlen(dolbyMode))==0) {
-                    mode = dolbyModes[count].value;
-                    break;
+            for(int count = 0; count < totalAvailable; count++) {
+                // Map the tvDolbyMode_t values to the corresponding string names
+                const char* modeName = nullptr;
+                switch(dolbyModes[count]) {
+                    case tvDolbyMode_Invalid:
+                        modeName = "invalid";
+                        break;
+                    case tvDolbyMode_Dark:
+                        modeName = "Dolby Dark";
+                        break;
+                    case tvDolbyMode_Bright:
+                        modeName = "Dolby Bright";
+                        break;
+                    case tvDolbyMode_Game:
+                        modeName = "Dolby Game";
+                        break;
+                    case tvHDR10Mode_Dark:
+                        modeName = "HDR10 Dark";
+                        break;
+                    case tvHDR10Mode_Bright:
+                        modeName = "HDR10 Bright";
+                        break;
+                    case tvHDR10Mode_Game:
+                        modeName = "HDR10 Game";
+                        break;
+                    case tvHLGMode_Dark:
+                        modeName = "HLG Dark";
+                        break;
+                    case tvHLGMode_Bright:
+                        modeName = "HLG Bright";
+                        break;
+                    case tvHLGMode_Game:
+                        modeName = "HLG Game";
+                        break;
+                    default:
+                        modeName = "invalid";
+                        break;
                 }
 
+                // Compare the input string with the mapped mode name
+                if(modeName != nullptr && strncasecmp(dolbyMode, modeName, strlen(dolbyMode)) == 0) {
+                    mode = dolbyModes[count];  // Use the enum value as the mode index
+                    break;
+                }
             }
         } else {
             mode = -1;
-            printf("(%s):get supported mode is failed\n", __func__);
+            printf("(%s): get supported mode failed\n", __func__);
         }
 
         return mode;
@@ -635,7 +675,7 @@ namespace Plugin {
             PQFileName = std::string(AVOUTPUT_RFC_CALLERID_OVERRIDE);
         }
         else {
-            int val=GetPanelIDODM(panelId);
+            int val=GetPanelID(panelId);
             if(val==0) {
                 LOGINFO("%s : panel id read is : %s\n",__FUNCTION__,panelId);
                 if(strncmp(panelId,AVOUTPUT_CONVERTERBOARD_PANELID,strlen(AVOUTPUT_CONVERTERBOARD_PANELID))!=0) {
@@ -1316,6 +1356,40 @@ namespace Plugin {
         }
 
         return ret;
+    }
+
+    int AVOutputTV::GetPanelID(char *panelid)
+    {
+        int fd, len;
+        off_t offset = 0L;
+        char buf[4] = {0};
+
+        if ( NULL == panelid ) {
+            printf("buf is NULL");
+            return -1;
+        }
+
+        if ((fd = open(MMC_DEVICE, O_RDONLY)) < 0) {
+            printf("open %s error(%s)", MMC_DEVICE, strerror (errno));
+            return -1;
+        }
+
+        offset = lseek (fd, PANEL_ID_OFFSET, SEEK_SET);
+        if( offset !=  PANEL_ID_OFFSET ) {
+            printf("Failed to seek. offset[0x%x] requested[0x%x]\n", (uint32_t)offset, PANEL_ID_OFFSET);
+            close(fd);
+            return -1;
+        }
+
+        len = read(fd, buf, 4);
+        if (len < 0) {
+            printf("Read %s error, %s\n", MMC_DEVICE, strerror(errno));
+            close(fd);
+            return len;
+        }
+        sprintf(panelid, "%d_%d_%d%d", buf[0], buf[1], buf[2], buf[3]);
+        close(fd);
+        return 0;
     }
 
     void AVOutputTV::getDimmingModeStringFromEnum(int value, std::string &toStore)
