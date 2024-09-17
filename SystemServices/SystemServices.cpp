@@ -1396,13 +1396,9 @@ namespace WPEFramework {
             JsonObject param;
             std::string oldMode = m_currentMode;
             bool result = true;
-            LOGINFO("SetMode api called");
 	    getBoolParameter("timercontext", isTimerContext);
-        LOGINFO("isTimerContext is %d",isTimerContext);
-        LOGINFO("isTimerActive is %d",isTimerActive());
 	    if((!isTimerContext) && isTimerActive())
             {
-                LOGINFO("Inside the check - isTimerContrex");
 		int actualDurationLeft = m_remainingDuration ? m_remainingDuration : 1;
                 populateResponseWithError(SysSrv_ModeChangeInProgress, response);
 		LOGERR("Mode change is already in progress.current mode is %s and it will be in progress for next %d seconds. Please try again later.\n",m_currentMode.c_str(),actualDurationLeft);
@@ -1413,8 +1409,6 @@ namespace WPEFramework {
                 if (param.HasLabel("duration") && param.HasLabel("mode")) {
                     int duration = param["duration"].Number();
                     std::string newMode = param["mode"].String();
-                    LOGINFO("duration is %d",duration);
-                    LOGINFO("newmode is %s",newMode.c_str());
              	    if(duration>86400)
                     {
                         LOGWARN("Duration is more than 24 hours. Setting duration to 24 hours,which is maximum allowed duration to set\n");
@@ -1441,7 +1435,6 @@ namespace WPEFramework {
                         stopModeTimer();
                     }
                     if (changeMode) {
-                        LOGINFO("Inside changemode check");
                         IARM_Bus_CommonAPI_SysModeChange_Param_t modeParam;
                         stringToIarmMode(oldMode, modeParam.oldMode);
                         stringToIarmMode(m_currentMode, modeParam.newMode);
@@ -1480,54 +1473,38 @@ namespace WPEFramework {
                         LOGWARN("Current mode '%s' not changed", m_currentMode.c_str());
                     }
                 } else {
-                    LOGINFO("Missing Key Values\n");
                     populateResponseWithError(SysSrv_MissingKeyValues, response);
                     result = false;
                 }
             } else {
-                LOGINFO("Missing Key Values1\n");
                 populateResponseWithError(SysSrv_MissingKeyValues, response);
                 result = false;
             }
-            LOGINFO("SetMode api completed");
             returnResponse(result);
         }
 
         void SystemServices::startModeTimer(int duration)
         {
-            LOGINFO("StartModeTime()-duration: %d", duration);
             m_remainingDuration = duration;
-            LOGINFO("StartModeTime()-m_remainingduration: %d",m_remainingDuration);
-             if (m_operatingModeTimer.start()) {
-                LOGINFO("StartModeTime()-m_operatingModeTimer.start() called successfully");
-            } else {
-                LOGINFO("StartModeTime()-m_operatingModeTimer.start() failed");
-            }
-            LOGINFO("StartModeTime()-m_operatingModeTimer.start()");
+            m_operatingModeTimer.start()
             //set values in temp file so they can be restored in receiver restarts / crashes
             m_temp_settings.setValue("mode_duration", m_remainingDuration);
-            LOGINFO("StartModeTime()-m_temp_settings.setValue()");
         }
 
         void SystemServices::stopModeTimer(bool isDetachRequired)
         {
-            LOGINFO("StopModeTimer()");
             m_remainingDuration = 0;
             m_operatingModeTimer.stop();
-            LOGINFO("StopModeTimer()-m_operatingModeTimer.stop()");
             if(isDetachRequired)
             {
                 m_operatingModeTimer.detach();
-                LOGINFO("StopModeTimer()-m_operatingModeTimer.detach()");
             }
             //set values in temp file so they can be restored in receiver restarts / crashes
             // TODO: query & confirm time duration range.
             m_temp_settings.setValue("mode_duration", m_remainingDuration);
-            LOGINFO("StopModeTimer()-m_temp_settings.setValue()");
         }
         bool SystemServices::isTimerActive()
         {
-            LOGINFO("isTimerActive()");
             return m_operatingModeTimer.isActive();
         }
 
@@ -1536,25 +1513,19 @@ namespace WPEFramework {
          */
         void SystemServices::updateDuration()
         {
-            LOGINFO("UpdateDuration()");
             if (m_remainingDuration > 0) {
-                LOGINFO("UpdateDuration()-m_remainingDuration: %d",m_remainingDuration);
                 m_remainingDuration--;
                 m_temp_settings.setValue("mode_duration", m_remainingDuration);
             } else {
                 stopModeTimer(true);
-                LOGINFO("UpdateDuration()-m_remainingDuration: %d",m_remainingDuration);
-                LOGINFO("UpdateDuration()-stopModeTimer()");
                 JsonObject parameters, param, response;
                 param["mode"] = "NORMAL";
                 param["duration"] = 0;
                 parameters["timercontext"] = true;
                 parameters["modeInfo"] = param;
                 if (_instance) {
-                    LOGINFO("UpdateDuration()-_instance is not NULL");
                     _instance->setMode(parameters,response);
                 } else {
-                    LOGINFO("UpdateDuration()-_instance is NULL");
                     LOGERR("_instance is NULL.\n");
                 }
             }
