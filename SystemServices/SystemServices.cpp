@@ -1428,7 +1428,6 @@ namespace WPEFramework {
                         changeMode = false;
                     } else if (MODE_NORMAL != newMode && 0 != duration) {
                         m_currentMode = newMode;
-                        LOGINFO("m_currentMode: %s", m_currentMode.c_str());
                         duration < 0 ? stopModeTimer() : startModeTimer(duration);
                     } else {
                         m_currentMode = MODE_NORMAL;

@@ -44,7 +44,6 @@ protected:
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
     string response;
-
     RfcApiImplMock    *p_rfcApiImplMock  = nullptr;
     IarmBusImplMock   *p_iarmBusImplMock = nullptr;
     WrapsImplMock     *p_wrapsImplMock   = nullptr;
@@ -56,7 +55,6 @@ protected:
         , handler(*plugin)
         , connection(1, 0)
     {
-
         p_rfcApiImplMock  = new NiceMock <RfcApiImplMock>;
         RfcApi::setImpl(p_rfcApiImplMock);
 
