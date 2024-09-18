@@ -25,7 +25,7 @@
 #include <map>
 #include <memory>
 
-#include "Module.h"
+#include "../../Module.h"
 #include "DatabaseConnection.h"
 
 namespace WPEFramework

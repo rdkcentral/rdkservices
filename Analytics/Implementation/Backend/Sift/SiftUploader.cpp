@@ -53,7 +53,6 @@ namespace WPEFramework
             , mEventStartIndex(0)
         {
             mThread = std::thread(&SiftUploader::Run, this);
-            mThread.detach();
         }
 
         SiftUploader::~SiftUploader()
@@ -89,6 +88,7 @@ namespace WPEFramework
                              [this] () { return mStop; } );
                     if (mStop)
                     {
+                        LOGINFO("SiftUploader exit");
                         return;
                     }
 
@@ -345,7 +345,7 @@ namespace WPEFramework
                     JsonObject responseEvent(eventsArray[i].Object());
                     if (responseEvent.HasLabel("EventId"))
                     {
-                        if (responseEvent["event_id"].String() == eventId)
+                        if (responseEvent["EventId"].String() == eventId)
                         {
                             found = true;
                             if (responseEvent.HasLabel("Status") && responseEvent["Status"].String() != "valid")
