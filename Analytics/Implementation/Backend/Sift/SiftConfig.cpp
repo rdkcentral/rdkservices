@@ -52,7 +52,7 @@ namespace WPEFramework
                     , Schema2(false)
                     , CommonSchema()
                     , Env()
-                    , ProductName("rdk")
+                    , ProductName()
                     , LoggerName()
                     , LoggerVersion()
                     , MaxRandomisationWindowTime(300)
@@ -61,7 +61,7 @@ namespace WPEFramework
                     , MinRetryPeriod(1)
                     , MaxRetryPeriod(30)
                     , ExponentialPeriodicFactor(2)
-                    , StorePath("/opt/persistent/sky/AnalyticsSiftStore")
+                    , StorePath()
                     , EventsLimit(1000)
                     , Url()
 
@@ -331,7 +331,7 @@ namespace WPEFramework
                 uint32_t result = interface->Unregister(&mMonitorKeys);
                 LOGINFO("IStore status %d", result);
                 interface->Release();
-            }
+            }         
         }
 
         bool SiftConfig::GetAttributes(SiftConfig::Attributes &attributes)
@@ -484,7 +484,6 @@ namespace WPEFramework
         void SiftConfig::TriggerInitialization()
         {
             mInitializationThread = std::thread(&SiftConfig::Initialize, this);
-            mInitializationThread.detach();
         }
 
         void SiftConfig::InitializeKeysMap()
@@ -633,6 +632,38 @@ namespace WPEFramework
                     std::transform(mAttributes.env.begin(), mAttributes.env.end(), mAttributes.env.begin(),
                             [](unsigned char c){ return std::tolower(c); });
                     mMutex.unlock();
+                    LOGINFO("Got env %s", mAttributes.env.c_str());
+                }
+
+                // Get deviceFriendlyName from System.1.getFriendlyName[friendlyName]
+                result = systemLink->Invoke<JsonObject, JsonObject>(JSONRPC_THUNDER_TIMEOUT, "getFriendlyName", params, response);
+                if (result == Core::ERROR_NONE && response.HasLabel("friendlyName"))
+                {
+                    mMutex.lock();
+                    mAttributes.deviceFriendlyName = response["friendlyName"].String();
+                    mMutex.unlock();
+                    LOGINFO("Got deviceFriendlyName %s", mAttributes.deviceFriendlyName.c_str());
+                }
+
+                // Get country from System.1.getTerritory[territory]
+                // Get region from System.1.getTerritory[region]
+                result = systemLink->Invoke<JsonObject, JsonObject>(JSONRPC_THUNDER_TIMEOUT, "getTerritory", params, response);
+                if (result == Core::ERROR_NONE)
+                {
+                    if (response.HasLabel("territory"))
+                    {
+                        mMutex.lock();
+                        mAttributes.country = response["territory"].String();
+                        mMutex.unlock();
+                        LOGINFO("Got country %s", mAttributes.country.c_str());
+                    }
+                    if (response.HasLabel("region"))
+                    {
+                        mMutex.lock();
+                        mAttributes.region = response["region"].String();
+                        mMutex.unlock();
+                        LOGINFO("Got region %s", mAttributes.region.c_str());
+                    }
                 }
             }
 

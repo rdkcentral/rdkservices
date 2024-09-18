@@ -50,7 +50,7 @@ set(PLUGIN_ANALYTICS_SIFT_MAX_RETRY_PERIOD 30 CACHE STRING "Sift max retry perio
 set(PLUGIN_ANALYTICS_SIFT_EXPONENTIAL_PERIODIC_FACTOR 2 CACHE STRING "Sift exponential periodic factor")
 set(PLUGIN_ANALYTICS_SIFT_STORE_PATH "/opt/persistent/sky/AnalyticsSiftStore" CACHE STRING "Sift store path")
 set(PLUGIN_ANALYTICS_SIFT_STORE_EVENTS_LIMIT 1000 CACHE STRING "Sift store events limit")
-set(PLUGIN_ANALYTICS_SIFT_URL "https://sift.rdkcloud.com/v1/events" CACHE STRING "Sift URL")
+set(PLUGIN_ANALYTICS_SIFT_URL "" CACHE STRING "Sift URL")
 
 message("Setup ${MODULE_NAME} v${MODULE_VERSION}")
 
