@@ -1049,6 +1049,7 @@ namespace WPEFramework
 				{
 					MIRACASTLOG_INFO("!!! NEED TO STOP ONGOING SESSION !!!");
 					strncpy(commandBuffer,"curl -H \"Authorization: Bearer `WPEFrameworkSecurityUtility | cut -d '\"' -f 4`\" --header \"Content-Type: application/json\" --request POST --data '{\"jsonrpc\":\"2.0\", \"id\":3,\"method\":\"org.rdk.MiracastPlayer.1.stopRequest\", \"params\":{\"reason\": \"NEW_CONNECTION\"}}' http://127.0.0.1:9998/jsonrpc",sizeof(commandBuffer));
+					commandBuffer[sizeof(commandBuffer) - 1] = '\0';
 					MIRACASTLOG_INFO("Stopping old Session by [%s]",commandBuffer);
 					MiracastCommon::execute_SystemCommand(commandBuffer);
 					sleep(1);
