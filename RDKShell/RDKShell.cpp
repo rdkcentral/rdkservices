@@ -1989,8 +1989,7 @@ namespace WPEFramework {
                           JsonObject activateParams;
                           activateParams.Set("callsign",callsign.c_str());
                           JsonObject activateResult;
-                          auto thunderController = getThunderControllerClient();
-                          status = thunderController->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, activateResult);
+			  status = JSONRPCDirectLink(mCurrentService, callsign).Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, activateResult);
                           gRdkShellMutex.lock();
                           std::cout << "Bootup Activating ResidentApp from RDKShell without Persistentstore wait with Status:" << status << std::endl;
                         }
