@@ -216,6 +216,7 @@ class AVOutputTV : public AVOutputBase {
 		tvError_t getParamsCaps(std::vector<std::string> &range, std::vector<std::string> &pqmode, std::vector<std::string> &source,
 		                        std::vector<std::string> &format,std::string param , std::string & isPlatformSupport,
 				std::vector<std::string> & index);
+		int GetPanelID(char *panelid);	
 		void getDimmingModeStringFromEnum(int value, std::string &toStore);
 		void getColorTempStringFromEnum(int value, std::string &toStore);
 		int getCurrentPictureMode(char *picMode);
