@@ -69,13 +69,11 @@ namespace Plugin {
     /* virtual */ void Analytics::Deinitialize(PluginHost::IShell* service)
     {
         TRACE(Trace::Information, (_T("Analytics::Deinitialize")));
-        ASSERT(service != nullptr);
+        ASSERT(service == mService);
 
         if (mAnalytics != nullptr) {
-            UnregisterAll();
 
             RPC::IRemoteConnection *connection(service->RemoteConnection(mConnectionId));
-
             VARIABLE_IS_NOT_USED uint32_t result = mAnalytics->Release();
             mAnalytics = nullptr;
 

@@ -34,17 +34,20 @@ namespace Plugin {
     AnalyticsImplementation::AnalyticsImplementation():
         mQueueMutex(),
         mQueueCondition(),
-        mBackends(IAnalyticsBackendAdministrator::Instances())
+        mActionQueue(),
+        mEventQueue(),
+        mBackends(IAnalyticsBackendAdministrator::Instances()),
+        mSysTimeValid(false),
+        mShell(nullptr)
     {
         mThread = std::thread(&AnalyticsImplementation::ActionLoop, this);
-        mThread.detach();
     }
 
     AnalyticsImplementation::~AnalyticsImplementation()
     {
-        mQueueMutex.lock();
+        std::unique_lock<std::mutex> lock(mQueueMutex);
         mActionQueue.push({ACTION_TYPE_SHUTDOWN, nullptr});
-        mQueueMutex.unlock();
+        lock.unlock();
         mQueueCondition.notify_one();
         mThread.join();
     }
@@ -161,13 +164,15 @@ namespace Plugin {
             {
                 action = {ACTION_POPULATE_TIME_INFO, nullptr};
             }
-            else
+            else if (!mActionQueue.empty())
             {
                 action = mActionQueue.front();
                 mActionQueue.pop();
             }
 
             lock.unlock();
+
+            LOGINFO("Action: %d, time valid: %s", action.type, mSysTimeValid? "true" : "false");
 
             switch (action.type) {
                 case ACTION_POPULATE_TIME_INFO:
@@ -179,7 +184,14 @@ namespace Plugin {
                     // Send the events from the queue, if there are any.
                     while ( !mEventQueue.empty() )
                     {
-                        SendEventToBackend( mEventQueue.front() );
+                        AnalyticsImplementation::Event event = mEventQueue.front();
+                        // convert uptime to epoch timestamp
+                        if (event.epochTimestamp == 0)
+                        {
+                            event.epochTimestamp = ConvertUptimeToTimestampInMs(event.uptimeTimestamp);
+                        }
+
+                        SendEventToBackend( event );
                         mEventQueue.pop();
                     }
                 }
@@ -189,7 +201,7 @@ namespace Plugin {
                     if (mSysTimeValid)
                     {
                         // Add epoch timestamp if needed
-                        // It should have at  least uptime already
+                        // It should have at least uptime already
                         if (action.payload->epochTimestamp == 0)
                         {
                             action.payload->epochTimestamp = ConvertUptimeToTimestampInMs(action.payload->uptimeTimestamp);
@@ -206,8 +218,9 @@ namespace Plugin {
                         }
                         else
                         {
-                            // Store the event in the queue
+                            // Store the event in the queue with uptime only
                             mEventQueue.push(*action.payload);
+                            LOGINFO("SysTime not ready, event awaiting in queue: %s", action.payload->eventName.c_str());
                         }
                     }
                     break;
@@ -216,6 +229,19 @@ namespace Plugin {
                 case ACTION_TYPE_SET_TIME_READY:
                 {
                     mSysTimeValid = true;
+                    // Send the events from the queue, if there are any.
+                    while ( !mEventQueue.empty() )
+                    {
+                        AnalyticsImplementation::Event event = mEventQueue.front();
+                        // convert uptime to epoch timestamp
+                        if (event.epochTimestamp == 0)
+                        {
+                            event.epochTimestamp = ConvertUptimeToTimestampInMs(event.uptimeTimestamp);
+                        }
+
+                        SendEventToBackend( event );
+                        mEventQueue.pop();
+                    }
                 }break;
                 default:
                     break;
@@ -228,7 +254,8 @@ namespace Plugin {
     bool AnalyticsImplementation::IsSysTimeValid()
     {
         bool ret = false;
-        //TODO: Add system time validation
+        //TODO: Add system time validationm
+        // For now, relay on setTimeReady call
 
         return ret;
     }
@@ -251,7 +278,7 @@ namespace Plugin {
         }
         else if (mBackends.find(IAnalyticsBackend::SIFT) != mBackends.end())
         {
-            LOGINFO("Sending event to Sift backend");
+            LOGINFO("Sending event to Sift backend: %s", event.eventName.c_str());
             mBackends.at(IAnalyticsBackend::SIFT).SendEvent(backendEvent);
         }
     }
