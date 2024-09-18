@@ -42,7 +42,6 @@ namespace WPEFramework
             , mUploaderPtr(nullptr)
         {
             mThread = std::thread(&SiftBackend::ActionLoop, this);
-            mThread.detach();
         }
 
         SiftBackend::~SiftBackend()
@@ -53,6 +52,7 @@ namespace WPEFramework
                 mActionQueue.push(action);
             }
             mQueueCondition.notify_one();
+            mThread.join();
         }
 
         /* virtual */ uint32_t SiftBackend::Configure(PluginHost::IShell *shell)
@@ -126,6 +126,8 @@ namespace WPEFramework
                     mActionQueue.pop();
                 }
 
+                LOGINFO("Action %d", action.type);
+
                 //Always get the most recent attributes
                 bool attributesValid = false;
                 bool storeConfigValid = (mStorePtr != nullptr);
@@ -180,8 +182,6 @@ namespace WPEFramework
                     configValid = false;
                 }
                 lock.unlock();
-
-                LOGINFO("Action %d", action.type);
 
                 switch (action.type)
                 {
@@ -329,7 +329,7 @@ namespace WPEFramework
                 }
                 else
                 {
-                    std::cout << "Sift: Account ID, Device ID, or Partner ID is empty for: " << event.eventName << std::endl;
+                    LOGWARN(" Account ID, Device ID, or Partner ID is empty for: %s", event.eventName.c_str());
                 }
 
                 eventJson["app_name"] = attributes.deviceAppName;
