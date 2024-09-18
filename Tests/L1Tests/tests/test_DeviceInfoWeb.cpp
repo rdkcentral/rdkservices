@@ -100,6 +100,19 @@ TEST_F(DeviceInfoWebInitializedTest, httpGet)
     request.Verb = Web::Request::HTTP_GET;
     request.Path = webPrefix;
 
+    ON_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_GetSerializedData)));
+                auto* param = static_cast<IARM_Bus_MFRLib_GetSerializedData_Param_t*>(arg);
+                const char* str = "5678";
+                param->bufLen = strlen(str);
+                strncpy(param->buffer, str, sizeof(param->buffer));
+                param->type =  mfrSERIALIZED_TYPE_SERIALNUMBER;
+                return IARM_RESULT_SUCCESS;
+            });
+
     auto response = interface->Process(request);
     ASSERT_TRUE(response.IsValid());
 
@@ -180,7 +193,18 @@ TEST_F(DeviceInfoWebInitializedTest, httpGetSystem)
     Web::Request request;
     request.Verb = Web::Request::HTTP_GET;
     request.Path = webPrefix + _T("/System");
-
+    ON_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
+        .WillByDefault(
+            [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+                EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+                EXPECT_EQ(string(methodName), string(_T(IARM_BUS_MFRLIB_API_GetSerializedData)));
+                auto* param = static_cast<IARM_Bus_MFRLib_GetSerializedData_Param_t*>(arg);
+                const char* str = "5678";
+                param->bufLen = strlen(str);
+                strncpy(param->buffer, str, sizeof(param->buffer));
+                param->type =  mfrSERIALIZED_TYPE_SERIALNUMBER;
+                return IARM_RESULT_SUCCESS;
+            });
     auto response = interface->Process(request);
     ASSERT_TRUE(response.IsValid());
 
