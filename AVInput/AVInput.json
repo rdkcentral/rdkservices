@@ -611,10 +611,10 @@
                 "properties": {
                     "portId":{
                         "$ref": "#/definitions/portId"
-                    },
+                    }
                 },
                 "required": [
-                    "portId",
+                    "portId"
                 ]
             },
             "result": {
