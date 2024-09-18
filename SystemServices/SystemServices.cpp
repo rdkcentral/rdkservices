@@ -66,8 +66,8 @@
 using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 3
-#define API_VERSION_NUMBER_MINOR 1
-#define API_VERSION_NUMBER_PATCH 1
+#define API_VERSION_NUMBER_MINOR 2
+#define API_VERSION_NUMBER_PATCH 0
 
 #define MAX_REBOOT_DELAY 86400 /* 24Hr = 86400 sec */
 #define TR181_FW_DELAY_REBOOT "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"
@@ -2280,6 +2280,23 @@ namespace WPEFramework {
             }
         }
 
+	/***
+         * @brief : sends notification when red recovery state has changed.
+         *
+         * @param1[in]  : newstate
+         * @param2[out] : {"jsonrpc": "2.0","method":
+         *                     "org.rdk.SystemServices.events.1.onRecoveryStateChange",
+         *                     "param":{"RecoveryState":<enum:0-3>}}
+         */
+        void SystemServices::onRecoveryStateChange(int newState)
+        {
+                JsonObject params;
+                const RecoveryState recoveryState = (RecoveryState)newState;
+                params["recoveryStateChange"] = (int)recoveryState;
+                LOGINFO("recoveryState = %d\n", (int)recoveryState);
+                sendNotify(EVT_ONRECOVERYSTATECHANGED, params);
+        }
+
         /***
          * @brief : sends notification when time source state has changed.
          *
@@ -4277,7 +4294,16 @@ namespace WPEFramework {
                             LOGERR("SystemServices::_instance is NULL.\n");
                         }
                     } break;
-
+		case IARM_BUS_SYSMGR_SYSSTATE_RED_RECOV_UPDATE_STATE:
+                    {
+                        LOGWARN("IARMEvt: IARM_BUS_SYSMGR_SYSSTATE_RED_RECOV_UPDATE_STATE = '%d'\n", state);
+                        if (SystemServices::_instance)
+                        {
+                            SystemServices::_instance->onRecoveryStateChange(state);
+                        } else {
+                           LOGERR("SystemServices::_instance is NULL.\n");
+                        }
+                    } break;
                 case IARM_BUS_SYSMGR_SYSSTATE_TIME_SOURCE:
                     {
                         if (sysEventData->data.systemStates.state)
