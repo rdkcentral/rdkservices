@@ -1218,7 +1218,7 @@ namespace WPEFramework
 
             try {
                 device::HdmiInput::getInstance().getHdmiVersion(portId, &(hdmiCapVersion));
-                LOGWARN("AVInput::getHdmiVersion Hdmi Version:%d", hdmiCapVersion);
+                LOGWARN("HdmiInput::getHdmiVersion Hdmi Version:%d", hdmiCapVersion);
              }
              catch (const device::Exception& err) {
                 LOG_DEVICE_EXCEPTION1(std::to_string(portId));
