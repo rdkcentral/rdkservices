@@ -269,21 +269,6 @@ namespace WPEFramework {
 		    LOGINFO("Connect the COM-RPC socket\n");
 		    _controller = _communicatorClient->Open<PluginHost::IShell>(_T("org.rdk.SystemMode"), ~0, 3000);
 
-		    if (_controller)
-		    {
-			    _remotStoreObject = _controller->QueryInterface<Exchange::ISystemMode>();
-
-			    if(_remotStoreObject)
-			    {
-				    _remotStoreObject->AddRef();
-			    }
-		    }
-		    else
-		    {
-			    LOGERR("Failed to create SystemMode Controller\n");
-		    }
-
-		    ASSERT (nullptr != _remotStoreObject);
 
 	    }
 
@@ -618,6 +603,25 @@ namespace WPEFramework {
             }
             LOGWARN ("DisplaySettings::Initialize completes line:%d", __LINE__);
 
+	    if (_controller)
+	    {
+		    _remotStoreObject = _controller->QueryInterface<Exchange::ISystemMode>();
+
+		    if(_remotStoreObject)
+		    {
+			    _remotStoreObject->AddRef();
+		    }
+		    else
+		    {
+			    LOGERR("Failed to create SystemMode _controller\n");
+		    }
+	    }
+	    else
+	    {
+		    LOGERR("Failed to create SystemMode Controller\n");
+	    }
+	    ASSERT (nullptr != _remotStoreObject);
+
 
 	    if(_remotStoreObject)
 	    {
@@ -635,54 +639,79 @@ namespace WPEFramework {
         }
 
         void DisplaySettings::Deinitialize(PluginHost::IShell* service)
-        {
-	   if(_remotStoreObject)
-	   {
-		    const string& callsign = "org.rdk.DisplaySettings";
-		    const string& systemMode = "DEVICE_OPTIMIZE";
-	            _remotStoreObject->ClientDeactivated(callsign,systemMode);		
-	   }
-	   else
-           {
-                   Utils::String::updateSystemModeFile( "DEVICE_OPTIMIZE", "callsign", "org.rdk.DisplaySettings","delete") ;
-           }
+	{
+		LOGINFO("Enetering DisplaySettings::Deinitialize");
 
-	   LOGINFO("Enetering DisplaySettings::Deinitialize");
-	   {
-		std::unique_lock<std::mutex> lock(DisplaySettings::_instance->m_sendMsgMutex);
-		DisplaySettings::_instance->m_sendMsgThreadExit = true;
-                DisplaySettings::_instance->m_sendMsgThreadRun = true;
-                DisplaySettings::_instance->m_sendMsgCV.notify_one();
-	   }
-       int count = 0;
-       while(audioPortInitActive && count < 20){
-            sleep(100);
-            count++;
-        }
-	   try
-	   {
-		if (m_sendMsgThread.joinable())
-			m_sendMsgThread.join();
-	   }
-	   catch(const std::system_error& e)
-           {
-		LOGERR("system_error exception in thread join %s", e.what());
-	   }
-	   catch(const std::exception& e)
-	   {
-		LOGERR("exception in thread join %s", e.what());
-	   }
+		//During DisplaySettings plugin  activation the SystemMode may not be added .But it will be added /tmp/SystemMode.txt . If after 5 min SystemMode got activated then SystemMode fill the client map from /tmp/SystemMode.txt. In this case if we deactivate DisplaySettings then _remotStoreObject will be null here . So we try to QueryInterface the ISystemMode one more time 
+		if(_remotStoreObject == nullptr)
+		{
+			if (_controller)
+			{
+				_remotStoreObject = _controller->QueryInterface<Exchange::ISystemMode>();
 
-            stopCecTimeAndUnsubscribeEvent();
+				if(_remotStoreObject)
+				{
+					_remotStoreObject->AddRef();
+				}
+				else
+				{
+					LOGERR("Failed to create SystemMode _controller\n");
+				}
+			}
+			else
+			{
+				LOGERR("Failed to create SystemMode Controller\n");
+			}
+		}
 
-            DeinitializeIARM();
-            DisplaySettings::_instance = nullptr;
+		ASSERT (nullptr != _remotStoreObject);
 
-            ASSERT(service == m_service);
+		if(_remotStoreObject)
+		{
+			const string& callsign = "org.rdk.DisplaySettings";
+			const string& systemMode = "DEVICE_OPTIMIZE";
+			_remotStoreObject->ClientDeactivated(callsign,systemMode);		
+		}
+		else
+		{
+			Utils::String::updateSystemModeFile( "DEVICE_OPTIMIZE", "callsign", "org.rdk.DisplaySettings","delete") ;
+		}
 
-            m_service->Release();
-            m_service = nullptr;
-        }
+		{
+			std::unique_lock<std::mutex> lock(DisplaySettings::_instance->m_sendMsgMutex);
+			DisplaySettings::_instance->m_sendMsgThreadExit = true;
+			DisplaySettings::_instance->m_sendMsgThreadRun = true;
+			DisplaySettings::_instance->m_sendMsgCV.notify_one();
+		}
+		int count = 0;
+		while(audioPortInitActive && count < 20){
+			sleep(100);
+			count++;
+		}
+		try
+		{
+			if (m_sendMsgThread.joinable())
+				m_sendMsgThread.join();
+		}
+		catch(const std::system_error& e)
+		{
+			LOGERR("system_error exception in thread join %s", e.what());
+		}
+		catch(const std::exception& e)
+		{
+			LOGERR("exception in thread join %s", e.what());
+		}
+
+		stopCecTimeAndUnsubscribeEvent();
+
+		DeinitializeIARM();
+		DisplaySettings::_instance = nullptr;
+
+		ASSERT(service == m_service);
+
+		m_service->Release();
+		m_service = nullptr;
+	}
 
         void DisplaySettings::InitializeIARM()
         {

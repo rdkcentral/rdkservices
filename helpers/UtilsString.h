@@ -202,8 +202,8 @@ namespace String {
 		    return;
 	    }
 
-	    if (action != "add" && action != "delete" && action != "deleteall") {
-		    LOGINFO("Error: Invalid action. Action must be 'add', 'delete', or 'deleteall'.");
+	    if (action != "add" && action != "delete" && action != "deleteall" && action != "checkandadd") {
+		    LOGINFO("Error: Invalid action. Action must be 'add', 'delete', 'deleteall', or 'checkandadd'.");
 		    return;
 	    }
 
@@ -213,14 +213,14 @@ namespace String {
 		    std::ofstream outfile(SYSTEM_MODE_FILE);
 		    if (outfile) {
 			    LOGINFO("File created successfully: %s\n", SYSTEM_MODE_FILE);
-
-			    //set default value for each  SystemMode
-			    Utils::String::updateSystemModeFile("DEVICE_OPTIMIZE" ,"currentstate" , "VIDEO" , "add");
+			    // Set default value for each SystemMode (example provided)
+			    Utils::String::updateSystemModeFile("DEVICE_OPTIMIZE", "currentstate", "VIDEO", "add");
 		    } else {
 			    LOGERR("Error creating file: %s\n", SYSTEM_MODE_FILE);
 			    return;
 		    }
-	    } 
+	    }
+
 	    std::string line;
 	    std::stringstream buffer;
 	    bool propertyFound = false;
@@ -236,8 +236,8 @@ namespace String {
 					    // Skip adding this line to the buffer, effectively removing it
 					    continue;
 				    } else if (property == "currentstate") {
-					    if (action == "add") {
-						    // Replace the value for currentstate
+					    if (action == "add" || action == "checkandadd") {
+						    // Replace or add the value for currentstate
 						    line = searchKey + "=" + value;
 					    } else if (action == "delete") {
 						    // To delete a currentstate, we might want to clear or remove the line
@@ -265,8 +265,8 @@ namespace String {
 		    infile.close();
 	    }
 
-	    // If the property wasn't found and the action is "add", add it to the file
-	    if (!propertyFound && action == "add") {
+	    // If the property wasn't found and the action is "add" or "checkandadd", add it to the file
+	    if (!propertyFound && (action == "add" || action == "checkandadd")) {
 		    if (property == "currentstate") {
 			    buffer << searchKey + "=" + value << std::endl;
 		    } else if (property == "callsign") {
@@ -284,6 +284,8 @@ namespace String {
 		    LOGINFO("Failed to open file %s for writing.", SYSTEM_MODE_FILE);
 	    }
     }
+
+
     bool getSystemModePropertyValue(const std::string& systemMode, const std::string& property, std::string& value)  
     {
 	    if (systemMode.empty() || property.empty() ) {

@@ -60,7 +60,9 @@ SystemModeImplementation::SystemModeImplementation()
     //set default value for each  SystemMode
 
     SystemModeMap[DEVICE_OPTIMIZE] = "DEVICE_OPTIMIZE";
-    	    
+
+    SystemModeInterfaceMap["DEVICE_OPTIMIZE"]= DEVICE_OPTIMIZE;
+
     deviceOptimizeStateMap[VIDEO] ="VIDEO";
     deviceOptimizeStateMap[GAME] ="GAME";
 
@@ -80,6 +82,10 @@ SystemModeImplementation::SystemModeImplementation()
 	    }
     } else {
 	    LOGINFO("File already exists: %s\n", SYSTEM_MODE_FILE);
+	    
+	    //set default value for each  SystemMode
+	    Utils::String::updateSystemModeFile("DEVICE_OPTIMIZE" ,"currentstate" , "VIDEO" , "checkandadd");
+
 	    for (int i =1 ;i <=SYSTEM_MODE_COUNT ; i++ )
 	    {
 		std::string value = "";   
@@ -157,8 +163,10 @@ Core::hresult SystemModeImplementation::RequestState(const SystemMode pSystemMod
 			case DEVICE_OPTIMIZE:{
 
 						     auto deviceOptimizeStateMapIterator = deviceOptimizeStateMap.find(pState);
+
 						     if (deviceOptimizeStateMapIterator != deviceOptimizeStateMap.end())
 						     {
+
 							     std::string new_state = deviceOptimizeStateMapIterator->second;
 							     std::string old_state = "";
 							     Utils::String::getSystemModePropertyValue(systemMode_str ,"currentstate" , old_state);
@@ -238,17 +246,27 @@ Core::hresult SystemModeImplementation::GetState(const SystemMode pSystemMode, S
 
 }
 
-uint32_t SystemModeImplementation::ClientActivated(const string& callsign , const string& __SystemMode)
+uint32_t SystemModeImplementation::ClientActivated(const string& callsign , const string& systemMode)
 {
-	SystemMode pSystemMode = DEVICE_OPTIMIZE;
+	SystemMode pSystemMode ;
+	auto it = SystemModeInterfaceMap.find(systemMode);
+
+	if (it != SystemModeInterfaceMap.end()) {
+		pSystemMode = it->second;
+	} else {
+		LOGERR("Invalid systemMode %s",systemMode.c_str());
+		return 0;
+	}
 
 	if (callsign != "")
 	{
+		
 		if (_controller)
                 {
                         _controller->Release();
                         _controller = nullptr;
                 }
+		
 		_controller = _communicatorClient->Open<PluginHost::IShell>(_T(callsign), ~0, 3000);
 
 		if (_controller)
@@ -263,7 +281,9 @@ uint32_t SystemModeImplementation::ClientActivated(const string& callsign , cons
 
 								     std::map<const string, Exchange::IDeviceOptimizeStateActivator*>::iterator index(_clients.find(callsign));
 
-								     if (index == _clients.end()) {
+								     {
+
+									     //Insert _clients detail directly to map .even some junk value is there for callsign it will be replaced by new entry
 									     _clients.insert({callsign,deviceOptimizeStateActivator});
 									     Utils::String::updateSystemModeFile( SystemModeMap[pSystemMode], "callsign", callsign,"add") ;
 									     TRACE(Trace::Information, (_T("%s plugin is add to deviceOptimizeStateActivator map"), callsign.c_str()));
@@ -300,7 +320,17 @@ uint32_t SystemModeImplementation::ClientActivated(const string& callsign , cons
 }
 uint32_t SystemModeImplementation::ClientDeactivated(const string& callsign ,const string& systemMode)
 {
-	SystemMode pSystemMode = DEVICE_OPTIMIZE;
+	SystemMode pSystemMode ;
+
+	auto it = SystemModeInterfaceMap.find(systemMode);
+
+	if (it != SystemModeInterfaceMap.end()) {
+		pSystemMode = it->second;
+	} else {
+		LOGERR("Invalid systemMode %s",systemMode.c_str());
+		return 0;
+	}
+
 	_adminLock.Lock();
 	switch (pSystemMode) {
 		case DEVICE_OPTIMIZE:
