@@ -2481,7 +2481,7 @@ namespace Plugin {
                 getParamIndex("Current","Current", format,sourceIndex,pqIndex,formatIndex);
                 int err = getLocalparam("DolbyVisionMode",formatIndex,pqIndex,sourceIndex, dolbyMode, PQ_PARAM_DOLBY_MODE);
                 if( err == 0 ) {
-                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d dolbyvalue : %s\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex, dolbyModeValue.c_str());
+                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d dolbyvalue : %s\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex, dolbyMode.c_str());
                     ret = SetTVDolbyVisionMode((tvDolbyMode_t)dolbyMode);
                 }
                 else {

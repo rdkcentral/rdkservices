@@ -68,6 +68,8 @@
 #define STRING_SOURCE    "Source."
 #define CREATE_DIRTY(__X__) (__X__+=STRING_DIRTY)
 
+#define PANEL_ID_OFFSET 0x9000004
+#define MMC_DEVICE      ("/dev/mmcblk0")
 namespace WPEFramework {
 namespace Plugin {
 
