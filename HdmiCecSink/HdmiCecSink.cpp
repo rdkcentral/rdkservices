@@ -177,7 +177,7 @@ static std::vector<DeviceFeatures> deviceFeatures = {DEVICE_FEATURES_TV};
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 3
-#define API_VERSION_NUMBER_PATCH 8
+#define API_VERSION_NUMBER_PATCH 9
 
 namespace WPEFramework
 {
@@ -2884,29 +2884,44 @@ namespace WPEFramework
 					_instance->allocateLogicalAddress(DeviceType::TV);
 					if ( _instance->m_logicalAddressAllocated != LogicalAddress::UNREGISTERED)
 					{
-						logicalAddress = LogicalAddress(_instance->m_logicalAddressAllocated);
-						LibCCEC::getInstance().addLogicalAddress(logicalAddress);
-						_instance->smConnection->setSource(logicalAddress);
-						_instance->m_numberOfDevices = 0;
-						_instance->deviceList[_instance->m_logicalAddressAllocated].m_deviceType = DeviceType::TV;
-						_instance->deviceList[_instance->m_logicalAddressAllocated].m_isDevicePresent = true;
-                        			_instance->deviceList[_instance->m_logicalAddressAllocated].update(physical_addr);
-						_instance->deviceList[_instance->m_logicalAddressAllocated].m_cecVersion = Version::V_1_4;
-						_instance->deviceList[_instance->m_logicalAddressAllocated].m_vendorID = appVendorId;
-						_instance->deviceList[_instance->m_logicalAddressAllocated].m_powerStatus = PowerStatus(powerState);
-						_instance->deviceList[_instance->m_logicalAddressAllocated].m_currentLanguage = defaultLanguage;
-						_instance->deviceList[_instance->m_logicalAddressAllocated].m_osdName = osdName.toString().c_str();
-						if(cecVersion == 2.0) {
-						    _instance->deviceList[_instance->m_logicalAddressAllocated].m_cecVersion = Version::V_2_0;
-						    _instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST),
-                                                                MessageEncoder().encode(ReportFeatures(Version::V_2_0,allDevicetype,rcProfile,deviceFeatures)), 500);
-						}
-						_instance->smConnection->addFrameListener(_instance->msgFrameListener);
-						_instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), 
-								MessageEncoder().encode(ReportPhysicalAddress(physical_addr, _instance->deviceList[_instance->m_logicalAddressAllocated].m_deviceType)), 100);
+                        try{
+                            
+						    logicalAddress = LogicalAddress(_instance->m_logicalAddressAllocated);
+						    LibCCEC::getInstance().addLogicalAddress(logicalAddress);
+						    _instance->smConnection->setSource(logicalAddress);
+						    _instance->m_numberOfDevices = 0;
+						    _instance->deviceList[_instance->m_logicalAddressAllocated].m_deviceType = DeviceType::TV;
+						    _instance->deviceList[_instance->m_logicalAddressAllocated].m_isDevicePresent = true;
+                            			_instance->deviceList[_instance->m_logicalAddressAllocated].update(physical_addr);
+						    _instance->deviceList[_instance->m_logicalAddressAllocated].m_cecVersion = Version::V_1_4;
+						    _instance->deviceList[_instance->m_logicalAddressAllocated].m_vendorID = appVendorId;
+						    _instance->deviceList[_instance->m_logicalAddressAllocated].m_powerStatus = PowerStatus(powerState);
+						    _instance->deviceList[_instance->m_logicalAddressAllocated].m_currentLanguage = defaultLanguage;
+						    _instance->deviceList[_instance->m_logicalAddressAllocated].m_osdName = osdName.toString().c_str();
+						    if(cecVersion == 2.0) {
+						        _instance->deviceList[_instance->m_logicalAddressAllocated].m_cecVersion = Version::V_2_0;
+						        _instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST),
+                                                                    MessageEncoder().encode(ReportFeatures(Version::V_2_0,allDevicetype,rcProfile,deviceFeatures)), 500);
+						    }
+						    _instance->smConnection->addFrameListener(_instance->msgFrameListener);
+						    _instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), 
+						    		MessageEncoder().encode(ReportPhysicalAddress(physical_addr, _instance->deviceList[_instance->m_logicalAddressAllocated].m_deviceType)), 100);
 
-						_instance->m_sleepTime = 0;
-						_instance->m_pollThreadState = POLL_THREAD_STATE_PING;
+						    _instance->m_sleepTime = 0;
+						    _instance->m_pollThreadState = POLL_THREAD_STATE_PING;
+                        }
+                        catch(InvalidStateException &e){
+                            LOGWARN("InvalidStateException caught while allocated logical address. %s", e.what());
+						    _instance->m_pollThreadState = POLL_THREAD_STATE_EXIT;
+                        }
+                        catch(IOException &e){
+                            LOGWARN("IOException caught while allocated logical address. %s", e.what());
+						    _instance->m_pollThreadState = POLL_THREAD_STATE_EXIT;
+                        }
+                        catch(...){
+                            LOGWARN("Exception caught while allocated logical address.");
+						    _instance->m_pollThreadState = POLL_THREAD_STATE_EXIT;
+                        }
 					}
 					else
 					{
@@ -3142,9 +3157,14 @@ namespace WPEFramework
                 {
                     LibCCEC::getInstance().init();
                 }
-                catch (const std::exception& e)
-                {
-                    LOGWARN("CEC exception caught from LibCCEC::getInstance().init()");
+                catch(InvalidStateException &e){
+                    LOGWARN("InvalidStateException caught in LibCCEC::init %s", e.what());
+                }
+                catch(IOException &e){
+                    LOGWARN("IOException caught in LibCCEC::init %s", e.what());
+                }
+                catch(...){
+                    LOGWARN("Exception caught in LibCCEC::init");
                 }
             }
             libcecInitStatus++;
@@ -3253,9 +3273,14 @@ namespace WPEFramework
                 {
                    LibCCEC::getInstance().term();
                 }
-                catch (const std::exception& e)
-                {
-                    LOGWARN("CEC exception caught from LibCCEC::getInstance().term() ");
+                catch(InvalidStateException &e){
+                    LOGWARN("InvalidStateException caught in LibCCEC::term %s", e.what());
+                }
+                catch(IOException &e){
+                    LOGWARN("IOException caught in LibCCEC::term %s", e.what());
+                }
+                catch(...){
+                    LOGWARN("Exception caught in LibCCEC::term");
                 }
             }
 
