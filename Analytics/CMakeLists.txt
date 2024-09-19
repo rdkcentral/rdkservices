@@ -55,6 +55,10 @@ set(PLUGIN_ANALYTICS_SIFT_URL "" CACHE STRING "Sift URL")
 message("Setup ${MODULE_NAME} v${MODULE_VERSION}")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
+find_package(${NAMESPACE}Definitions REQUIRED)
+find_package(CompileSettingsDebug CONFIG REQUIRED)
+find_package(DS)
+find_package(IARMBus)
 
 add_library(${MODULE_NAME} SHARED
         Analytics.cpp
@@ -74,18 +78,14 @@ set_target_properties(${MODULE_NAME} PROPERTIES
 
 target_compile_definitions(${MODULE_NAME} PRIVATE MODULE_NAME=Plugin_${PLUGIN_NAME})
 
-find_package(DS)
-if (DS_FOUND)
-    find_package(IARMBus)
-    add_definitions(-DDS_FOUND)
-    target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS})
-    target_include_directories(${MODULE_NAME} PRIVATE ${DS_INCLUDE_DIRS})
-    target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
-    target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${IARMBUS_LIBRARIES} ${OEMHAL_LIBRARIES} 
-        -lpthread -lglib-2.0 -ldbus-1 ${IARMBUS_LIBRARIES} ${MODULE_NAME}Backends)
-else (DS_FOUND)
-    target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins)
-endif(DS_FOUND)
+target_link_libraries(${MODULE_NAME}
+        PRIVATE
+        CompileSettingsDebug::CompileSettingsDebug
+        ${NAMESPACE}Plugins::${NAMESPACE}Plugins
+        ${NAMESPACE}Definitions::${NAMESPACE}Definitions
+        ${DS_LIBRARIES}
+        ${IARMBUS_LIBRARIES}
+        ${MODULE_NAME}Backends)
 
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
