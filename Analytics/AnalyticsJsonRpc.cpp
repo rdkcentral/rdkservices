@@ -78,16 +78,19 @@ namespace Plugin {
         uint64_t uptimeTimestamp = (parameters.HasLabel("uptimeTimestamp"))? parameters["uptimeTimestamp"].Number() : 0;
         string eventPayload = parameters["eventPayload"].String();
 
-        result = mAnalytics->SendEvent(eventName,
-                                        eventVersion,
-                                        eventSource,
-                                        eventSourceVersion,
-                                        cetListIterator,
-                                        epochTimestamp,
-                                        uptimeTimestamp,
-                                        eventPayload);
+        if (mAnalytics != nullptr) {
+            result = mAnalytics->SendEvent(eventName,
+                                            eventVersion,
+                                            eventSource,
+                                            eventSourceVersion,
+                                            cetListIterator,
+                                            epochTimestamp,
+                                            uptimeTimestamp,
+                                            eventPayload);
+        }
+
         cetListIterator->Release();
-        returnResponse(result);
+        returnResponse(result == Core::ERROR_NONE);
     }
 
     // Method: setSessionId - Set the session ID
@@ -104,9 +107,11 @@ namespace Plugin {
 
         string sessionId = parameters["sessionId"].String();
 
-        result = mAnalytics->SetSessionId(sessionId);
+        if (mAnalytics != nullptr) {
+            result = mAnalytics->SetSessionId(sessionId);
+        }
 
-        returnResponse(result);
+        returnResponse(result == Core::ERROR_NONE);
     }
 
     // Method: setTimeReady - Set the time ready
@@ -119,9 +124,11 @@ namespace Plugin {
 
         uint32_t result = Core::ERROR_NONE;
 
-        result = mAnalytics->SetTimeReady();
+        if (mAnalytics != nullptr) {
+            result = mAnalytics->SetTimeReady();
+        }
 
-        returnResponse(result);
+        returnResponse(result == Core::ERROR_NONE);
     }
 
 }
