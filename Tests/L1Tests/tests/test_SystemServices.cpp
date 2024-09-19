@@ -38,7 +38,6 @@
 using namespace WPEFramework;
 
 using ::testing::NiceMock;
-
 class SystemServicesTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::SystemServices> plugin;
@@ -861,8 +860,11 @@ TEST_F(SystemServicesTest, updateFirmware)
 
 TEST_F(SystemServicesTest, Mode)
 {
+    NiceMock<ServiceMock> service;
+    EXPECT_EQ(string(""), plugin->Initialize(&service));
+
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMode"), _T("{}"), response));
-    EXPECT_EQ(response, string("{\"modeInfo\":{\"mode\":\"\",\"duration\":0},\"success\":true}"));
+    EXPECT_EQ(response, string("{\"modeInfo\":{\"mode\":\"NORMAL\",\"duration\":0},\"success\":true}"));
 
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setMode"), _T("{}"), response));
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{}}"), response));
@@ -873,13 +875,18 @@ TEST_F(SystemServicesTest, Mode)
             [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
                 EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_DAEMON_NAME)));
                 EXPECT_EQ(string(methodName), string(_T("DaemonSysModeChange")));
-                return IARM_RESULT_SUCCESS;
+		return IARM_RESULT_SUCCESS;
             });
 
     ON_CALL(*p_wrapsImplMock, system(::testing::_))
         .WillByDefault(::testing::Invoke(
             [&](const char* command) {
-                EXPECT_EQ(string(command), string(_T("rm -f /opt/warehouse_mode_active")));
+                EXPECT_TRUE(
+                    strcmp(command, "touch /opt/warehouse_mode_active") == 0 ||
+                    strcmp(command, "rm -f /opt/warehouse_mode_active") == 0 ||
+                    strcmp(command, "touch /opt/eas_mode_active") == 0 ||
+                    strcmp(command, "rm -f /opt/eas_mode_active") == 0
+                );
                 return 0;
             }));
 
@@ -888,6 +895,25 @@ TEST_F(SystemServicesTest, Mode)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMode"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"modeInfo\":{\"mode\":\"NORMAL\",\"duration\":0},\"success\":true}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"EAS\",\"duration\":10}}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getMode"), _T("{}"), response));
+    EXPECT_THAT(response, ::testing::MatchesRegex(_T("\\{"
+                                                 "\"modeInfo\":\\{"
+                                                 "\"mode\":\"EAS\","
+                                                 "\"duration\":(10|[1-9])"
+                                                 "\\},"
+                                                 "\"success\":true"
+                                                 "\\}")));
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"WAREHOUSE\",\"duration\":5}}"), response));
+    sleep(12);
+    
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setMode"), _T("{\"modeInfo\":{\"mode\":\"WAREHOUSE\",\"duration\":5}}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+
 }
 
 TEST_F(SystemServicesTest, setDeepSleepTimer)
