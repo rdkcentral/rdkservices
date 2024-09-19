@@ -80,6 +80,10 @@ SystemModeImplementation::SystemModeImplementation()
 	    }
     } else {
 	    LOGINFO("File already exists: %s\n", SYSTEM_MODE_FILE);
+	    
+	    //set default value for each  SystemMode
+	    Utils::String::updateSystemModeFile("DEVICE_OPTIMIZE" ,"currentstate" , "VIDEO" , "checkandadd");
+
 	    for (int i =1 ;i <=SYSTEM_MODE_COUNT ; i++ )
 	    {
 		std::string value = "";   
