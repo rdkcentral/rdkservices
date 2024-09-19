@@ -99,6 +99,31 @@
             "result": {
                 "$ref": "#/common/result"
             }
+        },
+        "setSessionId" : {
+            "summary": "Set the session ID for the analytics events",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "sessionId":{
+                        "summary": "Session ID",
+                        "type": "string",
+                        "example": "1234567890"
+                    }
+                },
+                "required": [
+                    "sessionId"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
+        "setTimeReady" : {
+            "summary": "Let the analytics plugin know that the system time is ready and valid",
+            "result": {
+                "$ref": "#/common/result"
+            }
         }
     }
 }
