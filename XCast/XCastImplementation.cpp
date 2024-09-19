@@ -480,11 +480,11 @@ namespace Plugin {
                     auto ev_ret = m_NetworkPluginObj->Subscribe<JsonObject>(THUNDER_RPC_TIMEOUT, _T("onDefaultInterfaceChanged"), &XCastImplementation::eventHandler_onDefaultInterfaceChanged,this);
                     if ( Core::ERROR_NONE == ev_ret )
                     {
-                        LOGINFO("Network - IP address status changed event : subscribed");
+                        LOGINFO("Network - DefaultInterface changed event : subscribed");
                     }
                     else
                     {
-                        LOGERR("Network - IP address status changed event : failed to subscribe : %d", ev_ret);
+                        LOGERR("Network - DefaultInterface changed event : failed to subscribe : %d", ev_ret);
                     }
 
                     ev_ret = m_NetworkPluginObj->Subscribe<JsonObject>(THUNDER_RPC_TIMEOUT, _T("onIPAddressStatusChanged"), &XCastImplementation::eventHandler_ipAddressChanged,this);
