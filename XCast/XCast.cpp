@@ -263,6 +263,9 @@ void XCast::threadPowerModeChangeEvent(void)
         if (m_is_restart_req)
         {
             m_is_restart_req = false;
+	    m_instance->_xcast->Deinitialize();
+	    sleep(1);
+	    m_instance->_xcast->Initialize(m_networkStandbyMode);
         }
     }
     else if(m_powerState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP )
@@ -351,8 +354,10 @@ void XCast::Deinitialize(PluginHost::IShell* service)
     ASSERT(_service == service);
     ASSERT(_xcast != nullptr);
     
-    if(_xcast)
+    if(_xcast) {
+	_xcast->Deinitialize();
         _xcast->Unregister(&_notification);
+    }
 
     if(_service)
         _service->Unregister(&_notification);
