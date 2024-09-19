@@ -102,6 +102,7 @@ include_directories(../../LocationSync
         ../../Miracast/MiracastService/P2P
 	../../Miracast/MiracastPlayer
         ../../Miracast/MiracastPlayer/RTSP
+        ../../Analytics
         )
 link_directories(../../LocationSync
         ../../SecurityAgent
@@ -141,6 +142,7 @@ link_directories(../../LocationSync
         ../../TextToSpeech
         ../../SystemAudioPlayer
 	../../Miracast
+        ../../Analytics
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -185,6 +187,7 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}SystemAudioPlayer
 	${NAMESPACE}MiracastService
 	${NAMESPACE}MiracastPlayer
+        ${NAMESPACE}Analytics
         )
 
 target_include_directories(${PROJECT_NAME}
