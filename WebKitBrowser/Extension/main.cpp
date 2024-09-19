@@ -148,6 +148,12 @@ public:
 #if defined(UPDATE_TZ_FROM_FILE)
         _tzSupport.Deinitialize();
 #endif
+
+#ifdef __CORE_MESSAGING__
+        // Messaging has to be destroyed before Singletons are disposed.
+        // We are not inside WPEProcess so need to do it manually.
+        Messaging::MessageUnit::Instance().Close();
+#endif
         if (_comClient.IsValid() == true) {
             _comClient.Release();
         }
