@@ -35,7 +35,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 3
-#define API_VERSION_NUMBER_PATCH 13
+#define API_VERSION_NUMBER_PATCH 14
 
 /* Netsrvmgr Based Macros & Structures */
 #define IARM_BUS_NM_SRV_MGR_NAME "NET_SRV_MGR"
@@ -405,7 +405,8 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                 LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
             }
 
-            returnResponse(result)
+            response["success"] = result;
+            return (result ? WPEFramework::Core::ERROR_NONE : WPEFramework::Core::ERROR_GENERAL);
         }
 
         uint32_t Network::getDefaultInterface (const JsonObject& parameters, JsonObject& response)
@@ -434,7 +435,8 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                 LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
             }
 
-            returnResponse(result)
+            response["success"] = result;
+            return (result ? WPEFramework::Core::ERROR_NONE : WPEFramework::Core::ERROR_GENERAL);
         }
 
         uint32_t Network::setDefaultInterface (const JsonObject& parameters, JsonObject& response)
@@ -1033,7 +1035,8 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                 LOGWARN ("Network plugin not initialised yet returning from %s", __FUNCTION__);
             }
 
-            returnResponse(result)
+            response["success"] = result;
+            return (result ? WPEFramework::Core::ERROR_NONE : WPEFramework::Core::ERROR_GENERAL);
         }
 
         bool Network::getIPIARMWrapper(IARM_BUS_NetSrvMgr_Iface_Settings_t& iarmData, const string interface, const string ipversion)
@@ -1073,7 +1076,6 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
             }
             else if (Utils::String::equal(ipversion, "IPV6") && m_useIpv6Cache && Utils::String::equal(interface, m_ipv6Cache.interface))
             {
-                LOGINFO("Reading Ipv6 cache");
                 memcpy(&iarmData, &m_ipv6Cache, sizeof(m_ipv6Cache));
                 result = true;
             }
