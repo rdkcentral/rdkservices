@@ -306,6 +306,11 @@ TTS_Error TTSManager::speak(int speechId, std::string callsign, std::string text
         return TTS_INVALID_CONFIGURATION;
     }
 
+    if(text.empty() || text.find_first_not_of(' ') == std::string::npos) {
+        TTSLOG_ERROR("Invalid Text Provided from app");
+        return TTS_FAIL;
+    }
+
     if(m_speaker) {
         // TODO: Currently 'secure' is set to true. Need to decide about this variable while Resident app integration.
         if(checkAccess("speak", callsign))

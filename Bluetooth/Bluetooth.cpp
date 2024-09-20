@@ -788,15 +788,15 @@ namespace WPEFramework
 
             lstBtrMgrEvtRsp.m_deviceHandle = deviceID;
 
-            if (eventType.compare(EVT_PAIRING_REQUEST)) {
+            if (eventType == EVT_PAIRING_REQUEST) {
                 lstBtrMgrEvtRsp.m_eventType = BTRMGR_EVENT_RECEIVED_EXTERNAL_PAIR_REQUEST;
                 lstBtrMgrEvtRsp.m_eventResp = Utils::String::equal(respValue, "ACCEPTED") ? 1 : 0;
             }
-            else if (eventType.compare(EVT_CONNECTION_REQUEST)) {
+            else if (eventType == EVT_CONNECTION_REQUEST) {
                 lstBtrMgrEvtRsp.m_eventType = BTRMGR_EVENT_RECEIVED_EXTERNAL_CONNECT_REQUEST;
                 lstBtrMgrEvtRsp.m_eventResp = Utils::String::equal(respValue, "ACCEPTED") ? 1 : 0;
             }
-            else if (eventType.compare(EVT_PLAYBACK_REQUEST)) {
+            else if (eventType == EVT_PLAYBACK_REQUEST) {
                 lstBtrMgrEvtRsp.m_eventType = BTRMGR_EVENT_RECEIVED_EXTERNAL_PLAYBACK_REQUEST;
                 lstBtrMgrEvtRsp.m_eventResp = Utils::String::equal(respValue, "ACCEPTED") ? 1 : 0;
             }
