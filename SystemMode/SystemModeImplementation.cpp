@@ -82,9 +82,14 @@ SystemModeImplementation::SystemModeImplementation()
 	    }
     } else {
 	    LOGINFO("File already exists: %s\n", SYSTEM_MODE_FILE);
-	    
-	    //set default value for each  SystemMode
-	    Utils::String::updateSystemModeFile("DEVICE_OPTIMIZE" ,"currentstate" , "VIDEO" , "checkandadd");
+	   
+	    std::string currentstate ="";
+	    Utils::String::getSystemModePropertyValue("DEVICE_OPTIMIZE" ,"currentstate",currentstate); 
+	    if(currentstate == "")
+	    {
+		    //File already exists but currentstate not set then set default value
+		    Utils::String::updateSystemModeFile("DEVICE_OPTIMIZE" ,"currentstate" , "VIDEO" , "add");
+	    }
 
 	    for (int i =1 ;i <=SYSTEM_MODE_COUNT ; i++ )
 	    {
