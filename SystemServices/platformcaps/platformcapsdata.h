@@ -193,6 +193,11 @@ private:
                     }
                 }
             }
+            
+	    if (!FromMessage(response, message, isResponseString))
+            {
+                return Core::ERROR_GENERAL;
+            }
 #elif ((THUNDER_VERSION >= 4) && (THUNDER_VERSION_MINOR == 2))
         Core::JSONRPC::Context context(channelId, message->Id.Value(), "");
         auto resp = dispatcher_->Invoke(context, *message);
