@@ -1117,7 +1117,7 @@ namespace Plugin {
                                                 LOGERR("%s:convertWBParamToRGBEnum failed Color : %d Control : %d  \n",__FUNCTION__,paramIndex.colorIndex,paramIndex.controlIndex);
                                                 return -1;  
                                             }*/
-                                        ret |= SaveWhiteBalance((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,(tvWBColor_t)paramIndex.colorIndex,(tvWBControl_t)paramIndex.controlIndex,level);
+                                        ret |= SaveCustom2PointWhiteBalance((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,(tvWBColor_t)paramIndex.colorIndex,(tvWBControl_t)paramIndex.controlIndex,level);
 
                                         if(set) {
                                             ret |= updateAVoutputTVParamToHAL(tr181ParamName,paramIndex,level,true);
