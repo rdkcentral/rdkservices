@@ -56,6 +56,7 @@
 #define HDMIINPUT_EVENT_ON_AVI_CONTENT_TYPE_CHANGED "hdmiContentTypeUpdate"
 #define HDMIINPUT_METHOD_GET_LOW_LATENCY_MODE "getTVLowLatencyMode"
 #define HDMIINPUT_METHOD_GET_AV_LATENCY "getAVLatency"
+#define HDMIINPUT_METHOD_GET_HDMI_COMPATIBILITY_VERSION "getHdmiVersion"
 
 #define HDMICECSINK_CALLSIGN "org.rdk.HdmiCecSink"
 #define HDMICECSINK_CALLSIGN_VER HDMICECSINK_CALLSIGN".1"
@@ -126,7 +127,8 @@ namespace WPEFramework
             registerMethod(HDMIINPUT_METHOD_GAME_FEATURE_STATUS, &HdmiInput::getHdmiGameFeatureStatusWrapper, this);
 	    registerMethod(HDMIINPUT_METHOD_GET_AV_LATENCY, &HdmiInput::getAVLatency, this);
             registerMethod(HDMIINPUT_METHOD_GET_LOW_LATENCY_MODE, &HdmiInput::getTVLowLatencyMode, this);
-            m_primVolume = DEFAULT_PRIM_VOL_LEVEL;
+            registerMethod(HDMIINPUT_METHOD_GET_HDMI_COMPATIBILITY_VERSION, &HdmiInput::getHdmiVersionWrapper, this);
+	    m_primVolume = DEFAULT_PRIM_VOL_LEVEL;
     	    m_inputVolume = DEFAULT_INPUT_VOL_LEVEL;        
 	}
 
@@ -1198,6 +1200,53 @@ namespace WPEFramework
            }
 
        }
+	uint32_t HdmiInput::getHdmiVersionWrapper(const JsonObject& parameters, JsonObject& response)
+	{
+            LOGINFOMETHOD();
+            returnIfParamNotFound(parameters, "portId");
+            string sPortId = parameters["portId"].String();
+            int portId = 0;
+
+             try {
+                portId = stoi(sPortId);
+             }catch (const std::exception& err) {
+                LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
+                returnResponse(false);
+             }
+
+            dsHdmiMaxCapabilityVersion_t hdmiCapVersion = HDMI_COMPATIBILITY_VERSION_14;
+
+            try {
+                device::HdmiInput::getInstance().getHdmiVersion(portId, &(hdmiCapVersion));
+                LOGWARN("HdmiInput::getHdmiVersion Hdmi Version:%d", hdmiCapVersion);
+             }
+             catch (const device::Exception& err) {
+                LOG_DEVICE_EXCEPTION1(std::to_string(portId));
+                returnResponse(false);
+             }
+
+
+             switch ((int)hdmiCapVersion){
+                case HDMI_COMPATIBILITY_VERSION_14:
+                     response["HdmiCapabilityVersion"] = "1.4";
+                     break;
+                case HDMI_COMPATIBILITY_VERSION_20:
+                     response["HdmiCapabilityVersion"] = "2.0";
+                     break;
+                case HDMI_COMPATIBILITY_VERSION_21:
+                     response["HdmiCapabilityVersion"] = "2.1";
+                     break;
+             }
+
+
+             if(hdmiCapVersion == HDMI_COMPATIBILITY_VERSION_MAX)
+             {
+                returnResponse(false);
+             }else{
+                returnResponse(true);
+             }
+        }
+
 	uint32_t HdmiInput::getServiceState(PluginHost::IShell* shell, const string& callsign, PluginHost::IShell::state& state)
         {
 	    LOGINFO("entering getServiceState\n");
