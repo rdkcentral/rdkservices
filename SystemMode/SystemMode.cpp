@@ -44,7 +44,7 @@ namespace WPEFramework
     {
 
     /*
-     *Register SystemMode module as wpeframework plugin
+     *Register SystemMode module as wpeframework plugin.
      **/
     SERVICE_REGISTRATION(SystemMode, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
