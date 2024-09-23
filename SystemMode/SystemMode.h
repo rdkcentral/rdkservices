@@ -27,6 +27,7 @@
 #include "UtilsLogging.h"
 #include "tracing/Logging.h"
 #include <mutex>
+#include <map>
 
 namespace WPEFramework {
 namespace Plugin {
@@ -54,7 +55,13 @@ namespace Plugin {
             void Deinitialize(PluginHost::IShell* service) override;
             string Information() const override;
 
-	    
+	private:
+	    void RegisterAll();
+	    std::map<std::string , WPEFramework::Exchange::ISystemMode::SystemMode > StrToSystemModeMap;
+	    std::map<std::string , WPEFramework::Exchange::ISystemMode::State> StrToDeviceOptimizeStateMap;
+	    uint32_t RequestState(const JsonObject& parameters, JsonObject& response);
+	    uint32_t GetState(const JsonObject& parameters, JsonObject& response);
+
         private:
             void Deactivated(RPC::IRemoteConnection* connection);
 

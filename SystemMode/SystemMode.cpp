@@ -68,6 +68,10 @@ namespace WPEFramework
         ASSERT(0 == _connectionId);
 
         SYSLOG(Logging::Startup, (_T("SystemMode::Initialize: PID=%u"), getpid()));
+	
+	StrToSystemModeMap["device_optimize"] = Exchange::ISystemMode::SystemMode::DEVICE_OPTIMIZE;
+	StrToDeviceOptimizeStateMap["video"] = Exchange::ISystemMode::State::VIDEO;
+	StrToDeviceOptimizeStateMap["game"] = Exchange::ISystemMode::State::GAME;
 
         _service = service;
         _service->AddRef();
@@ -75,7 +79,7 @@ namespace WPEFramework
 
         if(nullptr != _systemMode)
         {
-            Exchange::JSystemMode::Register(*this, _systemMode);
+		RegisterAll();
         }
         else
         {
@@ -99,8 +103,6 @@ namespace WPEFramework
 
         if (nullptr != _systemMode)
         {
-            Exchange::JSystemMode::Unregister(*this);
-
             // Stop processing:
             RPC::IRemoteConnection* connection = service->RemoteConnection(_connectionId);
             VARIABLE_IS_NOT_USED uint32_t result = _systemMode->Release();

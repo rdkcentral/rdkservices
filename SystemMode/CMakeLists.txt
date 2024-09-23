@@ -30,6 +30,7 @@ find_package(CompileSettingsDebug CONFIG REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
     SystemMode.cpp
+    SystemModeJsonRpc.cpp
     Module.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
