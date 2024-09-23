@@ -54,8 +54,8 @@ namespace Plugin {
         END_INTERFACE_MAP
 
     public:
-	Core::hresult RequestState(const SystemMode systemMode, const State state) override;
-	Core::hresult GetState(const SystemMode systemMode, State &state )const override;
+	Core::hresult RequestState(const SystemMode systemMode, const State state ,SuccessResult& successResult) override;
+	Core::hresult GetState(const SystemMode systemMode, State &state, SuccessResult& successResult)const override;
 	
 	virtual uint32_t ClientActivated(const string& callsign ,const string& systemMode) override ;
 	virtual uint32_t ClientDeactivated(const string& callsign, const string& systemMode) override ;

@@ -156,10 +156,11 @@ SystemModeImplementation::~SystemModeImplementation()
 }
 
 
-Core::hresult SystemModeImplementation::RequestState(const SystemMode pSystemMode, const State pState) 
+Core::hresult SystemModeImplementation::RequestState(const SystemMode pSystemMode, const State pState , SuccessResult& successResult) 
 {
 	auto SystemModeMapIterator = SystemModeMap.find(pSystemMode);
 	Core::hresult result = Core::ERROR_NONE;
+	successResult.success = true;
 
 	if(SystemModeMapIterator != SystemModeMap.end())	
 	{
@@ -185,11 +186,13 @@ Core::hresult SystemModeImplementation::RequestState(const SystemMode pSystemMod
 							     }
 
 							     stateRequested =true;
+							     successResult.success = true;
 							     result = Core::ERROR_NONE;
 						     }
 						     else
 						     {
 							     LOGERR("Invalid state %d for systemMode %s" ,pState,systemMode_str.c_str());
+							     successResult.success = false;
 							     result = Core::ERROR_GENERAL;
 						     }
 						     break;
@@ -197,6 +200,7 @@ Core::hresult SystemModeImplementation::RequestState(const SystemMode pSystemMod
 			default:
 					     {
 						     LOGERR("Invalid systemMode %s",systemMode_str.c_str());
+						     successResult.success = false;
 						     result = Core::ERROR_GENERAL;
 						     break;
 					     }
@@ -206,15 +210,17 @@ Core::hresult SystemModeImplementation::RequestState(const SystemMode pSystemMod
 	else
 	{
 		LOGERR("Invalid systemMode %d",pSystemMode);
+		successResult.success = false;
 		result = Core::ERROR_GENERAL;
 	}
 	return result;
 }
 
-Core::hresult SystemModeImplementation::GetState(const SystemMode pSystemMode, State &pState )const 
+Core::hresult SystemModeImplementation::GetState(const SystemMode pSystemMode, State &pState , SuccessResult& successResult)const 
 {
 
 	Core::hresult result = Core::ERROR_NONE;
+	successResult.success = true;
 	auto SystemModeMapIterator = SystemModeMap.find(pSystemMode);
 	if(SystemModeMapIterator != SystemModeMap.end())	
 	{
@@ -231,12 +237,14 @@ Core::hresult SystemModeImplementation::GetState(const SystemMode pSystemMode, S
 								     break;
 							     }
 						     }
+						     successResult.success = true;
 						     result = Core::ERROR_NONE;
 						     break;
 					     }
 			default:
 					     {
 						     LOGERR("Invalid systemMode %d",static_cast<uint32_t>(pSystemMode));
+						     successResult.success = false;
 						     result = Core::ERROR_GENERAL;
 						     break;
 					     }
@@ -245,6 +253,7 @@ Core::hresult SystemModeImplementation::GetState(const SystemMode pSystemMode, S
 	else
 	{
 		LOGERR("Invalid systemMode %d",static_cast<uint32_t>(pSystemMode));
+		successResult.success = false;
 		return Core::ERROR_GENERAL;
 	}
 	return result;
@@ -297,7 +306,8 @@ uint32_t SystemModeImplementation::ClientActivated(const string& callsign , cons
 									     if(stateRequested) 
 									     {
 										     State state ;
-										     if(GetState(pSystemMode, state ) == Core::ERROR_NONE)
+										     SuccessResult successResult;
+										     if(GetState(pSystemMode, state ,successResult ) == Core::ERROR_NONE)
 										     {
 											     std::string state_str = deviceOptimizeStateMap[state];
 											     deviceOptimizeStateActivator->Request(state_str) ;
