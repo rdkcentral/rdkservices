@@ -28,7 +28,7 @@ add_library(${MODULE_NAME} SHARED
         XCast.cpp
         XCastImplementation.cpp
         Module.cpp
-        RtXcastConnector.cpp)
+	XCastManager.cpp)
 
 find_package(RFC)
 find_package(IARMBus)

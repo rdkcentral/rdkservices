@@ -2,7 +2,7 @@
  * If not stated otherwise in this file or this component's LICENSE file the
  * following copyright and licenses apply:
  *
- * Copyright 2020 RDK Management
+ * Copyright 2024 RDK Management
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,14 +23,14 @@
 #include <interfaces/Ids.h>
 #include <interfaces/IXCast.h>
 #include "tracing/Logging.h"
-#include "RtXcastConnector.h"
-#include "RtNotifier.h"
+#include "XCastManager.h"
+#include "XCastNotifier.h"
 #include <vector>
 
 namespace WPEFramework {
 namespace Plugin {
 
-    class XCastImplementation : public Exchange::IXCast, public PluginHost::IStateControl, public RtNotifier {
+    class XCastImplementation : public Exchange::IXCast, public PluginHost::IStateControl, public XCastNotifier {
     public:
         enum PluginState
         {
@@ -120,7 +120,7 @@ namespace Plugin {
         virtual void onXcastApplicationResumeRequest(string appName, string appId) override ;
         virtual void onXcastApplicationStateRequest(string appName, string appId) override ;
         virtual void onXcastUpdatePowerStateRequest(string powerState) override;
-        virtual void onGDialServiceDisconnected(void) override;
+        virtual void onGDialServiceStopped(void) override;
 
         BEGIN_INTERFACE_MAP(XCastImplementation)
             INTERFACE_ENTRY(Exchange::IXCast)
@@ -128,7 +128,7 @@ namespace Plugin {
         END_INTERFACE_MAP
 
     private:
-        static RtXcastConnector* _rtConnector;
+        static XCastManager* m_xcast_manager;
         mutable Core::CriticalSection _adminLock;
         TpTimer m_locateCastTimer;
         WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> *m_ControllerObj = nullptr;
@@ -140,6 +140,8 @@ namespace Plugin {
         
         void dispatchEvent(Event,string callsign, const JsonObject &params);
         void Dispatch(Event event,string callsign, const JsonObject params);
+
+        void dumpDynamicAppCacheList(string strListName, std::vector<DynamicAppConfig*> appConfigList);
 
         void onLocateCastTimer();
         void startTimer(int interval);
