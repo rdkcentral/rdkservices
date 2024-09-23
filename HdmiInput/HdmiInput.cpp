@@ -67,7 +67,7 @@
 #define registerMethod(...) for (uint8_t i = 1; GetHandler(i); i++) GetHandler(i)->Register<JsonObject, JsonObject>(__VA_ARGS__)
 
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 3
+#define API_VERSION_NUMBER_MINOR 4
 #define API_VERSION_NUMBER_PATCH 0
 
 static int audio_output_delay = 100;
