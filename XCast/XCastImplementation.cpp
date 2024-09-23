@@ -2,7 +2,7 @@
  * If not stated otherwise in this file or this component's LICENSE file the
  * following copyright and licenses apply:
  *
- * Copyright 2020 RDK Management
+ * Copyright 2024 RDK Management
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,12 +33,9 @@
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
 #define API_VERSION_NUMBER_PATCH 2
-#define API_VERSION_NUMBER_TEST 100
 
 #define LOCATE_CAST_FIRST_TIMEOUT_IN_MILLIS  5000  //5 seconds
 #define LOCATE_CAST_SECOND_TIMEOUT_IN_MILLIS 10000  //10 seconds
-#define LOCATE_CAST_THIRD_TIMEOUT_IN_MILLIS  30000  //30 seconds
-#define LOCATE_CAST_FINAL_TIMEOUT_IN_MILLIS  60000  //60 seconds
 
 namespace WPEFramework {
 namespace Plugin {
@@ -46,16 +43,17 @@ namespace Plugin {
     SERVICE_REGISTRATION(XCastImplementation, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
     XCastImplementation *XCastImplementation::_instance = nullptr;
-    RtXcastConnector* XCastImplementation::_rtConnector = nullptr;
+    XCastManager* XCastImplementation::m_xcast_manager = nullptr;
     static std::vector <DynamicAppConfig*> appConfigListCache;
     static std::mutex m_appConfigMutex;
     static bool xcastEnableCache = false;
-    static string friendlyNameCache = "";
+    static string friendlyNameCache = "Living Room";
     static string m_activeInterfaceName = "";
+    static bool m_isDynamicRegistrationsRequired = false;
 
     XCastImplementation::XCastImplementation() : _adminLock()
     {
-        LOGINFO("##### API VER[%d : %d : %d : %d] #####", API_VERSION_NUMBER_MAJOR,API_VERSION_NUMBER_MINOR,API_VERSION_NUMBER_PATCH,API_VERSION_NUMBER_TEST);
+        LOGINFO("##### API VER[%d : %d : %d] #####", API_VERSION_NUMBER_MAJOR,API_VERSION_NUMBER_MINOR,API_VERSION_NUMBER_PATCH);
         m_locateCastTimer.connect( bind( &XCastImplementation::onLocateCastTimer, this ));
     }
 
@@ -94,13 +92,13 @@ namespace Plugin {
 
     uint32_t XCastImplementation::Initialize(bool networkStandbyMode)
     {
-        if(nullptr == _rtConnector)
+        if(nullptr == m_xcast_manager)
         {
             m_networkStandbyMode = networkStandbyMode;
-            _rtConnector  = RtXcastConnector::getInstance();
-            if(nullptr != _rtConnector)
+            m_xcast_manager  = XCastManager::getInstance();
+            if(nullptr != m_xcast_manager)
             {
-                _rtConnector->setService(this);
+                m_xcast_manager->setService(this);
                 if( false == connectToGDialService())
                 {
                     startTimer(LOCATE_CAST_FIRST_TIMEOUT_IN_MILLIS);
@@ -112,20 +110,20 @@ namespace Plugin {
 
     void XCastImplementation::Deinitialize(void)
     {
-        if(nullptr != _rtConnector)
+        if(nullptr != m_xcast_manager)
         {
             stopTimer();
-            _rtConnector->shutdown();
-            _rtConnector = nullptr;
+            m_xcast_manager->shutdown();
+            m_xcast_manager = nullptr;
         }
     }
 
     uint32_t XCastImplementation::enableCastService(string friendlyname,bool enableService) const
     {
         LOGINFO("XcastService::enableCastService: ARGS = %s : %d", friendlyname.c_str(), enableService);
-        if (nullptr != _rtConnector)
+        if (nullptr != m_xcast_manager)
         {
-            _rtConnector->enableCastService(friendlyname,enableService);
+            m_xcast_manager->enableCastService(friendlyname,enableService);
         }
         xcastEnableCache = enableService;
         friendlyNameCache = friendlyname;
@@ -136,10 +134,10 @@ namespace Plugin {
     {
         LOGINFO("ApplicationStateChanged  ARGS = %s : %s : %s : %s ", appName.c_str(), appId.c_str() , appstate.c_str() , error.c_str());
         uint32_t status = Core::ERROR_GENERAL;
-        if(!appName.empty() && !appstate.empty() && (nullptr != _rtConnector))
+        if(!appName.empty() && !appstate.empty() && (nullptr != m_xcast_manager))
         {
             LOGINFO("XcastService::ApplicationStateChanged  ARGS = %s : %s : %s : %s ", appName.c_str(), appId.c_str() , appstate.c_str() , error.c_str());
-            _rtConnector->applicationStateChanged(appName, appstate, appId, error);
+            m_xcast_manager->applicationStateChanged(appName, appstate, appId, error);
             status = Core::ERROR_NONE;
         }
         return status;
@@ -148,9 +146,9 @@ namespace Plugin {
     uint32_t XCastImplementation::getProtocolVersion(std::string &protocolVersion) const
     {
         LOGINFO("XcastService::getProtocolVersion");
-        if (nullptr != _rtConnector)
+        if (nullptr != m_xcast_manager)
         {
-            protocolVersion = _rtConnector->getProtocolVersion();
+            protocolVersion = m_xcast_manager->getProtocolVersion();
         }
         return Core::ERROR_NONE;
     }
@@ -161,7 +159,7 @@ namespace Plugin {
         std::vector <DynamicAppConfig*> appConfigListTemp;
         uint32_t status = Core::ERROR_GENERAL;
 
-        if ((nullptr != _rtConnector) && (appLists))
+        if ((nullptr != m_xcast_manager) && (appLists))
         {
             Exchange::IXCast::ApplicationInfo entry{};
 
@@ -186,7 +184,8 @@ namespace Plugin {
                     appConfigListTemp.push_back (pDynamicAppConfig);
                 }
             }
-            _rtConnector->registerApplications(appConfigListTemp);
+            m_isDynamicRegistrationsRequired = true;
+            m_xcast_manager->registerApplications(appConfigListTemp);
             {
                 lock_guard<mutex> lck(m_appConfigMutex);
                 for (DynamicAppConfig* pDynamicAppConfigOld : appConfigListCache)
@@ -196,18 +195,35 @@ namespace Plugin {
                 }
                 appConfigListCache.clear();
                 appConfigListCache = appConfigListTemp;
+                dumpDynamicAppCacheList(string("registeredAppsFromUser"), appConfigListCache);
             }
             status = Core::ERROR_NONE;
         }
         return status;
     }
 
+    void XCastImplementation::dumpDynamicAppCacheList(string strListName, std::vector<DynamicAppConfig*> appConfigList)
+    {
+        LOGINFO ("=================Current Apps[%s] size[%d] ===========================", strListName.c_str(), (int)appConfigList.size());
+        for (DynamicAppConfig* pDynamicAppConfig : appConfigList)
+        {
+            LOGINFO ("Apps: appName:%s, prefixes:%s, cors:%s, allowStop:%d, query:%s, payload:%s",
+                    pDynamicAppConfig->appName,
+                    pDynamicAppConfig->prefixes,
+                    pDynamicAppConfig->cors,
+                    pDynamicAppConfig->allowStop,
+                    pDynamicAppConfig->query,
+                    pDynamicAppConfig->payload);
+        }
+        LOGINFO ("=================================================================");
+    }
+
     uint32_t XCastImplementation::setNetworkStandbyMode(bool nwStandbymode)
     {
         LOGINFO("nwStandbymode: %d", nwStandbymode);
-        if (nullptr != _rtConnector)
+        if (nullptr != m_xcast_manager)
         {
-            _rtConnector->setNetworkStandbyMode(nwStandbymode);
+            m_xcast_manager->setNetworkStandbyMode(nwStandbymode);
             m_networkStandbyMode = nwStandbymode;
         }
         return Core::ERROR_NONE;
@@ -348,8 +364,9 @@ namespace Plugin {
         dispatchEvent(UPDATE_POWERSTATE, "", params);
     }
 
-    void XCastImplementation::onGDialServiceDisconnected(void)
+    void XCastImplementation::onGDialServiceStopped(void)
     {
+        LOGINFO("Timer triggered to monitor the GDial, check after 5sec");
         startTimer(LOCATE_CAST_FIRST_TIMEOUT_IN_MILLIS);
     }
 
@@ -361,12 +378,13 @@ namespace Plugin {
         getDefaultNameAndIPAddress(interface,ipaddress);
         if (!interface.empty())
         {
-            status = _rtConnector->initialize(interface,m_networkStandbyMode);
+            status = m_xcast_manager->initialize(interface,m_networkStandbyMode);
             if( true == status)
             {
                 m_activeInterfaceName = interface;
             }
         }
+        LOGINFO("GDialService[%u]IF[%s]IP[%s]",status,interface.c_str(),ipaddress.c_str());
         return status;
     }
 
@@ -426,33 +444,36 @@ namespace Plugin {
     {
         string token = getSecurityToken();
 
-        m_ControllerObj = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>("", "", false, token);
-
-        if (nullptr != m_ControllerObj)
+        if (nullptr == m_ControllerObj)
         {
-            auto ev_ret = m_ControllerObj->Subscribe<JsonObject>(1000, _T("statechange"),&XCastImplementation::eventHandler_pluginState,this);
-            if (ev_ret == Core::ERROR_NONE)
+            m_ControllerObj = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>("", "", false, token);
+
+            if (nullptr != m_ControllerObj)
             {
-                LOGINFO("Controller - statechange event subscribed");
+                auto ev_ret = m_ControllerObj->Subscribe<JsonObject>(1000, _T("statechange"),&XCastImplementation::eventHandler_pluginState,this);
+                if (ev_ret == Core::ERROR_NONE)
+                {
+                    LOGINFO("Controller - statechange event subscribed");
+                }
+                else
+                {
+                    LOGERR("Controller - statechange event failed to subscribe : %d",ev_ret);
+                }
+
+                if (!isPluginActivated(NETWORK_CALLSIGN_VER))
+                {
+                    activatePlugin(NETWORK_CALLSIGN_VER);
+                    _networkPluginState = PLUGIN_DEACTIVATED;
+                }
+                else
+                {
+                    _networkPluginState = PLUGIN_ACTIVATED;
+                }
             }
             else
             {
-                LOGERR("Controller - statechange event failed to subscribe : %d",ev_ret);
+                LOGERR("Unable to get Controller obj");
             }
-
-            if (!isPluginActivated(NETWORK_CALLSIGN_VER))
-            {
-                activatePlugin(NETWORK_CALLSIGN_VER);
-                _networkPluginState = PLUGIN_DEACTIVATED;
-            }
-            else
-            {
-                _networkPluginState = PLUGIN_ACTIVATED;
-            }
-        }
-        else
-        {
-            LOGERR("Unable to get Controller obj");
         }
 
         if (nullptr == m_NetworkPluginObj)
@@ -480,11 +501,11 @@ namespace Plugin {
                     auto ev_ret = m_NetworkPluginObj->Subscribe<JsonObject>(THUNDER_RPC_TIMEOUT, _T("onDefaultInterfaceChanged"), &XCastImplementation::eventHandler_onDefaultInterfaceChanged,this);
                     if ( Core::ERROR_NONE == ev_ret )
                     {
-                        LOGINFO("Network - DefaultInterface changed event : subscribed");
+                        LOGINFO("Network - Default Interface changed event : subscribed");
                     }
                     else
                     {
-                        LOGERR("Network - DefaultInterface changed event : failed to subscribe : %d", ev_ret);
+                        LOGERR("Network - Default Interface changed event : failed to subscribe : %d", ev_ret);
                     }
 
                     ev_ret = m_NetworkPluginObj->Subscribe<JsonObject>(THUNDER_RPC_TIMEOUT, _T("onIPAddressStatusChanged"), &XCastImplementation::eventHandler_ipAddressChanged,this);
@@ -609,20 +630,24 @@ namespace Plugin {
             LOGINFO("Retry after 10 sec...");
             m_locateCastTimer.setInterval(LOCATE_CAST_SECOND_TIMEOUT_IN_MILLIS);
             return ;
-        }// err != RT_OK
+        }
         stopTimer();
 
-        if (NULL != _rtConnector) {
+        if ((NULL != m_xcast_manager) && m_isDynamicRegistrationsRequired )
+        {
             std::vector<DynamicAppConfig*> appConfigList;
             lock_guard<mutex> lck(m_appConfigMutex);
             appConfigList = appConfigListCache;
-            LOGINFO("XCast::onLocateCastTimer : calling registerApplications");
-            _rtConnector->registerApplications (appConfigList);
+            dumpDynamicAppCacheList(string("CachedAppsFromTimer"), appConfigList);
+            LOGINFO("> calling registerApplications");
+            m_xcast_manager->registerApplications (appConfigList);
         }
         else {
-            LOGINFO("XCast::onLocateCastTimer :_rtConnector: %p",  _rtConnector);
+            LOGINFO("m_xcast_manager: %p: m_isDynamicRegistrationsRequired[%u]",
+                    m_xcast_manager,
+                    m_isDynamicRegistrationsRequired);
         }
-        _rtConnector->enableCastService(friendlyNameCache,xcastEnableCache);
+        m_xcast_manager->enableCastService(friendlyNameCache,xcastEnableCache);
         LOGINFO("XCast::onLocateCastTimer : Timer still active ? %d ",m_locateCastTimer.isActive());
     }
 
@@ -655,8 +680,8 @@ namespace Plugin {
         {
             if (Result["success"].Boolean())
             {
-                string ipAddress = Result["ipaddr"].String();
-                LOGINFO("ipAddress = %s",ipAddress.c_str());
+                ipaddress = Result["ipaddr"].String();
+                LOGINFO("ipAddress = %s",ipaddress.c_str());
                 returnValue = true;
             }
             else
@@ -699,10 +724,10 @@ namespace Plugin {
                 if ((0 != nwInterface.compare(m_activeInterfaceName)) ||
                     ((0 == nwInterface.compare(m_activeInterfaceName)) && !ipaddress.empty()))
                 {
-                    if (_rtConnector)
+                    if (m_xcast_manager)
                     {
                         LOGINFO("Stopping GDialService");
-                        _rtConnector->deinitialize();
+                        m_xcast_manager->deinitialize();
                     }
                     LOGINFO("Timer started to monitor active interface");
                     startTimer(LOCATE_CAST_FIRST_TIMEOUT_IN_MILLIS);

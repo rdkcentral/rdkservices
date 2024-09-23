@@ -261,13 +261,13 @@ void XCast::threadPowerModeChangeEvent(void)
         m_sleeptime = 1;
         if (m_is_restart_req)
         {
+            m_instance->_xcast->Deinitialize();
+	        sleep(1);
+	        m_instance->_xcast->Initialize(m_networkStandbyMode);
             m_is_restart_req = false;
-	    m_instance->_xcast->Deinitialize();
-	    sleep(1);
-	    m_instance->_xcast->Initialize(m_networkStandbyMode);
         }
     }
-    else if(m_powerState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP )
+    else if (m_powerState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP )
     {
         m_sleeptime = 3;
         m_is_restart_req = true; //After DEEPSLEEP, restart xdial again for next transition.
@@ -299,7 +299,7 @@ const string XCast::Initialize(PluginHost::IShell *service)
     _service = service;
     _skipURL = static_cast<uint8_t>(service->WebPrefix().length());
 
-    LOGINFO("##### API VER[%d : %d : %d : %d] #####", API_VERSION_NUMBER_MAJOR,API_VERSION_NUMBER_MINOR,API_VERSION_NUMBER_PATCH,API_VERSION_NUMBER_TEST);
+    LOGINFO("##### API VER[%d : %d : %d] #####", API_VERSION_NUMBER_MAJOR,API_VERSION_NUMBER_MINOR,API_VERSION_NUMBER_PATCH);
 
     _service->Register(&_notification);
 
@@ -353,8 +353,9 @@ void XCast::Deinitialize(PluginHost::IShell* service)
     ASSERT(_service == service);
     ASSERT(_xcast != nullptr);
     
-    if(_xcast) {
-	_xcast->Deinitialize();
+    if(_xcast)
+    {
+        _xcast->Deinitialize();
         _xcast->Unregister(&_notification);
     }
 
@@ -482,7 +483,7 @@ uint32_t XCast::setStandbyBehavior(const JsonObject& parameters, JsonObject& res
     }
     else
     {
-    returnResponse(false);
+        returnResponse(false);
     }
     m_standbyBehavior = enabled;
     LOGINFO("XcastService::setStandbyBehavior m_standbyBehavior : %d", m_standbyBehavior);
