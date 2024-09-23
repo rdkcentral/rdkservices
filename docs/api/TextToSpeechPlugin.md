@@ -1,5 +1,5 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="head.TextToSpeech_Plugin"></a>
+<a name="TextToSpeech_Plugin"></a>
 # TextToSpeech Plugin
 
 **Version: [1.0.31](https://github.com/rdkcentral/rdkservices/blob/main/TextToSpeech/CHANGELOG.md)**
@@ -8,25 +8,25 @@ A org.rdk.TextToSpeech plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Abbreviation, Acronyms and Terms](#head.Abbreviation,_Acronyms_and_Terms)
-- [Description](#head.Description)
-- [Configuration](#head.Configuration)
-- [Methods](#head.Methods)
-- [Notifications](#head.Notifications)
+- [Abbreviation, Acronyms and Terms](#Abbreviation,_Acronyms_and_Terms)
+- [Description](#Description)
+- [Configuration](#Configuration)
+- [Methods](#Methods)
+- [Notifications](#Notifications)
 
-<a name="head.Abbreviation,_Acronyms_and_Terms"></a>
+<a name="Abbreviation,_Acronyms_and_Terms"></a>
 # Abbreviation, Acronyms and Terms
 
 [[Refer to this link](userguide/aat.md)]
 
-<a name="head.Description"></a>
+<a name="Description"></a>
 # Description
 
 The `TextToSpeech` plugin provides TTS functionality (Voice Guidance & Speech Synthesis) for the client application.
 
-The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
+The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
 
-<a name="head.Configuration"></a>
+<a name="Configuration"></a>
 # Configuration
 
 The table below lists configuration options of the plugin.
@@ -38,7 +38,7 @@ The table below lists configuration options of the plugin.
 | locator | string | Library name: *libWPEFrameworkTextToSpeech.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
-<a name="head.Methods"></a>
+<a name="Methods"></a>
 # Methods
 
 The following methods are provided by the org.rdk.TextToSpeech plugin:
@@ -47,31 +47,31 @@ TextToSpeech interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [cancel](#method.cancel) | Cancels the speech |
-| [enabletts](#method.enabletts) | (For Resident App) Enables or disables the TTS conversion processing |
-| [getapiversion](#method.getapiversion) | Gets the API Version |
-| [getspeechstate](#method.getspeechstate) | Returns the current state of the speech request |
-| [getttsconfiguration](#method.getttsconfiguration) | Gets the current TTS configuration |
-| [isspeaking](#method.isspeaking) | Checks if speech is in progress |
-| [isttsenabled](#method.isttsenabled) | Returns whether the TTS engine is enabled or disabled |
-| [listvoices](#method.listvoices) | Lists the available voices for the specified language |
-| [pause](#method.pause) | Pauses the speech |
-| [resume](#method.resume) | Resumes the speech |
-| [setttsconfiguration](#method.setttsconfiguration) | Sets the TTS configuration |
-| [speak](#method.speak) | Converts the input text to speech when TTS is enabled |
-| [setACL](#method.setACL) | Configures app to speak |
+| [cancel](#cancel) | Cancels the speech |
+| [enabletts](#enabletts) | (For Resident App) Enables or disables the TTS conversion processing |
+| [getapiversion](#getapiversion) | Gets the API Version |
+| [getspeechstate](#getspeechstate) | Returns the current state of the speech request |
+| [getttsconfiguration](#getttsconfiguration) | Gets the current TTS configuration |
+| [isspeaking](#isspeaking) | Checks if speech is in progress |
+| [isttsenabled](#isttsenabled) | Returns whether the TTS engine is enabled or disabled |
+| [listvoices](#listvoices) | Lists the available voices for the specified language |
+| [pause](#pause) | Pauses the speech |
+| [resume](#resume) | Resumes the speech |
+| [setttsconfiguration](#setttsconfiguration) | Sets the TTS configuration |
+| [speak](#speak) | Converts the input text to speech when TTS is enabled |
+| [setACL](#setACL) | Configures app to speak |
 
 
-<a name="method.cancel"></a>
-## *cancel [<sup>method</sup>](#head.Methods)*
+<a name="cancel"></a>
+## *cancel*
 
-Cancels the speech. Triggers the `onspeechinterrupted` event.
+Cancels the speech. Triggers the `onspeechinterrupted` 
 
 ### Events
 
 | Event | Description |
 | :-------- | :-------- |
-| [onspeechinterrupted](#event.onspeechinterrupted) | Triggered when ongoing speech is cancelled. Event is not triggered: if TTS is not enabled; if ongoing Speech is completed |
+| [onspeechinterrupted](#onspeechinterrupted) | Triggered when ongoing speech is cancelled. Event is not triggered: if TTS is not enabled; if ongoing Speech is completed |
 ### Parameters
 
 | Name | Type | Description |
@@ -115,8 +115,8 @@ Cancels the speech. Triggers the `onspeechinterrupted` event.
 }
 ```
 
-<a name="method.enabletts"></a>
-## *enabletts [<sup>method</sup>](#head.Methods)*
+<a name="enabletts"></a>
+## *enabletts*
 
 (For Resident App) Enables or disables the TTS conversion processing. Triggered `onttsstatechanged` event when state changes and `onspeechinterrupted` event when disabling TTS while speech is in-progress.
 
@@ -124,8 +124,8 @@ Cancels the speech. Triggers the `onspeechinterrupted` event.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onttsstatechanged](#event.onttsstatechanged) | state : true Triggered when TTS is enabled; state : false Triggered when TTS is disabled; otherwise No event When TTS enable or disable is in-progress |
-| [onspeechinterrupted](#event.onspeechinterrupted) | Triggered when disabling TTS while speech is in-progress. |
+| [onttsstatechanged](#onttsstatechanged) | state : true Triggered when TTS is enabled; state : false Triggered when TTS is disabled; otherwise No event When TTS enable or disable is in-progress |
+| [onspeechinterrupted](#onspeechinterrupted) | Triggered when disabling TTS while speech is in-progress. |
 ### Parameters
 
 | Name | Type | Description |
@@ -169,8 +169,8 @@ Cancels the speech. Triggers the `onspeechinterrupted` event.
 }
 ```
 
-<a name="method.getapiversion"></a>
-## *getapiversion [<sup>method</sup>](#head.Methods)*
+<a name="getapiversion"></a>
+## *getapiversion*
 
 Gets the API Version.
 
@@ -215,8 +215,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getspeechstate"></a>
-## *getspeechstate [<sup>method</sup>](#head.Methods)*
+<a name="getspeechstate"></a>
+## *getspeechstate*
 
 Returns the current state of the speech request.
 
@@ -269,8 +269,8 @@ No Events
 }
 ```
 
-<a name="method.getttsconfiguration"></a>
-## *getttsconfiguration [<sup>method</sup>](#head.Methods)*
+<a name="getttsconfiguration"></a>
+## *getttsconfiguration*
 
 Gets the current TTS configuration.
 
@@ -329,8 +329,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.isspeaking"></a>
-## *isspeaking [<sup>method</sup>](#head.Methods)*
+<a name="isspeaking"></a>
+## *isspeaking*
 
 Checks if speech is in progress.
 
@@ -383,8 +383,8 @@ No Events
 }
 ```
 
-<a name="method.isttsenabled"></a>
-## *isttsenabled [<sup>method</sup>](#head.Methods)*
+<a name="isttsenabled"></a>
+## *isttsenabled*
 
 Returns whether the TTS engine is enabled or disabled. By default the TTS engine is disabled.
 
@@ -431,8 +431,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.listvoices"></a>
-## *listvoices [<sup>method</sup>](#head.Methods)*
+<a name="listvoices"></a>
+## *listvoices*
 
 Lists the available voices for the specified language. For every language there is a set of pre-defined voices.
 
@@ -488,16 +488,16 @@ No Events
 }
 ```
 
-<a name="method.pause"></a>
-## *pause [<sup>method</sup>](#head.Methods)*
+<a name="pause"></a>
+## *pause*
 
-Pauses the speech. Triggers the `onspeechpause` event.
+Pauses the speech. Triggers the `onspeechpause` 
 
 ### Events
 
 | Event | Description |
 | :-------- | :-------- |
-| [onspeechpause](#event.onspeechpause) | Triggered when ongoing speech is paused. Event not triggered on following conditions: TTS is not enabled; Speech is already in pause; or Speech is completed |
+| [onspeechpause](#onspeechpause) | Triggered when ongoing speech is paused. Event not triggered on following conditions: TTS is not enabled; Speech is already in pause; or Speech is completed |
 ### Parameters
 
 | Name | Type | Description |
@@ -541,16 +541,16 @@ Pauses the speech. Triggers the `onspeechpause` event.
 }
 ```
 
-<a name="method.resume"></a>
-## *resume [<sup>method</sup>](#head.Methods)*
+<a name="resume"></a>
+## *resume*
 
-Resumes the speech. Triggers the `onspeechresume` event.
+Resumes the speech. Triggers the `onspeechresume` 
 
 ### Events
 
 | Event | Description |
 | :-------- | :-------- |
-| [onspeechresume](#event.onspeechresume) | Triggered when speech is resumed and speech output is available. Event not triggered under following conditions: TTS is not enabled; Speech is resumed already; or Speech is completed |
+| [onspeechresume](#onspeechresume) | Triggered when speech is resumed and speech output is available. Event not triggered under following conditions: TTS is not enabled; Speech is resumed already; or Speech is completed |
 ### Parameters
 
 | Name | Type | Description |
@@ -594,16 +594,16 @@ Resumes the speech. Triggers the `onspeechresume` event.
 }
 ```
 
-<a name="method.setttsconfiguration"></a>
-## *setttsconfiguration [<sup>method</sup>](#head.Methods)*
+<a name="setttsconfiguration"></a>
+## *setttsconfiguration*
 
-Sets the TTS configuration. Triggers the `onvoicechanged` event.
+Sets the TTS configuration. Triggers the `onvoicechanged` 
 
 ### Events
 
 | Event | Description |
 | :-------- | :-------- |
-| [onvoicechanged](#event.onvoicechanged) | Triggered only when the voice configuration is changed |
+| [onvoicechanged](#onvoicechanged) | Triggered only when the voice configuration is changed |
 ### Parameters
 
 | Name | Type | Description |
@@ -675,21 +675,21 @@ Sets the TTS configuration. Triggers the `onvoicechanged` event.
 }
 ```
 
-<a name="method.speak"></a>
-## *speak [<sup>method</sup>](#head.Methods)*
+<a name="speak"></a>
+## *speak*
 
-Converts the input text to speech when TTS is enabled. Any ongoing speech is interrupted and the newly requested speech is processed. The clients of the previous speech is sent an `onspeechinterrupted` event. Upon success, this API returns an ID, which is used as input to other API methods for controlling the speech (for example, `pause`, `resume`, and `cancel`).
+Converts the input text to speech when TTS is enabled. Any ongoing speech is interrupted and the newly requested speech is processed. The clients of the previous speech is sent an `onspeechinterrupted`  Upon success, this API returns an ID, which is used as input to other API methods for controlling the speech (for example, `pause`, `resume`, and `cancel`).
 
 ### Events
 
 | Event | Description |
 | :-------- | :-------- |
-| [onwillspeak](#event.onwillspeak) | Triggered when speech conversion is about to start |
-| [onspeechstart](#event.onspeechstart) | Triggered when conversion of text to speech is started |
-| [onspeechinterrupted](#event.onspeechinterrupted) | Current speech is interrupted either by a next speech request; by calling the cancel method; or by disabling TTS, when speech is in-progress |
-| [onspeechcomplete](#event.onspeechcomplete) | Triggered when conversion from text to speech is completed |
-| [onnetworkerror](#event.onnetworkerror) | Triggered when failed to fetch audio from the endpoint |
-| [onplaybackerror](#event.onplaybackerror) | Triggered when an error occurs during playback including pipeline failures; Triggered when speak is called during TTS disabled |
+| [onwillspeak](#onwillspeak) | Triggered when speech conversion is about to start |
+| [onspeechstart](#onspeechstart) | Triggered when conversion of text to speech is started |
+| [onspeechinterrupted](#onspeechinterrupted) | Current speech is interrupted either by a next speech request; by calling the cancel method; or by disabling TTS, when speech is in-progress |
+| [onspeechcomplete](#onspeechcomplete) | Triggered when conversion from text to speech is completed |
+| [onnetworkerror](#onnetworkerror) | Triggered when failed to fetch audio from the endpoint |
+| [onplaybackerror](#onplaybackerror) | Triggered when an error occurs during playback including pipeline failures; Triggered when speak is called during TTS disabled |
 ### Parameters
 
 | Name | Type | Description |
@@ -737,10 +737,10 @@ Converts the input text to speech when TTS is enabled. Any ongoing speech is int
 }
 ```
 
-<a name="method.setACL"></a>
-## *setACL [<sup>method</sup>](#head.Methods)*
+<a name="setACL"></a>
+## *setACL*
 
-Configures app to speak. Allows the ResidentAPP to configure the particular app and provides access to `speak` method. If not configured any then gives access to all apps to speak. Configuration does not retained after reboot.
+Configures app to speak. Allows the ResidentAPP to configure the particular app and provides access to `speak`  If not configured any then gives access to all apps to speak. Configuration does not retained after reboot.
 
 ### Events
 
@@ -798,10 +798,10 @@ No Events
 }
 ```
 
-<a name="head.Notifications"></a>
+<a name="Notifications"></a>
 # Notifications
 
-Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
+Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#Thunder)] for information on how to register for a notification.
 
 The following events are provided by the org.rdk.TextToSpeech plugin:
 
@@ -809,20 +809,20 @@ TextToSpeech interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onnetworkerror](#event.onnetworkerror) | Triggered when a network error occurs while fetching the audio from the endpoint |
-| [onplaybackerror](#event.onplaybackerror) | Triggered when an error occurs during playback including pipeline failures |
-| [onspeechcomplete](#event.onspeechcomplete) | Triggered when the speech completes |
-| [onspeechinterrupted](#event.onspeechinterrupted) | Triggered when the current speech is interrupted either by a next speech request, by calling `cancel` or by disabling TTS, when speech is in progress |
-| [onspeechpause](#event.onspeechpause) | Triggered when the ongoing speech pauses |
-| [onspeechresume](#event.onspeechresume) | Triggered when any paused speech resumes |
-| [onspeechstart](#event.onspeechstart) | Triggered when the speech start |
-| [onttsstatechanged](#event.onttsstatechanged) | Triggered when TTS is enabled or disabled |
-| [onvoicechanged](#event.onvoicechanged) | Triggered when the configured voice changes |
-| [onwillspeak](#event.onwillspeak) | Triggered when the text to speech conversion is about to start |
+| [onnetworkerror](#onnetworkerror) | Triggered when a network error occurs while fetching the audio from the endpoint |
+| [onplaybackerror](#onplaybackerror) | Triggered when an error occurs during playback including pipeline failures |
+| [onspeechcomplete](#onspeechcomplete) | Triggered when the speech completes |
+| [onspeechinterrupted](#onspeechinterrupted) | Triggered when the current speech is interrupted either by a next speech request, by calling `cancel` or by disabling TTS, when speech is in progress |
+| [onspeechpause](#onspeechpause) | Triggered when the ongoing speech pauses |
+| [onspeechresume](#onspeechresume) | Triggered when any paused speech resumes |
+| [onspeechstart](#onspeechstart) | Triggered when the speech start |
+| [onttsstatechanged](#onttsstatechanged) | Triggered when TTS is enabled or disabled |
+| [onvoicechanged](#onvoicechanged) | Triggered when the configured voice changes |
+| [onwillspeak](#onwillspeak) | Triggered when the text to speech conversion is about to start |
 
 
-<a name="event.onnetworkerror"></a>
-## *onnetworkerror [<sup>event</sup>](#head.Notifications)*
+<a name="onnetworkerror"></a>
+## *onnetworkerror*
 
 Triggered when a network error occurs while fetching the audio from the endpoint.
 
@@ -845,8 +845,8 @@ Triggered when a network error occurs while fetching the audio from the endpoint
 }
 ```
 
-<a name="event.onplaybackerror"></a>
-## *onplaybackerror [<sup>event</sup>](#head.Notifications)*
+<a name="onplaybackerror"></a>
+## *onplaybackerror*
 
 Triggered when an error occurs during playback including pipeline failures.
 
@@ -869,8 +869,8 @@ Triggered when an error occurs during playback including pipeline failures.
 }
 ```
 
-<a name="event.onspeechcomplete"></a>
-## *onspeechcomplete [<sup>event</sup>](#head.Notifications)*
+<a name="onspeechcomplete"></a>
+## *onspeechcomplete*
 
 Triggered when the speech completes.
 
@@ -893,8 +893,8 @@ Triggered when the speech completes.
 }
 ```
 
-<a name="event.onspeechinterrupted"></a>
-## *onspeechinterrupted [<sup>event</sup>](#head.Notifications)*
+<a name="onspeechinterrupted"></a>
+## *onspeechinterrupted*
 
 Triggered when the current speech is interrupted either by a next speech request, by calling `cancel` or by disabling TTS, when speech is in progress.
 
@@ -917,8 +917,8 @@ Triggered when the current speech is interrupted either by a next speech request
 }
 ```
 
-<a name="event.onspeechpause"></a>
-## *onspeechpause [<sup>event</sup>](#head.Notifications)*
+<a name="onspeechpause"></a>
+## *onspeechpause*
 
 Triggered when the ongoing speech pauses.
 
@@ -941,8 +941,8 @@ Triggered when the ongoing speech pauses.
 }
 ```
 
-<a name="event.onspeechresume"></a>
-## *onspeechresume [<sup>event</sup>](#head.Notifications)*
+<a name="onspeechresume"></a>
+## *onspeechresume*
 
 Triggered when any paused speech resumes.
 
@@ -965,8 +965,8 @@ Triggered when any paused speech resumes.
 }
 ```
 
-<a name="event.onspeechstart"></a>
-## *onspeechstart [<sup>event</sup>](#head.Notifications)*
+<a name="onspeechstart"></a>
+## *onspeechstart*
 
 Triggered when the speech start.
 
@@ -989,8 +989,8 @@ Triggered when the speech start.
 }
 ```
 
-<a name="event.onttsstatechanged"></a>
-## *onttsstatechanged [<sup>event</sup>](#head.Notifications)*
+<a name="onttsstatechanged"></a>
+## *onttsstatechanged*
 
 Triggered when TTS is enabled or disabled.
 
@@ -1013,8 +1013,8 @@ Triggered when TTS is enabled or disabled.
 }
 ```
 
-<a name="event.onvoicechanged"></a>
-## *onvoicechanged [<sup>event</sup>](#head.Notifications)*
+<a name="onvoicechanged"></a>
+## *onvoicechanged*
 
 Triggered when the configured voice changes.
 
@@ -1037,10 +1037,10 @@ Triggered when the configured voice changes.
 }
 ```
 
-<a name="event.onwillspeak"></a>
-## *onwillspeak [<sup>event</sup>](#head.Notifications)*
+<a name="onwillspeak"></a>
+## *onwillspeak*
 
-Triggered when the text to speech conversion is about to start. It provides the speech ID, generated for the text input given in the speak method.
+Triggered when the text to speech conversion is about to start. It provides the speech ID, generated for the text input given in the speak 
 
 ### Parameters
 

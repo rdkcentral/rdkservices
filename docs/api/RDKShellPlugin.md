@@ -2,7 +2,7 @@
 <a name="RDKShell_Plugin"></a>
 # RDKShell Plugin
 
-**Version: [1.6.1](https://github.com/rdkcentral/rdkservices/blob/main/RDKShell/CHANGELOG.md)**
+**Version: [1.6.5](https://github.com/rdkcentral/rdkservices/blob/main/RDKShell/CHANGELOG.md)**
 
 A org.rdk.RDKShell plugin for Thunder framework.
 
@@ -4426,7 +4426,8 @@ Hibernate an application.
 | params | object |  |
 | params.callsign | string | The application callsign |
 | params?.timeout | number | <sup>*(optional)*</sup> Timeout in ms for hibernate procedure |
-| params?.delay | number | <sup>*(optional)*</sup> Hibernate execution delay in ms |
+| params?.procsequence | array | <sup>*(optional)*</sup> Hibernate sequence of application processes |
+| params?.procsequence[#] | string | <sup>*(optional)*</sup>  |
 
 ### Result
 
@@ -4447,7 +4448,9 @@ Hibernate an application.
     "params": {
         "callsign": "Cobalt",
         "timeout": 10000,
-        "delay": 5000
+        "procsequence": [
+            "LightningApp-0"
+        ]
     }
 }
 ```
