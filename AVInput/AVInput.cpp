@@ -48,6 +48,7 @@
 #define AVINPUT_METHOD_GET_EDID_VERSION "getEdidVersion"
 #define AVINPUT_METHOD_SET_EDID_ALLM_SUPPORT "setEdid2AllmSupport"
 #define AVINPUT_METHOD_GET_EDID_ALLM_SUPPORT "getEdid2AllmSupport"
+#define AVINPUT_METHOD_GET_HDMI_COMPATIBILITY_VERSION "getHdmiVersion"
 #define AVINPUT_METHOD_SET_MIXER_LEVELS "setMixerLevels"
 #define AVINPUT_METHOD_START_INPUT "startInput"
 #define AVINPUT_METHOD_STOP_INPUT "stopInput"
@@ -223,6 +224,7 @@ void AVInput::RegisterAll()
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_SET_MIXER_LEVELS), &AVInput::setMixerLevels, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_SET_EDID_ALLM_SUPPORT), &AVInput::setEdid2AllmSupportWrapper, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_GET_EDID_ALLM_SUPPORT), &AVInput::getEdid2AllmSupportWrapper, this);
+    Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_GET_HDMI_COMPATIBILITY_VERSION), &AVInput::getHdmiVersionWrapper, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_START_INPUT), &AVInput::startInput, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_STOP_INPUT), &AVInput::stopInput, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_SCALE_INPUT), &AVInput::setVideoRectangleWrapper, this);
@@ -1360,6 +1362,53 @@ uint32_t AVInput::setEdidVersionWrapper(const JsonObject& parameters, JsonObject
     else {
         returnResponse(true);
     }
+}
+
+uint32_t AVInput::getHdmiVersionWrapper(const JsonObject& parameters, JsonObject& response)
+{
+        LOGINFOMETHOD();
+        returnIfParamNotFound(parameters, "portId");
+        string sPortId = parameters["portId"].String();
+        int portId = 0;
+
+        try {
+                portId = stoi(sPortId);
+        }catch (const std::exception& err) {
+                LOGWARN("sPortId invalid paramater: %s ", sPortId.c_str());
+                returnResponse(false);
+        }
+
+        dsHdmiMaxCapabilityVersion_t hdmiCapVersion = HDMI_COMPATIBILITY_VERSION_14;
+
+        try {
+                device::HdmiInput::getInstance().getHdmiVersion(portId, &(hdmiCapVersion));
+                LOGWARN("AVInput::getHdmiVersion Hdmi Version:%d", hdmiCapVersion);
+         }
+                catch (const device::Exception& err) {
+                LOG_DEVICE_EXCEPTION1(std::to_string(portId));
+                returnResponse(false);
+         }
+
+
+        switch ((int)hdmiCapVersion){
+        case HDMI_COMPATIBILITY_VERSION_14:
+                response["HdmiCapabilityVersion"] = "1.4";
+                break;
+        case HDMI_COMPATIBILITY_VERSION_20:
+                response["HdmiCapabilityVersion"] = "2.0";
+                break;
+        case HDMI_COMPATIBILITY_VERSION_21:
+                response["HdmiCapabilityVersion"] = "2.1";
+                break;
+        }
+
+
+        if(hdmiCapVersion == HDMI_COMPATIBILITY_VERSION_MAX)
+        {
+                returnResponse(false);
+        }else{
+                returnResponse(true);
+        }
 }
 
 int AVInput::setEdidVersion(int iPort, int iEdidVer)
