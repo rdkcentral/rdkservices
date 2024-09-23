@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.3.14] - 2024-09-20
+### Fixed
+- Stop printing the logs for getInterfaces(), getDefaultInterface() and getIPSettings2()
+
 ## [1.3.13] - 2024-07-19
 ### Fixed
 - Fix for TV is not going to deep sleep

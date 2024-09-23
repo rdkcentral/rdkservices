@@ -1,4 +1,4 @@
-autostart = "true"
+autostart = "false"
 callsign= "org.rdk.NetworkManager"
 
 test = JSON()
