@@ -2,7 +2,7 @@
  * If not stated otherwise in this file or this component's LICENSE
  * file the following copyright and licenses apply:
  *
- * Copyright 2020 RDK Management
+ * Copyright 2024 RDK Management
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
  * limitations under the License.
  **/
 
-#include "RtXcastConnector.h"
+#include "XCastManager.h"
 #include "UtilsJsonRpc.h"
 #include "rfcapi.h"
 
@@ -34,7 +34,7 @@ using namespace WPEFramework;
 
 
 static gdialService* gdialCastObj = NULL;
-RtXcastConnector * RtXcastConnector::_instance = nullptr;
+XCastManager * XCastManager::_instance = nullptr;
 std::string m_modelName = "";
 std::string m_manufacturerName = "";
 std::string m_defaultfriendlyName = "";
@@ -45,7 +45,7 @@ std::string m_defaultAppList = "";
 /**
  * Callback function for application launch request from an app
  */
-void RtXcastConnector::onApplicationLaunchRequestWithLaunchParam(string appName,string strPayLoad, string strQuery, string strAddDataUrl)
+void XCastManager::onApplicationLaunchRequestWithLaunchParam(string appName,string strPayLoad, string strQuery, string strAddDataUrl)
 {
     if ( nullptr != m_observer )
     {
@@ -53,7 +53,7 @@ void RtXcastConnector::onApplicationLaunchRequestWithLaunchParam(string appName,
     }
 }
 
-void RtXcastConnector::onApplicationLaunchRequest(string appName, string parameter)
+void XCastManager::onApplicationLaunchRequest(string appName, string parameter)
 {
     if ( nullptr != m_observer )
     {
@@ -65,7 +65,7 @@ void RtXcastConnector::onApplicationLaunchRequest(string appName, string paramet
     }
 }
 
-void RtXcastConnector::onApplicationStopRequest(string appName, string appID)
+void XCastManager::onApplicationStopRequest(string appName, string appID)
 {
     if ( nullptr != m_observer )
     {
@@ -77,7 +77,7 @@ void RtXcastConnector::onApplicationStopRequest(string appName, string appID)
     }
 }
 
-void RtXcastConnector::onApplicationHideRequest(string appName, string appID)
+void XCastManager::onApplicationHideRequest(string appName, string appID)
 {
     if ( nullptr != m_observer )
     {
@@ -89,7 +89,7 @@ void RtXcastConnector::onApplicationHideRequest(string appName, string appID)
     }
 }
 
-void RtXcastConnector::onApplicationResumeRequest(string appName, string appID)
+void XCastManager::onApplicationResumeRequest(string appName, string appID)
 {
     if ( nullptr != m_observer )
     {
@@ -101,7 +101,7 @@ void RtXcastConnector::onApplicationResumeRequest(string appName, string appID)
     }
 }
 
-void RtXcastConnector::onApplicationStateRequest(string appName, string appID)
+void XCastManager::onApplicationStateRequest(string appName, string appID)
 {
     if ( nullptr != m_observer )
     {
@@ -113,15 +113,15 @@ void RtXcastConnector::onApplicationStateRequest(string appName, string appID)
     }
 }
 
-void RtXcastConnector::onDisconnect(void)
+void XCastManager::onStopped(void)
 {
     if ( nullptr != m_observer )
     {
-        m_observer->onGDialServiceDisconnected();
+        m_observer->onGDialServiceStopped();
     }
 }
 
-void RtXcastConnector::updatePowerState(string powerState)
+void XCastManager::updatePowerState(string powerState)
 {
     if ( nullptr != m_observer )
     {
@@ -129,13 +129,13 @@ void RtXcastConnector::updatePowerState(string powerState)
     }
 }
 
-RtXcastConnector::~RtXcastConnector()
+XCastManager::~XCastManager()
 {
     _instance = nullptr;
     m_observer = nullptr;
 }
 
-bool RtXcastConnector::initialize(const std::string& gdial_interface_name, bool networkStandbyMode )
+bool XCastManager::initialize(const std::string& gdial_interface_name, bool networkStandbyMode )
 {
     std::vector<std::string> gdial_args;
     bool returnValue = false,
@@ -144,7 +144,7 @@ bool RtXcastConnector::initialize(const std::string& gdial_interface_name, bool 
 
     if (gdial_interface_name.empty())
     {
-        LOGINFO("Interface Name should not be empty");
+        LOGERR("Interface Name should not be empty");
         return false;
     }
 
@@ -272,41 +272,43 @@ bool RtXcastConnector::initialize(const std::string& gdial_interface_name, bool 
     if (isWolWakeEnableEnabled && networkStandbyMode ) {
         gdial_args.push_back("--feature-wolwake");
     }
+
     if (nullptr == gdialCastObj)
     {
         gdialCastObj = gdialService::getInstance(this,gdial_args,"XCastOutofProcess");
-        if (nullptr != gdialCastObj)
-        {
-            returnValue = true;
-        }
     }
-    LOGINFO("Exiting[%p] ...",gdialCastObj);
+
+    if (nullptr != gdialCastObj)
+    {
+        returnValue = true;
+        LOGINFO("gdialService::getInstance success[%p] ...",gdialCastObj);
+    }
+    LOGINFO("Exiting [%u] ...",returnValue);
     return returnValue;
 }
 
-void RtXcastConnector::deinitialize()
+void XCastManager::deinitialize()
 {
     lock_guard<recursive_mutex> lock(m_mutexSync);
     if (nullptr != gdialCastObj)
     {
-        lock_guard<recursive_mutex> lock(m_mutexSync);
         gdialService::destroyInstance();
         gdialCastObj = nullptr;
     }
 }
 
-void RtXcastConnector::shutdown()
+void XCastManager::shutdown()
 {
-    LOGINFO("Shutting down rtRemote connectivity");
+    LOGINFO("Shutting down XCastManager");
     deinitialize();
-    if(RtXcastConnector::_instance != nullptr)
+    if(XCastManager::_instance != nullptr)
     {
-        delete RtXcastConnector::_instance;
-        RtXcastConnector::_instance = nullptr;
+        delete XCastManager::_instance;
+        XCastManager::_instance = nullptr;
     }
 }
 
-std::string RtXcastConnector::getReceiverID(void)
+std::string XCastManager::getReceiverID(void)
 {
     std::ifstream file("/tmp/gpid.txt");
     std::string line, gpidValue, receiverId = "";
@@ -354,7 +356,7 @@ std::string RtXcastConnector::getReceiverID(void)
     return receiverId;
 }
 
-void RtXcastConnector::getWiFiInterface(std::string& WiFiInterfaceName)
+void XCastManager::getWiFiInterface(std::string& WiFiInterfaceName)
 {
     std::string buildType;
     std::ifstream file_stream("/opt/wifi_interface");
@@ -374,7 +376,7 @@ void RtXcastConnector::getWiFiInterface(std::string& WiFiInterfaceName)
     }
 }
 
-void RtXcastConnector::getGDialInterfaceName(std::string& interfaceName)
+void XCastManager::getGDialInterfaceName(std::string& interfaceName)
 {
     std::ifstream file_stream("/tmp/wifi-on");
     if (file_stream)
@@ -391,7 +393,7 @@ void RtXcastConnector::getGDialInterfaceName(std::string& interfaceName)
     }
 }
 
-bool RtXcastConnector::envGetValue(const char *key, std::string &value)
+bool XCastManager::envGetValue(const char *key, std::string &value)
 {
     std::ifstream fs(COMMON_DEVICE_PROPERTIES_FILE, std::ifstream::in);
     std::string::size_type delimpos;
@@ -417,7 +419,7 @@ bool RtXcastConnector::envGetValue(const char *key, std::string &value)
     return returnValue;
 }
 
-int RtXcastConnector::applicationStateChanged( string app, string state, string id, string error)
+int XCastManager::applicationStateChanged( string app, string state, string id, string error)
 {
     int status = 0;
     LOGINFO("XcastService::ApplicationStateChanged  ARGS = %s : %s : %s : %s ", app.c_str(), id.c_str() , state.c_str() , error.c_str());
@@ -432,7 +434,7 @@ int RtXcastConnector::applicationStateChanged( string app, string state, string 
     return status;
 }//app && state not empty
 
-void RtXcastConnector::enableCastService(string friendlyname,bool enableService)
+void XCastManager::enableCastService(string friendlyname,bool enableService)
 {
     LOGINFO("XcastService::enableCastService ARGS = %s : %d ", friendlyname.c_str(), enableService);
     lock_guard<recursive_mutex> lock(m_mutexSync);
@@ -446,7 +448,7 @@ void RtXcastConnector::enableCastService(string friendlyname,bool enableService)
         LOGINFO(" gdialCastObj is NULL ");    
 }
 
-void RtXcastConnector::updateFriendlyName(string friendlyname)
+void XCastManager::updateFriendlyName(string friendlyname)
 {
     LOGINFO("XcastService::updateFriendlyName ARGS = %s ", friendlyname.c_str());
     lock_guard<recursive_mutex> lock(m_mutexSync);
@@ -459,7 +461,7 @@ void RtXcastConnector::updateFriendlyName(string friendlyname)
         LOGINFO(" gdialCastObj is NULL ");
 }
 
-string RtXcastConnector::getProtocolVersion(void)
+string XCastManager::getProtocolVersion(void)
 {
     LOGINFO("XcastService::getProtocolVersion ");
     std::string strVersion;
@@ -477,7 +479,7 @@ string RtXcastConnector::getProtocolVersion(void)
     return strVersion;
 }
 
-void RtXcastConnector::registerApplications(std::vector<DynamicAppConfig*>& appConfigList)
+void XCastManager::registerApplications(std::vector<DynamicAppConfig*>& appConfigList)
 {
     LOGINFO("XcastService::RegisterAppEntryList");
 
@@ -514,7 +516,7 @@ void RtXcastConnector::registerApplications(std::vector<DynamicAppConfig*>& appC
     }
 }
 
-void RtXcastConnector::setNetworkStandbyMode(bool nwStandbymode)
+void XCastManager::setNetworkStandbyMode(bool nwStandbymode)
 {
     lock_guard<recursive_mutex> lock(m_mutexSync);
     if(gdialCastObj != NULL)
@@ -528,18 +530,18 @@ void RtXcastConnector::setNetworkStandbyMode(bool nwStandbymode)
     }
 }
 
-RtXcastConnector * RtXcastConnector::getInstance()
+XCastManager * XCastManager::getInstance()
 {
     LOGINFO("Entering ...");
-    if(RtXcastConnector::_instance == nullptr)
+    if(XCastManager::_instance == nullptr)
     {
-        RtXcastConnector::_instance = new RtXcastConnector();
+        XCastManager::_instance = new XCastManager();
     }
     LOGINFO("Exiting ...");
-    return RtXcastConnector::_instance;
+    return XCastManager::_instance;
 }
 
-bool RtXcastConnector::IsAppEnabled(char* strAppName)
+bool XCastManager::IsAppEnabled(char* strAppName)
 {
     bool ret = false;
 #ifdef RFC_ENABLED
