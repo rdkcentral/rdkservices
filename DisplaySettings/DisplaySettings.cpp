@@ -317,8 +317,8 @@ namespace WPEFramework {
 
             registerMethodLockedApi("getAudioDelay", &DisplaySettings::getAudioDelay, this);
             registerMethodLockedApi("setAudioDelay", &DisplaySettings::setAudioDelay, this);
-            registerMethodLockedApi("getAudioDelayOffset", &DisplaySettings::getAudioDelayOffset, this);
-            registerMethodLockedApi("setAudioDelayOffset", &DisplaySettings::setAudioDelayOffset, this);
+            //registerMethodLockedApi("getAudioDelayOffset", &DisplaySettings::getAudioDelayOffset, this);
+            //registerMethodLockedApi("setAudioDelayOffset", &DisplaySettings::setAudioDelayOffset, this);
             registerMethodLockedApi("getSinkAtmosCapability", &DisplaySettings::getSinkAtmosCapability, this);
             registerMethodLockedApi("setAudioAtmosOutputMode", &DisplaySettings::setAudioAtmosOutputMode, this);
             registerMethodLockedApi("setForceHDRMode", &DisplaySettings::setForceHDRMode, this);
@@ -3742,6 +3742,7 @@ namespace WPEFramework {
             returnResponse(success);
         }
 
+	/*
         uint32_t DisplaySettings::getAudioDelayOffset (const JsonObject& parameters, JsonObject& response) 
         {   //sample servicemanager response:
             LOGINFOMETHOD();
@@ -3755,8 +3756,8 @@ namespace WPEFramework {
             uint32_t audioDelayOffsetMs = 0;
             try
             {
-                /* Return the sound mode of the audio ouput connected to the specified audioPort */
-                /* Check if HDMI is connected - Return (default) Stereo Mode if not connected */
+                /* Return the sound mode of the audio ouput connected to the specified audioPort 
+                /* Check if HDMI is connected - Return (default) Stereo Mode if not connected
                 if (audioPort.empty())
                 {
                     std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
@@ -3769,7 +3770,7 @@ namespace WPEFramework {
                         /*  * If HDMI is not connected
                             * Get the SPDIF if it is supported by platform
                             * If Platform does not have connected ports. Default to HDMI.
-                        */
+                        
                         audioPort = "HDMI0";
                         device::List<device::VideoOutputPort> vPorts = device::Host::getInstance().getVideoOutputPorts();
                         for (size_t i = 0; i < vPorts.size(); i++)
@@ -3796,6 +3797,7 @@ namespace WPEFramework {
 
             returnResponse(success);
         }
+	
 
         uint32_t DisplaySettings::setAudioDelayOffset (const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
@@ -3824,7 +3826,7 @@ namespace WPEFramework {
             try
             {
                 /* Return the sound mode of the audio ouput connected to the specified audioPort */
-                /* Check if HDMI is connected - Return (default) Stereo Mode if not connected */
+                /* Check if HDMI is connected - Return (default) Stereo Mode if not connected
                 if (audioPort.empty())
                 {
                     std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
@@ -3837,7 +3839,7 @@ namespace WPEFramework {
                         /*  * If HDMI is not connected
                             * Get the SPDIF if it is supported by platform
                             * If Platform does not have connected ports. Default to HDMI.
-                        */
+                        
                         audioPort = "HDMI0";
                         device::List<device::VideoOutputPort> vPorts = device::Host::getInstance().getVideoOutputPorts();
                         for (size_t i = 0; i < vPorts.size(); i++)
@@ -3862,6 +3864,7 @@ namespace WPEFramework {
             }
             returnResponse(success);
         }
+	*/
 
         uint32_t DisplaySettings::getSinkAtmosCapability (const JsonObject& parameters, JsonObject& response) 
         {   //sample servicemanager response:
