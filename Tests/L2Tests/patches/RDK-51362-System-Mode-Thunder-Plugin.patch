@@ -42,10 +42,10 @@ index 0000000..168c0e0
 +}
 diff --git a/interfaces/ISystemMode.h b/interfaces/ISystemMode.h
 new file mode 100644
-index 0000000..dea68e6
+index 0000000..29b9f4e
 --- /dev/null
 +++ b/interfaces/ISystemMode.h
-@@ -0,0 +1,72 @@
+@@ -0,0 +1,75 @@
 +/*
 + * If not stated otherwise in this file or this component's LICENSE file the
 + * following copyright and licenses apply:
@@ -70,7 +70,7 @@ index 0000000..dea68e6
 +
 +namespace WPEFramework {
 +namespace Exchange {
-+ // @json
++ // @json @text:keep
 +struct EXTERNAL ISystemMode : virtual public Core::IUnknown {
 +  enum { ID = ID_SYSTEM_MODE };
 +
@@ -88,28 +88,31 @@ index 0000000..dea68e6
 +	  // next system mode states...
 +  };
 +
-+  // @alt RequestState
++  struct EXTERNAL SuccessResult {
++	  bool success;
++  };
++  // @text requestState
 +  // @brief Requests a new system mode state in the device.  Thunder components asynchronously reconfigure themselves so the caller cannot be guaranteed a full state transition upon return.
 +  // @param[in] systemMode       The system mode.
 +  // @param[in] state            The requested state.
 +  // @returns Core::hresult
-+  virtual Core::hresult RequestState(const SystemMode systemMode /* @in @text systemMode */ , const State state /* @in @text state */) = 0;
++  virtual Core::hresult RequestState(const SystemMode systemMode /* @in @text systemMode */ , const State state /* @in @text state */ , SuccessResult& successResult /* @out */) = 0;
 +
-+  // @alt GetState
++  // @text getState
 +  // @brief Gets the current state for a given system property
 +  // @param[in] systemMode       The system mode to get the state of.
 +  // @param[out] state           Receives the state of the system mode.
 +  // @returns Core::hresult
-+  virtual Core::hresult GetState(const SystemMode systemMode /* @in @text systemMode */ , State &state /* @out @text state */) const = 0;
++  virtual Core::hresult GetState(const SystemMode systemMode /* @in @text systemMode */ , State &state /* @out @text state */ , SuccessResult& successResult /* @out */) const = 0;
 +
-+  // @alt ClientActivated
++  // @text clientActivated
 +  // @brief To put client plugin entry in map.
 +  // @param[in] callsign       callsign of client.
 +  // @param[in] systemMode       The system mode.
 +  // @returns uint32_t
 +  virtual uint32_t ClientActivated(const string& callsign /* @in @text callsign*/ ,const string& systemMode) = 0;
 +
-+  // @alt ClientDeactivated
++  // @text clientDeactivated
 +  // @brief To put client plugin entry in map.
 +  // @param[in] callsign       callsign of client.
 +  // @param[in] systemMode       The system mode.
@@ -118,7 +121,6 @@ index 0000000..dea68e6
 +};
 +} // namespace Exchange
 +} // namespace WPEFramework
-
 diff --git a/interfaces/Ids.h b/interfaces/Ids.h
 index e66cb22..7d53320 100644
 --- a/interfaces/Ids.h
