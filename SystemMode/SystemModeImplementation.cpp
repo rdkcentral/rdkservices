@@ -57,7 +57,7 @@ SystemModeImplementation::SystemModeImplementation()
 
     }
 
-    //set default value for each  SystemMode
+    //set default value for each  SystemMode.
 
     SystemModeMap[DEVICE_OPTIMIZE] = "DEVICE_OPTIMIZE";
 
