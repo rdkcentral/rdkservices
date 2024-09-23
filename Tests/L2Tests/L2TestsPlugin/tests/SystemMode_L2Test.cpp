@@ -84,6 +84,32 @@ TEST_F(SystemModeTest,GetStatedefault)
 
 }
 
+TEST_F(SystemModeTest,GetStateNegativeCase)
+{
+    JSONRPC::LinkType<Core::JSON::IElement> jsonrpc(SYSTEMMODE_CALLSIGN,SYSTEMMODEL2TEST_CALLSIGN);
+    uint32_t status = Core::ERROR_GENERAL;
+    JsonObject params;
+    JsonObject result;
+    std::string message;
+    std::string reply;	
+//Case 1 empty systemMode
+    params["systemMode"] = "";
+    status = InvokeServiceMethod("org.rdk.SystemMode", "GetState", params, result);
+    EXPECT_FALSE(result["success"].Boolean());
+    if (result.HasLabel("error")) {
+	    EXPECT_STREQ("{\"message\":\"systemMode is empty\"}", result["error"].String().c_str());
+    }
+
+//Case 2  Invalid systemMode
+    params["systemMode"] = "abc";
+    status = InvokeServiceMethod("org.rdk.SystemMode", "GetState", params, result);
+    EXPECT_FALSE(result["success"].Boolean());
+    if (result.HasLabel("error")) {
+	    EXPECT_STREQ("{\"message\":\"Invalid systemMode\"}", result["error"].String().c_str());
+    }
+
+}
+
 TEST_F(SystemModeTest,RequestStateGame)
 {
     JSONRPC::LinkType<Core::JSON::IElement> jsonrpc(SYSTEMMODE_CALLSIGN,SYSTEMMODEL2TEST_CALLSIGN);
@@ -155,4 +181,57 @@ TEST_F(SystemModeTest,RequestStateVideo)
     }
 
 }
+
+TEST_F(SystemModeTest,RequestStateNegativeCase)
+{
+    JSONRPC::LinkType<Core::JSON::IElement> jsonrpc(SYSTEMMODE_CALLSIGN,SYSTEMMODEL2TEST_CALLSIGN);
+    uint32_t status = Core::ERROR_GENERAL;
+    JsonObject params;
+    JsonObject result;
+    std::string message;
+    std::string reply;	
+
+// case1  empty systemMode and state
+    params["systemMode"] = "";
+    params["state"]  = "";
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
+	    .Times(::testing::AnyNumber())
+	    .WillRepeatedly(
+			    [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+			    EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+			    EXPECT_EQ(string(methodName), string(_T(IARM_BUS_DSMGR_API_dsSetAllmEnabled)));
+			    auto param = static_cast<dsSetAllmEnabledParam_t*>(arg);
+			    param->result =dsERR_NONE;
+			    return IARM_RESULT_SUCCESS;
+			    });
+
+    status = InvokeServiceMethod("org.rdk.SystemMode", "RequestState", params, result);
+    EXPECT_FALSE(result["success"].Boolean());
+    if (result.HasLabel("error")) {
+	    EXPECT_STREQ("{\"message\":\"systemMode\/state is empty\"}", result["error"].String().c_str());
+    }
+// Case 2 Invalid systemMode and state
+
+    params["systemMode"] = "abc";
+    params["state"]  = "bcd";
+    EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
+	    .Times(::testing::AnyNumber())
+	    .WillRepeatedly(
+			    [](const char* ownerName, const char* methodName, void* arg, size_t argLen) {
+			    EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_MFRLIB_NAME)));
+			    EXPECT_EQ(string(methodName), string(_T(IARM_BUS_DSMGR_API_dsSetAllmEnabled)));
+			    auto param = static_cast<dsSetAllmEnabledParam_t*>(arg);
+			    param->result =dsERR_NONE;
+			    return IARM_RESULT_SUCCESS;
+			    });
+
+    status = InvokeServiceMethod("org.rdk.SystemMode", "RequestState", params, result);
+    EXPECT_FALSE(result["success"].Boolean());
+    if (result.HasLabel("error")) {
+	    EXPECT_STREQ("{\"message\":\"Invalid systemMode\"}", result["error"].String().c_str());
+    }
+   
+ 
+}
+
 
