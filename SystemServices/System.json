@@ -2035,7 +2035,7 @@
             }
         },
 	"onRecoveryStateChange":{
-            "summary": "Triggered when the state of red recovery transistion  \nState details are:  \n* `0`: Recovery completed  \n* `1`: Recovery Started - Fatal error detected  \n* `2`: Recovery FW Downloaded \n* `3`: Recovery FW programmed",
+            "summary": "Triggered when the state of red recovery transistion State details are:  `0`: Recovery completed `1`: Recovery Started - Fatal error detected `2`: Recovery FW Downloaded `3`: Recovery FW programmed",
             "params": {
                 "type" :"object",
                 "properties": {
