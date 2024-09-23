@@ -29,6 +29,12 @@
 static bool filmMakerMode= false;
 static bool m_isDalsEnabled = false;
 
+const char* dolbyVisionMode[] = {
+    [tvDolbyMode_Dark] = "dark",
+    [tvDolbyMode_Bright] = "bright",
+    [tvDolbyMode_Game] = "game"
+};
+
 namespace WPEFramework {
 namespace Plugin {
 
@@ -2481,7 +2487,7 @@ namespace Plugin {
                 getParamIndex("Current","Current", format,sourceIndex,pqIndex,formatIndex);
                 int err = getLocalparam("DolbyVisionMode",formatIndex,pqIndex,sourceIndex, dolbyMode, PQ_PARAM_DOLBY_MODE);
                 if( err == 0 ) {
-                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d dolbyvalue : %s\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex, dolbyMode.c_str());
+                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d dolbyvalue : %s\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex, dolbyVisionMode[dolbyMode]);
                     ret = SetTVDolbyVisionMode((tvDolbyMode_t)dolbyMode);
                 }
                 else {
