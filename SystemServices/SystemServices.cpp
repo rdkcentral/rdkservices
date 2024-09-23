@@ -2618,11 +2618,7 @@ namespace WPEFramework {
 	{
 		bool resp = false;
 		if(parameters.HasLabel("territory")){
-			struct stat st = {0};
-			if (stat("/opt/secure/persistent/System", &st) == -1) {
-				int ret = mkdir("/opt/secure/persistent/System", 0700);
-				LOGWARN(" --- SubDirectories created from mkdir %d ", ret);
-			}
+			makePersistentDir();
 			string regionStr = "";
 			readTerritoryFromFile();//Read existing territory and Region from file
 			string territoryStr = parameters["territory"].String();
@@ -3920,6 +3916,18 @@ namespace WPEFramework {
 			return "unknown";
 		}
 	}
+
+        bool SystemServices::makePersistentDir()
+        {
+            struct stat st = {0};
+            int ret = 0;
+            if (stat("/opt/secure/persistent/System", &st) == -1) {
+                ret = mkdir("/opt/secure/persistent/System", 0700);
+                LOGWARN(" --- SubDirectories created from mkdir %d ", ret);
+            }
+            return 0 == ret;
+        }
+
         /***
          * TODO: Stub implementation; Decide whether needed or not since setProperty
          * and getProperty functionalities are XRE/RTRemote dependent.
@@ -4738,6 +4746,8 @@ namespace WPEFramework {
                 LOGERR("Wrong privacyMode value: '%s'", privacyMode.c_str());
                 returnResponse(false);
             }
+            
+            makePersistentDir();
 
             ofstream optfile;
     		
