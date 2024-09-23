@@ -118,8 +118,7 @@ TEST_F(SystemModeTest,requestStateGame)
     std::string message;
     std::string reply;	
 
-    params["systemMode"] = "device_optimize";
-    params["state"]  = "game";
+    params["systemMode"] = "device_optimize";    
     EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
 	    .Times(::testing::AnyNumber())
 	    .WillRepeatedly(
@@ -131,6 +130,7 @@ TEST_F(SystemModeTest,requestStateGame)
 			    return IARM_RESULT_SUCCESS;
 			    });
 
+    params["state"]  = "game";	
     status = InvokeServiceMethod("org.rdk.SystemMode", "requestState", params, result);
     EXPECT_EQ(Core::ERROR_NONE, status);
     EXPECT_TRUE(result["success"].Boolean());
