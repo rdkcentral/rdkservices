@@ -74,9 +74,13 @@ TEST_F(SystemModeTest,GetStatedefault)
     std::string message;
     std::string reply;	
 
-    params["systemMode"] = "DeviceOptimize";
+    params["systemMode"] = "device_optimize";
     status = InvokeServiceMethod("org.rdk.SystemMode", "GetState", params, result);
-    EXPECT_EQ(Core::ERROR_NONE, status);	
+    EXPECT_EQ(Core::ERROR_NONE, status);
+    EXPECT_TRUE(result["success"].Boolean());
+    if (result.HasLabel("state")) {
+	    EXPECT_STREQ("video", result["state"].String().c_str());
+    }
 
 }
 
@@ -89,8 +93,8 @@ TEST_F(SystemModeTest,RequestStateGame)
     std::string message;
     std::string reply;	
 
-    params["systemMode"] = "DeviceOptimize";
-    params["state"]  = "Game";
+    params["systemMode"] = "device_optimize";
+    params["state"]  = "game";
     EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
 	    .Times(::testing::AnyNumber())
 	    .WillRepeatedly(
@@ -104,9 +108,15 @@ TEST_F(SystemModeTest,RequestStateGame)
 
     status = InvokeServiceMethod("org.rdk.SystemMode", "RequestState", params, result);
     EXPECT_EQ(Core::ERROR_NONE, status);
-
+    EXPECT_TRUE(result["success"].Boolean());
+ 
     status = InvokeServiceMethod("org.rdk.SystemMode", "GetState", params, result);
     EXPECT_EQ(Core::ERROR_NONE, status);
+    EXPECT_TRUE(result["success"].Boolean());
+    if (result.HasLabel("state")) {
+	    EXPECT_STREQ("video", result["state"].String().c_str());
+    }
+
  
 }
 
@@ -119,8 +129,9 @@ TEST_F(SystemModeTest,RequestStateVideo)
     std::string message;
     std::string reply;	
 
-    params["systemMode"] = "DeviceOptimize";
-    params["state"]  = "Video";
+    params["systemMode"] = "device_optimize";
+    params["state"]  = "video";
+
     EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
 	    .Times(::testing::AnyNumber())
 	    .WillRepeatedly(
@@ -134,9 +145,14 @@ TEST_F(SystemModeTest,RequestStateVideo)
 
     status = InvokeServiceMethod("org.rdk.SystemMode", "RequestState", params, result);
     EXPECT_EQ(Core::ERROR_NONE, status);
+    EXPECT_TRUE(result["success"].Boolean());
 
     status = InvokeServiceMethod("org.rdk.SystemMode", "GetState", params, result);
     EXPECT_EQ(Core::ERROR_NONE, status);
- 
+    EXPECT_TRUE(result["success"].Boolean());
+    if (result.HasLabel("state")) {
+	    EXPECT_STREQ("video", result["state"].String().c_str());
+    }
+
 }
 
