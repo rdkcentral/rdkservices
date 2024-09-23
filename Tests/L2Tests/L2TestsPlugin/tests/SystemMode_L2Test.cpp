@@ -8,7 +8,7 @@
 #include <interfaces/ISystemMode.h>
 #include "HdmiCec.h"
 
-#define TEST_LOG(x, ...) fprintf(stderr, "\033[1;32m[%s:%d](%s)<PID:%d><TID:%d>" x "\n\033[0m", __FILE__, __LINE__, __FUNCTION__, getpid(), gettid(), ##__VA_ARGS__); fflush(stderr);
+#define TEST_LOG(x, ...) fprintf( stderr, "\033[1;32m[%s:%d](%s)<PID:%d><TID:%d>" x "\n\033[0m", __FILE__, __LINE__, __FUNCTION__, getpid(), gettid(), ##__VA_ARGS__); fflush(stderr);
 
 #define JSON_TIMEOUT   (1000)
 #define SYSTEMMODE_CALLSIGN  _T("org.rdk.SystemMode")
@@ -36,7 +36,7 @@ protected:
     SystemModeTest();
 
     protected:
-        /** @brief Pointer to the IShell interface */
+        /** @brief Pointer to the  IShell interface */
         PluginHost::IShell *m_controller_usersettings;
 
         /** @brief Pointer to the IUserSettings interface */
