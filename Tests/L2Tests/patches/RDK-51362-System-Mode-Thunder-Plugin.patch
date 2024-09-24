@@ -91,6 +91,10 @@ index 0000000..29b9f4e
 +  struct EXTERNAL SuccessResult {
 +	  bool success;
 +  };
++  struct EXTERNAL GetStateResult {
++	  State state ;
++          bool success;
++  };
 +  // @text requestState
 +  // @brief Requests a new system mode state in the device.  Thunder components asynchronously reconfigure themselves so the caller cannot be guaranteed a full state transition upon return.
 +  // @param[in] systemMode       The system mode.
@@ -103,7 +107,7 @@ index 0000000..29b9f4e
 +  // @param[in] systemMode       The system mode to get the state of.
 +  // @param[out] state           Receives the state of the system mode.
 +  // @returns Core::hresult
-+  virtual Core::hresult GetState(const SystemMode systemMode /* @in @text systemMode */ , State &state /* @out @text state */ , SuccessResult& successResult /* @out */) const = 0;
++  virtual Core::hresult GetState(const SystemMode systemMode /* @in @text systemMode */ , GetStateResult& result /* @out */) const = 0;
 +
 +  // @text clientActivated
 +  // @brief To put client plugin entry in map.
