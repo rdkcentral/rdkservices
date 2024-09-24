@@ -305,7 +305,7 @@ uint32_t SystemModeImplementation::ClientActivated(const string& callsign , cons
 									     if(stateRequested) 
 									     {
 										     State state ;
-										     GetStateResult successResult
+										     GetStateResult successResult;
 										     if(GetState(pSystemMode, successResult ) == Core::ERROR_NONE)
 										     {
 											     state = successResult.state;
