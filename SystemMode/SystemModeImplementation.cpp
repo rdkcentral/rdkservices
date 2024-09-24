@@ -179,12 +179,10 @@ Core::hresult SystemModeImplementation::RequestState(const SystemMode pSystemMod
 							     for (auto it = _clients.begin(); it != _clients.end(); ++it) {
 								     if (it->second) {  // Check if the pointer is not null
 									     it->second->Request(new_state);  // Call Request() on the object
-									     SystemModesCurrentStateMap[pSystemMode]  = pState;
-									     Utils::String::updateSystemModeFile(systemMode_str,"currentstate",new_state,"add");
-									     LOGINFO("SystemMode  state change from %s to new %s" ,old_state.c_str(),new_state.c_str());
 								     }
 							     }
-
+							     Utils::String::updateSystemModeFile(systemMode_str,"currentstate",new_state,"add");
+							     LOGINFO("SystemMode  state change from %s to new %s" ,old_state.c_str(),new_state.c_str());
 							     stateRequested =true;
 							     successResult.success = true;
 							     result = Core::ERROR_NONE;

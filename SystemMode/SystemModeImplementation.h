@@ -68,7 +68,6 @@ namespace Plugin {
         PluginHost::IShell *_controller;
 	std::map<Exchange::ISystemMode::SystemMode, std::string > SystemModeMap;
 	std::map<Exchange::ISystemMode::State, std::string > deviceOptimizeStateMap;
-	std::map<Exchange::ISystemMode::SystemMode, uint32_t> SystemModesCurrentStateMap;
 	std::map<std::string , Exchange::ISystemMode::SystemMode> SystemModeInterfaceMap;
 	bool stateRequested ;
 
