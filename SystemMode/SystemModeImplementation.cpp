@@ -214,7 +214,7 @@ Core::hresult SystemModeImplementation::RequestState(const SystemMode pSystemMod
 	return result;
 }
 
-Core::hresult SystemModeImplementation::GetState(const SystemMode pSystemMode, State &pState , SuccessResult& successResult)const 
+Core::hresult SystemModeImplementation::GetState(const SystemMode pSystemMode, GetStateResult& successResult)const 
 {
 
 	Core::hresult result = Core::ERROR_NONE;
@@ -231,12 +231,13 @@ Core::hresult SystemModeImplementation::GetState(const SystemMode pSystemMode, S
 						     // Iterate over the map to find the corresponding enum value
 						     for (const auto& pair : deviceOptimizeStateMap) {
 							     if (pair.second == value) {
-								     pState = pair.first;
+								     successResult.state = pair.first;
 								     break;
 							     }
 						     }
 						     successResult.success = true;
 						     result = Core::ERROR_NONE;
+						     std::cout<<"RamTesting successResult.state :"<< successResult.state <<"successResult.success"<<successResult.success<<std::endl;
 						     break;
 					     }
 			default:
@@ -304,9 +305,10 @@ uint32_t SystemModeImplementation::ClientActivated(const string& callsign , cons
 									     if(stateRequested) 
 									     {
 										     State state ;
-										     SuccessResult successResult;
-										     if(GetState(pSystemMode, state ,successResult ) == Core::ERROR_NONE)
+										     GetStateResult successResult
+										     if(GetState(pSystemMode, successResult ) == Core::ERROR_NONE)
 										     {
+											     state = successResult.state;
 											     std::string state_str = deviceOptimizeStateMap[state];
 											     deviceOptimizeStateActivator->Request(state_str) ;
 										     }
