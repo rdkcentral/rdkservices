@@ -76,14 +76,14 @@ index 0000000..29b9f4e
 +
 +  /// Enumeration of system modes.
 +  enum SystemMode : uint8_t {
-+	  DEVICE_OPTIMIZE = 1
++	  DEVICE_OPTIMIZE = 1 /* @text: device_optimize */
 +  };
 +
 +  /// Enumeration of states for all system modes.
 +  enum State : uint32_t {
 +	  // DEVICE_OPTIMIZE states
-+	  VIDEO = (DEVICE_OPTIMIZE << 24) | 1 ,
-+	  GAME  = (DEVICE_OPTIMIZE << 24) | 2 ,
++	  VIDEO = (DEVICE_OPTIMIZE << 24) | 1 /* @text: video */,
++	  GAME  = (DEVICE_OPTIMIZE << 24) | 2 /* @text: game */,
 +
 +	  // next system mode states...
 +  };

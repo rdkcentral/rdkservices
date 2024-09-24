@@ -78,7 +78,7 @@ TEST_F(SystemModeTest,getStatedefault)
     status = InvokeServiceMethod("org.rdk.SystemMode", "getState", params, result);
     EXPECT_EQ(Core::ERROR_NONE, status);
     if (result.HasLabel("state")) {
-	    EXPECT_STREQ("VIDEO", result["state"].String().c_str());
+	    EXPECT_STREQ("video", result["state"].String().c_str());
     }
 
 }
@@ -138,7 +138,7 @@ TEST_F(SystemModeTest,requestStateGame)
     status = InvokeServiceMethod("org.rdk.SystemMode", "getState", params, result);
     EXPECT_EQ(Core::ERROR_NONE, status);
     if (result.HasLabel("state")) {
-	    EXPECT_STREQ("GAME", result["state"].String().c_str());
+	    EXPECT_STREQ("game", result["state"].String().c_str());
     }
 
  
@@ -174,7 +174,7 @@ TEST_F(SystemModeTest,requestStateVideo)
     status = InvokeServiceMethod("org.rdk.SystemMode", "getState", params, result);
     EXPECT_EQ(Core::ERROR_NONE, status);
     if (result.HasLabel("state")) {
-	    EXPECT_STREQ("VIDEO", result["state"].String().c_str());
+	    EXPECT_STREQ("video", result["state"].String().c_str());
     }
 
 }
