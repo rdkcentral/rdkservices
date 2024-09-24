@@ -20,7 +20,10 @@
 #ifndef __BROWSERCONSOLELOG_H
 #define __BROWSERCONSOLELOG_H
 
+#ifndef __CORE_MESSAGING__
 #include <tracing/tracing.h>
+#endif
+
 #ifndef WEBKIT_GLIB_API
 #include "InjectedBundle/Utils.h"
 #endif

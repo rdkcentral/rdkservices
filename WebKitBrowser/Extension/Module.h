@@ -25,7 +25,10 @@
 
 #include <com/com.h>
 #include <core/core.h>
+
+#ifndef __CORE_MESSAGING__
 #include <tracing/tracing.h>
+#endif
 
 #undef EXTERNAL
 #define EXTERNAL
