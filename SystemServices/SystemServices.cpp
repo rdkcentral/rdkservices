@@ -1393,14 +1393,14 @@ namespace WPEFramework {
         {
             bool changeMode  = true;
             bool isTimerContext = false;
-            getBoolParameter("timercontext", isTimerContext);
             JsonObject param;
             std::string oldMode = m_currentMode;
             bool result = true;
+	    getBoolParameter("timercontext", isTimerContext);
 	    if((!isTimerContext) && isTimerActive())
             {
-                populateResponseWithError(SysSrv_ModeChangeInProgress, response);
 		int actualDurationLeft = m_remainingDuration ? m_remainingDuration : 1;
+                populateResponseWithError(SysSrv_ModeChangeInProgress, response);
 		LOGERR("Mode change is already in progress.current mode is %s and it will be in progress for next %d seconds. Please try again later.\n",m_currentMode.c_str(),actualDurationLeft);
                 returnResponse(false);
             }
@@ -1479,7 +1479,6 @@ namespace WPEFramework {
                 populateResponseWithError(SysSrv_MissingKeyValues, response);
                 result = false;
             }
-
             returnResponse(result);
         }
 
@@ -1517,11 +1516,11 @@ namespace WPEFramework {
                 m_remainingDuration--;
                 m_temp_settings.setValue("mode_duration", m_remainingDuration);
             } else {
-		stopModeTimer(true);
+                stopModeTimer(true);
                 JsonObject parameters, param, response;
                 param["mode"] = "NORMAL";
                 param["duration"] = 0;
-                param["timercontext"] = true;
+                parameters["timercontext"] = true;
                 parameters["modeInfo"] = param;
                 if (_instance) {
                     _instance->setMode(parameters,response);
@@ -2624,11 +2623,7 @@ namespace WPEFramework {
 	{
 		bool resp = false;
 		if(parameters.HasLabel("territory")){
-			struct stat st = {0};
-			if (stat("/opt/secure/persistent/System", &st) == -1) {
-				int ret = mkdir("/opt/secure/persistent/System", 0700);
-				LOGWARN(" --- SubDirectories created from mkdir %d ", ret);
-			}
+			makePersistentDir();
 			string regionStr = "";
 			readTerritoryFromFile();//Read existing territory and Region from file
 			string territoryStr = parameters["territory"].String();
@@ -3926,6 +3921,18 @@ namespace WPEFramework {
 			return "unknown";
 		}
 	}
+
+        bool SystemServices::makePersistentDir()
+        {
+            struct stat st = {0};
+            int ret = 0;
+            if (stat("/opt/secure/persistent/System", &st) == -1) {
+                ret = mkdir("/opt/secure/persistent/System", 0700);
+                LOGWARN(" --- SubDirectories created from mkdir %d ", ret);
+            }
+            return 0 == ret;
+        }
+
         /***
          * TODO: Stub implementation; Decide whether needed or not since setProperty
          * and getProperty functionalities are XRE/RTRemote dependent.
@@ -4744,6 +4751,8 @@ namespace WPEFramework {
                 LOGERR("Wrong privacyMode value: '%s'", privacyMode.c_str());
                 returnResponse(false);
             }
+            
+            makePersistentDir();
 
             ofstream optfile;
     		
