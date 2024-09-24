@@ -63,8 +63,14 @@ endif()
 
 find_package(IARMBus)
 
+set(SEC_UTIL_LIBRARIES "")
+find_library(SEC_UTIL_LIB NAMES WPEFrameworkSecurityUtil)
+if (NOT ${SEC_UTIL_LIB} STREQUAL "SEC_UTIL_LIB-NOTFOUND")
+    set(SEC_UTIL_LIBRARIES ${SEC_UTIL_LIB})
+endif()
+
 target_include_directories(${MODULE_NAME} PRIVATE ${RFC_INCLUDE_DIRS} ${RBUS_API_HEADERS} ${IARMBUS_INCLUDE_DIRS} ../helpers)
-target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${RFC_LIBRARIES} ${RBUS_LIBRARIES} ${IARMBUS_LIBRARIES} WPEFrameworkSecurityUtil)
+target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${RFC_LIBRARIES} ${RBUS_LIBRARIES} ${IARMBUS_LIBRARIES} ${SEC_UTIL_LIBRARIES})
 
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
