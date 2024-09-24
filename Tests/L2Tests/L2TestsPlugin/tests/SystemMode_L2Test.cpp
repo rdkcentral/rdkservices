@@ -79,13 +79,9 @@ TEST_F(SystemModeTest,getStatedefault)
     EXPECT_EQ(Core::ERROR_NONE, status);
     if (result.HasLabel("state")) {
 	    EXPECT_STREQ("video", result["state"].String().c_str());
-	     std::string state_str = result["state"].String();
-	    std::cout<<"RamTest success 1:" <<state_str<<std::endl;
     }
     if (result.HasLabel("success"))
     {
-	    bool  success = result["success"].Boolean() ;
-	    std::cout<<"RamTest success :" <<success <<std::endl;
 	    EXPECT_TRUE(result["success"].Boolean());
     }
 }

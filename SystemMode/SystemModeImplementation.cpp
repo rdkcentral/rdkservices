@@ -237,7 +237,6 @@ Core::hresult SystemModeImplementation::GetState(const SystemMode pSystemMode, G
 						     }
 						     successResult.success = true;
 						     result = Core::ERROR_NONE;
-						     std::cout<<"RamTesting successResult.state :"<< successResult.state <<"successResult.success"<<successResult.success<<std::endl;
 						     break;
 					     }
 			default:
