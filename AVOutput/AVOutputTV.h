@@ -231,6 +231,7 @@ class AVOutputTV : public AVOutputBase {
 		int getPqParamIndex();
 		int getParamIndex(std::string param, capDetails_t& paramInfo, paramIndex_t& indexInfo);
 		int getDolbyModeIndex(const char * dolbyMode);
+		int getHDRModeIndex(const std::string HDRMode, const std::string format,tvDolbyMode_t &value);
 		tvDimmingMode_t getDimmingModeIndex(string mode);
 		
 		bool isIncluded(const std::set<string> set1,const std::set<string> set2);

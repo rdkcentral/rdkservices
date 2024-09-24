@@ -286,6 +286,36 @@ namespace Plugin {
         return mode;
     }
 
+    int AVOutputTV::getHDRModeIndex(const std::string HDRMode, const std::string format,tvDolbyMode_t &value) {
+        // Create a map to associate format-mode pairs with enum values
+        int ret = 0;
+        static const std::unordered_map<std::string, tvDolbyMode_t> hdrModeIndexMap = {
+	    {"DVDark", tvDolbyMode_Dark},
+            {"DVBright", tvDolbyMode_Bright},
+            {"DVGame", tvDolbyMode_Game},
+            {"HDR10Dark", tvHDR10Mode_Dark},
+            {"HDR10Bright", tvHDR10Mode_Bright},
+            {"HDR10Game", tvHDR10Mode_Game},
+            {"HLGDark", tvHLGMode_Dark},
+            {"HLGBright", tvHLGMode_Bright},
+            {"HLGGame", tvHLGMode_Game}
+        };
+
+        // Create the key by concatenating the format and HDRMode
+        std::string key = format+HDRMode;
+
+        // Look up the key in the map
+        auto it = hdrModeIndexMap.find(key);
+        if (it != hdrModeIndexMap.end()) {
+            value = it->second;
+            ret = 0;
+        } else {
+            LOGERR("%s : Invalid format/mode\n",__FUNCTION__);
+            ret = -1;
+        }
+        return ret;
+    }
+
     tvDimmingMode_t AVOutputTV::getDimmingModeIndex(std::string mode)
     {
         tvDimmingMode_t index = tvDimmingMode_MAX;
@@ -1201,7 +1231,7 @@ namespace Plugin {
             LOGERR("ColorTemp Sync to cache Failed !!!\n");
         }
         
-        if( !updateAVoutputTVParam("sync","HDRMode",info,PQ_PARAM_DOLBY_MODE,level)) {
+        if( !updateAVoutputTVParam("sync","HDRMode",info,PQ_PARAM_HDR_MODE,level)) {
             LOGINFO("dvmode Successfully Synced to Drive Cache\n");
         }
         else {
@@ -1235,13 +1265,6 @@ namespace Plugin {
             LOGERR("dvmode Sync to cache Failed !!!\n");
         }
 
-        if( !updateAVoutputTVParam("sync","HDRMode",info,PQ_PARAM_HDR_MODE,level) ) {
-            LOGINFO("HDRMode Successfully Synced to Drive Cache\n");
-        }
-        else {
-            LOGERR("HDRMode Sync to cache Failed !!!\n");
-        }
-        
         LOGINFO("Exit %s : pqmode : %s source : %s format : %s\n",__FUNCTION__,pqmode.c_str(),source.c_str(),format.c_str());
         return tvERROR_NONE;
     }

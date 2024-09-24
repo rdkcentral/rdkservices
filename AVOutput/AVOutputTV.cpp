@@ -3309,7 +3309,14 @@ namespace Plugin {
             returnResponse(false);
         }
         else {
-            int retval= updateAVoutputTVParam("set","HDRMode",inputInfo,PQ_PARAM_HDR_MODE,getDolbyModeIndex(value.c_str()));
+            tvDolbyMode_t index;
+            int retval = getHDRModeIndex(value,inputInfo.format,index);
+            if( retval != 0 )
+            {
+                LOGERR("Failed to getHDRMode index\n");
+                returnResponse(false);
+            }	
+            retval= updateAVoutputTVParam("set","HDRMode",inputInfo,PQ_PARAM_HDR_MODE,(int)index);
             if(retval != 0 ) {
                 LOGERR("Failed to Save hdrMode mode\n");
                 returnResponse(false);
