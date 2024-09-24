@@ -396,6 +396,11 @@ namespace WPEFramework {
                     }
                 }
             }
+            
+	    if (!FromMessage(response, message, isResponseString))
+            {
+                return Core::ERROR_GENERAL;
+            }
 #elif (THUNDER_VERSION == 2)
             auto resp =  dispatcher_->Invoke(sThunderSecurityToken, channelId, *message);
 #else
