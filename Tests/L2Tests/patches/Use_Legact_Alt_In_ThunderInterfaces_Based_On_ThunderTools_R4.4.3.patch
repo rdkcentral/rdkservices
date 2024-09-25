@@ -1,0 +1,22 @@
+commit f6fd38dcb9f2f1eaf5617119580957228231191c
+Author: Pesala Lakshmi Jwala Priya <plakshmijwalapriya@synamedia.com>
+Date:   Thu Aug 29 12:17:41 2024 +0530
+
+    R4.4.3_change
+
+diff --git a/definitions/CMakeLists.txt b/definitions/CMakeLists.txt
+index adacc7b..53c5327 100644
+--- a/definitions/CMakeLists.txt
++++ b/definitions/CMakeLists.txt
+@@ -49,8 +49,8 @@ if(NOT GENERATOR_SEARCH_PATH)
+     set(GENERATOR_SEARCH_PATH ${CMAKE_SYSROOT}${CMAKE_INSTALL_PREFIX}/include/${NAMESPACE})
+ endif()
+ 
+-JsonGenerator(CODE INPUT ${JSON_FILE} OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/generated" INCLUDE_PATH ${GENERATOR_SEARCH_PATH} CPPIFDIR "${CMAKE_CURRENT_SOURCE_DIR}/../interfaces/")
+-JsonGenerator(CODE INPUT ${INTERFACE_FILE} OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/generated" INCLUDE_PATH ${GENERATOR_SEARCH_PATH})
++JsonGenerator(CODE INPUT ${JSON_FILE} OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/generated" INCLUDE_PATH ${GENERATOR_SEARCH_PATH} CPPIFDIR "${CMAKE_CURRENT_SOURCE_DIR}/../interfaces/" LEGACY_ALT)
++JsonGenerator(CODE INPUT ${INTERFACE_FILE} OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/generated" INCLUDE_PATH ${GENERATOR_SEARCH_PATH} LEGACY_ALT)
+ 
+ file(GLOB JSON_ENUM_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/generated/JsonEnum*.cpp")
+ file(GLOB JSON_LINK_HEADERS "${CMAKE_CURRENT_BINARY_DIR}/generated/J*.h")
+

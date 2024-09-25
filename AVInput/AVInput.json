@@ -604,7 +604,34 @@
                 }
             ]
         },
-       "getSupportedGameFeatures":{
+       	"getHdmiVersion": {
+            "summary": "Gets the maximum hdmi compatibility version supported for the given port",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "portId":{
+                        "$ref": "#/definitions/portId"
+                    }
+                },
+                "required": [
+                    "portId"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "HdmiCapabilityVersion": {
+                        "summary": "The Maximum Hdmi compatibility version supported by the given port",
+                        "type": "string",
+                        "example": "2.0"
+                    },
+                    "success": {
+                        "$ref": "#/common/success"
+                    }
+                }
+            }
+        },
+	"getSupportedGameFeatures":{
             "summary": "Returns the list of supported game features.",
             "result": {
                 "type": "object",

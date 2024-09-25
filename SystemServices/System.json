@@ -216,6 +216,17 @@
             "type": "integer",
             "example": 5
         },
+	"recoveryState": {
+            "summary": "The state",
+            "enum": [
+                "Recovery Completed",
+                "Recovery Started",
+                "Recovery Downloaded",
+                "Recovery Programmed"
+            ],
+            "type": "integer",
+            "example": 3
+        },
         "source": {
             "summary": "The source of the reboot",
             "type": "string",
@@ -2020,6 +2031,20 @@
                 },
                 "required": [
                     "firmwareUpdateStateChange"
+                ]
+            }
+        },
+	"onRecoveryStateChange":{
+            "summary": "Triggered when the state of red recovery transistion State details are:  `0`: Recovery completed `1`: Recovery Started - Fatal error detected `2`: Recovery FW Downloaded `3`: Recovery FW programmed",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "recoveryStateChange": {
+                        "$ref": "#/definitions/recoveryState"
+                    }
+                },
+                "required": [
+                    "recoveryStateChange"
                 ]
             }
         },
