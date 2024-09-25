@@ -3,6 +3,7 @@
 
 #include "../Store2.h"
 #include "Store2NotificationMock.h"
+#include "WorkerPoolImplementation.h"
 
 using ::testing::_;
 using ::testing::Eq;
@@ -39,10 +40,18 @@ const auto kLimit40 = 40;
 
 class AStore2 : public Test {
 protected:
+    WPEFramework::Core::ProxyType<WorkerPoolImplementation> workerPool;
     WPEFramework::Core::ProxyType<Store2> store2;
     AStore2()
-        : store2(WPEFramework::Core::ProxyType<Store2>::Create(kPath, kMaxSize, kMaxValue, kLimit))
+        : workerPool(WPEFramework::Core::ProxyType<WorkerPoolImplementation>::Create(
+              WPEFramework::Core::Thread::DefaultStackSize()))
+        , store2(WPEFramework::Core::ProxyType<Store2>::Create(kPath, kMaxSize, kMaxValue, kLimit))
     {
+        WPEFramework::Core::IWorkerPool::Assign(&(*workerPool));
+    }
+    ~AStore2() override
+    {
+        WPEFramework::Core::IWorkerPool::Assign(nullptr);
     }
 };
 
