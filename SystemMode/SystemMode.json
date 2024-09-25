@@ -40,7 +40,7 @@
                 ]
             },
             "result": {
-                "$ref": "#/common/result"
+                "$ref": "#/common/results/void"
             }
         },
 		"getState": {
@@ -61,14 +61,10 @@
                 "properties": {
                     "state": {
                         "$ref": "#/definitions/state"
-                    },
-                    "success":{
-                        "$ref": "#/common/success"
                     }
-                },
+		},
                 "required": [
-                    "state",
-                    "success"
+                    "state"
                 ]
                 }
         }
