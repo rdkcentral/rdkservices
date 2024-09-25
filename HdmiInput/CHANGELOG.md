@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+##[1.4.0] - 2024-09-24
+### Added
+- Added support for Getting the Maximum HDMI compatibility version for the given port.
+
 ##[1.3.0] - 2024-04-02
 ### Changed
 - Added support for setting the audio mixer level for given audio input
