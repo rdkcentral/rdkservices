@@ -41,7 +41,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 4
+#define API_VERSION_NUMBER_PATCH 5
 
 namespace WPEFramework
 {
@@ -380,10 +380,10 @@ namespace WPEFramework
             memset(&screenshotSettings, 0, sizeof(screenshotSettings));
 
             #ifdef SCREENCAP_SVP_ENABLED
-            screenshotSettings.screenshotWindow = NxClient_ScreenshotWindow_eGraphics;
+	    screenshotSettings.captureVideo = false;
             LOGWARN("[SCREENCAP]: Using NxClient_ScreenshotWindow_eGraphics (graphics only, no video)");
             #else
-            screenshotSettings.screenshotWindow = NxClient_ScreenshotWindow_eAll;
+	    screenshotSettings.captureVideo = true;
             LOGWARN("[SCREENCAP]: Using NxClient_ScreenshotWindow_eAll (graphics including video)");
             #endif
 

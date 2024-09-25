@@ -210,7 +210,10 @@ typedef struct _DeepSleepMgr_WakeupKeyCode_Param_t {
 
 #define IARM_BUS_MFRLIB_NAME "MFRLib"
 #define IARM_BUS_MFRLIB_API_SetBootLoaderPattern "mfrSetBootloaderPattern"
+#define IARM_BUS_MFRLIB_API_SetBlSplashScreen       "mfrSetBlSplashScreen"
 #define IARM_BUS_MFRLIB_API_GetSerializedData "mfrGetManufacturerData"
+#define IARM_BUS_MFRLIB_API_SetFsrFlag "mfrSetFSRflag"
+#define IARM_BUS_MFRLIB_API_GetFsrFlag "mfrGetFSRflag"
 
 typedef enum _mfrSerializedType_t {
     mfrSERIALIZED_TYPE_MANUFACTURER = 0,
@@ -478,6 +481,16 @@ typedef struct _IARM_BUS_PWRMgr_WareHouseOpn_EventData_t {
 #define IARM_BUS_SYSMGR_NAME "SYSMgr"
 #define IARM_BUS_SYSMGR_API_GetSystemStates "GetSystemStates"
 
+/**
+ *  @brief Structure which holds RFC device management update information.
+ */
+typedef struct _IARM_BUS_SYSMGR_DeviceMgtUpdateInfo_Param_t
+{
+      char source[10];                                    /*!< Device Management Update source. Ex: rfc */
+      char type[10];                                      /*!< Device Management Update type. Ex: initial */
+      bool status;                                        /*!< Device Management Update status. true/false */
+} IARM_BUS_SYSMGR_DeviceMgtUpdateInfo_Param_t;
+
 typedef enum _SYSMgr_EventId_t {
     IARM_BUS_SYSMGR_EVENT_SYSTEMSTATE,
     IARM_BUS_SYSMGR_EVENT_XUPNP_DATA_REQUEST, /*!< Xupnp data  request frm Receiver to UPNP*/
@@ -491,6 +504,7 @@ typedef enum _SYSMgr_EventId_t {
     IARM_BUS_SYSMGR_EVENT_KEYCODE_LOGGING_CHANGED, /*!< Key Code logging status update */
     IARM_BUS_SYSMGR_EVENT_USB_MOUNT_CHANGED, /*!< Fires when USB mounts change */
     IARM_BUS_SYSMGR_EVENT_APP_RELEASE_FOCUS, /*!< Application fires event to release focus*/
+    IARM_BUS_SYSMGR_EVENT_DEVICE_UPDATE_RECEIVED,  /*!< Received Device Management update information */
     IARM_BUS_SYSMGR_EVENT_MAX /*!< Max Event Id */
 } IARM_Bus_SYSMgr_EventId_t;
 
@@ -548,6 +562,7 @@ typedef enum _SYSMgr_SystemState_t {
     IARM_BUS_SYSMGR_SYSSTATE_FIRMWARE_UPDATE_STATE, //43, Added as part of RDK-19978, As the IARM
     IARM_BUS_SYSMGR_SYSSTATE_USB_DETECTED, //44
     IARM_BUS_SYSMGR_SYSSTATE_LOG_UPLOAD, //45
+    IARM_BUS_SYSMGR_SYSSTATE_RED_RECOV_UPDATE_STATE, //46
 } IARM_Bus_SYSMgr_SystemState_t;
 
 typedef enum _SYSMgr_FirmwareUpdateState_t {
@@ -562,6 +577,13 @@ typedef enum _SYSMgr_FirmwareUpdateState_t {
     IARM_BUS_SYSMGR_FIRMWARE_UPDATE_STATE_CRITICAL_REBOOT = 8,
     IARM_BUS_SYSMGR_FIRMWARE_UPDATE_STATE_NO_UPGRADE_REQUIRED = 9
 } IARM_Bus_SYSMGR_FirmwareUpdateState_t;
+
+typedef enum _SYSMgr_RecoveryState_t {
+       IARM_BUS_SYSMGR_RECOVERY_STATE_COMPLETED = 0,
+       IARM_BUS_SYSMGR_RECOVERY_STATE_STARTED = 1,
+       IARM_BUS_SYSMGR_RECOVERY_STATE_DOWNLOADED = 2,
+       IARM_BUS_SYSMGR_RECOVERY_STATE_PROGRAMMED = 3,
+} IARM_Bus_SYSMGR_RecoveryState_t;
 
 typedef enum _SYSMgr_LogUpload_t
 {
@@ -657,6 +679,7 @@ typedef struct _IARM_Bus_SYSMgr_GetSystemStates_Param_t {
     state_property ip_mode;
     state_property qam_ready_status;
     state_property firmware_update_state;
+    state_property red_recov_state;
 } IARM_Bus_SYSMgr_GetSystemStates_Param_t;
 
 #define IARM_BUS_DSMGR_NAME "DSMgr"
@@ -918,6 +941,12 @@ typedef struct _IARM_Bus_CECMgr_Status_Updated_Param_t
 {
     int logicalAddress;
 }IARM_Bus_CECMgr_Status_Updated_Param_t;
+
+typedef struct _IARM_Bus_MFRLib_SetBLSplashScreen_Param{
+	char path[255];
+} IARM_Bus_MFRLib_SetBLSplashScreen_Param_t;
+
+typedef bool IARM_Bus_MFRLib_FsrFlag_Param_t; // true or false
 
 #define IARM_BUS_CECMGR_API_isAvailable "isAvailable"
 #define IARM_BUS_DSMGR_API_dsHdmiInGetNumberOfInputs    "dsHdmiInGetNumberOfInputs"

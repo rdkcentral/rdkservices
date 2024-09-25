@@ -2,8 +2,8 @@
 #include <gtest/gtest.h>
 
 #include "../PersistentStore.h"
+#include "PersistentStoreImplementationMock.h"
 #include "ServiceMock.h"
-#include "Store2Mock.h"
 
 using ::testing::_;
 using ::testing::Eq;
@@ -20,7 +20,6 @@ using ::WPEFramework::Exchange::IStoreInspector;
 using ::WPEFramework::JsonData::PersistentStore::DeleteKeyParamsInfo;
 using ::WPEFramework::JsonData::PersistentStore::DeleteNamespaceParamsInfo;
 using ::WPEFramework::JsonData::PersistentStore::GetKeysResultData;
-using ::WPEFramework::JsonData::PersistentStore::GetNamespacesParamsInfo;
 using ::WPEFramework::JsonData::PersistentStore::GetNamespacesResultData;
 using ::WPEFramework::JsonData::PersistentStore::GetNamespaceStorageLimitResultData;
 using ::WPEFramework::JsonData::PersistentStore::GetStorageSizesResultData;
@@ -28,7 +27,7 @@ using ::WPEFramework::JsonData::PersistentStore::GetValueResultData;
 using ::WPEFramework::JsonData::PersistentStore::SetNamespaceStorageLimitParamsData;
 using ::WPEFramework::JsonData::PersistentStore::SetValueParamsData;
 using ::WPEFramework::Plugin::PersistentStore;
-using ::WPEFramework::PluginHost::ILocalDispatcher;
+using ::WPEFramework::PluginHost::IDispatcher;
 using ::WPEFramework::PluginHost::IPlugin;
 using ::WPEFramework::RPC::IStringIterator;
 using ::WPEFramework::RPC::IteratorType;
@@ -61,9 +60,9 @@ protected:
 
 TEST_F(APersistentStore, GetsValueInDeviceScopeViaJsonRpc)
 {
-    class SqliteStore2 : public NiceMock<Store2Mock> {
+    class PersistentStoreImplementation : public NiceMock<PersistentStoreImplementationMock> {
     public:
-        SqliteStore2()
+        PersistentStoreImplementation()
         {
             EXPECT_CALL(*this, GetValue(_, _, _, _, _))
                 .WillRepeatedly(Invoke(
@@ -77,49 +76,11 @@ TEST_F(APersistentStore, GetsValueInDeviceScopeViaJsonRpc)
                     }));
         }
     };
-    PublishedServiceType<SqliteStore2> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
+    PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
     ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
+    auto jsonRpc = plugin->QueryInterface<IDispatcher>();
     ASSERT_THAT(jsonRpc, NotNull());
     DeleteKeyParamsInfo params;
-    params.Namespace = kAppId;
-    params.Key = kKey;
-    string paramsJsonStr;
-    params.ToString(paramsJsonStr);
-    string resultJsonStr;
-    ASSERT_THAT(jsonRpc->Invoke(0, 0, "", "getValue", paramsJsonStr, resultJsonStr), Eq(WPEFramework::Core::ERROR_NONE));
-    GetValueResultData result;
-    result.FromString(resultJsonStr);
-    EXPECT_THAT(result.Value.Value(), Eq(kValue));
-    EXPECT_THAT(result.Ttl.Value(), Eq(kTtl));
-    jsonRpc->Release();
-    plugin->Deinitialize(service);
-}
-
-TEST_F(APersistentStore, GetsValueInAccountScopeViaJsonRpc)
-{
-    class GrpcStore2 : public NiceMock<Store2Mock> {
-    public:
-        GrpcStore2()
-        {
-            EXPECT_CALL(*this, GetValue(_, _, _, _, _))
-                .WillRepeatedly(Invoke(
-                    [](const IStore2::ScopeType scope, const string& ns, const string& key, string& value, uint32_t& ttl) {
-                        EXPECT_THAT(scope, Eq(IStore2::ScopeType::ACCOUNT));
-                        EXPECT_THAT(ns, Eq(kAppId));
-                        EXPECT_THAT(key, Eq(kKey));
-                        value = kValue;
-                        ttl = kTtl;
-                        return WPEFramework::Core::ERROR_NONE;
-                    }));
-        }
-    };
-    PublishedServiceType<GrpcStore2> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
-    ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
-    ASSERT_THAT(jsonRpc, NotNull());
-    DeleteKeyParamsInfo params;
-    params.Scope = WPEFramework::JsonData::PersistentStore::ScopeType::ACCOUNT;
     params.Namespace = kAppId;
     params.Key = kKey;
     string paramsJsonStr;
@@ -136,9 +97,9 @@ TEST_F(APersistentStore, GetsValueInAccountScopeViaJsonRpc)
 
 TEST_F(APersistentStore, SetsValueInDeviceScopeViaJsonRpc)
 {
-    class SqliteStore2 : public NiceMock<Store2Mock> {
+    class PersistentStoreImplementation : public NiceMock<PersistentStoreImplementationMock> {
     public:
-        SqliteStore2()
+        PersistentStoreImplementation()
         {
             EXPECT_CALL(*this, SetValue(_, _, _, _, _))
                 .WillRepeatedly(Invoke(
@@ -152,47 +113,11 @@ TEST_F(APersistentStore, SetsValueInDeviceScopeViaJsonRpc)
                     }));
         }
     };
-    PublishedServiceType<SqliteStore2> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
+    PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
     ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
+    auto jsonRpc = plugin->QueryInterface<IDispatcher>();
     ASSERT_THAT(jsonRpc, NotNull());
     SetValueParamsData params;
-    params.Namespace = kAppId;
-    params.Key = kKey;
-    params.Value = kValue;
-    params.Ttl = kTtl;
-    string paramsJsonStr;
-    params.ToString(paramsJsonStr);
-    string resultJsonStr;
-    EXPECT_THAT(jsonRpc->Invoke(0, 0, "", "setValue", paramsJsonStr, resultJsonStr), Eq(WPEFramework::Core::ERROR_NONE));
-    jsonRpc->Release();
-    plugin->Deinitialize(service);
-}
-
-TEST_F(APersistentStore, SetsValueInAccountScopeViaJsonRpc)
-{
-    class GrpcStore2 : public NiceMock<Store2Mock> {
-    public:
-        GrpcStore2()
-        {
-            EXPECT_CALL(*this, SetValue(_, _, _, _, _))
-                .WillRepeatedly(Invoke(
-                    [](const IStore2::ScopeType scope, const string& ns, const string& key, const string& value, const uint32_t ttl) {
-                        EXPECT_THAT(scope, Eq(IStore2::ScopeType::ACCOUNT));
-                        EXPECT_THAT(ns, Eq(kAppId));
-                        EXPECT_THAT(key, Eq(kKey));
-                        EXPECT_THAT(value, Eq(kValue));
-                        EXPECT_THAT(ttl, Eq(kTtl));
-                        return WPEFramework::Core::ERROR_NONE;
-                    }));
-        }
-    };
-    PublishedServiceType<GrpcStore2> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
-    ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
-    ASSERT_THAT(jsonRpc, NotNull());
-    SetValueParamsData params;
-    params.Scope = WPEFramework::JsonData::PersistentStore::ScopeType::ACCOUNT;
     params.Namespace = kAppId;
     params.Key = kKey;
     params.Value = kValue;
@@ -207,9 +132,9 @@ TEST_F(APersistentStore, SetsValueInAccountScopeViaJsonRpc)
 
 TEST_F(APersistentStore, DeletesKeyInDeviceScopeViaJsonRpc)
 {
-    class SqliteStore2 : public NiceMock<Store2Mock> {
+    class PersistentStoreImplementation : public NiceMock<PersistentStoreImplementationMock> {
     public:
-        SqliteStore2()
+        PersistentStoreImplementation()
         {
             EXPECT_CALL(*this, DeleteKey(_, _, _))
                 .WillRepeatedly(Invoke(
@@ -221,43 +146,11 @@ TEST_F(APersistentStore, DeletesKeyInDeviceScopeViaJsonRpc)
                     }));
         }
     };
-    PublishedServiceType<SqliteStore2> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
+    PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
     ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
+    auto jsonRpc = plugin->QueryInterface<IDispatcher>();
     ASSERT_THAT(jsonRpc, NotNull());
     DeleteKeyParamsInfo params;
-    params.Namespace = kAppId;
-    params.Key = kKey;
-    string paramsJsonStr;
-    params.ToString(paramsJsonStr);
-    string resultJsonStr;
-    EXPECT_THAT(jsonRpc->Invoke(0, 0, "", "deleteKey", paramsJsonStr, resultJsonStr), Eq(WPEFramework::Core::ERROR_NONE));
-    jsonRpc->Release();
-    plugin->Deinitialize(service);
-}
-
-TEST_F(APersistentStore, DeletesKeyInAccountScopeViaJsonRpc)
-{
-    class GrpcStore2 : public NiceMock<Store2Mock> {
-    public:
-        GrpcStore2()
-        {
-            EXPECT_CALL(*this, DeleteKey(_, _, _))
-                .WillRepeatedly(Invoke(
-                    [](const IStore2::ScopeType scope, const string& ns, const string& key) {
-                        EXPECT_THAT(scope, Eq(IStore2::ScopeType::ACCOUNT));
-                        EXPECT_THAT(ns, Eq(kAppId));
-                        EXPECT_THAT(key, Eq(kKey));
-                        return WPEFramework::Core::ERROR_NONE;
-                    }));
-        }
-    };
-    PublishedServiceType<GrpcStore2> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
-    ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
-    ASSERT_THAT(jsonRpc, NotNull());
-    DeleteKeyParamsInfo params;
-    params.Scope = WPEFramework::JsonData::PersistentStore::ScopeType::ACCOUNT;
     params.Namespace = kAppId;
     params.Key = kKey;
     string paramsJsonStr;
@@ -270,9 +163,9 @@ TEST_F(APersistentStore, DeletesKeyInAccountScopeViaJsonRpc)
 
 TEST_F(APersistentStore, DeletesNamespaceInDeviceScopeViaJsonRpc)
 {
-    class SqliteStore2 : public NiceMock<Store2Mock> {
+    class PersistentStoreImplementation : public NiceMock<PersistentStoreImplementationMock> {
     public:
-        SqliteStore2()
+        PersistentStoreImplementation()
         {
             EXPECT_CALL(*this, DeleteNamespace(_, _))
                 .WillRepeatedly(Invoke(
@@ -283,41 +176,11 @@ TEST_F(APersistentStore, DeletesNamespaceInDeviceScopeViaJsonRpc)
                     }));
         }
     };
-    PublishedServiceType<SqliteStore2> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
+    PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
     ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
+    auto jsonRpc = plugin->QueryInterface<IDispatcher>();
     ASSERT_THAT(jsonRpc, NotNull());
     DeleteNamespaceParamsInfo params;
-    params.Namespace = kAppId;
-    string paramsJsonStr;
-    params.ToString(paramsJsonStr);
-    string resultJsonStr;
-    EXPECT_THAT(jsonRpc->Invoke(0, 0, "", "deleteNamespace", paramsJsonStr, resultJsonStr), Eq(WPEFramework::Core::ERROR_NONE));
-    jsonRpc->Release();
-    plugin->Deinitialize(service);
-}
-
-TEST_F(APersistentStore, DeletesNamespaceInAccountScopeViaJsonRpc)
-{
-    class GrpcStore2 : public NiceMock<Store2Mock> {
-    public:
-        GrpcStore2()
-        {
-            EXPECT_CALL(*this, DeleteNamespace(_, _))
-                .WillRepeatedly(Invoke(
-                    [](const IStore2::ScopeType scope, const string& ns) {
-                        EXPECT_THAT(scope, Eq(IStore2::ScopeType::ACCOUNT));
-                        EXPECT_THAT(ns, Eq(kAppId));
-                        return WPEFramework::Core::ERROR_NONE;
-                    }));
-        }
-    };
-    PublishedServiceType<GrpcStore2> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
-    ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
-    ASSERT_THAT(jsonRpc, NotNull());
-    DeleteNamespaceParamsInfo params;
-    params.Scope = WPEFramework::JsonData::PersistentStore::ScopeType::ACCOUNT;
     params.Namespace = kAppId;
     string paramsJsonStr;
     params.ToString(paramsJsonStr);
@@ -329,17 +192,17 @@ TEST_F(APersistentStore, DeletesNamespaceInAccountScopeViaJsonRpc)
 
 TEST_F(APersistentStore, FlushesCacheViaJsonRpc)
 {
-    class SqliteStore2 : public NiceMock<Store2Mock> {
+    class PersistentStoreImplementation : public NiceMock<PersistentStoreImplementationMock> {
     public:
-        SqliteStore2()
+        PersistentStoreImplementation()
         {
             EXPECT_CALL(*this, FlushCache())
                 .WillRepeatedly(Return(WPEFramework::Core::ERROR_NONE));
         }
     };
-    PublishedServiceType<SqliteStore2> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
+    PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
     ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
+    auto jsonRpc = plugin->QueryInterface<IDispatcher>();
     ASSERT_THAT(jsonRpc, NotNull());
     string resultJsonStr;
     EXPECT_THAT(jsonRpc->Invoke(0, 0, "", "flushCache", "", resultJsonStr), Eq(WPEFramework::Core::ERROR_NONE));
@@ -349,9 +212,9 @@ TEST_F(APersistentStore, FlushesCacheViaJsonRpc)
 
 TEST_F(APersistentStore, GetsKeysInDeviceScopeViaJsonRpc)
 {
-    class SqliteStore2 : public NiceMock<Store2Mock> {
+    class PersistentStoreImplementation : public NiceMock<PersistentStoreImplementationMock> {
     public:
-        SqliteStore2()
+        PersistentStoreImplementation()
         {
             EXPECT_CALL(*this, GetKeys(_, _, _))
                 .WillRepeatedly(Invoke(
@@ -363,9 +226,9 @@ TEST_F(APersistentStore, GetsKeysInDeviceScopeViaJsonRpc)
                     }));
         }
     };
-    PublishedServiceType<SqliteStore2> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
+    PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
     ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
+    auto jsonRpc = plugin->QueryInterface<IDispatcher>();
     ASSERT_THAT(jsonRpc, NotNull());
     DeleteNamespaceParamsInfo params;
     params.Namespace = kAppId;
@@ -385,27 +248,11 @@ TEST_F(APersistentStore, GetsKeysInDeviceScopeViaJsonRpc)
     plugin->Deinitialize(service);
 }
 
-TEST_F(APersistentStore, DoesNotGetKeysInAccountScopeViaJsonRpc)
-{
-    ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
-    ASSERT_THAT(jsonRpc, NotNull());
-    DeleteNamespaceParamsInfo params;
-    params.Scope = WPEFramework::JsonData::PersistentStore::ScopeType::ACCOUNT;
-    params.Namespace = kAppId;
-    string paramsJsonStr;
-    params.ToString(paramsJsonStr);
-    string resultJsonStr;
-    EXPECT_THAT(jsonRpc->Invoke(0, 0, "", "getKeys", paramsJsonStr, resultJsonStr), Eq(WPEFramework::Core::ERROR_NOT_SUPPORTED));
-    jsonRpc->Release();
-    plugin->Deinitialize(service);
-}
-
 TEST_F(APersistentStore, GetsNamespacesInDeviceScopeViaJsonRpc)
 {
-    class SqliteStore2 : public NiceMock<Store2Mock> {
+    class PersistentStoreImplementation : public NiceMock<PersistentStoreImplementationMock> {
     public:
-        SqliteStore2()
+        PersistentStoreImplementation()
         {
             EXPECT_CALL(*this, GetNamespaces(_, _))
                 .WillRepeatedly(Invoke(
@@ -416,9 +263,9 @@ TEST_F(APersistentStore, GetsNamespacesInDeviceScopeViaJsonRpc)
                     }));
         }
     };
-    PublishedServiceType<SqliteStore2> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
+    PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
     ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
+    auto jsonRpc = plugin->QueryInterface<IDispatcher>();
     ASSERT_THAT(jsonRpc, NotNull());
     string resultJsonStr;
     ASSERT_THAT(jsonRpc->Invoke(0, 0, "", "getNamespaces", "", resultJsonStr), Eq(WPEFramework::Core::ERROR_NONE));
@@ -434,26 +281,11 @@ TEST_F(APersistentStore, GetsNamespacesInDeviceScopeViaJsonRpc)
     plugin->Deinitialize(service);
 }
 
-TEST_F(APersistentStore, DoesNotGetNamespacesInAccountScopeViaJsonRpc)
-{
-    ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
-    ASSERT_THAT(jsonRpc, NotNull());
-    GetNamespacesParamsInfo params;
-    params.Scope = WPEFramework::JsonData::PersistentStore::ScopeType::ACCOUNT;
-    string paramsJsonStr;
-    params.ToString(paramsJsonStr);
-    string resultJsonStr;
-    EXPECT_THAT(jsonRpc->Invoke(0, 0, "", "getNamespaces", paramsJsonStr, resultJsonStr), Eq(WPEFramework::Core::ERROR_NOT_SUPPORTED));
-    jsonRpc->Release();
-    plugin->Deinitialize(service);
-}
-
 TEST_F(APersistentStore, GetsStorageSizesInDeviceScopeViaJsonRpc)
 {
-    class SqliteStore2 : public NiceMock<Store2Mock> {
+    class PersistentStoreImplementation : public NiceMock<PersistentStoreImplementationMock> {
     public:
-        SqliteStore2()
+        PersistentStoreImplementation()
         {
             EXPECT_CALL(*this, GetStorageSizes(_, _))
                 .WillRepeatedly(Invoke(
@@ -464,9 +296,9 @@ TEST_F(APersistentStore, GetsStorageSizesInDeviceScopeViaJsonRpc)
                     }));
         }
     };
-    PublishedServiceType<SqliteStore2> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
+    PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
     ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
+    auto jsonRpc = plugin->QueryInterface<IDispatcher>();
     ASSERT_THAT(jsonRpc, NotNull());
     string resultJsonStr;
     ASSERT_THAT(jsonRpc->Invoke(0, 0, "", "getStorageSizes", "", resultJsonStr), Eq(WPEFramework::Core::ERROR_NONE));
@@ -484,26 +316,11 @@ TEST_F(APersistentStore, GetsStorageSizesInDeviceScopeViaJsonRpc)
     plugin->Deinitialize(service);
 }
 
-TEST_F(APersistentStore, DoesNotGetStorageSizesInAccountScopeViaJsonRpc)
-{
-    ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
-    ASSERT_THAT(jsonRpc, NotNull());
-    GetNamespacesParamsInfo params;
-    params.Scope = WPEFramework::JsonData::PersistentStore::ScopeType::ACCOUNT;
-    string paramsJsonStr;
-    params.ToString(paramsJsonStr);
-    string resultJsonStr;
-    EXPECT_THAT(jsonRpc->Invoke(0, 0, "", "getStorageSizes", paramsJsonStr, resultJsonStr), Eq(WPEFramework::Core::ERROR_NOT_SUPPORTED));
-    jsonRpc->Release();
-    plugin->Deinitialize(service);
-}
-
 TEST_F(APersistentStore, GetsNamespaceStorageLimitInDeviceScopeViaJsonRpc)
 {
-    class SqliteStore2 : public NiceMock<Store2Mock> {
+    class PersistentStoreImplementation : public NiceMock<PersistentStoreImplementationMock> {
     public:
-        SqliteStore2()
+        PersistentStoreImplementation()
         {
             EXPECT_CALL(*this, GetNamespaceStorageLimit(_, _, _))
                 .WillRepeatedly(Invoke(
@@ -515,9 +332,9 @@ TEST_F(APersistentStore, GetsNamespaceStorageLimitInDeviceScopeViaJsonRpc)
                     }));
         }
     };
-    PublishedServiceType<SqliteStore2> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
+    PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
     ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
+    auto jsonRpc = plugin->QueryInterface<IDispatcher>();
     ASSERT_THAT(jsonRpc, NotNull());
     DeleteNamespaceParamsInfo params;
     params.Namespace = kAppId;
@@ -532,27 +349,11 @@ TEST_F(APersistentStore, GetsNamespaceStorageLimitInDeviceScopeViaJsonRpc)
     plugin->Deinitialize(service);
 }
 
-TEST_F(APersistentStore, DoesNotGetNamespaceStorageLimitInAccountScopeViaJsonRpc)
-{
-    ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
-    ASSERT_THAT(jsonRpc, NotNull());
-    DeleteNamespaceParamsInfo params;
-    params.Scope = WPEFramework::JsonData::PersistentStore::ScopeType::ACCOUNT;
-    params.Namespace = kAppId;
-    string paramsJsonStr;
-    params.ToString(paramsJsonStr);
-    string resultJsonStr;
-    EXPECT_THAT(jsonRpc->Invoke(0, 0, "", "getNamespaceStorageLimit", paramsJsonStr, resultJsonStr), Eq(WPEFramework::Core::ERROR_NOT_SUPPORTED));
-    jsonRpc->Release();
-    plugin->Deinitialize(service);
-}
-
 TEST_F(APersistentStore, SetsNamespaceStorageLimitInDeviceScopeViaJsonRpc)
 {
-    class SqliteStore2 : public NiceMock<Store2Mock> {
+    class PersistentStoreImplementation : public NiceMock<PersistentStoreImplementationMock> {
     public:
-        SqliteStore2()
+        PersistentStoreImplementation()
         {
             EXPECT_CALL(*this, SetNamespaceStorageLimit(_, _, _))
                 .WillRepeatedly(Invoke(
@@ -564,9 +365,9 @@ TEST_F(APersistentStore, SetsNamespaceStorageLimitInDeviceScopeViaJsonRpc)
                     }));
         }
     };
-    PublishedServiceType<SqliteStore2> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
+    PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
     ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
+    auto jsonRpc = plugin->QueryInterface<IDispatcher>();
     ASSERT_THAT(jsonRpc, NotNull());
     SetNamespaceStorageLimitParamsData params;
     params.Namespace = kAppId;
@@ -579,33 +380,15 @@ TEST_F(APersistentStore, SetsNamespaceStorageLimitInDeviceScopeViaJsonRpc)
     plugin->Deinitialize(service);
 }
 
-TEST_F(APersistentStore, DoesNotSetNamespaceStorageLimitInAccountScopeViaJsonRpc)
-{
-    ASSERT_THAT(plugin->Initialize(service), Eq(""));
-    auto jsonRpc = plugin->QueryInterface<ILocalDispatcher>();
-    ASSERT_THAT(jsonRpc, NotNull());
-    SetNamespaceStorageLimitParamsData params;
-    params.Scope = WPEFramework::JsonData::PersistentStore::ScopeType::ACCOUNT;
-    params.Namespace = kAppId;
-    params.StorageLimit = kSize;
-    string paramsJsonStr;
-    params.ToString(paramsJsonStr);
-    string resultJsonStr;
-    EXPECT_THAT(jsonRpc->Invoke(0, 0, "", "setNamespaceStorageLimit", paramsJsonStr, resultJsonStr), Eq(WPEFramework::Core::ERROR_NOT_SUPPORTED));
-    jsonRpc->Release();
-    plugin->Deinitialize(service);
-}
-
 TEST_F(APersistentStore, GetsValueInDeviceScopeViaIStore)
 {
-    class SqliteStore2 : public NiceMock<Store2Mock> {
+    class PersistentStoreImplementation : public NiceMock<PersistentStoreImplementationMock> {
     public:
-        SqliteStore2()
+        PersistentStoreImplementation()
         {
-            EXPECT_CALL(*this, GetValue(_, _, _, _, _))
+            EXPECT_CALL(*this, GetValue(_, _, _))
                 .WillRepeatedly(Invoke(
-                    [](const IStore2::ScopeType scope, const string& ns, const string& key, string& value, uint32_t& ttl) {
-                        EXPECT_THAT(scope, Eq(IStore2::ScopeType::DEVICE));
+                    [](const string& ns, const string& key, string& value) {
                         EXPECT_THAT(ns, Eq(kAppId));
                         EXPECT_THAT(key, Eq(kKey));
                         value = kValue;
@@ -613,7 +396,7 @@ TEST_F(APersistentStore, GetsValueInDeviceScopeViaIStore)
                     }));
         }
     };
-    PublishedServiceType<SqliteStore2> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
+    PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
     ASSERT_THAT(plugin->Initialize(service), Eq(""));
     auto store = plugin->QueryInterface<IStore>();
     ASSERT_THAT(store, NotNull());
@@ -626,23 +409,21 @@ TEST_F(APersistentStore, GetsValueInDeviceScopeViaIStore)
 
 TEST_F(APersistentStore, SetsValueInDeviceScopeViaIStore)
 {
-    class SqliteStore2 : public NiceMock<Store2Mock> {
+    class PersistentStoreImplementation : public NiceMock<PersistentStoreImplementationMock> {
     public:
-        SqliteStore2()
+        PersistentStoreImplementation()
         {
-            EXPECT_CALL(*this, SetValue(_, _, _, _, _))
+            EXPECT_CALL(*this, SetValue(_, _, _))
                 .WillRepeatedly(Invoke(
-                    [](const IStore2::ScopeType scope, const string& ns, const string& key, const string& value, const uint32_t ttl) {
-                        EXPECT_THAT(scope, Eq(IStore2::ScopeType::DEVICE));
+                    [](const string& ns, const string& key, const string& value) {
                         EXPECT_THAT(ns, Eq(kAppId));
                         EXPECT_THAT(key, Eq(kKey));
                         EXPECT_THAT(value, Eq(kValue));
-                        EXPECT_THAT(ttl, Eq(0));
                         return WPEFramework::Core::ERROR_NONE;
                     }));
         }
     };
-    PublishedServiceType<SqliteStore2> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
+    PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
     ASSERT_THAT(plugin->Initialize(service), Eq(""));
     auto store = plugin->QueryInterface<IStore>();
     ASSERT_THAT(store, NotNull());
@@ -653,21 +434,20 @@ TEST_F(APersistentStore, SetsValueInDeviceScopeViaIStore)
 
 TEST_F(APersistentStore, DeletesKeyInDeviceScopeViaIStore)
 {
-    class SqliteStore2 : public NiceMock<Store2Mock> {
+    class PersistentStoreImplementation : public NiceMock<PersistentStoreImplementationMock> {
     public:
-        SqliteStore2()
+        PersistentStoreImplementation()
         {
-            EXPECT_CALL(*this, DeleteKey(_, _, _))
+            EXPECT_CALL(*this, DeleteKey(_, _))
                 .WillRepeatedly(Invoke(
-                    [](const IStore2::ScopeType scope, const string& ns, const string& key) {
-                        EXPECT_THAT(scope, Eq(IStore2::ScopeType::DEVICE));
+                    [](const string& ns, const string& key) {
                         EXPECT_THAT(ns, Eq(kAppId));
                         EXPECT_THAT(key, Eq(kKey));
                         return WPEFramework::Core::ERROR_NONE;
                     }));
         }
     };
-    PublishedServiceType<SqliteStore2> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
+    PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
     ASSERT_THAT(plugin->Initialize(service), Eq(""));
     auto store = plugin->QueryInterface<IStore>();
     ASSERT_THAT(store, NotNull());
@@ -678,20 +458,19 @@ TEST_F(APersistentStore, DeletesKeyInDeviceScopeViaIStore)
 
 TEST_F(APersistentStore, DeletesNamespaceInDeviceScopeViaIStore)
 {
-    class SqliteStore2 : public NiceMock<Store2Mock> {
+    class PersistentStoreImplementation : public NiceMock<PersistentStoreImplementationMock> {
     public:
-        SqliteStore2()
+        PersistentStoreImplementation()
         {
-            EXPECT_CALL(*this, DeleteNamespace(_, _))
+            EXPECT_CALL(*this, DeleteNamespace(_))
                 .WillRepeatedly(Invoke(
-                    [](const IStore2::ScopeType scope, const string& ns) {
-                        EXPECT_THAT(scope, Eq(IStore2::ScopeType::DEVICE));
+                    [](const string& ns) {
                         EXPECT_THAT(ns, Eq(kAppId));
                         return WPEFramework::Core::ERROR_NONE;
                     }));
         }
     };
-    PublishedServiceType<SqliteStore2> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
+    PublishedServiceType<PersistentStoreImplementation> metadata(WPEFramework::Core::System::MODULE_NAME, 1, 0, 0);
     ASSERT_THAT(plugin->Initialize(service), Eq(""));
     auto store = plugin->QueryInterface<IStore>();
     ASSERT_THAT(store, NotNull());

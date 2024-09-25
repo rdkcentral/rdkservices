@@ -195,8 +195,7 @@ public:
         }
         fstream ifile(filename, ios::in);
         if (ifile) {
-            while (!ifile.eof()) {
-                std::getline(ifile, content);
+            while (std::getline(ifile, content)) {
                 size_t pos = content.find_last_of("=");
                 if (std::string::npos != pos) {
                     data[(content.substr(0, pos).c_str())] = content.substr(pos + 1, std::string::npos);

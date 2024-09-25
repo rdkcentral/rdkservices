@@ -419,8 +419,9 @@ TEST_F(UsbAccessTest, getFileListSuccess_whenAbsPathFound)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFileList"), _T("{\"path\":\"/run/media/sda1/logs/PreviousLogs\"}"), response));
     bool res1 = (response.compare(string("{\"path\":\"\\/run\\/media\\/sda1\\/logs\\/PreviousLogs\",\"contents\":[{\"name\":\"logFile.txt\",\"t\":\"f\"},{\"name\":\"..\",\"t\":\"d\"},{\"name\":\".\",\"t\":\"d\"}],\"success\":true}")) == 0);
-    bool res2 = (response.compare(string("{\"path\":\"\\/run\\/media\\/sda1\\/logs\\/PreviousLogs\",\"contents\":[{\"name\":\".\",\"t\":\"d\"},{\"name\":\"..\",\"t\":\"d\"},{\"name\":\"logFile.txt\",\"t\":\"f\"}],\"success\":true}")) == 0);
-    EXPECT_EQ(res1 || res2, true);
+    bool res2 = (response.compare(string("{\"path\":\"\\/run\\/media\\/sda1\\/logs\\/PreviousLogs\",\"contents\":[{\"name\":\"logFile.txt\",\"t\":\"f\"},{\"name\":\".\",\"t\":\"d\"},{\"name\":\"..\",\"t\":\"d\"}],\"success\":true}")) == 0);
+    bool res3 = (response.compare(string("{\"path\":\"\\/run\\/media\\/sda1\\/logs\\/PreviousLogs\",\"contents\":[{\"name\":\".\",\"t\":\"d\"},{\"name\":\"..\",\"t\":\"d\"},{\"name\":\"logFile.txt\",\"t\":\"f\"}],\"success\":true}")) == 0);
+    EXPECT_EQ( (res1 || res2 || res3), true);
 }
 
 /**
@@ -537,8 +538,9 @@ TEST_F(UsbAccessTest, getFileListSuccess_withRelativePathParam)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFileList"), _T("{\"path\":\"sda1/logs/PreviousLogs\"}"), response));
     bool res1 = (response.compare(string("{\"path\":\"\\/run\\/media\\/sda1\\/logs\\/PreviousLogs\",\"contents\":[{\"name\":\"logFile.txt\",\"t\":\"f\"},{\"name\":\"..\",\"t\":\"d\"},{\"name\":\".\",\"t\":\"d\"}],\"success\":true}")) == 0);
-    bool res2 = (response.compare(string("{\"path\":\"\\/run\\/media\\/sda1\\/logs\\/PreviousLogs\",\"contents\":[{\"name\":\".\",\"t\":\"d\"},{\"name\":\"..\",\"t\":\"d\"},{\"name\":\"logFile.txt\",\"t\":\"f\"}],\"success\":true}")) == 0);
-    EXPECT_EQ(res1 || res2, true);
+    bool res2 = (response.compare(string("{\"path\":\"\\/run\\/media\\/sda1\\/logs\\/PreviousLogs\",\"contents\":[{\"name\":\"logFile.txt\",\"t\":\"f\"},{\"name\":\".\",\"t\":\"d\"},{\"name\":\"..\",\"t\":\"d\"}],\"success\":true}")) == 0);
+    bool res3 = (response.compare(string("{\"path\":\"\\/run\\/media\\/sda1\\/logs\\/PreviousLogs\",\"contents\":[{\"name\":\".\",\"t\":\"d\"},{\"name\":\"..\",\"t\":\"d\"},{\"name\":\"logFile.txt\",\"t\":\"f\"}],\"success\":true}")) == 0);
+    EXPECT_EQ( (res1 || res2 || res3), true);
 }
 /**
  * @brief : getFileList when absolute path is found

@@ -66,6 +66,11 @@ extern "C" int __wrap_v_secure_system(const char *command, ...)
     return ret;
 }
 
+extern "C" ssize_t __wrap_readlink(const char *pathname, char *buf, size_t bufsiz)
+{
+    return Wraps::getInstance().readlink(pathname, buf, bufsiz);
+}
+
 WrapsImpl* Wraps::impl = nullptr;
 
 Wraps::Wraps() {}
@@ -135,5 +140,12 @@ int Wraps::v_secure_system(const char *command, va_list args)
 {
     EXPECT_NE(impl, nullptr);
     return impl->v_secure_system(command,args);
+}
+
+
+ssize_t Wraps::readlink(const char *pathname, char *buf, size_t bufsiz)
+{
+    EXPECT_NE(impl, nullptr);
+    return impl->readlink(pathname,buf,bufsiz);
 }
 

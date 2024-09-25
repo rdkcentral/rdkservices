@@ -1,8 +1,8 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="NetworkPlugin"></a>
+<a name="NetworkPlugin"></a>(Deprecated)
 # NetworkPlugin
 
-**Version: [1.3.9](https://github.com/rdkcentral/rdkservices/blob/main/Network/CHANGELOG.md)**
+**Version: [1.3.10](https://github.com/rdkcentral/rdkservices/blob/main/Network/CHANGELOG.md)**
 
 A org.rdk.Network plugin for Thunder framework.
 

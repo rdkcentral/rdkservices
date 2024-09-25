@@ -58,6 +58,7 @@ using std::ofstream;
 #define EVT_ONNETWORKSTANDBYMODECHANGED   "onNetworkStandbyModeChanged"
 #define EVT_ONFIRMWAREUPDATEINFORECEIVED  "onFirmwareUpdateInfoReceived"
 #define EVT_ONFIRMWAREUPDATESTATECHANGED  "onFirmwareUpdateStateChange"
+#define EVT_ONRECOVERYSTATECHANGED        "onRecoveryStateChange"
 #define EVT_ONTEMPERATURETHRESHOLDCHANGED "onTemperatureThresholdChanged"
 #define EVT_ONMACADDRESSRETRIEVED         "onMacAddressesRetreived"
 #define EVT_ONREBOOTREQUEST               "onRebootRequest"
@@ -68,6 +69,8 @@ using std::ofstream;
 #define EVT_ONTIMEZONEDSTCHANGED          "onTimeZoneDSTChanged"
 #define EVT_FRIENDLYNAMECHANGED           "onFriendlyNameChanged"
 #define EVT_ONLOGUPLOAD                   "onLogUpload"
+#define EVT_ONDEVICEMGTUPDATERECEIVED     "onDeviceMgtUpdateReceived"
+#define EVT_ONPRIVACYMODECHANGED          "onPrivacyModeChanged"
 #define TERRITORYFILE                     "/opt/secure/persistent/System/Territory.txt"
 
 
@@ -103,7 +106,6 @@ namespace WPEFramework {
                 typedef Core::JSON::ArrayType<JString> JStringArray;
                 typedef Core::JSON::Boolean JBool;
                 string m_stbVersionString;
-                cSettings m_cacheService;
                 static cSettings m_temp_settings;
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
                 static IARM_Bus_SYSMgr_GetSystemStates_Param_t paramGetSysState;
@@ -143,7 +145,8 @@ namespace WPEFramework {
                 std::string m_strRegion;
 
                 static void startModeTimer(int duration);
-                static void stopModeTimer();
+                static void stopModeTimer(bool isDetachRequired = false);
+                static bool isTimerActive();
                 static void updateDuration();
 				std::string  m_strStandardTerritoryList;
 #ifdef ENABLE_DEVICE_MANUFACTURER_INFO
@@ -181,6 +184,7 @@ namespace WPEFramework {
                 std::string getClientVersionString();
                 std::string getStbTimestampString();
 		std::string getStbBranchString();
+                bool makePersistentDir();
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
                 void InitializeIARM();
@@ -194,6 +198,7 @@ namespace WPEFramework {
                 void onNetorkModeChanged(bool betworkStandbyMode);
                 void onSystemModeChanged(string mode);
                 void onFirmwareUpdateStateChange(int state);
+		void onRecoveryStateChange(int state);
                 void onClockSet();
                 void onLogUpload(int newState);
                 void onTemperatureThresholdChanged(string thresholdType,
@@ -202,6 +207,7 @@ namespace WPEFramework {
                 void onFirmwarePendingReboot(int seconds); /* Event handler for Pending Reboot */
 		void onTerritoryChanged(string oldTerritory, string newTerritory, string oldRegion="", string newRegion="");
 		void onTimeZoneDSTChanged(string oldTimeZone, string newTimeZone, string oldAccuracy, string newAccuracy);
+		void onDeviceMgtUpdateReceived(IARM_BUS_SYSMGR_DeviceMgtUpdateInfo_Param_t *config);
                 /* Events : End */
 
                 /* Methods : Begin */
@@ -226,13 +232,10 @@ namespace WPEFramework {
                    and getProperty functionalities are XRE/RTRemote dependent. */
                 bool setProperties(const JsonObject& propertyNames);
                 bool getProperties(const JsonObject& params, JsonObject& returnProperties);
-                uint32_t getCachedValue(const JsonObject& parameters, JsonObject& response);
-                uint32_t setCachedValue(const JsonObject& parameters, JsonObject& response);
-                uint32_t cacheContains(const JsonObject& parameters, JsonObject& response);
-                uint32_t removeCacheKey(const JsonObject& parameters, JsonObject& response);
                 uint32_t getMode(const JsonObject& parameters, JsonObject& response);
                 uint32_t updateFirmware(const JsonObject& parameters, JsonObject& response);
                 uint32_t setMode(const JsonObject& parameters, JsonObject& response);
+		uint32_t setBootLoaderSplashScreen(const JsonObject& parameters, JsonObject& response);		
                 uint32_t setBootLoaderPattern(const JsonObject& parameters, JsonObject& response);
                 static void firmwareUpdateInfoReceived(void);
                 uint32_t getFirmwareUpdateInfo(const JsonObject& parameters, JsonObject& response);
@@ -301,6 +304,10 @@ namespace WPEFramework {
 		uint32_t getWakeupSrcConfiguration(const JsonObject& parameters, JsonObject& response);
                 uint32_t getPlatformConfiguration(const JsonObject& parameters, PlatformCaps& response);
                 uint32_t getThunderStartReason(const JsonObject& parameters, JsonObject& response);
+                uint32_t setPrivacyMode(const JsonObject& parameters, JsonObject& response);
+                uint32_t getPrivacyMode(const JsonObject& parameters, JsonObject& response);
+                uint32_t setFSRFlag(const JsonObject& parameters, JsonObject& response);
+                uint32_t getFSRFlag(const JsonObject& parameters, JsonObject& response);
         }; /* end of system service class */
     } /* end of plugin */
 } /* end of wpeframework */

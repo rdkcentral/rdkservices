@@ -16,6 +16,42 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.36] - 2024-07-26
+### Fixed
+- Fixed Mutex wait for getMaintenanceActivityStatus() jsonRPC when there is no Internet 
+
+## [1.0.35] - 2024-07-02
+### Added
+- Added RFC Task in Critical Tasks to be executed on successful Network Connection
+
+## [1.0.34] - 2024-06-06
+### Fixed
+- Added change for file system corruption hang
+
+## [1.0.33] - 2024-05-31
+### Fixed
+- Delay Unsolicited Maintenance start event in WAI-enabled case
+
+## [1.0.32] - 2024-05-02
+### Fixed
+- Fixed timing issues with respect to WAI Implementation
+
+## [1.0.31] - 2024-04-22
+### Changed
+- Maintenance manager acquires deviceInitializationContext based on eventing mechanism
+
+## [1.0.30] - 2024-04-12
+### Add
+- Add osClass to kDeviceInitContextKeyVals Array for WAI 2.0
+
+## [1.0.29] - 2024-03-27
+### Removed
+- Removed TargetProposition WhoAmI Parameter and added OsClass Parameter
+
+## [1.0.28] - 2024-03-20
+### Fixed
+- Fixed Activation Logic for Maintenance Manager WAI
+
 ## [1.0.27] - 2024-01-16
 ### Fixed
 - Fixed Network Retry logic in Maintenance Manager in isDeviceOnline()

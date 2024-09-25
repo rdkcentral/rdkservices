@@ -3,7 +3,7 @@
     "jsonrpc": "2.0",
     "info": {
         "title": "System API", 
-        "class": "SystemServices",
+        "class": "org.rdk.System",
         "description": "The `System` plugin is used to manage various system-level features such as power settings and firmware updates."
     },
     "common": {
@@ -49,6 +49,11 @@
             "summary": "The friendly name of the device which used to display on the client device list",
             "type": "string",
             "example": "My Device"
+        },
+        "path": {
+            "summary": "Path to the pre-downloaded splash screen file location. Full path with file name",
+            "type": "string",
+            "example": "/tmp/osd1"
         },
         "modeInfo": {
             "summary": "The mode information",
@@ -211,6 +216,17 @@
             "type": "integer",
             "example": 5
         },
+	"recoveryState": {
+            "summary": "The state",
+            "enum": [
+                "Recovery Completed",
+                "Recovery Started",
+                "Recovery Downloaded",
+                "Recovery Programmed"
+            ],
+            "type": "integer",
+            "example": 3
+        },
         "source": {
             "summary": "The source of the reboot",
             "type": "string",
@@ -361,25 +377,6 @@
         }
     },
     "methods": {
-        "cacheContains": {
-            "deprecated" : true,
-            "referenceUrl" : " https://rdkcentral.github.io/rdkservices/#/api/PersistentStorePlugin?id=getvalue",
-            "summary": "Checks if a key is present in the cache.",
-            "params": {
-                "type": "object",
-                "properties": {
-                    "key": {
-                        "$ref": "#/definitions/key"
-                    }
-                },
-                "required": [
-                    "key"
-                ]
-            },
-            "result": {
-                "$ref": "#/common/result"
-            }
-        },
         "clearLastDeepSleepReason":{
             "summary": "Clears the last deep sleep reason.",
             "result": {
@@ -476,39 +473,6 @@
                 },
                 "required": [
                     "supportedStandbyModes",
-                    "success"
-                ]
-            }
-        },
-        "getCachedValue":{
-            "deprecated" : true,
-            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/PersistentStorePlugin?id=getvalue",
-            "summary": "Gets the value of a key in the cache.",
-            "params": {
-                "type": "object",
-                "properties": {
-                    "key": {
-                        "$ref": "#/definitions/key"
-                    }
-                },
-                "required": [
-                    "key"
-                ]
-            },
-            "result": {
-                "type": "object",
-                "properties": {
-                    "sampleKey": {
-                        "summary": "Value for the specified key name",
-                        "type": "string",
-                        "example": "4343.3434"
-                    },
-                    "success":{
-                        "$ref": "#/common/success"
-                    }
-                },
-                "required": [
-                    "sampleKey",
                     "success"
                 ]
             }
@@ -1545,25 +1509,6 @@
                 ]
             }
         },
-        "removeCacheKey":{
-            "deprecated" : true,
-            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/PersistentStorePlugin?id=deletekey",
-            "summary": "Removes the cache key.",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "key": {
-                        "$ref": "#/definitions/key"
-                    }
-                },
-                "required": [
-                    "key"
-                ]
-            },
-            "result": {
-                "$ref": "#/common/result"
-            }
-        },
         "requestSystemUptime":{
             "summary": "Returns the device uptime.",
             "result": {
@@ -1595,31 +1540,6 @@
                 },
                 "required": [
                     "pattern"
-                ]
-            },
-            "result": {
-                "$ref": "#/common/result"
-            }
-        },
-        "setCachedValue": {
-            "deprecated" : true,
-            "referenceUrl" : "https://rdkcentral.github.io/rdkservices/#/api/PersistentStorePlugin?id=setvalue",
-            "summary": "Sets the value for a key in the cache.",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "key": {
-                        "$ref": "#/definitions/key"
-                    },
-                    "value":{
-                        "summary": "The value to set",
-                        "type": "number",
-                        "example": "4343.3434"
-                    }
-                },
-                "required": [
-                    "key",
-                    "value"
                 ]
             },
             "result": {
@@ -1859,6 +1779,23 @@
                 "$ref": "#/common/result"
             }
         },
+        "setBootLoaderSplashScreen":{
+            "summary": "Install or update the BootLoader Splash Screens. This is typically called by Resident Apps to configure the Splash Screen shown during device boot up.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "path": {
+                        "$ref": "#/definitions/path"
+                    }
+                },
+                "required": [
+                    "path"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
+        },
         "setTerritory":{
             "summary": "Sets the system territory and region.Territory is a ISO-3166-1 alpha-3 standard (see https://en.wikipedia.org/wiki/ISO_3166-1). Region is a ISO-3166-2 alpha-2 standard (see https://en.wikipedia.org/wiki/ISO_3166-2).",
 			"events":{
@@ -1954,6 +1891,7 @@
             }
         },
         "uploadLogs": {
+            "deprecated": true,
             "summary": "Uploads logs to a URL returned by SSR.",
             "params": {
                 "type": "object",
@@ -2005,6 +1943,35 @@
                     "startReason",
                     "success"
                 ]
+            }
+        },
+        "SetPrivacyMode": {
+            "summary": "Setting Privacy Mode.",          
+            "events": {
+                "onPrivacyModeChanged" : "Triggered when the Privacy Mode changes."
+            },
+            "params": {
+                "type": "object",
+                "properties": {
+                    "privacyMode": {
+                        "summary": "New Privacy Mode",
+                        "type": "string",
+                        "example": "DO_NOT_SHARE"
+                    }
+                }
+            },
+            "result": {
+                "summary": "On success null will be returned",
+                "type": "string",
+                "example": "null"
+            }
+        },
+        "getPrivacyMode":{
+            "summary": "Getting Privacy Mode",
+            "result": {
+                "summary": "Current Privacy Mode",
+                "type": "string",
+                "example": "DO_NOT_SHARE"
             }
         }
     },
@@ -2093,6 +2060,20 @@
                 },
                 "required": [
                     "firmwareUpdateStateChange"
+                ]
+            }
+        },
+	"onRecoveryStateChange":{
+            "summary": "Triggered when the state of red recovery transistion  \nState details are:  \n* `0`: Recovery completed  \n* `1`: Recovery Started - Fatal error detected  \n* `2`: Recovery FW Downloaded \n* `3`: Recovery FW programmed",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "recoveryStateChange": {
+                        "$ref": "#/definitions/recoveryState"
+                    }
+                },
+                "required": [
+                    "recoveryStateChange"
                 ]
             }
         },
@@ -2306,6 +2287,34 @@
                 ]
             }
         },
+                "onDeviceMgtUpdateReceived":{
+            "summary": "Triggered when the device management update completes",
+            "params": {
+                "type" :"object",
+                "properties": {
+                "source": {
+                        "summary": "Source information from where the event on update is posted",
+                        "type": "string",
+                        "example":"rfc"
+                },
+                "type":{
+                    "summary": " Type of Update received currently it will be used as initial",
+                    "type": "string",
+                    "example": "initial"
+                },
+                "success":{
+                    "summary": "Status information of update whether success or failure",
+                    "type":"boolean",
+                    "example": "true"
+                }
+                                },
+                "required":[
+                    "source",
+                    "type",
+                    "success"
+                ]
+            }
+         },
 		"onTimeZoneDSTChanged":{
             "summary": "Triggered when device time zone changed",
             "params": {
@@ -2358,6 +2367,62 @@
                 },
                 "required":[
                     "logUploadStatus"
+                ]
+            }
+        },
+        "onPrivacyModeChanged": {
+            "summary": "Triggered after the Privacy Mode changes (see `SetPrivacyMode`)",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "privacyMode":{
+                        "summary": "Receive Privacy Mode changes",
+                        "type": "string",
+                        "example": "DO_NOT_SHARE"
+                    }
+                },
+                "required": [
+                    "privacyMode"
+                ]
+            }
+        },
+        "setFSRFlag":{
+            "summary": "Set the FSR flag into the emmc raw area.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "fsrFlag": {
+                        "summary": "FSR flag",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "success":{
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "fsrFlag",
+                    "success"
+                ]
+            }
+        },
+        "getFSRFlag":{
+            "summary": "Get the FSR flag from the emmc raw area.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "fsrFlag": {
+                        "summary": "FSR flag.",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "success":{
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "fsrFlag",
+                    "success"
                 ]
             }
         }

@@ -2,7 +2,7 @@
 <a name="HdmiInputPlugin"></a>
 # HdmiInputPlugin
 
-**Version: [1.2.2](https://github.com/rdkcentral/rdkservices/blob/main/HdmiInput/CHANGELOG.md)**
+**Version: [1.3.0](https://github.com/rdkcentral/rdkservices/blob/main/HdmiInput/CHANGELOG.md)**
 
 A org.rdk.HdmiInput plugin for Thunder framework.
 
@@ -57,6 +57,9 @@ HdmiInput interface methods:
 | [startHdmiInput](#startHdmiInput) | Activates the specified HDMI Input port as the primary video source |
 | [stopHdmiInput](#stopHdmiInput) | Deactivates the HDMI Input port currently selected as the primary video source |
 | [setEdidVersion](#setEdidVersion) | Sets an HDMI EDID version |
+| [getEdid2AllmSupport](#getEdid2AllmSupport) | Returns the EDID ALLM bit value |
+| [setEdid2AllmSupport](#setEdid2AllmSupport) | Sets an HDMI ALLM bit in EDID |
+| [setAudioMixerLevels](#setAudioMixerLevels) | Sets the audio mixer level for given audio input |
 | [setVideoRectangle](#setVideoRectangle) | Sets an HDMI Input video window |
 | [writeEDID](#writeEDID) | Changes a current EDID value |
 | [getSupportedGameFeatures](#getSupportedGameFeatures) | Returns the list of supported game features |
@@ -482,6 +485,162 @@ No Events
     "params": {
         "portId": "0",
         "edidVersion": "HDMI2.0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="getEdid2AllmSupport"></a>
+## *getEdid2AllmSupport*
+
+Returns the EDID ALLM bit value.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params?.portId | string | <sup>*(optional)*</sup> An ID of an HDMI Input port as returned by the `getHdmiInputDevices` method |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.allmSupport | boolean | The ALLM bit value in edid |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.HdmiInput.getEdid2AllmSupport",
+    "params": {
+        "portId": "0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "allmSupport": true,
+        "success": true
+    }
+}
+```
+
+<a name="setEdid2AllmSupport"></a>
+## *setEdid2AllmSupport*
+
+Sets an HDMI ALLM bit in EDID.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.portId | string | An ID of an HDMI Input port as returned by the `getHdmiInputDevices` method |
+| params.allmSupport | boolean | The ALLM support in EDID |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.HdmiInput.setEdid2AllmSupport",
+    "params": {
+        "portId": "0",
+        "allmSupport": true
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "success": true
+    }
+}
+```
+
+<a name="setAudioMixerLevels"></a>
+## *setAudioMixerLevels*
+
+Sets the audio mixer level for given audio input.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.primaryVolume | integer | Primary audio input volume |
+| params.inputVolume | integer | System audio input volume |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.HdmiInput.setAudioMixerLevels",
+    "params": {
+        "primaryVolume": 100,
+        "inputVolume": 75
     }
 }
 ```

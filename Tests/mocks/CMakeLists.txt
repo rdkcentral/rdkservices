@@ -21,7 +21,7 @@ set(MODULE_NAME TestMocklib)
 include(FetchContent)
 FetchContent_Declare(
         googletest
-        URL https://github.com/google/googletest/archive/609281088cfefc76f9d0ce82e1ff6c30cc3591e5.zip
+        URL https://github.com/google/googletest/archive/e39786088138f2749d64e9e90e0f9902daa77c40.zip
 )
 FetchContent_MakeAvailable(googletest)
 
@@ -30,6 +30,10 @@ add_library(${MODULE_NAME} SHARED
     Rfc.cpp
     Iarm.cpp
     Wraps.cpp
+    RBus.cpp
+    Telemetry.cpp
+    devicesettings.cpp
+    Udev.cpp
 )
 target_link_libraries(${MODULE_NAME} PRIVATE gmock_main)
 

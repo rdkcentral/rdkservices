@@ -28,7 +28,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(googletest)
 
-find_package(WPEFramework)
+find_package(WPEFramework NAMES WPEFramework Thunder)
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
 

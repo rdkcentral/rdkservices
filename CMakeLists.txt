@@ -71,6 +71,10 @@ if(PLUGIN_CONTROLSERVICE)
     add_subdirectory(ControlService)
 endif()
 
+if(PLUGIN_USERSETTINGS)
+    add_subdirectory(UserSettings)
+endif()
+
 if(PLUGIN_VOICECONTROL)
     add_subdirectory(VoiceControl)
 endif()
@@ -387,6 +391,14 @@ endif()
 
 if (PLUGIN_RESOURCEMANAGER)
     add_subdirectory(ResourceManager)
+endif()
+
+if(PLUGIN_CLOUDSTORE)
+    add_subdirectory(CloudStore)
+endif()
+
+if(PLUGIN_SHAREDSTORAGE)
+    add_subdirectory(SharedStorage)
 endif()
 
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)

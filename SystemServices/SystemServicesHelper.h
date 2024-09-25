@@ -104,7 +104,8 @@ enum SysSrv_ErrorCode {
     SysSrv_LibcurlError,
     SysSrv_DynamicMemoryAllocationFailed,
     SysSrv_ManufacturerDataReadFailed,
-    SysSrv_KeyNotFound
+    SysSrv_KeyNotFound,
+    SysSrv_ModeChangeInProgress
 };
 
 enum FirmwareUpdateState {
@@ -116,6 +117,13 @@ enum FirmwareUpdateState {
     FirmwareUpdateStateValidationComplete,
     FirmwareUpdateStatePreparingReboot,
     FirmwareUpdateStateNoUpgradeNeeded
+};
+
+enum RecoveryState {
+    RecoveryStateCompleted = 0,
+    RecoveryStateStarted,
+    RecoveryStateDownloaded,
+    RecoveryStateProgrammed
 };
 
 const string GZ_STATUS = "/opt/gzenabled";

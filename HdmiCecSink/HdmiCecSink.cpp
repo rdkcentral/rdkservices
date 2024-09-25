@@ -177,7 +177,7 @@ static std::vector<DeviceFeatures> deviceFeatures = {DEVICE_FEATURES_TV};
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 3
-#define API_VERSION_NUMBER_PATCH 5
+#define API_VERSION_NUMBER_PATCH 8
 
 namespace WPEFramework
 {
@@ -261,7 +261,7 @@ namespace WPEFramework
 		return;
 	     }
 			 HdmiCecSink::_instance->addDevice(header.from.toInt());
-			 HdmiCecSink::_instance->updateImageViewOn(header.from.toInt());
+			 HdmiCecSink::_instance->updateTextViewOn(header.from.toInt());
        }
        void HdmiCecSinkProcessor::process (const RequestActiveSource &msg, const Header &header)
        {
@@ -728,16 +728,6 @@ namespace WPEFramework
 		   Register(HDMICECSINK_METHOD_SET_LATENCY_INFO, &HdmiCecSink::setLatencyInfoWrapper, this);
            logicalAddressDeviceType = "None";
            logicalAddress = 0xFF;
-           m_sendKeyEventThreadExit = false;
-           m_sendKeyEventThread = std::thread(threadSendKeyEvent);
-           
-           m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
-           m_semSignaltoArcRoutingThread.acquire();
-           m_arcRoutingThread = std::thread(threadArcRouting);
-
-
-           m_arcStartStopTimer.connect( std::bind( &HdmiCecSink::arcStartStopTimerFunction, this ) );
-           m_arcStartStopTimer.setSingleShot(true);
            // load persistence setting
            loadSettings();
        }
@@ -751,6 +741,15 @@ namespace WPEFramework
            int err;
            dsHdmiInGetNumberOfInputsParam_t hdmiInput;
            InitializeIARM();
+           m_sendKeyEventThreadExit = false;
+           m_sendKeyEventThread = std::thread(threadSendKeyEvent);
+
+           m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
+           m_semSignaltoArcRoutingThread.acquire();
+           m_arcRoutingThread = std::thread(threadArcRouting);
+
+           m_arcStartStopTimer.connect( std::bind( &HdmiCecSink::arcStartStopTimerFunction, this ) );
+           m_arcStartStopTimer.setSingleShot(true);
             // get power state:
             IARM_Bus_PWRMgr_GetPowerState_Param_t param;
             err = IARM_Bus_Call(IARM_BUS_PWRMGR_NAME,
@@ -815,7 +814,7 @@ namespace WPEFramework
                }
             }
             getCecVersion();
-	    getHdmiArcPortID();
+	   LOGINFO(" HdmiCecSink plugin Initialize completed \n");
            return (std::string());
 
        }
@@ -2885,29 +2884,44 @@ namespace WPEFramework
 					_instance->allocateLogicalAddress(DeviceType::TV);
 					if ( _instance->m_logicalAddressAllocated != LogicalAddress::UNREGISTERED)
 					{
-						logicalAddress = LogicalAddress(_instance->m_logicalAddressAllocated);
-						LibCCEC::getInstance().addLogicalAddress(logicalAddress);
-						_instance->smConnection->setSource(logicalAddress);
-						_instance->m_numberOfDevices = 0;
-						_instance->deviceList[_instance->m_logicalAddressAllocated].m_deviceType = DeviceType::TV;
-						_instance->deviceList[_instance->m_logicalAddressAllocated].m_isDevicePresent = true;
-                        			_instance->deviceList[_instance->m_logicalAddressAllocated].update(physical_addr);
-						_instance->deviceList[_instance->m_logicalAddressAllocated].m_cecVersion = Version::V_1_4;
-						_instance->deviceList[_instance->m_logicalAddressAllocated].m_vendorID = appVendorId;
-						_instance->deviceList[_instance->m_logicalAddressAllocated].m_powerStatus = PowerStatus(powerState);
-						_instance->deviceList[_instance->m_logicalAddressAllocated].m_currentLanguage = defaultLanguage;
-						_instance->deviceList[_instance->m_logicalAddressAllocated].m_osdName = osdName.toString().c_str();
-						if(cecVersion == 2.0) {
-						    _instance->deviceList[_instance->m_logicalAddressAllocated].m_cecVersion = Version::V_2_0;
-						    _instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST),
-                                                                MessageEncoder().encode(ReportFeatures(Version::V_2_0,allDevicetype,rcProfile,deviceFeatures)), 500);
-						}
-						_instance->smConnection->addFrameListener(_instance->msgFrameListener);
-						_instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), 
-								MessageEncoder().encode(ReportPhysicalAddress(physical_addr, _instance->deviceList[_instance->m_logicalAddressAllocated].m_deviceType)), 100);
+                        try{
+                            
+						    logicalAddress = LogicalAddress(_instance->m_logicalAddressAllocated);
+						    LibCCEC::getInstance().addLogicalAddress(logicalAddress);
+						    _instance->smConnection->setSource(logicalAddress);
+						    _instance->m_numberOfDevices = 0;
+						    _instance->deviceList[_instance->m_logicalAddressAllocated].m_deviceType = DeviceType::TV;
+						    _instance->deviceList[_instance->m_logicalAddressAllocated].m_isDevicePresent = true;
+                            			_instance->deviceList[_instance->m_logicalAddressAllocated].update(physical_addr);
+						    _instance->deviceList[_instance->m_logicalAddressAllocated].m_cecVersion = Version::V_1_4;
+						    _instance->deviceList[_instance->m_logicalAddressAllocated].m_vendorID = appVendorId;
+						    _instance->deviceList[_instance->m_logicalAddressAllocated].m_powerStatus = PowerStatus(powerState);
+						    _instance->deviceList[_instance->m_logicalAddressAllocated].m_currentLanguage = defaultLanguage;
+						    _instance->deviceList[_instance->m_logicalAddressAllocated].m_osdName = osdName.toString().c_str();
+						    if(cecVersion == 2.0) {
+						        _instance->deviceList[_instance->m_logicalAddressAllocated].m_cecVersion = Version::V_2_0;
+						        _instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST),
+                                                                    MessageEncoder().encode(ReportFeatures(Version::V_2_0,allDevicetype,rcProfile,deviceFeatures)), 500);
+						    }
+						    _instance->smConnection->addFrameListener(_instance->msgFrameListener);
+						    _instance->smConnection->sendTo(LogicalAddress(LogicalAddress::BROADCAST), 
+						    		MessageEncoder().encode(ReportPhysicalAddress(physical_addr, _instance->deviceList[_instance->m_logicalAddressAllocated].m_deviceType)), 100);
 
-						_instance->m_sleepTime = 0;
-						_instance->m_pollThreadState = POLL_THREAD_STATE_PING;
+						    _instance->m_sleepTime = 0;
+						    _instance->m_pollThreadState = POLL_THREAD_STATE_PING;
+                        }
+                        catch(InvalidStateException &e){
+                            LOGWARN("InvalidStateException caught while allocated logical address. %s", e.what());
+						    _instance->m_pollThreadState = POLL_THREAD_STATE_EXIT;
+                        }
+                        catch(IOException &e){
+                            LOGWARN("IOException caught while allocated logical address. %s", e.what());
+						    _instance->m_pollThreadState = POLL_THREAD_STATE_EXIT;
+                        }
+                        catch(...){
+                            LOGWARN("Exception caught while allocated logical address.");
+						    _instance->m_pollThreadState = POLL_THREAD_STATE_EXIT;
+                        }
 					}
 					else
 					{
@@ -3143,9 +3157,14 @@ namespace WPEFramework
                 {
                     LibCCEC::getInstance().init();
                 }
-                catch (const std::exception& e)
-                {
-                    LOGWARN("CEC exception caught from LibCCEC::getInstance().init()");
+                catch(InvalidStateException &e){
+                    LOGWARN("InvalidStateException caught in LibCCEC::init %s", e.what());
+                }
+                catch(IOException &e){
+                    LOGWARN("IOException caught in LibCCEC::init %s", e.what());
+                }
+                catch(...){
+                    LOGWARN("Exception caught in LibCCEC::init");
                 }
             }
             libcecInitStatus++;
@@ -3254,9 +3273,14 @@ namespace WPEFramework
                 {
                    LibCCEC::getInstance().term();
                 }
-                catch (const std::exception& e)
-                {
-                    LOGWARN("CEC exception caught from LibCCEC::getInstance().term() ");
+                catch(InvalidStateException &e){
+                    LOGWARN("InvalidStateException caught in LibCCEC::term %s", e.what());
+                }
+                catch(IOException &e){
+                    LOGWARN("IOException caught in LibCCEC::term %s", e.what());
+                }
+                catch(...){
+                    LOGWARN("Exception caught in LibCCEC::term");
                 }
             }
 
@@ -3487,6 +3511,11 @@ namespace WPEFramework
                             _instance->sendKeyReleaseEvent(keyInfo.logicalAddr);
                     }
 
+		    if((_instance->m_SendKeyQueue.size()<=1 || (_instance->m_SendKeyQueue.size() % 2 == 0)) && ((keyInfo.keyCode == VOLUME_UP) || (keyInfo.keyCode == VOLUME_DOWN) || (keyInfo.keyCode == MUTE)) )
+		    {
+		        _instance->sendGiveAudioStatusMsg();
+		    }
+
             }//while(!_instance->m_sendKeyEventThreadExit)
         }//threadSendKeyEvent
 
@@ -3500,7 +3529,7 @@ namespace WPEFramework
                 return;
 
 		LOGINFO("Running threadArcRouting");
-
+	        _instance->getHdmiArcPortID();
 
         	while(1)
         	{

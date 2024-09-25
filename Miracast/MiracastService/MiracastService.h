@@ -23,8 +23,19 @@
 #include <vector>
 
 #include "Module.h"
-#include <securityagent/SecurityTokenUtil.h>
 #include <MiracastController.h>
+#include "libIARM.h"
+#include "pwrMgr.h"
+
+typedef enum DeviceWiFiStates{
+	DEVICE_WIFI_STATE_UNINSTALLED = 0,
+	DEVICE_WIFI_STATE_DISABLED = 1,
+	DEVICE_WIFI_STATE_DISCONNECTED = 2,
+	DEVICE_WIFI_STATE_PAIRING = 3,
+	DEVICE_WIFI_STATE_CONNECTING = 4,
+	DEVICE_WIFI_STATE_CONNECTED = 5,
+	DEVICE_WIFI_STATE_FAILED = 6
+}DEVICE_WIFI_STATES;
 
 using std::vector;
 namespace WPEFramework
@@ -59,6 +70,11 @@ namespace WPEFramework
             static const string METHOD_MIRACAST_STOP_CLIENT_CONNECT;
             static const string METHOD_MIRACAST_SET_UPDATE_PLAYER_STATE;
             static const string METHOD_MIRACAST_SET_LOG_LEVEL;
+        #ifdef UNIT_TESTING
+            static const string METHOD_MIRACAST_GET_STATUS;
+            static const string METHOD_MIRACAST_SET_POWERSTATE;
+            static const string METHOD_MIRACAST_SET_WIFISTATE;
+        #endif /*UNIT_TESTING*/
 
 #ifdef ENABLE_MIRACAST_SERVICE_TEST_NOTIFIER
             static const string METHOD_MIRACAST_TEST_NOTIFIER;
@@ -74,7 +90,8 @@ namespace WPEFramework
 
             virtual void onMiracastServiceClientConnectionRequest(string client_mac, string client_name) override;
             virtual void onMiracastServiceClientConnectionError(string client_mac, string client_name , eMIRACAST_SERVICE_ERR_CODE error_code ) override;
-            virtual void onMiracastServiceLaunchRequest(string src_dev_ip, string src_dev_mac, string src_dev_name, string sink_dev_ip) override;
+            virtual void onMiracastServiceLaunchRequest(string src_dev_ip, string src_dev_mac, string src_dev_name, string sink_dev_ip, bool is_connect_req_reported ) override;
+            virtual void onStateChange(eMIRA_SERVICE_STATES state ) override;
 
             BEGIN_INTERFACE_MAP(MiracastService)
             INTERFACE_ENTRY(PluginHost::IPlugin)
@@ -88,23 +105,53 @@ namespace WPEFramework
         private:
             bool m_isServiceInitialized;
             bool m_isServiceEnabled;
+            std::mutex m_DiscoveryStateMutex;
+            std::recursive_mutex m_EventMutex;
             guint m_FriendlyNameMonitorTimerID{0};
+            guint m_WiFiConnectedStateMonitorTimerID{0};
+            guint m_MiracastConnectionMonitorTimerID{0};
             eMIRA_SERVICE_STATES m_eService_state;
+            std::string m_src_dev_ip;
+            std::string m_src_dev_mac;
+            std::string m_src_dev_name;
+            std::string m_sink_dev_ip;
             WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> *m_SystemPluginObj = NULL;
-            uint32_t setEnable(const JsonObject &parameters, JsonObject &response);
+            WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement> *m_WiFiPluginObj = NULL;
+            uint32_t setEnableWrapper(const JsonObject &parameters, JsonObject &response);
             uint32_t getEnable(const JsonObject &parameters, JsonObject &response);
             uint32_t setP2PBackendDiscovery(const JsonObject &parameters, JsonObject &response);
             uint32_t acceptClientConnection(const JsonObject &parameters, JsonObject &response);
             uint32_t stopClientConnection(const JsonObject &parameters, JsonObject &response);
             uint32_t updatePlayerState(const JsonObject &parameters, JsonObject &response);
             uint32_t setLogging(const JsonObject &parameters, JsonObject &response);
+        #ifdef UNIT_TESTING
+            uint32_t getStatus(const JsonObject &parameters, JsonObject &response);
+            uint32_t setPowerStateWrapper(const JsonObject &parameters, JsonObject &response);
+            uint32_t setWiFiStateWrapper(const JsonObject &parameters, JsonObject &response);
+        #endif /*UNIT_TESTING*/
 
             std::string reasonDescription(eMIRACAST_SERVICE_ERR_CODE e);
-            void getSystemPlugin();
+            void getThunderPlugins();
             bool updateSystemFriendlyName();
             void onFriendlyNameUpdateHandler(const JsonObject &parameters);
             static gboolean monitor_friendly_name_timercallback(gpointer userdata);
+            void setWiFiState(DEVICE_WIFI_STATES wifiState);
+            void onWIFIStateChangedHandler(const JsonObject &parameters);
+            static gboolean monitor_wifi_connection_state_timercallback(gpointer userdata);
+            void remove_wifi_connection_state_timer(void);
+            static gboolean monitor_miracast_connection_timercallback(gpointer userdata);
+            void remove_miracast_connection_timer(void);
             bool envGetValue(const char *key, std::string &value);
+            eMIRA_SERVICE_STATES getCurrentServiceState(void);
+            void changeServiceState(eMIRA_SERVICE_STATES eService_state);
+            IARM_Bus_PWRMgr_PowerState_t getCurrentPowerState(void);
+            void setPowerState(IARM_Bus_PWRMgr_PowerState_t pwrState);
+            std::string getPowerStateString(IARM_Bus_PWRMgr_PowerState_t pwrState);
+            void setEnable(bool isEnabled);
+
+            const void InitializeIARM();
+            void DeinitializeIARM();
+            static void pwrMgrModeChangeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
             // We do not allow this plugin to be copied !!
             MiracastService(const MiracastService &) = delete;

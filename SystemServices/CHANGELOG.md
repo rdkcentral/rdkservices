@@ -15,6 +15,47 @@ All notable changes to this RDK Service will be documented in this file.
 * Changes in CHANGELOG should be updated when commits are added to the main or release branches. There should be one CHANGELOG entry per JIRA Ticket. This is not enforced on sprint branches since there could be multiple changes for the same JIRA ticket during development. 
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
+
+## [2.3.2] - 2024-06-26
+### Fixed
+- Remove the R4 WPEFramework-Interfaces patches and added corresponding code fix
+
+## [2.3.1] - 2024-06-06
+### Fixed
+- Added change for file system corruption hang
+
+## [2.3.0] - 2024-05-31
+### Added
+- Addded setBootLoaderSplashScreen API.
+
+## [2.2.3] - 2024-06-03
+### Changed
+- RDK-49322: use manufacturer name from serialized location instead of hardcoded
+
+## [2.2.2] - 2024-05-31
+### Changed
+- RDK-45345: Upgrade Sky Glass devices to use Thunder R4.4.1
+
+## [2.2.1] - 2024-05-22
+### Fixed
+- Fixed stuck cSettings::readFromFile() if file is a directory.
+
+## [2.2.0] - 2024-05-16
+### Deprecated
+- Deprecated uploadLogs API
+
+## [2.1.6] - 2024-05-16
+### Fixed
+- getSystemVersions API has wrong stbTimestamp format
+
+## [2.1.5] - 2024-05-14
+### Fixed
+- Fixed the autostart configurable from recipe
+
+## [2.1.4] - 2024-05-02
+### Fixed
+- Fixed the WPEFramework crash issue
+
 ## [2.1.3] - 2024-03-29
 ### Security
 - Resolved security vulnerabilities

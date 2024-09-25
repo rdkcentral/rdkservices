@@ -46,7 +46,8 @@ static const std::map<int, std::string> ErrCodeMap = {
     {SysSrv_LibcurlError, "LIbCurl service error"},
     {SysSrv_DynamicMemoryAllocationFailed, "Dynamic Memory Allocation Failed"},
     {SysSrv_ManufacturerDataReadFailed, "Manufacturer Data Read Failed"},
-    {SysSrv_KeyNotFound, "Key not found"}
+    {SysSrv_KeyNotFound, "Key not found"},
+    {SysSrv_ModeChangeInProgress, "Mode change is in progress"}
 };
 
 std::string getErrorDescription(int errCode)
@@ -546,7 +547,7 @@ std::string stringTodate(char *pBuffer)
     } else {
         char tempBuff[128] = {'\0'};
 
-        strftime(tempBuff, sizeof(tempBuff), "%a %d %b %Y %H:%M:%S AP UTC", &result);
+        strftime(tempBuff, sizeof(tempBuff), "%a %d %b %Y %H:%M:%S UTC", &result);
         str = tempBuff;
     }
     return str;

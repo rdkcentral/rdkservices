@@ -26,6 +26,7 @@
 cTimer::cTimer()
 {
     clear = false;
+    active = false;
     interval = 0;
 }
 
@@ -39,6 +40,24 @@ cTimer::~cTimer()
 }
 
 /***
+Running this timer function as thread function
+*/
+void cTimer::timerFunction() {
+    this->active = true;
+    while (true) {
+        if (this->clear) {
+            this->active = false;
+            return;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(interval));
+        if (this->clear) {
+            this->active = false;
+            return;
+        }
+        this->callBack_function();
+    }
+}
+/***
  * @brief : start timer thread.
  * @return   : <bool> False if timer thread couldn't be started.
  */
@@ -48,15 +67,7 @@ bool cTimer::start()
         return false;
     }
     this->clear = false;
-    std::thread timerThread([=]() {
-            while (true) {
-            if (this->clear) return;
-            std::this_thread::sleep_for(std::chrono::milliseconds(interval));
-            if (this->clear) return;
-            this->callBack_function();
-            }
-            });
-    timerThread.detach();
+    timerThread = std::thread(&cTimer::timerFunction, this);
     return true;
 }
 
@@ -67,6 +78,23 @@ bool cTimer::start()
 void cTimer::stop()
 {
     this->clear = true;
+}
+
+bool cTimer::isActive()
+{
+    return this->active;
+}
+
+void cTimer::detach()
+{
+    timerThread.detach();
+}
+
+void cTimer::join()
+{
+    if (timerThread.joinable()) {
+        timerThread.join();
+    }
 }
 
 /***
@@ -80,4 +108,3 @@ void cTimer::setInterval(void (*function)(), int val)
     this->callBack_function = function;
     this->interval = val;
 }
-

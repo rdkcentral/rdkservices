@@ -61,7 +61,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 12
+#define API_VERSION_NUMBER_PATCH 14
 
 enum {
 	HDMICEC2_EVENT_DEVICE_ADDED=0,
@@ -1149,9 +1149,14 @@ namespace WPEFramework
                 {
                     LibCCEC::getInstance().init();
                 }
-                catch (const std::exception& e)
-                {
-                    LOGWARN("CEC exception caught from LibCCEC::getInstance().init()");
+                catch(InvalidStateException &e){
+                    LOGWARN("InvalidStateException caught in LibCCEC::init %s", e.what());
+                }
+                catch(IOException &e){
+                    LOGWARN("IOException caught in LibCCEC::init %s", e.what());
+                }
+                catch(...){
+                    LOGWARN("Exception caught in LibCCEC::init");
                 }
             }
             libcecInitStatus++;
@@ -1302,9 +1307,14 @@ namespace WPEFramework
                 {
                    LibCCEC::getInstance().term();
                 }
-                catch (const std::exception& e)
-                {
-                    LOGWARN("CEC exception caught from LibCCEC::getInstance().term() ");
+                catch(InvalidStateException &e){
+                    LOGERR("InvalidStateException caught in LibCCEC::getInstance().term() %s", e.what());
+                }
+                catch(IOException &e){
+                    LOGERR("IOException caught in LibCCEC::getInstance().term() %s", e.what());
+                }
+                catch(...){
+                    LOGERR("Exception caught in LibCCEC::getInstance().term()");
                 }
             }
 

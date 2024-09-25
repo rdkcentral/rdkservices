@@ -20,6 +20,8 @@
 #pragma once
 
 #include <mutex>
+#include <condition_variable>
+#include <set>
 #include "Module.h"
 #include <rdkshell/rdkshellevents.h>
 #include <rdkshell/rdkshell.h>
@@ -64,6 +66,7 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_MOVE_TO_BACK;
             static const string RDKSHELL_METHOD_MOVE_BEHIND;
             static const string RDKSHELL_METHOD_SET_FOCUS;
+	    static const string RDKSHELL_METHOD_GET_FOCUSED;
             static const string RDKSHELL_METHOD_KILL;
             static const string RDKSHELL_METHOD_ADD_KEY_INTERCEPT;
             static const string RDKSHELL_METHOD_ADD_KEY_INTERCEPTS;
@@ -145,6 +148,7 @@ namespace WPEFramework {
             static const string RDKSHELL_METHOD_KEY_REPEAT_CONFIG;
             static const string RDKSHELL_METHOD_GET_GRAPHICS_FRAME_RATE;
             static const string RDKSHELL_METHOD_SET_GRAPHICS_FRAME_RATE;
+            static const string RDKSHELL_METHOD_SET_KEY_INTERCEPTS;
 #ifdef HIBERNATE_SUPPORT_ENABLED
             static const string RDKSHELL_METHOD_HIBERNATE;
             static const string RDKSHELL_METHOD_RESTORE;
@@ -160,6 +164,7 @@ namespace WPEFramework {
             static const string RDKSHELL_EVENT_ON_APP_SUSPENDED;
             static const string RDKSHELL_EVENT_ON_APP_RESUMED;
             static const string RDKSHELL_EVENT_ON_APP_ACTIVATED;
+	    static const string RDKSHELL_EVENT_ON_APP_FOCUSCHANGED;
             static const string RDKSHELL_EVENT_ON_LAUNCHED;
             static const string RDKSHELL_EVENT_ON_SUSPENDED;
             static const string RDKSHELL_EVENT_ON_DESTROYED;
@@ -187,6 +192,7 @@ namespace WPEFramework {
             uint32_t moveToBackWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t moveBehindWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setFocusWrapper(const JsonObject& parameters, JsonObject& response);
+	    uint32_t getFocusedWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t killWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t addKeyInterceptWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t addKeyInterceptsWrapper(const JsonObject& parameters, JsonObject& response);
@@ -269,6 +275,7 @@ namespace WPEFramework {
             uint32_t keyRepeatConfigWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t getGraphicsFrameRateWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t setGraphicsFrameRateWrapper(const JsonObject& parameters, JsonObject& response);
+            uint32_t setKeyInterceptsWrapper(const JsonObject& parameters, JsonObject& response);
 #ifdef HIBERNATE_SUPPORT_ENABLED
             uint32_t hibernateWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t restoreWrapper(const JsonObject& parameters, JsonObject& response);
@@ -282,9 +289,12 @@ namespace WPEFramework {
             bool moveToBack(const string& client);
             bool moveBehind(const string& client, const string& target);
             bool setFocus(const string& client);
+	    bool getFocused(string& client);
             bool kill(const string& client);
             bool addKeyIntercept(const uint32_t& keyCode, const JsonArray& modifiers, const string& client);
             bool addKeyIntercepts(const JsonArray& intercepts);
+            bool setKeyIntercepts(const JsonArray& intercepts);
+            bool setKeyIntercept(const uint32_t& keyCode, const JsonArray& modifiers, const string& client, const bool always);
             bool removeKeyIntercept(const uint32_t& keyCode, const JsonArray& modifiers, const string& client);
             bool addKeyListeners(const string& client, const JsonArray& listeners);
             bool removeKeyListeners(const string& client, const JsonArray& listeners);
@@ -379,6 +389,7 @@ namespace WPEFramework {
                 virtual void onApplicationSuspended(const std::string& client);
                 virtual void onApplicationResumed(const std::string& client);
                 virtual void onApplicationActivated(const std::string& client);
+		virtual void onApplicationFocusChanged(const std::string& client);
                 virtual void onUserInactive(const double minutes);
                 virtual void onDeviceLowRamWarning(const int32_t freeKb, const int32_t availableKb, const int32_t usedSwapKb);
                 virtual void onDeviceCriticallyLowRamWarning(const int32_t freeKb, const int32_t availableKb, const int32_t usedSwapKb);
@@ -392,7 +403,11 @@ namespace WPEFramework {
                   RDKShell& mShell;
             };
 
-            class MonitorClients : public PluginHost::IPlugin::INotification {
+            class MonitorClients : public PluginHost::IPlugin::INotification
+#if ((THUNDER_VERSION >= 4) && (THUNDER_VERSION_MINOR >= 4))
+            ,  public PluginHost::IPlugin::ILifeTime 
+#endif
+	   {
               private:
                   MonitorClients() = delete;
                   MonitorClients(const MonitorClients&) = delete;
@@ -410,6 +425,9 @@ namespace WPEFramework {
               public:
                   BEGIN_INTERFACE_MAP(MonitorClients)
                   INTERFACE_ENTRY(PluginHost::IPlugin::INotification)
+#if ((THUNDER_VERSION >= 4) && (THUNDER_VERSION_MINOR >= 4))
+		  INTERFACE_ENTRY(PluginHost::IPlugin::ILifeTime)
+#endif
                   END_INTERFACE_MAP
 
               private:
@@ -418,13 +436,14 @@ namespace WPEFramework {
                   void handleActivated(PluginHost::IShell* shell);
                   void handleDeactivated(PluginHost::IShell* shell);
                   void handleDeinitialized(PluginHost::IShell* shell);
+
 #ifdef USE_THUNDER_R4
-		  virtual void Initialize(VARIABLE_IS_NOT_USED const string& callsign, VARIABLE_IS_NOT_USED PluginHost::IShell* plugin);
+                  virtual void Initialize(const string& callsign, PluginHost::IShell* plugin);
                   virtual void Activation(const string& name, PluginHost::IShell* plugin);
                   virtual void Deactivation(const string& name, PluginHost::IShell* plugin);
                   virtual void  Activated(const string& callSign,  PluginHost::IShell* plugin);
                   virtual void  Deactivated(const string& callSign,  PluginHost::IShell* plugin);
-		  virtual void Deinitialized(VARIABLE_IS_NOT_USED const string& callsign, VARIABLE_IS_NOT_USED PluginHost::IShell* plugin);
+		  virtual void Deinitialized(const string& callsign, PluginHost::IShell* plugin);
                   virtual void  Unavailable(const string& callSign,  PluginHost::IShell* plugin);
 #endif /* USE_THUNDER_R4 */
               private:
@@ -452,6 +471,36 @@ namespace WPEFramework {
                 RDKShell* mShell;
                 std::vector<ICapture::IStore *>mCaptureStorers;
             };
+#ifdef HIBERNATE_SUPPORT_ENABLED
+            class HibernateExecutor {
+                public:
+                HibernateExecutor(RDKShell& shell);
+                HibernateExecutor(const HibernateExecutor&) = delete;
+                HibernateExecutor& operator=(const HibernateExecutor&) = delete;
+                ~HibernateExecutor();
+
+                void schedule(std::string callsign, uint32_t timeoutMs, uint32_t delayMs = 0);
+                void abort(std::string callsign);
+
+                private:
+
+                struct Params {
+                    std::chrono::steady_clock::time_point timePoint;
+                    uint32_t timeoutMs;
+                };
+
+                void run();
+                void hibernateInternal(std::string callsign, uint32_t timeoutMs);
+
+                RDKShell &mShell;
+                std::thread mThread;
+                std::mutex mMutex;
+                std::condition_variable mCondition;
+                std::unordered_map<std::string, Params> mCallsignsExecTimeMap;
+                std::set<std::string> mCallsignsHibernating;
+                bool mRunning;
+            };
+#endif
 
         private/*members*/:
             bool mRemoteShell;
@@ -470,6 +519,9 @@ namespace WPEFramework {
 #ifdef ENABLE_RIALTO_FEATURE
         std::shared_ptr<RialtoConnector>  rialtoConnector;
 #endif //ENABLE_RIALTO_FEATURE
+#ifdef HIBERNATE_SUPPORT_ENABLED
+            HibernateExecutor mHibernateExecutor;
+#endif
         };
 
         struct PluginData

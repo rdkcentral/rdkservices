@@ -143,6 +143,7 @@ TTS_Error TTSManager::setConfiguration(Configuration &configuration) {
             m_defaultConfiguration.setLocalEndPoint("");
     }
 
+    bool languageUpdated = false;
     /* Set default voice for the language only when voice is empty*/
     if(!configuration.language.empty() && configuration.voice.empty()) {
         std::vector<std::string> voices;
@@ -153,16 +154,16 @@ TTS_Error TTSManager::setConfiguration(Configuration &configuration) {
         }
         else {
             m_needsConfigStoreUpdate |= m_defaultConfiguration.setVoice(voices.front());
-            m_needsConfigStoreUpdate |= m_defaultConfiguration.setLanguage(configuration.language);
+            languageUpdated = m_defaultConfiguration.setLanguage(configuration.language);
+            m_needsConfigStoreUpdate |= languageUpdated;
         }
     }
     else {
         m_needsConfigStoreUpdate |= m_defaultConfiguration.setVoice(configuration.voice);
-        m_needsConfigStoreUpdate |= m_defaultConfiguration.setLanguage(configuration.language);
+        languageUpdated = m_defaultConfiguration.setLanguage(configuration.language);
+        m_needsConfigStoreUpdate |= languageUpdated;
     }
 
-    bool languageUpdated = m_defaultConfiguration.setLanguage(configuration.language);
-    m_needsConfigStoreUpdate |= languageUpdated;
 
     if( m_defaultConfiguration.hasValidLocalEndpoint() && languageUpdated ) {
         std::vector<std::string> localVoices;
@@ -303,6 +304,11 @@ TTS_Error TTSManager::speak(int speechId, std::string callsign, std::string text
     if(!m_defaultConfiguration.isValid()) {
         TTSLOG_ERROR("Configuration is not set, can't speak");
         return TTS_INVALID_CONFIGURATION;
+    }
+
+    if(text.empty() || text.find_first_not_of(' ') == std::string::npos) {
+        TTSLOG_ERROR("Invalid Text Provided from app");
+        return TTS_FAIL;
     }
 
     if(m_speaker) {

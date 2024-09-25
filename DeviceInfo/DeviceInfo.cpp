@@ -53,11 +53,6 @@ namespace Plugin {
         _skipURL = static_cast<uint8_t>(service->WebPrefix().length());
         _subSystem = service->SubSystems();
         _service = service;
-#ifndef USE_THUNDER_R4
-        _systemId = Core::SystemInfo::Instance().Id(Core::SystemInfo::Instance().RawDeviceId(), ~0);
-#else
-        _systemId = string();
-#endif /* USE_THUNDER_R4 */
 
         ASSERT(_subSystem != nullptr);
 
@@ -158,10 +153,12 @@ namespace Plugin {
 
     void DeviceInfo::SysInfo(JsonData::DeviceInfo::SysteminfoData& systemInfo) const
     {
+        string serialNumber;
+
         Core::SystemInfo& singleton(Core::SystemInfo::Instance());
 
         systemInfo.Time = Core::Time::Now().ToRFC1123(true);
-#if ((THUNDER_VERSION_MAJOR >= 4) && (THUNDER_VERSION_MINOR >= 4))
+#if ((THUNDER_VERSION >= 4) && (THUNDER_VERSION_MINOR >= 4))
 	systemInfo.Version = _subSystem->Version() + _T("#") + _subSystem->BuildTreeHash();
 #else
 	systemInfo.Version = _service->Version() + _T("#") + _subSystem->BuildTreeHash();
@@ -173,7 +170,11 @@ namespace Plugin {
         systemInfo.Freeswap = singleton.GetFreeSwap();
         systemInfo.Devicename = singleton.GetHostName();
         systemInfo.Cpuload = Core::NumberType<uint32_t>(static_cast<uint32_t>(singleton.GetCpuLoad())).Text();
-        systemInfo.Serialnumber = _systemId;
+
+        auto result = _deviceInfo->SerialNumber(serialNumber);
+        if (result == Core::ERROR_NONE) {
+            systemInfo.Serialnumber = serialNumber;
+        }
 
         auto cpuloadavg = singleton.GetCpuLoadAvg();
         if (cpuloadavg != nullptr) {

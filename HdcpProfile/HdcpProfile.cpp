@@ -43,7 +43,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 7
+#define API_VERSION_NUMBER_PATCH 8
 
 namespace WPEFramework
 {
@@ -82,7 +82,15 @@ namespace WPEFramework
         {
             HdcpProfile::_instance = this;
             InitializeIARM();
-            device::Manager::Initialize();
+            try
+            {
+                device::Manager::Initialize();
+                LOGINFO("HdcpProfile device::Manager::Initialize success");
+            }
+            catch(...)
+            {
+                LOGINFO("HdcpProfile device::Manager::Initialize failed");
+            }
             return (string());
         }
 

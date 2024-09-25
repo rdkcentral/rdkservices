@@ -158,6 +158,17 @@
         },
         "isClean":{
             "summary": "Checks the locations on the device where customer data may be stored. If there are contents contained in those folders, then the device is not clean.",
+	    "params": {
+                "type":"object",
+                "properties": {
+                    "age": {
+                        "summary": "Ignore files/folders for the isClean checkup that were created/updated within the last age (in seconds) when this API is called",
+                        "type": "integer",
+                        "example": "300"
+                    }
+                },
+                "required": []
+            },
             "result": {
                 "type": "object",
                 "properties": {

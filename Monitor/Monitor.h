@@ -753,7 +753,7 @@ namespace Plugin {
                 _service = nullptr;
             }
 
-#if (THUNDER_VERSION_MAJOR >= 4)
+#if (THUNDER_VERSION >= 4)
 #if (THUNDER_VERSION_MINOR == 2)
             void Activation(const string& name, PluginHost::IShell* service) override
             {
@@ -811,7 +811,7 @@ namespace Plugin {
                             _service->Notify(message);
                             _parent.event_action(callsign, "Activate", "Automatic");
                             TRACE(Trace::Error, (_T("Restarting %s again because we detected it misbehaved."), callsign.c_str()));
-                            Core::IWorkerPool::Instance().Schedule(Core::Time::Now(), PluginHost::IShell::Job::Create(service, PluginHost::IShell::ACTIVATED, PluginHost::IShell::AUTOMATIC));
+                            Core::IWorkerPool::Instance().Schedule(Core::Time::Now().Add(5000), PluginHost::IShell::Job::Create(service, PluginHost::IShell::ACTIVATED, PluginHost::IShell::AUTOMATIC));
                         }
                     }
                 }

@@ -16,7 +16,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 2
-#define API_VERSION_NUMBER_PATCH 4
+#define API_VERSION_NUMBER_PATCH 5
 const string WPEFramework::Plugin::UsbAccess::SERVICE_NAME = "org.rdk.UsbAccess";
 const string WPEFramework::Plugin::UsbAccess::METHOD_GET_FILE_LIST = "getFileList";
 const string WPEFramework::Plugin::UsbAccess::METHOD_CREATE_LINK = "createLink";
@@ -586,7 +586,7 @@ namespace Plugin {
                 string script = (ARCHIVE_LOGS_SCRIPT + " " + usbPath);
                 FILE* fp = v_secure_popen("r","%s %s",ARCHIVE_LOGS_SCRIPT.c_str(),usbPath.c_str());
                 if (NULL != fp) {
-                    char buf[256];
+                    char buf[256] = {0};
                     while(fgets(buf, sizeof(buf), fp) != NULL)
                     {
                         usbFilePath = buf; //Capture file path returned by the script

@@ -24,6 +24,11 @@ find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(IARMBus)
 find_package(GLIB REQUIRED)
 
+find_package(WPEFrameworkSecurityUtil)
+if(NOT WPEFRAMEWORK_SECURITYUTIL_FOUND)
+	add_definitions(-DSECURITY_TOKEN_ENABLED=0)
+endif()
+
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GSTREAMERBASE REQUIRED gstreamer-app-1.0)
 
@@ -31,14 +36,30 @@ find_package(GStreamer REQUIRED)
 
 find_library(GLIB_LIBRARY NAMES glib-2.0 )
 
-add_library(${MODULE_NAME} SHARED Module.cpp MiracastPlayer.cpp MiracastGstPlayer.cpp ../common/MiracastLogger.cpp ../common/MiracastCommon.cpp ../RTSP/MiracastRtspMsg.cpp)
+add_library(${MODULE_NAME} SHARED Module.cpp MiracastPlayer.cpp ../common/MiracastLogger.cpp ../common/MiracastCommon.cpp RTSP/MiracastRTSPMsg.cpp)
+
+if (BUILD_AMLOGIC)
+	target_sources(${MODULE_NAME}
+		PRIVATE
+		Amlogic/SoC_GstPlayer.cpp
+		)
+elseif (RDK_SERVICES_L1_TEST)
+	target_sources(${MODULE_NAME}
+		PRIVATE
+		Test/SoC_GstPlayer.cpp
+		)
+else()
+	message(FATAL_ERROR "SoC abstraction yet to be implemented")
+endif()
 
 set_target_properties(${MODULE_NAME} PROPERTIES
-        CXX_STANDARD 11
-        CXX_STANDARD_REQUIRED YES)
+	CXX_STANDARD 11
+	CXX_STANDARD_REQUIRED YES)
+set_source_files_properties(MiracastPlayer.cpp PROPERTIES COMPILE_FLAGS "-fexceptions")
 
 target_include_directories(${MODULE_NAME} PRIVATE ./)
-target_include_directories(${MODULE_NAME} PRIVATE ../include)
+target_include_directories(${MODULE_NAME} PRIVATE ../common)
+target_include_directories(${MODULE_NAME} PRIVATE RTSP)
 target_include_directories(${MODULE_NAME} PRIVATE ../../helpers)
 target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS})
 target_include_directories(${MODULE_NAME} PRIVATE ${GLIB_INCLUDE_DIRS})
@@ -49,14 +70,17 @@ target_include_directories(${MODULE_NAME} PRIVATE ${GSTREAMERBASE_INCLUDE_DIRS})
 #target_compile_options(${MODULE_NAME} PRIVATE -DENABLE_MIRACAST_PLAYER_TEST_NOTIFIER)
 
 target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins)
-target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}SecurityUtil)
 target_link_libraries(${MODULE_NAME} PRIVATE ${GLIB_LIBRARIES})
 target_link_libraries(${MODULE_NAME} PRIVATE ${GSTREAMER_LIBRARIES})
 target_link_libraries(${MODULE_NAME} PRIVATE ${GSTREAMERBASE_LIBRARIES})
 target_link_libraries(${MODULE_NAME} PRIVATE -lpthread)
-target_link_libraries(${MODULE_NAME} PRIVATE -lrdkloggers)
+#target_link_libraries(${MODULE_NAME} PRIVATE -lrdkloggers)
+
+if(WPEFRAMEWORK_SECURITYUTIL_FOUND)
+	target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}SecurityUtil)
+endif()
 
 install(TARGETS ${MODULE_NAME}
-        DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
+	DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
 
 write_config(${PLUGIN_NAME})
