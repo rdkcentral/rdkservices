@@ -1,4 +1,4 @@
-autostart = "true"
+autostart = "@PLUGIN_USERSETTINGS_AUTOSTART@"
 precondition = ["Platform"]
 callsign = "org.rdk.SystemMode"
 startuporder = "@PLUGIN_SYSTEMMODE_STARTUPORDER@"
