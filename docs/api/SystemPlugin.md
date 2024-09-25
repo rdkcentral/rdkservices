@@ -2,7 +2,7 @@
 <a name="System_Plugin"></a>
 # System Plugin
 
-**Version: [3.0.2](https://github.com/rdkcentral/rdkservices/blob/main/SystemServices/CHANGELOG.md)**
+**Version: [3.2.0](https://github.com/rdkcentral/rdkservices/blob/main/SystemServices/CHANGELOG.md)**
 
 A org.rdk.System plugin for Thunder framework.
 
@@ -3649,6 +3649,12 @@ SystemServices interface events:
 | [onFirmwarePendingReboot](#onFirmwarePendingReboot) | Triggered when the `fireFirmwarePendingReboot` method is invoked |
 | [onFirmwareUpdateInfoReceived](#onFirmwareUpdateInfoReceived) | Triggered when the `getFirmwareUpdateInfo` asynchronous method is invoked |
 | [onFirmwareUpdateStateChange](#onFirmwareUpdateStateChange) | Triggered when the state of a firmware update changes |
+| [onRecoveryStateChange](#onRecoveryStateChange) | Triggered when the state of red recovery transistion  
+State details are:  
+* `0`: Recovery completed  
+* `1`: Recovery Started - Fatal error detected  
+* `2`: Recovery FW Downloaded 
+* `3`: Recovery FW programmed |
 | [onMacAddressesRetreived](#onMacAddressesRetreived) | Triggered when the `getMacAddresses` asynchronous method is invoked |
 | [onNetworkStandbyModeChanged](#onNetworkStandbyModeChanged) | Triggered when the network standby mode setting changes |
 | [onRebootRequest](#onRebootRequest) | Triggered when an application invokes the reboot method |
@@ -3658,6 +3664,7 @@ SystemServices interface events:
 | [onFriendlyNameChanged](#onFriendlyNameChanged) | Triggered when the device friendly name change |
 | [onTemperatureThresholdChanged](#onTemperatureThresholdChanged) | Triggered when the device temperature changes beyond the `WARN` or `MAX` limits (see `setTemperatureThresholds`) |
 | [onTerritoryChanged](#onTerritoryChanged) | Triggered when the device territory changed |
+| [onDeviceMgtUpdateReceived](#onDeviceMgtUpdateReceived) | Triggered when the device management update completes |
 | [onTimeZoneDSTChanged](#onTimeZoneDSTChanged) | Triggered when device time zone changed |
 | [onLogUpload](#onLogUpload) | Triggered when logs upload process is done or stopped |
 
@@ -3757,6 +3764,35 @@ State details are:
     "method": "client.events.onFirmwareUpdateStateChange",
     "params": {
         "firmwareUpdateStateChange": 5
+    }
+}
+```
+
+<a name="onRecoveryStateChange"></a>
+## *onRecoveryStateChange*
+
+Triggered when the state of red recovery transistion  
+State details are:  
+* `0`: Recovery completed  
+* `1`: Recovery Started - Fatal error detected  
+* `2`: Recovery FW Downloaded 
+* `3`: Recovery FW programmed.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.recoveryStateChange | integer | The state (must be one of the following: *Recovery Completed*, *Recovery Started*, *Recovery Downloaded*, *Recovery Programmed*) |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.onRecoveryStateChange",
+    "params": {
+        "recoveryStateChange": 3
     }
 }
 ```
@@ -4001,57 +4037,19 @@ Triggered when the device territory changed.
 }
 ```
 
-<a name="onTimeZoneDSTChanged"></a>
-## *onTimeZoneDSTChanged*
+<a name="onDeviceMgtUpdateReceived"></a>
+## *onDeviceMgtUpdateReceived*
 
-Triggered when device time zone changed.
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.oldTimeZone | string | old time zone |
-| params.newTimeZone | string | new time zone |
-| params.oldAccuracy | string | old time zone accuracy |
-| params.newAccuracy | string | new time zone accuracy |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.onTimeZoneDSTChanged",
-    "params": {
-        "oldTimeZone": "America/New_York",
-        "newTimeZone": "Europe/London",
-        "oldAccuracy": "INITIAL",
-        "newAccuracy": "FINAL"
-    }
-}
-```
-
-<a name="onLogUpload"></a>
-## *onLogUpload*
-
-Triggered when logs upload process is done or stopped.
+Triggered when the device management update completes.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.logUploadStatus | string | Upload status (must be one of the following: *UPLOAD_SUCCESS*, *UPLOAD_FAILURE*, *UPLOAD_ABORTED*) |
+| params.source | string | Source information from where the event on update is posted |
+| params.type | string |  Type of Update received currently it will be used as initial |
+| params.success | bool | Status information of update whether success or failure |
 
 ### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.onLogUpload",
-    "params": {
-        "logUploadStatus": "UPLOAD_SUCCESS"
-    }
-}
-```
 
