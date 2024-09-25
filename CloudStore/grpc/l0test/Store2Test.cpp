@@ -4,6 +4,7 @@
 #include "../Store2.h"
 #include "SecureStorageServiceMock.h"
 #include "Server.h"
+#include "WorkerPoolImplementation.h"
 
 using ::distp::gateway::secure_storage::v1::DeleteAllValuesRequest;
 using ::distp::gateway::secure_storage::v1::DeleteAllValuesResponse;
@@ -39,13 +40,21 @@ const auto kScope = Scope::SCOPE_ACCOUNT;
 
 class AStore2 : public Test {
 protected:
+    WPEFramework::Core::ProxyType<WorkerPoolImplementation> workerPool;
     NiceMock<SecureStorageServiceMock> service;
     Server server;
     WPEFramework::Core::ProxyType<IStore2> store2;
     AStore2()
-        : server(kUri, &service)
+        : workerPool(WPEFramework::Core::ProxyType<WorkerPoolImplementation>::Create(
+              WPEFramework::Core::Thread::DefaultStackSize()))
+        , server(kUri, &service)
         , store2(WPEFramework::Core::ProxyType<Store2>::Create(kUri))
     {
+        WPEFramework::Core::IWorkerPool::Assign(&(*workerPool));
+    }
+    ~AStore2() override
+    {
+        WPEFramework::Core::IWorkerPool::Assign(nullptr);
     }
 };
 
