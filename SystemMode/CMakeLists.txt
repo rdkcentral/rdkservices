@@ -19,7 +19,7 @@ set(PLUGIN_NAME SystemMode)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 set(PLUGIN_IMPLEMENTATION ${MODULE_NAME}Implementation)
 
-set(PLUGIN_SYSTEMMODE_AUTOSTART "true" CACHE STRING "Automatically start SystemMode plugin")
+set(PLUGIN_SYSTEMMODE_AUTOSTART "false" CACHE STRING "Automatically start SystemMode plugin")
 set(PLUGIN_SYSTEMMODE_STARTUPORDER "41" CACHE STRING "To configure startup order of SystemMode plugin")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
