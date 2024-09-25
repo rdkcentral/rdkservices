@@ -42,10 +42,10 @@ index 0000000..168c0e0
 +}
 diff --git a/interfaces/ISystemMode.h b/interfaces/ISystemMode.h
 new file mode 100644
-index 0000000..98637d4
+index 0000000..2c33b6d
 --- /dev/null
 +++ b/interfaces/ISystemMode.h
-@@ -0,0 +1,79 @@
+@@ -0,0 +1,75 @@
 +/*
 + * If not stated otherwise in this file or this component's LICENSE file the
 + * following copyright and licenses apply:
@@ -76,31 +76,27 @@ index 0000000..98637d4
 +
 +  /// Enumeration of system modes.
 +  enum SystemMode : uint8_t {
-+         DEVICE_OPTIMIZE = 1 /* @text: device_optimize */
++	  DEVICE_OPTIMIZE = 1 /* @text: device_optimize */
 +  };
 +
 +  /// Enumeration of states for all system modes.
 +  enum State : uint32_t {
-+         // DEVICE_OPTIMIZE states
-+         VIDEO = (DEVICE_OPTIMIZE << 24) | 1 /* @text: video */,
-+         GAME  = (DEVICE_OPTIMIZE << 24) | 2 /* @text: game */,
++	  // DEVICE_OPTIMIZE states
++	  VIDEO = (DEVICE_OPTIMIZE << 24) | 1 /* @text: video */,
++	  GAME  = (DEVICE_OPTIMIZE << 24) | 2 /* @text: game */,
 +
-+         // next system mode states...
++	  // next system mode states...
 +  };
 +
-+  struct EXTERNAL SuccessResult {
-+         bool success;
-+  };
 +  struct EXTERNAL GetStateResult {
-+         State state /* @text state */;
-+         bool success;
++	  State state /* @text state */;
 +  };
 +  // @text requestState
 +  // @brief Requests a new system mode state in the device.  Thunder components asynchronously reconfigure themselves so the caller cannot be guaranteed a full state transition upon return.
 +  // @param[in] systemMode       The system mode.
 +  // @param[in] state            The requested state.
 +  // @returns Core::hresult
-+  virtual Core::hresult RequestState(const SystemMode systemMode /* @in @text systemMode */ , const State state /* @in @text state */ , SuccessResult& successResult /* @out */) = 0;
++  virtual Core::hresult RequestState(const SystemMode systemMode /* @in @text systemMode */ , const State state /* @in @text state */ ) = 0;
 +
 +  // @text getState
 +  // @brief Gets the current state for a given system property
