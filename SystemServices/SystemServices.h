@@ -184,6 +184,7 @@ namespace WPEFramework {
                 std::string getClientVersionString();
                 std::string getStbTimestampString();
 		std::string getStbBranchString();
+                bool makePersistentDir();
 
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
                 void InitializeIARM();
