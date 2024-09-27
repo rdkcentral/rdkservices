@@ -4807,6 +4807,7 @@ namespace WPEFramework {
                 fsrFlag = parameters["fsrFlag"].Boolean();
                 IARM_Bus_MFRLib_FsrFlag_Param_t param;
                 param = fsrFlag;
+                
                 LOGINFO("Param %d \n", param);
                 IARM_Result_t res = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME,
                                        IARM_BUS_MFRLIB_API_SetFsrFlag, (void *)&param,
