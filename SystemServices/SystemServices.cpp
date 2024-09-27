@@ -67,7 +67,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 3
 #define API_VERSION_NUMBER_MINOR 2
-#define API_VERSION_NUMBER_PATCH 1
+#define API_VERSION_NUMBER_PATCH 2
 
 #define MAX_REBOOT_DELAY 86400 /* 24Hr = 86400 sec */
 #define TR181_FW_DELAY_REBOOT "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"
@@ -1385,20 +1385,31 @@ namespace WPEFramework {
                 JsonObject& response)
         {
             bool changeMode  = true;
+            bool isTimerContext = false;
             JsonObject param;
             std::string oldMode = m_currentMode;
             bool result = true;
-
+	    getBoolParameter("timercontext", isTimerContext);
+	    if((!isTimerContext) && isTimerActive())
+            {
+		int actualDurationLeft = m_remainingDuration ? m_remainingDuration : 1;
+                populateResponseWithError(SysSrv_ModeChangeInProgress, response);
+		LOGERR("Mode change is already in progress.current mode is %s and it will be in progress for next %d seconds. Please try again later.\n",m_currentMode.c_str(),actualDurationLeft);
+                returnResponse(false);
+            }
             if (parameters.HasLabel("modeInfo")) {
                 param.FromString(parameters["modeInfo"].String());
                 if (param.HasLabel("duration") && param.HasLabel("mode")) {
                     int duration = param["duration"].Number();
                     std::string newMode = param["mode"].String();
-
+             	    if(duration>86400)
+                    {
+                        LOGWARN("Duration is more than 24 hours. Setting duration to 24 hours,which is maximum allowed duration to set\n");
+                        duration = 86400;
+                    }
                     LOGWARN("request to switch to mode '%s' from mode '%s' \
                             with duration %d\n", newMode.c_str(),
                             oldMode.c_str(), duration);
-
                     if (MODE_NORMAL != newMode && MODE_WAREHOUSE != newMode &&
                             MODE_EAS != newMode) {
                         LOGERR("value of new mode is incorrect, therefore \
@@ -1415,16 +1426,13 @@ namespace WPEFramework {
                         m_currentMode = MODE_NORMAL;
                         stopModeTimer();
                     }
-
                     if (changeMode) {
                         IARM_Bus_CommonAPI_SysModeChange_Param_t modeParam;
                         stringToIarmMode(oldMode, modeParam.oldMode);
                         stringToIarmMode(m_currentMode, modeParam.newMode);
-
                         if (IARM_RESULT_SUCCESS == IARM_Bus_Call(IARM_BUS_DAEMON_NAME,
                                     "DaemonSysModeChange", &modeParam, sizeof(modeParam))) {
                             LOGWARN("switched to mode '%s'\n", m_currentMode.c_str());
-
                             if (MODE_NORMAL != m_currentMode && duration < 0) {
                                 LOGWARN("duration is negative, therefore \
                                         mode timer stopped and Receiver will keep \
@@ -1446,6 +1454,7 @@ namespace WPEFramework {
                             command = "rm -f ";
                         }
                         command += WAREHOUSE_MODE_FILE;
+
                         /* TODO: replace with system alternate. */
                         int sysStat = system(command.c_str());
                         LOGINFO("system returned %d\n", sysStat);
@@ -1463,7 +1472,6 @@ namespace WPEFramework {
                 populateResponseWithError(SysSrv_MissingKeyValues, response);
                 result = false;
             }
-
             returnResponse(result);
         }
 
@@ -1475,14 +1483,21 @@ namespace WPEFramework {
             m_temp_settings.setValue("mode_duration", m_remainingDuration);
         }
 
-        void SystemServices::stopModeTimer()
+        void SystemServices::stopModeTimer(bool isDetachRequired)
         {
             m_remainingDuration = 0;
             m_operatingModeTimer.stop();
-
+            if(isDetachRequired)
+            {
+                m_operatingModeTimer.detach();
+            }
             //set values in temp file so they can be restored in receiver restarts / crashes
             // TODO: query & confirm time duration range.
             m_temp_settings.setValue("mode_duration", m_remainingDuration);
+        }
+        bool SystemServices::isTimerActive()
+        {
+            return m_operatingModeTimer.isActive();
         }
 
         /**
@@ -1492,12 +1507,13 @@ namespace WPEFramework {
         {
             if (m_remainingDuration > 0) {
                 m_remainingDuration--;
+                m_temp_settings.setValue("mode_duration", m_remainingDuration);
             } else {
-                m_operatingModeTimer.stop();
-               m_operatingModeTimer.detach();
+                stopModeTimer(true);
                 JsonObject parameters, param, response;
                 param["mode"] = "NORMAL";
                 param["duration"] = 0;
+                parameters["timercontext"] = true;
                 parameters["modeInfo"] = param;
                 if (_instance) {
                     _instance->setMode(parameters,response);
@@ -1505,9 +1521,6 @@ namespace WPEFramework {
                     LOGERR("_instance is NULL.\n");
                 }
             }
-
-            //set values in temp file so they can be restored in receiver restarts / crashes
-            m_temp_settings.setValue("mode_duration", m_remainingDuration);
         }
 
         /***
