@@ -2387,7 +2387,7 @@
             }
         },
         "setFSRFlag":{
-            "summary": "Set the FSR flag into the emmc raw area.",
+            "summary": "Set the FSR flag into the emmc raw area. This API will fail if you attempt to set the same value.",
             "result": {
                 "type": "object",
                 "properties": {
