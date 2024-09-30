@@ -1,4 +1,8 @@
 #pragma once
+#include <fstream>
+#include <sstream>
+#include "UtilsLogging.h"
+#define SYSTEM_MODE_FILE "/tmp/SystemMode.txt"
 
 namespace Utils {
 namespace String {
@@ -191,5 +195,128 @@ namespace String {
 	    return sentence;
     }
 
+    void updateSystemModeFile(const std::string& systemMode, const std::string& property, const std::string& value, const std::string& action) {
+
+	    if (systemMode.empty() || property.empty()) {
+		    LOGINFO("Error: systemMode or property is empty. systemMode: %s property: %s", systemMode.c_str(), property.c_str());
+		    return;
+	    }
+
+	    if (action != "add" && action != "delete" && action != "deleteall" && action != "checkandadd") {
+		    LOGINFO("Error: Invalid action. Action must be 'add', 'delete', 'deleteall', or 'checkandadd'.");
+		    return;
+	    }
+
+	    std::ifstream infile(SYSTEM_MODE_FILE);
+	    if (!infile.good()) {
+		    // File doesn't exist, so create it
+		    std::ofstream outfile(SYSTEM_MODE_FILE);
+		    if (outfile) {
+			    LOGINFO("File created successfully: %s\n", SYSTEM_MODE_FILE);
+			    // Set default value for each SystemMode (example provided)
+			    Utils::String::updateSystemModeFile("DEVICE_OPTIMIZE", "currentstate", "VIDEO", "add");
+		    } else {
+			    LOGERR("Error creating file: %s\n", SYSTEM_MODE_FILE);
+			    return;
+		    }
+	    }
+
+	    std::string line;
+	    std::stringstream buffer;
+	    bool propertyFound = false;
+	    std::string searchKey = systemMode + "_" + property;
+
+	    // Read the file content and process it line by line
+	    if (infile.is_open()) {
+		    while (std::getline(infile, line)) {
+			    // If the line starts with the searchKey
+			    if (line.find(searchKey) == 0) {
+				    propertyFound = true;
+				    if (action == "deleteall" && value.empty()) {
+					    // Skip adding this line to the buffer, effectively removing it
+					    continue;
+				    } else if (property == "currentstate") {
+					    if (action == "add" || action == "checkandadd") {
+						    // Replace or add the value for currentstate
+						    line = searchKey + "=" + value;
+					    } else if (action == "delete") {
+						    // To delete a currentstate, we might want to clear or remove the line
+						    line.clear(); // This effectively removes the line
+					    }
+				    } else if (property == "callsign") {
+					    if (action == "add") {
+						    // Append the value to the callsign, ensuring no duplicate entries
+						    if (line.find(value) == std::string::npos) {
+							    line += value + "|";
+						    }
+					    } else if (action == "delete") {
+						    // Remove the value from the callsign
+						    size_t pos = line.find(value);
+						    if (pos != std::string::npos) {
+							    line.erase(pos, value.length() + 1); // +1 to remove the trailing '|'
+						    }
+					    }
+				    }
+			    }
+			    if (!line.empty()) {
+				    buffer << line << std::endl;
+			    }
+		    }
+		    infile.close();
+	    }
+
+	    // If the property wasn't found and the action is "add" or "checkandadd", add it to the file
+	    if (!propertyFound && (action == "add" || action == "checkandadd")) {
+		    if (property == "currentstate") {
+			    buffer << searchKey + "=" + value << std::endl;
+		    } else if (property == "callsign") {
+			    buffer << searchKey + "=" + value + "|" << std::endl;
+		    }
+	    }
+
+	    // Write the modified content back to the file
+	    std::ofstream outfile(SYSTEM_MODE_FILE);
+	    if (outfile.is_open()) {
+		    outfile << buffer.str();
+		    outfile.close();
+		    LOGINFO("Updated file %s successfully.", SYSTEM_MODE_FILE);
+	    } else {
+		    LOGINFO("Failed to open file %s for writing.", SYSTEM_MODE_FILE);
+	    }
+    }
+
+
+    bool getSystemModePropertyValue(const std::string& systemMode, const std::string& property, std::string& value)  
+    {
+	    if (systemMode.empty() || property.empty() ) {
+		    LOGINFO("Error: systemMode or property is empty. systemMode: %s property: %s ",systemMode.c_str(),property.c_str());
+		    return false;
+	    }
+
+	    std::ifstream infile(SYSTEM_MODE_FILE);
+	    std::string line;
+	    std::string searchKey = systemMode + "_" + property;
+
+	    if (!infile.is_open()) {
+		    std::cerr << "Failed to open file: " << SYSTEM_MODE_FILE << std::endl;
+		    return false;
+	    }
+
+	    while (std::getline(infile, line)) {
+		    // Check if the line starts with the search key
+		    if (line.find(searchKey) == 0) {
+			    // Extract the value after the '=' character
+			    size_t pos = line.find('=');
+			    if (pos != std::string::npos) {
+				    value = line.substr(pos + 1);
+				    infile.close();
+				    return true;
+			    }
+		    }
+	    }
+
+	    infile.close();
+	    return false;
+    }
 }
 }
