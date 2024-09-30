@@ -2,7 +2,7 @@
 <a name="System_Plugin"></a>
 # System Plugin
 
-**Version: [3.2.0](https://github.com/rdkcentral/rdkservices/blob/main/SystemServices/CHANGELOG.md)**
+**Version: [3.2.2](https://github.com/rdkcentral/rdkservices/blob/main/SystemServices/CHANGELOG.md)**
 
 A org.rdk.System plugin for Thunder framework.
 
@@ -3649,12 +3649,7 @@ SystemServices interface events:
 | [onFirmwarePendingReboot](#onFirmwarePendingReboot) | Triggered when the `fireFirmwarePendingReboot` method is invoked |
 | [onFirmwareUpdateInfoReceived](#onFirmwareUpdateInfoReceived) | Triggered when the `getFirmwareUpdateInfo` asynchronous method is invoked |
 | [onFirmwareUpdateStateChange](#onFirmwareUpdateStateChange) | Triggered when the state of a firmware update changes |
-| [onRecoveryStateChange](#onRecoveryStateChange) | Triggered when the state of red recovery transistion  
-State details are:  
-* `0`: Recovery completed  
-* `1`: Recovery Started - Fatal error detected  
-* `2`: Recovery FW Downloaded 
-* `3`: Recovery FW programmed |
+| [onRecoveryStateChange](#onRecoveryStateChange) | Triggered when the state of red recovery transistion State details are:  `0`: Recovery completed `1`: Recovery Started - Fatal error detected `2`: Recovery FW Downloaded `3`: Recovery FW programmed |
 | [onMacAddressesRetreived](#onMacAddressesRetreived) | Triggered when the `getMacAddresses` asynchronous method is invoked |
 | [onNetworkStandbyModeChanged](#onNetworkStandbyModeChanged) | Triggered when the network standby mode setting changes |
 | [onRebootRequest](#onRebootRequest) | Triggered when an application invokes the reboot method |
@@ -3771,12 +3766,7 @@ State details are:
 <a name="onRecoveryStateChange"></a>
 ## *onRecoveryStateChange*
 
-Triggered when the state of red recovery transistion  
-State details are:  
-* `0`: Recovery completed  
-* `1`: Recovery Started - Fatal error detected  
-* `2`: Recovery FW Downloaded 
-* `3`: Recovery FW programmed.
+Triggered when the state of red recovery transistion State details are:  `0`: Recovery completed `1`: Recovery Started - Fatal error detected `2`: Recovery FW Downloaded `3`: Recovery FW programmed.
 
 ### Parameters
 

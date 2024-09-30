@@ -2,7 +2,7 @@
 <a name="AVInput_Plugin"></a>
 # AVInput Plugin
 
-**Version: [1.6.0](https://github.com/rdkcentral/rdkservices/blob/main/AVInput/CHANGELOG.md)**
+**Version: [1.7.0](https://github.com/rdkcentral/rdkservices/blob/main/AVInput/CHANGELOG.md)**
 
 A org.rdk.AVInput plugin for Thunder framework.
 
@@ -63,6 +63,7 @@ AVInput interface methods:
 | [setEdidVersion](#setEdidVersion) | Sets an HDMI EDID version |
 | [setVideoRectangle](#setVideoRectangle) | Sets an HDMI/Composite Input video window |
 | [writeEDID](#writeEDID) | Changes a current EDID value |
+| [getHdmiVersion](#getHdmiVersion) | Gets the maximum hdmi compatibility version supported for the given port |
 | [getSupportedGameFeatures](#getSupportedGameFeatures) | Returns the list of supported game features |
 | [getGameFeatureStatus](#getGameFeatureStatus) | Returns the Game Feature Status |
 
@@ -957,6 +958,58 @@ No Events
     "jsonrpc": "2.0",
     "id": 42,
     "result": null
+}
+```
+
+<a name="getHdmiVersion"></a>
+## *getHdmiVersion*
+
+Gets the maximum hdmi compatibility version supported for the given port.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.portId | string | An ID of an HDMI/Composite Input port as returned by the `getInputDevices` method |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result?.HdmiCapabilityVersion | string | <sup>*(optional)*</sup> The Maximum Hdmi compatibility version supported by the given port |
+| result?.success | boolean | <sup>*(optional)*</sup> Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.AVInput.getHdmiVersion",
+    "params": {
+        "portId": "0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "HdmiCapabilityVersion": "2.0",
+        "success": true
+    }
 }
 ```
 
