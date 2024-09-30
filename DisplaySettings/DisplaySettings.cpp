@@ -3926,7 +3926,7 @@ namespace WPEFramework {
             returnResponse(success);
         }
 
-	 uint32_t DisplaySettings::getSinkAtmosCapability (const JsonObject& parameters, JsonObject& response)
+	uint32_t DisplaySettings::getSinkAtmosCapability (const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
             LOGINFOMETHOD();
             bool success = true;
