@@ -4799,13 +4799,17 @@ namespace WPEFramework {
         uint32_t SystemServices::setFSRFlag(const JsonObject& parameters,
                 JsonObject& response)
         {
-            unsigned short fsrFlag = 0;
+            LOGINFOMETHOD();
+            bool fsrFlag = 0;
             bool status = false;
+            
             if(parameters.HasLabel("fsrFlag"))
             {
                 fsrFlag = parameters["fsrFlag"].Boolean();
                 IARM_Bus_MFRLib_FsrFlag_Param_t param;
                 param = fsrFlag;
+
+                LOGINFO("Param %d \n", param);
                 IARM_Result_t res = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME,
                                        IARM_BUS_MFRLIB_API_SetFsrFlag, (void *)&param,
                                        sizeof(param));
@@ -4828,9 +4832,11 @@ namespace WPEFramework {
         uint32_t SystemServices::getFSRFlag(const JsonObject& parameters,
                 JsonObject& response)
         {
+            LOGINFOMETHOD();
             bool fsrFlag = 0;
             bool status = false;
             IARM_Bus_MFRLib_FsrFlag_Param_t param;
+
             IARM_Result_t res = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME,
                                   IARM_BUS_MFRLIB_API_GetFsrFlag, (void *)&param,
                                   sizeof(param));

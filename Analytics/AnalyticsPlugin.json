@@ -1,0 +1,13 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/plugin.schema.json",
+    "info": {
+      "title": "Analytics Plugin",
+      "callsign": "org.rdk.Analytics",
+      "locator": "libWPEFrameworkAnalytics.so",
+      "status": "development",
+      "description": "The `Analytics` plugin allows to send analytics events to dedicated backends."
+    },
+    "interface": {
+      "$ref": "Analytics.json#"
+    }
+}

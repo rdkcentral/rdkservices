@@ -71,6 +71,10 @@ if(PLUGIN_CONTROLSERVICE)
     add_subdirectory(ControlService)
 endif()
 
+if(PLUGIN_SYSTEMMODE)
+    add_subdirectory(SystemMode)
+endif()
+
 if(PLUGIN_USERSETTINGS)
     add_subdirectory(UserSettings)
 endif()
@@ -399,6 +403,10 @@ endif()
 
 if(PLUGIN_SHAREDSTORAGE)
     add_subdirectory(SharedStorage)
+endif()
+
+if (PLUGIN_ANALYTICS)
+    add_subdirectory(Analytics)
 endif()
 
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)

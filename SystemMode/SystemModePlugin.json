@@ -1,0 +1,13 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/plugin.schema.json",
+    "info": {
+      "title": "System Mode Plugin",
+      "callsign": "org.rdk.SystemMode",
+      "locator": "libWPEFrameworkSystemMode.so",
+      "status": "production",
+      "description": "The `SystemMode` plugin coordinates state changes that take effect across multiple components in the system."
+    },
+    "interface": {
+      "$ref": "SystemMode.json#"
+    }
+}
