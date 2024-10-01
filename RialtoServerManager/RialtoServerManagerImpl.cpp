@@ -24,8 +24,12 @@
 #include <rialto/IServerManagerService.h>
 #include <rialto/ServerManagerServiceFactory.h>
 
+#include <condition_variable>
+#include <mutex>
+
 namespace {
     static const string s_defaultAppName = "ExampleApp";
+    static const unsigned s_defaultRialtoServerStartupTimeoutMs = 5000; // 5s
 }
 
 namespace WPEFramework {
@@ -38,12 +42,14 @@ namespace Plugin {
     public:
         class RialtoServerManagerStateObserver : public rialto::servermanager::service::IStateObserver {
         public:
-            RialtoServerManagerStateObserver() = default;
+            RialtoServerManagerStateObserver(RialtoServerManagerImpl& parent) : _parent(parent) {}
             virtual ~RialtoServerManagerStateObserver() = default;
 
             void stateChanged(const std::string &appId, const firebolt::rialto::common::SessionServerState &state) override {
-                TRACE(Trace::Information, (_T("[RialtoServerManagerImpl] app state changed %s %u"), appId.c_str(), (unsigned)state));
+                _parent.stateChanged(appId, state);
             }
+        private:
+            RialtoServerManagerImpl& _parent;
         };
 
         RialtoServerManagerImpl() {}
@@ -57,7 +63,7 @@ namespace Plugin {
                 return 1;
             }
 
-            _stateObserver = std::make_shared<RialtoServerManagerStateObserver>();
+            _stateObserver = std::make_shared<RialtoServerManagerStateObserver>(*this);
             _serverManagerService = rialto::servermanager::service::create(_stateObserver, getRialtoServerConfig());
             if (!_serverManagerService) {
                 TRACE(Trace::Error, (_T("[RialtoServerManagerImpl] Failed to create ServerManagerService")));
@@ -70,12 +76,38 @@ namespace Plugin {
                 return 1;
             }
 
+            if (!waitState(appName, firebolt::rialto::common::SessionServerState::ACTIVE, s_defaultRialtoServerStartupTimeoutMs)) {
+                TRACE(Trace::Error, (_T("[RialtoServerManagerImpl] Failed to wait for app state")));
+                return 1;
+            }
+
             auto socket = _serverManagerService->getAppConnectionInfo(appName);
             TRACE(Trace::Information, (_T("[RialtoServerManagerImpl] initialized, app connection info: %s"), socket.c_str()));
 
             return 0;
         }
     private:
+        void stateChanged(const std::string &appId, const firebolt::rialto::common::SessionServerState &state) {
+            TRACE(Trace::Information, (_T("[RialtoServerManagerImpl] state changed for app %s: %d"), appId.c_str(), state));
+            std::lock_guard<std::mutex> lock(_serverMutex);
+            _appStates[appId] = state;
+            _serverCv.notify_all();
+        }
+
+        bool waitState(const std::string &appId, const firebolt::rialto::common::SessionServerState &state, unsigned timeoutMs = -1) {
+            std::unique_lock<std::mutex> lock(_serverMutex);
+            auto isAppStateReached = [&] { return _appStates.find(appId) != _appStates.end() && _appStates[appId] == state; };
+            if (isAppStateReached()) {
+                return true;
+            }
+
+            if (timeoutMs < 0) {
+                _serverCv.wait(lock, isAppStateReached);
+                return true;
+            }
+            return _serverCv.wait_for(lock, std::chrono::milliseconds(timeoutMs), isAppStateReached);
+        }
+
         firebolt::rialto::common::ServerManagerConfig getRialtoServerConfig() {
             firebolt::rialto::common::ServerManagerConfig config;
             config.sessionServerEnvVars = {};
@@ -102,6 +134,10 @@ namespace Plugin {
         std::unique_ptr<rialto::servermanager::service::IServerManagerService> _serverManagerService;
         std::shared_ptr<RialtoServerManagerStateObserver> _stateObserver;
         RialtoServerManagerConfig::Config _config;
+
+        std::map<std::string, firebolt::rialto::common::SessionServerState> _appStates;
+        std::mutex _serverMutex;
+        std::condition_variable _serverCv;
 
     public:
         BEGIN_INTERFACE_MAP(RialtoServerManagerImpl)
