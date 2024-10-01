@@ -65,7 +65,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 7
+#define API_VERSION_NUMBER_PATCH 8
 
 namespace
 {
@@ -114,11 +114,10 @@ namespace
         return name;
     }
 
-    JsonObject getFrontPanelIndicatorInfo(device::FrontPanelIndicator &indicator)
+    JsonObject getFrontPanelIndicatorInfo(device::FrontPanelIndicator &indicator,JsonObject &indicatorInfo)
     {
         JsonObject returnResult;
         int levels=0, min=0, max=0;
-        JsonObject indicatorInfo;
         string range;
 
         indicator.getBrightnessLevels(levels, min, max);
@@ -138,6 +137,7 @@ namespace
         {
             availableColors.Add(colorsList.at(j).getName());
         }
+
         if (availableColors.Length() > 0)
         {
             indicatorInfo["colors"] = availableColors;
@@ -632,17 +632,21 @@ namespace WPEFramework
             {
                 IndicatorNameIarm = fpIndicators.at(i).getName();
                 MappedName = iarm2svc(IndicatorNameIarm);
+                getFrontPanelIndicatorInfo(fpIndicators.at(i),indicatorInfo);
                 if (MappedName != IndicatorNameIarm)
                 {
-                    indicatorInfo = getFrontPanelIndicatorInfo(fpIndicators.at(i));
                     returnResult[MappedName.c_str()] = indicatorInfo;
+                }
+                else
+                {
+                    returnResult[IndicatorNameIarm.c_str()] = indicatorInfo;
                 }
             }
 
 #ifdef CLOCK_BRIGHTNESS_ENABLED
             try
             {
-                indicatorInfo = getFrontPanelIndicatorInfo(device::FrontPanelConfig::getInstance().getTextDisplay(0));
+                getFrontPanelIndicatorInfo(device::FrontPanelConfig::getInstance().getTextDisplay(0),indicatorInfo);
                 returnResult[CLOCK_LED] = indicatorInfo;
             }
             catch (...)
