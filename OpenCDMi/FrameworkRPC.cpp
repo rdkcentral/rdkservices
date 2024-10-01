@@ -512,6 +512,11 @@ namespace Plugin {
                         _callback->OnKeyStatusesUpdated();
                     }
 
+                    void OnBindLicense(uint32_t callbackType, const uint8_t *licenseMessage, const uint8_t licenseMessageLength) override
+                    {
+                        _callback->OnBindLicense(callbackType, licenseMessage, licenseMessageLength);
+                    }
+
                 private:
                     SessionImplementation& _parent;
                     Exchange::ISession::ICallback* _callback;
