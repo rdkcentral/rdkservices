@@ -151,6 +151,11 @@ namespace WPEFramework
                 string           m_securityModeText;
             };
 
+            struct EXTERNAL WIFIScanFilter {
+                bool onFrequency = false;
+                std::string frequency;
+            };
+
             enum WiFiSignalQuality : uint8_t
             {
                 WIFI_SIGNAL_DISCONNECTED,

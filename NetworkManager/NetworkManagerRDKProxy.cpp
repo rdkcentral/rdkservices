@@ -511,8 +511,22 @@ namespace WPEFramework
                         }
 
                         JsonArray ssids = eventDocument["getAvailableSSIDs"].Array();
+                        JsonArray result;
+
+                        for(int i=0; i<ssids.Length(); i++)
+                        {
+                            JsonObject object = ssids[i].Object();
+
+                            if(filter.onFrequency && object["frequency"].String() != filter.frequency)
+                            {
+                                LOGINFO("Frequency filter out %s != %s", object["frequency"].String().c_str(), filter.frequency.c_str());
+                                continue;
+                            }
+
+                            result.Add(object);
+                        }
                         string json;
-                        ssids.ToString(json);
+                        result.ToString(json);
 
                         ::_instance->ReportAvailableSSIDsEvent(json);
                     }
