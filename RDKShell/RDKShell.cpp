@@ -951,9 +951,7 @@ namespace WPEFramework {
                 }
 		else if (requestName.compare("susbscribeSystemEvent") == 0)
                 {
-                   gSubscribeMutex.lock();
 		   subscribeForSystemEvent("onSystemPowerStateChanged");
-		   gSubscribeMutex.unlock();
                    std::cout << "subscribed system event " << std::endl;
                    JsonObject joGetParams;
                     JsonObject joGetResult;
@@ -8168,6 +8166,7 @@ namespace WPEFramework {
 
         int32_t RDKShell::subscribeForSystemEvent(std::string event)
         {
+	    gSubscribeMutex.lock();
             int32_t status = Core::ERROR_GENERAL;
 
             PluginHost::IShell::state state;
@@ -8208,6 +8207,7 @@ namespace WPEFramework {
             else
                 std::cout << "No Connection to SystemServices" << std::endl;
 
+	    gSubscribeMutex.unlock();
             return status;
         }
         
