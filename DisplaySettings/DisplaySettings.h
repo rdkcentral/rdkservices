@@ -96,8 +96,6 @@ namespace WPEFramework {
 	    uint32_t getSupportedMS12AudioProfiles(const JsonObject& parameters, JsonObject& response);
             uint32_t getAudioDelay(const JsonObject& parameters, JsonObject& response);
             uint32_t setAudioDelay(const JsonObject& parameters, JsonObject& response);
-            uint32_t getAudioDelayOffset(const JsonObject& parameters, JsonObject& response);
-            uint32_t setAudioDelayOffset(const JsonObject& parameters, JsonObject& response);
             uint32_t getSinkAtmosCapability(const JsonObject& parameters, JsonObject& response);
             uint32_t setAudioAtmosOutputMode(const JsonObject& parameters, JsonObject& response);
             uint32_t getTVHDRCapabilities(const JsonObject& parameters, JsonObject& response);
