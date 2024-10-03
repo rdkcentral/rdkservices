@@ -1937,8 +1937,7 @@ namespace WPEFramework {
                    JsonObject activateParams,response;
                    activateParams.Set("callsign",callsign.c_str());
                    JsonObject activateResult;
-                   auto thunderController = getThunderControllerClient();
-                   status = thunderController->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, activateResult);
+		   status = JSONRPCDirectLink(mCurrentService, callsign).Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "activate", activateParams, activateResult);
                    std::cout << "Activating ResidentApp from RDKShell during bootup with Status:" << status << std::endl;
                    if (status > 0){
                            response["message"] = "resident app launch failed";
