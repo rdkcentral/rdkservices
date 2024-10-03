@@ -191,8 +191,8 @@ namespace Plugin {
         LOGINFO("Entry : %s pqmode : %s source :%s format :%s\n",__FUNCTION__,pqmode.c_str(),source.c_str(),format.c_str());
 
         if( source.compare("none") == 0 || source.compare("Current") == 0 ) {
-            tvVideoSrcType_t currentSource = VIDEO_SOURCE_IP;
-            GetCurrentSource(&currentSource);
+            int currentSource = VIDEO_SOURCE_IP;
+            GetCurrentVideoSource(&currentSource);
             sourceIndex = (int)currentSource;
         }
         else {
@@ -236,62 +236,22 @@ namespace Plugin {
 
     int AVOutputTV::getDolbyModeIndex(const char * dolbyMode)
     {
-        int mode = 0;  
-        tvDolbyMode_t *dolbyModes;  
+        int mode = 0;
+        pic_modes_t *dolbyModes     ;
         unsigned short totalAvailable = 0;
 
-
-        tvError_t ret = GetTVSupportedDolbyVisionModes(&dolbyModes,&totalAvailable);
-
+        tvError_t ret = GetTVSupportedDolbyVisionModesODM(&dolbyModes,&totalAvailable);
         if(ret == tvERROR_NONE) {
-            for(int count = 0; count < totalAvailable; count++) {
-                // Map the tvDolbyMode_t values to the corresponding string names
-                const char* modeName = nullptr;
-                switch(dolbyModes[count]) {
-                    case tvDolbyMode_Invalid:
-                        modeName = "invalid";
-                        break;
-                    case tvDolbyMode_Dark:
-                        modeName = "Dolby Dark";
-                        break;
-                    case tvDolbyMode_Bright:
-                        modeName = "Dolby Bright";
-                        break;
-                    case tvDolbyMode_Game:
-                        modeName = "Dolby Game";
-                        break;
-                    case tvHDR10Mode_Dark:
-                        modeName = "HDR10 Dark";
-                        break;
-                    case tvHDR10Mode_Bright:
-                        modeName = "HDR10 Bright";
-                        break;
-                    case tvHDR10Mode_Game:
-                        modeName = "HDR10 Game";
-                        break;
-                    case tvHLGMode_Dark:
-                        modeName = "HLG Dark";
-                        break;
-                    case tvHLGMode_Bright:
-                        modeName = "HLG Bright";
-                        break;
-                    case tvHLGMode_Game:
-                        modeName = "HLG Game";
-                        break;
-                    default:
-                        modeName = "invalid";
-                        break;
-                }
-
-                // Compare the input string with the mapped mode name
-                if(modeName != nullptr && strncasecmp(dolbyMode, modeName, strlen(dolbyMode)) == 0) {
-                    mode = dolbyModes[count];  // Use the enum value as the mode index
+            for(int count = 0;count <totalAvailable;count++ ) {
+                if(strncasecmp(dolbyMode, dolbyModes[count].name, strlen(dolbyMode))==0) {
+                    mode = dolbyModes[count].value;
                     break;
                 }
+
             }
         } else {
             mode = -1;
-            printf("(%s): get supported mode failed\n", __func__);
+            printf("(%s):get supported mode is failed\n", __func__);
         }
 
         return mode;
@@ -332,7 +292,7 @@ namespace Plugin {
         bool ret=false;
         char picMode[PIC_MODE_NAME_MAX]={0};
         tvError_t retVal = tvERROR_NONE;
-        tvVideoSrcType_t sourceIndex = VIDEO_SOURCE_IP;
+        int sourceIndex = VIDEO_SOURCE_IP;
         std::string currentPicMode;
         std::string currentSource;
         std::string currentFormat;
@@ -344,10 +304,10 @@ namespace Plugin {
 
         currentPicMode = picMode; //Convert to string
 
-        //GetCurrentSource
-        retVal = GetCurrentSource(&sourceIndex);
+        //GetCurrentVideoSource
+        retVal = GetCurrentVideoSource(&sourceIndex);
         if(retVal != tvERROR_NONE) {
-            LOGERR("%s : GetCurrentSource( ) Failed\n",__FUNCTION__);
+            LOGERR("%s : GetCurrentVideoSource( ) Failed\n",__FUNCTION__);
             return false;
         }
         currentSource = convertSourceIndexToString(sourceIndex);
@@ -675,7 +635,7 @@ namespace Plugin {
             PQFileName = std::string(AVOUTPUT_RFC_CALLERID_OVERRIDE);
         }
         else {
-            int val=GetPanelID(panelId);
+            int val=GetPanelIDODM(panelId);
             if(val==0) {
                 LOGINFO("%s : panel id read is : %s\n",__FUNCTION__,panelId);
                 if(strncmp(panelId,AVOUTPUT_CONVERTERBOARD_PANELID,strlen(AVOUTPUT_CONVERTERBOARD_PANELID))!=0) {
@@ -702,7 +662,7 @@ namespace Plugin {
     {
         tvError_t ret = tvERROR_NONE;
         TR181_ParamData_t param;
-        tvVideoSrcType_t current_source = VIDEO_SOURCE_IP;
+        int current_source = VIDEO_SOURCE_IP;
         std::string tr181_param_name = "";
         tvVideoFormatType_t current_format = VIDEO_FORMAT_NONE;
 
@@ -711,7 +671,7 @@ namespace Plugin {
 	    current_format  = VIDEO_FORMAT_SDR;
 	}
         // get current source
-        GetCurrentSource(&current_source);
+        GetCurrentVideoSource(&current_source);
 
         tr181_param_name += std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
         tr181_param_name += "."+convertSourceIndexToString(current_source)+"."+"Format."+convertVideoFormatToString(current_format)+"."+"PictureModeString";
@@ -789,11 +749,11 @@ namespace Plugin {
             }
         }
         else if (source == "Current") {
-            tvVideoSrcType_t currentSource = VIDEO_SOURCE_IP;
-            tvError_t ret = GetCurrentSource(&currentSource);
+            int currentSource = VIDEO_SOURCE_IP;
+            tvError_t ret = GetCurrentVideoSource(&currentSource);
 
             if(ret != tvERROR_NONE) {
-                LOGWARN("%s: GetCurrentSource( ) Failed \n",__FUNCTION__);
+                LOGWARN("%s: GetCurrentVideoSource( ) Failed \n",__FUNCTION__);
                 return -1;
             }
             source = convertSourceIndexToString(currentSource);
@@ -1310,6 +1270,57 @@ namespace Plugin {
         return CompColorEnum;
     }
 
+    int AVOutputTV::getDolbyParams(tvContentFormatType_t format, std::string &s, std::string source)
+    {
+        int ret = -1;
+        TR181_ParamData_t param;
+        std::string rfc_param = AVOUTPUT_HDR10MODE_RFC_PARAM;
+        int dolby_mode_value = 0;
+        int sourceIndex = VIDEO_SOURCE_IP;
+        /*Since dolby vision is source specific, we should for check for specific source*/
+        if (!source.empty()) {
+            sourceIndex = (tvVideoSrcType_t)getSourceIndex(source);
+        }
+        else {
+            GetCurrentSource(&sourceIndex);
+        }
+
+        char picMode[PIC_MODE_NAME_MAX]={0};
+        int pqmodeIndex = 0;
+        if(!getCurrentPictureMode(picMode)) {
+            LOGERR("Failed to get the Current picture mode\n");
+        }
+        else {
+            std::string local = picMode;
+            pqmodeIndex = getPictureModeIndex(local);
+        }
+        memset(&param, 0, sizeof(param));
+        if (format == tvContentFormatType_HLG ) {
+            rfc_param = AVOUTPUT_HLGMODE_RFC_PARAM;
+        }
+        else if (format == tvContentFormatType_DOVI) {
+            rfc_param = AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM + std::to_string(sourceIndex) + "."+"DolbyVisionMode";
+        }
+
+        tr181ErrorCode_t err = getLocalParam(rfc_caller_id, rfc_param.c_str(), &param);
+        if ( tr181Success != err) {
+            tvError_t retVal = GetDefaultPQParams(pqmodeIndex,(tvVideoSrcType_t)sourceIndex,
+                                                 (tvVideoFormatType_t)ConvertHDRFormatToContentFormatODM((tvhdr_type_t)format),
+                                                 PQ_PARAM_DOLBY_MODE,&dolby_mode_value);
+            if( retVal != tvERROR_NONE ) {
+                LOGERR("%s : failed\n",__FUNCTION__);
+                return ret;
+            }
+            s = getDolbyModeStringFromEnum((tvDolbyMode_t)dolby_mode_value);
+            ret = 0;
+        }
+        else {
+            s += param.value;
+            ret = 0;
+        }
+        return ret;
+    }
+
     tvError_t AVOutputTV::getParamsCaps(std::vector<std::string> &range
                 , std::vector<std::string> &pqmode, std::vector<std::string> &source, std::vector<std::string> &format,std::string param )
     {
@@ -1392,6 +1403,32 @@ namespace Plugin {
         return 0;
     }
 
+    int AVOutputTV::ConvertHDRFormatToContentFormat(tvVideoFormatType_t hdrFormat)
+    {
+        int ret=CONTENT_FORMAT_SDR;
+        switch(hdrFormat)
+        {
+            case VIDEO_FORMAT_SDR:
+                ret=CONTENT_FORMAT_SDR;
+                break;
+            case VIDEO_FORMAT_HDR10:
+                ret=CONTENT_FORMAT_HDR10;
+                break;
+            case VIDEO_FORMAT_HDR10PLUS:
+                ret=CONTENT_FORMAT_HDR10PLUS;
+                break;
+            case VIDEO_FORMAT_DV:
+                ret=CONTENT_FORMAT_DV;
+                break;
+            case VIDEO_FORMAT_HLG:
+                ret=CONTENT_FORMAT_HLG;
+                break;
+            default:
+                break;
+        }
+        return ret;
+    }
+
     void AVOutputTV::getDimmingModeStringFromEnum(int value, std::string &toStore)
     {
         const char *color_temp_string[] = {
@@ -1420,11 +1457,11 @@ namespace Plugin {
         tvError_t  ret = tvERROR_NONE;
         TR181_ParamData_t param;
         std::string tr181_param_name;
-        tvVideoSrcType_t currentSource = VIDEO_SOURCE_IP;
+        int currentSource = VIDEO_SOURCE_IP;
 
-        ret = GetCurrentSource(&currentSource);
+        ret = GetCurrentVideoSource(&currentSource);
         if(ret != tvERROR_NONE) {
-            LOGERR("GetCurrentSource() Failed set source to default\n");
+            LOGERR("GetCurrentVideoSource() Failed set source to default\n");
             return 0;
         }
 
