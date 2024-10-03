@@ -2,7 +2,7 @@
 <a name="HdmiInputPlugin"></a>
 # HdmiInputPlugin
 
-**Version: [1.3.0](https://github.com/rdkcentral/rdkservices/blob/main/HdmiInput/CHANGELOG.md)**
+**Version: [1.4.0](https://github.com/rdkcentral/rdkservices/blob/main/HdmiInput/CHANGELOG.md)**
 
 A org.rdk.HdmiInput plugin for Thunder framework.
 
@@ -60,6 +60,7 @@ HdmiInput interface methods:
 | [getEdid2AllmSupport](#getEdid2AllmSupport) | Returns the EDID ALLM bit value |
 | [setEdid2AllmSupport](#setEdid2AllmSupport) | Sets an HDMI ALLM bit in EDID |
 | [setAudioMixerLevels](#setAudioMixerLevels) | Sets the audio mixer level for given audio input |
+| [getHdmiVersion](#getHdmiVersion) | Gets the maximum hdmi compatibility version supported for the given port |
 | [setVideoRectangle](#setVideoRectangle) | Sets an HDMI Input video window |
 | [writeEDID](#writeEDID) | Changes a current EDID value |
 | [getSupportedGameFeatures](#getSupportedGameFeatures) | Returns the list of supported game features |
@@ -652,6 +653,58 @@ No Events
     "jsonrpc": "2.0",
     "id": 42,
     "result": {
+        "success": true
+    }
+}
+```
+
+<a name="getHdmiVersion"></a>
+## *getHdmiVersion*
+
+Gets the maximum hdmi compatibility version supported for the given port.
+
+### Events
+
+No Events
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.portId | string | An ID of an HDMI Input port as returned by the `getHdmiInputDevices` method |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result?.HdmiCapabilityVersion | string | <sup>*(optional)*</sup> The Maximum Hdmi compatibility version supported by the given port |
+| result?.success | boolean | <sup>*(optional)*</sup> Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.HdmiInput.getHdmiVersion",
+    "params": {
+        "portId": "0"
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "HdmiCapabilityVersion": "2.0",
         "success": true
     }
 }
