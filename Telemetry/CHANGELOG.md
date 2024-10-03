@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.3.0] - 2024-10-3
+### Added
+- Added notifications for Telemetry component about changes in PrivacyMode.
+
 ## [1.2.2] - 2024-02-02
 ### Fixed
 - Fixed IARM unregister calls.

@@ -21,6 +21,7 @@
 
 #include "UtilsJsonRpc.h"
 #include "UtilsTelemetry.h"
+#include "UtilsController.h"
 
 #include "rfcapi.h"
 
@@ -53,13 +54,18 @@
 #define T2_PERSISTENT_FOLDER "/opt/.t2reportprofiles/"
 #define DEFAULT_PROFILES_FILE "/etc/t2profiles/default.json"
 
+#define SYSTEMSERVICES_CALLSIGN "org.rdk.System"
+
 #define API_VERSION_NUMBER_MAJOR 1
-#define API_VERSION_NUMBER_MINOR 2
-#define API_VERSION_NUMBER_PATCH 2
+#define API_VERSION_NUMBER_MINOR 3
+#define API_VERSION_NUMBER_PATCH 0
 
 #ifdef HAS_RBUS
+#define RBUS_PRIVACY_MODE_EVENT_NAME "Device.X_RDKCENTRAL-COM_Privacy.PrivacyMode"
+
 static rbusError_t rbusHandleStatus = RBUS_ERROR_NOT_INITIALIZED;
 static rbusHandle_t rbusHandle;
+
 #endif
 
 namespace WPEFramework
@@ -108,6 +114,60 @@ namespace WPEFramework
 
         const string Telemetry::Initialize(PluginHost::IShell* service )
         {
+
+#ifdef HAS_RBUS
+            PluginHost::IShell::state state;
+            if ((Utils::getServiceState(service, SYSTEMSERVICES_CALLSIGN, state) == Core::ERROR_NONE) && (state != PluginHost::IShell::state::ACTIVATED))
+                Utils::activatePlugin(service, SYSTEMSERVICES_CALLSIGN);
+
+            if ((Utils::getServiceState(service, SYSTEMSERVICES_CALLSIGN, state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED))
+            {
+                m_systemServiceConnection = Utils::getThunderControllerClient(SYSTEMSERVICES_CALLSIGN);
+
+                if (!m_systemServiceConnection)
+                {
+                    LOGERR("%s plugin initialisation failed", SYSTEMSERVICES_CALLSIGN);
+                }
+                else
+                {
+                    uint32_t err = m_systemServiceConnection->Subscribe<JsonObject>(2000, "onPrivacyModeChanged", [this](const JsonObject& parameters) {
+                        
+                        if (parameters.HasLabel("privacyMode"))
+                        {
+                            std::string privacyMode = parameters["privacyMode"].String();
+                            notifyT2PrivacyMode(privacyMode);
+                        }
+                        else
+                        {
+                            LOGERR("No 'privacyMode' parameter");
+                        }
+                    });
+
+                    if (err != Core::ERROR_NONE)
+                    {
+                        LOGERR("Failed to subscribe to onPrivacyModeChanged: %d", err);
+                    }
+
+                    JsonObject params;
+                    JsonObject res;
+                    m_systemServiceConnection->Invoke<JsonObject, JsonObject>(2000, "getPrivacyMode", params, res);
+                    if (res["success"].Boolean())
+                    {
+                        std::string privacyMode = res["privacyMode"].String();
+                        notifyT2PrivacyMode(privacyMode);
+                    }
+                    else
+                    {
+                        LOGERR("Failed to get privacy mode");
+                    }
+                }
+            }
+            else
+            {
+                LOGERR("%s plugin is not activated", SYSTEMSERVICES_CALLSIGN);
+            }
+#endif
+
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             InitializeIARM();
 #endif /* defined(USE_IARMBUS) || defined(USE_IARM_BUS) */
@@ -350,6 +410,37 @@ namespace WPEFramework
         static void t2OnAbortEventHandler(rbusHandle_t handle, char const* methodName, rbusError_t error, rbusObject_t param)
         {
             LOGINFO("Got %s rbus callback", methodName);
+        }
+
+        void Telemetry::notifyT2PrivacyMode(std::string privacyMode)
+        {
+            LOGINFO("Privacy mode is %s", privacyMode.c_str());
+            if (RBUS_ERROR_SUCCESS != rbusHandleStatus)
+            {
+                rbusHandleStatus = rbus_open(&rbusHandle, RBUS_COMPONENT_NAME);
+            }
+
+            if (RBUS_ERROR_SUCCESS == rbusHandleStatus)
+            {
+                rbusValue_t value;
+                rbusSetOptions_t opts = {true, 0};
+
+                rbusValue_Init(&value);
+                rbusValue_SetString(value, privacyMode.c_str());
+                int rc = rbus_set(rbusHandle, RBUS_PRIVACY_MODE_EVENT_NAME, value, &opts);
+                if (rc != RBUS_ERROR_SUCCESS)
+                {
+                    std::stringstream str;
+                    str << "Failed to set property " << RBUS_PRIVACY_MODE_EVENT_NAME << ": " << rc;
+                    LOGERR("%s", str.str().c_str());
+                }
+                rbusValue_Release(value);
+            }
+            else
+            {
+                LOGERR("rbus_open failed with error code %d", rbusHandleStatus);
+            }
+
         }
 
 #endif
