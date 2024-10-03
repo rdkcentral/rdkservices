@@ -1945,7 +1945,7 @@
                 ]
             }
         },
-        "SetPrivacyMode": {
+        "setPrivacyMode": {
             "summary": "Setting Privacy Mode.",          
             "events": {
                 "onPrivacyModeChanged" : "Triggered when the Privacy Mode changes."
