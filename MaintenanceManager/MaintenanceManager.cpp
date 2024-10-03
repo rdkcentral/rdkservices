@@ -131,12 +131,6 @@ string moduleStatusToString(IARM_Maint_module_status_t &status)
 {
     string ret_status="";
     switch(status){
-        case MAINT_DCM_COMPLETE:
-            ret_status="MAINTENANCE_DCM_COMPLETE";
-            break;
-        case MAINT_DCM_ERROR:
-            ret_status="MAINTENANCE_DCM_ERROR";
-            break;
         case MAINT_RFC_COMPLETE:
             ret_status="MAINTENANCE_RFC_COMPLETE";
             break;
@@ -224,7 +218,6 @@ namespace WPEFramework {
         cSettings MaintenanceManager::m_setting(MAINTENANCE_MGR_RECORD_FILE);
 
         string task_names_foreground[]={
-            "/lib/rdk/StartDCM_maintaince.sh",
             "/lib/rdk/RFCbase.sh",
             "/lib/rdk/swupdate_utility.sh >> /opt/logs/swupdate.log",
             "/lib/rdk/Start_uploadSTBLogs.sh"
@@ -233,7 +226,6 @@ namespace WPEFramework {
         vector<string> tasks;
 
         string script_names[]={
-            "DCMscript_maintaince.sh",
             "RFCbase.sh",
             "swupdate_utility.sh",
             "uploadSTBLogs.sh"
@@ -650,9 +642,6 @@ namespace WPEFramework {
 
         void MaintenanceManager::startCriticalTasks()
         {
-            LOGINFO("Starting Script /lib/rdk/StartDCM_maintaince.sh");
-            system("/lib/rdk/StartDCM_maintaince.sh &");
-
 	    LOGINFO("Starting Script /lib/rdk/RFCbase.sh");
 	    system("/lib/rdk/RFCbase.sh &");
 
@@ -994,9 +983,6 @@ namespace WPEFramework {
                 IARM_Result_t res;
                 // Register for the Maintenance Notification Events
                 IARM_CHECK(IARM_Bus_RegisterEventHandler(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, _MaintenanceMgrEventHandler));
-                //Register for setMaintenanceStartTime
-                IARM_CHECK(IARM_Bus_RegisterEventHandler(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_DCM_NEW_START_TIME_EVENT,_MaintenanceMgrEventHandler));
-
                 maintenanceManagerOnBootup();
             }
         }
@@ -1060,24 +1046,15 @@ namespace WPEFramework {
             IARM_Maint_module_status_t module_status;
             time_t successfulTime;
             string str_successfulTime="";
-            auto task_status_DCM=m_task_map.find(task_names_foreground[0].c_str());
-            auto task_status_RFC=m_task_map.find(task_names_foreground[1].c_str());
-            auto task_status_FWDLD=m_task_map.find(task_names_foreground[2].c_str());
-            auto task_status_LOGUPLD=m_task_map.find(task_names_foreground[3].c_str());
+            auto task_status_RFC=m_task_map.find(task_names_foreground[0].c_str());
+            auto task_status_FWDLD=m_task_map.find(task_names_foreground[1].c_str());
+            auto task_status_LOGUPLD=m_task_map.find(task_names_foreground[2].c_str());
 
             IARM_Bus_MaintMGR_EventId_t event = (IARM_Bus_MaintMGR_EventId_t)eventId;
             LOGINFO("Maintenance Event-ID = %d \n",event);
 
             if (!strcmp(owner, IARM_BUS_MAINTENANCE_MGR_NAME)) {
-                if ( IARM_BUS_DCM_NEW_START_TIME_EVENT == eventId ) {
-                    /* we got a new start time from DCM script */
-                    string l_time(module_event_data->data.startTimeUpdate.start_time);
-                    LOGINFO("DCM_NEW_START_TIME_EVENT Start Time %s \n", l_time.c_str());
-                    /* Store it in a Global structure */
-                    g_epoch_time=l_time;
-                }
-                else if (( IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE == eventId ) &&
-                    ( MAINTENANCE_STARTED == m_notify_status )) {
+                if (( IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE == eventId ) && ( MAINTENANCE_STARTED == m_notify_status )) {
                     module_status = module_event_data->data.maintenance_module_status.status;
                     LOGINFO("MaintMGR Status %d \n",module_status);
                     string status_string=moduleStatusToString(module_status);
@@ -1092,19 +1069,7 @@ namespace WPEFramework {
                                  SET_STATUS(g_task_status,RFC_SUCCESS);
                                  SET_STATUS(g_task_status,RFC_COMPLETE);
                                  task_thread.notify_one();
-                                 m_task_map[task_names_foreground[1].c_str()]=false;
-                            }
-                            break;
-                        case MAINT_DCM_COMPLETE :
-                            if(task_status_DCM->second != true) {
-                                 LOGINFO("Ignoring Event DCM_COMPLETE");
-                                 break;
-                            }
-                            else {
-                                SET_STATUS(g_task_status,DCM_SUCCESS);
-                                SET_STATUS(g_task_status,DCM_COMPLETE);
-                                task_thread.notify_one();
-                                m_task_map[task_names_foreground[0].c_str()]=false;
+                                 m_task_map[task_names_foreground[0].c_str()]=false;
                             }
                             break;
                         case MAINT_FWDOWNLOAD_COMPLETE :
@@ -1116,7 +1081,7 @@ namespace WPEFramework {
                                 SET_STATUS(g_task_status,DIFD_SUCCESS);
                                 SET_STATUS(g_task_status,DIFD_COMPLETE);
                                 task_thread.notify_one();
-                                m_task_map[task_names_foreground[2].c_str()]=false;
+                                m_task_map[task_names_foreground[1].c_str()]=false;
                             }
                             break;
                        case MAINT_LOGUPLOAD_COMPLETE :
@@ -1128,7 +1093,7 @@ namespace WPEFramework {
                                 SET_STATUS(g_task_status,LOGUPLOAD_SUCCESS);
                                 SET_STATUS(g_task_status,LOGUPLOAD_COMPLETE);
                                 task_thread.notify_one();
-                                m_task_map[task_names_foreground[3].c_str()]=false;
+                                m_task_map[task_names_foreground[2].c_str()]=false;
                             }
 
                             break;
@@ -1144,20 +1109,8 @@ namespace WPEFramework {
                             /* we say FW update task complete */
                             SET_STATUS(g_task_status,DIFD_COMPLETE);
                             task_thread.notify_one();
-                            m_task_map[task_names_foreground[2].c_str()]=false;
+                            m_task_map[task_names_foreground[1].c_str()]=false;
                             LOGINFO("FW Download task aborted \n");
-                            break;
-                        case MAINT_DCM_ERROR:
-                            if(task_status_DCM->second != true) {
-                                 LOGINFO("Ignoring Event DCM_ERROR");
-                                 break;
-                            }
-                            else {
-                                SET_STATUS(g_task_status,DCM_COMPLETE);
-                                task_thread.notify_one();
-                                LOGINFO("Error encountered in DCM script task \n");
-                                m_task_map[task_names_foreground[0].c_str()]=false;
-                            }
                             break;
                         case MAINT_RFC_ERROR:
                             if(task_status_RFC->second != true) {
@@ -1168,7 +1121,7 @@ namespace WPEFramework {
                                  SET_STATUS(g_task_status,RFC_COMPLETE);
                                  task_thread.notify_one();
                                  LOGINFO("Error encountered in RFC script task \n");
-                                 m_task_map[task_names_foreground[1].c_str()]=false;
+                                 m_task_map[task_names_foreground[0].c_str()]=false;
                             }
 
                             break;
@@ -1181,7 +1134,7 @@ namespace WPEFramework {
                                 SET_STATUS(g_task_status,LOGUPLOAD_COMPLETE);
                                 task_thread.notify_one();
                                 LOGINFO("Error encountered in LOGUPLOAD script task \n");
-                                m_task_map[task_names_foreground[3].c_str()]=false;
+                                m_task_map[task_names_foreground[2].c_str()]=false;
                             }
 
                             break;
@@ -1194,26 +1147,21 @@ namespace WPEFramework {
                                 SET_STATUS(g_task_status,DIFD_COMPLETE);
                                 task_thread.notify_one();
                                 LOGINFO("Error encountered in SWUPDATE script task \n");
-                                m_task_map[task_names_foreground[2].c_str()]=false;
+                                m_task_map[task_names_foreground[1].c_str()]=false;
                             }
                             break;
-                       case MAINT_DCM_INPROGRESS:
-                            m_task_map[task_names_foreground[0].c_str()]=true;
-                            /*will be set to false once COMEPLETE/ERROR received for DCM*/
-                            LOGINFO(" DCM already IN PROGRESS -> setting m_task_map of DCM to true \n");
-                            break;
                        case MAINT_RFC_INPROGRESS:
-                            m_task_map[task_names_foreground[1].c_str()]=true;
+                            m_task_map[task_names_foreground[0].c_str()]=true;
                             /*will be set to false once COMEPLETE/ERROR received for RFC*/
                             LOGINFO(" RFC already IN PROGRESS -> setting m_task_map of RFC to true \n");
                             break;
                        case MAINT_FWDOWNLOAD_INPROGRESS:
-                            m_task_map[task_names_foreground[2].c_str()]=true;
+                            m_task_map[task_names_foreground[1].c_str()]=true;
                             /*will be set to false once COMEPLETE/ERROR received for FWDOWNLOAD*/
                             LOGINFO(" FWDOWNLOAD already IN PROGRESS -> setting m_task_map of FWDOWNLOAD to true \n");
                             break;
                        case MAINT_LOGUPLOAD_INPROGRESS:
-                            m_task_map[task_names_foreground[3].c_str()]=true;
+                            m_task_map[task_names_foreground[2].c_str()]=true;
                             /*will be set to false once COMEPLETE/ERROR received for LOGUPLOAD*/
                             LOGINFO(" LOGUPLOAD already IN PROGRESS -> setting m_task_map of LOGUPLOAD to true \n");
                             break;
@@ -1288,7 +1236,6 @@ namespace WPEFramework {
             if (Utils::IARM::isConnected()){
                 IARM_Result_t res;
                 IARM_CHECK(IARM_Bus_RemoveEventHandler(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, _MaintenanceMgrEventHandler));
-                IARM_CHECK(IARM_Bus_RemoveEventHandler(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_DCM_NEW_START_TIME_EVENT, _MaintenanceMgrEventHandler));
                 MaintenanceManager::_instance = nullptr;
             }
         }
@@ -1422,7 +1369,7 @@ namespace WPEFramework {
             return retStatus;
         }
 
-        /* Utility API for parsing the  DCM/Device properties file */
+        /* Utility API for parsing the Device properties file */
         bool parseConfigFile(const char* filename, string findkey, string &value)
         {
             vector<std::string> lines;
@@ -1636,11 +1583,6 @@ namespace WPEFramework {
 
                         m_abort_flag=false;
 
-                        /* we dont touch the dcm so
-                         * we say DCM is success and complete */
-                        SET_STATUS(g_task_status,DCM_SUCCESS);
-                        SET_STATUS(g_task_status,DCM_COMPLETE);
-
                         /* isRebootPending will be set to true
                          * irrespective of XConf configuration */
                         g_is_reboot_pending="true";
@@ -1692,7 +1634,7 @@ namespace WPEFramework {
 	        string codeDLtask;
             int k_ret=EINVAL;
             int i=0;
-            bool task_status[4]={false};
+            bool task_status[3]={false};
             bool result=false;
 
             LOGINFO("Stopping maintenance activities");
@@ -1703,20 +1645,18 @@ namespace WPEFramework {
                 // Set the condition flag m_abort_flag to true
                 m_abort_flag = true;
 
-                auto task_status_DCM=m_task_map.find(task_names_foreground[0].c_str());
-                auto task_status_RFC=m_task_map.find(task_names_foreground[1].c_str());
-                auto task_status_FWDLD=m_task_map.find(task_names_foreground[2].c_str());
-                auto task_status_LOGUPLD=m_task_map.find(task_names_foreground[3].c_str());
+                auto task_status_RFC=m_task_map.find(task_names_foreground[0].c_str());
+                auto task_status_FWDLD=m_task_map.find(task_names_foreground[1].c_str());
+                auto task_status_LOGUPLD=m_task_map.find(task_names_foreground[2].c_str());
 
-                task_status[0] = task_status_DCM->second;
-                task_status[1] = task_status_RFC->second;
-                task_status[2] = task_status_FWDLD->second;
-                task_status[3] = task_status_LOGUPLD->second;
+                task_status[0] = task_status_RFC->second;
+                task_status[1] = task_status_FWDLD->second;
+                task_status[2] = task_status_LOGUPLD->second;
 
-                for (i=0;i<4;i++) {
+                for (i=0;i<3;i++) {
                     LOGINFO("task status [%d]  = %s ScriptName %s",i,(task_status[i])? "true":"false",script_names[i].c_str());
                 }
-                for (i=0;i<4;i++){
+                for (i=0;i<3;i++){
                     if(task_status[i]){
 
                         k_ret = abortTask( script_names[i].c_str() );        // default signal is SIGABRT
