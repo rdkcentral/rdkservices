@@ -30,12 +30,19 @@ namespace Plugin {
         static const string SERVICE_NAME;
         //methods
         static const string METHOD_GET_FILE_LIST;
+        static const string METHOD_GET_FILE_INFO;
         static const string METHOD_CREATE_LINK;
         static const string METHOD_CLEAR_LINK;
         static const string METHOD_GET_AVAILABLE_FIRMWARE_FILES;
         static const string METHOD_GET_MOUNTED;
+        static const string METHOD_GET_MOUNTED_INFO;
+        static const string METHOD_GET_PARTITION_INFO;
+        static const string METHOD_GET_DEVICE_COUNT;
+        static const string METHOD_GET_PARTITION_COUNT;
         static const string METHOD_UPDATE_FIRMWARE;
         static const string METHOD_ARCHIVE_LOGS;
+        static const string METHOD_GET_USB_SIZE;
+        static const string METHOD_UNMOUNT_USB;
         //events
         static const string EVT_ON_USB_MOUNT_CHANGED;
         static const string EVT_ON_ARCHIVE_LOGS;
@@ -63,13 +70,20 @@ namespace Plugin {
 
         //methods ("parameters" here is "params" from the curl request)
         uint32_t getFileListWrapper(const JsonObject& parameters, JsonObject& response);
+        uint32_t getFileInfoWrapper(const JsonObject& parameters, JsonObject& response);
         uint32_t createLinkWrapper(const JsonObject& parameters, JsonObject& response);
         uint32_t clearLinkWrapper(const JsonObject& parameters, JsonObject& response);
         uint32_t getLinksWrapper(const JsonObject& parameters, JsonObject& response);
         uint32_t getAvailableFirmwareFilesWrapper(const JsonObject& parameters, JsonObject& response);
         uint32_t getMountedWrapper(const JsonObject& parameters, JsonObject& response);
+        uint32_t getMountedInfoWrapper(const JsonObject& parameters, JsonObject& response);
+        uint32_t getPartitionInfoWrapper(const JsonObject& parameters, JsonObject& response);
+        uint32_t getDeviceCountWrapper(const JsonObject& parameters, JsonObject& response);
+        uint32_t getPartitionCountWrapper(const JsonObject& parameters, JsonObject& response);
         uint32_t updateFirmware(const JsonObject& parameters, JsonObject& response);
         uint32_t archiveLogs(const JsonObject& parameters, JsonObject& response);
+        uint32_t getUSBSizeWrapper(const JsonObject& parameters, JsonObject& response);
+        uint32_t unmountUSBWrapper(const JsonObject& parameters, JsonObject& response);
 
     private/*iarm*/:
         void InitializeIARM();
@@ -89,8 +103,29 @@ namespace Plugin {
         };
         typedef std::list<FileEnt> FileList;
 
+        struct FileInfo
+        {
+            char fileType; // 'f' or 'd'
+            string fileName;
+            string accessTime;
+            string creatTime;
+            long int fileSize;
+            long int fileCount;
+            long int dirCount;
+            long int totalTime;
+            string picSize;
+        };   
+
+        struct MountedInfo
+        {
+            string deviceName;
+            string mountPath;
+        };
+
         static bool getFileList(const string& path, FileList& files, const string& fileRegex, bool includeFolders);
+        static bool getFileInfo(const string& path, struct FileInfo& fileinfo);
         static bool getMounted(std::list<string>& paths);
+        static bool getMountedInfo(const string& path, struct MountedInfo& mountedinfo);
 
         void archiveLogsInternal();
         void onArchiveLogs(ArchiveLogsError error, const string& filePath);
