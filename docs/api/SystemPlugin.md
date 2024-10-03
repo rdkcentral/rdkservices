@@ -114,7 +114,7 @@ org.rdk.System interface methods:
 | [uploadLogsAsync](#method.uploadLogsAsync) | Starts background process to upload logs |
 | [abortLogUpload](#method.abortLogUpload) | Stops background process to upload logs |
 | [getThunderStartReason](#method.getThunderStartReason) | Returns the Thunder start reason |
-| [SetPrivacyMode](#method.SetPrivacyMode) | Setting Privacy Mode |
+| [setPrivacyMode](#method.setPrivacyMode) | Setting Privacy Mode |
 | [getPrivacyMode](#method.getPrivacyMode) | Getting Privacy Mode |
 
 
@@ -3635,8 +3635,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.SetPrivacyMode"></a>
-## *SetPrivacyMode [<sup>method</sup>](#head.Methods)*
+<a name="method.setPrivacyMode"></a>
+## *setPrivacyMode [<sup>method</sup>](#head.Methods)*
 
 Setting Privacy Mode.
 
@@ -3666,7 +3666,7 @@ Setting Privacy Mode.
 {
     "jsonrpc": "2.0",
     "id": 42,
-    "method": "org.rdk.System.SetPrivacyMode",
+    "method": "org.rdk.System.setPrivacyMode",
     "params": {
         "privacyMode": "DO_NOT_SHARE"
     }
