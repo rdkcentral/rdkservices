@@ -50,7 +50,6 @@ DisplaySettings interface methods:
 | [enableSurroundDecoder](#enableSurroundDecoder) | Enables or disables Surround Decoder capability |
 | [getActiveInput](#getActiveInput) | Returns `true` if the STB HDMI output is currently connected to the active input of the sink device (determined by `RxSense`) |
 | [getAudioDelay](#getAudioDelay) | Returns the audio delay (in ms) on the selected audio port |
-| [getAudioDelayOffset](#getAudioDelayOffset) | Returns the audio delay offset (in ms) on the selected audio port |
 | [getAudioFormat](#getAudioFormat) | Returns the currently set audio format |
 | [getBassEnhancer](#getBassEnhancer) | Returns the current status of the Bass Enhancer settings |
 | [getConnectedAudioPorts](#getConnectedAudioPorts) | Returns connected audio output ports (a subset of the ports supported on the device) |
@@ -108,7 +107,6 @@ DisplaySettings interface methods:
 | [resetVolumeLeveller](#resetVolumeLeveller) | Resets the Volume Leveller level to default volume value |
 | [setAudioAtmosOutputMode](#setAudioAtmosOutputMode) | Sets ATMOS audio output mode (on HDMI0) |
 | [setAudioDelay](#setAudioDelay) | Sets the audio delay (in ms) on the selected audio port |
-| [setAudioDelayOffset](#setAudioDelayOffset) | Sets the audio delay offset (in ms) on the selected audio port |
 | [setBassEnhancer](#setBassEnhancer) | Sets the Bass Enhancer |
 | [setCurrentResolution](#setCurrentResolution) | Sets the current resolution |
 | [setDialogEnhancement](#setDialogEnhancement) | Sets the Dialog Enhancer level |
@@ -287,58 +285,6 @@ No Events
     "id": 42,
     "result": {
         "audioDelay": "0",
-        "success": true
-    }
-}
-```
-
-<a name="getAudioDelayOffset"></a>
-## *getAudioDelayOffset*
-
-Returns the audio delay offset (in ms) on the selected audio port. If the `audioPort` argument is not specified, it will browse all ports (checking HDMI0 first). If there is no display connected, then it defaults to `HDMI0`.
-
-### Events
-
-No Events
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.audioPort | string | Audio port name |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.audioDelayOffset | string | Delay offset (in ms) on the selected audio port |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.DisplaySettings.getAudioDelayOffset",
-    "params": {
-        "audioPort": "HDMI0"
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "audioDelayOffset": "0",
         "success": true
     }
 }
@@ -3277,58 +3223,6 @@ No Events
     "params": {
         "audioPort": "HDMI0",
         "audioDelay": "0"
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": {
-        "success": true
-    }
-}
-```
-
-<a name="setAudioDelayOffset"></a>
-## *setAudioDelayOffset*
-
-Sets the audio delay offset (in ms) on the selected audio port. If the `audioPort` argument is not specified, it will browse all ports (checking HDMI0 first). If there is no display connected, then it defaults to `HDMI0`.
-
-### Events
-
-No Events
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.audioPort | string | Audio port name |
-| params.audioDelayOffset | string | Delay offset (in ms) on the selected audio port |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.DisplaySettings.setAudioDelayOffset",
-    "params": {
-        "audioPort": "HDMI0",
-        "audioDelayOffset": "0"
     }
 }
 ```
