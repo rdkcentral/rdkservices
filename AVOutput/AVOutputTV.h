@@ -68,6 +68,19 @@
 #define STRING_SOURCE    "Source."
 #define CREATE_DIRTY(__X__) (__X__+=STRING_DIRTY)
 
+#define PANEL_ID_OFFSET 0x9000004
+#define MMC_DEVICE      ("/dev/mmcblk0")
+
+
+static constexpr unsigned int CONTENT_FORMAT_NONE = 0x00;
+static constexpr unsigned int CONTENT_FORMAT_SDR = 0x01;
+static constexpr unsigned int CONTENT_FORMAT_HLG = 0x02;
+static constexpr unsigned int CONTENT_FORMAT_HDR10 = 0x03;
+static constexpr unsigned int CONTENT_FORMAT_HDR10PLUS = 0x04;
+static constexpr unsigned int CONTENT_FORMAT_DV = 0x05;
+static constexpr unsigned int CONTENT_FORMAT_MAX = 0x06;
+
+
 namespace WPEFramework {
 namespace Plugin {
 
@@ -217,6 +230,8 @@ class AVOutputTV : public AVOutputBase {
 		tvError_t getParamsCaps(std::vector<std::string> &range, std::vector<std::string> &pqmode, std::vector<std::string> &source,
 		                        std::vector<std::string> &format,std::string param , std::string & isPlatformSupport,
 				std::vector<std::string> & index);
+		int GetPanelID(char *panelid);
+		int ConvertHDRFormatToContentFormat(tvVideoFormatType_t hdrFormat);
 		void getDimmingModeStringFromEnum(int value, std::string &toStore);
 		void getColorTempStringFromEnum(int value, std::string &toStore);
 		int getCurrentPictureMode(char *picMode);

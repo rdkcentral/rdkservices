@@ -191,8 +191,8 @@ namespace Plugin {
         LOGINFO("Entry : %s pqmode : %s source :%s format :%s\n",__FUNCTION__,pqmode.c_str(),source.c_str(),format.c_str());
 
         if( source.compare("none") == 0 || source.compare("Current") == 0 ) {
-            tvVideoSrcType_t currentSource = VIDEO_SOURCE_IP;
-            GetCurrentSource(&currentSource);
+            int currentSource = VIDEO_SOURCE_IP;
+            GetCurrentVideoSource(&currentSource);
             sourceIndex = (int)currentSource;
         }
         else {
@@ -292,7 +292,7 @@ namespace Plugin {
         bool ret=false;
         char picMode[PIC_MODE_NAME_MAX]={0};
         tvError_t retVal = tvERROR_NONE;
-        tvVideoSrcType_t sourceIndex = VIDEO_SOURCE_IP;
+        int sourceIndex = VIDEO_SOURCE_IP;
         std::string currentPicMode;
         std::string currentSource;
         std::string currentFormat;
@@ -304,10 +304,10 @@ namespace Plugin {
 
         currentPicMode = picMode; //Convert to string
 
-        //GetCurrentSource
-        retVal = GetCurrentSource(&sourceIndex);
+        //GetCurrentVideoSource
+        retVal = GetCurrentVideoSource(&sourceIndex);
         if(retVal != tvERROR_NONE) {
-            LOGERR("%s : GetCurrentSource( ) Failed\n",__FUNCTION__);
+            LOGERR("%s : GetCurrentVideoSource( ) Failed\n",__FUNCTION__);
             return false;
         }
         currentSource = convertSourceIndexToString(sourceIndex);
@@ -662,7 +662,7 @@ namespace Plugin {
     {
         tvError_t ret = tvERROR_NONE;
         TR181_ParamData_t param;
-        tvVideoSrcType_t current_source = VIDEO_SOURCE_IP;
+        int current_source = VIDEO_SOURCE_IP;
         std::string tr181_param_name = "";
         tvVideoFormatType_t current_format = VIDEO_FORMAT_NONE;
 
@@ -671,7 +671,7 @@ namespace Plugin {
 	    current_format  = VIDEO_FORMAT_SDR;
 	}
         // get current source
-        GetCurrentSource(&current_source);
+        GetCurrentVideoSource(&current_source);
 
         tr181_param_name += std::string(AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM);
         tr181_param_name += "."+convertSourceIndexToString(current_source)+"."+"Format."+convertVideoFormatToString(current_format)+"."+"PictureModeString";
@@ -747,11 +747,11 @@ namespace Plugin {
             }
         }
         else if (source == "Current") {
-            tvVideoSrcType_t currentSource = VIDEO_SOURCE_IP;
-            tvError_t ret = GetCurrentSource(&currentSource);
+            int currentSource = VIDEO_SOURCE_IP;
+            tvError_t ret = GetCurrentVideoSource(&currentSource);
 
             if(ret != tvERROR_NONE) {
-                LOGWARN("%s: GetCurrentSource( ) Failed \n",__FUNCTION__);
+                LOGWARN("%s: GetCurrentVideoSource( ) Failed \n",__FUNCTION__);
                 return -1;
             }
             source = convertSourceIndexToString(currentSource);
@@ -1274,7 +1274,7 @@ namespace Plugin {
         TR181_ParamData_t param;
         std::string rfc_param = AVOUTPUT_HDR10MODE_RFC_PARAM;
         int dolby_mode_value = 0;
-        tvVideoSrcType_t sourceIndex = VIDEO_SOURCE_IP;
+        int sourceIndex = VIDEO_SOURCE_IP;
         /*Since dolby vision is source specific, we should for check for specific source*/
         if (!source.empty()) {
             sourceIndex = (tvVideoSrcType_t)getSourceIndex(source);
@@ -1367,6 +1367,66 @@ namespace Plugin {
         return ret;
     }
 
+    int AVOutputTV::GetPanelID(char *panelid)
+    {
+        int fd, len;
+        off_t offset = 0L;
+        char buf[4] = {0};
+
+        if ( NULL == panelid ) {
+            printf("buf is NULL");
+            return -1;
+        }
+
+        if ((fd = open(MMC_DEVICE, O_RDONLY)) < 0) {
+            printf("open %s error(%s)", MMC_DEVICE, strerror (errno));
+            return -1;
+        }
+
+        offset = lseek (fd, PANEL_ID_OFFSET, SEEK_SET);
+        if( offset !=  PANEL_ID_OFFSET ) {
+            printf("Failed to seek. offset[0x%x] requested[0x%x]\n", (uint32_t)offset, PANEL_ID_OFFSET);
+            close(fd);
+            return -1;
+        }
+
+        len = read(fd, buf, 4);
+        if (len < 0) {
+            printf("Read %s error, %s\n", MMC_DEVICE, strerror(errno));
+            close(fd);
+            return len;
+        }
+        sprintf(panelid, "%d_%d_%d%d", buf[0], buf[1], buf[2], buf[3]);
+        close(fd);
+        return 0;
+    }
+
+    int AVOutputTV::ConvertHDRFormatToContentFormat(tvVideoFormatType_t hdrFormat)
+    {
+        int ret=CONTENT_FORMAT_SDR;
+        switch(hdrFormat)
+        {
+            case VIDEO_FORMAT_SDR:
+                ret=CONTENT_FORMAT_SDR;
+                break;
+            case VIDEO_FORMAT_HDR10:
+                ret=CONTENT_FORMAT_HDR10;
+                break;
+            case VIDEO_FORMAT_HDR10PLUS:
+                ret=CONTENT_FORMAT_HDR10PLUS;
+                break;
+            case VIDEO_FORMAT_DV:
+                ret=CONTENT_FORMAT_DV;
+                break;
+            case VIDEO_FORMAT_HLG:
+                ret=CONTENT_FORMAT_HLG;
+                break;
+            default:
+                break;
+        }
+        return ret;
+    }
+
     void AVOutputTV::getDimmingModeStringFromEnum(int value, std::string &toStore)
     {
         const char *color_temp_string[] = {
@@ -1395,11 +1455,11 @@ namespace Plugin {
         tvError_t  ret = tvERROR_NONE;
         TR181_ParamData_t param;
         std::string tr181_param_name;
-        tvVideoSrcType_t currentSource = VIDEO_SOURCE_IP;
+        int currentSource = VIDEO_SOURCE_IP;
 
-        ret = GetCurrentSource(&currentSource);
+        ret = GetCurrentVideoSource(&currentSource);
         if(ret != tvERROR_NONE) {
-            LOGERR("GetCurrentSource() Failed set source to default\n");
+            LOGERR("GetCurrentVideoSource() Failed set source to default\n");
             return 0;
         }
 

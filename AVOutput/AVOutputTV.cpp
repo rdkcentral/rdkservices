@@ -2821,8 +2821,8 @@ namespace Plugin {
                     err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
                     if ( tr181Success == err ) {
                         //get curren source and if matches save for that alone
-                        tvVideoSrcType_t current_source = VIDEO_SOURCE_IP;
-                        GetCurrentSource(&current_source);
+                        int current_source = VIDEO_SOURCE_IP;
+                        GetCurrentVideoSource(&current_source);
 
                         tvVideoFormatType_t current_format = VIDEO_FORMAT_NONE;
                         GetCurrentVideoFormat(&current_format);
@@ -3075,9 +3075,9 @@ namespace Plugin {
     uint32_t AVOutputTV::getVideoSource(const JsonObject& parameters,JsonObject& response)
     {
         LOGINFO("Entry\n");
-        tvVideoSrcType_t currentSource = VIDEO_SOURCE_IP;
+        int currentSource = VIDEO_SOURCE_IP;
 
-        tvError_t ret = GetCurrentSource(&currentSource);
+        tvError_t ret = GetCurrentVideoSource(&currentSource);
         if(ret != tvERROR_NONE) {
             response["currentVideoSource"] = "NONE";
             returnResponse(false);
