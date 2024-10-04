@@ -684,6 +684,21 @@ namespace WPEFramework
         {
             LOGINFOMETHOD();
             uint32_t rc = Core::ERROR_GENERAL;
+            Exchange::INetworkManager::WIFIScanFilter filter{};
+
+            if (parameters.HasLabel("frequency"))
+            {
+                std::string filter_freq;
+                if (WPEFramework::Core::JSON::Variant::type::STRING == parameters["frequency"].Content())
+                    filter_freq = parameters["frequency"].String();
+
+		if (filter_freq.length())
+		{
+                    filter.onFrequency = true;
+                    filter.frequency = filter_freq;
+                }
+            }
+
             const Exchange::INetworkManager::WiFiFrequency frequency = static_cast <Exchange::INetworkManager::WiFiFrequency> (parameters["frequency"].Number());
 
             if (_NetworkManager)
