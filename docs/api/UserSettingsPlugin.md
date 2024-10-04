@@ -1,44 +1,42 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="UserSettings_Plugin"></a>
-# UserSettings Plugin
+<a name="head.UserSettings_API"></a>
+# UserSettings API
 
-**Version: [1.2.0](https://github.com/rdkcentral/rdkservices/blob/main/UserSettings/CHANGELOG.md)**
+**Version: [1.2.0](https://github.com/rdkcentral/rdkservices/blob/main/./CHANGELOG.md)**
 
 A org.rdk.UserSettings plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Abbreviation, Acronyms and Terms](#Abbreviation,_Acronyms_and_Terms)
-- [Description](#Description)
-- [Configuration](#Configuration)
-- [Methods](#Methods)
-- [Notifications](#Notifications)
+- [Abbreviation, Acronyms and Terms](#head.Abbreviation,_Acronyms_and_Terms)
+- [Description](#head.Description)
+- [Configuration](#head.Configuration)
+- [Methods](#head.Methods)
+- [Notifications](#head.Notifications)
 
-<a name="Abbreviation,_Acronyms_and_Terms"></a>
+<a name="head.Abbreviation,_Acronyms_and_Terms"></a>
 # Abbreviation, Acronyms and Terms
 
 [[Refer to this link](userguide/aat.md)]
 
-<a name="Description"></a>
+<a name="head.Description"></a>
 # Description
 
-The `UserSettings` that is responsible for persisting and notifying listeners of any change of these settings.
+The `UserSettings`, that is responsible for persisting and notifying listeners of any change of these settings..
 
-The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
+The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
 
-<a name="Configuration"></a>
+<a name="head.Configuration"></a>
 # Configuration
 
 The table below lists configuration options of the plugin.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| callsign | string | Plugin instance name (default: *org.rdk.UserSettings*) |
 | classname | string | Class name: *org.rdk.UserSettings* |
-| locator | string | Library name: *libWPEFrameworkUserSettings.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
-<a name="Methods"></a>
+<a name="head.Methods"></a>
 # Methods
 
 The following methods are provided by the org.rdk.UserSettings plugin:
@@ -47,24 +45,22 @@ org.rdk.UserSettings interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [SetAudioDescription](#SetAudioDescription) | Setting Audio Description |
-| [SetPreferredAudioLanguages](#SetPreferredAudioLanguages) | Setting Preferred Audio Languages |
-| [SetPresentationLanguage](#SetPresentationLanguage) | Setting Presentation Languages |
-| [SetCaptions](#SetCaptions) | Setting Captions |
-| [SetPreferredCaptionsLanguages](#SetPreferredCaptionsLanguages) | Setting PreferredCaption Languages |
-| [SetPreferredClosedCaptionService](#SetPreferredClosedCaptionService) | Setting Preferred Closed Caption Service |
-| [SetPrivacyMode](#SetPrivacyMode) | Setting Privacy Mode |
-| [GetAudioDescription](#GetAudioDescription) | Returns Audio Description |
-| [GetPreferredAudioLanguages](#GetPreferredAudioLanguages) | Returns Preferred Audio Languages |
-| [GetPresentationLanguage](#GetPresentationLanguage) | Getting Presentation Languages |
-| [GetCaptions](#GetCaptions) | Getting Captions Enabled |
-| [GetPreferredCaptionsLanguages](#GetPreferredCaptionsLanguages) | Getting Preferred Caption Languages |
-| [GetPreferredClosedCaptionService](#GetPreferredClosedCaptionService) | Getting Preferred ClosedCaption Service |
-| [GetPrivacyMode](#GetPrivacyMode) | Getting Privacy Mode |
+| [SetAudioDescription](#method.SetAudioDescription) | Setting Audio Description |
+| [SetPreferredAudioLanguages](#method.SetPreferredAudioLanguages) | Setting Preferred Audio Languages |
+| [SetPresentationLanguage](#method.SetPresentationLanguage) | Setting Presentation Languages |
+| [SetCaptions](#method.SetCaptions) | Setting Captions |
+| [SetPreferredCaptionsLanguages](#method.SetPreferredCaptionsLanguages) | Setting PreferredCaption Languages |
+| [SetPreferredClosedCaptionService](#method.SetPreferredClosedCaptionService) | Setting Preferred Closed Caption Service |
+| [GetAudioDescription](#method.GetAudioDescription) | Returns Audio Description |
+| [GetPreferredAudioLanguages](#method.GetPreferredAudioLanguages) | Returns Preferred Audio Languages |
+| [GetPresentationLanguage](#method.GetPresentationLanguage) | Getting Presentation Languages |
+| [GetCaptions](#method.GetCaptions) | Getting Captions Enabled |
+| [GetPreferredCaptionsLanguages](#method.GetPreferredCaptionsLanguages) | Getting Preferred Caption Languages |
+| [GetPreferredClosedCaptionService](#method.GetPreferredClosedCaptionService) | Getting Preferred ClosedCaption Service |
 
 
-<a name="SetAudioDescription"></a>
-## *SetAudioDescription*
+<a name="method.SetAudioDescription"></a>
+## *SetAudioDescription [<sup>method</sup>](#head.Methods)*
 
 Setting Audio Description.
 
@@ -110,8 +106,8 @@ No Events
 }
 ```
 
-<a name="SetPreferredAudioLanguages"></a>
-## *SetPreferredAudioLanguages*
+<a name="method.SetPreferredAudioLanguages"></a>
+## *SetPreferredAudioLanguages [<sup>method</sup>](#head.Methods)*
 
 Setting Preferred Audio Languages.
 
@@ -157,8 +153,8 @@ No Events
 }
 ```
 
-<a name="SetPresentationLanguage"></a>
-## *SetPresentationLanguage*
+<a name="method.SetPresentationLanguage"></a>
+## *SetPresentationLanguage [<sup>method</sup>](#head.Methods)*
 
 Setting Presentation Languages.
 
@@ -204,8 +200,8 @@ No Events
 }
 ```
 
-<a name="SetCaptions"></a>
-## *SetCaptions*
+<a name="method.SetCaptions"></a>
+## *SetCaptions [<sup>method</sup>](#head.Methods)*
 
 Setting Captions.
 
@@ -251,8 +247,8 @@ No Events
 }
 ```
 
-<a name="SetPreferredCaptionsLanguages"></a>
-## *SetPreferredCaptionsLanguages*
+<a name="method.SetPreferredCaptionsLanguages"></a>
+## *SetPreferredCaptionsLanguages [<sup>method</sup>](#head.Methods)*
 
 Setting PreferredCaption Languages.
 
@@ -298,8 +294,8 @@ No Events
 }
 ```
 
-<a name="SetPreferredClosedCaptionService"></a>
-## *SetPreferredClosedCaptionService*
+<a name="method.SetPreferredClosedCaptionService"></a>
+## *SetPreferredClosedCaptionService [<sup>method</sup>](#head.Methods)*
 
 Setting Preferred Closed Caption Service.
 
@@ -345,55 +341,8 @@ No Events
 }
 ```
 
-<a name="SetPrivacyMode"></a>
-## *SetPrivacyMode*
-
-Setting Privacy Mode.
-
-### Events
-
-No Events
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.privacyMode | string | New Privacy Mode |
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | string | Null string will display |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.UserSettings.SetPrivacyMode",
-    "params": {
-        "privacyMode": "DO_NOT_SHARE"
-    }
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": "null"
-}
-```
-
-<a name="GetAudioDescription"></a>
-## *GetAudioDescription*
+<a name="method.GetAudioDescription"></a>
+## *GetAudioDescription [<sup>method</sup>](#head.Methods)*
 
 Returns Audio Description.
 
@@ -433,8 +382,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="GetPreferredAudioLanguages"></a>
-## *GetPreferredAudioLanguages*
+<a name="method.GetPreferredAudioLanguages"></a>
+## *GetPreferredAudioLanguages [<sup>method</sup>](#head.Methods)*
 
 Returns Preferred Audio Languages.
 
@@ -474,8 +423,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="GetPresentationLanguage"></a>
-## *GetPresentationLanguage*
+<a name="method.GetPresentationLanguage"></a>
+## *GetPresentationLanguage [<sup>method</sup>](#head.Methods)*
 
 Getting Presentation Languages.
 
@@ -515,8 +464,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="GetCaptions"></a>
-## *GetCaptions*
+<a name="method.GetCaptions"></a>
+## *GetCaptions [<sup>method</sup>](#head.Methods)*
 
 Getting Captions Enabled.
 
@@ -556,8 +505,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="GetPreferredCaptionsLanguages"></a>
-## *GetPreferredCaptionsLanguages*
+<a name="method.GetPreferredCaptionsLanguages"></a>
+## *GetPreferredCaptionsLanguages [<sup>method</sup>](#head.Methods)*
 
 Getting Preferred Caption Languages.
 
@@ -597,8 +546,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="GetPreferredClosedCaptionService"></a>
-## *GetPreferredClosedCaptionService*
+<a name="method.GetPreferredClosedCaptionService"></a>
+## *GetPreferredClosedCaptionService [<sup>method</sup>](#head.Methods)*
 
 Getting Preferred ClosedCaption Service.
 
@@ -638,51 +587,10 @@ This method takes no parameters.
 }
 ```
 
-<a name="GetPrivacyMode"></a>
-## *GetPrivacyMode*
-
-Getting Privacy Mode.
-
-### Events
-
-No Events
-
-### Parameters
-
-This method takes no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | string | Current Privacy Mode |
-
-### Example
-
-#### Request
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "method": "org.rdk.UserSettings.GetPrivacyMode"
-}
-```
-
-#### Response
-
-```json
-{
-    "jsonrpc": "2.0",
-    "id": 42,
-    "result": "DO_NOT_SHARE"
-}
-```
-
-<a name="Notifications"></a>
+<a name="head.Notifications"></a>
 # Notifications
 
-Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#Thunder)] for information on how to register for a notification.
+Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
 
 The following events are provided by the org.rdk.UserSettings plugin:
 
@@ -690,17 +598,16 @@ org.rdk.UserSettings interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [OnAudioDescriptionChanged](#OnAudioDescriptionChanged) | Triggered after the audio description changes (see `SetAudioDescription`) |
-| [OnPreferredAudioLanguagesChanged](#OnPreferredAudioLanguagesChanged) | Triggered after the audio preferred Audio languages changes (see `SetPreferredAudioLanguages`) |
-| [OnPresentationLanguageChanged](#OnPresentationLanguageChanged) | Triggered after the Presentation Language changes (see `SetPresentationLanguage`) |
-| [OnCaptionsChanged](#OnCaptionsChanged) | Triggered after the captions changes (see `SetCaptions`) |
-| [OnPreferredCaptionsLanguagesChanged](#OnPreferredCaptionsLanguagesChanged) | Triggered after the PreferredCaption Languages changes (see `SetPreferredCaptionsLanguages`) |
-| [OnPreferredClosedCaptionServiceChanged](#OnPreferredClosedCaptionServiceChanged) | Triggered after the Preferred Closed Caption changes (see `SetPreferredClosedCaptionService`) |
-| [OnPrivacyModeChanged](#OnPrivacyModeChanged) | Triggered after the Privacy Mode changes (see `SetPrivacyMode`) |
+| [OnAudioDescriptionChanged](#event.OnAudioDescriptionChanged) | Triggered after the audio description changes (see `SetAudioDescription`) |
+| [OnPreferredAudioLanguagesChanged](#event.OnPreferredAudioLanguagesChanged) | Triggered after the audio preferred Audio languages changes (see `SetPreferredAudioLanguages`) |
+| [OnPresentationLanguageChanged](#event.OnPresentationLanguageChanged) | Triggered after the Presentation Language changes (see `SetPresentationLanguage`) |
+| [OnCaptionsChanged](#event.OnCaptionsChanged) | Triggered after the captions changes (see `SetCaptions`) |
+| [OnPreferredCaptionsLanguagesChanged](#event.OnPreferredCaptionsLanguagesChanged) | Triggered after the PreferredCaption Languages changes (see `SetPreferredCaptionsLanguages`) |
+| [OnPreferredClosedCaptionServiceChanged](#event.OnPreferredClosedCaptionServiceChanged) | Triggered after the Preferred Closed Caption changes (see `SetPreferredClosedCaptionService`) |
 
 
-<a name="OnAudioDescriptionChanged"></a>
-## *OnAudioDescriptionChanged*
+<a name="event.OnAudioDescriptionChanged"></a>
+## *OnAudioDescriptionChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the audio description changes (see `SetAudioDescription`).
 
@@ -723,8 +630,8 @@ Triggered after the audio description changes (see `SetAudioDescription`).
 }
 ```
 
-<a name="OnPreferredAudioLanguagesChanged"></a>
-## *OnPreferredAudioLanguagesChanged*
+<a name="event.OnPreferredAudioLanguagesChanged"></a>
+## *OnPreferredAudioLanguagesChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the audio preferred Audio languages changes (see `SetPreferredAudioLanguages`).
 
@@ -747,8 +654,8 @@ Triggered after the audio preferred Audio languages changes (see `SetPreferredAu
 }
 ```
 
-<a name="OnPresentationLanguageChanged"></a>
-## *OnPresentationLanguageChanged*
+<a name="event.OnPresentationLanguageChanged"></a>
+## *OnPresentationLanguageChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the Presentation Language changes (see `SetPresentationLanguage`).
 
@@ -771,8 +678,8 @@ Triggered after the Presentation Language changes (see `SetPresentationLanguage`
 }
 ```
 
-<a name="OnCaptionsChanged"></a>
-## *OnCaptionsChanged*
+<a name="event.OnCaptionsChanged"></a>
+## *OnCaptionsChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the captions changes (see `SetCaptions`).
 
@@ -795,8 +702,8 @@ Triggered after the captions changes (see `SetCaptions`).
 }
 ```
 
-<a name="OnPreferredCaptionsLanguagesChanged"></a>
-## *OnPreferredCaptionsLanguagesChanged*
+<a name="event.OnPreferredCaptionsLanguagesChanged"></a>
+## *OnPreferredCaptionsLanguagesChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the PreferredCaption Languages changes (see `SetPreferredCaptionsLanguages`).
 
@@ -819,8 +726,8 @@ Triggered after the PreferredCaption Languages changes (see `SetPreferredCaption
 }
 ```
 
-<a name="OnPreferredClosedCaptionServiceChanged"></a>
-## *OnPreferredClosedCaptionServiceChanged*
+<a name="event.OnPreferredClosedCaptionServiceChanged"></a>
+## *OnPreferredClosedCaptionServiceChanged [<sup>event</sup>](#head.Notifications)*
 
 Triggered after the Preferred Closed Caption changes (see `SetPreferredClosedCaptionService`).
 
@@ -839,30 +746,6 @@ Triggered after the Preferred Closed Caption changes (see `SetPreferredClosedCap
     "method": "client.events.OnPreferredClosedCaptionServiceChanged",
     "params": {
         "service": "CC3"
-    }
-}
-```
-
-<a name="OnPrivacyModeChanged"></a>
-## *OnPrivacyModeChanged*
-
-Triggered after the Privacy Mode changes (see `SetPrivacyMode`).
-
-### Parameters
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| params | object |  |
-| params.privacyMode | string | Receive Privacy Mode changes |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.OnPrivacyModeChanged",
-    "params": {
-        "privacyMode": "DO_NOT_SHARE"
     }
 }
 ```
