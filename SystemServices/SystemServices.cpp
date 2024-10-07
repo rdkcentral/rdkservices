@@ -98,6 +98,8 @@ using namespace std;
 #define LOG_UPLOAD_STATUS_FAILURE "UPLOAD_FAILURE"
 #define LOG_UPLOAD_STATUS_ABORTED "UPLOAD_ABORTED"
 
+#define PRIVACY_MODE_FILE "/opt/secure/persistent/System/privacymode.txt"
+
 /**
  * @struct firmwareUpdate
  * @brief This structure contains information of firmware update.
@@ -490,6 +492,9 @@ namespace WPEFramework {
 	    registerMethod("getFriendlyName", &SystemServices::getFriendlyName, this);
             registerMethod("setFriendlyName", &SystemServices::setFriendlyName, this);
             registerMethod("getThunderStartReason", &SystemServices::getThunderStartReason, this);
+
+            registerMethod("setPrivacyMode", &SystemServices::setPrivacyMode, this);
+            registerMethod("getPrivacyMode", &SystemServices::getPrivacyMode, this);
 
         }
 
@@ -2600,11 +2605,7 @@ namespace WPEFramework {
 	{
 		bool resp = false;
 		if(parameters.HasLabel("territory")){
-			struct stat st = {0};
-			if (stat("/opt/secure/persistent/System", &st) == -1) {
-				int ret = mkdir("/opt/secure/persistent/System", 0700);
-				LOGWARN(" --- SubDirectories created from mkdir %d ", ret);
-			}
+			makePersistentDir();
 			string regionStr = "";
 			readTerritoryFromFile();//Read existing territory and Region from file
 			string territoryStr = parameters["territory"].String();
@@ -3902,6 +3903,18 @@ namespace WPEFramework {
 			return "unknown";
 		}
 	}
+
+        bool SystemServices::makePersistentDir()
+        {
+            struct stat st = {0};
+            int ret = 0;
+            if (stat("/opt/secure/persistent/System", &st) == -1) {
+                ret = mkdir("/opt/secure/persistent/System", 0700);
+                LOGWARN(" --- SubDirectories created from mkdir %d ", ret);
+            }
+            return 0 == ret;
+        }
+
         /***
          * TODO: Stub implementation; Decide whether needed or not since setProperty
          * and getProperty functionalities are XRE/RTRemote dependent.
@@ -4708,6 +4721,57 @@ namespace WPEFramework {
             response["startReason"] = (Utils::fileExists(SYSTEM_SERVICE_THUNDER_RESTARTED_FILE))?"RESTART":"NORMAL";
             returnResponse(true);
         }
+
+        uint32_t SystemServices::setPrivacyMode(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+
+            string privacyMode = parameters["privacyMode"].String();
+
+            if (privacyMode != "SHARE" && privacyMode != "DO_NOT_SHARE")
+            {
+                LOGERR("Wrong privacyMode value: '%s'", privacyMode.c_str());
+                returnResponse(false);
+            }
+            
+            makePersistentDir();
+
+            ofstream optfile;
+    		
+            optfile.open(PRIVACY_MODE_FILE, ios::out);
+            if (optfile)
+            {
+                optfile << privacyMode;
+                optfile.close();
+            }
+
+            JsonObject params;
+            params["privacyMode"] = privacyMode;
+            sendNotify(EVT_ONPRIVACYMODECHANGED, params);
+
+            returnResponse(true);
+        }
+
+        uint32_t SystemServices::getPrivacyMode(const JsonObject& parameters, JsonObject& response)
+        {
+            LOGINFOMETHOD();
+
+            string privacyMode = "";
+
+            string optOutStatus;
+
+            getFileContent(PRIVACY_MODE_FILE, privacyMode);
+            if (privacyMode != "SHARE" && privacyMode != "DO_NOT_SHARE")
+            {
+                LOGWARN("Wrong privacyMode value: '%s', returning default", privacyMode.c_str());
+                privacyMode = "SHARE";
+            }
+
+            response["privacyMode"] = privacyMode;
+
+            returnResponse(true);
+        }
+       
     } /* namespace Plugin */
 } /* namespace WPEFramework */
 
