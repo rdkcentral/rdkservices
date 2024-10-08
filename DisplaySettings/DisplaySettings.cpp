@@ -324,8 +324,6 @@ namespace WPEFramework {
 
             registerMethodLockedApi("getAudioDelay", &DisplaySettings::getAudioDelay, this);
             registerMethodLockedApi("setAudioDelay", &DisplaySettings::setAudioDelay, this);
-            registerMethodLockedApi("getAudioDelayOffset", &DisplaySettings::getAudioDelayOffset, this);
-            registerMethodLockedApi("setAudioDelayOffset", &DisplaySettings::setAudioDelayOffset, this);
             registerMethodLockedApi("getSinkAtmosCapability", &DisplaySettings::getSinkAtmosCapability, this);
             registerMethodLockedApi("setAudioAtmosOutputMode", &DisplaySettings::setAudioAtmosOutputMode, this);
             registerMethodLockedApi("setForceHDRMode", &DisplaySettings::setForceHDRMode, this);
@@ -3815,128 +3813,7 @@ namespace WPEFramework {
             returnResponse(success);
         }
 
-        uint32_t DisplaySettings::getAudioDelayOffset (const JsonObject& parameters, JsonObject& response) 
-        {   //sample servicemanager response:
-            LOGINFOMETHOD();
-
-            bool success = true;
-            string audioPort = parameters["audioPort"].String();//empty value will browse all ports
-
-            if (!checkPortName(audioPort))
-                audioPort = "HDMI0";
-
-            uint32_t audioDelayOffsetMs = 0;
-            try
-            {
-                /* Return the sound mode of the audio ouput connected to the specified audioPort */
-                /* Check if HDMI is connected - Return (default) Stereo Mode if not connected */
-                if (audioPort.empty())
-                {
-                    std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
-                    if (isDisplayConnected(strVideoPort))
-                    {
-                        audioPort = "HDMI0";
-                    }
-                    else
-                    {
-                        /*  * If HDMI is not connected
-                            * Get the SPDIF if it is supported by platform
-                            * If Platform does not have connected ports. Default to HDMI.
-                        */
-                        audioPort = "HDMI0";
-                        device::List<device::VideoOutputPort> vPorts = device::Host::getInstance().getVideoOutputPorts();
-                        for (size_t i = 0; i < vPorts.size(); i++)
-                        {
-                            device::VideoOutputPort &vPort = vPorts.at(i);
-                            if (isDisplayConnected(vPort.getName()))
-                            {
-                                audioPort = "SPDIF0";
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
-                aPort.getAudioDelayOffset (audioDelayOffsetMs);
-				response["audioDelayOffset"] = std::to_string(audioDelayOffsetMs);
-            }
-            catch (const device::Exception& err)
-            {
-                LOG_DEVICE_EXCEPTION1(audioPort);
-                success = false;
-            }
-
-            returnResponse(success);
-        }
-
-        uint32_t DisplaySettings::setAudioDelayOffset (const JsonObject& parameters, JsonObject& response)
-        {   //sample servicemanager response:
-            LOGINFOMETHOD();
-
-            returnIfParamNotFound(parameters, "audioDelayOffset");
-
-            string sAudioDelayOffsetMs = parameters["audioDelayOffset"].String();
-            int audioDelayOffsetMs = 0;
-            try
-            {
-                audioDelayOffsetMs = stoi(sAudioDelayOffsetMs);
-            }
-            catch (const std::exception &err)
-            {
-                LOGERR("Failed to parse audioDelayOffset '%s'", sAudioDelayOffsetMs.c_str());
-                returnResponse(false);
-            }
-
-            bool success = true;
-            string audioPort = parameters["audioPort"].String();//empty value will browse all ports
-
-            if (!checkPortName(audioPort))
-                audioPort = "HDMI0";
-
-            try
-            {
-                /* Return the sound mode of the audio ouput connected to the specified audioPort */
-                /* Check if HDMI is connected - Return (default) Stereo Mode if not connected */
-                if (audioPort.empty())
-                {
-                    std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
-                    if (isDisplayConnected(strVideoPort))
-                    {
-                        audioPort = "HDMI0";
-                    }
-                    else
-                    {
-                        /*  * If HDMI is not connected
-                            * Get the SPDIF if it is supported by platform
-                            * If Platform does not have connected ports. Default to HDMI.
-                        */
-                        audioPort = "HDMI0";
-                        device::List<device::VideoOutputPort> vPorts = device::Host::getInstance().getVideoOutputPorts();
-                        for (size_t i = 0; i < vPorts.size(); i++)
-                        {
-                            device::VideoOutputPort &vPort = vPorts.at(i);
-                            if (isDisplayConnected(vPort.getName()))
-                            {
-                                audioPort = "SPDIF0";
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                device::AudioOutputPort aPort = device::Host::getInstance().getAudioOutputPort(audioPort);
-                aPort.setAudioDelayOffset (audioDelayOffsetMs);
-            }
-            catch (const device::Exception& err)
-            {
-                LOG_DEVICE_EXCEPTION2(audioPort, sAudioDelayOffsetMs);
-                success = false;
-            }
-            returnResponse(success);
-        }
-
-        uint32_t DisplaySettings::getSinkAtmosCapability (const JsonObject& parameters, JsonObject& response) 
+	uint32_t DisplaySettings::getSinkAtmosCapability (const JsonObject& parameters, JsonObject& response)
         {   //sample servicemanager response:
             LOGINFOMETHOD();
             bool success = true;
