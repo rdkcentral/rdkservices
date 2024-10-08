@@ -1,0 +1,64 @@
+precondition = []
+autostart = "@PLUGIN_RIALTO_SERVER_MANAGER_AUTOSTART@"
+
+configuration = JSON()
+
+rootobject = JSON()
+rootobject.add("locator", "lib@PLUGIN_RIALTO_SERVER_MANAGER_IMPLEMENTATION@.so")
+rootobject.add("mode", "@PLUGIN_RIALTO_SERVER_MANAGER_MODE@")
+configuration.add("root", rootobject)
+
+if ("@PLUGIN_RIALTO_SERVER_MANAGER_DIR@"):
+    configuration.add("rialtodir", "@PLUGIN_RIALTO_SERVER_MANAGER_DIR@")
+
+gstplugins = [
+    "libgstapp.so",
+    "libgstaudioconvert.so",
+    "libgstaudioparsers.so",
+    "libgstaudioresample.so",
+    "libgstautodetect.so",
+    "libgstcoreelements.so",
+    "libgsticydemux.so",
+    "libgstid3demux.so",
+    "libgstisomp4.so",
+    "libgstmatroska.so",
+    "libgstopusparse.so",
+    "libgstplayback.so",
+    "libgstrialtosinks.so",
+    "libgsttypefindfunctions.so",
+    "libgstvideoparsersbad.so",
+    "libgstwavparse.so"
+]
+configuration.add("gstplugins", gstplugins)
+
+filelinks = [
+    { "src": "/usr/lib/libocdmRialto.so.1.0.0", "dest": "libocdm.so.4" }
+]
+configuration.add("libs", filelinks)
+
+defaultHostEnvs = "\
+WEBKIT_GST_QUIRKS=rialto;\
+WEBKIT_GST_HOLE_PUNCH_QUIRK=rialto;\
+RIALTO_SOCKET_PATH=/tmp/rialto-0;\
+LD_LIBRARY_PATH=/tmp/rialto/lib;\
+GST_PLUGIN_SYSTEM_PATH=/tmp/rialto/gst;\
+GST_REGISTRY=/tmp/rialto/rialto-client-gstreamer-cache.bin;\
+"
+if ("@PLUGIN_RIALTO_SERVER_MANAGER_HOST_ENVS@"):
+    configuration.add("hostenvvars", "@PLUGIN_RIALTO_SERVER_MANAGER_HOST_ENVS@")
+else:
+    configuration.add("hostenvvars", defaultHostEnvs)
+
+defaultSessionPlatformEnvs = "\
+WESTEROS_SINK_LOW_MEM_MODE=1;\
+XDG_RUNTIME_DIR=/run;\
+RIALTO_SINKS_RANK=0;\
+GST_REGISTRY=/tmp/rialto/rialto-server-gstreamer-cache.bin;\
+WAYLAND_DISPLAY=wst-residentapp;\
+"
+if ("@PLUGIN_RIALTO_SERVER_MANAGER_SESSION_ENVS@"):
+    configuration.add("sessionenvs", "@PLUGIN_RIALTO_SERVER_MANAGER_SESSION_ENVS@")
+else:
+    configuration.add("sessionenvs", defaultSessionPlatformEnvs)
+
+configuration.add("sessionplatformenvs", "@PLUGIN_RIALTO_SERVER_MANAGER_SESSION_PLATFORM_ENVS@")

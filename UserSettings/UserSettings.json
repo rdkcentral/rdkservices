@@ -132,24 +132,6 @@
                 "example": "null"
             }
         },
-        "SetPrivacyMode": {
-            "summary": "Setting Privacy Mode.",          
-            "params": {
-                "type": "object",
-                "properties": {
-                    "privacyMode": {
-                        "summary": "New Privacy Mode",
-                        "type": "string",
-                        "example": "DO_NOT_SHARE"
-                    }
-                }
-            },
-            "result": {
-                "summary": "Null string will display",
-                "type": "string",
-                "example": "null"
-            }
-        },
         "GetAudioDescription":{
             "summary": "Returns Audio Description.",
             "result": {
@@ -188,14 +170,6 @@
             "summary": "Getting Preferred ClosedCaption Service.",
             "result": {
                 "$ref": "#/definitions/preferredClosedCaptionService"
-            }
-        },
-        "GetPrivacyMode":{
-            "summary": "Getting Privacy Mode",
-            "result": {
-                "summary": "Current Privacy Mode",
-                "type": "string",
-                "example": "DO_NOT_SHARE"
             }
         }
     },
@@ -293,22 +267,6 @@
                 },
                 "required": [
                     "service"
-                ]
-            }
-        },
-        "OnPrivacyModeChanged": {
-            "summary": "Triggered after the Privacy Mode changes (see `SetPrivacyMode`)",
-            "params": {
-                "type": "object",
-                "properties": {
-                    "privacyMode":{
-                        "summary": "Receive Privacy Mode changes",
-                        "type": "string",
-                        "example": "DO_NOT_SHARE"
-                    }
-                },
-                "required": [
-                    "privacyMode"
                 ]
             }
         }
