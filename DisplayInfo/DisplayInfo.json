@@ -296,6 +296,89 @@
                  ],
                 "example": "EOTF_SMPTE_ST_2084"
             }            
+        }, 
+        "ishdcpcompliant": {
+            "summary": "The status 'HDCP compliant' will return true if the display device is connected and HDCP is in an authenticated state. The internal display is intended for sink devices (TVs), while the connected display device is for streaming source devices (STBs).",
+            "readonly": true,
+            "params": {
+                "type": "boolean",
+                "example": false
+            }
+        },
+        "ishdcpenabled": {
+            "summary": "This status indicates whether HDCP is enabled in the software stack. Typically, HDCP is enabled by default on all devices but can be disabled by setting a software flag.",
+            "readonly": true,
+            "params": {
+                "type": "boolean",
+                "example": false
+            }
+        },
+        "ishdcpsupported": {
+            "summary": "This field indicates the HDCP support status, serving as a static indicator for HDCP compatibility. HDCP support is enabled by default on all RDK devices, ensuring compatibility with protected content.",
+            "readonly": true,
+            "params": {
+                "type": "boolean",
+                "example": false
+            }
+        },
+        "hdcpreason": {
+            "summary": "Gets hdcp status reason as integer status code",
+            "readonly": true,
+            "params": {
+                "type": "integer",
+                "size": 32,
+                "example": 0,
+                "value description":{
+                    "0" : "Connected Sink Device does not support HDCP",
+                    "1" : "HDCP Authentication Process is not initiated",
+                    "2" : "HDCP Authentication Process is initiated and Passed",
+                    "3" : "HDCP Authentication Failure or Link Integroty Failure",
+                    "4" : "HDCP Authentication in Progress",
+                    "5" : "HDMI output port disabled"
+				}
+            }
+        },
+        "supportedhdcpversion": {
+            "summary": "The supported HDCP version refers to the HDCP version of the host device.",
+            "readonly": true,
+            "params": {
+                "type": "string",
+                "enum": [
+                    "HdcpUnencrypted",
+                    "Hdcp1x",
+                    "Hdcp2x",
+                    "HdcpAuto"
+                ],
+                "example": "Hdcp1x"
+            }
+        },
+        "displayhdcpversion": {
+            "summary": "The 'Display HDCP version' refers to different HDCP versions depending on the device context: for the source device (STB), it indicates the HDCP version of the connected display, whereas for the sink device (TV), it will be the same HDCP version of the host device",
+            "readonly": true,
+            "params": {
+                "type": "string",
+                "enum": [
+                    "HdcpUnencrypted",
+                    "Hdcp1x",
+                    "Hdcp2x",
+                    "HdcpAuto"
+                ],
+                "example": "Hdcp1x"
+            }
+        },
+        "currenthdcpversion": {
+            "summary": "The 'Current HDCP version' refers to the HDCP version determined based on the capabilities of both the host device and the connected display.",
+            "readonly": true,
+            "params": {
+                "type": "string",
+                "enum": [
+                    "HdcpUnencrypted",
+                    "Hdcp1x",
+                    "Hdcp2x",
+                    "HdcpAuto"
+                ],
+                "example": "Hdcp1x"
+            }
         }
     },
     "events": {
