@@ -1,0 +1,12 @@
+autostart = "@PLUGIN_USERSETTINGS_AUTOSTART@"
+precondition = ["Platform"]
+callsign = "org.rdk.SystemMode"
+startuporder = "@PLUGIN_SYSTEMMODE_STARTUPORDER@"
+
+configuration = JSON()
+rootobject = JSON()
+
+rootobject.add("mode", "@PLUGIN_SYSTEMMODE_MODE@")
+rootobject.add("locator", "lib@PLUGIN_IMPLEMENTATION@.so")
+configuration.add("root", rootobject)
+
