@@ -1,0 +1,73 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "SystemMode API",
+        "class": "org.rdk.SystemMode",
+        "description": "The `SystemMode` plugin coordinates state changes that take effect across multiple components in the system."
+    },
+    "common": {
+        "$ref": "../common/common.json"
+    },
+    "definitions": {
+		"systemMode": {
+            "summary": "System mode (must be one of the following: device_optimize)",
+            "type": "string",
+            "example": "device_optimize"
+        },
+		"state": {
+            "summary": "The target state (must be one of the following: video, game)",
+            "type": "string",
+            "example": "game"
+        }
+    },
+    "methods": {
+		"requestState": {
+            "summary": "Requests a new system mode state in the device.  Thunder components asynchronously reconfigure themselves so the caller cannot be guaranteed a full state transition upon return.",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "systemMode": {
+                        "$ref": "#/definitions/systemMode"
+                    },
+                    "state": {
+                        "$ref": "#/definitions/state"
+                    }					
+                },
+                "required": [
+                    "systemMode",
+                    "state"					
+                ]
+            },
+            "result": {
+                "$ref": "#/common/results/void"
+            }
+        },
+		"getState": {
+            "summary": "Gets the current state for a given system property",
+            "params": {
+                "type":"object",
+                "properties": {
+                    "systemMode": {
+                        "$ref": "#/definitions/systemMode"
+                    }					
+                },
+                "required": [
+                    "systemMode"
+                ]
+            },
+            "result": {
+                "type": "object",
+                "properties": {
+                    "state": {
+                        "$ref": "#/definitions/state"
+                    }
+		},
+                "required": [
+                    "state"
+                ]
+                }
+        }
+    }
+}
+
