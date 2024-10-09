@@ -379,26 +379,12 @@ namespace WPEFramework {
 
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type){
                 LOGINFO("---------------UNSOLICITED_MAINTENANCE--------------");
-#ifndef ENABLE_WHOAMI
-                tasks.push_back(task_names_foreground[0].c_str());
-#endif /* WhoAmI */
             }
             else if( SOLICITED_MAINTENANCE == g_maintenance_type){
                 LOGINFO("=============SOLICITED_MAINTENANCE===============");
             }
-
-#if defined(ENABLE_WHOAMI)
-            if (UNSOLICITED_MAINTENANCE == g_maintenance_type) {
-                tasks.push_back(task_names_foreground[1].c_str());
-                tasks.push_back(task_names_foreground[2].c_str());
-                tasks.push_back(task_names_foreground[0].c_str());
-                tasks.push_back(task_names_foreground[3].c_str());
-            } else {
-                tasks.push_back(task_names_foreground[1].c_str());
-                tasks.push_back(task_names_foreground[2].c_str());
-                tasks.push_back(task_names_foreground[3].c_str());
-            }
-#elif defined(SUPPRESS_MAINTENANCE)
+            
+#if defined(SUPPRESS_MAINTENANCE) && !defined(ENABLE_WHOAMI)
             /* decide which all tasks are needed based on the activation status */
             if (activationStatus){
                 if(skipFirmwareCheck){
@@ -407,18 +393,14 @@ namespace WPEFramework {
                     SET_STATUS(g_task_status,DIFD_COMPLETE);
 
                     /* Add tasks */
-                    tasks.push_back(task_names_foreground[1].c_str());
-                    tasks.push_back(task_names_foreground[3].c_str());
-                }else{
-                    tasks.push_back(task_names_foreground[1].c_str());
+                    tasks.push_back(task_names_foreground[0].c_str());
                     tasks.push_back(task_names_foreground[2].c_str());
-                    tasks.push_back(task_names_foreground[3].c_str());
                 }
             }
 #else
+	    tasks.push_back(task_names_foreground[0].c_str());
             tasks.push_back(task_names_foreground[1].c_str());
             tasks.push_back(task_names_foreground[2].c_str());
-            tasks.push_back(task_names_foreground[3].c_str());
 #endif
             std::unique_lock<std::mutex> lck(m_callMutex);
             for( i = 0; i < tasks.size() && !m_abort_flag; i++) {
