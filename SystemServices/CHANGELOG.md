@@ -18,7 +18,7 @@ All notable changes to this RDK Service will be documented in this file.
 
 ## [3.3.2] - 2024-10-9
 ### Added
-- Added documentation for FSR API.
+- Added implementation for FSR get and set API.
 
 ## [3.3.1] - 2024-10-4
 ### Added
