@@ -67,7 +67,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 3
 #define API_VERSION_NUMBER_MINOR 3
-#define API_VERSION_NUMBER_PATCH 1
+#define API_VERSION_NUMBER_PATCH 2
 
 #define MAX_REBOOT_DELAY 86400 /* 24Hr = 86400 sec */
 #define TR181_FW_DELAY_REBOOT "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"
@@ -492,6 +492,8 @@ namespace WPEFramework {
 	    registerMethod("getFriendlyName", &SystemServices::getFriendlyName, this);
             registerMethod("setFriendlyName", &SystemServices::setFriendlyName, this);
             registerMethod("getThunderStartReason", &SystemServices::getThunderStartReason, this);
+            registerMethod("setFSRFlag", &SystemServices::setFSRFlag, this);
+            registerMethod("getFSRFlag", &SystemServices::getFSRFlag, this);
 
             registerMethod("setPrivacyMode", &SystemServices::setPrivacyMode, this);
             registerMethod("getPrivacyMode", &SystemServices::getPrivacyMode, this);
@@ -4785,6 +4787,69 @@ namespace WPEFramework {
             returnResponse(true);
         }
        
+
+        
+        /***
+         * @brief : To set the fsr flag into the emmc raw area.
+         * @param1[in] : {"params":{"fsrFlag":<bool>}
+         * @param2[out] : {"result":{"success":<bool>}}
+         * @return     : Core::<StatusCode>
+         */
+        uint32_t SystemServices::setFSRFlag(const JsonObject& parameters,
+                JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool fsrFlag = 0;
+            bool status = false;
+            
+            if(parameters.HasLabel("fsrFlag"))
+            {
+                fsrFlag = parameters["fsrFlag"].Boolean();
+                IARM_Bus_MFRLib_FsrFlag_Param_t param;
+                param = fsrFlag;
+
+                LOGINFO("Param %d \n", param);
+                IARM_Result_t res = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME,
+                                       IARM_BUS_MFRLIB_API_SetFsrFlag, (void *)&param,
+                                       sizeof(param));
+                if (IARM_RESULT_SUCCESS == res) {
+                    status = true;
+                } else {
+                    status = false;
+                }
+            }
+
+            returnResponse(status);
+        }
+
+        /***
+         * @brief : To get the fsr flag from emmc
+         * @param1[out] : {"params":{"params":{"fsrFlag":<bool>}
+         * @param2[out] : {"result":{"success":<bool>}}
+         * @return     : Core::<StatusCode>
+         */
+        uint32_t SystemServices::getFSRFlag(const JsonObject& parameters,
+                JsonObject& response)
+        {
+            LOGINFOMETHOD();
+            bool fsrFlag = 0;
+            bool status = false;
+            IARM_Bus_MFRLib_FsrFlag_Param_t param;
+
+            IARM_Result_t res = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME,
+                                  IARM_BUS_MFRLIB_API_GetFsrFlag, (void *)&param,
+                                  sizeof(param));
+            if (IARM_RESULT_SUCCESS == res) {
+                fsrFlag = param;
+                status = true;
+            } else {
+                status = false;
+            }
+            response["fsrFlag"] = fsrFlag;
+            returnResponse(status);
+        }
+
+
     } /* namespace Plugin */
 } /* namespace WPEFramework */
 
