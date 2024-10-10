@@ -796,7 +796,7 @@ namespace WPEFramework
                 lstBtrMgrEvtRsp.m_eventType = BTRMGR_EVENT_RECEIVED_EXTERNAL_CONNECT_REQUEST;
                 lstBtrMgrEvtRsp.m_eventResp = Utils::String::equal(respValue, "ACCEPTED") ? 1 : 0;
             }
-            else if (eventType.compare == EVT_PLAYBACK_REQUEST) {
+            else if (eventType == EVT_PLAYBACK_REQUEST) {
                 lstBtrMgrEvtRsp.m_eventType = BTRMGR_EVENT_RECEIVED_EXTERNAL_PLAYBACK_REQUEST;
                 lstBtrMgrEvtRsp.m_eventResp = Utils::String::equal(respValue, "ACCEPTED") ? 1 : 0;
             }
