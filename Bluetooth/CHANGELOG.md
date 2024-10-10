@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.12] - 2024-09-26
+### Added
+- Make sure connect response is sent on a connect request
+
 ## [1.0.11] - 2024-05-25
 ### Added
 - Make plugin autostart configurable from recipe
