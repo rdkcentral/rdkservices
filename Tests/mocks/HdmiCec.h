@@ -55,6 +55,13 @@ typedef struct _dsGetHDMIARCPortIdParam_t {
     int portId;
 } dsGetHDMIARCPortIdParam_t;
 
+typedef struct _dsSetAllmEnabledParam_t
+{
+    dsError_t result;
+    intptr_t  handle;
+    bool     enabled;
+}dsSetAllmEnabledParam_t;
+
 typedef struct _Throw_e {
 } Throw_e;
 
