@@ -29,6 +29,8 @@
 #include "Module.h"
 
 #define DATASTORE_PATH _T("/opt/migration_data_store.json")
+#define MIGRATION_PREPARER_RFC_CALLER_ID "MigrationPreparer"
+#define TR181_MIGRATION_READY "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.MigrationReady"
 
 typedef uint64_t LINE_NUMBER_TYPE;
 using std::string;
@@ -63,6 +65,10 @@ namespace WPEFramework {
                 uint32_t endpoint_read(const JsonObject& parameters, JsonObject& response);
                 // API to delete dataStore entry
                 uint32_t endpoint_delete(const JsonObject& parameters, JsonObject& response);
+                // API to set component readiness
+                uint32_t setComponentReadiness(const JsonObject& parameters, JsonObject& response);
+                // API to get component readiness
+                uint32_t getComponentReadiness(const JsonObject& parameters, JsonObject& response);
                 /*Methods: End*/
             
             private:
@@ -80,6 +86,8 @@ namespace WPEFramework {
                 string getValue(string);
                 // Fn. to store the keys and their line numbers from dataStore to lineNumber map
                 void storeKeys(void);
+                // Fn. to construct JSON response from Vector.
+                void setJSONResponseArray(JsonObject& response, const char* key, const std::vector<string>& items);
                 /*Helpers: End*/
         };
     }
