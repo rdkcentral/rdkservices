@@ -175,7 +175,7 @@ namespace WPEFramework {
             dataStoreMutex.unlock();
         }
 
-        void setJSONResponseArray(JsonObject& response, const char* key, const std::vector<string>& items)
+        void MigrationPreparer::setJSONResponseArray(JsonObject& response, const char* key, const std::vector<string>& items)
 		{
 			JsonArray arr;
 			for (auto& i : items) {
@@ -183,6 +183,28 @@ namespace WPEFramework {
 			}
 			response[key] = arr;
 		}
+
+        void MigrationPreparer::get_components(std::vector<string>& list, string& value, string input) {
+            string::size_type start = 0, pos = 0; 
+            while ((pos = value.find('_', start) )!= std::string::npos) {
+                list.emplace_back(value.substr(start, pos - start));
+                start = pos + 1; // Move start to the next character after the delimiter
+            }
+            // add the last element or the only element to the list 
+            list.emplace_back(value.substr(start));
+            if(input != " ") 
+                if (find(list.begin(), list.end(), input) == list.end()) // duplicate check
+                    list.emplace_back(input);
+            sort(list.begin(), list.end());
+        }
+
+        void MigrationPreparer::tokenize(string& value, std::vector<string>& list) {
+        	//if the list is with only one element also it won't be a problem
+            for(string::size_type i=0; i<list.size()-1; i++)
+                value = value + list[i] + "_"; 
+            value= value + list[list.size()-1];
+	}
+            
         /*Helper's: End*/
         
 
@@ -382,53 +404,45 @@ namespace WPEFramework {
             return Core::ERROR_GENERAL;
         }
 
-        uint32_t MigrationPreparerImplementation::setComponentReadiness(const JsonObject& parameters, JsonObject& response)
-        {
+        uint32_t MigrationPreparer::setComponentReadiness(const JsonObject& parameters, JsonObject& response){
+
+         // check if required filds - name, value exists
+        if (!parameters.HasLabel("componentName")) 
+             return Core::ERROR_BAD_REQUEST;
+        
+        // check if provided params are empty
+        if (parameters["name"].String().empty()) 
+            return Core::ERROR_INVALID_INPUT_LENGTH;
+        
+        LOGINFOMETHOD();
+
         RFC_ParamData_t param;
-        string value, val_tmp;
         uint32_t status = Core::ERROR_GENERAL;
         WDMP_STATUS wdmpStatus;
-        std::vector<std::string> component_list;
-        size_t start = 0, pos = 0;
-        _adminLock.Lock();
-        if(!parameters.HasLabel("componentName")){
-            response["success"] = false;
-            LOGERR("Component Name is missing");
-            _adminLock.Unlock();
-            return status;
-        }
-        string compName = parameters["componentName"].String();
-        LOGINFO("Component Name[%s]", compName.c_str());
-        wdmpStatus = getRFCParameter(const_cast<char *>("MigrationPreparer"),TR181_MIGRATION_READY, &param);
+        std::string paramValue;
+        std::string compName = parameters["componentName"].String(); //like this only in other methods
+        
+	wdmpStatus = getRFCParameter((char *)MIGRATION_PREPARER_RFC_CALLER_ID, TR181_MIGRATION_READY, &param);
         if (WDMP_SUCCESS == wdmpStatus) {
-            value = param.value;
-            if(value == ""){
+            paramValue = param.value;
+            if(paramValue == ""){ 
                 LOGINFO("no component is ready for migration, So setting the first component");
-                wdmpstatus = setRFCParameter((char *)MIGRATION_PREPARER_RFC_CALLER_ID, TR181_MIGRATION_READY, compName.c_str(), WDMP_STRING);
-                status = (wdmpstatus == WDMP_SUCCESS)?Core::ERROR_NONE;Core::ERROR_GENERAL;
             }
             else {
-                LOGINFO("component %s is already present", value.c_str());
-                while ((pos = value.find('_', start) )!= std::string::npos) {
-                    component_list.push_back(value.substr(start, pos - start));
-                    start = pos + 1; // Move start to the next character after the delimiter
+                LOGINFO("component %s is already present", param.value);
+		std::vector<std::string> component_list;
+                get_components(component_list, paramValue, compName);
+                compName= "";
+                tokenize(compName, component_list);
                 }
-                // Add the last token after the final delimiter
-                component_list.push_back(value.substr(start));
-                component_list.push_back(compName);
-                std::sort(component_list.begin(), component_list.end());
-                for(int i=0; i<component_list.size()-1; i++)
-                    val_tmp = val_tmp + component_list[i] + "_"; 
-                val_tmp= val_tmp + component_list[component_list.size()-1];
-                WDMP_STATUS wdmstatus = setRFCParameter((char *)MIGRATION_PREPARER_RFC_CALLER_ID, TR181_MIGRATION_READY, val_tmp.c_str(), WDMP_STRING);  
-                status = (wdmstatus == WDMP_SUCCESS)?Core::ERROR_NONE;Core::ERROR_GENERAL;
-                }
+            wdmpStatus = setRFCParameter((char *)MIGRATION_PREPARER_RFC_CALLER_ID, TR181_MIGRATION_READY, compName.c_str(), WDMP_STRING);  
+            status = (wdmpStatus == WDMP_SUCCESS)?Core::ERROR_NONE:Core::ERROR_GENERAL;
         }
-        else {
+        else { // let me confirm if getrfc is working always or not
             LOGERR("Failed to get RFC parameter");
         } 
-        _adminLock.Unlock();
-        if(status == Core::ERROR_NONE){
+        
+	if(status == Core::ERROR_NONE){
             LOGINFO("Component readiness set successfully");
             response["success"] = true;
         }    
@@ -442,40 +456,30 @@ namespace WPEFramework {
     {
         RFC_ParamData_t param;
         string val;
-        size_t start = 0, pos = 0;
         uint32_t status = Core::ERROR_GENERAL;
-        vector<string> components;
-        _admin.lock();
-        WDMP_STATUS wdmpStatus = getRFCParameter(const_cast<char *>("MigrationPreparer"),TR181_MIGRATION_READY, &param);
+        std::vector<std::string> components;
+        
+	WDMP_STATUS wdmpStatus = getRFCParameter(const_cast<char *>("MigrationPreparer"),TR181_MIGRATION_READY, &param);
         if (WDMP_SUCCESS == wdmpStatus) {
             val = param.value;
-            if( val == "")
+            if( val == "") // if no component is ready for migration should we send an empty array or err message 
             {
                 LOGERR("No component is ready for migration");
             }
             else {
-                    while ((pos = val.find('_', start) )!= std::string::npos) {
-                    components.push_back(val.substr(start, pos - start));
-                    start = pos + 1; // Move start to the next character after the delimiter
-                    }
-                   components.push_back(val.substr(start));
-                   setJsonResponseArray(response, "componentList", components);
+                   get_components(components, val);
+                   setJSONResponseArray(response, "componentList", components);
                    status = Core::ERROR_NONE;
+                   LOGINFO("Components read successfully");
+                    for (const auto &item: components)
+                        std::cout<<item<<std::endl;
             }
         }
         else {
             LOGERR("Failed to get RFC parameter");
         }
-        __admin.unlock();
-         if(status == Core::ERROR_NONE){
-            LOGINFO("Components read successfully")
-            for (const auto &item: components)
-                std::cout<<item<<std::endl;
-        }    
-        else{
-            LOGERR("Failed to read components");
-        }
-        return status;
+        
+	return status;
        }
         /*API's: End*/
     }

@@ -27,6 +27,7 @@
 #include "secure_wrapper.h"
 #include "UtilsJsonRpc.h"
 #include "Module.h"
+#include "rfcapi.h"
 
 #define DATASTORE_PATH _T("/opt/migration_data_store.json")
 #define MIGRATION_PREPARER_RFC_CALLER_ID "MigrationPreparer"
@@ -86,8 +87,12 @@ namespace WPEFramework {
                 string getValue(string);
                 // Fn. to store the keys and their line numbers from dataStore to lineNumber map
                 void storeKeys(void);
-                // Fn. to construct JSON response from Vector.
+                // Fn. to construct JSON response from vector.
                 void setJSONResponseArray(JsonObject& response, const char* key, const std::vector<string>& items);
+                //Fn. to populate vector with values from a string
+                void get_components(std::vector<string>& list, string& value, string input = "");
+                //Fn. to populate value from a vector with delimiter(_)
+                void tokenize(string& value, std::vector<string>& list);
                 /*Helpers: End*/
         };
     }
