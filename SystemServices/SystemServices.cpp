@@ -1438,7 +1438,7 @@ namespace WPEFramework {
             file_out.close();
             //cout << "Parameter " << param << " written to " << filename << " successfully." << "status=" << status << endl;
             LOGINFO("Parameter written to file successfully. status= %d", status);
-            LOGINFO("%s flag stored successfully in persistent memory.", param);
+            LOGINFO("%s flag stored successfully in persistent memory.", param.c_star());
             return status;
         }
         
@@ -1474,7 +1474,7 @@ namespace WPEFramework {
                             value = false;
                         } else {
                             //cerr << "Error: Invalid value for parameter " << param << " in file: " << file_value << endl;
-                            LOGERR("Error: Invalid value for parameter %s  in file: %d", param.c_str(), file_value ? "true": "false");
+                            LOGERR("Error: Invalid value for parameter %s  in file: %s", param.c_str(), file_value.c_str());
                             file.close();
                             return false;  // Invalid value
                         }
@@ -1517,7 +1517,7 @@ namespace WPEFramework {
             //std::string filename = DEVICESTATE_FILE;
             std::map<std::string, bool> paramsToWrite;
 
-            if (!(param.HasLabel("blocklist"))) {
+            if (!(parameters.HasLabel("blocklist"))) {
                 populateResponseWithError(SysSrv_MissingKeyValues, response);
                 result = false;
             }
@@ -1526,21 +1526,21 @@ namespace WPEFramework {
             checkOpFlashStoreDir();
             LOGINFO("[GSK]checked opflashstore directory and it is exists.");
 
-            blocklistFlag = parameters["blocklist"].Boolen();
-            if((BlocklistFlag == true) && (BlocklistFlag == false) )
-		    {
+            blocklistFlag = parameters["blocklist"].Boolean();
+            if((blocklistFlag == true) && (blocklistFlag == false) ) {
 			    //GSK
                 //paramsToWrite["blocklist"] = strBlocklistFlag;
                 //status = writeDevicestate("blocklist", blocklistFlag);
                 status = write_parameters(DEVICESTATE_FILE, "blocklist", blocklistFlag);
-			    if (status != true){
+			    if (status != true) {
 			    	LOGERR("Update failed. status %d ", status);
 				    JsonObject error;
 				    error["message"] = "Update failed";
 				    error["code"] = "-32002";
 				    response["error"] = error;
 				    result = false;
-			}
+			    } 
+            }
             returnResponse(result);
         }
 
