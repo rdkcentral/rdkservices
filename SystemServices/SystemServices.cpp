@@ -1547,7 +1547,7 @@ namespace WPEFramework {
             returnResponse(result);
         }
 
-        uint32_t SystemServices::getBlocklistFlag(const string& parameter, JsonObject& response)
+        uint32_t SystemServices::getBlocklistFlag(const JsonObject& parameters, JsonObject& response)
 	    {
 		
 		    bool status = false, result = false, blocklistFlag;
