@@ -305,8 +305,8 @@ namespace WPEFramework {
                 uint32_t getThunderStartReason(const JsonObject& parameters, JsonObject& response);
                 uint32_t setPrivacyMode(const JsonObject& parameters, JsonObject& response);
                 uint32_t getPrivacyMode(const JsonObject& parameters, JsonObject& response);
-                uint32_t SystemServices::setBlocklistFlag(const JsonObject& parameters, JsonObject& response);
-                uint32_t SystemServices::getBlocklistFlag(const JsonObject& parameters, JsonObject& response);
+                uint32_t setBlocklistFlag(const JsonObject& parameters, JsonObject& response);
+                uint32_t getBlocklistFlag(const JsonObject& parameters, JsonObject& response);
         }; /* end of system service class */
     } /* end of plugin */
 } /* end of wpeframework */

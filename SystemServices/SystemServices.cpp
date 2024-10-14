@@ -1378,7 +1378,7 @@ namespace WPEFramework {
                 returnResponse(status);
         }
         
-        bool SystemServices::checkOpFlashStoreDir()
+        bool checkOpFlashStoreDir()
         {
             struct stat st = {0};
             int ret = 0;
@@ -1448,7 +1448,8 @@ namespace WPEFramework {
         
             // Check if the file was successfully opened
             if (!file.is_open()) {
-                cerr << "Error opening file for reading: " << filename << endl;
+                //cerr << "Error opening file for reading: " << filename << endl;
+                LOGERR("Error opening file for reading: %s", filename.c_str());
                 return false;
             }
         
@@ -1472,7 +1473,8 @@ namespace WPEFramework {
                         } else if (file_value == "false") {
                             value = false;
                         } else {
-                            cerr << "Error: Invalid value for parameter " << param << " in file: " << file_value << endl;
+                            //cerr << "Error: Invalid value for parameter " << param << " in file: " << file_value << endl;
+                            LOGERR("Error: Invalid value for parameter %s  in file: %d", param.c_str(), file_value ? "true": "false");
                             file.close();
                             return false;  // Invalid value
                         }
@@ -1483,15 +1485,17 @@ namespace WPEFramework {
         
             // Check if there were any read errors
             if (file.fail() && !file.eof()) {
-                cerr << "Error reading from file: " << filename << endl;
+                //cerr << "Error reading from file: " << filename << endl;
+                LOGERR("Error reading from file: %s", filename.c_str());
                 file.close();
-                exit(EXIT_FAILURE);
+                return false;
             }
         
             file.close();
         
             if (!param_found) {
                 cerr << "Parameter " << param << " not found in the file." << endl;
+                LOGERR("Parameter %s  not found in the file.", param.c_str());
                 return false;
             }
         
@@ -1545,7 +1549,13 @@ namespace WPEFramework {
 	    {
 		
 		    bool status = false, result = false, blocklistFlag;
-            LOGWARN("SystemService getDeviceInfo param type %d result %s", param.type, param.buffer);
+            //LOGWARN("SystemService getDeviceInfo param type %d result %s", param.type, param.buffer);
+
+            /*check /opt/secure/persistent/opflashstore/ dir*/
+            LOGINFO("[GSK]checking opflashstore");
+            checkOpFlashStoreDir();
+            LOGINFO("[GSK]checked opflashstore directory and it is exists.");
+
 		    
             result = read_parameters(DEVICESTATE_FILE, "blocklist", blocklistFlag);
 		    if (result == true) {
@@ -1553,10 +1563,11 @@ namespace WPEFramework {
 			    status = true;
 		    }
 		    else{
-			    LOGWARN("SystemService getDeviceInfo - Manufacturer Data Read Failed");
+			    LOGWARN("SystemService getBlocklistFlag - Blocklist flag Data Read Failed");
 		    }
-		return status;
-	}
+
+		    returnResponse(status);
+	    }
 
         /***
          * @brief : Sets the mode of the STB. The object consists of two properties, mode (String) and
