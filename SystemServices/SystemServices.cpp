@@ -1404,6 +1404,7 @@ namespace WPEFramework {
                     if (pos != string::npos) {
                         string file_param = line.substr(0, pos);
                         if (file_param == param) {
+                            //Need to handel if requested and file vlaue are same case.
                             // Update the parameter value
                             line = param + "=" + (value ? "true" : "false");
                             param_found = true;
@@ -1542,7 +1543,7 @@ namespace WPEFramework {
 			    } 
             }
             /*Send EVT_ONBLOCKLISTCHANGED event notify*/
-            sendNotify(EVT_ONBLOCKLISTCHANGED, params);
+            sendNotify(EVT_ONBLOCKLISTCHANGED, parameters);
             returnResponse(result);
         }
 
