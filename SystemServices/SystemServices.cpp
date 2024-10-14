@@ -100,6 +100,8 @@ using namespace std;
 
 #define PRIVACY_MODE_FILE "/opt/secure/persistent/System/privacymode.txt"
 
+#define DEVICESTATE_FILE "/opt/secure/persistent/opflashstore/devicestate.txt"
+
 /**
  * @struct firmwareUpdate
  * @brief This structure contains information of firmware update.
@@ -495,6 +497,9 @@ namespace WPEFramework {
 
             registerMethod("setPrivacyMode", &SystemServices::setPrivacyMode, this);
             registerMethod("getPrivacyMode", &SystemServices::getPrivacyMode, this);
+            //GSK
+            registerMethod("setBlocklist", &SystemServices::setBlocklist, this);
+            registerMethod("getBlocklist", &SystemServices::getBlocklist, this);
 
         }
 
@@ -1372,6 +1377,186 @@ namespace WPEFramework {
 		}
                 returnResponse(status);
         }
+        
+        bool SystemServices::checkOpFlashStoreDir()
+        {
+            struct stat st = {0};
+            int ret = 0;
+            if (stat("/opt/secure/persistent/opflashstore", &st) == -1) {
+                ret = mkdir("/opt/secure/persistent/opflashstore", 0774);
+                LOGWARN(" --- SubDirectories created from mkdir %d ", ret);
+            }
+            return 0 == ret;
+        }
+        // Function to write (update or append) parameters in the file
+        bool write_parameters(const string &filename, const string &param, bool value) {
+            ifstream file_in(filename);
+            vector<string> lines;
+            bool param_found = false, status = false;
+        
+            // If file exists, read its content line by line
+            if (file_in.is_open()) {
+                string line;
+                while (getline(file_in, line)) {
+                    size_t pos = line.find('=');
+        
+                    // Check if the line contains the parameter we're searching for
+                    if (pos != string::npos) {
+                        string file_param = line.substr(0, pos);
+                        if (file_param == param) {
+                            // Update the parameter value
+                            line = param + "=" + (value ? "true" : "false");
+                            param_found = true;
+                        }
+                    }
+        
+                    // Store the line (updated or not) in memory
+                    lines.push_back(line);
+                }
+        
+                file_in.close();
+            }
+        
+            // If the parameter wasn't found in the file, add it
+            if (!param_found) {
+                lines.push_back(param + "=" + (value ? "true" : "false"));
+            }
+        
+            // Rewrite the entire file with updated values
+            ofstream file_out(filename);
+            if (!file_out.is_open()) {
+                //cerr << "Error opening file for writing: " << filename << endl;
+                LOGERR("Error opening file for writing:%s ", filename);
+                status = false;
+            }
+        
+            for (const string &line : lines) {
+                file_out << line << endl;
+            }
+            status = true;
+        
+            file_out.close();
+            //cout << "Parameter " << param << " written to " << filename << " successfully." << "status=" << status << endl;
+            LOGINFO("Parameter written to file successfully. status= %d", status);
+            LOGINFO("%s flag stored successfully in persistent memory.", param);
+            return status;
+        }
+        
+        // Function to read a parameter from a file and update its value
+        bool read_parameters(const string &filename, const string &param, bool &value) {
+            ifstream file(filename);
+        
+            // Check if the file was successfully opened
+            if (!file.is_open()) {
+                cerr << "Error opening file for reading: " << filename << endl;
+                return false;
+            }
+        
+            string line;
+            bool param_found = false;
+            while (getline(file, line)) {
+                // Remove any trailing newline characters
+                line.erase(line.find_last_not_of("\n\r") + 1);
+        
+                // Split the line into parameter and value using '=' delimiter
+                size_t pos = line.find('=');
+                if (pos != string::npos) {
+                    string file_param = line.substr(0, pos);
+                    string file_value = line.substr(pos + 1);
+        
+                    // Check if this is the parameter we are looking for
+                    if (file_param == param) {
+                        param_found = true;
+                        if (file_value == "true") {
+                            value = true;
+                        } else if (file_value == "false") {
+                            value = false;
+                        } else {
+                            cerr << "Error: Invalid value for parameter " << param << " in file: " << file_value << endl;
+                            file.close();
+                            return false;  // Invalid value
+                        }
+                        break;
+                    }
+                }
+            }
+        
+            // Check if there were any read errors
+            if (file.fail() && !file.eof()) {
+                cerr << "Error reading from file: " << filename << endl;
+                file.close();
+                exit(EXIT_FAILURE);
+            }
+        
+            file.close();
+        
+            if (!param_found) {
+                cerr << "Parameter " << param << " not found in the file." << endl;
+                return false;
+            }
+        
+            return true;
+        }        
+
+       /***
+         * @brief : To update Blocklist flag.
+         * @param1[in]  : {"blocklist":"<true/false>"}
+         * @param2[out] : {"result":{"success":<bool>}}
+         * @return              : Core::<StatusCode>
+         */
+        uint32_t SystemServices::setBlocklistFlag(const JsonObject& parameters,
+                JsonObject& response)
+        {                
+            bool status = false;
+            bool result = true;
+            bool blocklistFlag;
+            //std::string filename = DEVICESTATE_FILE;
+            std::map<std::string, bool> paramsToWrite;
+
+            if (!(param.HasLabel("blocklist"))) {
+                populateResponseWithError(SysSrv_MissingKeyValues, response);
+                result = false;
+            }
+            /*check /opt/secure/persistent/opflashstore/ dir*/
+            LOGINFO("[GSK]checking opflashstore");
+            checkOpFlashStoreDir();
+            LOGINFO("[GSK]checked opflashstore directory and it is exists.");
+
+            blocklistFlag = parameters["blocklist"].Boolen();
+            if((BlocklistFlag == true) && (BlocklistFlag == false) )
+		    {
+			    //GSK
+                //paramsToWrite["blocklist"] = strBlocklistFlag;
+                //status = writeDevicestate("blocklist", blocklistFlag);
+                status = write_parameters(DEVICESTATE_FILE, "blocklist", blocklistFlag);
+			    if (status != true){
+			    	LOGERR("Update failed. status %d ", status);
+				    JsonObject error;
+				    error["message"] = "Update failed";
+				    error["code"] = "-32002";
+				    response["error"] = error;
+				    result = false;
+			}
+            returnResponse(result);
+        }
+
+        //GSK getModelName /*need to update the logic for the param*/
+        bool SystemServices::getBlocklistFlag(const string& parameter, JsonObject& response)
+	    {
+		
+		    bool status = false, result = false, blocklistFlag;
+            LOGWARN("SystemService getDeviceInfo param type %d result %s", param.type, param.buffer);
+		    
+            result = read_parameters(DEVICESTATE_FILE, "blocklist", blocklistFlag);
+		    if (result == true) {
+			    response[parameter.c_str()] = string(param.buffer);
+			    status = true;
+		    }
+		    else{
+			    LOGWARN("SystemService getDeviceInfo - Manufacturer Data Read Failed");
+		    }
+		return status;
+	}
 
         /***
          * @brief : Sets the mode of the STB. The object consists of two properties, mode (String) and
