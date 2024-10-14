@@ -1,42 +1,44 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="head.UserSettings_API"></a>
-# UserSettings API
+<a name="UserSettings_Plugin"></a>
+# UserSettings Plugin
 
-**Version: [1.0.0]()**
+**Version: [1.2.0](https://github.com/rdkcentral/rdkservices/blob/main/UserSettings/CHANGELOG.md)**
 
 A org.rdk.UserSettings plugin for Thunder framework.
 
 ### Table of Contents
 
-- [Abbreviation, Acronyms and Terms](#head.Abbreviation,_Acronyms_and_Terms)
-- [Description](#head.Description)
-- [Configuration](#head.Configuration)
-- [Methods](#head.Methods)
-- [Notifications](#head.Notifications)
+- [Abbreviation, Acronyms and Terms](#Abbreviation,_Acronyms_and_Terms)
+- [Description](#Description)
+- [Configuration](#Configuration)
+- [Methods](#Methods)
+- [Notifications](#Notifications)
 
-<a name="head.Abbreviation,_Acronyms_and_Terms"></a>
+<a name="Abbreviation,_Acronyms_and_Terms"></a>
 # Abbreviation, Acronyms and Terms
 
 [[Refer to this link](userguide/aat.md)]
 
-<a name="head.Description"></a>
+<a name="Description"></a>
 # Description
 
-The `UserSettings`, that is responsible for persisting and notifying listeners of any change of these settings..
+The `UserSettings` that is responsible for persisting and notifying listeners of any change of these settings.
 
-The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#ref.Thunder)].
+The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
 
-<a name="head.Configuration"></a>
+<a name="Configuration"></a>
 # Configuration
 
 The table below lists configuration options of the plugin.
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
+| callsign | string | Plugin instance name (default: *org.rdk.UserSettings*) |
 | classname | string | Class name: *org.rdk.UserSettings* |
+| locator | string | Library name: *libWPEFrameworkUserSettings.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 
-<a name="head.Methods"></a>
+<a name="Methods"></a>
 # Methods
 
 The following methods are provided by the org.rdk.UserSettings plugin:
@@ -45,36 +47,36 @@ org.rdk.UserSettings interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [setAudioDescription](#method.setAudioDescription) | Setting Audio Description |
-| [setPreferredAudioLanguages](#method.setPreferredAudioLanguages) | Setting Preferred Audio Languages |
-| [setPresentationLanguage](#method.setPresentationLanguage) | Setting Presentation Languages |
-| [setCaptions](#method.setCaptions) | Setting Captions |
-| [setPreferredCaptionsLanguages](#method.setPreferredCaptionsLanguages) | Setting PreferredCaption Languages |
-| [setPreferredClosedCaptionService](#method.setPreferredClosedCaptionService) | Setting Preferred Closed Caption Service |
-| [setPinControl](#method.setPinControl) | Setting PinControl |
-| [setViewingRestrictions](#method.setViewingRestrictions) | Setting ViewingRestrictions |
-| [setViewingRestrictionsWindow](#method.setViewingRestrictionsWindow) | Setting viewingRestrictionsWindow |
-| [setLiveWatershed](#method.setLiveWatershed) | Setting LiveWatershed |
-| [setPlaybackWatershed](#method.setPlaybackWatershed) | Setting PlaybackWatershed |
-| [setBlockNotRatedContent](#method.setBlockNotRatedContent) | Setting BlockNotRatedContent |
-| [setPinOnPurchase](#method.setPinOnPurchase) | Setting setPinOnPurchase |
-| [getAudioDescription](#method.getAudioDescription) | Returns Audio Description |
-| [getPreferredAudioLanguages](#method.getPreferredAudioLanguages) | Returns Preferred Audio Languages |
-| [getPresentationLanguage](#method.getPresentationLanguage) | Getting Presentation Languages |
-| [getCaptions](#method.getCaptions) | Getting Captions Enabled |
-| [getPreferredCaptionsLanguages](#method.getPreferredCaptionsLanguages) | Getting Preferred Caption Languages |
-| [getPreferredClosedCaptionService](#method.getPreferredClosedCaptionService) | Getting Preferred ClosedCaption Service |
-| [getPinControl](#method.getPinControl) | Returns Pin Control |
-| [getViewingRestrictions](#method.getViewingRestrictions) | Returns Get Viewing Restrictions |
-| [getViewingRestrictionsWindow](#method.getViewingRestrictionsWindow) | Returns Get Viewing Restrictions Window |
-| [getLiveWatershed](#method.getLiveWatershed) | Returns Live Watershed |
-| [getPlaybackWatershed](#method.getPlaybackWatershed) | Returns Playback Watershed |
-| [getBlockNotRatedContent](#method.getBlockNotRatedContent) | Returns BlockNotRatedContent |
-| [getPinOnPurchase](#method.getPinOnPurchase) | Returns PinOnPurchase |
+| [setAudioDescription](#setAudioDescription) | Setting Audio Description |
+| [setPreferredAudioLanguages](#setPreferredAudioLanguages) | Setting Preferred Audio Languages |
+| [setPresentationLanguage](#setPresentationLanguage) | Setting Presentation Languages |
+| [setCaptions](#setCaptions) | Setting Captions |
+| [setPreferredCaptionsLanguages](#setPreferredCaptionsLanguages) | Setting PreferredCaption Languages |
+| [setPreferredClosedCaptionService](#setPreferredClosedCaptionService) | Setting Preferred Closed Caption Service |
+| [setPinControl](#setPinControl) | Setting PinControl |
+| [setViewingRestrictions](#setViewingRestrictions) | Setting ViewingRestrictions |
+| [setViewingRestrictionsWindow](#setViewingRestrictionsWindow) | Setting viewingRestrictionsWindow |
+| [setLiveWatershed](#setLiveWatershed) | Setting LiveWatershed |
+| [setPlaybackWatershed](#setPlaybackWatershed) | Setting PlaybackWatershed |
+| [setBlockNotRatedContent](#setBlockNotRatedContent) | Setting BlockNotRatedContent |
+| [setPinOnPurchase](#setPinOnPurchase) | Setting setPinOnPurchase |
+| [getAudioDescription](#getAudioDescription) | Returns Audio Description |
+| [getPreferredAudioLanguages](#getPreferredAudioLanguages) | Returns Preferred Audio Languages |
+| [getPresentationLanguage](#getPresentationLanguage) | Getting Presentation Languages |
+| [getCaptions](#getCaptions) | Getting Captions Enabled |
+| [getPreferredCaptionsLanguages](#getPreferredCaptionsLanguages) | Getting Preferred Caption Languages |
+| [getPreferredClosedCaptionService](#getPreferredClosedCaptionService) | Getting Preferred ClosedCaption Service |
+| [getPinControl](#getPinControl) | Returns Pin Control |
+| [getViewingRestrictions](#getViewingRestrictions) | Returns Get Viewing Restrictions |
+| [getViewingRestrictionsWindow](#getViewingRestrictionsWindow) | Returns Get Viewing Restrictions Window |
+| [getLiveWatershed](#getLiveWatershed) | Returns Live Watershed |
+| [getPlaybackWatershed](#getPlaybackWatershed) | Returns Playback Watershed |
+| [getBlockNotRatedContent](#getBlockNotRatedContent) | Returns BlockNotRatedContent |
+| [getPinOnPurchase](#getPinOnPurchase) | Returns PinOnPurchase |
 
 
-<a name="method.setAudioDescription"></a>
-## *setAudioDescription [<sup>method</sup>](#head.Methods)*
+<a name="setAudioDescription"></a>
+## *setAudioDescription*
 
 Setting Audio Description.
 
@@ -82,7 +84,7 @@ Setting Audio Description.
 
 | Event | Description |
 | :-------- | :-------- |
-| [OnAudioDescriptionChanged](#event.OnAudioDescriptionChanged) | Triggered when the audio description changes. |
+| [OnAudioDescriptionChanged](#OnAudioDescriptionChanged) | Triggered when the audio description changes. |
 ### Parameters
 
 | Name | Type | Description |
@@ -121,8 +123,8 @@ Setting Audio Description.
 }
 ```
 
-<a name="method.setPreferredAudioLanguages"></a>
-## *setPreferredAudioLanguages [<sup>method</sup>](#head.Methods)*
+<a name="setPreferredAudioLanguages"></a>
+## *setPreferredAudioLanguages*
 
 Setting Preferred Audio Languages.
 
@@ -130,7 +132,7 @@ Setting Preferred Audio Languages.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onPreferredAudioLanguagesChanged](#event.onPreferredAudioLanguagesChanged) | Triggered when the audio preferred Audio languages changes. |
+| [onPreferredAudioLanguagesChanged](#onPreferredAudioLanguagesChanged) | Triggered when the audio preferred Audio languages changes. |
 ### Parameters
 
 | Name | Type | Description |
@@ -169,8 +171,8 @@ Setting Preferred Audio Languages.
 }
 ```
 
-<a name="method.setPresentationLanguage"></a>
-## *setPresentationLanguage [<sup>method</sup>](#head.Methods)*
+<a name="setPresentationLanguage"></a>
+## *setPresentationLanguage*
 
 Setting Presentation Languages.
 
@@ -178,7 +180,7 @@ Setting Presentation Languages.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onPresentationLanguageChanged](#event.onPresentationLanguageChanged) | Triggered when the presentation Language changes. |
+| [onPresentationLanguageChanged](#onPresentationLanguageChanged) | Triggered when the presentation Language changes. |
 ### Parameters
 
 | Name | Type | Description |
@@ -217,8 +219,8 @@ Setting Presentation Languages.
 }
 ```
 
-<a name="method.setCaptions"></a>
-## *setCaptions [<sup>method</sup>](#head.Methods)*
+<a name="setCaptions"></a>
+## *setCaptions*
 
 Setting Captions.
 
@@ -226,7 +228,7 @@ Setting Captions.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onCaptionsChanged](#event.onCaptionsChanged) | Triggered when the captions changes. |
+| [onCaptionsChanged](#onCaptionsChanged) | Triggered when the captions changes. |
 ### Parameters
 
 | Name | Type | Description |
@@ -265,8 +267,8 @@ Setting Captions.
 }
 ```
 
-<a name="method.setPreferredCaptionsLanguages"></a>
-## *setPreferredCaptionsLanguages [<sup>method</sup>](#head.Methods)*
+<a name="setPreferredCaptionsLanguages"></a>
+## *setPreferredCaptionsLanguages*
 
 Setting PreferredCaption Languages.
 
@@ -274,7 +276,7 @@ Setting PreferredCaption Languages.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onPreferredCaptionsLanguagesChanged](#event.onPreferredCaptionsLanguagesChanged) | Triggered when the PreferredCaption Languages changes. |
+| [onPreferredCaptionsLanguagesChanged](#onPreferredCaptionsLanguagesChanged) | Triggered when the PreferredCaption Languages changes. |
 ### Parameters
 
 | Name | Type | Description |
@@ -313,8 +315,8 @@ Setting PreferredCaption Languages.
 }
 ```
 
-<a name="method.setPreferredClosedCaptionService"></a>
-## *setPreferredClosedCaptionService [<sup>method</sup>](#head.Methods)*
+<a name="setPreferredClosedCaptionService"></a>
+## *setPreferredClosedCaptionService*
 
 Setting Preferred Closed Caption Service.
 
@@ -322,7 +324,7 @@ Setting Preferred Closed Caption Service.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onPreferredClosedCaptionServiceChanged](#event.onPreferredClosedCaptionServiceChanged) | Triggered when the Preferred Closed Caption changes. |
+| [onPreferredClosedCaptionServiceChanged](#onPreferredClosedCaptionServiceChanged) | Triggered when the Preferred Closed Caption changes. |
 ### Parameters
 
 | Name | Type | Description |
@@ -361,8 +363,8 @@ Setting Preferred Closed Caption Service.
 }
 ```
 
-<a name="method.setPinControl"></a>
-## *setPinControl [<sup>method</sup>](#head.Methods)*
+<a name="setPinControl"></a>
+## *setPinControl*
 
 Setting PinControl.
 
@@ -370,7 +372,7 @@ Setting PinControl.
 
 | Event | Description |
 | :-------- | :-------- |
-| [onPinControlChanged](#event.onPinControlChanged) | Triggered when the pincontrol changes. |
+| [onPinControlChanged](#onPinControlChanged) | Triggered when the pincontrol changes. |
 ### Parameters
 
 | Name | Type | Description |
@@ -409,8 +411,8 @@ Setting PinControl.
 }
 ```
 
-<a name="method.setViewingRestrictions"></a>
-## *setViewingRestrictions [<sup>method</sup>](#head.Methods)*
+<a name="setViewingRestrictions"></a>
+## *setViewingRestrictions*
 
 Setting ViewingRestrictions.
 
@@ -418,7 +420,7 @@ Setting ViewingRestrictions.
 
 | Event | Description |
 | :-------- | :-------- |
-| [OnViewingRestrictionsChanged](#event.OnViewingRestrictionsChanged) | Triggered when the viewingRestrictions changes. |
+| [OnViewingRestrictionsChanged](#OnViewingRestrictionsChanged) | Triggered when the viewingRestrictions changes. |
 ### Parameters
 
 | Name | Type | Description |
@@ -457,8 +459,8 @@ Setting ViewingRestrictions.
 }
 ```
 
-<a name="method.setViewingRestrictionsWindow"></a>
-## *setViewingRestrictionsWindow [<sup>method</sup>](#head.Methods)*
+<a name="setViewingRestrictionsWindow"></a>
+## *setViewingRestrictionsWindow*
 
 Setting viewingRestrictionsWindow.
 
@@ -466,7 +468,7 @@ Setting viewingRestrictionsWindow.
 
 | Event | Description |
 | :-------- | :-------- |
-| [OnViewingRestrictionsWindowChanged](#event.OnViewingRestrictionsWindowChanged) | Triggered when the viewingRestrictionsWindow changes. |
+| [OnViewingRestrictionsWindowChanged](#OnViewingRestrictionsWindowChanged) | Triggered when the viewingRestrictionsWindow changes. |
 ### Parameters
 
 | Name | Type | Description |
@@ -505,8 +507,8 @@ Setting viewingRestrictionsWindow.
 }
 ```
 
-<a name="method.setLiveWatershed"></a>
-## *setLiveWatershed [<sup>method</sup>](#head.Methods)*
+<a name="setLiveWatershed"></a>
+## *setLiveWatershed*
 
 Setting LiveWatershed.
 
@@ -514,7 +516,7 @@ Setting LiveWatershed.
 
 | Event | Description |
 | :-------- | :-------- |
-| [OnLiveWatershedChanged](#event.OnLiveWatershedChanged) | Triggered when the liveWatershed changes. |
+| [OnLiveWatershedChanged](#OnLiveWatershedChanged) | Triggered when the liveWatershed changes. |
 ### Parameters
 
 | Name | Type | Description |
@@ -553,8 +555,8 @@ Setting LiveWatershed.
 }
 ```
 
-<a name="method.setPlaybackWatershed"></a>
-## *setPlaybackWatershed [<sup>method</sup>](#head.Methods)*
+<a name="setPlaybackWatershed"></a>
+## *setPlaybackWatershed*
 
 Setting PlaybackWatershed.
 
@@ -562,7 +564,7 @@ Setting PlaybackWatershed.
 
 | Event | Description |
 | :-------- | :-------- |
-| [OnPlaybackWatershedChanged](#event.OnPlaybackWatershedChanged) | Triggered when the playbackWatershed changes. |
+| [OnPlaybackWatershedChanged](#OnPlaybackWatershedChanged) | Triggered when the playbackWatershed changes. |
 ### Parameters
 
 | Name | Type | Description |
@@ -601,8 +603,8 @@ Setting PlaybackWatershed.
 }
 ```
 
-<a name="method.setBlockNotRatedContent"></a>
-## *setBlockNotRatedContent [<sup>method</sup>](#head.Methods)*
+<a name="setBlockNotRatedContent"></a>
+## *setBlockNotRatedContent*
 
 Setting BlockNotRatedContent.
 
@@ -610,7 +612,7 @@ Setting BlockNotRatedContent.
 
 | Event | Description |
 | :-------- | :-------- |
-| [OnBlockNotRatedContentChanged](#event.OnBlockNotRatedContentChanged) | Triggered when the blockNotRatedContent changes. |
+| [OnBlockNotRatedContentChanged](#OnBlockNotRatedContentChanged) | Triggered when the blockNotRatedContent changes. |
 ### Parameters
 
 | Name | Type | Description |
@@ -649,8 +651,8 @@ Setting BlockNotRatedContent.
 }
 ```
 
-<a name="method.setPinOnPurchase"></a>
-## *setPinOnPurchase [<sup>method</sup>](#head.Methods)*
+<a name="setPinOnPurchase"></a>
+## *setPinOnPurchase*
 
 Setting setPinOnPurchase.
 
@@ -658,7 +660,7 @@ Setting setPinOnPurchase.
 
 | Event | Description |
 | :-------- | :-------- |
-| [OnPinOnPurchaseChanged](#event.OnPinOnPurchaseChanged) | Triggered when the pin on the purchase changes. |
+| [OnPinOnPurchaseChanged](#OnPinOnPurchaseChanged) | Triggered when the pin on the purchase changes. |
 ### Parameters
 
 | Name | Type | Description |
@@ -697,8 +699,8 @@ Setting setPinOnPurchase.
 }
 ```
 
-<a name="method.getAudioDescription"></a>
-## *getAudioDescription [<sup>method</sup>](#head.Methods)*
+<a name="getAudioDescription"></a>
+## *getAudioDescription*
 
 Returns Audio Description.
 
@@ -738,8 +740,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getPreferredAudioLanguages"></a>
-## *getPreferredAudioLanguages [<sup>method</sup>](#head.Methods)*
+<a name="getPreferredAudioLanguages"></a>
+## *getPreferredAudioLanguages*
 
 Returns Preferred Audio Languages.
 
@@ -779,8 +781,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getPresentationLanguage"></a>
-## *getPresentationLanguage [<sup>method</sup>](#head.Methods)*
+<a name="getPresentationLanguage"></a>
+## *getPresentationLanguage*
 
 Getting Presentation Languages.
 
@@ -820,8 +822,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getCaptions"></a>
-## *getCaptions [<sup>method</sup>](#head.Methods)*
+<a name="getCaptions"></a>
+## *getCaptions*
 
 Getting Captions Enabled.
 
@@ -861,8 +863,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getPreferredCaptionsLanguages"></a>
-## *getPreferredCaptionsLanguages [<sup>method</sup>](#head.Methods)*
+<a name="getPreferredCaptionsLanguages"></a>
+## *getPreferredCaptionsLanguages*
 
 Getting Preferred Caption Languages.
 
@@ -902,8 +904,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getPreferredClosedCaptionService"></a>
-## *getPreferredClosedCaptionService [<sup>method</sup>](#head.Methods)*
+<a name="getPreferredClosedCaptionService"></a>
+## *getPreferredClosedCaptionService*
 
 Getting Preferred ClosedCaption Service.
 
@@ -943,8 +945,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getPinControl"></a>
-## *getPinControl [<sup>method</sup>](#head.Methods)*
+<a name="getPinControl"></a>
+## *getPinControl*
 
 Returns Pin Control.
 
@@ -984,8 +986,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getViewingRestrictions"></a>
-## *getViewingRestrictions [<sup>method</sup>](#head.Methods)*
+<a name="getViewingRestrictions"></a>
+## *getViewingRestrictions*
 
 Returns Get Viewing Restrictions.
 
@@ -1025,8 +1027,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getViewingRestrictionsWindow"></a>
-## *getViewingRestrictionsWindow [<sup>method</sup>](#head.Methods)*
+<a name="getViewingRestrictionsWindow"></a>
+## *getViewingRestrictionsWindow*
 
 Returns Get Viewing Restrictions Window.
 
@@ -1066,8 +1068,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getLiveWatershed"></a>
-## *getLiveWatershed [<sup>method</sup>](#head.Methods)*
+<a name="getLiveWatershed"></a>
+## *getLiveWatershed*
 
 Returns Live Watershed.
 
@@ -1107,8 +1109,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getPlaybackWatershed"></a>
-## *getPlaybackWatershed [<sup>method</sup>](#head.Methods)*
+<a name="getPlaybackWatershed"></a>
+## *getPlaybackWatershed*
 
 Returns Playback Watershed.
 
@@ -1148,8 +1150,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getBlockNotRatedContent"></a>
-## *getBlockNotRatedContent [<sup>method</sup>](#head.Methods)*
+<a name="getBlockNotRatedContent"></a>
+## *getBlockNotRatedContent*
 
 Returns BlockNotRatedContent.
 
@@ -1189,8 +1191,8 @@ This method takes no parameters.
 }
 ```
 
-<a name="method.getPinOnPurchase"></a>
-## *getPinOnPurchase [<sup>method</sup>](#head.Methods)*
+<a name="getPinOnPurchase"></a>
+## *getPinOnPurchase*
 
 Returns PinOnPurchase.
 
@@ -1230,10 +1232,10 @@ This method takes no parameters.
 }
 ```
 
-<a name="head.Notifications"></a>
+<a name="Notifications"></a>
 # Notifications
 
-Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#ref.Thunder)] for information on how to register for a notification.
+Notifications are autonomous events, triggered by the internals of the implementation, and broadcasted via JSON-RPC to all registered observers. Refer to [[Thunder](#Thunder)] for information on how to register for a notification.
 
 The following events are provided by the org.rdk.UserSettings plugin:
 
@@ -1241,23 +1243,23 @@ org.rdk.UserSettings interface events:
 
 | Event | Description |
 | :-------- | :-------- |
-| [onAudioDescriptionChanged](#event.onAudioDescriptionChanged) | Triggered after the audio description changes (see `SetAudioDescription`) |
-| [onPreferredAudioLanguagesChanged](#event.onPreferredAudioLanguagesChanged) | Triggered after the audio preferred Audio languages changes (see `SetPreferredAudioLanguages`) |
-| [onPresentationLanguageChanged](#event.onPresentationLanguageChanged) | Triggered after the Presentation Language changes (see `SetPresentationLanguage`) |
-| [onCaptionsChanged](#event.onCaptionsChanged) | Triggered after the captions changes (see `SetCaptions`) |
-| [onPreferredCaptionsLanguagesChanged](#event.onPreferredCaptionsLanguagesChanged) | Triggered after the PreferredCaption Languages changes (see `SetPreferredCaptionsLanguages`) |
-| [onPreferredClosedCaptionServiceChanged](#event.onPreferredClosedCaptionServiceChanged) | Triggered after the Preferred Closed Caption changes (see `SetPreferredClosedCaptionService`) |
-| [onPinControlChanged](#event.onPinControlChanged) | Triggered after the pin control changes (see `setPinControl`) |
-| [onViewingRestrictionsChanged](#event.onViewingRestrictionsChanged) | Triggered after the viewingRestrictions changes (see `setViewingRestrictions`) |
-| [onViewingRestrictionsWindowChanged](#event.onViewingRestrictionsWindowChanged) | Triggered after the viewingRestrictionsWindow changes (see `setViewingRestrictionsWindow`) |
-| [onLiveWatershedChanged](#event.onLiveWatershedChanged) | Triggered after the liveWatershed changes (see `setLiveWatershed`) |
-| [onPlaybackWatershedChanged](#event.onPlaybackWatershedChanged) | Triggered after the playbackWatershed changes (see `setPlaybackWatershed`) |
-| [onBlockNotRatedContentChanged](#event.onBlockNotRatedContentChanged) | Triggered after the blockNotRatedContent changes (see `setBlockNotRatedContent`) |
-| [onPinOnPurchaseChanged](#event.onPinOnPurchaseChanged) | Triggered after the pinOnPurchase changes (see `setPinOnPurchase`) |
+| [onAudioDescriptionChanged](#onAudioDescriptionChanged) | Triggered after the audio description changes (see `SetAudioDescription`) |
+| [onPreferredAudioLanguagesChanged](#onPreferredAudioLanguagesChanged) | Triggered after the audio preferred Audio languages changes (see `SetPreferredAudioLanguages`) |
+| [onPresentationLanguageChanged](#onPresentationLanguageChanged) | Triggered after the Presentation Language changes (see `SetPresentationLanguage`) |
+| [onCaptionsChanged](#onCaptionsChanged) | Triggered after the captions changes (see `SetCaptions`) |
+| [onPreferredCaptionsLanguagesChanged](#onPreferredCaptionsLanguagesChanged) | Triggered after the PreferredCaption Languages changes (see `SetPreferredCaptionsLanguages`) |
+| [onPreferredClosedCaptionServiceChanged](#onPreferredClosedCaptionServiceChanged) | Triggered after the Preferred Closed Caption changes (see `SetPreferredClosedCaptionService`) |
+| [onPinControlChanged](#onPinControlChanged) | Triggered after the pin control changes (see `setPinControl`) |
+| [onViewingRestrictionsChanged](#onViewingRestrictionsChanged) | Triggered after the viewingRestrictions changes (see `setViewingRestrictions`) |
+| [onViewingRestrictionsWindowChanged](#onViewingRestrictionsWindowChanged) | Triggered after the viewingRestrictionsWindow changes (see `setViewingRestrictionsWindow`) |
+| [onLiveWatershedChanged](#onLiveWatershedChanged) | Triggered after the liveWatershed changes (see `setLiveWatershed`) |
+| [onPlaybackWatershedChanged](#onPlaybackWatershedChanged) | Triggered after the playbackWatershed changes (see `setPlaybackWatershed`) |
+| [onBlockNotRatedContentChanged](#onBlockNotRatedContentChanged) | Triggered after the blockNotRatedContent changes (see `setBlockNotRatedContent`) |
+| [onPinOnPurchaseChanged](#onPinOnPurchaseChanged) | Triggered after the pinOnPurchase changes (see `setPinOnPurchase`) |
 
 
-<a name="event.onAudioDescriptionChanged"></a>
-## *onAudioDescriptionChanged [<sup>event</sup>](#head.Notifications)*
+<a name="onAudioDescriptionChanged"></a>
+## *onAudioDescriptionChanged*
 
 Triggered after the audio description changes (see `SetAudioDescription`).
 
@@ -1280,8 +1282,8 @@ Triggered after the audio description changes (see `SetAudioDescription`).
 }
 ```
 
-<a name="event.onPreferredAudioLanguagesChanged"></a>
-## *onPreferredAudioLanguagesChanged [<sup>event</sup>](#head.Notifications)*
+<a name="onPreferredAudioLanguagesChanged"></a>
+## *onPreferredAudioLanguagesChanged*
 
 Triggered after the audio preferred Audio languages changes (see `SetPreferredAudioLanguages`).
 
@@ -1304,8 +1306,8 @@ Triggered after the audio preferred Audio languages changes (see `SetPreferredAu
 }
 ```
 
-<a name="event.onPresentationLanguageChanged"></a>
-## *onPresentationLanguageChanged [<sup>event</sup>](#head.Notifications)*
+<a name="onPresentationLanguageChanged"></a>
+## *onPresentationLanguageChanged*
 
 Triggered after the Presentation Language changes (see `SetPresentationLanguage`).
 
@@ -1328,8 +1330,8 @@ Triggered after the Presentation Language changes (see `SetPresentationLanguage`
 }
 ```
 
-<a name="event.onCaptionsChanged"></a>
-## *onCaptionsChanged [<sup>event</sup>](#head.Notifications)*
+<a name="onCaptionsChanged"></a>
+## *onCaptionsChanged*
 
 Triggered after the captions changes (see `SetCaptions`).
 
@@ -1352,8 +1354,8 @@ Triggered after the captions changes (see `SetCaptions`).
 }
 ```
 
-<a name="event.onPreferredCaptionsLanguagesChanged"></a>
-## *onPreferredCaptionsLanguagesChanged [<sup>event</sup>](#head.Notifications)*
+<a name="onPreferredCaptionsLanguagesChanged"></a>
+## *onPreferredCaptionsLanguagesChanged*
 
 Triggered after the PreferredCaption Languages changes (see `SetPreferredCaptionsLanguages`).
 
@@ -1376,8 +1378,8 @@ Triggered after the PreferredCaption Languages changes (see `SetPreferredCaption
 }
 ```
 
-<a name="event.onPreferredClosedCaptionServiceChanged"></a>
-## *onPreferredClosedCaptionServiceChanged [<sup>event</sup>](#head.Notifications)*
+<a name="onPreferredClosedCaptionServiceChanged"></a>
+## *onPreferredClosedCaptionServiceChanged*
 
 Triggered after the Preferred Closed Caption changes (see `SetPreferredClosedCaptionService`).
 
@@ -1400,8 +1402,8 @@ Triggered after the Preferred Closed Caption changes (see `SetPreferredClosedCap
 }
 ```
 
-<a name="event.onPinControlChanged"></a>
-## *onPinControlChanged [<sup>event</sup>](#head.Notifications)*
+<a name="onPinControlChanged"></a>
+## *onPinControlChanged*
 
 Triggered after the pin control changes (see `setPinControl`).
 
@@ -1424,8 +1426,8 @@ Triggered after the pin control changes (see `setPinControl`).
 }
 ```
 
-<a name="event.onViewingRestrictionsChanged"></a>
-## *onViewingRestrictionsChanged [<sup>event</sup>](#head.Notifications)*
+<a name="onViewingRestrictionsChanged"></a>
+## *onViewingRestrictionsChanged*
 
 Triggered after the viewingRestrictions changes (see `setViewingRestrictions`).
 
@@ -1448,8 +1450,8 @@ Triggered after the viewingRestrictions changes (see `setViewingRestrictions`).
 }
 ```
 
-<a name="event.onViewingRestrictionsWindowChanged"></a>
-## *onViewingRestrictionsWindowChanged [<sup>event</sup>](#head.Notifications)*
+<a name="onViewingRestrictionsWindowChanged"></a>
+## *onViewingRestrictionsWindowChanged*
 
 Triggered after the viewingRestrictionsWindow changes (see `setViewingRestrictionsWindow`).
 
@@ -1472,8 +1474,8 @@ Triggered after the viewingRestrictionsWindow changes (see `setViewingRestrictio
 }
 ```
 
-<a name="event.onLiveWatershedChanged"></a>
-## *onLiveWatershedChanged [<sup>event</sup>](#head.Notifications)*
+<a name="onLiveWatershedChanged"></a>
+## *onLiveWatershedChanged*
 
 Triggered after the liveWatershed changes (see `setLiveWatershed`).
 
@@ -1496,8 +1498,8 @@ Triggered after the liveWatershed changes (see `setLiveWatershed`).
 }
 ```
 
-<a name="event.onPlaybackWatershedChanged"></a>
-## *onPlaybackWatershedChanged [<sup>event</sup>](#head.Notifications)*
+<a name="onPlaybackWatershedChanged"></a>
+## *onPlaybackWatershedChanged*
 
 Triggered after the playbackWatershed changes (see `setPlaybackWatershed`).
 
@@ -1520,8 +1522,8 @@ Triggered after the playbackWatershed changes (see `setPlaybackWatershed`).
 }
 ```
 
-<a name="event.onBlockNotRatedContentChanged"></a>
-## *onBlockNotRatedContentChanged [<sup>event</sup>](#head.Notifications)*
+<a name="onBlockNotRatedContentChanged"></a>
+## *onBlockNotRatedContentChanged*
 
 Triggered after the blockNotRatedContent changes (see `setBlockNotRatedContent`).
 
@@ -1544,8 +1546,8 @@ Triggered after the blockNotRatedContent changes (see `setBlockNotRatedContent`)
 }
 ```
 
-<a name="event.onPinOnPurchaseChanged"></a>
-## *onPinOnPurchaseChanged [<sup>event</sup>](#head.Notifications)*
+<a name="onPinOnPurchaseChanged"></a>
+## *onPinOnPurchaseChanged*
 
 Triggered after the pinOnPurchase changes (see `setPinOnPurchase`).
 
