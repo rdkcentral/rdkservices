@@ -498,8 +498,8 @@ namespace WPEFramework {
             registerMethod("setPrivacyMode", &SystemServices::setPrivacyMode, this);
             registerMethod("getPrivacyMode", &SystemServices::getPrivacyMode, this);
             //GSK
-            registerMethod("setBlocklist", &SystemServices::setBlocklist, this);
-            registerMethod("getBlocklist", &SystemServices::getBlocklist, this);
+            registerMethod("setBlocklist", &SystemServices::setBlocklistFlag, this);
+            registerMethod("getBlocklist", &SystemServices::getBlocklistFlag, this);
 
         }
 
