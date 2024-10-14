@@ -1426,7 +1426,7 @@ namespace WPEFramework {
             ofstream file_out(filename);
             if (!file_out.is_open()) {
                 //cerr << "Error opening file for writing: " << filename << endl;
-                LOGERR("Error opening file for writing:%s ", filename);
+                LOGERR("Error opening file for writing:%s ", filename.c_str());
                 status = false;
             }
         
@@ -1438,7 +1438,7 @@ namespace WPEFramework {
             file_out.close();
             //cout << "Parameter " << param << " written to " << filename << " successfully." << "status=" << status << endl;
             LOGINFO("Parameter written to file successfully. status= %d", status);
-            LOGINFO("%s flag stored successfully in persistent memory.", param.c_star());
+            LOGINFO("%s flag stored successfully in persistent memory.", param.c_str());
             return status;
         }
         
@@ -1541,11 +1541,12 @@ namespace WPEFramework {
 				    result = false;
 			    } 
             }
+            /*Send EVT_ONBLOCKLISTCHANGED event notify*/
+            sendNotify(EVT_ONBLOCKLISTCHANGED, params);
             returnResponse(result);
         }
 
-        //GSK getModelName /*need to update the logic for the param*/
-        bool SystemServices::getBlocklistFlag(const string& parameter, JsonObject& response)
+        uint32_t SystemServices::getBlocklistFlag(const string& parameter, JsonObject& response)
 	    {
 		
 		    bool status = false, result = false, blocklistFlag;

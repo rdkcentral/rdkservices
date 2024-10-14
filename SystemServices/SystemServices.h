@@ -71,6 +71,7 @@ using std::ofstream;
 #define EVT_ONLOGUPLOAD                   "onLogUpload"
 #define EVT_ONDEVICEMGTUPDATERECEIVED     "onDeviceMgtUpdateReceived"
 #define EVT_ONPRIVACYMODECHANGED          "onPrivacyModeChanged"
+#define EVT_ONBLOCKLISTCHANGED          "onBlocklistChanged"
 #define TERRITORYFILE                     "/opt/secure/persistent/System/Territory.txt"
 
 
