@@ -15,11 +15,6 @@
             "type": "string",
             "example": "0"
         },
-        "audioDelayOffset": {
-            "summary": "Delay offset (in ms) on the selected audio port",
-            "type": "string",
-            "example": "0"
-        },
         "supportedAudioFormat": {
             "summary": "A list of supported audio formats",
             "type": "array",
@@ -294,35 +289,6 @@
                 },
                 "required": [
                     "audioDelay",
-                    "success"
-                ]
-            }
-        },
-        "getAudioDelayOffset":{
-            "summary": "Returns the audio delay offset (in ms) on the selected audio port. If the `audioPort` argument is not specified, it will browse all ports (checking HDMI0 first). If there is no display connected, then it defaults to `HDMI0`.",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "audioPort": {
-                        "$ref": "#/definitions/audioPort0"
-                    }
-                },
-                "required": [
-                    "audioPort"
-                ]
-            },
-            "result": {
-                "type":"object",
-                "properties": {
-                    "audioDelayOffset": {
-                        "$ref": "#/definitions/audioDelayOffset"
-                    },
-                    "success": {
-                        "$ref": "#/common/success"
-                    }
-                },
-                "required": [
-                    "audioDelayOffset",
                     "success"
                 ]
             }
@@ -1968,28 +1934,7 @@
                 "$ref": "#/common/result"
             }
         },
-        "setAudioDelayOffset":{
-            "summary": "Sets the audio delay offset (in ms) on the selected audio port. If the `audioPort` argument is not specified, it will browse all ports (checking HDMI0 first). If there is no display connected, then it defaults to `HDMI0`.",
-            "params": {
-                "type":"object",
-                "properties": {
-                    "audioPort": {
-                        "$ref": "#/definitions/audioPort0"
-                    },
-                    "audioDelayOffset": {
-                        "$ref": "#/definitions/audioDelayOffset"
-                    }
-                },
-                "required": [
-                    "audioPort",
-                    "audioDelayOffset"
-                ]
-            },
-            "result": {
-                "$ref": "#/common/result"
-            }
-        },
-        "setBassEnhancer":{
+	"setBassEnhancer":{
             "summary": "Sets the Bass Enhancer. Bass Enhancer provides the consumer a single control to apply a fixed bass boost to correct for a lack of bass reproduction in the playback system.",
             "params": {
                 "type":"object",
