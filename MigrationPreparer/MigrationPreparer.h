@@ -1,99 +1,73 @@
-/**
- * If not stated otherwise in this file or this component's LICENSE
- * file the following copyright and licenses apply:
- *
- * Copyright 2024 RDK Management
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- **/
+/*
+* If not stated otherwise in this file or this component's LICENSE file the
+* following copyright and licenses apply:
+*
+* Copyright 2024 RDK Management
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
 
 #pragma once
 
-#include <fstream>
-#include <string>
-#include <map>
-#include <mutex>
-#include <cerrno>
-#include "secure_wrapper.h"
-#include "UtilsJsonRpc.h"
 #include "Module.h"
-#include "rfcapi.h"
-
-#define DATASTORE_PATH _T("/opt/migration_data_store.json")
-#define MIGRATION_PREPARER_RFC_CALLER_ID "MigrationPreparer"
-#define TR181_MIGRATION_READY "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.MigrationReady"
-
-typedef uint64_t LINE_NUMBER_TYPE;
-using std::string;
+#include <interfaces/json/JsonData_MigrationPreparer.h>
+#include <interfaces/json/JMigrationPreparer.h>
+#include <interfaces/IMigrationPreparer.h>
+#include "UtilsLogging.h"
+#include "tracing/Logging.h"
+#include <mutex>
 
 namespace WPEFramework {
-    namespace Plugin {
-        class MigrationPreparer : public PluginHost::IPlugin, public PluginHost::JSONRPC
-        {
-            private:
-                // We do not allow this plugin to be copied !!
-                MigrationPreparer(const MigrationPreparer&) = delete;
-                MigrationPreparer& operator=(const MigrationPreparer&) = delete;
-   
-            public:
-                MigrationPreparer();
-                virtual ~MigrationPreparer();
-                static MigrationPreparer* _instance;
-                virtual const string Initialize(PluginHost::IShell* service) override;
-                virtual void Deinitialize(PluginHost::IShell* service) override;
-                virtual string Information() const override;
+namespace Plugin {
 
-                BEGIN_INTERFACE_MAP(MigrationPreparer)
-                INTERFACE_ENTRY(PluginHost::IPlugin)
-                INTERFACE_ENTRY(PluginHost::IDispatcher)
-                END_INTERFACE_MAP
+    class MigrationPreparer: public PluginHost::IPlugin, public PluginHost::JSONRPC
+    {
+        public:
+            // We do not allow this plugin to be copied !!
+            MigrationPreparer(const MigrationPreparer&) = delete;
+            MigrationPreparer& operator=(const MigrationPreparer&) = delete;
 
-                /*Methods: Begin*/
-                // DataStore - here represents a JSON File
-                // API to write and update dataStore 
-                uint32_t endpoint_write(const JsonObject& parameters, JsonObject& response);
-                // API to read dataStore entry
-                uint32_t endpoint_read(const JsonObject& parameters, JsonObject& response);
-                // API to delete dataStore entry
-                uint32_t endpoint_delete(const JsonObject& parameters, JsonObject& response);
-                // API to set component readiness
-                uint32_t setComponentReadiness(const JsonObject& parameters, JsonObject& response);
-                // API to get component readiness
-                uint32_t getComponentReadiness(const JsonObject& parameters, JsonObject& response);
-                /*Methods: End*/
+            MigrationPreparer();
+            virtual ~MigrationPreparer();
+
+            BEGIN_INTERFACE_MAP(MigrationPreparer)
+            INTERFACE_ENTRY(PluginHost::IPlugin)
+            INTERFACE_ENTRY(PluginHost::IDispatcher)
+            INTERFACE_AGGREGATE(Exchange::IMigrationPreparer, _migrationPreparer)
+            END_INTERFACE_MAP
+
+            //  IPlugin methods
+            // -------------------------------------------------------------------------------------------------------
+            const string Initialize(PluginHost::IShell* service) override;
+            void Deinitialize(PluginHost::IShell* service) override;
+            string Information() const override;
+
+        private:
+            void RegisterAll();
+            void UnregisterAll();
+
+            uint32_t endpoint_write(const JsonData::MigrationPreparer::WriteentryParamsData& params, JsonData::MigrationPreparer::WriteentryResultInfo& response);
+            uint32_t endpoint_read(const JsonData::MigrationPreparer::DeleteentryParamsInfo& params, JsonData::MigrationPreparer::ReadentryResultData& response);
+            uint32_t endpoint_delete(const JsonData::MigrationPreparer::DeleteentryParamsInfo& params, JsonData::MigrationPreparer::WriteentryResultInfo& response);
+            uint32_t endpoint_getComponentReadiness(JsonData::MigrationPreparer::GetcomponentreadinessResultData& response);
+            uint32_t endpoint_setComponentReadiness(const JsonData::MigrationPreparer::SetcomponentreadinessParamsData& params, JsonData::MigrationPreparer::WriteentryResultInfo& response);
+            uint32_t endpoint_reset(const JsonData::MigrationPreparer::ResetParamsData& params, JsonData::MigrationPreparer::WriteentryResultInfo& response);
             
-            private:
-                // A map to hold "Key" vs "Line Number" in the dataStore
-                std::map<string, LINE_NUMBER_TYPE> lineNumber;
-                // A mutex to protect the dataStore from concurrent read, write and delete access
-                std::mutex dataStoreMutex;
-                // A tracker for the last key-value line number in the dataStore
-                LINE_NUMBER_TYPE curLineIndex;
+        private:
+            PluginHost::IShell* _service{};
+            uint32_t _connectionId{};
+            Exchange::IMigrationPreparer* _migrationPreparer{};
+    };
 
-                /*Helpers: Begin*/
-                // Fn. to transform \" to " in a string
-                bool Unstringfy(string&);
-                // Fn. to get value of a key from the dataStore 
-                string getValue(string);
-                // Fn. to store the keys and their line numbers from dataStore to lineNumber map
-                void storeKeys(void);
-                // Fn. to construct JSON response from vector.
-                void setJSONResponseArray(JsonObject& response, const char* key, const std::vector<string>& items);
-                //Fn. to populate vector with values from a string
-                void get_components(std::vector<string>& list, string& value, string input = "");
-                //Fn. to populate value from a vector with delimiter(_)
-                void tokenize(string& value, std::vector<string>& list);
-                /*Helpers: End*/
-        };
-    }
-}
+} // namespace Plugin
+} // namespace WPEFramework

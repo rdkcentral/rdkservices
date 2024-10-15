@@ -1,4 +1,4 @@
-# If not stated otherwise in this file or this component's license file the
+# If not stated otherwise in this file or this component's LICENSE file the
 # following copyright and licenses apply:
 #
 # Copyright 2024 RDK Management
@@ -17,28 +17,73 @@
 
 set(PLUGIN_NAME MigrationPreparer)
 set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
+set(PLUGIN_IMPLEMENTATION ${MODULE_NAME}Implementation)
 
-set(PLUGIN_MIGRATIONPREPARER_STARTUPORDER "" CACHE STRING "To configure startup order of MigrationPreparer")
+set(PLUGIN_MIGRATIONPREPARER_AUTOSTART "flase" CACHE STRING "Automatically start MigrationPreparer plugin")
+set(PLUGIN_MIGRATIONPREPARER_STARTUPORDER " " CACHE STRING "To configure startup order of MigrationPreparer plugin")
+set(PLUGIN_MIGRATIONPREPARER_MODE "Off" CACHE STRING "Controls if the plugin should run in process or out of process")
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 find_package(${NAMESPACE}Plugins REQUIRED)
+find_package(${NAMESPACE}Definitions REQUIRED)
+find_package(CompileSettingsDebug CONFIG REQUIRED)
 
 add_library(${MODULE_NAME} SHARED
-        MigrationPreparer.cpp
-        Module.cpp)
+    MigrationPreparer.cpp
+    MigrationPreparerJsonRpc.cpp
+    Module.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
-    CXX_STANDARD 11
-    CXX_STANDARD_REQUIRED YES)
+        CXX_STANDARD 11
+        CXX_STANDARD_REQUIRED YES)
+
+target_link_libraries(${MODULE_NAME}
+    PRIVATE
+        CompileSettingsDebug::CompileSettingsDebug
+        ${NAMESPACE}Plugins::${NAMESPACE}Plugins
+        ${NAMESPACE}Definitions::${NAMESPACE}Definitions)
+
+install(TARGETS ${MODULE_NAME}
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/${STORAGE_DIRECTORY}/plugins)
+
+set_target_properties(${MODULE_NAME} PROPERTIES
+        CXX_STANDARD 11
+        CXX_STANDARD_REQUIRED YES)
 
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 target_include_directories(${MODULE_NAME} PRIVATE ../common)
 target_include_directories(${MODULE_NAME} PRIVATE ./)
 
-target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins)
+add_library(${PLUGIN_IMPLEMENTATION} SHARED
+    MigrationPreparerImplementation.cpp
+    Module.cpp)
 
-set_source_files_properties(MigrationPreparer.cpp PROPERTIES COMPILE_FLAGS "-fexceptions")
+set_target_properties(${PLUGIN_IMPLEMENTATION} PROPERTIES
+        CXX_STANDARD 11
+        CXX_STANDARD_REQUIRED YES)
 
-install(TARGETS ${MODULE_NAME}
-        DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
+        target_include_directories(${PLUGIN_IMPLEMENTATION} PRIVATE ../helpers)
+target_include_directories(${PLUGIN_IMPLEMENTATION} PRIVATE ../common)
+target_include_directories(${PLUGIN_IMPLEMENTATION} PRIVATE ./)
+
+# if (RDK_SERVICE_L2_TEST)
+#    find_library(TESTMOCKLIB_LIBRARIES NAMES TestMocklib)
+#    if (TESTMOCKLIB_LIBRARIES)
+#        message ("linking mock libraries ${TESTMOCKLIB_LIBRARIES} library")
+#        target_link_libraries(${PLUGIN_IMPLEMENTATION} PRIVATE ${TESTMOCKLIB_LIBRARIES})
+#    else (TESTMOCKLIB_LIBRARIES)
+#        message ("Require ${TESTMOCKLIB_LIBRARIES} library")
+#    endif (TESTMOCKLIB_LIBRARIES)
+# endif (RDK_SERVICES_L2_TEST)
+
+target_link_libraries(${PLUGIN_IMPLEMENTATION}
+    PRIVATE
+        CompileSettingsDebug::CompileSettingsDebug
+        ${NAMESPACE}Plugins::${NAMESPACE}Plugins
+         ${RBUS_LIBRARIES})
+
+install(TARGETS ${PLUGIN_IMPLEMENTATION}
+    DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/${STORAGE_DIRECTORY}/plugins)
 
 write_config(${PLUGIN_NAME})
