@@ -1934,7 +1934,7 @@
                 "$ref": "#/common/result"
             }
         },
-	 "setBassEnhancer":{
+	"setBassEnhancer":{
             "summary": "Sets the Bass Enhancer. Bass Enhancer provides the consumer a single control to apply a fixed bass boost to correct for a lack of bass reproduction in the playback system.",
             "params": {
                 "type":"object",
