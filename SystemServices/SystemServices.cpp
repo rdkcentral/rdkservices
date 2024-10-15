@@ -1518,39 +1518,43 @@ namespace WPEFramework {
             //std::string filename = DEVICESTATE_FILE;
             std::map<std::string, bool> paramsToWrite;
 
-            if (!(parameters.HasLabel("blocklist"))) {
+            if ((parameters.HasLabel("blocklist"))) {
+            
+                /*check /opt/secure/persistent/opflashstore/ dir*/
+                LOGINFO("[GSK]checking opflashstore");
+                checkOpFlashStoreDir();
+                LOGINFO("[GSK]checked opflashstore directory and it is exists.");
+
+                blocklistFlag = parameters["blocklist"].Boolean();
+                if((blocklistFlag == true) && (blocklistFlag == false) ) {
+			        //GSK
+                    //paramsToWrite["blocklist"] = strBlocklistFlag;
+                    //status = writeDevicestate("blocklist", blocklistFlag);
+                    status = write_parameters(DEVICESTATE_FILE, "blocklist", blocklistFlag);
+			        if (status != true) {
+			    	    LOGERR("Blocklist flag update failed. status %d ", status);
+				        JsonObject error;
+				        error["message"] = "Blocklist flag update failed";
+				        error["code"] = "-32604";
+				        response["error"] = error;
+				        result = false;
+			        }
+                    else {
+                        result = true;
+                    }
+                }
+                else {
+                    LOGWARN("Invalid value");
+                    populateResponseWithError(SysSrv_MissingKeyValues, response);
+                }
+                /*Send EVT_ONBLOCKLISTCHANGED event notify*/
+                sendNotify(EVT_ONBLOCKLISTCHANGED, parameters);
+            }
+            else {
                 populateResponseWithError(SysSrv_MissingKeyValues, response);
                 result = false;
             }
-            /*check /opt/secure/persistent/opflashstore/ dir*/
-            LOGINFO("[GSK]checking opflashstore");
-            checkOpFlashStoreDir();
-            LOGINFO("[GSK]checked opflashstore directory and it is exists.");
 
-            blocklistFlag = parameters["blocklist"].Boolean();
-            if((blocklistFlag == true) && (blocklistFlag == false) ) {
-			    //GSK
-                //paramsToWrite["blocklist"] = strBlocklistFlag;
-                //status = writeDevicestate("blocklist", blocklistFlag);
-                status = write_parameters(DEVICESTATE_FILE, "blocklist", blocklistFlag);
-			    if (status != true) {
-			    	LOGERR("Update failed. status %d ", status);
-				    JsonObject error;
-				    error["message"] = "Update failed";
-				    error["code"] = "-32002";
-				    response["error"] = error;
-				    result = false;
-			    }
-                else {
-                    result = true;
-                }
-            }
-            else {
-                LOGWARN("Invalid value");
-                populateResponseWithError(SysSrv_MissingKeyValues, response)
-            }
-            /*Send EVT_ONBLOCKLISTCHANGED event notify*/
-            sendNotify(EVT_ONBLOCKLISTCHANGED, parameters);
             returnResponse(result);
         }
 
@@ -1569,7 +1573,7 @@ namespace WPEFramework {
             result = read_parameters(DEVICESTATE_FILE, "blocklist", blocklistFlag);
 		    if (result == true) {
 			    //response[parameters.c_str()] = string(blocklistFlag);
-                response["blocklist"] = string(blocklistFlag);
+                response["blocklist"] = blocklistFlag;
 			    status = true;
 		    }
 		    else{
