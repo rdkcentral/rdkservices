@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [2.0.0] - 2024-10-15
+### Removed
+- Get and Set Delay Offset support has been removed.
+
 ## [1.4.7] - 2024-08-30
 ### Added
 - Clear the SAD upon receiving the hotplug-out event.
