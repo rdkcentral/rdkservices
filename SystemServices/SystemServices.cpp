@@ -1540,7 +1540,14 @@ namespace WPEFramework {
 				    error["code"] = "-32002";
 				    response["error"] = error;
 				    result = false;
-			    } 
+			    }
+                else {
+                    result = true;
+                }
+            }
+            else {
+                LOGWARN("Invalid value");
+                populateResponseWithError(SysSrv_MissingKeyValues, response)
             }
             /*Send EVT_ONBLOCKLISTCHANGED event notify*/
             sendNotify(EVT_ONBLOCKLISTCHANGED, parameters);
@@ -1561,14 +1568,17 @@ namespace WPEFramework {
 		    
             result = read_parameters(DEVICESTATE_FILE, "blocklist", blocklistFlag);
 		    if (result == true) {
-			    response[parameter.c_str()] = string(param.buffer);
+			    //response[parameters.c_str()] = string(blocklistFlag);
+                response["blocklist"] = string(blocklistFlag);
 			    status = true;
 		    }
 		    else{
 			    LOGWARN("SystemService getBlocklistFlag - Blocklist flag Data Read Failed");
+                status = false;
 		    }
 
-		    returnResponse(status);
+		    LOGWARN("blocklistFlag=%d", blocklistFlag);
+            returnResponse(status);
 	    }
 
         /***
