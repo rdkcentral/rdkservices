@@ -375,13 +375,6 @@ namespace Plugin {
 	} 
 	else {
             LOGINFO("Platform Init successful...\n");
-            ret = TvSyncCalibrationInfo();
-            if(ret != tvERROR_NONE) {
-                LOGERR(" SD3 <->cri_data sync failed, ret: %s \n", getErrorString(ret).c_str());
-            }
-            else {
-                LOGERR(" SD3 <->cri_data sync success, ret: %s \n", getErrorString(ret).c_str());
-            }
         }
 
         tvVideoFormatCallbackData callbackData = {this,tvVideoFormatChangeHandler};
@@ -2292,7 +2285,7 @@ namespace Plugin {
             JsonArray SupportedDVModes;
 
             for(int count = 0;count <totalAvailable;count++ ) {
-                SupportedDVModes.Add(GetDolbyVisionModeStringFromEnum(dvModes[count]));
+                SupportedDVModes.Add(getDolbyModeStringFromEnum(dvModes[count]));
             }
 
             response["supportedDVModes"] = SupportedDVModes;
@@ -2379,7 +2372,7 @@ namespace Plugin {
 
         if( isSetRequired("Current",source,"DV") ) {
             LOGINFO("Proceed with setDolbyVisionMode\n\n");
-            ret = SetTVDolbyVisionMode(GetDolbyVisionEnumFromModeString(value.c_str()));
+            ret = SetTVDolbyVisionMode(getDolbyModeStringFromEnum(value.c_str()));
         }
 
         if(ret != tvERROR_NONE) {
@@ -2440,7 +2433,7 @@ namespace Plugin {
                 if( err == 0 ) {
                     std::string dolbyModeValue = getDolbyModeStringFromEnum((tvDolbyMode_t)dolbyMode);
                     LOGINFO("%s : getLocalparam success format :%d source : %d format : %d dolbyvalue : %s\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex, dolbyModeValue.c_str());
-                    ret = SetTVDolbyVisionMode(GetDolbyVisionEnumFromModeString(dolbyModeValue.c_str()));
+                    ret = SetTVDolbyVisionMode(getDolbyModeStringFromEnum(dolbyModeValue.c_str()));
                 }
                 else {
                     LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
@@ -2824,7 +2817,7 @@ namespace Plugin {
                     err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
                     if ( tr181Success == err ) {
                         //get curren source and if matches save for that alone
-                        int current_source = VIDEO_SOURCE_IP;
+                        tvVideoSrcType_t current_source = VIDEO_SOURCE_IP;
                         GetCurrentVideoSource(&current_source);
 
                         tvVideoFormatType_t current_format = VIDEO_FORMAT_NONE;
@@ -3078,7 +3071,7 @@ namespace Plugin {
     uint32_t AVOutputTV::getVideoSource(const JsonObject& parameters,JsonObject& response)
     {
         LOGINFO("Entry\n");
-        int currentSource = VIDEO_SOURCE_IP;
+        tvVideoSrcType_t currentSource = VIDEO_SOURCE_IP;
 
         tvError_t ret = GetCurrentVideoSource(&currentSource);
         if(ret != tvERROR_NONE) {

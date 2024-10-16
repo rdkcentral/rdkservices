@@ -243,7 +243,7 @@ namespace Plugin {
         tvError_t ret = GetTVSupportedDolbyVisionModes(&dolbyModes,&totalAvailable);
         if(ret == tvERROR_NONE) {
             for(int count = 0;count <totalAvailable;count++ ) {
-                if(strncasecmp(dolbyMode, GetDolbyVisionModeStringFromEnum(dolbyModes[count]), strlen(dolbyMode))==0) {
+                if(strncasecmp(dolbyMode, getDolbyModeStringFromEnum(dolbyModes[count]), strlen(dolbyMode))==0) {
                     mode = dolbyModes[count];
                     break;
                 }
@@ -294,7 +294,7 @@ namespace Plugin {
         bool ret=false;
         char picMode[PIC_MODE_NAME_MAX]={0};
         tvError_t retVal = tvERROR_NONE;
-        tvVideoSrcType_t  sourceIndex = VIDEO_SOURCE_IP;
+        tvVideoSrcType_t sourceIndex = VIDEO_SOURCE_IP;
         std::string currentPicMode;
         std::string currentSource;
         std::string currentFormat;
@@ -664,7 +664,7 @@ namespace Plugin {
     {
         tvError_t ret = tvERROR_NONE;
         TR181_ParamData_t param;
-        tvVideoSrcType_t  current_source = VIDEO_SOURCE_IP;
+        tvVideoSrcType_t current_source = VIDEO_SOURCE_IP;
         std::string tr181_param_name = "";
         tvVideoFormatType_t current_format = VIDEO_FORMAT_NONE;
 
@@ -749,7 +749,7 @@ namespace Plugin {
             }
         }
         else if (source == "Current") {
-            tvVideoSrcType_t  currentSource = VIDEO_SOURCE_IP;
+            tvVideoSrcType_t currentSource = VIDEO_SOURCE_IP;
             tvError_t ret = GetCurrentVideoSource(&currentSource);
 
             if(ret != tvERROR_NONE) {
@@ -1276,7 +1276,7 @@ namespace Plugin {
         TR181_ParamData_t param;
         std::string rfc_param = AVOUTPUT_HDR10MODE_RFC_PARAM;
         int dolby_mode_value = 0;
-        tvVideoSrcType_t  sourceIndex = VIDEO_SOURCE_IP;
+        tvVideoSrcType_t sourceIndex = VIDEO_SOURCE_IP;
         /*Since dolby vision is source specific, we should for check for specific source*/
         if (!source.empty()) {
             sourceIndex = (tvVideoSrcType_t)getSourceIndex(source);
@@ -1510,7 +1510,7 @@ namespace Plugin {
         tvError_t  ret = tvERROR_NONE;
         TR181_ParamData_t param;
         std::string tr181_param_name;
-        tvVideoSrcType_t  currentSource = VIDEO_SOURCE_IP;
+        tvVideoSrcType_t currentSource = VIDEO_SOURCE_IP;
 
         ret = GetCurrentVideoSource(&currentSource);
         if(ret != tvERROR_NONE) {
