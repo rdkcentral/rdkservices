@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.8] - 2024-09-30
+### Added
+- Fixed getFrontPanelIndicatorInfo API
+
 ## [1.0.7] - 2024-05-25
 ### Added
 - Make plugin autostart configurable from recipe
