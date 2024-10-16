@@ -121,12 +121,20 @@ namespace Plugin {
     }
 
 
-    void MigrationPreparerImplementation::resetDatastore(void){
+    bool MigrationPreparerImplementation::resetDatastore(void){
         WPEFramework::Core::File dataStore(DATASTORE_PATH);
+        if(!dataStore.Exists()) {
+            LOGERR("DataStore file does not exist");
+            return false;
+        }
         dataStoreMutex.lock();
         // remove dataStore file
         LOGWARN("Deleting dataStore file itself since all entries are deleted");
-        dataStore.Destroy();
+        if(!dataStore.Destroy()){
+            LOGERR("Unable to delete dataStore file");
+            return false;
+        }
+        // clear the lineNumber map and valueEntry vector internal data structures
         if (!lineNumber.empty())
             lineNumber.clear();
         curLineIndex = 1;
@@ -135,6 +143,7 @@ namespace Plugin {
             valueEntry.clear();
         #endif
         dataStoreMutex.unlock();
+        return true;
     }
 
      void MigrationPreparerImplementation::get_components(std::list<string>& list, string& value, string input) {
@@ -384,12 +393,14 @@ namespace Plugin {
         _adminLock.Lock();
         if(resetType == "RESET_ALL") {
             LOGINFO("[RESET] params={resetType: %s}", resetType.c_str());
-            resetDatastore();
+            if(!resetDatastore())
+                return Core::ERROR_GENERAL;
             setRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE, TR181_MIGRATION_READY, empty.c_str(), WDMP_STRING);  
         }
         else if (resetType == "RESET_DATA") {
             LOGINFO("[RESET] params={resetType: %s}", resetType.c_str());
-            resetDatastore();
+            if(!resetDatastore())
+                return Core::ERROR_GENERAL;
         }
         else if (resetType == "RESET_READINESS") {
             LOGINFO("[RESET] params={resetType: %s}", resetType.c_str());

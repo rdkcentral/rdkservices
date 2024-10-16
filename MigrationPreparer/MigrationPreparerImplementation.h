@@ -102,8 +102,8 @@ namespace Plugin {
         #endif
         // Fn. to store the keys and their line numbers from dataStore to lineNumber map
         void storeKeys(void);
-        // Fn. to store the keys and their line numbers from dataStore to lineNumber map
-        void resetDatastore(void);
+        // Fn. to delete dataStore
+        bool resetDatastore(void);
         //Fn. to populate list with values from a string
         void get_components(std::list<string>& list, string& value, string input = "");
         //Fn. to populate value from a list with delimiter(_)
