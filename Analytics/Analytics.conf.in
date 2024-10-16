@@ -15,6 +15,7 @@ if boolean("@PLUGIN_ANALYTICS_SIFT_BACKEND_ENABLED@"):
     sift.add("productname", "@PLUGIN_ANALYTICS_SIFT_PRODUCT_NAME@")
     sift.add("loggername", "@PLUGIN_ANALYTICS_SIFT_LOGGER_NAME@")
     sift.add("loggerversion", "@PLUGIN_ANALYTICS_SIFT_LOGGER_VERSION@")
+    sift.add("platformdefault", "@PLUGIN_ANALYTICS_SIFT_PLATFORM_DEFAULT@")
     sift.add("maxrandomisationwindowtime", "@PLUGIN_ANALYTICS_SIFT_MAX_RANDOMISATION_WINDOW_TIME@")
     sift.add("maxeventsinpost", "@PLUGIN_ANALYTICS_SIFT_MAX_EVENTS_IN_POST@")
     sift.add("maxretries", "@PLUGIN_ANALYTICS_SIFT_MAX_RETRIES@")

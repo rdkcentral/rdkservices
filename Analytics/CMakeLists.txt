@@ -42,6 +42,7 @@ set(PLUGIN_ANALYTICS_SIFT_ENV "prod" CACHE STRING "Sift environment")
 set(PLUGIN_ANALYTICS_SIFT_PRODUCT_NAME "entos" CACHE STRING "Sift product name") #entos-immerse in Sift2.0
 set(PLUGIN_ANALYTICS_SIFT_LOGGER_NAME "Analytics" CACHE STRING "Sift logger name")
 set(PLUGIN_ANALYTICS_SIFT_LOGGER_VERSION "${MODULE_VERSION}" CACHE STRING "Sift logger version")
+set(PLUGIN_ANALYTICS_SIFT_PLATFORM_DEFAULT "entos:rdk" CACHE STRING "Sift platform default value")
 set(PLUGIN_ANALYTICS_SIFT_MAX_RANDOMISATION_WINDOW_TIME 300 CACHE STRING "Sift max randomisation window time of posting queued events")
 set(PLUGIN_ANALYTICS_SIFT_MAX_EVENTS_IN_POST 10 CACHE STRING "Sift max events in post")
 set(PLUGIN_ANALYTICS_SIFT_MAX_RETRIES 10 CACHE STRING "Sift max retries posting events")
@@ -67,8 +68,11 @@ add_library(${MODULE_NAME} SHARED
         Module.cpp)
 
 target_include_directories(${MODULE_NAME} PRIVATE Implementation)
+target_include_directories(${MODULE_NAME} PRIVATE Implementation/SystemTime)
+target_include_directories(${MODULE_NAME} PRIVATE ../)
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 
+add_subdirectory(Implementation/SystemTime)
 add_subdirectory(Implementation/LocalStore)
 add_subdirectory(Implementation/Backend)
 
@@ -85,7 +89,8 @@ target_link_libraries(${MODULE_NAME}
         ${NAMESPACE}Definitions::${NAMESPACE}Definitions
         ${DS_LIBRARIES}
         ${IARMBUS_LIBRARIES}
-        ${MODULE_NAME}Backends)
+        ${MODULE_NAME}Backends
+        ${MODULE_NAME}SystemTime)
 
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)

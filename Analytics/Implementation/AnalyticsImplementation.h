@@ -22,6 +22,7 @@
 #include <interfaces/IAnalytics.h>
 #include <interfaces/IConfiguration.h>
 #include "Backend/AnalyticsBackend.h"
+#include "SystemTime.h"
 
 #include <mutex>
 #include <condition_variable>
@@ -107,6 +108,7 @@ namespace Plugin {
         const IAnalyticsBackends mBackends;
         bool mSysTimeValid;
         PluginHost::IShell* mShell;
+        SystemTimePtr mSysTime;
     };
 }
 }

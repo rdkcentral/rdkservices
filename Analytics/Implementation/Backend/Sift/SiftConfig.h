@@ -19,6 +19,7 @@
 #pragma once
 
 #include "../../../Module.h"
+#include "../../SystemTime/SystemTime.h"
 #include <interfaces/IStore.h>
 #include <mutex>
 #include <memory>
@@ -47,13 +48,12 @@ namespace WPEFramework
                 bool activated;
                 std::string deviceModel;
                 std::string deviceType;
-                std::string deviceTimeZone;
+                int32_t deviceTimeZone;
                 std::string deviceOsName;
                 std::string deviceOsVersion;
                 std::string platform;
                 std::string deviceManufacturer;
                 bool authenticated;
-                std::string sessionId;
                 std::string proposition;
                 std::string retailer;
                 std::string jvAgent;
@@ -68,11 +68,8 @@ namespace WPEFramework
                 std::string accountDetailType;
 
                 // Sift 1.0 atributes that left
-                std::string deviceSoftwareVersion;
                 std::string deviceAppName;
                 std::string deviceAppVersion;
-                std::string accountId;
-                std::string deviceId;
             };
 
             struct StoreConfig
@@ -84,7 +81,6 @@ namespace WPEFramework
             struct UploaderConfig
             {
                 std::string url;
-                std::string apiKey;
                 uint32_t maxRandomisationWindowTime;
                 uint32_t maxEventsInPost;
                 uint32_t maxRetries;
@@ -96,13 +92,12 @@ namespace WPEFramework
             SiftConfig(const SiftConfig &) = delete;
             SiftConfig &operator=(const SiftConfig &) = delete;
 
-            SiftConfig(PluginHost::IShell *shell);
+            SiftConfig(PluginHost::IShell *shell, SystemTimePtr systemTime);
             ~SiftConfig();
 
             bool GetAttributes(Attributes &attributes);
             bool GetStoreConfig(StoreConfig &config);
             bool GetUploaderConfig(UploaderConfig &config);
-            void SetSessionId(const std::string &sessionId);
 
         private:
             class MonitorKeys : public Exchange::IStore::INotification {
@@ -136,6 +131,7 @@ namespace WPEFramework
 
             uint32_t GetValueFromPersistent(const string &ns, const string &key, string &value);
             void GetAuthServiceValues();
+            bool GetTimeZone();
             static void ActivatePlugin(PluginHost::IShell *shell, const char *callSign);
             static bool IsPluginActivated(PluginHost::IShell *shell, const char *callSign);
 
@@ -147,6 +143,7 @@ namespace WPEFramework
             UploaderConfig mUploaderConfig;
             PluginHost::IShell *mShell;
             std::map<std::string, std::map<std::string, std::string*>> mKeysMap;
+            SystemTimePtr mSystemTime;
         };
 
         typedef std::unique_ptr<SiftConfig> SiftConfigPtr;
