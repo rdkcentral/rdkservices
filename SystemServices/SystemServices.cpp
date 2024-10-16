@@ -1526,7 +1526,7 @@ namespace WPEFramework {
                 LOGINFO("[GSK]checked opflashstore directory and it is exists.");
 
                 blocklistFlag = parameters["blocklist"].Boolean();
-                if((blocklistFlag == true) && (blocklistFlag == false) ) {
+                if((blocklistFlag == true) || (blocklistFlag == false) ) {
 			        //GSK
                     //paramsToWrite["blocklist"] = strBlocklistFlag;
                     //status = writeDevicestate("blocklist", blocklistFlag);
