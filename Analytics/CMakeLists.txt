@@ -20,7 +20,7 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 set(VERSION_MAJOR 1)
 set(VERSION_MINOR 0)
-set(VERSION_PATCH 0)
+set(VERSION_PATCH 1)
 
 add_compile_definitions(ANALYTICS_MAJOR_VERSION=${VERSION_MAJOR})
 add_compile_definitions(ANALYTICS_MINOR_VERSION=${VERSION_MINOR})
@@ -29,7 +29,6 @@ add_compile_definitions(ANALYTICS_PATCH_VERSION=${VERSION_PATCH})
 set(MODULE_VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
 
 option(PLUGIN_ANALYTICS_SIFT_BACKEND "Enable Sift backend" OFF)
-
 
 set(PLUGIN_ANALYTICS_STARTUPORDER "" CACHE STRING "To configure startup order of Analytics plugin")
 set(PLUGIN_ANALYTICS_AUTOSTART "false" CACHE STRING "Automatically start Analytics plugin")
@@ -60,6 +59,98 @@ find_package(${NAMESPACE}Definitions REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
 find_package(DS)
 find_package(IARMBus)
+
+# -- Build IAnalytics interface --
+
+find_package(WPEFramework REQUIRED)
+find_package(${NAMESPACE}Core REQUIRED)
+find_package(CompileSettingsDebug REQUIRED)
+find_package(ProxyStubGenerator REQUIRED)
+find_package(JsonGenerator REQUIRED)
+
+# Interfaces we want to build
+set(INTERFACES_HEADERS
+    "${CMAKE_CURRENT_SOURCE_DIR}/IAnalytics.h"
+)
+
+# Invoke the code generators
+if(NOT GENERATOR_SEARCH_PATH)
+    set(GENERATOR_SEARCH_PATH ${CMAKE_SYSROOT}${CMAKE_INSTALL_PREFIX}/include/${NAMESPACE})
+endif()
+
+message("Using generator search path: ${GENERATOR_SEARCH_PATH}")
+
+ProxyStubGenerator(
+    INPUT ${INTERFACES_HEADERS}
+    OUTDIR "${CMAKE_CURRENT_BINARY_DIR}/generated"
+    INCLUDE_PATH ${GENERATOR_SEARCH_PATH}
+)
+
+JsonGenerator(
+    CODE
+    INPUT ${INTERFACES_HEADERS}
+    OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/generated"
+    INCLUDE_PATH ${GENERATOR_SEARCH_PATH}
+)
+
+# Find the generated sources
+file(GLOB PROXY_STUB_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/generated/ProxyStubs*.cpp")
+file(GLOB JSON_ENUM_SOURCES "${CMAKE_CURRENT_BINARY_DIR}/generated/JsonEnum*.cpp")
+file(GLOB JSON_HEADERS "${CMAKE_CURRENT_BINARY_DIR}/generated/J*.h")
+
+# Build the proxystub lib
+add_library(AnalyticsProxyStubs SHARED
+    ${PROXY_STUB_SOURCES}
+    Module.cpp
+)
+
+target_link_libraries(AnalyticsProxyStubs
+    PRIVATE
+    ${NAMESPACE}Core::${NAMESPACE}Core
+    CompileSettingsDebug::CompileSettingsDebug
+)
+
+target_include_directories(AnalyticsProxyStubs
+    PRIVATE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+)
+
+# Build the definitions lib if applicable
+if(JSON_ENUM_SOURCES)
+    add_library(AnalyticsDefinitions SHARED
+        ${JSON_ENUM_SOURCES}
+    )
+
+    target_link_libraries(AnalyticsDefinitions
+        PRIVATE
+        ${NAMESPACE}Core::${NAMESPACE}Core
+        CompileSettingsDebug::CompileSettingsDebug
+    )
+endif()
+
+# Install libs & headers
+string(TOLOWER ${NAMESPACE} NAMESPACE_LIB)
+install(TARGETS AnalyticsProxyStubs
+    EXPORT AnalyticsProxyStubsTargets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/${NAMESPACE_LIB}/proxystubs COMPONENT ${NAMESPACE}_Runtime
+)
+
+if(JSON_ENUM_SOURCES)
+    install(TARGETS AnalyticsDefinitions
+        EXPORT AnalyticsDefinitionsTargets
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/ COMPONENT ${NAMESPACE}_Runtime
+    )
+endif()
+
+install(FILES ${INTERFACES_HEADERS}
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${NAMESPACE}/interfaces
+)
+
+install(FILES ${JSON_HEADERS}
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${NAMESPACE}/interfaces/json
+)
+
+# -- end of IAnalytics interface build --
 
 add_library(${MODULE_NAME} SHARED
         Analytics.cpp

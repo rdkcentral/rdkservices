@@ -54,13 +54,13 @@ namespace Plugin {
         mThread.join();
     }
 
-    /* virtual */ uint32_t AnalyticsImplementation::SendEvent(const string& eventName,
+    /* virtual */ Core::hresult AnalyticsImplementation::SendEvent(const string& eventName,
                                     const string& eventVersion,
                                     const string& eventSource,
                                     const string& eventSourceVersion,
-                                    RPC::IStringIterator* const& cetList,
-                                    const uint64_t& epochTimestamp,
-                                    const uint64_t& uptimeTimestamp,
+                                    IStringIterator* const& cetList,
+                                    const uint64_t epochTimestamp,
+                                    const uint64_t uptimeTimestamp,
                                     const string& eventPayload)
     {
         std::shared_ptr<Event> event = std::make_shared<Event>();
@@ -97,16 +97,6 @@ namespace Plugin {
         mActionQueue.push({ACTION_TYPE_SEND_EVENT, event});
         lock.unlock();
         mQueueCondition.notify_one();
-        return Core::ERROR_NONE;
-    }
-
-    uint32_t AnalyticsImplementation::SetSessionId(const string& id)
-    {
-        return Core::ERROR_NONE;
-    }
-
-    uint32_t AnalyticsImplementation::SetTimeReady()
-    {
         return Core::ERROR_NONE;
     }
 
