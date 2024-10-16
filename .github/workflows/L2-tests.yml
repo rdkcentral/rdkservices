@@ -14,7 +14,7 @@ env:
 jobs:
   l2-tests:
     name: Build and run L2 tests
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         compiler: [ gcc, clang ]

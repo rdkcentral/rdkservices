@@ -201,7 +201,7 @@ namespace Plugin {
         _service->Unregister(&_notification);
 
         RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
-        uint32_t result = _object->Release();
+        VARIABLE_IS_NOT_USED uint32_t result = _object->Release();
         ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
 
         if (connection != nullptr) {

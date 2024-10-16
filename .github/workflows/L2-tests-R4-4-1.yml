@@ -14,7 +14,7 @@ env:
 jobs:
   L2-tests-R4-4-1:
     name: L2 tests with Thunder R4.4.1
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         compiler: [ gcc, clang ]
