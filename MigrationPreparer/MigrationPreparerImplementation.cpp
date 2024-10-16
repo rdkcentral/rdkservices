@@ -326,7 +326,6 @@ namespace Plugin {
         uint32_t status = Core::ERROR_GENERAL;
         string _compName = compName;
         _adminLock.Lock();
-        LOGINFOMETHOD();
         LOGINFO("Component Name: %s", _compName.c_str());
         RFC_ParamData_t param;
         WDMP_STATUS wdmpStatus;
@@ -369,7 +368,7 @@ namespace Plugin {
             string paramValue;
             paramValue = param.value;
             get_components(components, paramValue);
-            LOG_INFO("Components are Ready");
+            LOGINFO("Components are Ready");
             status = Core::ERROR_NONE;
         }
         compList = (Core::Service<RPC::StringIterator>::Create<RPC::IStringIterator>(components));
@@ -386,7 +385,7 @@ namespace Plugin {
         if(resetType == "RESET_ALL") {
             LOGINFO("[RESET] params={resetType: %s}", resetType.c_str());
             resetDatastore();
-            WDMP_STATUS wdmpStatus = setRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE, TR181_MIGRATION_READY, empty.c_str(), WDMP_STRING);  
+            setRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE, TR181_MIGRATION_READY, empty.c_str(), WDMP_STRING);  
         }
         else if (resetType == "RESET_DATA") {
             LOGINFO("[RESET] params={resetType: %s}", resetType.c_str());
@@ -394,7 +393,7 @@ namespace Plugin {
         }
         else if (resetType == "RESET_READINESS") {
             LOGINFO("[RESET] params={resetType: %s}", resetType.c_str());
-            WDMP_STATUS wdmpStatus = setRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE, TR181_MIGRATION_READY, empty.c_str(), WDMP_STRING);  
+            setRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE, TR181_MIGRATION_READY, empty.c_str(), WDMP_STRING);  
         }
         else {
             // Invalid parameter
