@@ -70,7 +70,7 @@ namespace Plugin {
             uint32_t readEntry(const string& name, string &result)  override;
             
 
-            uint32_t setComponentReadiness(string& compName) override;
+            uint32_t setComponentReadiness(const string& compName) override;
             uint32_t getComponentReadiness(RPC::IStringIterator*& compList) override;
             uint32_t reset(const string& resetType) override;
             /*Methods: End*/
@@ -95,7 +95,7 @@ namespace Plugin {
 
         /*Helpers: Begin*/
         // Fn. to transform \" to " in a string
-        bool Unstringfy(string&);
+        void Unstringfy(string&);
         // Fn. to get value of a key from the dataStore 
         #ifdef MEMORY_OPTIMIZED
         string getValue(string);

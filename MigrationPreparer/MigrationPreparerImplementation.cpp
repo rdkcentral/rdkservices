@@ -39,13 +39,12 @@ namespace Plugin {
     }
 
     /*Helper's: Begin*/
-    bool MigrationPreparerImplementation::Unstringfy(string& input) {
+    void MigrationPreparerImplementation::Unstringfy(string& input) {
         // transform \" to "
         string::size_type pos = 0;
         while ((pos = input.find("\\\"")) != string::npos) {
             input.replace(pos, 2, "\"");
         }
-        return true;
     }
 
     #ifdef MEMORY_OPTIMIZED
@@ -66,8 +65,8 @@ namespace Plugin {
         end = line.find_last_not_of(" \n,");
         line = line.substr(start, end-start+1);
         
-        // line should not be empty ot { or } if so assert
-        ASSERT(line.empty() || line == "{" || line == "}");
+        // line should not be empty or { or } if so assert
+        ASSERT(line.empty());
         // below is the dataStore json format
         // {
         // <space>"key1":value1,
@@ -211,17 +210,20 @@ namespace Plugin {
                 LOGWARN("Given value: %s for Key: %s is already existing, hence returning success", oldValue.c_str(), key.c_str());
                 return Core::ERROR_NONE;
             }
-            dataStoreMutex.lock();
+            
             // sed command to replace value in the dataStore
+            dataStoreMutex.lock();
             int result = v_secure_system("/bin/sed -i 's/%s/%s/' %s", oldValue.c_str(), newValue.c_str(), DATASTORE_PATH);
+            dataStoreMutex.unlock();
+            
             if (result != -1 && WIFEXITED(result)) {
+                #ifdef CPU_OPTIMIZED
+                valueEntry[lineNumber[key] - 1] = newValue;
+                #endif
                 return Core::ERROR_NONE;
             }
-            dataStoreMutex.unlock();
-            #ifdef CPU_OPTIMIZED
-            valueEntry[lineNumber[key] - 1] = newValue;
-            #endif
             result = WEXITSTATUS(result);
+            dataStoreMutex.unlock();
             LOGERR("v_secure_system failed with error %d",result);
             return Core::ERROR_GENERAL;
         }
@@ -277,8 +279,10 @@ namespace Plugin {
 
         if(!lineNumber.empty() && (lineNumber.find(key) != lineNumber.end())) {
             // sed command to delete an key-value entry in the dataStore
+            dataStoreMutex.lock();
             result = v_secure_system("/bin/sed -i '%sd' %s", std::to_string(lineNumber[key]).c_str(), DATASTORE_PATH);
-            
+            dataStoreMutex.unlock();
+
             if (result != -1 && WIFEXITED(result)) {
                 // check if last entry is deleted
                 if(lineNumber[key] == curLineIndex) {
@@ -317,18 +321,19 @@ namespace Plugin {
     }
 
     
-    uint32_t MigrationPreparerImplementation::setComponentReadiness(string& compName)
+    uint32_t MigrationPreparerImplementation::setComponentReadiness(const string& compName)
     {
         uint32_t status = Core::ERROR_GENERAL;
+        string _compName = compName;
         _adminLock.Lock();
         LOGINFOMETHOD();
-        LOGINFO("Component Name: %s", compName.c_str());
+        LOGINFO("Component Name: %s", _compName.c_str());
         RFC_ParamData_t param;
         WDMP_STATUS wdmpStatus;
         wdmpStatus = getRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE,TR181_MIGRATION_READY, &param);
         if (wdmpStatus != WDMP_SUCCESS) {
             LOGINFO("setting the first RFC parameter");
-            wdmpStatus = setRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE, TR181_MIGRATION_READY, compName.c_str(), WDMP_STRING);  
+            wdmpStatus = setRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE, TR181_MIGRATION_READY, _compName.c_str(), WDMP_STRING);  
             status=(wdmpStatus == WDMP_SUCCESS)?Core::ERROR_NONE:Core::ERROR_GENERAL;
         }
         else {
@@ -336,10 +341,10 @@ namespace Plugin {
               paramValue = param.value;
               LOGINFO("component %s is already present", paramValue.c_str());
               std::list<std::string> component_list;
-              get_components(component_list, paramValue, compName);
-              compName= "";
-              tokenize(compName, component_list);
-              wdmpStatus = setRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE, TR181_MIGRATION_READY, compName.c_str(), WDMP_STRING);  
+              get_components(component_list, paramValue, _compName);
+              _compName= "";
+              tokenize(_compName, component_list);
+              wdmpStatus = setRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE, TR181_MIGRATION_READY, _compName.c_str(), WDMP_STRING);  
               status=(wdmpStatus == WDMP_SUCCESS)?Core::ERROR_NONE:Core::ERROR_GENERAL;
         }
         _adminLock.Unlock();
@@ -376,11 +381,12 @@ namespace Plugin {
 
     uint32_t MigrationPreparerImplementation::reset(const string& resetType)
     {
+        string empty;
         _adminLock.Lock();
         if(resetType == "RESET_ALL") {
             LOGINFO("[RESET] params={resetType: %s}", resetType.c_str());
             resetDatastore();
-            WDMP_STATUS wdmpStatus = setRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE, TR181_MIGRATION_READY, "", WDMP_STRING);  
+            WDMP_STATUS wdmpStatus = setRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE, TR181_MIGRATION_READY, empty.c_str(), WDMP_STRING);  
         }
         else if (resetType == "RESET_DATA") {
             LOGINFO("[RESET] params={resetType: %s}", resetType.c_str());
@@ -388,7 +394,7 @@ namespace Plugin {
         }
         else if (resetType == "RESET_READINESS") {
             LOGINFO("[RESET] params={resetType: %s}", resetType.c_str());
-            WDMP_STATUS wdmpStatus = setRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE, TR181_MIGRATION_READY, "", WDMP_STRING);  
+            WDMP_STATUS wdmpStatus = setRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE, TR181_MIGRATION_READY, empty.c_str(), WDMP_STRING);  
         }
         else {
             // Invalid parameter
