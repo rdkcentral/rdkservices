@@ -6241,14 +6241,21 @@ TEST_F(SystemServicesTest, getsetBlocklist)
     EXPECT_EQ(response, string("{\"success\":true}"));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getBlocklist"), _T("{}"), response));
-    EXPECT_EQ(response, string("{\"blocklist\":\"true\",\"success\":true}"));
+    EXPECT_EQ(response, string("{\"blocklist\":true,\"success\":true}"));
 }
 
 TEST_F(SystemServicesTest, getsetBlocklist_nofile)
 {
-    const string  blokListFile = _T("/opt/secure/persistent/opflashstore/devicestate.txt");
+    /*const string  blokListFile = _T("/opt/secure/persistent/opflashstore/devicestate.txt");
     Core::File file2(blokListFile);
     file2.Destroy(); //Remove the file.
+
+    EXPECT_TRUE(Core::Directory("/opt/secure/persistent/opflashstore/devicestate.txt").CreatePath());
+    */
+    Core::File file(string("/opt/secure/persistent/opflashstore/devicestate.txt"));
+    if (file.Exists()) {
+        EXPECT_TRUE(file.Destroy());
+    }
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getBlocklist"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"success\":false}"));
@@ -6267,7 +6274,7 @@ TEST_F(SystemServicesTest, setBlocklist_paramfalse)
 
 TEST_F(SystemServicesTest, setBlocklist_noparam)
 {
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBlocklist"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBlocklist"), _T("{""}"), response));
 }
 
 
@@ -6277,6 +6284,7 @@ TEST_F(SystemServicesEventIarmTest, onBlocklistChanged)
 
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(1)
+        
         .WillOnce(::testing::Invoke(
             [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
                 string text;
@@ -6286,7 +6294,7 @@ TEST_F(SystemServicesEventIarmTest, onBlocklistChanged)
                                                              "\"method\":\"org.rdk.System.onBlocklistChanged\","
                                                              "\"params\":"
                                                              "\\{"
-                                                             "\"blocklist\":true"
+                                                             "\"blocklist\":false"
                                                              "\\}"
                                                              "\\}")));
 
@@ -6300,12 +6308,12 @@ TEST_F(SystemServicesEventIarmTest, onBlocklistChanged)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBlocklist"), _T("{\"blocklist\": false}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getBlocklist"), _T("{}"), response));
-    EXPECT_EQ(response, string("{\"blocklist\":\"false\",\"success\":true}"));
+    EXPECT_EQ(response, string("{\"blocklist\":false,\"success\":true}"));
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBlocklist"), _T("{\"blocklist\": true}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getBlocklist"), _T("{}"), response));
-    EXPECT_EQ(response, string("{\"blocklist\":\"true\",\"success\":true}"));
+    EXPECT_EQ(response, string("{\"blocklist\":true,\"success\":true}"));
 
     EXPECT_EQ(Core::ERROR_NONE, onBlocklistChanged.Lock());
 
