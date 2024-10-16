@@ -125,7 +125,7 @@ namespace Plugin {
         if (result == Core::ERROR_NONE) {
             string component;
             while (componentList->Next(component) == true) {
-                response.Components.Add() = component;
+                response.componentList.Add() = component;
             }
             componentList->Release();
             response.Success = true;
@@ -136,19 +136,19 @@ namespace Plugin {
 
     uint32_t MigrationPreparer::endpoint_setComponentReadiness(const SetcomponentreadinessParamsData& params, WriteentryResultInfo& response) {
         // check if provided params are available
-        if (params.Component.IsNull()) {
+        if (params.componentName.IsNull()) {
             return Core::ERROR_INVALID_INPUT_LENGTH;
         }
 
         // check if provided params are empty
-        if (params.Component.Value() == string()) {
+        if (params.componentName.Value() == string()) {
             return Core::ERROR_INVALID_INPUT_LENGTH;
         }
         
         //No checks included to check if provided params is string or not
 
         auto result = _migrationPreparer->setComponentReadiness(
-                            params.Component.Value());
+                            params.componentName.Value());
 
         if (result == Core::ERROR_NONE) {
             response.Success = true;
