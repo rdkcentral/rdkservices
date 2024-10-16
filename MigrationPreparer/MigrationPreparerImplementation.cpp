@@ -137,6 +137,33 @@ namespace Plugin {
         #endif
         dataStoreMutex.unlock();
     }
+
+     void MigrationPreparerImplementation::get_components(std::list<string>& list, string& value, string input) {
+            LOGINFO("get_components: %s and input: %s", value.c_str(), input.c_str());
+            string::size_type start = 0, pos = 0; 
+            while ((pos = value.find('_', start) )!= std::string::npos) {
+                list.emplace_back(value.substr(start, pos - start));
+                start = pos + 1; // Move start to the next character after the delimiter
+            }
+            // add the last element or the only element to the list 
+            list.emplace_back(value.substr(start));
+            if(input != "") 
+                if (find(list.begin(), list.end(), input) == list.end()) // duplicate check
+                    list.emplace_back(input);
+            list.sort();
+        }
+
+        void MigrationPreparerImplementation::tokenize(string& value, std::list<string>& list) {
+        	//if the list is with only one element also it won't be a problem
+            if (list.empty()) return;  // Handle empty list case
+            auto it = list.begin();
+            // Use the for loop to concatenate elements with '_'
+            for (; std::next(it) != list.end(); ++it) {
+                value += *it + "_";  // Concatenate element with underscore
+            }
+            // Add the last element without an underscore
+            value += *it;
+	    }
     
     /*Helper's: End*/
 
@@ -290,11 +317,31 @@ namespace Plugin {
     }
 
     
-    uint32_t MigrationPreparerImplementation::setComponentReadiness(const string& compName)
+    uint32_t MigrationPreparerImplementation::setComponentReadiness(string& compName)
     {
         uint32_t status = Core::ERROR_GENERAL;
         _adminLock.Lock();
-        LOGINFO("Component Name[%s] status[%d]", compName.c_str(), status);
+        LOGINFOMETHOD();
+        LOGINFO("Component Name: %s", compName.c_str());
+        RFC_ParamData_t param;
+        WDMP_STATUS wdmpStatus;
+        wdmpStatus = getRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE,TR181_MIGRATION_READY, &param);
+        if (wdmpStatus != WDMP_SUCCESS) {
+            LOGINFO("setting the first RFC parameter");
+            wdmpStatus = setRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE, TR181_MIGRATION_READY, compName.c_str(), WDMP_STRING);  
+            status=(wdmpStatus == WDMP_SUCCESS)?Core::ERROR_NONE:Core::ERROR_GENERAL;
+        }
+        else {
+              std::string paramValue;
+              paramValue = param.value;
+              LOGINFO("component %s is already present", paramValue.c_str());
+              std::list<std::string> component_list;
+              get_components(component_list, paramValue, compName);
+              compName= "";
+              tokenize(compName, component_list);
+              wdmpStatus = setRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE, TR181_MIGRATION_READY, compName.c_str(), WDMP_STRING);  
+              status=(wdmpStatus == WDMP_SUCCESS)?Core::ERROR_NONE:Core::ERROR_GENERAL;
+        }
         _adminLock.Unlock();
         return status;
     }
@@ -304,11 +351,26 @@ namespace Plugin {
     {
         uint32_t status = Core::ERROR_GENERAL;
         _adminLock.Lock();
-        std::list<string> list;
-        compList = (Core::Service<RPC::StringIterator>::Create<RPC::IStringIterator>(list));
+        RFC_ParamData_t param;
+        std::list<string> components;
+        //getting the RFC parameter to check if any component is ready for migration
+        WDMP_STATUS wdmpStatus = getRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE, TR181_MIGRATION_READY, &param);
+        if (wdmpStatus != WDMP_SUCCESS) {
+                LOGINFO("No component is ready for migration");
+                status = Core::ERROR_NONE;
+        }
+        else{
+            //if one or more component is ready then it gets the list of components
+            string paramValue;
+            paramValue = param.value;
+            get_components(components, paramValue);
+            LOG_INFO("Components are Ready");
+            status = Core::ERROR_NONE;
+        }
+        compList = (Core::Service<RPC::StringIterator>::Create<RPC::IStringIterator>(components));
         LOGINFO("Component status[%d]", status);
         _adminLock.Unlock();
-        return Core::ERROR_NONE;
+        return status;
     }
     
 
@@ -318,7 +380,7 @@ namespace Plugin {
         if(resetType == "RESET_ALL") {
             LOGINFO("[RESET] params={resetType: %s}", resetType.c_str());
             resetDatastore();
-            // Faizal code to reset readiness
+            WDMP_STATUS wdmpStatus = setRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE, TR181_MIGRATION_READY, "", WDMP_STRING);  
         }
         else if (resetType == "RESET_DATA") {
             LOGINFO("[RESET] params={resetType: %s}", resetType.c_str());
@@ -326,7 +388,7 @@ namespace Plugin {
         }
         else if (resetType == "RESET_READINESS") {
             LOGINFO("[RESET] params={resetType: %s}", resetType.c_str());
-            // Faizal code to reset readiness
+            WDMP_STATUS wdmpStatus = setRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE, TR181_MIGRATION_READY, "", WDMP_STRING);  
         }
         else {
             // Invalid parameter

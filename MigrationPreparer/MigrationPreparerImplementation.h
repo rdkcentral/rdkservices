@@ -31,10 +31,14 @@
 #include "secure_wrapper.h"
 #include "UtilsJsonRpc.h"
 #include "Module.h"
+#include "rfcapi.h"
+#include <list>
 
 #define MIGRATIONPREPARER_NAMESPACE "MigrationPreparer"
 
 #define DATASTORE_PATH _T("/opt/migration_data_store.json")
+
+#define TR181_MIGRATION_READY "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.MigrationReady"
 
 #define MEMORY_OPTIMIZED // set if it expected to be MEMORY_OPTIMIZED or CPU_OPTIMIZED
 
@@ -66,7 +70,7 @@ namespace Plugin {
             uint32_t readEntry(const string& name, string &result)  override;
             
 
-            uint32_t setComponentReadiness(const string& compName) override;
+            uint32_t setComponentReadiness(string& compName) override;
             uint32_t getComponentReadiness(RPC::IStringIterator*& compList) override;
             uint32_t reset(const string& resetType) override;
             /*Methods: End*/
@@ -100,6 +104,10 @@ namespace Plugin {
         void storeKeys(void);
         // Fn. to store the keys and their line numbers from dataStore to lineNumber map
         void resetDatastore(void);
+        //Fn. to populate list with values from a string
+        void get_components(std::list<string>& list, string& value, string input = "");
+        //Fn. to populate value from a list with delimiter(_)
+        void tokenize(string& value, std::list<string>& list);
         /*Helpers: End*/
     };
 } // namespace Plugin
