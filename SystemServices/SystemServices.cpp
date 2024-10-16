@@ -1388,8 +1388,9 @@ namespace WPEFramework {
             }
             return 0 == ret;
         }
+
         // Function to write (update or append) parameters in the file
-        bool write_parameters(const string &filename, const string &param, bool value) {
+        bool write_parameters(const string &filename, const string &param, bool value, bool &update) {
             ifstream file_in(filename);
             vector<string> lines;
             bool param_found = false, status = false;
@@ -1403,11 +1404,21 @@ namespace WPEFramework {
                     // Check if the line contains the parameter we're searching for
                     if (pos != string::npos) {
                         string file_param = line.substr(0, pos);
+                        string file_value = line.substr(pos + 1);
                         if (file_param == param) {
-                            //Need to handel if requested and file vlaue are same case.
-                            // Update the parameter value
-                            line = param + "=" + (value ? "true" : "false");
-                            param_found = true;
+                            // check the file value and requested value same
+                            if (file_value == (value ? "true" : "false")) {
+                                LOGINFO("Persistence store has updated value. blocklist= %s", (value ? "true" : "false"));
+                                file_in.close();
+                                update = true;
+                                return true;
+                            }
+                            else {
+                                update = false;
+                                // Update the parameter value
+                                line = param + "=" + (value ? "true" : "false");
+                                param_found = true;
+                            }
                         }
                     }
         
@@ -1426,7 +1437,6 @@ namespace WPEFramework {
             // Rewrite the entire file with updated values
             ofstream file_out(filename);
             if (!file_out.is_open()) {
-                //cerr << "Error opening file for writing: " << filename << endl;
                 LOGERR("Error opening file for writing:%s ", filename.c_str());
                 status = false;
             }
@@ -1437,7 +1447,6 @@ namespace WPEFramework {
             status = true;
         
             file_out.close();
-            //cout << "Parameter " << param << " written to " << filename << " successfully." << "status=" << status << endl;
             LOGINFO("Parameter written to file successfully. status= %d", status);
             LOGINFO("%s flag stored successfully in persistent memory.", param.c_str());
             return status;
@@ -1449,7 +1458,6 @@ namespace WPEFramework {
         
             // Check if the file was successfully opened
             if (!file.is_open()) {
-                //cerr << "Error opening file for reading: " << filename << endl;
                 LOGERR("Error opening file for reading: %s", filename.c_str());
                 return false;
             }
@@ -1474,7 +1482,6 @@ namespace WPEFramework {
                         } else if (file_value == "false") {
                             value = false;
                         } else {
-                            //cerr << "Error: Invalid value for parameter " << param << " in file: " << file_value << endl;
                             LOGERR("Error: Invalid value for parameter %s  in file: %s", param.c_str(), file_value.c_str());
                             file.close();
                             return false;  // Invalid value
@@ -1486,7 +1493,6 @@ namespace WPEFramework {
         
             // Check if there were any read errors
             if (file.fail() && !file.eof()) {
-                //cerr << "Error reading from file: " << filename << endl;
                 LOGERR("Error reading from file: %s", filename.c_str());
                 file.close();
                 return false;
@@ -1495,8 +1501,8 @@ namespace WPEFramework {
             file.close();
         
             if (!param_found) {
-                cerr << "Parameter " << param << " not found in the file." << endl;
                 LOGERR("Parameter %s  not found in the file.", param.c_str());
+
                 return false;
             }
         
@@ -1512,34 +1518,29 @@ namespace WPEFramework {
         uint32_t SystemServices::setBlocklistFlag(const JsonObject& parameters,
                 JsonObject& response)
         {                
-            bool status = false;
+            bool status = false, update = false;
             bool result = true;
             bool blocklistFlag;
-            //std::string filename = DEVICESTATE_FILE;
-            std::map<std::string, bool> paramsToWrite;
+            JsonObject error;
 
             if ((parameters.HasLabel("blocklist"))) {
             
                 /*check /opt/secure/persistent/opflashstore/ dir*/
-                LOGINFO("[GSK]checking opflashstore");
                 checkOpFlashStoreDir();
-                LOGINFO("[GSK]checked opflashstore directory and it is exists.");
+                LOGINFO("checked opflashstore directory and it is exists.");
 
                 blocklistFlag = parameters["blocklist"].Boolean();
                 if((blocklistFlag == true) || (blocklistFlag == false) ) {
-			        //GSK
-                    //paramsToWrite["blocklist"] = strBlocklistFlag;
-                    //status = writeDevicestate("blocklist", blocklistFlag);
-                    status = write_parameters(DEVICESTATE_FILE, "blocklist", blocklistFlag);
-			        if (status != true) {
+                    status = write_parameters(DEVICESTATE_FILE, "blocklist", blocklistFlag, update);
+			        if ((status != true)) {
 			    	    LOGERR("Blocklist flag update failed. status %d ", status);
-				        JsonObject error;
 				        error["message"] = "Blocklist flag update failed";
 				        error["code"] = "-32604";
 				        response["error"] = error;
 				        result = false;
 			        }
                     else {
+                        LOGINFO("Blocklist flag stored successfully in persistent memory");
                         result = true;
                     }
                 }
@@ -1547,11 +1548,18 @@ namespace WPEFramework {
                     LOGWARN("Invalid value");
                     populateResponseWithError(SysSrv_MissingKeyValues, response);
                 }
-                /*Send EVT_ONBLOCKLISTCHANGED event notify*/
-                sendNotify(EVT_ONBLOCKLISTCHANGED, parameters);
+
+                LOGINFO("Update= %s", (update ? "true":"false"));
+                if(update == true) {
+                    /*Send EVT_ONBLOCKLISTCHANGED event notify*/
+                    sendNotify(EVT_ONBLOCKLISTCHANGED, parameters);
+                }
             }
             else {
                 populateResponseWithError(SysSrv_MissingKeyValues, response);
+                error["message"] = "Invalid params";
+				error["code"] = "-32602";
+				response["error"] = error;
                 result = false;
             }
 
@@ -1562,26 +1570,23 @@ namespace WPEFramework {
 	    {
 		
 		    bool status = false, result = false, blocklistFlag;
-            //LOGWARN("SystemService getDeviceInfo param type %d result %s", param.type, param.buffer);
 
             /*check /opt/secure/persistent/opflashstore/ dir*/
-            LOGINFO("[GSK]checking opflashstore");
             checkOpFlashStoreDir();
-            LOGINFO("[GSK]checked opflashstore directory and it is exists.");
+            LOGINFO("checked opflashstore directory and it is exists.");
 
-		    
             result = read_parameters(DEVICESTATE_FILE, "blocklist", blocklistFlag);
 		    if (result == true) {
-			    //response[parameters.c_str()] = string(blocklistFlag);
+                LOGWARN("blocklistFlag=%d", blocklistFlag);
                 response["blocklist"] = blocklistFlag;
 			    status = true;
+                LOGINFO("Blocklist flag retrieved successfully from persistent memory.");
 		    }
 		    else{
-			    LOGWARN("SystemService getBlocklistFlag - Blocklist flag Data Read Failed");
+			    LOGWARN("Blocklist flag retrieved failed from persistent memory.");
                 status = false;
 		    }
 
-		    LOGWARN("blocklistFlag=%d", blocklistFlag);
             returnResponse(status);
 	    }
 
