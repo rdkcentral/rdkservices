@@ -961,8 +961,9 @@ typedef struct
     GstElement *udpsrcProp;
     GstElement *rtpjitterbufferProp;
     GstElement *rtpmp2tdepayProp;
-    GstElement *appsinkProp;
     GstElement *tsparseProp;
+    GstElement *queueProp;
+    GstElement *appsinkProp;
     GstElement *appsrcProp;
 
     GstElement *udpsrc_appsink_pipeline;
@@ -983,84 +984,59 @@ MiracastCustomData;
 
 static GstFlowReturn on_new_sample_from_sink(GstElement *elt, MiracastCustomData *self)
 {
-    //MIRACASTLOG_TRACE("Entering...");
-    GstFlowReturn ret = GST_FLOW_ERROR;
-    GstSample *sample = gst_app_sink_pull_sample(GST_APP_SINK(elt));
-    if ( nullptr == sample )
+    GstSample *sample = NULL;
+    GstBuffer *buffer = NULL;
+    GstMapInfo map;
+    GstFlowReturn ret;
+
+    if (nullptr == self->appsrcProp)
     {
-        MIRACASTLOG_ERROR("Failed to pull sample");
-        MIRACASTLOG_TRACE("Exiting..!!!");
+        MIRACASTLOG_WARNING("Yet to get the Appsrc handle");
+        return GST_FLOW_OK;
+    }
+
+    // Pull the sample from appsink
+    sample = gst_app_sink_pull_sample(GST_APP_SINK(elt));
+    if (!sample)
+    {
+        MIRACASTLOG_ERROR("Failed to pull sample from appsink\n");
         return GST_FLOW_ERROR;
     }
-    GstBuffer *gstbuffer = gst_sample_get_buffer(sample);
-    if ( nullptr == gstbuffer )
+
+    // Get the buffer from the sample
+    buffer = gst_sample_get_buffer(sample);
+    if (!buffer)
     {
-        MIRACASTLOG_ERROR("Failed to get sample buffer");
+        MIRACASTLOG_ERROR("Failed to get buffer from sample\n");
         gst_sample_unref(sample);
-        MIRACASTLOG_TRACE("Exiting..!!!");
         return GST_FLOW_ERROR;
     }
-    GstMapInfo extract_map_info;
-    if ( TRUE != gst_buffer_map(gstbuffer, &extract_map_info, GST_MAP_READ))
+
+    // Map the buffer for reading
+    if (!gst_buffer_map(buffer, &map, GST_MAP_READ))
     {
-        MIRACASTLOG_ERROR("Failed to do Extract the Gst Buffer");
+        MIRACASTLOG_ERROR("Failed to map buffer\n");
         gst_sample_unref(sample);
         return GST_FLOW_ERROR;
     }
-    if (self->m_current_pushbuffer_size + extract_map_info.size < self->m_max_pushbuffer_size )
+
+    GstBuffer *new_buffer = gst_buffer_new_allocate(NULL, map.size, NULL);
+
+    // Copy data from the original buffer to the new buffer
+    gst_buffer_fill(new_buffer, 0, map.data, map.size);
+
+    // Push the new buffer to appsrc
+    ret = gst_app_src_push_buffer(GST_APP_SRC(self->appsrcProp), new_buffer);
+    if (ret != GST_FLOW_OK)
     {
-        // Append the data to the m_push_buffer_ptr
-        memcpy(self->m_current_buffer_ptr, extract_map_info.data , extract_map_info.size );
-        MIRACASTLOG_INFO("=== Received Buffer from [ UDPSrc -> Appsink] Gst Buffer Size : %u\n", extract_map_info.size);
-        self->m_current_buffer_ptr += extract_map_info.size;
-        self->m_current_pushbuffer_size += extract_map_info.size;
+        MIRACASTLOG_ERROR("Error pushing buffer to appsrc\n");
     }
-    else
-    {
-        // Create a new GST buffer wrapped around the CPU buffer
-        void *mem = g_memdup(self->m_push_buffer_ptr, self->m_current_pushbuffer_size);
-        GstBuffer *gstdatapushbuffer = gst_buffer_new_wrapped(mem, self->m_current_pushbuffer_size);
-        // MIRACASTLOG_INFO("=== Received Buffer from [ UDPSrc -> Appsink] Gst Buffer Size : %llu\n", self->m_current_pushbuffer_size);
-        if ( nullptr == gstdatapushbuffer )
-        {
-            MIRACASTLOG_ERROR("Failed to do gst_buffer_new_wrapped");
-            ret = GST_FLOW_ERROR;
-        }
-        else
-        {
-            // Create a new GST sample using the new buffer
-            GstSample *newSample = gst_sample_new(gstdatapushbuffer, nullptr, nullptr, nullptr);
-            
-            if ( nullptr == newSample )
-            {
-                MIRACASTLOG_ERROR("Failed to do gst_buffer_new_wrapped");
-                ret = GST_FLOW_ERROR;
-            }
-            else
-            {
-                // Push the new sample to the appsrc
-                MIRACASTLOG_TRACE("Before : gst_app_src_push_sample ()");
-                ret = gst_app_src_push_sample(GST_APP_SRC(self->appsrcProp), newSample);
-                MIRACASTLOG_TRACE("After : gst_app_src_push_sample () %x",ret);
-                // unref the new sample
-                gst_sample_unref(newSample);
-                MIRACASTLOG_TRACE("New sample pushed to Appsrc, Buffer size [%u]\n ", gst_buffer_get_size(gstdatapushbuffer));
-                // Reset the self->m_push_buffer_ptr
-                self->m_current_buffer_ptr = self->m_push_buffer_ptr;
-                memcpy(self->m_current_buffer_ptr, extract_map_info.data, extract_map_info.size);
-                self->m_current_buffer_ptr += extract_map_info.size;
-                self->m_current_pushbuffer_size = extract_map_info.size;
-            }
-            // unref the new buffer
-            gst_buffer_unref(gstdatapushbuffer);
-        }
-    }
-    // Unmap the GStreamer buffer
-    gst_buffer_unmap(gstbuffer, &extract_map_info);
-    // unref the pulled sample
+
+    // Unmap and cleanup
+    gst_buffer_unmap(buffer, &map);
     gst_sample_unref(sample);
-    //MIRACASTLOG_TRACE("Exiting..!!!");
-    return GST_FLOW_OK;
+
+    return ret;
 }
 
 /* called when we get a GstMessage from the source pipeline when we get EOS, we
@@ -1122,6 +1098,7 @@ static gboolean on_appsink_bus_message (GstBus * bus, GstMessage * message, Mira
   //MIRACASTLOG_INFO("Exiting...");
   return TRUE;
 }
+
 /* called when we get a GstMessage from the sink pipeline when we get EOS, we
  * exit the mainloop and this testapp. */
 static gboolean on_playbin_bus_message (GstBus * bus, GstMessage * message, MiracastCustomData *custom_data_ptr)
@@ -1183,7 +1160,7 @@ static void gst_bin_need_data(GstAppSrc *src, guint length, gpointer user_data)
 {
     //MIRACASTLOG_INFO("Entering...");
     MiracastCustomData *pData = (MiracastCustomData *)user_data;
-    // MIRACASTLOG_INFO("AppSrc empty");
+    MIRACASTLOG_INFO("AppSrc empty");
     pData->bPushData = true;
     //MIRACASTLOG_INFO("Exiting...");
     return;
@@ -1207,14 +1184,14 @@ static void source_setup(GstElement *pipeline, GstElement *source, MiracastCusto
     GstAppSrcCallbacks callbacks = {gst_bin_need_data, gst_bin_enough_data, NULL};
     gst_app_src_set_callbacks(GST_APP_SRC(pData->appsrcProp), &callbacks, (gpointer)(pData), NULL);
     g_object_set(GST_APP_SRC(pData->appsrcProp), "max-bytes", (guint64) 20 * 1024 * 1024, NULL);
-#if 0
+#if 1
     g_object_set(GST_APP_SRC(pData->appsrcProp), "format", GST_FORMAT_TIME, NULL);
     g_object_set(GST_APP_SRC(pData->appsrcProp), "is-live", true, NULL);
     const gchar *set_cap = "video/mpegts, systemstream=(boolean)true, packetsize=(int)188";
     GstCaps *caps = gst_caps_from_string (set_cap);
     g_object_set(GST_APP_SRC(pData->appsrcProp), "caps", caps, NULL);
     if(caps) {
-      gst_caps_unref(caps);
+      pData->capsSrc = caps;
     }
 #endif
     MIRACASTLOG_INFO("Exiting... ");
@@ -1243,14 +1220,17 @@ bool SoC_GstPlayer::createPipeline()
     custom_data_ptr->udpsrcProp = gst_element_factory_make("udpsrc", "miracast_udpsrc");
     custom_data_ptr->rtpjitterbufferProp = gst_element_factory_make("rtpjitterbuffer", "miracast_rtpjitterbuffer");
     custom_data_ptr->rtpmp2tdepayProp = gst_element_factory_make("rtpmp2tdepay", "miracast_rtpmp2tdepay");
-    custom_data_ptr->tsparseProp = gst_element_factory_make("tsparse", "tsparse");
+    custom_data_ptr->tsparseProp = gst_element_factory_make("tsparse", "miracast_tsparse");
+    custom_data_ptr->queueProp = gst_element_factory_make("queue", "miracast_queue");
     custom_data_ptr->appsinkProp = gst_element_factory_make("appsink", "miracast_appsink");
+    m_video_sink = gst_element_factory_make("westerossink", "miracast_westerossink");
 
     if (!custom_data_ptr->udpsrc_appsink_pipeline ||
         !custom_data_ptr->udpsrcProp ||
         !custom_data_ptr->rtpjitterbufferProp ||
         !custom_data_ptr->rtpmp2tdepayProp ||
         !custom_data_ptr->tsparseProp ||
+        !custom_data_ptr->queueProp ||
         !custom_data_ptr->appsinkProp)
     {
         MIRACASTLOG_ERROR("Not all elements could be created.");
@@ -1331,6 +1311,7 @@ bool SoC_GstPlayer::createPipeline()
     gst_bin_add_many(GST_BIN(custom_data_ptr->udpsrc_appsink_pipeline), 
                         custom_data_ptr->udpsrcProp,
                         custom_data_ptr->rtpjitterbufferProp,
+                        custom_data_ptr->queueProp,
                         custom_data_ptr->rtpmp2tdepayProp,
                         custom_data_ptr->tsparseProp,
                         custom_data_ptr->appsinkProp,
@@ -1338,6 +1319,7 @@ bool SoC_GstPlayer::createPipeline()
 
     if (!gst_element_link_many(custom_data_ptr->udpsrcProp,
                                 custom_data_ptr->rtpjitterbufferProp,
+                                custom_data_ptr->queueProp,
                                 custom_data_ptr->rtpmp2tdepayProp,
                                 custom_data_ptr->tsparseProp,
                                 custom_data_ptr->appsinkProp,
@@ -1362,10 +1344,18 @@ bool SoC_GstPlayer::createPipeline()
         // Pipeline created
         g_object_set(custom_data_ptr->playbin_pipeline, "uri", "appsrc://", NULL);
         g_signal_connect(custom_data_ptr->playbin_pipeline, "source-setup", G_CALLBACK(source_setup), custom_data_ptr);
+        /*{{{ westerossink related element configuration*/
+        MIRACASTLOG_TRACE(">>>>>>>westerossink configuration start");
+        updateVideoSinkRectangle();
+
+        g_signal_connect(m_video_sink, "first-video-frame-callback",G_CALLBACK(onFirstVideoFrameCallback), (gpointer)this);
+        MIRACASTLOG_TRACE("westerossink configuration end<<<<<<<<");
+        g_object_set(custom_data_ptr->playbin_pipeline, "video-sink", m_video_sink, nullptr);
+        /*}}}*/
     }
     /* launching things */
     gst_element_set_state(custom_data_ptr->playbin_pipeline, GST_STATE_PLAYING);
-    sleep(1);
+    usleep(50000);
 
     MIRACASTLOG_INFO("Start Playing....");
 
