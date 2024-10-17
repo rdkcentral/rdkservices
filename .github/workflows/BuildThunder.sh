@@ -8,9 +8,9 @@ set -e
 ############################
 # 1. Install Dependencies
 
-sudo apt install -y build-essential cmake ninja-build libusb-1.0-0-dev zlib1g-dev libssl-dev
+sudo apt install -y build-essential pkg-config cmake ninja-build libusb-1.0-0-dev zlib1g-dev libssl-dev
 
-pip install jsonref
+PIP_BREAK_SYSTEM_PACKAGES=1 pip install jsonref
 
 ############################
 # 2. Build Thunder Tools

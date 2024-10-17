@@ -41,7 +41,13 @@ add_custom_target(protoc
 )
 add_dependencies(${PROJECT_NAME} protoc)
 
-target_link_libraries(${PROJECT_NAME} PRIVATE grpc++)
+find_package(gRPC CONFIG)
+if (gRPC_FOUND)
+    set(GRPC_LIBS gRPC::grpc++)
+else ()
+    set(GRPC_LIBS grpc++)
+endif ()
+target_link_libraries(${PROJECT_NAME} PRIVATE ${GRPC_LIBS})
 find_program(GRPC_CPP_PLUGIN grpc_cpp_plugin REQUIRED)
 
 add_custom_target(protoc-gen-grpc
