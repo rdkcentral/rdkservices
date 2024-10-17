@@ -4990,9 +4990,7 @@ namespace WPEFramework {
 
             returnResponse(true);
         }
-       
-
-        
+#if 0
         /***
          * @brief : To set the fsr flag into the emmc raw area.
          * @param1[in] : {"params":{"fsrFlag":<bool>}
@@ -5052,7 +5050,7 @@ namespace WPEFramework {
             response["fsrFlag"] = fsrFlag;
             returnResponse(status);
         }
-
+#endif
 
     } /* namespace Plugin */
 } /* namespace WPEFramework */
