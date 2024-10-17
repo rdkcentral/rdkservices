@@ -49,7 +49,7 @@ namespace WPEFramework
     SERVICE_REGISTRATION(MigrationPreparer, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
     MigrationPreparer::MigrationPreparer() : _service(nullptr), _connectionId(0), _migrationPreparer(nullptr)
-                                            // , _migrationPreparerNotification(*this)
+                                            , _migrationPreparerNotification(this)
     {
         SYSLOG(Logging::Startup, (_T("MigrationPreparer Constructor")));
         RegisterAll();
@@ -74,9 +74,15 @@ namespace WPEFramework
 
         _service = service;
         _service->AddRef();
+        _service->Register(&_migrationPreparerNotification);
         _migrationPreparer = _service->Root<Exchange::IMigrationPreparer>(_connectionId, 5000, _T("MigrationPreparerImplementation"));
-
-        if (_migrationPreparer == nullptr) {
+        if(nullptr != _migrationPreparer)
+        {
+            // Register for notifications
+            _migrationPreparer->Register(&_migrationPreparerNotification);
+        }
+        else
+        {
             SYSLOG(Logging::Startup, (_T("MigrationPreparer::Initialize: Failed to initialise MigrationPreparer plugin")));
             message = _T("MigrationPreparer plugin could not be initialised");
         }
@@ -94,9 +100,12 @@ namespace WPEFramework
         ASSERT(_service == service);
 
         SYSLOG(Logging::Shutdown, (string(_T("MigrationPreparer::Deinitialize"))));
+        // Make sure the Activated and Deactivated are no longer called before we start cleaning up..
+        _service->Unregister(&_migrationPreparerNotification);
 
         if (nullptr != _migrationPreparer)
         {
+            _migrationPreparer->Unregister(&_migrationPreparerNotification);
             // Stop processing:
             RPC::IRemoteConnection* connection = service->RemoteConnection(_connectionId);
             VARIABLE_IS_NOT_USED uint32_t result = _migrationPreparer->Release();
@@ -129,6 +138,14 @@ namespace WPEFramework
     string MigrationPreparer::Information() const
     {
        return (string("{\"service\": \"") + string("org.rdk.MigrationPreparer") + string("\"}"));
+    }
+
+    void MigrationPreparer::Deactivated(RPC::IRemoteConnection* connection)
+    {
+        if (connection->Id() == _connectionId) {
+            ASSERT(nullptr != _service);
+            Core::IWorkerPool::Instance().Submit(PluginHost::IShell::Job::Create(_service, PluginHost::IShell::DEACTIVATED, PluginHost::IShell::FAILURE));
+        }
     }
 
 } // namespace Plugin

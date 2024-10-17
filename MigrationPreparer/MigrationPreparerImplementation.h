@@ -51,6 +51,30 @@ namespace WPEFramework {
 namespace Plugin {
     class MigrationPreparerImplementation : public Exchange::IMigrationPreparer
     {
+        class DateStore2Notification : public Exchange::IMigrationPreparer::INotification {
+            private:
+                DateStore2Notification(const DateStore2Notification&) = delete;
+                DateStore2Notification& operator=(const DateStore2Notification&) = delete;
+
+            public:
+                explicit DateStore2Notification(MigrationPreparerImplementation& parent)
+                    : _parent(parent)
+                {
+                }
+                ~DateStore2Notification() override = default;
+            public:
+                void ValueChanged(const string& name, const string& value) override
+                {
+                    _parent.ValueChanged(name, value);
+                }            
+            BEGIN_INTERFACE_MAP(DateStore2Notification)
+            INTERFACE_ENTRY(Exchange::IMigrationPreparer::INotification)
+            END_INTERFACE_MAP
+
+            private:
+                MigrationPreparerImplementation& _parent;    
+        };
+
         private:     
             // We do not allow this plugin to be copied !!
             MigrationPreparerImplementation(const MigrationPreparerImplementation&) = delete;
@@ -61,6 +85,9 @@ namespace Plugin {
             ~MigrationPreparerImplementation() override;
             
             /*Methods: Begin*/
+            virtual uint32_t Register(Exchange::IMigrationPreparer::INotification *notification ) override ;
+            virtual uint32_t Unregister(Exchange::IMigrationPreparer::INotification *notification ) override ;
+
             // DataStore - here represents a JSON File
             // API to write and update dataStore 
             uint32_t writeEntry(const string& name, const string &value) override;
@@ -73,6 +100,7 @@ namespace Plugin {
             uint32_t setComponentReadiness(const string& compName) override;
             uint32_t getComponentReadiness(RPC::IStringIterator*& compList) override;
             uint32_t reset(const string& resetType) override;
+            void ValueChanged(const string& name, const string& value);
             /*Methods: End*/
 
             BEGIN_INTERFACE_MAP(MigrationPreparerImplementation)
@@ -81,7 +109,8 @@ namespace Plugin {
 
     private:
         mutable Core::CriticalSection _adminLock;
-
+        std::list<Exchange::IMigrationPreparer::INotification*> _migrationPreparerNotification;
+        
         // A map to hold "Key" vs "Line Number" in the dataStore
         std::map<string, LINE_NUMBER_TYPE> lineNumber;
         // A mutex to protect the dataStore from concurrent read, write and delete access

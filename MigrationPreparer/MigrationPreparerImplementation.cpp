@@ -38,6 +38,65 @@ namespace Plugin {
     {
     }
 
+    uint32_t MigrationPreparerImplementation::Register(Exchange::IMigrationPreparer::INotification *notification)
+    {
+        ASSERT (nullptr != notification);
+
+        _adminLock.Lock();
+
+        // Make sure we can't register the same notification callback multiple times
+        if (std::find(_migrationPreparerNotification.begin(), _migrationPreparerNotification.end(), notification) == _migrationPreparerNotification.end())
+        {
+            LOGINFO("Register notification");
+            _migrationPreparerNotification.push_back(notification);
+            notification->AddRef();
+        }
+
+        _adminLock.Unlock();
+
+        return Core::ERROR_NONE;
+    }
+
+    uint32_t MigrationPreparerImplementation::Unregister(Exchange::IMigrationPreparer::INotification *notification )
+    {
+        uint32_t status = Core::ERROR_GENERAL;
+
+        ASSERT (nullptr != notification);
+
+        _adminLock.Lock();
+
+        // Make sure we can't unregister the same notification callback multiple times
+        auto itr = std::find(_migrationPreparerNotification.begin(), _migrationPreparerNotification.end(), notification);
+        if (itr != _migrationPreparerNotification.end())
+        {
+            (*itr)->Release();
+            LOGINFO("Unregister notification");
+            _migrationPreparerNotification.erase(itr);
+            status = Core::ERROR_NONE;
+        }
+        else
+        {
+            LOGERR("notification not found");
+        }
+
+        _adminLock.Unlock();
+
+        return status;
+    }
+
+    void MigrationPreparerImplementation::ValueChanged(const string &name, const string &value)
+    {
+         LOGINFO("name:%s value:%s",name.c_str(), value.c_str());
+         _adminLock.Lock();
+         std::list<Exchange::IMigrationPreparer::INotification*>::const_iterator index(_migrationPreparerNotification.begin());
+         while (index != _migrationPreparerNotification.end())
+         {
+            (*index)->ValueChanged(name.c_str(), value.c_str());
+            index++;
+         }
+         _adminLock.Unlock();         
+    }
+
     /*Helper's: Begin*/
     void MigrationPreparerImplementation::Unstringfy(string& input) {
         // transform \" to "
