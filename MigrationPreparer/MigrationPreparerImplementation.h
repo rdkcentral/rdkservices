@@ -36,7 +36,9 @@
 
 #define MIGRATIONPREPARER_NAMESPACE "MigrationPreparer"
 
-#define DATASTORE_PATH _T("/opt/migration_data_store.json")
+#define DATASTORE_PATH _T("/opt/secure/migration/migration_data_store.json")
+
+#define DATASTORE_DIR _T("/opt/secure/migration/")
 
 #define TR181_MIGRATION_READY "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.MigrationReady"
 

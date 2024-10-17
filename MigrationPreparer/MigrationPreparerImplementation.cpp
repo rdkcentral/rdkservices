@@ -241,19 +241,31 @@ namespace Plugin {
         string key = name;
         string newValue = value;
         WPEFramework::Core::File dataStore(DATASTORE_PATH);
+        WPEFramework::Core::Directory dataStoreDir(DATASTORE_DIR);
         Unstringfy(newValue);
 
         // Handle first Write request
         if (lineNumber.empty()) {
             curLineIndex = 1;
-            if(!dataStore.Exists())
-                dataStore.Create();
+            if(!dataStore.Exists()) {
+                // check if the directory exist
+                if(!dataStoreDir.Exists())
+                    // assuming /opt/secure path already exist and "migration" folder needs to be under /opt/secure/
+                    dataStoreDir.Create();
+                
+                if(!dataStore.Create()) {
+                    LOGERR("Failed to create migration datastore %s, errno: %d, reason: %s", DATASTORE_PATH, errno, strerror(errno));
+                    return Core::ERROR_GENERAL;
+                }
+            }
             
             dataStoreMutex.lock();
             
             if(!dataStore.Open(false)) {
-                LOGERR("DataStore open failed errno: %d, reason: %s", errno, strerror(errno));
+                LOGERR("Failed to open migration datastore %s, errno: %d, reason: %s", DATASTORE_PATH, errno, strerror(errno));
+                LOGERR("Failed to create entry for {%s:%s} in migration datastore", key.c_str(), newValue.c_str());
                 dataStoreMutex.unlock();
+                return Core::ERROR_GENERAL;
             }
             // write entry to the dataStore
             entry = string("{\n \"") + key + string("\":") + newValue + string("\n}");
@@ -275,7 +287,7 @@ namespace Plugin {
             #endif
 
             if(oldValue == newValue) {
-                LOGWARN("Given value: %s for Key: %s is already existing, hence returning success", oldValue.c_str(), key.c_str());
+                LOGWARN("Entry {%s:%s} is already existing in the dataStore, returning success", oldValue.c_str(), key.c_str());
                 return Core::ERROR_NONE;
             }
             
@@ -292,7 +304,7 @@ namespace Plugin {
             }
             result = WEXITSTATUS(result);
             dataStoreMutex.unlock();
-            LOGERR("v_secure_system failed with error %d",result);
+            LOGERR("Failed to update entry for {%s:%s} in migration datastore, v_secure_system failed with error %d",key.c_str(), newValue.c_str(), result);
             return Core::ERROR_GENERAL;
         }
 
@@ -300,13 +312,19 @@ namespace Plugin {
         dataStoreMutex.lock();
 
         if(!dataStore.Open(false)) {
-            LOGERR("DataStore open failed errno: %d, reason: %s\n", errno, strerror(errno));
+            LOGERR("Failed to create migration datastore %s, errno: %d, reason: %s", DATASTORE_PATH, errno, strerror(errno));
+            LOGERR("Failed to create entry for {%s:%s} in migration datastore", key.c_str(), newValue.c_str());
             dataStoreMutex.unlock();
+            return Core::ERROR_GENERAL;
         }
 
         // append new key-value pair to the dataStore
         if(!dataStore.Position(false, dataStore.Size() - 2)) {
             LOGERR("DataStore truncate failed with errno: %d, reason: %s\n", errno, strerror(errno));
+            LOGERR("Failed to create entry for {%s:%s} in migration datastore", key.c_str(), newValue.c_str());
+            dataStore.Close();
+            dataStoreMutex.unlock();
+            return Core::ERROR_GENERAL;
         }
         entry = string(",\n \"") + key + string("\":") + newValue + string("\n}"); 
         dataStore.Write(reinterpret_cast<const uint8_t*>(&entry[0]), entry.size());
@@ -327,7 +345,7 @@ namespace Plugin {
 
         // check if list is not empty and lineNumber for given key exists
         if(lineNumber.empty() || (lineNumber.find(key) == lineNumber.end())) {
-            LOGERR("Value for not found for key: %s", key.c_str());
+            LOGERR("Failed to read key: %s, Key do not exist in migration dataStore", key.c_str());
             return Core::ERROR_GENERAL;
         }
         
@@ -380,11 +398,11 @@ namespace Plugin {
                 curLineIndex--;
                 return Core::ERROR_NONE;
             }
-            LOGERR("v_secure_system failed with error %d",result);
+            LOGERR("Failed to delete entry for key: %s in migration datastore, v_secure_system failed with error %d",key.c_str(), result);
         }
 
         result = WEXITSTATUS(result);
-        LOGERR("Key: %s does not exist in dataStore",key.c_str());
+        LOGERR("Failed to delete entry for key: %s in migration datastore, Key does not exist in dataStore",key.c_str());
         return Core::ERROR_GENERAL;
     }
 
