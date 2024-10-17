@@ -78,6 +78,26 @@ namespace Plugin {
 
         Core::SystemInfo::SetEnvironment(URI_ENV, uri);
 
+        SYSLOG(Logging::Startup, (_T("grpc endpoint is %s"), uri.c_str()));
+
+        string token;
+        auto security = _service->QueryInterfaceByCallsign<
+            PluginHost::IAuthenticate>("SecurityAgent");
+        if (security != nullptr) {
+            string payload = "http://localhost";
+            auto ret = security->CreateToken(
+                static_cast<uint16_t>(payload.length()),
+                reinterpret_cast<const uint8_t*>(payload.c_str()),
+                token);
+            if (ret != Core::ERROR_NONE) {
+                SYSLOG(Logging::Startup,
+                    (_T("Couldn't create token: %d"), ret));
+            }
+            security->Release();
+        }
+
+        Core::SystemInfo::SetEnvironment(TOKEN_ENV, token);
+
         _service->Register(&_notification);
 
         _store2 = _service->Root<Exchange::IStore2>(_connectionId, RPC::CommunicationTimeOut, _T("CloudStoreImplementation"));

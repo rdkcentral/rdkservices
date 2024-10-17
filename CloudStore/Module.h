@@ -30,16 +30,16 @@
 #endif
 
 #define URI_ENV "CLOUDSTORE_URI"
+#define TOKEN_ENV "CLOUDSTORE_TOKEN"
 #define IARM_INIT_NAME "Thunder_Plugins"
 #define URI_RFC "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.CloudStore.Uri"
 #define PARTNER_ID_FILENAME "/opt/www/authService/partnerId3.dat"
 #define ACCOUNT_ID_FILENAME "/opt/www/authService/said.dat"
 #define DEVICE_ID_FILENAME "/opt/www/authService/xdeviceid.dat"
-#define SECURITY_AGENT_FILENAME "/tmp/SecurityAgent/token"
 #define IARM_TIMEOUT 1000
-#define COM_RPC_TIMEOUT 1000
 #define JSON_RPC_TIMEOUT 2000
 #define GRPC_TIMEOUT 3000
+#define IDLE_TIMEOUT 30000
 
 #undef EXTERNAL
 #define EXTERNAL
