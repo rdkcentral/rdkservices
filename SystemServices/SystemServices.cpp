@@ -494,8 +494,8 @@ namespace WPEFramework {
 	    registerMethod("getFriendlyName", &SystemServices::getFriendlyName, this);
             registerMethod("setFriendlyName", &SystemServices::setFriendlyName, this);
             registerMethod("getThunderStartReason", &SystemServices::getThunderStartReason, this);
-            registerMethod("setFSRFlag", &SystemServices::setFSRFlag, this);
-            registerMethod("getFSRFlag", &SystemServices::getFSRFlag, this);
+            //registerMethod("setFSRFlag", &SystemServices::setFSRFlag, this);
+            //registerMethod("getFSRFlag", &SystemServices::getFSRFlag, this);
 
             registerMethod("setPrivacyMode", &SystemServices::setPrivacyMode, this);
             registerMethod("getPrivacyMode", &SystemServices::getPrivacyMode, this);

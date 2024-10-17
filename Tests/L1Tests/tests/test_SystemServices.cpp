@@ -257,8 +257,8 @@ TEST_F(SystemServicesTest, TestedAPIsShouldExist)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setBlocklist_paramtrue")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setBlocklist_paramfalse")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setBlocklist_noparam")));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setFSRFlag")));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getFSRFlag")));
+//    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setFSRFlag")));
+//    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getFSRFlag")));
 }
 
 TEST_F(SystemServicesTest, SystemUptime)
@@ -6321,6 +6321,7 @@ TEST_F(SystemServicesEventIarmTest, onBlocklistChanged)
     handler.Unsubscribe(0, _T("onBlocklistChanged"), _T("org.rdk.System"), message);
 }
 
+/*
 TEST_F(SystemServicesTest, setFSRSuccess){
     EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .Times(::testing::AnyNumber())
@@ -6382,3 +6383,4 @@ TEST_F(SystemServicesTest, getFSRFailure){
 
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getFSRFlag"), _T("{}"), response));
 }
+*/
