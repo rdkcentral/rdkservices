@@ -612,5 +612,5 @@ TEST_F(SystemService_L2Test,SystemServiceGetSetBlocklistFlag)
     EXPECT_FALSE(result["success"].Boolean());
 */
 
-    jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("onBlocklistChanged"));
+//    jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("onBlocklistChanged"));
 }
