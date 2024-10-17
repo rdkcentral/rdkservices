@@ -84,6 +84,8 @@ namespace Plugin {
         private:
             void Open()
             {
+                grpc::ChannelArguments args;
+                args.SetInt(GRPC_ARG_CLIENT_IDLE_TIMEOUT_MS, IDLE_TIMEOUT);
                 std::shared_ptr<grpc::ChannelCredentials> creds;
                 if (_authorization) {
                     creds = grpc::SslCredentials(grpc::SslCredentialsOptions());
@@ -91,7 +93,7 @@ namespace Plugin {
                     creds = grpc::InsecureChannelCredentials();
                 }
                 _stub = ::distp::gateway::secure_storage::v1::SecureStorageService::NewStub(
-                    grpc::CreateChannel(_uri, creds));
+                    grpc::CreateCustomChannel(_uri, creds, args));
             }
 
         private:
