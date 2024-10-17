@@ -78,6 +78,8 @@ namespace Plugin {
 
         Core::SystemInfo::SetEnvironment(URI_ENV, uri);
 
+        SYSLOG(Logging::Startup, (_T("grpc endpoint is %s"), uri.c_str()));
+
         _service->Register(&_notification);
 
         _store2 = _service->Root<Exchange::IStore2>(_connectionId, RPC::CommunicationTimeOut, _T("CloudStoreImplementation"));
