@@ -1,0 +1,53 @@
+From ab0dd48a404f4e19d1d33aeb5af8aaf7239e5fef Mon Sep 17 00:00:00 2001
+From: Adrian Muzyka <adrian.muzyka@consult.red>
+Date: Wed, 16 Oct 2024 13:08:08 +0000
+Subject: [PATCH] IAnalytics.h changes for Thunder R2
+
+---
+ Analytics/IAnalytics.h | 20 ++++----------------
+ 1 file changed, 4 insertions(+), 16 deletions(-)
+
+diff --git a/Analytics/IAnalytics.h b/Analytics/IAnalytics.h
+index c8ff032fe..964726868 100644
+--- a/Analytics/IAnalytics.h
++++ b/Analytics/IAnalytics.h
+@@ -21,33 +21,21 @@
+ 
+ #include "Module.h"
+ 
+-// @stubgen:include <com/IIteratorType.h>
++// @stubgen:include <com/IRPCIterator.h>
+ 
+ #define ID_ANALYTICS_OFFSET 0x1000
+ 
+ namespace WPEFramework {
+ namespace Exchange {
+-    // @json 1.0.0
++
+     struct EXTERNAL IAnalytics : virtual public Core::IUnknown {
+-        enum { ID = RPC::IDS::ID_EXTERNAL_INTERFACE_OFFSET + ID_ANALYTICS_OFFSET };
++        enum { ID = ID_ANALYTICS_OFFSET };
+ 
+         virtual ~IAnalytics() override = default;
+ 
+         using IStringIterator = RPC::IIteratorType<string, RPC::ID_STRINGITERATOR>;
+ 
+-        /**
+-         * @alt sendEvent
+-         * @brief Send an event to the analytics server
+-         * @param eventName Name of the event
+-         * @param eventVersion Version of the event
+-         * @param eventSource Source of the event
+-         * @param eventSourceVersion Version of the event source
+-         * @param cetList List of CETs
+-         * @param epochTimestamp Epoch timestamp of the event
+-         * @param uptimeTimestamp Uptime timestamp of the event
+-         * @param eventPayload Payload of the event
+-         */
+-        virtual Core::hresult SendEvent(const string& eventName /* @in */,
++        virtual uint32_t SendEvent(const string& eventName /* @in */,
+                                    const string& eventVersion /* @in */,
+                                    const string& eventSource /* @in */,
+                                    const string& eventSourceVersion /* @in */,
+-- 
+2.43.0

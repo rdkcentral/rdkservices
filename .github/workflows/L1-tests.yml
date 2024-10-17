@@ -39,6 +39,7 @@ jobs:
         with:
           path: |
             build/Thunder
+            build/ThunderInterfaces
             build/ThunderTools
             install
             !install/etc/WPEFramework/plugins
@@ -55,7 +56,7 @@ jobs:
             !install/usr/lib/pkgconfig/gtest.pc
             !install/usr/lib/pkgconfig/gtest_main.pc
             !install/usr/lib/wpeframework/plugins
-          key: ${{ runner.os }}-${{ env.THUNDER_REF }}-${{ env.INTERFACES_REF }}-4
+          key: ${{ runner.os }}-${{ env.THUNDER_REF }}-${{ env.INTERFACES_REF }}-5
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -130,22 +131,24 @@ jobs:
         with:
           path: rdkservices
 
+      - name: Apply patch rdkservices
+        run: >
+          cd "${{github.workspace}}/rdkservices"
+          &&
+          git apply "${{github.workspace}}/rdkservices/Tests/L1Tests/patches/0001-IAnalytics.h-changes-for-Thunder-R2.patch"
+          &&
+          cd ..
+
       - name: Checkout ThunderInterfaces
+        if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
         with:
           repository: rdkcentral/ThunderInterfaces
           path: ThunderInterfaces
           ref: ${{env.INTERFACES_REF}}
 
-      - name: Apply patches ThunderInterfaces
-        run: >
-          cd "${{github.workspace}}/ThunderInterfaces"
-          &&
-          git apply "${{github.workspace}}/rdkservices/Tests/L1Tests/patches/0001-Add-IAnalytics-interface-R2.patch"
-          &&
-          cd ..
-
       - name: Build ThunderInterfaces
+        if: steps.cache.outputs.cache-hit != 'true'
         run: >
           cmake
           -S "${{github.workspace}}/ThunderInterfaces"

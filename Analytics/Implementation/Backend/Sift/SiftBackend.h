@@ -40,8 +40,7 @@ namespace Plugin {
         SiftBackend();
         ~SiftBackend();
         uint32_t SendEvent(const Event& event) override;
-        uint32_t Configure(PluginHost::IShell* shell) override;
-        uint32_t SetSessionId(const std::string& sessionId) override;
+        uint32_t Configure(PluginHost::IShell* shell, SystemTimePtr sysTime) override;
 
     private:
 
@@ -83,6 +82,7 @@ namespace Plugin {
         SiftConfigPtr mConfigPtr;
         SiftStorePtr mStorePtr;
         SiftUploaderPtr mUploaderPtr;
+        std::string mSessionId;
     };
 
 }

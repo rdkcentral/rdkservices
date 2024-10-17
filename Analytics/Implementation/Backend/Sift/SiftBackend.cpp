@@ -40,12 +40,14 @@ namespace WPEFramework
             , mConfigPtr(nullptr)
             , mStorePtr(nullptr)
             , mUploaderPtr(nullptr)
+            , mSessionId()
         {
             mThread = std::thread(&SiftBackend::ActionLoop, this);
         }
 
         SiftBackend::~SiftBackend()
         {
+            LOGINFO("SiftBackend::~SiftBackend");
             Action action = {ACTION_TYPE_SHUTDOWN, nullptr};
             {
                 std::lock_guard<std::mutex> lock(mQueueMutex);
@@ -55,12 +57,12 @@ namespace WPEFramework
             mThread.join();
         }
 
-        /* virtual */ uint32_t SiftBackend::Configure(PluginHost::IShell *shell)
+        /* virtual */ uint32_t SiftBackend::Configure(PluginHost::IShell *shell, SystemTimePtr sysTime)
         {
             ASSERT(shell != nullptr);
             std::unique_lock<std::mutex> lock(mQueueMutex);
             mShell = shell;
-            mConfigPtr = std::unique_ptr<SiftConfig>(new SiftConfig(shell));
+            mConfigPtr = std::unique_ptr<SiftConfig>(new SiftConfig(shell, sysTime));
             return Core::ERROR_NONE;
         }
 
@@ -74,17 +76,6 @@ namespace WPEFramework
             lock.unlock();
             mQueueCondition.notify_one();
             return Core::ERROR_NONE;
-        }
-
-        /* virtual */ uint32_t SiftBackend::SetSessionId(const std::string &sessionId)
-        {
-            std::unique_lock<std::mutex> lock(mQueueMutex);
-            if (mConfigPtr != nullptr)
-            {
-                mConfigPtr->SetSessionId(sessionId);
-                return Core::ERROR_NONE;
-            }
-            return Core::ERROR_GENERAL;
         }
 
         void SiftBackend::ActionLoop()
@@ -153,7 +144,6 @@ namespace WPEFramework
                     {
                         mUploaderPtr = std::unique_ptr<SiftUploader>(new SiftUploader(mStorePtr,
                             uploaderConfig.url,
-                            uploaderConfig.apiKey,
                             uploaderConfig.maxRandomisationWindowTime,
                             uploaderConfig.maxEventsInPost,
                             uploaderConfig.maxRetries,
@@ -172,9 +162,9 @@ namespace WPEFramework
                     configValid = true;
                     // For Sift 1.0 update uploader with auth values if avaliable
                     // So they will be added to the events if missing
-                    if (!attributes.schema2Enabled && !attributes.accountId.empty() && !attributes.deviceId.empty() && !attributes.partnerId.empty())
+                    if (!attributes.schema2Enabled && !attributes.xboAccountId.empty() && !attributes.xboDeviceId.empty() && !attributes.partnerId.empty())
                     {
-                        mUploaderPtr->setDeviceInfoRequiredFields(attributes.accountId, attributes.deviceId, attributes.partnerId);
+                        mUploaderPtr->setDeviceInfoRequiredFields(attributes.xboAccountId, attributes.xboDeviceId, attributes.partnerId);
                     }
                 }
                 else
@@ -212,6 +202,7 @@ namespace WPEFramework
                     }
                     break;
                 case ACTION_TYPE_SHUTDOWN:
+                    LOGINFO("Shutting down SiftBackend");
                     return;
                 default:
                     break;
@@ -223,6 +214,11 @@ namespace WPEFramework
 
         bool SiftBackend::SendEventInternal(const Event &event, const SiftConfig::Attributes &attributes)
         {
+            if (mSessionId.empty())
+            {
+                mSessionId = GenerateRandomUUID();
+            }
+
             JsonObject eventJson = JsonObject();
             if (attributes.schema2Enabled)
             {
@@ -260,13 +256,13 @@ namespace WPEFramework
                 }
                 eventJson["device_model"] = attributes.deviceModel;
                 eventJson["device_type"] = attributes.deviceType;
-                eventJson["device_timezone"] = std::stoi(attributes.deviceTimeZone);
+                eventJson["device_timezone"] = attributes.deviceTimeZone;
                 eventJson["device_os_name"] = attributes.deviceOsName;
                 eventJson["device_os_version"] = attributes.deviceOsVersion;
                 eventJson["platform"] = attributes.platform;
                 eventJson["device_manufacturer"] = attributes.deviceManufacturer;
                 eventJson["authenticated"] = attributes.authenticated;
-                eventJson["session_id"] = attributes.sessionId;
+                eventJson["session_id"] = mSessionId;
                 eventJson["proposition"] = attributes.proposition;
                 if (!attributes.retailer.empty())
                 {
@@ -318,13 +314,13 @@ namespace WPEFramework
                 eventJson["event_name"] = event.eventName;
                 eventJson["event_schema"] = attributes.productName + "/" + event.eventName + "/" + event.eventVersion;
                 eventJson["event_payload"] = JsonObject(event.eventPayload);
-                eventJson["session_id"] = attributes.sessionId;
+                eventJson["session_id"] = mSessionId;
                 eventJson["event_id"] = GenerateRandomUUID();
 
-                if (!attributes.accountId.empty() && !attributes.deviceId.empty() && !attributes.partnerId.empty())
+                if (!attributes.xboAccountId.empty() && !attributes.xboDeviceId.empty() && !attributes.partnerId.empty())
                 {
-                    eventJson["account_id"] = attributes.accountId;
-                    eventJson["device_id"] = attributes.deviceId;
+                    eventJson["account_id"] = attributes.xboAccountId;
+                    eventJson["device_id"] = attributes.xboDeviceId;
                     eventJson["partner_id"] = attributes.partnerId;
                 }
                 else
@@ -335,9 +331,9 @@ namespace WPEFramework
                 eventJson["app_name"] = attributes.deviceAppName;
                 eventJson["app_ver"] = attributes.deviceAppVersion;
                 eventJson["device_model"] = attributes.deviceModel;
-                eventJson["device_timezone"] = std::stoi(attributes.deviceTimeZone);
+                eventJson["device_timezone"] = attributes.deviceTimeZone;
                 eventJson["platform"] = attributes.platform;
-                eventJson["os_ver"] = attributes.deviceSoftwareVersion;
+                eventJson["os_ver"] = attributes.deviceOsVersion;
                 eventJson["device_language"] = ""; // Empty for now
                 eventJson["timestamp"] = event.epochTimestamp;
                 eventJson["device_type"] = attributes.deviceType;

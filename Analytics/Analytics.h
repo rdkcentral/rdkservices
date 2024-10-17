@@ -20,8 +20,7 @@
 #pragma once
 
 #include "Module.h"
-
-#include <interfaces/IAnalytics.h>
+#include "IAnalytics.h"
 
 namespace WPEFramework {
 
