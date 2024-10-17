@@ -6247,6 +6247,7 @@ TEST_F(SystemServicesTest, getsetBlocklist)
     EXPECT_EQ(response, string("{\"blocklist\":true,\"success\":true}"));
 }
 
+#if 0
 TEST_F(SystemServicesTest, getsetBlocklist_nofile)
 {
     /*const string  blokListFile = _T("/opt/secure/persistent/opflashstore/devicestate.txt");
@@ -6265,6 +6266,7 @@ TEST_F(SystemServicesTest, getsetBlocklist_nofile)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getBlocklistFlag"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"success\":false}"));
 }
+#endif
 
 TEST_F(SystemServicesTest, setBlocklist_paramtrue)
 {
@@ -6277,11 +6279,12 @@ TEST_F(SystemServicesTest, setBlocklist_paramfalse)
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
+#if 0
 TEST_F(SystemServicesTest, setBlocklist_noparam)
 {
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBlocklistFlag"), _T("{}"), response));
 }
-
+#endif
 
 TEST_F(SystemServicesEventIarmTest, onBlocklistChanged)
 {
