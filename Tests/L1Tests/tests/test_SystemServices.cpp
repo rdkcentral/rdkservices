@@ -252,11 +252,13 @@ TEST_F(SystemServicesTest, TestedAPIsShouldExist)
 	EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("uploadLogs")));
 	EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("uploadLogsAsync")));
 	EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("abortLogUpload")));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getsetBlocklistFlag")));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getsetBlocklist_nofile")));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setBlocklist_paramtrue")));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setBlocklist_paramfalse")));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setBlocklist_noparam")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setBlocklistFlag")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getBlocklistFlag")));
+    //EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getsetBlocklistFlag")));
+    //EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getsetBlocklist_nofile")));
+    //EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setBlocklist_paramtrue")));
+    //EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setBlocklist_paramfalse")));
+    //EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setBlocklist_noparam")));
 //    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setFSRFlag")));
 //    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getFSRFlag")));
 }
@@ -6236,12 +6238,12 @@ TEST_F(SystemServicesEmptyTest, system_service_settings_conf_as_dir)
     EXPECT_TRUE(Core::Directory("/opt/system_service_settings.conf").Destroy(true));
 }
 
-TEST_F(SystemServicesTest, getsetBlocklistFlag)
+TEST_F(SystemServicesTest, getsetBlocklist)
 {
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBlocklist"), _T("{\"blocklist\": true}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBlocklistFlag"), _T("{\"blocklist\": true}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getBlocklist"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getBlocklistFlag"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"blocklist\":true,\"success\":true}"));
 }
 
@@ -6258,24 +6260,24 @@ TEST_F(SystemServicesTest, getsetBlocklist_nofile)
         EXPECT_TRUE(file.Destroy());
     }
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getBlocklist"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getBlocklistFlag"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"success\":false}"));
 }
 
 TEST_F(SystemServicesTest, setBlocklist_paramtrue)
 {
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBlocklist"), _T("{\"blocklist\": true}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBlocklistFlag"), _T("{\"blocklist\": true}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
 TEST_F(SystemServicesTest, setBlocklist_paramfalse)
 {
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBlocklist"), _T("{\"blocklist\": false}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBlocklistFlag"), _T("{\"blocklist\": false}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
-TEST_F(SystemServicesTest, setBlocklist_noparam)
+TEST_F(SystemServicesTest, setBlocklist_invalidvalue)
 {
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBlocklist"), _T("{\"\"}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBlocklistFlag"), _T("{\"blocklist\": abc}"), response));
 }
 
 
@@ -6306,14 +6308,14 @@ TEST_F(SystemServicesEventIarmTest, onBlocklistChanged)
 
     handler.Subscribe(0, _T("onBlocklistChanged"), _T("org.rdk.System"), message);
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBlocklist"), _T("{\"blocklist\": false}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBlocklistFlag"), _T("{\"blocklist\": false}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getBlocklist"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getBlocklistFlag"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"blocklist\":false,\"success\":true}"));
 
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBlocklist"), _T("{\"blocklist\": true}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBlocklistFlag"), _T("{\"blocklist\": true}"), response));
     EXPECT_EQ(response, string("{\"success\":true}"));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getBlocklist"), _T("{}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getBlocklistFlag"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"blocklist\":true,\"success\":true}"));
 
     EXPECT_EQ(Core::ERROR_NONE, onBlocklistChanged.Lock());

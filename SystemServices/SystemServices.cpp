@@ -500,8 +500,8 @@ namespace WPEFramework {
             registerMethod("setPrivacyMode", &SystemServices::setPrivacyMode, this);
             registerMethod("getPrivacyMode", &SystemServices::getPrivacyMode, this);
 
-            registerMethod("setBlocklist", &SystemServices::setBlocklistFlag, this);
-            registerMethod("getBlocklist", &SystemServices::getBlocklistFlag, this);
+            registerMethod("setBlocklistFlag", &SystemServices::setBlocklistFlag, this);
+            registerMethod("getBlocklistFlag", &SystemServices::getBlocklistFlag, this);
 
         }
 
