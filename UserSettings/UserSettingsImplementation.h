@@ -34,9 +34,30 @@
 #include "rbus.h"
 #endif
 
+#define USERSETTINGS_NAMESPACE "UserSettings"
+
+#define USERSETTINGS_AUDIO_DESCRIPTION_KEY                    "audioDescription"
+#define USERSETTINGS_PREFERRED_AUDIO_LANGUAGES_KEY            "preferredAudioLanguages"
+#define USERSETTINGS_PRESENTATION_LANGUAGE_KEY                "presentationLanguage"
+#define USERSETTINGS_CAPTIONS_KEY                             "captions"
+#define USERSETTINGS_PREFERRED_CAPTIONS_LANGUAGES_KEY         "preferredCaptionsLanguages"
+#define USERSETTINGS_PREFERRED_CLOSED_CAPTIONS_SERVICE_KEY    "preferredClosedCaptionsService"
+#define USERSETTINGS_PRIVACY_MODE_KEY                         "privacyMode"
+#define USERSETTINGS_PIN_CONTROL_KEY                          "pinControl"
+#define USERSETTINGS_VIEWING_RESTRICTIONS_KEY                 "viewingRestrictions"
+#define USERSETTINGS_VIEWING_RESTRICTIONS_WINDOW_KEY          "viewingRestrictionsWindow"
+#define USERSETTINGS_LIVE_WATERSHED_KEY                       "liveWaterShed"
+#define USERSETTINGS_PLAYBACK_WATERSHED_KEY                   "playbackWaterShed"
+#define USERSETTINGS_BLOCK_NOT_RATED_CONTENT_KEY              "blockNotRatedContent"
+#define USERSETTINGS_PIN_ON_PURCHASE_KEY                      "pinOnPurchase"
+
 namespace WPEFramework {
 namespace Plugin {
     class UserSettingsImplementation : public Exchange::IUserSettings{
+
+    public:
+        static const std::map<string, string> usersettingsDefaultMap;
+
     private:
         class Store2Notification : public Exchange::IStore2::INotification {
         private:
@@ -87,7 +108,14 @@ namespace Plugin {
                 CAPTIONS_CHANGED,
                 PREFERRED_CAPTIONS_LANGUAGE_CHANGED,
                 PREFERRED_CLOSED_CAPTIONS_SERVICE_CHANGED,
-                PRIVACY_MODE_CHANGED
+                PRIVACY_MODE_CHANGED,
+                PIN_CONTROL_CHANGED,
+                VIEWING_RESTRICTIONS_CHANGED,
+                VIEWING_RESTRICTIONS_WINDOW_CHANGED,
+                LIVE_WATERSHED_CHANGED,
+                PLAYBACK_WATERSHED_CHANGED,
+                BLOCK_NOT_RATED_CONTENT_CHANGED,
+                PIN_ON_PURCHASE_CHANGED
             };
 
         class EXTERNAL Job : public Core::IDispatch {
@@ -136,8 +164,8 @@ namespace Plugin {
         uint32_t GetAudioDescription(bool &enabled) const override;
         uint32_t SetPreferredAudioLanguages(const string& preferredLanguages) override;
         uint32_t GetPreferredAudioLanguages(string &preferredLanguages) const override;
-        uint32_t SetPresentationLanguage(const string& presentationLanguages) override;
-        uint32_t GetPresentationLanguage(string &presentationLanguages) const override;
+        uint32_t SetPresentationLanguage(const string& presentationLanguage) override;
+        uint32_t GetPresentationLanguage(string &presentationLanguage) const override;
         uint32_t SetCaptions(const bool enabled) override;
         uint32_t GetCaptions(bool &enabled) const override;
         uint32_t SetPreferredCaptionsLanguages(const string& preferredLanguages) override;
@@ -146,9 +174,27 @@ namespace Plugin {
         uint32_t GetPreferredClosedCaptionService(string &service) const override;
         uint32_t SetPrivacyMode(const string& privacyMode) override;
         uint32_t GetPrivacyMode(string &privacyMode) const override;
+        uint32_t SetPinControl(const bool enabled) override;
+        uint32_t GetPinControl(bool &enabled) const override;
+        uint32_t SetViewingRestrictions(const string& viewingRestrictions) override;
+        uint32_t GetViewingRestrictions(string &viewingRestrictions) const override;
+        uint32_t SetViewingRestrictionsWindow(const string& viewingRestrictionsWindow) override;
+        uint32_t GetViewingRestrictionsWindow(string &viewingRestrictionsWindow) const override;
+        uint32_t SetLiveWatershed(const bool enabled) override;
+        uint32_t GetLiveWatershed(bool &enabled) const override;
+        uint32_t SetPlaybackWatershed(const bool enabled) override;
+        uint32_t GetPlaybackWatershed(bool &enabled) const override;
+        uint32_t SetBlockNotRatedContent(const bool enabled) override;
+        uint32_t GetBlockNotRatedContent(bool &enabled) const override;
+        uint32_t SetPinOnPurchase(const bool enabled) override;
+        uint32_t GetPinOnPurchase(bool &enabled) const override;
 
         void registerEventHandlers();
         void ValueChanged(const Exchange::IStore2::ScopeType scope, const string& ns, const string& key, const string& value);
+
+    private:
+        uint32_t SetUserSettingsValue(const string& key, const string& value);
+        uint32_t GetUserSettingsValue(const string& key, string &value) const;
 
     private:
         mutable Core::CriticalSection _adminLock;

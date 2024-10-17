@@ -3,155 +3,402 @@
     "jsonrpc": "2.0",
     "info": {
         "title": "UserSettings API",
-        "class": "UserSettings",
+        "class": "org.rdk.UserSettings",
         "description": "The `UserSettings`, that is responsible for persisting and notifying listeners of any change of these settings.."
     },
     "common": {
         "$ref": "../common/common.json"
     },
+    "definitions": {
+        "preferredLanguages": {
+            "summary": "A prioritized list of ISO 639-2/B codes for the preferred audio languages",
+            "type": "string",
+            "example": "eng"
+        },
+        "preferredCaptionsLanguages": {
+            "summary": "A prioritized list of ISO 639-2/B codes for the preferred captions languages",
+            "type": "string",
+            "example": "eng"
+        },
+        "preferredClosedCaptionService": {
+            "summary": "A string for the preferred closed captions service.  Valid values are AUTO, CC[1-4], TEXT[1-4], SERVICE[1-64] where CC and TEXT is CTA-608 and SERVICE is CTA-708.  AUTO indicates that the choice is left to the player",
+            "type": "string",
+            "example": "CC3"
+        },
+        "presentationLanguage": {
+            "summary": "The preferred presentationLanguage in a full BCP 47 value, including script, * region, variant The language set and used by Immerse UI",
+            "type": "string",
+            "example": "en-US"
+        },
+        "viewingRestrictions": {
+            "summary": "A project-specific representation of the time interval when viewing.",
+            "type": "string",
+            "example": "ALWAYS"
+        },
+        "viewingRestrictionsWindow": {
+            "summary": "A project-specific representation of the time interval",
+            "type": "string",
+            "example": "ALWAYS"
+        }
+    },
     "methods": {
-        "SetAudioDescription": {
+        "setAudioDescription": {
             "summary": "Setting Audio Description.",
-            "params": {
-                "summary": "Audio Description Enabled: true/false",
-                "type": "boolean",
-                "example": true
+			"events": {
+                "OnAudioDescriptionChanged" : "Triggered when the audio description changes."
             },
-            "result": {
-                "summary": "Null string will display",
-                "type": "string",
-                "example": "null"
-            }
-        },
-        "SetPreferredAudioLanguages": {
-            "summary": "Setting Preferred Audio Languages.",
-            "params": {
-                "summary": "Preferred Audio Languages: eng, wel",
-                "type": "string",
-                "example": "eng"
-            },
-            "result": {
-                "summary": "Null string will display",
-                "type": "string",
-                "example": "null"
-            }
-        },
-        "SetPresentationLanguage": {
-            "summary": "Setting Presentation Languages.",
-            "params": {
-                "summary": "Presentation Languages: en-US, es-US",
-                "type": "string",
-                "example": "en-US"
-            },
-            "result": {
-                "summary": "Null string will display",
-                "type": "string",
-                "example": "null"
-            }
-        },
-        "SetCaptions": {
-            "summary": "Setting Captions.",
-            "params": {
-                "summary": "Captions Enabled: true/false",
-                "type": "boolean",
-                "example": true
-            },
-            "result": {
-                "summary": "Null string will display ",
-                "type": "string",
-                "example": "null"
-            }
-        },
-        "SetPreferredCaptionsLanguages": {
-            "summary": "Setting PreferredCaption Languages.",
-            "params": {
-                "summary": "PreferredCaption Languages: eng, fra",
-                "type": "string",
-                "example": "eng"
-            },
-            "result": {
-                "summary": "Null string will display",
-                "type": "string",
-                "example": "null"
-            }
-        },
-        "SetPreferredClosedCaptionService": {
-            "summary": "Setting Preferred Closed Caption Service.",
-            "params": {
-                "summary": "Preferred Closed Caption Service: CC3",
-                "type": "string",
-                "example": "CC3"
-            },
-            "result": {
-                "summary": "Null string will display",
-                "type": "string",
-                "example": "null"
-            }
-        },
-        "SetPrivacyMode": {
-            "summary": "Setting Privacy Mode.",          
             "params": {
                 "type": "object",
                 "properties": {
-                    "privacyMode": {
-                        "summary": "New Privacy Mode",
-                        "type": "string",
-                        "example": "DO_NOT_SHARE"
+                    "enabled": {
+                        "summary": "Audio Description Enabled: true/false",
+                        "type": "boolean",
+                        "example":true
                     }
                 }
             },
             "result": {
-                "summary": "Null string will display",
+                "summary": "On success null will be returned",
                 "type": "string",
                 "example": "null"
             }
         },
-        "GetAudioDescription":{
-            "summary": "Returns Audio Description.",
+        "setPreferredAudioLanguages": {
+            "summary": "Setting Preferred Audio Languages.",
+			"events": {
+                "onPreferredAudioLanguagesChanged" : "Triggered when the audio preferred Audio languages changes."
+            },
+            "params": {
+                "type": "object",
+                "properties": {
+                    "preferredLanguages": {
+                        "$ref": "#/definitions/preferredLanguages"
+                    }
+                }
+            },
             "result": {
-                "type": "boolean"
+                "summary": "On success null will be returned",
+                "type": "string",
+                "example": "null"
             }
         },
-        "GetPreferredAudioLanguages":{
-            "summary": "Returns Audio Description.",
+        "setPresentationLanguage": {
+            "summary": "Setting Presentation Languages.",
+			"events": {
+                "onPresentationLanguageChanged" : "Triggered when the presentation Language changes."
+            },
+            "params": {
+                "type": "object",
+                "properties": {
+                    "presentationLanguage": {
+                        "$ref": "#/definitions/presentationLanguage"
+                    }
+                }
+            },
             "result": {
-                "type": "string"
+                "summary": "On success null will be returned",
+                "type": "string",
+                "example": "null"
             }
         },
-        "GetPresentationLanguage":{
+        "setCaptions": {
+            "summary": "Setting Captions.",
+			"events": {
+                "onCaptionsChanged" : "Triggered when the captions changes."
+            },
+            "params": {
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "summary": "Captions Enabled: true/false",
+                        "type": "boolean",
+                        "example": true
+                    }
+                }
+            },
+            "result": {
+                "summary": "On success null will be returned",
+                "type": "string",
+                "example": "null"
+            }
+        },
+        "setPreferredCaptionsLanguages": {
+            "summary": "Setting PreferredCaption Languages.",
+			"events": {
+                "onPreferredCaptionsLanguagesChanged" : "Triggered when the PreferredCaption Languages changes."
+            },
+            "params": {
+                "type": "object",
+                "properties": {
+                    "preferredLanguages": {
+                        "$ref": "#/definitions/preferredCaptionsLanguages"
+                    }
+                }
+            },
+            "result": {
+                "summary": "On success null will be returned",
+                "type": "string",
+                "example": "null"
+            }
+        },
+        "setPreferredClosedCaptionService": {
+            "summary": "Setting Preferred Closed Caption Service.",
+			"events": {
+                "onPreferredClosedCaptionServiceChanged" : "Triggered when the Preferred Closed Caption changes."
+            },
+            "params": {
+                "type": "object",
+                "properties": {
+                    "service": {
+                        "$ref": "#/definitions/preferredClosedCaptionService"
+                    }
+                }
+            },
+            "result": {
+                "summary": "On success null will be returned",
+                "type": "string",
+                "example": "null"
+            }
+        },
+	"setPinControl": {
+            "summary": "Setting PinControl.",
+			"events": {
+                "onPinControlChanged" : "Triggered when the pincontrol changes."
+            },
+            "params": {
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "summary": "PinControl Enabled: true/false",
+                        "type": "boolean",
+                        "example":true
+                    }
+                }
+            },
+            "result": {
+                "summary": "On success null will be returned",
+                "type": "string",
+                "example": "null"
+            }
+        },
+	"setViewingRestrictions": {
+            "summary": "Setting ViewingRestrictions.",
+			"events": {
+                "OnViewingRestrictionsChanged" : "Triggered when the viewingRestrictions changes."
+            },
+            "params": {
+                "type": "object",
+                "properties": {
+                    "viewingRestrictions": {
+                        "$ref": "#/definitions/viewingRestrictions"
+                    }
+                }
+            },
+            "result": {
+                "summary": "On success null will be returned",
+                "type": "string",
+                "example": "null"
+            }
+        },
+        "setViewingRestrictionsWindow": {
+            "summary": "Setting viewingRestrictionsWindow.",
+			"events": {
+                "OnViewingRestrictionsWindowChanged" : "Triggered when the viewingRestrictionsWindow changes."
+            },
+            "params": {
+                "type": "object",
+                "properties": {
+                    "viewingRestrictionsWindow": {
+                        "$ref": "#/definitions/viewingRestrictionsWindow"
+                    }
+                }
+            },
+            "result": {
+                "summary": "On success null will be returned",
+                "type": "string",
+                "example": "null"
+            }
+        },
+	"setLiveWatershed": {
+            "summary": "Setting LiveWatershed.",
+			"events": {
+                "OnLiveWatershedChanged" : "Triggered when the liveWatershed changes."
+            },
+            "params": {
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "summary": "LiveWatershed Enabled: true/false",
+                        "type": "boolean",
+                        "example":true
+                    }
+                }
+            },
+            "result": {
+                "summary": "On success null will be returned",
+                "type": "string",
+                "example": "null"
+            }
+        },
+	"setPlaybackWatershed": {
+            "summary": "Setting PlaybackWatershed.",
+			"events": {
+                "OnPlaybackWatershedChanged" : "Triggered when the playbackWatershed changes."
+            },
+            "params": {
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "summary": "PlaybackWatershed Enabled: true/false",
+                        "type": "boolean",
+                        "example":true
+                    }
+                }
+            },
+            "result": {
+                "summary": "On success null will be returned",
+                "type": "string",
+                "example": "null"
+            }
+        },
+	"setBlockNotRatedContent": {
+            "summary": "Setting BlockNotRatedContent.",
+			"events": {
+                "OnBlockNotRatedContentChanged" : "Triggered when the blockNotRatedContent changes."
+            },
+            "params": {
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "summary": "BlockNotRatedContent Enabled: true/false",
+                        "type": "boolean",
+                        "example":true
+                    }
+                }
+            },
+            "result": {
+                "summary": "On success null will be returned",
+                "type": "string",
+                "example": "null"
+            }
+        },
+	"setPinOnPurchase": {
+            "summary": "Setting setPinOnPurchase",
+			"events": {
+                "OnPinOnPurchaseChanged" : "Triggered when the pin on the purchase changes."
+            },
+            "params": {
+                "type": "object",
+                "properties": {
+                    "enabled": {
+                        "summary": "setPinOnPurchase Enabled: true/false",
+                        "type": "boolean",
+                        "example":true
+                    }
+                }
+            },
+            "result": {
+                "summary": "On success null will be returned",
+                "type": "string",
+                "example": "null"
+            }
+        },
+        "getAudioDescription":{
+            "summary": "Returns Audio Description.",
+            "result": {
+                "summary": "Audio Description Enabled: true/false",
+                "type": "boolean",
+                "example": true
+            }
+        },
+        "getPreferredAudioLanguages":{
+            "summary": "Returns Preferred Audio Languages.",
+            "result": {
+                "$ref": "#/definitions/preferredLanguages"
+            }
+        },
+        "getPresentationLanguage":{
             "summary": "Getting Presentation Languages.",
             "result": {
-                "type": "string"
+                "$ref": "#/definitions/presentationLanguage"
             }
         },
-        "GetCaptions":{
+        "getCaptions":{
             "summary": "Getting Captions Enabled.",
             "result": {
-                "type": "boolean"
+                "summary": "Captions Enabled: true/false",
+                "type": "boolean",
+                "example": true
             }
         },
-        "GetPreferredCaptionsLanguages":{
+        "getPreferredCaptionsLanguages":{
             "summary": "Getting Preferred Caption Languages.",
             "result": {
-                "type": "string"
+                "$ref": "#/definitions/preferredCaptionsLanguages"
             }
         },
-        "GetPreferredClosedCaptionService":{
+        "getPreferredClosedCaptionService":{
             "summary": "Getting Preferred ClosedCaption Service.",
             "result": {
-                "type": "string"
+                "$ref": "#/definitions/preferredClosedCaptionService"
             }
         },
-        "GetPrivacyMode":{
-            "summary": "Getting Privacy Mode",
+	"getPinControl":{
+            "summary": "Returns Pin Control.",
             "result": {
-                "type": "string"
+                "summary": "Pin Control Enabled: true/false",
+                "type": "boolean",
+                "example": true
+            }
+        },
+        "getViewingRestrictions":{
+            "summary": "Returns Get Viewing Restrictions.",
+            "result": {
+              "$ref": "#/definitions/viewingRestrictions"
+            }
+        },
+        "getViewingRestrictionsWindow":{
+            "summary": "Returns Get Viewing Restrictions Window.",
+            "result": {
+              "$ref": "#/definitions/viewingRestrictionsWindow"
+            }
+        },
+        "getLiveWatershed":{
+            "summary": "Returns Live Watershed.",
+            "result": {
+                "summary": "Live Watershed Enabled: true/false",
+                "type": "boolean",
+                "example": true
+            }
+        },
+        "getPlaybackWatershed":{
+            "summary": "Returns Playback Watershed.",
+            "result": {
+                "summary": "Playback Watershed Enabled: true/false",
+                "type": "boolean",
+                "example": true
+            }
+        },
+        "getBlockNotRatedContent":{
+            "summary": "Returns BlockNotRatedContent.",
+            "result": {
+                "summary": "BlockNotRatedContent Enabled: true/false",
+                "type": "boolean",
+                "example": true
+            }
+        },
+        "getPinOnPurchase":{
+            "summary": "Returns PinOnPurchase.",
+            "result": {
+                "summary": "PinOnPurchase Enabled: true/false",
+                "type": "boolean",
+                "example": true
             }
         }
     },
     "events": {
-        "OnAudioDescriptionChanged": {
-            "summary": "Triggered after the audio description changes (see `setaudiodescription`)",
+        "onAudioDescriptionChanged": {
+            "summary": "Triggered after the audio description changes (see `SetAudioDescription`)",
             "params": {
                 "type": "object",
                 "properties": {
@@ -166,8 +413,8 @@
                 ]
             }
         },
-        "OnPreferredAudioLanguagesChanged": {
-            "summary": "Triggered after the audio preferred Audio languages changes (see `setpreferredaudiolanguages`)",
+        "onPreferredAudioLanguagesChanged": {
+            "summary": "Triggered after the audio preferred Audio languages changes (see `SetPreferredAudioLanguages`)",
             "params": {
                 "type": "object",
                 "properties": {
@@ -182,24 +429,24 @@
                 ]
             }
         },
-        "OnPresentationLanguageChanged": {
-            "summary": "Triggered after the Presentation Language changes (see `setpresentationlanguages`)",
+        "onPresentationLanguageChanged": {
+            "summary": "Triggered after the Presentation Language changes (see `SetPresentationLanguage`)",
             "params": {
                 "type": "object",
                 "properties": {
-                    "presentationLanguages":{
+                    "presentationLanguage":{
                         "summary": "Receive Presentation Language changes",
                         "type": "string",
                         "example": "en-US"
                     }
                 },
                 "required": [
-                    "presentationLanguages"
+                    "presentationLanguage"
                 ]
             }
         },
-        "OnCaptionsChanged": {
-            "summary": "Triggered after the captions changes (see `setcaptionsenabled`)",
+        "onCaptionsChanged": {
+            "summary": "Triggered after the captions changes (see `SetCaptions`)",
             "params": {
                 "type": "object",
                 "properties": {
@@ -214,8 +461,8 @@
                 ]
             }
         },
-        "OnPreferredCaptionsLanguagesChanged": {
-            "summary": "Triggered after the PreferredCaption Languages changes (see `setpreferredcaptionlanguages`)",
+        "onPreferredCaptionsLanguagesChanged": {
+            "summary": "Triggered after the PreferredCaption Languages changes (see `SetPreferredCaptionsLanguages`)",
             "params": {
                 "type": "object",
                 "properties": {
@@ -230,13 +477,13 @@
                 ]
             }
         },
-        "OnPreferredClosedCaptionServiceChanged": {
-            "summary": "Triggered after the Preferred Closed Caption changes (see `setpreferredclosedcaptionservice`)",
+        "onPreferredClosedCaptionServiceChanged": {
+            "summary": "Triggered after the Preferred Closed Caption changes (see `SetPreferredClosedCaptionService`)",
             "params": {
                 "type": "object",
                 "properties": {
                     "service":{
-                        "summary": "Receive Preferred Closed Caption changes",
+                        "summary": "Receive Preferred Closed Caption Service changes",
                         "type": "string",
                         "example": "CC3"
                     }
@@ -246,19 +493,115 @@
                 ]
             }
         },
-        "OnPrivacyModeChanged": {
-            "summary": "Triggered after the Privacy Mode changes (see `SetPrivacyMode`)",
+	"onPinControlChanged": {
+            "summary": "Triggered after the pin control changes (see `setPinControl`)",
             "params": {
                 "type": "object",
                 "properties": {
-                    "privacyMode":{
-                        "summary": "Receive Privacy Mode changes",
-                        "type": "string",
-                        "example": "DO_NOT_SHARE"
+                    "enabled":{
+                        "summary": "Receive pin control changes enable or not",
+                        "type": "boolean",
+                        "example": true
                     }
                 },
                 "required": [
-                    "privacyMode"
+                    "enabled"
+                ]
+            }
+        },
+        "onViewingRestrictionsChanged": {
+            "summary": "Triggered after the viewingRestrictions changes (see `setViewingRestrictions`)",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "enabled":{
+                        "summary": "Receive viewingRestrictions changes enable or not",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "enabled"
+                ]
+            }
+        },
+        "onViewingRestrictionsWindowChanged": {
+            "summary": "Triggered after the viewingRestrictionsWindow changes (see `setViewingRestrictionsWindow`)",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "enabled":{
+                        "summary": "Receive viewingRestrictionsWindow changes enable or not",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "enabled"
+                ]
+            }
+        },
+        "onLiveWatershedChanged": {
+            "summary": "Triggered after the liveWatershed changes (see `setLiveWatershed`)",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "enabled":{
+                        "summary": "Receives liveWatershed changes enable or not",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "enabled"
+                ]
+            }
+        },
+        "onPlaybackWatershedChanged": {
+            "summary": "Triggered after the playbackWatershed changes (see `setPlaybackWatershed`)",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "enabled":{
+                        "summary": "Receive playbackWatershed changes enable or not",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "enabled"
+                ]
+            }
+        },
+        "onBlockNotRatedContentChanged": {
+            "summary": "Triggered after the blockNotRatedContent changes (see `setBlockNotRatedContent`)",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "enabled":{
+                        "summary": "Receive blockNotRatedContent changes enable or not",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "enabled"
+                ]
+            }
+        },
+        "onPinOnPurchaseChanged": {
+            "summary": "Triggered after the pinOnPurchase changes (see `setPinOnPurchase`)",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "enabled":{
+                        "summary": "Receive pinOnPurchase changes enable or not",
+                        "type": "boolean",
+                        "example": true
+                    }
+                },
+                "required": [
+                    "enabled"
                 ]
             }
         }
