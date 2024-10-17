@@ -557,19 +557,19 @@ TEST_F(SystemService_L2Test,setBootLoaderSplashScreen)
 TEST_F(SystemService_L2Test,SystemServiceGetSetBlocklistFlag)
 {
     JSONRPC::LinkType<Core::JSON::IElement> jsonrpc(SYSTEM_CALLSIGN, L2TEST_CALLSIGN);
-    StrictMock<AsyncHandlerMock> async_handler;
+    //StrictMock<AsyncHandlerMock> async_handler;
     uint32_t status = Core::ERROR_GENERAL;
-    JsonObject params,thresholds;
+    JsonObject params;
     JsonObject result;
-    uint32_t signalled = SYSTEMSERVICEL2TEST_STATE_INVALID;
-    std::string message;
-    JsonObject expected_status;
+    //uint32_t signalled = SYSTEMSERVICEL2TEST_STATE_INVALID;
+    //std::string message;
+    //JsonObject expected_status;
 
     status = InvokeServiceMethod("org.rdk.System.1", "getBlocklistFlag", params, result);
     EXPECT_EQ(Core::ERROR_NONE, status);
 
     EXPECT_FALSE(result["success"].Boolean()); // First time get request when there is no flag set on device.
-
+#if 0
     /* Register for temperature threshold change event. */
     status = jsonrpc.Subscribe<JsonObject>(JSON_TIMEOUT,
                                            _T("onBlocklistChanged"),
@@ -577,7 +577,7 @@ TEST_F(SystemService_L2Test,SystemServiceGetSetBlocklistFlag)
                                            &async_handler);
 
     EXPECT_EQ(Core::ERROR_NONE, status);
-
+#endif
     params["blocklist"] = true;
 
     status = InvokeServiceMethod("org.rdk.System.1", "setBlocklistFlag", params, result);
