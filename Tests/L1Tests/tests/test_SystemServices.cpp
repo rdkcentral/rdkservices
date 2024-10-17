@@ -254,11 +254,6 @@ TEST_F(SystemServicesTest, TestedAPIsShouldExist)
 	EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("abortLogUpload")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setBlocklistFlag")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getBlocklistFlag")));
-    //EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getsetBlocklistFlag")));
-    //EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getsetBlocklist_nofile")));
-    //EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setBlocklist_paramtrue")));
-    //EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setBlocklist_paramfalse")));
-    //EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setBlocklist_noparam")));
 //    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setFSRFlag")));
 //    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getFSRFlag")));
 }

@@ -1410,13 +1410,13 @@ namespace WPEFramework {
                         if (file_param == param) {
                             // check the file value and requested value same
                             if (file_value == (value ? "true" : "false")) {
-                                LOGINFO("Persistence store has updated value. blocklist= %s", (value ? "true" : "false"));
                                 file_in.close();
-                                update = true;
+                                update = false;
+                                LOGINFO("Persistence store has updated value. blocklist= %s, update=%d", (value ? "true" : "false"), update);
                                 return true;
                             }
                             else {
-                                update = false;
+                                update = true;
                                 // Update the parameter value
                                 line = param + "=" + (value ? "true" : "false");
                                 param_found = true;
@@ -1449,7 +1449,7 @@ namespace WPEFramework {
             status = true;
         
             file_out.close();
-            LOGINFO("Parameter written to file successfully. status= %d", status);
+            LOGINFO("Parameter written to file successfully. status= %d, update=%d", status, update);
             LOGINFO("%s flag stored successfully in persistent memory.", param.c_str());
             return status;
         }
