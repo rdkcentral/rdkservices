@@ -6260,6 +6260,8 @@ TEST_F(SystemServicesTest, getsetBlocklist_nofile)
         EXPECT_TRUE(file.Destroy());
     }
 
+    //EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getBlocklistFlag"), _T("{}"), response));
+    //EXPECT_EQ(response, string("{\"success\":false}"));
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getBlocklistFlag"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"success\":false}"));
 }
@@ -6275,9 +6277,9 @@ TEST_F(SystemServicesTest, setBlocklist_paramfalse)
     EXPECT_EQ(response, string("{\"success\":true}"));
 }
 
-TEST_F(SystemServicesTest, setBlocklist_invalidvalue)
+TEST_F(SystemServicesTest, setBlocklist_noparam)
 {
-    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBlocklistFlag"), _T("{\"blocklist\": abc}"), response));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBlocklistFlag"), _T("{}"), response));
 }
 
 
