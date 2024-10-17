@@ -80,10 +80,10 @@ namespace Plugin {
                     Exchange::JUserSettings::Event::OnPreferredAudioLanguagesChanged(_parent, preferredLanguages);
                 }
 
-                void OnPresentationLanguageChanged(const string& presentationLanguages) override
+                void OnPresentationLanguageChanged(const string& presentationLanguage) override
                 {
-                    LOGINFO("PresentationLanguageChanged: %s\n", presentationLanguages.c_str());
-                    Exchange::JUserSettings::Event::OnPresentationLanguageChanged(_parent, presentationLanguages);
+                    LOGINFO("PresentationLanguageChanged: %s\n", presentationLanguage.c_str());
+                    Exchange::JUserSettings::Event::OnPresentationLanguageChanged(_parent, presentationLanguage);
                 }
 
                 void OnCaptionsChanged(bool enabled) override
@@ -108,6 +108,48 @@ namespace Plugin {
                 {
                     LOGINFO("PrivacyModeChanged: %s\n", privacyMode.c_str());
                     Exchange::JUserSettings::Event::OnPrivacyModeChanged(_parent, privacyMode);
+                }
+
+                void OnPinControlChanged(const bool enabled) override
+                {
+                    LOGINFO("PinControlChanged: %d\n", enabled);
+                    Exchange::JUserSettings::Event::OnPinControlChanged(_parent, enabled);
+                }
+
+                void OnViewingRestrictionsChanged(const string& viewingRestrictions) override
+                {
+                    LOGINFO("ViewingRestrictionsChanged: %s\n", viewingRestrictions.c_str());
+                    Exchange::JUserSettings::Event::OnViewingRestrictionsChanged(_parent, viewingRestrictions);
+                }
+
+                void OnViewingRestrictionsWindowChanged(const string& viewingRestrictionsWindow) override
+                {
+                    LOGINFO("ViewingRestrictionsWindowChanged: %s\n", viewingRestrictionsWindow.c_str());
+                    Exchange::JUserSettings::Event::OnViewingRestrictionsWindowChanged(_parent, viewingRestrictionsWindow);
+                }
+
+                void OnLiveWatershedChanged(const bool enabled) override
+                {
+                    LOGINFO("LiveWatershedChanged: %d\n", enabled);
+                    Exchange::JUserSettings::Event::OnLiveWatershedChanged(_parent, enabled);
+                }
+
+                void OnPlaybackWatershedChanged(const bool enabled) override
+                {
+                    LOGINFO("PlaybackWatershedChanged: %d\n", enabled);
+                    Exchange::JUserSettings::Event::OnPlaybackWatershedChanged(_parent, enabled);
+                }
+
+                void OnBlockNotRatedContentChanged(const bool enabled) override
+                {
+                    LOGINFO("BlockNotRatedContentChanged: %d\n", enabled);
+                    Exchange::JUserSettings::Event::OnBlockNotRatedContentChanged(_parent, enabled);
+                }
+
+                void OnPinOnPurchaseChanged(const bool enabled) override
+                {
+                    LOGINFO("PinOnPurchaseChanged: %d\n", enabled);
+                    Exchange::JUserSettings::Event::OnPinOnPurchaseChanged(_parent, enabled);
                 }
 
             private:
