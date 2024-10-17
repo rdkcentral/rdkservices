@@ -545,3 +545,72 @@ TEST_F(SystemService_L2Test,setBootLoaderSplashScreen)
     }
 
 }
+
+/********************************************************
+************Test case Details **************************
+** 1. setBlocklistFlag success with value true and getBlocklistFlag
+** 2. setBlocklistFlag success with value false and getBlocklistFlag
+** 5. setBlocklistFlag invalid param
+** 6. Verify that onBlocklistChanged change event is notified when blocklist flag modified
+*******************************************************/
+
+TEST_F(SystemService_L2Test,SystemServiceGetSetBlocklistFlag)
+{
+    JSONRPC::LinkType<Core::JSON::IElement> jsonrpc(SYSTEM_CALLSIGN, L2TEST_CALLSIGN);
+    //StrictMock<AsyncHandlerMock> async_handler;
+    uint32_t status = Core::ERROR_GENERAL;
+    JsonObject params;
+    JsonObject result;
+    //uint32_t signalled = SYSTEMSERVICEL2TEST_STATE_INVALID;
+    //std::string message;
+    //JsonObject expected_status;
+#if 0
+    status = InvokeServiceMethod("org.rdk.System.1", "getBlocklistFlag", params, result);
+    EXPECT_EQ(Core::ERROR_NONE, status);
+
+    EXPECT_FALSE(result["success"].Boolean()); // First time get request when there is no flag set on device.
+
+    /* Register for temperature threshold change event. */
+    status = jsonrpc.Subscribe<JsonObject>(JSON_TIMEOUT,
+                                           _T("onBlocklistChanged"),
+                                           &AsyncHandlerMock::onBlocklistChanged,
+                                           &async_handler);
+
+    EXPECT_EQ(Core::ERROR_NONE, status);
+#endif
+    params["blocklist"] = true;
+
+    status = InvokeServiceMethod("org.rdk.System.1", "setBlocklistFlag", params, result);
+    EXPECT_EQ(Core::ERROR_NONE, status);
+
+    EXPECT_TRUE(result["success"].Boolean());
+
+    status = InvokeServiceMethod("org.rdk.System.1", "getBlocklistFlag", params, result);
+    EXPECT_EQ(Core::ERROR_NONE, status);
+
+    EXPECT_TRUE(result["success"].Boolean());
+    EXPECT_TRUE(result["blocklist"].Boolean());
+
+    params["blocklist"] = false;
+
+    status = InvokeServiceMethod("org.rdk.System.1", "setBlocklistFlag", params, result);
+    EXPECT_EQ(Core::ERROR_NONE, status);
+
+    EXPECT_TRUE(result["success"].Boolean());
+
+    status = InvokeServiceMethod("org.rdk.System.1", "getBlocklistFlag", params, result);
+    EXPECT_EQ(Core::ERROR_NONE, status);
+
+    EXPECT_TRUE(result["success"].Boolean());
+    EXPECT_FALSE(result["blocklist"].Boolean());
+/*
+    params["blocklist"] = ;
+
+    status = InvokeServiceMethod("org.rdk.System.1", "setBlocklistFlag", params, result);
+    EXPECT_EQ(Core::ERROR_NONE, status);
+
+    EXPECT_FALSE(result["success"].Boolean());
+*/
+
+//    jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("onBlocklistChanged"));
+}

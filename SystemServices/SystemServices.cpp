@@ -100,6 +100,8 @@ using namespace std;
 
 #define PRIVACY_MODE_FILE "/opt/secure/persistent/System/privacymode.txt"
 
+#define DEVICESTATE_FILE "/opt/secure/persistent/opflashstore/devicestate.txt"
+
 /**
  * @struct firmwareUpdate
  * @brief This structure contains information of firmware update.
@@ -492,11 +494,14 @@ namespace WPEFramework {
 	    registerMethod("getFriendlyName", &SystemServices::getFriendlyName, this);
             registerMethod("setFriendlyName", &SystemServices::setFriendlyName, this);
             registerMethod("getThunderStartReason", &SystemServices::getThunderStartReason, this);
-            registerMethod("setFSRFlag", &SystemServices::setFSRFlag, this);
-            registerMethod("getFSRFlag", &SystemServices::getFSRFlag, this);
+            //registerMethod("setFSRFlag", &SystemServices::setFSRFlag, this);
+            //registerMethod("getFSRFlag", &SystemServices::getFSRFlag, this);
 
             registerMethod("setPrivacyMode", &SystemServices::setPrivacyMode, this);
             registerMethod("getPrivacyMode", &SystemServices::getPrivacyMode, this);
+
+            registerMethod("setBlocklistFlag", &SystemServices::setBlocklistFlag, this);
+            registerMethod("getBlocklistFlag", &SystemServices::getBlocklistFlag, this);
 
         }
 
@@ -1374,6 +1379,218 @@ namespace WPEFramework {
 		}
                 returnResponse(status);
         }
+        
+        bool checkOpFlashStoreDir()
+        {
+            struct stat st = {0};
+            int ret = 0;
+            if (stat("/opt/secure/persistent/opflashstore", &st) == -1) {
+                ret = mkdir("/opt/secure/persistent/opflashstore", 0774);
+                LOGWARN(" --- SubDirectories created from mkdir %d ", ret);
+            }
+            return 0 == ret;
+        }
+
+        // Function to write (update or append) parameters in the file
+        bool write_parameters(const string &filename, const string &param, bool value, bool &update) {
+            ifstream file_in(filename);
+            vector<string> lines;
+            bool param_found = false, status = false;
+        
+            // If file exists, read its content line by line
+            if (file_in.is_open()) {
+                string line;
+                while (getline(file_in, line)) {
+                    size_t pos = line.find('=');
+        
+                    // Check if the line contains the parameter we're searching for
+                    if (pos != string::npos) {
+                        string file_param = line.substr(0, pos);
+                        string file_value = line.substr(pos + 1);
+                        if (file_param == param) {
+                            // check the file value and requested value same
+                            if (file_value == (value ? "true" : "false")) {
+                                LOGINFO("Persistence store has updated value. blocklist= %s", (value ? "true" : "false"));
+                                file_in.close();
+                                update = true;
+                                return true;
+                            }
+                            else {
+                                update = false;
+                                // Update the parameter value
+                                line = param + "=" + (value ? "true" : "false");
+                                param_found = true;
+                            }
+                        }
+                    }
+        
+                    // Store the line (updated or not) in memory
+                    lines.push_back(line);
+                }
+        
+                file_in.close();
+            }
+        
+            // If the parameter wasn't found in the file, add it
+            if (!param_found) {
+                lines.push_back(param + "=" + (value ? "true" : "false"));
+            }
+        
+            // Rewrite the entire file with updated values
+            ofstream file_out(filename);
+            if (!file_out.is_open()) {
+                LOGERR("Error opening file for writing:%s ", filename.c_str());
+                status = false;
+            }
+        
+            for (const string &line : lines) {
+                file_out << line << endl;
+            }
+            status = true;
+        
+            file_out.close();
+            LOGINFO("Parameter written to file successfully. status= %d", status);
+            LOGINFO("%s flag stored successfully in persistent memory.", param.c_str());
+            return status;
+        }
+        
+        // Function to read a parameter from a file and update its value
+        bool read_parameters(const string &filename, const string &param, bool &value) {
+            ifstream file(filename);
+        
+            // Check if the file was successfully opened
+            if (!file.is_open()) {
+                LOGERR("Error opening file for reading: %s", filename.c_str());
+                return false;
+            }
+        
+            string line;
+            bool param_found = false;
+            while (getline(file, line)) {
+                // Remove any trailing newline characters
+                line.erase(line.find_last_not_of("\n\r") + 1);
+        
+                // Split the line into parameter and value using '=' delimiter
+                size_t pos = line.find('=');
+                if (pos != string::npos) {
+                    string file_param = line.substr(0, pos);
+                    string file_value = line.substr(pos + 1);
+        
+                    // Check if this is the parameter we are looking for
+                    if (file_param == param) {
+                        param_found = true;
+                        if (file_value == "true") {
+                            value = true;
+                        } else if (file_value == "false") {
+                            value = false;
+                        } else {
+                            LOGERR("Error: Invalid value for parameter %s  in file: %s", param.c_str(), file_value.c_str());
+                            file.close();
+                            return false;  // Invalid value
+                        }
+                        break;
+                    }
+                }
+            }
+        
+            // Check if there were any read errors
+            if (file.fail() && !file.eof()) {
+                LOGERR("Error reading from file: %s", filename.c_str());
+                file.close();
+                return false;
+            }
+        
+            file.close();
+        
+            if (!param_found) {
+                LOGERR("Parameter %s  not found in the file.", param.c_str());
+
+                return false;
+            }
+        
+            return true;
+        }        
+
+       /***
+         * @brief : To update Blocklist flag.
+         * @param1[in]  : {"blocklist":"<true/false>"}
+         * @param2[out] : {"result":{"success":<bool>}}
+         * @return              : Core::<StatusCode>
+         */
+        uint32_t SystemServices::setBlocklistFlag(const JsonObject& parameters,
+                JsonObject& response)
+        {                
+            bool status = false, update = false;
+            bool result = true;
+            bool blocklistFlag;
+            JsonObject error;
+
+            if ((parameters.HasLabel("blocklist"))) {
+            
+                /*check /opt/secure/persistent/opflashstore/ dir*/
+                checkOpFlashStoreDir();
+                LOGINFO("checked opflashstore directory and it is exists.");
+
+                blocklistFlag = parameters["blocklist"].Boolean();
+                if((blocklistFlag == true) || (blocklistFlag == false) ) {
+                    status = write_parameters(DEVICESTATE_FILE, "blocklist", blocklistFlag, update);
+			        if ((status != true)) {
+			    	    LOGERR("Blocklist flag update failed. status %d ", status);
+				        error["message"] = "Blocklist flag update failed";
+				        error["code"] = "-32604";
+				        response["error"] = error;
+				        result = false;
+			        }
+                    else {
+                        LOGINFO("Blocklist flag stored successfully in persistent memory");
+                        result = true;
+                    }
+                }
+                else {
+                    LOGWARN("Invalid value");
+                    populateResponseWithError(SysSrv_MissingKeyValues, response);
+                }
+
+                LOGINFO("Update= %s", (update ? "true":"false"));
+                if(update == true) {
+                    /*Send EVT_ONBLOCKLISTCHANGED event notify*/
+                    sendNotify(EVT_ONBLOCKLISTCHANGED, parameters);
+                }
+            }
+            else {
+                populateResponseWithError(SysSrv_MissingKeyValues, response);
+                error["message"] = "Invalid params";
+				error["code"] = "-32602";
+				response["error"] = error;
+                result = false;
+            }
+
+            returnResponse(result);
+        }
+
+        uint32_t SystemServices::getBlocklistFlag(const JsonObject& parameters, JsonObject& response)
+	    {
+		
+		    bool status = false, result = false, blocklistFlag;
+
+            /*check /opt/secure/persistent/opflashstore/ dir*/
+            checkOpFlashStoreDir();
+            LOGINFO("checked opflashstore directory and it is exists.");
+
+            result = read_parameters(DEVICESTATE_FILE, "blocklist", blocklistFlag);
+		    if (result == true) {
+                LOGWARN("blocklistFlag=%d", blocklistFlag);
+                response["blocklist"] = blocklistFlag;
+			    status = true;
+                LOGINFO("Blocklist flag retrieved successfully from persistent memory.");
+		    }
+		    else{
+			    LOGWARN("Blocklist flag retrieved failed from persistent memory.");
+                status = false;
+		    }
+
+            returnResponse(status);
+	    }
 
         /***
          * @brief : Sets the mode of the STB. The object consists of two properties, mode (String) and
@@ -4773,9 +4990,7 @@ namespace WPEFramework {
 
             returnResponse(true);
         }
-       
-
-        
+#if 0
         /***
          * @brief : To set the fsr flag into the emmc raw area.
          * @param1[in] : {"params":{"fsrFlag":<bool>}
@@ -4835,7 +5050,7 @@ namespace WPEFramework {
             response["fsrFlag"] = fsrFlag;
             returnResponse(status);
         }
-
+#endif
 
     } /* namespace Plugin */
 } /* namespace WPEFramework */
