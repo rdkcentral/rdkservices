@@ -292,7 +292,9 @@ namespace Plugin {
         if(lineNumber.find(key) != lineNumber.end()) {
 
             #ifdef MEMORY_OPTIMIZED
+            dataStoreMutex.unlock();
             string oldValue = getValue(key);
+            dataStoreMutex.lock();
             #else
             string oldValue = valueEntry[lineNumber[key] - 1];
             #endif
