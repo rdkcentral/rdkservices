@@ -1,5 +1,6 @@
 precondition = ["Platform"]
 callsign = "org.rdk.MigrationPreparer"
+autostart = "@PLUGIN_MIGRATIONPREPARER_AUTOSTART@"
 
 configuration = JSON()
 rootobject = JSON()
