@@ -126,6 +126,7 @@ namespace Plugin {
         
         // line should not be empty or { or } if so assert
         ASSERT(line.empty());
+
         // below is the dataStore json format
         // {
         // <space>"key1":value1,
@@ -139,6 +140,37 @@ namespace Plugin {
         return value;
     }
     #endif
+
+    string MigrationPreparerImplementation::escapeSed(string input, enum sedType type) {
+        // Set of special characters in sed that need to be escaped
+        std::unordered_set<char> specialChars = {
+            '.', '*', '+', '?', '^', '$', '(', ')', '[', ']', '{', '}', '\\', '|', '/', '&'
+        };
+
+        std::string escapedString;
+
+        if(type == PATTERN) {
+            // Iterate through each character in the string
+            for(char ch : input) {
+                // If ch is a special character replace with .
+                if (specialChars.find(ch) != specialChars.end())
+                    escapedString += ".";
+                else
+                    escapedString += ch;
+            }
+        }
+        else if(type == REPLACEMENT) {
+            // Iterate through each character in the string
+            for(char ch : input) {
+                // If ch is a special character prepend it with a backslash
+                if (specialChars.find(ch) != specialChars.end())
+                    escapedString += "\\";
+
+                escapedString += ch;
+            }
+        }
+        return escapedString;
+    }
 
     void MigrationPreparerImplementation::storeKeys(void) {
         dataStoreMutex.lock();
@@ -306,7 +338,9 @@ namespace Plugin {
             }
             
             // sed command to replace value in the dataStore
-            int result = v_secure_system("/bin/sed -i '%ss/%s/%s/' %s", std::to_string(lineNumber[key]).c_str(), oldValue.c_str(), newValue.c_str(), DATASTORE_PATH);
+            oldValue = escapeSed(oldValue, PATTERN);
+            newValue = escapeSed(newValue, REPLACEMENT);
+            int result = v_secure_system("/bin/sed -i -E '%ss/%s/%s/' %s", std::to_string(lineNumber[key]).c_str(), oldValue.c_str(), newValue.c_str(), DATASTORE_PATH);
             
             if (result != -1 && WIFEXITED(result)) {
                 #ifdef CPU_OPTIMIZED

@@ -131,6 +131,9 @@ namespace Plugin {
         #ifdef MEMORY_OPTIMIZED
         string getValue(string);
         #endif
+        //escape any special characters in string to make sed compatible pattern string and replacement string
+        enum sedType {PATTERN, REPLACEMENT};
+        string escapeSed(string, enum sedType); //bvch
         // Fn. to store the keys and their line numbers from dataStore to lineNumber map
         void storeKeys(void);
         // Fn. to delete dataStore
