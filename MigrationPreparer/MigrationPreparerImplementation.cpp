@@ -244,6 +244,18 @@ namespace Plugin {
         WPEFramework::Core::Directory dataStoreDir(DATASTORE_DIR);
         Unstringfy(newValue);
 
+        // check if someone deletes the dataStore in the middle of the operation
+        if(!lineNumber.empty() && !dataStoreDir.Exists()) {
+            LOGWARN("Migration datastore %s deleted in the middle of the operation, resetting the internal data structures", DATASTORE_PATH);
+            lineNumber.clear();
+            curLineIndex = 1;
+            #ifdef CPU_OPTIMIZED
+            if (!valueEntry.empty())
+                valueEntry.clear();
+            #endif
+        }
+        
+        dataStoreMutex.lock();
         // Handle first Write request
         if (lineNumber.empty()) {
             curLineIndex = 1;
@@ -255,11 +267,10 @@ namespace Plugin {
                 
                 if(!dataStore.Create()) {
                     LOGERR("Failed to create migration datastore %s, errno: %d, reason: %s", DATASTORE_PATH, errno, strerror(errno));
+                    dataStoreMutex.unlock();
                     return Core::ERROR_GENERAL;
                 }
             }
-            
-            dataStoreMutex.lock();
             
             if(!dataStore.Open(false)) {
                 LOGERR("Failed to open migration datastore %s, errno: %d, reason: %s", DATASTORE_PATH, errno, strerror(errno));
@@ -288,29 +299,27 @@ namespace Plugin {
 
             if(oldValue == newValue) {
                 LOGWARN("Entry {%s:%s} is already existing in the dataStore, returning success", oldValue.c_str(), key.c_str());
+                dataStoreMutex.unlock();
                 return Core::ERROR_NONE;
             }
             
             // sed command to replace value in the dataStore
-            dataStoreMutex.lock();
-            int result = v_secure_system("/bin/sed -i 's/%s/%s/' %s", oldValue.c_str(), newValue.c_str(), DATASTORE_PATH);
-            dataStoreMutex.unlock();
+            int result = v_secure_system("/bin/sed -i '%ss/%s/%s/' %s", std::to_string(lineNumber[key]).c_str(), oldValue.c_str(), newValue.c_str(), DATASTORE_PATH);
             
             if (result != -1 && WIFEXITED(result)) {
                 #ifdef CPU_OPTIMIZED
                 valueEntry[lineNumber[key] - 1] = newValue;
                 #endif
+                dataStoreMutex.unlock();
                 return Core::ERROR_NONE;
             }
             result = WEXITSTATUS(result);
-            dataStoreMutex.unlock();
             LOGERR("Failed to update entry for {%s:%s} in migration datastore, v_secure_system failed with error %d",key.c_str(), newValue.c_str(), result);
+            dataStoreMutex.unlock();
             return Core::ERROR_GENERAL;
         }
 
         // Handle subsequent Write request
-        dataStoreMutex.lock();
-
         if(!dataStore.Open(false)) {
             LOGERR("Failed to create migration datastore %s, errno: %d, reason: %s", DATASTORE_PATH, errno, strerror(errno));
             LOGERR("Failed to create entry for {%s:%s} in migration datastore", key.c_str(), newValue.c_str());
@@ -334,7 +343,6 @@ namespace Plugin {
         #endif
         dataStore.Close();
         dataStoreMutex.unlock();
-
         return Core::ERROR_NONE;
     }
     
@@ -363,18 +371,15 @@ namespace Plugin {
         string key = name;
         int result;
 
+        dataStoreMutex.lock();
         if(!lineNumber.empty() && (lineNumber.find(key) != lineNumber.end())) {
-            // sed command to delete an key-value entry in the dataStore
-            dataStoreMutex.lock();
+            // sed command to delete an key-value entry in the dataStore            
             result = v_secure_system("/bin/sed -i '%sd' %s", std::to_string(lineNumber[key]).c_str(), DATASTORE_PATH);
-            dataStoreMutex.unlock();
 
             if (result != -1 && WIFEXITED(result)) {
                 // check if last entry is deleted
                 if(lineNumber[key] == curLineIndex) {
                     WPEFramework::Core::File dataStore(DATASTORE_PATH);
-                    // check if all entries in dataStore are deleted
-                    dataStoreMutex.lock();
                     dataStore.Append();
                     // if last entry is deleted remove comma from the previous line
                     dataStore.Position(false, dataStore.Size());
@@ -383,19 +388,21 @@ namespace Plugin {
                     }
                     string entry = "\n}"; 
                     dataStore.Write(reinterpret_cast<const uint8_t*>(&entry[0]), entry.size()); 
-                    dataStore.Close(); 
-                    dataStoreMutex.unlock();             
+                    dataStore.Close();             
                 }
-                // remove key from the lineNumber map and adjust line line number for other entries
-                auto it = lineNumber.find(key)++;
-                for (auto itr = it; itr != lineNumber.end(); ++itr) {
-                    itr->second--;
+                // Adjust line line number for other entries
+                for (auto it = lineNumber.begin(); it != lineNumber.end(); ++it) {
+                    if(it->second > lineNumber[key]) {
+                        it->second--;
+                    }
                 }
                 #ifdef CPU_OPTIMIZED
                 valueEntry.erase(lineNumber[key]-1);
                 #endif
+                // remove key from the lineNumber map
                 lineNumber.erase(key);
                 curLineIndex--;
+                dataStoreMutex.unlock();
                 return Core::ERROR_NONE;
             }
             LOGERR("Failed to delete entry for key: %s in migration datastore, v_secure_system failed with error %d",key.c_str(), result);
@@ -403,6 +410,7 @@ namespace Plugin {
 
         result = WEXITSTATUS(result);
         LOGERR("Failed to delete entry for key: %s in migration datastore, Key does not exist in dataStore",key.c_str());
+        dataStoreMutex.unlock();
         return Core::ERROR_GENERAL;
     }
 
