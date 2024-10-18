@@ -42,8 +42,6 @@
 
 #define TR181_MIGRATION_READY "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.MigrationReady"
 
-#define MEMORY_OPTIMIZED // set if it expected to be MEMORY_OPTIMIZED or CPU_OPTIMIZED
-
 typedef uint64_t LINE_NUMBER_TYPE;
 using std::string;
 
@@ -120,17 +118,11 @@ namespace Plugin {
         // A tracker for the last key-value line number in the dataStore
         LINE_NUMBER_TYPE curLineIndex;
 
-        #ifdef CPU_OPTIMIZED
         std::vector<string> valueEntry;
-        #endif
 
         /*Helpers: Begin*/
         // Fn. to transform \" to " in a string
         void Unstringfy(string&);
-        // Fn. to get value of a key from the dataStore 
-        #ifdef MEMORY_OPTIMIZED
-        string getValue(string);
-        #endif
         //escape any special characters in string to make sed compatible pattern string and replacement string
         enum sedType {PATTERN, REPLACEMENT};
         string escapeSed(string, enum sedType); //bvch

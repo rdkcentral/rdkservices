@@ -106,40 +106,6 @@ namespace Plugin {
         }
     }
 
-    #ifdef MEMORY_OPTIMIZED
-    string MigrationPreparerImplementation::getValue(string key) {
-        dataStoreMutex.lock();
-        
-        std::ifstream inputFile(DATASTORE_PATH);
-        string line, value;
-        size_t start, end, colPos;
-        LINE_NUMBER_TYPE lineIndex = 0;
-        LINE_NUMBER_TYPE stop = lineNumber[key];
-        // Get the requested line
-        while(std::getline(inputFile, line)) 
-            if(++lineIndex == stop)
-                break;
-        // trim white space, new line and comma from the line
-        start = line.find_first_not_of(" \n");
-        end = line.find_last_not_of(" \n,");
-        line = line.substr(start, end-start+1);
-        
-        // line should not be empty or { or } if so assert
-        ASSERT(line.empty());
-
-        // below is the dataStore json format
-        // {
-        // <space>"key1":value1,
-        // <space>"key2":value2    
-        // }
-        
-        // get the value from line
-        colPos = line.find(":");
-        value = line.substr(colPos+1);
-        dataStoreMutex.unlock();
-        return value;
-    }
-    #endif
 
     string MigrationPreparerImplementation::escapeSed(string input, enum sedType type) {
         // Set of special characters in sed that need to be escaped
@@ -201,10 +167,8 @@ namespace Plugin {
             //add key to the map
             lineNumber[key] = lineIndex;
 
-            #ifdef CPU_OPTIMIZED
             string value = line.substr(colPos+1);
             valueEntry.push_back(value);
-            #endif
         }
         // update the last line index
         curLineIndex = lineIndex;
@@ -229,10 +193,8 @@ namespace Plugin {
         if (!lineNumber.empty())
             lineNumber.clear();
         curLineIndex = 1;
-        #ifdef CPU_OPTIMIZED
-         if (!valueEntry.empty())
+        if (!valueEntry.empty())
             valueEntry.clear();
-        #endif
         dataStoreMutex.unlock();
         return true;
     }
@@ -281,10 +243,8 @@ namespace Plugin {
             LOGWARN("Migration datastore %s deleted in the middle of the operation, resetting the internal data structures", DATASTORE_PATH);
             lineNumber.clear();
             curLineIndex = 1;
-            #ifdef CPU_OPTIMIZED
             if (!valueEntry.empty())
                 valueEntry.clear();
-            #endif
         }
         
         dataStoreMutex.lock();
@@ -315,6 +275,7 @@ namespace Plugin {
             dataStore.Write(reinterpret_cast<const uint8_t*>(&entry[0]), entry.size());
             // update the entry in lineNumber map
             lineNumber[key] = ++curLineIndex;
+            valueEntry.push_back(newValue);
             dataStore.Close();
             dataStoreMutex.unlock();
             return Core::ERROR_NONE;
@@ -323,13 +284,7 @@ namespace Plugin {
         // Handle Update Request
         if(lineNumber.find(key) != lineNumber.end()) {
 
-            #ifdef MEMORY_OPTIMIZED
-            dataStoreMutex.unlock();
-            string oldValue = getValue(key);
-            dataStoreMutex.lock();
-            #else
-            string oldValue = valueEntry[lineNumber[key] - 1];
-            #endif
+            string oldValue = valueEntry[lineNumber[key] - 2];
 
             if(oldValue == newValue) {
                 LOGWARN("Entry {%s:%s} is already existing in the dataStore, returning success", oldValue.c_str(), key.c_str());
@@ -343,9 +298,7 @@ namespace Plugin {
             int result = v_secure_system("/bin/sed -i -E '%ss/%s/%s/' %s", std::to_string(lineNumber[key]).c_str(), oldValue.c_str(), newValue.c_str(), DATASTORE_PATH);
             
             if (result != -1 && WIFEXITED(result)) {
-                #ifdef CPU_OPTIMIZED
                 valueEntry[lineNumber[key] - 2] = newValue;
-                #endif
                 dataStoreMutex.unlock();
                 return Core::ERROR_NONE;
             }
@@ -374,9 +327,7 @@ namespace Plugin {
         entry = string(",\n \"") + key + string("\":") + newValue + string("\n}"); 
         dataStore.Write(reinterpret_cast<const uint8_t*>(&entry[0]), entry.size());
         lineNumber[key] = ++curLineIndex;
-        #ifdef CPU_OPTIMIZED
         valueEntry.push_back(newValue);
-        #endif
         dataStore.Close();
         dataStoreMutex.unlock();
         return Core::ERROR_NONE;
@@ -393,11 +344,7 @@ namespace Plugin {
             return Core::ERROR_GENERAL;
         }
         
-        #ifdef MEMORY_OPTIMIZED
-        result = getValue(key);
-        #else
         result = valueEntry[lineNumber[key] - 2];
-        #endif
         return Core::ERROR_NONE;
     }
 
@@ -432,9 +379,9 @@ namespace Plugin {
                         it->second--;
                     }
                 }
-                #ifdef CPU_OPTIMIZED
-                valueEntry.erase(lineNumber[key] - 2);
-                #endif
+
+                valueEntry.erase(valueEntry.begin() + lineNumber[key] - 2);
+
                 // remove key from the lineNumber map
                 lineNumber.erase(key);
                 curLineIndex--;
