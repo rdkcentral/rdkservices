@@ -308,7 +308,7 @@ namespace Plugin {
             
             if (result != -1 && WIFEXITED(result)) {
                 #ifdef CPU_OPTIMIZED
-                valueEntry[lineNumber[key] - 1] = newValue;
+                valueEntry[lineNumber[key] - 2] = newValue;
                 #endif
                 dataStoreMutex.unlock();
                 return Core::ERROR_NONE;
@@ -360,7 +360,7 @@ namespace Plugin {
         #ifdef MEMORY_OPTIMIZED
         result = getValue(key);
         #else
-        result = valueEntry[lineNumber[key] - 1];
+        result = valueEntry[lineNumber[key] - 2];
         #endif
         return Core::ERROR_NONE;
     }
@@ -397,7 +397,7 @@ namespace Plugin {
                     }
                 }
                 #ifdef CPU_OPTIMIZED
-                valueEntry.erase(lineNumber[key]-1);
+                valueEntry.erase(lineNumber[key] - 2);
                 #endif
                 // remove key from the lineNumber map
                 lineNumber.erase(key);

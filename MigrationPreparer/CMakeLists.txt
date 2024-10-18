@@ -20,7 +20,7 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 set(PLUGIN_IMPLEMENTATION ${MODULE_NAME}Implementation)
 
 set(PLUGIN_MIGRATIONPREPARER_AUTOSTART "flase" CACHE STRING "Automatically start MigrationPreparer plugin")
-set(PLUGIN_MIGRATIONPREPARER_STARTUPORDER " " CACHE STRING "To configure startup order of MigrationPreparer plugin")
+# set(PLUGIN_MIGRATIONPREPARER_STARTUPORDER "" CACHE STRING "To configure startup order of MigrationPreparer plugin")
 set(PLUGIN_MIGRATIONPREPARER_MODE "Off" CACHE STRING "Controls if the plugin should run in process or out of process")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
