@@ -1392,7 +1392,7 @@ namespace WPEFramework {
         }
 
         // Function to write (update or append) parameters in the file
-        bool write_parameters(const string &filename, const string &param, bool value, bool &update) {
+        bool write_parameters(const string &filename, const string &param, bool value, bool &update, bool &oldBlocklistFlag) {
             ifstream file_in(filename);
             vector<string> lines;
             bool param_found = false, status = false;
@@ -1417,6 +1417,7 @@ namespace WPEFramework {
                             }
                             else {
                                 update = true;
+                                oldBlocklistFlag = file_value; //store old value for notify.
                                 // Update the parameter value
                                 line = param + "=" + (value ? "true" : "false");
                                 param_found = true;
@@ -1449,8 +1450,7 @@ namespace WPEFramework {
             status = true;
         
             file_out.close();
-            LOGINFO("Parameter written to file successfully. status= %d, update=%d", status, update);
-            LOGINFO("%s flag stored successfully in persistent memory.", param.c_str());
+            LOGINFO("%s flag stored successfully in persistent memory. status= %d, update=%d, oldBlocklistFlag=%d", param.c_str(), status, update, oldBlocklistFlag);
             return status;
         }
         
@@ -1509,7 +1509,24 @@ namespace WPEFramework {
             }
         
             return true;
-        }        
+        }
+
+        /***
+         * @brief : sends notification when blocklist flag has changed.
+         *
+         * @param1[in]  : blocklist flag
+         * @param2[out] : {"blocklist": <blocklist_flag>}
+         */
+        void SystemServices::onBlocklistChanged(bool blocklistFlag, bool oldBlocklistFlag)
+        {
+            JsonObject params;
+            string bloklistStr = (blocklistFlag? "true":"false");
+
+            params["oldBlocklistFlag"] = oldBlocklistFlag;
+            params["newBlocklistFlag"] = bloklistStr;
+            LOGINFO("blocklist changed from %s to '%s'\n", oldBlocklistFlag.c_str(),bloklistStr.c_str());
+            sendNotify(EVT_ONBLOCKLISTCHANGED, params);
+        }
 
        /***
          * @brief : To update Blocklist flag.
@@ -1522,7 +1539,7 @@ namespace WPEFramework {
         {                
             bool status = false, update = false;
             bool result = true;
-            bool blocklistFlag;
+            bool blocklistFlag, oldBlocklistFlag;
             JsonObject error;
 
             if ((parameters.HasLabel("blocklist"))) {
@@ -1533,7 +1550,7 @@ namespace WPEFramework {
 
                 blocklistFlag = parameters["blocklist"].Boolean();
                 if((blocklistFlag == true) || (blocklistFlag == false) ) {
-                    status = write_parameters(DEVICESTATE_FILE, "blocklist", blocklistFlag, update);
+                    status = write_parameters(DEVICESTATE_FILE, "blocklist", blocklistFlag, update, oldBlocklistFlag);
 			        if ((status != true)) {
 			    	    LOGERR("Blocklist flag update failed. status %d ", status);
 				        error["message"] = "Blocklist flag update failed";
@@ -1553,8 +1570,12 @@ namespace WPEFramework {
 
                 LOGINFO("Update= %s", (update ? "true":"false"));
                 if(update == true) {
-                    /*Send EVT_ONBLOCKLISTCHANGED event notify*/
-                    sendNotify(EVT_ONBLOCKLISTCHANGED, parameters);
+                    /*Send ONBLOCKLISTCHANGED event notify*/
+                    if (SystemServices::_instance) {
+                        SystemServices::_instance->onBlocklistChanged(blocklistFlag, oldBlocklistFlag);
+                    } else {
+                        LOGERR("SystemServices::_instance is NULL.\n");
+                    }
                 }
             }
             else {
@@ -1572,6 +1593,7 @@ namespace WPEFramework {
 	    {
 		
 		    bool status = false, result = false, blocklistFlag;
+            JsonObject error;
 
             /*check /opt/secure/persistent/opflashstore/ dir*/
             checkOpFlashStoreDir();
@@ -1586,6 +1608,9 @@ namespace WPEFramework {
 		    }
 		    else{
 			    LOGWARN("Blocklist flag retrieved failed from persistent memory.");
+                 error["message"] = "Blocklist flag retrieved failed from persistent memory.";
+				error["code"] = "-32099";
+				response["error"] = error;
                 status = false;
 		    }
 
