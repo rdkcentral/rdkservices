@@ -28,11 +28,15 @@ add_library(${MODULE_NAME} SHARED
         XCast.cpp
         XCastImplementation.cpp
         Module.cpp
-	XCastManager.cpp)
+        XCastManager.cpp)
 
 find_package(RFC)
 find_package(IARMBus)
 find_package(GLIB REQUIRED)
+find_package(WPEFrameworkSecurityUtil)
+if(NOT WPEFRAMEWORK_SECURITYUTIL_FOUND)
+    add_definitions(-DSECURITY_TOKEN_ENABLED=0)
+endif()
 
 find_library(XDIAL_LIBRARIES NAMES gdial-server)
 
@@ -50,7 +54,7 @@ target_include_directories(${MODULE_NAME} PRIVATE ${GLIB_INCLUDE_DIRS})
 if(NOT RDK_SERVICES_L1_TEST)
 	target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${RFC_LIBRARIES} ${IARMBUS_LIBRARIES} ${XDIAL_LIBRARIES})
 else(RDK_SERVICES_L1_TEST)
-      target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${RFC_LIBRARIES} ${IARMBUS_LIBRARIES})  
+      target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}Plugins::${NAMESPACE}Plugins ${RFC_LIBRARIES} ${IARMBUS_LIBRARIES})
 endif()
 
 install(TARGETS ${MODULE_NAME}
