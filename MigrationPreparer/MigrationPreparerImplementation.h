@@ -42,6 +42,10 @@
 
 #define TR181_MIGRATION_READY "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.MigrationReady"
 
+#define MIGRATIONREADY_PATH _T("/opt/secure/migration/migrationready.txt")
+#define MIGRATIONREADY_DIR _T("/opt/secure/migration/")
+
+
 typedef uint64_t LINE_NUMBER_TYPE;
 using std::string;
 
@@ -134,6 +138,11 @@ namespace Plugin {
         void get_components(std::list<string>& list, string& value, string input = "");
         //Fn. to populate value from a list with delimiter(_)
         void tokenize(string& value, std::list<string>& list);
+
+        int8_t split(std::list<string>& list, string& value, std::string delimiter = "_");
+        int8_t join(string& value, std::list<string>& list, std::string delimiter = "_");
+        bool isDuplicate(string& searchString, std::list<string>& list);
+        bool resetMigrationready(void);
         /*Helpers: End*/
     };
 } // namespace Plugin

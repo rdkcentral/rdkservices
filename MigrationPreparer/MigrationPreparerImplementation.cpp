@@ -198,34 +198,59 @@ namespace Plugin {
         dataStoreMutex.unlock();
         return true;
     }
-
-     void MigrationPreparerImplementation::get_components(std::list<string>& list, string& value, string input) {
-            LOGINFO("get_components: %s and input: %s", value.c_str(), input.c_str());
-            string::size_type start = 0, pos = 0; 
-            while ((pos = value.find('_', start) )!= std::string::npos) {
-                list.emplace_back(value.substr(start, pos - start));
-                start = pos + 1; // Move start to the next character after the delimiter
-            }
-            // add the last element or the only element to the list 
-            list.emplace_back(value.substr(start));
-            if(input != "") 
-                if (find(list.begin(), list.end(), input) == list.end()) // duplicate check
-                    list.emplace_back(input);
-            list.sort();
+    bool MigrationPreparerImplementation::resetMigrationready(void){
+        WPEFramework::Core::File migrationReady(MIGRATIONREADY_PATH);
+        if(!migrationReady.Exists()) {
+            LOGERR("migrationReady file does not exist");
+            return false;
         }
+        _adminLock.Lock();
+        // remove migrationReady file
+        LOGWARN("Deleting migrationReady file ");
+        if(!migrationReady.Destroy()){
+            LOGERR("Unable to delete migrationReady file");
+            return false;
+        }
+        _adminLock.Unlock();
+        return true;
+    }
 
-        void MigrationPreparerImplementation::tokenize(string& value, std::list<string>& list) {
-        	//if the list is with only one element also it won't be a problem
-            if (list.empty()) return;  // Handle empty list case
-            auto it = list.begin();
-            // Use the for loop to concatenate elements with '_'
-            for (; std::next(it) != list.end(); ++it) {
-                value += *it + "_";  // Concatenate element with underscore
-            }
-            // Add the last element without an underscore
-            value += *it;
-	    }
-    
+    int8_t MigrationPreparerImplementation::split(std::list<string>& list, string& value, std::string delimiter) {
+        LOGINFO("split: %s", value.c_str());
+        string::size_type start = 0, pos = 0; 
+        while ((pos = value.find(delimiter, start) )!= std::string::npos) {
+            list.emplace_back(value.substr(start, pos - start));
+            start = pos + 1; // Move start to the next character after the delimiter
+        }
+        // add the last element or the only element to the list 
+        list.emplace_back(value.substr(start));
+        return Core::ERROR_NONE;
+    }
+
+    int8_t MigrationPreparerImplementation::join(string& value, std::list<string>& list, std::string delimiter) {
+        //if the list is with only one element also it won't be a problem
+        if (list.empty()) return Core::ERROR_NONE;  // Handle empty list case
+        auto it = list.begin();
+        // Use the for loop to concatenate elements with '_'
+        for (; std::next(it) != list.end(); ++it) {
+        value += *it + delimiter;  // Concatenate element with underscore
+        }
+        // Add the last element without an underscore
+        value += *it;
+        LOGINFO("join: %s", value.c_str());
+        return Core::ERROR_NONE;
+    }
+
+    bool MigrationPreparerImplementation::isDuplicate(string& searchString, std::list<string>& list) {
+        // Use std::find to check if the string is present
+        if (list.empty()) return Core::ERROR_NONE;  // Handle empty list case
+        auto it = std::find(list.begin(), list.end(), searchString);
+        if (it != list.end()) {
+            return true;
+        } 
+        return false;
+    }
+   
     /*Helper's: End*/
 
     uint32_t MigrationPreparerImplementation::writeEntry(const string& name, const string &value) {
@@ -398,12 +423,13 @@ namespace Plugin {
     }
 
     
-    uint32_t MigrationPreparerImplementation::setComponentReadiness(const string& compName)
+   uint32_t MigrationPreparerImplementation::setComponentReadiness(const string& compName)
     {
         uint32_t status = Core::ERROR_GENERAL;
         string _compName = compName;
         _adminLock.Lock();
         LOGINFO("Component Name: %s", _compName.c_str());
+#ifdef MIGRATIONPREPARER_TR181_SUPPORT
         RFC_ParamData_t param;
         WDMP_STATUS wdmpStatus;
         wdmpStatus = getRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE,TR181_MIGRATION_READY, &param);
@@ -413,16 +439,97 @@ namespace Plugin {
             status=(wdmpStatus == WDMP_SUCCESS)?Core::ERROR_NONE:Core::ERROR_GENERAL;
         }
         else {
-              std::string paramValue;
-              paramValue = param.value;
-              LOGINFO("component %s is already present", paramValue.c_str());
-              std::list<std::string> component_list;
-              get_components(component_list, paramValue, _compName);
-              _compName= "";
-              tokenize(_compName, component_list);
-              wdmpStatus = setRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE, TR181_MIGRATION_READY, _compName.c_str(), WDMP_STRING);  
-              status=(wdmpStatus == WDMP_SUCCESS)?Core::ERROR_NONE:Core::ERROR_GENERAL;
+            std::string paramValue;
+            paramValue = param.value;
+            LOGINFO("component %s is already present", paramValue.c_str());
+            std::list<std::string> component_list;
+            split(component_list, paramValue);
+            if(!isDuplicate(_compName, component_list)){
+                component_list.push_back(_compName);
+                component_list.sort();
+                _compName= "";
+                join(_compName, component_list);
+                wdmpStatus = setRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE, TR181_MIGRATION_READY, _compName.c_str(), WDMP_STRING);  
+                status=(wdmpStatus == WDMP_SUCCESS)?Core::ERROR_NONE:Core::ERROR_GENERAL;
+            }else{
+                status=Core::ERROR_NONE;
+            }
         }
+#else      
+        WPEFramework::Core::File migrationReady(MIGRATIONREADY_PATH);
+        WPEFramework::Core::Directory migrationReadyDir(MIGRATIONREADY_DIR);
+
+        // check whether file is exist or not, if not create one
+        if(!migrationReady.Exists()) {
+            // check if the directory exist
+            if(!migrationReadyDir.Exists()){
+                // assuming /opt/secure path already exist and "migration" folder needs to be under /opt/secure/
+                if(migrationReadyDir.Create()){
+                    LOGERR("Failed to create migration ready %s, errno: %d, reason: %s", MIGRATIONREADY_PATH, errno, strerror(errno));
+                    _adminLock.Unlock();
+                    return Core::ERROR_GENERAL;                    
+                }
+            }
+            if(!migrationReady.Create()) {
+                LOGERR("Failed to create migration ready %s, errno: %d, reason: %s", MIGRATIONREADY_PATH, errno, strerror(errno));
+                _adminLock.Unlock();
+                return Core::ERROR_GENERAL;
+            }
+        }
+
+        // open file in append mode   
+        if(!migrationReady.Open(false)) {
+            LOGERR("Failed to open migration ready %s, errno: %d, reason: %s", MIGRATIONREADY_PATH, errno, strerror(errno));
+            LOGERR("Failed to add component{%s} in migration ready", _compName.c_str());
+            _adminLock.Unlock();
+            return Core::ERROR_GENERAL;
+        }
+        // read component list and add new component in order into file
+        {
+            string outComponentString = _compName;
+            // Lambda to compare strings in lexicographical order
+            auto componentComparator = [](const std::string& a, const std::string& b) {
+                return a < b;
+            };            
+            if(migrationReady.Size() > 0){
+                uint8_t datatoread[migrationReady.Size()+1]={'\0'};
+                uint32_t size = migrationReady.Read(datatoread, static_cast<uint32_t>(sizeof(datatoread)));
+                if(size){
+                    std::string inComponentString(reinterpret_cast<char*>(datatoread));
+                    std::list<std::string> componentlist;
+                    outComponentString = "";
+                    split(componentlist, inComponentString);
+                    // check whether it is duplicate or not
+                    if(isDuplicate(_compName, componentlist)){
+                        migrationReady.Close();
+                        status = Core::ERROR_NONE;
+                        _adminLock.Unlock();
+                        return status;                        
+                    }
+                    componentlist.push_back(_compName);
+                    componentlist.sort(componentComparator);
+                    // Print component of the set
+                    for (const auto& str : componentlist) {
+                        std::cout << str << " ";
+                    }
+                    std::cout << std::endl;
+                    join(outComponentString, componentlist);
+                }else{
+                    LOGERR("Failed to read migration ready %s, errno: %d, reason: %s", MIGRATIONREADY_PATH, errno, strerror(errno));
+                    LOGERR("Failed to add component{%s} in migration ready", _compName.c_str());
+                    _adminLock.Unlock();
+                    return Core::ERROR_GENERAL;
+                }
+            }
+            uint8_t datatowrite[outComponentString.size()];
+            ::memcpy(datatowrite, outComponentString.data(), outComponentString.size());
+            // write componentList to the migration ready file from begining 
+            migrationReady.Position(false, 0);
+            migrationReady.Write(datatowrite, static_cast<uint32_t>(sizeof(datatowrite)));
+            migrationReady.Close();
+            status = Core::ERROR_NONE;
+        }
+#endif/*MIGRATIONPREPARER_TR181_SUPPORT*/            
         _adminLock.Unlock();
         return status;
     }
@@ -432,23 +539,50 @@ namespace Plugin {
     {
         uint32_t status = Core::ERROR_GENERAL;
         _adminLock.Lock();
+        std::list<string> componentlist;
+#ifdef MIGRATIONPREPARER_TR181_SUPPORT
         RFC_ParamData_t param;
-        std::list<string> components;
         //getting the RFC parameter to check if any component is ready for migration
         WDMP_STATUS wdmpStatus = getRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE, TR181_MIGRATION_READY, &param);
         if (wdmpStatus != WDMP_SUCCESS) {
                 LOGINFO("No component is ready for migration");
-                status = Core::ERROR_NONE;
         }
         else{
             //if one or more component is ready then it gets the list of components
             string paramValue;
             paramValue = param.value;
-            get_components(components, paramValue);
-            LOGINFO("Components are Ready");
-            status = Core::ERROR_NONE;
+            split(componentlist, paramValue);
+            LOGINFO("componentlist are Ready");
         }
-        compList = (Core::Service<RPC::StringIterator>::Create<RPC::IStringIterator>(components));
+#else        
+        WPEFramework::Core::File migrationReady(MIGRATIONREADY_PATH);
+        WPEFramework::Core::Directory migrationReadyDir(MIGRATIONREADY_DIR);
+
+        // check whether file is exist or not, if not return empty string
+        if(!migrationReady.Exists()) {
+            LOGERR("file is not exist %s", MIGRATIONREADY_PATH);
+            _adminLock.Unlock();
+            return Core::ERROR_GENERAL;
+        }
+
+        // open file in append mode   
+        if(!migrationReady.Open(false)) {
+            LOGERR("Failed to open migration ready %s, errno: %d, reason: %s", MIGRATIONREADY_PATH, errno, strerror(errno));
+            _adminLock.Unlock();
+            return Core::ERROR_GENERAL;
+        }
+        // read component list and add new component in order into file
+        if(migrationReady.Size() > 0){
+            uint8_t datatoread[migrationReady.Size() + 1] ={'\0'};
+            uint32_t size = migrationReady.Read(datatoread, static_cast<uint32_t>(sizeof(datatoread)));
+            if(size){ 
+                std::string inComponentString(reinterpret_cast<char*>(datatoread));
+                split(componentlist, inComponentString);
+            }           
+        }
+#endif/*MIGRATIONPREPARER_TR181_SUPPORT*/        
+        compList = (Core::Service<RPC::StringIterator>::Create<RPC::IStringIterator>(componentlist));
+        status = Core::ERROR_NONE;
         LOGINFO("Component status[%d]", status);
         _adminLock.Unlock();
         return status;
@@ -459,11 +593,17 @@ namespace Plugin {
     {
         string empty;
         _adminLock.Lock();
+       
         if(resetType == "RESET_ALL") {
             LOGINFO("[RESET] params={resetType: %s}", resetType.c_str());
             if(!resetDatastore())
                 return Core::ERROR_GENERAL;
+#ifdef MIGRATIONPREPARER_TR181_SUPPORT                
             setRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE, TR181_MIGRATION_READY, empty.c_str(), WDMP_STRING);  
+#else
+            if(!resetMigrationready())
+                return Core::ERROR_GENERAL;
+#endif/*MIGRATIONPREPARER_TR181_SUPPORT*/
         }
         else if (resetType == "RESET_DATA") {
             LOGINFO("[RESET] params={resetType: %s}", resetType.c_str());
@@ -472,7 +612,12 @@ namespace Plugin {
         }
         else if (resetType == "RESET_READINESS") {
             LOGINFO("[RESET] params={resetType: %s}", resetType.c_str());
+#ifdef MIGRATIONPREPARER_TR181_SUPPORT            
             setRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE, TR181_MIGRATION_READY, empty.c_str(), WDMP_STRING);  
+#else
+            if(!resetMigrationready())
+                return Core::ERROR_GENERAL;
+#endif/*MIGRATIONPREPARER_TR181_SUPPORT*/            
         }
         else {
             // Invalid parameter
@@ -481,8 +626,7 @@ namespace Plugin {
         _adminLock.Unlock();
         
         return Core::ERROR_NONE;
-    }
-    
+    }    
 
 } // namespace Plugin
 } // namespace WPEFramework
