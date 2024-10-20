@@ -21,8 +21,13 @@
 #include <sys/prctl.h>
 #include "UtilsJsonRpc.h"
 #include "rfcapi.h"
+#if defined(SECURITY_TOKEN_ENABLED) && ((SECURITY_TOKEN_ENABLED == 0) || (SECURITY_TOKEN_ENABLED == false))
+#define GetSecurityToken(a, b) 0
+#define GetToken(a, b, c) 0
+#else
 #include <securityagent/securityagent.h>
 #include <securityagent/SecurityTokenUtil.h>
+#endif
 
 #define SERVER_DETAILS "127.0.0.1:9998"
 #define NETWORK_CALLSIGN "org.rdk.Network"

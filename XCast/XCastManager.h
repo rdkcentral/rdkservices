@@ -26,8 +26,8 @@
 #include "tptimer.h"
 #include "XCastNotifier.h"
 #include "XCastCommon.h"
-#include <xdial/gdialservicecommon.h>
-#include <xdial/gdialservice.h>
+#include <gdialservicecommon.h>
+#include <gdialservice.h>
 using namespace std;
 
 
