@@ -149,6 +149,9 @@ namespace Plugin {
             start = line.find_first_not_of(" \n");
             end = line.find_last_not_of(" \n,");
             line =  line.substr(start, end-start+1);
+            if(start == string::npos || end == string::npos)
+                continue;
+            ASSERT(end > start);
             // if line is empty or { or } continue
             if(line.empty() || line == "{" || line == "}")
 		        continue;
