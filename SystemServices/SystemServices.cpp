@@ -1530,7 +1530,7 @@ namespace WPEFramework {
 
             params["oldBlocklistFlag"] = oldBloklistStr;
             params["newBlocklistFlag"] = newBloklistStr;
-            LOGINFO("blocklist changed from %s to '%s'\n", oldBlocklistFlag.c_str(),bloklistStr.c_str());
+            LOGINFO("blocklist changed from %s to '%s'\n", oldBloklistStr, newBloklistStr);
             sendNotify(EVT_ONBLOCKLISTCHANGED, params);
         }
 
