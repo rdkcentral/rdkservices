@@ -455,10 +455,12 @@ namespace Plugin {
 
             if (nullptr != m_ControllerObj)
             {
+                bool isSubscribed = false;
                 auto ev_ret = m_ControllerObj->Subscribe<JsonObject>(1000, _T("statechange"),&XCastImplementation::eventHandler_pluginState,this);
                 if (ev_ret == Core::ERROR_NONE)
                 {
                     LOGINFO("Controller - statechange event subscribed");
+                    isSubscribed = true;
                 }
                 else
                 {
@@ -473,6 +475,12 @@ namespace Plugin {
                 else
                 {
                     _networkPluginState = PLUGIN_ACTIVATED;
+                }
+
+                if (false == isSubscribed)
+                {
+                    delete m_ControllerObj;
+                    m_ControllerObj = nullptr;
                 }
             }
             else
@@ -503,24 +511,31 @@ namespace Plugin {
                 // Network monitor so we can know ip address of host inside container
                 if(m_NetworkPluginObj)
                 {
+                    bool isSubscribed = false;
                     auto ev_ret = m_NetworkPluginObj->Subscribe<JsonObject>(THUNDER_RPC_TIMEOUT, _T("onDefaultInterfaceChanged"), &XCastImplementation::eventHandler_onDefaultInterfaceChanged,this);
                     if ( Core::ERROR_NONE == ev_ret )
                     {
                         LOGINFO("Network - Default Interface changed event : subscribed");
+                        ev_ret = m_NetworkPluginObj->Subscribe<JsonObject>(THUNDER_RPC_TIMEOUT, _T("onIPAddressStatusChanged"), &XCastImplementation::eventHandler_ipAddressChanged,this);
+                        if ( Core::ERROR_NONE == ev_ret )
+                        {
+                            LOGINFO("Network - IP address status changed event : subscribed");
+                            isSubscribed = true;
+                        }
+                        else
+                        {
+                            LOGERR("Network - IP address status changed event : failed to subscribe : %d", ev_ret);
+                        }
                     }
                     else
                     {
                         LOGERR("Network - Default Interface changed event : failed to subscribe : %d", ev_ret);
                     }
-
-                    ev_ret = m_NetworkPluginObj->Subscribe<JsonObject>(THUNDER_RPC_TIMEOUT, _T("onIPAddressStatusChanged"), &XCastImplementation::eventHandler_ipAddressChanged,this);
-                    if ( Core::ERROR_NONE == ev_ret )
+                    if (false == isSubscribed)
                     {
-                        LOGINFO("Network - IP address status changed event : subscribed");
-                    }
-                    else
-                    {
-                        LOGERR("Network - IP address status changed event : failed to subscribe : %d", ev_ret);
+                        LOGERR("Network events subscription failed");
+                        delete m_NetworkPluginObj;
+                        m_NetworkPluginObj = nullptr;
                     }
                 }
             }
@@ -663,6 +678,12 @@ namespace Plugin {
         bool returnValue = false;
 
         getThunderPlugins();
+
+        if (nullptr == m_NetworkPluginObj)
+        {
+            LOGINFO("WARN::Unable to get Network plugin handle not yet");
+            return false;
+        }
 
         uint32_t ret = m_NetworkPluginObj->Invoke<JsonObject, JsonObject>(THUNDER_RPC_TIMEOUT, _T("getDefaultInterface"), Params0, Result0);
         if (Core::ERROR_NONE == ret)
