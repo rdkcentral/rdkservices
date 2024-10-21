@@ -48,7 +48,7 @@ protected:
         : workerPool(WPEFramework::Core::ProxyType<WorkerPoolImplementation>::Create(
               WPEFramework::Core::Thread::DefaultStackSize()))
         , server(kUri, &service)
-        , store2(WPEFramework::Core::ProxyType<Store2>::Create(kUri))
+        , store2(WPEFramework::Core::ProxyType<Store2>::Create(kUri, ""))
     {
         WPEFramework::Core::IWorkerPool::Assign(&(*workerPool));
     }
