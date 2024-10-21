@@ -182,8 +182,8 @@ namespace Plugin {
     bool MigrationPreparerImplementation::resetDatastore(void){
         WPEFramework::Core::File dataStore(DATASTORE_PATH);
         if(!dataStore.Exists()) {
-            LOGERR("DataStore file does not exist");
-            return false;
+            LOGWARN("DataStore file does not exist");
+            return true;
         }
         dataStoreMutex.lock();
         // remove dataStore file
@@ -397,7 +397,12 @@ namespace Plugin {
                     if(!dataStore.SetSize(dataStore.Size() - 3)) {
                         LOGERR("DataStore truncate failed with errno: %d, reason: %s\n", errno, strerror(errno));
                     }
-                    string entry = "\n}"; 
+                    string entry;
+                    if(lineNumber.size() == 1) // if no other entries left
+                        entry = string("{\n}"); 
+                    else
+                        entry = string("\n}");
+
                     dataStore.Write(reinterpret_cast<const uint8_t*>(&entry[0]), entry.size()); 
                     dataStore.Close();             
                 }
@@ -599,7 +604,7 @@ namespace Plugin {
        
         if(resetType == "RESET_ALL") {
             LOGINFO("[RESET] params={resetType: %s}", resetType.c_str());
-            if(!resetDatastore())
+            if(!resetDatastore(resetType))
                 return Core::ERROR_GENERAL;
 #ifdef MIGRATIONPREPARER_TR181_SUPPORT                
             setRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE, TR181_MIGRATION_READY, empty.c_str(), WDMP_STRING);  
@@ -610,7 +615,7 @@ namespace Plugin {
         }
         else if (resetType == "RESET_DATA") {
             LOGINFO("[RESET] params={resetType: %s}", resetType.c_str());
-            if(!resetDatastore())
+            if(!resetDatastore(resetType))
                 return Core::ERROR_GENERAL;
         }
         else if (resetType == "RESET_READINESS") {
