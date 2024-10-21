@@ -14,7 +14,7 @@ env:
 jobs:
   L2-tests-R4-4-1:
     name: L2 tests with Thunder R4.4.1
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         compiler: [ gcc, clang ]
@@ -145,6 +145,7 @@ jobs:
               patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0001-RDK-45037-Secure-Storage-Thunder-Plugin.patch
               patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/RDKV-48604-User-Settings-Thunder-Plugin.patch
               patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/Use_Legact_Alt_In_ThunderInterfaces_Based_On_ThunderTools_R4.4.3.patch
+              patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/RDK-51362-System-Mode-Thunder-Plugin.patch
               cd ..
 
       - name: Build ThunderInterfaces

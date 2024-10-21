@@ -212,6 +212,9 @@ typedef struct _DeepSleepMgr_WakeupKeyCode_Param_t {
 #define IARM_BUS_MFRLIB_API_SetBootLoaderPattern "mfrSetBootloaderPattern"
 #define IARM_BUS_MFRLIB_API_SetBlSplashScreen       "mfrSetBlSplashScreen"
 #define IARM_BUS_MFRLIB_API_GetSerializedData "mfrGetManufacturerData"
+#define IARM_BUS_MFRLIB_API_SetFsrFlag "mfrSetFSRflag"
+#define IARM_BUS_MFRLIB_API_GetFsrFlag "mfrGetFSRflag"
+#define IARM_BUS_DSMGR_API_dsSetAllmEnabled "dsSetAllmEnabled"
 
 typedef enum _mfrSerializedType_t {
     mfrSERIALIZED_TYPE_MANUFACTURER = 0,
@@ -943,6 +946,8 @@ typedef struct _IARM_Bus_CECMgr_Status_Updated_Param_t
 typedef struct _IARM_Bus_MFRLib_SetBLSplashScreen_Param{
 	char path[255];
 } IARM_Bus_MFRLib_SetBLSplashScreen_Param_t;
+
+typedef bool IARM_Bus_MFRLib_FsrFlag_Param_t; // true or false
 
 #define IARM_BUS_CECMGR_API_isAvailable "isAvailable"
 #define IARM_BUS_DSMGR_API_dsHdmiInGetNumberOfInputs    "dsHdmiInGetNumberOfInputs"
