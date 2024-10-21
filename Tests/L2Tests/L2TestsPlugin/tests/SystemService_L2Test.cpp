@@ -585,7 +585,7 @@ TEST_F(SystemService_L2Test,setBootLoaderSplashScreen)
 TEST_F(SystemService_L2Test,SystemServiceGetSetBlocklistFlag)
 {
     JSONRPC::LinkType<Core::JSON::IElement> jsonrpc(SYSTEM_CALLSIGN, L2TEST_CALLSIGN);
-    //StrictMock<AsyncHandlerMock> async_handler;
+    StrictMock<AsyncHandlerMock> async_handler;
     uint32_t status = Core::ERROR_GENERAL;
     JsonObject params;
     JsonObject result;
