@@ -71,7 +71,7 @@ using std::ofstream;
 #define EVT_ONLOGUPLOAD                   "onLogUpload"
 #define EVT_ONDEVICEMGTUPDATERECEIVED     "onDeviceMgtUpdateReceived"
 #define EVT_ONPRIVACYMODECHANGED          "onPrivacyModeChanged"
-#define EVT_ONBLOCKLISTCHANGED          "onBlocklistChanged"
+#define EVT_ONBLOCKLISTCHANGED            "onBlocklistChanged"
 #define TERRITORYFILE                     "/opt/secure/persistent/System/Territory.txt"
 
 
@@ -208,6 +208,7 @@ namespace WPEFramework {
 		void onTerritoryChanged(string oldTerritory, string newTerritory, string oldRegion="", string newRegion="");
 		void onTimeZoneDSTChanged(string oldTimeZone, string newTimeZone, string oldAccuracy, string newAccuracy);
 		void onDeviceMgtUpdateReceived(IARM_BUS_SYSMGR_DeviceMgtUpdateInfo_Param_t *config);
+                void SystemServices::onBlocklistChanged(bool newBlocklistFlag, bool oldBlocklistFlag);
                 /* Events : End */
 
                 /* Methods : Begin */

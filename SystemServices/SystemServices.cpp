@@ -1382,9 +1382,8 @@ namespace WPEFramework {
         
         bool checkOpFlashStoreDir()
         {
-            struct stat st = {0};
             int ret = 0;
-            if (stat("/opt/secure/persistent/opflashstore", &st) == -1) {
+            if (access("/opt/secure/persistent/opflashstore", F_OK) == -1) {
                 ret = mkdir("/opt/secure/persistent/opflashstore", 0774);
                 LOGWARN(" --- SubDirectories created from mkdir %d ", ret);
             }
@@ -1523,13 +1522,14 @@ namespace WPEFramework {
          * @param1[in]  : blocklist flag
          * @param2[out] : {"blocklist": <blocklist_flag>}
          */
-        void SystemServices::onBlocklistChanged(bool blocklistFlag, bool oldBlocklistFlag)
+        void SystemServices::onBlocklistChanged(bool newBlocklistFlag, bool oldBlocklistFlag)
         {
             JsonObject params;
-            string bloklistStr = (blocklistFlag? "true":"false");
+            string newBloklistStr = (newBlocklistFlag? "true":"false");
+            string oldBloklistStr = (oldBlocklistFlag? "true":"false");
 
-            params["oldBlocklistFlag"] = oldBlocklistFlag;
-            params["newBlocklistFlag"] = bloklistStr;
+            params["oldBlocklistFlag"] = oldBloklistStr;
+            params["newBlocklistFlag"] = newBloklistStr;
             LOGINFO("blocklist changed from %s to '%s'\n", oldBlocklistFlag.c_str(),bloklistStr.c_str());
             sendNotify(EVT_ONBLOCKLISTCHANGED, params);
         }
@@ -1543,7 +1543,7 @@ namespace WPEFramework {
         uint32_t SystemServices::setBlocklistFlag(const JsonObject& parameters,
                 JsonObject& response)
         {                
-            bool status = false, update = false;
+            bool status = false, update = false, ret;
             bool result = true;
             bool blocklistFlag, oldBlocklistFlag;
             JsonObject error;
@@ -1551,8 +1551,19 @@ namespace WPEFramework {
             if ((parameters.HasLabel("blocklist"))) {
             
                 /*check /opt/secure/persistent/opflashstore/ dir*/
-                checkOpFlashStoreDir();
-                LOGINFO("checked opflashstore directory and it is exists.");
+                ret = checkOpFlashStoreDir();
+                if(ret == true){
+                    LOGINFO("checked opflashstore directory and it is exists. ret = %d",ret);
+                }
+                else {
+                    LOGWARN("failed to create opflashstore directory ret =%d", ret);
+                    LOGERR("Blocklist flag update failed. status %d ", status);
+				    error["message"] = "Blocklist flag update failed";
+				    error["code"] = "-32604";
+				    response["error"] = error;
+				    result = false;
+                    returnResponse(result);
+                }
 
                 blocklistFlag = parameters["blocklist"].Boolean();
                 if((blocklistFlag == true) || (blocklistFlag == false) ) {
@@ -1572,6 +1583,10 @@ namespace WPEFramework {
                 else {
                     LOGWARN("Invalid value");
                     populateResponseWithError(SysSrv_MissingKeyValues, response);
+                    error["message"] = "Invalid params";
+				    error["code"] = "-32602";
+				    response["error"] = error;
+                    result = false;
                 }
 
                 LOGINFO("Update= %s", (update ? "true":"false"));
@@ -1598,12 +1613,22 @@ namespace WPEFramework {
         uint32_t SystemServices::getBlocklistFlag(const JsonObject& parameters, JsonObject& response)
 	    {
 		
-		    bool status = false, result = false, blocklistFlag;
+		    bool status = false, result = false, blocklistFlag, ret = false;
             JsonObject error;
 
             /*check /opt/secure/persistent/opflashstore/ dir*/
-            checkOpFlashStoreDir();
-            LOGINFO("checked opflashstore directory and it is exists.");
+            ret = checkOpFlashStoreDir();
+            if(ret == true){
+                LOGINFO("checked opflashstore directory and it is exists. ret = %d",ret);
+            }
+            else {
+			    LOGWARN("Blocklist flag retrieved failed from persistent memory.");
+                error["message"] = "Blocklist flag retrieved failed from persistent memory.";
+				error["code"] = "-32099";
+				response["error"] = error;
+                status = false;
+                returnResponse(status);
+            }
 
             result = read_parameters(DEVICESTATE_FILE, "blocklist", blocklistFlag);
 		    if (result == true) {
