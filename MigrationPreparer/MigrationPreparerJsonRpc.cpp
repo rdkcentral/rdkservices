@@ -26,9 +26,9 @@ namespace Plugin {
 
     void MigrationPreparer::RegisterAll()
     {
-        Register<WriteentryParamsData, WriteentryResultInfo>(_T("write"), &MigrationPreparer::endpoint_write, this);
-        Register<DeleteentryParamsInfo, ReadentryResultData>(_T("read"), &MigrationPreparer::endpoint_read, this);
-        Register<DeleteentryParamsInfo, WriteentryResultInfo>(_T("delete"), &MigrationPreparer::endpoint_delete, this);
+        Register(_T("write"), &MigrationPreparer::endpoint_write, this);
+        Register(_T("read"), &MigrationPreparer::endpoint_read, this);
+        Register(_T("delete"), &MigrationPreparer::endpoint_delete, this);
         Register<void, GetcomponentreadinessResultData>(_T("getComponentReadiness"), &MigrationPreparer::endpoint_getComponentReadiness, this);
         Register<SetcomponentreadinessParamsData, WriteentryResultInfo>(_T("setComponentReadiness"), &MigrationPreparer::endpoint_setComponentReadiness, this);
         Register<ResetParamsData, WriteentryResultInfo>(_T("reset"), &MigrationPreparer::endpoint_reset, this);
@@ -44,74 +44,86 @@ namespace Plugin {
         Unregister(_T("reset"));
     }
 
-    uint32_t MigrationPreparer::endpoint_write(const WriteentryParamsData& params, WriteentryResultInfo& response)
+    uint32_t MigrationPreparer::endpoint_write(const JsonObject& parameters, JsonObject& response)
     {
-        // check if provided params are available
-        if (params.Name.IsNull() || params.Value.IsNull()) {
-            return Core::ERROR_INVALID_INPUT_LENGTH;
+        // check if required filds - name, value exists
+        if (!parameters.HasLabel("name") || !parameters.HasLabel("value")) {
+            LOGERR("Invalid input - missing name or value lables");
+            return Core::ERROR_BAD_REQUEST;
         }
-
+        // check if provided params are strigified
+        if ((JsonValue::type::STRING != parameters["name"].Content()) || (JsonValue::type::STRING != parameters["value"].Content())) {
+            LOGERR("Invalid input - name or value is not stringified");
+            return Core::ERROR_BAD_REQUEST;
+        }
         // check if provided params are empty
-        if (params.Name.Value() == string() || params.Value.Value() == string()) {
-            return Core::ERROR_INVALID_INPUT_LENGTH;
+        if (parameters["name"].String().empty() || parameters["value"].String().empty()) {
+            LOGERR("Invalid input - name or value is empty");
+            return Core::ERROR_BAD_REQUEST;
         }
-        
-        //No checks included to check if provided params is string or not
 
         auto result = _migrationPreparer->writeEntry(
-            params.Name.Value(),
-            params.Value.Value());
+            parameters["name"].String(),
+            parameters["value"].String());
         if (result == Core::ERROR_NONE) {
-            response.Success = true;
+            response["success"] = true;
         }
 
         return result;
     }
 
-    uint32_t MigrationPreparer::endpoint_read(const DeleteentryParamsInfo& params, ReadentryResultData& response)
+    uint32_t MigrationPreparer::endpoint_read(const JsonObject& parameters, JsonObject& response)
     {
-        // check if provided params are available
-        if (params.Name.IsNull()) {
-            return Core::ERROR_INVALID_INPUT_LENGTH;
+        // check if required filds - name, value exists
+        if (!parameters.HasLabel("name")) {
+            LOGERR("Invalid input - missing label");
+            return Core::ERROR_BAD_REQUEST;
         }
-
-        // check if provided params are empty
-        if (params.Name.Value() == string()) {
-            return Core::ERROR_INVALID_INPUT_LENGTH;
+        // check if provided params are strigified
+        if (JsonValue::type::STRING != parameters["name"].Content()) {
+            LOGERR("Invalid input - name is not stringified");
+            return Core::ERROR_BAD_REQUEST;
         }
-
-        //No checks included to check if provided params is string or not
+         // check if provided params are empty
+        if (parameters["name"].String().empty()) {
+            LOGERR("Invalid input - name is empty");
+            return Core::ERROR_BAD_REQUEST;
+        }
 
         string value;
         auto result = _migrationPreparer->readEntry(
-                            params.Name.Value(),
+                            parameters["name"].String(),
                             value);
         if (result == Core::ERROR_NONE) {
-            response.Value = value;
-            response.Success = true;
+            response["value"] = value;
+            response["success"] = true;
         }
 
         return result;
     }
 
-    uint32_t MigrationPreparer::endpoint_delete(const DeleteentryParamsInfo& params, WriteentryResultInfo& response) {
-        // check if provided params are available
-        if (params.Name.IsNull()) {
-            return Core::ERROR_INVALID_INPUT_LENGTH;
+    uint32_t MigrationPreparer::endpoint_delete(const JsonObject& parameters, JsonObject& response) {
+        // check if required filds - name, value exists
+        if (!parameters.HasLabel("name")) {
+            LOGERR("Invalid input - missing label");
+            return Core::ERROR_BAD_REQUEST;
         }
-
+        // check if provided params are strigified
+        if (JsonValue::type::STRING != parameters["name"].Content()) {
+            LOGERR("Invalid input - name is not stringified");
+            return Core::ERROR_BAD_REQUEST;
+        }
         // check if provided params are empty
-        if (params.Name.Value() == string()) {
-            return Core::ERROR_INVALID_INPUT_LENGTH;
+        if (parameters["name"].String().empty()) {
+            LOGERR("Invalid input - name is empty");
+            return Core::ERROR_BAD_REQUEST;
         }
-        
-        //No checks included to check if provided params is string or not
 
         auto result = _migrationPreparer->deleteEntry(
-                            params.Name.Value());
+                            parameters["name"].String());
 
         if (result == Core::ERROR_NONE) {
-            response.Success = true;
+            response["success"] = true;
         }
 
         return result;

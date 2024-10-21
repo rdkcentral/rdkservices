@@ -25,6 +25,7 @@
 #include <interfaces/IMigrationPreparer.h>
 #include "UtilsLogging.h"
 #include "tracing/Logging.h"
+#include "UtilsJsonRpc.h"
 #include <mutex>
 
 namespace WPEFramework {
@@ -107,9 +108,9 @@ namespace Plugin {
             void Activated(RPC::IRemoteConnection* connection);
             void Deactivated(RPC::IRemoteConnection* connection);
 
-            uint32_t endpoint_write(const JsonData::MigrationPreparer::WriteentryParamsData& params, JsonData::MigrationPreparer::WriteentryResultInfo& response);
-            uint32_t endpoint_read(const JsonData::MigrationPreparer::DeleteentryParamsInfo& params, JsonData::MigrationPreparer::ReadentryResultData& response);
-            uint32_t endpoint_delete(const JsonData::MigrationPreparer::DeleteentryParamsInfo& params, JsonData::MigrationPreparer::WriteentryResultInfo& response);
+            uint32_t endpoint_write(const JsonObject& parameters, JsonObject& response);
+            uint32_t endpoint_read(const JsonObject& parameters, JsonObject& response);
+            uint32_t endpoint_delete(const JsonObject& parameters, JsonObject& response);
             uint32_t endpoint_getComponentReadiness(JsonData::MigrationPreparer::GetcomponentreadinessResultData& response);
             uint32_t endpoint_setComponentReadiness(const JsonData::MigrationPreparer::SetcomponentreadinessParamsData& params, JsonData::MigrationPreparer::WriteentryResultInfo& response);
             uint32_t endpoint_reset(const JsonData::MigrationPreparer::ResetParamsData& params, JsonData::MigrationPreparer::WriteentryResultInfo& response);
