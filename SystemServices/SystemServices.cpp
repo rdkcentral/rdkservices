@@ -1417,7 +1417,13 @@ namespace WPEFramework {
                             }
                             else {
                                 update = true;
-                                oldBlocklistFlag = file_value; //store old value for notify.
+                                //store old value for notify.
+                                if(file_value == "true"){
+                                    oldBlocklistFlag = true;
+                                }
+                                else if(file_value == "false"){
+                                    oldBlocklistFlag = false;
+                                }
                                 // Update the parameter value
                                 line = param + "=" + (value ? "true" : "false");
                                 param_found = true;
@@ -1468,7 +1474,7 @@ namespace WPEFramework {
             bool param_found = false;
             while (getline(file, line)) {
                 // Remove any trailing newline characters
-                line.erase(line.find_last_not_of("\n\r") + 1);
+                //line.erase(line.find_last_not_of("\n\r") + 1);
         
                 // Split the line into parameter and value using '=' delimiter
                 size_t pos = line.find('=');
