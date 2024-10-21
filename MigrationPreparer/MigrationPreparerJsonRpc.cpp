@@ -30,7 +30,7 @@ namespace Plugin {
         Register(_T("read"), &MigrationPreparer::endpoint_read, this);
         Register(_T("delete"), &MigrationPreparer::endpoint_delete, this);
         Register<void, GetcomponentreadinessResultData>(_T("getComponentReadiness"), &MigrationPreparer::endpoint_getComponentReadiness, this);
-        Register<SetcomponentreadinessParamsData, WriteentryResultInfo>(_T("setComponentReadiness"), &MigrationPreparer::endpoint_setComponentReadiness, this);
+        Register<JsonObject, WriteentryResultInfo>(_T("setComponentReadiness"), &MigrationPreparer::endpoint_setComponentReadiness, this);
         Register<ResetParamsData, WriteentryResultInfo>(_T("reset"), &MigrationPreparer::endpoint_reset, this);
     }
 
@@ -76,7 +76,7 @@ namespace Plugin {
     {
         // check if required filds - name, value exists
         if (!parameters.HasLabel("name")) {
-            LOGERR("Invalid input - missing label");
+            LOGERR("Invalid input - missing name");
             return Core::ERROR_BAD_REQUEST;
         }
         // check if provided params are strigified
@@ -105,7 +105,7 @@ namespace Plugin {
     uint32_t MigrationPreparer::endpoint_delete(const JsonObject& parameters, JsonObject& response) {
         // check if required filds - name, value exists
         if (!parameters.HasLabel("name")) {
-            LOGERR("Invalid input - missing label");
+            LOGERR("Invalid input - missing name");
             return Core::ERROR_BAD_REQUEST;
         }
         // check if provided params are strigified
@@ -132,10 +132,9 @@ namespace Plugin {
     
     uint32_t MigrationPreparer::endpoint_getComponentReadiness(GetcomponentreadinessResultData& response) {
 
-        RPC::IStringIterator* componentList;
+        RPC::IStringIterator* componentList = nullptr;
         auto result = _migrationPreparer->getComponentReadiness(componentList);
         if (result == Core::ERROR_NONE) {
-            string component;
             while (componentList->Next(component) == true) {
                 response.ComponentList.Add() = component;
             }
@@ -146,21 +145,25 @@ namespace Plugin {
     }
     
 
-    uint32_t MigrationPreparer::endpoint_setComponentReadiness(const SetcomponentreadinessParamsData& params, WriteentryResultInfo& response) {
-        // check if provided params are available
-        if (params.ComponentName.IsNull()) {
-            return Core::ERROR_INVALID_INPUT_LENGTH;
+    uint32_t MigrationPreparer::endpoint_setComponentReadiness(const JsonObject& parameters, WriteentryResultInfo& response) {        
+        // check if required filds - name, value exists
+        if (!parameters.HasLabel("ComponentName")) {
+            LOGERR("Invalid input - missing ComponentName");
+            return Core::ERROR_BAD_REQUEST;
         }
-
+        // check if provided params are strigified
+        if (JsonValue::type::STRING != parameters["ComponentName"].Content()) {
+            LOGERR("Invalid input - ComponentName is not stringified");
+            return Core::ERROR_BAD_REQUEST;
+        }
         // check if provided params are empty
-        if (params.ComponentName.Value() == string()) {
-            return Core::ERROR_INVALID_INPUT_LENGTH;
+        if (parameters["ComponentName"].String().empty()) {
+            LOGERR("Invalid input - ComponentName is empty");
+            return Core::ERROR_BAD_REQUEST;
         }
-        
-        //No checks included to check if provided params is string or not
 
         auto result = _migrationPreparer->setComponentReadiness(
-                            params.ComponentName.Value());
+                            parameters["ComponentName"].String());
 
         if (result == Core::ERROR_NONE) {
             response.Success = true;

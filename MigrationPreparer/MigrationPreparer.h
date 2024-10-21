@@ -112,7 +112,7 @@ namespace Plugin {
             uint32_t endpoint_read(const JsonObject& parameters, JsonObject& response);
             uint32_t endpoint_delete(const JsonObject& parameters, JsonObject& response);
             uint32_t endpoint_getComponentReadiness(JsonData::MigrationPreparer::GetcomponentreadinessResultData& response);
-            uint32_t endpoint_setComponentReadiness(const JsonData::MigrationPreparer::SetcomponentreadinessParamsData& params, JsonData::MigrationPreparer::WriteentryResultInfo& response);
+            uint32_t endpoint_setComponentReadiness(const JsonObject& parameters, JsonData::MigrationPreparer::WriteentryResultInfo& response);
             uint32_t endpoint_reset(const JsonData::MigrationPreparer::ResetParamsData& params, JsonData::MigrationPreparer::WriteentryResultInfo& response);
             void event_onValueChanged(const JsonData::MigrationPreparer::WriteentryParamsData& params)
             {
