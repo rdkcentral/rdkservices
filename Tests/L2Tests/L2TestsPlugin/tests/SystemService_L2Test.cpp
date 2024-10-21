@@ -217,7 +217,9 @@ void SystemService_L2Test::onBlocklistChanged(const JsonObject &message)
 
     /* Notify the requester thread. */
     m_event_signalled |= SYSTEMSERVICEL2TEST_BLOCKLIST_CHANGED;
+    TEST_LOG("set SYSTEMSERVICEL2TEST_BLOCKLIST_CHANGED signal in m_event_signalled\n");
     m_condition_variable.notify_one();
+    TEST_LOG("notify with m_condition_variable variable\n");
 }
 /**
  * @brief waits for various status change on asynchronous calls
@@ -625,7 +627,6 @@ TEST_F(SystemService_L2Test,SystemServiceGetSetBlocklistFlag)
     EXPECT_CALL(async_handler, onBlocklistChanged(MatchRequestStatus(expected_status)))
         .WillOnce(Invoke(this, &SystemService_L2Test::onBlocklistChanged));
     signalled = WaitForRequestStatus(JSON_TIMEOUT,SYSTEMSERVICEL2TEST_BLOCKLIST_CHANGED);
-
 
     params["blocklist"] = false;
 
