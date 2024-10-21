@@ -2,7 +2,7 @@
 <a name="System_Plugin"></a>
 # System Plugin
 
-**Version: [3.3.1](https://github.com/rdkcentral/rdkservices/blob/main/SystemServices/CHANGELOG.md)**
+**Version: [3.3.2](https://github.com/rdkcentral/rdkservices/blob/main/SystemServices/CHANGELOG.md)**
 
 A org.rdk.System plugin for Thunder framework.
 
@@ -3754,6 +3754,8 @@ org.rdk.System interface events:
 | [onTimeZoneDSTChanged](#onTimeZoneDSTChanged) | Triggered when device time zone changed |
 | [onLogUpload](#onLogUpload) | Triggered when logs upload process is done or stopped |
 | [onPrivacyModeChanged](#onPrivacyModeChanged) | Triggered after the Privacy Mode changes (see `SetPrivacyMode`) |
+| [setFSRFlag](#setFSRFlag) | Set the FSR flag into the emmc raw area |
+| [getFSRFlag](#getFSRFlag) | Get the FSR flag from the emmc raw area |
 
 
 <a name="onFirmwarePendingReboot"></a>
@@ -4222,6 +4224,58 @@ Triggered after the Privacy Mode changes (see `SetPrivacyMode`).
     "params": {
         "privacyMode": "DO_NOT_SHARE"
     }
+}
+```
+
+<a name="setFSRFlag"></a>
+## *setFSRFlag*
+
+Set the FSR flag into the emmc raw area. This API will fail if you attempt to set the same value.
+
+### Parameters
+
+This event carries no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.fsrFlag | boolean | FSR flag |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.setFSRFlag"
+}
+```
+
+<a name="getFSRFlag"></a>
+## *getFSRFlag*
+
+Get the FSR flag from the emmc raw area.
+
+### Parameters
+
+This event carries no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.fsrFlag | boolean | FSR flag |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.getFSRFlag"
 }
 ```
 
