@@ -208,7 +208,7 @@ namespace WPEFramework {
 		void onTerritoryChanged(string oldTerritory, string newTerritory, string oldRegion="", string newRegion="");
 		void onTimeZoneDSTChanged(string oldTimeZone, string newTimeZone, string oldAccuracy, string newAccuracy);
 		void onDeviceMgtUpdateReceived(IARM_BUS_SYSMGR_DeviceMgtUpdateInfo_Param_t *config);
-                void SystemServices::onBlocklistChanged(bool newBlocklistFlag, bool oldBlocklistFlag);
+                void onBlocklistChanged(bool newBlocklistFlag, bool oldBlocklistFlag);
                 /* Events : End */
 
                 /* Methods : Begin */
