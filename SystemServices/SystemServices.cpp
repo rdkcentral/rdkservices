@@ -1528,8 +1528,8 @@ namespace WPEFramework {
             string newBloklistStr = (newBlocklistFlag? "true":"false");
             string oldBloklistStr = (oldBlocklistFlag? "true":"false");
 
-            params["oldBlocklistFlag"] = oldBloklistStr;
-            params["newBlocklistFlag"] = newBloklistStr;
+            params["oldBlocklistFlag"] = oldBlocklistFlag;
+            params["newBlocklistFlag"] = newBlocklistFlag;
             LOGINFO("blocklist changed from %s to '%s'\n", oldBloklistStr, newBloklistStr);
             sendNotify(EVT_ONBLOCKLISTCHANGED, params);
         }

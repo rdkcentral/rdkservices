@@ -19,6 +19,7 @@ typedef enum : uint32_t {
     SYSTEMSERVICEL2TEST_SYSTEMSTATE_CHANGED = 0x00000001,
     SYSTEMSERVICEL2TEST_THERMALSTATE_CHANGED=0x00000002,
     SYSTEMSERVICEL2TEST_LOGUPLOADSTATE_CHANGED=0x00000004,
+    SYSTEMSERVICEL2TEST_BLOCKLIST_CHANGED=0x00000005,
     SYSTEMSERVICEL2TEST_STATE_INVALID = 0x00000000
 }SystemServiceL2test_async_events_t;
 /**
@@ -37,6 +38,7 @@ class AsyncHandlerMock
         MOCK_METHOD(void, onTemperatureThresholdChanged, (const JsonObject &message));
         MOCK_METHOD(void, onLogUploadChanged, (const JsonObject &message));
         MOCK_METHOD(void, onSystemPowerStateChanged, (const JsonObject &message));
+        MOCK_METHOD(void, onBlocklistChanged, (const JsonObject &message));
 };
 
 /* Systemservice L2 test class declaration */
@@ -67,6 +69,12 @@ protected:
          * changed notification received from IARM
          */
       void onSystemPowerStateChanged(const JsonObject &message);
+
+        /**
+         * @brief called when blocklist flag
+         * changed notification because of blocklist flag modified.
+         */
+      void onBlocklistChanged(const JsonObject &message);
 
         /**
          * @brief waits for various status change on asynchronous calls
@@ -191,6 +199,26 @@ void SystemService_L2Test::onSystemPowerStateChanged(const JsonObject &message)
     m_condition_variable.notify_one();
 }
 
+/**
+ * @brief called when Blocklist flag
+ * changed notification because of blocklist flag modified
+ *
+ * @param[in] message from system service on the change
+ */
+void SystemService_L2Test::onBlocklistChanged(const JsonObject &message)
+{
+    TEST_LOG("onBlocklistChanged event triggered ***\n");
+    std::unique_lock<std::mutex> lock(m_mutex);
+
+    std::string str;
+    message.ToString(str);
+
+    TEST_LOG("onBlocklistChanged received: %s\n", str.c_str());
+
+    /* Notify the requester thread. */
+    m_event_signalled |= SYSTEMSERVICEL2TEST_BLOCKLIST_CHANGED;
+    m_condition_variable.notify_one();
+}
 /**
  * @brief waits for various status change on asynchronous calls
  *
@@ -561,15 +589,15 @@ TEST_F(SystemService_L2Test,SystemServiceGetSetBlocklistFlag)
     uint32_t status = Core::ERROR_GENERAL;
     JsonObject params;
     JsonObject result;
-    //uint32_t signalled = SYSTEMSERVICEL2TEST_STATE_INVALID;
-    //std::string message;
-    //JsonObject expected_status;
+    uint32_t signalled = SYSTEMSERVICEL2TEST_STATE_INVALID;
+    std::string message;
+    JsonObject expected_status;
 #if 0
     status = InvokeServiceMethod("org.rdk.System.1", "getBlocklistFlag", params, result);
     EXPECT_EQ(Core::ERROR_NONE, status);
 
     EXPECT_FALSE(result["success"].Boolean()); // First time get request when there is no flag set on device.
-
+#endif
     /* Register for temperature threshold change event. */
     status = jsonrpc.Subscribe<JsonObject>(JSON_TIMEOUT,
                                            _T("onBlocklistChanged"),
@@ -577,7 +605,7 @@ TEST_F(SystemService_L2Test,SystemServiceGetSetBlocklistFlag)
                                            &async_handler);
 
     EXPECT_EQ(Core::ERROR_NONE, status);
-#endif
+
     params["blocklist"] = true;
 
     status = InvokeServiceMethod("org.rdk.System.1", "setBlocklistFlag", params, result);
@@ -612,5 +640,14 @@ TEST_F(SystemService_L2Test,SystemServiceGetSetBlocklistFlag)
 
     EXPECT_FALSE(result["success"].Boolean());
 */
-//    jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("onBlocklistChanged"));
+    /* Request status for Onlogupload. */
+    message = "{\"oldBlocklistFlag\": true,\"newBlocklistFlag\": false}";
+    expected_status.FromString(message);
+    EXPECT_CALL(async_handler, onBlocklistChanged(MatchRequestStatus(expected_status)))
+        .WillOnce(Invoke(this, &SystemService_L2Test::onBlocklistChanged));
+
+    signalled = WaitForRequestStatus(JSON_TIMEOUT,SYSTEMSERVICEL2TEST_BLOCKLIST_CHANGED);
+    EXPECT_TRUE(signalled & SYSTEMSERVICEL2TEST_BLOCKLIST_CHANGED);
+
+    jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("onBlocklistChanged"));
 }

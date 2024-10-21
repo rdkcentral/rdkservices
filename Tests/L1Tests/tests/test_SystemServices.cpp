@@ -6269,11 +6269,10 @@ TEST_F(SystemServicesEventIarmTest, onBlocklistChanged)
                                                              "\"method\":\"org.rdk.System.onBlocklistChanged\","
                                                              "\"params\":"
                                                              "\\{"
-                                                             "\"oldBlocklistFlag\":\"false\","
-                                                             "\"newBlocklistFlag\":\"true\""
+                                                             "\"oldBlocklistFlag\":false,"
+                                                             "\"newBlocklistFlag\":true"
                                                              "\\}"
                                                              "\\}")));
-s
                 onBlocklistChanged.SetEvent();
 
                 return Core::ERROR_NONE;
