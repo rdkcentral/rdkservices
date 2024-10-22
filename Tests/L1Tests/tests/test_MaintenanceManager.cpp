@@ -93,7 +93,7 @@ protected:
     }
 };
 
-
+#if 0
 static AssertionResult isValidCtrlmRcuIarmEvent(IARM_EventId_t ctrlmRcuIarmEventId)
 {
     switch (ctrlmRcuIarmEventId) {
@@ -103,6 +103,7 @@ static AssertionResult isValidCtrlmRcuIarmEvent(IARM_EventId_t ctrlmRcuIarmEvent
             return AssertionFailure();
     }
 }
+#endif
 
 class MaintenanceManagerInitializedEventTest : public MaintenanceManagerTest {
 protected:
