@@ -22,6 +22,7 @@
 #include <interfaces/IAnalytics.h>
 #include <interfaces/IConfiguration.h>
 #include "Backend/AnalyticsBackend.h"
+#include "SystemTime.h"
 
 #include <mutex>
 #include <condition_variable>
@@ -76,16 +77,14 @@ namespace Plugin {
 
 
         // IAnalyticsImplementation interface
-        uint32_t SendEvent(const string& eventName,
+        Core::hresult SendEvent(const string& eventName,
                                    const string& eventVersion,
                                    const string& eventSource,
                                    const string& eventSourceVersion,
-                                   RPC::IStringIterator* const& cetList,
-                                   const uint64_t& epochTimestamp,
-                                   const uint64_t& uptimeTimestamp,
+                                   IStringIterator* const& cetList,
+                                   const uint64_t epochTimestamp,
+                                   const uint64_t uptimeTimestamp,
                                    const string& eventPayload) override;
-        uint32_t SetSessionId(const string& id) override;
-        uint32_t SetTimeReady() override;
 
 
         // IConfiguration interface
@@ -107,6 +106,7 @@ namespace Plugin {
         const IAnalyticsBackends mBackends;
         bool mSysTimeValid;
         PluginHost::IShell* mShell;
+        SystemTimePtr mSysTime;
     };
 }
 }
