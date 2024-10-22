@@ -1,4 +1,4 @@
-From 9a2398b7bc356f341e25c414e45b6919df135d58 Mon Sep 17 00:00:00 2001
+From 326e1f2371147945ec609cfc7f2555625c69611f Mon Sep 17 00:00:00 2001
 From: Adrian Muzyka <adrian.muzyka@consult.red>
 Date: Thu, 19 Sep 2024 12:34:27 +0200
 Subject: [PATCH] Add IAnalytics interface R2
@@ -11,7 +11,7 @@ Subject: [PATCH] Add IAnalytics interface R2
 
 diff --git a/interfaces/IAnalytics.h b/interfaces/IAnalytics.h
 new file mode 100644
-index 0000000..19f5a3a
+index 0000000..00fd04e
 --- /dev/null
 +++ b/interfaces/IAnalytics.h
 @@ -0,0 +1,27 @@
@@ -29,16 +29,16 @@ index 0000000..19f5a3a
 +
 +        virtual ~IAnalytics() override = default;
 +
++        using IStringIterator = RPC::IIteratorType<string, RPC::ID_STRINGITERATOR>;
++
 +        virtual uint32_t SendEvent(const string& eventName /* @in */,
 +                                   const string& eventVersion /* @in */,
 +                                   const string& eventSource /* @in */,
 +                                   const string& eventSourceVersion /* @in */,
-+                                   RPC::IStringIterator* const& cetList /* @in */,
-+                                   const uint64_t& epochTimestamp /* @in */,
-+                                   const uint64_t& uptimeTimestamp /* @in */,
++                                   IStringIterator* const& cetList /* @in */,
++                                   const uint64_t epochTimestamp /* @in */,
++                                   const uint64_t uptimeTimestamp /* @in */,
 +                                   const string& eventPayload /* @in */ ) = 0;
-+        virtual uint32_t SetSessionId(const string& id /* @in */) = 0;
-+        virtual uint32_t SetTimeReady() = 0;
 +    };
 +}
 +}

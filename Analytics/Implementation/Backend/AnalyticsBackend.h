@@ -21,6 +21,7 @@
 #include <map>
 #include <string>
 #include "../../Module.h"
+#include "../SystemTime/SystemTime.h"
 
 // Interface for Analytics Backedn
 namespace WPEFramework {
@@ -42,15 +43,16 @@ namespace Plugin {
 
         const static std::string SIFT;
 
-        virtual uint32_t Configure(PluginHost::IShell* shell) = 0;
+        virtual uint32_t Configure(PluginHost::IShell* shell, SystemTimePtr sysTime) = 0;
         virtual uint32_t SendEvent(const Event& event) = 0;
-        virtual uint32_t SetSessionId(const std::string& sessionId) = 0;
     };
 
-    typedef std::map<std::string, IAnalyticsBackend&> IAnalyticsBackends;
+    typedef std::shared_ptr<IAnalyticsBackend> IAnalyticsBackendPtr;
+
+    typedef std::map<std::string, IAnalyticsBackendPtr> IAnalyticsBackends;
 
     struct IAnalyticsBackendAdministrator {
-        static IAnalyticsBackends& Instances();
+        static IAnalyticsBackends Create();
 
         virtual ~IAnalyticsBackendAdministrator() = default;
     };
