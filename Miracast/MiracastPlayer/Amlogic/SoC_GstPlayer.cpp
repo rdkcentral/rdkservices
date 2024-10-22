@@ -958,6 +958,8 @@ bool SoC_GstPlayer::stop()
 #define DEFAULT_MAX_PUSH_BUFFER_SIZE    ( 1 * 1024 * 1024 )
 typedef struct
 {
+    guint sourceid;
+
     GstElement *udpsrcProp;
     GstElement *rtpjitterbufferProp;
     GstElement *rtpmp2tdepayProp;
@@ -982,12 +984,14 @@ typedef struct
 }
 MiracastCustomData;
 
+static MiracastCustomData *custom_data_ptr = nullptr;
+static MessageQueue* m_queueHandle = nullptr;
+
 static GstFlowReturn on_new_sample_from_sink(GstElement *elt, MiracastCustomData *self)
 {
     GstSample *sample = NULL;
     GstBuffer *buffer = NULL;
     GstMapInfo map;
-    GstFlowReturn ret;
 
     if (nullptr == self->appsrcProp)
     {
@@ -1025,18 +1029,22 @@ static GstFlowReturn on_new_sample_from_sink(GstElement *elt, MiracastCustomData
     // Copy data from the original buffer to the new buffer
     gst_buffer_fill(new_buffer, 0, map.data, map.size);
 
-    // Push the new buffer to appsrc
-    ret = gst_app_src_push_buffer(GST_APP_SRC(self->appsrcProp), new_buffer);
-    if (ret != GST_FLOW_OK)
+    MIRACASTLOG_INFO("==> Received sample size [%u][%x] <==",map.size,new_buffer);
+
+    m_queueHandle->sendData(static_cast<void*>(new_buffer));
+
+#if 0
+    if (GST_FLOW_OK != gst_app_src_push_buffer(GST_APP_SRC(self->appsrcProp), new_buffer))
     {
-        MIRACASTLOG_ERROR("Error pushing buffer to appsrc\n");
+        MIRACASTLOG_ERROR("Failed to gst_app_src_push_buffer");
     }
+#endif
 
     // Unmap and cleanup
     gst_buffer_unmap(buffer, &map);
     gst_sample_unref(sample);
 
-    return ret;
+    return GST_FLOW_OK;
 }
 
 /* called when we get a GstMessage from the source pipeline when we get EOS, we
@@ -1155,36 +1163,73 @@ static gboolean on_playbin_bus_message (GstBus * bus, GstMessage * message, Mira
     return TRUE;
 }
 
+static gboolean pushBufferToAppsrc(MiracastCustomData *self)
+{
+    MIRACASTLOG_TRACE("Entering...");
+    void* buffer;
+    GstBuffer *gstBuffer;
+    m_queueHandle->ReceiveData(buffer);
+
+    gstBuffer = static_cast<GstBuffer*>(buffer);
+
+    if (nullptr != gstBuffer)
+    {
+    #if 1
+        // Push the new buffer to appsrc
+        GstFlowReturn ret = gst_app_src_push_buffer(GST_APP_SRC(self->appsrcProp), gstBuffer);
+        if (ret != GST_FLOW_OK)
+        {
+            MIRACASTLOG_ERROR("Error pushing buffer to appsrc");
+        }
+    #endif
+    }
+    MIRACASTLOG_TRACE("Exiting...");
+    return TRUE;
+}
+
 // Module functions
 static void gst_bin_need_data(GstAppSrc *src, guint length, gpointer user_data)
 {
     //MIRACASTLOG_INFO("Entering...");
-    MiracastCustomData *pData = (MiracastCustomData *)user_data;
+    MiracastCustomData *self = (MiracastCustomData *)user_data;
     MIRACASTLOG_INFO("AppSrc empty");
-    pData->bPushData = true;
+    if (self->sourceid == 0)
+    {
+        MIRACASTLOG_INFO("start feeding\n");
+        self->sourceid = g_idle_add((GSourceFunc)pushBufferToAppsrc, self);
+    }
+    self->bPushData = true;
     //MIRACASTLOG_INFO("Exiting...");
     return;
 }
+
 static void gst_bin_enough_data(GstAppSrc *src, gpointer user_data)
 {
-    MiracastCustomData *pData = (MiracastCustomData *)user_data;
+    MiracastCustomData *self = (MiracastCustomData *)user_data;
     MIRACASTLOG_INFO("AppSrc Full!!!!");
-    pData->bPushData = false;
+    if (self->sourceid != 0)
+    {
+        MIRACASTLOG_INFO("stop feeding\n");
+        g_source_remove(self->sourceid);
+        self->sourceid = 0;
+    }
+    self->bPushData = false;
     return;
 }
+
 /* This function is called when playbin2 has created the appsrc element, so we have
  * a chance to configure it. */
 static void source_setup(GstElement *pipeline, GstElement *source, MiracastCustomData *user_data)
 {
     MiracastCustomData *pData = (MiracastCustomData *)user_data;
     MIRACASTLOG_INFO("Entering...");
-    MIRACASTLOG_INFO("Source has been created. Configuring.");
+    MIRACASTLOG_INFO("Source has been created. Configuring [%x]",source);
     pData->appsrcProp = source;
     // Set AppSrc parameters
     GstAppSrcCallbacks callbacks = {gst_bin_need_data, gst_bin_enough_data, NULL};
     gst_app_src_set_callbacks(GST_APP_SRC(pData->appsrcProp), &callbacks, (gpointer)(pData), NULL);
     g_object_set(GST_APP_SRC(pData->appsrcProp), "max-bytes", (guint64) 20 * 1024 * 1024, NULL);
-#if 1
+
     g_object_set(GST_APP_SRC(pData->appsrcProp), "format", GST_FORMAT_TIME, NULL);
     g_object_set(GST_APP_SRC(pData->appsrcProp), "is-live", true, NULL);
     const gchar *set_cap = "video/mpegts, systemstream=(boolean)true, packetsize=(int)188";
@@ -1193,11 +1238,8 @@ static void source_setup(GstElement *pipeline, GstElement *source, MiracastCusto
     if(caps) {
       pData->capsSrc = caps;
     }
-#endif
     MIRACASTLOG_INFO("Exiting... ");
 }
-
-static MiracastCustomData *custom_data_ptr = nullptr;
 
 bool SoC_GstPlayer::createPipeline()
 {
@@ -1206,6 +1248,7 @@ bool SoC_GstPlayer::createPipeline()
     GstBus *bus = nullptr;
     bool return_value = true;
     custom_data_ptr = g_new0(MiracastCustomData, 1);
+    m_queueHandle = new MessageQueue(100);
 
     /* create gst pipeline */
     m_main_loop_context = g_main_context_new();
@@ -1224,6 +1267,7 @@ bool SoC_GstPlayer::createPipeline()
     custom_data_ptr->queueProp = gst_element_factory_make("queue", "miracast_queue");
     custom_data_ptr->appsinkProp = gst_element_factory_make("appsink", "miracast_appsink");
     m_video_sink = gst_element_factory_make("westerossink", "miracast_westerossink");
+    m_audio_sink = gst_element_factory_make("amlhalasink", "miracast_amlhalasink");
 
     if (!custom_data_ptr->udpsrc_appsink_pipeline ||
         !custom_data_ptr->udpsrcProp ||
@@ -1266,8 +1310,11 @@ bool SoC_GstPlayer::createPipeline()
 
     /*{{{ tsparse related element configuration*/
     MIRACASTLOG_TRACE(">>>>>>>tsparse configuration start");
+    uint64_t packetsPerBuffer = 512;
     MIRACASTLOG_TRACE("Set 'set-timestamps' to tsparse");
     g_object_set(G_OBJECT(custom_data_ptr->tsparseProp), "set-timestamps", true, nullptr );
+    MIRACASTLOG_TRACE("Set 'alignment' to tsparse");
+    g_object_set(G_OBJECT(custom_data_ptr->tsparseProp), "alignment", packetsPerBuffer, nullptr );
     MIRACASTLOG_TRACE("tsparse configuration end<<<<<<<<");
     /*}}}*/
 
@@ -1276,34 +1323,13 @@ bool SoC_GstPlayer::createPipeline()
     gst_bus_add_watch(bus, (GstBusFunc)on_appsink_bus_message, custom_data_ptr);
     gst_object_unref(bus);
     
-    guint64 max_push_buffer_size = 0;
-    std::string opt_flag_buffer = MiracastCommon::parse_opt_flag( "/opt/miracast_max_pushbuffer_size" , true );
-    if (!opt_flag_buffer.empty())
-    {
-        max_push_buffer_size = std::stoull(opt_flag_buffer.c_str());
-        MIRACASTLOG_INFO("Max pushbuffer size configured as [%llu]\n",max_push_buffer_size);
-    }
-    else
-    {
-        max_push_buffer_size = DEFAULT_MAX_PUSH_BUFFER_SIZE;
-        MIRACASTLOG_INFO("Default Max pushbuffer size configured as [%llu]\n",max_push_buffer_size);
-    }
-    
     // Configure the appsink
     g_object_set(G_OBJECT(custom_data_ptr->appsinkProp), "emit-signals", TRUE, "sync", FALSE, NULL);
     
     //gst_base_sink_set_sync(GST_BASE_SINK_CAST(appsink), false);
     //MIRACASTLOG_INFO("===> gst_base_sink_set_sync, set to False");
     g_object_set(G_OBJECT(custom_data_ptr->appsinkProp), "async", FALSE, NULL);
-    custom_data_ptr->m_push_buffer_ptr = new guint8[max_push_buffer_size];
-    // Check if memory allocation succeeded
-    if ( nullptr == custom_data_ptr->m_push_buffer_ptr )
-    {
-        MIRACASTLOG_ERROR("Memory allocation failed for [%llu].\n",max_push_buffer_size);
-        return 1;
-    }
-    custom_data_ptr->m_current_buffer_ptr = custom_data_ptr->m_push_buffer_ptr;
-    custom_data_ptr->m_max_pushbuffer_size = max_push_buffer_size;
+
     // Set up a signal handler for new buffer signals from appsink
     g_signal_connect(G_OBJECT(custom_data_ptr->appsinkProp), "new-sample", G_CALLBACK(on_new_sample_from_sink), custom_data_ptr);
 
@@ -1342,8 +1368,11 @@ bool SoC_GstPlayer::createPipeline()
         gst_bus_add_watch (bus, (GstBusFunc) on_playbin_bus_message, custom_data_ptr);
         gst_object_unref (bus);
         // Pipeline created
-        g_object_set(custom_data_ptr->playbin_pipeline, "uri", "appsrc://", NULL);
+        g_object_set(custom_data_ptr->playbin_pipeline, "uri", "appsrc://", nullptr);
+
+        //g_signal_connect( custom_data_ptr->playbin_pipeline, "deep-notify::source", G_CALLBACK(found_source), custom_data_ptr );
         g_signal_connect(custom_data_ptr->playbin_pipeline, "source-setup", G_CALLBACK(source_setup), custom_data_ptr);
+        
         /*{{{ westerossink related element configuration*/
         MIRACASTLOG_TRACE(">>>>>>>westerossink configuration start");
         updateVideoSinkRectangle();
@@ -1352,16 +1381,27 @@ bool SoC_GstPlayer::createPipeline()
         MIRACASTLOG_TRACE("westerossink configuration end<<<<<<<<");
         g_object_set(custom_data_ptr->playbin_pipeline, "video-sink", m_video_sink, nullptr);
         /*}}}*/
-    }
-    /* launching things */
-    gst_element_set_state(custom_data_ptr->playbin_pipeline, GST_STATE_PLAYING);
-    usleep(50000);
 
-    MIRACASTLOG_INFO("Start Playing....");
+        /*{{{ amlhalasink related element configuration*/
+        MIRACASTLOG_TRACE(">>>>>>>amlhalasink configuration start");
+        
+        MIRACASTLOG_TRACE("Set disable-xrun as true to amlhalasink");
+        g_object_set(G_OBJECT(m_audio_sink), "disable-xrun" , true, nullptr );
+        MIRACASTLOG_INFO("[DEFAULT] Set avsync-mode as 2(IPTV) to amlhalasink");
+        g_object_set(G_OBJECT(m_audio_sink), "avsync-mode" , 2, nullptr );
+
+        MIRACASTLOG_TRACE("amlhalasink configuration end<<<<<<<<");
+        g_object_set(custom_data_ptr->playbin_pipeline, "audio-sink", m_audio_sink, nullptr);
+        /*}}}*/
+    }
 
     g_main_context_pop_thread_default(m_main_loop_context);
     pthread_create(&m_playback_thread, nullptr, SoC_GstPlayer::playbackThread, this);
+
+    /* launching things */
+    MIRACASTLOG_INFO("custom_data_ptr->playbin_pipeline, GST_STATE_PLAYING");
     ret = gst_element_set_state(custom_data_ptr->udpsrc_appsink_pipeline, GST_STATE_PLAYING);
+    ret = gst_element_set_state(custom_data_ptr->playbin_pipeline, GST_STATE_PLAYING);
 
     if (ret == GST_STATE_CHANGE_FAILURE)
     {
