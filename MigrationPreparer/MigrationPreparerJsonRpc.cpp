@@ -135,6 +135,7 @@ namespace Plugin {
         RPC::IStringIterator* componentList = nullptr;
         auto result = _migrationPreparer->getComponentReadiness(componentList);
         if (result == Core::ERROR_NONE) {
+            string component;
             while (componentList->Next(component) == true) {
                 response.ComponentList.Add() = component;
             }

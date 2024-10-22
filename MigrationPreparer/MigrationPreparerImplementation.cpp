@@ -604,7 +604,7 @@ namespace Plugin {
        
         if(resetType == "RESET_ALL") {
             LOGINFO("[RESET] params={resetType: %s}", resetType.c_str());
-            if(!resetDatastore(resetType))
+            if(!resetDatastore())
                 return Core::ERROR_GENERAL;
 #ifdef MIGRATIONPREPARER_TR181_SUPPORT                
             setRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE, TR181_MIGRATION_READY, empty.c_str(), WDMP_STRING);  
@@ -615,7 +615,7 @@ namespace Plugin {
         }
         else if (resetType == "RESET_DATA") {
             LOGINFO("[RESET] params={resetType: %s}", resetType.c_str());
-            if(!resetDatastore(resetType))
+            if(!resetDatastore())
                 return Core::ERROR_GENERAL;
         }
         else if (resetType == "RESET_READINESS") {
