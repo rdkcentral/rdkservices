@@ -149,9 +149,11 @@ namespace Plugin {
             start = line.find_first_not_of(" \n");
             end = line.find_last_not_of(" \n,");
             line =  line.substr(start, end-start+1);
-            if(start == string::npos || end == string::npos)
+            if(start == string::npos || end == string::npos) {
+                LOGWARN("Invalid line in dataStore file, skipping");
                 continue;
-            ASSERT(end > start);
+            }
+            ASSERT(start > end);
             // if line is empty or { or } continue
             if(line.empty() || line == "{" || line == "}")
 		        continue;
@@ -187,7 +189,7 @@ namespace Plugin {
         }
         dataStoreMutex.lock();
         // remove dataStore file
-        LOGWARN("Deleting dataStore file itself since all entries are deleted");
+        LOGWARN("DataStore file does not exist");
         if(!dataStore.Destroy()){
             LOGERR("Unable to delete dataStore file");
             return false;
@@ -204,12 +206,12 @@ namespace Plugin {
     bool MigrationPreparerImplementation::resetMigrationready(void){
         WPEFramework::Core::File migrationReady(MIGRATIONREADY_PATH);
         if(!migrationReady.Exists()) {
-            LOGWARN("migrationReady file does not exist");
+            LOGWARN("MigrationReady file does not exist");
             return true;
         }
         _adminLock.Lock();
         // remove migrationReady file
-        LOGWARN("Deleting migrationReady file ");
+        LOGWARN("Deleting migrationReady file");
         if(!migrationReady.Destroy()){
             LOGERR("Unable to delete migrationReady file");
             return false;
@@ -288,7 +290,7 @@ namespace Plugin {
                 if(!dataStore.Create()) {
                     LOGERR("Failed to create migration datastore %s, errno: %d, reason: %s", DATASTORE_PATH, errno, strerror(errno));
                     dataStoreMutex.unlock();
-                    return Core::ERROR_GENERAL;
+                    return ERROR_CREATE;
                 }
             }
             
@@ -296,7 +298,7 @@ namespace Plugin {
                 LOGERR("Failed to open migration datastore %s, errno: %d, reason: %s", DATASTORE_PATH, errno, strerror(errno));
                 LOGERR("Failed to create entry for {%s:%s} in migration datastore", key.c_str(), newValue.c_str());
                 dataStoreMutex.unlock();
-                return Core::ERROR_GENERAL;
+                return ERROR_OPEN;
             }
             // write entry to the dataStore
             entry = string("{\n \"") + key + string("\":") + newValue + string("\n}");
@@ -333,7 +335,7 @@ namespace Plugin {
             result = WEXITSTATUS(result);
             LOGERR("Failed to update entry for {%s:%s} in migration datastore, v_secure_system failed with error %d",key.c_str(), newValue.c_str(), result);
             dataStoreMutex.unlock();
-            return Core::ERROR_GENERAL;
+            return ERROR_WRITE;
         }
 
         // Handle subsequent Write request
@@ -341,7 +343,7 @@ namespace Plugin {
             LOGERR("Failed to create migration datastore %s, errno: %d, reason: %s", DATASTORE_PATH, errno, strerror(errno));
             LOGERR("Failed to create entry for {%s:%s} in migration datastore", key.c_str(), newValue.c_str());
             dataStoreMutex.unlock();
-            return Core::ERROR_GENERAL;
+            return ERROR_OPEN;
         }
 
         // append new key-value pair to the dataStore
@@ -350,7 +352,7 @@ namespace Plugin {
             LOGERR("Failed to create entry for {%s:%s} in migration datastore", key.c_str(), newValue.c_str());
             dataStore.Close();
             dataStoreMutex.unlock();
-            return Core::ERROR_GENERAL;
+            return ERROR_WRITE;
         }
         entry = string(",\n \"") + key + string("\":") + newValue + string("\n}"); 
         dataStore.Write(reinterpret_cast<const uint8_t*>(&entry[0]), entry.size());
@@ -369,7 +371,7 @@ namespace Plugin {
         // check if list is not empty and lineNumber for given key exists
         if(lineNumber.empty() || (lineNumber.find(key) == lineNumber.end())) {
             LOGERR("Failed to read key: %s, Key do not exist in migration dataStore", key.c_str());
-            return Core::ERROR_GENERAL;
+            return ERROR_READ;
         }
         
         result = valueEntry[lineNumber[key] - 2];
@@ -427,7 +429,7 @@ namespace Plugin {
         result = WEXITSTATUS(result);
         LOGERR("Failed to delete entry for key: %s in migration datastore, Key does not exist in dataStore",key.c_str());
         dataStoreMutex.unlock();
-        return Core::ERROR_GENERAL;
+        return ERROR_DELETE;    
     }
 
     
@@ -475,13 +477,13 @@ namespace Plugin {
                 if(migrationReadyDir.Create()){
                     LOGERR("Failed to create migration ready %s, errno: %d, reason: %s", MIGRATIONREADY_PATH, errno, strerror(errno));
                     _adminLock.Unlock();
-                    return Core::ERROR_GENERAL;                    
+                    return ERROR_CREATE;                    
                 }
             }
             if(!migrationReady.Create()) {
                 LOGERR("Failed to create migration ready %s, errno: %d, reason: %s", MIGRATIONREADY_PATH, errno, strerror(errno));
                 _adminLock.Unlock();
-                return Core::ERROR_GENERAL;
+                return ERROR_CREATE;
             }
         }
 
@@ -490,7 +492,7 @@ namespace Plugin {
             LOGERR("Failed to open migration ready %s, errno: %d, reason: %s", MIGRATIONREADY_PATH, errno, strerror(errno));
             LOGERR("Failed to add component{%s} in migration ready", _compName.c_str());
             _adminLock.Unlock();
-            return Core::ERROR_GENERAL;
+            return ERROR_OPEN;
         }
         // read component list and add new component in order into file
         {
@@ -526,7 +528,7 @@ namespace Plugin {
                     LOGERR("Failed to read migration ready %s, errno: %d, reason: %s", MIGRATIONREADY_PATH, errno, strerror(errno));
                     LOGERR("Failed to add component{%s} in migration ready", _compName.c_str());
                     _adminLock.Unlock();
-                    return Core::ERROR_GENERAL;
+                    return ERROR_SET;
                 }
             }
             uint8_t datatowrite[outComponentString.size()];
@@ -568,9 +570,9 @@ namespace Plugin {
 
         // check whether file is exist or not, if not return empty string
         if(!migrationReady.Exists()) {
-            LOGERR("file is not exist %s", MIGRATIONREADY_PATH);
+            LOGERR("MigrationReady file %s does not exist", MIGRATIONREADY_PATH);
             _adminLock.Unlock();
-            return Core::ERROR_GENERAL;
+            return Core::ERROR_NONE;
         }
 
         // open file in append mode   
@@ -601,35 +603,32 @@ namespace Plugin {
     {
         string empty;
         _adminLock.Lock();
-       
+        LOGINFO("[RESET] params={resetType: %s}", resetType.c_str());
         if(resetType == "RESET_ALL") {
-            LOGINFO("[RESET] params={resetType: %s}", resetType.c_str());
             if(!resetDatastore())
-                return Core::ERROR_GENERAL;
+                return ERROR_RESET;
 #ifdef MIGRATIONPREPARER_TR181_SUPPORT                
             setRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE, TR181_MIGRATION_READY, empty.c_str(), WDMP_STRING);  
 #else
             if(!resetMigrationready())
-                return Core::ERROR_GENERAL;
+                return ERROR_RESET;
 #endif/*MIGRATIONPREPARER_TR181_SUPPORT*/
         }
         else if (resetType == "RESET_DATA") {
-            LOGINFO("[RESET] params={resetType: %s}", resetType.c_str());
             if(!resetDatastore())
-                return Core::ERROR_GENERAL;
+                return ERROR_RESET;
         }
         else if (resetType == "RESET_READINESS") {
-            LOGINFO("[RESET] params={resetType: %s}", resetType.c_str());
 #ifdef MIGRATIONPREPARER_TR181_SUPPORT            
             setRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE, TR181_MIGRATION_READY, empty.c_str(), WDMP_STRING);  
 #else
             if(!resetMigrationready())
-                return Core::ERROR_GENERAL;
+                return ERROR_RESET;
 #endif/*MIGRATIONPREPARER_TR181_SUPPORT*/            
         }
         else {
             // Invalid parameter
-            return Core::ERROR_INVALID_SIGNATURE;
+            return ERROR_INVALID;
         }
         _adminLock.Unlock();
         

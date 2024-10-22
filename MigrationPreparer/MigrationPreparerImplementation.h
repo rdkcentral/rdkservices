@@ -37,16 +37,22 @@
 
 
 #define MIGRATIONPREPARER_NAMESPACE "MigrationPreparer"
-
 #define DATASTORE_PATH _T("/opt/secure/migration/migration_data_store.json")
-
 #define DATASTORE_DIR _T("/opt/secure/migration/")
-
 #define TR181_MIGRATION_READY "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.MigrationReady"
-
 #define MIGRATIONREADY_PATH _T("/opt/secure/migration/migrationready.txt")
 #define MIGRATIONREADY_DIR _T("/opt/secure/migration/")
 
+// PLUGIN SPECIFIC CUSTOM ERROR CODES //bvch
+#define ERROR_CREATE    4
+#define ERROR_OPEN      5
+#define ERROR_WRITE     6
+#define ERROR_READ      7
+#define ERROR_DELETE    8
+#define ERROR_SET       9
+#define ERROR_RESET     10
+#define ERROR_INVALID   11
+#define ERROR_NOFILE    12
 
 typedef uint64_t LINE_NUMBER_TYPE;
 using std::string;
@@ -131,7 +137,7 @@ namespace Plugin {
         void Unstringfy(string&);
         //escape any special characters in string to make sed compatible pattern string and replacement string
         enum sedType {PATTERN, REPLACEMENT};
-        string escapeSed(string, enum sedType); //bvch
+        string escapeSed(string, enum sedType);
         // Fn. to store the keys and their line numbers from dataStore to lineNumber map
         void storeKeys(void);
         // Fn. to delete dataStore

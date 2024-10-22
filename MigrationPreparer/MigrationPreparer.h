@@ -28,6 +28,17 @@
 #include "UtilsJsonRpc.h"
 #include <mutex>
 
+// PLUGIN SPECIFIC CUSTOM ERROR CODES //bvch
+#define ERROR_CREATE    4
+#define ERROR_OPEN      5
+#define ERROR_WRITE     6
+#define ERROR_READ      7
+#define ERROR_DELETE    8
+#define ERROR_SET       9
+#define ERROR_RESET     10
+#define ERROR_INVALID   11
+#define ERROR_NOFILE    12
+
 namespace WPEFramework {
 namespace Plugin {
 
