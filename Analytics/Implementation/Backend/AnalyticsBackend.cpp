@@ -27,12 +27,11 @@ namespace Plugin {
 
 const std::string IAnalyticsBackend::SIFT = "Sift";
 
-IAnalyticsBackends& IAnalyticsBackendAdministrator::Instances()
+IAnalyticsBackends IAnalyticsBackendAdministrator::Create()
 {
-    static SiftBackend siftBackend;
-    static IAnalyticsBackends backendInstances = {
+    IAnalyticsBackends backendInstances = {
 #ifdef ANALYTICS_SIFT_BACKEND
-    {IAnalyticsBackend::SIFT, siftBackend},
+    {IAnalyticsBackend::SIFT, std::make_shared<SiftBackend>()},
 #endif
     };
     return (backendInstances);
