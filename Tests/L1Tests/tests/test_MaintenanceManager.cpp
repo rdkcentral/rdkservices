@@ -93,17 +93,17 @@ protected:
     }
 };
 
-#if 0
+
 static AssertionResult isValidCtrlmRcuIarmEvent(IARM_EventId_t ctrlmRcuIarmEventId)
 {
     switch (ctrlmRcuIarmEventId) {
         case IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE:
+        case IARM_BUS_DCM_NEW_START_TIME_EVENT:
             return AssertionSuccess();
         default:
             return AssertionFailure();
     }
 }
-#endif
 
 class MaintenanceManagerInitializedEventTest : public MaintenanceManagerTest {
 protected:
@@ -123,6 +123,14 @@ protected:
                     controlEventHandler_ = handler;
                     return IARM_RESULT_SUCCESS;
                 }));
+        EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_RegisterEventHandler(StrEq(IARM_BUS_MAINTENANCE_MGR_NAME), IARM_BUS_DCM_NEW_START_TIME_EVENT, _))
+            .WillRepeatedly(Invoke(
+                [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
+                    EXPECT_TRUE(isValidCtrlmRcuIarmEvent(eventId));
+                    controlEventHandler_ = handler;
+                    return IARM_RESULT_SUCCESS;
+                }));
+
         EXPECT_EQ(string(""), plugin_->Initialize(&service_));
         PluginHost::IFactories::Assign(&factoriesImplementation_);
         dispatcher_ = static_cast<PluginHost::IDispatcher*>(plugin_->QueryInterface(PluginHost::IDispatcher::ID));
@@ -215,24 +223,37 @@ TEST_F(MaintenanceManagerInitializedEventTest, startMaintenanceOnReboot)
 		result.tm_min,
 		result.tm_sec);
 	eventData.data.startTimeUpdate.start_time[MAX_TIME_LEN-1] = '\0';
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_DCM_NEW_START_TIME_EVENT, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
 	
 	 EXPECT_CALL(wrapsImplMock, system(::testing::_))
-        .Times(3)
-	.WillOnce(::testing::Invoke(
+        .Times(4)
+        .WillOnce(::testing::Invoke(
+            [&](const char* command) {
+                EXPECT_EQ(string(command), string(_T("/lib/rdk/StartDCM_maintaince.sh &")));
+                return 0;
+            }))
+		.WillOnce(::testing::Invoke(
             [&](const char* command) {
                 EXPECT_EQ(string(command), string(_T("/lib/rdk/RFCbase.sh &")));
                 return 0;
             }))
-	.WillOnce(::testing::Invoke(
+		.WillOnce(::testing::Invoke(
             [&](const char* command) {
                 EXPECT_EQ(string(command), string(_T("/lib/rdk/swupdate_utility.sh >> /opt/logs/swupdate.log &")));
                 return 0;
             }))
-	.WillOnce(::testing::Invoke(
+		.WillOnce(::testing::Invoke(
             [&](const char* command) {
                 EXPECT_EQ(string(command), string(_T("/lib/rdk/Start_uploadSTBLogs.sh &")));
                 return 0;
-            }));	
+            }));
+	std::this_thread::sleep_for(std::chrono::seconds(3));
+			
+	eventData.data.maintenance_module_status.status = MAINT_DCM_INPROGRESS;
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
+	eventData.data.maintenance_module_status.status = MAINT_DCM_COMPLETE;
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
+	
 	std::this_thread::sleep_for(std::chrono::seconds(3));
 	eventData.data.maintenance_module_status.status = MAINT_RFC_INPROGRESS;
 	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
@@ -264,6 +285,12 @@ TEST_F(MaintenanceManagerInitializedEventTest, startMaintenance)
             [&](const char* command) {
                 return 0;
             }));
+    std::this_thread::sleep_for(std::chrono::seconds(3));
+	
+	eventData.data.maintenance_module_status.status = MAINT_DCM_INPROGRESS;
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
+	eventData.data.maintenance_module_status.status = MAINT_DCM_COMPLETE;
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
 	
 	std::this_thread::sleep_for(std::chrono::seconds(3));
 	eventData.data.maintenance_module_status.status = MAINT_RFC_INPROGRESS;
@@ -321,6 +348,11 @@ TEST_F(MaintenanceManagerInitializedEventTest, stopMaintenanceRFCEnable)
 		
 	std::this_thread::sleep_for(std::chrono::seconds(1));
 	
+	eventData.data.maintenance_module_status.status = MAINT_DCM_INPROGRESS;
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
+	eventData.data.maintenance_module_status.status = MAINT_DCM_COMPLETE;
+	controlEventHandler_(IARM_BUS_MAINTENANCE_MGR_NAME, IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, &eventData, sizeof(IARM_Bus_MaintMGR_EventData_t));
+	
 	ON_CALL(rfcApiImplMock, getRFCParameter(::testing::_, ::testing::_, ::testing::_))
         .WillByDefault(::testing::Invoke(
             [](char* pcCallerID, const char* pcParameterName, RFC_ParamData_t* pstParamData) {
@@ -362,4 +394,3 @@ TEST_F(MaintenanceManagerTest, getMaintenanceStartTime)
     EXPECT_EQ(response_, "{\"maintenanceStartTime\":123456789,\"success\":true}");
 
 }
-
