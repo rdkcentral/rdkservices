@@ -29,6 +29,10 @@
 #include <fstream>
 #include <glib.h>
 #include <semaphore.h>
+#include <iostream>
+#include <queue>
+#include <mutex>
+#include <condition_variable>
 #include <MiracastLogger.h>
 
 using namespace std;
@@ -364,6 +368,49 @@ class MiracastCommon
         static std::string parse_opt_flag( std::string file_name , bool integer_check = false, bool debugStats = true );
         static int execute_SystemCommand( const char* system_command_buffer );
         static bool execute_PopenCommand( const char* popen_command, const char* expected_char, unsigned int retry_count, std::string& popen_buffer, unsigned int interval_micro_sec );
+};
+
+class MessageQueue
+{
+private:
+    std::mutex mutexSync;
+    std::queue<void*> m_internalQueue;  // Queue to hold void* data
+    std::condition_variable m_condNotEmpty;
+    std::condition_variable m_condNotFull;
+    int m_currentMsgCount;  // Guard with Mutex, keep track of queue size
+    const int m_maxMsgCount{5};  // Maximum size of the queue
+
+public:
+    MessageQueue(const int queueSize) : m_currentMsgCount(0), m_maxMsgCount(queueSize) {}
+
+    void sendData(void* new_value)
+    {
+        std::unique_lock<std::mutex> lk(mutexSync);
+        // Wait if the queue is full
+        m_condNotFull.wait(lk, [this] { return m_currentMsgCount < m_maxMsgCount; });
+        
+        m_internalQueue.push(new_value);
+        m_currentMsgCount++;
+        std::cout << "[sendData] data at address: " << new_value << std::endl;
+
+        // Notify consumer that new data is available
+        m_condNotEmpty.notify_one();  
+    }
+
+    void ReceiveData(void*& value)
+    {
+        std::unique_lock<std::mutex> lk(mutexSync);
+        // Wait if the queue is empty
+        m_condNotEmpty.wait(lk, [this] { return !m_internalQueue.empty(); });
+        
+        value = m_internalQueue.front();
+        m_internalQueue.pop();
+        m_currentMsgCount--;
+        std::cout << "[ReceiveData] data at address: " << value << std::endl;
+
+        // Notify producer that space is available
+        m_condNotFull.notify_one();
+    }
 };
 
 #endif
