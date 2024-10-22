@@ -73,7 +73,6 @@ namespace WPEFramework {
             uint32_t getAVLatency(const JsonObject& parameters, JsonObject& response);
 	    uint32_t getTVLowLatencyMode(const JsonObject& parameters, JsonObject& response);
 	    uint32_t getHdmiVersionWrapper(const JsonObject& parameters, JsonObject& response);
-	    uint32_t getCurrentVideoMode(const JsonObject& parameters, JsonObject& response);
 	    //End methods
 
             JsonArray getHDMIInputDevices();

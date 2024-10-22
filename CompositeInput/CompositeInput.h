@@ -53,7 +53,7 @@ namespace WPEFramework {
             uint32_t getCompositeInputDevicesWrapper(const JsonObject& parameters, JsonObject& response);
             uint32_t startCompositeInput(const JsonObject& parameters, JsonObject& response);
             uint32_t stopCompositeInput(const JsonObject& parameters, JsonObject& response);
-	    uint32_t getCurrentVideoMode(const JsonObject& parameters, JsonObject& response);
+
             uint32_t setVideoRectangleWrapper(const JsonObject& parameters, JsonObject& response);
             //End methods
 

@@ -62,11 +62,12 @@ protected:
     void UnregisterAll();
 
     uint32_t endpoint_numberOfInputs(const JsonObject &parameters, JsonObject &response);
+    uint32_t endpoint_currentVideoMode(const JsonObject &parameters, JsonObject &response);
     uint32_t endpoint_contentProtected(const JsonObject &parameters, JsonObject &response);
 
 private:
     static int numberOfInputs(bool &success);
-    static string currentVideoMode(bool &success,int type);
+    static string currentVideoMode(bool &success);
 
     //Begin methods
     uint32_t getInputDevicesWrapper(const JsonObject& parameters, JsonObject& response);
@@ -78,7 +79,6 @@ private:
     uint32_t getEdidVersionWrapper(const JsonObject& parameters, JsonObject& response);
     uint32_t setEdid2AllmSupportWrapper(const JsonObject& parameters, JsonObject& response);
     uint32_t getEdid2AllmSupportWrapper(const JsonObject& parameters, JsonObject& response);
-    uint32_t getCurrentVideoModeWrapper(const JsonObject &parameters, JsonObject &response);
     uint32_t startInput(const JsonObject& parameters, JsonObject& response);
     uint32_t stopInput(const JsonObject& parameters, JsonObject& response);
     uint32_t setVideoRectangleWrapper(const JsonObject& parameters, JsonObject& response);

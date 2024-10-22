@@ -47,7 +47,6 @@
 #define HDMIINPUT_METHOD_SCALE_HDMI_INPUT "setVideoRectangle"
 #define HDMIINPUT_METHOD_SUPPORTED_GAME_FEATURES "getSupportedGameFeatures"
 #define HDMIINPUT_METHOD_GAME_FEATURE_STATUS "getHdmiGameFeatureStatus"
-#define HDMIINPUT_METHOD_CURRENT_VIDEO_MODE "currentVideoMode"
 
 #define HDMIINPUT_EVENT_ON_DEVICES_CHANGED "onDevicesChanged"
 #define HDMIINPUT_EVENT_ON_SIGNAL_CHANGED "onSignalChanged"
@@ -124,7 +123,6 @@ namespace WPEFramework
             registerMethod(HDMIINPUT_METHOD_STOP_HDMI_INPUT, &HdmiInput::stopHdmiInput, this);
             registerMethod(HDMIINPUT_METHOD_SCALE_HDMI_INPUT, &HdmiInput::setVideoRectangleWrapper, this);
             registerMethod(HDMIINPUT_METHOD_SET_MIXER_LEVELS, &HdmiInput::setMixerLevels, this);
-            registerMethod(HDMIINPUT_METHOD_CURRENT_VIDEO_MODE, &HdmiInput::getCurrentVideoMode, this);
             registerMethod(HDMIINPUT_METHOD_SUPPORTED_GAME_FEATURES, &HdmiInput::getSupportedGameFeatures, this);
             registerMethod(HDMIINPUT_METHOD_GAME_FEATURE_STATUS, &HdmiInput::getHdmiGameFeatureStatusWrapper, this);
 	    registerMethod(HDMIINPUT_METHOD_GET_AV_LATENCY, &HdmiInput::getAVLatency, this);
@@ -297,24 +295,6 @@ namespace WPEFramework
             returnResponse(success);
 
         }
-	uint32_t HdmiInput::getCurrentVideoMode(const JsonObject& parameters, JsonObject& response)
-	{
-		bool success;
-		string result;
-		try {
-                	 result = device::HdmiInput::getInstance().getCurrentVideoMode();
-     			 success = true;
-			 response["currentVideoMode"]=result;
-
-    		}
-		catch (...) {
-        		LOGERR("Exception caught");
-        		success = false;
-    		}
-
-		returnResponse(success);
-
-	}
 	uint32_t HdmiInput::setMixerLevels(const JsonObject& parameters, JsonObject& response)
         {
                 returnIfParamNotFound(parameters, "primaryVolume");
