@@ -594,6 +594,7 @@ TEST_F(SystemService_L2Test,SystemServiceGetSetBlocklistFlag)
     uint32_t signalled = SYSTEMSERVICEL2TEST_STATE_INVALID;
     std::string message;
     JsonObject expected_status;
+    uint32_t file_status = -1;
 
     /* Register for temperature threshold change event. */
     status = jsonrpc.Subscribe<JsonObject>(JSON_TIMEOUT,
@@ -646,9 +647,20 @@ TEST_F(SystemService_L2Test,SystemServiceGetSetBlocklistFlag)
 
     EXPECT_FALSE(result["success"].Boolean());
 */
-    Core::File file("/opt/secure/persistent/opflashstore/devicestate.txt");
+/*    Core::File file("/opt/secure/persistent/opflashstore/devicestate.txt");
     file.Destroy();
     TEST_LOG("Removed the devicestate.txt file in preparation for the next round of testing.");
+    */
+    file_status = remove("/opt/secure/persistent/opflashstore/devicestate.txt");
+    // Check if the file has been successfully removed
+    if (file_status != 0)
+    {
+        TEST_LOG("Error deleting file[devicestate.txt]");
+    }
+    else
+    {
+        TEST_LOG("File[devicestate.txt] successfully deleted");
+    }
 
     jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("onBlocklistChanged"));
 }
