@@ -594,12 +594,7 @@ TEST_F(SystemService_L2Test,SystemServiceGetSetBlocklistFlag)
     uint32_t signalled = SYSTEMSERVICEL2TEST_STATE_INVALID;
     std::string message;
     JsonObject expected_status;
-#if 0
-    status = InvokeServiceMethod("org.rdk.System.1", "getBlocklistFlag", params, result);
-    EXPECT_EQ(Core::ERROR_NONE, status);
 
-    EXPECT_FALSE(result["success"].Boolean()); // First time get request when there is no flag set on device.
-#endif
     /* Register for temperature threshold change event. */
     status = jsonrpc.Subscribe<JsonObject>(JSON_TIMEOUT,
                                            _T("onBlocklistChanged"),
@@ -644,14 +639,16 @@ TEST_F(SystemService_L2Test,SystemServiceGetSetBlocklistFlag)
     EXPECT_FALSE(result["blocklist"].Boolean());
 
 /*
-    params["blocklist"] = ;
+    params["abc"] = true;
 
     status = InvokeServiceMethod("org.rdk.System.1", "setBlocklistFlag", params, result);
     EXPECT_EQ(Core::ERROR_NONE, status);
 
     EXPECT_FALSE(result["success"].Boolean());
 */
-
+    Core::File file("/opt/secure/persistent/opflashstore/devicestate.txt");
+    file.Distroy();
+    TEST_LOG("Removed the devicestate.txt file in preparation for the next round of testing.");
 
     jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("onBlocklistChanged"));
 }
