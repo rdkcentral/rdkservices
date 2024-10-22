@@ -626,13 +626,13 @@ TEST_F(SystemService_L2Test,SystemServiceGetSetBlocklistFlag)
     expected_status.FromString(message);
     EXPECT_CALL(async_handler, onBlocklistChanged(MatchRequestStatus(expected_status)))
         .WillOnce(Invoke(this, &SystemService_L2Test::onBlocklistChanged));
+    signalled = WaitForRequestStatus(JSON_TIMEOUT,SYSTEMSERVICEL2TEST_BLOCKLIST_CHANGED);
 
     params["blocklist"] = false;
 
     status = InvokeServiceMethod("org.rdk.System.1", "setBlocklistFlag", params, result);
     EXPECT_EQ(Core::ERROR_NONE, status);
 
-    signalled = WaitForRequestStatus(JSON_TIMEOUT,SYSTEMSERVICEL2TEST_BLOCKLIST_CHANGED);
     EXPECT_TRUE(signalled & SYSTEMSERVICEL2TEST_BLOCKLIST_CHANGED);
     EXPECT_TRUE(result["success"].Boolean());
     

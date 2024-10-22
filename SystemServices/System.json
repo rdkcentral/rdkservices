@@ -83,21 +83,6 @@
             "type": "string",
             "example": "NORMAL"
         },
-        "blocklist": {
-            "summary": "the blocklist flag value",
-            "type": "boolean",
-            "example": true
-        },
-        "oldblocklist": {
-            "summary": "the old blocklist flag value",
-            "type": "boolean",
-            "example": true
-        },
-        "newblocklist": {
-            "summary": "the new blocklist flag value",
-            "type": "boolean",
-            "example": true
-        },
         "nwStandby": {
             "summary": "Whether `WakeOnLAN` and `WakeOnWLAN` is supported (`true`); otherwise, `false`",
             "type": "boolean",
@@ -389,6 +374,21 @@
             ],
             "type": "string",
             "example": "NORMAL"
+        },
+        "blocklist": {
+            "summary": "the blocklist flag value",
+            "type": "boolean",
+            "example": true
+        },
+        "oldblocklist": {
+            "summary": "the old blocklist flag value",
+            "type": "boolean",
+            "example": true
+        },
+        "newblocklist": {
+            "summary": "the new blocklist flag value",
+            "type": "boolean",
+            "example": true
         }
     },
     "methods": {
@@ -1654,45 +1654,6 @@
                 "$ref": "#/common/result"
             }            
         },
-        "setBlocklistFlag":{
-            "summary": "Sets the blocklist falg on device for device state. Valid flags are:  \n* `true` - The device is in blocked state.  \n* `false` - The device is in un-blocked state.",
-            "events": {
-                "onBlocklistChanged" : "Triggers when the blocklist flag is modified"
-            },
-            "params": {
-                "type":"object",
-                "properties": {
-                    "blocklist": {
-                        "$ref": "#/definitions/blocklist"
-                    }
-                },
-                "required": [
-                    "blocklist"
-                ]
-            },
-            "result": {
-                "$ref": "#/common/result"
-            }
-        },
-        "getBlocklistFlag":{
-            "summary": "get the blocklist falg on device for device state. Valid flags are:  \n* `true` - The device is in blocked state.  \n* `false` - The device is in un-blocked state.",
-            "result": {
-                "type": "object",
-                "properties": {
-                    "blocklist": {
-                        "summary": "blocklist flag",
-                        "type": "boolean",
-                        "example": true
-                        },
-                    "success": {
-                            "summary": "returns true or false to indicate if the operation was successful or not",
-                            "type": "boolean",
-                            "example": true
-                        }
-                    }
-                }
-            }
-        },
         "setNetworkStandbyMode":{
             "summary": "This API will be deprecated in the future. Please refer setWakeupSrcConfiguration to Migrate. This API Enables or disables the network standby mode of the device. If network standby is enabled, the device supports `WakeOnLAN` and `WakeOnWLAN` actions in STR (S3) mode.",
             "params": {
@@ -2027,6 +1988,44 @@
                 "type": "string",
                 "example": "DO_NOT_SHARE"
             }
+        },
+        "getBlocklistFlag":{
+            "summary": "get the blocklist falg on device for device state. Valid flags are:  \n* `true` - The device is in blocked state.  \n* `false` - The device is in un-blocked state.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "blocklist": {
+                        "summary": "blocklist flag",
+                        "type": "boolean",
+                        "example": true
+                        },
+                    "success": {
+                            "summary": "returns true or false to indicate if the operation was successful or not",
+                            "type": "boolean",
+                            "example": true
+                        }
+                    }
+                }
+        },
+        "setBlocklistFlag":{
+            "summary": "Sets the blocklist falg on device for device state. Valid flags are:  \n* `true` - The device is in blocked state.  \n* `false` - The device is in un-blocked state.",
+            "events": {
+                "onBlocklistChanged" : "Triggers when the blocklist flag is modified"
+            },
+            "params": {
+                "type":"object",
+                "properties": {
+                    "blocklist": {
+                        "$ref": "#/definitions/blocklist"
+                    }
+                },
+                "required": [
+                    "blocklist"
+                ]
+            },
+            "result": {
+                "$ref": "#/common/result"
+            }
         }
     },
     "events": {
@@ -2243,24 +2242,6 @@
                 ]
             }
         },
-        "onBlocklistChanged":{
-            "summary": "Triggers when the blocklist flag is modified",
-            "params": {
-                "type" :"object",
-                "properties": {
-                    "oldBlocklistFlag": {
-                        "$ref": "#/definitions/oldblocklist"
-                    },
-                    "newBlocklistFlag": {
-                        "$ref": "#/definitions/newblocklist"
-                    }
-                },
-                "required": [
-                    "oldBlocklistFlag"
-                    "newBlocklistFlag"
-                ]
-            }
-        },
         "onSystemPowerStateChanged":{
             "summary": "Triggered when the power manager detects a device power state change",
             "params": {
@@ -2455,6 +2436,24 @@
                 },
                 "required": [
                     "privacyMode"
+                ]
+            }
+        },
+        "onBlocklistChanged":{
+            "summary": "Triggers when the blocklist flag is modified",
+            "params": {
+                "type" :"object",
+                "properties": {
+                    "oldBlocklistFlag": {
+                        "$ref": "#/definitions/oldblocklist"
+                    },
+                    "newBlocklistFlag": {
+                        "$ref": "#/definitions/newblocklist"
+                    }
+                },
+                "required": [
+                    "oldBlocklistFlag"
+                    "newBlocklistFlag"
                 ]
             }
         },
