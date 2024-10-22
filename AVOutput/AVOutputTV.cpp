@@ -3532,7 +3532,7 @@ namespace Plugin {
                 return -1;
             }
              
-            ret = SetCustom2PointWhiteBalance(currentSource,colorLevel,controlLevel,level);
+            ret = SetCustom2PointWhiteBalance(colorLevel,controlLevel,level);
         }       
 
         if(ret != tvERROR_NONE) {
