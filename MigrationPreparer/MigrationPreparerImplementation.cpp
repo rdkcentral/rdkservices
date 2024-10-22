@@ -204,8 +204,8 @@ namespace Plugin {
     bool MigrationPreparerImplementation::resetMigrationready(void){
         WPEFramework::Core::File migrationReady(MIGRATIONREADY_PATH);
         if(!migrationReady.Exists()) {
-            LOGERR("migrationReady file does not exist");
-            return false;
+            LOGWARN("migrationReady file does not exist");
+            return true;
         }
         _adminLock.Lock();
         // remove migrationReady file

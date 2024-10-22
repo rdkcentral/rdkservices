@@ -148,23 +148,23 @@ namespace Plugin {
 
     uint32_t MigrationPreparer::endpoint_setComponentReadiness(const JsonObject& parameters, WriteentryResultInfo& response) {        
         // check if required filds - name, value exists
-        if (!parameters.HasLabel("ComponentName")) {
+        if (!parameters.HasLabel("componentName")) {
             LOGERR("Invalid input - missing ComponentName");
             return Core::ERROR_BAD_REQUEST;
         }
         // check if provided params are strigified
-        if (JsonValue::type::STRING != parameters["ComponentName"].Content()) {
+        if (JsonValue::type::STRING != parameters["componentName"].Content()) {
             LOGERR("Invalid input - ComponentName is not stringified");
             return Core::ERROR_BAD_REQUEST;
         }
         // check if provided params are empty
-        if (parameters["ComponentName"].String().empty()) {
+        if (parameters["componentName"].String().empty()) {
             LOGERR("Invalid input - ComponentName is empty");
             return Core::ERROR_BAD_REQUEST;
         }
 
         auto result = _migrationPreparer->setComponentReadiness(
-                            parameters["ComponentName"].String());
+                            parameters["componentName"].String());
 
         if (result == Core::ERROR_NONE) {
             response.Success = true;
