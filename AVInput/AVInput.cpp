@@ -219,7 +219,7 @@ void AVInput::DeinitializeIARM()
 void AVInput::RegisterAll()
 {
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_NUMBER_OF_INPUTS), &AVInput::endpoint_numberOfInputs, this);
-    Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_CURRENT_VIDEO_MODE), &AVInput::endpoint_currentVideoMode, this);
+    Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_CURRENT_VIDEO_MODE), &AVInput::currentVideoModeWrapper, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_CONTENT_PROTECTED), &AVInput::endpoint_contentProtected, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_GET_INPUT_DEVICES), &AVInput::getInputDevicesWrapper, this);
     Register<JsonObject, JsonObject>(_T(AVINPUT_METHOD_WRITE_EDID), &AVInput::writeEDIDWrapper, this);
@@ -286,19 +286,6 @@ uint32_t AVInput::endpoint_numberOfInputs(const JsonObject &parameters, JsonObje
     returnResponse(success);
 }
 
-uint32_t AVInput::endpoint_currentVideoMode(const JsonObject &parameters, JsonObject &response)
-{
-    LOGINFOMETHOD();
-
-    bool success = false;
-
-    auto result = currentVideoMode(success);
-    if (success) {
-        response[_T("currentVideoMode")] = result;
-    }
-
-    returnResponse(success);
-}
 
 uint32_t AVInput::endpoint_contentProtected(const JsonObject &parameters, JsonObject &response)
 {
@@ -326,12 +313,15 @@ int AVInput::numberOfInputs(bool &success)
     return result;
 }
 
-string AVInput::currentVideoMode(bool &success)
+string AVInput::currentVideoMode(bool &success,int type)
 {
     string result;
 
     try {
-        result = device::HdmiInput::getInstance().getCurrentVideoMode();
+	if(type == HDMI)
+        	result = device::HdmiInput::getInstance().getCurrentVideoMode();
+	else 
+		result = device::CompositeInput::getInstance().getCurrentVideoMode();
         success = true;
     }
     catch (...) {
@@ -342,6 +332,21 @@ string AVInput::currentVideoMode(bool &success)
     return result;
 }
 
+
+uint32_t AVInput::currentVideoModeWrapper(const JsonObject &parameters, JsonObject &response)
+{
+    LOGINFOMETHOD();
+
+    bool success = false;
+    string sType = parameters["typeOfInput"].String();
+    int type = getTypeOfInput (sType);
+    auto result = currentVideoMode(success,type);
+    if (success) {
+        response[_T("currentVideoMode")] = result;
+    }
+
+    returnResponse(success);
+}
 
 uint32_t AVInput::startInput(const JsonObject& parameters, JsonObject& response)
 {

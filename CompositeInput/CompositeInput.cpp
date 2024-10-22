@@ -38,6 +38,7 @@
 #define COMPOSITEINPUT_METHOD_START_COMPOSITE_INPUT "startCompositeInput"
 #define COMPOSITEINPUT_METHOD_STOP_COMPOSITE_INPUT "stopCompositeInput"
 #define COMPOSITEINPUT_METHOD_SCALE_COMPOSITE_INPUT "setVideoRectangle"
+#define COMPOSITEINPUT_METHOD_CURRENT_VIDEO_MODE "currentVideoMode"
 
 #define COMPOSITEINPUT_EVENT_ON_DEVICES_CHANGED "onDevicesChanged"
 #define COMPOSITEINPUT_EVENT_ON_SIGNAL_CHANGED "onSignalChanged"
@@ -76,6 +77,7 @@ namespace WPEFramework
             Register(COMPOSITEINPUT_METHOD_START_COMPOSITE_INPUT, &CompositeInput::startCompositeInput, this);
             Register(COMPOSITEINPUT_METHOD_STOP_COMPOSITE_INPUT, &CompositeInput::stopCompositeInput, this);
             Register(COMPOSITEINPUT_METHOD_SCALE_COMPOSITE_INPUT, &CompositeInput::setVideoRectangleWrapper, this);
+            Register(COMPOSITEINPUT_METHOD_CURRENT_VIDEO_MODE, &CompositeInput::getCurrentVideoMode, this);
         }
 
         CompositeInput::~CompositeInput()
@@ -220,6 +222,24 @@ namespace WPEFramework
             }
 
             returnResponse(result);
+
+        }
+
+	uint32_t CompositeInput::getCurrentVideoMode(const JsonObject& parameters, JsonObject& response)
+        {
+                bool success;
+                string result;
+                try {
+                         result = device::CompositeInput::getInstance().getCurrentVideoMode();
+                         success = true;
+                         response["currentVideoMode"]=result;
+                }
+                catch (...) {
+                        LOGERR("Exception caught");
+                        success = false;
+                }
+
+                returnResponse(success);
 
         }
 
