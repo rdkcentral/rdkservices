@@ -19,7 +19,7 @@ typedef enum : uint32_t {
     SYSTEMSERVICEL2TEST_SYSTEMSTATE_CHANGED = 0x00000001,
     SYSTEMSERVICEL2TEST_THERMALSTATE_CHANGED=0x00000002,
     SYSTEMSERVICEL2TEST_LOGUPLOADSTATE_CHANGED=0x00000004,
-    SYSTEMSERVICEL2TEST_BLOCKLIST_CHANGED=0x00000005,
+    SYSTEMSERVICEL2TEST_BLOCKLIST_CHANGED=0x00000008,
     SYSTEMSERVICEL2TEST_STATE_INVALID = 0x00000000
 }SystemServiceL2test_async_events_t;
 /**
@@ -626,13 +626,13 @@ TEST_F(SystemService_L2Test,SystemServiceGetSetBlocklistFlag)
     expected_status.FromString(message);
     EXPECT_CALL(async_handler, onBlocklistChanged(MatchRequestStatus(expected_status)))
         .WillOnce(Invoke(this, &SystemService_L2Test::onBlocklistChanged));
-    signalled = WaitForRequestStatus(JSON_TIMEOUT,SYSTEMSERVICEL2TEST_BLOCKLIST_CHANGED);
 
     params["blocklist"] = false;
 
     status = InvokeServiceMethod("org.rdk.System.1", "setBlocklistFlag", params, result);
     EXPECT_EQ(Core::ERROR_NONE, status);
 
+    signalled = WaitForRequestStatus(JSON_TIMEOUT,SYSTEMSERVICEL2TEST_BLOCKLIST_CHANGED);
     EXPECT_TRUE(signalled & SYSTEMSERVICEL2TEST_BLOCKLIST_CHANGED);
     EXPECT_TRUE(result["success"].Boolean());
     
