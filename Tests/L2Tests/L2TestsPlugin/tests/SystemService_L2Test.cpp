@@ -647,7 +647,7 @@ TEST_F(SystemService_L2Test,SystemServiceGetSetBlocklistFlag)
     EXPECT_FALSE(result["success"].Boolean());
 */
     Core::File file("/opt/secure/persistent/opflashstore/devicestate.txt");
-    file.Distroy();
+    file.Destroy();
     TEST_LOG("Removed the devicestate.txt file in preparation for the next round of testing.");
 
     jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("onBlocklistChanged"));
