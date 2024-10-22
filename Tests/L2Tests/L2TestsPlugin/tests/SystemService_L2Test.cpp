@@ -639,18 +639,6 @@ TEST_F(SystemService_L2Test,SystemServiceGetSetBlocklistFlag)
     EXPECT_TRUE(result["success"].Boolean());
     EXPECT_FALSE(result["blocklist"].Boolean());
 
-/*
-    params["abc"] = true;
-
-    status = InvokeServiceMethod("org.rdk.System.1", "setBlocklistFlag", params, result);
-    EXPECT_EQ(Core::ERROR_NONE, status);
-
-    EXPECT_FALSE(result["success"].Boolean());
-*/
-/*    Core::File file("/opt/secure/persistent/opflashstore/devicestate.txt");
-    file.Destroy();
-    TEST_LOG("Removed the devicestate.txt file in preparation for the next round of testing.");
-    */
     file_status = remove("/opt/secure/persistent/opflashstore/devicestate.txt");
     // Check if the file has been successfully removed
     if (file_status != 0)
@@ -661,6 +649,6 @@ TEST_F(SystemService_L2Test,SystemServiceGetSetBlocklistFlag)
     {
         TEST_LOG("File[devicestate.txt] successfully deleted");
     }
-
+    TEST_LOG("Removed the devicestate.txt file in preparation for the next round of testing.");
     jsonrpc.Unsubscribe(JSON_TIMEOUT, _T("onBlocklistChanged"));
 }
