@@ -185,13 +185,13 @@ namespace Plugin {
 
 
     bool MigrationPreparerImplementation::resetDatastore(void){
-        if(!fileExist) {
+        WPEFramework::Core::File dataStore(DATASTORE_PATH);
+        if(!dataStore.Exists()) {
             LOGWARN("DataStore file does not exist");
             return true;
         }
         dataStoreMutex.lock();
         // remove dataStore file
-        LOGWARN("DataStore file does not exist");
         if(!dataStore.Destroy()){
             LOGERR("Unable to delete dataStore file");
             return false;
