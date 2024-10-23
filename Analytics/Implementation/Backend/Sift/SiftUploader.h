@@ -38,7 +38,6 @@ namespace WPEFramework
 
             SiftUploader(SiftStorePtr storePtr,
                             const std::string &url,
-                            const std::string &apiKey,
                             const uint32_t &maxRandomisationWindowTime,
                             const uint32_t &maxEventsInPost,
                             const uint32_t &maxRetries,
@@ -69,11 +68,10 @@ namespace WPEFramework
             void updateEventDeviceInfoIfRequired(JsonObject &event) const;
             void validateResponse(const std::string &response, const std::vector<std::string> &events) const;
 
-            static uint32_t PostJson(const std::string& url, const std::string& apiKey, const std::string& json, std::string &response);
+            static uint32_t PostJson(const std::string& url, const std::string& json, std::string &response);
 
             SiftStorePtr mStorePtr;
             std::string mUrl;
-            std::string mApiKey;
             uint32_t mMaxRandomisationWindowTime;
             uint32_t mMaxEventsInPost;
             uint32_t mMaxRetries;
