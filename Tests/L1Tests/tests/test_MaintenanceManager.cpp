@@ -42,40 +42,33 @@ using ::testing::AssertionFailure;
 extern "C" FILE* __real_popen(const char* command, const char* type);
 extern "C" int __real_pclose(FILE* pipe);
 
-class MaintenanceManagerTest : public Test {
+class MaintenanceManagerTest : public ::testing::Test {
 protected:
     Core::ProxyType<Plugin::MaintenanceManager> plugin_;
     Core::JSONRPC::Handler&                 handler_;
     Core::JSONRPC::Connection               connection_;
     string                                  response_;
-    IarmBusImplMock         *p_iarmBusImplMock = nullptr ;
-    RfcApiImplMock   *p_rfcApiImplMock = nullptr ;
-    WrapsImplMock  *p_wrapsImplMock   = nullptr ;
+    RfcApiImplMock    *p_rfcApiImplMock  = nullptr;
+    IarmBusImplMock   *p_iarmBusImplMock = nullptr;
+    WrapsImplMock     *p_wrapsImplMock   = nullptr;
 
     MaintenanceManagerTest()
         : plugin_(Core::ProxyType<Plugin::MaintenanceManager>::Create())
         , handler_(*plugin_)
         , connection_(1, 0)
     {
-        p_iarmBusImplMock  = new NiceMock <IarmBusImplMock>;
-        IarmBus::setImpl(p_iarmBusImplMock);
-
-        p_rfcApiImplMock  = new testing::NiceMock <RfcApiImplMock>;
+        p_rfcApiImplMock  = new NiceMock <RfcApiImplMock>;
         RfcApi::setImpl(p_rfcApiImplMock);
 
-        p_wrapsImplMock  = new testing::NiceMock <WrapsImplMock>;
+        p_wrapsImplMock  = new NiceMock <WrapsImplMock>;
         Wraps::setImpl(p_wrapsImplMock);
+
+        p_iarmBusImplMock  = new NiceMock <IarmBusImplMock>;
+        IarmBus::setImpl(p_iarmBusImplMock);
     }
 
     virtual ~MaintenanceManagerTest() override
     {
-        IarmBus::setImpl(nullptr);
-        if (p_iarmBusImplMock != nullptr)
-        {
-            delete p_iarmBusImplMock;
-            p_iarmBusImplMock = nullptr;
-        }
-
         RfcApi::setImpl(nullptr);
         if (p_rfcApiImplMock != nullptr)
         {
@@ -90,20 +83,14 @@ protected:
             p_wrapsImplMock = nullptr;
         }
 
+        IarmBus::setImpl(nullptr);
+        if (p_iarmBusImplMock != nullptr)
+        {
+            delete p_iarmBusImplMock;
+            p_iarmBusImplMock = nullptr;
+        }
     }
 };
-
-
-static AssertionResult isValidCtrlmRcuIarmEvent(IARM_EventId_t ctrlmRcuIarmEventId)
-{
-    switch (ctrlmRcuIarmEventId) {
-        case IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE:
-        case IARM_BUS_DCM_NEW_START_TIME_EVENT:
-            return AssertionSuccess();
-        default:
-            return AssertionFailure();
-    }
-}
 
 class MaintenanceManagerInitializedEventTest : public MaintenanceManagerTest {
 protected:
@@ -116,25 +103,19 @@ protected:
     MaintenanceManagerInitializedEventTest() :
         MaintenanceManagerTest()
     {
-
-        EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_RegisterEventHandler(StrEq(IARM_BUS_MAINTENANCE_MGR_NAME),IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE, _))
-            .WillOnce(Invoke(
-                [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
-                    controlEventHandler_ = handler;
-                    return IARM_RESULT_SUCCESS;
-                }));
-        EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_RegisterEventHandler(StrEq(IARM_BUS_MAINTENANCE_MGR_NAME), IARM_BUS_DCM_NEW_START_TIME_EVENT, _))
-            .WillRepeatedly(Invoke(
-                [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
-                    EXPECT_TRUE(isValidCtrlmRcuIarmEvent(eventId));
-                    controlEventHandler_ = handler;
-                    return IARM_RESULT_SUCCESS;
-                }));
-
-        EXPECT_EQ(string(""), plugin_->Initialize(&service_));
-        PluginHost::IFactories::Assign(&factoriesImplementation_);
+	PluginHost::IFactories::Assign(&factoriesImplementation_);
         dispatcher_ = static_cast<PluginHost::IDispatcher*>(plugin_->QueryInterface(PluginHost::IDispatcher::ID));
         dispatcher_->Activate(&service_);
+	
+        EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
+            .WillByDefault(::testing::Invoke(
+                [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
+		    if ((string(IARM_BUS_MAINTENANCE_MGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE)) {
+                        controlEventHandler_ = handler;
+		    }
+                    return IARM_RESULT_SUCCESS;
+                }));
+        EXPECT_EQ(string(""), plugin_->Initialize(&service_));
     }
 
     virtual ~MaintenanceManagerInitializedEventTest() override
@@ -143,6 +124,11 @@ protected:
         dispatcher_->Deactivate();
         dispatcher_->Release();
         PluginHost::IFactories::Assign(nullptr);
+    }
+
+    virtual void SetUp()
+    {
+        ASSERT_TRUE(controlEventHandler_ != nullptr);
     }
 };
 
