@@ -114,6 +114,7 @@ uint32_t WifiManagerState::setEnabled(const JsonObject &parameters, JsonObject &
     memset(&param, 0, sizeof(param));
 
     strncpy(param.setInterface, "WIFI", INTERFACE_SIZE - 1);
+    param.setInterface[sizeof(param.setInterface) - 1] = '\0';
     param.isInterfaceEnabled = parameters["enable"].Boolean();
     bool persist_t = false;
     getDefaultBoolParameter("persist", persist_t, false);

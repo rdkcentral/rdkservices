@@ -187,9 +187,13 @@ namespace WPEFramework
 				sink_dev_ip = device_parameters["sink_dev_ip"].String();
 
 				strncpy( rtsp_hldr_msgq_data.source_dev_ip, source_dev_ip.c_str() , sizeof(rtsp_hldr_msgq_data.source_dev_ip));
+				rtsp_hldr_msgq_data.source_dev_ip[sizeof(rtsp_hldr_msgq_data.source_dev_ip) - 1] = '\0';
 				strncpy( rtsp_hldr_msgq_data.source_dev_mac, source_dev_mac.c_str() , sizeof(rtsp_hldr_msgq_data.source_dev_mac));
+				rtsp_hldr_msgq_data.source_dev_mac[sizeof(rtsp_hldr_msgq_data.source_dev_mac) - 1] = '\0';
 				strncpy( rtsp_hldr_msgq_data.source_dev_name, source_dev_name.c_str() , sizeof(rtsp_hldr_msgq_data.source_dev_name));
+				rtsp_hldr_msgq_data.source_dev_name[sizeof(rtsp_hldr_msgq_data.source_dev_name) - 1] = '\0';
 				strncpy( rtsp_hldr_msgq_data.sink_dev_ip, sink_dev_ip.c_str() , sizeof(rtsp_hldr_msgq_data.sink_dev_ip));
+				rtsp_hldr_msgq_data.sink_dev_ip[sizeof(rtsp_hldr_msgq_data.sink_dev_ip) - 1] = '\0';
 
 				rtsp_hldr_msgq_data.state = RTSP_START_RECEIVE_MSGS;
 				success = true;
@@ -692,8 +696,10 @@ namespace WPEFramework
 				}
 				else
 				{
-					strcpy( stMsgQ.src_dev_name, client_name.c_str());
-					strcpy( stMsgQ.src_dev_mac_addr, client_mac.c_str());
+					strncpy( stMsgQ.src_dev_name, client_name.c_str(), sizeof(stMsgQ.src_dev_name));
+					stMsgQ.src_dev_name[sizeof(stMsgQ.src_dev_name) - 1] = '\0';
+					strncpy( stMsgQ.src_dev_mac_addr, client_mac.c_str(), sizeof(stMsgQ.src_dev_mac_addr));
+					stMsgQ.src_dev_mac_addr[sizeof(stMsgQ.src_dev_mac_addr) - 1] = '\0';
 
 					MIRACASTLOG_INFO("Given 'NAME, MAC and state' are[%s-%s-%s]",
 							client_name.c_str(),

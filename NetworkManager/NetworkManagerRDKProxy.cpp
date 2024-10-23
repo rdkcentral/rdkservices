@@ -707,8 +707,10 @@ namespace WPEFramework
             //TODO: Fix netsrvmgr to accept eth0 & wlan0
             if ("wlan0" == interface)
                 strncpy(iarmData.setInterface, "WIFI", INTERFACE_SIZE);
+                iarmData.setInterface[sizeof(iarmData.setInterface) - 1] = '\0';
             else if ("eth0" == interface)
                 strncpy(iarmData.setInterface, "ETHERNET", INTERFACE_SIZE);
+                iarmData.setInterface[sizeof(iarmData.setInterface) - 1] = '\0';
             else
             {
                 rc = Core::ERROR_BAD_REQUEST;
@@ -737,8 +739,10 @@ namespace WPEFramework
             //TODO: Fix netsrvmgr to accept eth0 & wlan0
             if ("wlan0" == interface)
                 strncpy(iarmData.setInterface, "WIFI", INTERFACE_SIZE);
+                iarmData.setInterface[sizeof(iarmData.setInterface) - 1] = '\0';
             else if ("eth0" == interface)
                 strncpy(iarmData.setInterface, "ETHERNET", INTERFACE_SIZE);
+                iarmData.setInterface[sizeof(iarmData.setInterface) - 1] = '\0';
             else
             {
                 rc = Core::ERROR_BAD_REQUEST;
@@ -769,8 +773,10 @@ namespace WPEFramework
             //TODO: Fix netsrvmgr to accept eth0 & wlan0
             if ("wlan0" == interface)
                 strncpy(iarmData.setInterface, "WIFI", INTERFACE_SIZE);
+                iarmData.setInterface[sizeof(iarmData.setInterface) - 1] = '\0';
             else if ("eth0" == interface)
                 strncpy(iarmData.setInterface, "ETHERNET", INTERFACE_SIZE);
+                iarmData.setInterface[sizeof(iarmData.setInterface) - 1] = '\0';
             else
             {
                 rc = Core::ERROR_BAD_REQUEST;
@@ -829,10 +835,13 @@ namespace WPEFramework
             //TODO: Fix netsrvmgr to accept eth0 & wlan0
             if ("wlan0" == interface)
                 strncpy(iarmData.interface, "WIFI", INTERFACE_SIZE);
+                iarmData.interface[sizeof(iarmData.interface) - 1] = '\0';
             else if ("eth0" == interface)
                 strncpy(iarmData.interface, "ETHERNET", INTERFACE_SIZE);
+                iarmData.interface[sizeof(iarmData.interface) - 1] = '\0';
 
             strncpy(iarmData.ipversion, ipversion.c_str(), 16);
+            iarmData.ipversion[sizeof(iarmData.ipversion) - 1] = '\0';
             iarmData.isSupported = true;
             NMLOG_INFO("NetworkManagerImplementation::GetIPSettings - Before Calling IARM");
             if (IARM_RESULT_SUCCESS == IARM_Bus_Call (IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_NETSRVMGR_API_getIPSettings, (void *)&iarmData, sizeof(iarmData)))
@@ -908,8 +917,10 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
                 //TODO: Fix netsrvmgr to accept eth0 & wlan0
                 if ("wlan0" == interface)
                     strncpy(iarmData.interface, "WIFI", INTERFACE_SIZE);
+                    iarmData.interface[sizeof(iarmData.interface) - 1] = '\0';
                 else if ("eth0" == interface)
                     strncpy(iarmData.interface, "ETHERNET", INTERFACE_SIZE);
+                    iarmData.interface[sizeof(iarmData.interface) - 1] = '\0';
                 else
                 {
                     rc = Core::ERROR_BAD_REQUEST;
@@ -917,6 +928,7 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
                 }
                 /* IP version */
                 strncpy(iarmData.ipversion, ipversion.c_str(), 16);
+                iarmData.ipversion[sizeof(iarmData.ipversion) - 1] = '\0';
 
                 if (!address.m_autoConfig)
                 {
@@ -970,10 +982,15 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
                         if (Core::ERROR_NONE == rc)
                         {
                             strncpy(iarmData.ipaddress, address.m_ipAddress.c_str(), 16);
+                            iarmData.ipaddress[sizeof(iarmData.ipaddress) - 1] = '\0';
                             strncpy(iarmData.netmask, netmask.c_str(), 16);
+                            iarmData.netmask[sizeof(iarmData.netmask) - 1] = '\0';
                             strncpy(iarmData.gateway, address.m_gateway.c_str(), 16);
+                            iarmData.gateway[sizeof(iarmData.gateway) - 1] = '\0';
                             strncpy(iarmData.primarydns, address.m_primaryDns.c_str(), 16);
+                            iarmData.primarydns[sizeof(iarmData.primarydns) - 1] = '\0';
                             strncpy(iarmData.secondarydns, address.m_secondaryDns.c_str(), 16);
+                            iarmData.secondarydns[sizeof(iarmData.secondarydns) - 1] = '\0';
                         }
                     }
                 }
@@ -1083,7 +1100,9 @@ const string CIDR_PREFIXES[CIDR_NETMASK_IP_LEN] = {
             memset(&param, 0, sizeof(param));
 
             strncpy(param.data.connect.ssid, ssid.m_ssid.c_str(), SSID_SIZE - 1);
+            param.data.connect.ssid[sizeof(param.data.connect.ssid) - 1] = '\0';
             strncpy(param.data.connect.passphrase, ssid.m_passphrase.c_str(), PASSPHRASE_BUFF - 1);
+            param.data.connect.passphrase[sizeof(param.data.connect.passphrase) - 1] = '\0';
             param.data.connect.security_mode = (SsidSecurity) ssid.m_securityMode;
 
             IARM_Result_t retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_saveSSID, (void *)&param, sizeof(param));
