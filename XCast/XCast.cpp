@@ -803,6 +803,7 @@ void XCast::updateDynamicAppCache(JsonArray applications)
                     memset ((void*)pDynamicAppConfig, '0', sizeof(DynamicAppConfig));
                     memset (pDynamicAppConfig->appName, '\0', sizeof(pDynamicAppConfig->appName));
                     strncpy (pDynamicAppConfig->appName, itrName.c_str(), sizeof(pDynamicAppConfig->appName) - 1);
+                    pDynamicAppConfig->appName[sizeof(pDynamicAppConfig->appName) - 1] = '\0';
                     memset (pDynamicAppConfig->prefixes, '\0', sizeof(pDynamicAppConfig->prefixes));
                     memset (pDynamicAppConfig->cors, '\0', sizeof(pDynamicAppConfig->cors));
                     memset (pDynamicAppConfig->query, '\0', sizeof(pDynamicAppConfig->query));
@@ -821,6 +822,7 @@ void XCast::updateDynamicAppCache(JsonArray applications)
                     LOGINFO("%s, size:%d", itrPrefix.c_str(), (int)strlen (itrPrefix.c_str()));
                     for (DynamicAppConfig* pDynamicAppConfig : appConfigListTemp) {
                         strncpy (pDynamicAppConfig->prefixes, itrPrefix.c_str(), sizeof(pDynamicAppConfig->prefixes) - 1);
+                        pDynamicAppConfig->prefixes[sizeof(pDynamicAppConfig->prefixes) - 1] = '\0';
                     }
                 }
             }
@@ -836,6 +838,7 @@ void XCast::updateDynamicAppCache(JsonArray applications)
                     LOGINFO("%s, size:%d", itrCor.c_str(), (int)strlen (itrCor.c_str()));
                     for (DynamicAppConfig* pDynamicAppConfig : appConfigListTemp) {
                         strncpy (pDynamicAppConfig->cors, itrCor.c_str(), sizeof(pDynamicAppConfig->cors) - 1);
+                        pDynamicAppConfig->cors[sizeof(pDynamicAppConfig->cors) - 1] = '\0';
                     }
                 }
             }
@@ -888,9 +891,11 @@ void XCast::updateDynamicAppCache(JsonArray applications)
                 for (DynamicAppConfig* pDynamicAppConfig : appConfigListTemp) {
                     if (jLaunchParam.HasLabel("query")) {
                         strncpy (pDynamicAppConfig->query, jQuery.c_str(), sizeof(pDynamicAppConfig->query) - 1);
+                        pDynamicAppConfig->query[sizeof(pDynamicAppConfig->query) - 1] = '\0';
                     }
                     if (jLaunchParam.HasLabel("payload")) {
                         strncpy (pDynamicAppConfig->payload, jPayload.c_str(), sizeof(pDynamicAppConfig->payload) - 1);
+                        pDynamicAppConfig->payload[sizeof(pDynamicAppConfig->payload) - 1] = '\0';
                     }
                 }
 
@@ -1091,29 +1096,36 @@ void XCast::getUrlFromAppLaunchParams (const char *app_name, const char *payload
             int has_query = query_string && strlen(query_string);
             int has_payload = 0;
             if (has_query) {
-                strcat(url, query_string);
+                snprintf(url + strlen(url), url_len, "%s", query_string);
                 url_len -= strlen(query_string);
             }
             if(payload && strlen(payload)) {
-                if (has_query) url_len -=1;  //for &
                 const char payload_key[] = "dialpayload=";
-                url_len -= sizeof(payload_key) - 1;
-                url_len -= strlen(payload);
                 if(url_len >= 0){
-                    if (has_query) strcat(url, "&");
-                    strcat(url, payload_key);
-                    strcat(url, payload);
-                    has_payload = 1;
+                    if (has_query) {
+                        snprintf(url + strlen(url), url_len, "%s", "&");
+                        url_len -= 1;
+                    }
+                    if(url_len >= 0) {
+                        snprintf(url + strlen(url), url_len, "%s%s", payload_key, payload);
+                        url_len -= strlen(payload_key) + strlen(payload);
+                        has_payload = 1;
+                    }
                 }
                 else {
-                    LOGINFO("there is no enough room for payload\r\n");
+                    LOGINFO("there is not enough room for payload\r\n");
                 }
             }
-
-        if(additional_data_url != NULL){
-                if (has_query || has_payload) strcat(url, "&");
-                strcat(url, "additionalDataUrl=");
-            strcat(url, additional_data_url);
+            
+            if(additional_data_url != NULL){
+                if ((has_query || has_payload) && url_len >= 0) {
+                    snprintf(url + strlen(url), url_len, "%s", "&");
+                    url_len -= 1;
+                }
+                if (url_len >= 0) {
+                    snprintf(url + strlen(url), url_len, "additionalDataUrl=%s", additional_data_url);
+                    url_len -= strlen(additional_data_url) + 18;
+                }
             }
             LOGINFO(" url is [%s]\r\n", url);
     }

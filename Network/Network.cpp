@@ -859,10 +859,15 @@ typedef struct _IARM_BUS_NetSrvMgr_Iface_EventData_t {
                 iarmData.ipversion[sizeof(iarmData.ipversion) - 1] = '\0';
                 iarmData.autoconfig = autoconfig;
                 strncpy(iarmData.ipaddress, ipaddr.c_str(), 16);
+                iarmData.ipaddress[sizeof(iarmData.ipaddress) - 1] = '\0';
                 strncpy(iarmData.netmask, netmask.c_str(), 16);
+                iarmData.netmask[sizeof(iarmData.netmask) - 1] = '\0';
                 strncpy(iarmData.gateway, gateway.c_str(), 16);
+                iarmData.gateway[sizeof(iarmData.gateway) - 1] = '\0';
                 strncpy(iarmData.primarydns, primarydns.c_str(), 16);
+                iarmData.primarydns[sizeof(iarmData.primarydns) - 1] = '\0';
                 strncpy(iarmData.secondarydns, secondarydns.c_str(), 16);
+                iarmData.secondarydns[sizeof(iarmData.secondarydns) - 1] = '\0';
                 iarmData.isSupported = false;
 
                 if (!autoconfig)

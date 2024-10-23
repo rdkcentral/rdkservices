@@ -464,6 +464,7 @@ void MiracastController::remove_P2PGroupInstance(void)
         if ( true == m_groupInfo->isGO )
         {
             strncpy( commandBuffer , "ps -ax | awk '/dnsmasq -p0 -i/ && !/grep/ {print $1}' | xargs kill -9" , sizeof(commandBuffer));
+            commandBuffer[sizeof(commandBuffer) - 1] = '\0';
             MIRACASTLOG_INFO("Terminate old dnsmasq instance: [%s]",commandBuffer);
             MiracastCommon::execute_SystemCommand(commandBuffer);
             memset( commandBuffer , 0x00 , sizeof(commandBuffer));
@@ -475,6 +476,7 @@ void MiracastController::remove_P2PGroupInstance(void)
         else
         {
             strncpy( commandBuffer , "ps -ax | awk '/p2p_udhcpc/ && !/grep/ {print $1}' | xargs kill -9" , sizeof(commandBuffer));
+            commandBuffer[sizeof(commandBuffer) - 1] = '\0';
             MIRACASTLOG_INFO("Terminate old udhcpc p2p instance : [%s]", commandBuffer);
             MiracastCommon::execute_SystemCommand(commandBuffer);
         }
@@ -518,7 +520,8 @@ void MiracastController::event_handler(P2P_EVENTS eventId, void *data, size_t le
     if (nullptr != m_controller_thread){
         controller_msgq_data.msg_type = P2P_MSG;
         controller_msgq_data.state = convertP2PtoSessionActions(eventId);
-        strcpy(controller_msgq_data.msg_buffer, event_buffer.c_str());
+        strncpy(controller_msgq_data.msg_buffer, event_buffer.c_str(), sizeof(controller_msgq_data.msg_buffer));
+        controller_msgq_data.msg_buffer[sizeof(controller_msgq_data.msg_buffer) - 1] = '\0';
 
         MIRACASTLOG_INFO("event_handler to Controller Action[%#08X] buffer:%s  ", controller_msgq_data.state, event_buffer.c_str());
         m_controller_thread->send_message(&controller_msgq_data, sizeof(controller_msgq_data));
@@ -1394,6 +1397,7 @@ void MiracastController::restart_session_discovery(std::string& mac_address)
     if ( !mac_address.empty())
     {
         strncpy(controller_msgq_data.source_dev_mac, mac_address.c_str(),sizeof(controller_msgq_data.source_dev_mac));
+        controller_msgq_data.source_dev_mac[sizeof(controller_msgq_data.source_dev_mac) - 1] = '\0';
     }
     controller_msgq_data.state = CONTROLLER_RESTART_DISCOVERING;
     send_thundermsg_to_controller_thread(controller_msgq_data);
@@ -1419,6 +1423,7 @@ void MiracastController::accept_client_connection(std::string is_accepted)
     {
         MIRACASTLOG_INFO("[MIRACAST_SERVICE_ACCEPT_CLIENT]");
         strncpy(controller_msgq_data.source_dev_mac, m_current_device_mac_addr.c_str(),sizeof(controller_msgq_data.source_dev_mac));
+        controller_msgq_data.source_dev_mac[sizeof(controller_msgq_data.source_dev_mac) - 1] = '\0';
         controller_msgq_data.state = CONTROLLER_CONNECT_REQ_FROM_THUNDER;
     }
     else
@@ -1448,9 +1453,13 @@ void MiracastController::switch_launch_request_context(std::string& source_dev_i
                             sink_dev_ip.c_str(),
                             source_dev_name.c_str());
         strncpy(controller_msgq_data.source_dev_ip, source_dev_ip.c_str(),sizeof(controller_msgq_data.source_dev_ip));
+        controller_msgq_data.source_dev_ip[sizeof(controller_msgq_data.source_dev_ip) - 1] = '\0';
         strncpy(controller_msgq_data.source_dev_mac, source_dev_mac.c_str(),sizeof(controller_msgq_data.source_dev_mac));
+        controller_msgq_data.source_dev_mac[sizeof(controller_msgq_data.source_dev_mac) - 1] = '\0';
         strncpy(controller_msgq_data.source_dev_name, source_dev_name.c_str(),sizeof(controller_msgq_data.source_dev_name));
+        controller_msgq_data.source_dev_name[sizeof(controller_msgq_data.source_dev_name) - 1] = '\0';
         strncpy(controller_msgq_data.sink_dev_ip, sink_dev_ip.c_str(),sizeof(controller_msgq_data.sink_dev_ip));
+        controller_msgq_data.sink_dev_ip[sizeof(controller_msgq_data.sink_dev_ip) - 1] = '\0';
         controller_msgq_data.state = CONTROLLER_SWITCH_LAUNCH_REQ_CTX;
         send_thundermsg_to_controller_thread(controller_msgq_data);
     }
