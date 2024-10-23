@@ -142,8 +142,13 @@ namespace Plugin {
                             value);
 
         switch(result) {
+            case ERROR_NOFILE:
+                error["message"] = "Error file not exist";
+                error["code"] = "-32007";
+                response["error"] = error;
+                break;
             case ERROR_READ:
-                error["message"] = "Error creating file";
+                error["message"] = "Unexpected error during read operation";
                 error["code"] = "-32007";
                 response["error"] = error;
                 break;
@@ -193,9 +198,14 @@ namespace Plugin {
                             parameters["name"].String());
 
         switch(result) {
-            case ERROR_READ:
-                error["message"] = "Error creating file";
+            case ERROR_DELETE:
+                error["message"] = "Unexpected error during delete operation";
                 error["code"] = "-32008";
+                response["error"] = error;
+                break;
+            case ERROR_NOFILE:
+                error["message"] = "Error file not exist";
+                error["code"] = "-32007";
                 response["error"] = error;
                 break;
             case Core::ERROR_NONE:

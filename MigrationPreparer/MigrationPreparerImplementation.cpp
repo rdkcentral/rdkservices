@@ -28,10 +28,13 @@ namespace Plugin {
     : _adminLock()
     {
         LOGINFO("Create MigrationPreparerImplementation Instance");
-         // Init
+        // Init
+        fileExist = false;
         WPEFramework::Core::File dataStore(DATASTORE_PATH);
-        if(dataStore.Exists())
-            storeKeys();  
+        if(dataStore.Exists()) {
+            fileExist = true;
+            storeKeys();
+        }
     }
 
     MigrationPreparerImplementation::~MigrationPreparerImplementation()
@@ -182,8 +185,7 @@ namespace Plugin {
 
 
     bool MigrationPreparerImplementation::resetDatastore(void){
-        WPEFramework::Core::File dataStore(DATASTORE_PATH);
-        if(!dataStore.Exists()) {
+        if(!fileExist) {
             LOGWARN("DataStore file does not exist");
             return true;
         }
@@ -292,6 +294,7 @@ namespace Plugin {
                     dataStoreMutex.unlock();
                     return ERROR_CREATE;
                 }
+                fileExist = true;
             }
             
             if(!dataStore.Open(false)) {
@@ -368,6 +371,11 @@ namespace Plugin {
         LOGINFO("[READ] params={name: %s}", name.c_str());
         string key = name;
 
+        if(!fileExist) { 
+            LOGERR("Failed to read key: %s, migration dataStore %s do not exist", key.c_str(), DATASTORE_PATH);
+            return ERROR_NOFILE;
+        }
+
         // check if list is not empty and lineNumber for given key exists
         if(lineNumber.empty() || (lineNumber.find(key) == lineNumber.end())) {
             LOGERR("Failed to read key: %s, Key do not exist in migration dataStore", key.c_str());
@@ -383,6 +391,11 @@ namespace Plugin {
         LOGINFO("[DELETE] params={name: %s}", name.c_str());
         string key = name;
         int result;
+
+        if(!fileExist) { 
+            LOGERR("Failed to delete key: %s, migration dataStore %s do not exist", key.c_str(), DATASTORE_PATH);
+            return ERROR_NOFILE;
+        }
 
         dataStoreMutex.lock();
         if(!lineNumber.empty() && (lineNumber.find(key) != lineNumber.end())) {

@@ -129,8 +129,9 @@ namespace Plugin {
         std::mutex dataStoreMutex;
         // A tracker for the last key-value line number in the dataStore
         LINE_NUMBER_TYPE curLineIndex;
-
+        // A vector to hold value entries present in data Store file
         std::vector<string> valueEntry;
+        bool fileExist;
 
         /*Helpers: Begin*/
         // Fn. to transform \" to " in a string
