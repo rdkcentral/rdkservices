@@ -127,6 +127,16 @@
       "description": "Device type",
       "example": "IpStb"
     },
+    "socname": {
+      "type": "string",
+      "enum": [
+        "Amlogic",
+        "Realtek",
+        "Broadcom"
+      ],
+      "description": "SOC Name",
+      "example": "Realtek"
+    },
     "make": {
       "type": "string",
       "enum": [
@@ -573,6 +583,27 @@
         }
       ]
     },
+    "socname": {
+      "summary": "SOC Name",
+      "readonly": true,
+      "params": {
+        "type": "object",
+        "properties": {
+          "socname": {
+            "$ref": "#/definitions/socname"
+          }
+        },
+        "required": [
+          "socname"
+        ]
+      },
+      "errors": [
+        {
+          "description": "General error",
+          "$ref": "#/common/errors/general"
+        }
+      ]
+    },  
     "distributorid": {
       "summary": "Partner ID or distributor ID for device",
       "readonly": true,

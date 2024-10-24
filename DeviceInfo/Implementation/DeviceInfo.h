@@ -28,6 +28,7 @@ namespace Plugin {
         uint32_t Make(string& make) const override;
         uint32_t Model(string& model) const override;
         uint32_t DeviceType(string& deviceType) const override;
+        uint32_t SocName(string& socName) const override;
         uint32_t DistributorId(string& distributorId) const override;
     };
 }

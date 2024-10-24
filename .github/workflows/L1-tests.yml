@@ -143,6 +143,8 @@ jobs:
           &&
           git apply "${{github.workspace}}/rdkservices/Tests/L1Tests/patches/0001-Add-IAnalytics-interface-R2.patch"
           &&
+          git apply "${{github.workspace}}/rdkservices/Tests/L1Tests/patches/0002-RDK-53879-Add-socname.patch"
+          &&
           cd ..
 
       - name: Build ThunderInterfaces
