@@ -11,6 +11,37 @@
 namespace WPEFramework {
 namespace Plugin {
     namespace {
+
+        static const char *Sku2Soc[][2] = {
+            { "PLTL11AEI"    , "Amlogic" },
+            { "ZWCN11MWI"    , "Amlogic" },
+            { "SKTL11AEI"    , "Amlogic" },
+            //{ "LS301"        , "" }, // ?
+            { "HSTP11MWR"    , "Amlogic" },
+            { "HSTP11MWRFX50", "Amlogic" },
+            { "ELTE11MWR"    , "Amlogic" },
+            { "SKXI11ADS"    , "Realtek" },
+            { "SKXI11AIS"    , "Realtek" },
+            { "SKXI11ANS"    , "Realtek" },
+            { "SCXI11AIC"    , "Realtek" },
+            { "SCXI11BEI"    , "Broadcom" },
+            //{ "CMXI11BEI"    , "" }, // ?
+            { "AX013AN"      , "Broadcom" },
+            { "AX014AN"      , "Broadcom" },
+            { "AX061AEI"     , "Broadcom" },
+            { "MX011AN"      , "Broadcom" },
+            { "CS011AN"      , "Broadcom" },
+            { "CXD01ANI"     , "Broadcom" },
+            //{ "PX001AN"      , "Intel" },
+            { "PX013AN"      , "Broadcom" },
+            { "PX022AN"      , "Broadcom" },
+            { "PX032ANI"     , "Broadcom" },
+            { "PX051AEI"     , "Broadcom" },
+            { "PXD01ANI"     , "Broadcom" },
+            { "SX022AN"      , "Broadcom" },
+            { "TX061AEI"     , "Broadcom" }
+        };
+
         uint32_t GetFileRegex(const char* filename, const std::regex& regex, string& response)
         {
             uint32_t result = Core::ERROR_GENERAL;
@@ -131,6 +162,22 @@ namespace Plugin {
         deviceType = (strcmp("mediaclient",device_type)==0)?("IpStb"):((strcmp("hybrid",device_type)==0)?("QamIpStb"):("TV"));
         return result;
 #endif
+    }
+
+    uint32_t DeviceInfoImplementation::SocName(string& socName)  const
+    {
+        string sku;
+        
+        auto result = Sku(sku);
+        if (result == Core::ERROR_NONE) {
+            for (int n = sizeof(Sku2Soc) / sizeof(*Sku2Soc) - 1; n >= 0; n--) {
+                if (strcmp(Sku2Soc[n][0], sku.c_str()) == 0) {
+                    socName = Sku2Soc[n][1];
+                    return result;
+                }
+            }
+        }
+        return Core::ERROR_GENERAL;
     }
 
     uint32_t DeviceInfoImplementation::DistributorId(string& distributorId) const

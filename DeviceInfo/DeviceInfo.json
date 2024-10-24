@@ -181,6 +181,16 @@
       "description": "Device model number or SKU",
       "example": "PX051AEI"
     },
+    "socname": {
+      "type": "string",
+      "enum": [
+        "Amlogic",
+        "Realtek",
+        "Broadcom"
+      ],
+      "description": "SOC Name",
+      "example": "Realtek"
+    },
     "yocto": {
       "type": "string",
       "enum": [
@@ -573,6 +583,27 @@
         }
       ]
     },
+    "socname": {
+      "summary": "Device type",
+      "readonly": true,
+      "params": {
+        "type": "object",
+        "properties": {
+          "socname": {
+            "$ref": "#/definitions/socname"
+          }
+        },
+        "required": [
+          "socname"
+        ]
+      },
+      "errors": [
+        {
+          "description": "General error",
+          "$ref": "#/common/errors/general"
+        }
+      ]
+    },  
     "distributorid": {
       "summary": "Partner ID or distributor ID for device",
       "readonly": true,
