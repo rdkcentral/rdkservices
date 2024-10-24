@@ -110,8 +110,18 @@ protected:
         EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_RegisterEventHandler(::testing::_, ::testing::_, ::testing::_))
             .WillOnce(::testing::Invoke(
                 [&](const char* ownerName, IARM_EventId_t eventId, IARM_EventHandler_t handler) {
-		    if ((strncmp(IARM_BUS_MAINTENANCE_MGR_NAME, ownerName, strlen(IARM_BUS_MAINTENANCE_MGR_NAME)) == 0) && (eventId == IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE)) {
-                        controlEventHandler_ = handler;
+		    
+		    if (ownerName != nullptr && strlen(ownerName) > 0) { //
+		        std::cout << "+++ ownerName: " << ownerName << std::endl; //
+		        std::cout << "+++ Comparing with: " << IARM_BUS_MAINTENANCE_MGR_NAME << std::endl;
+		        if ((strncmp(IARM_BUS_MAINTENANCE_MGR_NAME, ownerName, strlen(IARM_BUS_MAINTENANCE_MGR_NAME)) == 0) && (eventId == IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE)) {
+                            controlEventHandler_ = handler;
+		        }
+		    }
+		    else
+		    {
+			std::cout << "+++ Invalid ownerName" << std::endl;
+			std::cerr << "+++ Invalid ownerName" << std::endl;
 		    }
                     return IARM_RESULT_SUCCESS;
                 }));
