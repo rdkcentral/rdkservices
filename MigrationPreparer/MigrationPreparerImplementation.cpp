@@ -118,6 +118,7 @@ namespace Plugin {
                 else
                     escapedString += ch;
             }
+            escapedString = "\":"+ escapedString;
         }
         else if(type == REPLACEMENT) {
             // Iterate through each character in the string
@@ -128,6 +129,7 @@ namespace Plugin {
 
                 escapedString += ch;
             }
+            escapedString = "\":"+ escapedString;
         }
         return escapedString;
     }
