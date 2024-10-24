@@ -1,0 +1,59 @@
+diff -uprN a/interfaces/IDeviceInfo.h b/interfaces/IDeviceInfo.h
+--- a/interfaces/IDeviceInfo.h	2024-10-24 04:46:28.446820588 +0300
++++ b/interfaces/IDeviceInfo.h	2024-10-23 17:48:50.583263517 +0300
+@@ -17,6 +17,7 @@ namespace Exchange {
+         virtual uint32_t Make(string& make /* @out */) const = 0;
+         virtual uint32_t Model(string& model /* @out */) const = 0;
+         virtual uint32_t DeviceType(string& deviceType /* @out */) const = 0;
++        virtual uint32_t SocName(string& socName /* @out */) const = 0;
+         virtual uint32_t DistributorId(string& distributorId /* @out */) const = 0;
+     };
+ 
+diff -uprN a/jsonrpc/DeviceInfo.json b/jsonrpc/DeviceInfo.json
+--- a/jsonrpc/DeviceInfo.json	2024-10-24 04:46:28.447820629 +0300
++++ b/jsonrpc/DeviceInfo.json	2024-10-23 19:59:21.857033373 +0300
+@@ -184,6 +184,16 @@
+       "description": "Device model number or SKU",
+       "example": "PX051AEI"
+     },
++    "socname": {
++      "type": "string",
++      "enum": [
++        "Amlogic",
++        "Realtek",
++        "Broadcom"
++      ],
++      "description": "SOC Name",
++      "example": "Realtek"
++    },
+     "yocto": {
+       "type": "string",
+       "enum": [
+@@ -596,6 +606,27 @@
+         }
+       ]
+     },
++    "socname": {
++      "summary": "Device type",
++      "readonly": true,
++      "params": {
++        "type": "object",
++        "properties": {
++          "socname": {
++            "$ref": "#/definitions/socname"
++          }
++        },
++        "required": [
++          "socname"
++        ]
++      },
++      "errors": [
++        {
++          "description": "General error",
++          "$ref": "#/common/errors/general"
++        }
++      ]
++    },  
+     "distributorid": {
+       "summary": "Partner ID or distributor ID for device",
+       "readonly": true,
