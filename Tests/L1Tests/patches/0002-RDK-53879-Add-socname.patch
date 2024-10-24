@@ -1,7 +1,20 @@
-diff -uprN a/jsonrpc/DeviceInfo.json b/jsonrpc/DeviceInfo.json
---- a/jsonrpc/DeviceInfo.json	2024-10-24 04:46:28.447820629 +0300
-+++ b/jsonrpc/DeviceInfo.json	2024-10-24 05:09:34.591254270 +0300
-@@ -184,6 +184,16 @@
+diff --git a/interfaces/IDeviceInfo2.h b/interfaces/IDeviceInfo2.h
+index f87914d..10397a9 100644
+--- a/interfaces/IDeviceInfo2.h
++++ b/interfaces/IDeviceInfo2.h
+@@ -17,6 +17,7 @@ namespace Exchange {
+         virtual uint32_t Make(string& make /* @out */) const = 0;
+         virtual uint32_t Model(string& model /* @out */) const = 0;
+         virtual uint32_t DeviceType(string& deviceType /* @out */) const = 0;
++        virtual uint32_t SocName(string& socName /* @out */) const = 0;
+         virtual uint32_t DistributorId(string& distributorId /* @out */) const = 0;
+     };
+ 
+diff --git a/jsonrpc/DeviceInfo.json b/jsonrpc/DeviceInfo.json
+index ed32927..9823b86 100644
+--- a/jsonrpc/DeviceInfo.json
++++ b/jsonrpc/DeviceInfo.json
+@@ -196,6 +196,16 @@
        "description": "Device model number or SKU",
        "example": "PX051AEI"
      },
@@ -18,16 +31,10 @@ diff -uprN a/jsonrpc/DeviceInfo.json b/jsonrpc/DeviceInfo.json
      "yocto": {
        "type": "string",
        "enum": [
-@@ -590,6 +600,27 @@
-         ]
-       },
-       "errors": [
-+        {
-+          "description": "General error",
-+          "$ref": "#/common/errors/general"
-+        }
-+      ]
-+    },
+@@ -609,6 +619,27 @@
+         }
+       ]
+     },
 +    "socname": {
 +      "summary": "Device type",
 +      "readonly": true,
@@ -43,6 +50,12 @@ diff -uprN a/jsonrpc/DeviceInfo.json b/jsonrpc/DeviceInfo.json
 +        ]
 +      },
 +      "errors": [
-         {
-           "description": "General error",
-           "$ref": "#/common/errors/general"
++        {
++          "description": "General error",
++          "$ref": "#/common/errors/general"
++        }
++      ]
++    },
+     "supportedaudioports": {
+       "summary": "Audio ports supported on the device (all ports that are physically present)",
+       "readonly": true,
