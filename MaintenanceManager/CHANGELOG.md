@@ -16,7 +16,7 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
-## [1.0.37] - 2024-10-03
+## [1.0.37] - 2024-10-24
 ### Remove
 - Decouple DCM from Unsolicited Maintenance and remove DCM references in MaintenanceManager
 
