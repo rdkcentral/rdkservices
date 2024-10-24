@@ -101,15 +101,6 @@ namespace Plugin {
     }
 
     /*Helper's: Begin*/
-    void MigrationPreparerImplementation::Unstringfy(string& input) {
-        // transform \" to "
-        string::size_type pos = 0;
-        while ((pos = input.find("\\\"")) != string::npos) {
-            input.replace(pos, 2, "\"");
-        }
-    }
-
-
     string MigrationPreparerImplementation::escapeSed(string input, enum sedType type) {
         // Set of special characters in sed that need to be escaped
         std::unordered_set<char> specialChars = {
@@ -268,7 +259,6 @@ namespace Plugin {
         string newValue = value;
         WPEFramework::Core::File dataStore(DATASTORE_PATH);
         WPEFramework::Core::Directory dataStoreDir(DATASTORE_DIR);
-        Unstringfy(newValue);
 
         // check if someone deletes the dataStore in the middle of the operation
         if(!lineNumber.empty() && !dataStoreDir.Exists()) {
@@ -327,8 +317,8 @@ namespace Plugin {
             
             // sed command to replace value in the dataStore
             oldValue = escapeSed(oldValue, PATTERN);
-            newValue = escapeSed(newValue, REPLACEMENT);
-            int result = v_secure_system("/bin/sed -i -E '%ss/%s/%s/' %s", std::to_string(lineNumber[key]).c_str(), oldValue.c_str(), newValue.c_str(), DATASTORE_PATH);
+            string escapedNewValue = escapeSed(newValue, REPLACEMENT);
+            int result = v_secure_system("/bin/sed -i -E '%ss/%s/%s/' %s", std::to_string(lineNumber[key]).c_str(), oldValue.c_str(), escapedNewValue.c_str(), DATASTORE_PATH);
             
             if (result != -1 && WIFEXITED(result)) {
                 valueEntry[lineNumber[key] - 2] = newValue;

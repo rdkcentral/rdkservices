@@ -136,8 +136,6 @@ namespace Plugin {
         bool fileExist;
 
         /*Helpers: Begin*/
-        // Fn. to transform \" to " in a string
-        void Unstringfy(string&);
         //escape any special characters in string to make sed compatible pattern string and replacement string
         enum sedType {PATTERN, REPLACEMENT};
         string escapeSed(string, enum sedType);
