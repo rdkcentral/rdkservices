@@ -29,7 +29,7 @@ namespace Plugin {
         Register(_T("write"), &MigrationPreparer::endpoint_write, this);
         Register(_T("read"), &MigrationPreparer::endpoint_read, this);
         Register(_T("delete"), &MigrationPreparer::endpoint_delete, this);
-        Register<void, GetcomponentreadinessResultData>(_T("getComponentReadiness"), &MigrationPreparer::endpoint_getComponentReadiness, this);
+        Register<JsonObject, GetcomponentreadinessResultData>(_T("getComponentReadiness"), &MigrationPreparer::endpoint_getComponentReadiness, this);
         Register(_T("setComponentReadiness"), &MigrationPreparer::endpoint_setComponentReadiness, this);
         Register(_T("reset"), &MigrationPreparer::endpoint_reset, this);
     }
@@ -231,7 +231,14 @@ namespace Plugin {
     }
 
     
-    uint32_t MigrationPreparer::endpoint_getComponentReadiness(GetcomponentreadinessResultData& response) {
+    uint32_t MigrationPreparer::endpoint_getComponentReadiness(const JsonObject& parameters, GetcomponentreadinessResultData& response) {
+        
+        // condition check to block the response if any params are passed
+        if(parameters.IsSet()) {
+            LOGERR("Invalid input - provide no params");
+            return Core::ERROR_GENERAL;
+        }
+
         RPC::IStringIterator* componentList = nullptr;
         auto result = _migrationPreparer->getComponentReadiness(componentList);
         if (result == Core::ERROR_NONE) {
