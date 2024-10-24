@@ -22,7 +22,7 @@
 #include "UtilsIarm.h"
 #include "rfcapi.h"
 
-#define CAPABLITY_FILE_NAME    "pq_capablities.ini"
+#define CAPABLITY_FILE_NAME    "pq_capabilities.ini"
 
 static std::map<std::string, int> supportedSourcemap;
 static std::map<std::string, int> supportedPictureModemap;
