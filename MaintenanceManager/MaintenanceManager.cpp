@@ -131,12 +131,6 @@ string moduleStatusToString(IARM_Maint_module_status_t &status)
 {
     string ret_status="";
     switch(status){
-        case MAINT_DCM_COMPLETE:
-            ret_status="MAINTENANCE_DCM_COMPLETE";
-            break;
-        case MAINT_DCM_ERROR:
-            ret_status="MAINTENANCE_DCM_ERROR";
-            break;
         case MAINT_RFC_COMPLETE:
             ret_status="MAINTENANCE_RFC_COMPLETE";
             break;
