@@ -204,6 +204,7 @@ TEST_F(MaintenanceManagerTest, getMaintenanceActivityStatus)
     EXPECT_EQ(Core::ERROR_NONE, handler_.Invoke(connection_, _T("getMaintenanceActivityStatus"), _T("{}"), response_)); 
 }
 #if 0
+/*
 TEST_F(MaintenanceManagerInitializedEventTest, startMaintenanceOnReboot)
 {	
     IARM_Bus_MaintMGR_EventData_t	eventData;
@@ -271,7 +272,7 @@ TEST_F(MaintenanceManagerInitializedEventTest, startMaintenanceOnReboot)
 	std::this_thread::sleep_for(std::chrono::seconds(5));
 	
 }
-
+*/
 TEST_F(MaintenanceManagerInitializedEventTest, startMaintenance)
 {	
     IARM_Bus_MaintMGR_EventData_t	eventData;
