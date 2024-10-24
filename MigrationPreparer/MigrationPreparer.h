@@ -38,6 +38,7 @@
 #define ERROR_RESET     10
 #define ERROR_INVALID   11
 #define ERROR_NOFILE    12
+#define ERROR_FILEEMPTY 13
 
 namespace WPEFramework {
 namespace Plugin {
