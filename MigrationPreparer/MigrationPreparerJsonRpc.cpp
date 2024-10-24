@@ -144,11 +144,16 @@ namespace Plugin {
         switch(result) {
             case ERROR_NOFILE:
                 error["message"] = "Error file not exist";
-                error["code"] = "-32007";
+                error["code"] = "-32012";
+                response["error"] = error;
+                break;
+            case ERROR_FILEEMPTY:
+                error["message"] = "Error file empty";
+                error["code"] = "-32013";
                 response["error"] = error;
                 break;
             case ERROR_READ:
-                error["message"] = "Unexpected error during read operation";
+                error["message"] = "Name not found";
                 error["code"] = "-32007";
                 response["error"] = error;
                 break;
@@ -199,13 +204,18 @@ namespace Plugin {
 
         switch(result) {
             case ERROR_DELETE:
-                error["message"] = "Unexpected error during delete operation";
+                error["message"] = "Name not found";
                 error["code"] = "-32008";
                 response["error"] = error;
                 break;
             case ERROR_NOFILE:
                 error["message"] = "Error file not exist";
-                error["code"] = "-32007";
+                error["code"] = "-32012";
+                response["error"] = error;
+                break;
+            case ERROR_FILEEMPTY:
+                error["message"] = "Error file empty";
+                error["code"] = "-32013";
                 response["error"] = error;
                 break;
             case Core::ERROR_NONE:

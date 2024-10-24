@@ -376,8 +376,13 @@ namespace Plugin {
             return ERROR_NOFILE;
         }
 
+        if(lineNumber.empty()) {
+            LOGERR("Failed to read key: %s, migration dataStore %s is empty", key.c_str(), DATASTORE_PATH);
+            return ERROR_FILEEMPTY;
+        }
+
         // check if list is not empty and lineNumber for given key exists
-        if(lineNumber.empty() || (lineNumber.find(key) == lineNumber.end())) {
+        if(lineNumber.find(key) == lineNumber.end()) {
             LOGERR("Failed to read key: %s, Key do not exist in migration dataStore", key.c_str());
             return ERROR_READ;
         }
@@ -392,13 +397,13 @@ namespace Plugin {
         string key = name;
         int result;
 
-        if(!fileExist) { 
-            LOGERR("Failed to delete key: %s, migration dataStore %s do not exist", key.c_str(), DATASTORE_PATH);
-            return ERROR_NOFILE;
+        if(lineNumber.empty()) {
+            LOGERR("Failed to delete key: %s, migration dataStore %s is empty", key.c_str(), DATASTORE_PATH);
+            return ERROR_FILEEMPTY;
         }
 
         dataStoreMutex.lock();
-        if(!lineNumber.empty() && (lineNumber.find(key) != lineNumber.end())) {
+        if(lineNumber.find(key) != lineNumber.end()) {
             // sed command to delete an key-value entry in the dataStore            
             result = v_secure_system("/bin/sed -i '%sd' %s", std::to_string(lineNumber[key]).c_str(), DATASTORE_PATH);
 

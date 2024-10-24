@@ -53,6 +53,7 @@
 #define ERROR_RESET     10
 #define ERROR_INVALID   11
 #define ERROR_NOFILE    12
+#define ERROR_FILEEMPTY 13
 
 typedef uint64_t LINE_NUMBER_TYPE;
 using std::string;
@@ -131,6 +132,7 @@ namespace Plugin {
         LINE_NUMBER_TYPE curLineIndex;
         // A vector to hold value entries present in data Store file
         std::vector<string> valueEntry;
+        // A flag to track if dataStore file exists
         bool fileExist;
 
         /*Helpers: Begin*/
