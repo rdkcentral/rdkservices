@@ -25,14 +25,11 @@
  
  typedef enum {
   IARM_BUS_MAINTENANCEMGR_EVENT_UPDATE=0, /* Event status as data */
-  IARM_BUS_DCM_NEW_START_TIME_EVENT, /* Payload as Time */
  }IARM_Bus_MaintMGR_EventId_t;
  
  /* Notification to rdkservice over IARM */
  typedef enum {
-  MAINT_DCM_COMPLETE=0,
-  MAINT_DCM_ERROR, // 1
-  MAINT_RFC_COMPLETE, // 2
+  MAINT_RFC_COMPLETE=0, // 2
   MAINT_RFC_ERROR, // 3
   MAINT_LOGUPLOAD_COMPLETE, // 4
   MAINT_LOGUPLOAD_ERROR, // 5
