@@ -11,7 +11,7 @@ diff -uprN a/interfaces/IDeviceInfo.h b/interfaces/IDeviceInfo.h
  
 diff -uprN a/jsonrpc/DeviceInfo.json b/jsonrpc/DeviceInfo.json
 --- a/jsonrpc/DeviceInfo.json	2024-10-24 04:46:28.447820629 +0300
-+++ b/jsonrpc/DeviceInfo.json	2024-10-23 19:59:21.857033373 +0300
++++ b/jsonrpc/DeviceInfo.json	2024-10-24 05:09:34.591254270 +0300
 @@ -184,6 +184,16 @@
        "description": "Device model number or SKU",
        "example": "PX051AEI"
@@ -29,10 +29,16 @@ diff -uprN a/jsonrpc/DeviceInfo.json b/jsonrpc/DeviceInfo.json
      "yocto": {
        "type": "string",
        "enum": [
-@@ -596,6 +606,27 @@
-         }
-       ]
-     },
+@@ -590,6 +600,27 @@
+         ]
+       },
+       "errors": [
++        {
++          "description": "General error",
++          "$ref": "#/common/errors/general"
++        }
++      ]
++    },
 +    "socname": {
 +      "summary": "Device type",
 +      "readonly": true,
@@ -48,12 +54,6 @@ diff -uprN a/jsonrpc/DeviceInfo.json b/jsonrpc/DeviceInfo.json
 +        ]
 +      },
 +      "errors": [
-+        {
-+          "description": "General error",
-+          "$ref": "#/common/errors/general"
-+        }
-+      ]
-+    },  
-     "distributorid": {
-       "summary": "Partner ID or distributor ID for device",
-       "readonly": true,
+         {
+           "description": "General error",
+           "$ref": "#/common/errors/general"
