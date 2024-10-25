@@ -307,7 +307,7 @@ namespace Plugin {
                 response["error"] = error;
                 break;
             case ERROR_SET:
-                error["message"] = "Error creating file";
+                error["message"] = "Set Operation Failed";
                 error["code"] = "-32009";
                 response["error"] = error;
                 break;
