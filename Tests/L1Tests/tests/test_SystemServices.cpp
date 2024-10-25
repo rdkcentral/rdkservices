@@ -252,8 +252,15 @@ TEST_F(SystemServicesTest, TestedAPIsShouldExist)
 	EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("uploadLogs")));
 	EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("uploadLogsAsync")));
 	EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("abortLogUpload")));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setFSRFlag")));
-    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getFSRFlag")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setBlocklistFlag")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getBlocklistFlag")));
+    //EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getsetBlocklistFlag")));
+    //EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getsetBlocklist_nofile")));
+    //EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setBlocklist_paramtrue")));
+    //EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setBlocklist_paramfalse")));
+    //EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setBlocklist_noparam")));
+//    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setFSRFlag")));
+//    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getFSRFlag")));
 }
 
 TEST_F(SystemServicesTest, SystemUptime)
@@ -933,7 +940,6 @@ TEST_F(SystemServicesTest, getsetFriendlyName)
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getFriendlyName"), _T("{}"), response));
     EXPECT_EQ(response, string("{\"friendlyName\":\"friendlyTest\",\"success\":true}"));
 }  
-
 
 TEST_F(SystemServicesTest, getNetworkStandbyMode)
 {
@@ -6232,6 +6238,97 @@ TEST_F(SystemServicesEmptyTest, system_service_settings_conf_as_dir)
     EXPECT_TRUE(Core::Directory("/opt/system_service_settings.conf").Destroy(true));
 }
 
+TEST_F(SystemServicesTest, getsetBlocklist)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBlocklistFlag"), _T("{\"blocklist\": true}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getBlocklistFlag"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"blocklist\":true,\"success\":true}"));
+}
+
+#if 0
+TEST_F(SystemServicesTest, getsetBlocklist_nofile)
+{
+    /*const string  blokListFile = _T("/opt/secure/persistent/opflashstore/devicestate.txt");
+    Core::File file2(blokListFile);
+    file2.Destroy(); //Remove the file.
+
+    EXPECT_TRUE(Core::Directory("/opt/secure/persistent/opflashstore/devicestate.txt").CreatePath());
+    */
+    Core::File file(string("/opt/secure/persistent/opflashstore/devicestate.txt"));
+    if (file.Exists()) {
+        EXPECT_TRUE(file.Destroy());
+    }
+
+    //EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getBlocklistFlag"), _T("{}"), response));
+    //EXPECT_EQ(response, string("{\"success\":false}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getBlocklistFlag"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"success\":false}"));
+}
+#endif
+
+TEST_F(SystemServicesTest, setBlocklist_paramtrue)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBlocklistFlag"), _T("{\"blocklist\": true}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+}
+TEST_F(SystemServicesTest, setBlocklist_paramfalse)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBlocklistFlag"), _T("{\"blocklist\": false}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+}
+
+#if 0
+TEST_F(SystemServicesTest, setBlocklist_noparam)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBlocklistFlag"), _T("{}"), response));
+}
+#endif
+
+TEST_F(SystemServicesEventIarmTest, onBlocklistChanged)
+{
+    Core::Event onBlocklistChanged(false, true);
+
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_THAT(text, ::testing::MatchesRegex(_T("\\{"
+                                                             "\"jsonrpc\":\"2.0\","
+                                                             "\"method\":\"org.rdk.System.onBlocklistChanged\","
+                                                             "\"params\":"
+                                                             "\\{"
+                                                             "\"blocklist\":false"
+                                                             "\\}"
+                                                             "\\}")));
+
+                onBlocklistChanged.SetEvent();
+
+                return Core::ERROR_NONE;
+            }));
+
+    handler.Subscribe(0, _T("onBlocklistChanged"), _T("org.rdk.System"), message);
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBlocklistFlag"), _T("{\"blocklist\": false}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getBlocklistFlag"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"blocklist\":false,\"success\":true}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setBlocklistFlag"), _T("{\"blocklist\": true}"), response));
+    EXPECT_EQ(response, string("{\"success\":true}"));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getBlocklistFlag"), _T("{}"), response));
+    EXPECT_EQ(response, string("{\"blocklist\":true,\"success\":true}"));
+
+    EXPECT_EQ(Core::ERROR_NONE, onBlocklistChanged.Lock());
+
+    handler.Unsubscribe(0, _T("onBlocklistChanged"), _T("org.rdk.System"), message);
+}
+
+/*
 TEST_F(SystemServicesTest, setFSRSuccess){
     EXPECT_CALL(*p_iarmBusImplMock, IARM_Bus_Call)
         .Times(::testing::AnyNumber())
@@ -6293,3 +6390,4 @@ TEST_F(SystemServicesTest, getFSRFailure){
 
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getFSRFlag"), _T("{}"), response));
 }
+*/

@@ -71,6 +71,7 @@ using std::ofstream;
 #define EVT_ONLOGUPLOAD                   "onLogUpload"
 #define EVT_ONDEVICEMGTUPDATERECEIVED     "onDeviceMgtUpdateReceived"
 #define EVT_ONPRIVACYMODECHANGED          "onPrivacyModeChanged"
+#define EVT_ONBLOCKLISTCHANGED          "onBlocklistChanged"
 #define TERRITORYFILE                     "/opt/secure/persistent/System/Territory.txt"
 
 
@@ -305,6 +306,8 @@ namespace WPEFramework {
                 uint32_t getThunderStartReason(const JsonObject& parameters, JsonObject& response);
                 uint32_t setPrivacyMode(const JsonObject& parameters, JsonObject& response);
                 uint32_t getPrivacyMode(const JsonObject& parameters, JsonObject& response);
+                uint32_t setBlocklistFlag(const JsonObject& parameters, JsonObject& response);
+                uint32_t getBlocklistFlag(const JsonObject& parameters, JsonObject& response);
                 uint32_t setFSRFlag(const JsonObject& parameters, JsonObject& response);
                 uint32_t getFSRFlag(const JsonObject& parameters, JsonObject& response);
         }; /* end of system service class */
