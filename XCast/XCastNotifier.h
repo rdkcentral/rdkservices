@@ -16,25 +16,23 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **/
-#ifndef RT_NOTIFIER_H
-#define RT_NOTIFIER_H
+#ifndef XCAST_NOTIFIER_H
+#define XCAST_NOTIFIER_H
 
 /**
 * Abstract class for Notification.
 */
 using namespace std;
-class RtNotifier
+class XCastNotifier
 {
 public:
-    
-            virtual void onRtServiceDisconnected(void)=0;
-            virtual void onXcastApplicationLaunchRequest(string appName, string parameter)=0;
-            virtual void onXcastApplicationLaunchRequestWithLaunchParam (string appName,
-                                        string strPayLoad, string strQuery, string strAddDataUrl)=0;
-            virtual void onXcastApplicationStopRequest(string appName, string appID)=0;
-            virtual void onXcastApplicationHideRequest(string appName, string appID)=0;
-            virtual void onXcastApplicationResumeRequest(string appName, string appID)=0;
-            virtual void onXcastApplicationStateRequest(string appName, string appID)=0;
+    virtual void onGDialServiceStopped(void)=0;
+    virtual void onXcastApplicationLaunchRequest(string appName, string parameter)=0;
+    virtual void onXcastApplicationLaunchRequestWithLaunchParam (string appName,string strPayLoad, string strQuery, string strAddDataUrl)=0;
+    virtual void onXcastApplicationStopRequest(string appName, string appID)=0;
+    virtual void onXcastApplicationHideRequest(string appName, string appID)=0;
+    virtual void onXcastApplicationResumeRequest(string appName, string appID)=0;
+    virtual void onXcastApplicationStateRequest(string appName, string appID)=0;
+    virtual void onXcastUpdatePowerStateRequest(string powerState)=0;
 };
 #endif
-

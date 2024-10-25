@@ -2,7 +2,7 @@
  * If not stated otherwise in this file or this component's LICENSE
  * file the following copyright and licenses apply:
  *
- * Copyright 2020 RDK Management
+ * Copyright 2024 RDK Management
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,30 +21,32 @@
 #include <mutex>
 #include <iostream>
 #include <list>
-
-#include <rtRemote.h>
-#include <rtObject.h>
-#include <rtError.h>
-#include "RtNotifier.h"
+#include <fstream>
+#include "Module.h"
+#include "tptimer.h"
+#include "XCastNotifier.h"
 #include "XCastCommon.h"
+#include <xdial/gdialservicecommon.h>
+#include <xdial/gdialservice.h>
 using namespace std;
 
 
 /**
- * This is the connector class for interacting with xdial client using rtRemote.
+ * This is the Manager class for interacting with gdial library.
  */
-class RtXcastConnector {
+class XCastManager : public GDialNotifier
+{
 protected:
-    RtXcastConnector():m_runEventThread(true) ,m_IsDefaultDynamicAppListEnabled(false){
-        }
+    XCastManager(){}
 public:
-    virtual ~RtXcastConnector();
+    virtual ~XCastManager();
     /**
-     * Initialize rtRemote communication with rtDial server
+     * Initialize gdialService to communication with gdial server
      */
-    bool initialize();
+    bool initialize(const std::string& gdial_interface_name, bool networkStandbyMode );
+    void deinitialize();
     
-    /** Shutdown rtRemote connectivity */
+    /** Shutdown gdialService connectivity */
     void shutdown();
     /**
      *The application state change function . This is invoked from application side.
@@ -68,45 +70,40 @@ public:
     void updateFriendlyName(string friendlyname);
     void registerApplications (std::vector<DynamicAppConfig*>& appConfigList);
     string  getProtocolVersion(void);
+    void setNetworkStandbyMode(bool nwStandbymode);
     /**
      *Request the single instance of this class
      */
-    static  RtXcastConnector * getInstance();
+    static  XCastManager * getInstance();
+
+    virtual void onApplicationLaunchRequest(string appName, string parameter) override;
+    virtual void onApplicationLaunchRequestWithLaunchParam (string appName,string strPayLoad, string strQuery, string strAddDataUrl) override;
+    virtual void onApplicationStopRequest(string appName, string appID) override;
+    virtual void onApplicationHideRequest(string appName, string appID) override;
+    virtual void onApplicationResumeRequest(string appName, string appID) override;
+    virtual void onApplicationStateRequest(string appName, string appID) override;
+    virtual void onStopped(void) override;
+    virtual void updatePowerState(string powerState) override;
+
     /**
      *Call back function for rtConnection
      */
-    int connectToRemoteService();
-    bool IsDynamicAppListEnabled();
+    int isGDialStarted();
     
-    void setService(RtNotifier * service){
+    void setService(XCastNotifier * service){
         m_observer = service;
     }
 private:
     //Internal methods
-    //RT Connector class
-    RtNotifier * m_observer;
-    //Event Monitoring thread
-    thread m_eventMtrThread;
-    // Atomic lock
-    mutex m_threadlock;
-    // Boolean event thread exit condition
-    bool m_runEventThread;
-    bool m_IsDefaultDynamicAppListEnabled;
-    // Member function to handle RT messages.
-    void processRtMessages();
+    XCastNotifier * m_observer;
     bool IsAppEnabled(char* strAppName);
+    void getWiFiInterface(std::string& WiFiInterfaceName);
+    void getGDialInterfaceName(std::string& interfaceName);
+    std::string getReceiverID(void);
+    bool envGetValue(const char *key, std::string &value);
 
     // Class level contracts
     // Singleton instance
-    static RtXcastConnector * _instance;
-    // Thread main function
-    static void threadRun(RtXcastConnector *rtCtx);
-
-    static rtError onApplicationLaunchRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context);
-    static rtError onApplicationHideRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context);
-    static rtError onApplicationResumeRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context);
-    static rtError onApplicationStateRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context);
-    static rtError onApplicationStopRequestCallback(int numArgs, const rtValue* args, rtValue* result, void* context);
-    static rtError onRtServiceByeCallback(int numArgs, const rtValue* args, rtValue* result, void* context);
-    static void remoteDisconnectCallback(void * context);
+    static XCastManager * _instance;
+    std::recursive_mutex m_mutexSync;
 };
