@@ -261,9 +261,9 @@ namespace Plugin {
         string newValue = value;
         WPEFramework::Core::File dataStore(DATASTORE_PATH);
         WPEFramework::Core::Directory dataStoreDir(DATASTORE_DIR);
-
+        
         // check if someone deletes the dataStore in the middle of the operation
-        if(!lineNumber.empty() && !dataStoreDir.Exists()) {
+        if(!lineNumber.empty() && !dataStore.Exists()) {
             LOGWARN("Migration datastore %s deleted in the middle of the operation, resetting the internal data structures", DATASTORE_PATH);
             lineNumber.clear();
             curLineIndex = 1;

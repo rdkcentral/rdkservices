@@ -43,7 +43,7 @@
 #define MIGRATIONREADY_PATH _T("/opt/secure/migration/migrationready.txt")
 #define MIGRATIONREADY_DIR _T("/opt/secure/migration/")
 
-// PLUGIN SPECIFIC CUSTOM ERROR CODES //bvch
+// PLUGIN SPECIFIC CUSTOM ERROR CODES
 #define ERROR_CREATE    4
 #define ERROR_OPEN      5
 #define ERROR_WRITE     6

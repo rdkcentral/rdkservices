@@ -28,7 +28,7 @@
 #include "UtilsJsonRpc.h"
 #include <mutex>
 
-// PLUGIN SPECIFIC CUSTOM ERROR CODES //bvch
+// PLUGIN SPECIFIC CUSTOM ERROR CODES
 #define ERROR_CREATE    4
 #define ERROR_OPEN      5
 #define ERROR_WRITE     6
