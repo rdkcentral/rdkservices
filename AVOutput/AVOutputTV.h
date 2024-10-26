@@ -22,6 +22,8 @@
 
 #include "string.h"
 #include <set>
+#include <boost/filesystem.hpp>
+#include <boost/property_tree/ini_parser.hpp>
 
 #include "tvTypes.h"
 #include "tvSettings.h"
@@ -67,6 +69,60 @@
 #define STRING_DEFAULT  "Default"
 #define STRING_SOURCE    "Source."
 #define CREATE_DIRTY(__X__) (__X__+=STRING_DIRTY)
+
+#define PANEL_ID_OFFSET 0x9000004
+#define MMC_DEVICE      ("/dev/mmcblk0")
+#define CAPABLITY_FILE_NAME    "pq_capabilities.ini"
+#define MAX_DV_MODES 6
+
+static constexpr unsigned int CONTENT_FORMAT_NONE = 0x00;
+static constexpr unsigned int CONTENT_FORMAT_SDR = 0x01;
+static constexpr unsigned int CONTENT_FORMAT_HLG = 0x02;
+static constexpr unsigned int CONTENT_FORMAT_HDR10 = 0x03;
+static constexpr unsigned int CONTENT_FORMAT_HDR10PLUS = 0x04;
+static constexpr unsigned int CONTENT_FORMAT_DV = 0x05;
+static constexpr unsigned int CONTENT_FORMAT_MAX = 0x06;
+
+class CIniFile 
+{
+	std::string m_path;
+	std::string opt_path;
+	boost::property_tree::ptree m_data;
+
+public: 
+	CIniFile(const std::string & filename, const std::string & filepath = "/etc/" )
+	{
+		opt_path = "/opt/panel/";
+		m_path = filepath;
+		m_path.append(filename);
+		opt_path.append(filename);
+
+		if(!boost::filesystem::exists( opt_path)) {
+			std::cout << "DS HAL : Using " << m_path <<std::endl;
+			boost::property_tree::ini_parser::read_ini(m_path, m_data);
+		}
+		else {
+			std::cout << "DS HAL : Using " << opt_path << std::endl;
+			boost::property_tree::ini_parser::read_ini(opt_path, m_data);
+	        }
+	}
+
+	~CIniFile()
+	{
+	}
+
+	template <typename T>
+	T Get(const std::string & key)
+	{
+		return m_data.get<T>(key);
+	}
+
+	template <typename T>
+	void Set(const std::string & key, const T & value){
+		//TODO DD: Not required currently
+             	//m_data.put(key, value);
+	}
+};
 
 namespace WPEFramework {
 namespace Plugin {
@@ -217,10 +273,14 @@ class AVOutputTV : public AVOutputBase {
 		tvError_t getParamsCaps(std::vector<std::string> &range, std::vector<std::string> &pqmode, std::vector<std::string> &source,
 		                        std::vector<std::string> &format,std::string param , std::string & isPlatformSupport,
 				std::vector<std::string> & index);
+		int GetPanelID(char *panelid);
+		int ConvertHDRFormatToContentFormat(tvVideoFormatType_t hdrFormat);
+		int ReadCapablitiesFromConf(std::string &rangeInfo,std::string &pqmodeInfo,std::string &formatInfo,std::string &sourceInfo,std::string param, std::string & isPlatformSupport, std::string & indexInfo);
 		void getDimmingModeStringFromEnum(int value, std::string &toStore);
 		void getColorTempStringFromEnum(int value, std::string &toStore);
 		int getCurrentPictureMode(char *picMode);
 		int getDolbyParamToSync(int sourceIndex, int formatIndex, int& value);
+		tvDolbyMode_t GetDolbyVisionEnumFromModeString(const char* modeString);
 		std::string getDolbyModeStringFromEnum( tvDolbyMode_t mode);
 		JsonArray getSupportedVideoSource(void);
 		int getAvailableCapabilityModesWrapper(std::string param, std::string & outparam);
