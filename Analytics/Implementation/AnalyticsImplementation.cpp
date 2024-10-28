@@ -87,6 +87,33 @@ namespace Plugin {
         LOGINFO("Uptime Timestamp: %" PRIu64, uptimeTimestamp);
         LOGINFO("Event Payload: %s", eventPayload.c_str());
 
+        bool valid = true;
+        if (eventName.empty())
+        {
+            LOGERR("eventName is empty");
+            valid = false;
+        }
+        if (eventSource.empty())
+        {
+            LOGERR("eventSource is empty");
+            valid = false;
+        }
+        if (eventSourceVersion.empty())
+        {
+            LOGERR("eventSourceVersion is empty");
+            valid = false;
+        }
+        if (eventPayload.empty())
+        {
+            LOGERR("eventPayload is empty");
+            valid = false;
+        }
+
+        if (valid == false)
+        {
+            return Core::ERROR_GENERAL;
+        }
+
         // Fill the uptime if no time provided
         if (event->epochTimestamp == 0 && event->uptimeTimestamp == 0)
         {
