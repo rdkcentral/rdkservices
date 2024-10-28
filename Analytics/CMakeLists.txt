@@ -58,12 +58,9 @@ message("Setup ${MODULE_NAME} v${MODULE_VERSION}")
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
-find_package(DS)
-find_package(IARMBus)
 
 add_library(${MODULE_NAME} SHARED
         Analytics.cpp
-        AnalyticsJsonRpc.cpp
         Implementation/AnalyticsImplementation.cpp
         Module.cpp)
 
@@ -87,8 +84,6 @@ target_link_libraries(${MODULE_NAME}
         CompileSettingsDebug::CompileSettingsDebug
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
         ${NAMESPACE}Definitions::${NAMESPACE}Definitions
-        ${DS_LIBRARIES}
-        ${IARMBUS_LIBRARIES}
         ${MODULE_NAME}Backends
         ${MODULE_NAME}SystemTime)
 
