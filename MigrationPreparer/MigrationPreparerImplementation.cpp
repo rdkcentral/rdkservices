@@ -449,33 +449,6 @@ namespace Plugin {
         string _compName = compName;
         _adminLock.Lock();
         LOGINFO("Component Name: %s", _compName.c_str());
-#ifdef MIGRATIONPREPARER_TR181_SUPPORT
-        RFC_ParamData_t param;
-        WDMP_STATUS wdmpStatus;
-        wdmpStatus = getRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE,TR181_MIGRATION_READY, &param);
-        if (wdmpStatus != WDMP_SUCCESS) {
-            LOGINFO("setting the first RFC parameter");
-            wdmpStatus = setRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE, TR181_MIGRATION_READY, _compName.c_str(), WDMP_STRING);  
-            status=(wdmpStatus == WDMP_SUCCESS)?Core::ERROR_NONE:Core::ERROR_GENERAL;
-        }
-        else {
-            std::string paramValue;
-            paramValue = param.value;
-            LOGINFO("component %s is already present", paramValue.c_str());
-            std::list<std::string> component_list;
-            split(component_list, paramValue);
-            if(!isDuplicate(_compName, component_list)){
-                component_list.push_back(_compName);
-                component_list.sort();
-                _compName= "";
-                join(_compName, component_list);
-                wdmpStatus = setRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE, TR181_MIGRATION_READY, _compName.c_str(), WDMP_STRING);  
-                status=(wdmpStatus == WDMP_SUCCESS)?Core::ERROR_NONE:Core::ERROR_GENERAL;
-            }else{
-                status=Core::ERROR_NONE;
-            }
-        }
-#else      
         WPEFramework::Core::File migrationReady(MIGRATIONREADY_PATH);
         WPEFramework::Core::Directory migrationReadyDir(MIGRATIONREADY_DIR);
 
@@ -505,51 +478,48 @@ namespace Plugin {
             return ERROR_OPEN;
         }
         // read component list and add new component in order into file
-        {
-            string outComponentString = _compName;
-            // Lambda to compare strings in lexicographical order
-            auto componentComparator = [](const std::string& a, const std::string& b) {
-                return a < b;
-            };            
-            if(migrationReady.Size() > 0){
-                uint8_t datatoread[migrationReady.Size()+1]={'\0'};
-                uint32_t size = migrationReady.Read(datatoread, static_cast<uint32_t>(sizeof(datatoread)));
-                if(size){
-                    std::string inComponentString(reinterpret_cast<char*>(datatoread));
-                    std::list<std::string> componentlist;
-                    outComponentString = "";
-                    split(componentlist, inComponentString);
-                    // check whether it is duplicate or not
-                    if(isDuplicate(_compName, componentlist)){
-                        migrationReady.Close();
-                        status = Core::ERROR_NONE;
-                        _adminLock.Unlock();
-                        return status;                        
-                    }
-                    componentlist.push_back(_compName);
-                    componentlist.sort(componentComparator);
-                    // Print component of the set
-                    for (const auto& str : componentlist) {
-                        std::cout << str << " ";
-                    }
-                    std::cout << std::endl;
-                    join(outComponentString, componentlist);
-                }else{
-                    LOGERR("Failed to read migration ready %s, errno: %d, reason: %s", MIGRATIONREADY_PATH, errno, strerror(errno));
-                    LOGERR("Failed to add component{%s} in migration ready", _compName.c_str());
+        string outComponentString = _compName;
+        // Lambda to compare strings in lexicographical order
+        auto componentComparator = [](const std::string& a, const std::string& b) {
+            return a < b;
+        };            
+        if(migrationReady.Size() > 0){
+            uint8_t datatoread[migrationReady.Size()+1]={'\0'};
+            uint32_t size = migrationReady.Read(datatoread, static_cast<uint32_t>(sizeof(datatoread)));
+            if(size){
+                std::string inComponentString(reinterpret_cast<char*>(datatoread));
+                std::list<std::string> componentlist;
+                outComponentString = "";
+                split(componentlist, inComponentString);
+                // check whether it is duplicate or not
+                if(isDuplicate(_compName, componentlist)){
+                    migrationReady.Close();
+                    status = Core::ERROR_NONE;
                     _adminLock.Unlock();
-                    return ERROR_SET;
+                    return status;                        
                 }
+                componentlist.push_back(_compName);
+                componentlist.sort(componentComparator);
+                // Print component of the set
+                for (const auto& str : componentlist) {
+                    std::cout << str << " ";
+                }
+                std::cout << std::endl;
+                join(outComponentString, componentlist);
+            }else{
+                LOGERR("Failed to read migration ready %s, errno: %d, reason: %s", MIGRATIONREADY_PATH, errno, strerror(errno));
+                LOGERR("Failed to add component{%s} in migration ready", _compName.c_str());
+                _adminLock.Unlock();
+                return ERROR_SET;
             }
-            uint8_t datatowrite[outComponentString.size()];
-            ::memcpy(datatowrite, outComponentString.data(), outComponentString.size());
-            // write componentList to the migration ready file from begining 
-            migrationReady.Position(false, 0);
-            migrationReady.Write(datatowrite, static_cast<uint32_t>(sizeof(datatowrite)));
-            migrationReady.Close();
-            status = Core::ERROR_NONE;
         }
-#endif/*MIGRATIONPREPARER_TR181_SUPPORT*/            
+        uint8_t datatowrite[outComponentString.size()];
+        ::memcpy(datatowrite, outComponentString.data(), outComponentString.size());
+        // write componentList to the migration ready file from begining 
+        migrationReady.Position(false, 0);
+        migrationReady.Write(datatowrite, static_cast<uint32_t>(sizeof(datatowrite)));
+        migrationReady.Close();
+        status = Core::ERROR_NONE;         
         _adminLock.Unlock();
         return status;
     }
@@ -559,22 +529,7 @@ namespace Plugin {
     {
         uint32_t status = Core::ERROR_GENERAL;
         _adminLock.Lock();
-        std::list<string> componentlist;
-#ifdef MIGRATIONPREPARER_TR181_SUPPORT
-        RFC_ParamData_t param;
-        //getting the RFC parameter to check if any component is ready for migration
-        WDMP_STATUS wdmpStatus = getRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE, TR181_MIGRATION_READY, &param);
-        if (wdmpStatus != WDMP_SUCCESS) {
-                LOGINFO("No component is ready for migration");
-        }
-        else{
-            //if one or more component is ready then it gets the list of components
-            string paramValue;
-            paramValue = param.value;
-            split(componentlist, paramValue);
-            LOGINFO("componentlist are Ready");
-        }
-#else        
+        std::list<string> componentlist;      
         WPEFramework::Core::File migrationReady(MIGRATIONREADY_PATH);
         WPEFramework::Core::Directory migrationReadyDir(MIGRATIONREADY_DIR);
 
@@ -599,8 +554,7 @@ namespace Plugin {
                 std::string inComponentString(reinterpret_cast<char*>(datatoread));
                 split(componentlist, inComponentString);
             }           
-        }
-#endif/*MIGRATIONPREPARER_TR181_SUPPORT*/        
+        }      
         compList = (Core::Service<RPC::StringIterator>::Create<RPC::IStringIterator>(componentlist));
         status = Core::ERROR_NONE;
         LOGINFO("Component status[%d]", status);
