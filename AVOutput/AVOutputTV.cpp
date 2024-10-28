@@ -2293,8 +2293,9 @@ namespace Plugin {
             return tvERROR_GENERAL;
         }
 
-        // Point the first element of dvModesArray to dvModes
+        // Point the first element of dvModesArray to dolbyModes and set the indicator
         dvModesArray[0] = dvModes;
+	dvModesArray[0][0] = tvDolbyMode_Dark; // Set an initial value to indicate the mode type
         tvError_t ret = GetTVSupportedDolbyVisionModes(dvModesArray, &totalAvailable);
         if(ret != tvERROR_NONE) {
             if (dvModes != NULL) {

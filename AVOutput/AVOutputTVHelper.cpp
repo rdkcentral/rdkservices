@@ -255,9 +255,10 @@ namespace Plugin {
             return tvERROR_GENERAL;
         }
 
-        // Point the first element of dolbyModesArray to dolbyModes
-        dolbyModesArray[0] = dolbyModes;
-        tvError_t ret = GetTVSupportedDolbyVisionModes(dolbyModesArray, &totalAvailable);
+	// Point the first element of dolbyModesArray to dolbyModes and set the indicator
+	dolbyModesArray[0] = dolbyModes;
+	dolbyModesArray[0][0] = tvDolbyMode_Dark; // Set an initial value to indicate the mode type
+	tvError_t ret = GetTVSupportedDolbyVisionModes(dolbyModesArray, &totalAvailable);
         if(ret == tvERROR_NONE) {
             for(int count = 0;count <totalAvailable;count++ ) {
                 if(strncasecmp(dolbyMode, getDolbyModeStringFromEnum(dolbyModes[count]).c_str(), strlen(dolbyMode))==0) {
