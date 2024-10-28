@@ -95,6 +95,9 @@ Telemetry_L2test::~Telemetry_L2test()
     uint32_t status = Core::ERROR_GENERAL;
     m_event_signalled = TELEMETRYL2TEST_STATE_INVALID;
 
+    // Deactivate System plugin since it was activated by Telemetry plugin
+    DeactivateService("org.rdk.System");
+
     status = DeactivateService("org.rdk.Telemetry");
     EXPECT_EQ(Core::ERROR_NONE, status);
 }
