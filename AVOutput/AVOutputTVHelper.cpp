@@ -2368,6 +2368,12 @@ namespace Plugin {
     {
         int ret = 0;
 
+        /*Consider User WhiteBalance as CustomWhiteBalance
+        To avoid clash with Factory WhiteBalance Calibration capablities*/
+
+        if ( param == "WhiteBalance")
+            param == "CustomWhiteBalance";
+
         try {
             CIniFile inFile(CAPABLITY_FILE_NAME);
             std::string configString;
@@ -2381,7 +2387,7 @@ namespace Plugin {
                 info.component = inFile.Get<std::string>(configString);
             }
 
-            if(param == "WhiteBalance")
+            if(param == "CustomWhiteBalance")
             {
                 configString = param + ".color";
                 info.color = inFile.Get<std::string>(configString);
@@ -2391,7 +2397,7 @@ namespace Plugin {
 
             }
 
-            if ((param == "DolbyVisionMode") || (param == "Backlight") || (param == "CMS") || (param == "WhiteBalance") || (param == "HDRMode") ) {
+            if ((param == "DolbyVisionMode") || (param == "Backlight") || (param == "CMS") || (param == "CustomWhiteBalance") || (param == "HDRMode") ) {
                 configString = param + ".platformsupport";
                 info.isPlatformSupport = inFile.Get<std::string>(configString);
                 printf(" platformsupport : %s\n",info.isPlatformSupport.c_str() );
@@ -2421,7 +2427,7 @@ namespace Plugin {
                 info.range += ","+inFile.Get<std::string>(configString);
                 configString = param + ".range_Luma_to";
                 info.range += ","+inFile.Get<std::string>(configString);
-            } else if ( (param == "WhiteBalance")) {
+            } else if ( (param == "CustomWhiteBalance")) {
                 configString = param + ".range_Gain_from";
                 info.range = inFile.Get<std::string>(configString);
                 configString = param + ".range_Gain_to";
