@@ -1973,6 +1973,14 @@
                 "type": "string",
                 "example": "DO_NOT_SHARE"
             }
+        },
+        "getBootTypeInfo":{
+            "summary": "Getting Boot Type",
+            "result": {
+			   "summary": "BOOT Type Info",
+               "type": "string",
+               "example": "BOOT_UPDATE"
+			}
         }
     },
     "events": {
