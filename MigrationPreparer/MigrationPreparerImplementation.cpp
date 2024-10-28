@@ -571,24 +571,16 @@ namespace Plugin {
         if(resetType == "RESET_ALL") {
             if(!resetDatastore())
                 return ERROR_RESET;
-#ifdef MIGRATIONPREPARER_TR181_SUPPORT                
-            setRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE, TR181_MIGRATION_READY, empty.c_str(), WDMP_STRING);  
-#else
             if(!resetMigrationready())
                 return ERROR_RESET;
-#endif/*MIGRATIONPREPARER_TR181_SUPPORT*/
         }
         else if (resetType == "RESET_DATA") {
             if(!resetDatastore())
                 return ERROR_RESET;
         }
         else if (resetType == "RESET_READINESS") {
-#ifdef MIGRATIONPREPARER_TR181_SUPPORT            
-            setRFCParameter((char *)MIGRATIONPREPARER_NAMESPACE, TR181_MIGRATION_READY, empty.c_str(), WDMP_STRING);  
-#else
             if(!resetMigrationready())
-                return ERROR_RESET;
-#endif/*MIGRATIONPREPARER_TR181_SUPPORT*/            
+                return ERROR_RESET;        
         }
         else {
             // Invalid parameter
