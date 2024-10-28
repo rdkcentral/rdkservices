@@ -1990,7 +1990,7 @@
             }
         },
         "getBlocklistFlag":{
-            "summary": "get the blocklist falg on device for device state. Valid flags are:  \n* `true` - The device is in blocked state.  \n* `false` - The device is in un-blocked state.",
+            "summary": "get the blocklist flag on device for device state. Valid flags are:  \n* `true` - The device is in blocked state.  \n* `false` - The device is in un-blocked state.",
             "result": {
                 "type": "object",
                 "properties": {
@@ -1999,16 +1999,18 @@
                         "type": "boolean",
                         "example": true
                         },
-                    "success": {
-                            "summary": "returns true or false to indicate if the operation was successful or not",
-                            "type": "boolean",
-                            "example": true
+                    "success":{
+                        "$ref": "#/common/success"
                         }
-                    }
+                    },
+                    "required": [
+                        "blocklist",
+                        "success"
+                    ]
                 }
         },
         "setBlocklistFlag":{
-            "summary": "Sets the blocklist falg on device for device state. Valid flags are:  \n* `true` - The device is in blocked state.  \n* `false` - The device is in un-blocked state.",
+            "summary": "Sets the blocklist flag on device for device state. Valid flags are:  \n* `true` - The device is in blocked state.  \n* `false` - The device is in un-blocked state.",
             "events": {
                 "onBlocklistChanged" : "Triggers when the blocklist flag is modified"
             },

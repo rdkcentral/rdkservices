@@ -100,7 +100,9 @@ using namespace std;
 
 #define PRIVACY_MODE_FILE "/opt/secure/persistent/System/privacymode.txt"
 
-#define DEVICESTATE_FILE "/opt/secure/persistent/opflashstore/devicestate.txt"
+#define OPFLASH_STORE "/opt/secure/persistent/opflashstore"
+#define DEVICESTATE_FILE OPFLASH_STORE "/devicestate.txt"
+#define BLOCKLIST "blocklist"
 
 /**
  * @struct firmwareUpdate
@@ -1383,9 +1385,9 @@ namespace WPEFramework {
         bool checkOpFlashStoreDir()
         {
             int ret = 0;
-            if (access("/opt/secure/persistent/opflashstore", F_OK) == -1) {
-                ret = mkdir("/opt/secure/persistent/opflashstore", 0774);
-                LOGWARN(" --- SubDirectories created from mkdir %d ", ret);
+            if (access(OPFLASH_STORE, F_OK) == -1) {
+                ret = mkdir(OPFLASH_STORE, 0774);
+                LOGINFO(" --- SubDirectories created from mkdir %d ", ret);
             }
             return 0 == ret;
         }
@@ -1548,7 +1550,7 @@ namespace WPEFramework {
             bool blocklistFlag, oldBlocklistFlag;
             JsonObject error;
 
-            if ((parameters.HasLabel("blocklist"))) {
+            if ((parameters.HasLabel(BLOCKLIST))) {
             
                 /*check /opt/secure/persistent/opflashstore/ dir*/
                 ret = checkOpFlashStoreDir();
@@ -1565,9 +1567,9 @@ namespace WPEFramework {
                     returnResponse(result);
                 }
 
-                blocklistFlag = parameters["blocklist"].Boolean();
+                blocklistFlag = parameters[BLOCKLIST].Boolean();
                 if((blocklistFlag == true) || (blocklistFlag == false) ) {
-                    status = write_parameters(DEVICESTATE_FILE, "blocklist", blocklistFlag, update, oldBlocklistFlag);
+                    status = write_parameters(DEVICESTATE_FILE, BLOCKLIST, blocklistFlag, update, oldBlocklistFlag);
 			        if ((status != true)) {
 			    	    LOGERR("Blocklist flag update failed. status %d ", status);
 				        error["message"] = "Blocklist flag update failed";
@@ -1630,10 +1632,10 @@ namespace WPEFramework {
                 returnResponse(status);
             }
 
-            result = read_parameters(DEVICESTATE_FILE, "blocklist", blocklistFlag);
+            result = read_parameters(DEVICESTATE_FILE, BLOCKLIST, blocklistFlag);
 		    if (result == true) {
                 LOGWARN("blocklistFlag=%d", blocklistFlag);
-                response["blocklist"] = blocklistFlag;
+                response[BLOCKLIST] = blocklistFlag;
 			    status = true;
                 LOGINFO("Blocklist flag retrieved successfully from persistent memory.");
 		    }
