@@ -40,6 +40,7 @@ namespace Plugin {
         Property<MakeData>(_T("make"), &DeviceInfo::get_make, nullptr, this);
         Property<ModelnameData>(_T("modelname"), &DeviceInfo::get_modelname, nullptr, this);
         Property<DevicetypeData>(_T("devicetype"), &DeviceInfo::get_devicetype, nullptr, this);
+        Property<SocnameData>(_T("socname"), &DeviceInfo::get_socname, nullptr, this);        
         Property<DistributoridData>(_T("distributorid"), &DeviceInfo::get_distributorid, nullptr, this);
         Property<SupportedaudioportsData>(_T("supportedaudioports"), &DeviceInfo::get_supportedaudioports, nullptr, this);
         Property<SupportedvideodisplaysData>(_T("supportedvideodisplays"), &DeviceInfo::get_supportedvideodisplays, nullptr, this);
@@ -63,6 +64,7 @@ namespace Plugin {
         Unregister(_T("make"));
         Unregister(_T("modelname"));
         Unregister(_T("devicetype"));
+        Unregister(_T("socname"));
         Unregister(_T("distributorid"));
         Unregister(_T("supportedaudioports"));
         Unregister(_T("supportedvideodisplays"));
@@ -236,6 +238,29 @@ namespace Plugin {
                 response.Devicetype = value.Value();
             } else {
                 TRACE(Trace::Fatal, (_T("Unknown value %s"), deviceType.c_str()));
+                result = Core::ERROR_GENERAL;
+            }
+        }
+
+        return result;
+    }
+
+    // Property: socname - SOC Name
+    // Return codes:
+    //  - ERROR_NONE: Success
+    //  - ERROR_GENERAL: General error
+    uint32_t DeviceInfo::get_socname(SocnameData& response) const
+    {
+        string socType;
+
+        auto result = _deviceInfo->SocName(socType);
+
+        if (result == Core::ERROR_NONE) {
+            Core::EnumerateType<JsonData::DeviceInfo::SocnameData::SocnameType> value(socType.c_str(), false);
+            if (value.IsSet()) {
+                response.Socname = value.Value();
+            } else {
+                TRACE(Trace::Fatal, (_T("Unknown value %s"), socType.c_str()));
                 result = Core::ERROR_GENERAL;
             }
         }

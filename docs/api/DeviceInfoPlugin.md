@@ -1,62 +1,49 @@
 <!-- Generated automatically, DO NOT EDIT! -->
-<a name="DeviceInfo_Plugin"></a>
-# DeviceInfo Plugin
+<a name="head.Device_Info_API"></a>
+# Device Info API
 
-**Version: [1.0.15](https://github.com/rdkcentral/rdkservices/blob/main/DeviceInfo/CHANGELOG.md)**
+**Version: [1.0.0]()**
 
-A DeviceInfo plugin for Thunder framework.
+A DeviceInfo interface for Thunder framework.
+
+(Defined by [DeviceInfo.json](https://github.com/rdkcentral/ThunderInterfaces/blob/master/interfaces/DeviceInfo.json))
 
 ### Table of Contents
 
-- [Abbreviation, Acronyms and Terms](#Abbreviation,_Acronyms_and_Terms)
-- [Description](#Description)
-- [Configuration](#Configuration)
-- [Methods](#Methods)
-- [Properties](#Properties)
+- [Abbreviation, Acronyms and Terms](#head.Abbreviation,_Acronyms_and_Terms)
+- [Description](#head.Description)
+- [Methods](#head.Methods)
+- [Properties](#head.Properties)
 
-<a name="Abbreviation,_Acronyms_and_Terms"></a>
+<a name="head.Abbreviation,_Acronyms_and_Terms"></a>
 # Abbreviation, Acronyms and Terms
 
 [[Refer to this link](userguide/aat.md)]
 
-<a name="Description"></a>
+<a name="head.Description"></a>
 # Description
 
-The `DeviceInfo` plugin allows retrieving of various device-related information.
+DeviceInfo JSON-RPC interface.
 
-The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
-
-<a name="Configuration"></a>
-# Configuration
-
-The table below lists configuration options of the plugin.
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| callsign | string | Plugin instance name (default: *DeviceInfo*) |
-| classname | string | Class name: *DeviceInfo* |
-| locator | string | Library name: *libWPEFrameworkDeviceInfo.so* |
-| autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
-
-<a name="Methods"></a>
+<a name="head.Methods"></a>
 # Methods
 
-The following methods are provided by the DeviceInfo plugin:
+The following methods are provided by the DeviceInfo interface:
 
 DeviceInfo interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [supportedresolutions](#supportedresolutions) | Supported resolutions on the selected video display port |
-| [defaultresolution](#defaultresolution) | Default resolution on the selected video display port |
-| [supportedhdcp](#supportedhdcp) | Supported HDCP version on the selected video display port |
-| [audiocapabilities](#audiocapabilities) | Audio capabilities for the specified audio port |
-| [ms12capabilities](#ms12capabilities) | MS12 audio capabilities for the specified audio port |
-| [supportedms12audioprofiles](#supportedms12audioprofiles) | Supported MS12 audio profiles for the specified audio port |
+| [supportedresolutions](#method.supportedresolutions) | Supported resolutions on the selected video display port |
+| [defaultresolution](#method.defaultresolution) | Default resolution on the selected video display port |
+| [supportedhdcp](#method.supportedhdcp) | Supported HDCP version on the selected video display port |
+| [audiocapabilities](#method.audiocapabilities) | Audio capabilities for the specified audio port |
+| [ms12capabilities](#method.ms12capabilities) | MS12 audio capabilities for the specified audio port |
+| [supportedms12audioprofiles](#method.supportedms12audioprofiles) | Supported MS12 audio profiles for the specified audio port |
 
 
-<a name="supportedresolutions"></a>
-## *supportedresolutions*
+<a name="method.supportedresolutions"></a>
+## *supportedresolutions [<sup>method</sup>](#head.Methods)*
 
 Supported resolutions on the selected video display port.
 
@@ -114,8 +101,8 @@ No Events
 }
 ```
 
-<a name="defaultresolution"></a>
-## *defaultresolution*
+<a name="method.defaultresolution"></a>
+## *defaultresolution [<sup>method</sup>](#head.Methods)*
 
 Default resolution on the selected video display port.
 
@@ -170,8 +157,8 @@ No Events
 }
 ```
 
-<a name="supportedhdcp"></a>
-## *supportedhdcp*
+<a name="method.supportedhdcp"></a>
+## *supportedhdcp [<sup>method</sup>](#head.Methods)*
 
 Supported HDCP version on the selected video display port.
 
@@ -226,8 +213,8 @@ No Events
 }
 ```
 
-<a name="audiocapabilities"></a>
-## *audiocapabilities*
+<a name="method.audiocapabilities"></a>
+## *audiocapabilities [<sup>method</sup>](#head.Methods)*
 
 Audio capabilities for the specified audio port.
 
@@ -285,8 +272,8 @@ No Events
 }
 ```
 
-<a name="ms12capabilities"></a>
-## *ms12capabilities*
+<a name="method.ms12capabilities"></a>
+## *ms12capabilities [<sup>method</sup>](#head.Methods)*
 
 MS12 audio capabilities for the specified audio port.
 
@@ -344,8 +331,8 @@ No Events
 }
 ```
 
-<a name="supportedms12audioprofiles"></a>
-## *supportedms12audioprofiles*
+<a name="method.supportedms12audioprofiles"></a>
+## *supportedms12audioprofiles [<sup>method</sup>](#head.Methods)*
 
 Supported MS12 audio profiles for the specified audio port.
 
@@ -403,32 +390,33 @@ No Events
 }
 ```
 
-<a name="Properties"></a>
+<a name="head.Properties"></a>
 # Properties
 
-The following properties are provided by the DeviceInfo plugin:
+The following properties are provided by the DeviceInfo interface:
 
 DeviceInfo interface properties:
 
 | Property | Description |
 | :-------- | :-------- |
-| [systeminfo](#systeminfo) <sup>RO</sup> | System general information |
-| [addresses](#addresses) <sup>RO</sup> | Network interface addresses |
-| [socketinfo](#socketinfo) <sup>RO</sup> | Socket information |
-| [firmwareversion](#firmwareversion) <sup>RO</sup> | Versions maintained in version |
-| [serialnumber](#serialnumber) <sup>RO</sup> | Serial number set by manufacturer |
-| [modelid](#modelid) <sup>RO</sup> | Device model number or SKU |
-| [make](#make) <sup>RO</sup> | Device manufacturer |
-| [modelname](#modelname) <sup>RO</sup> | Friendly device model name |
-| [devicetype](#devicetype) <sup>RO</sup> | Device type |
-| [distributorid](#distributorid) <sup>RO</sup> | Partner ID or distributor ID for device |
-| [supportedaudioports](#supportedaudioports) <sup>RO</sup> | Audio ports supported on the device (all ports that are physically present) |
-| [supportedvideodisplays](#supportedvideodisplays) <sup>RO</sup> | Video ports supported on the device (all ports that are physically present) |
-| [hostedid](#hostedid) <sup>RO</sup> | EDID of the host |
+| [systeminfo](#property.systeminfo) <sup>RO</sup> | System general information |
+| [addresses](#property.addresses) <sup>RO</sup> | Network interface addresses |
+| [socketinfo](#property.socketinfo) <sup>RO</sup> | Socket information |
+| [firmwareversion](#property.firmwareversion) <sup>RO</sup> | Versions maintained in version |
+| [serialnumber](#property.serialnumber) <sup>RO</sup> | Serial number set by manufacturer |
+| [modelid](#property.modelid) <sup>RO</sup> | Device model number or SKU |
+| [make](#property.make) <sup>RO</sup> | Device manufacturer |
+| [modelname](#property.modelname) <sup>RO</sup> | Friendly device model name |
+| [devicetype](#property.devicetype) <sup>RO</sup> | Device type |
+| [socname](#property.socname) <sup>RO</sup> | SOC Name |
+| [distributorid](#property.distributorid) <sup>RO</sup> | Partner ID or distributor ID for device |
+| [supportedaudioports](#property.supportedaudioports) <sup>RO</sup> | Audio ports supported on the device (all ports that are physically present) |
+| [supportedvideodisplays](#property.supportedvideodisplays) <sup>RO</sup> | Video ports supported on the device (all ports that are physically present) |
+| [hostedid](#property.hostedid) <sup>RO</sup> | EDID of the host |
 
 
-<a name="systeminfo"></a>
-## *systeminfo*
+<a name="property.systeminfo"></a>
+## *systeminfo [<sup>property</sup>](#head.Properties)*
 
 Provides access to the system general information.
 
@@ -496,8 +484,8 @@ No Events
 }
 ```
 
-<a name="addresses"></a>
-## *addresses*
+<a name="property.addresses"></a>
+## *addresses [<sup>property</sup>](#head.Properties)*
 
 Provides access to the network interface addresses.
 
@@ -548,8 +536,8 @@ No Events
 }
 ```
 
-<a name="socketinfo"></a>
-## *socketinfo*
+<a name="property.socketinfo"></a>
+## *socketinfo [<sup>property</sup>](#head.Properties)*
 
 Provides access to the socket information.
 
@@ -590,8 +578,8 @@ No Events
 }
 ```
 
-<a name="firmwareversion"></a>
-## *firmwareversion*
+<a name="property.firmwareversion"></a>
+## *firmwareversion [<sup>property</sup>](#head.Properties)*
 
 Provides access to the versions maintained in version.txt.
 
@@ -644,8 +632,8 @@ No Events
 }
 ```
 
-<a name="serialnumber"></a>
-## *serialnumber*
+<a name="property.serialnumber"></a>
+## *serialnumber [<sup>property</sup>](#head.Properties)*
 
 Provides access to the serial number set by manufacturer.
 
@@ -692,8 +680,8 @@ No Events
 }
 ```
 
-<a name="modelid"></a>
-## *modelid*
+<a name="property.modelid"></a>
+## *modelid [<sup>property</sup>](#head.Properties)*
 
 Provides access to the device model number or SKU.
 
@@ -740,8 +728,8 @@ No Events
 }
 ```
 
-<a name="make"></a>
-## *make*
+<a name="property.make"></a>
+## *make [<sup>property</sup>](#head.Properties)*
 
 Provides access to the device manufacturer.
 
@@ -788,8 +776,8 @@ No Events
 }
 ```
 
-<a name="modelname"></a>
-## *modelname*
+<a name="property.modelname"></a>
+## *modelname [<sup>property</sup>](#head.Properties)*
 
 Provides access to the friendly device model name.
 
@@ -836,8 +824,8 @@ No Events
 }
 ```
 
-<a name="devicetype"></a>
-## *devicetype*
+<a name="property.devicetype"></a>
+## *devicetype [<sup>property</sup>](#head.Properties)*
 
 Provides access to the device type.
 
@@ -884,8 +872,56 @@ No Events
 }
 ```
 
-<a name="distributorid"></a>
-## *distributorid*
+<a name="property.socname"></a>
+## *socname [<sup>property</sup>](#head.Properties)*
+
+Provides access to the SOC Name.
+
+> This property is **read-only**.
+
+### Events
+
+No Events
+
+### Value
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| (property) | object | SOC Name |
+| (property).socname | string | SOC Name (must be one of the following: *Amlogic*, *Realtek*, *Broadcom*) |
+
+### Errors
+
+| Code | Message | Description |
+| :-------- | :-------- | :-------- |
+| 1 | ```ERROR_GENERAL``` | General error |
+
+### Example
+
+#### Get Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "DeviceInfo.socname"
+}
+```
+
+#### Get Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "socname": "Realtek"
+    }
+}
+```
+
+<a name="property.distributorid"></a>
+## *distributorid [<sup>property</sup>](#head.Properties)*
 
 Provides access to the partner ID or distributor ID for device.
 
@@ -932,8 +968,8 @@ No Events
 }
 ```
 
-<a name="supportedaudioports"></a>
-## *supportedaudioports*
+<a name="property.supportedaudioports"></a>
+## *supportedaudioports [<sup>property</sup>](#head.Properties)*
 
 Provides access to the audio ports supported on the device (all ports that are physically present).
 
@@ -983,8 +1019,8 @@ No Events
 }
 ```
 
-<a name="supportedvideodisplays"></a>
-## *supportedvideodisplays*
+<a name="property.supportedvideodisplays"></a>
+## *supportedvideodisplays [<sup>property</sup>](#head.Properties)*
 
 Provides access to the video ports supported on the device (all ports that are physically present).
 
@@ -1034,8 +1070,8 @@ No Events
 }
 ```
 
-<a name="hostedid"></a>
-## *hostedid*
+<a name="property.hostedid"></a>
+## *hostedid [<sup>property</sup>](#head.Properties)*
 
 Provides access to the EDID of the host.
 
