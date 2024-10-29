@@ -89,7 +89,7 @@ include_directories(../../LocationSync
         ../../HdmiCec
         ../../HdmiCec_2
         ../../HdmiCecSource
-        ../../XCast
+	../../XCast
         ../../FrontPanel
         ../../HdmiCecSink
         ../../RDKShell
@@ -133,9 +133,9 @@ link_directories(../../LocationSync
         ../../HdmiCec
         ../../HdmiCec_2
         ../../HdmiCecSource
-        ../../XCast
+	../../XCast
         ../../FrontPanel
-       ../../HdmiCecSink
+	../../HdmiCecSink
         ../../RDKShell
         ../../MaintenanceManager
         ../../Packager
@@ -177,7 +177,6 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}HdmiCec
         ${NAMESPACE}HdmiCec_2
         ${NAMESPACE}HdmiCecSource
-        ${NAMESPACE}XCast
         ${NAMESPACE}FrontPanel
         ${NAMESPACE}HdmiCecSink
         ${NAMESPACE}RDKShell
