@@ -370,6 +370,8 @@ class MiracastCommon
         static bool execute_PopenCommand( const char* popen_command, const char* expected_char, unsigned int retry_count, std::string& popen_buffer, unsigned int interval_micro_sec );
 };
 
+#define DEFAULT_MSGQ_WAIT_TIME_MS   (3000*1000)
+
 class MessageQueue
 {
 private:
@@ -378,39 +380,15 @@ private:
     std::condition_variable m_condNotEmpty;
     std::condition_variable m_condNotFull;
     int m_currentMsgCount;  // Guard with Mutex, keep track of queue size
-    const int m_maxMsgCount{5};  // Maximum size of the queue
+    int m_maxMsgCount{5};  // Maximum size of the queue
+    void (*m_free_resource_cb)(void *);
+    bool m_isDestructing{false};
 
 public:
-    MessageQueue(const int queueSize) : m_currentMsgCount(0), m_maxMsgCount(queueSize) {}
-
-    void sendData(void* new_value)
-    {
-        std::unique_lock<std::mutex> lk(mutexSync);
-        // Wait if the queue is full
-        m_condNotFull.wait(lk, [this] { return m_currentMsgCount < m_maxMsgCount; });
-        
-        m_internalQueue.push(new_value);
-        m_currentMsgCount++;
-        std::cout << "[sendData] data at address: " << new_value << std::endl;
-
-        // Notify consumer that new data is available
-        m_condNotEmpty.notify_one();  
-    }
-
-    void ReceiveData(void*& value)
-    {
-        std::unique_lock<std::mutex> lk(mutexSync);
-        // Wait if the queue is empty
-        m_condNotEmpty.wait(lk, [this] { return !m_internalQueue.empty(); });
-        
-        value = m_internalQueue.front();
-        m_internalQueue.pop();
-        m_currentMsgCount--;
-        std::cout << "[ReceiveData] data at address: " << value << std::endl;
-
-        // Notify producer that space is available
-        m_condNotFull.notify_one();
-    }
+    MessageQueue(int queueSize,void (*free_cb)(void *param));
+    ~MessageQueue();
+    void sendData(void* new_value, int wait_time_ms = DEFAULT_MSGQ_WAIT_TIME_MS);
+    void ReceiveData(void*& value, int wait_time_ms = DEFAULT_MSGQ_WAIT_TIME_MS);
 };
 
 #endif
