@@ -981,6 +981,7 @@ typedef struct
     guint64     m_current_pushbuffer_size{0};
     guint8      *m_push_buffer_ptr{nullptr};
     guint8      *m_current_buffer_ptr{nullptr};
+    bool m_destroyTimer{false};
 }
 MiracastCustomData;
 
@@ -1193,7 +1194,7 @@ static void gst_bin_need_data(GstAppSrc *src, guint length, gpointer user_data)
     //MIRACASTLOG_INFO("Entering...");
     MiracastCustomData *self = (MiracastCustomData *)user_data;
     MIRACASTLOG_INFO("AppSrc empty");
-    if (self->sourceid == 0)
+    if ((self->sourceid == 0) && (false == self->m_destroyTimer))
     {
         MIRACASTLOG_INFO("start feeding\n");
         self->sourceid = g_idle_add((GSourceFunc)pushBufferToAppsrc, self);
@@ -1241,6 +1242,18 @@ static void source_setup(GstElement *pipeline, GstElement *source, MiracastCusto
     MIRACASTLOG_INFO("Exiting... ");
 }
 
+static void gstBufferReleaseCallback(void* userParam)
+{
+    GstBuffer *gstBuffer;
+    gstBuffer = static_cast<GstBuffer*>(userParam);
+
+    if (nullptr != gstBuffer)
+    {
+        MIRACASTLOG_INFO("gstBuffer[%x]",gstBuffer);
+        gst_buffer_unref(gstBuffer);
+    }
+}
+
 bool SoC_GstPlayer::createPipeline()
 {
     MIRACASTLOG_TRACE("Entering..!!!");
@@ -1248,7 +1261,7 @@ bool SoC_GstPlayer::createPipeline()
     GstBus *bus = nullptr;
     bool return_value = true;
     custom_data_ptr = g_new0(MiracastCustomData, 1);
-    m_queueHandle = new MessageQueue(100);
+    m_queueHandle = new MessageQueue(100,gstBufferReleaseCallback);
 
     /* create gst pipeline */
     m_main_loop_context = g_main_context_new();
@@ -1420,12 +1433,30 @@ bool SoC_GstPlayer::createPipeline()
 
 bool SoC_GstPlayer::stop()
 {
+    GstStateChangeReturn ret;
     MIRACASTLOG_TRACE("Entering..");
 
     if (!custom_data_ptr->playbin_pipeline)
     {
         MIRACASTLOG_ERROR("Pipeline is NULL");
         return false;
+    }
+    custom_data_ptr->m_destroyTimer = true;
+    if (custom_data_ptr->sourceid != 0)
+    {
+        MIRACASTLOG_INFO("remove Timer");
+        g_source_remove(custom_data_ptr->sourceid);
+        custom_data_ptr->sourceid = 0;
+    }
+    ret = gst_element_set_state(custom_data_ptr->playbin_pipeline, GST_STATE_NULL);
+    if (ret == GST_STATE_CHANGE_FAILURE)
+    {
+        MIRACASTLOG_ERROR("Failed to set gst_element_set_state as NULL");
+    }
+    ret = gst_element_set_state(custom_data_ptr->udpsrc_appsink_pipeline, GST_STATE_NULL);
+    if (ret == GST_STATE_CHANGE_FAILURE)
+    {
+        MIRACASTLOG_ERROR("Failed to set gst_element_set_state as NULL");
     }
 
     if (m_main_loop)
@@ -1436,12 +1467,6 @@ bool SoC_GstPlayer::stop()
     {
         pthread_join(m_playback_thread,nullptr);
     }
-    GstStateChangeReturn ret;
-    ret = gst_element_set_state(custom_data_ptr->udpsrc_appsink_pipeline, GST_STATE_NULL);
-    if (ret == GST_STATE_CHANGE_FAILURE)
-    {
-        MIRACASTLOG_ERROR("Failed to set gst_element_set_state as NULL");
-    }
     GstBus *bus = gst_pipeline_get_bus(GST_PIPELINE(custom_data_ptr->udpsrc_appsink_pipeline));
     if (bus)
     {
@@ -1449,11 +1474,6 @@ bool SoC_GstPlayer::stop()
         gst_object_unref(bus);
     }
 
-    ret = gst_element_set_state(custom_data_ptr->playbin_pipeline, GST_STATE_NULL);
-    if (ret == GST_STATE_CHANGE_FAILURE)
-    {
-        MIRACASTLOG_ERROR("Failed to set gst_element_set_state as NULL");
-    }
     bus = gst_pipeline_get_bus(GST_PIPELINE(custom_data_ptr->playbin_pipeline));
     if (bus)
     {
@@ -1545,6 +1565,11 @@ bool SoC_GstPlayer::stop()
     {
         g_free(custom_data_ptr);
         custom_data_ptr = nullptr;
+    }
+    if (m_queueHandle)
+    {
+        delete m_queueHandle;
+        m_queueHandle = nullptr;
     }
     MIRACASTLOG_TRACE("Exiting..");
     return true;
