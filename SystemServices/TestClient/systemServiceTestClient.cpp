@@ -1004,6 +1004,7 @@ int main(int argc, char** argv)
 		SystemEventNames.push_back("onTemperatureThresholdChanged");
 		SystemEventNames.push_back("onMacAddressesRetreived");
 		SystemEventNames.push_back("onRebootRequest");
+		SystemEventNames.push_back("onBlocklistChanged");
 
 		printf("\n[%llu][System-MainFunctn] : Register a common Event Handler for all Events...\n", TimeStamp());
 		/* Experimental: Register a common Event Handler for all Events */
