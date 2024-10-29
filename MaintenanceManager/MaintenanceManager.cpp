@@ -359,34 +359,57 @@ namespace WPEFramework {
                 {
                     LOGINFO("knowWhoAmI() returned false");
                 }
+                if (false == whoAmIStatus && activation_status != "activated")
+                {
+                    LOGINFO("knowWhoAmI() returned false and Device is not already Activated");
+                    g_listen_to_deviceContextUpdate = true;
+                    LOGINFO("Waiting for onDeviceInitializationContextUpdate event");
+                    task_thread.wait(wailck);
+                }
+                else if (false == internetConnectStatus && activation_status == "activated")
+                {
+                    LOGINFO("Device is not connected to the Internet and Device is already Activated");
+                    m_statusMutex.lock();
+                    MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
+                    m_statusMutex.unlock();
+                    LOGINFO("Maintenance is exiting as device is not connected to internet.");
+                    if (!g_unsolicited_complete)
+                    {
+                        g_unsolicited_complete = true;
+                        g_listen_to_nwevents = true;
+                    }
+                    return;
+                }
             }
-
-            if (false == whoAmIStatus && activation_status != "activated")
+            else // SOLICITED MAINTENANCE with ENABLE_WHOAMI
             {
-                LOGINFO("knowWhoAmI() returned false and Device is not already Activated");
-                g_listen_to_deviceContextUpdate = true;
-                LOGINFO("Waiting for onDeviceInitializationContextUpdate event");
-                task_thread.wait(wailck);
+                if (false == internetConnectStatus)
+                {
+                    m_statusMutex.lock();
+                    MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
+                    m_statusMutex.unlock();
+                    LOGINFO("Maintenance is exiting as device is not connected to internet.");
+                    if (!g_unsolicited_complete) {
+                        g_unsolicited_complete = true;
+                        g_listen_to_nwevents = true;    // DOUBT ABOUT THIS IN OTHER CASES
+                    }
+                    return;
+                }
             }
-            else if (false == internetConnectStatus && activation_status == "activated")
-            {
-                LOGINFO("Device is not connected to the Internet and Device is already Activated");
 #else /* WhoAmI */
             if (false == internetConnectStatus)
             {
-#endif
                 m_statusMutex.lock();
                 MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
                 m_statusMutex.unlock();
                 LOGINFO("Maintenance is exiting as device is not connected to internet.");
-                if (UNSOLICITED_MAINTENANCE == g_maintenance_type && !g_unsolicited_complete)
-                {
+                if (!g_unsolicited_complete) {
                     g_unsolicited_complete = true;
-                    g_listen_to_nwevents = true;
+                    g_listen_to_nwevents = true;    // DOUBT ABOUT THIS IN OTHER CASES
                 }
                 return;
             }
-
+#endif
             if (delayMaintenanceStarted)
             {
                 m_statusMutex.lock();
