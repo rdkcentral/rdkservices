@@ -2372,7 +2372,7 @@ namespace Plugin {
         To avoid clash with Factory WhiteBalance Calibration capablities*/
 
         if ( param == "WhiteBalance")
-            param == "CustomWhiteBalance";
+            param = "CustomWhiteBalance";
 
         try {
             CIniFile inFile(CAPABLITY_FILE_NAME);
