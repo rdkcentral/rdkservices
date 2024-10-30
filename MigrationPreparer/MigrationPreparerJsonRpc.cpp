@@ -59,8 +59,8 @@ namespace Plugin {
         }
         // check if provided params are strigified
         if ((JsonValue::type::STRING != parameters["name"].Content()) || (JsonValue::type::STRING != parameters["value"].Content())) {
-            LOGERR("Invalid input - name or value is not stringified eg. \"params\": {\"name\":\"key\", \"value\":\"val\"}");
-            error["message"] = "Param not stringified";
+            LOGERR("Invalid input - name or value is not a string eg. \"params\": {\"name\":\"key\", \"value\":\"val\"}");
+            error["message"] = "Param not a string";
             error["code"] = "-32002";
             response["error"] = error;
             returnResponse(status);
@@ -121,8 +121,8 @@ namespace Plugin {
         }
         // check if provided params are strigified
         if (JsonValue::type::STRING != parameters["name"].Content()) {
-            LOGERR("Invalid input - name param is not stringified eg. \"params\": {\"name\":\"key\"}");
-            error["message"] = "Param not stringified";
+            LOGERR("Invalid input - name param is not a string eg. \"params\": {\"name\":\"key\"}");
+            error["message"] = "Param not a string";
             error["code"] = "-32002";
             response["error"] = error;
             returnResponse(status);
@@ -184,8 +184,8 @@ namespace Plugin {
         }
         // check if provided params are strigified
         if (JsonValue::type::STRING != parameters["name"].Content()) {
-            LOGERR("Invalid input - name param is not stringified eg. \"params\": {\"name\":\"key\"}");
-            error["message"] = "Param not stringified";
+            LOGERR("Invalid input - name param is not a string eg. \"params\": {\"name\":\"key\"}");
+            error["message"] = "Param not a string";
             error["code"] = "-32002";
             response["error"] = error;
             returnResponse(status);
@@ -272,8 +272,8 @@ namespace Plugin {
         }
         // check if provided params are strigified
         if (JsonValue::type::STRING != parameters["componentName"].Content()) {
-            LOGERR("Invalid input - componentName param is not stringified eg. \"params\": {\"componentName\":\"RA01\"}");
-            error["message"] = "Param not stringified";
+            LOGERR("Invalid input - componentName param is not a string eg. \"params\": {\"componentName\":\"RA01\"}");
+            error["message"] = "Param not a string";
             error["code"] = "-32002";
             response["error"] = error;
             returnResponse(status);
@@ -338,8 +338,8 @@ namespace Plugin {
         }
         // check if provided params are strigified
         if (JsonValue::type::STRING != parameters["resetType"].Content()) {
-            LOGERR("Invalid input - resetType param is not stringified eg. \"params\": {\"resetType\":\"RESET_ALL\"}");
-            error["message"] = "Param not stringified";
+            LOGERR("Invalid input - resetType param is not a string eg. \"params\": {\"resetType\":\"RESET_ALL\"}");
+            error["message"] = "Param not a string";
             error["code"] = "-32002";
             response["error"] = error;
             returnResponse(status);
