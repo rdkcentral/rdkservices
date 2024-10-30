@@ -17,9 +17,6 @@ All notable changes to this RDK Service will be documented in this file.
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
 
-## [1.6.4] - 2024-10-10
-### Fixed
-- Fix to activate RA after the Graphics subsystem
 
 ## [1.6.3] - 2024-09-09
 ### Added
