@@ -237,32 +237,24 @@ namespace Plugin {
     int AVOutputTV::getDolbyModeIndex(const char * dolbyMode)
     {
         int mode = 0;
-        tvDolbyMode_t *dolbyModes = NULL;
-        tvDolbyMode_t **dolbyModesArray = NULL;
+        tvDolbyMode_t *dolbyModes[1]={0};
         unsigned short totalAvailable = 0;
-        // Allocate memory for the array of tvDolbyMode_t pointers
-        dolbyModesArray = (tvDolbyMode_t **)malloc(sizeof(tvDolbyMode_t *));
-        if (dolbyModesArray == NULL) {
-            printf("Memory allocation failed for dolbyModesArray\n");
-            return tvERROR_GENERAL;
-        }
 
         // Allocate memory for the modes
-        dolbyModes = (tvDolbyMode_t *)malloc(MAX_DV_MODES * sizeof(tvDolbyMode_t));
+        dolbyModes[0] = (tvDolbyMode_t *)malloc(MAX_DV_MODES * sizeof(tvDolbyMode_t));
         if (dolbyModes == NULL) {
             printf("Memory allocation failed for dolbyModes\n");
-            free(dolbyModesArray);
             return tvERROR_GENERAL;
         }
 
-	// Point the first element of dolbyModesArray to dolbyModes and set the indicator
-	dolbyModesArray[0] = dolbyModes;
-	dolbyModesArray[0][0] = tvDolbyMode_Dark; // Set an initial value to indicate the mode type
-	tvError_t ret = GetTVSupportedDolbyVisionModes(dolbyModesArray, &totalAvailable);
-        if(ret == tvERROR_NONE) {
-            for(int count = 0;count <totalAvailable;count++ ) {
-                if(strncasecmp(dolbyMode, getDolbyModeStringFromEnum(dolbyModes[count]).c_str(), strlen(dolbyMode))==0) {
-                    mode = dolbyModes[count];
+        // Set an initial value to indicate the mode type
+        *(dolbyModes[0]) = tvDolbyMode_Dark;
+
+        tvError_t ret = GetTVSupportedDolbyVisionModes(dolbyModes, &totalAvailable);
+        if (ret == tvERROR_NONE) {
+            for (int count = 0; count < totalAvailable; count++) {
+		if(strncasecmp(dolbyMode, getDolbyModeStringFromEnum(dolbyModes[0][count]).c_str(), strlen(dolbyMode))==0) {
+                    mode = dolbyModes[0][count];
                     break;
                 }
             }
@@ -273,9 +265,7 @@ namespace Plugin {
         if (dolbyModes != NULL) {
             free(dolbyModes);
         }
-        if (dolbyModesArray != NULL) {
-            free(dolbyModesArray);
-        }
+
         return mode;
     }
 

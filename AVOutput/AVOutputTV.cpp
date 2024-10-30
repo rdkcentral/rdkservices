@@ -2274,35 +2274,23 @@ namespace Plugin {
     uint32_t AVOutputTV::getSupportedDolbyVisionModes(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
-        tvDolbyMode_t *dvModes = NULL;
-        tvDolbyMode_t **dvModesArray = NULL;
+        tvDolbyMode_t *dvModes[1]={0};
         unsigned short totalAvailable = 0;
 
-        // Allocate memory for the array of tvDolbyMode_t pointers
-        dvModesArray = (tvDolbyMode_t **)malloc(sizeof(tvDolbyMode_t *));
-        if (dvModesArray == NULL) {
-            printf("Memory allocation failed for dvModesArray\n");
-            return tvERROR_GENERAL;
-        }
-
         // Allocate memory for the modes
-        dvModes = (tvDolbyMode_t *)malloc(MAX_DV_MODES * sizeof(tvDolbyMode_t));
+        dvModes[0] = (tvDolbyMode_t *)malloc(MAX_DV_MODES * sizeof(tvDolbyMode_t));
         if (dvModes == NULL) {
             printf("Memory allocation failed for dvModes\n");
-            free(dvModesArray);
             return tvERROR_GENERAL;
         }
 
-        // Point the first element of dvModesArray to dolbyModes and set the indicator
-        dvModesArray[0] = dvModes;
-	dvModesArray[0][0] = tvDolbyMode_Dark; // Set an initial value to indicate the mode type
-        tvError_t ret = GetTVSupportedDolbyVisionModes(dvModesArray, &totalAvailable);
+        // Set an initial value to indicate the mode type
+        *(dvModes[0]) = tvDolbyMode_Dark;
+
+        tvError_t ret = GetTVSupportedDolbyVisionModes(dvModes, &totalAvailable);
         if(ret != tvERROR_NONE) {
             if (dvModes != NULL) {
                 free(dvModes);
-            }
-            if (dvModesArray != NULL) {
-                free(dvModesArray);
             }
             returnResponse(false);
         }
@@ -2310,16 +2298,13 @@ namespace Plugin {
             JsonArray SupportedDVModes;
 
             for(int count = 0;count <totalAvailable;count++ ) {
-                SupportedDVModes.Add(getDolbyModeStringFromEnum(dvModes[count]));
+                SupportedDVModes.Add(getDolbyModeStringFromEnum(dvModes[0][count]));
             }
 
             response["supportedDVModes"] = SupportedDVModes;
             LOGINFO("Exit\n");
             if (dvModes != NULL) {
                 free(dvModes);
-            }
-            if (dvModesArray != NULL) {
-                free(dvModesArray);
             }
             returnResponse(true);
         }
