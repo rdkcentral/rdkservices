@@ -42,12 +42,24 @@ namespace {
 namespace Plugin {
     SERVICE_REGISTRATION(Analytics, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
+    Analytics::Analytics(): mConnectionId(0), mAnalytics(nullptr)
+    {
+        SYSLOG(Logging::Startup, (_T("Analytics Constructor")));
+    }
+
+    Analytics::~Analytics()
+    {
+        SYSLOG(Logging::Shutdown, (string(_T("Analytics Destructor"))));
+    }
+
     /* virtual */ const string Analytics::Initialize(PluginHost::IShell* service)
     {
         ASSERT(service != nullptr);
-        mService = service;
-
         ASSERT(mAnalytics == nullptr);
+
+        SYSLOG(Logging::Startup, (_T("Analytics::Initialize: PID=%u"), getpid()));
+
+        mService = service;
 
         mAnalytics = service->Root<Exchange::IAnalytics>(mConnectionId, 2000, _T("AnalyticsImplementation"));
         ASSERT(mAnalytics != nullptr);
@@ -58,7 +70,12 @@ namespace Plugin {
                 configConnection->Configure(service);
                 configConnection->Release();
             }
-            RegisterAll();
+            // Invoking Plugin API register to wpeframework
+            Exchange::JAnalytics::Register(*this, mAnalytics);  
+        }
+        else
+        {
+            SYSLOG(Logging::Startup, (_T("Analytics::Initialize: Failed to initialise Analytics plugin")));
         }
         // On success return empty, to indicate there is no error text.
         return ((mAnalytics != nullptr))
@@ -68,10 +85,11 @@ namespace Plugin {
 
     /* virtual */ void Analytics::Deinitialize(PluginHost::IShell* service)
     {
-        TRACE(Trace::Information, (_T("Analytics::Deinitialize")));
+        SYSLOG(Logging::Shutdown, (string(_T("Analytics::Deinitialize"))));
         ASSERT(service == mService);
 
         if (mAnalytics != nullptr) {
+            Exchange::JAnalytics::Unregister(*this);
 
             RPC::IRemoteConnection *connection(service->RemoteConnection(mConnectionId));
             VARIABLE_IS_NOT_USED uint32_t result = mAnalytics->Release();
@@ -93,12 +111,12 @@ namespace Plugin {
                 connection->Release();
             }
         }
+        SYSLOG(Logging::Shutdown, (string(_T("Analytics de-initialised"))));
     }
 
     void Analytics::Deactivated(RPC::IRemoteConnection* connection)
     {
         if (connection->Id() == mConnectionId) {
-            TRACE(Trace::Information, (_T("Analytics::Deactivated")));
 
             ASSERT(mService != nullptr);
 
