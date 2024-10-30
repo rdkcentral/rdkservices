@@ -230,11 +230,11 @@ bool XCast::setPowerState(std::string powerState)
 
 void XCast::powerModeChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
 {
-    if (strcmp(owner, IARM_BUS_PWRMGR_NAME)  == 0) {
-        if (eventId == IARM_BUS_PWRMGR_EVENT_MODECHANGED ) {
-            IARM_Bus_PWRMgr_EventData_t *param = (IARM_Bus_PWRMgr_EventData_t *)data;
-            LOGINFO("Event IARM_BUS_PWRMGR_EVENT_MODECHANGED: State Changed %d -- > %d\r",
-                    param->data.state.curState, param->data.state.newState);
+     if (XCast::m_xcastEnable && strcmp(owner, IARM_BUS_PWRMGR_NAME)  == 0) {
+         if (eventId == IARM_BUS_PWRMGR_EVENT_MODECHANGED ) {
+             IARM_Bus_PWRMgr_EventData_t *param = (IARM_Bus_PWRMgr_EventData_t *)data;
+             LOGINFO("Event IARM_BUS_PWRMGR_EVENT_MODECHANGED: State Changed %d -- > %d\r",
+                     param->data.state.curState, param->data.state.newState);
             m_powerState = param->data.state.newState;
             LOGWARN("creating worker thread for threadPowerModeChangeEvent m_powerState :%d",m_powerState);
             std::thread powerModeChangeThread = std::thread(threadPowerModeChangeEvent);
