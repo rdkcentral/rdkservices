@@ -73,7 +73,7 @@
 #define PANEL_ID_OFFSET 0x9000004
 #define MMC_DEVICE      ("/dev/mmcblk0")
 #define CAPABLITY_FILE_NAME    "pq_capabilities.ini"
-#define MAX_DV_MODES 6
+#define MAX_DV_MODES 20
 
 static constexpr unsigned int CONTENT_FORMAT_NONE = 0x00;
 static constexpr unsigned int CONTENT_FORMAT_SDR = 0x01;
