@@ -2274,13 +2274,13 @@ namespace Plugin {
     uint32_t AVOutputTV::getSupportedDolbyVisionModes(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
-        tvDolbyMode_t *dvModes[1]={0};
+        tvDolbyMode_t *dvModes[1] = {NULL};
         unsigned short totalAvailable = 0;
 
         // Allocate memory for the modes
         dvModes[0] = (tvDolbyMode_t *)malloc(MAX_DV_MODES * sizeof(tvDolbyMode_t));
-        if (dvModes == NULL) {
-            printf("Memory allocation failed for dvModes\n");
+        if (dvModes[0]  == NULL) {
+            printf("Memory allocation failed for dvModes[0]\n");
             return tvERROR_GENERAL;
         }
 
@@ -2289,8 +2289,9 @@ namespace Plugin {
 
         tvError_t ret = GetTVSupportedDolbyVisionModes(dvModes, &totalAvailable);
         if(ret != tvERROR_NONE) {
-            if (dvModes != NULL) {
-                free(dvModes);
+            if (dvModes[0] != NULL) {
+                free(dvModes[0]);
+		dvModes[0] = NULL;
             }
             returnResponse(false);
         }
@@ -2303,8 +2304,9 @@ namespace Plugin {
 
             response["supportedDVModes"] = SupportedDVModes;
             LOGINFO("Exit\n");
-            if (dvModes != NULL) {
-                free(dvModes);
+            if (dvModes[0] != NULL) {
+                free(dvModes[0]);
+		dvModes[0] = NULL;
             }
             returnResponse(true);
         }

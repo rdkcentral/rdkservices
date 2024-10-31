@@ -237,13 +237,13 @@ namespace Plugin {
     int AVOutputTV::getDolbyModeIndex(const char * dolbyMode)
     {
         int mode = 0;
-        tvDolbyMode_t *dolbyModes[1]={0};
+        tvDolbyMode_t *dolbyModes[1] = {NULL};
         unsigned short totalAvailable = 0;
 
         // Allocate memory for the modes
         dolbyModes[0] = (tvDolbyMode_t *)malloc(MAX_DV_MODES * sizeof(tvDolbyMode_t));
-        if (dolbyModes == NULL) {
-            printf("Memory allocation failed for dolbyModes\n");
+        if (dolbyModes[0] == NULL) {
+            printf("Memory allocation failed for dolbyModes[0]\n");
             return tvERROR_GENERAL;
         }
 
@@ -262,8 +262,9 @@ namespace Plugin {
             mode = -1;
             printf("(%s):get supported mode is failed\n", __func__);
         }
-        if (dolbyModes != NULL) {
-            free(dolbyModes);
+        if (dolbyModes[0] != NULL) {
+            free(dolbyModes[0]);
+	    dolbyModes[0] = NULL;
         }
 
         return mode;
