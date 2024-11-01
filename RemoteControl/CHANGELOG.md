@@ -12,6 +12,14 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 * The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+## [1.5.4] - 2024-03-29
+### Added
+- Added four new APIs unpair and start, cancel, and statusFirmwareUpdate
+- Added a new notification onFirmwareUpdateProgress
+
+### Changed
+- Changed startPairing API to also accept a list of mac addresses
+
 ## [1.4.4] - 2024-03-29
 ### Fixed
 - Fixed coverity reported issues

@@ -74,10 +74,15 @@ namespace WPEFramework {
             uint32_t initializeIRDB(const JsonObject& parameters, JsonObject& response);
             uint32_t findMyRemote(const JsonObject& parameters, JsonObject& response);
             uint32_t factoryReset(const JsonObject& parameters, JsonObject& response);
+            uint32_t unpair(const JsonObject& parameters, JsonObject& response);
+            uint32_t startFirmwareUpdate(const JsonObject& parameters, JsonObject& response);
+            uint32_t cancelFirmwareUpdate(const JsonObject& parameters, JsonObject& response);
+            uint32_t statusFirmwareUpdate(const JsonObject& parameters, JsonObject& response);
             //End methods
 
             //Begin events
             void onStatus(ctrlm_main_iarm_event_json_t* eventData);
+            void onFirmwareUpdateProgress(ctrlm_main_iarm_event_json_t* eventData);
             //End events
 
         public:
