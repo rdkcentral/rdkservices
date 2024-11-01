@@ -70,7 +70,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 20
+#define API_VERSION_NUMBER_PATCH 21
 
 namespace WPEFramework {
 
@@ -179,7 +179,7 @@ void XCast::DeinitializeIARM()
 }
 void XCast::powerModeChange(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
 {
-     if (strcmp(owner, IARM_BUS_PWRMGR_NAME)  == 0) {
+     if (XCast::m_xcastEnable && strcmp(owner, IARM_BUS_PWRMGR_NAME)  == 0) {
          if (eventId == IARM_BUS_PWRMGR_EVENT_MODECHANGED ) {
              IARM_Bus_PWRMgr_EventData_t *param = (IARM_Bus_PWRMgr_EventData_t *)data;
              LOGINFO("Event IARM_BUS_PWRMGR_EVENT_MODECHANGED: State Changed %d -- > %d\r",
