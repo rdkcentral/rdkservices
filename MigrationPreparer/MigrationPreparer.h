@@ -44,55 +44,7 @@ namespace WPEFramework {
 namespace Plugin {
 
     class MigrationPreparer: public PluginHost::IPlugin, public PluginHost::JSONRPC
-    {
-        private:
-            class Notification : public RPC::IRemoteConnection::INotification,
-                                public Exchange::IMigrationPreparer::INotification
-            {
-                private:
-                    Notification() = delete;
-                    Notification(const Notification&) = delete;
-                    Notification& operator=(const Notification&) = delete;
-
-                public:
-                explicit Notification(MigrationPreparer* parent)
-                    : _parent(*parent)
-                    {
-                        ASSERT(parent != nullptr);
-                    }
-
-                    virtual ~Notification()
-                    {
-                    }
-
-                    BEGIN_INTERFACE_MAP(Notification)
-                    INTERFACE_ENTRY(Exchange::IMigrationPreparer::INotification)
-                    INTERFACE_ENTRY(RPC::IRemoteConnection::INotification)
-                    END_INTERFACE_MAP
-
-                    void Activated(RPC::IRemoteConnection*) override
-                    {
-                        LOGINFO("MigrationPreparer Notification Activated");
-                    }
-
-                    void Deactivated(RPC::IRemoteConnection *connection) override
-                    {
-                    LOGINFO("MigrationPreparer Notification Deactivated");
-                    _parent.Deactivated(connection);
-                    }
-
-                    // void ValueChanged(const string& name, const string& value) override
-                    // {
-                        // JsonData::MigrationPreparer::WriteentryParamsData params;
-                        // params.Name = name;
-                        // params.Value = value;
-                        // 
-                        // _parent.event_onValueChanged(params);
-                    // } 
-
-                private:
-                    MigrationPreparer& _parent;
-            };         
+    {         
         public:
             // We do not allow this plugin to be copied !!
             MigrationPreparer(const MigrationPreparer&) = delete;
@@ -117,24 +69,17 @@ namespace Plugin {
             void RegisterAll();
             void UnregisterAll();
 
-            void Activated(RPC::IRemoteConnection* connection);
-            void Deactivated(RPC::IRemoteConnection* connection);
-
             uint32_t endpoint_write(const JsonObject& parameters, JsonObject& response);
             uint32_t endpoint_read(const JsonObject& parameters, JsonObject& response);
             uint32_t endpoint_delete(const JsonObject& parameters, JsonObject& response);
             uint32_t endpoint_getComponentReadiness(const JsonObject& parameters, JsonData::MigrationPreparer::GetcomponentreadinessResultData& response);
             uint32_t endpoint_setComponentReadiness(const JsonObject& parameters, JsonObject& response);
             uint32_t endpoint_reset(const JsonObject& parameters, JsonObject& response);
-            // void event_onValueChanged(const JsonData::MigrationPreparer::WriteentryParamsData& params)
-            // {
-                // Notify(_T("onValueChanged"), params);
-            // }               
+           
         private:
             PluginHost::IShell* _service{};
             uint32_t _connectionId{};
             Exchange::IMigrationPreparer* _migrationPreparer{};
-            Core::Sink<Notification> _migrationPreparerNotification;
     };
 
 } // namespace Plugin
