@@ -81,14 +81,14 @@ namespace Plugin {
                     _parent.Deactivated(connection);
                     }
 
-                    void ValueChanged(const string& name, const string& value) override
-                    {
-                        JsonData::MigrationPreparer::WriteentryParamsData params;
-                        params.Name = name;
-                        params.Value = value;
-
-                        _parent.event_onValueChanged(params);
-                    } 
+                    // void ValueChanged(const string& name, const string& value) override
+                    // {
+                        // JsonData::MigrationPreparer::WriteentryParamsData params;
+                        // params.Name = name;
+                        // params.Value = value;
+                        // 
+                        // _parent.event_onValueChanged(params);
+                    // } 
 
                 private:
                     MigrationPreparer& _parent;
@@ -126,10 +126,10 @@ namespace Plugin {
             uint32_t endpoint_getComponentReadiness(const JsonObject& parameters, JsonData::MigrationPreparer::GetcomponentreadinessResultData& response);
             uint32_t endpoint_setComponentReadiness(const JsonObject& parameters, JsonObject& response);
             uint32_t endpoint_reset(const JsonObject& parameters, JsonObject& response);
-            void event_onValueChanged(const JsonData::MigrationPreparer::WriteentryParamsData& params)
-            {
-                Notify(_T("onValueChanged"), params);
-            }               
+            // void event_onValueChanged(const JsonData::MigrationPreparer::WriteentryParamsData& params)
+            // {
+                // Notify(_T("onValueChanged"), params);
+            // }               
         private:
             PluginHost::IShell* _service{};
             uint32_t _connectionId{};

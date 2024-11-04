@@ -74,7 +74,7 @@ namespace Plugin {
             returnResponse(status);
         }
 
-        auto result = _migrationPreparer->writeEntry(
+        auto result = _migrationPreparer->write(
             parameters["name"].String(),
             parameters["value"].String());
         
@@ -137,7 +137,7 @@ namespace Plugin {
         }
 
         string value;
-        auto result = _migrationPreparer->readEntry(
+        auto result = _migrationPreparer->read(
                             parameters["name"].String(),
                             value);
 
@@ -199,7 +199,7 @@ namespace Plugin {
             returnResponse(status);
         }
 
-        auto result = _migrationPreparer->deleteEntry(
+        auto result = _migrationPreparer->Delete(
                             parameters["name"].String());
 
         switch(result) {

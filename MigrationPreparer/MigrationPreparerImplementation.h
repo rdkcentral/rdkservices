@@ -75,10 +75,10 @@ namespace Plugin {
                 }
                 ~DateStore2Notification() override = default;
             public:
-                void ValueChanged(const string& name, const string& value) override
-                {
-                    _parent.ValueChanged(name, value);
-                }            
+                // void ValueChanged(const string& name, const string& value) override
+                // {
+                    // _parent.ValueChanged(name, value);
+                // }            
             BEGIN_INTERFACE_MAP(DateStore2Notification)
             INTERFACE_ENTRY(Exchange::IMigrationPreparer::INotification)
             END_INTERFACE_MAP
@@ -102,17 +102,17 @@ namespace Plugin {
 
             // DataStore - here represents a JSON File
             // API to write and update dataStore 
-            uint32_t writeEntry(const string& name, const string &value) override;
+            uint32_t write(const string& name, const string &value) override;
             // API to delete dataStore entry
-            uint32_t deleteEntry(const string& name)  override;
+            uint32_t Delete(const string& name)  override;
             // API to read dataStore entry
-            uint32_t readEntry(const string& name, string &result)  override;
+            uint32_t read(const string& name, string &result)  override;
             
 
             uint32_t setComponentReadiness(const string& compName) override;
             uint32_t getComponentReadiness(RPC::IStringIterator*& compList) override;
             uint32_t reset(const string& resetType) override;
-            void ValueChanged(const string& name, const string& value);
+            // void ValueChanged(const string& name, const string& value);
             /*Methods: End*/
 
             BEGIN_INTERFACE_MAP(MigrationPreparerImplementation)
@@ -124,15 +124,15 @@ namespace Plugin {
         std::list<Exchange::IMigrationPreparer::INotification*> _migrationPreparerNotification;
         
         // A map to hold "Key" vs "Line Number" in the dataStore
-        std::map<string, LINE_NUMBER_TYPE> lineNumber;
+        std::map<string, LINE_NUMBER_TYPE> _lineNumber;
         // A mutex to protect the dataStore from concurrent read, write and delete access
-        std::mutex dataStoreMutex;
+        std::mutex _dataStoreMutex;
         // A tracker for the last key-value line number in the dataStore
-        LINE_NUMBER_TYPE curLineIndex;
+        LINE_NUMBER_TYPE _curLineIndex;
         // A vector to hold value entries present in data Store file
-        std::vector<string> valueEntry;
+        std::vector<string> _valueEntry;
         // A flag to track if dataStore file exists
-        bool fileExist;
+        bool _fileExist;
 
         /*Helpers: Begin*/
         //escape any special characters in string to make sed compatible pattern string and replacement string
