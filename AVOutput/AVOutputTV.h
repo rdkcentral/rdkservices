@@ -75,13 +75,6 @@
 #define CAPABLITY_FILE_NAME    "pq_capabilities.ini"
 #define MAX_DV_MODES 20
 
-static constexpr unsigned int CONTENT_FORMAT_NONE = 0x00;
-static constexpr unsigned int CONTENT_FORMAT_SDR = 0x01;
-static constexpr unsigned int CONTENT_FORMAT_HLG = 0x02;
-static constexpr unsigned int CONTENT_FORMAT_HDR10 = 0x03;
-static constexpr unsigned int CONTENT_FORMAT_HDR10PLUS = 0x04;
-static constexpr unsigned int CONTENT_FORMAT_DV = 0x05;
-static constexpr unsigned int CONTENT_FORMAT_MAX = 0x06;
 
 class CIniFile 
 {
@@ -274,7 +267,7 @@ class AVOutputTV : public AVOutputBase {
 		                        std::vector<std::string> &format,std::string param , std::string & isPlatformSupport,
 				std::vector<std::string> & index);
 		int GetPanelID(char *panelid);
-		int ConvertHDRFormatToContentFormat(tvVideoFormatType_t hdrFormat);
+		int ConvertHDRFormatToContentFormat(tvhdr_type_t hdrFormat);
 		int ReadCapablitiesFromConf(std::string &rangeInfo,std::string &pqmodeInfo,std::string &formatInfo,std::string &sourceInfo,std::string param, std::string & isPlatformSupport, std::string & indexInfo);
 		void getDimmingModeStringFromEnum(int value, std::string &toStore);
 		void getColorTempStringFromEnum(int value, std::string &toStore);

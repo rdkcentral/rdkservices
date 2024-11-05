@@ -191,7 +191,7 @@ namespace Plugin {
         LOGINFO("Entry : %s pqmode : %s source :%s format :%s\n",__FUNCTION__,pqmode.c_str(),source.c_str(),format.c_str());
 
         if( source.compare("none") == 0 || source.compare("Current") == 0 ) {
-            tvVideoSrcType_t  currentSource = VIDEO_SOURCE_IP;
+            tvVideoSrcType_t currentSource = VIDEO_SOURCE_IP;
             GetCurrentVideoSource(&currentSource);
             sourceIndex = (int)currentSource;
         }
@@ -262,6 +262,7 @@ namespace Plugin {
             mode = -1;
             printf("(%s):get supported mode is failed\n", __func__);
         }
+	// Free memory and set pointer to NULL for safety
         if (dolbyModes[0] != NULL) {
             free(dolbyModes[0]);
 	    dolbyModes[0] = NULL;
@@ -1316,7 +1317,7 @@ namespace Plugin {
         tr181ErrorCode_t err = getLocalParam(rfc_caller_id, rfc_param.c_str(), &param);
         if ( tr181Success != err) {
             tvError_t retVal = GetDefaultPQParams(pqmodeIndex,(tvVideoSrcType_t)sourceIndex,
-                                                 (tvVideoFormatType_t)ConvertHDRFormatToContentFormat((tvVideoFormatType_t)format),
+                                                 (tvVideoFormatType_t)ConvertHDRFormatToContentFormat((tvhdr_type_t)format),
                                                  PQ_PARAM_DOLBY_MODE,&dolby_mode_value);
             if( retVal != tvERROR_NONE ) {
                 LOGERR("%s : failed\n",__FUNCTION__);
@@ -1414,31 +1415,32 @@ namespace Plugin {
         return 0;
     }
 
-    int AVOutputTV::ConvertHDRFormatToContentFormat(tvVideoFormatType_t hdrFormat)
+    int AVOutputTV::ConvertHDRFormatToContentFormat(tvhdr_type_t hdrFormat)
     {
-        int ret=CONTENT_FORMAT_SDR;
+        int ret=tvContentFormatType_SDR;
         switch(hdrFormat)
         {
-            case VIDEO_FORMAT_SDR:
-                ret=CONTENT_FORMAT_SDR;
+            case HDR_TYPE_SDR:
+                ret=tvContentFormatType_SDR;
                 break;
-            case VIDEO_FORMAT_HDR10:
-                ret=CONTENT_FORMAT_HDR10;
+            case HDR_TYPE_HDR10:
+                ret=tvContentFormatType_HDR10;
                 break;
-            case VIDEO_FORMAT_HDR10PLUS:
-                ret=CONTENT_FORMAT_HDR10PLUS;
+            case HDR_TYPE_HDR10PLUS:
+                ret=tvContentFormatType_HDR10PLUS;
                 break;
-            case VIDEO_FORMAT_DV:
-                ret=CONTENT_FORMAT_DV;
+            case HDR_TYPE_DOVI:
+                ret=tvContentFormatType_DOVI;
                 break;
-            case VIDEO_FORMAT_HLG:
-                ret=CONTENT_FORMAT_HLG;
+            case HDR_TYPE_HLG:
+                ret=tvContentFormatType_HLG;
                 break;
             default:
                 break;
         }
         return ret;
     }
+
 
     int AVOutputTV::ReadCapablitiesFromConf(std::string &rangeInfo,std::string &pqmodeInfo,std::string &formatInfo,std::string &sourceInfo,
                            std::string param, std::string & isPlatformSupport, std::string & indexInfo)
