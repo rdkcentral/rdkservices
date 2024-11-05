@@ -258,6 +258,16 @@ namespace Plugin {
                 return Core::ERROR_NONE;
             }
             
+            // since v_secure_system syscall wrapper has set limitation on command length             
+            if(newValue.length() > 200 || oldValue.length() > 200) {
+                _dataStoreMutex.unlock();
+                LOGINFO("[WRITE] Value for the key %s is long, hence deleting existing entry and adding it as new entry at the end of dataStore", key.c_str());
+                if(Delete(key) != Core::ERROR_NONE)
+                    return ERROR_WRITE;
+                    
+                return write(key, newValue);
+            }
+
             // sed command to replace value in the dataStore
             oldValue = escapeSed(oldValue, PATTERN);
             string escapedNewValue = escapeSed(newValue, REPLACEMENT);
