@@ -596,14 +596,7 @@ void XCast::updateDynamicAppCache(JsonArray applications)
                 for (int i = 0; i < jNames.Length(); i++) {
                     itrName = jNames[i].String().c_str();
                     LOGINFO("%s, size:%d", itrName.c_str(), (int)strlen (itrName.c_str()));
-                    DynamicAppConfig* pDynamicAppConfig = (DynamicAppConfig*) malloc (sizeof(DynamicAppConfig));
-                    memset ((void*)pDynamicAppConfig, '0', sizeof(DynamicAppConfig));
-                    memset (pDynamicAppConfig->appName, '\0', sizeof(pDynamicAppConfig->appName));
-                    strcpy (pDynamicAppConfig->appName, itrName.c_str());
-                    memset (pDynamicAppConfig->prefixes, '\0', sizeof(pDynamicAppConfig->prefixes));
-                    memset (pDynamicAppConfig->cors, '\0', sizeof(pDynamicAppConfig->cors));
-                    memset (pDynamicAppConfig->query, '\0', sizeof(pDynamicAppConfig->query));
-                    memset (pDynamicAppConfig->payload, '\0', sizeof(pDynamicAppConfig->payload));
+                    DynamicAppConfig *pDynamicAppConfig = new DynamicAppConfig(itrName.c_str());
                     appConfigListTemp.push_back (pDynamicAppConfig);
                 }
             }
