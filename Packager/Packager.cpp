@@ -72,25 +72,25 @@ namespace {
     void Packager::Deinitialize(PluginHost::IShell* service)
     {
         ASSERT(_service == service);
+        if (_service != nullptr) {
+         _service->Unregister(&_notification);
+        }
 
-            if (_implementation != nullptr) {
-                _service->Unregister(&_notification);
+        if (_implementation != nullptr) {
+            if (_implementation->Release() != Core::ERROR_DESTRUCTION_SUCCEEDED) {
+                ASSERT(_connectionId != 0);
 
-                if (_implementation->Release() != Core::ERROR_DESTRUCTION_SUCCEEDED) {
+                RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
 
-                    ASSERT(_connectionId != 0);
+                // The process can disappear in the meantime...
+                if (connection != nullptr) {
 
-                    RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
-
-                    // The process can disappear in the meantime...
-                    if (connection != nullptr) {
-
-                        // But if it did not dissapear in the meantime, forcefully terminate it. Shoot to kill :-)
-                        connection->Terminate();
-                        connection->Release();
-                     }
+                 // But if it did not dissapear in the meantime, forcefully terminate it. Shoot to kill :-)
+                 connection->Terminate();
+                 connection->Release();
                  }
              }
+         }
 
         _service = nullptr;
         _implementation = nullptr;
