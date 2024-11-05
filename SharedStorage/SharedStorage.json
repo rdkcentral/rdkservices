@@ -2,9 +2,9 @@
   "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
   "jsonrpc": "2.0",
   "info": {
-    "title": "SecureStore API",
-    "class": "SecureStore",
-    "description": "Secure Store JSON-RPC interface"
+    "title": "SharedStorage API",
+    "class": "SharedStorage",
+    "description": "SharedStorage JSON-RPC interface"
   },
   "common": {
     "$ref": "../common/common.json"

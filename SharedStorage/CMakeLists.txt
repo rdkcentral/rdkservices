@@ -1,7 +1,7 @@
 # If not stated otherwise in this file or this component's LICENSE file the
 # following copyright and licenses apply:
 #
-# Copyright 2020 RDK Management
+# Copyright 2024 RDK Management
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,32 +17,30 @@
 
 cmake_minimum_required(VERSION 3.14)
 
-project(sqlitel1test)
+set(PLUGIN_NAME SharedStorage)
+find_package(WPEFramework)
+set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
+
+set(PLUGIN_SHAREDSTORAGE_AUTOSTART "true" CACHE STRING "Automatically start SharedStorage plugin")
+set(PLUGIN_SHAREDSTORAGE_STARTUPORDER "51" CACHE STRING "To configure startup order of SharedStorage plugin")
 
 set(CMAKE_CXX_STANDARD 11)
 
-include(FetchContent)
-FetchContent_Declare(
-        googletest
-        URL https://github.com/google/googletest/archive/609281088cfefc76f9d0ce82e1ff6c30cc3591e5.zip
+add_library(${MODULE_NAME} SHARED
+        SharedStorage.cpp
+        SharedStorageJsonRpc.cpp
+        Module.cpp
 )
-FetchContent_MakeAvailable(googletest)
 
-find_package(WPEFramework REQUIRED)
 find_package(${NAMESPACE}Plugins REQUIRED)
-
-add_executable(${PROJECT_NAME}
-        ../../Module.cpp
-        Store2Test.cpp
-)
-
-target_link_libraries(${PROJECT_NAME} PRIVATE
-        gmock_main
+find_package(${NAMESPACE}Definitions REQUIRED)
+target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
+target_link_libraries(${MODULE_NAME} PRIVATE
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
+        ${NAMESPACE}Definitions::${NAMESPACE}Definitions
 )
 
-find_package(PkgConfig REQUIRED)
-pkg_search_module(SQLITE REQUIRED sqlite3)
-target_link_libraries(${PROJECT_NAME} PRIVATE ${SQLITE_LIBRARIES})
+install(TARGETS ${MODULE_NAME}
+        DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
 
-install(TARGETS ${PROJECT_NAME} DESTINATION bin)
+write_config(${PLUGIN_NAME})

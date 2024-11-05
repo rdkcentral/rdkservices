@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.1] - 2024-08-05
+### Changed
+- Added SharedStorage plugin as proxy for PersistentStore & CloudStore.
+
 ## [1.0.0] - 2024-07-25
 ### Added
 - Add CHANGELOG
