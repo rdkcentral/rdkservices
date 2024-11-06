@@ -2,8 +2,3 @@ precondition = ["Platform"]
 callsign = "org.rdk.Xcast"
 autostart = "@PLUGIN_XCAST_AUTOSTART@"
 startuporder = "@PLUGIN_XCAST_STARTUPORDER@"
-configuration = JSON()
-
-rootobject = JSON()
-rootobject.add("mode", "@PLUGIN_XCAST_MODE@")
-configuration.add("root", rootobject)
