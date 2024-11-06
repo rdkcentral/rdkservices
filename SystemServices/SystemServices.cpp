@@ -5120,7 +5120,9 @@ namespace WPEFramework {
          * @return      : Core::<StatusCode>
         */
    
-    uint32_t SystemServices::getBootTypeInfo(const JsonObject& parameters, JsonObject& response) {
+    uint32_t SystemServices::getBootTypeInfo(const JsonObject& parameters, JsonObject& response) 
+    {
+        LOGINFOMETHOD();
         //check if file exists
         std::ifstream file_read(BOOTVERSION);
         if (! file_read){
