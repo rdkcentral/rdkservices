@@ -290,6 +290,11 @@ uint32_t OCIContainer::startContainer(const JsonObject &parameters, JsonObject &
     std::string bundlePath = parameters["bundlePath"].String();
     std::string command = parameters["command"].String();
     std::string westerosSocket = parameters["westerosSocket"].String();
+    std::vector<std::string> envs = std::vector<std::string>();
+    if (parameters.HasLabel("envVar"))
+    {
+        envs.push_back(parameters["envVar"].String());
+    }
 
     // Can be used to pass file descriptors to container construction.
     // Currently unsupported, see DobbyProxy::startContainerFromBundle().
@@ -335,7 +340,7 @@ uint32_t OCIContainer::startContainer(const JsonObject &parameters, JsonObject &
         }
 
         LOGINFO("startContainerFromBundle: id: %s, containerPath: %s, command: %s, westerosSocket: %s", id.c_str(), encrypted ? containerPath.c_str() : bundlePath.c_str(), command.c_str(), westerosSocket.c_str());
-        descriptor = mDobbyProxy->startContainerFromBundle(id, encrypted ? containerPath : bundlePath, emptyList, command, westerosSocket);
+        descriptor = mDobbyProxy->startContainerFromBundle(id, encrypted ? containerPath : bundlePath, emptyList, command, westerosSocket, envs);
     }
 
     // startContainer returns -1 on failure
