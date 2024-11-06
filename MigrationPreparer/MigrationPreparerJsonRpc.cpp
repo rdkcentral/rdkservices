@@ -152,7 +152,7 @@ namespace Plugin {
                 error["code"] = "-32013";
                 response["error"] = error;
                 break;
-            case ERROR_READ:
+            case ERROR_NAME:
                 error["message"] = "Name not found";
                 error["code"] = "-32007";
                 response["error"] = error;
@@ -203,8 +203,13 @@ namespace Plugin {
                             parameters["name"].String());
 
         switch(result) {
-            case ERROR_DELETE:
+            case ERROR_NAME:
                 error["message"] = "Name not found";
+                error["code"] = "-32007";
+                response["error"] = error;
+                break;
+            case ERROR_DELETE:
+                error["message"] = "Delete failed";
                 error["code"] = "-32008";
                 response["error"] = error;
                 break;

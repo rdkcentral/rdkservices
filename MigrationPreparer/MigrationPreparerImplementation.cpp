@@ -327,7 +327,7 @@ namespace Plugin {
         // check if list is not empty and _lineNumber for given key exists
         if(_lineNumber.find(key) == _lineNumber.end()) {
             LOGERR("Failed to read key: %s, Key do not exist in migration dataStore", key.c_str());
-            return ERROR_READ;
+            return ERROR_NAME;
         }
         
         result = _valueEntry[_lineNumber[key] - 2];
@@ -384,13 +384,16 @@ namespace Plugin {
                 _dataStoreMutex.unlock();
                 return Core::ERROR_NONE;
             }
+            
+            result = WEXITSTATUS(result);
             LOGERR("Failed to delete entry for key: %s in migration datastore, v_secure_system failed with error %d",key.c_str(), result);
+            _dataStoreMutex.unlock();
+            return ERROR_DELETE;
         }
 
-        result = WEXITSTATUS(result);
-        LOGERR("Failed to delete entry for key: %s in migration datastore, Key does not exist in dataStore",key.c_str());
+        LOGERR("Failed to delete entry for key: %s in migration datastore, Key does not exist in dataStore",key.c_str());       
         _dataStoreMutex.unlock();
-        return ERROR_DELETE;    
+        return ERROR_NAME;    
     }
 
     
