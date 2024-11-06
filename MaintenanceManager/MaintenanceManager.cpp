@@ -275,7 +275,6 @@ namespace WPEFramework {
             MaintenanceManager::m_task_map[task_names_foreground[0].c_str()]=false;
             MaintenanceManager::m_task_map[task_names_foreground[1].c_str()]=false;
             MaintenanceManager::m_task_map[task_names_foreground[2].c_str()]=false;
-            MaintenanceManager::m_task_map[task_names_foreground[3].c_str()]=false;
 
 #if defined(ENABLE_WHOAMI)
             MaintenanceManager::m_param_map[kDeviceInitContextKeyVals[0].c_str()] = TR181_PARTNER_ID;
