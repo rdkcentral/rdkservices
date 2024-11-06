@@ -19,6 +19,7 @@
 #include "AnalyticsImplementation.h"
 #include "Backend/AnalyticsBackend.h"
 #include "UtilsLogging.h"
+#include "SystemTime.h"
 
 #include <fstream>
 #include <streambuf>
@@ -36,7 +37,7 @@ namespace Plugin {
         mQueueCondition(),
         mActionQueue(),
         mEventQueue(),
-        mBackends(IAnalyticsBackendAdministrator::Instances()),
+        mBackends(IAnalyticsBackendAdministrator::Create()),
         mSysTimeValid(false),
         mShell(nullptr)
     {
@@ -45,6 +46,7 @@ namespace Plugin {
 
     AnalyticsImplementation::~AnalyticsImplementation()
     {
+        LOGINFO("AnalyticsImplementation::~AnalyticsImplementation()");
         std::unique_lock<std::mutex> lock(mQueueMutex);
         mActionQueue.push({ACTION_TYPE_SHUTDOWN, nullptr});
         lock.unlock();
@@ -52,13 +54,13 @@ namespace Plugin {
         mThread.join();
     }
 
-    /* virtual */ uint32_t AnalyticsImplementation::SendEvent(const string& eventName,
+    /* virtual */ Core::hresult AnalyticsImplementation::SendEvent(const string& eventName,
                                     const string& eventVersion,
                                     const string& eventSource,
                                     const string& eventSourceVersion,
-                                    RPC::IStringIterator* const& cetList,
-                                    const uint64_t& epochTimestamp,
-                                    const uint64_t& uptimeTimestamp,
+                                    IStringIterator* const& cetList,
+                                    const uint64_t epochTimestamp,
+                                    const uint64_t uptimeTimestamp,
                                     const string& eventPayload)
     {
         std::shared_ptr<Event> event = std::make_shared<Event>();
@@ -85,6 +87,33 @@ namespace Plugin {
         LOGINFO("Uptime Timestamp: %" PRIu64, uptimeTimestamp);
         LOGINFO("Event Payload: %s", eventPayload.c_str());
 
+        bool valid = true;
+        if (eventName.empty())
+        {
+            LOGERR("eventName is empty");
+            valid = false;
+        }
+        if (eventSource.empty())
+        {
+            LOGERR("eventSource is empty");
+            valid = false;
+        }
+        if (eventSourceVersion.empty())
+        {
+            LOGERR("eventSourceVersion is empty");
+            valid = false;
+        }
+        if (eventPayload.empty())
+        {
+            LOGERR("eventPayload is empty");
+            valid = false;
+        }
+
+        if (valid == false)
+        {
+            return Core::ERROR_GENERAL;
+        }
+
         // Fill the uptime if no time provided
         if (event->epochTimestamp == 0 && event->uptimeTimestamp == 0)
         {
@@ -98,28 +127,6 @@ namespace Plugin {
         return Core::ERROR_NONE;
     }
 
-    uint32_t AnalyticsImplementation::SetSessionId(const string& id)
-    {
-        uint32_t ret = Core::ERROR_GENERAL;
-        // set session id in sift backend
-        if (mBackends.find(IAnalyticsBackend::SIFT) != mBackends.end())
-        {
-            ret = mBackends.at(IAnalyticsBackend::SIFT).SetSessionId(id);
-        }
-
-        return ret;
-    }
-
-    uint32_t AnalyticsImplementation::SetTimeReady()
-    {
-        // set time ready action
-        std::unique_lock<std::mutex> lock(mQueueMutex);
-        mActionQueue.push({ACTION_TYPE_SET_TIME_READY, nullptr});
-        lock.unlock();
-        mQueueCondition.notify_one();
-        return Core::ERROR_NONE;
-    }
-
     uint32_t AnalyticsImplementation::Configure(PluginHost::IShell* shell)
     {
         LOGINFO("Configuring Analytics");
@@ -127,10 +134,16 @@ namespace Plugin {
         ASSERT(shell != nullptr);
         mShell = shell;
 
+        mSysTime = std::make_shared<SystemTime>(shell);
+        if(mSysTime == nullptr)
+        {
+            LOGERR("Failed to create SystemTime instance");
+        }
+
         for (auto &backend : mBackends)
         {
             LOGINFO("Configuring backend: %s", backend.first.c_str());
-            backend.second.Configure(shell);
+            backend.second->Configure(shell, mSysTime);
         }
 
         return result;
@@ -177,7 +190,7 @@ namespace Plugin {
             switch (action.type) {
                 case ACTION_POPULATE_TIME_INFO:
 
-                //mSysTimeValid = IsSysTimeValid();
+                mSysTimeValid = IsSysTimeValid();
 
                 if ( mSysTimeValid )
                 {
@@ -225,24 +238,8 @@ namespace Plugin {
                     }
                     break;
                 case ACTION_TYPE_SHUTDOWN:
+                    LOGINFO("Shutting down Analytics");
                     return;
-                case ACTION_TYPE_SET_TIME_READY:
-                {
-                    mSysTimeValid = true;
-                    // Send the events from the queue, if there are any.
-                    while ( !mEventQueue.empty() )
-                    {
-                        AnalyticsImplementation::Event event = mEventQueue.front();
-                        // convert uptime to epoch timestamp
-                        if (event.epochTimestamp == 0)
-                        {
-                            event.epochTimestamp = ConvertUptimeToTimestampInMs(event.uptimeTimestamp);
-                        }
-
-                        SendEventToBackend( event );
-                        mEventQueue.pop();
-                    }
-                }break;
                 default:
                     break;
             }
@@ -254,8 +251,10 @@ namespace Plugin {
     bool AnalyticsImplementation::IsSysTimeValid()
     {
         bool ret = false;
-        //TODO: Add system time validationm
-        // For now, relay on setTimeReady call
+        if (mSysTime != nullptr)
+        {
+            ret = mSysTime->IsSystemTimeAvailable();
+        }
 
         return ret;
     }
@@ -279,7 +278,7 @@ namespace Plugin {
         else if (mBackends.find(IAnalyticsBackend::SIFT) != mBackends.end())
         {
             LOGINFO("Sending event to Sift backend: %s", event.eventName.c_str());
-            mBackends.at(IAnalyticsBackend::SIFT).SendEvent(backendEvent);
+            mBackends.at(IAnalyticsBackend::SIFT)->SendEvent(backendEvent);
         }
     }
 
