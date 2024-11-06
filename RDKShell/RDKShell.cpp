@@ -4849,6 +4849,19 @@ namespace WPEFramework {
                     if (!uri.empty())
                     {
                         WPEFramework::Core::JSON::String urlString;
+                        if (!fireboltEndPoint.empty())
+			{	
+			    std::stringstream ss;
+                            if (uri.find("?") != string::npos)
+			    {
+	                        ss << "&__firebolt_endpoint=" << fireboltEndPoint;
+	                    }
+		            else
+			    {
+	                        ss << "?__firebolt_endpoint=" << fireboltEndPoint;
+                            }
+                            uri.append(ss.str());
+                        }
                         urlString = uri;
                         status = JSONRPCDirectLink(mCurrentService, callsign).Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "url",urlString);
                         if (status > 0)
