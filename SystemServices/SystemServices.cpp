@@ -5162,7 +5162,7 @@ namespace WPEFramework {
                         LOGINFO("Boot Type is BOOT_INCONCLUSIVE\n");
                     }
             returnResponse(true);
-        }//end of getBootTypeInfo method 
+        }//end of getBootTypeInfo
 
     } /* namespace Plugin */
 } /* namespace WPEFramework */
