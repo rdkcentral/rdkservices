@@ -104,6 +104,7 @@ using namespace std;
 #define OPFLASH_STORE "/opt/secure/persistent/opflashstore"
 #define DEVICESTATE_FILE OPFLASH_STORE "/devicestate.txt"
 #define BLOCKLIST "blocklist"
+#define BOOTVERSION "/opt/.bootversion"
 
 /**
  * @struct firmwareUpdate
@@ -505,6 +506,7 @@ namespace WPEFramework {
 
             registerMethod("setBlocklistFlag", &SystemServices::setBlocklistFlag, this);
             registerMethod("getBlocklistFlag", &SystemServices::getBlocklistFlag, this);
+            registerMethod("getBootTypeInfo", &SystemServices::getBootTypeInfo, this);
 
         }
 
@@ -5109,6 +5111,56 @@ namespace WPEFramework {
             response["fsrFlag"] = fsrFlag;
             returnResponse(status);
         }
+
+        /**
+         * @brief : API to query BootType details
+         *
+         * @param1[in]  : {"params":{}}}
+         * @param2[out] : "result":{<key>:<BootType Info Details>,"success":<bool>}
+         * @return      : Core::<StatusCode>
+        */
+   
+    uint32_t SystemServices::getBootTypeInfo(const JsonObject& parameters, JsonObject& response) {
+        //check if file exists
+        std::ifstream file_read(BOOTVERSION);
+        if (! file_read){
+            LOGERR("Failed to open file %s\n", BOOTVERSION);
+            returnResponse(false);
+        }
+            //Read the file and get the imagename, version and fw_class
+            std::string line,key_val,value;
+            std::map<std::string,std::vector<std::string>> boot_val;
+             while(std::getline(file_read, line)){
+                size_t pos=0, start=0;
+                pos = line.find(':', start);
+                key_val = line.substr(start, pos);
+                value = line.substr(pos+1);
+                if (key_val == "imagename" || key_val == "VERSION" || key_val == "FW_CLASS") {
+                    boot_val[key_val].push_back(value);
+                }
+             }
+            file_read.close(); 
+            //if both the slots are present then we can get the boot type or it is inconclusive
+                if(boot_val["FW_CLASS"].size() == 2 ) {
+                    if(boot_val["FW_CLASS"][0] != boot_val["FW_CLASS"][1]) {
+                        response["bootType"] = "BOOT_MIGRATION";
+                        LOGINFO("Boot Type is BOOT_MIGRATION\n");
+                    }
+                    else if((boot_val["FW_CLASS"][0] == boot_val["FW_CLASS"][1]) && (boot_val["imagename"][0] == boot_val["imagename"][1])){
+                        response["bootType"] = "BOOT_NORMAL";
+                        LOGINFO("Boot Type is BOOT_NORMAL\n");
+                    }
+                    else if((boot_val["FW_CLASS"][0] == boot_val["FW_CLASS"][1]) && (boot_val["imagename"][0] != boot_val["imagename"][1])) {
+                        response["bootType"] = "BOOT_UPDATE";
+                        LOGINFO("Boot Type is BOOT_UPDATE\n");
+                    }
+                }// only one slot is populated and both cannot be empty since file is present
+                else{   
+                    response["bootType"] = "BOOT_INCONCLUSIVE";
+                    LOGINFO("Boot Type is BOOT_INCONCLUSIVE\n");
+                }
+        returnResponse(true);
+     }//end of getBootTypeInfo method 
 
     } /* namespace Plugin */
 } /* namespace WPEFramework */
