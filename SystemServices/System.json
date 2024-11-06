@@ -2028,7 +2028,15 @@
             "result": {
                 "$ref": "#/common/result"
             }
-        }
+        },
+        "getBootTypeInfo":{
+            "summary": "Getting Boot Type",
+            "result": {
+			   "summary": "BOOT Type Info",
+               "type": "string",
+               "example": "BOOT_UPDATE"
+			}
+		}
     },
     "events": {
         "onFirmwarePendingReboot":{
