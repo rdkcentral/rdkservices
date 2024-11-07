@@ -30,9 +30,8 @@
 #endif
 
 #define SERVER_DETAILS "127.0.0.1:9998"
-#define NETWORK_CALLSIGN "org.rdk.Network"
-#define NETWORK_CALLSIGN_VER NETWORK_CALLSIGN ".1"
-#define THUNDER_RPC_TIMEOUT 2000
+#define NETWORK_CALLSIGN_VER "org.rdk.Network.1"
+#define THUNDER_RPC_TIMEOUT 5000
 #define MAX_SECURITY_TOKEN_SIZE 1024
 
 #define API_VERSION_NUMBER_MAJOR 1
@@ -65,6 +64,11 @@ namespace Plugin {
     XCastImplementation::~XCastImplementation()
     {
         Deinitialize();
+        if (nullptr != mShell)
+        {
+            mShell->Release();
+            mShell = nullptr;
+        }
     }
 
     void XCastImplementation::Register(Exchange::IXCast::INotification* sink)
@@ -121,6 +125,15 @@ namespace Plugin {
             m_xcast_manager->shutdown();
             m_xcast_manager = nullptr;
         }
+    }
+
+    uint32_t XCastImplementation::Configure(PluginHost::IShell* service)
+    {
+        LOGINFO("Configuring XCast");
+        ASSERT(service != nullptr);
+        mShell = service;
+        mShell->AddRef();
+        return Core::ERROR_NONE;
     }
 
     uint32_t XCastImplementation::enableCastService(string friendlyname,bool enableService) const
@@ -395,68 +408,59 @@ namespace Plugin {
 
     std::string XCastImplementation::getSecurityToken()
     {
-        std::string token = "token=";
-        int tokenLength = 0;
-        unsigned char buffer[MAX_SECURITY_TOKEN_SIZE] = {0};
-        static std::string endpoint;
-
-        if(endpoint.empty()) {
-            Core::SystemInfo::GetEnvironment(_T("THUNDER_ACCESS"), endpoint);
-            LOGINFO("Thunder RPC Endpoint read from env - %s", endpoint.c_str());
+        if (nullptr == mShell)
+        {
+            return (std::string(""));
         }
 
-        if(endpoint.empty()) {
-            Core::File file("/etc/WPEFramework/config.json");
-            if(file.Open(true)) {
-                JsonObject config;
-                if(config.IElement::FromFile(file)) {
-                    Core::JSON::String port = config.Get("port");
-                    Core::JSON::String binding = config.Get("binding");
-                    if(!binding.Value().empty() && !port.Value().empty())
-                        endpoint = binding.Value() + ":" + port.Value();
-                }
-                file.Close();
+        std::string token;
+        auto security = mShell->QueryInterfaceByCallsign<PluginHost::IAuthenticate>("SecurityAgent");
+        if (nullptr != security)
+        {
+            std::string payload = "http://localhost";
+            if (security->CreateToken(static_cast<uint16_t>(payload.length()),
+                                        reinterpret_cast<const uint8_t *>(payload.c_str()),
+                                        token) == Core::ERROR_NONE)
+            {
+                LOGINFO("got security token - %s", token.empty() ? "" : token.c_str());
             }
-
-            if(endpoint.empty()) 
-                endpoint = _T("127.0.0.1:9998");
-
-            LOGINFO("Thunder RPC Endpoint read from config file - %s", endpoint.c_str());
-            Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), endpoint);
+            else
+            {
+                LOGERR("failed to get security token");
+            }
+            security->Release();
         }
-            
-        string payload = "http://localhost";
-        if(payload.empty()) {
-            tokenLength = GetSecurityToken(sizeof(buffer), buffer);
-        } else {
-            int buffLength = std::min(sizeof(buffer), payload.length());
-            ::memcpy(buffer, payload.c_str(), buffLength);
-            tokenLength = GetToken(sizeof(buffer), buffLength, buffer);
+        else
+        {
+            LOGERR("No security agent\n");
         }
 
-        if(tokenLength > 0) {
-            token.append((char*)buffer);
-        } else {
-            token.clear();
-        }
-
-        LOGINFO("Thunder token - %s", token.empty() ? "" : token.c_str());
-        return token;
+        std::string query = "token=" + token;
+        Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(SERVER_DETAILS)));
+        return query;
     }
 
     // Thunder plugins communication
-	void XCastImplementation::getThunderPlugins()
+    void XCastImplementation::getThunderPlugins()
     {
         string token = getSecurityToken();
 
         if (nullptr == m_ControllerObj)
         {
-            m_ControllerObj = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>("", "", false, token);
+            if(token.empty())
+            {
+                m_ControllerObj = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>("", "", false);
+            }
+            else
+            {
+                m_ControllerObj = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>("","", false, token);
+            }
 
             if (nullptr != m_ControllerObj)
             {
+                LOGINFO("JSONRPC: Controller: initialization ok");
                 bool isSubscribed = false;
-                auto ev_ret = m_ControllerObj->Subscribe<JsonObject>(1000, _T("statechange"),&XCastImplementation::eventHandler_pluginState,this);
+                auto ev_ret = m_ControllerObj->Subscribe<JsonObject>(THUNDER_RPC_TIMEOUT, _T("statechange"),&XCastImplementation::eventHandler_pluginState,this);
                 if (ev_ret == Core::ERROR_NONE)
                 {
                     LOGINFO("Controller - statechange event subscribed");

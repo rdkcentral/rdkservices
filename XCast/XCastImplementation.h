@@ -22,6 +22,7 @@
 #include "Module.h"
 #include <interfaces/Ids.h>
 #include <interfaces/IXCast.h>
+#include <interfaces/IConfiguration.h>
 #include "tracing/Logging.h"
 #include "XCastManager.h"
 #include "XCastNotifier.h"
@@ -102,7 +103,6 @@ namespace Plugin {
         virtual uint32_t Request(const command state) override { return Core::ERROR_GENERAL; }
         virtual void Register(IStateControl::INotification* notification) override {}
         virtual void Unregister(IStateControl::INotification* notification) override {}
-        virtual uint32_t Configure(PluginHost::IShell* service) override { return Core::ERROR_NONE; }
 
         virtual uint32_t Initialize(bool networkStandbyMode) override;
         virtual void Deinitialize(void) override;
@@ -137,6 +137,7 @@ namespace Plugin {
         std::list<Exchange::IXCast::INotification*> _notificationClients;
         static XCastImplementation* _instance;
         bool m_networkStandbyMode{false};
+        PluginHost::IShell* mShell;
         
         void dispatchEvent(Event,string callsign, const JsonObject &params);
         void Dispatch(Event event,string callsign, const JsonObject params);
@@ -160,6 +161,9 @@ namespace Plugin {
         bool connectToGDialService(void);
         bool getDefaultNameAndIPAddress(std::string& interface, std::string& ipaddress);
         void updateNWConnectivityStatus(std::string nwInterface, bool nwConnected, std::string ipaddress = "");
+
+        // IConfiguration interface
+        uint32_t Configure(PluginHost::IShell* shell);
 
     public:
         XCastImplementation();

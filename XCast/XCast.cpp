@@ -315,6 +315,12 @@ const string XCast::Initialize(PluginHost::IShell *service)
             ASSERT(_connectionId != 0);
         #endif
 
+        auto configConnection = _xcast->QueryInterface<Exchange::IConfiguration>();
+        if (configConnection != nullptr) {
+            configConnection->Configure(_service);
+            configConnection->Release();
+        }
+
         PluginHost::IStateControl* stateControl(_xcast->QueryInterface<PluginHost::IStateControl>());
 
         if (stateControl == nullptr) {
