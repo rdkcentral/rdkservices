@@ -2143,7 +2143,6 @@ namespace WPEFramework {
                 }
             });
 
-            service->Register(mClientsMonitor);
             char* thunderAccessValue = getenv("THUNDER_ACCESS_VALUE");
             if (NULL != thunderAccessValue)
             {
