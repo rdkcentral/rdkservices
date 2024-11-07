@@ -40,8 +40,6 @@ namespace WPEFramework
                                                             mTimeQuality(TIME_QUALITY_STALE),
                                                             mTimeZone(),
                                                             mTimeZoneAccuracyString(),
-                                                            mTimeZoneAccuracy(ACC_UNDEFINED),
-                                                            mTimeZoneOffsetSec(0),
                                                             mTransitionMap(),
                                                             mIsSystemTimeAvailable(false),
                                                             mShell(shell)
@@ -98,20 +96,28 @@ namespace WPEFramework
                 }
             }
 
-            LOGINFO("IsSystemTimeAvailable: %d", isAvailable);
             return isAvailable;
         }
 
         SystemTime::TimeZoneAccuracy SystemTime::GetTimeZoneOffset(int32_t &offsetSec)
         {
-            SystemTime::TimeZoneAccuracy accuracy = ACC_UNDEFINED;
+            std::string tz;
+            std::string accuracyString;
+            bool isTimeAvailable = false;
             {
                 std::lock_guard<std::mutex> guard(mLock);
-                offsetSec = mTimeZoneOffsetSec;
-                accuracy = mTimeZoneAccuracy;
+                tz = mTimeZone;
+                accuracyString = mTimeZoneAccuracyString;
+                isTimeAvailable = mIsSystemTimeAvailable;
             }
 
-            return accuracy;
+            if (isTimeAvailable)
+            {
+                std::pair<SystemTime::TimeZoneAccuracy, int32_t> tzParsed = ParseTimeZone(tz, accuracyString);
+                offsetSec = tzParsed.second;
+                return tzParsed.first;
+            }
+            return ACC_UNDEFINED;
         }
 
         void SystemTime::onTimeStatusChanged(const JsonObject& parameters)
@@ -231,11 +237,8 @@ namespace WPEFramework
                 std::lock_guard<std::mutex> guard(mLock);
                 if (mTimeZone != tz || mTimeZoneAccuracyString != accuracy)
                 {
-                    std::pair<SystemTime::TimeZoneAccuracy, int32_t> tzParsed = ParseTimeZone(tz, accuracy);
                     mTimeZone = tz;
                     mTimeZoneAccuracyString = accuracy;
-                    mTimeZoneAccuracy = tzParsed.first;
-                    mTimeZoneOffsetSec = tzParsed.second;
                 }
             }
         }
@@ -264,7 +267,6 @@ namespace WPEFramework
             if (timeZone == "Universal")
             {
                 result.second = 0;
-                LOGINFO("timeZoneOff: %d", result.second);
                 return result;
             }
 
@@ -282,13 +284,11 @@ namespace WPEFramework
             if (currentTimeEndItr != mTransitionMap.end())
             {
                 result.second = currentTimeEndItr->second;
-                LOGINFO("timeZoneOff: %d", result.second);
             }
             else if (mTransitionMap.empty() == false)
             {
                 currentTimeEndItr--; // take the last transition when all transitions are from past
                 result.second = currentTimeEndItr->second;
-                LOGINFO("timeZoneOff: %d", result.second);
             }
             else
             {
@@ -398,10 +398,6 @@ namespace WPEFramework
                     LOGERR("v_secure_popen of zdump -v %s failed", mTimeZone.c_str());
                 }
             }
-            else
-            {
-                LOGINFO("No update required");
-            }
         }
 
 
@@ -467,11 +463,8 @@ namespace WPEFramework
                         std::lock_guard<std::mutex> guard(mLock);
                         if (mTimeZone != tz || mTimeZoneAccuracyString != accuracy)
                         {
-                            std::pair<SystemTime::TimeZoneAccuracy, int32_t> tzParsed = ParseTimeZone(tz, accuracy);
                             mTimeZone = tz;
                             mTimeZoneAccuracyString = accuracy;
-                            mTimeZoneAccuracy = tzParsed.first;
-                            mTimeZoneOffsetSec = tzParsed.second;
                         }
                     }
                 }
