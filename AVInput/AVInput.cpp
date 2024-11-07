@@ -824,7 +824,7 @@ void AVInput::AVInputVideoModeUpdate( int port , dsVideoPortResolution_t resolut
             break;
        }
 
-       params["progressive"] = true;
+       params["progressive"] = false;
     }
 
     params["locator"] = locator.str();
