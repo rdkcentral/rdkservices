@@ -73,13 +73,17 @@ namespace {
     {
         ASSERT(_service == service);
 
-        _service->Unregister(&_notification);
+	if (_service != nullptr) {
+            _service->Unregister(&_notification);
+	}
 
-        if (_implementation->Release() != Core::ERROR_DESTRUCTION_SUCCEEDED) {
+        if (_implementation != nullptr && _implementation->Release() != Core::ERROR_DESTRUCTION_SUCCEEDED) {
 
             ASSERT(_connectionId != 0);
 
-            RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
+	    if (_service != nullptr) {
+		RPC::IRemoteConnection* connection(_service->RemoteConnection(_connectionId));
+	    }
 
             // The process can disappear in the meantime...
             if (connection != nullptr) {
