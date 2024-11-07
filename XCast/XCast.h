@@ -33,6 +33,7 @@
 
 #include "Module.h"
 #include <interfaces/IXCast.h>
+#include <interfaces/IConfiguration.h>
 #include "tracing/Logging.h"
 #include "tptimer.h"
 #include "libIBus.h"
