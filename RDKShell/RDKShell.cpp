@@ -4285,7 +4285,6 @@ namespace WPEFramework {
                         setAVBlocked(callsign, blockAV);
                     }
                 }
-
 #ifdef HIBERNATE_SUPPORT_ENABLED
                 //Reset app suspended/hibernated for launch
                 bool suspendedOrHibernated = false;
