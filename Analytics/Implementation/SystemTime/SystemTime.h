@@ -87,8 +87,6 @@ namespace WPEFramework
             std::string mTimeQuality;
             std::string mTimeZone;
             std::string mTimeZoneAccuracyString;
-            TimeZoneAccuracy mTimeZoneAccuracy;
-            int32_t mTimeZoneOffsetSec;
             std::map<time_t, int32_t> mTransitionMap;
             bool mIsSystemTimeAvailable;
             PluginHost::IShell *mShell;
