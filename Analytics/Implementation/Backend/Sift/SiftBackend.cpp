@@ -117,8 +117,6 @@ namespace WPEFramework
                     mActionQueue.pop();
                 }
 
-                LOGINFO("Action %d", action.type);
-
                 //Always get the most recent attributes
                 bool attributesValid = false;
                 bool storeConfigValid = (mStorePtr != nullptr);
