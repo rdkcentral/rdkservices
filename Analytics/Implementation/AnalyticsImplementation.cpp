@@ -185,8 +185,6 @@ namespace Plugin {
 
             lock.unlock();
 
-            LOGINFO("Action: %d, time valid: %s", action.type, mSysTimeValid? "true" : "false");
-
             switch (action.type) {
                 case ACTION_POPULATE_TIME_INFO:
 
