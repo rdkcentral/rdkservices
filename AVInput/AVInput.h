@@ -107,7 +107,7 @@ private:
     void AVInputStatusChange( int port , bool isPresented, int type);
     static void dsAVStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
-    void AVInputVideoModeUpdate( int port , dsVideoPortResolution_t resolution, int type);
+    void AVInputVideoModeUpdate( int port , dsVideoPortResolution_t resolution);
     static void dsAVVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
     void AVInputALLMChange( int port , bool allmMode);
