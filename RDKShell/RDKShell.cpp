@@ -4114,7 +4114,6 @@ namespace WPEFramework {
             }
 
             string appCallsign("");
-            string fireboltEndPoint("");
             /*if (result)
             {
                 bool launchInProgress = false;
@@ -4285,10 +4284,6 @@ namespace WPEFramework {
                     {
                         setAVBlocked(callsign, blockAV);
                     }
-                }
-                if (parameters.HasLabel("fireboltEndPoint"))
-                {
-                    fireboltEndPoint = parameters["fireboltEndPoint"].String();
                 }
 
 #ifdef HIBERNATE_SUPPORT_ENABLED
