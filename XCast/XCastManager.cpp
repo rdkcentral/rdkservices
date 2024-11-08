@@ -289,6 +289,7 @@ bool XCastManager::initialize(const std::string& gdial_interface_name, bool netw
 
 void XCastManager::deinitialize()
 {
+    LOGINFO("Destroying gdialService instance");
     lock_guard<recursive_mutex> lock(m_mutexSync);
     if (nullptr != gdialCastObj)
     {
@@ -422,7 +423,7 @@ bool XCastManager::envGetValue(const char *key, std::string &value)
 int XCastManager::applicationStateChanged( string app, string state, string id, string error)
 {
     int status = 0;
-    LOGINFO("XcastService::ApplicationStateChanged  ARGS = %s : %s : %s : %s ", app.c_str(), id.c_str() , state.c_str() , error.c_str());
+    LOGINFO("ARGS = %s : %s : %s : %s ", app.c_str(), id.c_str() , state.c_str() , error.c_str());
     lock_guard<recursive_mutex> lock(m_mutexSync);
     if (gdialCastObj != NULL)
     {
@@ -436,7 +437,7 @@ int XCastManager::applicationStateChanged( string app, string state, string id, 
 
 void XCastManager::enableCastService(string friendlyname,bool enableService)
 {
-    LOGINFO("XcastService::enableCastService ARGS = %s : %d ", friendlyname.c_str(), enableService);
+    LOGINFO("ARGS = %s : %d ", friendlyname.c_str(), enableService);
     lock_guard<recursive_mutex> lock(m_mutexSync);
     if(gdialCastObj != NULL)
     {
@@ -450,12 +451,12 @@ void XCastManager::enableCastService(string friendlyname,bool enableService)
 
 void XCastManager::updateFriendlyName(string friendlyname)
 {
-    LOGINFO("XcastService::updateFriendlyName ARGS = %s ", friendlyname.c_str());
+    LOGINFO("ARGS = %s ", friendlyname.c_str());
     lock_guard<recursive_mutex> lock(m_mutexSync);
     if(gdialCastObj != NULL)
     {
         gdialCastObj->FriendlyNameChanged( friendlyname);
-        LOGINFO("XcastService send onFriendlyNameChanged");
+        LOGINFO("XcastService send FriendlyNameChanged");
     }
     else
         LOGINFO(" gdialCastObj is NULL ");
@@ -507,11 +508,9 @@ void XCastManager::registerApplications(std::vector<DynamicAppConfig*>& appConfi
         LOGINFO(" gdialCastObj is NULL ");
         if (nullptr != appReqList)
         {
-            for (RegisterAppEntry* appEntry : appReqList->getValues())
-            {
-                delete appEntry;
-            }
+            LOGINFO("[%p] Freeing appConfigList",appReqList);
             delete appReqList;
+            appReqList = nullptr;
         }
     }
 }
