@@ -4113,6 +4113,7 @@ namespace WPEFramework {
             }
 
             string appCallsign("");
+            string fireboltEndPoint("");
             /*if (result)
             {
                 bool launchInProgress = false;
@@ -4284,6 +4285,11 @@ namespace WPEFramework {
                         setAVBlocked(callsign, blockAV);
                     }
                 }
+                if (parameters.HasLabel("fireboltEndPoint"))
+                {
+                    fireboltEndPoint = parameters["fireboltEndPoint"].String();
+                }
+
 #ifdef HIBERNATE_SUPPORT_ENABLED
                 //Reset app suspended/hibernated for launch
                 bool suspendedOrHibernated = false;
@@ -4843,6 +4849,19 @@ namespace WPEFramework {
                     if (!uri.empty())
                     {
                         WPEFramework::Core::JSON::String urlString;
+                        if (!fireboltEndPoint.empty())
+			{	
+			    std::stringstream ss;
+                            if (uri.find("?") != string::npos)
+			    {
+	                        ss << "&__firebolt_endpoint=" << fireboltEndPoint;
+	                    }
+		            else
+			    {
+	                        ss << "?__firebolt_endpoint=" << fireboltEndPoint;
+                            }
+                            uri.append(ss.str());
+                        }
                         urlString = uri;
                         status = JSONRPCDirectLink(mCurrentService, callsign).Set<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "url",urlString);
                         if (status > 0)
@@ -5048,6 +5067,7 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
             bool result = true;
+            std::string environmentVariables("");
             if (!parameters.HasLabel("client"))
             {
                 result = false;
@@ -5062,6 +5082,10 @@ namespace WPEFramework {
             {
                 result = false;
                 response["message"] = "please specify mimeType";
+            }
+            if (parameters.HasLabel("environmentVariables"))
+            {
+                environmentVariables = parameters["environmentVariables"].String();
             }
             if (result)
             {
@@ -5215,6 +5239,10 @@ namespace WPEFramework {
                     param["containerId"] = client;
                     param["bundlePath"] = bundlePath;
                     param["westerosSocket"] = display;
+                    if (!environmentVariables.empty())
+	            {		    
+                        param["environmentVariables"] = environmentVariables;
+                    }
 
                     ociContainerPlugin->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "startContainer", param, ociContainerResult);
 
