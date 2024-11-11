@@ -146,8 +146,8 @@ void TTSDownloader::saveConfiguration(std::string path)
     TTSLOG_INFO("TTSDownloader saveconfiguration path %s\n", path.c_str());
     m_objectMutex.lock();
     m_config.saveFallbackPath(path);
-    m_config.updateConfigStore();
     m_defaultConfig.saveFallbackPath(path);
+    m_defaultConfig.updateConfigStore();
     m_objectMutex.unlock();
 }
 
