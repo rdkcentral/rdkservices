@@ -582,7 +582,11 @@ namespace WPEFramework {
             m_service = service;
             m_service->AddRef();
 
-	    m_sendMsgThread = std::thread(sendMsgThread);
+	    try {
+            m_sendMsgThread = std::thread(sendMsgThread);
+        } catch (const std::system_error& e) {
+            LOGERROR("Failed to start m_sendMsgThread: %s", e.what());
+        }
 	    m_timer.connect(std::bind(&DisplaySettings::onTimer, this));
             m_AudioDeviceDetectTimer.connect(std::bind(&DisplaySettings::checkAudioDeviceDetectionTimer, this));
             m_ArcDetectionTimer.connect(std::bind(&DisplaySettings::checkArcDeviceConnected, this));
@@ -4755,7 +4759,12 @@ namespace WPEFramework {
 	            try
                     {
 		        LOGWARN("creating worker thread for initAudioPortsWorker ");
-		        std::thread audioPortInitThread = std::thread(initAudioPortsWorker);
+                std::thread audioPortInitThread;
+                try {
+                    audioPortInitThread = std::thread(initAudioPortsWorker);
+                } catch (const std::system_error& e) {
+                    LOGERROR("Failed to start initAudioPortsWorker: %s", e.what());
+                }
 			audioPortInitThread.detach();
                     }
                     catch(const std::system_error& e)
