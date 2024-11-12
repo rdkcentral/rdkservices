@@ -27,7 +27,6 @@ find_package(PkgConfig)
 
 find_library(IARMBUS_LIBRARIES NAMES IARMBus)
 #find_path(IARMBUS_INCLUDE_DIRS NAMES libIARM.h PATH_SUFFIXES rdk/iarmbus)
-#find_path(IARMIR_INCLUDE_DIRS NAMES irMgr.h PATH_SUFFIXES rdk/iarmmgrs/ir)
 find_path(IARMIR_INCLUDE_DIRS NAMES sysMgr.h PATH_SUFFIXES rdk/iarmmgrs/sysmgr)
 find_path(IARMPWR_INCLUDE_DIRS NAMES pwrMgr.h PATH_SUFFIXES rdk/iarmmgrs-hal)
 
