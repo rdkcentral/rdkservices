@@ -43,6 +43,7 @@
 #include "videoOutputPortConfig.hpp"
 #include "UtilsJsonRpc.h"
 #include "UtilsIarm.h"
+#include <curl/urlapi.h>
 
 #ifdef WEBKIT_GLIB_API
 #include <wpe/webkit.h>
@@ -200,6 +201,29 @@ namespace
         return input.substr(0, end).append("/");
     }
 
+    string normalizedUrl(const string& url) {
+        static thread_local CURLU *normalizedUrl = curl_url();
+        string ret {url};
+        char *normalizedCstr = nullptr;
+        CURLUcode ecode;
+        if (CURLUE_OK == (ecode = curl_url_set(normalizedUrl, CURLUPART_URL, url.c_str(), 0))) {
+            if (CURLUE_OK == (ecode = curl_url_get(normalizedUrl, CURLUPART_URL, &normalizedCstr, 0))) {
+                ret = normalizedCstr;
+            }
+        }
+        if (ecode != CURLUE_OK) {
+            SYSLOG_GLOBAL(Logging::Error, (_T("Error normalizing url '%s' : %d. Will return the input."), url.c_str(), ecode));
+        }
+        if (normalizedCstr) {
+            curl_free(normalizedCstr);
+            normalizedCstr = nullptr;
+        }
+        return ret;
+    }
+
+    bool normalizedUrlsEqual(const string& url1, const string& url2) {
+        return normalizedUrl(url1) == normalizedUrl(url2);
+    }
 }
 
 namespace WPEFramework {
@@ -4572,7 +4596,7 @@ static GSourceFuncs _handlerIntervention =
                         urlData_.loadResult.waitForFailedOrFinished,
                         Core::ERROR_NONE == result ? "OK" : "NOK",
                         URL.c_str());
-            if (urlData_.loadResult.waitForFailedOrFinished && URL.find(urlData_.loadResult.loadUrl) != string::npos) {
+            if (urlData_.loadResult.waitForFailedOrFinished && normalizedUrlsEqual(URL, urlData_.loadResult.loadUrl)) {
                 TRACE_L1("Notyfying with result = %s, url: %s\n", Core::ERROR_NONE == result ? "OK" : "NOK", URL.c_str());
                 urlData_.result = result;
                 urlData_.loadResult.waitForFailedOrFinished = false;
