@@ -27,11 +27,11 @@ find_package(PkgConfig)
 
 find_library(IARMBUS_LIBRARIES NAMES IARMBus)
 find_path(IARMBUS_INCLUDE_DIRS NAMES libIARM.h PATH_SUFFIXES rdk/iarmbus)
-find_path(IRMGR_INCLUDE_DIRS NAMES irMgr.h comcastIrKeyCodes.h PATH_SUFFIXES rdk/iarmmgrs/ir rdk/iarmmgrs-hal)
+find_path(IRMGR_INCLUDE_DIRS NAMES comcastIrKeyCodes.h PATH_SUFFIXES rdk/iarmmgrs-hal)
 
 set(IARMBUS_LIBRARIES ${IARMBUS_LIBRARIES} CACHE PATH "Path to IARMBus library")
-set(IARMBUS_INCLUDE_DIRS ${IARMBUS_INCLUDE_DIRS} ${IRMGR_INCLUDE_DIRS})
-set(IARMBUS_INCLUDE_DIRS ${IARMBUS_INCLUDE_DIRS} ${IRMGR_INCLUDE_DIRS} CACHE PATH "Paths to IARMBus include")
+set(IARMBUS_INCLUDE_DIRS ${IARMBUS_INCLUDE_DIRS})
+set(IARMBUS_INCLUDE_DIRS ${IARMBUS_INCLUDE_DIRS} CACHE PATH "Paths to IARMBus include")
 
 
 include(FindPackageHandleStandardArgs)
