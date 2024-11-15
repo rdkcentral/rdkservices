@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.38] - 2024-11-15
+### Added
+- MaintenanceManager is stuck at MAINTENANCE_STARTED in non-WAI case, when SUPPRESSED_MAINTENANCE is enabled with no Skip Firmware
+
 ## [1.0.37] - 2024-10-24
 ### Remove
 - Decouple DCM from Unsolicited Maintenance and remove DCM references in MaintenanceManager
