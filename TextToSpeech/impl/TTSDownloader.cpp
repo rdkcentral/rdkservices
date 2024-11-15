@@ -144,11 +144,8 @@ bool TTSDownloader::downloadFile(std::string ttsRequest)
 void TTSDownloader::saveConfiguration(std::string path)
 {
     TTSLOG_INFO("TTSDownloader saveconfiguration path %s\n", path.c_str());
-    m_objectMutex.lock();
-    m_config.saveFallbackPath(path);
-    m_config.updateConfigStore();
     m_defaultConfig.saveFallbackPath(path);
-    m_objectMutex.unlock();
+    m_defaultConfig.updateConfigStore();
 }
 
 }//end of namespace TTS
