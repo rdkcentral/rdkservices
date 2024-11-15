@@ -418,6 +418,12 @@ namespace WPEFramework {
                     tasks.push_back(task_names_foreground[0].c_str());
                     tasks.push_back(task_names_foreground[2].c_str());
                 }
+                else
+                {
+                    tasks.push_back(task_names_foreground[0].c_str());
+                    tasks.push_back(task_names_foreground[1].c_str());
+                    tasks.push_back(task_names_foreground[2].c_str());
+                }
             }
 #else
             tasks.push_back(task_names_foreground[0].c_str());
