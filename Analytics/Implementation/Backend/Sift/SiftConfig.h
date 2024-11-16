@@ -128,12 +128,14 @@ namespace WPEFramework
             void InitializeKeysMap();
             void Initialize();
             void ParsePluginConfig();
-
             uint32_t GetValueFromPersistent(const string &ns, const string &key, string &value);
-            void GetAuthServiceValues();
-            bool GetTimeZone();
+            void UpdateXboValues();
+            bool UpdateTimeZone();
+            void OnActivationStatusChanged(const JsonObject& parameters);
+
             static void ActivatePlugin(PluginHost::IShell *shell, const char *callSign);
             static bool IsPluginActivated(PluginHost::IShell *shell, const char *callSign);
+            static std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> GetThunderControllerClient(std::string callsign="");
 
             std::thread mInitializationThread;
             Core::Sink<MonitorKeys> mMonitorKeys;
@@ -144,6 +146,7 @@ namespace WPEFramework
             PluginHost::IShell *mShell;
             std::map<std::string, std::map<std::string, std::string*>> mKeysMap;
             SystemTimePtr mSystemTime;
+            std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> mAuthServiceLink;
         };
 
         typedef std::unique_ptr<SiftConfig> SiftConfigPtr;

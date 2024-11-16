@@ -290,6 +290,12 @@ uint32_t OCIContainer::startContainer(const JsonObject &parameters, JsonObject &
     std::string bundlePath = parameters["bundlePath"].String();
     std::string command = parameters["command"].String();
     std::string westerosSocket = parameters["westerosSocket"].String();
+    std::vector<std::string> envs = std::vector<std::string>();
+    if (parameters.HasLabel("environmentVariables"))
+    {
+        std::string environmentVariables = parameters["environmentVariables"].String();
+        split(environmentVariables, '&', envs);
+    }
 
     // Can be used to pass file descriptors to container construction.
     // Currently unsupported, see DobbyProxy::startContainerFromBundle().
@@ -335,7 +341,7 @@ uint32_t OCIContainer::startContainer(const JsonObject &parameters, JsonObject &
         }
 
         LOGINFO("startContainerFromBundle: id: %s, containerPath: %s, command: %s, westerosSocket: %s", id.c_str(), encrypted ? containerPath.c_str() : bundlePath.c_str(), command.c_str(), westerosSocket.c_str());
-        descriptor = mDobbyProxy->startContainerFromBundle(id, encrypted ? containerPath : bundlePath, emptyList, command, westerosSocket);
+        descriptor = mDobbyProxy->startContainerFromBundle(id, encrypted ? containerPath : bundlePath, emptyList, command, westerosSocket, envs);
     }
 
     // startContainer returns -1 on failure
@@ -724,6 +730,26 @@ void OCIContainer::onVerityFailed(const std::string& name)
         LOGERR("Failed to stop container - internal Dobby error.");
         return;
     }
+}
+
+/**
+ * @brief Utility function to split strings based on delimited
+ *
+ * @param source
+ * @param delimiter
+ * @return Strings
+ */
+void OCIContainer::split(const std::string& source, char delimiter, std::vector<std::string>& outputStrings)
+{
+   std::string::size_type previousPosition = 0, currentPosition = 0;
+   while((currentPosition = source.find(delimiter, currentPosition)) != std::string::npos)
+   {
+       std::string currentString( source.substr(previousPosition, currentPosition-previousPosition) );
+       outputStrings.push_back(currentString);
+       previousPosition = currentPosition+1;
+       currentPosition = currentPosition+1;
+   }
+   outputStrings.push_back(source.substr(previousPosition, currentPosition-previousPosition));
 }
 
 // End Internal methods
