@@ -29,6 +29,7 @@
 #include "MiracastLogger.h"
 #include "MiracastRTSPMsg.h"
 #include "MiracastGstPlayer.h"
+#include <SoC_MiracastPlayer.h>
 
 MiracastGstPlayer *MiracastGstPlayer::m_GstPlayer{nullptr};
 
@@ -64,42 +65,6 @@ void MiracastGstPlayer::destroyInstance()
 MiracastGstPlayer::MiracastGstPlayer()
 {
     MIRACASTLOG_TRACE("Entering...");
-    {
-        char command[128] = {0};
-        std::string default_error_proc_policy = "2151665463";
-        std::ifstream decoder_error_proc_policy_file("/opt/miracast_aml_dec_error_proc_policy");
-
-        if (decoder_error_proc_policy_file.is_open())
-        {
-            std::string new_error_proc_policy = "";
-            std::getline(decoder_error_proc_policy_file, new_error_proc_policy);
-            decoder_error_proc_policy_file.close();
-
-            MIRACASTLOG_VERBOSE("decoder_error_proc_policy_file reading from file [/opt/miracast_aml_dec_error_proc_policy], new_error_proc_policy as [%s] ",
-                                new_error_proc_policy.c_str());
-            MIRACASTLOG_VERBOSE("Overwriting error_proc_policy default[%s] with new[%s]",
-                                default_error_proc_policy.c_str(),
-                                new_error_proc_policy.c_str());
-            default_error_proc_policy = new_error_proc_policy;
-        }
-
-        if ( ! default_error_proc_policy.empty())
-        {
-            sprintf(command, "echo %s > /sys/module/amvdec_mh264/parameters/error_proc_policy",
-                    default_error_proc_policy.c_str());
-
-            MIRACASTLOG_INFO("command for applying error_proc_policy[%s]",command);
-            if (0 == MiracastCommon::execute_SystemCommand(command))
-            {
-                MIRACASTLOG_INFO("error_proc_policy applied successfully");
-            }
-            else
-            {
-                MIRACASTLOG_ERROR("!!! Failed to apply error_proc_policy !!!");
-            }
-
-        }
-    }
     gst_init(nullptr, nullptr);
     m_bBuffering = false;
     m_bReady = false;
@@ -764,6 +729,12 @@ bool MiracastGstPlayer::createPipeline()
     bool return_value = true;
     m_customQueueHandle = new MessageQueue(100,gstBufferReleaseCallback);
 
+    if (nullptr == m_customQueueHandle)
+    {
+        MIRACASTLOG_ERROR("Failed to create MessageQueue");
+        return false;
+    }
+
     /* create gst pipeline */
     m_main_loop_context = g_main_context_new();
     g_main_context_push_thread_default(m_main_loop_context);
@@ -781,7 +752,7 @@ bool MiracastGstPlayer::createPipeline()
     m_Queue = gst_element_factory_make("queue", "miracast_queue");
     m_appsink = gst_element_factory_make("appsink", "miracast_appsink");
     m_video_sink = gst_element_factory_make("westerossink", "miracast_westerossink");
-    m_audio_sink = gst_element_factory_make("amlhalasink", "miracast_amlhalasink");
+    m_audio_sink = Soc_CreateAudioHALSinkProperty();
 
     if (!m_append_pipeline || !m_udpsrc || !m_rtpjitterbuffer || !m_rtpmp2tdepay ||
         !m_tsparse || !m_Queue || !m_appsink || !m_video_sink || !m_audio_sink )
@@ -893,17 +864,7 @@ bool MiracastGstPlayer::createPipeline()
         g_object_set(m_playbin_pipeline, "video-sink", m_video_sink, nullptr);
         /*}}}*/
 
-        /*{{{ amlhalasink related element configuration*/
-        MIRACASTLOG_TRACE(">>>>>>>amlhalasink configuration start");
-        
-        MIRACASTLOG_TRACE("Set disable-xrun as true to amlhalasink");
-        g_object_set(G_OBJECT(m_audio_sink), "disable-xrun" , true, nullptr );
-        MIRACASTLOG_INFO("[DEFAULT] Set avsync-mode as 2(IPTV) to amlhalasink");
-        g_object_set(G_OBJECT(m_audio_sink), "avsync-mode" , 2, nullptr );
-
-        MIRACASTLOG_TRACE("amlhalasink configuration end<<<<<<<<");
         g_object_set(m_playbin_pipeline, "audio-sink", m_audio_sink, nullptr);
-        /*}}}*/
     }
 
     g_main_context_pop_thread_default(m_main_loop_context);
