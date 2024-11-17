@@ -17,8 +17,8 @@
  * limitations under the License.
  **/
 
-#ifndef _MIRACAST_PLAYER_H_
-#define _MIRACAST_PLAYER_H_
+#ifndef _MIRACAST_GST_PLAYER_H_
+#define _MIRACAST_GST_PLAYER_H_
 
 #include <string>
 #include <vector>
@@ -29,10 +29,10 @@
 #include <pthread.h>
 #include <stdint.h>
 
-class SoC_GstPlayer
+class MiracastGstPlayer
 {
 public:
-    static SoC_GstPlayer *getInstance();
+    static MiracastGstPlayer *getInstance();
     static void destroyInstance();
     bool launch(std::string& localip , std::string& streaming_port,MiracastRTSPMsg *rtsp_instance);
     bool stop();
@@ -75,11 +75,11 @@ private:
     pthread_t m_playback_thread{0};
     VIDEO_RECT_STRUCT m_video_rect_st;
 
-    static SoC_GstPlayer *m_GstPlayer;
-    SoC_GstPlayer();
-    virtual ~SoC_GstPlayer();
-    SoC_GstPlayer &operator=(const SoC_GstPlayer &) = delete;
-    SoC_GstPlayer(const SoC_GstPlayer &) = delete;
+    static MiracastGstPlayer *m_GstPlayer;
+    MiracastGstPlayer();
+    virtual ~MiracastGstPlayer();
+    MiracastGstPlayer &operator=(const MiracastGstPlayer &) = delete;
+    MiracastGstPlayer(const MiracastGstPlayer &) = delete;
 
     bool createPipeline();
     bool updateVideoSinkRectangle(void);
@@ -99,4 +99,4 @@ private:
     static void pad_added_handler(GstElement *gstelement, GstPad *new_pad, gpointer userdata);
 };
 
-#endif /* SoC_GstPlayer_hpp */
+#endif /* _MIRACAST_GST_PLAYER_H_ */

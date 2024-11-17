@@ -38,18 +38,16 @@ find_library(GLIB_LIBRARY NAMES glib-2.0 )
 
 add_library(${MODULE_NAME} SHARED Module.cpp MiracastPlayer.cpp ../common/MiracastLogger.cpp ../common/MiracastCommon.cpp RTSP/MiracastRTSPMsg.cpp)
 
-if (BUILD_AMLOGIC)
+if (RDK_SERVICES_L1_TEST)
 	target_sources(${MODULE_NAME}
 		PRIVATE
-		Amlogic/SoC_GstPlayer.cpp
-		)
-elseif (RDK_SERVICES_L1_TEST)
-	target_sources(${MODULE_NAME}
-		PRIVATE
-		Test/SoC_GstPlayer.cpp
+		Test/MiracastGstPlayer.cpp
 		)
 else()
-	message(FATAL_ERROR "SoC abstraction yet to be implemented")
+	target_sources(${MODULE_NAME}
+		PRIVATE
+		Generic/MiracastGstPlayer.cpp
+		)
 endif()
 
 set_target_properties(${MODULE_NAME} PROPERTIES
