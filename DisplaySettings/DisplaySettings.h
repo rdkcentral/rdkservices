@@ -25,7 +25,6 @@
 #include "dsTypes.h"
 #include "tptimer.h"
 #include "libIARM.h"
-#include "irMgr.h"
 #include "pwrMgr.h"
 #include "rfcapi.h"
 #include <interfaces/ISystemMode.h>
