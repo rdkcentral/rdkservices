@@ -813,8 +813,8 @@ namespace WPEFramework {
 						{
 						systemStates.dac_init_timestamp.state = state;
 						systemStates.dac_init_timestamp.error = error;
-						strncpy(systemStates.dac_init_timestamp.payload,payload,strlen(payload));
-						systemStates.dac_init_timestamp.payload[strlen(payload)]='\0';
+						strncpy(systemStates.dac_init_timestamp.payload,payload,sizeof(systemStates.dac_init_timestamp.payload));
+						systemStates.dac_init_timestamp.payload[sizeof(systemStates.dac_init_timestamp.payload) - 1]='\0';
 						if(StateObserver::_instance)
 							StateObserver::_instance->setProp(params,SYSTEM_DAC_INIT_TIMESTAMP,state,error);
 						string payload_str(payload);
@@ -825,8 +825,8 @@ namespace WPEFramework {
 					case IARM_BUS_SYSMGR_SYSSTATE_CABLE_CARD_SERIAL_NO:
 						{
 						systemStates.card_serial_no.error =error;
-						strncpy(systemStates.card_serial_no.payload,payload,strlen(payload));
-						systemStates.card_serial_no.payload[strlen(payload)]='\0';
+						strncpy(systemStates.card_serial_no.payload,payload,sizeof(systemStates.card_serial_no.payload));
+						systemStates.card_serial_no.payload[sizeof(systemStates.card_serial_no.payload) - 1]='\0';
 						params["propertyName"]=SYSTEM_CARD_SERIAL_NO;
 						params["error"]=error;
 						string payload_str(payload);
@@ -837,8 +837,8 @@ namespace WPEFramework {
 					 case IARM_BUS_SYSMGR_SYSSTATE_STB_SERIAL_NO:
 						{
 						systemStates.stb_serial_no.error =error;
-						strncpy(systemStates.stb_serial_no.payload,payload,strlen(payload));
-						systemStates.stb_serial_no.payload[strlen(payload)]='\0';
+						strncpy(systemStates.stb_serial_no.payload,payload,sizeof(systemStates.stb_serial_no.payload));
+						systemStates.stb_serial_no.payload[sizeof(systemStates.stb_serial_no.payload) - 1]='\0';
 						params["propertyName"]=SYSTEM_STB_SERIAL_NO;
 						params["error"]=error;
 						string payload_str(payload);
@@ -973,8 +973,8 @@ namespace WPEFramework {
 					case IARM_BUS_SYSMGR_SYSSTATE_ECM_MAC:
 						{
 						systemStates.ecm_mac.error =error;
-						strncpy(systemStates.ecm_mac.payload,payload,strlen(payload));
-						systemStates.ecm_mac.payload[strlen(payload)]='\0';
+						strncpy(systemStates.ecm_mac.payload,payload,sizeof(systemStates.ecm_mac.payload));
+						systemStates.ecm_mac.payload[sizeof(systemStates.ecm_mac.payload) - 1]='\0';
 						params["propertyName"]=SYSTEM_ECM_MAC;
 						params["error"]=error;
 						string payload_str(payload);
@@ -986,8 +986,8 @@ namespace WPEFramework {
 						{
 						systemStates.ip_mode.state=state;
 						systemStates.ip_mode.error =error;
-						strncpy(systemStates.ip_mode.payload,payload,strlen(payload));
-						systemStates.ip_mode.payload[strlen(payload)]='\0';
+						strncpy(systemStates.ip_mode.payload,payload,sizeof(systemStates.ip_mode.payload));
+						systemStates.ip_mode.payload[sizeof(systemStates.ip_mode.payload) - 1]='\0';
 						if(StateObserver::_instance)
 							StateObserver::_instance->setProp(params,SYSTEM_IP_MODE,state,error);
 						string payload_str(payload);

@@ -2268,6 +2268,7 @@ namespace WPEFramework {
             {
                 IARM_Bus_PWRMgr_StandbyVideoState_Param_t param;
                 strncpy(param.port, portname.c_str(), PWRMGR_MAX_VIDEO_PORT_NAME_LENGTH);
+                param.port[sizeof(param.port) - 1] = '\0';
                 if(IARM_RESULT_SUCCESS != IARM_Bus_Call(IARM_BUS_PWRMGR_NAME, IARM_BUS_PWRMGR_API_GetStandbyVideoState, &param, sizeof(param)))
                 {
                     LOGERR("Port: %s. enable:%d", param.port, param.isEnabled);
@@ -2291,6 +2292,7 @@ namespace WPEFramework {
             {
                 dsMgrStandbyVideoStateParam_t param;
                 strncpy(param.port, portname.c_str(), PWRMGR_MAX_VIDEO_PORT_NAME_LENGTH);
+                param.port[sizeof(param.port) - 1] = '\0';
                 if(IARM_RESULT_SUCCESS != IARM_Bus_Call(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_API_GetStandbyVideoState, &param, sizeof(param)))
                 {
                     LOGERR("Port: %s. enable:%d", param.port, param.isEnabled);

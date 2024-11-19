@@ -935,8 +935,10 @@ namespace WPEFramework
 				}
 				else
 				{
-					strcpy( stMsgQ.src_dev_name, client_name.c_str());
-					strcpy( stMsgQ.src_dev_mac_addr, client_mac.c_str());
+					strncpy( stMsgQ.src_dev_name, client_name.c_str(), sizeof(stMsgQ.src_dev_name));
+					stMsgQ.src_dev_name[sizeof(stMsgQ.src_dev_name) - 1] = '\0';
+					strncpy( stMsgQ.src_dev_mac_addr, client_mac.c_str(), sizeof(stMsgQ.src_dev_mac_addr));
+					stMsgQ.src_dev_mac_addr[sizeof(stMsgQ.src_dev_mac_addr) - 1] = '\0';
 
 					MIRACASTLOG_INFO("Given [NAME-MAC-state] are[%s-%s-%s]",
 							client_name.c_str(),
@@ -998,8 +1000,10 @@ namespace WPEFramework
 						}
 						else
 						{
-							strcpy( stMsgQ.src_dev_ip_addr, source_dev_ip.c_str());
-							strcpy( stMsgQ.sink_ip_addr, sink_dev_ip.c_str());
+							strncpy( stMsgQ.src_dev_ip_addr, source_dev_ip.c_str(), sizeof(stMsgQ.src_dev_ip_addr));
+							stMsgQ.src_dev_ip_addr[sizeof(stMsgQ.src_dev_ip_addr) - 1] = '\0';
+							strncpy( stMsgQ.sink_ip_addr, sink_dev_ip.c_str(), sizeof(stMsgQ.sink_ip_addr));
+							stMsgQ.sink_ip_addr[sizeof(stMsgQ.sink_ip_addr) - 1] = '\0';
 
 							MIRACASTLOG_INFO("Given [Src-Sink-IP] are [%s-%s]",
 									source_dev_ip.c_str(),
@@ -1049,6 +1053,7 @@ namespace WPEFramework
 				{
 					MIRACASTLOG_INFO("!!! NEED TO STOP ONGOING SESSION !!!");
 					strncpy(commandBuffer,"curl -H \"Authorization: Bearer `WPEFrameworkSecurityUtility | cut -d '\"' -f 4`\" --header \"Content-Type: application/json\" --request POST --data '{\"jsonrpc\":\"2.0\", \"id\":3,\"method\":\"org.rdk.MiracastPlayer.1.stopRequest\", \"params\":{\"reason\": \"NEW_CONNECTION\"}}' http://127.0.0.1:9998/jsonrpc",sizeof(commandBuffer));
+					commandBuffer[sizeof(commandBuffer) - 1] = '\0';
 					MIRACASTLOG_INFO("Stopping old Session by [%s]",commandBuffer);
 					MiracastCommon::execute_SystemCommand(commandBuffer);
 					sleep(1);
