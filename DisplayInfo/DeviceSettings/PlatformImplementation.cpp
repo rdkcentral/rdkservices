@@ -306,24 +306,32 @@ public:
 
     uint32_t WidthInCentimeters(uint8_t& width /* @out */) const override
     {
-        int ret = Core::ERROR_NONE;
-        vector<uint8_t> edidVec;
-        ret = GetEdidBytes(edidVec);
-        if (Core::ERROR_NONE == ret)
+        try
         {
             std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
-            if(edidVec.size() > EDID_MAX_VERTICAL_SIZE)
+            ::device::VideoOutputPort vPort = ::device::Host::getInstance().getVideoOutputPort(strVideoPort.c_str());
+            if (vPort.isDisplayConnected())
             {
-                width = edidVec[EDID_MAX_HORIZONTAL_SIZE];
-                TRACE(Trace::Information, (_T("Width in cm = %d"), width));
-            }
-            else
-            {
-                TRACE(Trace::Information, (_T("Failed to get Display Size!")));
-                ret = Core::ERROR_GENERAL;
+                std::vector<uint8_t> edidVec;
+
+                vPort.getDisplay().getEDIDBytes(edidVec);
+
+                if(edidVec.size() > EDID_MAX_HORIZONTAL_SIZE)
+                {
+                    width = edidVec[EDID_MAX_HORIZONTAL_SIZE];
+                    TRACE(Trace::Information, (_T("Width in cm = %d"), width));
+                }
+                else
+                {
+                    TRACE(Trace::Information, (_T("Failed to get Display Size!")));
+                }
             }
         }
-        return ret;
+        catch (const device::Exception& err)
+        {
+            TRACE(Trace::Error, (_T("Exception during DeviceSetting library call. code = %d message = %s"), err.getCode(), err.what()));
+        }
+        return (Core::ERROR_NONE);
     }
 
     uint32_t HeightInCentimeters(uint8_t& height /* @out */) const override
