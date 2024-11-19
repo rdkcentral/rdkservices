@@ -461,7 +461,8 @@ namespace WPEFramework
                 switch (eventId) {
                     case IARM_BUS_DSMGR_EVENT_DISPLAY_FRAMRATE_PRECHANGE:
                         IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
-                        strcpy(dispFrameRate,eventData->data.DisplayFrameRateChange.framerate);
+                        strncpy(dispFrameRate,eventData->data.DisplayFrameRateChange.framerate, sizeof(dispFrameRate));
+                        dispFrameRate[sizeof(dispFrameRate) - 1] = '\0';
                         break;
                 }
             }
@@ -487,7 +488,8 @@ namespace WPEFramework
                 switch (eventId) {
                     case IARM_BUS_DSMGR_EVENT_DISPLAY_FRAMRATE_POSTCHANGE:
                         IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
-                        strcpy(dispFrameRate,eventData->data.DisplayFrameRateChange.framerate);
+                        strncpy(dispFrameRate,eventData->data.DisplayFrameRateChange.framerate, sizeof(dispFrameRate));
+                        dispFrameRate[sizeof(dispFrameRate) - 1] = '\0';
                         break;
                 }
             }
