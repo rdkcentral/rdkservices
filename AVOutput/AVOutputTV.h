@@ -70,10 +70,8 @@
 #define STRING_SOURCE    "Source."
 #define CREATE_DIRTY(__X__) (__X__+=STRING_DIRTY)
 
-#define PANEL_ID_OFFSET 0x9000004
-#define MMC_DEVICE      ("/dev/mmcblk0")
 #define CAPABLITY_FILE_NAME    "pq_capabilities.ini"
-#define MAX_DV_MODES 20
+#define MAX_DV_MODES 11
 
 typedef enum ContentFormatIndex {
     CONTENT_FORMAT_NONE = 0,
