@@ -1389,40 +1389,38 @@ namespace Plugin {
         return ret;
     }
 
-    int AVOutputTV::GetPanelID(char *panelid)
+    int AVOutputTV::GetPanelID(char *panelId)
     {
-        int fd, len;
-        off_t offset = 0L;
-        char buf[4] = {0};
-
-        if ( NULL == panelid ) {
-            printf("buf is NULL");
+        if (panelId == NULL) {
+            printf("Invalid buffer provided for panel ID\n");
             return -1;
         }
 
-        if ((fd = open(MMC_DEVICE, O_RDONLY)) < 0) {
-            printf("open %s error(%s)", MMC_DEVICE, strerror (errno));
+        const char *command = "/usr/bin/panelIDConfig -i";
+        FILE *fp;
+
+        // Execute the binary
+        fp = popen(command, "r");
+        if (fp == NULL) {
+            printf("Failed to execute command: %s\n", command);
             return -1;
         }
 
-        offset = lseek (fd, PANEL_ID_OFFSET, SEEK_SET);
-        if( offset !=  PANEL_ID_OFFSET ) {
-            printf("Failed to seek. offset[0x%x] requested[0x%x]\n", (uint32_t)offset, PANEL_ID_OFFSET);
-            close(fd);
+        // Read the panel ID from the binary's output
+        if (fgets(panelId, 20, fp) != NULL) {
+            size_t len = strlen(panelId);
+            if (len > 0 && panelId[len - 1] == '\n') {
+                panelId[len - 1] = '\0';
+            }
+        } else {
+            printf("Failed to read panel ID from panelIDConfig binary\n");
+            pclose(fp);
             return -1;
         }
 
-        len = read(fd, buf, 4);
-        if (len < 0) {
-            printf("Read %s error, %s\n", MMC_DEVICE, strerror(errno));
-            close(fd);
-            return len;
-        }
-        sprintf(panelid, "%d_%d_%d%d", buf[0], buf[1], buf[2], buf[3]);
-        close(fd);
+        pclose(fp);
         return 0;
     }
-
 
     int AVOutputTV::ReadCapablitiesFromConf(std::string &rangeInfo,std::string &pqmodeInfo,std::string &formatInfo,std::string &sourceInfo,
                            std::string param, std::string & isPlatformSupport, std::string & indexInfo)
