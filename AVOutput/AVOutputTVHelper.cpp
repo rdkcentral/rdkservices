@@ -677,6 +677,7 @@ namespace Plugin {
             }
         }
         strncpy(rfc_caller_id,PQFileName.c_str(),PQFileName.size());
+        rfc_caller_id[sizeof(rfc_caller_id) - 1] = '\0';
         LOGINFO("%s : Default tvsettings file : %s\n",__FUNCTION__,rfc_caller_id);
     }
 
@@ -1525,6 +1526,7 @@ namespace Plugin {
         tr181ErrorCode_t err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
         if ( err == tr181Success ) {
             strncpy(picMode, param.value, strlen(param.value)+1);
+            picMode[strlen(param.value)] = '\0';
             LOGINFO("getLocalParam success, mode = %s\n", picMode);
             return 1;
         }

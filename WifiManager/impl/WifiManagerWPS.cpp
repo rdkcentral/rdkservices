@@ -142,7 +142,9 @@ namespace WPEFramework
             memset(&param, 0, sizeof(param));
 
             strncpy(param.data.connect.ssid, parameters["ssid"].String().c_str(), SSID_SIZE - 1);
+            param.data.connect.ssid[sizeof(param.data.connect.ssid) - 1] = '\0';
             strncpy(param.data.connect.passphrase, parameters["passphrase"].String().c_str(), PASSPHRASE_BUFF - 1);
+            param.data.connect.passphrase[sizeof(param.data.connect.passphrase) - 1] = '\0';
             param.data.connect.security_mode = static_cast<SsidSecurity>(parameters["securityMode"].Number());
 
             IARM_Result_t retVal = IARM_Bus_Call(IARM_BUS_NM_SRV_MGR_NAME, IARM_BUS_WIFI_MGR_API_saveSSID, (void *)&param, sizeof(param));
