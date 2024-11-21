@@ -89,7 +89,7 @@ include_directories(../../LocationSync
         ../../HdmiCec
         ../../HdmiCec_2
         ../../HdmiCecSource
-        ../../XCast
+	../../XCast
         ../../FrontPanel
         ../../HdmiCecSink
         ../../RDKShell
@@ -102,7 +102,6 @@ include_directories(../../LocationSync
         ../../Miracast/MiracastService/P2P
 	../../Miracast/MiracastPlayer
         ../../Miracast/MiracastPlayer/RTSP
-        ../../Analytics
         )
 link_directories(../../LocationSync
         ../../SecurityAgent
@@ -133,16 +132,15 @@ link_directories(../../LocationSync
         ../../HdmiCec
         ../../HdmiCec_2
         ../../HdmiCecSource
-        ../../XCast
+	../../XCast
         ../../FrontPanel
-       ../../HdmiCecSink
+	../../HdmiCecSink
         ../../RDKShell
         ../../MaintenanceManager
         ../../Packager
         ../../TextToSpeech
         ../../SystemAudioPlayer
 	../../Miracast
-        ../../Analytics
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -177,7 +175,6 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}HdmiCec
         ${NAMESPACE}HdmiCec_2
         ${NAMESPACE}HdmiCecSource
-        ${NAMESPACE}XCast
         ${NAMESPACE}FrontPanel
         ${NAMESPACE}HdmiCecSink
         ${NAMESPACE}RDKShell
@@ -187,7 +184,6 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}SystemAudioPlayer
 	${NAMESPACE}MiracastService
 	${NAMESPACE}MiracastPlayer
-        ${NAMESPACE}Analytics
         )
 
 target_include_directories(${PROJECT_NAME}

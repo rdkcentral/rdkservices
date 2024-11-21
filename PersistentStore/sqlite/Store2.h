@@ -88,6 +88,7 @@ namespace Plugin {
                 , _maxValue(maxValue)
                 , _limit(limit)
             {
+                IntegrityCheck();
                 Open();
             }
             ~Store2() override
@@ -96,6 +97,28 @@ namespace Plugin {
             }
 
         private:
+            void IntegrityCheck()
+            {
+                Core::File file(_path);
+                Core::Directory(file.PathName().c_str()).CreatePath();
+                auto rc = sqlite3_open(_path.c_str(), &_data);
+                sqlite3_stmt* stmt;
+                sqlite3_prepare_v2(_data, "pragma integrity_check;",
+                    -1, &stmt, nullptr);
+                while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+                    TRACE(Trace::Information,
+                        (_T("%s %s"), __FUNCTION__,
+                            (const char*)sqlite3_column_text(stmt, 0)));
+                }
+                sqlite3_finalize(stmt);
+                sqlite3_close_v2(_data);
+                if (rc != SQLITE_DONE) {
+                    OnError(__FUNCTION__, rc);
+                    if ((rc == SQLITE_MISUSE) || (rc == SQLITE_CORRUPT)) {
+                        ASSERT(file.Destroy());
+                    }
+                }
+            }
             void Open()
             {
                 Core::File file(_path);
@@ -150,12 +173,13 @@ namespace Plugin {
                         + std::to_string(_maxSize) + " then raise (fail, 'max size') end; end;",
                     "create temporary trigger if not exists item_limit_default insert on item"
                     " begin select case when"
-                    " (select length(new.key)+length(new.value)+sum(length(key)+length(value)) from item where ns = new.ns) > "
+                    " (select sum(s) from (select sum(length(key)+length(value)) s from item where ns = new.ns"
+                    " union all select length(new.key)+length(new.value) s)) > "
                         + std::to_string(_limit) + " then raise (fail, 'limit') end; end;",
                     "create temporary trigger if not exists item_limit insert on item"
                     " begin select case when"
-                    " (select size-length(new.key)-length(new.value)-sum(length(key)+length(value)) from limits"
-                    " inner join item on limits.n = item.ns where n = new.ns) < 0"
+                    " (select size-length(new.key)-length(new.value)-ifnull(sum(length(key)+length(value)), 0) from limits"
+                    " left join item on limits.n = item.ns where n = new.ns) < 0"
                     " then raise (fail, 'limit') end; end;"
                 };
                 for (auto& sql : statements) {
@@ -172,6 +196,8 @@ namespace Plugin {
                     OnError(__FUNCTION__, rc);
                 }
             }
+
+        private:
             bool IsTimeSynced() const
             {
 #ifdef WITH_SYSMGR

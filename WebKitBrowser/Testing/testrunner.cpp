@@ -158,9 +158,11 @@ void TestRunnerImpl::setParentVisibility(bool visible) {
     auto* backend = webkit_web_view_backend_get_wpe_backend(webkit_web_view_get_backend(m_parentView));
     assert(backend);
     if (visible) {
+        // Setting the activity state to "visible" alone doesn’t bring the view back to the screen
         wpe_view_backend_add_activity_state(backend, wpe_view_activity_state_in_window);
+        wpe_view_backend_add_activity_state(backend, wpe_view_activity_state_visible);
     } else {
-        wpe_view_backend_remove_activity_state(backend, wpe_view_activity_state_in_window);
+        wpe_view_backend_remove_activity_state(backend, wpe_view_activity_state_visible);
     }
 }
 

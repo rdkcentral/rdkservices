@@ -3,8 +3,7 @@
 #include "../Module.h"
 #include <gmock/gmock.h>
 
-class ServiceMock : public WPEFramework::PluginHost::IShell,
-                    public WPEFramework::PluginHost::IShell::ICOMLink {
+class ServiceMock : public WPEFramework::PluginHost::IShell {
 public:
     ~ServiceMock() override = default;
     MOCK_METHOD(string, Versions, (), (const, override));
@@ -47,15 +46,8 @@ public:
     MOCK_METHOD(WPEFramework::Core::hresult, Resumed, (const bool), (override));
     MOCK_METHOD(WPEFramework::Core::hresult, Metadata, (string&), (const, override));
     MOCK_METHOD(WPEFramework::Core::hresult, Hibernate, (const uint32_t), (override));
-    MOCK_METHOD(void, Register, (WPEFramework::RPC::IRemoteConnection::INotification*), (override));
-    MOCK_METHOD(void, Unregister, (const WPEFramework::RPC::IRemoteConnection::INotification*), (override));
-    MOCK_METHOD(void, Register, (IShell::ICOMLink::INotification*), (override));
-    MOCK_METHOD(void, Unregister, (const IShell::ICOMLink::INotification*), (override));
-    MOCK_METHOD(WPEFramework::RPC::IRemoteConnection*, RemoteConnection, (const uint32_t), (override));
-    MOCK_METHOD(void*, Instantiate, (const WPEFramework::RPC::Object&, const uint32_t, uint32_t&), (override));
     MOCK_METHOD(WPEFramework::RPC::IStringIterator*, GetLibrarySearchPaths, (const string&), (const, override));
     BEGIN_INTERFACE_MAP(ServiceMock)
     INTERFACE_ENTRY(IShell)
-    INTERFACE_ENTRY(IShell::ICOMLink)
     END_INTERFACE_MAP
 };

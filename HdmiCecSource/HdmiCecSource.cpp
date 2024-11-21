@@ -643,16 +643,21 @@ namespace WPEFramework
        }
 	   uint32_t HdmiCecSource::sendRemoteKeyPressWrapper(const JsonObject& parameters, JsonObject& response)
 		{
-            returnIfParamNotFound(parameters, "logicalAddress");
+            		returnIfParamNotFound(parameters, "logicalAddress");
 			returnIfParamNotFound(parameters, "keyCode");
 			string logicalAddress = parameters["logicalAddress"].String();
 			string keyCode = parameters["keyCode"].String();
 			SendKeyInfo keyInfo;
-			keyInfo.logicalAddr = stoi(logicalAddress);
-			keyInfo.keyCode     = stoi(keyCode);
+			try {
+			   keyInfo.logicalAddr = stoi(logicalAddress);
+			   keyInfo.keyCode     = stoi(keyCode);
+			} catch (const std::invalid_argument& e) {
+			   std::cerr << "Invalid input: " << e.what() << std::endl;
+			   returnResponse(false);
+			}
 			std::unique_lock<std::mutex> lk(m_sendKeyEventMutex);
 			m_SendKeyQueue.push(keyInfo);
-            m_sendKeyEventThreadRun = true;
+            		m_sendKeyEventThreadRun = true;
 			m_sendKeyCV.notify_one();
 			LOGINFO("Post send key press event to queue size:%d \n",(int)m_SendKeyQueue.size());
 			returnResponse(true);
@@ -858,6 +863,8 @@ namespace WPEFramework
                     {
                         logicalAddress = logicalAddr;
                         logicalAddressDeviceType = logicalAddrDeviceType;
+                        if(smConnection)
+                            smConnection->setSource(logicalAddress); //update initiator LA
                     }
                 }
                 catch (const std::exception& e)
