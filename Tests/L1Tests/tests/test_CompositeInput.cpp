@@ -378,12 +378,12 @@ TEST_F(CompositeInputInitializedEventDsTest, videoStreamInfoUpdate)
             [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
                 string text;
                 EXPECT_TRUE(json->ToString(text));
-                EXPECT_EQ(text, string(_T("{\"jsonrpc\":\"2.0\",\"method\":\"client.events.videoStreamInfoUpdate.videoStreamInfoUpdate\",\"params\":{\"id\":0,\"locator\":\"hdmiin:\\/\\/localhost\\/deviceid\\/0\",\"width\":720,\"height\":576,\"progressive\":false,\"frameRateN\":24000,\"frameRateD\":1001}}")));
+                EXPECT_EQ(text, string(_T("{\"jsonrpc\":\"2.0\",\"method\":\"client.events.videoStreamInfoUpdate.videoStreamInfoUpdate\",\"params\":{\"id\":0,\"locator\":\"cvbsin:\\/\\/localhost\\/deviceid\\/0\",\"width\":720,\"height\":576,\"progressive\":false,\"frameRateN\":24000,\"frameRateD\":1001}}")));
                 return Core::ERROR_NONE;
             }));
     IARM_Bus_DSMgr_EventData_t eventData;
     eventData.data.composite_in_video_mode.port =dsCOMPOSITE_IN_PORT_0;
-    eventData.data.composite_in_video_mode.resolution.pixelResolution = dsVIDEO_PIXELRES_4096x2160;
+    eventData.data.composite_in_video_mode.resolution.pixelResolution = dsVIDEO_PIXELRES_720x576;
     eventData.data.composite_in_video_mode.resolution.interlaced = true;
     eventData.data.composite_in_video_mode.resolution.frameRate = dsVIDEO_FRAMERATE_23dot98;
     handler.Subscribe(0, _T("videoStreamInfoUpdate"), _T("client.events.videoStreamInfoUpdate"), message);
