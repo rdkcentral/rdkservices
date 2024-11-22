@@ -49,6 +49,7 @@
   - [StateObserver](api/StateObserverPlugin.md)
   - [SystemAudioPlayer](api/SystemAudioPlayerPlugin.md)
   - [System](api/SystemPlugin.md)
+  - [SystemMode](api/SystemModePlugin.md)
   - [Telemetry](api/TelemetryPlugin.md)
   - [TextToSpeech](api/TextToSpeechPlugin.md)
   - [Timer](api/TimerPlugin.md)

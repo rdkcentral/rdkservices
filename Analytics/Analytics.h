@@ -22,6 +22,8 @@
 #include "Module.h"
 
 #include <interfaces/IAnalytics.h>
+#include <interfaces/json/JsonData_Analytics.h>
+#include <interfaces/json/JAnalytics.h>
 
 namespace WPEFramework {
 
@@ -47,16 +49,8 @@ namespace WPEFramework {
             Analytics& operator=(const Analytics&) = delete;
 
         public:
-            Analytics():
-                mConnectionId(0),
-                mAnalytics(nullptr)
-            {
-                RegisterAll();
-            }
-            virtual ~Analytics()
-            {
-                UnregisterAll();
-            }
+            Analytics();
+            virtual ~Analytics();
             virtual const string Initialize(PluginHost::IShell* shell) override;
             virtual void Deinitialize(PluginHost::IShell* service) override;
             virtual string Information() const override { return {}; }
@@ -68,18 +62,9 @@ namespace WPEFramework {
             END_INTERFACE_MAP
 
             static const string ANALYTICS_METHOD_SEND_EVENT;
-            static const string ANALYTICS_METHOD_SET_SESSION_ID;
-            static const string ANALYTICS_METHOD_SET_TIME_READY;
 
         private:
             void Deactivated(RPC::IRemoteConnection* connection);
-            // JSONRPC methods
-            void RegisterAll();
-            void UnregisterAll();
-
-            uint32_t SendEventWrapper(const JsonObject& parameters, JsonObject& response);
-            uint32_t SetSessionIdWrapper(const JsonObject& parameters, JsonObject& response);
-            uint32_t SetTimeReadyWrapper(const JsonObject& parameters, JsonObject& response);
 
         private:
             PluginHost::IShell* mService;

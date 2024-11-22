@@ -31,7 +31,6 @@ namespace WPEFramework
     {
         SiftUploader::SiftUploader(SiftStorePtr storePtr,
                                    const std::string &url,
-                                   const std::string &apiKey,
                                    const uint32_t &maxRandomisationWindowTime,
                                    const uint32_t &maxEventsInPost,
                                    const uint32_t &maxRetries,
@@ -40,7 +39,6 @@ namespace WPEFramework
                                    const uint32_t &exponentialPeriodicFactor)
             : mStorePtr(storePtr)
             , mUrl(url)
-            , mApiKey(apiKey)
             , mMaxRandomisationWindowTime(maxRandomisationWindowTime)
             , mMaxEventsInPost(maxEventsInPost)
             , mMaxRetries(maxRetries)
@@ -57,6 +55,7 @@ namespace WPEFramework
 
         SiftUploader::~SiftUploader()
         {
+            LOGINFO("SiftUploader::~SiftUploader");
             {
                 std::lock_guard<std::mutex> lock(mMutex);
                 mStop = true;
@@ -88,7 +87,7 @@ namespace WPEFramework
                              [this] () { return mStop; } );
                     if (mStop)
                     {
-                        LOGINFO("SiftUploader exit");
+                        LOGINFO("SiftUploader Run exit");
                         return;
                     }
 
@@ -142,7 +141,7 @@ namespace WPEFramework
 
                     do
                     {
-                        respcode = PostJson(mUrl, mApiKey, jsonEventPayload, resp);
+                        respcode = PostJson(mUrl, jsonEventPayload, resp);
                     } while ((respcode != 200) && (respcode != 400) && PerformWaitIfRetryNeeded());
 
                     if ((respcode == 200) || (respcode == 400))
@@ -375,13 +374,13 @@ namespace WPEFramework
             return size * nmemb;
         }
 
-        uint32_t SiftUploader::PostJson(const std::string &url, const std::string &apiKey, const std::string &json, std::string &response)
+        uint32_t SiftUploader::PostJson(const std::string &url, const std::string &json, std::string &response)
         {
             CURL *curl;
             CURLcode res;
             uint32_t retHttpCode = 0;
 
-            if (url.empty() || apiKey.empty() || json.empty())
+            if (url.empty() || json.empty())
             {
                 LOGERR("Invalid parameters for postJson");
                 return retHttpCode;
@@ -400,9 +399,7 @@ namespace WPEFramework
 
             // Create a linked list of custom headers
             struct curl_slist *headers = NULL;
-            std::string keyHeader("X-Api-Key: " + apiKey);
             headers = curl_slist_append(headers, "Content-Type: application/json");
-            headers = curl_slist_append(headers, keyHeader.data());
 
             curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
             

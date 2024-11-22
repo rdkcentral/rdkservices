@@ -2143,7 +2143,6 @@ namespace WPEFramework {
                 }
             });
 
-            service->Register(mClientsMonitor);
             char* thunderAccessValue = getenv("THUNDER_ACCESS_VALUE");
             if (NULL != thunderAccessValue)
             {
@@ -5049,6 +5048,7 @@ namespace WPEFramework {
         {
             LOGINFOMETHOD();
             bool result = true;
+            std::string environmentVariables("");
             if (!parameters.HasLabel("client"))
             {
                 result = false;
@@ -5063,6 +5063,10 @@ namespace WPEFramework {
             {
                 result = false;
                 response["message"] = "please specify mimeType";
+            }
+            if (parameters.HasLabel("environmentVariables"))
+            {
+                environmentVariables = parameters["environmentVariables"].String();
             }
             if (result)
             {
@@ -5216,6 +5220,10 @@ namespace WPEFramework {
                     param["containerId"] = client;
                     param["bundlePath"] = bundlePath;
                     param["westerosSocket"] = display;
+                    if (!environmentVariables.empty())
+	            {		    
+                        param["environmentVariables"] = environmentVariables;
+                    }
 
                     ociContainerPlugin->Invoke<JsonObject, JsonObject>(RDKSHELL_THUNDER_TIMEOUT, "startContainer", param, ociContainerResult);
 
