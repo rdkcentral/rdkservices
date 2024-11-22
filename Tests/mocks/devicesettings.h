@@ -380,7 +380,13 @@ typedef struct _DSMgr_EventData_t {
             dsCompInSignalStatus_t status;
         } composite_in_sig_status; /*Composite in signal change detect*/
 
-        struct _FPD_TIME_FORMAT {
+	struct _COMPOSITE_IN_VIDEO_MODE_DATA{
+         /* Declare COMPOSITE In Video Mode*/
+            dsCompositeInPort_t port;
+            dsVideoPortResolution_t resolution;
+        }composite_in_video_mode; /*Composite in video mode update*/
+        
+	struct _FPD_TIME_FORMAT {
             dsFPDTimeFormat_t eTimeFormat;
         } FPDTimeFormat;
 
