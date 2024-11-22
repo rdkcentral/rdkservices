@@ -371,6 +371,7 @@ TEST_F(CompositeInputInitializedEventDsTest, onSignalChangedDefault)
 }
 TEST_F(CompositeInputInitializedEventDsTest, videoStreamInfoUpdate)
 {
+    ASSERT_TRUE(dsCompositeVideoModeEventHandler != nullptr);
     EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
         .Times(1)
         .WillOnce(::testing::Invoke(
