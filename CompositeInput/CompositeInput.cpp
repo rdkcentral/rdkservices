@@ -42,6 +42,7 @@
 #define COMPOSITEINPUT_EVENT_ON_DEVICES_CHANGED "onDevicesChanged"
 #define COMPOSITEINPUT_EVENT_ON_SIGNAL_CHANGED "onSignalChanged"
 #define COMPOSITEINPUT_EVENT_ON_STATUS_CHANGED "onInputStatusChanged"
+#define COMPOSITEINPUT_EVENT_ON_VIDEO_MODE_UPDATED "videoStreamInfoUpdate"
 
 namespace WPEFramework
 {
@@ -103,6 +104,7 @@ namespace WPEFramework
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_HOTPLUG, dsCompositeEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_SIGNAL_STATUS, dsCompositeSignalStatusEventHandler) );
                 IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_STATUS, dsCompositeStatusEventHandler) );
+                IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_VIDEO_MODE_UPDATE,dsCompositeVideoModeEventHandler) );
             }
         }
 
@@ -114,6 +116,7 @@ namespace WPEFramework
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_HOTPLUG, dsCompositeEventHandler) );
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_SIGNAL_STATUS, dsCompositeSignalStatusEventHandler) );
                 IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_STATUS, dsCompositeStatusEventHandler) );
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_VIDEO_MODE_UPDATE, dsCompositeVideoModeEventHandler) );
             }
         }
 
@@ -361,6 +364,89 @@ namespace WPEFramework
 
             sendNotify(COMPOSITEINPUT_EVENT_ON_STATUS_CHANGED, params);
         }
+	          /**
+         * @brief This function is used to translate Composite input video mode change to
+         * videoStreamInfoUpdate event.
+         *
+         * @param[in] port Composite In port id.
+         * @param[dsVideoPortResolution_t] video resolution data
+         */
+        void CompositeInput::compositeInputVideoModeUpdate( int port , dsVideoPortResolution_t resolution)
+        {
+            LOGWARN("compositeInputVideoModeUpdate [%d]", port);
+
+            JsonObject params;
+            params["id"] = port;
+            std::stringstream locator;
+            locator << "cvbsin://localhost/deviceid/" << port;
+            params["locator"] = locator.str();
+
+	        switch(resolution.pixelResolution) {
+				case dsVIDEO_PIXELRES_720x480:
+				params["width"] = 720;
+				params["height"] = 480;
+				break;
+			case dsVIDEO_PIXELRES_720x576:
+				params["width"] = 720;
+				params["height"] = 576;
+				break;
+		   default:
+				params["width"] = 720;
+				params["height"] = 576;
+				break;
+		   }
+
+			params["progressive"] = false;
+
+            switch(resolution.frameRate) {
+                    case dsVIDEO_FRAMERATE_24:
+                        params["frameRateN"] = 24000;
+                        params["frameRateD"] = 1000;
+                        break;
+
+                    case dsVIDEO_FRAMERATE_25:
+                        params["frameRateN"] = 25000;
+                        params["frameRateD"] = 1000;
+                        break;
+
+                    case dsVIDEO_FRAMERATE_30:
+                        params["frameRateN"] = 30000;
+                        params["frameRateD"] = 1000;
+                        break;
+
+                    case dsVIDEO_FRAMERATE_50:
+                        params["frameRateN"] = 50000;
+                        params["frameRateD"] = 1000;
+                        break;
+
+                    case dsVIDEO_FRAMERATE_60:
+                        params["frameRateN"] = 60000;
+                        params["frameRateD"] = 1000;
+                        break;
+
+                    case dsVIDEO_FRAMERATE_23dot98:
+                        params["frameRateN"] = 24000;
+                        params["frameRateD"] = 1001;
+                        break;
+
+                    case dsVIDEO_FRAMERATE_29dot97:
+                        params["frameRateN"] = 30000;
+                        params["frameRateD"] = 1001;
+                        break;
+
+                    case dsVIDEO_FRAMERATE_59dot94:
+                        params["frameRateN"] = 60000;
+                        params["frameRateD"] = 1001;
+                        break;
+
+                    default:
+                        params["frameRateN"] = 60000;
+                        params["frameRateD"] = 1000;
+                        break;
+            }
+
+            sendNotify(COMPOSITEINPUT_EVENT_ON_VIDEO_MODE_UPDATED, params);
+        }
 
         void CompositeInput::dsCompositeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
         {
@@ -409,6 +495,25 @@ namespace WPEFramework
                 CompositeInput::_instance->compositeInputStatusChange(composite_in_port, composite_in_status);
             }
         }
+	 void CompositeInput::dsCompositeVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+ {
+		if(!CompositeInput::_instance)
+			return;
+
+		if (IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_VIDEO_MODE_UPDATE == eventId)
+		{
+			IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
+			int composite_in_port = eventData->data.composite_in_video_mode.port;
+			dsVideoPortResolution_t resolution = {};
+			resolution.pixelResolution =  eventData->data.composite_in_video_mode.resolution.pixelResolution;
+			resolution.interlaced =  eventData->data.composite_in_video_mode.resolution.interlaced;
+			resolution.frameRate =  eventData->data.composite_in_video_mode.resolution.frameRate;
+			LOGWARN("Received IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_VIDEO_MODE_UPDATE  event  port: %d, pixelResolution: %d, interlaced : %d, frameRate: %d \n", composite_in_port,resolution.pixelResolution, resolution.interlaced, resolution.frameRate);
+
+			CompositeInput::_instance->compositeInputVideoModeUpdate(composite_in_port, resolution);
+
+		}
+  }
 
     } // namespace Plugin
 } // namespace WPEFramework
