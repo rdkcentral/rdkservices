@@ -2274,40 +2274,26 @@ namespace Plugin {
     uint32_t AVOutputTV::getSupportedDolbyVisionModes(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
-        tvDolbyMode_t *dvModes[1] = {NULL};
+        tvDolbyMode_t dvModes[tvMode_Max];
+        tvDolbyMode_t *dvModesPtr = dvModes; // Pointer to static array
         unsigned short totalAvailable = 0;
 
-        // Allocate memory for the modes
-        dvModes[0] = (tvDolbyMode_t *)malloc(MAX_DV_MODES * sizeof(tvDolbyMode_t));
-        if (dvModes[0]  == NULL) {
-            printf("Memory allocation failed for dvModes[0]\n");
-            return tvERROR_GENERAL;
-        }
-
         // Set an initial value to indicate the mode type
-        *(dvModes[0]) = tvDolbyMode_Dark;
+        dvModes[0] = tvDolbyMode_Dark;
 
-        tvError_t ret = GetTVSupportedDolbyVisionModes(dvModes, &totalAvailable);
+        tvError_t ret = GetTVSupportedDolbyVisionModes(&dvModesPtr, &totalAvailable);
         if(ret != tvERROR_NONE) {
-            if (dvModes[0] != NULL) {
-                free(dvModes[0]);
-		dvModes[0] = NULL;
-            }
             returnResponse(false);
         }
         else {
             JsonArray SupportedDVModes;
 
             for(int count = 0;count <totalAvailable;count++ ) {
-                SupportedDVModes.Add(getDolbyModeStringFromEnum(dvModes[0][count]));
+                SupportedDVModes.Add(getDolbyModeStringFromEnum(dvModes[count]));
             }
 
             response["supportedDVModes"] = SupportedDVModes;
             LOGINFO("Exit\n");
-            if (dvModes[0] != NULL) {
-                free(dvModes[0]);
-		dvModes[0] = NULL;
-            }
             returnResponse(true);
         }
     }
