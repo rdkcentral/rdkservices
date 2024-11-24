@@ -20,7 +20,7 @@
 #pragma once
 
 #include "libIBus.h"
-
+#include "dsTypes.h"
 #include "Module.h"
 
 namespace WPEFramework {
