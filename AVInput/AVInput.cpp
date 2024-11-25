@@ -168,6 +168,10 @@ void AVInput::InitializeIARM()
             IARM_BUS_DSMGR_NAME,
             IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_STATUS,
             dsAVStatusEventHandler));
+	IARM_CHECK(IARM_Bus_RegisterEventHandler(
+            IARM_BUS_DSMGR_NAME,
+            IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_VIDEO_MODE_UPDATE,
+            dsAVVideoModeEventHandler));
     	IARM_CHECK(IARM_Bus_RegisterEventHandler(
             IARM_BUS_DSMGR_NAME,
             IARM_BUS_DSMGR_EVENT_HDMI_IN_AVI_CONTENT_TYPE,
@@ -204,6 +208,9 @@ void AVInput::DeinitializeIARM()
             IARM_BUS_DSMGR_NAME,
             IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_STATUS, dsAVStatusEventHandler));
     	IARM_CHECK(IARM_Bus_RemoveEventHandler(
+            IARM_BUS_DSMGR_NAME,
+            IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_VIDEO_MODE_UPDATE, dsAVVideoModeEventHandler));
+	IARM_CHECK(IARM_Bus_RemoveEventHandler(
             IARM_BUS_DSMGR_NAME,
             IARM_BUS_DSMGR_EVENT_HDMI_IN_AVI_CONTENT_TYPE, dsAviContentTypeEventHandler));
     }
@@ -750,17 +757,18 @@ void AVInput::AVInputStatusChange( int port , bool isPresented, int type)
  * @param[in] port HDMI In port id.
  * @param[dsVideoPortResolution_t] video resolution data
  */
-void AVInput::AVInputVideoModeUpdate( int port , dsVideoPortResolution_t resolution)
+void AVInput::AVInputVideoModeUpdate( int port , dsVideoPortResolution_t resolution, int type)
 {
     LOGWARN("AVInputVideoModeUpdate [%d]", port);
 
     JsonObject params;
     params["id"] = port;
     std::stringstream locator;
-    locator << "hdmiin://localhost/deviceid/" << port;
-    params["locator"] = locator.str();
+     if(type == HDMI){
 
-    switch(resolution.pixelResolution) {
+       locator << "hdmiin://localhost/deviceid/" << port;
+       switch(resolution.pixelResolution) {
+
         case dsVIDEO_PIXELRES_720x480:
             params["width"] = 720;
             params["height"] = 480;
@@ -776,7 +784,7 @@ void AVInput::AVInputVideoModeUpdate( int port , dsVideoPortResolution_t resolut
             params["height"] = 720;
             break;
 
-        case dsVIDEO_PIXELRES_1920x1080:
+	            case dsVIDEO_PIXELRES_1920x1080:
             params["width"] = 1920;
             params["height"] = 1080;
             break;
@@ -795,10 +803,31 @@ void AVInput::AVInputVideoModeUpdate( int port , dsVideoPortResolution_t resolut
             params["width"] = 1920;
             params["height"] = 1080;
             break;
+        }
+       params["progressive"] = (!resolution.interlaced);
+    }
+    else if(type == COMPOSITE)
+    {
+       locator << "cvbsin://localhost/deviceid/" << port;
+       switch(resolution.pixelResolution) {
+        case dsVIDEO_PIXELRES_720x480:
+            params["width"] = 720;
+            params["height"] = 480;
+            break;
+        case dsVIDEO_PIXELRES_720x576:
+            params["width"] = 720;
+            params["height"] = 576;
+            break;
+       default:
+            params["width"] = 720;
+            params["height"] = 576;
+            break;
+       }
+
+       params["progressive"] = false;
     }
 
-    params["progressive"] = (!resolution.interlaced);
-
+    params["locator"] = locator.str();
     switch(resolution.frameRate) {
         case dsVIDEO_FRAMERATE_24:
             params["frameRateN"] = 24000;
@@ -851,16 +880,17 @@ void AVInput::AVInputVideoModeUpdate( int port , dsVideoPortResolution_t resolut
 
 void AVInput::dsAviContentTypeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
 {
-	if(!AVInput::_instance)
-		return;
+        if(!AVInput::_instance)
+                return;
 
-	if (IARM_BUS_DSMGR_EVENT_HDMI_IN_AVI_CONTENT_TYPE == eventId)
-	{
-		IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
-		int hdmi_in_port = eventData->data.hdmi_in_content_type.port;
-		int avi_content_type = eventData->data.hdmi_in_content_type.aviContentType;
-		LOGINFO("Received IARM_BUS_DSMGR_EVENT_HDMI_IN_AVI_CONTENT_TYPE  event  port: %d, Content Type : %d", hdmi_in_port,avi_content_type);
-AVInput::_instance->hdmiInputAviContentTypeChange(hdmi_in_port, avi_content_type);
+        if (IARM_BUS_DSMGR_EVENT_HDMI_IN_AVI_CONTENT_TYPE == eventId)
+        {
+                IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
+                int hdmi_in_port = eventData->data.hdmi_in_content_type.port;
+                int avi_content_type = eventData->data.hdmi_in_content_type.aviContentType;
+                LOGINFO("Received IARM_BUS_DSMGR_EVENT_HDMI_IN_AVI_CONTENT_TYPE  event  port: %d, Content Type : %d", hdmi_in_port,avi_content_type);
+
+		AVInput::_instance->hdmiInputAviContentTypeChange(hdmi_in_port, avi_content_type);
 	}
 }
 
@@ -943,7 +973,17 @@ void AVInput::dsAVVideoModeEventHandler(const char *owner, IARM_EventId_t eventI
         resolution.interlaced =  eventData->data.hdmi_in_video_mode.resolution.interlaced;
         resolution.frameRate =  eventData->data.hdmi_in_video_mode.resolution.frameRate;
         LOGWARN("Received IARM_BUS_DSMGR_EVENT_HDMI_IN_VIDEO_MODE_UPDATE  event  port: %d, pixelResolution: %d, interlaced : %d, frameRate: %d \n", hdmi_in_port,resolution.pixelResolution, resolution.interlaced, resolution.frameRate);
-        AVInput::_instance->AVInputVideoModeUpdate(hdmi_in_port, resolution);
+        AVInput::_instance->AVInputVideoModeUpdate(hdmi_in_port, resolution,HDMI);
+    }
+    else if (IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_VIDEO_MODE_UPDATE == eventId) {
+        IARM_Bus_DSMgr_EventData_t *eventData = (IARM_Bus_DSMgr_EventData_t *)data;
+        int composite_in_port = eventData->data.composite_in_video_mode.port;
+        dsVideoPortResolution_t resolution = {};
+        resolution.pixelResolution =  eventData->data.composite_in_video_mode.resolution.pixelResolution;
+        resolution.interlaced =  eventData->data.composite_in_video_mode.resolution.interlaced;
+        resolution.frameRate =  eventData->data.composite_in_video_mode.resolution.frameRate;
+        LOGWARN("Received IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_VIDEO_MODE_UPDATE  event  port: %d, pixelResolution: %d, interlaced : %d, frameRate: %d \n", composite_in_port,resolution.pixelResolution, resolution.interlaced, resolution.frameRate);
+        AVInput::_instance->AVInputVideoModeUpdate(composite_in_port, resolution,COMPOSITE);
     }
 }
 
