@@ -783,8 +783,8 @@ void AVInput::AVInputVideoModeUpdate( int port , dsVideoPortResolution_t resolut
             params["width"] = 1280;
             params["height"] = 720;
             break;
-
-	            case dsVIDEO_PIXELRES_1920x1080:
+	       
+	case dsVIDEO_PIXELRES_1920x1080:
             params["width"] = 1920;
             params["height"] = 1080;
             break;
