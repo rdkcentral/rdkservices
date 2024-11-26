@@ -6,6 +6,8 @@
 
 A org.rdk.Wifi plugin for Thunder framework.
 
+For newer APIs, please refer: https://github.com/rdkcentral/networkmanager/blob/main/docs/NetworkManagerPlugin.md
+
 ### Table of Contents
 
 - [Abbreviation, Acronyms and Terms](#Abbreviation,_Acronyms_and_Terms)
