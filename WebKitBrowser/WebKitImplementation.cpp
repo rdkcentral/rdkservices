@@ -2144,7 +2144,8 @@ static GSourceFuncs _handlerIntervention =
             std::vector<std::string> urlparm_str;
             string new_url;
             urlparm_str = tokenize(url, "&?");
-            if(urlparm_str.size() > 0) {
+            // parse 'url' if it contains params
+            if(urlparm_str.size() > 1) {
                 static constexpr char payload_cert[] = "clientcert=";
                 static constexpr char payload_certkey[] = "clientcertkey=";
                 static constexpr int  payload_cert_len = sizeof(payload_cert) - 1;
