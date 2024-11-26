@@ -1,6 +1,6 @@
 <!-- Generated automatically, DO NOT EDIT! -->
 <a name="NetworkPlugin"></a>
-# NetworkPlugin $${\color{red}DEPRECATED}$$
+# Network Plugin $${\color{red}(DEPRECATED)}$$
 
 **Version: [1.3.11](https://github.com/rdkcentral/rdkservices/blob/main/Network/CHANGELOG.md)**
 
