@@ -20,7 +20,7 @@
 #pragma once
 
 #include "libIBus.h"
-
+#include "dsTypes.h"
 #include "Module.h"
 
 namespace WPEFramework {
@@ -70,6 +70,8 @@ namespace WPEFramework {
             void compositeInputStatusChange( int port , bool isPresented);
             static void dsCompositeStatusEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
 
+  	    void compositeInputVideoModeUpdate( int port , dsVideoPortResolution_t resolution);
+	    static void dsCompositeVideoModeEventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len);
         public:
             CompositeInput();
             virtual ~CompositeInput();
