@@ -230,7 +230,7 @@ namespace Plugin {
 
         if (!_communicatorClient.IsValid())
         {
-            std::cout << "akshay Communicator client is not valid\n";
+            std::cout << "akshay Communicator client is not vald\n";
         }
         #if ((THUNDER_VERSION == 2) || ((THUNDER_VERSION == 4) && (THUNDER_VERSION_MINOR == 2)))
         _engine->Announcements(_communicatorClient->Announcement());
