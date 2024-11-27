@@ -170,7 +170,7 @@ namespace WPEFramework
                     {
                         LOGWARN("Initializing light %s", fpIndicators.at(i).getName().c_str());
                         if (powerStatus)
-                            device::FrontPanelIndicator::getInstance(fpIndicators.at(i).getName()).setBrightness(globalLedBrightness);
+                            device::FrontPanelIndicator::getInstance(fpIndicators.at(i).getName()).setBrightness(globalLedBrightness,false);
 
                         device::FrontPanelIndicator::getInstance(fpIndicators.at(i).getName()).setState(false);
                     }
