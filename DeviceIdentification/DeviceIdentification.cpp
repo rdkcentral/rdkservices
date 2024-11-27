@@ -112,7 +112,7 @@ namespace Plugin {
 
     /* virtual */ void DeviceIdentification::Deinitialize(PluginHost::IShell* service)
     {
-        ASSERT(_service == service)
+        ASSERT(_service == service);
 
         _service->Unregister(&_notification);
 
