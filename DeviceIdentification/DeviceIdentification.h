@@ -94,6 +94,7 @@ namespace Plugin {
         uint32_t get_deviceidentification(JsonData::DeviceIdentification::DeviceidentificationData& response) const;
 
         string GetDeviceId() const;
+        string RetrieveSerialNumberFromRPC() const;
         void Info(JsonData::DeviceIdentification::DeviceidentificationData&) const;
 
         void Deactivated(RPC::IRemoteConnection* connection);

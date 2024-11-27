@@ -20,6 +20,15 @@
 #include "DeviceIdentification.h"
 #include "IdentityProvider.h"
 #include <interfaces/IConfiguration.h>
+#include <com/com.h>
+#include <core/core.h>
+#include <plugins/plugins.h>
+#include <interfaces/Ids.h>
+#ifdef USE_THUNDER_R4
+#include <interfaces/IDeviceInfo.h>
+#else
+#include <interfaces/IDeviceInfo2.h>
+#endif /* USE_THUNDER_R4 */
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
@@ -154,16 +163,42 @@ namespace Plugin {
     string DeviceIdentification::GetDeviceId() const
     {
         string result;
+        string serial;
 #ifndef DISABLE_DEVICEID_CONTROL
         ASSERT(_identifier != nullptr);
 
         if (_identifier != nullptr) {
             uint8_t myBuffer[64];
 
-            myBuffer[0] = _identifier->Identifier(sizeof(myBuffer) - 1, &(myBuffer[1]));
-
+            myBuffer[0] = _identifier->Identifier(sizeof(myBuffer) - 1, &(myBuffer[1])); //calling the Identifier function from Broadcom.cpp file
+            std::cout << "akshay without RPC DeviceId: '" << myBuffer << std::endl;
             if (myBuffer[0] != 0) {
                 result = Core::SystemInfo::Instance().Id(myBuffer, ~0);
+            }
+            else // if buffer is empty, try to get serial number from COM RPC
+            {
+                std::cout << "akshay COM RPC from main function" << std::endl;
+                serial = RetrieveSerialNumberFromRPC(); // trying to get serial number from COM RPC
+                std::cout << "akshay Serial number from RPC: '" << serial << std::endl;
+
+            if (!serial.empty()) {
+            // Convert the string into the required buffer format
+            uint8_t ret = serial.length();
+
+            if (ret > (sizeof(myBuffer) - 1))
+            {
+                ret = sizeof(myBuffer) - 1;
+                std::cout << "akshay Serial number length to: '" << ret << std::endl;
+            }
+            myBuffer[0] = ret;
+            ::memcpy(&(myBuffer[1]), serial.c_str(), ret);
+
+            if(myBuffer[0] != 0){
+                std::cout << "if case akshay DeviceId from RPC: '" << result << std::endl;
+                result = Core::SystemInfo::Instance().Id(myBuffer, ~0);
+                std::cout << "akshay DeviceId from RPC: '" << result << std::endl;
+            }
+            }
             }
         }
 #else
@@ -184,6 +219,64 @@ namespace Plugin {
 #endif
         return result;
     }
+
+    string DeviceIdentification::RetrieveSerialNumberFromRPC() const
+    {
+        Core::ProxyType<RPC::InvokeServerType<1, 0, 4>> _engine;
+        Core::ProxyType<RPC::CommunicatorClient> _communicatorClient;
+        PluginHost::IShell *_controller = nullptr;
+        Exchange::IDeviceInfo* _remoteDeviceInfoObject = nullptr;
+        _engine = (Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create());
+        _communicatorClient = (Core::ProxyType<RPC::CommunicatorClient>::Create(Core::NodeId("/tmp/communicator"), Core::ProxyType<Core::IIPCServer>(_engine)));
+        std::string Number;
+
+        if (!_communicatorClient.IsValid())
+        {
+            std::cout << "akshay Communicator client is not valid\n";
+        }
+        #if ((THUNDER_VERSION == 2) || ((THUNDER_VERSION == 4) && (THUNDER_VERSION_MINOR == 2)))
+        _engine->Announcements(_communicatorClient->Announcement());
+        #endif
+
+       std::cout<< "akshay Opening DeviceInfo Controller\n";
+
+        _controller = _communicatorClient->Open<PluginHost::IShell>(_T("DeviceInfo"), ~0, 3000);
+
+        if (_controller)
+        {
+            _remoteDeviceInfoObject = _controller->QueryInterface<Exchange::IDeviceInfo>();
+            std::cout << "akshay DeviceInfo Controller opened\n";
+
+            if(_remoteDeviceInfoObject)
+            {
+                _remoteDeviceInfoObject->AddRef();
+                _remoteDeviceInfoObject->SerialNumber(Number);
+                _remoteDeviceInfoObject->Release();
+                std::cout << "akshay Serial number from DeviceInfo Controller: '" << Number << std::endl;
+            }
+        }
+
+        if (_controller)
+            {
+                _controller->Release();
+                _controller = nullptr;
+                std::cout << "akshay Controller released\n";
+            }
+
+        _communicatorClient->Close(RPC::CommunicationTimeOut);
+            if (_communicatorClient.IsValid())
+            {
+                _communicatorClient.Release();
+                std::cout << "akshay Communicator client released\n";
+            }
+
+        if(_engine.IsValid())
+            {
+                _engine.Release();
+                std::cout << "akshay Engine released\n";
+            }
+        return Number;
+        }
 
     void DeviceIdentification::Info(JsonData::DeviceIdentification::DeviceidentificationData& deviceInfo) const
     {
