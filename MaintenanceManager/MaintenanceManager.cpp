@@ -354,7 +354,8 @@ namespace WPEFramework {
                     LOGINFO("knowWhoAmI() returned false and Device is not already Activated");
                     g_listen_to_deviceContextUpdate = true;
                     LOGINFO("Waiting for onDeviceInitializationContextUpdate event");
-                    task_thread.wait(wailck);
+                    task_thread.wait(wailck); /* Wait for onDeviceInitializationContextUpdate Event */
+                    internetConnectStatus = true; /* Continue with Maintenance Tasks */
                 }
                 else if (!internetConnectStatus && activation_status == "activated")
                 {
