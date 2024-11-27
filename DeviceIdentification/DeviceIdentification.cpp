@@ -164,6 +164,7 @@ namespace Plugin {
     string DeviceIdentification::GetDeviceId() const
     {
         string result;
+        string serial;
 #ifndef DISABLE_DEVICEID_CONTROL
         ASSERT(_identifier != nullptr);
 
