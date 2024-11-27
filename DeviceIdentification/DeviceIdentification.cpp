@@ -24,6 +24,11 @@
 #include <core/core.h>
 #include <plugins/plugins.h>
 #include <interfaces/Ids.h>
+#ifdef USE_THUNDER_R4
+#include <interfaces/IDeviceInfo.h>
+#else
+#include <interfaces/IDeviceInfo2.h>
+#endif /* USE_THUNDER_R4 */
 
 
 #define API_VERSION_NUMBER_MAJOR 1
