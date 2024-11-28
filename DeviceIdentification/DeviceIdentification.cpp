@@ -20,6 +20,18 @@
 #include "DeviceIdentification.h"
 #include "IdentityProvider.h"
 #include <interfaces/IConfiguration.h>
+#include "tracing/Logging.h"
+#include "UtilsCStr.h"
+#include "UtilsJsonRpc.h"
+#include <com/com.h>
+#include <core/core.h>
+#include <plugins/plugins.h>
+#include <interfaces/Ids.h>
+#ifdef USE_THUNDER_R4
+#include <interfaces/IDeviceInfo.h>
+#else
+#include <interfaces/IDeviceInfo2.h>
+#endif /* USE_THUNDER_R4 */
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
@@ -154,6 +166,7 @@ namespace Plugin {
     string DeviceIdentification::GetDeviceId() const
     {
         string result;
+        string serial;
 #ifndef DISABLE_DEVICEID_CONTROL
         ASSERT(_identifier != nullptr);
 
@@ -161,9 +174,27 @@ namespace Plugin {
             uint8_t myBuffer[64];
 
             myBuffer[0] = _identifier->Identifier(sizeof(myBuffer) - 1, &(myBuffer[1]));
-
             if (myBuffer[0] != 0) {
                 result = Core::SystemInfo::Instance().Id(myBuffer, ~0);
+            }
+            else
+            {
+                serial = RetrieveSerialNumberThroughCOMRPC(); // trying to get serial number from COM RPC
+
+            if (!serial.empty()) {
+            uint8_t ret = serial.length();
+
+            if (ret > (sizeof(myBuffer) - 1))
+            {
+                ret = sizeof(myBuffer) - 1;
+            }
+            myBuffer[0] = ret;
+            ::memcpy(&(myBuffer[1]), serial.c_str(), ret);
+
+            if(myBuffer[0] != 0){
+                result = Core::SystemInfo::Instance().Id(myBuffer, ~0);
+            }
+            }
             }
         }
 #else
@@ -184,6 +215,63 @@ namespace Plugin {
 #endif
         return result;
     }
+
+    string DeviceIdentification::RetrieveSerialNumberThroughCOMRPC() const
+    {
+        Core::ProxyType<RPC::InvokeServerType<1, 0, 4>> _engine;
+        Core::ProxyType<RPC::CommunicatorClient> _communicatorClient;
+        PluginHost::IShell *_controller = nullptr;
+        Exchange::IDeviceInfo* _remoteDeviceInfoObject = nullptr;
+        _engine = (Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create());
+        _communicatorClient = (Core::ProxyType<RPC::CommunicatorClient>::Create(Core::NodeId("/tmp/communicator"), Core::ProxyType<Core::IIPCServer>(_engine)));
+        std::string Number;
+
+        if (!_communicatorClient.IsValid())
+        {
+            LOGWARN("Invalid _communicatorClient\n");
+        }
+        #if ((THUNDER_VERSION == 2) || ((THUNDER_VERSION == 4) && (THUNDER_VERSION_MINOR == 2)))
+        _engine->Announcements(_communicatorClient->Announcement());
+        #endif
+
+        LOGINFO("Connect the COM-RPC socket\n");
+        _controller = _communicatorClient->Open<PluginHost::IShell>(_T("DeviceInfo"), ~0, 3000);
+
+        if (_controller)
+        {
+            _remoteDeviceInfoObject = _controller->QueryInterface<Exchange::IDeviceInfo>();
+
+            if(_remoteDeviceInfoObject)
+            {
+                _remoteDeviceInfoObject->AddRef();
+                _remoteDeviceInfoObject->SerialNumber(Number);
+                _remoteDeviceInfoObject->Release();
+            }
+        }
+
+        else
+        {
+            LOGERR("Failed to create DeviceInfo Controller\n");
+        }
+
+        if (_controller)
+            {
+                _controller->Release();
+                _controller = nullptr;
+            }
+        LOGINFO("Disconnect from the COM-RPC socket\n");
+        _communicatorClient->Close(RPC::CommunicationTimeOut);
+            if (_communicatorClient.IsValid())
+            {
+                _communicatorClient.Release();
+            }
+
+        if(_engine.IsValid())
+            {
+                _engine.Release();
+            }
+        return Number;
+        }
 
     void DeviceIdentification::Info(JsonData::DeviceIdentification::DeviceidentificationData& deviceInfo) const
     {
