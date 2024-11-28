@@ -409,19 +409,19 @@ namespace WPEFramework
            smConnection = NULL;
            cecEnableStatus = false;
            IsCecMgrActivated = false;
-           Register(HDMICECSOURCE_METHOD_SET_ENABLED, &HdmiCecSource::setEnabledWrapper, this);
-           Register(HDMICECSOURCE_METHOD_GET_ENABLED, &HdmiCecSource::getEnabledWrapper, this);
-           Register(HDMICECSOURCE_METHOD_OTP_SET_ENABLED, &HdmiCecSource::setOTPEnabledWrapper, this);
-           Register(HDMICECSOURCE_METHOD_OTP_GET_ENABLED, &HdmiCecSource::getOTPEnabledWrapper, this);
-           Register(HDMICECSOURCE_METHOD_SET_OSD_NAME, &HdmiCecSource::setOSDNameWrapper, this);
-           Register(HDMICECSOURCE_METHOD_GET_OSD_NAME, &HdmiCecSource::getOSDNameWrapper, this);
-           Register(HDMICECSOURCE_METHOD_SET_VENDOR_ID, &HdmiCecSource::setVendorIdWrapper, this);
-           Register(HDMICECSOURCE_METHOD_GET_VENDOR_ID, &HdmiCecSource::getVendorIdWrapper, this);
-           Register(HDMICECSOURCE_METHOD_PERFORM_OTP_ACTION, &HdmiCecSource::performOTPActionWrapper, this);
-           Register(HDMICECSOURCE_METHOD_SEND_STANDBY_MESSAGE, &HdmiCecSource::sendStandbyMessageWrapper, this);
-           Register(HDMICECSOURCE_METHOD_GET_ACTIVE_SOURCE_STATUS, &HdmiCecSource::getActiveSourceStatus, this);
-           Register(HDMICECSOURCE_METHOD_SEND_KEY_PRESS,&HdmiCecSource::sendRemoteKeyPressWrapper,this);
-           Register("getDeviceList", &HdmiCecSource::getDeviceList, this);
+           Utils::Synchro::RegisterLockedApi(HDMICECSOURCE_METHOD_SET_ENABLED, &HdmiCecSource::setEnabledWrapper, this);
+           Utils::Synchro::RegisterLockedApi(HDMICECSOURCE_METHOD_GET_ENABLED, &HdmiCecSource::getEnabledWrapper, this);
+           Utils::Synchro::RegisterLockedApi(HDMICECSOURCE_METHOD_OTP_SET_ENABLED, &HdmiCecSource::setOTPEnabledWrapper, this);
+           Utils::Synchro::RegisterLockedApi(HDMICECSOURCE_METHOD_OTP_GET_ENABLED, &HdmiCecSource::getOTPEnabledWrapper, this);
+           Utils::Synchro::RegisterLockedApi(HDMICECSOURCE_METHOD_SET_OSD_NAME, &HdmiCecSource::setOSDNameWrapper, this);
+           Utils::Synchro::RegisterLockedApi(HDMICECSOURCE_METHOD_GET_OSD_NAME, &HdmiCecSource::getOSDNameWrapper, this);
+           Utils::Synchro::RegisterLockedApi(HDMICECSOURCE_METHOD_SET_VENDOR_ID, &HdmiCecSource::setVendorIdWrapper, this);
+           Utils::Synchro::RegisterLockedApi(HDMICECSOURCE_METHOD_GET_VENDOR_ID, &HdmiCecSource::getVendorIdWrapper, this);
+           Utils::Synchro::RegisterLockedApi(HDMICECSOURCE_METHOD_PERFORM_OTP_ACTION, &HdmiCecSource::performOTPActionWrapper, this);
+           Utils::Synchro::RegisterLockedApi(HDMICECSOURCE_METHOD_SEND_STANDBY_MESSAGE, &HdmiCecSource::sendStandbyMessageWrapper, this);
+           Utils::Synchro::RegisterLockedApi(HDMICECSOURCE_METHOD_GET_ACTIVE_SOURCE_STATUS, &HdmiCecSource::getActiveSourceStatus, this);
+           Utils::Synchro::RegisterLockedApi(HDMICECSOURCE_METHOD_SEND_KEY_PRESS,&HdmiCecSource::sendRemoteKeyPressWrapper,this);
+           Utils::Synchro::RegisterLockedApi("getDeviceList", &HdmiCecSource::getDeviceList, this);
 
        }
 
@@ -708,10 +708,10 @@ namespace WPEFramework
        const void HdmiCecSource::InitializeIARM()
        {
             IARM_Result_t res;
-            IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED,cecMgrEventHandler) );
-            IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED,cecMgrEventHandler) );
-            IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
-            IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED, pwrMgrModeChangeEventHandler) );
+            IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<HdmiCec>(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED,cecMgrEventHandler) );
+            IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<HdmiCec>(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED,cecMgrEventHandler) );
+            IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<HdmiCec>(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, dsHdmiEventHandler) );
+            IARM_CHECK( Utils::Synchro::RegisterLockedIarmEventHandler<HdmiCec>(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED, pwrMgrModeChangeEventHandler) );
        }
 
        void HdmiCecSource::DeinitializeIARM()
@@ -719,10 +719,10 @@ namespace WPEFramework
             if (Utils::IARM::isConnected())
             {
                 IARM_Result_t res;
-                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED,cecMgrEventHandler) );
-                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED,cecMgrEventHandler) );
-                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG,dsHdmiEventHandler) );
-                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED,pwrMgrModeChangeEventHandler) );
+                IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<HdmiCec>(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_DAEMON_INITIALIZED,cecMgrEventHandler) );
+                IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<HdmiCec>(IARM_BUS_CECMGR_NAME, IARM_BUS_CECMGR_EVENT_STATUS_UPDATED,cecMgrEventHandler) );
+                IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<HdmiCec>(IARM_BUS_DSMGR_NAME,IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG,dsHdmiEventHandler) );
+                IARM_CHECK( Utils::Synchro::RemoveLockedEventHandler<HdmiCec>(IARM_BUS_PWRMGR_NAME,IARM_BUS_PWRMGR_EVENT_MODECHANGED,pwrMgrModeChangeEventHandler) );
             }
        }
         void HdmiCecSource::threadHotPlugEventHandler(int data)
