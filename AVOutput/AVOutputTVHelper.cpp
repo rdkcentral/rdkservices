@@ -2352,12 +2352,12 @@ namespace Plugin {
             return -1;
         }
 	
-	    if( param == "Gain" ) {
+	    if( control == "Gain" ) {
 	        if (inputValue < stoi(info.rangeVector[0]) || inputValue > std::stoi(info.rangeVector[1])) {
                 LOGERR("wrong Input value[%d] for %s\n", inputValue,control.c_str());
                 return -1;
 		    }
-	    } else if ( param == "Offset" ) {
+	    } else if ( control == "Offset" ) {
 	        if (inputValue < stoi(info.rangeVector[2]) || inputValue > std::stoi(info.rangeVector[3])) {
                 LOGERR("wrong Input value[%d] for %s\n", inputValue,control.c_str());
                 return -1;
