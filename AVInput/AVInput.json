@@ -765,7 +765,7 @@
             }
         },
         "videoStreamInfoUpdate": {
-            "summary": "Triggered whenever there is an update in HDMI Input video stream info",
+            "summary": "Triggered whenever there is an update in HDMI/Composite Input video stream info",
             "params": {
                 "type": "object",
                 "properties": {

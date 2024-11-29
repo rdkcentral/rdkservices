@@ -245,6 +245,54 @@
                     "signalStatus"
                 ]
             }
+        },
+	    "videoStreamInfoUpdate": {
+            "summary": "Triggered whenever there is an update in HDMI/Composite Input video stream info",
+            "params": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/definitions/id"
+                    },
+                    "locator": {
+                        "$ref": "#/definitions/locator"
+                    },
+                    "width": {
+                        "summary": "Width of the Video Stream",
+                        "type": "integer",
+                        "example": 3840
+                    },
+                    "height": {
+                        "summary": "Height of the Video Stream",
+                        "type": "integer",
+                        "example": 2160
+                    },
+                    "progressive": {
+                        "summary": "Whether the streaming video is progressive or not?",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "frameRateN": {
+                        "summary": "FrameRate Numerator",
+                        "type": "integer",
+                        "example": 60000
+                    },
+                    "frameRateD": {
+                        "summary": "FrameRate Denomirator",
+                        "type": "integer",
+                        "example": 1001
+                    }
+                },
+                "required": [
+                    "id",
+                    "locator",
+                    "width",
+                    "height",
+                    "progressive",
+                    "frameRateN",
+                    "frameRateD"
+                ]
+            }
         }
     }
 }
