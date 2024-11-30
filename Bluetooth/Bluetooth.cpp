@@ -185,16 +185,16 @@ namespace WPEFramework
             Register(METHOD_GET_DEVICE_VOLUME_MUTE_INFO, &Bluetooth::getDeviceVolumeMuteInfoWrapper, this);
             Register(METHOD_SET_DEVICE_VOLUME_MUTE_INFO, &Bluetooth::setDeviceVolumeMuteInfoWrapper, this);
 
-            Utils::IARM::init();
+            //Utils::IARM::init();
 
-            BTRMGR_Result_t rc = BTRMGR_RegisterForCallbacks(Utils::IARM::NAME);
-            if (BTRMGR_RESULT_SUCCESS != rc)
-            {
-                LOGWARN("Failed to Register BTRMgr...!");
-            }
-            else {
-                BTRMGR_RegisterEventCallback(bluetoothSrv_EventCallback);
-            }
+           // BTRMGR_Result_t rc = BTRMGR_RegisterForCallbacks(Utils::IARM::NAME);
+           // if (BTRMGR_RESULT_SUCCESS != rc)
+           // {
+            //    LOGWARN("Failed to Register BTRMgr...!");
+           // }
+           // else {
+            //    BTRMGR_RegisterEventCallback(bluetoothSrv_EventCallback);
+            //}
         }
 
         Bluetooth::~Bluetooth()
@@ -205,11 +205,11 @@ namespace WPEFramework
         {
             Bluetooth::_instance = nullptr;
 
-            BTRMGR_Result_t rc = BTRMGR_UnRegisterFromCallbacks(Utils::IARM::NAME);
-            if (BTRMGR_RESULT_SUCCESS != rc)
-            {
-                LOGWARN("Failed to UnRegister BTRMgr...!");
-            }
+            //BTRMGR_Result_t rc = BTRMGR_UnRegisterFromCallbacks(Utils::IARM::NAME);
+            //if (BTRMGR_RESULT_SUCCESS != rc)
+            //{
+            //    LOGWARN("Failed to UnRegister BTRMgr...!");
+            //}
         }
 
         string Bluetooth::Information() const
