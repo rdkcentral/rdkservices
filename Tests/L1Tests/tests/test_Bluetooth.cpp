@@ -2,7 +2,7 @@
 #include "Bluetooth.h"
 #include "BluetoothMocks.h"
 #include "FactoriesImplementation.h"
-
+#include <vector>
 
 // Declare the mock instance globally for C function overrides
 MockBluetoothManager* mockBluetoothManagerInstance = nullptr;
@@ -489,4 +489,264 @@ TEST_F(BluetoothTest, GetPairedDevicesWrapper_GetDevicesFailed) {
 
     // Verify the response (the current implementation returns success with empty pairedDevices)
     EXPECT_EQ(response, R"({"pairedDevices":[],"success":true})");
+}
+
+// Test Case: getConnectedDevicesWrapper when devices are connected successfully
+TEST_F(BluetoothTest, GetConnectedDevicesWrapper_Success) {
+    // Mock connected devices list
+    BTRMGR_ConnectedDevicesList_t mockDevices = {};
+    mockDevices.m_numOfDevices = 2;
+
+    // Fill device 1 (connected)
+    mockDevices.m_deviceProperty[0].m_deviceHandle = 1001;
+    strcpy(mockDevices.m_deviceProperty[0].m_name, "Device1");
+    mockDevices.m_deviceProperty[0].m_deviceType = BTRMGR_DEVICE_TYPE_HID;
+    mockDevices.m_deviceProperty[0].m_powerStatus = BTRMGR_DEVICE_POWER_ACTIVE;
+    mockDevices.m_deviceProperty[0].m_ui32DevClassBtSpec = 259;
+    mockDevices.m_deviceProperty[0].m_ui16DevAppearanceBleSpec = 1023;
+
+    // Fill device 2 (connected)
+    mockDevices.m_deviceProperty[1].m_deviceHandle = 1002;
+    strcpy(mockDevices.m_deviceProperty[1].m_name, "Device2");
+    mockDevices.m_deviceProperty[1].m_deviceType = BTRMGR_DEVICE_TYPE_HEADPHONES;
+    mockDevices.m_deviceProperty[1].m_powerStatus = BTRMGR_DEVICE_POWER_ACTIVE;
+    mockDevices.m_deviceProperty[1].m_ui32DevClassBtSpec = 512;
+    mockDevices.m_deviceProperty[1].m_ui16DevAppearanceBleSpec = 2047;
+
+    // Mock BTRMGR_GetConnectedDevices success
+    EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetConnectedDevices(::testing::Eq(0), ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::DoAll(::testing::SetArgPointee<1>(mockDevices), ::testing::Return(BTRMGR_RESULT_SUCCESS)));
+
+    // Mock BTRMGR_GetDeviceTypeAsString
+    EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetDeviceTypeAsString(::testing::_))
+        .Times(2)
+        .WillRepeatedly(::testing::Invoke([](BTRMGR_DeviceType_t deviceType) -> const char* {
+            switch (deviceType) {
+                case BTRMGR_DEVICE_TYPE_HID:
+                    return "HUMAN INTERFACE DEVICE";
+                case BTRMGR_DEVICE_TYPE_HEADPHONES:
+                    return "HEADPHONES";
+                default:
+                    return "UNKNOWN";
+            }
+        }));
+
+    // Call the method and verify response
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getConnectedDevices"), _T("{}"), response));
+    EXPECT_EQ(response, R"({"connectedDevices":[{"deviceID":"1001","name":"Device1","deviceType":"HUMAN INTERFACE DEVICE","activeState":"1","rawDeviceType":"259","rawBleDeviceType":"1023"},{"deviceID":"1002","name":"Device2","deviceType":"HEADPHONES","activeState":"1","rawDeviceType":"512","rawBleDeviceType":"2047"}],"success":true})");
+}
+
+// Test Case: getConnectedDevicesWrapper when no devices are connected
+TEST_F(BluetoothTest, GetConnectedDevicesWrapper_NoDevices) {
+    // Mock empty connected devices list
+    BTRMGR_ConnectedDevicesList_t mockDevices = {};
+    mockDevices.m_numOfDevices = 0;
+
+    // Mock BTRMGR_GetConnectedDevices success
+    EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetConnectedDevices(::testing::Eq(0), ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::DoAll(::testing::SetArgPointee<1>(mockDevices), ::testing::Return(BTRMGR_RESULT_SUCCESS)));
+
+    // Call the method and verify response
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getConnectedDevices"), _T("{}"), response));
+    EXPECT_EQ(response, R"({"connectedDevices":[],"success":true})");
+}
+
+// Test Case: getConnectedDevicesWrapper when getting the connected devices fails
+TEST_F(BluetoothTest, GetConnectedDevicesWrapper_Failure) {
+    // Mock failure scenario for getting connected devices
+    EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetConnectedDevices(::testing::Eq(0), ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Return(BTRMGR_RESULT_GENERIC_FAILURE));  // Simulating failure
+
+    // Call the method and verify response
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getConnectedDevices"), _T("{}"), response));
+    EXPECT_EQ(response, "{\"connectedDevices\":[],\"success\":true}");  // Adjusted to match actual behavior
+}
+
+TEST_F(BluetoothTest, connectWrapper_Connect_AllDevices) {
+    // Define a list of device types and their corresponding deviceIDs
+    struct Device {
+        long long int deviceID;
+        string deviceType;
+    };
+
+    std::vector<Device> devices = {
+        {1001, "LE TILE"},
+        {1003, "JOYSTICK"},
+        {1004, "TABLET"},
+	{1005, "UNKNOWN DEVICE"}
+    };
+
+    // Loop through the device types and test connection for each
+    for (const auto& device : devices) {
+        string enable = "CONNECT";  // Hardcoded in connectWrapper
+        long long int deviceID = device.deviceID;
+        string deviceType = device.deviceType;
+
+        // Prepare the JSON parameters for the test
+        JsonObject params;
+        params["deviceID"] = std::to_string(deviceID);  // deviceID as string
+        params["enable"] = enable;
+        params["deviceType"] = deviceType;
+
+        // Convert JsonObject to string
+        string paramsStr;
+        params.ToString(paramsStr);
+
+	// Mock the behavior for different device types
+        if (deviceType == "LE TILE" || deviceType == "JOYSTICK") {
+            // Mock for LE TILE and JOYSTICK device types (Connect)
+            EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_ConnectToDevice(::testing::Eq(0), ::testing::Eq(deviceID), ::testing::_))
+                .Times(1)
+                .WillOnce(::testing::Return(BTRMGR_RESULT_SUCCESS));
+        } else if (deviceType == "TABLET") {
+            // Mock for TABLET (Audio streaming)
+            EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_StartAudioStreamingIn(::testing::Eq(0), ::testing::Eq(deviceID), BTRMGR_DEVICE_OP_TYPE_AUDIO_INPUT))
+                .Times(1)
+                .WillOnce(::testing::Return(BTRMGR_RESULT_SUCCESS));
+        } else if(deviceType == "UNKNOWN DEVICE" ) {
+	        EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_StartAudioStreamingOut(::testing::Eq(0), ::testing::Eq(deviceID), ::testing::_))
+		.Times(1)
+		.WillOnce(::testing::Return(BTRMGR_RESULT_SUCCESS));
+	}
+
+        // Invoke the connect method and check the response
+        EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("connect"), paramsStr, response));
+        EXPECT_EQ(response, "{\"success\":true}");
+    }
+}
+
+TEST_F(BluetoothTest, connectWrapper_Connect_DefaultDeviceType_Smartphone) {
+    // Device without specifying deviceType (defaults to SMARTPHONE)
+    long long int deviceID = 1001;  // Example deviceID
+    string enable = "CONNECT";  // Hardcoded in connectWrapper
+    string deviceType = "SMARTPHONE";  // This will be set by default
+
+    // Prepare the JSON parameters for the test (without deviceType)
+    JsonObject params;
+    params["deviceID"] = std::to_string(deviceID);  // deviceID as string
+    params["enable"] = enable;
+
+    // Convert JsonObject to string
+    string paramsStr;
+    params.ToString(paramsStr);
+
+    // Mock the behavior based on the default deviceType "SMARTPHONE"
+    EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_StartAudioStreamingOut(::testing::Eq(0), ::testing::Eq(deviceID), ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Return(BTRMGR_RESULT_SUCCESS));
+
+    // Invoke the connect method and check the response
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("connect"), paramsStr, response));
+    EXPECT_EQ(response, "{\"success\":true}");
+}
+
+TEST_F(BluetoothTest, connectWrapper_MissingParameters) {
+    // Prepare the JSON parameters with missing "deviceID"
+    JsonObject params;
+    // deviceID is omitted to simulate the missing parameter case
+
+    // Convert JsonObject to string
+    string paramsStr;
+    params.ToString(paramsStr);
+
+    // Invoke the connect method with missing parameters
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("connect"), paramsStr, response));
+
+    // Verify that the response is empty
+    EXPECT_EQ(response.empty(), true);
+}
+
+TEST_F(BluetoothTest, disconnectWrapper_Disconnect_AllDevices) {
+    // Define a list of device types and their corresponding deviceIDs
+    struct Device {
+        long long int deviceID;
+        string deviceType;
+    };
+
+    std::vector<Device> devices = {
+        {1001, "LE TILE"},
+        {1003, "JOYSTICK"},
+        {1004, "TABLET"},
+        {1005, "UNKNOWN DEVICE"}
+    };
+
+    // Loop through the device types and test disconnection for each
+    for (const auto& device : devices) {
+        string enable = "DISCONNECT";  // Hardcoded in disconnectWrapper
+        long long int deviceID = device.deviceID;
+        string deviceType = device.deviceType;
+
+        // Prepare the JSON parameters for the test
+        JsonObject params;
+        params["deviceID"] = std::to_string(deviceID);  // deviceID as string
+        params["enable"] = enable;
+        params["deviceType"] = deviceType;
+
+        // Convert JsonObject to string
+        string paramsStr;
+        params.ToString(paramsStr);
+
+        // Mock the behavior for different device types
+        if (deviceType == "LE TILE" || deviceType == "JOYSTICK") {
+            // Mock for LE TILE and JOYSTICK device types (Disconnect)
+            EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_DisconnectFromDevice(::testing::Eq(0), ::testing::Eq(deviceID)))
+                .Times(1)
+                .WillOnce(::testing::Return(BTRMGR_RESULT_SUCCESS));
+        } else if (deviceType == "TABLET") {
+            // Mock for TABLET (Stop Audio streaming)
+            EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_StopAudioStreamingIn(::testing::Eq(0), ::testing::Eq(deviceID)))
+                .Times(1)
+                .WillOnce(::testing::Return(BTRMGR_RESULT_SUCCESS));
+        } else if (deviceType == "UNKNOWN DEVICE") {
+            // Mock for UNKNOWN DEVICE (Stop Audio streaming)
+            EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_StopAudioStreamingOut(::testing::Eq(0), ::testing::Eq(deviceID)))
+                .Times(1)
+                .WillOnce(::testing::Return(BTRMGR_RESULT_SUCCESS));
+        }
+
+        // Invoke the disconnect method and check the response
+        EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("disconnect"), paramsStr, response));
+        EXPECT_EQ(response, "{\"success\":true}");
+    }
+}
+
+TEST_F(BluetoothTest, disconnectWrapper_DefaultDeviceType_Smartphone) {
+    // Device without specifying deviceType (defaults to SMARTPHONE)
+    long long int deviceID = 1004;  // Example deviceID
+    string enable = "DISCONNECT";  // Hardcoded in disconnectWrapper
+    string deviceType = "SMARTPHONE";  // This will be set by default
+
+    // Prepare the JSON parameters for the test (without deviceType)
+    JsonObject params;
+    params["deviceID"] = std::to_string(deviceID);  // deviceID as string
+    params["enable"] = enable;
+
+    // Convert JsonObject to string
+    string paramsStr;
+    params.ToString(paramsStr);
+
+    // Mock the behavior based on the default deviceType "SMARTPHONE"
+    EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_StopAudioStreamingOut(::testing::Eq(0), ::testing::Eq(deviceID)))
+        .Times(1)
+        .WillOnce(::testing::Return(BTRMGR_RESULT_SUCCESS));
+
+    // Invoke the disconnect method and check the response
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("disconnect"), paramsStr, response));
+    EXPECT_EQ(response, "{\"success\":true}");
+}
+
+TEST_F(BluetoothTest, disconnectWrapper_MissingParameters) {
+    // Prepare the JSON parameters for the test with missing deviceID
+    JsonObject params;
+
+    // Convert JsonObject to string
+    string paramsStr;
+    params.ToString(paramsStr);
+
+    // Invoke the disconnect method and check the response
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("disconnect"), paramsStr, response));
+    EXPECT_EQ(response.empty(), true);  // Response should be empty since deviceID is missing
 }

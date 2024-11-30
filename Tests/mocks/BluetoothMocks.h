@@ -6,13 +6,6 @@
 #include "BluetoothMgr.h"
 #include "Bluetooth.h"
 
-class MockBluetooth : public WPEFramework::Plugin::Bluetooth {
-public:
-    MOCK_METHOD(uint32_t, startScanWrapper, (const JsonObject& parameters, JsonObject& response));
-    MOCK_METHOD(uint32_t, stopScanWrapper, (const JsonObject& parameters, JsonObject& response));
-    // Add other methods as needed
-};
-
 // Mock class for Bluetooth Manager functions
 class MockBluetoothManager {
 public:
@@ -47,7 +40,7 @@ public:
     MOCK_METHOD(BTRMGR_Result_t, BTRMGR_GetDeviceVolumeMute, (unsigned char aui8AdapterIdx, BTRMgrDeviceHandle ahBTRMgrDevHdl, BTRMGR_DeviceOperationType_t deviceOpType, unsigned char* pui8Volume, unsigned char* pui8Mute));
     MOCK_METHOD(BTRMGR_Result_t, BTRMGR_GetDeviceProperties, (unsigned char aui8AdapterIdx, BTRMgrDeviceHandle ahBTRMgrDevHdl, BTRMGR_DevicesProperty_t* pDeviceProperty));
     MOCK_METHOD(BTRMGR_Result_t, BTRMGR_PairDevice, (unsigned char aui8AdapterIdx, BTRMgrDeviceHandle ahBTRMgrDevHdl));
-    MOCK_METHOD(BTRMGR_Result_t, BTRMGR_SetAdapterName, (unsigned char adapterIndex, const char* adapterName)); // New mock function
+    MOCK_METHOD(BTRMGR_Result_t, BTRMGR_SetAdapterName, (unsigned char adapterIndex, const char* adapterName));
 };
 
 // Global pointer to access mock instance in C functions
