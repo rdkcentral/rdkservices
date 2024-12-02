@@ -17,7 +17,7 @@ All notable changes to this RDK Service will be documented in this file.
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
 
-##[1.7.1] - 2024-11-29
+##[1.7.1] - 2024-12-02
 ###Changed
 - Added support for handling the videoStreamInfoUpdate for composite Input.
 
