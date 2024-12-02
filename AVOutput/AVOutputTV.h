@@ -87,11 +87,11 @@ public:
 		opt_path.append(filename);
 
 		if(!boost::filesystem::exists( opt_path)) {
-			std::cout << "DS HAL : Using " << m_path <<std::endl;
+			std::cout << "AVOutput : Using " << m_path <<std::endl;
 			boost::property_tree::ini_parser::read_ini(m_path, m_data);
 		}
 		else {
-			std::cout << "DS HAL : Using " << opt_path << std::endl;
+			std::cout << "AVOutput : Using " << opt_path << std::endl;
 			boost::property_tree::ini_parser::read_ini(opt_path, m_data);
 	        }
 	}
