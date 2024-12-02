@@ -324,11 +324,10 @@ namespace WPEFramework {
                 tasks.erase(tasks.begin(), tasks.end());
             }
 
-            bool activationStatus = false;
-            bool skipFirmwareCheck = false;
-            
             /* Controlled by CFLAGS */
 #if defined(SUPPRESS_MAINTENANCE) && !defined(ENABLE_WHOAMI)
+            bool activationStatus = false;
+            bool skipFirmwareCheck = false;
             activationStatus = getActivatedStatus(skipFirmwareCheck); /* Activation check */
             /* Proceed with network check only if activation status is
              * "activation-connect", "activation-ready"
@@ -348,7 +347,7 @@ namespace WPEFramework {
                 string activation_status = checkActivatedStatus(); /* Activation Status Check*/
                 whoAmIStatus = knowWhoAmI(activation_status); /* WhoAmI check*/
 
-                if (WhoAmIStatus) 
+                if (whoAmIStatus) 
                 {
                     LOGINFO("knowWhoAmI() returned successfully");
                 }
