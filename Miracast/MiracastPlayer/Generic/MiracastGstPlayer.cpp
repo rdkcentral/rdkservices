@@ -71,6 +71,7 @@ MiracastGstPlayer::MiracastGstPlayer()
     m_currentPosition = 0.0f;
     m_buffering_level = 100;
     m_player_statistics_tid = 0;
+    SoC_ConfigureVideoDecodeErrorPolicy();
     MIRACASTLOG_TRACE("Exiting...");
 }
 
@@ -752,7 +753,7 @@ bool MiracastGstPlayer::createPipeline()
     m_Queue = gst_element_factory_make("queue", "miracast_queue");
     m_appsink = gst_element_factory_make("appsink", "miracast_appsink");
     m_video_sink = gst_element_factory_make("westerossink", "miracast_westerossink");
-    m_audio_sink = Soc_CreateAudioHALSinkProperty();
+    m_audio_sink = SoC_GetAudioSinkProperty();
 
     if (!m_append_pipeline || !m_udpsrc || !m_rtpjitterbuffer || !m_rtpmp2tdepay ||
         !m_tsparse || !m_Queue || !m_appsink || !m_video_sink || !m_audio_sink )
@@ -943,7 +944,7 @@ bool MiracastGstPlayer::stop()
 
     if (m_audio_sink)
     {
-        gst_object_unref(m_audio_sink);
+        SoC_ReleaseAudioSinkProperty(m_audio_sink);
         m_audio_sink = nullptr;
     }
     if (m_audioconvert)
@@ -983,26 +984,37 @@ bool MiracastGstPlayer::stop()
     }
     if (m_tsdemux)
     {
+        gst_bin_remove(GST_BIN(m_append_pipeline), m_tsdemux);
         gst_object_unref(m_tsdemux);
         m_tsdemux = nullptr;
     }
     if (m_tsparse)
     {
+        gst_bin_remove(GST_BIN(m_append_pipeline), m_tsparse);
         gst_object_unref(m_tsparse);
         m_tsparse = nullptr;
     }
+    if (m_Queue)
+    {
+        gst_bin_remove(GST_BIN(m_append_pipeline), m_Queue);
+        gst_object_unref(m_Queue);
+        m_Queue = nullptr;
+    }
     if (m_rtpmp2tdepay)
     {
+        gst_bin_remove(GST_BIN(m_append_pipeline), m_rtpmp2tdepay);
         gst_object_unref(m_rtpmp2tdepay);
         m_rtpmp2tdepay = nullptr;
     }
     if (m_rtpjitterbuffer)
     {
+        gst_bin_remove(GST_BIN(m_append_pipeline), m_rtpjitterbuffer);
         gst_object_unref(m_rtpjitterbuffer);
         m_tsparse = nullptr;
     }
     if (m_udpsrc)
     {
+        gst_bin_remove(GST_BIN(m_append_pipeline), m_udpsrc);
         gst_object_unref(m_udpsrc);
         m_udpsrc = nullptr;
     }
