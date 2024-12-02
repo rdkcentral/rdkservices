@@ -1039,9 +1039,8 @@ namespace WPEFramework
 				is_another_connect_request = true;
 				MIRACASTLOG_WARNING("Another Connect Request received while casting");
 			}
-			if ((MIRACAST_SERVICE_STATE_DIRECT_LAUCH_REQUESTED != current_state) &&
-				((0 == access("/opt/miracast_autoconnect", F_OK))||
-				 (0 == access("/opt/miracast_direct_request", F_OK))))
+
+			if (0 == access("/opt/miracast_autoconnect", F_OK))
 			{
 				char commandBuffer[768] = {0};
 
@@ -1053,7 +1052,14 @@ namespace WPEFramework
 					MiracastCommon::execute_SystemCommand(commandBuffer);
 					sleep(1);
 				}
-				changeServiceState(MIRACAST_SERVICE_STATE_CONNECTING);
+				if (MIRACAST_SERVICE_STATE_DIRECT_LAUCH_REQUESTED == current_state)
+				{
+					changeServiceState(MIRACAST_SERVICE_STATE_DIRECT_LAUCH_WITH_CONNECTING);
+				}
+				else
+				{
+					changeServiceState(MIRACAST_SERVICE_STATE_CONNECTING);
+				}
 				memset(commandBuffer,0x00,sizeof(commandBuffer));
 				snprintf( commandBuffer,
 						sizeof(commandBuffer),
