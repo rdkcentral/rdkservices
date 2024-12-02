@@ -347,8 +347,15 @@ namespace WPEFramework {
             {
                 string activation_status = checkActivatedStatus(); /* Activation Status Check*/
                 whoAmIStatus = knowWhoAmI(activation_status); /* WhoAmI check*/
-                
-                LOGINFO(WhoAmIStatus ? "knowWhoAmI() returned successfully" : "knowWhoAmI() returned false");
+
+                if (WhoAmIStatus) 
+                {
+                    LOGINFO("knowWhoAmI() returned successfully");
+                }
+                else 
+                {
+                    LOGINFO("knowWhoAmI() returned false");
+                }
                 if (!whoAmIStatus && activation_status != "activated")
                 {
                     LOGINFO("knowWhoAmI() returned false and Device is not already Activated");
@@ -386,7 +393,13 @@ namespace WPEFramework {
             }
 
             LOGINFO("Reboot_Pending :%s", g_is_reboot_pending.c_str());
-            LOGINFO(UNSOLICITED_MAINTENANCE == g_maintenance_type ? "---------------UNSOLICITED_MAINTENANCE--------------" : "=============SOLICITED_MAINTENANCE===============");
+            if (UNSOLICITED_MAINTENANCE == g_maintenance_type)
+            {
+                LOGINFO("---------------UNSOLICITED_MAINTENANCE--------------");
+            }
+            else{
+                LOGINFO("=============SOLICITED_MAINTENANCE===============");
+            }
 
 #if defined(SUPPRESS_MAINTENANCE) && !defined(ENABLE_WHOAMI)
             if (activationStatus) /* decide which all tasks are needed based on the activation status */
