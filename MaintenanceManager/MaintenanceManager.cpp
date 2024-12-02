@@ -348,7 +348,7 @@ namespace WPEFramework {
                 string activation_status = checkActivatedStatus(); /* Activation Status Check*/
                 whoAmIStatus = knowWhoAmI(activation_status); /* WhoAmI check*/
                 
-                LOGINFO(WhoAmIStatus ? "knowWhoAmI() returned successfully" : LOGINFO("knowWhoAmI() returned false");
+                LOGINFO(WhoAmIStatus ? "knowWhoAmI() returned successfully" : "knowWhoAmI() returned false");
                 if (!whoAmIStatus && activation_status != "activated")
                 {
                     LOGINFO("knowWhoAmI() returned false and Device is not already Activated");
