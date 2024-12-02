@@ -328,57 +328,54 @@ namespace WPEFramework {
 #if defined(SUPPRESS_MAINTENANCE) && !defined(ENABLE_WHOAMI)
             bool activationStatus = false;
             bool skipFirmwareCheck = false;
-
-            /* Activation check */
-            activationStatus = getActivatedStatus(skipFirmwareCheck);
-
-            /* we proceed with network check only if
+            activationStatus = getActivatedStatus(skipFirmwareCheck); /* Activation check */
+            /* Proceed with network check only if activation status is
              * "activation-connect", "activation-ready"
              * "not-activated", "activated" */
             if (activationStatus)
             {
-                /* Network check */
-                internetConnectStatus = isDeviceOnline();
+                internetConnectStatus = isDeviceOnline(); /* Network check */
             }
 #else /* WhoAmI */
             internetConnectStatus = isDeviceOnline();
 #endif
 
 #if defined(ENABLE_WHOAMI)
-            string activation_status = checkActivatedStatus();
             bool whoAmIStatus = false;
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type)
             {
-                /* WhoAmI check*/
-                whoAmIStatus = knowWhoAmI(activation_status);
-                if (whoAmIStatus)
+                string activation_status = checkActivatedStatus(); /* Activation Status Check*/
+                whoAmIStatus = knowWhoAmI(activation_status); /* WhoAmI check*/
+
+                if (whoAmIStatus) 
                 {
                     LOGINFO("knowWhoAmI() returned successfully");
                 }
-                else
+                else 
                 {
                     LOGINFO("knowWhoAmI() returned false");
                 }
+                if (!whoAmIStatus && activation_status != "activated")
+                {
+                    LOGINFO("knowWhoAmI() returned false and Device is not already Activated");
+                    g_listen_to_deviceContextUpdate = true;
+                    LOGINFO("Waiting for onDeviceInitializationContextUpdate event");
+                    task_thread.wait(wailck); /* Wait for onDeviceInitializationContextUpdate Event */
+                    internetConnectStatus = true; /* Continue with Maintenance Tasks */
+                }
+                else if (!internetConnectStatus && activation_status == "activated")
+                {
+                    LOGINFO("Device is not connected to the Internet and Device is already Activated");
+                }
             }
-
-            if (false == whoAmIStatus && activation_status != "activated")
-            {
-                LOGINFO("knowWhoAmI() returned false and Device is not already Activated");
-                g_listen_to_deviceContextUpdate = true;
-                LOGINFO("Waiting for onDeviceInitializationContextUpdate event");
-                task_thread.wait(wailck);
-            }
-            else if (false == internetConnectStatus && activation_status == "activated")
-            {
-                LOGINFO("Device is not connected to the Internet and Device is already Activated");
-#else /* WhoAmI */
+#endif
             if (false == internetConnectStatus)
             {
-#endif
                 m_statusMutex.lock();
                 MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
                 m_statusMutex.unlock();
                 LOGINFO("Maintenance is exiting as device is not connected to internet.");
+
                 if (UNSOLICITED_MAINTENANCE == g_maintenance_type && !g_unsolicited_complete)
                 {
                     g_unsolicited_complete = true;
@@ -395,27 +392,22 @@ namespace WPEFramework {
             }
 
             LOGINFO("Reboot_Pending :%s", g_is_reboot_pending.c_str());
-
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type)
             {
                 LOGINFO("---------------UNSOLICITED_MAINTENANCE--------------");
             }
-            else if (SOLICITED_MAINTENANCE == g_maintenance_type)
-            {
+            else{
                 LOGINFO("=============SOLICITED_MAINTENANCE===============");
             }
+
 #if defined(SUPPRESS_MAINTENANCE) && !defined(ENABLE_WHOAMI)
-            /* decide which all tasks are needed based on the activation status */
-            if (activationStatus)
+            if (activationStatus) /* decide which all tasks are needed based on the activation status */
             {
                 if (skipFirmwareCheck)
                 {
-                    /* set the task status of swupdate */
-                    SET_STATUS(g_task_status, DIFD_SUCCESS);
+                    SET_STATUS(g_task_status, DIFD_SUCCESS); /* set the task status of swupdate */
                     SET_STATUS(g_task_status, DIFD_COMPLETE);
-
-                    /* Add tasks */
-                    tasks.push_back(task_names_foreground[0].c_str());
+                    tasks.push_back(task_names_foreground[0].c_str()); /* Add tasks */
                     tasks.push_back(task_names_foreground[2].c_str());
                 }
                 else
