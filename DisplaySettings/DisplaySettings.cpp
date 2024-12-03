@@ -85,7 +85,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 2
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 1
+#define API_VERSION_NUMBER_PATCH 0
 
 static bool isCecEnabled = false;
 static bool isResCacheUpdated = false;
@@ -4759,12 +4759,7 @@ namespace WPEFramework {
 	            try
                     {
 		        LOGWARN("creating worker thread for initAudioPortsWorker ");
-		        std::thread audioPortInitThread;
-                try {
-                    audioPortInitThread = std::thread(initAudioPortsWorker);
-                } catch (const std::system_error& e) {
-                    LOGERR("Failed to start initAudioPortsWorker: %s", e.what());
-                }
+		        std::thread audioPortInitThread = std::thread(initAudioPortsWorker);
 			audioPortInitThread.detach();
                     }
                     catch(const std::system_error& e)
