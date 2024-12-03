@@ -276,12 +276,11 @@ namespace WPEFramework
 			if (!m_isServiceInitialized)
 			{
 				MiracastError ret_code = MIRACAST_OK;
-
-				InitializeIARM();
 		
 				m_miracast_ctrler_obj = MiracastController::getInstance(ret_code, this,p2p_ctrl_iface);
 				if (nullptr != m_miracast_ctrler_obj)
 				{
+					InitializeIARM();
 					m_CurrentService = service;
 					getThunderPlugins();
 					// subscribe for event
