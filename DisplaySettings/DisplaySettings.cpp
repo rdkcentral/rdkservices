@@ -85,7 +85,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 2
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 0
+#define API_VERSION_NUMBER_PATCH 1
 
 static bool isCecEnabled = false;
 static bool isResCacheUpdated = false;
@@ -582,7 +582,11 @@ namespace WPEFramework {
             m_service = service;
             m_service->AddRef();
 
-	    m_sendMsgThread = std::thread(sendMsgThread);
+	    try {
+            m_sendMsgThread = std::thread(sendMsgThread);
+        } catch (const std::system_error& e) {
+            LOGERR("Failed to start m_sendMsgThread: %s", e.what());
+        }
 	    m_timer.connect(std::bind(&DisplaySettings::onTimer, this));
             m_AudioDeviceDetectTimer.connect(std::bind(&DisplaySettings::checkAudioDeviceDetectionTimer, this));
             m_ArcDetectionTimer.connect(std::bind(&DisplaySettings::checkArcDeviceConnected, this));
@@ -4755,7 +4759,12 @@ namespace WPEFramework {
 	            try
                     {
 		        LOGWARN("creating worker thread for initAudioPortsWorker ");
-		        std::thread audioPortInitThread = std::thread(initAudioPortsWorker);
+		        std::thread audioPortInitThread;
+                try {
+                    audioPortInitThread = std::thread(initAudioPortsWorker);
+                } catch (const std::system_error& e) {
+                    LOGERR("Failed to start initAudioPortsWorker: %s", e.what());
+                }
 			audioPortInitThread.detach();
                     }
                     catch(const std::system_error& e)
