@@ -577,7 +577,7 @@ namespace Plugin {
                 }
                 inline uint64_t TimeSlot() const
                 {
-                    return (_nextSlot);
+                    return (_active ? _nextSlot : ~0);
                 }
                 inline void Reset()
                 {
@@ -1019,16 +1019,26 @@ namespace Plugin {
                 // Go through the list of pending observations...
                 while (index != _monitor.end()) {
                     MonitorObject& info(index->second);
-                    if (info.IsActive() == false) {
-                        ++index;
-                        continue;
+                    if (info.IsActive() == false || info.TimeSlot() > scheduledTime) {
+                        if (info.TimeSlot() < nextSlot) {
+                            nextSlot = info.TimeSlot();
+                        }
+                        index++;
                     }
-
-                    if (info.TimeSlot() <= scheduledTime) {
+                    else
+		    {
                         uint32_t value(info.Evaluate());
+                        info.Retrigger(scheduledTime);
 
-                        if ((value & (MonitorObject::NOT_OPERATIONAL | MonitorObject::EXCEEDED_MEMORY)) != 0) {
-                            PluginHost::IShell* plugin(_service->QueryInterfaceByCallsign<PluginHost::IShell>(index->first));
+                        if ((value & (MonitorObject::NOT_OPERATIONAL | MonitorObject::EXCEEDED_MEMORY)) == 0) {
+                            index++;
+                        }
+                        else
+                        {
+                            string callsign = index->first;
+
+			    _adminLock.Unlock();
+                            PluginHost::IShell* plugin(_service->QueryInterfaceByCallsign<PluginHost::IShell>(callsign));
 
                             if (plugin != nullptr) {
                                 Core::EnumerateType<PluginHost::IShell::reason> why(((value & MonitorObject::EXCEEDED_MEMORY) != 0) ? PluginHost::IShell::MEMORY_EXCEEDED : PluginHost::IShell::FAILURE);
@@ -1043,15 +1053,10 @@ namespace Plugin {
 
                                 plugin->Release();
                             }
+                            _adminLock.Lock();
+                            index = _monitor.begin();
                         }
-                        info.Retrigger(scheduledTime);
                     }
-
-                    if (info.TimeSlot() < nextSlot) {
-                        nextSlot = info.TimeSlot();
-                    }
-
-                    index++;
                 }
 
                 _adminLock.Unlock();
