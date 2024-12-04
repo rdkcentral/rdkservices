@@ -1338,6 +1338,409 @@ TEST_F(BluetoothTest, sendAudioPlaybackCommandWrapper_MissingBothParameters) {
     params.ToString(paramsStr);
 
     // Invoke the method with missing parameters and check the response
-    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("sendAudioPlaybackCommand"), paramsStr, response));  // Expect error due to missing both parameters
-    EXPECT_EQ(response.empty(), true);  // Expect the response to be empty since both deviceID and command are missing
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("sendAudioPlaybackCommand"), paramsStr, response));
+    EXPECT_EQ(response.empty(), true);
+}
+
+TEST_F(BluetoothTest, setEventResponseWrapper_Success) {
+    // Define the structure to hold event type and response value
+    struct EventScenario {
+        std::string eventType;
+        std::string responseValue;
+    };
+
+    // Prepare the test data for a successful scenario
+    JsonObject params;
+    params["deviceID"] = "1001";  // Example device ID
+    string paramsStr;
+
+    // List of event type and response value pairs
+    std::vector<EventScenario> scenarios = {
+        {"onPairingRequest", "ACCEPTED"},
+        {"onPairingRequest", "REJECTED"},
+        {"onConnectionRequest", "ACCEPTED"},
+        {"onConnectionRequest", "REJECTED"},
+        {"onPlaybackRequest", "ACCEPTED"},
+        {"onPlaybackRequest", "REJECTED"}
+    };
+
+    // Iterate through each scenario
+    for (const auto& scenario : scenarios) {
+        // Update the parameters for the current scenario
+        params["eventType"] = scenario.eventType;
+        params["responseValue"] = scenario.responseValue;
+        params.ToString(paramsStr);
+
+        // Define expected behavior of BTRMGR_SetEventResponse
+        EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_SetEventResponse(::testing::Eq(0), ::testing::_))
+            .Times(1)
+            .WillOnce([&](unsigned char deviceID, BTRMGR_EventResponse_t* eventResp) {
+                // Check the values passed to the mock function
+                if (scenario.eventType == "onPairingRequest") {
+                    EXPECT_EQ(eventResp->m_eventType, BTRMGR_EVENT_RECEIVED_EXTERNAL_PAIR_REQUEST);
+                } else if (scenario.eventType == "onConnectionRequest") {
+                    EXPECT_EQ(eventResp->m_eventType, BTRMGR_EVENT_RECEIVED_EXTERNAL_CONNECT_REQUEST);
+                } else if (scenario.eventType == "onPlaybackRequest") {
+                    EXPECT_EQ(eventResp->m_eventType, BTRMGR_EVENT_RECEIVED_EXTERNAL_PLAYBACK_REQUEST);
+                }
+
+                // Set the expected response value based on ACCEPTED/REJECTED
+                eventResp->m_eventResp = (scenario.responseValue == "ACCEPTED") ? 1 : 0;
+
+                return BTRMGR_RESULT_SUCCESS;  // Mock successful return
+            });
+
+        EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("respondToEvent"), paramsStr, response));
+
+        // Check that the response is as expected
+        EXPECT_EQ(response, "{\"success\":true}");
+    }
+}
+
+TEST_F(BluetoothTest, setEventResponseWrapper_UnknownEvent) {
+    // Prepare the test data for an "Unknown" event type
+    JsonObject params;
+    params["deviceID"] = "1001";  // Example device ID
+    params["eventType"] = "unknown";  // Unknown event type
+    params["responseValue"] = "ACCEPTED";  // Response value for the event
+    string paramsStr;
+    params.ToString(paramsStr);
+
+    // Define expected behavior of BTRMGR_SetEventResponse for an unknown event type
+    EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_SetEventResponse(::testing::Eq(0), ::testing::_))
+        .Times(1)
+        .WillOnce([&](unsigned char deviceID, BTRMGR_EventResponse_t* eventResp) {
+            // Verify that eventType is unknown
+            EXPECT_EQ(eventResp->m_eventType, BTRMGR_EVENT_MAX); // The expected type for unknown events
+
+            // Set the expected response value to 0 (assuming unknown event type results in no action)
+            eventResp->m_eventResp = 0;
+
+            return BTRMGR_RESULT_SUCCESS;  // Mock successful return
+        });
+
+    // Invoke the method with the unknown event type
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("respondToEvent"), paramsStr, response));
+
+    // Verify that the response is as expected
+    EXPECT_EQ(response, "{\"success\":true}");
+}
+
+TEST_F(BluetoothTest, setEventResponseWrapper_SetEventResponseFailure) {
+    // Prepare the test data for a failure scenario
+    JsonObject params;
+    params["deviceID"] = "1001";  // Example device ID
+    params["eventType"] = "onPairingRequest";  // Valid event type
+    params["responseValue"] = "ACCEPTED";  // Response value for the event
+    string paramsStr;
+    params.ToString(paramsStr);
+
+    // Define expected behavior of BTRMGR_SetEventResponse for a failure scenario
+    EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_SetEventResponse(::testing::Eq(0), ::testing::_))
+        .Times(1)
+        .WillOnce([&](unsigned char deviceID, BTRMGR_EventResponse_t* eventResp) {
+            // Simulate failure of the BTRMGR_SetEventResponse function
+            return BTRMGR_RESULT_GENERIC_FAILURE;  // Return failure
+        });
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("respondToEvent"), paramsStr, response));
+
+    EXPECT_EQ(response.empty(), true);
+}
+
+TEST_F(BluetoothTest, setEventResponseWrapper_MissingParameters) {
+    // Prepare the test data for a missing parameters scenario
+    JsonObject params;
+    // Missing "eventType" and "responseValue", only deviceID is provided
+    params["deviceID"] = "1001";  // Example device ID
+    string paramsStr;
+    params.ToString(paramsStr);
+
+    // Define the expected behavior when parameters are missing
+    EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_SetEventResponse(::testing::Eq(0), ::testing::_))
+        .Times(0);  // Ensure that BTRMGR_SetEventResponse is not called
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("respondToEvent"), paramsStr, response));
+
+    EXPECT_EQ(response.empty(), true);
+}
+
+TEST_F(BluetoothTest, getDeviceInfoWrapper_Success) {
+    JsonObject params;
+    params["deviceID"] = "1001";  // Example device ID
+    string paramsStr;
+    params.ToString(paramsStr);
+
+    // Define expected behavior of BTRMGR_GetDeviceProperties
+    EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetDeviceProperties(::testing::Eq(0), ::testing::_ , ::testing::_))
+        .Times(1)
+        .WillOnce([&](unsigned char aui8AdapterIdx, BTRMgrDeviceHandle deviceHandle, BTRMGR_DevicesProperty_t* deviceProperty) {
+            // Populate deviceProperty structure with mock data
+            deviceProperty->m_deviceHandle = 1001;
+            deviceProperty->m_deviceType = BTRMGR_DEVICE_TYPE_SMARTPHONE;
+            strcpy(deviceProperty->m_name, "Test Device");
+            strcpy(deviceProperty->m_deviceAddress, "00:11:22:33:44:55");
+            deviceProperty->m_rssi = -40;
+            deviceProperty->m_signalLevel = BTRMGR_RSSI_GOOD;
+            deviceProperty->m_vendorID = 1234;
+            deviceProperty->m_isPaired = 1;
+            deviceProperty->m_isConnected = 1;
+            deviceProperty->m_isLowEnergyDevice = 0;
+            deviceProperty->m_batteryLevel = 80;
+            strcpy(deviceProperty->m_modalias, "TestModAlias");
+            strcpy(deviceProperty->m_firmwareRevision, "1.0.0");
+            deviceProperty->m_serviceInfo.m_numOfService = 2;
+            deviceProperty->m_serviceInfo.m_profileInfo[0].m_profile[0] = 'A';
+            deviceProperty->m_serviceInfo.m_profileInfo[1].m_profile[0] = 'B';
+            return BTRMGR_RESULT_SUCCESS;  // Mock successful return
+        });
+
+    // Mock the call to BTRMGR_GetDeviceTypeAsString for valid device types
+    EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetDeviceTypeAsString(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke([](BTRMGR_DeviceType_t deviceType) -> const char* {
+            switch (deviceType) {
+                case BTRMGR_DEVICE_TYPE_SMARTPHONE:
+                    return "SMARTPHONE";
+                case BTRMGR_DEVICE_TYPE_HEADPHONES:
+                    return "HEADPHONES";
+                default:
+                    return "UNKNOWN";
+            }
+        }));
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), paramsStr, response));
+
+    std::string expectedResponse = "{\"deviceInfo\":{\"deviceID\":\"1001\",\"name\":\"Test Device\",\"deviceType\":\"SMARTPHONE\","
+                                  "\"manufacturer\":\"1234\",\"MAC\":\"00:11:22:33:44:55\",\"signalStrength\":\"3\","
+                                  "\"rssi\":\"-40\",\"batteryLevel\":\"80\",\"modalias\":\"TestModAlias\","
+                                  "\"firmwareRevision\":\"1.0.0\",\"supportedProfile\":\"A;B\"},\"success\":true}";
+
+    EXPECT_EQ(response, expectedResponse);
+}
+
+TEST_F(BluetoothTest, getDeviceInfoWrapper_Failure) {
+    // Prepare the test data for a failure scenario
+    JsonObject params;
+    params["deviceID"] = "1001";  // Example device ID that will be used in the test
+    string paramsStr;
+    params.ToString(paramsStr);
+
+    // Mock the failure of BTRMGR_GetDeviceProperties
+    EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetDeviceProperties(::testing::Eq(0), ::testing::_ , ::testing::_))
+        .Times(1)
+        .WillOnce([](unsigned char aui8AdapterIdx, BTRMgrDeviceHandle deviceHandle, BTRMGR_DevicesProperty_t* deviceProperty) {
+            // Simulate failure by returning an error code
+            return BTRMGR_RESULT_GENERIC_FAILURE;
+        });
+
+    // Invoke the method under test with the test parameters
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceInfo"), paramsStr, response));
+    EXPECT_EQ(response, "{\"deviceInfo\":{},\"success\":true}");
+}
+
+TEST_F(BluetoothTest, getDeviceInfoWrapper_MissingParameter) {
+    // Prepare the test data for a missing parameter scenario
+    JsonObject params;
+    // Missing "deviceID" parameter in this case.
+    // params["deviceID"] = "1001";  // Comment out to simulate missing parameter.
+
+    string paramsStr;
+    params.ToString(paramsStr);
+
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getDeviceInfo"), paramsStr, response));
+    EXPECT_EQ(response.empty(), true);
+}
+
+TEST_F(BluetoothTest, getMediaTrackInfoWrapper_Success) {
+    // Prepare the test data for a successful scenario
+    JsonObject params;
+    params["deviceID"] = "1001";  // Example device ID (BTRMgrDeviceHandle)
+    string paramsStr;
+    params.ToString(paramsStr);
+
+    // Mock the behavior of BTRMGR_GetMediaTrackInfo
+    EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetMediaTrackInfo(::testing::Eq(0), ::testing::Eq(1001), ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke([](unsigned char aui8AdapterIdx, BTRMgrDeviceHandle deviceID, BTRMGR_MediaTrackInfo_t* trackInfo) {
+            // Populate the track info with test data
+            strcpy(trackInfo->pcAlbum, "Test Album");
+            strcpy(trackInfo->pcGenre, "Rock");
+            strcpy(trackInfo->pcTitle, "Test Track");
+            strcpy(trackInfo->pcArtist, "Test Artist");
+            trackInfo->ui32TrackNumber = 1;
+            trackInfo->ui32Duration = 300;  // Duration in seconds
+            trackInfo->ui32NumberOfTracks = 10;
+            return BTRMGR_RESULT_SUCCESS;  // Return success
+        }));
+
+    // Invoke the method under test (getMediaTrackInfoWrapper)
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getAudioInfo"), paramsStr, response));
+    EXPECT_EQ(response, "{\"trackInfo\":{\"album\":\"Test Album\",\"genre\":\"Rock\",\"title\":\"Test Track\",\"artist\":\"Test Artist\",\"ui32Duration\":\"300\",\"ui32TrackNumber\":\"1\",\"ui32NumberOfTracks\":\"10\"},\"success\":true}");
+}
+
+TEST_F(BluetoothTest, getMediaTrackInfoWrapper_Failure) {
+    // Prepare the test data for the failure scenario
+    JsonObject params;
+    params["deviceID"] = "1001";  // Example device ID
+    string paramsStr;
+    params.ToString(paramsStr);
+
+    // Define expected behavior of BTRMGR_GetMediaTrackInfo to simulate failure
+    EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetMediaTrackInfo(::testing::Eq(0), ::testing::Eq(1001), ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Return(BTRMGR_RESULT_GENERIC_FAILURE)); // Simulate failure in the mock
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getAudioInfo"), paramsStr, response));
+    EXPECT_EQ(response, "{\"trackInfo\":{},\"success\":true}");
+}
+
+TEST_F(BluetoothTest, getMediaTrackInfoWrapper_MissingParameters) {
+    // Prepare the test data for the missing parameter scenario
+    JsonObject params;  // Device ID is intentionally missing in this case
+    string paramsStr;
+    params.ToString(paramsStr);
+
+    // Define expected behavior in case the parameters are missing
+    EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetMediaTrackInfo(::testing::_, ::testing::_, ::testing::_))
+        .Times(0);  // The mock should not be called if parameters are missing
+
+    // Invoke the method with missing parameters (deviceID)
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getAudioInfo"), paramsStr, response));
+
+    EXPECT_EQ(response.empty(), true);
+}
+
+TEST_F(BluetoothTest, getDeviceVolumeMuteInfoWrapper_Success) {
+    // List of device types to test
+    std::vector<std::string> deviceTypes = {
+        "LOUDSPEAKER", "HIFI AUDIO DEVICE", "TABLET", "JOYSTICK", "LE", "DEFAULT"
+    };
+
+    // Prepare the test data for a successful scenario, including deviceType
+    JsonObject params;
+    params["deviceID"] = "1001";  // Example device ID
+    string paramsStr;
+
+    // Iterate through each device type for testing
+    for (const auto& deviceType : deviceTypes) {
+        params["deviceType"] = deviceType;  // Set the device type
+        params.ToString(paramsStr);  // Convert params to string
+
+        // Mock expected behavior of BTRMGR_GetDeviceVolumeMute to return successful data
+        EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetDeviceVolumeMute(::testing::Eq(0), ::testing::Eq(1001), 
+				::testing::_, ::testing::_, ::testing::_))
+            .Times(1)
+            .WillOnce(::testing::Invoke([](unsigned char adapterIdx, BTRMgrDeviceHandle deviceHandle, 
+					    BTRMGR_DeviceOperationType_t deviceOpType, unsigned char* pui8Volume, unsigned char* pui8Mute) {
+                // Simulate successful return of volume and mute status
+                *pui8Volume = 75;  // Set volume level
+                *pui8Mute = 0;  // Set mute status to false (not muted)
+                return BTRMGR_RESULT_SUCCESS;  // Return success
+            }));
+
+        // Invoke the method
+        EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceVolumeMuteInfo"), paramsStr, response));
+
+        // Verify the response to ensure it contains the expected values
+        EXPECT_EQ(response, "{\"volumeinfo\":{\"volume\":\"75\",\"mute\":false},\"success\":true}");
+    }
+}
+
+TEST_F(BluetoothTest, getDeviceVolumeMuteInfoWrapper_Failure) {
+    // Prepare the test data for the failure scenario
+    JsonObject params;
+    params["deviceID"] = "1001";  // Example device ID
+    params["deviceType"] = "SMARTPHONE";  // Device type for the test
+    string paramsStr;
+    params.ToString(paramsStr);
+
+    // Define expected behavior of BTRMGR_GetDeviceVolumeMute to simulate failure
+    EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetDeviceVolumeMute(::testing::Eq(0), ::testing::Eq(1001), ::testing::_, ::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Return(BTRMGR_RESULT_GENERIC_FAILURE));  // Simulate failure in the mock
+
+    // Combine method invocation and validation in one line
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("getDeviceVolumeMuteInfo"), paramsStr, response));
+}
+
+TEST_F(BluetoothTest, getDeviceVolumeMuteInfoWrapper_MissingParameters) {
+    // Prepare the test data for the failure scenario with missing parameters
+    JsonObject params;
+    // We are intentionally omitting the deviceID and deviceType to simulate the missing parameters scenario
+    string paramsStr;
+    params.ToString(paramsStr);
+
+    // Invoke the method under test with missing parameters
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("getDeviceVolumeMuteInfo"), paramsStr, response));
+    EXPECT_EQ(response.empty(), true);
+}
+
+TEST_F(BluetoothTest, setDeviceVolumeMuteProperties_Success) {
+    // Prepare the test data for a successful scenario
+    JsonObject params;
+    params["deviceID"] = "1001";  // Example device ID
+    params["deviceType"] = "SMARTPHONE";  // Example device type
+    params["volume"] = "75";  // Example volume level
+    params["mute"] = "false";  // Example mute status (not muted)
+
+    string paramsStr;
+    params.ToString(paramsStr);
+
+    // Mock the BTRMGR_SetDeviceVolumeMute function to simulate success
+    EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_SetDeviceVolumeMute(
+            ::testing::_,                      // Allow any adapter index
+            ::testing::_,                      // Allow any device ID
+            ::testing::_,                      // Allow any device operation type
+            ::testing::_,                      // Allow any volume value
+            ::testing::_                       // Allow any mute value
+        ))
+        .Times(1)
+        .WillOnce(::testing::Return(BTRMGR_RESULT_SUCCESS));  // Simulate success
+
+    // Invoke the method under test
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("setDeviceVolumeMuteInfo"), paramsStr, response));
+
+    // Verify the response is as expected for success
+    EXPECT_EQ(response, "{\"success\":true}");
+}
+
+TEST_F(BluetoothTest, setDeviceVolumeMuteProperties_Failure) {
+    // Prepare the test data for a failure scenario
+    JsonObject params;
+    params["deviceID"] = "1001";  // Example device ID
+    params["deviceType"] = "SMARTPHONE";  // Example device type
+    params["volume"] = "75";  // Example volume level
+    params["mute"] = "false";  // Example mute status (not muted)
+
+    string paramsStr;
+    params.ToString(paramsStr);
+
+    // Mock the BTRMGR_SetDeviceVolumeMute function to simulate failure
+    EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_SetDeviceVolumeMute(
+            ::testing::_,                      // Allow any adapter index
+            ::testing::_,                      // Allow any device ID
+            ::testing::_,                      // Allow any device operation type
+            ::testing::_,                      // Allow any volume value
+            ::testing::_                       // Allow any mute value
+        ))
+        .Times(1)
+        .WillOnce(::testing::Return(BTRMGR_RESULT_GENERIC_FAILURE)); // Simulate failure
+
+    // Invoke the method under test
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setDeviceVolumeMuteInfo"), paramsStr, response));
+    EXPECT_EQ(response.empty(), true);
+}
+
+TEST_F(BluetoothTest, setDeviceVolumeMuteProperties_MissingParameters) {
+    // Prepare the test data for a failure scenario with missing parameters
+    JsonObject params;
+    params["deviceID"] = "1001";  // Example device ID
+    // Missing deviceType and volume
+    string paramsStr;
+    params.ToString(paramsStr);
+
+    // Invoke the method under test with missing parameters
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setDeviceVolumeMuteInfo"), paramsStr, response));
+    EXPECT_EQ(response.empty(), true);
 }
