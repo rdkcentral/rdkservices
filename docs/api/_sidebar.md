@@ -4,6 +4,7 @@
 - [**Developer Guide**](developerguide/develperguidefornewplugin.md)
 - [**API Reference**](/README)
   - [ActivityMonitor](api/ActivityMonitorPlugin.md)
+  - [Analytics](api/AnalyticsPlugin.md)
   - [AVInput](api/AVInputPlugin.md)
   - [Bluetooth](api/BluetoothPlugin.md)
   - [CompositeInput](api/CompositeInputPlugin.md)
