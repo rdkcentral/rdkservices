@@ -2069,6 +2069,8 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
 
         m_getparameter_response_sent = false;
 
+        start_streaming(video_rect_st);
+
         while (( status_code = receive_buffer_timedOut( m_tcpSockfd, rtsp_message_socket, sizeof(rtsp_message_socket),get_wait_timeout())) &&
                 ( status_code == RTSP_MSG_SUCCESS ))
         {
@@ -2113,7 +2115,7 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
         {
             MIRACASTLOG_INFO("#### MCAST-TRIAGE-OK-RTSP-DONE RTSP_M1_M7_MSG_EXCHANGE_RECEIVED[%#04X] ####", status_code);
             start_monitor_keep_alive_msg = true;
-            start_streaming(video_rect_st);
+            //start_streaming(video_rect_st);
             MIRACASTLOG_INFO("!!!! GstPlayer instance created, Waiting for first-frame !!!!");
         }
         else
