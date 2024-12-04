@@ -137,17 +137,17 @@ TEST_F(BluetoothTest, StartScanWrapper_DiscoveryFailed) {
 TEST_F(BluetoothTest, StartScanWrapper_ProfileParsingWithReset) {
     // Mock the behavior when there is one available adapter
     EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetNumberOfAdapters(::testing::_))
-        .Times(5)
+        .Times(6)
         .WillRepeatedly(::testing::DoAll(::testing::SetArgPointee<0>(1), ::testing::Return(BTRMGR_RESULT_SUCCESS)));
 
     // Mock the behavior for starting device discovery
     EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_StartDeviceDiscovery(::testing::Eq(0), ::testing::_))
-        .Times(5)
+        .Times(6)
         .WillRepeatedly(::testing::Return(BTRMGR_RESULT_SUCCESS));
 
     // Mock the behavior for stopping device discovery
     EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_StopDeviceDiscovery(::testing::_, ::testing::_))
-        .Times(5)
+        .Times(6)
         .WillRepeatedly(::testing::Return(BTRMGR_RESULT_SUCCESS));
 
     // Test AUDIO_AND_HID profile
@@ -173,6 +173,10 @@ TEST_F(BluetoothTest, StartScanWrapper_ProfileParsingWithReset) {
     // Test LE profile
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startScan"),
         _T("{\"timeout\":-1, \"profile\":\"LE TILE\"}"), response));
+    EXPECT_EQ(response, "{\"status\":\"AVAILABLE\",\"success\":true}");
+
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("startScan"),
+        _T("{\"timeout\":-1, \"profile\":\"DEFAULT\"}"), response));
     EXPECT_EQ(response, "{\"status\":\"AVAILABLE\",\"success\":true}");
 }
 
@@ -640,6 +644,31 @@ TEST_F(BluetoothTest, connectWrapper_Connect_DefaultDeviceType_Smartphone) {
     // Invoke the connect method and check the response
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("connect"), paramsStr, response));
     EXPECT_EQ(response, "{\"success\":true}");
+}
+
+TEST_F(BluetoothTest, connectWrapper_Failure) {
+    // Device without specifying deviceType (defaults to SMARTPHONE)
+    long long int deviceID = 1001;  // Example deviceID
+    string enable = "CONNECT";  // Hardcoded in connectWrapper
+    string deviceType = "SMARTPHONE";  // This will be set by default
+
+    // Prepare the JSON parameters for the test (without deviceType)
+    JsonObject params;
+    params["deviceID"] = std::to_string(deviceID);  // deviceID as string
+    params["enable"] = enable;
+
+    // Convert JsonObject to string
+    string paramsStr;
+    params.ToString(paramsStr);
+
+    // Mock the behavior based on the default deviceType "SMARTPHONE"
+    EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_StartAudioStreamingOut(::testing::Eq(0), ::testing::Eq(deviceID), ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Return(BTRMGR_RESULT_GENERIC_FAILURE));
+
+    // Invoke the connect method and check the response
+    EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("connect"), paramsStr, response));
+    EXPECT_EQ(response.empty(), true);
 }
 
 TEST_F(BluetoothTest, connectWrapper_MissingParameters) {
