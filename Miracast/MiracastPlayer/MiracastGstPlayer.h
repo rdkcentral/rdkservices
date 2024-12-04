@@ -29,6 +29,24 @@
 #include <pthread.h>
 #include <stdint.h>
 
+/**
+ * @enum GstPlayFlags
+ * @brief Enum of configuration flags used by playbin
+ */
+typedef enum {
+	GST_PLAY_FLAG_VIDEO = (1 << 0),             /**< value is 0x001 */
+	GST_PLAY_FLAG_AUDIO = (1 << 1),             /**< value is 0x002 */
+	GST_PLAY_FLAG_TEXT = (1 << 2),              /**< value is 0x004 */
+	GST_PLAY_FLAG_VIS = (1 << 3),               /**< value is 0x008 */
+	GST_PLAY_FLAG_SOFT_VOLUME = (1 << 4),       /**< value is 0x010 */
+	GST_PLAY_FLAG_NATIVE_AUDIO = (1 << 5),      /**< value is 0x020 */
+	GST_PLAY_FLAG_NATIVE_VIDEO = (1 << 6),      /**< value is 0x040 */
+	GST_PLAY_FLAG_DOWNLOAD = (1 << 7),          /**< value is 0x080 */
+	GST_PLAY_FLAG_BUFFERING = (1 << 8),         /**< value is 0x100 */
+	GST_PLAY_FLAG_DEINTERLACE = (1 << 9),       /**< value is 0x200 */
+	GST_PLAY_FLAG_SOFT_COLORBALANCE = (1 << 10) /**< value is 0x400 */
+}GstPlayFlags;
+
 class MiracastGstPlayer
 {
 public:
