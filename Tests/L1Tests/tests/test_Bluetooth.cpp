@@ -3,11 +3,15 @@
 #include "BluetoothMocks.h"
 #include "FactoriesImplementation.h"
 #include <vector>
+#include "IarmBusMock.h"
+#include "ServiceMock.h"
 
 // Declare the mock instance globally for C function overrides
 MockBluetoothManager* mockBluetoothManagerInstance = nullptr;
 
 using namespace WPEFramework;
+
+using ::testing::NiceMock;
 
 class BluetoothTest : public ::testing::Test {
 protected:
@@ -15,25 +19,42 @@ protected:
     Core::JSONRPC::Handler& handler;
     Core::JSONRPC::Connection connection;
     string response;
+    static IarmBusImplMock   *p_iarmBusImplMock;
 
     BluetoothTest()
         : bluetooth(Core::ProxyType<Plugin::Bluetooth>::Create())
         , handler(*bluetooth)
         , connection(1, 0)
-    {	  
-          mockBluetoothManagerInstance = new MockBluetoothManager();
+    {
+        mockBluetoothManagerInstance = new MockBluetoothManager();
     }
 
-    void SetUp() override {}
+    static void SetUpTestCase() {
+        std::cout << "Setup once before start test" << std::endl;
+        p_iarmBusImplMock  = new NiceMock <IarmBusImplMock>;
+        IarmBus::setImpl(p_iarmBusImplMock);
+    }
+
+    static void TearDownTestCase() {
+        // Called once after all test cases have run
+        std::cout << "Tearing down after all tests are run." << std::endl;
+        // Clean up tasks such as releasing resources or resetting state
+	delete p_iarmBusImplMock;
+	p_iarmBusImplMock = nullptr;
+    }
+
+    void SetUp() override {
+    }
 
     void TearDown() override {
-        //delete bluetooth;
 	delete mockBluetoothManagerInstance;
         mockBluetoothManagerInstance = nullptr;
     }
 
     virtual ~BluetoothTest() = default;
 };
+
+IarmBusImplMock* BluetoothTest::p_iarmBusImplMock = nullptr;
 
 // Test Case: Check registered JSONRPC methods
 TEST_F(BluetoothTest, RegisteredMethods) {	

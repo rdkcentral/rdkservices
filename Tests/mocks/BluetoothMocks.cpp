@@ -47,8 +47,9 @@ BTRMGR_Result_t BTRMGR_StopAudioStreamingOut(unsigned char aui8AdapterIdx, BTRMg
     return mockBluetoothManagerInstance->BTRMGR_StopAudioStreamingOut(aui8AdapterIdx, ahBTRMgrDevHdl);
 }
 
+// BTRMGR_UnRegisterFromCallbacks method not required to be mocked
 BTRMGR_Result_t BTRMGR_UnRegisterFromCallbacks(const char* apcProcessName) {
-    return mockBluetoothManagerInstance->BTRMGR_UnRegisterFromCallbacks(apcProcessName);
+    return BTRMGR_RESULT_SUCCESS;
 }
 
 BTRMGR_Result_t BTRMGR_StartAudioStreamingOut(unsigned char adapterIndex, BTRMgrDeviceHandle deviceHandle, BTRMGR_DeviceOperationType_t connectAs) {
@@ -99,12 +100,14 @@ BTRMGR_Result_t BTRMGR_UnpairDevice(unsigned char aui8AdapterIdx, BTRMgrDeviceHa
     return mockBluetoothManagerInstance->BTRMGR_UnpairDevice(aui8AdapterIdx, ahBTRMgrDevHdl);
 }
 
+//BTRMGR_RegisterEventCallback method not required to be mocked
 BTRMGR_Result_t BTRMGR_RegisterEventCallback(BTRMGR_EventCallback afpcBBTRMgrEventOut) {
-    return mockBluetoothManagerInstance->BTRMGR_RegisterEventCallback(afpcBBTRMgrEventOut);
+    return BTRMGR_RESULT_SUCCESS;
 }
 
+//BTRMGR_RegisterForCallbacks method not required to be mocked
 BTRMGR_Result_t BTRMGR_RegisterForCallbacks(const char* apcProcessName) {
-    return mockBluetoothManagerInstance->BTRMGR_RegisterForCallbacks(apcProcessName);
+    return BTRMGR_RESULT_SUCCESS;
 }
 
 BTRMGR_Result_t BTRMGR_GetConnectedDevices(unsigned char aui8AdapterIdx, BTRMGR_ConnectedDevicesList_t* pConnectedDevices) {
