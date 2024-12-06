@@ -375,13 +375,6 @@ namespace Plugin {
 	} 
 	else {
             LOGINFO("Platform Init successful...\n");
-            ret = TvSyncCalibrationInfoODM();
-            if(ret != tvERROR_NONE) {
-                LOGERR(" SD3 <->cri_data sync failed, ret: %s \n", getErrorString(ret).c_str());
-            }
-            else {
-                LOGERR(" SD3 <->cri_data sync success, ret: %s \n", getErrorString(ret).c_str());
-            }
         }
 
         tvVideoFormatCallbackData callbackData = {this,tvVideoFormatChangeHandler};
@@ -2282,21 +2275,40 @@ namespace Plugin {
     {
 
         LOGINFO("Entry\n");
-        pic_modes_t *dvModes;
+        tvDolbyMode_t *dvModes[1] = {NULL};
         unsigned short totalAvailable = 0;
-        tvError_t ret = GetTVSupportedDolbyVisionModesODM(&dvModes,&totalAvailable);
+
+        // Allocate memory for the modes
+        dvModes[0] = (tvDolbyMode_t *)malloc(MAX_DV_MODES * sizeof(tvDolbyMode_t));
+        if (dvModes[0]  == NULL) {
+            printf("Memory allocation failed for dvModes[0]\n");
+            return tvERROR_GENERAL;
+        }
+
+        // Set an initial value to indicate the mode type
+        *(dvModes[0]) = tvDolbyMode_Dark;
+
+        tvError_t ret = GetTVSupportedDolbyVisionModes(dvModes, &totalAvailable);
         if(ret != tvERROR_NONE) {
+            if (dvModes[0] != NULL) {
+                free(dvModes[0]);
+		dvModes[0] = NULL;
+            }
             returnResponse(false);
         }
         else {
             JsonArray SupportedDVModes;
 
             for(int count = 0;count <totalAvailable;count++ ) {
-                SupportedDVModes.Add(dvModes[count].name);
+                SupportedDVModes.Add(getDolbyModeStringFromEnum(dvModes[0][count]));
             }
 
             response["supportedDVModes"] = SupportedDVModes;
             LOGINFO("Exit\n");
+            if (dvModes[0] != NULL) {
+                free(dvModes[0]);
+		dvModes[0] = NULL;
+            }
             returnResponse(true);
         }
 
@@ -2376,7 +2388,7 @@ namespace Plugin {
 
         if( isSetRequired("Current",source,"DV") ) {
             LOGINFO("Proceed with setDolbyVisionMode\n\n");
-            ret = SetTVDolbyVisionModeODM(value.c_str());
+            ret = SetTVDolbyVisionMode(GetDolbyVisionEnumFromModeString(value.c_str()));
         }
 
         if(ret != tvERROR_NONE) {
@@ -2437,7 +2449,7 @@ namespace Plugin {
                 if( err == 0 ) {
                     std::string dolbyModeValue = getDolbyModeStringFromEnum((tvDolbyMode_t)dolbyMode);
                     LOGINFO("%s : getLocalparam success format :%d source : %d format : %d dolbyvalue : %s\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex, dolbyModeValue.c_str());
-                    ret = SetTVDolbyVisionModeODM(dolbyModeValue.c_str());
+                    ret = SetTVDolbyVisionMode((tvDolbyMode_t)dolbyMode);
                 }
                 else {
                     LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
@@ -2822,7 +2834,7 @@ namespace Plugin {
                     if ( tr181Success == err ) {
                         //get curren source and if matches save for that alone
                         tvVideoSrcType_t current_source = VIDEO_SOURCE_IP;
-                        GetCurrentSource(&current_source);
+                        GetCurrentVideoSource(&current_source);
 
                         tvVideoFormatType_t current_format = VIDEO_FORMAT_NONE;
                         GetCurrentVideoFormat(&current_format);
@@ -3077,7 +3089,7 @@ namespace Plugin {
         LOGINFO("Entry\n");
         tvVideoSrcType_t currentSource = VIDEO_SOURCE_IP;
 
-        tvError_t ret = GetCurrentSource(&currentSource);
+        tvError_t ret = GetCurrentVideoSource(&currentSource);
         if(ret != tvERROR_NONE) {
             response["currentVideoSource"] = "NONE";
             returnResponse(false);
