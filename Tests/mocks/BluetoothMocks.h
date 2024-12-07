@@ -9,6 +9,8 @@
 // Mock class for Bluetooth Manager functions
 class MockBluetoothManager {
 public:
+    BTRMGR_EventCallback evBluetoothHandler;
+
     MOCK_METHOD(BTRMGR_Result_t, BTRMGR_GetNumberOfAdapters, (unsigned char* pNumOfAdapters));
     MOCK_METHOD(BTRMGR_Result_t, BTRMGR_StartDeviceDiscovery, (unsigned char aui8AdapterIdx, BTRMGR_DeviceOperationType_t aenBTRMgrDevOpT));
     MOCK_METHOD(BTRMGR_Result_t, BTRMGR_StopDeviceDiscovery, (unsigned char aui8AdapterIdx, BTRMGR_DeviceOperationType_t aenBTRMgrDevOpT));

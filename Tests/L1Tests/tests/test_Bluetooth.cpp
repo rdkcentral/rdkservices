@@ -26,29 +26,40 @@ protected:
         , handler(*bluetooth)
         , connection(1, 0)
     {
-        mockBluetoothManagerInstance = new MockBluetoothManager();
     }
 
     static void SetUpTestCase() {
         std::cout << "Setup once before start test" << std::endl;
-        p_iarmBusImplMock  = new NiceMock <IarmBusImplMock>;
-        IarmBus::setImpl(p_iarmBusImplMock);
+
+	if(mockBluetoothManagerInstance == nullptr) {
+            p_iarmBusImplMock  = new NiceMock <IarmBusImplMock>;
+            IarmBus::setImpl(p_iarmBusImplMock);
+	}
+
+	if(mockBluetoothManagerInstance == nullptr) {
+	    mockBluetoothManagerInstance = new MockBluetoothManager();
+	}
     }
 
     static void TearDownTestCase() {
         // Called once after all test cases have run
         std::cout << "Tearing down after all tests are run." << std::endl;
         // Clean up tasks such as releasing resources or resetting state
-	delete p_iarmBusImplMock;
-	p_iarmBusImplMock = nullptr;
+	if (p_iarmBusImplMock != nullptr) {
+	    delete p_iarmBusImplMock;
+	    p_iarmBusImplMock = nullptr;
+	}
+
+	if(mockBluetoothManagerInstance != nullptr) {
+	    delete mockBluetoothManagerInstance;
+	    mockBluetoothManagerInstance = nullptr;
+	}
     }
 
     void SetUp() override {
     }
 
     void TearDown() override {
-	delete mockBluetoothManagerInstance;
-        mockBluetoothManagerInstance = nullptr;
     }
 
     virtual ~BluetoothTest() = default;
@@ -1793,4 +1804,560 @@ TEST_F(BluetoothTest, setDeviceVolumeMuteProperties_MissingParameters) {
     // Invoke the method under test with missing parameters
     EXPECT_EQ(Core::ERROR_GENERAL, handler.Invoke(connection, _T("setDeviceVolumeMuteInfo"), paramsStr, response));
     EXPECT_EQ(response.empty(), true);
+}
+
+TEST_F(BluetoothTest, EventCallbackTest) {
+    ASSERT_NE(mockBluetoothManagerInstance->evBluetoothHandler, nullptr);
+
+    {
+	BTRMGR_EventMessage_t eventMsg;
+        eventMsg.m_eventType = BTRMGR_EVENT_DEVICE_DISCOVERY_COMPLETE;
+        // Perform assertions on the result or any other necessary verifications
+        ASSERT_EQ(BTRMGR_RESULT_SUCCESS,mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+    }
+
+    // Test for BTRMGR_EVENT_DEVICE_PAIRING_COMPLETE
+    {
+        BTRMGR_EventMessage_t eventMsg;
+        eventMsg.m_eventType = BTRMGR_EVENT_DEVICE_PAIRING_COMPLETE;
+        strncpy(eventMsg.m_discoveredDevice.m_name, "Device Name", sizeof(eventMsg.m_discoveredDevice.m_name) - 1);
+        eventMsg.m_discoveredDevice.m_name[sizeof(eventMsg.m_discoveredDevice.m_name) - 1] = '\0';
+        eventMsg.m_discoveredDevice.m_deviceHandle = 123;
+        eventMsg.m_discoveredDevice.m_deviceType = BTRMGR_DEVICE_TYPE_HID;
+        eventMsg.m_discoveredDevice.m_ui32DevClassBtSpec = 456;
+        eventMsg.m_discoveredDevice.m_ui16DevAppearanceBleSpec = 789;
+        eventMsg.m_discoveredDevice.m_isLastConnectedDevice = true;
+        eventMsg.m_discoveredDevice.m_isPairedDevice = true;
+        eventMsg.m_discoveredDevice.m_isConnected = false;
+
+	EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetDeviceTypeAsString(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke([](BTRMGR_DeviceType_t deviceType) -> const char* {
+            switch (deviceType) {
+                case BTRMGR_DEVICE_TYPE_HID:
+                    return "HUMAN INTERFACE DEVICE";
+                default:
+                    return "UNKNOWN";
+            }
+        }));
+
+	// Perform assertions on the result or any other necessary verifications
+	ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+    }
+
+    // Test for BTRMGR_EVENT_DEVICE_UNPAIRING_COMPLETE
+    {
+        BTRMGR_EventMessage_t eventMsg;
+        eventMsg.m_eventType = BTRMGR_EVENT_DEVICE_UNPAIRING_COMPLETE;
+        strncpy(eventMsg.m_discoveredDevice.m_name, "Device Name", sizeof(eventMsg.m_discoveredDevice.m_name) - 1);
+        eventMsg.m_discoveredDevice.m_name[sizeof(eventMsg.m_discoveredDevice.m_name) - 1] = '\0';
+        eventMsg.m_discoveredDevice.m_deviceHandle = 123;
+        eventMsg.m_discoveredDevice.m_deviceType = BTRMGR_DEVICE_TYPE_HID;
+        eventMsg.m_discoveredDevice.m_ui32DevClassBtSpec = 456;
+        eventMsg.m_discoveredDevice.m_ui16DevAppearanceBleSpec = 789;
+        eventMsg.m_discoveredDevice.m_isLastConnectedDevice = true;
+        eventMsg.m_discoveredDevice.m_isPairedDevice = true;
+        eventMsg.m_discoveredDevice.m_isConnected = false;
+
+        EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetDeviceTypeAsString(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke([](BTRMGR_DeviceType_t deviceType) -> const char* {
+            switch (deviceType) {
+                case BTRMGR_DEVICE_TYPE_HID:
+                    return "HUMAN INTERFACE DEVICE";
+                default:
+                    return "UNKNOWN";
+            }
+        }));
+
+        // Perform assertions on the result or any other necessary verifications
+        ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+    }
+
+    // Test for BTRMGR_EVENT_DEVICE_DISCONNECT_COMPLETE
+    {
+        BTRMGR_EventMessage_t eventMsg;
+        eventMsg.m_eventType = BTRMGR_EVENT_DEVICE_DISCONNECT_COMPLETE;
+        strncpy(eventMsg.m_discoveredDevice.m_name, "Device Name", sizeof(eventMsg.m_discoveredDevice.m_name) - 1);
+        eventMsg.m_discoveredDevice.m_name[sizeof(eventMsg.m_discoveredDevice.m_name) - 1] = '\0';
+        eventMsg.m_discoveredDevice.m_deviceHandle = 123;
+        eventMsg.m_discoveredDevice.m_deviceType = BTRMGR_DEVICE_TYPE_HID;
+        eventMsg.m_discoveredDevice.m_ui32DevClassBtSpec = 456;
+        eventMsg.m_discoveredDevice.m_ui16DevAppearanceBleSpec = 789;
+        eventMsg.m_discoveredDevice.m_isLastConnectedDevice = true;
+        eventMsg.m_discoveredDevice.m_isPairedDevice = true;
+        eventMsg.m_discoveredDevice.m_isConnected = false;
+
+        EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetDeviceTypeAsString(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke([](BTRMGR_DeviceType_t deviceType) -> const char* {
+            switch (deviceType) {
+                case BTRMGR_DEVICE_TYPE_HID:
+                    return "HUMAN INTERFACE DEVICE";
+                default:
+                    return "UNKNOWN";
+            }
+        }));
+
+        // Perform assertions on the result or any other necessary verifications
+        ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+    }
+
+    // Test for BTRMGR_EVENT_DEVICE_DISCOVERY_STARTED
+    {
+        BTRMGR_EventMessage_t eventMsg;
+        eventMsg.m_eventType = BTRMGR_EVENT_DEVICE_DISCOVERY_STARTED;
+        // Perform assertions on the result or any other necessary verifications
+        ASSERT_EQ(BTRMGR_RESULT_SUCCESS,mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+    }
+
+    // Test for BTRMGR_EVENT_RECEIVED_EXTERNAL_PAIR_REQUEST
+    {
+	BTRMGR_EventMessage_t eventMsg;
+        eventMsg.m_eventType = BTRMGR_EVENT_RECEIVED_EXTERNAL_PAIR_REQUEST;
+        strncpy(eventMsg.m_externalDevice.m_name, "Device Name", sizeof(eventMsg.m_externalDevice.m_name) - 1);
+        eventMsg.m_externalDevice.m_name[sizeof(eventMsg.m_externalDevice.m_name) - 1] = '\0';
+        eventMsg.m_externalDevice.m_deviceHandle = 123;
+        eventMsg.m_externalDevice.m_deviceType = BTRMGR_DEVICE_TYPE_HID;
+        eventMsg.m_externalDevice.m_vendorID = 456;
+        strncpy(eventMsg.m_externalDevice.m_deviceAddress, "00:11:22:33:44:55", sizeof(eventMsg.m_externalDevice.m_deviceAddress) - 1);
+        eventMsg.m_externalDevice.m_deviceAddress[sizeof(eventMsg.m_externalDevice.m_deviceAddress) - 1] = '\0';
+
+        eventMsg.m_externalDevice.m_serviceInfo.m_numOfService = 2;
+        strncpy(eventMsg.m_externalDevice.m_serviceInfo.m_profileInfo[0].m_profile, "Profile1", sizeof(eventMsg.m_externalDevice.m_serviceInfo.m_profileInfo[0].m_profile) - 1);
+        eventMsg.m_externalDevice.m_serviceInfo.m_profileInfo[0].m_profile[sizeof(eventMsg.m_externalDevice.m_serviceInfo.m_profileInfo[0].m_profile) - 1] = '\0';
+        strncpy(eventMsg.m_externalDevice.m_serviceInfo.m_profileInfo[1].m_profile, "Profile2", sizeof(eventMsg.m_externalDevice.m_serviceInfo.m_profileInfo[1].m_profile) - 1);
+        eventMsg.m_externalDevice.m_serviceInfo.m_profileInfo[1].m_profile[sizeof(eventMsg.m_externalDevice.m_serviceInfo.m_profileInfo[1].m_profile) - 1] = '\0';
+
+        eventMsg.m_externalDevice.m_externalDevicePIN = 1234;
+
+        EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetDeviceTypeAsString(::testing::_))
+            .Times(1)
+            .WillOnce(::testing::Invoke([](BTRMGR_DeviceType_t deviceType) -> const char* {
+                switch (deviceType) {
+                    case BTRMGR_DEVICE_TYPE_HID:
+                        return "HUMAN INTERFACE DEVICE";
+                    default:
+                        return "UNKNOWN";
+            }
+        }));
+
+        // Perform assertions on the result or any other necessary verifications
+        ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+    }
+
+    {
+	BTRMGR_EventMessage_t eventMsg;
+	eventMsg.m_eventType = BTRMGR_EVENT_DEVICE_PAIRING_FAILED;
+	strncpy(eventMsg.m_discoveredDevice.m_name, "Device Name", sizeof(eventMsg.m_discoveredDevice.m_name) - 1);
+	eventMsg.m_discoveredDevice.m_name[sizeof(eventMsg.m_discoveredDevice.m_name) - 1] = '\0';
+	eventMsg.m_discoveredDevice.m_deviceHandle = 123;
+	eventMsg.m_discoveredDevice.m_deviceType = BTRMGR_DEVICE_TYPE_HID;
+	eventMsg.m_discoveredDevice.m_ui32DevClassBtSpec = 456;
+	eventMsg.m_discoveredDevice.m_ui16DevAppearanceBleSpec = 789;
+	eventMsg.m_discoveredDevice.m_isLastConnectedDevice = true;
+	eventMsg.m_discoveredDevice.m_isPairedDevice = true;
+	eventMsg.m_discoveredDevice.m_isConnected = false;
+
+	EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetDeviceTypeAsString(::testing::_))
+	    .Times(1)
+            .WillOnce(::testing::Invoke([](BTRMGR_DeviceType_t deviceType) -> const char* {
+                switch (deviceType) {
+                    case BTRMGR_DEVICE_TYPE_HID:
+                        return "HUMAN INTERFACE DEVICE";
+                    default:
+                        return "UNKNOWN";
+            }
+        }));
+
+	// Perform assertions on the result or any other necessary verifications
+	ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+    }
+
+    {
+        BTRMGR_EventMessage_t eventMsg;
+        eventMsg.m_eventType = BTRMGR_EVENT_DEVICE_UNPAIRING_FAILED;
+        strncpy(eventMsg.m_discoveredDevice.m_name, "Device Name", sizeof(eventMsg.m_discoveredDevice.m_name) - 1);
+        eventMsg.m_discoveredDevice.m_name[sizeof(eventMsg.m_discoveredDevice.m_name) - 1] = '\0';
+        eventMsg.m_discoveredDevice.m_deviceHandle = 123;
+        eventMsg.m_discoveredDevice.m_deviceType = BTRMGR_DEVICE_TYPE_HID;
+        eventMsg.m_discoveredDevice.m_ui32DevClassBtSpec = 456;
+        eventMsg.m_discoveredDevice.m_ui16DevAppearanceBleSpec = 789;
+        eventMsg.m_discoveredDevice.m_isLastConnectedDevice = true;
+        eventMsg.m_discoveredDevice.m_isPairedDevice = true;
+        eventMsg.m_discoveredDevice.m_isConnected = false;
+
+        EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetDeviceTypeAsString(::testing::_))
+            .Times(1)
+            .WillOnce(::testing::Invoke([](BTRMGR_DeviceType_t deviceType) -> const char* {
+                switch (deviceType) {
+                    case BTRMGR_DEVICE_TYPE_HID:
+                        return "HUMAN INTERFACE DEVICE";
+                    default:
+                        return "UNKNOWN";
+            }
+        }));
+
+        // Perform assertions on the result or any other necessary verifications
+        ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+    }
+
+    {
+        BTRMGR_EventMessage_t eventMsg;
+        eventMsg.m_eventType = BTRMGR_EVENT_DEVICE_CONNECTION_FAILED;
+        strncpy(eventMsg.m_discoveredDevice.m_name, "Device Name", sizeof(eventMsg.m_discoveredDevice.m_name) - 1);
+        eventMsg.m_discoveredDevice.m_name[sizeof(eventMsg.m_discoveredDevice.m_name) - 1] = '\0';
+        eventMsg.m_discoveredDevice.m_deviceHandle = 123;
+        eventMsg.m_discoveredDevice.m_deviceType = BTRMGR_DEVICE_TYPE_HID;
+        eventMsg.m_discoveredDevice.m_ui32DevClassBtSpec = 456;
+        eventMsg.m_discoveredDevice.m_ui16DevAppearanceBleSpec = 789;
+        eventMsg.m_discoveredDevice.m_isLastConnectedDevice = true;
+        eventMsg.m_discoveredDevice.m_isPairedDevice = true;
+        eventMsg.m_discoveredDevice.m_isConnected = false;
+
+        EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetDeviceTypeAsString(::testing::_))
+            .Times(1)
+            .WillOnce(::testing::Invoke([](BTRMGR_DeviceType_t deviceType) -> const char* {
+                switch (deviceType) {
+                    case BTRMGR_DEVICE_TYPE_HID:
+                        return "HUMAN INTERFACE DEVICE";
+                    default:
+                        return "UNKNOWN";
+            }
+        }));
+
+        // Perform assertions on the result or any other necessary verifications
+        ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+    }
+
+    {
+	BTRMGR_EventMessage_t eventMsg;
+	eventMsg.m_eventType = BTRMGR_EVENT_RECEIVED_EXTERNAL_PLAYBACK_REQUEST;
+	strncpy(eventMsg.m_externalDevice.m_name, "Device Name", sizeof(eventMsg.m_externalDevice.m_name) - 1);
+	eventMsg.m_externalDevice.m_name[sizeof(eventMsg.m_externalDevice.m_name) - 1] = '\0';
+	eventMsg.m_externalDevice.m_deviceHandle = 123;
+	eventMsg.m_externalDevice.m_deviceType = BTRMGR_DEVICE_TYPE_HID;
+	eventMsg.m_externalDevice.m_vendorID = 456;
+	strncpy(eventMsg.m_externalDevice.m_deviceAddress, "00:11:22:33:44:55", sizeof(eventMsg.m_externalDevice.m_deviceAddress) - 1);
+	eventMsg.m_externalDevice.m_deviceAddress[sizeof(eventMsg.m_externalDevice.m_deviceAddress) - 1] = '\0';
+
+	eventMsg.m_externalDevice.m_serviceInfo.m_numOfService = 2;
+	strncpy(eventMsg.m_externalDevice.m_serviceInfo.m_profileInfo[0].m_profile, "Profile1", sizeof(eventMsg.m_externalDevice.m_serviceInfo.m_profileInfo[0].m_profile) - 1);
+	eventMsg.m_externalDevice.m_serviceInfo.m_profileInfo[0].m_profile[sizeof(eventMsg.m_externalDevice.m_serviceInfo.m_profileInfo[0].m_profile) - 1] = '\0';
+	strncpy(eventMsg.m_externalDevice.m_serviceInfo.m_profileInfo[1].m_profile, "Profile2", sizeof(eventMsg.m_externalDevice.m_serviceInfo.m_profileInfo[1].m_profile) - 1);
+	eventMsg.m_externalDevice.m_serviceInfo.m_profileInfo[1].m_profile[sizeof(eventMsg.m_externalDevice.m_serviceInfo.m_profileInfo[1].m_profile) - 1] = '\0';
+
+	EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetDeviceTypeAsString(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke([](BTRMGR_DeviceType_t deviceType) -> const char* {
+            switch (deviceType) {
+                case BTRMGR_DEVICE_TYPE_HID:
+                    return "HUMAN INTERFACE DEVICE";
+                default:
+                    return "UNKNOWN";
+        }
+        }));
+        // Perform assertions on the result or any other necessary verifications
+        ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+    }
+
+    {
+        BTRMGR_EventMessage_t eventMsg;
+        eventMsg.m_eventType = BTRMGR_EVENT_MEDIA_TRACK_STARTED;
+        eventMsg.m_mediaInfo.m_deviceHandle = 123;
+        eventMsg.m_mediaInfo.m_mediaPositionInfo.m_mediaPosition = 10;
+        eventMsg.m_mediaInfo.m_mediaPositionInfo.m_mediaDuration = 60;
+
+        // Perform assertions on the result or any other necessary verifications
+        ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+    }
+
+    {
+	BTRMGR_EventMessage_t eventMsg;
+	eventMsg.m_eventType = BTRMGR_EVENT_MEDIA_TRACK_PAUSED;
+	eventMsg.m_mediaInfo.m_deviceHandle = 123;
+	eventMsg.m_mediaInfo.m_mediaPositionInfo.m_mediaPosition = 20;
+	eventMsg.m_mediaInfo.m_mediaPositionInfo.m_mediaDuration = 60;
+	ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+    }
+
+    {
+	BTRMGR_EventMessage_t eventMsg;
+	eventMsg.m_eventType = BTRMGR_EVENT_MEDIA_TRACK_STOPPED;
+	eventMsg.m_mediaInfo.m_deviceHandle = 123;
+	eventMsg.m_mediaInfo.m_mediaPositionInfo.m_mediaPosition = 30;
+	eventMsg.m_mediaInfo.m_mediaPositionInfo.m_mediaDuration = 60;
+
+	ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+    }
+
+    {
+	BTRMGR_EventMessage_t eventMsg;
+	eventMsg.m_eventType = BTRMGR_EVENT_MEDIA_PLAYBACK_ENDED;
+	eventMsg.m_mediaInfo.m_deviceHandle = 123;
+
+	ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+    }
+
+    {
+        BTRMGR_EventMessage_t eventMsg;
+        eventMsg.m_eventType = BTRMGR_EVENT_MEDIA_TRACK_PLAYING;
+        eventMsg.m_mediaInfo.m_deviceHandle = 123;
+        eventMsg.m_mediaInfo.m_mediaPositionInfo.m_mediaPosition = 10;
+        eventMsg.m_mediaInfo.m_mediaPositionInfo.m_mediaDuration = 60;
+
+        ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+    }
+
+    {
+        BTRMGR_EventMessage_t eventMsg;
+        eventMsg.m_eventType = BTRMGR_EVENT_MEDIA_TRACK_POSITION;
+        eventMsg.m_mediaInfo.m_deviceHandle = 123;
+        eventMsg.m_mediaInfo.m_mediaPositionInfo.m_mediaPosition = 20;
+        eventMsg.m_mediaInfo.m_mediaPositionInfo.m_mediaDuration = 60;
+
+        ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+    }
+
+    {
+	BTRMGR_EventMessage_t eventMsg;
+	eventMsg.m_eventType = BTRMGR_EVENT_MEDIA_TRACK_CHANGED;
+	eventMsg.m_mediaInfo.m_deviceHandle = 123;
+	strncpy(eventMsg.m_mediaInfo.m_mediaTrackInfo.pcAlbum, "Album", sizeof(eventMsg.m_mediaInfo.m_mediaTrackInfo.pcAlbum) - 1);
+	eventMsg.m_mediaInfo.m_mediaTrackInfo.pcAlbum[sizeof(eventMsg.m_mediaInfo.m_mediaTrackInfo.pcAlbum) - 1] = '\0';
+	strncpy(eventMsg.m_mediaInfo.m_mediaTrackInfo.pcGenre, "Genre", sizeof(eventMsg.m_mediaInfo.m_mediaTrackInfo.pcGenre) - 1);
+	eventMsg.m_mediaInfo.m_mediaTrackInfo.pcGenre[sizeof(eventMsg.m_mediaInfo.m_mediaTrackInfo.pcGenre) - 1] = '\0';
+	strncpy(eventMsg.m_mediaInfo.m_mediaTrackInfo.pcTitle, "Title", sizeof(eventMsg.m_mediaInfo.m_mediaTrackInfo.pcTitle) - 1);
+	eventMsg.m_mediaInfo.m_mediaTrackInfo.pcTitle[sizeof(eventMsg.m_mediaInfo.m_mediaTrackInfo.pcTitle) - 1] = '\0';
+	strncpy(eventMsg.m_mediaInfo.m_mediaTrackInfo.pcArtist, "Artist", sizeof(eventMsg.m_mediaInfo.m_mediaTrackInfo.pcArtist) - 1);
+	eventMsg.m_mediaInfo.m_mediaTrackInfo.pcArtist[sizeof(eventMsg.m_mediaInfo.m_mediaTrackInfo.pcArtist) - 1] = '\0';
+	eventMsg.m_mediaInfo.m_mediaTrackInfo.ui32Duration = 180;
+	eventMsg.m_mediaInfo.m_mediaTrackInfo.ui32TrackNumber = 3;
+	eventMsg.m_mediaInfo.m_mediaTrackInfo.ui32NumberOfTracks = 10;
+
+	ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+    }
+
+    {
+	BTRMGR_EventMessage_t eventMsg;
+	eventMsg.m_eventType = BTRMGR_EVENT_DEVICE_FOUND;
+	eventMsg.m_pairedDevice.m_deviceHandle = 123;
+	strncpy(eventMsg.m_pairedDevice.m_name, "Device Name", sizeof(eventMsg.m_pairedDevice.m_name) - 1);
+	eventMsg.m_pairedDevice.m_name[sizeof(eventMsg.m_pairedDevice.m_name) - 1] = '\0';
+	eventMsg.m_pairedDevice.m_deviceType = BTRMGR_DEVICE_TYPE_HID;
+	eventMsg.m_pairedDevice.m_ui32DevClassBtSpec = 456;
+	eventMsg.m_pairedDevice.m_ui16DevAppearanceBleSpec = 789;
+	eventMsg.m_pairedDevice.m_isLastConnectedDevice = true;
+
+	EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetDeviceTypeAsString(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke([](BTRMGR_DeviceType_t deviceType) -> const char* {
+            switch (deviceType) {
+                case BTRMGR_DEVICE_TYPE_HID:
+                    return "HUMAN INTERFACE DEVICE";
+                default:
+                    return "UNKNOWN";
+        }
+        }));
+
+	ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+    }
+
+    {
+        BTRMGR_EventMessage_t eventMsg;
+	eventMsg.m_eventType = BTRMGR_EVENT_DEVICE_OUT_OF_RANGE;
+	eventMsg.m_pairedDevice.m_deviceHandle = 123;
+	strncpy(eventMsg.m_pairedDevice.m_name, "Device Name", sizeof(eventMsg.m_pairedDevice.m_name) - 1);
+	eventMsg.m_pairedDevice.m_name[sizeof(eventMsg.m_pairedDevice.m_name) - 1] = '\0';
+	eventMsg.m_pairedDevice.m_deviceType = BTRMGR_DEVICE_TYPE_HID;
+	eventMsg.m_pairedDevice.m_ui32DevClassBtSpec = 456;
+	eventMsg.m_pairedDevice.m_ui16DevAppearanceBleSpec = 789;
+	eventMsg.m_pairedDevice.m_isLastConnectedDevice = true;
+
+	EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetDeviceTypeAsString(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke([](BTRMGR_DeviceType_t deviceType) -> const char* {
+            switch (deviceType) {
+                case BTRMGR_DEVICE_TYPE_HID:
+                    return "HUMAN INTERFACE DEVICE";
+                default:
+                    return "UNKNOWN";
+        }
+        }));
+
+	ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+    }
+
+    {
+	BTRMGR_EventMessage_t eventMsg;
+	eventMsg.m_eventType = BTRMGR_EVENT_DEVICE_DISCOVERY_UPDATE;
+	eventMsg.m_discoveredDevice.m_deviceHandle = 123;
+	eventMsg.m_discoveredDevice.m_isDiscovered = true;
+	strncpy(eventMsg.m_discoveredDevice.m_name, "Device Name", sizeof(eventMsg.m_discoveredDevice.m_name) - 1);
+	eventMsg.m_discoveredDevice.m_name[sizeof(eventMsg.m_discoveredDevice.m_name) - 1] = '\0';
+	eventMsg.m_discoveredDevice.m_deviceType = BTRMGR_DEVICE_TYPE_HID;
+	eventMsg.m_discoveredDevice.m_ui32DevClassBtSpec = 456;
+	eventMsg.m_discoveredDevice.m_ui16DevAppearanceBleSpec = 789;
+	eventMsg.m_discoveredDevice.m_isLastConnectedDevice = true;
+	eventMsg.m_discoveredDevice.m_isPairedDevice = true;
+
+	EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetDeviceTypeAsString(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke([](BTRMGR_DeviceType_t deviceType) -> const char* {
+            switch (deviceType) {
+                case BTRMGR_DEVICE_TYPE_HID:
+                    return "HUMAN INTERFACE DEVICE";
+                default:
+                    return "UNKNOWN";
+        }
+        }));
+
+        ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+    }
+
+    // Test for BTRMGR_EVENT_DEVICE_MEDIA_STATUS
+    {
+        BTRMGR_EventMessage_t eventMsg;
+	eventMsg.m_eventType = BTRMGR_EVENT_DEVICE_MEDIA_STATUS;
+	eventMsg.m_mediaInfo.m_deviceHandle = 123;
+	strncpy(eventMsg.m_mediaInfo.m_name, "Device Name", sizeof(eventMsg.m_mediaInfo.m_name) - 1);
+	eventMsg.m_mediaInfo.m_name[sizeof(eventMsg.m_mediaInfo.m_name) - 1] = '\0';
+	eventMsg.m_mediaInfo.m_deviceType = BTRMGR_DEVICE_TYPE_HID;
+	eventMsg.m_mediaInfo.m_mediaDevStatus.m_ui8mediaDevVolume = 50;
+	eventMsg.m_mediaInfo.m_mediaDevStatus.m_ui8mediaDevMute = false;
+	eventMsg.m_mediaInfo.m_mediaDevStatus.m_enmediaCtrlCmd = BTRMGR_MEDIA_CTRL_VOLUMEUP;
+
+	EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetDeviceTypeAsString(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke([](BTRMGR_DeviceType_t deviceType) -> const char* {
+            switch (deviceType) {
+                case BTRMGR_DEVICE_TYPE_HID:
+                    return "HUMAN INTERFACE DEVICE";
+                default:
+                    return "UNKNOWN";
+        }
+        }));
+
+	ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+
+	EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetDeviceTypeAsString(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke([](BTRMGR_DeviceType_t deviceType) -> const char* {
+            switch (deviceType) {
+                case BTRMGR_DEVICE_TYPE_HID:
+                    return "HUMAN INTERFACE DEVICE";
+                default:
+                    return "UNKNOWN";
+        }
+        }));
+
+	eventMsg.m_mediaInfo.m_mediaDevStatus.m_enmediaCtrlCmd = BTRMGR_MEDIA_CTRL_VOLUMEDOWN;
+	ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+
+	EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetDeviceTypeAsString(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke([](BTRMGR_DeviceType_t deviceType) -> const char* {
+            switch (deviceType) {
+                case BTRMGR_DEVICE_TYPE_HID:
+                    return "HUMAN INTERFACE DEVICE";
+                default:
+                    return "UNKNOWN";
+        }
+        }));
+
+        eventMsg.m_mediaInfo.m_mediaDevStatus.m_enmediaCtrlCmd = BTRMGR_MEDIA_CTRL_MUTE;
+        ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+
+	EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetDeviceTypeAsString(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke([](BTRMGR_DeviceType_t deviceType) -> const char* {
+            switch (deviceType) {
+                case BTRMGR_DEVICE_TYPE_HID:
+                    return "HUMAN INTERFACE DEVICE";
+                default:
+                    return "UNKNOWN";
+        }
+        }));
+
+        eventMsg.m_mediaInfo.m_mediaDevStatus.m_enmediaCtrlCmd = BTRMGR_MEDIA_CTRL_UNMUTE;
+        ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+
+	EXPECT_CALL(*mockBluetoothManagerInstance, BTRMGR_GetDeviceTypeAsString(::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke([](BTRMGR_DeviceType_t deviceType) -> const char* {
+            switch (deviceType) {
+                case BTRMGR_DEVICE_TYPE_HID:
+                    return "HUMAN INTERFACE DEVICE";
+                default:
+                    return "UNKNOWN";
+        }
+        }));
+
+        eventMsg.m_mediaInfo.m_mediaDevStatus.m_enmediaCtrlCmd = BTRMGR_MEDIA_CTRL_UNKNOWN;
+        ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+    }
+
+    // Test for not implemented events
+    {
+        BTRMGR_EventMessage_t eventMsg;
+        eventMsg.m_eventType = BTRMGR_EVENT_MAX;
+        ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+
+        eventMsg.m_eventType = BTRMGR_EVENT_DEVICE_OP_READY;
+        ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+
+        eventMsg.m_eventType = BTRMGR_EVENT_DEVICE_OP_INFORMATION;
+        ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+
+        eventMsg.m_eventType = BTRMGR_EVENT_MEDIA_PLAYER_NAME;
+        ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+
+        eventMsg.m_eventType = BTRMGR_EVENT_MEDIA_PLAYER_VOLUME;
+        ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+
+        eventMsg.m_eventType = BTRMGR_EVENT_MEDIA_PLAYER_EQUALIZER_OFF;
+        ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+
+        eventMsg.m_eventType = BTRMGR_EVENT_MEDIA_PLAYER_EQUALIZER_ON;
+        ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+
+        eventMsg.m_eventType = BTRMGR_EVENT_MEDIA_PLAYER_SHUFFLE_OFF;
+        ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+
+        eventMsg.m_eventType = BTRMGR_EVENT_MEDIA_PLAYER_SHUFFLE_ALLTRACKS;
+        ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+
+        eventMsg.m_eventType = BTRMGR_EVENT_MEDIA_PLAYER_SHUFFLE_GROUP;
+        ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+
+        eventMsg.m_eventType = BTRMGR_EVENT_MEDIA_PLAYER_REPEAT_OFF;
+        ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+
+        eventMsg.m_eventType = BTRMGR_EVENT_MEDIA_PLAYER_REPEAT_SINGLETRACK;
+        ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+
+        eventMsg.m_eventType = BTRMGR_EVENT_MEDIA_PLAYER_REPEAT_ALLTRACKS;
+        ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+
+        eventMsg.m_eventType = BTRMGR_EVENT_MEDIA_PLAYER_REPEAT_GROUP;
+        ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+
+        eventMsg.m_eventType = BTRMGR_EVENT_MEDIA_ALBUM_INFO;
+        ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+
+        eventMsg.m_eventType = BTRMGR_EVENT_MEDIA_ARTIST_INFO;
+        ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+
+        eventMsg.m_eventType = BTRMGR_EVENT_MEDIA_GENRE_INFO;
+        ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+
+        eventMsg.m_eventType = BTRMGR_EVENT_MEDIA_COMPILATION_INFO;
+        ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+
+        eventMsg.m_eventType = BTRMGR_EVENT_MEDIA_PLAYLIST_INFO;
+        ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+
+        eventMsg.m_eventType = BTRMGR_EVENT_MEDIA_TRACKLIST_INFO;
+        ASSERT_EQ(BTRMGR_RESULT_SUCCESS, mockBluetoothManagerInstance->evBluetoothHandler(eventMsg));
+    }
 }

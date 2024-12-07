@@ -100,8 +100,11 @@ BTRMGR_Result_t BTRMGR_UnpairDevice(unsigned char aui8AdapterIdx, BTRMgrDeviceHa
     return mockBluetoothManagerInstance->BTRMGR_UnpairDevice(aui8AdapterIdx, ahBTRMgrDevHdl);
 }
 
-//BTRMGR_RegisterEventCallback method not required to be mocked
 BTRMGR_Result_t BTRMGR_RegisterEventCallback(BTRMGR_EventCallback afpcBBTRMgrEventOut) {
+    if(mockBluetoothManagerInstance != nullptr) {
+        mockBluetoothManagerInstance->evBluetoothHandler = afpcBBTRMgrEventOut;
+    }
+    //return mockBluetoothManagerInstance->BTRMGR_RegisterEventCallback(afpcBBTRMgrEventOut);
     return BTRMGR_RESULT_SUCCESS;
 }
 
