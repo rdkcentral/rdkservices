@@ -117,6 +117,7 @@ namespace Plugin {
         uint32_t get_modelid(JsonData::DeviceInfo::ModelidData& response) const;
         uint32_t get_make(JsonData::DeviceInfo::MakeData& response) const;
         uint32_t get_modelname(JsonData::DeviceInfo::ModelnameData& response) const;
+        uint32_t get_brandname(JsonData::DeviceInfo::BrandnameData& response) const;
         uint32_t get_devicetype(JsonData::DeviceInfo::DevicetypeData& response) const;
         uint32_t get_distributorid(JsonData::DeviceInfo::DistributoridData& response) const;
         uint32_t get_supportedaudioports(JsonData::DeviceInfo::SupportedaudioportsData& response) const;
