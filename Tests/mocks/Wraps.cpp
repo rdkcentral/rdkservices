@@ -71,6 +71,11 @@ extern "C" ssize_t __wrap_readlink(const char *pathname, char *buf, size_t bufsi
     return Wraps::getInstance().readlink(pathname, buf, bufsiz);
 }
 
+extern "C" time_t __wrap_time(time_t *arg)
+{
+    return Wraps::getInstance().time(arg);
+}
+
 WrapsImpl* Wraps::impl = nullptr;
 
 Wraps::Wraps() {}
@@ -147,5 +152,11 @@ ssize_t Wraps::readlink(const char *pathname, char *buf, size_t bufsiz)
 {
     EXPECT_NE(impl, nullptr);
     return impl->readlink(pathname,buf,bufsiz);
+}
+
+time_t Wraps::time(time_t* arg)
+{
+    EXPECT_NE(impl, nullptr);
+    return impl->time(arg);
 }
 

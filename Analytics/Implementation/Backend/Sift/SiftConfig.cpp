@@ -30,7 +30,6 @@
 #define PERSISTENT_STORE_ACCOUNT_PROFILE_NAMESPACE "accountProfile"
 #define JSONRPC_THUNDER_TIMEOUT 20000
 #define THUNDER_ACCESS_DEFAULT_VALUE "127.0.0.1:9998"
-#define SIFT_PARTNER_ID_DFL  "rdk"
 
 namespace WPEFramework
 {
@@ -510,6 +509,7 @@ namespace WPEFramework
                 mAttributes.proposition = config.Sift.PlatformDfl.Value();
                 
                 mStoreConfig.path = config.Sift.StorePath.Value();
+                SYSLOG(Logging::Startup, ("Sift Store Path: %s", mStoreConfig.path.c_str()));
                 mStoreConfig.eventsLimit = config.Sift.EventsLimit.Value();
 
                 mUploaderConfig.url = config.Sift.Url.Value();
@@ -621,7 +621,6 @@ namespace WPEFramework
             {
                 LOGERR("Failed to get AuthService link");
                 mMutex.lock();
-                mAttributes.partnerId = SIFT_PARTNER_ID_DFL;
                 mAttributes.activated = false;
                 mMutex.unlock();
             }
@@ -666,6 +665,14 @@ namespace WPEFramework
                     mMutex.unlock();
                     LOGINFO("Got deviceModel %s", mAttributes.deviceModel.c_str());
                 }
+
+                mMutex.lock();
+                if (result == Core::ERROR_NONE && mAttributes.partnerId.empty() && response.HasLabel("friendly_id"))
+                {
+                    mAttributes.partnerId = response["friendly_id"].String();
+                    LOGINFO("Got partnerId %s", mAttributes.partnerId.c_str());
+                }
+                mMutex.unlock();
 
                 // Get deviceFriendlyName from System.1.getFriendlyName[friendlyName]
                 result = systemLink->Invoke<JsonObject, JsonObject>(JSONRPC_THUNDER_TIMEOUT, "getFriendlyName", params, response);

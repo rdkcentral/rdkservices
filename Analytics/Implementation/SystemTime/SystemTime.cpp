@@ -101,19 +101,11 @@ namespace WPEFramework
 
         SystemTime::TimeZoneAccuracy SystemTime::GetTimeZoneOffset(int32_t &offsetSec)
         {
-            std::string tz;
-            std::string accuracyString;
-            bool isTimeAvailable = false;
-            {
-                std::lock_guard<std::mutex> guard(mLock);
-                tz = mTimeZone;
-                accuracyString = mTimeZoneAccuracyString;
-                isTimeAvailable = mIsSystemTimeAvailable;
-            }
+            std::lock_guard<std::mutex> guard(mLock);
 
-            if (isTimeAvailable)
+            if (mIsSystemTimeAvailable)
             {
-                std::pair<SystemTime::TimeZoneAccuracy, int32_t> tzParsed = ParseTimeZone(tz, accuracyString);
+                std::pair<SystemTime::TimeZoneAccuracy, int32_t> tzParsed = ParseTimeZone(mTimeZone, mTimeZoneAccuracyString);
                 offsetSec = tzParsed.second;
                 return tzParsed.first;
             }
@@ -220,6 +212,12 @@ namespace WPEFramework
                 {
                     mIsSystemTimeAvailable = false;
                 }
+            }
+            else
+            {
+                LOGERR("getTimeStatus not available, assuming time is OK");
+                std::lock_guard<std::mutex> guard(mLock);
+                mIsSystemTimeAvailable = true;
             }
         }
 

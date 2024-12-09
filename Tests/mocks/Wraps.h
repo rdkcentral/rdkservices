@@ -18,6 +18,7 @@ public:
     virtual int v_secure_pclose(FILE *) = 0;
     virtual int v_secure_system(const char *command, va_list args) =0;
     virtual ssize_t readlink(const char *pathname, char *buf, size_t bufsiz) = 0;
+    virtual time_t time(time_t* arg) = 0;
 };
 
 class Wraps {
@@ -49,4 +50,6 @@ public:
     static int v_secure_system(const char *command, va_list args);
 
     ssize_t readlink(const char *pathname, char *buf, size_t bufsiz);
+
+    static time_t time(time_t* arg);
 };
