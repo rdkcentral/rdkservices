@@ -96,13 +96,18 @@ namespace WPEFramework
                     queueTimeout = std::chrono::milliseconds(POPULATE_CONFIG_TIMEOUT_MS);
                 }
 
-                if (queueTimeout == std::chrono::milliseconds::max())
+                if (mActionQueue.empty())
                 {
-                    mQueueCondition.wait(lock, [this] { return !mActionQueue.empty(); });
-                }
-                else
-                {
-                    mQueueCondition.wait_for(lock, queueTimeout, [this] { return !mActionQueue.empty(); });
+                    if (queueTimeout == std::chrono::milliseconds::max())
+                    {
+                        mQueueCondition.wait(lock, [this]
+                                             { return !mActionQueue.empty(); });
+                    }
+                    else
+                    {
+                        mQueueCondition.wait_for(lock, queueTimeout, [this]
+                                                 { return !mActionQueue.empty(); });
+                    }
                 }
 
                 Action action = {ACTION_TYPE_UNDEF, nullptr};
@@ -169,6 +174,7 @@ namespace WPEFramework
                 {
                     configValid = false;
                 }
+
                 lock.unlock();
 
                 switch (action.type)
