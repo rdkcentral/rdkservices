@@ -67,6 +67,7 @@ public:
     uint32_t getApiVersionNumber() const { return 1; };
 
 private:
+    void split(const std::string& source, char delimiter, std::vector<std::string>& outputStrings); 
     int mEventListenerId; // Dobby event listener ID
     long unsigned mOmiListenerId;
     std::shared_ptr<IDobbyProxy> mDobbyProxy; // DobbyProxy instance
