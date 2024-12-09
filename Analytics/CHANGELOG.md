@@ -14,6 +14,12 @@ All notable changes to this RDK Service will be documented in this file.
 
     For more details, refer to versioning section under Main README.
 
+## [1.0.2] - 2024-12-04
+- Documentation update
+
+## [1.0.1] - 2024-10-16
+- Support generation of sessionID, SysTime validation and limit nbr of external attributes for Sift
+
 ## [1.0.0] - 2024-07-25
 ### Added
 - New RDK Service Analytics to handle analytics events and send them to dedicated backends

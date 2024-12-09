@@ -1,0 +1,74 @@
+From 940f48745071ff6036d24a9d40bf7b314852538e Mon Sep 17 00:00:00 2001
+From: Adrian Muzyka <adrian.muzyka@consult.red>
+Date: Tue, 29 Oct 2024 07:37:13 +0100
+Subject: [PATCH] Add IAnalytics interface R4.4
+
+---
+ interfaces/IAnalytics.h | 39 +++++++++++++++++++++++++++++++++++++++
+ interfaces/Ids.h        |  4 +++-
+ 2 files changed, 42 insertions(+), 1 deletion(-)
+ create mode 100644 interfaces/IAnalytics.h
+
+diff --git a/interfaces/IAnalytics.h b/interfaces/IAnalytics.h
+new file mode 100644
+index 0000000..c33d8e0
+--- /dev/null
++++ b/interfaces/IAnalytics.h
+@@ -0,0 +1,39 @@
++#pragma once
++
++#include "Module.h"
++
++// @stubgen:include <com/IIteratorType.h>
++
++namespace WPEFramework {
++namespace Exchange {
++    // @json 1.0.0
++    struct EXTERNAL IAnalytics : virtual public Core::IUnknown {
++        enum { ID = ID_ANALYTICS };
++
++        virtual ~IAnalytics() override = default;
++
++        using IStringIterator = RPC::IIteratorType<string, RPC::ID_STRINGITERATOR>;
++
++        
++        // @alt sendEvent
++        // @brief Send an event to the analytics server
++        // @param eventName: Name of the event
++        // @param eventVersion: Version of the event
++        // @param eventSource: Source of the event
++        // @param eventSourceVersion: Version of the event source
++        // @param cetList: List of CETs
++        // @param epochTimestamp: Epoch timestamp of the event
++        // @param uptimeTimestamp: Uptime timestamp of the event
++        // @param eventPayload: Payload of the event
++
++        virtual Core::hresult SendEvent(const string& eventName /* @in @text eventName*/,
++                                   const string& eventVersion /* @in @text eventVersion*/,
++                                   const string& eventSource /* @in @text eventSource*/,
++                                   const string& eventSourceVersion /* @in @text eventSourceVersion*/,
++                                   IStringIterator* const& cetList /* @in @text cetList*/,
++                                   const uint64_t epochTimestamp /* @in @text epochTimestamp*/,
++                                   const uint64_t uptimeTimestamp /* @in @text uptimeTimestamp*/,
++                                   const string& eventPayload /* @in @text eventPayload*/ ) = 0;
++    };
++}
++}
+diff --git a/interfaces/Ids.h b/interfaces/Ids.h
+index 7d53320..0296d66 100644
+--- a/interfaces/Ids.h
++++ b/interfaces/Ids.h
+@@ -368,7 +368,9 @@ namespace Exchange {
+         ID_DEVICE_OPTIMIZE_STATE_ACTIVATOR           = RPC::IDS::ID_EXTERNAL_INTERFACE_OFFSET + 0x510,
+ 
+         ID_SYSTEM_MODE                               = RPC::IDS::ID_EXTERNAL_INTERFACE_OFFSET + 0x520,
+-        ID_SYSTEM_MODE_NOTIFICATION                  = ID_SYSTEM_MODE + 1
++        ID_SYSTEM_MODE_NOTIFICATION                  = ID_SYSTEM_MODE + 1,
++
++        ID_ANALYTICS                                 = RPC::IDS::ID_EXTERNAL_INTERFACE_OFFSET + 0x530,
+     };
+ }
+ }
+-- 
+2.25.1
+

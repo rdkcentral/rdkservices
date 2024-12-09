@@ -29,6 +29,8 @@
 #define PERSISTENT_STORE_ANALYTICS_NAMESPACE "Analytics"
 #define PERSISTENT_STORE_ACCOUNT_PROFILE_NAMESPACE "accountProfile"
 #define JSONRPC_THUNDER_TIMEOUT 20000
+#define THUNDER_ACCESS_DEFAULT_VALUE "127.0.0.1:9998"
+#define SIFT_PARTNER_ID_DFL  "rdk"
 
 namespace WPEFramework
 {
@@ -55,6 +57,7 @@ namespace WPEFramework
                     , ProductName()
                     , LoggerName()
                     , LoggerVersion()
+                    , PlatformDfl("entos:rdk")
                     , MaxRandomisationWindowTime(300)
                     , MaxEventsInPost(10)
                     , MaxRetries(10)
@@ -72,6 +75,7 @@ namespace WPEFramework
                     Add(_T("productname"), &ProductName);
                     Add(_T("loggername"), &LoggerName);
                     Add(_T("loggerversion"), &LoggerVersion);
+                    Add(_T("platformdefalut"), &PlatformDfl);
                     Add(_T("maxrandomisationwindowtime"), &MaxRandomisationWindowTime);
                     Add(_T("maxeventsinpost"), &MaxEventsInPost);
                     Add(_T("maxretries"), &MaxRetries);
@@ -91,6 +95,7 @@ namespace WPEFramework
                 Core::JSON::String ProductName;
                 Core::JSON::String LoggerName;
                 Core::JSON::String LoggerVersion;
+                Core::JSON::String PlatformDfl;
                 Core::JSON::DecUInt32 MaxRandomisationWindowTime;
                 Core::JSON::DecUInt32 MaxEventsInPost;
                 Core::JSON::DecUInt32 MaxRetries;
@@ -303,13 +308,15 @@ namespace WPEFramework
             }
         };
 
-        SiftConfig::SiftConfig(PluginHost::IShell *shell) : mInitializationThread(),
+        SiftConfig::SiftConfig(PluginHost::IShell *shell, SystemTimePtr systemTime) : mInitializationThread(),
                                                             mMonitorKeys(),
                                                             mMutex(),
                                                             mAttributes(),
                                                             mStoreConfig(),
                                                             mUploaderConfig(),
-                                                            mShell(shell)
+                                                            mShell(shell),
+                                                            mSystemTime(systemTime),
+                                                            mAuthServiceLink(nullptr)
         {
             ASSERT(shell != nullptr);
             ParsePluginConfig();
@@ -319,6 +326,7 @@ namespace WPEFramework
 
         SiftConfig::~SiftConfig()
         {
+            LOGINFO("SiftConfig::~SiftConfig");
             mInitializationThread.join();
             // Unregister for notifications
             auto interface = mShell->QueryInterfaceByCallsign<Exchange::IStore>(PERSISTENT_STORE_CALLSIGN);
@@ -331,17 +339,27 @@ namespace WPEFramework
                 uint32_t result = interface->Unregister(&mMonitorKeys);
                 LOGINFO("IStore status %d", result);
                 interface->Release();
-            }         
+            }
+            if (mAuthServiceLink != nullptr)
+            {
+                mAuthServiceLink->Unsubscribe(JSONRPC_THUNDER_TIMEOUT, _T("onActivationStatusChanged"));
+            }
         }
 
         bool SiftConfig::GetAttributes(SiftConfig::Attributes &attributes)
         {
-            // Get latest values from AuthService
-            GetAuthServiceValues();
+            UpdateXboValues();
+            bool timeZoneValid = UpdateTimeZone();
 
             mMutex.lock();
-
             bool valid = false;
+
+            // If not activated, make sure xbo values are empty and do not contain any old data
+            if (!mAttributes.activated)
+            {
+                mAttributes.xboDeviceId.clear();
+                mAttributes.xboAccountId.clear();
+            }
 
             if (mAttributes.schema2Enabled)
             {
@@ -349,8 +367,10 @@ namespace WPEFramework
                 bool activatedValid = mAttributes.activated ? (!mAttributes.xboDeviceId.empty()
                     && !mAttributes.xboAccountId.empty()) : true;
 
-                valid = (!mAttributes.sessionId.empty()
-                    && !mAttributes.commonSchema.empty()
+                // Sift2.0 platform equals proposition
+                mAttributes.platform = mAttributes.proposition;
+
+                valid = (!mAttributes.commonSchema.empty()
                     && !mAttributes.productName.empty()
                     && !mAttributes.productVersion.empty()
                     && !mAttributes.loggerName.empty()
@@ -359,52 +379,14 @@ namespace WPEFramework
                     && activatedValid
                     && !mAttributes.deviceModel.empty()
                     && !mAttributes.deviceType.empty()
-                    && !mAttributes.deviceTimeZone.empty()
                     && !mAttributes.deviceOsName.empty()
                     && !mAttributes.deviceOsVersion.empty()
                     && !mAttributes.platform.empty()
                     && !mAttributes.deviceManufacturer.empty()
-                    && !mAttributes.sessionId.empty()
                     && !mAttributes.proposition.empty()
                     && !mAttributes.deviceSerialNumber.empty()
-                    && !mAttributes.deviceMacAddress.empty());
-
-                LOGINFO(" commonSchema: %s,"
-                        " productName: %s,"
-                        " productVersion: %s,"
-                        " loggerName: %s,"
-                        " loggerVersion: %s,"
-                        " partnerId: %s,"
-                        " activatedValid %d,"
-                        " deviceModel: %s,"
-                        " deviceType: %s,"
-                        " deviceTimeZone: %s,"
-                        " deviceOsName: %s,"
-                        " deviceOsVersion: %s,"
-                        " platform: %s,"
-                        " deviceManufacturer: %s,"
-                        " sessionId: %s,"
-                        " proposition: %s,"
-                        " deviceSerialNumber: %s,"
-                        " deviceMacAddress: %s,",
-                        mAttributes.commonSchema.c_str(),
-                        mAttributes.productName.c_str(),
-                        mAttributes.productVersion.c_str(),
-                        mAttributes.loggerName.c_str(),
-                        mAttributes.loggerVersion.c_str(),
-                        mAttributes.partnerId.c_str(),
-                        activatedValid,
-                        mAttributes.deviceModel.c_str(),
-                        mAttributes.deviceType.c_str(),
-                        mAttributes.deviceTimeZone.c_str(),
-                        mAttributes.deviceOsName.c_str(),
-                        mAttributes.deviceOsVersion.c_str(),
-                        mAttributes.platform.c_str(),
-                        mAttributes.deviceManufacturer.c_str(),
-                        mAttributes.sessionId.c_str(),
-                        mAttributes.proposition.c_str(),
-                        mAttributes.deviceSerialNumber.c_str(),
-                        mAttributes.deviceMacAddress.c_str());
+                    && !mAttributes.deviceMacAddress.empty()
+                    && timeZoneValid);
 
                 if (valid)
                 {
@@ -420,24 +402,14 @@ namespace WPEFramework
             }
             else //Sift 1.0 required attributes
             {
-                valid = (!mAttributes.sessionId.empty()
-                    && !mAttributes.productName.empty()
+                valid = (!mAttributes.productName.empty()
                     && !mAttributes.deviceAppName.empty()
                     && !mAttributes.deviceAppVersion.empty()
                     && !mAttributes.deviceModel.empty()
-                    && !mAttributes.deviceTimeZone.empty()
                     && !mAttributes.platform.empty()
-                    && !mAttributes.deviceSoftwareVersion.empty()
-                    && !mAttributes.deviceType.empty());
-
-                LOGINFO("%s, %s, %s, %s, %s, %s, %s",
-                    mAttributes.productName.c_str(),
-                    mAttributes.deviceAppName.c_str(),
-                    mAttributes.deviceAppVersion.c_str(),
-                    mAttributes.deviceModel.c_str(),
-                    mAttributes.platform.c_str(),
-                    mAttributes.deviceSoftwareVersion.c_str(),
-                    mAttributes.deviceType.c_str());
+                    && !mAttributes.deviceOsVersion.empty()
+                    && !mAttributes.deviceType.empty()
+                    && timeZoneValid);
             }
 
             if (valid)
@@ -464,21 +436,13 @@ namespace WPEFramework
         bool SiftConfig::GetUploaderConfig(UploaderConfig &config)
         {
             mMutex.lock();
-            bool valid = !mUploaderConfig.url.empty()
-                    && !mUploaderConfig.apiKey.empty();
+            bool valid = !mUploaderConfig.url.empty();
             if (valid)
             {
                 config = mUploaderConfig;
             }
             mMutex.unlock();
             return valid;
-        }
-
-        void SiftConfig::SetSessionId(const std::string &sessionId)
-        {
-            mMutex.lock();
-            mAttributes.sessionId = sessionId;
-            mMutex.unlock();
         }
 
         void SiftConfig::TriggerInitialization()
@@ -489,38 +453,32 @@ namespace WPEFramework
         void SiftConfig::InitializeKeysMap()
         {
             //SIFT 2.0 attributes from persistent storage
-            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["deviceHardwareModel"] = &mAttributes.deviceModel;
             mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["deviceType"] = &mAttributes.deviceType;
-            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["devicePlatform"] = &mAttributes.platform;
             mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["modelNumber"] = &mAttributes.deviceOsVersion;
             mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["manufacturer"] = &mAttributes.deviceManufacturer;
             mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["serialNumber"] = &mAttributes.deviceSerialNumber;
-            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["macAddress"] = &mAttributes.deviceMacAddress;
             mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["entertainmentOSVersion"] = &mAttributes.productVersion;
-            mKeysMap[PERSISTENT_STORE_ACCOUNT_PROFILE_NAMESPACE]["proposition"] = &mAttributes.proposition;
+            //For Sift 1.0 use default values from config
+            if (mAttributes.schema2Enabled)
+            {
+                mKeysMap[PERSISTENT_STORE_ACCOUNT_PROFILE_NAMESPACE]["proposition"] = &mAttributes.proposition;
+            }
             mKeysMap[PERSISTENT_STORE_ACCOUNT_PROFILE_NAMESPACE]["retailer"] = &mAttributes.retailer;
             mKeysMap[PERSISTENT_STORE_ACCOUNT_PROFILE_NAMESPACE]["jvagent"] = &mAttributes.jvAgent;
             mKeysMap[PERSISTENT_STORE_ACCOUNT_PROFILE_NAMESPACE]["coam"] = &mAttributes.coam;
-            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["country"] = &mAttributes.country;//TODO
-            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["region"] = &mAttributes.region;//TODO
             mKeysMap[PERSISTENT_STORE_ACCOUNT_PROFILE_NAMESPACE]["accountType"] = &mAttributes.accountType;
             mKeysMap[PERSISTENT_STORE_ACCOUNT_PROFILE_NAMESPACE]["operator"] = &mAttributes.accountOperator;
             mKeysMap[PERSISTENT_STORE_ACCOUNT_PROFILE_NAMESPACE]["detailType"] = &mAttributes.accountDetailType;
 
-            //TODO: Values provided by AS but should be provided by RDK
-            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["deviceTimeZone"] = &mAttributes.deviceTimeZone;
-
             //SIFT 1.0 attributes from persistent storage
-            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["deviceSoftwareVersion"] = &mAttributes.deviceSoftwareVersion;
             mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["deviceAppName"] = &mAttributes.deviceAppName;
             mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["deviceAppVersion"] = &mAttributes.deviceAppVersion;
-            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["accountId"] = &mAttributes.accountId;
-            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["deviceId"] = &mAttributes.deviceId;
-            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["partnerId"] = &mAttributes.partnerId;
 
             // If Sift url empty, try to get from persistent store
-            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["sift_url"] = &mUploaderConfig.url;
-            mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["sift_xapikey"] = &mUploaderConfig.apiKey; 
+            if (mUploaderConfig.url.empty())
+            {
+                mKeysMap[PERSISTENT_STORE_ANALYTICS_NAMESPACE]["sift_url"] = &mUploaderConfig.url;
+            }
         }
 
         void SiftConfig::ParsePluginConfig()
@@ -546,6 +504,10 @@ namespace WPEFramework
                 mAttributes.loggerName = config.Sift.LoggerName.Value();
                 mAttributes.loggerVersion = config.Sift.LoggerVersion.Value();
                 mAttributes.deviceOsName = config.DeviceOsName.Value();
+
+                // Set a default values for platform and proposition if not available in Persistent Store
+                mAttributes.platform = config.Sift.PlatformDfl.Value();
+                mAttributes.proposition = config.Sift.PlatformDfl.Value();
                 
                 mStoreConfig.path = config.Sift.StorePath.Value();
                 mStoreConfig.eventsLimit = config.Sift.EventsLimit.Value();
@@ -558,12 +520,13 @@ namespace WPEFramework
                 mUploaderConfig.maxRetryPeriod = config.Sift.MaxRetryPeriod.Value();
                 mUploaderConfig.exponentialPeriodicFactor = config.Sift.ExponentialPeriodicFactor.Value();
                 
-                SYSLOG(Logging::Startup, (_T("Parsed Analytics config: '%s', '%s', '%s', '%s', '%s', '%s'."),
+                SYSLOG(Logging::Startup, (_T("Parsed Analytics config: '%s', '%s', '%s', '%s', '%s', '%s', '%s'."),
                                           mAttributes.commonSchema.c_str(),
                                           mAttributes.env.c_str(),
                                           mAttributes.productName.c_str(),
                                           mAttributes.loggerName.c_str(),
                                           mAttributes.loggerVersion.c_str(),
+                                          mAttributes.platform.c_str(),
                                           mAttributes.deviceOsName.c_str()
                     ));
             }
@@ -607,8 +570,61 @@ namespace WPEFramework
             {
                 ActivatePlugin(mShell, AUTHSERVICE_CALLSIGN);
             }
- 
-            GetAuthServiceValues();
+
+            // try to create AuthService jsonrpc link and register to onActivationStatusChanged event
+            mAuthServiceLink = GetThunderControllerClient(AUTHSERVICE_CALLSIGN);
+            if (mAuthServiceLink)
+            {
+                uint32_t result = mAuthServiceLink->Subscribe<JsonObject>(JSONRPC_THUNDER_TIMEOUT, _T("onActivationStatusChanged"), &SiftConfig::OnActivationStatusChanged, this);
+                if (result != Core::ERROR_NONE)
+                {
+                    LOGERR("Failed to subscribe to onActivationStatusChanged");
+                }
+
+                JsonObject params;
+                JsonObject response;
+
+                // Get partnerId from AuthService.getDeviceId
+                result = mAuthServiceLink->Invoke<JsonObject, JsonObject>(JSONRPC_THUNDER_TIMEOUT, "getDeviceId", params, response);
+                if (result == Core::ERROR_NONE && response.HasLabel("partnerId"))
+                {
+                    mMutex.lock();
+                    mAttributes.partnerId = response["partnerId"].String();
+                    LOGINFO("Got partnerId %s", mAttributes.partnerId.c_str());
+                    mMutex.unlock();
+                }
+                else
+                {
+                    LOGERR("Failed to get partnerId: %d", result);
+                }
+
+                // Get current activation status from AuthService.getActivationStatus
+                result = mAuthServiceLink->Invoke<JsonObject, JsonObject>(JSONRPC_THUNDER_TIMEOUT, "getActivationStatus", params, response);
+                if (result == Core::ERROR_NONE && response.HasLabel("status"))
+                {
+                    bool activated = false;
+                    if (response["status"].String() == "activated")
+                    {
+                        activated = true;
+                    }
+
+                    mMutex.lock();
+                    mAttributes.activated = activated;
+                    mMutex.unlock();
+                }
+                else
+                {
+                    LOGERR("Failed to get activation status");
+                }
+            }
+            else
+            {
+                LOGERR("Failed to get AuthService link");
+                mMutex.lock();
+                mAttributes.partnerId = SIFT_PARTNER_ID_DFL;
+                mAttributes.activated = false;
+                mMutex.unlock();
+            }
 
             //Activate System plugin if needed
             if (IsPluginActivated(mShell, SYSTEM_CALLSIGN) == false)
@@ -633,6 +649,22 @@ namespace WPEFramework
                             [](unsigned char c){ return std::tolower(c); });
                     mMutex.unlock();
                     LOGINFO("Got env %s", mAttributes.env.c_str());
+                }
+
+                if (result == Core::ERROR_NONE && response.HasLabel("estb_mac"))
+                {
+                    mMutex.lock();
+                    mAttributes.deviceMacAddress = response["estb_mac"].String();
+                    mMutex.unlock();
+                    LOGINFO("Got deviceMacAddress %s", mAttributes.deviceMacAddress.c_str());
+                }
+
+                if (result == Core::ERROR_NONE && response.HasLabel("model_number"))
+                {
+                    mMutex.lock();
+                    mAttributes.deviceModel = response["model_number"].String();
+                    mMutex.unlock();
+                    LOGINFO("Got deviceModel %s", mAttributes.deviceModel.c_str());
                 }
 
                 // Get deviceFriendlyName from System.1.getFriendlyName[friendlyName]
@@ -734,62 +766,96 @@ namespace WPEFramework
             return result;
         }
 
-        void SiftConfig::GetAuthServiceValues()
+        void SiftConfig::UpdateXboValues()
         {
-            auto authServiceLink = std::unique_ptr<JSONRPCDirectLink>(new JSONRPCDirectLink(mShell, AUTHSERVICE_CALLSIGN));
-            if (authServiceLink == nullptr)
+            if (mAuthServiceLink == nullptr)
             {
-                LOGERR("Failed to create JSONRPCDirectLink");
                 return;
             }
 
-            JsonObject params;
-            JsonObject response;
+            // get xboAccountId and xboDeviceId from AuthService if activated and empty
+            mMutex.lock();
+            bool activated = mAttributes.activated;
+            string xboAccountId = mAttributes.xboAccountId;
+            string xboDeviceId = mAttributes.xboDeviceId;
+            mMutex.unlock();
 
-            uint32_t result = authServiceLink->Invoke<JsonObject, JsonObject>(JSONRPC_THUNDER_TIMEOUT, "getDeviceId", params, response);
-            if (result == Core::ERROR_NONE && response.HasLabel("partnerId"))
+            if (activated && xboAccountId.empty() )
             {
-                mMutex.lock();
-                mAttributes.partnerId = response["partnerId"].String();
-                LOGINFO("Got partnerId %s", mAttributes.partnerId.c_str());
-                mMutex.unlock();
-            }
-
-            // get activation status from AuthService.getActivationStatus
-            result = authServiceLink->Invoke<JsonObject, JsonObject>(JSONRPC_THUNDER_TIMEOUT, "getActivationStatus", params, response);
-            if (result == Core::ERROR_NONE && response.HasLabel("status") && response["status"].String() == "activated")
-            {
-                LOGINFO("Device is activated");
+                JsonObject params;
+                JsonObject response;
                 // get xboAccountId from AuthService.getServiceAccountId
-                result = authServiceLink->Invoke<JsonObject, JsonObject>(JSONRPC_THUNDER_TIMEOUT, "getServiceAccountId", params, response);
+                uint32_t result = mAuthServiceLink->Invoke<JsonObject, JsonObject>(JSONRPC_THUNDER_TIMEOUT, "getServiceAccountId", params, response);
                 if (result == Core::ERROR_NONE && response.HasLabel("serviceAccountId"))
                 {
                     mMutex.lock();
                     mAttributes.xboAccountId = response["serviceAccountId"].String();
-                    mMutex.unlock();
                     LOGINFO("Got xboAccountId %s", mAttributes.xboAccountId.c_str());
+                    mMutex.unlock();
                 }
+                else
+                {
+                    LOGERR("Failed to get xboAccountId");
+                }
+            }
 
+            if (activated && xboDeviceId.empty())
+            {
+                JsonObject params;
+                JsonObject response;
                 // get xboDeviceId from AuthService.getXDeviceId
-                result = authServiceLink->Invoke<JsonObject, JsonObject>(JSONRPC_THUNDER_TIMEOUT, "getXDeviceId", params, response);
+                uint32_t result = mAuthServiceLink->Invoke<JsonObject, JsonObject>(JSONRPC_THUNDER_TIMEOUT, "getXDeviceId", params, response);
                 if (result == Core::ERROR_NONE && response.HasLabel("xDeviceId"))
                 {
                     mMutex.lock();
                     mAttributes.xboDeviceId = response["xDeviceId"].String();
-                    mMutex.unlock();
                     LOGINFO("Got xboDeviceId %s", mAttributes.xboDeviceId.c_str());
+                    mMutex.unlock();
                 }
+                else
+                {
+                    LOGERR("Failed to get xboDeviceId");
+                }
+            }
+        }
 
-                mMutex.lock();
-                mAttributes.activated = true;
-                mMutex.unlock();
-            }
-            else
+        bool SiftConfig::UpdateTimeZone()
+        {
+            int32_t timeZoneOffsetSec = 0;
+            SystemTime::TimeZoneAccuracy accuracy = SystemTime::TimeZoneAccuracy::ACC_UNDEFINED;
+    
+            if (mSystemTime != nullptr && mSystemTime->IsSystemTimeAvailable())
             {
+                accuracy = mSystemTime->GetTimeZoneOffset(timeZoneOffsetSec);
                 mMutex.lock();
-                mAttributes.activated = false;
+                mAttributes.deviceTimeZone = timeZoneOffsetSec * 1000;
                 mMutex.unlock();
             }
+
+            if (accuracy == SystemTime::TimeZoneAccuracy::FINAL)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        void SiftConfig::OnActivationStatusChanged(const JsonObject& parameters)
+        {
+            std::string parametersString;
+            parameters.ToString(parametersString);
+            LOGINFO("OnActivationStatusChanged: %s", parametersString.c_str());
+            bool activated = false;
+            if (parameters.HasLabel("newActivationStatus") && parameters["newActivationStatus"].String() == "activated")
+            {
+                activated = true;
+            }
+
+            mMutex.lock();
+            mAttributes.activated = activated;
+            mAttributes.xboAccountId.clear();
+            mAttributes.xboDeviceId.clear();
+            mMutex.unlock();
         }
 
         void SiftConfig::ActivatePlugin(PluginHost::IShell *shell, const char *callSign)
@@ -839,6 +905,20 @@ namespace WPEFramework
             }
 
             return state == PluginHost::IShell::ACTIVATED;
+        }
+
+        std::shared_ptr<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>> SiftConfig::GetThunderControllerClient(std::string callsign)
+        {
+            std::string thunderAccessValue = THUNDER_ACCESS_DEFAULT_VALUE;
+            char *thunderAccessValueEnv = getenv("THUNDER_ACCESS_VALUE");
+            if (NULL != thunderAccessValueEnv)
+            {
+                thunderAccessValue = thunderAccessValueEnv;
+            }
+
+            std::string query = "token=" + sThunderSecurityToken;
+            Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), (_T(thunderAccessValue)));
+            return std::make_shared<WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>>(callsign, "", false, query);
         }
 
         void SiftConfig::MonitorKeys::ValueChanged(const string& ns, const string& key, const string& value)

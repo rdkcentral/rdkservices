@@ -20,7 +20,7 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 set(VERSION_MAJOR 1)
 set(VERSION_MINOR 0)
-set(VERSION_PATCH 0)
+set(VERSION_PATCH 2)
 
 add_compile_definitions(ANALYTICS_MAJOR_VERSION=${VERSION_MAJOR})
 add_compile_definitions(ANALYTICS_MINOR_VERSION=${VERSION_MINOR})
@@ -42,13 +42,14 @@ set(PLUGIN_ANALYTICS_SIFT_ENV "prod" CACHE STRING "Sift environment")
 set(PLUGIN_ANALYTICS_SIFT_PRODUCT_NAME "entos" CACHE STRING "Sift product name") #entos-immerse in Sift2.0
 set(PLUGIN_ANALYTICS_SIFT_LOGGER_NAME "Analytics" CACHE STRING "Sift logger name")
 set(PLUGIN_ANALYTICS_SIFT_LOGGER_VERSION "${MODULE_VERSION}" CACHE STRING "Sift logger version")
+set(PLUGIN_ANALYTICS_SIFT_PLATFORM_DEFAULT "entos:rdk" CACHE STRING "Sift platform default value")
 set(PLUGIN_ANALYTICS_SIFT_MAX_RANDOMISATION_WINDOW_TIME 300 CACHE STRING "Sift max randomisation window time of posting queued events")
 set(PLUGIN_ANALYTICS_SIFT_MAX_EVENTS_IN_POST 10 CACHE STRING "Sift max events in post")
 set(PLUGIN_ANALYTICS_SIFT_MAX_RETRIES 10 CACHE STRING "Sift max retries posting events")
 set(PLUGIN_ANALYTICS_SIFT_MIN_RETRY_PERIOD 1 CACHE STRING "Sift min retry period seconds")
 set(PLUGIN_ANALYTICS_SIFT_MAX_RETRY_PERIOD 30 CACHE STRING "Sift max retry period seconds")
 set(PLUGIN_ANALYTICS_SIFT_EXPONENTIAL_PERIODIC_FACTOR 2 CACHE STRING "Sift exponential periodic factor")
-set(PLUGIN_ANALYTICS_SIFT_STORE_PATH "/opt/persistent/sky/AnalyticsSiftStore" CACHE STRING "Sift store path")
+set(PLUGIN_ANALYTICS_SIFT_STORE_PATH "/persistent/AnalyticsSiftStore" CACHE STRING "Sift store path")
 set(PLUGIN_ANALYTICS_SIFT_STORE_EVENTS_LIMIT 1000 CACHE STRING "Sift store events limit")
 set(PLUGIN_ANALYTICS_SIFT_URL "" CACHE STRING "Sift URL")
 
@@ -57,18 +58,18 @@ message("Setup ${MODULE_NAME} v${MODULE_VERSION}")
 find_package(${NAMESPACE}Plugins REQUIRED)
 find_package(${NAMESPACE}Definitions REQUIRED)
 find_package(CompileSettingsDebug CONFIG REQUIRED)
-find_package(DS)
-find_package(IARMBus)
 
 add_library(${MODULE_NAME} SHARED
         Analytics.cpp
-        AnalyticsJsonRpc.cpp
         Implementation/AnalyticsImplementation.cpp
         Module.cpp)
 
 target_include_directories(${MODULE_NAME} PRIVATE Implementation)
+target_include_directories(${MODULE_NAME} PRIVATE Implementation/SystemTime)
+target_include_directories(${MODULE_NAME} PRIVATE ../)
 target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 
+add_subdirectory(Implementation/SystemTime)
 add_subdirectory(Implementation/LocalStore)
 add_subdirectory(Implementation/Backend)
 
@@ -83,9 +84,8 @@ target_link_libraries(${MODULE_NAME}
         CompileSettingsDebug::CompileSettingsDebug
         ${NAMESPACE}Plugins::${NAMESPACE}Plugins
         ${NAMESPACE}Definitions::${NAMESPACE}Definitions
-        ${DS_LIBRARIES}
-        ${IARMBUS_LIBRARIES}
-        ${MODULE_NAME}Backends)
+        ${MODULE_NAME}Backends
+        ${MODULE_NAME}SystemTime)
 
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)

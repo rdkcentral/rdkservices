@@ -141,8 +141,6 @@ jobs:
         run: >
           cd "${{github.workspace}}/ThunderInterfaces"
           &&
-          git apply "${{github.workspace}}/rdkservices/Tests/L1Tests/patches/0001-Add-IAnalytics-interface-R2.patch"
-          &&
           cd ..
 
       - name: Build ThunderInterfaces
@@ -296,8 +294,6 @@ jobs:
           -DPLUGIN_TEXTTOSPEECH=ON
           -DPLUGIN_SYSTEMAUDIOPLAYER=ON
           -DPLUGIN_MIRACAST=ON
-          -DPLUGIN_ANALYTICS=ON
-          -DPLUGIN_ANALYTICS_SIFT_BACKEND=ON
           -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}}
           &&
           cmake --build build/rdkservices -j8

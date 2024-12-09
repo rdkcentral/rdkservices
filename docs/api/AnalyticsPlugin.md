@@ -2,7 +2,7 @@
 <a name="Analytics_Plugin"></a>
 # Analytics Plugin
 
-**Version: [1.0.0](https://github.com/rdkcentral/rdkservices/blob/main/Analytics/CHANGELOG.md)**
+**Version: [1.0.2](https://github.com/rdkcentral/rdkservices/blob/main/Analytics/CHANGELOG.md)**
 
 A org.rdk.Analytics plugin for Thunder framework.
 
@@ -21,7 +21,7 @@ A org.rdk.Analytics plugin for Thunder framework.
 <a name="Description"></a>
 # Description
 
-The `Analytics` plugin allows to send analytics events to dedicated backends.
+The `Analytics` plugin allows to send analytics events to dedicated backends. Currently the SIFT backend is supported.
 
 The plugin is designed to be loaded and executed within the Thunder framework. For more information about the framework refer to [[Thunder](#Thunder)].
 
@@ -36,6 +36,25 @@ The table below lists configuration options of the plugin.
 | classname | string | Class name: *org.rdk.Analytics* |
 | locator | string | Library name: *libWPEFrameworkAnalytics.so* |
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
+| configuration | object |  |
+| configuration.deviceosname | string | Device OS name |
+| configuration.sift | object |  |
+| configuration.sift.schema2 | boolean | If true, enables Sift 2.0 schema, otherwise uses Sift 1.0 schema |
+| configuration.sift.commonschema | string | Sift schema common schema |
+| configuration.sift?.env | string | <sup>*(optional)*</sup> Sift schema environment |
+| configuration.sift.productname | string | Sift schema product name |
+| configuration.sift.loggername | string | Sift schema logger name |
+| configuration.sift.loggerversion | string | Sift schema logger version |
+| configuration.sift.platformdefault | string | Sift schema platform default value |
+| configuration.sift.maxrandomisationwindowtime | number | Sift uploader max randomisation window time of posting queued events in seconds |
+| configuration.sift.maxeventsinpost | number | Sift uploader max events in single post |
+| configuration.sift.maxretries | number | Sift uploader max retries posting events |
+| configuration.sift.minretryperiod | number | Sift uploader min retry period seconds |
+| configuration.sift.maxretryperiod | number | Sift uploader max retry period seconds |
+| configuration.sift.exponentialperiodicfactor | number | Sift uploader exponential periodic factor for retry delay |
+| configuration.sift.storepath | number | Sift store path to persistent queue with events |
+| configuration.sift.eventslimit | number | Sift store events limit |
+| configuration.sift.url | string | URL to Sift server endpoint |
 
 <a name="Methods"></a>
 # Methods
@@ -46,15 +65,13 @@ Analytics interface methods:
 
 | Method | Description |
 | :-------- | :-------- |
-| [sendEvent](#sendEvent) | Send event |
-| [setSessionId](#setSessionId) | Set the session ID for the analytics events |
-| [setTimeReady](#setTimeReady) | Let the analytics plugin know that the system time is ready and valid |
+| [sendEvent](#sendEvent) | Enqueue an event to be sent to the SIFT analytics backend |
 
 
 <a name="sendEvent"></a>
 ## *sendEvent*
 
-Send 
+Enqueue an event to be sent to the SIFT analytics backend.
 
 ### Events
 
@@ -73,4 +90,48 @@ No Events
 | params.cetList[#] | string |  |
 | params?.epochTimestamp | integer | <sup>*(optional)*</sup> Timestamp for the START of this event, epoch time, in ms UTC |
 | params?.uptimeTimestamp | integer | <sup>*(optional)*</sup> Timestamp for the START of this event, uptime of the device, in ms. ONLY to be used when Time quality is not good |
-| params.eventPayload | object | The payload of the event |
+| params.eventPayload | object | Custom payload of the event in JSON format. User defined colection of objects and keys. May be an empty object |
+| params.eventPayload.keyOrObject | string | User defined custom key or object |
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | string | On success null will be returned |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.Analytics.sendEvent",
+    "params": {
+        "eventName": "app_summary",
+        "eventVersion": "1.0.0",
+        "eventSource": "epg",
+        "eventSourceVersion": "1.0.0",
+        "cetList": [
+            "cet1"
+        ],
+        "epochTimestamp": 1721906631000,
+        "uptimeTimestamp": 35000,
+        "eventPayload": {
+            "keyOrObject": "value1"
+        }
+    }
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": "null"
+}
+```
+
