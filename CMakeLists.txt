@@ -152,6 +152,9 @@ if(PLUGIN_DEVICE_PROVISIONING)
     add_subdirectory(DeviceProvisioning)
 endif()
 
+if(PLUGIN_MIGRATIONPREPARER)
+	add_subdirectory(MigrationPreparer)
+endif()
 
 # if(BLUETOOTH_SETTINGS)
 #    add_subdirectory(BluetoothSettings)
