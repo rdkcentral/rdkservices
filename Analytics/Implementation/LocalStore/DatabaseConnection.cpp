@@ -108,7 +108,6 @@ namespace WPEFramework {
                 // Handle result from DB query
                 if (DB_OK == queryRet) {
                     // Note that row data could be large and therefore cannot log query
-                    LOGINFO("Database %s query succeeded", mDatabaseName.c_str());
                     ret = true;
                 } else {
                     LOGERR("Database %s query failed errmsg: %s db err code %d",
@@ -151,10 +150,6 @@ namespace WPEFramework {
                 if (DB_OK == queryRet) {
                     // Executes a query to get how many rows in the table were affected
                     modifiedRows = DB_CHANGES(mDataBaseHandle);
-
-                    LOGINFO("Database %s query succeeded %d rows modified",
-                        mDatabaseName.c_str(),
-                        modifiedRows);
                     ret = true;
                 } else {
                     LOGERR("Database %s query failed errmsg: %s db err code %d",
@@ -195,9 +190,6 @@ namespace WPEFramework {
                 // Handle result from DB query
                 if (DB_OK == queryRet) {
                     ret = true;
-                    LOGINFO("Database %s query succeeded with %d results",
-                        mDatabaseName.c_str(),
-                        result.NumRows());
                     table = result;
                 } else {
                     LOGERR("Database %s query failed with error: %s db err code %d",
@@ -223,7 +215,6 @@ namespace WPEFramework {
 
             if (query) {
                 ret = DB_OK;
-                LOGINFO("Database %s query executed", query -> mDatabaseName.c_str());
             } else {
                 LOGERR("Database query executed with no data");
             }
@@ -256,7 +247,6 @@ namespace WPEFramework {
 
                 ret = DB_OK;
 
-                LOGINFO("Database query executed");
             } else {
                 LOGERR("Database invalid query, cannot get results");
             }
