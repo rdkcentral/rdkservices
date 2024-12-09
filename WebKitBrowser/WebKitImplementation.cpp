@@ -2206,6 +2206,11 @@ static GSourceFuncs _handlerIntervention =
 
         uint32_t URL(const string& URLwithParams) override
         {
+            return SetupURLInternal(URLwithParams);
+        }
+
+        uint32_t SetupURLInternal(const string& URLwithParams, bool waitForResult = true)
+        {
             using namespace std::chrono;
             std::string newCertContents;
             std::string certsUrls;
@@ -2217,17 +2222,14 @@ static GSourceFuncs _handlerIntervention =
             if (_context != nullptr) {
                 using SetURLData = std::tuple<WebKitImplementation*, string, string>;
                 auto *data = new SetURLData(this, URL, newCertContents);
-
-                {
-                    std::unique_lock<std::mutex> lock{urlData_.mutex};
-                    urlData_.result = Core::ERROR_TIMEDOUT;
-                }
                 const auto now = steady_clock::now();
 
-                {
+                if (waitForResult) {
                     std::unique_lock<std::mutex> lock{urlData_.mutex};
+                    urlData_.result = Core::ERROR_TIMEDOUT;
                     urlData_.loadResult.loadUrl = URL;
                     urlData_.loadResult.waitForFailedOrFinished = true;
+                    urlData_.loadResult.waitForExceptionalPageClosureAfterBootUrl = false;
                 }
 
                 g_main_context_invoke_full(
@@ -2264,33 +2266,36 @@ static GSourceFuncs _handlerIntervention =
                     [](gpointer customdata) {
                         delete static_cast<SetURLData*>(customdata);
                     });
+                if (waitForResult) {
+                    std::unique_lock<std::mutex> lock{urlData_.mutex};
+                    TRACE_L1("Start waiting for the load result of url: %s", URL.c_str());
+                    urlData_.cond.wait_for(
+                        lock,
+                        milliseconds{URL_LOAD_RESULT_TIMEOUT_MS},
+                        [this](){return Core::ERROR_TIMEDOUT != urlData_.result;});
 
-                std::unique_lock<std::mutex> lock{urlData_.mutex};
-                TRACE_L1("Start waiting for the load result of url: %s", URL.c_str());
-                urlData_.cond.wait_for(
-                    lock,
-                    milliseconds{URL_LOAD_RESULT_TIMEOUT_MS},
-                    [this](){return Core::ERROR_TIMEDOUT != urlData_.result;});
+                    const auto diff = steady_clock::now() - now;
 
-                const auto diff = steady_clock::now() - now;
+                    TRACE_L1(
+                            "URL: %s, load result %s(%d), %dms",
+                            urlData_.url.c_str(),
+                            Core::ERROR_NONE == urlData_.result ? "OK" : "NOK",
+                            int(urlData_.result),
+                            int(duration_cast<milliseconds>(diff).count()));
 
-                TRACE_L1(
-                        "URL: %s, load result %s(%d), %dms",
-                        urlData_.url.c_str(),
-                        Core::ERROR_NONE == urlData_.result ? "OK" : "NOK",
-                        int(urlData_.result),
-                        int(duration_cast<milliseconds>(diff).count()));
+                    ODH_WARNING(
+                            "WPE0040",
+                            WPE_CONTEXT_WITH_URL(urlData_.url.c_str()),
+                            "URL: %s, load result %s(%d), %dms",
+                            urlData_.url.c_str(),
+                            Core::ERROR_NONE == urlData_.result ? "OK" : "NOK",
+                            int(urlData_.result),
+                            int(duration_cast<milliseconds>(diff).count()));
 
-                ODH_WARNING(
-                        "WPE0040",
-                        WPE_CONTEXT_WITH_URL(urlData_.url.c_str()),
-                        "URL: %s, load result %s(%d), %dms",
-                        urlData_.url.c_str(),
-                        Core::ERROR_NONE == urlData_.result ? "OK" : "NOK",
-                        int(urlData_.result),
-                        int(duration_cast<milliseconds>(diff).count()));
-
-                return urlData_.result;
+                            return urlData_.result; 
+                    } else {
+                        return Core::ERROR_NONE;
+                    }
             }
             else
             {
@@ -2754,6 +2759,19 @@ static GSourceFuncs _handlerIntervention =
 
             _adminLock.Unlock();
         }
+
+        bool OnLoadFailedCheckWaitingForBootUrl(const string& URL) {
+            bool postponeNotification = false;
+            if (URL == _bootUrl) {
+                std::unique_lock<std::mutex> lock{urlData_.mutex};
+                if (urlData_.loadResult.waitForFailedOrFinished && urlData_.loadResult.loadUrl == _bootUrl) {
+                    urlData_.loadResult.waitForExceptionalPageClosureAfterBootUrl = true;
+                    postponeNotification = true;
+                }
+            }
+            return postponeNotification;
+        }
+
         void OnLoadFailed(const string& URL)
         {
             urlValue(URL);
@@ -3266,8 +3284,23 @@ static GSourceFuncs _handlerIntervention =
             return (Core::ERROR_NONE);
         }
 
+        bool RepeatLoadUrlWhenPageClosureAndLoadFailedWithReasonCancelledOnBootUrl() {
+            std::unique_lock<std::mutex> lock{urlData_.mutex};
+            bool repeat = urlData_.loadResult.waitForExceptionalPageClosureAfterBootUrl && urlData_.loadResult.waitForFailedOrFinished;
+            urlData_.loadResult.waitForExceptionalPageClosureAfterBootUrl = false;
+            return repeat;
+        }
+
         void NotifyClosure()
         {
+            if (RepeatLoadUrlWhenPageClosureAndLoadFailedWithReasonCancelledOnBootUrl()) {
+                // our setup of boot url was interrupted by window.close in the middle of loading the boot url
+                // here we need to "fix the reality" by doing extra _bootUrl setup
+                SYSLOG(Logging::Notification, (_T("boot URL setup + window.close: NotifyClosure: Repeat load boot url started")));
+                SetupURLInternal(_bootUrl, false);
+                SYSLOG(Logging::Notification, (_T("boot URL setup + window.close: NotifyClosure: Repeat load boot url finished")));
+                return;
+            }
             _adminLock.Lock();
 
             {
@@ -3543,6 +3576,10 @@ static GSourceFuncs _handlerIntervention =
             SYSLOG_GLOBAL(Logging::Notification, (_T("LoadFailed: %s"), message.c_str()));
             if (g_error_matches(error, WEBKIT_NETWORK_ERROR, WEBKIT_NETWORK_ERROR_CANCELLED)) {
                 browser->_ignoreLoadFinishedOnce = true;
+                if (browser->OnLoadFailedCheckWaitingForBootUrl(failingURI)) {
+                    SYSLOG_GLOBAL(Logging::Notification, (_T("boot URL setup + window.close detected: will wait for page closure event")));
+                    return;
+                }
             }
             browser->OnLoadFailed(failingURI);
         }
@@ -3568,6 +3605,7 @@ static GSourceFuncs _handlerIntervention =
         }
         static void closeCallback(VARIABLE_IS_NOT_USED WebKitWebView* webView, WebKitImplementation* browser)
         {
+            SYSLOG_GLOBAL(Logging::Notification, (_T("closeCallback")));
             browser->NotifyClosure();
         }
         static gboolean decidePermissionCallback(VARIABLE_IS_NOT_USED WebKitWebView* webView, WebKitPermissionRequest* permissionRequest)
@@ -4383,6 +4421,7 @@ static GSourceFuncs _handlerIntervention =
             uint32_t result = Core::ERROR_TIMEDOUT;
             struct {
                 bool    waitForFailedOrFinished = false;
+                bool    waitForExceptionalPageClosureAfterBootUrl = false;
                 string  loadUrl;
             } loadResult;
         } urlData_;
