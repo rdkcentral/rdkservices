@@ -66,8 +66,8 @@
 using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 3
-#define API_VERSION_NUMBER_MINOR 3
-#define API_VERSION_NUMBER_PATCH 2
+#define API_VERSION_NUMBER_MINOR 4
+#define API_VERSION_NUMBER_PATCH 0
 
 #define MAX_REBOOT_DELAY 86400 /* 24Hr = 86400 sec */
 #define TR181_FW_DELAY_REBOOT "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"
@@ -99,6 +99,7 @@ using namespace std;
 #define LOG_UPLOAD_STATUS_ABORTED "UPLOAD_ABORTED"
 
 #define PRIVACY_MODE_FILE "/opt/secure/persistent/System/privacymode.txt"
+#define BOOTVERSION "/opt/.bootversion"
 
 /**
  * @struct firmwareUpdate
@@ -497,6 +498,8 @@ namespace WPEFramework {
 
             registerMethod("setPrivacyMode", &SystemServices::setPrivacyMode, this);
             registerMethod("getPrivacyMode", &SystemServices::getPrivacyMode, this);
+            registerMethod("getBootTypeInfo", &SystemServices::getBootTypeInfo, this);
+
 
         }
 
@@ -4849,6 +4852,57 @@ namespace WPEFramework {
             returnResponse(status);
         }
 
+         /**
+         * @brief : API to query BootType details
+         *
+         * @param1[in]  : {"params":{}}}
+         * @param2[out] : "result":{<key>:<BootType Info Details>,"success":<bool>}
+         * @return      : Core::<StatusCode>
+	    */
+
+        uint32_t SystemServices::getBootTypeInfo(const JsonObject& parameters, JsonObject& response) 
+	    {
+            LOGINFOMETHOD();
+            //check if file exists
+            std::ifstream file_read(BOOTVERSION);
+            if (! file_read){
+                LOGERR("Failed to open file %s\n", BOOTVERSION);
+                returnResponse(false);
+            }
+                //Read the file and get the imagename, version and fw_class
+                std::string line,key_val,value;
+                std::map<std::string,std::vector<std::string>> boot_val;
+                while(std::getline(file_read, line)){
+                    size_t pos=0, start=0;
+                    pos = line.find(':', start);
+                    key_val = line.substr(start, pos);
+                    value = line.substr(pos+1);
+                    if (key_val == "imagename" || key_val == "VERSION" || key_val == "FW_CLASS") {
+                        boot_val[key_val].push_back(value);
+                    }
+                }
+                file_read.close(); 
+                //if both the slots are present then we can get the boot type or it is inconclusive
+                    if(boot_val["FW_CLASS"].size() == 2 ) {
+                        if(boot_val["FW_CLASS"][0] != boot_val["FW_CLASS"][1]) {
+                            response["bootType"] = "BOOT_MIGRATION";
+                            LOGINFO("Boot Type is BOOT_MIGRATION\n");
+                        }
+                        else if((boot_val["FW_CLASS"][0] == boot_val["FW_CLASS"][1]) && (boot_val["imagename"][0] == boot_val["imagename"][1])){
+                            response["bootType"] = "BOOT_NORMAL";
+                            LOGINFO("Boot Type is BOOT_NORMAL\n");
+                        }
+                        else if((boot_val["FW_CLASS"][0] == boot_val["FW_CLASS"][1]) && (boot_val["imagename"][0] != boot_val["imagename"][1])) {
+                            response["bootType"] = "BOOT_UPDATE";
+                            LOGINFO("Boot Type is BOOT_UPDATE\n");
+                        }
+                    }// only one slot is populated and both cannot be empty since file is present
+                    else{   
+                        response["bootType"] = "BOOT_INCONCLUSIVE";
+                        LOGINFO("Boot Type is BOOT_INCONCLUSIVE\n");
+                    }
+            returnResponse(true);
+        }//end of getBootTypeInfo
 
     } /* namespace Plugin */
 } /* namespace WPEFramework */
