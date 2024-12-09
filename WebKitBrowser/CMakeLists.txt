@@ -225,6 +225,18 @@ target_link_libraries(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION}
         WPEWebKit::WPEWebKit
         OpenSSL::Crypto)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/../cmake")
+find_package(DS REQUIRED)
+find_package(IARMBus REQUIRED)
+target_include_directories(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION}
+    PRIVATE
+    ${IARMBUS_INCLUDE_DIRS}
+    ${DS_INCLUDE_DIRS})
+target_link_libraries(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION}
+    PRIVATE
+    ${IARMBUS_LIBRARIES}
+    ${DS_LIBRARIES})
+
 if (PLUGIN_WEBKITBROWSER_ODH_TELEMETRY)
     find_package(OdhErrTelemetry REQUIRED)
     target_link_libraries(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION}
