@@ -22,10 +22,6 @@
 #include <interfaces/IConfiguration.h>
 #include "tracing/Logging.h"
 #include "UtilsJsonRpc.h"
-#include <com/com.h>
-#include <core/core.h>
-#include <plugins/plugins.h>
-#include <interfaces/Ids.h>
 #include "UtilsController.h"
 #ifdef USE_THUNDER_R4
 #include <interfaces/IDeviceInfo.h>
