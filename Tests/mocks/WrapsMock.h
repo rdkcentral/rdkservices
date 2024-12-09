@@ -32,4 +32,5 @@ public:
     MOCK_METHOD(int, v_secure_pclose, (FILE *file), (override));
     MOCK_METHOD(int, v_secure_system,(const char *command, va_list args), (override));
     MOCK_METHOD(ssize_t, readlink, (const char *pathname, char *buf, size_t bufsiz), (override));
+    MOCK_METHOD(time_t, time, (time_t* arg), (override));
 };
