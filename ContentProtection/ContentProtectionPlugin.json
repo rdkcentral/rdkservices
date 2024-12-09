@@ -1,0 +1,10 @@
+{
+  "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/plugin.schema.json",
+  "info": {
+    "title": "ContentProtection Plugin",
+    "callsign": "org.rdk.ContentProtection",
+    "locator": "libWPEFrameworkContentProtection.so",
+    "status": "production",
+    "description": "The `ContentProtection` plugin proxies content security capabilities of the existing DRM plugins"
+  }
+}
