@@ -2724,10 +2724,14 @@ static GSourceFuncs _handlerIntervention =
 #endif
         void OnLoadFinished(const string& URL)
         {
-            TRACE_L1("%s", URL.c_str());
+            uint32_t status = Core::ERROR_NONE;
 
+            TRACE_L1("%s , _httpStatusCode: %d", URL.c_str(), _httpStatusCode); 
             urlValue(URL);
-            notifyUrlLoadResult(URL, Core::ERROR_NONE);
+            if ( (_httpStatusCode != 200 ) && (_httpStatusCode != -1) ) {
+                status = Core::ERROR_INCORRECT_URL;
+            }
+            notifyUrlLoadResult(URL, status);
 
             _adminLock.Lock();
 
