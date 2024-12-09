@@ -2,7 +2,7 @@
 <a name="CompositeInput_Plugin"></a>
 # CompositeInput Plugin
 
-**Version: [1.0.5](https://github.com/rdkcentral/rdkservices/blob/main/CompositeInput/CHANGELOG.md)**
+**Version: [1.1.5](https://github.com/rdkcentral/rdkservices/blob/main/CompositeInput/CHANGELOG.md)**
 
 A org.rdk.CompositeInput plugin for Thunder framework.
 
@@ -184,8 +184,6 @@ Activates the specified composite input as the primary video source.
 | :-------- | :-------- |
 | [onInputStatusChanged](#onInputStatusChanged) | Triggers this event when activates composite input source and input status changes to started |
 | [onSignalChanged](#onSignalChanged) | Triggers this event when composite input signal changes (must be one of the following:noSignal, unstableSignal, notSupportedSignal, stableSignal) |
-| [videoStreamInfoUpdate](#videoStreamInfoUpdate) | Triggered whenever there is an update in Composite Input video stream info |
-
 ### Parameters
 
 | Name | Type | Description |
@@ -288,6 +286,7 @@ CompositeInput interface events:
 | [onDevicesChanged](#onDevicesChanged) | Triggered when the composite input device changes |
 | [onInputStatusChanged](#onInputStatusChanged) | Triggered when the status of the composite input changes |
 | [onSignalChanged](#onSignalChanged) | Triggered when the status of the composite input signal changes |
+| [videoStreamInfoUpdate](#videoStreamInfoUpdate) | Triggered whenever there is an update in HDMI/Composite Input video stream info |
 
 
 <a name="onDevicesChanged"></a>
@@ -385,18 +384,19 @@ Triggered when the status of the composite input signal changes.
     }
 }
 ```
+
 <a name="videoStreamInfoUpdate"></a>
 ## *videoStreamInfoUpdate*
 
-Triggered whenever there is an update in Composite Input video stream info.
+Triggered whenever there is an update in HDMI/Composite Input video stream info.
 
 ### Parameters
 
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params.id | number | The port identifier for the Composite Input |
-| params.locator | string | A URL corresponding to the Composite Input port |
+| params.id | number | The ID of the composite input source |
+| params.locator | string | The location of the input source on the device |
 | params.width | integer | Width of the Video Stream |
 | params.height | integer | Height of the Video Stream |
 | params.progressive | boolean | Whether the streaming video is progressive or not? |
@@ -414,7 +414,7 @@ Triggered whenever there is an update in Composite Input video stream info.
         "locator": "cvbsin://localhost/deviceid/0",
         "width": 3840,
         "height": 2160,
-        "progressive": false,
+        "progressive": true,
         "frameRateN": 60000,
         "frameRateD": 1001
     }
