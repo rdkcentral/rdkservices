@@ -73,6 +73,25 @@ TEST_F(BluetoothTest, RegisteredMethods) {
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("stopScan")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getApiVersionNumber")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("isDiscoverable")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getDiscoveredDevices")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getPairedDevices")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getConnectedDevices")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("connect")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("disconnect")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setAudioStream")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("pair")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("unpair")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("enable")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("disable")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setDiscoverable")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getName")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setName")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("sendAudioPlaybackCommand")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("respondToEvent")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getDeviceInfo")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getAudioInfo")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("getDeviceVolumeMuteInfo")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("setDeviceVolumeMuteInfo")));
 }
 
 TEST_F(BluetoothTest, GetApiVersionNumber_Response) {
