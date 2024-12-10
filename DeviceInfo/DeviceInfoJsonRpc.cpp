@@ -39,7 +39,7 @@ namespace Plugin {
         Property<ModelidData>(_T("modelid"), &DeviceInfo::get_modelid, nullptr, this);
         Property<MakeData>(_T("make"), &DeviceInfo::get_make, nullptr, this);
         Property<ModelnameData>(_T("modelname"), &DeviceInfo::get_modelname, nullptr, this);
-        Property<BrandnameData>(_T("brandname"), &DeviceInfo::get_brandname, nullptr, this);
+//        Property<BrandnameData>(_T("brandname"), &DeviceInfo::get_brandname, nullptr, this);
         Property<DevicetypeData>(_T("devicetype"), &DeviceInfo::get_devicetype, nullptr, this);
         Property<DistributoridData>(_T("distributorid"), &DeviceInfo::get_distributorid, nullptr, this);
         Property<SupportedaudioportsData>(_T("supportedaudioports"), &DeviceInfo::get_supportedaudioports, nullptr, this);
@@ -63,7 +63,7 @@ namespace Plugin {
         Unregister(_T("modelid"));
         Unregister(_T("make"));
         Unregister(_T("modelname"));
-        Unregister(_T("brandname"));
+        //Unregister(_T("brandname"));
         Unregister(_T("devicetype"));
         Unregister(_T("distributorid"));
         Unregister(_T("supportedaudioports"));
@@ -227,7 +227,7 @@ namespace Plugin {
     // Return codes:
     //  - ERROR_NONE: Success
     //  - ERROR_GENERAL: General error
-    uint32_t DeviceInfo::get_brandname(BrandnameData& response) const
+/*    uint32_t DeviceInfo::get_brandname(BrandnameData& response) const
     {
         string brand;
 
@@ -238,7 +238,7 @@ namespace Plugin {
 
         return result;
     }
-
+*/
     // Property: devicetype - Device type
     // Return codes:
     //  - ERROR_NONE: Success
