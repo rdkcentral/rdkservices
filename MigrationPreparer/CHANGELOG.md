@@ -14,13 +14,6 @@ All notable changes to this RDK Service will be documented in this file.
 
     For more details, refer to versioning section under Main README.
 
-## [1.0.2] - 2024-12-04
-- Documentation update
-
-## [1.0.1] - 2024-10-16
-- Support generation of sessionID, SysTime validation and limit nbr of external attributes for Sift
-
-## [1.0.0] - 2024-07-25
+## [1.0.0] - 2024-12-01
 ### Added
-- New RDK Service Analytics to handle analytics events and send them to dedicated backends
-
+- New RDK Service MigrationPreparer to aid the Data Harvesting process, where it exposes APIs to applications such as ResidentApp and others to store user settings in a standardized format (as a JSON file) suitable for EntOS consumption. The MigrationPreparer Thunder plugin will exist only in the RDKV ecosystem.
