@@ -140,6 +140,7 @@ jobs:
       - name: Apply patches ThunderInterfaces
         run: >
           cd "${{github.workspace}}/ThunderInterfaces"
+          patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/DeviceInfo_brand.patch
           &&
           cd ..
 
