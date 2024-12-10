@@ -1683,6 +1683,7 @@ namespace WPEFramework {
             }
             else
             {
+		eventMsg["callsign"] = callsign;
                 eventMsg["success"] = true;
                 gSuspendedOrHibernatedApplicationsMutex.lock();
                 gSuspendedOrHibernatedApplications[callsign] = true;
@@ -6822,6 +6823,7 @@ namespace WPEFramework {
                     }
                     else
                     {
+			eventMsg["callsign"] = callsign;
                         eventMsg["success"] = true;
                     }
                     notify(RDKShell::RDKSHELL_EVENT_ON_RESTORED, eventMsg);
