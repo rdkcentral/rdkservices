@@ -73,8 +73,8 @@ diff -uprN a/interfaces/IUserSettings.h b/interfaces/IUserSettings.h
 +
 +    // @text onPinControlChanged
 +    // @brief The PinControl setting has changed.
-+    // @param enabled: Enabled/Disabled.
-+    virtual void OnPinControlChanged(const bool enabled) = 0;
++    // @param pinControl: Enabled/Disabled.
++    virtual void OnPinControlChanged(const bool pinControl) = 0;
 +
 +    // @text onViewingRestrictionsChanged
 +    // @brief The ViewingRestrictions setting has changed.
@@ -88,23 +88,23 @@ diff -uprN a/interfaces/IUserSettings.h b/interfaces/IUserSettings.h
 +
 +    // @text onLiveWatershedChanged
 +    // @brief The LiveWatershed setting has changed.
-+    // @param enabled: Enabled/Disabled.
-+    virtual void OnLiveWatershedChanged(const bool enabled) = 0;
++    // @param liveWatershed: Enabled/Disabled.
++    virtual void OnLiveWatershedChanged(const bool liveWatershed) = 0;
 +
 +    // @text onPlaybackWatershedChanged
 +    // @brief The PlaybackWatershed setting has changed.
-+    // @param enabled: Enabled/Disabled.
-+    virtual void OnPlaybackWatershedChanged(const bool enabled) = 0;
++    // @param playbackWatershed: Enabled/Disabled.
++    virtual void OnPlaybackWatershedChanged(const bool playbackWatershed) = 0;
 +
 +    // @text onBlockNotRatedContentChanged
 +    // @brief The BlockNotRatedContent setting has changed.
-+    // @param enabled: Enabled/Disabled.
-+    virtual void OnBlockNotRatedContentChanged(const bool enabled) = 0;
++    // @param blockNotRatedContent: Enabled/Disabled.
++    virtual void OnBlockNotRatedContentChanged(const bool blockNotRatedContent) = 0;
 +
 +    // @text onPinOnPurchaseChanged
 +    // @brief The PinOnPurchase setting has changed.
-+    // @param enabled: Enabled/Disabled.
-+    virtual void OnPinOnPurchaseChanged(const bool enabled) = 0;
++    // @param pinOnPurchase: Enabled/Disabled.
++    virtual void OnPinOnPurchaseChanged(const bool pinOnPurchase) = 0;
 +
 +  };
 +
@@ -193,13 +193,13 @@ diff -uprN a/interfaces/IUserSettings.h b/interfaces/IUserSettings.h
 +
 +  // @text setPinControl
 +  // @brief Sets PinControl ON/OFF. Parental Control as a whole is enabled or disabled.
-+  // @param enabled: Enabled/Disabled
-+  virtual uint32_t SetPinControl(const bool enabled /* @in */) = 0;
++  // @param pinControl: Enabled/Disabled
++  virtual uint32_t SetPinControl(const bool pinControl /* @in */) = 0;
 +
 +  // @text getPinControl
 +  // @brief Gets the PinControl setting
-+  // @param enabled: Enabled/Disabled
-+  virtual uint32_t GetPinControl(bool &enabled /* @out */) const = 0;
++  // @param pinControl: Enabled/Disabled
++  virtual uint32_t GetPinControl(bool &pinControl /* @out */) const = 0;
 +
 +  // @text setViewingRestrictions
 +  // @brief Sets the ViewingRestrictions.
@@ -227,46 +227,46 @@ diff -uprN a/interfaces/IUserSettings.h b/interfaces/IUserSettings.h
 +  // @text setLiveWatershed
 +  // @brief Sets LiveWatershed ON/OFF.Whether project-specific watershed rules
 +  // should be applied for live content, if applicable for the project.
-+  // @param enabled: Enabled/Disabled
-+  virtual uint32_t SetLiveWatershed(const bool enabled /* @in */) = 0;
++  // @param liveWatershed: Enabled/Disabled
++  virtual uint32_t SetLiveWatershed(const bool liveWatershed /* @in */) = 0;
 +
 +  // @text getLiveWatershed
 +  // @brief Gets the LiveWatershed setting
-+  // @param enabled: Enabled/Disabled
-+  virtual uint32_t GetLiveWatershed(bool &enabled /* @out */) const = 0;
++  // @param liveWatershed: Enabled/Disabled
++  virtual uint32_t GetLiveWatershed(bool &liveWatershed /* @out */) const = 0;
 +
 +  // @text setPlaybackWatershed
 +  // @brief Sets PlaybackWatershed ON/OFF. Whether project-specific watershed rules
 +  // should be applied for non-live content, if applicable for the project.
-+  // @param enabled: Enabled/Disabled
-+  virtual uint32_t SetPlaybackWatershed(const bool enabled /* @in */) = 0;
++  // @param playbackWatershed: Enabled/Disabled
++  virtual uint32_t SetPlaybackWatershed(const bool playbackWatershed /* @in */) = 0;
 +
 +  // @text getPlaybackWatershed
 +  // @brief Gets the PlaybackWatershed setting
-+  // @param enabled: Enabled/Disabled
-+  virtual uint32_t GetPlaybackWatershed(bool &enabled /* @out */) const = 0;
++  // @param playbackWatershed: Enabled/Disabled
++  virtual uint32_t GetPlaybackWatershed(bool &playbackWatershed /* @out */) const = 0;
 +
 +  // @text setBlockNotRatedContent
 +  // @brief Sets BlockNotRatedContent ON/OFF. Whether content that is not rated should be
 +  // blocked, if applicable for the project.
-+  // @param enabled: Enabled/Disabled
-+  virtual uint32_t SetBlockNotRatedContent(const bool enabled /* @in */) = 0;
++  // @param blockNotRatedContent: Enabled/Disabled
++  virtual uint32_t SetBlockNotRatedContent(const bool blockNotRatedContent /* @in */) = 0;
 +
 +  // @text getBlockNotRatedContent
 +  // @brief Gets the BlockNotRatedContent setting
-+  // @param enabled: Enabled/Disabled
-+  virtual uint32_t GetBlockNotRatedContent(bool &enabled /* @out */) const = 0;
++  // @param blockNotRatedContent: Enabled/Disabled
++  virtual uint32_t GetBlockNotRatedContent(bool &blockNotRatedContent /* @out */) const = 0;
 +
 +  // @text setPinOnPurchase
 +  // @brief Sets PinOnPurchase ON/OFF.Whether a PIN challenge should be made
 +  // when a purchase is attempted.
-+  // @param enabled: Enabled/Disabled
-+  virtual uint32_t SetPinOnPurchase(const bool enabled /* @in */) = 0;
++  // @param pinOnPurchase: Enabled/Disabled
++  virtual uint32_t SetPinOnPurchase(const bool pinOnPurchase /* @in */) = 0;
 +
 +  // @text getPinOnPurchase
 +  // @brief Gets the PinOnPurchase setting
-+  // @param enabled: Enabled/Disabled
-+  virtual uint32_t GetPinOnPurchase(bool &enabled /* @out */) const = 0;
++  // @param pinOnPurchase: Enabled/Disabled
++  virtual uint32_t GetPinOnPurchase(bool &pinOnPurchase /* @out */) const = 0;
 +
 +};
 +} // namespace Exchange

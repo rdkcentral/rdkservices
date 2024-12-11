@@ -104,10 +104,10 @@ namespace Plugin {
                     Exchange::JUserSettings::Event::OnPreferredClosedCaptionServiceChanged(_parent, service);
                 }
 
-                void OnPinControlChanged(const bool enabled) override
+                void OnPinControlChanged(const bool pinControl) override
                 {
-                    LOGINFO("PinControlChanged: %d\n", enabled);
-                    Exchange::JUserSettings::Event::OnPinControlChanged(_parent, enabled);
+                    LOGINFO("PinControlChanged: %d\n", pinControl);
+                    Exchange::JUserSettings::Event::OnPinControlChanged(_parent, pinControl);
                 }
 
                 void OnViewingRestrictionsChanged(const string& viewingRestrictions) override
@@ -122,28 +122,28 @@ namespace Plugin {
                     Exchange::JUserSettings::Event::OnViewingRestrictionsWindowChanged(_parent, viewingRestrictionsWindow);
                 }
 
-                void OnLiveWatershedChanged(const bool enabled) override
+                void OnLiveWatershedChanged(const bool liveWatershed) override
                 {
-                    LOGINFO("LiveWatershedChanged: %d\n", enabled);
-                    Exchange::JUserSettings::Event::OnLiveWatershedChanged(_parent, enabled);
+                    LOGINFO("LiveWatershedChanged: %d\n", liveWatershed);
+                    Exchange::JUserSettings::Event::OnLiveWatershedChanged(_parent, liveWatershed);
                 }
 
-                void OnPlaybackWatershedChanged(const bool enabled) override
+                void OnPlaybackWatershedChanged(const bool playbackWatershed) override
                 {
-                    LOGINFO("PlaybackWatershedChanged: %d\n", enabled);
-                    Exchange::JUserSettings::Event::OnPlaybackWatershedChanged(_parent, enabled);
+                    LOGINFO("PlaybackWatershedChanged: %d\n", playbackWatershed);
+                    Exchange::JUserSettings::Event::OnPlaybackWatershedChanged(_parent, playbackWatershed);
                 }
 
-                void OnBlockNotRatedContentChanged(const bool enabled) override
+                void OnBlockNotRatedContentChanged(const bool blockNotRatedContent) override
                 {
-                    LOGINFO("BlockNotRatedContentChanged: %d\n", enabled);
-                    Exchange::JUserSettings::Event::OnBlockNotRatedContentChanged(_parent, enabled);
+                    LOGINFO("BlockNotRatedContentChanged: %d\n", blockNotRatedContent);
+                    Exchange::JUserSettings::Event::OnBlockNotRatedContentChanged(_parent, blockNotRatedContent);
                 }
 
-                void OnPinOnPurchaseChanged(const bool enabled) override
+                void OnPinOnPurchaseChanged(const bool pinOnPurchase) override
                 {
-                    LOGINFO("PinOnPurchaseChanged: %d\n", enabled);
-                    Exchange::JUserSettings::Event::OnPinOnPurchaseChanged(_parent, enabled);
+                    LOGINFO("PinOnPurchaseChanged: %d\n", pinOnPurchase);
+                    Exchange::JUserSettings::Event::OnPinOnPurchaseChanged(_parent, pinOnPurchase);
                 }
 
             private:
