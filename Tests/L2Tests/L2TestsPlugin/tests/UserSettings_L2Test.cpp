@@ -907,12 +907,12 @@ TEST_F(UserSettingTest, SetAndGetMethodsUsingJsonRpcConnectionSuccessCase)
     uint32_t signalled = UserSettings_StateInvalid;
 
     bool enabled = true;
-	bool pinControl = true;
-	bool liveWatershed = true;
-	bool playbackWatershed = true;
-	bool blockNotRatedContent = true;
-	bool pinOnPurchase = true;
-	
+    bool pinControl = true;
+    bool liveWatershed = true;
+    bool playbackWatershed = true;
+    bool blockNotRatedContent = true;
+    bool pinOnPurchase = true;
+
     string preferredLanguages = "en";
     string presentationLanguage = "fra";
     string preferredCaptionsLanguages = "en,es";
