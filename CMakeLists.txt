@@ -417,6 +417,10 @@ if(PLUGIN_MIGRATIONPREPARER)
 	add_subdirectory(MigrationPreparer)
 endif()
 
+if(PLUGIN_CONTENTPROTECTION)
+    add_subdirectory(ContentProtection)
+endif()
+
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)
     set(CPACK_GENERATOR "DEB")
     set(CPACK_DEB_COMPONENT_INSTALL ON)
