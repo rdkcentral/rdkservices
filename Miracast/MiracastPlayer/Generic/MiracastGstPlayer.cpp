@@ -759,7 +759,7 @@ bool MiracastGstPlayer::createPipeline()
     m_audio_sink = SoC_GetAudioSinkProperty();
 
     if (!m_append_pipeline || !m_udpsrc || !m_rtpjitterbuffer || !m_rtpmp2tdepay ||
-        !m_tsparse || !m_appsink || !m_video_sink || !m_audio_sink )
+        !m_tsparse || !m_appsink || !m_video_sink )
     {
         MIRACASTLOG_ERROR("Append Pipeline[%x]: Element creation failure, check below",m_append_pipeline);
         MIRACASTLOG_WARNING("udpsrc[%x]rtpjitterbuffer[%x]rtpmp2tdepay[%x]",m_udpsrc,m_rtpjitterbuffer,m_rtpmp2tdepay);
@@ -891,7 +891,10 @@ bool MiracastGstPlayer::createPipeline()
         g_object_set(m_playbin_pipeline, "video-sink", m_video_sink, nullptr);
         /*}}}*/
 
-        g_object_set(m_playbin_pipeline, "audio-sink", m_audio_sink, nullptr);
+	if (m_audio_sink)
+        {
+	    g_object_set(m_playbin_pipeline, "audio-sink", m_audio_sink, nullptr);
+        }
     }
 
     g_main_context_pop_thread_default(m_main_loop_context);
