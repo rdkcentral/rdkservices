@@ -80,8 +80,8 @@ index 0000000..9353f6d
 +
 +    // @text onPinControlChanged
 +    // @brief The PinControl setting has changed.
-+    // @param enabled: Enabled/Disabled.
-+    virtual void OnPinControlChanged(const bool enabled) = 0;
++    // @param pinControl: Enabled/Disabled.
++    virtual void OnPinControlChanged(const bool pinControl) = 0;
 +
 +    // @text onViewingRestrictionsChanged
 +    // @brief The ViewingRestrictions setting has changed.
@@ -95,23 +95,23 @@ index 0000000..9353f6d
 +
 +    // @text onLiveWatershedChanged
 +    // @brief The LiveWatershed setting has changed.
-+    // @param enabled: Enabled/Disabled.
-+    virtual void OnLiveWatershedChanged(const bool enabled) = 0;
++    // @param liveWatershed: Enabled/Disabled.
++    virtual void OnLiveWatershedChanged(const bool liveWatershed) = 0;
 +
 +    // @text onPlaybackWatershedChanged
 +    // @brief The PlaybackWatershed setting has changed.
-+    // @param enabled: Enabled/Disabled.
-+    virtual void OnPlaybackWatershedChanged(const bool enabled) = 0;
++    // @param playbackWatershed: Enabled/Disabled.
++    virtual void OnPlaybackWatershedChanged(const bool playbackWatershed) = 0;
 +
 +    // @text onBlockNotRatedContentChanged
 +    // @brief The BlockNotRatedContent setting has changed.
-+    // @param enabled: Enabled/Disabled.
-+    virtual void OnBlockNotRatedContentChanged(const bool enabled) = 0;
++    // @param blockNotRatedContent: Enabled/Disabled.
++    virtual void OnBlockNotRatedContentChanged(const bool blockNotRatedContent) = 0;
 +
 +    // @text onPinOnPurchaseChanged
 +    // @brief The PinOnPurchase setting has changed.
-+    // @param enabled: Enabled/Disabled.
-+    virtual void OnPinOnPurchaseChanged(const bool enabled) = 0;
++    // @param pinOnPurchase: Enabled/Disabled.
++    virtual void OnPinOnPurchaseChanged(const bool pinOnPurchase) = 0;
 +
 +  };
 +
