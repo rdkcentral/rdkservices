@@ -68,7 +68,7 @@ namespace WPEFramework
             void updateEventDeviceInfoIfRequired(JsonObject &event) const;
             void validateResponse(const std::string &response, const std::vector<std::string> &events) const;
 
-            static uint32_t PostJson(const std::string& url, const std::string& json, std::string &response);
+            static long PostJson(const std::string& url, const std::string& json, std::string &response);
 
             SiftStorePtr mStorePtr;
             std::string mUrl;

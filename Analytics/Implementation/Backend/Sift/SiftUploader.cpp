@@ -83,13 +83,12 @@ namespace WPEFramework
                 case SiftUploader::UploaderState::RANDOMISATION_WINDOW_WAIT_STATE:
                 {
                     std::unique_lock<std::mutex> lock( mMutex );
-                    mCondition.wait_for(lock, std::chrono::seconds(RandomisationWindowTimeGenerator()),
-                             [this] () { return mStop; } );
                     if (mStop)
                     {
-                        LOGINFO("SiftUploader Run exit");
-                        return;
+                        break;
                     }
+                    mCondition.wait_for(lock, std::chrono::seconds(RandomisationWindowTimeGenerator()),
+                             [this] () { return mStop; } );
 
                     mUploaderState = SiftUploader::UploaderState::COLLECT_ANALYTICS;
                 }
@@ -122,7 +121,7 @@ namespace WPEFramework
                     }
                     else
                     {
-                        LOGINFO("No events collected from analytics Store");
+                        // No events to be sent, so go back to the randomisation window wait state
                         mUploaderState = UploaderState::RANDOMISATION_WINDOW_WAIT_STATE;
                         break;
                     }
@@ -135,7 +134,7 @@ namespace WPEFramework
 
                     std::string resp;
 
-                    uint32_t respcode;
+                    long respcode;
 
                     LOGINFO("Posting analytics events: %s", jsonEventPayload.c_str());
 
@@ -159,18 +158,18 @@ namespace WPEFramework
                         {
                             LOGERR("No collected events to be deleted");
                         }
-
-                        mUploaderState = UploaderState::RANDOMISATION_WINDOW_WAIT_STATE;
                     }
                     else
                     {
-                        LOGERR("Failed to post analytics event - respcode: %u, response: %s", respcode, resp.c_str());
+                        LOGERR("Failed to post analytics event - respcode: %ld, response: %s", respcode, resp.c_str());
                     }
 
                     if (!resp.empty())
                     {
                         validateResponse(resp, collectedEvents);
                     }
+
+                    mUploaderState = UploaderState::RANDOMISATION_WINDOW_WAIT_STATE;
                 }
                 break;
 
@@ -180,6 +179,13 @@ namespace WPEFramework
                 }
                 break;
                 }
+
+                std::unique_lock<std::mutex> lock( mMutex );
+                if (mStop)
+                {
+                    LOGINFO("SiftUploader Run exit");
+                    return;
+                }
             }
         }
 
@@ -187,7 +193,7 @@ namespace WPEFramework
         {
             bool retry = false;
 
-            if (mCurrentRetryCount == mMaxRetries)
+            if (mCurrentRetryCount >= mMaxRetries)
             {
                 mCurrentRetryCount = 0;
             }
@@ -195,7 +201,7 @@ namespace WPEFramework
             {
                 static auto retryTime = mMinRetryPeriod;
 
-                if (retryTime > mMaxRetryPeriod)
+                if (retryTime >= mMaxRetryPeriod)
                 {
                     retryTime = mMinRetryPeriod;
                 }
@@ -203,13 +209,13 @@ namespace WPEFramework
                 LOGINFO("Failed posting retry wait time:  %d seconds, with retries completed: %d", retryTime, mCurrentRetryCount);
 
                 std::unique_lock<std::mutex> lock( mMutex );
-                mCondition.wait_for(lock, std::chrono::seconds(retryTime),
-                             [this] () { return mStop; } );
                 if (mStop)
                 {
                     // return immediately if stop is set
                     return false;
                 }
+                mCondition.wait_for(lock, std::chrono::seconds(retryTime),
+                             [this] () { return mStop; } );
 
                 if (retryTime < mMaxRetryPeriod)
                 {
@@ -218,7 +224,7 @@ namespace WPEFramework
 
                 ++mCurrentRetryCount;
 
-                retry = true;
+                retry = !mStop;
             }
 
             return retry;
@@ -263,10 +269,6 @@ namespace WPEFramework
                 {
                     LOGINFO("Got no events from the analytics store");
                 }
-            }
-            else
-            {
-                LOGINFO("No events available to be collected from analytics store");
             }
 
             return success;
@@ -374,11 +376,11 @@ namespace WPEFramework
             return size * nmemb;
         }
 
-        uint32_t SiftUploader::PostJson(const std::string &url, const std::string &json, std::string &response)
+        long SiftUploader::PostJson(const std::string &url, const std::string &json, std::string &response)
         {
             CURL *curl;
             CURLcode res;
-            uint32_t retHttpCode = 0;
+            long retHttpCode = 0;
 
             if (url.empty() || json.empty())
             {
