@@ -13,6 +13,7 @@ All notable changes to this RDK Service will be documented in this file.
     Changes in CHANGELOG should be updated when commits are added to the main or release branches. There should be one CHANGELOG entry per JIRA Ticket. This is not enforced on sprint branches since there could be multiple changes for the same JIRA ticket during development.
 
     For more details, refer to versioning section under Main README.
+## TESTING
 ## [1.0.9] - 2024-08-27
 ### Fixed
 - Increase scan interval to 5 sec and added RFC support.
