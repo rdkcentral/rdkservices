@@ -30,31 +30,38 @@ static bool m_isDalsEnabled = false;
 namespace WPEFramework {
 namespace Plugin {
 
-    tvContentFormatType_t AVOutputTV::getContentFormatIndex(tvVideoHDRFormat_t formatToConvert)
+    contentFormatType_t AVOutputTV::getContentFormatIndex(tvVideoFormatType_t formatToConvert)
     {
+        if (formatToConvert < VIDEO_FORMAT_NONE || formatToConvert >= VIDEO_FORMAT_MAX) {
+            // Invalid format, default to SDR
+            return CONTENT_FORMAT_SDR;
+        }
+
         /* default to SDR always*/
-        tvContentFormatType_t ret = tvContentFormatType_NONE;
-        switch(formatToConvert) {
-            case tvVideoHDRFormat_HLG:
-                ret = tvContentFormatType_HLG;
+        contentFormatType_t ret = CONTENT_FORMAT_NONE;
+        switch(formatToConvert)
+        {
+            case VIDEO_FORMAT_HLG:
+                ret = CONTENT_FORMAT_HLG;
                 break;
 
-            case tvVideoHDRFormat_HDR10:
-                ret = tvContentFormatType_HDR10;
+            case VIDEO_FORMAT_HDR10:
+                ret = CONTENT_FORMAT_HDR10;
                 break;
 
-            case tvVideoHDRFormat_HDR10PLUS:
-                ret =  tvContentFormatType_HDR10PLUS;
+            case VIDEO_FORMAT_HDR10PLUS:
+                ret =  CONTENT_FORMAT_HDR10PLUS;
                 break;
 
-            case tvVideoHDRFormat_DV:
-                ret = tvContentFormatType_DOVI;
+            case VIDEO_FORMAT_DV:
+                ret = CONTENT_FORMAT_DV;
                 break;
 
-            case tvVideoHDRFormat_SDR:
-            case tvVideoHDRFormat_NONE:
+            case VIDEO_FORMAT_NONE:
+            case VIDEO_FORMAT_PRIMESL:
+            case VIDEO_FORMAT_MVC:
             default:
-                ret  = tvContentFormatType_SDR;
+                ret  = CONTENT_FORMAT_SDR;
                 break;
         }
         return ret;
@@ -237,7 +244,7 @@ namespace Plugin {
     int AVOutputTV::getDolbyModeIndex(const char * dolbyMode)
     {
         int mode = 0;
-        tvDolbyMode_t dolbyModes[tvMode_Max];
+        tvDolbyMode_t dolbyModes[tvMode_Max] = { tvDolbyMode_Invalid };
         tvDolbyMode_t *dolbyModesPtr = dolbyModes; // Pointer to statically allocated tvDolbyMode_t array
         unsigned short totalAvailable = 0;
 
@@ -657,6 +664,7 @@ namespace Plugin {
             }
         }
         strncpy(rfc_caller_id,PQFileName.c_str(),PQFileName.size());
+        rfc_caller_id[sizeof(rfc_caller_id) - 1] = '\0';
         LOGINFO("%s : Default tvsettings file : %s\n",__FUNCTION__,rfc_caller_id);
     }
 
@@ -824,21 +832,21 @@ namespace Plugin {
         return ret;
     }
 
-    tvContentFormatType_t AVOutputTV::convertFormatStringToTVContentFormat(const char *format)
+    tvVideoFormatType_t AVOutputTV::convertFormatStringToTVVideoFormat(const char *format)
     {
-        tvContentFormatType_t ret = tvContentFormatType_SDR;
+        tvVideoFormatType_t ret = VIDEO_FORMAT_SDR;
 
         if( strncmp(format,"sdr",strlen(format)) == 0 || strncmp(format,"SDR",strlen(format)) == 0 ) {
-            ret = tvContentFormatType_SDR;
+            ret = VIDEO_FORMAT_SDR;
 	}
         else if( strncmp(format,"hdr10",strlen(format)) == 0 || strncmp(format,"HDR10",strlen(format))==0 ) {
-            ret = tvContentFormatType_HDR10;
+            ret = VIDEO_FORMAT_HDR10;
 	}
         else if( strncmp(format,"hlg",strlen(format)) == 0 || strncmp(format,"HLG",strlen(format)) == 0 ) {
-            ret = tvContentFormatType_HLG;
+            ret = VIDEO_FORMAT_HLG;
 	}
         else if( strncmp(format,"dolby",strlen(format)) == 0 || strncmp(format,"DOLBY",strlen(format)) == 0 ) {
-            ret=tvContentFormatType_DOVI;
+            ret=VIDEO_FORMAT_DV;
 	}
 
         return ret;
@@ -1270,7 +1278,7 @@ namespace Plugin {
         return CompColorEnum;
     }
 
-    int AVOutputTV::getDolbyParams(tvContentFormatType_t format, std::string &s, std::string source)
+    int AVOutputTV::getDolbyParams(tvVideoFormatType_t format, std::string &s, std::string source)
     {
         int ret = -1;
         TR181_ParamData_t param;
@@ -1295,17 +1303,17 @@ namespace Plugin {
             pqmodeIndex = getPictureModeIndex(local);
         }
         memset(&param, 0, sizeof(param));
-        if (format == tvContentFormatType_HLG ) {
+        if (format == VIDEO_FORMAT_HLG ) {
             rfc_param = AVOUTPUT_HLGMODE_RFC_PARAM;
         }
-        else if (format == tvContentFormatType_DOVI) {
+        else if (format == VIDEO_FORMAT_DV) {
             rfc_param = AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM + std::to_string(sourceIndex) + "."+"DolbyVisionMode";
         }
 
         tr181ErrorCode_t err = getLocalParam(rfc_caller_id, rfc_param.c_str(), &param);
         if ( tr181Success != err) {
             tvError_t retVal = GetDefaultPQParams(pqmodeIndex,(tvVideoSrcType_t)sourceIndex,
-                                                 (tvVideoFormatType_t)ConvertHDRFormatToContentFormat((tvhdr_type_t)format),
+                                                 (tvVideoFormatType_t)getContentFormatIndex(format),
                                                  PQ_PARAM_DOLBY_MODE,&dolby_mode_value);
             if( retVal != tvERROR_NONE ) {
                 LOGERR("%s : failed\n",__FUNCTION__);
@@ -1401,33 +1409,6 @@ namespace Plugin {
         pclose(fp);
         return 0;
     }
-
-    int AVOutputTV::ConvertHDRFormatToContentFormat(tvhdr_type_t hdrFormat)
-    {
-        int ret=tvContentFormatType_SDR;
-        switch(hdrFormat)
-        {
-            case HDR_TYPE_SDR:
-                ret=tvContentFormatType_SDR;
-                break;
-            case HDR_TYPE_HDR10:
-                ret=tvContentFormatType_HDR10;
-                break;
-            case HDR_TYPE_HDR10PLUS:
-                ret=tvContentFormatType_HDR10PLUS;
-                break;
-            case HDR_TYPE_DOVI:
-                ret=tvContentFormatType_DOVI;
-                break;
-            case HDR_TYPE_HLG:
-                ret=tvContentFormatType_HLG;
-                break;
-            default:
-                break;
-        }
-        return ret;
-    }
-
 
     int AVOutputTV::ReadCapablitiesFromConf(std::string &rangeInfo,std::string &pqmodeInfo,std::string &formatInfo,std::string &sourceInfo,
                            std::string param, std::string & isPlatformSupport, std::string & indexInfo)
