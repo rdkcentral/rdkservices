@@ -2509,9 +2509,9 @@ namespace Plugin {
     uint32_t AVOutputTV::getSupportedPictureModes(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
-        pic_modes_t *pictureModes;
+        pic_modes_t *pictureModes[PIC_MODES_SUPPORTED_MAX];
         unsigned short totalAvailable = 0;
-        tvError_t ret = GetTVSupportedPictureModes(&pictureModes,&totalAvailable);
+        tvError_t ret = GetTVSupportedPictureModes(pictureModes,&totalAvailable);
         if(ret != tvERROR_NONE) {
             returnResponse(false);
         }
@@ -2519,8 +2519,8 @@ namespace Plugin {
             JsonArray SupportedPicModes;
 
             for(int count = 0;count <totalAvailable;count++ ) {
-                SupportedPicModes.Add(pictureModes[count].name);
-                // printf("Added Mode %s %s \n",pictureModes[count].name,SupportedPicModes[count].String().c_str());
+                SupportedPicModes.Add(pictureModes[count]->name);
+                // printf("Added Mode %s %s \n",pictureModes[count]->name,SupportedPicModes[count].String().c_str());
             }
 
             response["supportedPictureModes"] = SupportedPicModes;
