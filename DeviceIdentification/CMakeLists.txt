@@ -126,4 +126,5 @@ target_include_directories(${MODULE_NAME}
 install(TARGETS ${MODULE_NAME} 
     DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
 
+target_include_directories(${MODULE_NAME} PRIVATE ../helpers)
 write_config(${PLUGIN_NAME})
