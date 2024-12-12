@@ -100,6 +100,7 @@ set(EMPTY_HEADERS
         ${BASEDIR}/rtNotifier.h
 	${BASEDIR}/dsRpc.h
 	${BASEDIR}/websocket/URL.h
+	${BASEDIR}/btmgr.h
         ${BASEDIR}/rdk/iarmmgrs/comcastIrKeyCodes.h
 	    ${BASEDIR}/rdk_logger_milestone.h
 	    ${BASEDIR}/opkg/opkg.h
@@ -137,6 +138,7 @@ set(FAKE_HEADERS
         ${BASEDIR}/rdkshell.h
 	${BASEDIR}/RdkLoggerMilestone.h
         ${BASEDIR}/secure_wrappermock.h
+	${BASEDIR}/BluetoothMgr.h
         )
 
 foreach (file ${FAKE_HEADERS})
