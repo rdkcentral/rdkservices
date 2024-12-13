@@ -22,6 +22,8 @@
 
 #include "string.h"
 #include <set>
+#include <boost/filesystem.hpp>
+#include <boost/property_tree/ini_parser.hpp>
 
 #include "tvTypes.h"
 #include "tvSettings.h"
@@ -73,6 +75,49 @@
 #define STRING_CONTROL   "Control."
 #define STRING_COLORTEMPERATURE   "ColorTemperature."
 #define CREATE_DIRTY(__X__) (__X__+=STRING_DIRTY)
+#define CAPABLITY_FILE_NAME    "pq_capabilities.ini"
+
+
+class CIniFile
+{
+	std::string m_path;
+	std::string opt_path;
+	boost::property_tree::ptree m_data;
+
+public:
+	CIniFile(const std::string & filename, const std::string & filepath = "/etc/" )
+	{
+		opt_path = "/opt/panel/";
+		m_path = filepath;
+		m_path.append(filename);
+		opt_path.append(filename);
+
+		if(!boost::filesystem::exists( opt_path)) {
+			std::cout << "AVOutput : Using " << m_path <<std::endl;
+			boost::property_tree::ini_parser::read_ini(m_path, m_data);
+		}
+		else {
+			std::cout << "AVOutput : Using " << opt_path << std::endl;
+			boost::property_tree::ini_parser::read_ini(opt_path, m_data);
+	        }
+	}
+
+	~CIniFile()
+	{
+	}
+
+	template <typename T>
+	T Get(const std::string & key)
+	{
+		return m_data.get<T>(key);
+	}
+
+	template <typename T>
+	void Set(const std::string & key, const T & value){
+		//TODO DD: Not required currently
+		//m_data.put(key, value);
+	}
+};
 
 namespace WPEFramework {
 namespace Plugin {
@@ -131,47 +176,6 @@ typedef struct
 	uint8_t controlIndex;
 }paramIndex_t;
 
-
-class CIniFile 
-{
-	std::string m_path;
-	std::string opt_path;
-	boost::property_tree::ptree m_data;
-
-public: 
-	CIniFile(const std::string & filename, const std::string & filepath = "/etc/" )
-	{
-		opt_path = "/opt/panel/";
-		m_path = filepath;
-		m_path.append(filename);
-		opt_path.append(filename);
-
-		if(!boost::filesystem::exists( opt_path)) {
-			std::cout << "Using " << m_path <<std::endl;
-			boost::property_tree::ini_parser::read_ini(m_path, m_data);
-		}
-		else {
-			std::cout << "Using " << opt_path << std::endl;
-			boost::property_tree::ini_parser::read_ini(opt_path, m_data);
-	        }
-	}
-
-	~CIniFile()
-	{
-	}
-
-	template <typename T>
-	T Get(const std::string & key)
-	{
-		return m_data.get<T>(key);
-	}
-
-	template <typename T>
-	void Set(const std::string & key, const T & value){
-		//TODO DD: Not required currently
-             	//m_data.put(key, value);
-	}
-};
 
 //class AVOutputTV : public PluginHost::IPlugin, public PluginHost::JSONRPC {
 class AVOutputTV : public AVOutputBase {
@@ -340,11 +344,14 @@ class AVOutputTV : public AVOutputBase {
 		tvDataComponentColor_t getComponentColorEnum(std::string colorName);
 		int getDolbyParams(tvContentFormatType_t format, std::string &s, std::string source = "");
 		tvError_t getParamsCaps(std::string param, capVectors_t &vecInfo);
-	
+		int GetPanelID(char *panelid);
+		int ConvertHDRFormatToContentFormat(tvhdr_type_t hdrFormat);
+		int ReadCapablitiesFromConf(std::string &rangeInfo,std::string &pqmodeInfo,std::string &formatInfo,std::string &sourceInfo,std::string param, std::string & isPlatformSupport, std::string & indexInfo);
 		void getDimmingModeStringFromEnum(int value, std::string &toStore);
 		void getColorTempStringFromEnum(int value, std::string &toStore);
 		int getCurrentPictureMode(char *picMode);
 		int getDolbyParamToSync(int sourceIndex, int formatIndex, int& value);
+		tvDolbyMode_t GetDolbyVisionEnumFromModeString(const char* modeString);
 		std::string getDolbyModeStringFromEnum( tvDolbyMode_t mode);
 		JsonArray getSupportedVideoSource(void);
 		int getAvailableCapabilityModesWrapper(std::string param, std::string & outparam);

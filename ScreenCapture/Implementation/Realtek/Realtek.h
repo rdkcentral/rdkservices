@@ -25,6 +25,7 @@ typedef struct DRMScreenCapture_s {
 	uint32_t height;
 	uint32_t pitch;
 	uint8_t bpp;
+	int dmabuf_fd;
 }DRMScreenCapture;
 
 DRMScreenCapture* DRMScreenCapture_Init();
