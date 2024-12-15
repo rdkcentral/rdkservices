@@ -49,13 +49,14 @@ class AsyncHandlerMock_UserSetting
         MOCK_METHOD(void, onCaptionsChanged, (const bool enabled));
         MOCK_METHOD(void, onPreferredCaptionsLanguagesChanged, (const string preferredLanguages));
         MOCK_METHOD(void, onPreferredClosedCaptionServiceChanged, (const string service));
-        MOCK_METHOD(void, onPinControlChanged, (const bool enabled));
+        MOCK_METHOD(void, onPinControlChanged, (const bool pinControl));
         MOCK_METHOD(void, onViewingRestrictionsChanged, (const string viewingRestrictions));
         MOCK_METHOD(void, onViewingRestrictionsWindowChanged, (const string viewingRestrictionsWindow));
-        MOCK_METHOD(void, onLiveWatershedChanged, (const bool enabled));
-        MOCK_METHOD(void, onPlaybackWatershedChanged, (const bool enabled));
-        MOCK_METHOD(void, onBlockNotRatedContentChanged, (const bool enabled));
-        MOCK_METHOD(void, onPinOnPurchaseChanged, (const bool enabled));
+        MOCK_METHOD(void, onLiveWatershedChanged, (const bool liveWatershed));
+        MOCK_METHOD(void, onPlaybackWatershedChanged, (const bool playbackWatershed));
+        MOCK_METHOD(void, onBlockNotRatedContentChanged, (const bool blockNotRatedContent));
+        MOCK_METHOD(void, onPinOnPurchaseChanged, (const bool pinOnPurchase));
+
 };
 
 class NotificationHandler : public Exchange::IUserSettings::INotification {
@@ -149,11 +150,11 @@ class NotificationHandler : public Exchange::IUserSettings::INotification {
             m_condition_variable.notify_one();
         }
 
-        void OnPinControlChanged(const bool enabled) override
+        void OnPinControlChanged(const bool pinControl) override
         {
             TEST_LOG("OnPinControlChanged event triggered ***\n");
             std::unique_lock<std::mutex> lock(m_mutex);
-            std::string str = enabled ? "true" : "false";
+            std::string str = pinControl ? "true" : "false";
 
             TEST_LOG("OnPinControlChanged received: %s\n", str.c_str());
             /* Notify the requester thread. */
@@ -185,11 +186,11 @@ class NotificationHandler : public Exchange::IUserSettings::INotification {
 
         }
 
-        void OnLiveWatershedChanged(const bool enabled) override
+        void OnLiveWatershedChanged(const bool liveWatershed) override
         {
             TEST_LOG("OnLiveWatershedChanged event triggered ***\n");
             std::unique_lock<std::mutex> lock(m_mutex);
-            std::string str = enabled ? "true" : "false";
+            std::string str = liveWatershed ? "true" : "false";
 
             TEST_LOG("OnLiveWatershedChanged received: %s\n", str.c_str());
             /* Notify the requester thread. */
@@ -197,11 +198,11 @@ class NotificationHandler : public Exchange::IUserSettings::INotification {
             m_condition_variable.notify_one();
         }
 
-        void OnPlaybackWatershedChanged(const bool enabled) override
+        void OnPlaybackWatershedChanged(const bool playbackWatershed) override
         {
             TEST_LOG("OnPlaybackWatershedChanged event triggered ***\n");
             std::unique_lock<std::mutex> lock(m_mutex);
-            std::string str = enabled ? "true" : "false";
+            std::string str = playbackWatershed ? "true" : "false";
 
             TEST_LOG("OnPlaybackWatershedChanged received: %s\n", str.c_str());
             /* Notify the requester thread. */
@@ -209,11 +210,11 @@ class NotificationHandler : public Exchange::IUserSettings::INotification {
             m_condition_variable.notify_one();
         }
 
-        void OnBlockNotRatedContentChanged(const bool enabled) override
+        void OnBlockNotRatedContentChanged(const bool blockNotRatedContent) override
         {
             TEST_LOG("OnBlockNotRatedContentChanged event triggered ***\n");
             std::unique_lock<std::mutex> lock(m_mutex);
-            std::string str = enabled ? "true" : "false";
+            std::string str = blockNotRatedContent ? "true" : "false";
 
             TEST_LOG("OnBlockNotRatedContentChanged received: %s\n", str.c_str());
             /* Notify the requester thread. */
@@ -221,11 +222,11 @@ class NotificationHandler : public Exchange::IUserSettings::INotification {
             m_condition_variable.notify_one();
         }
 
-        void OnPinOnPurchaseChanged(const bool enabled) override
+        void OnPinOnPurchaseChanged(const bool pinOnPurchase) override
         {
             TEST_LOG("OnPinOnPurchaseChanged event triggered ***\n");
             std::unique_lock<std::mutex> lock(m_mutex);
-            std::string str = enabled ? "true" : "false";
+            std::string str = pinOnPurchase ? "true" : "false";
 
             TEST_LOG("OnPinOnPurchaseChanged received: %s\n", str.c_str());
             /* Notify the requester thread. */
@@ -267,13 +268,13 @@ protected:
       void onCaptionsChanged(bool enabled);
       void onPreferredCaptionsLanguagesChanged(const string preferredLanguages);
       void onPreferredClosedCaptionServiceChanged(const string service);
-      void onPinControlChanged(const bool enabled);
+      void onPinControlChanged(const bool pinControl);
       void onViewingRestrictionsChanged(const string viewingRestrictions);
       void onViewingRestrictionsWindowChanged(const string viewingRestrictionsWindow);
-      void onLiveWatershedChanged(const bool enabled);
-      void onPlaybackWatershedChanged(const bool enabled);
-      void onBlockNotRatedContentChanged(const bool enabled);
-      void onPinOnPurchaseChanged(const bool enabled);
+      void onLiveWatershedChanged(const bool liveWatershed);
+      void onPlaybackWatershedChanged(const bool playbackWatershed);
+      void onBlockNotRatedContentChanged(const bool blockNotRatedContent);
+      void onPinOnPurchaseChanged(const bool pinOnPurchase);
 
       uint32_t WaitForRequestStatus(uint32_t timeout_ms,UserSettingsL2test_async_events_t expected_status);
       uint32_t CreateUserSettingInterfaceObjectUsingComRPCConnection();
@@ -463,11 +464,11 @@ void UserSettingTest::onPreferredClosedCaptionServiceChanged(const string servic
     m_condition_variable.notify_one();
 }
 
-void UserSettingTest::onPinControlChanged(bool enabled)
+void UserSettingTest::onPinControlChanged(bool pinControl)
 {
     TEST_LOG("OnPinControlChanged event triggered ***\n");
     std::unique_lock<std::mutex> lock(m_mutex);
-    std::string str = enabled ? "true" : "false";
+    std::string str = pinControl ? "true" : "false";
 
     TEST_LOG("OnPinControlChanged received: %s\n", str.c_str());
     /* Notify the requester thread. */
@@ -499,11 +500,11 @@ void UserSettingTest::onViewingRestrictionsWindowChanged(const string viewingRes
 
 }
 
-void UserSettingTest::onLiveWatershedChanged(const bool enabled)
+void UserSettingTest::onLiveWatershedChanged(const bool liveWatershed)
 {
     TEST_LOG("OnLiveWatershedChanged event triggered ***\n");
     std::unique_lock<std::mutex> lock(m_mutex);
-    std::string str = enabled ? "true" : "false";
+    std::string str = liveWatershed ? "true" : "false";
 
     TEST_LOG("OnLiveWatershedChanged received: %s\n", str.c_str());
     /* Notify the requester thread. */
@@ -511,11 +512,11 @@ void UserSettingTest::onLiveWatershedChanged(const bool enabled)
     m_condition_variable.notify_one();
 }
 
-void UserSettingTest::onPlaybackWatershedChanged(const bool enabled)
+void UserSettingTest::onPlaybackWatershedChanged(const bool playbackWatershed)
 {
     TEST_LOG("OnPlaybackWatershedChanged event triggered ***\n");
     std::unique_lock<std::mutex> lock(m_mutex);
-    std::string str = enabled ? "true" : "false";
+    std::string str = playbackWatershed ? "true" : "false";
 
     TEST_LOG("OnPlaybackWatershedChanged received: %s\n", str.c_str());
     /* Notify the requester thread. */
@@ -523,11 +524,11 @@ void UserSettingTest::onPlaybackWatershedChanged(const bool enabled)
     m_condition_variable.notify_one();
 }
 
-void UserSettingTest::onBlockNotRatedContentChanged(const bool enabled)
+void UserSettingTest::onBlockNotRatedContentChanged(const bool blockNotRatedContent)
 {
     TEST_LOG("OnBlockNotRatedContentChanged event triggered ***\n");
     std::unique_lock<std::mutex> lock(m_mutex);
-    std::string str = enabled ? "true" : "false";
+    std::string str = blockNotRatedContent ? "true" : "false";
 
     TEST_LOG("OnBlockNotRatedContentChanged received: %s\n", str.c_str());
     /* Notify the requester thread. */
@@ -535,11 +536,11 @@ void UserSettingTest::onBlockNotRatedContentChanged(const bool enabled)
     m_condition_variable.notify_one();
 }
 
-void UserSettingTest::onPinOnPurchaseChanged(const bool enabled)
+void UserSettingTest::onPinOnPurchaseChanged(const bool pinOnPurchase)
 {
     TEST_LOG("OnPinOnPurchaseChanged event triggered ***\n");
     std::unique_lock<std::mutex> lock(m_mutex);
-    std::string str = enabled ? "true" : "false";
+    std::string str = pinOnPurchase ? "true" : "false";
 
     TEST_LOG("OnPinOnPurchaseChanged received: %s\n", str.c_str());
     /* Notify the requester thread. */
@@ -893,6 +894,12 @@ TEST_F(UserSettingTest, SetAndGetMethodsUsingJsonRpcConnectionSuccessCase)
     uint32_t signalled = UserSettings_StateInvalid;
 
     bool enabled = true;
+    bool pinControl = true;
+    bool liveWatershed = true;
+    bool playbackWatershed = true;
+    bool blockNotRatedContent = true;
+    bool pinOnPurchase = true;
+
     string preferredLanguages = "en";
     string presentationLanguage = "fra";
     string preferredCaptionsLanguages = "en,es";
@@ -1059,16 +1066,16 @@ TEST_F(UserSettingTest, SetAndGetMethodsUsingJsonRpcConnectionSuccessCase)
     status = jsonrpc.Subscribe<JsonObject>(JSON_TIMEOUT,
                                        _T("onPinControlChanged"),
                                        [this, &async_handler](const JsonObject& parameters) {
-                                           bool enabled = parameters["enabled"].Boolean();
-                                           async_handler.onPinControlChanged(enabled);
+                                           bool pinControl = parameters["pinControl"].Boolean();
+                                           async_handler.onPinControlChanged(pinControl);
                                        });
     EXPECT_EQ(Core::ERROR_NONE, status);
 
-    EXPECT_CALL(async_handler, onPinControlChanged(MatchRequestStatusBool(enabled)))
+    EXPECT_CALL(async_handler, onPinControlChanged(MatchRequestStatusBool(pinControl)))
     .WillOnce(Invoke(this, &UserSettingTest::onPinControlChanged));
 
     JsonObject paramsPinControl;
-    paramsPinControl["enabled"] = true;
+    paramsPinControl["pinControl"] = true;
     status = InvokeServiceMethod("org.rdk.UserSettings", "setPinControl", paramsPinControl, result_json);
     EXPECT_EQ(status,Core::ERROR_NONE);
 
@@ -1139,16 +1146,16 @@ TEST_F(UserSettingTest, SetAndGetMethodsUsingJsonRpcConnectionSuccessCase)
     status = jsonrpc.Subscribe<JsonObject>(JSON_TIMEOUT,
                                        _T("onLiveWatershedChanged"),
                                        [this, &async_handler](const JsonObject& parameters) {
-                                           bool enabled = parameters["enabled"].Boolean();
-                                           async_handler.onLiveWatershedChanged(enabled);
+                                           bool liveWatershed = parameters["liveWatershed"].Boolean();
+                                           async_handler.onLiveWatershedChanged(liveWatershed);
                                        });
     EXPECT_EQ(Core::ERROR_NONE, status);
 
-    EXPECT_CALL(async_handler, onLiveWatershedChanged(MatchRequestStatusBool(enabled)))
+    EXPECT_CALL(async_handler, onLiveWatershedChanged(MatchRequestStatusBool(liveWatershed)))
     .WillOnce(Invoke(this, &UserSettingTest::onLiveWatershedChanged));
 
     JsonObject paramsLiveWatershed;
-    paramsLiveWatershed["enabled"] = true;
+    paramsLiveWatershed["liveWatershed"] = true;
     status = InvokeServiceMethod("org.rdk.UserSettings", "setLiveWatershed", paramsLiveWatershed, result_json);
     EXPECT_EQ(status,Core::ERROR_NONE);
 
@@ -1167,16 +1174,16 @@ TEST_F(UserSettingTest, SetAndGetMethodsUsingJsonRpcConnectionSuccessCase)
     status = jsonrpc.Subscribe<JsonObject>(JSON_TIMEOUT,
                                        _T("onPlaybackWatershedChanged"),
                                        [this, &async_handler](const JsonObject& parameters) {
-                                           bool enabled = parameters["enabled"].Boolean();
-                                           async_handler.onPlaybackWatershedChanged(enabled);
+                                           bool playbackWatershed = parameters["playbackWatershed"].Boolean();
+                                           async_handler.onPlaybackWatershedChanged(playbackWatershed);
                                        });
     EXPECT_EQ(Core::ERROR_NONE, status);
 
-    EXPECT_CALL(async_handler, onPlaybackWatershedChanged(MatchRequestStatusBool(enabled)))
+    EXPECT_CALL(async_handler, onPlaybackWatershedChanged(MatchRequestStatusBool(playbackWatershed)))
     .WillOnce(Invoke(this, &UserSettingTest::onPlaybackWatershedChanged));
 
     JsonObject paramsPlaybackWatershed;
-    paramsPlaybackWatershed["enabled"] = true;
+    paramsPlaybackWatershed["playbackWatershed"] = true;
     status = InvokeServiceMethod("org.rdk.UserSettings", "setPlaybackWatershed", paramsPlaybackWatershed, result_json);
     EXPECT_EQ(status,Core::ERROR_NONE);
 
@@ -1195,16 +1202,16 @@ TEST_F(UserSettingTest, SetAndGetMethodsUsingJsonRpcConnectionSuccessCase)
     status = jsonrpc.Subscribe<JsonObject>(JSON_TIMEOUT,
                                        _T("onBlockNotRatedContentChanged"),
                                        [this, &async_handler](const JsonObject& parameters) {
-                                           bool enabled = parameters["enabled"].Boolean();
-                                           async_handler.onBlockNotRatedContentChanged(enabled);
+                                           bool blockNotRatedContent = parameters["blockNotRatedContent"].Boolean();
+                                           async_handler.onBlockNotRatedContentChanged(blockNotRatedContent);
                                        });
     EXPECT_EQ(Core::ERROR_NONE, status);
 
-    EXPECT_CALL(async_handler, onBlockNotRatedContentChanged(MatchRequestStatusBool(enabled)))
+    EXPECT_CALL(async_handler, onBlockNotRatedContentChanged(MatchRequestStatusBool(blockNotRatedContent)))
     .WillOnce(Invoke(this, &UserSettingTest::onBlockNotRatedContentChanged));
 
     JsonObject paramsBlockNotRatedContent;
-    paramsBlockNotRatedContent["enabled"] = true;
+    paramsBlockNotRatedContent["blockNotRatedContent"] = true;
     status = InvokeServiceMethod("org.rdk.UserSettings", "setBlockNotRatedContent", paramsBlockNotRatedContent, result_json);
     EXPECT_EQ(status,Core::ERROR_NONE);
 
@@ -1223,16 +1230,16 @@ TEST_F(UserSettingTest, SetAndGetMethodsUsingJsonRpcConnectionSuccessCase)
     status = jsonrpc.Subscribe<JsonObject>(JSON_TIMEOUT,
                                        _T("onPinOnPurchaseChanged"),
                                        [this, &async_handler](const JsonObject& parameters) {
-                                           bool enabled = parameters["enabled"].Boolean();
-                                           async_handler.onPinOnPurchaseChanged(enabled);
+                                           bool pinOnPurchase = parameters["pinOnPurchase"].Boolean();
+                                           async_handler.onPinOnPurchaseChanged(pinOnPurchase);
                                        });
     EXPECT_EQ(Core::ERROR_NONE, status);
 
-    EXPECT_CALL(async_handler, onPinOnPurchaseChanged(MatchRequestStatusBool(enabled)))
+    EXPECT_CALL(async_handler, onPinOnPurchaseChanged(MatchRequestStatusBool(pinOnPurchase)))
     .WillOnce(Invoke(this, &UserSettingTest::onPinOnPurchaseChanged));
 
     JsonObject paramsPinOnPurchase;
-    paramsPinOnPurchase["enabled"] = true;
+    paramsPinOnPurchase["pinOnPurchase"] = true;
     status = InvokeServiceMethod("org.rdk.UserSettings", "setPinOnPurchase", paramsPinOnPurchase, result_json);
     EXPECT_EQ(status,Core::ERROR_NONE);
 
