@@ -16,6 +16,9 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.6.4] - 2024-12-16
+### Added
+- Added proper synchronization in in RDKShell::subscribeForSystemEvent()
 
 ## [1.6.3] - 2024-09-09
 ### Added
