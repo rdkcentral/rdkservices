@@ -162,13 +162,18 @@ namespace Plugin {
                 queueTimeout = std::chrono::milliseconds(POPULATE_DEVICE_INFO_RETRY_MS);
             }
 
-            if (queueTimeout == std::chrono::milliseconds::max())
+            if (mActionQueue.empty())
             {
-                mQueueCondition.wait(lock, [this] { return !mActionQueue.empty(); });
-            }
-            else
-            {
-                mQueueCondition.wait_for(lock, queueTimeout, [this] { return !mActionQueue.empty(); });
+                if (queueTimeout == std::chrono::milliseconds::max())
+                {
+                    mQueueCondition.wait(lock, [this]
+                                         { return !mActionQueue.empty(); });
+                }
+                else
+                {
+                    mQueueCondition.wait_for(lock, queueTimeout, [this]
+                                             { return !mActionQueue.empty(); });
+                }
             }
 
             Action action = {ACTION_TYPE_UNDEF, nullptr};
@@ -249,9 +254,18 @@ namespace Plugin {
     bool AnalyticsImplementation::IsSysTimeValid()
     {
         bool ret = false;
+        // Time is valid if system time is available and time zone is set
         if (mSysTime != nullptr)
         {
-            ret = mSysTime->IsSystemTimeAvailable();
+            if (mSysTime->IsSystemTimeAvailable())
+            {
+                int32_t offset = 0;
+                SystemTime::TimeZoneAccuracy acc = mSysTime->GetTimeZoneOffset(offset);
+                if (acc == SystemTime::TimeZoneAccuracy::FINAL)
+                {
+                   ret = true;
+                }
+            }
         }
 
         return ret;
