@@ -136,10 +136,6 @@ namespace WPEFramework
                         // get count from number of rows
                         count.second = table.NumRows();
                     }
-                    else
-                    {
-                        LOGERR("Failed to get entries count, query %s", query.c_str());
-                    }
                 }
                 else
                 {

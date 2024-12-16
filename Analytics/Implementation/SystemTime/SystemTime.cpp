@@ -72,48 +72,18 @@ namespace WPEFramework
 
         bool SystemTime::IsSystemTimeAvailable()
         {
-            bool isAvailable = false;
-            {
-                std::lock_guard<std::mutex> guard(mLock);
-                isAvailable = mIsSystemTimeAvailable;
-            }
-
-            if (isAvailable == false && mSystemLink != nullptr)
-            {
-                JsonObject params;
-                JsonObject response;
-
-                uint32_t result = mSystemLink->Invoke<JsonObject, JsonObject>(JSONRPC_THUNDER_TIMEOUT, "getTimeStatus", params, response);
-                if (result == Core::ERROR_NONE && response.HasLabel("TimeQuality"))
-                {
-                    mTimeQuality = response["TimeQuality"].String();
-                    if (mTimeQuality == TIME_QUALITY_GOOD || mTimeQuality == TIME_QUALITY_SECURE)
-                    {
-                        std::lock_guard<std::mutex> guard(mLock);
-                        mIsSystemTimeAvailable = true;
-                        isAvailable = true;
-                    }
-                }
-            }
-
-            return isAvailable;
+            // Time status is updated during init and on event
+            std::lock_guard<std::mutex> guard(mLock);
+            return mIsSystemTimeAvailable;
         }
 
         SystemTime::TimeZoneAccuracy SystemTime::GetTimeZoneOffset(int32_t &offsetSec)
         {
-            std::string tz;
-            std::string accuracyString;
-            bool isTimeAvailable = false;
-            {
-                std::lock_guard<std::mutex> guard(mLock);
-                tz = mTimeZone;
-                accuracyString = mTimeZoneAccuracyString;
-                isTimeAvailable = mIsSystemTimeAvailable;
-            }
+            std::lock_guard<std::mutex> guard(mLock);
 
-            if (isTimeAvailable)
+            if (mIsSystemTimeAvailable)
             {
-                std::pair<SystemTime::TimeZoneAccuracy, int32_t> tzParsed = ParseTimeZone(tz, accuracyString);
+                std::pair<SystemTime::TimeZoneAccuracy, int32_t> tzParsed = ParseTimeZone(mTimeZone, mTimeZoneAccuracyString);
                 offsetSec = tzParsed.second;
                 return tzParsed.first;
             }
@@ -220,6 +190,12 @@ namespace WPEFramework
                 {
                     mIsSystemTimeAvailable = false;
                 }
+            }
+            else
+            {
+                LOGERR("getTimeStatus not available, assuming time is OK");
+                std::lock_guard<std::mutex> guard(mLock);
+                mIsSystemTimeAvailable = true;
             }
         }
 
