@@ -20,6 +20,14 @@
 #include "DeviceIdentification.h"
 #include "IdentityProvider.h"
 #include <interfaces/IConfiguration.h>
+#include "tracing/Logging.h"
+#include "UtilsJsonRpc.h"
+#include "UtilsController.h"
+#ifdef USE_THUNDER_R4
+#include <interfaces/IDeviceInfo.h>
+#else
+#include <interfaces/IDeviceInfo2.h>
+#endif /* USE_THUNDER_R4 */
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
@@ -154,6 +162,7 @@ namespace Plugin {
     string DeviceIdentification::GetDeviceId() const
     {
         string result;
+        string serial;
 #ifndef DISABLE_DEVICEID_CONTROL
         ASSERT(_identifier != nullptr);
 
@@ -164,6 +173,24 @@ namespace Plugin {
 
             if (myBuffer[0] != 0) {
                 result = Core::SystemInfo::Instance().Id(myBuffer, ~0);
+            }
+            else
+            {
+                serial = RetrieveSerialNumberThroughCOMRPC();
+
+                if (!serial.empty()) {
+                    uint8_t ret = serial.length();
+
+                    if (ret > (sizeof(myBuffer) - 1)){
+                        ret = sizeof(myBuffer) - 1;
+                    }
+                    myBuffer[0] = ret;
+                    ::memcpy(&(myBuffer[1]), serial.c_str(), ret);
+
+                    if(myBuffer[0] != 0){
+                        result = Core::SystemInfo::Instance().Id(myBuffer, ~0);
+                    }
+                }
             }
         }
 #else
@@ -184,6 +211,35 @@ namespace Plugin {
 #endif
         return result;
     }
+
+    string DeviceIdentification::RetrieveSerialNumberThroughCOMRPC() const
+    {
+        std::string Number;
+        if (_service)
+        {
+            PluginHost::IShell::state state;
+
+        if ((Utils::getServiceState(_service, "DeviceInfo", state) == Core::ERROR_NONE) && (state != PluginHost::IShell::state::ACTIVATED))
+        {
+            Utils::activatePlugin(_service, "DeviceInfo");
+        }
+        if ((Utils::getServiceState(_service, "DeviceInfo", state) == Core::ERROR_NONE) && (state == PluginHost::IShell::state::ACTIVATED))
+        {
+            auto _remoteDeviceInfoObject = _service->QueryInterfaceByCallsign<Exchange::IDeviceInfo>("DeviceInfo");
+                if(_remoteDeviceInfoObject)
+                {
+                    _remoteDeviceInfoObject->SerialNumber(Number);
+                    _remoteDeviceInfoObject->Release();
+                }
+        }
+        else
+        {
+            LOGERR("Failed to create DeviceInfo object\n");
+        }
+        }
+        return Number;
+    }
+
 
     void DeviceIdentification::Info(JsonData::DeviceIdentification::DeviceidentificationData& deviceInfo) const
     {
