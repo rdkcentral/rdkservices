@@ -2,7 +2,7 @@
 <a name="System_Plugin"></a>
 # System Plugin
 
-**Version: [3.3.2](https://github.com/rdkcentral/rdkservices/blob/main/SystemServices/CHANGELOG.md)**
+**Version: [3.4.0](https://github.com/rdkcentral/rdkservices/blob/main/SystemServices/CHANGELOG.md)**
 
 A org.rdk.System plugin for Thunder framework.
 
@@ -118,6 +118,7 @@ org.rdk.System interface methods:
 | [getThunderStartReason](#getThunderStartReason) | Returns the Thunder start reason |
 | [setPrivacyMode](#setPrivacyMode) | Setting Privacy Mode |
 | [getPrivacyMode](#getPrivacyMode) | Getting Privacy Mode |
+| [getBootTypeInfo](#getBootTypeInfo) | Getting Boot Type |
 
 
 <a name="clearLastDeepSleepReason"></a>
@@ -3723,6 +3724,47 @@ This method takes no parameters.
     "jsonrpc": "2.0",
     "id": 42,
     "result": "DO_NOT_SHARE"
+}
+```
+
+<a name="getBootTypeInfo"></a>
+## *getBootTypeInfo*
+
+Getting Boot Type.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | string | BOOT Type Info |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.getBootTypeInfo"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": "BOOT_UPDATE"
 }
 ```
 
