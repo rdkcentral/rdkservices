@@ -3730,6 +3730,10 @@ namespace Plugin {
             returnResponse(false);
         }
 
+	if (isPlatformSupport("AutoBacklightMode") != 0) {
+            returnResponse(false);
+        }
+
         if (parsingSetInputArgument(parameters,"AutoBacklightMode",inputInfo) != 0) {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
             returnResponse(false);
@@ -3776,6 +3780,10 @@ namespace Plugin {
 
         TR181_ParamData_t param;
 
+	if (isPlatformSupport("AutoBacklightMode") != 0) {
+            returnResponse(false);
+        }
+
         tr181ErrorCode_t err = getLocalParam(rfc_caller_id, AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM, &param);
         if (err!= tr181Success) {
             returnResponse(false);
@@ -3795,6 +3803,10 @@ namespace Plugin {
         LOGINFO("Entry\n");
 
         tvError_t ret = tvERROR_NONE;
+
+	if (isPlatformSupport("AutoBacklightMode") != 0) {
+            returnResponse(false);
+        }
 
         tr181ErrorCode_t err = clearLocalParam(rfc_caller_id,AVOUTPUT_AUTO_BACKLIGHT_MODE_RFC_PARAM);
         if ( err != tr181Success ) {

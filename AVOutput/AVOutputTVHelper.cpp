@@ -1729,59 +1729,6 @@ namespace Plugin {
         return ret;
     }
 
-
-    int AVOutputTV::ReadCapablitiesFromConf( std::string param, capDetails_t& info )
-    {
-        int ret = 0;
-
-        try {
-            CIniFile inFile(CAPABLITY_FILE_NAME);
-            std::string configString;
-            if ((param == "DolbyVisionMode") || (param == "Backlight") ) {
-                configString = param + ".platformsupport";
-                isPlatformSupport = inFile.Get<std::string>(configString);
-                printf(" platfromsupport : %s\n",isPlatformSupport.c_str() );
-            }
-
-            if ( (param == "ColorTemperature") || (param == "DimmingMode") ||
-                ( param == "AutoBacklightControl") || (param == "DolbyVisionMode") ||
-                (param == "HDR10Mode") || (param == "HLGMode") || (param == "AspectRatio") ||
-                (param == "PictureMode") || (param == "VideoSource") || (param == "VideoFormat") ||
-                (param == "VideoFrameRate") ) {
-                configString =  param + ".range";
-                rangeInfo = inFile.Get<std::string>(configString);
-                printf(" String Range info : %s\n",rangeInfo.c_str() );
-            } else {
-                configString = param + ".range_from";
-                rangeInfo = inFile.Get<std::string>(configString);
-                configString = param + ".range_to";
-                rangeInfo += ","+inFile.Get<std::string>(configString);
-                printf(" Integer Range Info : %s\n",rangeInfo.c_str() );
-            }
-
-            if ((param == "VideoSource") || (param == "PictureMode") || (param == "VideoFormat") ) {
-                configString.clear();
-                configString = param + ".index";
-                indexInfo = inFile.Get<std::string>(configString);
-                printf("Index value %s\n", indexInfo.c_str());
-            }
-
-            configString.clear();
-            configString = param + ".pqmode";
-            pqmodeInfo = inFile.Get<std::string>(configString);
-            configString = param + ".format";
-            formatInfo = inFile.Get<std::string>(configString);
-            configString = param + ".source";
-            sourceInfo = inFile.Get<std::string>(configString);
-            ret = 0;
-        }
-        catch(const boost::property_tree::ptree_error &e) {
-            printf("%s: error %s::config table entry not found in ini file\n",__FUNCTION__,e.what());
-            ret = -1;
-        }
-        return ret;
-    }
-
     void AVOutputTV::getDimmingModeStringFromEnum(int value, std::string &toStore)
     {
         const char *color_temp_string[] = {
@@ -2524,14 +2471,14 @@ namespace Plugin {
 
             }
 
-            if ((param == "DolbyVisionMode") || (param == "Backlight") || (param == "CMS") || (param == "CustomWhiteBalance") || (param == "HDRMode") ) {
+            if ((param == "DolbyVisionMode") || (param == "Backlight") || (param == "CMS") || (param == "CustomWhiteBalance") || (param == "HDRMode") || (param == "AutoBacklightMode")) {
                 configString = param + ".platformsupport";
                 info.isPlatformSupport = inFile.Get<std::string>(configString);
                 printf(" platformsupport : %s\n",info.isPlatformSupport.c_str() );
             }
 
             if ( (param == "ColorTemperature") || (param == "DimmingMode") ||
-                 ( param == "AutoBacklightControl") || (param == "DolbyVisionMode") ||
+                 ( param == "AutoBacklightMode") || (param == "DolbyVisionMode") ||
                  (param == "HDR10Mode") || (param == "HLGMode") || (param == "AspectRatio") ||
                  (param == "PictureMode") || (param == "VideoSource") || (param == "VideoFormat") ||
                  (param == "VideoFrameRate") || (param == "HDRMode") ) {
