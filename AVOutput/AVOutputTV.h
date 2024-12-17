@@ -71,16 +71,6 @@
 #define CREATE_DIRTY(__X__) (__X__+=STRING_DIRTY)
 #define CAPABLITY_FILE_NAME    "pq_capabilities.ini"
 
-typedef enum ContentFormatIndex {
-    CONTENT_FORMAT_NONE = 0,
-    CONTENT_FORMAT_SDR = 1,
-    CONTENT_FORMAT_HLG = 2,
-    CONTENT_FORMAT_HDR10 = 3,
-    CONTENT_FORMAT_HDR10PLUS = 4,
-    CONTENT_FORMAT_DV = 5,
-    CONTENT_FORMAT_MAX
-}contentFormatType_t;
-
 class CIniFile
 {
 	std::string m_path;
@@ -204,7 +194,6 @@ class AVOutputTV : public AVOutputBase {
     private:
 
 		
-		contentFormatType_t getContentFormatIndex(tvVideoFormatType_t formatToConvert);
 		int getPictureModeIndex(std::string pqmode);
 		int getSourceIndex(std::string source);
 		int getFormatIndex(std::string format);		
@@ -238,7 +227,6 @@ class AVOutputTV : public AVOutputBase {
 		string convertSourceIndexToString(int source);
 		string convertVideoFormatToString(int format);
 		string convertPictureIndexToString(int pqmode);
-		tvVideoFormatType_t convertFormatStringToTVVideoFormat(const char *format);
 		//std::string convertSourceIndexToString(int sourceIndex);
 		//std::string convertVideoFormatToString( int formatIndex );
 		void convertUserScaleBacklightToDriverScale(int format,int * params);
@@ -266,7 +254,6 @@ class AVOutputTV : public AVOutputBase {
 		int getLocalparam(std::string forParam,int formatIndex,int pqIndex,int sourceIndex,int &value,
 		  tvPQParameterIndex_t pqParamIndex ,bool cms=false,int tunnel_type=0);
 		tvDataComponentColor_t getComponentColorEnum(std::string colorName);
-		int getDolbyParams(tvVideoFormatType_t format, std::string &s, std::string source = "");
 		tvError_t getParamsCaps(std::vector<std::string> &range, std::vector<std::string> &pqmode, std::vector<std::string> &source, std::vector<std::string> &format,std::string param );
 		tvError_t getParamsCaps(std::vector<std::string> &range, std::vector<std::string> &pqmode, std::vector<std::string> &source,
 		                        std::vector<std::string> &format,std::string param , std::string & isPlatformSupport,

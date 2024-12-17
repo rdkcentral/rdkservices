@@ -30,43 +30,6 @@ static bool m_isDalsEnabled = false;
 namespace WPEFramework {
 namespace Plugin {
 
-    contentFormatType_t AVOutputTV::getContentFormatIndex(tvVideoFormatType_t formatToConvert)
-    {
-        if (formatToConvert < VIDEO_FORMAT_NONE || formatToConvert >= VIDEO_FORMAT_MAX) {
-            // Invalid format, default to SDR
-            return CONTENT_FORMAT_SDR;
-        }
-
-        /* default to SDR always*/
-        contentFormatType_t ret = CONTENT_FORMAT_NONE;
-        switch(formatToConvert)
-        {
-            case VIDEO_FORMAT_HLG:
-                ret = CONTENT_FORMAT_HLG;
-                break;
-
-            case VIDEO_FORMAT_HDR10:
-                ret = CONTENT_FORMAT_HDR10;
-                break;
-
-            case VIDEO_FORMAT_HDR10PLUS:
-                ret =  CONTENT_FORMAT_HDR10PLUS;
-                break;
-
-            case VIDEO_FORMAT_DV:
-                ret = CONTENT_FORMAT_DV;
-                break;
-
-            case VIDEO_FORMAT_NONE:
-            case VIDEO_FORMAT_PRIMESL:
-            case VIDEO_FORMAT_MVC:
-            default:
-                ret  = CONTENT_FORMAT_SDR;
-                break;
-        }
-        return ret;
-    }
-
     int AVOutputTV::getPictureModeIndex(std::string pqparam)
     {
         int index = -1;
@@ -832,26 +795,6 @@ namespace Plugin {
         return ret;
     }
 
-    tvVideoFormatType_t AVOutputTV::convertFormatStringToTVVideoFormat(const char *format)
-    {
-        tvVideoFormatType_t ret = VIDEO_FORMAT_SDR;
-
-        if( strncmp(format,"sdr",strlen(format)) == 0 || strncmp(format,"SDR",strlen(format)) == 0 ) {
-            ret = VIDEO_FORMAT_SDR;
-	}
-        else if( strncmp(format,"hdr10",strlen(format)) == 0 || strncmp(format,"HDR10",strlen(format))==0 ) {
-            ret = VIDEO_FORMAT_HDR10;
-	}
-        else if( strncmp(format,"hlg",strlen(format)) == 0 || strncmp(format,"HLG",strlen(format)) == 0 ) {
-            ret = VIDEO_FORMAT_HLG;
-	}
-        else if( strncmp(format,"dolby",strlen(format)) == 0 || strncmp(format,"DOLBY",strlen(format)) == 0 ) {
-            ret=VIDEO_FORMAT_DV;
-	}
-
-        return ret;
-    }
-
     tvError_t AVOutputTV::updateAVoutputTVParamToHAL(std::string forParam, int source, int pqmode, int format, int value,bool setNotDelete)
     {
         tvError_t ret = tvERROR_NONE;
@@ -1278,57 +1221,6 @@ namespace Plugin {
         return CompColorEnum;
     }
 
-    int AVOutputTV::getDolbyParams(tvVideoFormatType_t format, std::string &s, std::string source)
-    {
-        int ret = -1;
-        TR181_ParamData_t param;
-        std::string rfc_param = AVOUTPUT_HDR10MODE_RFC_PARAM;
-        int dolby_mode_value = 0;
-        tvVideoSrcType_t sourceIndex = VIDEO_SOURCE_IP;
-        /*Since dolby vision is source specific, we should for check for specific source*/
-        if (!source.empty()) {
-            sourceIndex = (tvVideoSrcType_t)getSourceIndex(source);
-        }
-        else {
-            GetCurrentVideoSource(&sourceIndex);
-        }
-
-        char picMode[PIC_MODE_NAME_MAX]={0};
-        int pqmodeIndex = 0;
-        if(!getCurrentPictureMode(picMode)) {
-            LOGERR("Failed to get the Current picture mode\n");
-        }
-        else {
-            std::string local = picMode;
-            pqmodeIndex = getPictureModeIndex(local);
-        }
-        memset(&param, 0, sizeof(param));
-        if (format == VIDEO_FORMAT_HLG ) {
-            rfc_param = AVOUTPUT_HLGMODE_RFC_PARAM;
-        }
-        else if (format == VIDEO_FORMAT_DV) {
-            rfc_param = AVOUTPUT_SOURCE_PICTUREMODE_STRING_RFC_PARAM + std::to_string(sourceIndex) + "."+"DolbyVisionMode";
-        }
-
-        tr181ErrorCode_t err = getLocalParam(rfc_caller_id, rfc_param.c_str(), &param);
-        if ( tr181Success != err) {
-            tvError_t retVal = GetDefaultPQParams(pqmodeIndex,(tvVideoSrcType_t)sourceIndex,
-                                                 (tvVideoFormatType_t)getContentFormatIndex(format),
-                                                 PQ_PARAM_DOLBY_MODE,&dolby_mode_value);
-            if( retVal != tvERROR_NONE ) {
-                LOGERR("%s : failed\n",__FUNCTION__);
-                return ret;
-            }
-            s = getDolbyModeStringFromEnum((tvDolbyMode_t)dolby_mode_value);
-            ret = 0;
-        }
-        else {
-            s += param.value;
-            ret = 0;
-        }
-        return ret;
-    }
-
     tvError_t AVOutputTV::getParamsCaps(std::vector<std::string> &range
                 , std::vector<std::string> &pqmode, std::vector<std::string> &source, std::vector<std::string> &format,std::string param )
     {
@@ -1513,6 +1405,7 @@ namespace Plugin {
         tr181ErrorCode_t err = getLocalParam(rfc_caller_id, tr181_param_name.c_str(), &param);
         if ( err == tr181Success ) {
             strncpy(picMode, param.value, strlen(param.value)+1);
+	    picMode[strlen(param.value)] = '\0';
             LOGINFO("getLocalParam success, mode = %s\n", picMode);
             return 1;
         }
