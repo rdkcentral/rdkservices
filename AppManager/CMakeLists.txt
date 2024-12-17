@@ -53,26 +53,7 @@ target_link_libraries(${MODULE_NAME}
 install(TARGETS ${MODULE_NAME}
     DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/${STORAGE_DIRECTORY}/plugins)
 
-add_library(${PLUGIN_IMPLEMENTATION} SHARED
-    AppManagerImplementation.cpp
-    RDKShellAdapter.cpp
-    RDKShellAdapterUtils.cpp
-    WebSocket.cpp
-    Module.cpp)
-
 include_directories(
    ../helpers)
-
-set_target_properties(${PLUGIN_IMPLEMENTATION} PROPERTIES
-        CXX_STANDARD 11
-        CXX_STANDARD_REQUIRED YES)
-
-target_link_libraries(${PLUGIN_IMPLEMENTATION}
-    PRIVATE
-        CompileSettingsDebug::CompileSettingsDebug
-        ${NAMESPACE}Plugins::${NAMESPACE}Plugins -lrdkshell)
-
-install(TARGETS ${PLUGIN_IMPLEMENTATION}
-    DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/${STORAGE_DIRECTORY}/plugins)
 
 write_config(${PLUGIN_NAME})
