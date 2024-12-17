@@ -1730,8 +1730,7 @@ namespace Plugin {
     }
 
 
-    int AVOutputTV::ReadCapablitiesFromConf(std::string &rangeInfo,std::string &pqmodeInfo,std::string &formatInfo,std::string &sourceInfo,
-                           std::string param, std::string & isPlatformSupport, std::string & indexInfo)
+    int AVOutputTV::ReadCapablitiesFromConf( std::string param, capDetails_t& info )
     {
         int ret = 0;
 
