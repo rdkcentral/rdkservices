@@ -1,0 +1,10 @@
+precondition = ["Platform"]
+callsign = "org.rdk.AppManager"
+autostart = "false"
+
+configuration = JSON()
+root = JSON()
+root.add("mode", "@PLUGIN_APPMANAGER_MODE@")
+root.add("locator", "lib@PLUGIN_APPMANAGER_IMPLEMENTATION@.so")
+configuration.add("root", root)
+
