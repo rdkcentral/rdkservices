@@ -1,10 +1,12 @@
 <!-- Generated automatically, DO NOT EDIT! -->
 <a name="Wifi_Plugin"></a>
-# Wifi Plugin
+# Wifi Plugin $${\color{red}(DEPRECATED)}$$
 
 **Version: [1.0.9](https://github.com/rdkcentral/rdkservices/blob/main/WifiManager/CHANGELOG.md)**
 
 A org.rdk.Wifi plugin for Thunder framework.
+
+For newer APIs, please refer: https://github.com/rdkcentral/networkmanager/blob/main/docs/NetworkManagerPlugin.md
 
 ### Table of Contents
 
