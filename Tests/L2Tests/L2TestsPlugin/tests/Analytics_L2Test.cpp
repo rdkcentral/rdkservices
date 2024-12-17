@@ -30,6 +30,33 @@
                        "America/New_York  Sun Mar  8 07:00:00 2009 UT = Sun Mar  8 03:00:00 2009 EDT isdst=1 gmtoff=-14400"
 #define TIME_MOCK_OUT 1212537600 // 2008-06-03 12:00:00
 
+#define EVENTS_MAP "[ \
+                { \
+                \"event_name\":\"L2MapTestEvent\", \
+                \"event_source\":\"L2Test\", \
+                \"mapped_event_name\":\"L2TestEventMappedGeneric\" \
+                }, \
+                { \
+                \"event_name\":\"L2MapTestEvent\", \
+                \"event_source\":\"L2Test\", \
+                \"event_source_version\":\"1.0.0\", \
+                \"event_version\":\"1\", \
+                \"mapped_event_name\":\"L2TestEventMappedExact\" \
+                }, \
+                { \
+                \"event_name\":\"L2MapTestEvent\", \
+                \"event_source\":\"L2Test\", \
+                \"event_version\":\"1\", \
+                \"mapped_event_name\":\"L2TestEventMappedGenericSourceVersion\" \
+                }, \
+                { \
+                \"event_name\":\"L2MapTestEvent\", \
+                \"event_source\":\"L2Test\", \
+                \"event_source_version\":\"1.0.0\", \
+                \"mapped_event_name\":\"L2TestEventMappedGenericVersion\" \
+                } \
+                ]"
+
 using ::testing::NiceMock;
 using namespace WPEFramework;
 using testing::StrictMock;
@@ -291,6 +318,11 @@ AnalyticsTest::AnalyticsTest()
                 return TIME_MOCK_OUT;
             }));
 
+    // Mock event mapping file
+    std::ofstream eventsMapFile("/tmp/AnalyticsEventsMap.json");
+    eventsMapFile << EVENTS_MAP;
+    eventsMapFile.close();
+
     // Activate Analytics plugin
     status = ActivateService("org.rdk.Analytics");
     EXPECT_EQ(Core::ERROR_NONE, status);
@@ -336,6 +368,14 @@ AnalyticsTest::~AnalyticsTest()
         TEST_LOG("Error deleting file[/opt/persistent/timeZoneDST]");
     } else {
         TEST_LOG("File[/opt/persistent/timeZoneDST] successfully deleted");
+    }
+
+    file_status = remove("/tmp/AnalyticsEventsMap.json");
+    // Check if the file has been successfully removed
+    if (file_status != 0) {
+        TEST_LOG("Error deleting file[/tmp/AnalyticsEventsMap.json]");
+    } else {
+        TEST_LOG("File[/tmp/AnalyticsEventsMap.json] successfully deleted");
     }
 }
 
@@ -602,6 +642,16 @@ TEST_F(AnalyticsTest, SendAndReceiveMultipleEventsTimeOk)
     // Check if the event message contains the expected fields
     JsonArray eventArray;
     eventArray.FromString(eventMsg);
+    if (eventArray.Length() < eventsSentNbr) {
+        // If not all events are received, wait for the rest
+        string eventMsg2 = siftServer.AwaitData(SIFT_SERVER_TIMEOUT_SEC);
+        JsonArray eventArray2;
+        eventArray2.FromString(eventMsg2);
+        for (int i = 0; i < eventArray2.Length(); ++i) {
+            eventArray.Add(eventArray2[i]);
+        }
+    }
+
     EXPECT_EQ(eventArray.Length(), eventsSentNbr);
 
     for (int n = 0; n < eventsSentNbr; ++n) {
@@ -924,4 +974,86 @@ TEST_F(AnalyticsTest, OnPersistentStoreValChange)
     JsonObject eventPayloadObj = eventObj["event_payload"].Object();
     EXPECT_TRUE(eventPayloadObj.HasLabel("data"));
     EXPECT_EQ(eventPayloadObj["data"].String(), "random data");
+}
+
+
+TEST_F(AnalyticsTest, EventsMapping)
+{
+    JsonObject paramsJson;
+    JsonObject resultJson;
+
+    // exact mapping
+    paramsJson["eventName"] = "L2MapTestEvent";
+    paramsJson["eventVersion"] = "1";
+    paramsJson["eventSource"] = "L2Test";
+    paramsJson["eventSourceVersion"] = "1.0.0";
+    
+    JsonObject eventPayload;
+    eventPayload["data"] = "random data";
+    paramsJson["eventPayload"] = eventPayload;
+
+    uint32_t status = InvokeServiceMethod("org.rdk.Analytics", "sendEvent", paramsJson, resultJson);
+    EXPECT_EQ(status, Core::ERROR_NONE);
+
+    // generic mapping
+    paramsJson["eventName"] = "L2MapTestEvent";
+    paramsJson["eventVersion"] = "2";
+    paramsJson["eventSource"] = "L2Test";
+    paramsJson["eventSourceVersion"] = "1.0.1";
+    status = InvokeServiceMethod("org.rdk.Analytics", "sendEvent", paramsJson, resultJson);
+    EXPECT_EQ(status, Core::ERROR_NONE);
+
+    // generic mapping by source version
+    paramsJson["eventName"] = "L2MapTestEvent";
+    paramsJson["eventVersion"] = "2";
+    paramsJson["eventSource"] = "L2Test";
+    paramsJson["eventSourceVersion"] = "1.0.0";
+    status = InvokeServiceMethod("org.rdk.Analytics", "sendEvent", paramsJson, resultJson);
+    EXPECT_EQ(status, Core::ERROR_NONE);
+
+    // generic mapping by event version
+    paramsJson["eventName"] = "L2MapTestEvent";
+    paramsJson["eventVersion"] = "1";
+    paramsJson["eventSource"] = "L2Test";
+    paramsJson["eventSourceVersion"] = "1.0.1";
+    status = InvokeServiceMethod("org.rdk.Analytics", "sendEvent", paramsJson, resultJson);
+    EXPECT_EQ(status, Core::ERROR_NONE);
+
+
+    SiftServerMock siftServer;
+    EXPECT_TRUE(siftServer.Start());
+
+    // Set TimeZone to FINAL what allows event to be decorated and sent to Sift server
+    paramsJson.Clear();
+    paramsJson["timeZone"] = "America/New_York";
+    paramsJson["accuracy"] = "FINAL";
+    status = InvokeServiceMethod("org.rdk.System", "setTimeZoneDST", paramsJson, resultJson);
+    EXPECT_EQ(status, Core::ERROR_NONE);
+
+    string eventsMsg = siftServer.AwaitData(SIFT_SERVER_TIMEOUT_SEC);
+    EXPECT_NE(eventsMsg, "");
+
+    // Check if the event message contains the expected fields
+    JsonArray eventArray;
+    eventArray.FromString(eventsMsg);
+    EXPECT_EQ(eventArray.Length(), 4);
+
+    if (eventArray.Length() == 4) {
+        JsonObject eventObj = eventArray[0].Object();
+        EXPECT_TRUE(eventObj.HasLabel("event_name"));
+        EXPECT_EQ(eventObj["event_name"].String(), "L2TestEventMappedExact");
+
+        eventObj = eventArray[1].Object();
+        EXPECT_TRUE(eventObj.HasLabel("event_name"));
+        EXPECT_EQ(eventObj["event_name"].String(), "L2TestEventMappedGeneric");
+
+        eventObj = eventArray[2].Object();
+        EXPECT_TRUE(eventObj.HasLabel("event_name"));
+        EXPECT_EQ(eventObj["event_name"].String(), "L2TestEventMappedGenericVersion");
+
+        eventObj = eventArray[3].Object();
+        EXPECT_TRUE(eventObj.HasLabel("event_name"));
+        EXPECT_EQ(eventObj["event_name"].String(), "L2TestEventMappedGenericSourceVersion");
+    }
+
 }
