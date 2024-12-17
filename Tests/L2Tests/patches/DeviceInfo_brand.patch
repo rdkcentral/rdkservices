@@ -1,0 +1,48 @@
+ interfaces/IDeviceInfo.h |  1 +
+ jsonrpc/DeviceInfo.json  | 22 ++++++++++++++++++++++
+ 2 files changed, 23 insertions(+)
+diff --git a/interfaces/IDeviceInfo.h b/interfaces/IDeviceInfo.h
+index b674799..b9f249d 100644
+--- a/interfaces/IDeviceInfo.h
++++ b/interfaces/IDeviceInfo.h
+@@ -42,6 +42,7 @@ namespace Exchange {
+         virtual uint32_t DeviceType(string& value /* @out */) const = 0;
+         virtual uint32_t PlatformName(string& value/*@out*/) const = 0;
+         virtual uint32_t DistributorId(string& value /* @out */) const = 0;
++        virtual uint32_t Brand(string& value /* @out */) const = 0;
+     };
+ 
+     struct EXTERNAL IDeviceAudioCapabilities : virtual public Core::IUnknown {
+diff --git a/jsonrpc/DeviceInfo.json b/jsonrpc/DeviceInfo.json
+index c0519fc..211bee5 100644
+--- a/jsonrpc/DeviceInfo.json
++++ b/jsonrpc/DeviceInfo.json
+@@ -1005,6 +1005,28 @@
+         }
+       ]
+     },
++    "brandname": {
++      "summary": "Device brand",
++      "readonly": true,
++      "params": {
++        "type": "object",
++        "properties": {
++          "year": {
++            "type": "string",
++            "example": "Comcast"
++          }
++        },
++        "required": [
++          "brand"
++        ]
++      },
++      "errors": [
++        {
++          "description": "General error",
++          "$ref": "#/common/errors/general"
++        }
++      ]
++    },
+     "distributorid": {
+       "summary": "Partner ID or distributor ID for device",
+       "readonly": true,
