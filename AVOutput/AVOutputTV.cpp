@@ -2350,9 +2350,8 @@ namespace Plugin {
                 getParamIndex("DolbyVisionMode",inputInfo,indexInfo);
                 int err = getLocalparam("DolbyVisionMode",indexInfo, dolbyMode, PQ_PARAM_DOLBY_MODE);
                 if( err == 0 ) {
-                    std::string dolbyModeValue = getDolbyModeStringFromEnum((tvDolbyMode_t)dolbyMode);
 
-                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d dolbyvalue : %s\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex, dolbyModeValue.c_str());
+                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d dolbyvalue : %d\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex, dolbyMode);
                     ret = SetTVDolbyVisionMode((tvDolbyMode_t)dolbyMode);
                 }
                 else {
@@ -3264,10 +3263,11 @@ namespace Plugin {
     uint32_t AVOutputTV::setHDRMode(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
-
+        tvDolbyMode_t index;
         capDetails_t inputInfo;
         tvError_t ret  = tvERROR_NONE;
         std::string value;
+	int retval = 0;
 
         value = parameters.HasLabel("HDRMode") ? parameters["HDRMode"].String() : "";
         returnIfParamNotFound(parameters,"HDRMode");
@@ -3293,7 +3293,13 @@ namespace Plugin {
 
         if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
             LOGINFO("Proceed with HDRMode\n\n");
-            ret = SetTVDolbyVisionModeODM(value.c_str());
+            retval = getHDRModeIndex(value,inputInfo.format,index);
+            if( retval != 0 )
+            {
+                LOGERR("Failed to getHDRMode index\n");
+                returnResponse(false);
+            }
+            ret = SetTVDolbyVisionMode(index);
         }
 
         if(ret != tvERROR_NONE) {
@@ -3301,13 +3307,6 @@ namespace Plugin {
             returnResponse(false);
         }
         else {
-            tvDolbyMode_t index;
-            int retval = getHDRModeIndex(value,inputInfo.format,index);
-            if( retval != 0 )
-            {
-                LOGERR("Failed to getHDRMode index\n");
-                returnResponse(false);
-            }	
             retval= updateAVoutputTVParam("set","HDRMode",inputInfo,PQ_PARAM_HDR_MODE,(int)index);
             if(retval != 0 ) {
                 LOGERR("Failed to Save hdrMode mode\n");
@@ -3352,9 +3351,8 @@ namespace Plugin {
                 getParamIndex( "HDRMode", inputInfo,indexInfo);
                 int err = getLocalparam("HDRMode", indexInfo, dolbyMode, PQ_PARAM_HDR_MODE);
                 if( err == 0 ) {
-                    std::string dolbyModeValue = getDolbyModeStringFromEnum((tvDolbyMode_t)dolbyMode);
-                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d dolbyvalue : %s\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex, dolbyModeValue.c_str());
-                    ret = SetTVDolbyVisionModeODM(dolbyModeValue.c_str());
+                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d dolbyvalue : %d\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex, dolbyMode);
+                    ret = SetTVDolbyVisionMode((tvDolbyMode_t)dolbyMode);
                 }
                 else {
                     LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
@@ -3511,10 +3509,10 @@ namespace Plugin {
             LOGINFO("Proceed with %s\n",__FUNCTION__);
 
             tvVideoSrcType_t currentSource = VIDEO_SOURCE_IP;
-            tvError_t ret = GetCurrentSource(&currentSource);
+            tvError_t ret = GetCurrentVideoSource(&currentSource);
 
             if(ret != tvERROR_NONE) {
-                LOGWARN("%s: GetCurrentSource( ) Failed \n",__FUNCTION__);
+                LOGWARN("%s: GetCurrentVideoSource( ) Failed \n",__FUNCTION__);
                 return -1;
             }
     

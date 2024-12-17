@@ -1120,12 +1120,12 @@ namespace Plugin {
                                 }
                                 break;
                             }
-                            case PQ_PARAM_WB_RED_GAIN:
-                            case PQ_PARAM_WB_GREEN_GAIN:
-                            case PQ_PARAM_WB_BLUE_GAIN:
-                            case PQ_PARAM_WB_RED_OFFSET:
-                            case PQ_PARAM_WB_GREEN_OFFSET:
-                            case PQ_PARAM_WB_BLUE_OFFSET:
+                            case PQ_PARAM_WB_GAIN_RED:
+                            case PQ_PARAM_WB_GAIN_GREEN:
+                            case PQ_PARAM_WB_GAIN_BLUE:
+                            case PQ_PARAM_WB_OFFSET_RED:
+                            case PQ_PARAM_WB_OFFSET_GREEN:
+                            case PQ_PARAM_WB_OFFSET_BLUE:
                             {
                                for( int colorType : values.colorValues ) {
                                    paramIndex.colorIndex = colorType;
@@ -1232,10 +1232,10 @@ namespace Plugin {
         }
         
         if( !updateAVoutputTVParam("sync","HDRMode",info,PQ_PARAM_HDR_MODE,level)) {
-            LOGINFO("dvmode Successfully Synced to Drive Cache\n");
+            LOGINFO("HDRmode Successfully Synced to Drive Cache\n");
         }
         else {
-            LOGERR("dvmode Sync to cache Failed !!!\n");
+            LOGERR("HDRmode Sync to cache Failed !!!\n");
         }
 
         if( !updateAVoutputTVParam("sync","DimmingMode",info,PQ_PARAM_DIMMINGMODE,level)) {
@@ -1256,7 +1256,7 @@ namespace Plugin {
         
         syncWBParams();
 
-        info.format = "DV";
+        info.format = "DV";//Sync only for Dolby
 
         if( !updateAVoutputTVParam("sync","DolbyVisionMode",info,PQ_PARAM_DOLBY_MODE,level)) {
             LOGINFO("dvmode Successfully Synced to Drive Cache\n");
@@ -1477,7 +1477,7 @@ namespace Plugin {
         string key;
         TR181_ParamData_t param={0};
         
-	    if( forParam.compare("CMS") == 0 ) {
+        if( forParam.compare("CMS") == 0 ) {
             generateStorageIdentifierCMS(key,forParam,indexInfo);
         } else if( forParam.compare("WhiteBalance") == 0 ) {
             generateStorageIdentifierWB(key,forParam,indexInfo);
@@ -1886,26 +1886,11 @@ namespace Plugin {
             return tvDolbyMode_Bright;
         } else if (strcmp(modeString, "Game") == 0) {
             return tvDolbyMode_Game;
-        } else if (strcmp(modeString, "HDR10 Dark") == 0) {
-            return tvHDR10Mode_Dark;
-        } else if (strcmp(modeString, "HDR10 Bright") == 0) {
-            return tvHDR10Mode_Bright;
-        } else if (strcmp(modeString, "HDR10 Game") == 0) {
-            return tvHDR10Mode_Game;
-        } else if (strcmp(modeString, "HLG Dark") == 0) {
-            return tvHLGMode_Dark;
-        } else if (strcmp(modeString, "HLG Bright") == 0) {
-            return tvHLGMode_Bright;
-        } else if (strcmp(modeString, "HLG Game") == 0) {
-            return tvHLGMode_Game;
         }
-
         return tvDolbyMode_Invalid; // Default case for invalid input
     }
 
-
     std::string AVOutputTV::getDolbyModeStringFromEnum( tvDolbyMode_t mode)
-
     {
             std::string value;
             switch(mode) {
@@ -2327,8 +2312,8 @@ namespace Plugin {
             {"GreenGain", G_GAIN},
             {"BlueGain", B_GAIN},
             {"RedOffset", R_POST_OFFSET},
-            {"GreenOffset", R_POST_OFFSET},
-            {"BlueOffset", R_POST_OFFSET}
+            {"GreenOffset", G_POST_OFFSET},
+            {"BlueOffset", B_POST_OFFSET}
         };
 
         // Create the key by concatenating the color and control
@@ -2350,12 +2335,12 @@ namespace Plugin {
     // Create a map to associate color-component pairs with enum values
 	    int ret = 0;
         static const std::unordered_map<std::string, tvPQParameterIndex_t> colorControlMap = {
-            {"RedGain", PQ_PARAM_WB_RED_GAIN},
-            {"RedOffset", PQ_PARAM_WB_RED_OFFSET},
-            {"GreenGain", PQ_PARAM_WB_GREEN_GAIN},
-            {"GreenOffset", PQ_PARAM_WB_GREEN_OFFSET},
-            {"BlueGain", PQ_PARAM_WB_BLUE_GAIN},
-            {"BlueOffset", PQ_PARAM_WB_BLUE_OFFSET},
+            {"RedGain", PQ_PARAM_WB_GAIN_RED},
+            {"RedOffset", PQ_PARAM_WB_OFFSET_RED},
+            {"GreenGain", PQ_PARAM_WB_GAIN_GREEN},
+            {"GreenOffset", PQ_PARAM_WB_OFFSET_GREEN},
+            {"BlueGain", PQ_PARAM_WB_GAIN_BLUE},
+            {"BlueOffset", PQ_PARAM_WB_OFFSET_BLUE},
         };
 
         // Create the key by concatenating the component and color
@@ -2507,7 +2492,7 @@ namespace Plugin {
         return 0;
     }
 
-    int AVOutputTV::ReadCapablitiesFromConfODM(std::string param, capDetails_t& info)
+    int AVOutputTV::ReadCapablitiesFromConf(std::string param, capDetails_t& info)
     {
         int ret = 0;
 
