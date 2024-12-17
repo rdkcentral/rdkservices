@@ -17,6 +17,10 @@
                  "description":"Device OS name",
                  "type":"string"
               },
+              "eventsmap":{
+               "description":"Optional path to json file with array of mapped events name",
+               "type":"string"
+              },
               "sift":{
                  "type":"object",
                  "properties":{

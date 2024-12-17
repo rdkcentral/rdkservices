@@ -285,6 +285,7 @@ jobs:
           -DPLUGIN_ANALYTICS_SIFT_MAX_RANDOMISATION_WINDOW_TIME=15
           -DPLUGIN_ANALYTICS_SIFT_STORE_PATH="/tmp/AnalyticsSiftStore"
           -DPLUGIN_ANALYTICS_SIFT_URL="127.0.0.1:12345"
+          -DPLUGIN_ANALYTICS_EVENTS_MAP="/tmp/AnalyticsEventsMap.json"
           &&
           cmake --build build/rdkservices -j8
           &&
