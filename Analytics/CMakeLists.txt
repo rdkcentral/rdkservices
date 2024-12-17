@@ -20,7 +20,7 @@ set(MODULE_NAME ${NAMESPACE}${PLUGIN_NAME})
 
 set(VERSION_MAJOR 1)
 set(VERSION_MINOR 0)
-set(VERSION_PATCH 1)
+set(VERSION_PATCH 2)
 
 add_compile_definitions(ANALYTICS_MAJOR_VERSION=${VERSION_MAJOR})
 add_compile_definitions(ANALYTICS_MINOR_VERSION=${VERSION_MINOR})
@@ -33,6 +33,7 @@ option(PLUGIN_ANALYTICS_SIFT_BACKEND "Enable Sift backend" OFF)
 set(PLUGIN_ANALYTICS_STARTUPORDER "" CACHE STRING "To configure startup order of Analytics plugin")
 set(PLUGIN_ANALYTICS_AUTOSTART "false" CACHE STRING "Automatically start Analytics plugin")
 set(PLUGIN_ANALYTICS_DEVICE_OS_NAME "rdk" CACHE STRING "Device OS name")
+set(PLUGIN_ANALYTICS_EVENTS_MAP "" CACHE STRING "Optional path to events mapping file")
 
 set(PLUGIN_ANALYTICS_SIFT_BACKEND_ENABLED ${PLUGIN_ANALYTICS_SIFT_BACKEND} CACHE BOOL "Enable Sift backend configuration")
 set(PLUGIN_ANALYTICS_SIFT_2_0_ENABLED "false" CACHE STRING "Enable Sift 2.0 schema")
