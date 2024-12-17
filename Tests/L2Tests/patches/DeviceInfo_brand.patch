@@ -1,25 +1,12 @@
- interfaces/IDeviceInfo.h |  1 +
- jsonrpc/DeviceInfo.json  | 22 ++++++++++++++++++++++
- 2 files changed, 23 insertions(+)
-diff --git a/interfaces/IDeviceInfo.h b/interfaces/IDeviceInfo.h
-index b674799..b9f249d 100644
---- a/interfaces/IDeviceInfo.h
-+++ b/interfaces/IDeviceInfo.h
-@@ -42,6 +42,7 @@ namespace Exchange {
-         virtual uint32_t DeviceType(string& value /* @out */) const = 0;
-         virtual uint32_t PlatformName(string& value/*@out*/) const = 0;
-         virtual uint32_t DistributorId(string& value /* @out */) const = 0;
-+        virtual uint32_t Brand(string& value /* @out */) const = 0;
-     };
- 
-     struct EXTERNAL IDeviceAudioCapabilities : virtual public Core::IUnknown {
+ jsonrpc/DeviceInfo.json | 22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 diff --git a/jsonrpc/DeviceInfo.json b/jsonrpc/DeviceInfo.json
-index c0519fc..211bee5 100644
+index ed32927..d927008 100644
 --- a/jsonrpc/DeviceInfo.json
 +++ b/jsonrpc/DeviceInfo.json
-@@ -1005,6 +1005,28 @@
-         }
-       ]
+@@ -206,6 +206,28 @@
+       "description": "Yocto version",
+       "example": "dunfell"
      },
 +    "brandname": {
 +      "summary": "Device brand",
@@ -27,7 +14,7 @@ index c0519fc..211bee5 100644
 +      "params": {
 +        "type": "object",
 +        "properties": {
-+          "year": {
++          "brand": {
 +            "type": "string",
 +            "example": "Comcast"
 +          }
@@ -44,5 +31,5 @@ index c0519fc..211bee5 100644
 +      ]
 +    },
      "distributorid": {
-       "summary": "Partner ID or distributor ID for device",
-       "readonly": true,
+       "type": "string",
+       "enum": [
