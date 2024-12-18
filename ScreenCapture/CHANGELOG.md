@@ -17,6 +17,10 @@ All notable changes to this RDK Service will be documented in this file.
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
 
+## [1.0.7] - 2024-12-18
+### Fixed
+- Fix Realtek DRM screencapture implementation
+
 ## [1.0.6] - 2024-07-30
 ### Added
 - Fixed nxclient library issue for braodcom devices and screen shot setting

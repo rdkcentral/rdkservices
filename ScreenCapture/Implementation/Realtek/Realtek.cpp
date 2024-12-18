@@ -24,6 +24,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
+#include <sys/ioctl.h>
 #include "kms.h"
 #include "Realtek.h"
 
@@ -81,7 +82,6 @@ bool DRMScreenCapture_GetScreenInfo(DRMScreenCapture* handle) {
 		// open drm device to get screen information
 		int retryCount = 0;
 		drmModePlane *plane = nullptr;
-		struct drm_mode_map_dumb map = {};
 
 		context->fd = open(DEFAULT_DEVICE, O_RDWR);
 		if(!context->fd) {
@@ -147,15 +147,19 @@ bool DRMScreenCapture_GetScreenInfo(DRMScreenCapture* handle) {
 			ret = false;
 			break;
 		}
-		map.handle = fb->handle;
-		int drmRet = drmIoctl(context->fd, DRM_IOCTL_MODE_MAP_DUMB, &map);
+
+		struct drm_prime_handle drm_prime;
+		int drmRet = 0;
+
+		drm_prime.handle = fb->handle;
+		drm_prime.flags = 0;
+		drmRet = ioctl(context->fd, DRM_IOCTL_PRIME_HANDLE_TO_FD, &drm_prime);
 		if(drmRet) {
-			cout << "[SCREENCAP] drmIoctl fail, ret=" << drmRet << endl;
+			cout << "[SCREENCAP] drmIoctl(DRM_IOCTL_PRIME_HANDLE_TO_FD) fail, ret=" << drmRet << endl;
 			ret = false;
 			break;
 		}
-		context->offset = map.offset;
-		cout << "[SCREENCAP] offset : " << map.offset << endl;
+		handle->dmabuf_fd = drm_prime.fd;
 	} while(false);
 
 	if(fb)
@@ -166,17 +170,15 @@ bool DRMScreenCapture_GetScreenInfo(DRMScreenCapture* handle) {
 }
 
 bool DRMScreenCapture_ScreenCapture(DRMScreenCapture* handle, uint8_t* output, uint32_t bufSize) {
-	DRMContext *context;
 	bool ret = true;
 
 	do {
-		if(!handle || !handle->context || !output) {
+		if(!handle || !output) {
 			cout << "[SCREENCAP] null input parameter" << endl;
 			ret = false;
 			break;
 		}
 
-		context = (DRMContext*) handle->context;
 		uint32_t size = handle->pitch * handle->height;
 		if(bufSize < size) {
 			// buffer size not match
@@ -186,12 +188,11 @@ bool DRMScreenCapture_ScreenCapture(DRMScreenCapture* handle, uint8_t* output, u
 
 		// copy frame
 		void *vaddr = NULL;
-		vaddr =(void*) mmap(NULL, size, PROT_READ , MAP_SHARED, context->fd, context->offset) ;
-
+		vaddr =(void*) mmap64(NULL, size, PROT_READ , MAP_SHARED, handle->dmabuf_fd, 0);
         if (vaddr == MAP_FAILED) {
-        perror("mmap failed : ");
-        ret = false;
-        break;
+            cout << "[SCREENCAP] mmap failed" << endl;
+            ret = false;
+            break;
         }
 
 		memcpy(output,(unsigned char*)vaddr, size);
