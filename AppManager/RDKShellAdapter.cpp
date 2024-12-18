@@ -349,7 +349,7 @@ namespace WPEFramework {
         std::string toLower(const std::string& clientName)
         {
             std::string clientNameLower = clientName;
-            std::transform(clientNameLower.begin(), clientNameLower.end(), clientNameLower.begin(), [](unsigned char c){ return std::tolower(c); });
+            std::transform(clientNameLower.begin(), clientNameLower.end(), clientNameLower.begin(), [](unsigned char value){ return std::tolower(value); });
             return clientNameLower;
         }
 
