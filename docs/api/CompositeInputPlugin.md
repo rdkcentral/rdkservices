@@ -2,7 +2,7 @@
 <a name="CompositeInput_Plugin"></a>
 # CompositeInput Plugin
 
-**Version: [1.0.5](https://github.com/rdkcentral/rdkservices/blob/main/CompositeInput/CHANGELOG.md)**
+**Version: [1.1.5](https://github.com/rdkcentral/rdkservices/blob/main/CompositeInput/CHANGELOG.md)**
 
 A org.rdk.CompositeInput plugin for Thunder framework.
 
@@ -286,6 +286,7 @@ CompositeInput interface events:
 | [onDevicesChanged](#onDevicesChanged) | Triggered when the composite input device changes |
 | [onInputStatusChanged](#onInputStatusChanged) | Triggered when the status of the composite input changes |
 | [onSignalChanged](#onSignalChanged) | Triggered when the status of the composite input signal changes |
+| [videoStreamInfoUpdate](#videoStreamInfoUpdate) | Triggered whenever there is an update in HDMI/Composite Input video stream info |
 
 
 <a name="onDevicesChanged"></a>
@@ -380,6 +381,42 @@ Triggered when the status of the composite input signal changes.
         "id": 0,
         "locator": "cvbsin://localhost/deviceid/0",
         "signalStatus": "noSignal"
+    }
+}
+```
+
+<a name="videoStreamInfoUpdate"></a>
+## *videoStreamInfoUpdate*
+
+Triggered whenever there is an update in HDMI/Composite Input video stream info.
+
+### Parameters
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| params | object |  |
+| params.id | number | The ID of the composite input source |
+| params.locator | string | The location of the input source on the device |
+| params.width | integer | Width of the Video Stream |
+| params.height | integer | Height of the Video Stream |
+| params.progressive | boolean | Whether the streaming video is progressive or not? |
+| params.frameRateN | integer | FrameRate Numerator |
+| params.frameRateD | integer | FrameRate Denomirator |
+
+### Example
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "client.events.videoStreamInfoUpdate",
+    "params": {
+        "id": 0,
+        "locator": "cvbsin://localhost/deviceid/0",
+        "width": 3840,
+        "height": 2160,
+        "progressive": true,
+        "frameRateN": 60000,
+        "frameRateD": 1001
     }
 }
 ```

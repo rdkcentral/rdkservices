@@ -2,7 +2,7 @@
 <a name="CloudStore_Plugin"></a>
 # CloudStore Plugin
 
-**Version: [1.0.1](https://github.com/rdkcentral/rdkservices/blob/main/CloudStore/CHANGELOG.md)**
+**Version: [1.0.2](https://github.com/rdkcentral/rdkservices/blob/main/CloudStore/CHANGELOG.md)**
 
 A org.rdk.CloudStore plugin for Thunder framework.
 

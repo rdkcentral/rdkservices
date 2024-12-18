@@ -55,6 +55,7 @@ protected:
     IARM_EventHandler_t dsCompositeEventHandler;
     IARM_EventHandler_t dsCompositeStatusEventHandler;
     IARM_EventHandler_t dsCompositeSignalStatusEventHandler;
+    IARM_EventHandler_t dsCompositeVideoModeEventHandler;
 
  CompositeInputInitializedTest()
         : CompositeInputTest()
@@ -76,6 +77,10 @@ protected:
                     if ((string(IARM_BUS_DSMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_SIGNAL_STATUS)) {
                         EXPECT_TRUE(handler != nullptr);
                         dsCompositeSignalStatusEventHandler = handler;
+                    }
+                    if ((string(IARM_BUS_DSMGR_NAME) == string(ownerName)) && (eventId == IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_VIDEO_MODE_UPDATE)) {
+                        EXPECT_TRUE(handler != nullptr);
+                        dsCompositeVideoModeEventHandler = handler;
                     }
                     return IARM_RESULT_SUCCESS;
                 }));
@@ -363,4 +368,26 @@ TEST_F(CompositeInputInitializedEventDsTest, onSignalChangedDefault)
     handler.Subscribe(0, _T("onSignalChanged"), _T("client.events.onSignalChanged"), message);
     dsCompositeSignalStatusEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_SIGNAL_STATUS, &eventData , 0);
     handler.Unsubscribe(0, _T("onSignalChanged"), _T("client.events.onSignalChanged"), message);
+}
+TEST_F(CompositeInputInitializedEventDsTest, videoStreamInfoUpdate)
+{
+    ASSERT_TRUE(dsCompositeVideoModeEventHandler != nullptr);
+    EXPECT_CALL(service, Submit(::testing::_, ::testing::_))
+        .Times(1)
+        .WillOnce(::testing::Invoke(
+            [&](const uint32_t, const Core::ProxyType<Core::JSON::IElement>& json) {
+                string text;
+                EXPECT_TRUE(json->ToString(text));
+                EXPECT_EQ(text, string(_T("{\"jsonrpc\":\"2.0\",\"method\":\"client.events.videoStreamInfoUpdate.videoStreamInfoUpdate\",\"params\":{\"id\":0,\"locator\":\"cvbsin:\\/\\/localhost\\/deviceid\\/0\",\"width\":720,\"height\":576,\"progressive\":false,\"frameRateN\":24000,\"frameRateD\":1001}}")));
+                return Core::ERROR_NONE;
+            }));
+    
+    IARM_Bus_DSMgr_EventData_t eventData;
+    eventData.data.composite_in_video_mode.port =dsCOMPOSITE_IN_PORT_0;
+    eventData.data.composite_in_video_mode.resolution.pixelResolution = dsVIDEO_PIXELRES_720x576;
+    eventData.data.composite_in_video_mode.resolution.interlaced = true;
+    eventData.data.composite_in_video_mode.resolution.frameRate = dsVIDEO_FRAMERATE_23dot98;
+    handler.Subscribe(0, _T("videoStreamInfoUpdate"), _T("client.events.videoStreamInfoUpdate"), message);
+    dsCompositeVideoModeEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_COMPOSITE_IN_VIDEO_MODE_UPDATE, &eventData , 0);
+    handler.Unsubscribe(0, _T("videoStreamInfoUpdate"), _T("client.events.videoStreamInfoUpdate"), message);
 }

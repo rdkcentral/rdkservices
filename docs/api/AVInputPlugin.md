@@ -2,7 +2,7 @@
 <a name="AVInput_Plugin"></a>
 # AVInput Plugin
 
-**Version: [1.7.0](https://github.com/rdkcentral/rdkservices/blob/main/AVInput/CHANGELOG.md)**
+**Version: [1.7.1](https://github.com/rdkcentral/rdkservices/blob/main/AVInput/CHANGELOG.md)**
 
 A org.rdk.AVInput plugin for Thunder framework.
 
@@ -1138,7 +1138,7 @@ AVInput interface events:
 | [onDevicesChanged](#onDevicesChanged) | Triggered whenever a new HDMI/Composite device is connected to an HDMI/Composite Input |
 | [onInputStatusChanged](#onInputStatusChanged) | Triggered whenever the status changes for an HDMI/Composite Input |
 | [onSignalChanged](#onSignalChanged) | Triggered whenever the signal status changes for an HDMI/Composite Input |
-| [videoStreamInfoUpdate](#videoStreamInfoUpdate) | Triggered whenever there is an update in HDMI Input video stream info |
+| [videoStreamInfoUpdate](#videoStreamInfoUpdate) | Triggered whenever there is an update in HDMI/Composite Input video stream info |
 | [gameFeatureStatusUpdate](#gameFeatureStatusUpdate) | Triggered whenever game feature(ALLM) status changes for an HDMI Input |
 | [hdmiContentTypeUpdate](#hdmiContentTypeUpdate) | Triggered whenever AV Infoframe content type changes for an HDMI Input |
 
@@ -1238,7 +1238,7 @@ Triggered whenever the signal status changes for an HDMI/Composite Input.
 <a name="videoStreamInfoUpdate"></a>
 ## *videoStreamInfoUpdate*
 
-Triggered whenever there is an update in HDMI Input video stream info.
+Triggered whenever there is an update in HDMI/Composite Input video stream info.
 
 ### Parameters
 
