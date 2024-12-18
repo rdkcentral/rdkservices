@@ -29,6 +29,7 @@
 #include <interfaces/ICapture.h>
 #include "tptimer.h"
 #ifdef ENABLE_RIALTO_FEATURE
+#include "RialtoAppsSessionManager.h"
 #include "RialtoConnector.h"
 #define RIALTO_TIMEOUT_MILLIS 5000
 #endif
@@ -182,6 +183,7 @@ namespace WPEFramework {
 #endif
 
             void notify(const std::string& event, const JsonObject& parameters);
+            void handleDeinitialized(const string& callsign);
             void pluginEventHandler(const JsonObject& parameters);
             void launchRequestThread(RDKShellApiRequest apiRequest);
 
@@ -518,6 +520,7 @@ namespace WPEFramework {
             bool mErmEnabled;
 #ifdef ENABLE_RIALTO_FEATURE
         std::shared_ptr<RialtoConnector>  rialtoConnector;
+            std::unique_ptr<RialtoAppsSessionManager> mRialtoAppsSessionManager;
 #endif //ENABLE_RIALTO_FEATURE
 #ifdef HIBERNATE_SUPPORT_ENABLED
             HibernateExecutor mHibernateExecutor;
