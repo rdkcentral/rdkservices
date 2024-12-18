@@ -6,6 +6,7 @@ startuporder = "@PLUGIN_ANALYTICS_STARTUPORDER@"
 configuration = JSON()
 
 configuration.add("deviceosname", "@PLUGIN_ANALYTICS_DEVICE_OS_NAME@")
+configuration.add("eventsmap", "@PLUGIN_ANALYTICS_EVENTS_MAP@")
 
 if boolean("@PLUGIN_ANALYTICS_SIFT_BACKEND_ENABLED@"):
     sift = JSON()

@@ -37,10 +37,10 @@ namespace WPEFramework
     {
         static std::string sThunderSecurityToken;
 
-        class AnalyticsConfig : public Core::JSON::Container {
+        class AnalyticsSiftConfig : public Core::JSON::Container {
         private:
-            AnalyticsConfig(const AnalyticsConfig&) = delete;
-            AnalyticsConfig& operator=(const AnalyticsConfig&) = delete;
+            AnalyticsSiftConfig(const AnalyticsSiftConfig&) = delete;
+            AnalyticsSiftConfig& operator=(const AnalyticsSiftConfig&) = delete;
 
         public:
             class SiftConfig : public Core::JSON::Container {
@@ -108,7 +108,7 @@ namespace WPEFramework
 
            
         public:
-            AnalyticsConfig()
+            AnalyticsSiftConfig()
                 : Core::JSON::Container()
                 , DeviceOsName()
                 , Sift()
@@ -116,7 +116,7 @@ namespace WPEFramework
                 Add(_T("deviceosname"), &DeviceOsName);
                 Add(_T("sift"), &Sift);
             }
-            ~AnalyticsConfig()
+            ~AnalyticsSiftConfig()
             {
             }
 
@@ -485,7 +485,7 @@ namespace WPEFramework
             ASSERT(mShell != nullptr);
             std::string configLine = mShell->ConfigLine();
             Core::OptionalType<Core::JSON::Error> error;
-            AnalyticsConfig config;
+            AnalyticsSiftConfig config;
 
             if (config.FromString(configLine, error) == false)
             {
