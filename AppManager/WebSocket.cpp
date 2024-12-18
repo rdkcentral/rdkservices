@@ -148,46 +148,46 @@ namespace Plugin {
                 return it->second->getIdentifier();
             }
         }
-        websocketpp::lib::error_code ec;
+        websocketpp::lib::error_code errorCode;
 
-        WebSocketAsioClient::connection_ptr con = mEndPoint.get_connection(uri, ec);
+        WebSocketAsioClient::connection_ptr clientConnection = mEndPoint.get_connection(uri, errorCode);
         std::cout << "NEW CONNECTION FOR " << uri << std::endl;
-        if (ec)
+        if (errorCode)
 	{
-            std::cout << "> Connect initialization error: " << ec.message() << std::endl;
+            std::cout << "Failed to initialize connection. error: " << errorCode.message() << std::endl;
             return -1;
         }
 
         int newId = mNextIdentifier++;
-        ConnectionMetaData::sharedPtr metaDataReference = websocketpp::lib::make_shared<ConnectionMetaData>(newId, con->get_handle(), uri);
+        ConnectionMetaData::sharedPtr metaDataReference = websocketpp::lib::make_shared<ConnectionMetaData>(newId, clientConnection->get_handle(), uri);
         mConnectionList[newId] = metaDataReference;
 
-        con->set_open_handler(websocketpp::lib::bind(
+        clientConnection->set_open_handler(websocketpp::lib::bind(
             &ConnectionMetaData::onOpen,
             metaDataReference,
             &mEndPoint,
             websocketpp::lib::placeholders::_1
         ));
-        con->set_fail_handler(websocketpp::lib::bind(
+        clientConnection->set_fail_handler(websocketpp::lib::bind(
             &ConnectionMetaData::onFail,
             metaDataReference,
             &mEndPoint,
             websocketpp::lib::placeholders::_1
         ));
-        con->set_close_handler(websocketpp::lib::bind(
+        clientConnection->set_close_handler(websocketpp::lib::bind(
             &ConnectionMetaData::onClose,
             metaDataReference,
             &mEndPoint,
             websocketpp::lib::placeholders::_1
         ));
-        con->set_message_handler(websocketpp::lib::bind(
+        clientConnection->set_message_handler(websocketpp::lib::bind(
             &ConnectionMetaData::onMessage,
             metaDataReference,
             websocketpp::lib::placeholders::_1,
             websocketpp::lib::placeholders::_2
         ));
 
-        mEndPoint.connect(con);
+        mEndPoint.connect(clientConnection);
         if (wait)
 	{
             metaDataReference->waitForEvent();
