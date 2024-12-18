@@ -348,9 +348,9 @@ namespace WPEFramework {
        
         std::string toLower(const std::string& clientName)
         {
-            std::string displayName = clientName;
-            std::transform(displayName.begin(), displayName.end(), displayName.begin(), [](unsigned char c){ return std::tolower(c); });
-            return displayName;
+            std::string clientNameLower = clientName;
+            std::transform(clientNameLower.begin(), clientNameLower.end(), clientNameLower.begin(), [](unsigned char c){ return std::tolower(c); });
+            return clientNameLower;
         }
 
 	void RDKShellAdapter::MonitorClients::handleInitialize(PluginHost::IShell* service)
@@ -651,7 +651,10 @@ namespace WPEFramework {
                 }
             }
             sApplicationStateMap[newcallsign] = newState;
-            onAppStateChanged(newcallsign, newState, oldState);
+            if (oldState != newState)
+            {		    
+                onAppStateChanged(newcallsign, newState, oldState);
+            }
         }
 
         const bool RDKShellAdapter::Initialize(EventListener* listener, PluginHost::IShell* service)
