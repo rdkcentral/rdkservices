@@ -651,7 +651,10 @@ namespace WPEFramework {
                 }
             }
             sApplicationStateMap[newcallsign] = newState;
-            onAppStateChanged(newcallsign, newState, oldState);
+            if (oldState != newState)
+            {		    
+                onAppStateChanged(newcallsign, newState, oldState);
+            }
         }
 
         const bool RDKShellAdapter::Initialize(EventListener* listener, PluginHost::IShell* service)
