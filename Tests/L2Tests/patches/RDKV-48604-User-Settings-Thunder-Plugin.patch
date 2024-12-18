@@ -1,13 +1,7 @@
-commit 8afc4a92b878252780fae90496b9782600a41bd0
-Author: Nagalakshmi Dosakayala <nadosakayala@synamedia.com>
-Date:   Fri Sep 6 12:49:05 2024 +0530
-
-    RDK-48604: New UserSettings Thunder Plugin
-
 diff -uprN a/interfaces/IUserSettings.h b/interfaces/IUserSettings.h
 --- a/interfaces/IUserSettings.h	1970-01-01 03:00:00.000000000 +0300
-+++ b/interfaces/IUserSettings.h	2024-09-10 00:29:26.214410833 +0300
-@@ -0,0 +1,330 @@
++++ b/interfaces/IUserSettings.h	2024-12-18 23:42:18.512881162 +0200
+@@ -0,0 +1,264 @@
 +/*
 + * If not stated otherwise in this file or this component's LICENSE file the
 + * following copyright and licenses apply:
@@ -71,7 +65,7 @@ diff -uprN a/interfaces/IUserSettings.h b/interfaces/IUserSettings.h
 +    // @param service: "CC[1-4]", "TEXT[1-4]", "SERVICE[1-64]".
 +    virtual void OnPreferredClosedCaptionServiceChanged(const string& service) = 0;
 +
-+    // @alt onPinControlChanged
++    // @text onPinControlChanged
 +    // @brief The PinControl setting has changed.
 +    // @param enabled: Enabled/Disabled.
 +    virtual void OnPinControlChanged(const bool enabled) = 0;
@@ -191,7 +185,7 @@ diff -uprN a/interfaces/IUserSettings.h b/interfaces/IUserSettings.h
 +  // @param service: Identifies the service to display e.g. "CC3".
 +  virtual uint32_t GetPreferredClosedCaptionService(string &service /* @out */) const = 0;
 +
-+  // @alt setPinControl
++  // @text setPinControl
 +  // @brief Sets PinControl ON/OFF. Parental Control as a whole is enabled or disabled.
 +  // @param enabled: Enabled/Disabled
 +  virtual uint32_t SetPinControl(const bool enabled /* @in */) = 0;
@@ -271,72 +265,6 @@ diff -uprN a/interfaces/IUserSettings.h b/interfaces/IUserSettings.h
 +};
 +} // namespace Exchange
 +} // namespace WPEFramework
-+
-+
-+#ifndef SUPPORT_CAMEL_CASE_JSON_APIS
-+
-+/* JUserSettings.h will be generated with auto generated tool and it is calling _impl_(object of IUserSettings.h) methods
-+   starting with Capital letters,which will cause compilation error as IUserSettings interface method names are starting with
-+   small letters.
-+   To avoid the compilation error we have added below macros, which will replace method names as below in JUserSettings.h
-+   Eg: Setxxxx replaced with setxxxx */
-+
-+/* Set and Get methods macros */
-+#define SetAudioDescription setAudioDescription
-+#define GetAudioDescription getAudioDescription
-+
-+#define SetPreferredAudioLanguages setPreferredAudioLanguages
-+#define GetPreferredAudioLanguages getPreferredAudioLanguages
-+
-+#define SetPresentationLanguage setPresentationLanguage
-+#define GetPresentationLanguage getPresentationLanguage
-+
-+#define SetCaptions setCaptions
-+#define GetCaptions getCaptions
-+
-+#define SetPreferredCaptionsLanguages setPreferredCaptionsLanguages
-+#define GetPreferredCaptionsLanguages getPreferredCaptionsLanguages
-+
-+#define SetPreferredClosedCaptionService setPreferredClosedCaptionService
-+#define GetPreferredClosedCaptionService getPreferredClosedCaptionService
-+
-+#define SetPinControl setPinControl
-+#define GetPinControl getPinControl
-+
-+#define SetViewingRestrictions setViewingRestrictions
-+#define GetViewingRestrictions getViewingRestrictions
-+
-+#define SetViewingRestrictionsWindow setViewingRestrictionsWindow
-+#define GetViewingRestrictionsWindow getViewingRestrictionsWindow
-+
-+#define SetLiveWatershed setLiveWatershed
-+#define GetLiveWatershed getLiveWatershed
-+
-+#define SetPlaybackWatershed setPlaybackWatershed
-+#define GetPlaybackWatershed getPlaybackWatershed
-+
-+#define SetBlockNotRatedContent setBlockNotRatedContent
-+#define GetBlockNotRatedContent getBlockNotRatedContent
-+
-+#define SetPinOnPurchase setPinOnPurchase
-+#define GetPinOnPurchase getPinOnPurchase
-+
-+/* Event names macros*/
-+#define OnAudioDescriptionChanged onAudioDescriptionChanged
-+#define OnPreferredAudioLanguagesChanged onPreferredAudioLanguagesChanged
-+#define OnPresentationLanguageChanged onPresentationLanguageChanged
-+#define OnCaptionsChanged onCaptionsChanged
-+#define OnPreferredCaptionsLanguagesChanged onPreferredCaptionsLanguagesChanged
-+#define OnPreferredClosedCaptionServiceChanged onPreferredClosedCaptionServiceChanged
-+#define OnPinControlChanged onPinControlChanged
-+#define OnViewingRestrictionsChanged onViewingRestrictionsChanged
-+#define OnViewingRestrictionsWindowChanged onViewingRestrictionsWindowChanged
-+#define OnLiveWatershedChanged onLiveWatershedChanged
-+#define OnPlaybackWatershedChanged onPlaybackWatershedChanged
-+#define OnBlockNotRatedContentChanged onBlockNotRatedContentChanged
-+#define OnPinOnPurchaseChanged onPinOnPurchaseChanged
-+
-+#endif
 +
 diff --git a/interfaces/Ids.h b/interfaces/Ids.h
 index a37db24..293dd73 100644
