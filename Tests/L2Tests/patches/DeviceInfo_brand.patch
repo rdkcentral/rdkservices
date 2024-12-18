@@ -1,6 +1,7 @@
  interfaces/IDeviceInfo.h  |  3 ++-
+ interfaces/IDeviceInfo2.h |  3 ++-
  jsonrpc/DeviceInfo.json   | 22 ++++++++++++++++++++++
- 2 files changed, 25 insertions(+), 2 deletions(-)
+ 3 files changed, 26 insertions(+), 2 deletions(-)
 diff --git a/interfaces/IDeviceInfo.h b/interfaces/IDeviceInfo.h
 index 78b2c50..34db2b2 100644
 --- a/interfaces/IDeviceInfo.h
@@ -12,6 +13,25 @@ index 78b2c50..34db2b2 100644
 +        virtual uint32_t Brand(string& brand /* @out */) const = 0;
  
  
+     };
+ }
+-}
+\ No newline at end of file
++}
+diff --git a/interfaces/IDeviceInfo2.h b/interfaces/IDeviceInfo2.h
+index f87914d..90e9c41 100644
+--- a/interfaces/IDeviceInfo2.h
++++ b/interfaces/IDeviceInfo2.h
+@@ -18,6 +18,7 @@ namespace Exchange {
+         virtual uint32_t Model(string& model /* @out */) const = 0;
+         virtual uint32_t DeviceType(string& deviceType /* @out */) const = 0;
+         virtual uint32_t DistributorId(string& distributorId /* @out */) const = 0;
++        virtual uint32_t Brand(string& brand /* @out */) const = 0;
+     };
+ 
+     struct EXTERNAL IDeviceAudioCapabilities : virtual public Core::IUnknown {
+@@ -71,4 +72,4 @@ namespace Exchange {
+         virtual uint32_t SupportedHdcp(const string& videoDisplay /* @in */, CopyProtection& supportedHDCPVersion /* @out */) const = 0;
      };
  }
 -}
