@@ -6,9 +6,9 @@
 namespace WPEFramework {
 namespace Plugin {
 
-    ConnectionMetaData::ConnectionMetaData(int id, websocketpp::connection_hdl handle, std::string uri)
+    ConnectionMetaData::ConnectionMetaData(int id, websocketpp::connection_hdl connectionHandle, std::string uri)
       : mIdentifier(id)
-      , mHandle(handle)
+      , mHandle(connectionHandle)
       , mStatus("Connecting")
       , mURI(uri)
       , mServerResponse("N/A")
@@ -21,47 +21,47 @@ namespace Plugin {
         sem_destroy(&mEventSem);
     }
 
-    void ConnectionMetaData::onOpen(WebSocketAsioClient * c, websocketpp::connection_hdl handle)
+    void ConnectionMetaData::onOpen(WebSocketAsioClient * webSocketClient, websocketpp::connection_hdl connectionHandle)
     {
         mStatus = "Open";
 
-        WebSocketAsioClient::connection_ptr con = c->get_con_from_hdl(handle);
-        mServerResponse = con->get_response_header("Server");
+        WebSocketAsioClient::connection_ptr clientConnection = webSocketClient->get_con_from_hdl(connectionHandle);
+        mServerResponse = clientConnection->get_response_header("Server");
         sem_post(&mEventSem);
     }
 
-    void ConnectionMetaData::onFail(WebSocketAsioClient * c, websocketpp::connection_hdl handle)
+    void ConnectionMetaData::onFail(WebSocketAsioClient * webSocketClient, websocketpp::connection_hdl connectionHandle)
     {
         mStatus = "Failed";
 
-        WebSocketAsioClient::connection_ptr con = c->get_con_from_hdl(handle);
-        mServerResponse = con->get_response_header("Server");
-        mErrorReason = con->get_ec().message();
+        WebSocketAsioClient::connection_ptr clientConnection = webSocketClient->get_con_from_hdl(connectionHandle);
+        mServerResponse = clientConnection->get_response_header("Server");
+        mErrorReason = clientConnection->get_ec().message();
         sem_post(&mEventSem);
     }
     
-    void ConnectionMetaData::onClose(WebSocketAsioClient * c, websocketpp::connection_hdl handle)
+    void ConnectionMetaData::onClose(WebSocketAsioClient * webSocketClient, websocketpp::connection_hdl connectionHandle)
     {
         mStatus = "Closed";
-        WebSocketAsioClient::connection_ptr con = c->get_con_from_hdl(handle);
-        std::stringstream s;
-        s << "close code: " << con->get_remote_close_code() << " (" 
-          << websocketpp::close::status::get_string(con->get_remote_close_code()) 
-          << "), close reason: " << con->get_remote_close_reason();
-        mErrorReason = s.str();
+        WebSocketAsioClient::connection_ptr clientConnection = webSocketClient->get_con_from_hdl(connectionHandle);
+        std::stringstream errorReason;
+        errorReason << "close code: " << clientConnection->get_remote_close_code() << " (" 
+          << websocketpp::close::status::get_string(clientConnection->get_remote_close_code()) 
+          << "), close reason: " << clientConnection->get_remote_close_reason();
+        mErrorReason = errorReason.str();
         sem_post(&mEventSem);
     }
 
-    void ConnectionMetaData::onMessage(websocketpp::connection_hdl, WebSocketAsioClient::message_ptr msg)
+    void ConnectionMetaData::onMessage(websocketpp::connection_hdl connectionHandle, WebSocketAsioClient::message_ptr serverMessage)
     {
         mStatus = "Response";
-        if (msg->get_opcode() == websocketpp::frame::opcode::text)
+        if (serverMessage->get_opcode() == websocketpp::frame::opcode::text)
 	{
-            mLastMessage = msg->get_payload();
+            mLastMessage = serverMessage->get_payload();
         }
 	else
 	{
-            mLastMessage = websocketpp::utility::to_hex(msg->get_payload());
+            mLastMessage = websocketpp::utility::to_hex(serverMessage->get_payload());
         }
         sem_post(&mEventSem);
     }
