@@ -30,6 +30,26 @@ namespace Plugin {
 
     const uint32_t POPULATE_DEVICE_INFO_RETRY_MS = 3000;
 
+    class AnalyticsConfig : public Core::JSON::Container {
+        private:
+            AnalyticsConfig(const AnalyticsConfig&) = delete;
+            AnalyticsConfig& operator=(const AnalyticsConfig&) = delete;
+          
+        public:
+            AnalyticsConfig()
+                : Core::JSON::Container()
+                , EventsMap()
+            {
+                Add(_T("eventsmap"), &EventsMap);
+            }
+            ~AnalyticsConfig()
+            {
+            }
+
+        public:
+            Core::JSON::String EventsMap;
+        };
+
     SERVICE_REGISTRATION(AnalyticsImplementation, 1, 0);
 
     AnalyticsImplementation::AnalyticsImplementation():
@@ -146,6 +166,21 @@ namespace Plugin {
             backend.second->Configure(shell, mSysTime);
         }
 
+        std::string configLine = mShell->ConfigLine();
+        Core::OptionalType<Core::JSON::Error> error;
+        AnalyticsConfig config;
+
+        if (config.FromString(configLine, error) == false)
+        {
+            SYSLOG(Logging::ParsingError,
+                   (_T("Failed to parse config line, error: '%s', config line: '%s'."),
+                    (error.IsSet() ? error.Value().Message().c_str() : "Unknown"),
+                    configLine.c_str()));
+        }
+
+        LOGINFO("EventsMap: %s", config.EventsMap.Value().c_str());
+        ParseEventsMapFile(config.EventsMap.Value());
+
         return result;
     }
 
@@ -162,13 +197,18 @@ namespace Plugin {
                 queueTimeout = std::chrono::milliseconds(POPULATE_DEVICE_INFO_RETRY_MS);
             }
 
-            if (queueTimeout == std::chrono::milliseconds::max())
+            if (mActionQueue.empty())
             {
-                mQueueCondition.wait(lock, [this] { return !mActionQueue.empty(); });
-            }
-            else
-            {
-                mQueueCondition.wait_for(lock, queueTimeout, [this] { return !mActionQueue.empty(); });
+                if (queueTimeout == std::chrono::milliseconds::max())
+                {
+                    mQueueCondition.wait(lock, [this]
+                                         { return !mActionQueue.empty(); });
+                }
+                else
+                {
+                    mQueueCondition.wait_for(lock, queueTimeout, [this]
+                                             { return !mActionQueue.empty(); });
+                }
             }
 
             Action action = {ACTION_TYPE_UNDEF, nullptr};
@@ -249,9 +289,18 @@ namespace Plugin {
     bool AnalyticsImplementation::IsSysTimeValid()
     {
         bool ret = false;
+        // Time is valid if system time is available and time zone is set
         if (mSysTime != nullptr)
         {
-            ret = mSysTime->IsSystemTimeAvailable();
+            if (mSysTime->IsSystemTimeAvailable())
+            {
+                int32_t offset = 0;
+                SystemTime::TimeZoneAccuracy acc = mSysTime->GetTimeZoneOffset(offset);
+                if (acc == SystemTime::TimeZoneAccuracy::FINAL)
+                {
+                   ret = true;
+                }
+            }
         }
 
         return ret;
@@ -259,9 +308,9 @@ namespace Plugin {
 
     void AnalyticsImplementation::SendEventToBackend(const AnalyticsImplementation::Event& event)
     {
-        //TODO: Add mapping of event source/name to backend
         IAnalyticsBackend::Event backendEvent;
-        backendEvent.eventName = event.eventName;
+        backendEvent.eventName = mEventMapper.MapEventNameIfNeeded(event.eventName, event.eventSource,
+            event.eventSourceVersion, event.eventVersion);
         backendEvent.eventVersion = event.eventVersion;
         backendEvent.eventSource = event.eventSource;
         backendEvent.eventSourceVersion = event.eventSourceVersion;
@@ -269,15 +318,29 @@ namespace Plugin {
         backendEvent.eventPayload = event.eventPayload;
         backendEvent.cetList = event.cetList;
 
+        //TODO: Add mapping of event source/name to the desired backend
         if (mBackends.empty())
         {
             LOGINFO("No backends available!");
         }
         else if (mBackends.find(IAnalyticsBackend::SIFT) != mBackends.end())
         {
-            LOGINFO("Sending event to Sift backend: %s", event.eventName.c_str());
+            LOGINFO("Sending event to Sift backend: %s", backendEvent.eventName.c_str());
             mBackends.at(IAnalyticsBackend::SIFT)->SendEvent(backendEvent);
         }
+    }
+
+    void AnalyticsImplementation::ParseEventsMapFile(const std::string& eventsMapFile)
+    {
+        if (eventsMapFile.empty())
+        {
+            LOGINFO("Events map file path is empty, skipping parsing");
+            return;
+        }
+        std::ifstream t(eventsMapFile);
+        std::string str((std::istreambuf_iterator<char>(t)),
+                        std::istreambuf_iterator<char>());
+        mEventMapper.FromString(str);
     }
 
     uint64_t AnalyticsImplementation::GetCurrentTimestampInMs()
@@ -305,5 +368,102 @@ namespace Plugin {
         return currentTimestamp - uptimeDiff;
     }
 
+    void AnalyticsImplementation::EventMapper::FromString(const std::string &jsonArrayStr)
+    {
+        // expect json array:
+        // [
+        //     {
+        //       "event_name": "event_name",
+        //       "event_source": "event_source",
+        //       "event_source_version": "event_source_version", - optional
+        //       "event_version": "event_version", - optional
+        //       "mapped_event_name": "mapped_event_name"
+        //     }
+        // ]
+        if (jsonArrayStr.empty())
+        {
+            LOGERR("Empty events map json array string");
+            return;
+        }
+
+        JsonArray array;
+        array.FromString(jsonArrayStr);
+
+        if (array.Length() == 0)
+        {
+            LOGERR("Empty or corrupted events map json array");
+            return;
+        }
+
+        for (int i = 0; i < array.Length(); i++)
+        {
+            JsonObject entry = array[i].Object();
+            if (entry.HasLabel("event_name") && entry.HasLabel("event_source") && entry.HasLabel("mapped_event_name"))
+            {
+                AnalyticsImplementation::EventMapper::Key key{
+                    entry["event_name"].String(),
+                    entry["event_source"].String(),
+                    entry.HasLabel("event_source_version") ? entry["event_source_version"].String() : "",
+                    entry.HasLabel("event_version") ? entry["event_version"].String() : ""};
+
+                std::string mapped_event_name = entry["mapped_event_name"].String();
+                map[key] = mapped_event_name;
+                LOGINFO("Index %d: Mapped event: %s -> %s", i, entry["event_name"].String().c_str(), mapped_event_name.c_str());
+            }
+            else
+            {
+                LOGERR("Invalid entry in events map file at index %d", i);
+            }
+        }
+    }
+
+    std::string AnalyticsImplementation::EventMapper::MapEventNameIfNeeded(const std::string &eventName,
+                                            const std::string &eventSource,
+                                            const std::string &eventSourceVersion,
+                                            const std::string &eventVersion) const
+    {
+        // Try exact match
+        AnalyticsImplementation::EventMapper::Key key{eventName, eventSource, eventSourceVersion, eventVersion};
+        auto it = map.find(key);
+        if (it != map.end())
+        {
+            return it->second;
+        }
+
+        // Try without eventVersion
+        if (!eventVersion.empty())
+        {
+            AnalyticsImplementation::EventMapper::Key partialKey{eventName, eventSource, eventSourceVersion, ""};
+            it = map.find(partialKey);
+            if (it != map.end())
+            {
+                return it->second;
+            }
+        }
+
+        // Try without eventSourceVersion
+        if (!eventSourceVersion.empty())
+        {
+            AnalyticsImplementation::EventMapper::Key partialKey{eventName, eventSource, "", eventVersion};
+            it = map.find(partialKey);
+            if (it != map.end())
+            {
+                return it->second;
+            }
+        }
+
+        // Try without both eventSourceVersion and eventVersion
+        if (!eventSourceVersion.empty() || !eventVersion.empty())
+        {
+            AnalyticsImplementation::EventMapper::Key partialKey{eventName, eventSource, "", ""};
+            it = map.find(partialKey);
+            if (it != map.end())
+            {
+                return it->second;
+            }
+        }
+
+        return eventName; // Not found, nothing to map
+    }
 }
 }

@@ -2,7 +2,7 @@
 * If not stated otherwise in this file or this component's LICENSE
 * file the following copyright and licenses apply:
 *
-* Copyright 2020 RDK Management
+* Copyright 2024 RDK Management
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -16,19 +16,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 **/
-#pragma once
-#include <stdint.h>
 
-typedef struct DRMScreenCapture_s {
-	void *context;
-	uint32_t width;
-	uint32_t height;
-	uint32_t pitch;
-	uint8_t bpp;
-	int dmabuf_fd;
-}DRMScreenCapture;
+#include "Module.h"
 
-DRMScreenCapture* DRMScreenCapture_Init();
-bool DRMScreenCapture_GetScreenInfo(DRMScreenCapture* handle);
-bool DRMScreenCapture_ScreenCapture(DRMScreenCapture* handle, uint8_t* output, uint32_t size);
-bool DRMScreenCapture_Destroy(DRMScreenCapture* handle);
+MODULE_NAME_DECLARATION(BUILD_REFERENCE)
