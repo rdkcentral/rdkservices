@@ -178,6 +178,7 @@ TEST_F(DeviceInfoJsonRpcTest, registeredMethods)
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("modelid")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("make")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("modelname")));
+    EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("brandname")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("devicetype")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("distributorid")));
     EXPECT_EQ(Core::ERROR_NONE, handler.Exists(_T("supportedaudioports")));
@@ -273,6 +274,12 @@ TEST_F(DeviceInfoJsonRpcInitializedTest, modelname)
 
     EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("modelname"), _T(""), response));
     EXPECT_EQ(response, _T("{\"model\":\"Pace Xi5\"}"));
+}
+
+TEST_F(DeviceInfoJsonRpcInitializedTest, brandname)
+{
+    EXPECT_EQ(Core::ERROR_NONE, handler.Invoke(connection, _T("brandname"), _T(""), response));
+    EXPECT_EQ(response, _T("{\"brand\":\"Element\"}"));
 }
 
 TEST_F(DeviceInfoJsonRpcInitializedTest, devicetype)
