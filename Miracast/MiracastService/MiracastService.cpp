@@ -1042,30 +1042,35 @@ namespace WPEFramework
 				is_another_connect_request = true;
 				MIRACASTLOG_WARNING("Another Connect Request received while casting");
 			}
-			if ((MIRACAST_SERVICE_STATE_DIRECT_LAUCH_REQUESTED != current_state) &&
-				((0 == access("/opt/miracast_autoconnect", F_OK))||
-				 (0 == access("/opt/miracast_direct_request", F_OK))))
+
+			if (0 == access("/opt/miracast_autoconnect", F_OK))
 			{
 				char commandBuffer[768] = {0};
 
 				if ( is_another_connect_request )
 				{
 					MIRACASTLOG_INFO("!!! NEED TO STOP ONGOING SESSION !!!");
-					strncpy(commandBuffer,"curl -H \"Authorization: Bearer `WPEFrameworkSecurityUtility | cut -d '\"' -f 4`\" --header \"Content-Type: application/json\" --request POST --data '{\"jsonrpc\":\"2.0\", \"id\":3,\"method\":\"org.rdk.MiracastPlayer.1.stopRequest\", \"params\":{\"reason\": \"NEW_CONNECTION\"}}' http://127.0.0.1:9998/jsonrpc",sizeof(commandBuffer));
+					strncpy(commandBuffer,"curl -H \"Authorization: Bearer `WPEFrameworkSecurityUtility | cut -d '\"' -f 4`\" --header \"Content-Type: application/json\" --request POST --data '{\"jsonrpc\":\"2.0\", \"id\":3,\"method\":\"org.rdk.MiracastPlayer.1.stopRequest\", \"params\":{\"reason\": \"NEW_CONNECTION\"}}' http://127.0.0.1:9998/jsonrpc &",sizeof(commandBuffer));
 					commandBuffer[sizeof(commandBuffer) - 1] = '\0';
 					MIRACASTLOG_INFO("Stopping old Session by [%s]",commandBuffer);
 					MiracastCommon::execute_SystemCommand(commandBuffer);
 					sleep(1);
 				}
-				changeServiceState(MIRACAST_SERVICE_STATE_CONNECTING);
+				if (MIRACAST_SERVICE_STATE_DIRECT_LAUCH_REQUESTED == current_state)
+				{
+					changeServiceState(MIRACAST_SERVICE_STATE_DIRECT_LAUCH_WITH_CONNECTING);
+				}
+				else
+				{
+					changeServiceState(MIRACAST_SERVICE_STATE_CONNECTING);
+				}
 				memset(commandBuffer,0x00,sizeof(commandBuffer));
 				snprintf( commandBuffer,
 						sizeof(commandBuffer),
-						"curl -H \"Authorization: Bearer `WPEFrameworkSecurityUtility | cut -d '\"' -f 4`\" --header \"Content-Type: application/json\" --request POST --data '{\"jsonrpc\":\"2.0\", \"id\":3,\"method\":\"org.rdk.MiracastService.1.acceptClientConnection\", \"params\":{\"requestStatus\": \"%s\"}}' http://127.0.0.1:9998/jsonrpc",
+						"curl -H \"Authorization: Bearer `WPEFrameworkSecurityUtility | cut -d '\"' -f 4`\" --header \"Content-Type: application/json\" --request POST --data '{\"jsonrpc\":\"2.0\", \"id\":3,\"method\":\"org.rdk.MiracastService.1.acceptClientConnection\", \"params\":{\"requestStatus\": \"%s\"}}' http://127.0.0.1:9998/jsonrpc &",
 						requestStatus.c_str());
 				MIRACASTLOG_INFO("AutoConnecting [%s - %s] by [%s]",client_name.c_str(),client_mac.c_str(),commandBuffer);
 				MiracastCommon::execute_SystemCommand(commandBuffer);
-				changeServiceState(MIRACAST_SERVICE_STATE_CONNECTION_ACCEPTED);
 			}
 			else
 			{
@@ -1424,7 +1429,7 @@ namespace WPEFramework
 					char commandBuffer[768] = {0};
 					snprintf( commandBuffer,
 							sizeof(commandBuffer),
-							"curl -H \"Authorization: Bearer `WPEFrameworkSecurityUtility | cut -d '\"' -f 4`\" --header \"Content-Type: application/json\" --request POST --data '{\"jsonrpc\":\"2.0\", \"id\":3,\"method\":\"org.rdk.MiracastPlayer.1.playRequest\", \"params\":{\"device_parameters\": {\"source_dev_ip\": \"%s\",\"source_dev_mac\": \"%s\",\"source_dev_name\": \"%s\",\"sink_dev_ip\": \"%s\"},\"video_rectangle\": {\"X\": 0,\"Y\": 0,\"W\": 1280,\"H\": 720}}}' http://127.0.0.1:9998/jsonrpc",
+							"curl -H \"Authorization: Bearer `WPEFrameworkSecurityUtility | cut -d '\"' -f 4`\" --header \"Content-Type: application/json\" --request POST --data '{\"jsonrpc\":\"2.0\", \"id\":3,\"method\":\"org.rdk.MiracastPlayer.1.playRequest\", \"params\":{\"device_parameters\": {\"source_dev_ip\": \"%s\",\"source_dev_mac\": \"%s\",\"source_dev_name\": \"%s\",\"sink_dev_ip\": \"%s\"},\"video_rectangle\": {\"X\": 0,\"Y\": 0,\"W\": 1280,\"H\": 720}}}' http://127.0.0.1:9998/jsonrpc &",
 							src_dev_ip.c_str(),
 							src_dev_mac.c_str(),
 							src_dev_name.c_str(),

@@ -34,22 +34,20 @@ pkg_check_modules(GSTREAMERBASE REQUIRED gstreamer-app-1.0)
 
 find_package(GStreamer REQUIRED)
 
-find_library(GLIB_LIBRARY NAMES glib-2.0 )
+find_library(GLIB_LIBRARY NAMES glib-2.0)
 
 add_library(${MODULE_NAME} SHARED Module.cpp MiracastPlayer.cpp ../common/MiracastLogger.cpp ../common/MiracastCommon.cpp RTSP/MiracastRTSPMsg.cpp)
 
-if (BUILD_AMLOGIC)
+if (RDK_SERVICES_L1_TEST)
 	target_sources(${MODULE_NAME}
 		PRIVATE
-		Amlogic/SoC_GstPlayer.cpp
-		)
-elseif (RDK_SERVICES_L1_TEST)
-	target_sources(${MODULE_NAME}
-		PRIVATE
-		Test/SoC_GstPlayer.cpp
+		Test/MiracastGstPlayer.cpp
 		)
 else()
-	message(FATAL_ERROR "SoC abstraction yet to be implemented")
+	target_sources(${MODULE_NAME}
+		PRIVATE
+		Generic/MiracastGstPlayer.cpp
+		)
 endif()
 
 set_target_properties(${MODULE_NAME} PROPERTIES
@@ -74,10 +72,13 @@ target_link_libraries(${MODULE_NAME} PRIVATE ${GLIB_LIBRARIES})
 target_link_libraries(${MODULE_NAME} PRIVATE ${GSTREAMER_LIBRARIES})
 target_link_libraries(${MODULE_NAME} PRIVATE ${GSTREAMERBASE_LIBRARIES})
 target_link_libraries(${MODULE_NAME} PRIVATE -lpthread)
-#target_link_libraries(${MODULE_NAME} PRIVATE -lrdkloggers)
 
 if(WPEFRAMEWORK_SECURITYUTIL_FOUND)
 	target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}SecurityUtil)
+endif()
+
+if(NOT RDK_SERVICES_L1_TEST AND NOT RDK_SERVICE_L2_TEST)
+	target_link_libraries(${MODULE_NAME} PRIVATE MiracastPlayerHal)
 endif()
 
 install(TARGETS ${MODULE_NAME}
