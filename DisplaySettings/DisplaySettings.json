@@ -2239,7 +2239,7 @@
                     "ms12SettingsValue": {
                         "summary": "The value to set",
                         "type": "string",
-                        "example": "`0`, `1`"
+                        "example": "`0`, `1`, `2`"
                     }
                 },
                 "required": [
