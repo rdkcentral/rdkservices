@@ -2073,7 +2073,7 @@
             }
         },
         "setForceHDRMode": {
-            "summary": " This API force the output HDR video format passed as input arumgents. If force output video format is set as "NONE" or this API not called video format changes as per input video format type",
+            "summary": " This API force the output HDR video format passed as input arumgents. If force output video format is set as \"NONE\"  or this API not called video format changes as per input video format type",
             "params": {
                 "type": "object",
                 "properties": {
