@@ -2224,22 +2224,22 @@
                     "operation": {
                         "summary": "The audio profile state",
                         "type": "string",
-                        "example": ""
+                        "example": "`ADD`, `REMOVE`"
                     },
                     "profileName": {
                         "summary": "An MS12 audio profile name from `getSupportedMS12AudioProfile`",
                          "type": "string",
-                        "example": "Sports"
+                        "example": "`Sports`, `User`"
                     },
                     "ms12SettingsName": {
                         "summary": "An ms12 setting name",
                         "type": "string",
-                        "example": "Dialog Enhance"
+                        "example": "`DialogEnhance`, `VolumeLevellerMode`, `VolumeLevellerLevel`, `BassEnhancer`, `SurroundVirtualizerMode`, `SurroundVirtualizerLevel`"
                     },
                     "ms12SettingsValue": {
                         "summary": "The value to set",
                         "type": "string",
-                        "example": "On"
+                        "example": "`0`, `1`"
                     }
                 },
                 "required": [
