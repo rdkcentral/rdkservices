@@ -2204,13 +2204,16 @@ namespace Plugin {
     {
         LOGINFO("Entry\n");
         tvDolbyMode_t dvModes[tvMode_Max];
-        tvDolbyMode_t *dvModesPtr = dvModes; // Pointer to statically allocated tvDolbyMode_t array 
+        tvDolbyMode_t *dvModesPtr[tvMode_Max];
         unsigned short totalAvailable = 0;
-
+        for (int i = 0; i < tvMode_Max; i++)
+        {
+            dvModesPtr[i] = &dvModes[i];
+        }
         // Set an initial value to indicate the mode type
         dvModes[0] = tvDolbyMode_Dark;
 
-        tvError_t ret = GetTVSupportedDolbyVisionModes(&dvModesPtr, &totalAvailable);
+        tvError_t ret = GetTVSupportedDolbyVisionModes(dvModesPtr, &totalAvailable);
         if(ret != tvERROR_NONE) {
             returnResponse(false);
         }
@@ -2423,9 +2426,14 @@ namespace Plugin {
     uint32_t AVOutputTV::getSupportedPictureModes(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry\n");
-        pic_modes_t *pictureModes;
+        pic_modes_t pictureModes[PIC_MODES_SUPPORTED_MAX];
+        pic_modes_t *pictureModesPtr[PIC_MODES_SUPPORTED_MAX];
         unsigned short totalAvailable = 0;
-        tvError_t ret = GetTVSupportedPictureModes(&pictureModes,&totalAvailable);
+        for (int i = 0; i < PIC_MODES_SUPPORTED_MAX; i++)
+        {
+            pictureModesPtr[i] = &pictureModes[i];
+        }
+        tvError_t ret = GetTVSupportedPictureModes(pictureModesPtr,&totalAvailable);
         if(ret != tvERROR_NONE) {
             returnResponse(false);
         }
