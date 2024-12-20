@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include "RialtoAppsSessionManager.h"
 #include <mutex>
 #include <condition_variable>
 #include <set>
@@ -182,6 +183,7 @@ namespace WPEFramework {
 #endif
 
             void notify(const std::string& event, const JsonObject& parameters);
+            void handleDeinitialized(const string& callsign);
             void pluginEventHandler(const JsonObject& parameters);
             void launchRequestThread(RDKShellApiRequest apiRequest);
 
@@ -518,6 +520,7 @@ namespace WPEFramework {
             bool mErmEnabled;
 #ifdef ENABLE_RIALTO_FEATURE
         std::shared_ptr<RialtoConnector>  rialtoConnector;
+            std::unique_ptr<RialtoAppsSessionManager> mRialtoAppsSessionManager;
 #endif //ENABLE_RIALTO_FEATURE
 #ifdef HIBERNATE_SUPPORT_ENABLED
             HibernateExecutor mHibernateExecutor;
