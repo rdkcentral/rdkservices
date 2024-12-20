@@ -1960,6 +1960,46 @@
                 ]
             }
         },
+        "setFSRFlag":{
+            "summary": "Set the FSR flag into the emmc raw area. This API will fail if you attempt to set the same value.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "fsrFlag": {
+                        "summary": "FSR flag",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "success":{
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "fsrFlag",
+                    "success"
+                ]
+            }
+        },
+        "getFSRFlag":{
+            "summary": "Get the FSR flag from the emmc raw area.",
+            "result": {
+                "type": "object",
+                "properties": {
+                    "fsrFlag": {
+                        "summary": "FSR flag.",
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "success":{
+                        "$ref": "#/common/success"
+                    }
+                },
+                "required": [
+                    "fsrFlag",
+                    "success"
+                ]
+            }
+        },
         "setPrivacyMode": {
             "summary": "Setting Privacy Mode.",          
             "events": {
@@ -2464,46 +2504,6 @@
                 "required": [
                     "oldBlocklistFlag",
                     "newBlocklistFlag"
-                ]
-            }
-        },
-        "setFSRFlag":{
-            "summary": "Set the FSR flag into the emmc raw area. This API will fail if you attempt to set the same value.",
-            "result": {
-                "type": "object",
-                "properties": {
-                    "fsrFlag": {
-                        "summary": "FSR flag",
-                        "type": "boolean",
-                        "example": true
-                    },
-                    "success":{
-                        "$ref": "#/common/success"
-                    }
-                },
-                "required": [
-                    "fsrFlag",
-                    "success"
-                ]
-            }
-        },
-        "getFSRFlag":{
-            "summary": "Get the FSR flag from the emmc raw area.",
-            "result": {
-                "type": "object",
-                "properties": {
-                    "fsrFlag": {
-                        "summary": "FSR flag.",
-                        "type": "boolean",
-                        "example": true
-                    },
-                    "success":{
-                        "$ref": "#/common/success"
-                    }
-                },
-                "required": [
-                    "fsrFlag",
-                    "success"
                 ]
             }
         }
