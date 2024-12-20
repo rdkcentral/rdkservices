@@ -29,7 +29,6 @@ namespace Plugin {
         uint32_t Model(string& model) const override;
         uint32_t DeviceType(string& deviceType) const override;
         uint32_t DistributorId(string& distributorId) const override;
-        uint32_t Brand(string& brand) const override;
     };
 }
 }
