@@ -3472,9 +3472,23 @@ namespace Plugin {
         int retVal = 0;
         std::string color,control,value;
         tvError_t ret = tvERROR_NONE;
+        tvColorTemp_t colorTemp = tvColorTemp_STANDARD;
 
         inputInfo.color = parameters.HasLabel("color") ? parameters["color"].String() : "";
 	    inputInfo.control = parameters.HasLabel("control") ? parameters["control"].String() : "";
+
+        //Proceed Only if current colorTemp is User
+        if( tvERROR_NONE != GetColorTemperature(&colorTemp) )
+        {
+            LOGERR("%s : Failed to GetcolorTemperature!!!\n",__FUNCTION__);
+            returnResponse(false);
+        }
+
+        if( colorTemp != tvColorTemp_USER)
+        {
+            LOGERR("%s : Dont Proceed color temp is non-tvColorTemp_USER !!!\n",__FUNCTION__);
+            returnResponse(false);
+        }
 
         if( inputInfo.color.empty() || inputInfo.control.empty()  ) {
 	        LOGERR("%s : Color/Control param not found!!!\n",__FUNCTION__);
