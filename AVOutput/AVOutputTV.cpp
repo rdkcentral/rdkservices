@@ -292,7 +292,7 @@ namespace Plugin {
         registerMethod("setSaturation", &AVOutputTV::setSaturation, this);
         registerMethod("resetSaturation", &AVOutputTV::resetSaturation, this);
         registerMethod("getSaturationCaps", &AVOutputTV::getSaturationCaps, this);
-	    registerMethod("getHue", &AVOutputTV::getHue, this);
+        registerMethod("getHue", &AVOutputTV::getHue, this);
         registerMethod("setHue", &AVOutputTV::setHue, this);
         registerMethod("resetHue", &AVOutputTV::resetHue, this);
         registerMethod("getHueCaps", &AVOutputTV::getHueCaps, this);
@@ -476,10 +476,10 @@ namespace Plugin {
         if(ret != tvERROR_NONE) {
             returnResponse(false);
         }
-	    else {
+        else {
             for (index = 0; index < info.rangeVector.size(); index++) {
-                rangeArray.Add(info.rangeVector[index]);
-	        }
+            rangeArray.Add(info.rangeVector[index]);
+        }
 
             response["options"]=rangeArray;
 
@@ -565,7 +565,7 @@ namespace Plugin {
 
             if(retval != 0) {
                 LOGERR("Failed to Save DisplayMode to ssm_data\n");
-		        returnResponse(false);
+                returnResponse(false);
             }
 
             tr181ErrorCode_t err = setLocalParam(rfc_caller_id, AVOUTPUT_ASPECTRATIO_RFC_PARAM, value.c_str());
@@ -729,7 +729,7 @@ namespace Plugin {
         }
 
         if (isPlatformSupport("Backlight") != 0) {
-	        returnResponse(false);
+            returnResponse(false);
         }
 
         if (getParamIndex("Backlight", inputInfo,indexInfo) == -1) {
@@ -772,8 +772,8 @@ namespace Plugin {
         }
 
         if (isPlatformSupport("Backlight") != 0 ) {
-	        returnResponse(false);
-	    }
+            returnResponse(false);
+        }
 
         if( !isCapablityCheckPassed( "Backlight" , inputInfo )) {
             LOGERR("%s: CapablityCheck failed for Backlight\n", __FUNCTION__);
@@ -816,7 +816,7 @@ namespace Plugin {
 
         if (isPlatformSupport("Backlight") != 0) {
             returnResponse(false);
-	    }
+        }
 
         if( !isCapablityCheckPassed( "Backlight",inputInfo )) {
             LOGERR("%s: CapablityCheck failed for Backlight\n", __FUNCTION__);

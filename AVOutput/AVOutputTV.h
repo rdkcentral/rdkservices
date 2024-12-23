@@ -147,7 +147,7 @@ typedef struct
     std::vector<std::string> colorVector;
     std::vector<std::string> componentVector;
     std::vector<std::string> colorTempVector;
-	std::vector<std::string> controlVector;                         
+	std::vector<std::string> controlVector;
 }capVectors_t;
 
 
@@ -161,16 +161,16 @@ typedef struct
     std::vector<int> indexValues;
     std::vector<int> colorValues;
     std::vector<int> componentValues;
-    std::vector<int> colorTempValues;  
-	std::vector<int> controlValues;                       
-}valueVectors_t;
+	std::vector<int> colorTempValues;
+	std::vector<int> controlValues;
+	}valueVectors_t;
 
 typedef struct
 {
-    uint8_t sourceIndex;                       
-    uint8_t pqmodeIndex;
-    uint8_t formatIndex;
-    uint8_t colorIndex;
+	uint8_t sourceIndex;
+	uint8_t pqmodeIndex;
+	uint8_t formatIndex;
+	uint8_t colorIndex;
 	uint8_t componentIndex;
 	uint8_t colorTempIndex;
 	uint8_t controlIndex;
