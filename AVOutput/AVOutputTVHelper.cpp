@@ -1011,7 +1011,6 @@ namespace Plugin {
                             case PQ_PARAM_DIMMINGMODE:
                             case PQ_PARAM_LOWLATENCY_STATE:
                             case PQ_PARAM_DOLBY_MODE:
-                            case PQ_PARAM_HDR_MODE:
                                 if(reset) {
                                     ret |= updateAVoutputTVParamToHAL(tr181ParamName,paramIndex,0,false);
                                 }
@@ -1058,7 +1057,6 @@ namespace Plugin {
                                 ret |= SaveLowLatencyState((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,level);
                                 break;
                             case PQ_PARAM_DOLBY_MODE:
-                            case PQ_PARAM_HDR_MODE:
                                  ret |= SaveTVDolbyVisionMode((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,(tvDolbyMode_t)level);
                                  break;
 
@@ -1230,7 +1228,7 @@ namespace Plugin {
         else {
             LOGERR("ColorTemp Sync to cache Failed !!!\n");
         }
-        if( !updateAVoutputTVParam("sync","HDRMode",info,PQ_PARAM_HDR_MODE,level)) {
+        if( !updateAVoutputTVParam("sync","HDRMode",info,PQ_PARAM_DOLBY_MODE,level)) {
             LOGINFO("HDRmode Successfully Synced to Drive Cache\n");
         }
         else {

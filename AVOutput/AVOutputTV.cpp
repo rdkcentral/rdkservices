@@ -3248,7 +3248,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        err = getLocalparam("HDRMode", indexInfo,dolbyMode, PQ_PARAM_HDR_MODE);
+        err = getLocalparam("HDRMode", indexInfo,dolbyMode, PQ_PARAM_DOLBY_MODE);
         if( err == 0 ) {
             response["hdrMode"] = getDolbyModeStringFromEnum((tvDolbyMode_t)dolbyMode);
             LOGINFO("Exit : hdrMode Value: %d \n", dolbyMode);
@@ -3307,7 +3307,7 @@ namespace Plugin {
             returnResponse(false);
         }
         else {
-            retval= updateAVoutputTVParam("set","HDRMode",inputInfo,PQ_PARAM_HDR_MODE,(int)index);
+            retval= updateAVoutputTVParam("set","HDRMode",inputInfo,PQ_PARAM_DOLBY_MODE,(int)index);
             if(retval != 0 ) {
                 LOGERR("Failed to Save hdrMode mode\n");
                 returnResponse(false);
@@ -3341,7 +3341,7 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        int retval= updateAVoutputTVParam("reset","HDRMode",inputInfo,PQ_PARAM_HDR_MODE,dolbyMode);
+        int retval= updateAVoutputTVParam("reset","HDRMode",inputInfo,PQ_PARAM_DOLBY_MODE,dolbyMode);
         if(retval != 0 ) {
             LOGERR("Failed to reset HDRMode\n");
             returnResponse(false);
@@ -3349,7 +3349,7 @@ namespace Plugin {
         else {
             if (isSetRequired( inputInfo.pqmode,inputInfo.source,inputInfo.format)) {
                 getParamIndex( "HDRMode", inputInfo,indexInfo);
-                int err = getLocalparam("HDRMode", indexInfo, dolbyMode, PQ_PARAM_HDR_MODE);
+                int err = getLocalparam("HDRMode", indexInfo, dolbyMode, PQ_PARAM_DOLBY_MODE);
                 if( err == 0 ) {
                     LOGINFO("%s : getLocalparam success format :%d source : %d format : %d dolbyvalue : %d\n",__FUNCTION__,indexInfo.formatIndex, indexInfo.sourceIndex, indexInfo.pqmodeIndex, dolbyMode);
                     ret = SetTVDolbyVisionMode((tvDolbyMode_t)dolbyMode);
