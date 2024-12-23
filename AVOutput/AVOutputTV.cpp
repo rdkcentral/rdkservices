@@ -3740,7 +3740,7 @@ namespace Plugin {
         returnIfParamNotFound(parameters,"mode");
 
         if (validateInputParameter("AutoBacklightMode",value) != 0) {
-            LOGERR("%s: Range validation failed for AspectRatio\n", __FUNCTION__);
+            LOGERR("%s: Range validation failed for AutoBacklightMode\n", __FUNCTION__);
             returnResponse(false);
         }
 
@@ -3753,8 +3753,8 @@ namespace Plugin {
             returnResponse(false);
         }
 
-	    if( !isCapablityCheckPassed( "AutoBacklightMode",inputInfo )) {
-            LOGERR("%s: CapablityCheck failed for AspectRatio\n", __FUNCTION__);
+	if( !isCapablityCheckPassed( "AutoBacklightMode",inputInfo )) {
+            LOGERR("%s: CapablityCheck failed for AutoBacklightMode\n", __FUNCTION__);
             returnResponse(false);
         }
 
@@ -3844,13 +3844,13 @@ namespace Plugin {
                 if(!std::string(param.value).compare("none")) {
                     blMode = tvBacklightMode_NONE;
                 }
-                else if (!std::string(param.value).compare("manual")){
+                else if (!std::string(param.value).compare("Manual")){
                     blMode = tvBacklightMode_MANUAL;
                 }
-                else if (!std::string(param.value).compare("ambient")){
+                else if (!std::string(param.value).compare("Ambient")){
                     blMode = tvBacklightMode_AMBIENT;
                 }
-                else if (!std::string(param.value).compare("eco")){
+                else if (!std::string(param.value).compare("Eco")){
                     blMode = tvBacklightMode_ECO;
                 }
                 else {
