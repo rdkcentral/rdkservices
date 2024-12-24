@@ -23,7 +23,7 @@
 #include <interfaces/Ids.h>
 #include "tracing/Logging.h"
 
-#include "ISystemAudioPlayer.h"
+#include <interfaces/ISystemAudioPlayer.h>
 #include "impl/AudioPlayer.h"
 #include "impl/logger.h"
 #include "impl/SecurityParameters.h"
