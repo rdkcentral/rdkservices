@@ -28,7 +28,7 @@
             "type": "array",
             "items": {
                 "type": "string",
-                "example": "`SDR`, `HDR10`, `HDR10PLUS`, `HLG`, `DV`, `Technicolor Prime`"
+                "example": "`NONE`, `SDR`, `HDR10`, `HDR10PLUS`, `HLG`, `DV`, `Technicolor Prime`"
             }
         },
         "currentAudioFormat": {
@@ -2073,17 +2073,17 @@
             }
         },
         "setForceHDRMode": {
-            "summary": "Enables or disables the force HDR mode. If enabled, the HDR format that is currently configured on the device is used.",
+            "summary": " This API force the output HDR video format passed as input arumgents. If force output video format is set as \"NONE\"  or this API not called video format changes as per input video format type",
             "params": {
                 "type": "object",
                 "properties": {
                     "hdr_mode": {
-                        "summary": "`true` to force the HDR format or `false` to reset the mode to the default.",
-                        "type": "boolean",
-                        "example": true
+                        "$ref": "#/definitions/supportedVideoFormat"
                     }
                 },
-                "required": []
+                "required": [
+                   "hdr_mode"
+                ]
             },
             "result": {
                 "$ref": "#/common/result"
@@ -2224,22 +2224,22 @@
                     "operation": {
                         "summary": "The audio profile state",
                         "type": "string",
-                        "example": ""
+                        "example": "`ADD`, `REMOVE`"
                     },
                     "profileName": {
                         "summary": "An MS12 audio profile name from `getSupportedMS12AudioProfile`",
                          "type": "string",
-                        "example": "Sports"
+                        "example": "`Sports`, `User`"
                     },
                     "ms12SettingsName": {
                         "summary": "An ms12 setting name",
                         "type": "string",
-                        "example": "Dialog Enhance"
+                        "example": "`DialogEnhance`, `VolumeLevellerMode`, `VolumeLevellerLevel`, `BassEnhancer`, `SurroundVirtualizerMode`, `SurroundVirtualizerLevel`"
                     },
                     "ms12SettingsValue": {
                         "summary": "The value to set",
                         "type": "string",
-                        "example": "On"
+                        "example": "`0`, `1`, `2`"
                     }
                 },
                 "required": [
