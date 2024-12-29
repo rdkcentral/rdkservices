@@ -16,9 +16,13 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
-## [2.4.1] - 2024-12-29
+## [2.4.2] - 2024-12-29
 ### Removed
 - Removed irmgr references from rdkservices.
+
+## [3.4.1] - 2024-12-03
+### Fixed
+- Fixed the location of the get and set FSR functions within the documentation.
 
 ## [3.4.0] - 2024-12-09
 ### Added
