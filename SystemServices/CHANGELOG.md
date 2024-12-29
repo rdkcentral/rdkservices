@@ -16,7 +16,6 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
-
 ## [3.4.0] - 2024-12-09
 ### Added
 - Added implementation for BootType get API.
