@@ -1,12 +1,10 @@
 <!-- Generated automatically, DO NOT EDIT! -->
 <a name="NetworkPlugin"></a>
-# Network Plugin $${\color{red}(DEPRECATED)}$$
+# NetworkPlugin
 
 **Version: [1.3.11](https://github.com/rdkcentral/rdkservices/blob/main/Network/CHANGELOG.md)**
 
 A org.rdk.Network plugin for Thunder framework.
-
-For newer APIs, please refer: https://github.com/rdkcentral/networkmanager/blob/main/docs/NetworkManagerPlugin.md
 
 ### Table of Contents
 
@@ -817,7 +815,7 @@ No Events
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.endpoint | string | The host name or IP address |
-| params.packets | integer | The number of packets to send. Default is 3 |
+| params.packets | integer | The number of packets to send. Default is 15 |
 | params?.guid | string | <sup>*(optional)*</sup> The globally unique identifier |
 
 ### Result
@@ -848,7 +846,7 @@ No Events
     "method": "org.rdk.Network.ping",
     "params": {
         "endpoint": "45.57.221.20",
-        "packets": 3,
+        "packets": 10,
         "guid": "..."
     }
 }
@@ -1305,7 +1303,7 @@ No Events
 | :-------- | :-------- | :-------- |
 | params | object |  |
 | params.endpoint | string | The host name or IP address |
-| params.packets | integer | The number of packets to send. Default is 5 |
+| params.packets | integer | The number of packets to send. Default is 15 |
 
 ### Result
 
@@ -1328,7 +1326,7 @@ No Events
     "method": "org.rdk.Network.trace",
     "params": {
         "endpoint": "45.57.221.20",
-        "packets": 5
+        "packets": 10
     }
 }
 ```
