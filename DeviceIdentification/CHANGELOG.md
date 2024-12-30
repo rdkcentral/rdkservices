@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.6] - 2024-12-30
+### Fixed
+- Added method for retrieving Serial number if existing implementation fails to retrive the serial number.
+
 ## [1.0.6] - 2024-05-28
 ### Fixed
 - Added methods for retrieving Serial number, Chip Id and Firmware version for Broadcom Devices.
