@@ -54,7 +54,7 @@
             "example": "0"
         },
         "requestAudioMix":{
-             "summary": "Defines whether the Audio mixing is true or false, This is an optional argument",
+             "summary": "Defines whether the Audio mixing is true or false,This is an optional argument",
              "type": "boolean",
              "example": true
          },
