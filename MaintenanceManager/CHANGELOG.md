@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.39] - 2024-12-18
+### Removed
+- remove irmgr reference from rdkservices.
+
 ## [1.0.38] - 2024-11-26
 ### Added
 - MaintenanceManager is stuck at MAINTENANCE_STARTED in non-WAI case, when SUPPRESSED_MAINTENANCE is enabled with no Skip Firmware
