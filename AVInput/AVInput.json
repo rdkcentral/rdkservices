@@ -53,20 +53,20 @@
             "type": "string",
             "example": "0"
         },
-        "audioMix":{
+        "requestAudioMix":{
              "summary": "Defines whether the Audio mixing is true or false, This is an optional argument",
              "type": "boolean",
-             "example": "true"
+             "example": true
          },
-         "planeType":{
+         "plane":{
              "summary": "Defines whether the video plane type, 0 - Primary video plane, 1 - Secondary Video Plane, Other values - Invalid - This is an optional argument ",
-             "type": "integer",
+             "type": "string",
              "example": "0"
 	 },
 	"topMost":{
              "summary": "Defines whether the Hdmi Input should be over or under the other video plane",
              "type": "boolean",
-             "example": "true"
+             "example": true
          },
 	"typeOfInput":{
             "summary": "The type of Input - HDMI/COMPOSITE",
@@ -384,10 +384,10 @@
                     "typeOfInput":{
                         "$ref": "#/definitions/typeOfInput"
                     },
-		    "audioMix":{
+		    "requestAudioMix":{
 			    "$ref": "#/definitions/audioMix"
 	            },
-		    "planeType":{
+		    "plane":{
 			    "$ref": "#/definitions/planeType"
 		    },
 		    "topMost":{
