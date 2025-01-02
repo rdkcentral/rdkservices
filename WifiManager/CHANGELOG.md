@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.10] - 2025-01-02
+### Security
+- Resolved security vulnerabilities
+
 ## [1.0.9] - 2023-09-21
 ### Fixed
 - Fixed Update wifi state cache if wifi interface was enabled and added persist param in wifi setEnabled API to persist wifi state or not persist wifi state after reboot
