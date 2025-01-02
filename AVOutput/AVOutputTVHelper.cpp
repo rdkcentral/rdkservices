@@ -2360,6 +2360,9 @@ namespace Plugin {
         if ( param == "WhiteBalance")
             param = "CustomWhiteBalance";
 
+	if ( param == "WhiteBalance")
+            param = "BacklightControl";
+
         try {
             CIniFile inFile(CAPABLITY_FILE_NAME);
             std::string configString;
@@ -2383,14 +2386,14 @@ namespace Plugin {
 
             }
 
-            if ((param == "DolbyVisionMode") || (param == "Backlight") || (param == "CMS") || (param == "CustomWhiteBalance") || (param == "HDRMode") || (param == "AutoBacklightMode")) {
+            if ((param == "DolbyVisionMode") || (param == "Backlight") || (param == "CMS") || (param == "CustomWhiteBalance") || (param == "HDRMode") || (param == "BacklightControl")) {
                 configString = param + ".platformsupport";
                 info.isPlatformSupport = inFile.Get<std::string>(configString);
                 printf(" platformsupport : %s\n",info.isPlatformSupport.c_str() );
             }
 
             if ( (param == "ColorTemperature") || (param == "DimmingMode") ||
-                 ( param == "AutoBacklightMode") || (param == "DolbyVisionMode") ||
+                 ( param == "BacklightControl") || (param == "DolbyVisionMode") ||
                  (param == "HDR10Mode") || (param == "HLGMode") || (param == "AspectRatio") ||
                  (param == "PictureMode") || (param == "VideoSource") || (param == "VideoFormat") ||
                  (param == "VideoFrameRate") || (param == "HDRMode") ) {
