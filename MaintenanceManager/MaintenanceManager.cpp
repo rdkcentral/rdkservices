@@ -46,12 +46,6 @@
 #include "UtilscRunScript.h"
 #include "UtilsfileExists.h"
 
-enum eRetval
-{
-    E_NOK = -1,
-    E_OK
-};
-
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "libIARM.h"
 
@@ -328,53 +322,55 @@ namespace WPEFramework {
 #if defined(SUPPRESS_MAINTENANCE) && !defined(ENABLE_WHOAMI)
             bool activationStatus = false;
             bool skipFirmwareCheck = false;
-
-            /* Activation check */
-            activationStatus = getActivatedStatus(skipFirmwareCheck);
-
-            /* we proceed with network check only if
-             * "activation-connect", "activation-ready"
-             * "not-activated", "activated" */
+            activationStatus = getActivatedStatus(skipFirmwareCheck); /* Activation Check */
+            /* we proceed with network check only if activationStatus is
+             * "activation-connect", 
+             * "activation-ready",
+             * "not-activated", 
+             * "activated" */
             if (activationStatus)
             {
-                /* Network check */
-                internetConnectStatus = isDeviceOnline();
+                internetConnectStatus = isDeviceOnline(); /* Network Check */
             }
-#else /* WhoAmI */
-            internetConnectStatus = isDeviceOnline();
+#else
+            internetConnectStatus = isDeviceOnline(); /* Network Check */
 #endif
 
+            bool m_exitOnNo_NW = false;
 #if defined(ENABLE_WHOAMI)
-            string activation_status = checkActivatedStatus();
-            bool whoAmIStatus = false;
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type)
             {
-                /* WhoAmI check*/
-                whoAmIStatus = knowWhoAmI(activation_status);
-                if (whoAmIStatus)
+                string activation_status = checkActivationStatus(); /* Device Activation Status Check */
+                bool whoAmIStatus = knowWhoAmI(activation_status); /* WhoAmI Response & Set */
+                LOGINFO("knowWhoAmI() returned %s" (whoAmIStatus) ? "successfully" : "false");
+                if (!whoAmIStatus && activation_status != "activated")
                 {
-                    LOGINFO("knowWhoAmI() returned successfully");
+                    LOGINFO("knowWhoAmI() returned false and Device is not already Activated");
+                    g_listen_to_deviceContextUpdate = true;
+                    LOGINFO("Waiting for onDeviceInitializationContextUpdate event");
+                    task_thread.wait(wailck);
                 }
-                else
+                else if (!internetConnectStatus && activation_status == "activated")
                 {
-                    LOGINFO("knowWhoAmI() returned false");
+                    LOGINFO("Device is not connected to the Internet and Device is already Activated");
+                    m_exitOnNo_NW = true;
                 }
             }
-
-            if (false == whoAmIStatus && activation_status != "activated")
+            else
             {
-                LOGINFO("knowWhoAmI() returned false and Device is not already Activated");
-                g_listen_to_deviceContextUpdate = true;
-                LOGINFO("Waiting for onDeviceInitializationContextUpdate event");
-                task_thread.wait(wailck);
+                if(!internetConnectStatus)
+                {
+                    m_exitOnNo_NW = true;
+                }
             }
-            else if (false == internetConnectStatus && activation_status == "activated")
+#else
+            if (!internetConnectStatus)
             {
-                LOGINFO("Device is not connected to the Internet and Device is already Activated");
-#else /* WhoAmI */
-            if (false == internetConnectStatus)
-            {
+                m_exitOnNo_NW = true;
+            }
 #endif
+            if(m_exitOnNo_NW)
+            {
                 m_statusMutex.lock();
                 MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
                 m_statusMutex.unlock();
@@ -396,14 +392,7 @@ namespace WPEFramework {
 
             LOGINFO("Reboot_Pending :%s", g_is_reboot_pending.c_str());
 
-            if (UNSOLICITED_MAINTENANCE == g_maintenance_type)
-            {
-                LOGINFO("---------------UNSOLICITED_MAINTENANCE--------------");
-            }
-            else if (SOLICITED_MAINTENANCE == g_maintenance_type)
-            {
-                LOGINFO("=============SOLICITED_MAINTENANCE===============");
-            }
+            LOGINFO("%s", UNSOLICITED_MAINTENANCE == g_maintenance_type ? "---------------UNSOLICITED_MAINTENANCE--------------" : "=============SOLICITED_MAINTENANCE===============");
 #if defined(SUPPRESS_MAINTENANCE) && !defined(ENABLE_WHOAMI)
             /* decide which all tasks are needed based on the activation status */
             if (activationStatus)
