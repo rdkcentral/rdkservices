@@ -3094,12 +3094,67 @@ namespace Plugin {
         int retVal = 0;
         std::string color,component;
         tvError_t ret = tvERROR_NONE;
+        JsonArray sourceArray;
+        JsonArray pqmodeArray;
+        JsonArray formatArray;
+        JsonArray colorArray;
+        JsonArray componentArray;
 
-        inputInfo.color = parameters.HasLabel("color") ? parameters["color"].String() : "";
-	    inputInfo.component = parameters.HasLabel("component") ? parameters["component"].String() : "";
+        pqmodeArray = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].Array() : JsonArray();
+        for (int i = 0; i < pqmodeArray.Length(); ++i) {
+            inputInfo.pqmode += pqmodeArray[i].String();
+            if (i != (pqmodeArray.Length() - 1) ) {
+                inputInfo.pqmode += ",";
+            }
+        }
 
-        if (parsingSetInputArgument(parameters,"CMS",inputInfo) != 0) {
-            LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
+        sourceArray = parameters.HasLabel("videoSource") ? parameters["videoSource"].Array() : JsonArray();
+        for (int i = 0; i < sourceArray.Length(); ++i) {
+            inputInfo.source += sourceArray[i].String();
+            if (i != (sourceArray.Length() - 1) ) {
+                inputInfo.source += ",";
+	        }
+        }
+
+        formatArray = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].Array() : JsonArray();
+        for (int i = 0; i < formatArray.Length(); ++i) {
+            inputInfo.format += formatArray[i].String();
+            if (i != (formatArray.Length() - 1) ) {
+                inputInfo.format += ",";
+            }
+        }
+        colorArray = parameters.HasLabel("color") ? parameters["color"].Array() : JsonArray();
+        for (int i = 0; i < color.Length(); ++i) {
+            inputInfo.format += colorArray[i].String();
+            if (i != (colorArray.Length() - 1) ) {
+                inputInfo.color += ",";
+            }
+        }
+        componentArray = parameters.HasLabel("component") ? parameters["component"].Array() : JsonArray();
+        for (int i = 0; i < componentArray.Length(); ++i) {
+            inputInfo.format += componentArray[i].String();
+            if (i != (componentArray.Length() - 1) ) {
+                inputInfo.component += ",";
+            }
+        }
+        if (inputInfo.source.empty()) {
+            inputInfo.source = "Global";
+	    }
+        if (inputInfo.pqmode.empty()) {
+            inputInfo.pqmode = "Global";
+	    }
+        if (inputInfo.format.empty()) {
+            inputInfo.format = "Global";
+	    }
+        if (inputInfo.color.empty()) {
+            inputInfo.color = "Global";
+	    }
+        if (inputInfo.component.empty()) {
+            inputInfo.component = "Global";
+	    }
+
+        if (convertToValidInputParameter("CMS", inputInfo) != 0) {
+            LOGERR("%s: Failed to convert the input paramters. \n", __FUNCTION__);
             returnResponse(false);
         }
 
@@ -3107,23 +3162,6 @@ namespace Plugin {
             LOGERR("%s: CapablityCheck failed for CMS\n", __FUNCTION__);
             returnResponse(false);
         }
-/*
-        if ( convertCMSParamToEnum(inputInfo.component,inputInfo.color,tvPQEnum) != 0 ) {
-            LOGERR("%s: %s/%s Param Not Found \n",__FUNCTION__,inputInfo.component.c_str(),inputInfo.color.c_str());
-            returnResponse(false);
-        }    
-
-        retVal = getCMSComponentEnumFromString(inputInfo.component,compEnum);
-        if( ret == -1) {
-            LOGERR("%s: Invalid Component : %s\n",__FUNCTION__,inputInfo.component.c_str());
-            returnResponse(false);
-        }
-
-        retVal = getCMSColorEnumFromString(inputInfo.color,colorEnum);
-        if( ret == -1) {
-            LOGERR("%s: Invalid Color : %s\n",__FUNCTION__,inputInfo.color.c_str());
-            returnResponse(false);
-        } */
 
         if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
             LOGINFO("Proceed with %s\n",__FUNCTION__);
