@@ -2357,11 +2357,11 @@ namespace Plugin {
         /*Consider User WhiteBalance as CustomWhiteBalance
         To avoid clash with Factory WhiteBalance Calibration capablities*/
 
-        if ( param == "WhiteBalance")
+        if ( param == "WhiteBalance") {
             param = "CustomWhiteBalance";
-
-	    if ( param == "AutoBacklightMode")
+        } else if ( param == "AutoBacklightMode") {
             param = "BacklightControl";
+        }
 
         try {
             CIniFile inFile(CAPABLITY_FILE_NAME);
