@@ -2360,7 +2360,7 @@ namespace Plugin {
         if ( param == "WhiteBalance")
             param = "CustomWhiteBalance";
 
-	if ( param == "WhiteBalance")
+	    if ( param == "AutoBacklightMode")
             param = "BacklightControl";
 
         try {
