@@ -3124,7 +3124,7 @@ namespace Plugin {
             }
         }
         colorArray = parameters.HasLabel("color") ? parameters["color"].Array() : JsonArray();
-        for (int i = 0; i < color.Length(); ++i) {
+        for (int i = 0; i < colorArray.Length(); ++i) {
             inputInfo.format += colorArray[i].String();
             if (i != (colorArray.Length() - 1) ) {
                 inputInfo.color += ",";
