@@ -458,15 +458,13 @@ namespace Plugin {
         {
             // Check color
             if (! checkCMSColorAndComponentCapability(paramInfo.color, inputInfo.color)) {
-            {
-                LOGINFO( "%s:CMS color Capablity Failed CapColor : %s inputColor : %s!!!\n",__FUNCTION__,paramInfo.color, inputInfo.color);
+                LOGINFO( "%s:CMS color Capablity Failed CapColor : %s inputColor : %s!!!\n",__FUNCTION__,paramInfo.color.c_str(), inputInfo.color.c_str());
                 return false;
             }
 
             // Check component
             if (! checkCMSColorAndComponentCapability(paramInfo.component, inputInfo.component)) {
-            {
-                LOGINFO( "%s:CMS component Capablity capComponent : %s inputComponent : %s Failed!!!.\n",__FUNCTION__,paramInfo.color, inputInfo.color);
+                LOGINFO( "%s:CMS component Capablity capComponent : %s inputComponent : %s Failed!!!.\n",__FUNCTION__,paramInfo.component.c_str(), inputInfo.component.c_str());
                 return false;
             }
         }
