@@ -372,6 +372,7 @@ class AVOutputTV : public AVOutputBase {
 		int getColorTempEnumFromString(std::string color, tvColorTemp_t& value);
 
 		int convertToSourceOffsetEnum(std::string source, tvColorTempSourceOffset_t& value);
+		bool checkCMSColorAndComponentCapability(const std::string capValue, const std::string inputValue);
 		int convertCMSParamToPQEnum(const std::string component, const std::string color,tvPQParameterIndex_t& value);
 		int convertWBParamToPQEnum(const std::string control, const std::string color,tvPQParameterIndex_t& value);
         int convertWBParamToRGBEnum(const std::string color,const std::string control,tvRGBType_t &value);

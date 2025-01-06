@@ -456,8 +456,19 @@ namespace Plugin {
 
         if( param == "CMS")
         {
-            if ( ( paramInfo.color.find(inputInfo.color) == std::string::npos ) || ( paramInfo.component.find(inputInfo.component) == std::string::npos) )
+            // Check color
+            if (! checkCMSColorAndComponentCapability(paramInfo.color, inputInfo.color)) {
+            {
+                LOGINFO( "%s:CMS color Capablity Failed CapColor : %s inputColor : %s!!!\n",__FUNCTION__,paramInfo.color, inputInfo.color);
                 return false;
+            }
+
+            // Check component
+            if (! checkCMSColorAndComponentCapability(paramInfo.component, inputInfo.component)) {
+            {
+                LOGINFO( "%s:CMS component Capablity capComponent : %s inputComponent : %s Failed!!!.\n",__FUNCTION__,paramInfo.color, inputInfo.color);
+                return false;
+            }
         }
         else if( param == "WhiteBalance")
         {
@@ -2456,6 +2467,26 @@ namespace Plugin {
         }
         return ret;
    }
+
+   bool AVOutputTV::checkCMSColorAndComponentCapability(const std::string capValue, const std::string inputValue) {
+        // Parse capValue into a set
+        std::set<std::string> capSet;
+        std::istringstream capStream(capValue);
+        std::string token;
+
+        while (std::getline(capStream, token, ',')) {
+            capSet.insert(token);
+        }
+
+        // Parse inputValue and check if each item exists in the set
+        std::istringstream inputStream(inputValue);
+        while (std::getline(inputStream, token, ',')) {
+            if (capSet.find(token) == capSet.end()) {
+                return false;
+            }
+        }
+        return true;
+    }
 
 } //namespace Plugin
 } //namespace WPEFramework

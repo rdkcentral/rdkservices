@@ -3125,14 +3125,14 @@ namespace Plugin {
         }
         colorArray = parameters.HasLabel("color") ? parameters["color"].Array() : JsonArray();
         for (int i = 0; i < colorArray.Length(); ++i) {
-            inputInfo.format += colorArray[i].String();
+            inputInfo.color += colorArray[i].String();
             if (i != (colorArray.Length() - 1) ) {
                 inputInfo.color += ",";
             }
         }
         componentArray = parameters.HasLabel("component") ? parameters["component"].Array() : JsonArray();
         for (int i = 0; i < componentArray.Length(); ++i) {
-            inputInfo.format += componentArray[i].String();
+            inputInfo.component += componentArray[i].String();
             if (i != (componentArray.Length() - 1) ) {
                 inputInfo.component += ",";
             }
