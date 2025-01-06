@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.4.8] - 2025-01-06
+### Changed
+- Do not clear the SAD upon receiving the hotplug-out event.
+
 ## [1.4.7] - 2024-08-30
 ### Added
 - Clear the SAD upon receiving the hotplug-out event.
