@@ -3522,12 +3522,6 @@ namespace Plugin {
             returnResponse(false);
         }
 
-        if( colorTemp != tvColorTemp_USER)
-        {
-            LOGERR("%s : Dont Proceed color temp is non-tvColorTemp_USER !!!\n",__FUNCTION__);
-            returnResponse(false);
-        }
-
         if( inputInfo.color.empty() || inputInfo.control.empty()  ) {
 	        LOGERR("%s : Color/Control param not found!!!\n",__FUNCTION__);
             returnResponse(false);
@@ -3557,7 +3551,7 @@ namespace Plugin {
             returnResponse(false);
         }    
 
-        if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
+        if( (isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format)) && (colorTemp == tvColorTemp_USER) ) {
             LOGINFO("Proceed with %s\n",__FUNCTION__);
 
             tvVideoSrcType_t currentSource = VIDEO_SOURCE_IP;
@@ -3832,7 +3826,7 @@ namespace Plugin {
 
         TR181_ParamData_t param;
 
-	if (isPlatformSupport("AutoBacklightMode") != 0) {
+        if (isPlatformSupport("AutoBacklightMode") != 0) {
             returnResponse(false);
         }
 
