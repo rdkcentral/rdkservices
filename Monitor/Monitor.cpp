@@ -19,29 +19,26 @@
  
 #include "Monitor.h"
 
-#define API_VERSION_NUMBER_MAJOR 1
+#define API_VERSION_NUMBER_MAJOR 2
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 9
+#define API_VERSION_NUMBER_PATCH 0
 
 namespace WPEFramework {
-
-namespace {
-
-    static Plugin::Metadata<Plugin::Monitor> metadata(
-        // Version (Major, Minor, Patch)
-        API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
-        // Preconditions
-        {},
-        // Terminations
-        {},
-        // Controls
-        {}
-    );
-}
-
 namespace Plugin {
 
-    SERVICE_REGISTRATION(Monitor, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
+    namespace {
+
+        static Plugin::Metadata<Plugin::Monitor> metadata(
+            // Version (Major, Minor, Patch)
+            API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH,
+            // Preconditions
+            {},
+            // Terminations
+            {},
+            // Controls
+            {}
+        );
+    }
 
     static Core::ProxyPoolType<Web::JSONBodyType<Core::JSON::ArrayType<Monitor::Data>>> jsonBodyDataFactory(2);
     static Core::ProxyPoolType<Web::JSONBodyType<Monitor::Data>> jsonBodyParamFactory(2);
@@ -57,10 +54,12 @@ namespace Plugin {
         Core::JSON::ArrayType<Config::Entry>::Iterator index(_config.Observables.Elements());
 
         // Create a list of plugins to monitor..
-        _monitor->Open(service, index);
+        _monitor.Open(service, index);
 
         // During the registartion, all Plugins, currently active are reported to the sink.
-        service->Register(_monitor);
+        service->Register(&_monitor);
+
+        RegisterAll();
 
         // On succes return a name as a Callsign to be used in the URL, after the "service"prefix
         return (_T(""));
@@ -68,10 +67,11 @@ namespace Plugin {
 
     /* virtual */ void Monitor::Deinitialize(PluginHost::IShell* service)
     {
+        UnregisterAll();
 
-        _monitor->Close();
+        service->Unregister(&_monitor);
 
-        service->Unregister(_monitor);
+        _monitor.Close();
     }
 
     /* virtual */ string Monitor::Information() const
@@ -106,46 +106,39 @@ namespace Plugin {
         if (request.Verb == Web::Request::HTTP_GET) {
             // Let's list them all....
             if (index.Next() == false) {
-                if (_monitor->Length() > 0) {
+                if (_monitor.Length() > 0) {
                     Core::ProxyType<Web::JSONBodyType<Core::JSON::ArrayType<Monitor::Data>>> response(jsonBodyDataFactory.Element());
 
-                    _monitor->Snapshot(*response);
-#ifndef USE_THUNDER_R4
-                    result->Body(Core::proxy_cast<Web::IBody>(response));
-#else
+                    _monitor.Snapshot(*response);
+
                     result->Body(Core::ProxyType<Web::IBody>(response));
-#endif /* USE_THUNDER_R4 */
                 }
             } else {
                 MetaData memoryInfo;
+                bool operational = false;
 
                 // Seems we only want 1 name
-                if (_monitor->Snapshot(index.Current().Text(), memoryInfo) == true) {
+                if (_monitor.Snapshot(index.Current().Text(), memoryInfo, operational) == true) {
                     Core::ProxyType<Web::JSONBodyType<Monitor::Data::MetaData>> response(jsonMemoryBodyDataFactory.Element());
 
-                    *response = memoryInfo;
-#ifndef USE_THUNDER_R4
-                    result->Body(Core::proxy_cast<Web::IBody>(response));
-#else
+                    *response = Monitor::Data::MetaData(memoryInfo, operational);
+
                     result->Body(Core::ProxyType<Web::IBody>(response));
-#endif /* USE_THUNDER_R4 */
                 }
             }
 
             result->ContentType = Web::MIME_JSON;
         } else if ((request.Verb == Web::Request::HTTP_PUT) && (index.Next() == true)) {
             MetaData memoryInfo;
+            bool operational = false;
 
             // Seems we only want 1 name
-            if (_monitor->Reset(index.Current().Text(), memoryInfo) == true) {
+            if (_monitor.Reset(index.Current().Text(), memoryInfo, operational) == true) {
                 Core::ProxyType<Web::JSONBodyType<Monitor::Data::MetaData>> response(jsonMemoryBodyDataFactory.Element());
 
-                *response = memoryInfo;
-#ifndef USE_THUNDER_R4
-                result->Body(Core::proxy_cast<Web::IBody>(response));
-#else
+                *response = Monitor::Data::MetaData(memoryInfo, operational);
+
                 result->Body(Core::ProxyType<Web::IBody>(response));
-#endif /* USE_THUNDER_R4 */
             }
 
             result->ContentType = Web::MIME_JSON;
@@ -161,7 +154,7 @@ namespace Plugin {
                 restartLimit = body->Restart.Limit;
             }
             TRACE(Trace::Information, (_T("Sets Restart Limits:[LIMIT:%d, WINDOW:%d]"), restartLimit, restartWindow));
-            _monitor->Update(observable, restartWindow, restartLimit);
+            _monitor.Update(observable, restartWindow, restartLimit);
         } else {
             result->ErrorCode = Web::STATUS_BAD_REQUEST;
             result->Message = _T(" could not handle your request.");
