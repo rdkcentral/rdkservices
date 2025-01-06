@@ -2,7 +2,7 @@
 <a name="DisplaySettings_Plugin"></a>
 # DisplaySettings Plugin
 
-**Version: [2.0.1](https://github.com/rdkcentral/rdkservices/blob/main/DisplaySettings/CHANGELOG.md)**
+**Version: [2.0.4](https://github.com/rdkcentral/rdkservices/blob/main/DisplaySettings/CHANGELOG.md)**
 
 A org.rdk.DisplaySettings plugin for Thunder framework.
 
@@ -113,7 +113,7 @@ DisplaySettings interface methods:
 | [setDolbyVolumeMode](#setDolbyVolumeMode) | Enables or disables Dolby Volume mode on audio track (audio output port HDMI0) |
 | [setDRCMode](#setDRCMode) | Sets the Dynamic Range Control (DRC) setting |
 | [setEnableAudioPort](#setEnableAudioPort) | Enable or disable the specified audio port based on the input audio port name |
-| [setForceHDRMode](#setForceHDRMode) | Enables or disables the force HDR mode |
+| [setForceHDRMode](#setForceHDRMode) |  This API force the output HDR video format passed as input arumgents |
 | [setGain](#setGain) | Adjusts the gain on a specific port |
 | [setGraphicEqualizerMode](#setGraphicEqualizerMode) | Sets the Graphic Equalizer Mode |
 | [setIntelligentEqualizerMode](#setIntelligentEqualizerMode) | Sets the Intelligent Equalizer Mode (port HDMI0) |
@@ -2533,7 +2533,7 @@ This method takes no parameters.
     "id": 42,
     "result": {
         "supportedVideoFormat": [
-            "`SDR`, `HDR10`, `HDR10PLUS`, `HLG`, `DV`, `Technicolor Prime`"
+            "`NONE`, `SDR`, `HDR10`, `HDR10PLUS`, `HLG`, `DV`, `Technicolor Prime`"
         ],
         "currentVideoFormat": "SDR",
         "success": true
@@ -3558,7 +3558,7 @@ No Events
 <a name="setForceHDRMode"></a>
 ## *setForceHDRMode*
 
-Enables or disables the force HDR mode. If enabled, the HDR format that is currently configured on the device is used.
+ This API force the output HDR video format passed as input arumgents. If force output video format is set as "NONE"  or this API not called video format changes as per input video format type.
 
 ### Events
 
@@ -3569,7 +3569,8 @@ No Events
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
 | params | object |  |
-| params?.hdr_mode | boolean | <sup>*(optional)*</sup> `true` to force the HDR format or `false` to reset the mode to the default |
+| params.hdr_mode | array | A list of supported Video formats |
+| params.hdr_mode[#] | string |  |
 
 ### Result
 
@@ -3588,7 +3589,9 @@ No Events
     "id": 42,
     "method": "org.rdk.DisplaySettings.setForceHDRMode",
     "params": {
-        "hdr_mode": true
+        "hdr_mode": [
+            "`NONE`, `SDR`, `HDR10`, `HDR10PLUS`, `HLG`, `DV`, `Technicolor Prime`"
+        ]
     }
 }
 ```
@@ -3955,10 +3958,10 @@ No Events
     "method": "org.rdk.DisplaySettings.setMS12ProfileSettingsOverride",
     "params": {
         "audioPort": "SPEAKER0",
-        "operation": "...",
-        "profileName": "Sports",
-        "ms12SettingsName": "Dialog Enhance",
-        "ms12SettingsValue": "On"
+        "operation": "`ADD`, `REMOVE`",
+        "profileName": "`Sports`, `User`",
+        "ms12SettingsName": "`DialogEnhance`, `VolumeLevellerMode`, `VolumeLevellerLevel`, `BassEnhancer`, `SurroundVirtualizerMode`, `SurroundVirtualizerLevel`",
+        "ms12SettingsValue": "`0`, `1`, `2`"
     }
 }
 ```
@@ -4786,7 +4789,7 @@ Triggered when the video format of connected video port changes and returns the 
     "method": "client.events.videoFormatChanged",
     "params": {
         "supportedVideoFormat": [
-            "`SDR`, `HDR10`, `HDR10PLUS`, `HLG`, `DV`, `Technicolor Prime`"
+            "`NONE`, `SDR`, `HDR10`, `HDR10PLUS`, `HLG`, `DV`, `Technicolor Prime`"
         ],
         "currentVideoFormat": "SDR"
     }
