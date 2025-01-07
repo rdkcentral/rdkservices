@@ -67,7 +67,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 3
 #define API_VERSION_NUMBER_MINOR 4
-#define API_VERSION_NUMBER_PATCH 2
+#define API_VERSION_NUMBER_PATCH 3
 
 #define MAX_REBOOT_DELAY 86400 /* 24Hr = 86400 sec */
 #define TR181_FW_DELAY_REBOOT "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.fwDelayReboot"
@@ -661,6 +661,7 @@ namespace WPEFramework {
 
             IARM_Bus_PWRMgr_RebootParam_t rebootParam;
             strncpy(rebootParam.requestor, "SystemServices", sizeof(rebootParam.requestor));
+            rebootParam.requestor[sizeof(rebootParam.requestor) - 1] = '\0';
             strncpy(rebootParam.reboot_reason_custom, customReason.c_str(), sizeof(rebootParam.reboot_reason_custom));
             rebootParam.reboot_reason_custom[sizeof(rebootParam.reboot_reason_custom) - 1] = '\0';
             strncpy(rebootParam.reboot_reason_other, otherReason.c_str(), sizeof(rebootParam.reboot_reason_other));
@@ -1349,7 +1350,8 @@ namespace WPEFramework {
                 if((strBLSplashScreenPath != "") && fileExists)
 		{
 			IARM_Bus_MFRLib_SetBLSplashScreen_Param_t mfrparam;
-			std::strcpy(mfrparam.path, strBLSplashScreenPath.c_str());
+			std::strncpy(mfrparam.path, strBLSplashScreenPath.c_str(), sizeof(mfrparam.path));
+            mfrparam.path[sizeof(mfrparam.path) - 1] = '\0';
 			IARM_Result_t result = IARM_Bus_Call(IARM_BUS_MFRLIB_NAME, IARM_BUS_MFRLIB_API_SetBlSplashScreen, (void *)&mfrparam, sizeof(mfrparam));
 			if (result != IARM_RESULT_SUCCESS){
 				LOGERR("Update failed. path: %s, fileExists %s, IARM result %d ",strBLSplashScreenPath.c_str(),fileExists ? "true" : "false",result);
