@@ -3639,7 +3639,7 @@ namespace Plugin {
 
     uint32_t AVOutputTV::get2PointWBCaps(const JsonObject& parameters, JsonObject& response)
     {
-        LOGINFO("Entry");
+        LOGINFO("Entry\n");
         capVectors_t info;
 
         JsonArray rangeArray;
@@ -3647,7 +3647,7 @@ namespace Plugin {
         JsonArray formatArray;
         JsonArray sourceArray;
         JsonArray colorArray;
-        JsonArray componentArray;
+        JsonArray controlArray;
 
         JsonObject gainInfo;
         JsonObject offsetInfo;
@@ -3698,11 +3698,11 @@ namespace Plugin {
                 response["colorInfo"]=colorArray;
             }
 
-            if ((info.componentVector.front()).compare("none") != 0) {
-                for (index = 0; index < info.componentVector.size(); index++) {
-                    componentArray.Add(info.componentVector[index]);
+            if ((info.controlVector.front()).compare("none") != 0) {
+                for (index = 0; index < info.controlVector.size(); index++) {
+                    controlArray.Add(info.controlVector[index]);
                 }
-                response["componentInfo"]=componentArray;
+                response["controlInfo"]=controlArray;
             }
 
             LOGINFO("Exit\n");
