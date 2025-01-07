@@ -476,8 +476,7 @@ void LgiNetworkClient::Stop()
     if (m_interface)
     {
         disconnectAllSignals();
-        release_networkconfig1(m_interface);
-        m_interface = nullptr;
+     
         g_main_context_invoke(m_mainContext, +[](gpointer ptr) -> gboolean {
             LOGINFO("LgiNetworkClient::Stop() quit main loop TID: %u", gettid());
             g_main_loop_quit((GMainLoop*)ptr);
@@ -490,6 +489,8 @@ void LgiNetworkClient::Stop()
         else {
             LOGERR("Worker thread should be joinable");
         }
+	release_networkconfig1(m_interface);
+	m_interface = nullptr;
         LOGINFO("signals disconnected");
     }
 }
