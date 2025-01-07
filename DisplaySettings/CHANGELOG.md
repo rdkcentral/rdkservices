@@ -16,6 +16,18 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [2.0.4] - 2025-01-02
+### Security
+- Resolved security vulnerabilities
+
+## [2.0.3] - 2024-12-29
+### Removed
+- Removed irmgr references from rdkservices.
+
+## [2.0.2] - 2024-12-03
+### Fixed
+- Corrected the documentation for several functions to make them more accurate for their actual use.
+
 ## [2.0.1] - 2024-12-03
 ### Fixed
 - Fixed unhandled exception that was occasionally causing a crash if thread creation failed.

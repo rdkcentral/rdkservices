@@ -16,6 +16,14 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.12] - 2025-01-02
+### Security
+- Resolved security vulnerabilities
+
+## [1.0.11] - 2024-12-18
+### Removed
+- remove irmgr reference from rdkservices
+
 ## [1.0.10] - 2024-05-25
 ### Added
 - Make plugin autostart configurable from recipe
