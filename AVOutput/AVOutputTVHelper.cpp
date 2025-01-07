@@ -1110,12 +1110,6 @@ namespace Plugin {
                                             if(getLocalparam(tr181ParamName,paramIndex,value,pqIndex,sync)) {
 					                            continue;
 			                                }
-                                            else {
-                                                if(sync)
-                                                    ret |= SaveCMS((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,COMP_NONE,tvDataColor_NONE,COMPONENT_ENABLE);
-                                                else
-                                                    ret |= SaveCMS((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,COMP_NONE,tvDataColor_NONE,COMPONENT_DISABLE);
-                                            }
                                             level=value;
                                         }
                                         ret |= SaveCMS((tvVideoSrcType_t)paramIndex.sourceIndex, paramIndex.pqmodeIndex,(tvVideoFormatType_t)paramIndex.formatIndex,(tvComponentType_t)paramIndex.componentIndex,(tvDataComponentColor_t)paramIndex.colorIndex,level);
