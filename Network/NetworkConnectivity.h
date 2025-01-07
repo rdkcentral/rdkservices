@@ -114,15 +114,12 @@ namespace WPEFramework {
                 bool isMonitorThreadRunning();
                 void signalConnectivityMonitor();
 
-                ConnectivityMonitor() : stopFlag(false), resetTimeout(false), isContinuesMonitoringNeeded(false)
+                ConnectivityMonitor() : isRunning(false), stopFlag(false), resetTimeout(false), isContinuesMonitoringNeeded(false)
                 {
                     setConnectivityMonitorEndpoints(getConnectivityDefaultEndpoints());
                 }
 
-                ~ConnectivityMonitor() {
-                    LOGINFO("~ConnectivityMonitor");
-                    stopContinuousConnectivityMonitoring();
-                }
+                ~ConnectivityMonitor();
             private:
 
                 std::vector<std::string> getConnectivityMonitorEndpoints();
@@ -133,6 +130,7 @@ namespace WPEFramework {
                 EndpointCache& endpointCache = EndpointCache::getInstance();
 
                 std::thread thread_;
+                std::atomic<bool> isRunning;
                 std::atomic<bool> stopFlag;
                 std::atomic<bool> resetTimeout;
                 std::atomic<bool> isContinuesMonitoringNeeded;

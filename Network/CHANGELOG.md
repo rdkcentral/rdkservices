@@ -16,6 +16,11 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+
+## [1.3.13] - 2025-01-07
+### Fixed
+- Fix crash in the WPEFramework connectivity monitor destructor
+
 ## [1.3.12] - 2025-01-02
 ### Security
 - Resolved security vulnerabilities
