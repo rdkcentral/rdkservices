@@ -332,10 +332,10 @@ namespace WPEFramework {
 #if defined(ENABLE_WHOAMI)
 	    if (UNSOLICITED_MAINTENANCE == g_maintenance_type) 
 	    {
-		string activation_status = checkActivationStatus(); /* Device Activation Status Check */
-		bool WhoAmIStatus = knowWhoAmI(activation_status); /* WhoAmI Response & Set Status Check */
+		string activation_status = checkActivatedStatus(); /* Device Activation Status Check */
+		bool whoAmIStatus = knowWhoAmI(activation_status); /* WhoAmI Response & Set Status Check */
 		whoAmIStatus = knowWhoAmI(activation_status);
-		LOGINFO("knowWhoAmI() returned %s" (whoAmIStatus) ? "successfully" : "false");
+		LOGINFO("knowWhoAmI() returned %s", (whoAmIStatus) ? "successfully" : "false");
 	
 		if (!whoAmIStatus && activation_status != "activated")
 		{
