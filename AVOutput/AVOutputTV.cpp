@@ -3654,7 +3654,7 @@ namespace Plugin {
 
         unsigned int index = 0;
 
-        tvError_t ret = getParamsCaps("CMS",info);
+        tvError_t ret = getParamsCaps("WhiteBalance",info);
 
         if(ret != tvERROR_NONE) {
             returnResponse(false);
