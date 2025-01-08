@@ -53,7 +53,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 6
-#define API_VERSION_NUMBER_PATCH 3
+#define API_VERSION_NUMBER_PATCH 4
 
 const string WPEFramework::Plugin::RDKShell::SERVICE_NAME = "org.rdk.RDKShell";
 //methods
@@ -947,9 +947,7 @@ namespace WPEFramework {
                 }
 		else if (requestName.compare("susbscribeSystemEvent") == 0)
                 {
-                   gSubscribeMutex.lock();
 		   subscribeForSystemEvent("onSystemPowerStateChanged");
-		   gSubscribeMutex.unlock();
                    std::cout << "subscribed system event " << std::endl;
                    JsonObject joGetParams;
                     JsonObject joGetResult;
@@ -8165,6 +8163,7 @@ namespace WPEFramework {
 
         int32_t RDKShell::subscribeForSystemEvent(std::string event)
         {
+	    gSubscribeMutex.lock();
             int32_t status = Core::ERROR_GENERAL;
 
             PluginHost::IShell::state state;
@@ -8204,7 +8203,7 @@ namespace WPEFramework {
             }
             else
                 std::cout << "No Connection to SystemServices" << std::endl;
-
+	    gSubscribeMutex.unlock();
             return status;
         }
         
