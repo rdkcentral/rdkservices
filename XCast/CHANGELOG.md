@@ -15,6 +15,14 @@ All notable changes to this RDK Service will be documented in this file.
 * Changes in CHANGELOG should be updated when commits are added to the main or release branches. There should be one CHANGELOG entry per JIRA Ticket. This is not enforced on sprint branches since there could be multiple changes for the same JIRA ticket during development. 
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
+## [2.0.1] - 2025-01-02
+### Security
+- Resolved security vulnerabilities
+
+## [2.0.0] - 2024-12-18
+### Added
+- Converted as OutOfProcess to eliminate RT communication and direct library calls used
+
 ## [1.0.21] - 2024-10-31
 ### Fixed
 - Power mode envent handling only when plugin enabled

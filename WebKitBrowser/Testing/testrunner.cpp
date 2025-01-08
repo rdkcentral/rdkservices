@@ -60,6 +60,8 @@ private:
                                              void *userData);
     static void loadFailedCallback(WebKitWebView* webView, WebKitLoadEvent loadEvent,
                                    const gchar* failingURI, GError* error, void *userData);
+    static bool decidePermissionCallback(WebKitWebView* webView,
+                                         WebKitPermissionRequest* permissionRequest);
 
 private:
     std::string m_extensionDir;
@@ -146,6 +148,7 @@ bool TestRunnerImpl::createSubView() {
     g_signal_connect(m_testCaseView, "user-message-received", G_CALLBACK(userMessageReceivedCallback), this);
     g_signal_connect(m_testCaseView, "web-process-terminated", G_CALLBACK(webProcessTerminatedCallback), this);
     g_signal_connect(m_testCaseView, "load-failed", G_CALLBACK(loadFailedCallback), this);
+    g_signal_connect(m_testCaseView, "permission-request", G_CALLBACK(decidePermissionCallback), this);
     // TODO: need to handle those signals
     // g_signal_connect(m_testCaseView, "notify::is-web-process-responsive", G_CALLBACK(isWebProcessResponsiveCallback), this);
     return true;
@@ -155,9 +158,11 @@ void TestRunnerImpl::setParentVisibility(bool visible) {
     auto* backend = webkit_web_view_backend_get_wpe_backend(webkit_web_view_get_backend(m_parentView));
     assert(backend);
     if (visible) {
+        // Setting the activity state to "visible" alone doesn’t bring the view back to the screen
         wpe_view_backend_add_activity_state(backend, wpe_view_activity_state_in_window);
+        wpe_view_backend_add_activity_state(backend, wpe_view_activity_state_visible);
     } else {
-        wpe_view_backend_remove_activity_state(backend, wpe_view_activity_state_in_window);
+        wpe_view_backend_remove_activity_state(backend, wpe_view_activity_state_visible);
     }
 }
 
@@ -259,6 +264,13 @@ void TestRunnerImpl::loadFailedCallback(WebKitWebView* webView, WebKitLoadEvent 
 
     TestRunnerImpl* runner = (TestRunnerImpl*)userData;
     runner->sendTestCaseResponse(false, message.c_str());
+}
+
+bool TestRunnerImpl::decidePermissionCallback(WebKitWebView* webView,
+                                              WebKitPermissionRequest* permissionRequest)
+{
+    webkit_permission_request_allow(permissionRequest);
+    return true;
 }
 
 } // namespace

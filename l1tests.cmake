@@ -100,7 +100,6 @@ set(EMPTY_HEADERS
         ${BASEDIR}/rtNotifier.h
 	${BASEDIR}/dsRpc.h
 	${BASEDIR}/websocket/URL.h
-        ${BASEDIR}/rdk/iarmmgrs/irMgr.h
         ${BASEDIR}/rdk/iarmmgrs/comcastIrKeyCodes.h
 	    ${BASEDIR}/rdk_logger_milestone.h
 	    ${BASEDIR}/opkg/opkg.h
@@ -207,7 +206,6 @@ set(PLUGIN_MOTION_DETECTION ON)
 set(PLUGIN_COMPOSITEINPUT ON)
 set(PLUGIN_OCICONTAINER ON)
 set(HAS_FRONT_PANEL ON)
-set(PLUGIN_XCAST ON)
 set(PLUGIN_HDMICEC ON)
 set(PLUGIN_HDMICEC2 ON)
 set(PLUGIN_HDMICECSOURCE ON)
