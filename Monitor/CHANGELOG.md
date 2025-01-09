@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [2.0.0] - 2024-12-12
+### Changed
+- Synced Monitor Plugin with WebPlatformForEmbedded/ThunderNanoServicesRDK/tree/R4_4/Monitor
+
 ## [1.0.9] - 2024-07-25
 ### Changed
 - Added the NetworkManager Plugin into MOnitor config list
