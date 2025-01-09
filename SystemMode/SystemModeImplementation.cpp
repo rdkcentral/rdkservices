@@ -257,7 +257,7 @@ uint32_t SystemModeImplementation::ClientActivated(const string& callsign , cons
 	if (it != SystemModeInterfaceMap.end()) {
 		pSystemMode = it->second;
 	} else {
-		LOGERR("Invalid systemMode %s",systemMode.c_str());
+		LOGERR("Invalid  systemMode %s",systemMode.c_str());
 		return 0;
 	}
 
