@@ -157,7 +157,7 @@ namespace Plugin {
     }
 
     int8_t MigrationPreparerImplementation::split(std::list<string>& list, string& value, std::string delimiter) {
-        LOGINFO("split: %s", value.c_str());
+        // LOGINFO("split: %s", value.c_str());
         string::size_type start = 0, pos = 0; 
         while ((pos = value.find(delimiter, start) )!= std::string::npos) {
             list.emplace_back(value.substr(start, pos - start));
@@ -178,7 +178,7 @@ namespace Plugin {
         }
         // Add the last element without an underscore
         value += *it;
-        LOGINFO("join: %s", value.c_str());
+        // LOGINFO("join: %s", value.c_str());
         return Core::ERROR_NONE;
     }
 
@@ -196,7 +196,8 @@ namespace Plugin {
 
     uint32_t MigrationPreparerImplementation::write(const string& name, const string &value) {
 
-        LOGINFO("[WRITE] params={name: %s, value: %s}", name.c_str(), value.c_str());
+        // LOGINFO("[WRITE] params={name: %s, value: %s}", name.c_str(), value.c_str());
+        LOGINFO("Writing entry for name: %s", name.c_str());
         string entry;
         string key = name;
         string newValue = value;
@@ -232,7 +233,8 @@ namespace Plugin {
             
             if(!dataStore.Open(false)) {
                 LOGERR("Failed to open migration datastore %s, errno: %d, reason: %s", DATASTORE_PATH, errno, strerror(errno));
-                LOGERR("Failed to create entry for {%s:%s} in migration datastore", key.c_str(), newValue.c_str());
+                // LOGERR("Failed to create entry for {%s:%s} in migration datastore", key.c_str(), newValue.c_str());
+                LOGERR("Failed to create entry for name: %s in migration datastore", key.c_str());
                 _dataStoreMutex.unlock();
                 return ERROR_OPEN;
             }
@@ -253,7 +255,8 @@ namespace Plugin {
             string oldValue = _valueEntry[_lineNumber[key] - 2];
 
             if(oldValue == newValue) {
-                LOGWARN("Entry {%s:%s} is already existing in the dataStore, returning success", oldValue.c_str(), key.c_str());
+                // LOGWARN("Entry {%s:%s} is already existing in the dataStore, returning success", oldValue.c_str(), key.c_str());
+                LOGWARN("Entry for name: %s is already existing in the dataStore, returning success", key.c_str());
                 _dataStoreMutex.unlock();
                 return Core::ERROR_NONE;
             }
@@ -279,7 +282,8 @@ namespace Plugin {
                 return Core::ERROR_NONE;
             }
             result = WEXITSTATUS(result);
-            LOGERR("Failed to update entry for {%s:%s} in migration datastore, v_secure_system failed with error %d",key.c_str(), newValue.c_str(), result);
+            // LOGERR("Failed to update entry for {%s:%s} in migration datastore, v_secure_system failed with error %d",key.c_str(), newValue.c_str(), result);
+            LOGERR("Failed to update entry for name: %s in migration datastore, v_secure_system failed with error %d",key.c_str(), result);
             _dataStoreMutex.unlock();
             return ERROR_WRITE;
         }
@@ -287,7 +291,8 @@ namespace Plugin {
         // Handle subsequent Write request
         if(!dataStore.Open(false)) {
             LOGERR("Failed to create migration datastore %s, errno: %d, reason: %s", DATASTORE_PATH, errno, strerror(errno));
-            LOGERR("Failed to create entry for {%s:%s} in migration datastore", key.c_str(), newValue.c_str());
+            // LOGERR("Failed to create entry for {%s:%s} in migration datastore", key.c_str(), newValue.c_str());
+            LOGERR("Failed to create entry for name: %s in migration datastore", key.c_str());
             _dataStoreMutex.unlock();
             return ERROR_OPEN;
         }
@@ -295,7 +300,8 @@ namespace Plugin {
         // append new key-value pair to the dataStore
         if(!dataStore.Position(false, dataStore.Size() - 2)) {
             LOGERR("DataStore truncate failed with errno: %d, reason: %s\n", errno, strerror(errno));
-            LOGERR("Failed to create entry for {%s:%s} in migration datastore", key.c_str(), newValue.c_str());
+            // LOGERR("Failed to create entry for {%s:%s} in migration datastore", key.c_str(), newValue.c_str());
+            LOGERR("Failed to create entry for %s in migration datastore", key.c_str());
             dataStore.Close();
             _dataStoreMutex.unlock();
             return ERROR_WRITE;
@@ -311,7 +317,7 @@ namespace Plugin {
     
     uint32_t MigrationPreparerImplementation::read(const string& name, string &result) {
 
-        LOGINFO("[READ] params={name: %s}", name.c_str());
+        LOGINFO("Reading entry for name: %s", name.c_str());
         string key = name;
 
         if(!_fileExist) { 
@@ -336,7 +342,7 @@ namespace Plugin {
 
     uint32_t MigrationPreparerImplementation::Delete(const string& name) {
 
-        LOGINFO("[DELETE] params={name: %s}", name.c_str());
+        LOGINFO("Deleting entry for name: %s", name.c_str());
         string key = name;
         int result;
 
