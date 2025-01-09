@@ -305,8 +305,6 @@ uint32_t SystemModeImplementation::ClientActivated(const string& callsign , cons
 									     }
 								     }
 
-								     deviceOptimizeStateActivator->AddRef();
-
 								     _adminLock.Unlock();
 
 							     }
@@ -320,6 +318,11 @@ uint32_t SystemModeImplementation::ClientActivated(const string& callsign , cons
 			}
 
 		}
+		if (_controller)
+                {
+                        _controller->Release();
+                        _controller = nullptr;
+                }
 	}
 	return 0;	
 }
