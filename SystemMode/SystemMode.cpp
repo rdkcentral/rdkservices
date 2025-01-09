@@ -106,6 +106,7 @@ namespace WPEFramework
             VARIABLE_IS_NOT_USED uint32_t result = _systemMode->Release();
 
             _systemMode = nullptr;
+	    ASSERT(result == Core::ERROR_DESTRUCTION_SUCCEEDED);
 
             // If this was running in a (container) process...
             if (nullptr != connection)
