@@ -615,7 +615,7 @@ TEST_F(AnalyticsTest, SendAndReceiveMultipleEventsTimeOk)
     uint32_t status = InvokeServiceMethod("org.rdk.System", "setTimeZoneDST", paramsJson, resultJson);
     EXPECT_EQ(status, Core::ERROR_NONE);
 
-    sleep(3);
+    sleep(5);
 
     paramsJson.Clear();
     paramsJson["eventName"] = "L2TestEvent";
@@ -626,15 +626,18 @@ TEST_F(AnalyticsTest, SendAndReceiveMultipleEventsTimeOk)
     eventPayload["data"] = "random data";
     paramsJson["eventPayload"] = eventPayload;
 
-    SiftServerMock siftServer;
-    EXPECT_TRUE(siftServer.Start());
-
     const int eventsSentNbr = 6;
 
     for (int i = 0; i < eventsSentNbr; ++i) {
         status = InvokeServiceMethod("org.rdk.Analytics", "sendEvent", paramsJson, resultJson);
         EXPECT_EQ(status, Core::ERROR_NONE);
     }
+
+    // wait for all events to be stored in the analytics store
+    sleep(3);
+
+    SiftServerMock siftServer;
+    EXPECT_TRUE(siftServer.Start());
 
     string eventMsg = siftServer.AwaitData(SIFT_SERVER_TIMEOUT_SEC);
     EXPECT_NE(eventMsg, "");
@@ -1019,16 +1022,18 @@ TEST_F(AnalyticsTest, EventsMapping)
     status = InvokeServiceMethod("org.rdk.Analytics", "sendEvent", paramsJson, resultJson);
     EXPECT_EQ(status, Core::ERROR_NONE);
 
-
-    SiftServerMock siftServer;
-    EXPECT_TRUE(siftServer.Start());
-
     // Set TimeZone to FINAL what allows event to be decorated and sent to Sift server
     paramsJson.Clear();
     paramsJson["timeZone"] = "America/New_York";
     paramsJson["accuracy"] = "FINAL";
     status = InvokeServiceMethod("org.rdk.System", "setTimeZoneDST", paramsJson, resultJson);
     EXPECT_EQ(status, Core::ERROR_NONE);
+
+    // wait for all events to be stored in the analytics store
+    sleep(5);
+
+    SiftServerMock siftServer;
+    EXPECT_TRUE(siftServer.Start());
 
     string eventsMsg = siftServer.AwaitData(SIFT_SERVER_TIMEOUT_SEC);
     EXPECT_NE(eventsMsg, "");
