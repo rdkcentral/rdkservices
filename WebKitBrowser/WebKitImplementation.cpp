@@ -1137,6 +1137,20 @@ static GSourceFuncs _handlerIntervention =
             odh_error_report_deinit(ODH_ERROR_REPORT_DEINIT_MODE_DEFERRED);
 #endif
             if (_loop != nullptr) {
+
+                g_main_context_invoke(
+                    _context, [](gpointer obj) -> gboolean {
+                        WebKitImplementation* object = static_cast<WebKitImplementation*>(obj);
+    #ifdef WEBKIT_GLIB_API
+                        webkit_web_view_terminate_web_process(object->_view);
+    #else
+                        TRACE(Trace::Information, (_T("WKPageTerminate *not* used")));
+                        // this should work for c api (this would need to be tested):
+                        // WKPageTerminate(object->_page);
+    #endif
+                        return G_SOURCE_REMOVE;
+                    }, this);
+
                 if (g_main_loop_is_running(_loop) == FALSE) {
                     g_main_context_invoke(_context, [](gpointer data) -> gboolean {
                         g_main_loop_quit(reinterpret_cast<GMainLoop*>(data));
