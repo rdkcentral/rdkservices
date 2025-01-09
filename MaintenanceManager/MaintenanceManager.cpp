@@ -289,6 +289,7 @@ namespace WPEFramework {
             string cmd="";
             bool internetConnectStatus=false;
 	    bool delayMaintenanceStarted = false;
+            bool exitOnNoNetwork = false;
 
             std::unique_lock<std::mutex> wailck(m_waiMutex);
             LOGINFO("Executing Maintenance tasks");
@@ -327,7 +328,6 @@ namespace WPEFramework {
 #else
             internetConnectStatus = isDeviceOnline(); /* Network Check */
 #endif
-            bool m_exitOnNo_NW = false;
 
 #if defined(ENABLE_WHOAMI)
 	    if (UNSOLICITED_MAINTENANCE == g_maintenance_type) 
@@ -347,23 +347,23 @@ namespace WPEFramework {
 	        else if (!internetConnectStatus && activation_status == "activated") 
 		{
 		    LOGINFO("Device is not connected to the Internet and Device is already Activated");
-		    m_exitOnNo_NW = true;
+		    exitOnNoNetwork = true;
 		}
 	    }
 	    else /* UNSOLICITED in WHOAMI */
 	    {
 		if(!internetConnectStatus)
 		{
-		    m_exitOnNo_NW = true;
+		    exitOnNoNetwork = true;
 		}
 	    }
 #else
 	    if(!internetConnectStatus)
 	    {
-		    m_exitOnNo_NW = true;
+		    exitOnNoNetwork = true;
 	    }
 #endif
-	    if(m_exitOnNo_NW)
+	    if(exitOnNoNetwork)
 	    {
                 m_statusMutex.lock();
                 MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
@@ -385,14 +385,12 @@ namespace WPEFramework {
             LOGINFO("Reboot_Pending :%s",g_is_reboot_pending.c_str());
 	    LOGINFO("%s", UNSOLICITED_MAINTENANCE == g_maintenance_type ? "---------------UNSOLICITED_MAINTENANCE--------------" : "=============SOLICITED_MAINTENANCE===============");
 #if defined(SUPPRESS_MAINTENANCE) && !defined(ENABLE_WHOAMI)
-            /* decide which all tasks are needed based on the activation status */
-            if (activationStatus){
-                if(skipFirmwareCheck){
-                    /* set the task status of swupdate */
+                if(skipFirmwareCheck)
+		{
+                    /* set the task status of Firmware Download */
                     SET_STATUS(g_task_status,DIFD_SUCCESS);
                     SET_STATUS(g_task_status,DIFD_COMPLETE);
-
-                    /* Add tasks */
+                    /* Skip Firmware Download Task and add other tasks */
                     tasks.push_back(task_names_foreground[0].c_str());
                     tasks.push_back(task_names_foreground[2].c_str());
 		}
@@ -402,7 +400,6 @@ namespace WPEFramework {
 		    tasks.push_back(task_names_foreground[1].c_str());
 		    tasks.push_back(task_names_foreground[2].c_str());
 		}
-	    }
 #else
             tasks.push_back(task_names_foreground[0].c_str());
             tasks.push_back(task_names_foreground[1].c_str());
