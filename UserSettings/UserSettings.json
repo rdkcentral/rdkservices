@@ -45,7 +45,7 @@
         "setAudioDescription": {
             "summary": "Setting Audio Description.",
 			"events": {
-                "OnAudioDescriptionChanged" : "Triggered when the audio description changes."
+                "onAudioDescriptionChanged" : "Triggered when the audio description changes."
             },
             "params": {
                 "type": "object",
@@ -168,7 +168,7 @@
             "params": {
                 "type": "object",
                 "properties": {
-                    "enabled": {
+                    "pinControl": {
                         "summary": "PinControl Enabled: true/false",
                         "type": "boolean",
                         "example":true
@@ -181,10 +181,10 @@
                 "example": "null"
             }
         },
-	"setViewingRestrictions": {
+	    "setViewingRestrictions": {
             "summary": "Setting ViewingRestrictions.",
 			"events": {
-                "OnViewingRestrictionsChanged" : "Triggered when the viewingRestrictions changes."
+                "onViewingRestrictionsChanged" : "Triggered when the viewingRestrictions changes."
             },
             "params": {
                 "type": "object",
@@ -203,7 +203,7 @@
         "setViewingRestrictionsWindow": {
             "summary": "Setting viewingRestrictionsWindow.",
 			"events": {
-                "OnViewingRestrictionsWindowChanged" : "Triggered when the viewingRestrictionsWindow changes."
+                "onViewingRestrictionsWindowChanged" : "Triggered when the viewingRestrictionsWindow changes."
             },
             "params": {
                 "type": "object",
@@ -222,12 +222,12 @@
 	"setLiveWatershed": {
             "summary": "Setting LiveWatershed.",
 			"events": {
-                "OnLiveWatershedChanged" : "Triggered when the liveWatershed changes."
+                "onLiveWatershedChanged" : "Triggered when the liveWatershed changes."
             },
             "params": {
                 "type": "object",
                 "properties": {
-                    "enabled": {
+                    "liveWatershed": {
                         "summary": "LiveWatershed Enabled: true/false",
                         "type": "boolean",
                         "example":true
@@ -240,15 +240,15 @@
                 "example": "null"
             }
         },
-	"setPlaybackWatershed": {
+	    "setPlaybackWatershed": {
             "summary": "Setting PlaybackWatershed.",
 			"events": {
-                "OnPlaybackWatershedChanged" : "Triggered when the playbackWatershed changes."
+                "onPlaybackWatershedChanged" : "Triggered when the playbackWatershed changes."
             },
             "params": {
                 "type": "object",
                 "properties": {
-                    "enabled": {
+                    "playbackWatershed": {
                         "summary": "PlaybackWatershed Enabled: true/false",
                         "type": "boolean",
                         "example":true
@@ -261,15 +261,15 @@
                 "example": "null"
             }
         },
-	"setBlockNotRatedContent": {
+	    "setBlockNotRatedContent": {
             "summary": "Setting BlockNotRatedContent.",
 			"events": {
-                "OnBlockNotRatedContentChanged" : "Triggered when the blockNotRatedContent changes."
+                "onBlockNotRatedContentChanged" : "Triggered when the blockNotRatedContent changes."
             },
             "params": {
                 "type": "object",
                 "properties": {
-                    "enabled": {
+                    "blockNotRatedContent": {
                         "summary": "BlockNotRatedContent Enabled: true/false",
                         "type": "boolean",
                         "example":true
@@ -282,15 +282,15 @@
                 "example": "null"
             }
         },
-	"setPinOnPurchase": {
+	    "setPinOnPurchase": {
             "summary": "Setting setPinOnPurchase",
 			"events": {
-                "OnPinOnPurchaseChanged" : "Triggered when the pin on the purchase changes."
+                "onPinOnPurchaseChanged" : "Triggered when the pin on the purchase changes."
             },
             "params": {
                 "type": "object",
                 "properties": {
-                    "enabled": {
+                    "pinOnPurchase": {
                         "summary": "setPinOnPurchase Enabled: true/false",
                         "type": "boolean",
                         "example":true
@@ -343,7 +343,7 @@
                 "$ref": "#/definitions/preferredClosedCaptionService"
             }
         },
-	"getPinControl":{
+	    "getPinControl":{
             "summary": "Returns Pin Control.",
             "result": {
                 "summary": "Pin Control Enabled: true/false",
@@ -493,19 +493,19 @@
                 ]
             }
         },
-	"onPinControlChanged": {
+        "onPinControlChanged": {
             "summary": "Triggered after the pin control changes (see `setPinControl`)",
             "params": {
                 "type": "object",
                 "properties": {
-                    "enabled":{
+                    "pinControl":{
                         "summary": "Receive pin control changes enable or not",
                         "type": "boolean",
                         "example": true
                     }
                 },
                 "required": [
-                    "enabled"
+                    "pinControl"
                 ]
             }
         },
@@ -514,14 +514,14 @@
             "params": {
                 "type": "object",
                 "properties": {
-                    "enabled":{
-                        "summary": "Receive viewingRestrictions changes enable or not",
-                        "type": "boolean",
-                        "example": true
+                    "viewingRestrictions":{
+                        "summary": "Receive viewingRestrictions changes",
+                        "type": "string",
+                        "example": "{\"restrictions\": [{\"scheme\": \"US_TV\", \"restrict\": [\"TV-Y7/FV\"]}, {\"scheme\": \"MPAA\", \"restrict\": []}]}"
                     }
                 },
                 "required": [
-                    "enabled"
+                    "viewingRestrictions"
                 ]
             }
         },
@@ -530,14 +530,14 @@
             "params": {
                 "type": "object",
                 "properties": {
-                    "enabled":{
-                        "summary": "Receive viewingRestrictionsWindow changes enable or not",
-                        "type": "boolean",
-                        "example": true
+                    "viewingRestrictionsWindow":{
+                        "summary": "Receive viewingRestrictionsWindow changes.",
+                        "type": "string",
+                        "example": "ALWAYS"
                     }
                 },
                 "required": [
-                    "enabled"
+                    "viewingRestrictionsWindow"
                 ]
             }
         },
@@ -546,14 +546,14 @@
             "params": {
                 "type": "object",
                 "properties": {
-                    "enabled":{
+                    "liveWatershed":{
                         "summary": "Receives liveWatershed changes enable or not",
                         "type": "boolean",
                         "example": true
                     }
                 },
                 "required": [
-                    "enabled"
+                    "liveWatershed"
                 ]
             }
         },
@@ -562,14 +562,14 @@
             "params": {
                 "type": "object",
                 "properties": {
-                    "enabled":{
+                    "playbackWatershed":{
                         "summary": "Receive playbackWatershed changes enable or not",
                         "type": "boolean",
                         "example": true
                     }
                 },
                 "required": [
-                    "enabled"
+                    "playbackWatershed"
                 ]
             }
         },
@@ -578,14 +578,14 @@
             "params": {
                 "type": "object",
                 "properties": {
-                    "enabled":{
+                    "blockNotRatedContent":{
                         "summary": "Receive blockNotRatedContent changes enable or not",
                         "type": "boolean",
                         "example": true
                     }
                 },
                 "required": [
-                    "enabled"
+                    "blockNotRatedContent"
                 ]
             }
         },
@@ -594,14 +594,14 @@
             "params": {
                 "type": "object",
                 "properties": {
-                    "enabled":{
+                    "pinOnPurchase":{
                         "summary": "Receive pinOnPurchase changes enable or not",
                         "type": "boolean",
                         "example": true
                     }
                 },
                 "required": [
-                    "enabled"
+                    "pinOnPurchase"
                 ]
             }
         }
