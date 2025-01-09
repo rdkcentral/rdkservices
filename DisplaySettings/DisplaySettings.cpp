@@ -561,7 +561,7 @@ namespace WPEFramework {
             }
             LOGWARN ("DisplaySettings::Initialize completes line:%d", __LINE__);
 
-		    _remotStoreObject = service->QueryInterface<Exchange::ISystemMode>();
+		    _remotStoreObject = service->QueryInterfaceByCallsign<Exchange::ISystemMode>("org.rdk.SystemMode");
 
 	    ASSERT (nullptr != _remotStoreObject);
 
@@ -590,7 +590,7 @@ namespace WPEFramework {
 		//During DisplaySettings plugin  activation the SystemMode may not be added .But it will be added /tmp/SystemMode.txt . If after 5 min SystemMode got activated then SystemMode fill the client map from /tmp/SystemMode.txt. In this case if we deactivate DisplaySettings then _remotStoreObject will be null here . So we try to QueryInterface the ISystemMode one more time 
 		if(_remotStoreObject1 == nullptr)
 		{
-				_remotStoreObject1 = service->QueryInterface<Exchange::ISystemMode>();
+				_remotStoreObject1 = service->QueryInterfaceByCallsign<Exchange::ISystemMode>("org.rdk.SystemMode");
 
 		}
 
