@@ -424,6 +424,7 @@ namespace Plugin {
         streamVector.push_back({std::stringstream(stringInfo.color), vectorInfo.colorVector});
         streamVector.push_back({std::stringstream(stringInfo.component), vectorInfo.componentVector});
         streamVector.push_back({std::stringstream(stringInfo.colorTemperature), vectorInfo.colorTempVector});
+	streamVector.push_back({std::stringstream(stringInfo.control), vectorInfo.controlVector});
 
         for (auto& pair : streamVector) {
             std::stringstream& ss = pair.first;
