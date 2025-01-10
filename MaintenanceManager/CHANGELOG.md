@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.41] - 2025-01-10
+### Removed
+- Removed redundanct calls to knoWhoAmI().
+
 ## [1.0.40] - 2025-01-09
 ### Removed
 - Changed Maintenance Manager Task execution thread to honour WhoAmI only in Unsolicited Maintenance.
