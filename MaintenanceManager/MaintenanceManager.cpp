@@ -356,7 +356,7 @@ namespace WPEFramework {
 		    exitOnNoNetwork = true;
 		}
 	    }
-#else /* Unsolicited & Solicited Maintenance */
+#else
 	    if(!internetConnectStatus)
 	    {
 		    exitOnNoNetwork = true;
