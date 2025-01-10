@@ -65,7 +65,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 40
+#define API_VERSION_NUMBER_PATCH 41
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 
@@ -330,11 +330,10 @@ namespace WPEFramework {
 #endif
 
 #if defined(ENABLE_WHOAMI)
-	    if (UNSOLICITED_MAINTENANCE == g_maintenance_type) 
+	    if (UNSOLICITED_MAINTENANCE == g_maintenance_type) /* Unsolicited Maintenance in WHOAMI */
 	    {
 		string activation_status = checkActivatedStatus(); /* Device Activation Status Check */
 		bool whoAmIStatus = knowWhoAmI(activation_status); /* WhoAmI Response & Set Status Check */
-		whoAmIStatus = knowWhoAmI(activation_status);
 		LOGINFO("knowWhoAmI() returned %s", (whoAmIStatus) ? "successfully" : "false");
 	
 		if (!whoAmIStatus && activation_status != "activated")
@@ -350,14 +349,14 @@ namespace WPEFramework {
 		    exitOnNoNetwork = true;
 		}
 	    }
-	    else /* UNSOLICITED in WHOAMI */
+	    else /* Solicited Maintenance in WHOAMI */
 	    {
 		if(!internetConnectStatus)
 		{
 		    exitOnNoNetwork = true;
 		}
 	    }
-#else
+#else /* Unsolicited & Solicited Maintenance in WHOAMI */
 	    if(!internetConnectStatus)
 	    {
 		    exitOnNoNetwork = true;
