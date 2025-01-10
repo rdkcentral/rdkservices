@@ -274,7 +274,7 @@ bool setPowerState(std::string powerState)
     } else if (powerState == "DEEP_SLEEP") {
         param.newState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP;
     } else if (powerState == "LIGHT_SLEEP") {
-        param.newState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY;
+        param.newState = IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP;
     } else {
         return false;
     }
@@ -3625,8 +3625,10 @@ namespace WPEFramework {
                 if (res == IARM_RESULT_SUCCESS) {
                     if (param.curState == IARM_BUS_PWRMGR_POWERSTATE_ON)
                         currentState = "ON";
-                    else if ((param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY) || (param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP) )
+                    else if (param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY)
                         currentState = "STANDBY";
+                    else if (param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP)
+                        currentState = "LIGHT_SLEEP";
                     else if ( param.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP)
                         currentState = "DEEP_SLEEP";
                 }
@@ -4179,14 +4181,14 @@ namespace WPEFramework {
                     {
                         IARM_Bus_PWRMgr_EventData_t *eventData = (IARM_Bus_PWRMgr_EventData_t *)data;
 			std::string curState,newState = "";
-
 			if(eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_ON) {
 				curState = "ON";
-            } else if (eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_OFF) {
-                curState = "OFF";
-			} else if ((eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY)||
-				   (eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP)) {
+                        } else if (eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_OFF) {
+                                 curState = "OFF";
+			} else if (eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP){
 				curState = "LIGHT_SLEEP";
+			} else if (eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY) {
+				curState = "STANDBY";
 			} else if (eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP) {
 				curState = "DEEP_SLEEP";
 			} else if (eventData->data.state.curState == IARM_BUS_PWRMGR_POWERSTATE_OFF) {
@@ -4195,11 +4197,12 @@ namespace WPEFramework {
 
 			if(eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_ON) {
 				newState = "ON";
-            } else if(eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_OFF) {
-                newState = "OFF";
-			} else if((eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY)||
-				  (eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP)) {
+                        } else if(eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_OFF) {
+                                newState = "OFF";
+                        } else if (eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP){
                                 newState = "LIGHT_SLEEP";
+                        } else if (eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY) {
+                                newState = "STANDBY";
 			} else if(eventData->data.state.newState == IARM_BUS_PWRMGR_POWERSTATE_STANDBY_DEEP_SLEEP) {
                                 newState = "DEEP_SLEEP";
 			}
