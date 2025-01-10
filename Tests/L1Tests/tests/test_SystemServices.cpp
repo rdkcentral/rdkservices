@@ -2211,7 +2211,7 @@ TEST_F(SystemServicesTest, setPowerStateSuccess_when_powerstate_Light_sleep)
                 EXPECT_EQ(string(ownerName), string(_T(IARM_BUS_PWRMGR_NAME)));
                 EXPECT_EQ(string(methodName), string(_T(IARM_BUS_PWRMGR_API_SetPowerState)));
                 auto param = static_cast<IARM_Bus_PWRMgr_SetPowerState_Param_t*>(arg);
-                EXPECT_EQ(param->newState, IARM_BUS_PWRMGR_POWERSTATE_STANDBY);
+                EXPECT_EQ(param->newState, IARM_BUS_PWRMGR_POWERSTATE_STANDBY_LIGHT_SLEEP);
                 return IARM_RESULT_SUCCESS;
             });
 
@@ -2547,7 +2547,7 @@ TEST_F(SystemServicesEventIarmTest, onSystemPowerStateChanged_PowerState_STANDBY
                                                              "\"params\":"
                                                              "\\{"
                                                              "\"powerState\":\"LIGHT_SLEEP\","
-                                                             "\"currentPowerState\":\"LIGHT_SLEEP\""
+                                                             "\"currentPowerState\":\"STANDBY\""
                                                              "\\}"
                                                              "\\}")));
 
