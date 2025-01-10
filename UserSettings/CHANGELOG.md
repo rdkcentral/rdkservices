@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [2.0.0] - 2025-01-08
+### Updated
+- Updated input param names for pinControl, liveWatershed, playbackWatershed, blockNotRatedContent, pinOnPurchase properties.
+
 ## [1.2.0] - 2024-09-17
 ### Added
 - Added ParentalControl new properties in Usersetttings.
