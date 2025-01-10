@@ -53,7 +53,7 @@
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 6
-#define API_VERSION_NUMBER_PATCH 4
+#define API_VERSION_NUMBER_PATCH 5
 
 const string WPEFramework::Plugin::RDKShell::SERVICE_NAME = "org.rdk.RDKShell";
 //methods
@@ -2911,13 +2911,9 @@ namespace WPEFramework {
 #ifdef HIBERNATE_SUPPORT_ENABLED
                 // RDKShell::kill only destroys wayland display
                 // and hibernated app will not detect missing display.
-                // Wakeup app by getting its state
+                // Wakeup app by getting its state over direct link
                 WPEFramework::Core::JSON::String stateString;
-                auto thunderPlugin = getThunderControllerClient(client);
-                if(thunderPlugin)
-                {
-                    thunderPlugin->Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
-                }
+                JSONRPCDirectLink(mCurrentService, client).Get<WPEFramework::Core::JSON::String>(RDKSHELL_THUNDER_TIMEOUT, "state", stateString);
 #endif
 
                 // Kill the display

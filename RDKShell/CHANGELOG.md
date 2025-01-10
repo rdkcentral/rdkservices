@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.6.5] - 2025-02-06
+### Fixed
+- Fix RDKShell.kill for hibernated app
+
 ## [1.6.4] - 2024-12-16
 ### Added
 - Added proper synchronization in in RDKShell::subscribeForSystemEvent()
