@@ -28,6 +28,7 @@
 #include <condition_variable>
 #include <thread>
 #include <queue>
+#include <unordered_map>
 
 namespace WPEFramework {
 namespace Plugin {
@@ -75,6 +76,55 @@ namespace Plugin {
             std::string id;
         };
 
+        class EventMapper
+        {
+        private:
+
+            struct Key
+            {
+                std::string eventName;
+                std::string eventSource;
+                std::string eventSourceVersion;
+                std::string eventVersion;
+
+                bool operator==(const Key &other) const
+                {
+                    return eventName == other.eventName &&
+                           eventSource == other.eventSource &&
+                           eventSourceVersion == other.eventSourceVersion &&
+                           eventVersion == other.eventVersion;
+                }
+            };
+
+            struct KeyHasher
+            {
+                std::size_t operator()(const Key &key) const
+                {
+                    std::size_t h1 = std::hash<std::string>()(key.eventName);
+                    std::size_t h2 = std::hash<std::string>()(key.eventSource);
+                    std::size_t h3 = std::hash<std::string>()(key.eventSourceVersion);
+                    std::size_t h4 = std::hash<std::string>()(key.eventVersion);
+
+                    // Combine the hashes
+                    std::size_t combined = h1;
+                    combined ^= h2 + 0x9e3779b9 + (combined << 6) + (combined >> 2);
+                    combined ^= h3 + 0x9e3779b9 + (combined << 6) + (combined >> 2);
+                    combined ^= h4 + 0x9e3779b9 + (combined << 6) + (combined >> 2);
+                    return combined;
+                }
+            };
+
+        public:
+
+            void FromString(const std::string &jsonArrayStr);
+            std::string MapEventNameIfNeeded(const std::string &eventName,
+                                            const std::string &eventSource,
+                                            const std::string &eventSourceVersion,
+                                            const std::string &eventVersion) const;
+
+        private:
+            std::unordered_map<Key, std::string, KeyHasher> map;
+        };
 
         // IAnalyticsImplementation interface
         Core::hresult SendEvent(const string& eventName,
@@ -93,6 +143,7 @@ namespace Plugin {
         void ActionLoop();
         bool IsSysTimeValid();
         void SendEventToBackend(const Event& event);
+        void ParseEventsMapFile(const std::string& eventsMapFile);
 
         static uint64_t GetCurrentTimestampInMs();
         static uint64_t GetCurrentUptimeInMs();
@@ -107,6 +158,7 @@ namespace Plugin {
         bool mSysTimeValid;
         PluginHost::IShell* mShell;
         SystemTimePtr mSysTime;
+        EventMapper mEventMapper;
     };
 }
 }

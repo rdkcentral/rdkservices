@@ -46,9 +46,6 @@
 #include "UtilscRunScript.h"
 #include "UtilsfileExists.h"
 
-enum eRetval { E_NOK = -1,
-    E_OK };
-
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
 #include "libIARM.h"
 
@@ -68,7 +65,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 36
+#define API_VERSION_NUMBER_PATCH 40
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 
@@ -292,6 +289,7 @@ namespace WPEFramework {
             string cmd="";
             bool internetConnectStatus=false;
 	    bool delayMaintenanceStarted = false;
+            bool exitOnNoNetwork = false;
 
             std::unique_lock<std::mutex> wailck(m_waiMutex);
             LOGINFO("Executing Maintenance tasks");
@@ -317,46 +315,56 @@ namespace WPEFramework {
 #if defined(SUPPRESS_MAINTENANCE) && !defined(ENABLE_WHOAMI)
             bool activationStatus=false;
             bool skipFirmwareCheck=false;
+            activationStatus = getActivatedStatus(skipFirmwareCheck); /* Activation Check */
 
-            /* Activation check */
-            activationStatus = getActivatedStatus(skipFirmwareCheck);
-
-            /* we proceed with network check only if
-             * "activation-connect", "activation-ready"
-             * "not-activated", "activated" */
+            /* we proceed with network check only if activationStatus is
+             * "activation-connect", 
+	     * "activation-ready",
+             * "not-activated", 
+	     * "activated" */
             if(activationStatus){
-                /* Network check */
-                internetConnectStatus = isDeviceOnline();
+                internetConnectStatus = isDeviceOnline(); /* Network Check */
             }
-#else /* WhoAmI */
-            internetConnectStatus = isDeviceOnline();
+#else
+            internetConnectStatus = isDeviceOnline(); /* Network Check */
 #endif
 
 #if defined(ENABLE_WHOAMI)
-    string activation_status = checkActivatedStatus();
-    bool whoAmIStatus = false;
-    if (UNSOLICITED_MAINTENANCE == g_maintenance_type) {
-        /* WhoAmI check*/
-        whoAmIStatus = knowWhoAmI(activation_status);
-        if (whoAmIStatus) {
-            LOGINFO("knowWhoAmI() returned successfully");
-        }
-        else {
-            LOGINFO("knowWhoAmI() returned false");
-        }
-    }
-
-    if (false == whoAmIStatus && activation_status != "activated") {
-        LOGINFO("knowWhoAmI() returned false and Device is not already Activated");
-        g_listen_to_deviceContextUpdate = true;
-        LOGINFO("Waiting for onDeviceInitializationContextUpdate event");
-        task_thread.wait(wailck);
-    }
-    else if ( false == internetConnectStatus && activation_status == "activated" ) {
-        LOGINFO("Device is not connected to the Internet and Device is already Activated");
-#else /* WhoAmI */
-            if ( false == internetConnectStatus ) {
+	    if (UNSOLICITED_MAINTENANCE == g_maintenance_type) 
+	    {
+		string activation_status = checkActivatedStatus(); /* Device Activation Status Check */
+		bool whoAmIStatus = knowWhoAmI(activation_status); /* WhoAmI Response & Set Status Check */
+		whoAmIStatus = knowWhoAmI(activation_status);
+		LOGINFO("knowWhoAmI() returned %s", (whoAmIStatus) ? "successfully" : "false");
+	
+		if (!whoAmIStatus && activation_status != "activated")
+		{
+		    LOGINFO("knowWhoAmI() returned false and Device is not already Activated");
+	            g_listen_to_deviceContextUpdate = true;
+	            LOGINFO("Waiting for onDeviceInitializationContextUpdate event");
+	            task_thread.wait(wailck);
+	        }
+	        else if (!internetConnectStatus && activation_status == "activated") 
+		{
+		    LOGINFO("Device is not connected to the Internet and Device is already Activated");
+		    exitOnNoNetwork = true;
+		}
+	    }
+	    else /* UNSOLICITED in WHOAMI */
+	    {
+		if(!internetConnectStatus)
+		{
+		    exitOnNoNetwork = true;
+		}
+	    }
+#else
+	    if(!internetConnectStatus)
+	    {
+		    exitOnNoNetwork = true;
+	    }
 #endif
+	    if(exitOnNoNetwork)
+	    {
                 m_statusMutex.lock();
                 MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
                 m_statusMutex.unlock();
@@ -375,22 +383,14 @@ namespace WPEFramework {
 	    }
 
             LOGINFO("Reboot_Pending :%s",g_is_reboot_pending.c_str());
-
-            if (UNSOLICITED_MAINTENANCE == g_maintenance_type){
-                LOGINFO("---------------UNSOLICITED_MAINTENANCE--------------");
-            }
-            else if( SOLICITED_MAINTENANCE == g_maintenance_type){
-                LOGINFO("=============SOLICITED_MAINTENANCE===============");
-            }
+	    LOGINFO("%s", UNSOLICITED_MAINTENANCE == g_maintenance_type ? "---------------UNSOLICITED_MAINTENANCE--------------" : "=============SOLICITED_MAINTENANCE===============");
 #if defined(SUPPRESS_MAINTENANCE) && !defined(ENABLE_WHOAMI)
-            /* decide which all tasks are needed based on the activation status */
-            if (activationStatus){
-                if(skipFirmwareCheck){
-                    /* set the task status of swupdate */
+                if(skipFirmwareCheck)
+		{
+                    /* set the task status of Firmware Download */
                     SET_STATUS(g_task_status,DIFD_SUCCESS);
                     SET_STATUS(g_task_status,DIFD_COMPLETE);
-
-                    /* Add tasks */
+                    /* Skip Firmware Download Task and add other tasks */
                     tasks.push_back(task_names_foreground[0].c_str());
                     tasks.push_back(task_names_foreground[2].c_str());
 		}
@@ -400,7 +400,6 @@ namespace WPEFramework {
 		    tasks.push_back(task_names_foreground[1].c_str());
 		    tasks.push_back(task_names_foreground[2].c_str());
 		}
-	    }
 #else
             tasks.push_back(task_names_foreground[0].c_str());
             tasks.push_back(task_names_foreground[1].c_str());
