@@ -45,6 +45,7 @@ add_executable(${PROJECT_NAME}
         ../mocks/rdkshell.cpp
 	../mocks/opkgMock.cpp
 	../mocks/WpaCtrl.cpp
+	../mocks/BluetoothMocks.cpp
         )
 
 set_source_files_properties(
@@ -102,6 +103,7 @@ include_directories(../../LocationSync
         ../../Miracast/MiracastService/P2P
 	../../Miracast/MiracastPlayer
         ../../Miracast/MiracastPlayer/RTSP
+	../../Bluetooth
         )
 link_directories(../../LocationSync
         ../../SecurityAgent
@@ -141,6 +143,7 @@ link_directories(../../LocationSync
         ../../TextToSpeech
         ../../SystemAudioPlayer
 	../../Miracast
+	../../Bluetooth
         )
 
 target_link_libraries(${PROJECT_NAME}
@@ -184,6 +187,7 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}SystemAudioPlayer
 	${NAMESPACE}MiracastService
 	${NAMESPACE}MiracastPlayer
+	${NAMESPACE}Bluetooth
         )
 
 target_include_directories(${PROJECT_NAME}
