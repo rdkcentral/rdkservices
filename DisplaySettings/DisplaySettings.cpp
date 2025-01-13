@@ -245,7 +245,7 @@ namespace WPEFramework {
         DisplaySettings::DisplaySettings()
             : PluginHost::JSONRPC()
         {
-            LOGINFO("ctor");
+            LOGINFO("constructor");
             DisplaySettings::_instance = this;
             m_client = nullptr;
 
