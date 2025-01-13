@@ -323,10 +323,8 @@ namespace WPEFramework {
 
 	private: 
 	    mutable Core::CriticalSection _adminLock;
-	    Core::ProxyType<RPC::InvokeServerType<1, 0, 4>> _engine;
-	    Core::ProxyType<RPC::CommunicatorClient> _communicatorClient;
-	    PluginHost::IShell *_controller;
-	    Exchange::ISystemMode* _remotStoreObject;
+	    Exchange::ISystemMode* _remotStoreObject = nullptr;
+	    Exchange::ISystemMode* _remotStoreObject1 = nullptr;
 
         };
 	} // namespace Plugin
