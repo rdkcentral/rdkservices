@@ -169,7 +169,6 @@ jobs:
           headers/rdk/iarmbus
           headers/rdk/iarmmgrs-hal
           headers/ccec/drivers
-          headers/network
           &&
           cd headers
           &&
@@ -201,8 +200,6 @@ jobs:
           rdk/iarmmgrs-hal/mfrMgr.h
           rdk/iarmmgrs-hal/pwrMgr.h
           rdk/iarmmgrs-hal/sysMgr.h
-          network/wifiSrvMgrIarmIf.h
-          network/netsrvmgrIarm.h
           libudev.h
           rfcapi.h
           rbus.h
@@ -241,7 +238,6 @@ jobs:
           -I ${{github.workspace}}/rdkservices/Tests/headers/rdk/iarmbus
           -I ${{github.workspace}}/rdkservices/Tests/headers/rdk/iarmmgrs-hal
           -I ${{github.workspace}}/rdkservices/Tests/headers/ccec/drivers
-          -I ${{github.workspace}}/rdkservices/Tests/headers/network
           -include ${{github.workspace}}/rdkservices/Tests/mocks/devicesettings.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/maintenanceMGR.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/pkg.h
@@ -286,8 +282,6 @@ jobs:
           -DRDK_SERVICES_L1_TEST=ON
           -DPLUGIN_HDMIINPUT=ON
           -DPLUGIN_HDCPPROFILE=ON
-          -DPLUGIN_NETWORK=ON
-          -DPLUGIN_WIFIMANAGER=ON
           -DPLUGIN_TRACECONTROL=ON
           -DPLUGIN_WAREHOUSE=ON
           -DPLUGIN_ACTIVITYMONITOR=ON

@@ -38,6 +38,7 @@ using namespace std;
 #define API_VERSION_NUMBER_PATCH 13
 
 /* Netsrvmgr Based Macros & Structures */
+/* Netsrvmgr Based Macros & Structures */
 #define IARM_BUS_NM_SRV_MGR_NAME "NET_SRV_MGR"
 #define INTERFACE_SIZE 10
 #define INTERFACE_LIST 50
