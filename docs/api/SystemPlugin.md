@@ -2,7 +2,7 @@
 <a name="System_Plugin"></a>
 # System Plugin
 
-**Version: [3.3.2](https://github.com/rdkcentral/rdkservices/blob/main/SystemServices/CHANGELOG.md)**
+**Version: [3.4.3](https://github.com/rdkcentral/rdkservices/blob/main/SystemServices/CHANGELOG.md)**
 
 A org.rdk.System plugin for Thunder framework.
 
@@ -116,8 +116,11 @@ org.rdk.System interface methods:
 | [uploadLogsAsync](#uploadLogsAsync) | Starts background process to upload logs |
 | [abortLogUpload](#abortLogUpload) | Stops background process to upload logs |
 | [getThunderStartReason](#getThunderStartReason) | Returns the Thunder start reason |
+| [setFSRFlag](#setFSRFlag) | Set the FSR flag into the emmc raw area |
+| [getFSRFlag](#getFSRFlag) | Get the FSR flag from the emmc raw area |
 | [setPrivacyMode](#setPrivacyMode) | Setting Privacy Mode |
 | [getPrivacyMode](#getPrivacyMode) | Getting Privacy Mode |
+| [getBootTypeInfo](#getBootTypeInfo) | Getting Boot Type |
 
 
 <a name="clearLastDeepSleepReason"></a>
@@ -3637,6 +3640,98 @@ This method takes no parameters.
 }
 ```
 
+<a name="setFSRFlag"></a>
+## *setFSRFlag*
+
+Set the FSR flag into the emmc raw area. This API will fail if you attempt to set the same value.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.fsrFlag | boolean | FSR flag |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.setFSRFlag"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "fsrFlag": true,
+        "success": true
+    }
+}
+```
+
+<a name="getFSRFlag"></a>
+## *getFSRFlag*
+
+Get the FSR flag from the emmc raw area.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | object |  |
+| result.fsrFlag | boolean | FSR flag |
+| result.success | boolean | Whether the request succeeded |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.getFSRFlag"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": {
+        "fsrFlag": true,
+        "success": true
+    }
+}
+```
+
 <a name="setPrivacyMode"></a>
 ## *setPrivacyMode*
 
@@ -3726,6 +3821,47 @@ This method takes no parameters.
 }
 ```
 
+<a name="getBootTypeInfo"></a>
+## *getBootTypeInfo*
+
+Getting Boot Type.
+
+### Events
+
+No Events
+
+### Parameters
+
+This method takes no parameters.
+
+### Result
+
+| Name | Type | Description |
+| :-------- | :-------- | :-------- |
+| result | string | BOOT Type Info |
+
+### Example
+
+#### Request
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "method": "org.rdk.System.getBootTypeInfo"
+}
+```
+
+#### Response
+
+```json
+{
+    "jsonrpc": "2.0",
+    "id": 42,
+    "result": "BOOT_UPDATE"
+}
+```
+
 <a name="Notifications"></a>
 # Notifications
 
@@ -3754,8 +3890,7 @@ org.rdk.System interface events:
 | [onTimeZoneDSTChanged](#onTimeZoneDSTChanged) | Triggered when device time zone changed |
 | [onLogUpload](#onLogUpload) | Triggered when logs upload process is done or stopped |
 | [onPrivacyModeChanged](#onPrivacyModeChanged) | Triggered after the Privacy Mode changes (see `SetPrivacyMode`) |
-| [setFSRFlag](#setFSRFlag) | Set the FSR flag into the emmc raw area |
-| [getFSRFlag](#getFSRFlag) | Get the FSR flag from the emmc raw area |
+| [onBlocklistChanged](#onBlocklistChanged) | Triggers when the blocklist flag is modified |
 
 
 <a name="onFirmwarePendingReboot"></a>
@@ -4227,55 +4362,13 @@ Triggered after the Privacy Mode changes (see `SetPrivacyMode`).
 }
 ```
 
-<a name="setFSRFlag"></a>
-## *setFSRFlag*
+<a name="onBlocklistChanged"></a>
+## *onBlocklistChanged*
 
-Set the FSR flag into the emmc raw area. This API will fail if you attempt to set the same value.
-
-### Parameters
-
-This event carries no parameters.
-
-### Result
-
-| Name | Type | Description |
-| :-------- | :-------- | :-------- |
-| result | object |  |
-| result.fsrFlag | boolean | FSR flag |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.setFSRFlag"
-}
-```
-
-<a name="getFSRFlag"></a>
-## *getFSRFlag*
-
-Get the FSR flag from the emmc raw area.
+Triggers when the blocklist flag is modified.
 
 ### Parameters
 
-This event carries no parameters.
-
-### Result
-
 | Name | Type | Description |
 | :-------- | :-------- | :-------- |
-| result | object |  |
-| result.fsrFlag | boolean | FSR flag |
-| result.success | boolean | Whether the request succeeded |
-
-### Example
-
-```json
-{
-    "jsonrpc": "2.0",
-    "method": "client.events.getFSRFlag"
-}
-```
-
+| params | object |  |
