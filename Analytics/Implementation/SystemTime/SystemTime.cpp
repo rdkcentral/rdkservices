@@ -299,37 +299,46 @@ namespace WPEFramework
                 {
                     LOGINFO("v_secure_popen of zdump -v %s succeeded", mTimeZone.c_str());
 
-                    // <timezone>  Tue Jan 19 03:14:07 2038 UT = Tue Jan 19 04:14:07 2038 CET isdst=0 gmtoff=3600
-                    char buf[256] = {0};
-
+                    // Read entire output of zdump
+                    char buf[4096] = {0};
+                    std::string output;
                     while (fgets(buf, sizeof(buf), fp) != NULL)
                     {
+                        output += buf;
+                    }
+
+                    v_secure_pclose(fp);
+
+                    // Convert output to read line by line
+                    std::istringstream iss(output);
+                    std::string line;
+                    while (std::getline(iss, line))
+                    {
                         // "<timezone>  Tue Jan 19 03:14:07 2038 UT = Tue Jan 19 04:14:07 2038 CET isdst=0 gmtoff=3600"
-                        std::string temp(buf);
                         struct tm utcTime = {0};
 
-                        temp.erase(0, temp.find(" ") + 2); // Remove "<timezone>  " -> 2 spaces
+                        line.erase(0, line.find(" ") + 2); // Remove "<timezone>  " -> 2 spaces
 
-                        auto utOff = temp.find(" UT = ");
-                        std::string date = temp.substr(0, utOff); // Capture UTC date "Tue Jan 19 03:14:07 2038"
+                        auto utOff = line.find(" UT = ");
+                        std::string date = line.substr(0, utOff); // Capture UTC date "Tue Jan 19 03:14:07 2038"
 
                         // Remove everything to " UT = ", "Tue Jan 19 04:14:07 2038 CET isdst=0 gmtoff=3600" is left
-                        temp.erase(0, utOff + sizeof(" UT = ") - 1);
+                        line.erase(0, utOff + sizeof(" UT = ") - 1);
 
                         // Remove until next 5 spaces, "CET isdst=0 gmtoff=3600" will be left
                         auto spaceCount = 5;
                         while (spaceCount > 0)
                         {
-                            auto spOff = temp.find(" ");
+                            auto spOff = line.find(" ");
                             // In case of one-digit day of month there are two spaces before that
                             if (spaceCount == 4)
                             {
                                 // thus + 2 to remove it (it applies also to two-digits but it's ok because it's removed anyway)
-                                temp.erase(0, spOff + 2);
+                                line.erase(0, spOff + 2);
                             }
                             else
                             {
-                                temp.erase(0, spOff + 1);
+                                line.erase(0, spOff + 1);
                             }
                             spaceCount--;
                         }
@@ -337,7 +346,7 @@ namespace WPEFramework
                         char timeZone[5] = {0};
                         int32_t isDst = 0;
                         int32_t gmtOff = 0;
-                        sscanf(temp.c_str(), "%s isdst=%d gmtoff=%d", timeZone, &isDst, &gmtOff);
+                        sscanf(line.c_str(), "%s isdst=%d gmtoff=%d", timeZone, &isDst, &gmtOff);
                         strptime(date.c_str(), "%A %B %d %H:%M:%S %Y", &utcTime);
 
                         // Years below 70 are not supported by epoch
@@ -366,8 +375,6 @@ namespace WPEFramework
                             }
                         }
                     }
-
-                    v_secure_pclose(fp);
                 }
                 else
                 {
@@ -401,7 +408,7 @@ namespace WPEFramework
                         {
                             SubscribeForEvents();
                             UpdateTimeStatus();
-                            UpdateTimeZone();                            
+                            UpdateTimeZone();
                         }
                         else
                         {
