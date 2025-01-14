@@ -72,8 +72,8 @@ namespace WPEFramework
             void SubscribeForEvents();
             void UpdateTimeStatus();
             void UpdateTimeZone();
-            std::pair<TimeZoneAccuracy, int32_t> ParseTimeZone(const string &timeZone, const std::string &accuracy);
-            void PopulateTimeZoneTransitionMap(const std::string &newTimeZone, const std::string &accuracy);
+            std::pair<TimeZoneAccuracy, int32_t> ParseTimeZone();
+            void PopulateTimeZoneTransitionMap();
             void EventLoop();
 
 
