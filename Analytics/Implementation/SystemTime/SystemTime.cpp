@@ -83,7 +83,7 @@ namespace WPEFramework
 
             if (mIsSystemTimeAvailable)
             {
-                std::pair<SystemTime::TimeZoneAccuracy, int32_t> tzParsed = ParseTimeZone(mTimeZone, mTimeZoneAccuracyString);
+                std::pair<SystemTime::TimeZoneAccuracy, int32_t> tzParsed = ParseTimeZone();
                 offsetSec = tzParsed.second;
                 return tzParsed.first;
             }
@@ -211,18 +211,27 @@ namespace WPEFramework
                 std::string accuracy = response["accuracy"].String();
 
                 std::lock_guard<std::mutex> guard(mLock);
-                if (mTimeZone != tz || mTimeZoneAccuracyString != accuracy)
+                mTimeZoneAccuracyString = accuracy;
+                if (accuracy == "FINAL")
                 {
-                    mTimeZone = tz;
-                    mTimeZoneAccuracyString = accuracy;
+                    if (mTimeZone != tz)
+                    {
+                        mTransitionMap.clear();
+                        mTimeZone = tz;
+                    }
+                }
+                else
+                {
+                    mTimeZone.clear();
+                    mTransitionMap.clear();
                 }
             }
         }
 
-        std::pair<SystemTime::TimeZoneAccuracy, int32_t> SystemTime::ParseTimeZone(const string &timeZone, const std::string &accuracy)
+        std::pair<SystemTime::TimeZoneAccuracy, int32_t> SystemTime::ParseTimeZone()
         {
             std::pair<SystemTime::TimeZoneAccuracy, int32_t> result = {ACC_UNDEFINED, 0};
-            if (timeZone.empty())
+            if (mTimeZone.empty())
             {
                 return result;
             }
@@ -232,7 +241,7 @@ namespace WPEFramework
                 {"INTERIM", INTERIM},
                 {"FINAL", FINAL}};
 
-            auto accuracyItr = accuracyMap.find(accuracy);
+            auto accuracyItr = accuracyMap.find(mTimeZoneAccuracyString);
             if (accuracyItr == accuracyMap.end())
             {
                 result.first = ACC_UNDEFINED;
@@ -240,13 +249,13 @@ namespace WPEFramework
                 result.first = accuracyItr->second;
             }
 
-            if (timeZone == "Universal")
+            if (mTimeZone == "Universal")
             {
                 result.second = 0;
                 return result;
             }
 
-            PopulateTimeZoneTransitionMap(timeZone, accuracy);
+            PopulateTimeZoneTransitionMap();
 
             if (mTransitionMap.empty())
             {
@@ -276,22 +285,8 @@ namespace WPEFramework
             return result;
         }
 
-        void SystemTime::PopulateTimeZoneTransitionMap(const std::string &newTimeZone, const std::string &accuracy)
+        void SystemTime::PopulateTimeZoneTransitionMap()
         {
-            if (accuracy == "FINAL")
-            {
-                if (mTimeZone != newTimeZone)
-                {
-                    mTransitionMap.clear();
-                    mTimeZone = newTimeZone;
-                }
-            }
-            else
-            {
-                mTimeZone.clear();
-                mTransitionMap.clear();
-            }
-
             if (mTransitionMap.empty() && !mTimeZone.empty())
             {
                 FILE *fp = v_secure_popen("r", "zdump -v %s", mTimeZone.c_str());
@@ -444,10 +439,19 @@ namespace WPEFramework
                         std::string accuracy = response["newAccuracy"].String();
 
                         std::lock_guard<std::mutex> guard(mLock);
-                        if (mTimeZone != tz || mTimeZoneAccuracyString != accuracy)
+                        mTimeZoneAccuracyString = accuracy;
+                        if (accuracy == "FINAL")
                         {
-                            mTimeZone = tz;
-                            mTimeZoneAccuracyString = accuracy;
+                            if (mTimeZone != tz)
+                            {
+                                mTransitionMap.clear();
+                                mTimeZone = tz;
+                            }
+                        }
+                        else
+                        {
+                            mTimeZone.clear();
+                            mTransitionMap.clear();
                         }
                     }
                 }
