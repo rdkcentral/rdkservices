@@ -79,8 +79,6 @@ include_directories(../../LocationSync
         ../../SystemServices
         ../../HdmiInput
         ../../HdcpProfile
-        ../../Network
-        ../../WifiManager
         ../../TraceControl
         ../../Warehouse
         ../../ActivityMonitor
@@ -123,8 +121,6 @@ link_directories(../../LocationSync
         ../../DeviceInfo
         ../../HdmiInput
         ../../HdcpProfile
-        ../../Network
-        ../../WifiManager
         ../../TraceControl
         ../../Warehouse
         ../../ActivityMonitor
@@ -167,8 +163,6 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}DeviceInfo
         ${NAMESPACE}HdmiInput
         ${NAMESPACE}HdcpProfile
-        ${NAMESPACE}Network
-        ${NAMESPACE}WifiManager
         ${NAMESPACE}TraceControl
         ${NAMESPACE}Warehouse
         ${NAMESPACE}ActivityMonitor
