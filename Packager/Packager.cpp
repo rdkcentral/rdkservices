@@ -57,7 +57,7 @@ namespace {
         _service->Register(&_notification);
 
          string result;
-        _implementation = _service->Root<Exchange::IPackager>(_connectionId, 5000, _T("PackagerImplementation"));
+        _implementation = _service->Root<Exchange::IPackager>(_connectionId, 2000, _T("PackagerImplementation"));
         if (_implementation == nullptr) {
             result = _T("Couldn't create package instance");
             _service->Unregister(&_notification);
