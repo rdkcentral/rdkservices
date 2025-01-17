@@ -127,6 +127,11 @@ jobs:
           &&
           cmake --install build/Thunder
 
+      - name: Checkout rdkservices
+        uses: actions/checkout@v3
+        with:
+          path: rdkservices
+
       - name: Checkout ThunderInterfaces
         if: steps.cache.outputs.cache-hit != 'true'
         uses: actions/checkout@v3
@@ -155,10 +160,6 @@ jobs:
           &&
           cmake --install build/ThunderInterfaces
 
-      - name: Checkout rdkservices
-        uses: actions/checkout@v3
-        with:
-          path: rdkservices
 
       - name: Generate external headers
         # Empty headers to mute errors
