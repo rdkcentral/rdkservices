@@ -138,9 +138,10 @@ jobs:
           ref: ${{env.INTERFACES_REF}}
 
       - name: Apply patches ThunderInterfaces
-        run: >
-          cd "${{github.workspace}}/ThunderInterfaces"
-          &&
+        run: |
+          cd ThunderInterfaces
+          patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0001-DELIA-66976-SystemAudioPlayer-interface.patch 
+          patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0002-DELIA-66976-specially-for-comcast-bring-back-the-old.patch
           cd ..
 
       - name: Build ThunderInterfaces
