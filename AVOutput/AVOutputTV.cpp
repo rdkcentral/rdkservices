@@ -2303,6 +2303,7 @@ namespace Plugin {
             returnResponse(false);
         }
         else {
+            inputInfo.format = "DV"; //Update only for DV format
             int retval= updateAVoutputTVParam("set","DolbyVisionMode",inputInfo,PQ_PARAM_DOLBY_MODE,getDolbyModeIndex(value.c_str()));
             if(retval != 0 ) {
                 LOGERR("Failed to Save Dolbyvision mode\n");
@@ -2336,7 +2337,7 @@ namespace Plugin {
             LOGERR("%s: CapablityCheck failed for DolbyVisionMode\n", __FUNCTION__);
             returnResponse(false);
         }
-
+        inputInfo.format = "DV"; //Update only for DV format
         int retval= updateAVoutputTVParam("reset","DolbyVisionMode",inputInfo,PQ_PARAM_DOLBY_MODE,dolbyMode);
         if(retval != 0 ) {
             LOGERR("Failed to reset DolbyVisionMode\n");
