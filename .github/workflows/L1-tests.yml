@@ -357,7 +357,7 @@ jobs:
         if: ${{ !env.ACT }}
         run: >
           PATH=${{github.workspace}}/install/usr/bin:${PATH}
-          LD_LIBRARY_PATH=${{github.workspace}}/install/usr/lib:${{github.workspace}}/install/usr/lib/wpeframework/plugins:${LD_LIBRARY_PATH}
+          LD_LIBRARY_PATH=${{github.workspace}}/install/usr/lib:${{github.workspace}}/install/usr/lib/wpeframework/plugins:/usr/local/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}
           valgrind
           --tool=memcheck
           --log-file=valgrind_log
