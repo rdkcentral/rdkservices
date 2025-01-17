@@ -250,7 +250,7 @@ jobs:
           -include ${{github.workspace}}/rdkservices/Tests/mocks/pkg.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/secure_wrappermock.h
           -include ${{github.workspace}}/rdkservices/Tests/mocks/WpaCtrl.h
-          -Wall -Werror -Wno-error=format= -Wno-deprecated-declarations -Wno-error=infinite-recursion
+          -Wall -Werror -Wno-error=format= -Wno-deprecated-declarations -Wno-error=infinite-recursion -Wno-address 
           -Wl,-wrap,system -Wl,-wrap,popen -Wl,-wrap,syslog
           -DENABLE_TELEMETRY_LOGGING
           -DUSE_IARMBUS
