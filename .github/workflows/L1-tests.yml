@@ -350,7 +350,7 @@ jobs:
       - name: Run unit tests without valgrind
         run: >
           PATH=${{github.workspace}}/install/usr/bin:${PATH}
-          LD_LIBRARY_PATH=${{github.workspace}}/install/usr/lib:${{github.workspace}}/install/usr/lib/wpeframework/plugins:${LD_LIBRARY_PATH}
+          LD_LIBRARY_PATH=${{github.workspace}}/install/usr/lib:${{github.workspace}}/install/usr/lib/wpeframework/plugins:${{github.workspace}}/usr/local/lib/x86_64-linux-gnu:${LD_LIBRARY_PATH}
           RdkServicesL1Test
 
       - name: Run unit tests with valgrind
