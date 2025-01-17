@@ -532,6 +532,7 @@ namespace WPEFramework {
 
         const string DisplaySettings::Initialize(PluginHost::IShell* service)
         {
+	    Exchange::ISystemMode* _remotStoreObject = nullptr;
             ASSERT(service != nullptr);
             ASSERT(m_service == nullptr);
 
@@ -585,6 +586,7 @@ namespace WPEFramework {
 
         void DisplaySettings::Deinitialize(PluginHost::IShell* service)
 	{
+		Exchange::ISystemMode* _remotStoreObject1 = nullptr;
 		LOGINFO("Enetering DisplaySettings::Deinitialize");
 
 		//During DisplaySettings plugin  activation the SystemMode may not be added .But it will be added /tmp/SystemMode.txt . If after 5 min SystemMode got activated then SystemMode fill the client map from /tmp/SystemMode.txt. In this case if we deactivate DisplaySettings then _remotStoreObject will be null here . So we try to QueryInterface the ISystemMode one more time 
