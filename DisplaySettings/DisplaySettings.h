@@ -323,9 +323,6 @@ namespace WPEFramework {
 
 	private: 
 	    mutable Core::CriticalSection _adminLock;
-	    Exchange::ISystemMode* _remotStoreObject = nullptr;
-	    Exchange::ISystemMode* _remotStoreObject1 = nullptr;
-
         };
 	} // namespace Plugin
 } // namespace WPEFramework
