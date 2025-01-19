@@ -419,7 +419,6 @@ if(PLUGIN_CONTENTPROTECTION)
     add_subdirectory(ContentProtection)
 endif()
 
-add_executable (buildrdkservies.sh)
 
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)
     set(CPACK_GENERATOR "DEB")
