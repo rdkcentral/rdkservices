@@ -23,7 +23,8 @@
 #include "tracing/Logging.h"
 #include "UtilsJsonRpc.h"
 #include "UtilsController.h"
-#include <interfaces/IDeviceInfo2.h>
+#include <interfaces/IDeviceInfo.h>
+
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
