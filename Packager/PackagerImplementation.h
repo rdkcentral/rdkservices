@@ -92,6 +92,7 @@ namespace Plugin {
             , _isUpgrade(false)
             , _isSyncing(false)
         {
+         LOGINFO("DBG Ctor \n");
         }
 
         ~PackagerImplementation() override;
@@ -105,6 +106,7 @@ namespace Plugin {
                 : SystemRootPath()
             {
                 Add(_T("systemrootpath"), &SystemRootPath);
+             LOGINFO("DBG Ctor\n");
             }
 
             Core::JSON::String SystemRootPath;
@@ -142,6 +144,7 @@ namespace Plugin {
                 , _version(version)
                 , _arch(arch)
             {
+             LOGINFO("DBG CTor\n");
             }
 
             BEGIN_INTERFACE_MAP(PackageInfo)
@@ -213,13 +216,13 @@ namespace Plugin {
 
             void SetState(Exchange::IPackager::state state)
             {
-                TRACE_L1("Setting state to %d", state);
+                LOGINFO("DBG Setting state to %d", state);
                 _state = state;
             }
 
             void SetProgress(uint8_t progress)
             {
-                TRACE_L1("Setting progress to %d", progress);
+                LOGINFO("DBG Setting progress to %d", progress);
                 _progress = progress;
             }
 
@@ -232,7 +235,7 @@ namespace Plugin {
 
             void SetError(uint32_t err)
             {
-                TRACE_L1("Setting error to %d", err);
+                LOGINFO("DBG Setting error to %d", err);
                 _error = err;
             }
 
