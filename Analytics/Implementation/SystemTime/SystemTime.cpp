@@ -264,6 +264,7 @@ namespace WPEFramework
             }
 
             time_t currentTime = time(NULL);
+
             auto currentTimeEndItr = mTransitionMap.lower_bound(currentTime);
 
             if (currentTimeEndItr != mTransitionMap.end())
@@ -289,10 +290,11 @@ namespace WPEFramework
         {
             if (mTransitionMap.empty() && !mTimeZone.empty())
             {
-                FILE *fp = v_secure_popen("r", "zdump -v %s", mTimeZone.c_str());
+                std::string cmd = "zdump -v " + mTimeZone;
+                FILE *fp = popen(cmd.c_str(), "r");
                 if (fp != NULL)
                 {
-                    LOGINFO("v_secure_popen of zdump -v %s succeeded", mTimeZone.c_str());
+                    LOGINFO("popen of '%s' succeeded", cmd.c_str());
 
                     // Read entire output of zdump
                     char buf[4096] = {0};
@@ -302,7 +304,7 @@ namespace WPEFramework
                         output += buf;
                     }
 
-                    v_secure_pclose(fp);
+                    pclose(fp);
 
                     // Convert output to read line by line
                     std::istringstream iss(output);
@@ -373,7 +375,7 @@ namespace WPEFramework
                 }
                 else
                 {
-                    LOGERR("v_secure_popen of zdump -v %s failed", mTimeZone.c_str());
+                    LOGERR("popen of zdump -v %s failed", mTimeZone.c_str());
                 }
             }
         }
