@@ -231,7 +231,8 @@ find_package(IARMBus REQUIRED)
 target_include_directories(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION}
     PRIVATE
     ${IARMBUS_INCLUDE_DIRS}
-    ${DS_INCLUDE_DIRS})
+    ${DS_INCLUDE_DIRS}
+    ../helpers)
 target_link_libraries(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION}
     PRIVATE
     ${IARMBUS_LIBRARIES}
