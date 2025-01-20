@@ -774,7 +774,7 @@ namespace WPEFramework
                     break;
                     case IARM_BUS_CECMGR_EVENT_STATUS_UPDATED:
                     {
-                        IARM_Bus_CECMgr_Status_Updated_Param_t *evtData = new IARM_Bus_CECMgr_Status_Updated_Param_t;
+                        IARM_Bus_CECMgr_Status_Updated_Param_t *evtData = (IARM_Bus_CECMgr_Status_Updated_Param_t *)data;
                         if(evtData)
                         {
                             std::thread worker(threadCecStatusUpdateHandler,evtData->logicalAddress);
@@ -863,6 +863,8 @@ namespace WPEFramework
                     {
                         logicalAddress = logicalAddr;
                         logicalAddressDeviceType = logicalAddrDeviceType;
+			if(smConnection)
+                            smConnection->setSource(logicalAddress); //update initiator LA
                     }
                 }
                 catch (const std::exception& e)
