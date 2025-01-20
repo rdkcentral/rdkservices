@@ -14,6 +14,9 @@ All notable changes to this RDK Service will be documented in this file.
 
     For more details, refer to versioning section under Main README.
 
+## [1.0.1] - 2025-20-01
+- Changes to avoid any "value" field from getting printed in MigrationPreparer related logs.
+
 ## [1.0.0] - 2024-12-01
 ### Added
 - New RDK Service MigrationPreparer to aid the Data Harvesting process, where it exposes APIs to applications such as ResidentApp and others to store user settings in a standardized format (as a JSON file) suitable for EntOS consumption. The MigrationPreparer Thunder plugin will exist only in the RDKV ecosystem.
