@@ -158,8 +158,10 @@ namespace Plugin {
                 response["error"] = error;
                 break;
             case Core::ERROR_NONE:
-                status = true;
+                // In order to avoid printing "value" field in the MigrationPreparer logs, we bypass "returnResponse" macro
                 response["value"] = value;
+                response["success"] = true; 
+                return WPEFramework::Core::ERROR_NONE;
                 break;
             default:
                 error["message"] = "Unknown Error";
