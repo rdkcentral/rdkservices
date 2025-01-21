@@ -49,36 +49,36 @@ namespace {
     SERVICE_REGISTRATION(Packager, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
     const string Packager::Initialize(PluginHost::IShell* service) {
-        LOGINFO("DBG Entry\n");
+        LOG_INFO("DBG Entry\n");
         ASSERT (_service == nullptr);
         ASSERT (service != nullptr);
         if (_service == nullptr || service != nullptr) {
-         LOGINFO("DBG _service = %d is null || service = %d is not a nullptr\n", _service == nullptr, service != nullptr);
+         LOG_INFO("DBG _service = %d is null || service = %d is not a nullptr\n", _service == nullptr, service != nullptr);
         }
 
         _service = service;
         _skipURL = static_cast<uint8_t>(service->WebPrefix().length());
-        LOGINFO("DBG _skipURL= %u \n", _skipURL);
+        LOG_INFO("DBG _skipURL= %u \n", _skipURL);
         _service->Register(&_notification);
 
          string result;
         _implementation = _service->Root<Exchange::IPackager>(_connectionId, 2000, _T("PackagerImplementation"));
         if (_implementation == nullptr) {
-            LOGINFO("DBG _implementation is nullptr");
+            LOG_INFO("DBG _implementation is nullptr");
             result = _T("Couldn't create package instance");
             _service->Unregister(&_notification);
         } else if (_implementation->Configure(_service) != Core::ERROR_NONE) {
-            LOGINFO("DBG _implementation->Configure() = %u \n", _implementation->Configure(_service));
+            LOG_INFO("DBG _implementation->Configure() = %u \n", _implementation->Configure(_service));
             result = _T("Couldn't initialize package instance");
             _service->Unregister(&_notification);
         }
-        LOGINFO("DBG Exit\n");
+        LOG_INFO("DBG Exit\n");
         return (result);
     }
 
     void Packager::Deinitialize(PluginHost::IShell* service)
     {
-        LOGINFO("DBG Entry\n");
+        LOG_INFO("DBG Entry\n");
         ASSERT(_service == service);
 
         if(_service != nullptr)
@@ -103,7 +103,7 @@ namespace {
 
         _service = nullptr;
         _implementation = nullptr;
-        LOGINFO("DBG Exit\n");
+        LOG_INFO("DBG Exit\n");
     }
 
     string Packager::Information() const
