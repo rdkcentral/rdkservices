@@ -244,33 +244,13 @@ namespace WPEFramework {
 
         DisplaySettings::DisplaySettings()
             : PluginHost::JSONRPC()
-	, _engine(Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create())
-	, _communicatorClient(Core::ProxyType<RPC::CommunicatorClient>::Create(Core::NodeId("/tmp/communicator"), Core::ProxyType<Core::IIPCServer>(_engine)))
-	, _controller(nullptr)
-	, _remotStoreObject(nullptr)	
         {
-            LOGINFO("ctor");
+            LOGINFO("constructor");
             DisplaySettings::_instance = this;
             m_client = nullptr;
 
             CreateHandler({ 2 });
 
-	    if (!_communicatorClient.IsValid())
-	    {
-		    LOGWARN("Invalid _communicatorClient \n");
-	    }
-	    else
-	    {
-
-#if ((THUNDER_VERSION == 2) || ((THUNDER_VERSION == 4) && (THUNDER_VERSION_MINOR == 2)))
-		    _engine->Announcements(_communicatorClient->Announcement());
-#endif
-
-		    LOGINFO("Connect the COM-RPC socket\n");
-		    _controller = _communicatorClient->Open<PluginHost::IShell>(_T("org.rdk.SystemMode"), ~0, 3000);
-
-
-	    }
 
             registerMethodLockedApi("getConnectedVideoDisplays", &DisplaySettings::getConnectedVideoDisplays, this);
             registerMethodLockedApi("getConnectedAudioPorts", &DisplaySettings::getConnectedAudioPorts, this);
@@ -388,30 +368,6 @@ namespace WPEFramework {
 
         DisplaySettings::~DisplaySettings()
 	{
-		if (_controller)
-		{
-			_controller->Release();
-			_controller = nullptr;
-		}
-
-		LOGINFO("Disconnect from the COM-RPC socket\n");
-		// Disconnect from the COM-RPC socket
-		_communicatorClient->Close(RPC::CommunicationTimeOut);
-		if (_communicatorClient.IsValid())
-		{
-			_communicatorClient.Release();
-		}
-
-		if(_engine.IsValid())
-		{
-			_engine.Release();
-		}
-
-		if(_remotStoreObject)
-		{
-			_remotStoreObject->Release();
-		}
-
 		LOGINFO ("dtor");
 		isResCacheUpdated = false;
 		isDisplayConnectedCacheUpdated = false;
@@ -576,6 +532,7 @@ namespace WPEFramework {
 
         const string DisplaySettings::Initialize(PluginHost::IShell* service)
         {
+	    Exchange::ISystemMode* _remotStoreObject = nullptr;
             ASSERT(service != nullptr);
             ASSERT(m_service == nullptr);
 
@@ -605,23 +562,8 @@ namespace WPEFramework {
             }
             LOGWARN ("DisplaySettings::Initialize completes line:%d", __LINE__);
 
-	    if (_controller)
-	    {
-		    _remotStoreObject = _controller->QueryInterface<Exchange::ISystemMode>();
+		    _remotStoreObject = service->QueryInterfaceByCallsign<Exchange::ISystemMode>("org.rdk.SystemMode");
 
-		    if(_remotStoreObject)
-		    {
-			    _remotStoreObject->AddRef();
-		    }
-		    else
-		    {
-			    LOGERR("Failed to create SystemMode _controller\n");
-		    }
-	    }
-	    else
-	    {
-		    LOGERR("Failed to create SystemMode Controller\n");
-	    }
 	    ASSERT (nullptr != _remotStoreObject);
 
 
@@ -629,7 +571,9 @@ namespace WPEFramework {
 	    {
 		    const string& callsign = "org.rdk.DisplaySettings";
 		    const string& systemMode = "DEVICE_OPTIMIZE";
-	            _remotStoreObject->ClientActivated(callsign,systemMode);		
+	            _remotStoreObject->ClientActivated(callsign,systemMode);
+                    _remotStoreObject->Release();
+                    _remotStoreObject = nullptr;		    
 	    }
             else
             {
@@ -642,37 +586,25 @@ namespace WPEFramework {
 
         void DisplaySettings::Deinitialize(PluginHost::IShell* service)
 	{
+		Exchange::ISystemMode* _remotStoreObject1 = nullptr;
 		LOGINFO("Enetering DisplaySettings::Deinitialize");
 
 		//During DisplaySettings plugin  activation the SystemMode may not be added .But it will be added /tmp/SystemMode.txt . If after 5 min SystemMode got activated then SystemMode fill the client map from /tmp/SystemMode.txt. In this case if we deactivate DisplaySettings then _remotStoreObject will be null here . So we try to QueryInterface the ISystemMode one more time 
-		if(_remotStoreObject == nullptr)
+		if(_remotStoreObject1 == nullptr)
 		{
-			if (_controller)
-			{
-				_remotStoreObject = _controller->QueryInterface<Exchange::ISystemMode>();
+				_remotStoreObject1 = service->QueryInterfaceByCallsign<Exchange::ISystemMode>("org.rdk.SystemMode");
 
-				if(_remotStoreObject)
-				{
-					_remotStoreObject->AddRef();
-				}
-				else
-				{
-					LOGERR("Failed to create SystemMode _controller\n");
-				}
-			}
-			else
-			{
-				LOGERR("Failed to create SystemMode Controller\n");
-			}
 		}
 
-		ASSERT (nullptr != _remotStoreObject);
+		ASSERT (nullptr != _remotStoreObject1);
 
-		if(_remotStoreObject)
+		if(_remotStoreObject1)
 		{
 			const string& callsign = "org.rdk.DisplaySettings";
 			const string& systemMode = "DEVICE_OPTIMIZE";
-			_remotStoreObject->ClientDeactivated(callsign,systemMode);		
+			_remotStoreObject1->ClientDeactivated(callsign,systemMode);
+	                _remotStoreObject1->Release();
+	                _remotStoreObject1 = nullptr;		
 		}
 		else
 		{
