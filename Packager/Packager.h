@@ -60,7 +60,7 @@ namespace {
             , _implementation(nullptr)
             , _notification(this)
         {
-         LOGINFO("DBG Ctor Entry\n");
+         LOG_INFO("DBG Ctor Entry\n");
             Register<Params, void>(kInstallMethodName, [this](const Params& params) -> uint32_t {
                 return this->_implementation->Install(params.Package.Value(), params.Version.Value(),
                                                                  params.Architecture.Value());
@@ -68,15 +68,15 @@ namespace {
             Register<void, void>(kSynchronizeMethodName, [this]() -> uint32_t {
                 return this->_implementation->SynchronizeRepository();
             });
-         LOGINFO("DBG Ctor Exit\n");
+         LOG_INFO("DBG Ctor Exit\n");
         }
 
         ~Packager() override
         {
-         LOGINFO("DBG Dtor Entry\n");
+         LOG_INFO("DBG Dtor Entry\n");
             Unregister(kInstallMethodName);
             Unregister(kSynchronizeMethodName);
-         LOGINFO("DBG Dtor Exit\n");
+         LOG_INFO("DBG Dtor Exit\n");
         }
 
         BEGIN_INTERFACE_MAP(Packager)
