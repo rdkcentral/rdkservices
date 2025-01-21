@@ -33,7 +33,7 @@ namespace Plugin {
     SERVICE_REGISTRATION(PackagerImplementation, 1, 0);
 
     void PackagerImplementation::UpdateConfig() const {
-     LOGINFO("DBG Entry\n");
+     LOG_INFO("DBG Entry\n");
         ASSERT(!_configFile.empty() && !_tempPath.empty() && !_cachePath.empty());
         opkg_config->conf_file = strdup(_configFile.c_str());
         opkg_config->tmp_dir = strdup(_tempPath.c_str());
@@ -52,22 +52,22 @@ namespace Plugin {
             opkg_config->check_pkg_signature = 1;
             opkg_config->signature_type = strdup("provision");
         }
-     LOGINFO("DBG Exit\n");
+     LOG_INFO("DBG Exit\n");
     }
 
     uint32_t PackagerImplementation::Configure(PluginHost::IShell* service)
     {
-     LOGINFO("DBG Entry\n");
+     LOG_INFO("DBG Entry\n");
         uint32_t result = Core::ERROR_NONE;
         Config config;
 
         ASSERT (_servicePI == nullptr);
-        if(_servicePI == nullptr) { LOGINFO("DBG _servicePI is nullptr\n"); }
-        if(service == nullptr) {LOGINFO("DBG service is nullptr\n");}
+        if(_servicePI == nullptr) { LOG_INFO("DBG _servicePI is nullptr\n"); }
+        if(service == nullptr) {LOG_INFO("DBG service is nullptr\n");}
         _servicePI = service;
         _servicePI->AddRef();
 
-        if(config) {LOGINFO("DBG config is nullptr\n");}
+        if(config) {LOG_INFO("DBG config is nullptr\n");}
         config.FromString(service->ConfigLine());
 
         if ((config.ConfigFile.IsSet() == true) && (config.ConfigFile.Value().empty() == false)) {
@@ -75,7 +75,7 @@ namespace Plugin {
         } else {
             _configFile = service->DataPath() + _T("opkg.conf");
         }
-        LOGINFO("DBG _configFile = %s\n", _configFile.c_str());
+        LOG_INFO("DBG _configFile = %s\n", _configFile.c_str());
 
         if ((config.TempDir.IsSet() == true) && (config.TempDir.Value().empty() == false)) {
             _tempPath = Core::Directory::Normalize(config.TempDir.Value());
@@ -83,14 +83,14 @@ namespace Plugin {
             _tempPath = service->VolatilePath() + service->Callsign();
         }
 
-        LOGINFO("DBG _tempPath = %s\n", _tempPath.c_str());
+        LOG_INFO("DBG _tempPath = %s\n", _tempPath.c_str());
 
         if ((config.CacheDir.IsSet() == true) && (config.CacheDir.Value().empty() == false)) {
             _cachePath = Core::Directory::Normalize(config.CacheDir.Value());
         } else {
             _cachePath = service->PersistentPath() + service->Callsign();
         }
-        LOGINFO("DBG _cachePath = %s\n",_cachePath);
+        LOG_INFO("DBG _cachePath = %s\n",_cachePath);
         if (config.Verbosity.IsSet() == true) {
             _verbosity = config.Verbosity.Value();
         }
@@ -124,48 +124,48 @@ namespace Plugin {
             }
             */
         }
-        LOGINFO("DBG Ctor Entry result = %u\n",result);
+        LOG_INFO("DBG Ctor Entry result = %u\n",result);
         return (result);
     }
 
     PackagerImplementation::~PackagerImplementation()
     {
-        LOGINFO("DBG Dtor Entry\n");
+        LOG_INFO("DBG Dtor Entry\n");
         FreeOPKG();
-        if(_servicePI == nullptr) { LOGINFO("DBG _servicePI is nullptr\n"); }
+        if(_servicePI == nullptr) { LOG_INFO("DBG _servicePI is nullptr\n"); }
         _servicePI->Release();
         _servicePI = nullptr;
-        LOGINFO("DBG Dtor Exit\n");
+        LOG_INFO("DBG Dtor Exit\n");
     }
 
     void PackagerImplementation::Register(Exchange::IPackager::INotification* notification)
     {
         ASSERT(notification);
-        LOGINFO("DBG Entry\n");
+        LOG_INFO("DBG Entry\n");
         _adminLock.Lock();
-        if(notification) { LOGINFO("DBG notification is nullptr\n"); }
+        if(notification) { LOG_INFO("DBG notification is nullptr\n"); }
         notification->AddRef();
         _notifications.push_back(notification);
         if (_inProgress.Install != nullptr) {
-            LOGINFO("DBG _inProgress.Install != nullptr\n");
+            LOG_INFO("DBG _inProgress.Install != nullptr\n");
             ASSERT(_inProgress.Package != nullptr);
             notification->StateChange(_inProgress.Package, _inProgress.Install);
         }
-        LOGINFO("DBG Exit\n");
+        LOG_INFO("DBG Exit\n");
         _adminLock.Unlock();
     }
 
     void PackagerImplementation::Unregister(const Exchange::IPackager::INotification* notification)
     {
         ASSERT(notification);
-        LOGINFO("DBG Entry\n");
+        LOG_INFO("DBG Entry\n");
         _adminLock.Lock();
         auto item = std::find(_notifications.begin(), _notifications.end(), notification);
         ASSERT(item != _notifications.end());
         (*item)->Release();
         _notifications.erase(item);
         _adminLock.Unlock();
-        LOGINFO("DBG Exit\n");
+        LOG_INFO("DBG Exit\n");
     }
 
     uint32_t PackagerImplementation::Install(const string& name, const string& version, const string& arch)
@@ -181,7 +181,7 @@ namespace Plugin {
     uint32_t PackagerImplementation::DoWork(const string* name, const string* version, const string* arch)
     {
         uint32_t result = Core::ERROR_INPROGRESS;
-        LOGINFO("DBG Entry\n");
+        LOG_INFO("DBG Entry\n");
         _adminLock.Lock();
         if (_inProgress.Install == nullptr && _isSyncing == false) {
             ASSERT(_inProgress.Package == nullptr);
@@ -207,13 +207,13 @@ namespace Plugin {
             }
         }
         _adminLock.Unlock();
-        LOGINFO("DBG Exit result = %u\n", result);
+        LOG_INFO("DBG Exit result = %u\n", result);
         return result;
 
     }
 
     void PackagerImplementation::BlockingInstallUntilCompletionNoLock() {
-        LOGINFO("DBG Entry\n");
+        LOG_INFO("DBG Entry\n");
         ASSERT(_inProgress.Install != nullptr && _inProgress.Package != nullptr);
 
 #if defined (DO_NOT_USE_DEPRECATED_API)
@@ -318,7 +318,7 @@ namespace Plugin {
 
     string PackagerImplementation::GetCallsign(const string& mfilename)
     {
-        LOGINFO("DBG Entry\n");
+        LOG_INFO("DBG Entry\n");
         string callsign = "";
         TRACE(Trace::Information, (_T("[Packager]: Metadata is %s"),mfilename.c_str()));
         Core::File file(mfilename);
@@ -350,7 +350,7 @@ namespace Plugin {
         else {
             TRACE(Trace::Error, (_T("[Packager]: Error in opening the file")));
         }
-     LOGINFO("DBG Exit\n");
+     LOG_INFO("DBG Exit\n");
         return callsign;
     }
 
@@ -396,37 +396,37 @@ namespace Plugin {
 
     void PackagerImplementation::DeactivatePlugin(const string& callsign, const string& appName)
     {
-        LOGINFO("DBG Entry\n");
+        LOG_INFO("DBG Entry\n");
         ASSERT(callsign.empty() == false);
         ASSERT(_servicePI != nullptr);
-        if (_servicePI != nullptr) { LOGINFO("DBG _servicePI is a nullptr \n");
+        if (_servicePI != nullptr) { LOG_INFO("DBG _servicePI is a nullptr \n");
         TRACE(Trace::Information, (_T("[Packager]: callsign from metadata is %s"), callsign.c_str()));
         PluginHost::IShell* dlPlugin = _servicePI->QueryInterfaceByCallsign<PluginHost::IShell>(callsign);
 
         if (dlPlugin == nullptr) {
-         LOGINFO("DBG dlPlugin is nullptr\n");
+         LOG_INFO("DBG dlPlugin is nullptr\n");
             TRACE(Trace::Error, (_T("[Packager]: Plugin %s is not configured in this setup"), callsign.c_str()));
         }
         else {
             PluginHost::IShell::state currentState(dlPlugin->State());
             if (currentState != PluginHost::IShell::UNAVAILABLE) {
-             LOGINFO("DBG Plugin is not Unavailable state\n");
+             LOG_INFO("DBG Plugin is not Unavailable state\n");
                 TRACE(Trace::Information, (_T("[Packager]: Plugin %s is not in Unavailable state. Hence, not deactivating it"),callsign.c_str()));
             }
             else {
                 TRACE(Trace::Information, (_T("[Packager]: Plugin %s is in Unavailable state"), callsign.c_str()));
-             LOGINFO("DBG plugin is in unavailable state : %s\n", callsign.c_str());
+             LOG_INFO("DBG plugin is in unavailable state : %s\n", callsign.c_str());
                 uint32_t result = dlPlugin->Deactivate(PluginHost::IShell::REQUESTED);
                 if (result == Core::ERROR_NONE) {
                     TRACE(Trace::Information, (_T("[Packager]: %s moved to Deactivated state"), callsign.c_str()));
                     string appInstallPath = GetInstallationPath(appName);
                     if (UpdateConfiguration(callsign, appInstallPath) != Core::ERROR_NONE) {
-                     LOGINFO("DBG Failed to update SystemRootPath for %s\n", callsign.c_str());
+                     LOG_INFO("DBG Failed to update SystemRootPath for %s\n", callsign.c_str());
                         TRACE(Trace::Error, (_T("[Packager]: Failed to update SystemRootPath for %s"), callsign.c_str()));
                     }
                 }
                 else {
-                 LOGINFO("DBG Failed to deactivate state: %s\n",callsign.c_str());
+                 LOG_INFO("DBG Failed to deactivate state: %s\n",callsign.c_str());
                     TRACE(Trace::Error, (_T("[Packager]: Failed to move %s to Deactivated state"), callsign.c_str()));
                 }
             }
