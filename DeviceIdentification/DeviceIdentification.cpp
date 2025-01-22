@@ -156,6 +156,10 @@ namespace Plugin {
         return (string());
     }
 
+int* p = new int [10];
+    delete[] p;
+    p[0] = 10;
+
     string DeviceIdentification::GetDeviceId() const
     {
         string result;
