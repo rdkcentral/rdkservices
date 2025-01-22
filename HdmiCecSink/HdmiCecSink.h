@@ -573,6 +573,11 @@ private:
             void getHdmiArcPortID();
 			int m_numberOfDevices; /* Number of connected devices othethan own device */
 			bool m_audioDevicePowerStatusRequested;
+			bool IsAudioStatusInfoUpdated;
+			bool AudioStatusReceived;
+			bool AudioStatusTimerStarted;
+			std::condition_variable m_RequestAudioStatus;
+			std::mutex m_requestAudioStatusMutex;
 
             BEGIN_INTERFACE_MAP(HdmiCecSink)
             INTERFACE_ENTRY(PluginHost::IPlugin)
@@ -691,6 +696,7 @@ private:
     
             static void  threadSendKeyEvent();
             static void  threadArcRouting();
+	    static void StartAudioStatusTimer();
             void requestArcInitiation();
             void requestArcTermination();
             void Send_Request_Arc_Initiation_Message();
@@ -699,6 +705,7 @@ private:
             void Send_Report_Arc_Terminated_Message();
             void arcStartStopTimerFunction();
 	    void getCecVersion();
+
         };
 	} // namespace Plugin
 } // namespace WPEFramework

@@ -649,6 +649,13 @@ namespace WPEFramework
 		LOGINFO("Ignore Broadcast messages, accepts only direct messages");
 		return;
 	     }
+	     if (HdmiCecSink::_instance->AudioStatusTimerStarted)
+	     {
+                    //std::lock_guard<std::mutex> lk(m_requestAudioStatusMutex);
+                    HdmiCecSink::_instance->AudioStatusReceived = true;
+                    HdmiCecSink::_instance->m_RequestAudioStatus.notify_one();
+	     }
+
              HdmiCecSink::_instance->Process_ReportAudioStatus_msg(msg);
        }
       void HdmiCecSinkProcessor::process (const GiveFeatures &msg, const Header &header)
@@ -693,6 +700,9 @@ namespace WPEFramework
 		   m_currentActiveSource = -1;
 		   m_isHdmiInConnected = false;
 		   hdmiCecAudioDeviceConnected = false;
+		   IsAudioStatusInfoUpdated = false;
+		   AudioStatusReceived = false;
+		   AudioStatusTimerStarted = false;
                    m_audioDevicePowerStatusRequested = false;
 		   m_pollNextState = POLL_THREAD_STATE_NONE;
 		   m_pollThreadState = POLL_THREAD_STATE_NONE;
@@ -955,6 +965,10 @@ namespace WPEFramework
                     else
                    	{
                             powerState = DEVICE_POWER_STATE_OFF;
+			    IsAudioStatusInfoUpdated = false;
+			    AudioStatusReceived = false;
+			    AudioStatusTimerStarted = false;
+
                             if((_instance->m_currentArcRoutingState == ARC_STATE_REQUEST_ARC_INITIATION) || (_instance->m_currentArcRoutingState == ARC_STATE_ARC_INITIATED))
                             {
                                 LOGINFO("%s: Stop ARC \n",__FUNCTION__);
@@ -2629,6 +2643,9 @@ namespace WPEFramework
                                         params["status"] = string("success");
                                         params["audioDeviceConnected"] = string("false");
 					hdmiCecAudioDeviceConnected = false;
+					IsAudioStatusInfoUpdated = false;
+					AudioStatusReceived = false;
+					AudioStatusTimerStarted = false;
                                         sendNotify(eventString[HDMICECSINK_EVENT_AUDIO_DEVICE_CONNECTED_STATUS], params)
                                 }
 
@@ -3510,14 +3527,38 @@ namespace WPEFramework
                             _instance->sendKeyPressEvent(keyInfo.logicalAddr,keyInfo.keyCode);
                             _instance->sendKeyReleaseEvent(keyInfo.logicalAddr);
                     }
-
 		    if((_instance->m_SendKeyQueue.size()<=1 || (_instance->m_SendKeyQueue.size() % 2 == 0)) && ((keyInfo.keyCode == VOLUME_UP) || (keyInfo.keyCode == VOLUME_DOWN) || (keyInfo.keyCode == MUTE)) )
 		    {
-		        _instance->sendGiveAudioStatusMsg();
+			    if (!_instance->IsAudioStatusInfoUpdated)
+			    {
+				    std::thread timerThread(StartAudioStatusTimer);
+				    timerThread.detach();
+			    }
+			    else
+			    {
+				    if (!_instance->AudioStatusReceived){
+					    _instance->sendGiveAudioStatusMsg();
+				    }
+			    }
 		    }
 
             }//while(!_instance->m_sendKeyEventThreadExit)
         }//threadSendKeyEvent
+
+	void HdmiCecSink:: StartAudioStatusTimer()
+	{
+		std::unique_lock<std::mutex> lk(_instance->m_requestAudioStatusMutex);
+		_instance->AudioStatusTimerStarted = true;
+		_instance->m_sleepTime = HDMICECSINK_REQUEST_INTERVAL_TIME_MS;
+		_instance->m_RequestAudioStatus.wait_for(lk, std::chrono::milliseconds(_instance->m_sleepTime));
+		_instance->IsAudioStatusInfoUpdated = true;
+		if(!_instance->AudioStatusReceived)
+		{
+			LOGINFO("Timer Expired. Requesting AudioStatus since not received.\n");
+			_instance->sendGiveAudioStatusMsg();
+		}
+		_instance->AudioStatusTimerStarted = false;
+	}
 
 
         void HdmiCecSink::threadArcRouting()
