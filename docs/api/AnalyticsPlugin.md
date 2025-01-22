@@ -38,6 +38,7 @@ The table below lists configuration options of the plugin.
 | autostart | boolean | Determines if the plugin shall be started automatically along with the framework |
 | configuration | object |  |
 | configuration.deviceosname | string | Device OS name |
+| configuration?.eventsmap | string | <sup>*(optional)*</sup> Optional path to json file with array of mapped events name |
 | configuration.sift | object |  |
 | configuration.sift.schema2 | boolean | If true, enables Sift 2.0 schema, otherwise uses Sift 1.0 schema |
 | configuration.sift.commonschema | string | Sift schema common schema |
