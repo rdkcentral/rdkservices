@@ -705,7 +705,6 @@ private:
             void Send_Report_Arc_Terminated_Message();
             void arcStartStopTimerFunction();
 	    void getCecVersion();
-
         };
 	} // namespace Plugin
 } // namespace WPEFramework
