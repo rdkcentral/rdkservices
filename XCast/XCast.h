@@ -42,6 +42,7 @@
 #include "XCastCommon.h"
 #include <mutex>
 #include <map>
+#include <glib.h>
 #include "UtilsLogging.h"
 
 namespace WPEFramework {
@@ -168,6 +169,7 @@ namespace Plugin {
         std::vector<DynamicAppConfig*> m_appConfigCache;
         static string m_friendlyName;
         static bool m_standbyBehavior;
+        guint m_FriendlyNameUpdateTimerID{0};
         //Timer related variables and functions
         TpTimer m_locateCastTimer;
         void InitializeIARM();
@@ -182,6 +184,7 @@ namespace Plugin {
         void updateDynamicAppCache(JsonArray applications);
         void getSystemPlugin();
         int updateSystemFriendlyName();
+        static gboolean update_friendly_name_timercallback(gpointer userdata);
         void onFriendlyNameUpdateHandler(const JsonObject& parameters);
         bool setPowerState(std::string powerState);
 
