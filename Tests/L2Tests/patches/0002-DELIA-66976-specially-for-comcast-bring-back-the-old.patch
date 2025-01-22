@@ -1,0 +1,29 @@
+From 56e9a9d9521c2b5369ecfb77ddf36bd41fd2e106 Mon Sep 17 00:00:00 2001
+From: Nikita Poltorapavlo <Nikita_Poltorapavlo2@cable.comcast.com>
+Date: Wed, 8 Jan 2025 17:42:06 +0000
+Subject: [PATCH] DELIA-66976 : specially for comcast bring back the old
+ namespace WPEFramework instead of Thunder
+
+---
+ interfaces/ISystemAudioPlayer.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/interfaces/ISystemAudioPlayer.h b/interfaces/ISystemAudioPlayer.h
+index 1644f2f..3515479 100644
+--- a/interfaces/ISystemAudioPlayer.h
++++ b/interfaces/ISystemAudioPlayer.h
+@@ -21,7 +21,7 @@
+ 
+ #include "Module.h"
+ 
+-namespace Thunder {
++namespace WPEFramework {
+ namespace Exchange {
+ 
+     struct EXTERNAL ISystemAudioPlayer : virtual public Core::IUnknown {
+@@ -56,4 +56,4 @@ namespace Exchange {
+     };
+ 
+ } // Exchange
+-} // Thunder
++} // WPEFramework
