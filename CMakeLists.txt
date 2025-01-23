@@ -1,3 +1,4 @@
+
 ###
 # If not stated otherwise in this file or this component's LICENSE
 # file the following copyright and licenses apply:
@@ -18,6 +19,7 @@
 ###
 
 cmake_minimum_required(VERSION 3.3)
+project (rdkservices VERSION 1.0 LANGUAGES C CXX)
 
 find_package(WPEFramework NAMES WPEFramework Thunder)
 
@@ -416,6 +418,7 @@ endif()
 if(PLUGIN_CONTENTPROTECTION)
     add_subdirectory(ContentProtection)
 endif()
+
 
 if(WPEFRAMEWORK_CREATE_IPKG_TARGETS)
     set(CPACK_GENERATOR "DEB")
