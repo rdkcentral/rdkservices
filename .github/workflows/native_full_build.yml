@@ -1,0 +1,22 @@
+name: Build Component in Native Environment
+
+on:
+  pull_request:
+    branches: [ 'sprint/**' ]
+    paths: ['**/*.c', '**/*.cpp', '**/*.cc', '**/*.cxx', '**/*.h', '**/*.hpp']
+
+jobs:
+  build-breakpad-wrapper-on-pr:
+    name: Build breakpad wrapper component in github rdkcentral
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/rdkcentral/docker-rdk-ci:latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: native build
+        run: |
+          chmod +x cov_build.sh
+          sh -e cov_build.sh
