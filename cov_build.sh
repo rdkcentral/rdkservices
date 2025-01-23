@@ -10,9 +10,9 @@ set -e
 
 ROOT_PATH=$(pwd)
 
-sudo apt install -y build-essential cmake ninja-build meson libusb-1.0-0-dev zlib1g-dev libssl-dev tree libunwind-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-good1.0-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-pulseaudio libcunit1-dev libcurl4-openssl-dev
-
-sudo pip install jsonref
+apt update
+apt install -y build-essential cmake ninja-build meson libusb-1.0-0-dev zlib1g-dev libssl-dev tree libunwind-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-good1.0-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-pulseaudio libcunit1-dev libcurl4-openssl-dev
+pip install jsonref
 
 # # ############################
 # 2. Build Thunder Tools
