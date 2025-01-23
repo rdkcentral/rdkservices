@@ -141,6 +141,8 @@ jobs:
         run: >
           cd "${{github.workspace}}/ThunderInterfaces"
           &&
+          git apply "${{github.workspace}}/rdkservices/Tests/L2Tests/patches/DeviceInfo_brand_R2_L1tests.patch"
+          &&
           cd ..
 
       - name: Build ThunderInterfaces
