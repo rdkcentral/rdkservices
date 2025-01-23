@@ -1,4 +1,4 @@
-name: Build Component in Native Environment
+name: Build Component in Native Environment RDKServices
 
 on:
   pull_request:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-breakpad-wrapper-on-pr:
-    name: Build breakpad wrapper component in github rdkcentral
+    name: Build RDKServices component in github rdkcentral
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/rdkcentral/docker-rdk-ci:latest
