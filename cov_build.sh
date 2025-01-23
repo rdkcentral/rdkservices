@@ -81,6 +81,7 @@ mkdir -p headers/rdk/halif/deepsleep-manager
 mkdir -p headers/ccec/drivers
 mkdir -p headers/network
 mkdir -p headers/proc
+mkdir -p headers/rdkshell
 echo "dir created successfully"
 
 echo "======================================================================================"
@@ -124,6 +125,13 @@ touch rdk/iarmmgrs-hal/pwrMgr.h
 touch rdk/iarmmgrs-hal/sysMgr.h
 touch network/wifiSrvMgrIarmIf.h
 touch network/netsrvmgrIarm.h
+touch rdkshell/rdkshellevents.h
+touch rdkshell/rdkshell.h
+touch rdkshell/compositorcontroller.h
+touch rdkshell/logger.h
+touch rdkshell/eastereggs.h
+touch rdkshell/application.h
+touch rdkshell/linuxkeys.h
 touch libudev.h
 touch rfcapi.h
 touch rbus.h
@@ -181,13 +189,7 @@ cmake -G Ninja -S rdkservices -B build/rdkservices \
                       -DHAS_RBUS -DDISABLE_SECURITY_TOKEN -DENABLE_DEVICE_MANUFACTURER_INFO -DUSE_THUNDER_R4" \
   -DCOMCAST_CONFIG=OFF \
   -DDS_FOUND=ON \
-  -DPLUGIN_DEVICEIDENTIFICATION=ON \
-  -DPLUGIN_USBACCESS=ON \
-  -DPLUGIN_LOGGINGPREFERENCES=ON \
-  -DPLUGIN_USERPREFERENCES=ON \
-  -DPLUGIN_MESSENGER=ON \
-  -DPLUGIN_DEVICEINFO=ON \
-  -DPLUGIN_SYSTEMSERVICES=ON \
+  -DPLUGIN_RDKSHELL=ON \
 
 if [ $? -eq 0 ]; then
     echo "rdkservices source successful"
