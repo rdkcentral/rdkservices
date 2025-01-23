@@ -182,6 +182,12 @@ cmake -G Ninja -S rdkservices -B build/rdkservices \
   -DCOMCAST_CONFIG=OFF \
   -DDS_FOUND=ON \
   -DPLUGIN_DEVICEIDENTIFICATION=ON \
+  -DPLUGIN_USBACCESS=ON \
+  -DPLUGIN_LOGGINGPREFERENCES=ON \
+  -DPLUGIN_USERPREFERENCES=ON \
+  -DPLUGIN_MESSENGER=ON \
+  -DPLUGIN_DEVICEINFO=ON \
+  -DPLUGIN_SYSTEMSERVICES=ON \
 
 if [ $? -eq 0 ]; then
     echo "rdkservices source successful"
@@ -198,18 +204,4 @@ fi
 echo "======================================================================================"
 echo "path of so files"
 find . -iname "*.so*"
-echo "======================================================================================"
-find . -iname "build-log.txt"
-find . -iname "build-log.txt" -exec cat {} \;
-sync
-echo "======================================================================================"
-echo "printing coverity_dir cointains"
-find . -iname "coverity_dir"
-find . -iname "coverity_dir" -exec ls -al {} \;
-ls -la coverity_dir/emit
-grep -i "warning\|error" coverity_dir/build-log.txt
-echo "======================================================================================"
-tree coverity_dir
-
-echo "======================================================================================"
 exit 0
