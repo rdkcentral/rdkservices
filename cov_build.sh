@@ -192,7 +192,7 @@ cmake -G Ninja -S rdkservices -B build/rdkservices \
   -DDS_FOUND=ON \
   -DPLUGIN_DATACAPTURES=ON \
 
-if [ $? -eq 0 ]; then
+if [ $? -eq 0 ]; then 
     echo "rdkservices source successful"
 else
     echo "rdkservices source failed"
