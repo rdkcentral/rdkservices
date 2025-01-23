@@ -61,7 +61,7 @@ cd ..
 
 ############################
 # 5. Build rdkservices
-git clone --branch sprint/25Q1 https://github.com/rdkcentral/rdkservices.git
+git clone --branch sprint/25Q1 https://github.com/agampa263/rdkservices.git
 
 echo "======================================================================================"
 echo "before creating dir and files"
@@ -182,6 +182,12 @@ cmake -G Ninja -S rdkservices -B build/rdkservices \
   -DCOMCAST_CONFIG=OFF \
   -DDS_FOUND=ON \
   -DPLUGIN_DEVICEIDENTIFICATION=ON \
+  -DPLUGIN_USBACCESS=ON \
+  -DPLUGIN_LOGGINGPREFERENCES=ON \
+  -DPLUGIN_USERPREFERENCES=ON \
+  -DPLUGIN_MESSENGER=ON \
+  -DPLUGIN_DEVICEINFO=ON \
+  -DPLUGIN_SYSTEMSERVICES=ON \
 
 if [ $? -eq 0 ]; then
     echo "rdkservices source successful"
