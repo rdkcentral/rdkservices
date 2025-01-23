@@ -182,12 +182,6 @@ cmake -G Ninja -S rdkservices -B build/rdkservices \
   -DCOMCAST_CONFIG=OFF \
   -DDS_FOUND=ON \
   -DPLUGIN_DEVICEIDENTIFICATION=ON \
-  -DPLUGIN_USBACCESS=ON \
-  -DPLUGIN_LOGGINGPREFERENCES=ON \
-  -DPLUGIN_USERPREFERENCES=ON \
-  -DPLUGIN_MESSENGER=ON \
-  -DPLUGIN_DEVICEINFO=ON \
-  -DPLUGIN_SYSTEMSERVICES=ON \
 
 if [ $? -eq 0 ]; then
     echo "rdkservices source successful"
