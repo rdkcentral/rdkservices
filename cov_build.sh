@@ -61,7 +61,7 @@ cd ..
 
 ############################
 # 5. Build rdkservices
-git clone --branch sprint/25Q1 https://github.com/agampa263/rdkservices.git
+git clone --branch sprint/25Q1 https://github.com/rdkcentral/rdkservices.git
 
 echo "======================================================================================"
 echo "before creating dir and files"
