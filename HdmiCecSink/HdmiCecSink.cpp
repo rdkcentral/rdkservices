@@ -78,6 +78,7 @@
 #define HDMICECSINK_NUMBER_TV_ADDR 					2
 #define HDMICECSINK_UPDATE_POWER_STATUS_INTERVA_MS    (60 * 1000)
 #define HDMISINK_ARC_START_STOP_MAX_WAIT_MS           4000
+#define HDMICECSINK_UPDATE_AUDIO_STATUS_INTERVAL_MS    500
 
 
 #define SAD_FMT_CODE_AC3 2
@@ -651,9 +652,10 @@ namespace WPEFramework
 	     }
 	     if (HdmiCecSink::_instance->AudioStatusTimerStarted)
 	     {
-                    //std::lock_guard<std::mutex> lk(m_requestAudioStatusMutex);
-                    HdmiCecSink::_instance->AudioStatusReceived = true;
-                    HdmiCecSink::_instance->m_RequestAudioStatus.notify_one();
+		     LOGINFO("Command: AudioStatus received from the Audio Device. Updating the AudioStatus info!\n");
+		     std::lock_guard<std::mutex> lk(HdmiCecSink::_instance->m_requestAudioStatusMutex);
+		     HdmiCecSink::_instance->AudioStatusReceived = true;
+		     HdmiCecSink::_instance->m_RequestAudioStatus.notify_one();
 	     }
 
              HdmiCecSink::_instance->Process_ReportAudioStatus_msg(msg);
@@ -3532,6 +3534,7 @@ namespace WPEFramework
 		    {
 			    if (!_instance->IsAudioStatusInfoUpdated)
 			    {
+				    LOGINFO("Audio status info not updated. Starting the Timer!");
 				    std::thread timerThread(StartAudioStatusTimer);
 				    timerThread.detach();
 			    }
@@ -3550,15 +3553,13 @@ namespace WPEFramework
 	{
 		std::unique_lock<std::mutex> lk(_instance->m_requestAudioStatusMutex);
 		_instance->AudioStatusTimerStarted = true;
-		_instance->m_sleepTime = HDMICECSINK_REQUEST_INTERVAL_TIME_MS;
-		_instance->m_RequestAudioStatus.wait_for(lk, std::chrono::milliseconds(_instance->m_sleepTime));
-		_instance->IsAudioStatusInfoUpdated = true;
-		if(!_instance->AudioStatusReceived)
+		if(_instance->m_RequestAudioStatus.wait_for(lk, std::chrono::milliseconds(HDMICECSINK_UPDATE_AUDIO_STATUS_INTERVAL_MS)) == std::cv_status::timeout)
 		{
-			LOGINFO("Timer Expired. Requesting AudioStatus since not received.\n");
+			LOGINFO("Timer Expired. Requesting the AudioStatus since not received.\n");
 			_instance->sendGiveAudioStatusMsg();
 		}
 		_instance->AudioStatusTimerStarted = false;
+		_instance->IsAudioStatusInfoUpdated = true;
 	}
 
 
