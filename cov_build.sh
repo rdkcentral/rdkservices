@@ -141,6 +141,7 @@ touch pkg.h
 touch secure_wrapper.h
 touch wpa_ctrl.h
 touch btmgr.h
+touch rdk_logger_milestone.h
 echo "files created successfully"
 echo "======================================================================================"
 echo "current working dir: "$(pwd)
