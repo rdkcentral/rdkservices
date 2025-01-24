@@ -967,10 +967,6 @@ namespace WPEFramework
                     else
                    	{
                             powerState = DEVICE_POWER_STATE_OFF;
-			    _instance->IsAudioStatusInfoUpdated = false;
-			    _instance->AudioStatusReceived = false;
-			    _instance->AudioStatusTimerStarted = false;
-
                             if((_instance->m_currentArcRoutingState == ARC_STATE_REQUEST_ARC_INITIATION) || (_instance->m_currentArcRoutingState == ARC_STATE_ARC_INITIATED))
                             {
                                 LOGINFO("%s: Stop ARC \n",__FUNCTION__);
@@ -3406,7 +3402,10 @@ namespace WPEFramework
                 m_arcStartStopTimer.stop();
             }
             /* m_arcstarting = true means starting the ARC start timer ,false means ARC stopping timer*/
-            m_arcstarting = false; 
+            m_arcstarting = false;
+	    IsAudioStatusInfoUpdated = false;
+	    AudioStatusReceived = false;
+	    AudioStatusTimerStarted = false;
             m_arcStartStopTimer.start((HDMISINK_ARC_START_STOP_MAX_WAIT_MS));
 
   				
