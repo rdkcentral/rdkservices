@@ -1,0 +1,22 @@
+{
+    "$schema": "https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/interface.schema.json",
+    "jsonrpc": "2.0",
+    "info": {
+        "title": "Privacy API",
+        "class": "Privacy",
+        "description": "The `Privacy` plugin allows managing privassy settigs from ESS backoff."
+    },
+    "common": {
+        "$ref": "../common/common.json"
+    },
+    "definitions": {
+        "allow":{
+            "summary": "Bolaen to allow or disallow the settig",
+            "type": "boolean",
+            "example": "true"
+        }
+    },
+    "methods": {
+
+    }
+}

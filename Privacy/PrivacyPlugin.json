@@ -1,0 +1,49 @@
+{
+  "$schema":"https://raw.githubusercontent.com/rdkcentral/rdkservices/main/Tools/json_generator/schemas/plugin.schema.json",
+  "info":{
+     "title":"Privacy Plugin",
+     "callsign":"org.rdk.Privacy",
+     "locator":"libWPEFrameworkPrivacy.so",
+     "status":"development",
+     "description":"The `Privacy` plugin allows managing privassy settigs from ESS backoff."
+  },
+  "configuration":{
+     "type":"object",
+     "properties":{
+        "configuration":{
+           "type":"object",
+           "properties":{
+              "essurl":{
+                 "description":"URL of the ESS server",
+                 "type":"string"
+              },
+              "esssettingsbaseretrybackofftimesec":{
+               "description":"Base retry backoff time in seconds",
+               "type":"integer"
+              },
+              "esssettingsretrylimitc":{
+               "description":"Retry limit count",
+               "type":"integer"
+              },
+              "esssettingssyncafterbootmaxdelaysec":{
+               "description":"Sync after boot max delay time in seconds",
+               "type":"integer"
+              },
+              "esssettingssyncafterlinchpindelaysec":{
+               "description":"Sync after launch pin delay time in seconds",
+               "type":"integer"
+              }
+           },
+           "required":[
+              "essurl"
+           ]
+        }
+     },
+     "required":[
+        "configuration"
+     ]
+  },
+  "interface":{
+     "$ref":"Privacy.json#"
+  }
+}

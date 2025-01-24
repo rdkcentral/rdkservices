@@ -1,0 +1,12 @@
+precondition = ["Platform"]
+callsign = "org.rdk.Privacy"
+autostart = "@PLUGIN_PRIVACY_AUTOSTART@"
+startuporder = "@PLUGIN_PRIVACY_STARTUPORDER@"
+
+configuration = JSON()
+
+configuration.add("essurl", "@PLUGIN_PRIVACY_ESS_URL@")
+configuration.add("esssettingsbaseretrybackofftimesec", "@PLUGIN_PRIVACY_ESS_SETTINGS_BASE_RETRY_BACKOFF_TIME_SEC@")
+configuration.add("esssettingsretrylimit", "@PLUGIN_PRIVACY_ESS_SETTINGS_RETRY_LIMIT@");
+configuration.add("esssettingssyncafterbootmaxdelaysec", "@PLUGIN_PRIVACY_ESS_SETTINGS_SYNC_AFTER_BOOT_MAX_DELAY_SEC@");
+configuration.add("esssettingssyncafterlinchpindelaysec", "@PLUGIN_PRIVACY_ESS_SETTINGS_SYNC_AFTER_LINCHPIN_DELAY_SEC@");
