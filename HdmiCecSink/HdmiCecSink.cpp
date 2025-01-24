@@ -967,9 +967,9 @@ namespace WPEFramework
                     else
                    	{
                             powerState = DEVICE_POWER_STATE_OFF;
-			    IsAudioStatusInfoUpdated = false;
-			    AudioStatusReceived = false;
-			    AudioStatusTimerStarted = false;
+			    _instance->IsAudioStatusInfoUpdated = false;
+			    _instance->AudioStatusReceived = false;
+			    _instance->AudioStatusTimerStarted = false;
 
                             if((_instance->m_currentArcRoutingState == ARC_STATE_REQUEST_ARC_INITIATION) || (_instance->m_currentArcRoutingState == ARC_STATE_ARC_INITIATED))
                             {
