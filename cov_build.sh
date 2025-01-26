@@ -190,7 +190,7 @@ cmake -G Ninja -S rdkservices -B build/rdkservices \
                       -DHAS_RBUS -DDISABLE_SECURITY_TOKEN -DENABLE_DEVICE_MANUFACTURER_INFO -DUSE_THUNDER_R4 -DTHUNDER_VERSION=4 -DTHUNDER_VERSION_MAJOR=4 -DTHUNDER_VERSION_MINOR=4" \
   -DCOMCAST_CONFIG=OFF \
   -DDS_FOUND=ON \
-  -DPLUGIN_LOCATIONSYNC=ON \
+  -DPLUGIN_TELEMETRY=ON \
 
 if [ $? -eq 0 ]; then 
     echo "rdkservices source successful"
