@@ -3273,6 +3273,9 @@ namespace WPEFramework
             
 	    m_logicalAddressAllocated = LogicalAddress::UNREGISTERED;
             m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
+	    _instance->IsAudioStatusInfoUpdated = false;
+	    _instance->AudioStatusReceived = false;
+	    _instance->AudioStatusTimerStarted = false;
 
 	    for(int i=0; i< 16; i++)
             {
@@ -3403,9 +3406,6 @@ namespace WPEFramework
             }
             /* m_arcstarting = true means starting the ARC start timer ,false means ARC stopping timer*/
             m_arcstarting = false;
-	    IsAudioStatusInfoUpdated = false;
-	    AudioStatusReceived = false;
-	    AudioStatusTimerStarted = false;
             m_arcStartStopTimer.start((HDMISINK_ARC_START_STOP_MAX_WAIT_MS));
 
   				
@@ -3528,14 +3528,12 @@ namespace WPEFramework
                             _instance->sendKeyPressEvent(keyInfo.logicalAddr,keyInfo.keyCode);
                             _instance->sendKeyReleaseEvent(keyInfo.logicalAddr);
                     }
-		    
 		    if((_instance->m_SendKeyQueue.size()<=1 || (_instance->m_SendKeyQueue.size() % 2 == 0)) && ((keyInfo.keyCode == VOLUME_UP) || (keyInfo.keyCode == VOLUME_DOWN) || (keyInfo.keyCode == MUTE)) )
 		    {
 			    if (!_instance->IsAudioStatusInfoUpdated)
 			    {
 				    LOGINFO("Audio status info not updated. Starting the Timer!");
-				    std::thread timerThread(StartAudioStatusTimer);
-				    timerThread.detach();
+				    std::thread(StartAudioStatusTimer).detach();
 			    }
 			    else
 			    {
