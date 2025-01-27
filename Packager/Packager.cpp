@@ -49,36 +49,36 @@ namespace {
     SERVICE_REGISTRATION(Packager, API_VERSION_NUMBER_MAJOR, API_VERSION_NUMBER_MINOR, API_VERSION_NUMBER_PATCH);
 
     const string Packager::Initialize(PluginHost::IShell* service) {
-        LOG_INFO("DBG Entry\n");
+        std::cout << "DBG [" << __FUNCTION__ << ":" << __LINE__  <<" Entry" << std::endl;
         ASSERT (_service == nullptr);
         ASSERT (service != nullptr);
         if (_service == nullptr || service != nullptr) {
-         LOG_INFO("DBG _service = %d is null || service = %d is not a nullptr\n", _service == nullptr, service != nullptr);
+        std::cout << "DBG [" << __FUNCTION__ << ":" << __LINE__  << " _service = " << (_service == nullptr) << " is null || service = " << (service != nullptr) << " is not a nullptr" << std::endl;
         }
 
         _service = service;
         _skipURL = static_cast<uint8_t>(service->WebPrefix().length());
-        LOG_INFO("DBG _skipURL= %u \n", _skipURL);
+        std::cout << "DBG [" << __FUNCTION__ << ":" << __LINE__  << " _skipURL= " << static_cast<unsigned int>(_skipURL) << std::endl;
         _service->Register(&_notification);
 
          string result;
         _implementation = _service->Root<Exchange::IPackager>(_connectionId, 2000, _T("PackagerImplementation"));
         if (_implementation == nullptr) {
-            LOG_INFO("DBG _implementation is nullptr");
+            std::cout << "DBG [" << __FUNCTION__ << ":" << __LINE__ << "] _implementation is nullptr" << std::endl;
             result = _T("Couldn't create package instance");
             _service->Unregister(&_notification);
         } else if (_implementation->Configure(_service) != Core::ERROR_NONE) {
-            LOG_INFO("DBG _implementation->Configure() = %u \n", _implementation->Configure(_service));
+            std::cout << "DBG [" << __FUNCTION__ << ":" << __LINE__ << "] _implementation->Configure() = " << _implementation->Configure(_service) << std::endl;
             result = _T("Couldn't initialize package instance");
             _service->Unregister(&_notification);
         }
-        LOG_INFO("DBG Exit\n");
+        std::cout << "DBG [" << __FUNCTION__ << ":" << __LINE__ << "] Exit" << std::endl;
         return (result);
     }
 
     void Packager::Deinitialize(PluginHost::IShell* service)
     {
-        LOG_INFO("DBG Entry\n");
+        std::cout << "DBG [" << __FUNCTION__ << ":" << __LINE__ << "] Entry" << std::endl;
         ASSERT(_service == service);
 
         if(_service != nullptr)
@@ -103,7 +103,7 @@ namespace {
 
         _service = nullptr;
         _implementation = nullptr;
-        LOG_INFO("DBG Exit\n");
+        std::cout << "DBG [" << __FUNCTION__ << ":" << __LINE__ << "] Exit" << std::endl;
     }
 
     string Packager::Information() const
@@ -117,6 +117,7 @@ namespace {
 
     Core::ProxyType<Web::Response> Packager::Process(const Web::Request& request)
     {
+        std::cout << "DBG [" << __FUNCTION__ << ":" << __LINE__ << "] Entry " << std::endl;
         ASSERT(_skipURL <= request.Path.length());
 
         Core::ProxyType<Web::Response> result(PluginHost::IFactories::Instance().Response());
@@ -155,9 +156,11 @@ namespace {
 
             if (status == Core::ERROR_NONE) {
                 result->ErrorCode = Web::STATUS_OK;
+             std::cout << "DBG [" << __FUNCTION__ << ":" << __LINE__ << "] Error::NONE " << std::endl;
                 result->Message = _T("OK");
             } else if (status == Core::ERROR_INPROGRESS) {
                 result->Message = _T("Some operation already in progress. Only one at a time is allowed");
+                std::cout << "DBG [" << __FUNCTION__ << ":" << __LINE__ << "] Error::Inprogress " << std::endl;
             }
         }
 
@@ -166,12 +169,17 @@ namespace {
 
     void Packager::Deactivated(RPC::IRemoteConnection* connection)
     {
+        std::cout << "DBG [" << __FUNCTION__ << ":" << __LINE__ << "] Entry" << std::endl;
+        if(connection == nullptr){
+            std::cout << "DBG [" << __FUNCTION__ << ":" << __LINE__ << "] connection is nullptr" << std::endl;
+        }
         if (connection->Id() == _connectionId) {
             ASSERT(_service != nullptr);
             Core::IWorkerPool::Instance().Submit(PluginHost::IShell::Job::Create(_service,
                 PluginHost::IShell::DEACTIVATED,
                 PluginHost::IShell::FAILURE));
         }
+        std::cout << "DBG [" << __FUNCTION__ << ":" << __LINE__ << "] Exit" << std::endl;
     }
 }  // namespace Plugin
 }  // namespace WPEFramework
