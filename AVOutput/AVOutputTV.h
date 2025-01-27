@@ -377,7 +377,6 @@ class AVOutputTV : public AVOutputBase {
 		void broadcastLowLatencyModeChangeEvent(bool lowLatencyMode);
 		tvError_t setAspectRatioZoomSettings(tvDisplayMode_t mode);
 		tvError_t setDefaultAspectRatio(std::string pqmode="none",std::string format="none",std::string source="none");
-		int ReadCapablitiesFromConfODM(std::string param, capDetails_t& info);
 
 	public:
 		int m_currentHdmiInResoluton;
