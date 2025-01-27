@@ -864,7 +864,7 @@ namespace WPEFramework
                         logicalAddress = logicalAddr;
                         logicalAddressDeviceType = logicalAddrDeviceType;
                         if(smConnection)
-                            smConnection->setSource(logicalAddress); //update initiator LA
+                            smConnection->setSource(logicalAddress); // update initiator LA
                     }
                 }
                 catch (const std::exception& e)
