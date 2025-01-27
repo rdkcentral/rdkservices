@@ -3016,7 +3016,7 @@ namespace Plugin {
 	    inputInfo.component = parameters.HasLabel("component") ? parameters["component"].String() : "";
 
         if( inputInfo.color.empty() || inputInfo.component.empty() ) {
-	        LOGERR("%s : Color/Component param not found!!!\n",__FUNCTION__);
+            LOGERR("%s : Color/Component param not found!!!\n",__FUNCTION__);
             returnResponse(false);
         }
 
@@ -3048,17 +3048,11 @@ namespace Plugin {
             returnResponse(false);
         }    
 
- /*       retVal = getCMSComponentEnumFromString(inputInfo.component,compEnum);
-        if( retVal == -1) {
-            LOGERR("%s: Invalid Component : %s\n",__FUNCTION__,inputInfo.component.c_str());
-            returnResponse(false);
-        }
-
         retVal = getCMSColorEnumFromString(inputInfo.color,colorEnum);
         if( retVal == -1) {
             LOGERR("%s: Invalid Color : %s\n",__FUNCTION__,inputInfo.color.c_str());
             returnResponse(false);
-        }*/
+        }
 
         if( isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format) ) {
             LOGINFO("Proceed with %s\n",__FUNCTION__);
@@ -3088,7 +3082,7 @@ namespace Plugin {
             retVal= updateAVoutputTVParam("set","CMS",inputInfo,tvPQEnum,level);
             if(retVal != 0 ) {
                 LOGERR("%s : Failed to Save CMS %s/%s(%s) to ssm_data\n",__FUNCTION__,inputInfo.component.c_str(),inputInfo.color.c_str(),cmsParam.c_str());
-		        returnResponse(false);
+                returnResponse(false);
             }
             LOGINFO("Exit : setCMS %s/%s successful to value: %d\n", inputInfo.component.c_str(),inputInfo.color.c_str(),level);
             returnResponse(true);
@@ -3194,7 +3188,7 @@ namespace Plugin {
             retVal= updateAVoutputTVParam("reset","CMS",inputInfo,PQ_PARAM_CMS_SATURATION_RED,cms);
             if(retVal != 0 ) {
                 LOGERR("%s : Failed to Save CMS %s/%s to ssm_data\n",__FUNCTION__,inputInfo.component.c_str(),inputInfo.color.c_str() );
-		        returnResponse(false);
+                returnResponse(false);
             }
             returnResponse(true);
         }
@@ -3291,7 +3285,7 @@ namespace Plugin {
         }
 
         if (isPlatformSupport("HDRMode") != 0) {
-	        returnResponse(false);
+            returnResponse(false);
         }
 
         if (getParamIndex("HDRMode",inputInfo,indexInfo) == -1) {
@@ -3329,7 +3323,7 @@ namespace Plugin {
         }
 
         if (isPlatformSupport("HDRMode") != 0) {
-	        returnResponse(false);
+            returnResponse(false);
         }
 
         if (validateInputParameter("HDRMode",value) != 0) {
@@ -3384,8 +3378,8 @@ namespace Plugin {
         }
 
         if (isPlatformSupport("HDRMode") != 0) {
-	        returnResponse(false);
-	    }
+            returnResponse(false);
+        }
 
         if( !isCapablityCheckPassed( "HDRMode" , inputInfo )) {
             LOGERR("%s: CapablityCheck failed for HDRMode\n", __FUNCTION__);
@@ -3480,15 +3474,15 @@ namespace Plugin {
         tvPQParameterIndex_t tvPQEnum;
 
         inputInfo.color = parameters.HasLabel("color") ? parameters["color"].String() : "";
-	    inputInfo.control = parameters.HasLabel("control") ? parameters["control"].String() : "";
+        inputInfo.control = parameters.HasLabel("control") ? parameters["control"].String() : "";
 
         if( inputInfo.color.empty() || inputInfo.control.empty() ) {
-	        LOGERR("%s : Color/Control param not found!!!\n",__FUNCTION__);
+            LOGERR("%s : Color/Control param not found!!!\n",__FUNCTION__);
             returnResponse(false);
         }
 
         if (isPlatformSupport("WhiteBalance") != 0) {
-	        returnResponse(false);
+            returnResponse(false);
         }
 
         if (parsingGetInputArgument(parameters, "WhiteBalance", inputInfo) != 0) {
@@ -3530,14 +3524,14 @@ namespace Plugin {
         tvColorTemp_t colorTemp = tvColorTemp_STANDARD;
 
         inputInfo.color = parameters.HasLabel("color") ? parameters["color"].String() : "";
-	    inputInfo.control = parameters.HasLabel("control") ? parameters["control"].String() : "";
+        inputInfo.control = parameters.HasLabel("control") ? parameters["control"].String() : "";
 
         if (isPlatformSupport("WhiteBalance") != 0) {
-	        returnResponse(false);
+            returnResponse(false);
         }
 
         if( inputInfo.color.empty() || inputInfo.control.empty()  ) {
-	        LOGERR("%s : Color/Control param not found!!!\n",__FUNCTION__);
+            LOGERR("%s : Color/Control param not found!!!\n",__FUNCTION__);
             returnResponse(false);
         }
 
@@ -3582,7 +3576,7 @@ namespace Plugin {
                 return -1;
             }
 	
-	        tvWBControl_t controlLevel;
+            tvWBControl_t controlLevel;
             if ( getWBControlEnumFromString(inputInfo.control,controlLevel ) == -1 ) {
                 LOGERR("%s : GetComponentEnumFromString Failed!!! ",__FUNCTION__);
                 return -1;
@@ -3599,7 +3593,7 @@ namespace Plugin {
             retVal= updateAVoutputTVParam("set","WhiteBalance",inputInfo,tvPQEnum,level);
             if(retVal != 0 ) {
                 LOGERR("%s : Failed to Save WB %s/%s : %d to ssm_data\n",__FUNCTION__,inputInfo.control.c_str(),inputInfo.color.c_str(),level);
-		        returnResponse(false);
+                returnResponse(false);
             }
             LOGINFO("Exit : set2PointWB %s/%s successful to value: %d\n", inputInfo.control.c_str(),inputInfo.color.c_str(),level);
             returnResponse(true);
@@ -3616,10 +3610,10 @@ namespace Plugin {
         int level = 0;
         std::string color,control;
         inputInfo.color = parameters.HasLabel("color") ? parameters["color"].String() : "";
-	    inputInfo.control = parameters.HasLabel("control") ? parameters["control"].String() : "";
+        inputInfo.control = parameters.HasLabel("control") ? parameters["control"].String() : "";
 
         if (isPlatformSupport("WhiteBalance") != 0) {
-	        returnResponse(false);
+            returnResponse(false);
         }
 
         if (parsingSetInputArgument(parameters,"WhiteBalance",inputInfo) != 0) {
@@ -3745,13 +3739,13 @@ namespace Plugin {
         if(ret != tvERROR_NONE) {
             returnResponse(false);
         }
-	    else {
+        else {
 
             response["platformSupport"] = (info.isPlatformSupportVector[0].compare("true") == 0 ) ? true : false;
 
             for (index = 0; index < info.rangeVector.size(); index++) {
                 rangeArray.Add(info.rangeVector[index]);
-	        }
+            }
 
             response["options"]=rangeArray;
 

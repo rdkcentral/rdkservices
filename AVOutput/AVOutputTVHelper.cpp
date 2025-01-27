@@ -2000,14 +2000,14 @@ namespace Plugin {
 	
         if( component.compare("Luma") == 0 )
             value = COMP_LUMA;
-	    else if( component.compare("Saturation") == 0 )
-	        value =  COMP_SATURATION;
+        else if( component.compare("Saturation") == 0 )
+            value =  COMP_SATURATION;
         else if( component.compare("Hue") == 0 )
-	        value = COMP_HUE;
+           value = COMP_HUE;
         else
-	        ret = -1;
+           ret = -1;
 		
-	    return ret;
+        return ret;
     }
 
     int AVOutputTV::getCMSColorEnumFromString(std::string color,tvDataComponentColor_t& value)
@@ -2015,21 +2015,21 @@ namespace Plugin {
         int ret = 0;
 	
         if( color.compare("Red") == 0 )
-	        value = tvDataColor_RED;
-	    else if( color.compare("Green") == 0 )
-	        value = tvDataColor_GREEN;
+            value = tvDataColor_RED;
+        else if( color.compare("Green") == 0 )
+            value = tvDataColor_GREEN;
         else if( color.compare("Blue") == 0 )
-	        value = tvDataColor_BLUE;
+            value = tvDataColor_BLUE;
         else if( color.compare("Yellow") == 0)
-	        value = tvDataColor_YELLOW;
+            value = tvDataColor_YELLOW;
         else if( color.compare("Cyan") == 0)
-	        value = tvDataColor_CYAN;
+            value = tvDataColor_CYAN;
         else if( color.compare("Magenta") == 0)
-	        value = tvDataColor_MAGENTA;
+            value = tvDataColor_MAGENTA;
         else
-	        ret = -1;
+            ret = -1;
 	
-	    return ret;
+        return ret;
     }
 
     int AVOutputTV::getColorTempEnumFromString(std::string color, tvColorTemp_t& value)
@@ -2038,23 +2038,22 @@ namespace Plugin {
 	
         if( color.compare("Standard") == 0 )
             value = tvColorTemp_STANDARD;
-	    else if( color.compare("Warm") == 0 )
-	        value =  tvColorTemp_WARM;
+        else if( color.compare("Warm") == 0 )
+            value =  tvColorTemp_WARM;
         else if( color.compare("Cold") == 0 )
-	        value = tvColorTemp_COLD;
+            value = tvColorTemp_COLD;
         else if( color.compare("UserDefined") == 0 )
             value =tvColorTemp_USER;
         else
-	        ret = -1;
-		
-	    return ret;
+            ret = -1;
+        return ret;
     }
 
     void AVOutputTV::syncCMSParams( )
     {
         int level = 0;
         std::string cmsParam;
-	    tvPQParameterIndex_t tvPQEnum;
+        tvPQParameterIndex_t tvPQEnum;
         capDetails_t inputInfo;
         tvDataComponentColor_t colors[] = {tvDataColor_RED,tvDataColor_GREEN,tvDataColor_BLUE,tvDataColor_YELLOW,tvDataColor_CYAN,tvDataColor_MAGENTA};
         
@@ -2064,26 +2063,24 @@ namespace Plugin {
 
         for ( int component = COMP_HUE; component < COMP_MAX;component++) {
             for(int count = 0;count < (int)(sizeof(colors)/sizeof(colors[0])); ++count) {
-
-		        tvDataComponentColor_t color = colors[count];
+                tvDataComponentColor_t color = colors[count];
+                std::string componentString = getCMSComponentStringFromEnum((tvComponentType_t)component);
+                std::string colorString = getCMSColorStringFromEnum((tvDataComponentColor_t)color);
+                cmsParam = componentString+"."+colorString;
 			
-			    std::string componentString = getCMSComponentStringFromEnum((tvComponentType_t)component);
-			    std::string colorString = getCMSColorStringFromEnum((tvDataComponentColor_t)color);
-			    cmsParam = componentString+"."+colorString;
-			
-			    if ( convertCMSParamToPQEnum(componentString,colorString,tvPQEnum) != 0 ) {
+                if ( convertCMSParamToPQEnum(componentString,colorString,tvPQEnum) != 0 ) {
                     LOGINFO("%s: %s/%s Param Not Found \n",__FUNCTION__,componentString.c_str(),componentString.c_str());
                     continue;
                 }
 
                 inputInfo.color = colorString;
                 inputInfo.component = componentString;
-			    if( !updateAVoutputTVParam("sync","CMS", inputInfo,tvPQEnum,level))
-                   LOGINFO("CMS Successfully Synced to Drive Cache\n");
+                if( !updateAVoutputTVParam("sync","CMS", inputInfo,tvPQEnum,level))
+                    LOGINFO("CMS Successfully Synced to Drive Cache\n");
                 else
-                   LOGERR("CMS Sync to cache Failed !!!\n");
-		    }
-	    }
+                    LOGERR("CMS Sync to cache Failed !!!\n");
+            }
+        }
     }
 
     void AVOutputTV::syncWBParams( )
@@ -2107,12 +2104,12 @@ namespace Plugin {
                 updateAVoutputTVParam("sync","WhiteBalance",inputInfo,tvPQEnum,level);
             }
         }
-	}
+    }
     
 
     int AVOutputTV:: convertCMSParamToPQEnum(const std::string component, const std::string color,tvPQParameterIndex_t& value) {
     // Create a map to associate color-component pairs with enum values
-	    int ret = 0;
+        int ret = 0;
         static const std::unordered_map<std::string, tvPQParameterIndex_t> colorComponentMap = {
             {"SaturationRed", PQ_PARAM_CMS_SATURATION_RED},
             {"SaturationGreen", PQ_PARAM_CMS_SATURATION_GREEN},
@@ -2141,18 +2138,18 @@ namespace Plugin {
         auto it = colorComponentMap.find(key);
         if (it != colorComponentMap.end()) {
             value = it->second;
-		    ret = 0;
+            ret = 0;
         } else {
-	        LOGERR("%s : Invalid color/component\n",__FUNCTION__);
+            LOGERR("%s : Invalid color/component\n",__FUNCTION__);
             ret = -1;
         }
-	    return ret;
+        return ret;
     }
 
     int AVOutputTV:: convertWBParamToRGBEnum(const std::string color,std::string control,tvRGBType_t &value)
     {
         // Create a map to associate color-ntrol pairs with enum values
-	    int ret = 0;
+        int ret = 0;
         static const std::unordered_map<std::string, tvRGBType_t> colorControlMap = {
             {"RedGain", R_GAIN},
             {"GreenGain", G_GAIN},
@@ -2169,12 +2166,12 @@ namespace Plugin {
         auto it = colorControlMap.find(key);
         if (it != colorControlMap.end()) {
             value = it->second;
-		    ret = 0;
+            ret = 0;
         } else {
-	        LOGERR("%s : Invalid color/control\n",__FUNCTION__);
+            LOGERR("%s : Invalid color/control\n",__FUNCTION__);
             ret = -1;
         }
-	    return ret; 
+        return ret; 
     }
 
     int AVOutputTV:: convertWBParamToPQEnum(const std::string control, const std::string color,tvPQParameterIndex_t& value) {
@@ -2196,12 +2193,12 @@ namespace Plugin {
         auto it = colorControlMap.find(key);
         if (it != colorControlMap.end()) {
             value = it->second;
-		    ret = 0;
+            ret = 0;
         } else {
-	        LOGERR("%s : Invalid color/control\n",__FUNCTION__);
+            LOGERR("%s : Invalid color/control\n",__FUNCTION__);
             ret = -1;
         }
-	    return ret;
+        return ret;
     }
 
     std::string AVOutputTV::getCMSColorStringFromEnum(tvDataComponentColor_t value)
@@ -2211,9 +2208,9 @@ namespace Plugin {
             case tvDataColor_RED: return "Red";
             case tvDataColor_GREEN: return "Green";
             case tvDataColor_BLUE: return "Blue";
-		    case tvDataColor_YELLOW: return "Yellow";
-		    case tvDataColor_CYAN: return "Cyan";
-		    case tvDataColor_MAGENTA: return "Magenta";
+            case tvDataColor_YELLOW: return "Yellow";
+            case tvDataColor_CYAN: return "Cyan";
+            case tvDataColor_MAGENTA: return "Magenta";
             default : return "Max";
         }
     }
@@ -2249,28 +2246,28 @@ namespace Plugin {
         int ret = 0;
 	
         if( color.compare("Red") == 0 )
-	        value = tvWB_COLOR_RED;
-	    else if( color.compare("Green") == 0 )
-	        value = tvWB_COLOR_GREEN;
+            value = tvWB_COLOR_RED;
+        else if( color.compare("Green") == 0 )
+            value = tvWB_COLOR_GREEN;
         else if( color.compare("Blue") == 0 )
-	        value = tvWB_COLOR_BLUE;
+            value = tvWB_COLOR_BLUE;
         else
-	        ret = -1;
+            ret = -1;
 	
-	    return ret;
+        return ret;
     }
 
     int AVOutputTV::getWBControlEnumFromString(std::string color,tvWBControl_t& value) {
         int ret = 0;
 	
         if( color.compare("Gain") == 0 )
-	        value = tvWB_CONTROL_GAIN;
-	    else if( color.compare("Offset") == 0 )
-	        value = tvWB_CONTROL_OFFSET;
+            value = tvWB_CONTROL_GAIN;
+        else if( color.compare("Offset") == 0 )
+            value = tvWB_CONTROL_OFFSET;
         else
-	        ret = -1;
+            ret = -1;
 	
-	    return ret;
+        return ret;
     }
 
     std::string  AVOutputTV::getColorTemperatureStringFromEnum(tvColorTemp_t value) {
@@ -2278,7 +2275,7 @@ namespace Plugin {
             case tvColorTemp_STANDARD: return "Standard";
             case tvColorTemp_WARM: return "Warm";
             case tvColorTemp_COLD: return "Cold";
-		    case tvColorTemp_USER : return "UserDefined";
+	    case tvColorTemp_USER : return "UserDefined";
             default : return "Max";
         }
     }
@@ -2295,22 +2292,22 @@ namespace Plugin {
             return -1;
         }
 	
-	    if( component == "Saturation" ) {
-	        if (inputValue < stoi(info.rangeVector[0]) || inputValue > std::stoi(info.rangeVector[1])) {
+        if( component == "Saturation" ) {
+            if (inputValue < stoi(info.rangeVector[0]) || inputValue > std::stoi(info.rangeVector[1])) {
                 LOGERR("wrong Input value[%d] for %s\n", inputValue,component.c_str());
                 return -1;
-		    }
-	    } else if ( component == "Hue" ) {
-	        if (inputValue < stoi(info.rangeVector[2]) || inputValue > std::stoi(info.rangeVector[3])) {
+            }
+        } else if ( component == "Hue" ) {
+            if (inputValue < stoi(info.rangeVector[2]) || inputValue > std::stoi(info.rangeVector[3])) {
                 LOGERR("wrong Input value[%d] for %s\n", inputValue,component.c_str());
                 return -1;
-		    }
+            }
     	} else if ( component == "Luma" ) {
-	        if (inputValue < stoi(info.rangeVector[4]) || inputValue > std::stoi(info.rangeVector[5])) {
+            if (inputValue < stoi(info.rangeVector[4]) || inputValue > std::stoi(info.rangeVector[5])) {
                 LOGERR("wrong Input value[%d] for %s\n", inputValue,component.c_str());
                 return -1;
-		    }
-	    }
+            }
+        }
         return 0;
     }
 
@@ -2324,16 +2321,16 @@ namespace Plugin {
             return -1;
         }
 	
-	    if( control == "Gain" ) {
-	        if (inputValue < stoi(info.rangeVector[0]) || inputValue > std::stoi(info.rangeVector[1])) {
+        if( control == "Gain" ) {
+            if (inputValue < stoi(info.rangeVector[0]) || inputValue > std::stoi(info.rangeVector[1])) {
                 LOGERR("wrong Input value[%d] for %s\n", inputValue,control.c_str());
                 return -1;
-		    }
-	    } else if ( control == "Offset" ) {
-	        if (inputValue < stoi(info.rangeVector[2]) || inputValue > std::stoi(info.rangeVector[3])) {
+            }
+        } else if ( control == "Offset" ) {
+            if (inputValue < stoi(info.rangeVector[2]) || inputValue > std::stoi(info.rangeVector[3])) {
                 LOGERR("wrong Input value[%d] for %s\n", inputValue,control.c_str());
                 return -1;
-		    }
+	    }
         }
         return 0;
     }
