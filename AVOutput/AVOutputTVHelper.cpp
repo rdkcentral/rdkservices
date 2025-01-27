@@ -2050,22 +2050,6 @@ namespace Plugin {
 	    return ret;
     }
 
-    int AVOutputTV::convertToSourceOffsetEnum(std::string source, tvColorTempSourceOffset_t& value)
-    {
-        int ret = 0;
-
-        if( source.compare("Composite1") == 0 )
-	        value = AV_OFFSET;
-	    else if( source.compare("IP") == 0 )
-	        value = TV_OFFSET;
-        else if( source.compare("HDMI1") == 0  || source.compare("HDMI2") == 0 || source.compare("HDMI3") == 0 || source.compare("Tuner") == 0)
-	        value = HDMI_OFFSET;
-        else
-	        ret = -1;
-	
-	    return ret;
-    }
-
     void AVOutputTV::syncCMSParams( )
     {
         int level = 0;

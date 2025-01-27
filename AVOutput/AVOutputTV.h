@@ -43,8 +43,6 @@
 #include "dsMgr.h"
 #include "hdmiIn.hpp"
 #include <numeric>
-#include <boost/filesystem.hpp>
-#include <boost/property_tree/ini_parser.hpp>
 
 //Macro
 #define RFC_BUFF_MAX 100
@@ -163,7 +161,7 @@ typedef struct
     std::vector<int> componentValues;
 	std::vector<int> colorTempValues;
 	std::vector<int> controlValues;
-	}valueVectors_t;
+}valueVectors_t;
 
 typedef struct
 {
@@ -371,11 +369,10 @@ class AVOutputTV : public AVOutputBase {
 		int getWBControlEnumFromString(std::string color,tvWBControl_t& value);
 		int getColorTempEnumFromString(std::string color, tvColorTemp_t& value);
 
-		int convertToSourceOffsetEnum(std::string source, tvColorTempSourceOffset_t& value);
 		bool checkCMSColorAndComponentCapability(const std::string capValue, const std::string inputValue);
 		int convertCMSParamToPQEnum(const std::string component, const std::string color,tvPQParameterIndex_t& value);
 		int convertWBParamToPQEnum(const std::string control, const std::string color,tvPQParameterIndex_t& value);
-        int convertWBParamToRGBEnum(const std::string color,const std::string control,tvRGBType_t &value);
+		int convertWBParamToRGBEnum(const std::string color,const std::string control,tvRGBType_t &value);
 
 		void broadcastLowLatencyModeChangeEvent(bool lowLatencyMode);
 		tvError_t setAspectRatioZoomSettings(tvDisplayMode_t mode);
