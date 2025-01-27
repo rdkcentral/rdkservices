@@ -2969,6 +2969,10 @@ namespace Plugin {
             returnResponse(false);
         }
 
+        if (isPlatformSupport("CMS") != 0) {
+            returnResponse(false);
+        }
+
 
         if (parsingGetInputArgument(parameters, "CMS", inputInfo) != 0) {
             LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
@@ -3013,6 +3017,10 @@ namespace Plugin {
 
         if( inputInfo.color.empty() || inputInfo.component.empty() ) {
 	        LOGERR("%s : Color/Component param not found!!!\n",__FUNCTION__);
+            returnResponse(false);
+        }
+
+        if (isPlatformSupport("CMS") != 0) {
             returnResponse(false);
         }
 
@@ -3100,6 +3108,10 @@ namespace Plugin {
         JsonArray formatArray;
         JsonArray colorArray;
         JsonArray componentArray;
+
+        if (isPlatformSupport("CMS") != 0) {
+            returnResponse(false);
+        }
 
         pqmodeArray = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].Array() : JsonArray();
         for (int i = 0; i < pqmodeArray.Length(); ++i) {
@@ -3475,6 +3487,10 @@ namespace Plugin {
             returnResponse(false);
         }
 
+        if (isPlatformSupport("WhiteBalance") != 0) {
+	        returnResponse(false);
+        }
+
         if (parsingGetInputArgument(parameters, "WhiteBalance", inputInfo) != 0) {
             LOGINFO("%s: Failed to parse argument\n", __FUNCTION__);
             returnResponse(false);
@@ -3516,11 +3532,8 @@ namespace Plugin {
         inputInfo.color = parameters.HasLabel("color") ? parameters["color"].String() : "";
 	    inputInfo.control = parameters.HasLabel("control") ? parameters["control"].String() : "";
 
-        //Proceed Only if current colorTemp is User
-        if( tvERROR_NONE != GetColorTemperature(&colorTemp) )
-        {
-            LOGERR("%s : Failed to GetcolorTemperature!!!\n",__FUNCTION__);
-            returnResponse(false);
+        if (isPlatformSupport("WhiteBalance") != 0) {
+	        returnResponse(false);
         }
 
         if( inputInfo.color.empty() || inputInfo.control.empty()  ) {
@@ -3604,6 +3617,10 @@ namespace Plugin {
         std::string color,control;
         inputInfo.color = parameters.HasLabel("color") ? parameters["color"].String() : "";
 	    inputInfo.control = parameters.HasLabel("control") ? parameters["control"].String() : "";
+
+        if (isPlatformSupport("WhiteBalance") != 0) {
+	        returnResponse(false);
+        }
 
         if (parsingSetInputArgument(parameters,"WhiteBalance",inputInfo) != 0) {
             LOGERR("%s: Failed to parse the input arguments \n", __FUNCTION__);
