@@ -3521,7 +3521,6 @@ namespace Plugin {
         int retVal = 0;
         std::string color,control,value;
         tvError_t ret = tvERROR_NONE;
-        tvColorTemp_t colorTemp = tvColorTemp_STANDARD;
 
         inputInfo.color = parameters.HasLabel("color") ? parameters["color"].String() : "";
         inputInfo.control = parameters.HasLabel("control") ? parameters["control"].String() : "";
@@ -3559,7 +3558,7 @@ namespace Plugin {
             returnResponse(false);
         }    
 
-        if( (isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format)) && (colorTemp == tvColorTemp_USER) ) {
+        if( (isSetRequired(inputInfo.pqmode,inputInfo.source,inputInfo.format))) {
             LOGINFO("Proceed with %s\n",__FUNCTION__);
 
             tvVideoSrcType_t currentSource = VIDEO_SOURCE_IP;
