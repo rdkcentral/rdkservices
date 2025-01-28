@@ -23,6 +23,7 @@
 #include <interfaces/json/JsonData_UserSettings.h>
 #include <interfaces/json/JUserSettings.h>
 #include <interfaces/IUserSettings.h>
+#include <interfaces/IConfiguration.h>
 #include "UtilsLogging.h"
 #include "tracing/Logging.h"
 #include <mutex>
@@ -104,12 +105,6 @@ namespace Plugin {
                     Exchange::JUserSettings::Event::OnPreferredClosedCaptionServiceChanged(_parent, service);
                 }
 
-                void OnPrivacyModeChanged(const string &privacyMode) override
-                {
-                    LOGINFO("PrivacyModeChanged: %s\n", privacyMode.c_str());
-                    Exchange::JUserSettings::Event::OnPrivacyModeChanged(_parent, privacyMode);
-                }
-
                 void OnPinControlChanged(const bool pinControl) override
                 {
                     LOGINFO("PinControlChanged: %d\n", pinControl);
@@ -184,6 +179,7 @@ namespace Plugin {
             uint32_t _connectionId{};
             Exchange::IUserSettings* _userSetting{};
             Core::Sink<Notification> _usersettingsNotification;
+            Exchange::IConfiguration* configure;
     };
 
 } // namespace Plugin

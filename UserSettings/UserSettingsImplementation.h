@@ -23,16 +23,13 @@
 #include <interfaces/Ids.h>
 #include <interfaces/IUserSettings.h>
 #include <interfaces/IStore2.h>
+#include <interfaces/IConfiguration.h>
 #include "tracing/Logging.h"
 #include <vector>
 
 #include <com/com.h>
 #include <core/core.h>
 #include <plugins/plugins.h>
-
-#ifdef HAS_RBUS
-#include "rbus.h"
-#endif
 
 #define USERSETTINGS_NAMESPACE "UserSettings"
 
@@ -42,7 +39,6 @@
 #define USERSETTINGS_CAPTIONS_KEY                             "captions"
 #define USERSETTINGS_PREFERRED_CAPTIONS_LANGUAGES_KEY         "preferredCaptionsLanguages"
 #define USERSETTINGS_PREFERRED_CLOSED_CAPTIONS_SERVICE_KEY    "preferredClosedCaptionsService"
-#define USERSETTINGS_PRIVACY_MODE_KEY                         "privacyMode"
 #define USERSETTINGS_PIN_CONTROL_KEY                          "pinControl"
 #define USERSETTINGS_VIEWING_RESTRICTIONS_KEY                 "viewingRestrictions"
 #define USERSETTINGS_VIEWING_RESTRICTIONS_WINDOW_KEY          "viewingRestrictionsWindow"
@@ -53,7 +49,8 @@
 
 namespace WPEFramework {
 namespace Plugin {
-    class UserSettingsImplementation : public Exchange::IUserSettings{
+    class UserSettingsImplementation : public Exchange::IUserSettings,
+                                       public Exchange::IConfiguration {
 
     public:
         static const std::map<string, string> usersettingsDefaultMap;
@@ -98,6 +95,7 @@ namespace Plugin {
 
         BEGIN_INTERFACE_MAP(UserSettingsImplementation)
         INTERFACE_ENTRY(Exchange::IUserSettings)
+        INTERFACE_ENTRY(Exchange::IConfiguration)
         END_INTERFACE_MAP
 
     public:
@@ -108,7 +106,6 @@ namespace Plugin {
                 CAPTIONS_CHANGED,
                 PREFERRED_CAPTIONS_LANGUAGE_CHANGED,
                 PREFERRED_CLOSED_CAPTIONS_SERVICE_CHANGED,
-                PRIVACY_MODE_CHANGED,
                 PIN_CONTROL_CHANGED,
                 VIEWING_RESTRICTIONS_CHANGED,
                 VIEWING_RESTRICTIONS_WINDOW_CHANGED,
@@ -172,8 +169,6 @@ namespace Plugin {
         uint32_t GetPreferredCaptionsLanguages(string &preferredLanguages) const override;
         uint32_t SetPreferredClosedCaptionService(const string& service) override;
         uint32_t GetPreferredClosedCaptionService(string &service) const override;
-        uint32_t SetPrivacyMode(const string& privacyMode) override;
-        uint32_t GetPrivacyMode(string &privacyMode) const override;
         uint32_t SetPinControl(const bool pinControl) override;
         uint32_t GetPinControl(bool &pinControl) const override;
         uint32_t SetViewingRestrictions(const string& viewingRestrictions) override;
@@ -189,6 +184,9 @@ namespace Plugin {
         uint32_t SetPinOnPurchase(const bool pinOnPurchase) override;
         uint32_t GetPinOnPurchase(bool &pinOnPurchase) const override;
 
+        // IConfiguration methods
+        uint32_t Configure(PluginHost::IShell* service) override;
+
         void registerEventHandlers();
         void ValueChanged(const Exchange::IStore2::ScopeType scope, const string& ns, const string& key, const string& value);
 
@@ -198,18 +196,12 @@ namespace Plugin {
 
     private:
         mutable Core::CriticalSection _adminLock;
-        Core::ProxyType<RPC::InvokeServerType<1, 0, 4>> _engine;
-        Core::ProxyType<RPC::CommunicatorClient> _communicatorClient;
-        PluginHost::IShell *_controller;
         Exchange::IStore2* _remotStoreObject;
         std::list<Exchange::IUserSettings::INotification*> _userSettingNotification;
         Core::Sink<Store2Notification> _storeNotification;
         bool _registeredEventHandlers;
+        PluginHost::IShell* _service;
 
-#ifdef HAS_RBUS
-        rbusError_t _rbusHandleStatus;
-        rbusHandle_t _rbusHandle;
-#endif
         void dispatchEvent(Event, const JsonValue &params);
         void Dispatch(Event event, const JsonValue params);
 
