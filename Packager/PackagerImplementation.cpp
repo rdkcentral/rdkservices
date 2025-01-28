@@ -67,7 +67,6 @@ namespace Plugin {
         _servicePI = service;
         _servicePI->AddRef();
 
-        if(config) {std::cout << "DBG [" << __FUNCTION__ << " : " << __LINE__ <<  " config is nullptr" << std::endl;}
         config.FromString(service->ConfigLine());
 
         if ((config.ConfigFile.IsSet() == true) && (config.ConfigFile.Value().empty() == false)) {
