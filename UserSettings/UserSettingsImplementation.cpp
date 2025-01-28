@@ -63,7 +63,7 @@ uint32_t UserSettingsImplementation::Configure(PluginHost::IShell* service)
 {
     uint32_t result = Core::ERROR_GENERAL;
 
-    if (service != nullptr && _service == nullptr)
+    if (service != nullptr)
     {
         _service = service;
         _service->AddRef();
