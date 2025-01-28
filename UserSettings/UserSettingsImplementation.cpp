@@ -110,6 +110,7 @@ UserSettingsImplementation::~UserSettingsImplementation()
     if (_service != nullptr)
     {
        _service->Release();
+       _service = nullptr;
     }
 
     _registeredEventHandlers = false;
