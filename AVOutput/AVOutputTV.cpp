@@ -338,6 +338,10 @@ namespace Plugin {
 	registerMethod("resetLowLatencyState", &AVOutputTV::resetLowLatencyState, this);
 	registerMethod("getLowLatencyStateCaps", &AVOutputTV::getLowLatencyStateCaps, this);
 
+	registerMethod("getMEMC", &AVOutputTV::getMEMC, this);
+	registerMethod("setMEMC", &AVOutputTV::setMEMC, this);
+	registerMethod("resetMEMC", &AVOutputTV::resetMEMC, this);
+	registerMethod("getMEMCCaps", &AVOutputTV::getMEMCCaps, this);
         LOGINFO("Exit\n");
     }
     
@@ -2149,6 +2153,8 @@ namespace Plugin {
              ret = SetTVDimmingMode(value.c_str());
         }
 
+
+        
         if(ret != tvERROR_NONE) {
             LOGERR("Failed to set DimmingMode\n");
             returnResponse(false);
@@ -3068,6 +3074,166 @@ namespace Plugin {
             LOGINFO("Exit\n");
             returnResponse(true);
         }
+    }
+
+    uint32_t AVOutputTV::getMEMC(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        std::string pqmode;
+        std::string source;
+        std::string format;
+        std::string key;
+        int sourceIndex=0,pqIndex=0,formatIndex=0;
+        int memc = 0;
+
+        if (parsingGetInputArgumentAdvanced(parameters, source, pqmode, format) != 0) {
+            LOGERR("Failed to parse arguments");
+            returnResponse(false);
+        }
+
+        if (getParamIndex(source,pqmode,format,sourceIndex,pqIndex,formatIndex) == -1) {
+            LOGERR("%s: getParamIndex failed to get \n", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        int err = getLocalparam("MEMC",formatIndex,pqIndex,sourceIndex,memc, PQ_PARAM_MEMC);
+        if( err == 0 ) {
+            response["memc"] = memc;
+            LOGINFO("Exit : MEMC Value: %d \n", memc);
+            returnResponse(true);
+        }
+        else {
+            returnResponse(false);
+        }
+    }
+
+    uint32_t AVOutputTV::setMEMC(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        std::string value;
+        std::string pqmode;
+        std::string source;
+        std::string format;
+        int memc = 0;
+        tvError_t ret = tvERROR_NONE;
+
+        value = parameters.HasLabel("memc") ? parameters["memc"].String() : "";
+        returnIfParamNotFound(parameters,"memc");
+        memc = std::stoi(value);
+
+        //Hardcoded value ranges
+        int from = 0, to = 3;
+        if (!validateIntegerInputParameterAdvanced(memc, from, to)) {
+            LOGERR("Failed in MEMC range validation:%s", __FUNCTION__);
+            returnResponse(false);
+        }
+
+        LOGINFO("setMEMC value %d is in range", memc);
+        if (parsingSetInputArgumentAdvanced(parameters, source, pqmode, format) != 0) {
+            LOGERR("Failed to parse input arguments");
+            //response["success"] = false;
+            returnResponse(false);
+        }
+
+        if( isSetRequired(pqmode,source,format) ) {
+             LOGINFO("Proceed with %s \n",__FUNCTION__);
+        }
+
+        int retval= updateAVoutputTVParam("set","MEMC",pqmode,source,format,PQ_PARAM_MEMC,params);
+            if(retval != 0 ) {
+                LOGERR("Failed to Save MEMC to ssm_data\n");
+                returnResponse(false);
+            }
+        response["success"] = true;
+        LOGINFO("Exit : setMEMC successful");
+        returnResponse(true);
+    }
+
+    uint32_t AVOutputTV::resetMEMC(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        std::string value;
+        std::string pqmode;
+        std::string source;
+        std::string format;
+        int sourceIndex=0,pqIndex=0,formatIndex=0,memc=0;
+        int params[3]={0};
+        tvError_t ret = tvERROR_NONE;
+
+        if (parsingSetInputArgumentAdvanced(parameters, source, pqmode, format) != 0) {
+            LOGERR("Failed to parse arguments");
+            // Return false for failure
+            response["success"] = false;
+            returnResponse(false);
+        }
+
+        int retval= updateAVoutputTVParam("reset","MEMC",pqmode,source,format,PQ_PARAM_MEMC,params);
+        if(retval != 0 ) {
+            LOGWARN("Failed to reset MEMC\n");
+            returnResponse(false);
+        }
+        else {
+            if (isSetRequired(pqmode,source,format)) {
+                getParamIndex("Current","Current", "Current",sourceIndex,pqIndex,formatIndex);
+                int err = getLocalparam("MEMC",formatIndex,pqIndex,sourceIndex,memc, PQ_PARAM_MEMC);
+                if( err == 0 ) {
+                    LOGINFO("%s : getLocalparam success format :%d source : %d format : %d value : %d\n",__FUNCTION__,formatIndex, sourceIndex, pqIndex,memc);
+                }
+                else {
+                    LOGERR("%s : GetLocalParam Failed \n",__FUNCTION__);
+                    ret = tvERROR_GENERAL;
+                }
+            }
+        }
+
+        if(ret != tvERROR_NONE) {
+            returnResponse(false);
+        }
+        else {
+            LOGINFO("Exit : resetMEMC Successful to value : %d \n",brightness);
+            returnResponse(true);
+        }
+    }
+
+    uint32_t AVOutputTV::getMEMCCaps(const JsonObject& parameters, JsonObject& response) {
+        LOGINFO("Entry");
+
+        response["jsonrpc"] = "2.0";
+        response["id"] = 3;
+
+        JsonObject result = JsonObject();
+        result["platformSupport"] = true;
+
+        // Adding options array
+        JsonArray options;
+        options.Add("2.0");
+        options.Add("2.2");
+        options.Add("2.4");
+        options.Add("BT.1886");
+        result["options"] = options;
+
+        // Creating context object
+        JsonObject context;
+        JsonArray values;
+        values.Add("IP");
+        values.Add("Tuner");
+        values.Add("HDMI1");
+        values.Add("HDMI2");
+        values.Add("HDMI3");
+        values.Add("Composite1");
+
+        context["Standard"] = values;
+        context["Vivid"] = values;
+        context["Sports"] = values;
+        context["Movie"] = values;
+
+        result["context"] = context;
+        result["success"] = true;
+
+        response["result"] = result;
+
+        LOGINFO("Exit : getMEMCCaps successful");
+        returnResponse(true);
     }
 
     uint32_t AVOutputTV::getVideoSource(const JsonObject& parameters,JsonObject& response)

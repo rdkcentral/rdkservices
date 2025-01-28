@@ -71,6 +71,36 @@
 #define CREATE_DIRTY(__X__) (__X__+=STRING_DIRTY)
 #define CAPABLITY_FILE_NAME    "pq_capabilities.ini"
 
+typedef enum tvPQParameterIndex2 {
+    // Precision Detail Methods
+    PQ_PARAM_GET_PRECISION_DETAIL = 44,        //!< Method to get Precision Detail
+    
+    // SDR Gamma Methods
+    PQ_PARAM_GET_SDR_GAMMA,                   //!< Method to get SDR Gamma
+    
+    // Local Contrast Enhancement Methods
+    PQ_PARAM_GET_LOCAL_CONTRAST_ENHANCEMENT,  //!< Method to get Local Contrast Enhancement
+    
+    // MPEG Noise Reduction Methods
+    PQ_PARAM_GET_MPEG_NOISE_REDUCTION,        //!< Method to get MPEG Noise Reduction
+    
+    // Digital Noise Reduction Methods
+    PQ_PARAM_GET_DIGITAL_NOISE_REDUCTION,     //!< Method to get Digital Noise Reduction
+    
+    // AI Super Resolution Methods
+    PQ_PARAM_GET_AI_SUPER_RESOLUTION,         //!< Method to get AI Super Resolution
+    
+    // MEMC Methods
+    PQ_PARAM_GET_MEMC,                        //!< Method to get MEMC
+    
+    // Multi-Point White Balance Methods
+    PQ_PARAM_GET_MULTI_POINT_WB,              //!< Method to get Multi-Point White Balance
+    
+    // Dolby Vision PQ Calibration Methods
+    PQ_PARAM_GET_DOLBY_VISION_CALIBRATION,    //!< Method to get Dolby Vision PQ Calibration
+    
+    PQ_PARAM_MAX2                             //!< End of enum
+}tvPQParameterIndex2_t;
 
 class CIniFile
 {
@@ -142,6 +172,7 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(getLowLatencyState)
 		DECLARE_JSON_RPC_METHOD(getZoomMode)
 		DECLARE_JSON_RPC_METHOD(getVideoContentType)
+		DECLARE_JSON_RPC_METHOD(getMEMC)
 
 
 		/*Get Capability API's*/
@@ -161,6 +192,7 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(getVideoResolutionCaps)
 		DECLARE_JSON_RPC_METHOD(getLowLatencyStateCaps)
 		DECLARE_JSON_RPC_METHOD(getZoomModeCaps)
+		DECLARE_JSON_RPC_METHOD(getMEMCCaps)
 
 		/*Set API's*/
 		DECLARE_JSON_RPC_METHOD(setBacklight)
@@ -177,6 +209,7 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(setZoomMode)
 		DECLARE_JSON_RPC_METHOD(setWBCtrl )
 		DECLARE_JSON_RPC_METHOD(signalFilmMakerMode)
+		DECLARE_JSON_RPC_METHOD(setMEMC)
 
 		/*Reset API's*/
 		DECLARE_JSON_RPC_METHOD(resetBacklight)
@@ -191,6 +224,7 @@ class AVOutputTV : public AVOutputBase {
 		DECLARE_JSON_RPC_METHOD(resetPictureMode )
 		DECLARE_JSON_RPC_METHOD(resetLowLatencyState)
 		DECLARE_JSON_RPC_METHOD(resetZoomMode)
+		DECLARE_JSON_RPC_METHOD(resetMEMC)
 
     private:
 
@@ -210,8 +244,7 @@ class AVOutputTV : public AVOutputBase {
 		
 		void spliltCapablities( std::vector<std::string> &range,std::vector<std::string> &pqmode,std::vector<std::string> &format,std::vector<std::string> &source, std::vector<string> &index,std::string rangeInfo, std::string pqmodeInfo, std::string formatInfo, std::string sourceInfo, std::string indexInfo);
 		bool isCapablityCheckPassed( std::string pqmodeInputInfo,std::string sourceInputInfo,std::string formatInputInfo,std::string param );
-		int parsingSetInputArgument(const JsonObject& parameters, std::string pqparam,std::string & source, std::string & pqmode, std::string & format);
-		int parsingGetInputArgument(const JsonObject& parameters, std::string pqparam,std::string & source, std::string & pqmode, std::string & format);
+		int parsingSetInputArgument(const JsonObject& parameters, std::string pqparam,std::string & source, std::string & pqmode, std::string & format);		int parsingGetInputArgument(const JsonObject& parameters, std::string pqparam,std::string & source, std::string & pqmode, std::string & format);
 		void spliltStringsAndConvertToSet( std::string pqmodeInfo,std::string formatInfo,std::string sourceInfo,std::set<string> &pqmode, std::set<string> &format, std::set<string> &source);
 		int validateIntegerInputParameter(std::string param, int inputValue);
 		int fetchCapablities(string pqparam, string & source, string & pqmode, string & format);
@@ -282,6 +315,11 @@ class AVOutputTV : public AVOutputBase {
 		void broadcastLowLatencyModeChangeEvent(bool lowLatencyMode);
 		tvError_t setAspectRatioZoomSettings(tvDisplayMode_t mode);
 		tvError_t setDefaultAspectRatio(std::string pqmode="none",std::string format="none",std::string source="none");
+		bool validateIntegerInputParameterAdvanced(int inputValue, int fromValue, int toValue);
+		bool paramsInRangeCheck(const JsonObject& parameters);
+		int parsingSetInputArgumentAdvanced(const JsonObject& parameters, std::string & source, std::string & pqmode, std::string & format);
+		int parsingGetInputArgumentAdvanced(const JsonObject& parameters, std::string & source, std::string & pqmode, std::string & format);
+
 
 	public:
 		int m_currentHdmiInResoluton;
