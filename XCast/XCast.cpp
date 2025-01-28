@@ -67,7 +67,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 2
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 1
+#define API_VERSION_NUMBER_PATCH 2
 
 namespace WPEFramework {
 
@@ -127,6 +127,11 @@ XCast::~XCast()
     {
         delete m_SystemPluginObj;
         m_SystemPluginObj = nullptr;
+    }
+    if (m_FriendlyNameUpdateTimerID)
+    {
+        g_source_remove(m_FriendlyNameUpdateTimerID);
+        m_FriendlyNameUpdateTimerID = 0;
     }
     _service = nullptr;
 }
@@ -631,11 +636,29 @@ void XCast::onFriendlyNameUpdateHandler(const JsonObject& parameters)
         {
             m_friendlyName = value;
             LOGINFO("onFriendlyNameUpdateHandler  :%s",m_friendlyName.c_str());
-            if (m_xcastEnable && ( (m_standbyBehavior == true) || ((m_standbyBehavior == false)&&(m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON)) ) ) {
-                _xcast->enableCastService(m_friendlyName,true);
+            if (m_FriendlyNameUpdateTimerID)
+            {
+                g_source_remove(m_FriendlyNameUpdateTimerID);
+                m_FriendlyNameUpdateTimerID = 0;
             }
-            else { 
-                _xcast->enableCastService(m_friendlyName,false);
+            m_FriendlyNameUpdateTimerID = g_timeout_add(50, XCast::update_friendly_name_timercallback, this);
+            if (0 == m_FriendlyNameUpdateTimerID)
+            {
+                bool enabledStatus = false;
+                LOGWARN("Failed to create the timer. Setting friendlyName immediately");
+                if (m_xcastEnable && ( (m_standbyBehavior == true) || ((m_standbyBehavior == false)&&(m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON)) ) )
+                {
+                    enabledStatus = true;
+                }
+                if (_xcast)
+                {
+                    LOGINFO("Updating FriendlyName [%s] status[%x]",m_friendlyName.c_str(),enabledStatus);
+                    _xcast->enableCastService(m_friendlyName,enabledStatus);
+                }
+            }
+            else
+            {
+                LOGINFO("Timer triggered to update friendlyName");
             }
         }
     }
@@ -656,6 +679,28 @@ uint32_t XCast::getProtocolVersion(const JsonObject& parameters, JsonObject& res
         }
     }
     returnResponse(returnStatus);
+}
+
+gboolean XCast::update_friendly_name_timercallback(gpointer userdata)
+{
+    XCast *self = (XCast *)userdata;
+    bool enabledStatus = false;
+
+    if (m_xcastEnable && ( (m_standbyBehavior == true) || ((m_standbyBehavior == false)&&(m_powerState == IARM_BUS_PWRMGR_POWERSTATE_ON)) ) )
+    {
+        enabledStatus = true;
+    }
+
+    if (self && self->_xcast)
+    {
+        LOGINFO("Updating FriendlyName from Timer [%s] status[%x]",m_friendlyName.c_str(),enabledStatus);
+        self->_xcast->enableCastService(m_friendlyName,enabledStatus);
+    }
+    else
+    {
+        LOGERR("instance NULL [%p]",self);
+    }
+    return G_SOURCE_REMOVE;
 }
 
 bool XCast::getEntryFromAppLaunchParamList (const char* appName, DynamicAppConfig& retAppConfig)
