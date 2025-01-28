@@ -652,7 +652,7 @@ private:
 	    binary_semaphore m_semSignaltoArcRoutingThread;
             bool m_arcstarting;
             TpTimer m_arcStartStopTimer;
-	    TpTimer m_audioStatusDetectionTimer
+	    TpTimer m_audioStatusDetectionTimer;
 
             Connection *smConnection;
 			std::vector<uint8_t> m_connectedDevices;
