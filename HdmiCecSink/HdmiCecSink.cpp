@@ -753,6 +753,7 @@ namespace WPEFramework
            m_arcRoutingThread = std::thread(threadArcRouting);
 
            m_audioStatusDetectionTimer.connect( std::bind( &HdmiCecSink::audioStatusTimerFunction, this ) );
+	   m_audioStatusDetectionTimer.setSingleShot(true);
 	   m_arcStartStopTimer.connect( std::bind( &HdmiCecSink::arcStartStopTimerFunction, this ) );
            m_arcStartStopTimer.setSingleShot(true);
             // get power state:
