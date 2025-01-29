@@ -23,6 +23,7 @@
 #include <interfaces/Ids.h>
 #include <interfaces/IUserSettings.h>
 #include <interfaces/IStore2.h>
+#include <interfaces/IConfiguration.h>
 #include "tracing/Logging.h"
 #include <vector>
 
@@ -53,7 +54,8 @@
 
 namespace WPEFramework {
 namespace Plugin {
-    class UserSettingsImplementation : public Exchange::IUserSettings{
+    class UserSettingsImplementation : public Exchange::IUserSettings,
+                                       public Exchange::IConfiguration {
 
     public:
         static const std::map<string, string> usersettingsDefaultMap;
@@ -98,6 +100,7 @@ namespace Plugin {
 
         BEGIN_INTERFACE_MAP(UserSettingsImplementation)
         INTERFACE_ENTRY(Exchange::IUserSettings)
+        INTERFACE_ENTRY(Exchange::IConfiguration)
         END_INTERFACE_MAP
 
     public:
@@ -189,6 +192,9 @@ namespace Plugin {
         uint32_t SetPinOnPurchase(const bool pinOnPurchase) override;
         uint32_t GetPinOnPurchase(bool &pinOnPurchase) const override;
 
+        // IConfiguration methods
+        uint32_t Configure(PluginHost::IShell* service) override;
+
         void registerEventHandlers();
         void ValueChanged(const Exchange::IStore2::ScopeType scope, const string& ns, const string& key, const string& value);
 
@@ -198,13 +204,11 @@ namespace Plugin {
 
     private:
         mutable Core::CriticalSection _adminLock;
-        Core::ProxyType<RPC::InvokeServerType<1, 0, 4>> _engine;
-        Core::ProxyType<RPC::CommunicatorClient> _communicatorClient;
-        PluginHost::IShell *_controller;
         Exchange::IStore2* _remotStoreObject;
         std::list<Exchange::IUserSettings::INotification*> _userSettingNotification;
         Core::Sink<Store2Notification> _storeNotification;
         bool _registeredEventHandlers;
+        PluginHost::IShell* _service;
 
 #ifdef HAS_RBUS
         rbusError_t _rbusHandleStatus;
