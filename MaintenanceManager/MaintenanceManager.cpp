@@ -1655,8 +1655,9 @@ namespace WPEFramework {
                         LOGINFO("Task[%d] is false \n",i);
                     }
                 }
-
-                result=true;
+		result=true;
+		LOGINFO("Maintenance has been stopped. Hence setting maintenance status to MAINTENANCE_ERROR\n");
+		MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
             }
             else {
                 LOGERR("Failed to stopMaintenance without starting maintenance \n");
@@ -1671,9 +1672,6 @@ namespace WPEFramework {
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type && !g_unsolicited_complete){
                 g_unsolicited_complete = true;
 	    }
-            
-            LOGINFO("Maintenance has been stopped. Hence setting maintenance status to MAINTENANCE_ERROR\n");
-            MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
             m_statusMutex.unlock();
 
             return result;
