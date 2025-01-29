@@ -78,6 +78,7 @@
 #define HDMICECSINK_NUMBER_TV_ADDR 					2
 #define HDMICECSINK_UPDATE_POWER_STATUS_INTERVA_MS    (60 * 1000)
 #define HDMISINK_ARC_START_STOP_MAX_WAIT_MS           4000
+#define HDMICECSINK_UPDATE_AUDIO_STATUS_INTERVAL_MS    500
 
 
 #define SAD_FMT_CODE_AC3 2
@@ -649,6 +650,14 @@ namespace WPEFramework
 		LOGINFO("Ignore Broadcast messages, accepts only direct messages");
 		return;
 	     }
+	     if (HdmiCecSink::_instance->AudioStatusTimerStarted)
+	     {
+		     LOGINFO("Command: AudioStatus received from the Audio Device. Updating the AudioStatus info!\n");
+		     std::lock_guard<std::mutex> lk(HdmiCecSink::_instance->m_requestAudioStatusMutex);
+		     HdmiCecSink::_instance->AudioStatusReceived = true;
+		     HdmiCecSink::_instance->m_RequestAudioStatus.notify_one();
+	     }
+
              HdmiCecSink::_instance->Process_ReportAudioStatus_msg(msg);
        }
       void HdmiCecSinkProcessor::process (const GiveFeatures &msg, const Header &header)
@@ -693,6 +702,9 @@ namespace WPEFramework
 		   m_currentActiveSource = -1;
 		   m_isHdmiInConnected = false;
 		   hdmiCecAudioDeviceConnected = false;
+		   IsAudioStatusInfoUpdated = false;
+		   AudioStatusReceived = false;
+		   AudioStatusTimerStarted = false;
                    m_audioDevicePowerStatusRequested = false;
 		   m_pollNextState = POLL_THREAD_STATE_NONE;
 		   m_pollThreadState = POLL_THREAD_STATE_NONE;
@@ -2629,6 +2641,9 @@ namespace WPEFramework
                                         params["status"] = string("success");
                                         params["audioDeviceConnected"] = string("false");
 					hdmiCecAudioDeviceConnected = false;
+					IsAudioStatusInfoUpdated = false;
+					AudioStatusReceived = false;
+					AudioStatusTimerStarted = false;
                                         sendNotify(eventString[HDMICECSINK_EVENT_AUDIO_DEVICE_CONNECTED_STATUS], params)
                                 }
 
@@ -3258,6 +3273,9 @@ namespace WPEFramework
             
 	    m_logicalAddressAllocated = LogicalAddress::UNREGISTERED;
             m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
+	    _instance->IsAudioStatusInfoUpdated = false;
+	    _instance->AudioStatusReceived = false;
+	    _instance->AudioStatusTimerStarted = false;
 
 	    for(int i=0; i< 16; i++)
             {
@@ -3387,7 +3405,7 @@ namespace WPEFramework
                 m_arcStartStopTimer.stop();
             }
             /* m_arcstarting = true means starting the ARC start timer ,false means ARC stopping timer*/
-            m_arcstarting = false; 
+            m_arcstarting = false;
             m_arcStartStopTimer.start((HDMISINK_ARC_START_STOP_MAX_WAIT_MS));
 
   				
@@ -3510,14 +3528,36 @@ namespace WPEFramework
                             _instance->sendKeyPressEvent(keyInfo.logicalAddr,keyInfo.keyCode);
                             _instance->sendKeyReleaseEvent(keyInfo.logicalAddr);
                     }
-
 		    if((_instance->m_SendKeyQueue.size()<=1 || (_instance->m_SendKeyQueue.size() % 2 == 0)) && ((keyInfo.keyCode == VOLUME_UP) || (keyInfo.keyCode == VOLUME_DOWN) || (keyInfo.keyCode == MUTE)) )
 		    {
-		        _instance->sendGiveAudioStatusMsg();
+			    if (!_instance->IsAudioStatusInfoUpdated)
+			    {
+				    LOGINFO("Audio status info not updated. Starting the Timer!");
+				    std::thread(StartAudioStatusTimer).detach();
+			    }
+			    else
+			    {
+				    if (!_instance->AudioStatusReceived){
+					    _instance->sendGiveAudioStatusMsg();
+				    }
+			    }
 		    }
 
             }//while(!_instance->m_sendKeyEventThreadExit)
         }//threadSendKeyEvent
+
+	void HdmiCecSink:: StartAudioStatusTimer()
+	{
+		std::unique_lock<std::mutex> lk(_instance->m_requestAudioStatusMutex);
+		_instance->AudioStatusTimerStarted = true;
+		if(_instance->m_RequestAudioStatus.wait_for(lk, std::chrono::milliseconds(HDMICECSINK_UPDATE_AUDIO_STATUS_INTERVAL_MS)) == std::cv_status::timeout)
+		{
+			LOGINFO("Timer Expired. Requesting the AudioStatus since not received.\n");
+			_instance->sendGiveAudioStatusMsg();
+		}
+		_instance->AudioStatusTimerStarted = false;
+		_instance->IsAudioStatusInfoUpdated = true;
+	}
 
 
         void HdmiCecSink::threadArcRouting()
