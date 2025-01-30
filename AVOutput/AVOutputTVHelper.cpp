@@ -435,6 +435,28 @@ namespace Plugin {
         }
     }
 
+    bool AVOutputTV::validateIntegerInputParameter(int inputValue, int fromValue, int toValue) {
+        return (inputValue >= fromValue && inputValue <= toValue);
+    }
+ 
+    bool AVOutputTV::paramsInRangeCheck(const JsonObject& parameters) {
+        static const std::unordered_map<std::string, std::unordered_set<std::string>> validStringValues = {
+            {"pictureMode", {"Global", "Current", "Standard", "Sports", "EnergySaving"}},
+            {"videoSource", {"Global", "Current", "Composite1", "HDMI1", "HDMI2", "HDMI3", "IP", "Tuner"}},
+            {"videoFormat", {"Global", "Current", "SDR", "HDR10", "HLG", "DV"}}
+        };
+        for (const auto& param : validStringValues) {
+            if (parameters.HasLabel(param.first.c_str())) {
+                std::string value = parameters[param.first.c_str()].String();
+                if (param.second.find(value) == param.second.end()) {
+                    LOGERR("Invalid %s: %s", param.first.c_str(), value.c_str());
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     int AVOutputTV::parsingSetInputArgument(const JsonObject& parameters, std::string pqparam, std::string & source,
                                              std::string & pqmode, std::string & format) {
 
@@ -485,6 +507,56 @@ namespace Plugin {
         return 0;
     }
 
+    int AVOutputTV::parsingSetInputArgumentAdvanced(const JsonObject& parameters, std::string & source,
+                                                std::string & pqmode, std::string & format) {
+
+        JsonArray sourceArray;
+        JsonArray pqmodeArray;
+        JsonArray formatArray;
+
+
+        pqmodeArray = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].Array() : JsonArray();
+        for (int i = 0; i < pqmodeArray.Length(); ++i) {
+            pqmode += pqmodeArray[i].String();
+            if (i != (pqmodeArray.Length() - 1) ) {
+                pqmode += ",";
+            }
+        }
+
+        sourceArray = parameters.HasLabel("videoSource") ? parameters["videoSource"].Array() : JsonArray();
+        for (int i = 0; i < sourceArray.Length(); ++i) {
+            source += sourceArray[i].String();
+            if (i != (sourceArray.Length() - 1) ) {
+                source += ",";
+            }
+        }
+
+        formatArray = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].Array() : JsonArray();
+        for (int i = 0; i < formatArray.Length(); ++i) {
+            format += formatArray[i].String();
+            if (i != (formatArray.Length() - 1) ) {
+                format += ",";
+            }
+        }
+
+        if (source.empty()) {
+            source = "Global";
+        }
+            if (pqmode.empty()) {
+            pqmode = "Global";
+        }
+            if (format.empty()) {
+            format = "Global";
+        }
+
+        if (!paramsInRangeCheck(parameters)) {
+            LOGERR("Input values are out of range");
+            return -1;
+        }
+
+        return 0;
+    }
+
     int AVOutputTV::parsingGetInputArgument(const JsonObject& parameters, std::string pqparam,
                                          std::string & source, std::string & pqmode, std::string & format) {
         pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
@@ -513,6 +585,35 @@ namespace Plugin {
             return -1;
         }
 
+        return 0;
+    }
+
+    int AVOutputTV::parsingGetInputArgumentAdvanced(const JsonObject& parameters, std::string & source, std::string & pqmode, std::string & format) {
+        pqmode = parameters.HasLabel("pictureMode") ? parameters["pictureMode"].String() : "";
+
+        source = parameters.HasLabel("videoSource") ? parameters["videoSource"].String() : "";
+
+        format = parameters.HasLabel("videoFormat") ? parameters["videoFormat"].String() : "";
+
+        if ( (source.compare("Global") == 0) || (pqmode.compare("Global") == 0) || (format.compare("Global") == 0) ) {
+            LOGERR("%s: get cannot fetch the Global inputs \n", __FUNCTION__);
+            return -1;
+        }
+
+        if (source.empty()) {
+            source = "Current";
+        }
+        if (pqmode.empty()) {
+            pqmode = "Current";
+        }
+        if (format.empty()) {
+            format = "Current";
+        }
+
+        if (!paramsInRangeCheck(parameters)) {
+            LOGERR("Input values are out of range");
+            return -1;
+        }
         return 0;
     }
 
@@ -976,10 +1077,20 @@ namespace Plugin {
                                  ret |= SaveTVDimmingMode(source, mode,format,(tvDimmingMode_t)params[0]);
                                  break;
                              }
-                             case PQ_PARAM_CMS:
-                             case PQ_PARAM_LDIM:
-                             default:
-                                 break;
+                            case PQ_PARAM_CMS:
+                            case PQ_PARAM_LDIM:
+                            case PQ_PARAM_PRECISION_DETAIL:
+                            case PQ_PARAM_SDR_GAMMA:
+                            case PQ_PARAM_LOCAL_CONTRAST_ENHANCEMENT:
+                            case PQ_PARAM_MPEG_NOISE_REDUCTION:
+                            case PQ_PARAM_DIGITAL_NOISE_REDUCTION:
+                            case PQ_PARAM_AI_SUPER_RESOLUTION:
+                            case PQ_PARAM_MEMC:
+                            case PQ_PARAM_MULTI_POINT_WB:
+                            case PQ_PARAM_DOLBY_VISION_CALIBRATION:
+                                // Handle new parameters here
+                            default:
+                                break;
                         }
                     }
                 }
