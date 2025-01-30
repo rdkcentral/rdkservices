@@ -617,6 +617,9 @@ private:
             bool cecOTPSettingEnabled;
             bool cecEnableStatus;
 	    bool hdmiCecAudioDeviceConnected;
+	    bool IsAudioStatusInfoUpdated;
+	    bool AudioStatusReceived;
+	    bool AudioStatusTimerStarted;
 			bool m_isHdmiInConnected;
 			int  m_numofHdmiInput;
 			uint8_t m_deviceType;
@@ -649,6 +652,7 @@ private:
 	    binary_semaphore m_semSignaltoArcRoutingThread;
             bool m_arcstarting;
             TpTimer m_arcStartStopTimer;
+	    TpTimer m_audioStatusDetectionTimer;
 
             Connection *smConnection;
 			std::vector<uint8_t> m_connectedDevices;
@@ -698,6 +702,7 @@ private:
             void Send_Request_Arc_Termination_Message();
             void Send_Report_Arc_Terminated_Message();
             void arcStartStopTimerFunction();
+	    void audioStatusTimerFunction();
 	    void getCecVersion();
         };
 	} // namespace Plugin
