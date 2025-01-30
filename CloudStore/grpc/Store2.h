@@ -78,23 +78,29 @@ namespace Plugin {
                 , _token(token)
                 , _authorization((_uri.find("localhost") == string::npos) && (_uri.find("0.0.0.0") == string::npos))
             {
-                Open();
             }
             ~Store2() override = default;
 
         private:
-            void Open()
+            std::unique_ptr<::distp::gateway::secure_storage::v1::SecureStorageService::Stub> CreateStub()
             {
-                grpc::ChannelArguments args;
-                args.SetInt(GRPC_ARG_CLIENT_IDLE_TIMEOUT_MS, IDLE_TIMEOUT);
                 std::shared_ptr<grpc::ChannelCredentials> creds;
                 if (_authorization) {
                     creds = grpc::SslCredentials(grpc::SslCredentialsOptions());
                 } else {
                     creds = grpc::InsecureChannelCredentials();
                 }
-                _stub = ::distp::gateway::secure_storage::v1::SecureStorageService::NewStub(
-                    grpc::CreateCustomChannel(_uri, creds, args));
+                return std::unique_ptr<::distp::gateway::secure_storage::v1::SecureStorageService::Stub>(
+                    ::distp::gateway::secure_storage::v1::SecureStorageService::NewStub(
+                        grpc::CreateChannel(_uri, creds)));
+            }
+            std::unique_ptr<::distp::gateway::secure_storage::v1::SecureStorageService::Stub> GetStub()
+            {
+                // Due to the network issue on some devices
+                // (an orderly shutdown from server is not arriving),
+                // and the grpc bug (GRPC_ARG_CLIENT_IDLE_TIMEOUT_MS
+                // works only one time), create a new client each time...
+                return CreateStub();
             }
 
         private:
@@ -226,7 +232,7 @@ namespace Plugin {
                 v->set_allocated_key(k);
                 request.set_allocated_value(v);
                 ::distp::gateway::secure_storage::v1::UpdateValueResponse response;
-                auto status = _stub->UpdateValue(&context, request, &response);
+                auto status = GetStub()->UpdateValue(&context, request, &response);
 
                 if (status.ok()) {
                     Core::IWorkerPool::Instance().Submit(Core::ProxyType<Core::IDispatch>(
@@ -267,7 +273,7 @@ namespace Plugin {
                                   : ::distp::gateway::secure_storage::v1::Scope::SCOPE_UNSPECIFIED));
                 request.set_allocated_key(k);
                 ::distp::gateway::secure_storage::v1::GetValueResponse response;
-                auto status = _stub->GetValue(&context, request, &response);
+                auto status = GetStub()->GetValue(&context, request, &response);
 
                 if (status.ok()) {
                     if (response.has_value()) {
@@ -328,7 +334,7 @@ namespace Plugin {
                                   : ::distp::gateway::secure_storage::v1::Scope::SCOPE_UNSPECIFIED));
                 request.set_allocated_key(k);
                 ::distp::gateway::secure_storage::v1::DeleteValueResponse response;
-                auto status = _stub->DeleteValue(&context, request, &response);
+                auto status = GetStub()->DeleteValue(&context, request, &response);
 
                 if (status.ok()) {
                     result = Core::ERROR_NONE;
@@ -363,7 +369,7 @@ namespace Plugin {
                                   ? ::distp::gateway::secure_storage::v1::Scope::SCOPE_DEVICE
                                   : ::distp::gateway::secure_storage::v1::Scope::SCOPE_UNSPECIFIED));
                 ::distp::gateway::secure_storage::v1::DeleteAllValuesResponse response;
-                auto status = _stub->DeleteAllValues(&context, request, &response);
+                auto status = GetStub()->DeleteAllValues(&context, request, &response);
 
                 if (status.ok()) {
                     result = Core::ERROR_NONE;
@@ -402,7 +408,7 @@ namespace Plugin {
             const string _uri;
             const string _token;
             const bool _authorization;
-            std::unique_ptr<::distp::gateway::secure_storage::v1::SecureStorageService::Stub> _stub;
+            // std::unique_ptr<::distp::gateway::secure_storage::v1::SecureStorageService::Stub> _stub;
             std::list<INotification*> _clients;
             Core::CriticalSection _clientLock;
         };
