@@ -38,7 +38,7 @@ endif()
 
 option(PLUGIN_OCICONTAINER "Include OCIContainer plugin" OFF)
 
-if(RDK_SERVICES_L1_TEST)
+if(RDK_SERVICES_L1_TEST OR RDK_SERVICES_COVERITY)
     include(l1tests.cmake)
 endif()
 

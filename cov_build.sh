@@ -76,12 +76,8 @@ mkdir -p headers/audiocapturemgr
 mkdir -p headers/rdk/ds
 mkdir -p headers/rdk/iarmbus
 mkdir -p headers/rdk/iarmmgrs-hal
-mkdir -p headers/rdk/halif/
-mkdir -p headers/rdk/halif/deepsleep-manager
 mkdir -p headers/ccec/drivers
 mkdir -p headers/network
-mkdir -p headers/proc
-mkdir -p headers/rdkshell
 echo "dir created successfully"
 
 echo "======================================================================================"
@@ -125,8 +121,6 @@ touch rdk/iarmmgrs-hal/pwrMgr.h
 touch rdk/iarmmgrs-hal/sysMgr.h
 touch network/wifiSrvMgrIarmIf.h
 touch network/netsrvmgrIarm.h
-touch rdkshell/rdkshellevents.h
-touch rdkshell/rdkshell.h
 touch rdkshell/compositorcontroller.h
 touch rdkshell/logger.h
 touch rdkshell/eastereggs.h
@@ -158,6 +152,7 @@ cd ${ROOT_PATH}
 
 echo "starting builing rdkservices"
 cmake -G Ninja -S rdkservices -B build/rdkservices \
+  -DUSE_THUNDER_R4=ON \
   -DCMAKE_INSTALL_PREFIX="install" \
   -DCMAKE_VERBOSE_MAKEFILE=ON \
   -DCMAKE_DISABLE_FIND_PACKAGE_IARMBus=ON \
@@ -189,8 +184,9 @@ cmake -G Ninja -S rdkservices -B build/rdkservices \
                       -DUSE_DRM_SCREENCAPTURE -DHAS_API_SYSTEM -DHAS_API_POWERSTATE \
                       -DHAS_RBUS -DDISABLE_SECURITY_TOKEN -DENABLE_DEVICE_MANUFACTURER_INFO -DUSE_THUNDER_R4 -DTHUNDER_VERSION=4 -DTHUNDER_VERSION_MAJOR=4 -DTHUNDER_VERSION_MINOR=4" \
   -DCOMCAST_CONFIG=OFF \
+  -DRDK_SERVICES_COVERITY=ON \
   -DDS_FOUND=ON \
-  -DPLUGIN_BLUETOOTH=ON \
+  -DPLUGIN_HDMIINPUT=ON \
 
 if [ $? -eq 0 ]; then 
     echo "rdkservices source successful"
