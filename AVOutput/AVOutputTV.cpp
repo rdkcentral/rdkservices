@@ -2273,9 +2273,8 @@ namespace Plugin {
 
     uint32_t AVOutputTV::getSupportedDolbyVisionModes(const JsonObject& parameters, JsonObject& response)
     {
-
         LOGINFO("Entry\n");
-        tvDolbyMode_t dvModes[tvMode_Max];
+        tvDolbyMode_t dvModes[tvMode_Max] = { tvDolbyMode_Invalid };
         tvDolbyMode_t *dvModesPtr = dvModes; // Pointer to statically allocated tvDolbyMode_t array 
         unsigned short totalAvailable = 0;
 
@@ -2297,8 +2296,8 @@ namespace Plugin {
             LOGINFO("Exit\n");
             returnResponse(true);
         }
-
     }
+
 
     uint32_t AVOutputTV::getDolbyVisionMode(const JsonObject& parameters, JsonObject& response)
     {
