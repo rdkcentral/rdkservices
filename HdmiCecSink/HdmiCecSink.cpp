@@ -3539,7 +3539,7 @@ namespace WPEFramework
                             _instance->sendKeyReleaseEvent(keyInfo.logicalAddr);
                     }
 
-		    if((_instance->m_SendKeyQueue.size()<=1 || (_instance->m_SendKeyQueue.size() % 2 == 0)) && ((keyInfo.keyCode == VOLUME_UP) || (keyInfo.keyCode == VOLUME_DOWN) || (keyInfo.keyCode == MUTE)) )
+		    if((_instance->m_SendKeyQueue.size()<=1 || (_instance->m_SendKeyQueue.size() % 2 == 0)) && ((keyInfo.keyCode == VOLUME_UP) || (keyInfo.keyCode == VOLUME_DOWN)))
 		    {
 			    LOGINFO("IsAudioStatusInfoUpdated :%d, AudioStatusReceived :%d, AudioStatusTimerStarted:%d ",_instance->IsAudioStatusInfoUpdated,_instance->AudioStatusReceived,_instance->AudioStatusTimerStarted);
 			    if (!_instance->IsAudioStatusInfoUpdated)
@@ -3558,6 +3558,10 @@ namespace WPEFramework
 					    _instance->sendGiveAudioStatusMsg();
 				    }
 			    }
+		    }
+		    else if((_instance->m_SendKeyQueue.size()<=1 || (_instance->m_SendKeyQueue.size() % 2 == 0)) && (keyInfo.keyCode == MUTE))
+		    {
+			     _instance->sendGiveAudioStatusMsg();
 		    }
 
             }//while(!_instance->m_sendKeyEventThreadExit)
