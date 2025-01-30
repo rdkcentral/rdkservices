@@ -119,7 +119,7 @@ namespace WPEFramework
 				if (nullptr != m_miracast_rtsp_obj)
 				{
 					m_CurrentService = service;
-					m_GstPlayer = SoC_GstPlayer::getInstance();
+					m_GstPlayer = MiracastGstPlayer::getInstance();
 					m_isServiceInitialized = true;
 				}
 				else
