@@ -121,11 +121,6 @@ touch rdk/iarmmgrs-hal/pwrMgr.h
 touch rdk/iarmmgrs-hal/sysMgr.h
 touch network/wifiSrvMgrIarmIf.h
 touch network/netsrvmgrIarm.h
-touch rdkshell/compositorcontroller.h
-touch rdkshell/logger.h
-touch rdkshell/eastereggs.h
-touch rdkshell/application.h
-touch rdkshell/linuxkeys.h
 touch libudev.h
 touch rfcapi.h
 touch rbus.h
