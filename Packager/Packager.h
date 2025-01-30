@@ -60,6 +60,7 @@ namespace {
             , _implementation(nullptr)
             , _notification(this)
         {
+        std::cout << "DBG  ["<< __FUNCTION__ << " : " << __LINE__ << " Ctor Entry" << std::endl;
             Register<Params, void>(kInstallMethodName, [this](const Params& params) -> uint32_t {
                 return this->_implementation->Install(params.Package.Value(), params.Version.Value(),
                                                                  params.Architecture.Value());
@@ -67,12 +68,15 @@ namespace {
             Register<void, void>(kSynchronizeMethodName, [this]() -> uint32_t {
                 return this->_implementation->SynchronizeRepository();
             });
+         std::cout << "DBG  ["<< __FUNCTION__ << " : " << __LINE__ << " Ctor Exit" << std::endl;
         }
 
         ~Packager() override
         {
+         std::cout << "DBG  ["<< __FUNCTION__ << " : " << __LINE__ << " Dtor Entry" << std::endl;
             Unregister(kInstallMethodName);
             Unregister(kSynchronizeMethodName);
+         std::cout << "DBG  ["<< __FUNCTION__ << " : " << __LINE__ << " Dtor Exit " << std::endl;
         }
 
         BEGIN_INTERFACE_MAP(Packager)

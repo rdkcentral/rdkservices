@@ -92,6 +92,7 @@ namespace Plugin {
             , _isUpgrade(false)
             , _isSyncing(false)
         {
+        std::cout << "DBG [" << __FUNCTION__ << " : " << __LINE__ <<  " Ctor" << std::endl;
         }
 
         ~PackagerImplementation() override;
@@ -105,6 +106,7 @@ namespace Plugin {
                 : SystemRootPath()
             {
                 Add(_T("systemrootpath"), &SystemRootPath);
+             std::cout << "DBG [" << __FUNCTION__ << " : " << __LINE__ <<  " Ctor" << std::endl;
             }
 
             Core::JSON::String SystemRootPath;
@@ -142,6 +144,7 @@ namespace Plugin {
                 , _version(version)
                 , _arch(arch)
             {
+             std::cout << "DBG [" << __FUNCTION__ << " : " << __LINE__ <<  " CTor" << std::endl;
             }
 
             BEGIN_INTERFACE_MAP(PackageInfo)
@@ -151,16 +154,19 @@ namespace Plugin {
             // IPackageInfo methods
             string Name() const override
             {
+                std::cout << "DBG [" << __FUNCTION__ << " : " << __LINE__ <<  " Name = " << _name  << std::endl;
                 return _name;
             }
 
             string Version() const override
             {
+                std::cout << "DBG [" << __FUNCTION__ << " : " << __LINE__ <<  " Version = " << _version  << std::endl;
                 return _version;
             }
 
             string Architecture() const override
             {
+                std::cout << "DBG [" << __FUNCTION__ << " : " << __LINE__ <<  " Arch = " << _arch  << std::endl;
                 return _arch;
             }
 
@@ -188,21 +194,25 @@ namespace Plugin {
             // IInstallationInfo methods
             Exchange::IPackager::state State() const override
             {
+                std::cout << "DBG [" << __FUNCTION__ << " : " << __LINE__ <<  " State = " << _state  << std::endl;
                 return _state;
             }
 
             uint8_t Progress() const override
             {
+                std::cout << "DBG [" << __FUNCTION__ << " : " << __LINE__ <<  " Progress = " << _progress  << std::endl;
                 return _progress;
             }
 
             string AppName() const override
             {
+                std::cout << "DBG [" << __FUNCTION__ << " : " << __LINE__ <<  "  AppName = " << _appname  << std::endl;
                 return _appname;
             }
 
             uint32_t ErrorCode() const override
             {
+                std::cout << "DBG [" << __FUNCTION__ << " : " << __LINE__ <<  " ErrorCode = " << _error  << std::endl;
                 return _error;
             }
 
@@ -213,13 +223,13 @@ namespace Plugin {
 
             void SetState(Exchange::IPackager::state state)
             {
-                TRACE_L1("Setting state to %d", state);
+                std::cout << "DBG [" << __FUNCTION__ << " : " << __LINE__ <<  " Setting state to " << state << std::endl;
                 _state = state;
             }
 
             void SetProgress(uint8_t progress)
             {
-                TRACE_L1("Setting progress to %d", progress);
+                std::cout << "DBG [" << __FUNCTION__ << " : " << __LINE__ <<  " Setting progress to " << static_cast<int>(progress) << std::endl;
                 _progress = progress;
             }
 
@@ -228,11 +238,12 @@ namespace Plugin {
                 string _pathname = Core::File::PathName(string(path));
                 string _dirname = _pathname.substr(0,_pathname.size()-1);
                 _appname = Core::File::FileName(_dirname);
+                std::cout << "DBG [" << __FUNCTION__ << " : " << __LINE__ <<  " Setting appname to " << _appname << std::endl;
             }
 
             void SetError(uint32_t err)
             {
-                TRACE_L1("Setting error to %d", err);
+                std::cout << "DBG [" << __FUNCTION__ << " : " << __LINE__ <<  " Setting error to " << err << std::endl;
                 _error = err;
             }
 
