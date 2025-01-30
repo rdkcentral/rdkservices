@@ -195,7 +195,6 @@ class AVOutputTV : public AVOutputBase {
     private:
 
 		
-		tvContentFormatType_t getContentFormatIndex(tvVideoHDRFormat_t formatToConvert);
 		int getPictureModeIndex(std::string pqmode);
 		int getSourceIndex(std::string source);
 		int getFormatIndex(std::string format);		
@@ -229,7 +228,6 @@ class AVOutputTV : public AVOutputBase {
 		string convertSourceIndexToString(int source);
 		string convertVideoFormatToString(int format);
 		string convertPictureIndexToString(int pqmode);
-		tvContentFormatType_t convertFormatStringToTVContentFormat(const char *format);
 		//std::string convertSourceIndexToString(int sourceIndex);
 		//std::string convertVideoFormatToString( int formatIndex );
 		void convertUserScaleBacklightToDriverScale(int format,int * params);
@@ -257,13 +255,11 @@ class AVOutputTV : public AVOutputBase {
 		int getLocalparam(std::string forParam,int formatIndex,int pqIndex,int sourceIndex,int &value,
 		  tvPQParameterIndex_t pqParamIndex ,bool cms=false,int tunnel_type=0);
 		tvDataComponentColor_t getComponentColorEnum(std::string colorName);
-		int getDolbyParams(tvContentFormatType_t format, std::string &s, std::string source = "");
 		tvError_t getParamsCaps(std::vector<std::string> &range, std::vector<std::string> &pqmode, std::vector<std::string> &source, std::vector<std::string> &format,std::string param );
 		tvError_t getParamsCaps(std::vector<std::string> &range, std::vector<std::string> &pqmode, std::vector<std::string> &source,
 		                        std::vector<std::string> &format,std::string param , std::string & isPlatformSupport,
 				std::vector<std::string> & index);
 		int GetPanelID(char *panelid);
-		int ConvertHDRFormatToContentFormat(tvhdr_type_t hdrFormat);
 		int ReadCapablitiesFromConf(std::string &rangeInfo,std::string &pqmodeInfo,std::string &formatInfo,std::string &sourceInfo,std::string param, std::string & isPlatformSupport, std::string & indexInfo);
 		void getDimmingModeStringFromEnum(int value, std::string &toStore);
 		void getColorTempStringFromEnum(int value, std::string &toStore);
