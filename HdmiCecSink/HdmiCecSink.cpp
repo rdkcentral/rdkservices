@@ -3539,30 +3539,33 @@ namespace WPEFramework
                             _instance->sendKeyReleaseEvent(keyInfo.logicalAddr);
                     }
 
-		    if((_instance->m_SendKeyQueue.size()<=1 || (_instance->m_SendKeyQueue.size() % 2 == 0)) && ((keyInfo.keyCode == VOLUME_UP) || (keyInfo.keyCode == VOLUME_DOWN)))
+		    if((_instance->m_SendKeyQueue.size()<=1 || (_instance->m_SendKeyQueue.size() % 2 == 0)) && ((keyInfo.keyCode == VOLUME_UP) || (keyInfo.keyCode == VOLUME_DOWN) || (keyInfo.keyCode == MUTE)) )
 		    {
-			    LOGINFO("IsAudioStatusInfoUpdated :%d, AudioStatusReceived :%d, AudioStatusTimerStarted:%d ",_instance->IsAudioStatusInfoUpdated,_instance->AudioStatusReceived,_instance->AudioStatusTimerStarted);
-			    if (!_instance->IsAudioStatusInfoUpdated)
-			    {
-				    if ( !(_instance->m_audioStatusDetectionTimer.isActive()))
-				    {
-					    LOGINFO("Audio status info not updated. Starting the Timer!");
-					    _instance->AudioStatusTimerStarted = true;
-					    _instance->m_audioStatusDetectionTimer.start((HDMICECSINK_UPDATE_AUDIO_STATUS_INTERVAL_MS));
-				    }
-				    LOGINFO("Value set -> IsAudioStatusInfoUpdated :%d, AudioStatusReceived :%d, AudioStatusTimerStarted:%d ", _instance->IsAudioStatusInfoUpdated,_instance->AudioStatusReceived,_instance->AudioStatusTimerStarted);
-			    }
-			    else
-			    {
-				    if (!_instance->AudioStatusReceived){
-					    _instance->sendGiveAudioStatusMsg();
-				    }
-			    }
-		    }
-		    else if((_instance->m_SendKeyQueue.size()<=1 || (_instance->m_SendKeyQueue.size() % 2 == 0)) && (keyInfo.keyCode == MUTE))
-		    {
-			     _instance->sendGiveAudioStatusMsg();
-		    }
+			if(keyInfo.keyCode == MUTE)
+			{
+				_instance->sendGiveAudioStatusMsg();
+			}		
+			else
+			{
+				LOGINFO("IsAudioStatusInfoUpdated :%d, AudioStatusReceived :%d, AudioStatusTimerStarted:%d ",_instance->IsAudioStatusInfoUpdated,_instance->AudioStatusReceived,_instance->AudioStatusTimerStarted);
+				if (!_instance->IsAudioStatusInfoUpdated)
+				{
+					if ( !(_instance->m_audioStatusDetectionTimer.isActive()))
+					{
+						LOGINFO("Audio status info not updated. Starting the Timer!");
+						_instance->AudioStatusTimerStarted = true;
+						_instance->m_audioStatusDetectionTimer.start((HDMICECSINK_UPDATE_AUDIO_STATUS_INTERVAL_MS));
+					}
+					LOGINFO("Value set -> IsAudioStatusInfoUpdated :%d, AudioStatusReceived :%d, AudioStatusTimerStarted:%d ", _instance->IsAudioStatusInfoUpdated,_instance->AudioStatusReceived,_instance->AudioStatusTimerStarted);
+				}
+				else
+				{
+					if (!_instance->AudioStatusReceived){
+						_instance->sendGiveAudioStatusMsg();
+					}
+				}
+			}
+		}
 
             }//while(!_instance->m_sendKeyEventThreadExit)
         }//threadSendKeyEvent
@@ -3570,11 +3573,11 @@ namespace WPEFramework
 	void HdmiCecSink::audioStatusTimerFunction()
 	{
 		LOGINFO("IsAudioStatusInfoUpdated :%d, AudioStatusReceived :%d, AudioStatusTimerStarted:%d ", IsAudioStatusInfoUpdated,AudioStatusReceived,AudioStatusTimerStarted);
-		 AudioStatusTimerStarted = false;
-		 IsAudioStatusInfoUpdated = true;
-		 LOGINFO("Timer Expired. Requesting the AudioStatus since not received.\n");
-		 sendGiveAudioStatusMsg();
-		 LOGINFO("Value set -> IsAudioStatusInfoUpdated :%d, AudioStatusReceived :%d, AudioStatusTimerStarted:%d ", IsAudioStatusInfoUpdated,AudioStatusReceived,AudioStatusTimerStarted);
+		AudioStatusTimerStarted = false;
+		IsAudioStatusInfoUpdated = true;
+		LOGINFO("Timer Expired. Requesting the AudioStatus since not received.\n");
+		sendGiveAudioStatusMsg();
+		LOGINFO("Value set -> IsAudioStatusInfoUpdated :%d, AudioStatusReceived :%d, AudioStatusTimerStarted:%d ", IsAudioStatusInfoUpdated,AudioStatusReceived,AudioStatusTimerStarted);
 	}
 
 
