@@ -266,13 +266,18 @@ namespace Plugin {
     {
         int mode = 0;
         tvDolbyMode_t dolbyModes[tvMode_Max];
-        tvDolbyMode_t *dolbyModesPtr = dolbyModes; // Pointer to statically allocated tvDolbyMode_t array
+        tvDolbyMode_t *dolbyModesPtr[tvMode_Max];
         unsigned short totalAvailable = 0;
+
+        for (int i = 0; i < tvMode_Max; i++)
+        {
+            dolbyModesPtr[i] = &dolbyModes[i];
+        }
 
         // Set an initial value to indicate the mode type
         dolbyModes[0] = tvDolbyMode_Dark;
 
-        tvError_t ret = GetTVSupportedDolbyVisionModes(&dolbyModesPtr, &totalAvailable);
+        tvError_t ret = GetTVSupportedDolbyVisionModes(dolbyModesPtr, &totalAvailable);
         if (ret == tvERROR_NONE) {
             for (int count = 0; count < totalAvailable; count++) {
 		        if(strncasecmp(dolbyMode, getDolbyModeStringFromEnum(dolbyModes[count]).c_str(), strlen(dolbyMode))==0) {
