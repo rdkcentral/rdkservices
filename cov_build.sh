@@ -181,7 +181,7 @@ cmake -G Ninja -S rdkservices -B build/rdkservices \
   -DCOMCAST_CONFIG=OFF \
   -DRDK_SERVICES_COVERITY=ON \
   -DDS_FOUND=ON \
-  -DPLUGIN_NETWORK=ON \ 
+  -DPLUGIN_DATACAPTURE=ON \ 
 
 if [ $? -eq 0 ]; then 
     echo "rdkservices source successful"
