@@ -23,11 +23,8 @@
 #include "tracing/Logging.h"
 #include "UtilsJsonRpc.h"
 #include "UtilsController.h"
-#ifdef USE_THUNDER_R4
 #include <interfaces/IDeviceInfo.h>
-#else
-#include <interfaces/IDeviceInfo2.h>
-#endif /* USE_THUNDER_R4 */
+
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
