@@ -406,6 +406,8 @@ namespace WPEFramework {
 #endif
             std::unique_lock<std::mutex> lck(m_callMutex);
             for( i = 0; i < tasks.size() && !m_abort_flag; i++) {
+		int task_status = -1;
+		int retry_count = TASK_RETRY_COUNT;
                 cmd = tasks[i];
                 cmd += " &";
                 cmd += "\0";
@@ -413,13 +415,25 @@ namespace WPEFramework {
 
                 if ( !m_abort_flag ){
                     LOGINFO("Starting Script (SM) :  %s \n",cmd.c_str());
-                    system(cmd.c_str());
+                    task_status = system(cmd.c_str());
 
-                    LOGINFO("Waiting to unlock.. [%d/%d]",i+1,(int)tasks.size());
-                    task_thread.wait(lck);
+		    while(task_status != 0 && retry_count > 0 && !m_abort_flag){
+			LOGINFO("%s invocation failed, retry after %d seconds (%d retries left)\n", cmd.c_str(), TASK_RETRY_DELAY, retry_count);
+			sleep(TASK_RETRY_DELAY);
+		        LOGINFO("Retrying Script (SM) : %s \n", cmd.c_str());
+			task_status = system(cmd.c_str());
+			retry_count--;
+		    }
+		    if (task_status != 0){
+		        LOGINFO("Task Failed even after retry, setting as Aborted");
+			/* TODO: Add Abort Status Set Logic for Task */
+		    }
+		    else{
+			LOGINFO("Waiting to unlock.. [%d/%d]",i+1,(int)tasks.size());
+                        task_thread.wait(lck);
+		    }
                 }
             }
-
 	    m_abort_flag=false;
             LOGINFO("Worker Thread Completed");
         }
