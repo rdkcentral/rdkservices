@@ -1216,13 +1216,13 @@ namespace WPEFramework
 	    LOGINFO("IsAudioStatusInfoUpdated :%d, AudioStatusReceived :%d, AudioStatusTimerStarted:%d ", IsAudioStatusInfoUpdated,AudioStatusReceived,AudioStatusTimerStarted);
 	    if (AudioStatusTimerStarted)
 	    {
-		    LOGINFO("Command: AudioStatus received from the Audio Device. Updating the AudioStatus info!\n");
+		    LOGINFO("AudioStatus received from the Audio Device. Updating the AudioStatus info!\n");
 		    AudioStatusReceived = true;
 		    IsAudioStatusInfoUpdated = true;
 		    AudioStatusTimerStarted = false;
 		    if (m_audioStatusDetectionTimer.isActive())
 		    {
-			    LOGINFO("Command: AudioStatus received from the Audio Device. So stopping the timer!\n");
+			    LOGINFO("AudioStatus received from the Audio Device and the timer is still active. So stopping the timer!\n");
 			    m_audioStatusDetectionTimer.stop();
 		    }
 		    LOGINFO("Value set -> IsAudioStatusInfoUpdated :%d, AudioStatusReceived :%d, AudioStatusTimerStarted:%d ", IsAudioStatusInfoUpdated,AudioStatusReceived,AudioStatusTimerStarted);
@@ -2648,6 +2648,9 @@ namespace WPEFramework
                                         LOGINFO(" logicalAddress =%d , Audio device removed, Notify Device Settings", logicalAddress );
                                         params["status"] = string("success");
                                         params["audioDeviceConnected"] = string("false");
+					if (m_audioStatusDetectionTimer.isActive()){
+			    			m_audioStatusDetectionTimer.stop();
+		    			}
 					hdmiCecAudioDeviceConnected = false;
 					IsAudioStatusInfoUpdated = false;
 					AudioStatusReceived = false;
@@ -3282,6 +3285,9 @@ namespace WPEFramework
             
 	    m_logicalAddressAllocated = LogicalAddress::UNREGISTERED;
             m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
+	    if (m_audioStatusDetectionTimer.isActive()){
+			    m_audioStatusDetectionTimer.stop();
+	    }
 	    IsAudioStatusInfoUpdated = false;
 	    AudioStatusReceived = false;
 	    AudioStatusTimerStarted = false;
