@@ -2648,10 +2648,10 @@ namespace WPEFramework
                                         LOGINFO(" logicalAddress =%d , Audio device removed, Notify Device Settings", logicalAddress );
                                         params["status"] = string("success");
                                         params["audioDeviceConnected"] = string("false");
+					hdmiCecAudioDeviceConnected = false;
 					if (m_audioStatusDetectionTimer.isActive()){
 			    			m_audioStatusDetectionTimer.stop();
 		    			}
-					hdmiCecAudioDeviceConnected = false;
 					IsAudioStatusInfoUpdated = false;
 					AudioStatusReceived = false;
 					AudioStatusTimerStarted = false;
