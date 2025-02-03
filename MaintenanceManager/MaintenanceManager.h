@@ -77,6 +77,9 @@ typedef enum{
 #define NETWORK_RETRY_INTERVAL          30
 #define SECMGR_RETRY_INTERVAL           5
 
+#define TASK_RETRY_COUNT                1
+#define TASK_RETRY_DELAY                5
+
 #define RFC_SUCCESS                     0
 #define RFC_COMPLETE                    1
 #define LOGUPLOAD_SUCCESS               2
