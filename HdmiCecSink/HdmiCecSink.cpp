@@ -694,9 +694,9 @@ namespace WPEFramework
 		   m_currentActiveSource = -1;
 		   m_isHdmiInConnected = false;
 		   hdmiCecAudioDeviceConnected = false;
-		   IsAudioStatusInfoUpdated = false;
-		   AudioStatusReceived = false;
-		   AudioStatusTimerStarted = false;
+		   m_isAudioStatusInfoUpdated = false;
+		   m_audioStatusReceived = false;
+		   m_audioStatusTimerStarted = false;
                    m_audioDevicePowerStatusRequested = false;
 		   m_pollNextState = POLL_THREAD_STATE_NONE;
 		   m_pollThreadState = POLL_THREAD_STATE_NONE;
@@ -1215,15 +1215,15 @@ namespace WPEFramework
                return;
 	    if (AudioStatusTimerStarted)
 	    {
-		    AudioStatusReceived = true;
-		    IsAudioStatusInfoUpdated = true;
-		    AudioStatusTimerStarted = false;
+		    m_audioStatusReceived = true;
+		    m_isAudioStatusInfoUpdated = true;
+		    m_audioStatusTimerStarted = false;
 		    if (m_audioStatusDetectionTimer.isActive())
 		    {
 			    LOGINFO("AudioStatus received from the Audio Device and the timer is still active. So stopping the timer!\n");
 			    m_audioStatusDetectionTimer.stop();
 		    }
-		    LOGINFO("AudioStatus received from the Audio Device. Updating the AudioStatus info! IsAudioStatusInfoUpdated :%d, AudioStatusReceived :%d, AudioStatusTimerStarted:%d ", IsAudioStatusInfoUpdated,AudioStatusReceived,AudioStatusTimerStarted);
+		    LOGINFO("AudioStatus received from the Audio Device. Updating the AudioStatus info! m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ", m_isAudioStatusInfoUpdated,m_audioStatusReceived,m_audioStatusTimerStarted);
 	    }
 			LOGINFO("Command: ReportAudioStatus  %s audio Mute status %d  means %s  and current Volume level is %d \n",GetOpName(msg.opCode()),msg.status.getAudioMuteStatus(),msg.status.toString().c_str(),msg.status.getAudioVolume());
             params["muteStatus"]  = msg.status.getAudioMuteStatus();
@@ -2650,10 +2650,10 @@ namespace WPEFramework
 					if (m_audioStatusDetectionTimer.isActive()){
 						m_audioStatusDetectionTimer.stop();
 					}
-					IsAudioStatusInfoUpdated = false;
-					AudioStatusReceived = false;
-					AudioStatusTimerStarted = false;
-					LOGINFO("Audio device removed, reset the audio status info.  IsAudioStatusInfoUpdated :%d, AudioStatusReceived :%d, AudioStatusTimerStarted:%d ", IsAudioStatusInfoUpdated,AudioStatusReceived,AudioStatusTimerStarted);
+					m_isAudioStatusInfoUpdated = false;
+					m_audioStatusReceived = false;
+					m_audioStatusTimerStarted = false;
+					LOGINFO("Audio device removed, reset the audio status info.  m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ", m_isAudioStatusInfoUpdated,m_audioStatusReceived,m_audioStatusTimerStarted);
                                         sendNotify(eventString[HDMICECSINK_EVENT_AUDIO_DEVICE_CONNECTED_STATUS], params)
                                 }
 
@@ -3286,10 +3286,10 @@ namespace WPEFramework
 	    if (m_audioStatusDetectionTimer.isActive()){
 			    m_audioStatusDetectionTimer.stop();
 	    }
-	    IsAudioStatusInfoUpdated = false;
-	    AudioStatusReceived = false;
-	    AudioStatusTimerStarted = false;
-	    LOGINFO("CEC Disabled, reset the audio status info. IsAudioStatusInfoUpdated :%d, AudioStatusReceived :%d, AudioStatusTimerStarted:%d ", IsAudioStatusInfoUpdated,AudioStatusReceived,AudioStatusTimerStarted);
+	    m_isAudioStatusInfoUpdated = false;
+	    m_audioStatusReceived = false;
+	    m_audioStatusTimerStarted = false;
+	    LOGINFO("CEC Disabled, reset the audio status info. m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ", m_isAudioStatusInfoUpdated,m_audioStatusReceived,m_audioStatusTimerStarted);
 
 
 	    for(int i=0; i< 16; i++)
@@ -3552,20 +3552,20 @@ namespace WPEFramework
 			}
 			else
 			{
-				LOGINFO("IsAudioStatusInfoUpdated :%d, AudioStatusReceived :%d, AudioStatusTimerStarted:%d ",_instance->IsAudioStatusInfoUpdated,_instance->AudioStatusReceived,_instance->AudioStatusTimerStarted);
-				if (!_instance->IsAudioStatusInfoUpdated)
+				LOGINFO("m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ",_instance->m_isAudioStatusInfoUpdated,_instance->m_audioStatusReceived,_instance->m_audioStatusTimerStarted);
+				if (!_instance->m_isAudioStatusInfoUpdated)
 				{
 					if ( !(_instance->m_audioStatusDetectionTimer.isActive()))
 					{
 						LOGINFO("Audio status info not updated. Starting the Timer!");
-						_instance->AudioStatusTimerStarted = true;
+						_instance->m_audioStatusTimerStarted = true;
 						_instance->m_audioStatusDetectionTimer.start((HDMICECSINK_UPDATE_AUDIO_STATUS_INTERVAL_MS));
 					}
-					LOGINFO("Audio status info updated! IsAudioStatusInfoUpdated :%d, AudioStatusReceived :%d, AudioStatusTimerStarted:%d ", _instance->IsAudioStatusInfoUpdated,_instance->AudioStatusReceived,_instance->AudioStatusTimerStarted);
+					LOGINFO("m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ", _instance->m_isAudioStatusInfoUpdated,_instance->m_audioStatusReceived,_instance->m_audioStatusTimerStarted);
 				}
 				else
 				{
-					if (!_instance->AudioStatusReceived){
+					if (!_instance->m_audioStatusReceived){
 						_instance->sendGiveAudioStatusMsg();
 					}
 				}
@@ -3577,11 +3577,11 @@ namespace WPEFramework
 
 	void HdmiCecSink::audioStatusTimerFunction()
 	{
-		AudioStatusTimerStarted = false;
-		IsAudioStatusInfoUpdated = true;
+		m_audioStatusTimerStarted = false;
+		m_isAudioStatusInfoUpdated = true;
 		LOGINFO("Timer Expired. Requesting the AudioStatus since not received.\n");
 		sendGiveAudioStatusMsg();
-		LOGINFO("Audio status info updated: IsAudioStatusInfoUpdated :%d, AudioStatusReceived :%d, AudioStatusTimerStarted:%d ", IsAudioStatusInfoUpdated,AudioStatusReceived,AudioStatusTimerStarted);
+		LOGINFO("m_isAudioStatusInfoUpdated :%d, m_audioStatusReceived :%d, m_audioStatusTimerStarted:%d ", m_isAudioStatusInfoUpdated,m_audioStatusReceived,m_audioStatusTimerStarted);
 	}
 
         void HdmiCecSink::threadArcRouting()
