@@ -2700,9 +2700,15 @@ namespace WPEFramework {
 		bool resp = true;
 		m_strTerritory = "";
 		m_strRegion = "";
-		resp = readTerritoryFromFile();
-		response["territory"] = m_strTerritory;
-		response["region"] = m_strRegion;
+        try{
+            resp = readTerritoryFromFile();
+            response["territory"] = m_strTerritory;
+            response["region"] = m_strRegion;
+        }
+        catch(...){
+            LOGERR("Exception caught while reading territory file");
+            resp = false;
+        }
 		returnResponse(resp);
 	}
 
