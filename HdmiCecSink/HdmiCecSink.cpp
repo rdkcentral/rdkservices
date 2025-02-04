@@ -78,6 +78,7 @@
 #define HDMICECSINK_NUMBER_TV_ADDR 					2
 #define HDMICECSINK_UPDATE_POWER_STATUS_INTERVA_MS    (60 * 1000)
 #define HDMISINK_ARC_START_STOP_MAX_WAIT_MS           4000
+#define HDMICECSINK_UPDATE_AUDIO_STATUS_INTERVAL_MS    500
 
 
 #define SAD_FMT_CODE_AC3 2
@@ -693,6 +694,9 @@ namespace WPEFramework
 		   m_currentActiveSource = -1;
 		   m_isHdmiInConnected = false;
 		   hdmiCecAudioDeviceConnected = false;
+		   IsAudioStatusInfoUpdated = false;
+		   AudioStatusReceived = false;
+		   AudioStatusTimerStarted = false;
                    m_audioDevicePowerStatusRequested = false;
 		   m_pollNextState = POLL_THREAD_STATE_NONE;
 		   m_pollThreadState = POLL_THREAD_STATE_NONE;
@@ -748,7 +752,9 @@ namespace WPEFramework
            m_semSignaltoArcRoutingThread.acquire();
            m_arcRoutingThread = std::thread(threadArcRouting);
 
-           m_arcStartStopTimer.connect( std::bind( &HdmiCecSink::arcStartStopTimerFunction, this ) );
+           m_audioStatusDetectionTimer.connect( std::bind( &HdmiCecSink::audioStatusTimerFunction, this ) );
+	   m_audioStatusDetectionTimer.setSingleShot(true);
+	   m_arcStartStopTimer.connect( std::bind( &HdmiCecSink::arcStartStopTimerFunction, this ) );
            m_arcStartStopTimer.setSingleShot(true);
             // get power state:
             IARM_Bus_PWRMgr_GetPowerState_Param_t param;
@@ -1207,7 +1213,21 @@ namespace WPEFramework
             JsonObject params;
             if(!HdmiCecSink::_instance)
                return;
-			LOGINFO("Command: ReportAudioStatus  %s audio Mute status %d  means %s  and current Volume level is %d \n",GetOpName(msg.opCode()),msg.status.getAudioMuteStatus(),msg.status.toString().c_str(),msg.status.getAudioVolume());
+	    LOGINFO("IsAudioStatusInfoUpdated :%d, AudioStatusReceived :%d, AudioStatusTimerStarted:%d ", IsAudioStatusInfoUpdated,AudioStatusReceived,AudioStatusTimerStarted);
+	    if (AudioStatusTimerStarted)
+	    {
+		    LOGINFO("AudioStatus received from the Audio Device. Updating the AudioStatus info!\n");
+		    AudioStatusReceived = true;
+		    IsAudioStatusInfoUpdated = true;
+		    AudioStatusTimerStarted = false;
+		    if (m_audioStatusDetectionTimer.isActive())
+		    {
+			    LOGINFO("AudioStatus received from the Audio Device and the timer is still active. So stopping the timer!\n");
+			    m_audioStatusDetectionTimer.stop();
+		    }
+		    LOGINFO("Value set -> IsAudioStatusInfoUpdated :%d, AudioStatusReceived :%d, AudioStatusTimerStarted:%d ", IsAudioStatusInfoUpdated,AudioStatusReceived,AudioStatusTimerStarted);
+	    }
+	    LOGINFO("Command: ReportAudioStatus  %s audio Mute status %d  means %s  and current Volume level is %d \n",GetOpName(msg.opCode()),msg.status.getAudioMuteStatus(),msg.status.toString().c_str(),msg.status.getAudioVolume());
             params["muteStatus"]  = msg.status.getAudioMuteStatus();
             params["volumeLevel"] = msg.status.getAudioVolume();
             sendNotify(eventString[HDMICECSINK_EVENT_REPORT_AUDIO_STATUS], params);
@@ -2629,6 +2649,13 @@ namespace WPEFramework
                                         params["status"] = string("success");
                                         params["audioDeviceConnected"] = string("false");
 					hdmiCecAudioDeviceConnected = false;
+					if (m_audioStatusDetectionTimer.isActive()){
+			    			m_audioStatusDetectionTimer.stop();
+		    			}
+					IsAudioStatusInfoUpdated = false;
+					AudioStatusReceived = false;
+					AudioStatusTimerStarted = false;
+					LOGINFO("Value set -> IsAudioStatusInfoUpdated :%d, AudioStatusReceived :%d, AudioStatusTimerStarted:%d ", IsAudioStatusInfoUpdated,AudioStatusReceived,AudioStatusTimerStarted);
                                         sendNotify(eventString[HDMICECSINK_EVENT_AUDIO_DEVICE_CONNECTED_STATUS], params)
                                 }
 
@@ -3258,6 +3285,13 @@ namespace WPEFramework
             
 	    m_logicalAddressAllocated = LogicalAddress::UNREGISTERED;
             m_currentArcRoutingState = ARC_STATE_ARC_TERMINATED;
+	    if (m_audioStatusDetectionTimer.isActive()){
+			    m_audioStatusDetectionTimer.stop();
+	    }
+	    IsAudioStatusInfoUpdated = false;
+	    AudioStatusReceived = false;
+	    AudioStatusTimerStarted = false;
+	    LOGINFO("Value set -> IsAudioStatusInfoUpdated :%d, AudioStatusReceived :%d, AudioStatusTimerStarted:%d ", IsAudioStatusInfoUpdated,AudioStatusReceived,AudioStatusTimerStarted);
 
 	    for(int i=0; i< 16; i++)
             {
@@ -3513,11 +3547,44 @@ namespace WPEFramework
 
 		    if((_instance->m_SendKeyQueue.size()<=1 || (_instance->m_SendKeyQueue.size() % 2 == 0)) && ((keyInfo.keyCode == VOLUME_UP) || (keyInfo.keyCode == VOLUME_DOWN) || (keyInfo.keyCode == MUTE)) )
 		    {
-		        _instance->sendGiveAudioStatusMsg();
-		    }
+			if(keyInfo.keyCode == MUTE)
+			{
+				_instance->sendGiveAudioStatusMsg();
+			}		
+			else
+			{
+				LOGINFO("IsAudioStatusInfoUpdated :%d, AudioStatusReceived :%d, AudioStatusTimerStarted:%d ",_instance->IsAudioStatusInfoUpdated,_instance->AudioStatusReceived,_instance->AudioStatusTimerStarted);
+				if (!_instance->IsAudioStatusInfoUpdated)
+				{
+					if ( !(_instance->m_audioStatusDetectionTimer.isActive()))
+					{
+						LOGINFO("Audio status info not updated. Starting the Timer!");
+						_instance->AudioStatusTimerStarted = true;
+						_instance->m_audioStatusDetectionTimer.start((HDMICECSINK_UPDATE_AUDIO_STATUS_INTERVAL_MS));
+					}
+					LOGINFO("Value set -> IsAudioStatusInfoUpdated :%d, AudioStatusReceived :%d, AudioStatusTimerStarted:%d ", _instance->IsAudioStatusInfoUpdated,_instance->AudioStatusReceived,_instance->AudioStatusTimerStarted);
+				}
+				else
+				{
+					if (!_instance->AudioStatusReceived){
+						_instance->sendGiveAudioStatusMsg();
+					}
+				}
+			}
+		}
 
             }//while(!_instance->m_sendKeyEventThreadExit)
         }//threadSendKeyEvent
+
+	void HdmiCecSink::audioStatusTimerFunction()
+	{
+		LOGINFO("IsAudioStatusInfoUpdated :%d, AudioStatusReceived :%d, AudioStatusTimerStarted:%d ", IsAudioStatusInfoUpdated,AudioStatusReceived,AudioStatusTimerStarted);
+		AudioStatusTimerStarted = false;
+		IsAudioStatusInfoUpdated = true;
+		LOGINFO("Timer Expired. Requesting the AudioStatus since not received.\n");
+		sendGiveAudioStatusMsg();
+		LOGINFO("Value set -> IsAudioStatusInfoUpdated :%d, AudioStatusReceived :%d, AudioStatusTimerStarted:%d ", IsAudioStatusInfoUpdated,AudioStatusReceived,AudioStatusTimerStarted);
+	}
 
 
         void HdmiCecSink::threadArcRouting()
