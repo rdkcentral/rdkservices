@@ -617,9 +617,6 @@ private:
             bool cecOTPSettingEnabled;
             bool cecEnableStatus;
 	    bool hdmiCecAudioDeviceConnected;
-	    bool IsAudioStatusInfoUpdated;
-	    bool AudioStatusReceived;
-	    bool AudioStatusTimerStarted;
 			bool m_isHdmiInConnected;
 			int  m_numofHdmiInput;
 			uint8_t m_deviceType;
@@ -634,6 +631,9 @@ private:
             /* Send Key event related */
             bool m_sendKeyEventThreadExit;
             bool m_sendKeyEventThreadRun;
+	    bool m_isAudioStatusInfoUpdated;
+	    bool m_audioStatusReceived;
+	    bool m_audioStatusTimerStarted;
             std::thread m_sendKeyEventThread;
             std::mutex m_sendKeyEventMutex;
             std::queue<SendKeyInfo> m_SendKeyQueue;
