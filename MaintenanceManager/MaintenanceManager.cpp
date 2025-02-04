@@ -146,7 +146,7 @@ string moduleStatusToString(IARM_Maint_module_status_t &status)
 	case MAINT_LOGUPLOAD_ABORTED:
 	    ret_status="MAINTENANCE_LOGUPLOAD_ABORTED";
 	    break;
-        case MAINT_PINGTELEMETRY_COMPLETE:
+        case MAINT_PINGTELEMETRY_COMPLETE: /* TODO: Can these be removed */
             ret_status="MAINTENANCE_PINGTELEMETRY_COMPLETE";
             break;
         case MAINT_PINGTELEMETRY_ERROR:
@@ -646,11 +646,18 @@ namespace WPEFramework {
 
         void MaintenanceManager::startCriticalTasks()
         {
+	    int rfc_task_status = -1;
+	    int xconf_imagecheck_status = -1;
 	    LOGINFO("Starting Script /lib/rdk/RFCbase.sh");
-	    system("/lib/rdk/RFCbase.sh &");
-
+	    rfc_task_status = system("/lib/rdk/RFCbase.sh &");
+	    if (rfc_task_status != 0){
+	        LOGINFO("Failed to run RFCbase.sh \n");
+	    }
             LOGINFO("Starting Script /lib/rdk/xconfImageCheck.sh");
-            system("/lib/rdk/xconfImageCheck.sh >> /opt/logs/swupdate.log 2>&1 &");
+            xconf_imagecheck_status = system("/lib/rdk/xconfImageCheck.sh >> /opt/logs/swupdate.log 2>&1 &");
+	    if (xconf_imagecheck_status != 0){
+	        LOGINFO("Failed to run xconfImageCheck.sh \n");
+	    }
         }
 
         const string MaintenanceManager::checkActivatedStatus()
