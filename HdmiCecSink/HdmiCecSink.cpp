@@ -1213,7 +1213,7 @@ namespace WPEFramework
             JsonObject params;
             if(!HdmiCecSink::_instance)
                return;
-	    if (AudioStatusTimerStarted)
+	    if (m_audioStatusTimerStarted)
 	    {
 		    m_audioStatusReceived = true;
 		    m_isAudioStatusInfoUpdated = true;
