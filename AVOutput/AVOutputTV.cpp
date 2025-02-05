@@ -2204,7 +2204,7 @@ namespace Plugin {
     {
         LOGINFO("Entry\n");
         tvDolbyMode_t dvModes[tvMode_Max];
-        tvDolbyMode_t *dvModesPtr[tvMode_Max];
+        tvDolbyMode_t *dvModesPtr[tvMode_Max]={0};
         unsigned short totalAvailable = 0;
         for (int i = 0; i < tvMode_Max; i++)
         {
@@ -2427,7 +2427,7 @@ namespace Plugin {
     {
         LOGINFO("Entry\n");
         pic_modes_t pictureModes[PIC_MODES_SUPPORTED_MAX];
-        pic_modes_t *pictureModesPtr[PIC_MODES_SUPPORTED_MAX];
+        pic_modes_t *pictureModesPtr[PIC_MODES_SUPPORTED_MAX]={0};
         unsigned short totalAvailable = 0;
         for (int i = 0; i < PIC_MODES_SUPPORTED_MAX; i++)
         {
