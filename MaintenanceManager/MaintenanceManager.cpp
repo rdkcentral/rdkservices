@@ -134,18 +134,12 @@ string moduleStatusToString(IARM_Maint_module_status_t &status)
         case MAINT_RFC_ERROR:
             ret_status="MAINTENANCE_RFC_ERROR";
             break;
-	case MAINT_RFC_ABORTED:
-	    ret_status="MAINTENANCE_RFC_ABORTED";
-	    break;
         case MAINT_LOGUPLOAD_COMPLETE:
             ret_status="MAINTENANCE_LOGUPLOAD_COMPLETE";
             break;
         case MAINT_LOGUPLOAD_ERROR:
             ret_status="MAINTENANCE_LOGUPLOAD_ERROR";
             break;
-	case MAINT_LOGUPLOAD_ABORTED:
-	    ret_status="MAINTENANCE_LOGUPLOAD_ABORTED";
-	    break;
         case MAINT_PINGTELEMETRY_COMPLETE: /* TODO: Can these be removed */
             ret_status="MAINTENANCE_PINGTELEMETRY_COMPLETE";
             break;
@@ -431,8 +425,41 @@ namespace WPEFramework {
 			retry_count--;
 		    }
 		    if (task_status != 0){
-		        LOGINFO("Task Failed even after retry, setting as Aborted");
-			/* TODO: Add Abort Status Set Logic for Task */
+		        LOGINFO("Task Failed even after retry, setting task as Error");
+
+			if (cmd.find("RFCbase.sh") != string::npos){
+			    if (m_task_map[task[i].c_str()] != true){
+				LOGINFO("Ignoring Event RFC_ERROR");
+			    }
+			    else{
+				SET_STATUS(g_task_status, RFC_COMPLETE);
+				task_thread.notify_one();
+				LOGINFO("Error encountered in RFC script task \n");
+				m_task_map[task[i].c_str()] = false;
+			    }
+			}
+			else if (cmd.find("swupdate_utility.sh") != std::string::npos) {
+			    if (m_task_map[task[i].c_str()] != true) {
+			        LOGINFO("Ignoring Event MAINT_FWDOWNLOAD_ERROR");
+			    } 
+			    else {
+				SET_STATUS(g_task_status, DIFD_COMPLETE);
+				task_thread.notify_one();
+				LOGINFO("Error encountered in SWUPDATE script task \n");
+				m_task_map[task[i].c_str()] = false;
+			    }
+			}
+			else if (cmd.find("Start_uploadSTBLogs.sh") != std::string::npos) {
+			    if (m_task_map[tas[i].c_str()] != true) {
+				LOGINFO("Ignoring Event MAINT_LOGUPLOAD_ERROR");
+			    } 
+			    else {
+				SET_STATUS(g_task_status, LOGUPLOAD_COMPLETE);
+				task_thread.notify_one();
+				LOGINFO("Error encountered in LOGUPLOAD script task \n");
+				m_task_map[task[i].c_str()] = false;
+			    }
+			}		    
 		    }
 		    else{
 			LOGINFO("Waiting to unlock.. [%d/%d]",i+1,(int)tasks.size());
@@ -1106,7 +1133,6 @@ namespace WPEFramework {
                                 task_thread.notify_one();
                                 m_task_map[task_names_foreground[2].c_str()]=false;
                             }
-
                             break;
                         case MAINT_REBOOT_REQUIRED :
                             SET_STATUS(g_task_status,REBOOT_REQUIRED);
