@@ -2708,6 +2708,8 @@ namespace WPEFramework {
         catch(...){
             LOGERR("Exception caught while reading territory file");
             resp = false;
+            response["territory"] = "";
+            response["region"] = "";
         }
 		returnResponse(resp);
 	}
