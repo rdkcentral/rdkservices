@@ -427,42 +427,33 @@ namespace WPEFramework {
 		    if (task_status != 0){
 		        LOGINFO("Task Failed even after retry, setting task as Error");
 
+			const char* current_task = nullptr;
+			int complete_status = 0;
+
 			if (cmd.find("RFCbase.sh") != string::npos){
-			    if (m_task_map[task[i].c_str()] != true){
-				LOGINFO("Ignoring Event RFC_ERROR");
-			    }
-			    else{
-				SET_STATUS(g_task_status, RFC_COMPLETE);
-				task_thread.notify_one();
-				LOGINFO("Error encountered in RFC script task \n");
-				m_task_map[task[i].c_str()] = false;
-			    }
-			}
+			    current_task = task_names_foreground[0].c_str();
+			    complete_status = RFC_COMPLETE;
+			} 
 			else if (cmd.find("swupdate_utility.sh") != std::string::npos) {
-			    if (m_task_map[task[i].c_str()] != true) {
-			        LOGINFO("Ignoring Event MAINT_FWDOWNLOAD_ERROR");
-			    } 
-			    else {
-				SET_STATUS(g_task_status, DIFD_COMPLETE);
-				task_thread.notify_one();
-				LOGINFO("Error encountered in SWUPDATE script task \n");
-				m_task_map[task[i].c_str()] = false;
-			    }
-			}
+			    current_task = task_names_foreground[1].c_str();
+			    complete_status = DIFD_COMPLETE;
+			} 
 			else if (cmd.find("Start_uploadSTBLogs.sh") != std::string::npos) {
-			    if (m_task_map[tas[i].c_str()] != true) {
-				LOGINFO("Ignoring Event MAINT_LOGUPLOAD_ERROR");
-			    } 
-			    else {
-				SET_STATUS(g_task_status, LOGUPLOAD_COMPLETE);
-				task_thread.notify_one();
-				LOGINFO("Error encountered in LOGUPLOAD script task \n");
-				m_task_map[task[i].c_str()] = false;
-			    }
-			}		    
+			    current_task = task_names_foreground[2].c_str();
+			    complete_status = LOGUPLOAD_COMPLETE;
+			}
+
+			if (current_task && m_task_map[current_task] != true) {
+			    LOGINFO("Ignoring Error Event for Task: %s", current_task);
+			} else if (current_task) {
+			    SET_STATUS(g_task_status, complete_status);
+			    task_thread.notify_one();
+			    LOGINFO("Error encountered in %s script task \n", current_task);
+			    m_task_map[current_task] = false;
+			}
 		    }
 		    else{
-			LOGINFO("Waiting to unlock.. [%d/%d]",i+1,(int)tasks.size());
+			LOGINFO("Waiting to unlock.. [%d/%d]", i+1, (int)tasks.size());
                         task_thread.wait(lck);
 		    }
                 }
