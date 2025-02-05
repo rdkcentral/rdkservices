@@ -1132,13 +1132,6 @@ namespace WPEFramework {
                         case MAINT_CRITICAL_UPDATE:
                             g_is_critical_maintenance="true";
                             break;
-                        case MAINT_RFC_ABORTED:
-                            SET_STATUS(g_task_status,TASK_SKIPPED);
-                            SET_STATUS(g_task_status,RFC_COMPLETE);
-                            task_thread.notify_one();
-                            m_task_map[task_names_foreground[0].c_str()]=false;
-                            LOGINFO("RFC task aborted \n");
-                            break;
 			case MAINT_FWDOWNLOAD_ABORTED:
                             SET_STATUS(g_task_status,TASK_SKIPPED);
                             /* Set FWDOWNLOAD Task as completed */
@@ -1146,13 +1139,6 @@ namespace WPEFramework {
                             task_thread.notify_one();
                             m_task_map[task_names_foreground[1].c_str()]=false;
                             LOGINFO("FW Download task aborted \n");
-                            break;
-			case MAINT_LOGUPLOAD_ABORTED:
-                            SET_STATUS(g_task_status,TASK_SKIPPED);
-                            SET_STATUS(g_task_status,LOGUPLOAD_COMPLETE);
-                            task_thread.notify_one();
-                            m_task_map[task_names_foreground[2].c_str()]=false;
-                            LOGINFO("Log Upload task aborted \n");
                             break;
                         case MAINT_RFC_ERROR:
                             if(task_status_RFC->second != true) {
