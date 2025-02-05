@@ -3468,6 +3468,7 @@ namespace WPEFramework
                 return;
 
 	    SendKeyInfo keyInfo = {-1,-1};
+	    // Test
 
             while(!_instance->m_sendKeyEventThreadExit)
             {
