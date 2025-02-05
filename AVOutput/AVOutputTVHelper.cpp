@@ -266,7 +266,7 @@ namespace Plugin {
     {
         int mode = 0;
         tvDolbyMode_t dolbyModes[tvMode_Max];
-        tvDolbyMode_t *dolbyModesPtr[tvMode_Max];
+        tvDolbyMode_t *dolbyModesPtr[tvMode_Max]={0};
         unsigned short totalAvailable = 0;
 
         for (int i = 0; i < tvMode_Max; i++)
