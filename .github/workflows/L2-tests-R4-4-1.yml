@@ -105,7 +105,6 @@ jobs:
         run: |
           cd ${{github.workspace}}/rdkservices
           patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0003-R4.4.1-LocationSync-compilation-error.patch
-          patch -p1 < ${{github.workspace}}/rdkservices/Tests/L2Tests/patches/0003-R4.4.1-SystemAudioPlayer-compilation-error.patch
           cd -
 
       - name: Build Thunder

@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [1.0.11] - 2025-02-05
+### Fixed
+- Moved interface into ThunderInterfaces
+
 ## [1.0.10] - 2024-07-12
 ### Fixed
 - Changed set volume for realtek soc

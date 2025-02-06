@@ -23,7 +23,6 @@ add_library(${MODULE_NAME} SHARED
         Module.cpp
         SystemAudioPlayer.cpp
         SystemAudioPlayerJsonRpc.cpp
-        ProxyStubs_SystemAudioPlayer.cpp
         SystemAudioPlayerImplementation.cpp
         impl/AudioPlayer.cpp
         impl/BufferQueue.cpp
