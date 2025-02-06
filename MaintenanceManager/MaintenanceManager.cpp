@@ -215,7 +215,7 @@ namespace WPEFramework {
         cSettings MaintenanceManager::m_setting(MAINTENANCE_MGR_RECORD_FILE);
 
         string task_names_foreground[]={
-            "/lib/rdk/RFCbase.sh",
+            "/lib/rdk/Start_RFC.sh",
             "/lib/rdk/swupdate_utility.sh >> /opt/logs/swupdate.log",
             "/lib/rdk/Start_uploadSTBLogs.sh"
         };
@@ -430,7 +430,7 @@ namespace WPEFramework {
 			const char* current_task = nullptr;
 			int complete_status = 0;
 
-			if (cmd.find("RFCbase.sh") != string::npos){
+			if (cmd.find("Start_RFC.sh") != string::npos){
 			    current_task = task_names_foreground[0].c_str();
 			    complete_status = RFC_COMPLETE;
 			} 
@@ -666,10 +666,10 @@ namespace WPEFramework {
         {
 	    int rfc_task_status = -1;
 	    int xconf_imagecheck_status = -1;
-	    LOGINFO("Starting Script /lib/rdk/RFCbase.sh");
-	    rfc_task_status = system("/lib/rdk/RFCbase.sh &");
+	    LOGINFO("Starting Script /lib/rdk/Start_RFC.sh");
+	    rfc_task_status = system("/lib/rdk/Start_RFC.sh &");
 	    if (rfc_task_status != 0){
-	        LOGINFO("Failed to run RFCbase.sh \n");
+	        LOGINFO("Failed to run Start_RFC.sh \n");
 	    }
             LOGINFO("Starting Script /lib/rdk/xconfImageCheck.sh");
             xconf_imagecheck_status = system("/lib/rdk/xconfImageCheck.sh >> /opt/logs/swupdate.log 2>&1 &");
