@@ -95,7 +95,6 @@ include_directories(../../LocationSync
         ../../MaintenanceManager
         ../../Packager
         ../../TextToSpeech
-        ../../SystemAudioPlayer
         ../../Miracast/common
         ../../Miracast/MiracastService
         ../../Miracast/MiracastService/P2P
@@ -137,7 +136,6 @@ link_directories(../../LocationSync
         ../../MaintenanceManager
         ../../Packager
         ../../TextToSpeech
-        ../../SystemAudioPlayer
 	../../Miracast
 	../../Bluetooth
         )
@@ -178,7 +176,6 @@ target_link_libraries(${PROJECT_NAME}
         ${NAMESPACE}MaintenanceManager
         ${NAMESPACE}Packager
         ${NAMESPACE}TextToSpeech
-        ${NAMESPACE}SystemAudioPlayer
 	${NAMESPACE}MiracastService
 	${NAMESPACE}MiracastPlayer
 	${NAMESPACE}Bluetooth

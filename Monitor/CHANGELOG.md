@@ -16,6 +16,10 @@ All notable changes to this RDK Service will be documented in this file.
 
 * For more details, refer to [versioning](https://github.com/rdkcentral/rdkservices#versioning) section under Main README.
 
+## [2.0.1] - 2025-02-06
+### Changed
+- Thread Restart Logic removed due to recent Monitor Sync up. Bring back the Delay changes in Thread Restart Logic
+
 ## [2.0.0] - 2024-12-12
 ### Changed
 - Synced Monitor Plugin with WebPlatformForEmbedded/ThunderNanoServicesRDK/tree/R4_4/Monitor
