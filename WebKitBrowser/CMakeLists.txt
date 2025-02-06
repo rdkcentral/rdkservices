@@ -270,6 +270,20 @@ add_library(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} SHARED
     Tags.cpp
     )
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/../cmake")
+find_package(DS REQUIRED)
+find_package(IARMBus REQUIRED)
+target_include_directories(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION}
+    PRIVATE
+    ${IARMBUS_INCLUDE_DIRS}
+    ${DS_INCLUDE_DIRS}
+    ../helpers)
+
+target_link_libraries(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION}
+    PRIVATE
+    ${IARMBUS_LIBRARIES}
+    ${DS_LIBRARIES})
+
 if(NOT WEBKIT_GLIB_API)
     target_sources(${PLUGIN_WEBKITBROWSER_IMPLEMENTATION} PRIVATE InjectedBundle/Utils.cpp)
 endif()

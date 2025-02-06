@@ -26,6 +26,20 @@
 
 #include "Module.h"
 
+#include "host.hpp"
+#include "videoDevice.hpp"
+#include "manager.hpp"
+#include "dsUtl.h"
+#include "dsError.h"
+#include "dsMgr.h"
+#include "dsTypes.h"
+#include "list.hpp"
+#include "videoOutputPort.hpp"
+#include "videoOutputPortType.hpp"
+#include "videoOutputPortConfig.hpp"
+#include "UtilsJsonRpc.h"
+#include "UtilsIarm.h"
+
 #ifdef WEBKIT_GLIB_API
 #include <wpe/webkit.h>
 #include "Tags.h"
@@ -384,6 +398,9 @@ static GSourceFuncs _handlerIntervention =
                                  #endif
                                  public PluginHost::IStateControl {
     public:
+        static WebKitImplementation* _instance;
+        static WebKitImplementation *getInstance() {return _instance;}
+
         class BundleConfig : public Core::JSON::Container {
         private:
             using BundleConfigMap = std::map<string, Core::JSON::String>;
@@ -936,6 +953,7 @@ static GSourceFuncs _handlerIntervention =
 
             // The WebKitBrowser (WPE) can only be instantiated once (it is a process wide singleton !!!!)
             ASSERT(implementation == nullptr);
+            WebKitImplementation::_instance = this;
 
             implementation = this;
         }
@@ -958,6 +976,7 @@ static GSourceFuncs _handlerIntervention =
             }
 
             implementation = nullptr;
+            WebKitImplementation::_instance = nullptr;
         }
 
     public:
@@ -1841,6 +1860,17 @@ static GSourceFuncs _handlerIntervention =
             return static_cast<uint32_t>(fps);
         }
 
+        void UnregisterIARMEvents()
+        {
+            if (Utils::IARM::isConnected())
+            {
+                IARM_Result_t res = IARM_RESULT_SUCCESS;
+                IARM_CHECK( IARM_Bus_RemoveEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, EventHandler) );
+                device::Manager::DeInitialize();
+                TRACE(Trace::Information, (_T("Removed IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG & uninitialized DS Mgr")));
+            }
+        }
+
         void Register(Exchange::IWebBrowser::INotification* sink) override
         {
             _adminLock.Lock();
@@ -2220,6 +2250,69 @@ static GSourceFuncs _handlerIntervention =
         void SetResponseHTTPStatusCode(int32_t code)
         {
             _httpStatusCode = code;
+        }
+
+	void IARMEventHandler()
+	{
+#ifdef WEBKIT_GLIB_API
+            bool hdrCaps = GetHDRCapabilities();
+            TRACE(Trace::Information, (_T("Setting HDR caps in IARM Event Handler: %d"), hdrCaps));
+            webkit_settings_set_screen_supports_hdr(webkit_web_view_get_settings(_view), hdrCaps);
+            TRACE(Trace::Information, (_T("Getting HDR caps: %d"), webkit_settings_get_screen_supports_hdr(webkit_web_view_get_settings(_view))));
+#endif
+	}
+
+        static void EventHandler(const char *owner, IARM_EventId_t eventId, void *data, size_t len)
+        {
+            if(eventId == IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG)
+            {
+                TRACE(Trace::Information, (_T("IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG received")));
+                WebKitImplementation::getInstance()->IARMEventHandler();
+            }
+        }
+
+        bool GetHDRCapabilities()
+        {
+            int stbCaps = -1;
+            int tvCaps = -1;
+            bool retValue = false;
+
+            IARM_Result_t res = IARM_RESULT_SUCCESS;
+            TRACE(Trace::Information, (_T("Initializing IARM Bus")));
+            if(!Utils::IARM::init())
+            {
+                TRACE(Trace::Information, (_T("Utils::IARM::init() failed or already initialized")));
+                return retValue;
+            }
+
+            device::Manager::Initialize();
+            IARM_CHECK( IARM_Bus_RegisterEventHandler(IARM_BUS_DSMGR_NAME, IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG, EventHandler) );
+            TRACE(Trace::Information, (_T("Registered IARM_BUS_DSMGR_EVENT_HDMI_HOTPLUG received & initialized DS Mgr")));
+
+            // Get STB HDR capabilities
+            device::VideoDevice decoder = device::Host::getInstance().getVideoDevices().at(0);
+            decoder.getHDRCapabilities(&stbCaps);
+            TRACE(Trace::Information, (_T("STB HDRCapabilities - [%d]"), stbCaps));
+
+            // Get TV HDR capabilities
+            std::string strVideoPort = device::Host::getInstance().getDefaultVideoPortName();
+            device::VideoOutputPort vPort = device::VideoOutputPortConfig::getInstance().getPort(strVideoPort.c_str());
+
+            if(vPort.isDisplayConnected())
+            {
+                vPort.getTVHDRCapabilities(&tvCaps);
+            }
+
+            TRACE(Trace::Information, (_T("TV HDRCapabilities - [%d]"), tvCaps));
+
+            if(stbCaps > 0 && tvCaps > 0)
+            {
+                retValue = true;
+            }
+
+            TRACE(Trace::Information, (_T("HDRCapabilities - [%d]"), retValue));
+            TRACE(Trace::Information, (_T("GetHDRCapabilities : returning %s"), retValue ? "true" : "false"));
+            return retValue;
         }
 
         uint32_t Configure(PluginHost::IShell* service) override
@@ -3061,6 +3154,10 @@ static GSourceFuncs _handlerIntervention =
                 }, this, nullptr);
             }
 
+#ifdef WEBKIT_GLIB_API
+            webkit_settings_set_screen_supports_hdr(webkit_web_view_get_settings(_view), GetHDRCapabilities());
+#endif
+
             auto* userContentManager = webkit_web_view_get_user_content_manager(_view);
             // webkit_user_content_manager_register_script_message_handler_in_world(userContentManager, "wpeNotifyWPEFramework", std::to_string(_guid).c_str());
             g_signal_connect(userContentManager, "script-message-received::wpeNotifyWPEFramework",
@@ -3106,6 +3203,8 @@ static GSourceFuncs _handlerIntervention =
             _adminLock.Unlock();
 
             g_main_loop_run(_loop);
+
+            UnregisterIARMEvents();
 
             if (frameDisplayedCallbackID)
                 webkit_web_view_remove_frame_displayed_callback(_view, frameDisplayedCallbackID);
@@ -3637,6 +3736,7 @@ static GSourceFuncs _handlerIntervention =
     };
 
     SERVICE_REGISTRATION(WebKitImplementation, 1, 0);
+    WebKitImplementation* WebKitImplementation::_instance = nullptr;
 
 #ifndef WEBKIT_GLIB_API
     // Handles synchronous messages from injected bundle.
