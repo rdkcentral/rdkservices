@@ -140,12 +140,6 @@ string moduleStatusToString(IARM_Maint_module_status_t &status)
         case MAINT_LOGUPLOAD_ERROR:
             ret_status="MAINTENANCE_LOGUPLOAD_ERROR";
             break;
-        case MAINT_PINGTELEMETRY_COMPLETE: /* TODO: Can these be removed */
-            ret_status="MAINTENANCE_PINGTELEMETRY_COMPLETE";
-            break;
-        case MAINT_PINGTELEMETRY_ERROR:
-            ret_status="MAINTENANCE_PINGTELEMETRY_ERROR";
-            break;
         case MAINT_FWDOWNLOAD_COMPLETE:
             ret_status="MAINTENANCE_FWDOWNLOAD_COMPLETE";
             break;
