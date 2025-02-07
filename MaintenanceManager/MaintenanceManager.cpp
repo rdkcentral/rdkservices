@@ -210,7 +210,7 @@ namespace WPEFramework {
 
         string task_names_foreground[]={
             "/lib/rdk/Start_RFC.sh",
-            "/lib/rdk/swupdate_utility.sh >> /opt/logs/swupdate.log",
+            "/lib/rdk/swupdate_utility.sh",
             "/lib/rdk/Start_uploadSTBLogs.sh"
         };
 
@@ -666,7 +666,7 @@ namespace WPEFramework {
 	        LOGINFO("Failed to run Start_RFC.sh \n");
 	    }
             LOGINFO("Starting Script /lib/rdk/xconfImageCheck.sh");
-            xconf_imagecheck_status = system("/lib/rdk/xconfImageCheck.sh >> /opt/logs/swupdate.log 2>&1 &");
+            xconf_imagecheck_status = system("/lib/rdk/xconfImageCheck.sh &");
 	    if (xconf_imagecheck_status != 0){
 	        LOGINFO("Failed to run xconfImageCheck.sh \n");
 	    }
