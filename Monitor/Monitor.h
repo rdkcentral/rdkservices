@@ -432,7 +432,11 @@ namespace Plugin {
             Core::JSON::ArrayType<Entry> Observables;
         };
 
+#ifdef USE_THUNDER_R4
+        class MonitorObjects : public PluginHost::IPlugin::INotification, public PluginHost::IPlugin::ILifeTime {
+#else
         class MonitorObjects : public PluginHost::IPlugin::INotification {
+#endif
         public:
             using Job = Core::ThreadPool::JobType<MonitorObjects>;
 
@@ -758,13 +762,22 @@ POP_WARNING()
                     if (_job.Submit() == true) {
                         TRACE(Trace::Information, (_T("Starting to probe as active observee appeared.")));
                     }
-
-                } 
-
+                }
+            }
+            void Unavailable(const string&, PluginHost::IShell*) override
+            {
             }
             void Deactivated (const string& callsign, PluginHost::IShell* service) override
             {
-
+#ifdef USE_THUNDER_R4
+            }
+            void Initialize(const string& callsign, PluginHost::IShell* service) override
+            {
+            }
+            void Deinitialized(const string& callsign, PluginHost::IShell* service) override
+            {
+#endif
+                /* See comment in the Dispatch method on why no locking is here to protect the _monitor member */
                 MonitorObjectContainer::iterator index(_monitor.find(callsign));
 
                 if (index != _monitor.end()) {
@@ -787,14 +800,14 @@ POP_WARNING()
                             _service->Notify(message);
                             _parent.event_action(callsign, "Activate", "Automatic");
                             TRACE(Trace::Error, (_T("Restarting %s again because we detected it misbehaved."), callsign.c_str()));
-			    Core::IWorkerPool::Instance().Schedule(Core::Time::Now().Add(5000), PluginHost::IShell::Job::Create(service, PluginHost::IShell::ACTIVATED, PluginHost::IShell::AUTOMATIC));
+#ifdef USE_THUNDER_R4
+                            Core::IWorkerPool::Instance().Submit(PluginHost::IShell::Job::Create(service, PluginHost::IShell::ACTIVATED, PluginHost::IShell::AUTOMATIC));
+#else
+                            Core::IWorkerPool::Instance().Schedule(Core::Time::Now().Add(5000), PluginHost::IShell::Job::Create(service, PluginHost::IShell::ACTIVATED, PluginHost::IShell::AUTOMATIC));
+#endif
                         }
-                    } 
+                    }
                 }
-
-            }
-            void Unavailable(const string&, PluginHost::IShell*) override
-            {
             }
             void Snapshot(Core::JSON::ArrayType<Monitor::Data>& snapshot) const
             {
@@ -900,6 +913,9 @@ POP_WARNING()
 
             BEGIN_INTERFACE_MAP(MonitorObjects)
             INTERFACE_ENTRY(PluginHost::IPlugin::INotification)
+#ifdef USE_THUNDER_R4
+            INTERFACE_ENTRY(PluginHost::IPlugin::ILifeTime)
+#endif
             END_INTERFACE_MAP
 
         private:
