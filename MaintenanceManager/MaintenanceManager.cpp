@@ -140,12 +140,6 @@ string moduleStatusToString(IARM_Maint_module_status_t &status)
         case MAINT_LOGUPLOAD_ERROR:
             ret_status="MAINTENANCE_LOGUPLOAD_ERROR";
             break;
-        case MAINT_PINGTELEMETRY_COMPLETE:
-            ret_status="MAINTENANCE_PINGTELEMETRY_COMPLETE";
-            break;
-        case MAINT_PINGTELEMETRY_ERROR:
-            ret_status="MAINTENANCE_PINGTELEMETRY_ERROR";
-            break;
         case MAINT_FWDOWNLOAD_COMPLETE:
             ret_status="MAINTENANCE_FWDOWNLOAD_COMPLETE";
             break;
@@ -215,8 +209,8 @@ namespace WPEFramework {
         cSettings MaintenanceManager::m_setting(MAINTENANCE_MGR_RECORD_FILE);
 
         string task_names_foreground[]={
-            "/lib/rdk/RFCbase.sh",
-            "/lib/rdk/swupdate_utility.sh >> /opt/logs/swupdate.log",
+            "/lib/rdk/Start_RFC.sh",
+            "/lib/rdk/swupdate_utility.sh",
             "/lib/rdk/Start_uploadSTBLogs.sh"
         };
 
@@ -406,6 +400,8 @@ namespace WPEFramework {
 #endif
             std::unique_lock<std::mutex> lck(m_callMutex);
             for( i = 0; i < tasks.size() && !m_abort_flag; i++) {
+		int task_status = -1;
+		int retry_count = TASK_RETRY_COUNT;
                 cmd = tasks[i];
                 cmd += " &";
                 cmd += "\0";
@@ -413,13 +409,49 @@ namespace WPEFramework {
 
                 if ( !m_abort_flag ){
                     LOGINFO("Starting Script (SM) :  %s \n",cmd.c_str());
-                    system(cmd.c_str());
+                    task_status = system(cmd.c_str());
 
-                    LOGINFO("Waiting to unlock.. [%d/%d]",i+1,(int)tasks.size());
-                    task_thread.wait(lck);
+		    while(task_status != 0 && retry_count > 0 && !m_abort_flag){
+			LOGINFO("%s invocation failed, retry after %d seconds (%d retries left)\n", cmd.c_str(), TASK_RETRY_DELAY, retry_count);
+			sleep(TASK_RETRY_DELAY);
+		        LOGINFO("Retrying Script (SM) : %s \n", cmd.c_str());
+			task_status = system(cmd.c_str());
+			retry_count--;
+		    }
+		    if (task_status != 0){
+		        LOGINFO("Task Failed even after retry, setting task as Error");
+
+			const char* current_task = nullptr;
+			int complete_status = 0;
+
+			if (cmd.find("Start_RFC.sh") != string::npos){
+			    current_task = task_names_foreground[0].c_str();
+			    complete_status = RFC_COMPLETE;
+			} 
+			else if (cmd.find("swupdate_utility.sh") != std::string::npos) {
+			    current_task = task_names_foreground[1].c_str();
+			    complete_status = DIFD_COMPLETE;
+			} 
+			else if (cmd.find("Start_uploadSTBLogs.sh") != std::string::npos) {
+			    current_task = task_names_foreground[2].c_str();
+			    complete_status = LOGUPLOAD_COMPLETE;
+			}
+
+			if (current_task && m_task_map[current_task] != true) {
+			    LOGINFO("Ignoring Error Event for Task: %s", current_task);
+			} else if (current_task) {
+			    SET_STATUS(g_task_status, complete_status);
+			    task_thread.notify_one();
+			    LOGINFO("Error encountered in %s script task \n", current_task);
+			    m_task_map[current_task] = false;
+			}
+		    }
+		    else{
+			LOGINFO("Waiting to unlock.. [%d/%d]", i+1, (int)tasks.size());
+                        task_thread.wait(lck);
+		    }
                 }
             }
-
 	    m_abort_flag=false;
             LOGINFO("Worker Thread Completed");
         }
@@ -626,11 +658,18 @@ namespace WPEFramework {
 
         void MaintenanceManager::startCriticalTasks()
         {
-	    LOGINFO("Starting Script /lib/rdk/RFCbase.sh");
-	    system("/lib/rdk/RFCbase.sh &");
-
+	    int rfc_task_status = -1;
+	    int xconf_imagecheck_status = -1;
+	    LOGINFO("Starting Script /lib/rdk/Start_RFC.sh");
+	    rfc_task_status = system("/lib/rdk/Start_RFC.sh &");
+	    if (rfc_task_status != 0){
+	        LOGINFO("Failed to run Start_RFC.sh \n");
+	    }
             LOGINFO("Starting Script /lib/rdk/xconfImageCheck.sh");
-            system("/lib/rdk/xconfImageCheck.sh >> /opt/logs/swupdate.log 2>&1 &");
+            xconf_imagecheck_status = system("/lib/rdk/xconfImageCheck.sh &");
+	    if (xconf_imagecheck_status != 0){
+	        LOGINFO("Failed to run xconfImageCheck.sh \n");
+	    }
         }
 
         const string MaintenanceManager::checkActivatedStatus()
@@ -1079,7 +1118,6 @@ namespace WPEFramework {
                                 task_thread.notify_one();
                                 m_task_map[task_names_foreground[2].c_str()]=false;
                             }
-
                             break;
                         case MAINT_REBOOT_REQUIRED :
                             SET_STATUS(g_task_status,REBOOT_REQUIRED);
@@ -1088,7 +1126,7 @@ namespace WPEFramework {
                         case MAINT_CRITICAL_UPDATE:
                             g_is_critical_maintenance="true";
                             break;
-                        case MAINT_FWDOWNLOAD_ABORTED:
+			case MAINT_FWDOWNLOAD_ABORTED:
                             SET_STATUS(g_task_status,TASK_SKIPPED);
                             /* Set FWDOWNLOAD Task as completed */
                             SET_STATUS(g_task_status,DIFD_COMPLETE);
