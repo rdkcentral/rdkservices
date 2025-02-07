@@ -31,14 +31,16 @@ find_package(GStreamer REQUIRED)
 
 find_library(GLIB_LIBRARY NAMES glib-2.0 )
 
-add_library(${MODULE_NAME} SHARED Module.cpp MiracastPlayer.cpp MiracastGstPlayer.cpp ../common/MiracastLogger.cpp ../common/MiracastCommon.cpp ../RTSP/MiracastRtspMsg.cpp)
+add_library(${MODULE_NAME} SHARED Module.cpp MiracastPlayer.cpp MiracastGstPlayer.cpp ../common/MiracastLogger.cpp ../common/MiracastCommon.cpp RTSP/MiracastRTSPMsg.cpp)
 
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
         CXX_STANDARD_REQUIRED YES)
 
 target_include_directories(${MODULE_NAME} PRIVATE ./)
-target_include_directories(${MODULE_NAME} PRIVATE ../include)
+target_include_directories(${MODULE_NAME} PRIVATE ./RTSP)
+target_include_directories(${MODULE_NAME} PRIVATE ./HDCP)
+target_include_directories(${MODULE_NAME} PRIVATE ../common)
 target_include_directories(${MODULE_NAME} PRIVATE ../../helpers)
 target_include_directories(${MODULE_NAME} PRIVATE ${IARMBUS_INCLUDE_DIRS})
 target_include_directories(${MODULE_NAME} PRIVATE ${GLIB_INCLUDE_DIRS})
@@ -55,6 +57,16 @@ target_link_libraries(${MODULE_NAME} PRIVATE ${GSTREAMER_LIBRARIES})
 target_link_libraries(${MODULE_NAME} PRIVATE ${GSTREAMERBASE_LIBRARIES})
 target_link_libraries(${MODULE_NAME} PRIVATE -lpthread)
 target_link_libraries(${MODULE_NAME} PRIVATE -lrdkloggers)
+
+target_sources(${MODULE_NAME} PRIVATE HDCP/MiracastHDCPState.cpp)
+if (BUILD_BROADCOM)
+        target_sources(${MODULE_NAME} PRIVATE HDCP/Broadcom/SoC_abstraction.cpp)
+elseif (BUILD_REALTEK)
+        target_sources(${MODULE_NAME} PRIVATE HDCP/Realtek/SoC_abstraction.cpp)
+elseif (BUILD_AMLOGIC)
+        target_sources(${MODULE_NAME} PRIVATE HDCP/Amlogic/SoC_abstraction.cpp)
+        target_link_libraries(${MODULE_NAME} PRIVATE -lwfd_hdcp)
+endif()
 
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)

@@ -26,7 +26,7 @@
 #include <sys/types.h>
 #include <sys/syscall.h>
 #include "MiracastLogger.h"
-#include "MiracastController.h"
+#include "MiracastRTSPMsg.h"
 #include "MiracastGstPlayer.h"
 
 MiracastGstPlayer *MiracastGstPlayer::mMiracastGstPlayer{nullptr};

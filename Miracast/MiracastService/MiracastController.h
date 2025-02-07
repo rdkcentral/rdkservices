@@ -35,7 +35,6 @@
 #include <MiracastCommon.h>
 #include "MiracastP2P.h"
 #include "MiracastLogger.h"
-#include "MiracastRtspMsg.h"
 
 using namespace std;
 using namespace MIRACAST;
@@ -143,8 +142,6 @@ private:
     /*members for interacting with wpa_supplicant*/
     MiracastP2P *m_p2p_ctrl_obj;
 
-    MiracastRTSPMsg *m_rtsp_msg;
-    //MiracastThread *m_thunder_req_handler_thread;
     MiracastThread *m_controller_thread;
     int m_tcpserverSockfd;
     eCONTROLLER_FW_STATES convertP2PtoSessionActions(P2P_EVENTS eventId);
