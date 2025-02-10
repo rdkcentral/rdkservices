@@ -670,18 +670,21 @@ namespace WPEFramework {
 
         void MaintenanceManager::startCriticalTasks()
         {
-	    int rfc_task_status = -1;
-	    int xconf_imagecheck_status = -1;
-	    LOGINFO("Starting Script /lib/rdk/Start_RFC.sh");
-	    rfc_task_status = system("/lib/rdk/Start_RFC.sh &");
-	    if (rfc_task_status != 0){
-	        LOGINFO("Failed to run Start_RFC.sh \n");
-	    }
+            LOGINFO("Starting Critical Tasks...");
+            int rfc_task_status = -1;
+            int xconf_imagecheck_status = -1;
+
+            LOGINFO("Starting Script /lib/rdk/Start_RFC.sh");
+            rfc_task_status = system("/lib/rdk/Start_RFC.sh &");
+            if (rfc_task_status != 0){
+                LOGINFO("Failed to run Start_RFC.sh with %d", WEXITSTATUS(rfc_task_status));
+            }
+
             LOGINFO("Starting Script /lib/rdk/xconfImageCheck.sh");
             xconf_imagecheck_status = system("/lib/rdk/xconfImageCheck.sh &");
-	    if (xconf_imagecheck_status != 0){
-	        LOGINFO("Failed to run xconfImageCheck.sh \n");
-	    }
+            if (xconf_imagecheck_status != 0){
+                LOGINFO("Failed to run xconfImageCheck.sh with %d", WEXITSTATUS(xconf_imagecheck_status));
+            }
         }
 
         const string MaintenanceManager::checkActivatedStatus()

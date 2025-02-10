@@ -88,8 +88,8 @@ typedef enum{
 #define RFC_COMPLETE                    1
 #define LOGUPLOAD_SUCCESS               2
 #define LOGUPLOAD_COMPLETE              3
-#define SWUPDATE_SUCCESS                    4
-#define SWUPDATE_COMPLETE                   5
+#define SWUPDATE_SUCCESS                4
+#define SWUPDATE_COMPLETE               5
 #define REBOOT_REQUIRED                 6
 #define TASK_SKIPPED                    7
 #define TASKS_STARTED                   8
