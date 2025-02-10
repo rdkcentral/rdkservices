@@ -211,14 +211,12 @@ namespace WPEFramework {
                         string *error = NULL, int timeout = 30000);
 
                 /* Timer Implementation */
-                /*
                 static void timer_handler(int signo);
                 static timer_t timerid;
                 static string currentScript;
                 static bool scriptCompleted;
                 void startTimer();
                 void stopTimer();
-                */
 
                 BEGIN_INTERFACE_MAP(MaintenanceManager)
                 INTERFACE_ENTRY(PluginHost::IPlugin)

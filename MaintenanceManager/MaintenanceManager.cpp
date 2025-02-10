@@ -204,6 +204,11 @@ namespace WPEFramework {
 
         cSettings MaintenanceManager::m_setting(MAINTENANCE_MGR_RECORD_FILE);
 
+        /* Static Member Definitions */
+        timer_t MaintenanceManager::timerid;
+        string MaintenanceManager::currentScript;
+        bool MaintenanceManager::scriptCompleted = false;
+
         string task_names_foreground[]={
             "/lib/rdk/Start_RFC.sh",
             "/lib/rdk/swupdate_utility.sh",
@@ -233,21 +238,20 @@ namespace WPEFramework {
         /**
          * Register MaintenanceManager module as wpeframework plugin
          */
-        MaintenanceManager::MaintenanceManager()
-            :PluginHost::JSONRPC()
+        MaintenanceManager::MaintenanceManager():PluginHost::JSONRPC()
         {
             MaintenanceManager::_instance = this;
-	    if (Utils::directoryExists(MAINTENANCE_MGR_RECORD_FILE))
+            if (Utils::directoryExists(MAINTENANCE_MGR_RECORD_FILE))
             {
-                std::cout << "File " << MAINTENANCE_MGR_RECORD_FILE << " detected as folder, deleting.." << std::endl;
+                LOGINFO("File %s detected as folder, deleting..", MAINTENANCE_MGR_RECORD_FILE);
                 if (rmdir(MAINTENANCE_MGR_RECORD_FILE) == 0)
                 {
-		    cSettings mtemp(MAINTENANCE_MGR_RECORD_FILE);
-		    MaintenanceManager::m_setting = mtemp;
+                    cSettings mtemp(MAINTENANCE_MGR_RECORD_FILE);
+                    MaintenanceManager::m_setting = mtemp;
                 }
                 else
                 {
-                     std::cout << "Unable to delete folder: " << MAINTENANCE_MGR_RECORD_FILE << std::endl;
+                     LOGINFO("Unable to delete folder: %s", MAINTENANCE_MGR_RECORD_FILE);
                 }
             }
 
@@ -278,46 +282,46 @@ namespace WPEFramework {
             MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[1].c_str()] = DATA_TYPE::WDMP_STRING;
             MaintenanceManager::m_paramType_map[kDeviceInitContextKeyVals[2].c_str()] = DATA_TYPE::WDMP_STRING;
 #endif /* WhoAmI */
-         }
+        }
 
         void MaintenanceManager::task_execution_thread(){
-            uint8_t i=0;
+            int i=0;
             string cmd="";
             bool internetConnectStatus=false;
-	    bool delayMaintenanceStarted = false;
+            bool delayMaintenanceStarted = false;
             bool exitOnNoNetwork = false;
 
             std::unique_lock<std::mutex> wailck(m_waiMutex);
             LOGINFO("Executing Maintenance tasks");
 
 #if defined(ENABLE_WHOAMI)
-	    /* Purposefully delaying MAINTENANCE_STARTED status to honor POWER compliance */
-	    if (UNSOLICITED_MAINTENANCE == g_maintenance_type) {
-	    	delayMaintenanceStarted = true;
-	    }
+	        /* Purposefully delaying MAINTENANCE_STARTED status to honor POWER compliance */
+	        if (UNSOLICITED_MAINTENANCE == g_maintenance_type) {
+	    	    delayMaintenanceStarted = true;
+	        }
 #endif
-	    if (!delayMaintenanceStarted) {
-		m_statusMutex.lock();
+	        if (!delayMaintenanceStarted) {
+                m_statusMutex.lock();
                 MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
                 m_statusMutex.unlock();
-	    }
+	        }
 
             /* cleanup if not empty */
             if(!tasks.empty()){
                 tasks.erase (tasks.begin(),tasks.end());
             }
 
-            /* Controlled by CFLAGS */
+/* Controlled by CFLAGS */
 #if defined(SUPPRESS_MAINTENANCE) && !defined(ENABLE_WHOAMI)
             bool activationStatus=false;
             bool skipFirmwareCheck=false;
             activationStatus = getActivatedStatus(skipFirmwareCheck); /* Activation Check */
 
             /* we proceed with network check only if activationStatus is
-             * "activation-connect", 
-	     * "activation-ready",
-             * "not-activated", 
-	     * "activated" */
+            * "activation-connect", 
+            * "activation-ready",
+            * "not-activated", 
+            * "activated" */
             if(activationStatus){
                 internetConnectStatus = isDeviceOnline(); /* Network Check */
             }
@@ -326,40 +330,37 @@ namespace WPEFramework {
 #endif
 
 #if defined(ENABLE_WHOAMI)
-	    if (UNSOLICITED_MAINTENANCE == g_maintenance_type) /* Unsolicited Maintenance in WHOAMI */
-	    {
-		string activation_status = checkActivatedStatus(); /* Device Activation Status Check */
-		bool whoAmIStatus = knowWhoAmI(activation_status); /* WhoAmI Response & Set Status Check */
-		LOGINFO("knowWhoAmI() returned %s", (whoAmIStatus) ? "successfully" : "false");
-	
-		if (!whoAmIStatus && activation_status != "activated")
-		{
-		    LOGINFO("knowWhoAmI() returned false and Device is not already Activated");
-	            g_listen_to_deviceContextUpdate = true;
-	            LOGINFO("Waiting for onDeviceInitializationContextUpdate event");
-	            task_thread.wait(wailck);
+	        if (UNSOLICITED_MAINTENANCE == g_maintenance_type) /* Unsolicited Maintenance in WHOAMI */
+	        {
+                string activation_status = checkActivatedStatus(); /* Device Activation Status Check */
+                bool whoAmIStatus = knowWhoAmI(activation_status); /* WhoAmI Response & Set Status Check */
+                LOGINFO("knowWhoAmI() returned %s", (whoAmIStatus) ? "successfully" : "false");
+            
+                if (!whoAmIStatus && activation_status != "activated")
+                {
+                    LOGINFO("knowWhoAmI() returned false and Device is not already Activated");
+	                g_listen_to_deviceContextUpdate = true;
+	                LOGINFO("Waiting for onDeviceInitializationContextUpdate event");
+	                task_thread.wait(wailck);
+	            }
+	            else if (!internetConnectStatus && activation_status == "activated")
+                {
+                    LOGINFO("Device is not connected to the Internet and Device is already Activated");
+                    exitOnNoNetwork = true;
+                }
 	        }
-	        else if (!internetConnectStatus && activation_status == "activated") 
-		{
-		    LOGINFO("Device is not connected to the Internet and Device is already Activated");
-		    exitOnNoNetwork = true;
-		}
-	    }
-	    else /* Solicited Maintenance in WHOAMI */
-	    {
-		if(!internetConnectStatus)
-		{
-		    exitOnNoNetwork = true;
-		}
-	    }
+	        else /* Solicited Maintenance in WHOAMI */
+	        {
+                if(!internetConnectStatus)
+                    exitOnNoNetwork = true;
+	        }
 #else
-	    if(!internetConnectStatus)
-	    {
-		    exitOnNoNetwork = true;
-	    }
+	        if(!internetConnectStatus){
+                exitOnNoNetwork = true;
+            }
 #endif
-	    if(exitOnNoNetwork) /* Exit Maintenance Cycle if no Internet */
-	    {
+	        if(exitOnNoNetwork) /* Exit Maintenance Cycle if no Internet */
+	        {
                 m_statusMutex.lock();
                 MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
                 m_statusMutex.unlock();
@@ -371,40 +372,41 @@ namespace WPEFramework {
                 return;
             }
 
-	    if (delayMaintenanceStarted) {
-		m_statusMutex.lock();
+	        if (delayMaintenanceStarted) {
+                m_statusMutex.lock();
                 MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_STARTED);
                 m_statusMutex.unlock();
-	    }
-
+	        }
+        
             LOGINFO("Reboot_Pending :%s",g_is_reboot_pending.c_str());
-	    LOGINFO("%s", UNSOLICITED_MAINTENANCE == g_maintenance_type ? "---------------UNSOLICITED_MAINTENANCE--------------" : "=============SOLICITED_MAINTENANCE===============");
+	        LOGINFO("%s", UNSOLICITED_MAINTENANCE == g_maintenance_type ? "---------------UNSOLICITED_MAINTENANCE--------------" : "=============SOLICITED_MAINTENANCE===============");
 #if defined(SUPPRESS_MAINTENANCE) && !defined(ENABLE_WHOAMI)
-                if(skipFirmwareCheck)
-		{
-                    /* set the task status of Firmware Download */
-                    SET_STATUS(g_task_status,SWUPDATE_SUCCESS);
-                    SET_STATUS(g_task_status,SWUPDATE_COMPLETE);
-                    /* Skip Firmware Download Task and add other tasks */
-                    tasks.push_back(task_names_foreground[0].c_str());
-                    tasks.push_back(task_names_foreground[2].c_str());
-		}
-		else
-		{
-		    tasks.push_back(task_names_foreground[0].c_str());
-		    tasks.push_back(task_names_foreground[1].c_str());
-		    tasks.push_back(task_names_foreground[2].c_str());
-		}
+            if(skipFirmwareCheck)
+		    {
+                /* set the task status of Firmware Download */
+                SET_STATUS(g_task_status,SWUPDATE_SUCCESS);
+                SET_STATUS(g_task_status,SWUPDATE_COMPLETE);
+                /* Skip Firmware Download Task and add other tasks */
+                tasks.push_back(task_names_foreground[0].c_str());
+                tasks.push_back(task_names_foreground[2].c_str());
+		    }
+		    else
+		    {
+		        tasks.push_back(task_names_foreground[0].c_str());
+		        tasks.push_back(task_names_foreground[1].c_str());
+		        tasks.push_back(task_names_foreground[2].c_str());
+		    }
 #else
             tasks.push_back(task_names_foreground[0].c_str());
             tasks.push_back(task_names_foreground[1].c_str());
             tasks.push_back(task_names_foreground[2].c_str());
 #endif
+            int retry_count = TASK_RETRY_COUNT;
             std::unique_lock<std::mutex> lck(m_callMutex);
             for (i = 0; i < tasks.size() && !m_abort_flag; i++)
             {
                 int task_status = -1;
-                int retry_count = TASK_RETRY_COUNT;
+                
                 cmd = tasks[i];
                 cmd += " &";
                 cmd += "\0";
@@ -413,6 +415,10 @@ namespace WPEFramework {
                 if (!m_abort_flag)
                 {
                     LOGINFO("Starting Script (SM) :  %s \n", cmd.c_str());
+                    if (retry_count == TASK_RETRY_COUNT){
+                        LOGINFO("Starting Timer for %s \n", cmd.c_str());
+                        startTimer();
+                    }
                     task_status = system(cmd.c_str());
 
                     if (task_status != 0)
@@ -421,7 +427,7 @@ namespace WPEFramework {
                         if (retry_count > 0){
                             LOGINFO("Retry %s after %d seconds (%d retries left)\n", cmd.c_str(), TASK_RETRY_DELAY, retry_count);
                             sleep(TASK_RETRY_DELAY);
-                            i--; // Decrement iterator to retry same task again
+                            i--; /* Decrement iterator to retry same task again */
                             retry_count--;
                             continue;
                         }
@@ -450,14 +456,17 @@ namespace WPEFramework {
                                 LOGINFO("Error encountered in %s script task", current_task);
                                 m_task_map[current_task] = false;
                             }
+                            stopTimer();
                         }
                     }
                     else
                     {
+                        stopTimer();
                         LOGINFO("Waiting to unlock.. [%d/%d]", i + 1, (int)tasks.size());
                         task_thread.wait(lck);
                     }
                 }
+                retry_count = TASK_RETRY_COUNT; /* Reset Retry Count for next Task*/
             }
             m_abort_flag = false;
             LOGINFO("Worker Thread Completed");
@@ -496,7 +505,8 @@ namespace WPEFramework {
                         else {
                             LOGINFO("getDeviceInitializationContext failed");
                         }
-                    } else {
+                    } 
+                    else {
                         LOGINFO("Failed to get plugin handle");
                     }
                     if (!g_subscribed_for_deviceContextUpdate) {
@@ -512,7 +522,7 @@ namespace WPEFramework {
                         sleep(SECMGR_RETRY_INTERVAL);
                     }
                     else {
-			LOGINFO("%s is not active. Device is already Activated. Hence exiting from knoWhoAmI()", secMgr_callsign);
+                        LOGINFO("%s is not active. Device is already Activated. Hence exiting from knoWhoAmI()", secMgr_callsign);
                         return success;
                     }
                 }
@@ -534,19 +544,65 @@ namespace WPEFramework {
                         reinterpret_cast<const uint8_t*>(payload.c_str()),
                         token)
                     == Core::ERROR_NONE) {
-                    std::cout << "MaintenanceManager got security token" << std::endl;
+                    LOGINFO("[getThunderPluginHandle] MaintenanceManager got security token");
                 } else {
-                    std::cout << "MaintenanceManager failed to get security token" << std::endl;
+                    LOGINFO("[getThunderPluginHandle] MaintenanceManager failed to get security token");
                 }
                 security->Release();
             } else {
-                std::cout << "No security agent" << std::endl;
+                LOGINFO("[getThunderPluginHandle] No security agent");
             }
 
             string query = "token=" + token;
             Core::SystemInfo::SetEnvironment(_T("THUNDER_ACCESS"), _T(SERVER_DETAILS));
             thunder_client = new WPEFramework::JSONRPC::LinkType<Core::JSON::IElement>(callsign, "", false, query);
             return thunder_client;
+        }
+
+        // TBD: Check Implementation & add proper handling
+        void MaintenanceManager::startTimer(){
+            struct itimerspec its;
+
+            its.it_value.tv_sec = TASK_TIMEOUT;
+            its.it_value.tv_nsec = 0;
+            its.it_interval.tv_sec = 0;
+            its.it_interval.tv_nsec = 0;
+
+            if (timer_settime(timerid, 0, &its, NULL) == -1)
+            {
+                LOGERR("[ERROR] Failed to start timer");
+            }
+            else
+            {
+                LOGINFO("Timer started for %d seconds for %s", TASK_TIMEOUT, currentScript.c_str());
+            }
+        }
+
+        // TBD: Check Implementation & add proper handling
+        void MaintenanceManager::stopTimer()
+        {
+            struct itimerspec its = {};
+            its.it_value.tv_sec = 0;
+            its.it_value.tv_nsec = 0;
+
+            if (timer_settime(timerid, 0, &its, NULL) == -1)
+            {
+                LOGERR("[ERROR] Failed to stop timer");
+            }
+            else
+            {
+                LOGINFO("Timer stopped for %s", currentScript.c_str());
+            }
+        }
+
+        // TBD: Check Implementation & add proper handling
+        void MaintenanceManager::timer_handler(int signo)
+        {
+            if (signo == SIGALRM)
+            {
+                LOGERR("[TIMEOUT HANDLER] Timeout reached for %s. Aborting task...", currentScript.c_str());
+                abortTask(currentScript.c_str(), SIGTERM);
+            }
         }
 
         bool MaintenanceManager::setRFC(const char* rfc, const char* value, DATA_TYPE dataType)
@@ -566,7 +622,7 @@ namespace WPEFramework {
 
         void MaintenanceManager::setPartnerId(string partnerid)
         {
-	    LOGINFO("Initiate setPartnerId...");
+            LOGINFO("Initiate setPartnerId...");
             const char* authservice_callsign = "org.rdk.AuthService.1";
             PluginHost::IShell::state state;
             WPEFramework::JSONRPC::LinkType<WPEFramework::Core::JSON::IElement>* thunder_client = nullptr;
@@ -576,19 +632,21 @@ namespace WPEFramework {
 
                 if (thunder_client == nullptr) {
                     LOGINFO("Failed to get plugin handle");
-                } else {
+                } 
+                else {
                     JsonObject joGetParams;
                     JsonObject joGetResult;
 
                     joGetParams["partnerId"] = partnerid;
 
                     thunder_client->Invoke<JsonObject, JsonObject>(5000, "setPartnerId", joGetParams, joGetResult);
-		    string responseJson;
-		    joGetResult.ToString(responseJson);
-	            LOGINFO("AuthService Response Data: %s", responseJson.c_str());
+                    string responseJson;
+                    joGetResult.ToString(responseJson);
+                    LOGINFO("AuthService Response Data: %s", responseJson.c_str());
                     if (joGetResult.HasLabel("success") && joGetResult["success"].Boolean()) {
                         LOGINFO("Successfully set the partnerId via Authservice");
-                    } else {
+                    } 
+                    else {
                         LOGINFO("Failed to set the partnerId through Authservice");
                     }
                 }
@@ -606,7 +664,8 @@ namespace WPEFramework {
             thunder_client = getThunderPluginHandle(network_callsign);
             if (thunder_client == nullptr) {
                 LOGINFO("Failed to get plugin handle");
-            } else {
+            } 
+            else {
                 status = thunder_client->Subscribe<JsonObject>(5000, event, &MaintenanceManager::internetStatusChangeEventHandler, this);
                 if (status == Core::ERROR_NONE) {
                     result = true;
@@ -626,7 +685,6 @@ namespace WPEFramework {
 
                 LOGINFO("Received onInternetStatusChange event: [%s:%d]", value.c_str(), state);
                 if (g_listen_to_nwevents) {
-
                     if (state == INTERNET_CONNECTED_STATE) {
                         startCriticalTasks();
                         g_listen_to_nwevents = false;
@@ -729,13 +787,13 @@ namespace WPEFramework {
                         reinterpret_cast<const uint8_t*>(payload.c_str()),
                         token)
                     == Core::ERROR_NONE) {
-                    std::cout << "MaintenanceManager got security token" << std::endl;
+                    LOGINFO("[CheckActivationStatus] MaintenanceManager got security token");
                 } else {
-                    std::cout << "MaintenanceManager failed to get security token" << std::endl;
+                    LOGINFO("[CheckActivationStatus] MaintenanceManager failed to get security token");
                 }
                 security->Release();
             } else {
-                std::cout << "No security agent" << std::endl;
+                LOGINFO("[CheckActivationStatus] No security agent");
             }
 
             string query = "token=" + token;
@@ -808,8 +866,7 @@ namespace WPEFramework {
                     ret_result = true;
             }
 
-            LOGINFO("ret_result: [%s] skipFirmwareCheck:[%s]"
-                    ,(ret_result)? "true":"false",(skipFirmwareCheck)?"true":"false");
+            LOGINFO("ret_result: [%s] skipFirmwareCheck:[%s]",(ret_result)? "true":"false",(skipFirmwareCheck)?"true":"false");
             return ret_result;
         }
 
@@ -849,13 +906,13 @@ namespace WPEFramework {
                         reinterpret_cast<const uint8_t*>(payload.c_str()),
                         token)
                     == Core::ERROR_NONE) {
-                    std::cout << "MaintenanceManager got security token" << std::endl;
+                    LOGINFO("[checkNetwork] MaintenanceManager got security token");
                 } else {
-                    std::cout << "MaintenanceManager failed to get security token" << std::endl;
+                    LOGINFO("[checkNetwork] MaintenanceManager failed to get security token");
                 }
                 security->Release();
             } else {
-                std::cout << "No security agent" << std::endl;
+                LOGINFO("[checkNetwork] No security agent");
             }
 
             string query = "token=" + token;
@@ -882,23 +939,22 @@ namespace WPEFramework {
         {
             bool network_available =  false;
             LOGINFO("Checking device has network connectivity\n");
-
-	    /* add 4 checks every 30 seconds */
+            /* add 4 checks every 30 seconds */
             network_available = checkNetwork();
-	    if (!network_available) {
+            if (!network_available) {
                 int retry_count = 0;
-		while (retry_count < MAX_NETWORK_RETRIES) {
+                while (retry_count < MAX_NETWORK_RETRIES) {
                     LOGINFO("Network not available. Sleeping for %d seconds", NETWORK_RETRY_INTERVAL);
                     sleep(NETWORK_RETRY_INTERVAL);
-		    LOGINFO("Network retries [%d/%d] \n", ++retry_count, MAX_NETWORK_RETRIES);
-		    network_available = checkNetwork();
+                    LOGINFO("Network retries [%d/%d] \n", ++retry_count, MAX_NETWORK_RETRIES);
+                    network_available = checkNetwork();
                     if (network_available) {
-	                break;
-		    }
-		}
-	    }
-	    return network_available;
-	}
+                        break;
+                    }
+                }
+            }
+            return network_available;
+        }
 
     bool MaintenanceManager::setDeviceInitializationContext(JsonObject response_data) {
         bool setDone = false;
@@ -925,7 +981,7 @@ namespace WPEFramework {
 
                 // Set the RFC values for deviceInitializationContext parameters
                 setRFC(rfc_parameter.c_str(), paramValue.c_str(), rfc_dataType);
-		LOGINFO("deviceInitializationContext parameters set successfully via RFC");
+                LOGINFO("deviceInitializationContext parameters set successfully via RFC");
 
                 if (strcmp(key.c_str(), "partnerId") == 0)
                 {
@@ -978,6 +1034,7 @@ namespace WPEFramework {
             MaintenanceManager::_instance = nullptr;
         }
 
+        // TBD: Check Implementation & add proper handling
         const string MaintenanceManager::Initialize(PluginHost::IShell* service)
         {
             ASSERT(service != nullptr);
@@ -991,15 +1048,44 @@ namespace WPEFramework {
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             InitializeIARM();
 #endif
+
+            // Register Signal Handler
+            if (signal(SIGALRM, timer_handler) == SIG_ERR)
+            {
+                LOGERR("[ERROR] Failed to register signal handler");
+                return string("[ERROR] Failed to register signal handler");
+            }
+
+            // Create Timer
+            struct sigevent sev = {};
+            sev.sigev_notify = SIGEV_SIGNAL;
+            sev.sigev_signo = SIGALRM;
+            sev.sigev_value.sival_ptr = &timerid;
+
+            if (timer_create(BASE_CLOCK, &sev, &timerid) == -1)
+            {
+                LOGERR("[Error] Failed to create timer");
+                return string("[Error] Failed to create timer");
+            }
             /* On Success; return empty to indicate no error text. */
             return (string());
         }
 
+        // TBD: Check Implementation & add proper handling
         void MaintenanceManager::Deinitialize(PluginHost::IShell* service)
         {
+            if (timer_delete(timerid) == -1)
+            {
+                LOGERR("Failed to delete timer");
+            }
+            else
+            {
+                LOGINFO("Timer deleted.");
+            }
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             stopMaintenanceTasks();
             DeinitializeIARM();
+            //TBD: Check if Timer exist -> if so delete timer
 #endif
 
             ASSERT(service == m_service);
@@ -1212,7 +1298,7 @@ namespace WPEFramework {
                  * Until that Maintenance is in started state */
                 if ( (g_task_status & TASKS_COMPLETED ) == TASKS_COMPLETED ){
                     if ( (g_task_status & ALL_TASKS_SUCCESS) == ALL_TASKS_SUCCESS ){ // all tasks success
-                        LOGINFO("DBG:Maintenance Successfully Completed!!");
+                        LOGINFO("Maintenance Successfully Completed!!");
                         notify_status=MAINTENANCE_COMPLETE;
                         /*  we store the time in persistent location */
                         successfulTime=time(nullptr);
@@ -1228,11 +1314,11 @@ namespace WPEFramework {
                     /* Check other than all success cases which means we have errors */
                     else if ((g_task_status & ALL_TASKS_SUCCESS)!= ALL_TASKS_SUCCESS) {
                         if ((g_task_status & MAINTENANCE_TASK_SKIPPED ) == MAINTENANCE_TASK_SKIPPED ){
-                            LOGINFO("DBG:There are Skipped Task. Maintenance Incomplete");
+                            LOGINFO("There are Skipped Task. Maintenance Incomplete");
                             notify_status=MAINTENANCE_INCOMPLETE;
                         }
                         else {
-                            LOGINFO("DBG:Maintenance Ended with Errors");
+                            LOGINFO("Maintenance Ended with Errors");
                             notify_status=MAINTENANCE_ERROR;
                         }
 
@@ -1300,7 +1386,7 @@ namespace WPEFramework {
         uint32_t MaintenanceManager::getMaintenanceActivityStatus(const JsonObject& parameters,
                 JsonObject& response)
                 {
-		    LOGINFO("Request for getMaintenanceActivityStatus()");
+                    LOGINFO("Request for getMaintenanceActivityStatus()");
                     bool result = false;
                     string isCriticalMaintenance = "false";
                     string isRebootPending = "false";
@@ -1492,9 +1578,9 @@ namespace WPEFramework {
             string old_mode = g_currentMode;
             string bg_flag = "false";
             string new_optout_state = "";
-	    bool rdkvfwrfc=false;
-	    // 1 = Foreground and 0 = background
-	    int mode = 1;
+            bool rdkvfwrfc=false;
+            // 1 = Foreground and 0 = background
+            int mode = 1;
 
             rdkvfwrfc = readRFC(TR181_RDKVFWUPGRADER);
             /* Label should have maintenance mode and softwareOptout field */
@@ -1626,7 +1712,7 @@ namespace WPEFramework {
                         * especially when device is in offline mode*/
                         if(m_thread.joinable()){
                             m_thread.join();
-                            LOGINFO("Thread joined successfully\n");
+                            LOGINFO("Thread joined successfully");
                         }
 
                         m_thread = std::thread(&MaintenanceManager::task_execution_thread, _instance);
@@ -1648,21 +1734,19 @@ namespace WPEFramework {
          * @return: Core::<StatusCode>
          */
 
-        uint32_t MaintenanceManager::stopMaintenance(const JsonObject& parameters,
-                JsonObject& response){
-
+        uint32_t MaintenanceManager::stopMaintenance(const JsonObject& parameters,JsonObject& response){
                 bool result=false;
                 if( readRFC(TR181_STOP_MAINTENANCE) ) {
                     result=stopMaintenanceTasks();
                 }
                 else {
-                    LOGINFO("Failed to initiate stopMaintenance, RFC is set as False\n");
+                    LOGINFO("Failed to initiate stopMaintenance, RFC is set as False");
                 }
                 returnResponse(result);
         }
 
         bool MaintenanceManager::stopMaintenanceTasks(){
-		LOGINFO("Request for stopMaintenance()");
+            LOGINFO("Request for stopMaintenance()");
 	        string codeDLtask;
             int k_ret=EINVAL;
             int i=0;
@@ -1703,24 +1787,25 @@ namespace WPEFramework {
                         LOGINFO("Task[%d] is false \n",i);
                     }
                 }
-
+                // TBD: Check if timer exist & running -> if so stop and delete the timer
                 result=true;
             }
             else {
-                LOGERR("Failed to stopMaintenance without starting maintenance \n");
+                LOGERR("Failed to stopMaintenance without starting maintenance");
+                // TBD: check if timer exist -> if so delete timer
             }
             task_thread.notify_one();
 
             if(m_thread.joinable()){
                 m_thread.join();
-                LOGINFO("Thread joined successfully\n");
+                LOGINFO("Thread joined successfully");
             }
 
             if (UNSOLICITED_MAINTENANCE == g_maintenance_type && !g_unsolicited_complete){
                 g_unsolicited_complete = true;
 	    }
             
-            LOGINFO("Maintenance has been stopped. Hence setting maintenance status to MAINTENANCE_ERROR\n");
+            LOGINFO("Maintenance has been stopped. Hence setting maintenance status to MAINTENANCE_ERROR");
             MaintenanceManager::_instance->onMaintenanceStatusChange(MAINTENANCE_ERROR);
             m_statusMutex.unlock();
 
