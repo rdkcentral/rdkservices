@@ -80,12 +80,16 @@ typedef enum{
 #define TASK_RETRY_COUNT                1
 #define TASK_RETRY_DELAY                5
 
+#ifndef TASK_TIMEOUT
+#define TASK_TIMEOUT                    3600 /* Default Task Timeout is 1 Hour (3600 seconds)*/
+#endif
+
 #define RFC_SUCCESS                     0
 #define RFC_COMPLETE                    1
 #define LOGUPLOAD_SUCCESS               2
 #define LOGUPLOAD_COMPLETE              3
-#define DIFD_SUCCESS                    4
-#define DIFD_COMPLETE                   5
+#define SWUPDATE_SUCCESS                    4
+#define SWUPDATE_COMPLETE                   5
 #define REBOOT_REQUIRED                 6
 #define TASK_SKIPPED                    7
 #define TASKS_STARTED                   8

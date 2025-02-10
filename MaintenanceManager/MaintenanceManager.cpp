@@ -65,7 +65,7 @@ using namespace std;
 
 #define API_VERSION_NUMBER_MAJOR 1
 #define API_VERSION_NUMBER_MINOR 0
-#define API_VERSION_NUMBER_PATCH 41
+#define API_VERSION_NUMBER_PATCH 42
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
 
@@ -160,6 +160,7 @@ string moduleStatusToString(IARM_Maint_module_status_t &status)
     }
     return ret_status;
 }
+
 /**
  * @brief WPEFramework class for Maintenance Manager
  */
@@ -215,6 +216,12 @@ namespace WPEFramework {
         };
 
         vector<string> tasks;
+
+        const int task_complete_status[] = {
+            RFC_COMPLETE,
+            SWUPDATE_COMPLETE,
+            LOGUPLOAD_COMPLETE
+        };
 
         string script_names[]={
             "RFCbase.sh",
@@ -381,8 +388,8 @@ namespace WPEFramework {
                 if(skipFirmwareCheck)
 		{
                     /* set the task status of Firmware Download */
-                    SET_STATUS(g_task_status,DIFD_SUCCESS);
-                    SET_STATUS(g_task_status,DIFD_COMPLETE);
+                    SET_STATUS(g_task_status,SWUPDATE_SUCCESS);
+                    SET_STATUS(g_task_status,SWUPDATE_COMPLETE);
                     /* Skip Firmware Download Task and add other tasks */
                     tasks.push_back(task_names_foreground[0].c_str());
                     tasks.push_back(task_names_foreground[2].c_str());
@@ -399,60 +406,65 @@ namespace WPEFramework {
             tasks.push_back(task_names_foreground[2].c_str());
 #endif
             std::unique_lock<std::mutex> lck(m_callMutex);
-            for( i = 0; i < tasks.size() && !m_abort_flag; i++) {
-		int task_status = -1;
-		int retry_count = TASK_RETRY_COUNT;
+            for (i = 0; i < tasks.size() && !m_abort_flag; i++)
+            {
+                int task_status = -1;
+                int retry_count = TASK_RETRY_COUNT;
                 cmd = tasks[i];
                 cmd += " &";
                 cmd += "\0";
                 m_task_map[tasks[i]] = true;
 
-                if ( !m_abort_flag ){
-                    LOGINFO("Starting Script (SM) :  %s \n",cmd.c_str());
+                if (!m_abort_flag)
+                {
+                    LOGINFO("Starting Script (SM) :  %s \n", cmd.c_str());
                     task_status = system(cmd.c_str());
 
-		    while(task_status != 0 && retry_count > 0 && !m_abort_flag){
-			LOGINFO("%s invocation failed, retry after %d seconds (%d retries left)\n", cmd.c_str(), TASK_RETRY_DELAY, retry_count);
-			sleep(TASK_RETRY_DELAY);
-		        LOGINFO("Retrying Script (SM) : %s \n", cmd.c_str());
-			task_status = system(cmd.c_str());
-			retry_count--;
-		    }
-		    if (task_status != 0){
-		        LOGINFO("Task Failed even after retry, setting task as Error");
+                    if (task_status != 0)
+                    {
+                        LOGINFO("%s invocation failed with return status %d", cmd.c_str(), WEXITSTATUS(task_status));
+                        if (retry_count > 0){
+                            LOGINFO("Retry %s after %d seconds (%d retries left)\n", cmd.c_str(), TASK_RETRY_DELAY, retry_count);
+                            sleep(TASK_RETRY_DELAY);
+                            i--; // Decrement iterator to retry same task again
+                            retry_count--;
+                            continue;
+                        }
+                        else{
+                            LOGINFO("Task Failed even after retries, setting task as Error");
 
-			const char* current_task = nullptr;
-			int complete_status = 0;
+                            const char *current_task = nullptr;
+                            int complete_status = 0;
 
-			if (cmd.find("Start_RFC.sh") != string::npos){
-			    current_task = task_names_foreground[0].c_str();
-			    complete_status = RFC_COMPLETE;
-			} 
-			else if (cmd.find("swupdate_utility.sh") != std::string::npos) {
-			    current_task = task_names_foreground[1].c_str();
-			    complete_status = DIFD_COMPLETE;
-			} 
-			else if (cmd.find("Start_uploadSTBLogs.sh") != std::string::npos) {
-			    current_task = task_names_foreground[2].c_str();
-			    complete_status = LOGUPLOAD_COMPLETE;
-			}
+                            for (size_t j = 0; j < size(task_name_foreground); j++){
+                                if (cmd.find(task_name_foreground[j]) != string::npos){
+                                    current_task = task_names_foreground[j].c_str();
+                                    complete_status = task_complete_status[j];
+                                    break;
+                                }
+                            }
 
-			if (current_task && m_task_map[current_task] != true) {
-			    LOGINFO("Ignoring Error Event for Task: %s", current_task);
-			} else if (current_task) {
-			    SET_STATUS(g_task_status, complete_status);
-			    task_thread.notify_one();
-			    LOGINFO("Error encountered in %s script task \n", current_task);
-			    m_task_map[current_task] = false;
-			}
-		    }
-		    else{
-			LOGINFO("Waiting to unlock.. [%d/%d]", i+1, (int)tasks.size());
+                            if (current_task && !m_task_map[current_task])
+                            {
+                                LOGINFO("Ignoring Error Event for Task: %s", current_task);
+                            }
+                            else if (current_task)
+                            {
+                                SET_STATUS(g_task_status, complete_status);
+                                task_thread.notify_one();
+                                LOGINFO("Error encountered in %s script task", current_task);
+                                m_task_map[current_task] = false;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        LOGINFO("Waiting to unlock.. [%d/%d]", i + 1, (int)tasks.size());
                         task_thread.wait(lck);
-		    }
+                    }
                 }
             }
-	    m_abort_flag=false;
+            m_abort_flag = false;
             LOGINFO("Worker Thread Completed");
         }
 
@@ -1101,8 +1113,8 @@ namespace WPEFramework {
                                  break;
                             }
                             else {
-                                SET_STATUS(g_task_status,DIFD_SUCCESS);
-                                SET_STATUS(g_task_status,DIFD_COMPLETE);
+                                SET_STATUS(g_task_status,SWUPDATE_SUCCESS);
+                                SET_STATUS(g_task_status,SWUPDATE_COMPLETE);
                                 task_thread.notify_one();
                                 m_task_map[task_names_foreground[1].c_str()]=false;
                             }
@@ -1129,7 +1141,7 @@ namespace WPEFramework {
 			case MAINT_FWDOWNLOAD_ABORTED:
                             SET_STATUS(g_task_status,TASK_SKIPPED);
                             /* Set FWDOWNLOAD Task as completed */
-                            SET_STATUS(g_task_status,DIFD_COMPLETE);
+                            SET_STATUS(g_task_status,SWUPDATE_COMPLETE);
                             task_thread.notify_one();
                             m_task_map[task_names_foreground[1].c_str()]=false;
                             LOGINFO("FW Download task aborted \n");
@@ -1166,7 +1178,7 @@ namespace WPEFramework {
                                  break;
                             }
                             else {
-                                SET_STATUS(g_task_status,DIFD_COMPLETE);
+                                SET_STATUS(g_task_status,SWUPDATE_COMPLETE);
                                 task_thread.notify_one();
                                 LOGINFO("Error encountered in SWUPDATE script task \n");
                                 m_task_map[task_names_foreground[1].c_str()]=false;
