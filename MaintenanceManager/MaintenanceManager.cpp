@@ -68,7 +68,6 @@ using namespace std;
 #define API_VERSION_NUMBER_PATCH 42
 #define SERVER_DETAILS  "127.0.0.1:9998"
 
-
 #define PROC_DIR "/proc"
 #define MAINTENANCE_MANAGER_RFC_CALLER_ID "MaintenanceManager"
 #define TR181_AUTOREBOOT_ENABLE "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Feature.AutoReboot.Enable"
@@ -80,8 +79,6 @@ using namespace std;
 #define TR181_TARGET_OS_CLASS "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.OsClass"
 #define TR181_XCONFURL "Device.DeviceInfo.X_RDKCENTRAL-COM_RFC.Bootstrap.XconfUrl"
 #endif /* WhoAmI */
-
-#define INTERNET_CONNECTED_STATE 3
 
 string notifyStatusToString(Maint_notify_status_t &status)
 {
@@ -181,10 +178,8 @@ namespace WPEFramework {
     }
 
     namespace Plugin {
-
         namespace {
             // MaintenanceManager should use interfaces
-
             uint32_t getServiceState(PluginHost::IShell* shell, const string& callsign, PluginHost::IShell::state& state)
             {
                 uint32_t result;
@@ -1735,16 +1730,16 @@ namespace WPEFramework {
         bool MaintenanceManager::readRFC(const char *rfc){
             bool ret=false;
             RFC_ParamData_t param;
-	    if (rfc == NULL) {
+            if (rfc == NULL) {
                 return ret;
-	    }
+            }
             WDMP_STATUS wdmpStatus = getRFCParameter(const_cast<char *>("MaintenanceManager"),rfc, &param);
             if (wdmpStatus == WDMP_SUCCESS || wdmpStatus == WDMP_ERR_DEFAULT_VALUE){
-	        LOGINFO("rfc read success");
+                LOGINFO("rfc read success");
                 if( param.type == WDMP_BOOLEAN ){
-	            LOGINFO("rfc type is boolean");
+                    LOGINFO("rfc type is boolean");
                     if(strncasecmp(param.value,"true",4) == 0 ){
-	                LOGINFO("rfc value=%s", param.value);
+                        LOGINFO("rfc value=%s", param.value);
                         ret=true;
                     }
                 }
@@ -1756,10 +1751,9 @@ namespace WPEFramework {
 
         int MaintenanceManager::abortTask(const char* taskname, int sig_to_send){
             int k_ret=EINVAL;
-            pid_t pid_num;
-
-            pid_num=getTaskPID( taskname );
+            pid_t pid_num=getTaskPID( taskname );
             LOGINFO("PID of %s is %d \n", taskname , (int)pid_num);
+
             if( pid_num != -1){
                 /* send the signal to task to terminate */
                 k_ret = kill( pid_num, sig_to_send );
@@ -1779,8 +1773,12 @@ namespace WPEFramework {
 
         /* Helper function to find the Script/Task PID*/
         pid_t MaintenanceManager::getTaskPID(const char* taskname){
-
             DIR* dir=opendir(PROC_DIR);
+            if (!dir){
+                LOGINFO("Failed to open %s", PROC_DIR);
+                return -1;
+            }
+
             struct dirent* ent;
             char* endptr;
             char buf[512];
@@ -1790,6 +1788,7 @@ namespace WPEFramework {
                 if (*endptr != '\0') {
                     continue;
                 }
+
                 /* Get the PID */
                 snprintf(buf, sizeof(buf), "/proc/%ld/cmdline", lpid);
 
@@ -1799,7 +1798,7 @@ namespace WPEFramework {
                     char *arg = 0;
                     size_t size = 0;
                     while(getdelim(&arg, &size, 0,fp) != -1){
-                        printf("%s\n",arg);
+                        LOGINFO("%s\n",arg);
                         char* first = strstr(arg, taskname);
                         if (first != NULL){
                             free(arg);
