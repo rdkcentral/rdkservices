@@ -49,18 +49,8 @@ AudioPlayer::AudioPlayer(AudioType audioType,SourceType sourceType,PlayMode play
     {
         m_PCMFormat = "S16LE";
         m_Layout = "interleaved";
-        if(playMode == SYSTEM)
-        {
-            m_Rate = 44100;
-            m_Channels = 2;
-        }
-        else
-        {
-            // tts-mode for local tts
-            m_Rate = 22050;
-            m_Channels = 1;
-        }
-
+        m_Rate = 22050;
+        m_Channels = 1;
     }
 
     createPipeline(false);
