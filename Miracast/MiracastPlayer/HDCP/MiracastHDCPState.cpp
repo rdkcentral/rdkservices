@@ -4,10 +4,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-	void c_WfdHdcpStateEventCallback(SoC_WfdHdcpHandle handle, SoC_WfdHdcpEventType event)
-	{
-		MiracastHDCPState::getInstance()->WfdHdcpStateEventCallback(handle, event);
-	}
+    void c_WfdHdcpStateEventCallback(SoC_WfdHdcpHandle handle, SoC_WfdHdcpEventType event)
+    {
+        MIRACASTLOG_TRACE("Entering ...");
+        MiracastHDCPState::getInstance()->WfdHdcpStateEventCallback(handle, event);
+        MIRACASTLOG_TRACE("Exiting ...");
+    }
 #ifdef __cplusplus
 }
 #endif
@@ -66,6 +68,7 @@ MiracastHDCPState::MiracastHDCPState(std::string hdcp_version,unsigned int port)
 		m_level = SOC_HDCP_LEVEL_NONE;
 	}
 
+    MIRACASTLOG_INFO("version[%s] port[%u]",hdcp_version.c_str(),port);
 	ret = SoC_WfdHdcpInit(nullptr,port, &m_handle);
 	MIRACASTLOG_TRACE("ret=%d\n", ret);
 	switch(ret)
@@ -103,7 +106,6 @@ MiracastHDCPState::MiracastHDCPState(std::string hdcp_version,unsigned int port)
 		case SOC_HDCP_RESULT_ERROR_INTERNAL:
 			MIRACASTLOG_ERROR("WFD HDCP INTERNAL ERROR!");
 			break;
-
 		default:
 			MIRACASTLOG_ERROR("Undefine ERROR!");
 	}
@@ -116,7 +118,7 @@ MiracastHDCPState::~MiracastHDCPState()
 	if(m_handle)
 	{
 		SoC_WfdHdcpResultType ret = SoC_WfdHdcpDeinit(m_handle);
-		MIRACASTLOG_TRACE("SoC_WfdHdcpDeinit ret=%d\n", ret);
+		MIRACASTLOG_INFO("SoC_WfdHdcpDeinit ret=%d\n", ret);
 		m_handle = nullptr;
 	}
 	MIRACASTLOG_TRACE("Exiting ...");

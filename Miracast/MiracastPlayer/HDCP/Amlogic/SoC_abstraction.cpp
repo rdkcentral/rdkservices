@@ -18,6 +18,7 @@
  */
 #include <SoC_abstraction.h>
 #include <hdcp_module.h>
+#include "MiracastLogger.h"
 
 using namespace std;
 
@@ -25,6 +26,7 @@ SoC_WfdHdcpEventCallback gWfdHdcpEventCB = nullptr;
 
 static SoC_WfdHdcpResultType convert_WfdHdcpResultTypeToGeneric( amlWfdHdcpResultType resultType )
 {
+    MIRACASTLOG_TRACE("Entering ...");
     SoC_WfdHdcpResultType genericResultType = SOC_HDCP_RESULT_ERROR_INVALID_PARAMETER;
     switch (resultType)
     {
@@ -91,11 +93,14 @@ static SoC_WfdHdcpResultType convert_WfdHdcpResultTypeToGeneric( amlWfdHdcpResul
         default:
             break;
     }
+    MIRACASTLOG_INFO("resultType[%x] genericResultType[%x]",resultType,genericResultType);
+    MIRACASTLOG_TRACE("Exiting ...");
     return genericResultType;
 }
 
 static SoC_WfdHdcpEventType convert_WfdHdcpEventTypeToGeneric( amlWfdHdcpEventType eventType )
 {
+    MIRACASTLOG_TRACE("Entering ...");
     SoC_WfdHdcpEventType genericEventType = SOC_HDCP_EVENT_NOT_IMPLEMENTED;
     switch (eventType)
     {
@@ -142,11 +147,14 @@ static SoC_WfdHdcpEventType convert_WfdHdcpEventTypeToGeneric( amlWfdHdcpEventTy
         default:
             break;
     }
+    MIRACASTLOG_INFO("eventType[%x] genericEventType[%x]",eventType,genericEventType);
+    MIRACASTLOG_TRACE("Exiting ...");
     return genericEventType;
 }
 
 static SoC_WfdHdcpLevel convert_WfdHdcpLevelToGeneric( amlWfdHdcpLevel level )
 {
+    MIRACASTLOG_TRACE("Entering ...");
     SoC_WfdHdcpLevel genericHdcpLevel = SOC_HDCP_LEVEL_NONE;
     switch (level)
     {
@@ -183,16 +191,21 @@ static SoC_WfdHdcpLevel convert_WfdHdcpLevelToGeneric( amlWfdHdcpLevel level )
         default:
             break;
     }
+    MIRACASTLOG_INFO("level[%x] genericHdcpLevel[%x]",level,genericHdcpLevel);
+    MIRACASTLOG_TRACE("Exiting ...");
     return genericHdcpLevel;
 }
 
 static void SoC_WfdHdcpStateEventCallback(amlWfdHdcpHandle handle, amlWfdHdcpEventType event)
 {
+    MIRACASTLOG_TRACE("Entering [%x] ...",gWfdHdcpEventCB);
     if ( nullptr != gWfdHdcpEventCB )
     {
         SoC_WfdHdcpEventType genericEvent = convert_WfdHdcpEventTypeToGeneric(event);
+        MIRACASTLOG_TRACE("Triggering callback ...");
         gWfdHdcpEventCB( static_cast<SoC_WfdHdcpHandle>(handle) , genericEvent );
     }
+    MIRACASTLOG_TRACE("Exiting ...");
 }
 
 /**
@@ -208,6 +221,7 @@ static void SoC_WfdHdcpStateEventCallback(amlWfdHdcpHandle handle, amlWfdHdcpEve
 */
 SoC_WfdHdcpResultType SoC_WfdHdcpInitAsync(const char * host, uint16_t port, SoC_WfdHdcpEventCallback callback, SoC_WfdHdcpHandle * handle)
 {
+    MIRACASTLOG_TRACE("Entering ...");
     SoC_WfdHdcpResultType genericReturnType = SOC_HDCP_RESULT_ERROR_PREV_INSTANCE_NOT_FREED;
     amlWfdHdcpResultType returnType = HDCP_RESULT_ERROR_INVALID_PARAMETER;
     if ( nullptr == gWfdHdcpEventCB )
@@ -217,9 +231,11 @@ SoC_WfdHdcpResultType SoC_WfdHdcpInitAsync(const char * host, uint16_t port, SoC
         if ( HDCP_RESULT_SUCCESS != returnType )
         {
             gWfdHdcpEventCB = nullptr;
+            MIRACASTLOG_ERROR("amlWfdHdcpInitAsync failed [%x]",returnType);
         }
         genericReturnType = convert_WfdHdcpResultTypeToGeneric(returnType);
     }
+    MIRACASTLOG_TRACE("Exiting ...");
     return genericReturnType;
 }
 
@@ -233,7 +249,9 @@ SoC_WfdHdcpResultType SoC_WfdHdcpInitAsync(const char * host, uint16_t port, SoC
 */
 SoC_WfdHdcpResultType SoC_WfdHdcpDeinitAsync(SoC_WfdHdcpHandle handle)
 {
+    MIRACASTLOG_TRACE("Entering ...");
     amlWfdHdcpResultType returntype = amlWfdHdcpDeinitAsync( static_cast<amlWfdHdcpHandle>(handle) );
+    MIRACASTLOG_TRACE("Exiting [%x] ...",returntype);
     return convert_WfdHdcpResultTypeToGeneric(returntype);
 }
 
@@ -247,7 +265,9 @@ SoC_WfdHdcpResultType SoC_WfdHdcpDeinitAsync(SoC_WfdHdcpHandle handle)
 */
 SoC_WfdHdcpResultType SoC_WfdDestroyHandle(SoC_WfdHdcpHandle handle)
 {
+    MIRACASTLOG_TRACE("Entering ...");
     amlWfdHdcpResultType returntype = amlWfdDestroyHandle( static_cast<amlWfdHdcpHandle>(handle) );
+    MIRACASTLOG_TRACE("Exiting [%x] ...",returntype);
     return convert_WfdHdcpResultTypeToGeneric(returntype);
 }
 
@@ -263,7 +283,10 @@ SoC_WfdHdcpResultType SoC_WfdDestroyHandle(SoC_WfdHdcpHandle handle)
 */
 SoC_WfdHdcpResultType SoC_WfdHdcpInit(const char * host, uint16_t port, SoC_WfdHdcpHandle * handle)
 {
+    MIRACASTLOG_TRACE("Entering ...");
+    MIRACASTLOG_INFO("HdcpInit Params - host[%s] port[%u]",host ? host : "NA",port);
     amlWfdHdcpResultType returntype = amlWfdHdcpInit(host, port, static_cast<amlWfdHdcpHandle*>(handle));
+    MIRACASTLOG_TRACE("Exiting [%x] ...",returntype);
     return convert_WfdHdcpResultTypeToGeneric(returntype);
 }
 
@@ -277,7 +300,9 @@ SoC_WfdHdcpResultType SoC_WfdHdcpInit(const char * host, uint16_t port, SoC_WfdH
 */
 SoC_WfdHdcpResultType SoC_WfdHdcpDeinit(SoC_WfdHdcpHandle handle)
 {
+    MIRACASTLOG_TRACE("Entering ...");
     amlWfdHdcpResultType returntype = amlWfdHdcpDeinit( static_cast<amlWfdHdcpHandle>(handle));
+    MIRACASTLOG_TRACE("Exiting [%x] ...",returntype);
     return convert_WfdHdcpResultTypeToGeneric(returntype);
 }
 
@@ -293,6 +318,7 @@ SoC_WfdHdcpResultType SoC_WfdHdcpDeinit(SoC_WfdHdcpHandle handle)
 */
 SoC_WfdHdcpResultType SoC_WfdHdcpGetSupportLevel(SoC_WfdHdcpHandle handle, SoC_WfdHdcpLevel * level)
 {
+    MIRACASTLOG_TRACE("Entering ...");
     amlWfdHdcpResultType returntype = HDCP_RESULT_ERROR_INVALID_PARAMETER;
     amlWfdHdcpLevel HdcpLevel = HDCP_LEVEL_NONE;
 
@@ -301,8 +327,18 @@ SoC_WfdHdcpResultType SoC_WfdHdcpGetSupportLevel(SoC_WfdHdcpHandle handle, SoC_W
         returntype = amlWfdHdcpGetSupportLevel( static_cast<amlWfdHdcpHandle>(handle) , &HdcpLevel );
         if ( HDCP_RESULT_SUCCESS == returntype )
         {
+            MIRACASTLOG_INFO("Succes - HdcpLevel[%x]",HdcpLevel);
             *level = convert_WfdHdcpLevelToGeneric(HdcpLevel);
         }
+        else
+        {
+            MIRACASTLOG_ERROR("Failed - returntype[%x]",returntype);
+        }
     }
+    else
+    {
+        MIRACASTLOG_ERROR("level is null");
+    }
+    MIRACASTLOG_TRACE("Exiting [%x] ...",returntype);
     return convert_WfdHdcpResultTypeToGeneric(returntype);
 }
