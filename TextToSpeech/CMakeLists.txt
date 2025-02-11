@@ -32,6 +32,7 @@ add_library(${MODULE_NAME} SHARED
         impl/TTSURLConstructer.cpp
         impl/NetworkStatusObserver.cpp
         impl/SatToken.cpp
+        impl/RFCURLObserver.cpp
         )
 set_target_properties(${MODULE_NAME} PROPERTIES
         CXX_STANDARD 11
@@ -75,6 +76,10 @@ target_link_libraries(${MODULE_NAME} PRIVATE
     ${NAMESPACE}Definitions::${NAMESPACE}Definitions
     ${CURL_LIBRARY} ${GSTREAMER_LIBRARIES} ${AUDIO_CLIENT_LIB} ${WPEFRAMEWORK_SECURITYUTIL_LIBRARIES}
     )
+
+if(WPEFRAMEWORK_SECURITYUTIL_FOUND)
+    target_link_libraries(${MODULE_NAME} PRIVATE ${NAMESPACE}SecurityUtil)
+endif()
 
 install(TARGETS ${MODULE_NAME}
         DESTINATION lib/${STORAGE_DIRECTORY}/plugins)
