@@ -21,6 +21,7 @@ public:
 
     bool setEndPoint(const std::string endpoint);
     bool setSecureEndPoint(const std::string endpoint);
+    bool setRFCEndPoint(const std::string endpoint);
     bool setApiKey(const std::string apikey);
     bool setEndpointType(const std::string type);
     bool setLocalEndPoint(const std::string endpoint);
@@ -35,6 +36,7 @@ public:
     bool setSATPluginCallsign(const std::string callsign);
    
     bool isFallbackEnabled();
+    bool isRFCEnabled();
     bool hasValidLocalEndpoint();
     void saveFallbackPath(std::string);
     const std::string getFallbackScenario();
@@ -51,6 +53,11 @@ public:
     const std::string &speechRate() { return m_speechRate; }
     const std::string &language() { return m_language; }
     const std::string &satPluginCallsign() { return m_satPluginCallsign; }
+    const std::string &rfcEndPoint() { 
+        std::lock_guard<std::mutex> lock(m_mutex);
+        return  m_ttsRFCEndpoint; 
+    }
+
     const double &volume() { return m_volume; }
     const uint8_t &rate() { return m_rate; }
     const int8_t &primVolDuck() { return m_primVolDuck; }
@@ -71,6 +78,7 @@ private:
     std::string m_ttsEndPoint;
     std::string m_ttsEndPointSecured;
     std::string m_ttsEndPointLocal;
+    std::string m_ttsRFCEndpoint;
     std::string m_apiKey;
     std::string m_endpointType;
     std::string m_speechRate;
@@ -83,6 +91,7 @@ private:
     int8_t m_primVolDuck;
     bool m_preemptiveSpeaking;
     bool m_enabled;
+    bool m_ttsRFCEnabled;
     bool m_fallbackenabled;
     bool m_validLocalEndpoint;
     FallbackData m_data;
