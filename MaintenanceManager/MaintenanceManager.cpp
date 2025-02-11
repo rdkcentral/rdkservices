@@ -730,8 +730,29 @@ namespace WPEFramework {
         {
             if (signo == SIGALRM)
             {
-                LOGERR("[TIMEOUT HANDLER] Timeout reached for %s. Aborting task...", currentScript.c_str());
-                abortTask(currentScript.c_str(), SIGTERM);
+                LOGERR("Timeout reached for %s. Aborting task...", currentScript.c_str());
+                abortTask(currentScript.c_str());
+
+                const char* failedTask = nullptr;
+                int complete_status = 0;
+
+                for(size_t j = 0; j < std::size(task_name_foreground); j++){
+                    if(currentScript.find(task_name_foreground[j]) != string::npos){
+                        failedTask = task_name_foreground[j].c_str();
+                        complete_status = task_name_foreground[j];
+                        break;
+                    }
+                }
+
+                if(failedTask && !m_task_map[failedTask]){
+                    LOGINFO("Ignoring Error Event for Task: %s", failedTask);
+                }
+                else if (failedTask) {
+                    SET_STATUS(g_task_status, complete_status);
+                    task_thread.notify_one();
+                    LOGINFO("Abort %s Task", failedTask);
+                    m_task_map[failedTask] = false;
+                }
             }
         }
 
