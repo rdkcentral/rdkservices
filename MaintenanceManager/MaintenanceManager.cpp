@@ -290,6 +290,7 @@ namespace WPEFramework {
             bool internetConnectStatus=false;
             bool delayMaintenanceStarted = false;
             bool exitOnNoNetwork = false;
+            int retry_count = TASK_RETRY_COUNT;
 
             std::unique_lock<std::mutex> wailck(m_waiMutex);
             LOGINFO("Executing Maintenance tasks");
@@ -401,12 +402,10 @@ namespace WPEFramework {
             tasks.push_back(task_names_foreground[1].c_str());
             tasks.push_back(task_names_foreground[2].c_str());
 #endif
-            int retry_count = TASK_RETRY_COUNT;
             std::unique_lock<std::mutex> lck(m_callMutex);
-            for (i = 0; i < tasks.size() && !m_abort_flag; i++)
+            for (i = 0; i < static_cast<int>(tasks.size()) && !m_abort_flag; i++)
             {
                 int task_status = -1;
-                
                 cmd = tasks[i];
                 cmd += " &";
                 cmd += "\0";
@@ -438,8 +437,8 @@ namespace WPEFramework {
                             const char *current_task = nullptr;
                             int complete_status = 0;
 
-                            for (size_t j = 0; j < size(task_name_foreground); j++){
-                                if (cmd.find(task_name_foreground[j]) != string::npos){
+                            for (size_t j = 0; j < std::size(task_names_foreground); j++){
+                                if (cmd.find(task_names_foreground[j]) != string::npos){
                                     current_task = task_names_foreground[j].c_str();
                                     complete_status = task_complete_status[j];
                                     break;
@@ -736,10 +735,10 @@ namespace WPEFramework {
                 const char* failedTask = nullptr;
                 int complete_status = 0;
 
-                for(size_t j = 0; j < std::size(task_name_foreground); j++){
-                    if(currentScript.find(task_name_foreground[j]) != string::npos){
-                        failedTask = task_name_foreground[j].c_str();
-                        complete_status = task_name_foreground[j];
+                for(size_t j = 0; j < std::size(task_names_foreground); j++){
+                    if(currentScript.find(task_names_foreground[j]) != string::npos){
+                        failedTask = task_names_foreground[j].c_str();
+                        complete_status = task_names_foreground[j];
                         break;
                     }
                 }
