@@ -288,7 +288,7 @@ TTS_Error TTSManager::getConfiguration(Configuration &configuration) {
     TTSLOG_TRACE("Getting Default Configuration");
 
     configuration.ttsEndPoint = m_defaultConfiguration.endPoint();
-    configuration.ttsEndPointSecured = m_defaultConfiguration.secureEndPoint();
+    configuration.ttsEndPointSecured = m_defaultConfiguration.isRFCEnabled() ? m_defaultConfiguration.rfcEndPoint() : m_defaultConfiguration.secureEndPoint();
     configuration.language = m_defaultConfiguration.language();
     configuration.voice = m_defaultConfiguration.voice();
     configuration.speechRate = m_defaultConfiguration.speechRate();
