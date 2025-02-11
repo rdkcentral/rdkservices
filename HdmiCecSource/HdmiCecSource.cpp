@@ -434,7 +434,6 @@ namespace WPEFramework
  
        const string HdmiCecSource::Initialize(PluginHost::IShell* /* service */)
        {
-	   // Test commit
            LOGWARN("Initlaizing CEC_2");
            string msg;
            HdmiCecSource::_instance = this;
