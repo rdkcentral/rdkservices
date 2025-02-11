@@ -437,7 +437,7 @@ namespace WPEFramework {
                             const char *current_task = nullptr;
                             int complete_status = 0;
 
-                            for (size_t j = 0; j < std::size(task_names_foreground); j++){
+                            for (size_t j = 0; j < (sizeof(task_names_foreground)/sizeof(task_names_foreground[0])); j++){
                                 if (cmd.find(task_names_foreground[j]) != string::npos){
                                     current_task = task_names_foreground[j].c_str();
                                     complete_status = task_complete_status[j];
@@ -724,7 +724,6 @@ namespace WPEFramework {
             }
         }
 
-        // TBD: Check Implementation & add proper handling
         void MaintenanceManager::timer_handler(int signo)
         {
             if (signo == SIGALRM)
@@ -735,10 +734,10 @@ namespace WPEFramework {
                 const char* failedTask = nullptr;
                 int complete_status = 0;
 
-                for(size_t j = 0; j < std::size(task_names_foreground); j++){
+                for(size_t j = 0; j < (sizeof(task_names_foreground)/ sizeof(task_names_foreground[0])); j++){
                     if(currentScript.find(task_names_foreground[j]) != string::npos){
                         failedTask = task_names_foreground[j].c_str();
-                        complete_status = task_names_foreground[j];
+                        complete_status = task_complete_status[j];
                         break;
                     }
                 }
@@ -1184,7 +1183,6 @@ namespace WPEFramework {
             MaintenanceManager::_instance = nullptr;
         }
 
-        // TBD: Check Implementation & add proper handling
         const string MaintenanceManager::Initialize(PluginHost::IShell* service)
         {
             ASSERT(service != nullptr);
@@ -1215,14 +1213,12 @@ namespace WPEFramework {
             return (string());
         }
 
-        // TBD: Check Implementation & add proper handling
         void MaintenanceManager::Deinitialize(PluginHost::IShell* service)
         {
             deleteTimer();
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             stopMaintenanceTasks();
             DeinitializeIARM();
-            //TBD: Check if Timer exist -> if so delete timer
 #endif
 
             ASSERT(service == m_service);
@@ -1924,13 +1920,11 @@ namespace WPEFramework {
                         LOGINFO("Task[%d] is false \n",i);
                     }
                 }
-                // TBD: Check if timer exist & running -> if so stop and delete the timer
                 deleteTimer();
                 result=true;
             }
             else {
                 LOGERR("Failed to stopMaintenance without starting maintenance");
-                // TBD: check if timer exist -> if so delete timer
                 deleteTimer();
             }
             task_thread.notify_one();
