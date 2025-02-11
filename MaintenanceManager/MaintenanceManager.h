@@ -215,8 +215,13 @@ namespace WPEFramework {
                 static timer_t timerid;
                 static string currentScript;
                 static bool scriptCompleted;
+
+                bool checkTimerExists();
+                bool isTimerRunning();
+                bool createTimer();
                 void startTimer();
                 void stopTimer();
+                void deleteTimer();
 
                 BEGIN_INTERFACE_MAP(MaintenanceManager)
                 INTERFACE_ENTRY(PluginHost::IPlugin)

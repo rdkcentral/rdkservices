@@ -415,6 +415,7 @@ namespace WPEFramework {
                 if (!m_abort_flag)
                 {
                     LOGINFO("Starting Script (SM) :  %s \n", cmd.c_str());
+                    currentScript = cmd;
                     if (retry_count == TASK_RETRY_COUNT){
                         LOGINFO("Starting Timer for %s \n", cmd.c_str());
                         startTimer();
@@ -559,8 +560,83 @@ namespace WPEFramework {
             return thunder_client;
         }
 
-        // TBD: Check Implementation & add proper handling
+        bool MaintenanceManager::checkTimerExists() {
+            struct itimerspec current;
+            int result = timer_gettime(timerid, &current);
+            if (result == 0)
+            {
+                return true; /* Timer Exist */
+            }
+            else if (errno == EINVAL)
+            {
+                LOGERR("[ERROR] Timer does not exist (EINVAL)");
+            }
+            else
+            {
+                perror("[ERROR] timer_gettime");
+            }
+            return false;
+        }
+
+        bool MaintenanceManager::isTimerRunning()
+        {
+            struct itimerspec current;
+            if (timer_gettime(timerid, &current) == 0)
+            {
+                return (current.it_value.tv_sec != 0 || current.it_value.tv_nsec != 0); // Timer is running if non-zero time
+            }
+            else
+            {
+                perror("[ERROR] timer_gettime");
+                return false; // Timer_gettime failed
+            }
+        }
+
+        bool MaintenanceManager::createTimer()
+        {
+            if (checkTimerExists())
+            {
+                LOGINFO("Timer already exists.");
+                if (isTimerRunning())
+                {
+                    LOGINFO("Timer is already running. No need to create a new timer.");
+                    return false; // Timer exists and is running
+                }
+                else
+                {
+                    LOGINFO("Timer exists but is not running. Proceeding to create timer.");
+                }
+            }
+
+            struct sigevent sev = {};
+            sev.sigev_notify = SIGEV_SIGNAL;
+            sev.sigev_signo = SIGALRM;
+            sev.sigev_value.sival_ptr = &timerid;
+
+            if (timer_create(BASE_CLOCK, &sev, &timerid) == -1)
+            {
+                LOGERR("[Error] Failed to create timer");
+                return false; // Timer creation failed
+            }
+
+            LOGINFO("Timer created successfully.");
+            return true; // Timer created successfully
+        }
+
         void MaintenanceManager::startTimer(){
+
+            if (!checkTimerExists())
+            {
+                LOGERR("[ERROR] Timer does not exist. Unable to start timer.");
+                return;
+            }
+
+            if (isTimerRunning())
+            {
+                LOGINFO("Timer is already running. Not starting a new timer.");
+                return;
+            }
+
             struct itimerspec its;
 
             its.it_value.tv_sec = TASK_TIMEOUT;
@@ -578,9 +654,20 @@ namespace WPEFramework {
             }
         }
 
-        // TBD: Check Implementation & add proper handling
         void MaintenanceManager::stopTimer()
         {
+            if (!checkTimerExists())
+            {
+                LOGERR("[ERROR] Timer does not exist. Unable to stop timer.");
+                return;
+            }
+
+            if (!isTimerRunning())
+            {
+                LOGINFO("Timer is not running. No need to stop.");
+                return;
+            }
+
             struct itimerspec its = {};
             its.it_value.tv_sec = 0;
             its.it_value.tv_nsec = 0;
@@ -592,6 +679,49 @@ namespace WPEFramework {
             else
             {
                 LOGINFO("Timer stopped for %s", currentScript.c_str());
+            }
+        }
+
+        void MaintenanceManager::deleteTimer()
+        {
+            if (!checkTimerExists())
+            {
+                LOGERR("[ERROR] Timer does not exist. Unable to delete timer.");
+                return;
+            }
+
+            if (isTimerRunning())
+            {
+                LOGINFO("Timer is currently running. Attempting to stop it before deletion.");
+                stopTimer();
+                if (!isTimerRunning())
+                {
+                    // Timer was successfully stopped
+                    if (timer_delete(timerid) == -1)
+                    {
+                        LOGERR("[ERROR] Failed to delete timer after stopping it.");
+                    }
+                    else
+                    {
+                        LOGINFO("Timer successfully deleted after stopping.");
+                    }
+                }
+                else
+                {
+                    LOGERR("[ERROR] Failed to stop the timer, hence could not delete it.");
+                }
+            }
+            else
+            {
+                // Timer is not running, delete directly
+                if (timer_delete(timerid) == -1)
+                {
+                    LOGERR("[ERROR] Failed to delete timer.");
+                }
+                else
+                {
+                    LOGINFO("Timer successfully deleted.");
+                }
             }
         }
 
@@ -1056,17 +1186,11 @@ namespace WPEFramework {
                 return string("[ERROR] Failed to register signal handler");
             }
 
-            // Create Timer
-            struct sigevent sev = {};
-            sev.sigev_notify = SIGEV_SIGNAL;
-            sev.sigev_signo = SIGALRM;
-            sev.sigev_value.sival_ptr = &timerid;
-
-            if (timer_create(BASE_CLOCK, &sev, &timerid) == -1)
+            if (!createTimer())
             {
-                LOGERR("[Error] Failed to create timer");
                 return string("[Error] Failed to create timer");
             }
+
             /* On Success; return empty to indicate no error text. */
             return (string());
         }
@@ -1074,14 +1198,7 @@ namespace WPEFramework {
         // TBD: Check Implementation & add proper handling
         void MaintenanceManager::Deinitialize(PluginHost::IShell* service)
         {
-            if (timer_delete(timerid) == -1)
-            {
-                LOGERR("Failed to delete timer");
-            }
-            else
-            {
-                LOGINFO("Timer deleted.");
-            }
+            deleteTimer();
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             stopMaintenanceTasks();
             DeinitializeIARM();
@@ -1788,11 +1905,13 @@ namespace WPEFramework {
                     }
                 }
                 // TBD: Check if timer exist & running -> if so stop and delete the timer
+                deleteTimer();
                 result=true;
             }
             else {
                 LOGERR("Failed to stopMaintenance without starting maintenance");
                 // TBD: check if timer exist -> if so delete timer
+                deleteTimer();
             }
             task_thread.notify_one();
 
