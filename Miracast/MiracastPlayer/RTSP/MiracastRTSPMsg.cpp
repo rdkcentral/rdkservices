@@ -249,8 +249,7 @@ MiracastRTSPMsg::MiracastRTSPMsg()
     set_WFDVideoFormat(st_video_fmt);
     set_WFDAudioCodecs(st_audio_fmt);
 
-    default_configuration = RTSP_DFLT_CONTENT_PROTECTION;
-    set_WFDContentProtection(default_configuration);
+    set_WFDContentProtection(true,RTSP_DFLT_WFD_HDCP_VERSION,RTSP_DFLT_WFD_HDCP_PORT);
 
     default_configuration = RTSP_DFLT_TRANSPORT_PROFILE;
     set_WFDTransportProfile(default_configuration);
@@ -478,9 +477,21 @@ bool MiracastRTSPMsg::set_WFDUIBCCapability(std::string uibc_caps)
     return true;
 }
 
-bool MiracastRTSPMsg::set_WFDContentProtection(std::string content_protection)
+bool MiracastRTSPMsg::set_WFDContentProtection(bool enabled, std::string hdcpVersion , unsigned int port )
 {
-    m_wfd_content_protection = content_protection;
+    if ( enabled )
+    {
+        char data_buffer[64] = {0};
+        m_hdcp_port_number = port;
+        m_wfd_hdcp_version = hdcpVersion;
+        sprintf( data_buffer , "%s port=%u" , hdcpVersion.c_str(),port);
+        m_wfd_content_protection = data_buffer;
+    }
+    else
+    {
+        m_wfd_content_protection = "none";
+    }
+    MIRACASTLOG_INFO("Updated RTSP WFD HDCP FIELD is [%s]",m_wfd_content_protection.c_str());
     return true;
 }
 
@@ -563,7 +574,7 @@ bool MiracastRTSPMsg::set_WFDRequestResponseTimeout( unsigned int request_timeou
     {
         m_wfd_src_req_timeout = request_timeout;
         m_wfd_src_res_timeout = response_timeout;
-        MIRACASTLOG_INFO("Request[%u]Response[%u]\n",request_timeout,response_timeout);
+        MIRACASTLOG_INFO("Request[%u]Response[%u]",request_timeout,response_timeout);
     }
     MIRACASTLOG_TRACE("Exiting...");
     return true;
@@ -1374,7 +1385,9 @@ RTSP_STATUS MiracastRTSPMsg::validate_rtsp_m3_response_back(std::string rtsp_m3_
     std::string line;
     std::string actual_parser_field = "",
                 parser_field_value = "";
-    const char  *sequence_tag = get_parser_field_by_index(RTSP_SEQUENCE_FIELD);
+    const char  *sequence_tag = get_parser_field_by_index(RTSP_SEQUENCE_FIELD),
+                *hdcp_tag = get_parser_field_by_index(RTSP_WFD_HDCP_FIELD);
+    bool is_wfd_hdcp_field_received = false;
 
     while (std::getline(ss, line))
     {
@@ -1392,6 +1405,11 @@ RTSP_STATUS MiracastRTSPMsg::validate_rtsp_m3_response_back(std::string rtsp_m3_
             parser_field_value = get_parser_field_n_value_by_name(line);
             if (!parser_field_value.empty())
             {
+                if ( 0 == strncmp( hdcp_tag , line.c_str() , strlen(hdcp_tag)))
+                {
+                    is_wfd_hdcp_field_received = true;
+                    MIRACASTLOG_INFO("[%s] has requested from SrcDev",hdcp_tag);
+                }
                 content_buffer.append(line);
                 content_buffer.append(": ");
                 content_buffer.append(parser_field_value);
@@ -1410,7 +1428,20 @@ RTSP_STATUS MiracastRTSPMsg::validate_rtsp_m3_response_back(std::string rtsp_m3_
 
     if (RTSP_MSG_SUCCESS == status_code)
     {
-        MIRACASTLOG_INFO("Sending the M3 response");
+        MIRACASTLOG_INFO("M3 response sent");
+        if (( is_wfd_hdcp_field_received ) && (0 != (m_wfd_content_protection.compare("none"))))
+        {
+            MIRACASTLOG_INFO("Initiating HDCP SoC Auth by occuring MiracastHDCPState instance");
+            m_p_instance = MiracastHDCPState::getInstance(m_wfd_hdcp_version,m_hdcp_port_number);
+            if ( nullptr == m_p_instance )
+            {
+                status_code = RTSP_SOC_HDCP_AUTH_FAILURE;
+            }
+        }
+        else
+        {
+            MIRACASTLOG_INFO("HDCP SoC Auth not required");
+        }
     }
     else
     {
@@ -2105,6 +2136,12 @@ void MiracastRTSPMsg::RTSPMessageHandler_Thread(void *args)
                     MIRACASTLOG_WARNING("Yet to Handle RTSP Msg Action[%#04X]\n", rtsp_message_data.state);
                 }
             }
+        }
+
+        if ( nullptr != m_p_instance )
+        {
+            MiracastHDCPState::destroyInstance();
+            m_p_instance = nullptr;
         }
 
         start_monitor_keep_alive_msg = false;
