@@ -724,12 +724,13 @@ namespace WPEFramework {
             }
         }
 
+        /* TBD: static method uses MaintenanceManager instance to access non-static members and methods */
         void MaintenanceManager::timer_handler(int signo)
         {
             if (signo == SIGALRM)
             {
                 LOGERR("Timeout reached for %s. Aborting task...", currentScript.c_str());
-                abortTask(currentScript.c_str());
+                MaintenanceManager::_instance->abortTask(currentScript.c_str());
 
                 const char* failedTask = nullptr;
                 int complete_status = 0;
@@ -742,14 +743,14 @@ namespace WPEFramework {
                     }
                 }
 
-                if(failedTask && !m_task_map[failedTask]){
+                if(failedTask && !MaintenanceManager::_instance->m_task_map[failedTask]){
                     LOGINFO("Ignoring Error Event for Task: %s", failedTask);
                 }
                 else if (failedTask) {
-                    SET_STATUS(g_task_status, complete_status);
-                    task_thread.notify_one();
+                    SET_STATUS(MaintenanceManager::_instance->g_task_status, complete_status);
+                    MaintenanceManager::_instance->task_thread.notify_one();
                     LOGINFO("Abort %s Task", failedTask);
-                    m_task_map[failedTask] = false;
+                    MaintenanceManager::_instance->m_task_map[failedTask] = false;
                 }
             }
         }
