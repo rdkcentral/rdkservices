@@ -49,12 +49,10 @@ SERVICE_REGISTRATION(UserSettingsImplementation, 1, 0);
 
 UserSettingsImplementation::UserSettingsImplementation()
 : _adminLock()
-, _engine(Core::ProxyType<RPC::InvokeServerType<1, 0, 4>>::Create())
-, _communicatorClient(Core::ProxyType<RPC::CommunicatorClient>::Create(Core::NodeId("/tmp/communicator"), Core::ProxyType<Core::IIPCServer>(_engine)))
-, _controller(nullptr)
 , _remotStoreObject(nullptr)
 , _storeNotification(*this)
 , _registeredEventHandlers(false)
+, _service(nullptr)
 #ifdef HAS_RBUS
 , _rbusHandleStatus(RBUS_ERROR_NOT_INITIALIZED)
 #endif
@@ -62,37 +60,34 @@ UserSettingsImplementation::UserSettingsImplementation()
     LOGINFO("Create UserSettingsImplementation Instance");
 
     UserSettingsImplementation::instance(this);
+}
 
-     if (!_communicatorClient.IsValid())
-     {
-         LOGWARN("Invalid _communicatorClient\n");
-    }
-    else
+uint32_t UserSettingsImplementation::Configure(PluginHost::IShell* service)
+{
+    uint32_t result = Core::ERROR_GENERAL;
+
+    if (service != nullptr )
     {
+        _service = service;
+        _service->AddRef();
+        result = Core::ERROR_NONE;
 
-#if ((THUNDER_VERSION == 2) || ((THUNDER_VERSION == 4) && (THUNDER_VERSION_MINOR == 2)))
-        _engine->Announcements(_communicatorClient->Announcement());
-#endif
-
-        LOGINFO("Connect the COM-RPC socket\n");
-        _controller = _communicatorClient->Open<PluginHost::IShell>(_T("org.rdk.PersistentStore"), ~0, 3000);
-
-        if (_controller)
+        _remotStoreObject = _service->QueryInterfaceByCallsign<WPEFramework::Exchange::IStore2>("org.rdk.PersistentStore");
+        if (_remotStoreObject != nullptr)
         {
-             _remotStoreObject = _controller->QueryInterface<Exchange::IStore2>();
-
-             if(_remotStoreObject)
-             {
-                 _remotStoreObject->AddRef();
-             }
+            registerEventHandlers();
         }
         else
         {
-            LOGERR("Failed to create PersistentStore Controller\n");
+            LOGERR("_remotStoreObject is null \n");
         }
-
-        registerEventHandlers();
     }
+    else
+    {
+        LOGERR("service is null \n");
+    }
+
+    return result;
 }
 
 UserSettingsImplementation* UserSettingsImplementation::instance(UserSettingsImplementation *UserSettingsImpl)
@@ -111,28 +106,18 @@ UserSettingsImplementation* UserSettingsImplementation::instance(UserSettingsImp
 
 UserSettingsImplementation::~UserSettingsImplementation()
 {
-    if (_controller)
-    {
-        _controller->Release();
-        _controller = nullptr;
-    }
 
-    LOGINFO("Disconnect from the COM-RPC socket\n");
-    // Disconnect from the COM-RPC socket
-    _communicatorClient->Close(RPC::CommunicationTimeOut);
-    if (_communicatorClient.IsValid())
-    {
-        _communicatorClient.Release();
-    }
-
-    if(_engine.IsValid())
-    {
-        _engine.Release();
-    }
+    LOGINFO("UserSettingsImplementation Destructor\n");
 
     if(_remotStoreObject)
     {
         _remotStoreObject->Release();
+	_remotStoreObject = nullptr;
+    }
+    if (_service != nullptr)
+    {
+       _service->Release();
+       _service = nullptr;
     }
     _registeredEventHandlers = false;
     
@@ -148,11 +133,15 @@ UserSettingsImplementation::~UserSettingsImplementation()
 
 void UserSettingsImplementation::registerEventHandlers()
 {
-    ASSERT (nullptr != _remotStoreObject);
 
-    if(!_registeredEventHandlers && _remotStoreObject) {
+    if(!_registeredEventHandlers && _remotStoreObject)
+    {
         _registeredEventHandlers = true;
         _remotStoreObject->Register(&_storeNotification);
+    }
+    else
+    {
+        LOGERR("_remotStoreObject is null or _registeredEventHandlers is true");
     }
 }
 
@@ -410,10 +399,14 @@ uint32_t UserSettingsImplementation::SetUserSettingsValue(const string& key, con
     uint32_t status = Core::ERROR_GENERAL;
     _adminLock.Lock();
 
-    ASSERT (nullptr != _remotStoreObject);
+    LOGINFO("Key[%s] value[%s]", key.c_str(), value.c_str());
     if (nullptr != _remotStoreObject)
     {
         status = _remotStoreObject->SetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, key, value, 0);
+    }
+    else
+    {
+        LOGERR("_remotStoreObject is null");
     }
 
     _adminLock.Unlock();
@@ -426,7 +419,6 @@ uint32_t UserSettingsImplementation::GetUserSettingsValue(const string& key, str
     uint32_t ttl = 0;
     _adminLock.Lock();
 
-    ASSERT (nullptr != _remotStoreObject);
     if (nullptr != _remotStoreObject)
     {
         status = _remotStoreObject->GetValue(Exchange::IStore2::ScopeType::DEVICE, USERSETTINGS_NAMESPACE, key, value, ttl);
@@ -444,6 +436,10 @@ uint32_t UserSettingsImplementation::GetUserSettingsValue(const string& key, str
                 LOGERR("Default value is not found in usersettingsDefaultMap for '%s' Key", key.c_str());
             }
         }
+    }
+    else
+    {
+        LOGERR("_remotStoreObject is null");
     }
     _adminLock.Unlock();
 
