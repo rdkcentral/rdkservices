@@ -358,6 +358,17 @@ namespace Plugin {
         registerMethod("resetAutoBacklightMode", &AVOutputTV::resetAutoBacklightMode, this);
         registerMethod("getAutoBacklightModeCaps", &AVOutputTV::getAutoBacklightModeCaps, this);
 
+        registerMethod("getBacklightCapsV2", &AVOutputTV::getBacklightCapsV2, this);
+        registerMethod("getBrightnessCapsV2", &AVOutputTV::getBrightnessCapsV2, this);
+        registerMethod("getContrastCapsV2", &AVOutputTV::getContrastCapsV2, this);
+        registerMethod("getSharpnessCapsV2", &AVOutputTV::getSharpnessCapsV2, this);
+        registerMethod("getSaturationCapsV2", &AVOutputTV::getSaturationCapsV2, this);
+        registerMethod("getHueCapsV2", &AVOutputTV::getHueCapsV2, this);
+        registerMethod("getColorTemperatureCapsV2", &AVOutputTV::getColorTemperatureCapsV2, this);
+        registerMethod("getPrecisionDetailCapsV2", &AVOutputTV::getPrecisionDetailCapsV2, this);
+        registerMethod("getSdrGammaCapsV2", &AVOutputTV::getSdrGammaCapsV2, this);
+        registerMethod("getDVCalibrationCapsV2", &AVOutputTV::getDVCalibrationCapsV2, this);
+
         LOGINFO("Exit\n");
     }
     
@@ -458,7 +469,40 @@ namespace Plugin {
 
        LOGINFO("Exit\n");
     }
+    uint32_t AVOutputTV2::getBacklightCapsV2(const JsonObject &parameters, JsonObject &response)
+    {
+        LOGINFO("Entry");
+        int max_backlight;
+        tvContextCaps_t *caps = NULL;
+        tvError_t ret = GetBacklightCaps(&max_backlight, &caps);
+        if (ret == tvERROR_OPERATION_NOT_SUPPORTED)
+        {
+            response["backlight"]["platformsupport"] = false;
+            returnResponse(false);
+        }
+        if (ret != tvERROR_NONE || caps == NULL)
+        {
+            returnResponse(false);
+        }
+        json contexts;
+        for (const auto &ctx : caps->contexts)
+        {
+            if (pqModeMap.find(ctx.pq_mode) != pqModeMap.end() &&
+                videoFormatMap.find(ctx.videoFormatType) != videoFormatMap.end() &&
+                videoSrcMap.find(ctx.videoSrcType) != videoSrcMap.end())
+            {
+                contexts[pqModeMap[ctx.pq_mode]][videoFormatMap[ctx.videoFormatType]].push_back(videoSrcMap[ctx.videoSrcType]);
+            }
+        }
 
+        response["backlight"]["range_from"] = 0;
+        response["backlight"]["range_to"] = max_backlight; // TODO::Missing from HAL
+        response["backlight"]["platformsupport"] = true;
+        response["backlight"]["context"] = contexts;
+
+        LOGINFO("Exit\n");
+        returnResponse(true);
+    }
     uint32_t AVOutputTV::getZoomModeCaps(const JsonObject& parameters, JsonObject& response)
     {
         LOGINFO("Entry");
