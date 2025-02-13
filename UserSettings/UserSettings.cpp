@@ -76,6 +76,21 @@ namespace WPEFramework
 
         if(nullptr != _userSetting)
         {
+
+            configure = _userSetting->QueryInterface<Exchange::IConfiguration>();
+            if (configure != nullptr)
+            {
+                uint32_t result = configure->Configure(_service);
+                if(result != Core::ERROR_NONE)
+                {
+                    message = _T("UserSettings could not be configured");
+                }
+            }
+            else
+            {
+                message = _T("UserSettings implementation did not provide a configuration interface");
+            }
+
             // Register for notifications
             _userSetting->Register(&_usersettingsNotification);
             // Invoking Plugin API register to wpeframework
@@ -108,6 +123,8 @@ namespace WPEFramework
         {
             _userSetting->Unregister(&_usersettingsNotification);
             Exchange::JUserSettings::Unregister(*this);
+
+            configure->Release();
 
             // Stop processing:
             RPC::IRemoteConnection* connection = service->RemoteConnection(_connectionId);
