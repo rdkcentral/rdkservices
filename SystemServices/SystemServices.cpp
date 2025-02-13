@@ -2751,7 +2751,7 @@ namespace WPEFramework {
             LOGERR("Exception caught while reading territory file");
             retValue = false;
             m_strTerritory = "";
-			m_strRegion = "";
+            m_strRegion = "";
         }
 		return retValue;
 	}
