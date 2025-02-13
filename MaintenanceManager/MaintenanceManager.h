@@ -219,9 +219,9 @@ namespace WPEFramework {
                 bool checkTaskTimerExists();
                 bool isTaskTimerRunning();
                 bool maintenance_createTimer();
-                void task_startTimer();
-                void task_stopTimer();
-                void maintenance_deleteTimer();
+                bool task_startTimer();
+                bool task_stopTimer();
+                bool maintenance_deleteTimer();
 
                 BEGIN_INTERFACE_MAP(MaintenanceManager)
                 INTERFACE_ENTRY(PluginHost::IPlugin)
