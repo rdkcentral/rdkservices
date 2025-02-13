@@ -206,8 +206,8 @@ namespace WPEFramework {
 
         /* Static Member Definitions */
         timer_t MaintenanceManager::timerid;
-        string MaintenanceManager::currentScript;
-        bool MaintenanceManager::scriptCompleted = false;
+        string MaintenanceManager::currentTask;
+        bool MaintenanceManager::taskCompleted = false;
 
         string task_names_foreground[]={
             "/lib/rdk/Start_RFC.sh",
@@ -414,7 +414,7 @@ namespace WPEFramework {
                 if (!m_abort_flag)
                 {
                     LOGINFO("Starting Script (SM) :  %s \n", cmd.c_str());
-                    currentScript = cmd;
+                    currentTask = cmd;
                     if (retry_count == TASK_RETRY_COUNT){
                         LOGINFO("Starting Timer for %s \n", cmd.c_str());
                         startTimer();
@@ -649,7 +649,7 @@ namespace WPEFramework {
             }
             else
             {
-                LOGINFO("Timer started for %d seconds for %s", TASK_TIMEOUT, currentScript.c_str());
+                LOGINFO("Timer started for %d seconds for %s", TASK_TIMEOUT, currentTask.c_str());
             }
         }
 
@@ -677,7 +677,7 @@ namespace WPEFramework {
             }
             else
             {
-                LOGINFO("Timer stopped for %s", currentScript.c_str());
+                LOGINFO("Timer stopped for %s", currentTask.c_str());
             }
         }
 
@@ -729,14 +729,14 @@ namespace WPEFramework {
         {
             if (signo == SIGALRM)
             {
-                LOGERR("Timeout reached for %s. Aborting task...", currentScript.c_str());
-                MaintenanceManager::_instance->abortTask(currentScript.c_str());
+                LOGERR("Timeout reached for %s. Aborting task...", currentTask.c_str());
+                MaintenanceManager::_instance->abortTask(currentTask.c_str());
 
                 const char* failedTask = nullptr;
                 int complete_status = 0;
 
                 for(size_t j = 0; j < (sizeof(task_names_foreground)/ sizeof(task_names_foreground[0])); j++){
-                    if(currentScript.find(task_names_foreground[j]) != string::npos){
+                    if(currentTask.find(task_names_foreground[j]) != string::npos){
                         failedTask = task_names_foreground[j].c_str();
                         complete_status = task_complete_status[j];
                         break;
@@ -1921,12 +1921,12 @@ namespace WPEFramework {
                         LOGINFO("Task[%d] is false \n",i);
                     }
                 }
-                deleteTimer();
+                stopTimer();
                 result=true;
             }
             else {
                 LOGERR("Failed to stopMaintenance without starting maintenance");
-                deleteTimer();
+                stopTimer();
             }
             task_thread.notify_one();
 

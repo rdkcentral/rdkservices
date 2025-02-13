@@ -213,8 +213,8 @@ namespace WPEFramework {
                 /* Timer Implementation */
                 static void timer_handler(int signo);
                 static timer_t timerid;
-                static string currentScript;
-                static bool scriptCompleted;
+                static string currentTask;
+                static bool taskCompleted;
 
                 bool checkTimerExists();
                 bool isTimerRunning();
