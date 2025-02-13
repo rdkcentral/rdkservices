@@ -413,15 +413,15 @@ namespace WPEFramework {
 
                 if (!m_abort_flag)
                 {
-                    LOGINFO("Starting Script (SM) :  %s \n", cmd.c_str());
+                    LOGINFO("Starting Task :  %s \n", cmd.c_str());
                     currentTask = cmd;
                     if (retry_count == TASK_RETRY_COUNT){
                         LOGINFO("Starting Timer for %s \n", cmd.c_str());
-                        startTimer();
+                        task_startTimer();
                     }
                     task_status = system(cmd.c_str());
 
-                    if (task_status != 0)
+                    if (task_status != 0) /* system() call fails */
                     {
                         LOGINFO("%s invocation failed with return status %d", cmd.c_str(), WEXITSTATUS(task_status));
                         if (retry_count > 0){
@@ -456,14 +456,14 @@ namespace WPEFramework {
                                 LOGINFO("Error encountered in %s script task", current_task);
                                 m_task_map[current_task] = false;
                             }
-                            stopTimer();
+                            task_stopTimer();
                         }
-                    }
+                    } /* System() executes successfully */
                     else
                     {
-                        stopTimer();
                         LOGINFO("Waiting to unlock.. [%d/%d]", i + 1, (int)tasks.size());
                         task_thread.wait(lck);
+                        task_stopTimer();
                     }
                 }
                 retry_count = TASK_RETRY_COUNT; /* Reset Retry Count for next Task*/
@@ -559,7 +559,7 @@ namespace WPEFramework {
             return thunder_client;
         }
 
-        bool MaintenanceManager::checkTimerExists() {
+        bool MaintenanceManager::checkTaskTimerExists() {
             struct itimerspec current;
             int result = timer_gettime(timerid, &current);
             if (result == 0)
@@ -577,7 +577,7 @@ namespace WPEFramework {
             return false;
         }
 
-        bool MaintenanceManager::isTimerRunning()
+        bool MaintenanceManager::isTaskTimerRunning()
         {
             struct itimerspec current;
             if (timer_gettime(timerid, &current) == 0)
@@ -591,12 +591,12 @@ namespace WPEFramework {
             }
         }
 
-        bool MaintenanceManager::createTimer()
+        bool MaintenanceManager::maintenance_createTimer()
         {
-            if (checkTimerExists())
+            if (checkTaskTimerExists())
             {
                 LOGINFO("Timer already exists.");
-                if (isTimerRunning())
+                if (isTaskTimerRunning())
                 {
                     LOGINFO("Timer is already running. No need to create a new timer.");
                     return false; // Timer exists and is running
@@ -622,15 +622,15 @@ namespace WPEFramework {
             return true; // Timer created successfully
         }
 
-        void MaintenanceManager::startTimer(){
+        void MaintenanceManager::task_startTimer(){
 
-            if (!checkTimerExists())
+            if (!checkTaskTimerExists())
             {
                 LOGERR("[ERROR] Timer does not exist. Unable to start timer.");
                 return;
             }
 
-            if (isTimerRunning())
+            if (isTaskTimerRunning())
             {
                 LOGINFO("Timer is already running. Not starting a new timer.");
                 return;
@@ -653,15 +653,15 @@ namespace WPEFramework {
             }
         }
 
-        void MaintenanceManager::stopTimer()
+        void MaintenanceManager::task_stopTimer()
         {
-            if (!checkTimerExists())
+            if (!checkTaskTimerExists())
             {
                 LOGERR("[ERROR] Timer does not exist. Unable to stop timer.");
                 return;
             }
 
-            if (!isTimerRunning())
+            if (!isTaskTimerRunning())
             {
                 LOGINFO("Timer is not running. No need to stop.");
                 return;
@@ -681,19 +681,19 @@ namespace WPEFramework {
             }
         }
 
-        void MaintenanceManager::deleteTimer()
+        void MaintenanceManager::maintenance_deleteTimer()
         {
-            if (!checkTimerExists())
+            if (!checkTaskTimerExists())
             {
                 LOGERR("[ERROR] Timer does not exist. Unable to delete timer.");
                 return;
             }
 
-            if (isTimerRunning())
+            if (isTaskTimerRunning())
             {
                 LOGINFO("Timer is currently running. Attempting to stop it before deletion.");
-                stopTimer();
-                if (!isTimerRunning())
+                task_stopTimer();
+                if (!isTaskTimerRunning())
                 {
                     // Timer was successfully stopped
                     if (timer_delete(timerid) == -1)
@@ -1205,7 +1205,7 @@ namespace WPEFramework {
                 return string("[ERROR] Failed to register signal handler");
             }
 
-            if (!createTimer())
+            if (!maintenance_createTimer())
             {
                 return string("[Error] Failed to create timer");
             }
@@ -1216,7 +1216,7 @@ namespace WPEFramework {
 
         void MaintenanceManager::Deinitialize(PluginHost::IShell* service)
         {
-            deleteTimer();
+            maintenance_deleteTimer();
 #if defined(USE_IARMBUS) || defined(USE_IARM_BUS)
             stopMaintenanceTasks();
             DeinitializeIARM();
@@ -1921,12 +1921,12 @@ namespace WPEFramework {
                         LOGINFO("Task[%d] is false \n",i);
                     }
                 }
-                stopTimer();
+                task_stopTimer();
                 result=true;
             }
             else {
                 LOGERR("Failed to stopMaintenance without starting maintenance");
-                stopTimer();
+                task_stopTimer();
             }
             task_thread.notify_one();
 

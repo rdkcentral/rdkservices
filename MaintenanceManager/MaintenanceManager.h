@@ -216,12 +216,12 @@ namespace WPEFramework {
                 static string currentTask;
                 static bool taskCompleted;
 
-                bool checkTimerExists();
-                bool isTimerRunning();
-                bool createTimer();
-                void startTimer();
-                void stopTimer();
-                void deleteTimer();
+                bool checkTaskTimerExists();
+                bool isTaskTimerRunning();
+                bool maintenance_createTimer();
+                void task_startTimer();
+                void task_stopTimer();
+                void maintenance_deleteTimer();
 
                 BEGIN_INTERFACE_MAP(MaintenanceManager)
                 INTERFACE_ENTRY(PluginHost::IPlugin)
